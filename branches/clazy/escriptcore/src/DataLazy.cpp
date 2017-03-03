@@ -134,6 +134,29 @@ size_t maxstackuse=0;
 #endif
 
 
+// namespace
+// {
+
+    inline int max3(int a, int b, int c)
+    {
+        int t=(a>b?a:b);
+        return (t>c?t:c);
+
+    }
+    
+    
+    DataLazy_ptr makePromote(DataLazy_ptr p)
+    {
+        if (p->isComplex())
+        {
+            return p;
+        }
+        DataLazy* temp=new DataLazy(p, PROM);
+        return DataLazy_ptr(temp);
+    }
+// }
+
+
 // return the FunctionSpace of the result of "left op right"
 FunctionSpace
 resultFS(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op)
@@ -432,6 +455,7 @@ LAZYDEBUG(cout << "Wrapping " << dr.get() << " id=" << m_id.get() << endl;)
 LAZYDEBUG(cout << "(1)Lazy created with " << m_samplesize << endl;)
 }
 
+// Wrapping a unary operation
 DataLazy::DataLazy(DataAbstract_ptr left, ES_optype op)
         : parent(left->getFunctionSpace(),(getOpgroup(op)!=G_REDUCTION)?left->getShape():DataTypes::scalarShape),
         m_op(op),
@@ -458,12 +482,13 @@ DataLazy::DataLazy(DataAbstract_ptr left, ES_optype op)
    m_samplesize=getNumDPPSample()*getNoValues();
    m_children=m_left->m_children+1;
    m_height=m_left->m_height+1;
+   m_iscompl=left->isComplex();
    LazyNodeSetup();
    SIZELIMIT
 }
 
 
-// In this constructor we need to consider interpolation
+// In this constructor we need to consider interpolation and promotion
 DataLazy::DataLazy(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op)
         : parent(resultFS(left,right,op), resultShape(left,right,op)),
         m_op(op),
@@ -527,11 +552,26 @@ LAZYDEBUG(cout << "Right " << right.get() << " wrapped " << m_right->m_id.get() 
    m_samplesize=getNumDPPSample()*getNoValues();
    m_children=m_left->m_children+m_right->m_children+2;
    m_height=max(m_left->m_height,m_right->m_height)+1;
+   
+   // now we need to work out if we need to promote anything
+   if (left->isComplex()!=right->isComplex())
+   {
+       if (left->isComplex())
+       {
+           m_right=makePromote(m_right);
+       }
+       else
+       {
+           m_left=makePromote(m_left);
+       }
+   }
+   m_iscompl=left->isComplex();
    LazyNodeSetup();
    SIZELIMIT
 LAZYDEBUG(cout << "(3)Lazy created with " << m_samplesize << endl;)
 }
 
+// need to consider promotion
 DataLazy::DataLazy(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op, int axis_offset, int transpose)
         : parent(resultFS(left,right,op), GTPShape(left,right, axis_offset, transpose, m_SL,m_SM, m_SR)),
         m_op(op),
@@ -593,6 +633,21 @@ DataLazy::DataLazy(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op, 
    m_samplesize=getNumDPPSample()*getNoValues();
    m_children=m_left->m_children+m_right->m_children+2;
    m_height=max(m_left->m_height,m_right->m_height)+1;
+   
+   
+   // now we need to work out if we need to promote anything
+   if (left->isComplex()!=right->isComplex())
+   {
+       if (left->isComplex())
+       {
+           m_right=makePromote(m_right);
+       }
+       else
+       {
+           m_left=makePromote(m_left);
+       }
+   }
+   m_iscompl=left->isComplex();      
    LazyNodeSetup();
    SIZELIMIT
 LAZYDEBUG(cout << "(4)Lazy created with " << m_samplesize << endl;)
@@ -624,6 +679,7 @@ DataLazy::DataLazy(DataAbstract_ptr left, ES_optype op, int axis_offset)
    m_samplesize=getNumDPPSample()*getNoValues();
    m_children=m_left->m_children+1;
    m_height=m_left->m_height+1;
+   m_iscompl=left->isComplex();
    LazyNodeSetup();
    SIZELIMIT
 LAZYDEBUG(cout << "(5)Lazy created with " << m_samplesize << endl;)
@@ -654,6 +710,7 @@ DataLazy::DataLazy(DataAbstract_ptr left, ES_optype op, double tol)
    m_samplesize=getNumDPPSample()*getNoValues();
    m_children=m_left->m_children+1;
    m_height=m_left->m_height+1;
+   m_iscompl=left->isComplex();
    LazyNodeSetup();
    SIZELIMIT
 LAZYDEBUG(cout << "(6)Lazy created with " << m_samplesize << endl;)
@@ -685,22 +742,14 @@ DataLazy::DataLazy(DataAbstract_ptr left, ES_optype op, const int axis0, const i
    m_samplesize=getNumDPPSample()*getNoValues();
    m_children=m_left->m_children+1;
    m_height=m_left->m_height+1;
+   m_iscompl=left->isComplex();
    LazyNodeSetup();
    SIZELIMIT
 LAZYDEBUG(cout << "(7)Lazy created with " << m_samplesize << endl;)
 }
 
 
-namespace
-{
 
-    inline int max3(int a, int b, int c)
-    {
-        int t=(a>b?a:b);
-        return (t>c?t:c);
-
-    }
-}
 
 DataLazy::DataLazy(DataAbstract_ptr mask, DataAbstract_ptr left, DataAbstract_ptr right/*, double tol*/)
         : parent(left->getFunctionSpace(), left->getShape()),
@@ -748,6 +797,20 @@ DataLazy::DataLazy(DataAbstract_ptr mask, DataAbstract_ptr left, DataAbstract_pt
    m_samplesize=getNumDPPSample()*getNoValues();
    m_children=m_left->m_children+m_right->m_children+m_mask->m_children+1;
    m_height=max3(m_left->m_height,m_right->m_height,m_mask->m_height)+1;
+   
+   // now we need to work out if we need to promote anything
+   if (left->isComplex()!=right->isComplex())
+   {
+       if (left->isComplex())
+       {
+           m_right=makePromote(m_right);
+       }
+       else
+       {
+           m_left=makePromote(m_left);
+       }
+   }
+   m_iscompl=left->isComplex();   
    LazyNodeSetup();
    SIZELIMIT
 LAZYDEBUG(cout << "(8)Lazy created with " << m_samplesize << endl;)
