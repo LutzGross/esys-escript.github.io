@@ -389,14 +389,21 @@ void DataLazy::LazyNodeSetup()
 {
 #ifdef _OPENMP
     int numthreads=omp_get_max_threads();
-    m_samples.resize(numthreads*m_samplesize);
+    m_samples_r.resize(numthreads*m_samplesize);
     m_sampleids=new int[numthreads];
     for (int i=0;i<numthreads;++i) 
     { 
         m_sampleids[i]=-1;  
     }
 #else
-    m_samples.resize(m_samplesize);
+    if (m_iscompl)
+    {
+        m_samples_c.resize(m_samplesize);
+    }
+    else
+    {
+        m_samples_r.resize(m_samplesize);
+    }
     m_sampleids=new int[1];
     m_sampleids[0]=-1;
 #endif  // _OPENMP
@@ -407,7 +414,7 @@ void DataLazy::LazyNodeSetup()
 DataLazy::DataLazy(DataAbstract_ptr p)
         : parent(p->getFunctionSpace(),p->getShape())
         ,m_sampleids(0),
-        m_samples(1)
+        m_samples_r(1)
 {
    if (p->isLazy())
    {
@@ -963,7 +970,7 @@ if (&x<stackend[omp_get_thread_num()])
   if (m_sampleids[tid]==sampleNo)
   {
         roffset=tid*m_samplesize;
-        return &(m_samples);            // sample is already resolved
+        return &(m_samples_r);            // sample is already resolved
   }
   m_sampleids[tid]=sampleNo;
 
@@ -1001,7 +1008,7 @@ DataLazy::resolveNodeUnary(int tid, int sampleNo, size_t& roffset) const
   const DataTypes::RealVectorType* leftres=m_left->resolveNodeSample(tid, sampleNo, roffset);
   const double* left=&((*leftres)[roffset]);
   roffset=m_samplesize*tid;
-  double* result=&(m_samples[roffset]);
+  double* result=&(m_samples_r[roffset]);
   if (m_op==POS)
   {
 	// this should be prevented earlier
@@ -1013,7 +1020,7 @@ DataLazy::resolveNodeUnary(int tid, int sampleNo, size_t& roffset) const
                              result,
                              m_op,
                              m_tol);  
-  return &(m_samples);
+  return &(m_samples_r);
 }
 
 
@@ -1038,7 +1045,7 @@ DataLazy::resolveNodeReduction(int tid, int sampleNo, size_t& roffset) const
   roffset=m_samplesize*tid;
   unsigned int ndpps=getNumDPPSample();
   unsigned int psize=DataTypes::noValues(m_left->getShape());
-  double* result=&(m_samples[roffset]);
+  double* result=&(m_samples_r[roffset]);
   switch (m_op)
   {
     case MINVAL:
@@ -1066,7 +1073,7 @@ DataLazy::resolveNodeReduction(int tid, int sampleNo, size_t& roffset) const
     default:
         throw DataException("Programmer error - resolveUnary can not resolve operator "+opToString(m_op)+".");
   }
-  return &(m_samples);
+  return &(m_samples_r);
 }
 
 const DataTypes::RealVectorType*
@@ -1095,7 +1102,7 @@ DataLazy::resolveNodeNP1OUT(int tid, int sampleNo, size_t& roffset) const
     case SYM:
         for (loop=0;loop<numsteps;++loop)
         {
-            escript::symmetric(*leftres,m_left->getShape(),subroffset, m_samples, getShape(), offset);
+            escript::symmetric(*leftres,m_left->getShape(),subroffset, m_samples_r, getShape(), offset);
             subroffset+=step;
             offset+=step;
         }
@@ -1103,7 +1110,7 @@ DataLazy::resolveNodeNP1OUT(int tid, int sampleNo, size_t& roffset) const
     case NSYM:
         for (loop=0;loop<numsteps;++loop)
         {
-            escript::antisymmetric(*leftres,m_left->getShape(),subroffset, m_samples, getShape(), offset);
+            escript::antisymmetric(*leftres,m_left->getShape(),subroffset, m_samples_r, getShape(), offset);
             subroffset+=step;
             offset+=step;
         }
@@ -1111,7 +1118,7 @@ DataLazy::resolveNodeNP1OUT(int tid, int sampleNo, size_t& roffset) const
     default:
         throw DataException("Programmer error - resolveNP1OUT can not resolve operator "+opToString(m_op)+".");
   }
-  return &m_samples;
+  return &m_samples_r;
 }
 
 const DataTypes::RealVectorType*
@@ -1142,7 +1149,7 @@ DataLazy::resolveNodeNP1OUT_P(int tid, int sampleNo, size_t& roffset) const
     case TRACE:
         for (loop=0;loop<numsteps;++loop)
         {
-            escript::trace(*leftres,m_left->getShape(),subroffset, m_samples ,getShape(),offset,m_axis_offset);
+            escript::trace(*leftres,m_left->getShape(),subroffset, m_samples_r ,getShape(),offset,m_axis_offset);
             subroffset+=instep;
             offset+=outstep;
         }
@@ -1150,7 +1157,7 @@ DataLazy::resolveNodeNP1OUT_P(int tid, int sampleNo, size_t& roffset) const
     case TRANS:
         for (loop=0;loop<numsteps;++loop)
         {
-            escript::transpose(*leftres,m_left->getShape(),subroffset, m_samples, getShape(),offset,m_axis_offset);
+            escript::transpose(*leftres,m_left->getShape(),subroffset, m_samples_r, getShape(),offset,m_axis_offset);
             subroffset+=instep;
             offset+=outstep;
         }
@@ -1158,7 +1165,7 @@ DataLazy::resolveNodeNP1OUT_P(int tid, int sampleNo, size_t& roffset) const
     default:
         throw DataException("Programmer error - resolveNP1OUTP can not resolve operator "+opToString(m_op)+".");
   }
-  return &m_samples;
+  return &m_samples_r;
 }
 
 
@@ -1187,7 +1194,7 @@ DataLazy::resolveNodeNP1OUT_2P(int tid, int sampleNo, size_t& roffset) const
     case SWAP:
         for (loop=0;loop<numsteps;++loop)
         {
-            escript::swapaxes(*leftres,m_left->getShape(),subroffset, m_samples, getShape(),offset, m_axis_offset, m_transpose);
+            escript::swapaxes(*leftres,m_left->getShape(),subroffset, m_samples_r, getShape(),offset, m_axis_offset, m_transpose);
             subroffset+=instep;
             offset+=outstep;
         }
@@ -1195,7 +1202,7 @@ DataLazy::resolveNodeNP1OUT_2P(int tid, int sampleNo, size_t& roffset) const
     default:
         throw DataException("Programmer error - resolveNodeNP1OUT2P can not resolve operator "+opToString(m_op)+".");
   }
-  return &m_samples;
+  return &m_samples_r;
 }
 
 const DataTypes::RealVectorType*
@@ -1227,10 +1234,10 @@ DataLazy::resolveNodeCondEval(int tid, int sampleNo, size_t& roffset) const
   roffset=m_samplesize*tid;
   for (int i=0;i<m_samplesize;++i)
   {
-        m_samples[roffset+i]=(*srcres)[subroffset+i];   
+        m_samples_r[roffset+i]=(*srcres)[subroffset+i];   
   }
 
-  return &m_samples;
+  return &m_samples_r;
 }
 
 // This method assumes that any subexpressions which evaluate to Constant or Tagged Data
@@ -1370,7 +1377,7 @@ LAZYDEBUG(cout << "Right res["<< rroffset<< "]=" << (*right)[rroffset] << endl;)
 
 
   roffset=m_samplesize*tid;
-  double* resultp=&(m_samples[roffset]);                // results are stored at the vector offset we received
+  double* resultp=&(m_samples_r[roffset]);                // results are stored at the vector offset we received
   switch(m_op)
   {
     case ADD:
@@ -1461,8 +1468,8 @@ LAZYDEBUG(cout << "Right res["<< rroffset<< "]=" << (*right)[rroffset] << endl;)
     default:
         throw DataException("Programmer error - resolveBinary can not resolve operator "+opToString(m_op)+".");
   }
-LAZYDEBUG(cout << "Result res[" << roffset<< "]" << m_samples[roffset] << endl;)
-  return &m_samples;
+LAZYDEBUG(cout << "Result res[" << roffset<< "]" << m_samples_r[roffset] << endl;)
+  return &m_samples_r;
 }
 
 
@@ -1502,7 +1509,7 @@ LAZYDEBUG(cout << "m_samplesize=" << m_samplesize << endl;)
 LAZYDEBUG(cout << "outputshape=" << DataTypes::shapeToString(getShape()) << endl;)
 LAZYDEBUG(cout << "DPPS=" << m_right->getNumDPPSample() <<"."<<endl;)
 
-  double* resultp=&(m_samples[offset]);         // results are stored at the vector offset we received
+  double* resultp=&(m_samples_r[offset]);         // results are stored at the vector offset we received
   switch(m_op)
   {
     case PROD:
@@ -1524,7 +1531,7 @@ LAZYDEBUG(cout << DataTypes::pointToString(*right,m_right->getShape(),rroffset, 
         throw DataException("Programmer error - resolveTProduct can not resolve operator "+opToString(m_op)+".");
   }
   roffset=offset;
-  return &m_samples;
+  return &m_samples_r;
 }
 
 
@@ -1580,6 +1587,7 @@ void DataLazy::makeIdentity(const DataReady_ptr& p)
    m_samplesize=p->getNumDPPSample()*p->getNoValues();
    m_left.reset();
    m_right.reset();
+   m_iscompl=p->isComplex();
 }
 
 
