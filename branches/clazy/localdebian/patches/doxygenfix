@@ -1,0 +1,19 @@
+Description: Don't specify a font in doxygen.
+  The doxyfile specified a font which is no longer shipped.
+  Since we don't really care which font is used this has been
+  removed. 
+Author: Joel Fenwick <joelfenwick@uq.edu.au>
+Forwarded: yes
+Applied-Upstream: yes
+
+--- a/doc/doxygen/doxygen_esys
++++ b/doc/doxygen/doxygen_esys
+@@ -2120,7 +2120,7 @@ DOT_NUM_THREADS        = 0
+ # The default value is: Helvetica.
+ # This tag requires that the tag HAVE_DOT is set to YES.
+ 
+-DOT_FONTNAME           = FreeSans
++#DOT_FONTNAME           = FreeSans
+ 
+ # The DOT_FONTSIZE tag can be used to set the size (in points) of the font of
+ # dot graphs.
