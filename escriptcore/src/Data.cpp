@@ -104,11 +104,11 @@ using DataTypes::cplx_t;
 #define MAKELAZYBIN2(L,R,X) do {\
   if (L.isLazy() || R.isLazy() || (AUTOLAZYON && (L.isExpanded() || R.isExpanded()))) \
   {\
-  if (L.isComplex() || R.isComplex()) \
+/*  if (L.isComplex() || R.isComplex()) \
   {\
       throw DataException("Lazy operations on complex not supported yet");\
   }\
-        DataLazy* c=new DataLazy(L.borrowDataPtr(),R.borrowDataPtr(),X);\
+*/        DataLazy* c=new DataLazy(L.borrowDataPtr(),R.borrowDataPtr(),X);\
         return Data(c);\
   }\
 }while(0)
