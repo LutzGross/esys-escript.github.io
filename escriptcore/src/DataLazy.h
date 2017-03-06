@@ -142,7 +142,6 @@ public:
   /**
    \brief true if the components of datapoints are complex
   */
-  bool isComplex() const;
 
   /**
   \brief Evaluate the lazy expression.
@@ -227,7 +226,6 @@ public:
 
 
 private:
-  bool m_iscompl;
   mutable DataReady_ptr m_id;	//  For IDENTITY nodes, stores a wrapped value.
   mutable DataLazy_ptr m_left, m_right, m_mask;	// operands for operation.
   mutable ES_optype m_op;	// operation to perform.
@@ -336,10 +334,6 @@ private:
 
 };
 
-bool DataLazy::isComplex()
-{
-    return m_iscompl;
-}
 
 }
 

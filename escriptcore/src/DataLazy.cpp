@@ -973,7 +973,9 @@ DataLazy::collapseToReady() const
         result=left.minval();
         break;
     case HER:
-	result=left.hermitian();
+        result=left.hermitian();
+    case NHER:
+        result=left.antihermitian();
 	break;
     default:
         throw DataException("Programmer error - collapseToReady does not know how to resolve operator "+opToString(m_op)+".");
