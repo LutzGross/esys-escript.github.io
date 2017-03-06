@@ -25,7 +25,7 @@ silo = True
 
 cxx_extra += ' -Wno-literal-suffix -Wno-deprecated-declarations'
 
-trilinos=True
-trilinos_prefix='/opt/trilinos_hybrid'
+#trilinos=True
+#trilinos_prefix='/opt/trilinos_hybrid'
 
-mpi='OPENMPI'
+#mpi='OPENMPI'
