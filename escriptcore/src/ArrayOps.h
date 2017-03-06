@@ -707,7 +707,13 @@ inline void tensor_unary_array_operation_real(const size_t size,
           }
           break;
      default:
-          throw DataException("Unsupported unary operation");      
+	  std::ostringstream oss;
+          oss << "Unsupported unary operation=";
+	  oss << opToString(operation);
+	  oss << '/';
+	  oss << operation;
+	  oss << " (Was expecting an operation with real results)";
+          throw DataException(oss.str());      
    }  
 }
 
@@ -881,9 +887,12 @@ inline void tensor_unary_array_operation(const size_t size,
 	  break;      
       
     default:
-      std::string s="Unsupported unary operation ";
-      s+=operation;
-      throw DataException(s);
+      std::ostringstream oss;
+      oss << "Unsupported unary operation=";
+      oss << opToString(operation);
+      oss << '/';
+      oss << operation;
+      throw DataException(oss.str());
   }
   return;
 }
