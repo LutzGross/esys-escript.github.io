@@ -140,6 +140,11 @@ public:
   ~DataLazy();
 
   /**
+   \brief true if the components of datapoints are complex
+  */
+  bool isComplex() const;
+
+  /**
   \brief Evaluate the lazy expression.
   \return A DataReady with the value of the lazy expresion.
   */
@@ -330,6 +335,11 @@ private:
   resolveNodeWorker();
 
 };
+
+bool DataLazy::isComplex()
+{
+    return m_iscompl;
+}
 
 }
 
