@@ -2136,12 +2136,12 @@ Data::Lsup()
             }
             else
             {
-                return lazyAlgWorker<AbsMax<cplx_t> >(0,MPI_MAX);             
+                return lazyAlgWorker<AbsMax<real_t> >(0,MPI_MAX);             
             }
 #else
             if (isComplex())
             {
-                return lazyAlgWorker<AbsMax<real_t> >(0);
+                return lazyAlgWorker<AbsMax<cplx_t> >(0);
             }
             else
             {
@@ -2250,15 +2250,15 @@ Data::lazyAlgWorker(real_t init)
     const size_t numsamples=getNumSamples();
     const size_t samplesize=getNoValues()*getNumDataPointsPerSample();
     BinaryOp operation;
-    real_t localValue=0, globalValue;
-   #pragma omp parallel private(i)
+    real_t localValue=0, globalValue;    
+    #pragma omp parallel private(i)
     {
         real_t localtot=init;
         #pragma omp for schedule(static) private(i)
         for (i=0;i<numsamples;++i)
         {
             size_t roffset=0;
-            const DataTypes::RealVectorType* v=dl->resolveSample(i, roffset);
+            auto v=dl->resolveTypedSample(i, roffset, typename BinaryOp::second_argument_type(0));
             // Now we have the sample, run operation on all points
             for (size_t j=0;j<samplesize;++j)
             {

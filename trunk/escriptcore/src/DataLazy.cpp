@@ -2202,6 +2202,60 @@ cout << "Max resolve Stack use " << d << endl;
 }
 
 
+const DataTypes::RealVectorType*
+DataLazy::resolveTypedSample(int sampleNo, size_t& roffset, DataTypes::real_t dummy) const
+{
+#ifdef _OPENMP
+        int tid=omp_get_thread_num();
+#else
+        int tid=0;
+#endif 
+
+#ifdef LAZY_STACK_PROF
+        stackstart[tid]=&tid;
+        stackend[tid]=&tid;
+        const DataTypes::RealVectorType* r=resolveNodeSample(tid, sampleNo, roffset);
+        size_t d=(size_t)stackstart[tid]-(size_t)stackend[tid];
+        #pragma omp critical
+        if (d>maxstackuse)
+        {
+cout << "Max resolve Stack use " << d << endl;
+                maxstackuse=d;
+        }
+        return r;
+#else
+        return resolveNodeSample(tid, sampleNo, roffset);
+#endif
+}
+
+const DataTypes::CplxVectorType*
+DataLazy::resolveTypedSample(int sampleNo, size_t& roffset, DataTypes::cplx_t dummy) const
+{
+#ifdef _OPENMP
+        int tid=omp_get_thread_num();
+#else
+        int tid=0;
+#endif 
+
+#ifdef LAZY_STACK_PROF
+        stackstart[tid]=&tid;
+        stackend[tid]=&tid;
+        const DataTypes::CplxVectorType* r=resolveNodeSampleCplx(tid, sampleNo, roffset);
+        size_t d=(size_t)stackstart[tid]-(size_t)stackend[tid];
+        #pragma omp critical
+        if (d>maxstackuse)
+        {
+cout << "Max resolve Stack use " << d << endl;
+                maxstackuse=d;
+        }
+        return r;
+#else
+        return resolveNodeSampleCplx(tid, sampleNo, roffset);
+#endif
+}
+
+
+
 // This needs to do the work of the identity constructor
 void
 DataLazy::resolveToIdentity()

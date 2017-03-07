@@ -199,6 +199,15 @@ public:
   ESCRIPT_DLL_API
   const DataTypes::RealVectorType*
   resolveSample(int sampleNo, size_t& roffset) const; 
+  
+  ESCRIPT_DLL_API
+  const DataTypes::CplxVectorType*
+  resolveTypedSample(int sampleNo, size_t& roffset, DataTypes::cplx_t dummy) const; 
+  
+  ESCRIPT_DLL_API
+  const DataTypes::RealVectorType*
+  resolveTypedSample(int sampleNo, size_t& roffset, DataTypes::real_t dummy) const; 
+  
 
   /**
   \brief if resolve() was called would it produce expanded data.
