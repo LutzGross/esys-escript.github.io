@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (c) 2003-2016 by The University of Queensland
+# Copyright (c) 2003-2017 by The University of Queensland
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -21,7 +21,7 @@ It is solved in dimensionless form
 
 from __future__ import print_function, division
 
-__copyright__="""Copyright (c) 2003-2016 by The University of Queensland
+__copyright__="""Copyright (c) 2003-2017 by The University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Apache License, version 2.0
