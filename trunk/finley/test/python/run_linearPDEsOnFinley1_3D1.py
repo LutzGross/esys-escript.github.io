@@ -1,7 +1,7 @@
 
 ########################################################
 #
-# Copyright (c) 2003-2016 by The University of Queensland
+# Copyright (c) 2003-2017 by The University of Queensland
 # Earth Systems Science Computational Center (ESSCC)
 # http://www.uq.edu.au
 #
@@ -13,7 +13,7 @@
 
 from __future__ import print_function, division
 
-__copyright__="""Copyright (c) 2003-2016 by The University of Queensland
+__copyright__="""Copyright (c) 2003-2017 by The University of Queensland
 Earth Systems Science Computational Center (ESSCC)
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
