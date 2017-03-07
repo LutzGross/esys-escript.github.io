@@ -125,7 +125,6 @@ def call_python_config(bin=None):
     libname=sp.stdout.readline().strip()
     ver=sp.stdout.readline().strip()
     pinc=sp.stdout.readline().strip()
-    print((target, libname, ver, pinc))
     return (target, libname, ver, pinc)
 
 def checkPython(env):
