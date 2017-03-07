@@ -78,7 +78,8 @@ enum ES_optype
 	GREATER=LESS+1,
 	GREATER_EQUAL=GREATER+1,
 	LESS_EQUAL=GREATER_EQUAL+1,
-	PHS=LESS_EQUAL+1	// phase
+	PHS=LESS_EQUAL+1,	// phase
+	PROM=PHS+1         // promote real to complex
 };
 
 const std::string&
@@ -97,7 +98,8 @@ enum ES_opgroup
    G_TENSORPROD,        // general tensor product
    G_NP1OUT_2P,         // non-pointwise op with one output requiring two params
    G_REDUCTION,         // non-pointwise unary op with a scalar output
-   G_CONDEVAL
+   G_CONDEVAL,
+   G_UNARY_C            // pointwise operations with one argument, always cplx output
 };
 
 

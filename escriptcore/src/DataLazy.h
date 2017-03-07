@@ -241,7 +241,8 @@ private:
   size_t m_height;
 
   int* m_sampleids;		// may be NULL
-  mutable DataTypes::RealVectorType m_samples;  
+  mutable DataTypes::RealVectorType m_samples_r;
+  mutable DataTypes::CplxVectorType m_samples_c;  
 
   /**
   Allocates sample storage at each node
@@ -251,32 +252,63 @@ private:
 
   const DataTypes::RealVectorType*
   resolveNodeUnary(int tid, int sampleNo, size_t& roffset) const;
+  
+  const DataTypes::CplxVectorType*
+  resolveNodeUnaryCplx(int tid, int sampleNo, size_t& roffset) const;  
 
 
   const DataTypes::RealVectorType*
   resolveNodeReduction(int tid, int sampleNo, size_t& roffset) const;  
 
+  const DataTypes::CplxVectorType*
+  resolveNodeReductionCplx(int tid, int sampleNo, size_t& roffset) const;  
+  
   const DataTypes::RealVectorType*
   resolveNodeSample(int tid, int sampleNo, size_t& roffset) const;
+  
+  const DataTypes::CplxVectorType*
+  resolveNodeSampleCplx(int tid, int sampleNo, size_t& roffset) const;  
 
   const DataTypes::RealVectorType*
   resolveNodeBinary(int tid, int sampleNo, size_t& roffset) const;
+  
+  const DataTypes::CplxVectorType*
+  resolveNodeBinaryCplx(int tid, int sampleNo, size_t& roffset) const;
+  
 
   const DataTypes::RealVectorType*
   resolveNodeNP1OUT(int tid, int sampleNo, size_t& roffset) const;
 
+  const DataTypes::CplxVectorType*
+  resolveNodeNP1OUTCplx(int tid, int sampleNo, size_t& roffset) const;
+  
   const DataTypes::RealVectorType*
   resolveNodeNP1OUT_P(int tid, int sampleNo, size_t& roffset) const;
 
+  const DataTypes::CplxVectorType*
+  resolveNodeNP1OUT_PCplx(int tid, int sampleNo, size_t& roffset) const;
+  
+  
   const DataTypes::RealVectorType*
   resolveNodeTProd(int tid, int sampleNo, size_t& roffset) const;
 
+  const DataTypes::CplxVectorType*
+  resolveNodeTProdCplx(int tid, int sampleNo, size_t& roffset) const;
+
+  
   const DataTypes::RealVectorType*
   resolveNodeNP1OUT_2P(int tid, int sampleNo, size_t& roffset) const;
 
+  const DataTypes::CplxVectorType*
+  resolveNodeNP1OUT_2PCplx(int tid, int sampleNo, size_t& roffset) const;
+  
   const DataTypes::RealVectorType*
   resolveNodeCondEval(int tid, int sampleNo, size_t& roffset) const;
 
+  const DataTypes::CplxVectorType*
+  resolveNodeCondEvalCplx(int tid, int sampleNo, size_t& roffset) const;
+  
+  
   /**
   Does the work for toString. 
   */
@@ -326,8 +358,16 @@ private:
   */
   DataReady_ptr
   resolveNodeWorker();
+  
+  DataReady_ptr
+  resolveNodeWorkerCplx();  
 
 };
+
+// If an expression is already complex, return the same expression.
+// Otherwise, return the old expression with a promote operation
+// above it
+DataLazy_ptr makePromote(DataLazy_ptr p);
 
 }
 

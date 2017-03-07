@@ -732,6 +732,15 @@ inline DataTypes::real_t conjugate(const DataTypes::real_t r)
     return r;
 }
 
+inline void tensor_unary_promote(const size_t size,
+                             const DataTypes::real_t *arg1,
+                             DataTypes::cplx_t * argRes)
+{
+	  for (size_t i = 0; i < size; ++i) {
+              argRes[i] = arg1[i];
+      }
+}
+
 // No openmp because it's called by Lazy
 // In most cases, IN and OUT will be the same
 // but not ruling out putting Re() and Im()
