@@ -1478,6 +1478,21 @@ vectorHasNaN(const DataTypes::RealVectorType& in, DataTypes::RealVectorType::siz
         return false;
 }
 
+inline
+bool
+vectorHasNaN(const DataTypes::CplxVectorType& in, DataTypes::CplxVectorType::size_type inOffset, size_t count)
+{
+        for (size_t z=inOffset;z<inOffset+count;++z)
+        {
+            if (nancheck(in[z]))
+            {
+                return true;
+            }
+        }
+        return false;
+}
+
+
 }  // end namespace escript
 
 #endif // __ESCRIPT_DATAMATHS_H__

@@ -121,6 +121,18 @@ bool nancheck(DataTypes::real_t d)
     return std::isnan(d);       // isNan should be a function in C++ land
 }
 
+// I'm not sure if there is agreement about what a complex nan would be
+// so, in this case I've just checked both components
+inline
+bool nancheck(DataTypes::cplx_t d)
+{
+                // Q: so why not just test d!=d?
+                // A: Coz it doesn't always work [I've checked].
+                // One theory is that the optimizer skips the test.
+    return std::isnan( real(d) ) || std::isnan( imag(d) );       // isNan should be a function in C++ land
+}
+
+
 /**
 \brief returns a NaN.
 \warning Should probably only used where you know you can test for NaNs
