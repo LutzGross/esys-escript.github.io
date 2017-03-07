@@ -109,6 +109,18 @@ using namespace boost;
 
 namespace escript
 {
+    
+    
+DataLazy_ptr makePromote(DataLazy_ptr p)
+{
+    if (p->isComplex())
+    {
+        return p;
+    }
+    DataLazy* temp=new DataLazy(p, PROM);
+    return DataLazy_ptr(temp);
+}
+    
 
 namespace
 {
@@ -134,28 +146,12 @@ size_t maxstackuse=0;
 #endif
 
 
-// namespace
-// {
+inline int max3(int a, int b, int c)
+{
+    int t=(a>b?a:b);
+    return (t>c?t:c);
 
-    inline int max3(int a, int b, int c)
-    {
-        int t=(a>b?a:b);
-        return (t>c?t:c);
-
-    }
-    
-    
-    DataLazy_ptr makePromote(DataLazy_ptr p)
-    {
-        if (p->isComplex())
-        {
-            return p;
-        }
-        DataLazy* temp=new DataLazy(p, PROM);
-        return DataLazy_ptr(temp);
-    }
-// }
-
+}
 
 // return the FunctionSpace of the result of "left op right"
 FunctionSpace
@@ -470,7 +466,8 @@ DataLazy::DataLazy(DataAbstract_ptr left, ES_optype op)
         m_transpose(0),
         m_SL(0), m_SM(0), m_SR(0)
 {
-   if ((getOpgroup(op)!=G_UNARY) && (getOpgroup(op)!=G_NP1OUT) && (getOpgroup(op)!=G_REDUCTION))
+   ES_opgroup gop=getOpgroup(op);
+   if ((gop!=G_UNARY) && (gop!=G_NP1OUT) && (gop!=G_REDUCTION) && (gop!=G_UNARY_C))
    {
         throw DataException("Programmer error - constructor DataLazy(left, op) will only process UNARY operations.");
    }
@@ -489,7 +486,14 @@ DataLazy::DataLazy(DataAbstract_ptr left, ES_optype op)
    m_samplesize=getNumDPPSample()*getNoValues();
    m_children=m_left->m_children+1;
    m_height=m_left->m_height+1;
-   m_iscompl=left->isComplex();
+   if (gop!=G_UNARY_C)
+   {
+        m_iscompl=left->isComplex();
+   }
+   else
+   {
+       m_iscompl=true;
+   }
    LazyNodeSetup();
    SIZELIMIT
 }
@@ -981,8 +985,14 @@ DataLazy::collapseToReady() const
         break;
     case HER:
         result=left.hermitian();
+        break;
     case NHER:
         result=left.antihermitian();
+        break;
+    case PROM:
+        result.copy(left);
+        result.complicate();
+        break;
 	break;
     default:
         throw DataException("Programmer error - collapseToReady does not know how to resolve operator "+opToString(m_op)+".");
@@ -1058,7 +1068,7 @@ if (&x<stackend[omp_get_thread_num()])
   case G_REDUCTION: return resolveNodeReduction(tid, sampleNo, roffset);
   case G_CONDEVAL: return resolveNodeCondEval(tid, sampleNo, roffset);
   default:
-    throw DataException("Programmer Error - resolveSample does not know how to process "+opToString(m_op)+".");
+    throw DataException("Programmer Error - resolveNodeSample does not know how to process "+opToString(m_op)+".");
   }
 }
 
@@ -1100,6 +1110,7 @@ if (&x<stackend[omp_get_thread_num()])
   switch (getOpgroup(m_op))
   {
   case G_UNARY:
+  case G_UNARY_C:
   case G_UNARY_P: return resolveNodeUnaryCplx(tid, sampleNo, roffset);
   case G_BINARY: return resolveNodeBinaryCplx(tid, sampleNo, roffset);
   case G_NP1OUT: return resolveNodeNP1OUTCplx(tid, sampleNo, roffset);
@@ -1109,7 +1120,7 @@ if (&x<stackend[omp_get_thread_num()])
   case G_REDUCTION: return resolveNodeReductionCplx(tid, sampleNo, roffset);
   case G_CONDEVAL: return resolveNodeCondEvalCplx(tid, sampleNo, roffset);
   default:
-    throw DataException("Programmer Error - resolveSample does not know how to process "+opToString(m_op)+".");
+    throw DataException("Programmer Error - resolveNodeSampleCplx does not know how to process "+opToString(m_op)+".");
   }
 }
 
@@ -1161,21 +1172,32 @@ DataLazy::resolveNodeUnaryCplx(int tid, int sampleNo, size_t& roffset) const
   {
     throw DataException("Programmer error - resolveNodeUnary should not be called on identity nodes.");
   }
-  const DataTypes::CplxVectorType* leftres=m_left->resolveNodeSampleCplx(tid, sampleNo, roffset);
-  const DataTypes::cplx_t* left=&((*leftres)[roffset]);
-  roffset=m_samplesize*tid;
-  DataTypes::cplx_t* result=&(m_samples_c[roffset]);
   if (m_op==POS)
   {
 	// this should be prevented earlier
 	// operation is meaningless for lazy
         throw DataException("Programmer error - POS not supported for lazy data.");    
   }
-  tensor_unary_array_operation(m_samplesize,
-                             left,
-                             result,
-                             m_op,
-                             m_tol);  
+  
+  roffset=m_samplesize*tid;
+  DataTypes::cplx_t* result=&(m_samples_c[roffset]);
+  if (m_op==PROM)
+  {
+    const DataTypes::RealVectorType* leftres=m_left->resolveNodeSample(tid, sampleNo, roffset);
+    const DataTypes::real_t* left=&((*leftres)[roffset]);      
+      
+    tensor_unary_promote(m_samplesize, left, result);      
+  }
+  else
+  {
+    const DataTypes::CplxVectorType* leftres=m_left->resolveNodeSampleCplx(tid, sampleNo, roffset);
+    const DataTypes::cplx_t* left=&((*leftres)[roffset]);      
+    tensor_unary_array_operation(m_samplesize,
+                                left,
+                                result,
+                                m_op,
+                                m_tol);  
+  }
   return &(m_samples_c);
 }
 
@@ -2507,6 +2529,11 @@ DataLazy::intoString(ostringstream& oss) const
         m_left->intoString(oss);
         oss << " : ";
         m_right->intoString(oss); 
+        oss << ')';
+        break;
+  case G_UNARY_C:
+        oss << opToString(m_op) <<'(';
+        m_left->intoString(oss);
         oss << ')';
         break;
   default:

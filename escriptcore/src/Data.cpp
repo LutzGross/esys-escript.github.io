@@ -5910,7 +5910,20 @@ void Data::complicate()
     if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
     }  
-    m_data->complicate();
+    
+    if (m_data->isLazy())
+    {
+            // This is different to the other types because instead of switching from 
+            // one internal storage vector to the other within the same node
+            // m_data needs to be replaced with an new root (promote) node.
+        DataLazy_ptr nn=dynamic_pointer_cast<DataLazy>(m_data);
+        DataLazy_ptr res=makePromote(nn);
+        set_m_data(res);
+    }
+    else
+    {
+        m_data->complicate();
+    }
 }
 
 Data
