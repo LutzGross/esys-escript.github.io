@@ -104,11 +104,11 @@ using DataTypes::cplx_t;
 #define MAKELAZYBIN2(L,R,X) do {\
   if (L.isLazy() || R.isLazy() || (AUTOLAZYON && (L.isExpanded() || R.isExpanded()))) \
   {\
-  if (L.isComplex() || R.isComplex()) \
+/*  if (L.isComplex() || R.isComplex()) \
   {\
       throw DataException("Lazy operations on complex not supported yet");\
   }\
-        DataLazy* c=new DataLazy(L.borrowDataPtr(),R.borrowDataPtr(),X);\
+*/        DataLazy* c=new DataLazy(L.borrowDataPtr(),R.borrowDataPtr(),X);\
         return Data(c);\
   }\
 }while(0)
@@ -5910,7 +5910,20 @@ void Data::complicate()
     if (isProtected()) {
         throw DataException("Error - attempt to update protected Data object.");
     }  
-    m_data->complicate();
+    
+    if (m_data->isLazy())
+    {
+            // This is different to the other types because instead of switching from 
+            // one internal storage vector to the other within the same node
+            // m_data needs to be replaced with an new root (promote) node.
+        DataLazy_ptr nn=dynamic_pointer_cast<DataLazy>(m_data);
+        DataLazy_ptr res=makePromote(nn);
+        set_m_data(res);
+    }
+    else
+    {
+        m_data->complicate();
+    }
 }
 
 Data

@@ -1169,7 +1169,7 @@ binaryOpVector(DataTypes::RealVectorType& res,                          // where
 */
 template <class ResELT, class LELT, class RELT>
 void
-binaryOpVectorLazyHelper(ResELT* res,
+binaryOpVectorLazyArithmeticHelper(ResELT* res,
                          const LELT* left,
                          const RELT* right,
                          const size_t chunksize,
@@ -1201,6 +1201,38 @@ binaryOpVectorLazyHelper(ResELT* res,
         case DIV:
             OPVECLAZYBODY(left[lroffset+s]/right[rroffset+s])
             break;
+        default:
+            ESYS_ASSERT(false, "Invalid operation. This should never happen!");
+            // I can't throw here because this will be called inside a parallel section
+    }
+}
+
+
+/**
+ * This assumes that all data involved have the same points per sample and same shape
+ * This version is to be called from within DataLazy.
+ * It does not have openmp around loops because it will be evaluating individual samples
+ * (Which will be done within an enclosing openmp region.
+*/
+template <class ResELT, class LELT, class RELT>
+void
+binaryOpVectorLazyRelationalHelper(ResELT* res,
+                         const LELT* left,
+                         const RELT* right,
+                         const size_t chunksize,
+                         const size_t onumsteps,
+                         const size_t numsteps,
+                         const size_t resultStep,
+                         const size_t leftstep,
+                         const size_t rightstep,
+                         const size_t oleftstep,
+                         const size_t orightstep,
+                         size_t lroffset,
+                         size_t rroffset,
+                         escript::ES_optype operation)          // operation to perform
+{
+    switch (operation)
+    {
         case LESS:
             OPVECLAZYBODY(left[lroffset+s]<right[rroffset+s])
             break;
