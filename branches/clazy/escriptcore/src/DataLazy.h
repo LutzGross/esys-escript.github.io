@@ -368,6 +368,10 @@ private:
 
 };
 
+// If an expression is already complex, return the same expression.
+// Otherwise, return the old expression with a promote operation
+// above it
+DataLazy_ptr makePromote(DataLazy_ptr p);
 
 }
 
