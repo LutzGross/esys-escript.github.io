@@ -140,10 +140,6 @@ public:
   ~DataLazy();
 
   /**
-   \brief true if the components of datapoints are complex
-  */
-
-  /**
   \brief Evaluate the lazy expression.
   \return A DataReady with the value of the lazy expresion.
   */

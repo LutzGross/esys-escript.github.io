@@ -644,8 +644,7 @@ DataLazy::DataLazy(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op, 
    m_samplesize=getNumDPPSample()*getNoValues();
    m_children=m_left->m_children+m_right->m_children+2;
    m_height=max(m_left->m_height,m_right->m_height)+1;
-   
-   
+
    // now we need to work out if we need to promote anything
    if (left->isComplex()!=right->isComplex())
    {
@@ -1200,8 +1199,6 @@ DataLazy::resolveNodeUnaryCplx(int tid, int sampleNo, size_t& roffset) const
   }
   return &(m_samples_c);
 }
-
-
 
 const DataTypes::RealVectorType*
 DataLazy::resolveNodeReduction(int tid, int sampleNo, size_t& roffset) const

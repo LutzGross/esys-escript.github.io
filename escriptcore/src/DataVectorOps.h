@@ -1251,7 +1251,6 @@ binaryOpVectorLazyRelationalHelper(ResELT* res,
     }
 }
 
-
 /**
  * This assumes that all data involved have the same points per sample and same shape
 */
