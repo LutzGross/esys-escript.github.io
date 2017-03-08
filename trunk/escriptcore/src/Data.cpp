@@ -2677,7 +2677,7 @@ Data::antihermitian() const
     DataTypes::ShapeType s=getDataPointShape();
     if (getDataPointRank()==2) {
         if(s[0] != s[1])
-            throw DataException("Error - Data::antisymmetric can only be calculated for rank 2 object with equal first and second dimension.");
+            throw DataException("Error - Data::antihermitian can only be calculated for rank 2 object with equal first and second dimension.");
 	MAKELAZYOP(NHER);
         DataTypes::ShapeType ev_shape;
         ev_shape.push_back(s[0]);
@@ -2689,7 +2689,7 @@ Data::antihermitian() const
     }
     else if (getDataPointRank()==4) {
         if(!(s[0] == s[2] && s[1] == s[3]))
-            throw DataException("Error - Data::antisymmetric can only be calculated for rank 4 object with dim0==dim2 and dim1==dim3.");
+            throw DataException("Error - Data::antihermitian can only be calculated for rank 4 object with dim0==dim2 and dim1==dim3.");
 	MAKELAZYOP(NHER);
         DataTypes::ShapeType ev_shape;
         ev_shape.push_back(s[0]);
@@ -2702,7 +2702,7 @@ Data::antihermitian() const
         return ev;
     }
     else {
-        throw DataException("Error - Data::antisymmetric can only be calculated for rank 2 or 4 object.");
+        throw DataException("Error - Data::antihermitian can only be calculated for rank 2 or 4 object.");
     }
 }
 
