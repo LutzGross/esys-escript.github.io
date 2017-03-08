@@ -190,7 +190,6 @@ if 0 <= mypos <=pos1:
     env['netcdf']=0
 elif pos1 < mypos <= pos2:
     env['netcdf']=3
-    print(env['netcdf'])
     if env['netcdf_libs']=='DEFAULT':
         env['netcdf_libs']=['netcdf_c++', 'netcdf']
 else:   # netcdf4
