@@ -1138,7 +1138,6 @@ class Test_util_values(unittest.TestCase):
         return d
     
     def execute_ce_params(self, pars):
-        aul=getEscriptParamInt('AUTOLAZY')
         for v in pars:
             a=v[0]
             op=v[1]
@@ -1159,13 +1158,11 @@ class Test_util_values(unittest.TestCase):
                     print(res)
                 self.assertTrue(miscres,"Failed check for "+description)
             oraclevalue=eval(oraclecheck)
-            setEscriptParamInt('AUTOLAZY', 0)
             if isinstance(res, Data):
                 res.resolve()
             if isinstance(oraclevalue, Data):
                 oraclevalue.resolve()
             oracleres=Lsup(res-oraclevalue)<=self.RES_TOL*Lsup(oraclevalue)
-            setEscriptParamInt('AUTOLAZY', aul)
             if not oracleres:
                 print("Wrong result:"+oraclecheck)
                 print(type(res))
@@ -1194,7 +1191,6 @@ class Test_util_values(unittest.TestCase):
             self.assertTrue(type(err.exception) in expected_exceptions, "Exception was raised but it was of unexpected type ("+str(type(err.exception))+")")
     
     def execute_t_params(self, pars):
-        aul=getEscriptParamInt('AUTOLAZY')
         for v in pars:
             description=v[0]
             a=v[1]
@@ -1212,9 +1208,7 @@ class Test_util_values(unittest.TestCase):
                     oraclevalue=eval(oraclecheck)
                 else:
                     oraclevalue=ref
-                setEscriptParamInt('AUTOLAZY', 0)    
                 oracleres=Lsup(res-oraclevalue)<=self.RES_TOL*Lsup(oraclevalue)
-                setEscriptParamInt('AUTOLAZY', aul)
                 if not oracleres:
                     print(v)
                     print(" This step ")
@@ -1289,8 +1283,6 @@ class Test_util_values(unittest.TestCase):
             input_trans=lambda x: x
         if expect_raise_on_ranks is None:
             expect_raise_on_ranks=()
-        aul=getEscriptParamInt('AUTOLAZY')
-        setEscriptParamInt('AUTOLAZY', 0)       # generating expanded will trigger lazy
         pars=[]
         epars=[]    # operations which should throw
         if not no_scalars:
@@ -1333,10 +1325,8 @@ class Test_util_values(unittest.TestCase):
                 r=input_trans(numpy.array(r))                
                 p=(a, opstring, misccheck, r, oraclecheck, opname+" - "+cs+"Expanded Data rank "+str(rank), expected_exceptions)
                 dest.append(p)
-        setEscriptParamInt('AUTOLAZY', aul)     # put it back the way it was                               
         self.execute_ce_params(pars)
         self.execute_ce_throws(epars)
-        setEscriptParamInt('AUTOLAZY', 0)
         del pars
         del epars
         tpars=[]    # tagged versions
@@ -1363,7 +1353,6 @@ class Test_util_values(unittest.TestCase):
                 rmerge=eval(update1)
                 test.append((t2, opstring, misccheck, rmerge, None,))
                 dest.append(test)
-        setEscriptParamInt('AUTOLAZY', aul)              
         self.execute_t_params(tpars)
         self.execute_t_throws(epars)   
 
