@@ -576,7 +576,7 @@ LAZYDEBUG(cout << "Right " << right.get() << " wrapped " << m_right->m_id.get() 
            m_left=makePromote(m_left);
        }
    }
-   m_iscompl=left->isComplex();
+   m_iscompl=m_left->isComplex();
    LazyNodeSetup();
    SIZELIMIT
 LAZYDEBUG(cout << "(3)Lazy created with " << m_samplesize << endl;)
