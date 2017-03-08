@@ -1179,18 +1179,20 @@ DataLazy::resolveNodeUnaryCplx(int tid, int sampleNo, size_t& roffset) const
   }
   
   roffset=m_samplesize*tid;
-  DataTypes::cplx_t* result=&(m_samples_c[roffset]);
+  DataTypes::cplx_t* result=&(m_samples_c[roffset]); 
   if (m_op==PROM)
   {
-    const DataTypes::RealVectorType* leftres=m_left->resolveNodeSample(tid, sampleNo, roffset);
-    const DataTypes::real_t* left=&((*leftres)[roffset]);      
+    size_t subroffset=0;
+    const DataTypes::RealVectorType* leftres=m_left->resolveNodeSample(tid, sampleNo, subroffset);
+    const DataTypes::real_t* left=&((*leftres)[subroffset]);      
       
     tensor_unary_promote(m_samplesize, left, result);      
   }
   else
   {
-    const DataTypes::CplxVectorType* leftres=m_left->resolveNodeSampleCplx(tid, sampleNo, roffset);
-    const DataTypes::cplx_t* left=&((*leftres)[roffset]);      
+    size_t subroffset=0;
+    const DataTypes::CplxVectorType* leftres=m_left->resolveNodeSampleCplx(tid, sampleNo, subroffset);
+    const DataTypes::cplx_t* left=&((*leftres)[subroffset]);      
     tensor_unary_array_operation(m_samplesize,
                                 left,
                                 result,
