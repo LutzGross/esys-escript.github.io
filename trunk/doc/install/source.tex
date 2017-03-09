@@ -122,6 +122,7 @@ All of these instructions assume that you have obtained the \escript source (and
 
 \begin{shellCode}
 sudo aptitude install python-dev python-numpy libboost-python-dev libnetcdf-dev 
+sudo aptitude install libnetcdf-cxx-legacy-dev
 sudo aptitude install scons lsb-release libboost-random-dev
 sudo aptitude install python-sympy python-matplotlib python-scipy
 sudo aptitude install python-pyproj python-gdal 
@@ -156,6 +157,7 @@ scons -j1 py_tests options_file=scons/templates/XXXX_options.py
 If you have not installed \texttt{aptitude}, then substitute \texttt{apt-get} in the following.
 \begin{shellCode}
 sudo aptitude install python-dev python-numpy libboost-python-dev 
+sudo aptitude install libnetcdf-cxx-legacy-dev
 sudo aptitude install libnetcdf-dev libboost-random-dev
 sudo aptitude install scons lsb-release
 sudo aptitude install python-sympy python-matplotlib python-scipy
