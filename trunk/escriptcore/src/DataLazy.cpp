@@ -657,7 +657,7 @@ DataLazy::DataLazy(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op, 
            m_left=makePromote(m_left);
        }
    }
-   m_iscompl=left->isComplex();      
+   m_iscompl=m_left->isComplex();      
    LazyNodeSetup();
    SIZELIMIT
 LAZYDEBUG(cout << "(4)Lazy created with " << m_samplesize << endl;)
@@ -768,7 +768,6 @@ DataLazy::DataLazy(DataAbstract_ptr mask, DataAbstract_ptr left, DataAbstract_pt
         m_transpose(0),
         m_tol(0)
 {
-
    DataLazy_ptr lmask;
    DataLazy_ptr lleft;
    DataLazy_ptr lright;
