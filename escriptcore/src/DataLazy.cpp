@@ -1109,8 +1109,8 @@ if (&x<stackend[omp_get_thread_num()])
   switch (getOpgroup(m_op))
   {
   case G_UNARY:
-  case G_UNARY_C:
   case G_UNARY_P: return resolveNodeUnaryCplx(tid, sampleNo, roffset);
+  case G_UNARY_C: return resolveNodeUnary_C(tid, sampleNo, roffset);  
   case G_BINARY: return resolveNodeBinaryCplx(tid, sampleNo, roffset);
   case G_NP1OUT: return resolveNodeNP1OUTCplx(tid, sampleNo, roffset);
   case G_NP1OUT_P: return resolveNodeNP1OUT_PCplx(tid, sampleNo, roffset);
@@ -1320,6 +1320,35 @@ DataLazy::resolveNodeNP1OUT(int tid, int sampleNo, size_t& roffset) const
 
 
 const DataTypes::CplxVectorType*
+DataLazy::resolveNodeUnary_C(int tid, int sampleNo, size_t& roffset) const
+{
+        // we assume that any collapsing has been done before we get here
+        // since we only have one argument we don't need to think about only
+        // processing single points.
+  if (m_readytype!='E')
+  {
+    throw DataException("Programmer error - resolveNodeUnaryC should only be called on expanded Data.");
+  }
+  if (m_op==IDENTITY)
+  {
+    throw DataException("Programmer error - resolveNodeUnaryC should not be called on identity nodes.");
+  }
+  if (m_op!=PROM)
+  {
+    throw DataException("Programmer error - resolveNodeUnaryC can not resolve operator "+opToString(m_op)+".");
+  }
+  const DataTypes::RealVectorType* leftres=m_left->resolveNodeSample(tid, sampleNo, roffset);
+  const real_t* left=&((*leftres)[roffset]);
+  roffset=m_samplesize*tid;
+  cplx_t* result=&(m_samples_c[roffset]);
+  // rather than calling the tensor_unary_array_operation, I'm just coding this one here
+  for (int i = 0; i < m_samplesize; ++i) {
+    result[i] = static_cast<cplx_t>(left[i]);
+  }
+  return &(m_samples_c);  
+}
+
+const DataTypes::CplxVectorType*
 DataLazy::resolveNodeNP1OUTCplx(int tid, int sampleNo, size_t& roffset) const
 {
         // we assume that any collapsing has been done before we get here
@@ -1357,6 +1386,26 @@ DataLazy::resolveNodeNP1OUTCplx(int tid, int sampleNo, size_t& roffset) const
             subroffset+=step;
             offset+=step;
         }
+        break;
+    case HER:
+        for (loop=0;loop<numsteps;++loop)
+        {
+            escript::hermitian(*leftres,m_left->getShape(),subroffset, m_samples_c, getShape(), offset);
+            subroffset+=step;
+            offset+=step;
+        }
+        break;
+    case NHER:
+  std::cout << __LINE__ << " of " << __FILE__ << std::endl;
+        
+        for (loop=0;loop<numsteps;++loop)
+        {
+            escript::antihermitian(*leftres,m_left->getShape(),subroffset, m_samples_c, getShape(), offset);
+            subroffset+=step;
+            offset+=step;
+        }
+  std::cout << __LINE__ << " of " << __FILE__ << std::endl;
+        
         break;
     default:
         throw DataException("Programmer error - resolveNP1OUT can not resolve operator "+opToString(m_op)+".");
@@ -2065,7 +2114,6 @@ const DataTypes::RealVectorType*
 DataLazy::resolveNodeTProd(int tid, int sampleNo, size_t& roffset) const
 {
 LAZYDEBUG(cout << "Resolve TensorProduct: " << toString() << endl;)
-
   size_t lroffset=0, rroffset=0;        // offsets in the left and right result vectors
         // first work out which of the children are expanded
   bool leftExp=(m_left->m_readytype=='E');
@@ -2077,11 +2125,8 @@ LAZYDEBUG(cout << "Resolve TensorProduct: " << toString() << endl;)
   int resultStep=getNoValues();
   roffset=m_samplesize*tid;
   size_t offset=roffset;
-
   const RealVectorType* left=m_left->resolveNodeSample(tid, sampleNo, lroffset);
-
   const RealVectorType* right=m_right->resolveNodeSample(tid, sampleNo, rroffset);
-
 LAZYDEBUG(cerr << "[Left shape]=" << DataTypes::shapeToString(m_left->getShape()) << "\n[Right shape]=" << DataTypes::shapeToString(m_right->getShape()) << " result=" <<DataTypes::shapeToString(getShape()) <<  endl;
 cout << getNoValues() << endl;)
 
@@ -2544,6 +2589,10 @@ DataLazy::intoString(ostringstream& oss) const
         {
           oss << "?";
         }
+        if (m_id->isComplex())
+        {
+          oss << "j";  
+        }
         oss << '@' << m_id.get();
         break;
   case G_BINARY:
@@ -2552,6 +2601,10 @@ DataLazy::intoString(ostringstream& oss) const
         oss << ' ' << opToString(m_op) << ' ';
         m_right->intoString(oss);
         oss << ')';
+        if (isComplex())
+        {
+            oss << "j";
+        }            
         break;
   case G_UNARY:
   case G_UNARY_P:
@@ -2561,6 +2614,10 @@ DataLazy::intoString(ostringstream& oss) const
         oss << opToString(m_op) << '(';
         m_left->intoString(oss);
         oss << ')';
+        if (isComplex())
+        {
+            oss << "j";
+        }                    
         break;
   case G_TENSORPROD:
         oss << opToString(m_op) << '(';
@@ -2568,12 +2625,20 @@ DataLazy::intoString(ostringstream& oss) const
         oss << ", ";
         m_right->intoString(oss);
         oss << ')'; 
+        if (isComplex())
+        {
+            oss << "j";
+        }                    
         break;
   case G_NP1OUT_2P:
         oss << opToString(m_op) << '(';
         m_left->intoString(oss);
         oss << ", " << m_axis_offset << ", " << m_transpose;
         oss << ')';
+        if (isComplex())
+        {
+            oss << "j";
+        }                    
         break;
   case G_CONDEVAL:
         oss << opToString(m_op)<< '(' ;
@@ -2583,14 +2648,26 @@ DataLazy::intoString(ostringstream& oss) const
         oss << " : ";
         m_right->intoString(oss); 
         oss << ')';
+        if (isComplex())
+        {
+            oss << "j";
+        }                    
         break;
   case G_UNARY_C:
         oss << opToString(m_op) <<'(';
         m_left->intoString(oss);
         oss << ')';
+        if (isComplex())
+        {
+            oss << "j";
+        }                    
         break;
   default:
         oss << "UNKNOWN";
+        if (isComplex())
+        {
+            oss << "j";
+        }                    
   }
 }
 

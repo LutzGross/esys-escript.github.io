@@ -318,6 +318,9 @@ private:
   resolveNodeCondEvalCplx(int tid, int sampleNo, size_t& roffset) const;
   
   
+  const DataTypes::CplxVectorType*
+  resolveNodeUnary_C(int tid, int sampleNo, size_t& roffset) const;
+  
   /**
   Does the work for toString. 
   */
