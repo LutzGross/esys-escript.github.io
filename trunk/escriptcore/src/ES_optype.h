@@ -106,6 +106,9 @@ enum ES_opgroup
 
 ES_opgroup
 getOpgroup(ES_optype op);
+
+const std::string&
+groupToString(ES_opgroup g);
 }
 
 #endif

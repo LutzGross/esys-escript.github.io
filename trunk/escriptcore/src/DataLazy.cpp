@@ -1059,7 +1059,11 @@ if (&x<stackend[omp_get_thread_num()])
 
   switch (getOpgroup(m_op))
   {
+        // note that G_UNARY_C is not listed here - this is deliberate
+        // by definition this type can not produce a real_t answer
+        // so processing it here would be a bug
   case G_UNARY:
+  case G_UNARY_R:
   case G_UNARY_P: return resolveNodeUnary(tid, sampleNo, roffset);
   case G_BINARY: return resolveNodeBinary(tid, sampleNo, roffset);
   case G_NP1OUT: return resolveNodeNP1OUT(tid, sampleNo, roffset);
@@ -1069,7 +1073,7 @@ if (&x<stackend[omp_get_thread_num()])
   case G_REDUCTION: return resolveNodeReduction(tid, sampleNo, roffset);
   case G_CONDEVAL: return resolveNodeCondEval(tid, sampleNo, roffset);
   default:
-    throw DataException("Programmer Error - resolveNodeSample does not know how to process "+opToString(m_op)+".");
+    throw DataException("Programmer Error - resolveNodeSample does not know how to process "+opToString(m_op)+" in group "+groupToString(getOpgroup(m_op))+".");
   }
 }
 
@@ -1140,21 +1144,37 @@ DataLazy::resolveNodeUnary(int tid, int sampleNo, size_t& roffset) const
   {
     throw DataException("Programmer error - resolveNodeUnary should not be called on identity nodes.");
   }
-  const DataTypes::RealVectorType* leftres=m_left->resolveNodeSample(tid, sampleNo, roffset);
-  const double* left=&((*leftres)[roffset]);
-  roffset=m_samplesize*tid;
-  double* result=&(m_samples_r[roffset]);
   if (m_op==POS)
   {
-	// this should be prevented earlier
-	// operation is meaningless for lazy
-        throw DataException("Programmer error - POS not supported for lazy data.");    
+        // this should be prevented earlier
+        // operation is meaningless for lazy
+            throw DataException("Programmer error - POS not supported for lazy data.");    
   }
-  tensor_unary_array_operation(m_samplesize,
-                             left,
-                             result,
-                             m_op,
-                             m_tol);  
+  // The tricky bit here is that we expect a real output, but for G_UNARY_R, the child nodes could be complex
+  if ((getOpgroup(m_op)==G_UNARY_R) && (m_left->isComplex()))
+  {
+    const DataTypes::CplxVectorType* leftres=m_left->resolveNodeSampleCplx(tid, sampleNo, roffset);
+    const cplx_t* left=&((*leftres)[roffset]);
+    roffset=m_samplesize*tid;
+    real_t* result=&(m_samples_r[roffset]);
+    tensor_unary_array_operation_real(m_samplesize,
+                                left,
+                                result,
+                                m_op,
+                                m_tol);
+  }
+  else
+  {
+    const DataTypes::RealVectorType* leftres=m_left->resolveNodeSample(tid, sampleNo, roffset);
+    const real_t* left=&((*leftres)[roffset]);
+    roffset=m_samplesize*tid;
+    real_t* result=&(m_samples_r[roffset]);
+    tensor_unary_array_operation(m_samplesize,
+                                left,
+                                result,
+                                m_op,
+                                m_tol);
+  }  
   return &(m_samples_r);
 }
 
@@ -1398,16 +1418,12 @@ DataLazy::resolveNodeNP1OUTCplx(int tid, int sampleNo, size_t& roffset) const
         }
         break;
     case NHER:
-  std::cout << __LINE__ << " of " << __FILE__ << std::endl;
-        
         for (loop=0;loop<numsteps;++loop)
         {
             escript::antihermitian(*leftres,m_left->getShape(),subroffset, m_samples_c, getShape(), offset);
             subroffset+=step;
             offset+=step;
         }
-  std::cout << __LINE__ << " of " << __FILE__ << std::endl;
-        
         break;
     default:
         throw DataException("Programmer error - resolveNP1OUT can not resolve operator "+opToString(m_op)+".");
@@ -2610,6 +2626,7 @@ DataLazy::intoString(ostringstream& oss) const
         break;
   case G_UNARY:
   case G_UNARY_P:
+  case G_UNARY_R:
   case G_NP1OUT:
   case G_NP1OUT_P:
   case G_REDUCTION:
@@ -2678,7 +2695,8 @@ void
 DataLazy::intoTreeString(ostringstream& oss, string indent) const
 {
   oss << '[' << m_rank << ':' << setw(3) << m_samplesize << "] " << indent;
-  switch (getOpgroup(m_op))
+  ES_opgroup gop=getOpgroup(m_op);
+  switch (gop)
   {
   case G_IDENTITY:
         if (m_id->isExpanded())
@@ -2697,36 +2715,67 @@ DataLazy::intoTreeString(ostringstream& oss, string indent) const
         {
           oss << "?";
         }
+        if (isComplex())
+        {
+            oss << "j";
+        }
         oss << '@' << m_id.get() << endl;
         break;
   case G_BINARY:
-        oss << opToString(m_op) << endl;
+        oss << opToString(m_op);
+        if (isComplex())
+        {
+            oss << 'j';
+        }
+        oss << endl;
         indent+='.';
         m_left->intoTreeString(oss, indent);
         m_right->intoTreeString(oss, indent);
         break;
   case G_UNARY:
   case G_UNARY_P:
+  case G_UNARY_R:      
   case G_NP1OUT:
   case G_NP1OUT_P:
   case G_REDUCTION:
-        oss << opToString(m_op) << endl;
+  case G_UNARY_C:
+        oss << opToString(m_op);
+        if (isComplex())
+        {
+            oss << 'j';
+        }
+        oss << endl;
         indent+='.';
         m_left->intoTreeString(oss, indent);
         break;
   case G_TENSORPROD:
-        oss << opToString(m_op) << endl;
+        oss << opToString(m_op);
+        if (isComplex())
+        {
+            oss << 'j';
+        }
+        oss << endl;
         indent+='.';
         m_left->intoTreeString(oss, indent);
         m_right->intoTreeString(oss, indent);
         break;
   case G_NP1OUT_2P:
-        oss << opToString(m_op) << ", " << m_axis_offset << ", " << m_transpose<< endl;
+        oss << opToString(m_op);
+        if (isComplex())
+        {
+            oss << 'j';
+        }
+        oss << ", " << m_axis_offset << ", " << m_transpose<< endl;
         indent+='.';
         m_left->intoTreeString(oss, indent);
         break;
   default:
         oss << "UNKNOWN";
+        if (isComplex())
+        {
+            oss << 'j';
+        }
+        oss << endl;                
   }
 }
 
