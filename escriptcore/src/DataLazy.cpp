@@ -467,11 +467,10 @@ DataLazy::DataLazy(DataAbstract_ptr left, ES_optype op)
         m_SL(0), m_SM(0), m_SR(0)
 {
    ES_opgroup gop=getOpgroup(op);
-   if ((gop!=G_UNARY) && (gop!=G_NP1OUT) && (gop!=G_REDUCTION) && (gop!=G_UNARY_C))
+   if ((gop!=G_UNARY) && (gop!=G_NP1OUT) && (gop!=G_REDUCTION) && (gop!=G_UNARY_C) && (gop!=G_UNARY_R))
    {
         throw DataException("Programmer error - constructor DataLazy(left, op) will only process UNARY operations.");
    }
-
    DataLazy_ptr lleft;
    if (!left->isLazy())
    {
@@ -486,13 +485,17 @@ DataLazy::DataLazy(DataAbstract_ptr left, ES_optype op)
    m_samplesize=getNumDPPSample()*getNoValues();
    m_children=m_left->m_children+1;
    m_height=m_left->m_height+1;
-   if (gop!=G_UNARY_C)
+   if (gop==G_UNARY_R)
    {
-        m_iscompl=left->isComplex();
+       m_iscompl=false;
+   }
+   else if (gop==G_UNARY_C)
+   {
+       m_iscompl=true;
    }
    else
    {
-       m_iscompl=true;
+       m_iscompl=left->isComplex();
    }
    LazyNodeSetup();
    SIZELIMIT

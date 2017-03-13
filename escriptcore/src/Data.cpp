@@ -2064,6 +2064,7 @@ Data::log() const
 Data
 Data::sign() const
 {
+    THROWONCOMPLEX
     MAKELAZYOP(SIGN);
     return C_TensorUnaryOperation(*this, escript::ES_optype::SIGN);
 }

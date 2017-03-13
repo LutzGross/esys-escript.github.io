@@ -47,7 +47,7 @@ ES_opgroup opgroups[]={G_UNKNOWN,G_IDENTITY,G_BINARY,G_BINARY,G_BINARY,G_BINARY,
                         G_UNARY,G_UNARY,G_UNARY, //10
                         G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,        // 17
                         G_UNARY,G_UNARY,G_UNARY,                                        // 20
-                        G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,        // 28
+                        G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY_R,G_UNARY,G_UNARY,G_UNARY,        // 28
                         G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY, G_UNARY_P, G_UNARY_P,          // 35
                         G_NP1OUT,G_NP1OUT,
                         G_TENSORPROD,
