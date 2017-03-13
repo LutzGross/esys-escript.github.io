@@ -47,7 +47,7 @@ ES_opgroup opgroups[]={G_UNKNOWN,G_IDENTITY,G_BINARY,G_BINARY,G_BINARY,G_BINARY,
                         G_UNARY,G_UNARY,G_UNARY, //10
                         G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,        // 17
                         G_UNARY,G_UNARY,G_UNARY,                                        // 20
-                        G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY_R,G_UNARY,G_UNARY,G_UNARY,        // 28
+                        G_UNARY,G_UNARY,G_UNARY,G_UNARY_R,G_UNARY,G_UNARY,G_UNARY,G_UNARY,        // 28
                         G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY, G_UNARY_P, G_UNARY_P,          // 35
                         G_NP1OUT,G_NP1OUT,
                         G_TENSORPROD,
@@ -62,8 +62,24 @@ ES_opgroup opgroups[]={G_UNKNOWN,G_IDENTITY,G_BINARY,G_BINARY,G_BINARY,G_BINARY,
             G_UNARY_C
 };
 
+std::string ES_groupstrings[]={
+   "G_UNKNOWN",
+   "G_IDENTITY",
+   "G_BINARY",            // pointwise operations with two arguments
+   "G_UNARY",             // pointwise operations with one argument
+   "G_UNARY_P",           // pointwise operations with one argument, requiring a parameter
+   "G_UNARY_R",		// pointwise operations with one argument, always real output
+   "G_NP1OUT",            // non-pointwise op with one output
+   "G_NP1OUT_P",          // non-pointwise op with one output requiring a parameter
+   "G_TENSORPROD",        // general tensor product
+   "G_NP1OUT_2P",         // non-pointwise op with one output requiring two params
+   "G_REDUCTION",         // non-pointwise unary op with a scalar output
+   "G_CONDEVAL",
+   "G_UNARY_C"            // pointwise operations with one argument, always cplx output    
+};
 
 int ES_opcount=55;
+int ES_groupcount=13;
 }
 
 // Return a string representing the operation
@@ -81,4 +97,14 @@ ES_opgroup
 escript::getOpgroup(ES_optype op)
 {
   return opgroups[op];
+}
+
+const std::string&
+escript::groupToString(ES_opgroup g)
+{
+  if (g<0 || g>=ES_groupcount) 
+  {
+    g=G_UNKNOWN;
+  }
+  return ES_groupstrings[g];
 }
