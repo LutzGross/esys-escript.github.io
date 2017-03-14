@@ -1037,6 +1037,7 @@ DataLazy::collapse() const
   }
   m_id=collapseToReady();
   m_op=IDENTITY;
+  m_opgroup=getOpgroup(m_op);
 }
 
 // The result will be stored in m_samples
@@ -2359,7 +2360,6 @@ DataLazy::resolveToIdentity()
 
 void DataLazy::makeIdentity(const DataReady_ptr& p)
 {
-   m_op=IDENTITY;
    m_axis_offset=0;
    m_transpose=0;
    m_SL=m_SM=m_SR=0;
@@ -2373,6 +2373,8 @@ void DataLazy::makeIdentity(const DataReady_ptr& p)
    m_left.reset();
    m_right.reset();
    m_iscompl=p->isComplex();
+   m_op=IDENTITY;
+   m_opgroup=getOpgroup(m_op);
 }
 
 
