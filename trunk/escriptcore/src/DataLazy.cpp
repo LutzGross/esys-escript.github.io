@@ -2787,6 +2787,8 @@ DataLazy::deepCopy() const
   {
   case G_IDENTITY:  return new DataLazy(m_id->deepCopy()->getPtr());
   case G_UNARY: 
+  case G_UNARY_R:
+  case G_UNARY_C:
   case G_REDUCTION:      return new DataLazy(m_left->deepCopy()->getPtr(),m_op);
   case G_UNARY_P:       return new DataLazy(m_left->deepCopy()->getPtr(), m_op, m_tol);
   case G_BINARY:        return new DataLazy(m_left->deepCopy()->getPtr(),m_right->deepCopy()->getPtr(),m_op);
@@ -2794,6 +2796,7 @@ DataLazy::deepCopy() const
   case G_TENSORPROD: return new DataLazy(m_left->deepCopy()->getPtr(), m_right->deepCopy()->getPtr(), m_op, m_axis_offset, m_transpose);
   case G_NP1OUT_P:   return new DataLazy(m_left->deepCopy()->getPtr(),m_op,  m_axis_offset);
   case G_NP1OUT_2P:  return new DataLazy(m_left->deepCopy()->getPtr(), m_op, m_axis_offset, m_transpose);
+  case G_CONDEVAL:  return new DataLazy(m_mask->deepCopy()->getPtr(), m_left->deepCopy()->getPtr(), m_right->deepCopy()->getPtr());
   default:
         throw DataException("Programmer error - do not know how to deepcopy operator "+opToString(m_op)+".");
   }
