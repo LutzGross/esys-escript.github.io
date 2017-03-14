@@ -440,7 +440,9 @@ void DataLazy::LazyNodeSetup()
 DataLazy::DataLazy(DataAbstract_ptr p)
         : parent(p->getFunctionSpace(),p->getShape())
         ,m_sampleids(0),
-        m_samples_r(1)
+        m_samples_r(1),
+        m_op(IDENTITY),
+        m_opgroup(getOpgroup(m_op))
 {
    if (p->isLazy())
    {
@@ -462,6 +464,7 @@ LAZYDEBUG(cout << "(1)Lazy created with " << m_samplesize << endl;)
 DataLazy::DataLazy(DataAbstract_ptr left, ES_optype op)
         : parent(left->getFunctionSpace(),(getOpgroup(op)!=G_REDUCTION)?left->getShape():DataTypes::scalarShape),
         m_op(op),
+        m_opgroup(getOpgroup(m_op)),                  
         m_axis_offset(0),
         m_transpose(0),
         m_SL(0), m_SM(0), m_SR(0)
@@ -506,6 +509,7 @@ DataLazy::DataLazy(DataAbstract_ptr left, ES_optype op)
 DataLazy::DataLazy(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op)
         : parent(resultFS(left,right,op), resultShape(left,right,op)),
         m_op(op),
+        m_opgroup(getOpgroup(m_op)),                  
         m_SL(0), m_SM(0), m_SR(0)
 {
 LAZYDEBUG(cout << "Forming operator with " << left.get() << " " << right.get() << endl;)
@@ -589,6 +593,7 @@ LAZYDEBUG(cout << "(3)Lazy created with " << m_samplesize << endl;)
 DataLazy::DataLazy(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op, int axis_offset, int transpose)
         : parent(resultFS(left,right,op), GTPShape(left,right, axis_offset, transpose, m_SL,m_SM, m_SR)),
         m_op(op),
+        m_opgroup(getOpgroup(m_op)),                  
         m_axis_offset(axis_offset),
         m_transpose(transpose)
 {
@@ -670,6 +675,7 @@ LAZYDEBUG(cout << "(4)Lazy created with " << m_samplesize << endl;)
 DataLazy::DataLazy(DataAbstract_ptr left, ES_optype op, int axis_offset)
         : parent(left->getFunctionSpace(), resultShape(left,op, axis_offset)),
         m_op(op),
+        m_opgroup(getOpgroup(m_op)),                  
         m_axis_offset(axis_offset),
         m_transpose(0),
         m_tol(0)
@@ -698,14 +704,16 @@ DataLazy::DataLazy(DataAbstract_ptr left, ES_optype op, int axis_offset)
 LAZYDEBUG(cout << "(5)Lazy created with " << m_samplesize << endl;)
 }
 
+// G_UNARY_P or G_UNARY_PR
 DataLazy::DataLazy(DataAbstract_ptr left, ES_optype op, double tol)
         : parent(left->getFunctionSpace(), left->getShape()),
         m_op(op),
+        m_opgroup(getOpgroup(m_op)),                  
         m_axis_offset(0),
         m_transpose(0),
         m_tol(tol)
 {
-   if ((getOpgroup(op)!=G_UNARY_P))
+   if ((m_opgroup!=G_UNARY_P) && (m_opgroup!=G_UNARY_PR))
    {
         throw DataException("Programmer error - constructor DataLazy(left, op, tol) will only process UNARY operations which require parameters.");
    }
@@ -723,7 +731,14 @@ DataLazy::DataLazy(DataAbstract_ptr left, ES_optype op, double tol)
    m_samplesize=getNumDPPSample()*getNoValues();
    m_children=m_left->m_children+1;
    m_height=m_left->m_height+1;
-   m_iscompl=left->isComplex();
+   if (m_opgroup==G_UNARY_PR)
+   {
+       m_iscompl=false;
+   }
+   else
+   {
+       m_iscompl=left->isComplex();
+   }
    LazyNodeSetup();
    SIZELIMIT
 LAZYDEBUG(cout << "(6)Lazy created with " << m_samplesize << endl;)
@@ -733,6 +748,7 @@ LAZYDEBUG(cout << "(6)Lazy created with " << m_samplesize << endl;)
 DataLazy::DataLazy(DataAbstract_ptr left, ES_optype op, const int axis0, const int axis1)
         : parent(left->getFunctionSpace(), SwapShape(left,axis0,axis1)),
         m_op(op),
+        m_opgroup(getOpgroup(m_op)),                  
         m_axis_offset(axis0),
         m_transpose(axis1),
         m_tol(0)
@@ -767,6 +783,7 @@ LAZYDEBUG(cout << "(7)Lazy created with " << m_samplesize << endl;)
 DataLazy::DataLazy(DataAbstract_ptr mask, DataAbstract_ptr left, DataAbstract_ptr right/*, double tol*/)
         : parent(left->getFunctionSpace(), left->getShape()),
         m_op(CONDEVAL),
+        m_opgroup(getOpgroup(m_op)),                  
         m_axis_offset(0),
         m_transpose(0),
         m_tol(0)
@@ -855,7 +872,7 @@ DataLazy::collapseToReady() const
   DataReady_ptr pleft=m_left->collapseToReady();
   Data left(pleft);
   Data right;
-  if ((getOpgroup(m_op)==G_BINARY) || (getOpgroup(m_op)==G_TENSORPROD))
+  if ((m_opgroup==G_BINARY) || (m_opgroup==G_TENSORPROD))
   {
     right=Data(m_right->collapseToReady());
   }
@@ -1057,13 +1074,14 @@ if (&x<stackend[omp_get_thread_num()])
   }
   m_sampleids[tid]=sampleNo;
 
-  switch (getOpgroup(m_op))
+  switch (m_opgroup)
   {
         // note that G_UNARY_C is not listed here - this is deliberate
         // by definition this type can not produce a real_t answer
         // so processing it here would be a bug
   case G_UNARY:
   case G_UNARY_R:
+  case G_UNARY_PR:
   case G_UNARY_P: return resolveNodeUnary(tid, sampleNo, roffset);
   case G_BINARY: return resolveNodeBinary(tid, sampleNo, roffset);
   case G_NP1OUT: return resolveNodeNP1OUT(tid, sampleNo, roffset);
@@ -1073,7 +1091,7 @@ if (&x<stackend[omp_get_thread_num()])
   case G_REDUCTION: return resolveNodeReduction(tid, sampleNo, roffset);
   case G_CONDEVAL: return resolveNodeCondEval(tid, sampleNo, roffset);
   default:
-    throw DataException("Programmer Error - resolveNodeSample does not know how to process "+opToString(m_op)+" in group "+groupToString(getOpgroup(m_op))+".");
+    throw DataException("Programmer Error - resolveNodeSample does not know how to process "+opToString(m_op)+" in group "+groupToString(m_opgroup)+".");
   }
 }
 
@@ -1112,7 +1130,7 @@ if (&x<stackend[omp_get_thread_num()])
   }
   m_sampleids[tid]=sampleNo;
 
-  switch (getOpgroup(m_op))
+  switch (m_opgroup)
   {
   case G_UNARY:
   case G_UNARY_P: return resolveNodeUnaryCplx(tid, sampleNo, roffset);
@@ -1151,7 +1169,7 @@ DataLazy::resolveNodeUnary(int tid, int sampleNo, size_t& roffset) const
             throw DataException("Programmer error - POS not supported for lazy data.");    
   }
   // The tricky bit here is that we expect a real output, but for G_UNARY_R, the child nodes could be complex
-  if ((getOpgroup(m_op)==G_UNARY_R) && (m_left->isComplex()))
+  if (((m_opgroup==G_UNARY_R) || (m_opgroup==G_UNARY_PR)) && (m_left->isComplex()))
   {
     const DataTypes::CplxVectorType* leftres=m_left->resolveNodeSampleCplx(tid, sampleNo, roffset);
     const cplx_t* left=&((*leftres)[roffset]);
@@ -2588,7 +2606,7 @@ void
 DataLazy::intoString(ostringstream& oss) const
 {
 //    oss << "[" << m_children <<";"<<m_height <<"]";
-  switch (getOpgroup(m_op))
+  switch (m_opgroup)
   {
   case G_IDENTITY:
         if (m_id->isExpanded())
@@ -2626,6 +2644,7 @@ DataLazy::intoString(ostringstream& oss) const
         break;
   case G_UNARY:
   case G_UNARY_P:
+  case G_UNARY_PR:
   case G_UNARY_R:
   case G_NP1OUT:
   case G_NP1OUT_P:
@@ -2695,7 +2714,7 @@ void
 DataLazy::intoTreeString(ostringstream& oss, string indent) const
 {
   oss << '[' << m_rank << ':' << setw(3) << m_samplesize << "] " << indent;
-  ES_opgroup gop=getOpgroup(m_op);
+  ES_opgroup gop=m_opgroup;
   switch (gop)
   {
   case G_IDENTITY:
@@ -2734,6 +2753,7 @@ DataLazy::intoTreeString(ostringstream& oss, string indent) const
         break;
   case G_UNARY:
   case G_UNARY_P:
+  case G_UNARY_PR:      
   case G_UNARY_R:      
   case G_NP1OUT:
   case G_NP1OUT_P:
@@ -2783,13 +2803,14 @@ DataLazy::intoTreeString(ostringstream& oss, string indent) const
 DataAbstract* 
 DataLazy::deepCopy() const
 {
-  switch (getOpgroup(m_op))
+  switch (m_opgroup)
   {
   case G_IDENTITY:  return new DataLazy(m_id->deepCopy()->getPtr());
   case G_UNARY: 
   case G_UNARY_R:
   case G_UNARY_C:
   case G_REDUCTION:      return new DataLazy(m_left->deepCopy()->getPtr(),m_op);
+  case G_UNARY_PR:
   case G_UNARY_P:       return new DataLazy(m_left->deepCopy()->getPtr(), m_op, m_tol);
   case G_BINARY:        return new DataLazy(m_left->deepCopy()->getPtr(),m_right->deepCopy()->getPtr(),m_op);
   case G_NP1OUT: return new DataLazy(m_left->deepCopy()->getPtr(), m_right->deepCopy()->getPtr(),m_op);

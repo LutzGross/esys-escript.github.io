@@ -231,9 +231,14 @@ public:
 
 
 private:
+  int* m_sampleids;		// may be NULL
+  mutable DataTypes::RealVectorType m_samples_r;
+  mutable DataTypes::CplxVectorType m_samples_c;     
+    
   mutable DataReady_ptr m_id;	//  For IDENTITY nodes, stores a wrapped value.
   mutable DataLazy_ptr m_left, m_right, m_mask;	// operands for operation.
   mutable ES_optype m_op;	// operation to perform.
+  mutable ES_opgroup m_opgroup; // type of operation to perform
 
   size_t m_samplesize;	// number of values required to store a sample
 
@@ -249,9 +254,7 @@ private:
   size_t m_children;
   size_t m_height;
 
-  int* m_sampleids;		// may be NULL
-  mutable DataTypes::RealVectorType m_samples_r;
-  mutable DataTypes::CplxVectorType m_samples_c;  
+ 
 
   /**
   Allocates sample storage at each node
