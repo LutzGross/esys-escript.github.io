@@ -48,7 +48,7 @@ ES_opgroup opgroups[]={G_UNKNOWN,G_IDENTITY,G_BINARY,G_BINARY,G_BINARY,G_BINARY,
                         G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY,        // 17
                         G_UNARY,G_UNARY,G_UNARY,                                        // 20
                         G_UNARY,G_UNARY,G_UNARY,G_UNARY_R,G_UNARY,G_UNARY,G_UNARY,G_UNARY,        // 28
-                        G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY, G_UNARY_P, G_UNARY_P,          // 35
+                        G_UNARY,G_UNARY,G_UNARY,G_UNARY,G_UNARY, G_UNARY_PR, G_UNARY_PR,          // 35
                         G_NP1OUT,G_NP1OUT,
                         G_TENSORPROD,
                         G_NP1OUT_P, G_NP1OUT_P,
@@ -76,10 +76,11 @@ std::string ES_groupstrings[]={
    "G_REDUCTION",         // non-pointwise unary op with a scalar output
    "G_CONDEVAL",
    "G_UNARY_C"            // pointwise operations with one argument, always cplx output    
+   "G_UNARY_PR"           // G_UNARY_P but always real output
 };
 
 int ES_opcount=55;
-int ES_groupcount=13;
+int ES_groupcount=14;
 }
 
 // Return a string representing the operation

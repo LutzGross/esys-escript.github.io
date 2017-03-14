@@ -99,7 +99,8 @@ enum ES_opgroup
    G_NP1OUT_2P,         // non-pointwise op with one output requiring two params
    G_REDUCTION,         // non-pointwise unary op with a scalar output
    G_CONDEVAL,
-   G_UNARY_C            // pointwise operations with one argument, always cplx output
+   G_UNARY_C,           // pointwise operations with one argument, always cplx output
+   G_UNARY_PR           // G_UNARY_P but always real output   
 };
 
 
