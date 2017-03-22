@@ -177,6 +177,10 @@ void DataLazyTestCase::testLazy2()
     shape=DataTypes::scalarShape;
     ES_optype op=(ES_optype)(j);			// not even reinterpret_cast works here
 					// if other compilers object I'll write a switch 
+    if (op==POS)
+    {
+        continue;       // not testing this, python handles it differently
+    }
     cout << "\t" << opToString(op) << endl;
     for (int i=0;i<5;++i)
     {

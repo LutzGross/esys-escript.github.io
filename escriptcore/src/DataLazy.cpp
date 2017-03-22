@@ -501,6 +501,10 @@ DataLazy::DataLazy(DataAbstract_ptr left, ES_optype op)
        m_iscompl=left->isComplex();
    }
    LazyNodeSetup();
+   if ((lleft->m_readytype!='E') && (op!=IDENTITY))
+   {
+       collapse();
+   }
    SIZELIMIT
 }
 
@@ -566,6 +570,14 @@ LAZYDEBUG(cout << "Right " << right.get() << " wrapped " << m_right->m_id.get() 
    else
    {
         m_readytype='C';
+   }
+   if ((lt!='E') && (m_left->m_op!=IDENTITY))
+   {
+       m_left->collapse();
+   }
+   if ((rt!='E') && (m_right->m_op!=IDENTITY))
+   {
+       m_right->collapse();
    }
    m_samplesize=getNumDPPSample()*getNoValues();
    m_children=m_left->m_children+m_right->m_children+2;
@@ -649,6 +661,14 @@ DataLazy::DataLazy(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op, 
    {
         m_readytype='C';
    }
+   if ((lt!='E') && (m_left->m_op!=IDENTITY))
+   {
+       m_left->collapse();
+   }
+   if ((rt!='E') && (m_right->m_op!=IDENTITY))
+   {
+       m_right->collapse();
+   }   
    m_samplesize=getNumDPPSample()*getNoValues();
    m_children=m_left->m_children+m_right->m_children+2;
    m_height=max(m_left->m_height,m_right->m_height)+1;
@@ -695,6 +715,10 @@ DataLazy::DataLazy(DataAbstract_ptr left, ES_optype op, int axis_offset)
    }
    m_readytype=lleft->m_readytype;
    m_left=lleft;
+   if ((m_left->m_readytype!='E') && (m_left->m_op!=IDENTITY))
+   {
+       m_left->collapse();
+   }
    m_samplesize=getNumDPPSample()*getNoValues();
    m_children=m_left->m_children+1;
    m_height=m_left->m_height+1;
@@ -728,6 +752,10 @@ DataLazy::DataLazy(DataAbstract_ptr left, ES_optype op, double tol)
    }
    m_readytype=lleft->m_readytype;
    m_left=lleft;
+   if ((m_left->m_readytype!='E') && (m_left->m_op!=IDENTITY))
+   {
+       m_left->collapse();
+   }   
    m_samplesize=getNumDPPSample()*getNoValues();
    m_children=m_left->m_children+1;
    m_height=m_left->m_height+1;
@@ -768,6 +796,10 @@ DataLazy::DataLazy(DataAbstract_ptr left, ES_optype op, const int axis0, const i
    }
    m_readytype=lleft->m_readytype;
    m_left=lleft;
+   if ((m_left->m_readytype!='E') && (m_left->m_op!=IDENTITY))
+   {
+       m_left->collapse();
+   }   
    m_samplesize=getNumDPPSample()*getNoValues();
    m_children=m_left->m_children+1;
    m_height=m_left->m_height+1;
@@ -839,6 +871,18 @@ DataLazy::DataLazy(DataAbstract_ptr mask, DataAbstract_ptr left, DataAbstract_pt
            m_left=makePromote(m_left);
        }
    }
+   if ((m_left->m_readytype!='E') && (m_left->m_op!=IDENTITY))
+   {
+       m_left->collapse();
+   }
+   if ((m_right->m_readytype!='E') && (m_right->m_op!=IDENTITY))
+   {
+       m_right->collapse();
+   }   
+   if ((m_mask->m_readytype!='E') && (m_mask->m_op!=IDENTITY))
+   {
+       m_mask->collapse();
+   }   
    m_iscompl=left->isComplex();   
    LazyNodeSetup();
    SIZELIMIT
@@ -1105,7 +1149,7 @@ LAZYDEBUG(cout << "Resolve sample " << toString() << endl;)
         // collapse so we have a 'E' node or an IDENTITY for some other type
   if (m_readytype!='E' && m_op!=IDENTITY)
   {
-        collapse();
+      throw DataException("Programmer Error - attempt to collapse inside resolveNodeSampleCplx. This should not happen.");
   }
   if (m_op==IDENTITY)   
   {
