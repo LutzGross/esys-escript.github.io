@@ -1157,22 +1157,23 @@ class Test_util_values(unittest.TestCase):
                     print(a)
                     print(res)
                 self.assertTrue(miscres,"Failed check for "+description)
-            oraclevalue=eval(oraclecheck)
-            if isinstance(res, Data):
-                res.resolve()
-            if isinstance(oraclevalue, Data):
-                oraclevalue.resolve()
-            oracleres=Lsup(res-oraclevalue)<=self.RES_TOL*Lsup(oraclevalue)
-            if not oracleres:
-                print("Wrong result:"+oraclecheck)
-                print(type(res))
-                print(" vs ")
-                print(type(oraclevalue))
-                print(" values:")
-                print(res)
-                print(" vs ")
-                print(oraclevalue)                
-            self.assertTrue(oracleres,"wrong result for "+description)
+            if oraclecheck is not None:
+                oraclevalue=eval(oraclecheck)
+                if isinstance(res, Data):
+                    res.resolve()
+                if isinstance(oraclevalue, Data):
+                    oraclevalue.resolve()
+                oracleres=Lsup(res-oraclevalue)<=self.RES_TOL*Lsup(oraclevalue)
+                if not oracleres:
+                    print("Wrong result:"+oraclecheck)
+                    print(type(res))
+                    print(" vs ")
+                    print(type(oraclevalue))
+                    print(" values:")
+                    print(res)
+                    print(" vs ")
+                    print(oraclevalue)                
+                self.assertTrue(oracleres,"wrong result for "+description)
             
     def execute_ce_throws(self, pars):
         for v in pars:
@@ -1208,23 +1209,24 @@ class Test_util_values(unittest.TestCase):
                     oraclevalue=eval(oraclecheck)
                 else:
                     oraclevalue=ref
-                oracleres=Lsup(res-oraclevalue)<=self.RES_TOL*Lsup(oraclevalue)
-                if not oracleres:
-                    print(v)
-                    print(" This step ")
-                    print(step)
-                    print("Failed comparison:")
-                    print(res)
-                    print(" vs ")
-                    print(oraclevalue)
-                    print(" a= ")
-                    print(a)
-                    print(" ref== ")
-                    print(ref)
-                    print(" oraclecheck= ")
-                    print(oraclecheck)
-                self.assertTrue(oracleres,"wrong result for "+description+" for tag "+str(tagcount))
-                tagcount+=1
+                if oraclevalue is not None:
+                    oracleres=Lsup(res-oraclevalue)<=self.RES_TOL*Lsup(oraclevalue)
+                    if not oracleres:
+                        print(v)
+                        print(" This step ")
+                        print(step)
+                        print("Failed comparison:")
+                        print(res)
+                        print(" vs ")
+                        print(oraclevalue)
+                        print(" a= ")
+                        print(a)
+                        print(" ref== ")
+                        print(ref)
+                        print(" oraclecheck= ")
+                        print(oraclecheck)
+                    self.assertTrue(oracleres,"wrong result for "+description+" for tag "+str(tagcount))
+                    tagcount+=1
 
         
     def execute_t_throws(self, pars):
@@ -1350,7 +1352,10 @@ class Test_util_values(unittest.TestCase):
                 (t2, r2)=inp_array2(rank, c)
                 t2=input_trans(t2)
                 r2=input_trans(numpy.array(r2))
-                rmerge=eval(update1)
+                if update1 is not None:
+                    rmerge=eval(update1)
+                else:
+                    rmerge=None
                 test.append((t2, opstring, misccheck, rmerge, None,))
                 dest.append(test)
         self.execute_t_params(tpars)
