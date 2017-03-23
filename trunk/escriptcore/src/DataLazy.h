@@ -251,8 +251,8 @@ private:
 
   double m_tol;		// required extra info for <>0 and ==0
 
-  size_t m_children;
-  size_t m_height;
+  mutable size_t m_children;
+  mutable size_t m_height;
 
  
 

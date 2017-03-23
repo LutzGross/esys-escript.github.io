@@ -597,6 +597,10 @@ LAZYDEBUG(cout << "Right " << right.get() << " wrapped " << m_right->m_id.get() 
    }
    m_iscompl=m_left->isComplex();
    LazyNodeSetup();
+   if ((m_readytype!='E') && (m_op!=IDENTITY))
+   {
+	collapse();
+   }
    SIZELIMIT
 LAZYDEBUG(cout << "(3)Lazy created with " << m_samplesize << endl;)
 }
@@ -687,6 +691,10 @@ DataLazy::DataLazy(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op, 
    }
    m_iscompl=m_left->isComplex();      
    LazyNodeSetup();
+   if ((m_readytype!='E') && (m_op!=IDENTITY))
+   {
+	collapse();
+   }
    SIZELIMIT
 LAZYDEBUG(cout << "(4)Lazy created with " << m_samplesize << endl;)
 }
@@ -724,6 +732,10 @@ DataLazy::DataLazy(DataAbstract_ptr left, ES_optype op, int axis_offset)
    m_height=m_left->m_height+1;
    m_iscompl=left->isComplex();
    LazyNodeSetup();
+   if ((m_readytype!='E') && (m_op!=IDENTITY))
+   {
+	collapse();
+   }
    SIZELIMIT
 LAZYDEBUG(cout << "(5)Lazy created with " << m_samplesize << endl;)
 }
@@ -768,6 +780,10 @@ DataLazy::DataLazy(DataAbstract_ptr left, ES_optype op, double tol)
        m_iscompl=left->isComplex();
    }
    LazyNodeSetup();
+   if ((m_readytype!='E') && (m_op!=IDENTITY))
+   {
+	collapse();
+   }
    SIZELIMIT
 LAZYDEBUG(cout << "(6)Lazy created with " << m_samplesize << endl;)
 }
@@ -805,6 +821,10 @@ DataLazy::DataLazy(DataAbstract_ptr left, ES_optype op, const int axis0, const i
    m_height=m_left->m_height+1;
    m_iscompl=left->isComplex();
    LazyNodeSetup();
+   if ((m_readytype!='E') && (m_op!=IDENTITY))
+   {
+	collapse();
+   }
    SIZELIMIT
 LAZYDEBUG(cout << "(7)Lazy created with " << m_samplesize << endl;)
 }
@@ -885,6 +905,10 @@ DataLazy::DataLazy(DataAbstract_ptr mask, DataAbstract_ptr left, DataAbstract_pt
    }   
    m_iscompl=left->isComplex();   
    LazyNodeSetup();
+   if ((m_readytype!='E') && (m_op!=IDENTITY))
+   {
+	collapse();
+   }
    SIZELIMIT
 LAZYDEBUG(cout << "(8)Lazy created with " << m_samplesize << endl;)
 }
@@ -935,6 +959,8 @@ DataLazy::collapseToReady() const
     case DIV:           
         result=left/right;
         break;
+    case POW:
+	result=left.powD(right);
     case SIN:
         result=left.sin();      
         break;
@@ -1082,6 +1108,7 @@ DataLazy::collapse() const
   m_id=collapseToReady();
   m_op=IDENTITY;
   m_opgroup=getOpgroup(m_op);
+  m_children=m_height=0;
 }
 
 // The result will be stored in m_samples
