@@ -121,6 +121,24 @@ class Test_util_binary_new(Test_util_values):
        capcombinedrank=True
        self.generate_binary_operation_test_batch_large(opstring, misccheck, oraclecheck, opname, no_shape_mismatch=noshapemismatch, permit_scalar_mismatch=permitscalarmismatch, cap_combined_rank=capcombinedrank)           
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_matrix_minimum_combined(self):
+       opstring='minimum(a,b)'
+       misccheck=None   # How to work out what the result of type should be
+       oraclecheck="numpy.minimum(refa,refb)"
+       opname="minimum"
+       noshapemismatch=True
+       permitscalarmismatch=True       
+       self.generate_binary_matrixlike_operation_test_batch_large(opstring, misccheck, oraclecheck, opname, no_shape_mismatch=noshapemismatch, permit_scalar_mismatch=permitscalarmismatch)
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_matrix_maximum_combined(self):
+       opstring='maximum(a,b)'
+       misccheck=None   # How to work out what the result of type should be
+       oraclecheck="numpy.maximum(refa,refb)"
+       opname="maximum"
+       noshapemismatch=True
+       permitscalarmismatch=True       
+       self.generate_binary_matrixlike_operation_test_batch_large(opstring, misccheck, oraclecheck, opname, no_shape_mismatch=noshapemismatch, permit_scalar_mismatch=permitscalarmismatch)       
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_matrix_mult_combined(self):
        opstring='matrix_mult(a,b)'
        misccheck=None   # How to work out what the result of type should be
