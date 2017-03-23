@@ -76,7 +76,7 @@ class Test_util_unary_new(Test_util_values):
             self.assertTrue(Lsup(res-ref)<=self.RES_TOL*Lsup(ref),"wrong result for data on "+str(o))
 
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   def xtest_compare_complex_vs_real_data(self):
+   def test_compare_complex_vs_real_data(self):
       # Compare results of unary ops provided by util and their python equivalents
       # Note that in some cases util calls these python versions so it is not a
       # guarantee that they are correct, we also compare with Data implementation
@@ -237,6 +237,19 @@ class Test_util_unary_new(Test_util_values):
                                                  expect_raise_on_ranks=(0,1,3,4), no_scalars=True, 
                                                  input_trans=lambda x: symmetric(x) if getRank(x)==2 else x)
         # We aren't testing the scalar case
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_eigenvalues_and_eigenvectors_combined(self):
+        supportcplx=False
+        opstring="eigenvalues_and_eigenvectors(a)"
+        misccheck="(Lsup(matrix_mult(a,res[1][:,0])-res[0][0]*res[1][:,0])<=0.001*Lsup(res[0])) and Lsup(matrix_mult(a,res[1][:,1])-res[0][1]*res[1][:,1])<=0.001*Lsup(res[0])"
+        oraclecheck=None
+        opname="eigenvalues_and_eigenvectors"
+        update1=None    # note missing update1 step, hoping this won't be a problem
+        update2=None
+        self.generate_operation_test_batch_large(supportcplx, opstring, misccheck, oraclecheck, opname, update1,
+                                                 expect_raise_on_ranks=(0,1,3,4), no_scalars=True,
+                                                 input_trans=lambda x: symmetric(x) if getRank(x)==2 else x)
+        # We aren't testing the scalar case        
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_exp_combined(self):
         supportcplx=True
