@@ -1513,11 +1513,10 @@ class Test_util_values(unittest.TestCase):
                         pars.append(p)           
         self.execute_binary_params(pars)
 
-    def generate_binary_operation_test_batch_large(self, opstring, misccheck, oraclecheck, opname, input_trans=None, minrank=0, maxrank=4, no_shape_mismatch=False, permit_scalar_mismatch=True, cap_combined_rank=False, fix_rank_a=None, fix_rank_b=None):
+    def generate_binary_operation_test_batch_large(self, opstring, misccheck, oraclecheck, opname, input_trans=None, minrank=0, maxrank=4, no_shape_mismatch=False, permit_scalar_mismatch=True, cap_combined_rank=False, fix_rank_a=None, fix_rank_b=None, support_cplx=True):
         """
         Generates a set of tests for binary operations.
         It is similar to the unary versions but with some unneeded options removed.
-        For example, all operations in this type should accept complex arguments.
         opstring is a string of the operation to be performed (in terms of arguments a and b) eg "inner(a,b)"
         misccheck is a string giving a check to be run after the operation eg "isinstance(res,float)"
         opname is a string used to describe the operation being tested eg "inner"
@@ -1529,8 +1528,12 @@ class Test_util_values(unittest.TestCase):
         if input_trans is None:
             input_trans=lambda x: x
         pars=[]
-        for ac in (False, True):    # complex or real arguments
-            for bc in (False, True):
+        if support_cplx:
+            complexity=(False, True)
+        else:
+            complexity=(False,)
+        for ac in complexity:    # complex or real arguments
+            for bc in complexity:
                 astr="real" if ac else "complex"
                 bstr="real" if bc else "complex"
                 aargset=[]
