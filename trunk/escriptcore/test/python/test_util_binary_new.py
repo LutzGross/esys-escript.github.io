@@ -127,8 +127,9 @@ class Test_util_binary_new(Test_util_values):
        oraclecheck="numpy.minimum(refa,refb)"
        opname="minimum"
        noshapemismatch=True
-       permitscalarmismatch=True       
-       self.generate_binary_matrixlike_operation_test_batch_large(opstring, misccheck, oraclecheck, opname, no_shape_mismatch=noshapemismatch, permit_scalar_mismatch=permitscalarmismatch)
+       permitscalarmismatch=True
+       cplx=False
+       self.generate_binary_operation_test_batch_large(opstring, misccheck, oraclecheck, opname, no_shape_mismatch=noshapemismatch, permit_scalar_mismatch=permitscalarmismatch, support_cplx=cplx)         
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_matrix_maximum_combined(self):
        opstring='maximum(a,b)'
@@ -136,8 +137,9 @@ class Test_util_binary_new(Test_util_values):
        oraclecheck="numpy.maximum(refa,refb)"
        opname="maximum"
        noshapemismatch=True
-       permitscalarmismatch=True       
-       self.generate_binary_matrixlike_operation_test_batch_large(opstring, misccheck, oraclecheck, opname, no_shape_mismatch=noshapemismatch, permit_scalar_mismatch=permitscalarmismatch)       
+       permitscalarmismatch=True
+       cplx=False
+       self.generate_binary_operation_test_batch_large(opstring, misccheck, oraclecheck, opname, no_shape_mismatch=noshapemismatch, permit_scalar_mismatch=permitscalarmismatch, support_cplx=cplx)         
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_matrix_mult_combined(self):
        opstring='matrix_mult(a,b)'
