@@ -105,11 +105,57 @@ class Test_util_binary_new(Test_util_values):
        opstring='a+b'
        misccheck='isinstance(res, Data) if isinstance(a, Data) or isinstance(b, Data) else True' # doesn't cover all cases;
        oraclecheck="refa+refb"
-       opname="add"
+       opname="+ operator"
        noshapemismatch=True
        permitscalarmismatch=True
        permit_array_op_data=False
-       self.generate_binary_operation_test_batch_large(opstring, misccheck, oraclecheck, opname, no_shape_mismatch=noshapemismatch, permit_scalar_mismatch=permitscalarmismatch, permit_array_op_data=permit_array_op_data)   
+       self.generate_binary_operation_test_batch(opstring, misccheck, oraclecheck, opname, no_shape_mismatch=noshapemismatch, permit_scalar_mismatch=permitscalarmismatch, permit_array_op_data=permit_array_op_data)   
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_div_combined(self):
+       opstring='a/b'
+       misccheck='isinstance(res, Data) if isinstance(a, Data) or isinstance(b, Data) else True' # doesn't cover all cases;
+       oraclecheck="refa/refb"
+       opname="/ operator"
+       no_second_arg_zeros=True
+       noshapemismatch=True
+       permitscalarmismatch=True
+       permit_array_op_data=False
+       self.generate_binary_operation_test_batch(opstring, misccheck, oraclecheck, opname, no_shape_mismatch=noshapemismatch, permit_scalar_mismatch=permitscalarmismatch, permit_array_op_data=permit_array_op_data, no_second_arg_zeros=no_second_arg_zeros)          
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_mul_combined(self):
+       opstring='a*b'
+       misccheck='isinstance(res, Data) if isinstance(a, Data) or isinstance(b, Data) else True' # doesn't cover all cases;
+       oraclecheck="refa*refb"
+       opname="* operator"
+       noshapemismatch=True
+       permitscalarmismatch=True
+       permit_array_op_data=False
+       self.generate_binary_operation_test_batch(opstring, misccheck, oraclecheck, opname, no_shape_mismatch=noshapemismatch, permit_scalar_mismatch=permitscalarmismatch, permit_array_op_data=permit_array_op_data)          
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_pow_combined(self):
+       opstring='a**b'
+       misccheck='isinstance(res, Data) if isinstance(a, Data) or isinstance(b, Data) else True' # doesn't cover all cases;
+       oraclecheck="refa**refb"
+       opname="** operator"
+       noshapemismatch=True
+       permitscalarmismatch=True
+       permit_array_op_data=False
+       no_first_arg_negative=True
+       no_first_arg_zeros=False
+       second_large_args=False
+       first_large_args=False
+       self.generate_binary_operation_test_batch(opstring, misccheck, oraclecheck, opname, no_shape_mismatch=noshapemismatch, permit_scalar_mismatch=permitscalarmismatch, permit_array_op_data=permit_array_op_data, no_first_arg_negative=no_first_arg_negative, no_first_arg_zeros=no_first_arg_zeros, 
+                                                 second_large_args=second_large_args, first_large_args=first_large_args)          
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_sub_combined(self):
+       opstring='a-b'
+       misccheck='isinstance(res, Data) if isinstance(a, Data) or isinstance(b, Data) else True' # doesn't cover all cases;
+       oraclecheck="refa-refb"
+       opname="- operator"
+       noshapemismatch=True
+       permitscalarmismatch=True
+       permit_array_op_data=False
+       self.generate_binary_operation_test_batch(opstring, misccheck, oraclecheck, opname, no_shape_mismatch=noshapemismatch, permit_scalar_mismatch=permitscalarmismatch, permit_array_op_data=permit_array_op_data)          
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inner_combined(self):
        opstring='inner(a,b)'
@@ -118,7 +164,7 @@ class Test_util_binary_new(Test_util_values):
        opname="inner"
        noshapemismatch=True
        permitscalarmismatch=False
-       self.generate_binary_operation_test_batch_large(opstring, misccheck, oraclecheck, opname, no_shape_mismatch=noshapemismatch, permit_scalar_mismatch=permitscalarmismatch)
+       self.generate_binary_operation_test_batch(opstring, misccheck, oraclecheck, opname, no_shape_mismatch=noshapemismatch, permit_scalar_mismatch=permitscalarmismatch)
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_outer_combined(self):
        opstring='outer(a,b)'
@@ -128,7 +174,7 @@ class Test_util_binary_new(Test_util_values):
        noshapemismatch=True
        permitscalarmismatch=True
        capcombinedrank=True
-       self.generate_binary_operation_test_batch_large(opstring, misccheck, oraclecheck, opname, no_shape_mismatch=noshapemismatch, permit_scalar_mismatch=permitscalarmismatch, cap_combined_rank=capcombinedrank)           
+       self.generate_binary_operation_test_batch(opstring, misccheck, oraclecheck, opname, no_shape_mismatch=noshapemismatch, permit_scalar_mismatch=permitscalarmismatch, cap_combined_rank=capcombinedrank)           
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_matrix_minimum_combined(self):
        opstring='minimum(a,b)'
@@ -138,7 +184,7 @@ class Test_util_binary_new(Test_util_values):
        noshapemismatch=True
        permitscalarmismatch=True
        cplx=False
-       self.generate_binary_operation_test_batch_large(opstring, misccheck, oraclecheck, opname, no_shape_mismatch=noshapemismatch, permit_scalar_mismatch=permitscalarmismatch, support_cplx=cplx)         
+       self.generate_binary_operation_test_batch(opstring, misccheck, oraclecheck, opname, no_shape_mismatch=noshapemismatch, permit_scalar_mismatch=permitscalarmismatch, support_cplx=cplx)         
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_matrix_maximum_combined(self):
        opstring='maximum(a,b)'
@@ -148,7 +194,7 @@ class Test_util_binary_new(Test_util_values):
        noshapemismatch=True
        permitscalarmismatch=True
        cplx=False
-       self.generate_binary_operation_test_batch_large(opstring, misccheck, oraclecheck, opname, no_shape_mismatch=noshapemismatch, permit_scalar_mismatch=permitscalarmismatch, support_cplx=cplx)         
+       self.generate_binary_operation_test_batch(opstring, misccheck, oraclecheck, opname, no_shape_mismatch=noshapemismatch, permit_scalar_mismatch=permitscalarmismatch, support_cplx=cplx)         
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_matrix_mult_combined(self):
        opstring='matrix_mult(a,b)'
