@@ -552,17 +552,32 @@ Data::Data(const boost::python::object& value,
     const DataTypes::ShapeType& tempShape=w.getShape();
     if (w.getRank()==0) {
 
-        // get the space for the data vector
-        int len1 = DataTypes::noValues(tempShape);
-        RealVectorType temp_data(len1, 0.0, len1);
-        temp_data.copyFromArray(w,1);
+        if (w.isComplex()==true)
+        {
+            // get the space for the data vector
+            int len1 = DataTypes::noValues(tempShape);
+            CplxVectorType temp_data(len1, 0.0, len1);
+            temp_data.copyFromArray(w,1);
 
-        int len = DataTypes::noValues(other.getDataPointShape());
+            int len = DataTypes::noValues(other.getDataPointShape());
 
-        RealVectorType temp2_data(len, temp_data[0], len);
-        DataConstant* t=new DataConstant(other.getFunctionSpace(),other.getDataPointShape(),temp2_data);
-        set_m_data(DataAbstract_ptr(t));
+            CplxVectorType temp2_data(len, temp_data[0], len);
+            DataConstant* t=new DataConstant(other.getFunctionSpace(),other.getDataPointShape(),temp2_data);
+            set_m_data(DataAbstract_ptr(t));
+        }
+        else
+        {
+            // get the space for the data vector
+            int len1 = DataTypes::noValues(tempShape);
+            RealVectorType temp_data(len1, 0.0, len1);
+            temp_data.copyFromArray(w,1);
 
+            int len = DataTypes::noValues(other.getDataPointShape());
+
+            RealVectorType temp2_data(len, temp_data[0], len);
+            DataConstant* t=new DataConstant(other.getFunctionSpace(),other.getDataPointShape(),temp2_data);
+            set_m_data(DataAbstract_ptr(t));
+        }
     } else {
         //
         // Create a DataConstant with the same sample shape as other
