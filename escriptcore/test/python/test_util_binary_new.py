@@ -100,7 +100,16 @@ class Test_util_binary_new(Test_util_values):
                 res.itemset(xa+xb,a.item(xa)*b.item(xb))
         return res    
     
-    
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_add_combined(self):
+       opstring='a+b'
+       misccheck='isinstance(res, Data) if isinstance(a, Data) or isinstance(b, Data) else True' # doesn't cover all cases;
+       oraclecheck="refa+refb"
+       opname="add"
+       noshapemismatch=True
+       permitscalarmismatch=True
+       permit_array_op_data=False
+       self.generate_binary_operation_test_batch_large(opstring, misccheck, oraclecheck, opname, no_shape_mismatch=noshapemismatch, permit_scalar_mismatch=permitscalarmismatch, permit_array_op_data=permit_array_op_data)   
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_inner_combined(self):
        opstring='inner(a,b)'

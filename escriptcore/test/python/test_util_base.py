@@ -1513,7 +1513,7 @@ class Test_util_values(unittest.TestCase):
                         pars.append(p)           
         self.execute_binary_params(pars)
 
-    def generate_binary_operation_test_batch_large(self, opstring, misccheck, oraclecheck, opname, input_trans=None, minrank=0, maxrank=4, no_shape_mismatch=False, permit_scalar_mismatch=True, cap_combined_rank=False, fix_rank_a=None, fix_rank_b=None, support_cplx=True):
+    def generate_binary_operation_test_batch_large(self, opstring, misccheck, oraclecheck, opname, input_trans=None, minrank=0, maxrank=4, no_shape_mismatch=False, permit_scalar_mismatch=True, cap_combined_rank=False, fix_rank_a=None, fix_rank_b=None, support_cplx=True, permit_array_op_data=True):
         """
         Generates a set of tests for binary operations.
         It is similar to the unary versions but with some unneeded options removed.
@@ -1524,6 +1524,8 @@ class Test_util_values(unittest.TestCase):
             account for tag additions for tagged data.
             eg:             update1="r2.min()"
             would result in     rmerge=eval(update1) running after the first tag is calculated 
+        Note: permit_array_op_data indicates whether cases with a numpy.ndarray as the first
+        argument and Data as the second will be generated. (This is to avoid numpy's interpretation of +)
         """
         if input_trans is None:
             input_trans=lambda x: x
@@ -1587,6 +1589,8 @@ class Test_util_values(unittest.TestCase):
                             if sa!=sb:
                                 if not permit_scalar_mismatch or (sa!=() and sb!=()):
                                    continue
+                        if isinstance(aarg[0][0], numpy.ndarray) and isinstance(barg[0][0], Data) and not permit_array_op_data:
+                            continue
                         p=(aarg[0][0], barg[0][0], opstring, misccheck, 
                            numpy.array(aarg[0][1]), numpy.array(barg[0][1]), 
                            oraclecheck, opname+' '+aarg[1]+'/'+barg[1])
