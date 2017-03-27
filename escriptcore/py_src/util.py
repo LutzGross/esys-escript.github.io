@@ -2283,10 +2283,11 @@ def generalTensorProduct(arg0,arg1,axis_offset=0):
        for i in sh1[:axis_offset]: d01*=i
        arg0_c.resize((d0,d01))
        arg1_c.resize((d01,d1))
-       if arg0_c.dtype!=numpy.float64:
-           out=numpy.zeros((d0,d1),arg0_c.dtype)
+       if arg0_c.dtype.kind=='c':
+           restype=arg0_c.dtype
        else:
-           out=numpy.zeros((d0,d1),numpy.float64)
+           restype=arg1_c.dtype
+       out=numpy.zeros((d0,d1),restype)
        for i0 in range(d0):
           for i1 in range(d1):
              out[i0,i1]=numpy.sum(arg0_c[i0,:]*arg1_c[:,i1])
