@@ -63,7 +63,7 @@ from test_util_base import Test_util_base, Test_util_values
 from test_util_reduction_new import Test_util_reduction_new
 from test_util_unary_new import Test_util_unary_new
 from test_util_binary_new import Test_util_binary_new
-
+from test_util_binary_leftover import Test_util_binary_leftover
 
 from test_util_overloaded_binary_no_tagged_data import Test_util_overloaded_binary_no_tagged_data
 from test_util_overloaded_binary_with_tagged_data import Test_util_overloaded_binary_with_tagged_data
@@ -81,21 +81,21 @@ from test_util_slicing_with_tagged_data import Test_util_slicing_with_tagged_dat
 class Test_util_reduction(Test_util_reduction_new):
    """ test for reduction operation Lsup,sup,inf for all data types"""
    pass 
-class Test_util_unary(Test_util_unary_new,Test_util_unary_no_tagged_data,
-                      Test_util_unary_with_tagged_data):
+class Test_util_unary(Test_util_unary_new):
    """ all unary tests """
    pass
-class Test_util_binary(Test_util_binary_new, Test_util_binary_no_tagged_data,Test_util_binary_with_tagged_data):
+class Test_util_binary(Test_util_binary_new, Test_util_binary_leftover):
    """
    test for all binary operation
    """
    pass
+
+# Testing of these ops is now in Test_util_binary
 class Test_util_overloaded_binary(Test_util_overloaded_binary_no_tagged_data,Test_util_overloaded_binary_with_tagged_data):
    """test for all overloaded operation"""
    pass
 
-class Test_util(Test_util_unary,Test_util_reduction,Test_util_binary,Test_util_overloaded_binary):
-#class Test_util(Test_util_binary_new):    
+class Test_util(Test_util_unary_new,Test_util_reduction_new, Test_util_binary):
    """all tests"""
    pass
 
