@@ -311,7 +311,6 @@ inline void binaryOpDataReadyHelperEET(DataExpanded& res, const DataExpanded& le
   ResSCALAR resdummy=0;
   LSCALAR dummyl=0;
   RSCALAR dummyr=0;
-  DataTypes::RealVectorType::size_type valcount=res.getNumDPPSample()*DataTypes::noValues(res.getShape());
 
     escript::binaryOpVectorTagged(res.getTypedVectorRW(resdummy), 
 			      res.getNumSamples(),res.getNumDPPSample(), DataTypes::noValues(res.getShape()), 
@@ -369,9 +368,7 @@ inline void binaryOpDataReadyHelperETE(DataExpanded& res, const DataTagged& left
   ResSCALAR resdummy=0;
   LSCALAR dummyl=0;
   RSCALAR dummyr=0;
-  DataTypes::RealVectorType::size_type valcount=res.getNumDPPSample()*DataTypes::noValues(res.getShape());
-
-    escript::binaryOpVectorTagged(res.getTypedVectorRW(resdummy), 
+  escript::binaryOpVectorTagged(res.getTypedVectorRW(resdummy), 
 			      res.getNumSamples(),res.getNumDPPSample(), DataTypes::noValues(res.getShape()), 
 			      left.getTypedVectorRO(dummyl), left.getRank()==0,
 			      right.getTypedVectorRO(dummyr), right.getRank()==0,
