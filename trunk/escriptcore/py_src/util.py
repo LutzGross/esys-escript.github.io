@@ -2512,6 +2512,8 @@ def tensor_transposed_mult(arg0,arg1):
              each data point
     :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the input
     """
+    return tensor_mult(arg0, transpose(arg1))
+    # The code below has a bug, for now we use the less efficient call above
     sh0=getShape(arg0)
     sh1=getShape(arg1)
     if len(sh0)==2 and ( len(sh1)==2 or len(sh1)==1 ):
