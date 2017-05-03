@@ -4562,7 +4562,7 @@ class Test_SymbolicTestCase(unittest.TestCase):
     #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     def test_tensor_transposed_mult_Symbol_rank4_and_2(self):
         sh0=(4, 2, 1, 2)
-        sh1=(1, 2)
+        sh1=(2, 1)
         x=Symbol('x', sh0)
         y=Symbol('y', sh1)
         z=tensor_transposed_mult(x,y)
@@ -4572,6 +4572,7 @@ class Test_SymbolicTestCase(unittest.TestCase):
 -0.36459928785133155]], [[-0.22462276783111212, -0.42161393988755957]]], [[[0.26571160085874457, -0.62600818728809027]], 
 [[-0.71097319952325466, -0.62527074156544704]]]])
         yy=numpy.array([[0.34480495362926078, 0.79127258239206455]])
+        yy=transpose(yy)
         ref=tensor_transposed_mult(xx,yy)
         res=Evaluator(z)(x=xx,y=yy)
         self.assertAlmostEqual(Lsup(res-ref), 0.0, self.TOL_DIGITS, "wrong result")
