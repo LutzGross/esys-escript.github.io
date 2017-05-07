@@ -595,7 +595,7 @@ if env['paso']:
     build_all_list += ['build_paso']
     install_all_list += ['install_paso']
 
-env['buildvars']['paso'] = int(env['trilinos'])
+env['buildvars']['trilinos'] = int(env['trilinos'])
 if env['trilinos']:
     build_all_list += ['build_trilinoswrap']
     install_all_list += ['install_trilinoswrap']
