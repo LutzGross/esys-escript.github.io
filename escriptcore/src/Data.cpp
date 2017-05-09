@@ -2865,6 +2865,9 @@ Data::minGlobalDataPoint() const
     int DataPointNo;
     int ProcNo;
     calc_minGlobalDataPoint(ProcNo,DataPointNo);
+    if (ProcNo==-1) {
+	throw DataException("There are no values to find minimum of.");
+    }
     return bp::make_tuple(ProcNo,DataPointNo);
 }
 
@@ -2926,20 +2929,27 @@ Data::calc_minGlobalDataPoint(int& ProcNo,
     /*int error =*/ MPI_Gather (next, 2, MPI_DOUBLE, globalMins, 2, MPI_DOUBLE, 0, get_MPIComm() );
 
     if ( get_MPIRank()==0 ) {
-        for (lowProc=0; lowProc<get_MPISize(); lowProc++)
+        for (lowProc=0; lowProc<get_MPISize(); lowProc++) {
             if (globalMins[lowProc*2+1] > 0) break;
-        min = globalMins[lowProc*2];
-        for( i=lowProc+1; i<get_MPISize(); i++ )
-            if( globalMins[i*2+1]>0 && min>globalMins[i*2] ) {
-                lowProc = i;
-                min = globalMins[i*2];
-            }
+        }
+	if (lowProc<get_MPISize()) {
+            min = globalMins[lowProc*2];
+            for( i=lowProc+1; i<get_MPISize(); i++ )
+                if( globalMins[i*2+1]>0 && min>globalMins[i*2] ) {
+                    lowProc = i;
+                    min = globalMins[i*2];
+                }
+        }
     }
     MPI_Bcast( &lowProc, 1, MPI_INT, 0, get_MPIComm() );
     DataPointNo = lowj + lowi * numDPPSample;
-    MPI_Bcast(&DataPointNo, 1, MPI_INT, lowProc, get_MPIComm() );
+    if (lowProc>=get_MPISize()) {
+        ProcNo = -1;
+    } else {
+        MPI_Bcast(&DataPointNo, 1, MPI_INT, lowProc, get_MPIComm() );
+        ProcNo = lowProc;
+    }
     delete [] globalMins;
-    ProcNo = lowProc;
 #else
     ProcNo = 0;
     DataPointNo = lowj + lowi * numDPPSample;
