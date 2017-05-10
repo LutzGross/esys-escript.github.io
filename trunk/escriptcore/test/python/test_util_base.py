@@ -1613,10 +1613,14 @@ class Test_util_values(unittest.TestCase):
             expected_exceptions=v[6]
             if expected_exceptions is None:
                 expected_exceptions=(TypeError, RuntimeError)   # These are used for unsupported complex
-            with self.assertRaises(Exception) as err:  
-                res=eval(op)
-            # unfortunately, we don't return a single exception type in this case
-            self.assertTrue(type(err.exception) in expected_exceptions, "Exception was raised but it was of unexpected type ("+str(type(err.exception))+")")
+            try:
+                res=eval(op)                
+            except Exception as ex:
+                # unfortunately, we don't return a single exception type in this case
+                self.assertTrue(type(ex) in expected_exceptions, "Exception was raised but it was of unexpected type ("+str(type(ex))+")")
+            else:
+                print("Processing expression "+str(op)+" with value "+str(a))
+                raise AssertionError("Exception not raised")
     
     def execute_t_params(self, pars):
         for v in pars:

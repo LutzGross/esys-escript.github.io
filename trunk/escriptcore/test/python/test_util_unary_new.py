@@ -284,6 +284,17 @@ class Test_util_unary_new(Test_util_values):
                                             minrank=2, maxrank=2, no_scalars=True)
         # escript's inverse also supports scalars so need to check them separately
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+   def test_phase_combined(self):
+        supportcplx=True
+        opstring="phase(a)"
+        misccheck="isinstance(res,type(a))"
+        oraclecheck="numpy.angle(ref)"
+        opname="phase"
+        update1=getTagStr("numpy.angle")
+        update2=None
+        self.generate_operation_test_batch_large(supportcplx, opstring, misccheck, oraclecheck, opname, update1, 
+                                            minrank=2, maxrank=2, no_scalars=True)        
+   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_sign_combined(self):
         supportcplx=False
         opstring="sign(a)"

@@ -1956,8 +1956,7 @@ Data::phase() const
     }
     else
     {
-        return copySelf()*Data(0, m_data->getShape(), getFunctionSpace(),false);      // return an object with same tags etc but all values 0
-                                // This is not efficient, but why are you taking imag of R anyway?
+        return whereNegative()*Data(M_PI, DataTypes::scalarShape, getFunctionSpace(), false);
     }
 }
 
