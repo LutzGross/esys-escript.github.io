@@ -45,6 +45,7 @@ import cmath
 import os
 import warnings
 import numpy
+import numbers
 warnings.simplefilter('default', category=DeprecationWarning)
 # suppress the following which comes from sympy with python 3.5
 warnings.filterwarnings('ignore', category=DeprecationWarning, message='inspect.getargspec.*')
@@ -3112,3 +3113,15 @@ def polarToCart(r, phase):
     :rtype: appropriate complex
     """
     return r*exp(1*j*phase)
+
+def phase(arg):
+    """
+    return the "phase"/"arg"/"angle" of a number
+    """
+    if isinstance(arg, numbers.Number):
+        return cmath.phase(arg)
+    if isinstance(arg, Data):
+        return arg.phase()
+    if isinstance(arg, numpy.ndarray):
+        return numpy.phase(arg)
+    return arg.phase()
