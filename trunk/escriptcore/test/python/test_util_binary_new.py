@@ -120,7 +120,7 @@ class Test_util_binary_new(Test_util_values):
        noshapemismatch=True
        permitscalarmismatch=True
        permit_array_op_data=False
-       self.generate_binary_operation_test_batch(opstring, misccheck, oraclecheck, opname, no_shape_mismatch=noshapemismatch, permit_scalar_mismatch=permitscalarmismatch, permit_array_op_data=permit_array_op_data, no_second_arg_zeros=no_second_arg_zeros)          
+       self.generate_binary_operation_test_batch(opstring, misccheck, oraclecheck, opname, no_shape_mismatch=noshapemismatch, permit_scalar_mismatch=permitscalarmismatch, permit_array_op_data=permit_array_op_data, no_second_arg_zeros=no_second_arg_zeros)     
    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
    def test_mul_combined(self):
        opstring='a*b'
@@ -236,10 +236,10 @@ class Test_util_binary_new(Test_util_values):
        aranks=(2,4)
        self.generate_binary_matrixlike_operation_test_batch_large(opstring, misccheck, oraclecheck, opname, aranks=aranks) 
     #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-   #def test_tensor_transposed_mult_combined(self):
-       #opstring='tensor_transposed_mult(a,b)'
-       #misccheck=None   # How to work out what the result of type should be
-       #oraclecheck="numpy.dot(refa,transpose(refb)) if getRank(refa)==2 else numpy.tensordot(refa,transpose(refb))"
-       #opname="tensor_tranposed_mult"
-       #aranks=(2,4)
-       #self.generate_binary_matrixlike_operation_test_batch_large(opstring, misccheck, oraclecheck, opname, aranks=aranks)         
+   def test_tensor_transposed_mult_combined(self):
+       opstring='tensor_transposed_mult(a,b)'
+       misccheck=None   # How to work out what the result of type should be
+       oraclecheck="numpy.dot(refa,transpose(refb)) if getRank(refa)==2 else numpy.tensordot(refa,transpose(refb))"
+       opname="tensor_tranposed_mult"
+       aranks=(2,4)
+       self.generate_binary_matrixlike_operation_test_batch_large(opstring, misccheck, oraclecheck, opname, aranks=aranks)         
