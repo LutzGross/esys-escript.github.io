@@ -1,0 +1,136 @@
+
+##############################################################################
+#
+# Copyright (c) 2003-2017 by The University of Queensland
+# http://www.uq.edu.au
+#
+# Primary Business: Queensland, Australia
+# Licensed under the Apache License, version 2.0
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+# Development 2012-2013 by School of Earth Sciences
+# Development from 2014 by Centre for Geoscience Computing (GeoComp)
+#
+##############################################################################
+
+Import('*')
+
+module_name = 'paso'
+
+sources = """
+    AMG.cpp
+    AMG_Interpolation.cpp
+    AMG_Prolongation.cpp
+    AMG_Restriction.cpp
+    AMG_Root.cpp
+    BiCGStab.cpp
+    Coupler.cpp
+    FCT_Solver.cpp
+    FluxLimiter.cpp
+    Functions.cpp
+    GMRES.cpp
+    GMRES2.cpp
+    LocalAMG.cpp
+    LocalAMG_Prolongation.cpp
+    MergedSolver.cpp
+    MKL.cpp
+    NewtonGMRES.cpp
+    Options.cpp
+    PCG.cpp
+    PasoUtil.cpp
+    Pattern.cpp
+    Pattern_mis.cpp
+    Pattern_reduceBandwidth.cpp
+    Preconditioner.cpp
+    ReactiveSolver.cpp
+    SchurComplement.cpp
+    Smoother.cpp
+    Solver.cpp
+    Solver_Function.cpp
+    SparseMatrix.cpp
+    SparseMatrix_getSubmatrix.cpp
+    SparseMatrix_nullifyRowsAndCols.cpp
+    SparseMatrix_saveHB.cpp
+    SparseMatrix_MatrixMatrix.cpp
+    SparseMatrix_MatrixMatrixTranspose.cpp
+    SparseMatrix_MatrixVector.cpp
+    SystemMatrix.cpp
+    SystemMatrix_MatrixVector.cpp
+    SystemMatrix_copyRemoteCoupleBlock.cpp
+    SystemMatrix_debug.cpp
+    SystemMatrix_extendedRows.cpp
+    SystemMatrix_loadMM.cpp
+    SystemMatrix_mergeMainAndCouple.cpp
+    SystemMatrixPattern.cpp
+    SystemMatrixPattern_unrollBlocks.cpp
+    Transport.cpp
+    Transport_solve.cpp
+    BOOMERAMG.cpp
+    ILU.cpp
+    MINRES.cpp
+    RILU.cpp
+    TFQMR.cpp
+    UMFPACK.cpp
+    mmio.cpp
+    performance.cpp
+    solve.cpp
+""".split()
+
+headers = """
+    BlockOps.h
+    BOOMERAMG.h
+    Coupler.h
+    FCT_Solver.h
+    FluxLimiter.h
+    Functions.h
+    MergedSolver.h
+    MKL.h
+    mmio.h
+    Options.h
+    Paso.h
+    PasoException.h
+    PasoUtil.h
+    Pattern.h
+    performance.h
+    Preconditioner.h
+    ReactiveSolver.h
+    SharedComponents.h
+    Solver.h
+    SparseMatrix.h
+    SystemMatrix.h
+    SystemMatrixPattern.h
+    Transport.h
+    UMFPACK.h
+""".split()
+
+local_env = env.Clone()
+
+# collect dependencies for other modules
+pasolibs = env['escript_libs']
+if env['uselapack']:
+    pasolibs += env['lapack_libs']
+if env['mkl']:
+    pasolibs += env['mkl_libs']
+if env['umfpack']:
+    pasolibs += env['umfpack_libs']
+if env['boomeramg']:
+    pasolibs += env['boomeramg_libs']
+if env['papi']:
+    pasolibs += env['papi_libs']
+
+local_env.PrependUnique(LIBS = pasolibs)
+env['paso_libs'] = [module_name] + pasolibs
+
+if IS_WINDOWS:
+    local_env.Append(CPPDEFINES = ['PASO_EXPORTS'])
+
+include_path = Dir(module_name, local_env['incinstall'])
+hdr_inst = local_env.Install(include_path, headers)
+
+lib = local_env.SharedLibrary(module_name, sources)
+lib_inst = local_env.Install(local_env['libinstall'], lib)
+
+build = env.Alias('build_paso', [hdr_inst, lib])
+env.Alias('install_paso', [build, lib_inst])
+
