@@ -230,7 +230,12 @@ inline
 typename DataVectorAlt<T>::const_reference
 DataVectorAlt<T>::operator[](const DataVectorAlt::size_type i) const
 {
-  ESYS_ASSERT(i<size(), "DataVectorAlt: invalid index specified. " << i << " of " << size());
+  if (i>=size())
+  {
+      int* f=0;
+      *f=42;
+  }
+//  ESYS_ASSERT(i<size(), "DataVectorAlt: invalid index specified. " << i << " of " << size());
   return m_array_data[i];
 }
 

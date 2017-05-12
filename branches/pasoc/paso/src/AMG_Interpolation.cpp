@@ -62,7 +62,8 @@ namespace paso {
         rPtr=A->col_coupler->connector->send->OffsetInShared[k]
    on q.
 */
-void Preconditioner_AMG_extendB(SystemMatrix_ptr A, SystemMatrix_ptr B)
+template <class T>
+void Preconditioner_AMG_extendB(SystemMatrix_ptr<T> A, SystemMatrix_ptr<T> B)
 {
     if (A->mpi_info->size == 1) return;
 
@@ -417,7 +418,8 @@ void Preconditioner_AMG_extendB(SystemMatrix_ptr A, SystemMatrix_ptr B)
    Rows to be copied to neighbour processor k is in the list defined by
         P->col_coupler->connector->recv->offsetInShared[k] ...
         P->col_coupler->connector->recv->offsetInShared[k+1]  */
-void Preconditioner_AMG_CopyRemoteData(SystemMatrix_ptr P,
+template <class T>
+void Preconditioner_AMG_CopyRemoteData(SystemMatrix_ptr<T> P,
         index_t **p_ptr, index_t **p_idx, double **p_val,
         index_t *global_id, index_t block_size)
 {
@@ -553,12 +555,13 @@ void Preconditioner_AMG_CopyRemoteData(SystemMatrix_ptr P,
     *p_val = recv_val;
 }
 
-SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperator(
-        SystemMatrix_ptr A, SystemMatrix_ptr P,
-        SystemMatrix_ptr R)
+template <class T>
+SystemMatrix_ptr<T> Preconditioner_AMG_buildInterpolationOperator(
+        SystemMatrix_ptr<T> A, SystemMatrix_ptr<T> P,
+        SystemMatrix_ptr<T> R)
 {
    escript::JMPI& mpi_info=A->mpi_info;
-   SystemMatrix_ptr out;
+   SystemMatrix_ptr<T> out;
    SystemMatrixPattern_ptr pattern;
    escript::Distribution_ptr input_dist, output_dist;
    Connector_ptr col_connector, row_connector;
@@ -1931,7 +1934,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperator(
     pattern.reset(new SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
                 output_dist, input_dist, main_pattern, col_couple_pattern,
                 row_couple_pattern, col_connector, row_connector));
-    out.reset(new SystemMatrix(A->type, pattern, row_block_size,
+    out.reset(new SystemMatrix<T>(A->type, pattern, row_block_size,
                                col_block_size, false, A->getRowFunctionSpace(),
                                A->getColumnFunctionSpace()));
 
@@ -1946,13 +1949,13 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperator(
     return out;
 }
 
-
-SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperatorBlock(
-        SystemMatrix_ptr A, SystemMatrix_ptr P,
-        SystemMatrix_ptr R)
+template <class T>
+SystemMatrix_ptr<T> Preconditioner_AMG_buildInterpolationOperatorBlock(
+        SystemMatrix_ptr<T> A, SystemMatrix_ptr<T> P,
+        SystemMatrix_ptr<T> R)
 {
    escript::JMPI mpi_info(A->mpi_info);
-   SystemMatrix_ptr out;
+   SystemMatrix_ptr<T> out;
    SystemMatrixPattern_ptr pattern;
    escript::Distribution_ptr input_dist, output_dist;
    SharedComponents_ptr send, recv;
@@ -3311,7 +3314,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperatorBlock(
     pattern.reset(new SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
                   output_dist, input_dist, main_pattern, col_couple_pattern,
                   row_couple_pattern, col_connector, row_connector));
-    out.reset(new SystemMatrix(A->type, pattern, row_block_size,
+    out.reset(new SystemMatrix<T>(A->type, pattern, row_block_size,
                                col_block_size, false, A->getRowFunctionSpace(),
                                A->getColumnFunctionSpace()));
 

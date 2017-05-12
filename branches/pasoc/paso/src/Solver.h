@@ -27,25 +27,33 @@ namespace paso {
 
 #define TOLERANCE_FOR_SCALARS (double)(0.)
 
-void solve_free(SystemMatrix* A);
+template <class T>    
+void solve_free(SystemMatrix<T>* A);
 
-SolverResult Solver(SystemMatrix_ptr, double*, double*, Options*, Performance*);
+template <class T>
+SolverResult Solver(SystemMatrix_ptr<T>, double*, double*, Options*, Performance*);
 
-void Solver_free(SystemMatrix*);
+template <class T>
+void Solver_free(SystemMatrix<T>*);
 
-SolverResult Solver_BiCGStab(SystemMatrix_ptr A, double* B, double* X,
+template <class T>
+SolverResult Solver_BiCGStab(SystemMatrix_ptr<T> A, double* B, double* X,
                              dim_t* iter, double* tolerance, Performance* pp);
 
-SolverResult Solver_PCG(SystemMatrix_ptr A, double* B, double* X, dim_t* iter,
+template <class T>
+SolverResult Solver_PCG(SystemMatrix_ptr<T> A, double* B, double* X, dim_t* iter,
                         double* tolerance, Performance* pp);
 
-SolverResult Solver_TFQMR(SystemMatrix_ptr A, double* B, double* X, dim_t* iter,
+template <class T>
+SolverResult Solver_TFQMR(SystemMatrix_ptr<T> A, double* B, double* X, dim_t* iter,
                           double* tolerance, Performance* pp);
 
-SolverResult Solver_MINRES(SystemMatrix_ptr A, double* B, double* X,
+template <class T>
+SolverResult Solver_MINRES(SystemMatrix_ptr<T> A, double* B, double* X,
                            dim_t* iter, double* tolerance, Performance* pp);
 
-SolverResult Solver_GMRES(SystemMatrix_ptr A, double* r, double* x,
+template <class T>
+SolverResult Solver_GMRES(SystemMatrix_ptr<T> A, double* r, double* x,
                           dim_t* num_iter, double* tolerance,
                           dim_t length_of_recursion, dim_t restart,
                           Performance* pp);

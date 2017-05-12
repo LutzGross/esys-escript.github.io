@@ -37,13 +37,24 @@
 namespace paso {
 
 class Options;
+
+template <class T>
 class SystemMatrix;
-typedef boost::shared_ptr<SystemMatrix> SystemMatrix_ptr;
-typedef boost::shared_ptr<const SystemMatrix> const_SystemMatrix_ptr;
+
+template <class T>
+using SystemMatrix_ptr = boost::shared_ptr<SystemMatrix<T> >;
+
+template <class T>
+using const_SystemMatrix_ptr = boost::shared_ptr<const SystemMatrix<T> >;
+
+
+// typedef boost::shared_ptr<SystemMatrix> SystemMatrix_ptr;
+// typedef boost::shared_ptr<const SystemMatrix> const_SystemMatrix_ptr;
 
 typedef int SystemMatrixType;
 
 /// this class holds a (distributed) stiffness matrix
+template <class T>
 class SystemMatrix : public escript::AbstractSystemMatrix
 {
 public:
@@ -298,9 +309,9 @@ public:
     void MatrixVector_CSR_OFFSET0(double alpha, const double* in, double beta,
                                   double* out) const;
 
-    static SystemMatrix_ptr loadMM_toCSR(const char* filename);
+    static SystemMatrix_ptr<T> loadMM_toCSR(const char* filename);
 
-    static SystemMatrix_ptr loadMM_toCSC(const char* filename);
+    static SystemMatrix_ptr<T> loadMM_toCSC(const char* filename);
 
     static int getSystemMatrixTypeId(int solver, int preconditioner,
                                      int package, bool symmetry,
@@ -320,8 +331,8 @@ public:
     escript::Distribution_ptr col_distribution;
     escript::JMPI mpi_info;
 
-    Coupler_ptr col_coupler;
-    Coupler_ptr row_coupler;
+    Coupler_ptr<T> col_coupler;
+    Coupler_ptr<T> row_coupler;
 
     /// main block
     SparseMatrix_ptr mainBlock;

@@ -62,7 +62,8 @@ inline double* createRandomVector(escript::const_Distribution_ptr dist)
 }
 
 
-void Preconditioner_AMG_free(Preconditioner_AMG* in)
+template <class T>
+void Preconditioner_AMG_free(Preconditioner_AMG<T>* in)
 {
     if (in!=NULL) {
         Preconditioner_Smoother_free(in->Smoother);
@@ -75,7 +76,8 @@ void Preconditioner_AMG_free(Preconditioner_AMG* in)
     }
 }
 
-int Preconditioner_AMG_getMaxLevel(const Preconditioner_AMG* in)
+template <class T>
+int Preconditioner_AMG_getMaxLevel(const Preconditioner_AMG<T>* in)
 {
     if (in->AMG_C == NULL) {
         return in->level;
@@ -84,7 +86,8 @@ int Preconditioner_AMG_getMaxLevel(const Preconditioner_AMG* in)
     }
 }
 
-double Preconditioner_AMG_getCoarseLevelSparsity(const Preconditioner_AMG* in)
+template <class T>
+double Preconditioner_AMG_getCoarseLevelSparsity(const Preconditioner_AMG<T>* in)
 {
     if (in->AMG_C == NULL) {
         if (in->A_C == NULL) {
@@ -96,7 +99,8 @@ double Preconditioner_AMG_getCoarseLevelSparsity(const Preconditioner_AMG* in)
     return Preconditioner_AMG_getCoarseLevelSparsity(in->AMG_C);
 }
 
-dim_t Preconditioner_AMG_getNumCoarseUnknowns(const Preconditioner_AMG* in)
+template <class T>
+dim_t Preconditioner_AMG_getNumCoarseUnknowns(const Preconditioner_AMG<T>* in)
 {
     if (in->AMG_C == NULL) {
         if (in->A_C == NULL) {
@@ -113,10 +117,11 @@ dim_t Preconditioner_AMG_getNumCoarseUnknowns(const Preconditioner_AMG* in)
    constructs AMG
 
 *****************************************************************************/
-Preconditioner_AMG* Preconditioner_AMG_alloc(SystemMatrix_ptr A, int level,
+template <class T>
+Preconditioner_AMG<T>* Preconditioner_AMG_alloc(SystemMatrix_ptr<T> A, int level,
                                              Options* options)
 {
-    Preconditioner_AMG* out = NULL;
+    Preconditioner_AMG<T>* out = NULL;
     const bool verbose = options->verbose;
     const dim_t my_n = A->mainBlock->numRows;
     const dim_t overlap_n = A->row_coupleBlock->numRows;
@@ -237,7 +242,7 @@ Preconditioner_AMG* Preconditioner_AMG_alloc(SystemMatrix_ptr A, int level,
 
     //if (n_F == 0) { nasty case. a direct solver should be used!
     if (F_flag) {
-        out = new Preconditioner_AMG;
+        out = new Preconditioner_AMG<T>;
         out->level = level;
         out->post_sweeps = options->post_sweeps;
         out->pre_sweeps  = options->pre_sweeps;
@@ -285,7 +290,7 @@ Preconditioner_AMG* Preconditioner_AMG_alloc(SystemMatrix_ptr A, int level,
                     << ": getTranspose: " << escript::gettime()-time0
                     << std::endl;
             // construct coarse level matrix
-            SystemMatrix_ptr A_C;
+            SystemMatrix_ptr<T> A_C;
             time0 = escript::gettime();
             A_C = Preconditioner_AMG_buildInterpolationOperator(A, out->P, out->R);
             if (SHOW_TIMING)
@@ -299,7 +304,7 @@ Preconditioner_AMG* Preconditioner_AMG_alloc(SystemMatrix_ptr A, int level,
                 // merge the system matrix into 1 rank when
                 // it's not suitable coarsening due to the
                 // total number of unknowns being too small
-                out->merged_solver = new MergedSolver(A_C, options);
+                out->merged_solver = new MergedSolver<T>(A_C, options);
             }
             delete[] mask_C;
             delete[] rows_in_F;
@@ -318,8 +323,9 @@ Preconditioner_AMG* Preconditioner_AMG_alloc(SystemMatrix_ptr A, int level,
 }
 
 
-void Preconditioner_AMG_solve(SystemMatrix_ptr A,
-                              Preconditioner_AMG* amg, double* x, double* b)
+template <class T>
+void Preconditioner_AMG_solve(SystemMatrix_ptr<T> A,
+                              Preconditioner_AMG<T>* amg, double* x, double* b)
 {
     const dim_t n = A->mainBlock->numRows * A->mainBlock->row_block_size;
     const dim_t post_sweeps=amg->post_sweeps;
@@ -375,7 +381,8 @@ void Preconditioner_AMG_solve(SystemMatrix_ptr A,
 ///
 /// S_i={j \in N_i; i strongly coupled to j}
 /// in the sense that |A_{ij}| >= theta * max_k |A_{ik}|
-void Preconditioner_AMG_setStrongConnections(SystemMatrix_ptr A,
+template <class T>
+void Preconditioner_AMG_setStrongConnections(SystemMatrix_ptr<T> A,
                                              dim_t* degree_S,
                                              index_t* offset_S, index_t* S,
                                              double theta, double tau)
@@ -452,7 +459,7 @@ void Preconditioner_AMG_setStrongConnections(SystemMatrix_ptr A,
             A->mainBlock->pattern->ptr[my_n]+A->col_coupleBlock->pattern->ptr[my_n]
             -A->mainBlock->pattern->ptr[0]-A->col_coupleBlock->pattern->ptr[0];
 
-        Coupler_ptr threshold_coupler(new Coupler(A->row_coupler->connector, 2, A->mpi_info));
+        Coupler_ptr<T> threshold_coupler(new Coupler<T>(A->row_coupler->connector, 2, A->mpi_info));
         threshold_coupler->startCollect(threshold_p);
         double* remote_threshold = threshold_coupler->finishCollect();
 
@@ -491,7 +498,8 @@ void Preconditioner_AMG_setStrongConnections(SystemMatrix_ptr A,
 // tau = threshold for diagonal dominance
 // S_i={j \in N_i; i strongly coupled to j}
 // in the sense that |A_{ij}|_F >= theta * max_k |A_{ik}|_F
-void Preconditioner_AMG_setStrongConnections_Block(SystemMatrix_ptr A,
+template <class T>
+void Preconditioner_AMG_setStrongConnections_Block(SystemMatrix_ptr<T> A,
                                                    dim_t* degree_S,
                                                    index_t* offset_S,
                                                    index_t* S,
@@ -599,7 +607,7 @@ void Preconditioner_AMG_setStrongConnections_Block(SystemMatrix_ptr A,
             A->mainBlock->pattern->ptr[my_n]+A->col_coupleBlock->pattern->ptr[my_n]
             -A->mainBlock->pattern->ptr[0]-A->col_coupleBlock->pattern->ptr[0];
 
-        Coupler_ptr threshold_coupler(new Coupler(A->row_coupler->connector, 2, A->mpi_info));
+        Coupler_ptr<T> threshold_coupler(new Coupler<T>(A->row_coupler->connector, 2, A->mpi_info));
         threshold_coupler->startCollect(threshold_p);
         double* remote_threshold = threshold_coupler->finishCollect();
 
@@ -674,6 +682,7 @@ void Preconditioner_AMG_transposeStrongConnections(dim_t n,
     }
 }
 
+template <class T>
 void Preconditioner_AMG_CIJPCoarsening(dim_t n, dim_t my_n,
                                        AMGBlockSelect* split_marker,
                                        const dim_t* degree_S,
@@ -685,7 +694,7 @@ void Preconditioner_AMG_CIJPCoarsening(dim_t n, dim_t my_n,
                                        const_Connector_ptr col_connector,
                                        escript::const_Distribution_ptr col_dist)
 {
-    Coupler_ptr w_coupler(new Coupler(col_connector, 1, col_dist->mpi_info));
+    Coupler_ptr<T> w_coupler(new Coupler<T>(col_connector, 1, col_dist->mpi_info));
     double* w = new double[n];
     double* Status = new double[n];
     double* random = createRandomVector(col_dist);
