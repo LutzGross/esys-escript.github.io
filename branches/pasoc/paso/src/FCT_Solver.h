@@ -23,10 +23,11 @@
 
 namespace paso {
 
+template <class T>  
 PASO_DLL_API
 struct FCT_Solver
 {
-    FCT_Solver(const_TransportProblem_ptr tp, Options* options);
+    FCT_Solver(const_TransportProblem_ptr<T> tp, Options* options);
 
     ~FCT_Solver();
 
@@ -38,34 +39,34 @@ struct FCT_Solver
 
     void initialize(double dt, Options* options, Performance* pp);
 
-    static double getSafeTimeStepSize(const_TransportProblem_ptr tp);
+    static double getSafeTimeStepSize(const_TransportProblem_ptr<T> tp);
 
-    static void setLowOrderOperator(TransportProblem_ptr tp);
+    static void setLowOrderOperator(TransportProblem_ptr<T> tp);
 
-    void setAntiDiffusionFlux_linearCN(SystemMatrix_ptr flux_matrix);
+    void setAntiDiffusionFlux_linearCN(SystemMatrix_ptr<T> flux_matrix);
 
-    void setAntiDiffusionFlux_BE(SystemMatrix_ptr flux_matrix);
+    void setAntiDiffusionFlux_BE(SystemMatrix_ptr<T> flux_matrix);
 
-    void setAntiDiffusionFlux_CN(SystemMatrix_ptr flux_matrix);
+    void setAntiDiffusionFlux_CN(SystemMatrix_ptr<T> flux_matrix);
 
-    void setMuPaLu(double* out, const_Coupler_ptr coupler, double a);
+    void setMuPaLu(double* out, const_Coupler_ptr<T> coupler, double a);
 
     inline double getTheta()
     {
         return method == PASO_BACKWARD_EULER ? 1. : 0.5;
     }
 
-    const_TransportProblem_ptr transportproblem;
+    const_TransportProblem_ptr<T> transportproblem;
     escript::JMPI mpi_info;
-    FCT_FluxLimiter* flux_limiter;
+    FCT_FluxLimiter<T>* flux_limiter;
     index_t method;
     double omega;
     double dt;
     double* b;
     double* z;
     double* du;
-    Coupler_ptr u_coupler;
-    Coupler_ptr u_old_coupler; /* last time step */
+    Coupler_ptr<T> u_coupler;
+    Coupler_ptr<T> u_old_coupler; /* last time step */
 };
 
 

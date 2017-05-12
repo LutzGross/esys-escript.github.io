@@ -42,7 +42,8 @@ namespace paso {
 
 static const real_t LARGE_POSITIVE_FLOAT = escript::DataTypes::real_t_max();
 
-FCT_Solver::FCT_Solver(const_TransportProblem_ptr tp, Options* options) :
+template <class T>
+FCT_Solver<T>::FCT_Solver(const_TransportProblem_ptr<T> tp, Options* options) :
     transportproblem(tp),
     omega(0),
     z(NULL),
@@ -51,14 +52,14 @@ FCT_Solver::FCT_Solver(const_TransportProblem_ptr tp, Options* options) :
     const dim_t blockSize = tp->getBlockSize();
     const dim_t n = tp->getTotalNumRows();
     mpi_info = tp->mpi_info;
-    flux_limiter = new FCT_FluxLimiter(tp);
+    flux_limiter = new FCT_FluxLimiter<T>(tp);
     b = new double[n];
     if (options->ode_solver == PASO_CRANK_NICOLSON || options->ode_solver == PASO_BACKWARD_EULER) {
         du = new double[n];
         z = new double[n];
     }
-    u_coupler.reset(new Coupler(tp->borrowConnector(), blockSize, mpi_info));
-    u_old_coupler.reset(new Coupler(tp->borrowConnector(), blockSize, mpi_info));
+    u_coupler.reset(new Coupler<T>(tp->borrowConnector(), blockSize, mpi_info));
+    u_old_coupler.reset(new Coupler<T>(tp->borrowConnector(), blockSize, mpi_info));
 
     if (options->ode_solver == PASO_LINEAR_CRANK_NICOLSON) {
         method = PASO_LINEAR_CRANK_NICOLSON;
@@ -71,7 +72,8 @@ FCT_Solver::FCT_Solver(const_TransportProblem_ptr tp, Options* options) :
     }
 }
 
-FCT_Solver::~FCT_Solver()
+template <class T>
+FCT_Solver<T>::~FCT_Solver()
 {
     delete flux_limiter;
     delete[] b;
@@ -80,10 +82,11 @@ FCT_Solver::~FCT_Solver()
 }
 
 // modifies the main diagonal of the iteration matrix to introduce new dt
-void FCT_Solver::initialize(double _dt, Options* options, Performance* pp)
+template <class T>
+void FCT_Solver<T>::initialize(double _dt, Options* options, Performance* pp)
 {
     const real_t EPSILON = escript::DataTypes::real_t_eps();
-    const_TransportProblem_ptr fctp(transportproblem);
+    const_TransportProblem_ptr<T> fctp(transportproblem);
     const index_t* main_iptr = fctp->borrowMainDiagonalPointer();
     const dim_t n = fctp->transport_matrix->getTotalNumRows();
     const double theta = getTheta();
@@ -122,7 +125,8 @@ void FCT_Solver::initialize(double _dt, Options* options, Performance* pp)
 }
 
 // entry point for update procedures
-SolverResult FCT_Solver::update(double* u, double* u_old, Options* options,
+template <class T>
+SolverResult FCT_Solver<T>::update(double* u, double* u_old, Options* options,
                                 Performance* pp)
 {
     SolverResult err_out = NoError;
@@ -140,13 +144,14 @@ SolverResult FCT_Solver::update(double* u, double* u_old, Options* options,
 }
 
 /// linear crank-nicolson update
-SolverResult FCT_Solver::updateLCN(double* u, double* u_old, Options* options,
+template <class T>
+SolverResult FCT_Solver<T>::updateLCN(double* u, double* u_old, Options* options,
                                    Performance* pp)
 {
     dim_t sweep_max, i;
     double const RTOL = options->tolerance;
     const dim_t n = transportproblem->getTotalNumRows();
-    SystemMatrix_ptr iteration_matrix(transportproblem->iteration_matrix);
+    SystemMatrix_ptr<T> iteration_matrix(transportproblem->iteration_matrix);
     const index_t* main_iptr = transportproblem->borrowMainDiagonalPointer();
     SolverResult errorCode = NoError;
     double norm_u_tilde;
@@ -191,7 +196,7 @@ SolverResult FCT_Solver::updateLCN(double* u, double* u_old, Options* options,
             << sweep_max << ")" << std::endl;
     }
     errorCode = Preconditioner_Smoother_solve_byTolerance(iteration_matrix,
-            ((Preconditioner*)(iteration_matrix->solver_p))->gs, u, b, RTOL,
+            ((Preconditioner<T>*)(iteration_matrix->solver_p))->gs, u, b, RTOL,
             &sweep_max, true);
     if (errorCode == NoError) {
         if (options->verbose)
@@ -208,7 +213,8 @@ SolverResult FCT_Solver::updateLCN(double* u, double* u_old, Options* options,
     return errorCode;
 }
 
-SolverResult FCT_Solver::updateNL(double* u, double* u_old, Options* options,
+template <class T>
+SolverResult FCT_Solver<T>::updateNL(double* u, double* u_old, Options* options,
                                   Performance* pp)
 {
     // number of rates >=critical_rate accepted before divergence is triggered
@@ -216,7 +222,7 @@ SolverResult FCT_Solver::updateNL(double* u, double* u_old, Options* options,
     // expected value of convergence rate
     const double critical_rate = 0.95;
 
-    const_TransportProblem_ptr fctp(transportproblem);
+    const_TransportProblem_ptr<T> fctp(transportproblem);
     dim_t i;
     double norm_u_tilde, norm_du=LARGE_POSITIVE_FLOAT, norm_du_old, rate=1.;
     const dim_t n = fctp->transport_matrix->getTotalNumRows();
@@ -319,7 +325,7 @@ SolverResult FCT_Solver::updateNL(double* u, double* u_old, Options* options,
             // just use the main diagonal of (m/omega - L )
 
             Preconditioner_Smoother_solve(fctp->iteration_matrix,
-                ((Preconditioner*) (fctp->iteration_matrix->solver_p))->jacobi,
+                ((Preconditioner<T>*) (fctp->iteration_matrix->solver_p))->jacobi,
                 du, z, 1, false);
 
             options->num_iter++;
@@ -381,15 +387,15 @@ SolverResult FCT_Solver::updateNL(double* u, double* u_old, Options* options,
  *   for CN : theta = 0.5
  *   for BE : theta = 1.
  */
-
-void FCT_Solver::setAntiDiffusionFlux_CN(SystemMatrix_ptr flux_matrix)
+template <class T>
+void FCT_Solver<T>::setAntiDiffusionFlux_CN(SystemMatrix_ptr<T> flux_matrix)
 {
     const double* u = u_coupler->borrowLocalData();
     const double* u_old = u_old_coupler->borrowLocalData();
     const double* remote_u = u_coupler->borrowRemoteData();
     const double* remote_u_old = u_old_coupler->borrowRemoteData();
     const double dt_half = dt/2;
-    const_TransportProblem_ptr fct(transportproblem);
+    const_TransportProblem_ptr<T> fct(transportproblem);
     const_SystemMatrixPattern_ptr pattern(fct->iteration_matrix->pattern);
     const dim_t n = fct->iteration_matrix->getTotalNumRows();
 
@@ -433,13 +439,14 @@ void FCT_Solver::setAntiDiffusionFlux_CN(SystemMatrix_ptr flux_matrix)
     }
 }
 
-void FCT_Solver::setAntiDiffusionFlux_BE(SystemMatrix_ptr flux_matrix)
+template <class T>
+void FCT_Solver<T>::setAntiDiffusionFlux_BE(SystemMatrix_ptr<T> flux_matrix)
 {
     const double* u = u_coupler->borrowLocalData();
     const double* u_old = u_old_coupler->borrowLocalData();
     const double* remote_u = u_coupler->borrowRemoteData();
     const double* remote_u_old = u_old_coupler->borrowRemoteData();
-    const_TransportProblem_ptr fct(transportproblem);
+    const_TransportProblem_ptr<T> fct(transportproblem);
     const_SystemMatrixPattern_ptr pattern(fct->iteration_matrix->pattern);
     const dim_t n = fct->iteration_matrix->getTotalNumRows();
 
@@ -489,14 +496,15 @@ void FCT_Solver::setAntiDiffusionFlux_BE(SystemMatrix_ptr flux_matrix)
  *    =  2*  m_{ij} * ( (u_old[j]-u_tilde[j] - (u_old[i]) - u_tilde[i]) ) - dt d_{ij} * (u_tilde[j]-u_tilde[i])
  *
  */
-void FCT_Solver::setAntiDiffusionFlux_linearCN(SystemMatrix_ptr flux_matrix)
+template <class T>
+void FCT_Solver<T>::setAntiDiffusionFlux_linearCN(SystemMatrix_ptr<T> flux_matrix)
 {
-    const_Coupler_ptr u_tilde_coupler(flux_limiter->u_tilde_coupler);
+    const_Coupler_ptr<T> u_tilde_coupler(flux_limiter->u_tilde_coupler);
     const double* u_tilde = u_tilde_coupler->borrowLocalData();
     const double* u_old = u_old_coupler->borrowLocalData();
     const double* remote_u_tilde = u_tilde_coupler->borrowRemoteData();
     const double* remote_u_old = u_old_coupler->borrowRemoteData();
-    const_TransportProblem_ptr fct(transportproblem);
+    const_TransportProblem_ptr<T> fct(transportproblem);
     const_SystemMatrixPattern_ptr pattern(fct->iteration_matrix->pattern);
     const dim_t n = fct->iteration_matrix->getTotalNumRows();
 
@@ -542,7 +550,8 @@ void FCT_Solver::setAntiDiffusionFlux_linearCN(SystemMatrix_ptr flux_matrix)
 
 /****************************************************************************/
 
-double FCT_Solver::getSafeTimeStepSize(const_TransportProblem_ptr fctp)
+template <class T>
+double FCT_Solver<T>::getSafeTimeStepSize(const_TransportProblem_ptr<T> fctp)
 {
     double dt_max = LARGE_POSITIVE_FLOAT;
     const dim_t n = fctp->transport_matrix->getTotalNumRows();
@@ -593,13 +602,13 @@ double FCT_Solver::getSafeTimeStepSize(const_TransportProblem_ptr fctp)
  *    b[i,j]=-(a[i,j]+d_ij)
  *    c[i]-=d_ij
  */
-
-void FCT_Solver::setLowOrderOperator(TransportProblem_ptr fc)
+template <class T>
+void FCT_Solver<T>::setLowOrderOperator(TransportProblem_ptr<T> fc)
 {
     const index_t* main_iptr = fc->borrowMainDiagonalPointer();
 
     if (!fc->iteration_matrix.get()) {
-        fc->iteration_matrix.reset(new SystemMatrix(
+        fc->iteration_matrix.reset(new SystemMatrix<T>(
                   fc->transport_matrix->type, fc->transport_matrix->pattern,
                   fc->transport_matrix->row_block_size,
                   fc->transport_matrix->col_block_size, true,
@@ -663,9 +672,10 @@ void FCT_Solver::setLowOrderOperator(TransportProblem_ptr fc)
  *       = u_i                                        where m_i<=0
  *
  */
-void FCT_Solver::setMuPaLu(double* out, const_Coupler_ptr coupler, double a)
+template <class T>
+void FCT_Solver<T>::setMuPaLu(double* out, const_Coupler_ptr<T> coupler, double a)
 {
-    const_SystemMatrix_ptr L(transportproblem->iteration_matrix);
+    const_SystemMatrix_ptr<T> L(transportproblem->iteration_matrix);
     const double* M = transportproblem->lumped_mass_matrix;
     const_SystemMatrixPattern_ptr pattern(L->pattern);
     const double* u = coupler->borrowLocalData();

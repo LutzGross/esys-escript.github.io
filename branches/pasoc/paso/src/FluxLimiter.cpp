@@ -29,7 +29,8 @@
 
 namespace paso {
 
-FCT_FluxLimiter::FCT_FluxLimiter(const_TransportProblem_ptr tp)
+template <class T>
+FCT_FluxLimiter<T>::FCT_FluxLimiter(const_TransportProblem_ptr<T> tp)
 {
     const dim_t n = tp->transport_matrix->getTotalNumRows();
     const dim_t blockSize = tp->getBlockSize();
@@ -39,9 +40,9 @@ FCT_FluxLimiter::FCT_FluxLimiter(const_TransportProblem_ptr tp)
     MQ = new double[2*n];
     R = new double[2*n];
 
-    R_coupler.reset(new Coupler(tp->borrowConnector(), 2*blockSize, mpi_info));
-    u_tilde_coupler.reset(new Coupler(tp->borrowConnector(), blockSize, mpi_info));
-    antidiffusive_fluxes.reset(new SystemMatrix(
+    R_coupler.reset(new Coupler<T>(tp->borrowConnector(), 2*blockSize, mpi_info));
+    u_tilde_coupler.reset(new Coupler<T>(tp->borrowConnector(), blockSize, mpi_info));
+    antidiffusive_fluxes.reset(new SystemMatrix<T>(
                 tp->transport_matrix->type, tp->transport_matrix->pattern,
                 tp->transport_matrix->row_block_size,
                 tp->transport_matrix->col_block_size, true,
@@ -50,7 +51,8 @@ FCT_FluxLimiter::FCT_FluxLimiter(const_TransportProblem_ptr tp)
     borrowed_lumped_mass_matrix = tp->lumped_mass_matrix;
 }
 
-FCT_FluxLimiter::~FCT_FluxLimiter()
+template <class T>
+FCT_FluxLimiter<T>::~FCT_FluxLimiter()
 {
     delete[] u_tilde;
     delete[] MQ;
@@ -59,7 +61,8 @@ FCT_FluxLimiter::~FCT_FluxLimiter()
 
 // sets the predictor u_tilde from Mu_tilde by solving M_C * u_tilde = Mu_tilde
 // and calculates the limiters QP and QN
-void FCT_FluxLimiter::setU_tilde(const double* Mu_tilde)
+template <class T>
+void FCT_FluxLimiter<T>::setU_tilde(const double* Mu_tilde)
 {
     const real_t LARGE_POSITIVE_FLOAT = escript::DataTypes::real_t_max();
     const dim_t n = getTotalNumRows();
@@ -134,12 +137,13 @@ void FCT_FluxLimiter::setU_tilde(const double* Mu_tilde)
 
 // starts to update a vector (not given yet) from the antidiffusion fluxes
 // in flux_limiter->antidiffusive_fluxes (needs u_tilde and Q)
-void FCT_FluxLimiter::addLimitedFluxes_Start()
+template <class T>
+void FCT_FluxLimiter<T>::addLimitedFluxes_Start()
 {
     const dim_t n = getTotalNumRows();
     const_SystemMatrixPattern_ptr pattern(getFluxPattern());
     const double* remote_u_tilde = u_tilde_coupler->borrowRemoteData();
-    SystemMatrix_ptr adf(antidiffusive_fluxes);
+    SystemMatrix_ptr<T> adf(antidiffusive_fluxes);
 
 #pragma omp parallel for
     for (dim_t i = 0; i < n; ++i) {
@@ -204,11 +208,12 @@ void FCT_FluxLimiter::addLimitedFluxes_Start()
 
 // completes the exchange of the R factors and adds the weighted
 // antidiffusion fluxes to the residual b
+template <class T>
 void FCT_FluxLimiter::addLimitedFluxes_Complete(double* b)
 {
     const dim_t n = getTotalNumRows();
     const_SystemMatrixPattern_ptr pattern(getFluxPattern());
-    const_SystemMatrix_ptr adf(antidiffusive_fluxes);
+    const_SystemMatrix_ptr<T> adf(antidiffusive_fluxes);
     const double* remote_R = R_coupler->finishCollect();
 
 #pragma omp parallel for

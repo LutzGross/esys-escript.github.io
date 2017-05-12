@@ -21,11 +21,11 @@
 
 namespace paso {
 
-
+template <class T>
 PASO_DLL_API
 struct FCT_FluxLimiter
 {
-    FCT_FluxLimiter(const_TransportProblem_ptr tp);
+    FCT_FluxLimiter(const_TransportProblem_ptr<T> tp);
     ~FCT_FluxLimiter();
 
     inline dim_t getTotalNumRows() const
@@ -42,15 +42,15 @@ struct FCT_FluxLimiter
     void addLimitedFluxes_Start();
     void addLimitedFluxes_Complete(double* b);
 
-    SystemMatrix_ptr antidiffusive_fluxes;
+    SystemMatrix_ptr<T> antidiffusive_fluxes;
     escript::JMPI mpi_info;
     double dt;
     double* u_tilde;
     double* MQ;  // (M_C* Q_min, M_C* Q_max)
     double* R;   // (R-, R+)
     //Coupler_ptr MQ_coupler;
-    Coupler_ptr R_coupler;
-    Coupler_ptr u_tilde_coupler;
+    Coupler_ptr<T> R_coupler;
+    Coupler_ptr<T> u_tilde_coupler;
     double* borrowed_lumped_mass_matrix; // borrowed reference
 };
 

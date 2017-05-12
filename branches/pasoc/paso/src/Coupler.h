@@ -41,7 +41,7 @@ typedef boost::shared_ptr<const Connector> const_Connector_ptr;
 
 
 PASO_DLL_API
-class Connector
+struct Connector
 {
     SharedComponents_ptr send;
     SharedComponents_ptr recv;
