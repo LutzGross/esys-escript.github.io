@@ -33,9 +33,10 @@
 
 namespace paso {
 
+template<class T>    
 struct MergedSolver
 {
-    MergedSolver(const_SystemMatrix_ptr A, const Options* options);
+    MergedSolver(const_SystemMatrix_ptr<T> A, const Options* options);
     ~MergedSolver();
 
     void solve(double* local_x, const double* local_b);

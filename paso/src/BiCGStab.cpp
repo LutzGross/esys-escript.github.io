@@ -74,7 +74,8 @@ namespace paso {
 *  ==============================================================
 */
 
-SolverResult Solver_BiCGStab(SystemMatrix_ptr A, double* r, double* x,
+template <class T>
+SolverResult Solver_BiCGStab(SystemMatrix_ptr<T> A, double* r, double* x,
                              dim_t* iter, double* tolerance, Performance* pp)
 {
   /* Local variables */

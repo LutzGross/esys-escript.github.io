@@ -34,7 +34,8 @@
 
 namespace paso {
 
-void Preconditioner_AMG_Root_free(Preconditioner_AMG_Root* in)
+template <class T>
+void Preconditioner_AMG_Root_free(Preconditioner_AMG_Root<T>* in)
 {
     if (in) {
         Preconditioner_AMG_free(in->amg);
@@ -45,10 +46,11 @@ void Preconditioner_AMG_Root_free(Preconditioner_AMG_Root* in)
     }
 }
 
-Preconditioner_AMG_Root* Preconditioner_AMG_Root_alloc(SystemMatrix_ptr A,
+template <class T>
+Preconditioner_AMG_Root<T>* Preconditioner_AMG_Root_alloc(SystemMatrix_ptr<T> A,
                                                        Options* options)
 {
-    Preconditioner_AMG_Root* prec=new Preconditioner_AMG_Root;
+    Preconditioner_AMG_Root<T>* prec=new Preconditioner_AMG_Root<T>;
     prec->amg = NULL;
     prec->localamg = NULL;
     prec->amgsubstitute = NULL;
@@ -116,8 +118,9 @@ Preconditioner_AMG_Root* Preconditioner_AMG_Root_alloc(SystemMatrix_ptr A,
 /* Applies the preconditioner. */
 /* Has to be called within a parallel region. */
 /* Barrier synchronization is performed before the evaluation to make sure that the input vector is available */
-void Preconditioner_AMG_Root_solve(SystemMatrix_ptr A,
-                                   Preconditioner_AMG_Root* prec,
+template <class T>
+void Preconditioner_AMG_Root_solve(SystemMatrix_ptr<T> A,
+                                   Preconditioner_AMG_Root<T>* prec,
                                    double* x, double* b)
 {
     if (prec->localamg != NULL) {

@@ -585,7 +585,7 @@ If false, the result is a list of scalars [1, 2, ...]
     \return pointer to the sample data.
 */
   const DataTypes::real_t*
-  getSampleDataRO(DataTypes::RealVectorType::size_type sampleNo, DataTypes::real_t dummy=0) const;
+  getSampleDataRO(DataTypes::RealVectorType::size_type sampleNo, DataTypes::real_t dummy) const;
 
   const DataTypes::cplx_t*
   getSampleDataRO(DataTypes::CplxVectorType::size_type sampleNo, DataTypes::cplx_t dummy) const;
@@ -599,7 +599,7 @@ If false, the result is a list of scalars [1, 2, ...]
      \return pointer to the sample data.
   */
   DataTypes::real_t*
-  getSampleDataRW(DataTypes::RealVectorType::size_type sampleNo, DataTypes::real_t dummy=0);
+  getSampleDataRW(DataTypes::RealVectorType::size_type sampleNo, DataTypes::real_t dummy);
 
   DataTypes::cplx_t*
   getSampleDataRW(DataTypes::RealVectorType::size_type sampleNo, DataTypes::cplx_t dummy);  

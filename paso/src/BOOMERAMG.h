@@ -57,10 +57,13 @@ struct Preconditioner_BoomerAMG
 };
 
 void Preconditioner_BoomerAMG_free(Preconditioner_BoomerAMG* in);
-Preconditioner_BoomerAMG* Preconditioner_BoomerAMG_alloc(SystemMatrix_ptr A,
+
+template<class T>
+Preconditioner_BoomerAMG* Preconditioner_BoomerAMG_alloc(SystemMatrix_ptr<T> A,
                                                          Options* options);
 
-void Preconditioner_BoomerAMG_solve(SystemMatrix_ptr A,
+template<class T>
+void Preconditioner_BoomerAMG_solve(SystemMatrix_ptr<T> A,
                                     Preconditioner_BoomerAMG* amg,
                                     double* x, double * b);
 

@@ -37,6 +37,20 @@
 #define MPI_DIM_T MPI_INT
 #endif
 
+namespace escript {
+
+inline decltype(MPI_DOUBLE) getMPIType(DataTypes::real_t x) constexpr
+{
+    return MPI_DOUBLE;
+}
+
+inline decltype(MPI_DOUBLE_COMPLEX) getMPIType(DataTypes::cplx_t x) constexpr
+{
+    return MPI_DOUBLE_COMPLEX;
+}
+
+};
+
 #else
    typedef int MPI_Comm;
    typedef int MPI_Request;

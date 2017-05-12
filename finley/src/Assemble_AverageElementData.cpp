@@ -31,9 +31,14 @@ namespace finley {
 void Assemble_AverageElementData(const ElementFile* elements,
                                  escript::Data& out, const escript::Data& in)
 {
+    using namespace escript::DataTypes;
     if (!elements)
         return;
 
+    if (out.isComplex()!=in.isComplex()) {
+        throw escript::ValueError("Assemble_AverageElementData: input and output Data must have the same complexity.");
+    }
+    
     const double *wq;
     int numQuad_in, numQuad_out;
     if (util::hasReducedIntegrationOrder(in)) {
@@ -67,28 +72,61 @@ void Assemble_AverageElementData(const ElementFile* elements,
             for (int q=0; q<numQuad_in;++q) vol+=wq[q];
             const double volinv=1./vol;
             out.requireWrite();
-#pragma omp parallel for
-            for (index_t n=0; n<numElements; n++) {
-                const double *in_array = in.getSampleDataRO(n);
-                double *out_array = out.getSampleDataRW(n);
-                for (int i=0; i<numComps; ++i) {
-                    double rtmp=0.;
-                    for (int q=0; q<numQuad_in; ++q)
-                        rtmp+=in_array[INDEX2(i,q,numComps)]*wq[q];
-                    rtmp*=volinv;
-                    for (int q=0; q<numQuad_out; ++q)
-                        out_array[INDEX2(i,q,numComps)]=rtmp;
-                }
+            
+            if (in.isComplex()) {
+                escript::DataTypes::cplx_t dummy=0;
+                    // this chunk of code and the one in the else are supposed to be identical
+                    // apart from some types
+                #pragma omp parallel for
+                for (index_t n=0; n<numElements; n++) {
+                    const cplx_t *in_array = in.getSampleDataRO(n, dummy);
+                    cplx_t *out_array = out.getSampleDataRW(n, dummy);
+                    for (int i=0; i<numComps; ++i) {
+                        cplx_t rtmp=0.;
+                        for (int q=0; q<numQuad_in; ++q)
+                            rtmp+=in_array[INDEX2(i,q,numComps)]*wq[q];
+                        rtmp*=volinv;
+                        for (int q=0; q<numQuad_out; ++q)
+                            out_array[INDEX2(i,q,numComps)]=rtmp;
+                    }
+                }                 
+            } else {
+                escript::DataTypes::real_t dummy=0;
+                #pragma omp parallel for
+                for (index_t n=0; n<numElements; n++) {
+                    const real_t *in_array = in.getSampleDataRO(n, dummy);
+                    real_t *out_array = out.getSampleDataRW(n, dummy);
+                    for (int i=0; i<numComps; ++i) {
+                        real_t rtmp=0.;
+                        for (int q=0; q<numQuad_in; ++q)
+                            rtmp+=in_array[INDEX2(i,q,numComps)]*wq[q];
+                        rtmp*=volinv;
+                        for (int q=0; q<numQuad_out; ++q)
+                            out_array[INDEX2(i,q,numComps)]=rtmp;
+                    }
+                }                
             }
         } else { // constant data
             const size_t numComps_size=numComps*sizeof(double);
             out.requireWrite();
-#pragma omp parallel for
-            for (index_t n=0; n<numElements; n++) {
-                const double *in_array = in.getSampleDataRO(n);
-                double *out_array = out.getSampleDataRW(n);
-                for (int q=0; q<numQuad_out; q++)
-                    memcpy(out_array+q*numComps, in_array, numComps_size);
+            if (in.isComplex()) {
+                escript::DataTypes::cplx_t dummy=0;
+                #pragma omp parallel for
+                for (index_t n=0; n<numElements; n++) {
+                    const cplx_t *in_array = in.getSampleDataRO(n, dummy);
+                    cplx_t *out_array = out.getSampleDataRW(n, dummy);
+                    for (int q=0; q<numQuad_out; q++)
+                        memcpy(out_array+q*numComps, in_array, numComps_size);
+                }
+            } else {
+                escript::DataTypes::real_t dummy=0;
+                #pragma omp parallel for
+                for (index_t n=0; n<numElements; n++) {
+                    const real_t *in_array = in.getSampleDataRO(n, dummy);
+                    real_t *out_array = out.getSampleDataRW(n, dummy);
+                    for (int q=0; q<numQuad_out; q++)
+                        memcpy(out_array+q*numComps, in_array, numComps_size);
+                }
             }
         }
     }

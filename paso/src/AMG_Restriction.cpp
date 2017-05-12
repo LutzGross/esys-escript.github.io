@@ -44,7 +44,8 @@ namespace paso {
 
 *****************************************************************************/
 
-SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
+template <class T>
+SystemMatrix_ptr<T> Preconditioner_AMG_getRestriction(SystemMatrix_ptr<T> P)
 {
    escript::JMPI mpi_info(P->mpi_info);
    escript::Distribution_ptr input_dist, output_dist;
@@ -361,12 +362,12 @@ SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
        TO BE FIXED: at this stage, we only construction col_couple_pattern
        and col_connector for Restriction matrix R. To be completed,
        row_couple_pattern and row_connector need to be constructed as well */
-    SystemMatrix_ptr out;
+    SystemMatrix_ptr<T> out;
     SystemMatrixPattern_ptr pattern;
     pattern.reset(new SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
               output_dist, input_dist, main_block->pattern, couple_pattern,
               couple_pattern, col_connector, col_connector));
-    out.reset(new SystemMatrix(MATRIX_FORMAT_DIAGONAL_BLOCK, pattern,
+    out.reset(new SystemMatrix<T>(MATRIX_FORMAT_DIAGONAL_BLOCK, pattern,
               row_block_size, col_block_size, false,
               P->getRowFunctionSpace(), P->getColumnFunctionSpace()));
 

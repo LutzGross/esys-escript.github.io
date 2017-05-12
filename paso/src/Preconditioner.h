@@ -23,17 +23,27 @@
 
 namespace paso {
 
+template <class T>
 struct MergedSolver;
+
+template <class T>
 struct Preconditioner;
-typedef boost::shared_ptr<Preconditioner> Preconditioner_ptr;
-typedef boost::shared_ptr<const Preconditioner> const_Preconditioner_ptr;
+
+template <class T>
+using Preconditioner_ptr = boost::shared_ptr<Preconditioner<T> >;
+
+template <class T>
+using const_Preconditioner_ptr = boost::shared_ptr<const Preconditioner<T> >;
 
 struct Preconditioner_Smoother;
+
+template<class T>
 struct Preconditioner_AMG_Root;
 struct Solver_ILU;
 struct Solver_RILU;
 
 // general preconditioner interface
+template <class T>
 struct Preconditioner
 {
     dim_t type;
@@ -43,16 +53,21 @@ struct Preconditioner
     /// Gauss-Seidel preconditioner
     Preconditioner_Smoother* gs;
     /// AMG preconditioner
-    Preconditioner_AMG_Root* amg;
+    Preconditioner_AMG_Root<T>* amg;
     /// ILU preconditioner
     Solver_ILU* ilu;
     /// RILU preconditioner
     Solver_RILU* rilu;
 };
 
-void Preconditioner_free(Preconditioner*);
-Preconditioner* Preconditioner_alloc(SystemMatrix_ptr A, Options* options);
-void Preconditioner_solve(Preconditioner* prec, SystemMatrix_ptr A, double*, double*);
+template <class T>
+void Preconditioner_free(Preconditioner<T>*);
+
+template<class T>
+Preconditioner<T>* Preconditioner_alloc(SystemMatrix_ptr<T> A, Options* options);
+
+template<class T>
+void Preconditioner_solve(Preconditioner<T>* prec, SystemMatrix_ptr<T> A, double*, double*);
 
 
 // GAUSS SEIDEL & Jacobi
@@ -73,13 +88,15 @@ struct Preconditioner_Smoother
 void Preconditioner_Smoother_free(Preconditioner_Smoother * in);
 void Preconditioner_LocalSmoother_free(Preconditioner_LocalSmoother * in);
 
+template <class T>
 Preconditioner_Smoother* Preconditioner_Smoother_alloc(
-        SystemMatrix_ptr A, bool jacobi, bool is_local, bool verbose);
+        SystemMatrix_ptr<T> A, bool jacobi, bool is_local, bool verbose);
 
 Preconditioner_LocalSmoother* Preconditioner_LocalSmoother_alloc(
         SparseMatrix_ptr A, bool jacobi, bool verbose);
 
-void Preconditioner_Smoother_solve(SystemMatrix_ptr A,
+template <class T>
+void Preconditioner_Smoother_solve(SystemMatrix_ptr<T> A,
         Preconditioner_Smoother* gs, double* x, const double* b,
         dim_t sweeps, bool x_is_initial);
 
@@ -87,7 +104,8 @@ void Preconditioner_LocalSmoother_solve(SparseMatrix_ptr A,
         Preconditioner_LocalSmoother* gs, double* x, const double* b,
         dim_t sweeps, bool x_is_initial);
 
-SolverResult Preconditioner_Smoother_solve_byTolerance(SystemMatrix_ptr A,
+template <class T>
+SolverResult Preconditioner_Smoother_solve_byTolerance(SystemMatrix_ptr<T> A,
                     Preconditioner_Smoother* gs, double* x, const double* b,
                     double atol, dim_t* sweeps, bool x_is_initial);
 
@@ -113,15 +131,16 @@ typedef enum
 } AMGBlockSelect;
 
 /// Local preconditioner
+template <class T>
 struct Preconditioner_AMG
 {
     int level;
     /// coarse level matrix
-    SystemMatrix_ptr A_C;
+    SystemMatrix_ptr<T> A_C;
     /// prolongation n x n_C
-    SystemMatrix_ptr P;
+    SystemMatrix_ptr<T> P;
     /// restriction  n_C x n
-    SystemMatrix_ptr R;
+    SystemMatrix_ptr<T> R;
 
     Preconditioner_Smoother* Smoother;
     int post_sweeps;
@@ -141,55 +160,69 @@ struct Preconditioner_AMG
     /// right hand side of coarse level system
     double* b_C;
     /// used on the coarsest level
-    MergedSolver* merged_solver;
+    MergedSolver<T>* merged_solver;
     Preconditioner_AMG* AMG_C;
 };
 
-Preconditioner_AMG* Preconditioner_AMG_alloc(SystemMatrix_ptr A, int level,
+template<class T>
+Preconditioner_AMG<T>* Preconditioner_AMG_alloc(SystemMatrix_ptr<T> A, int level,
                                              Options* options);
 
-void Preconditioner_AMG_free(Preconditioner_AMG* in);
+template<class T>
+void Preconditioner_AMG_free(Preconditioner_AMG<T>* in);
 
-void Preconditioner_AMG_solve(SystemMatrix_ptr A, Preconditioner_AMG* amg,
+template<class T>
+void Preconditioner_AMG_solve(SystemMatrix_ptr<T> A, Preconditioner_AMG<T>* amg,
                               double* x, double* b);
 
-void Preconditioner_AMG_setStrongConnections(SystemMatrix_ptr A,
+template<class T>
+void Preconditioner_AMG_setStrongConnections(SystemMatrix_ptr<T> A,
                         dim_t* degree_S, index_t* offset_S, index_t* S,
                         double theta, double tau);
 
-void Preconditioner_AMG_setStrongConnections_Block(SystemMatrix_ptr A,
+template<class T>
+void Preconditioner_AMG_setStrongConnections_Block(SystemMatrix_ptr<T> A,
                         dim_t* degree_S, index_t* offset_S, index_t* S,
                         double theta, double tau);
 
-SystemMatrix_ptr Preconditioner_AMG_getProlongation(SystemMatrix_ptr A,
+template<class T>
+SystemMatrix_ptr<T> Preconditioner_AMG_getProlongation(SystemMatrix_ptr<T> A,
                         const index_t* offset_S, const dim_t* degree_S,
                         const index_t* S, dim_t n_C, index_t* counter_C,
                         index_t interpolation_method);
 
-void Preconditioner_AMG_setClassicProlongation(SystemMatrix_ptr P,
-                        SystemMatrix_ptr A, const index_t* offset_S,
+template<class T>
+void Preconditioner_AMG_setClassicProlongation(SystemMatrix_ptr<T> P,
+                        SystemMatrix_ptr<T> A, const index_t* offset_S,
                         const dim_t* degree_S, const index_t* S,
                         const index_t* counter_C);
 
-void Preconditioner_AMG_setClassicProlongation_Block(SystemMatrix_ptr P,
-                        SystemMatrix_ptr A, const index_t* offset_S,
+template<class T>
+void Preconditioner_AMG_setClassicProlongation_Block(SystemMatrix_ptr<T> P,
+                        SystemMatrix_ptr<T> A, const index_t* offset_S,
                         const dim_t* degree_S, const index_t* S,
                         const index_t* counter_C);
 
-void Preconditioner_AMG_setDirectProlongation(SystemMatrix_ptr P,
-                        SystemMatrix_ptr A, const index_t* offset_S,
+template<class T>
+void Preconditioner_AMG_setDirectProlongation(SystemMatrix_ptr<T> P,
+                        SystemMatrix_ptr<T> A, const index_t* offset_S,
                         const dim_t* degree_S, const index_t* S,
                         const index_t* counter_C);
 
-void Preconditioner_AMG_setDirectProlongation_Block(SystemMatrix_ptr P,
-                        SystemMatrix_ptr A, const index_t* offset_S,
+template<class T>
+void Preconditioner_AMG_setDirectProlongation_Block(SystemMatrix_ptr<T> P,
+                        SystemMatrix_ptr<T> A, const index_t* offset_S,
                         const dim_t* degree_S, const index_t* S,
                         const index_t* counter_C);
-double Preconditioner_AMG_getCoarseLevelSparsity(const Preconditioner_AMG* in);
 
-dim_t Preconditioner_AMG_getNumCoarseUnknowns(const Preconditioner_AMG* in);
+template<class T>
+double Preconditioner_AMG_getCoarseLevelSparsity(const Preconditioner_AMG<T>* in);
 
-int Preconditioner_AMG_getMaxLevel(const Preconditioner_AMG* in);
+template<class T>
+dim_t Preconditioner_AMG_getNumCoarseUnknowns(const Preconditioner_AMG<T>* in);
+
+template<class T>
+int Preconditioner_AMG_getMaxLevel(const Preconditioner_AMG<T>* in);
 
 void Preconditioner_AMG_transposeStrongConnections(dim_t n,
                         const dim_t* degree_S, const index_t* offset_S,
@@ -203,17 +236,22 @@ void Preconditioner_AMG_CIJPCoarsening(dim_t n, dim_t my_n,
                         const index_t* ST, const_Connector_ptr col_connector,
                         escript::const_Distribution_ptr col_dist);
 
-SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P);
+template<class T>
+SystemMatrix_ptr<T> Preconditioner_AMG_getRestriction(SystemMatrix_ptr<T> P);
 
-SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperator(
-        SystemMatrix_ptr A, SystemMatrix_ptr P, SystemMatrix_ptr R);
+template<class T>
+SystemMatrix_ptr<T> Preconditioner_AMG_buildInterpolationOperator(
+        SystemMatrix_ptr<T> A, SystemMatrix_ptr<T> P, SystemMatrix_ptr<T> R);
 
-SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperatorBlock(
-        SystemMatrix_ptr A, SystemMatrix_ptr P, SystemMatrix_ptr R);
+template<class T>
+SystemMatrix_ptr<T> Preconditioner_AMG_buildInterpolationOperatorBlock(
+        SystemMatrix_ptr<T> A, SystemMatrix_ptr<T> P, SystemMatrix_ptr<T> R);
 
-SparseMatrix_ptr Preconditioner_AMG_mergeSystemMatrix(SystemMatrix_ptr A);
+template<class T>
+SparseMatrix_ptr Preconditioner_AMG_mergeSystemMatrix(SystemMatrix_ptr<T> A);
 
-void Preconditioner_AMG_mergeSolve(Preconditioner_AMG* amg);
+template<class T>
+void Preconditioner_AMG_mergeSolve(Preconditioner_AMG<T>* amg);
 
 /// Local AMG preconditioner
 struct Preconditioner_LocalAMG
@@ -279,21 +317,27 @@ void Preconditioner_LocalAMG_enforceFFConnectivity(dim_t n,
                          const index_t* S, AMGBlockSelect* split_marker);
 
 
+template <class T>
 struct Preconditioner_AMG_Root
 {
     bool is_local;
-    Preconditioner_AMG* amg;
+    Preconditioner_AMG<T>* amg;
     Preconditioner_LocalAMG* localamg;
     Preconditioner_BoomerAMG* boomeramg;
     int sweeps;
     Preconditioner_Smoother* amgsubstitute;
 };
 
-Preconditioner_AMG_Root* Preconditioner_AMG_Root_alloc(SystemMatrix_ptr A,
+template <class T>
+Preconditioner_AMG_Root<T>* Preconditioner_AMG_Root_alloc(SystemMatrix_ptr<T> A,
                                                        Options* options);
-void Preconditioner_AMG_Root_free(Preconditioner_AMG_Root* in);
-void Preconditioner_AMG_Root_solve(SystemMatrix_ptr A,
-                         Preconditioner_AMG_Root* amg, double* x, double* b);
+
+template <class T>
+void Preconditioner_AMG_Root_free(Preconditioner_AMG_Root<T>* in);
+
+template <class T>
+void Preconditioner_AMG_Root_solve(SystemMatrix_ptr<T> A,
+                         Preconditioner_AMG_Root<T>* amg, double* x, double* b);
 
 /// ILU preconditioner
 struct Solver_ILU

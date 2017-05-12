@@ -20,13 +20,18 @@
 
 namespace paso {
 
+    
+template class Coupler<DataTypes::cplx_t>;
+template class Coupler<DataTypes::real_t>;
+    
 /****************************************************************************
  *
  * allocates a Coupler
  *
  ****************************************************************************/
 
-Coupler::Coupler(const_Connector_ptr conn, dim_t blockSize,
+template<class T>
+Coupler<T>::Coupler(const_Connector_ptr conn, dim_t blockSize,
                  escript::JMPI mpiInfo) :
     connector(conn),
     block_size(blockSize),
@@ -44,13 +49,14 @@ Coupler::Coupler(const_Connector_ptr conn, dim_t blockSize,
     mpi_stati = new MPI_Status[conn->send->neighbour.size() +
                                conn->recv->neighbour.size()];
     if (mpi_info->size > 1) {
-        send_buffer = new double[conn->send->numSharedComponents * block_size];
-        recv_buffer = new double[conn->recv->numSharedComponents * block_size];
+        send_buffer = new T[conn->send->numSharedComponents * block_size];
+        recv_buffer = new T[conn->recv->numSharedComponents * block_size];
     }
 #endif
 }
 
-Coupler::~Coupler()
+template<class T>
+Coupler<T>::~Coupler()
 {
 #ifdef ESYS_MPI
     delete[] send_buffer;
@@ -60,9 +66,10 @@ Coupler::~Coupler()
 #endif
 }
 
-void Coupler::startCollect(const double* in)
+template<class T>
+void Coupler::startCollect(const T* in)
 {
-    data = const_cast<double*>(in);
+    data = const_cast<T*>(in);
 #ifdef ESYS_MPI
     if (mpi_info->size > 1) {
         if (in_use) {
@@ -72,7 +79,7 @@ void Coupler::startCollect(const double* in)
         for (dim_t i=0; i < connector->recv->neighbour.size(); ++i) {
             MPI_Irecv(&recv_buffer[connector->recv->offsetInShared[i]*block_size],
                     (connector->recv->offsetInShared[i+1]-connector->recv->offsetInShared[i])*block_size,
-                    MPI_DOUBLE, connector->recv->neighbour[i],
+                    escript::getMPITYPE(T(0)), connector->recv->neighbour[i],
                     mpi_info->counter()+connector->recv->neighbour[i],
                     mpi_info->comm, &mpi_requests[i]);
         }
@@ -96,7 +103,7 @@ void Coupler::startCollect(const double* in)
         for (dim_t i=0; i < connector->send->neighbour.size(); ++i) {
             MPI_Issend(&send_buffer[connector->send->offsetInShared[i]*block_size],
                     (connector->send->offsetInShared[i+1] - connector->send->offsetInShared[i])*block_size,
-                    MPI_DOUBLE, connector->send->neighbour[i],
+                    escript::getMPITYPE(T(0)), connector->send->neighbour[i],
                     mpi_info->counter()+mpi_info->rank, mpi_info->comm,
                     &mpi_requests[i+connector->recv->neighbour.size()]);
         }
@@ -106,7 +113,8 @@ void Coupler::startCollect(const double* in)
 #endif
 }
 
-double* Coupler::finishCollect()
+template<class T>
+T* Coupler<T>::finishCollect()
 {
 #ifdef ESYS_MPI
     if (mpi_info->size > 1) {
@@ -122,7 +130,8 @@ double* Coupler::finishCollect()
     return recv_buffer;
 }
 
-void Coupler::copyAll(Coupler_ptr target) const
+template<class T>
+void Coupler<T>::copyAll(Coupler_ptr target) const
 {
     const dim_t overlap = getNumOverlapValues();
     const dim_t localSize = getLocalLength()*block_size;
@@ -139,14 +148,15 @@ void Coupler::copyAll(Coupler_ptr target) const
     }
 }
 
-void Coupler::fillOverlap(dim_t n, double* x)
+template<class T>
+void Coupler<T>::fillOverlap(dim_t n, T* x)
 {
     const dim_t overlap_n = getNumOverlapValues();
     const dim_t my_n= n - overlap_n;
     const dim_t offset = block_size * my_n;
 
     startCollect(x);
-    double* remote_values = finishCollect();
+    T* remote_values = finishCollect();
 
 #pragma omp parallel for
     for (dim_t i=0; i < overlap_n * block_size; ++i) {
@@ -155,17 +165,25 @@ void Coupler::fillOverlap(dim_t n, double* x)
 }
 
 /* adjusts max values across shared values x */
-void Coupler::max(dim_t n, double* x)
+template<class T>
+void Coupler::max(dim_t n, T* x)
 {
     const dim_t overlap_n = getNumOverlapValues();
     const dim_t my_n = n - overlap_n;
 
     startCollect(x);
-    double* remote_values = finishCollect();
+    T* remote_values = finishCollect();
 
 #pragma omp parallel for
     for (dim_t i=0; i < overlap_n; ++i)
         x[my_n+i] = std::max(x[my_n+i], remote_values[i]);
+}
+
+/* adjusts max values across shared values x */
+template<>
+void Coupler::max(dim_t n, escript::DataTypes::cplx_t* x)
+{
+    throw PasoException("Coupler::max: max operation not defined for complex values.");
 }
 
 } // namespace paso

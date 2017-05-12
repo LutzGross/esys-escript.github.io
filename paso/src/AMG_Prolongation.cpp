@@ -54,8 +54,9 @@ namespace paso {
 
 */
 
-SystemMatrix_ptr Preconditioner_AMG_getProlongation(
-        SystemMatrix_ptr A_p, const index_t* offset_S, const dim_t* degree_S,
+template <class T>
+SystemMatrix_ptr<T> Preconditioner_AMG_getProlongation(
+        SystemMatrix_ptr<T> A_p, const index_t* offset_S, const dim_t* degree_S,
         const index_t* S, const dim_t n_C, index_t* counter_C,
         const index_t interpolation_method)
 {
@@ -291,7 +292,7 @@ SystemMatrix_ptr Preconditioner_AMG_getProlongation(
     SystemMatrixPattern_ptr pattern(new SystemMatrixPattern(
                 MATRIX_FORMAT_DEFAULT, output_dist, input_dist, main_pattern,
                 couple_pattern, couple_pattern, col_connector, col_connector));
-    SystemMatrix_ptr out(new SystemMatrix(MATRIX_FORMAT_DIAGONAL_BLOCK,
+    SystemMatrix_ptr<T> out(new SystemMatrix<T>(MATRIX_FORMAT_DIAGONAL_BLOCK,
                 pattern, row_block_size, col_block_size, false,
                 A_p->getRowFunctionSpace(), A_p->getColumnFunctionSpace()));
 
@@ -329,8 +330,9 @@ SystemMatrix_ptr Preconditioner_AMG_getProlongation(
 
 */
 
-void Preconditioner_AMG_setDirectProlongation(SystemMatrix_ptr P,
-        SystemMatrix_ptr A, const index_t* offset_S, const dim_t* degree_S,
+template <class T>
+void Preconditioner_AMG_setDirectProlongation(SystemMatrix_ptr<T> P,
+        SystemMatrix_ptr<T> A, const index_t* offset_S, const dim_t* degree_S,
         const index_t* S, const index_t *counter_C)
 {
     SparseMatrix_ptr main_block(P->mainBlock);
@@ -466,8 +468,9 @@ void Preconditioner_AMG_setDirectProlongation(SystemMatrix_ptr P,
    }
 }
 
-void Preconditioner_AMG_setDirectProlongation_Block(SystemMatrix_ptr P,
-        SystemMatrix_ptr A, const index_t* offset_S, const dim_t* degree_S,
+template <class T>
+void Preconditioner_AMG_setDirectProlongation_Block(SystemMatrix_ptr<T> P,
+        SystemMatrix_ptr<T> A, const index_t* offset_S, const dim_t* degree_S,
         const index_t* S, const index_t *counter_C)
 {
     SparseMatrix_ptr main_block(P->mainBlock);
@@ -661,8 +664,9 @@ void Preconditioner_AMG_setDirectProlongation_Block(SystemMatrix_ptr P,
 
 
 */
-void Preconditioner_AMG_setClassicProlongation(SystemMatrix_ptr P,
-        SystemMatrix_ptr A, const index_t* offset_S, const dim_t* degree_S,
+template <class T>
+void Preconditioner_AMG_setClassicProlongation(SystemMatrix_ptr<T> P,
+        SystemMatrix_ptr<T> A, const index_t* offset_S, const dim_t* degree_S,
         const index_t* S, const index_t *counter_C)
 {
     SparseMatrix_ptr main_block(P->mainBlock);
@@ -891,8 +895,9 @@ void Preconditioner_AMG_setClassicProlongation(SystemMatrix_ptr P,
      }    /* end of parallel region */
 }
 
+template <class T>
 void Preconditioner_AMG_setClassicProlongation_Block(
-        SystemMatrix_ptr P, SystemMatrix_ptr A, const index_t* offset_S,
+        SystemMatrix_ptr<T> P, SystemMatrix_ptr<T> A, const index_t* offset_S,
         const dim_t* degree_S, const index_t* S, const index_t *counter_C)
 {
     SparseMatrix_ptr main_block(P->mainBlock);
