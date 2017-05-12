@@ -21,8 +21,8 @@
 namespace paso {
 
     
-template class Coupler<DataTypes::cplx_t>;
-template class Coupler<DataTypes::real_t>;
+template class Coupler<escript::DataTypes::cplx_t>;
+template class Coupler<escript::DataTypes::real_t>;
     
 /****************************************************************************
  *
@@ -67,7 +67,7 @@ Coupler<T>::~Coupler()
 }
 
 template<class T>
-void Coupler::startCollect(const T* in)
+void Coupler<T>::startCollect(const T* in)
 {
     data = const_cast<T*>(in);
 #ifdef ESYS_MPI
@@ -131,7 +131,7 @@ T* Coupler<T>::finishCollect()
 }
 
 template<class T>
-void Coupler<T>::copyAll(Coupler_ptr target) const
+void Coupler<T>::copyAll(Coupler_ptr<T> target) const
 {
     const dim_t overlap = getNumOverlapValues();
     const dim_t localSize = getLocalLength()*block_size;
@@ -166,7 +166,7 @@ void Coupler<T>::fillOverlap(dim_t n, T* x)
 
 /* adjusts max values across shared values x */
 template<class T>
-void Coupler::max(dim_t n, T* x)
+void Coupler<T>::max(dim_t n, T* x)
 {
     const dim_t overlap_n = getNumOverlapValues();
     const dim_t my_n = n - overlap_n;
@@ -181,7 +181,7 @@ void Coupler::max(dim_t n, T* x)
 
 /* adjusts max values across shared values x */
 template<>
-void Coupler::max(dim_t n, escript::DataTypes::cplx_t* x)
+void Coupler<escript::DataTypes::cplx_t>::max(dim_t n, escript::DataTypes::cplx_t* x)
 {
     throw PasoException("Coupler::max: max operation not defined for complex values.");
 }

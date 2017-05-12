@@ -28,12 +28,18 @@
 
 namespace paso {
 
+template <class T>
 class TransportProblem;
-typedef boost::shared_ptr<TransportProblem> TransportProblem_ptr;
-typedef boost::shared_ptr<const TransportProblem> const_TransportProblem_ptr;
 
+template <class T>
+using TransportProblem_ptr = boost::shared_ptr<TransportProblem<T> >;
+
+template <class T>
+using const_TransportProblem_ptr = boost::shared_ptr<const TransportProblem<T> >;
+
+template <class T>
 class TransportProblem : public escript::AbstractTransportProblem,
-                         public boost::enable_shared_from_this<TransportProblem>
+                         public boost::enable_shared_from_this<TransportProblem<T> >
 {
 public:
     /// Default constructor - throws exception
@@ -61,12 +67,12 @@ public:
         return transport_matrix->row_block_size;
     }
 
-    inline SystemMatrix_ptr borrowTransportMatrix() const
+    inline SystemMatrix_ptr<T> borrowTransportMatrix() const
     {
         return transport_matrix;
     }
 
-    inline SystemMatrix_ptr borrowMassMatrix() const
+    inline SystemMatrix_ptr<T> borrowMassMatrix() const
     {
         return mass_matrix;
     }
@@ -98,9 +104,9 @@ public:
         return MATRIX_FORMAT_DEFAULT + MATRIX_FORMAT_BLK1;
     }
 
-    SystemMatrix_ptr transport_matrix;
-    SystemMatrix_ptr mass_matrix;
-    SystemMatrix_ptr iteration_matrix;
+    SystemMatrix_ptr<T> transport_matrix;
+    SystemMatrix_ptr<T> mass_matrix;
+    SystemMatrix_ptr<T> iteration_matrix;
 
     mutable bool valid_matrices;
     /// safe time step size for reactive part
