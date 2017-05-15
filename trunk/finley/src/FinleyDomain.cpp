@@ -1354,7 +1354,7 @@ void FinleyDomain::interpolateOnDomain(escript::Data& target,
         case Elements:
             if (target.getFunctionSpace().getTypeCode() == Elements) {
                 if (in.isComplex())
-                    throw ValueError("Interpolation of complex data not supported yet.");
+                    Assemble_CopyElementData<cplx_t>(m_elements, target, in);
                 else
                     Assemble_CopyElementData<real_t>(m_elements, target, in);
             } else if (target.getFunctionSpace().getTypeCode()==ReducedElements) {
@@ -1369,12 +1369,12 @@ void FinleyDomain::interpolateOnDomain(escript::Data& target,
         case ReducedElements:
             if (target.getFunctionSpace().getTypeCode() == ReducedElements) {
                 if (in.isComplex())
-                    throw ValueError("Interpolation of complex data not supported yet.");
+                    Assemble_CopyElementData<cplx_t>(m_elements, target, in);
                 else
                     Assemble_CopyElementData<real_t>(m_elements, target, in);
             } else if (target.getFunctionSpace().getTypeCode() == Elements) {
                 if (in.isComplex())
-                    throw ValueError("Interpolation of complex data not supported yet.");
+                    Assemble_CopyElementData<cplx_t>(m_elements, target, in);
                 else
                     Assemble_CopyElementData<real_t>(m_elements, target, in);
             } else {
@@ -1385,7 +1385,7 @@ void FinleyDomain::interpolateOnDomain(escript::Data& target,
         case FaceElements:
             if (target.getFunctionSpace().getTypeCode() == FaceElements) {
                 if (in.isComplex())
-                    throw ValueError("Interpolation of complex data not supported yet.");
+                    Assemble_CopyElementData<cplx_t>(m_faceElements, target, in);
                 else
                     Assemble_CopyElementData<real_t>(m_faceElements, target, in);
             } else if (target.getFunctionSpace().getTypeCode() == ReducedFaceElements) {
@@ -1399,7 +1399,10 @@ void FinleyDomain::interpolateOnDomain(escript::Data& target,
             break;
         case ReducedFaceElements:
             if (target.getFunctionSpace().getTypeCode() == ReducedFaceElements) {
-                Assemble_CopyElementData<real_t>(m_faceElements, target, in);
+                if (in.isComplex())
+                    Assemble_CopyElementData<cplx_t>(m_faceElements, target, in);
+                else
+                    Assemble_CopyElementData<real_t>(m_faceElements, target, in);
             } else {
                 throw ValueError("No interpolation with data on face "
                          "elements with reduced integration order possible.");
@@ -1408,7 +1411,7 @@ void FinleyDomain::interpolateOnDomain(escript::Data& target,
         case Points:
             if (target.getFunctionSpace().getTypeCode() == Points) {
                 if (in.isComplex())
-                    throw ValueError("Interpolation of complex data not supported yet.");
+                    Assemble_CopyElementData<cplx_t>(m_points, target, in);
                 else
                     Assemble_CopyElementData<real_t>(m_points, target, in);
             } else {
@@ -1419,7 +1422,7 @@ void FinleyDomain::interpolateOnDomain(escript::Data& target,
         case ContactElementsOne:
             if (target.getFunctionSpace().getTypeCode()==ContactElementsZero || target.getFunctionSpace().getTypeCode()==ContactElementsOne) {
                 if (in.isComplex())
-                    throw ValueError("Interpolation of complex data not supported yet.");
+                    Assemble_CopyElementData<cplx_t>(m_contactElements, target, in);
                 else
                     Assemble_CopyElementData<real_t>(m_contactElements, target, in);
             } else if (target.getFunctionSpace().getTypeCode()==ReducedContactElementsZero || target.getFunctionSpace().getTypeCode()==ReducedContactElementsOne) {
@@ -1435,7 +1438,7 @@ void FinleyDomain::interpolateOnDomain(escript::Data& target,
         case ReducedContactElementsOne:
             if (target.getFunctionSpace().getTypeCode()==ReducedContactElementsZero || target.getFunctionSpace().getTypeCode()==ReducedContactElementsOne) {
                 if (in.isComplex())
-                    throw ValueError("Interpolation of complex data not supported yet.");
+                    Assemble_CopyElementData<cplx_t>(m_contactElements, target, in);
                 else
                     Assemble_CopyElementData<real_t>(m_contactElements, target, in);
             } else {
