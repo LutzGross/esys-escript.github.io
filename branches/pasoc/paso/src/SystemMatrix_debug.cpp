@@ -34,7 +34,8 @@ namespace paso {
 
 // fills the matrix with values i+f1*j where i and j are the global row
 // and column indices of the matrix entry
-void SystemMatrix::fillWithGlobalCoordinates(double f1)
+template <class T>    
+void SystemMatrix<T>::fillWithGlobalCoordinates(double f1)
 {
     const dim_t n = getNumRows();
     const dim_t m = getNumCols();
@@ -42,8 +43,8 @@ void SystemMatrix::fillWithGlobalCoordinates(double f1)
     const index_t col_offset = col_distribution->getFirstComponent();
     double* cols = new double[m];
     double* rows = new double[n];
-    Coupler_ptr col_couple(new Coupler(col_coupler->connector, 1, mpi_info));
-    Coupler_ptr row_couple(new Coupler(col_coupler->connector, 1, mpi_info));
+    Coupler_ptr<T> col_couple(new Coupler<T>(col_coupler->connector, 1, mpi_info));
+    Coupler_ptr<T> row_couple(new Coupler<T>(col_coupler->connector, 1, mpi_info));
 
 #pragma omp parallel for
     for (dim_t i=0; i<n; ++i)
@@ -97,7 +98,8 @@ void SystemMatrix::fillWithGlobalCoordinates(double f1)
     delete[] rows;
 }
 
-void SystemMatrix::print() const
+template <class T>
+void SystemMatrix<T>::print() const
 {
     const dim_t n = getNumRows();
     const int rank = mpi_info->rank;

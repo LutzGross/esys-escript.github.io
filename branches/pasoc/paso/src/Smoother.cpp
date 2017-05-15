@@ -51,7 +51,8 @@ void Preconditioner_LocalSmoother_free(Preconditioner_LocalSmoother* in)
 
 
 /// constructs the symmetric Gauss-Seidel preconditioner
-Preconditioner_Smoother* Preconditioner_Smoother_alloc(SystemMatrix_ptr A,
+template <class T>
+Preconditioner_Smoother* Preconditioner_Smoother_alloc(SystemMatrix_ptr<T> A,
         bool jacobi, bool is_local, bool verbose)
 {
     Preconditioner_Smoother* out=new Preconditioner_Smoother;
@@ -97,7 +98,8 @@ The MPI-versioned smoother works in the following way:
  (5) recover x_{n+1} by /delta x_{n+1} + x_n
  (6) repeat steps 2-5 for until sweeps number reduce to 0
 */
-void Preconditioner_Smoother_solve(SystemMatrix_ptr A,
+template <class T>
+void Preconditioner_Smoother_solve(SystemMatrix_ptr<T> A,
         Preconditioner_Smoother* smoother, double* x, const double* b,
         dim_t sweeps, bool x_is_initial)
 {
@@ -124,7 +126,8 @@ void Preconditioner_Smoother_solve(SystemMatrix_ptr A,
     }
 }
 
-SolverResult Preconditioner_Smoother_solve_byTolerance(SystemMatrix_ptr A,
+template <class T>
+SolverResult Preconditioner_Smoother_solve_byTolerance(SystemMatrix_ptr<T> A,
             Preconditioner_Smoother* smoother, double* x, const double* b,
             double atol, dim_t* sweeps, bool x_is_initial)
 {

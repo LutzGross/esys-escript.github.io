@@ -79,7 +79,7 @@ void Coupler<T>::startCollect(const T* in)
         for (dim_t i=0; i < connector->recv->neighbour.size(); ++i) {
             MPI_Irecv(&recv_buffer[connector->recv->offsetInShared[i]*block_size],
                     (connector->recv->offsetInShared[i+1]-connector->recv->offsetInShared[i])*block_size,
-                    escript::getMPITYPE(T(0)), connector->recv->neighbour[i],
+                    escript::getMPIType(T(0)), connector->recv->neighbour[i],
                     mpi_info->counter()+connector->recv->neighbour[i],
                     mpi_info->comm, &mpi_requests[i]);
         }
@@ -103,7 +103,7 @@ void Coupler<T>::startCollect(const T* in)
         for (dim_t i=0; i < connector->send->neighbour.size(); ++i) {
             MPI_Issend(&send_buffer[connector->send->offsetInShared[i]*block_size],
                     (connector->send->offsetInShared[i+1] - connector->send->offsetInShared[i])*block_size,
-                    escript::getMPITYPE(T(0)), connector->send->neighbour[i],
+                    escript::getMPIType(T(0)), connector->send->neighbour[i],
                     mpi_info->counter()+mpi_info->rank, mpi_info->comm,
                     &mpi_requests[i+connector->recv->neighbour.size()]);
         }

@@ -38,7 +38,8 @@
 
 namespace paso {
 
-void SystemMatrix::extendedRowsForST(dim_t* degree_ST, index_t* offset_ST,
+template <class T>
+void SystemMatrix<T>::extendedRowsForST(dim_t* degree_ST, index_t* offset_ST,
                                      index_t* ST)
 {
     if (mpi_info->size == 1) return;
@@ -54,9 +55,9 @@ void SystemMatrix::extendedRowsForST(dim_t* degree_ST, index_t* offset_ST,
     for (i=0; i<num_main_cols; ++i)
         cols[i] = offset + i;
 
-    Coupler_ptr coupler;
+    Coupler_ptr<T> coupler;
     if (global_id == NULL) {
-        coupler.reset(new Coupler(col_coupler->connector, 1, mpi_info));
+        coupler.reset(new Coupler<T>(col_coupler->connector, 1, mpi_info));
         coupler->startCollect(cols);
     }
 
@@ -85,7 +86,7 @@ void SystemMatrix::extendedRowsForST(dim_t* degree_ST, index_t* offset_ST,
     }
 
     // sending/receiving the degree_ST
-    coupler.reset(new Coupler(row_coupler->connector, 1, mpi_info));
+    coupler.reset(new Coupler<T>(row_coupler->connector, 1, mpi_info));
     coupler->startCollect(rows);
 
     // prepare ST with global ID

@@ -37,13 +37,15 @@ namespace bm = boost::math;
 
 namespace paso {
 
-void Solver_free(SystemMatrix* A)
+template <class T>
+void Solver_free(SystemMatrix<T>* A)
 {
     A->freePreconditioner();
 }
 
 ///  calls the iterative solver
-SolverResult Solver(SystemMatrix_ptr A, double* x, double* b, Options* options,
+template <class T>
+SolverResult Solver(SystemMatrix_ptr<T> A, double* x, double* b, Options* options,
                     Performance* pp)
 {
     const real_t EPSILON = escript::DataTypes::real_t_eps();
@@ -83,7 +85,7 @@ SolverResult Solver(SystemMatrix_ptr A, double* x, double* b, Options* options,
     time_iter=escript::gettime();
     /* this for testing only */
     if (method==PASO_NONLINEAR_GMRES) {
-        LinearSystem* F = new LinearSystem(A, b, options);
+        LinearSystem<T>* F = new LinearSystem<T>(A, b, options);
         A->solvePreconditioner(x, b);
         errorCode = Solver_NewtonGMRES(F, x, options, pp);
         if (errorCode != NoError) {

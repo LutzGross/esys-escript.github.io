@@ -32,7 +32,8 @@
 
 namespace paso {
 
-void Preconditioner_free(Preconditioner* in)
+template <class T>
+void Preconditioner_free(Preconditioner<T>* in)
 {
     if (in!=NULL) {
         Preconditioner_Smoother_free(in->jacobi);
@@ -44,9 +45,10 @@ void Preconditioner_free(Preconditioner* in)
     }
 }
 
-Preconditioner* Preconditioner_alloc(SystemMatrix_ptr A, Options* options)
+template <class T>
+Preconditioner<T>* Preconditioner_alloc(SystemMatrix_ptr<T> A, Options* options)
 {
-    Preconditioner* prec = new Preconditioner;
+    Preconditioner<T>* prec = new Preconditioner<T>;
     prec->jacobi=NULL;
     prec->gs=NULL;
     prec->amg=NULL;
@@ -117,7 +119,8 @@ Preconditioner* Preconditioner_alloc(SystemMatrix_ptr A, Options* options)
 /* Applies the preconditioner. */
 /* Has to be called within a parallel region. */
 /* Barrier synchronization is performed before the evaluation to make sure that the input vector is available */
-void Preconditioner_solve(Preconditioner* prec, SystemMatrix_ptr A,
+template <class T>
+void Preconditioner_solve(Preconditioner<T>* prec, SystemMatrix_ptr<T> A,
                           double* x, double* b)
 {
     dim_t n=0;
