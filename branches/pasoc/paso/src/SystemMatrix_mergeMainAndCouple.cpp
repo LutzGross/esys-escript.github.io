@@ -37,7 +37,8 @@
 
 namespace paso {
 
-void SystemMatrix::mergeMainAndCouple(index_t** p_ptr, index_t** p_idx, double** p_val) const
+template <class T>
+void SystemMatrix<T>::mergeMainAndCouple(index_t** p_ptr, index_t** p_idx, double** p_val) const
 {
     if (type & MATRIX_FORMAT_DEFAULT) {
         mergeMainAndCouple_CSR_OFFSET0(p_ptr, p_idx, p_val);
@@ -46,14 +47,15 @@ void SystemMatrix::mergeMainAndCouple(index_t** p_ptr, index_t** p_idx, double**
         if (type & (MATRIX_FORMAT_OFFSET1 + MATRIX_FORMAT_BLK1)) {
             mergeMainAndCouple_CSC_OFFSET1(p_ptr, p_idx, p_val);
         } else {
-            throw PasoException("SystemMatrix::mergeMainAndCouple: CSC with index 0 or block size larger than 1 is not supported.");
+            throw PasoException("SystemMatrix<T>::mergeMainAndCouple: CSC with index 0 or block size larger than 1 is not supported.");
         }
     } else {
-        throw PasoException("SystemMatrix::mergeMainAndCouple: CRS is not supported.");
+        throw PasoException("SystemMatrix<T>::mergeMainAndCouple: CRS is not supported.");
     }
 }
 
-void SystemMatrix::mergeMainAndCouple_CSR_OFFSET0(index_t** p_ptr, index_t** p_idx, double** p_val) const
+template <class T>
+void SystemMatrix<T>::mergeMainAndCouple_CSR_OFFSET0(index_t** p_ptr, index_t** p_idx, double** p_val) const
 {
     if (mainBlock->col_block_size != 1 || mainBlock->row_block_size != 1 ||
             col_coupleBlock->col_block_size != 1 ||
@@ -91,11 +93,11 @@ void SystemMatrix::mergeMainAndCouple_CSR_OFFSET0(index_t** p_ptr, index_t** p_i
     const index_t couple_num_rows = col_coupleBlock->numRows;
 
     if (main_num_rows != couple_num_rows) {
-        throw PasoException("SystemMatrix::mergeMainAndCouple_CSR_OFFSET0: number of rows do not match.");
+        throw PasoException("SystemMatrix<T>::mergeMainAndCouple_CSR_OFFSET0: number of rows do not match.");
     }
 
     double* rows = NULL;
-    Coupler_ptr coupler;
+    Coupler_ptr<T> coupler;
     if (global_id == NULL) {
         // prepare for global coordinates in colCoupleBlock, the results are
         // in coupler->recv_buffer
@@ -104,7 +106,7 @@ void SystemMatrix::mergeMainAndCouple_CSR_OFFSET0(index_t** p_ptr, index_t** p_i
 #pragma omp parallel for
         for (index_t i=0; i<main_num_rows; ++i)
             rows[i] = row_offset+i;
-        coupler.reset(new Coupler(col_coupler->connector, 1, mpi_info));
+        coupler.reset(new Coupler<T>(col_coupler->connector, 1, mpi_info));
         coupler->startCollect(rows);
     }
 
@@ -164,8 +166,8 @@ void SystemMatrix::mergeMainAndCouple_CSR_OFFSET0(index_t** p_ptr, index_t** p_i
     }
 }
 
-
-void SystemMatrix::mergeMainAndCouple_CSR_OFFSET0_Block(index_t** p_ptr, index_t** p_idx, double** p_val) const
+template <class T>
+void SystemMatrix<T>::mergeMainAndCouple_CSR_OFFSET0_Block(index_t** p_ptr, index_t** p_idx, double** p_val) const
 {
     const index_t main_num_rows = mainBlock->numRows;
     index_t* main_ptr = mainBlock->pattern->ptr;
@@ -202,7 +204,7 @@ void SystemMatrix::mergeMainAndCouple_CSR_OFFSET0_Block(index_t** p_ptr, index_t
     }
 
     double* rows = NULL;
-    Coupler_ptr coupler;
+    Coupler_ptr<T> coupler;
     if (global_id == NULL) {
         // prepare for global coordinates in colCoupleBlock, the results are
         // in coupler->recv_buffer
@@ -211,7 +213,7 @@ void SystemMatrix::mergeMainAndCouple_CSR_OFFSET0_Block(index_t** p_ptr, index_t
 #pragma omp parallel for
         for (index_t i=0; i<main_num_rows; ++i)
             rows[i]=row_offset+i;
-        coupler.reset(new Coupler(col_coupler->connector, 1, mpi_info));
+        coupler.reset(new Coupler<T>(col_coupler->connector, 1, mpi_info));
         coupler->startCollect(rows);
     }
 
@@ -273,7 +275,8 @@ void SystemMatrix::mergeMainAndCouple_CSR_OFFSET0_Block(index_t** p_ptr, index_t
     }
 }
 
-void SystemMatrix::mergeMainAndCouple_CSC_OFFSET1(index_t** p_ptr, index_t** p_idx, double** p_val) const
+template <class T>
+void SystemMatrix<T>::mergeMainAndCouple_CSC_OFFSET1(index_t** p_ptr, index_t** p_idx, double** p_val) const
 {
     throw PasoException("SystemMatrix_mergeMainAndCouple_CSC_OFFSET1: not implemented.");
 }

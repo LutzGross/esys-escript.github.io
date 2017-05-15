@@ -28,14 +28,6 @@
 
 namespace paso {
 
-template <class T>
-class TransportProblem;
-
-template <class T>
-using TransportProblem_ptr = boost::shared_ptr<TransportProblem<T> >;
-
-template <class T>
-using const_TransportProblem_ptr = boost::shared_ptr<const TransportProblem<T> >;
 
 template <class T>
 class TransportProblem : public escript::AbstractTransportProblem,
@@ -133,6 +125,14 @@ private:
     virtual void copyConstraint(escript::Data& source, escript::Data& q,
                                 escript::Data& r);
 };
+
+template <class T>
+using TransportProblem_ptr = boost::shared_ptr<TransportProblem<T> >;
+
+template <class T>
+using const_TransportProblem_ptr = boost::shared_ptr<const TransportProblem<T> >;
+
+
 
 } // namespace paso
 
