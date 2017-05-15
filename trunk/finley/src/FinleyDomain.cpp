@@ -1359,9 +1359,9 @@ void FinleyDomain::interpolateOnDomain(escript::Data& target,
                     Assemble_CopyElementData(m_elements, target, in);
             } else if (target.getFunctionSpace().getTypeCode()==ReducedElements) {
                 if (in.isComplex())
-                    throw ValueError("Interpolation of complex data not supported yet.");
+                    Assemble_AverageElementData<cplx_t>(m_elements, target, in);
                 else
-                    Assemble_AverageElementData(m_elements, target, in);
+                    Assemble_AverageElementData<real_t>(m_elements, target, in);
             } else {
                 throw ValueError("No interpolation with data on elements possible.");
             }
@@ -1390,9 +1390,9 @@ void FinleyDomain::interpolateOnDomain(escript::Data& target,
                     Assemble_CopyElementData(m_faceElements, target, in);
             } else if (target.getFunctionSpace().getTypeCode() == ReducedFaceElements) {
                 if (in.isComplex())
-                    throw ValueError("Interpolation of complex data not supported yet.");
+                    Assemble_AverageElementData<cplx_t>(m_faceElements, target, in);
                 else
-                    Assemble_AverageElementData(m_faceElements, target, in);
+                    Assemble_AverageElementData<real_t>(m_faceElements, target, in);
             } else {
                 throw ValueError("No interpolation with data on face elements possible.");
             }
@@ -1424,9 +1424,9 @@ void FinleyDomain::interpolateOnDomain(escript::Data& target,
                     Assemble_CopyElementData(m_contactElements, target, in);
             } else if (target.getFunctionSpace().getTypeCode()==ReducedContactElementsZero || target.getFunctionSpace().getTypeCode()==ReducedContactElementsOne) {
                 if (in.isComplex())
-                    throw ValueError("Interpolation of complex data not supported yet.");
+                    Assemble_AverageElementData<cplx_t>(m_contactElements, target, in);
                 else
-                    Assemble_AverageElementData(m_contactElements, target, in);
+                    Assemble_AverageElementData<real_t>(m_contactElements, target, in);
             } else {
                 throw ValueError("No interpolation with data on contact elements possible.");
             }

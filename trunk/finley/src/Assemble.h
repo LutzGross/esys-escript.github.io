@@ -140,6 +140,7 @@ void Assemble_LumpedSystem(const NodeFile* nodes, const ElementFile* elements,
                            bool useHRZ);
 
 /// averages data
+template<typename Scalar>
 void Assemble_AverageElementData(const ElementFile* elements,
                                  escript::Data& out, const escript::Data& in);
 
