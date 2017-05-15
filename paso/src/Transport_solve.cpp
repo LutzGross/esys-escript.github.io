@@ -47,7 +47,8 @@
 
 namespace paso {
 
-void TransportProblem::solve(double* u, double dt, double* u0, double* q,
+template <class T>    
+void TransportProblem<T>::solve(double* u, double dt, double* u0, double* q,
                              Options* options)
 {
     const real_t EPSILON = escript::DataTypes::real_t_eps();
@@ -56,8 +57,8 @@ void TransportProblem::solve(double* u, double dt, double* u0, double* q,
     const dim_t num_failures_max=50;
 
     Performance pp;
-    ReactiveSolver* rsolver=NULL;
-    FCT_Solver* fctsolver=NULL;
+    ReactiveSolver<T>* rsolver=NULL;
+    FCT_Solver<T>* fctsolver=NULL;
 
     dim_t i_substeps=0, n_substeps=1, num_failures=0;
     double *u_save=NULL, *u2=NULL;
@@ -86,8 +87,8 @@ void TransportProblem::solve(double* u, double dt, double* u0, double* q,
     }
     getSafeTimeStepSize();
     // allocate memory
-    fctsolver = new FCT_Solver(shared_from_this(), options);
-    rsolver = new ReactiveSolver(shared_from_this());
+    fctsolver = new FCT_Solver<T>(boost::enable_shared_from_this<TransportProblem<T> >::shared_from_this(), options);
+    rsolver = new ReactiveSolver<T>(boost::enable_shared_from_this<TransportProblem<T> >::shared_from_this());
     u_save = new double[n];
     u2 = new double[n];
 
@@ -190,7 +191,8 @@ void TransportProblem::solve(double* u, double dt, double* u0, double* q,
     delete[] u2;
 }
 
-double TransportProblem::getSafeTimeStepSize() const
+template <class T>
+double TransportProblem<T>::getSafeTimeStepSize() const
 {
     double dt_max=0.;
     const dim_t n = transport_matrix->getTotalNumRows();
@@ -231,8 +233,8 @@ double TransportProblem::getSafeTimeStepSize() const
         // get a copy of the main diagonal of the mass matrix
         mass_matrix->copyFromMainDiagonal(main_diagonal_mass_matrix);
 
-        const double dt_R = ReactiveSolver::getSafeTimeStepSize(shared_from_this());
-        const double dt_T = FCT_Solver::getSafeTimeStepSize(shared_from_this());
+        const double dt_R = ReactiveSolver<T>::getSafeTimeStepSize(boost::enable_shared_from_this<TransportProblem<T> >::shared_from_this());
+        const double dt_T = FCT_Solver<T>::getSafeTimeStepSize(boost::enable_shared_from_this<TransportProblem<T> >::shared_from_this());
         dt_max_R = dt_R;
         dt_max_T = dt_T;
         valid_matrices = true;

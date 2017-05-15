@@ -48,7 +48,8 @@ void Preconditioner_BoomerAMG_free(Preconditioner_BoomerAMG* in)
 }
 
 // allocate necessary space for the BoomerAMG library
-Preconditioner_BoomerAMG* Preconditioner_BoomerAMG_alloc(SystemMatrix_ptr A,
+template <class T>
+Preconditioner_BoomerAMG* Preconditioner_BoomerAMG_alloc(SystemMatrix_ptr<T> A,
                                                          Options* options)
 {
 #ifdef ESYS_HAVE_BOOMERAMG
@@ -227,7 +228,8 @@ Preconditioner_BoomerAMG* Preconditioner_BoomerAMG_alloc(SystemMatrix_ptr A,
 }
 
 /// call the solver
-void Preconditioner_BoomerAMG_solve(SystemMatrix_ptr A,
+template <class T>
+void Preconditioner_BoomerAMG_solve(SystemMatrix_ptr<T> A,
                                     Preconditioner_BoomerAMG* amg,
                                     double* out, double* in)
 {

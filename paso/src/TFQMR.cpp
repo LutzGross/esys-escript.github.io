@@ -59,7 +59,8 @@ namespace paso {
 #define USE_DYNAMIC_SCHEDULING
 #endif
 
-SolverResult Solver_TFQMR(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
+template <class T>
+SolverResult Solver_TFQMR(SystemMatrix_ptr<T> A, double* r, double* x, dim_t* iter,
                           double* tolerance, Performance* pp)
 {
     int m=1;

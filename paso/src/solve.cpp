@@ -36,7 +36,8 @@
 
 namespace paso {
 
-void SystemMatrix::solve(double* out, double* in, Options* options) const
+template <class T>
+void SystemMatrix<T>::solve(double* out, double* in, Options* options) const
 {
     Performance pp;
     index_t package;
@@ -125,7 +126,8 @@ void SystemMatrix::solve(double* out, double* in, Options* options) const
     Performance_close(&pp, options->verbose);
 }
 
-void solve_free(SystemMatrix* in)
+template <class T>
+void solve_free(SystemMatrix<T>* in)
 {
     if (!in) return;
 

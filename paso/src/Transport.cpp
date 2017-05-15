@@ -42,7 +42,8 @@ namespace paso {
 
 static const real_t LARGE_POSITIVE_FLOAT = escript::DataTypes::real_t_max();
 
-TransportProblem::TransportProblem(SystemMatrixPattern_ptr pattern,
+template <class T>
+TransportProblem<T>::TransportProblem(SystemMatrixPattern_ptr pattern,
                                    int block_size,
                                    const escript::FunctionSpace& functionspace) :
     AbstractTransportProblem(block_size, functionspace),
@@ -58,10 +59,10 @@ TransportProblem::TransportProblem(SystemMatrixPattern_ptr pattern,
     // at the moment only block size 1 is supported
     SystemMatrixType matrix_type = MATRIX_FORMAT_DEFAULT+MATRIX_FORMAT_BLK1;
 
-    transport_matrix.reset(new SystemMatrix(matrix_type, pattern, block_size,
+    transport_matrix.reset(new SystemMatrix<T>(matrix_type, pattern, block_size,
                                             block_size, false,
                                             functionspace, functionspace));
-    mass_matrix.reset(new SystemMatrix(matrix_type, pattern, block_size,
+    mass_matrix.reset(new SystemMatrix<T>(matrix_type, pattern, block_size,
                                        block_size, false, functionspace,
                                        functionspace));
 
@@ -82,7 +83,8 @@ TransportProblem::TransportProblem(SystemMatrixPattern_ptr pattern,
     }
 }
 
-TransportProblem::~TransportProblem()
+template <class T>
+TransportProblem<T>::~TransportProblem()
 {
     delete[] constraint_mask;
     delete[] reactive_matrix;
@@ -91,7 +93,8 @@ TransportProblem::~TransportProblem()
     delete[] main_diagonal_low_order_transport_matrix;
 }
 
-void TransportProblem::setToSolution(escript::Data& out, escript::Data& u0,
+template <class T>
+void TransportProblem<T>::setToSolution(escript::Data& out, escript::Data& u0,
                                      escript::Data& source, double dt,
                                      bp::object& options)
 {
@@ -126,7 +129,8 @@ void TransportProblem::setToSolution(escript::Data& out, escript::Data& u0,
     paso_options.updateEscriptDiagnostics(options);
 }
 
-void TransportProblem::copyConstraint(escript::Data& source, escript::Data& q,
+template <class T>
+void TransportProblem<T>::copyConstraint(escript::Data& source, escript::Data& q,
                                       escript::Data& r)
 {
     if (source.isComplex() || q.isComplex() || r.isComplex())
@@ -186,7 +190,8 @@ void TransportProblem::copyConstraint(escript::Data& source, escript::Data& q,
 #endif
 }
 
-void TransportProblem::resetTransport(bool preserveSolverData) const
+template <class T>
+void TransportProblem<T>::resetTransport(bool preserveSolverData) const
 {
     const dim_t n = transport_matrix->getTotalNumRows();
     transport_matrix->setValues(0.);
@@ -196,13 +201,14 @@ void TransportProblem::resetTransport(bool preserveSolverData) const
     valid_matrices = false;
 }
 
-double TransportProblem::getUnlimitedTimeStepSize() const
+template <class T>
+double TransportProblem<T>::getUnlimitedTimeStepSize() const
 {
     return std::numeric_limits<double>::max();
 }
 
-
-void TransportProblem::setUpConstraint(const double* q)
+template <class T>
+void TransportProblem<T>::setUpConstraint(const double* q)
 {
     if (valid_matrices) {
         throw PasoException("TransportProblem::setUpConstraint: "
@@ -220,7 +226,8 @@ void TransportProblem::setUpConstraint(const double* q)
     }
 }
 
-void TransportProblem::insertConstraint(const double* r,  double* source) const
+template <class T>
+void TransportProblem<T>::insertConstraint(const double* r,  double* source) const
 {
     const dim_t n = transport_matrix->getTotalNumRows();
 
