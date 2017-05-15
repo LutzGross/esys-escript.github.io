@@ -24,9 +24,10 @@ namespace paso {
 
 struct Performance;
 
+template <class T>
 struct ReactiveSolver
 {
-    ReactiveSolver(const_TransportProblem_ptr _tp) : tp(_tp) {}
+    ReactiveSolver(const_TransportProblem_ptr<T> _tp) : tp(_tp) {}
     ~ReactiveSolver() {}
 
     inline void initialize(double _dt, Options*)
@@ -37,9 +38,9 @@ struct ReactiveSolver
     SolverResult solve(double* u, double* u_old, const double* source,
                 Options* options, Performance* pp);
 
-    static double getSafeTimeStepSize(const_TransportProblem_ptr tp);
+    static double getSafeTimeStepSize(const_TransportProblem_ptr<T> tp);
 
-    const_TransportProblem_ptr tp;
+    const_TransportProblem_ptr<T> tp;
     double dt;
 };
 

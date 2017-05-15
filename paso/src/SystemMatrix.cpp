@@ -38,7 +38,8 @@
 
 namespace paso {
 
-SystemMatrix::SystemMatrix()
+template <class T>
+SystemMatrix<T>::SystemMatrix()
 {
     throw PasoException("SystemMatrix: Illegal to generate default SystemMatrix.");
 }
@@ -48,7 +49,8 @@ SystemMatrix::SystemMatrix()
 /// If patternIsUnrolled and type & MATRIX_FORMAT_BLK1, it is assumed
 /// that the pattern is already unrolled to match the requested block size
 /// and offsets. Otherwise unrolling and offset adjustment will be performed.
-SystemMatrix::SystemMatrix(SystemMatrixType ntype,
+template <class T>
+SystemMatrix<T>::SystemMatrix(SystemMatrixType ntype,
                            SystemMatrixPattern_ptr npattern, dim_t rowBlockSize,
                            dim_t colBlockSize, bool patternIsUnrolled,
                            const escript::FunctionSpace& rowFS,
@@ -126,8 +128,8 @@ SystemMatrix::SystemMatrix(SystemMatrixType ntype,
     } else {
         block_size = row_block_size*col_block_size;
     }
-    col_coupler.reset(new Coupler(pattern->col_connector, col_block_size, mpi_info));
-    row_coupler.reset(new Coupler(pattern->row_connector, row_block_size, mpi_info));
+    col_coupler.reset(new Coupler<T>(pattern->col_connector, col_block_size, mpi_info));
+    row_coupler.reset(new Coupler<T>(pattern->row_connector, row_block_size, mpi_info));
     mainBlock.reset(new SparseMatrix(type, pattern->mainPattern, row_block_size, col_block_size, true));
     col_coupleBlock.reset(new SparseMatrix(type, pattern->col_couplePattern, row_block_size, col_block_size, true));
     row_coupleBlock.reset(new SparseMatrix(type, pattern->row_couplePattern, row_block_size, col_block_size, true));
@@ -139,36 +141,41 @@ SystemMatrix::SystemMatrix(SystemMatrixType ntype,
 }
 
 // deallocates a SystemMatrix
-SystemMatrix::~SystemMatrix()
+template <class T>
+SystemMatrix<T>::~SystemMatrix()
 {
     solve_free(this);
     delete[] balance_vector;
     delete[] global_id;
 }
 
-void SystemMatrix::setPreconditioner(Options* options)
+template <class T>
+void SystemMatrix<T>::setPreconditioner(Options* options)
 {
     if (!solver_p) {
-        SystemMatrix_ptr mat(boost::dynamic_pointer_cast<SystemMatrix>(getPtr()));
+        SystemMatrix_ptr<T> mat(boost::dynamic_pointer_cast<SystemMatrix<T>>(getPtr()));
         solver_p = Preconditioner_alloc(mat, options);
     }
 }
 
-void SystemMatrix::solvePreconditioner(double* x, double* b)
+template <class T>
+void SystemMatrix<T>::solvePreconditioner(double* x, double* b)
 {
-    Preconditioner* prec=(Preconditioner*)solver_p;
-    SystemMatrix_ptr mat(boost::dynamic_pointer_cast<SystemMatrix>(getPtr()));
+    Preconditioner<T>* prec=(Preconditioner<T>*)solver_p;
+    SystemMatrix_ptr<T> mat(boost::dynamic_pointer_cast<SystemMatrix<T> >(getPtr()));
     Preconditioner_solve(prec, mat, x, b);
 }
 
-void SystemMatrix::freePreconditioner()
+template <class T>
+void SystemMatrix<T>::freePreconditioner()
 {
-    Preconditioner* prec = (Preconditioner*) solver_p;
+    Preconditioner<T>* prec = (Preconditioner<T>*) solver_p;
     Preconditioner_free(prec);
     solver_p = NULL;
 }
 
-double SystemMatrix::getGlobalSize() const
+template <class T>
+double SystemMatrix<T>::getGlobalSize() const
 {
     double global_size=0;
     double my_size = mainBlock->getSize() + col_coupleBlock->getSize();
@@ -184,7 +191,8 @@ double SystemMatrix::getGlobalSize() const
     return global_size;
 }
 
-index_t* SystemMatrix::borrowMainDiagonalPointer() const
+template <class T>
+index_t* SystemMatrix<T>::borrowMainDiagonalPointer() const
 {
     int fail=0;
     index_t* out = mainBlock->borrowMainDiagonalPointer();
@@ -194,11 +202,12 @@ index_t* SystemMatrix::borrowMainDiagonalPointer() const
     MPI_Allreduce(&fail_loc, &fail, 1, MPI_INT, MPI_MAX, mpi_info->comm);
 #endif
     if (fail>0)
-        throw PasoException("SystemMatrix::borrowMainDiagonalPointer: no main diagonal");
+        throw PasoException("SystemMatrix<T>::borrowMainDiagonalPointer: no main diagonal");
     return out;
 }
 
-void SystemMatrix::makeZeroRowSums(double* left_over)
+template <class T>
+void SystemMatrix<T>::makeZeroRowSums(double* left_over)
 {
     const dim_t n = pattern->getNumOutput();
     const dim_t nblk = block_size;
@@ -220,10 +229,11 @@ void SystemMatrix::makeZeroRowSums(double* left_over)
     }
 }
 
-void SystemMatrix::nullifyRows(double* mask_row, double main_diagonal_value)
+template <class T>
+void SystemMatrix<T>::nullifyRows(double* mask_row, double main_diagonal_value)
 {
     if (type & MATRIX_FORMAT_CSC) {
-        throw PasoException("SystemMatrix::nullifyRows: Only CSR format is supported.");
+        throw PasoException("SystemMatrix<T>::nullifyRows: Only CSR format is supported.");
     }
 
     if (col_block_size==1 && row_block_size==1) {
@@ -241,13 +251,14 @@ void SystemMatrix::nullifyRows(double* mask_row, double main_diagonal_value)
     }
 }
 
-void SystemMatrix::nullifyRowsAndCols(escript::Data& row_q,
+template <class T>
+void SystemMatrix<T>::nullifyRowsAndCols(escript::Data& row_q,
                                       escript::Data& col_q,
                                       double main_diagonal_value)
 {
     if (row_q.isComplex() || col_q.isComplex())
     {
-        throw PasoException("SystemMatrix::nullifyRowsAndCols: complex arguments not supported");      
+        throw PasoException("SystemMatrix<T>::nullifyRowsAndCols: complex arguments not supported");      
     }
     if (col_q.getDataPointSize() != getColumnBlockSize()) {
         throw PasoException("nullifyRowsAndCols: column block size does not match the number of components of column mask.");
@@ -267,7 +278,7 @@ void SystemMatrix::nullifyRowsAndCols(escript::Data& row_q,
 
     if (mpi_info->size > 1) {
         if (type & MATRIX_FORMAT_CSC) {
-            throw PasoException("SystemMatrix::nullifyRowsAndCols: "
+            throw PasoException("SystemMatrix<T>::nullifyRowsAndCols: "
                                 "CSC is not supported with MPI.");
         }
 
@@ -303,19 +314,21 @@ void SystemMatrix::nullifyRowsAndCols(escript::Data& row_q,
     }
 }
 
-void SystemMatrix::resetValues(bool preserveSolverData)
+template <class T>
+void SystemMatrix<T>::resetValues(bool preserveSolverData)
 {
     setValues(0.);
     if (!preserveSolverData)
         solve_free(this);
 }
 
-void SystemMatrix::setToSolution(escript::Data& out, escript::Data& in,
+template <class T>
+void SystemMatrix<T>::setToSolution(escript::Data& out, escript::Data& in,
                                  boost::python::object& options) const
 {
     if (in.isComplex() || out.isComplex())
     {
-        throw PasoException("SystemMatrix::setToSolution: complex arguments not supported.");
+        throw PasoException("SystemMatrix<T>::setToSolution: complex arguments not supported.");
     }
     options.attr("resetDiagnostics")();
     Options paso_options(options);
@@ -338,11 +351,12 @@ void SystemMatrix::setToSolution(escript::Data& out, escript::Data& in,
     paso_options.updateEscriptDiagnostics(options);
 }
 
-void SystemMatrix::ypAx(escript::Data& y, escript::Data& x) const 
+template <class T>
+void SystemMatrix<T>::ypAx(escript::Data& y, escript::Data& x) const 
 {
     if (x.isComplex() || y.isComplex())
     {
-        throw PasoException("SystemMatrix::ypAx: complex arguments not supported.");
+        throw PasoException("SystemMatrix<T>::ypAx: complex arguments not supported.");
     }  
     if (x.getDataPointSize() != getColumnBlockSize()) {
         throw PasoException("matrix vector product: column block size does not match the number of components in input.");
@@ -362,16 +376,17 @@ void SystemMatrix::ypAx(escript::Data& y, escript::Data& x) const
     MatrixVector(1., x_dp, 1., y_dp);
 }
 
-void SystemMatrix::copyColCoupleBlock()
+template <class T>
+void SystemMatrix<T>::copyColCoupleBlock()
 {
     if (mpi_info->size == 1) {
         // nothing to do
         return;
     } else if (!row_coupleBlock) {
-        throw PasoException("SystemMatrix::copyColCoupleBlock: "
+        throw PasoException("SystemMatrix<T>::copyColCoupleBlock: "
                     "creation of row_coupleBlock pattern not supported yet.");
     } else if (row_coupler->in_use) {
-        throw PasoException("SystemMatrix::copyColCoupleBlock: Coupler in use.");
+        throw PasoException("SystemMatrix<T>::copyColCoupleBlock: Coupler in use.");
     }
 
     const dim_t numNeighboursSend = row_coupler->connector->send->neighbour.size();
@@ -440,7 +455,8 @@ void SystemMatrix::copyColCoupleBlock()
     delete[] send_buffer;
 }
 
-void SystemMatrix::applyBalanceInPlace(double* x, const bool RHS) const
+template <class T>
+void SystemMatrix<T>::applyBalanceInPlace(double* x, const bool RHS) const
 {
     if (is_balanced) {
         if (RHS) {
@@ -459,7 +475,8 @@ void SystemMatrix::applyBalanceInPlace(double* x, const bool RHS) const
     }
 }
 
-void SystemMatrix::applyBalance(double* x_out, const double* x, bool RHS) const
+template <class T>
+void SystemMatrix<T>::applyBalance(double* x_out, const double* x, bool RHS) const
 {
     if (is_balanced) {
         if (RHS) {
@@ -478,7 +495,8 @@ void SystemMatrix::applyBalance(double* x_out, const double* x, bool RHS) const
     }
 }
 
-void SystemMatrix::balance()
+template <class T>
+void SystemMatrix<T>::balance()
 {
     const dim_t nrow = getTotalNumRows();
 
@@ -489,7 +507,7 @@ void SystemMatrix::balance()
         }
         if (getGlobalNumRows() != getGlobalNumCols() ||
                 row_block_size != col_block_size) {
-            throw PasoException("SystemMatrix::balance: matrix needs to be a square matrix.");
+            throw PasoException("SystemMatrix<T>::balance: matrix needs to be a square matrix.");
         }
         // calculate absolute max value over each row
 #pragma omp parallel for
@@ -529,7 +547,8 @@ void SystemMatrix::balance()
     }
 }
 
-int SystemMatrix::getSystemMatrixTypeId(int solver, int preconditioner,
+template <class T>
+int SystemMatrix<T>::getSystemMatrixTypeId(int solver, int preconditioner,
                                         int package, bool symmetry,
                                         const escript::JMPI& mpi_info)
 {
@@ -563,7 +582,8 @@ int SystemMatrix::getSystemMatrixTypeId(int solver, int preconditioner,
     return out;
 }
 
-SparseMatrix_ptr SystemMatrix::mergeSystemMatrix() const
+template <class T>
+SparseMatrix_ptr SystemMatrix<T>::mergeSystemMatrix() const
 {
     const index_t n = mainBlock->numRows;
 

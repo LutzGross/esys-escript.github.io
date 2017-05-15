@@ -36,7 +36,8 @@
 
 namespace paso {
 
-void SystemMatrix::copyRemoteCoupleBlock(bool recreatePattern)
+template <class T>
+void SystemMatrix<T>::copyRemoteCoupleBlock(bool recreatePattern)
 {
     if (mpi_info->size == 1)
         return;
@@ -58,9 +59,9 @@ void SystemMatrix::copyRemoteCoupleBlock(bool recreatePattern)
     for (index_t i=0; i<num_main_cols; ++i)
         cols[i] = offset + i;
 
-    Coupler_ptr coupler;
+    Coupler_ptr<T> coupler;
     if (!global_id) {
-        coupler.reset(new Coupler(col_coupler->connector, 1, mpi_info));
+        coupler.reset(new Coupler<T>(col_coupler->connector, 1, mpi_info));
         coupler->startCollect(cols);
     }
 

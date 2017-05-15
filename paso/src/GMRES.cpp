@@ -65,7 +65,8 @@
 
 namespace paso {
 
-SolverResult Solver_GMRES(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
+template <class T>
+SolverResult Solver_GMRES(SystemMatrix_ptr<T> A, double* r, double* x, dim_t* iter,
                           double* tolerance, dim_t Length_of_recursion,
                           dim_t restart, Performance* pp)
 {

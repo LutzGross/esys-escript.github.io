@@ -34,7 +34,8 @@
 
 namespace paso {
 
-MergedSolver::MergedSolver(const_SystemMatrix_ptr M, const Options* options)
+template <class T>
+MergedSolver<T>::MergedSolver(const_SystemMatrix_ptr<T> M, const Options* options)
 {
     const index_t rank = M->mpi_info->rank;
     const index_t size = M->mpi_info->size;
@@ -79,7 +80,8 @@ MergedSolver::MergedSolver(const_SystemMatrix_ptr M, const Options* options)
     }
 }
 
-MergedSolver::~MergedSolver()
+template <class T>
+MergedSolver<T>::~MergedSolver()
 {
     delete[] x;
     delete[] b;
@@ -87,7 +89,8 @@ MergedSolver::~MergedSolver()
     delete[] offset;
 }
 
-void MergedSolver::solve(double* local_x, const double* local_b)
+template <class T>
+void MergedSolver<T>::solve(double* local_x, const double* local_b)
 {
     const index_t rank = mpi_info->rank;
     const dim_t count = counts[rank];

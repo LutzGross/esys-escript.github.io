@@ -209,7 +209,7 @@ void FCT_FluxLimiter<T>::addLimitedFluxes_Start()
 // completes the exchange of the R factors and adds the weighted
 // antidiffusion fluxes to the residual b
 template <class T>
-void FCT_FluxLimiter::addLimitedFluxes_Complete(double* b)
+void FCT_FluxLimiter<T>::addLimitedFluxes_Complete(double* b)
 {
     const dim_t n = getTotalNumRows();
     const_SystemMatrixPattern_ptr pattern(getFluxPattern());

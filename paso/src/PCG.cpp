@@ -59,7 +59,8 @@ namespace paso {
 #define USE_DYNAMIC_SCHEDULING
 #endif
 
-SolverResult Solver_PCG(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
+template <class T>
+SolverResult Solver_PCG(SystemMatrix_ptr<T> A, double* r, double* x, dim_t* iter,
                         double* tolerance, Performance* pp)
 {
     dim_t maxit,num_iter_global, len,rest, np, ipp;

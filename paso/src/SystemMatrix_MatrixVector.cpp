@@ -31,7 +31,8 @@
 namespace paso {
 
 /*  raw scaled vector update operation: out = alpha * A * in + beta * out */
-void SystemMatrix::MatrixVector(double alpha, const double* in, double beta,
+template <class T>
+void SystemMatrix<T>::MatrixVector(double alpha, const double* in, double beta,
                                 double* out) const
 {
     if (is_balanced) {
@@ -60,7 +61,8 @@ void SystemMatrix::MatrixVector(double alpha, const double* in, double beta,
     }
 }
 
-void SystemMatrix::MatrixVector_CSR_OFFSET0(double alpha, const double* in,
+template <class T>
+void SystemMatrix<T>::MatrixVector_CSR_OFFSET0(double alpha, const double* in,
                                             double beta, double* out) const
 {
     // start exchange

@@ -23,7 +23,8 @@ namespace paso {
 /*
  * generate Linear System (mainly for test purposes)
  */
-LinearSystem::LinearSystem(SystemMatrix_ptr A, double* _b, Options* options) :
+template<class T>
+LinearSystem<T>::LinearSystem(SystemMatrix_ptr<T> A, double* _b, Options* options) :
     Function(A->mpi_info)
 {
     A->setPreconditioner(options);
@@ -33,7 +34,8 @@ LinearSystem::LinearSystem(SystemMatrix_ptr A, double* _b, Options* options) :
     tmp = new double[n];
 }
 
-LinearSystem::~LinearSystem()
+template <class T>
+LinearSystem<T>::~LinearSystem()
 {
     delete[] tmp;
 }
@@ -41,7 +43,8 @@ LinearSystem::~LinearSystem()
 /*
  * evaluates value=P*(b-Ax)
  */
-SolverResult LinearSystem::call(double* value, const double* arg, Performance* pp)
+template <class T>
+SolverResult LinearSystem<T>::call(double* value, const double* arg, Performance* pp)
 {
     // tmp = b
     util::copy(n, tmp, b);
