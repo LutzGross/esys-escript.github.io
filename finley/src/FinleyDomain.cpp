@@ -1262,9 +1262,9 @@ void FinleyDomain::interpolateOnDomain(escript::Data& target,
                 case DegreesOfFreedom:
                 case ReducedDegreesOfFreedom:
                     if (in.isComplex())
-                        throw ValueError("Interpolation of complex data not supported yet.");
+                        Assemble_CopyNodalData<cplx_t>(m_nodes, target, in);
                     else
-                        Assemble_CopyNodalData(m_nodes, target, in);
+                        Assemble_CopyNodalData<real_t>(m_nodes, target, in);
                 break;
                 case Elements:
                 case ReducedElements:
@@ -1310,9 +1310,9 @@ void FinleyDomain::interpolateOnDomain(escript::Data& target,
                 case DegreesOfFreedom:
                 case ReducedDegreesOfFreedom:
                     if (in.isComplex())
-                        throw ValueError("Interpolation of complex data not supported yet.");
+                        Assemble_CopyNodalData<cplx_t>(m_nodes, target, in);
                     else
-                        Assemble_CopyNodalData(m_nodes, target, in);
+                        Assemble_CopyNodalData<real_t>(m_nodes, target, in);
                 break;
                 case Elements:
                 case ReducedElements:
@@ -1447,9 +1447,9 @@ void FinleyDomain::interpolateOnDomain(escript::Data& target,
                 case ReducedDegreesOfFreedom:
                 case DegreesOfFreedom:
                     if (in.isComplex())
-                        throw ValueError("Interpolation of complex data not supported yet.");
+                        Assemble_CopyNodalData<cplx_t>(m_nodes, target, in);
                     else
-                        Assemble_CopyNodalData(m_nodes, target, in);
+                        Assemble_CopyNodalData<real_t>(m_nodes, target, in);
                 break;
 
                 case Nodes:
@@ -1458,14 +1458,14 @@ void FinleyDomain::interpolateOnDomain(escript::Data& target,
                         escript::Data temp(in);
                         temp.expand();
                         if (in.isComplex())
-                            throw ValueError("Interpolation of complex data not supported yet.");
+                            Assemble_CopyNodalData<cplx_t>(m_nodes, target, temp);
                         else
-                            Assemble_CopyNodalData(m_nodes, target, temp);
+                            Assemble_CopyNodalData<real_t>(m_nodes, target, temp);
                     } else {
                         if (in.isComplex())
-                            throw ValueError("Interpolation of complex data not supported yet.");
+                            Assemble_CopyNodalData<cplx_t>(m_nodes, target, in);
                         else
-                            Assemble_CopyNodalData(m_nodes, target, in);
+                            Assemble_CopyNodalData<real_t>(m_nodes, target, in);
                     }
                 break;
                 case Elements:
@@ -1542,23 +1542,23 @@ void FinleyDomain::interpolateOnDomain(escript::Data& target,
                         escript::Data in2(in);
                         in2.expand();
                         if (in.isComplex())
-                            throw ValueError("Interpolation of complex data not supported yet.");
+                            Assemble_CopyNodalData<cplx_t>(m_nodes, target, in2);
                         else
-                            Assemble_CopyNodalData(m_nodes, target, in2);
+                            Assemble_CopyNodalData<real_t>(m_nodes, target, in2);
                     } else {
                         if (in.isComplex())
-                            throw ValueError("Interpolation of complex data not supported yet.");
+                            Assemble_CopyNodalData<cplx_t>(m_nodes, target, in);
                         else
-                            Assemble_CopyNodalData(m_nodes, target, in);
+                            Assemble_CopyNodalData<real_t>(m_nodes, target, in);
                     }
                     break;
                 case DegreesOfFreedom:
                     throw ValueError("Finley does not support interpolation from reduced degrees of freedom to degrees of freedom");
                 case ReducedDegreesOfFreedom:
                     if (in.isComplex())
-                        throw ValueError("Interpolation of complex data not supported yet.");
+                        Assemble_CopyNodalData<cplx_t>(m_nodes, target, in);
                     else
-                        Assemble_CopyNodalData(m_nodes, target, in);
+                        Assemble_CopyNodalData<real_t>(m_nodes, target, in);
                     break;
                 case Elements:
                 case ReducedElements:

@@ -148,6 +148,7 @@ void Assemble_CopyElementData(const ElementFile* elements, escript::Data& out,
                               const escript::Data& in);
 
 /// copies data between different types of nodal representations
+template<typename Scalar>
 void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
                             const escript::Data& in);
 
