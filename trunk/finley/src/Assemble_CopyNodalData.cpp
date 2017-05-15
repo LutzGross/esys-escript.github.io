@@ -19,6 +19,7 @@
 
 namespace finley {
 
+template<typename Scalar>
 void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
                             const escript::Data& in)
 {
@@ -90,7 +91,8 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
         throw escript::ValueError("Assemble_CopyNodalData: illegal number of samples of output Data object");
     }
 
-    const size_t numComps_size = numComps * sizeof(double);
+    const Scalar zero = static_cast<Scalar>(0);
+    const size_t numComps_size = numComps * sizeof(Scalar);
 
     /**************************** FINLEY_NODES ******************************/
     if (in_data_type == FINLEY_NODES) {
@@ -98,28 +100,28 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
         if (out_data_type == FINLEY_NODES) {
 #pragma omp parallel for
             for (index_t n = 0; n < numOut; n++) {
-                memcpy(out.getSampleDataRW(n), in.getSampleDataRO(n), numComps_size);
+                memcpy(out.getSampleDataRW(n, zero), in.getSampleDataRO(n, zero), numComps_size);
             }
         } else if (out_data_type == FINLEY_REDUCED_NODES) {
             const IndexVector& map = nodes->borrowReducedNodesTarget();
             const dim_t mapSize = map.size();
 #pragma omp parallel for
             for (index_t n = 0; n < mapSize; n++) {
-                memcpy(out.getSampleDataRW(n), in.getSampleDataRO(map[n]),
+                memcpy(out.getSampleDataRW(n, zero), in.getSampleDataRO(map[n], zero),
                        numComps_size);
             }
         } else if (out_data_type == FINLEY_DEGREES_OF_FREEDOM) {
             const IndexVector& map = nodes->borrowDegreesOfFreedomTarget();
 #pragma omp parallel for
             for (index_t n = 0; n < numOut; n++) {
-                memcpy(out.getSampleDataRW(n), in.getSampleDataRO(map[n]),
+                memcpy(out.getSampleDataRW(n, zero), in.getSampleDataRO(map[n], zero),
                        numComps_size);
             }
         } else if (out_data_type == FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
             const std::vector<index_t>& map = nodes->borrowReducedDegreesOfFreedomTarget();
 #pragma omp parallel for
             for (index_t n=0; n<numOut; n++) {
-                memcpy(out.getSampleDataRW(n), in.getSampleDataRO(map[n]),
+                memcpy(out.getSampleDataRW(n, zero), in.getSampleDataRO(map[n], zero),
                        numComps_size);
             }
         }
@@ -133,7 +135,7 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
             const dim_t nNodes = nodes->getNumNodes();
 #pragma omp parallel for
             for (index_t n=0; n < nNodes; n++) {
-                memcpy(out.getSampleDataRW(n), in.getSampleDataRO(n), numComps_size);
+                memcpy(out.getSampleDataRW(n, zero), in.getSampleDataRO(n, zero), numComps_size);
             }
        } else if (out_data_type == FINLEY_DEGREES_OF_FREEDOM) {
             throw escript::ValueError("Assemble_CopyNodalData: cannot copy from reduced nodes to degrees of freedom.");
@@ -143,17 +145,57 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
             const IndexVector& map = nodes->borrowReducedDegreesOfFreedomTarget();
 #pragma omp parallel for
             for (index_t n = 0; n < numOut; n++) {
-               memcpy(out.getSampleDataRW(n),
-                      in.getSampleDataRO(target[map[n]]), numComps_size);
+               memcpy(out.getSampleDataRW(n, zero),
+                      in.getSampleDataRO(target[map[n]], zero), numComps_size);
             }
         }
     /********************** FINLEY_DEGREES_OF_FREEDOM ***********************/
     } else if (in_data_type == FINLEY_DEGREES_OF_FREEDOM) {
         out.requireWrite();
         if (out_data_type == FINLEY_NODES) {
+            if (in.isComplex()) {
+#ifndef ESYS_HAVE_TRILINOS
+                throw escript::ValueError("Assemble_CopyNodalData: cannot "
+                        "interpolate complex Data from Solution to "
+                        "ContinuousFunction without Trilinos at the moment.");
+#endif
+            }
             const_cast<escript::Data*>(&in)->resolve();
             const index_t* target = nodes->borrowTargetDegreesOfFreedom();
-#ifdef ESYS_HAVE_PASO
+#ifdef ESYS_HAVE_TRILINOS
+            using namespace esys_trilinos;
+
+            Teuchos::RCP<const MapType> colMap;
+            Teuchos::RCP<const MapType> rowMap;
+            MapType colPointMap;
+            MapType rowPointMap;
+            if (numComps > 1) {
+                colPointMap = BlockVectorType<Scalar>::makePointMap(
+                                             *nodes->trilinosColMap, numComps);
+                rowPointMap = BlockVectorType<Scalar>::makePointMap(
+                                             *nodes->trilinosRowMap, numComps);
+                colMap = Teuchos::rcpFromRef(colPointMap);
+                rowMap = Teuchos::rcpFromRef(rowPointMap);
+            } else {
+                colMap = nodes->trilinosColMap;
+                rowMap = nodes->trilinosRowMap;
+            }
+
+            const ImportType importer(rowMap, colMap);
+            const Teuchos::ArrayView<const Scalar> localIn(
+                                               in.getSampleDataRO(0, zero),
+                                               in.getNumDataPoints()*numComps);
+            Teuchos::RCP<VectorType<Scalar> > lclData =
+                rcp(new VectorType<Scalar>(rowMap, localIn, localIn.size(), 1));
+            Teuchos::RCP<VectorType<Scalar> > gblData = rcp(new VectorType<Scalar>(colMap, 1));
+            gblData->doImport(*lclData, importer, Tpetra::INSERT);
+            Teuchos::ArrayRCP<const Scalar> gblArray(gblData->getData(0));
+#pragma omp parallel for
+            for (index_t i = 0; i < numOut; i++) {
+                const Scalar* src = &gblArray[target[i] * numComps];
+                std::copy(src, src+numComps, out.getSampleDataRW(i, zero));
+            }
+#elif defined(ESYS_HAVE_PASO)
             paso::Coupler_ptr coupler(new paso::Coupler(nodes->degreesOfFreedomConnector, numComps, nodes->MPIInfo));
             coupler->startCollect(in.getDataRO());
             const double* recv_buffer = coupler->finishCollect();
@@ -170,7 +212,19 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
                            numComps_size);
                 }
             }
-#elif defined(ESYS_HAVE_TRILINOS)
+#endif // Trilinos / Paso
+        } else if (out_data_type == FINLEY_REDUCED_NODES) {
+            if (in.isComplex()) {
+#ifndef ESYS_HAVE_TRILINOS
+                throw escript::ValueError("Assemble_CopyNodalData: cannot "
+                        "interpolate complex Data from Solution to reduced "
+                        "ContinuousFunction without Trilinos at the moment.");
+#endif
+            }
+            const_cast<escript::Data*>(&in)->resolve();
+            const index_t* target = nodes->borrowTargetDegreesOfFreedom();
+            const IndexVector& map = nodes->borrowReducedNodesTarget();
+#ifdef ESYS_HAVE_TRILINOS
             using namespace esys_trilinos;
 
             Teuchos::RCP<const MapType> colMap;
@@ -178,9 +232,9 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
             MapType colPointMap;
             MapType rowPointMap;
             if (numComps > 1) {
-                colPointMap = RealBlockVector::makePointMap(
+                colPointMap = BlockVectorType<Scalar>::makePointMap(
                                              *nodes->trilinosColMap, numComps);
-                rowPointMap = RealBlockVector::makePointMap(
+                rowPointMap = BlockVectorType<Scalar>::makePointMap(
                                              *nodes->trilinosRowMap, numComps);
                 colMap = Teuchos::rcpFromRef(colPointMap);
                 rowMap = Teuchos::rcpFromRef(rowPointMap);
@@ -190,25 +244,20 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
             }
 
             const ImportType importer(rowMap, colMap);
-            const Teuchos::ArrayView<const real_t> localIn(
-                                               in.getSampleDataRO(0),
+            const Teuchos::ArrayView<const Scalar> localIn(
+                                               in.getSampleDataRO(0, zero),
                                                in.getNumDataPoints()*numComps);
-            Teuchos::RCP<RealVector> lclData = rcp(new RealVector(rowMap,
-                                                  localIn, localIn.size(), 1));
-            Teuchos::RCP<RealVector> gblData = rcp(new RealVector(colMap, 1));
+            Teuchos::RCP<VectorType<Scalar> > lclData = rcp(new VectorType<Scalar>(
+                                               rowMap, localIn, localIn.size(), 1));
+            Teuchos::RCP<VectorType<Scalar> > gblData = rcp(new VectorType<Scalar>(colMap, 1));
             gblData->doImport(*lclData, importer, Tpetra::INSERT);
-            Teuchos::ArrayRCP<const real_t> gblArray(gblData->getData(0));
+            Teuchos::ArrayRCP<const Scalar> gblArray(gblData->getData(0));
 #pragma omp parallel for
             for (index_t i = 0; i < numOut; i++) {
-                const real_t* src = &gblArray[target[i] * numComps];
-                std::copy(src, src+numComps, out.getSampleDataRW(i));
+                const Scalar* src = &gblArray[target[map[i]] * numComps];
+                std::copy(src, src+numComps, out.getSampleDataRW(i, zero));
             }
-#endif
-        } else if (out_data_type == FINLEY_REDUCED_NODES) {
-            const_cast<escript::Data*>(&in)->resolve();
-            const index_t* target = nodes->borrowTargetDegreesOfFreedom();
-            const IndexVector& map = nodes->borrowReducedNodesTarget();
-#ifdef ESYS_HAVE_PASO
+#elif defined(ESYS_HAVE_PASO)
             paso::Coupler_ptr coupler(new paso::Coupler(nodes->degreesOfFreedomConnector, numComps, nodes->MPIInfo));
             coupler->startCollect(in.getDataRO());
             const double* recv_buffer = coupler->finishCollect();
@@ -227,44 +276,11 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
                            numComps_size);
                 }
             }
-#elif defined(ESYS_HAVE_TRILINOS)
-            using namespace esys_trilinos;
-
-            Teuchos::RCP<const MapType> colMap;
-            Teuchos::RCP<const MapType> rowMap;
-            MapType colPointMap;
-            MapType rowPointMap;
-            if (numComps > 1) {
-                colPointMap = RealBlockVector::makePointMap(
-                                             *nodes->trilinosColMap, numComps);
-                rowPointMap = RealBlockVector::makePointMap(
-                                             *nodes->trilinosRowMap, numComps);
-                colMap = Teuchos::rcpFromRef(colPointMap);
-                rowMap = Teuchos::rcpFromRef(rowPointMap);
-            } else {
-                colMap = nodes->trilinosColMap;
-                rowMap = nodes->trilinosRowMap;
-            }
-
-            const ImportType importer(rowMap, colMap);
-            const Teuchos::ArrayView<const real_t> localIn(
-                                               in.getSampleDataRO(0),
-                                               in.getNumDataPoints()*numComps);
-            Teuchos::RCP<RealVector> lclData = rcp(new RealVector(rowMap,
-                                                  localIn, localIn.size(), 1));
-            Teuchos::RCP<RealVector> gblData = rcp(new RealVector(colMap, 1));
-            gblData->doImport(*lclData, importer, Tpetra::INSERT);
-            Teuchos::ArrayRCP<const real_t> gblArray(gblData->getData(0));
-#pragma omp parallel for
-            for (index_t i = 0; i < numOut; i++) {
-                const real_t* src = &gblArray[target[map[i]] * numComps];
-                std::copy(src, src+numComps, out.getSampleDataRW(i));
-            }
 #endif
         } else if (out_data_type == FINLEY_DEGREES_OF_FREEDOM) {
 #pragma omp parallel for
             for (index_t n = 0; n < numOut; n++) {
-                memcpy(out.getSampleDataRW(n), in.getSampleDataRO(n),
+                memcpy(out.getSampleDataRW(n, zero), in.getSampleDataRO(n, zero),
                        numComps_size);
             }
         } else if (out_data_type == FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
@@ -272,8 +288,8 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
             const std::vector<index_t>& map = nodes->borrowReducedDegreesOfFreedomTarget();
 #pragma omp parallel for
             for (index_t n=0; n<numOut; n++) {
-                memcpy(out.getSampleDataRW(n),
-                       in.getSampleDataRO(target[map[n]]), numComps_size);
+                memcpy(out.getSampleDataRW(n, zero),
+                       in.getSampleDataRO(target[map[n]], zero), numComps_size);
             }
         }
 
@@ -324,31 +340,37 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
             }
 
             const ImportType importer(rowMap, colMap);
-            const Teuchos::ArrayView<const real_t> localIn(
-                                               in.getSampleDataRO(0),
+            const Teuchos::ArrayView<const Scalar> localIn(
+                                               in.getSampleDataRO(0, zero),
                                                in.getNumDataPoints()*numComps);
             Teuchos::RCP<RealVector> lclData = rcp(new RealVector(rowMap,
                                                   localIn, localIn.size(), 1));
             Teuchos::RCP<RealVector> gblData = rcp(new RealVector(colMap, 1));
             gblData->doImport(*lclData, importer, Tpetra::INSERT);
-            Teuchos::ArrayRCP<const real_t> gblArray(gblData->getData(0));
+            Teuchos::ArrayRCP<const Scalar> gblArray(gblData->getData(0));
 #pragma omp parallel for
             for (index_t i = 0; i < numOut; i++) {
-                const real_t* src = &gblArray[target[map[i]] * numComps];
-                std::copy(src, src+numComps, out.getSampleDataRW(i));
+                const Scalar* src = &gblArray[target[map[i]] * numComps];
+                std::copy(src, src+numComps, out.getSampleDataRW(i, zero));
             }
 #endif
         } else if (out_data_type == FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
             out.requireWrite();
 #pragma omp parallel for
             for (index_t n = 0; n < numOut; n++) {
-                memcpy(out.getSampleDataRW(n), in.getSampleDataRO(n), numComps_size);
+                memcpy(out.getSampleDataRW(n, zero), in.getSampleDataRO(n, zero), numComps_size);
             }
         } else if (out_data_type == FINLEY_DEGREES_OF_FREEDOM) {
             throw escript::ValueError("Assemble_CopyNodalData: cannot copy from reduced degrees of freedom to degrees of freedom.");
         }
     } // in_data_type
 }
+
+// instantiate our two supported versions
+template void Assemble_CopyNodalData<escript::DataTypes::real_t>(
+           const NodeFile* nodes, escript::Data& out, const escript::Data& in);
+template void Assemble_CopyNodalData<escript::DataTypes::cplx_t>(
+           const NodeFile* nodes, escript::Data& out, const escript::Data& in);
 
 } // namespace finley
 
