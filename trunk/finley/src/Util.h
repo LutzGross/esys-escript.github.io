@@ -60,8 +60,9 @@ void smallMatMult(int A1, int A2, double* A, int B2,
 
 /// multiplies a set of matrices with a single matrix:
 ///   A(1:A1,1:A2,i)=B(1:A1,1:B2,i)*C(1:B2,1:A2) for i=1,len
-void smallMatSetMult1(int len, int A1, int A2, double* A, int B2,
-                      const std::vector<double>& B,
+template<typename Scalar>
+void smallMatSetMult1(int len, int A1, int A2, Scalar* A, int B2,
+                      const std::vector<Scalar>& B,
                       const std::vector<double>& C);
 
 void invertSmallMat(int len, int dim, const double* A, double *invA,

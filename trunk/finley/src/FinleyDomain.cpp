@@ -1269,31 +1269,31 @@ void FinleyDomain::interpolateOnDomain(escript::Data& target,
                 case Elements:
                 case ReducedElements:
                     if (in.isComplex())
-                        throw ValueError("Interpolation of complex data not supported yet.");
+                        Assemble_interpolate<cplx_t>(m_nodes, m_elements, in, target);
                     else
-                        Assemble_interpolate(m_nodes, m_elements, in, target);
+                        Assemble_interpolate<real_t>(m_nodes, m_elements, in, target);
                 break;
                 case FaceElements:
                 case ReducedFaceElements:
                     if (in.isComplex())
-                        throw ValueError("Interpolation of complex data not supported yet.");
+                        Assemble_interpolate<cplx_t>(m_nodes, m_faceElements, in, target);
                     else
-                        Assemble_interpolate(m_nodes, m_faceElements, in, target);
+                        Assemble_interpolate<real_t>(m_nodes, m_faceElements, in, target);
                 break;
                 case Points:
                     if (in.isComplex())
-                        throw ValueError("Interpolation of complex data not supported yet.");
+                        Assemble_interpolate<cplx_t>(m_nodes, m_points, in, target);
                     else
-                        Assemble_interpolate(m_nodes, m_points, in, target);
+                        Assemble_interpolate<real_t>(m_nodes, m_points, in, target);
                 break;
                 case ContactElementsZero:
                 case ReducedContactElementsZero:
                 case ContactElementsOne:
                 case ReducedContactElementsOne:
                     if (in.isComplex())
-                        throw ValueError("Interpolation of complex data not supported yet.");
+                        Assemble_interpolate<cplx_t>(m_nodes, m_contactElements, in, target);
                     else
-                        Assemble_interpolate(m_nodes, m_contactElements, in, target);
+                        Assemble_interpolate<real_t>(m_nodes, m_contactElements, in, target);
                 break;
                 default:
                     stringstream ss;
@@ -1317,31 +1317,31 @@ void FinleyDomain::interpolateOnDomain(escript::Data& target,
                 case Elements:
                 case ReducedElements:
                     if (in.isComplex())
-                        throw ValueError("Interpolation of complex data not supported yet.");
+                        Assemble_interpolate<cplx_t>(m_nodes, m_elements, in, target);
                     else
-                        Assemble_interpolate(m_nodes, m_elements, in, target);
+                        Assemble_interpolate<real_t>(m_nodes, m_elements, in, target);
                 break;
                 case FaceElements:
                 case ReducedFaceElements:
                     if (in.isComplex())
-                        throw ValueError("Interpolation of complex data not supported yet.");
+                        Assemble_interpolate<cplx_t>(m_nodes, m_faceElements, in, target);
                     else
-                        Assemble_interpolate(m_nodes, m_faceElements, in, target);
+                        Assemble_interpolate<real_t>(m_nodes, m_faceElements, in, target);
                 break;
                 case Points:
                     if (in.isComplex())
-                        throw ValueError("Interpolation of complex data not supported yet.");
+                        Assemble_interpolate<cplx_t>(m_nodes, m_points, in, target);
                     else
-                        Assemble_interpolate(m_nodes, m_points, in, target);
+                        Assemble_interpolate<real_t>(m_nodes, m_points, in, target);
                 break;
                 case ContactElementsZero:
                 case ReducedContactElementsZero:
                 case ContactElementsOne:
                 case ReducedContactElementsOne:
                     if (in.isComplex())
-                        throw ValueError("Interpolation of complex data not supported yet.");
+                        Assemble_interpolate<cplx_t>(m_nodes, m_contactElements, in, target);
                     else
-                        Assemble_interpolate(m_nodes, m_contactElements, in, target);
+                        Assemble_interpolate<real_t>(m_nodes, m_contactElements, in, target);
                 break;
                 default:
                     stringstream ss;
@@ -1473,30 +1473,39 @@ void FinleyDomain::interpolateOnDomain(escript::Data& target,
                     if (getMPISize() > 1) {
                         escript::Data temp(in, continuousFunction(*this));
                         if (in.isComplex())
-                            throw ValueError("Interpolation of complex data not supported yet.");
+                            Assemble_interpolate<cplx_t>(m_nodes, m_elements, temp, target);
                         else
-                            Assemble_interpolate(m_nodes, m_elements, temp, target);
+                            Assemble_interpolate<real_t>(m_nodes, m_elements, temp, target);
                     } else {
                         if (in.isComplex())
-                            throw ValueError("Interpolation of complex data not supported yet.");
+                            Assemble_interpolate<cplx_t>(m_nodes, m_elements, in, target);
                         else
-                            Assemble_interpolate(m_nodes, m_elements, in, target);
+                            Assemble_interpolate<real_t>(m_nodes, m_elements, in, target);
                     }
                 break;
                 case FaceElements:
                 case ReducedFaceElements:
                     if (getMPISize() > 1) {
                         escript::Data temp(in, continuousFunction(*this));
-                        Assemble_interpolate(m_nodes, m_faceElements, temp, target);
+                        if (in.isComplex())
+                            Assemble_interpolate<cplx_t>(m_nodes, m_faceElements, temp, target);
+                        else
+                            Assemble_interpolate<real_t>(m_nodes, m_faceElements, temp, target);
                     } else {
-                        Assemble_interpolate(m_nodes, m_faceElements, in, target);
+                        if (in.isComplex())
+                            Assemble_interpolate<cplx_t>(m_nodes, m_faceElements, in, target);
+                        else
+                            Assemble_interpolate<real_t>(m_nodes, m_faceElements, in, target);
                     }
                 break;
                 case Points:
                     if (getMPISize() > 1) {
                         //escript::Data temp(in, continuousFunction(*this));
                     } else {
-                        Assemble_interpolate(m_nodes, m_points, in, target);
+                        if (in.isComplex())
+                            Assemble_interpolate<cplx_t>(m_nodes, m_points, in, target);
+                        else
+                            Assemble_interpolate<real_t>(m_nodes, m_points, in, target);
                     }
                 break;
                 case ContactElementsZero:
@@ -1506,14 +1515,14 @@ void FinleyDomain::interpolateOnDomain(escript::Data& target,
                     if (getMPISize() > 1) {
                         escript::Data temp(in, continuousFunction(*this));
                         if (in.isComplex())
-                            throw ValueError("Interpolation of complex data not supported yet.");
+                            Assemble_interpolate<cplx_t>(m_nodes, m_contactElements, temp, target);
                         else
-                            Assemble_interpolate(m_nodes, m_contactElements, temp, target);
+                            Assemble_interpolate<real_t>(m_nodes, m_contactElements, temp, target);
                     } else {
                         if (in.isComplex())
-                            throw ValueError("Interpolation of complex data not supported yet.");
+                            Assemble_interpolate<cplx_t>(m_nodes, m_contactElements, in, target);
                         else
-                            Assemble_interpolate(m_nodes, m_contactElements, in, target);
+                            Assemble_interpolate<real_t>(m_nodes, m_contactElements, in, target);
                     }
                     break;
                 default:
@@ -1555,9 +1564,15 @@ void FinleyDomain::interpolateOnDomain(escript::Data& target,
                 case ReducedElements:
                     if (getMPISize() > 1) {
                         escript::Data in2(in, reducedContinuousFunction(*this));
-                        Assemble_interpolate(m_nodes, m_elements, in2, target);
+                        if (in.isComplex())
+                            Assemble_interpolate<cplx_t>(m_nodes, m_elements, in2, target);
+                        else
+                            Assemble_interpolate<real_t>(m_nodes, m_elements, in2, target);
                     } else {
-                        Assemble_interpolate(m_nodes, m_elements, in, target);
+                        if (in.isComplex())
+                            Assemble_interpolate<cplx_t>(m_nodes, m_elements, in, target);
+                        else
+                            Assemble_interpolate<real_t>(m_nodes, m_elements, in, target);
                     }
                     break;
                 case FaceElements:
@@ -1565,28 +1580,28 @@ void FinleyDomain::interpolateOnDomain(escript::Data& target,
                     if (getMPISize() > 1) {
                         escript::Data in2(in, reducedContinuousFunction(*this));
                         if (in.isComplex())
-                            throw ValueError("Interpolation of complex data not supported yet.");
+                            Assemble_interpolate<cplx_t>(m_nodes, m_faceElements, in2, target);
                         else
-                            Assemble_interpolate(m_nodes, m_faceElements, in2, target);
+                            Assemble_interpolate<real_t>(m_nodes, m_faceElements, in2, target);
                     } else {
                         if (in.isComplex())
-                            throw ValueError("Interpolation of complex data not supported yet.");
+                            Assemble_interpolate<cplx_t>(m_nodes, m_faceElements, in, target);
                         else
-                            Assemble_interpolate(m_nodes, m_faceElements, in, target);
+                            Assemble_interpolate<real_t>(m_nodes, m_faceElements, in, target);
                     }
                     break;
                 case Points:
                     if (getMPISize() > 1) {
                         escript::Data in2(in, reducedContinuousFunction(*this));
                         if (in.isComplex())
-                            throw ValueError("Interpolation of complex data not supported yet.");
+                            Assemble_interpolate<cplx_t>(m_nodes, m_points, in2, target);
                         else
-                            Assemble_interpolate(m_nodes, m_points, in2, target);
+                            Assemble_interpolate<real_t>(m_nodes, m_points, in2, target);
                     } else {
                         if (in.isComplex())
-                            throw ValueError("Interpolation of complex data not supported yet.");
+                            Assemble_interpolate<cplx_t>(m_nodes, m_points, in, target);
                         else
-                            Assemble_interpolate(m_nodes, m_points, in, target);
+                            Assemble_interpolate<real_t>(m_nodes, m_points, in, target);
                     }
                     break;
                 case ContactElementsZero:
@@ -1596,14 +1611,14 @@ void FinleyDomain::interpolateOnDomain(escript::Data& target,
                     if (getMPISize()>1) {
                         escript::Data in2(in, reducedContinuousFunction(*this));
                         if (in.isComplex())
-                            throw ValueError("Interpolation of complex data not supported yet.");
+                            Assemble_interpolate<cplx_t>(m_nodes, m_contactElements, in2, target);
                         else
-                            Assemble_interpolate(m_nodes, m_contactElements, in2, target);
+                            Assemble_interpolate<real_t>(m_nodes, m_contactElements, in2, target);
                     } else {
                         if (in.isComplex())
-                            throw ValueError("Interpolation of complex data not supported yet.");
+                            Assemble_interpolate<cplx_t>(m_nodes, m_contactElements, in, target);
                         else
-                            Assemble_interpolate(m_nodes, m_contactElements, in, target);
+                            Assemble_interpolate<real_t>(m_nodes, m_contactElements, in, target);
                     }
                     break;
                 default:
