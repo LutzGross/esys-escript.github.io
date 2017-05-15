@@ -145,6 +145,7 @@ void Assemble_AverageElementData(const ElementFile* elements,
                                  escript::Data& out, const escript::Data& in);
 
 /// copies data between different types of elements
+template<typename Scalar>
 void Assemble_CopyElementData(const ElementFile* elements, escript::Data& out,
                               const escript::Data& in);
 
