@@ -1694,8 +1694,21 @@ void FinleyDomain::interpolateAcross(escript::Data& /*target*/,
 //
 // calculates the integral of a function defined on arg
 //
-void FinleyDomain::setToIntegrals(vector<double>& integrals,
+void FinleyDomain::setToIntegrals(vector<real_t>& integrals,
                                   const escript::Data& arg) const
+{
+    setToIntegralsWorker<real_t>(integrals, arg);
+}
+
+void FinleyDomain::setToIntegrals(vector<cplx_t>& integrals,
+                                  const escript::Data& arg) const
+{
+    setToIntegralsWorker<cplx_t>(integrals, arg);
+}
+
+template<typename Scalar>
+void FinleyDomain::setToIntegralsWorker(vector<Scalar>& integrals,
+                                        const escript::Data& arg) const
 {
     if (*arg.getFunctionSpace().getDomain() != *this)
         throw ValueError("setToIntegrals: Illegal domain of integration kernel");
