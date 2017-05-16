@@ -28,8 +28,9 @@
 
 namespace finley {
 
+template<typename Scalar>
 void Assemble_integrate(const NodeFile* nodes, const ElementFile* elements,
-                        const escript::Data& data, double* out)
+                        const escript::Data& data, Scalar* out)
 {
     if (!nodes || !elements)
         return;
@@ -45,19 +46,20 @@ void Assemble_integrate(const NodeFile* nodes, const ElementFile* elements,
     }
 
     const int numComps = data.getDataPointSize();
+    const Scalar zero = static_cast<Scalar>(0);
 
     for (int q = 0; q < numComps; q++)
-        out[q] = 0;
+        out[q] = zero;
 
 #pragma omp parallel
     {
-        std::vector<double> out_local(numComps);
+        std::vector<Scalar> out_local(numComps);
 
         if (data.actsExpanded()) {
 #pragma omp for
             for (index_t e = 0; e < elements->numElements; e++) {
                 if (elements->Owner[e] == my_mpi_rank) {
-                    const double* data_array = data.getSampleDataRO(e);
+                    const Scalar* data_array = data.getSampleDataRO(e, zero);
                     for (int q = 0; q < numQuadTotal; q++) {
                         for (int i = 0; i < numComps; i++)
                             out_local[i] += data_array[INDEX2(i,q,numComps)]*jac->volume[INDEX2(q,e,numQuadTotal)];
@@ -68,7 +70,7 @@ void Assemble_integrate(const NodeFile* nodes, const ElementFile* elements,
 #pragma omp for
             for (index_t e = 0; e < elements->numElements; e++) {
                 if (elements->Owner[e] == my_mpi_rank) {
-                    const double* data_array = data.getSampleDataRO(e);
+                    const Scalar* data_array = data.getSampleDataRO(e, zero);
                     double rtmp = 0.;
                     for (int q = 0; q < numQuadTotal; q++)
                         rtmp += jac->volume[INDEX2(q, e, numQuadTotal)];
@@ -83,6 +85,14 @@ void Assemble_integrate(const NodeFile* nodes, const ElementFile* elements,
             out[i] += out_local[i];
     } // parallel section
 }
+
+// instantiate our two supported versions
+template void Assemble_integrate<escript::DataTypes::real_t>(
+                    const NodeFile* nodes, const ElementFile* elements,
+                    const escript::Data& data, escript::DataTypes::real_t* out);
+template void Assemble_integrate<escript::DataTypes::cplx_t>(
+                    const NodeFile* nodes, const ElementFile* elements,
+                    const escript::Data& data, escript::DataTypes::cplx_t* out);
 
 } // namespace finley
 
