@@ -26,6 +26,9 @@ silo = True
 cxx_extra += ' -Wno-literal-suffix -Wno-deprecated-declarations'
 
 #trilinos=True
-#trilinos_prefix='/opt/trilinos_hybrid'
+#trilinos_prefix=['/usr/include/trilinos', '/usr/lib/x86_64-linux-gnu']
+trilinos_prefix='/home/jfenwick/trilinos/install_mod'
 
-#mpi='OPENMPI'
+mpi='OPENMPI'
+openmp=True
+mpi_no_host=True

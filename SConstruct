@@ -156,7 +156,8 @@ vars.AddVariables(
   ('papi_libs', 'PAPI libraries to link with', ['papi']),
   BoolVariable('papi_instrument_solver', 'Use PAPI to instrument each iteration of the solver', False),
   BoolVariable('osx_dependency_fix', 'Fix dependencies for libraries to have absolute paths (OSX)', False),
-  BoolVariable('stdlocationisprefix', 'Set the prefix as escript root in the launcher', False)
+  BoolVariable('stdlocationisprefix', 'Set the prefix as escript root in the launcher', False),
+  BoolVariable('mpi_no_host', 'Do not specify --host in run-escript launcher (only OPENMPI)', False)
 )
 
 ##################### Create environment and help text #######################
@@ -514,12 +515,16 @@ if env['launcher'] == 'default':
     if env['mpi'] == 'INTELMPI':
         env['launcher'] = "mpirun -hostfile %f -n %N -ppn %p %b"
     elif env['mpi'] == 'OPENMPI':
+        if env['mpi_no_host']:
+            hostoptionstr=''
+        else:
+            hostoptionstr='--host %h'
         # default to OpenMPI version 1.10 or higher
-        env['launcher'] = "mpirun ${AGENTOVERRIDE} --gmca mpi_warn_on_fork 0 ${EE} --host %h --map-by node:pe=%t -bind-to core -np %N %b"
+        env['launcher'] = "mpirun ${AGENTOVERRIDE} --gmca mpi_warn_on_fork 0 ${EE} "+hostoptionstr+" --map-by node:pe=%t -bind-to core -np %N %b"
         if 'orte_version' in env:
             major,minor,point = [int(i) for i in env['orte_version'].split('.')]
             if major == 1 and minor < 10:
-                env['launcher'] = "mpirun ${AGENTOVERRIDE} --gmca mpi_warn_on_fork 0 ${EE} --host %h --cpus-per-rank %t -np %N %b"
+                env['launcher'] = "mpirun ${AGENTOVERRIDE} --gmca mpi_warn_on_fork 0 ${EE} "+hostoptionstr+" --cpus-per-rank %t -np %N %b"
     elif env['mpi'] == 'MPT':
         env['launcher'] = "mpirun %h -np %p %b"
     elif env['mpi'] == 'MPICH':
