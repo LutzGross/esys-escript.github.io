@@ -24,11 +24,11 @@
 #include <iomanip>
 #include <iostream>
 
-namespace bp = boost::python;
-
-using namespace std;
-
 namespace speckley {
+
+namespace bp = boost::python;
+using namespace std;
+using escript::ValueError;
 
 void tupleListToMap(DataMap& mapping, const bp::list& list)
 {
@@ -307,8 +307,10 @@ void SpeckleyDomain::interpolateOnDomain(escript::Data& target,
     const SpeckleyDomain& targetDomain=dynamic_cast<const SpeckleyDomain&>(*(target.getFunctionSpace().getDomain()));
     if (inDomain != *this)
         throw SpeckleyException("Illegal domain of interpolant");
-    if (targetDomain != *this)
+    else if (targetDomain != *this)
         throw SpeckleyException("Illegal domain of interpolation target");
+    else if (in.isComplex() != target.isComplex())
+        throw ValueError("interpolateOnDomain: complexity of input and output data must match.");
 
     stringstream msg;
     msg << "interpolateOnDomain() not implemented for function space "
@@ -322,11 +324,17 @@ void SpeckleyDomain::interpolateOnDomain(escript::Data& target,
     target.requireWrite();
     // simplest case: 1:1 copy
     if (inFS==outFS) {
-        copyData(target, in);
+        if (in.isComplex())
+            copyData<cplx_t>(target, in);
+        else
+            copyData<real_t>(target, in);
     } else if ((inFS==Elements || inFS==ReducedElements) && outFS==Nodes) {
         interpolateElementsOnNodes(target, in);
     } else if (inFS==ReducedElements && outFS==Elements) {
-        multiplyData(target, in);
+        if (in.isComplex())
+            multiplyData<cplx_t>(target, in);
+        else
+            multiplyData<real_t>(target, in);
     } else if (inFS==Elements && outFS==ReducedElements) {
         reduceElements(target, in);
     } else {
@@ -335,7 +343,10 @@ void SpeckleyDomain::interpolateOnDomain(escript::Data& target,
                 switch (outFS) {
                     case DegreesOfFreedom:
                     case Nodes:
-                        copyData(target, in);
+                        if (in.isComplex())
+                            copyData<cplx_t>(target, in);
+                        else
+                            copyData<real_t>(target, in);
                         break;
                     case Elements:
                         interpolateNodesOnElements(target, in, false);
@@ -364,7 +375,10 @@ void SpeckleyDomain::interpolateOnDomain(escript::Data& target,
                 switch (outFS) {
                     case Nodes:
                     case DegreesOfFreedom:
-                        copyData(target, in);
+                        if (in.isComplex())
+                            copyData<cplx_t>(target, in);
+                        else
+                            copyData<real_t>(target, in);
                         break;
 
                     case Elements:
@@ -776,29 +790,33 @@ void SpeckleyDomain::setNewX(const escript::Data& arg)
 }
 
 //protected
+template<typename Scalar>
 void SpeckleyDomain::copyData(escript::Data& out, const escript::Data& in) const
 {
     const dim_t numComp = in.getDataPointSize();
     const dim_t numSamples = in.getNumSamples();
+    const Scalar zero = static_cast<Scalar>(0);
     out.requireWrite();
 #pragma omp parallel for
-    for (index_t i=0; i<numSamples; i++) {
-        const double* src = in.getSampleDataRO(i);
-        copy(src, src+numComp, out.getSampleDataRW(i));
+    for (index_t i = 0; i < numSamples; i++) {
+        const Scalar* src = in.getSampleDataRO(i, zero);
+        copy(src, src+numComp, out.getSampleDataRW(i, zero));
     }
 }
 
 //protected
+template<typename Scalar>
 void SpeckleyDomain::multiplyData(escript::Data& out, const escript::Data& in) const
 {
     const dim_t numComp = in.getDataPointSize();
     const dim_t dpp = out.getNumDataPointsPerSample();
     const dim_t numSamples = in.getNumSamples();
+    const Scalar zero = static_cast<Scalar>(0);
     out.requireWrite();
 #pragma omp parallel for
     for (index_t i=0; i<numSamples; i++) {
-        const double* src = in.getSampleDataRO(i);
-        double* dest = out.getSampleDataRW(i);
+        const Scalar* src = in.getSampleDataRO(i, zero);
+        Scalar* dest = out.getSampleDataRW(i, zero);
         for (index_t c=0; c<numComp; c++) {
             for (index_t q=0; q<dpp; q++)
                 dest[c+q*numComp] = src[c];

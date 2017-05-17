@@ -1608,14 +1608,6 @@ void Brick::populateSampleIds()
 #undef RANK_TO_FRONT
 }
 
-//private
-void Brick::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F,
-         const std::vector<double>& EM_S, const std::vector<double>& EM_F, bool addS,
-         bool addF, index_t firstNode, int nEq, int nComp) const
-{
-    throw SpeckleyException("Rectangle::addToMatrixAndRHS not implemented");
-}
-
 void Brick::interpolateElementsOnNodes(escript::Data& out,
                                   const escript::Data& in) const {
     const dim_t numComp = in.getDataPointSize();
@@ -1731,23 +1723,50 @@ void Brick::interpolateElementsOnNodes(escript::Data& out,
 void Brick::reduceElements(escript::Data& out, const escript::Data& in) const
 {
     if (m_order == 2) {
-        reduction_order2(in, out);
+        if (in.isComplex())
+            reduction_order2<cplx_t>(in, out);
+        else
+            reduction_order2<real_t>(in, out);
     } else if (m_order == 3) {
-        reduction_order3(in, out);
+        if (in.isComplex())
+            reduction_order3<cplx_t>(in, out);
+        else
+            reduction_order3<real_t>(in, out);
     } else if (m_order == 4) {
-        reduction_order4(in, out);
+        if (in.isComplex())
+            reduction_order4<cplx_t>(in, out);
+        else
+            reduction_order4<real_t>(in, out);
     } else if (m_order == 5) {
-        reduction_order5(in, out);
+        if (in.isComplex())
+            reduction_order5<cplx_t>(in, out);
+        else
+            reduction_order5<real_t>(in, out);
     } else if (m_order == 6) {
-        reduction_order6(in, out);
+        if (in.isComplex())
+            reduction_order6<cplx_t>(in, out);
+        else
+            reduction_order6<real_t>(in, out);
     } else if (m_order == 7) {
-        reduction_order7(in, out);
+        if (in.isComplex())
+            reduction_order7<cplx_t>(in, out);
+        else
+            reduction_order7<real_t>(in, out);
     } else if (m_order == 8) {
-        reduction_order8(in, out);
+        if (in.isComplex())
+            reduction_order8<cplx_t>(in, out);
+        else
+            reduction_order8<real_t>(in, out);
     } else if (m_order == 9) {
-        reduction_order9(in, out);
+        if (in.isComplex())
+            reduction_order9<cplx_t>(in, out);
+        else
+            reduction_order9<real_t>(in, out);
     } else if (m_order == 10) {
-        reduction_order10(in, out);
+        if (in.isComplex())
+            reduction_order10<cplx_t>(in, out);
+        else
+            reduction_order10<real_t>(in, out);
     }
 }
 
@@ -1755,6 +1774,18 @@ void Brick::reduceElements(escript::Data& out, const escript::Data& in) const
 void Brick::interpolateNodesOnElements(escript::Data& out,
                                        const escript::Data& in,
                                        bool reduced) const
+{
+    if (in.isComplex())
+        interpolateNodesOnElementsWorker<cplx_t>(out, in, reduced);
+    else
+        interpolateNodesOnElementsWorker<real_t>(out, in, reduced);
+}
+
+//private
+template<typename Scalar>
+void Brick::interpolateNodesOnElementsWorker(escript::Data& out,
+                                             const escript::Data& in,
+                                             bool reduced) const
 {
     if (reduced) { //going to ReducedElements
         escript::Data funcIn(in, escript::function(*this));
@@ -1768,18 +1799,20 @@ void Brick::interpolateNodesOnElements(escript::Data& out,
     const int quads = m_order + 1;
     const dim_t max_x = m_NN[0];
     const dim_t max_y = m_NN[1];
+    const Scalar zero = static_cast<Scalar>(0);
+
     out.requireWrite();
 #pragma omp parallel for
     for (dim_t ez = 0; ez < NE2; ez++) {
         for (dim_t ey = 0; ey < NE1; ey++) {
             for (dim_t ex = 0; ex < NE0; ex++) {
-                double *e_out = out.getSampleDataRW(INDEX3(ex, ey, ez, NE0, NE1));
+                Scalar* e_out = out.getSampleDataRW(INDEX3(ex, ey, ez, NE0, NE1), zero);
                 dim_t start = m_order * INDEX3(ex, ey, ez, max_x, max_y);
                 int quad = 0;
                 for (int qz = 0; qz < quads; qz++) {
                     for (int qy = 0; qy < quads; qy++) {
                         for (int qx = 0; qx < quads; qx++, quad++) {
-                            const double *n_in = in.getSampleDataRO(start + INDEX3(qx,qy,qz,max_x,max_y));
+                            const Scalar* n_in = in.getSampleDataRO(start + INDEX3(qx,qy,qz,max_x,max_y), zero);
                             for (int comp = 0; comp < numComp; comp++) {
                                 e_out[INDEX4(comp, qx, qy, qz, numComp, quads, quads)] = n_in[comp];
                             }
