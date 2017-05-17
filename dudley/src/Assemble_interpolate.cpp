@@ -22,6 +22,7 @@
 
 namespace dudley {
 
+template<typename Scalar>
 void Assemble_interpolate(const NodeFile* nodes, const ElementFile* elements,
                           const escript::Data& data,
                           escript::Data& interpolated_data)
@@ -29,10 +30,6 @@ void Assemble_interpolate(const NodeFile* nodes, const ElementFile* elements,
     if (!nodes || !elements)
         return;
 
-    if (data.isComplex() || interpolated_data.isComplex())
-    {
-        throw DudleyException("Assemble_interpolate: complex arguments are not supported.");
-    }
     const int data_type = data.getFunctionSpace().getTypeCode();
     const bool reduced_integration = hasReducedIntegrationOrder(interpolated_data);
 
@@ -73,27 +70,39 @@ void Assemble_interpolate(const NodeFile* nodes, const ElementFile* elements,
         throw DudleyException("Assemble_interpolate: unable to locate shape function.");
     }
 
+    const Scalar zero = static_cast<Scalar>(0);
     interpolated_data.requireWrite();
 #pragma omp parallel
     {
-        std::vector<double> local_data(NS_DOF * numComps);
-        const size_t numComps_size = numComps * sizeof(double);
+        std::vector<Scalar> local_data(NS_DOF * numComps);
+        const size_t numComps_size = numComps * sizeof(Scalar);
         // open the element loop
 #pragma omp for
         for (index_t e = 0; e < elements->numElements; e++) {
             for (int q = 0; q < NS_DOF; q++) {
                 const index_t i = elements->Nodes[INDEX2(q, e, NN)];
-                const double* data_array = data.getSampleDataRO(map[i], static_cast<escript::DataTypes::real_t>(0));
+                const Scalar* data_array = data.getSampleDataRO(map[i], zero);
                 memcpy(&local_data[INDEX3(0, q, 0, numComps, NS_DOF)],
                        data_array, numComps_size);
             }
             // calculate interpolated_data=local_data*S
             util::smallMatSetMult1(1, numComps, numQuad,
-                            interpolated_data.getSampleDataRW(e, static_cast<escript::DataTypes::real_t>(0)), NS_DOF,
+                            interpolated_data.getSampleDataRW(e, zero), NS_DOF,
                             &local_data[0], shapeFns);
         } // end of element loop
     } // end of parallel region
 }
+
+// instantiate our two supported versions
+template void Assemble_interpolate<escript::DataTypes::real_t>(
+                          const NodeFile* nodes, const ElementFile* elements,
+                          const escript::Data& data,
+                          escript::Data& interpolated_data);
+template void Assemble_interpolate<escript::DataTypes::cplx_t>(
+                          const NodeFile* nodes, const ElementFile* elements,
+                          const escript::Data& data,
+                          escript::Data& interpolated_data);
+
 
 } // namespace dudley
 

@@ -83,13 +83,14 @@ void smallMatMult(int A1, int A2, double* A, int B2, const double* B,
     }
 }
 
-void smallMatSetMult1(int len, int A1, int A2, double* A, int B2,
-                      const double* B, const double* C)
+template<typename Scalar>
+void smallMatSetMult1(int len, int A1, int A2, Scalar* A, int B2,
+                      const Scalar* B, const double* C)
 {
     for (int q = 0; q < len; q++) {
         for (int i = 0; i < A1; i++) {
             for (int j = 0; j < A2; j++) {
-                double sum = 0.;
+                Scalar sum = 0;
                 for (int s = 0; s < B2; s++)
                     sum += B[INDEX3(i,s,q,A1,B2)] * C[INDEX2(s,j,B2)];
                 A[INDEX3(i,j,q,A1,A2)] = sum;
@@ -97,6 +98,13 @@ void smallMatSetMult1(int len, int A1, int A2, double* A, int B2,
         }
     }
 }
+
+template
+void smallMatSetMult1<real_t>(int len, int A1, int A2, real_t* A, int B2,
+                              const real_t* B, const real_t* C);
+template
+void smallMatSetMult1<cplx_t>(int len, int A1, int A2, cplx_t* A, int B2,
+                              const cplx_t* B, const real_t* C);
 
 void normalVector(int len, int dim, int dim1, const double* A, double* Normal)
 {

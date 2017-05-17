@@ -21,16 +21,16 @@
 
 namespace dudley {
 
+using escript::DataTypes::real_t;
+using escript::DataTypes::cplx_t;
+
+template<typename Scalar>
 void Assemble_integrate(const NodeFile* nodes, const ElementFile* elements,
-                        const escript::Data& data, std::vector<double>& out)
+                        const escript::Data& data, std::vector<Scalar>& out)
 {
     if (!nodes || !elements)
         return;
 
-    if (data.isComplex())
-    {
-        throw DudleyException("Assemble_integrate: complex arguments not supported.");
-    }
     const int my_mpi_rank = nodes->MPIInfo->rank;
     const ElementFile_Jacobians* jac = elements->borrowJacobians(nodes,
                                          hasReducedIntegrationOrder(data));
@@ -42,20 +42,21 @@ void Assemble_integrate(const NodeFile* nodes, const ElementFile* elements,
     }
 
     const int numComps = data.getDataPointSize();
+    const Scalar zero = static_cast<Scalar>(0);
 
     for (int q = 0; q < numComps; q++)
-        out[q] = 0;
+        out[q] = zero;
 
 #pragma omp parallel
     {
-        std::vector<double> out_local(numComps);
+        std::vector<Scalar> out_local(numComps);
 
         if (data.actsExpanded()) {
 #pragma omp for
             for (index_t e = 0; e < elements->numElements; e++) {
                 if (elements->Owner[e] == my_mpi_rank) {
                     const double vol = jac->absD[e] * jac->quadweight;
-                    const double* data_array = data.getSampleDataRO(e, static_cast<escript::DataTypes::real_t>(0));
+                    const Scalar* data_array = data.getSampleDataRO(e, zero);
                     for (int q = 0; q < numQuadTotal; q++) {
                         for (int i = 0; i < numComps; i++)
                             out_local[i] += data_array[INDEX2(i, q, numComps)] * vol;
@@ -67,7 +68,7 @@ void Assemble_integrate(const NodeFile* nodes, const ElementFile* elements,
             for (index_t e = 0; e < elements->numElements; e++) {
                 if (elements->Owner[e] == my_mpi_rank) {
                     const double vol = jac->absD[e] * jac->quadweight;
-                    const double* data_array = data.getSampleDataRO(e, static_cast<escript::DataTypes::real_t>(0));
+                    const Scalar* data_array = data.getSampleDataRO(e, zero);
                     double rtmp = 0.;
                     for (int q = 0; q < numQuadTotal; q++)
                         rtmp += vol;
@@ -82,6 +83,16 @@ void Assemble_integrate(const NodeFile* nodes, const ElementFile* elements,
             out[i] += out_local[i];
     }
 }
+
+// instantiate our two supported versions
+template void Assemble_integrate<real_t>(const NodeFile* nodes,
+                                         const ElementFile* elements,
+                                         const escript::Data& data,
+                                         std::vector<real_t>& out);
+template void Assemble_integrate<cplx_t>(const NodeFile* nodes,
+                                         const ElementFile* elements,
+                                         const escript::Data& data,
+                                         std::vector<cplx_t>& out);
 
 } // namespace dudley
 

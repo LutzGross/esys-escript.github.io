@@ -510,7 +510,10 @@ public:
      copies the integrals of the function defined by arg into integrals.
      arg has to be defined on this.
     */
-    virtual void setToIntegrals(std::vector<double>& integrals, const escript::Data& arg) const;
+    virtual void setToIntegrals(std::vector<escript::DataTypes::real_t>& integrals,
+                                const escript::Data& arg) const;
+    virtual void setToIntegrals(std::vector<escript::DataTypes::cplx_t>& integrals,
+                                const escript::Data& arg) const;
 
     /**
      \brief
@@ -673,6 +676,10 @@ public:
     /// assigns new node reference numbers to all element files.
     /// If k is the old node, the new node is newNode[k-offset].
     void relabelElementNodes(const index_t* newNode, index_t offset);
+
+    template<typename Scalar>
+    void setToIntegralsWorker(std::vector<Scalar>& integrals,
+                              const escript::Data& arg) const;
 
 #ifdef ESYS_HAVE_PASO
     /// returns a reference to the paso matrix pattern

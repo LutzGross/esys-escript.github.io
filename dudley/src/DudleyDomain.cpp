@@ -1071,14 +1071,23 @@ void DudleyDomain::interpolateOnDomain(escript::Data& target,
                 break;
                 case Elements:
                 case ReducedElements:
-                    Assemble_interpolate(m_nodes, m_elements, in, target);
+                    if (in.isComplex())
+                        Assemble_interpolate<cplx_t>(m_nodes, m_elements, in, target);
+                    else
+                        Assemble_interpolate<real_t>(m_nodes, m_elements, in, target);
                 break;
                 case FaceElements:
                 case ReducedFaceElements:
-                    Assemble_interpolate(m_nodes, m_faceElements, in, target);
+                    if (in.isComplex())
+                        Assemble_interpolate<cplx_t>(m_nodes, m_faceElements, in, target);
+                    else
+                        Assemble_interpolate<real_t>(m_nodes, m_faceElements, in, target);
                 break;
                 case Points:
-                    Assemble_interpolate(m_nodes, m_points, in, target);
+                    if (in.isComplex())
+                        Assemble_interpolate<cplx_t>(m_nodes, m_points, in, target);
+                    else
+                        Assemble_interpolate<real_t>(m_nodes, m_points, in, target);
                 break;
                 default:
                     stringstream ss;
@@ -1148,25 +1157,40 @@ void DudleyDomain::interpolateOnDomain(escript::Data& target,
                 case ReducedElements:
                     if (getMPISize() > 1) {
                         escript::Data temp(in, continuousFunction(*this));
-                        Assemble_interpolate(m_nodes, m_elements, temp, target);
+                        if (in.isComplex())
+                            Assemble_interpolate<cplx_t>(m_nodes, m_elements, temp, target);
+                        else
+                            Assemble_interpolate<real_t>(m_nodes, m_elements, temp, target);
                     } else {
-                        Assemble_interpolate(m_nodes, m_elements, in, target);
+                        if (in.isComplex())
+                            Assemble_interpolate<cplx_t>(m_nodes, m_elements, in, target);
+                        else
+                            Assemble_interpolate<real_t>(m_nodes, m_elements, in, target);
                     }
                 break;
                 case FaceElements:
                 case ReducedFaceElements:
                     if (getMPISize() > 1) {
                         escript::Data temp(in, continuousFunction(*this));
-                        Assemble_interpolate(m_nodes, m_faceElements, temp, target);
+                        if (in.isComplex())
+                            Assemble_interpolate<cplx_t>(m_nodes, m_faceElements, temp, target);
+                        else
+                            Assemble_interpolate<real_t>(m_nodes, m_faceElements, temp, target);
                     } else {
-                        Assemble_interpolate(m_nodes, m_faceElements, in, target);
+                        if (in.isComplex())
+                            Assemble_interpolate<cplx_t>(m_nodes, m_faceElements, in, target);
+                        else
+                            Assemble_interpolate<real_t>(m_nodes, m_faceElements, in, target);
                     }
                 break;
                 case Points:
                     if (getMPISize() > 1) {
                         //escript::Data temp(in, continuousFunction(*this));
                     } else {
-                        Assemble_interpolate(m_nodes, m_points, in, target);
+                        if (in.isComplex())
+                            Assemble_interpolate<cplx_t>(m_nodes, m_points, in, target);
+                        else
+                            Assemble_interpolate<real_t>(m_nodes, m_points, in, target);
                     }
                 break;
                 default:
@@ -1236,8 +1260,21 @@ void DudleyDomain::interpolateAcross(escript::Data& /*target*/,
 //
 // calculates the integral of a function defined on arg
 //
-void DudleyDomain::setToIntegrals(vector<double>& integrals,
+void DudleyDomain::setToIntegrals(vector<real_t>& integrals,
                                   const escript::Data& arg) const
+{
+    setToIntegralsWorker<real_t>(integrals, arg);
+}
+
+void DudleyDomain::setToIntegrals(vector<cplx_t>& integrals,
+                                  const escript::Data& arg) const
+{
+    setToIntegralsWorker<cplx_t>(integrals, arg);
+}
+
+template<typename Scalar>
+void DudleyDomain::setToIntegralsWorker(vector<Scalar>& integrals,
+                                        const escript::Data& arg) const
 {
     if (*arg.getFunctionSpace().getDomain() != *this)
         throw ValueError("setToIntegrals: Illegal domain of integration kernel");
