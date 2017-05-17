@@ -220,7 +220,9 @@ protected:
     virtual void assembleCoordinates(escript::Data& arg) const;
     virtual void assembleGradient(escript::Data& out,
                                   const escript::Data& in) const;
-    virtual void assembleIntegrate(DoubleVector& integrals,
+    virtual void assembleIntegrate(std::vector<real_t>& integrals,
+                                   const escript::Data& arg) const;
+    virtual void assembleIntegrate(std::vector<cplx_t>& integrals,
                                    const escript::Data& arg) const;
     virtual void interpolateNodesOnElements(escript::Data& out,
                                   const escript::Data& in,
@@ -264,15 +266,29 @@ private:
     void reduction_order9(const escript::Data&, escript::Data&) const;
     void reduction_order10(const escript::Data&, escript::Data&) const;
 
-    void integral_order2(std::vector<double>&, const escript::Data&) const;
-    void integral_order3(std::vector<double>&, const escript::Data&) const;
-    void integral_order4(std::vector<double>&, const escript::Data&) const;
-    void integral_order5(std::vector<double>&, const escript::Data&) const;
-    void integral_order6(std::vector<double>&, const escript::Data&) const;
-    void integral_order7(std::vector<double>&, const escript::Data&) const;
-    void integral_order8(std::vector<double>&, const escript::Data&) const;
-    void integral_order9(std::vector<double>&, const escript::Data&) const;
-    void integral_order10(std::vector<double>&, const escript::Data&) const; 
+    template<typename Scalar>
+    void integral_order2(std::vector<Scalar>&, const escript::Data&) const;
+    template<typename Scalar>
+    void integral_order3(std::vector<Scalar>&, const escript::Data&) const;
+    template<typename Scalar>
+    void integral_order4(std::vector<Scalar>&, const escript::Data&) const;
+    template<typename Scalar>
+    void integral_order5(std::vector<Scalar>&, const escript::Data&) const;
+    template<typename Scalar>
+    void integral_order6(std::vector<Scalar>&, const escript::Data&) const;
+    template<typename Scalar>
+    void integral_order7(std::vector<Scalar>&, const escript::Data&) const;
+    template<typename Scalar>
+    void integral_order8(std::vector<Scalar>&, const escript::Data&) const;
+    template<typename Scalar>
+    void integral_order9(std::vector<Scalar>&, const escript::Data&) const;
+    template<typename Scalar>
+    void integral_order10(std::vector<Scalar>&, const escript::Data&) const; 
+
+    template<typename Scalar>
+    void assembleIntegrateWorker(std::vector<Scalar>& integrals,
+                                 const escript::Data& arg) const;
+
 #ifdef ESYS_MPI
     void setCornerNeighbours();
     void shareEdges(escript::Data& out, int rx, int ry, int rz) const;

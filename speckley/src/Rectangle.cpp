@@ -1189,8 +1189,23 @@ void Rectangle::assembleGradient(escript::Data& out, const escript::Data& in) co
 }
 
 //protected
-void Rectangle::assembleIntegrate(std::vector<double>& integrals,
+void Rectangle::assembleIntegrate(std::vector<real_t>& integrals,
                                   const escript::Data& arg) const
+{
+    assembleIntegrateWorker<real_t>(integrals, arg);
+}
+
+//protected
+void Rectangle::assembleIntegrate(std::vector<cplx_t>& integrals,
+                                  const escript::Data& arg) const
+{
+    assembleIntegrateWorker<cplx_t>(integrals, arg);
+}
+
+//private
+template<typename Scalar>
+void Rectangle::assembleIntegrateWorker(std::vector<Scalar>& integrals,
+                                        const escript::Data& arg) const
 {
     const int fs = arg.getFunctionSpace().getTypeCode();
     if (fs != Elements)

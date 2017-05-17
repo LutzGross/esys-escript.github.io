@@ -1398,7 +1398,22 @@ void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
 }
 
 //protected
-void Brick::assembleIntegrate(vector<double>& integrals, const escript::Data& arg) const
+void Brick::assembleIntegrate(vector<real_t>& integrals,
+                              const escript::Data& arg) const
+{
+    assembleIntegrateWorker<real_t>(integrals, arg);
+}
+
+//protected
+void Brick::assembleIntegrate(vector<cplx_t>& integrals,
+                              const escript::Data& arg) const
+{
+    assembleIntegrateWorker<cplx_t>(integrals, arg);
+}
+
+//private
+template<typename Scalar>
+void Brick::assembleIntegrateWorker(vector<Scalar>& integrals, const escript::Data& arg) const
 {
     const int fs = arg.getFunctionSpace().getTypeCode();
     if (fs != Elements)
