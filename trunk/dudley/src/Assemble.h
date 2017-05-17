@@ -144,10 +144,12 @@ void Assemble_gradient(const NodeFile* nodes, const ElementFile* elements,
                        escript::Data& gradient, const escript::Data& data);
 
 /// integrates data on quadrature points
+template<typename Scalar>
 void Assemble_integrate(const NodeFile* nodes, const ElementFile* elements,
-                   const escript::Data& data, std::vector<double>& integrals);
+                   const escript::Data& data, std::vector<Scalar>& integrals);
 
 /// interpolates nodal data in a data array onto elements (=integration points)
+template<typename Scalar>
 void Assemble_interpolate(const NodeFile* nodes, const ElementFile* elements,
                           const escript::Data& data, escript::Data& output);
 

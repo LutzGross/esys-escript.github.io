@@ -50,8 +50,9 @@ void smallMatMult(int A1, int A2, double* A, int B2, const double* B,
 
 /// multiplies a set of matrices with a single matrix:
 ///   A(1:A1,1:A2,i)=B(1:A1,1:B2,i)*C(1:B2,1:A2) for i=1,len
-void smallMatSetMult1(int len, int A1, int A2, double* A, int B2,
-                      const double* B, const double* C);
+template<typename Scalar>
+void smallMatSetMult1(int len, int A1, int A2, Scalar* A, int B2,
+                      const Scalar* B, const double* C);
 
 /// returns the normalized vector normal[dim,len] orthogonal to A(:,0,q) and
 /// A(:,1,q) in the case of dim=3, or the vector A(:,0,q) in the case of dim=2
