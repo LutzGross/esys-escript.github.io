@@ -486,7 +486,21 @@ void SpeckleyDomain::setToGradient(escript::Data& grad, const escript::Data& arg
     }
 }
 
-void SpeckleyDomain::setToIntegrals(vector<double>& integrals, const escript::Data& arg) const
+void SpeckleyDomain::setToIntegrals(vector<real_t>& integrals,
+                                    const escript::Data& arg) const
+{
+    setToIntegralsWorker<real_t>(integrals, arg);
+}
+
+void SpeckleyDomain::setToIntegrals(vector<cplx_t>& integrals,
+                                    const escript::Data& arg) const
+{
+    setToIntegralsWorker<cplx_t>(integrals, arg);
+}
+
+template<typename Scalar>
+void SpeckleyDomain::setToIntegralsWorker(vector<Scalar>& integrals,
+                                          const escript::Data& arg) const
 {
     const SpeckleyDomain& argDomain=dynamic_cast<const SpeckleyDomain&>(
             *(arg.getFunctionSpace().getDomain()));
