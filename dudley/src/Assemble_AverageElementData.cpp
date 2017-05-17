@@ -22,16 +22,15 @@
 
 namespace dudley {
 
+using escript::ValueError;
+
+template<typename Scalar>
 void Assemble_AverageElementData(const ElementFile* elements,
                                  escript::Data& out, const escript::Data& in)
 {
     if (!elements)
         return;
 
-    if (out.isComplex() || in.isComplex())
-    {
-        throw DudleyException("Assemble_AverageElementData: complex arguments not supported.");      
-    }
     double wq;
     int numQuad_in, numQuad_out;
     if (hasReducedIntegrationOrder(in)) {
@@ -52,24 +51,28 @@ void Assemble_AverageElementData(const ElementFile* elements,
     const int numComps = out.getDataPointSize();
 
     if (numComps != in.getDataPointSize()) {
-        throw DudleyException("Assemble_AverageElementData: number of components of input and output Data do not match.");
+        throw ValueError("Assemble_AverageElementData: number of components of input and output Data do not match.");
     } else if (!in.numSamplesEqual(numQuad_in, numElements)) {
-        throw DudleyException("Assemble_AverageElementData: illegal number of samples of input Data object");
+        throw ValueError("Assemble_AverageElementData: illegal number of samples of input Data object");
     } else if (!out.numSamplesEqual(numQuad_out, numElements)) {
-        throw DudleyException("Assemble_AverageElementData: illegal number of samples of output Data object");
+        throw ValueError("Assemble_AverageElementData: illegal number of samples of output Data object");
     } else if (!out.actsExpanded()) {
-        throw DudleyException("Assemble_AverageElementData: expanded Data object is expected for output data.");
+        throw ValueError("Assemble_AverageElementData: expanded Data object is expected for output data.");
+    } else if (in.isComplex() != out.isComplex()) {
+        throw ValueError("Assemble_AverageElementData: complexity of input and output data must match.");
+
     } else {
+        const Scalar zero = static_cast<Scalar>(0);
         out.requireWrite();
         if (in.actsExpanded()) {
             const double vol = wq * numQuad_in;
             const double volinv = 1. / vol;
 #pragma omp parallel for
             for (index_t n = 0; n < numElements; n++) {
-                const double* in_array = in.getSampleDataRO(n, static_cast<escript::DataTypes::real_t>(0));
-                double* out_array = out.getSampleDataRW(n, static_cast<escript::DataTypes::real_t>(0));
+                const Scalar* in_array = in.getSampleDataRO(n, zero);
+                Scalar* out_array = out.getSampleDataRW(n, zero);
                 for (int i = 0; i < numComps; ++i) {
-                    double rtmp = 0.;
+                    Scalar rtmp = zero;
                     for (int q = 0; q < numQuad_in; ++q)
                         rtmp += in_array[INDEX2(i, q, numComps)] * wq;
                     rtmp *= volinv;
@@ -78,17 +81,25 @@ void Assemble_AverageElementData(const ElementFile* elements,
                 }
             }
         } else { // constant data
-            const size_t numComps_size = numComps * sizeof(double);
+            const size_t numComps_size = numComps * sizeof(Scalar);
 #pragma omp parallel for
             for (index_t n = 0; n < numElements; n++) {
-                const double* in_array = in.getSampleDataRO(n, static_cast<escript::DataTypes::real_t>(0));
-                double* out_array = out.getSampleDataRW(n, static_cast<escript::DataTypes::real_t>(0));
+                const Scalar* in_array = in.getSampleDataRO(n, zero);
+                Scalar* out_array = out.getSampleDataRW(n, zero);
                 for (int q = 0; q < numQuad_out; q++)
                     memcpy(out_array + q * numComps, in_array, numComps_size);
             }
         }
     }
 }
+
+// instantiate our two supported versions
+template void Assemble_AverageElementData<escript::DataTypes::real_t>(
+                const ElementFile* elements,
+                escript::Data& out, const escript::Data& in);
+template void Assemble_AverageElementData<escript::DataTypes::cplx_t>(
+                const ElementFile* elements,
+                escript::Data& out, const escript::Data& in);
 
 } // namespace dudley
 

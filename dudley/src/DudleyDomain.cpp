@@ -1067,7 +1067,10 @@ void DudleyDomain::interpolateOnDomain(escript::Data& target,
             switch (target.getFunctionSpace().getTypeCode()) {
                 case Nodes:
                 case DegreesOfFreedom:
-                    Assemble_CopyNodalData(m_nodes, target, in);
+                    if (in.isComplex())
+                        Assemble_CopyNodalData<cplx_t>(m_nodes, target, in);
+                    else
+                        Assemble_CopyNodalData<real_t>(m_nodes, target, in);
                 break;
                 case Elements:
                 case ReducedElements:
@@ -1099,16 +1102,25 @@ void DudleyDomain::interpolateOnDomain(escript::Data& target,
         break;
         case Elements:
             if (target.getFunctionSpace().getTypeCode() == Elements) {
-                Assemble_CopyElementData(m_elements, target, in);
+                if (in.isComplex())
+                    Assemble_CopyElementData<cplx_t>(m_elements, target, in);
+                else
+                    Assemble_CopyElementData<real_t>(m_elements, target, in);
             } else if (target.getFunctionSpace().getTypeCode()==ReducedElements) {
-                Assemble_AverageElementData(m_elements, target, in);
+                if (in.isComplex())
+                    Assemble_AverageElementData<cplx_t>(m_elements, target, in);
+                else
+                    Assemble_AverageElementData<real_t>(m_elements, target, in);
             } else {
                 throw ValueError("No interpolation with data on elements possible.");
             }
             break;
         case ReducedElements:
             if (target.getFunctionSpace().getTypeCode() == ReducedElements) {
-                Assemble_CopyElementData(m_elements, target, in);
+                if (in.isComplex())
+                    Assemble_CopyElementData<cplx_t>(m_elements, target, in);
+                else
+                    Assemble_CopyElementData<real_t>(m_elements, target, in);
             } else {
                 throw ValueError("No interpolation with data on elements "
                                  "with reduced integration order possible.");
@@ -1116,16 +1128,25 @@ void DudleyDomain::interpolateOnDomain(escript::Data& target,
             break;
         case FaceElements:
             if (target.getFunctionSpace().getTypeCode() == FaceElements) {
-                Assemble_CopyElementData(m_faceElements, target, in);
+                if (in.isComplex())
+                    Assemble_CopyElementData<cplx_t>(m_faceElements, target, in);
+                else
+                    Assemble_CopyElementData<real_t>(m_faceElements, target, in);
             } else if (target.getFunctionSpace().getTypeCode() == ReducedFaceElements) {
-                Assemble_AverageElementData(m_faceElements, target, in);
+                if (in.isComplex())
+                    Assemble_AverageElementData<cplx_t>(m_faceElements, target, in);
+                else
+                    Assemble_AverageElementData<real_t>(m_faceElements, target, in);
             } else {
                 throw ValueError("No interpolation with data on face elements possible.");
             }
             break;
         case ReducedFaceElements:
             if (target.getFunctionSpace().getTypeCode() == ReducedFaceElements) {
-                Assemble_CopyElementData(m_faceElements, target, in);
+                if (in.isComplex())
+                    Assemble_CopyElementData<cplx_t>(m_faceElements, target, in);
+                else
+                    Assemble_CopyElementData<real_t>(m_faceElements, target, in);
             } else {
                 throw ValueError("No interpolation with data on face "
                          "elements with reduced integration order possible.");
@@ -1133,7 +1154,10 @@ void DudleyDomain::interpolateOnDomain(escript::Data& target,
             break;
         case Points:
             if (target.getFunctionSpace().getTypeCode() == Points) {
-                Assemble_CopyElementData(m_points, target, in);
+                if (in.isComplex())
+                    Assemble_CopyElementData<cplx_t>(m_points, target, in);
+                else
+                    Assemble_CopyElementData<real_t>(m_points, target, in);
             } else {
                 throw ValueError("No interpolation with data on points possible.");
             }
@@ -1141,16 +1165,25 @@ void DudleyDomain::interpolateOnDomain(escript::Data& target,
         case DegreesOfFreedom:
             switch (target.getFunctionSpace().getTypeCode()) {
                 case DegreesOfFreedom:
-                    Assemble_CopyNodalData(m_nodes, target, in);
+                    if (in.isComplex())
+                        Assemble_CopyNodalData<cplx_t>(m_nodes, target, in);
+                    else
+                        Assemble_CopyNodalData<real_t>(m_nodes, target, in);
                 break;
 
                 case Nodes:
                     if (getMPISize() > 1) {
                         escript::Data temp(in);
                         temp.expand();
-                        Assemble_CopyNodalData(m_nodes, target, temp);
+                        if (in.isComplex())
+                            Assemble_CopyNodalData<cplx_t>(m_nodes, target, temp);
+                        else
+                            Assemble_CopyNodalData<real_t>(m_nodes, target, temp);
                     } else {
-                        Assemble_CopyNodalData(m_nodes, target, in);
+                        if (in.isComplex())
+                            Assemble_CopyNodalData<cplx_t>(m_nodes, target, in);
+                        else
+                            Assemble_CopyNodalData<real_t>(m_nodes, target, in);
                     }
                 break;
                 case Elements:

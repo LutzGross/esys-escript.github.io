@@ -20,15 +20,15 @@
 
 namespace dudley {
 
+using escript::ValueError;
+
+template<typename Scalar>
 void Assemble_CopyElementData(const ElementFile* elements, escript::Data& out,
                               const escript::Data& in)
 {
     if (!elements)
         return;
-    if (out.isComplex() || in.isComplex())
-    {
-        throw DudleyException("Assemble_CopyElementData: complex arguments not supported.");
-    }
+
     dim_t numQuad = (hasReducedIntegrationOrder(in) ?
             QuadNums[elements->numDim][0] : QuadNums[elements->numDim][1]);
 
@@ -37,32 +37,44 @@ void Assemble_CopyElementData(const ElementFile* elements, escript::Data& out,
     const int numComps = out.getDataPointSize();
 
     if (numComps != in.getDataPointSize()) {
-        throw DudleyException("Assemble_CopyElementData: number of components of input and output Data do not match.");
+        throw ValueError("Assemble_CopyElementData: number of components of input and output Data do not match.");
     } else if (!in.numSamplesEqual(numQuad, numElements)) {
-        throw DudleyException("Assemble_CopyElementData: illegal number of samples of input Data object");
+        throw ValueError("Assemble_CopyElementData: illegal number of samples of input Data object");
     } else if (!out.numSamplesEqual(numQuad, numElements)) {
-        throw DudleyException("Assemble_CopyElementData: illegal number of samples of output Data object");
+        throw ValueError("Assemble_CopyElementData: illegal number of samples of output Data object");
     } else if (!out.actsExpanded()) {
-        throw DudleyException("Assemble_CopyElementData: expanded Data object is expected for output data.");
+        throw ValueError("Assemble_CopyElementData: expanded Data object is expected for output data.");
+    } else if (in.isComplex() != out.isComplex()) {
+        throw ValueError("Assemble_CopyElementData: complexity of input and output Data must match.");
     } else {
+        const Scalar zero = static_cast<Scalar>(0);
         out.requireWrite();
         if (in.actsExpanded()) {
-            const size_t len_size = numComps * numQuad * sizeof(double);
+            const size_t len_size = numComps * numQuad * sizeof(Scalar);
 #pragma omp parallel for
             for (index_t n = 0; n < numElements; n++)
-                memcpy(out.getSampleDataRW(n, static_cast<escript::DataTypes::real_t>(0)), in.getSampleDataRO(n, static_cast<escript::DataTypes::real_t>(0)), len_size);
+                memcpy(out.getSampleDataRW(n, zero),
+                       in.getSampleDataRO(n, zero), len_size);
         } else {
-            const size_t len_size = numComps * sizeof(double);
+            const size_t len_size = numComps * sizeof(Scalar);
 #pragma omp parallel for
             for (index_t n = 0; n < numElements; n++) {
-                const double* in_array = in.getSampleDataRO(n, static_cast<escript::DataTypes::real_t>(0));
-                double* out_array = out.getSampleDataRW(n, static_cast<escript::DataTypes::real_t>(0));
+                const Scalar* in_array = in.getSampleDataRO(n, zero);
+                Scalar* out_array = out.getSampleDataRW(n, zero);
                 for (int q = 0; q < numQuad; q++)
                     memcpy(out_array + q * numComps, in_array, len_size);
             }
         }
     }
 }
+
+// instantiate our two supported versions
+template void Assemble_CopyElementData<escript::DataTypes::real_t>(
+                const ElementFile* elements, escript::Data& out,
+                const escript::Data& in);
+template void Assemble_CopyElementData<escript::DataTypes::cplx_t>(
+                const ElementFile* elements, escript::Data& out,
+                const escript::Data& in);
 
 } // namespace dudley
 
