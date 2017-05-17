@@ -114,14 +114,17 @@ void Assemble_LumpedSystem(const NodeFile* nodes, const ElementFile* elements,
                            bool useHRZ);
 
 /// averages data
+template<typename Scalar>
 void Assemble_AverageElementData(const ElementFile* elements,
                                  escript::Data& out, const escript::Data& in);
 
 /// copies data between different types of elements
+template<typename Scalar>
 void Assemble_CopyElementData(const ElementFile* elements, escript::Data& out,
                               const escript::Data& in);
 
 /// copies data between different types of nodal representations
+template<typename Scalar>
 void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
                             const escript::Data& in);
 
