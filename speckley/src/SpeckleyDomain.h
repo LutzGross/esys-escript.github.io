@@ -741,6 +741,7 @@ protected:
     int m_order;
     
     /// copies data in 'in' to 'out' (both must be on same function space)
+    template<typename Scalar>
     void copyData(escript::Data& out, const escript::Data& in) const;
 
     // this is const because setTags is const
@@ -754,6 +755,7 @@ protected:
                    const std::vector<int>& tags);
 
     /// expands ReducedFunction (in) to Function (out)
+    template<typename Scalar>
     void multiplyData(escript::Data& out, const escript::Data& in) const;
 
     /***********************************************************************/

@@ -1358,34 +1358,53 @@ void Rectangle::populateSampleIds()
     updateTagsInUse(Elements);
 }
 
-//private
-void Rectangle::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F,
-         const std::vector<double>& EM_S, const std::vector<double>& EM_F, bool addS,
-         bool addF, index_t firstNode, int nEq, int nComp) const
-{
-    throw SpeckleyException("Rectangle::addToMatrixAndRHS, adding to matrix not supported");
-}
-
 void Rectangle::reduceElements(escript::Data& out, const escript::Data& in) const
 {
     if (m_order == 2) {
-        reduction_order2(in, out);
+        if (in.isComplex())
+            reduction_order2<cplx_t>(in, out);
+        else
+            reduction_order2<real_t>(in, out);
     } else if (m_order == 3) {
-        reduction_order3(in, out);
+        if (in.isComplex())
+            reduction_order3<cplx_t>(in, out);
+        else
+            reduction_order3<real_t>(in, out);
     } else if (m_order == 4) {
-        reduction_order4(in, out);
+        if (in.isComplex())
+            reduction_order4<cplx_t>(in, out);
+        else
+            reduction_order4<real_t>(in, out);
     } else if (m_order == 5) {
-        reduction_order5(in, out);
+        if (in.isComplex())
+            reduction_order5<cplx_t>(in, out);
+        else
+            reduction_order5<real_t>(in, out);
     } else if (m_order == 6) {
-        reduction_order6(in, out);
+        if (in.isComplex())
+            reduction_order6<cplx_t>(in, out);
+        else
+            reduction_order6<real_t>(in, out);
     } else if (m_order == 7) {
-        reduction_order7(in, out);
+        if (in.isComplex())
+            reduction_order7<cplx_t>(in, out);
+        else
+            reduction_order7<real_t>(in, out);
     } else if (m_order == 8) {
-        reduction_order8(in, out);
+        if (in.isComplex())
+            reduction_order8<cplx_t>(in, out);
+        else
+            reduction_order8<real_t>(in, out);
     } else if (m_order == 9) {
-        reduction_order9(in, out);
+        if (in.isComplex())
+            reduction_order9<cplx_t>(in, out);
+        else
+            reduction_order9<real_t>(in, out);
     } else if (m_order == 10) {
-        reduction_order10(in, out);
+        if (in.isComplex())
+            reduction_order10<cplx_t>(in, out);
+        else
+            reduction_order10<real_t>(in, out);
     }
 }
 
@@ -1394,11 +1413,25 @@ void Rectangle::interpolateNodesOnElements(escript::Data& out,
                                            const escript::Data& in,
                                            bool reduced) const
 {
+    if (in.isComplex())
+        interpolateNodesOnElementsWorker<cplx_t>(out, in, reduced);
+    else
+        interpolateNodesOnElementsWorker<real_t>(out, in, reduced);
+}
+
+//private
+template<typename Scalar>
+void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
+                                                 const escript::Data& in,
+                                                 bool reduced) const
+{
     const dim_t numComp = in.getDataPointSize();
     const dim_t NE0 = m_NE[0];
     const dim_t NE1 = m_NE[1];
     const int quads = m_order + 1;
     const int max_x = m_NN[0];
+    const Scalar zero = static_cast<Scalar>(0);
+
     out.requireWrite();
     if (reduced) { //going to ReducedElements
         escript::Data funcIn(in, escript::function(*this));
@@ -1408,13 +1441,13 @@ void Rectangle::interpolateNodesOnElements(escript::Data& out,
 #pragma omp parallel for
     for (dim_t ey = 0; ey < NE1; ey++) {
         for (dim_t ex = 0; ex < NE0; ex++) {
-            double *e_out = out.getSampleDataRW(ex + ey*NE0);
+            Scalar* e_out = out.getSampleDataRW(ex + ey*NE0, zero);
             dim_t start = ex*m_order + ey*max_x*m_order;
             int quad = 0;
             for (int qy = 0; qy < quads; qy++) {
                 for (int qx = 0; qx < quads; qx++, quad++) {
-                    const double *n_in = in.getSampleDataRO(start + max_x*qy + qx);
-                    memcpy(e_out+quad*numComp, n_in, sizeof(double) * numComp);
+                    const Scalar* n_in = in.getSampleDataRO(start + max_x*qy + qx, zero);
+                    memcpy(e_out+quad*numComp, n_in, sizeof(Scalar) * numComp);
                 }
             }
         }
@@ -1423,47 +1456,60 @@ void Rectangle::interpolateNodesOnElements(escript::Data& out,
 
 #ifdef ESYS_MPI
 //protected
-void Rectangle::balanceNeighbours(escript::Data& data, bool average) const {
+void Rectangle::balanceNeighbours(escript::Data& data, bool average) const
+{
+    if (data.isComplex())
+        balanceNeighboursWorker<cplx_t>(data, average);
+    else
+        balanceNeighboursWorker<real_t>(data, average);
+}
+
+//private
+template<typename Scalar>
+void Rectangle::balanceNeighboursWorker(escript::Data& data, bool average) const
+{
     if (m_NX[0] * m_NX[1] == 1) {
         return;
     }
     const int numComp = data.getDataPointSize();
     const int rx = m_mpiInfo->rank % m_NX[0];
     const int ry = m_mpiInfo->rank / m_NX[0];
+    const Scalar zero = static_cast<Scalar>(0);
+
     //include bordering ranks in summation
     if (m_NX[1] != 1)
-        shareVertical(data, rx, ry);
+        shareVertical<Scalar>(data, rx, ry);
     if (m_NX[0] != 1)
-        shareSides(data, rx, ry);
+        shareSides<Scalar>(data, rx, ry);
     if (m_NX[0] != 1 && m_NX[1] != 1) {
-        shareCorners(data, rx, ry);
+        shareCorners<Scalar>(data, rx, ry);
         if (!average)
             return;
         //averaging out corners
         // bottom left
         if (rx && ry) {
-            double *values = data.getSampleDataRW(0);
+            Scalar* values = data.getSampleDataRW(0, zero);
             for (int comp = 0; comp < numComp; comp++) {
                 values[comp] /= 2;
             }
         }
         // bottom right
         if (rx < (m_NX[0] - 1) && ry) {
-            double *values = data.getSampleDataRW(m_NN[0]-1);
+            Scalar* values = data.getSampleDataRW(m_NN[0]-1, zero);
             for (int comp = 0; comp < numComp; comp++) {
                 values[comp] /= 2;
             }
         }
         // top left
         if (rx && ry < (m_NX[0] - 1)) {
-            double *values = data.getSampleDataRW((m_NN[1]-1)*m_NN[0]);
+            Scalar* values = data.getSampleDataRW((m_NN[1]-1)*m_NN[0], zero);
             for (int comp = 0; comp < numComp; comp++) {
                 values[comp] /= 2;
             }
         }
         // top right
         if (rx < (m_NX[0] - 1) && ry < (m_NX[0] - 1)) {
-            double *values = data.getSampleDataRW(m_NN[1]*m_NN[0] - 1);
+            Scalar* values = data.getSampleDataRW(m_NN[1]*m_NN[0] - 1, zero);
             for (int comp = 0; comp < numComp; comp++) {
                 values[comp] /= 2;
             }
@@ -1476,7 +1522,7 @@ void Rectangle::balanceNeighbours(escript::Data& data, bool average) const {
     if (rx) {
 #pragma omp parallel for
         for (dim_t qy = 0; qy < m_NN[1]; qy++) {
-            double *values = data.getSampleDataRW(qy*m_NN[0]);
+            Scalar* values = data.getSampleDataRW(qy*m_NN[0], zero);
             for (int comp = 0; comp < numComp; comp++) {
                 values[comp] /= 2;
             }
@@ -1486,7 +1532,7 @@ void Rectangle::balanceNeighbours(escript::Data& data, bool average) const {
     if (rx < m_NX[0] - 1) {
 #pragma omp parallel for
         for (dim_t qy = 0; qy < m_NN[1]; qy++) {
-            double *values = data.getSampleDataRW(qy*m_NN[0] + m_NN[0] - 1);
+            Scalar* values = data.getSampleDataRW(qy*m_NN[0] + m_NN[0] - 1, zero);
             for (int comp = 0; comp < numComp; comp++) {
                 values[comp] /= 2;
             }
@@ -1496,7 +1542,7 @@ void Rectangle::balanceNeighbours(escript::Data& data, bool average) const {
     if (ry) {
 #pragma omp parallel for
         for (dim_t qx = 0; qx < m_NN[0]; qx++) {
-            double *values = data.getSampleDataRW(qx);
+            Scalar* values = data.getSampleDataRW(qx, zero);
             for (int comp = 0; comp < numComp; comp++) {
                 values[comp] /= 2;
             }
@@ -1507,7 +1553,7 @@ void Rectangle::balanceNeighbours(escript::Data& data, bool average) const {
         const dim_t start = (m_NN[1]-1)*m_NN[0];
 #pragma omp parallel for
         for (dim_t qx = 0; qx < m_NN[0]; qx++) {
-            double *values = data.getSampleDataRW(start + qx);
+            Scalar* values = data.getSampleDataRW(start + qx, zero);
             for (int comp = 0; comp < numComp; comp++) {
                 values[comp] /= 2;
             }
@@ -1518,15 +1564,29 @@ void Rectangle::balanceNeighbours(escript::Data& data, bool average) const {
 
 //protected
 void Rectangle::interpolateElementsOnNodes(escript::Data& out,
-        const escript::Data& in) const {
+                                           const escript::Data& in) const
+{
+    if (in.isComplex())
+        interpolateElementsOnNodesWorker<cplx_t>(out, in);
+    else
+        interpolateElementsOnNodesWorker<real_t>(out, in);
+}
+
+//private
+template<typename Scalar>
+void Rectangle::interpolateElementsOnNodesWorker(escript::Data& out,
+                                                 const escript::Data& in) const
+{
     const dim_t numComp = in.getDataPointSize();
     const dim_t NE0 = m_NE[0];
     const dim_t NE1 = m_NE[1];
     const int quads = m_order + 1;
     const dim_t max_x = (m_order*NE0) + 1;
     const dim_t max_y = (m_order*NE1) + 1;
-    out.requireWrite();
     const int inFS = in.getFunctionSpace().getTypeCode();
+    const Scalar zero = static_cast<Scalar>(0);
+    out.requireWrite();
+
     // the summation portion
     if (inFS == ReducedElements) {
         for (dim_t colouring = 0; colouring < 2; colouring++) {
@@ -1534,10 +1594,10 @@ void Rectangle::interpolateElementsOnNodes(escript::Data& out,
             for (dim_t ey = colouring; ey < NE1; ey += 2) {
                 for (dim_t ex = 0; ex < NE0; ex++) {
                     dim_t start = ex*m_order + ey*max_x*m_order;
-                    const double *e_in = in.getSampleDataRO(ex + ey*NE0);
+                    const Scalar* e_in = in.getSampleDataRO(ex + ey*NE0, zero);
                     for (int qy = 0; qy < quads; qy++) {
                         for (int qx = 0; qx < quads; qx++) {
-                            double *n_out = out.getSampleDataRW(start + max_x*qy + qx);
+                            Scalar* n_out = out.getSampleDataRW(start + max_x*qy + qx, zero);
                             for (int comp = 0; comp < numComp; comp++) {
                                 n_out[comp] += e_in[comp];
                             }
@@ -1552,10 +1612,10 @@ void Rectangle::interpolateElementsOnNodes(escript::Data& out,
             for (dim_t ey = colouring; ey < NE1; ey += 2) {
                 for (dim_t ex = 0; ex < NE0; ex++) {
                     dim_t start = ex*m_order + ey*max_x*m_order;
-                    const double *e_in = in.getSampleDataRO(ex + ey*NE0);
+                    const Scalar* e_in = in.getSampleDataRO(ex + ey*NE0, zero);
                     for (int qy = 0; qy < quads; qy++) {
                         for (int qx = 0; qx < quads; qx++) {
-                            double *n_out = out.getSampleDataRW(start + max_x*qy + qx);
+                            Scalar* n_out = out.getSampleDataRW(start + max_x*qy + qx, zero);
                             for (int comp = 0; comp < numComp; comp++) {
                                 n_out[comp] += e_in[INDEX3(comp, qx, qy, numComp, quads)];
                             }
@@ -1573,7 +1633,7 @@ void Rectangle::interpolateElementsOnNodes(escript::Data& out,
 #pragma omp parallel for
     for (dim_t qy = 0; qy < max_y; qy++) {
         for (dim_t qx = m_order; qx < max_x - m_order; qx += m_order) {
-            double *n_out = out.getSampleDataRW(qx + qy*max_x);
+            Scalar* n_out = out.getSampleDataRW(qx + qy*max_x, zero);
             for (int comp = 0; comp < numComp; comp++) {
                 n_out[comp] /= 2;
             }
@@ -1585,7 +1645,7 @@ void Rectangle::interpolateElementsOnNodes(escript::Data& out,
 #pragma omp parallel for
     for (dim_t qy = order; qy < max_y - order; qy += order) {
         for (dim_t qx = 0; qx < max_x; qx ++) {
-            double *n_out = out.getSampleDataRW(qx + qy*max_x);
+            Scalar* n_out = out.getSampleDataRW(qx + qy*max_x, zero);
             for (int comp = 0; comp < numComp; comp++) {
                 n_out[comp] /= 2;
             }
@@ -1595,6 +1655,7 @@ void Rectangle::interpolateElementsOnNodes(escript::Data& out,
 
 #ifdef ESYS_MPI
 //private
+template<typename Scalar>
 void Rectangle::shareCorners(escript::Data& out, int rx, int ry) const
 {
     //setup
@@ -1603,9 +1664,10 @@ void Rectangle::shareCorners(escript::Data& out, int rx, int ry) const
     MPI_Request request[4];
     const int numComp = out.getDataPointSize();
     const int count = 4 * numComp;
-    std::vector<double> outbuf(count, 0);
-    std::vector<double> inbuf(count, 0);
+    std::vector<Scalar> outbuf(count, 0);
+    std::vector<Scalar> inbuf(count, 0);
     const int rank = m_mpiInfo->rank;
+    const Scalar zero = static_cast<Scalar>(0);
     //precalc bounds so we can loop nicely, can probably be cleaned up
     const bool conds[4] = {rx && ry,
                            rx < (m_NX[0] - 1) && ry,
@@ -1618,7 +1680,7 @@ void Rectangle::shareCorners(escript::Data& out, int rx, int ry) const
     //fill everything, regardless of whether we're sharing that corner or not
     for (int y = 0; y < 2; y++) {
         for (int x = 0; x < 2; x++) {
-            const double *data = out.getSampleDataRO(x*(m_NN[0]-1) + y*(m_NN[1]-1)*m_NN[0]);
+            const Scalar* data = out.getSampleDataRO(x*(m_NN[0]-1) + y*(m_NN[1]-1)*m_NN[0], zero);
             std::copy(data, data + numComp, &outbuf[(x + 2*y)*numComp]);
         }
     }
@@ -1626,8 +1688,13 @@ void Rectangle::shareCorners(escript::Data& out, int rx, int ry) const
     //share
     for (int i = 0; i < 4; i++) {
         if (conds[i]) {
-            MPI_Isend(&outbuf[i], numComp, MPI_DOUBLE, ranks[i], tag,
-                    m_mpiInfo->comm, &request[i]);
+            if (sizeof(Scalar) == sizeof(double)) {
+                MPI_Isend(&outbuf[i], numComp, MPI_DOUBLE, ranks[i], tag,
+                          m_mpiInfo->comm, &request[i]);
+            } else {
+                MPI_Isend(&outbuf[i], numComp, MPI_DOUBLE_COMPLEX, ranks[i],
+                          tag, m_mpiInfo->comm, &request[i]);
+            }
         }
     }
 
@@ -1636,9 +1703,14 @@ void Rectangle::shareCorners(escript::Data& out, int rx, int ry) const
         for (int x = 0; x < 2; x++) {
             int i = 2*y+x;
             if (conds[i]) {
-                MPI_Recv(&inbuf[i], numComp, MPI_DOUBLE, ranks[i], tag,
-                        m_mpiInfo->comm, &status);
-                double *data = out.getSampleDataRW(x*(m_NN[0]-1) + y*(m_NN[1]-1)*m_NN[0]);
+                if (sizeof(Scalar) == sizeof(double)) {
+                    MPI_Recv(&inbuf[i], numComp, MPI_DOUBLE, ranks[i], tag,
+                             m_mpiInfo->comm, &status);
+                } else {
+                    MPI_Recv(&inbuf[i], numComp, MPI_DOUBLE_COMPLEX, ranks[i],
+                             tag, m_mpiInfo->comm, &status);
+                }
+                Scalar* data = out.getSampleDataRW(x*(m_NN[0]-1) + y*(m_NN[1]-1)*m_NN[0], zero);
                 for (int comp = 0; comp < numComp; comp++) {
                     data[comp] += inbuf[i*numComp + comp];
                 }
@@ -1653,6 +1725,7 @@ void Rectangle::shareCorners(escript::Data& out, int rx, int ry) const
 }
 
 //private
+template<typename Scalar>
 void Rectangle::shareVertical(escript::Data& out, int rx, int ry) const
 {
     const int tag = 0;
@@ -1662,26 +1735,28 @@ void Rectangle::shareVertical(escript::Data& out, int rx, int ry) const
     const int up_neighbour = m_mpiInfo->rank + m_NX[0];
     const int down_neighbour = m_mpiInfo->rank - m_NX[0];
     //allocate some space to recieve
-    std::vector<double> recv(count);
+    std::vector<Scalar> recv(count);
     //get our sources
-    double *top = out.getSampleDataRW((m_NN[1]-1) * m_NN[0]);
-    double *bottom = out.getSampleDataRW(0);
+    const Scalar zero = static_cast<Scalar>(0);
+    Scalar* top = out.getSampleDataRW((m_NN[1]-1) * m_NN[0], zero);
+    Scalar* bottom = out.getSampleDataRW(0, zero);
+    MPI_Datatype mpiType = (sizeof(Scalar) == sizeof(double) ? MPI_DOUBLE : MPI_DOUBLE_COMPLEX);
 
     MPI_Request request[2];
     
     if (ry) {
-        MPI_Isend(bottom, count, MPI_DOUBLE, down_neighbour, tag,
+        MPI_Isend(bottom, count, mpiType, down_neighbour, tag,
                 m_mpiInfo->comm, request);
     }
 
     if (ry < m_NX[1] - 1) {
-        MPI_Isend(top, count, MPI_DOUBLE, up_neighbour, tag,
+        MPI_Isend(top, count, mpiType, up_neighbour, tag,
             m_mpiInfo->comm, request+1);
     }
     
     //read down
     if (ry) {
-        MPI_Recv(&recv[0], count, MPI_DOUBLE, down_neighbour, tag,
+        MPI_Recv(&recv[0], count, mpiType, down_neighbour, tag,
                 m_mpiInfo->comm, &status);
 
         //unpack bottom
@@ -1692,7 +1767,7 @@ void Rectangle::shareVertical(escript::Data& out, int rx, int ry) const
 
     //read up, send up
     if (ry < m_NX[1] - 1) {
-        MPI_Recv(&recv[0], count, MPI_DOUBLE, up_neighbour, tag,
+        MPI_Recv(&recv[0], count, mpiType, up_neighbour, tag,
                 m_mpiInfo->comm, &status);
 
         //unpack up
@@ -1710,6 +1785,7 @@ void Rectangle::shareVertical(escript::Data& out, int rx, int ry) const
 }
 
 //private
+template<typename Scalar>
 void Rectangle::shareSides(escript::Data& out, int rx, int ry) const
 {
     const int tag = 0;
@@ -1718,40 +1794,42 @@ void Rectangle::shareSides(escript::Data& out, int rx, int ry) const
     const dim_t count = m_NN[1]*numComp;
     const int left_neighbour = m_mpiInfo->rank - 1;
     const int right_neighbour = m_mpiInfo->rank + 1;
+    const Scalar zero = static_cast<Scalar>(0);
     //allocate some space
-    std::vector<double> left(count,170);
-    std::vector<double> right(count,17000);
-    std::vector<double> recv(count,1700);
+    std::vector<Scalar> left(count, 170);
+    std::vector<Scalar> right(count, 17000);
+    std::vector<Scalar> recv(count, 1700);
+    MPI_Datatype mpiType = (sizeof(Scalar) == sizeof(double) ? MPI_DOUBLE : MPI_DOUBLE_COMPLEX);
 
     MPI_Request request[2];
 
     if (rx) {
         for (dim_t n = 0; n < m_NN[1]; n++) {
             index_t index = n*m_NN[0];
-            const double *leftData = out.getSampleDataRO(index);
+            const Scalar* leftData = out.getSampleDataRO(index, zero);
             std::copy(leftData, leftData + numComp, &left[n*numComp]);
         }
-        MPI_Isend(&left[0], count, MPI_DOUBLE, left_neighbour, tag,
+        MPI_Isend(&left[0], count, mpiType, left_neighbour, tag,
                 m_mpiInfo->comm, request);
     }
 
     if (rx < m_NX[0] - 1) {
         for (dim_t n = 0; n < m_NN[1]; n++) {
             index_t index = n*m_NN[0];
-            const double *rightData = out.getSampleDataRO(index+m_NN[0]-1);
+            const Scalar* rightData = out.getSampleDataRO(index+m_NN[0]-1, zero);
             std::copy(rightData, rightData + numComp, &right[n*numComp]);
         }
-        MPI_Isend(&right[0], count, MPI_DOUBLE, right_neighbour, tag,
+        MPI_Isend(&right[0], count, mpiType, right_neighbour, tag,
                 m_mpiInfo->comm, request+1);
     }
 
     //read left
     if (rx) {
-        MPI_Recv(&recv[0], count, MPI_DOUBLE, left_neighbour, tag,
+        MPI_Recv(&recv[0], count, mpiType, left_neighbour, tag,
                 m_mpiInfo->comm, &status);
         //unpack to left
         for (dim_t i = 0; i < m_NN[1]; i++) {
-            double *data = out.getSampleDataRW(i*m_NN[0]);
+            Scalar* data = out.getSampleDataRW(i*m_NN[0], zero);
             for (int comp = 0; comp < numComp; comp++) {
                 data[comp] += recv[i*numComp+comp];
             }
@@ -1760,11 +1838,11 @@ void Rectangle::shareSides(escript::Data& out, int rx, int ry) const
 
     //read right
     if (rx < m_NX[0] - 1) {
-        MPI_Recv(&recv[0], count, MPI_DOUBLE, right_neighbour, tag,
+        MPI_Recv(&recv[0], count, mpiType, right_neighbour, tag,
                 m_mpiInfo->comm, &status);
         //unpack to right
         for (dim_t i = 0; i < m_NN[1]; i++) {
-            double *data = out.getSampleDataRW((i + 1) * m_NN[0] - 1);
+            Scalar* data = out.getSampleDataRW((i + 1) * m_NN[0] - 1, zero);
             for (int comp = 0; comp < numComp; comp++) {
                 data[comp] += recv[i*numComp+comp];
             }

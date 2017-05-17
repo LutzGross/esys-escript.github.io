@@ -261,14 +261,23 @@ private:
     template<typename Scalar>
     void gradient_order10(escript::Data&, const escript::Data&) const;
 
+    template<typename Scalar>
     void reduction_order2(const escript::Data&, escript::Data&) const;
+    template<typename Scalar>
     void reduction_order3(const escript::Data&, escript::Data&) const;
+    template<typename Scalar>
     void reduction_order4(const escript::Data&, escript::Data&) const;
+    template<typename Scalar>
     void reduction_order5(const escript::Data&, escript::Data&) const;
+    template<typename Scalar>
     void reduction_order6(const escript::Data&, escript::Data&) const;
+    template<typename Scalar>
     void reduction_order7(const escript::Data&, escript::Data&) const;
+    template<typename Scalar>
     void reduction_order8(const escript::Data&, escript::Data&) const;
+    template<typename Scalar>
     void reduction_order9(const escript::Data&, escript::Data&) const;
+    template<typename Scalar>
     void reduction_order10(const escript::Data&, escript::Data&) const;
 
     template<typename Scalar>
@@ -294,19 +303,34 @@ private:
     void assembleIntegrateWorker(std::vector<Scalar>& integrals,
                                  const escript::Data& arg) const;
 
+    template<typename Scalar>
+    void interpolateNodesOnElementsWorker(escript::Data& out,
+                                          const escript::Data& in,
+                                          bool reduced) const;
+
+    template<typename Scalar>
+    void interpolateElementsOnNodesWorker(escript::Data& out,
+                                          const escript::Data& in) const;
+
 #ifdef ESYS_MPI
+    template<typename Scalar>
+    void balanceNeighboursWorker(escript::Data& data, bool average) const;
+
     /* \brief
        Sums the values across MPI overlaps
     */
+    template<typename Scalar>
     void shareCorners(escript::Data& out, int rx, int ry) const;
     /* \brief
        Sums the values across MPI overlaps
     */
+    template<typename Scalar>
     void shareSides(escript::Data& out, int rx, int ry) const;
     
     /* \brief
        Sums the values across MPI overlaps
     */
+    template<typename Scalar>
     void shareVertical(escript::Data& out, int rx, int ry) const;
 #endif
     
@@ -317,9 +341,6 @@ private:
     void interpolateFromCorners(escript::Data& out) const;
     
     void populateSampleIds();
-    void addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F,
-           const DoubleVector& EM_S, const DoubleVector& EM_F,
-           bool addS, bool addF, index_t firstNode, int nEq=1, int nComp=1) const;
 
     template<typename ValueType>
     void readBinaryGridImpl(escript::Data& out, const std::string& filename,
