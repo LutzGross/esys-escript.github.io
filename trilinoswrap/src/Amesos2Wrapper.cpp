@@ -115,7 +115,11 @@ RCP<DirectSolverType<Matrix,Vector> > createDirectSolver(
             Amesos2::query("superlumt")) {
         solver = Amesos2::create<Matrix, Vector>("superlumt", A, X, B);
         Teuchos::ParameterList solverParams(solver->name());
+#ifdef _OPENMP  
         solverParams.set("nprocs", omp_get_max_threads());
+#else
+        solverParams.set("nprocs", 1);
+#endif
         solverParams.set("DiagPivotThresh", sb.getDiagonalDominanceThreshold());
         solverParams.set("SymmetricMode", sb.isSymmetric());
         extractParamIfSet<int>("nprocs", pyParams, solverParams);
