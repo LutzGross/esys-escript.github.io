@@ -58,9 +58,9 @@ void SystemMatrix::copyRemoteCoupleBlock(bool recreatePattern)
     for (index_t i=0; i<num_main_cols; ++i)
         cols[i] = offset + i;
 
-    Coupler_ptr coupler;
+    Coupler_ptr<real_t> coupler;
     if (!global_id) {
-        coupler.reset(new Coupler(col_coupler->connector, 1, mpi_info));
+        coupler.reset(new Coupler<real_t>(col_coupler->connector, 1, mpi_info));
         coupler->startCollect(cols);
     }
 

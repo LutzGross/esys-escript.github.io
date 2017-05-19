@@ -26,8 +26,9 @@ namespace paso {
  *
  ****************************************************************************/
 
-Coupler::Coupler(const_Connector_ptr conn, dim_t blockSize,
-                 escript::JMPI mpiInfo) :
+template<typename Scalar>
+Coupler<Scalar>::Coupler(const_Connector_ptr conn, dim_t blockSize,
+                         escript::JMPI mpiInfo) :
     connector(conn),
     block_size(blockSize),
     in_use(false),
@@ -44,13 +45,14 @@ Coupler::Coupler(const_Connector_ptr conn, dim_t blockSize,
     mpi_stati = new MPI_Status[conn->send->neighbour.size() +
                                conn->recv->neighbour.size()];
     if (mpi_info->size > 1) {
-        send_buffer = new double[conn->send->numSharedComponents * block_size];
-        recv_buffer = new double[conn->recv->numSharedComponents * block_size];
+        send_buffer = new Scalar[conn->send->numSharedComponents * block_size];
+        recv_buffer = new Scalar[conn->recv->numSharedComponents * block_size];
     }
 #endif
 }
 
-Coupler::~Coupler()
+template<typename Scalar>
+Coupler<Scalar>::~Coupler()
 {
 #ifdef ESYS_MPI
     delete[] send_buffer;
@@ -60,26 +62,28 @@ Coupler::~Coupler()
 #endif
 }
 
-void Coupler::startCollect(const double* in)
+template<typename Scalar>
+void Coupler<Scalar>::startCollect(const Scalar* in)
 {
-    data = const_cast<double*>(in);
+    data = const_cast<Scalar*>(in);
 #ifdef ESYS_MPI
     if (mpi_info->size > 1) {
         if (in_use) {
             throw PasoException("Coupler::startCollect: Coupler in use.");
         }
+        MPI_Datatype mpiType = (sizeof(Scalar) == sizeof(double) ? MPI_DOUBLE : MPI_DOUBLE_COMPLEX);
         // start receiving input
         for (dim_t i=0; i < connector->recv->neighbour.size(); ++i) {
             MPI_Irecv(&recv_buffer[connector->recv->offsetInShared[i]*block_size],
                     (connector->recv->offsetInShared[i+1]-connector->recv->offsetInShared[i])*block_size,
-                    MPI_DOUBLE, connector->recv->neighbour[i],
+                    mpiType, connector->recv->neighbour[i],
                     mpi_info->counter()+connector->recv->neighbour[i],
                     mpi_info->comm, &mpi_requests[i]);
         }
         // collect values into buffer
         const int numSharedSend = connector->send->numSharedComponents;
         if (block_size > 1) {
-            const size_t block_size_size=block_size*sizeof(double);
+            const size_t block_size_size=block_size*sizeof(Scalar);
 #pragma omp parallel for
             for (dim_t i=0; i < numSharedSend; ++i) {
                 memcpy(&(send_buffer[(block_size)*i]),
@@ -96,7 +100,7 @@ void Coupler::startCollect(const double* in)
         for (dim_t i=0; i < connector->send->neighbour.size(); ++i) {
             MPI_Issend(&send_buffer[connector->send->offsetInShared[i]*block_size],
                     (connector->send->offsetInShared[i+1] - connector->send->offsetInShared[i])*block_size,
-                    MPI_DOUBLE, connector->send->neighbour[i],
+                    mpiType, connector->send->neighbour[i],
                     mpi_info->counter()+mpi_info->rank, mpi_info->comm,
                     &mpi_requests[i+connector->recv->neighbour.size()]);
         }
@@ -106,7 +110,8 @@ void Coupler::startCollect(const double* in)
 #endif
 }
 
-double* Coupler::finishCollect()
+template<typename Scalar>
+Scalar* Coupler<Scalar>::finishCollect()
 {
 #ifdef ESYS_MPI
     if (mpi_info->size > 1) {
@@ -122,7 +127,8 @@ double* Coupler::finishCollect()
     return recv_buffer;
 }
 
-void Coupler::copyAll(Coupler_ptr target) const
+template<typename Scalar>
+void Coupler<Scalar>::copyAll(Coupler_ptr<Scalar> target) const
 {
     const dim_t overlap = getNumOverlapValues();
     const dim_t localSize = getLocalLength()*block_size;
@@ -139,14 +145,15 @@ void Coupler::copyAll(Coupler_ptr target) const
     }
 }
 
-void Coupler::fillOverlap(dim_t n, double* x)
+template<typename Scalar>
+void Coupler<Scalar>::fillOverlap(dim_t n, Scalar* x)
 {
     const dim_t overlap_n = getNumOverlapValues();
     const dim_t my_n= n - overlap_n;
     const dim_t offset = block_size * my_n;
 
     startCollect(x);
-    double* remote_values = finishCollect();
+    Scalar* remote_values = finishCollect();
 
 #pragma omp parallel for
     for (dim_t i=0; i < overlap_n * block_size; ++i) {
@@ -155,18 +162,29 @@ void Coupler::fillOverlap(dim_t n, double* x)
 }
 
 /* adjusts max values across shared values x */
-void Coupler::max(dim_t n, double* x)
+template<>
+void Coupler<real_t>::max(dim_t n, real_t* x)
 {
     const dim_t overlap_n = getNumOverlapValues();
     const dim_t my_n = n - overlap_n;
 
     startCollect(x);
-    double* remote_values = finishCollect();
+    real_t* remote_values = finishCollect();
 
 #pragma omp parallel for
     for (dim_t i=0; i < overlap_n; ++i)
         x[my_n+i] = std::max(x[my_n+i], remote_values[i]);
 }
+
+template<>
+void Coupler<cplx_t>::max(dim_t n, cplx_t* x)
+{
+    throw PasoException("Coupler::max: invalid call for complex data"); 
+}
+
+// instantiate
+template class Coupler<real_t>;
+template class Coupler<cplx_t>;
 
 } // namespace paso
 

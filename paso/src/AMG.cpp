@@ -452,7 +452,7 @@ void Preconditioner_AMG_setStrongConnections(SystemMatrix_ptr A,
             A->mainBlock->pattern->ptr[my_n]+A->col_coupleBlock->pattern->ptr[my_n]
             -A->mainBlock->pattern->ptr[0]-A->col_coupleBlock->pattern->ptr[0];
 
-        Coupler_ptr threshold_coupler(new Coupler(A->row_coupler->connector, 2, A->mpi_info));
+        Coupler_ptr<real_t> threshold_coupler(new Coupler<real_t>(A->row_coupler->connector, 2, A->mpi_info));
         threshold_coupler->startCollect(threshold_p);
         double* remote_threshold = threshold_coupler->finishCollect();
 
@@ -599,7 +599,7 @@ void Preconditioner_AMG_setStrongConnections_Block(SystemMatrix_ptr A,
             A->mainBlock->pattern->ptr[my_n]+A->col_coupleBlock->pattern->ptr[my_n]
             -A->mainBlock->pattern->ptr[0]-A->col_coupleBlock->pattern->ptr[0];
 
-        Coupler_ptr threshold_coupler(new Coupler(A->row_coupler->connector, 2, A->mpi_info));
+        Coupler_ptr<real_t> threshold_coupler(new Coupler<real_t>(A->row_coupler->connector, 2, A->mpi_info));
         threshold_coupler->startCollect(threshold_p);
         double* remote_threshold = threshold_coupler->finishCollect();
 
@@ -685,7 +685,7 @@ void Preconditioner_AMG_CIJPCoarsening(dim_t n, dim_t my_n,
                                        const_Connector_ptr col_connector,
                                        escript::const_Distribution_ptr col_dist)
 {
-    Coupler_ptr w_coupler(new Coupler(col_connector, 1, col_dist->mpi_info));
+    Coupler_ptr<real_t> w_coupler(new Coupler<real_t>(col_connector, 1, col_dist->mpi_info));
     double* w = new double[n];
     double* Status = new double[n];
     double* random = createRandomVector(col_dist);

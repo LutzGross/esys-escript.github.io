@@ -48,7 +48,7 @@ struct FCT_Solver
 
     void setAntiDiffusionFlux_CN(SystemMatrix_ptr flux_matrix);
 
-    void setMuPaLu(double* out, const_Coupler_ptr coupler, double a);
+    void setMuPaLu(double* out, const_Coupler_ptr<real_t> coupler, double a);
 
     inline double getTheta()
     {
@@ -64,8 +64,8 @@ struct FCT_Solver
     double* b;
     double* z;
     double* du;
-    Coupler_ptr u_coupler;
-    Coupler_ptr u_old_coupler; /* last time step */
+    Coupler_ptr<real_t> u_coupler;
+    Coupler_ptr<real_t> u_old_coupler; /* last time step */
 };
 
 

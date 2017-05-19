@@ -95,7 +95,7 @@ void SystemMatrix::mergeMainAndCouple_CSR_OFFSET0(index_t** p_ptr, index_t** p_i
     }
 
     double* rows = NULL;
-    Coupler_ptr coupler;
+    Coupler_ptr<real_t> coupler;
     if (global_id == NULL) {
         // prepare for global coordinates in colCoupleBlock, the results are
         // in coupler->recv_buffer
@@ -104,7 +104,7 @@ void SystemMatrix::mergeMainAndCouple_CSR_OFFSET0(index_t** p_ptr, index_t** p_i
 #pragma omp parallel for
         for (index_t i=0; i<main_num_rows; ++i)
             rows[i] = row_offset+i;
-        coupler.reset(new Coupler(col_coupler->connector, 1, mpi_info));
+        coupler.reset(new Coupler<real_t>(col_coupler->connector, 1, mpi_info));
         coupler->startCollect(rows);
     }
 
@@ -202,7 +202,7 @@ void SystemMatrix::mergeMainAndCouple_CSR_OFFSET0_Block(index_t** p_ptr, index_t
     }
 
     double* rows = NULL;
-    Coupler_ptr coupler;
+    Coupler_ptr<real_t> coupler;
     if (global_id == NULL) {
         // prepare for global coordinates in colCoupleBlock, the results are
         // in coupler->recv_buffer
@@ -211,7 +211,7 @@ void SystemMatrix::mergeMainAndCouple_CSR_OFFSET0_Block(index_t** p_ptr, index_t
 #pragma omp parallel for
         for (index_t i=0; i<main_num_rows; ++i)
             rows[i]=row_offset+i;
-        coupler.reset(new Coupler(col_coupler->connector, 1, mpi_info));
+        coupler.reset(new Coupler<real_t>(col_coupler->connector, 1, mpi_info));
         coupler->startCollect(rows);
     }
 

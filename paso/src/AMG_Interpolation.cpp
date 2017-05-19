@@ -74,7 +74,7 @@ void Preconditioner_AMG_extendB(SystemMatrix_ptr A, SystemMatrix_ptr B)
     B->row_coupleBlock.reset();
 
     Pattern_ptr pattern_main, pattern_couple;
-    Coupler_ptr coupler;
+    Coupler_ptr<real_t> coupler;
     double *ptr_val=NULL;
     index_t *global_id=NULL, *cols_array=NULL, *ptr_ptr=NULL, *ptr_idx=NULL;
     index_t *ptr_main=NULL, *ptr_couple=NULL, *idx_main=NULL, *idx_couple=NULL;
@@ -95,7 +95,7 @@ void Preconditioner_AMG_extendB(SystemMatrix_ptr A, SystemMatrix_ptr B)
         cols[i] = offset + i;
 
     if (B->global_id == NULL) {
-        coupler.reset(new Coupler(B->col_coupler->connector, 1, A->mpi_info));
+        coupler.reset(new Coupler<real_t>(B->col_coupler->connector, 1, A->mpi_info));
         coupler->startCollect(cols);
     }
 

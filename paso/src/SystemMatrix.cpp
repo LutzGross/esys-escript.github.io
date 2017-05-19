@@ -126,8 +126,8 @@ SystemMatrix::SystemMatrix(SystemMatrixType ntype,
     } else {
         block_size = row_block_size*col_block_size;
     }
-    col_coupler.reset(new Coupler(pattern->col_connector, col_block_size, mpi_info));
-    row_coupler.reset(new Coupler(pattern->row_connector, row_block_size, mpi_info));
+    col_coupler.reset(new Coupler<real_t>(pattern->col_connector, col_block_size, mpi_info));
+    row_coupler.reset(new Coupler<real_t>(pattern->row_connector, row_block_size, mpi_info));
     mainBlock.reset(new SparseMatrix(type, pattern->mainPattern, row_block_size, col_block_size, true));
     col_coupleBlock.reset(new SparseMatrix(type, pattern->col_couplePattern, row_block_size, col_block_size, true));
     row_coupleBlock.reset(new SparseMatrix(type, pattern->row_couplePattern, row_block_size, col_block_size, true));

@@ -39,8 +39,8 @@ FCT_FluxLimiter::FCT_FluxLimiter(const_TransportProblem_ptr tp)
     MQ = new double[2*n];
     R = new double[2*n];
 
-    R_coupler.reset(new Coupler(tp->borrowConnector(), 2*blockSize, mpi_info));
-    u_tilde_coupler.reset(new Coupler(tp->borrowConnector(), blockSize, mpi_info));
+    R_coupler.reset(new Coupler<real_t>(tp->borrowConnector(), 2*blockSize, mpi_info));
+    u_tilde_coupler.reset(new Coupler<real_t>(tp->borrowConnector(), blockSize, mpi_info));
     antidiffusive_fluxes.reset(new SystemMatrix(
                 tp->transport_matrix->type, tp->transport_matrix->pattern,
                 tp->transport_matrix->row_block_size,

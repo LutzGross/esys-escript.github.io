@@ -102,13 +102,6 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
     } else if (in_data_type == DUDLEY_DEGREES_OF_FREEDOM) {
         out.requireWrite();
         if (out_data_type == DUDLEY_NODES) {
-            if (in.isComplex()) {
-#ifndef ESYS_HAVE_TRILINOS
-                throw NotImplementedError("Assemble_CopyNodalData: cannot "
-                        "interpolate complex Data from degrees of freedom to "
-                        "nodes without Trilinos at the moment.");
-#endif
-            }
             const_cast<escript::Data*>(&in)->resolve();
             const index_t* target = nodes->borrowTargetDegreesOfFreedom();
 #ifdef ESYS_HAVE_TRILINOS
@@ -149,9 +142,9 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
                 std::copy(src, src+numComps, out.getSampleDataRW(i, zero));
             }
 #elif defined(ESYS_HAVE_PASO)
-            paso::Coupler_ptr coupler(new paso::Coupler(nodes->degreesOfFreedomConnector, numComps, nodes->MPIInfo));
-            coupler->startCollect(in.getDataRO());
-            const double* recv_buffer = coupler->finishCollect();
+            paso::Coupler_ptr<Scalar> coupler(new paso::Coupler<Scalar>(nodes->degreesOfFreedomConnector, numComps, nodes->MPIInfo));
+            coupler->startCollect(in.getSampleDataRO(0, zero));
+            const Scalar* recv_buffer = coupler->finishCollect();
             const index_t upperBound = nodes->getNumDegreesOfFreedom();
 #pragma omp parallel for
             for (index_t n = 0; n < numOut; n++) {

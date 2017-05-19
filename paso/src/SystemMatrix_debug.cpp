@@ -42,8 +42,8 @@ void SystemMatrix::fillWithGlobalCoordinates(double f1)
     const index_t col_offset = col_distribution->getFirstComponent();
     double* cols = new double[m];
     double* rows = new double[n];
-    Coupler_ptr col_couple(new Coupler(col_coupler->connector, 1, mpi_info));
-    Coupler_ptr row_couple(new Coupler(col_coupler->connector, 1, mpi_info));
+    Coupler_ptr<real_t> col_couple(new Coupler<real_t>(col_coupler->connector, 1, mpi_info));
+    Coupler_ptr<real_t> row_couple(new Coupler<real_t>(col_coupler->connector, 1, mpi_info));
 
 #pragma omp parallel for
     for (dim_t i=0; i<n; ++i)

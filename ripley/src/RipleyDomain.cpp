@@ -437,7 +437,10 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
                             else
                                 copyData<real_t>(target, in);
                         } else {
-                            nodesToDOF(target, in);
+                            if (in.isComplex())
+                                throw NotImplementedError("nodesToDOF not implemented for complex Data");
+                            else
+                                nodesToDOF(target, in);
                         }
                         break;
 
@@ -1176,18 +1179,11 @@ void RipleyDomain::setNewX(const escript::Data& arg)
 template<typename Scalar>
 void RipleyDomain::dofToNodes(escript::Data& out, const escript::Data& in) const
 {
-    if (in.isComplex()) {
-#ifndef ESYS_HAVE_TRILINOS
-        throw NotImplementedError("dofToNodes(): cannot interpolate complex "
-                "Data from reduced degrees of freedom to nodes without "
-                "Trilinos at the moment.");
-#endif
-    }
-
     // expand data object if necessary
     const_cast<escript::Data*>(&in)->expand();
     const dim_t numComp = in.getDataPointSize();
     const dim_t numNodes = getNumNodes();
+    const Scalar zero = static_cast<Scalar>(0);
     out.requireWrite();
 #ifdef ESYS_HAVE_TRILINOS
     using namespace esys_trilinos;
@@ -1210,7 +1206,6 @@ void RipleyDomain::dofToNodes(escript::Data& out, const escript::Data& in) const
         rowMap = graph->getRowMap();
     }
 
-    const Scalar zero = static_cast<Scalar>(0);
     const ImportType importer(rowMap, colMap);
     const Teuchos::ArrayView<const Scalar> localIn(
                   in.getSampleDataRO(0, zero), in.getNumDataPoints()*numComp);
@@ -1227,17 +1222,18 @@ void RipleyDomain::dofToNodes(escript::Data& out, const escript::Data& in) const
         copy(src, src+numComp, out.getSampleDataRW(i, zero));
     }
 #elif defined(ESYS_HAVE_PASO)
-    paso::Coupler_ptr coupler(new paso::Coupler(m_connector, numComp, m_mpiInfo));
-    coupler->startCollect(in.getSampleDataRO(0));
+    paso::Coupler_ptr<Scalar> coupler(new paso::Coupler<Scalar>(m_connector,
+                                                         numComp, m_mpiInfo));
+    coupler->startCollect(in.getSampleDataRO(0, zero));
     const dim_t numDOF = getNumDOF();
-    const real_t* buffer = coupler->finishCollect();
+    const Scalar* buffer = coupler->finishCollect();
 
 #pragma omp parallel for
     for (index_t i = 0; i < numNodes; i++) {
         const index_t dof = getDofOfNode(i);
-        const real_t* src = (dof < numDOF ? in.getSampleDataRO(dof)
+        const Scalar* src = (dof < numDOF ? in.getSampleDataRO(dof, zero)
                                           : &buffer[(dof - numDOF) * numComp]);
-        copy(src, src+numComp, out.getSampleDataRW(i));
+        copy(src, src+numComp, out.getSampleDataRW(i, zero));
     }
 #endif // ESYS_HAVE_PASO
 }
