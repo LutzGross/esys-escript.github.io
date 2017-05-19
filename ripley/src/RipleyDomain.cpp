@@ -431,13 +431,14 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
                 switch (outFS) {
                     case DegreesOfFreedom:
                     case ReducedDegreesOfFreedom:
-                        if (getMPISize()==1)
+                        if (getMPISize()==1) {
                             if (in.isComplex())
                                 copyData<cplx_t>(target, in);
                             else
                                 copyData<real_t>(target, in);
-                        else
+                        } else {
                             nodesToDOF(target, in);
+                        }
                         break;
 
                     case Nodes:
@@ -490,7 +491,10 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
                             else
                                 copyData<real_t>(target, in);
                         else
-                            dofToNodes(target, in);
+                            if (in.isComplex())
+                                dofToNodes<cplx_t>(target, in);
+                            else
+                                dofToNodes<real_t>(target, in);
                         break;
 
                     case DegreesOfFreedom:
@@ -1169,14 +1173,60 @@ void RipleyDomain::setNewX(const escript::Data& arg)
 }
 
 //protected
+template<typename Scalar>
 void RipleyDomain::dofToNodes(escript::Data& out, const escript::Data& in) const
 {
+    if (in.isComplex()) {
+#ifndef ESYS_HAVE_TRILINOS
+        throw NotImplementedError("dofToNodes(): cannot interpolate complex "
+                "Data from reduced degrees of freedom to nodes without "
+                "Trilinos at the moment.");
+#endif
+    }
+
     // expand data object if necessary
     const_cast<escript::Data*>(&in)->expand();
     const dim_t numComp = in.getDataPointSize();
     const dim_t numNodes = getNumNodes();
     out.requireWrite();
-#ifdef ESYS_HAVE_PASO
+#ifdef ESYS_HAVE_TRILINOS
+    using namespace esys_trilinos;
+
+    const_TrilinosGraph_ptr graph(getTrilinosGraph());
+    Teuchos::RCP<const MapType> colMap;
+    Teuchos::RCP<const MapType> rowMap;
+    MapType colPointMap;
+    MapType rowPointMap;
+
+    if (numComp > 1) {
+        colPointMap = BlockVectorType<Scalar>::makePointMap(
+                                        *graph->getColMap(), numComp);
+        rowPointMap = BlockVectorType<Scalar>::makePointMap(
+                                        *graph->getRowMap(), numComp);
+        colMap = Teuchos::rcpFromRef(colPointMap);
+        rowMap = Teuchos::rcpFromRef(rowPointMap);
+    } else {
+        colMap = graph->getColMap();
+        rowMap = graph->getRowMap();
+    }
+
+    const Scalar zero = static_cast<Scalar>(0);
+    const ImportType importer(rowMap, colMap);
+    const Teuchos::ArrayView<const Scalar> localIn(
+                  in.getSampleDataRO(0, zero), in.getNumDataPoints()*numComp);
+    Teuchos::RCP<VectorType<Scalar> > lclData = rcp(new VectorType<Scalar>(
+                                        rowMap, localIn, localIn.size(), 1));
+    Teuchos::RCP<VectorType<Scalar> > gblData = rcp(new VectorType<Scalar>(
+                                        colMap, 1));
+    gblData->doImport(*lclData, importer, Tpetra::INSERT);
+    Teuchos::ArrayRCP<const Scalar> gblArray(gblData->getData(0));
+
+#pragma omp parallel for
+    for (index_t i = 0; i < numNodes; i++) {
+        const Scalar* src = &gblArray[getDofOfNode(i) * numComp];
+        copy(src, src+numComp, out.getSampleDataRW(i, zero));
+    }
+#elif defined(ESYS_HAVE_PASO)
     paso::Coupler_ptr coupler(new paso::Coupler(m_connector, numComp, m_mpiInfo));
     coupler->startCollect(in.getSampleDataRO(0));
     const dim_t numDOF = getNumDOF();
@@ -1189,42 +1239,7 @@ void RipleyDomain::dofToNodes(escript::Data& out, const escript::Data& in) const
                                           : &buffer[(dof - numDOF) * numComp]);
         copy(src, src+numComp, out.getSampleDataRW(i));
     }
-#elif defined(ESYS_HAVE_TRILINOS)
-    using namespace esys_trilinos;
-
-    const_TrilinosGraph_ptr graph(getTrilinosGraph());
-    Teuchos::RCP<const MapType> colMap;
-    Teuchos::RCP<const MapType> rowMap;
-    MapType colPointMap;
-    MapType rowPointMap;
-
-    if (numComp > 1) {
-        colPointMap = RealBlockVector::makePointMap(*graph->getColMap(),
-                                                    numComp);
-        rowPointMap = RealBlockVector::makePointMap(*graph->getRowMap(),
-                                                    numComp);
-        colMap = Teuchos::rcpFromRef(colPointMap);
-        rowMap = Teuchos::rcpFromRef(rowPointMap);
-    } else {
-        colMap = graph->getColMap();
-        rowMap = graph->getRowMap();
-    }
-
-    const ImportType importer(rowMap, colMap);
-    const Teuchos::ArrayView<const real_t> localIn(in.getSampleDataRO(0),
-                                                in.getNumDataPoints()*numComp);
-    Teuchos::RCP<RealVector> lclData = rcp(new RealVector(rowMap, localIn,
-                                                          localIn.size(), 1));
-    Teuchos::RCP<RealVector> gblData = rcp(new RealVector(colMap, 1));
-    gblData->doImport(*lclData, importer, Tpetra::INSERT);
-    Teuchos::ArrayRCP<const real_t> gblArray(gblData->getData(0));
-
-#pragma omp parallel for
-    for (index_t i = 0; i < numNodes; i++) {
-        const real_t* src = &gblArray[getDofOfNode(i) * numComp];
-        copy(src, src+numComp, out.getSampleDataRW(i));
-    }
-#endif // ESYS_HAVE_TRILINOS
+#endif // ESYS_HAVE_PASO
 }
 
 //protected
