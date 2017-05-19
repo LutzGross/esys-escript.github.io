@@ -38,9 +38,9 @@ struct Connector;
 typedef boost::shared_ptr<Connector> Connector_ptr;
 typedef boost::shared_ptr<const Connector> const_Connector_ptr;
 
-struct Coupler;
-typedef boost::shared_ptr<Coupler> Coupler_ptr;
-typedef boost::shared_ptr<const Coupler> const_Coupler_ptr;
+template<typename Scalar> struct Coupler;
+template<typename T> using Coupler_ptr = boost::shared_ptr<Coupler<T> >;
+template<typename T> using const_Coupler_ptr = boost::shared_ptr<const Coupler<T> >;
 
 PASO_DLL_API
 struct Connector
@@ -95,21 +95,21 @@ struct Connector
 };
 
 
-PASO_DLL_API
+template<typename Scalar>
 struct Coupler
 {
     Coupler(const_Connector_ptr, dim_t blockSize, escript::JMPI mpiInfo);
     ~Coupler();
 
-    void startCollect(const double* in);
-    double* finishCollect();
-    void copyAll(Coupler_ptr target) const;
-    void fillOverlap(dim_t n, double* x);
-    void max(dim_t n, double* x);
+    void startCollect(const Scalar* in);
+    Scalar* finishCollect();
+    void copyAll(Coupler_ptr<Scalar> target) const;
+    void fillOverlap(dim_t n, Scalar* x);
+    void max(dim_t n, Scalar* x);
 
-    inline const double* borrowLocalData() const { return data; }
+    inline const Scalar* borrowLocalData() const { return data; }
 
-    inline const double* borrowRemoteData() const { return recv_buffer; }
+    inline const Scalar* borrowRemoteData() const { return recv_buffer; }
 
     inline dim_t getNumSharedComponents() const
     {
@@ -141,9 +141,9 @@ struct Coupler
     bool in_use;
 
     // unmanaged pointer to data to be sent
-    double* data;
-    double* send_buffer;
-    double* recv_buffer;
+    Scalar* data;
+    Scalar* send_buffer;
+    Scalar* recv_buffer;
     MPI_Request* mpi_requests;
     MPI_Status* mpi_stati;
     escript::JMPI mpi_info;

@@ -320,8 +320,8 @@ public:
     escript::Distribution_ptr col_distribution;
     escript::JMPI mpi_info;
 
-    Coupler_ptr col_coupler;
-    Coupler_ptr row_coupler;
+    Coupler_ptr<real_t> col_coupler;
+    Coupler_ptr<real_t> row_coupler;
 
     /// main block
     SparseMatrix_ptr mainBlock;

@@ -49,8 +49,8 @@ struct FCT_FluxLimiter
     double* MQ;  // (M_C* Q_min, M_C* Q_max)
     double* R;   // (R-, R+)
     //Coupler_ptr MQ_coupler;
-    Coupler_ptr R_coupler;
-    Coupler_ptr u_tilde_coupler;
+    Coupler_ptr<real_t> R_coupler;
+    Coupler_ptr<real_t> u_tilde_coupler;
     double* borrowed_lumped_mass_matrix; // borrowed reference
 };
 

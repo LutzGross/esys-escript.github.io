@@ -158,13 +158,6 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
     } else if (in_data_type == FINLEY_DEGREES_OF_FREEDOM) {
         out.requireWrite();
         if (out_data_type == FINLEY_NODES) {
-            if (in.isComplex()) {
-#ifndef ESYS_HAVE_TRILINOS
-                throw NotImplementedError("Assemble_CopyNodalData: cannot "
-                        "interpolate complex Data from degrees of freedom to "
-                        "nodes without Trilinos at the moment.");
-#endif
-            }
             const_cast<escript::Data*>(&in)->resolve();
             const index_t* target = nodes->borrowTargetDegreesOfFreedom();
 #ifdef ESYS_HAVE_TRILINOS
@@ -201,31 +194,25 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
                 std::copy(src, src+numComps, out.getSampleDataRW(i, zero));
             }
 #elif defined(ESYS_HAVE_PASO)
-            paso::Coupler_ptr coupler(new paso::Coupler(nodes->degreesOfFreedomConnector, numComps, nodes->MPIInfo));
-            coupler->startCollect(in.getDataRO());
-            const double* recv_buffer = coupler->finishCollect();
+            paso::Coupler_ptr<Scalar> coupler(new paso::Coupler<Scalar>(
+                        nodes->degreesOfFreedomConnector, numComps, nodes->MPIInfo));
+            coupler->startCollect(in.getSampleDataRO(0, zero));
+            const Scalar* recv_buffer = coupler->finishCollect();
             const index_t upperBound = nodes->getNumDegreesOfFreedom();
 #pragma omp parallel for
             for (index_t n = 0; n < numOut; n++) {
                 const index_t k = target[n];
                 if (k < upperBound) {
-                    memcpy(out.getSampleDataRW(n), in.getSampleDataRO(k),
+                    memcpy(out.getSampleDataRW(n, zero), in.getSampleDataRO(k, zero),
                            numComps_size);
                 } else {
-                    memcpy(out.getSampleDataRW(n),
+                    memcpy(out.getSampleDataRW(n, zero),
                            &recv_buffer[(k - upperBound) * numComps],
                            numComps_size);
                 }
             }
 #endif // Trilinos / Paso
         } else if (out_data_type == FINLEY_REDUCED_NODES) {
-            if (in.isComplex()) {
-#ifndef ESYS_HAVE_TRILINOS
-                throw NotImplementedError("Assemble_CopyNodalData: cannot "
-                        "interpolate complex Data from degrees of freedom to "
-                        "reduced nodes without Trilinos at the moment.");
-#endif
-            }
             const_cast<escript::Data*>(&in)->resolve();
             const index_t* target = nodes->borrowTargetDegreesOfFreedom();
             const IndexVector& map = nodes->borrowReducedNodesTarget();
@@ -263,9 +250,10 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
                 std::copy(src, src+numComps, out.getSampleDataRW(i, zero));
             }
 #elif defined(ESYS_HAVE_PASO)
-            paso::Coupler_ptr coupler(new paso::Coupler(nodes->degreesOfFreedomConnector, numComps, nodes->MPIInfo));
-            coupler->startCollect(in.getDataRO());
-            const double* recv_buffer = coupler->finishCollect();
+            paso::Coupler_ptr<Scalar> coupler(new paso::Coupler<Scalar>(
+                        nodes->degreesOfFreedomConnector, numComps, nodes->MPIInfo));
+            coupler->startCollect(in.getSampleDataRO(0, zero));
+            const Scalar* recv_buffer = coupler->finishCollect();
             const index_t upperBound = nodes->getNumDegreesOfFreedom();
             const dim_t mapSize = map.size();
 
@@ -273,10 +261,10 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
             for (index_t n = 0; n < mapSize; n++) {
                 const index_t k = target[map[n]];
                 if (k < upperBound) {
-                    memcpy(out.getSampleDataRW(n), in.getSampleDataRO(k),
+                    memcpy(out.getSampleDataRW(n, zero), in.getSampleDataRO(k, zero),
                            numComps_size);
                 } else {
-                    memcpy(out.getSampleDataRW(n),
+                    memcpy(out.getSampleDataRW(n, zero),
                            &recv_buffer[(k-upperBound)*numComps],
                            numComps_size);
                 }
@@ -303,13 +291,6 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
         if (out_data_type == FINLEY_NODES) {
             throw ValueError("Assemble_CopyNodalData: cannot copy from reduced degrees of freedom to nodes.");
         } else if (out_data_type == FINLEY_REDUCED_NODES) {
-            if (in.isComplex()) {
-#ifndef ESYS_HAVE_TRILINOS
-                throw NotImplementedError("Assemble_CopyNodalData: cannot "
-                        "interpolate complex Data from reduced degrees of freedom to "
-                        "reduced nodes without Trilinos at the moment.");
-#endif
-            }
             const_cast<escript::Data*>(&in)->resolve();
             const index_t* target = nodes->borrowTargetReducedDegreesOfFreedom();
             const IndexVector& map = nodes->borrowReducedNodesTarget();
@@ -348,19 +329,20 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
                 std::copy(src, src+numComps, out.getSampleDataRW(i, zero));
             }
 #elif defined(ESYS_HAVE_PASO)
-            paso::Coupler_ptr coupler(new paso::Coupler(nodes->reducedDegreesOfFreedomConnector, numComps, nodes->MPIInfo));
-            coupler->startCollect(in.getDataRO());
+            paso::Coupler_ptr<Scalar> coupler(new paso::Coupler<Scalar>(
+                        nodes->reducedDegreesOfFreedomConnector, numComps, nodes->MPIInfo));
+            coupler->startCollect(in.getSampleDataRO(0, zero));
             const index_t upperBound = nodes->getNumReducedDegreesOfFreedom();
             const dim_t mapSize = map.size();
-            const double *recv_buffer = coupler->finishCollect();
+            const Scalar* recv_buffer = coupler->finishCollect();
 #pragma omp parallel for
             for (index_t n = 0; n < mapSize; n++) {
                 const index_t k = target[map[n]];
                 if (k < upperBound) {
-                    memcpy(out.getSampleDataRW(n), in.getSampleDataRO(k),
+                    memcpy(out.getSampleDataRW(n, zero), in.getSampleDataRO(k, zero),
                            numComps_size);
                 } else {
-                    memcpy(out.getSampleDataRW(n),
+                    memcpy(out.getSampleDataRW(n, zero),
                            &recv_buffer[(k - upperBound) * numComps],
                            numComps_size);
                 }

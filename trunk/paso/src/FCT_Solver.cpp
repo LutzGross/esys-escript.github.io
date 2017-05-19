@@ -57,8 +57,8 @@ FCT_Solver::FCT_Solver(const_TransportProblem_ptr tp, Options* options) :
         du = new double[n];
         z = new double[n];
     }
-    u_coupler.reset(new Coupler(tp->borrowConnector(), blockSize, mpi_info));
-    u_old_coupler.reset(new Coupler(tp->borrowConnector(), blockSize, mpi_info));
+    u_coupler.reset(new Coupler<real_t>(tp->borrowConnector(), blockSize, mpi_info));
+    u_old_coupler.reset(new Coupler<real_t>(tp->borrowConnector(), blockSize, mpi_info));
 
     if (options->ode_solver == PASO_LINEAR_CRANK_NICOLSON) {
         method = PASO_LINEAR_CRANK_NICOLSON;
@@ -491,7 +491,7 @@ void FCT_Solver::setAntiDiffusionFlux_BE(SystemMatrix_ptr flux_matrix)
  */
 void FCT_Solver::setAntiDiffusionFlux_linearCN(SystemMatrix_ptr flux_matrix)
 {
-    const_Coupler_ptr u_tilde_coupler(flux_limiter->u_tilde_coupler);
+    const_Coupler_ptr<real_t> u_tilde_coupler(flux_limiter->u_tilde_coupler);
     const double* u_tilde = u_tilde_coupler->borrowLocalData();
     const double* u_old = u_old_coupler->borrowLocalData();
     const double* remote_u_tilde = u_tilde_coupler->borrowRemoteData();
@@ -663,7 +663,7 @@ void FCT_Solver::setLowOrderOperator(TransportProblem_ptr fc)
  *       = u_i                                        where m_i<=0
  *
  */
-void FCT_Solver::setMuPaLu(double* out, const_Coupler_ptr coupler, double a)
+void FCT_Solver::setMuPaLu(double* out, const_Coupler_ptr<real_t> coupler, double a)
 {
     const_SystemMatrix_ptr L(transportproblem->iteration_matrix);
     const double* M = transportproblem->lumped_mass_matrix;
