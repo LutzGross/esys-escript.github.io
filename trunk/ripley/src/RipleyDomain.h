@@ -868,7 +868,8 @@ protected:
     virtual void nodesToDOF(escript::Data& out, const escript::Data& in) const = 0;
 
     /// converts data on degrees of freedom in 'in' to nodes in 'out'
-    virtual void dofToNodes(escript::Data& out, const escript::Data& in) const;
+    template<typename Scalar>
+    void dofToNodes(escript::Data& out, const escript::Data& in) const;
 
     virtual dim_t getDofOfNode(dim_t node) const = 0;
 
