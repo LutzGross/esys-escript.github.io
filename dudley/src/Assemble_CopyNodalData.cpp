@@ -79,7 +79,7 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
     }
 
     const Scalar zero = static_cast<Scalar>(0);
-    const size_t numComps_size = numComps * sizeof(double);
+    const size_t numComps_size = numComps * sizeof(Scalar);
 
     /**************************** DUDLEY_NODES ******************************/
     if (in_data_type == DUDLEY_NODES) {
