@@ -156,6 +156,7 @@ Package: python-escript-doc
 Architecture: all
 Depends: doc-base,
          libjs-sphinxdoc,
+         sphinx-common,
          ${misc:Depends}
 Recommends: python-escript
 Description: Documentation for Escript/Finley
