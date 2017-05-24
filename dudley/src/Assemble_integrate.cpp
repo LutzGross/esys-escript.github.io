@@ -31,6 +31,10 @@ void Assemble_integrate(const NodeFile* nodes, const ElementFile* elements,
     if (!nodes || !elements)
         return;
 
+    if (data.isLazy() && data.isComplex()) {
+        throw DudleyException("Programming error: attempt to Assemble_integrate using lazy complex data");
+    }    
+    
     const int my_mpi_rank = nodes->MPIInfo->rank;
     const ElementFile_Jacobians* jac = elements->borrowJacobians(nodes,
                                          hasReducedIntegrationOrder(data));

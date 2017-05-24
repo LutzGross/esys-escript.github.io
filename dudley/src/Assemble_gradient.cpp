@@ -31,6 +31,9 @@ void Assemble_gradient(const NodeFile* nodes, const ElementFile* elements,
     if (!nodes || !elements)
         return;
 
+    if (data.isLazy() && data.isComplex()) {
+        throw DudleyException("Programming error: attempt to Assemble_gradient using lazy complex data");
+    }
     const int numComps = data.getDataPointSize();
     const int NN = elements->numNodes;
     const bool reducedIntegrationOrder = hasReducedIntegrationOrder(out);

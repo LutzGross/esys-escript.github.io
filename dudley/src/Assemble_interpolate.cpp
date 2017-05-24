@@ -30,6 +30,10 @@ void Assemble_interpolate(const NodeFile* nodes, const ElementFile* elements,
     if (!nodes || !elements)
         return;
 
+    if (data.isLazy() && data.isComplex()) {
+        throw DudleyException("Programming error: attempt to Assemble_interpolate using lazy complex data");
+    }    
+    
     const int data_type = data.getFunctionSpace().getTypeCode();
     const bool reduced_integration = hasReducedIntegrationOrder(interpolated_data);
 
