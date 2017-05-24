@@ -437,62 +437,75 @@ void Data::init_from_data_and_fs(const Data& inData,
     {
         throw DataException("Error - will not interpolate for instances of DataEmpty.");
     }
+    
     if (inData.getFunctionSpace()==functionspace) {
         set_m_data(inData.m_data);
     } 
     else 
     {
-
-        if (inData.isConstant()) {  // for a constant function, we just need to use the new function space
+        if (inData.isConstant()) 
+        {  // for a constant function, we just need to use the new function space
             if (!inData.probeInterpolation(functionspace))
             { // Even though this is constant, we still need to check whether interpolation is allowed
                 throw FunctionSpaceException("Cannot interpolate across to the domain of the specified FunctionSpace. (DataConstant)");
             }
             // if the data is not lazy, this will just be a cast to DataReady
             DataReady_ptr dr=inData.m_data->resolve();
-	    DataConstant* dc=0;
-	    if (inData.isComplex())
-	    {
+            DataConstant* dc=0;
+            if (inData.isComplex())
+            {
                 dc=new DataConstant(functionspace,inData.m_data->getShape(),dr->getTypedVectorRO((DataTypes::cplx_t)0));     	      
-	    }
-	    else
-	    {
+            }
+            else
+            {
                 dc=new DataConstant(functionspace,inData.m_data->getShape(),dr->getTypedVectorRO((DataTypes::real_t)0));     	      
-	    }
+            }
             set_m_data(DataAbstract_ptr(dc));
-        } else {
-	    if (inData.isComplex())
-	    {
-		Data tmp((DataTypes::cplx_t)0,inData.getDataPointShape(),functionspace,true);
-		// Note: Must use a reference or pointer to a derived object
-		// in order to get polymorphic behaviour. Shouldn't really
-		// be able to create an instance of AbstractDomain but that was done
-		// as a boost:python work around which may no longer be required.
-		/*const AbstractDomain& inDataDomain=inData.getDomain();*/
-		const_Domain_ptr inDataDomain=inData.getDomain();
-		if  (inDataDomain==functionspace.getDomain()) {
-		    inDataDomain->interpolateOnDomain(tmp,inData);
-		} else {
-		    inDataDomain->interpolateAcross(tmp,inData);
-		}
-		set_m_data(tmp.m_data);	      	      
-	    }
-	    else
-	    {
-		Data tmp(0,inData.getDataPointShape(),functionspace,true);
-		// Note: Must use a reference or pointer to a derived object
-		// in order to get polymorphic behaviour. Shouldn't really
-		// be able to create an instance of AbstractDomain but that was done
-		// as a boost:python work around which may no longer be required.
-		/*const AbstractDomain& inDataDomain=inData.getDomain();*/
-		const_Domain_ptr inDataDomain=inData.getDomain();
-		if  (inDataDomain==functionspace.getDomain()) {
-		    inDataDomain->interpolateOnDomain(tmp,inData);
-		} else {
-		    inDataDomain->interpolateAcross(tmp,inData);
-		}
-		set_m_data(tmp.m_data);
-	    }
+        } 
+        else 
+        {
+            if (inData.isComplex())
+            {
+                Data tmp((DataTypes::cplx_t)0,inData.getDataPointShape(),functionspace,true);
+                const_Domain_ptr inDataDomain=inData.getDomain();
+                if  (inDataDomain==functionspace.getDomain()) {
+                    if (inData.isLazy())
+                    {
+                        Data temp(inData);
+                        temp.resolve();     // since complex lazy is not a thing
+                        inDataDomain->interpolateOnDomain(tmp,temp);
+                    }
+                    else
+                    {
+                        inDataDomain->interpolateOnDomain(tmp,inData);
+                    }
+                } 
+                else 
+                {
+                    if (inData.isLazy())
+                    {
+                        Data temp(inData);
+                        temp.resolve();
+                        inDataDomain->interpolateAcross(tmp,temp);
+                    }
+                    else
+                    {
+                        inDataDomain->interpolateAcross(tmp,inData);
+                    }
+                }
+                set_m_data(tmp.m_data);	      	      
+            }
+            else
+            {
+                Data tmp(0,inData.getDataPointShape(),functionspace,true);
+                const_Domain_ptr inDataDomain=inData.getDomain();
+                if  (inDataDomain==functionspace.getDomain()) {
+                    inDataDomain->interpolateOnDomain(tmp,inData);
+                } else {
+                    inDataDomain->interpolateAcross(tmp,inData);
+                }
+                set_m_data(tmp.m_data);
+            }
         }
     }
     m_protected=false;
@@ -1301,8 +1314,17 @@ Data::gradOn(const FunctionSpace& functionspace) const
     grad_shape.push_back(functionspace.getDim());
     Data out(0.0,grad_shape,functionspace,true);
     if (isComplex())
-        out.complicate();
-    getDomain()->setToGradient(out,*this);
+        out.complicate();    
+    if (isLazy() && isComplex())
+    {
+        Data temp(*this);
+        temp.resolve();     // since lazy complex is not a thing       
+        getDomain()->setToGradient(out, temp);
+    } 
+    else
+    {
+        getDomain()->setToGradient(out,*this);
+    }
     return out;
 }
 
@@ -1752,8 +1774,19 @@ Data::integrateWorker() const
     {                             
         throw DataException("Can not integrate over non-continuous domains.");
     }
+   
 #ifdef ESYS_MPI
-    dom->setToIntegrals(integrals_local, *this);
+    if (isLazy() && isComplex())
+    {
+        Data temp(*this);
+        temp.resolve();
+        dom->setToIntegrals(integrals_local, temp);
+    }
+    else
+    {
+        dom->setToIntegrals(integrals_local, *this);
+    }
+    
     // Global sum: use an array instead of a vector because elements of array are guaranteed to be contiguous in memory
     Scalar* tmp = new Scalar[dataPointSize];
     Scalar* tmp_local = new Scalar[dataPointSize];
@@ -1768,7 +1801,16 @@ Data::integrateWorker() const
     delete[] tmp;
     delete[] tmp_local;
 #else
-    dom->setToIntegrals(integrals, *this);
+    if (isLazy() && isComplex())
+    {
+        Data temp(*this);
+        temp.resolve();
+        dom->setToIntegrals(integrals, temp);
+    }
+    else
+    {
+        dom->setToIntegrals(integrals, *this);
+    }
     bp::tuple result = pointToTuple(shape, integrals);
 #endif
 
