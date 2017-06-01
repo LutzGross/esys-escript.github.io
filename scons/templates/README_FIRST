@@ -125,6 +125,13 @@ mpi_prefix = '/usr/lib/openmpi'
 mpi_libs = ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']
   MPI libraries to link against.
 
+mpi_no_host = False
+  This is a work around for a problem with the open-mpi launcher. In some 
+  versions, "--host localhost" would be added to the launch cmd and this
+  would prevent multiple processes from being spawned.
+  You should not need to set this option to True unless you are having
+  said problem.
+
 cuda = True
   Whether to add support for GPU-based ripley system matrix (requires nvcc
   and thrust headers, experimental) [new in 202].  DEFAULT: False
