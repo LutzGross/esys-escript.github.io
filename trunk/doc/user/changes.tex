@@ -16,6 +16,26 @@
 \chapter{Changes from previous releases}
 \label{app:changes}
 
+\subsection*{5.1}
+\begin{itemize}
+  \item Improvements to maths using complex values.
+	  Note: Use the \texttt{promote()} method on Data objects (added in 5.0) to convert them to complex. 
+This does not change the value itself, (eg $7 \rightarrow 7+0j$) but matters for operations like \emph{sqrt} which behave differently with complex inputs.
+  \item Added \texttt{phase} operation to return the angular part/phase/arg of values.
+  \item Improved inversion.
+  \item Corrections to $\cdot\_transpose\_product$ operations.
+  \item Improved ``integration'' testing.
+  \item NetCDF support (if enabled), can now be built with support for netcdf-4 formatted files.
+  See \texttt{scons/templates/README_FIRST} for the options.
+  \item Support for lazy expressions with complex values.
+  \item Solving PDEs with complex coefficients requires Trilinos support.
+  Since escript requires features which are not 
+  compiled in by default, please consult the install guide if you wish to make use of
+  this feature.
+  \item Note that in the $4.2.0.1$ release, the license for the escript source code was changed to ``Apache2''. 
+  This should be less restrictive than the previous license.  
+\end{itemize}
+
 \subsection*{5.0}
 \begin{itemize}
   \item Minimum Python version is now 2.7.
