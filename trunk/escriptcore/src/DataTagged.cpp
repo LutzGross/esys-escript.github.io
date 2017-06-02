@@ -848,12 +848,26 @@ DataTagged::toString() const
   DataMapType::const_iterator i;
   temp << "Tag(Default)" << endl;
   
+  const FunctionSpace& fs=getFunctionSpace();
+  int usedCount=fs.getNumberOfTagsInUse();
+  const int* usedTags=fs.borrowListOfTagsInUse();
+  
   if (isComplex())
   {
   
       temp << pointToString(m_data_c,getShape(),getDefaultOffset(),empty) << endl;
       for (i=m_offsetLookup.begin();i!=m_offsetLookup.end();++i) {
-        temp << "Tag(" << i->first << ")" << endl;
+        temp << "Tag(" << i->first << ")";
+        bool found=false;
+        for (int j=0;j<usedCount;++j) {
+            if (i->first==usedTags[j]) {
+                found=true;
+            }
+        }
+        if (!found) {
+            temp << " - Unused";
+        }
+        temp << endl;
         temp << pointToString(m_data_c,getShape(),i->second,empty) << endl;
       }
   }
@@ -862,7 +876,17 @@ DataTagged::toString() const
   
       temp << pointToString(m_data_r,getShape(),getDefaultOffset(),empty) << endl;
       for (i=m_offsetLookup.begin();i!=m_offsetLookup.end();++i) {
-        temp << "Tag(" << i->first << ")" << endl;
+        temp << "Tag(" << i->first << ")";
+        bool found=false;
+        for (int j=0;j<usedCount;++j) {
+            if (i->first==usedTags[j]) {
+                found=true;
+            }
+        }
+        if (!found) {
+            temp << " - Unused";
+        }
+        temp << endl;
         temp << pointToString(m_data_r,getShape(),i->second,empty) << endl;
       }    
   }
