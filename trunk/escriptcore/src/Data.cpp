@@ -4566,6 +4566,7 @@ Data::toString() const
     int globalNeedSummary=0;
 #endif
     if (!m_data->isEmpty() &&
+        m_data->isExpanded() &&
         !m_data->isLazy() && 
         getLength() > escriptParams.getTooManyLines())
     {
