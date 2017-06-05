@@ -1,0 +1,33 @@
+Description: Enable escript launcher to run in a gaol.
+Author: Joel Fenwick <joelfenwick@uq.edu.au>
+Forwarded: yes
+Applied-Upstream: yes
+
+--- a/SConstruct
++++ b/SConstruct
+@@ -370,7 +370,7 @@ if env['launcher'] == 'default':
+     if env['mpi'] == 'INTELMPI':
+         env['launcher'] = "mpirun -hostfile %f -n %N -ppn %p %b"
+     elif env['mpi'] == 'OPENMPI':
+-        env['launcher'] = "mpirun --gmca mpi_warn_on_fork 0 ${EE} --host %h -bynode -bind-to-core --cpus-per-rank %t -np %N %b"
++        env['launcher'] = "mpirun ${AGENTOVERRIDE} --gmca mpi_warn_on_fork 0 ${EE} --host %h -bynode -bind-to-core --cpus-per-rank %t -np %N %b"
+     elif env['mpi'] == 'MPT':
+         env['launcher'] = "mpirun %h -np %p %b"
+     elif env['mpi'] == 'MPICH':
+--- a/run-escript.in
++++ b/run-escript.in
+@@ -467,6 +467,14 @@ then
+    EXPORT_ENV="$EXPORT_ENV,OMP_NUM_THREADS"
+ fi
+ 
++if [ "$MPI_FLAVOUR" = "OPENMPI" ]
++then
++    if [ -z `which rsh``which ssh` ]
++    then
++        AGENTOVERRIDE="--gmca orte_rsh_agent /bin/false"
++    fi
++fi 
++
+ vlog "Pre-launch command: \"@@PRELAUNCH\""
+ @@PRELAUNCH
+ vlog "Launch command: \"@@LAUNCH\""

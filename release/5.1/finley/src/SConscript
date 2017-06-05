@@ -1,0 +1,126 @@
+
+##############################################################################
+#
+# Copyright (c) 2003-2017 by The University of Queensland
+# http://www.uq.edu.au
+#
+# Primary Business: Queensland, Australia
+# Licensed under the Apache License, version 2.0
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+# Development 2012-2013 by School of Earth Sciences
+# Development from 2014 by Centre for Geoscience Computing (GeoComp)
+#
+##############################################################################
+
+Import('*')
+
+module_name = 'finley'
+
+sources = """
+    Assemble_AverageElementData.cpp
+    Assemble_CopyElementData.cpp
+    Assemble_CopyNodalData.cpp
+    Assemble_LumpedSystem.cpp
+    Assemble_NodeCoordinates.cpp
+    Assemble_PDE.cpp
+    Assemble_PDE_Points.cpp
+    Assemble_PDE_Single_1D.cpp
+    Assemble_PDE_Single_2D.cpp
+    Assemble_PDE_Single_3D.cpp
+    Assemble_PDE_Single_C.cpp
+    Assemble_PDE_System_1D.cpp
+    Assemble_PDE_System_2D.cpp
+    Assemble_PDE_System_3D.cpp
+    Assemble_PDE_System_C.cpp
+    Assemble_addToSystemMatrix.cpp
+    Assemble_getAssembleParameters.cpp
+    Assemble_getNormal.cpp
+    Assemble_getSize.cpp
+    Assemble_gradient.cpp
+    Assemble_integrate.cpp
+    Assemble_interpolate.cpp
+    Assemble_jacobians.cpp
+    DomainFactory.cpp
+    ElementFile.cpp
+    ElementFile_jacobians.cpp
+    FinleyDomain.cpp
+    IndexList.cpp
+    Mesh_addPoints.cpp
+    Mesh_findMatchingFaces.cpp
+    Mesh_getPasoPattern.cpp
+    Mesh_getTrilinosGraph.cpp
+    Mesh_glueFaces.cpp
+    Mesh_hex20.cpp
+    Mesh_hex8.cpp
+    Mesh_joinFaces.cpp
+    Mesh_merge.cpp
+    Mesh_optimizeDOFDistribution.cpp
+    Mesh_read.cpp
+    Mesh_readGmsh.cpp
+    Mesh_rec4.cpp
+    Mesh_rec8.cpp
+    Mesh_write.cpp
+    NodeFile.cpp
+    Quadrature.cpp
+    ReferenceElements.cpp
+    ShapeFunctions.cpp
+    Util.cpp
+""".split()
+
+headers = """
+    Assemble.h
+    DomainFactory.h
+    ElementFile.h
+    Finley.h
+    FinleyDomain.h
+    FinleyException.h
+    FinleyVersion.h
+    IndexList.h
+    NodeFile.h
+    NodeMapping.h
+    Quadrature.h
+    ReferenceElements.h
+    ShapeFunctions.h
+    Util.h
+    ReferenceElementSets.h
+""".split()
+
+local_env = env.Clone()
+
+if IS_WINDOWS:
+    local_env.Append(CPPDEFINES = ['FINLEY_EXPORTS'])
+
+# collect dependencies for other modules
+finleylibs = []
+finleylibs += env['escript_libs']
+if env['parmetis']:
+    finleylibs += env['parmetis_libs']
+if env['paso']:
+    finleylibs += env['paso_libs']
+if env['trilinos']:
+    finleylibs += env['trilinoswrap_libs']
+
+local_env.PrependUnique(LIBS = finleylibs)
+
+env['finley_libs'] = [module_name] + finleylibs
+
+include_path = Dir(module_name, local_env['incinstall'])
+hdr_inst = local_env.Install(include_path, headers)
+
+lib = local_env.SharedLibrary(module_name, sources)
+lib_inst = local_env.Install(local_env['libinstall'], lib)
+
+### Python wrapper ###
+py_env = env.Clone()
+py_env.PrependUnique(LIBS = env['finley_libs'])
+py_lib_name = module_name + 'cpp'
+py_lib = py_env.PythonModule(py_lib_name, 'finleycpp.cpp')
+
+mod_path = Dir(module_name, local_env['pyinstall'])
+mod_inst = py_env.Install(mod_path, py_lib)
+
+build = env.Alias('build_finley', [hdr_inst, lib, py_lib])
+env.Alias('install_finley', [build, lib_inst, mod_inst])
+
