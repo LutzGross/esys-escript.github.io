@@ -20,7 +20,7 @@
 escript_opts_version = 203
 osx_dependency_fix = True
 cc_flags = "-pedantic -Wall -fPIC -Wno-unknown-pragmas -Wno-sign-compare -Wno-system-headers -Wno-long-long -Wno-strict-aliasing"
-cxx_extra = '-Wno-c99-extensions'
+cxx_extra = 'std=c++11 -Wno-c99-extensions'
 #mpi = 'OPENMPI'
 mpi_prefix = '/usr/local'
 mpi_libs = ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']
@@ -29,4 +29,4 @@ cppunit_prefix = '/usr/local'
 netcdf = True
 netcdf_prefix = '/usr/local'
 netcdf_libs = ['netcdf_c++', 'netcdf']
-
+werror = False
