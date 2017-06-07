@@ -235,7 +235,7 @@ scons -j1 options_file=scons/templates/centos7_0_options.py
 \noindent Now go to Section~\ref{sec:cleanup} for cleanup.
 
 \subsection{Fedora}\label{sec:fedorasrc}
-These instructions were prepared using release $21.5$.
+These instructions were prepared using the $26$ alpha.
 
 \noindent Install packages
 \begin{shellCode}
@@ -247,12 +247,12 @@ yum install boost-devel
 \noindent Now to build escript itself.
 In the escript source directory:
 \begin{shellCode}
-scons -j1 options_file=scons/templates/fedora21_5_options.py
+scons -j1 options_file=scons/templates/fedora_options.py
 \end{shellCode}
 
 \noindent If you wish to test your build, you can use the following:
 \begin{shellCode}
-scons -j1 py_tests options_file=scons/templates/fedora21_5_options.py 
+scons -j1 py_tests options_file=scons/templates/fedora_options.py 
 \end{shellCode}
 
 \noindent Now go to Section~\ref{sec:cleanup} for cleanup.
