@@ -179,34 +179,24 @@ scons -j1 py_tests options_file=scons/templates/XXXX_options.py
 
 
 \subsection{OpenSuse}\label{sec:susesrc}
-These instructions were prepared using release $13.2$.
+These instructions were prepared using version $42$ of Leap.
 
 \noindent Install packages from the main distribution:
 \begin{shellCode}
-sudo zypper in libboost_python1_54_0 libboost_random1_54_0 
 sudo zypper in python-devel python-numpy libnetcdf_c++-devel
 sudo zypper in python-scipy python-sympy python-matplotlib 
 sudo zypper in gcc gcc-c++ scons boost-devel netcdf-devel
-\end{shellCode}
-These will allow you to use most features except some parts of the \downunder inversion library.
-If you wish to use those, you will need some additional packages [python-pyproj, python-gdal].
-This can be done now or after Escript installation.
-
-\begin{shellCode}
-sudo zypper addrepo \ 
- http://ftp.suse.de/pub/opensuse/repositories/Application:/Geo/openSUSE_13.2/ osgf
-sudo zypper install python-pyproj python-gdal
 \end{shellCode}
 
 Now to build escript itself.
 In the escript source directory:
 \begin{shellCode}
-scons -j1 options_file=scons/templates/opensuse13.1_options.py
+scons -j1 options_file=scons/templates/opensuse_options.py
 \end{shellCode}
 
 \noindent If you wish to test your build, you can use the following:
 \begin{shellCode}
-scons -j1 py_tests options_file=scons/templates/opensuse13.1_options.py 
+scons -j1 py_tests options_file=scons/templates/opensuse_options.py 
 \end{shellCode}
 
 \noindent Now go to Section~\ref{sec:cleanup} for cleanup.
