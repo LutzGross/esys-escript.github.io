@@ -233,6 +233,91 @@ DataConstant::replaceNaN(DataTypes::cplx_t value)
     }
 }
 
+bool DataConstant::hasInf() const
+{
+    bool haveNaN=false;
+    if (isComplex())
+    {
+        #pragma omp parallel for
+        for (DataTypes::CplxVectorType::size_type i=0;i<m_data_c.size();++i)
+        {
+            if (std::isinf(m_data_c[i].real()) || std::isinf(m_data_c[i].imag()))
+            {
+                #pragma omp critical 
+                {
+                    haveNaN=true;
+                }
+            }
+        }
+    }
+    else
+    {
+        #pragma omp parallel for
+        for (DataTypes::RealVectorType::size_type i=0;i<m_data_r.size();++i)
+        {
+            if (std::isinf(m_data_r[i]))
+            {
+                #pragma omp critical 
+                {
+                    haveNaN=true;
+                }
+            }
+        }
+    }
+    return haveNaN;
+}
+
+void
+DataConstant::replaceInf(double value)
+{
+    CHECK_FOR_EX_WRITE  
+    if (isComplex())
+    {
+      #pragma omp parallel for
+      for (DataTypes::CplxVectorType::size_type i=0;i<m_data_c.size();++i)
+      {
+        if (std::isinf(m_data_c[i].real()) || std::isinf(m_data_c[i].imag()))  
+        {
+          m_data_c[i] = value;
+        }
+      }
+    }
+    else
+    {
+      #pragma omp parallel for
+      for (DataTypes::RealVectorType::size_type i=0;i<m_data_r.size();++i)
+      {
+        if (std::isinf(m_data_r[i]))  
+        {
+          m_data_r[i] = value;
+        }
+      }    
+    }
+}
+
+void
+DataConstant::replaceInf(DataTypes::cplx_t value)
+{
+    CHECK_FOR_EX_WRITE  
+    if (isComplex())
+    {
+      #pragma omp parallel for
+      for (DataTypes::CplxVectorType::size_type i=0;i<m_data_c.size();++i)
+      {
+        if (std::isinf(m_data_c[i].real()) || std::isinf(m_data_c[i].imag())) 
+        {
+          m_data_c[i] = value;
+        }
+      }
+    }
+    else
+    {
+      complicate();
+      replaceInf(value);
+    }
+}
+
+
 string DataConstant::toString() const
 {
     if (isComplex())

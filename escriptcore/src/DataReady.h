@@ -129,6 +129,28 @@ public:
   ESCRIPT_DLL_API
   virtual void
   replaceNaN(DataTypes::cplx_t value) = 0;  
+
+  /**
+   \brief Return true if data contains Inf or -Inf 
+  */
+  ESCRIPT_DLL_API
+  virtual bool
+  hasInf() const=0;
+
+  /**
+  \brief replaces all (+/-)Inf values with value 
+  */
+  ESCRIPT_DLL_API
+  virtual void
+  replaceInf(DataTypes::real_t value) = 0;
+  
+  /**
+  \brief replaces all (+/-)Inf values with value 
+  */
+  ESCRIPT_DLL_API
+  virtual void
+  replaceInf(DataTypes::cplx_t value) = 0;  
+
   
   /**
      \brief
