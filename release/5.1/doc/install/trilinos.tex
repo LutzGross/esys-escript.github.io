@@ -32,9 +32,7 @@ The following packages should be installed to attempt this build:
 
 \begin{verbatim}
 #!/bin/sh
-
 # SuperLu has build issues and escript doesn't _need_ it.
-
 DIR=build_hybrid
 ROOT=`pwd`
 mkdir -p $DIR || exit 1
@@ -60,7 +58,8 @@ cmake -D CMAKE_CXX_COMPILER=`which mpic++` \
       -D TPL_ENABLE_UMFPACK=ON \
       -D TPL_BLAS_INCLUDE_DIRS=/usr/include/suitesparse \
       -D TPL_Cholmod_INCLUDE_DIRS=/usr/include/suitesparse \
-      -D TPL_Cholmod_LIBRARIES='/usr/lib/x86_64-linux-gnu/libcholmod.so;/usr/lib/x86_64-linux-gnu/libamd.so;/usr/lib/x86_64-linux-gnu/libcolamd.so' \
+      -D TPL_Cholmod_LIBRARIES='/usr/lib/x86_64-linux-gnu/libcholmod.so;\
+/usr/lib/x86_64-linux-gnu/libamd.so;/usr/lib/x86_64-linux-gnu/libcolamd.so' \
       -D TPL_SuperLU_INCLUDE_DIRS=/usr/include/superlu \
       -D TPL_UMFPACK_INCLUDE_DIRS=/usr/include/suitesparse \
       -D TPL_SCALAPACK_LIBRARIES=/usr/lib/libscalapack-openmpi.so \
