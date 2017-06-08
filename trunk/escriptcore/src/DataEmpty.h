@@ -169,6 +169,35 @@ typedef DataReady parent;
   {
   
   }  
+  
+  /**
+   \brief Return true if data contains Inf or -Inf 
+  */
+  ESCRIPT_DLL_API
+  bool
+  hasInf() const
+  {
+      return false;
+  }
+
+  /**
+  \brief replaces all (+/-)Inf values with value 
+  */
+  ESCRIPT_DLL_API
+  void
+  replaceInf(DataTypes::real_t value)
+  {
+  }
+  
+  /**
+  \brief replaces all (+/-)Inf values with value 
+  */
+  ESCRIPT_DLL_API
+  void
+  replaceInf(DataTypes::cplx_t value) 
+  {
+  }
+  
 
  protected:
 

@@ -175,6 +175,28 @@ TODO Note that this constructor will also copy data to all points if it only con
   ESCRIPT_DLL_API
   void
   replaceNaN(DataTypes::cplx_t value);
+  
+  /**
+   \brief Return true if data contains Inf or -Inf 
+  */
+  ESCRIPT_DLL_API
+  virtual bool
+  hasInf() const;
+
+  /**
+  \brief replaces all (+/-)Inf values with value 
+  */
+  ESCRIPT_DLL_API
+  virtual void
+  replaceInf(DataTypes::real_t value);
+  
+  /**
+  \brief replaces all (+/-)Inf values with value 
+  */
+  ESCRIPT_DLL_API
+  virtual void
+  replaceInf(DataTypes::cplx_t value);     
+  
     
   /**
      \brief
