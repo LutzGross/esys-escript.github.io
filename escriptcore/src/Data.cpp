@@ -2394,6 +2394,51 @@ Data::replaceNaNPython(boost::python::object obj)
     }
 }
 
+bool
+Data::hasInf()
+{
+    if (isLazy())
+    {
+        resolve();
+    }
+    bool haveInf=getReady()->hasInf(); 
+    return haveInf;
+}
+
+void
+Data::replaceInf(real_t value)
+{
+    if (isLazy())
+    {
+        resolve();
+    }
+    getReady()->replaceInf(value); 
+}
+
+void
+Data::replaceInf(cplx_t value)
+{
+    if (isLazy())
+    {
+        resolve();
+    }
+    getReady()->replaceInf(value); 
+}
+
+void
+Data::replaceInfPython(boost::python::object obj)
+{
+    boost::python::extract<DataTypes::real_t> exr(obj);
+    if (exr.check())
+    {
+	replaceInf(exr());
+    }
+    else
+    {
+	replaceInf(boost::python::extract<DataTypes::cplx_t>(obj)());
+    }
+}
+
 // Do not call this on Lazy Data use the proper entry point
 real_t
 Data::LsupWorker() const
