@@ -504,6 +504,8 @@ args("arg"), "assigns new location to the domain\n\n"
     .def("expand",&escript::Data::expand,"Convert the data to expanded representation if it is not expanded already.")
     .def("hasNaN",&escript::Data::hasNaN,"Returns return true if data contains NaN.")
     .def("replaceNaN",&escript::Data::replaceNaNPython,args("value"),"Replaces NaN values with value")
+    .def("hasInf",&escript::Data::hasInf,"Returns return true if data contains +-Inf.")
+    .def("replaceInf",&escript::Data::replaceInfPython,args("value"),"Replaces +-Inf values with value")
     .def("tag",&escript::Data::tag,"Convert data to tagged representation if it is not already tagged or expanded")
     .def("resolve",&escript::Data::resolve,"Convert the data to non-lazy representation.")
     .def("copy",&escript::Data::copy,args("other"),"Make this object a copy of ``other``\n"

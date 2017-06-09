@@ -372,7 +372,17 @@ class Data {
   void
   replaceNaNPython(boost::python::object obj);  
 
+  bool
+  hasInf();
 
+  void
+  replaceInf(DataTypes::real_t value);
+
+  void
+  replaceInf(DataTypes::cplx_t value);
+
+  void
+  replaceInfPython(boost::python::object obj);
   
 
   /**
