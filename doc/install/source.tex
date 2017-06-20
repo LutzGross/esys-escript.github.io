@@ -39,9 +39,9 @@ See Appendix~\ref{app:cxxfeatures} for a list.
 
 Our current test compilers include:
 \begin{itemize}
- \item g++ (5 and 6)
- \item clang++ (OSX 10.11 default)
- \item intel icpc v15, v16
+ \item g++ 6
+ \item clang++ 7
+ \item intel icpc v17
 \end{itemize}
 
 Note that:
@@ -73,22 +73,15 @@ If not, then consult the documentation for your MPI libraries (or the compiler d
 If you are using MacOSX, then see the next section, if not, then skip to Section~\ref{sec:build}.
 
 \section{MacOS}
-This release of \escript has only been tested on OSX 10.11.
+This release of \escript has only been tested on OSX 10.11 and 10.12.
 For this section we assume you are using either \texttt{homebrew} or \texttt{MacPorts} as a package 
 manager\footnote{Note that package managers will make changes to your computer based on programs configured by other people from 
 various places around the internet. It is important to satisfy yourself as to the security of those systems.}.
 You can of course install prerequisite software in other ways.
 For example, we have had \emph{some} success changing the default 
 compilers used by those systems. However this is more complicated and we do not provide a guide here.
-Successful combinations of OSX and package managers are given in the table below.
 
-\begin{center}
-\begin{tabular}{|c|c|c|}\hline
- & \texttt{homebrew} & \texttt{MacPorts} \\\hline
-OSX 10.9 & Yes & No\\\hline
-OSX 10.10& Yes & Yes\\\hline
-\end{tabular}
-\end{center}
+This release has been tested with MacPorts on OSX 10.11 and 10.12 and Homebrew on OSX10.12.
 
 \noindent Both of those systems require the XCode command line tools to be installed\footnote{As of OSX10.9, the 
 command \texttt{xcode-select --install} will allow you to download and install the commandline tools.}.
@@ -186,40 +179,30 @@ scons -j1 py_tests options_file=scons/templates/XXXX_options.py
 
 
 \subsection{OpenSuse}\label{sec:susesrc}
-These instructions were prepared using release $13.2$.
+These instructions were prepared using version $42$ of Leap.
 
 \noindent Install packages from the main distribution:
 \begin{shellCode}
-sudo zypper in libboost_python1_54_0 libboost_random1_54_0 
 sudo zypper in python-devel python-numpy libnetcdf_c++-devel
 sudo zypper in python-scipy python-sympy python-matplotlib 
 sudo zypper in gcc gcc-c++ scons boost-devel netcdf-devel
-\end{shellCode}
-These will allow you to use most features except some parts of the \downunder inversion library.
-If you wish to use those, you will need some additional packages [python-pyproj, python-gdal].
-This can be done now or after Escript installation.
-
-\begin{shellCode}
-sudo zypper addrepo \ 
- http://ftp.suse.de/pub/opensuse/repositories/Application:/Geo/openSUSE_13.2/ osgf
-sudo zypper install python-pyproj python-gdal
 \end{shellCode}
 
 Now to build escript itself.
 In the escript source directory:
 \begin{shellCode}
-scons -j1 options_file=scons/templates/opensuse13.1_options.py
+scons -j1 options_file=scons/templates/opensuse_options.py
 \end{shellCode}
 
 \noindent If you wish to test your build, you can use the following:
 \begin{shellCode}
-scons -j1 py_tests options_file=scons/templates/opensuse13.1_options.py 
+scons -j1 py_tests options_file=scons/templates/opensuse_options.py 
 \end{shellCode}
 
 \noindent Now go to Section~\ref{sec:cleanup} for cleanup.
 
 \subsection{CentOS}\label{sec:centossrc}
-These instructions were prepared using CentOS release $7.0$.
+These instructions were prepared using CentOS release $7$ (from late 2016).
 The core of escript works, however some functionality is not available because the default packages for some dependencies in CentOS are too old.
 
 \noindent Add the \texttt{EPEL} repository.
@@ -252,7 +235,7 @@ scons -j1 options_file=scons/templates/centos7_0_options.py
 \noindent Now go to Section~\ref{sec:cleanup} for cleanup.
 
 \subsection{Fedora}\label{sec:fedorasrc}
-These instructions were prepared using release $21.5$.
+These instructions were prepared using the $26$ alpha.
 
 \noindent Install packages
 \begin{shellCode}
@@ -264,19 +247,19 @@ yum install boost-devel
 \noindent Now to build escript itself.
 In the escript source directory:
 \begin{shellCode}
-scons -j1 options_file=scons/templates/fedora21_5_options.py
+scons -j1 options_file=scons/templates/fedora_options.py
 \end{shellCode}
 
 \noindent If you wish to test your build, you can use the following:
 \begin{shellCode}
-scons -j1 py_tests options_file=scons/templates/fedora21_5_options.py 
+scons -j1 py_tests options_file=scons/templates/fedora_options.py 
 \end{shellCode}
 
 \noindent Now go to Section~\ref{sec:cleanup} for cleanup.
 
-\subsection{MacOS 10.10 (macports)}\label{sec:macportsrc}
+\subsection{MacOS 10.10 and later (macports)}\label{sec:macportsrc}
 
-The following will install the capabilities needed for the \texttt{macports_10.10_options.py} file.
+The following will install the capabilities needed for the \texttt{macports_10.10_options.py} file (later versions can use the same options file).
 
 \begin{shellCode}
 sudo port install scons
@@ -289,7 +272,7 @@ sudo port install py27-scipy
 sudo port install py27-pyproj
 sudo port install py27-gdal
 sudo port install netcdf-cxx
-sudo port instal silo
+sudo port install silo
 \end{shellCode}
 
 \begin{shellCode}
@@ -297,7 +280,7 @@ scons -j1 options_file=scons/templates/macports_10.10options.py
 \end{shellCode}
 
 
-\subsection{MacOS 10.9, 10.10 (homebrew)}\label{sec:homebrewsrc}
+\subsection{MacOS 10.10 and later (homebrew)}\label{sec:homebrewsrc}
 
 The following will install the capabilities needed for the \texttt{homebrew_10.10_options.py} file.
 OSX 10.9 can use the same file.
@@ -458,14 +441,12 @@ plug-in to allow direct visualisation of escript simulations.
 
 
 \subsection{Trilinos}
-\escript has now some support for Trilinos\footnote{\url{https://trilinos.org/}}
+\escript now has some support for Trilinos\footnote{\url{https://trilinos.org/}}
 solvers and preconditioners.
 The most significant limitation is that the current Trilinos release does not
 support block matrices so \escript can only use Trilinos solvers for single
 PDEs (i.e. no PDE systems).
 
 If your distribution does not provide Trilinos packages you can build a working
-version from source.
-\ldots
-%provide cmake command here
+version from source. (See Appendix~\ref{app:trilinos})
 

@@ -19,4 +19,8 @@
 
 escript_opts_version = 203
 openmp = True
-
+boost_libs = ['boost_python']
+pythonlibpath = ['/usr/lib64']
+pythonlibname = ['python2.7']
+pythonincpath = ['/usr/include/python']
+netcdf = True
