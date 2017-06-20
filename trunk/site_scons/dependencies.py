@@ -161,6 +161,9 @@ def checkPython(env):
     if env['pythonincpath'] != '':
         python_inc_path = env['pythonincpath']
 
+    if env['pythonlibname'] != '':
+        python_libs = env['pythonlibname']
+
     conf = Configure(env.Clone())
 
     if env['sysheaderopt'] == '':
