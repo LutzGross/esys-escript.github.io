@@ -166,7 +166,6 @@ class Test_util_reduction_new(Test_util_base, Test_util_values):
     # It would be a bit tricky to reformulate this into the new form 
     # This will not test all possible type combinations 
     def test_InfReduction_constData_rank4(self):
-        # Have not actually worked on this bit yet
         oarg=Data(numpy.array([[[[0.50544713768476202, 0.96922321849050874, -0.81524480218696649, -0.36499730379849193], 
 [-0.48131882706974372, 0.026812357207576465, 0.090903267401989618, -0.24742363369877829], [-0.51631372893805438, 
 0.30410275437953183, -0.75149566289642533, -0.19930300338453599]], [[0.82034878499482788, -0.70904661587698792, 
@@ -183,20 +182,17 @@ class Test_util_reduction_new(Test_util_base, Test_util_values):
 [0.2228614880408597, 0.26944547311401901, -0.10122095357202965, -0.51019076850180589], [-0.081439546799124463, 
 0.18829632566943544, 0.12366885442775377, 0]]]]),self.functionspace)
         arg=1/oarg       #will get us an inf
-        arg=arg/arg     #will give a NaN in the last position, yes we could have just sqrt(arg) but I wanted last pos
-        self.assertTrue(numpy.isnan(sup(arg)),"wrong result")
-        self.assertTrue(numpy.isnan(inf(arg)),"wrong result")
-        self.assertTrue(numpy.isnan(Lsup(arg)),"wrong result")
-        arg=(1+0j)/oarg
-        arg=arg/arg     #will give a NaN in the last position, yes we could have just sqrt(arg) but I wanted last pos
+        self.assertTrue(numpy.isinf(sup(arg)),"wrong result")
+        self.assertTrue(numpy.isinf(Lsup(arg)),"wrong result")
+        arg=(1+1j)/oarg         # Why not just 1+0j? ... because that gives inf+nanJ ... Just don't
         self.assertRaises(RuntimeError,sup, arg)
         self.assertRaises(RuntimeError,inf, arg)
-        self.assertTrue(numpy.isnan(Lsup(arg)),"wrong result")
+        self.assertTrue(numpy.isinf(Lsup(arg)),"wrong result")
         # Now testing tagged
         arg.tag()
         self.assertRaises(RuntimeError,sup, arg)
         self.assertRaises(RuntimeError,inf, arg)
-        self.assertTrue(numpy.isnan(Lsup(arg)),"wrong result")        
+        self.assertTrue(numpy.isinf(Lsup(arg)),"wrong result")        
                 
     def test_InfReduction_expandedData_rank4(self):
         # Have not actually worked on this bit yet
@@ -216,17 +212,14 @@ class Test_util_reduction_new(Test_util_base, Test_util_values):
 [0.2228614880408597, 0.26944547311401901, -0.10122095357202965, -0.51019076850180589], [-0.081439546799124463, 
 0.18829632566943544, 0.12366885442775377, 0]]]]),self.functionspace, True)
         arg=1/oarg       #will get us an inf
-        arg=arg/arg     #will give a NaN in the last position, yes we could have just sqrt(arg) but I wanted last pos
-        self.assertTrue(numpy.isnan(sup(arg)),"wrong result")
-        self.assertTrue(numpy.isnan(inf(arg)),"wrong result")
-        self.assertTrue(numpy.isnan(Lsup(arg)),"wrong result") 
+        self.assertTrue(numpy.isinf(sup(arg)),"wrong result")
+        self.assertTrue(numpy.isinf(Lsup(arg)),"wrong result") 
         oarg.resolve()  # to prevent autolazy and complex interfering
-        arg=(1+0j)/oarg
+        arg=(1+1j)/oarg
         arg.resolve() # to prevent autolazy and complex interfering
-        arg=arg/arg     #will give a NaN in the last position, yes we could have just sqrt(arg) but I wanted last pos
         self.assertRaises(RuntimeError,sup, arg)
         self.assertRaises(RuntimeError,inf, arg)
-        self.assertTrue(numpy.isnan(Lsup(arg)),"wrong result")        
+        self.assertTrue(numpy.isinf(Lsup(arg)),"wrong result")        
     
 
         

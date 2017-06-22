@@ -502,10 +502,10 @@ args("arg"), "assigns new location to the domain\n\n"
     .def("isComplex", &escript::Data::isComplex,":rtype: ``bool``\n"
 	":return: True if this ``Data`` stores complex values.")
     .def("expand",&escript::Data::expand,"Convert the data to expanded representation if it is not expanded already.")
-    .def("hasNaN",&escript::Data::hasNaN,"Returns return true if data contains NaN.")
-    .def("replaceNaN",&escript::Data::replaceNaNPython,args("value"),"Replaces NaN values with value")
-    .def("hasInf",&escript::Data::hasInf,"Returns return true if data contains +-Inf.")
-    .def("replaceInf",&escript::Data::replaceInfPython,args("value"),"Replaces +-Inf values with value")
+    .def("hasNaN",&escript::Data::hasNaN,"Returns return true if data contains NaN. [Note that for complex values, hasNaN and hasInf are not mutually exclusive.]")
+    .def("replaceNaN",&escript::Data::replaceNaNPython,args("value"),"Replaces NaN values with value. [Note, for complex Data, both real and imaginary components are replaced even if only one part is NaN].")
+    .def("hasInf",&escript::Data::hasInf,"Returns return true if data contains +-Inf.  [Note that for complex values, hasNaN and hasInf are not mutually exclusive.]")
+    .def("replaceInf",&escript::Data::replaceInfPython,args("value"),"Replaces +-Inf values with value. [Note, for complex Data, both real and imaginary components are replaced even if only one part is Inf].")
     .def("tag",&escript::Data::tag,"Convert data to tagged representation if it is not already tagged or expanded")
     .def("resolve",&escript::Data::resolve,"Convert the data to non-lazy representation.")
     .def("copy",&escript::Data::copy,args("other"),"Make this object a copy of ``other``\n"
