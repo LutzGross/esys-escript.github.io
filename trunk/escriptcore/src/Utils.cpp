@@ -262,6 +262,7 @@ int waitForCompletion(int sfd, int key)
 
     fd_set all, valid;
     FD_ZERO(&all);
+    FD_ZERO(&valid);
     FD_SET(sfd, &all);
     time_t last_good_time = time(NULL);
     unsigned int maxfd = sfd;
