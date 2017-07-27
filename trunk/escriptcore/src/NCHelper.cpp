@@ -14,9 +14,49 @@
 *
 *****************************************************************************/
 
-#ifdef NETCDF4
-#include "NCHelper.h"
 #include <fstream>
+#ifdef NETCDF4
+  #include "NCHelper.h"
+#endif
+
+char NcFType(const std::string& name)
+{
+    // since we don't have a parameter path for specifying file type
+    // we'll look at the magic numbers
+    std::ifstream f(name.c_str());
+    if (!f)
+    {
+        return '?';
+    }
+    char buff[5];
+    f.read(buff, 4);
+    if (!f)
+    {
+        return false;
+    }
+    buff[4]=0;
+    if (strcmp(buff, "CDF\x01")==0)
+    {
+        return 'c';
+    }
+    else if (strcmp(buff, "CDF\x02")==0)
+    {
+        return 'C';
+    }
+#ifdef NETCDF4          // if you don't support v4, we won't report it   
+    else if (strncmp(buff, "HD5", 3)==0)
+    {
+        return '4';
+    }
+#endif    
+    else
+    {
+        return '?';
+    }
+}
+
+
+#ifdef NETCDF4
 
 using namespace netCDF;
 
@@ -24,36 +64,15 @@ bool openNcFile(netCDF::NcFile& ncf, const std::string& name)
 {
     try
     {
-        // since we don't have a parameter path for specifying file type
-        // we'll look at the magic numbers
-        std::ifstream f(name.c_str());
-        if (!f)
+        char type=NcFType(name);
+        NcFile::FileFormat fm=NcFile::FileFormat::classic;        
+        switch (type)
         {
-            return false;
-        }
-        char buff[5];
-        f.read(buff, 4);
-        if (!f)
-        {
-            return false;
-        }
-        buff[4]=0;
-        NcFile::FileFormat fm=NcFile::FileFormat::classic;
-        if (strcmp(buff, "CDF\x01")==0)
-        {
-            fm=NcFile::FileFormat::classic;
-        }
-        else if (strcmp(buff, "CDF\x02")==0)
-        {
-            fm=NcFile::FileFormat::classic64;
-        }
-        else if (strncmp(buff, "HD5", 3)==0)
-        {
-            fm=NcFile::FileFormat::nc4;     // using this rather than nc4classic since we don't intend to write into the file
-        }
-        else
-        {
-            return false;
+            case 'c':    fm=NcFile::FileFormat::classic; break;
+            case 'C':    fm=NcFile::FileFormat::classic64; break;
+            case '4':    fm=NcFile::FileFormat::nc4; break;    // using this rather than nc4classic since we don't intend to write into the file
+            default:
+                return false;
         }
         ncf.open(name.c_str(), NcFile::FileMode::read, fm);
     }
