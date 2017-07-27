@@ -17,13 +17,14 @@
 #ifndef __ESCRIPT_NCHELPER_H__
 #define __ESCRIPT_NCHELPER_H__
 
+#include <string>
+char NcFType(const std::string& name);
+
+
 #ifdef NETCDF4
 #include <ncFile.h>
 #include <fstream>
-#include <string>
-
 bool openNcFile(netCDF::NcFile& f, const std::string& name);
-
 
 #endif
 
