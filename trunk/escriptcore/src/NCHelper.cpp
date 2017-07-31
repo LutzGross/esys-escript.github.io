@@ -14,6 +14,7 @@
 *
 *****************************************************************************/
 
+#include <cstring>
 #include <fstream>
 #ifdef NETCDF4
   #include "NCHelper.h"
