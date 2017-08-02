@@ -236,7 +236,7 @@ bool DataVar::initFromFile(const string& filename, const_DomainChunk_ptr dom)
 #if ESYS_HAVE_NETCDF
 
     NcFile input;
-    if (!openNcFile(input, filename))
+    if (!escript::openNcFile(input, filename))
     {
         cerr << "Could not open input file " << filename << "." << endl;
         return false;

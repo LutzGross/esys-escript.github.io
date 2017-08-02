@@ -17,15 +17,18 @@
 #ifndef __ESCRIPT_NCHELPER_H__
 #define __ESCRIPT_NCHELPER_H__
 
+namespace escript
+{
 #include <string>
 char NcFType(const std::string& name);
-
+}
 
 #ifdef NETCDF4
 #include <ncFile.h>
-#include <fstream>
+namespace escript
+{
 bool openNcFile(netCDF::NcFile& f, const std::string& name);
-
+}
 #endif
 
 #endif

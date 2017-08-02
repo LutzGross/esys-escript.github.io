@@ -16,10 +16,14 @@
 
 #include <cstring>
 #include <fstream>
+#include <cstring>
 #ifdef NETCDF4
   #include "NCHelper.h"
 #endif
 
+
+namespace escript
+{
 char NcFType(const std::string& name)
 {
     // since we don't have a parameter path for specifying file type
@@ -29,27 +33,28 @@ char NcFType(const std::string& name)
     {
         return '?';
     }
-    char buff[5];
-    f.read(buff, 4);
+    char buff[10];
+    f.read(buff, 9);
     if (!f)
     {
-        return false;
+        return '?';
     }
-    buff[4]=0;
-    if (strcmp(buff, "CDF\x01")==0)
+    buff[9]=0;
+    if (strncmp(buff, "CDF\x01",4)==0)
     {
         return 'c';
     }
-    else if (strcmp(buff, "CDF\x02")==0)
+    else if (strncmp(buff, "CDF\x02",4)==0)
     {
         return 'C';
     }
-#ifdef NETCDF4          // if you don't support v4, we won't report it   
-    else if (strncmp(buff, "HD5", 3)==0)
-    {
+    else if (strncmp(buff, "\x89HDF\r\n\x1a\n", 8)==0)
+    {        
+#ifdef NETCDF4                   
         return '4';
-    }
 #endif    
+        return 'u';
+    }
     else
     {
         return '?';
@@ -85,4 +90,6 @@ bool openNcFile(netCDF::NcFile& ncf, const std::string& name)
 }
 
 
+
 #endif
+}
