@@ -291,7 +291,7 @@ void Rectangle::readNcGrid(escript::Data& out, string filename, string varname,
         throw ValueError("readNcGrid(): argument 'reverse' must have 2 entries");
 
     NcFile f;
-    if (!openNcFile(f, filename))
+    if (!escript::openNcFile(f, filename))
     {
         throw RipleyException("readNcGrid(): cannot open file");
     }       

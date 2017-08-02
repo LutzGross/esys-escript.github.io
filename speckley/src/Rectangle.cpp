@@ -245,7 +245,7 @@ void Rectangle::readNcGrid(escript::Data& out, std::string filename,
 
     // check file existence and size
     NcFile f;
-    if (!openNcFile(f, filename))
+    if (!escript::openNcFile(f, filename))
     {
         throw SpeckleyException("readNcGrid(): cannot open file");
     }       

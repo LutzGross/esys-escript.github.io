@@ -32,6 +32,7 @@ __all__ = ['DataSource', 'ErMapperData', 'NumpyData', \
 import logging
 import numpy as np
 import tempfile
+import esys.escript as es
 from esys.escript import ReducedFunction, FunctionOnBoundary, Scalar
 from esys.escript import unitsSI as U
 from esys.escript.linearPDEs import LinearSinglePDE
@@ -586,8 +587,20 @@ class NetCdfData(DataSource):
 
     def __readMetadata(self, error):
         self.logger.debug("Checking Data Source: %s"%self.__filename)
-        f=netcdf_file(self.__filename, 'r')
-
+        
+        #first check what sort of file we are dealing with
+        nct=es.NcFType(self.__filename)
+        if nct=='u':
+            raise RuntimeError('Unsupported filetype for '+str(self.__filename))            
+        elif nct=='C' or nct=='c':
+            nct=3
+            f=netcdf_file(self.__filename, 'r')
+        elif nct=='4':
+            nct=4
+            import netCDF4 as nc4
+            f=nc4.Dataset(self.__filename, 'r')
+        else:
+            raise RuntimeError('Unable to determine type of file '+str(self.__filename)+" "+nct)
         ### longitude- / X-dimension and variable
         NX=0
         for n in ['lon','longitude','x']:
@@ -617,6 +630,10 @@ class NetCdfData(DataSource):
             raise RuntimeError("Could not determine latitude variable")
         latitude=f.variables.pop(lat_name)
 
+        # correct for netCDF4 having a different type
+        if nct==4:
+            NX=NX.size
+            NY=NY.size
         ### data variable
         if self.__data_name is not None:
             try:
@@ -697,11 +714,14 @@ class NetCdfData(DataSource):
                 self.logger.debug("wkt_string is: %s"%wkt_string)
             except:
                 self.logger.debug("no wkt_string found!")
-
         # actual_range & geospatial_lon_min/max do not always contain correct
         # values so we have to obtain the min/max in a less efficient way:
-        lon_range=longitude.data.min(),longitude.data.max()
-        lat_range=latitude.data.min(),latitude.data.max()
+        if nct==4:
+            lon_range=min(longitude),max(longitude)
+            lat_range=min(latitude),max(latitude)
+        else:
+            lon_range=longitude.data.min(),longitude.data.max()
+            lat_range=latitude.data.min(),latitude.data.max()
         if self.getReferenceSystem().isCartesian():
             lon_range,lat_range,zone=LatLonToUTM(lon_range, lat_range, wkt_string)
             self.__utm_zone = zone
@@ -710,10 +730,14 @@ class NetCdfData(DataSource):
 
         # see if lat or lon is stored in reverse order to domain conventions
         self.__reverse=[False,False]
-        d=longitude.data
+        d=longitude
+        if nct==3:
+            d=d.data
         if d[0]>d[-1]:
             self.__reverse[0]=True
-        d=latitude.data
+        d=latitude
+        if nct==3:
+            d=d.data
         if d[0]>d[-1]:
             self.__reverse[1]=True
         self.__nPts=[NX, NY]

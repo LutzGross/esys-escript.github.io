@@ -278,7 +278,7 @@ void Brick::readNcGrid(escript::Data& out, std::string filename, std::string var
 
     // check file existence and size
     NcFile f;
-    if (!openNcFile(f, filename))
+    if (!escript::openNcFile(f, filename))
     {
         throw SpeckleyException("readNcGrid(): cannot open file");
     }           

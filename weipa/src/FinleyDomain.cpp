@@ -154,7 +154,7 @@ bool FinleyDomain::initFromFile(const string& filename)
 
 #if ESYS_HAVE_NETCDF
     NcFile input;
-    if (!openNcFile(input, filename))
+    if (!escript::openNcFile(input, filename))
     {
         cerr << "Could not open input file " << filename << "." << endl;
         return false;

@@ -331,7 +331,7 @@ void Brick::readNcGrid(escript::Data& out, string filename, string varname,
     // check file existence and size
         
     NcFile f;
-    if (!openNcFile(f, filename))
+    if (!escript::openNcFile(f, filename))
     {
         throw RipleyException("readNcGrid(): cannot open file");
     }    
