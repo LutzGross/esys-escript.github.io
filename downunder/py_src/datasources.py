@@ -640,6 +640,7 @@ class NetCdfData(DataSource):
                 dims = f.variables[self.__data_name].dimensions
                 if not ((lat_name in dims) and (lon_name in dims)):
                     raise ValueError("Invalid data variable name supplied")
+                
             except KeyError:
                 raise ValueError("Invalid data variable name supplied")
         else:
@@ -650,7 +651,8 @@ class NetCdfData(DataSource):
                     break
         if self.__data_name is None:
             raise RuntimeError("Could not determine data variable")
-
+        self.__data_name=str(self.__data_name)          # try to deal with unicode->str issue in py2
+        
         datavar = f.variables[self.__data_name]
 
         ### error value/variable
