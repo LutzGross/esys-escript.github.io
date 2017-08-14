@@ -38,7 +38,7 @@ struct FaceCenter
    int refId;
    std::vector<double> x;
 };
-
+#define  Finley_TRACE
 
 /// comparison function for findMatchingFaces
 bool FaceCenterCompare(const FaceCenter& e1, const FaceCenter& e2)
@@ -116,6 +116,7 @@ void FinleyDomain::findMatchingFaces(double safety_factor, double tolerance,
 #ifdef Finley_TRACE
     printf("locking grid size is %e\n", lockingGridSize);
     printf("absolute tolerance is %e.\n", h * tolerance);
+    printf("number of face elements is %d\n", m_faceElements->numElements);
 #endif
     // sort the elements by center coordinates (lexicographical)
     std::sort(center.begin(), center.end(), FaceCenterCompare);

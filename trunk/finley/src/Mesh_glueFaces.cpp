@@ -94,26 +94,36 @@ void FinleyDomain::glueFaces(double safetyFactor, double tolerance, bool optimiz
             newNumNodes++;
         }
     }
+
     for (index_t n = 0; n < m_nodes->getNumNodes(); n++)
         new_node_label[n] = new_node_mask[new_node_label[n]];
+
+
     // allocate new node and element files
     NodeFile* newNodeFile = new NodeFile(numDim, m_mpiInfo); 
     newNodeFile->allocTable(newNumNodes);
+    
     ElementFile* newFaceElementsFile = new ElementFile(
             m_faceElements->referenceElementSet, m_mpiInfo);
     newFaceElementsFile->allocTable(new_numFaceElements);
     // get the new nodes
     newNodeFile->gather(&new_node_list[0], m_nodes);
+
     // they are the new nodes
     delete m_nodes;
     m_nodes = newNodeFile;
     // get the face elements which are still in use
     newFaceElementsFile->gather(&elem_mask[0], m_faceElements);
+    
+    
     // they are the new face elements
     delete m_faceElements;
     m_faceElements = newFaceElementsFile;
 
     // assign new node ids to elements
+    
+
+
     relabelElementNodes(new_node_label, 0);
     prepare(optimize);
     delete[] elem1;

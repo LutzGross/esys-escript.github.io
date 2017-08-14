@@ -314,14 +314,15 @@ void NodeFile::scatter(const index_t* index, const NodeFile* in)
 }
 
 /// gathers this NodeFile from the NodeFile 'in' using the entries in
-/// index[0:out->numNodes-1] which are between min_index and max_index
+/// index[0:out->numNodes-1] which are between 0 (and in->numNodes)
 /// (exclusive)
+// WARNING: This does not wotj for MPI!!!
 void NodeFile::gather(const index_t* index, const NodeFile* in)
 {
-    const std::pair<index_t,index_t> id_range(in->getGlobalIdRange());
-    gatherEntries(numNodes, index, id_range.first, id_range.second, Id, in->Id,
+    gatherEntries(numNodes, index, 0, in->getNumNodes(), Id, in->Id,
             Tag, in->Tag, globalDegreesOfFreedom, in->globalDegreesOfFreedom,
             numDim, Coordinates, in->Coordinates);
+    
 }
 
 void NodeFile::gather_global(const index_t* index, const NodeFile* in)
