@@ -540,6 +540,7 @@ void saveDataCSV(const std::string& filename, bp::dict arg,
     // errors prior to this point will occur on all processes anyway
     // so there is no need to explicitly notify other ranks
     int error = 0;
+    std::string localmsg;
     try {
         std::vector<int> offset(numdata);
         std::vector<const DataTypes::real_t*> samples(numdata);
@@ -584,6 +585,13 @@ void saveDataCSV(const std::string& filename, bp::dict arg,
                 offset[d]=0;
             }
         }
+    } catch (EsysException e) {
+        error=1;
+        if (data[0].getDomain()->getMPISize()==1) {
+            throw;
+        } else {
+            localmsg=e.what();
+        }
     } catch (...) {
         error=1;
         if (data[0].getDomain()->getMPISize()==1) {
@@ -598,10 +606,12 @@ void saveDataCSV(const std::string& filename, bp::dict arg,
 #else
     MPI_Comm com = MPI_COMM_NULL;
 #endif
-
-    if (error)
-        throw DataException("saveDataCSV: error building output");
-
+    if (error) {
+        if (localmsg.empty()) {
+            throw DataException("saveDataCSV: error building output");
+        }
+        throw DataException(std::string("saveDataCSV:")+localmsg);
+    }
     // at this point os will contain the text to be written
     FileWriter fw(com);
     if (!fw.openFile(filename, 0, false, append)) {

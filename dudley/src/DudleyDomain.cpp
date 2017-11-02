@@ -1439,7 +1439,9 @@ bool DudleyDomain::ownSample(int fs_code, index_t id) const
             const index_t k = m_nodes->borrowGlobalNodesIndex()[id];
             return (myFirstNode <= k && k < myLastNode);
         } else {
-            throw ValueError("ownSample: unsupported function space type");
+            std::ostringstream oss;
+            oss << "ownSample: unsupported function space type (" << fs_code <<")";
+            throw ValueError(oss.str());            
         }
     }
 #endif
