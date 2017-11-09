@@ -345,15 +345,17 @@ def checkOptionalLibraries(env):
     netcdf_inc_path=''
     netcdf_lib_path=''
     if env['netcdf']:
-        netcdf_inc_path,netcdf_lib_path=findLibWithHeader(env, env['netcdf_libs'], 'netcdf.h', env['netcdf_prefix'], lang='c++')
+        if env['netcdf']==4:
+            env.Append(CPPDEFINES = ['NETCDF4'])
+            netcdf_inc_path,netcdf_lib_path=findLibWithHeader(env, env['netcdf_libs'], 'ncVar.h', env['netcdf_prefix'], lang='c++')
+        else:
+            netcdf_inc_path,netcdf_lib_path=findLibWithHeader(env, env['netcdf_libs'], 'netcdfcpp.h', env['netcdf_prefix'], lang='c++')
         env.AppendUnique(CPPPATH = [netcdf_inc_path])
         env.AppendUnique(LIBPATH = [netcdf_lib_path])
         env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], netcdf_lib_path)
         env.Append(CPPDEFINES = ['ESYS_HAVE_NETCDF'])
         env['buildvars']['netcdf_inc_path']=netcdf_inc_path
         env['buildvars']['netcdf_lib_path']=netcdf_lib_path
-        if env['netcdf']==4:
-            env.Append(CPPDEFINES = ['NETCDF4'])
     env['buildvars']['netcdf']=int(env['netcdf'])
 
     ######## PAPI
