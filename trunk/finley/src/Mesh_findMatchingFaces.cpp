@@ -28,6 +28,8 @@
 
 #include <escript/index.h>
 
+//#define Finley_TRACE
+
 namespace finley {
 
 static double lockingGridSize = 0.;
@@ -38,7 +40,6 @@ struct FaceCenter
    int refId;
    std::vector<double> x;
 };
-#define  Finley_TRACE
 
 /// comparison function for findMatchingFaces
 bool FaceCenterCompare(const FaceCenter& e1, const FaceCenter& e2)
@@ -114,9 +115,9 @@ void FinleyDomain::findMatchingFaces(double safety_factor, double tolerance,
     }
     lockingGridSize = h*std::max(safety_factor, 0.);
 #ifdef Finley_TRACE
-    printf("locking grid size is %e\n", lockingGridSize);
-    printf("absolute tolerance is %e.\n", h * tolerance);
-    printf("number of face elements is %d\n", m_faceElements->numElements);
+    std::cout << "locking grid size is " << lockingGridSize << std::endl;
+    std::cout << "absolute tolerance is " << h * tolerance << std::endl;
+    std::cout << "number of face elements is " << m_faceElements->numElements << std::endl;
 #endif
     // sort the elements by center coordinates (lexicographical)
     std::sort(center.begin(), center.end(), FaceCenterCompare);
@@ -213,7 +214,7 @@ void FinleyDomain::findMatchingFaces(double safety_factor, double tolerance,
         }
     }
 #ifdef Finley_TRACE
-    printf("number of pairs of matching faces %d\n", *numPairs);
+    std::cout << "number of pairs of matching faces " << *numPairs << std::endl;
 #endif
 
     delete[] X;
