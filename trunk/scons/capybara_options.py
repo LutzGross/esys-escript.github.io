@@ -23,9 +23,9 @@ from templates.stretch_py3_mpi_options import *
 
 #parmetis = True
 #umfpack = True
-#silo = True
-#trilinos = True
-#trilinos_prefix = '/opt/trilinos_hybrid_eti'
+silo = True
+trilinos = True
+trilinos_prefix = '/usr/local/trilinos/post12.12-1'
 #cxx_extra += " -Wextra -Wno-deprecated-declarations -Wno-unused-parameter"
 launcher = "mpirun ${AGENTOVERRIDE} ${EE} --mca io romio314 --oversubscribe --map-by node:pe=%t -bind-to none -np %N %b"
 
