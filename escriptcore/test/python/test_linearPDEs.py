@@ -41,7 +41,9 @@ mpisize = getMPISizeWorld()
 skip_amg = hasFeature("paso") and mpisize > 1
 # Transport problems only work with paso
 no_paso = not hasFeature("paso")
-no_direct = not hasFeature('trilinos') and not hasFeature('PASO_DIRECT') and mpisize == 1
+HAVE_DIRECT = hasFeature("trilinos") or hasFeature("umfpack") or hasFeature("MKL")
+# PASO_DIRECT is only reported if we have paso and are running single rank
+CAN_USE_DIRECT = hasFeature("PASO_DIRECT") or hasFeature('trilinos')
 skip_muelu_long = False #no_paso and hasFeature("longindex")
 
 class Test_linearPDEs(unittest.TestCase):
@@ -557,7 +559,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(sb.getSolverMethod() == so.DEFAULT, "initial SolverMethod is wrong.")
         self.assertRaises(ValueError,sb.setSolverMethod,-1)
 
-        if no_direct:
+        if not HAVE_DIRECT:
             with self.assertRaises(ValueError) as package:
                 sb.setSolverMethod(so.DIRECT)
             self.assertTrue('not compiled' in str(package.exception))
@@ -1770,7 +1772,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
     def test_DIRECT(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-        if no_direct:
+        if not HAVE_DIRECT:
             with self.assertRaises(ValueError) as package:
                 mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
             self.assertTrue('not compiled' in str(package.exception))
@@ -1778,7 +1780,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         else:
             mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-        if hasFeature('paso') and mpisize > 1:
+        if not CAN_USE_DIRECT:
             with self.assertRaises(RuntimeError) as package:
                 u=mypde.getSolution()
         else:
@@ -2267,7 +2269,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
             Y[i]+=i
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=A,D=D,Y=Y)
-        if no_direct:
+        if not HAVE_DIRECT:
             with self.assertRaises(ValueError) as package:
                 mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
             self.assertTrue('not compiled' in str(package.exception))
@@ -2275,7 +2277,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         else:
             mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-        if hasFeature('paso') and mpisize > 1:
+        if not CAN_USE_DIRECT:
             with self.assertRaises(RuntimeError) as package:
                 u=mypde.getSolution()
         else:
