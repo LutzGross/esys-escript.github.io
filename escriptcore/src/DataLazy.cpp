@@ -960,7 +960,8 @@ DataLazy::collapseToReady() const
         result=left/right;
         break;
     case POW:
-	result=left.powD(right);
+        result=left.powD(right);
+        break;
     case SIN:
         result=left.sin();      
         break;
@@ -991,13 +992,13 @@ DataLazy::collapseToReady() const
     case ERF:
         result=left.erf();
         break;
-   case ASINH:
+    case ASINH:
         result=left.asinh();
         break;
-   case ACOSH:
+    case ACOSH:
         result=left.acosh();
         break;
-   case ATANH:
+    case ATANH:
         result=left.atanh();
         break;
     case LOG10:
