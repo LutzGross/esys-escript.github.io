@@ -888,21 +888,24 @@ FinleyElementInfo FinleyElements::getDudleyTypeInfo(dudley::ElementTypeId typeId
 
     switch (typeId) {
         case dudley::Dudley_Line2Face://untested
+            /* Falls through. */ 
         case dudley::Dudley_Point1://untested
             cerr << "WARNING: Dudley type " <<typeId<< " is untested!" << endl;
             ret.elementSize = 1;
             ret.elementType = ZONETYPE_POLYGON;
             break;
 
-        case dudley::Dudley_Tri3Face://untested
+        case dudley::Dudley_Tri3Face: /* Falls through. */ //untested
             cerr << "WARNING: Dudley type " <<typeId<< " is untested!" << endl;
+            /* Falls through. */ 
         case dudley::Dudley_Line2:
             ret.elementSize = ret.reducedElementSize = 2;
             ret.elementType = ret.reducedElementType = ZONETYPE_BEAM;
             break;
 
-        case dudley::Dudley_Tet4Face://untested
+        case dudley::Dudley_Tet4Face: /* Falls through. */ //untested
             cerr << "WARNING: Dudley type " <<typeId<< " is untested!" << endl;
+            /* Falls through. */ 
         case dudley::Dudley_Tri3:
             ret.elementSize = ret.reducedElementSize = 3;
             ret.elementType = ret.reducedElementType = ZONETYPE_TRIANGLE;
@@ -947,6 +950,7 @@ FinleyElementInfo FinleyElements::getFinleyTypeInfo(finley::ElementTypeId typeId
 
         case finley::Tri3Face://untested
             cerr << "WARNING: Finley type " <<typeId<< " is untested!" << endl;
+            /* Falls through. */ 
         case finley::Tri3Face_Contact:
         case finley::Line2_Contact:
         case finley::Rec4Face_Contact:
@@ -959,11 +963,11 @@ FinleyElementInfo FinleyElements::getFinleyTypeInfo(finley::ElementTypeId typeId
         case finley::Line3Macro:
             ret.useQuadNodes = true;
             ret.quadDim = 1;
-            // fall through
+            /* Falls through. */ 
         case finley::Line3:
             ret.multiCellIndices = line3indices;
             ret.elementFactor = 2;
-            // fall through
+            /* Falls through. */ 
         case finley::Line3_Contact:
         case finley::Tri6Face_Contact://untested
         case finley::Rec8Face_Contact:
@@ -977,6 +981,7 @@ FinleyElementInfo FinleyElements::getFinleyTypeInfo(finley::ElementTypeId typeId
         case finley::Tet4Face_Contact://untested
         case finley::Tet4Face://untested
             cerr << "WARNING: Finley type " <<typeId<< " is untested!" << endl;
+            /* Falls through. */ 
         case finley::Tri3_Contact:
         case finley::Tri3:
             ret.elementSize = ret.reducedElementSize = 3;
@@ -997,7 +1002,7 @@ FinleyElementInfo FinleyElements::getFinleyTypeInfo(finley::ElementTypeId typeId
             ret.quadDim = 2;
             ret.multiCellIndices = rec9indices;
             ret.elementFactor = 4;
-            // fall through
+            /* Falls through. */ 
         case finley::Rec9_Contact:
             ret.elementSize = ret.reducedElementSize = 4;
             ret.elementType = ret.reducedElementType = ZONETYPE_QUAD;
@@ -1014,7 +1019,7 @@ FinleyElementInfo FinleyElements::getFinleyTypeInfo(finley::ElementTypeId typeId
             ret.quadDim = 2;
             ret.multiCellIndices = tri6indices;
             ret.elementFactor = 4;
-            // fall through
+            /* Falls through. */ 
         case finley::Tri6_Contact:
         case finley::Tet10Face_Contact://untested
         case finley::Tet10Face://untested
@@ -1026,7 +1031,7 @@ FinleyElementInfo FinleyElements::getFinleyTypeInfo(finley::ElementTypeId typeId
         case finley::Rec8:
             ret.multiCellIndices = rec8indices;
             ret.elementFactor = 6;
-            // fall through
+            /* Falls through. */ 
         case finley::Hex20Face:
         case finley::Rec8_Contact:
         case finley::Hex20Face_Contact:
@@ -1064,7 +1069,7 @@ FinleyElementInfo FinleyElements::getFinleyTypeInfo(finley::ElementTypeId typeId
             ret.quadDim = 3;
             ret.multiCellIndices = hex27indices;
             ret.elementFactor = 8;
-            // fall through
+            /* Falls through. */ 
         case finley::Hex8:
             ret.elementSize = ret.reducedElementSize = 8;
             ret.elementType = ret.reducedElementType = ZONETYPE_HEX;
