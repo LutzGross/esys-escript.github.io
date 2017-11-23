@@ -41,7 +41,7 @@ mpisize = getMPISizeWorld()
 skip_amg = hasFeature("paso") and mpisize > 1
 # Transport problems only work with paso
 no_paso = not hasFeature("paso")
-HAVE_DIRECT = hasFeature("trilinos") or hasFeature("umfpack") or hasFeature("MKL")
+HAVE_DIRECT = hasFeature("trilinos") or hasFeature("umfpack") or hasFeature("mkl")
 # PASO_DIRECT is only reported if we have paso and are running single rank
 CAN_USE_DIRECT = hasFeature("PASO_DIRECT") or hasFeature('trilinos')
 skip_muelu_long = False #no_paso and hasFeature("longindex")
