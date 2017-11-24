@@ -21,8 +21,8 @@ from templates.stretch_py3_mpi_options import *
 #cuda = True
 #nvccflags = "-ccbin=g++-4.9 -arch=sm_30 -DBOOST_NOINLINE='__attribute__((noinline))'"
 
-#parmetis = True
-#umfpack = True
+parmetis = True
+umfpack = True
 silo = True
 trilinos = True
 trilinos_prefix = '/usr/local/trilinos/post12.12-1'

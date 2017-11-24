@@ -75,6 +75,17 @@ def checkCompiler(env):
     
     return conf.Finish()
 
+def get_external_python_sympy(bin):
+    import subprocess
+    cmd=''
+    cmd+='import sympy\n'
+    cmd+='print(sympy.__version__)\n'
+    sp=subprocess.Popen([bin, '-c', cmd], stdin=None, stderr=None, stdout=subprocess.PIPE)
+    ver=sp.stdout.readline().strip().split('.')
+    if int(ver[0]) == 0 and int(ver[1]) < 7:
+        env['sympy'] = False
+        env['warnings'].append("sympy version is too old.")
+
 def call_python_config(bin=None):
     import subprocess
     cmd=''
@@ -290,12 +301,15 @@ def checkOptionalModules(env):
     if not detectModule(env, 'sympy'):
         env['warnings'].append("Cannot import sympy. Symbolic toolbox and nonlinear PDEs will not be available.")
     else:
-        import sympy as sp
-        spVer=sp.__version__
-        spl=spVer.split('.')
-        if int(spl[0]) == 0 and int(spl[1]) < 7:
-            env['sympy']=False
-            env['warnings'].append("sympy version too old. Symbolic toolbox and nonlinear PDEs will not be available.")
+        if env['pythoncmd'] is not None:
+            get_external_python_sympy(env['pythoncmd'])
+        else:
+            import sympy as sp
+            spVer=sp.__version__
+            spl=spVer.split('.')
+            if int(spl[0]) == 0 and int(spl[1]) < 7:
+                env['sympy']=False
+                env['warnings'].append("sympy version too old. Symbolic toolbox and nonlinear PDEs will not be available.")
 
     ######## gmshpy
     env['gmshpy'] = detectModule(env, 'gmshpy')
