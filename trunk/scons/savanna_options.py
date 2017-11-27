@@ -38,7 +38,7 @@ openmp = True
 pythoncmd = "python3"
 
 mpi = 'INTELMPI'
-mpi_prefix = I_MPI_ROOT or '/sw/intel/impi/2017.0.098'
+mpi_prefix = I_MPI_ROOT or '/sw/intel/impi/2018.1.163'
 mpi_prefix += '/intel64'
 #cuda = True
 nvccflags = "-arch=sm_35 -ccbin=icpc -DBOOST_NOINLINE='__attribute__((noinline))'"
@@ -57,7 +57,7 @@ trilinos = True
 trilinos_prefix = '/sw/libs/trilinos/snapshot-hybrid-eti'
 
 mkl = True
-_mklroot=MKLROOT or '/sw/intel/compilers_and_libraries_2017.0.098/linux/mkl'
+_mklroot=MKLROOT or '/sw/intel/compilers_and_libraries_2018.1.163/linux/mkl'
 mkl_prefix = ['%s/include'%_mklroot, '%s/lib/intel64'%_mklroot]
 mkl_libs = ['mkl_intel_lp64', 'mkl_intel_thread', 'mkl_core', 'pthread']
 #boomeramg = True
@@ -76,7 +76,7 @@ postlaunch = ""
 
 env_export = ['INTEL_LICENSE_FILE']
 
-tools_names = [('intelc',{'topdir':'/sw/intel/compilers_and_libraries_2017.0.098'})]
+tools_names = [('intelc',{'topdir':'/sw/intel/compilers_and_libraries_2018.1.163'})]
 
 # uncomment the following four options to build with mpt (check modules!)
 #build_dir = 'buildmpt'
