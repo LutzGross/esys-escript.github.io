@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 ##############################################################################
 #
 # Copyright (c) 2003-2017 by The University of Queensland
@@ -18,6 +18,7 @@ from __future__ import division, print_function
 
 import os
 import inspect
+import importlib
 import sys
 
 if len(sys.argv)!=4:
@@ -35,9 +36,19 @@ outdir=sys.argv[3]
 
 def dumpPackage(mname, ignorelist, modset, banset):
   try:
-    exec('import '+mname+' as PP')
+    print(mname)
+    PP=importlib.import_module(mname)
   except ImportError:
+    print("Import error for "+mname)
     return
+  nonempty = False
+  for x in dir(PP):
+      if not x.startswith("__"):
+          nonempty = True
+          break
+  if not nonempty:
+      print("Package is empty")
+      return
   modset.add(mname)
   print("Starting dump on "+mname+' with ignore at '+str(ignorelist))
   pack=open(os.path.join(outdir,mname+'.rst'),'w')
@@ -45,8 +56,10 @@ def dumpPackage(mname, ignorelist, modset, banset):
   pack.write('='*len(mname)+'========\n\n')
 #  pack.write('.. py:module:: '+mname+'\n\n')
   moddoc = inspect.getdoc(PP)
-  if moddoc:
-    pack.write(".. automodule:: %s\n   :synopsis: %s\n"%(mname, "".join(moddoc.replace("\n\n", "\n").replace("\n", " "))))
+  if not moddoc:
+     moddoc = "-"
+  pack.write(".. module:: %s\n   :synopsis: %s\n"%(mname, "".join(moddoc.replace("\n\n", "\n").replace("\n", " "))))
+  pack.write("\n"+moddoc+"\n")
   #Automodule does not seem to do what we want so we need to drill down
   clist=[]
   flist=[]
@@ -64,6 +77,10 @@ def dumpPackage(mname, ignorelist, modset, banset):
   # esys.escript.models does not get picked up by this loop
   for (name, mem) in inspect.getmembers(PP):
       print("    "+name)
+      if name.startswith("__"):
+          continue
+      if "__module__" in dir(mem) and mem.__module__=='__future__':
+          continue
       if inspect.ismodule(mem):
         if not name in ignorelist:
            try:
@@ -88,14 +105,14 @@ def dumpPackage(mname, ignorelist, modset, banset):
         if type(mem).__module__+'.'+type(mem).__name__=='Boost.Python.function':
           flist+=[(name, mem)]
         else:
-          vlist+=[(name, mem)]
+              vlist+=[(name, mem)]
   pack.write('\nClasses\n')
   pack.write('-------\n')
   for (name, mem) in clist:
       pack.write('* `'+name+'`\n')
   pack.write('\n')
   for (name, mem) in clist:
-    pack.write('.. autoclass:: '+name+'\n')
+    pack.write('.. autoclass:: '+mname+'.'+name+'\n')
     pack.write('   :members:\n   :undoc-members:\n\n   .. automethod:: __init__\n\n')
   pack.write('\n')
     
