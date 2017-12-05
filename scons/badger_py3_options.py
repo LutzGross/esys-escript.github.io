@@ -14,7 +14,7 @@
 #
 ##############################################################################
 
-from templates.jessie_py3_options import *
+from templates.stretch_py3_options import *
 
 debug = False
 #lapack = 'clapack'
