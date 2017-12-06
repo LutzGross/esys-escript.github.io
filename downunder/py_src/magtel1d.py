@@ -51,7 +51,7 @@ class MT_1D(object):
   def __init__(self, freq, depths, rho, zcoord):
     """
     DESCRIPTION:
-    -----------
+    ------------
     Constructor which initialises the 1D magnetotelluric class:
     (*) check for argument type
     (*) check for valid argument values
@@ -70,7 +70,7 @@ class MT_1D(object):
 
 
     DATA ATTRIBUTES:
-    ---------------
+    ----------------
     self.f  = freq    :: sounding frequency
     self.z  = zcoord  :: sample coordinate points
     self.zl = zl      :: layer depths

@@ -1215,7 +1215,7 @@ class NumpyData(DataSource):
         :param tags: a list of tags associated with the data set.
         :type tags: ``list`` of almost any type (typically `str`) 
         :param origin: offset of origin of offset
-        :type origin: ``list`` of ``float``s
+        :type origin: ``list`` of ``float``
         """
         super(NumpyData, self).__init__(tags=tags)
         if not data_type in [self.GRAVITY, self.MAGNETIC, self.ACOUSTIC, self.MT ]:
