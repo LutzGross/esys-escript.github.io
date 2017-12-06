@@ -43,7 +43,7 @@ class ReferenceSystem(object):
         initialization of reference system
 
         :param name: name of the reference system
-        :type name : ``str``
+        :type name: ``str``
         """
         self.__name=name
 
