@@ -138,7 +138,7 @@ class MT_2D(object):
         xstep=100, zstep=100, maps=None, plot=False, limits=None):
     """
     DESCRIPTION:
-    -----------
+    ------------
     Constructor which initialises the 2D magnetotelluric class:
     (*) check for argument type
     (*) check for valid argument values
@@ -182,7 +182,7 @@ class MT_2D(object):
 
 
     DATA ATTRIBUTES:
-    ---------------
+    ----------------
     self.domain         :: escript data object of mesh
     self.X              :: escript data object with all mesh coordinates
     self.mode           :: string with TE or TM mode
