@@ -85,7 +85,7 @@ class IsostaticPressure(object):
         :param rho: gravity anomaly data
         :type rho: ``Scalar``
         :return: pressure distribution
-        :rtype: ``Scalar`
+        :rtype: ``Scalar``
         """
         if not g: g=Vector(0., Function(self.__domain))
         if not rho: rho=Scalar(0., Function(self.__domain))

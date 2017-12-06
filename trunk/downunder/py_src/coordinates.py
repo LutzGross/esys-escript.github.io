@@ -359,7 +359,7 @@ class SpatialCoordinateTransformation(object):
         returns the gradient of a scalar function in direction of the
         coordinate axis.
         
-        :rtype: `esys.escript.Vector
+        :rtype: `esys.escript.Vector`
         """
         g=esc.grad(u)
         if not self.isCartesian():

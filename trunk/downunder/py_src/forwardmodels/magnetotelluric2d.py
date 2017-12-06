@@ -38,6 +38,7 @@ class MT2DBase(ForwardModel):
     """
     Base class for 2D MT forward models. See `MT2DModelTEMode` and
     `MT2DModelTMMode` for actual implementations.
+    
     """
     def __init__(self, domain, omega, x, Z, eta=None, w0=1., mu=4*PI*1e-7, sigma0=0.01,
                  airLayerLevel=None, fixAirLayer=False,

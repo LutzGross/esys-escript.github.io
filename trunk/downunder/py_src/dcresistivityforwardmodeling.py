@@ -80,7 +80,7 @@ class SchlumbergerSurvey(DcResistivityForward):
         :type domain: `Domain`
         :param primaryConductivity: preset primary conductivity data object
         :type primaryConductivity: data
-        :param secondaryConductivity:preset secondary conductivity data object
+        :param secondaryConductivity: preset secondary conductivity data object
         :type secondaryConductivity: data
         :param current: amount of current to be injected at the current electrode
         :type current: float or int
@@ -301,7 +301,7 @@ class WennerSurvey(DcResistivityForward):
         :type domain: `Domain`
         :param primaryConductivity: preset primary conductivity data object
         :type primaryConductivity: ``data``
-        :param secondaryConductivity:preset secondary conductivity data object
+        :param secondaryConductivity: preset secondary conductivity data object
         :type secondaryConductivity: ``data``
         :param current: amount of current to be injected at the current electrode
         :type current: ``float`` or ``int``
@@ -461,7 +461,7 @@ class DipoleDipoleSurvey(DcResistivityForward):
         :type domain: `Domain`
         :param primaryConductivity: preset primary conductivity data object
         :type primaryConductivity: data
-        :param secondaryConductivity:preset secondary conductivity data object
+        :param secondaryConductivity: preset secondary conductivity data object
         :type secondaryConductivity: data
         :param current: amount of current to be injected at the current electrode
         :type current: float or int
@@ -631,7 +631,7 @@ class PoleDipoleSurvey(DcResistivityForward):
         :type domain: `Domain`
         :param primaryConductivity: preset primary conductivity data object
         :type primaryConductivity: data
-        :param secondaryConductivity:preset secondary conductivity data object
+        :param secondaryConductivity: preset secondary conductivity data object
         :type secondaryConductivity: data
         :param current: amount of current to be injected at the current electrode
         :type current: float or int
@@ -800,7 +800,7 @@ class PolePoleSurvey(DcResistivityForward):
         :type domain: `Domain`
         :param primaryConductivity: preset primary conductivity data object
         :type primaryConductivity: data
-        :param secondaryConductivity:preset secondary conductivity data object
+        :param secondaryConductivity: preset secondary conductivity data object
         :type secondaryConductivity: data
         :param current: amount of current to be injected at the current electrode
         :type current: float or int
