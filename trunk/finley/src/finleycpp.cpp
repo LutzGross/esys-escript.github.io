@@ -70,7 +70,7 @@ BOOST_PYTHON_MODULE(finleycpp)
       (arg("params"))
 ,"Creates a rectangular mesh with n0 x n1 x n2 elements over the brick [0,l0] x [0,l1] x [0,l2]."
 "\n\n:param n0: number of elements in direction 0\n:type n0: ``int``\n:param n1: number of elements in direction 1\n:type n1: ``int``\n"
-":param n2:number of elements in direction 2\n:type n2: ``int``\n"
+":param n2: number of elements in direction 2\n:type n2: ``int``\n"
 ":param order: =1, =-1 or =2 gives the order of shape function. If -1 macro elements of order 1 are used.\n"
 ":param l0: length of side 0\n"
 ":type  l0: ``float``\n"

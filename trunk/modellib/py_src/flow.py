@@ -23,11 +23,11 @@ __license__="""Licensed under the Apache License, version 2.0
 http://www.apache.org/licenses/LICENSE-2.0"""
 __url__="https://launchpad.net/escript-finley"
 
-from esys.escript import Data, kronecker, Lsup, div, inf, sup
-from esys.escript.modelframe import Model,IterationDivergenceError
-from esys.escript.linearPDEs import LameEquation, SolverOptions
+import esys.escript as es
+import esys.escript.modelframe as esmf
+import esys.escript.linearPDEs as lpde
 
-class SteadyIncompressibleFlow(Model):
+class SteadyIncompressibleFlow(esmf.Model):
        """
 
        *-\left(\eta\left(v_{i,j}+v_{j,i}\right)\right)_{,j}+p_{,i}=F_i*
@@ -44,7 +44,7 @@ class SteadyIncompressibleFlow(Model):
            """
            set up model
            """
-           Model.__init__(self,**kwargs)
+           esmf.Model.__init__(self,**kwargs)
            self.declareParameter(domain=None, \
                                  velocity=0., \
                                  pressure=0., \
@@ -62,15 +62,15 @@ class SteadyIncompressibleFlow(Model):
            self.__p_old=None
            self.__p_very_old=None
            self.__dt_old=None
-           self.__pde=LameEquation(self.domain)
-           self.__pde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
-           if self.location_prescribed_velocity is None: self.location_prescribed_velocit=Data()
-           if self.prescribed_velocity is None: self.prescribed_velocity=Data()
+           self.__pde=lpde.LameEquation(self.domain)
+           self.__pde.getSolverOptions().setSolverMethod(lpde.SolverOptions.DIRECT)
+           if self.location_prescribed_velocity is None: self.location_prescribed_velocit=es.Data()
+           if self.prescribed_velocity is None: self.prescribed_velocity=es.Data()
 
        def stress(self):
            """
            returns current stress"""
-           return 2*self.viscosity*self.stretching-self.pressure*kronecker(self.domain)
+           return 2*self.viscosity*self.stretching-self.pressure*es.kronecker(self.domain)
 
        def stretching(self):
            """
@@ -105,27 +105,27 @@ class SteadyIncompressibleFlow(Model):
           self.__pde.setValue(lame_mu=self.viscosity, \
                               lame_lambda=penalty, \
                               F=self.internal_force, \
-                              sigma=self.pressure*kronecker(self.__pde.getDomain()), \
+                              sigma=self.pressure*es.kronecker(self.__pde.getDomain()), \
                               r=self.prescribed_velocity, \
                               q=self.location_prescribed_velocity)
           self.__pde.getSolverOptions().setTolerance(self.rel_tol/10.)
           self.velocity=self.__pde.getSolution()
-          update=penalty*div(self.velocity)
+          update=penalty*es.div(self.velocity)
           self.pressure=self.pressure-update
-          self.__diff,diff_old=Lsup(update),self.__diff
+          self.__diff,diff_old=es.Lsup(update),self.__diff
           self.__iter+=1
-          self.trace("velocity range %e:%e"%(inf(self.velocity),sup(self.velocity)))
-          self.trace("pressure range %e:%e"%(inf(self.pressure),sup(self.pressure)))
+          self.trace("velocity range %e:%e"%(es.inf(self.velocity),es.sup(self.velocity)))
+          self.trace("pressure range %e:%e"%(es.inf(self.pressure),es.sup(self.pressure)))
           self.trace("pressure correction: %e"%self.__diff)
           if self.__iter>2 and diff_old<self.__diff:
               self.trace("Pressure iteration failed!")
-              raise IterationDivergenceError("no improvement in pressure iteration")
+              raise esmf.IterationDivergenceError("no improvement in pressure iteration")
           if self.__iter>self.max_iter:
-              raise IterationDivergenceError("Maximum number of iterations steps reached")
+              raise esmf.IterationDivergenceError("Maximum number of iterations steps reached")
 
        def terminateIteration(self):
           """iteration is terminateIterationd if relative pressure change is less than rel_tol"""
-          return self.__diff<=self.rel_tol*Lsup(self.pressure)+self.abs_tol
+          return self.__diff<=self.rel_tol*es.Lsup(self.pressure)+self.abs_tol
 
        def doStepPostprocessing(self,dt):
           self.__dt_old=dt

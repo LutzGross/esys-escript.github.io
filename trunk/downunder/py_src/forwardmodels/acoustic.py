@@ -26,13 +26,14 @@ __url__="https://launchpad.net/escript-finley"
 __all__ = ['AcousticWaveForm']
 
 from .base import ForwardModel
-from esys.downunder.coordinates import makeTransformation
-from esys.escript import Data, DiracDeltaFunctions, FunctionOnBoundary, hasFeature
-from esys.escript.linearPDEs import LinearPDE, SolverOptions
-from esys.escript.util import *
+#from esys.escript.util import *
 import numpy as np
+import esys.escript.linearPDEs as lpde
+import esys.escript as escript
+from .. import coordinates as edc
+#import ..coordinates as edc
 
-HAVE_DIRECT = hasFeature("PASO_DIRECT") or hasFeature('trilinos')
+HAVE_DIRECT = escript.hasFeature("PASO_DIRECT") or escript.hasFeature('trilinos')
 
 class AcousticWaveForm(ForwardModel):
     """
@@ -63,10 +64,10 @@ class AcousticWaveForm(ForwardModel):
         :param w: weighting factors
         :type w: ``Scalar``
         :param data: real and imaginary part of data
-        :type data: ``Data`` of shape (2,)
+        :type data: ``escript.Data`` of shape (2,)
         :param F: real and imaginary part of source given at Dirac points,
                   on surface or at volume.
-        :type F: ``Data`` of shape (2,)
+        :type F: ``escript.Data`` of shape (2,)
         :param coordinates: defines coordinate system to be used (not supported yet)
         :type coordinates: `ReferenceSystem` or `SpatialCoordinateTransformation`
         :param tol: tolerance of underlying PDE
@@ -83,21 +84,21 @@ class AcousticWaveForm(ForwardModel):
         :type fixAtBottom: ``bool``
         """
         super(AcousticWaveForm, self).__init__()
-        self.__trafo = makeTransformation(domain, coordinates)
+        self.__trafo = edc.makeTransformation(domain, coordinates)
         if not self.getCoordinateTransformation().isCartesian():
             raise ValueError("Non-Cartesian Coordinates are not supported yet.")
-        if not isinstance(data, Data):
+        if not isinstance(data, escript.Data):
             raise ValueError("data must be an escript.Data object.")
-        if not data.getFunctionSpace() == FunctionOnBoundary(domain):
+        if not data.getFunctionSpace() == escript.FunctionOnBoundary(domain):
             raise ValueError("data must be defined on boundary")
         if not data.getShape() == (2,):
             raise ValueError("data must have shape (2,) (real and imaginary part).")
         if w is None:
             w = 1.
-        if not isinstance(w, Data):
-            w = Data(w, FunctionOnBoundary(domain))
+        if not isinstance(w, escript.Data):
+            w = escript.Data(w, escript.FunctionOnBoundary(domain))
         else:
-            if not w.getFunctionSpace() == FunctionOnBoundary(domain):
+            if not w.getFunctionSpace() == escript.FunctionOnBoundary(domain):
                 raise ValueError("Weights must be defined on boundary.")
             if not w.getShape() == ():
                 raise ValueError("Weights must be scalar.")
@@ -115,18 +116,18 @@ class AcousticWaveForm(ForwardModel):
         self.__BX = boundingBox(domain)
         self.edge_lengths = np.asarray(boundingBoxEdgeLengths(domain))
 
-        if not isinstance(F, Data):
-            F=interpolate(F,  DiracDeltaFunctions(domain))
+        if not isinstance(F, escript.Data):
+            F=interpolate(F,  escript.DiracDeltaFunctions(domain))
         if not F.getShape() == (2,):
             raise ValueError("Source must have shape (2,) (real and imaginary part).")
 
-        self.__F=Data()
-        self.__f=Data()
-        self.__f_dirac=Data()
+        self.__F=escript.Data()
+        self.__f=escript.Data()
+        self.__f_dirac=escript.Data()
 
-        if F.getFunctionSpace() == DiracDeltaFunctions(domain):
+        if F.getFunctionSpace() == escript.DiracDeltaFunctions(domain):
             self.__f_dirac=F
-        elif F.getFunctionSpace() == FunctionOnBoundary(domain):
+        elif F.getFunctionSpace() == escript.FunctionOnBoundary(domain):
             self.__f=F
         else:
             self.__F=F
@@ -192,12 +193,12 @@ class AcousticWaveForm(ForwardModel):
         """
         Creates and returns the underlying PDE.
 
-        :rtype: `LinearPDE`
+        :rtype: `lpde.LinearPDE`
         """
         if self.__pde is None:
             if not HAVE_DIRECT:
                 raise ValueError("Either this build of escript or the current MPI configuration does not support direct solvers.")
-            pde=LinearPDE(self.__domain, numEquations=2)
+            pde=lpde.LinearPDE(self.__domain, numEquations=2)
             D=pde.createCoefficient('D')
             A=pde.createCoefficient('A')
             A[0,:,0,:]=kronecker(self.__domain.getDim())
@@ -208,7 +209,7 @@ class AcousticWaveForm(ForwardModel):
                 z = self.__domain.getX()[DIM-1]
                 pde.setValue(q=whereZero(z-self.__BX[DIM-1][0])*[1,1])
 
-            pde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
+            pde.getSolverOptions().setSolverMethod(lpde.SolverOptions.DIRECT)
             pde.getSolverOptions().setTolerance(self.__tol)
             pde.setSymmetryOff()
         else:
@@ -221,7 +222,7 @@ class AcousticWaveForm(ForwardModel):
         returns the scaling factor s required to rescale source F to minimize defect ``|s * u- data|^2``
 
         :param u: value of pressure solution (real and imaginary part)
-        :type u: ``Data`` of shape (2,)
+        :type u: ``escript.Data`` of shape (2,)
         :rtype: `complex`
         """
         uTu = integrate(self.__weight * length(u)**2)
@@ -237,9 +238,9 @@ class AcousticWaveForm(ForwardModel):
         Returns precomputed values shared by `getDefect()` and `getGradient()`.
 
         :param sigma: a suggestion for complex 1/V**2
-        :type sigma: ``Data`` of shape (2,)
+        :type sigma: ``escript.Data`` of shape (2,)
         :return: solution,  uTar, uTai, uTu
-        :rtype: ``Data`` of shape (2,), 3 x `float`
+        :rtype: ``escript.Data`` of shape (2,), 3 x `float`
         """
         pde=self.setUpPDE()
         D=pde.getCoefficient('D')
@@ -260,9 +261,9 @@ class AcousticWaveForm(ForwardModel):
         Returns the defect value.
 
         :param sigma: a suggestion for complex 1/V**2
-        :type sigma: ``Data`` of shape (2,)
+        :type sigma: ``escript.Data`` of shape (2,)
         :param u: a u vector
-        :type u: ``Data`` of shape (2,)
+        :type u: ``escript.Data`` of shape (2,)
         :param uTar: equals `integrate( w  * (data[0]*u[0]+data[1]*u[1]))`
         :type uTar: `float`
         :param uTai: equals `integrate( w  * (data[1]*u[0]-data[0]*u[1]))`
@@ -284,9 +285,9 @@ class AcousticWaveForm(ForwardModel):
         Returns the gradient of the defect with respect to density.
 
         :param sigma: a suggestion for complex 1/V**2
-        :type sigma: ``Data`` of shape (2,)
+        :type sigma: ``escript.Data`` of shape (2,)
         :param u: a u vector
-        :type u: ``Data`` of shape (2,)
+        :type u: ``escript.Data`` of shape (2,)
         :param uTar: equals `integrate( w  * (data[0]*u[0]+data[1]*u[1]))`
         :type uTar: `float`
         :param uTai: equals `integrate( w  * (data[1]*u[0]-data[0]*u[1]))`
@@ -303,7 +304,7 @@ class AcousticWaveForm(ForwardModel):
 
         else:
             Z = u - self.__data
-        if Z.getFunctionSpace() == DiracDeltaFunctions(self.getDomain()):
+        if Z.getFunctionSpace() == escript.DiracDeltaFunctions(self.getDomain()):
             pde.setValue(y_dirac=self.__weight * Z)
         else:
             pde.setValue(y=self.__weight * Z)

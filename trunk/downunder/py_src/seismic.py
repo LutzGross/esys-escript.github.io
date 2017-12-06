@@ -27,14 +27,14 @@ __all__ = ['SimpleSEGYWriter', 'Ricker', 'WaveBase', 'SonicWave', 'VTIWave',
 'HTIWave', 'createAbsorbtionLayerFunction', 'createAbsorbtionLayerFunction',
 'SonicHTIWave' , "TTIWave"]
 
-
-from math import pi
+import math
 import numpy as np
 import sys
 import time
-from esys.escript import *
+import esys.escript as escript
 import esys.escript.unitsSI as U
-from esys.escript.linearPDEs import LinearSinglePDE, LinearPDESystem, WavePDE, SolverOptions
+import esys.escript.linearPDEs as lpde
+
 
 OBSPY_AVAILABLE = False
 try:
@@ -69,10 +69,10 @@ class Ricker(Wavelet):
                 """
                 drop=18
                 self.__f=f_dom
-                self.__f_max=sqrt(7)*f_dom
-                self.__s=pi*self.__f
+                self.__f_max=escript.sqrt(7)*f_dom
+                self.__s=math.pi*self.__f
                 if t_dom == None:
-                        t_dom=sqrt(drop)/self.__s
+                        t_dom=escript.sqrt(drop)/self.__s
                 self.__t0=t_dom
 
         def getCenter(self):
@@ -93,21 +93,21 @@ class Ricker(Wavelet):
                 get value of wavelet at time `t`
                 """
                 e2=(self.__s*(t-self.__t0))**2
-                return (1-2*e2)*exp(-e2)
+                return (1-2*e2)*escript.exp(-e2)
 
         def getVelocity(self, t):
                 """
                 get the velocity f'(t) at time `t`
                 """
                 e2=(self.__s*(t-self.__t0))**2
-                return (-3+2*e2)*exp(-e2)*2*self.__s**2*(t-self.__t0)
+                return (-3+2*e2)*escript.exp(-e2)*2*self.__s**2*(t-self.__t0)
 
         def getAcceleration(self, t):
                 """
                 get the acceleration f''(t) at time `t`
                 """
                 e2=(self.__s*(t-self.__t0))**2
-                return 2*self.__s**2*(-4*e2**2 + 12*e2 - 3)*exp(-e2)
+                return 2*self.__s**2*(-4*e2**2 + 12*e2 - 3)*escript.exp(-e2)
 
 class SimpleSEGYWriter(object):
         """
@@ -324,7 +324,7 @@ def createAbsorptionLayerFunction(x, absorption_zone=300*U.m,
     toward each boundary except the top of the domain.
 
     :param x: location of points in the domain
-    :type x: `Data`
+    :type x: `escript.Data`
     :param absorption_zone: thickness of the absorption zone
     :param absorption_cut: value of decay function on domain boundary
     :return: function on 'x' which is one in the iterior and decays to almost zero over a margin
@@ -339,19 +339,19 @@ def createAbsorptionLayerFunction(x, absorption_zone=300*U.m,
         return 1
 
     dom=x.getDomain()
-    bb=boundingBox(dom)
+    bb=escript.boundingBox(dom)
     DIM=dom.getDim()
-    decay=-log(absorption_cut)/absorption_zone**2
+    decay=-escript.log(absorption_cut)/absorption_zone**2
     f=1
     for i in range(DIM):
         x_i=x[i]
         x_l=x_i-(bb[i][0]+absorption_zone)
-        m_l=whereNegative(x_l)
-        f=f*( (exp(-decay*(x_l*m_l)**2)-1) * m_l+1 )
+        m_l=escript.whereNegative(x_l)
+        f=f*( (escript.exp(-decay*(x_l*m_l)**2)-1) * m_l+1 )
         if  top_absorption or not DIM-1 == i:
             x_r=(bb[i][1]-absorption_zone)-x_i
-            m_r=whereNegative(x_r)
-            f=f*( (exp(-decay*(x_r*m_r)**2)-1) * m_r+1 )
+            m_r=escript.whereNegative(x_r)
+            f=f*( (escript.exp(-decay*(x_r*m_r)**2)-1) * m_r+1 )
     return f
 
 class SonicWave(WaveBase):
@@ -369,7 +369,7 @@ class SonicWave(WaveBase):
            :param domain: domain of the problem
            :type domain: `Domain`
            :param v_p: p-velocity field
-           :type v_p: `Scalar`
+           :type v_p: `escript.Scalar`
            :param wavelet: wavelet to describe the time evolution of source term
            :type wavelet: `Wavelet`
            :param source_tag: tag of the source location
@@ -381,31 +381,31 @@ class SonicWave(WaveBase):
            :param absorption_cut: boundary value of absorption decay factor
            :param lumping: if True mass matrix lumping is being used. This is accelerates the computing but introduces some diffusion.
            """
-           f=createAbsorptionLayerFunction(Function(domain).getX(), absorption_zone, absorption_cut)
+           f=createAbsorptionLayerFunction(escript.Function(domain).getX(), absorption_zone, absorption_cut)
            v_p=v_p*f
 
            if p0 == None:
-              p0=Scalar(0.,Solution(domain))
+              p0=escript.Scalar(0.,escript.Solution(domain))
            else:
-              p0=interpolate(p0, Solution(domain ))
+              p0=escript.interpolate(p0, escript.Solution(domain ))
 
            if p0_t == None:
-              p0_t=Scalar(0.,Solution(domain))
+              p0_t=escript.Scalar(0.,escript.Solution(domain))
            else:
-              p0_t=interpolate(p0_t, Solution(domain ))
+              p0_t=escript.interpolate(p0_t, escript.Solution(domain ))
 
            if dt == None:
-                  dt=min(inf((1./5.)*domain.getSize()/v_p), wavelet.getTimeScale())
+                  dt=min(escript.inf((1./5.)*domain.getSize()/v_p), wavelet.getTimeScale())
 
            super(SonicWave, self).__init__( dt, u0=p0, v0=p0_t, t0=0.)
 
            self.__wavelet=wavelet
-           self.__mypde=LinearSinglePDE(domain)
-           if lumping: self.__mypde.getSolverOptions().setSolverMethod(SolverOptions.HRZ_LUMPING)
+           self.__mypde=lpde.LinearSinglePDE(domain)
+           if lumping: self.__mypde.getSolverOptions().setSolverMethod(lpde.SolverOptions.HRZ_LUMPING)
            self.__mypde.setSymmetryOn()
            self.__mypde.setValue(D=1./v_p**2)
            self.__source_tag=source_tag
-           self.__r=Scalar(0., DiracDeltaFunctions(self.__mypde.getDomain()))
+           self.__r=escript.Scalar(0., escript.DiracDeltaFunctions(self.__mypde.getDomain()))
 
 
         def  _getAcceleration(self, t, u):
@@ -413,7 +413,7 @@ class SonicWave(WaveBase):
              returns the acceleraton for time t and solution u at time t
              """
              self.__r.setTaggedValue(self.__source_tag, self.__wavelet.getValue(t))
-             self.__mypde.setValue(X=-grad(u,Function(self.__mypde.getDomain())), y_dirac= self.__r)
+             self.__mypde.setValue(X=-escript.grad(u,escript.Function(self.__mypde.getDomain())), y_dirac= self.__r)
              return self.__mypde.getSolution()
 
 
@@ -433,9 +433,9 @@ class VTIWave(WaveBase):
         :param domain: domain of the problem
         :type domain: `Domain`
         :param v_p: vertical p-velocity field
-        :type v_p: `Scalar`
+        :type v_p: `escript.Scalar`
         :param v_s: vertical s-velocity field
-        :type v_s: `Scalar`
+        :type v_s: `escript.Scalar`
         :param wavelet: wavelet to describe the time evolution of source term
         :type wavelet: `Wavelet`
         :param source_tag: tag of the source location
@@ -456,25 +456,25 @@ class VTIWave(WaveBase):
         """
         DIM=domain.getDim()
         self.fastAssembler = hasattr(domain, "createAssembler") and not disable_fast_assemblers
-        f=createAbsorptionLayerFunction(Function(domain).getX(), absorption_zone, absorption_cut)
+        f=createAbsorptionLayerFunction(escript.Function(domain).getX(), absorption_zone, absorption_cut)
 
-        f = interpolate(f, Function(domain))
+        f = escript.interpolate(f, escript.Function(domain))
 
         v_p=v_p*f
         v_s=v_s*f
 
         if u0 == None:
-          u0=Vector(0.,Solution(domain))
+          u0=escript.Vector(0.,escript.Solution(domain))
         else:
-          u0=interpolate(p0, Solution(domain ))
+          u0=escript.interpolate(p0, escript.Solution(domain ))
 
         if v0 == None:
-          v0=Vector(0.,Solution(domain))
+          v0=escript.Vector(0.,escript.Solution(domain))
         else:
-          v0=interpolate(v0, Solution(domain ))
+          v0=escript.interpolate(v0, escript.Solution(domain ))
 
         if dt == None:
-              dt=min((1./5.)*min(inf(domain.getSize()/v_p), inf(domain.getSize()/v_s)), wavelet.getTimeScale())
+              dt=min((1./5.)*min(escript.inf(domain.getSize()/v_p), escript.inf(domain.getSize()/v_s)), wavelet.getTimeScale())
 
         super(VTIWave, self).__init__( dt, u0=u0, v0=v0, t0=0.)
 
@@ -484,7 +484,7 @@ class VTIWave(WaveBase):
         self.c44=v_s**2 * rho
         self.c11=(1+2*eps) * self.c33
         self.c66=(1+2*gamma) * self.c44
-        self.c13=sqrt(2*self.c33*(self.c33-self.c44) * delta + (self.c33-self.c44)**2)-self.c44
+        self.c13=escript.sqrt(2*self.c33*(self.c33-self.c44) * delta + (self.c33-self.c44)**2)-self.c44
         self.c12=self.c11-2*self.c66
 
         if self.fastAssembler:
@@ -492,22 +492,22 @@ class VTIWave(WaveBase):
                     ("c12", self.c12), ("c13", self.c13), ("c33", self.c33),
                     ("c44", self.c44), ("c66", self.c66)]
             if "speckley" in domain.getDescription().lower():
-                C = [(n, interpolate(d, ReducedFunction(domain))) for n,d in C]
-            self.__mypde=WavePDE(domain, C)
+                C = [(n, escript.interpolate(d, escript.ReducedFunction(domain))) for n,d in C]
+            self.__mypde=lpde.WavePDE(domain, C)
         else:
-            self.__mypde=LinearPDESystem(domain)
+            self.__mypde=lpde.LinearPDESystem(domain)
             self.__mypde.setValue(X=self.__mypde.createCoefficient('X'))
 
         if lumping:
-            self.__mypde.getSolverOptions().setSolverMethod(SolverOptions.HRZ_LUMPING)
+            self.__mypde.getSolverOptions().setSolverMethod(lpde.SolverOptions.HRZ_LUMPING)
         self.__mypde.setSymmetryOn()
-        self.__mypde.setValue(D=rho*kronecker(DIM))
+        self.__mypde.setValue(D=rho*escript.kronecker(DIM))
         self.__source_tag=source_tag
 
         if DIM ==2 :
           source_vector= [source_vector[0],source_vector[2]]
 
-        self.__r=Vector(0, DiracDeltaFunctions(self.__mypde.getDomain()))
+        self.__r=escript.Vector(0, escript.DiracDeltaFunctions(self.__mypde.getDomain()))
         self.__r.setTaggedValue(self.__source_tag, source_vector)
 
 
@@ -523,7 +523,7 @@ class VTIWave(WaveBase):
         """
         returns the acceleraton for time `t` and solution `u` at time `t`
         """
-        du = grad(u)
+        du = escript.grad(u)
         if not self.fastAssembler:
             sigma=self.__mypde.getCoefficient('X')
             if self.__mypde.getDim() == 3:
@@ -580,9 +580,9 @@ class HTIWave(WaveBase):
        :param domain: domain of the problem
        :type domain: `Domain`
        :param v_p: vertical p-velocity field
-       :type v_p: `Scalar`
+       :type v_p: `escript.Scalar`
        :param v_s: vertical s-velocity field
-       :type v_s: `Scalar`
+       :type v_s: `escript.Scalar`
        :param wavelet: wavelet to describe the time evolution of source term
        :type wavelet: `Wavelet`
        :param source_tag: tag of the source location
@@ -608,17 +608,17 @@ class HTIWave(WaveBase):
        v_s=v_s*f
 
        if u0 == None:
-          u0=Vector(0.,Solution(domain))
+          u0=escript.Vector(0.,escript.Solution(domain))
        else:
-          u0=interpolate(p0, Solution(domain ))
+          u0=escript.interpolate(p0, escript.Solution(domain ))
 
        if v0 == None:
-          v0=Vector(0.,Solution(domain))
+          v0=escript.Vector(0.,escript.Solution(domain))
        else:
-          v0=interpolate(v0, Solution(domain ))
+          v0=escript.interpolate(v0, escript.Solution(domain ))
 
        if dt == None:
-            dt=min((1./5.)*min(inf(domain.getSize()/v_p), inf(domain.getSize()/v_s)), wavelet.getTimeScale())
+            dt=min((1./5.)*min(escript.inf(domain.getSize()/v_p), escript.inf(domain.getSize()/v_s)), wavelet.getTimeScale())
 
        super(HTIWave, self).__init__( dt, u0=u0, v0=v0, t0=0.)
 
@@ -628,7 +628,7 @@ class HTIWave(WaveBase):
        self.c44 = v_s**2 * rho
        self.c11 = (1+2*eps) * self.c33
        self.c66 = (1+2*gamma) * self.c44
-       self.c13 = sqrt(2*self.c33*(self.c33-self.c44) * delta + (self.c33-self.c44)**2)-self.c44
+       self.c13 = escript.sqrt(2*self.c33*(self.c33-self.c44) * delta + (self.c33-self.c44)**2)-self.c44
        self.c23 = self.c33-2*self.c66
 
        if self.fastAssembler:
@@ -636,22 +636,22 @@ class HTIWave(WaveBase):
                 ("c23", self.c23), ("c13", self.c13), ("c33", self.c33),
                 ("c44", self.c44), ("c66", self.c66)]
             if "speckley" in domain.getDescription().lower():
-                C = [(n, interpolate(d, ReducedFunction(domain))) for n,d in C]
-            self.__mypde=WavePDE(domain, C)
+                C = [(n, escript.interpolate(d, escript.ReducedFunction(domain))) for n,d in C]
+            self.__mypde=lpde.WavePDE(domain, C)
        else:
-            self.__mypde=LinearPDESystem(domain)
+            self.__mypde=lpde.LinearPDESystem(domain)
             self.__mypde.setValue(X=self.__mypde.createCoefficient('X'))
 
        if lumping:
-            self.__mypde.getSolverOptions().setSolverMethod(SolverOptions.HRZ_LUMPING)
+            self.__mypde.getSolverOptions().setSolverMethod(lpde.SolverOptions.HRZ_LUMPING)
        self.__mypde.setSymmetryOn()
-       self.__mypde.setValue(D=rho*kronecker(DIM))
+       self.__mypde.setValue(D=rho*escript.kronecker(DIM))
        self.__source_tag=source_tag
 
        if DIM == 2:
           source_vector= [source_vector[0],source_vector[2]]
 
-       self.__r=Vector(0, DiracDeltaFunctions(self.__mypde.getDomain()))
+       self.__r=escript.Vector(0, escript.DiracDeltaFunctions(self.__mypde.getDomain()))
        self.__r.setTaggedValue(self.__source_tag, source_vector)
 
 
@@ -667,7 +667,7 @@ class HTIWave(WaveBase):
          """
          returns the acceleraton for time `t` and solution `u` at time `t`
          """
-         du = grad(u)
+         du = escript.grad(u)
          if self.fastAssembler:
             self.__mypde.setValue(du=du, y_dirac= self.__r * self.__wavelet.getValue(t))
          else:
@@ -730,9 +730,9 @@ class TTIWave(WaveBase):
            :param domain: domain of the problem
            :type domain: `Domain`
            :param v_p: vertical p-velocity field
-           :type v_p: `Scalar`
+           :type v_p: `escript.Scalar`
            :param v_s: vertical s-velocity field
-           :type v_s: `Scalar`
+           :type v_s: `escript.Scalar`
            :param wavelet: wavelet to describe the time evolution of source term
            :type wavelet: `Wavelet`
            :param source_tag: tag of the source location
@@ -749,44 +749,46 @@ class TTIWave(WaveBase):
            :param absorption_cut: boundary value of absorption decay factor
            :param lumping: if True mass matrix lumping is being used. This is accelerates the computing but introduces some diffusion.
            """
+           cos=escript.cos
+           sin=escript.sin
            DIM=domain.getDim()
            if not DIM == 2:
                 raise ValueError("Only 2D is supported.")
-           f=createAbsorptionLayerFunction(Function(domain).getX(), absorption_zone, absorption_cut)
+           f=createAbsorptionLayerFunction(escript.Function(domain).getX(), absorption_zone, absorption_cut)
 
            v_p=v_p*f
            v_s=v_s*f
 
            if u0 == None:
-              u0=Vector(0.,Solution(domain))
+              u0=escript.Vector(0.,escript.Solution(domain))
            else:
-              u0=interpolate(p0, Solution(domain ))
+              u0=escript.interpolate(p0, escript.Solution(domain ))
 
            if v0 == None:
-              v0=Vector(0.,Solution(domain))
+              v0=escript.Vector(0.,escript.Solution(domain))
            else:
-              v0=interpolate(v0, Solution(domain ))
+              v0=escript.interpolate(v0, escript.Solution(domain ))
 
            if dt == None:
-                  dt=min((1./5.)*min(inf(domain.getSize()/v_p), inf(domain.getSize()/v_s)), wavelet.getTimeScale())
+                  dt=min((1./5.)*min(escript.inf(domain.getSize()/v_p), escript.inf(domain.getSize()/v_s)), wavelet.getTimeScale())
 
            super(TTIWave, self).__init__( dt, u0=u0, v0=v0, t0=0.)
 
            self.__wavelet=wavelet
 
-           self.__mypde=LinearPDESystem(domain)
-           if lumping: self.__mypde.getSolverOptions().setSolverMethod(SolverOptions.HRZ_LUMPING)
+           self.__mypde=lpde.LinearPDESystem(domain)
+           if lumping: self.__mypde.getSolverOptions().setSolverMethod(lpde.SolverOptions.HRZ_LUMPING)
            self.__mypde.setSymmetryOn()
-           self.__mypde.setValue(D=rho*kronecker(DIM), X=self.__mypde.createCoefficient('X'))
+           self.__mypde.setValue(D=rho*escript.kronecker(DIM), X=self.__mypde.createCoefficient('X'))
            self.__source_tag=source_tag
 
-           self.__r=Vector(0, DiracDeltaFunctions(self.__mypde.getDomain()))
+           self.__r=escript.Vector(0, escript.DiracDeltaFunctions(self.__mypde.getDomain()))
            self.__r.setTaggedValue(self.__source_tag, source_vector)
 
            c0_33=v_p**2 * rho
            c0_66=v_s**2 * rho
            c0_11=(1+2*eps) * c0_33
-           c0_13=sqrt(2*c0_33*(c0_33-c0_66) * delta + (c0_33-c0_66)**2)-c0_66
+           c0_13=escript.sqrt(2*c0_33*(c0_33-c0_66) * delta + (c0_33-c0_66)**2)-c0_66
 
            self.c11= c0_11*cos(theta)**4 - 2*c0_13*cos(theta)**4 + 2*c0_13*cos(theta)**2 + c0_33*sin(theta)**4 - 4*c0_66*cos(theta)**4 + 4*c0_66*cos(theta)**2
            self.c13= -c0_11*cos(theta)**4 + c0_11*cos(theta)**2 + c0_13*sin(theta)**4 + c0_13*cos(theta)**4 - c0_33*cos(theta)**4 + c0_33*cos(theta)**2 + 4*c0_66*cos(theta)**4 - 4*c0_66*cos(theta)**2
@@ -799,7 +801,7 @@ class TTIWave(WaveBase):
              """
              returns the acceleraton for time `t` and solution `u` at time `t`
              """
-             du = grad(u)
+             du = escript.grad(u)
              sigma=self.__mypde.getCoefficient('X')
 
              e_xx=du[0,0]
@@ -833,9 +835,9 @@ class SonicHTIWave(WaveBase):
            :param domain: domain of the problem
            :type domain: `Doamin`
            :param v_p: vertical p-velocity field
-           :type v_p: `Scalar`
+           :type v_p: `escript.Scalar`
            :param v_s: vertical s-velocity field
-           :type v_s: `Scalar`
+           :type v_s: `escript.Scalar`
            :param wavelet: wavelet to describe the time evolution of source term
            :type wavelet: `Wavelet`
            :param source_tag: tag of the source location
@@ -856,42 +858,42 @@ class SonicHTIWave(WaveBase):
            f=createAbsorptionLayerFunction(v_p.getFunctionSpace().getX(), absorption_zone, absorption_cut)
 
            self.v2_p=v_p**2
-           self.v2_t=self.v2_p*sqrt(1+2*delta)
+           self.v2_t=self.v2_p*escript.sqrt(1+2*delta)
            self.v2_n=self.v2_p*(1+2*eps)
 
            if p0 == None:
-              p0=Data(0.,(2,),Solution(domain))
+              p0=escript.Data(0.,(2,),escript.Solution(domain))
            else:
-              p0=interpolate(p0, Solution(domain ))
+              p0=escript.interpolate(p0, escript.Solution(domain ))
 
            if v0 == None:
-              v0=Data(0.,(2,),Solution(domain))
+              v0=escript.Data(0.,(2,),escript.Solution(domain))
            else:
-              v0=interpolate(v0, Solution(domain ))
+              v0=escript.interpolate(v0, escript.Solution(domain ))
 
            if dt == None:
-                  dt=min(min(inf(domain.getSize()/sqrt(self.v2_p)), inf(domain.getSize()/sqrt(self.v2_t)), inf(domain.getSize()/sqrt(self.v2_n))) , wavelet.getTimeScale())*0.2
+                  dt=min(min(escript.inf(domain.getSize()/escript.sqrt(self.v2_p)), escript.inf(domain.getSize()/escript.sqrt(self.v2_t)), escript.inf(domain.getSize()/escript.sqrt(self.v2_n))) , wavelet.getTimeScale())*0.2
 
            super(SonicHTIWave, self).__init__( dt, u0=p0, v0=v0, t0=0.)
 
            self.__wavelet=wavelet
 
-           self.__mypde=LinearPDESystem(domain)
-           if lumping: self.__mypde.getSolverOptions().setSolverMethod(SolverOptions.HRZ_LUMPING)
+           self.__mypde=lpde.LinearPDESystem(domain)
+           if lumping: self.__mypde.getSolverOptions().setSolverMethod(lpde.SolverOptions.HRZ_LUMPING)
            self.__mypde.setSymmetryOn()
-           self.__mypde.setValue(D=kronecker(2), X=self.__mypde.createCoefficient('X'))
+           self.__mypde.setValue(D=escript.kronecker(2), X=self.__mypde.createCoefficient('X'))
            self.__source_tag=source_tag
 
 
-           self.__r=Vector(0, DiracDeltaFunctions(self.__mypde.getDomain()))
+           self.__r=escript.Vector(0, escript.DiracDeltaFunctions(self.__mypde.getDomain()))
            self.__r.setTaggedValue(self.__source_tag, source_vector)
 
         def  _getAcceleration(self, t, u):
             """
             returns the acceleraton for time `t` and solution `u` at time `t`
             """
-            dQ = grad(u[0])[0]
-            dP = grad(u[1])[1:]
+            dQ = escript.grad(u[0])[0]
+            dP = escript.grad(u[1])[1:]
             sigma=self.__mypde.getCoefficient('X')
 
             sigma[0,0] = self.v2_n*dQ

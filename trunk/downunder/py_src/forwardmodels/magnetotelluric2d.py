@@ -236,7 +236,9 @@ class MT2DModelTEMode(MT2DBase):
     where E_x is the horizontal electric field perpendicular to the YZ-domain,
     horizontal magnetic field H_y=1/(i*omega*mu) * E_{x,z} with complex unit
     i and permeability mu. The weighting factor w^s is set to 
+    
         *  w^s(X) = w_0^s  *
+        
     if length(X-X^s) <= eta and zero otherwise. X^s is the location of 
     impedance measurement Z_XY^s, w_0^s is the level
     of confidence (eg. 1/measurement error) and eta is level of spatial
@@ -381,7 +383,9 @@ class MT2DModelTMMode(MT2DBase):
     where H_x is the horizontal magnetic field perpendicular to the YZ-domain,
     horizontal magnetic field H_y=1/(i*omega*mu) * E_{x,z} with complex unit
     i and permeability mu. The weighting factor w^s is set to 
+    
         *  w^s(X) = w_0^s  *
+    
     if length(X-X^s) <= eta and zero otherwise. X^s is the location of 
     impedance measurement Z_XY^s, w_0^s is the level
     of confidence (eg. 1/measurement error) and eta is level of spatial

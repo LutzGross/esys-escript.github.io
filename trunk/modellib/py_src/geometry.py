@@ -23,14 +23,15 @@ __license__="""Licensed under the Apache License, version 2.0
 http://www.apache.org/licenses/LICENSE-2.0"""
 __url__="https://launchpad.net/escript-finley"
 
-from esys.escript import Vector, sup, inf, whereZero, length, Scalar, Vector
-from esys.escript.modelframe import Model,ParameterSet
+import esys.escript.modelframe as esmf
+import esys.escript as es
+
 try:
     import esys.finley
 except ImportError:
     raise ImportError("Finley module not available")
 
-class DomainReader(ParameterSet):
+class DomainReader(esmf.ParameterSet):
 #class DudleyReader(ParameterSet):
        """
        """
@@ -75,7 +76,7 @@ class FinleyReader(DomainReader):
         def __init__(self, **kw):
             DomainReader.__init__(self, esys.finley, **kw)
 
-class RectangularDomain(ParameterSet):
+class RectangularDomain(esmf.ParameterSet):
        """
        Generates a mesh over a rectangular domain.
 
@@ -139,7 +140,7 @@ class RectangularDomain(ParameterSet):
                                             integrationOrder=self.integrationOrder)
            return self.__domain
 
-class UpdateGeometry(Model):
+class UpdateGeometry(esmf.Model):
       """
       applies a displacement field to a domain
       
@@ -187,7 +188,7 @@ class UpdateGeometry(Model):
          """
          self.__reset=False
 
-class ConstrainerOverBox(Model):
+class ConstrainerOverBox(esmf.Model):
       """
       Creates a characteristic function for the location of constraints 
       for all components of a value and selects the value from an initial value 
@@ -255,21 +256,21 @@ class ConstrainerOverBox(Model):
              self.__location_of_constraint=Data(0,shape,x.getFunctionSpace())
              if self.domain.getDim()==3:
                    x0,x1,x2=x[0],x[1],x[2]
-                   if self.left: self.__location_of_constraint+=whereZero(x0-inf(x0),self.tol)
-                   if self.right: self.__location_of_constraint+=whereZero(x0-sup(x0),self.tol)
-                   if self.front: self.__location_of_constraint+=whereZero(x1-inf(x1),self.tol)
-                   if self.back: self.__location_of_constraint+=whereZero(x1-sup(x1),self.tol)
-                   if self.bottom: self.__location_of_constraint+=whereZero(x2-inf(x2),self.tol)
-                   if self.top: self.__location_of_constraint+=whereZero(x2-sup(x2),self.tol)
+                   if self.left: self.__location_of_constraint+=es.whereZero(x0-es.inf(x0),self.tol)
+                   if self.right: self.__location_of_constraint+=es.whereZero(x0-es.sup(x0),self.tol)
+                   if self.front: self.__location_of_constraint+=es.whereZero(x1-es.inf(x1),self.tol)
+                   if self.back: self.__location_of_constraint+=es.whereZero(x1-es.sup(x1),self.tol)
+                   if self.bottom: self.__location_of_constraint+=es.whereZero(x2-es.inf(x2),self.tol)
+                   if self.top: self.__location_of_constraint+=es.whereZero(x2-es.sup(x2),self.tol)
              else:
                    x0,x1=x[0],x[1]
-                   if self.left: self.__location_of_constraint+=whereZero(x0-inf(x0),self.tol)
-                   if self.right: self.__location_of_constraint+=whereZero(x0-sup(x0),self.tol)
-                   if self.bottom: self.__location_of_constraint+=whereZero(x1-inf(x1),self.tol)
-                   if self.top: self.__location_of_constraint+=whereZero(x1-sup(x1),self.tol)
+                   if self.left: self.__location_of_constraint+=es.whereZero(x0-es.inf(x0),self.tol)
+                   if self.right: self.__location_of_constraint+=es.whereZero(x0-es.sup(x0),self.tol)
+                   if self.bottom: self.__location_of_constraint+=es.whereZero(x1-es.inf(x1),self.tol)
+                   if self.top: self.__location_of_constraint+=es.whereZero(x1-es.sup(x1),self.tol)
              if not self.value is None:
                    self.__value_of_constraint=self.__location_of_constraint*self.value
-class ScalarConstrainerOverBox(Model):
+class ScalarConstrainerOverBox(esmf.Model):
       """
       Creates a characteristic function for the location of constraints 
       for a scalar value and selects the value from an initial value 
@@ -322,27 +323,27 @@ class ScalarConstrainerOverBox(Model):
          
       def __setOutput(self):
           x=self.domain.getX()
-          self.__location_of_constraint=Scalar(0,x.getFunctionSpace())
+          self.__location_of_constraint=es.Scalar(0,x.getFunctionSpace())
           if self.domain.getDim()==3:
                 x0,x1,x2=x[0],x[1],x[2]
-                d=max(sup(x0)-inf(x0), sup(x1)-inf(x1), sup(x2)-inf(x2))
-                if self.left: self.__location_of_constraint+=whereZero(x0-inf(x0),self.tol*d)
-                if self.right: self.__location_of_constraint+=whereZero(x0-sup(x0),self.tol*d)
-                if self.front: self.__location_of_constraint+=whereZero(x1-inf(x1),self.tol*d)
-                if self.back: self.__location_of_constraint+=whereZero(x1-sup(x1),self.tol*d)
-                if self.bottom: self.__location_of_constraint+=whereZero(x2-inf(x2),self.tol*d)
-                if self.top: self.__location_of_constraint+=whereZero(x2-sup(x2),self.tol*d)
+                d=max(es.sup(x0)-es.inf(x0), sup(x1)-es.inf(x1), sup(x2)-es.inf(x2))
+                if self.left: self.__location_of_constraint+=es.whereZero(x0-es.inf(x0),self.tol*d)
+                if self.right: self.__location_of_constraint+=es.whereZero(x0-es.sup(x0),self.tol*d)
+                if self.front: self.__location_of_constraint+=es.whereZero(x1-es.inf(x1),self.tol*d)
+                if self.back: self.__location_of_constraint+=es.whereZero(x1-es.sup(x1),self.tol*d)
+                if self.bottom: self.__location_of_constraint+=es.whereZero(x2-es.inf(x2),self.tol*d)
+                if self.top: self.__location_of_constraint+=es.whereZero(x2-es.sup(x2),self.tol*d)
           else:
                 x0,x1=x[0],x[1]
-                d=max(sup(x0)-inf(x0), sup(x1)-inf(x1))
-                if self.left: self.__location_of_constraint+=whereZero(x0-inf(x0),self.tol*d)
-                if self.right: self.__location_of_constraint+=whereZero(x0-sup(x0),self.tol*d)
-                if self.bottom: self.__location_of_constraint+=whereZero(x1-inf(x1),self.tol*d)
-                if self.top: self.__location_of_constraint+=whereZero(x1-sup(x1),self.tol*d)
+                d=max(es.sup(x0)-es.inf(x0), es.sup(x1)-es.inf(x1))
+                if self.left: self.__location_of_constraint+=es.whereZero(x0-es.inf(x0),self.tol*d)
+                if self.right: self.__location_of_constraint+=es.whereZero(x0-es.sup(x0),self.tol*d)
+                if self.bottom: self.__location_of_constraint+=es.whereZero(x1-es.inf(x1),self.tol*d)
+                if self.top: self.__location_of_constraint+=es.whereZero(x1-es.sup(x1),self.tol*d)
           if not self.value is None:
               self.__value_of_constraint=self.__location_of_constraint*self.value
 
-class VectorConstrainerOverBox(Model):
+class VectorConstrainerOverBox(esmf.Model):
       """
       Creates a characteristic function for the location of constraints vector value.
       In the case that the spatial dimension is two, the arguments front and
@@ -400,31 +401,31 @@ class VectorConstrainerOverBox(Model):
          
       def __setOutput(self):
           x=self.domain.getX()
-          self.__location_of_constraint=Vector(0,x.getFunctionSpace())
+          self.__location_of_constraint=es.Vector(0,x.getFunctionSpace())
           if self.domain.getDim()==3:
              x0,x1,x2=x[0],x[1],x[2]
-             d=max(sup(x0)-inf(x0), sup(x1)-inf(x1), sup(x2)-inf(x2))
-             left_mask=whereZero(x0-inf(x0),self.tol*d)
+             d=max(es.sup(x0)-es.inf(x0), es.sup(x1)-es.inf(x1), es.sup(x2)-es.inf(x2))
+             left_mask=es.whereZero(x0-es.inf(x0),self.tol*d)
              if self.left[0]: self.__location_of_constraint+=left_mask*[1.,0.,0.]
              if self.left[1]: self.__location_of_constraint+=left_mask*[0.,1.,0.]
              if self.left[2]: self.__location_of_constraint+=left_mask*[0.,0.,1.]
-             right_mask=whereZero(x0-sup(x0),self.tol*d)
+             right_mask=es.whereZero(x0-es.sup(x0),self.tol*d)
              if self.right[0]: self.__location_of_constraint+=right_mask*[1.,0.,0.]
              if self.right[1]: self.__location_of_constraint+=right_mask*[0.,1.,0.]
              if self.right[2]: self.__location_of_constraint+=right_mask*[0.,0.,1.]
-             front_mask=whereZero(x1-inf(x1),self.tol*d)
+             front_mask=es.whereZero(x1-es.inf(x1),self.tol*d)
              if self.front[0]: self.__location_of_constraint+=front_mask*[1.,0.,0.]
              if self.front[1]: self.__location_of_constraint+=front_mask*[0.,1.,0.]
              if self.front[2]: self.__location_of_constraint+=front_mask*[0.,0.,1.]
-             back_mask=whereZero(x1-sup(x1),self.tol*d)
+             back_mask=es.whereZero(x1-es.sup(x1),self.tol*d)
              if self.back[0]: self.__location_of_constraint+=back_mask*[1.,0.,0.]
              if self.back[1]: self.__location_of_constraint+=back_mask*[0.,1.,0.]
              if self.back[2]: self.__location_of_constraint+=back_mask*[0.,0.,1.]
-             bottom_mask=whereZero(x2-inf(x2),self.tol*d)
+             bottom_mask=es.whereZero(x2-es.inf(x2),self.tol*d)
              if self.bottom[0]: self.__location_of_constraint+=bottom_mask*[1.,0.,0.]
              if self.bottom[1]: self.__location_of_constraint+=bottom_mask*[0.,1.,0.]
              if self.bottom[2]: self.__location_of_constraint+=bottom_mask*[0.,0.,1.]
-             top_mask=whereZero(x2-sup(x2),self.tol*d)
+             top_mask=es.whereZero(x2-es.sup(x2),self.tol*d)
              if self.top[0]: self.__location_of_constraint+=top_mask*[1.,0.,0.]
              if self.top[1]: self.__location_of_constraint+=top_mask*[0.,1.,0.]
              if self.top[2]: self.__location_of_constraint+=top_mask*[0.,0.,1.]
@@ -432,23 +433,23 @@ class VectorConstrainerOverBox(Model):
                 self.__value_of_constraint=self.__location_of_constraint*self.value
           else:
              x0,x1=x[0],x[1]
-             d=max(sup(x0)-inf(x0), sup(x1)-inf(x1))
-             left_mask=whereZero(x0-inf(x0),self.tol*d)
+             d=max(es.sup(x0)-es.inf(x0), es.sup(x1)-es.inf(x1))
+             left_mask=es.whereZero(x0-es.inf(x0),self.tol*d)
              if self.left[0]: self.__location_of_constraint+=left_mask*[1.,0.]
              if self.left[1]: self.__location_of_constraint+=left_mask*[0.,1.]
-             right_mask=whereZero(x0-sup(x0),self.tol*d)
+             right_mask=es.whereZero(x0-es.sup(x0),self.tol*d)
              if self.right[0]: self.__location_of_constraint+=right_mask*[1.,0.]
              if self.right[1]: self.__location_of_constraint+=right_mask*[0.,1.]
-             bottom_mask=whereZero(x1-inf(x1),self.tol*d)
+             bottom_mask=es.whereZero(x1-es.inf(x1),self.tol*d)
              if self.bottom[0]: self.__location_of_constraint+=bottom_mask*[1.,0.]
              if self.bottom[1]: self.__location_of_constraint+=bottom_mask*[0.,1.]
-             top_mask=whereZero(x1-sup(x1),self.tol*d)
+             top_mask=es.whereZero(x1-es.sup(x1),self.tol*d)
              if self.top[0]: self.__location_of_constraint+=top_mask*[1.,0.]
              if self.top[1]: self.__location_of_constraint+=top_mask*[0.,1.]
              if not self.value is None:
                 self.__value_of_constraint=self.__location_of_constraint*self.value[:2]
 
-class ConstrainerAtBoxVertex(Model):
+class ConstrainerAtBoxVertex(esmf.Model):
       """
       Creates a characteristic function for the location of constraints 
       for all components of a value and selects the value from an initial value 
@@ -502,13 +503,13 @@ class ConstrainerAtBoxVertex(Model):
              else: 
                  shape=val.getShape()
              if self.domain.getDim()==3:
-                   vertex=[inf(x[0]),inf(x[1]),inf(x[2])]
+                   vertex=[es.inf(x[0]),es.inf(x[1]),es.inf(x[2])]
              else:
-                   vertex=[inf(x[0]),inf(x[1])]
-             self.__location_of_constraint=whereZero(length(x-vertex),self.tol)*numpy.ones(shape)
+                   vertex=[es.inf(x[0]),es.inf(x[1])]
+             self.__location_of_constraint=es.whereZero(es.length(x-vertex),self.tol)*numpy.ones(shape)
              if not self.value is None:
                    self.__value_of_constraint=self.__location_of_constraint*self.value
-class ScalarConstrainerAtBoxVertex(Model):
+class ScalarConstrainerAtBoxVertex(esmf.Model):
       """
       Creates a characteristic function for the location of constraints 
       for a scalar value and selects the value from an initial value 
@@ -549,16 +550,16 @@ class ScalarConstrainerAtBoxVertex(Model):
          
       def __setOutput(self):
           x=self.domain.getX()
-          self.__location_of_constraint=Scalar(0,x.getFunctionSpace())
+          self.__location_of_constraint=es.Scalar(0,x.getFunctionSpace())
           if self.domain.getDim()==3:
-                   vertex=[inf(x[0]),inf(x[1]),inf(x[2])]
+                   vertex=[es.inf(x[0]),es.inf(x[1]),es.inf(x[2])]
           else:
-                 vertex=[inf(x[0]),inf(x[1])]
-          self.__location_of_constraint=whereZero(length(x-vertex),self.tol)
+                 vertex=[es.inf(x[0]),es.inf(x[1])]
+          self.__location_of_constraint=es.whereZero(es.length(x-vertex),self.tol)
           if not self.value is None:
               self.__value_of_constraint=self.__location_of_constraint*self.value
 
-class VectorConstrainerAtBoxVertex(Model):
+class VectorConstrainerAtBoxVertex(esmf.Model):
       """
       Creates a characteristic function for the location of constraints vector value.
       In the case that the spatial dimension is two, the arguments front and
@@ -600,19 +601,19 @@ class VectorConstrainerAtBoxVertex(Model):
          
       def __setOutput(self):
           x=self.domain.getX()
-          self.__location_of_constraint=Vector(0,x.getFunctionSpace())
+          self.__location_of_constraint=es.Vector(0,x.getFunctionSpace())
           if self.domain.getDim()==3:
-             vertex=[inf(x[0]),inf(x[1]),inf(x[2])]
+             vertex=[es.inf(x[0]),es.inf(x[1]),es.inf(x[2])]
              msk=numpy.zeros((3,))
              if self.comp_mask[0]: msk[0]=1
              if self.comp_mask[1]: msk[1]=1
              if self.comp_mask[2]: msk[2]=1
           else:
-             vertex=[inf(x[0]),inf(x[1])]
+             vertex=[es.inf(x[0]),es.inf(x[1])]
              msk=numpy.zeros((2,))
              if self.comp_mask[0]: msk[0]=1
              if self.comp_mask[1]: msk[1]=1
-          self.__location_of_constraint=whereZero(length(x-vertex),self.tol)*numpy.ones(shape)
+          self.__location_of_constraint=es.whereZero(es.length(x-vertex),self.tol)*numpy.ones(shape)
           if not self.value is None:
                 self.__value_of_constraint=self.__location_of_constraint*self.value
 
