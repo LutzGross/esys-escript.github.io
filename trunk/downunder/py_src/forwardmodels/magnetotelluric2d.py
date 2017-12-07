@@ -27,12 +27,10 @@ __url__="https://launchpad.net/escript-finley"
 __all__ = ['MT2DModelTEMode', 'MT2DModelTMMode']
 
 from .base import ForwardModel
-from esys.downunder.coordinates import makeTransformation
-from esys.escript import Data, Scalar, Vector, Function, FunctionOnBoundary, Solution
-from esys.escript.linearPDEs import LinearPDE, SolverOptions
-from esys.escript.util import *
-from math import pi as PI
-
+import esys.escript as escript
+import esys.escript.linearPDEs as lpde
+import math
+from esys.downunder import coordinates as coords
 
 class MT2DBase(ForwardModel):
     """
@@ -40,7 +38,7 @@ class MT2DBase(ForwardModel):
     `MT2DModelTMMode` for actual implementations.
     
     """
-    def __init__(self, domain, omega, x, Z, eta=None, w0=1., mu=4*PI*1e-7, sigma0=0.01,
+    def __init__(self, domain, omega, x, Z, eta=None, w0=1., mu=4*math.pi*1e-7, sigma0=0.01,
                  airLayerLevel=None, fixAirLayer=False,
                  coordinates=None, tol=1e-8, saveMemory=False, directSolver=True):
         """
@@ -81,14 +79,14 @@ class MT2DBase(ForwardModel):
         :type directSolver: ``bool``
         """
         super(MT2DBase, self).__init__()
-        self.__trafo = makeTransformation(domain, coordinates)
+        self.__trafo = coords.makeTransformation(domain, coordinates)
         if not self.getCoordinateTransformation().isCartesian():
             raise ValueError("Non-Cartesian coordinates are not supported yet.")
         if len(x) != len(Z):
             raise ValueError("Number of data points and number of impedance values don't match.")
 
         if eta is None:
-            eta = sup(domain.getSize())*0.45
+            eta = escript.sup(domain.getSize())*0.45
 
         if isinstance(eta, float) or isinstance(eta, int):
             eta = [float(eta)]*len(Z)
@@ -102,16 +100,16 @@ class MT2DBase(ForwardModel):
 
         self.__domain = domain
         self._omega_mu = omega * mu
-        self._ks=sqrt(self._omega_mu * sigma0 /2.)
+        self._ks=escript.sqrt(self._omega_mu * sigma0 /2.)
 
-        xx=Function(domain).getX()
+        xx=escript.Function(domain).getX()
         totalS=0
-        self._Z = [ Scalar(0., Function(domain)),  Scalar(0., Function(domain)) ]
-        self._weight = Scalar(0., Function(domain))
+        self._Z = [ escript.Scalar(0., escript.Function(domain)),  escript.Scalar(0., escript.Function(domain)) ]
+        self._weight = escript.Scalar(0., escript.Function(domain))
 
         for s in range(len(Z)):
             chi = self.getWeightingFactor(xx, 1., x[s], eta[s])
-            f = integrate(chi)
+            f = escript.integrate(chi)
             if f < eta[s]**2 * 0.01 :
                 raise ValueError("Zero weight (almost) for data point %s. Change eta or refine mesh."%(s,))
             w02 = w0[s]/f
@@ -126,23 +124,23 @@ class MT2DBase(ForwardModel):
 
         DIM = domain.getDim()
         z = domain.getX()[DIM-1]
-        self._ztop= sup(z)
-        self._zbottom = inf(z)
+        self._ztop= escript.sup(z)
+        self._zbottom = escript.inf(z)
         if airLayerLevel is None:
             airLayerLevel=self._ztop
         self._airLayerLevel=airLayerLevel
                 
         # botton:
-        mask0=whereZero(z-self._zbottom)
-        r=mask0* [ exp(self._ks*(self._zbottom -airLayerLevel))*cos(self._ks*(self._zbottom -airLayerLevel)), 
-                   exp(self._ks*(self._zbottom -airLayerLevel))*sin(self._ks*(self._zbottom -airLayerLevel))]
+        mask0=escript.whereZero(z-self._zbottom)
+        r=mask0* [ escript.exp(self._ks*(self._zbottom -airLayerLevel))*escript.cos(self._ks*(self._zbottom -airLayerLevel)), 
+                   escript.exp(self._ks*(self._zbottom -airLayerLevel))*escript.sin(self._ks*(self._zbottom -airLayerLevel))]
 
         #top:
         if  fixAirLayer:
-          mask1=whereNonNegative(z-airLayerLevel)
+          mask1=escript.whereNonNegative(z-airLayerLevel)
           r+=mask1*[ 1, 0 ]
         else:
-          mask1=whereZero(z-self._ztop)
+          mask1=escript.whereZero(z-self._ztop)
           r+=mask1*[ self._ks*(self._ztop-airLayerLevel)+1, self._ks*(self._ztop-airLayerLevel) ]
           
         self._q=(mask0+mask1)*[1,1]
@@ -179,9 +177,9 @@ class MT2DBase(ForwardModel):
         """
         if self.__pde is None:
             DIM=self.__domain.getDim()
-            pde=LinearPDE(self.__domain, numEquations=2)
+            pde=lpde.LinearPDE(self.__domain, numEquations=2)
             if self._directSolver == True:
-                pde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
+                pde.getSolverOptions().setSolverMethod(lpde.SolverOptions.DIRECT)
             D=pde.createCoefficient('D')
             A=pde.createCoefficient('A')
             pde.setValue(A=A, D=D, q=self._q)
@@ -201,9 +199,9 @@ class MT2DBase(ForwardModel):
             origin, spacing, NE = x.getDomain().getGridParameters()
             cell = [int((x0[i]-origin[i])/spacing[i]) for i in range(2)]
             midpoint = [origin[i]+cell[i]*spacing[i]+spacing[i]/2. for i in range(2)]
-            return wx0 * whereNegative(length(x-midpoint)-eta)
+            return wx0 * escript.whereNegative(escript.length(x-midpoint)-eta)
         except:
-            return wx0 * whereNegative(length(x-x0)-eta)
+            return wx0 * escript.whereNegative(escript.length(x-x0)-eta)
 
     def getArguments(self, x):
         """
@@ -251,7 +249,7 @@ class MT2DModelTEMode(MT2DBase):
     where E_x at top and bottom is set to solution for background field. Homogeneous Neuman
     conditions are assumed elsewhere. 
     """
-    def __init__(self, domain, omega, x, Z_XY, eta=None, w0=1., mu=4*PI*1e-7, sigma0=0.01,
+    def __init__(self, domain, omega, x, Z_XY, eta=None, w0=1., mu=4*math.pi*1e-7, sigma0=0.01,
                  airLayerLevel=None, coordinates=None, Ex_top=1, fixAtTop=False, 
                  tol=1e-8, saveMemory=False, directSolver=True):
         """
@@ -283,12 +281,12 @@ class MT2DModelTEMode(MT2DBase):
         D[0,1] = -f
         D[1,0] =  f
         A= pde.getCoefficient('A')
-        A[0,:,0,:]=kronecker(DIM)
-        A[1,:,1,:]=kronecker(DIM)
+        A[0,:,0,:]=escript.kronecker(DIM)
+        A[1,:,1,:]=escript.kronecker(DIM)
     
         pde.setValue(A=A, D=D,  r=self._r)
         u = pde.getSolution()
-        return u, grad(u)[:,1]
+        return u, escript.grad(u)[:,1]
 
     def getDefect(self, sigma, Ex, dExdz):
         """
@@ -304,7 +302,7 @@ class MT2DModelTEMode(MT2DBase):
         :rtype: ``float``
         """
         x=dExdz.getFunctionSpace().getX()
-        Ex=interpolate(Ex, x.getFunctionSpace())
+        Ex=escript.interpolate(Ex, x.getFunctionSpace())
         u0=Ex[0]
         u1=Ex[1]
         u01=dExdz[0]
@@ -312,7 +310,7 @@ class MT2DModelTEMode(MT2DBase):
         scale = self._weight / ( u01**2 + u11**2 )
 
         Z = self._Z
-        A = integrate(scale * ( (Z[0]**2+Z[1]**2)*(u01**2+u11**2)
+        A = escript.integrate(scale * ( (Z[0]**2+Z[1]**2)*(u01**2+u11**2)
                               + 2*Z[1]*(u0*u11-u01*u1)
                               - 2*Z[0]*(u0*u01+u11*u1)
                               + u0**2 + u1**2 ))
@@ -334,7 +332,7 @@ class MT2DModelTEMode(MT2DBase):
         DIM = self.getDomain().getDim()
 
         x=dExdz.getFunctionSpace().getX()
-        Ex=interpolate(Ex, x.getFunctionSpace())
+        Ex=escript.interpolate(Ex, x.getFunctionSpace())
         u0 = Ex[0]
         u1 = Ex[1]
         u01 = dExdz[0]
@@ -345,8 +343,8 @@ class MT2DModelTEMode(MT2DBase):
         X=pde.getCoefficient('X')
         A= pde.getCoefficient('A')
 
-        A[0,:,0,:]=kronecker(DIM)
-        A[1,:,1,:]=kronecker(DIM)
+        A[0,:,0,:]=escript.kronecker(DIM)
+        A[1,:,1,:]=escript.kronecker(DIM)
         
         f = self._omega_mu * sigma
         D[0,1] =  f
@@ -398,7 +396,7 @@ class MT2DModelTMMode(MT2DBase):
     where H_x at top and bottom is set to solution for background field. 
     Homogeneous Neuman conditions are assumed elsewhere.
     """
-    def __init__(self, domain, omega, x, Z_YX, eta=None, w0=1., mu=4*PI*1e-7, sigma0=0.01,
+    def __init__(self, domain, omega, x, Z_YX, eta=None, w0=1., mu=4*math.pi*1e-7, sigma0=0.01,
                  airLayerLevel=None, coordinates=None, tol=1e-8, saveMemory=False,
                  directSolver=True):
         """
@@ -434,7 +432,7 @@ class MT2DModelTMMode(MT2DBase):
         
         pde.setValue(A=A, D=D, r=self._r)
         u = pde.getSolution()
-        return u, grad(u)
+        return u, escript.grad(u)
 
     def getDefect(self, rho, Hx, g_Hx):
         """
@@ -450,7 +448,7 @@ class MT2DModelTMMode(MT2DBase):
         :rtype: ``float``
         """
         x = g_Hx.getFunctionSpace().getX()
-        Hx = interpolate(Hx, x.getFunctionSpace())
+        Hx = escript.interpolate(Hx, x.getFunctionSpace())
         u0 = Hx[0]
         u1 = Hx[1]
         u01 = g_Hx[0,1]
@@ -458,7 +456,7 @@ class MT2DModelTMMode(MT2DBase):
         scale = rho / ( u0**2 + u1**2 )
 
         Z = self._Z
-        A = integrate(self._weight * ( Z[0]**2 + Z[1]**2
+        A = escript.integrate(self._weight * ( Z[0]**2 + Z[1]**2
                                     + scale*(-2*Z[0]*(u0*u01 + u1*u11)
                                              +2*Z[1]*(u1*u01 - u0*u11)
                                              +rho*(u01**2 + u11**2)) ))
@@ -479,7 +477,7 @@ class MT2DModelTMMode(MT2DBase):
         DIM = self.getDomain().getDim()
 
         x=g_Hx.getFunctionSpace().getX()
-        Hx=interpolate(Hx, x.getFunctionSpace())
+        Hx=escript.interpolate(Hx, x.getFunctionSpace())
         u0 = Hx[0]
         u1 = Hx[1]
         u00 = g_Hx[0,0]
@@ -519,7 +517,7 @@ class MT2DModelTMMode(MT2DBase):
         X[1,1] = rho_scale * (-Z[0]*u1 - Z[1]*u0 + rho*u11)
 
         pde.setValue(A=A, D=D, X=X, Y=Y)
-        g=grad(pde.getSolution())
+        g=escript.grad(pde.getSolution())
 
         Hstarr_x = g[0,0]
         Hstari_x = g[1,0]
