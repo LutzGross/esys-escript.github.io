@@ -31,11 +31,11 @@ class GravityForce(ParameterSet):
        """
        Sets a gravity force of given direction in given domain:
 
-       :ivar domain: domain of interest (in).
-       :type domain: `esys.escript.Domain`
-       :ivar density: density, default 1 (in).
-       :ivar gravity: the gravity constant, default 9.81 (in).
-       :ivar direction: the direction of gravity, default [1.,0.,0.] (in).
+       :note: Instance variable domain - domain of interest (in).
+       :note: Instance variable domain - `esys.escript.Domain`
+       :note: Instance variable density - density, default 1 (in).
+       :note: Instance variable gravity - the gravity constant, default 9.81 (in).
+       :note: Instance variable direction - the direction of gravity, default [1.,0.,0.] (in).
        """
        def __init__(self,**kwargs):
            """

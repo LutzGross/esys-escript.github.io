@@ -78,11 +78,11 @@ class GaussianProfile(ParameterSet):
     Generates a Gaussian profile at center x_c, width width and height A 
     over a domain
 
-    :ivar domain: domain
-    :ivar x_c: center of the Gaussian profile (default [0.,0.,0.])
-    :ivar A: (in) height of the profile. A maybe a vector. (default 1.)
-    :ivar width: (in) width of the profile (default 0.1)
-    :ivar r: (in) radius of the circle (default = 0)
+    :note: Instance variable domain - domain
+    :note: Instance variable x_c - center of the Gaussian profile (default [0.,0.,0.])
+    :note: Instance variable A - (in) height of the profile. A maybe a vector. (default 1.)
+    :note: Instance variable width - (in) width of the profile (default 0.1)
+    :note: Instance variable r - (in) radius of the circle (default = 0)
 
     In the case that the spatial dimension is two, The third component of 
     x_c is dropped.
@@ -113,15 +113,15 @@ class InterpolateOverBox(ParameterSet):
     Returns values at each time. The values are defined through given values 
     at time node. For two dimensional domains back values are ignored.
 
-    :ivar domain: domain
-    :ivar value_left_bottom_front: (in) value at left,bottom,front corner
-    :ivar value_right_bottom_front: (in) value at right, bottom, front corner
-    :ivar value_left_top_front: (in) value at left,top,front corner
-    :ivar value_right_top_front: (in) value at right,top,front corner
-    :ivar value_left_bottom_back: (in) value at  left,bottom,back corner
-    :ivar value_right_bottom_back: (in) value at right,bottom,back corner
-    :ivar value_left_top_back: (in) value at left,top,back  corner
-    :ivar value_right_top_back: (in) value at right,top,back corner
+    :note: Instance variable domain - domain
+    :note: Instance variable value_left_bottom_front - (in) value at left,bottom,front corner
+    :note: Instance variable value_right_bottom_front - (in) value at right, bottom, front corner
+    :note: Instance variable value_left_top_front - (in) value at left,top,front corner
+    :note: Instance variable value_right_top_front - (in) value at right,top,front corner
+    :note: Instance variable value_left_bottom_back - (in) value at  left,bottom,back corner
+    :note: Instance variable value_right_bottom_back - (in) value at right,bottom,back corner
+    :note: Instance variable value_left_top_back - (in) value at left,top,back  corner
+    :note: Instance variable value_right_top_back - (in) value at right,top,back corner
     """
 
     def __init__(self, **kwargs):
@@ -190,9 +190,9 @@ class InterpolatedTimeProfile(ParameterSet):
        For time t<nodes[0], value[0] is used and for t>nodes[l], values[l] 
        is used where l=len(nodes)-1.
  
-       :ivar t: (in) current time
-       :ivar node: (in) list of time nodes
-       :ivar values: (in) list of values at time nodes
+       :note: Instance variable t - (in) current time
+       :note: Instance variable node - (in) list of time nodes
+       :note: Instance variable values - (in) list of values at time nodes
        """
 
        def __init__(self,**kwargs):
