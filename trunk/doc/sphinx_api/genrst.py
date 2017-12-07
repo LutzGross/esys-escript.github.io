@@ -64,6 +64,7 @@ def dumpPackage(mname, ignorelist, modset, banset):
   clist=[]
   flist=[]
   vlist=[]
+  modlist=[]
   norecurse=[]
   try:
     norecurse=PP.__nodocorecursion
@@ -96,6 +97,7 @@ def dumpPackage(mname, ignorelist, modset, banset):
                   print("About to dump "+name+"("+mem.__name__+")")
                   dumpPackage(mem.__name__, [], modset, banset)
                   print("Dump of "+mname+" complete")
+                  modlist.append(name)
         #pack.write('Module '+name+'\n')
       elif inspect.isclass(mem):
         clist+=[(name, mem)]
@@ -127,6 +129,12 @@ def dumpPackage(mname, ignorelist, modset, banset):
   for (name, mem) in vlist:
     pack.write('* '+name+'\n')
   pack.write('\n')
+  pack.write('Packages\n')
+  pack.write('--------\n')
+  pack.write('.. toctree::\n\n')
+  for name in modlist:
+      pack.write('   '+mname+'.'+name+'\n')
+  pack.write('\n')
   pack.close()
 
 def listmods():
@@ -139,7 +147,7 @@ def listmods():
   main.write('\n')
   main.write('Contents:\n\n')
   main.write('.. toctree::\n')
-  main.write('   :maxdepth: 4\n')
+  main.write('   :maxdepth: 1\n')
   main.write('\n')
   modset=set()
   banset=set()
@@ -161,7 +169,8 @@ def listmods():
   l=list(modset)
   l.sort()
   for n in l:
-      main.write("   "+n+"\n")
+      if n.count(".") == 1:
+         main.write("   "+n+"\n")
   main.write('\n')
   main.write('Indices and Tables\n')
   main.write('==================\n')
