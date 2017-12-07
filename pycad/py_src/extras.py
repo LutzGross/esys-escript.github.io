@@ -40,8 +40,7 @@ system of prisms for modelling.
 
 __author__="Antony Hallam antony.hallam@uqconnect.edu.au"
 
-from esys.pycad import * #domain constructor
-from esys.pycad.gmsh import Design #Finite Element meshing package
+import esys.pycad as pycad
 
 def buildFreeSurface(xwidth,ywidth):
     '''
@@ -55,19 +54,19 @@ def buildFreeSurface(xwidth,ywidth):
 
     # Layer Corners
     corner_points=[]
-    corner_points.append(Point(0.0,    0.0,      0.0))
-    corner_points.append(Point(xwidth, 0.0,      0.0))
-    corner_points.append(Point(xwidth, ywidth,   0.0))
-    corner_points.append(Point(0.0,    ywidth,   0.0))
+    corner_points.append(pycad.Point(0.0,    0.0,      0.0))
+    corner_points.append(pycad.Point(xwidth, 0.0,      0.0))
+    corner_points.append(pycad.Point(xwidth, ywidth,   0.0))
+    corner_points.append(pycad.Point(0.0,    ywidth,   0.0))
     corner_points.append(corner_points[0]) #repeated point for line looping
 
     # Edges of Free Surface 
     hor_lines=[]
     for i in range(0,4): # loop through four sides
-        hor_lines.append(Line(corner_points[i],corner_points[i+1]))
+        hor_lines.append(pycad.Line(corner_points[i],corner_points[i+1]))
 
     # Create Free Surface
-    free_surf = PlaneSurface(CurveLoop(*tuple(hor_lines[0:4])))
+    free_surf = pycad.PlaneSurface(pycad.CurveLoop(*tuple(hor_lines[0:4])))
 
     # Return Surface and primative arrays.
     return free_surf,hor_lines,corner_points
@@ -86,33 +85,33 @@ def buildLayer(xwidth,ywidth,depth,lay_surf,hor_lines,corner_points):
         corner_points :: points of hor_lines\
     '''
     # Layer Corners
-    corner_points.append(Point(0.0,    0.0,    depth))
-    corner_points.append(Point(xwidth, 0.0,    depth))
-    corner_points.append(Point(xwidth, ywidth, depth))
-    corner_points.append(Point(0.0,    ywidth, depth))
+    corner_points.append(pycad.Point(0.0,    0.0,    depth))
+    corner_points.append(pycad.Point(xwidth, 0.0,    depth))
+    corner_points.append(pycad.Point(xwidth, ywidth, depth))
+    corner_points.append(pycad.Point(0.0,    ywidth, depth))
     corner_points.append(corner_points[5]) #repeated point for line looping
 
     # Build the bottom surface edges.
     for i in range(0,4): # loop through four edges
-        hor_lines.append(Line(corner_points[5+i],corner_points[6+i]))
+        hor_lines.append(pycad.Line(corner_points[5+i],corner_points[6+i]))
 
     # Join corners vertically.
     ver_lines=[]
     for i in range(0,4): # loop through four corners
-        ver_lines.append(Line(corner_points[i],corner_points[i+5]))
+        ver_lines.append(pycad.Line(corner_points[i],corner_points[i+5]))
     ver_lines.append(ver_lines[0]) #repeated edge for surface looping   
 
     # Build surface array.
     lay_surf=[-lay_surf] #Negative of top surface
     # Bottom Surface
-    lay_surf.append(PlaneSurface(CurveLoop(*tuple(hor_lines[4:8]))))
+    lay_surf.append(pycad.PlaneSurface(pycad.CurveLoop(*tuple(hor_lines[4:8]))))
     for i in range(0,4): # loop through four sides
-        lay_surf.append(PlaneSurface(CurveLoop(\
+        lay_surf.append(pycad.PlaneSurface(pycad.CurveLoop(\
                         -ver_lines[i],-hor_lines[i+4],\
                         ver_lines[i+1],hor_lines[i] )))
 
     # Build Layer Volume
-    lay_vol=Volume(-SurfaceLoop(*tuple(lay_surf)))
+    lay_vol=pycad.Volume(-pycad.SurfaceLoop(*tuple(lay_surf)))
     
     # Return new volume, and primatives for next volume layer.    
     return lay_vol,-lay_surf[1],hor_lines[4:8],corner_points[5:10]
@@ -150,7 +149,7 @@ def layer_cake(domain,xwidth,ywidth,depths):
 
     # Build the First Surface and add it to the domain
     fsuf,fsurl,fsurp=buildFreeSurface(xwidth,ywidth)
-    domain.addItems(PropertySet('intface_%d'%(0),fsuf))        
+    domain.addItems(pycad.PropertySet('intface_%d'%(0),fsuf))        
 
     # Build each layer sequentially
     # Set up temporary variables.
@@ -161,9 +160,9 @@ def layer_cake(domain,xwidth,ywidth,depths):
         tvol,tsuf,tsurl,tsurp=buildLayer(xwidth,ywidth,depths[i],\
                                      tsuf,tsurl,tsurp)
         # Add the new interface to the domain.
-        domain.addItems(PropertySet('intface_%d'%(i+1),tsuf))        
+        domain.addItems(pycad.PropertySet('intface_%d'%(i+1),tsuf))        
         # Add the new volume/layer to the domain.
-        domain.addItems(PropertySet('volume_%d'%i,tvol))
+        domain.addItems(pycad.PropertySet('volume_%d'%i,tvol))
     
     return domain
 
