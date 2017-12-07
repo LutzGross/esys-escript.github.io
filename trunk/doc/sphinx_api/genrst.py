@@ -154,6 +154,7 @@ def listmods():
   for z in W:
     if z[0].endswith('__pycache__'): continue
     #if z[0].find('escript')==-1: continue
+    if z[0].find('escriptcore')!=-1: continue
     print("Beginning ",z[0])
     # Now make the package name
     n=startpackage+'.'.join(z[0][len(startdir):].split(os.path.sep))
