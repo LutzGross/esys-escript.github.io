@@ -109,15 +109,15 @@ class AcousticWaveForm(ForwardModel):
         self.__data = data
         self.scaleF = scaleF
         if scaleF:
-            A = integrate(self.__weight*length(self.__data)**2)
+            A = escript.integrate(self.__weight*escript.length(self.__data)**2)
             if A > 0:
-                self.__data*=1./sqrt(A)
+                self.__data*=1./escript.sqrt(A)
 
-        self.__BX = boundingBox(domain)
-        self.edge_lengths = np.asarray(boundingBoxEdgeLengths(domain))
+        self.__BX = escript.boundingBox(domain)
+        self.edge_lengths = np.asarray(escript.boundingBoxEdgeLengths(domain))
 
         if not isinstance(F, escript.Data):
-            F=interpolate(F,  escript.DiracDeltaFunctions(domain))
+            F=escript.interpolate(F,  escript.DiracDeltaFunctions(domain))
         if not F.getShape() == (2,):
             raise ValueError("Source must have shape (2,) (real and imaginary part).")
 
@@ -163,13 +163,13 @@ class AcousticWaveForm(ForwardModel):
             raise ValueError("Rescaling of weights failed due to zero denominator.")
         # copy back original weights before rescaling
         #self.__weight=[1.*ow for ow in self.__origweight]
-        L2=1/length(1/self.edge_length)**2
-        d=Lsup(length(data))
-        A=integrate(self.__weight*(sigma_scale*omega**2*d+1)/(sigma_scale*omega**2*d) )
+        L2=1/escript.length(1/self.edge_length)**2
+        d=Lsup(escript.length(data))
+        A=escript.integrate(self.__weight*(sigma_scale*omega**2*d+1)/(sigma_scale*omega**2*d) )
         if A > 0:
             self.__weight*=1./A
             if self.scaleF:
-                self.__data*=sqrt(A)
+                self.__data*=escript.sqrt(A)
         else:
             raise ValueError("Rescaling of weights failed.")
 
@@ -201,8 +201,8 @@ class AcousticWaveForm(ForwardModel):
             pde=lpde.LinearPDE(self.__domain, numEquations=2)
             D=pde.createCoefficient('D')
             A=pde.createCoefficient('A')
-            A[0,:,0,:]=kronecker(self.__domain.getDim())
-            A[1,:,1,:]=kronecker(self.__domain.getDim())
+            A[0,:,0,:]=escript.kronecker(self.__domain.getDim())
+            A[1,:,1,:]=escript.kronecker(self.__domain.getDim())
             pde.setValue(A=A, D=D)
             if self.__fixAtBottom:
                 DIM=self.__domain.getDim()
@@ -225,9 +225,9 @@ class AcousticWaveForm(ForwardModel):
         :type u: ``escript.Data`` of shape (2,)
         :rtype: `complex`
         """
-        uTu = integrate(self.__weight * length(u)**2)
-        uTar = integrate(self.__weight * ( u[0]*self.__data[0]+u[1]*self.__data[1]) )
-        uTai = integrate(self.__weight * ( u[0]*self.__data[1]-u[1]*self.__data[0]) )
+        uTu = escript.integrate(self.__weight * escript.length(u)**2)
+        uTar = escript.integrate(self.__weight * ( u[0]*self.__data[0]+u[1]*self.__data[1]) )
+        uTai = escript.integrate(self.__weight * ( u[0]*self.__data[1]-u[1]*self.__data[0]) )
         if uTu > 0:
             return complex(uTar/uTu, uTai/uTu)
         else:
@@ -251,9 +251,9 @@ class AcousticWaveForm(ForwardModel):
         pde.setValue(D=D, Y=self.__F, y=self.__f, y_dirac=self.__f_dirac)
         u=pde.getSolution()
 
-        uTar=integrate(self.__weight * ( u[0]*self.__data[0]+u[1]*self.__data[1]) )
-        uTai=integrate(self.__weight * ( u[0]*self.__data[1]-u[1]*self.__data[0]) )
-        uTu = integrate( self.__weight * length(u)**2 )
+        uTar=escript.integrate(self.__weight * ( u[0]*self.__data[0]+u[1]*self.__data[1]) )
+        uTai=escript.integrate(self.__weight * ( u[0]*self.__data[1]-u[1]*self.__data[0]) )
+        uTu = escript.integrate( self.__weight * escript.length(u)**2 )
         return u, uTar, uTai, uTu
 
     def getDefect(self, sigma, u, uTar, uTai, uTu):
@@ -277,7 +277,7 @@ class AcousticWaveForm(ForwardModel):
         if self.scaleF and abs(uTu) >0:
            A = 1.-(uTar**2 + uTai**2)/uTu
         else:
-           A = integrate(self.__weight*length(self.__data)**2)- 2 * uTar + uTu
+           A = escript.integrate(self.__weight*escript.length(self.__data)**2)- 2 * uTar + uTu
         return  A/2
 
     def getGradient(self, sigma, u, uTar, uTai, uTu):
@@ -298,7 +298,7 @@ class AcousticWaveForm(ForwardModel):
         pde=self.setUpPDE()
 
         if self.scaleF and abs(uTu) >0:
-            Z=((uTar**2+uTai**2)/uTu**2) *interpolate(u, self.__data.getFunctionSpace())
+            Z=((uTar**2+uTai**2)/uTu**2) *escript.interpolate(u, self.__data.getFunctionSpace())
             Z[0]+= (-uTar/uTu) * self.__data[0]+ (-uTai/uTu) * self.__data[1]
             Z[1]+= (-uTar/uTu) * self.__data[1]+   uTai/uTu  * self.__data[0]
 
@@ -315,5 +315,5 @@ class AcousticWaveForm(ForwardModel):
         D[1,1]=-self.__omega**2 * sigma[0]
         pde.setValue(D=D)
         ZTo2=pde.getSolution()*self.__omega**2
-        return inner(ZTo2,u)*[1,0]+(ZTo2[1]*u[0]-ZTo2[0]*u[1])*[0,1]
+        return escript.inner(ZTo2,u)*[1,0]+(ZTo2[1]*u[0]-ZTo2[0]*u[1])*[0,1]
 
