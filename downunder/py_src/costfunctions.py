@@ -46,8 +46,7 @@ class CostFunction(object):
     The class distinguishes between the representation of the solution
     x (x-type) and the gradients (r-type).
 
-    :cvar provides_inverse_Hessian_approximation: This member should be set
-            to ``True`` in subclasses that provide a valid implementation of
+    :note: The provides_inverse_Hessian_approximation class member should be set to ``True`` in subclasses that provide a valid implementation of
             `getInverseHessianApproximation()`
     """
 

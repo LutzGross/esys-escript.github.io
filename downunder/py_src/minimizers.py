@@ -306,7 +306,7 @@ class MinimizerLBFGS(AbstractMinimizer):
             x       - current estimate
             Jx      - value of cost function at x
             g_Jx    - gradient of cost function at x
-            norm_dJ - |Jx_k - Jx_{k-1}| (only if J_tol is set)
+            norm_dJ - ||Jx_k - Jx_{k-1}|| (only if J_tol is set)
             norm_dx - ||x_k - x_{k-1}|| (only if m_tol is set)
 
         :param x: Level set function representing our initial guess

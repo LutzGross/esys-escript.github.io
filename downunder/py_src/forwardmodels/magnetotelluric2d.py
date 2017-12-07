@@ -62,9 +62,9 @@ class MT2DBase(ForwardModel):
         :type mu: ``float``
         :param sigma0: background conductivity
         :type sigma0: ``float``
-        :param airLayerLevel: position of the air layer from to bottom of the domain. If not set
-                            the air layer starts at the top of the domain
-        :type airLayerLevel : ``float`` or ``None``        
+        :param airLayerLevel: position of the air layer from to bottom of the domain. If
+                              not set the air layer starts at the top of the domain
+        :type airLayerLevel: ``float`` or ``None``        
         :param fixAirLayer: fix air layer (TM mode)
         :type fixAirLayer: ``bool``
         :param coordinates: defines coordinate system to be used (not supported yet)
@@ -273,7 +273,7 @@ class MT2DModelTEMode(MT2DBase):
 
         :param sigma: conductivity
         :type sigma: ``Data`` of shape (2,)
-        :return: Ex_, Ex_,z
+        :return: E_x, E_z
         :rtype: ``Data`` of shape (2,)
         """
         DIM = self.getDomain().getDim()
