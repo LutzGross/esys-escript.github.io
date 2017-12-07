@@ -30,7 +30,6 @@ __all__ = [ 'InversionCostFunction']
 from .costfunctions import MeteredCostFunction
 from .mappings import Mapping
 from .forwardmodels import ForwardModel
-from esys.escript.pdetools import ArithmeticTuple
 from esys.escript import Data, inner, interpolate
 import numpy as np
 

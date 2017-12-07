@@ -28,11 +28,11 @@ __all__ = ['SplitRegularization']
 
 import logging
 import numpy as np
-from esys.escript import Function, outer, Data, Scalar, grad, inner, integrate, interpolate, kronecker, boundingBoxEdgeLengths, vol, sqrt, length,Lsup, transpose
-from esys.escript.linearPDEs import LinearPDE, IllegalCoefficientValue,SolverOptions
-from esys.escript.pdetools import ArithmeticTuple
 from .coordinates import makeTransformation
 from .costfunctions import CostFunction
+import esys.escript as escript
+import esys.escript.linearPDEs as linearPDEs
+import esys.escript.pdetools as pdetools
 
 class SplitRegularization(CostFunction):
     """
@@ -52,7 +52,7 @@ class SplitRegularization(CostFunction):
     """
     def __init__(self, domain, numLevelSets=1,
                        w0=None, w1=None, wc=None,
-                       location_of_set_m=Data(),
+                       location_of_set_m=escript.Data(),
                        useDiagonalHessianApproximation=False, tol=1e-8,
                        coordinates=None,
                        scale=None, scale_c=None):
@@ -114,13 +114,13 @@ class SplitRegularization(CostFunction):
         DIM=self.__domain.getDim()
         self.__numLevelSets=numLevelSets
         self.__trafo=makeTransformation(domain, coordinates)
-        self.__pde=LinearPDE(self.__domain, numEquations=self.__numLevelSets, numSolutions=self.__numLevelSets)
+        self.__pde=linearPDEs.LinearPDE(self.__domain, numEquations=self.__numLevelSets, numSolutions=self.__numLevelSets)
         self.__pde.getSolverOptions().setTolerance(tol)
         self.__pde.setSymmetryOn()
         self.__pde.setValue(A=self.__pde.createCoefficient('A'), D=self.__pde.createCoefficient('D'), )
         try:
             self.__pde.setValue(q=location_of_set_m)
-        except IllegalCoefficientValue:
+        except linearPDEs.IllegalCoefficientValue:
             raise ValueError("Unable to set location of fixed level set function.")
 
         # =========== check the shape of the scales: ========================
@@ -155,7 +155,7 @@ class SplitRegularization(CostFunction):
                 raise ValueError("Unexpected shape %s for scale."%scale_c.shape)
         # ===== check the shape of the weights: =============================
         if w0 is not None:
-            w0 = interpolate(w0,self.__pde.getFunctionSpaceForCoefficient('D'))
+            w0 = escript.interpolate(w0,self.__pde.getFunctionSpaceForCoefficient('D'))
             s0=w0.getShape()
             if numLevelSets == 1:
                 if not s0 == () :
@@ -166,7 +166,7 @@ class SplitRegularization(CostFunction):
             if not self.__trafo.isCartesian():
                 w0*=self.__trafo.getVolumeFactor()
         if not w1 is None:
-            w1 = interpolate(w1,self.__pde.getFunctionSpaceForCoefficient('A'))
+            w1 = escript.interpolate(w1,self.__pde.getFunctionSpaceForCoefficient('A'))
             s1=w1.getShape()
             if numLevelSets == 1 :
                 if not s1 == (DIM,) :
@@ -184,21 +184,21 @@ class SplitRegularization(CostFunction):
         if numLevelSets == 1:
             wc=None
         else:
-            wc = interpolate(wc,self.__pde.getFunctionSpaceForCoefficient('A'))
+            wc = escript.interpolate(wc,self.__pde.getFunctionSpaceForCoefficient('A'))
             sc=wc.getShape()
             if not sc == (numLevelSets, numLevelSets):
                 raise ValueError("Unexpected shape %s for weight wc."%(sc,))
             if not self.__trafo.isCartesian():
                 raise ValueError("Non-cartesian coordinates for cross-gradient term is not supported yet.")
         # ============= now we rescale weights: =============================
-        L2s=np.asarray(boundingBoxEdgeLengths(domain))**2
+        L2s=np.asarray(escript.boundingBoxEdgeLengths(domain))**2
         L4=1/np.sum(1/L2s)**2
         if numLevelSets == 1:
             A=0
             if w0 is not None:
-                A = integrate(w0)
+                A = escript.integrate(w0)
             if w1 is not None:
-                A += integrate(inner(w1, 1/L2s))
+                A += escript.integrate(inner(w1, 1/L2s))
             if A > 0:
                 f = scale/A
                 if w0 is not None:
@@ -211,9 +211,9 @@ class SplitRegularization(CostFunction):
             for k in range(numLevelSets):
                 A=0
                 if w0 is not None:
-                    A = integrate(w0[k])
+                    A = escript.integrate(w0[k])
                 if w1 is not None:
-                    A += integrate(inner(w1[k,:], 1/L2s))
+                    A += escript.integrate(inner(w1[k,:], 1/L2s))
                 if A > 0:
                     f = scale[k]/A
                     if w0 is not None:
@@ -226,7 +226,7 @@ class SplitRegularization(CostFunction):
                 # and now the cross-gradient:
                 if wc is not None:
                     for l in range(k):
-                        A = integrate(wc[l,k])/L4
+                        A = escript.integrate(wc[l,k])/L4
                         if A > 0:
                             f = scale_c[l,k]/A
                             wc[l,k]*=f
@@ -246,7 +246,7 @@ class SplitRegularization(CostFunction):
 
         self.__num_tradeoff_factors=numLevelSets+((numLevelSets-1)*numLevelSets)//2
         self.setTradeOffFactors()
-        self.__vol_d=vol(self.__domain)
+        self.__vol_d=escript.vol(self.__domain)
 
     def getDomain(self):
         """
@@ -276,7 +276,7 @@ class SplitRegularization(CostFunction):
         """
         returns the linear PDE to be solved for the Hessian Operator inverse
 
-        :rtype: `LinearPDE`
+        :rtype: `linearPDEs.LinearPDE`
         """
         return self.__pde
 
@@ -292,8 +292,8 @@ class SplitRegularization(CostFunction):
         :rtype: ``float``
         """
         A=0
-        if not r[0].isEmpty(): A+=integrate(inner(r[0], m))
-        if not r[1].isEmpty(): A+=integrate(inner(r[1], grad(m)))
+        if not r[0].isEmpty(): A+=escript.integrate(inner(r[0], m))
+        if not r[1].isEmpty(): A+=escript.integrate(inner(r[1], escript.grad(m)))
         return A
 
     def getNumTradeOffFactors(self):
@@ -406,7 +406,7 @@ class SplitRegularization(CostFunction):
         """
         """
         raise RuntimeError("Please use the setPoint interface")
-        self.__pre_args = grad(m)
+        self.__pre_args = escript.grad(m)
         self.__pre_input = m
         return self.__pre_args,
 
@@ -428,28 +428,28 @@ class SplitRegularization(CostFunction):
 
         A=0
         if self.__w0 is not None:
-            r = inner(integrate(m**2 * self.__w0), mu)
+            r = inner(escript.integrate(m**2 * self.__w0), mu)
             self.logger.debug("J_R[m^2] = %e"%r)
             A += r
 
         if self.__w1 is not None:
             if numLS == 1:
-                r = integrate(inner(grad_m**2, self.__w1))*mu
+                r = escript.integrate(inner(grad_m**2, self.__w1))*mu
                 self.logger.debug("J_R[grad(m)] = %e"%r)
                 A += r
             else:
                 for k in range(numLS):
-                    r = mu[k]*integrate(inner(grad_m[k,:]**2,self.__w1[k,:]))
+                    r = mu[k]*escript.integrate(inner(grad_m[k,:]**2,self.__w1[k,:]))
                     self.logger.debug("J_R[grad(m)][%d] = %e"%(k,r))
                     A += r
 
         if numLS > 1:
             for k in range(numLS):
                 gk=grad_m[k,:]
-                len_gk=length(gk)
+                len_gk=escript.length(gk)
                 for l in range(k):
                     gl=grad_m[l,:]
-                    r = mu_c[l,k] * integrate( self.__wc[l,k] * ( ( len_gk * length(gl) )**2 - inner(gk, gl)**2 ) )
+                    r = mu_c[l,k] * escript.integrate( self.__wc[l,k] * ( ( len_gk * escript.length(gl) )**2 - inner(gk, gl)**2 ) )
                     self.logger.debug("J_R[cross][%d,%d] = %e"%(l,k,r))
                     A += r
         return A/2       
@@ -477,28 +477,28 @@ class SplitRegularization(CostFunction):
 
         A=0
         if self.__w0 is not None:
-            r = inner(integrate(m**2 * self.__w0), mu)
+            r = inner(escript.integrate(m**2 * self.__w0), mu)
             self.logger.debug("J_R[m^2] = %e"%r)
             A += r
 
         if self.__w1 is not None:
             if numLS == 1:
-                r = integrate(inner(grad_m**2, self.__w1))*mu
+                r = escript.integrate(inner(grad_m**2, self.__w1))*mu
                 self.logger.debug("J_R[grad(m)] = %e"%r)
                 A += r
             else:
                 for k in range(numLS):
-                    r = mu[k]*integrate(inner(grad_m[k,:]**2,self.__w1[k,:]))
+                    r = mu[k]*escript.integrate(inner(grad_m[k,:]**2,self.__w1[k,:]))
                     self.logger.debug("J_R[grad(m)][%d] = %e"%(k,r))
                     A += r
 
         if numLS > 1:
             for k in range(numLS):
                 gk=grad_m[k,:]
-                len_gk=length(gk)
+                len_gk=escript.length(gk)
                 for l in range(k):
                     gl=grad_m[l,:]
-                    r = mu_c[l,k] * integrate( self.__wc[l,k] * ( ( len_gk * length(gl) )**2 - inner(gk, gl)**2 ) )
+                    r = mu_c[l,k] * escript.integrate( self.__wc[l,k] * ( ( len_gk * escript.length(gl) )**2 - inner(gk, gl)**2 ) )
                     self.logger.debug("J_R[cross][%d,%d] = %e"%(l,k,r))
                     A += r
         return A/2
@@ -522,14 +522,14 @@ class SplitRegularization(CostFunction):
         DIM=self.getDomain().getDim()
         numLS=self.getNumLevelSets()
 
-        grad_m=grad(m, Function(m.getDomain()))
+        grad_m=escript.grad(m, escript.Function(m.getDomain()))
         if self.__w0 is not None:
             Y = m * self.__w0 * mu
         else:
             if numLS == 1:
-                Y = Scalar(0,  grad_m.getFunctionSpace())
+                Y = escript.Scalar(0,  grad_m.getFunctionSpace())
             else:
-                Y = Data(0, (numLS,) , grad_m.getFunctionSpace())
+                Y = escript.Data(0, (numLS,) , grad_m.getFunctionSpace())
 
         if self.__w1 is not None:
 
@@ -540,22 +540,22 @@ class SplitRegularization(CostFunction):
                 for k in range(numLS):
                     X[k,:]*=mu[k]
         else:
-            X = Data(0, grad_m.getShape(), grad_m.getFunctionSpace())
+            X = escript.Data(0, grad_m.getShape(), grad_m.getFunctionSpace())
 
         # cross gradient terms:
         if numLS > 1:
             for k in range(numLS):
                 grad_m_k=grad_m[k,:]
-                l2_grad_m_k = length(grad_m_k)**2
+                l2_grad_m_k = escript.length(grad_m_k)**2
                 for l in range(k):
                     grad_m_l=grad_m[l,:]
-                    l2_grad_m_l = length(grad_m_l)**2
+                    l2_grad_m_l = escript.length(grad_m_l)**2
                     grad_m_lk = inner(grad_m_l, grad_m_k)
                     f = mu_c[l,k]* self.__wc[l,k]
                     X[l,:] += f * (l2_grad_m_k*grad_m_l - grad_m_lk*grad_m_k)
                     X[k,:] += f * (l2_grad_m_l*grad_m_k - grad_m_lk*grad_m_l)
 
-        return ArithmeticTuple(Y, X)
+        return pdetools.ArithmeticTuple(Y, X)
 
     def getInverseHessianApproximationAtPoint(self, r, solve=True):
         """
@@ -595,21 +595,21 @@ class SplitRegularization(CostFunction):
                 # this could be make faster by creating caches for grad_m_k, l2_grad_m_k  and o_kk
                 for k in range(numLS):
                     grad_m_k=grad_m[k,:]
-                    l2_grad_m_k = length(grad_m_k)**2
-                    o_kk=outer(grad_m_k, grad_m_k)
+                    l2_grad_m_k = escript.length(grad_m_k)**2
+                    o_kk=escript.outer(grad_m_k, grad_m_k)
                     for l in range(k):
                         grad_m_l=grad_m[l,:]
-                        l2_grad_m_l = length(grad_m_l)**2
-                        i_lk = inner(grad_m_l, grad_m_k)
-                        o_lk = outer(grad_m_l, grad_m_k)
-                        o_kl = outer(grad_m_k, grad_m_l)
-                        o_ll=outer(grad_m_l, grad_m_l)
+                        l2_grad_m_l = escript.length(grad_m_l)**2
+                        i_lk = escript.inner(grad_m_l, grad_m_k)
+                        o_lk = escript.outer(grad_m_l, grad_m_k)
+                        o_kl = escript.outer(grad_m_k, grad_m_l)
+                        o_ll=escript.outer(grad_m_l, grad_m_l)
                         f=  mu_c[l,k]* self.__wc[l,k]
-                        Z=f * (2*o_lk - o_kl - i_lk*kronecker(DIM))
-                        A[l,:,l,:] += f * (l2_grad_m_k*kronecker(DIM) - o_kk)
+                        Z=f * (2*o_lk - o_kl - i_lk*escript.kronecker(DIM))
+                        A[l,:,l,:] += f * (l2_grad_m_k*escript.kronecker(DIM) - o_kk)
                         A[l,:,k,:] += Z
-                        A[k,:,l,:] += transpose(Z)
-                        A[k,:,k,:] += f * (l2_grad_m_l*kronecker(DIM) - o_ll)
+                        A[k,:,l,:] += escript.transpose(Z)
+                        A[k,:,k,:] += f * (l2_grad_m_l*escript.kronecker(DIM) - o_ll)
             self.getPDE().setValue(A=A)
         #self.getPDE().resetRightHandSideCoefficients()
         #self.getPDE().setValue(X=r[1])
@@ -639,7 +639,7 @@ class SplitRegularization(CostFunction):
         :type m: `Data`
         :rtype: ``float``
         """
-        return sqrt(integrate(length(m)**2)/self.__vol_d)
+        return escript.sqrt(escript.integrate(escript.length(m)**2)/self.__vol_d)
     
     def setPoint(self, m):
         """
@@ -649,5 +649,5 @@ class SplitRegularization(CostFunction):
         :type m: `Data`
         """
         self.__pre_input = m
-        self.__pre_args = grad(m)
+        self.__pre_args = escript.grad(m)
 
