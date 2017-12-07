@@ -69,8 +69,8 @@ class SplitInversionCostFunction(MeteredCostFunction):
 
          J=InversionCostFunction(Regularization(self.numLevelSets=2), mappings=[(m0,0), (m1,0)], forward_models=[(f0, 0), (f1,1)])
 
-    :cvar provides_inverse_Hessian_approximation: if true the class provides an
-          approximative inverse of the Hessian operator.
+    :note: If provides_inverse_Hessian_approximation is true, then the class
+          provides an approximative inverse of the Hessian operator.          
     """
     provides_inverse_Hessian_approximation=True
 
