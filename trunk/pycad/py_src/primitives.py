@@ -1155,9 +1155,9 @@ class Manifold2D(PrimitiveBase):
     """
     General two-dimensional manifold.
  
-    :ivar LEFT: left element orientation when meshing with transfinite meshing
-    :ivar RIGHT: right element orientation when meshing with transfinite meshing
-    :ivar ALTERNATE: alternate element orientation when meshing with transfinite meshing
+    :note: Instance variable LEFT - left element orientation when meshing with transfinite meshing
+    :note: Instance variable RIGHT - right element orientation when meshing with transfinite meshing
+    :note: Instance variable ALTERNATE - alternate element orientation when meshing with transfinite meshing
     """
     LEFT="Left"
     RIGHT="Right"

@@ -144,10 +144,10 @@ class UpdateGeometry(esmf.Model):
       """
       applies a displacement field to a domain
       
-      :ivar displacement: displacements applied to the original mesh coordinates (in).
-      :type displacement: `escript.Vector`
-      :ivar domain: domain
-      :type domain: `escript.Domain`
+      :note: Instance variable displacement - displacements applied to the original mesh coordinates (in).
+      :note: Instance variable displacement - `escript.Vector`
+      :note: Instance variable domain - domain
+      :note: Instance variable domain - `escript.Domain`
       """
       def __init__(self,**kwargs):
            """
@@ -196,14 +196,14 @@ class ConstrainerOverBox(esmf.Model):
 
       In the case that the spatial dimension is two, the arguments front and back are ignored.
 
-      :ivar domain: domain (in).
-      :ivar left:  True to set a constraint at the left face of the domain (x[0]=min x[0]), default False (in).
-      :ivar right: True to set a constraint at the left face of the domain (x[0]=max x[0]), default False (in).
-      :ivar top: True to set a constraint at the left face of the domain (x[1]=min x[1]), default False (in).
-      :ivar bottom: True to set a constraint at the left face of the domain (x[1]=max x[1]), default False (in).
-      :ivar front: True to set a constraint at the left face of the domain (x[2]=min x[2]), default False (in).
-      :ivar back: True to set a constraint at the left face of the domain (x[2]=max x[2]), default False (in).
-      :ivar tol: absolute tolerance for "x=max x" condition, default 1.e-8 (in).
+      :note: Instance variable - domain (in).
+      :note: Instance variable left -  True to set a constraint at the left face of the domain (x[0]=min x[0]), default False (in).
+      :note: Instance variable right - True to set a constraint at the left face of the domain (x[0]=max x[0]), default False (in).
+      :note: Instance variable top - True to set a constraint at the left face of the domain (x[1]=min x[1]), default False (in).
+      :note: Instance variable bottom - True to set a constraint at the left face of the domain (x[1]=max x[1]), default False (in).
+      :note: Instance variable front - True to set a constraint at the left face of the domain (x[2]=min x[2]), default False (in).
+      :note: Instance variable back - True to set a constraint at the left face of the domain (x[2]=max x[2]), default False (in).
+      :note: Instance variable tol - absolute tolerance for "x=max x" condition, default 1.e-8 (in).
       """
       def __init__(self,**kwargs):
            super(ConstrainerOverBox, self).__init__(**kwargs)
@@ -278,14 +278,14 @@ class ScalarConstrainerOverBox(esmf.Model):
 
       In the case that the spatial dimension is two, the arguments front and back are ignored.
 
-      :ivar domain: domain (in).
-      :ivar left:  True to set a constraint at the left face of the domain (x[0]=min x[0]), default False (in).
-      :ivar right: True to set a constraint at the left face of the domain (x[0]=max x[0]), default False (in).
-      :ivar top: True to set a constraint at the left face of the domain (x[1]=min x[1]), default False (in).
-      :ivar bottom: True to set a constraint at the left face of the domain (x[1]=max x[1]), default False (in).
-      :ivar front: True to set a constraint at the left face of the domain (x[2]=min x[2]), default False (in).
-      :ivar back: True to set a constraint at the left face of the domain (x[2]=max x[2]), default False (in).
-      :ivar tol: absolute tolerance for "x=max x" condition, default 1.e-8 (in).
+      :note: Instance variable domain - domain (in).
+      :note: Instance variable left -  True to set a constraint at the left face of the domain (x[0]=min x[0]), default False (in).
+      :note: Instance variable right - True to set a constraint at the left face of the domain (x[0]=max x[0]), default False (in).
+      :note: Instance variable top - True to set a constraint at the left face of the domain (x[1]=min x[1]), default False (in).
+      :note: Instance variable bottom - True to set a constraint at the left face of the domain (x[1]=max x[1]), default False (in).
+      :note: Instance variable front - True to set a constraint at the left face of the domain (x[2]=min x[2]), default False (in).
+      :note: Instance variable back - True to set a constraint at the left face of the domain (x[2]=max x[2]), default False (in).
+      :note: Instance variable tol - absolute tolerance for "x=max x" condition, default 1.e-8 (in).
       """
       def __init__(self,**kwargs):
            super(ScalarConstrainerOverBox, self).__init__(**kwargs)
@@ -349,20 +349,20 @@ class VectorConstrainerOverBox(esmf.Model):
       In the case that the spatial dimension is two, the arguments front and
       back as well as the third component of each argument is ignored.
 
-      :ivar domain: domain
-      :ivar left: list of three boolean. left[i]==True sets a constraint for the i-th component at the left face of the domain (x[0]=min x[0]),
+      :note: Instance variable domain
+      :note: Instance variable left - list of three boolean. left[i]==True sets a constraint for the i-th component at the left face of the domain (x[0]=min x[0]),
                        default [False,False,False] (in).
-      :ivar right: list of three boolean. left[i]==True sets a constraint for the i-th component at the right face of the domain (x[0]=max x[0]), 
+      :note: Instance variable right - list of three boolean. left[i]==True sets a constraint for the i-th component at the right face of the domain (x[0]=max x[0]), 
                 default [False,False,False] (in).
-      :ivar top: list of three boolean. left[i]==True sets a constraint for the i-th component at the top face of the domain (x[1]=min x[1]), 
+      :note: Instance variable top - list of three boolean. left[i]==True sets a constraint for the i-th component at the top face of the domain (x[1]=min x[1]), 
                 default [False,False,False] (in).
-      :ivar bottom: list of three boolean. left[i]==True sets a constraint for the i-th component at the bottom face of the domain (x[1]=min x[1]), 
+      :note: Instance variable bottom - list of three boolean. left[i]==True sets a constraint for the i-th component at the bottom face of the domain (x[1]=min x[1]), 
                 default [False,False,False] (in).
-      :ivar front: list of three boolean. left[i]==True sets a constraint for the i-th component at the front face of the domain (x[2]=min x[2]), 
+      :note: Instance variable front - list of three boolean. left[i]==True sets a constraint for the i-th component at the front face of the domain (x[2]=min x[2]), 
                 default [False,False,False] (in).
-      :ivar back: list of three boolean. left[i]==True sets a constraint for the i-th component at the back face of the domain (x[2]=max x[2]), 
+      :note: Instance variable back - list of three boolean. left[i]==True sets a constraint for the i-th component at the back face of the domain (x[2]=max x[2]), 
                 default [False,False,False] (in).
-      :ivar tol: absolute tolerance for "x=max x" condition, default 1.e-8 (in).
+      :note: Instance variable tol - absolute tolerance for "x=max x" condition, default 1.e-8 (in).
       """
       def __init__(self, **kwargs):
            super(VectorConstrainerOverBox, self).__init__(**kwargs)
@@ -456,9 +456,9 @@ class ConstrainerAtBoxVertex(esmf.Model):
       ate these locations.
 
       In the case that the spatial dimension is two, the arguments front and back are ignored.
-
-      :ivar domain: domain (in).
-      :ivar tol: absolute tolerance for "x=left, front, bottom vertex" condition, default 1.e-8 (in).
+      
+      :note: Instance variable domain
+      :note: Instance variable tol - absolute tolerance for "x=left, front, bottom vertex" condition, default 1.e-8 (in).
       """
       def __init__(self,**kwargs):
            super(ConstrainerAtBoxVertex, self).__init__(**kwargs)
@@ -509,6 +509,7 @@ class ConstrainerAtBoxVertex(esmf.Model):
              self.__location_of_constraint=es.whereZero(es.length(x-vertex),self.tol)*numpy.ones(shape)
              if not self.value is None:
                    self.__value_of_constraint=self.__location_of_constraint*self.value
+
 class ScalarConstrainerAtBoxVertex(esmf.Model):
       """
       Creates a characteristic function for the location of constraints 
@@ -517,8 +518,8 @@ class ScalarConstrainerAtBoxVertex(esmf.Model):
 
       In the case that the spatial dimension is two, the arguments front and back are ignored.
 
-      :ivar domain: domain (in).
-      :ivar tol: absolute tolerance for "x=left, front, bottom vertex" condition, default 1.e-8 (in).
+      :note: Instance variable domain
+      :note: Instance variable tol - absolute tolerance for "x=left, front, bottom vertex" condition, default 1.e-8 (in).
       """
       def __init__(self,**kwargs):
            super(ScalarConstrainerAtBoxVertex, self).__init__(**kwargs)
@@ -565,9 +566,9 @@ class VectorConstrainerAtBoxVertex(esmf.Model):
       In the case that the spatial dimension is two, the arguments front and
       back as well as the third component of each argument is ignored.
 
-      :ivar domain: domain
-      :ivar comp_mask: list of three boolean. comp_mask[i]==True sets a constraint for the i-th component at the left, front, bottom vertex, default [False,False,False] (in).
-      :ivar tol: absolute tolerance for "x=left, front, bottom vertex" condition, default 1.e-8 (in).
+      :note: Instance variable domain
+      :note: Instance variable comp_mask - list of three boolean. comp_mask[i]==True sets a constraint for the i-th component at the left, front, bottom vertex, default [False,False,False] (in).
+      :note: Instance variable tol - absolute tolerance for "x=left, front, bottom vertex" condition, default 1.e-8 (in).
       """
       def __init__(self, **kwargs):
            super(VectorConstrainerAtBoxVertex, self).__init__(**kwargs)

@@ -35,9 +35,9 @@ class EvaluateExpression(ParameterSet):
 
        :warning: this class use python's eval function!!!!! 
                  Please use input.InterpolateOverBox is possible!!!!
-       :ivar expression: expression or list of expressions defining 
+       :note: Instance variable expression - expression or list of expressions defining 
                  expression value (in)
-       :ivar out: current value of the expression (callable)
+       :note: Instance variable out - current value of the expression (callable)
        """
 
        def __init__(self,**kwargs):
