@@ -21,7 +21,7 @@ local_env = env.Clone()
 if local_env['silo']:
     local_env.AppendUnique(LIBS = env['silo_libs'])
 
-local_env.Prepend(LIBS = ['esysUtils', 'weipa', 'dudley', 'finley', 'ripley', 'escript'])
+local_env.Prepend(LIBS = ['weipa', 'dudley', 'finley', 'ripley', 'escript'])
 prog = local_env.Program('escriptconvert', ['escriptconvert.cpp'])
 env.Alias('build_escriptconvert', prog)
 inst_escriptconvert = local_env.Install(local_env['bininstall'], prog)
