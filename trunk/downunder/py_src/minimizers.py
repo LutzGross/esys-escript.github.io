@@ -174,13 +174,11 @@ class AbstractMinimizer(object):
         :type J: `CostFunction`
         """
         self.setCostFunction(J)
-        self._m_tol = m_tol
-        self._J_tol = J_tol
-        self._imax = imax
+        self.setMaxIterations(imax)
         self._result = None
         self._callback = None
         self.logger = logging.getLogger('inv.%s'%self.__class__.__name__)
-        self.setTolerance()
+        self.setTolerance(m_tol=m_tol, J_tol=J_tol)
 
     def setCostFunction(self, J):
         """
