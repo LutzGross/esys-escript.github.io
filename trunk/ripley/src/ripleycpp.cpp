@@ -136,6 +136,12 @@ escript::Data readNcGrid(std::string filename, std::string varname,
     return res;
 }
 
+void setDecompositionPolicy(int policy)
+{
+    DecompositionPolicy pol = static_cast<DecompositionPolicy>(policy);
+    RipleyDomain::setDecompositionPolicy(pol);
+}
+
 // These wrappers are required to make the shared pointers work through the
 // Python wrapper
 
@@ -506,7 +512,7 @@ BOOST_PYTHON_MODULE(ripleycpp)
     scope().attr("DECOMP_EXPAND") = (int)ripley::DECOMP_EXPAND;
     scope().attr("DECOMP_STRICT") = (int)ripley::DECOMP_STRICT;
 
-    def("setDecompositionPolicy", ripley::RipleyDomain::setDecompositionPolicy,
+    def("setDecompositionPolicy", &ripley::setDecompositionPolicy,
         args("value"),
         "Sets the automatic domain decomposition policy for new domains.\n\n"
         ":param value: policy\n:type value: ``int``");
