@@ -30,7 +30,7 @@ from esys.escriptcore.testing import *
 from esys.escript import *
 from esys.dudley import Rectangle, Brick
 from test_objects import Test_Dump, Test_SetDataPointValue, Test_saveCSV, \
-        Test_TableInterpolation, Test_Domain, Test_Lazy
+        Test_TableInterpolation, Test_Domain, Test_Lazy, Test_tagMap
 from test_shared import Test_Shared
 
 try:
@@ -131,6 +131,17 @@ class Test_LazyOnDudley(Test_Lazy):
        del self.domain
        del self.mainfs
        del self.otherfs
+
+class Test_tagMapOnDudley(Test_tagMap):
+    def setUp(self):
+        self.domain=Brick(4,4,4)
+        self.functionspaces=[ContinuousFunction(self.domain), Function(self.domain), ReducedFunction(self.domain),
+            FunctionOnBoundary(self.domain), ReducedFunctionOnBoundary(self.domain)]
+            #We aren't testing DiracDeltaFunctions
+
+    def tearDown(self):
+        del self.domain
+        del self.functionspaces
 
 class Test_TableInterpolationOnDudley(Test_TableInterpolation):
     def setUp(self):

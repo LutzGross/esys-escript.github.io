@@ -62,6 +62,12 @@ try:
 except KeyError:
      ESCRIPT_WORKDIR='.'
 
+class Test_tagMap(unittest.TestCase):
+    
+    def test_makeTagMap(self):
+        for fs in self.functionspaces:
+            d=makeTagMap(fs)
+
 class Test_TableInterpolation(unittest.TestCase):
     RES_TOL=1.e-7 # RES_TOLerance to compare results
 

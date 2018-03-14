@@ -30,7 +30,7 @@ from esys.escriptcore.testing import *
 from esys.escript import *
 from esys.finley import Rectangle, Brick, ReadMesh, ReadGmsh
 from test_objects import Test_Dump, Test_SetDataPointValue, Test_saveCSV, \
-        Test_TableInterpolation, Test_Domain, Test_Lazy
+        Test_TableInterpolation, Test_Domain, Test_Lazy, Test_tagMap
 from test_shared import Test_Shared
 
 try:
@@ -158,6 +158,19 @@ class Test_LazyOnFinley(Test_Lazy):
        del self.mainfs
        del self.otherfs
 
+
+class Test_tagMapOnFinley(Test_tagMap):
+    def setUp(self):
+        self.domain=Brick(2,2,2)
+        self.functionspaces=[ContinuousFunction(self.domain), Function(self.domain), ReducedFunction(self.domain),
+            FunctionOnBoundary(self.domain), ReducedFunctionOnBoundary(self.domain),
+            FunctionOnContactZero(self.domain), FunctionOnContactOne(self.domain),
+            ReducedFunctionOnContactZero(self.domain), ReducedFunctionOnContactOne(self.domain)]
+
+    def tearDown(self):
+        del self.domain
+        del self.functionspaces
+        
 class Test_TableInterpolationOnFinley(Test_TableInterpolation):
     def setUp(self):
         self.domain=Brick(4,4,4)

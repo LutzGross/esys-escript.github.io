@@ -3125,3 +3125,14 @@ def phase(arg):
     if isinstance(arg, numpy.ndarray):
         return numpy.phase(arg)
     return arg.phase()
+
+def makeTagMap(fs):
+    """
+    Produce an expanded Data over the function space where
+    the value is the tag associated with the sample
+    """
+    out=escore.Scalar(0, fs)    # The default tag is zero anyway
+    for t in fs.getListOfTags():
+        out.setTaggedValue(t,t)
+    out.expand()
+    return out
