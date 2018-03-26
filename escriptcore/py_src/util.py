@@ -2822,7 +2822,7 @@ def diameter(domain):
     :type domain: `escript.Domain`
     :rtype: ``float``
     """
-    return sqrt(sum( [ v**2 for v in boundingBoxLengths(domain) ] ))
+    return sqrt(sum( [ v**2 for v in boundingBoxEdgeLengths(domain) ] ))
 
 def boundingBoxEdgeLengths(domain):
     """
@@ -2860,7 +2860,7 @@ def longestEdge(domain):
     :return: longest edge of the domain parallel to the Cartesian axis 
     :rtype: ``float``
     """
-    return max(boundingBoxEdgeLength(domain))
+    return max(boundingBoxEdgeLengths(domain))
 
 def mkDir(*pathname):
     """
