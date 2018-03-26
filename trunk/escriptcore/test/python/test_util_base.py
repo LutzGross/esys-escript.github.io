@@ -80,6 +80,17 @@ class Test_util_values(unittest.TestCase):
     RES_TOL=1.e-7 # RES_TOLerance to compare results
     DIFF_TOL=1.e-7 # RES_TOLerance to derivatices
 
+    def test_diameter_2D(self):
+        if self.domain.getDim() == 2:
+            blocks = self.domain
+            x=blocks.getX()
+            mx=sup(x[0])-inf(x[0])
+            my=sup(x[1])-inf(x[1])
+            self.assertEqual(blocks.getDim(),2,"wrong dimension.")
+            self.assertEqual(diameter(blocks),sqrt(mx**2+my**2),"wrong diameter calculous.")
+        else:
+            pass
+
     def makeTagged(self, fs, v1, v2):
         """
         Helper routine which makes a DataTagged containing the two values
