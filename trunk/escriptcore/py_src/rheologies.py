@@ -686,7 +686,7 @@ class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology, StokesProblemCarte
           """
           self.setExternals(F, f, fixed_v_mask, v_boundary, restoration_factor)
 
-     def update(self, dt, iter_max=10, eta_iter_max=20, verbose=False, usePCG=True, max_correction_steps=50):
+     def update(self, dt, iter_max=10, eta_iter_max=20, verbose=False, usePCG=True, max_correction_steps=100):
           """
           Updates stress, velocity and pressure for time increment dt.
 
