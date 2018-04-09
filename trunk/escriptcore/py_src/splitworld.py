@@ -44,15 +44,18 @@ class SplitWorld(object):
   def __init__(self, count):
     """
     :var count: How many equally sized subworlds should our compute resources be partitioned into?
-    :var type: `int`
+    :type count: `int`
     """
     self.cpp_obj=escore.Internal_SplitWorld(count)
     
   def buildDomains(self, fn, *vec, **kwargs):
     """
     Instruct subworlds how to build the domain.
+    
     :var fn: The function/class to call to create a domain.
     :type fn: `callable`
+
+    
     The remaining parameters are for the arguments of the function.
     """
     escore.internal_buildDomains(self.cpp_obj, fn, *vec, **kwargs)
@@ -61,8 +64,10 @@ class SplitWorld(object):
   def addJob(self, jobctr, *vec, **kwargs):
     """
     Submit a job to be run later on an available subworld.
+    
     :var jobctr: class or function to be called to create a job
     :type jobctr: `callable`
+    
     The remaining parameters are for the arguments of the function.
     """
     escore.internal_addJob(self.cpp_obj, jobctr, *vec, **kwargs)
@@ -70,8 +75,10 @@ class SplitWorld(object):
   def addJobPerWorld(self, jobctr, *vec, **kwargs):
     """
     Submit one job per subworld to run later.
+    
     :var jobctr: class or function to be called to create a job
     :type jobctr: `callable`
+    
     The remaining parameters are for the arguments of the function.    
     """
     escore.internal_addJobPerWorld(self.cpp_obj, jobctr,  *vec, **kwargs)
@@ -80,8 +87,10 @@ class SplitWorld(object):
   def addVariable(self, vname, vartype, *vec, **kwargs):
     """
     Create a variable on all subworlds.
+    
     :var vartype: the type of variable to be created
     :type vartype: `str`
+
     The remaining parameters are for optional arguments depending on the variable type.
     """
     if vartype=="local":
@@ -99,22 +108,24 @@ class SplitWorld(object):
     """
     self.cpp_obj.runJobs()
 
-  def removeVariable(self, name):
+  def removeVariable(self, vname):
     """
     Removes the named variable from all subworlds.
-    :var name: 
-    :type name: `str`
+    
+    :var vname: What to remove
+    :type vname: `str`
     """
-    self.cpp_obj.removeVariable(name)
+    self.cpp_obj.removeVariable(vname)
     
     
-  def clearVariable(self, name):
+  def clearVariable(self, vname):
     """
     Clears the value of the named variable.  The variable itself still exists.
-    :var name: variable to clear
-    :type name: `str`
+    
+    :var vname: variable to clear
+    :type vname: `str`
     """
-    self.cpp_obj.clearVariable(name)
+    self.cpp_obj.clearVariable(vname)
     
   def getVarList(self):
     """
@@ -161,6 +172,7 @@ class SplitWorld(object):
   def copyVariable(self, src, dest):
     """
     copy the contents of one splitworld variable into another
+    
     :var src: name of variable to copy from
     :type src: `str`
     :var dest: name of variable to copy to 
@@ -173,8 +185,6 @@ class Job(object):
   Describes a sequence of work to be carried out in a subworld.
   The instances of this class used in the subworlds will
   be constructed by the system.
-  The majority of the work done by the Job will be in the 
-  *overloaded* work() method.
   To do specific work, this class should be subclassed and the work() 
   (and possibly __init__ methods overloaded).
   The majority of the work done by the job will be in the *overloaded* work() method.
@@ -185,7 +195,8 @@ class Job(object):
 
   def __init__(self, *args, **kwargs):
     """
-    It ignores all of its parameters, except, it requires the following as keyword arguments
+    It ignores all of its parameters, except that, it requires the following as keyword arguments
+    
     :var domain: Domain to be used as the basis for all ``Data`` and PDEs in this Job.
     :var jobid: sequence number of this job. The first job has id=1
     :type jobid: Positive ``int``
@@ -203,6 +214,7 @@ class Job(object):
   def setImportValue(self, name, v):
     """
     Use to make a value available to the job (ie called from outside the job)
+    
     :var name: label used to identify this import
     :type name: ``str``
     :var v: value to be imported
@@ -215,6 +227,7 @@ class Job(object):
     Make value v available to other Jobs under the label name.
     name must have already been registered with the SplitWorld instance.
     For use inside the work() method.
+    
     :var name: registered label for exported value
     :type name: ``str``
     :var v: value to be imported
@@ -231,6 +244,7 @@ class Job(object):
   def importValue(self, name):
     """
     For use inside the work() method.
+    
     :var name: label for imported value.
     :type name: ``str``
     """
