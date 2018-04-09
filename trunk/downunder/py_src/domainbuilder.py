@@ -29,7 +29,7 @@ __all__ = ['DomainBuilder']
 
 import logging
 import numpy as np
-from esys.escript.util import *
+import esys.escript.util as esu
 from esys.escript import unitsSI as U
 from .datasources import DataSource
 from .coordinates import ReferenceSystem, CartesianReferenceSystem
@@ -367,9 +367,9 @@ class DomainBuilder(object):
         whose density value is fixed, zero otherwise.
         """
         z=self.getDomain().getX()[self.__dim-1]
-        m = whereNonNegative(z)
+        m = esu.whereNonNegative(z)
         if self.__fix_density_below:
-            m += whereNonPositive(z+self.__v_scale*self.__fix_density_below)
+            m += esu.whereNonPositive(z+self.__v_scale*self.__fix_density_below)
         return m
 
     def getSetSusceptibilityMask(self):
@@ -378,9 +378,9 @@ class DomainBuilder(object):
         cells whose susceptibility value is fixed, zero otherwise.
         """
         z=self.getDomain().getX()[self.__dim-1]
-        m = whereNonNegative(z)
+        m = esu.whereNonNegative(z)
         if self.__fix_susceptibility_below:
-            m += whereNonPositive(z+self.__v_scale*self.__fix_susceptibility_below)
+            m += esu.whereNonPositive(z+self.__v_scale*self.__fix_susceptibility_below)
         return m
 
     def getDomain(self):
@@ -507,7 +507,7 @@ class DomainBuilder(object):
             dom=Rectangle(*NE, l0=lo[0], l1=lo[1])
 
         # ripley may internally adjust NE and length, so recompute
-        self._dom_len=[sup(dom.getX()[i])-inf(dom.getX()[i]) for i in range(self.__dim)]
+        self._dom_len=[esu.sup(dom.getX()[i])-esu.inf(dom.getX()[i]) for i in range(self.__dim)]
         self._dom_NE=[int(self._dom_len[i]/self._spacing[i]) for i in range(self.__dim)]
 
         self.logger.debug("Domain size: "+str(self._dom_NE))
