@@ -65,12 +65,7 @@ override_dh_auto_build:
 	mv $(WORK)/bin/run-escript $(WORK)/bin/run-escript2
 	find $(WORK) -name '*.pyc' -print0 | xargs -0 rm -f
 	
-	# build_steps for documentation 
-	# depends on the py2 build so don't do anything here
-	# which will overwrite changes made in the py2 build
-	mkdir -p $(BUILD)
-	scons $(sflags) SVN_VERSION=`cat svn_version` build_dir=$(BUILD) verbose=on prefix=$(WORK) options_file=scons/templates/sid_options.py docs
-	find $(WORK) -name '*.pyc' -print0 | xargs -0 rm -f
+
 	
 	# Build steps for py2 with MPI	
 	mkdir -p $(WORKM)
@@ -93,6 +88,13 @@ override_dh_auto_build:
 	ln $(WORK3)/bin/run-escript $(WORK3)/bin/run-escript3
 	find $(WORK3) -name '*.pyc' -print0| xargs -0 rm -f
 	#rm -rf $(BUILD3)
+	
+	# build_steps for documentation 
+	# depends on the py3 build so don't do anything here
+	# which will overwrite changes made in the py3 build
+	mkdir -p $(BUILD3)
+	scons $(sflags) SVN_VERSION=`cat svn_version` build_dir=$(BUILD3) verbose=on prefix=$(WORK3) options_file=scons/templates/sid_py3_options.py docs
+	find $(WORK3) -name '*.pyc' -print0 | xargs -0 rm -f	
 
 	# Build steps for py3 with MPI
 	mkdir -p $(WORK3M)
