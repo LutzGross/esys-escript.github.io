@@ -36,7 +36,7 @@ import esys.escript as es
 from esys.escript import ReducedFunction, FunctionOnBoundary, Scalar
 from esys.escript import unitsSI as U
 from esys.escript.linearPDEs import LinearSinglePDE
-from esys.escript.util import *
+import esys.escript.util as esu
 from .coordinates import ReferenceSystem,  CartesianReferenceSystem
 
 HAS_RIPLEY = True
@@ -521,7 +521,7 @@ class ErMapperData(DataSource):
                 fill=self.__null_value, byteOrder=byteorder,
                 dataType=self.__celltype, first=first, numValues=nValues,
                 multiplier=multiplier, reverse=reverse)
-        sigma = self.__error_value * whereNonZero(data-self.__null_value)
+        sigma = self.__error_value * esu.whereNonZero(data-self.__null_value)
 
         data = data * self.__scale_factor
         sigma = sigma * self.__scale_factor
@@ -807,7 +807,7 @@ class NetCdfData(DataSource):
             if np.isnan(self.__null_value):
                 data.replaceNaN(1.e300)
                 self.__null_value = 1.e300
-            sigma = self.__error_value * whereNonZero(data-self.__null_value)
+            sigma = self.__error_value * esu.whereNonZero(data-self.__null_value)
 
         data = data * self.__scale_factor
         sigma = sigma * self.__scale_factor
@@ -883,10 +883,10 @@ class SmoothAnomaly(SourceFeature):
 
     def getMask(self, x):
         DIM=x.getDomain().getDim()
-        m=whereNonNegative(x[DIM-1]+self.depth+self.lz/2) * whereNonPositive(x[DIM-1]+self.depth-self.lz/2) \
-            *whereNonNegative(x[0]-(self.x-self.lx/2)) * whereNonPositive(x[0]-(self.x+self.lx/2))
+        m=esu.whereNonNegative(x[DIM-1]+self.depth+self.lz/2) * esu.whereNonPositive(x[DIM-1]+self.depth-self.lz/2) \
+            *esu.whereNonNegative(x[0]-(self.x-self.lx/2)) * esu.whereNonPositive(x[0]-(self.x+self.lx/2))
         if DIM>2:
-            m*=whereNonNegative(x[1]-(self.y-self.ly/2)) * whereNonPositive(x[1]-(self.y+self.ly/2))
+            m*=esu.whereNonNegative(x[1]-(self.y-self.ly/2)) * esu.whereNonPositive(x[1]-(self.y+self.ly/2))
         self.mask = m
         return m
 
@@ -992,33 +992,33 @@ class SyntheticDataBase(DataSource):
         k=self.getReferenceProperty(domain)
         # calculate the corresponding potential
         z=x[DIM-1]
-        m_psi_ref=whereZero(z-sup(z))
+        m_psi_ref=esu.whereZero(z-esu.sup(z))
         if self.getDataType()==DataSource.GRAVITY:
-            pde.setValue(A=kronecker(domain), Y=-4*np.pi*U.Gravitational_Constant*self._reference_data, q=m_psi_ref)
+            pde.setValue(A=esu.kronecker(domain), Y=-4*np.pi*U.Gravitational_Constant*self._reference_data, q=m_psi_ref)
         else:
-            pde.setValue(A=kronecker(domain), X=self._reference_data*self.__B_b, q=m_psi_ref)
+            pde.setValue(A=esu.kronecker(domain), X=self._reference_data*self.__B_b, q=m_psi_ref)
         pde.setSymmetryOn()
         #pde.getSolverOptions().setTolerance(1e-13)
         psi_ref=pde.getSolution()
         del pde
         if self.getDataType()==DataSource.GRAVITY:
-            data = -grad(psi_ref, ReducedFunction(domain))
+            data = -esu.grad(psi_ref, ReducedFunction(domain))
         else:
-            data = self._reference_data*self.__B_b-grad(psi_ref, ReducedFunction(domain))
+            data = self._reference_data*self.__B_b-esu.grad(psi_ref, ReducedFunction(domain))
 
         x=ReducedFunction(domain).getX()
         if self.__full_knowledge:
-            sigma = whereNegative(x[DIM-1])
+            sigma = esu.whereNegative(x[DIM-1])
         else:
             sigma=1.
             # limit mask to non-padding in horizontal area
             for i in range(DIM-1):
                 x_i=x[i]
-                sigma=sigma * wherePositive(x_i) * whereNegative(x_i-(sup(x_i)+inf(x_i)))
+                sigma=sigma * esu.wherePositive(x_i) * esu.whereNegative(x_i-(esu.sup(x_i)+esu.inf(x_i)))
             # limit mask to one cell thickness at z=0
             z=x[DIM-1]
             oo=int(self.__data_offset/spacing[DIM-1]+0.5)*spacing[DIM-1]
-            sigma = sigma * whereNonNegative(z-oo) * whereNonPositive(z-oo-spacing[DIM-1])
+            sigma = sigma * esu.whereNonNegative(z-oo) * esu.whereNonPositive(z-oo-spacing[DIM-1])
         return data,sigma
 
     def getReferenceProperty(self, domain=None):
@@ -1172,14 +1172,14 @@ class SyntheticData(SyntheticDataBase):
             # set the reference data
             z=x[DIM-1]
             dd=self.depth
-            if dd is None: dd=inf(z)
+            if dd is None: dd=esu.inf(z)
             z2=(z+self.depth_offset)/(self.depth_offset-dd)
-            k=sin(self.__n_depth * np.pi  * z2) * whereNonNegative(z2) * whereNonPositive(z2-1.) * self.__amplitude
+            k=esu.sin(self.__n_depth * np.pi  * z2) * esu.whereNonNegative(z2) * esu.whereNonPositive(z2-1.) * self.__amplitude
             for i in range(DIM-1):
                x_i=x[i]
-               min_x=inf(x_i)
-               max_x=sup(x_i)
-               k*= sin(self.__n_length*np.pi*(x_i-min_x-self.__s)/(max_x-min_x))
+               min_x=esu.inf(x_i)
+               max_x=esu.sup(x_i)
+               k*= esu.sin(self.__n_length*np.pi*(x_i-min_x-self.__s)/(max_x-min_x))
             self._reference_data= k
         return self._reference_data
 
@@ -1256,26 +1256,27 @@ class NumpyData(DataSource):
         return self.__data_type
 
     def getSurveyData(self, domain, origin, NE, spacing):
+        import os
         DIM=domain.getDim()
         if self.getDataType()  == self.ACOUSTIC:
-            x=FunctionOnBoundary(domain).getX()
+            x=esu.FunctionOnBoundary(domain).getX()
             BBX=boundingBox(domain)
             z=x[DIM-1] 
-            mask= whereZero( z - inf(z))  # we don't use BBX[DIM-1][1] due to mountains'
+            mask= esu.whereZero( z - esu.inf(z))  # we don't use BBX[DIM-1][1] due to mountains'
             for i in range(DIM-1):
                 x_i=x[i]
-                mask+=whereNonPositive( x_i - self.__origin[i] ) + whereNonNegative( x_i - ( self.__origin[i]+self.__length[i] ) ) 
-            mask=1-wherePositive(mask)
+                mask+=esu.whereNonPositive( x_i - self.__origin[i] ) + esu.whereNonNegative( x_i - ( self.__origin[i]+self.__length[i] ) ) 
+            mask=1-esu.wherePositive(mask)
             
-            data=Data(0.,(2,), FunctionOnBoundary(domain))
+            data=esu.Data(0.,(2,), esu.FunctionOnBoundary(domain))
             step= [ self.__length[i]/self.__data.shape[i] for i in range(DIM-1) ]
             if DIM == 2:
-                data[0] = interpolateTable(self.__data.real, x[0],self.__origin[0], step[0])
-                data[1] = interpolateTable(self.__data.imag, x[0],self.__origin[0], step[0])
+                data[0] = esu.interpolateTable(self.__data.real, x[0],self.__origin[0], step[0])
+                data[1] = esu.interpolateTable(self.__data.imag, x[0],self.__origin[0], step[0])
                 if len(self.__error.shape) > 0:
-                    sigma = interpolateTable(self.__error, x[0],  self.__origin[0], step[0])
+                    sigma = esu.interpolateTable(self.__error, x[0],  self.__origin[0], step[0])
                 else:
-                    sigma = Scalar(self.__error.item(), FunctionOnBoundary(domain))
+                    sigma = esu.Scalar(self.__error.item(), esu.FunctionOnBoundary(domain))
             else:
                 raise ValueError("3D domains are not supported yet.")
             data*=mask
@@ -1284,9 +1285,9 @@ class NumpyData(DataSource):
             if DIM == 2:
                 step= [ self.__length[i]/self.__data.shape[i] for i in range(DIM-1) ]
                 if len(self.__error.shape) > 0:
-                    sigma = interpolateTable(self.__error, x[0],  self.__origin[0], step[0])
+                    sigma = esu.interpolateTable(self.__error, x[0],  self.__origin[0], step[0])
                 else:
-                    sigma = Scalar(self.__error.item(), FunctionOnBoundary(domain))
+                    sigma = esu.Scalar(self.__error.item(), esu.FunctionOnBoundary(domain))
                 return self.__data, sigma
             else:
                 raise ValueError("3D domains are not supported yet.")
@@ -1325,7 +1326,7 @@ class NumpyData(DataSource):
                     first=first, numValues=nValues, multiplier=multiplier,
                     reverse=reverse)
             else:
-                sigma = self.__error.item() * whereNonZero(data-self.__null_value)
+                sigma = self.__error.item() * esu.whereNonZero(data-self.__null_value)
             os.unlink(numpyfile)
 
         return data, sigma

@@ -15,7 +15,7 @@
 
 from __future__ import print_function, division
 
-from esys.escript import Data, kronecker, whereZero,inf,sup,ContinuousFunction,grad,Function,Lsup, Scalar, DiracDeltaFunctions
+import esys.escript as es
 from esys.escript.linearPDEs import LinearPDE
 from esys.escript.pdetools import Locator
 from math import pi
@@ -53,10 +53,10 @@ class DcResistivityForward(object):
         raise NotImplementedError
 
     def checkBounds(self):
-        X = ContinuousFunction(self.domain).getX()
-        xDim=[inf(X[0]),sup(X[0])]
-        yDim=[inf(X[1]),sup(X[1])]
-        zDim=[inf(X[2]),sup(X[2])]
+        X = es.ContinuousFunction(self.domain).getX()
+        xDim=[es.inf(X[0]),es.sup(X[0])]
+        yDim=[es.inf(X[1]),es.sup(X[1])]
+        zDim=[es.inf(X[2]),es.sup(X[2])]
         for i in range(self.numElectrodes):
             if (self.electrodes[i][0] < xDim[0] or self.electrodes[i][0] > xDim[1]
                     or self.electrodes[i][1] < yDim[0] or self.electrodes[i][1] > yDim[1]):
@@ -144,12 +144,12 @@ class SchlumbergerSurvey(DcResistivityForward):
         primaryPde.setSymmetryOn()
         DIM=self.domain.getDim()
         x=self.domain.getX()
-        q=whereZero(x[DIM-1]-inf(x[DIM-1]))
+        q=es.whereZero(x[DIM-1]-es.inf(x[DIM-1]))
         for i in xrange(DIM-1):
             xi=x[i]
-            q+=whereZero(xi-inf(xi))+whereZero(xi-sup(xi))
-        A = self.secondaryConductivity * kronecker(self.domain)
-        APrimary = self.primaryConductivity * kronecker(self.domain)
+            q+=es.whereZero(xi-es.inf(xi))+es.whereZero(xi-es.sup(xi))
+        A = self.secondaryConductivity * es.kronecker(self.domain)
+        APrimary = self.primaryConductivity * es.kronecker(self.domain)
         pde.setValue(A=A,q=q)
         primaryPde.setValue(A=APrimary,q=q)
 
@@ -162,13 +162,13 @@ class SchlumbergerSurvey(DcResistivityForward):
             delPhiPrimary = []
             delPhiTotal = []
             for j in range(maxR):
-                y_dirac=Scalar(0,DiracDeltaFunctions(self.domain))
+                y_dirac=es.Scalar(0,es.DiracDeltaFunctions(self.domain))
                 y_dirac.setTaggedValue(self.electrodeTags[j],self.current)
                 y_dirac.setTaggedValue(self.electrodeTags[j + ((2*i) + 1)],-self.current)
                 self.sources.append([self.electrodeTags[j], self.electrodeTags[j + ((2*i) + 1)]])
                 primaryPde.setValue(y_dirac=y_dirac)
                 numericPrimaryPot = primaryPde.getSolution()
-                X=(primCon-self.secondaryConductivity) * grad(numericPrimaryPot)
+                X=(primCon-self.secondaryConductivity) * es.grad(numericPrimaryPot)
                 pde.setValue(X=X)
                 u=pde.getSolution()
                 loc=Locator(self.domain,[self.electrodes[j+i],self.electrodes[j+i+1]])
@@ -202,11 +202,11 @@ class SchlumbergerSurvey(DcResistivityForward):
         primCon=self.primaryConductivity
         DIM=self.domain.getDim()
         x=self.domain.getX()
-        q=whereZero(x[DIM-1]-inf(x[DIM-1]))
+        q=es.whereZero(x[DIM-1]-es.inf(x[DIM-1]))
         for i in xrange(DIM-1):
             xi=x[i]
-            q+=whereZero(xi-inf(xi))+whereZero(xi-sup(xi))
-        A = self.secondaryConductivity * kronecker(self.domain)
+            q+=es.whereZero(xi-es.inf(xi))+es.whereZero(xi-es.sup(xi))
+        A = self.secondaryConductivity * es.kronecker(self.domain)
         pde.setValue(A=A,q=q)
 
 
@@ -219,27 +219,27 @@ class SchlumbergerSurvey(DcResistivityForward):
             delPhiPrimary = []
             delPhiTotal = []
             for j in range(maxR):
-                analyticRsOne=Data(0,(3,),ContinuousFunction(self.domain))
+                analyticRsOne=es.Data(0,(3,),es.ContinuousFunction(self.domain))
                 analyticRsOne[0]=(coords[0]-self.electrodes[j][0])
                 analyticRsOne[1]=(coords[1]-self.electrodes[j][1])
                 analyticRsOne[2]=(coords[2])
                 rsMagOne=(analyticRsOne[0]**2+analyticRsOne[1]**2+analyticRsOne[2]**2)**0.5
-                analyticRsTwo=Data(0,(3,),ContinuousFunction(self.domain))
+                analyticRsTwo=es.Data(0,(3,),es.ContinuousFunction(self.domain))
                 analyticRsTwo[0]=(coords[0]-self.electrodes[j + ((2*i) + 1)][0])
                 analyticRsTwo[1]=(coords[1]-self.electrodes[j + ((2*i) + 1)][1])
                 analyticRsTwo[2]=(coords[2])
                 rsMagTwo=(analyticRsTwo[0]**2+analyticRsTwo[1]**2+analyticRsTwo[2]**2)**0.5
                 self.sources.append([self.electrodeTags[j], self.electrodeTags[j + ((2*i) + 1)]])
-                rsMagOne+=(whereZero(rsMagOne)*0.0000001)
-                rsMagTwo+=(whereZero(rsMagTwo)*0.0000001)
+                rsMagOne+=(es.whereZero(rsMagOne)*0.0000001)
+                rsMagTwo+=(es.whereZero(rsMagTwo)*0.0000001)
                 
                 analyticPrimaryPot=(self.current/(2*pi*primCon*rsMagOne))-(self.current/(2*pi*primCon*rsMagTwo))
                 analyticRsOnePower=(analyticRsOne[0]**2+analyticRsOne[1]**2+analyticRsOne[2]**2)**1.5
-                analyticRsOnePower = analyticRsOnePower+(whereZero(analyticRsOnePower)*0.0001)
+                analyticRsOnePower = analyticRsOnePower+(es.whereZero(analyticRsOnePower)*0.0001)
                 analyticRsTwoPower=(analyticRsTwo[0]**2+analyticRsTwo[1]**2+analyticRsTwo[2]**2)**1.5
-                analyticRsTwoPower = analyticRsTwoPower+(whereZero(analyticRsTwoPower)*0.0001)
+                analyticRsTwoPower = analyticRsTwoPower+(es.whereZero(analyticRsTwoPower)*0.0001)
 
-                gradAnalyticPrimaryPot = Data(0,(3,),ContinuousFunction(self.domain))
+                gradAnalyticPrimaryPot = es.Data(0,(3,),es.ContinuousFunction(self.domain))
                 gradAnalyticPrimaryPot[0] =(self.current/(2*pi*primCon)) * ((-analyticRsOne[0]/analyticRsOnePower) + (analyticRsTwo[0]/analyticRsTwoPower))
                 gradAnalyticPrimaryPot[1] =(self.current/(2*pi*primCon)) * ((-analyticRsOne[1]/analyticRsOnePower) + (analyticRsTwo[1]/analyticRsTwoPower))
                 gradAnalyticPrimaryPot[2] =(self.current/(2*pi*primCon)) * ((-analyticRsOne[2]/analyticRsOnePower) + (analyticRsTwo[2]/analyticRsTwoPower))
@@ -355,11 +355,11 @@ class WennerSurvey(DcResistivityForward):
 
         DIM=self.domain.getDim()
         x=self.domain.getX()
-        q=whereZero(x[DIM-1]-inf(x[DIM-1]))
+        q=es.whereZero(x[DIM-1]-es.inf(x[DIM-1]))
         for i in xrange(DIM-1):
             xi=x[i]
-            q+=whereZero(xi-inf(xi))+whereZero(xi-sup(xi))
-        A = self.secondaryConductivity * kronecker(self.domain)
+            q+=es.whereZero(xi-es.inf(xi))+es.whereZero(xi-es.sup(xi))
+        A = self.secondaryConductivity * es.kronecker(self.domain)
         pde.setValue(A=A,q=q)
 
         delPhiSecondary = []
@@ -368,26 +368,26 @@ class WennerSurvey(DcResistivityForward):
         if(len(self.electrodes[0])==3):
 
             for i in range(self.numElectrodes-3):
-                analyticRsOne=Data(0,(3,),ContinuousFunction(self.domain))
+                analyticRsOne=es.Data(0,(3,),es.ContinuousFunction(self.domain))
                 analyticRsOne[0]=(coords[0]-self.electrodes[i][0])
                 analyticRsOne[1]=(coords[1]-self.electrodes[i][1])
                 analyticRsOne[2]=(coords[2])
                 rsMagOne=(analyticRsOne[0]**2+analyticRsOne[1]**2+analyticRsOne[2]**2)**0.5
-                analyticRsTwo=Data(0,(3,),ContinuousFunction(self.domain))
+                analyticRsTwo=es.Data(0,(3,),es.ContinuousFunction(self.domain))
                 analyticRsTwo[0]=(coords[0]-self.electrodes[i+3][0])
                 analyticRsTwo[1]=(coords[1]-self.electrodes[i+3][1])
                 analyticRsTwo[2]=(coords[2])
                 rsMagTwo=(analyticRsTwo[0]**2+analyticRsTwo[1]**2+analyticRsTwo[2]**2)**0.5
-                rsMagOne+=(whereZero(rsMagOne)*0.0000001)
-                rsMagTwo+=(whereZero(rsMagTwo)*0.0000001)
+                rsMagOne+=(es.whereZero(rsMagOne)*0.0000001)
+                rsMagTwo+=(es.whereZero(rsMagTwo)*0.0000001)
                 analyticPrimaryPot=(self.current/(2*pi*primCon*rsMagOne))-(self.current/(2*pi*primCon*rsMagTwo))
 
                 analyticRsOnePower=(analyticRsOne[0]**2+analyticRsOne[1]**2+analyticRsOne[2]**2)**1.5
-                analyticRsOnePower = analyticRsOnePower+(whereZero(analyticRsOnePower)*0.0001)
+                analyticRsOnePower = analyticRsOnePower+(es.whereZero(analyticRsOnePower)*0.0001)
                 analyticRsTwoPower=(analyticRsTwo[0]**2+analyticRsTwo[1]**2+analyticRsTwo[2]**2)**1.5
-                analyticRsTwoPower = analyticRsTwoPower+(whereZero(analyticRsTwoPower)*0.0001)
+                analyticRsTwoPower = analyticRsTwoPower+(es.whereZero(analyticRsTwoPower)*0.0001)
 
-                gradAnalyticPrimaryPot = Data(0,(3,),ContinuousFunction(self.domain))
+                gradAnalyticPrimaryPot = es.Data(0,(3,),es.ContinuousFunction(self.domain))
                 gradAnalyticPrimaryPot[0] =(self.current/(2*pi*primCon)) \
                         * ((-analyticRsOne[0]/analyticRsOnePower) \
                             + (analyticRsTwo[0]/analyticRsTwoPower))
@@ -517,11 +517,11 @@ class DipoleDipoleSurvey(DcResistivityForward):
         primCon=self.primaryConductivity
         DIM=self.domain.getDim()
         x=self.domain.getX()
-        q=whereZero(x[DIM-1]-inf(x[DIM-1]))
+        q=es.whereZero(x[DIM-1]-es.inf(x[DIM-1]))
         for i in xrange(DIM-1):
             xi=x[i]
-            q+=whereZero(xi-inf(xi))+whereZero(xi-sup(xi))
-        A = self.secondaryConductivity * kronecker(self.domain)
+            q+=es.whereZero(xi-es.inf(xi))+es.whereZero(xi-es.sup(xi))
+        A = self.secondaryConductivity * es.kronecker(self.domain)
         pde.setValue(A=A,q=q)
 
 
@@ -534,26 +534,26 @@ class DipoleDipoleSurvey(DcResistivityForward):
             delPhiPrimary = []
             delPhiTotal = []
             for j in range(maxR):
-                analyticRsOne=Data(0,(3,),ContinuousFunction(self.domain))
+                analyticRsOne=es.Data(0,(3,),es.ContinuousFunction(self.domain))
                 analyticRsOne[0]=(coords[0]-self.electrodes[j][0])
                 analyticRsOne[1]=(coords[1]-self.electrodes[j][1])
                 analyticRsOne[2]=(coords[2])
                 rsMagOne=(analyticRsOne[0]**2+analyticRsOne[1]**2+analyticRsOne[2]**2)**0.5
-                analyticRsTwo=Data(0,(3,),ContinuousFunction(self.domain))
+                analyticRsTwo=es.Data(0,(3,),es.ContinuousFunction(self.domain))
                 analyticRsTwo[0]=(coords[0]-self.electrodes[j + 1][0])
                 analyticRsTwo[1]=(coords[1]-self.electrodes[j + 1][1])
                 analyticRsTwo[2]=(coords[2])
                 rsMagTwo=(analyticRsTwo[0]**2+analyticRsTwo[1]**2+analyticRsTwo[2]**2)**0.5
-                rsMagOne+=(whereZero(rsMagOne)*0.0000001)
-                rsMagTwo+=(whereZero(rsMagTwo)*0.0000001)
+                rsMagOne+=(es.whereZero(rsMagOne)*0.0000001)
+                rsMagTwo+=(es.whereZero(rsMagTwo)*0.0000001)
                 analyticPrimaryPot=(self.current/(2*pi*primCon*rsMagTwo))-(self.current/(2*pi*primCon*rsMagOne))
 
                 analyticRsOnePower=(analyticRsOne[0]**2+analyticRsOne[1]**2+analyticRsOne[2]**2)**1.5
-                analyticRsOnePower = analyticRsOnePower+(whereZero(analyticRsOnePower)*0.0001)
+                analyticRsOnePower = analyticRsOnePower+(es.whereZero(analyticRsOnePower)*0.0001)
                 analyticRsTwoPower=(analyticRsTwo[0]**2+analyticRsTwo[1]**2+analyticRsTwo[2]**2)**1.5
-                analyticRsTwoPower = analyticRsTwoPower+(whereZero(analyticRsTwoPower)*0.0001)
+                analyticRsTwoPower = analyticRsTwoPower+(es.whereZero(analyticRsTwoPower)*0.0001)
 
-                gradAnalyticPrimaryPot = Data(0,(3,),ContinuousFunction(self.domain))
+                gradAnalyticPrimaryPot = es.Data(0,(3,),es.ContinuousFunction(self.domain))
                 gradAnalyticPrimaryPot[0] =(self.current/(2*pi*primCon)) * ((analyticRsOne[0]/analyticRsOnePower) - (analyticRsTwo[0]/analyticRsTwoPower))
                 gradAnalyticPrimaryPot[1] =(self.current/(2*pi*primCon)) * ((analyticRsOne[1]/analyticRsOnePower) - (analyticRsTwo[1]/analyticRsTwoPower))
                 gradAnalyticPrimaryPot[2] =(self.current/(2*pi*primCon)) * ((analyticRsOne[2]/analyticRsOnePower) - (analyticRsTwo[2]/analyticRsTwoPower))
@@ -691,11 +691,11 @@ class PoleDipoleSurvey(DcResistivityForward):
 
         DIM=self.domain.getDim()
         x=self.domain.getX()
-        q=whereZero(x[DIM-1]-inf(x[DIM-1]))
+        q=es.whereZero(x[DIM-1]-es.inf(x[DIM-1]))
         for i in xrange(DIM-1):
             xi=x[i]
-            q+=whereZero(xi-inf(xi))+whereZero(xi-sup(xi))
-        A = self.secondaryConductivity * kronecker(self.domain)
+            q+=es.whereZero(xi-es.inf(xi))+es.whereZero(xi-es.sup(xi))
+        A = self.secondaryConductivity * es.kronecker(self.domain)
         pde.setValue(A=A,q=q)
 
         delPhiSecondaryList = []
@@ -707,16 +707,16 @@ class PoleDipoleSurvey(DcResistivityForward):
             delPhiPrimary = []
             delPhiTotal = []
             for j in range(maxR):
-                analyticRs=Data(0,(3,),ContinuousFunction(self.domain))
+                analyticRs=es.Data(0,(3,),es.ContinuousFunction(self.domain))
                 analyticRs[0]=(coords[0]-self.electrodes[j][0])
                 analyticRs[1]=(coords[1]-self.electrodes[j][1])
                 analyticRs[2]=(coords[2])
                 rsMag=(analyticRs[0]**2+analyticRs[1]**2+analyticRs[2]**2)**0.5
-                analyticPrimaryPot=(self.current*(1./primCon))/(2*pi*(rsMag+(whereZero(rsMag)*0.0000001))) #the magic number 0.0000001 is to avoid devide by 0
+                analyticPrimaryPot=(self.current*(1./primCon))/(2*pi*(rsMag+(es.whereZero(rsMag)*0.0000001))) #the magic number 0.0000001 is to avoid devide by 0
 
                 analyticRsPolePower=(analyticRs[0]**2+analyticRs[1]**2+analyticRs[2]**2)**1.5
-                analyticRsPolePower = analyticRsPolePower+(whereZero(analyticRsPolePower)*0.0000001)
-                gradUPrimary = Data(0,(3,),ContinuousFunction(self.domain))
+                analyticRsPolePower = analyticRsPolePower+(es.whereZero(analyticRsPolePower)*0.0000001)
+                gradUPrimary = es.Data(0,(3,),es.ContinuousFunction(self.domain))
                 gradUPrimary[0] =(self.current/(2*pi*primCon)) * (analyticRs[0]/analyticRsPolePower)
                 gradUPrimary[1] =(self.current/(2*pi*primCon)) * (analyticRs[1]/analyticRsPolePower)
                 gradUPrimary[2] =(self.current/(2*pi*primCon)) * (analyticRs[2]/analyticRsPolePower)
@@ -855,11 +855,11 @@ class PolePoleSurvey(DcResistivityForward):
 
         DIM=self.domain.getDim()
         x=self.domain.getX()
-        q=whereZero(x[DIM-1]-inf(x[DIM-1]))
+        q=es.whereZero(x[DIM-1]-es.inf(x[DIM-1]))
         for i in xrange(DIM-1):
             xi=x[i]
-            q+=whereZero(xi-inf(xi))+whereZero(xi-sup(xi))
-        A = self.secondaryConductivity * kronecker(self.domain)
+            q+=es.whereZero(xi-es.inf(xi))+es.whereZero(xi-es.sup(xi))
+        A = self.secondaryConductivity * es.kronecker(self.domain)
         pde.setValue(A=A,q=q)
 
         delPhiSecondary = []
@@ -868,15 +868,15 @@ class PolePoleSurvey(DcResistivityForward):
         if(len(self.electrodes[0])==3):
 
             for i in range(self.numElectrodes-1):
-                analyticRs=Data(0,(3,),ContinuousFunction(self.domain))
+                analyticRs=es.Data(0,(3,),es.ContinuousFunction(self.domain))
                 analyticRs[0]=(coords[0]-self.electrodes[i][0])
                 analyticRs[1]=(coords[1]-self.electrodes[i][1])
                 analyticRs[2]=(coords[2])
                 rsMag=(analyticRs[0]**2+analyticRs[1]**2+analyticRs[2]**2)**0.5
-                analyticPrimaryPot=(self.current*(1./primCon))/(2*pi*(rsMag+(whereZero(rsMag)*0.0000001))) #the magic number 0.0000001 is to avoid devide by 0
+                analyticPrimaryPot=(self.current*(1./primCon))/(2*pi*(rsMag+(es.whereZero(rsMag)*0.0000001))) #the magic number 0.0000001 is to avoid devide by 0
                 analyticRsPolePower=(analyticRs[0]**2+analyticRs[1]**2+analyticRs[2]**2)**1.5
-                analyticRsPolePower = analyticRsPolePower+(whereZero(analyticRsPolePower)*0.0000001)
-                gradUPrimary = Data(0,(3,),ContinuousFunction(self.domain))
+                analyticRsPolePower = analyticRsPolePower+(es.whereZero(analyticRsPolePower)*0.0000001)
+                gradUPrimary = es.Data(0,(3,),es.ContinuousFunction(self.domain))
                 gradUPrimary[0] =(self.current/(2*pi*primCon)) * (analyticRs[0]/analyticRsPolePower)
                 gradUPrimary[1] =(self.current/(2*pi*primCon)) * (analyticRs[1]/analyticRsPolePower)
                 gradUPrimary[2] =(self.current/(2*pi*primCon)) * (analyticRs[2]/analyticRsPolePower)
