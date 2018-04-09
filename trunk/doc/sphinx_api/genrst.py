@@ -38,9 +38,9 @@ def dumpPackage(mname, ignorelist, modset, banset):
   try:
     print(mname)
     PP=importlib.import_module(mname)
-  except ImportError:
-    print("Import error for "+mname)
-    return
+  except ImportError as ie:
+    print("Import error for "+mname+"  "+str(ie))
+    exit(1)
   nonempty = False
   for x in dir(PP):
       if not x.startswith("__"):
