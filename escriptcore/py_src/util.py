@@ -57,7 +57,7 @@ from .escriptcpp import printParallelThreadCounts
 from .escriptcpp import listEscriptParams
 from . import symbolic as sym
 from .gmshrunner import gmshGeo2Msh
-from numpy import flip
+
 
 #=========================================================
 #   some helpers:
