@@ -222,7 +222,7 @@ if __name__ == "__main__":
         u=interpolate(u+dom.getX()[2], ReducedFunction(dom))
         print(u)
         handle, filename = tempfile.mkstemp(suffix='.vo', prefix='poisson')
-        saveVoxet('/tmp/poisson.vo', u=u)
+        saveVoxet(filename, u=u)
         print("-------")
         dom = Brick(l0=1.,l1=1.,l2=4.,n0=18, n1=18, n2=36)
         v=readVoxet(dom, '/tmp/poisson.vo', 'u', fillValue=0.5)
