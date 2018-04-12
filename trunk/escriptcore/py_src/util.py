@@ -57,7 +57,7 @@ from .escriptcpp import printParallelThreadCounts
 from .escriptcpp import listEscriptParams
 from . import symbolic as sym
 from .gmshrunner import gmshGeo2Msh
-
+from numpy import flip
 
 #=========================================================
 #   some helpers:
@@ -2513,14 +2513,17 @@ def tensor_transposed_mult(arg0,arg1):
              each data point
     :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol` depending on the input
     """
-    return tensor_mult(arg0, transpose(arg1))
+    #return tensor_mult(arg0, transpose(arg1))
     # The code below has a bug, for now we use the less efficient call above
     sh0=getShape(arg0)
     sh1=getShape(arg1)
     if len(sh0)==2 and ( len(sh1)==2 or len(sh1)==1 ):
        return generalTensorTransposedProduct(arg0,arg1,axis_offset=1)
     elif len(sh0)==4 and (len(sh1)==2 or len(sh1)==3 or len(sh1)==4):
-       return generalTensorTransposedProduct(arg0,arg1,axis_offset=2)
+        if len(sh1)==2:
+            return generalTensorTransposedProduct(arg0,transpose(arg1),axis_offset=2)
+        else:
+            return generalTensorTransposedProduct(arg0,arg1,axis_offset=2)
     else:
         raise ValueError("first argument must have rank 2 or 4")
 
@@ -2554,6 +2557,7 @@ def generalTensorTransposedProduct(arg0,arg1,axis_offset=0):
     # at this stage arg0 and arg1 are both numpy.ndarray or escript.Data,
     # or one is a Symbol and the other either of the allowed types
     if isinstance(arg0,sym.Symbol):
+       print("aaaaa")
        sh0=arg0.getShape()
        sh1=getShape(arg1)
        r1=getRank(arg1)
@@ -2566,7 +2570,11 @@ def generalTensorTransposedProduct(arg0,arg1,axis_offset=0):
        elif isinstance(arg1, escore.Data):
           raise TypeError("tensor product of Symbol and Data not supported yet")
     elif isinstance(arg0,numpy.ndarray):
-       if not arg0.shape[arg0.ndim-axis_offset:]==arg1.shape[arg1.ndim-axis_offset:]:
+       print("bbbbb")
+       print(arg0.shape[arg0.ndim-axis_offset:],arg1.shape[arg1.ndim-axis_offset:])
+       #print(arg0.shape[arg0.ndim-axis_offset:],tuple(reversed(arg1.shape[arg1.ndim-axis_offset:])))
+       if not (arg0.shape[arg0.ndim-axis_offset:]==arg1.shape[arg1.ndim-axis_offset:] or 
+            arg0.shape[arg0.ndim-axis_offset:],tuple(reversed(arg1.shape[arg1.ndim-axis_offset:]))):
           raise ValueError("dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset))
        arg0_c=arg0.copy()
        arg1_c=arg1.copy()
@@ -2577,6 +2585,8 @@ def generalTensorTransposedProduct(arg0,arg1,axis_offset=0):
        for i in sh1[arg1.ndim-axis_offset:]: d01*=i
        arg0_c.resize((d0,d01))
        arg1_c.resize((d1,d01))
+       print(arg0_c,arg1_c,d0,d1,d01)
+       print(sh0[:arg0.ndim-axis_offset]+sh1[:arg1.ndim-axis_offset])
        
        if arg0_c.dtype!=numpy.float64:
            out=numpy.zeros((d0,d1),arg0_c.dtype)
@@ -2585,9 +2595,12 @@ def generalTensorTransposedProduct(arg0,arg1,axis_offset=0):
        for i0 in range(d0):
           for i1 in range(d1):
              out[i0,i1]=numpy.sum(arg0_c[i0,:]*arg1_c[i1,:])
+       print(out)
        out.resize(sh0[:arg0.ndim-axis_offset]+sh1[:arg1.ndim-axis_offset])
+       print(out)
        return out
     elif isinstance(arg0,escore.Data):
+       print("ccccc")
        if isinstance(arg1, sym.Symbol):
           raise TypeError("tensor product of Data and Symbol not supported yet")
        # this call has to be replaced by escript._generalTensorProduct(arg0,arg1,axis_offset)
