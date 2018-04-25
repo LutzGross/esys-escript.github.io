@@ -90,6 +90,18 @@ class Test_util_values(unittest.TestCase):
             self.assertEqual(diameter(blocks),sqrt(mx**2+my**2),"wrong diameter calculous.")
         else:
             pass
+        
+    def test_diameter_3D(self):
+        if self.domain.getDim() == 3:
+            blocks = self.domain
+            x=blocks.getX()
+            mx=sup(x[0])-inf(x[0])
+            my=sup(x[1])-inf(x[1])
+            mz=sup(x[2])-inf(x[2])
+            self.assertEqual(blocks.getDim(),3,"wrong dimension.")
+            self.assertEqual(diameter(blocks),sqrt(mx**2+my**2+mz**2),"wrong diameter calculous.")
+        else:
+            pass    
 
     def makeTagged(self, fs, v1, v2):
         """
