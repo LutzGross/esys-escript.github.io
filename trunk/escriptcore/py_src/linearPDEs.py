@@ -163,7 +163,7 @@ class PDECoef(object):
        self.__complex = isComplex
        self.resetValue()
 
-    def isComplex(sef):
+    def isComplex(self):
         """
         Returns true if the coefficient is complex
         """
@@ -1738,7 +1738,7 @@ class LinearPDE(LinearProblem):
        y_dirac=PDECoef(PDECoef.DIRACDELTA,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE, isComplex),
        r=PDECoef(PDECoef.SOLUTION,(PDECoef.BY_SOLUTION,),PDECoef.RIGHTHANDSIDE, isComplex),
        q=PDECoef(PDECoef.SOLUTION,(PDECoef.BY_SOLUTION,),PDECoef.BOTH, False) )
-
+     
    def __str__(self):
      """
      Returns the string representation of the PDE.
@@ -2131,10 +2131,13 @@ class LinearPDE(LinearProblem):
                representation of the equation
       :raise IllegalCoefficient: if an unknown coefficient keyword is used
       """
+
       super(LinearPDE,self).setValue(**coefficients)
       # check if the systrem is inhomogeneous:
       if len(coefficients)>0 and not self.isUsingLumping():
          q=self.getCoefficient("q")
+         #if not isinstance(q, list):
+            #raise KeyError("q paramter '%s' shouldn't be a symbol."%q)
          r=self.getCoefficient("r")
          if not q.isEmpty() and not r.isEmpty():
              if util.Lsup(q*r)>0.:
