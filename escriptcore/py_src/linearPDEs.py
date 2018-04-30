@@ -41,6 +41,7 @@ by their advective terms.
 :var __date__: date of the version
 """
 
+from esys.escript import *
 from . import escriptcpp as escore
 from . import util
 import math
@@ -259,7 +260,16 @@ class PDECoef(object):
                 except:
                   raise IllegalCoefficientFunctionSpace("Unable to interpolate coefficient to function space %s"%self.getFunctionSpace(domain))
        else:
-           newValue=escore.Data(newValue,self.getFunctionSpace(domain,reducedEquationOrder,reducedSolutionOrder))
+           try:
+                newValue=escore.Data(newValue,self.getFunctionSpace(domain,reducedEquationOrder,reducedSolutionOrder))
+           except:
+                if not (isinstance(newValue, Data) or \
+                isinstance(newValue, float) or \
+                isinstance(newValue, complex) or \
+                isinstance(newValue, numpy.ndarray)):
+                    raise IllegalCoefficient("Illegal coefficient type: Type should be castable to Data.")
+                else:
+                    raise RuntimeError("Check input data")
        if not newValue.isEmpty():
            if not self.getShape(domain,numEquations,numSolutions)==newValue.getShape():
                raise IllegalCoefficientValue("Expected shape of coefficient is %s but actual shape is %s."%(self.getShape(domain,numEquations,numSolutions),newValue.getShape()))
@@ -2131,7 +2141,6 @@ class LinearPDE(LinearProblem):
                representation of the equation
       :raise IllegalCoefficient: if an unknown coefficient keyword is used
       """
-
       super(LinearPDE,self).setValue(**coefficients)
       # check if the systrem is inhomogeneous:
       if len(coefficients)>0 and not self.isUsingLumping():
