@@ -44,7 +44,7 @@ void Brick::gradient_order2(escript::Data& out, const escript::Data& in) const
                         for (int k = 0; k < 3; ++k) {
                             for (int j = 0; j < 3; ++j) {
                                 for (int i = 0; i < 3; ++i) {
-                                    const index_t ind = INDEX5(0,comp,i,j,k,3,numComp,3,3);
+                                    const index_t ind = INDEX5(comp,0,i,j,k,numComp,3,3,3);
                                     grad[ind + 0] = a;
                                     grad[ind + 1] = b;
                                     grad[ind + 2] = c;
@@ -66,9 +66,9 @@ void Brick::gradient_order2(escript::Data& out, const escript::Data& in) const
                         for (int j = 0; j < 3; ++j) {
                             for (int i = 0; i < 3; ++i) {
                                 for (int comp = 0; comp < numComp; ++comp) {
-                                    grad[INDEX5(0,comp,i,j,k,3,numComp,3,3)] = (lagrange_deriv_0[i] * e[INDEX4(comp,0,j,k,numComp,3,3)] + lagrange_deriv_1[i] * e[INDEX4(comp,1,j,k,numComp,3,3)] + lagrange_deriv_2[i] * e[INDEX4(comp,2,j,k,numComp,3,3)]) * inv_jac[0];
-                                    grad[INDEX5(1,comp,i,j,k,3,numComp,3,3)] = (lagrange_deriv_0[j] * e[INDEX4(comp,i,0,k,numComp,3,3)] + lagrange_deriv_1[j] * e[INDEX4(comp,i,1,k,numComp,3,3)] + lagrange_deriv_2[j] * e[INDEX4(comp,i,2,k,numComp,3,3)]) * inv_jac[1];
-                                    grad[INDEX5(2,comp,i,j,k,3,numComp,3,3)] = (lagrange_deriv_0[k] * e[INDEX4(comp,i,j,0,numComp,3,3)] + lagrange_deriv_1[k] * e[INDEX4(comp,i,j,1,numComp,3,3)] + lagrange_deriv_2[k] * e[INDEX4(comp,i,j,2,numComp,3,3)]) * inv_jac[2];
+                                    grad[INDEX5(comp,0,i,j,k,numComp,3,3,3)] = (lagrange_deriv_0[i] * e[INDEX4(comp,0,j,k,numComp,3,3)] + lagrange_deriv_1[i] * e[INDEX4(comp,1,j,k,numComp,3,3)] + lagrange_deriv_2[i] * e[INDEX4(comp,2,j,k,numComp,3,3)]) * inv_jac[0];
+                                    grad[INDEX5(comp,1,i,j,k,numComp,3,3,3)] = (lagrange_deriv_0[j] * e[INDEX4(comp,i,0,k,numComp,3,3)] + lagrange_deriv_1[j] * e[INDEX4(comp,i,1,k,numComp,3,3)] + lagrange_deriv_2[j] * e[INDEX4(comp,i,2,k,numComp,3,3)]) * inv_jac[1];
+                                    grad[INDEX5(comp,2,i,j,k,numComp,3,3,3)] = (lagrange_deriv_0[k] * e[INDEX4(comp,i,j,0,numComp,3,3)] + lagrange_deriv_1[k] * e[INDEX4(comp,i,j,1,numComp,3,3)] + lagrange_deriv_2[k] * e[INDEX4(comp,i,j,2,numComp,3,3)]) * inv_jac[2];
                                 }
                             }
                         }
@@ -103,7 +103,7 @@ void Brick::gradient_order3(escript::Data& out, const escript::Data& in) const {
                         for (int k = 0; k < 4; ++k) {
                             for (int j = 0; j < 4; ++j) {
                                 for (int i = 0; i < 4; ++i) {
-                                    const index_t ind = INDEX5(0,comp,i,j,k,3,numComp,4,4);
+                                    const index_t ind = INDEX5(comp,0,i,j,k,numComp,3,4,4);
                                     grad[ind + 0] = a;
                                     grad[ind + 1] = b;
                                     grad[ind + 2] = c;
@@ -125,9 +125,9 @@ void Brick::gradient_order3(escript::Data& out, const escript::Data& in) const {
                         for (int j = 0; j < 4; ++j) {
                             for (int i = 0; i < 4; ++i) {
                                 for (int comp = 0; comp < numComp; ++comp) {
-                                    grad[INDEX5(0,comp,i,j,k,3,numComp,4,4)] = (lagrange_deriv_0[i] * e[INDEX4(comp,0,j,k,numComp,4,4)] + lagrange_deriv_1[i] * e[INDEX4(comp,1,j,k,numComp,4,4)] + lagrange_deriv_2[i] * e[INDEX4(comp,2,j,k,numComp,4,4)] + lagrange_deriv_3[i] * e[INDEX4(comp,3,j,k,numComp,4,4)]) * inv_jac[0];
-                                    grad[INDEX5(1,comp,i,j,k,3,numComp,4,4)] = (lagrange_deriv_0[j] * e[INDEX4(comp,i,0,k,numComp,4,4)] + lagrange_deriv_1[j] * e[INDEX4(comp,i,1,k,numComp,4,4)] + lagrange_deriv_2[j] * e[INDEX4(comp,i,2,k,numComp,4,4)] + lagrange_deriv_3[j] * e[INDEX4(comp,i,3,k,numComp,4,4)]) * inv_jac[1];
-                                    grad[INDEX5(2,comp,i,j,k,3,numComp,4,4)] = (lagrange_deriv_0[k] * e[INDEX4(comp,i,j,0,numComp,4,4)] + lagrange_deriv_1[k] * e[INDEX4(comp,i,j,1,numComp,4,4)] + lagrange_deriv_2[k] * e[INDEX4(comp,i,j,2,numComp,4,4)] + lagrange_deriv_3[k] * e[INDEX4(comp,i,j,3,numComp,4,4)]) * inv_jac[2];
+                                    grad[INDEX5(comp,0,i,j,k,numComp,3,4,4)] = (lagrange_deriv_0[i] * e[INDEX4(comp,0,j,k,numComp,4,4)] + lagrange_deriv_1[i] * e[INDEX4(comp,1,j,k,numComp,4,4)] + lagrange_deriv_2[i] * e[INDEX4(comp,2,j,k,numComp,4,4)] + lagrange_deriv_3[i] * e[INDEX4(comp,3,j,k,numComp,4,4)]) * inv_jac[0];
+                                    grad[INDEX5(comp,1,i,j,k,numComp,3,4,4)] = (lagrange_deriv_0[j] * e[INDEX4(comp,i,0,k,numComp,4,4)] + lagrange_deriv_1[j] * e[INDEX4(comp,i,1,k,numComp,4,4)] + lagrange_deriv_2[j] * e[INDEX4(comp,i,2,k,numComp,4,4)] + lagrange_deriv_3[j] * e[INDEX4(comp,i,3,k,numComp,4,4)]) * inv_jac[1];
+                                    grad[INDEX5(comp,2,i,j,k,numComp,3,4,4)] = (lagrange_deriv_0[k] * e[INDEX4(comp,i,j,0,numComp,4,4)] + lagrange_deriv_1[k] * e[INDEX4(comp,i,j,1,numComp,4,4)] + lagrange_deriv_2[k] * e[INDEX4(comp,i,j,2,numComp,4,4)] + lagrange_deriv_3[k] * e[INDEX4(comp,i,j,3,numComp,4,4)]) * inv_jac[2];
                                 }
                             }
                         }
@@ -165,7 +165,7 @@ void Brick::gradient_order4(escript::Data& out, const escript::Data& in) const {
                         for (int k = 0; k < 5; ++k) {
                             for (int j = 0; j < 5; ++j) {
                                 for (int i = 0; i < 5; ++i) {
-                                    const index_t ind = INDEX5(0,comp,i,j,k,3,numComp,5,5);
+                                    const index_t ind = INDEX5(comp,0,i,j,k,numComp,3,5,5);
                                     grad[ind + 0] = a;
                                     grad[ind + 1] = b;
                                     grad[ind + 2] = c;
@@ -187,9 +187,9 @@ void Brick::gradient_order4(escript::Data& out, const escript::Data& in) const {
                         for (int j = 0; j < 5; ++j) {
                             for (int i = 0; i < 5; ++i) {
                                 for (int comp = 0; comp < numComp; ++comp) {
-                                    grad[INDEX5(0,comp,i,j,k,3,numComp,5,5)] = (lagrange_deriv_0[i] * e[INDEX4(comp,0,j,k,numComp,5,5)] + lagrange_deriv_1[i] * e[INDEX4(comp,1,j,k,numComp,5,5)] + lagrange_deriv_2[i] * e[INDEX4(comp,2,j,k,numComp,5,5)] + lagrange_deriv_3[i] * e[INDEX4(comp,3,j,k,numComp,5,5)] + lagrange_deriv_4[i] * e[INDEX4(comp,4,j,k,numComp,5,5)]) * inv_jac[0];
-                                    grad[INDEX5(1,comp,i,j,k,3,numComp,5,5)] = (lagrange_deriv_0[j] * e[INDEX4(comp,i,0,k,numComp,5,5)] + lagrange_deriv_1[j] * e[INDEX4(comp,i,1,k,numComp,5,5)] + lagrange_deriv_2[j] * e[INDEX4(comp,i,2,k,numComp,5,5)] + lagrange_deriv_3[j] * e[INDEX4(comp,i,3,k,numComp,5,5)] + lagrange_deriv_4[j] * e[INDEX4(comp,i,4,k,numComp,5,5)]) * inv_jac[1];
-                                    grad[INDEX5(2,comp,i,j,k,3,numComp,5,5)] = (lagrange_deriv_0[k] * e[INDEX4(comp,i,j,0,numComp,5,5)] + lagrange_deriv_1[k] * e[INDEX4(comp,i,j,1,numComp,5,5)] + lagrange_deriv_2[k] * e[INDEX4(comp,i,j,2,numComp,5,5)] + lagrange_deriv_3[k] * e[INDEX4(comp,i,j,3,numComp,5,5)] + lagrange_deriv_4[k] * e[INDEX4(comp,i,j,4,numComp,5,5)]) * inv_jac[2];
+                                    grad[INDEX5(comp,0,i,j,k,numComp,3,5,5)] = (lagrange_deriv_0[i] * e[INDEX4(comp,0,j,k,numComp,5,5)] + lagrange_deriv_1[i] * e[INDEX4(comp,1,j,k,numComp,5,5)] + lagrange_deriv_2[i] * e[INDEX4(comp,2,j,k,numComp,5,5)] + lagrange_deriv_3[i] * e[INDEX4(comp,3,j,k,numComp,5,5)] + lagrange_deriv_4[i] * e[INDEX4(comp,4,j,k,numComp,5,5)]) * inv_jac[0];
+                                    grad[INDEX5(comp,1,i,j,k,numComp,3,5,5)] = (lagrange_deriv_0[j] * e[INDEX4(comp,i,0,k,numComp,5,5)] + lagrange_deriv_1[j] * e[INDEX4(comp,i,1,k,numComp,5,5)] + lagrange_deriv_2[j] * e[INDEX4(comp,i,2,k,numComp,5,5)] + lagrange_deriv_3[j] * e[INDEX4(comp,i,3,k,numComp,5,5)] + lagrange_deriv_4[j] * e[INDEX4(comp,i,4,k,numComp,5,5)]) * inv_jac[1];
+                                    grad[INDEX5(comp,2,i,j,k,numComp,3,5,5)] = (lagrange_deriv_0[k] * e[INDEX4(comp,i,j,0,numComp,5,5)] + lagrange_deriv_1[k] * e[INDEX4(comp,i,j,1,numComp,5,5)] + lagrange_deriv_2[k] * e[INDEX4(comp,i,j,2,numComp,5,5)] + lagrange_deriv_3[k] * e[INDEX4(comp,i,j,3,numComp,5,5)] + lagrange_deriv_4[k] * e[INDEX4(comp,i,j,4,numComp,5,5)]) * inv_jac[2];
                                 }
                             }
                         }
@@ -228,7 +228,7 @@ void Brick::gradient_order5(escript::Data& out, const escript::Data& in) const {
                         for (int k = 0; k < 6; ++k) {
                             for (int j = 0; j < 6; ++j) {
                                 for (int i = 0; i < 6; ++i) {
-                                    const index_t ind = INDEX5(0,comp,i,j,k,3,numComp,6,6);
+                                    const index_t ind = INDEX5(comp,0,i,j,k,numComp,3,6,6);
                                     grad[ind + 0] = a;
                                     grad[ind + 1] = b;
                                     grad[ind + 2] = c;
@@ -250,9 +250,9 @@ void Brick::gradient_order5(escript::Data& out, const escript::Data& in) const {
                         for (int j = 0; j < 6; ++j) {
                             for (int i = 0; i < 6; ++i) {
                                 for (int comp = 0; comp < numComp; ++comp) {
-                                    grad[INDEX5(0,comp,i,j,k,3,numComp,6,6)] = (lagrange_deriv_0[i] * e[INDEX4(comp,0,j,k,numComp,6,6)] + lagrange_deriv_1[i] * e[INDEX4(comp,1,j,k,numComp,6,6)] + lagrange_deriv_2[i] * e[INDEX4(comp,2,j,k,numComp,6,6)] + lagrange_deriv_3[i] * e[INDEX4(comp,3,j,k,numComp,6,6)] + lagrange_deriv_4[i] * e[INDEX4(comp,4,j,k,numComp,6,6)] + lagrange_deriv_5[i] * e[INDEX4(comp,5,j,k,numComp,6,6)]) * inv_jac[0];
-                                    grad[INDEX5(1,comp,i,j,k,3,numComp,6,6)] = (lagrange_deriv_0[j] * e[INDEX4(comp,i,0,k,numComp,6,6)] + lagrange_deriv_1[j] * e[INDEX4(comp,i,1,k,numComp,6,6)] + lagrange_deriv_2[j] * e[INDEX4(comp,i,2,k,numComp,6,6)] + lagrange_deriv_3[j] * e[INDEX4(comp,i,3,k,numComp,6,6)] + lagrange_deriv_4[j] * e[INDEX4(comp,i,4,k,numComp,6,6)] + lagrange_deriv_5[j] * e[INDEX4(comp,i,5,k,numComp,6,6)]) * inv_jac[1];
-                                    grad[INDEX5(2,comp,i,j,k,3,numComp,6,6)] = (lagrange_deriv_0[k] * e[INDEX4(comp,i,j,0,numComp,6,6)] + lagrange_deriv_1[k] * e[INDEX4(comp,i,j,1,numComp,6,6)] + lagrange_deriv_2[k] * e[INDEX4(comp,i,j,2,numComp,6,6)] + lagrange_deriv_3[k] * e[INDEX4(comp,i,j,3,numComp,6,6)] + lagrange_deriv_4[k] * e[INDEX4(comp,i,j,4,numComp,6,6)] + lagrange_deriv_5[k] * e[INDEX4(comp,i,j,5,numComp,6,6)]) * inv_jac[2];
+                                    grad[INDEX5(comp,0,i,j,k,numComp,3,6,6)] = (lagrange_deriv_0[i] * e[INDEX4(comp,0,j,k,numComp,6,6)] + lagrange_deriv_1[i] * e[INDEX4(comp,1,j,k,numComp,6,6)] + lagrange_deriv_2[i] * e[INDEX4(comp,2,j,k,numComp,6,6)] + lagrange_deriv_3[i] * e[INDEX4(comp,3,j,k,numComp,6,6)] + lagrange_deriv_4[i] * e[INDEX4(comp,4,j,k,numComp,6,6)] + lagrange_deriv_5[i] * e[INDEX4(comp,5,j,k,numComp,6,6)]) * inv_jac[0];
+                                    grad[INDEX5(comp,1,i,j,k,numComp,3,6,6)] = (lagrange_deriv_0[j] * e[INDEX4(comp,i,0,k,numComp,6,6)] + lagrange_deriv_1[j] * e[INDEX4(comp,i,1,k,numComp,6,6)] + lagrange_deriv_2[j] * e[INDEX4(comp,i,2,k,numComp,6,6)] + lagrange_deriv_3[j] * e[INDEX4(comp,i,3,k,numComp,6,6)] + lagrange_deriv_4[j] * e[INDEX4(comp,i,4,k,numComp,6,6)] + lagrange_deriv_5[j] * e[INDEX4(comp,i,5,k,numComp,6,6)]) * inv_jac[1];
+                                    grad[INDEX5(comp,2,i,j,k,numComp,3,6,6)] = (lagrange_deriv_0[k] * e[INDEX4(comp,i,j,0,numComp,6,6)] + lagrange_deriv_1[k] * e[INDEX4(comp,i,j,1,numComp,6,6)] + lagrange_deriv_2[k] * e[INDEX4(comp,i,j,2,numComp,6,6)] + lagrange_deriv_3[k] * e[INDEX4(comp,i,j,3,numComp,6,6)] + lagrange_deriv_4[k] * e[INDEX4(comp,i,j,4,numComp,6,6)] + lagrange_deriv_5[k] * e[INDEX4(comp,i,j,5,numComp,6,6)]) * inv_jac[2];
                                 }
                             }
                         }
@@ -292,7 +292,7 @@ void Brick::gradient_order6(escript::Data& out, const escript::Data& in) const {
                         for (int k = 0; k < 7; ++k) {
                             for (int j = 0; j < 7; ++j) {
                                 for (int i = 0; i < 7; ++i) {
-                                    const index_t ind = INDEX5(0,comp,i,j,k,3,numComp,7,7);
+                                    const index_t ind = INDEX5(comp,0,i,j,k,numComp,3,7,7);
                                     grad[ind + 0] = a;
                                     grad[ind + 1] = b;
                                     grad[ind + 2] = c;
@@ -314,9 +314,9 @@ void Brick::gradient_order6(escript::Data& out, const escript::Data& in) const {
                         for (int j = 0; j < 7; ++j) {
                             for (int i = 0; i < 7; ++i) {
                                 for (int comp = 0; comp < numComp; ++comp) {
-                                    grad[INDEX5(0,comp,i,j,k,3,numComp,7,7)] = (lagrange_deriv_0[i] * e[INDEX4(comp,0,j,k,numComp,7,7)] + lagrange_deriv_1[i] * e[INDEX4(comp,1,j,k,numComp,7,7)] + lagrange_deriv_2[i] * e[INDEX4(comp,2,j,k,numComp,7,7)] + lagrange_deriv_3[i] * e[INDEX4(comp,3,j,k,numComp,7,7)] + lagrange_deriv_4[i] * e[INDEX4(comp,4,j,k,numComp,7,7)] + lagrange_deriv_5[i] * e[INDEX4(comp,5,j,k,numComp,7,7)] + lagrange_deriv_6[i] * e[INDEX4(comp,6,j,k,numComp,7,7)]) * inv_jac[0];
-                                    grad[INDEX5(1,comp,i,j,k,3,numComp,7,7)] = (lagrange_deriv_0[j] * e[INDEX4(comp,i,0,k,numComp,7,7)] + lagrange_deriv_1[j] * e[INDEX4(comp,i,1,k,numComp,7,7)] + lagrange_deriv_2[j] * e[INDEX4(comp,i,2,k,numComp,7,7)] + lagrange_deriv_3[j] * e[INDEX4(comp,i,3,k,numComp,7,7)] + lagrange_deriv_4[j] * e[INDEX4(comp,i,4,k,numComp,7,7)] + lagrange_deriv_5[j] * e[INDEX4(comp,i,5,k,numComp,7,7)] + lagrange_deriv_6[j] * e[INDEX4(comp,i,6,k,numComp,7,7)]) * inv_jac[1];
-                                    grad[INDEX5(2,comp,i,j,k,3,numComp,7,7)] = (lagrange_deriv_0[k] * e[INDEX4(comp,i,j,0,numComp,7,7)] + lagrange_deriv_1[k] * e[INDEX4(comp,i,j,1,numComp,7,7)] + lagrange_deriv_2[k] * e[INDEX4(comp,i,j,2,numComp,7,7)] + lagrange_deriv_3[k] * e[INDEX4(comp,i,j,3,numComp,7,7)] + lagrange_deriv_4[k] * e[INDEX4(comp,i,j,4,numComp,7,7)] + lagrange_deriv_5[k] * e[INDEX4(comp,i,j,5,numComp,7,7)] + lagrange_deriv_6[k] * e[INDEX4(comp,i,j,6,numComp,7,7)]) * inv_jac[2];
+                                    grad[INDEX5(comp,0,i,j,k,numComp,3,7,7)] = (lagrange_deriv_0[i] * e[INDEX4(comp,0,j,k,numComp,7,7)] + lagrange_deriv_1[i] * e[INDEX4(comp,1,j,k,numComp,7,7)] + lagrange_deriv_2[i] * e[INDEX4(comp,2,j,k,numComp,7,7)] + lagrange_deriv_3[i] * e[INDEX4(comp,3,j,k,numComp,7,7)] + lagrange_deriv_4[i] * e[INDEX4(comp,4,j,k,numComp,7,7)] + lagrange_deriv_5[i] * e[INDEX4(comp,5,j,k,numComp,7,7)] + lagrange_deriv_6[i] * e[INDEX4(comp,6,j,k,numComp,7,7)]) * inv_jac[0];
+                                    grad[INDEX5(comp,1,i,j,k,numComp,3,7,7)] = (lagrange_deriv_0[j] * e[INDEX4(comp,i,0,k,numComp,7,7)] + lagrange_deriv_1[j] * e[INDEX4(comp,i,1,k,numComp,7,7)] + lagrange_deriv_2[j] * e[INDEX4(comp,i,2,k,numComp,7,7)] + lagrange_deriv_3[j] * e[INDEX4(comp,i,3,k,numComp,7,7)] + lagrange_deriv_4[j] * e[INDEX4(comp,i,4,k,numComp,7,7)] + lagrange_deriv_5[j] * e[INDEX4(comp,i,5,k,numComp,7,7)] + lagrange_deriv_6[j] * e[INDEX4(comp,i,6,k,numComp,7,7)]) * inv_jac[1];
+                                    grad[INDEX5(comp,2,i,j,k,numComp,3,7,7)] = (lagrange_deriv_0[k] * e[INDEX4(comp,i,j,0,numComp,7,7)] + lagrange_deriv_1[k] * e[INDEX4(comp,i,j,1,numComp,7,7)] + lagrange_deriv_2[k] * e[INDEX4(comp,i,j,2,numComp,7,7)] + lagrange_deriv_3[k] * e[INDEX4(comp,i,j,3,numComp,7,7)] + lagrange_deriv_4[k] * e[INDEX4(comp,i,j,4,numComp,7,7)] + lagrange_deriv_5[k] * e[INDEX4(comp,i,j,5,numComp,7,7)] + lagrange_deriv_6[k] * e[INDEX4(comp,i,j,6,numComp,7,7)]) * inv_jac[2];
                                 }
                             }
                         }
@@ -357,7 +357,7 @@ void Brick::gradient_order7(escript::Data& out, const escript::Data& in) const {
                         for (int k = 0; k < 8; ++k) {
                             for (int j = 0; j < 8; ++j) {
                                 for (int i = 0; i < 8; ++i) {
-                                    const index_t ind = INDEX5(0,comp,i,j,k,3,numComp,8,8);
+                                    const index_t ind = INDEX5(comp,0,i,j,k,numComp,3,8,8);
                                     grad[ind + 0] = a;
                                     grad[ind + 1] = b;
                                     grad[ind + 2] = c;
@@ -379,9 +379,9 @@ void Brick::gradient_order7(escript::Data& out, const escript::Data& in) const {
                         for (int j = 0; j < 8; ++j) {
                             for (int i = 0; i < 8; ++i) {
                                 for (int comp = 0; comp < numComp; ++comp) {
-                                    grad[INDEX5(0,comp,i,j,k,3,numComp,8,8)] = (lagrange_deriv_0[i] * e[INDEX4(comp,0,j,k,numComp,8,8)] + lagrange_deriv_1[i] * e[INDEX4(comp,1,j,k,numComp,8,8)] + lagrange_deriv_2[i] * e[INDEX4(comp,2,j,k,numComp,8,8)] + lagrange_deriv_3[i] * e[INDEX4(comp,3,j,k,numComp,8,8)] + lagrange_deriv_4[i] * e[INDEX4(comp,4,j,k,numComp,8,8)] + lagrange_deriv_5[i] * e[INDEX4(comp,5,j,k,numComp,8,8)] + lagrange_deriv_6[i] * e[INDEX4(comp,6,j,k,numComp,8,8)] + lagrange_deriv_7[i] * e[INDEX4(comp,7,j,k,numComp,8,8)]) * inv_jac[0];
-                                    grad[INDEX5(1,comp,i,j,k,3,numComp,8,8)] = (lagrange_deriv_0[j] * e[INDEX4(comp,i,0,k,numComp,8,8)] + lagrange_deriv_1[j] * e[INDEX4(comp,i,1,k,numComp,8,8)] + lagrange_deriv_2[j] * e[INDEX4(comp,i,2,k,numComp,8,8)] + lagrange_deriv_3[j] * e[INDEX4(comp,i,3,k,numComp,8,8)] + lagrange_deriv_4[j] * e[INDEX4(comp,i,4,k,numComp,8,8)] + lagrange_deriv_5[j] * e[INDEX4(comp,i,5,k,numComp,8,8)] + lagrange_deriv_6[j] * e[INDEX4(comp,i,6,k,numComp,8,8)] + lagrange_deriv_7[j] * e[INDEX4(comp,i,7,k,numComp,8,8)]) * inv_jac[1];
-                                    grad[INDEX5(2,comp,i,j,k,3,numComp,8,8)] = (lagrange_deriv_0[k] * e[INDEX4(comp,i,j,0,numComp,8,8)] + lagrange_deriv_1[k] * e[INDEX4(comp,i,j,1,numComp,8,8)] + lagrange_deriv_2[k] * e[INDEX4(comp,i,j,2,numComp,8,8)] + lagrange_deriv_3[k] * e[INDEX4(comp,i,j,3,numComp,8,8)] + lagrange_deriv_4[k] * e[INDEX4(comp,i,j,4,numComp,8,8)] + lagrange_deriv_5[k] * e[INDEX4(comp,i,j,5,numComp,8,8)] + lagrange_deriv_6[k] * e[INDEX4(comp,i,j,6,numComp,8,8)] + lagrange_deriv_7[k] * e[INDEX4(comp,i,j,7,numComp,8,8)]) * inv_jac[2];
+                                    grad[INDEX5(comp,0,i,j,k,numComp,3,8,8)] = (lagrange_deriv_0[i] * e[INDEX4(comp,0,j,k,numComp,8,8)] + lagrange_deriv_1[i] * e[INDEX4(comp,1,j,k,numComp,8,8)] + lagrange_deriv_2[i] * e[INDEX4(comp,2,j,k,numComp,8,8)] + lagrange_deriv_3[i] * e[INDEX4(comp,3,j,k,numComp,8,8)] + lagrange_deriv_4[i] * e[INDEX4(comp,4,j,k,numComp,8,8)] + lagrange_deriv_5[i] * e[INDEX4(comp,5,j,k,numComp,8,8)] + lagrange_deriv_6[i] * e[INDEX4(comp,6,j,k,numComp,8,8)] + lagrange_deriv_7[i] * e[INDEX4(comp,7,j,k,numComp,8,8)]) * inv_jac[0];
+                                    grad[INDEX5(comp,1,i,j,k,numComp,3,8,8)] = (lagrange_deriv_0[j] * e[INDEX4(comp,i,0,k,numComp,8,8)] + lagrange_deriv_1[j] * e[INDEX4(comp,i,1,k,numComp,8,8)] + lagrange_deriv_2[j] * e[INDEX4(comp,i,2,k,numComp,8,8)] + lagrange_deriv_3[j] * e[INDEX4(comp,i,3,k,numComp,8,8)] + lagrange_deriv_4[j] * e[INDEX4(comp,i,4,k,numComp,8,8)] + lagrange_deriv_5[j] * e[INDEX4(comp,i,5,k,numComp,8,8)] + lagrange_deriv_6[j] * e[INDEX4(comp,i,6,k,numComp,8,8)] + lagrange_deriv_7[j] * e[INDEX4(comp,i,7,k,numComp,8,8)]) * inv_jac[1];
+                                    grad[INDEX5(comp,2,i,j,k,numComp,3,8,8)] = (lagrange_deriv_0[k] * e[INDEX4(comp,i,j,0,numComp,8,8)] + lagrange_deriv_1[k] * e[INDEX4(comp,i,j,1,numComp,8,8)] + lagrange_deriv_2[k] * e[INDEX4(comp,i,j,2,numComp,8,8)] + lagrange_deriv_3[k] * e[INDEX4(comp,i,j,3,numComp,8,8)] + lagrange_deriv_4[k] * e[INDEX4(comp,i,j,4,numComp,8,8)] + lagrange_deriv_5[k] * e[INDEX4(comp,i,j,5,numComp,8,8)] + lagrange_deriv_6[k] * e[INDEX4(comp,i,j,6,numComp,8,8)] + lagrange_deriv_7[k] * e[INDEX4(comp,i,j,7,numComp,8,8)]) * inv_jac[2];
                                 }
                             }
                         }
@@ -423,7 +423,7 @@ void Brick::gradient_order8(escript::Data& out, const escript::Data& in) const {
                         for (int k = 0; k < 9; ++k) {
                             for (int j = 0; j < 9; ++j) {
                                 for (int i = 0; i < 9; ++i) {
-                                    const index_t ind = INDEX5(0,comp,i,j,k,3,numComp,9,9);
+                                    const index_t ind = INDEX5(comp,0,i,j,k,numComp,3,10,10);
                                     grad[ind + 0] = a;
                                     grad[ind + 1] = b;
                                     grad[ind + 2] = c;
@@ -445,9 +445,9 @@ void Brick::gradient_order8(escript::Data& out, const escript::Data& in) const {
                         for (int j = 0; j < 9; ++j) {
                             for (int i = 0; i < 9; ++i) {
                                 for (int comp = 0; comp < numComp; ++comp) {
-                                    grad[INDEX5(0,comp,i,j,k,3,numComp,9,9)] = (lagrange_deriv_0[i] * e[INDEX4(comp,0,j,k,numComp,9,9)] + lagrange_deriv_1[i] * e[INDEX4(comp,1,j,k,numComp,9,9)] + lagrange_deriv_2[i] * e[INDEX4(comp,2,j,k,numComp,9,9)] + lagrange_deriv_3[i] * e[INDEX4(comp,3,j,k,numComp,9,9)] + lagrange_deriv_4[i] * e[INDEX4(comp,4,j,k,numComp,9,9)] + lagrange_deriv_5[i] * e[INDEX4(comp,5,j,k,numComp,9,9)] + lagrange_deriv_6[i] * e[INDEX4(comp,6,j,k,numComp,9,9)] + lagrange_deriv_7[i] * e[INDEX4(comp,7,j,k,numComp,9,9)] + lagrange_deriv_8[i] * e[INDEX4(comp,8,j,k,numComp,9,9)]) * inv_jac[0];
-                                    grad[INDEX5(1,comp,i,j,k,3,numComp,9,9)] = (lagrange_deriv_0[j] * e[INDEX4(comp,i,0,k,numComp,9,9)] + lagrange_deriv_1[j] * e[INDEX4(comp,i,1,k,numComp,9,9)] + lagrange_deriv_2[j] * e[INDEX4(comp,i,2,k,numComp,9,9)] + lagrange_deriv_3[j] * e[INDEX4(comp,i,3,k,numComp,9,9)] + lagrange_deriv_4[j] * e[INDEX4(comp,i,4,k,numComp,9,9)] + lagrange_deriv_5[j] * e[INDEX4(comp,i,5,k,numComp,9,9)] + lagrange_deriv_6[j] * e[INDEX4(comp,i,6,k,numComp,9,9)] + lagrange_deriv_7[j] * e[INDEX4(comp,i,7,k,numComp,9,9)] + lagrange_deriv_8[j] * e[INDEX4(comp,i,8,k,numComp,9,9)]) * inv_jac[1];
-                                    grad[INDEX5(2,comp,i,j,k,3,numComp,9,9)] = (lagrange_deriv_0[k] * e[INDEX4(comp,i,j,0,numComp,9,9)] + lagrange_deriv_1[k] * e[INDEX4(comp,i,j,1,numComp,9,9)] + lagrange_deriv_2[k] * e[INDEX4(comp,i,j,2,numComp,9,9)] + lagrange_deriv_3[k] * e[INDEX4(comp,i,j,3,numComp,9,9)] + lagrange_deriv_4[k] * e[INDEX4(comp,i,j,4,numComp,9,9)] + lagrange_deriv_5[k] * e[INDEX4(comp,i,j,5,numComp,9,9)] + lagrange_deriv_6[k] * e[INDEX4(comp,i,j,6,numComp,9,9)] + lagrange_deriv_7[k] * e[INDEX4(comp,i,j,7,numComp,9,9)] + lagrange_deriv_8[k] * e[INDEX4(comp,i,j,8,numComp,9,9)]) * inv_jac[2];
+                                    grad[INDEX5(comp,0,i,j,k,numComp,3,9,9)] = (lagrange_deriv_0[i] * e[INDEX4(comp,0,j,k,numComp,9,9)] + lagrange_deriv_1[i] * e[INDEX4(comp,1,j,k,numComp,9,9)] + lagrange_deriv_2[i] * e[INDEX4(comp,2,j,k,numComp,9,9)] + lagrange_deriv_3[i] * e[INDEX4(comp,3,j,k,numComp,9,9)] + lagrange_deriv_4[i] * e[INDEX4(comp,4,j,k,numComp,9,9)] + lagrange_deriv_5[i] * e[INDEX4(comp,5,j,k,numComp,9,9)] + lagrange_deriv_6[i] * e[INDEX4(comp,6,j,k,numComp,9,9)] + lagrange_deriv_7[i] * e[INDEX4(comp,7,j,k,numComp,9,9)] + lagrange_deriv_8[i] * e[INDEX4(comp,8,j,k,numComp,9,9)]) * inv_jac[0];
+                                    grad[INDEX5(comp,1,i,j,k,numComp,3,9,9)] = (lagrange_deriv_0[j] * e[INDEX4(comp,i,0,k,numComp,9,9)] + lagrange_deriv_1[j] * e[INDEX4(comp,i,1,k,numComp,9,9)] + lagrange_deriv_2[j] * e[INDEX4(comp,i,2,k,numComp,9,9)] + lagrange_deriv_3[j] * e[INDEX4(comp,i,3,k,numComp,9,9)] + lagrange_deriv_4[j] * e[INDEX4(comp,i,4,k,numComp,9,9)] + lagrange_deriv_5[j] * e[INDEX4(comp,i,5,k,numComp,9,9)] + lagrange_deriv_6[j] * e[INDEX4(comp,i,6,k,numComp,9,9)] + lagrange_deriv_7[j] * e[INDEX4(comp,i,7,k,numComp,9,9)] + lagrange_deriv_8[j] * e[INDEX4(comp,i,8,k,numComp,9,9)]) * inv_jac[1];
+                                    grad[INDEX5(comp,2,i,j,k,numComp,3,9,9)] = (lagrange_deriv_0[k] * e[INDEX4(comp,i,j,0,numComp,9,9)] + lagrange_deriv_1[k] * e[INDEX4(comp,i,j,1,numComp,9,9)] + lagrange_deriv_2[k] * e[INDEX4(comp,i,j,2,numComp,9,9)] + lagrange_deriv_3[k] * e[INDEX4(comp,i,j,3,numComp,9,9)] + lagrange_deriv_4[k] * e[INDEX4(comp,i,j,4,numComp,9,9)] + lagrange_deriv_5[k] * e[INDEX4(comp,i,j,5,numComp,9,9)] + lagrange_deriv_6[k] * e[INDEX4(comp,i,j,6,numComp,9,9)] + lagrange_deriv_7[k] * e[INDEX4(comp,i,j,7,numComp,9,9)] + lagrange_deriv_8[k] * e[INDEX4(comp,i,j,8,numComp,9,9)]) * inv_jac[2];
                                 }
                             }
                         }
@@ -490,7 +490,7 @@ void Brick::gradient_order9(escript::Data& out, const escript::Data& in) const {
                         for (int k = 0; k < 10; ++k) {
                             for (int j = 0; j < 10; ++j) {
                                 for (int i = 0; i < 10; ++i) {
-                                    const index_t ind = INDEX5(0,comp,i,j,k,3,numComp,10,10);
+                                    const index_t ind = INDEX5(comp,0,i,j,k,numComp,3,10,10);
                                     grad[ind + 0] = a;
                                     grad[ind + 1] = b;
                                     grad[ind + 2] = c;
@@ -512,9 +512,9 @@ void Brick::gradient_order9(escript::Data& out, const escript::Data& in) const {
                         for (int j = 0; j < 10; ++j) {
                             for (int i = 0; i < 10; ++i) {
                                 for (int comp = 0; comp < numComp; ++comp) {
-                                    grad[INDEX5(0,comp,i,j,k,3,numComp,10,10)] = (lagrange_deriv_0[i] * e[INDEX4(comp,0,j,k,numComp,10,10)] + lagrange_deriv_1[i] * e[INDEX4(comp,1,j,k,numComp,10,10)] + lagrange_deriv_2[i] * e[INDEX4(comp,2,j,k,numComp,10,10)] + lagrange_deriv_3[i] * e[INDEX4(comp,3,j,k,numComp,10,10)] + lagrange_deriv_4[i] * e[INDEX4(comp,4,j,k,numComp,10,10)] + lagrange_deriv_5[i] * e[INDEX4(comp,5,j,k,numComp,10,10)] + lagrange_deriv_6[i] * e[INDEX4(comp,6,j,k,numComp,10,10)] + lagrange_deriv_7[i] * e[INDEX4(comp,7,j,k,numComp,10,10)] + lagrange_deriv_8[i] * e[INDEX4(comp,8,j,k,numComp,10,10)] + lagrange_deriv_9[i] * e[INDEX4(comp,9,j,k,numComp,10,10)]) * inv_jac[0];
-                                    grad[INDEX5(1,comp,i,j,k,3,numComp,10,10)] = (lagrange_deriv_0[j] * e[INDEX4(comp,i,0,k,numComp,10,10)] + lagrange_deriv_1[j] * e[INDEX4(comp,i,1,k,numComp,10,10)] + lagrange_deriv_2[j] * e[INDEX4(comp,i,2,k,numComp,10,10)] + lagrange_deriv_3[j] * e[INDEX4(comp,i,3,k,numComp,10,10)] + lagrange_deriv_4[j] * e[INDEX4(comp,i,4,k,numComp,10,10)] + lagrange_deriv_5[j] * e[INDEX4(comp,i,5,k,numComp,10,10)] + lagrange_deriv_6[j] * e[INDEX4(comp,i,6,k,numComp,10,10)] + lagrange_deriv_7[j] * e[INDEX4(comp,i,7,k,numComp,10,10)] + lagrange_deriv_8[j] * e[INDEX4(comp,i,8,k,numComp,10,10)] + lagrange_deriv_9[j] * e[INDEX4(comp,i,9,k,numComp,10,10)]) * inv_jac[1];
-                                    grad[INDEX5(2,comp,i,j,k,3,numComp,10,10)] = (lagrange_deriv_0[k] * e[INDEX4(comp,i,j,0,numComp,10,10)] + lagrange_deriv_1[k] * e[INDEX4(comp,i,j,1,numComp,10,10)] + lagrange_deriv_2[k] * e[INDEX4(comp,i,j,2,numComp,10,10)] + lagrange_deriv_3[k] * e[INDEX4(comp,i,j,3,numComp,10,10)] + lagrange_deriv_4[k] * e[INDEX4(comp,i,j,4,numComp,10,10)] + lagrange_deriv_5[k] * e[INDEX4(comp,i,j,5,numComp,10,10)] + lagrange_deriv_6[k] * e[INDEX4(comp,i,j,6,numComp,10,10)] + lagrange_deriv_7[k] * e[INDEX4(comp,i,j,7,numComp,10,10)] + lagrange_deriv_8[k] * e[INDEX4(comp,i,j,8,numComp,10,10)] + lagrange_deriv_9[k] * e[INDEX4(comp,i,j,9,numComp,10,10)]) * inv_jac[2];
+                                    grad[INDEX5(comp,0,i,j,k,numComp,3,10,10)] = (lagrange_deriv_0[i] * e[INDEX4(comp,0,j,k,numComp,10,10)] + lagrange_deriv_1[i] * e[INDEX4(comp,1,j,k,numComp,10,10)] + lagrange_deriv_2[i] * e[INDEX4(comp,2,j,k,numComp,10,10)] + lagrange_deriv_3[i] * e[INDEX4(comp,3,j,k,numComp,10,10)] + lagrange_deriv_4[i] * e[INDEX4(comp,4,j,k,numComp,10,10)] + lagrange_deriv_5[i] * e[INDEX4(comp,5,j,k,numComp,10,10)] + lagrange_deriv_6[i] * e[INDEX4(comp,6,j,k,numComp,10,10)] + lagrange_deriv_7[i] * e[INDEX4(comp,7,j,k,numComp,10,10)] + lagrange_deriv_8[i] * e[INDEX4(comp,8,j,k,numComp,10,10)] + lagrange_deriv_9[i] * e[INDEX4(comp,9,j,k,numComp,10,10)]) * inv_jac[0];
+                                    grad[INDEX5(comp,1,i,j,k,numComp,3,10,10)] = (lagrange_deriv_0[j] * e[INDEX4(comp,i,0,k,numComp,10,10)] + lagrange_deriv_1[j] * e[INDEX4(comp,i,1,k,numComp,10,10)] + lagrange_deriv_2[j] * e[INDEX4(comp,i,2,k,numComp,10,10)] + lagrange_deriv_3[j] * e[INDEX4(comp,i,3,k,numComp,10,10)] + lagrange_deriv_4[j] * e[INDEX4(comp,i,4,k,numComp,10,10)] + lagrange_deriv_5[j] * e[INDEX4(comp,i,5,k,numComp,10,10)] + lagrange_deriv_6[j] * e[INDEX4(comp,i,6,k,numComp,10,10)] + lagrange_deriv_7[j] * e[INDEX4(comp,i,7,k,numComp,10,10)] + lagrange_deriv_8[j] * e[INDEX4(comp,i,8,k,numComp,10,10)] + lagrange_deriv_9[j] * e[INDEX4(comp,i,9,k,numComp,10,10)]) * inv_jac[1];
+                                    grad[INDEX5(comp,2,i,j,k,numComp,3,10,10)] = (lagrange_deriv_0[k] * e[INDEX4(comp,i,j,0,numComp,10,10)] + lagrange_deriv_1[k] * e[INDEX4(comp,i,j,1,numComp,10,10)] + lagrange_deriv_2[k] * e[INDEX4(comp,i,j,2,numComp,10,10)] + lagrange_deriv_3[k] * e[INDEX4(comp,i,j,3,numComp,10,10)] + lagrange_deriv_4[k] * e[INDEX4(comp,i,j,4,numComp,10,10)] + lagrange_deriv_5[k] * e[INDEX4(comp,i,j,5,numComp,10,10)] + lagrange_deriv_6[k] * e[INDEX4(comp,i,j,6,numComp,10,10)] + lagrange_deriv_7[k] * e[INDEX4(comp,i,j,7,numComp,10,10)] + lagrange_deriv_8[k] * e[INDEX4(comp,i,j,8,numComp,10,10)] + lagrange_deriv_9[k] * e[INDEX4(comp,i,j,9,numComp,10,10)]) * inv_jac[2];
                                 }
                             }
                         }
@@ -580,9 +580,9 @@ void Brick::gradient_order10(escript::Data& out, const escript::Data& in) const 
                         for (int j = 0; j < 11; ++j) {
                             for (int i = 0; i < 11; ++i) {
                                 for (int comp = 0; comp < numComp; ++comp) {
-                                    grad[INDEX5(0,comp,i,j,k,3,numComp,11,11)] = (lagrange_deriv_0[i] * e[INDEX4(comp,0,j,k,numComp,11,11)] + lagrange_deriv_1[i] * e[INDEX4(comp,1,j,k,numComp,11,11)] + lagrange_deriv_2[i] * e[INDEX4(comp,2,j,k,numComp,11,11)] + lagrange_deriv_3[i] * e[INDEX4(comp,3,j,k,numComp,11,11)] + lagrange_deriv_4[i] * e[INDEX4(comp,4,j,k,numComp,11,11)] + lagrange_deriv_5[i] * e[INDEX4(comp,5,j,k,numComp,11,11)] + lagrange_deriv_6[i] * e[INDEX4(comp,6,j,k,numComp,11,11)] + lagrange_deriv_7[i] * e[INDEX4(comp,7,j,k,numComp,11,11)] + lagrange_deriv_8[i] * e[INDEX4(comp,8,j,k,numComp,11,11)] + lagrange_deriv_9[i] * e[INDEX4(comp,9,j,k,numComp,11,11)] + lagrange_deriv_10[i] * e[INDEX4(comp,10,j,k,numComp,11,11)]) * inv_jac[0];
-                                    grad[INDEX5(1,comp,i,j,k,3,numComp,11,11)] = (lagrange_deriv_0[j] * e[INDEX4(comp,i,0,k,numComp,11,11)] + lagrange_deriv_1[j] * e[INDEX4(comp,i,1,k,numComp,11,11)] + lagrange_deriv_2[j] * e[INDEX4(comp,i,2,k,numComp,11,11)] + lagrange_deriv_3[j] * e[INDEX4(comp,i,3,k,numComp,11,11)] + lagrange_deriv_4[j] * e[INDEX4(comp,i,4,k,numComp,11,11)] + lagrange_deriv_5[j] * e[INDEX4(comp,i,5,k,numComp,11,11)] + lagrange_deriv_6[j] * e[INDEX4(comp,i,6,k,numComp,11,11)] + lagrange_deriv_7[j] * e[INDEX4(comp,i,7,k,numComp,11,11)] + lagrange_deriv_8[j] * e[INDEX4(comp,i,8,k,numComp,11,11)] + lagrange_deriv_9[j] * e[INDEX4(comp,i,9,k,numComp,11,11)] + lagrange_deriv_10[j] * e[INDEX4(comp,i,10,k,numComp,11,11)]) * inv_jac[1];
-                                    grad[INDEX5(2,comp,i,j,k,3,numComp,11,11)] = (lagrange_deriv_0[k] * e[INDEX4(comp,i,j,0,numComp,11,11)] + lagrange_deriv_1[k] * e[INDEX4(comp,i,j,1,numComp,11,11)] + lagrange_deriv_2[k] * e[INDEX4(comp,i,j,2,numComp,11,11)] + lagrange_deriv_3[k] * e[INDEX4(comp,i,j,3,numComp,11,11)] + lagrange_deriv_4[k] * e[INDEX4(comp,i,j,4,numComp,11,11)] + lagrange_deriv_5[k] * e[INDEX4(comp,i,j,5,numComp,11,11)] + lagrange_deriv_6[k] * e[INDEX4(comp,i,j,6,numComp,11,11)] + lagrange_deriv_7[k] * e[INDEX4(comp,i,j,7,numComp,11,11)] + lagrange_deriv_8[k] * e[INDEX4(comp,i,j,8,numComp,11,11)] + lagrange_deriv_9[k] * e[INDEX4(comp,i,j,9,numComp,11,11)] + lagrange_deriv_10[k] * e[INDEX4(comp,i,j,10,numComp,11,11)]) * inv_jac[2];
+                                    grad[INDEX5(comp,0,i,j,k,numComp,3,11,11)] = (lagrange_deriv_0[i] * e[INDEX4(comp,0,j,k,numComp,11,11)] + lagrange_deriv_1[i] * e[INDEX4(comp,1,j,k,numComp,11,11)] + lagrange_deriv_2[i] * e[INDEX4(comp,2,j,k,numComp,11,11)] + lagrange_deriv_3[i] * e[INDEX4(comp,3,j,k,numComp,11,11)] + lagrange_deriv_4[i] * e[INDEX4(comp,4,j,k,numComp,11,11)] + lagrange_deriv_5[i] * e[INDEX4(comp,5,j,k,numComp,11,11)] + lagrange_deriv_6[i] * e[INDEX4(comp,6,j,k,numComp,11,11)] + lagrange_deriv_7[i] * e[INDEX4(comp,7,j,k,numComp,11,11)] + lagrange_deriv_8[i] * e[INDEX4(comp,8,j,k,numComp,11,11)] + lagrange_deriv_9[i] * e[INDEX4(comp,9,j,k,numComp,11,11)] + lagrange_deriv_10[i] * e[INDEX4(comp,10,j,k,numComp,11,11)]) * inv_jac[0];
+                                    grad[INDEX5(comp,1,i,j,k,numComp,3,11,11)] = (lagrange_deriv_0[j] * e[INDEX4(comp,i,0,k,numComp,11,11)] + lagrange_deriv_1[j] * e[INDEX4(comp,i,1,k,numComp,11,11)] + lagrange_deriv_2[j] * e[INDEX4(comp,i,2,k,numComp,11,11)] + lagrange_deriv_3[j] * e[INDEX4(comp,i,3,k,numComp,11,11)] + lagrange_deriv_4[j] * e[INDEX4(comp,i,4,k,numComp,11,11)] + lagrange_deriv_5[j] * e[INDEX4(comp,i,5,k,numComp,11,11)] + lagrange_deriv_6[j] * e[INDEX4(comp,i,6,k,numComp,11,11)] + lagrange_deriv_7[j] * e[INDEX4(comp,i,7,k,numComp,11,11)] + lagrange_deriv_8[j] * e[INDEX4(comp,i,8,k,numComp,11,11)] + lagrange_deriv_9[j] * e[INDEX4(comp,i,9,k,numComp,11,11)] + lagrange_deriv_10[j] * e[INDEX4(comp,i,10,k,numComp,11,11)]) * inv_jac[1];
+                                    grad[INDEX5(comp,2,i,j,k,numComp,3,11,11)] = (lagrange_deriv_0[k] * e[INDEX4(comp,i,j,0,numComp,11,11)] + lagrange_deriv_1[k] * e[INDEX4(comp,i,j,1,numComp,11,11)] + lagrange_deriv_2[k] * e[INDEX4(comp,i,j,2,numComp,11,11)] + lagrange_deriv_3[k] * e[INDEX4(comp,i,j,3,numComp,11,11)] + lagrange_deriv_4[k] * e[INDEX4(comp,i,j,4,numComp,11,11)] + lagrange_deriv_5[k] * e[INDEX4(comp,i,j,5,numComp,11,11)] + lagrange_deriv_6[k] * e[INDEX4(comp,i,j,6,numComp,11,11)] + lagrange_deriv_7[k] * e[INDEX4(comp,i,j,7,numComp,11,11)] + lagrange_deriv_8[k] * e[INDEX4(comp,i,j,8,numComp,11,11)] + lagrange_deriv_9[k] * e[INDEX4(comp,i,j,9,numComp,11,11)] + lagrange_deriv_10[k] * e[INDEX4(comp,i,j,10,numComp,11,11)]) * inv_jac[2];
                                 }
                             }
                         }
