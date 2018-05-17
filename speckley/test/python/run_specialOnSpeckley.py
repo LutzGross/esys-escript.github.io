@@ -281,8 +281,8 @@ class Test_Speckley(unittest.TestCase):
                 b=3+8*1j
                 f=Vector(0., Solution(dom))
                 sample=[[0.000000000+0.000000000j, -4.000000000+2.000000000j],[4.000000000-2.000000000j, 0.000000000+0.000000000j]]
-                for i in xrange(dom.getDim()):
-                    for j in xrange(dom.getDim()):
+                for i in range(dom.getDim()):
+                    for j in range(dom.getDim()):
                         f[i]+=m*(i-j)*x[j]+b-i*j
                 g=grad(f)
                 g_array =   np.array(g.toListOfTuples()) 
@@ -304,8 +304,8 @@ class Test_Speckley(unittest.TestCase):
                 b=3+8*1j
                 f=Vector(0., Solution(dom))
                 sample=[[0.000000000+0.000000000j, 4.000000000-2.000000000j],[4.000000000-2.000000000j, 8.000000000-4.000000000j]]
-                for i in xrange(dom.getDim()):
-                    for j in xrange(dom.getDim()):
+                for i in range(dom.getDim()):
+                    for j in range(dom.getDim()):
                         f[i]+=m*(i+j)*x[j]+b-i*j
                 g=grad(f)
                 g_array =   np.array(g.toListOfTuples()) 
@@ -327,8 +327,8 @@ class Test_Speckley(unittest.TestCase):
                 b=3+8*1j
                 f=Vector(0., Solution(dom))
                 sample=[[0.000000000+0.000000000j, -4.000000000+2.000000000j, -8.000000000+4.000000000j],[4.000000000-2.000000000j, 0.000000000+0.000000000j, -4.000000000+2.000000000j],[8.000000000-4.000000000j, 4.000000000-2.000000000j, 0.000000000+0.000000000j]]
-                for i in xrange(dom.getDim()):
-                    for j in xrange(dom.getDim()):
+                for i in range(dom.getDim()):
+                    for j in range(dom.getDim()):
                         f[i]+=m*(i-j)*x[j]+b-i*j
                 g=grad(f)
                 g_array =   np.array(g.toListOfTuples()) 
@@ -350,8 +350,8 @@ class Test_Speckley(unittest.TestCase):
                 b=3+8*1j
                 f=Vector(0., Solution(dom))
                 sample=[[0.000000000+0.000000000j, 4.000000000-2.000000000j, 8.000000000-4.000000000j],[4.000000000-2.000000000j, 8.000000000-4.000000000j, 12.000000000-6.000000000j],[8.000000000-4.000000000j, 12.000000000-6.000000000j, 16.000000000-8.000000000j]]
-                for i in xrange(dom.getDim()):
-                    for j in xrange(dom.getDim()):
+                for i in range(dom.getDim()):
+                    for j in range(dom.getDim()):
                         f[i]+=m*(i+j)*x[j]+b-i*j
                 g=grad(f)
                 g_array =   np.array(g.toListOfTuples()) 
