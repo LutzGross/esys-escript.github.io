@@ -29,7 +29,6 @@ import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 from esys.escript import *
 from esys.speckley import Rectangle, Brick, speckleycpp
-import numpy as np #Array package.
 
 class Test_Speckley_Assemblers(unittest.TestCase):
     TOLERANCE = 1e-10
