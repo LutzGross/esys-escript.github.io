@@ -37,7 +37,8 @@ dom.setBackgroundMagneticFluxDensity(B_b)
 dom.fixSusceptibilityBelow(depth=40.*U.km)
 
 # Step 2: read magnetic data
-source0=NetCdfData(NetCdfData.MAGNETIC, 'MagneticSmall.nc', scale_factor=U.Nano * U.Tesla)
+source0=NetCdfData(NetCdfData.MAGNETIC, 'MagneticSmall.nc', 
+    scale_factor=U.Nano * U.Tesla)
 dom.addSource(source0)
 
 # Step 3: set up inversion
@@ -79,7 +80,8 @@ are a few small differences which we are going to highlight now.
 The magnetic inversion requires data about the background magnetic flux density
 over the region of interest which is added to the domain by the statements 
 \begin{verbatim}
-B_b = [2201.*U.Nano*U.Tesla, 31232.*U.Nano*U.Tesla,  -41405.*U.Nano*U.Tesla]
+B_b = [2201.*U.Nano*U.Tesla, 31232.*U.Nano*U.Tesla,  
+    -41405.*U.Nano*U.Tesla]
 dom.setBackgroundMagneticFluxDensity(B_b)
 \end{verbatim}
 Here it is assumed that the background magnetic flux density is constant across
@@ -137,23 +139,23 @@ as an identifier for the visualization software.
     \begin{center}
         \subfigure[$\mu=0.001$]{%
             \label{FIG:P1:MAG:10 MU0001}
-            \includegraphics[width=0.45\textwidth]{QLDMagContourMu0001.png}
+            \scalebox{0.95}{\includegraphics[width=0.45\textwidth]{QLDMagContourMu0001.png}}
         }%
         \subfigure[$\mu=0.01$]{%
             \label{FIG:P1:MAG:10 MU001}
-            \includegraphics[width=0.45\textwidth]{QLDMagContourMu001.png}
+            \scalebox{0.95}{\includegraphics[width=0.45\textwidth]{QLDMagContourMu001.png}}
         }\\ %  ------- End of the first row ----------------------%
         \subfigure[$\mu=0.1$]{%
             \label{FIG:P1:MAG:10 MU01}
-            \includegraphics[width=0.45\textwidth]{QLDMagContourMu01.png}
+            \scalebox{0.95}{\includegraphics[width=0.45\textwidth]{QLDMagContourMu01.png}}
         }%
         \subfigure[$\mu=1.$]{%
             \label{FIG:P1:MAG:10 MU1}
-            \includegraphics[width=0.45\textwidth]{QLDMagContourMu1.png}
+            \scalebox{0.95}{\includegraphics[width=0.45\textwidth]{QLDMagContourMu1.png}}
         }\\ %  ------- End of the second row ----------------------%
         \subfigure[$\mu=10.$]{%
             \label{FIG:P1:MAG:10 MU10}
-            \includegraphics[width=0.45\textwidth]{QLDMagContourMu10.png}
+            \scalebox{0.95}{\includegraphics[width=0.45\textwidth]{QLDMagContourMu10.png}}
         }%
     \end{center}
     \caption{3-D contour plots of magnetic inversion results with data from
@@ -166,23 +168,23 @@ as an identifier for the visualization software.
     \begin{center}
         \subfigure[$\mu=0.001$]{%
             \label{FIG:P1:MAG:11 MU0001}
-            \includegraphics[width=0.45\textwidth]{QLDMagDepthMu0001.png}
+            \scalebox{0.95}{\includegraphics[width=0.45\textwidth]{QLDMagDepthMu0001.png}}
         }%
         \subfigure[$\mu=0.01$]{%
             \label{FIG:P1:MAG:11 MU001}
-            \includegraphics[width=0.45\textwidth]{QLDMagDepthMu001.png}
+            \scalebox{0.95}{\includegraphics[width=0.45\textwidth]{QLDMagDepthMu001.png}}
         }\\ %  ------- End of the first row ----------------------%
         \subfigure[$\mu=0.1$]{%
             \label{FIG:P1:MAG:11 MU01}
-            \includegraphics[width=0.45\textwidth]{QLDMagDepthMu01.png}
+            \scalebox{0.95}{\includegraphics[width=0.45\textwidth]{QLDMagDepthMu01.png}}
         }%
         \subfigure[$\mu=1.$]{%
             \label{FIG:P1:MAG:11 MU1}
-            \includegraphics[width=0.45\textwidth]{QLDMagDepthMu1.png}
+            \scalebox{0.95}{\includegraphics[width=0.45\textwidth]{QLDMagDepthMu1.png}}
         }\\ %  ------- End of the second row ----------------------%
         \subfigure[$\mu=10.$]{%
             \label{FIG:P1:MAG:11 MU10}
-            \includegraphics[width=0.45\textwidth]{QLDMagDepthMu10.png}
+            \scalebox{0.95}{\includegraphics[width=0.45\textwidth]{QLDMagDepthMu10.png}}
         }%
     \end{center}
     \caption{3-D slice plots of magnetic inversion results with data from

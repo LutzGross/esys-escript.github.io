@@ -269,7 +269,7 @@ the depth of the domain no constraint at depth is applied to the density.
 \downunder uses the metre-kilogram-second based International System of Units
 (SI)\footnote{see \url{http://en.wikipedia.org/wiki/International_System_of_Units}}\index{SI}.
 So all values must be converted to appropriate units.
-This does not apply to geographic coordinates which in \downunder are given in
+This does not apply to geographic coordinates which in \module{downunder} are given in
 fractional degrees (as a floating point number) to represent longitude and
 latitude. In the script we have used the expression
 \begin{verbatim}
@@ -288,7 +288,7 @@ and constants, please see~\cite{ESCRIPT} and~\cite{ESCRIPTONLINE}.
 \section{Loading Gravitational Data}\label{SEC:P1:GRAV:DATA}
 In practice gravity acceleration is measured in various ways, for instance by
 airborne surveys~\cite{Telford1990a}.
-\downunder assumes that all data supplied as input are already appropriately
+The\\ \downunder library assumes that all data supplied as input are already appropriately
 pre-processed. In particular, corrections for
 \begin{itemize}
  \item free-air, to remove effects from altitude above ground;
@@ -371,7 +371,8 @@ arguments it is worth noting a few.
 Firstly, it is important to know that data slices are assumed to be at altitude
 $0$ by default. This can be easily changed though:
 \begin{verbatim}
-source0=NetCdfData(NetCdfData.GRAVITY, 'GravitySmall.nc', altitude=2.5*U.km)
+source0=NetCdfData(NetCdfData.GRAVITY, 'GravitySmall.nc', 
+    altitude=2.5*U.km)
 \end{verbatim}
 Another important setting is the scale or unit of the measurements.
 The default is dependent on the data type and for gravity anomalies a scale
@@ -379,7 +380,8 @@ of $\frac{\mu m}{sec^2}$ (or $0.1 \; mgal$) is assumed. For instance to
 change the default scale to $mgal$ (which is $10^{-5} \frac{m}{sec^2}$),
 you could use:
 \begin{verbatim}
-source0=NetCdfData(NetCdfData.GRAVITY, 'GravitySmall.nc', scale_factor=U.mgal)
+source0=NetCdfData(NetCdfData.GRAVITY, 'GravitySmall.nc', 
+    scale_factor=U.mgal)
 \end{verbatim}
 Finally, it is possible to specify measurement errors (i.e. uncertainties)
 alongside the data.
@@ -549,23 +551,23 @@ extension. The call to \verb|saveVoxet(...)| above would produce the files
     \begin{center}
         \subfigure[$\mu=0.1$]{%
             \label{FIG:P1:GRAV:10 MU01}
-            \includegraphics[width=0.45\textwidth]{QLDGravContourMu01.png}
+            \scalebox{0.95}{\includegraphics[width=0.45\textwidth]{QLDGravContourMu01.png}}
         }%
         \subfigure[$\mu=1.$]{%
             \label{FIG:P1:GRAV:10 MU1}
-            \includegraphics[width=0.45\textwidth]{QLDGravContourMu1.png}
+            \scalebox{0.95}{\includegraphics[width=0.45\textwidth]{QLDGravContourMu1.png}}
         }\\ %  ------- End of the first row ----------------------%
         \subfigure[$\mu=10.$]{%
             \label{FIG:P1:GRAV:10 MU10}
-            \includegraphics[width=0.45\textwidth]{QLDGravContourMu10.png}
+            \scalebox{0.95}{\includegraphics[width=0.45\textwidth]{QLDGravContourMu10.png}}
         }%
         \subfigure[$\mu=100.$]{%
             \label{FIG:P1:GRAV:10 MU100}
-            \includegraphics[width=0.45\textwidth]{QLDGravContourMu100.png}
+            \scalebox{0.95}{\includegraphics[width=0.45\textwidth]{QLDGravContourMu100.png}}
         }\\ %  ------- End of the second row ----------------------%
         \subfigure[$\mu=1000.$]{%
             \label{FIG:P1:GRAV:10 MU1000}
-            \includegraphics[width=0.45\textwidth]{QLDGravContourMu1000.png}
+            \scalebox{0.95}{\includegraphics[width=0.45\textwidth]{QLDGravContourMu1000.png}}
         }%
     \end{center}
     \caption{3-D contour plots of gravity inversion results with data from
@@ -578,23 +580,23 @@ extension. The call to \verb|saveVoxet(...)| above would produce the files
     \begin{center}
         \subfigure[$\mu=0.1$]{%
             \label{FIG:P1:GRAV:11 MU01}
-            \includegraphics[width=0.45\textwidth]{QLDGravDepthMu01.png}
+            \scalebox{0.95}{\includegraphics[width=0.45\textwidth]{QLDGravDepthMu01.png}}
         }%
         \subfigure[$\mu=1.$]{%
             \label{FIG:P1:GRAV:11 MU1}
-            \includegraphics[width=0.45\textwidth]{QLDGravDepthMu1.png}
+            \scalebox{0.95}{\includegraphics[width=0.45\textwidth]{QLDGravDepthMu1.png}}
         }\\ %  ------- End of the first row ----------------------%
         \subfigure[$\mu=10.$]{%
             \label{FIG:P1:GRAV:11 MU10}
-            \includegraphics[width=0.45\textwidth]{QLDGravDepthMu10.png}
+            \scalebox{0.95}{\includegraphics[width=0.45\textwidth]{QLDGravDepthMu10.png}}
         }%
         \subfigure[$\mu=100.$]{%
             \label{FIG:P1:GRAV:11 MU100}
-            \includegraphics[width=0.45\textwidth]{QLDGravDepthMu100.png}
+            \scalebox{0.95}{\includegraphics[width=0.45\textwidth]{QLDGravDepthMu100.png}}
         }\\ %  ------- End of the second row ----------------------%
         \subfigure[$\mu=1000.$]{%
             \label{FIG:P1:GRAV:11 MU1000}
-            \includegraphics[width=0.45\textwidth]{QLDGravDepthMu1000.png}
+            \scalebox{0.95}{\includegraphics[width=0.45\textwidth]{QLDGravDepthMu1000.png}}
         }%
     \end{center}
     \caption{3-D slice plots of gravity inversion results with data from
