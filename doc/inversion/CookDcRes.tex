@@ -64,7 +64,8 @@ pi = math.pi
 
 #Setup Input
 mesh_file = "data/HalfSphere_v1.4.msh"
-# Tag volume names and conductivity values (S/m) for primary and secondary potential:
+# Tag volume names and conductivity values (S/m) for primary 
+# and secondary potential:
 tag_p = {"domain" : 1/10.0, "sphere" :  1/10.0} # Primary (homogeneous).
 tag_s = {"domain" : 1/10.0, "sphere" :  1/1.0 } # Secondary.
 
@@ -94,7 +95,8 @@ for tag in tag_p:
 sig_p.expand()
 sig_s.expand()
 #solve for result
-schs=SchlumbergerSurvey(domain, sig_p, sig_s, current, a, n, midPoint, directionVector, numEle)
+schs=SchlumbergerSurvey(domain, sig_p, sig_s, current, a, n, midPoint, 
+    directionVector, numEle)
 pot=schs.getPotential()
 totalApparentRes=schs.getApparentResistivityTotal()
 #print result
