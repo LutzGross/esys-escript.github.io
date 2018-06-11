@@ -71,7 +71,7 @@ integration nodes (typically one only) to represent values.
 
 \begin{figure}
 \centering
-\includegraphics{EscriptDiagram1}
+\scalebox{0.97}{\includegraphics{EscriptDiagram1}}
 \caption{\label{ESCRIPT DEP}Dependency of function spaces in \finley.
 An arrow indicates that a function in the \FunctionSpace at the starting point
 can be interpolated to the \FunctionSpace of the arrow target.
@@ -207,9 +207,9 @@ as arguments and returns the corresponding stress:
 \end{python}
 The variable \var{d} gives the spatial dimensionality of the domain on which
 the displacements are defined.
-\var{kronecker} returns the Kronecker symbol with indices $i$ and $j$ running
+The \code{kronecker(d)} call, returns the Kronecker symbol with indices $i$ and $j$ running
 from 0 to \var{d}-1.
-The call \var{grad(u)} requires the displacement field \var{u} to be in
+The \var{grad(u)} call, requires the displacement field \var{u} to be in
 the \var{Solution} or \ContinuousFunction.
 The result \var{g} as well as the returned stress will be in the \Function.
 If, for example, \var{u} is the solution of a PDE then \code{getStress} might
@@ -621,7 +621,7 @@ Either of the arguments may be a \Data object, a \PYTHON number or a \numpy
 object.
 If \var{arg0} or \var{arg1} are not defined on the same \FunctionSpace, then
 an attempt is made to convert \var{arg0} to the \FunctionSpace of \var{arg1}
-or to convert \var{arg1} to the \FunctionSpace of \var{arg0}.
+or to convert \var{arg1} to \var{arg0}'s \FunctionSpace.
 Both arguments must have the same \Shape or one of the arguments may be of
 rank 0 (a constant).
 The returned \Data object has the same \Shape and is defined on
@@ -1429,7 +1429,8 @@ zstep=(maxval-minval)/(10-1)
 
 zmin=minval
 
-result3=interpolateTable(table3, x3, (xmin, ymin, zmin), (xstep, ystep, zstep), toobig)
+result3=interpolateTable(table3, x3, (xmin, ymin, zmin), 
+    (xstep, ystep, zstep), toobig)
 \end{python}
 
 

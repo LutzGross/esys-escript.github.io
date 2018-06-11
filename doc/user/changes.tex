@@ -25,7 +25,7 @@ This does not change the value itself, (eg $7 \rightarrow 7+0j$) but matters for
   \item Improved inversion.
   \item Corrections to $\cdot\_transpose\_product$ operations.
   \item Improved ``integration'' testing.
-  \item NetCDF support (if enabled), can now be built with support for netcdf-4 formatted files.
+  \item NetCDF support (if enabled), can now be built with support for netcdf-4 formatted files.\\
   See \texttt{scons/templates/README_FIRST} for the options.
   \item Support for lazy expressions with complex values.
   \item Solving PDEs with complex coefficients requires Trilinos support.
@@ -251,7 +251,9 @@ Please see the \module{weipa} documentation for export functionality.
 \subsection*{2.0 to 3.0}
 \begin{itemize}
 \item The major change here was replacing \module{numarray} with \numpy.
-For general instructions on converting scripts to use numpy see \url{http://www.stsci.edu/resources/software_hardware/numarray/numarray2numpy.pdf}.
+%% I've removed the link since it is no longer valid
+% For general instructions on converting scripts to use numpy see\\
+% \url{http://www.stsci.edu/resources/software_hardware/numarray/numarray2numpy.pdf}.\\
 The specific changes to \escript are:
  \begin{itemize}
   \item getValueOfDataPoint() which returned a \module{numarray}.array has been
@@ -288,7 +290,7 @@ accept \numpy objects instead.
       \method{LinearPDE.PCG} to select the preconditioned conjugate gradient
       method.
   \item The \method{getSolution} now takes no argument. Use the corresponding
-      methods of the \SolverOptions object returned by
+      methods of the\\ \SolverOptions object returned by
       \method{getSolverOptions()} to set values,\\ e.g. use
       \method{getSolverOptions().setVerbosityOn()} instead of argument
       \code{verbose=True} and \method{getSolverOptions().setIterMax(1000)}

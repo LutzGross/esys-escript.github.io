@@ -166,7 +166,8 @@ for visualization.
   h = Lsup(mesh.getSize())
 
   # boundary conditions for slip at base
-  boundary_cond=whereZero(coordinates[1])*[0.0,1.0]+whereZero(coordinates[0])*[1.0,0.0]
+  boundary_cond=whereZero(coordinates[1])*[0.0,1.0]
+      +whereZero(coordinates[0])*[1.0,0.0]
 
   # velocity and pressure vectors
   velocity=Vector(0., Solution(mesh))

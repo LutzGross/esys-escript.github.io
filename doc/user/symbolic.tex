@@ -48,12 +48,16 @@ print("p3 =", p3)            # The symbols can be printed, this line will print 
 print(evaluated)
 \end{python}
 Running this code outputs:\\\texttt{p3 = 4*u + 3\\(1 + 6*pi + 8*pi**2, 0, 3 + 8*pi)}.\\
-To get the numeric value of the expression we replace \texttt{evalu.evaluate()}
-with \texttt{evalu.evaluate(evalf=True)}. This results in
+To get the numeric value of the expression we replace\\ 
+\texttt{evalu.evaluate()}
+\\with\\ 
+\texttt{evalu.evaluate(evalf=True)}.\\
+This results in
 \texttt{(98.806, 0, 28.132)}.
 The use of these Symbols becomes more interesting in the context of escript
 when they are integrated with escript \Data objects.
 
+\pagebreak
 \section{NonlinearPDE}
 The \NLPDE class in escript makes use of the escript \SYMBOL class and allows
 for the solution of PDEs of the form:
@@ -131,7 +135,8 @@ q[1,1]=cos(theta)
 # vertical direction. Using this masking means that when q is used it will apply
 # only to the specified area of the domain. 
 x = Function(mydomain).getX()
-q=q.subs(theta,(symconstants.pi/4)*whereNonNegative(x[1]-.30)*whereNegative(x[1]-.70))
+q=q.subs(theta,(symconstants.pi/4)*whereNonNegative(x[1]-.30)*
+    whereNegative(x[1]-.70))
 # epsilon is defined in terms of u and has the rotation applied. 
 epsilon0 = symmetric(grad(u))
 epsilon = matrixmult(matrixmult(q,epsilon0),q.transpose(1))

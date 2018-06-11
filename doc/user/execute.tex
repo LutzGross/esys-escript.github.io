@@ -124,8 +124,7 @@ The options have the following meaning:
     The default value is 1.
 
 \item[\programopt{-t} \var{nt}] the number of threads used per process.
-    The option overwrites the value of the \env{ESCRIPT_NUM_THREADS}
-    environment variable.
+    The option overwrites the value of the \OPENMP environment variable \env{ESCRIPT_NUM_THREADS}.
     If $\var{nt}>1$ but {\it escript} is not compiled for \OPENMP, a warning
     is printed but execution is continued with $\var{nt}=1$.
     The default value is 1.

@@ -107,8 +107,9 @@ condition takes the form
 \begin{equation}\label{LINEARPDE.SINGLE.6}
 n_{j} J^{0}_{j}=n_{j} J^{1}_{j}=y^{contact} - d^{contact}[u]
 \end{equation}
-In this case the coefficient $d^{contact}$ and $y^{contact}$ are each a
-\Scalar both in the \FunctionOnContactZero or \FunctionOnContactOne.
+In this case the coefficient $d^{contact}$ and $y^{contact}$ are each
+\Scalars both in either\\
+the \FunctionOnContactZero or the \FunctionOnContactOne.
 
 The PDE is symmetrical\index{symmetrical} if
 \begin{equation}\label{LINEARPDE.SINGLE.4}
@@ -168,7 +169,8 @@ object gives access to diagnostic information:
   print("Total solution time =", mypde.getDiagnostics("time"))
   print("Set-up time =", mypde.getDiagnostics("set_up_time"))
   print("Net time =", mypde.getDiagnostics("net_time"))
-  print("Residual norm of returned solution =", mypde.getDiagnostics('residual_norm'))
+  print("Residual norm of returned solution =", 
+      mypde.getDiagnostics('residual_norm'))
 \end{python}
 Typically, a negative value for a diagnostic variable indicates that it is
 undefined.

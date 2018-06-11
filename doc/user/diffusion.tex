@@ -124,7 +124,7 @@ With $g=\eta T_{ref}$ the radiation condition defined by \eqn{DIFFUSION TEMP EQ 
 \label{DIFFUSION HELM EQ 2}
 \end{equation}
 The partial differential \eqn{DIFFUSION HELM EQ 1} together with boundary
-conditions of \eqn{DIFFUSION HELM EQ 2} is called the Helmholtz equation\index{Helmholtz equation}.
+conditions of \eqn{DIFFUSION HELM EQ 2} is the Helmholtz equation\index{Helmholtz equation}.
 
 We want to use the \LinearPDE class provided by \escript to define and solve a
 general linear, steady, second order PDE such as the Helmholtz equation.
@@ -327,8 +327,8 @@ The following script defines $q_H$ as desired:
   x=mydomain.getX()
   qH=q0*whereNegative(length(x-xc)-r)
 \end{python}
-\var{x} is a \Data object of the \escript module defining locations in the \Domain \var{mydomain}.
-The \function{length()} function imported from the \escript module returns the 
+\var{x} is an \class{esys.escript.Data} object which contains locations in the \Domain \var{mydomain}.
+The \function{length()} function (also from the \escript module) returns the 
 Euclidean norm:
 \begin{equation}\label{DIFFUSION HELM EQ 3aba}
 \|y\|=\sqrt{

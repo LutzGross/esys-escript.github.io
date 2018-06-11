@@ -317,7 +317,8 @@ at the location where the minimum is taken, e.g.
   fs=FaultSystem()
   f=Scalar(..)
   t, loc=fs.getMinValue(f)
-  print("minimum value of f on the fault %s is %s at location."%(t,loc(f),loc.getX()))
+  print("minimum value of f on the fault %s is %s at location."%\
+      (t,loc(f),loc.getX()))
 \end{python}
 \var{f} must be a \Scalar. When the minimum is calculated only
 \DataSamplePoints are considered which are on a fault in the fault system in
