@@ -21,7 +21,7 @@ This chapter assumes you are using a unix/posix like system (including MacOSX).
 
 \section{Parallel Technologies}\label{sec:par}
 It is likely that the computer you run \escript on, will have more than one processor core.
-\escript can make use of multiple cores [in order to solve problems more quickly] if it is told to do so,
+Escript can make use of multiple cores [in order to solve problems more quickly] if it is told to do so,
 but this functionality must be enabled at compile time.
 Section~\ref{sec:needpar} gives some rough guidelines to help you determine what you need.
 
@@ -91,7 +91,7 @@ command \texttt{xcode-select --install} will allow you to download and install t
 To simplify things for people, we have prepared \texttt{_options.py} files for a number of 
 systems\footnote{These are correct a time of writing but later versions of those systems may require tweaks. 
 Also, these systems represent a cross section of possible platforms rather than meaning those systems get particular support.}.
-The \texttt{_options.py} files are located in the \texttt{scons/templates} directory. We suggest that the file most relevant to your OS 
+The options files are located in the \texttt{scons/templates} directory. We suggest that the file most relevant to your OS 
 be copied from the templates directory to the scons directory and renamed to the form XXXX_options.py where XXXX 
 should be replaced with your computer's (host-)name.
 If your particular system is not in the list below, or if you want a more customised 
@@ -419,7 +419,7 @@ Once the build (and optional testing) is complete, you can remove everything exc
 The last three aren't strictly required for operation.
 The \texttt{doc} directory is not required either but does contain examples of escript scripts.
 
-You can run escript using \texttt{\textit{path_to_escript_files}/bin/run-escript}.
+You can run escript using \texttt{\textit{path_to_escript_files}/bin/run-escript}.\\
 Where \texttt{\textit{path_to_escript_files}} is replaced with the real path.
 
 \begin{optionalstep}
