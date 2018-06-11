@@ -59,7 +59,8 @@ cmake -D CMAKE_CXX_COMPILER=`which mpic++` \
       -D TPL_BLAS_INCLUDE_DIRS=/usr/include/suitesparse \
       -D TPL_Cholmod_INCLUDE_DIRS=/usr/include/suitesparse \
       -D TPL_Cholmod_LIBRARIES='/usr/lib/x86_64-linux-gnu/libcholmod.so;\
-/usr/lib/x86_64-linux-gnu/libamd.so;/usr/lib/x86_64-linux-gnu/libcolamd.so' \
+/usr/lib/x86_64-linux-gnu/libamd.so;\
+/usr/lib/x86_64-linux-gnu/libcolamd.so' \
       -D TPL_SuperLU_INCLUDE_DIRS=/usr/include/superlu \
       -D TPL_UMFPACK_INCLUDE_DIRS=/usr/include/suitesparse \
       -D TPL_SCALAPACK_LIBRARIES=/usr/lib/libscalapack-openmpi.so \
