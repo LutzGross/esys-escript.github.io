@@ -50,13 +50,15 @@ available. Consider the following example which creates a 2D \ripley domain:
 
 
 \index{ripley!multi-resolution domains} \index{multi-resolution domains}
-Multi-resolution domains are supported in \ripley via use of \class{MultiBrick}
+Multi-resolution domains are supported in \ripley via \class{MultiBrick}
 and \class{MultiRectangle}. Each level of one of
 these domains has twice the elements in each axis of the next lower resolution.
 The \class{MultiBrick} is not currently supported when running \escript with
 multiple processes using \MPI. Interpolation between these multi-resolution
 domains is possible providing they have matching dimensions and subdivisions,
-along with a compatible number of elements. To simplify these conditions the
+along with a compatible number of elements. 
+
+To simplify these conditions the
 use of \class{MultiResolutionDomain} is highly recommended. The following
 example creates two 2D domains of different resolutions and interpolates
 between them:
@@ -176,7 +178,7 @@ non-regular \MKL may return without a proper error code. If you observe
 suspicious solutions when using \MKL, this may be caused by a non-invertible
 operator.} solver package. If \MKL is not available \UMFPACK is used.
 If \UMFPACK is not available a suitable iterative solver from \PASO is used, but
-if a direct solver was requested via the \SolverOptions an exception will be
+if a direct solver was requested via \SolverOptions an exception will be
 raised.
 
 

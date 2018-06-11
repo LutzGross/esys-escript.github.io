@@ -226,7 +226,8 @@ format:
   print("%s %d\n"%(ContactElement_Type, ContactElement_Num))
   for i in range(ContactElement_Num):
      print("%d %d"%(ContactElement_ref[i], ContactElement_tag[i]))
-     for j in range(ContactElement_numNodes): print(" %d"%ContactElement_Nodes[i][j])
+     for j in range(ContactElement_numNodes): 
+         print(" %d"%ContactElement_Nodes[i][j])
      print("\n")
   # point sources (not supported yet)
   print("Point1 0")
