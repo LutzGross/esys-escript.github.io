@@ -127,6 +127,7 @@ vars.AddVariables(
   ListVariable('domains', 'Which domains to build', 'all', all_domains),
   BoolVariable('paso', 'Build Paso solver library', True),
   BoolVariable('weipa', 'Build Weipa data export library', True),
+  ('mathjax_path', 'Path to MathJax.js file', 'default'),
 # Advanced settings
   ('launcher', 'Launcher command (e.g. mpirun)', 'default'),
   ('prelaunch', 'Command to execute before launcher (e.g. mpdboot)', 'default'),
