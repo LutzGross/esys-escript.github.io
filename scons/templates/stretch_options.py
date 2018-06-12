@@ -76,3 +76,4 @@ for i in debstuff:
   except NameError:   
     exec(k+"='"+v+"'")
 
+mathjax_path='/usr/share/javascript/mathjax/MathJax.js'
