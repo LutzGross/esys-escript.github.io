@@ -225,7 +225,7 @@ if __name__ == "__main__":
         saveVoxet(filename, u=u)
         print("-------")
         dom = Brick(l0=1.,l1=1.,l2=4.,n0=18, n1=18, n2=36)
-        v=readVoxet(dom, '/tmp/poisson.vo', 'u', fillValue=0.5)
+        v=readVoxet(dom, filename, 'u', fillValue=0.5)
         print(v)
         os.remove(filename)
         #saveSilo('/tmp/poisson', v=v)
