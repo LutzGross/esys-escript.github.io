@@ -170,7 +170,7 @@ void DudleyDomain::dump(const string& fileName) const
     NcVar ids;
     index_t* index_ptr;
 #ifdef ESYS_INDEXTYPE_LONG
-    NcType ncIdxType = ncLong;
+    NcType ncIdxType = ncInt64; // "ncLong" is deprecated
 #else
     NcType ncIdxType = ncInt;
 #endif
