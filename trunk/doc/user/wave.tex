@@ -314,7 +314,7 @@ elements over the brick $[0,l_0] \times [0,l_1] \times [0,l_2]$.
   src_radius = 0.03*width
   print("src_radius =",src_radius)
   mydomain=Brick(ne, ne, 10, l0=width, l1=width, l2=10.*width/32.)
-  h=(1./5.)*inf(sqrt(rho/(lam+2*mu))*inf(domain.getSize())
+  h=(1./5.)*inf(sqrt(rho/(lam+2*mu)))*inf(domain.getSize())
   print("time step size =",h)
   ts, u_pc0, u_pc1, u_pc2 =  \
           wavePropagation(mydomain, h, tend, lam, mu, rho, xc, src_radius, U0)
