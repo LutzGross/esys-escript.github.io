@@ -24,7 +24,9 @@ In the following $\Gamma$ denotes the boundary of the domain $\Omega$ and $n$
 denotes the outer normal field on $\Gamma$.
 
 For a single PDE with a solution that has a single component the linear PDE is
-defined in the following form:
+defined in the following form \footnote{This PDE system can be written in the equivalent form, \begin{align*} \centering \, -\nabla \cdot \left( \textbf{A} \nabla u \right) - \nabla \cdot \left( \textbf{B} \, u \right) + \textbf{C} \cdot \nabla u + \textbf{D} \, u + \sum_p \delta(p) u(p) &= - \nabla \cdot \textbf{X} + \textbf{Y} + \sum_p \delta(p), \\
+	\hat{\textbf{n}} \cdot \left( \textbf{A} \nabla u + \textbf{B} \, u \right) + \textbf{d} \, u &= \hat{\textbf{n}} \cdot \textbf{X} + \textbf{y}, 
+\end{align*} where bold font denotes a data object and $\hat{\textbf{n}}$ denotes a unit vector normal.} 
 \begin{equation}\label{LINEARPDE.SINGLE.1}
 -(A_{jl} u_{,l})_{,j}-(B_{j} u)_{,j}+C_{l} u_{,l}+D u + \sum_p d^{dirac}(p) \; u(p) =-X_{j,j}+Y + \sum_p y^{dirac}(p)  \; .
 \end{equation}
@@ -38,7 +40,7 @@ The coefficients $A$, $B$, $C$, $D$, $X$ and $Y$ have to be specified through
 into such \Data objects. $d^{dirac}$
 $A$ is a \RankTwo, $B$, $C$ and $X$ are each a \RankOne and $D$ and $Y$ are
 scalars. $y^{dirac}$ and $d^{dirac}$ are each scalars in the \DiracDeltaFunctions. 
-The following natural boundary conditions are considered\index{boundary condition!natural} on $\Gamma$:
+The following natural boundary conditions are considered\index{boundary condition!natural} on $\Gamma$: 
 \begin{equation}\label{LINEARPDE.SINGLE.2}
 n_{j}(A_{jl} u_{,l}+B_{j} u)+d u=n_{j}X_{j} + y  \;.
 \end{equation}
