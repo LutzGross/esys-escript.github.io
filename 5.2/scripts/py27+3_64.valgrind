@@ -1,0 +1,222 @@
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_GC_Del
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   obj:/usr/bin/python3.4
+   ...
+   fun:PyEval_EvalFrameEx
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   obj:/usr/bin/python3.4
+   fun:_PyBytes_Resize
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/bin/python3.4
+   fun:_PyBytes_Resize
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   obj:/usr/bin/python3.4
+   fun:_PyBytes_Resize
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/bin/python3.4
+   fun:_PyObject_GC_Resize
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   obj:/usr/bin/python3.4
+   fun:_PyObject_GC_Resize
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   fun:PyObject_GC_Del
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   fun:PyObject_GC_Del
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/bin/python3.4
+   fun:PyParser_AddToken
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   obj:/usr/bin/python3.4
+   fun:PyParser_AddToken
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   fun:PyObject_Free
+   obj:/usr/bin/python3.4
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   fun:PyObject_Free
+   obj:/usr/bin/python3.4
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/bin/python3.4
+   fun:PyNode_AddChild
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   obj:/usr/bin/python3.4
+   fun:PyNode_AddChild
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   ...
+   fun:PyAST_CompileObject
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   ...
+   fun:PyAST_CompileObject
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   ...
+   obj:/usr/bin/python3.4
+   fun:PyEval_EvalFrameEx
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   ...
+   obj:/usr/bin/python3.4
+   fun:PyEval_EvalFrameEx
+
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   ...
+   obj:/usr/bin/python3.4
+   fun:PyAST_FromNodeObject
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   ...
+   obj:/usr/bin/python3.4
+   fun:PyAST_CompileObject
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   ...
+   obj:/usr/bin/python3.4
+   fun:PyAST_FromNodeObject
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   obj:/usr/bin/python3.4
+   fun:_PyObject_GC_Resize
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   obj:/usr/bin/python3.4
+   ...
+   fun:_PyGC_CollectNoFail
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   obj:/usr/bin/python3.4
+   fun:_ZN5boost6python7objects8functionD1Ev
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   obj:/usr/bin/python3.4
+   ...
+   fun:_Py_DisplaySourceLine
+ 
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   obj:/usr/bin/python3.4
+   ...
+   fun:PyDict_SetItem
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   obj:/usr/bin/python3.4
+   fun:_PyObject_GC_Resize
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/bin/python3.4
+   ...
+   fun:_PyGC_CollectNoFail
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   obj:/usr/bin/python3.4
+   ...
+   fun:_PyGC_CollectNoFail
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/bin/python3.4
+   ...
+   fun:PyDict_SetItem
+   fun:_PyModule_ClearDict
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   obj:/usr/bin/python3.4
+   ...
+   fun:PyDict_SetItem
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   fun:PyGrammar_AddAccelerators
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   obj:/usr/bin/python3.4
+   fun:_ZN5boost6python3apipLIPKcEERNS1_6objectES6_RKT_
+   fun:_ZN5boost6python7objects8function16add_to_namespaceERKNS0_3api6objectEPKcS6_S8_
+}
+
+

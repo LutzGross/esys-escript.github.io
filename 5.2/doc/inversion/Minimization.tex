@@ -1,0 +1,317 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright (c) 2003-2018 by The University of Queensland
+% http://www.uq.edu.au
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Apache License, version 2.0
+% http://www.apache.org/licenses/LICENSE-2.0
+%
+% Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+% Development 2012-2013 by School of Earth Sciences
+% Development from 2014 by Centre for Geoscience Computing (GeoComp)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Minimization Algorithms}\label{chapter:ref:Minimization}
+We need to find the level set function $m$ minimizing the cost function $J$ as 
+defined in Equation~\ref{REF:EQU:INTRO 1}. The physical parameters $p^f$ and
+the data defects are linked through state variables $u^f$ which is given as a
+solution of a partial differential equation (PDE) with coefficients depending
+on $p_f$. This PDE (or -- in case of several forward models -- this set of PDEs)
+defines a constraint in the minimization problem.
+In the context of our applications it can be assumed that the PDE is of
+'maximum rank', i.e. for a given value of the level set function $m$ there is a
+unique value for the state variables $u^f$ as the solution of the forward model.
+So from a mathematical point of view the state variable $u^f$ can be eliminated
+from the problem and the minimization problem becomes in fact a minimization
+problem for the level set function $m$ alone where the physical parameters
+which are of most interest in applications can easily be derived from the
+solution. However one needs to keep in mind that each evaluation of the cost
+function requires the solution of a PDE (an additional PDE solution is required
+for the gradient).
+
+In some application cases the optimization problem to be solved defines a
+quadratic programming problem which would allow to use a special case of
+solvers.
+However, for the general scenarios we are interested in here we cannot assume
+this simplification and need to be able to solve for a general cost function.
+The method used here is the limited-memory Broyden-Fletcher-Goldfarb-Shanno
+(\emph{L-BFGS}) method, see~\cite{Nocedal1980}.
+This method is a quasi-Newton method.
+To implement the method one needs to provide the evaluation of the cost
+function $J$ and its gradient $\nabla J$ and dual product $<\cdot,\cdot>$\footnote{A
+dual product $<\cdot,\cdot>$ defines a function which assigns a pair $(p,g)$ of a level
+set increment $p$ and a gradient $g$ a real number $<p,g>$. It is linear
+in the first and linear in the second argument.}
+such that for $\alpha \to$ 0 
+\begin{equation}\label{EQU:MIN:1}
+J(m+\alpha p) = J(m) + \alpha \cdot < p , \nabla J(m)> + o(\alpha)
+\end{equation}  
+where $p$ is an increment to the level set function\footnote{$o$ denotes the
+little o notation see \url{http://en.wikipedia.org/wiki/Big_O_notation}}.
+Notice that if $m$ is the unknown solution one has $\nabla J(m)=0$.
+Moreover, an approximation of the inverse of the Hessian operator
+$\nabla \nabla J(m)$ needs to be provided for a given value of $m$.
+In the implementation we don't need to provide the entire operator but for a
+given gradient difference $g$ an approximation $h=Hg$ of
+$\nabla \nabla J(m))^{-1}g$ needs to be calculated.
+This is an approximative solution of the equation $\nabla \nabla J(m)) h=g$
+which in variational form is given as 
+\begin{equation}\label{EQU:MIN:2}
+<p, \nabla \nabla J(m)\; h > = <p, g>
+\end{equation}
+for all level set increments $p$.
+In the cases relevant here, it is a possible approach to make the approximation
+$\nabla \nabla J(m) \approx \nabla \nabla J^{reg}(m)$ which can easily be
+constructed and the resulting variational Equation~\ref{EQU:MIN:2} can easily
+be solved, see Chapter~\ref{Chp:ref:regularization}.
+
+L-BFGS is an iterative method which calculates a sequence of level set
+approximations $m_{k}$ which converges towards the unknown level set function
+minimizing the cost function.
+This iterative process is terminated if certain stopping criteria are fulfilled.
+A criterion commonly used is
+\begin{equation}\label{EQU:MIN:3a}
+\| m_k - m_{k-1} \| \le \|m_k\| \cdot {m\_tol} 
+\end{equation}
+in order to terminate the iteration after $m_k$ has been calculated.
+In this condition $\|.\|$ denotes a norm and $m\_tol$ defines a relative
+tolerance. A typical value for $m\_tol$ is $10^{-4}$. Alternatively one can
+check for changes in the cost function:
+\begin{equation}\label{EQU:MIN:3b}
+\mid J(m_k) - J(m_k) \mid \le \mid J(m_k) - J(m_0) \mid \cdot {J\_tol}  
+\end{equation}
+where ${J\_tol}$ is a given tolerance and $m_0$ is the initial guess of the solution.
+As this criterion depends on the initial guess it is not recommended.
+
+\section{Solver Classes}
+
+\begin{classdesc}{MinimizerLBFGS}{%
+\optional{J=\None}%
+\optional{, m_tol=1e-4}%
+\optional{, J_tol=\None}%
+\optional{, imax=300}}
+constructs an instance of the limited-memory Broyden-Fletcher-Goldfarb-Shanno \emph{L-BFGS} solver.
+\member{J} sets the cost function to be minimized, see Section~\ref{chapter:ref:Minimization: costfunction class}.
+If not present the cost function needs to be set using the \member{setCostFunction} method.
+\member{m_tol} and \member{J_tol} specify the tolerances for the stopping
+criteria (see description of \member{setTolerance} below).
+\member{imax} sets the maximum number of iteration steps (see
+\member{setMaxIterations} below).
+\end{classdesc}
+
+\begin{methoddesc}[MinimizerLBFGS]{setTolerance}{\optional{m_tol=1e-4}\optional{, J_tol=\None}}
+sets the tolerances for the stopping criteria. 
+\member{m_tol} sets the tolerance for the unknown level set Function~\ref{EQU:MIN:3a}.
+If \member{m_tol}=\None the tolerance on level set function is not checked.
+\member{J_tol} sets the tolerance for the cost function, see Equation~\ref{EQU:MIN:3b}.
+If \member{J_tol}=\None tolerance on the cost function is not checked (recommended).
+If \member{m_tol} and \member{J_tol} are both set criterion~\ref{EQU:MIN:3a}
+and criterion~\ref{EQU:MIN:3b} are both applied to terminate the iteration.
+\end{methoddesc}
+
+\begin{methoddesc}[MinimizerLBFGS]{setMaxIterations}{imax}
+sets the maximum number of iterations before the minimizer terminates. If 
+the maximum number of iteration is reached a \exception{MinimizerMaxIterReached}
+exception is thrown.
+\end{methoddesc}
+
+\begin{methoddesc}[MinimizerLBFGS]{getResult}{}
+returns the solution of the optimization problem.
+This method only returns something useful if the optimization process has
+completed.
+If the iteration failed the last available approximation of the solution is
+returned.
+\end{methoddesc}
+
+\begin{methoddesc}[MinimizerLBFGS]{getOptions}{}
+returns the solver options as a dictionary which contains all available option
+names and their current value.
+\end{methoddesc}
+
+\begin{methoddesc}[MinimizerLBFGS]{setOptions}{%
+\optional{truncation=30}%
+\optional{, restart=60}%
+\optional{, initialHessian=1}}
+sets solver options. \member{truncation} defines number of gradients to keep in memory.
+\member{restart} defines the number of iteration steps after which the iteration is restarted.
+\member{initialHessian} can be used to provide an estimate for the scale of 
+the inverse Hessian. If the cost function provides such an estimate this
+option is ignored.
+\end{methoddesc}
+
+\begin{methoddesc}[MinimizerLBFGS]{run}{m0}
+runs the solution algorithm and returns an approximation of the solution.
+\member{m0} is the initial guess to use.
+This method may throw an exception if the maximum number of iterations is
+reached or a solver breakdown occurs.
+\end{methoddesc}
+
+\begin{methoddesc}[MinimizerLBFGS]{logSummary}{}
+writes some statistical information to the logger.
+\end{methoddesc}
+
+\section{\member{CostFunction} Class Template}\label{chapter:ref:Minimization: costfunction class}
+
+\begin{classdesc}{CostFunction}{}
+template of cost function $J$
+\end{classdesc}
+
+\begin{methoddesc}[CostFunction]{getDualProduct}{m, g}
+returns the dual product $<m,g>$ of \member{m} and \member{g}.
+\end{methoddesc}
+%
+\begin{methoddesc}[CostFunction]{getValue}{m, *args}
+returns the value $J(m)$ using pre-calculated values \member{args} for $m$.
+\end{methoddesc}
+%
+\begin{methoddesc}[CostFunction]{getGradient}{m, *args}
+returns the gradient $\nabla J$ of $J$ at $m$ using pre-calculated values \member{args} for $m$.
+\end{methoddesc}
+%
+\begin{methoddesc}[CostFunction]{getArguments}{m}
+returns pre-calculated values that are shared in the calculation of $J(m)$ and
+$\nabla J(m)$.
+\end{methoddesc}
+%
+\begin{methoddesc}[CostFunction]{getNorm}{m}
+returns the norm $\|m\|$ of \member{m}.
+\end{methoddesc}
+%
+\begin{methoddesc}[CostFunction]{updateHessian}{}
+notifies the class that the Hessian operator needs to be updated in case the
+class provides an approximation for the inverse of the Hessian.
+\end{methoddesc}
+%
+\begin{methoddesc}[CostFunction]{getInverseHessianApproximation}{m, g, *args}
+returns an approximative evaluation $p$ of the inverse of the Hessian operator
+of the cost function for a given gradient $g$ at location $m$.
+\end{methoddesc}
+
+
+% 
+%\section{The Nonlinear Conjugate Gradient method}\label{sec:NLCG}
+%The steps for NLCG are
+%\begin{enumerate}
+%    \item Given an initial guess $\mat{x}_0$, compute the steepest descent
+%        direction using the gradient: $\mat{p}_0=-\nabla f(\mat{x}_0)$
+%    \item Perform an inexact \emph{line search} (see Section~\ref{sec:LineSearch}) to obtain the step
+%        length $\alpha_i$ which loosely minimizes $f(\mat{x}_i+\alpha_i \mat{d}_i)$
+%    \item Update the position: $\mat{x}_{i+1}=\mat{x}_i+\alpha_i \mat{d}_i$
+%    \item Update the conjugate direction: $\mat{d}_{i+1}=-\nabla f(\mat{x}_{i+1})+\beta_{i+1} \mat{d}_i$\label{CGupdate}
+%\end{enumerate}
+
+%\flushleft There are many choices for the CG update parameter $\beta_{i+1}$ in step
+%\ref{CGupdate} above, see \cite{Hager2006} for a discussion. An efficient
+%choice, proposed by Polak and Ribi\`{e}re, is:
+%\begin{equation*}
+%    \beta_{i+1}=\text{max}\left\{\frac{\nabla f^T(\mat{x}_{i+1})(\nabla f(\mat{x}_{i+1})-\nabla f(\mat{x}_i))}{\| \nabla f(\mat{x}_i)\|}, 0\right\}
+%\end{equation*}
+
+\section{The L-BFGS Algorithm}
+
+%\section{Limited-Memory BFGS Method}\label{sec:LBFGS}
+The L-BFGS algorithm looks as follows (see also~\cite{Nocedal1980})\index{L-BFGS}:
+\begin{algorithm}
+    \mbox{L-BFGS}
+    \begin{program}
+        \BEGIN
+        \text{Input: initial guess $x_0$ and integer $m$};
+        \text{Allocate $m$ vector pairs \{$s_i$, $g_i$\}};
+        k \leftarrow 0;
+        H_0 \leftarrow I;
+        \WHILE \NOT\text{converged} \DO
+        p_k \leftarrow |twoLoop|(\{s, g\});
+        \alpha_k \leftarrow |lineSearch|(m_k, p_k); \rcomment{See Section~\ref{sec:LineSearch}}
+        m_{k+1} \leftarrow m_k+\alpha_k p_k;
+        \IF k> truncation
+        \THEN
+            |Discard the vector pair | \{s_{k-truncation}, g_{k-truncation}\} | from storage|;
+        \FI
+        s_k \leftarrow m_{k+1}-m_k;
+        g_k \leftarrow \nabla J_{k+1}-\nabla J_k;
+        k \leftarrow k+1;
+        \OD
+        \WHERE
+        \FUNCT |twoLoop|(\{s, g\}) \BODY
+            \EXP q \leftarrow \nabla J_k;
+            \FOR i=k-1, k-2, \ldots, k-truncation \DO
+            \rho_i \leftarrow \frac{1}{<s_i, g_i>};
+            \alpha_i \leftarrow \rho_i <s_i, q>;
+            q \leftarrow q-\alpha_i\cdot  g_i;
+            \OD
+            r \leftarrow H q;
+            \FOR i = k-truncation, k-truncation+1, \ldots, k-1 \DO
+            \beta \leftarrow \rho_i \cdot <r,g_i>;
+            r \leftarrow r + s_i \cdot (\alpha_i - \beta)
+            \OD
+            r \ENDEXP \ENDFUNCT
+        \END
+    \end{program}
+\end{algorithm}
+
+\subsection{Line Search}\label{sec:LineSearch}
+The line search procedure minimizes the function $\phi(\alpha)$ for a given
+level set function $m$ and search direction $p$, see \cite{Nocedal2006},
+\cite{MoreThuente1992} with
+\begin{equation}\label{EQU:MIN:22}
+\phi(\alpha) = J(m+ \alpha \cdot  p)
+\end{equation}
+Notice that 
+\begin{equation}\label{EQU:MIN:23}
+\phi'(\alpha) = < p , \nabla J(m+\alpha \cdot p)> \; .
+\end{equation}
+
+\begin{algorithm}
+    \mbox{Line Search that satisfies strong Wolfe conditions}
+    \begin{program}
+        \BEGIN
+        \text{Input: $\alpha_{max}>0, 0<c_1<c_2<1$};
+        i \leftarrow 1;
+        \WHILE 1 \DO
+        \IF \phi(\alpha_i) > \phi(0)+c_1 \alpha_i \phi'(0) \OR
+            (\phi(\alpha_i) \ge \phi(\alpha_{i-1}) \AND i>1)
+        \THEN
+            \alpha_* \leftarrow |zoom|(\alpha_{i-1}, \alpha_i);
+            |break|;
+        \FI
+        \IF \|\phi'(\alpha_i)\| \le -c_2\phi'(0)
+        \THEN
+            \alpha_* \leftarrow \alpha_i;
+            |break|;
+        \FI
+        \IF \phi'(\alpha_i) \ge 0
+        \THEN
+            \alpha_* \leftarrow |zoom|(\alpha_i, \alpha_{i-1});
+            |break|;
+        \FI
+        \alpha_{i+1} = 2\alpha_i;
+        i \leftarrow i+1;
+        \OD
+        \WHERE
+        \FUNCT |zoom|(\alpha_{lo}, \alpha_{hi}) \BODY
+            \WHILE 1 \DO
+                \EXP \alpha_j \leftarrow \alpha_{lo}+\frac{\alpha_{hi}-\alpha_{lo}}{2};
+                \IF \phi(\alpha_j) > \phi(0)+c_1 \alpha_j\phi'(0) \OR %
+                    \phi(\alpha_j) \ge \phi(\alpha_{lo})
+                \THEN
+                    \alpha_{hi} \leftarrow \alpha_j;
+                \ELSE
+                    \IF \|\phi'(\alpha_j)\| \le -c_2\phi'(0)
+                    \THEN
+                        \alpha_* \leftarrow \alpha_j;
+                        |break|;
+                    \FI
+                    \IF \phi'(\alpha_j)(\alpha_{hi}-\alpha_{lo}) \ge 0
+                    \THEN
+                        \alpha_{hi} \leftarrow \alpha_{lo};
+                    \FI
+                    \alpha_{lo}=\alpha_j;
+                \FI
+            \OD
+            \ENDEXP \ENDFUNCT
+        \END
+    \end{program}
+\end{algorithm}
+

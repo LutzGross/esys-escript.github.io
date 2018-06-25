@@ -1,0 +1,455 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright (c) 2003-2018 by The University of Queensland
+% http://www.uq.edu.au
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Apache License, version 2.0
+% http://www.apache.org/licenses/LICENSE-2.0
+%
+% Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+% Development 2012-2013 by School of Earth Sciences
+% Development from 2014 by Centre for Geoscience Computing (GeoComp)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{The Stokes Problem}
+\label{STOKES PROBLEM} 
+In this section we discuss how to solve the Stokes problem.
+We want to calculate the velocity\index{velocity} field $v$ and pressure $p$
+of an incompressible fluid\index{incompressible fluid}.
+They are given as the solution of the Stokes problem\index{Stokes problem}
+\begin{equation}\label{Stokes 1}
+-\left(\eta(v_{i,j}+ v_{j,i})\right)_{,j}+p_{,i}=f_{i}-\sigma_{ij,j}
+\end{equation}
+where  $f_{i}$ defines an internal force\index{force, internal} and
+$\sigma_{ij}$ is an initial stress\index{stress, initial}.
+The viscosity $\eta$ may weakly depend on pressure and velocity.
+If relevant we will use the notation $\eta(v,p)$ to express this dependency.
+
+We assume an incompressible medium:
+\begin{equation}\label{Stokes 2}
+-v_{i,i}=0
+\end{equation}
+Natural boundary conditions are taken in the form 
+\begin{equation}\label{Stokes Boundary}
+\left(\eta(v_{i,j}+ v_{j,i})\right)n_{j}-n_{i}p=s_{i} - \alpha \cdot n_{i} n_{j} v_{j}+\sigma_{ij} n_{j}
+\end{equation}
+which can be overwritten by constraints of the form 
+\begin{equation}\label{Stokes Boundary0}
+v_{i}(x)=v^D_{i}(x)
+\end{equation}
+at some locations $x$ at the boundary of the domain.
+$s_{i}$ defines a normal stress and $\alpha\ge 0$ the spring constant for
+restoring normal force.
+The index $i$ may depend on the location $x$ on the boundary.
+$v^D$ is a given function on the domain.
+
+\subsection{Solution Method \label{STOKES SOLVE}}
+If we assume that $\eta$ is independent from the velocity and pressure,
+equations~\ref{Stokes 1} and~\ref{Stokes 2} can be written in the block form
+\begin{equation}
+\left[ \begin{array}{cc}
+A     & B^{*} \\
+B & 0 \\
+\end{array} \right]
+\left[ \begin{array}{c}
+v \\
+p \\
+\end{array} \right]
+=\left[ \begin{array}{c}
+G \\
+0 \\
+\end{array} \right]
+\label{STOKES}
+\end{equation}
+where $A$ is a coercive, self-adjoint linear operator in a suitable Hilbert
+space, $B$ is the $(-1) \cdot$ divergence operator and $B^{*}$ is the adjoint
+operator (=gradient operator).
+For more details on the mathematics see references \cite{AAMIRBERKYAN2008,MBENZI2005}.
+
+If $v_{0}$ and $p_{0}$ are given initial guesses for velocity and pressure we
+calculate a correction $dv$ for the velocity by solving the first equation of
+\eqn{STOKES}
+ \begin{equation}\label{STOKES ITER STEP 1}
+ A dv_{1} = G - A v_{0} - B^{*} p_{0}
+\end{equation}
+We then insert the new approximation $v_{1}=v_{0}+dv_{1}$ to calculate a
+correction $dp_{2}$ for the pressure and an additional correction $dv_{2}$ for
+the velocity by solving
+ \begin{equation}
+ \begin{array}{rcl}
+ B A^{-1} B^{*} dp_{2} & = & Bv_{1} \\
+ A dv_{2} & = & B^{*} dp_{2} 
+\end{array}
+ \label{STOKES ITER STEP 2}
+ \end{equation}
+The new velocity and pressure are then given by $v_{2}=v_{1}-dv_{2}$ and
+$p_{2}=p_{0}+dp_{2}$ which will fulfill the block system~\ref{STOKES}. 
+This solution strategy is called the Uzawa scheme\index{Uzawa scheme}.
+
+There is a problem with this scheme: in practice we will use an iterative
+scheme to solve any problem for operator $A$.
+So we will be unable to calculate the operator $ B A^{-1} B^{*}$ required for
+$dp_{2}$ explicitly. In fact, we need to use another iterative scheme to solve
+the first equation in~\ref{STOKES ITER STEP 2} where in each iteration step
+an iterative solver for $A$ is applied. Another issue is the fact that the
+viscosity $\eta$ may depend on velocity or pressure and so we need to iterate
+over the three equations~\ref{STOKES ITER STEP 1} and~\ref{STOKES ITER STEP 2}. 
+
+In the following we will use the two norms
+\begin{equation}
+\|v\|_{1}^2 = \int_{\Omega} v_{j,k}v_{j,k} \; dx 
+\mbox{ and }
+\|p\|_{0}^2= \int_{\Omega} p^2 \; dx.
+\label{STOKES STOP}
+\end{equation}
+for velocity $v$ and pressure $p$.
+The iteration is terminated if the stopping criterion
+ \begin{equation} \label{STOKES STOPPING CRITERIA}
+\max(\|Bv_{1}\|_{0},\|v_{2}-v_{0}\|_{1}) \le \tau \cdot \|v_{2}\|_{1} 
+ \end{equation}
+for a given tolerance $0<\tau<1$ is met.
+Notice that because of the first equation of~\ref{STOKES ITER STEP 2} we have
+that $\|Bv_{1}\|_{0}$ equals the norm of $B A^{-1} B^{*} dp_{2}$ and
+consequently provides a norm for the pressure correction.
+
+We want to optimize the tolerance choice for solving~\ref{STOKES ITER STEP 1}
+and~\ref{STOKES ITER STEP 2}. To do this we write the iteration scheme as a
+fixed point problem. Here we consider the errors produced by the iterative
+solvers being used.
+From \eqn{STOKES ITER STEP 1} we have
+\begin{equation} \label{STOKES total V1}
+v_{1} = e_{1} + v_{0} + A^{-1} ( G - Av_{0} - B^{*} p_{0} ) 
+\end{equation}
+where $e_{1}$ is the error when solving~\ref{STOKES ITER STEP 1}.
+We will use a sparse matrix solver so we have not full control on the norm
+$\|.\|_{s}$ used in the stopping criterion for this equation.
+In fact we will have a stopping criterion of the form
+\begin{equation} 
+\| A e_{1} \|_{s}  = \| G - A v_{1} - B^{*} p_{0} \|_{s} \le \tau_{1} \| G - A v_{0} - B^{*} p_{0} \|_{s} 
+\end{equation}
+where $\tau_{1}$ is the tolerance which we need to choose.
+This translates into the condition
+\begin{equation} 
+\| e_{1} \|_{1} \le K \tau_{1} \| dv_{1} - e_{1} \|_{1} 
+\end{equation}
+The constant $K$ represents some uncertainty combining a variety of unknown
+factors such as the norm being used and the condition number of the stiffness matrix.
+From the first equation of~\ref{STOKES ITER STEP 2} we have
+\begin{equation}\label{STOKES total P2}
+p_{2} =  p_{0} + (B A^{-1} B^{*})^{-1} (e_{2} + Bv_{1} )
+\end{equation}
+where $e_{2}$ represents the error when solving~\ref{STOKES ITER STEP 2}.
+We use an iterative preconditioned conjugate gradient method
+(PCG)\index{linear solver!PCG}\index{PCG} with iteration operator
+$B A^{-1} B^{*}$ using the $\|.\|_{0}$ norm.
+As suitable preconditioner\index{preconditioner} for the iteration operator we
+use $\frac{1}{\eta}$ \cite{ELMAN}, i.e. the evaluation of the preconditioner
+$P$ for a given pressure increment $q$ is the solution of
+\begin{equation} \label{STOKES P PREC}
+\frac{1}{\eta} (Pq) = q \; . 
+\end{equation}
+Note that in each evaluation of the iteration operator $q=B A^{-1} B^{*} s$
+one needs to solve the problem
+\begin{equation} \label{STOKES P OPERATOR}
+A w = B^{*} s 
+\end{equation}
+with sufficient accuracy to return $q=Bw$. We assume that the desired
+tolerance is sufficiently small, for instance one can take $\tau_{2}^2$ where
+$\tau_{2}$ is the tolerance for~\ref{STOKES ITER STEP 2}.
+
+In an implementation we use the fact that the residual $r$ is given as
+\begin{equation} \label{STOKES RES }
+ r= B (v_{1} -  A^{-1} B^{*} dp) =  B (v_{1} - A^{-1} B^{*} dp) = B (v_{1}-dv_{2}) = B v_{2}
+\end{equation}
+In particular we have $e_{2} = B v_{2}$.
+So the residual $r$ is represented by the updated velocity $v_{2}=v_{1}-dv_{2}$.
+In practice, if one uses the velocity to represent the residual $r$ there is
+no need to recover $dv_{2}$ in~\ref{STOKES ITER STEP 2} after $dp_{2}$ has
+been calculated.
+In PCG the iteration is terminated if
+\begin{equation} \label{STOKES P OPERATOR ERROR}
+\| P^{\frac{1}{2}}B v_{2} \|_{0} \le \tau_{2} \| P^{\frac{1}{2}}B v_{1} \|_{0}
+\end{equation}
+where $\tau_{2}$ is the given tolerance. This translates into
+\begin{equation} \label{STOKES P OPERATOR ERROR 2}
+\|e_{2}\|_{0} = \| B v_{2} \|_{0} \le M \tau_{2} \| B v_{1} \|_{0}
+\end{equation}
+where $M$ is taking care of the fact that $P^{\frac{1}{2}}$ is dropped.
+
+As we assume that there is no significant error from solving with the operator
+$A$ we have 
+\begin{equation} \label{STOKES total V2}
+v_{2} =  v_{1} - dv_{2} 
+= v_{1}  - A^{-1} B^{*}dp 
+\end{equation}
+Combining the equations~\ref{STOKES total V1},~\ref{STOKES total P2} and~\ref{STOKES total V2}
+and setting the errors to zero we can write the solution process as a fix
+point problem
+\begin{equation} 
+v = \Phi(v,p) \mbox{ and } p = \Psi(u,p) 
+\end{equation}
+with suitable functions $\Phi(v,p)$ and $ \Psi(v,p)$ representing the
+iteration operator without errors. In fact, for a linear problem, $\Phi$ and
+$\Psi$ are constant. With this notation we can write the update step in the
+form $p_{2}= \delta p + \Psi(v_{0},p_{0})$ and $v_{2}= \delta v + \Phi(v_{0},p_{0})$
+where the total error $\delta p$ and $\delta v$ are given as
+\begin{equation} 
+ \begin{array}{rcl}
+\delta p & = &  (B A^{-1} B^{*})^{-1} ( e_{2} + B e_{1} ) \\
+\delta v & = &  e_{1} -  A^{-1} B^{*}\delta p  \;.
+\end{array}\label{STOKES ERRORS}
+\end{equation}
+Notice that $B\delta v = - e_{2}=-Bv_{2}$.
+Our task is now to choose the tolerances $\tau_{1}$ and $\tau_{2}$ such that
+the global errors $\delta p$ and $\delta v$ do not stop the convergence of the
+iteration process.
+
+To measure convergence we use
+\begin{equation} 
+\epsilon = \max(\|v_{2}-v\|_{1}, \|B A^{-1} B^{*} (p_{2}-p)\|_{0})
+\end{equation}
+In practice using the fact that $B A^{-1} B^{*} (p_{2}-p_{0}) = B v_{1}$
+and assuming that $v_{2}$ gives a better approximation to the true $v$ than
+$v_{0}$ we will use the estimate
+\begin{equation} 
+\epsilon = \max(\|v_{2}-v_{0}\|_{1}, \|B v_{1}\|_{0})
+\end{equation}
+to estimate the progress of the iteration step after the step is completed.
+Note that the estimate of $\epsilon$ is used in the stopping
+criterion~\ref{STOKES STOPPING CRITERIA}.
+If $\chi^{-}$ is the convergence rate assuming exact calculations, i.e.
+$e_{1}=0$ and $e_{2}=0$, we are expecting to maintain $\epsilon \le \chi^{-} \cdot \epsilon^{-}$.
+For the pressure increment we get:
+\begin{equation} \label{STOKES EST 1}
+\begin{array}{rcl}
+\|B A^{-1} B^{*} (p_{2}-p)\|_{0}
+ & \le & \|B A^{-1} B^{*} (p_{2}-\delta p-p)\|_{0} +
+\|B A^{-1} B^{*} \delta p\|_{0} \\
+ & = & \chi^{-} \cdot \epsilon^{-} + \|e_{2} + B e_{1}\|_{0}  \\
+& \approx & \chi^{-} \cdot \epsilon^{-} + \|e_{2}\|_{0} \\
+& \le & \chi^{-} \cdot \epsilon^{-} + M \tau_{2} \|B v_{1}\|_{0} \\  
+\end{array}
+\end{equation}
+So we choose the value for $\tau_{2}$ from
+\begin{equation} \label{STOKES TOL2}
+ M \tau_{2} \|B v_{1}\|_{0}  \le (\chi^{-})^2 \epsilon^{-}
+\end{equation}
+in order to make the perturbation for the termination of the pressure
+iteration a second order effect. We use a similar argument for the velocity:
+\begin{equation}\label{STOKES EST 2}
+\begin{array}{rcl}
+\|v_{2}-v\|_{1} & \le & \|v_{2}-\delta v-v\|_{1} + \| \delta v\|_{1} \\
+& \le &  \chi^{-} \cdot \epsilon^{-}  + \| e_{1} -  A^{-1} B^{*}\delta p \|_{1} \\
+& \approx &  \chi^{-} \cdot \epsilon^{-}  + \| e_{1} \|_{1} \\
+& \le &  \chi^{-} \cdot \epsilon^{-}  +  K \tau_{1} \| dv_{1} - e_{1} \|_{1}
+\\
+& \le &  ( 1  + K \tau_{1}) \chi^{-} \cdot \epsilon^{-}
+\end{array}
+\end{equation}
+So we choose the value for $\tau_{1}$ from
+\begin{equation} \label{STOKES TOL1}
+K \tau_{1} \le \chi^{-}
+\end{equation}
+Assuming we have estimates for $M$ and $K$\footnote{if no estimates are
+available, we use the value $1$} we can use~\ref{STOKES TOL1} and
+\ref{STOKES TOL2} to get appropriate values for the tolerances.
+After the step has been completed we can calculate a new convergence rate
+$\chi =\frac{\epsilon}{\epsilon^{-}}$.
+For partial reasons we restrict $\chi$ to be less or equal a given maximum
+value $\chi_{max}\le 1$.
+If we see $\chi \le \chi^{-} (1+\chi^{-})$ our choices for the tolerances were
+suitable. Otherwise, we need to adjust the values for $K$ and $M$.
+From the estimates~\ref{STOKES EST 1} and~\ref{STOKES EST 2} we establish
+\begin{equation}\label{STOKES EST 3}
+\chi \le ( 1 + \max(M \frac{\tau_{2} \|B v_{1}\|_{0}}{\chi^{-} \epsilon^{-}},K \tau_{1}  ) ) \cdot \chi^{-} 
+\end{equation}
+If we assume that this inequality would be an equation if we would have chosen
+the right values $M^{+}$ and $K^{+}$ then we get
+\begin{equation}\label{STOKES EST 3b}
+\chi =  ( 1 + \max(M^{+} \frac{\chi^{-}}{M},K^{+} \frac{\chi^{-}}{K}) ) \cdot \chi^{-} 
+\end{equation}
+From this equation we see if our choice for $K$ was not good enough.
+In this case we can calculate a new value
+ \begin{equation}
+K^{+} =  \frac{\chi-\chi^{-}}{(\chi^{-})^2} K
+\end{equation}
+In practice we will use
+ \begin{equation}
+K^{+}  = \max(\frac{\chi-\chi^{-}}{(\chi^{-})^2} K,\frac{1}{2}K,1)
+\end{equation}
+where the second term is used to reduce a potential overestimate of $K$.
+The same identity is used for to update $M$. The updated $M^{+}$ and $K^{+}$
+are then use in the next iteration step to control the tolerances.
+
+In some cases one can observe that there is a significant change in the
+velocity but the new velocity $v_{1}$ has still a small divergence, i.e.
+we have $\|Bv_{1}\|_{0} \ll \|v_{1}-v_{0}\|_{1}$.
+In this case we will get a small pressure increment and consequently only very
+small changes to the velocity as a result of the second update step which
+therefore can be skipped and we can directly repeat the first update step
+until the increment in velocity becomes significant relative to its divergence.
+In practice we will ignore the second half of the iteration step as long as
+ \begin{equation}\label{STOKES LARGE BV1}
+\|Bv_{1}\|_{0} \le \theta \cdot \|v_{1}-v_{0}\| 
+\end{equation}
+where $0<\theta<1$ is a given factor. In this case we will also check the
+stopping criterion with $v_{1}\rightarrow v_{2}$ but we will not correct $M$
+in this case.
+
+Starting from an initial guess $v_{0}$ and $p_{0}$ for velocity and pressure
+the solution procedure is implemented as follows:
+\begin{enumerate}
+ \item calculate viscosity $\eta(v_{0},p)_{0}$ and assemble operator $A$ from $\eta$
+ \item calculate the tolerance $\tau_{1}$ from \eqn{STOKES TOL1}
+ \item solve \eqn{STOKES ITER STEP 1} for $dv_{1}$ with tolerance $\tau_{1}$
+ \item update $v_{1}= v_{0}+ dv_{1}$
+ \item if $Bv_{1}$ is large (see~\ref{STOKES LARGE BV1}):
+ \begin{enumerate}
+   \item calculate the tolerance $\tau_{2}$ from~\ref{STOKES TOL2}
+   \item solve~\ref{STOKES ITER STEP 2} for $dp_{2}$ and $v_{2}$ with tolerance $\tau_{2}$
+   \item update $p_{2}\leftarrow p_{0}+ dp_{2}$
+ \end{enumerate}
+ \item else:
+  \begin{itemize}
+    \item update $p_{2}\leftarrow p$ and $v_{2}\leftarrow v_{1}$
+  \end{itemize}
+ \item calculate convergence measure $\epsilon$ and convergence rate $\chi$
+ \item if stopping criterion~\ref{STOKES STOPPING CRITERIA} holds:
+ \begin{itemize}
+   \item return $v_{2}$ and $p_{2}$
+ \end{itemize}
+ \item else:
+ \begin{enumerate}
+   \item update $M$ and $K$
+   \item goto step 1 with $v_{0}\leftarrow v_{2}$ and $p_{0}\leftarrow p_{2}$.
+ \end{enumerate}
+\end{enumerate}
+
+\subsection{Functions}
+
+\begin{classdesc}{StokesProblemCartesian}{domain}
+opens the Stokes problem\index{Stokes problem} on the \Domain domain.
+The domain needs to support LBB compliant elements for the Stokes problem, see~\cite{LBB} for details\index{LBB condition}.
+For instance one can use second order polynomials for velocity and first order
+polynomials for the pressure on the same element.
+Alternatively, one can use macro elements\index{macro elements} using linear
+polynomials for both pressure and velocity with a subdivided element for the
+velocity. Typically, the macro element is more cost effective.
+The fact that pressure and velocity are represented in different ways is
+expressed by
+\begin{python}
+  velocity=Vector(0.0, Solution(mesh))
+  pressure=Scalar(0.0, ReducedSolution(mesh))
+\end{python}
+\end{classdesc}
+
+\begin{methoddesc}[StokesProblemCartesian]{initialize}{\optional{f=Data(),
+    \optional{fixed_u_mask=Data(), \optional{eta=1,%
+    \optional{surface_stress=Data(), \optional{stress=Data()},%
+    \optional{restoration_factor=0}}}}}}
+assigns values to the model parameters. In any call all values must be set.
+\var{f} defines the external force $f$, \var{eta} the viscosity $\eta$,
+\var{surface_stress} the surface stress $s$ and \var{stress} the initial stress $\sigma$.
+The locations and components where the velocity is fixed are set by the values
+of \var{fixed_u_mask}.
+\var{restoration_factor} defines the restoring force factor $\alpha$.
+The method will try to cast the given values to appropriate \Data class objects.
+\end{methoddesc}
+
+\begin{methoddesc}[StokesProblemCartesian]{solve}{v,p
+\optional{, max_iter=100 \optional{, verbose=False \optional{, usePCG=True }}}}
+solves the problem and returns approximations for velocity and pressure. 
+The arguments \var{v} and \var{p} define initial guesses.
+\var{v} must have function space \var{Solution(domain)} and \var{p} must have
+function space \var{ReducedSolution(domain)}.
+The values of \var{v} marked by \var{fixed_u_mask} remain unchanged.
+If \var{usePCG} is set to \True then the preconditioned conjugate gradient
+method (PCG)\index{preconditioned conjugate gradient method!PCG} scheme is
+used. Otherwise the problem is solved with the generalized minimal residual
+method (GMRES)\index{generalized minimal residual method!GMRES}.
+In most cases the PCG scheme is more efficient.
+\var{max_iter} defines the maximum number of iteration steps.
+If \var{verbose} is set to \True information on the progress of of the solver
+is printed.
+\end{methoddesc}
+
+\begin{methoddesc}[StokesProblemCartesian]{setTolerance}{\optional{tolerance=1.e-4}}
+sets the tolerance in an appropriate norm relative to the right hand side.
+The tolerance must be non-negative and less than 1.
+\end{methoddesc}
+
+\begin{methoddesc}[StokesProblemCartesian]{getTolerance}{}
+returns the current relative tolerance.
+\end{methoddesc}
+
+\begin{methoddesc}[StokesProblemCartesian]{setAbsoluteTolerance}{\optional{tolerance=0.}}
+sets the absolute tolerance for the error in the relevant norm.
+The tolerance must be non-negative.
+Typically the absolute tolerance is set to 0.
+\end{methoddesc}
+
+\begin{methoddesc}[StokesProblemCartesian]{getAbsoluteTolerance}{}
+returns the current absolute tolerance.
+\end{methoddesc}
+
+\begin{methoddesc}[StokesProblemCartesian]{getSolverOptionsVelocity}{}
+returns the solver options used to solve \eqn{STOKES ITER STEP 1} and \eqn{STOKES P OPERATOR}) for velocity.
+\end{methoddesc}
+
+\begin{methoddesc}[StokesProblemCartesian]{getSolverOptionsPressure}{}
+returns the solver options used to solve the preconditioner \eqn{STOKES P PREC} for pressure.
+\end{methoddesc}
+
+\begin{methoddesc}[StokesProblemCartesian]{getSolverOptionsDiv}{}
+sets the solver options for solving the equation to project the divergence of
+the velocity onto the function space of pressure.
+\end{methoddesc}
+
+\begin{methoddesc}[StokesProblemCartesian]{setStokesEquation}{\optional{f=None,
+    \optional{fixed_u_mask=None, \optional{eta=None,%
+    \optional{surface_stress=None, \optional{stress=None},%
+    \optional{restoration_factor=None}}}}}}
+assigns new values to the model parameters, see method \function{initialize} for description of the 
+parameter list. In contrast to \function{initialize} only values given in the argument list are set. 
+Typically this method is called to update parameters such as viscosity $\eta$ within a time integration scheme
+after the problem has been set up by an initial call of method \function{initialize}.
+\end{methoddesc}
+
+\begin{methoddesc}[StokesProblemCartesian]{updateStokesEquation}{v, p}
+this method is called by the solver to allow for updating the model parameter during the iteration process for 
+incompressibility. In order to implement a non-linear dependence of model parameters such as viscosity $\eta$
+from the current velocity \var{v} or pressure field \var{p} this function can be overwritten in the following way:
+\begin{python}
+    class MyStokesProblem(StokesProblemCartesian):
+       def updateStokesEquation(self, v, p):
+           my_eta=<eta derived from v and p>
+           self.setStokesEquation(eta=my_eta)
+\end{python}
+Note that \function{setStokesEquation} to update the model. \warning{It is not guaranteed that the iteration converges if model parameters are altered.}
+\end{methoddesc}
+
+\subsection{Example: Lid-driven Cavity}
+The following script \file{lid_driven_cavity.py}\index{scripts!\file{lid_driven_cavity.py}}
+which is available in the \ExampleDirectory illustrates the usage of the
+\class{StokesProblemCartesian} class to solve the lid-driven cavity problem:
+\begin{python}
+  from esys.escript import *
+  from esys.finley import Rectangle
+  from esys.weipa import saveVTK
+  from esys.escript.models import StokesProblemCartesian
+  NE=25
+  dom = Rectangle(NE,NE,order=2)
+  x = dom.getX()
+  sc=StokesProblemCartesian(dom)
+  mask= (whereZero(x[0])*[1.,0]+whereZero(x[0]-1))*[1.,0] + \
+        (whereZero(x[1])*[0.,1.]+whereZero(x[1]-1))*[1.,1]
+  sc.initialize(eta=.1, fixed_u_mask=mask)
+  v=Vector(0., Solution(dom))
+  v[0]+=whereZero(x[1]-1.)
+  p=Scalar(0.,ReducedSolution(dom))
+  v,p=sc.solve(v, p, verbose=True)
+  saveVTK("u.vtu", velocity=v, pressure=p)
+\end{python}
+
