@@ -2011,3 +2011,132 @@ returns the maximum value of the integer \var{a} across all processes within
 \env{MPI_COMM_WORLD}.
 \end{funcdesc}
 
+\section{Lazy Evaluation of Data}
+\label{sec:lazy}
+Constant and Tagged representations of Data are relatively small but Expanded\footnote{Separate values stored for each point of the FunctionSpace.} are larger and 
+will not entirely fit in CPU cache.
+
+Escript's lazy evaluation features record operations performed on Data objects but do not actually carry them out until the Data is ``resolved''.
+
+Consider the following code:
+\begin{python}
+from esys.escript import *
+from esys.dudley import Rectangle
+x=Rectangle(3,3)
+x=Rectangle(3,3).getX()
+c=Data((1.5, 1), x.getFunctionSpace())
+t=Data(((1,1),(0,1)), x.getFunctionSpace())
+t.tag()
+\end{python}
+
+The variables \var{c}, \var{t}, \var{x} are stored as \texttt{constant}, \texttt{tagged} and \texttt{expanded} Data respectively.
+Printing those variables will show the values stored (or if we were to use a larger Rectangle, a summary).
+
+\begin{python}
+v = matrix_mult(t,x) + c
+print(v.isExpanded())
+print(v)
+\end{python}
+
+Will output \texttt{True} followed by all of the values for \var{v}.
+Now we'll introduce lazy evaluation:
+
+\begin{python}
+xx = x.delay()
+print(xx.isExpanded(), xx.isLazy())
+print(x.isExpanded(), x.isLazy())
+print(xx)
+\end{python}
+
+The first print will show that \var{xx} is not considered to be ``expanded'', while the second print shows that \var{x} is unaffected.
+The last print will produce something like:
+\begin{python}
+Lazy Data: [depth=0] E@0x55ed512ad760
+\end{python}
+The \texttt{E} before the \verb|@| shows that this lazy Data is wrapping ``expanded'' Data.
+Calling \texttt{.delay()} on constant or tagged Data results in \verb|C@...| and \verb|T@...| respectively.
+
+If an input to an operation is lazy, then the result will be lazy as well\footnote{Matrix inverse is an exception to this.}:
+\begin{python}
+res = matrix_mult(t,-xx) + c
+print(res)
+\end{python}
+Will produce:
+\begin{python}
+Lazy Data: [depth=3] (prod(T@0x..., neg(E@...)) + C@0x...)
+\end{python}
+Depth indicates the largest number of operators from the top of the expression to the bottom.
+
+To actually find the value of this lazy Data object, we need to resolve it:
+\begin{python}
+res.resolve()
+\end{python}
+Note that \texttt{resolve()} doesn't return a new object, but transforms the object it is called on.
+Printing, \var{res} now will show the values at each point.
+
+\subsection{Lazyness and non-expanded Data}
+While it is possible to call delay on constant or tagged Data, escript will not build expressions consisting solely of such Data.
+\begin{python}
+cx=c.delay()
+res=cx+cx
+print(res)
+\end{python}
+would output:
+\begin{python}
+Lazy Data: [depth=0] C@0x55ed512cc7c0
+# Not
+Lazy Data: [depth=1] (C@0x... + C@0x...)
+\end{python}
+
+
+\subsection{When to resolve}
+
+You are never \emph{required} to manually resolve lazy Data in \texttt{escript}.
+Any operations which need the actual values of an expression will either
+\begin{itemize}
+ \item compute the values without resolving the whole Data object at once (solvers assembling FEM matrices)
+ \item resolve the data automatically (everthing else)
+\end{itemize}
+
+\noindent Escript will automatically resolve lazy Data:
+\begin{enumerate}
+ \item If a matrix inversion operation is applied to the Data.
+ \item If the expression tree becomes too deep\footnote{At time of writing, this threshold is somewhat arbitrarily set at \texttt{depth>9}, but this is configurable.}.
+\end{enumerate}
+Note, the second point is important when writing loops like this:
+\begin{python}
+# x is initial guess
+while err > tol:
+  construct PDE coefficients involving x
+  solve PDE
+  calculate err
+  update x
+\end{python}
+
+After a few iterations of the loop, \var{x} may be something like \texttt{x=F(F(F(F(originalX))))}.
+So it will probably be better to \texttt{resolve} \var{x} at the end of each loop iteration.
+Alternatively, if \var{x} is included in many expressions in the loop, it may be better to resolve it earlier.
+
+\subsection{Options for using lazy evaluation}
+
+There are two ways to enable lazy evaluation:
+\begin{enumerate}
+ \item Any escript script can make use of lazy evaluation by \texttt{delay()}-ing one of its expanded Data variables.
+Any expressions including that delayed variable (directly or indirectly) will be lazy until resolved.
+ \item Setting the \texttt{AUTOLAZY} parameter for \texttt{escript} to \texttt{1}.
+ In this case, most escript operation which would normally produce extended Data, will produce lazy Data instead.
+ In general, this option is not recommended for two reasons:
+ \begin{itemize}
+  \item AUTOLAZY uses the \texttt{setEscriptParamInt()} which is not guaranteed to have continued support.
+  \item Making everything lazy instead of just more complex objects is not likely to give significant efficiency improvements.
+ \end{itemize}
+\end{enumerate}
+
+\subsection{When to use lazy evaluation?}
+Exactly when using lazy evaluation will be more efficient is still an open question.
+When the objects being manipulated are large (eg 4-Tensors in Drucker-Prager), significant memory and runtime improvements can be achieved.
+See~\cite{lazyauspdc}.
+
+Our best advice is to experiment with it.
+
+
