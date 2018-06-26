@@ -29,6 +29,7 @@ sources = """
     LameAssembler3D.cpp
     MultiBrick.cpp
     MultiRectangle.cpp
+    pml.cpp
     Rectangle.cpp
     RipleyDomain.cpp
     WaveAssembler2D.cpp
@@ -46,6 +47,7 @@ headers = """
     LameAssembler3D.h
     MultiBrick.h
     MultiRectangle.h
+    pml.h
     Rectangle.h
     Ripley.h
     RipleyDomain.h
