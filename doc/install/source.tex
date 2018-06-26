@@ -73,15 +73,13 @@ If not, then consult the documentation for your MPI libraries (or the compiler d
 If you are using MacOSX, then see the next section, if not, then skip to Section~\ref{sec:build}.
 
 \section{MacOS}
-This release of \escript has only been tested on OSX 10.11 and 10.12.
+This release of \escript has only been tested on OSX 10.13.
 For this section we assume you are using either \texttt{homebrew} or \texttt{MacPorts} as a package 
 manager\footnote{Note that package managers will make changes to your computer based on programs configured by other people from 
 various places around the internet. It is important to satisfy yourself as to the security of those systems.}.
 You can of course install prerequisite software in other ways.
 For example, we have had \emph{some} success changing the default 
 compilers used by those systems. However this is more complicated and we do not provide a guide here.
-
-This release has been tested with MacPorts on OSX 10.11 and 10.12 and Homebrew on OSX10.12.
 
 \noindent Both of those systems require the XCode command line tools to be installed\footnote{As of OSX10.9, the 
 command \texttt{xcode-select --install} will allow you to download and install the commandline tools.}.
@@ -280,15 +278,14 @@ scons -j1 options_file=scons/templates/macports_10.10options.py
 \end{shellCode}
 
 
-\subsection{MacOS 10.10 and later (homebrew)}\label{sec:homebrewsrc}
+\subsection{MacOS 10.13 and later (homebrew)}\label{sec:homebrewsrc}
 
-The following will install the capabilities needed for the \texttt{homebrew_10.10_options.py} file.
-OSX 10.9 can use the same file.
+The following will install the capabilities needed for the \texttt{homebrew_10.13_options.py} file.
 
 \begin{shellCode}
 brew install scons
 brew install boost-python
-brew install homebrew/science/netcdf --with-cxx-compat
+brew install netcdf 
 \end{shellCode}
 
 There do not appear to be formulae for \texttt{sympy} or \texttt{pyproj} so if you wish to use those features, then
@@ -296,7 +293,7 @@ you will need to install them separately.
 
 
 \begin{shellCode}
-scons -j1 options_file=scons/templates/homebrew_10.10_options.py
+scons -j1 options_file=scons/templates/homebrew_10.13_options.py
 \end{shellCode}
 
 
