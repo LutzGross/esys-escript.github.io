@@ -402,7 +402,7 @@ escript::Domain_ptr _multirectangle(double _n0, double _n1, const object& l0,
     }
     if (numtags != numpts)
         throw RipleyException("Number of tags does not match number of points.");
-    return escript::Domain_ptr(new MultiRectangle(n0,n1, x0,y0, x1,y1, d0,d1,
+    return escript::Domain_ptr(new MultiRectangle(n0,n1, x0,y0, x1,y1, d0,d1, false, false, false, false, //AEAE
                                  points, tags, tagstonames, world, multiplier));
 }
 
