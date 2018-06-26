@@ -21,6 +21,8 @@ from distutils import sysconfig
 from dependencies import *
 from site_init import *
 
+print(sys.version)
+
 # Version number to check for in options file. Increment when new features are
 # added or existing options changed.
 REQUIRED_OPTS_VERSION=203
@@ -196,6 +198,7 @@ elif pos1 < mypos <= pos2:
         env['netcdf_libs']=['netcdf_c++', 'netcdf']
 else:   # netcdf4
     env['netcdf']=4
+    print "SADASDSAD"
     if env['netcdf_libs']=='DEFAULT':
         env['netcdf_libs']=['netcdf_c++4']
 
@@ -278,7 +281,11 @@ if cc_name == 'icpc':
     # #1875: offsetof applied to non-POD types is nonstandard (in boost)
     # removed -std=c99 because icpc doesn't like it and we aren't using c anymore
     cc_flags    = "-std=c++11 -fPIC -w2 -wd1875 -wd1478 -Wno-unknown-pragmas"
-    cc_optim    = "-O3 -ftz -fno-alias -inline-level=2 -ipo -xHost"
+    cc_optim    = "-Ofast -ftz -fno-alias -xCORE-AVX2"
+    #cc_optim    = "-Ofast -ftz -fno-alias -inline-level=2 -ipo -xCORE-AVX2"
+    #cc_optim    = "-O2 -ftz -fno-alias -inline-level=2"
+    #cc_optim    = "-O0 -ftz -fno-alias"
+    #cc_optim    = "-O3 -ftz -fno-alias -inline-level=2 -ipo -xHost"
     cc_debug    = "-g -O0 -DDOASSERT -DDOPROF -DBOUNDS_CHECK -DSLOWSHARECHECK"
     omp_flags   = "-qopenmp"
     omp_ldflags = "-qopenmp" # removing -openmp-report (which is deprecated) because the replacement outputs to a file
