@@ -1,0 +1,40 @@
+
+##############################################################################
+#
+# Copyright (c) 2009-2018 by The University of Queensland
+# http://www.uq.edu.au
+#
+# Primary Business: Queensland, Australia
+# Licensed under the Apache License, version 2.0
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+# Development 2012-2013 by School of Earth Sciences
+# Development from 2014 by Centre for Geoscience Computing (GeoComp)
+#
+##############################################################################
+
+import os
+Import('*')
+local_env = env.Clone(tools=['pdflatex'])
+
+tex_src = Glob('*.tex')+Glob('*.bib')+Glob('*.cls')
+fig_src = Glob('figures/*.png')+Glob('figures/*.pdf')
+if local_env['pdflatex']:
+    if local_env['verbose']:
+        interaction='-interaction=nonstopmode'
+    else:
+        interaction='-interaction=batchmode'
+
+    # Define command to include SVN revision
+    local_env.Append(PDFLATEXFLAGS=[interaction,'\\\\newcommand{\\\\RepVersion}{%s\\\\xspace}\\\\input{inversion.tex}'%(local_env['svn_revision'])])
+    cbpdf=local_env.PDF(target='inversion.pdf', source='inversion.tex')
+    Depends(cbpdf, fig_src+tex_src)
+
+    pdf_path=os.path.join(release_dir, 'inversion', 'inversion.pdf')
+    pdf_inst=local_env.InstallAs(target=pdf_path, source=cbpdf)
+    env.Alias('inversion_pdf', pdf_inst)
+else:
+    env.Alias('inversion_pdf', '', '@echo "Not building inversion cookbook: PDF output not supported!"')
+    env.AlwaysBuild('inversion_pdf')
+

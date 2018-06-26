@@ -1,0 +1,203 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright (c) 2003-2018 by The University of Queensland
+% http://www.uq.edu.au
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Apache License, version 2.0
+% http://www.apache.org/licenses/LICENSE-2.0
+%
+% Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+% Development 2012-2013 by School of Earth Sciences
+% Development from 2014 by Centre for Geoscience Computing (GeoComp)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Gravity Inversion}\label{sec:forward gravity}
+For the gravity inversion we use the anomaly of the gravity acceleration~\index{gravity acceleration} of the Earth.
+The controlling material parameter is the density~\index{density} $\rho$ of
+the rock.
+If the density field $\rho$ is known the gravitational potential $\psi$ is
+given as the solution of the PDE
+\begin{equation}\label{ref:GRAV:EQU:100}
+-\psi_{,ii} = -4\pi G \cdot  \rho
+\end{equation}
+where $G=6.6730 \cdot 10^{-11}  \frac{m^3}{kg \cdot s^2}$ is the gravitational
+constant.
+The gravitational potential is set to zero at the top of the
+domain $\Gamma_0$.
+On all other faces the normal component of the gravity acceleration anomaly
+$g_i$ is set to zero, i.e. $n_i \psi_{,i} = 0$ with outer normal field $n_i$.
+The gravity force $g_i$ is given as the negative of the gradient of the gravity
+potential $\psi$:
+\begin{equation}\label{ref:GRAV:EQU:101}
+ g_i = - \psi_{,i} 
+\end{equation} 
+From the gravitational potential we can calculate the gravity acceleration
+anomaly via Equation~(\ref{ref:GRAV:EQU:101}) to obtain the defect to the
+given data.
+If $g^{(s)}_i$ is a measurement of the gravity acceleration anomaly for
+survey $s$ and $\omega^{(s)}_i$ is a weighting factor the data defect
+$J^{grav}(k)$ in the notation of Chapter~\ref{chapter:ref:inversion cost function} is given as
+\begin{equation}\label{ref:GRAV:EQU:9}
+J^{grav}(k) = \frac{1}{2}\sum_{s} \int_{\Omega} ( \omega^{(s)}_i \cdot (g_{i}- g^{(s)}_i) ) ^2 dx
+\end{equation} 
+Summation over $i$ is performed. 
+The cost function kernel\index{cost function!kernel} is given as
+\begin{equation}\label{ref:GRAV:EQU:10}
+K^{grav}(\psi_{,i},k) = \frac{1}{2}\sum_{s} ( \omega^{(s)}_i \cdot (\psi_{,i}+ g^{(s)}_i) ) ^2
+\end{equation} 
+In practice the gravity acceleration $g^{(s)}$ is measured in vertical
+direction $z$ with a standard error deviation $\sigma^{(s)}$ at certain
+locations in the domain.
+In this case one sets the weighting factors $\omega^{(s)}$ as
+\begin{equation}\label{ref:GRAV:EQU:11}
+\omega^{(s)}_i 
+= \left\{
+\begin{array}{lcl}
+f \cdot  \frac{\delta_{iz}}{\sigma^{(s)}} & & \mbox{data are available} \\
+& \mbox{ where } & \\
+0 & & \mbox{ otherwise } \\
+\end{array}
+\right.
+\end{equation} 
+With the objective to control the 
+gradient of the cost function 
+the scaling factor $f$ is chosen in the way that
+\begin{equation}\label{ref:GRAV:EQU:12}
+\sum_{s} \int_{\Omega} ( \omega^{(s)}_i g^{(s)}_i ) \cdot ( \omega^{(s)}_j \frac{1}{L_j} ) \cdot 4\pi G L^2 \cdot \rho' \;  dx =\alpha
+\end{equation} 
+where $\alpha$ defines a scaling factor which is typically set to one and $L$ is defined by equation~(\ref{ref:EQU:REG:6b}). $\rho'$ is considering the 
+derivative of the density with respect to the level set function. 
+
+
+\subsection{Usage}
+
+\begin{classdesc}{GravityModel}{domain, 
+w, g,
+\optional{, coordinates=\None}
+\optional{, fixPotentialAtBottom=False},
+\optional{, tol=1e-8}
+}
+opens a gravity forward model over the \Domain \member{domain} with 
+weighting factors \member{w} ($=\omega^{(s)}$) and measured gravity acceleration anomalies \member{g} ($=g^{(s)}$).
+The weighting factors and the  measured gravity acceleration anomalies must be vectors
+where components refer to the components 
+$(x_0,x_1,x_2)$ for the Cartesian coordinate system 
+and to $(\phi, \lambda, h)$ for the geodetic coordinate system. 
+If \member{reference} defines the reference coordinate system to be used, see Chapter~\ref{Chp:ref:coordinates}.
+\member{tol} set the tolerance for the solution of the PDE~(\ref{ref:GRAV:EQU:100}).
+If \member{fixPotentialAtBottom} is set to  \True, the gravitational potential 
+at the bottom is set to zero in addition to the potential on the top. 
+\member{coordinates} set the reference coordinate system to be used. By the default the 
+Cartesian coordinate system is used.
+\end{classdesc}
+
+\begin{methoddesc}[GravityModel]{rescaleWeights}{
+        \optional{scale=1.}
+ \optional{rho_scale=1.}}
+rescale the weighting factors such condition~(\ref{ref:GRAV:EQU:12}) holds where 
+\member{scale} sets the scale $\alpha$
+and \member{rho_scale} sets $\rho'$. This method should be called before any inversion is started
+in order to make sure that all components of the cost function are appropriately scaled.
+\end{methoddesc}
+
+
+\subsection{Gradient Calculation}
+This section briefly explains how the gradient
+$\frac{\partial J^{grav}}{\partial \rho}$ of the cost function $J^{grav}$ with
+respect to the density $\rho$ is calculated. We follow the concept as outlined in section~\ref{chapter:ref:inversion cost function:gradient}.
+The gravity potential $\psi$ from PDE~(\ref{ref:GRAV:EQU:100}) is solved in
+weak form:
+\begin{equation}\label{ref:GRAV:EQU:201}
+\int_{\Omega} q_{,i} \psi_{,i} \; dx  = - \int_{\Omega}  4\pi G \cdot q \rho\; dx 
+\end{equation} 
+for all $q$ with $q=0$ on $\Gamma_0$.
+In the following we set $\Psi[\cdot]=\psi$ for a given density $\cdot$ as
+solution of the variational problem~(\ref{ref:GRAV:EQU:201}).
+If $\Gamma_{\rho}$ denotes the region of the domain where the density is known
+and for a given direction $p$ with $p=0$ on $\Gamma_{\rho}$ one has
+\begin{equation}\label{ref:GRAV:EQU:201aa}
+\int_{\Omega}   \frac{\partial J^{grav}}{\partial \rho} \cdot p \; dx  =  \int_{\Omega}  
+\sum_{s} (\omega^{(s)}_j \cdot 
+(g^{(s)}_j-g_{j}) ) \cdot ( \omega^{(s)}_i \Psi[p]_{,i})  \; dx  
+\end{equation} 
+with 
+\begin{equation}\label{ref:GRAV:EQU:202c}
+Y_i[\psi]=  \sum_{s} (\omega^{(s)}_j \cdot 
+(g^{(s)}_j-g_{j}) ) \cdot  \omega^{(s)}_i
+\end{equation} 
+This is written as 
+\begin{equation}\label{ref:GRAV:EQU:202cc}
+\int_{\Omega}   \frac{\partial J^{grav}}{\partial \rho} \cdot p \;  dx  = \int_{\Omega}  
+Y_i[\psi] \Psi[p]_{,i} \; dx  
+\end{equation} 
+We then set $Y^*[\psi]$ as the solution of the equation 
+\begin{equation}\label{ref:GRAV:EQU:202d}
+\int_{\Omega} r_{,i} Y^*[\psi]_{,i} \; dx  =  \int_{\Omega} r_{,i} ,Y_i[\psi]  \; dx  \mbox{ for all } p \mbox{ with } r=0 \mbox{ on } \Gamma_{top}
+\end{equation} 
+with $Y^*[\psi]=0$ on $\Gamma_0$. With $r=\Psi[p]$ we get
+\begin{equation}\label{ref:GRAV:EQU:202dd}
+\int_{\Omega} \Psi[p]_{,i} Y^*[\psi]_{,i} \; dx  =  \int_{\Omega} \Psi[p]_{,i} ,Y_i[\psi]  \; dx
+\end{equation} 
+and from Equation~(\ref{ref:GRAV:EQU:201}) with $q=Y^*[\psi]$ we get
+\begin{equation}\label{ref:GRAV:EQU:20e}
+\int_{\Omega} Y^*[\psi]_{,i}  \Psi[p]_{,i} \; dx  = - \int_{\Omega}  4\pi G \cdot Y^*[\psi] \cdot  p\;  dx  
+\end{equation}
+which leads to 
+\begin{equation}\label{ref:GRAV:EQU:20ee}
+\int_{\Omega} \Psi[p]_{,i} ,Y_i[\psi]  \; dx  = - \int_{\Omega}  4\pi G \cdot Y^*[\psi] \cdot  p \; dx  
+\end{equation}
+and finally
+\begin{equation}\label{ref:GRAV:EQU:201a}
+\int_{\Omega}   \frac{\partial J^{grav}}{\partial \rho} \cdot p \;  dx  = - \int_{\Omega}  
+4\pi G \cdot Y^*[\psi] \cdot  p \; dx  
+\end{equation} 
+or 
+\begin{equation}\label{ref:GRAV:EQU:201b}
+\frac{\partial J^{grav}}{\partial \rho}  =- 4\pi G \cdot Y^*[\psi]
+\end{equation} 
+
+\subsection{Geodetic Coordinates }
+For geodetic coordinates $(\phi, \lambda, h)$, see Chapter~\ref{Chp:ref:coordinates}, the solution process needs to be slightly modified.
+Observations are recorded along the geodetic coordinates axes $\alpha$ rather than the Cartesian axes $i$. In fact we
+have in equation~\ref{ref:GRAV:EQU:9}:
+\begin{equation}\label{ref:GRAV:EQU:300}
+\omega^{(s)}_i \cdot (g_{i}- g^{(s)}_i) = \omega^{(s)}_{\alpha} \cdot (g_{{\alpha}}- g^{(s)}_{\alpha}) 
+\end{equation} 
+where now $g^{(s)}_{\alpha}$ are the observational data with weighting factors $\omega^{(s)}_{\alpha}$.  Using the 
+fact that $g_{{\alpha}} = - d_{\alpha \alpha} \psi_{,\alpha}$ 
+equation~\ref{ref:GRAV:EQU:10} translates to 
+\begin{equation}\label{ref:GRAV:EQU:301}
+J^{grav}(k) = \frac{1}{2}\sum_{s} \int_{\widehat{\Omega}} 
+( \omega^{(s)}_{\alpha} \cdot (d_{\alpha \alpha}  \psi_{,\alpha} + g^{(s)}_{\alpha} ) ) ^2 \; v \; d\widehat{x}
+\end{equation} 
+where $\widehat{\Omega}$ and $d\widehat{x}$ refer to integration over the geodetic coordinates axes. This can be rearranged to 
+\begin{equation}\label{ref:GRAV:EQU:301bb}
+J^{grav}(k) = \frac{1}{2}\sum_{s} \int_{\widehat{\Omega}} 
+(  \omega^{(s)}_{\alpha} v^{\frac{1}{2}} d_{\alpha \alpha} \cdot ( \psi_{,\alpha} + \frac{1}{d_{\alpha \alpha}} g^{(s)}_{\alpha} ) ) ^2 \; d\widehat{x}
+=\frac{1}{2}\sum_{s} \int_{\widehat{\Omega}} 
+(  {\widehat{\omega}}^{(s)}_{\alpha}\cdot ( \psi_{,\alpha} + \widehat{g}^{(s)}_{\alpha} ) ) ^2 \; d\widehat{x}
+\end{equation} 
+with 
+\begin{equation}\label{ref:GRAV:EQU:301b}
+ \widehat{\omega}^{(s)}_{\alpha} =\omega^{(s)}_{\alpha} v^{\frac{1}{2}} d_{\alpha \alpha} \mbox{ and }
+\widehat{ g}^{(s)}_{\alpha}=
+\frac{1}{d_{\alpha \alpha}} g^{(s)}_{\alpha}
+\end{equation} 
+which means one can apply the Cartesian formulation to the geodetic coordinates using modified data. 
+The gravity potential is calculated from 
+\begin{equation}\label{ref:GRAV:EQU:302}
+\int_{\widehat{\Omega}} v \; d_{\alpha \alpha}^2 q_{,\alpha} \psi_{,\alpha} \;  d\widehat{x}  
+= - \int_{\widehat{\Omega}}  (4\pi G v) \cdot q \rho\;  d\widehat{x} 
+\end{equation} 
+see equation~\ref{ref:GRAV:EQU:201}, and the adjoint function $Y^*[\psi]$ for $Y_{\alpha}[\psi]$ is given from
+\begin{equation}\label{ref:GRAV:EQU:303}
+\int_{\widehat{\Omega}} v  \; d_{\alpha \alpha}^2 q_{,\alpha} Y^*[\psi]_{,\alpha } \;d\widehat{x}  =
+  \int_{\widehat{\Omega}} q_{,\alpha} Y_{\alpha}[\psi]  \; d\widehat{x} 
+\end{equation} 
+and finally 
+\begin{equation}\label{ref:GRAV:EQU:310}
+ \frac{\partial J^{grav}}{\partial \rho}  = - 
+(4\pi G v) \cdot Y^*[\psi]
+\end{equation} 

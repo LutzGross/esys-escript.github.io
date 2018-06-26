@@ -1,0 +1,170 @@
+##############################################################################
+#
+# Copyright (c) 2003-2018 by The University of Queensland
+# http://www.uq.edu.au
+#
+# Primary Business: Queensland, Australia
+# Licensed under the Apache License, version 2.0
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+# Development 2012-2013 by School of Earth Sciences
+# Development from 2014 by Centre for Geoscience Computing (GeoComp)
+#
+##############################################################################
+
+Import('*')
+
+module_name = 'escript'
+
+sources = """
+    AbstractContinuousDomain.cpp
+    AbstractDomain.cpp
+    AbstractReducer.cpp
+    AbstractSystemMatrix.cpp
+    AbstractTransportProblem.cpp
+    ArrayOps.cpp    
+    BinaryDataReadyOps.cpp    
+    Data.cpp
+    DataAbstract.cpp
+    DataConstant.cpp
+    DataEmpty.cpp
+    DataExpanded.cpp
+    DataFactory.cpp
+    DataLazy.cpp
+    DataReady.cpp
+    DataTagged.cpp
+    DataTypes.cpp
+    DataVector.cpp
+    DataVectorAlt.cpp
+    DataVectorOps.cpp
+    DataVectorTaipan.cpp    
+    EscriptParams.cpp
+    EsysMPI.cpp
+    ES_optype.cpp
+    ExceptionTranslators.cpp
+    FunctionSpace.cpp
+    FunctionSpaceFactory.cpp
+    LapackInverseHelper.cpp
+    MPIDataReducer.cpp
+    MPIScalarReducer.cpp
+    NCHelper.cpp
+    NonReducedVariable.cpp
+    NullDomain.cpp
+    pyerr.cpp
+    Random.cpp
+    SolverOptions.cpp
+    SplitWorld.cpp
+    SubWorld.cpp
+    Taipan.cpp
+    TestDomain.cpp
+    Utils.cpp
+    WrappedArray.cpp
+""".split()
+
+headers = """
+    AbstractContinuousDomain.h
+    AbstractDomain.h
+    AbstractReducer.h
+    AbstractSystemMatrix.h
+    AbstractTransportProblem.h
+    ArrayOps.h    
+    Assert.h
+    BinaryDataReadyOps.h
+    Data.h
+    DataAbstract.h
+    DataConstant.h
+    DataEmpty.h
+    DataException.h
+    DataExpanded.h
+    DataFactory.h
+    DataLazy.h
+    DataReady.h
+    DataTagged.h
+    DataTypes.h
+    DataVector.h
+    DataVectorAlt.h
+    DataVectorOps.h    
+    DataVectorTaipan.h    
+    Distribution.h    
+    Dodgy.h
+    DomainException.h
+    EscriptParams.h
+    EsysException.h
+    EsysMPI.h
+    ES_optype.h
+    ExceptionTranslators.h
+    FileWriter.h
+    FunctionSpace.h
+    FunctionSpaceException.h
+    FunctionSpaceFactory.h
+    IndexList.h
+    LapackInverseHelper.h
+    NCHelper.h
+    NonReducedVariable.h
+    NullDomain.h
+    MPIDataReducer.h
+    MPIScalarReducer.h
+    Pointers.h
+    Random.h
+    SolverOptions.h
+    SplitWorld.h
+    SplitWorldException.h
+    SubWorld.h
+    SystemMatrixException.h
+    Taipan.h
+    TestDomain.h
+    TransportProblemException.h
+    Utils.h
+    WrappedArray.h
+    index.h
+    pyerr.h
+    system_dep.h
+""".split()
+
+dodgy_sources = """
+    Dodgy.cpp
+""".split()
+
+local_env = env.Clone()
+
+# collect dependencies for other modules
+escriptlibs = []
+
+if env['uselapack']:
+    escriptlibs += env['lapack_libs']
+if env['mkl']:
+    escriptlibs += env['mkl_libs']
+if env['netcdf']:
+    escriptlibs += env['netcdf_libs']
+
+local_env.PrependUnique(LIBS = escriptlibs)
+env['escript_libs'] = [module_name] + escriptlibs
+
+if IS_WINDOWS:
+    local_env.Append(CPPDEFINES = ['ESCRIPT_EXPORTS'])
+
+# specify to build shared object
+if local_env['iknowwhatimdoing']:
+    nonped = [local_env.SharedObject(x) for x in dodgy_sources]
+else:
+    nonped = []
+
+include_path = Dir(module_name, local_env['incinstall'])
+hdr_inst = local_env.Install(include_path, headers)
+
+lib = local_env.SharedLibrary(module_name, sources+nonped)
+lib_inst = local_env.Install(local_env['libinstall'], lib)
+
+### Python wrapper ###
+py_env = env.Clone()
+py_env.Prepend(LIBS = [module_name])
+py_lib_name = module_name + 'cpp'
+py_lib = py_env.PythonModule(py_lib_name, 'escriptcpp.cpp')
+
+mod_path = Dir('escriptcore', local_env['pyinstall'])
+mod_inst = py_env.Install(mod_path, py_lib)
+
+build = env.Alias('build_escript', [hdr_inst, lib, py_lib])
+env.Alias('install_escript', [build, lib_inst, mod_inst])
+

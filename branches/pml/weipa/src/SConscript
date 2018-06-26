@@ -1,0 +1,117 @@
+##############################################################################
+#
+# Copyright (c) 2003-2018 by The University of Queensland
+# http://www.uq.edu.au
+#
+# Primary Business: Queensland, Australia
+# Licensed under the Apache License, version 2.0
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+# Development 2012-2013 by School of Earth Sciences
+# Development from 2014 by Centre for Geoscience Computing (GeoComp)
+#
+##############################################################################
+
+Import('*')
+
+module_name = 'weipa'
+
+sources = """
+    DataVar.cpp
+    EscriptDataset.cpp
+""".split()
+
+headers = """
+    DataVar.h
+    DomainChunk.h
+    ElementData.h
+    EscriptDataset.h
+    NodeData.h
+    VisItControl.h
+    vtkCellType.h
+    weipa.h
+""".split()
+
+local_env = env.Clone()
+
+# collect dependencies for other modules
+weipalibs = []
+weipalibs += env['escript_libs']
+
+if 'dudley' in env['domains'] or 'finley' in env['domains']:
+    sources += ['FinleyDomain.cpp','FinleyElements.cpp','FinleyNodes.cpp']
+    headers += ['FinleyDomain.h','FinleyElements.h','FinleyNodes.h']
+    if 'dudley' in env['domains']:
+        local_env.Append(CPPDEFINES = ['USE_DUDLEY'])
+        weipalibs += env['dudley_libs']
+    if 'finley' in env['domains']:
+        local_env.Append(CPPDEFINES = ['USE_FINLEY'])
+        weipalibs += env['finley_libs']
+
+if local_env['silo']:
+    weipalibs += env['silo_libs']
+
+pluginlibs = [] + weipalibs
+pluginsources = [] + sources
+# clone here to use same CPPDEFINES
+visitplugin_env = local_env.Clone()
+
+if 'ripley' in env['domains']:
+    sources += ['RipleyDomain.cpp','RipleyElements.cpp','RipleyNodes.cpp']
+    headers += ['RipleyDomain.h','RipleyElements.h','RipleyNodes.h']
+    local_env.Append(CPPDEFINES = ['USE_RIPLEY'])
+    weipalibs += env['ripley_libs']
+
+if 'speckley' in env['domains']:
+    sources += ['SpeckleyDomain.cpp','SpeckleyElements.cpp','SpeckleyNodes.cpp']
+    headers += ['SpeckleyDomain.h','SpeckleyElements.h','SpeckleyNodes.h']
+    local_env.Append(CPPDEFINES = ['USE_SPECKLEY'])
+    weipalibs += env['speckley_libs']
+
+sources.append(['VisItControl.cpp'])
+
+if local_env['visit']:
+    sources.append(['VisItData.cpp'])
+    headers.append(['VisItData.h'])
+    local_env.Append(CPPDEFINES = ['USE_VISIT'])
+    weipalibs += ['simV2']
+
+local_env.PrependUnique(LIBS = weipalibs)
+env['weipa_libs'] = [module_name] + weipalibs
+
+if IS_WINDOWS:
+    local_env.Append(CPPDEFINES = ['WEIPA_EXPORTS'])
+
+include_path = Dir(module_name, local_env['incinstall'])
+hdr_inst = local_env.Install(include_path, headers)
+
+lib = local_env.SharedLibrary(module_name, sources)
+lib_inst = local_env.Install(local_env['libinstall'], lib)
+
+### Python wrapper ###
+py_env = local_env.Clone()
+py_env.PrependUnique(LIBS = [module_name])
+py_lib_name = module_name + 'cpp'
+py_lib = py_env.PythonModule(py_lib_name, 'weipacpp.cpp')
+
+mod_path = Dir(module_name, local_env['pyinstall'])
+mod_inst = py_env.Install(mod_path, py_lib)
+
+build = env.Alias('build_weipa', [hdr_inst, lib, py_lib])
+env.Alias('install_weipa', [build, lib_inst, mod_inst])
+
+######################
+### Plugin library ###
+######################
+if 'dudley' in env['domains'] or 'finley' in env['domains']:
+    visitplugin_env.PrependUnique(LIBS = pluginlibs)
+    visitplugin_env.Append(CPPDEFINES = ['VISIT_PLUGIN'])
+    visitplugin_env['OBJPREFIX']='reader_'
+
+    plugin_lib = visitplugin_env.SharedLibrary('escriptreader', pluginsources)
+    plugin_inst = local_env.Install(local_env['libinstall'], plugin_lib)
+
+    build = env.Alias('build_escriptreader', plugin_lib)
+    env.Alias('install_escriptreader', [build, plugin_inst])
+

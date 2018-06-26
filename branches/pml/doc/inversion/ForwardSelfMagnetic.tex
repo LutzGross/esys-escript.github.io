@@ -1,0 +1,237 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright (c) 2003-2018 by The University of Queensland
+% http://www.uq.edu.au
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Apache License, version 2.0
+% http://www.apache.org/licenses/LICENSE-2.0
+%
+% Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+% Development 2012-2013 by School of Earth Sciences
+% Development from 2014 by Centre for Geoscience Computing (GeoComp)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\section{Magnetic Inversion With Self-Demagnetisation}\label{sec:forward self demagnetic}
+In cases of large susceptibility~\index{susceptibility} $k$ the linear magnetisation assumption
+as discussed in the previous Section~\ref{sec:forward magnetic} is not valid and 
+one assume that magnetisation $M$ is proportional to present magnetic field~\index{magnetic field} 
+rather than the background magnetic flux
+density, see~\cite{Lelievre2006a}. 
+
+Analogous to equation~(\ref{ref:MAG:EQU:1}) it is  
+\begin{equation}\label{ref:SELFREMAG:EQU:1}
+B_i = \mu_0 \cdot ( H_i  + M_i )
+\end{equation}
+where 
+$B$ is the flux density anomaly, the magnetic field anomaly $H$ and
+$\mu_0 = 4 \pi \cdot 10^{-7} \frac{Vs}{Am}$. In extension to equation~(\ref{ref:MAG:EQU:4})
+the magnetisation is assumed to be proportional to the 
+(total) magnetic field $H_i + \frac{1}{\mu_0} B_i^{b}$ in the form 
+\begin{equation}\label{ref:SELFREMAG:EQU:4}
+\mu_0  \cdot M_i = k \cdot ( B_i^{b} + \mu_0  H_i ) \;. 
+\end{equation}
+where $B_i^{(b)}$ is known background geomagnetic flux density $B^b$
+(see additional information in Section~\ref{sec:forward magnetic}).
+
+The magnetic field anomaly $H$ can be represented by the gradient of a
+magnetic scalar potential\index{scalar potential!magnetic} $\psi$.
+We use the form 
+\begin{equation}\label{ref:SELFREMAG:EQU:6}
+\mu_0  \cdot H_i = - \psi_{,i}
+\end{equation}
+With this notation one gets from Equations~(\ref{ref:SELFREMAG:EQU:1}) and~(\ref{ref:SELFREMAG:EQU:4}):
+\begin{equation}\label{ref:SELFREMAG:EQU:7}
+B_i = - (1+k) \cdot \psi_{,i}  + k \cdot B^b_i
+\end{equation}
+As the $B$ magnetic flux density anomaly is divergence free ($B_{i,i}=0$) we obtain the PDE
+\begin{equation}\label{ref:SELFREMAG:EQU:8}
+- ( (1+k) \cdot \psi_{,i})_{,i} = - (k B^r_i)_{,i} 
+\end{equation} 
+with $B^r_i=B^b_i$ which needs to be solved for a given susceptibility $k$.
+The magnetic scalar potential is set to zero at the top of the domain
+$\Gamma_{0}$.
+On all other faces the normal component of the magnetic flux density anomaly
+$B_i$ is set to zero, i.e. $(1+k) \cdot  n_i \psi_{,i} = k \cdot n_i  B^b_i$ with outer
+normal field $n_i$.
+
+From the magnetic scalar potential we can calculate the magnetic flux density
+anomaly via Equation~(\ref{ref:SELFREMAG:EQU:8}) to calculate the defect to the given
+data.
+If $B^{(s)}_i$ is a measurement of the magnetic flux density anomaly for
+survey $s$ and $\omega^{(s)}_i$ is a weighting factor the data defect
+$J^{mag}(k)$ in the notation of Chapter~\ref{chapter:ref:inversion cost function} is given as
+\begin{equation}\label{ref:SELFREMAG:EQU:9}
+J^{mag}(k) = \frac{1}{2}\sum_{s} \int_{\Omega} ( \omega^{(s)}_i \cdot (B_{i}- B^{(s)}_i) ) ^2 dx
+\end{equation} 
+Summation over $i$ is performed.
+The cost function kernel\index{cost function!kernel} is given as
+\begin{equation}\label{ref:SELFREMAG:EQU:10}
+K^{mag}(\psi_{,i},k) = \frac{1}{2}\sum_{s} ( \omega^{(s)}_i \cdot (k \cdot B^b_i - (1+k) \cdot \psi_{,i} - B^{(s)}_i) ) ^2
+\end{equation} 
+Notice that if magnetic flux density is measured in air one can ignore the
+$k\cdot B^b_i$ as the susceptibility is zero. See also the remarks on the data defect in Section~\ref{sec:forward magnetic}).
+
+
+\subsection{Usage}
+
+\begin{classdesc}{SelfDemagnetizationModel}{domain, w, B, background_field,
+        \optional{, coordinates=\None}
+        \optional{, fixPotentialAtBottom=False},
+        \optional{, tol=1e-8},
+}
+opens a magnetic forward model over the \Domain \member{domain} with 
+weighting factors \member{w} ($=\omega^{(s)}$) and measured magnetic flux
+density anomalies \member{B} ($=B^{(s)}$).
+The weighting factors and the  measured magnetic flux density anomalies must be vectors.
+\member{background_field} defines the background magnetic flux density $B^b$
+as a vector with north, east and vertical components. 
+\member{tol} sets the tolerance for the solution of the PDE~(\ref{ref:SELFREMAG:EQU:8}).
+If \member{fixPotentialAtBottom} is set to  \True, the magnetic potential 
+at the bottom is set to zero in addition to the potential on the top. 
+\member{coordinates} set the reference coordinate system to be used. By the default the 
+Cartesian coordinate system is used.
+\end{classdesc}
+
+\begin{methoddesc}[SelfDemagnetizationModel]{rescaleWeights}{
+        \optional{scale=1.}
+ \optional{k_scale=1.}}
+rescale the weighting factors such condition~(\ref{ref:MAG:EQU:12}) holds where 
+\member{scale} sets the scale $\alpha$
+and \member{k_scale} sets $k'$. This method should be called before any inversion is started
+in order to make sure that all components of the cost function are appropriately scaled.
+\end{methoddesc}
+
+
+
+\subsection{Gradient Calculation}
+This section briefly explains how the gradient
+$\frac{\partial J^{mag}}{\partial k}$ of the cost function $J^{mag}$ with
+respect to the susceptibility $k$ is calculated.  We follow the concept as outlined in section~\ref{chapter:ref:inversion cost function:gradient}.
+
+The magnetic potential $\psi$ from PDE~(\ref{ref:SELFREMAG:EQU:8}) is solved in weak form:
+\begin{equation}\label{ref:SELFREMAG:EQU:201}
+\int_{\Omega} 
+(1+k) \cdot q_{,i} \psi_{,i} \; dx  = \int_{\Omega}  k \cdot q_{,i}  B^r_i \; dx 
+\end{equation} 
+for all $q$ with $q=0$ on $\Gamma_{0}$.
+If $\Gamma_{k}$ denotes the region of the domain where the susceptibility is
+known and for a given direction $\hat{k}$ with $\hat{k}=0$ on $\Gamma_{k}$ one has
+\begin{equation}\label{ref:SELFREMAG:EQU:201aa}
+\int_{\Omega}   \frac{\partial J^{mag}}{\partial k} \cdot \hat{k} \; dx  = \int_{\Omega}  
+\sum_{s} (\omega^{(s)}_j 
+( B^{(s)}_j-B_{j}))  \cdot ( \omega^{(s)}_i ( (1+k) \cdot \hat{\psi}_{,i} + \hat{k} \cdot \psi_{,i} - \hat{k}  \cdot B^b_i  ) ) \; dx  
+\end{equation} 
+with
+\begin{equation}\label{ref:SELFREMAG:EQU:201A}
+\int_{\Omega} \left(
+(1+k) \cdot q_{,i} \hat{\psi}_{,i} + 
+\hat{k}  \cdot q_{,i} \psi_{,i} \right) 
+\; dx  
+= \int_{\Omega} \hat{k} \cdot q_{,i}  B^r_i \; dx 
+\end{equation} 
+for all $q$ with $q=0$ on $\Gamma_{0}$. This equation is obtained from equation~(\ref{ref:SELFREMAG:EQU:201})
+for $k+\hat{k} \rightarrow  k$ and $\psi+\hat{\psi} \rightarrow \psi$. 
+With
+\begin{equation}\label{ref:SELFREMAG:EQU:202c}
+Y_i =   \sum_{s} (\omega^{(s)}_j 
+(B^{(s)}_j - B_{j}) )  \cdot \omega^{(s)}_i  
+\end{equation} 
+Equation~(\ref{ref:SELFREMAG:EQU:201aa}) is written as 
+\begin{equation}\label{ref:SELFREMAG:EQU:202cc}
+\int_{\Omega}   \frac{\partial J^{mag}}{\partial k} \cdot \hat{k} \;  dx  = \int_{\Omega}  
+(1+k) \cdot  Y_i \hat{\psi}_{,i}  + \hat{k} \cdot  Y_i \psi_{,i} - \hat{k}  \cdot Y_i B^b_i   \; dx  
+\end{equation} 
+
+We then set adjoint function $Y^*$ as the solution of the equation 
+\begin{equation}\label{ref:SELFREMAG:EQU:202d}
+\int_{\Omega} (1+k) \cdot r_{,i} Y^*_{,i} \; dx  =  \int_{\Omega} (1+k) \cdot  r_{,i} Y_i  \; dx  \mbox{ for all } r \mbox{ with } r=0 \mbox{ on } \Gamma_{0}
+\end{equation} 
+with $Y^*=0$ on $\Gamma_{0}$. With $r=\hat{\psi}$ we get
+\begin{equation}\label{ref:SELFREMAG:EQU:202dd}
+\int_{\Omega} (1+k) \cdot  \hat{\psi}_{,i} Y^*_{,i} \; dx  =  \int_{\Omega}  (1+k)  \cdot \hat{\psi}_{,i} Y_i  \; dx
+\end{equation} 
+and from Equation~(\ref{ref:SELFREMAG:EQU:201A}) with $q=Y^*$ we get
+\begin{equation}\label{ref:SELFREMAG:EQU:20e}
+\int_{\Omega} (1+k) \cdot  Y^*_{,i}  \hat{\psi}_{,i} \; dx  = \int_{\Omega} \hat{k} \cdot  \left(   Y^*_{,i}  B^r_i - Y^*_{,i} \psi_{,i}  \right) \; dx  
+\end{equation}
+which leads to 
+\begin{equation}\label{ref:SELFREMAG:EQU:20ee}
+\int_{\Omega} (1+k)  \cdot \hat{\psi}_{,i} Y_i   \; dx  = 
+\int_{\Omega} \hat{k} \cdot  \left(   Y^*_{,i}  B^r_i - Y^*_{,i} \psi_{,i}  \right) \; dx  
+\end{equation}
+and finally
+\begin{equation}\label{ref:SELFREMAG:EQU:201a}
+\int_{\Omega}   \frac{\partial J^{mag}}{\partial k} \cdot \hat{k} \;  dx  = \int_{\Omega}  
+\hat{k} \cdot  \left(   Y^*_{,i}  B^r_i - Y^*_{,i} \psi_{,i} 
+                         + Y_i \psi_{,i} - Y_i B^b_i
+ \right) 
+ \; dx  
+\end{equation} 
+or 
+\begin{equation}\label{ref:SELFREMAG:EQU:201b}
+\frac{\partial J^{mag}}{\partial k} =  Y^*_{,i}  B^r_i - Y^*_{,i} \psi_{,i} 
+                         + Y_i \psi_{,i} - Y_i B^b_i
+\end{equation}
+
+\subsection{Geodetic Coordinates }
+For geodetic coordinates $(\phi, \lambda, h)$, see Chapter~\ref{Chp:ref:coordinates}, the solution process needs to be slightly modified.
+Observations are recorded along the geodetic coordinates axes $\alpha$ rather than the Cartesian axes $i$. In fact we
+have in equation~\ref{ref:SELFREMAG:EQU:9}:
+\begin{equation}\label{ref:SELFREMAG:EQU:300}
+\omega^{(s)}_i \cdot (B_{i}- B^{(s)}_i) = \omega^{(s)}_{\alpha} \cdot (B_{{\alpha}}- B^{(s)}_{\alpha}) 
+\end{equation} 
+where now $B^{(s)}_{\alpha}$ are the observational data with weighting factors $\omega^{(s)}_{\alpha}$.  Using the 
+fact that 
+\begin{equation}
+B_{{\alpha}} = 
+ k \cdot B^b_{{\alpha}} -  (1+k) \cdot  d_{\alpha \alpha} \psi_{,\alpha} 
+\end{equation}
+equation~\ref{ref:SELFREMAG:EQU:10} translates to 
+\begin{equation}\label{ref:SELFREMAG:EQU:301}
+J^{mag}(k) = \frac{1}{2}\sum_{s} \int_{\widehat{\Omega}} 
+( \omega^{(s)}_{\alpha} \cdot (
+(1+k) \cdot  d_{\alpha \alpha} \psi_{,\alpha}  
+ - k \cdot B^b_{{\alpha}}  + B^{(s)}_{\alpha} ) ) ^2 \; v \; d\widehat{x}
+\end{equation} 
+where $\widehat{\Omega}$ and $d\widehat{x}$ refer to integration over the geodetic coordinates axes. This can be rearranged to 
+\begin{eqnarray}\label{ref:SELFREMAG:EQU:301bb}
+J^{mag}(k)  & = \displaystyle{ \frac{1}{2}\sum_{s} \int_{\widehat{\Omega}} 
+(  \omega^{(s)}_{\alpha} v^{\frac{1}{2}} d_{\alpha \alpha} \cdot ( (1+k) \cdot  
+ \psi_{,\alpha} -  k \cdot v_{\alpha \alpha} B^b_{{\alpha}} + v_{\alpha \alpha} B^{(s)}_{\alpha} ) ) ^2 \; d\widehat{x} } \\
+  & = \displaystyle{  \frac{1}{2}\sum_{s} \int_{\widehat{\Omega}} 
+(  {\widehat{\omega}}^{(s)}_{\alpha}\cdot ( (1+k) \cdot  \psi_{,\alpha} -  k \cdot \widehat{B}^b_{{\alpha}}+  \widehat{B}^{(s)}_{\alpha} ) ) ^2 \; d\widehat{x} }
+\end{eqnarray}
+with 
+\begin{equation}\label{ref:SELFREMAG:EQU:301b}
+ \widehat{\omega}^{(s)}_{\alpha} = \omega^{(s)}_{\alpha} v^{\frac{1}{2}} d_{\alpha \alpha} \mbox{ , }
+\widehat{B}^{(s)}_{\alpha}=
+\frac{1}{d_{\alpha \alpha}} B^{(s)}_{\alpha}  \mbox{ and } \widehat{B}^b_{{\alpha}} = \frac{1}{d_{\alpha \alpha}}  B^b_{{\alpha}} 
+\end{equation} 
+which means one can apply the Cartesian formulation to the geodetic coordinates using modified data. 
+
+
+The magnetic potential is calculated from 
+\begin{equation}\label{ref:SELFREMAG:EQU:302}
+\int_{\widehat{\Omega}} (1+k) \cdot v \; d_{\alpha \alpha}^2 q_{,\alpha} \psi_{,\alpha} \;  d\widehat{x}  
+=  \int_{\widehat{\Omega}} v \; d_{\alpha \alpha} k \cdot q_{,\alpha}  B^r_{\alpha} \; d\widehat{x}   
+=  \int_{\widehat{\Omega}}  k \cdot q_{,\alpha}  \widehat{B}^r_{\alpha} \; d\widehat{x}   
+\end{equation} 
+with 
+\begin{equation}\label{ref:SELFREMAG:EQU:302b}
+\widehat{B}^r_{\alpha}  =v \; d_{\alpha \alpha} B^r_{\alpha}
+\end{equation} 
+see equation~\ref{ref:SELFREMAG:EQU:201}, and the adjoint function $Y^*$ for $Y_{\alpha}$ (calculated from $\widehat{B}^b$ and $\widehat{B}^{(s)}$ is given from
+\begin{equation}\label{ref:SELFREMAG:EQU:303}
+\int_{\widehat{\Omega}}(1+k) \cdot  v \; d_{\alpha \alpha}^2 q_{,\alpha} Y^*_{,\alpha } \;d\widehat{x}  =
+\int_{\widehat{\Omega}} (1+k) \cdot r_{,{\alpha}} ,Y_{\alpha}  \;d\widehat{x}
+\end{equation} 
+and finally 
+\begin{equation}\label{ref:SELFREMAG:EQU:310}
+\frac{\partial J^{mag}}{\partial k} = 
+ Y^*_{,\alpha}   \widehat{B}^r_{\alpha} - Y^*_{,\alpha} \psi_{,\alpha} 
+                         + Y_{\alpha}  \psi_{,\alpha} - Y_{\alpha}   \widehat{B}^b_{\alpha}
+\end{equation} 
+where integration is performed over $\widehat{\Omega}$.
+

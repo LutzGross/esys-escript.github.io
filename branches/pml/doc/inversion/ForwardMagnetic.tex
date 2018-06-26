@@ -1,0 +1,241 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright (c) 2003-2018 by The University of Queensland
+% http://www.uq.edu.au
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Apache License, version 2.0
+% http://www.apache.org/licenses/LICENSE-2.0
+%
+% Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+% Development 2012-2013 by School of Earth Sciences
+% Development from 2014 by Centre for Geoscience Computing (GeoComp)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\section{Linear Magnetic Inversion}\label{sec:forward magnetic}
+For the magnetic inversion we use the anomaly of the magnetic flux
+density~\index{magnetic flux density} of the Earth.
+The controlling material parameter is the susceptibility~\index{susceptibility}
+$k$ of the rock.
+With magnetization $M$ and inducing magnetic field anomaly $H$, the magnetic
+flux density anomaly $B$ is given as
+\begin{equation}\label{ref:MAG:EQU:1}
+B_i = \mu_0 \cdot ( H_i  + M_i )
+\end{equation}
+where $\mu_0 = 4 \pi \cdot 10^{-7} \frac{Vs}{Am}$.
+In this forward model we make the simplifying assumption that the magnetization
+is proportional to the known geomagnetic flux density $B^b$:
+\begin{equation}\label{ref:MAG:EQU:4}
+\mu_0  \cdot M_i = k \cdot B^b_i \;. 
+\end{equation}
+Values for the magnetic flux density can be obtained by the International
+Geomagnetic Reference Field (IGRF)~\cite{IGRF}
+(or the Australian Geomagnetic Reference Field (AGRF)~\cite{AGRF}).
+In most cases it is reasonable to assume that that the background field is
+constant across the domain.
+
+The magnetic field anomaly $H$ can be represented by the gradient of a
+magnetic scalar potential\index{scalar potential!magnetic} $\psi$.
+We use the form 
+\begin{equation}\label{ref:MAG:EQU:6}
+\mu_0  \cdot H_i = - \psi_{,i}
+\end{equation}
+With this notation one gets from Equations~(\ref{ref:MAG:EQU:1}) and~(\ref{ref:MAG:EQU:4}):
+\begin{equation}\label{ref:MAG:EQU:7}
+B_i = - \psi_{,i}  + k \cdot B^b_i
+\end{equation}
+As the $B$ magnetic flux density anomaly is divergence free ($B_{i,i}=0$) we obtain the PDE
+\begin{equation}\label{ref:MAG:EQU:8}
+- \psi_{,ii} = - (k B^r_i)_{,i} 
+\end{equation} 
+with $B^r_i=B^b_i$ which needs to be solved for a given susceptibility $k$.
+The magnetic scalar potential is set to zero at the top of the domain
+$\Gamma_{0}$.
+On all other faces the normal component of the magnetic flux density anomaly
+$B_i$ is set to zero, i.e. $n_i \psi_{,i} = k \cdot n_i  B^b_i$ with outer
+normal field $n_i$.
+
+From the magnetic scalar potential we can calculate the magnetic flux density
+anomaly via Equation~(\ref{ref:MAG:EQU:8}) to calculate the defect to the given
+data.
+If $B^{(s)}_i$ is a measurement of the magnetic flux density anomaly for
+survey $s$ and $\omega^{(s)}_i$ is a weighting factor the data defect
+$J^{mag}(k)$ in the notation of Chapter~\ref{chapter:ref:inversion cost function} is given as
+\begin{equation}\label{ref:MAG:EQU:9}
+J^{mag}(k) = \frac{1}{2}\sum_{s} \int_{\Omega} ( \omega^{(s)}_i \cdot (B_{i}- B^{(s)}_i) ) ^2 dx
+\end{equation} 
+Summation over $i$ is performed.
+The cost function kernel\index{cost function!kernel} is given as
+\begin{equation}\label{ref:MAG:EQU:10}
+K^{mag}(\psi_{,i},k) = \frac{1}{2}\sum_{s} ( \omega^{(s)}_i \cdot (k \cdot B^b_i - \psi_{,i} - B^{(s)}_i) ) ^2
+\end{equation} 
+Notice that if magnetic flux density is measured in air one can ignore the
+$k\cdot B^b_i$ as the susceptibility is zero.
+
+In practice the magnetic flux density $b^{(s)}$ is measured along a certain
+direction $d^{(s)}_i$ with a standard error deviation $\sigma^{(s)}$ at
+certain locations in the domain.
+In this case one sets $B^{(s)}_i=b^{(s)} \cdot d^{(s)}_i$ and the weighting
+factors $\omega^{(s)}$ as
+\begin{equation}\label{ref:MAG:EQU:11}
+\omega^{(s)}_i 
+= \left\{
+\begin{array}{lcl}
+f \cdot  \frac{d^{(s)}_i}{\sigma^{(s)}} & & \mbox{data are available} \\
+& \mbox{ where } & \\
+0 & & \mbox{ otherwise } \\
+\end{array}
+\right.
+\end{equation} 
+where it is assumed that $d^{(s)}_i \cdot d^{(s)}_i =1$. With the objective to control the 
+gradient of the cost function the scaling factor $f$ is chosen in the way that 
+\begin{equation}\label{ref:MAG:EQU:12}
+\sum_{s} \int_{\Omega} ( \omega^{(s)}_i B^{(s)}_i ) 
+ \cdot ( \omega^{(s)}_j \frac{1}{L_j} ) \cdot L^2 \cdot
+( B^b_n \frac{1}{L_n} )
+ \cdot k' \;
+ dx =\alpha
+\end{equation} 
+where $\alpha$ defines a scaling factor which is typically set to one and $L$ is defined by equation~(\ref{ref:EQU:REG:6b}).
+$k'$ is considering the 
+derivative of the density with respect to the level set function. 
+
+
+\subsection{Usage}
+
+\begin{classdesc}{MagneticModel}{domain, w, B, background_field,
+        \optional{, coordinates=\None}
+        \optional{, fixPotentialAtBottom=False},
+        \optional{, tol=1e-8},
+}
+opens a magnetic forward model over the \Domain \member{domain} with 
+weighting factors \member{w} ($=\omega^{(s)}$) and measured magnetic flux
+density anomalies \member{B} ($=B^{(s)}$).
+The weighting factors and the  measured magnetic flux density anomalies must be vectors.
+\member{background_field} defines the background magnetic flux density $B^b$
+as a vector with north, east and vertical components. 
+\member{tol} sets the tolerance for the solution of the PDE~(\ref{ref:MAG:EQU:8}).
+If \member{fixPotentialAtBottom} is set to  \True, the magnetic potential 
+at the bottom is set to zero in addition to the potential on the top. 
+\member{coordinates} set the reference coordinate system to be used. By the default the 
+Cartesian coordinate system is used.
+\end{classdesc}
+
+\begin{methoddesc}[MagneticModel]{rescaleWeights}{
+        \optional{scale=1.}
+ \optional{k_scale=1.}}
+rescale the weighting factors such condition~(\ref{ref:MAG:EQU:12}) holds where 
+\member{scale} sets the scale $\alpha$
+and \member{k_scale} sets $k'$. This method should be called before any inversion is started
+in order to make sure that all components of the cost function are appropriately scaled.
+\end{methoddesc}
+
+
+\subsection{Gradient Calculation}
+This section briefly explains how the gradient
+$\frac{\partial J^{mag}}{\partial k}$ of the cost function $J^{mag}$ with
+respect to the susceptibility $k$ is calculated.  We follow the concept as outlined in section~\ref{chapter:ref:inversion cost function:gradient}.
+
+The magnetic potential $\psi$ from PDE~(\ref{ref:MAG:EQU:8}) is solved in weak form:
+\begin{equation}\label{ref:MAG:EQU:201}
+\int_{\Omega} q_{,i} \psi_{,i} \; dx  = \int_{\Omega}  k \cdot q_{,i}  B^r_i \; dx 
+\end{equation} 
+for all $q$ with $q=0$ on $\Gamma_{0}$.
+In the following we set $\Psi[k]=\psi$ for a given susceptibility $k$ as
+solution of the variational problem~(\ref{ref:MAG:EQU:201}).
+If $\Gamma_{k}$ denotes the region of the domain where the susceptibility is
+known and for a given direction $p$ with $p=0$ on $\Gamma_{k}$ one has
+\begin{equation}\label{ref:MAG:EQU:201aa}
+\int_{\Omega}   \frac{\partial J^{mag}}{\partial k} \cdot p \; dx  = \int_{\Omega}  
+\sum_{s} (\omega^{(s)}_j 
+( B^{(s)}_j-B_{j}))  \cdot ( \omega^{(s)}_i ( \Psi[p]_{,i} - p  \cdot B^b_i  ) ) \; dx  
+\end{equation} 
+With
+\begin{equation}\label{ref:MAG:EQU:202c}
+Y_i[\psi]=   \sum_{s} (\omega^{(s)}_j 
+(B^{(s)}_j - B_{j}) )  \cdot \omega^{(s)}_i  
+\end{equation} 
+this is written as 
+\begin{equation}\label{ref:MAG:EQU:202cc}
+\int_{\Omega}   \frac{\partial J^{mag}}{\partial k} \cdot p \;  dx  = \int_{\Omega}  
+Y_i[\psi] \Psi[p]_{,i} - p \cdot Y_i[\psi]B^b_i   \; dx  
+\end{equation} 
+We then set adjoint function $Y^*[\psi]$ as the solution of the equation 
+\begin{equation}\label{ref:MAG:EQU:202d}
+\int_{\Omega} r_{,i} Y^*[\psi]_{,i} \; dx  =  \int_{\Omega} r_{,i} Y_i[\psi]  \; dx  \mbox{ for all } r \mbox{ with } r=0 \mbox{ on } \Gamma_{0}
+\end{equation} 
+with $Y^*[\psi]=0$ on $\Gamma_{0}$. With $r=\Psi[p]$ we get
+\begin{equation}\label{ref:MAG:EQU:202dd}
+\int_{\Omega} \Psi[p]_{,i} Y^*[\psi]_{,i} \; dx  =  \int_{\Omega} \Psi[p]_{,i} Y_i[\psi]  \; dx
+\end{equation} 
+and from Equation~(\ref{ref:MAG:EQU:201}) with $q=Y^*[\psi]$ we get
+\begin{equation}\label{ref:MAG:EQU:20e}
+\int_{\Omega} Y^*[\psi]_{,i}  \Psi[p]_{,i} \; dx  = \int_{\Omega}  p \cdot Y^*[\psi]_{,i}  B^r_i \; dx  
+\end{equation}
+which leads to 
+\begin{equation}\label{ref:MAG:EQU:20ee}
+\int_{\Omega} \Psi[p]_{,i} ,Y_i[\psi]  \; dx  = \int_{\Omega}  p \cdot Y^*[\psi]_{,i}  B^r_i \; dx  
+\end{equation}
+and finally
+\begin{equation}\label{ref:MAG:EQU:201a}
+\int_{\Omega}   \frac{\partial J^{mag}}{\partial k} \cdot p \;  dx  = \int_{\Omega}  
+p \cdot (Y^*[\psi]_{,i}  B^r_i - Y_i[\psi] B^b_i) \; dx  
+\end{equation} 
+or 
+\begin{equation}\label{ref:MAG:EQU:201b}
+\frac{\partial J^{mag}}{\partial k} = Y^*[\psi]_{,i}  B^r_i - Y_i[\psi] B^b_i
+\end{equation}
+
+\subsection{Geodetic Coordinates}
+For geodetic coordinates $(\phi, \lambda, h)$, see Chapter~\ref{Chp:ref:coordinates}, the solution process needs to be slightly modified.
+Observations are recorded along the geodetic coordinates axes $\alpha$ rather than the Cartesian axes $i$. In fact we
+have in equation~\ref{ref:MAG:EQU:9}:
+\begin{equation}\label{ref:MAG:EQU:300}
+\omega^{(s)}_i \cdot (B_{i}- B^{(s)}_i) = \omega^{(s)}_{\alpha} \cdot (B_{{\alpha}}- B^{(s)}_{\alpha}) 
+\end{equation} 
+where now $B^{(s)}_{\alpha}$ are the observational data with weighting factors $\omega^{(s)}_{\alpha}$.  Using the 
+fact that $B_{{\alpha}} = k \cdot B^b_{{\alpha}} -d_{\alpha \alpha} \psi_{,\alpha}$ 
+equation~\ref{ref:MAG:EQU:10} translates to 
+\begin{equation}\label{ref:MAG:EQU:301}
+J^{mag}(k) = \frac{1}{2}\sum_{s} \int_{\widehat{\Omega}} 
+( \omega^{(s)}_{\alpha} \cdot (d_{\alpha \alpha}  \psi_{,\alpha} - k \cdot B^b_{{\alpha}}  + B^{(s)}_{\alpha} ) ) ^2 \; v \; d\widehat{x}
+\end{equation} 
+where $\widehat{\Omega}$ and $d\widehat{x}$ refer to integration over the geodetic coordinates axes. This can be rearranged to 
+\begin{equation}\label{ref:MAG:EQU:301bb}
+J^{mag}(k) = \frac{1}{2}\sum_{s} \int_{\widehat{\Omega}} 
+(  \omega^{(s)}_{\alpha} v^{\frac{1}{2}} d_{\alpha \alpha} \cdot ( 
+ \psi_{,\alpha} -  k \cdot v_{\alpha \alpha} B^b_{{\alpha}} + v_{\alpha \alpha} B^{(s)}_{\alpha} ) ) ^2 \; d\widehat{x}
+=\frac{1}{2}\sum_{s} \int_{\widehat{\Omega}} 
+(  {\widehat{\omega}}^{(s)}_{\alpha}\cdot ( \psi_{,\alpha} -  k \cdot \widehat{B}^b_{{\alpha}}+  \widehat{B}^{(s)}_{\alpha} ) ) ^2 \; d\widehat{x}
+\end{equation} 
+with 
+\begin{equation}\label{ref:MAG:EQU:301b}
+ \widehat{\omega}^{(s)}_{\alpha} = \omega^{(s)}_{\alpha} v^{\frac{1}{2}} d_{\alpha \alpha} \mbox{ , }
+\widehat{B}^{(s)}_{\alpha}=
+\frac{1}{d_{\alpha \alpha}} B^{(s)}_{\alpha}  \mbox{ and } \widehat{B}^b_{{\alpha}} = \frac{1}{d_{\alpha \alpha}}  B^b_{{\alpha}} 
+\end{equation} 
+which means one can apply the Cartesian formulation to the geodetic coordinates using modified data. 
+
+
+The magnetic potential is calculated from 
+\begin{equation}\label{ref:MAG:EQU:302}
+\int_{\widehat{\Omega}} v \; d_{\alpha \alpha}^2 q_{,\alpha} \psi_{,\alpha} \;  d\widehat{x}  
+=  \int_{\widehat{\Omega}} v \; d_{\alpha \alpha} k \cdot q_{,\alpha}  B^r_{\alpha} \; d\widehat{x}   
+=  \int_{\widehat{\Omega}}  k \cdot q_{,\alpha}  \widehat{B}^r_{\alpha} \; d\widehat{x}   
+\end{equation} 
+with 
+\begin{equation}\label{ref:MAG:EQU:302b}
+\widehat{B}^r_{\alpha}  =v \; d_{\alpha \alpha} \widehat{B}^r_{\alpha}
+\end{equation} 
+see equation~\ref{ref:MAG:EQU:201}, and the adjoint function $Y^*[\psi]$ for $Y_{\alpha}[\psi]$ is given from
+\begin{equation}\label{ref:MAG:EQU:303}
+\int_{\widehat{\Omega}} v \; d_{\alpha \alpha}^2 q_{,\alpha} Y^*[\psi]_{,\alpha } \;d\widehat{x}  =
+\int_{\widehat{\Omega}} r_{,{\alpha}} ,Y_{\alpha}[\psi]  \;d\widehat{x}
+\end{equation} 
+and finally 
+\begin{equation}\label{ref:MAG:EQU:310}
+\frac{\partial J^{mag}}{\partial k} = Y^*[\psi]_{,{\alpha}}  B^r_{\alpha} - Y_i[\psi] B^b_{\alpha}
+\end{equation} 
+

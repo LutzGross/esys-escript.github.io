@@ -1,0 +1,312 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright (c) 2003-2018 by The University of Queensland
+% http://www.uq.edu.au
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Apache License, version 2.0
+% http://www.apache.org/licenses/LICENSE-2.0
+%
+% Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+% Development 2012-2013 by School of Earth Sciences
+% Development from 2014 by Centre for Geoscience Computing (GeoComp)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Models}
+\label{MODELS CHAPTER}
+
+The following sections give a brief overview of the model classes and their
+corresponding methods.
+
+\input{stokessolver} 
+%\input{darcyfluxNew}
+\input{darcyflux}
+%\input{levelsetmodel}
+
+\section{Isotropic Kelvin Material \label{IKM}}
+As proposed by Kelvin~\cite{Muhlhaus2005} material strain
+$D_{ij}=\frac{1}{2}(v_{i,j}+v_{j,i})$ can be decomposed into an elastic part
+$D_{ij}^{el}$ and a visco-plastic part $D_{ij}^{vp}$:
+\begin{equation}\label{IKM-EQU-2}
+D_{ij}=D_{ij}^{el}+D_{ij}^{vp}
+\end{equation}
+with the elastic strain given as
+\begin{equation}\label{IKM-EQU-3}
+D_{ij}^{el'}=\frac{1}{2 \mu} \dot{\sigma}_{ij}'
+\end{equation}
+where $\sigma'_{ij}$ is the deviatoric stress (notice that $\sigma'_{ii}=0$).
+If the material is composed by materials $q$ the visco-plastic strain can be
+decomposed as
+\begin{equation}\label{IKM-EQU-4}
+D_{ij}^{vp'}=\sum_{q} D_{ij}^{q'} 
+\end{equation}
+where $D_{ij}^{q}$ is the strain in material $q$ given as
+\begin{equation}\label{IKM-EQU-5}
+D_{ij}^{q'}=\frac{1}{2 \eta^{q}} \sigma'_{ij} 
+\end{equation}
+and $\eta^{q}$ is the viscosity of material $q$.
+We assume the following between the strain in material $q$
+\begin{equation}\label{IKM-EQU-5b}
+\eta^{q}=\eta^{q}_{N} \left(\frac{\tau}{\tau_{t}^q}\right)^{1-n^{q}}
+\mbox{ with } \tau=\sqrt{\frac{1}{2}\sigma'_{ij} \sigma'_{ij}}
+\end{equation}
+for given power law coefficients $n^{q}\ge1$ and transition stresses
+$\tau_{t}^q$, see~\cite{Muhlhaus2005}.
+Notice that $n^{q}=1$ gives a constant viscosity.
+After inserting \eqn{IKM-EQU-5} into \eqn{IKM-EQU-4} one gets:
+\begin{equation}\label{IKM-EQU-6}
+D_{ij}'^{vp}=\frac{1}{2 \eta^{vp}} \sigma'_{ij} \mbox{ with } \frac{1}{\eta^{vp}} = \sum_{q} \frac{1}{\eta^{q}} \;.
+\end{equation}
+and finally with~\ref{IKM-EQU-2}
+\begin{equation}\label{IKM-EQU-2bb}
+D_{ij}'=\frac{1}{2 \eta^{vp}} \sigma'_{ij}+\frac{1}{2 \mu} \dot{\sigma}_{ij}'
+\end{equation}
+The total stress $\tau$ needs to fulfill the yield condition\index{yield condition}
+\begin{equation}\label{IKM-EQU-8c}
+\tau \le \tau_{Y} + \beta \; p
+\end{equation}
+with the Drucker-Prager\index{Druck-Prager} cohesion factor\index{cohesion factor}
+$\tau_{Y}$, Drucker-Prager friction $\beta$ and total pressure $p$.
+The deviatoric stress needs to fulfill the equilibrium equation
+\begin{equation}\label{IKM-EQU-1}
+-\sigma'_{ij,j}+p_{,i}=F_{i}
+\end{equation}
+where $F_{j}$ is a given external force. We assume an incompressible medium:
+\begin{equation}\label{IKM-EQU-2bbb}
+-v_{i,i}=0
+\end{equation}
+Natural boundary conditions are taken in the form
+\begin{equation}\label{IKM-EQU-Boundary}
+\sigma'_{ij}n_{j}-n_{i}p=f
+\end{equation}
+which can be overwritten by a constraint
+\begin{equation}\label{IKM-EQU-Boundary0}
+v_{i}(x)=0
+\end{equation}
+where the index $i$ may depend on the location $x$ on the boundary.
+
+\subsection{Solution Method \label{IKM-SOLVE}}
+By using a first order finite difference approximation with step size
+$dt>0$ \eqn{IKM-EQU-3} is transformed to
+\begin{equation}\label{IKM-EQU-3b}
+\dot{\sigma}_{ij}=\frac{1}{dt } \left( \sigma_{ij} - \sigma_{ij}^{-} \right)
+\end{equation}
+and
+\begin{equation}\label{IKM-EQU-2b}
+D_{ij}'=\left(\frac{1}{2 \eta^{vp}} + \frac{1}{2 \mu dt}\right) \sigma_{ij}'-\frac{1}{2 \mu dt } \sigma_{ij}^{-'}
+\end{equation}
+where $\sigma_{ij}^{-}$ is the stress at the previous time step. With
+\begin{equation}\label{IKM-EQU-2c}
+\dot{\gamma} = \sqrt{ 2 \left( D_{ij}' +
+\frac{1}{  2 \mu \; dt} \sigma_{ij}^{-'}\right)^2}
+\end{equation} 
+we have
+\begin{equation}
+\tau = \eta_{eff} \cdot \dot{\gamma}
+\end{equation} 
+where
+\begin{equation}
+\eta_{eff}= min( \left(\frac{1}{\mu \; dt}+\frac{1}{\eta^{vp}}\right)^{-1} 
+, \eta_{max}) \mbox{ with } 
+\eta_{max} = \left\{ 
+\begin{array}{rcl}
+\frac{\tau_{Y} + \beta \; p}{\dot{\gamma}} & & \dot{\gamma}>0 \\
+&\mbox{ if } \\ 
+\infty & & \mbox{otherwise}
+\end{array}
+\right.
+\end{equation}
+The upper bound $\eta_{max}$ makes sure that yield condition~\ref{IKM-EQU-8c}
+holds. With this setting the equation \ref{IKM-EQU-2b} takes the form
+\begin{equation}\label{IKM-EQU-10}
+\sigma_{ij}' =  2 \eta_{eff}  \left( D_{ij}' +
+\frac{1}{  2 \mu \; dt} \sigma_{ij}^{'-}\right)  
+\end{equation}
+After inserting~\ref{IKM-EQU-10} into~\ref{IKM-EQU-1} we get
+\begin{equation}\label{IKM-EQU-1ib}
+-\left(\eta_{eff} (v_{i,j}+ v_{i,j})
+\right)_{,j}+p_{,i}=F_{i}+
+ \left(\frac{\eta_{eff}}{\mu dt } \sigma_{ij}^{'-} \right)_{,j}
+\end{equation}
+Combining this with the incompressibility condition~\ref{IKM-EQU-2} we need to
+solve a Stokes problem as discussed in \Sec{STOKES SOLVE} in each time step.
+
+If we set 
+\begin{equation}\label{IKM-EQU-44}
+\frac{1}{\eta(\tau)}= \frac{1}{\mu \; dt}+\frac{1}{\eta^{vp}}
+\end{equation}
+we need to solve the nonlinear problem
+\begin{equation}
+\eta_{eff} -  min(\eta( \dot{\gamma} \cdot \eta_{eff}) 
+, \eta_{max}) =0 
+\end{equation}
+We use the Newton-Raphson scheme\index{Newton-Raphson scheme} to solve this
+problem:
+\begin{equation}\label{IKM-EQU-45}
+\eta_{eff}^{(n+1)} = \min(\eta_{max}, 
+\eta_{eff}^{(n)} -
+\frac{\eta_{eff}^{(n)} - \eta( \tau^{(n)}) }
+{1-\dot{\gamma} \cdot \eta'( \tau^{(n)} )} )
+=\min(\eta_{max},
+\frac{\eta( \tau^{(n)}) -\tau^{(n)} \cdot  \eta'( \tau^{(n)} )  }
+{1-\dot{\gamma} \cdot \eta'( \tau^{(n)} )} )
+\end{equation} 
+where $\eta'$ denotes the derivative of $\eta$ with respect to $\tau$
+and $\tau^{(n)} = \dot{\gamma} \cdot \eta_{eff}^{(n)}$.
+Looking at the evaluation of $\eta$ in~\ref{IKM-EQU-44} it makes sense to
+formulate the iteration~\ref{IKM-EQU-45} using $\Theta=\eta^{-1}$.
+In fact we have
+\begin{equation}
+\eta' = - \frac{\Theta'}{\Theta^2} 
+\mbox{ with } 
+\Theta' = \sum_{q} \left(\frac{1}{\eta^{q}} \right)'
+\label{IKM iteration 7}
+\end{equation} 
+As
+\begin{equation}\label{IKM-EQU-47}
+\left(\frac{1}{\eta^{q}} \right)'
+= \frac{n^{q}-1}{\eta^{q}_{N}} \cdot \frac{\tau^{n^{q}-2}}{(\tau_{t}^q)^{n^{q}-1}}
+= \frac{n^{q}-1}{\eta^{q}}\cdot\frac{1}{\tau} 
+\end{equation}
+we have
+\begin{equation}\label{IKM-EQU-48}
+\Theta' = \frac{1}{\tau} \omega \mbox{ with } \omega = \sum_{q}\frac{n^{q}-1}{\eta^{q}} 
+\end{equation}
+which leads to
+\begin{equation}\label{IKM-EQU-49}
+\eta_{eff}^{(n+1)} = \min(\eta_{max}, 
+\eta_{eff}^{(n)}
+\frac{\Theta^{(n)}  + \omega^{(n)}  }
+{\eta_{eff}^{(n)} \Theta^{(n)^2}+\omega^{(n)} })
+\end{equation} 
+
+\subsection{Functions}
+
+\begin{classdesc}{IncompressibleIsotropicFlowCartesian}{
+domain
+\optional{, stress=0
+\optional{, v=0
+\optional{, p=0
+\optional{, t=0
+\optional{, numMaterials=1
+\optional{, verbose=True
+\optional{, adaptSubTolerance=True
+}}}}}}}}
+opens an incompressible, isotropic flow problem in Cartesian coordinates on
+the domain \var{domain}.
+\var{stress}, \var{v}, \var{p}, and \var{t} set the initial deviatoric stress,
+velocity, pressure and time.
+\var{numMaterials} specifies the number of materials used in the power law
+model. Some progress information is printed if \var{verbose} is set to \True.
+If \var{adaptSubTolerance} is equal to \True the tolerances for subproblems
+are set automatically.
+
+The domain needs to support LBB compliant elements for the Stokes problem,
+see~\cite{LBB} for details\index{LBB condition}.
+For instance one can use second order polynomials for velocity and first order
+polynomials for the pressure on the same element. Alternatively, one can use
+macro elements\index{macro elements} using linear polynomials for both
+pressure and velocity but with a subdivided element for the velocity.
+Typically, the macro element method is more cost effective.
+The fact that pressure and velocity are represented in different ways is
+expressed by
+\begin{python}
+  velocity=Vector(0.0, Solution(mesh))
+  pressure=Scalar(0.0, ReducedSolution(mesh))
+\end{python}
+\end{classdesc}
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{getDomain}{}
+returns the domain.
+\end{methoddesc}
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{getTime}{}
+returns current time.
+\end{methoddesc}
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{getStress}{}
+returns current stress.
+\end{methoddesc}
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{getDeviatoricStress}{}
+returns current deviatoric stress.
+\end{methoddesc}
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{getPressure}{}
+returns current pressure.
+\end{methoddesc}
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{getVelocity}{}
+returns current velocity.
+\end{methoddesc}
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{getDeviatoricStrain}{}
+returns deviatoric strain of current velocity
+\end{methoddesc}
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{getTau}{}
+returns current second invariant of deviatoric stress
+\end{methoddesc}
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{getGammaDot}{}
+returns current second invariant of deviatoric strain
+\end{methoddesc}
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{setTolerance}{tol=1.e-4}
+sets the tolerance used to terminate the iteration on a time step.
+\end{methoddesc}
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{setFlowTolerance}{tol=1.e-4}
+sets the relative tolerance for the incompressible solver, see
+\class{StokesProblemCartesian} for details.
+\end{methoddesc}
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{setElasticShearModulus}{mu=None}
+sets the elastic shear modulus $\mu$. If \var{mu} is set to None (default)
+elasticity is not applied.
+\end{methoddesc}
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{setEtaTolerance=}{rtol=1.e-8}
+sets the relative tolerance for the effective viscosity. Iteration on a time
+step is completed if the relative of the effective viscosity is less than
+\var{rtol}.
+\end{methoddesc}
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{setDruckerPragerLaw}
+{\optional{tau_Y=None, \optional{friction=None}}}
+sets the parameters $\tau_{Y}$ and $\beta$ for the Drucker-Prager model in
+condition~\ref{IKM-EQU-8c}. If \var{tau_Y} is set to None (default) then the
+Drucker-Prager condition is not applied.
+\end{methoddesc}
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{setElasticShearModulus}{mu=None}
+sets the elastic shear modulus $\mu$. If \var{mu} is set to None (default)
+elasticity is not applied.
+\end{methoddesc}
+
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{setPowerLaws}{eta_N, tau_t, power}
+sets the parameters of the power-law for all materials as defined in \eqn{IKM-EQU-5b}.
+\var{eta_N} is the list of viscosities $\eta^{q}_{N}$,
+\var{tau_t} is the list of reference stresses  $\tau_{t}^q$,
+and \var{power} is the list of power law coefficients $n^{q}$.
+\end{methoddesc}
+
+\begin{methoddesc}[IncompressibleIsotropicFlowCartesian]{update}{dt
+\optional{, iter_max=100
+\optional{, inner_iter_max=20
+}}}
+updates stress, velocity and pressure for time increment \var{dt}, where
+\var{iter_max} is the maximum number of iteration steps on a time step to
+update the effective viscosity and \var{inner_iter_max} is the maximum
+number of iteration steps in the incompressible solver.
+\end{methoddesc}
+
+%\subsection{Example}
+%later
+
+\input{faultsystem}
+
+%\section{Drucker Prager Model}
+
