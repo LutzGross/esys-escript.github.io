@@ -270,6 +270,10 @@ Brick::Brick(dim_t n0, dim_t n1, dim_t n2, double x0, double y0, double z0,
         setTagMap(i->first, i->second);
     }
     addPoints(points, tags);
+
+    //AEAE
+    // setPML(0,0,0,0,0,0);
+    setPML(false,false,false,false,false,false);
 }
 
 Brick::~Brick()
@@ -3984,6 +3988,32 @@ Assembler_ptr Brick::createAssembler(string type, const DataMap& constants) cons
         throw RipleyException("Ripley::Brick does not support the requested "
                               "assembler");
     }
+}
+
+
+//AEAE
+void Brick::setPML(bool North_PML, bool South_PML, bool East_PML, bool West_PML, bool Top_PML, bool Bottom_PML){
+
+
+    pml_info[0][0] = (bool) North_PML;
+    pml_info[0][1] = (bool) South_PML;
+    pml_info[1][0] = (bool) East_PML;
+    pml_info[1][1] = (bool) West_PML;
+    pml_info[2][0] = (bool) Top_PML;
+    pml_info[2][1] = (bool) Bottom_PML;
+}
+
+std::string Brick::getPML(){
+    std::string answer = "";
+    
+    answer += "North: " + std::to_string(pml_info[0][0]) + ", ";
+    answer += "South: " + std::to_string(pml_info[0][1]) + ", ";
+    answer += "East: " + std::to_string(pml_info[1][0]) + ", ";
+    answer += "West: " + std::to_string(pml_info[1][1]) + ", ";
+    answer += "Top: " + std::to_string(pml_info[2][0]) + ", ";
+    answer += "Bottom: " + std::to_string(pml_info[2][1]) + ".";
+
+    return answer;
 }
 
 } // end of namespace ripley

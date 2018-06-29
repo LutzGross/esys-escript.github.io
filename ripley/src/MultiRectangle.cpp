@@ -38,7 +38,6 @@ namespace ripley {
 
 MultiRectangle::MultiRectangle(dim_t n0, dim_t n1, double x0, double y0,
                      double x1, double y1, int d0, int d1,
-                     bool pmlx0, bool pmlx1, bool pmly0, bool pmly1, // AEAE
                      const vector<double>& points,
                      const vector<int>& tags,
                      const TagMap& tagnamestonums,
@@ -50,12 +49,6 @@ MultiRectangle::MultiRectangle(dim_t n0, dim_t n1, double x0, double y0,
         throw RipleyException("Element subdivisions must be a power of two");
 
     dim_t oldNN[2] = {0};
-
-    // PMLs are off by default // AEAE
-    pmlx0 = false;
-    pmlx1 = false;
-    pmly0 = false;
-    pmly1 = false;
 
     if (d0 == 0 || d1 == 0)
         throw RipleyException("Domain subdivisions must be positive");
@@ -82,6 +75,9 @@ MultiRectangle::MultiRectangle(dim_t n0, dim_t n1, double x0, double y0,
         m_diracPoints[i].node = INDEX2(x*subdivisions, y*subdivisions, m_NN[0]);
         m_diracPointNodeIDs[i] = m_diracPoints[i].node;
     }
+
+    //AEAE
+    // setPML(false, false, false, false, false, false);
 }
 
 MultiRectangle::~MultiRectangle()
@@ -1040,6 +1036,7 @@ dim_t MultiRectangle::findNode(const double *coords) const
     }
     return closest;
 }
+
 
 } // end of namespace ripley
 

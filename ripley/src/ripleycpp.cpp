@@ -402,7 +402,7 @@ escript::Domain_ptr _multirectangle(double _n0, double _n1, const object& l0,
     }
     if (numtags != numpts)
         throw RipleyException("Number of tags does not match number of points.");
-    return escript::Domain_ptr(new MultiRectangle(n0,n1, x0,y0, x1,y1, d0,d1, false, false, false, false, //AEAE
+    return escript::Domain_ptr(new MultiRectangle(n0,n1, x0,y0, x1,y1, d0,d1, 
                                  points, tags, tagstonames, world, multiplier));
 }
 
@@ -686,7 +686,14 @@ BOOST_PYTHON_MODULE(ripleycpp)
         .def("getMPISize",&ripley::RipleyDomain::getMPISize,":return: the number of processes used for this `Domain`\n:rtype: ``int``")
         .def("getMPIRank",&ripley::RipleyDomain::getMPIRank,":return: the rank of this process\n:rtype: ``int``")
         .def("MPIBarrier",&ripley::RipleyDomain::MPIBarrier,"Wait until all processes have reached this point")
-        .def("onMasterProcessor",&ripley::RipleyDomain::onMasterProcessor,":return: True if this code is executing on the master process\n:rtype: `bool`");
+        .def("onMasterProcessor",&ripley::RipleyDomain::onMasterProcessor,":return: True if this code is executing on the master process\n:rtype: `bool`")
+
+        //AEAE
+        .def("getPMLInfo",&ripley::RipleyDomain::getPML,":return: Prints the current PML param to screen.")
+        .def("setPML",&ripley::RipleyDomain::setPML,
+            (arg("North_PML")=false,arg("South_PML")=false,arg("East_PML")=false,arg("West_PML")=false,arg("Top_PML")=false,arg("Bottom_PML")=false)
+            ,":param: Set the PML parameter.");
+
     // These two class exports are necessary to ensure that the extra methods
     // added by ripley make it to python. This change became necessary when
     // the Brick and Rectangle constructors turned into factories instead of
