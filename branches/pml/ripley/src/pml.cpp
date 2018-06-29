@@ -17,6 +17,8 @@ This file contains the additional information used to implement perfectly matche
 layers in the code.
 */
 
+int autoWidth(int n0, int d0);
+int autoMax(int n0, int d0, int w);
 
 // Sigma function
 float sigma(int n, int n0, int d0, int w, int maxSigma){

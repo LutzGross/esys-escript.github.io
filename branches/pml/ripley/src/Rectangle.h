@@ -217,6 +217,12 @@ public:
     */
     virtual RankVector getOwnerVector(int fsType) const;
 
+    //AEAE
+    std::string getPML();
+    void setPML(bool North_PML, bool South_PML, bool East_PML, bool West_PML, bool Top_PML, bool Bottom_PML);
+    bool pml_info[2][2];
+
+
 protected:
     virtual dim_t getNumNodes() const;
     virtual dim_t getNumElements() const;

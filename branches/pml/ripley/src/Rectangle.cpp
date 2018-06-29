@@ -234,6 +234,10 @@ Rectangle::Rectangle(dim_t n0, dim_t n1, double x0, double y0, double x1,
         setTagMap(i->first, i->second);
     }
     addPoints(points, tags);
+
+    //AEAE
+    setPML(false,false,false,false,false,false);
+    // setPML(0,0,0,0,0,0);
 }
 
 Rectangle::~Rectangle()
@@ -2812,6 +2816,32 @@ Assembler_ptr Rectangle::createAssembler(string type,
     throw NotImplementedError("Ripley::Rectangle does not support the"
                               " requested assembler");
 }
+
+
+//AEAE
+
+void Rectangle::setPML(bool North_PML, bool South_PML, bool East_PML, bool West_PML, bool Top_PML, bool Bottom_PML){
+    if(Top_PML || Bottom_PML){
+        throw RipleyException("RipleyDomain::setPML - Check input.");
+    }
+
+    pml_info[0][0] = (bool) North_PML;
+    pml_info[0][1] = (bool) South_PML;
+    pml_info[1][0] = (bool) East_PML;
+    pml_info[1][1] = (bool) West_PML;
+}
+
+std::string Rectangle::getPML(){
+    std::string answer = "";
+    
+    answer += "North: " + std::to_string(pml_info[0][0]) + ", ";
+    answer += "South: " + std::to_string(pml_info[0][1]) + ", ";
+    answer += "East: " + std::to_string(pml_info[1][0]) + ", ";
+    answer += "West: " + std::to_string(pml_info[1][1]) + ".";
+
+    return answer;
+}
+
 
 } // end of namespace ripley
 

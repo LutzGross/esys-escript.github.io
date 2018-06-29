@@ -87,7 +87,7 @@ MultiBrick::MultiBrick(dim_t n0, dim_t n1, dim_t n2, double x0, double y0, doubl
     m_offset[1] = m_gNE[1]*subdivisions/d1*(m_mpiInfo->rank/d0);
     m_offset[2] = m_gNE[2]*subdivisions/d2*(m_mpiInfo->rank/(d0*d1));
     populateSampleIds();
-    
+
     const dim_t nDirac = m_diracPoints.size();
 #pragma omp parallel for
     for (int i = 0; i < nDirac; i++) {

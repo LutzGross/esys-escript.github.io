@@ -1068,6 +1068,18 @@ Assembler_ptr RipleyDomain::createAssemblerFromPython(const string type,
     return createAssembler(type, mapping);
 }
 
+//AEAE
+std::string RipleyDomain::getPML() 
+{
+    throw RipleyException("RipleyDomain::getPML - not supported on base RipleyDomain.");
+}
+
+void RipleyDomain::setPML(bool North_PML, bool South_PML, bool East_PML, bool West_PML, bool Top_PML, bool Bottom_PML)
+{
+    throw RipleyException("RipleyDomain::setPML - not supported on base RipleyDomain.");
+}
+
+
 void RipleyDomain::addToRHSFromPython(escript::Data& rhs, const bp::list& data,
                                       Assembler_ptr assembler) const
 {
