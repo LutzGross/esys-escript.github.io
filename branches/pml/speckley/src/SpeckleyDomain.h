@@ -727,6 +727,16 @@ public:
     */
     inline int getOrder() const { return m_order;}
 
+    //AEAE
+    /**
+      \brief
+      PML functionality
+    */
+    virtual void set_PML(std::vector<bool> new_pml_settings);
+    virtual std::string get_PML_info();
+    void setPMLwrapper(bool North, bool South, bool West, bool East);
+    virtual void setPMLwidth(int width);
+
 protected:
     int m_numDim;
     StatusType m_status;

@@ -178,7 +178,6 @@ Rectangle::Rectangle(int order, dim_t n0, dim_t n1, double x0, double y0, double
     }
     addPoints(points, tags);
     
-
 #ifdef USE_RIPLEY
     coupler = NULL;
 #endif
@@ -1944,6 +1943,26 @@ void Rectangle::interpolateAcross(escript::Data& target, const escript::Data& so
 #else
     throw SpeckleyException("Speckley::Rectangle interpolation to unsupported domain");
 #endif
+}
+
+
+//AEAE
+void Rectangle::set_PML(std::vector<bool> new_pml_settings){
+
+    pml_settings.set_on(new_pml_settings);
+
+}
+
+std::string Rectangle::get_PML_info(){
+
+    return pml_settings.print_info();
+    
+}
+
+void Rectangle::setPMLwidth(int width){
+
+    pml_settings.set_width(width, m_gNE[0]*m_gNE[1], m_NX[0]*m_NX[1]);
+
 }
 
 } // end of namespace speckley

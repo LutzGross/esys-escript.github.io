@@ -456,7 +456,15 @@ args("options"),
         .def("getMPISize",&speckley::SpeckleyDomain::getMPISize,":return: the number of processes used for this `Domain`\n:rtype: ``int``")
         .def("getMPIRank",&speckley::SpeckleyDomain::getMPIRank,":return: the rank of this process\n:rtype: ``int``")
         .def("MPIBarrier",&speckley::SpeckleyDomain::MPIBarrier,"Wait until all processes have reached this point")
-        .def("onMasterProcessor",&speckley::SpeckleyDomain::onMasterProcessor,":return: True if this code is executing on the master process\n:rtype: `bool`");
+        .def("onMasterProcessor",&speckley::SpeckleyDomain::onMasterProcessor,":return: True if this code is executing on the master process\n:rtype: `bool`")
+
+        //AEAE
+        .def("getPMLinfo",&speckley::SpeckleyDomain::get_PML_info,"return: Prints the current PML settings to the console")
+        .def("setPML",&speckley::SpeckleyDomain::setPMLwrapper, (arg("North")=false,arg("South")=false,arg("West")=false,arg("East")=false),
+            "param: Sets the PML on/off on each boundary")
+        .def("setPMLWidth",&speckley::SpeckleyDomain::setPMLwidth, arg("width")=0,"param: Sets the width of the PML");
+
+
     /* These two class exports are necessary to ensure that the extra methods added by speckley make it to python.
      * This change became necessary when the Brick and Rectangle constructors turned into factories instead of classes */
     class_<speckley::Brick, bases<speckley::SpeckleyDomain> >("SpeckleyBrick", "", no_init);

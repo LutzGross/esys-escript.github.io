@@ -22,6 +22,7 @@ cxx_extra = '-Wno-literal-suffix'
 openmp = True
 #mpi = 'OPENMPI'
 #trilinos = True
+debug = True
 
 import os
 

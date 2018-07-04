@@ -18,6 +18,7 @@
 #define __SPECKLEY_RECTANGLE_H__
 
 #include <speckley/SpeckleyDomain.h>
+#include <speckley/pml.h>
 
 namespace speckley {
 
@@ -219,6 +220,12 @@ public:
     */
     const double *getLength() const { return m_length; }
 
+    //AEAE
+    void set_PML(std::vector<bool> new_pml_settings);
+    std::string get_PML_info();
+    void setPMLwidth(int width);
+
+
 protected:
     virtual dim_t getNumNodes() const;
     virtual dim_t getNumElements() const;
@@ -369,6 +376,9 @@ private:
 
     /// grid spacings / cell sizes of domain
     double m_dx[2];
+
+    //AEAE
+    pml_class pml_settings;
 
     /// number of spatial subdivisions
     int m_NX[2];
