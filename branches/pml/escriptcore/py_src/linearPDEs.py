@@ -131,6 +131,7 @@ class PDECoef(object):
     CONTACT_REDUCED=15
     DIRACDELTA=16
 
+    #@profile
     def __init__(self, where, pattern, altering, isComplex=False):
        """
        Initialises a PDE coefficient type.
@@ -164,18 +165,21 @@ class PDECoef(object):
        self.__complex = isComplex
        self.resetValue()
 
+    #@profile
     def isComplex(self):
         """
         Returns true if the coefficient is complex
         """
         return self.__complex
 
+    #@profile
     def resetValue(self):
        """
        Resets the coefficient value to the default.
        """
        self.value=escore.Data()
 
+    #@profile
     def getFunctionSpace(self,domain,reducedEquationOrder=False,reducedSolutionOrder=False):
        """
        Returns the `FunctionSpace` of the coefficient.
@@ -213,6 +217,7 @@ class PDECoef(object):
        elif self.what==self.REDUCED:
             return escore.ReducedSolution(domain)
 
+    #@profile
     def getValue(self):
        """
        Returns the value of the coefficient.
@@ -222,6 +227,7 @@ class PDECoef(object):
        """
        return self.value
 
+    #@profile
     def setValue(self,domain,numEquations=1,numSolutions=1,reducedEquationOrder=False,reducedSolutionOrder=False,newValue=None):
        """
        Sets the value of the coefficient to a new value.
@@ -279,6 +285,7 @@ class PDECoef(object):
                newValue.promote()
        self.value = newValue
 
+    #@profile
     def isAlteringOperator(self):
         """
         Checks if the coefficient alters the operator of the PDE.
@@ -292,6 +299,7 @@ class PDECoef(object):
         else:
             return None
 
+    #@profile
     def isAlteringRightHandSide(self):
         """
         Checks if the coefficient alters the right hand side of the PDE.
@@ -305,6 +313,7 @@ class PDECoef(object):
         else:
             return None
 
+    #@profile
     def isComplex(self):
         """
         Checks if the coefficient is complex-valued.
@@ -314,6 +323,7 @@ class PDECoef(object):
         """
         return self.__complex
 
+    #@profile
     def estimateNumEquationsAndNumSolutions(self,domain,shape=()):
        """
        Tries to estimate the number of equations and number of solutions if
@@ -362,6 +372,7 @@ class PDECoef(object):
                  if s==shape: return (None,u)
        return None
 
+    #@profile
     def definesNumSolutions(self):
        """
        Checks if the coefficient allows to estimate the number of solution
@@ -375,6 +386,7 @@ class PDECoef(object):
              if i==self.BY_SOLUTION: return True
        return False
 
+    #@profile
     def definesNumEquation(self):
        """
        Checks if the coefficient allows to estimate the number of equations.
@@ -387,6 +399,7 @@ class PDECoef(object):
              if i==self.BY_EQUATION: return True
        return False
 
+    #@profile
     def __CompTuple2(self,t1,t2):
       """
       Compares two tuples of possible number of equations and number of
@@ -402,6 +415,7 @@ class PDECoef(object):
       elif dif>0: return -1
       else: return 0
 
+    #@profile
     def getShape(self,domain,numEquations=1,numSolutions=1):
        """
        Builds the required shape of the coefficient.
@@ -444,7 +458,9 @@ class LinearProblem(object):
    problem will be solved to get the unknown *u*.
 
    """
-   def __init__(self,domain,numEquations=None,numSolutions=None,isComplex=False,debug=False):
+
+  #@profile
+  def __init__(self,domain,numEquations=None,numSolutions=None,isComplex=False,debug=False):
      """
      Initializes a linear problem.
 
@@ -493,7 +509,9 @@ class LinearProblem(object):
    # ==========================================================================
    #    general stuff:
    # ==========================================================================
-   def __str__(self):
+
+  #@profile
+  def __str__(self):
      """
      Returns a string representation of the PDE.
 
@@ -505,19 +523,22 @@ class LinearProblem(object):
    # ==========================================================================
    #    debug :
    # ==========================================================================
-   def setDebugOn(self):
+  #@profile
+  def setDebugOn(self):
      """
      Switches debug output on.
      """
      self.__debug=not None
 
-   def setDebugOff(self):
+  #@profile
+  def setDebugOff(self):
      """
      Switches debug output off.
      """
      self.__debug=None
 
-   def setDebug(self, flag):
+  #@profile
+  def setDebug(self, flag):
      """
      Switches debug output on if ``flag`` is True otherwise it is switched off.
 
@@ -529,7 +550,8 @@ class LinearProblem(object):
      else:
          self.setDebugOff()
 
-   def trace(self,text):
+  #@profile
+  def trace(self,text):
      """
      Prints the text message if debug mode is switched on.
 
@@ -541,7 +563,8 @@ class LinearProblem(object):
    # ==========================================================================
    # some service functions:
    # ==========================================================================
-   def introduceCoefficients(self,**coeff):
+  #@profile
+  def introduceCoefficients(self,**coeff):
        """
        Introduces new coefficients into the problem.
 
@@ -558,7 +581,8 @@ class LinearProblem(object):
            self.__COEFFICIENTS[name].resetValue()
            self.trace("coefficient %s has been introduced."%name)
 
-   def resetRightHandSideCoefficients(self):
+  #@profile
+  def resetRightHandSideCoefficients(self):
        """
        Resets all coefficients defining the right hand side
        """
@@ -567,7 +591,8 @@ class LinearProblem(object):
               self.__COEFFICIENTS[name].resetValue()
               self.trace("coefficient %s has been reset."%name)
 
-   def getDomain(self):
+  #@profile
+  def getDomain(self):
      """
      Returns the domain of the PDE.
 
@@ -576,19 +601,22 @@ class LinearProblem(object):
      """
      return self.__domain
 
-   def getDomainStatus(self):
+  #@profile
+  def getDomainStatus(self):
      """
      Return the status indicator of the domain
      """
      return self.getDomain().getStatus()
 
-   def getSystemStatus(self):
+  #@profile
+  def getSystemStatus(self):
      """
      Return the domain status used to build the current system
      """
      return self.__system_status
 
-   def setSystemStatus(self,status=None):
+  #@profile
+  def setSystemStatus(self,status=None):
      """
      Sets the system status to ``status`` if ``status`` is not present the
      current status of the domain is used.
@@ -598,7 +626,8 @@ class LinearProblem(object):
      else:
          self.__system_status=status
 
-   def getDim(self):
+  #@profile
+  def getDim(self):
      """
      Returns the spatial dimension of the PDE.
 
@@ -607,7 +636,8 @@ class LinearProblem(object):
      """
      return self.getDomain().getDim()
 
-   def getNumEquations(self):
+  #@profile
+  def getNumEquations(self):
      """
      Returns the number of equations.
 
@@ -622,7 +652,8 @@ class LinearProblem(object):
             self.__numEquations=self.__numSolutions
      return self.__numEquations
 
-   def getNumSolutions(self):
+  #@profile
+  def getNumSolutions(self):
      """
      Returns the number of unknowns.
 
@@ -637,7 +668,8 @@ class LinearProblem(object):
             self.__numSolutions=self.__numEquations
      return self.__numSolutions
 
-   def reduceEquationOrder(self):
+  #@profile
+  def reduceEquationOrder(self):
      """
      Returns the status of order reduction for the equation.
 
@@ -647,7 +679,8 @@ class LinearProblem(object):
      """
      return self.__reduce_equation_order
 
-   def reduceSolutionOrder(self):
+  #@profile
+  def reduceSolutionOrder(self):
      """
      Returns the status of order reduction for the solution.
 
@@ -657,7 +690,8 @@ class LinearProblem(object):
      """
      return self.__reduce_solution_order
 
-   def getFunctionSpaceForEquation(self):
+  #@profile
+  def getFunctionSpaceForEquation(self):
      """
      Returns the `FunctionSpace` used to discretize
      the equation.
@@ -670,7 +704,8 @@ class LinearProblem(object):
      else:
          return escore.Solution(self.getDomain())
 
-   def getFunctionSpaceForSolution(self):
+  #@profile
+  def getFunctionSpaceForSolution(self):
      """
      Returns the `FunctionSpace` used to represent
      the solution.
@@ -686,7 +721,8 @@ class LinearProblem(object):
    # ==========================================================================
    #   solver settings:
    # ==========================================================================
-   def setSolverOptions(self,options=None):
+  #@profile
+  def setSolverOptions(self,options=None):
        """
        Sets the solver options.
 
@@ -703,7 +739,8 @@ class LinearProblem(object):
        self.__solver_options.setComplex(self.isComplex())
        self.__solver_options.setSymmetry(self.__sym)
 
-   def getSolverOptions(self):
+  #@profile
+  def getSolverOptions(self):
        """
        Returns the solver options
 
@@ -712,7 +749,8 @@ class LinearProblem(object):
        self.__solver_options.setSymmetry(self.__sym)
        return self.__solver_options
 
-   def isUsingLumping(self):
+  #@profile
+  def isUsingLumping(self):
       """
       Checks if matrix lumping is the current solver method.
 
@@ -721,7 +759,8 @@ class LinearProblem(object):
       """
       return self.getSolverOptions().getSolverMethod() in [ SolverOptions.ROWSUM_LUMPING, SolverOptions.HRZ_LUMPING ]
 
-   def isComplex(self):
+  #@profile
+  def isComplex(self):
        """
        Returns true if this is a complex-valued LinearProblem, false if
        real-valued.
@@ -730,7 +769,8 @@ class LinearProblem(object):
        """
        return self.__complex
 
-   def shouldPreservePreconditioner(self):
+  #@profile
+  def shouldPreservePreconditioner(self):
        """
        Returns true if the preconditioner / factorisation should be kept even
        when resetting the operator.
@@ -739,7 +779,8 @@ class LinearProblem(object):
        """
        return self.__preservePreconditioner
 
-   def preservePreconditioner(self, preserve = True):
+  #@profile
+  def preservePreconditioner(self, preserve = True):
        """
        Notifies the PDE that the preconditioner should not be reset when
        making changes to the operator.
@@ -760,7 +801,8 @@ class LinearProblem(object):
    # ==========================================================================
    #    symmetry  flag:
    # ==========================================================================
-   def isSymmetric(self):
+  #@profile
+  def isSymmetric(self):
       """
       Checks if symmetry is indicated.
 
@@ -770,7 +812,8 @@ class LinearProblem(object):
       """
       self.getSolverOptions().isSymmetric()
 
-   def setSymmetryOn(self):
+  #@profile
+  def setSymmetryOn(self):
       """
       Sets the symmetry flag.
       :note: The method overwrites the symmetry flag set by the solver options
@@ -778,7 +821,8 @@ class LinearProblem(object):
       self.__sym=True
       self.getSolverOptions().setSymmetryOn()
 
-   def setSymmetryOff(self):
+  #@profile
+  def setSymmetryOff(self):
       """
       Clears the symmetry flag.
       :note: The method overwrites the symmetry flag set by the solver options
@@ -786,7 +830,8 @@ class LinearProblem(object):
       self.__sym=False
       self.getSolverOptions().setSymmetryOff()
 
-   def setSymmetry(self,flag=False):
+  #@profile
+  def setSymmetry(self,flag=False):
       """
       Sets the symmetry flag to ``flag``.
 
@@ -799,7 +844,8 @@ class LinearProblem(object):
    # ==========================================================================
    # function space handling for the equation as well as the solution
    # ==========================================================================
-   def setReducedOrderOn(self):
+  #@profile
+  def setReducedOrderOn(self):
      """
      Switches reduced order on for solution and equation representation.
 
@@ -809,7 +855,8 @@ class LinearProblem(object):
      self.setReducedOrderForSolutionOn()
      self.setReducedOrderForEquationOn()
 
-   def setReducedOrderOff(self):
+  #@profile
+  def setReducedOrderOff(self):
      """
      Switches reduced order off for solution and equation representation
 
@@ -819,7 +866,8 @@ class LinearProblem(object):
      self.setReducedOrderForSolutionOff()
      self.setReducedOrderForEquationOff()
 
-   def setReducedOrderTo(self,flag=False):
+  #@profile
+  def setReducedOrderTo(self,flag=False):
      """
      Sets order reduction state for both solution and equation representation
      according to flag.
@@ -834,7 +882,8 @@ class LinearProblem(object):
      self.setReducedOrderForSolutionTo(flag)
      self.setReducedOrderForEquationTo(flag)
 
-   def setReducedOrderForSolutionOn(self):
+  #@profile
+  def setReducedOrderForSolutionOn(self):
      """
      Switches reduced order on for solution representation.
 
@@ -848,7 +897,8 @@ class LinearProblem(object):
          self.__reduce_solution_order=True
          self.initializeSystem()
 
-   def setReducedOrderForSolutionOff(self):
+  #@profile
+  def setReducedOrderForSolutionOff(self):
      """
      Switches reduced order off for solution representation
 
@@ -862,7 +912,8 @@ class LinearProblem(object):
          self.__reduce_solution_order=False
          self.initializeSystem()
 
-   def setReducedOrderForSolutionTo(self,flag=False):
+  #@profile
+  def setReducedOrderForSolutionTo(self,flag=False):
      """
      Sets order reduction state for solution representation according to flag.
 
@@ -878,7 +929,8 @@ class LinearProblem(object):
      else:
         self.setReducedOrderForSolutionOff()
 
-   def setReducedOrderForEquationOn(self):
+  #@profile
+  def setReducedOrderForEquationOn(self):
      """
      Switches reduced order on for equation representation.
 
@@ -892,7 +944,8 @@ class LinearProblem(object):
          self.__reduce_equation_order=True
          self.initializeSystem()
 
-   def setReducedOrderForEquationOff(self):
+  #@profile
+  def setReducedOrderForEquationOff(self):
      """
      Switches reduced order off for equation representation.
 
@@ -906,7 +959,8 @@ class LinearProblem(object):
          self.__reduce_equation_order=False
          self.initializeSystem()
 
-   def setReducedOrderForEquationTo(self,flag=False):
+  #@profile
+  def setReducedOrderForEquationTo(self,flag=False):
      """
      Sets order reduction state for equation representation according to flag.
 
@@ -922,13 +976,15 @@ class LinearProblem(object):
      else:
         self.setReducedOrderForEquationOff()
 
-   def getOperatorType(self):
+  #@profile
+  def getOperatorType(self):
       """
       Returns the current system type.
       """
       return self.__operator_type
 
-   def checkSymmetricTensor(self,name,verbose=True):
+  #@profile
+  def checkSymmetricTensor(self,name,verbose=True):
       """
       Tests a coefficient for symmetry.
 
@@ -975,7 +1031,8 @@ class LinearProblem(object):
              raise ValueError("Cannot check rank %s of %s."%(A.getRank(),name))
       return out
 
-   def checkReciprocalSymmetry(self,name0,name1,verbose=True):
+  #@profile
+  def checkReciprocalSymmetry(self,name0,name1,verbose=True):
       """
       Tests two coefficients for reciprocal symmetry.
 
@@ -1035,7 +1092,8 @@ class LinearProblem(object):
                  raise ValueError("Cannot check rank %s of %s and %s."%(len(sB),name0,name1))
       return out
 
-   def getCoefficient(self,name):
+  #@profile
+  def getCoefficient(self,name):
      """
      Returns the value of the coefficient ``name``.
 
@@ -1050,7 +1108,8 @@ class LinearProblem(object):
      else:
         raise IllegalCoefficient("illegal coefficient %s requested for general PDE."%name)
 
-   def hasCoefficient(self,name):
+  #@profile
+  def hasCoefficient(self,name):
      """
      Returns True if ``name`` is the name of a coefficient.
 
@@ -1062,7 +1121,8 @@ class LinearProblem(object):
      """
      return name in self.__COEFFICIENTS
 
-   def createCoefficient(self, name):
+  #@profile
+  def createCoefficient(self, name):
      """
      Creates a `Data` object corresponding to coefficient
      ``name``.
@@ -1077,7 +1137,8 @@ class LinearProblem(object):
      else:
         raise IllegalCoefficient("illegal coefficient %s requested for general PDE."%name)
 
-   def getFunctionSpaceForCoefficient(self,name):
+  #@profile
+  def getFunctionSpaceForCoefficient(self,name):
      """
      Returns the `FunctionSpace` to be used for
      coefficient ``name``.
@@ -1093,7 +1154,8 @@ class LinearProblem(object):
      else:
         raise ValueError("unknown coefficient %s requested"%name)
 
-   def getShapeOfCoefficient(self,name):
+  #@profile
+  def getShapeOfCoefficient(self,name):
      """
      Returns the shape of the coefficient ``name``.
 
@@ -1108,14 +1170,16 @@ class LinearProblem(object):
      else:
         raise IllegalCoefficient("illegal coefficient %s requested for general PDE."%name)
 
-   def resetAllCoefficients(self):
+  #@profile
+  def resetAllCoefficients(self):
      """
      Resets all coefficients to their default values.
      """
      for i in sorted(self.__COEFFICIENTS.keys()):
          self.__COEFFICIENTS[i].resetValue()
 
-   def alteredCoefficient(self,name):
+  #@profile
+  def alteredCoefficient(self,name):
      """
      Announces that coefficient ``name`` has been changed.
 
@@ -1133,20 +1197,23 @@ class LinearProblem(object):
      else:
         raise IllegalCoefficient("illegal coefficient %s requested for general PDE."%name)
 
-   def validSolution(self):
+  #@profile
+  def validSolution(self):
        """
        Marks the solution as valid.
        """
        self.__is_solution_valid=True
 
-   def invalidateSolution(self):
+  #@profile
+  def invalidateSolution(self):
        """
        Indicates the PDE has to be resolved if the solution is requested.
        """
        self.trace("System will be resolved.")
        self.__is_solution_valid=False
 
-   def isSolutionValid(self):
+  #@profile
+  def isSolutionValid(self):
        """
        Returns True if the solution is still valid.
        """
@@ -1156,13 +1223,15 @@ class LinearProblem(object):
             self.invalidateSolution()
        return self.__is_solution_valid
 
-   def validOperator(self):
+  #@profile
+  def validOperator(self):
        """
        Marks the operator as valid.
        """
        self.__is_operator_valid=True
 
-   def invalidateOperator(self):
+  #@profile
+  def invalidateOperator(self):
        """
        Indicates the operator has to be rebuilt next time it is used.
        """
@@ -1170,7 +1239,8 @@ class LinearProblem(object):
        self.invalidateSolution()
        self.__is_operator_valid=False
 
-   def isOperatorValid(self):
+  #@profile
+  def isOperatorValid(self):
        """
        Returns True if the operator is still valid.
        """
@@ -1178,13 +1248,15 @@ class LinearProblem(object):
        if not self.getRequiredOperatorType()==self.getOperatorType(): self.invalidateOperator()
        return self.__is_operator_valid
 
-   def validRightHandSide(self):
+  #@profile
+  def validRightHandSide(self):
        """
        Marks the right hand side as valid.
        """
        self.__is_RHS_valid=True
 
-   def invalidateRightHandSide(self):
+  #@profile
+  def invalidateRightHandSide(self):
        """
        Indicates the right hand side has to be rebuilt next time it is used.
        """
@@ -1192,14 +1264,16 @@ class LinearProblem(object):
        self.invalidateSolution()
        self.__is_RHS_valid=False
 
-   def isRightHandSideValid(self):
+  #@profile
+  def isRightHandSideValid(self):
        """
        Returns True if the operator is still valid.
        """
        if not self.getDomainStatus()==self.getSystemStatus(): self.invalidateRightHandSide()
        return self.__is_RHS_valid
 
-   def invalidateSystem(self):
+  #@profile
+  def invalidateSystem(self):
        """
        Announces that everything has to be rebuilt.
        """
@@ -1207,13 +1281,15 @@ class LinearProblem(object):
        self.invalidateOperator()
        self.invalidateRightHandSide()
 
-   def isSystemValid(self):
+  #@profile
+  def isSystemValid(self):
        """
        Returns True if the system (including solution) is still vaild.
        """
        return self.isSolutionValid() and self.isOperatorValid() and self.isRightHandSideValid()
 
-   def initializeSystem(self):
+  #@profile
+  def initializeSystem(self):
        """
        Resets the system clearing the operator, right hand side and solution.
        """
@@ -1225,7 +1301,8 @@ class LinearProblem(object):
        self.__solution=escore.Data()
        self.invalidateSystem()
 
-   def getOperator(self):
+  #@profile
+  def getOperator(self):
      """
      Returns the operator of the linear problem.
 
@@ -1233,7 +1310,8 @@ class LinearProblem(object):
      """
      return self.getSystem()[0]
 
-   def getRightHandSide(self):
+  #@profile
+  def getRightHandSide(self):
      """
      Returns the right hand side of the linear problem.
 
@@ -1242,7 +1320,8 @@ class LinearProblem(object):
      """
      return self.getSystem()[1]
 
-   def createRightHandSide(self):
+  #@profile
+  def createRightHandSide(self):
        """
        Returns an instance of a new right hand side.
        """
@@ -1253,7 +1332,8 @@ class LinearProblem(object):
        else:
            return escore.Data(zero,(),self.getFunctionSpaceForEquation(),True)
 
-   def createSolution(self):
+  #@profile
+  def createSolution(self):
        """
        Returns an instance of a new solution.
        """
@@ -1264,7 +1344,8 @@ class LinearProblem(object):
        else:
            return escore.Data(zero,(),self.getFunctionSpaceForSolution(),True)
 
-   def resetSolution(self):
+  #@profile
+  def resetSolution(self):
        """
        Sets the solution to zero.
        """
@@ -1274,7 +1355,8 @@ class LinearProblem(object):
            self.__solution.setToZero()
            self.trace("Solution is reset to zero.")
 
-   def setSolution(self,u, validate=True):
+  #@profile
+  def setSolution(self,u, validate=True):
        """
        Sets the solution assuming that makes the system valid with the tolrance
        defined by the solver options
@@ -1285,14 +1367,16 @@ class LinearProblem(object):
           self.validSolution()
        self.__solution=u
 
-   def getCurrentSolution(self):
+  #@profile
+  def getCurrentSolution(self):
        """
        Returns the solution in its current state.
        """
        if self.__solution.isEmpty(): self.__solution=self.createSolution()
        return self.__solution
 
-   def resetRightHandSide(self):
+  #@profile
+  def resetRightHandSide(self):
        """
        Sets the right hand side to zero.
        """
@@ -1302,14 +1386,16 @@ class LinearProblem(object):
            self.__righthandside.setToZero()
            self.trace("Right hand side is reset to zero.")
 
-   def getCurrentRightHandSide(self):
+  #@profile
+  def getCurrentRightHandSide(self):
        """
        Returns the right hand side in its current state.
        """
        if self.__righthandside.isEmpty(): self.__righthandside=self.createRightHandSide()
        return self.__righthandside
 
-   def resetOperator(self):
+  #@profile
+  def resetOperator(self):
        """
        Makes sure that the operator is instantiated and returns it initialized
        with zeros.
@@ -1331,13 +1417,15 @@ class LinearProblem(object):
                    self.__operator_type=self.getRequiredOperatorType()
            self.trace("Operator reset to zero")
 
-   def getCurrentOperator(self):
+  #@profile
+  def getCurrentOperator(self):
        """
        Returns the operator in its current state.
        """
        return self.__operator
 
-   def setValue(self,**coefficients):
+  #@profile
+  def setValue(self,**coefficients):
       """
       Sets new values to coefficients.
 
@@ -1396,7 +1484,8 @@ class LinearProblem(object):
    # methods that are typically overwritten when implementing a particular
    # linear problem
    # ==========================================================================
-   def getRequiredOperatorType(self):
+  #@profile
+  def getRequiredOperatorType(self):
       """
       Returns the system type which needs to be used by the current set up.
 
@@ -1405,7 +1494,8 @@ class LinearProblem(object):
       """
       return None
 
-   def createOperator(self):
+  #@profile
+  def createOperator(self):
        """
        Returns an instance of a new operator.
 
@@ -1414,7 +1504,8 @@ class LinearProblem(object):
        """
        return escore.Operator()
 
-   def checkSymmetry(self,verbose=True):
+  #@profile
+  def checkSymmetry(self,verbose=True):
       """
       Tests the PDE for symmetry.
 
@@ -1429,7 +1520,8 @@ class LinearProblem(object):
       out=True
       return out
 
-   def getSolution(self,**options):
+  #@profile
+  def getSolution(self,**options):
        """
        Returns the solution of the problem.
 
@@ -1441,7 +1533,8 @@ class LinearProblem(object):
        """
        return self.getCurrentSolution()
 
-   def getSystem(self):
+  #@profile
+  def getSystem(self):
        """
        Returns the operator and right hand side of the PDE.
 
@@ -1454,7 +1547,8 @@ class LinearProblem(object):
        return (self.getCurrentOperator(), self.getCurrentRightHandSide())
 
 
-   def addPDEToSystem(self, operator,righthandside, A, B, C, D, X, Y,
+  #@profile
+  def addPDEToSystem(self, operator,righthandside, A, B, C, D, X, Y,
             d, y, d_contact, y_contact, d_dirac, y_dirac):
         """
         adds a PDE to the system, results depend on domain
@@ -1498,7 +1592,8 @@ class LinearProblem(object):
             self.getDomain().addPDEToSystem(operator,righthandside, A, B, C, D,
                     X, Y, d, y, d_contact, y_contact, d_dirac, y_dirac)
 
-   def addToSystem(self, op, rhs, data):
+  #@profile
+  def addToSystem(self, op, rhs, data):
         """
         adds a PDE to the system, results depend on domain
 
@@ -1511,7 +1606,8 @@ class LinearProblem(object):
         """
         self.getDomain().addToSystem(op, rhs, data, self.assembler)
 
-   def addPDEToLumpedSystem(self, operator, a, b, c, hrz_lumping):
+  #@profile
+  def addPDEToLumpedSystem(self, operator, a, b, c, hrz_lumping):
         """
         adds a PDE to the lumped system, results depend on domain
 
@@ -1533,7 +1629,8 @@ class LinearProblem(object):
         else:
             self.getDomain().addPDEToLumpedSystem(operator, a, b, c, hrz_lumping)
 
-   def addPDEToRHS(self, righthandside, X, Y, y, y_contact, y_dirac):
+  #@profile
+  def addPDEToRHS(self, righthandside, X, Y, y, y_contact, y_dirac):
         """
         adds a PDE to the right hand side, results depend on domain
 
@@ -1560,7 +1657,8 @@ class LinearProblem(object):
             self.getDomain().addPDEToRHS(righthandside, X, Y, y, y_contact,
                     y_dirac)
 
-   def addToRHS(self, rhs, data):
+  #@profile
+  def addToRHS(self, rhs, data):
         """
         adds a PDE to the right hand side, results depend on domain
 
@@ -1705,7 +1803,8 @@ class LinearPDE(LinearProblem):
 
    """
 
-   def __init__(self,domain,numEquations=None,numSolutions=None, isComplex=False,debug=False):
+  #@profile
+  def __init__(self,domain,numEquations=None,numSolutions=None, isComplex=False,debug=False):
      """
      Initializes a new linear PDE.
 
@@ -1749,7 +1848,8 @@ class LinearPDE(LinearProblem):
        r=PDECoef(PDECoef.SOLUTION,(PDECoef.BY_SOLUTION,),PDECoef.RIGHTHANDSIDE, isComplex),
        q=PDECoef(PDECoef.SOLUTION,(PDECoef.BY_SOLUTION,),PDECoef.BOTH, False) )
      
-   def __str__(self):
+  #@profile
+  def __str__(self):
      """
      Returns the string representation of the PDE.
 
@@ -1758,7 +1858,8 @@ class LinearPDE(LinearProblem):
      """
      return "<LinearPDE %d>"%id(self)
 
-   def getRequiredOperatorType(self):
+  #@profile
+  def getRequiredOperatorType(self):
       """
       Returns the system type which needs to be used by the current set up.
       """
@@ -1767,7 +1868,8 @@ class LinearPDE(LinearProblem):
       else:
          return self.getDomain().getSystemMatrixTypeId(self.getSolverOptions())
 
-   def checkSymmetry(self,verbose=True):
+  #@profile
+  def checkSymmetry(self,verbose=True):
       """
       Tests the PDE for symmetry.
 
@@ -1793,7 +1895,8 @@ class LinearPDE(LinearProblem):
       out=out and self.checkSymmetricTensor("d_dirac", verbose)
       return out
 
-   def createOperator(self):
+  #@profile
+  def createOperator(self):
        """
        Returns an instance of a new operator.
        """
@@ -1806,7 +1909,8 @@ class LinearPDE(LinearProblem):
                            self.getFunctionSpaceForSolution(), \
                            optype)
 
-   def getSolution(self):
+  #@profile
+  def getSolution(self):
        """
        Returns the solution of the PDE.
 
@@ -1826,7 +1930,8 @@ class LinearPDE(LinearProblem):
              self.setSolution(mat.solve(f,option_class))
        return self.getCurrentSolution()
 
-   def getSystem(self):
+  #@profile
+  def getSystem(self):
        """
        Returns the operator and right hand side of the PDE.
 
@@ -2029,7 +2134,8 @@ class LinearPDE(LinearProblem):
        self.trace("System status is %s."%self.getSystemStatus())
        return (self.getCurrentOperator(), self.getCurrentRightHandSide())
 
-   def insertConstraint(self, rhs_only=False):
+  #@profile
+  def insertConstraint(self, rhs_only=False):
       """
       Applies the constraints defined by q and r to the PDE.
 
@@ -2059,7 +2165,8 @@ class LinearPDE(LinearProblem):
                  operator.nullifyRowsAndCols(row_q,col_q,1.)
          righthandside.copyWithMask(r_s,q)
          
-   def setValue(self,**coefficients):
+  #@profile
+  def setValue(self,**coefficients):
       """
       Sets new values to coefficients.
 
@@ -2154,7 +2261,8 @@ class LinearPDE(LinearProblem):
                self.invalidateSystem()
 
 
-   def getResidual(self,u=None):
+  #@profile
+  def getResidual(self,u=None):
      """
      Returns the residual of u or the current solution if u is not present.
 
@@ -2170,7 +2278,8 @@ class LinearPDE(LinearProblem):
      else:
         return self.getOperator()*escore.Data(u,self.getFunctionSpaceForSolution())-self.getRightHandSide()
 
-   def getFlux(self,u=None):
+  #@profile
+  def getFlux(self,u=None):
      """
      Returns the flux *J* for a given *u*.
 
@@ -2240,7 +2349,8 @@ class Poisson(LinearPDE):
 
    """
 
-   def __init__(self,domain,debug=False):
+  #@profile
+  def __init__(self,domain,debug=False):
      """
      Initializes a new Poisson equation.
 
@@ -2255,7 +2365,8 @@ class Poisson(LinearPDE):
                         f_reduced=PDECoef(PDECoef.INTERIOR_REDUCED,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE))
      self.setSymmetryOn()
 
-   def setValue(self,**coefficients):
+  #@profile
+  def setValue(self,**coefficients):
      """
      Sets new values to coefficients.
 
@@ -2273,7 +2384,8 @@ class Poisson(LinearPDE):
      super(Poisson, self).setValue(**coefficients)
 
 
-   def getCoefficient(self,name):
+  #@profile
+  def getCoefficient(self,name):
      """
      Returns the value of the coefficient ``name`` of the general PDE.
 
@@ -2311,7 +2423,8 @@ class Helmholtz(LinearPDE):
 
    """
 
-   def __init__(self,domain,debug=False):
+  #@profile
+  def __init__(self,domain,debug=False):
      """
      Initializes a new Helmholtz equation.
 
@@ -2331,7 +2444,8 @@ class Helmholtz(LinearPDE):
                         g_reduced=PDECoef(PDECoef.BOUNDARY_REDUCED,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE))
      self.setSymmetryOn()
 
-   def setValue(self,**coefficients):
+  #@profile
+  def setValue(self,**coefficients):
      """
      Sets new values to coefficients.
 
@@ -2365,7 +2479,8 @@ class Helmholtz(LinearPDE):
      """
      super(Helmholtz, self).setValue(**coefficients)
 
-   def getCoefficient(self,name):
+  #@profile
+  def getCoefficient(self,name):
      """
      Returns the value of the coefficient ``name`` of the general PDE.
 
@@ -2400,6 +2515,7 @@ class WavePDE(LinearPDE):
     A class specifically for waves, passes along values to native implementation
     to save computational time.
     """
+    #@profile
     def __init__(self,domain,c,numEquations=None,numSolutions=None,debug=False):
         """
         Initializes a new linear PDE.
@@ -2434,6 +2550,7 @@ class WavePDE(LinearPDE):
         self.assembler = self.getDomain().createAssembler("WaveAssembler", c)
 
 
+    #@profile
     def getSystem(self):
         """
         Returns the operator and right hand side of the PDE.
@@ -2555,6 +2672,7 @@ class LameEquation(LinearPDE):
 
     """
 
+    #@profile
     def __init__(self,domain,debug=False,useFast=True):
         """
         Initializes a new Lame equation.
@@ -2577,6 +2695,7 @@ class LameEquation(LinearPDE):
                                  f=PDECoef(PDECoef.BOUNDARY,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE))
         self.setSymmetryOn()
 
+    #@profile
     def setValues(self,**coefficients):
         """
         Sets new values to coefficients.
@@ -2611,6 +2730,7 @@ class LameEquation(LinearPDE):
         """
         super(LameEquation, self).setValues(**coefficients)
 
+    #@profile
     def getCoefficient(self,name):
         """
         Returns the value of the coefficient ``name`` of the general PDE.
@@ -2652,6 +2772,7 @@ class LameEquation(LinearPDE):
             return self.getCoefficient("f")
         return super(LameEquation, self).getCoefficient(name)
 
+    #@profile
     def getSystem(self):
         """
         Returns the operator and right hand side of the PDE.
@@ -2809,6 +2930,7 @@ class LameEquation(LinearPDE):
         self.trace("System status is %s."%self.getSystemStatus())
         return (self.getCurrentOperator(), self.getCurrentRightHandSide())
 
+#@profile
 def LinearSinglePDE(domain, isComplex=False, debug=False):
    """
    Defines a single linear PDE.
@@ -2823,6 +2945,7 @@ def LinearSinglePDE(domain, isComplex=False, debug=False):
    """
    return LinearPDE(domain,numEquations=1,numSolutions=1,  isComplex=isComplex, debug=debug)
 
+#@profile
 def LinearPDESystem(domain, isComplex=False, debug=False):
    """
    Defines a system of linear PDEs.
@@ -2978,6 +3101,7 @@ class TransportPDE(LinearProblem):
            u = p.solve(dt)
 
    """
+   #@profile
    def __init__(self,domain,numEquations=None,numSolutions=None, useBackwardEuler=None, debug=False):
      """
      Initializes a transport problem.
@@ -3029,6 +3153,7 @@ class TransportPDE(LinearProblem):
         warnings.warn("Argument useBackwardEuler has expired and will be removed in a later release. Please use SolverOptions.setODESolver() instead.", PendingDeprecationWarning, stacklevel=2)
         if useBackwardEuler: self.getSolverOptions().setODESolver(SolverOptions.BACKWARD_EULER)
 
+   #@profile
    def __str__(self):
      """
      Returns the string representation of the transport problem.
@@ -3038,6 +3163,7 @@ class TransportPDE(LinearProblem):
      """
      return "<TransportPDE %d>"%id(self)
 
+   #@profile
    def checkSymmetry(self,verbose=True):
       """
       Tests the transport problem for symmetry.
@@ -3068,6 +3194,7 @@ class TransportPDE(LinearProblem):
       out=out and self.checkSymmetricTensor("d_dirac", verbose)
       return out
 
+   #@profile
    def setValue(self,**coefficients):
       """
       Sets new values to coefficients.
@@ -3159,6 +3286,7 @@ class TransportPDE(LinearProblem):
       """
       super(TransportPDE,self).setValue(**coefficients)
 
+   #@profile
    def createOperator(self):
        """
        Returns an instance of a new transport operator.
@@ -3171,6 +3299,7 @@ class TransportPDE(LinearProblem):
                                optype)
 
 
+   #@profile
    def getRequiredOperatorType(self):
       """
       Returns the system type which needs to be used by the current set up.
@@ -3181,6 +3310,7 @@ class TransportPDE(LinearProblem):
       solver_options=self.getSolverOptions()
       return self.getDomain().getTransportTypeId(solver_options.getSolverMethod(), solver_options.getPreconditioner(),solver_options.getPackage(), solver_options.isSymmetric())
 
+   #@profile
    def getUnlimitedTimeStepSize(self):
       """
       Returns the value returned by the ``getSafeTimeStepSize`` method to
@@ -3193,6 +3323,7 @@ class TransportPDE(LinearProblem):
       """
       return self.getOperator().getUnlimitedTimeStepSize()
 
+   #@profile
    def getSafeTimeStepSize(self):
        """
        Returns a safe time step size to do the next time step.
@@ -3205,6 +3336,7 @@ class TransportPDE(LinearProblem):
        return self.getOperator().getSafeTimeStepSize()
 
    #====================================================================
+   #@profile
    def getSolution(self, dt=None, u0=None):
        """
        Returns the solution by marching forward by time step dt.
@@ -3237,6 +3369,7 @@ class TransportPDE(LinearProblem):
           self.validSolution()
        return self.getCurrentSolution()
 
+   #@profile
    def setInitialSolution(self,u):
        """
        Sets the initial solution.
@@ -3254,6 +3387,7 @@ class TransportPDE(LinearProblem):
               raise ValueError("Illegal shape %s of initial solution."%(u2.getShape(),))
        self.setSolution(u2,validate=False)
 
+   #@profile
    def addPDEToTransportProblem(self, operator,righthandside, M, A, B, C, D, X, Y,
             d, y, d_contact, y_contact, d_dirac, y_dirac):
         """
@@ -3302,6 +3436,7 @@ class TransportPDE(LinearProblem):
             self.getDomain().addPDEToTransportProblem(operator,righthandside, M, A, B, C, D,
                     X, Y, d, y, d_contact, y_contact, d_dirac, y_dirac)
 
+   #@profile
    def getSystem(self):
        """
        Returns the operator and right hand side of the PDE.
@@ -3356,6 +3491,7 @@ class TransportPDE(LinearProblem):
        self.trace("System status is %s."%self.getSystemStatus())
        return (self.getCurrentOperator(), self.getCurrentRightHandSide())
 
+   #@profile
    def setDebug(self, flag):
      """
      Switches debug output on if ``flag`` is True,
@@ -3369,18 +3505,21 @@ class TransportPDE(LinearProblem):
      else:
          self.setDebugOff()
 
+   #@profile
    def setDebugOn(self):
      """
      Switches debug output on.
      """
      super(TransportPDE,self).setDebugOn()
 
+   #@profile
    def setDebugOff(self):
      """
      Switches debug output off.
      """
      super(TransportPDE,self).setDebugOff()
 
+#@profile
 def SingleTransportPDE(domain, debug=False):
    """
    Defines a single transport problem

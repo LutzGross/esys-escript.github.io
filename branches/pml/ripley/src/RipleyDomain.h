@@ -752,11 +752,7 @@ public:
     Assembler_ptr createAssemblerFromPython(std::string type,
                                      const boost::python::list& options) const;
 
-    //AEAE
-    virtual std::string getPML();
-    virtual void setPML(bool North_PML, bool South_PML, bool East_PML, bool West_PML, bool Top_PML, bool Bottom_PML);
 
-    
 protected:
     int m_numDim;
     StatusType m_status;

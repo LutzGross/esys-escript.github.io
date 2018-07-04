@@ -17,7 +17,6 @@
 #include <ripley/MultiRectangle.h>
 #include <ripley/blocktools.h>
 #include <ripley/domainhelpers.h>
-#include <ripley/pml.h> //AEAE
 
 #include <escript/DataFactory.h>
 #include <escript/FunctionSpaceFactory.h>
@@ -42,7 +41,7 @@ MultiRectangle::MultiRectangle(dim_t n0, dim_t n1, double x0, double y0,
                      const vector<int>& tags,
                      const TagMap& tagnamestonums,
                      escript::SubWorld_ptr w, unsigned int subdivisions)
-     : Rectangle(n0,n1, x0,y0, x1,y1, d0,d1, points, tags, tagnamestonums, w), 
+     : Rectangle(n0,n1, x0,y0, x1,y1, d0,d1, points, tags, tagnamestonums, w),
        m_subdivisions(subdivisions)
 {
     if (subdivisions == 0 || (subdivisions & (subdivisions - 1)) != 0)
@@ -75,9 +74,6 @@ MultiRectangle::MultiRectangle(dim_t n0, dim_t n1, double x0, double y0,
         m_diracPoints[i].node = INDEX2(x*subdivisions, y*subdivisions, m_NN[0]);
         m_diracPointNodeIDs[i] = m_diracPoints[i].node;
     }
-
-    //AEAE
-    // setPML(false, false, false, false, false, false);
 }
 
 MultiRectangle::~MultiRectangle()
@@ -1036,7 +1032,6 @@ dim_t MultiRectangle::findNode(const double *coords) const
     }
     return closest;
 }
-
 
 } // end of namespace ripley
 

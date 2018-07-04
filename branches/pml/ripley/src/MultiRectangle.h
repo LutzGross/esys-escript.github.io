@@ -39,7 +39,8 @@ public:
        \param x0,y0,x1,y1 coordinates of bottom-left and top-right corners
        \param d0,d1 number of subdivisions in each dimension
     */
-    MultiRectangle(dim_t n0, dim_t n1, double x0, double y0, double x1, double y1, int d0=-1, int d1=-1, 
+    MultiRectangle(dim_t n0, dim_t n1, double x0, double y0, double x1, double y1,
+              int d0=-1, int d1=-1,
               const std::vector<double>& points = std::vector<double>(),
               const std::vector<int>& tags = std::vector<int>(),
               const TagMap& tagnamestonums = TagMap(),
@@ -118,11 +119,6 @@ public:
        'owns' element/face element i.
     */
     virtual RankVector getOwnerVector(int fsType) const;
-
-    // //AEAE
-    // void setPML(int pml);
-    // std::string getPML();
-    // bool pml_info[2][2];
 
 protected:
     virtual void interpolateNodesToNodesFiner(const escript::Data& source, escript::Data& target, const MultiRectangle& other) const;
