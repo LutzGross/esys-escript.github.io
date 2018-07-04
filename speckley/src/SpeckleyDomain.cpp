@@ -27,6 +27,7 @@
 namespace speckley {
 
 namespace bp = boost::python;
+
 using namespace std;
 using escript::ValueError;
 
@@ -56,6 +57,7 @@ SpeckleyDomain::SpeckleyDomain(dim_t dim, int order, escript::SubWorld_ptr p) :
         m_mpiInfo = p->getMPI();
 
     assembler_type = DEFAULT_ASSEMBLER;
+
 }
 
 SpeckleyDomain::~SpeckleyDomain()
@@ -1066,6 +1068,26 @@ void SpeckleyDomain::addPoints(const vector<double>& coords,
         }
     }
 }
+
+
+//AEAE
+std::string SpeckleyDomain::get_PML_info(){
+    throw SpeckleyException("get_PML_info() currently not supported on base SpeckleyDomain");
+}
+
+void SpeckleyDomain::setPMLwrapper(bool North, bool South, bool West, bool East){
+    vector<bool> pml_info = {North, South, West, East};
+    set_PML(pml_info);
+}
+
+void SpeckleyDomain::set_PML(std::vector<bool> new_pml_settings){
+    throw SpeckleyException("set_PML() currently not supported on base SpeckleyDomain");
+}
+
+void SpeckleyDomain::setPMLwidth(int width){
+    throw SpeckleyException("setPMLwidth() currently not supported on base SpeckleyDomain");
+}
+
 
 } // end of namespace speckley
 

@@ -3986,5 +3986,24 @@ Assembler_ptr Brick::createAssembler(string type, const DataMap& constants) cons
     }
 }
 
+
+//AEAE
+void Brick::set_PML(std::vector<bool> new_pml_settings){
+
+    
+}
+
+std::string Brick::get_PML_info(){
+
+    std::string answer = "";
+    return answer;
+}
+
+void Brick::setPMLwidth(int width){
+
+
+}
+
+
 } // end of namespace ripley
 

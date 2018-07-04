@@ -210,6 +210,13 @@ public:
     */
     virtual RankVector getOwnerVector(int fsType) const;
 
+
+    //AEAE
+    void set_PML(std::vector<bool> new_pml_settings);
+    std::string get_PML_info();
+    void setPMLwidth(int width);
+
+
 protected:
     virtual dim_t getNumNodes() const;
     virtual dim_t getNumElements() const;

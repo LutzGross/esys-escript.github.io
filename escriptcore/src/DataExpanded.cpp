@@ -349,46 +349,46 @@ void DataExpanded::setSlice(const DataAbstract* value,
 
 void DataExpanded::copy(const DataConstant& value)
 {
-    ESYS_ASSERT(checkShape(getShape(), value.getShape()),
+  ESYS_ASSERT(checkShape(getShape(), value.getShape()),
                  createShapeErrorMessage("Error - Couldn't copy due to shape mismatch.", value.getShape(), getShape()));
-    if (isComplex())
-    {
-	if (value.isComplex())
-	{
+
+  if (isComplex())
+  {
+  	if (value.isComplex())
+  	{
 	    // copy a single value to every data point in this object
 	    #pragma omp parallel for
 	    for (int i=0; i<m_noSamples; i++) {
-		for (int j=0; j<m_noDataPointsPerSample; j++) {
+		    for (int j=0; j<m_noDataPointsPerSample; j++) {
 		    DataTypes::copyPoint(getTypedVectorRW((cplx_t)(0)), getPointOffset(i,j),
-					getNoValues(), value.getTypedVectorRO((cplx_t)(0)), 0);
-		}
+				  getNoValues(), value.getTypedVectorRO((cplx_t)(0)), 0);
+		    }
 	    }	    
-	}
-	else	// value is real
-	{
-	    throw DataException("Programming error - DataExpanded::copy source and target must be the same complexity.");	  
-	}
-    }
-    else
-    {
-	if (value.isComplex())
-	{
-	    throw DataException("Programming error - DataExpanded::copy source and target must be the same complexity.");	  	  
-	}
-	else
-	{
+	 }
+  	else	// value is real
+  	{
+  	    throw DataException("Programming error - DataExpanded::copy source and target must be the same complexity.");	  
+  	}
+  } 
+  else 
+  {
+	  if (value.isComplex())
+  	{
+  	    throw DataException("Programming error - DataExpanded::copy source and target must be the same complexity.");	  	  
+  	}
+	  else
+	  {
 	    real_t dummy=0;
 	    // copy a single value to every data point in this object
-	    #pragma omp parallel for
-	    for (int i=0; i<m_noSamples; i++) {
-		for (int j=0; j<m_noDataPointsPerSample; j++) {
-		    DataTypes::copyPoint(getTypedVectorRW(dummy), getPointOffset(i,j),
-					getNoValues(), value.getTypedVectorRO(dummy), 0);
-		}
+    	#pragma omp parallel for
+    	for (int i=0; i<m_noSamples; i++) {
+    		for (int j=0; j<m_noDataPointsPerSample; j++) {
+    		    DataTypes::copyPoint(getTypedVectorRW(dummy), getPointOffset(i,j),
+    					getNoValues(), value.getTypedVectorRO(dummy), 0);
+		    }
 	    }
-	}
-    }
-    
+	  }
+  }  
 }
 
 void DataExpanded::copy(const WrappedArray& value)
@@ -398,6 +398,7 @@ void DataExpanded::copy(const WrappedArray& value)
         throw DataException(DataTypes::createShapeErrorMessage(
                    "Error - (DataExpanded) Cannot copy due to shape mismatch.",
                    value.getShape(),getShape()));
+
     getVectorRW().copyFromArray(value, getNumDPPSample()*getNumSamples());
 }
 
