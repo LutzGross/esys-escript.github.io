@@ -41,7 +41,7 @@ DataAbstract_ptr DataAbstract::getPtr()
   {
       return shared_from_this();
   }
-  catch (boost::bad_weak_ptr p)     
+  catch (boost::bad_weak_ptr& p)     
   {
       return DataAbstract_ptr(this);
   }
@@ -53,7 +53,7 @@ const_DataAbstract_ptr DataAbstract::getPtr() const
   {
       return shared_from_this();
   }
-  catch (boost::bad_weak_ptr p)     
+  catch (boost::bad_weak_ptr& p)     
   {
       return const_DataAbstract_ptr(this);
   }

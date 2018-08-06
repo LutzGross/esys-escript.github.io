@@ -51,7 +51,7 @@ std::vector<char> unzip(const std::vector<char>& compressed)
     os.push(boost::iostreams::back_inserter(decompressed));
     try {
         boost::iostreams::write(os, &compressed[0], compressed.size());
-    } catch (boost::iostreams::gzip_error e) {
+    } catch (boost::iostreams::gzip_error& e) {
         switch(e.error()) {
             case boost::iostreams::gzip::zlib_error:
                 throw speckley::SpeckleyException("Decompressing failed with: zlib error");

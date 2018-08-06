@@ -210,7 +210,7 @@ void SplitWorld::runJobs()
 	}
 
     }
-    catch (SplitWorldException e )
+    catch (SplitWorldException& e)
     {
 	clearAllJobs();
 	throw e;
@@ -245,7 +245,7 @@ void SplitWorld::addJobPerWorld(boost::python::object creator, boost::python::tu
 	object job=creator(*tup, **kw);
 	localworld->addJob(job);
     }
-    catch (boost::python::error_already_set e)
+    catch (boost::python::error_already_set& e)
     {
 	errstat=1;
 	getStringFromPyException(e, errmsg);
@@ -389,7 +389,7 @@ void SplitWorld::distributeJobs()
 	    localworld->addJob(job);
 	}
     }
-    catch (boost::python::error_already_set e)
+    catch (boost::python::error_already_set& e)
     {
 	errstat=1;
 	getStringFromPyException(e, errmsg);
