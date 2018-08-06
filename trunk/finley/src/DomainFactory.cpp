@@ -203,7 +203,7 @@ Domain_ptr FinleyDomain::load(const string& fileName)
         nc_var_temp = dataFile.getVar("Nodes_Coordinates");
         nc_var_temp.getVar(&nodes->Coordinates[0]); // (numNodes, numDim) 
     }
-    catch (exceptions::NcException e)
+    catch (exceptions::NcException& e)
     {
         cleanupAndThrow(dom, "Read vars from file");
     }
@@ -233,7 +233,7 @@ Domain_ptr FinleyDomain::load(const string& fileName)
             nc_var_temp = dataFile.getVar("Elements_Color");
             nc_var_temp.getVar(&elements->Color[0]); // num_Elements
         }
-        catch (exceptions::NcException e)
+        catch (exceptions::NcException& e)
         {
             cleanupAndThrow(dom, "Readig element vars");            
         }
@@ -252,7 +252,7 @@ Domain_ptr FinleyDomain::load(const string& fileName)
             nc_var_temp = dataFile.getVar("Elements_Nodes");
             nc_var_temp.getVar(&Elements_Nodes[0]);    // (num_Elements, num_Elements_numNodes) )             
        }
-       catch (exceptions::NcException e)
+       catch (exceptions::NcException& e)
        {
            delete[] Elements_Nodes;
            cleanupAndThrow(dom, "get_var(Elements_Nodes)");
@@ -293,7 +293,7 @@ Domain_ptr FinleyDomain::load(const string& fileName)
             nc_var_temp = dataFile.getVar("FaceElements_Color");
             nc_var_temp.getVar(&faces->Color[0]); // num_FaceElements
         }
-        catch (exceptions::NcException e)
+        catch (exceptions::NcException& e)
         {
             cleanupAndThrow(dom, "read face variables");
         }
@@ -312,7 +312,7 @@ Domain_ptr FinleyDomain::load(const string& fileName)
             nc_var_temp = dataFile.getVar("FaceElements_Nodes");
             nc_var_temp.getVar(&(FaceElements_Nodes[0])); // num_FaceElements, num_FaceElements_numNodes) ) 
         }
-        catch (exceptions::NcException e)
+        catch (exceptions::NcException& e)
         {
             delete[] FaceElements_Nodes;
             cleanupAndThrow(dom, "read face elements");

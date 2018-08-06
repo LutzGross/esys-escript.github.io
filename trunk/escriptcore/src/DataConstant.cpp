@@ -641,7 +641,7 @@ DataConstant::dump(const std::string fileName) const
     {
         dataFile.open(newFileName.c_str(), NcFile::FileMode::replace,   NcFile::FileFormat::classic64);
     }
-    catch (exceptions::NcException e)
+    catch (exceptions::NcException& e)
     {
         throw DataException("Error - DataConstant:: opening of netCDF file for output failed.");
     }
@@ -655,7 +655,7 @@ DataConstant::dump(const std::string fileName) const
         line++;
         dataFile.putAtt("function_space_type", ni, type);
     }
-    catch (exceptions::NcException e)
+    catch (exceptions::NcException& e)
     {
         switch (line)
         {
@@ -669,7 +669,7 @@ DataConstant::dump(const std::string fileName) const
         {
             ncdims.push_back(dataFile.addDim("l",  1));
         }
-        catch (exceptions::NcException e)
+        catch (exceptions::NcException& e)
         {
             throw DataException("Error - DataConstant:: appending ncdimension 0 to netCDF file failed.");           
         }
@@ -686,7 +686,7 @@ DataConstant::dump(const std::string fileName) const
         {
             ncdims.push_back(dataFile.addDim("d0", shape[0]));
         }
-        catch (exceptions::NcException e)
+        catch (exceptions::NcException& e)
         {
             throw DataException("Error - DataConstant:: appending ncdimension 0 to netCDF file failed.");
         }
@@ -696,7 +696,7 @@ DataConstant::dump(const std::string fileName) const
             {
                 ncdims.push_back(dataFile.addDim("d1", shape[1]));
             }
-            catch (exceptions::NcException e)
+            catch (exceptions::NcException& e)
             {
                 throw DataException("Error - DataConstant:: appending ncdimension 1 to netCDF file failed.");
             }
@@ -707,7 +707,7 @@ DataConstant::dump(const std::string fileName) const
             {
                 ncdims.push_back(dataFile.addDim("d2",  shape[2]));
             } 
-            catch (exceptions::NcException e)
+            catch (exceptions::NcException& e)
             {
                 throw DataException("Error - DataConstant:: appending ncdimension 2 to netCDF file failed.");
             }
@@ -718,7 +718,7 @@ DataConstant::dump(const std::string fileName) const
             {
                 ncdims.push_back(dataFile.addDim("d3",  shape[3]));
             } 
-            catch (exceptions::NcException e)
+            catch (exceptions::NcException& e)
             {
                 throw DataException("Error - DataConstant:: appending ncdimension 3 to netCDF file failed.");
             }
@@ -734,7 +734,7 @@ DataConstant::dump(const std::string fileName) const
         // var.put(d_ptr,dims);
         var.putVar(d_ptr);
     }
-    catch (exceptions::NcException e)
+    catch (exceptions::NcException& e)
     {
         if (line==0)
         {

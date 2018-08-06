@@ -178,7 +178,7 @@ bool SubWorld::deliverImports(std::string& errmsg)
                 {
                     jobvec[i].attr("setImportValue")(it->first, reducemap[it->first]->getPyObj());
                 }
-                catch (bp::error_already_set e)
+                catch (bp::error_already_set& e)
                 {
                     getStringFromPyException(e, errmsg);
                     return false;
@@ -197,7 +197,7 @@ bool SubWorld::deliverImports(std::string& errmsg)
                     {
                         jobvec[i].attr("setImportValue")(it->first, it->second->getPyObj());
                     }
-                    catch (bp::error_already_set e)
+                    catch (bp::error_already_set& e)
                     {
                         getStringFromPyException(e, errmsg);
                         return false;
@@ -973,7 +973,7 @@ char SubWorld::runJobs(std::string& errormsg)
 
         }
     }
-    catch (bp::error_already_set e)
+    catch (bp::error_already_set& e)
     {
         getStringFromPyException(e, errormsg);
         return 3;

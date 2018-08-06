@@ -4757,7 +4757,7 @@ Data::interpolateFromTable1D(const WrappedArray& table, real_t Amin,
     {
         adat=&(getReady()->getVectorRO());
         rdat=&(res.getReady()->getVectorRW());
-    } catch (DataException d)
+    } catch (DataException& d)
     {
         haserror=true;
         error=3;
@@ -4818,7 +4818,7 @@ Data::interpolateFromTable1D(const WrappedArray& table, real_t Amin,
                             }
                         }
                     }
-                    catch (DataException d)
+                    catch (DataException& d)
                     {
                         lerror=3;
                     }   
@@ -4901,7 +4901,7 @@ Data::interpolateFromTable2D(const WrappedArray& table, real_t Amin,
         bdat=&(B.getReady()->getVectorRO());
         rdat=&(res.getReady()->getVectorRW());
     }
-    catch (DataException e)
+    catch (DataException& e)
     {
         error=3;
     }
@@ -4974,7 +4974,7 @@ Data::interpolateFromTable2D(const WrappedArray& table, real_t Amin,
                             lerror=2;
                         }
                     }
-                    catch (DataException d)
+                    catch (DataException& d)
                     {
                         lerror=3;
                     }
@@ -5070,7 +5070,7 @@ Data::interpolateFromTable3D(const WrappedArray& table, real_t Amin,
         cdat=&(C.getReady()->getVectorRO());
         rdat=&(res.getReady()->getVectorRW());
     }
-    catch (DataException e)
+    catch (DataException& e)
     {
         error=3;
     }
@@ -5159,7 +5159,7 @@ Data::interpolateFromTable3D(const WrappedArray& table, real_t Amin,
                             lerror=2;
                         }
                     }
-                    catch (DataException d)
+                    catch (DataException& d)
                     {
                         lerror=3;
                     }
@@ -5887,7 +5887,7 @@ bp::object Data::__add__(const bp::object& right)
         wrapok=true;
         return bp::object(*this+Data(w, this->getFunctionSpace(), false));    
     }
-    catch (DataException e)
+    catch (DataException& e)
     {
         if (wrapok)
         {
@@ -5911,7 +5911,7 @@ bp::object Data::__sub__(const bp::object& right)
         wrapok=true;
         return bp::object(*this-Data(w, this->getFunctionSpace(), false));  
     }
-    catch (DataException e)
+    catch (DataException& e)
     {
         if (wrapok)
         {
@@ -5935,7 +5935,7 @@ bp::object Data::__rsub__(const bp::object& right)
         wrapok=true;
         return bp::object(Data(w, this->getFunctionSpace(),false)-*this); 
     }
-    catch (DataException e)
+    catch (DataException& e)
     {
         if (wrapok)
         {
@@ -5960,7 +5960,7 @@ bp::object Data::__mul__(const bp::object& right)
         wrapok=true;
         return bp::object(*this*Data(w, this->getFunctionSpace(),false));  
     }
-    catch (DataException e)
+    catch (DataException& e)
     {
         if (wrapok)
         {
@@ -5984,7 +5984,7 @@ bp::object Data::__div__(const bp::object& right)
         wrapok=true;
         return bp::object(*this/Data(w, this->getFunctionSpace(),false));  
     }
-    catch (DataException e)
+    catch (DataException& e)
     {
         if (wrapok)
         {
@@ -6008,7 +6008,7 @@ bp::object Data::__rdiv__(const bp::object& right)
         wrapok=true;
         return bp::object(Data(w, this->getFunctionSpace(),false)/(*this));  
     }
-    catch (DataException e)
+    catch (DataException& e)
     {
         if (wrapok)
         {

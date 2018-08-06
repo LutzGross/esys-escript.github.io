@@ -82,7 +82,7 @@ bool openNcFile(netCDF::NcFile& ncf, const std::string& name)
         }
         ncf.open(name.c_str(), NcFile::FileMode::read, fm);
     }
-    catch (exceptions::NcException e)
+    catch (exceptions::NcException& e)
     {
         return false;
     }
