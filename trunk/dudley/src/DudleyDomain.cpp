@@ -1433,7 +1433,9 @@ bool DudleyDomain::ownSample(int fs_code, index_t id) const
 {
 #ifdef ESYS_MPI
     if (getMPISize() > 1) {
-        if (fs_code == Nodes) {
+        if (fs_code == Nodes || fs_code == Elements ||
+            fs_code == ReducedElements || fs_code == FaceElements ||
+            fs_code == ReducedFaceElements) {
             const index_t myFirstNode = m_nodes->getFirstNode();
             const index_t myLastNode = m_nodes->getLastNode();
             const index_t k = m_nodes->borrowGlobalNodesIndex()[id];
@@ -1441,7 +1443,7 @@ bool DudleyDomain::ownSample(int fs_code, index_t id) const
         } else {
             std::ostringstream oss;
             oss << "ownSample: unsupported function space type (" << fs_code <<")";
-            throw ValueError(oss.str());            
+            throw ValueError(oss.str());
         }
     }
 #endif

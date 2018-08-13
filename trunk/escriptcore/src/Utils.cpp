@@ -410,8 +410,8 @@ void saveDataCSV(const std::string& filename, bp::dict arg,
     for (int i=0; i<numdata; ++i) {
         names[i] = bp::extract<std::string>(keys[i]);
         data[i] = bp::extract<escript::Data>(arg[keys[i]]);
-        step[i] = (data[i].actsExpanded() ? DataTypes::noValues(data[i].getDataPointShape()) : 0);
         fstypes[i] = data[i].getFunctionSpace().getTypeCode();
+        step[i] = (data[i].actsExpanded() ? DataTypes::noValues(data[i].getDataPointShape()) : 0);
         if (i > 0) {
             if (data[i].getDomain()!=data[i-1].getDomain()) {
                 throw DataException("saveDataCSV: all data must be on the same domain.");

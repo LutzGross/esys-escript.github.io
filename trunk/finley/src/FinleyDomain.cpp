@@ -1869,19 +1869,13 @@ void FinleyDomain::setNewX(const escript::Data& newX)
 
 bool FinleyDomain::ownSample(int fs_code, index_t id) const
 {
+
 #ifdef ESYS_MPI
     if (getMPISize() > 1 && fs_code != FINLEY_DEGREES_OF_FREEDOM &&
             fs_code != FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
-        /*
-         * this method is only used by saveDataCSV which would use the returned
-         * values for reduced nodes wrongly so this case is disabled for now
-        if (fs_code == FINLEY_REDUCED_NODES) {
-            myFirstNode = NodeFile_getFirstReducedNode(mesh_p->Nodes);
-            myLastNode = NodeFile_getLastReducedNode(mesh_p->Nodes);
-            globalNodeIndex = NodeFile_borrowGlobalReducedNodesIndex(mesh_p->Nodes);
-        } else
-        */
-        if (fs_code == Nodes) {
+        if (fs_code == Nodes || fs_code == Elements ||
+            fs_code == ReducedNodes || fs_code == ReducedElements ||
+            fs_code == FaceElements || fs_code == ReducedFaceElements) {
             const index_t myFirstNode = m_nodes->getFirstNode();
             const index_t myLastNode = m_nodes->getLastNode();
             const index_t k = m_nodes->borrowGlobalNodesIndex()[id];
