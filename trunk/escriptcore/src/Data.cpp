@@ -1680,51 +1680,69 @@ const
 bp::object
 Data::getValueOfGlobalDataPointAsTuple(int procNo, int dataPointNo)
 {
-    THROWONCOMPLEX
-    // This could be lazier than it is now
-    forceResolve();
 
     // copy datapoint into a buffer
     // broadcast buffer to all nodes
     // convert buffer to tuple
     // return tuple
 
+    bp::tuple t;
+
+    // This could be lazier than it is now
+    forceResolve();
+
+    int ndpps = getNumDataPointsPerSample();
+    int sampleNo = dataPointNo/ndpps;
+    int dataPointNoInSample = dataPointNo - sampleNo * ndpps;
+
     const DataTypes::ShapeType& dataPointShape = getDataPointShape();
     size_t length=DataTypes::noValues(dataPointShape);
 
-    // added for the MPI communication
-    real_t *tmpData = new real_t[length];
-
-    // updated for the MPI case
-    if( get_MPIRank()==procNo ){
-        if (getNumDataPointsPerSample()>0) {
-            int sampleNo = dataPointNo/getNumDataPointsPerSample();
-            int dataPointNoInSample = dataPointNo - sampleNo * getNumDataPointsPerSample();
-            //
-            // Check a valid sample number has been supplied
-            if ((sampleNo >= getNumSamples()) || (sampleNo < 0 )) {
-                throw DataException("Error - Data::getValueOfGlobalDataPointAsTuple: invalid sampleNo.");
-            }
-
-            //
-            // Check a valid data point number has been supplied
-            if ((dataPointNoInSample >= getNumDataPointsPerSample()) || (dataPointNoInSample < 0)) {
-                throw DataException("Error - Data::getValueOfGlobalDataPointAsTuple: invalid dataPointNoInSample.");
-            }
-            // TODO: global error handling
-            DataTypes::RealVectorType::size_type offset=getDataOffset(sampleNo, dataPointNoInSample);
-
-            memcpy(tmpData,&(getDataAtOffsetRO(offset, static_cast<DataTypes::real_t>(0))),length*sizeof(real_t));
-        }
+    // TODO: global error handling
+    if (get_MPIRank() == procNo && ndpps > 0 && ((sampleNo >= getNumSamples()) || (sampleNo < 0 ))) {
+        throw DataException("Error - Data::getValueOfGlobalDataPointAsTuple: invalid sampleNo.");
     }
-#ifdef ESYS_MPI
-    // broadcast the data to all other processes
-    MPI_Bcast( tmpData, length, MPI_DOUBLE, procNo, get_MPIComm() );
-#endif
 
-    bp::tuple t=pointToTuple(dataPointShape,tmpData);
-    delete [] tmpData;
-    //
+    if (get_MPIRank() == procNo && ndpps > 0 && ((dataPointNoInSample >= ndpps) || (dataPointNoInSample < 0))) {
+        throw DataException("Error - Data::getValueOfGlobalDataPointAsTuple: invalid dataPointNoInSample.");
+    }
+
+    if(isComplex()){
+
+        cplx_t *tmpData = new cplx_t[length];
+
+        if( get_MPIRank() == procNo && ndpps > 0){
+            DataTypes::CplxVectorType::size_type offset = getDataOffset(sampleNo, dataPointNoInSample);
+            memcpy(tmpData,&(getDataAtOffsetRO(offset, static_cast<DataTypes::cplx_t>(0))), length*sizeof(cplx_t));
+        }
+
+        #ifdef ESYS_MPI
+            // broadcast the data to all other processes
+            MPI_Bcast(tmpData, length, MPI_DOUBLE_COMPLEX, procNo, get_MPIComm());
+        #endif
+
+        t = pointToTuple(dataPointShape,tmpData);
+        delete [] tmpData;
+
+    } else {
+
+        real_t *tmpData = new real_t[length];
+
+        if( get_MPIRank() == procNo && ndpps > 0){
+            DataTypes::RealVectorType::size_type offset = getDataOffset(sampleNo, dataPointNoInSample);
+            memcpy(tmpData,&(getDataAtOffsetRO(offset, static_cast<DataTypes::real_t>(0))), length*sizeof(real_t));
+        }
+
+        #ifdef ESYS_MPI
+            // broadcast the data to all other processes
+            MPI_Bcast(tmpData, length, MPI_DOUBLE, procNo, get_MPIComm());
+        #endif
+
+        t = pointToTuple(dataPointShape,tmpData);
+        delete [] tmpData;
+
+    }
+    
     // return the loaded array
     return t;
 }
