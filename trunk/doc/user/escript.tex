@@ -1642,10 +1642,11 @@ This command will only output those rows which correspond to to positive
 values of \var{myscalar}.
 Some aspects of the output can be tuned using additional parameters:
 \begin{python}
-  saveDataCSV('data.csv', append=True, sep=' ', csep='/', mask=mymask, e=mat1)
+  saveDataCSV('data.csv', refid=True, append=True, sep=' ', csep='/', mask=mymask, e=mat1)
 \end{python}
 
 \begin{itemize}
+ \item \var{refid} -- specifies that the output should include the reference IDs of the elements or nodes
  \item \var{append} -- specifies that the output should be written to the end of an existing file
  \item \var{sep} -- defines the separator between fields
  \item \var{csep} -- defines the separator between components in the header
@@ -1654,16 +1655,13 @@ Some aspects of the output can be tuned using additional parameters:
 %
 The above command would produce output like this:
 \begin{verbatim}
-e/0/0 e/1/0 e/0/1 e/1/1
-1.0000000000e+00 2.0000000000e+00 3.0000000000e+00 4.0000000000e+00
+refid e/0/0 e/1/0 e/0/1 e/1/1
+0 1.0000000000e+00 2.0000000000e+00 3.0000000000e+00 4.0000000000e+00
 ...
 \end{verbatim}
 
 Note that while the order in which rows are output can vary, all the elements
 in a given row always correspond to the same input.
-When run on more than one \MPI rank, \function{saveDataCSV} is currently
-limited to certain domain and function space combinations throwing an exception
-in other cases. Writing data on \ContinuousFunction is always supported.
 
 \subsection{The \Operator Class}
 The \Operator class provides an abstract access to operators built
