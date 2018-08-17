@@ -380,10 +380,11 @@ void MPIBarrierWorld()
 }
 
 void saveDataCSV(const std::string& filename, bp::dict arg,
-                 const std::string& sep, const std::string& csep, bool append)
+                 const std::string& sep, const std::string& csep, bool refid, bool append)
 {
     bp::list keys = arg.keys();
     int numdata = bp::extract<int>(arg.attr("__len__")());
+    
     bool hasmask = arg.has_key("mask");
     Data mask;
     if (hasmask) {
@@ -397,11 +398,11 @@ void saveDataCSV(const std::string& filename, bp::dict arg,
     if (numdata < 1) {
         throw DataException("saveDataCSV: no data to save specified.");
     }
+
     std::vector<int> step(numdata);
     std::vector<std::string> names(numdata);
     std::vector<Data> data(numdata);
-    // FunctionSpace types for each data for interpolation
-    std::vector<int> fstypes(numdata+int(hasmask));
+    std::vector<int> fstypes(numdata+int(hasmask)); // FunctionSpace types for each data for interpolation
 
     keys.sort(); // to get some predictable order to things
 
@@ -412,16 +413,17 @@ void saveDataCSV(const std::string& filename, bp::dict arg,
         data[i] = bp::extract<escript::Data>(arg[keys[i]]);
         fstypes[i] = data[i].getFunctionSpace().getTypeCode();
         step[i] = (data[i].actsExpanded() ? DataTypes::noValues(data[i].getDataPointShape()) : 0);
+
         if (i > 0) {
             if (data[i].getDomain()!=data[i-1].getDomain()) {
                 throw DataException("saveDataCSV: all data must be on the same domain.");
             }
         }
-        if (data[i].isComplex()) 
-	{
-	    throw DataException("saveDataCSV: complex values must be separated into components before calling this.");
-	}
+        if (data[i].isComplex()) {
+            throw DataException("saveDataCSV: complex values must be separated into components before calling this.");
+        }
     }
+
     if (hasmask) {
         if (mask.getDomain() != data[0].getDomain())
             throw DataException("saveDataCSV: mask domain must be the same as the data domain.");
@@ -432,6 +434,8 @@ void saveDataCSV(const std::string& filename, bp::dict arg,
     if (!data[0].getDomain()->commonFunctionSpace(fstypes, bestfnspace)) {
         throw DataException("saveDataCSV: FunctionSpaces of data are incompatible");
     }
+
+
     // now we interpolate all data to the same type
     FunctionSpace best(data[0].getDomain(), bestfnspace);
     for (int i=0; i<numdata; ++i) {
@@ -442,9 +446,9 @@ void saveDataCSV(const std::string& filename, bp::dict arg,
 
     // these must be the same for all data
     int numsamples = data[0].getNumSamples();
-    int dpps=data[0].getNumDataPointsPerSample();
+    int dpps = data[0].getNumDataPointsPerSample();
     std::ostringstream os;
-    bool first=true;
+    bool first = true;
 
     if (data[0].getDomain()->getMPIRank() == 0) {
         for (int i=0; i<numdata; ++i) {
@@ -455,6 +459,9 @@ void saveDataCSV(const std::string& filename, bp::dict arg,
                         os << sep;
                     } else {
                         first=false;
+                        if(refid){
+                            os << "Ref_ID" << sep;
+                        }
                     }
                     os << names[i];
                     break;
@@ -465,6 +472,9 @@ void saveDataCSV(const std::string& filename, bp::dict arg,
                             os << sep;
                         } else {
                             first=false;
+                            if(refid){
+                                os << "Ref_ID" << sep;
+                            }
                         }
                         os << names[i] << csep << j;
                     }
@@ -477,6 +487,9 @@ void saveDataCSV(const std::string& filename, bp::dict arg,
                                 os << sep;
                             } else {
                                 first=false;
+                                if(refid){
+                                    os << "Ref_ID" << sep;
+                                }
                             }
                             os << names[i] << csep << k << csep << j;
                         }
@@ -491,6 +504,9 @@ void saveDataCSV(const std::string& filename, bp::dict arg,
                                     os << sep;
                                 } else {
                                     first=false;
+                                    if(refid){
+                                        os << "Ref_ID" << sep;
+                                    }
                                 }
                                 os << names[i] << csep << k << csep << j
                                    << csep << l;
@@ -508,6 +524,9 @@ void saveDataCSV(const std::string& filename, bp::dict arg,
                                         os << sep;
                                     } else {
                                         first=false;
+                                        if(refid){
+                                            os << "Ref_ID" << sep;
+                                        }
                                     }
                                     os << names[i] << csep << k << csep << j
                                        << csep << l << csep << m;
@@ -571,17 +590,23 @@ void saveDataCSV(const std::string& filename, bp::dict arg,
                 }
                 if (wantrow) {
                     bool needsep = false;
-                    for (int d=0; d<numdata; ++d) {
-                        DataTypes::pointToStream(os, samples[d],
-                                data[d].getDataPointShape(), offset[d],
-                                needsep, sep);
+
+                    // If necessary, write the element id to the output stream
+                    if(refid){
+                        os << best.getReferenceIDOfSample(i) << sep;
+                    }
+
+                    for (int d = 0; d < numdata; ++d) {
+                        DataTypes::pointToStream(os, samples[d], 
+                            data[d].getDataPointShape(), offset[d], needsep, sep);
                         needsep = true;
                         offset[d] += step[d];
                     }
                     os << std::endl;
                 }
             }
-            for (int d=0; d<numdata; ++d) {
+
+            for (int d = 0; d<numdata; d++) {
                 offset[d]=0;
             }
         }
@@ -598,6 +623,7 @@ void saveDataCSV(const std::string& filename, bp::dict arg,
             throw;
         }
     }
+
 #ifdef ESYS_MPI
     MPI_Comm com = data[0].getDomain()->getMPIComm();
     int rerror = 0;
@@ -606,12 +632,14 @@ void saveDataCSV(const std::string& filename, bp::dict arg,
 #else
     MPI_Comm com = MPI_COMM_NULL;
 #endif
+
     if (error) {
         if (localmsg.empty()) {
             throw DataException("saveDataCSV: error building output");
         }
         throw DataException(std::string("saveDataCSV:")+localmsg);
     }
+
     // at this point os will contain the text to be written
     FileWriter fw(com);
     if (!fw.openFile(filename, 0, false, append)) {

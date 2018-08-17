@@ -101,7 +101,9 @@ ESCRIPT_DLL_API double getMaxFloat();
 ESCRIPT_DLL_API void saveDataCSV(const std::string& filename,
                                  boost::python::dict arg,
                                  const std::string& sep,
-                                 const std::string& csep, bool append=false); 
+                                 const std::string& csep, 
+                                 bool refid=false, 
+                                 bool append=false); 
 
 
 /**
