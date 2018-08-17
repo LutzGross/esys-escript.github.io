@@ -21,6 +21,10 @@ escript_opts_version = 203
 #cxx_extra = '-Wno-literal-suffix'
 openmp = True
 #mpi = 'OPENMPI'
+umfpack = True
+
+#pythoncmd='/usr/bin/python3.5'
+pythoncmd='/usr/bin/python2.7'
 
 import os
 
@@ -58,6 +62,7 @@ for name in spath:
 
 # boost-python library/libraries to link against
 boost_libs = [p2name[3:-3]]
+#boost_libs = [p3name[3:-3]]
 
 # this can be used by options files importing us
 boost_py2_libs = [p2name[3:-3]]

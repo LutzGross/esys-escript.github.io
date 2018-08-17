@@ -147,7 +147,7 @@ def interpolateTable(tab, dat, start, step, undef=1.e50, check_boundaries=False)
         return firstdim.interpolateTable(tab, start[0], step[0], undef, check_boundaries)
 
 
-def saveDataCSV(filename, append=False, sep=", ", csep="_", **data):
+def saveDataCSV(filename, append=False, refid=False, sep=", ", csep="_", **data):
     """
     Writes `Data` objects to a CSV file.
     These objects must have compatible FunctionSpaces, i.e. it must be possible
@@ -159,6 +159,8 @@ def saveDataCSV(filename, append=False, sep=", ", csep="_", **data):
     :type filename: ``string``
     :param append: If ``True``, then open file at end rather than beginning
     :type append: ``bool``
+    :param refid: If ``True``, then a list of reference ids will be printed in the first column
+    :type refid: ``bool``
     :param sep: separator between fields
     :type sep: ``string``
     :param csep: separator for components of rank 2 and above (e.g. '_' -> c0_1)
@@ -199,7 +201,7 @@ def saveDataCSV(filename, append=False, sep=", ", csep="_", **data):
                new_data[n]=Data(d,fs)
             except:
                raise ValueError("saveDataCSV: unknown non-data argument type for %s"%(str(n)))
-    escore._saveDataCSV(filename, new_data,sep, csep, append)
+    escore._saveDataCSV(filename, new_data, sep, csep, refid, append)
 
 def saveESD(datasetName, dataDir=".", domain=None, timeStep=0, deltaT=1, dynamicMesh=0, timeStepFormat="%04d", **data):
     """

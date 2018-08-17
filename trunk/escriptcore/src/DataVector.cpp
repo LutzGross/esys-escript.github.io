@@ -54,41 +54,32 @@ namespace escript {
 //      ESYS_ASSERT(data.size()>0,"Error - Data object is empty.");
       switch (getRank(shape)) {
       case 0:
-	 if (needsep)
-	 {
-		os << sep;
-	 }
-	 else
-	 {
-		needsep=true;
-	 }
+         if (needsep){
+            os << sep;
+         } else {
+            needsep = true;
+         }
          cplxout(os,data[offset]);
          break;
       case 1:
          for (int i=0;i<shape[0];i++) {
-	    if (needsep)
-	    {
-		os << sep;
-	    }
-	    else
-	    {
-		needsep=true;
-	    }
-	    cplxout(os,data[i+offset]);
+            if (needsep) {
+               os << sep;
+            } else {
+               needsep=true;
+            }
+            cplxout(os,data[i+offset]);
          }
          break;
       case 2:
          for (int i=0;i<shape[0];i++) {
             for (int j=0;j<shape[1];j++) {
-		if (needsep)
-		{
-			os << sep;
-		}
-		else
-		{
-			needsep=true;
-		}
-                cplxout(os,data[offset+getRelIndex(shape,i,j)]);
+               if (needsep){
+                  os << sep;
+               } else {
+                  needsep=true;
+               }
+               cplxout(os,data[offset+getRelIndex(shape,i,j)]);
             }
          }
          break;
@@ -96,15 +87,12 @@ namespace escript {
          for (int i=0;i<shape[0];i++) {
             for (int j=0;j<shape[1];j++) {
                for (int k=0;k<shape[2];k++) {
-		   if (needsep)
-		   {
-			os << sep;
-		   }
-		   else
-		   {
-			needsep=true;
-		   }
-                   cplxout(os,data[offset+getRelIndex(shape,i,j,k)]);
+                  if (needsep) {
+                     os << sep;
+                  } else { 
+                     needsep=true;
+                  }
+                  cplxout(os,data[offset+getRelIndex(shape,i,j,k)]);
                }
             }
          }
@@ -114,15 +102,12 @@ namespace escript {
             for (int j=0;j<shape[1];j++) {
                for (int k=0;k<shape[2];k++) {
                   for (int l=0;l<shape[3];l++) {
-			if (needsep)
-			{
-				os << sep;
-			}
-			else
-			{
-				needsep=true;
-			}
-			cplxout(os,data[offset+getRelIndex(shape,i,j,k,l)]);
+                     if (needsep) {
+                        os << sep;
+                     } else {
+                        needsep=true;
+                     }
+                     cplxout(os,data[offset+getRelIndex(shape,i,j,k,l)]);
                   }
                }
             }
@@ -144,41 +129,32 @@ namespace escript {
 //      ESYS_ASSERT(data.size()>0,"Error - Data object is empty.");
       switch (getRank(shape)) {
       case 0:
-	 if (needsep)
-	 {
-		os << sep;
-	 }
-	 else
-	 {
-		needsep=true;
-	 }
+         if (needsep) {
+            os << sep;
+         } else {
+            needsep=true;
+         }
          os << data[offset];
          break;
       case 1:
          for (int i=0;i<shape[0];i++) {
-	    if (needsep)
-	    {
-		os << sep;
-	    }
-	    else
-	    {
-		needsep=true;
-	    }
-	    os << data[i+offset];
+            if (needsep) {
+               os << sep;
+            } else {
+               needsep=true;
+            }
+            os << data[i+offset];
          }
          break;
       case 2:
          for (int i=0;i<shape[0];i++) {
             for (int j=0;j<shape[1];j++) {
-		if (needsep)
-		{
-			os << sep;
-		}
-		else
-		{
-			needsep=true;
-		}
-                os << data[offset+getRelIndex(shape,i,j)];
+               if (needsep) {
+                  os << sep;
+               } else {
+                  needsep=true;
+               }
+               os << data[offset+getRelIndex(shape,i,j)];
             }
          }
          break;
@@ -186,15 +162,12 @@ namespace escript {
          for (int i=0;i<shape[0];i++) {
             for (int j=0;j<shape[1];j++) {
                for (int k=0;k<shape[2];k++) {
-		   if (needsep)
-		   {
-			os << sep;
-		   }
-		   else
-		   {
-			needsep=true;
-		   }
-                   os << data[offset+getRelIndex(shape,i,j,k)];
+                  if (needsep) {
+                     os << sep;
+                  } else {
+                     needsep=true;
+                  }
+                  os << data[offset+getRelIndex(shape,i,j,k)];
                }
             }
          }
@@ -204,15 +177,12 @@ namespace escript {
             for (int j=0;j<shape[1];j++) {
                for (int k=0;k<shape[2];k++) {
                   for (int l=0;l<shape[3];l++) {
-			if (needsep)
-			{
-				os << sep;
-			}
-			else
-			{
-				needsep=true;
-			}
-			os << data[offset+getRelIndex(shape,i,j,k,l)];
+                     if (needsep) {
+                        os << sep;
+                     } else {
+                        needsep=true;
+                     }
+                     os << data[offset+getRelIndex(shape,i,j,k,l)];
                   }
                }
             }
@@ -239,12 +209,12 @@ namespace escript {
       switch (getRank(shape)) {
       case 0:
          temp << finalPrefix;
-	 cplxout(temp,data[offset]);
+         cplxout(temp,data[offset]);
          break;
       case 1:
          for (int i=0;i<shape[0];i++) {
             temp << finalPrefix << "(" << i <<  ") ";
-	    cplxout(temp,data[i+offset]);
+            cplxout(temp,data[i+offset]);
             if (i!=(shape[0]-1)) {
                temp << endl;
             }
@@ -254,7 +224,7 @@ namespace escript {
          for (int i=0;i<shape[0];i++) {
             for (int j=0;j<shape[1];j++) {
                temp << finalPrefix << "(" << i << "," << j << ") ";
-	       	 cplxout(temp,data[offset+getRelIndex(shape,i,j)]);
+               cplxout(temp,data[offset+getRelIndex(shape,i,j)]);
                if (!(i==(shape[0]-1) && j==(shape[1]-1))) {
                   temp << endl;
                }
@@ -266,7 +236,7 @@ namespace escript {
             for (int j=0;j<shape[1];j++) {
                for (int k=0;k<shape[2];k++) {
                   temp << finalPrefix << "(" << i << "," << j << "," << k << ") ";
-		  cplxout(temp,data[offset+getRelIndex(shape,i,j,k)]);
+                  cplxout(temp,data[offset+getRelIndex(shape,i,j,k)]);
                   if (!(i==(shape[0]-1) && j==(shape[1]-1) && k==(shape[2]-1))) {
                      temp << endl;
                   }
@@ -280,7 +250,7 @@ namespace escript {
                for (int k=0;k<shape[2];k++) {
                   for (int l=0;l<shape[3];l++) {
                      temp << finalPrefix << "(" << i << "," << j << "," << k << "," << l << ") ";
-		     cplxout(temp,data[offset+getRelIndex(shape,i,j,k,l)]);
+                     cplxout(temp,data[offset+getRelIndex(shape,i,j,k,l)]);
                      if (!(i==(shape[0]-1) && j==(shape[1]-1) && k==(shape[2]-1) && l==(shape[3]-1))) {
                         temp << endl;
                      }
