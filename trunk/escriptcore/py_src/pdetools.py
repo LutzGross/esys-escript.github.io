@@ -420,22 +420,14 @@ class Locator(object):
            if isinstance(ii,list):
                out=[]
                for i in ii:
-                  # workaround for bug #391
-                  if dat.isComplex():
-                      o=numpy.array(dat.real().getTupleForGlobalDataPoint(*i))+1j*numpy.array(dat.imag().getTupleForGlobalDataPoint(*i))
-                  else:
-                     o=numpy.array(dat.getTupleForGlobalDataPoint(*i))
+                  o=numpy.array(dat.getTupleForGlobalDataPoint(*i))
                   if data.getRank()==0:
                      out.append(o[0])
                   else:
                      out.append(o)
                return out
            else:
-             # workaround for bug #391
-             if dat.isComplex():
-                 out=numpy.array(dat.real().getTupleForGlobalDataPoint(*ii))+1j*numpy.array(dat.imag().getTupleForGlobalDataPoint(*ii))
-             else:
-                 out=numpy.array(dat.getTupleForGlobalDataPoint(*ii))
+             out=numpy.array(dat.getTupleForGlobalDataPoint(*ii))
              if data.getRank()==0:
                 return out[0]
              else:
