@@ -703,6 +703,14 @@ If false, the result is a list of scalars [1, 2, ...]
 
   /**
      \brief
+     Returns the product of the data point shapes
+  */
+  long
+  getShapeProduct() const;
+
+
+  /**
+     \brief
      Return the size of the data point. It is the product of the
      data point shape dimensions.
   */

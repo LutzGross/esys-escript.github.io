@@ -23,8 +23,10 @@ openmp = True
 #mpi = 'OPENMPI'
 umfpack = True
 
-#pythoncmd='/usr/bin/python3.5'
-pythoncmd='/usr/bin/python2.7'
+boost_prefix=['/home/adam/Documents/zzz/boost/boost_1_68_0/','/home/adam/Documents/zzz/boost/boost_1_68_0/stage/lib']
+
+pythoncmd='/usr/bin/python3.5'
+#pythoncmd='/usr/bin/python2.7'
 
 import os
 
@@ -39,7 +41,6 @@ lapack_prefix = ['/usr/include/atlas', '/usr/lib/atlas-base']
 #silo = True
 silo_libs = ['siloh5', 'hdf5_openmpi']
 dudley_assemble_flags = '-funroll-loops'
-
 
 import subprocess
 import os
@@ -61,8 +62,8 @@ for name in spath:
     pass
 
 # boost-python library/libraries to link against
-boost_libs = [p2name[3:-3]]
-#boost_libs = [p3name[3:-3]]
+#boost_libs = [p2name[3:-3]]
+boost_libs = [p3name[3:-3], 'boost_numpy35-gcc63-mt-x64-1_68']
 
 # this can be used by options files importing us
 boost_py2_libs = [p2name[3:-3]]

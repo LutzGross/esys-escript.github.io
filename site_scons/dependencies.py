@@ -261,6 +261,24 @@ def checkNumpy(env):
 
     return conf.Finish()
 
+def checkBoostNumpy(env):
+    boost_inc_path,boost_lib_path=findLibWithHeader(env, env['boost_libs'], 'boost/python.hpp', env['boost_prefix'], lang='c++')
+
+    # Try to extract the boost version from version.hpp
+    boosthpp=open(os.path.join(boost_inc_path, 'boost', 'version.hpp'))
+    boostversion='unknown'
+    for line in boosthpp:
+        ver=re.match(r'#define BOOST_VERSION (\d+)',line)
+        if ver:
+            boostversion=ver.group(1)
+            boostversion = int(boostversion)
+
+    conf = Configure(env.Clone())
+    if boostversion >= 106300:
+        conf.env.Append(CPPDEFINES = ['ESYS_HAVE_BOOST_NUMPY'])
+
+    return conf.Finish()
+
 def checkCUDA(env):
     try:
         cuda_inc_path,cuda_lib_path=findLibWithHeader(env, 'cudart', 'thrust/version.h', env['cuda_prefix'], lang='c++')
@@ -485,7 +503,7 @@ def checkOptionalLibraries(env):
         env['buildvars']['visit_inc_path']=visit_inc_path
         env['buildvars']['visit_lib_path']=visit_lib_path
     env['buildvars']['visit']=int(env['visit'])
-
+    
     ######## MPI
     if env['mpi']=='no':
         env['mpi']='none'

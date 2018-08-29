@@ -23,6 +23,11 @@
 #include "DataVectorAlt.h"
 #include "DataVectorTaipan.h"
 
+#ifdef ESYS_HAVE_BOOST_NUMPY
+#include <boost/python.hpp>
+#include <boost/python/numpy.hpp>
+#endif
+
 // ensure that nobody else tries to instantiate the complex version
 extern template class escript::DataTypes::DataVectorAlt<escript::DataTypes::cplx_t>;
 
@@ -73,6 +78,27 @@ namespace DataTypes
    */
    void
    pointToStream(std::ostream& os, const CplxVectorType::ElementType* data,const ShapeType& shape, int offset, bool needsep=true, const std::string& sep=",");
+
+
+#ifdef ESYS_HAVE_BOOST_NUMPY
+   /**
+      \brief Display a single value (with the specified shape) from the data.
+
+     \param dataArray - numpy ndarray that data is being written to
+     \param data - vector containing the datapoint
+     \param shape - shape of the datapoint
+     \param offset - start of the datapoint within data
+     \param numsamples - index looping over the number of samples
+     \param dpps - index looping over the data points in the sample
+     \param numdata - total amount of data being copied
+   */
+   void
+   pointToNumpyArray(boost::python::numpy::ndarray& dataArray, const RealVectorType::ElementType* data, const ShapeType& shape, long offset, long numsamples, long dpps, long numdata);
+
+
+   void
+   pointToNumpyArray(boost::python::numpy::ndarray& dataArray, const CplxVectorType::ElementType* data, const ShapeType& shape, long offset, long numsamples, long dpps, long numdata);
+#endif
 
    /**
       \brief Display a single value (with the specified shape) from the data.
