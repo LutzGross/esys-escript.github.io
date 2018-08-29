@@ -198,7 +198,6 @@ elif pos1 < mypos <= pos2:
         env['netcdf_libs']=['netcdf_c++', 'netcdf']
 else:   # netcdf4
     env['netcdf']=4
-    print "SADASDSAD"
     if env['netcdf_libs']=='DEFAULT':
         env['netcdf_libs']=['netcdf_c++4']
 
@@ -295,6 +294,7 @@ elif cc_name[:3] == 'g++':
     # note that -ffast-math is not used because it breaks isnan(),
     # see mantis #691
     cc_flags     = "-std=c++11 -pedantic -Wall -fPIC -Wno-unknown-pragmas -Wno-sign-compare -Wno-system-headers -Wno-long-long -Wno-strict-aliasing -finline-functions"
+    cc_flags += " --param=max-vartrack-size=100000000"
     cc_optim     = "-O3"
     #max-vartrack-size: avoid vartrack limit being exceeded with escriptcpp.cpp
     cc_debug     = "-g3 -O0  -DDOASSERT -DDOPROF -DBOUNDS_CHECK -DSLOWSHARECHECK --param=max-vartrack-size=100000000"
@@ -487,6 +487,9 @@ env=checkBoost(env)
 
 ######## numpy (required) and numpy headers (optional)
 env=checkNumpy(env)
+
+######## check that boost has numpy support (optional) 
+env=checkBoostNumpy(env)
 
 ######## CppUnit (required for tests)
 env=checkCppUnit(env)

@@ -26,6 +26,11 @@
 #include <boost/python.hpp>
 #include <boost/scoped_array.hpp>
 
+#ifdef ESYS_HAVE_BOOST_NUMPY
+#include <boost/python/numpy.hpp>
+#include "DataTypes.h"
+#endif
+
 namespace bp = boost::python;
 
 #ifndef OVERLORDPATH
@@ -653,6 +658,191 @@ void saveDataCSV(const std::string& filename, bp::dict arg,
     if (error)
         throw DataException("saveDataCSV: Error writing to file");
 }
+
+#ifdef ESYS_HAVE_BOOST_NUMPY
+bp::numpy::ndarray getNumpy(bp::dict arg){
+
+    // Initialise boost python numpy
+    bp::numpy::initialize();
+
+    // Get the keys
+    bp::list keys = arg.keys();
+    keys.sort();
+
+    // Work out numdata
+    int numdata = bp::extract<int>(arg.attr("__len__")());
+    if (numdata < 1) {
+        throw DataException("getNumpy: no data to save specified.");
+    }
+
+    // Process the mask information
+    bool hasmask = arg.has_key("mask");
+    Data mask;
+    if (hasmask) {
+        mask = bp::extract<escript::Data>(arg["mask"]);
+        if (mask.getDataPointRank() != 0) {
+            throw DataException("getNumpy: mask must be scalar.");
+        }
+        keys.remove("mask");
+        numdata--;
+    }
+    
+    // Set up vectors to store data temporarily
+    std::vector<int> step(numdata);
+    std::vector<std::string> names(numdata);
+    std::vector<Data> data(numdata);
+    std::vector<int> fstypes(numdata+int(hasmask)); // FunctionSpace types for each data for interpolation
+
+    // Get the data from the python dictionary
+    // bool haveComplexData = false;
+    for (int i = 0; i < numdata; ++i) {
+        names[i] = bp::extract<std::string>(keys[i]);
+        data[i] = bp::extract<escript::Data>(arg[keys[i]]);
+        fstypes[i] = data[i].getFunctionSpace().getTypeCode();
+        step[i] = (data[i].actsExpanded() ? DataTypes::noValues(data[i].getDataPointShape()) : 0);
+
+        // Check for possible error: Data is not on the same domain
+        if (i > 0 && (data[i].getDomain() != data[i-1].getDomain())) {
+            throw DataException("getNumpy: all data must be on the same domain.");
+        }
+        // Check for possible error: Data is complex
+        if (data[i].isComplex()) {
+            // haveComplexData = true;
+            throw DataException("getNumpy: complex values must be separated into components before calling this.");
+        }
+    }
+
+    // Get the type codes
+    if (hasmask) {
+        // Check for possible error - mask domain and data domains are different    
+        if (mask.getDomain() != data[0].getDomain()){
+            throw DataException("getNumpy: mask domain must be the same as the data domain.");
+        }
+
+        fstypes[numdata] = mask.getFunctionSpace().getTypeCode();
+    }
+
+    // Work out the functionspace to interpolate the data to
+    int bestfnspace = 0;
+    if (!data[0].getDomain()->commonFunctionSpace(fstypes, bestfnspace)) {
+        throw DataException("getNumpy: FunctionSpaces of data are incompatible");
+    }
+
+    // Do the interpolation
+    FunctionSpace best(data[0].getDomain(), bestfnspace);
+    for (int i = 0; i < numdata; ++i) {
+        data[i] = data[i].interpolate(best);
+    }
+    if (hasmask) {
+        mask = mask.interpolate(best);
+    }
+
+    // Parameters used in the next step
+    int numsamples = data[0].getNumSamples();
+    int dpps = data[0].getNumDataPointsPerSample();
+    const double* masksample = NULL;
+    bool expandedmask = false; // Are there mask value for each point in the sample?
+    bool wantrow = true; // Do we output this row?
+    int error = 0;
+    std::string localmsg;
+
+    // Initialise the array
+    bp::tuple arrayshape = bp::make_tuple(data[0].getShapeProduct(), dpps * numsamples);
+    bp::numpy::dtype datatype = bp::numpy::dtype::get_builtin<double>();
+    bp::numpy::ndarray dataArray = bp::numpy::zeros(arrayshape, datatype);
+
+    // Copy the data to the ndarray
+    try {
+        std::vector<int> offset(numdata);
+        std::vector<const DataTypes::real_t*> samples(numdata);
+        const DataTypes::real_t onlyreal = 0;
+
+        for (int i = 0; i < numsamples; ++i) {
+
+            // If this MPI process doesn't own the sample then continue
+            if (!best.ownSample(i)) {
+                continue;
+            }
+
+            wantrow = true;
+            for (int d=0; d<numdata; ++d) {
+                samples[d] = data[d].getSampleDataRO(i, onlyreal);
+            }
+
+            if (hasmask) {
+                masksample = mask.getSampleDataRO(i, onlyreal);
+                if (!expandedmask) {
+                    // mask controls whole sample
+                    if (masksample[0] <= 0) {
+                        wantrow = false;
+                    }
+                }
+            }
+
+            for (int j = 0; j < dpps; ++j) {
+                // now we need to check if this point is masked off
+                if (expandedmask) {
+                    // masks are scalar so the relevant value is at [j]
+                    wantrow = (masksample[j]>0);
+                }
+                if (wantrow) {
+                    for (int d = 0; d < numdata; ++d) {
+
+                        DataTypes::pointToNumpyArray(dataArray, samples[d], 
+                            data[d].getDataPointShape(), offset[d], i, j, numsamples);
+
+                        offset[d] += step[d];
+                    }
+                }
+            }
+
+            // Reset the offset vector
+            for (int d = 0; d<numdata; d++) {
+                offset[d]=0;
+            }
+        }
+    } catch (EsysException e) {
+        error=1;
+        if (data[0].getDomain()->getMPISize()==1) {
+            throw;
+        } else {
+            localmsg=e.what();
+        }
+    } catch (...) {
+        error=1;
+        if (data[0].getDomain()->getMPISize()==1) {
+            throw;
+        }
+    }
+
+    // If using MPI
+#ifdef ESYS_MPI
+    MPI_Comm com = data[0].getDomain()->getMPIComm();
+    int rerror = 0;
+    MPI_Allreduce(&error, &rerror, 1, MPI_INT, MPI_MAX, com);
+    error = rerror;
+#endif
+
+    if (error) {
+        if (localmsg.empty()) {
+            throw DataException("getNumpy: unknown error");
+        }
+        throw DataException(std::string("getNumpy:")+localmsg);
+    }
+
+    //MPI Barrier
+    data[0].getDomain()->MPIBarrier();
+
+    //Print out the array to the console - used during debugging //AE
+    // std::cout << "Finished array:\n" << bp::extract<char const *>(bp::str(dataArray)) << std::endl;
+
+    return dataArray;
+}
+#else
+void getNumpy(bp::dict arg){
+    throw DataException("getNumpy: Error - Please recompile escripts with Boost version 1.63 or higher.");
+}
+#endif
 
 void resolveGroup(bp::object obj)
 {

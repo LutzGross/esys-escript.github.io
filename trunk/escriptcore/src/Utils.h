@@ -20,6 +20,10 @@
 #include "system_dep.h"
 #include <boost/python/dict.hpp>
 
+#ifdef ESYS_HAVE_BOOST_NUMPY
+#include <boost/python/numpy.hpp>
+#endif
+
 namespace escript {
 
 /**
@@ -104,6 +108,12 @@ ESCRIPT_DLL_API void saveDataCSV(const std::string& filename,
                                  const std::string& csep, 
                                  bool refid=false, 
                                  bool append=false); 
+
+#ifdef ESYS_HAVE_BOOST_NUMPY
+ESCRIPT_DLL_API boost::python::numpy::ndarray getNumpy(boost::python::dict arg);
+#else
+ESCRIPT_DLL_API void getNumpy(boost::python::dict arg);
+#endif
 
 
 /**

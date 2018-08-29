@@ -44,6 +44,10 @@
 #include <boost/smart_ptr.hpp>
 #include <boost/version.hpp>
 
+#ifdef ESYS_HAVE_BOOST_NUMPY
+#include <boost/python/numpy.hpp>
+#endif
+
 using namespace boost::python;
 
 /*! \mainpage Esys Documentation
@@ -200,7 +204,13 @@ BOOST_PYTHON_MODULE(escriptcpp)
         ":param append: If True, write to the end of ``filename``\n"
         ":type append: ``string``\n"
         "");
-   def("canInterpolate", &escript::canInterpolate, args("src", "dest"),":param src: Source FunctionSpace\n"
+  def("_getNumpy",escript::getNumpy, arg("arg"),
+        "Takes in a Data object and returns a numpy array\n"
+        ":param arg: dictionary containing a single `Data` objects. \n"
+        ":type arg: ``dict``\n"
+        ":rtype: numpy ndarray\n"
+        ""); 
+  def("canInterpolate", &escript::canInterpolate, args("src", "dest"),":param src: Source FunctionSpace\n"
         ":param dest: Destination FunctionSpace\n"
         ":return: True if src can be interpolated to dest\n"
         ":rtype: `bool`");

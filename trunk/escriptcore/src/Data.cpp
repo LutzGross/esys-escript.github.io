@@ -744,6 +744,27 @@ Data::getShapeTuple() const
 }
 
 
+long
+Data::getShapeProduct() const
+{
+    const DataTypes::ShapeType& shape=getDataPointShape();
+    switch(getDataPointRank()) {
+        case 0:
+            return 1;
+        case 1:
+            return shape[0];
+        case 2:
+            return shape[0]*shape[1];
+        case 3:
+            return shape[0]*shape[1]*shape[2];
+        case 4:
+            return shape[0]*shape[1]*shape[2]*shape[3];
+        default:
+            throw DataException("Error - illegal Data rank.");
+    }
+}
+
+
 // The different name is needed because boost has trouble with overloaded functions.
 // It can't work out what type the function is based solely on its name.
 // There are ways to fix this involving creating function pointer variables for each form

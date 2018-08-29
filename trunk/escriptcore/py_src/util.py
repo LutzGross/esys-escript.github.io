@@ -203,6 +203,29 @@ def saveDataCSV(filename, append=False, refid=False, sep=", ", csep="_", **data)
                raise ValueError("saveDataCSV: unknown non-data argument type for %s"%(str(n)))
     escore._saveDataCSV(filename, new_data, sep, csep, refid, append)
 
+def getNumpy(**data):
+    """
+    Writes `Data` objects to a numpy array.
+    """
+    # find a function space:
+    fs = None
+    for n,d in sorted(data.items(), key=lambda x: x[0]):
+        if isinstance(d, Data): fs=d.getFunctionSpace()
+    if fs is None:
+        raise ValueError("getNumpy: there must be at least one Data object in the argument list.")
+    
+    new_data={}
+    for n,d in sorted(data.items(), key=lambda x: x[0]):
+        if isinstance(d, Data):
+            new_data[n]=d
+        else:
+            try:
+                new_data[n]=Data(d,fs)
+            except:
+                raise ValueError("getNumpy: unknown non-data argument type for %s"%(str(n)))
+
+    return escore._getNumpy(new_data)
+
 def saveESD(datasetName, dataDir=".", domain=None, timeStep=0, deltaT=1, dynamicMesh=0, timeStepFormat="%04d", **data):
     """
     Saves `Data` objects to files and creates an `escript dataset` (ESD) file
