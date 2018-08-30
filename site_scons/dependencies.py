@@ -274,7 +274,7 @@ def checkBoostNumpy(env):
             boostversion = int(boostversion)
 
     conf = Configure(env.Clone())
-    if boostversion >= 106300:
+    if boostversion >= 200000:
         conf.env.Append(CPPDEFINES = ['ESYS_HAVE_BOOST_NUMPY'])
 
     return conf.Finish()
