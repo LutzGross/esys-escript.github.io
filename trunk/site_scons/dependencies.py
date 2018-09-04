@@ -265,19 +265,22 @@ def checkBoostNumpy(env):
     boost_inc_path,boost_lib_path=findLibWithHeader(env, env['boost_libs'], 'boost/python.hpp', env['boost_prefix'], lang='c++')
 
     # Try to extract the boost version from version.hpp
-    boosthpp=open(os.path.join(boost_inc_path, 'boost', 'version.hpp'))
-    boostversion='unknown'
+    boosthpp = open(os.path.join(boost_inc_path, 'boost', 'version.hpp'))
+    boostversion = 'unknown'
     for line in boosthpp:
-        ver=re.match(r'#define BOOST_VERSION (\d+)',line)
+        ver = re.match(r'#define BOOST_VERSION (\d+)',line)
         if ver:
-            boostversion=ver.group(1)
+            boostversion = ver.group(1)
             boostversion = int(boostversion)
 
-    conf = Configure(env.Clone())
-    if boostversion >= 200000:
-        conf.env.Append(CPPDEFINES = ['ESYS_HAVE_BOOST_NUMPY'])
+    if boostversion >= 2000000:
+        boost_numpy_inc_path,boost_numpy_lib_path=findLibWithHeader(env, env['boost_libs'], 'boost/python/numpy.hpp', env['boost_prefix'], lang='c++')
+        env.AppendUnique(CPPPATH = [boost_numpy_inc_path])
+        env.AppendUnique(LIBPATH = [boost_numpy_lib_path])
+        env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], boost_numpy_lib_path)
+        env.Append(CPPDEFINES = ['ESYS_HAVE_BOOST_NUMPY'])
 
-    return conf.Finish()
+    return env
 
 def checkCUDA(env):
     try:
