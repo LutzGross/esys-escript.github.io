@@ -285,6 +285,12 @@ def checkBoost(env):
             env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], boost_numpy_lib_path)
             env.Append(CPPDEFINES=['ESYS_HAVE_BOOST_NUMPY'])
 
+    # boost_numpy_inc_path,boost_numpy_lib_path=findLibWithHeader(env, env['boost_libs'], 'boost/python/numpy.hpp', env['boost_prefix'], lang='c++')
+    # env.AppendUnique(CPPPATH = [boost_numpy_inc_path])
+    # env.AppendUnique(LIBPATH = [boost_numpy_lib_path])
+    # env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], boost_numpy_lib_path)
+    # env.Append(CPPDEFINES=['ESYS_HAVE_BOOST_NUMPY'])
+
     return env
 
 def checkNumpy(env):
