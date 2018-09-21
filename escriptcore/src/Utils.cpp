@@ -810,7 +810,7 @@ bp::numpy::ndarray getNumpy(bp::dict arg){
 }
 #else
 void getNumpy(bp::dict arg){
-    throw DataException("getNumpy: Error - Please recompile escripts with Boost version 1.63 or higher.");
+    throw DataException("getNumpy: Error - Please recompile escripts with the boost numpy library");
 }
 #endif
 

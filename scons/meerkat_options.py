@@ -18,26 +18,25 @@
 # Refer to README_FIRST for usage instructions.
 
 escript_opts_version = 203
-# cxx_extra = '-Wno-literal-suffix -Wall'
-# cxx_extra = "--no-undefined -Wall"
+#cxx_extra = '-Wno-literal-suffix'
 openmp = True
 #mpi = 'OPENMPI'
 
 import os
 
+boost_prefix=['/home/adam/Documents/zzz/boost_1_68_0/','/home/adam/Documents/zzz/boost_1_68_0/stage/lib']
+
 d_mpi_path = '/usr/include/openmpi'
 mpi_prefix = os.path.split(os.path.realpath(d_mpi_path))[0]
 mpi_libs = ['mpi_cxx', 'mpi']
 netcdf = 4
-umfpack = True
+#umfpack = True
 umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
 umfpack_libs = ['umfpack', 'blas', 'amd']
 lapack_prefix = ['/usr/include/atlas', '/usr/lib/atlas-base']
 #silo = True
 silo_libs = ['siloh5', 'hdf5_openmpi']
 dudley_assemble_flags = '-funroll-loops'
-
-boost_prefix=['/home/adam/Documents/zzz/boost/boost_1_68_0/','/home/adam/Documents/zzz/boost/boost_1_68_0/stage/lib']
 
 
 import subprocess
@@ -59,25 +58,8 @@ for name in spath:
   except OSError:
     pass
 
-n2name = ''
-n3name = ''
-for name in spath:
-  try:
-    l=os.listdir(name)
-    n2res=[x for x in l if x.startswith('libboost_numpy2') and x.endswith('.so')]
-    n3res=[x for x in l if x.startswith('libboost_numpy3') and x.endswith('.so')]
-    if len(n2name)==0 and len(n2res)>0:
-      n2name=p2res[-1]
-    if len(n3name)==0 and len(n3res)>0:
-      n3name=p3res[-1]
-  except OSError:
-    pass
-
 # boost-python library/libraries to link against
-boost_libs = [p2name[3:-3], n2name[3,-3]]
-# boost_libs = [p3name[3:-3], n3name[3,-3]]
-# boost_libs = [p2name[3:-3], 'boost_numpy27']
-# boost_libs = [p3name[3:-3], 'boost_numpy35']
+boost_libs = [p2name[3:-3], 'boost_numpy27']
 
 # this can be used by options files importing us
 boost_py2_libs = [p2name[3:-3]]
