@@ -28,6 +28,7 @@ from distutils import sysconfig
 from subprocess import PIPE, Popen
 from SCons.Script.SConscript import Configure
 from site_init import findLibWithHeader, detectModule
+import subprocess 
 
 REQUIRED_BOOST = (1, 46)
 
@@ -244,6 +245,46 @@ def checkBoost(env):
     env['buildvars']['boost_inc_path']=boost_inc_path
     env['buildvars']['boost_lib_path']=boost_lib_path
     env['buildvars']['boostversion']=boostversion
+
+    # Check for the boost numpy library
+    if boostversion >= 106300:
+        boost_numpy_inc_path,boost_numpy_lib_path=findLibWithHeader(env, env['boost_libs'], 'boost/python/numpy.hpp', env['boost_prefix'], lang='c++')
+
+        # Locate the boost numpy files
+        p = subprocess.Popen(["ld","--verbose"], stdout=subprocess.PIPE)
+        out,err = p.communicate()
+        spath = [x[13:-3] for x in out.split() if 'SEARCH_DIR' in x]
+        spath.append(boost_lib_path)
+        p2name = ''
+        p3name = ''
+        for name in spath:
+            try:
+                l=os.listdir(name)
+                p2res=[x for x in l if x.startswith('libboost_numpy-py') and x.endswith('.so')]
+                p3res=[x for x in l if x.startswith('libboost_numpy3-py') and x.endswith('.so')]
+
+                if len(p2name)==0 and len(p2res)>0:
+                    p2name=p2res[-1]
+                if len(p3name)==0 and len(p3res)>0:
+                    p3name=p3res[-1]
+            except OSError:
+                pass
+
+        # Pick the right one
+        if int(env['python_version'][0]) == 2:
+            libname = p2name[3:-3]
+        else:
+            libname = p3name[3:-3]
+
+        # If found, add the necessary information to env
+        if len(libname) > 0:
+            env.AppendUnique(LIBS = libname)
+            env['boost_libs'].append(libname)
+            env.AppendUnique(CPPPATH = [boost_numpy_inc_path])
+            env.AppendUnique(LIBPATH = [boost_numpy_lib_path])
+            env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], boost_numpy_lib_path)
+            env.Append(CPPDEFINES=['ESYS_HAVE_BOOST_NUMPY'])
+
     return env
 
 def checkNumpy(env):
@@ -260,27 +301,6 @@ def checkNumpy(env):
         conf.env['numpy_h']=False
 
     return conf.Finish()
-
-def checkBoostNumpy(env):
-    boost_inc_path,boost_lib_path=findLibWithHeader(env, env['boost_libs'], 'boost/python.hpp', env['boost_prefix'], lang='c++')
-
-    # Try to extract the boost version from version.hpp
-    boosthpp = open(os.path.join(boost_inc_path, 'boost', 'version.hpp'))
-    boostversion = 'unknown'
-    for line in boosthpp:
-        ver = re.match(r'#define BOOST_VERSION (\d+)',line)
-        if ver:
-            boostversion = ver.group(1)
-            boostversion = int(boostversion)
-
-    if boostversion >= 2000000:
-        boost_numpy_inc_path,boost_numpy_lib_path=findLibWithHeader(env, env['boost_libs'], 'boost/python/numpy.hpp', env['boost_prefix'], lang='c++')
-        env.AppendUnique(CPPPATH = [boost_numpy_inc_path])
-        env.AppendUnique(LIBPATH = [boost_numpy_lib_path])
-        env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], boost_numpy_lib_path)
-        env.Append(CPPDEFINES = ['ESYS_HAVE_BOOST_NUMPY'])
-
-    return env
 
 def checkCUDA(env):
     try:

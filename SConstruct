@@ -488,9 +488,6 @@ env=checkBoost(env)
 ######## numpy (required) and numpy headers (optional)
 env=checkNumpy(env)
 
-######## check that boost has numpy support (optional) 
-env=checkBoostNumpy(env)
-
 ######## CppUnit (required for tests)
 env=checkCppUnit(env)
 
