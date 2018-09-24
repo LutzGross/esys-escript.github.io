@@ -81,6 +81,15 @@ namespace DataTypes
 
 
 #ifdef ESYS_HAVE_BOOST_NUMPY
+
+   void
+   pointToNumpyArrayOld(boost::python::numpy::ndarray& dataArray, const RealVectorType::ElementType* data, const ShapeType& shape, long offset, long numsamples, long dpps, long numdata);
+
+
+   void
+   pointToNumpyArrayOld(boost::python::numpy::ndarray& dataArray, const CplxVectorType::ElementType* data, const ShapeType& shape, long offset, long numsamples, long dpps, long numdata);
+
+
    /**
       \brief Display a single value (with the specified shape) from the data.
 
@@ -93,11 +102,11 @@ namespace DataTypes
      \param numdata - total amount of data being copied
    */
    void
-   pointToNumpyArray(boost::python::numpy::ndarray& dataArray, const RealVectorType::ElementType* data, const ShapeType& shape, long offset, long numsamples, long dpps, long numdata);
+   pointToNumpyArray(boost::python::numpy::ndarray& dataArray, const RealVectorType::ElementType* data, const ShapeType& shape, int offset, int d, int index);
 
 
    void
-   pointToNumpyArray(boost::python::numpy::ndarray& dataArray, const CplxVectorType::ElementType* data, const ShapeType& shape, long offset, long numsamples, long dpps, long numdata);
+   pointToNumpyArray(boost::python::numpy::ndarray& dataArray, const CplxVectorType::ElementType* data, const ShapeType& shape, int offset, int d, int index);
 #endif
 
    /**

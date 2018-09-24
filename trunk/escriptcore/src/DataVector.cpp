@@ -202,7 +202,7 @@ namespace escript {
 
 #ifdef ESYS_HAVE_BOOST_NUMPY
    void
-   DataTypes::pointToNumpyArray(boost::python::numpy::ndarray& dataArray, const RealVectorType::ElementType* data, 
+   DataTypes::pointToNumpyArrayOld(boost::python::numpy::ndarray& dataArray, const RealVectorType::ElementType* data, 
       const ShapeType& shape, long offset, long numsamples, long dpps, long totalNumSamples)
    {
       using namespace std;
@@ -255,7 +255,7 @@ namespace escript {
 
 
    void
-   DataTypes::pointToNumpyArray(boost::python::numpy::ndarray& dataArray, const CplxVectorType::ElementType* data, 
+   DataTypes::pointToNumpyArrayOld(boost::python::numpy::ndarray& dataArray, const CplxVectorType::ElementType* data, 
       const ShapeType& shape, long offset, long numsamples, long dpps, long totalNumSamples)
    {
       
@@ -296,6 +296,113 @@ namespace escript {
                for (int k=0;k<shape[2];k++) {
                   for (int l=0;l<shape[3];l++) {
                      dataArray[getRelIndex(shape,i,j,k,l)][numsamples+dpps*totalNumSamples] = data[offset+getRelIndex(shape,i,j,k,l)];
+                  }
+               }
+            }
+         }
+         break;
+      default:
+         stringstream mess;
+         mess << "Error - (pointToStream) Invalid rank: " << getRank(shape);
+         throw DataException(mess.str());
+      }
+   }
+
+
+   void
+   DataTypes::pointToNumpyArray(boost::python::numpy::ndarray& dataArray, const RealVectorType::ElementType* data, 
+      const ShapeType& shape, int offset, int d, int index)
+   {
+      using namespace std;
+
+      ESYS_ASSERT(data != 0, "Error - data is null");
+      ESYS_ASSERT(data.size() > 0,"Error - Data object is empty.");
+
+      switch (getRank(shape)) {
+      case 0:
+         dataArray[d] = data[offset];
+         break;
+      case 1:
+         for (int i = 0; i < shape[0]; i++) {
+            dataArray[d + getRelIndex(shape,i)][index] = data[offset+getRelIndex(shape,i)];
+         }
+         break;
+      case 2:
+         for (int i=0;i<shape[0];i++) {
+            for (int j=0;j<shape[1];j++) {
+               dataArray[d + getRelIndex(shape,i,j)][index] = data[offset+getRelIndex(shape,i,j)];
+            }
+         }
+         break;
+      case 3:
+         for (int i=0;i<shape[0];i++) {
+            for (int j=0;j<shape[1];j++) {
+               for (int k=0;k<shape[2];k++) {
+                  dataArray[d + getRelIndex(shape,i,j,k)][index] = data[offset+getRelIndex(shape,i,j,k)];
+               }
+            }
+         }
+         break;
+      case 4:
+         for (int i=0;i<shape[0];i++) {
+            for (int j=0;j<shape[1];j++) {
+               for (int k=0;k<shape[2];k++) {
+                  for (int l=0;l<shape[3];l++) {
+                     dataArray[d + getRelIndex(shape,i,j,k,l)][index] = data[offset+getRelIndex(shape,i,j,k,l)];
+                  }
+               }
+            }
+         }
+         break;
+      default:
+         stringstream mess;
+         mess << "Error - (pointToStream) Invalid rank: " << getRank(shape);
+         throw DataException(mess.str());
+      }
+   }
+
+
+   void
+   DataTypes::pointToNumpyArray(boost::python::numpy::ndarray& dataArray, const CplxVectorType::ElementType* data, 
+      const ShapeType& shape, int offset, int d, int index)
+   {
+      
+      using namespace std;
+      
+      ESYS_ASSERT(data != 0, "Error - data is null");
+      ESYS_ASSERT(data.size() > 0,"Error - Data object is empty.");
+
+      switch (getRank(shape)) {
+      case 0:
+         dataArray[d] = data[offset];
+         break;
+      case 1:
+         for (int i = 0; i < shape[0]; i++) {
+            dataArray[d + getRelIndex(shape,i)][index] = data[offset+getRelIndex(shape,i)];
+         }
+         break;
+      case 2:
+         for (int i=0;i<shape[0];i++) {
+            for (int j=0;j<shape[1];j++) {
+               dataArray[d + getRelIndex(shape,i,j)][index] = data[offset+getRelIndex(shape,i,j)];
+            }
+         }
+         break;
+      case 3:
+         for (int i=0;i<shape[0];i++) {
+            for (int j=0;j<shape[1];j++) {
+               for (int k=0;k<shape[2];k++) {
+                  dataArray[d + getRelIndex(shape,i,j,k)][index] = data[offset+getRelIndex(shape,i,j,k)];
+               }
+            }
+         }
+         break;
+      case 4:
+         for (int i=0;i<shape[0];i++) {
+            for (int j=0;j<shape[1];j++) {
+               for (int k=0;k<shape[2];k++) {
+                  for (int l=0;l<shape[3];l++) {
+                     dataArray[d + getRelIndex(shape,i,j,k,l)][index] = data[offset+getRelIndex(shape,i,j,k,l)];
                   }
                }
             }

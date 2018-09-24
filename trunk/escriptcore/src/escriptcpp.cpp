@@ -205,7 +205,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
         ":type append: ``string``\n"
         "");
   def("_getNumpy",escript::getNumpy, arg("arg"),
-        "Takes in a Data object and returns a numpy array\n"
+        "Takes in a data object (or objects) and returns a numpy array\n"
         ":param arg: dictionary containing a single `Data` objects. \n"
         ":type arg: ``dict``\n"
         ":rtype: numpy ndarray\n"
