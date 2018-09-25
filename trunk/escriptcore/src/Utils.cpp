@@ -665,12 +665,10 @@ boost::python::list getNumpy(boost::python::dict arg)
     // Initialise boost python numpy
     bp::numpy::initialize();
 
-    // Extract the key information
+    // Extract the key information and the number of data ppoints
     bp::list keys = arg.keys();
-    // keys.sort(); // to get some predictable order to things
-
     int numdata = bp::extract<int>(arg.attr("__len__")());
-    
+
     // Process the mask information
     bool hasmask = arg.has_key("mask");
     Data mask;
@@ -683,7 +681,6 @@ boost::python::list getNumpy(boost::python::dict arg)
         }
 
         keys.remove("mask");
-        
         numdata--;
     }
 
@@ -713,19 +710,11 @@ boost::python::list getNumpy(boost::python::dict arg)
             }
         }
 
+        // Possible error: Data is complex
         if (data[i].isComplex()) {
             throw DataException("getNumpy: complex values must be separated into components before calling this.");
         }
     }
-
-    // Check to see if we have complex data
-    // bool havecomplex = false;
-    // for (int i=0; i<numdata; ++i) {
-    //     if (data[i].isComplex()) {
-    //         havecomplex = true;
-    //         break;
-    //     }
-    // }
 
     if (hasmask) {
         //Possible error: Mask domain is different to the data domain
@@ -742,7 +731,7 @@ boost::python::list getNumpy(boost::python::dict arg)
         throw DataException("getNumpy: FunctionSpaces of data are incompatible");
     }
 
-    // Do the interpolation
+    // Interpolate the data onto the same function space
     FunctionSpace best(data[0].getDomain(), bestfnspace);
     for (int i=0; i<numdata; ++i) {
         data[i] = data[i].interpolate(best);
@@ -750,16 +739,15 @@ boost::python::list getNumpy(boost::python::dict arg)
     if (hasmask)
         mask = mask.interpolate(best);
 
-    // These are needed below
+    // This are needed below
     const DataTypes::real_t onlyreal = 0;
-    // const DataTypes::cplx_t gotcomplex = 0;
 
     // Work out how big the ndarrays have to be
     int arraylength = 0;
     int numsamples = data[0].getNumSamples();
     int dpps = data[0].getNumDataPointsPerSample();
     if(hasmask){
-#pragma omp parallel for //AE Check this
+        #pragma omp parallel for
         for(int i = 0; i < numsamples * dpps; i++){
             arraylength += (bool) *mask.getSampleDataRO(i, onlyreal);
         }
@@ -767,9 +755,7 @@ boost::python::list getNumpy(boost::python::dict arg)
         arraylength = dpps * numsamples;
     }
     
-
-    //AE Double check this
-    //Work out how big to make the array
+    //Work out how many rows each array should have
     std::vector<int> spaces(numdata);
     signed int total = 0;
     spaces[0] = 0;
@@ -778,12 +764,9 @@ boost::python::list getNumpy(boost::python::dict arg)
         spaces[i+1] = total;
     }
 
-    // Initialise the array
+    // Initialise the numpy ndarray
     bp::tuple arrayshape = bp::make_tuple(total, arraylength);
     bp::numpy::dtype datatype = bp::numpy::dtype::get_builtin<double>();
-    // if(havecomplex){
-    //     datatype = bp::numpy::dtype::get_builtin<std::complex<double>>();
-    // }
     bp::numpy::ndarray dataArray = bp::numpy::zeros(arrayshape, datatype);
 
     // Initialise variables
@@ -800,9 +783,7 @@ boost::python::list getNumpy(boost::python::dict arg)
     try {
         std::vector<int> offset(numdata);
         std::vector<const DataTypes::real_t*> samplesR(numdata);
-        std::vector<const DataTypes::cplx_t*> samplesC(numdata);
 
-        const DataTypes::real_t onlyreal=0;
         for (int i = 0; i < numsamples; ++i) {
 
             // If this MPI process does not own the sample then continue
@@ -811,20 +792,11 @@ boost::python::list getNumpy(boost::python::dict arg)
             }
 
             // Get the sample data
-            // if(havecomplex){
-            //     for (int d = 0; d < numdata; ++d) {
-            //         samplesC[d] = data[d].getSampleDataRO(i, gotcomplex);
-            //     }
-            // } else {
-            //     for (int d = 0; d < numdata; ++d) {
-            //         samplesR[d] = data[d].getSampleDataRO(i, onlyreal);
-            //     }
-            // }
             for (int d = 0; d < numdata; ++d) {
                 samplesR[d] = data[d].getSampleDataRO(i, onlyreal);
             }
             
-            // Work out if we want the row
+            // Work out if we want to get this row
             wantrow = true; 
             if (hasmask) {
                 masksample = mask.getSampleDataRO(i, onlyreal);
@@ -848,16 +820,8 @@ boost::python::list getNumpy(boost::python::dict arg)
                 // If we want the row then add it to the array
                 if (wantrow) {
                     for (int d = 0; d < numdata; ++d) {
-
-                        // if(havecomplex){
-                        //     DataTypes::pointToNumpyArray(dataArray, samplesC[d], 
-                        //         data[d].getDataPointShape(), offset[d], spaces[d], hasmask ? maskcounter : i+j*numsamples);
-                        // } else {
-                        //     DataTypes::pointToNumpyArray(dataArray, samplesR[d],
-                        //         data[d].getDataPointShape(), offset[d], spaces[d], hasmask ? maskcounter : i+j*numsamples);
-                        // }
                         DataTypes::pointToNumpyArray(dataArray, samplesR[d],
-                                data[d].getDataPointShape(), offset[d], spaces[d], hasmask ? maskcounter : i+j*numsamples);
+                            data[d].getDataPointShape(), offset[d], spaces[d], hasmask ? maskcounter : i+j*numsamples);
                         
                         offset[d] += step[d];
                         maskcounter++;
@@ -910,14 +874,6 @@ boost::python::list getNumpy(boost::python::dict arg)
     bp::list answer;
     for(int i = 0; i < numdata; i++){
         bp::numpy::ndarray temp = bp::numpy::zeros(bp::make_tuple(data[i].getShapeProduct(), arraylength), datatype); //AE
-
-        // bp::list dtype_list;
-        // bp::tuple dtype_tuple = bp::make_tuple(names[i], datatype);
-        // dtype_list.append(dtype_tuple);
-        // bp::numpy::dtype new_dtype = bp::numpy::dtype(dtype_list);
-        // bp::tuple shape = bp::make_tuple(data[i].getShapeProduct(), arraylength);
-        // bp::numpy::ndarray temp = bp::numpy::zeros(shape, new_dtype);
-
         for(int j = 0; j < data[i].getShapeProduct(); j++){
             temp[j] = dataArray[spaces[i]+j];
         }
@@ -932,9 +888,6 @@ boost::python::list getNumpy(boost::python::dict arg)
 }
 
 #else
-void getNumpyOld(bp::dict arg){
-    throw DataException("getNumpyOld: Error - Please recompile escripts with Boost version 1.63 or higher.");
-}
 void getNumpy(bp::dict arg){
     throw DataException("getNumpy: Error - Please recompile escripts with the boost numpy library");
 }
