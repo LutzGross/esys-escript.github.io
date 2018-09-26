@@ -709,10 +709,13 @@ boost::python::list getNumpy(boost::python::dict arg)
                 throw DataException("getNumpy: all data must be on the same domain.");
             }
         }
+    }
 
-        // Possible error: Data is complex
-        if (data[i].isComplex()) {
-            throw DataException("getNumpy: complex values must be separated into components before calling this.");
+    // Check for complex data
+    bool have_complex = false;
+    for (int i = 0; i < numdata; ++i){
+        if(data[i].isComplex()){
+            have_complex = true;
         }
     }
 
@@ -741,6 +744,7 @@ boost::python::list getNumpy(boost::python::dict arg)
 
     // This are needed below
     const DataTypes::real_t onlyreal = 0;
+    const DataTypes::cplx_t gotcomplex = 0.0;
 
     // Work out how big the ndarrays have to be
     int arraylength = 0;
@@ -767,6 +771,9 @@ boost::python::list getNumpy(boost::python::dict arg)
     // Initialise the numpy ndarray
     bp::tuple arrayshape = bp::make_tuple(total, arraylength);
     bp::numpy::dtype datatype = bp::numpy::dtype::get_builtin<double>();
+    if(have_complex){
+        datatype = bp::numpy::dtype::get_builtin<std::complex<double>>();
+    }
     bp::numpy::ndarray dataArray = bp::numpy::zeros(arrayshape, datatype);
 
     // Initialise variables
@@ -777,12 +784,22 @@ boost::python::list getNumpy(boost::python::dict arg)
         expandedmask=true;
     }
 
+    // Make everything more complicated.
+    if(have_complex){
+        for(int i = 0; i < numdata; i++){
+            if(!data[i].isComplex()){
+                data[i].complicate();
+            }
+        }
+    }
+    
     int error = 0;
     int maskcounter = 0;
     std::string localmsg;
     try {
         std::vector<int> offset(numdata);
         std::vector<const DataTypes::real_t*> samplesR(numdata);
+        std::vector<const DataTypes::cplx_t*> samplesC(numdata);
 
         for (int i = 0; i < numsamples; ++i) {
 
@@ -793,9 +810,14 @@ boost::python::list getNumpy(boost::python::dict arg)
 
             // Get the sample data
             for (int d = 0; d < numdata; ++d) {
-                samplesR[d] = data[d].getSampleDataRO(i, onlyreal);
+                // if(have_complex){
+                if(data[d].isComplex()){
+                    samplesC[d] = data[d].getSampleDataRO(i, gotcomplex);
+                } else {
+                    samplesR[d] = data[d].getSampleDataRO(i, onlyreal);
+                }
             }
-            
+
             // Work out if we want to get this row
             wantrow = true; 
             if (hasmask) {
@@ -820,8 +842,15 @@ boost::python::list getNumpy(boost::python::dict arg)
                 // If we want the row then add it to the array
                 if (wantrow) {
                     for (int d = 0; d < numdata; ++d) {
-                        DataTypes::pointToNumpyArray(dataArray, samplesR[d],
-                            data[d].getDataPointShape(), offset[d], spaces[d], hasmask ? maskcounter : i+j*numsamples);
+
+                        if(have_complex){
+                            DataTypes::pointToNumpyArray(dataArray, samplesC[d],
+                                data[d].getDataPointShape(), offset[d], spaces[d], hasmask ? maskcounter : i+j*numsamples);
+                        } else {
+
+                            DataTypes::pointToNumpyArray(dataArray, samplesR[d],
+                                data[d].getDataPointShape(), offset[d], spaces[d], hasmask ? maskcounter : i+j*numsamples);
+                        }
                         
                         offset[d] += step[d];
                         maskcounter++;
@@ -886,7 +915,6 @@ boost::python::list getNumpy(boost::python::dict arg)
 
     return answer;
 }
-
 #else
 void getNumpy(bp::dict arg){
     throw DataException("getNumpy: Error - Please recompile escripts with the boost numpy library");
