@@ -238,16 +238,32 @@ def getNumpy(**data):
 
     answer = escore._getNumpy(new_data)
     numberofarguments = len(answer)
-    if numberofarguments == 1:
-      return answer[0]
-    elif numberofarguments == 2:
-      return answer[0], answer[1]
-    elif numberofarguments == 3:
-      return answer[0], answer[1], answer[2]
+
+    if numberofarguments == 2:
+      temp1 = numpy.rec.fromarrays([answer[1]],names=answer[0]) 
+      return temp1
     elif numberofarguments == 4:
-      return answer[0], answer[1], answer[2], answer[3]
-    elif numberofarguments == 5:
-      return answer[0], answer[1], answer[2], answer[3], answer[4]
+      temp1 = numpy.rec.fromarrays([answer[1]],names=answer[0])
+      temp2 = numpy.rec.fromarrays([answer[3]],names=answer[2])
+      return temp1, temp2
+    elif numberofarguments == 6:
+      temp1 = numpy.rec.fromarrays([answer[1]],names=answer[0])
+      temp2 = numpy.rec.fromarrays([answer[3]],names=answer[2])
+      temp3 = numpy.rec.fromarrays([answer[5]],names=answer[4])
+      return temp1, temp2, temp3
+    elif numberofarguments == 8:
+      temp1 = numpy.rec.fromarrays([answer[1]],names=answer[0])
+      temp2 = numpy.rec.fromarrays([answer[3]],names=answer[2])
+      temp3 = numpy.rec.fromarrays([answer[5]],names=answer[4])
+      temp4 = numpy.rec.fromarrays([answer[7]],names=answer[6])
+      return temp1, temp2, temp3, temp4
+    elif numberofarguments == 10:
+      temp1 = numpy.rec.fromarrays([answer[1]],names=answer[0])
+      temp2 = numpy.rec.fromarrays([answer[3]],names=answer[2])
+      temp3 = numpy.rec.fromarrays([answer[5]],names=answer[4])
+      temp4 = numpy.rec.fromarrays([answer[7]],names=answer[6])
+      temp5 = numpy.rec.fromarrays([answer[9]],names=answer[8])
+      return temp1, temp2, temp3, temp4, temp5
     else:
       raise ValueError("getNumpy: Please pass five or fewer data objects at a time.")
 

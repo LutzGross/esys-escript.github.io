@@ -684,7 +684,7 @@ boost::python::list getNumpy(boost::python::dict arg)
         numdata--;
     }
 
-    // Possible error: User did not pass any data
+    // Possible error: User forgot to pass some data
     if (numdata < 1) {
         throw DataException("getNumpy: no data to save specified.");
     }
@@ -873,11 +873,11 @@ boost::python::list getNumpy(boost::python::dict arg)
     // Put everything into a list to return to python
     bp::list answer;
     for(int i = 0; i < numdata; i++){
-        bp::numpy::ndarray temp = bp::numpy::zeros(bp::make_tuple(data[i].getShapeProduct(), arraylength), datatype); //AE
+        bp::numpy::ndarray temp = bp::numpy::zeros(bp::make_tuple(data[i].getShapeProduct(), arraylength), datatype);
         for(int j = 0; j < data[i].getShapeProduct(); j++){
             temp[j] = dataArray[spaces[i]+j];
         }
-        // answer.append(names[i]);
+        answer.append(names[i]);
         answer.append(temp);
     }
 
