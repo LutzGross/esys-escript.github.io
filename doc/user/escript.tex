@@ -1663,6 +1663,36 @@ refid e/0/0 e/1/0 e/0/1 e/1/1
 Note that while the order in which rows are output can vary, all the elements
 in a given row always correspond to the same input.
 
+\subsection{Converting \Data to a Numpy Array}
+\label{sec:getnumpy}
+\index{getNumpy}\index{GN}
+\Data objects can be converted into a numpy structured array.
+If \var{mydata1} and \var{mydata2} are scalar \Data, then the command
+\begin{python}
+  a,b = getNumpy(U=mydata1, V=mydata2)
+\end{python}
+will return two structured ndarrays with the names '\emph{U}' and '\emph{V}'.
+\begin{verbatim}
+a['U'] = [1.0000000e+0, 2.0000000e-1, ...
+b['V'] = [2.0000000e+0, 3.0000000e-1, ...
+\end{verbatim}
+
+Up to five \Data objects can be passed to \var{getNumpy} at the time. These objects can be scalar, vector or tensor \Data objects. The names of the keyword parameters form the names of the returned arrays.
+If the data objects are over different function spaces, then \var{getNumpy}
+will attempt to interpolate to a common function space.
+If this is not possible, then an exception is raised.
+
+Output can be restricted using a scalar mask as follows:
+\begin{python}
+  a,b,c = getNumpy(U=mydata1, V=mydata2, W=mydata3, mask=myscalar)
+\end{python}
+This command will only output those rows which correspond to to positive
+values of \var{myscalar}.
+
+Note that while the order in which output rows are output can vary, all the elements
+in a given row always correspond to the same input.
+
+
 \subsection{The \Operator Class}
 The \Operator class provides an abstract access to operators built
 within the \LinearPDE class. \Operator objects are created
