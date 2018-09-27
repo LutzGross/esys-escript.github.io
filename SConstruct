@@ -160,7 +160,8 @@ vars.AddVariables(
   BoolVariable('papi_instrument_solver', 'Use PAPI to instrument each iteration of the solver', False),
   BoolVariable('osx_dependency_fix', 'Fix dependencies for libraries to have absolute paths (OSX)', False),
   BoolVariable('stdlocationisprefix', 'Set the prefix as escript root in the launcher', False),
-  BoolVariable('mpi_no_host', 'Do not specify --host in run-escript launcher (only OPENMPI)', False)
+  BoolVariable('mpi_no_host', 'Do not specify --host in run-escript launcher (only OPENMPI)', False),
+  BoolVariable('insane', 'Instructs scons to not run a sanity check after compilation.', False)
 )
 
 ##################### Create environment and help text #######################
@@ -666,9 +667,9 @@ if env['usempi']:
    env.Depends('dummy', ['install_pythonMPI'])
 
 # if all domains are built:
-if env['domains'] == all_domains:
-       env.AlwaysBuild('sanity')
-       env.Default('sanity')
+if env['domains'] == all_domains and env['insane'] == False:
+    env.AlwaysBuild('sanity')
+    env.Default('sanity')
 else:
     env.Default('install')
 
