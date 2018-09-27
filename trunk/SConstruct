@@ -281,7 +281,7 @@ if cc_name == 'icpc':
     # #1875: offsetof applied to non-POD types is nonstandard (in boost)
     # removed -std=c99 because icpc doesn't like it and we aren't using c anymore
     cc_flags    = "-std=c++11 -fPIC -w2 -wd1875 -wd1478 -Wno-unknown-pragmas"
-    cc_optim    = "-Ofast -ftz -fno-alias -xCORE-AVX2"
+    cc_optim    = "-Ofast -ftz -fno-alias -xCORE-AVX2 -ipo"
     #cc_optim    = "-Ofast -ftz -fno-alias -inline-level=2 -ipo -xCORE-AVX2"
     #cc_optim    = "-O2 -ftz -fno-alias -inline-level=2"
     #cc_optim    = "-O0 -ftz -fno-alias"
