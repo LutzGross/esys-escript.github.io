@@ -1043,7 +1043,18 @@ const dim_t* Rectangle::borrowSampleReferenceIDs(int fsType) const
 
 bool Rectangle::ownSample(int fsType, index_t id) const
 {
-    throw SpeckleyException("ownSample not implemented");
+    // throw SpeckleyException("ownSample not implemented");
+
+#ifdef ESYS_MPI
+    if (getMPISize() > 1) {
+        if(getMPIRank() == 1){
+            return true;
+        } else {
+            return false;
+        }
+    }  
+#endif
+    return true;
 }
 
 void Rectangle::setToNormal(escript::Data& out) const

@@ -1241,7 +1241,17 @@ const dim_t* Brick::borrowSampleReferenceIDs(int fsType) const
 
 bool Brick::ownSample(int fsType, index_t id) const
 {
-    throw SpeckleyException("ownSample not implemented");
+    // throw SpeckleyException("ownSample not implemented");
+#ifdef ESYS_MPI
+    if (getMPISize() > 1) {
+        if(getMPIRank() == 1){
+            return true;
+        } else {
+            return false;
+        }
+    }  
+#endif
+    return true;
 }
 
 void Brick::setToNormal(escript::Data& out) const

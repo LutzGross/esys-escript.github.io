@@ -44,16 +44,26 @@ typedef std::vector<index_t> IndexVector;
 typedef std::vector<real_t> DoubleVector;
 typedef std::map<std::string,int> TagMap;
 
+#define SPECKLEY_DEGREES_OF_FREEDOM 1
+#define SPECKLEY_NODES 3
+#define SPECKLEY_ELEMENTS 4
+#define SPECKLEY_FACE_ELEMENTS 5
+#define SPECKLEY_POINTS 6
+#define SPECKLEY_REDUCED_DEGREES_OF_FREEDOM 2
+#define SPECKLEY_REDUCED_NODES 14
+#define SPECKLEY_REDUCED_ELEMENTS 10
+#define SPECKLEY_REDUCED_FACE_ELEMENTS 11
+
 enum {
-    DegreesOfFreedom=1,
-    ReducedDegreesOfFreedom=2,
-    Nodes=3,
-    ReducedNodes=14,
-    Elements=4,
-    ReducedElements=10,
-    FaceElements=5,
-    ReducedFaceElements=11,
-    Points=6
+    DegreesOfFreedom=SPECKLEY_DEGREES_OF_FREEDOM,
+    ReducedDegreesOfFreedom=SPECKLEY_REDUCED_DEGREES_OF_FREEDOM,
+    Nodes=SPECKLEY_NODES,
+    ReducedNodes=SPECKLEY_REDUCED_NODES,
+    Elements=SPECKLEY_ELEMENTS,
+    ReducedElements=SPECKLEY_REDUCED_ELEMENTS,
+    FaceElements=SPECKLEY_FACE_ELEMENTS,
+    ReducedFaceElements=SPECKLEY_REDUCED_FACE_ELEMENTS,
+    Points=SPECKLEY_POINTS
 };
 
 //quadrature point locations
