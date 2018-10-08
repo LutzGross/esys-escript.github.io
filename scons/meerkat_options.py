@@ -27,7 +27,7 @@ silo = True
 import os
 import subprocess
 
-boost_prefix=['/home/adam/Documents/zzz/boost_1_68_0/','/home/adam/Documents/zzz/boost_1_68_0/stage/lib']
+#boost_prefix=['/home/adam/Documents/zzz/boost_1_68_0/','/home/adam/Documents/zzz/boost_1_68_0/stage/lib']
 
 d_mpi_path = '/usr/include/openmpi'
 mpi_prefix = os.path.split(os.path.realpath(d_mpi_path))[0]
@@ -57,8 +57,8 @@ for name in spath:
     pass
 
 # boost-python library/libraries to link against
-# boost_libs = [p2name[3:-3]]
-boost_libs = [p2name[3:-3], 'boost_numpy27']
+boost_libs = [p2name[3:-3]]
+#boost_libs = [p2name[3:-3], 'boost_numpy27']
 # boost_libs = ['boost_python27', 'boost_numpy27']
 
 # this can be used by options files importing us

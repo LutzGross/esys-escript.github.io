@@ -36,7 +36,7 @@
 
 namespace paso {
 
-class Options;
+struct Options;
 class SystemMatrix;
 typedef boost::shared_ptr<SystemMatrix> SystemMatrix_ptr;
 typedef boost::shared_ptr<const SystemMatrix> const_SystemMatrix_ptr;
