@@ -183,8 +183,8 @@ void Coupler<cplx_t>::max(dim_t n, cplx_t* x)
 }
 
 // instantiate
-template class Coupler<real_t>;
-template class Coupler<cplx_t>;
+template struct Coupler<real_t>;
+template struct Coupler<cplx_t>;
 
 } // namespace paso
 
