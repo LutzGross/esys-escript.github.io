@@ -18,6 +18,7 @@
 #include <weipa/DataVar.h>
 #include <weipa/ElementData.h>
 #include <weipa/NodeData.h>
+#include <weipa/WeipaException.h>
 #if defined USE_FINLEY || defined USE_DUDLEY
 #include <weipa/FinleyDomain.h>
 #endif
@@ -475,8 +476,7 @@ bool EscriptDataset::saveSilo(string fileName, bool useMultiMesh)
     return true;
 
 #else // !ESYS_HAVE_SILO
-    std::cerr << "WARNING: saving to silo file requested but escript was not built"
-            " with silo support";
+    throw WeipaException("ERROR: eScripts was not built with Silo support.");
     return false;
 #endif
 }
