@@ -30,6 +30,7 @@ headers = """
     NodeData.h
     VisItControl.h
     vtkCellType.h
+    WeipaException.h
     weipa.h
 """.split()
 
