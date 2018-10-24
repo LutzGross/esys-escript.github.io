@@ -245,7 +245,7 @@ class SimpleSEGYWriter(object):
             # object.  If these are not set, they will be autocreated with default
             # values.
             stream.stats = AttribDict()
-            stream.stats.textual_file_header = 'C.. '+self.__text+'\nC.. with esys.escript.downunder r%s\nC.. %s'%(getVersion(),time.asctime())
+            stream.stats.textual_file_header = 'C.. '+self.__text+'\nC.. with esys.escript.downunder r%s\nC.. %s'%(escript.getVersion(),time.asctime())
             stream.stats.binary_file_header = SEGYBinaryFileHeader()
 
             if escript.getMPIRankWorld()<1:
