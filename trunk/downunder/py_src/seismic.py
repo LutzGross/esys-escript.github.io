@@ -215,7 +215,7 @@ class SimpleSEGYWriter(object):
                         " depends on obspy, which is not installed, see "+\
                         "https://github.com/obspy/obspy for install guide")
 
-            if getMPISizeWorld() > 1:
+            if escript.getMPISizeWorld() > 1:
                 raise RuntimeError("Writing segy files with multiple ranks is"+\
                         " not yet supported.")
 
@@ -248,7 +248,7 @@ class SimpleSEGYWriter(object):
             stream.stats.textual_file_header = 'C.. '+self.__text+'\nC.. with esys.escript.downunder r%s\nC.. %s'%(getVersion(),time.asctime())
             stream.stats.binary_file_header = SEGYBinaryFileHeader()
 
-            if getMPIRankWorld()<1:
+            if escript.getMPIRankWorld()<1:
                 stream.write(filename, format="SEGY", data_encoding=1,byteorder=sys.byteorder)
 
 class WaveBase(object):
