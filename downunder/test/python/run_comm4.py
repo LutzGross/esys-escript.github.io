@@ -584,6 +584,31 @@ class Test_COMMEMI4(unittest.TestCase):
         y0 = numpy.array( obj_mt2d.loc.getValue(arho_2d[0]) )
         y1 = numpy.array( obj_mt2d.loc.getValue(aphi_2d[0]) )
 
+        # Sort these arrays (in unison) to prevent the call to InterpolatedUnivariateSpline below
+        # from returning an error
+        stillSorting = True
+        while stillSorting:
+            stillSorting = False
+            for i in range(0, len(x)-1):
+                if x[i] > x[i+1]:
+                    x[i],   x[i+1] = x[i+1],   x[i]
+                    y0[i], y0[i+1] = y0[i+1], y0[i]
+                    y1[i], y1[i+1] = y1[i+1], y1[i]
+                    stillSorting = True
+
+        # Delete any duplicates in the array to prevent the call to InterpolatedUnivariateSpline below
+        # from returning an error
+        notDone = True
+        while notDone:
+            notDone = False
+            for i in range(0, len(x)-1):
+                if x[i] == x[i+1]:
+                    notDone = True
+                    x = numpy.delete(x,i)
+                    y0 = numpy.delete(y0,i)
+                    y1 = numpy.delete(y1,i)
+                    break
+
         # Zhdanov et al, 1997, -- Model 2D-1 Table B.33. Model2D-4 (T=1.0, z=0), see 
         # "Methods for modelling electromagnetic fields. Results from COMMEMI -- the
         # international project on the comparison of modelling results for electromag-
@@ -598,7 +623,7 @@ class Test_COMMEMI4(unittest.TestCase):
         xs = numpy.array( [-10, -7, -6, -5, 2, 5] )*1000 + x.max()/2.0
 
         # Setup interpolation to get values at specified stations (for comparison):
-        fi = InterpolatedUnivariateSpline(x, y0) 
+        fi = InterpolatedUnivariateSpline(x, y0)
         # Save esscript values at comparison points in text file:
         # uncomment to investigate
         #numpy.savetxt("mesh/commemi-4/commemi4_"+mode.lower()+".dat", numpy.column_stack((xs,fi(xs))), fmt='%g')
