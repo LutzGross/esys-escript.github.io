@@ -24,7 +24,7 @@ http://www.apache.org/licenses/LICENSE-2.0"""
 __url__="https://launchpad.net/escript-finley"
 
 __all__ = ['SimpleSEGYWriter', 'Ricker', 'WaveBase', 'SonicWave', 'VTIWave',
-'HTIWave', 'createAbsorbtionLayerFunction', 'createAbsorbtionLayerFunction',
+'HTIWave', 'createAbsorptionLayerFunction', 'createAbsorptionLayerFunction',
 'SonicHTIWave' , "TTIWave"]
 
 import math
@@ -312,12 +312,8 @@ class WaveBase(object):
              self.t_last=t
              return t, self.u + self.v * (t-self.t)
 
-def createAbsorbtionLayerFunction(x, absorption_zone=300*U.m,
-        absorption_cut=1.e-2, top_absorption=False, top_absorbation=None):
-    print("WARNING: createAbsorbtionLayerFunction(): function is deprecated, use createAbsorptionLayerFunction")
-
 def createAbsorptionLayerFunction(x, absorption_zone=300*U.m,
-        absorption_cut=1.e-2, top_absorption=False, top_absorbation=None):
+        absorption_cut=1.e-2, top_absorption=False):
     """
     Creates a distribution which is one in the interior of the domain of `x`
     and is falling down to the value 'absorption_cut' over a margin of thickness 'absorption_zone'
@@ -330,10 +326,6 @@ def createAbsorptionLayerFunction(x, absorption_zone=300*U.m,
     :return: function on 'x' which is one in the iterior and decays to almost zero over a margin
              toward the boundary.
     """
-    if top_absorbation is not None:
-        print("WARNING: createAbsorptionLayerFunction(): top_absorbation is deprecated, use top_absorption")
-        if top_absorption is False:
-            top_absorption = top_absorbation
 
     if absorption_zone is None or absorption_zone == 0:
         return 1
