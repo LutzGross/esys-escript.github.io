@@ -484,10 +484,10 @@ bool EscriptDataset::saveSilo(string fileName, bool useMultiMesh)
 //
 //
 //
-bool EscriptDataset::saveVTK(string fileName)
+void EscriptDataset::saveVTK(string fileName)
 {
     if (domainChunks.size() == 0)
-        return false;
+        throw WeipaException("EscriptDataset::saveVTK No data was passed to saveVTK");
 
     map<string,VarVector> varsPerMesh;
 
@@ -532,10 +532,9 @@ bool EscriptDataset::saveVTK(string fileName)
         fileName+=".vtu";
     }
 
-    bool ret = true;
     if (varsPerMesh.empty()) {
         // no valid variables so just write default mesh
-        ret = saveVTKsingle(fileName, "Elements", VarVector());
+        saveVTKsingle(fileName, "Elements", VarVector());
     } else {
         // write one file per required mesh
         string newName(fileName);
@@ -547,12 +546,9 @@ bool EscriptDataset::saveVTK(string fileName)
                 newName=filePrefix+"_"+vpmIt->first+".vtu";
             }
             // attempt to write all files even if one fails
-            if (!saveVTKsingle(newName, vpmIt->first, vpmIt->second)) {
-                ret = false;
-            }
+            saveVTKsingle(newName, vpmIt->first, vpmIt->second);
         }
     }
-    return ret;
 }
 
 //
@@ -582,7 +578,7 @@ void EscriptDataset::setMeshUnits(const string x, const string y, const string z
 //
 //
 //
-bool EscriptDataset::saveVTKsingle(const string& fileName,
+void EscriptDataset::saveVTKsingle(const string& fileName,
                                    const string& meshName,
                                    const VarVector& vars)
 {
@@ -665,7 +661,7 @@ bool EscriptDataset::saveVTKsingle(const string& fileName,
     oss.setf(ios_base::scientific, ios_base::floatfield);
 
     if (!fw->openFile(fileName)) {
-        return false;
+        throw WeipaException("EscriptDataset::saveVTKsingle Could not open file ");
     }
 
     if (mpiRank == 0) {
@@ -801,9 +797,8 @@ bool EscriptDataset::saveVTKsingle(const string& fileName,
     }
 
     fw->close();
-    return true;
 #else // VISIT_PLUGIN
-    return false;
+    throw WeipaException("EscriptDataset::saveVTKsingle Escripts was build without VisIt");
 #endif
 }
 
