@@ -17,6 +17,7 @@
 #include "EscriptDatasetTestCase.h"
 
 #include <weipa/EscriptDataset.h>
+#include <weipa/WeipaException.h>
 
 #include <escript/DataFactory.h>
 #include <escript/FunctionSpaceFactory.h>
@@ -75,7 +76,7 @@ void EscriptDatasetTestCase::testBase()
     CPPUNIT_ASSERT(dataset->saveSilo("dummy") == false);
 
     cout << "\tTest saveVTK without data." << endl;
-    CPPUNIT_ASSERT(dataset->saveVTK("dummy") == false);
+    CPPUNIT_ASSERT_THROW(dataset->saveVTK("dummy"),weipa::WeipaException);
 
     cout << "\tTest getConvertedDomain without data." << endl;
     CPPUNIT_ASSERT(dataset->getConvertedDomain().size() == 0);
@@ -179,7 +180,7 @@ void EscriptDatasetTestCase::runDomainTests(Domain_ptr dom)
 #endif
 
     cout << "\tTest saveVTK." << endl;
-    CPPUNIT_ASSERT(dataset->saveVTK("domaintest.vtu") == true);
+    CPPUNIT_ASSERT_NO_THROW(dataset->saveVTK("domaintest.vtu"));
     checkVTKfile("domaintest.vtu");
 }
 

@@ -136,7 +136,7 @@ public:
     bool saveSilo(const std::string fileName, bool useMultiMesh=true);
 
     /// \brief Saves the dataset in the VTK XML file format.
-    bool saveVTK(const std::string fileName);
+    void saveVTK(const std::string fileName);
 
     /// \brief Returns the dataset's converted domain so it can be reused.
     DomainChunks getConvertedDomain() { return domainChunks; }
@@ -166,7 +166,7 @@ private:
     void putSiloMultiTensor(DBfile* dbfile, const VarInfo& vi);
     void putSiloMultiVar(DBfile* dbfile, const VarInfo& vi,
                          bool useMeshFile = false);
-    bool saveVTKsingle(const std::string& fileName,
+    void saveVTKsingle(const std::string& fileName,
                        const std::string& meshName, const VarVector& vars);
     void writeVarToVTK(const VarInfo& varInfo, std::ostream& os);
 
