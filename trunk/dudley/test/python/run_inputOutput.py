@@ -39,6 +39,7 @@ import esys.escriptcore.utestselect as unittest, sys
 from esys.escriptcore.testing import *
 from esys.escript import *
 from esys.dudley import Rectangle, Brick, LoadMesh, ReadMesh, ReadGmsh
+import os as os
 
 try:
      DUDLEY_WORKDIR=os.environ['DUDLEY_WORKDIR']

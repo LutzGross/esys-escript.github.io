@@ -1241,15 +1241,17 @@ const dim_t* Brick::borrowSampleReferenceIDs(int fsType) const
 
 bool Brick::ownSample(int fsType, index_t id) const
 {
-    // throw SpeckleyException("ownSample not implemented");
 #ifdef ESYS_MPI
     if (getMPISize() > 1) {
-        if(getMPIRank() == 1){
-            return true;
+        if (fsType == Nodes || fsType == Elements) {
+            const index_t myFirstNode = m_nodeDistribution[getMPIRank()];
+            const index_t myLastNode = m_nodeDistribution[getMPIRank()+1];
+            const index_t k = m_nodeId[id];
+            return (myFirstNode <= k && k < myLastNode);
         } else {
-            return false;
+            throw SpeckleyException("ownSample: unsupported function space type");
         }
-    }  
+    }
 #endif
     return true;
 }
