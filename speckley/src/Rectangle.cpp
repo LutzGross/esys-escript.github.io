@@ -1045,14 +1045,14 @@ bool Rectangle::ownSample(int fsType, index_t id) const
 {
 #ifdef ESYS_MPI
     if (getMPISize() > 1) {
-            if (fsType == Nodes || fsType == Elements) {
-                const index_t myFirstNode = m_nodeDistribution[getMPIRank()];
-                const index_t myLastNode = m_nodeDistribution[getMPIRank()+1];
-                const index_t k = m_nodeId[id];
-                return (myFirstNode <= k && k < myLastNode);
-            } else {
-                throw SpeckleyException("ownSample: unsupported function space type");
-            }
+        if (fsType == Nodes || fsType == Elements) {
+            const index_t myFirstNode = m_nodeDistribution[getMPIRank()];
+            const index_t myLastNode = m_nodeDistribution[getMPIRank()+1];
+            const index_t k = m_nodeId[id];
+            return (myFirstNode <= k && k < myLastNode);
+        } else {
+            throw SpeckleyException("ownSample: unsupported function space type");
+        }
     }
 #endif
     return true;

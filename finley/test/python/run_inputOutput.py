@@ -39,6 +39,7 @@ import esys.escriptcore.utestselect as unittest, sys
 from esys.escriptcore.testing import *
 from esys.escript import *
 from esys.finley import Rectangle, Brick, LoadMesh, ReadMesh, GetMeshFromFile, ReadGmsh
+import os as os
 
 try:
      FINLEY_WORKDIR=os.environ['FINLEY_WORKDIR']
