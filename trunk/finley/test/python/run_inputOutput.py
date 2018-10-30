@@ -48,7 +48,7 @@ except KeyError:
 try:
      FINLEY_TEST_DATA=os.environ['FINLEY_TEST_DATA']
 except KeyError:
-     FINLEY_TEST_DATA='.'
+     FINLEY_TEST_DATA=os.path.join(os.getcwd(), "finley/test/python")
 
 FINLEY_TEST_MESH_PATH=os.path.join(FINLEY_TEST_DATA,"data_meshes")
 

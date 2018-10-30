@@ -48,7 +48,7 @@ except KeyError:
 try:
      DUDLEY_TEST_DATA=os.environ['DUDLEY_TEST_DATA']
 except KeyError:
-     DUDLEY_TEST_DATA='.'
+     DUDLEY_TEST_DATA=os.path.join(os.getcwd(), "dudley/test/python")
 
 DUDLEY_TEST_MESH_PATH=os.path.join(DUDLEY_TEST_DATA,"data_meshes")
 
