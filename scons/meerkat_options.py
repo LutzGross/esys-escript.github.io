@@ -23,6 +23,7 @@ openmp = True
 #mpi = 'OPENMPI'
 umfpack = True
 silo = True
+papi = True
 
 import os
 import subprocess

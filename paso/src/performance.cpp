@@ -27,6 +27,7 @@
 /****************************************************************************/
 
 #include "Paso.h"
+#include "PasoException.h"
 #include "performance.h"
 
 namespace paso {
