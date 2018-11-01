@@ -20,15 +20,24 @@
 escript_opts_version = 203
 #cxx_extra = '-Wno-literal-suffix'
 openmp = True
-#mpi = 'OPENMPI'
 umfpack = True
 silo = True
-papi = True
+# papi = True
+# cuda = True
+# mpi = 'OPENMPI'
+verbose = True
+debug = True
 
 import os
 import subprocess
 
 #boost_prefix=['/home/adam/Documents/zzz/boost_1_68_0/','/home/adam/Documents/zzz/boost_1_68_0/stage/lib']
+# cxx = 'clang++'
+
+# nvccflags = "--verbose -arch=sm_35 -ccbin=g++ -DBOOST_NOINLINE='__attribute__((noinline))'"
+# nvccflags = "--verbose -arch=sm_35 -ccbin clang-3.8 "
+nvccflags = "--verbose -arch=sm_35 -ccbin=/usr/bin/g++"
+# nvccflags = "--verbose -ccbin clang-3.8 -DBOOST_NOINLINE='__attribute__((noinline))'"
 
 d_mpi_path = '/usr/include/openmpi'
 mpi_prefix = os.path.split(os.path.realpath(d_mpi_path))[0]
