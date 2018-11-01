@@ -879,11 +879,14 @@ int RipleyDomain::getSystemMatrixTypeId(const bp::object& options) const
                 case escript::SO_METHOD_PRES20:
                     package = escript::SO_PACKAGE_CUSP;
                     break;
+                default:
+                    package = escript::SO_DEFAULT;
+                    break;
             }
             if (package == escript::SO_PACKAGE_CUSP) {
                 if (sb.getPreconditioner() != escript::SO_PRECONDITIONER_NONE &&
                         sb.getPreconditioner() != escript::SO_PRECONDITIONER_JACOBI) {
-                    package = escript::SO_PACKAGE_DEFAULT;
+                    package = escript::SO_DEFAULT;
                 }
             }
         }

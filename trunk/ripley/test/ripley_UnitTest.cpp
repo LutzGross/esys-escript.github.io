@@ -14,7 +14,7 @@
 *
 *****************************************************************************/
 
-#include <escript/Esys_MPI.h>
+#include <escript/EsysMPI.h>
 
 #include "SystemMatrixTestCase.h"
 
