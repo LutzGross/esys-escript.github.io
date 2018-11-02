@@ -115,7 +115,7 @@ class Test_InputOutputOnDudley(unittest.TestCase):
         d2=load(dumpfile, mydomain1)
         self.assertTrue(Lsup(abs(d1-d2)) <= REL_TOL, "data objects differ")
 
-     @unittest.skipIf(not loadIsConfigured(), "loading not configured")
+     @unittest.skipIf(not loadIsConfigured() or getMPISizeWorld()>1, "loading not configured or mpisize > 1")
      def test_mesh_dump_to_NetCDF_rectangle(self):
         mydomain1 = Rectangle(n0=NE0, n1=NE1, order=1, l0=1., l1=1., optimize=False)
         dumpfile=os.path.join(DUDLEY_WORKDIR, "tempfile.mesh.nc")
@@ -144,7 +144,7 @@ class Test_InputOutputOnDudley(unittest.TestCase):
         self.assertEqual(dom.getTag('All'),10,'error with All')
         self.assertRaises(ValueError, dom.getTag, 'tag6')
 
-     @unittest.skipIf(not loadIsConfigured(), "loading not configured")
+     @unittest.skipIf(not loadIsConfigured() or getMPISizeWorld()>1, "loading not configured or mpisize > 1")
      def test_mesh_dump_to_NetCDF_brick(self):
         mydomain1 = Brick(n0=NE0, n1=NE1, n2=NE2, order=1, l0=1., l1=1., l2=1., optimize=False)
         dumpfile=os.path.join(DUDLEY_WORKDIR, "tempfile.mesh.nc")
