@@ -24,7 +24,7 @@ import numpy as np
 try:
     TEST_DATA_ROOT=os.environ['DOWNUNDER_TEST_DATA_ROOT']
 except KeyError:
-    TEST_DATA_ROOT='ref_data'
+    TEST_DATA_ROOT=os.path.join(os.getcwd(), "downunder/test/python/ref_data")
 
 try:
     WORKDIR=os.environ['DOWNUNDER_WORKDIR']

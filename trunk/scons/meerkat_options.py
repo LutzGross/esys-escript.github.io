@@ -25,8 +25,8 @@ silo = True
 # papi = True
 # cuda = True
 # mpi = 'OPENMPI'
-verbose = True
-debug = True
+# verbose = True
+# debug = True
 
 import os
 import subprocess
