@@ -24,8 +24,8 @@ umfpack = True
 silo = True
 # papi = True
 # cuda = True
-# mpi = 'OPENMPI'
-# verbose = True
+mpi = 'OPENMPI'
+verbose = True
 # debug = True
 
 import os
