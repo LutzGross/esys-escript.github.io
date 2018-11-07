@@ -18,7 +18,6 @@
 #define __PASO_PRECONDITIONER_H__
 
 #include "Paso.h"
-#include "BOOMERAMG.h"
 #include "SystemMatrix.h"
 
 namespace paso {
@@ -284,7 +283,6 @@ struct Preconditioner_AMG_Root
     bool is_local;
     Preconditioner_AMG* amg;
     Preconditioner_LocalAMG* localamg;
-    Preconditioner_BoomerAMG* boomeramg;
     int sweeps;
     Preconditioner_Smoother* amgsubstitute;
 };

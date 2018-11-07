@@ -26,7 +26,6 @@
 /****************************************************************************/
 
 #include "Paso.h"
-#include "BOOMERAMG.h"
 #include "Options.h"
 #include "Preconditioner.h"
 
@@ -39,7 +38,6 @@ void Preconditioner_AMG_Root_free(Preconditioner_AMG_Root* in)
     if (in) {
         Preconditioner_AMG_free(in->amg);
         Preconditioner_LocalAMG_free(in->localamg);
-        Preconditioner_BoomerAMG_free(in->boomeramg);
         Preconditioner_Smoother_free(in->amgsubstitute);
         delete in;
     }
@@ -52,19 +50,16 @@ Preconditioner_AMG_Root* Preconditioner_AMG_Root_alloc(SystemMatrix_ptr A,
     prec->amg = NULL;
     prec->localamg = NULL;
     prec->amgsubstitute = NULL;
-    prec->boomeramg = NULL;
-    if (options->preconditioner == PASO_BOOMERAMG) {
-        prec->boomeramg = Preconditioner_BoomerAMG_alloc(A,options);
+    
+    prec->is_local = (A->mpi_info->size == 1) || options->use_local_preconditioner;
+    if (prec->is_local) {
+        prec->localamg = Preconditioner_LocalAMG_alloc(A->mainBlock, 1, options);
     } else {
-        prec->is_local = (A->mpi_info->size == 1) || options->use_local_preconditioner;
-        if (prec->is_local) {
-            prec->localamg = Preconditioner_LocalAMG_alloc(A->mainBlock, 1, options);
-        } else {
-            prec->amg = Preconditioner_AMG_alloc(A, 1, options);
-        }
+        prec->amg = Preconditioner_AMG_alloc(A, 1, options);
     }
+
     if (options->verbose) {
-        if (prec->localamg || prec->amg || prec->boomeramg) {
+        if (prec->localamg || prec->amg) {
             std::cout << "Preconditioner_AMG_Root:  Smoother is ";
             if (options->smoother == PASO_JACOBI) {
                 std::cout << "Jacobi";
@@ -95,7 +90,7 @@ Preconditioner_AMG_Root* Preconditioner_AMG_Root_alloc(SystemMatrix_ptr A,
         options->num_level=Preconditioner_AMG_getMaxLevel(prec->amg);
         options->coarse_level_sparsity=Preconditioner_AMG_getCoarseLevelSparsity(prec->amg);
         options->num_coarse_unknowns=Preconditioner_AMG_getNumCoarseUnknowns(prec->amg);
-    } else if (prec->boomeramg == NULL) {
+    } else {
         prec->sweeps=options->sweeps;
         prec->amgsubstitute=Preconditioner_Smoother_alloc(A, (options->smoother == PASO_JACOBI), prec->is_local, options->verbose);
         options->num_level=0;
@@ -124,8 +119,6 @@ void Preconditioner_AMG_Root_solve(SystemMatrix_ptr A,
         Preconditioner_LocalAMG_solve(A->mainBlock, prec->localamg, x, b);
     } else if ( prec->amg != NULL) {
         Preconditioner_AMG_solve(A, prec->amg,x,b);
-    } else if ( prec->boomeramg != NULL) {
-        Preconditioner_BoomerAMG_solve(A, prec->boomeramg, x, b);
     } else {
         Preconditioner_Smoother_solve(A, prec->amgsubstitute, x, b,
                                       prec->sweeps, false);

@@ -213,8 +213,6 @@ const char* Options::name(int key)
             return "MKL";
        case PASO_UMFPACK:
             return "UMFPACK";
-       case PASO_BOOMERAMG:
-            return "BOOMERAMG";
        case PASO_ITERATIVE:
             return "ITERATIVE";
        case PASO_PASO:
@@ -445,8 +443,6 @@ int Options::mapEscriptOption(int escriptOption)
             return PASO_AMG;
         case escript::SO_PRECONDITIONER_AMLI:
             return PASO_AMLI;
-        case escript::SO_PRECONDITIONER_BOOMERAMG:
-            return PASO_BOOMERAMG;
         case escript::SO_PRECONDITIONER_GAUSS_SEIDEL:
             return PASO_GAUSS_SEIDEL;
         case escript::SO_PRECONDITIONER_ILU0:
