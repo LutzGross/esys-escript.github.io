@@ -571,20 +571,6 @@ def checkOptionalLibraries(env):
         env['buildvars']['mpi_lib_path']=mpi_lib_path
     env['buildvars']['mpi']=env['mpi']
 
-    ######## BOOMERAMG
-    if env['mpi'] == 'none': env['boomeramg'] = False
-    boomeramg_inc_path=''
-    boomeramg_lib_path=''
-    if env['boomeramg']:
-        boomeramg_inc_path,boomeramg_lib_path=findLibWithHeader(env, env['boomeramg_libs'], 'HYPRE.h', env['boomeramg_prefix'], lang='c++')
-        env.AppendUnique(CPPPATH = [boomeramg_inc_path])
-        env.AppendUnique(LIBPATH = [boomeramg_lib_path])
-        env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], boomeramg_lib_path)
-        env.Append(CPPDEFINES = ['ESYS_HAVE_BOOMERAMG'])
-        env['buildvars']['boomeramg_inc_path']=boomeramg_inc_path
-        env['buildvars']['boomeramg_lib_path']=boomeramg_lib_path
-    env['buildvars']['boomeramg']=int(env['boomeramg'])
-
     ######## ParMETIS
     if not env['usempi']: env['parmetis'] = False
     parmetis_inc_path=''

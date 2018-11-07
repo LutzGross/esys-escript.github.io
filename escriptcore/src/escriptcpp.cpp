@@ -984,7 +984,6 @@ args("source", "q", "r","factor"),
 
     .value("AMG", escript::SO_PRECONDITIONER_AMG)
     .value("AMLI", escript::SO_PRECONDITIONER_AMLI)
-    .value("BOOMERAMG", escript::SO_PRECONDITIONER_BOOMERAMG)
     .value("GAUSS_SEIDEL", escript::SO_PRECONDITIONER_GAUSS_SEIDEL)
     .value("ILU0", escript::SO_PRECONDITIONER_ILU0)
     .value("ILUT", escript::SO_PRECONDITIONER_ILUT)
@@ -1068,10 +1067,10 @@ args("source", "q", "r","factor"),
     .def("hasConverged", &escript::SolverBuddy::hasConverged,"Returns ``True`` if the last solver call has been finalized successfully.\n\n"
         ":note: if an exception has been thrown by the solver the status of this"
         "flag is undefined.\n")
-    .def("setCoarsening", &escript::SolverBuddy::setCoarsening, args("coarsening"),"Sets the key of the coarsening method to be applied in AMG or AMLI or BoomerAMG\n\n"
+    .def("setCoarsening", &escript::SolverBuddy::setCoarsening, args("coarsening"),"Sets the key of the coarsening method to be applied in AMG or AMLI\n\n"
         ":param method: selects the coarsening method .\n"
         ":type method: in `DEFAULT`, `YAIR_SHAPIRA_COARSENING`, `RUGE_STUEBEN_COARSENING`, `AGGREGATION_COARSENING`, `CIJP_FIXED_RANDOM_COARSENING`, `CIJP_COARSENING`, `FALGOUT_COARSENING`, `PMIS_COARSENING`, `HMIS_COARSENING`")
-    .def("getCoarsening", &escript::SolverBuddy::getCoarsening,"Returns the key of the coarsening algorithm to be applied AMG, AMLI or BoomerAMG\n\n"
+    .def("getCoarsening", &escript::SolverBuddy::getCoarsening,"Returns the key of the coarsening algorithm to be applied AMG or AMLI\n\n"
         ":rtype: in the list `DEFAULT`, `YAIR_SHAPIRA_COARSENING`, `RUGE_STUEBEN_COARSENING`, `AGGREGATION_COARSENING`, `CIJP_FIXED_RANDOM_COARSENING`, `CIJP_COARSENING`, `FALGOUT_COARSENING`, `PMIS_COARSENING`, `HMIS_COARSENING`")
     .def("setMinCoarseMatrixSize", &escript::SolverBuddy::setMinCoarseMatrixSize, args("size"),"Sets the minimum size of the coarsest level matrix in AMG or AMLI\n\n"
         ":param size: minimum size of the coarsest level matrix .\n"
@@ -1079,11 +1078,11 @@ args("source", "q", "r","factor"),
     .def("getMinCoarseMatrixSize", &escript::SolverBuddy::getMinCoarseMatrixSize,"Returns the minimum size of the coarsest level matrix in AMG or AMLI")
     .def("setPreconditioner", &escript::SolverBuddy::setPreconditioner, args("preconditioner"),"Sets the preconditioner to be used.\n\n"
         ":param preconditioner: key of the preconditioner to be used.\n"
-        ":type preconditioner: in `ILU0`, `ILUT`, `JACOBI`, `AMG`, `AMLI`, `REC_ILU`, `GAUSS_SEIDEL`, `RILU`, `BOOMERAMG`, `NO_PRECONDITIONER`\n"
+        ":type preconditioner: in `ILU0`, `ILUT`, `JACOBI`, `AMG`, `AMLI`, `REC_ILU`, `GAUSS_SEIDEL`, `RILU`, `NO_PRECONDITIONER`\n"
         ":note: Not all packages support all preconditioner. It can be assumed that a package makes a reasonable choice if it encounters an unknown"
         "preconditioner.\n")
     .def("getPreconditioner", &escript::SolverBuddy::getPreconditioner,"Returns the key of the preconditioner to be used.\n\n"
-        ":rtype: in the list `ILU0`, `ILUT`, `JACOBI`, `AMLI`, `AMG`, `REC_ILU`, `GAUSS_SEIDEL`, `RILU`, `BOOMERAMG`, `NO_PRECONDITIONER`")
+        ":rtype: in the list `ILU0`, `ILUT`, `JACOBI`, `AMLI`, `AMG`, `REC_ILU`, `GAUSS_SEIDEL`, `RILU`,  `NO_PRECONDITIONER`")
     .def("setSmoother", &escript::SolverBuddy::setSmoother, args("smoother"),"Sets the smoother to be used.\n\n"
         ":param smoother: key of the smoother to be used.\n"
         ":type smoother: in `JACOBI`, `GAUSS_SEIDEL`\n"

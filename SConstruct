@@ -111,9 +111,6 @@ vars.AddVariables(
   BoolVariable('umfpack', 'Enable UMFPACK', False),
   ('umfpack_prefix', 'Prefix/Paths to UMFPACK installation', default_prefix),
   ('umfpack_libs', 'UMFPACK libraries to link with', ['umfpack']),
-  BoolVariable('boomeramg', 'Enable BoomerAMG', False),
-  ('boomeramg_prefix', 'Prefix/Paths to BoomerAMG installation', default_prefix),
-  ('boomeramg_libs', 'BoomerAMG libraries to link with', ['boomeramg']),
   TristateVariable('lapack', 'Enable LAPACK', 'auto'),
   ('lapack_prefix', 'Prefix/Paths to LAPACK installation', default_prefix),
   ('lapack_libs', 'LAPACK libraries to link with', []),
@@ -791,7 +788,7 @@ def print_summary():
     else:
         print("          netcdf:  NO")
     e_list=[]
-    for i in ('weipa','debug','openmp','boomeramg','cppunit','gdal','mkl',
+    for i in ('weipa','debug','openmp','cppunit','gdal','mkl',
              'papi','pyproj','scipy','silo','sympy','umfpack','visit'):
         if env[i]: e_list.append(i)
         else: d_list.append(i)

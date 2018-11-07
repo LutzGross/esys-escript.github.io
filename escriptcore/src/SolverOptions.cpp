@@ -149,22 +149,6 @@ std::string SolverBuddy::getSummary() const
                     << " / " << getNumPostSweeps() << ", " << getNumSweeps()
                     << std::endl;
                 break;
-            case SO_PRECONDITIONER_BOOMERAMG:
-                out << "Maximum number of levels = " << getLevelMax()
-                    << std::endl
-                    << "Coarsening threshold = " << getCoarseningThreshold()
-                    << std::endl
-                    << "Threshold for diagonal dominant rows = "
-                    << getDiagonalDominanceThreshold() << std::endl
-                    << "Coarsening method = " << getName(getCoarsening())
-                    << std::endl
-                    << "V-cycle (1) or W-cyle (2) = " << getCycleType()
-                    << std::endl
-                    << "Number of pre / post sweeps = " << getNumPreSweeps()
-                    << " / " << getNumPostSweeps() << ", " << getNumSweeps()
-                    << std::endl
-                    << "Smoother = " << getName(getSmoother()) << std::endl;
-                break;
             case SO_PRECONDITIONER_GAUSS_SEIDEL:
                 out << "Number of sweeps = " << getNumSweeps() << std::endl;
                 break;
@@ -220,7 +204,6 @@ const char* SolverBuddy::getName(int key) const
 
         case SO_PRECONDITIONER_AMG: return "AMG";
         case SO_PRECONDITIONER_AMLI: return "AMLI";
-        case SO_PRECONDITIONER_BOOMERAMG: return "BOOMERAMG";
         case SO_PRECONDITIONER_GAUSS_SEIDEL: return "GAUSS_SEIDEL";
         case SO_PRECONDITIONER_ILU0: return "ILU0";
         case SO_PRECONDITIONER_ILUT: return "ILUT";
@@ -465,7 +448,6 @@ void SolverBuddy::setPreconditioner(int precon)
 #endif
 */
         case SO_PRECONDITIONER_AMLI:
-        case SO_PRECONDITIONER_BOOMERAMG:
         case SO_PRECONDITIONER_GAUSS_SEIDEL:
         case SO_PRECONDITIONER_ILU0:
         case SO_PRECONDITIONER_ILUT:

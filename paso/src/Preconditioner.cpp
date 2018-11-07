@@ -84,7 +84,6 @@ Preconditioner* Preconditioner_alloc(SystemMatrix_ptr A, Options* options)
             prec->sweeps = options->sweeps;
             break;
 
-        case PASO_BOOMERAMG:
         case PASO_AMLI:
         case PASO_AMG:
             prec->amg = Preconditioner_AMG_Root_alloc(boost::const_pointer_cast<SystemMatrix>(A), options);

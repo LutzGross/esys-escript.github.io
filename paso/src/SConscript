@@ -66,7 +66,6 @@ sources = """
     SystemMatrixPattern_unrollBlocks.cpp
     Transport.cpp
     Transport_solve.cpp
-    BOOMERAMG.cpp
     ILU.cpp
     MINRES.cpp
     RILU.cpp
@@ -79,7 +78,6 @@ sources = """
 
 headers = """
     BlockOps.h
-    BOOMERAMG.h
     Coupler.h
     FCT_Solver.h
     FluxLimiter.h
@@ -114,8 +112,6 @@ if env['mkl']:
     pasolibs += env['mkl_libs']
 if env['umfpack']:
     pasolibs += env['umfpack_libs']
-if env['boomeramg']:
-    pasolibs += env['boomeramg_libs']
 if env['papi']:
     pasolibs += env['papi_libs']
 

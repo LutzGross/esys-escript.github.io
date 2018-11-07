@@ -22,17 +22,24 @@ escript_opts_version = 203
 openmp = True
 umfpack = True
 silo = True
-# papi = True
+papi = True
 # cuda = True
 mpi = 'OPENMPI'
 verbose = True
 # debug = True
+parmetis = True
+visit = True
+trilinos = True
 
 import os
 import subprocess
 
 #boost_prefix=['/home/adam/Documents/zzz/boost_1_68_0/','/home/adam/Documents/zzz/boost_1_68_0/stage/lib']
 # cxx = 'clang++'
+
+
+parmetis_prefix = ['/usr/include','/usr/lib']
+parmetis_libs = ['parmetis', 'metis']
 
 # nvccflags = "--verbose -arch=sm_35 -ccbin=g++ -DBOOST_NOINLINE='__attribute__((noinline))'"
 # nvccflags = "--verbose -arch=sm_35 -ccbin clang-3.8 "
@@ -48,6 +55,10 @@ umfpack_libs = ['umfpack', 'blas', 'amd']
 lapack_prefix = ['/usr/include/atlas', '/usr/lib/atlas-base']
 silo_libs = ['siloh5', 'hdf5_openmpi']
 dudley_assemble_flags = '-funroll-loops'
+
+visit_prefix = ['/usr/local/visit/2.13.2/linux-x86_64/libsim/V2/include/','/usr/local/visit/2.13.2/linux-x86_64/libsim/V2/lib/']
+trilinos_prefix =['/opt/trilinos/include/','/opt/trilinos/lib/']
+
 
 p = subprocess.Popen(["ld","--verbose"], stdout=subprocess.PIPE)
 out,err = p.communicate()

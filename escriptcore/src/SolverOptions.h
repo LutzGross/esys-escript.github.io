@@ -57,7 +57,6 @@ SO_METHOD_TFQMR: Transpose Free Quasi Minimal Residual method
 
 SO_PRECONDITIONER_AMG: Algebraic Multi Grid
 SO_PRECONDITIONER_AMLI: Algebraic Multi Level Iteration
-SO_PRECONDITIONER_BOOMERAMG: Boomer AMG (from the hypre library)
 SO_PRECONDITIONER_GAUSS_SEIDEL: Gauss-Seidel preconditioner
 SO_PRECONDITIONER_ILU0: The incomplete LU factorization preconditioner with no fill-in
 SO_PRECONDITIONER_ILUT: The incomplete LU factorization preconditioner with fill-in
@@ -129,7 +128,6 @@ enum SolverOptions
     // Preconditioners
     SO_PRECONDITIONER_AMG,
     SO_PRECONDITIONER_AMLI,
-    SO_PRECONDITIONER_BOOMERAMG,
     SO_PRECONDITIONER_GAUSS_SEIDEL,
     SO_PRECONDITIONER_ILU0,
     SO_PRECONDITIONER_ILUT,
@@ -262,8 +260,7 @@ public:
     bool hasConverged() const;
 
     /**
-        Sets the key of the coarsening method to be applied in AMG, AMLI
-        or BoomerAMG.
+        Sets the key of the coarsening method to be applied in AMG or AMLI
 
         \param coarsening the coarsening method, one of
             `SO_DEFAULT`, `SO_COARSENING_YAIR_SHAPIRA`,
@@ -275,8 +272,7 @@ public:
     void setCoarsening(int coarsening);
 
     /**
-        Returns the key of the coarsening algorithm to be applied for AMG, AMLI
-        or BoomerAMG
+        Returns the key of the coarsening algorithm to be applied for AMG or AMLI
     */
     SolverOptions getCoarsening() const;
 
@@ -300,7 +296,7 @@ public:
             `SO_PRECONDITIONER_JACOBI`, `SO_PRECONDITIONER_AMG`,
             `SO_PRECONDITIONER_AMLI`, `SO_PRECONDITIONER_REC_ILU`,
             `SO_PRECONDITIONER_GAUSS_SEIDEL`, `SO_PRECONDITIONER_RILU`,
-            `SO_PRECONDITIONER_BOOMERAMG`, `SO_PRECONDITIONER_NONE`
+            `SO_PRECONDITIONER_NONE`
 
         \note Not all packages support all preconditioners. It can be assumed
               that a package makes a reasonable choice if it encounters an

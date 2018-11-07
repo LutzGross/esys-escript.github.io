@@ -201,10 +201,6 @@ Preconditioner_AMG* Preconditioner_AMG_alloc(SystemMatrix_ptr A, int level,
                                       A->col_coupler->connector,
                                       A->col_distribution);
 
-    // in BoomerAMG if interpolation is used FF connectivity is required
-    //if (options->interpolation_method == PASO_CLASSIC_INTERPOLATION_WITH_FF_COUPLING)
-    //    Preconditioner_AMG_enforceFFConnectivity(n, A->pattern->ptr, degree_S, S, F_marker);
-
     options->coarsening_selection_time = escript::gettime()-time0 +
                                std::max(0., options->coarsening_selection_time);
 #pragma omp parallel for
