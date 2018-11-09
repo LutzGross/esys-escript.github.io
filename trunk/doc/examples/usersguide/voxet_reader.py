@@ -17,7 +17,7 @@ from __future__ import print_function, division
 
 import os
 from esys.downunder import CartesianReferenceSystem
-from esys.escript import ReducedFunction
+from esys.escript import ReducedFunction, getMPIRankWorld
 
 def readVoxet(domain, filename, voproperty=1, origin=None, fillValue=0.,
               referenceSystem=CartesianReferenceSystem()):
@@ -221,12 +221,15 @@ if __name__ == "__main__":
         u = pde.getSolution()
         u=interpolate(u+dom.getX()[2], ReducedFunction(dom))
         print(u)
-        handle, filename = tempfile.mkstemp(suffix='.vo', prefix='poisson')
+        filename = "/tmp/temp.vo"
         saveVoxet(filename, u=u)
+
         print("-------")
         dom = Brick(l0=1.,l1=1.,l2=4.,n0=18, n1=18, n2=36)
         v=readVoxet(dom, filename, 'u', fillValue=0.5)
         print(v)
-        os.remove(filename)
+        if getMPIRankWorld() == 0:
+            os.remove(filename)
+            os.remove(filename[:-3] + '_u')
         #saveSilo('/tmp/poisson', v=v)
 
