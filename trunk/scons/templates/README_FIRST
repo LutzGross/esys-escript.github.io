@@ -192,15 +192,6 @@ umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
 umfpack_libs = ['umfpack', 'blas', 'amd']
   UMFPACK library/libraries to link against
 
-boomeramg = True
-  Whether to use BoomerAMG (requires MPI). DEFAULT: False
-
-boomeramg_prefix = '/usr/local'
-  Prefix or paths to BoomerAMG headers and libraries. See note above.
-
-boomeramg_libs = ['HYPRE']
-  BoomerAMG library/libraries to link against
-
 lapack = True
   Whether to use BLAS/LAPACK. Note, LAPACK is incompatible with long indices.
   DEFAULT: 'auto' (try to detect MKL lapack or ATLAS)
@@ -275,6 +266,10 @@ postlaunch = ""
 
 iknowwhatimdoing = True
   enables code that is non-standard and not recommended for general use.
+
+insane = True
+  For testing use only: Skips the sanity check after compilation
+  DEFAULT: 'False'
 
 tools_names = ['intelc']
   compiler toolset to use. DEFAULT: auto-detected
