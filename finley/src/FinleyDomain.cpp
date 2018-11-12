@@ -249,7 +249,7 @@ void FinleyDomain::dump(const string& fileName) const
     NcFile dataFile;
     try
     {
-        dataFile.open(newFileName.c_str(), NcFile::FileMode::replace,   NcFile::FileFormat::classic64);
+        dataFile.open(newFileName.c_str(), NcFile::FileMode::replace, NcFile::FileFormat::nc4);
     }
     catch (exceptions::NcException* e)
     {
