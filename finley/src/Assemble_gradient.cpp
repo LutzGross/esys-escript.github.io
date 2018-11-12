@@ -104,7 +104,7 @@ void Assemble_gradient(const NodeFile* nodes, const ElementFile* elements,
     }
 
     const Scalar zero = static_cast<Scalar>(0);
-    const size_t localGradSize = sizeof(Scalar)*numDim*numQuad*numSub*numComps;
+    const size_t localGradSize = numDim*numQuad*numSub*numComps;
     out.requireWrite();
 #pragma omp parallel
     {
@@ -113,7 +113,7 @@ void Assemble_gradient(const NodeFile* nodes, const ElementFile* elements,
 #pragma omp for
                 for (index_t e = 0; e < elements->numElements; e++) {
                     Scalar* gradData_e = out.getSampleDataRW(e, zero);
-                    memset(gradData_e, 0, localGradSize);
+                    std::fill(gradData_e, gradData_e+localGradSize, zero);
                     for (int isub = 0; isub < numSub; isub++) {
                         for (int s = 0; s < numShapes; s++) {
                             const index_t n = elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
@@ -133,7 +133,7 @@ void Assemble_gradient(const NodeFile* nodes, const ElementFile* elements,
 #pragma omp for
                 for (index_t e = 0; e < elements->numElements; e++) {
                     Scalar* gradData_e = out.getSampleDataRW(e, zero);
-                    memset(gradData_e, 0, localGradSize);
+                    std::fill(gradData_e, gradData_e+localGradSize, zero);
                     for (int isub = 0; isub < numSub; isub++) {
                         for (int s = 0; s < numShapes; s++) {
                             const index_t n = elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
@@ -152,7 +152,7 @@ void Assemble_gradient(const NodeFile* nodes, const ElementFile* elements,
 #pragma omp for
                 for (index_t e = 0; e < elements->numElements; e++) {
                     Scalar* gradData_e = out.getSampleDataRW(e, zero);
-                    memset(gradData_e, 0, localGradSize);
+                    std::fill(gradData_e, gradData_e+localGradSize, zero);
                     for (int isub = 0; isub < numSub; isub++) {
                         for (int s = 0; s < numShapes; s++) {
                             const index_t n = elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
@@ -175,7 +175,7 @@ void Assemble_gradient(const NodeFile* nodes, const ElementFile* elements,
 #pragma omp for
                 for (index_t e = 0; e < elements->numElements; e++) {
                     Scalar* gradData_e = out.getSampleDataRW(e, zero);
-                    memset(gradData_e, 0, localGradSize);
+                    std::fill(gradData_e, gradData_e+localGradSize, zero);
                     for (int isub = 0; isub < numSub; isub++) {
                         for (int s = 0; s < numShapes; s++) {
                             const index_t n = elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
@@ -193,7 +193,7 @@ void Assemble_gradient(const NodeFile* nodes, const ElementFile* elements,
 #pragma omp for
                 for (index_t e = 0; e < elements->numElements; e++) {
                     Scalar* gradData_e = out.getSampleDataRW(e, zero);
-                    memset(gradData_e, 0, localGradSize);
+                    std::fill(gradData_e, gradData_e+localGradSize, zero);
                     for (int isub = 0; isub < numSub; isub++) {
                         for (int s = 0; s < numShapes; s++) {
                             const index_t n = elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
@@ -212,7 +212,7 @@ void Assemble_gradient(const NodeFile* nodes, const ElementFile* elements,
 #pragma omp for
                 for (index_t e = 0; e < elements->numElements; e++) {
                     Scalar* gradData_e = out.getSampleDataRW(e, zero);
-                    memset(gradData_e, 0, localGradSize);
+                    std::fill(gradData_e, gradData_e+localGradSize, zero);
                     for (int isub = 0; isub < numSub; isub++) {
                         for (int s = 0; s < numShapes; s++) {
                             const index_t n = elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
@@ -235,7 +235,7 @@ void Assemble_gradient(const NodeFile* nodes, const ElementFile* elements,
 #pragma omp for
                 for (index_t e = 0; e < elements->numElements; e++) {
                     Scalar* gradData_e = out.getSampleDataRW(e, zero);
-                    memset(gradData_e, 0, localGradSize);
+                    std::fill(gradData_e, gradData_e+localGradSize, zero);
                     for (int isub = 0; isub < numSub; isub++) {
                         for (int s = 0; s < numShapes; s++) {
                             const index_t n = elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
@@ -253,7 +253,7 @@ void Assemble_gradient(const NodeFile* nodes, const ElementFile* elements,
 #pragma omp for
                 for (index_t e = 0; e < elements->numElements; e++) {
                     Scalar* gradData_e = out.getSampleDataRW(e, zero);
-                    memset(gradData_e, 0, localGradSize);
+                    std::fill(gradData_e, gradData_e+localGradSize, zero);
                     for (int isub = 0; isub < numSub; isub++) {
                         for (int s = 0; s < numShapes; s++) {
                             const index_t n = elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
@@ -272,7 +272,7 @@ void Assemble_gradient(const NodeFile* nodes, const ElementFile* elements,
 #pragma omp for
                 for (index_t e = 0; e < elements->numElements; e++) {
                     Scalar* gradData_e = out.getSampleDataRW(e, zero);
-                    memset(gradData_e, 0, localGradSize);
+                    std::fill(gradData_e, gradData_e+localGradSize, zero);
                     for (int isub = 0; isub < numSub; isub++) {
                         for (int s = 0; s < numShapes; s++) {
                             const index_t n = elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
@@ -295,7 +295,7 @@ void Assemble_gradient(const NodeFile* nodes, const ElementFile* elements,
 #pragma omp for
                 for (index_t e = 0; e < elements->numElements; e++) {
                     Scalar* gradData_e = out.getSampleDataRW(e, zero);
-                    memset(gradData_e, 0, localGradSize);
+                    std::fill(gradData_e, gradData_e+localGradSize, zero);
                     for (int isub = 0; isub < numSub; isub++) {
                         for (int s = 0; s < numShapes; s++) {
                             const index_t n = elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
@@ -313,7 +313,7 @@ void Assemble_gradient(const NodeFile* nodes, const ElementFile* elements,
 #pragma omp for
                 for (index_t e = 0; e < elements->numElements; e++) {
                     Scalar* gradData_e = out.getSampleDataRW(e, zero);
-                    memset(gradData_e, 0, localGradSize);
+                    std::fill(gradData_e, gradData_e+localGradSize, zero);
                     for (int isub = 0; isub < numSub; isub++) {
                         for (int s = 0; s < numShapes; s++) {
                             const index_t n = elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
@@ -333,7 +333,7 @@ void Assemble_gradient(const NodeFile* nodes, const ElementFile* elements,
 #pragma omp for
                 for (index_t e = 0; e < elements->numElements; e++) {
                     Scalar* gradData_e = out.getSampleDataRW(e, zero);
-                    memset(gradData_e, 0, localGradSize);
+                    std::fill(gradData_e, gradData_e+localGradSize, zero);
                     for (int isub = 0; isub < numSub; isub++) {
                         for (int s = 0; s < numShapes; s++) {
                             const index_t n = elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];

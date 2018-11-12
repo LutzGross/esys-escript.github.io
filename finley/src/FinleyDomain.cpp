@@ -251,7 +251,7 @@ void FinleyDomain::dump(const string& fileName) const
     {
         dataFile.open(newFileName.c_str(), NcFile::FileMode::replace,   NcFile::FileFormat::classic64);
     }
-    catch (exceptions::NcException e)
+    catch (exceptions::NcException* e)
     {
         throw FinleyException("Error - FinleyDomain:: opening of netCDF file for output failed.");
     }    

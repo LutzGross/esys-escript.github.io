@@ -252,7 +252,7 @@ Data load(const std::string fileName, const AbstractDomain& domain)
             }
             fst.getValues(&function_space_type);
         }
-        catch (exceptions::NcException e)
+        catch (exceptions::NcException* e)
         {
                 throw DataException("load: cannot recover function_space_type attribute from escript netCDF file.");    
         }
@@ -312,7 +312,7 @@ Data load(const std::string fileName, const AbstractDomain& domain)
                 }
             }
         }
-        catch (exceptions::NcException e)
+        catch (exceptions::NcException* e)
         {
             switch (line)
             {

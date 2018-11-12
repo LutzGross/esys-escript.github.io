@@ -205,7 +205,7 @@ void DudleyDomain::dump(const string& fileName) const
     {
         dataFile.open(newFileName.c_str(), NcFile::FileMode::replace,   NcFile::FileFormat::classic64);
     }
-    catch (exceptions::NcException e)
+    catch (exceptions::NcException* e)
     {
         throw DudleyException("Error - DudleyDomain:: opening of netCDF file for output failed.");
     }        

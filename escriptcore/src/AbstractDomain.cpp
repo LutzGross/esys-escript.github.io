@@ -25,7 +25,7 @@ Domain_ptr AbstractDomain::getPtr()
 {
     try {
         return shared_from_this();
-    } catch (boost::bad_weak_ptr p) {
+    } catch (boost::bad_weak_ptr* p) {
         return Domain_ptr(this);
     }
 }
@@ -34,7 +34,7 @@ const_Domain_ptr AbstractDomain::getPtr() const
 {  
     try {
         return shared_from_this();
-    } catch (boost::bad_weak_ptr p) {
+    } catch (boost::bad_weak_ptr* p) {
         return const_Domain_ptr(this);
     }
 }

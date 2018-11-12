@@ -615,12 +615,12 @@ void saveDataCSV(const std::string& filename, bp::dict arg,
                 offset[d]=0;
             }
         }
-    } catch (EsysException e) {
+    } catch (EsysException* e) {
         error=1;
         if (data[0].getDomain()->getMPISize()==1) {
             throw;
         } else {
-            localmsg=e.what();
+            localmsg=e->what();
         }
     } catch (...) {
         error=1;
