@@ -553,7 +553,7 @@ escript::Domain_ptr DudleyDomain::create3D(dim_t NE0, dim_t NE1, dim_t NE2,
     // prepare mesh for further calculations
     out->resolveNodeIds();
     out->prepare(optimize);
-    return out->getPtr();
+    return escript::Domain_ptr(out);
 }
 
 } // namespace dudley
