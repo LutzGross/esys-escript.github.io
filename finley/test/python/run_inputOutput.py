@@ -44,12 +44,12 @@ import os as os
 try:
      FINLEY_WORKDIR=os.environ['FINLEY_WORKDIR']
 except KeyError:
-     FINLEY_WORKDIR='.'
+     FINLEY_WORKDIR=os.path.join(os.getcwd(),"finley/test/")
 
 try:
      FINLEY_TEST_DATA=os.environ['FINLEY_TEST_DATA']
 except KeyError:
-     FINLEY_TEST_DATA=os.path.join(os.getcwd(), "finley/test/python")
+     FINLEY_TEST_DATA=os.path.join(os.getcwd(),"finley/test/python")
 
 FINLEY_TEST_MESH_PATH=os.path.join(FINLEY_TEST_DATA,"data_meshes")
 
@@ -155,7 +155,7 @@ class Test_InputOutputOnFinley(unittest.TestCase):
         self.assertEqual(dom.getTag('tag2'),2,'error with tag2')
         self.assertEqual(dom.getTag('tag3'),3,'error with tag3')
         self.assertRaises(ValueError, dom.getTag, 'tag4')
-     
+
      @unittest.skipIf(mpisize>1, "more than 1 MPI rank")
      def test_gmshNamedTags(self):
         dom=ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH, "test_Add.msh"),3)
@@ -204,4 +204,3 @@ class Test_InputOutputOnFinley(unittest.TestCase):
 
 if __name__ == '__main__':
     run_tests(__name__, exit_on_failure=True)
-
