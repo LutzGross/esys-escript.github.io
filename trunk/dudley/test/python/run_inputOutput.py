@@ -44,7 +44,7 @@ import os as os
 try:
      DUDLEY_WORKDIR=os.environ['DUDLEY_WORKDIR']
 except KeyError:
-     DUDLEY_WORKDIR='.'
+     DUDLEY_WORKDIR=os.path.join(os.getcwd(),"dudley/test/")
 
 try:
      DUDLEY_TEST_DATA=os.environ['DUDLEY_TEST_DATA']
@@ -166,4 +166,3 @@ class Test_InputOutputOnDudley(unittest.TestCase):
 
 if __name__ == '__main__':
     run_tests(__name__, exit_on_failure=True)
-
