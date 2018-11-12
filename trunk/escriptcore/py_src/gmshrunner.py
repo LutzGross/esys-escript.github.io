@@ -31,7 +31,7 @@ interface to gmsh
 __all__ = ['gmshGeo2Msh']
 
 from .util import getMPIRankWorld, getMPIWorldMax
-from .escriptcpp import hasFeature
+from .escriptcpp import hasFeature, getNumberOfThreads, setNumberOfThreads
 
 try:
     import gmshpy
@@ -59,6 +59,9 @@ def _runGmshPy(geoFile, mshFile, numDim, order, verbosity):
     return ret
 
 def _runGmshSerial(geoFile, mshFile, numDim, order, verbosity):
+    oldThreads=getNumberOfThreads()
+    # This is required on some setups to prevent lockups
+    setNumberOfThreads(1)
     if getMPIRankWorld() == 0:
         import shlex, subprocess
         cmdline = "gmsh -format msh -%s -order %s -o '%s' '%s'"%(numDim, order, mshFile, geoFile)
@@ -70,6 +73,7 @@ def _runGmshSerial(geoFile, mshFile, numDim, order, verbosity):
     else:
         ret = 0
    
+    setNumberOfThreads(oldThreads)
     ret=getMPIWorldMax(ret)
     return ret
 
@@ -80,7 +84,11 @@ def _runGmshMPI(geoFile, mshFile, numDim, order, verbosity):
 
     cmdline = "gmsh -format msh -%s -order %s -v %s -o '%s' '%s'"%(numDim, order, verbosity, mshFile, geoFile)
     args = shlex.split(cmdline)
+    oldThreads=getNumberOfThreads()
+    # This is required on some setups to prevent lockups
+    setNumberOfThreads(1)
     ret = runMPIProgram(args)
+    setNumberOfThreads(oldThreads)
     # on Windows runMPIProgram returns immediately so wait 'a bit' to let gmsh finish
     import os
     if os.name == "nt":
