@@ -55,14 +55,14 @@ except ImportError:
     HAVE_RIPLEY=False
 
 try:
-     WEIPA_TEST_MESHES=os.environ['WEIPA_TEST_MESHES']
+    WEIPA_TEST_MESHES=os.environ['WEIPA_TEST_MESHES']
 except KeyError:
-     WEIPA_TEST_MESHES='meshes'
+    WEIPA_TEST_MESHES=os.path.join(os.getcwd(),'weipa/test/python/meshes')
 
 try:
-     WEIPA_WORKDIR=os.environ['WEIPA_WORKDIR']
+    WEIPA_WORKDIR=os.environ['WEIPA_WORKDIR']
 except KeyError:
-     WEIPA_WORKDIR='.'
+    WEIPA_WORKDIR=os.getcwd()
 
 class SiloReader():
     """
@@ -249,6 +249,10 @@ class SiloSaver(unittest.TestCase): #requires subclassing
         ref=os.path.join(WEIPA_TEST_MESHES, reference+".silo")
         out=os.path.join(WEIPA_WORKDIR, outFileBase+".silo")
         self.compareSiloFiles(out, ref)
+        self.cleanup(out)
+
+    def cleanup(self, filename):
+        os.remove(filename)
 
 class Test_Silo_import(unittest.TestCase):
     def test_import(self):
