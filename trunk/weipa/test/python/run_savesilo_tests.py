@@ -57,12 +57,12 @@ except ImportError:
 try:
     WEIPA_TEST_MESHES=os.environ['WEIPA_TEST_MESHES']
 except KeyError:
-    WEIPA_TEST_MESHES=os.path.join(os.getcwd(),'weipa/test/python/meshes')
+    WEIPA_TEST_MESHES='meshes'
 
 try:
     WEIPA_WORKDIR=os.environ['WEIPA_WORKDIR']
 except KeyError:
-    WEIPA_WORKDIR=os.getcwd()
+    WEIPA_WORKDIR=os.path.join(os.getcwd(),'weipa/test/python/')
 
 class SiloReader():
     """
