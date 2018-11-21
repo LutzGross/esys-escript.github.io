@@ -47,8 +47,10 @@ p3name = ''
 for name in spath:
   try:
     l=os.listdir(name)
-    p2res=[x for x in l if x.startswith('libboost_python-py2') and x.endswith('.so')]
-    p3res=[x for x in l if x.startswith('libboost_python-py3') and x.endswith('.so')]
+    p2res=[x for x in l if (x.startswith('libboost_python-py2') or \
+            x.startswith('libboost_python2')) and x.endswith('.so')]
+    p3res=[x for x in l if (x.startswith('libboost_python-py3') or \
+            x.startswith('libboost_python3')) and x.endswith('.so')]
     if len(p2name)==0 and len(p2res)>0:
       p2name=p2res[-1]
     if len(p3name)==0 and len(p3res)>0:
