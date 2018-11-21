@@ -38,7 +38,8 @@ import numpy
 import esys.escriptcore.utestselect as unittest
 
 mpisize = getMPISizeWorld()
-skip_amg = hasFeature("paso") and mpisize > 1
+# skip_amg = hasFeature("paso") and mpisize > 1
+skip_amg = True
 # Transport problems only work with paso
 no_paso = not hasFeature("paso")
 HAVE_DIRECT = hasFeature("trilinos") or hasFeature("umfpack") or hasFeature("mkl")

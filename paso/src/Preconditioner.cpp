@@ -37,7 +37,6 @@ void Preconditioner_free(Preconditioner* in)
     if (in!=NULL) {
         Preconditioner_Smoother_free(in->jacobi);
         Preconditioner_Smoother_free(in->gs);
-        Preconditioner_AMG_Root_free(in->amg);
         Solver_ILU_free(in->ilu);
         Solver_RILU_free(in->rilu);
         delete in;
@@ -49,7 +48,6 @@ Preconditioner* Preconditioner_alloc(SystemMatrix_ptr A, Options* options)
     Preconditioner* prec = new Preconditioner;
     prec->jacobi=NULL;
     prec->gs=NULL;
-    prec->amg=NULL;
     prec->rilu=NULL;
     prec->ilu=NULL;
 
@@ -82,12 +80,6 @@ Preconditioner* Preconditioner_alloc(SystemMatrix_ptr A, Options* options)
             prec->gs = Preconditioner_Smoother_alloc(A, false, options->use_local_preconditioner, options->verbose);
             prec->type = PASO_GS;
             prec->sweeps = options->sweeps;
-            break;
-
-        case PASO_AMLI:
-        case PASO_AMG:
-            prec->amg = Preconditioner_AMG_Root_alloc(boost::const_pointer_cast<SystemMatrix>(A), options);
-            prec->type = PASO_AMG;
             break;
 
         case PASO_ILU0:
@@ -128,9 +120,6 @@ void Preconditioner_solve(Preconditioner* prec, SystemMatrix_ptr A,
             break;
         case PASO_GS:
             Preconditioner_Smoother_solve(A, prec->gs, x, b, prec->sweeps, false);
-            break;
-        case PASO_AMG:
-            Preconditioner_AMG_Root_solve(A, prec->amg, x, b);
             break;
         case PASO_ILU0:
             Solver_solveILU(A->mainBlock, prec->ilu, x, b);

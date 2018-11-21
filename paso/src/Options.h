@@ -53,7 +53,6 @@
 #define PASO_NESTED_DISSECTION 19
 #define PASO_ITERATIVE 20
 #define PASO_PASO 21
-#define PASO_AMG 22
 #define PASO_REC_ILU  23
 #define PASO_TRILINOS  24
 #define PASO_NONLINEAR_GMRES  25
@@ -63,20 +62,10 @@
 #define PASO_GS PASO_GAUSS_SEIDEL
 #define PASO_RILU 29
 #define PASO_DEFAULT_REORDERING 30
-#define PASO_YAIR_SHAPIRA_COARSENING 33
-#define PASO_RUGE_STUEBEN_COARSENING 34
-#define PASO_AGGREGATION_COARSENING 35
 #define PASO_NO_PRECONDITIONER 36
-#define PASO_AMLI 38
-#define PASO_STANDARD_COARSENING 39
 #define PASO_CLASSIC_INTERPOLATION_WITH_FF_COUPLING 50
 #define PASO_CLASSIC_INTERPOLATION 51
 #define PASO_DIRECT_INTERPOLATION 52
-#define PASO_CIJP_FIXED_RANDOM_COARSENING 61
-#define PASO_CIJP_COARSENING 62
-#define PASO_FALGOUT_COARSENING 63
-#define PASO_PMIS_COARSENING 64
-#define PASO_HMIS_COARSENING 65
 #define PASO_LINEAR_CRANK_NICOLSON 66
 #define PASO_CRANK_NICOLSON 67
 #define PASO_BACKWARD_EULER 68
@@ -149,7 +138,6 @@ struct Options
     dim_t coarse_matrix_refinements;
     double diagonal_dominance_threshold;
     bool usePanel;
-    int interpolation_method;
     int ode_solver;
 
     // diagnostic values

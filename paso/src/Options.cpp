@@ -65,7 +65,6 @@ Options::Options(const bp::object& options)
     refinements = sb.getNumRefinements();
     coarse_matrix_refinements = sb.getNumCoarseMatrixRefinements();
     usePanel = sb.usePanel();
-    interpolation_method = sb.getAMGInterpolation();
     diagonal_dominance_threshold = sb.getDiagonalDominanceThreshold();
 }
 
@@ -104,7 +103,6 @@ void Options::setDefaults()
     diagonal_dominance_threshold = 0.5;
     cycle_type = 1;
     usePanel = true;
-    interpolation_method = PASO_DIRECT_INTERPOLATION;
     ode_solver = PASO_LINEAR_CRANK_NICOLSON;
 
     // diagnostic values
@@ -217,10 +215,6 @@ const char* Options::name(int key)
             return "ITERATIVE";
        case PASO_PASO:
             return "PASO";
-       case PASO_AMG:
-            return "AMG";
-       case PASO_AMLI:
-            return "AMLI";
        case PASO_REC_ILU:
             return "REC_ILU";
        case PASO_TRILINOS:
@@ -237,26 +231,8 @@ const char* Options::name(int key)
             return "RILU";
        case PASO_DEFAULT_REORDERING:
             return "DEFAULT_REORDERING";
-       case PASO_YAIR_SHAPIRA_COARSENING:
-            return "YAIR_SHAPIRA_COARSENING";
-       case PASO_RUGE_STUEBEN_COARSENING:
-            return "RUGE_STUEBEN_COARSENING";
-       case PASO_AGGREGATION_COARSENING:
-            return "AGGREGATION_COARSENING";
-       case PASO_STANDARD_COARSENING:
-            return "STANDARD_COARSENING";
        case PASO_NO_PRECONDITIONER:
             return "NO_PRECONDITIONER";
-       case PASO_CIJP_FIXED_RANDOM_COARSENING:
-            return "CIJP_FIXED_RANDOM_COARSENING";
-       case PASO_CIJP_COARSENING:
-            return "CIJP_COARSENING";
-       case PASO_FALGOUT_COARSENING:
-            return "FALGOUT_COARSENING";
-       case PASO_PMIS_COARSENING:
-            return "PMIS_COARSENING";
-       case PASO_HMIS_COARSENING:
-            return "HMIS_COARSENING";
        case PASO_CRANK_NICOLSON:
             return "PASO_CRANK_NICOLSON";
        case PASO_LINEAR_CRANK_NICOLSON:
@@ -438,11 +414,7 @@ int Options::mapEscriptOption(int escriptOption)
             return PASO_PRES20;
         case escript::SO_METHOD_TFQMR:
             return PASO_TFQMR;
-
-        case escript::SO_PRECONDITIONER_AMG:
-            return PASO_AMG;
-        case escript::SO_PRECONDITIONER_AMLI:
-            return PASO_AMLI;
+            
         case escript::SO_PRECONDITIONER_GAUSS_SEIDEL:
             return PASO_GAUSS_SEIDEL;
         case escript::SO_PRECONDITIONER_ILU0:
@@ -471,25 +443,6 @@ int Options::mapEscriptOption(int escriptOption)
             return PASO_CLASSIC_INTERPOLATION_WITH_FF_COUPLING;
         case escript::SO_INTERPOLATION_DIRECT:
             return PASO_DIRECT_INTERPOLATION;
-
-        case escript::SO_COARSENING_AGGREGATION:
-            return PASO_AGGREGATION_COARSENING;
-        case escript::SO_COARSENING_CIJP:
-            return PASO_CIJP_COARSENING;
-        case escript::SO_COARSENING_CIJP_FIXED_RANDOM:
-            return PASO_CIJP_FIXED_RANDOM_COARSENING;
-        case escript::SO_COARSENING_FALGOUT:
-            return PASO_FALGOUT_COARSENING;
-        case escript::SO_COARSENING_HMIS:
-            return PASO_HMIS_COARSENING;
-        case escript::SO_COARSENING_PMIS:
-            return PASO_PMIS_COARSENING;
-        case escript::SO_COARSENING_RUGE_STUEBEN:
-            return PASO_RUGE_STUEBEN_COARSENING;
-        case escript::SO_COARSENING_STANDARD:
-            return PASO_STANDARD_COARSENING;   
-        case escript::SO_COARSENING_YAIR_SHAPIRA:
-            return PASO_YAIR_SHAPIRA_COARSENING;
 
         case escript::SO_REORDERING_DEFAULT:
             return PASO_DEFAULT_REORDERING;
