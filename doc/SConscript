@@ -50,6 +50,11 @@ else:
 if not haveMPL:
     env['warnings'].append("matplotlib not found, will skip some unit tests")
 else:
+    import sys
+    if sys.version_info[0] == 3:
+        mplversion = str(mplversion, 'utf-8')
+    else:
+        mplversion = str(mplversion)
     if mplversion<mplmagicversion:
         env['warnings'].append("matplotlib found, but version too early. Some unit tests will be skipped.")
 

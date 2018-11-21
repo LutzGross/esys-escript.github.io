@@ -38,6 +38,7 @@ import subprocess
 #boost_prefix=['/home/adam/Documents/zzz/boost_1_68_0/','/home/adam/Documents/zzz/boost_1_68_0/stage/lib']
 # cxx = 'clang++'
 
+python = 3
 
 # nvccflags = "--verbose -arch=sm_35 -ccbin=g++ -DBOOST_NOINLINE='__attribute__((noinline))'"
 # nvccflags = "--verbose -arch=sm_35 -ccbin clang-3.8 "
@@ -81,7 +82,13 @@ for name in spath:
     pass
 
 # boost-python library/libraries to link against
-boost_libs = [p2name[3:-3]]
+if python == 2:
+  boost_libs = [p2name[3:-3]]
+  pythoncmd = '/usr/bin/python'
+else:
+  boost_libs = [p3name[3:-3]]
+  pythoncmd = '/usr/bin/python3'
+
 #boost_libs = [p2name[3:-3], 'boost_numpy27']
 # boost_libs = ['boost_python27', 'boost_numpy27']
 

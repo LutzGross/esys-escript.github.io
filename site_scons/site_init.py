@@ -105,10 +105,17 @@ def write_launcher(env):
     if not '%b' in cmd:
         raise RuntimeError('option "launcher" must contain %b!')
 
-    for k, v in reps.iteritems():
-        pre = pre.replace(k, v)
-        cmd = cmd.replace(k, v)
-        post = post.replace(k, v)
+    import sys
+    if sys.version_info > (3,0):
+        for k, v in reps.items():
+            pre = pre.replace(k, v)
+            cmd = cmd.replace(k, v)
+            post = post.replace(k, v)
+    else:
+        for k, v in reps.iteritems():
+            pre = pre.replace(k, v)
+            cmd = cmd.replace(k, v)
+            post = post.replace(k, v)
     try:
         launchscript = os.path.join(env['bininstall'], 'run-escript')
         launcher=open(launchscript, 'w')
@@ -160,7 +167,7 @@ def build_py(target, source, env):
     try:
        py_compile.compile(str(source[0]), str(target[0]), doraise=True)
        return 0
-    except py_compile.PyCompileError, e:
+    except py_compile.PyCompileError as e:
        print(e)
        return 1
 

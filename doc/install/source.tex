@@ -177,13 +177,15 @@ scons -j1 py_tests options_file=scons/templates/XXXX_options.py
 
 
 \subsection{OpenSuse}\label{sec:susesrc}
-These instructions were prepared using version $42$ of Leap.
+These instructions were prepared using openSUSE version 15.0.
 
 \noindent Install packages from the main distribution:
 \begin{shellCode}
-sudo zypper in python-devel python-numpy libnetcdf_c++-devel
-sudo zypper in python-scipy python-sympy python-matplotlib 
-sudo zypper in gcc gcc-c++ scons boost-devel netcdf-devel
+sudo zypper in python-devel python2-numpy python-gdal
+sudo zypper in python2-scipy python2-sympy python2-matplotlib 
+sudo zypper in gcc gcc-c++ scons netcdf-devel libnetcdf_c++-devel
+sudo zypper in libboost_python-py2_7-1_66_0-devel libboost_numpy-py2_7-1_66_0-devel
+sudo zypper in libboost_iostreams1_66_0-devel suitesparse-devel
 \end{shellCode}
 
 Now to build escript itself.
