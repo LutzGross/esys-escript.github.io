@@ -82,7 +82,14 @@ def get_external_python_sympy(bin):
     cmd+='import sympy\n'
     cmd+='print(sympy.__version__)\n'
     sp=subprocess.Popen([bin, '-c', cmd], stdin=None, stderr=None, stdout=subprocess.PIPE)
-    ver=sp.stdout.readline().strip().split('.')
+    #ver=sp.stdout.readline().strip().split('.')
+    
+    import sys
+    if sys.version_info[0] >= 3:
+        ver = str(sp.stdout.readline().strip(), 'utf-8')
+    else:
+        ver = sp.stdout.readline().strip().split('.')
+
     if int(ver[0]) == 0 and int(ver[1]) < 7:
         env['sympy'] = False
         env['warnings'].append("sympy version is too old.")
@@ -152,12 +159,20 @@ def checkPython(env):
             python_libs=['python%s%s'%(sys.version_info[0], sys.version_info[1])]
             verstring=".".join([str(i) for i in sys.version_info[:3]])
         else:
-            (python_lib_path, python_libs,verstring, python_inc_path)=call_python_config()
+            (python_lib_path, python_libs,verstring, python_inc_path)=call_python_config(env['pythoncmd'])
 
     # if we want to use a python other than the one scons is running
     # Note: we assume scons is running python 2 in the following.
     else:
         (python_lib_path, python_libs,verstring, python_inc_path)=call_python_config(env['pythoncmd'])
+    
+    if sys.version_info[0] == 3:
+        if isinstance(verstring, str) is False:
+            verstring = str(verstring, 'utf-8')
+    else:
+        if isinstance(verstring, basestring) is False:
+            verstring = str(verstring, 'utf-8')
+            
     env['python_version'] = verstring
     ispython3 = (verstring[0] == '3')
     if ispython3:
@@ -253,15 +268,36 @@ def checkBoost(env):
         # Locate the boost numpy files
         p = subprocess.Popen(["ld","--verbose"], stdout=subprocess.PIPE)
         out,err = p.communicate()
-        spath = [x[13:-3] for x in out.split() if 'SEARCH_DIR' in x]
+        spath = [x[13:-3] for x in out.split() if b'SEARCH_DIR' in x]
         spath.append(boost_lib_path)
         p2name = ''
         p3name = ''
         for name in spath:
             try:
                 l=os.listdir(name)
-                p2res=[x for x in l if x.startswith('libboost_numpy-py') and x.endswith('.so')]
-                p3res=[x for x in l if x.startswith('libboost_numpy3-py') and x.endswith('.so')]
+                
+                import sys
+                if sys.version_info[0] == 3:
+                    string_type = str
+                else:
+                    string_type = basestring
+                
+                p2res = ''
+                p3res = ''
+                for x in l:
+                    if isinstance(x,string_type):
+                        if x.startswith('libboost_numpy-py') and x.endswith('.so'):
+                            p2res = x
+                        if x.startswith('libboost_numpy-py3') and x.endswith('.so'):
+                            p3res = x
+                    else:
+                        if x.startswith(b'libboost_numpy-py') and x.endswith(b'.so'):
+                            p2res = x
+                        if x.startswith(b'libboost_numpy-py3') and x.endswith(b'.so'):
+                            p3res = x
+                        
+                #p2res=[x for x in l if x.startswith('libboost_numpy-py') and x.endswith('.so')]
+                #p3res=[x for x in l if x.startswith('libboost_numpy3-py') and x.endswith('.so')]
 
                 if len(p2name)==0 and len(p2res)>0:
                     p2name=p2res[-1]
