@@ -19,11 +19,6 @@ Import('*')
 module_name = 'paso'
 
 sources = """
-    AMG.cpp
-    AMG_Interpolation.cpp
-    AMG_Prolongation.cpp
-    AMG_Restriction.cpp
-    AMG_Root.cpp
     BiCGStab.cpp
     Coupler.cpp
     FCT_Solver.cpp
@@ -31,9 +26,6 @@ sources = """
     Functions.cpp
     GMRES.cpp
     GMRES2.cpp
-    LocalAMG.cpp
-    LocalAMG_Prolongation.cpp
-    MergedSolver.cpp
     MKL.cpp
     NewtonGMRES.cpp
     Options.cpp
@@ -82,7 +74,6 @@ headers = """
     FCT_Solver.h
     FluxLimiter.h
     Functions.h
-    MergedSolver.h
     MKL.h
     mmio.h
     Options.h
