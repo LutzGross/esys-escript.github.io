@@ -235,13 +235,13 @@ scons -j1 options_file=scons/templates/centos7_0_options.py
 \noindent Now go to Section~\ref{sec:cleanup} for cleanup.
 
 \subsection{Fedora}\label{sec:fedorasrc}
-These instructions were prepared using the $26$ alpha.
+These instructions were prepared using the $28$ alpha.
 
 \noindent Install packages
 \begin{shellCode}
 yum install netcdf-cxx-devel gcc-c++ scipy 
 yum install sympy scons pyproj gdal python-matplotlib 
-yum install boost-devel
+yum install boost-devel suitesparse-devel gmsh python2-gdal
 \end{shellCode}
 
 \noindent Now to build escript itself.
