@@ -61,9 +61,3 @@ p = NonlinearPDE(mydomain, u, debug=NonlinearPDE.DEBUG0)
 p.setValue(X=sigma0,q=gammaD,y=[-50,0]*whereZero(yconstraint-1),r=[1,1])
 v = p.getSolution(u=[0,0])
 saveSilo("solution",solution=v)
-
-
-
-# clean up
-import os
-os.remove("solution.silo")

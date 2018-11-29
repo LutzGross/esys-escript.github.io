@@ -108,11 +108,6 @@ try:
     # Close the file
     o.close()
 
-
-    # clean  up
-    import os
-    os.remove("output.nc")
-
 except ImportError:
     print("The scipy module was not found but is required to write netCDF files. Exiting...")
 

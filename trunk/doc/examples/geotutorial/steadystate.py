@@ -59,6 +59,3 @@ else:
     # write to file:
     saveVTK("u.vtu",T=T)
 
-    # clean up
-    import os
-    os.remove("u.vtu")

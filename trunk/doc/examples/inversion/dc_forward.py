@@ -107,5 +107,3 @@ for i in totalApparentRes:
     print ("n = %d:"%n)
     print (i,"\n")
     n=n+1
-
-

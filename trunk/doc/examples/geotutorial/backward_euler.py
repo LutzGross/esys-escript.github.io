@@ -74,8 +74,3 @@ else:
         saveVTK("u.%s.vtu"%N,T=T)
         # increase counter and marker:
         N+=1; t+=dt
-
-    # clean up
-    import os
-    for x in range(0, N):
-        os.remove("u.%s.vtu"%x)

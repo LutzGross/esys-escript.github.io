@@ -56,6 +56,3 @@ else:
     # write u to an external file
     saveVTK("u.vtu",flux=u, pressure=p)
 
-    # clean up
-    import os
-    os.remove("u.vtu")

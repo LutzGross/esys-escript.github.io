@@ -65,8 +65,3 @@ des.addItems(v, top, bottom,back, front, left , right)
 
 dom=MakeDomain(des)
 dom.write("brick.fly")
-
-# Cleanup
-import os
-os.remove("brick.geo")
-os.remove("brick.fly")

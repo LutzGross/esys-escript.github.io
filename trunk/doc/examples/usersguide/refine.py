@@ -55,10 +55,3 @@ d.addItems(s)
 
 dom=MakeDomain(d)
 dom.write("refine.fly")
-
-
-# clean up
-import os
-os.remove("refine.geo")
-os.remove("refine.msh")
-os.remove("refine.fly")

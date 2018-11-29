@@ -48,8 +48,3 @@ if HAVE_FINLEY:
     saveVTK("u.vtu",velocity=v,pressure=p)
 
 
-
-    # clean up
-    import os
-    os.remove("u_Elements.vtu")
-    os.remove("u_ReducedElements.vtu")

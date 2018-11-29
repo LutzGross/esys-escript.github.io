@@ -79,8 +79,3 @@ if HAVE_FINLEY:
         n+=1
         t+=mts.getSafeTimeStepSize()
 
-
-    # clean up
-    import os
-    for x in range(0, n):
-        os.remove("state.%d.vtu"%x)
