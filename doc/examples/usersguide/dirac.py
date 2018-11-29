@@ -55,8 +55,3 @@ else:
     print("Solution = ",str(u))
     # write u to an external file
     saveVTK("u.vtu",sol=u)
-
-
-    # clean up
-    import os
-    os.remove("u.vtu")

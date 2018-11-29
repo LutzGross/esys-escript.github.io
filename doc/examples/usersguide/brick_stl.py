@@ -65,9 +65,3 @@ des.addItems(v, top, bottom, back, front, left , right)
 des.setFileFormat(des.STL)
 des.setMeshFileName("brick.stl")
 des.generate()
-
-
-# clean up
-import os
-os.remove("brick.geo")
-os.remove("brick.stl")

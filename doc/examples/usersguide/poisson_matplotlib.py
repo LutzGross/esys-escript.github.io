@@ -65,10 +65,5 @@ try:
     # uncomment this line if you want to interact with a plot window
     #matplotlib.pyplot.show()
 
-
-    # clean up
-    import os
-    os.remove("u.png")
-
 except AttributeError:
     print("Your version of matplotlib does not provide the griddata method.\nSkipping example.\n")

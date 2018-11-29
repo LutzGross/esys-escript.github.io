@@ -217,10 +217,6 @@ if HAVE_SPECKLEY:
             tracerNS_y.write('output/lineNS_y.sgy')
             tracerNS_z.write('output/lineNS_z.sgy')
 
-    # clean up
-    import shutil
-    shutil.rmtree('./output')
-
 else: # no speckley
     print("The Speckley module is not available")
 

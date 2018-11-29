@@ -58,10 +58,3 @@ d.addItems(pl1,pl2)
 
 dom=MakeDomain(d)
 dom.write("quad.fly")
-
-
-# clean up
-import os
-os.remove("quad.geo")
-os.remove("quad.msh")
-os.remove("quad.fly")

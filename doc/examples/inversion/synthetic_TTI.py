@@ -169,10 +169,6 @@ if HAVE_SPECKLEY:
         tracer_z.write('output/lineZ.sgy')
     print("calculation completed @ %s"%(time.asctime(),))
 
-    # clean up
-    import shutil
-    shutil.rmtree('./output')
-
 else: # no speckley
     print("The Speckley module is not available")
 
