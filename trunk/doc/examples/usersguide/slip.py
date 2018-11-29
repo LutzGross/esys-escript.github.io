@@ -75,3 +75,8 @@ else:
     D=symmetric(grad(v))
     sigma=(mu*D+lam*trace(D)*kronecker(mydomain))+0.5*sigma_s
     saveVTK("slip.vtu",disp=v+0.5*chi*s, stress= sigma)
+
+
+    # clean up
+    import os
+    os.remove("slip.vtu")

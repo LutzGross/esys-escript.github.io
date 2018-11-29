@@ -24,13 +24,13 @@ umfpack = True
 silo = True
 papi = True
 # cuda = True
-mpi = 'OPENMPI'
+# mpi = 'OPENMPI'
 verbose = True
 # debug = True
-trilinos = True
-parmetis = True
+# trilinos = True
+# parmetis = True
 visit = True
-werror = False
+# werror = False
 
 import os
 import subprocess

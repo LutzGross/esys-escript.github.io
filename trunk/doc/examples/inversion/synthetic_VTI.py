@@ -176,6 +176,18 @@ if HAVE_SPECKLEY:
             tracerNS_y.write('lineNS_y.sgy')
             tracerNS_z.write('lineNS_z.sgy')
 
+    import shutil
+    shutil.rmtree('./tmp')
+    import os
+    if tracerEW_x.obspy_available() and getMPISizeWorld() == 1:
+        os.remove('lineEW_x.sgy')
+        os.remove('lineEW_z.sgy')
+        if DIM == 3: 
+            os.remove('lineEW_y.sgy')
+            os.remove('lineNS_x.sgy')
+            os.remove('lineNS_y.sgy')
+            os.remove('lineNS_z.sgy')
+
 else: # no speckley
     print("The Speckley module is not available")
 

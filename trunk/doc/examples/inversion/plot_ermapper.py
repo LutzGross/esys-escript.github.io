@@ -123,3 +123,6 @@ plt.colorbar()
 plt.show()
 plt.savefig("ermapper_plot.png")
 
+# clean up
+import os
+os.remove("ermapper_plot.png")

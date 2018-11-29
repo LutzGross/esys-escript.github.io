@@ -185,6 +185,10 @@ if HAVE_RIPLEY:
         tracerP.write(os.path.join(OUT_DIR,'lineP.sgy'))
         tracerQ.write(os.path.join(OUT_DIR,'lineQ.sgy'))
 
+    # clean up
+    import shutil
+    shutil.rmtree('./out100m500mus')
+
 else: # no ripley
     print("The Ripley module is not available")
 

@@ -52,3 +52,7 @@ else:
     # output should be similar to "error is 1.e-7"
     saveVTK("x0.vtu",sol=u)
  
+
+    # clean up
+    import os
+    os.remove("x0.vtu")
