@@ -74,6 +74,14 @@ def work():
   print("Results saved in result_gravity.csv")
   print("All done. Have a nice day!")
 
+  # clean up
+  import os
+  os.remove("result.vo")
+  os.remove("result_density")
+  os.remove("result_gravity.csv")
+  os.remove("result_gravity.silo")
+  os.remove("result_gravity.vtu")
+
 try:
     import pyproj
     HAVE_PYPROJ = True

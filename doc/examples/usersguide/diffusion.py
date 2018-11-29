@@ -65,3 +65,8 @@ else:
           T=mypde.getSolution()
           saveVTK("T.%d.vtu"%i,temp=T)
 
+
+    # clean up
+    import os
+    for x in range(1, i+1):
+        os.remove("T.%d.vtu"%x)

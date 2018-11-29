@@ -99,3 +99,6 @@ try:
 except ImportError:
     print("The scipy module was not found but is required to read netCDF files. Exiting...")
 
+# clean up
+import os
+os.remove("netcdf_plot.png")

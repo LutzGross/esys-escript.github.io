@@ -142,3 +142,11 @@ else:
         u_pc_data.write("%f %f %f %f\n"%(ts[i],u_pc0[i],u_pc1[i],u_pc2[i]))
     u_pc_data.close()
 
+
+    # clean up
+    import os
+    for x in range(0, 35):
+      os.remove("./data/usoln.%d.vtu"%x)
+    os.remove("./data/U_pc.out")
+    os.removedirs("./data")
+    os.remove("u_pc.png")

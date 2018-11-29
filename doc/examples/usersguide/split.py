@@ -24,3 +24,8 @@ for i in range(1,20):
 # Run them
 sw.runJobs() 
 
+
+# clean up
+import os
+for x in range(1, 20):
+    os.remove('soln%d.ncdf'%v)

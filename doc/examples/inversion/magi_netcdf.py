@@ -78,6 +78,12 @@ def work():
 
   print("All done. Have a nice day!")
 
+  # clean up
+  import os
+  os.remove("result_magnetic.csv")
+  os.remove("result_magnetic.silo")
+  os.remove("result_magnetic.vtu")
+
 try:
     import pyproj
     HAVE_PYPROJ = True

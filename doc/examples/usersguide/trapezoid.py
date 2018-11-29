@@ -61,3 +61,10 @@ domain=MakeDomain(d, integrationOrder=-1, reducedIntegrationOrder=-1, optimizeLa
 
 # Create a file that can be read back in to python with 
 domain.write("trapezoid.fly")
+
+
+# clean up
+import os
+os.remove("trapezoid.geo")
+os.remove("trapezoid.msh")
+os.remove("trapezoid.fly")

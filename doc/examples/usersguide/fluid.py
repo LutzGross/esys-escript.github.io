@@ -95,3 +95,9 @@ if HAVE_FINLEY:
       #save velocity and pressure output
       saveVTK("vel.%2.2i.vtu"%(t),vel=vel_mag,vec=velocity,pressure=pressure)
       t = t+1.0
+
+    # clean up
+    import os
+    for x in range(0,int(t)):
+      os.remove("vel.%2.2i_Elements.vtu"%x)
+      os.remove("vel.%2.2i_ReducedElements.vtu"%x)

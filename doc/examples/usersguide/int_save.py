@@ -78,3 +78,9 @@ else:
     #Note that the order of tuples for the 2nd and 3rd param is (x,y)
     result2=interpolateTable(table, x, (minval,0), (0.55, step), toobig)
     saveDataCSV("2d.csv",inp0=x0, inp2=x1, out=result2)
+
+
+    # clean up
+    import os
+    os.remove("1d.csv")
+    os.remove("2d.csv")
