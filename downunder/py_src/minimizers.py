@@ -70,30 +70,29 @@ def _zoom(phi, gradphi, phiargs, alpha_lo, alpha_hi, phi_lo, phi_hi, c1, c2,
     J. Nocedal for an explanation.
     """
     i=0
-    while True:
+    while i<=IMAX:
         alpha=alpha_lo+.5*(alpha_hi-alpha_lo) # should use interpolation...
-        args_a=phiargs(alpha)
-        phi_a=phi(alpha, *args_a)
+        phiargs(alpha)
+        phi_a=phi(alpha)
         zoomlogger.debug("iteration %d, alpha=%e, phi(alpha)=%e"%(i,alpha,phi_a))
         if phi_a > phi0+c1*alpha*gphi0 or phi_a >= phi_lo:
             alpha_hi=alpha
         else:
-            gphi_a=gradphi(alpha, *args_a)
-            zoomlogger.debug("\tgrad(phi(alpha))=%e"%(gphi_a))
+            gphi_a=gradphi(alpha)
+            zoomlogger.debug("\tphi'(alpha)=%e"%(gphi_a))
             if np.abs(gphi_a) <= -c2*gphi0:
                 break
             if gphi_a*(alpha_hi-alpha_lo) >= 0:
                 alpha_hi = alpha_lo
             alpha_lo=alpha
             phi_lo=phi_a
-        i+=1
-        if i>IMAX:
-            gphi_a=None
+        if not alpha_hi > alpha_lo:
             break
-    return alpha, phi_a, gphi_a
+        i+=1
+    return alpha, phi_a
 
-def line_search(f, x, p, g_Jx, Jx, alpha=1.0, alpha_truncationax=50.0,
-                c1=1e-4, c2=0.9, IMAX=15):
+def line_search(f, x, p, g_Jx, Jx, args_x, alpha=1.0, alpha_truncationax=50.0,
+                c1=1e-4, c2=0.9, IMAX=15, IMAX_ZOOM=25):
     """
     Line search method that satisfies the strong Wolfe conditions.
     See Chapter 3 of 'Numerical Optimization' by J. Nocedal for an explanation.
@@ -103,6 +102,7 @@ def line_search(f, x, p, g_Jx, Jx, alpha=1.0, alpha_truncationax=50.0,
     :param p: search direction
     :param g_Jx: value for the gradient of f at x
     :param Jx: value of f(x)
+    :param args_x: arguments for x
     :param alpha: initial step length. If g_Jx is properly scaled alpha=1 is a
                   reasonable starting value.
     :param alpha_truncationax: algorithm terminates if alpha reaches this value
@@ -111,53 +111,75 @@ def line_search(f, x, p, g_Jx, Jx, alpha=1.0, alpha_truncationax=50.0,
     :param IMAX: maximum number of iterations to perform
     """
     # this stores the latest gradf(x+a*p) which is returned
-    g_Jx_new=[g_Jx]
-    def phi(a, *args):
+    if args_x is None:
+        args_x=f.getArguments(x)
+        Jx=None
+        g_Jx=None
+    if Jx is None:
+        Jx=f(x, *args_x)
+        lslogger.debug("initial J(x) calculated= %s"%str(Jx))
+    if g_Jx is None:
+        g_Jx=f.getGradient(x, *args_x)
+        lslogger.debug("initial grad J(x) calculated.")
+    # this stores the latest gradf(x+a*p) which is returned
+    g_Jx_new=[args_x, Jx, g_Jx]
+    def phi(a):
         """ phi(a):=f(x+a*p) """
-        return f(x+a*p, *args)
-    def gradphi(a, *args):
-        g_Jx_new[0]=f.getGradient(x+a*p, *args)
-        return f.getDualProduct(p, g_Jx_new[0])
+        if g_Jx_new[0] is None:
+            phiargs(a)
+        g_Jx_new[1]=f(x+a*p, *g_Jx_new[0])
+        return g_Jx_new[1]
+    def gradphi(a):
+        if g_Jx_new[0] is None:
+            phiargs(a)
+        g_Jx_new[2]=f.getGradient(x+a*p, *g_Jx_new[0])
+        lslogger.debug("grad J(x+alpha*p) calculated.")
+        return f.getDualProduct(p, g_Jx_new[2])
+    
     def phiargs(a):
         try:
             args=f.getArguments(x+a*p)
         except:
             args=()
+        g_Jx_new[0]=args
+        g_Jx_new[1]=None
+        g_Jx_new[2]=None
         return args
+    
     old_alpha=0.
-    if Jx is None:
-        args0=phiargs(0.)
-        phi0=phi(0., *args0)
-    else:
-        phi0=Jx
+    phi0=Jx
     lslogger.debug("phi(0)=%e"%(phi0))
     gphi0=f.getDualProduct(p, g_Jx) #gradphi(0., *args0)
-    lslogger.debug("grad phi(0)=%e"%(gphi0))
+    lslogger.debug("phi'(0)=%e"%(gphi0))
     old_phi_a=phi0
     phi_a=phi0
     i=1
-
-    while i<IMAX and alpha>0. and alpha<alpha_truncationax:
-        args_a=phiargs(alpha)
-        phi_a=phi(alpha, *args_a)
+    #alpha=2.*alpha
+    while i< max(IMAX,2) and alpha>0.:
+        phiargs(alpha)
+        phi_a=phi(alpha)
         lslogger.debug("iteration %d, alpha=%e, phi(alpha)=%e"%(i,alpha,phi_a))
         if (phi_a > phi0+c1*alpha*gphi0) or ((phi_a>=old_phi_a) and (i>1)):
-            alpha, phi_a, gphi_a = _zoom(phi, gradphi, phiargs, old_alpha, alpha, old_phi_a, phi_a, c1, c2, phi0, gphi0)
+            alpha, phi_a = _zoom(phi, gradphi, phiargs, old_alpha, alpha, old_phi_a, phi_a, c1, c2, phi0, gphi0, IMAX=IMAX_ZOOM)
             break
 
-        gphi_a=gradphi(alpha, *args_a)
+        gphi_a=gradphi(alpha)
+        lslogger.debug("phi'(alpha)=%e"%(gphi_a))
         if np.abs(gphi_a) <= -c2*gphi0:
             break
         if gphi_a >= 0:
-            alpha, phi_a, gphi_a = _zoom(phi, gradphi, phiargs, alpha, old_alpha, phi_a, old_phi_a, c1, c2, phi0, gphi0)
+            alpha, phi_a = _zoom(phi, gradphi, phiargs, alpha, old_alpha, phi_a, old_phi_a, c1, c2, phi0, gphi0, IMAX=IMAX_ZOOM)
             break
 
         old_alpha=alpha
         # the factor is arbitrary as long as there is sufficient increase
         alpha=2.*alpha
         old_phi_a=phi_a
+        if alpha > alpha_truncationax:
+            break
+        
         i+=1
-    return alpha, phi_a, g_Jx_new[0]
+    return alpha, phi_a, g_Jx_new[2], g_Jx_new[0] # returns for x+alpha*p (g_Jx_new[2] can be None)
 
 
 ##############################################################################
@@ -282,8 +304,14 @@ class MinimizerLBFGS(AbstractMinimizer):
     # Restart after this many iteration steps
     _restart = 60
 
+    # maximum number of line search steps
+    _max_linesearch_steps = 25
+
+    # maximum number of zoom steps in line search
+    _max_zoom_steps = 50
+    
     def getOptions(self):
-        return {'truncation':self._truncation,'initialHessian':self._initial_H, 'restart':self._restart}
+        return {'truncation':self._truncation,'initialHessian':self._initial_H, 'restart':self._restart, 'max_linesearch_steps' : self._max_linesearch_steps, 'max_zoom_steps' : self._max_zoom_steps}
 
     def setOptions(self, **opts):
         self.logger.debug("Setting options: %s"%(str(opts)))
@@ -294,6 +322,10 @@ class MinimizerLBFGS(AbstractMinimizer):
                 self._initial_H=opts[o]
             elif o=='restart':
                 self._restart=opts[o]
+            elif o=='max_linesearch_steps':
+                self._max_linesearch_steps=opts[o]
+            elif o=='max_zoom_steps':
+                self._max_zoom_steps=opts[o]
             else:
                 raise KeyError("Invalid option '%s'"%o)
 
@@ -321,10 +353,12 @@ class MinimizerLBFGS(AbstractMinimizer):
         # start the iteration:
         n_iter = 0
         n_last_break_down=-1
+        alpha=1.
         non_curable_break_down = False
         converged = False
         args=self.getCostFunction().getArguments(x)
         g_Jx=self.getCostFunction().getGradient(x, *args)
+        self.logger.debug("initial grad J(x) calculated.")
         # equivalent to getValue() for Downunder CostFunctions
         Jx=self.getCostFunction()(x, *args)
         Jx_0=Jx
@@ -335,13 +369,11 @@ class MinimizerLBFGS(AbstractMinimizer):
             cbargs.update(norm_dx=None)
 
         self._doCallback(**cbargs)
-
         while not converged and not non_curable_break_down and n_iter < self._imax:
           k=0
           break_down = False
           s_and_y=[]
           # initial step length for line search
-          alpha=1.0
 
           while not converged and not break_down and k < self._restart and n_iter < self._imax:
                 #self.logger.info("\033[1;31miteration %d\033[1;30m"%n_iter)
@@ -360,17 +392,21 @@ class MinimizerLBFGS(AbstractMinimizer):
                 # inverse Hessian approximation is not scaled properly (only
                 # the regularization term is used at the moment)...
                 if invH_scale is None:
-                    if alpha <= 0.5:
-                        alpha=2*alpha
+                    #if n_iter >1:
+                    #if alpha <= 0.5:
+                    #alpha=min(2*alpha,1.0)
+                    alpha=alpha
+                    #else:
+                    #alpha=1.
                 else:
                     # reset alpha for the case that the cost function does not
                     # provide an approximation of inverse H
                     alpha=1.0
-                alpha, Jx_new, g_Jx_new = line_search(self.getCostFunction(), x, p, g_Jx, Jx, alpha)
+                alpha, Jx_new, g_Jx_new, args_new = line_search(self.getCostFunction(), x, p, g_Jx, Jx, args, alpha, IMAX=self._max_linesearch_steps, IMAX_ZOOM=self._max_zoom_steps)
                 # this function returns a scaling alpha for the search
                 # direction as well as the cost function evaluation and
                 # gradient for the new solution approximation x_new=x+alpha*p
-                self.logger.debug("\tSearch direction scaling alpha=%e"%alpha)
+                self.logger.debug("Search direction scaling alpha=%e"%alpha)
 
                 # execute the step
                 delta_x = alpha*p
@@ -401,16 +437,18 @@ class MinimizerLBFGS(AbstractMinimizer):
                     cbargs.update(norm_dx=norm_dx)
                     converged = converged and flag
 
-                x=x_new
+                
                 if converged:
                     self.logger.info("********** iteration %3d **********"%(n_iter+1,))
                     self.logger.info("\tJ(x) = %s"%Jx_new)
                     break
-
+                
                 # unfortunately there is more work to do!
                 if g_Jx_new is None:
-                    args=self.getCostFunction().getArguments(x_new)
-                    g_Jx_new=self.getCostFunction().getGradient(x_new, args)
+                    self.logger.debug("Calculating missing gradient for x+alpha*p.")
+                    args_new=self.getCostFunction().getArguments(x_new)
+                    g_Jx_new=self.getCostFunction().getGradient(x_new, *args_new)
+                    #self.logger.debug("grad J(x+alpha*p) = %s"%str(g_Jx_new))
                 delta_g=g_Jx_new-g_Jx
 
                 rho=self.getCostFunction().getDualProduct(delta_x, delta_g)
@@ -420,8 +458,10 @@ class MinimizerLBFGS(AbstractMinimizer):
                     break_down=True
 
                 self.getCostFunction().updateHessian()
+                x=x_new
                 g_Jx=g_Jx_new
                 Jx=Jx_new
+                args=args_new
 
                 k+=1
                 n_iter+=1
@@ -469,11 +509,12 @@ class MinimizerLBFGS(AbstractMinimizer):
         """
         q=g_Jx
         alpha=[]
+         
         for s,y, rho in reversed(s_and_y):
             a=self.getCostFunction().getDualProduct(s, q)/rho
             alpha.append(a)
             q=q-a*y
-
+        
         if self.getCostFunction().provides_inverse_Hessian_approximation:
              r = self.getCostFunction().getInverseHessianApproximation(x, q, *args)
         else:
@@ -539,7 +580,7 @@ class MinimizerBFGS(AbstractMinimizer):
             self.logger.debug("x = %s"%x)
 
             # determine step length
-            alpha, Jx, g_Jx_new = line_search(self.getCostFunction(), x, d, g_Jx, Jx)
+            alpha, Jx, g_Jx_new, args_new  = line_search(self.getCostFunction(), x, d, g_Jx, Jx, args)
             self.logger.debug("alpha=%e"%alpha)
             # execute the step
             x_new=x+alpha*d
@@ -549,6 +590,7 @@ class MinimizerBFGS(AbstractMinimizer):
                 g_Jx_new=self.getCostFunction().getGradient(x_new)
             delta_g=g_Jx_new-g_Jx
             g_Jx=g_Jx_new
+            args=args_new
             k+=1
             gnorm=Lsup(g_Jx)
             self._doCallback(k=k, x=x, Jx=Jx, g_Jx=g_Jx, gnorm=gnorm)
@@ -607,10 +649,10 @@ class MinimizerNLCG(AbstractMinimizer):
             self.logger.debug("d = %s"%d)
             self.logger.debug("x = %s"%x)
 
-            alpha, Jx, g_Jx_new = line_search(self.getCostFunction(), x, d, -r, Jx, c2=0.4)
+            alpha, Jx, g_Jx_new, args_new = line_search(self.getCostFunction(), x, d, -r, Jx, args, c2=0.4)
             self.logger.debug("alpha=%e"%(alpha))
             x=x+alpha*d
-            r=-self.getCostFunction().getGradient(x) if g_Jx_new is None else -g_Jx_new
+            r=-self.getCostFunction().getGradient(x, *args) if g_Jx_new is None else -g_Jx_new
             delta_o=delta
             delta=self.getCostFunction().getDualProduct(r,r)
             beta=delta/delta_o
