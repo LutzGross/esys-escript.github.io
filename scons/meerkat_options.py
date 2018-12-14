@@ -24,13 +24,13 @@ umfpack = True
 silo = True
 papi = True
 # cuda = True
-mpi = 'OPENMPI'
-verbose = True
+# mpi = 'OPENMPI'
+# verbose = True
 # debug = True
-trilinos = True
-parmetis = True
+# trilinos = True
+# parmetis = True
 visit = True
-werror = False
+# werror = False
 
 import os
 import subprocess
@@ -106,7 +106,7 @@ for i in debstuff:
   v=i[1]
   try:
     exec(k+"+=' "+v+"'")
-  except NameError:   
+  except NameError:
     exec(k+"='"+v+"'")
 
 mathjax_path='/usr/share/javascript/mathjax/MathJax.js'
