@@ -754,12 +754,11 @@ int gather_nodes(FILE* f, std::map<int,int>& tags, std::string& errorMsg,
         return THROW_ERROR;
     }
     int numElements = -1;
+    int numBlocks = -1;
     if (!get_line(line, f))
         return EARLY_EOF;
     if(version >= 4.0){
-        int tmp;
-        scan_ret = sscanf(&line[0], "%d %d\n", &tmp, &numElements);
-        numElements += tmp;
+        scan_ret = sscanf(&line[0], "%d %d\n", &numBlocks, &numElements);
     } else {
         scan_ret = sscanf(&line[0], "%d\n", &numElements);
     }
@@ -773,24 +772,34 @@ int gather_nodes(FILE* f, std::map<int,int>& tags, std::string& errorMsg,
     std::vector<int> v(MAX_numNodes_gmsh, -1);
     e.vertex = &v[0];
 
-    for (int element = 0; element < numElements; element++) {
-        if(version >= 4.0){
-            getSingleElementMSH4(f, dim, version, e, errorMsg, filename, false, 0, &line[0]);
-        } else {
-            getSingleElement(f, dim, version, e, errorMsg, filename, false);
-        }       
-        for (int i = 0; i < MAX_numNodes_gmsh && v[i] >= 0; i++) {
-            std::map<int,int>::iterator it = tags.find(v[i]);
-            if (it == tags.end()) {
-                std::stringstream ss;
-                ss << "readGmsh: element contains unknown node (node " << v[i]
-                    << ")";
-                errorMsg = ss.str();
-                return THROW_ERROR;
+    if(version >= 4.0){
+        for(int x = 0; x < numBlocks; x++){
+            int entityTag, entityDim, gmsh_type;
+            if (!get_line(line, f))
+                return EARLY_EOF;
+            scan_ret = sscanf(&line[0], "%d %d %d %d", &entityTag, &entityDim, &gmsh_type, &numElements);
+            for(int i = 0; i < numElements; i++){
+                if (!get_line(line, f))
+                    return EARLY_EOF;
+                getSingleElementMSH4(f, dim, version, e, errorMsg, filename, false, gmsh_type, &line[0]);    
             }
-            // the first tagged element using a node tags that node too
-            if (it->second == -1 && e.tag != 0)
-                tags[v[i]] = e.tag;
+        }
+    } else {
+        for (int element = 0; element < numElements; element++) {
+            getSingleElement(f, dim, version, e, errorMsg, filename, false);
+            for (int i = 0; i < MAX_numNodes_gmsh && v[i] >= 0; i++) {
+                std::map<int,int>::iterator it = tags.find(v[i]);
+                if (it == tags.end()) {
+                    std::stringstream ss;
+                    ss << "readGmsh: element contains unknown node (node " << v[i]
+                        << ")";
+                    errorMsg = ss.str();
+                    return THROW_ERROR;
+                }
+                // the first tagged element using a node tags that node too
+                if (it->second == -1 && e.tag != 0)
+                    tags[v[i]] = e.tag;
+            }
         }
     }
     return 0;
@@ -832,7 +841,75 @@ int getNodesMaster(escript::JMPI& mpiInfo, FinleyDomain* dom, FILE* fileHandle,
 
         if (!errorFlag) {
             //read in chunksize nodes
-            for (int chunkNodes = 0; chunkNodes < (version >= 4.0 ? numBlocks : chunkSize); chunkNodes++) {
+            if(version >= 4.0){
+                for (int x = 0; x < numBlocks; x++) {
+                    std::vector<char> line;
+                    if (!get_line(line, fileHandle))
+                        errorFlag = EARLY_EOF;
+
+                    if (is_endnode_string(&line[0])) {
+                        errorMsg = "readGmsh: found end node string while still reading nodes!";
+                        errorFlag = THROW_ERROR;
+                        break;
+                    }
+
+                    int entityTag, entityDim, parametric, numDataPoints;
+                    scan_ret = sscanf(&line[0], "%d %d %d %d\n", &entityTag, &entityDim, &parametric, &numDataPoints);
+
+                    for(int j = 0; j < numDataPoints; j++){
+                        // Get the next line
+                        if (!get_line(line, fileHandle))
+                        errorFlag = EARLY_EOF;
+
+                        // Read the information
+                        if(!parametric){
+                            scan_ret = sscanf(&line[0], "%d %le %le %le\n", &tempInts[(totalNodes+j)], 
+                                        &tempCoords[0+(totalNodes+j)*numDim], 
+                                        &tempCoords[1+(totalNodes+j)*numDim], 
+                                        &tempCoords[2+(totalNodes+j)*numDim]);
+                            SSCANF_CHECK(scan_ret);
+                        } else {
+                            double u = 0., v = 0.; // These are the parametric coordinates. At the moment the code throws this information away
+                            switch(entityDim){
+                                case 0:
+                                    scan_ret = sscanf(&line[0], "%d %le %le %le\n", &tempInts[(totalNodes+j)], 
+                                        &tempCoords[0+(totalNodes+j)*numDim], 
+                                        &tempCoords[1+(totalNodes+j)*numDim], 
+                                        &tempCoords[2+(totalNodes+j)*numDim]);
+                                    SSCANF_CHECK(scan_ret);
+                                    break;
+                                case 1:
+                                    scan_ret = sscanf(&line[0], "%d %le %le %le %le\n", &tempInts[(totalNodes+j)], 
+                                        &tempCoords[0+(totalNodes+j)*numDim], 
+                                        &tempCoords[1+(totalNodes+j)*numDim], 
+                                        &tempCoords[2+(totalNodes+j)*numDim], &u);
+                                    SSCANF_CHECK(scan_ret);
+                                    break;
+                                case 2:
+                                    scan_ret = sscanf(&line[0], "%d %le %le %le %le %le\n", &tempInts[(totalNodes+j)], 
+                                        &tempCoords[0+(totalNodes+j)*numDim], 
+                                        &tempCoords[1+(totalNodes+j)*numDim], 
+                                        &tempCoords[2+(totalNodes+j)*numDim], &u, &v);
+                                    SSCANF_CHECK(scan_ret);
+                                    break;
+                                case 3:
+                                    scan_ret = sscanf(&line[0], "%d %le %le %le\n", &tempInts[(totalNodes+j)], 
+                                        &tempCoords[0+(totalNodes+j)*numDim], 
+                                        &tempCoords[1+(totalNodes+j)*numDim], 
+                                        &tempCoords[2+(totalNodes+j)*numDim]);
+                                    SSCANF_CHECK(scan_ret);
+                                    break;
+                                default:
+                                    errorMsg = "readGmsh: information in $nodes is in the wrong format!";
+                                    errorFlag = THROW_ERROR;
+                            }
+                        }
+
+                    }
+                    totalNodes += numDataPoints;
+                }
+
+                // Possible error (if nodes file is malformed)
                 if (totalNodes > numNodes) {
                     std::stringstream ss;
                     ss << "readGmsh: too many nodes (" << totalNodes << " < "
@@ -841,68 +918,25 @@ int getNodesMaster(escript::JMPI& mpiInfo, FinleyDomain* dom, FILE* fileHandle,
                     errorFlag = THROW_ERROR;
                     break;
                 }
-                std::vector<char> line;
-                if (!get_line(line, fileHandle))
-                    errorFlag = EARLY_EOF;
+                
+            } else { // Not msh version 4.0 or higher
+                for (int chunkNodes = 0; chunkNodes < chunkSize; chunkNodes++) {
+                    if (totalNodes > numNodes) {
+                        std::stringstream ss;
+                        ss << "readGmsh: too many nodes (" << totalNodes << " < "
+                            << numNodes << ")";
+                        errorMsg = ss.str();
+                        errorFlag = THROW_ERROR;
+                        break;
+                    }
+                    std::vector<char> line;
+                    if (!get_line(line, fileHandle))
+                        errorFlag = EARLY_EOF;
 
-                if (is_endnode_string(&line[0])) {
-                    errorMsg = "readGmsh: found end node string while still reading nodes!";
-                    errorFlag = THROW_ERROR;
-                    break;
-                } else {
-                    if(version >= 4.0) {
-                        int entityTag, entityDim, parametric, numNodes;
-                        scan_ret = sscanf(&line[0], "%d %d %d %d\n", &entityTag, &entityDim, &parametric, &numNodes);
-
-                        for(int j = 0; j < numNodes; j++){
-                            if (!get_line(line, fileHandle))
-                                errorFlag = EARLY_EOF;
-
-                            if(parametric){
-                                double u = 0., v = 0.; // These are the parametric coordinates. At the moment the code throws this information away
-                                switch(entityDim){
-                                    case 0:
-                                        scan_ret = sscanf(&line[0], "%d %le %le %le\n", &tempInts[(totalNodes+j)], 
-                                            &tempCoords[0+(totalNodes+j)*numDim], 
-                                            &tempCoords[1+(totalNodes+j)*numDim], 
-                                            &tempCoords[2+(totalNodes+j)*numDim]);
-                                        SSCANF_CHECK(scan_ret);
-                                        break;
-                                    case 1:
-                                        scan_ret = sscanf(&line[0], "%d %le %le %le %le\n", &tempInts[(totalNodes+j)], 
-                                            &tempCoords[0+(totalNodes+j)*numDim], 
-                                            &tempCoords[1+(totalNodes+j)*numDim], 
-                                            &tempCoords[2+(totalNodes+j)*numDim], &u);
-                                        SSCANF_CHECK(scan_ret);
-                                        break;
-                                    case 2:
-                                        scan_ret = sscanf(&line[0], "%d %le %le %le %le %le\n", &tempInts[(totalNodes+j)], 
-                                            &tempCoords[0+(totalNodes+j)*numDim], 
-                                            &tempCoords[1+(totalNodes+j)*numDim], 
-                                            &tempCoords[2+(totalNodes+j)*numDim], &u, &v);
-                                        SSCANF_CHECK(scan_ret);
-                                        break;
-                                    case 3:
-                                        scan_ret = sscanf(&line[0], "%d %le %le %le\n", &tempInts[(totalNodes+j)], 
-                                            &tempCoords[0+(totalNodes+j)*numDim], 
-                                            &tempCoords[1+(totalNodes+j)*numDim], 
-                                            &tempCoords[2+(totalNodes+j)*numDim]);
-                                        SSCANF_CHECK(scan_ret);
-                                        break;
-                                    default:
-                                        errorMsg = "readGmsh: information in $nodes is in the wrong format!";
-                                        errorFlag = THROW_ERROR;
-                                }
-                            } else {
-                                scan_ret = sscanf(&line[0], "%d %le %le %le\n", &tempInts[(totalNodes+j)], 
-                                            &tempCoords[0+(totalNodes+j)*numDim], 
-                                            &tempCoords[1+(totalNodes+j)*numDim], 
-                                            &tempCoords[2+(totalNodes+j)*numDim]);
-                                SSCANF_CHECK(scan_ret);
-                                break;
-                            }
-                        }
-                        totalNodes += numNodes;
+                    if (is_endnode_string(&line[0])) {
+                        errorMsg = "readGmsh: found end node string while still reading nodes!";
+                        errorFlag = THROW_ERROR;
+                        break;
                     } else {
                         if (1 == numDim) {
                             scan_ret = sscanf(&line[0], "%d %le\n", &tempInts[chunkNodes], &tempCoords[0+chunkNodes*numDim]);
@@ -917,7 +951,6 @@ int getNodesMaster(escript::JMPI& mpiInfo, FinleyDomain* dom, FILE* fileHandle,
                         totalNodes++;
                     }
                 }
-                
             }
         }
 #ifdef ESYS_MPI
