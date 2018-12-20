@@ -223,11 +223,6 @@ escript::Domain_ptr DudleyDomain::readGmsh(escript::JMPI mpiInfo,
                         }
 
                         tag[e] = 0;
-
-                        for (int j = 0; j < numNodesPerElement; j++) {
-                            std::cout << vertices[INDEX2(j, e, MAX_numNodes_gmsh)] << ", ";
-                        }
-                        std::cout << std::endl;
                     }
 
                 }
