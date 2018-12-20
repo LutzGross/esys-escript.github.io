@@ -27,6 +27,7 @@ sources = """
     DefaultAssembler2D.cpp
     DefaultAssembler3D.cpp
     domainhelpers.cpp
+    PML.cpp
     Rectangle.cpp
     RectangleGradients.cpp
     RectangleIntegrals.cpp
@@ -43,6 +44,7 @@ headers = """
     DefaultAssembler3D.h
     domainhelpers.h
     lagrange_functions.h
+    PML.h
     Rectangle.h
     Speckley.h
     SpeckleyDomain.h

@@ -16,6 +16,7 @@
 
 #include <speckley/AbstractAssembler.h>
 #include <speckley/Brick.h>
+#include <speckley/PML.h>
 #include <speckley/Rectangle.h>
 
 #include <escript/ExceptionTranslators.h>
@@ -312,6 +313,13 @@ escript::Domain_ptr _rectangle(int order, double _n0, double _n1,
                                              points, tags, tagstonames, world));
 }
 
+speckley::PML _pml(escript::Domain_ptr speckleyDomain){
+
+    speckley::PML pml = PML(speckleyDomain);
+
+    return pml;
+}
+
 } // end of namespace speckley
 
 
@@ -357,6 +365,11 @@ BOOST_PYTHON_MODULE(speckleycpp)
 ":param l1: length of side 1 or coordinate range of side 1\n:type l1: ``float`` or ``tuple``\n"
 ":param d0: number of subdivisions in direction 0\n:type d0: ``int``\n"
 ":param d1: number of subdivisions in direction 1\n:type d1: ``int``");
+
+    def("PML", speckley::_pml, (arg("domain")),
+"Creates a data object of a perfectly matched layer\n\n"
+":param domain: A speckley Rectangle or Brick."
+        );
 
     def("readBinaryGrid", &speckley::readBinaryGrid, (arg("filename"),
                 arg("functionspace"), arg("shape"), arg("fill")=0.,
