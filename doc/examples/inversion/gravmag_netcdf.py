@@ -28,6 +28,9 @@ from esys.downunder import *
 from esys.escript import unitsSI as U
 from esys.escript import saveDataCSV
 from esys.weipa import *
+import logging
+logger=logging.getLogger('inv.MinimizerLBFGS')
+logger.setLevel(logging.DEBUG)
 
 # Set parameters
 MAGNETIC_DATASET = 'data/MagneticSmall.nc'
@@ -41,8 +44,8 @@ PAD_Y = 0.2
 thickness = 40. * U.km
 l_air = 6. * U.km
 n_cells_v = 25
-mu_gravity = 10.
-mu_magnetic = 0.1
+mu_gravity = 10./2
+mu_magnetic = 0.1/2/2
 COORDINATES=CartesianReferenceSystem()
 #COORDINATES=WGS84ReferenceSystem()
 
@@ -62,7 +65,7 @@ def work():
 
   inv=JointGravityMagneticInversion()
   inv.setSolverTolerance(1e-4)
-  inv.setSolverMaxIterations(50)
+  inv.setSolverMaxIterations(80)
   inv.setup(db)
   inv.getCostFunction().setTradeOffFactorsModels([mu_gravity, mu_magnetic])
   inv.getCostFunction().setTradeOffFactorsRegularization(mu = [1.,1.], mu_c=1.)
