@@ -32,7 +32,7 @@ from esys.downunder.minimizers import *
 from esys.downunder.costfunctions import CostFunction
 
 # number of dimensions for the test function
-N=10
+N=3
 
 # this is mainly to avoid warning messages
 logging.basicConfig(format='%(name)s: %(message)s', level=logging.INFO)
@@ -142,8 +142,8 @@ class TestMinimizerNLCG(unittest.TestCase):
         self.assertRaises(MinimizerMaxIterReached, self.minimizer.run, self.x0)
 
     def test_solution(self):
-        self.minimizer.setTolerance(1e-4)
-        self.minimizer.setMaxIterations(400)
+        self.minimizer.setTolerance(1e-6)
+        self.minimizer.setMaxIterations(2000)
         x=self.minimizer.run(self.x0)
         xx=self.minimizer.getResult()
         self.assertEqual(np.amax(abs(x-xx)), 0.)
