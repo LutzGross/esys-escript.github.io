@@ -493,10 +493,10 @@ class MinimizerLBFGS(AbstractMinimizer):
         # case handling for inner iteration:
         self._result=x
         if n_iter >= self._imax:
-            self.logger.warn(">>>>>>>>>> Maximum number of iterations reached! <<<<<<<<<<")
+            self.logger.warning(">>>>>>>>>> Maximum number of iterations reached! <<<<<<<<<<")
             raise MinimizerMaxIterReached("Gave up after %d steps."%n_iter)
         elif non_curable_break_down:
-            self.logger.warn(">>>>>>>>>> Incurable breakdown! <<<<<<<<<<")
+            self.logger.warning(">>>>>>>>>> Incurable breakdown! <<<<<<<<<<")
             raise MinimizerIterationIncurableBreakDown("Gave up after %d steps."%n_iter)
 
         self.logger.info("Success after %d iterations!"%n_iter)
@@ -609,7 +609,7 @@ class MinimizerBFGS(AbstractMinimizer):
             H=self.getCostFunction().getDualProduct(A, self.getCostFunction().getDualProduct(H,AT)) + rho*delta_x[:,None]*delta_x[None,:]
 
         if k >= self._imax:
-            self.logger.warn(">>>>>>>>>> Maximum number of iterations reached! <<<<<<<<<<")
+            self.logger.warning(">>>>>>>>>> Maximum number of iterations reached! <<<<<<<<<<")
             raise MinimizerMaxIterReached("Gave up after %d steps."%k)
 
         self.logger.info("Success after %d iterations! Final gnorm=%e"%(k,gnorm))
@@ -631,7 +631,8 @@ class MinimizerNLCG(AbstractMinimizer):
             g_Jx  - gradient of cost function at x
             gnorm - norm of g_Jx (stopping criterion)
         """
-
+        #self.logger.setLevel(logging.DEBUG)
+        #lslogger.setLevel(logging.DEBUG)
         i=0
         k=0
         args=self.getCostFunction().getArguments(x)
@@ -640,29 +641,30 @@ class MinimizerNLCG(AbstractMinimizer):
         d=r
         delta=self.getCostFunction().getDualProduct(r,r)
         delta0=delta
-        gnorm=Lsup(r)
+        gnorm0=Lsup(r)
+        gnorm=gnorm0
+        alpha=1
         self._doCallback(k=i, x=x, Jx=Jx, g_Jx=-r, gnorm=gnorm)
 
-        while i < self._imax and gnorm > self._m_tol:
+        while i < self._imax and gnorm > self._m_tol * gnorm0:
             self.logger.debug("iteration %d"%i)
             self.logger.debug("grad f(x) = %s"%(-r))
             self.logger.debug("d = %s"%d)
             self.logger.debug("x = %s"%x)
-
-            alpha, Jx, g_Jx_new, args_new = line_search(self.getCostFunction(), x, d, -r, Jx, args, c2=0.4)
+        
+            alpha, Jx, g_Jx_new, args_new = line_search(self.getCostFunction(), x, d, -r, Jx, args, alpha=alpha, c2=0.4)
             self.logger.debug("alpha=%e"%(alpha))
             x=x+alpha*d
+            args=args_new
+            
             r=-self.getCostFunction().getGradient(x, *args) if g_Jx_new is None else -g_Jx_new
+            # Fletcher-Reeves version
             delta_o=delta
             delta=self.getCostFunction().getDualProduct(r,r)
             beta=delta/delta_o
             d=r+beta*d
             k=k+1
-            try:
-                lenx=len(x)
-            except:
-                lenx=x.getNumberOfDataPoints()
-            if k == lenx or self.getCostFunction().getDualProduct(r,d) <= 0:
+            if self.getCostFunction().getDualProduct(r,d) <= 0:
                 d=r
                 k=0
             i+=1
@@ -671,11 +673,11 @@ class MinimizerNLCG(AbstractMinimizer):
             self._result=x
 
         if i >= self._imax:
-            self.logger.warn(">>>>>>>>>> Maximum number of iterations reached! <<<<<<<<<<")
+            self.logger.warning(">>>>>>>>>> Maximum number of iterations %s reached! <<<<<<<<<<"%i)
             raise MinimizerMaxIterReached("Gave up after %d steps."%i)
 
 
-        self.logger.info("Success after %d iterations! Final delta=%e"%(i,delta))
+        self.logger.info("Success after %d iterations! Initial/Final gradient=%e/%e"%(i,gnorm0, gnorm))
         return self._result
 
 
@@ -684,7 +686,7 @@ if __name__=="__main__":
     from scipy.optimize import rosen, rosen_der
     from esys.downunder import MeteredCostFunction
     import sys
-    N=10
+    N=4
     x0=np.array([4.]*N) # initial guess
 
     class RosenFunc(MeteredCostFunction):
@@ -716,7 +718,7 @@ if __name__=="__main__":
 
     logging.basicConfig(format='[%(funcName)s] \033[1;30m%(message)s\033[0m', level=logging.DEBUG)
     m.setTolerance(m_tol=1e-5)
-    m.setMaxIterations(600)
+    m.setMaxIterations(3000)
     m.run(x0)
     m.logSummary()
     print("\tLsup(result)=%.8f"%np.amax(abs(m.getResult())))
