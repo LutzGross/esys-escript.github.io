@@ -69,18 +69,19 @@ def _zoom(phi, gradphi, phiargs, alpha_lo, alpha_hi, phi_lo, phi_hi, c1, c2,
     alpha_lo...alpha_hi. See Chapter 3 of 'Numerical Optimization' by
     J. Nocedal for an explanation.
     """
-    def interpolate(alpha_lo,alpha_hi,phi_lo,gradphi):
+    def interpolate(alpha_lo,alpha_hi,phi_lo,phi_hi,gradphi):
         if alpha_hi < alpha_lo:
             alpha_lo,alpha_hi=alpha_hi,alpha_lo
+            phi_lo,phi_hi=phi_hi,phi_lo
         gphi_lo=gradphi(alpha_lo)
-        a=-(phi_lo+(alpha_hi-alpha_lo)*gphi_lo)/((alpha_hi-alpha_lo)**2)
+        a=-(phi_lo-phi_hi+(alpha_hi-alpha_lo)*gphi_lo)/((alpha_hi-alpha_lo)**2)
         if a == 0:
             return 0.5*(alpha_hi+alpha_lo)
         return -(gphi_lo-2*a*alpha_lo)/(2.0*a)
         
     i=0
     while i<=IMAX:
-        alpha = interpolate(alpha_lo,alpha_hi,phi_lo,gradphi)
+        alpha = interpolate(alpha_lo,alpha_hi,phi_lo,phi(alpha_hi),gradphi)
         phiargs(alpha)
         phi_a=phi(alpha)
         zoomlogger.debug("iteration %d, alpha=%e, phi(alpha)=%e"%(i,alpha,phi_a))
