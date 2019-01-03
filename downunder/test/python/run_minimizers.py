@@ -142,7 +142,7 @@ class TestMinimizerNLCG(unittest.TestCase):
         self.assertRaises(MinimizerMaxIterReached, self.minimizer.run, self.x0)
 
     def test_solution(self):
-        self.minimizer.setTolerance(1e-6)
+        self.minimizer.setTolerance(1e-8)
         self.minimizer.setMaxIterations(2000)
         x=self.minimizer.run(self.x0)
         xx=self.minimizer.getResult()
