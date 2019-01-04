@@ -65,7 +65,7 @@ def work():
 
   inv=JointGravityMagneticInversion()
   inv.setSolverTolerance(1e-4)
-  inv.setSolverMaxIterations(80)
+  inv.setSolverMaxIterations(100)
   inv.setup(db)
   inv.getCostFunction().setTradeOffFactorsModels([mu_gravity, mu_magnetic])
   inv.getCostFunction().setTradeOffFactorsRegularization(mu = [1.,1.], mu_c=1.)
