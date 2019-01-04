@@ -77,7 +77,10 @@ def _zoom(phi, gradphi, phiargs, alpha_lo, alpha_hi, phi_lo, phi_hi, c1, c2,
         a=-(phi_lo-phi_hi+(alpha_hi-alpha_lo)*gphi_lo)/((alpha_hi-alpha_lo)**2)
         if a == 0:
             return 0.5*(alpha_hi+alpha_lo)
-        return -(gphi_lo-2*a*alpha_lo)/(2.0*a)
+        alpha = -(gphi_lo-2*a*alpha_lo)/(2.0*a)
+        if alpha > alpha_hi or alpha < alpha_lo:
+            return 0.5*(alpha_hi+alpha_lo)
+        return alpha
         
     i=0
     while i<=IMAX:
