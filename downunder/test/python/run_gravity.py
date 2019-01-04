@@ -84,7 +84,7 @@ class Test_GravityInversion2D(unittest.TestCase):
 
         inv=GravityInversion()
         inv.setSolverTolerance(1e-4)
-        inv.setSolverMaxIterations(50)
+        inv.setSolverMaxIterations(100)
         inv.setup(domainbuilder)
         inv.getCostFunction().setTradeOffFactorsModels(mu)
 
