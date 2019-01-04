@@ -715,7 +715,7 @@ class StrongJointGravityMagneticInversion(InversionDriver):
         DIM=dom.getDim()
         trafo=makeTransformation(dom, domainbuilder.getReferenceSystem())
 
-        rock_mask=wherePositive(domainbuilder.getSetDensityMask() + domainbuilder.getSetSusceptibilityMask())
+        rock_mask=es.wherePositive(domainbuilder.getSetDensityMask() + domainbuilder.getSetSusceptibilityMask())
         #========================
         self.logger.info('Creating mappings ...')
         if rho_at_depth:
