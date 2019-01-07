@@ -69,27 +69,52 @@ def _zoom(phi, gradphi, phiargs, alpha_lo, alpha_hi, phi_lo, phi_hi, c1, c2,
     alpha_lo...alpha_hi. See Chapter 3 of 'Numerical Optimization' by
     J. Nocedal for an explanation.
     """
-    def interpolate(alpha_lo,alpha_hi,phi_lo,phi_hi,gradphi):
-        if alpha_hi < alpha_lo:
-            alpha_lo,alpha_hi=alpha_hi,alpha_lo
-            phi_lo,phi_hi=phi_hi,phi_lo
-        gphi_lo=gradphi(alpha_lo)
-        a=-(phi_lo-phi_hi+(alpha_hi-alpha_lo)*gphi_lo)/((alpha_hi-alpha_lo)**2)
-        if a == 0:
-            return 0.5*(alpha_hi+alpha_lo)
-        alpha = -(gphi_lo-2*a*alpha_lo)/(2.0*a)
-        if alpha > alpha_hi or alpha < alpha_lo:
-            return 0.5*(alpha_hi+alpha_lo)
+    def quadinterpolate(alpha_lo,phi_lo,alpha_hi,phi_hi):
+        if alpha_lo > alpha_hi:
+            alpha_hi,phi_hi=alpha_lo,phi_lo
+        denom=2*phi_hi-2*phi0-2*alpha_hi*gphi0
+        if denom == 0:
+            alpha=0.5*(alpha_lo+alpha_hi)
+        else:
+            alpha=(-alpha_hi**2.0*gphi0)/denom
+            if alpha < alpha_lo or alpha > alpha_hi:
+                alpha=0.5*(alpha_lo+alpha_hi)
         return alpha
-        
+
+    def cubicinterpolate(alpha_lo,phi_lo,alpha_hi,phi_hi,old_alpha,old_phi):
+        if alpha_lo > alpha_hi:
+            alpha_hi,phi_hi=alpha_lo,phi_lo
+        if alpha_lo==0:
+            alpha_1,phi_1,alpha_2,phi_2=alpha_hi,phi_hi,old_alpha,old_phi
+        else:
+            alpha_1,phi_1,alpha_2,phi_2=alpha_lo,phi_lo,alpha_hi,phi_hi
+        a1s,a2s,a1c,a2c=alpha_1**2,alpha_2**2,alpha_1**3,alpha_2**3
+        a=(-a1s*phi_2+a2s*phi_1-a2s*phi0+(a1s*alpha_2-alpha_1*a2s)*gphi0)/(a1c*a2s-a1s*a2c)
+        b=-(-a1c*phi_2+a2c*phi_1-a2c*phi0+(a1c*alpha_2-alpha_1*a2c)*gphi0)/(a1c*a2s-a1s*a2c)
+        deter=b**2.0-3.0*a*gphi0
+        if deter<0:
+            return quadinterpolate(alpha_lo,phi_lo,alpha_hi,phi_hi)
+        A,B=(-b/(3.0*a)),sqrt(deter)/(3.0*a)
+        temp=max(A+B,A-B)
+        alpha=temp*(temp<alpha_hi)+(1-(temp<alpha_hi))*min(A+B,A-B)
+        if alpha < alpha_lo or alpha > alpha_hi:
+            return quadinterpolate(alpha_lo,phi_lo,alpha_hi,phi_hi)
+        if np.abs(alpha-old_alpha) < 1e-6 or np.abs(alpha/old_alpha) < 1e-5:
+            alpha=0.5*(alpha_lo+alpha_hi)
+        return alpha
+
     i=0
     while i<=IMAX:
-        alpha = interpolate(alpha_lo,alpha_hi,phi_lo,phi(alpha_hi),gradphi)
+        if i == 0:
+            alpha=quadinterpolate(alpha_lo,phi_lo,alpha_hi,phi_hi)
+        else:
+            alpha=cubicinterpolate(alpha_lo,phi_lo,alpha_hi,phi_hi,old_alpha,old_phi)
         phiargs(alpha)
         phi_a=phi(alpha)
         zoomlogger.debug("iteration %d, alpha=%e, phi(alpha)=%e"%(i,alpha,phi_a))
         if phi_a > phi0+c1*alpha*gphi0 or phi_a >= phi_lo:
-            alpha_hi=alpha
+            old_alpha,old_phi=alpha_hi,phi_hi
+            alpha_hi,phi_hi=alpha,phi_a
         else:
             gphi_a=gradphi(alpha)
             zoomlogger.debug("\tphi'(alpha)=%e"%(gphi_a))
@@ -97,8 +122,8 @@ def _zoom(phi, gradphi, phiargs, alpha_lo, alpha_hi, phi_lo, phi_hi, c1, c2,
                 break
             if gphi_a*(alpha_hi-alpha_lo) >= 0:
                 alpha_hi = alpha_lo
-            alpha_lo=alpha
-            phi_lo=phi_a
+            old_alpha,old_phi=alpha_lo,phi_lo
+            alpha_lo,phi_lo=alpha,phi_a
         if not alpha_hi > alpha_lo:
             break
         i+=1
