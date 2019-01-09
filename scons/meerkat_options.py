@@ -38,7 +38,7 @@ import subprocess
 #boost_prefix=['/home/adam/Documents/zzz/boost_1_68_0/','/home/adam/Documents/zzz/boost_1_68_0/stage/lib']
 # cxx = 'clang++'
 
-python = 2
+python = 3
 
 # nvccflags = "--verbose -arch=sm_35 -ccbin=g++ -DBOOST_NOINLINE='__attribute__((noinline))'"
 # nvccflags = "--verbose -arch=sm_35 -ccbin clang-3.8 "
