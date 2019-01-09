@@ -105,15 +105,12 @@ def _zoom(phi, gradphi, phiargs, alpha_lo, alpha_hi, phi_lo, phi_hi, c1, c2,
 
     i=0
     while i<=IMAX:
-        if i == 0:
-            alpha=quadinterpolate(alpha_lo,phi_lo,alpha_hi,phi_hi)
-        else:
-            alpha=cubicinterpolate(alpha_lo,phi_lo,alpha_hi,phi_hi,old_alpha,old_phi)
+        alpha=quadinterpolate(alpha_lo,phi_lo,alpha_hi,phi_hi)
         phiargs(alpha)
         phi_a=phi(alpha)
         zoomlogger.debug("iteration %d, alpha=%e, phi(alpha)=%e"%(i,alpha,phi_a))
         if phi_a > phi0+c1*alpha*gphi0 or phi_a >= phi_lo:
-            old_alpha,old_phi=alpha_hi,phi_hi
+            # old_alpha,old_phi=alpha_hi,phi_hi
             alpha_hi,phi_hi=alpha,phi_a
         else:
             gphi_a=gradphi(alpha)
@@ -122,7 +119,7 @@ def _zoom(phi, gradphi, phiargs, alpha_lo, alpha_hi, phi_lo, phi_hi, c1, c2,
                 break
             if gphi_a*(alpha_hi-alpha_lo) >= 0:
                 alpha_hi = alpha_lo
-            old_alpha,old_phi=alpha_lo,phi_lo
+            # old_alpha,old_phi=alpha_lo,phi_lo
             alpha_lo,phi_lo=alpha,phi_a
         if not alpha_hi > alpha_lo:
             break
