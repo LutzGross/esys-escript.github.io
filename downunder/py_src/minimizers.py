@@ -63,7 +63,7 @@ class MinimizerIterationIncurableBreakDown(MinimizerException):
 
 
 def _zoom(phi, gradphi, phiargs, alpha_lo, alpha_hi, phi_lo, phi_hi, c1, c2,
-          phi0, gphi0, IMAX=25):
+          phi0, gphi0, interpolationOrder, IMAX=25):
     """
     Helper function for `line_search` below which tries to tighten the range
     alpha_lo...alpha_hi. See Chapter 3 of 'Numerical Optimization' by
@@ -104,8 +104,16 @@ def _zoom(phi, gradphi, phiargs, alpha_lo, alpha_hi, phi_lo, phi_hi, c1, c2,
         return alpha
 
     i=0
+    if interpolationOrder == 3:
+        old_alpha=0.5*(alpha_lo+alpha_hi)
+        old_phi=phi(old_alpha)
     while i<=IMAX:
-        alpha=quadinterpolate(alpha_lo,phi_lo,alpha_hi,phi_hi)
+        if interpolationOrder == 1:
+            alpha=0.5*(alpha_lo+alpha_hi)
+        elif interpolationOrder == 2:
+            alpha=quadinterpolate(alpha_lo,phi_lo,alpha_hi,phi_hi)
+        elif interpolationOrder == 3:
+            alpha=cubicinterpolate(alpha_lo,phi_lo,alpha_hi,phi_hi,old_alpha,old_phi)
         phiargs(alpha)
         phi_a=phi(alpha)
         zoomlogger.debug("iteration %d, alpha=%e, phi(alpha)=%e"%(i,alpha,phi_a))
@@ -127,7 +135,7 @@ def _zoom(phi, gradphi, phiargs, alpha_lo, alpha_hi, phi_lo, phi_hi, c1, c2,
     return alpha, phi_a
 
 def line_search(f, x, p, g_Jx, Jx, args_x, alpha=1.0, alpha_truncationax=50.0,
-                c1=1e-4, c2=0.9, IMAX=15, IMAX_ZOOM=25):
+                c1=1e-4, c2=0.9, interpolationOrder=2, IMAX=15, IMAX_ZOOM=25):
     """
     Line search method that satisfies the strong Wolfe conditions.
     See Chapter 3 of 'Numerical Optimization' by J. Nocedal for an explanation.
@@ -189,13 +197,16 @@ def line_search(f, x, p, g_Jx, Jx, args_x, alpha=1.0, alpha_truncationax=50.0,
     old_phi_a=phi0
     phi_a=phi0
     i=1
+    if (interpolationOrder != 1) and (interpolationOrder != 2) and (interpolationOrder != 3):
+        lslogger.debug("WARNING invalid interpolation order. Setting interpolationOrder = 2")
+        interpolationOrder=2
     #alpha=2.*alpha
     while i< max(IMAX,2) and alpha>0.:
         phiargs(alpha)
         phi_a=phi(alpha)
         lslogger.debug("iteration %d, alpha=%e, phi(alpha)=%e"%(i,alpha,phi_a))
         if (phi_a > phi0+c1*alpha*gphi0) or ((phi_a>=old_phi_a) and (i>1)):
-            alpha, phi_a = _zoom(phi, gradphi, phiargs, old_alpha, alpha, old_phi_a, phi_a, c1, c2, phi0, gphi0, IMAX=IMAX_ZOOM)
+            alpha, phi_a = _zoom(phi, gradphi, phiargs, old_alpha, alpha, old_phi_a, phi_a, c1, c2, phi0, gphi0, interpolationOrder, IMAX=IMAX_ZOOM)
             break
 
         gphi_a=gradphi(alpha)
@@ -203,7 +214,7 @@ def line_search(f, x, p, g_Jx, Jx, args_x, alpha=1.0, alpha_truncationax=50.0,
         if np.abs(gphi_a) <= -c2*gphi0:
             break
         if gphi_a >= 0:
-            alpha, phi_a = _zoom(phi, gradphi, phiargs, alpha, old_alpha, phi_a, old_phi_a, c1, c2, phi0, gphi0, IMAX=IMAX_ZOOM)
+            alpha, phi_a = _zoom(phi, gradphi, phiargs, alpha, old_alpha, phi_a, old_phi_a, c1, c2, phi0, gphi0, interpolationOrder, IMAX=IMAX_ZOOM)
             break
 
         old_alpha=alpha
@@ -236,6 +247,7 @@ class AbstractMinimizer(object):
         self._callback = None
         self.logger = logging.getLogger('inv.%s'%self.__class__.__name__)
         self.setTolerance(m_tol=m_tol, J_tol=J_tol)
+        self.interpolationOrder=2
 
     def setCostFunction(self, J):
         """
@@ -361,6 +373,8 @@ class MinimizerLBFGS(AbstractMinimizer):
                 self._max_linesearch_steps=opts[o]
             elif o=='max_zoom_steps':
                 self._max_zoom_steps=opts[o]
+            elif o=='interpolationOrder':
+                self.interpolationOrder=opts[o]
             else:
                 raise KeyError("Invalid option '%s'"%o)
 
@@ -437,7 +451,7 @@ class MinimizerLBFGS(AbstractMinimizer):
                     # reset alpha for the case that the cost function does not
                     # provide an approximation of inverse H
                     alpha=1.0
-                alpha, Jx_new, g_Jx_new, args_new = line_search(self.getCostFunction(), x, p, g_Jx, Jx, args, alpha, IMAX=self._max_linesearch_steps, IMAX_ZOOM=self._max_zoom_steps)
+                alpha, Jx_new, g_Jx_new, args_new = line_search(self.getCostFunction(), x, p, g_Jx, Jx, args, alpha, interpolationOrder=self.interpolationOrder, IMAX=self._max_linesearch_steps, IMAX_ZOOM=self._max_zoom_steps)
                 # this function returns a scaling alpha for the search
                 # direction as well as the cost function evaluation and
                 # gradient for the new solution approximation x_new=x+alpha*p
@@ -577,6 +591,8 @@ class MinimizerBFGS(AbstractMinimizer):
         for o in opts:
             if o=='initialHessian':
                 self._initial_H=opts[o]
+            elif o=='interpolationOrder':
+                self.interpolationOrder=opts[o]
             else:
                 raise KeyError("Invalid option '%s'"%o)
 
@@ -687,7 +703,7 @@ class MinimizerNLCG(AbstractMinimizer):
             self.logger.debug("d = %s"%d)
             self.logger.debug("x = %s"%x)
         
-            alpha, Jx, g_Jx_new, args_new = line_search(self.getCostFunction(), x, d, -r, Jx, args, alpha=alpha, c2=0.4)
+            alpha, Jx, g_Jx_new, args_new = line_search(self.getCostFunction(), x, d, -r, Jx, args, alpha=alpha, c2=0.4, interpolationOrder=self.interpolationOrder)
             self.logger.debug("alpha=%e"%(alpha))
             x=x+alpha*d
             args=args_new
