@@ -63,7 +63,7 @@ class MinimizerIterationIncurableBreakDown(MinimizerException):
 
 
 def _zoom(phi, gradphi, phiargs, alpha_lo, alpha_hi, phi_lo, phi_hi, c1, c2,
-          phi0, gphi0, interpolationOrder, IMAX=25):
+          phi0, gphi0, interpolationOrder, tol_df, tol_sm, IMAX=25):
     """
     Helper function for `line_search` below which tries to tighten the range
     alpha_lo...alpha_hi. See Chapter 3 of 'Numerical Optimization' by
@@ -97,11 +97,10 @@ def _zoom(phi, gradphi, phiargs, alpha_lo, alpha_hi, phi_lo, phi_hi, c1, c2,
         if deter<0:
             return quadinterpolate(alpha_lo,phi_lo,alpha_hi,phi_hi)
         A,B=(-b/(3.0*a)),sqrt(deter)/(3.0*a)
-        temp=max(A+B,A-B)
-        alpha=temp*(temp<alpha_hi)+(1-(temp<alpha_hi))*min(A+B,A-B)
+        alpha=A-B+2*B*(6*a*(A+B)+2*b>0)
         if alpha < alpha_lo or alpha > alpha_hi:
             return quadinterpolate(alpha_lo,phi_lo,alpha_hi,phi_hi)
-        if np.abs(alpha-old_alpha) < 1e-6 or np.abs(alpha) < 1e-5*np.abs(old_alpha):
+        if np.abs(alpha-old_alpha) < tol_df or np.abs(alpha) < tol_sm*np.abs(old_alpha):
             alpha=0.5*(alpha_lo+alpha_hi)
         return alpha
 
@@ -137,7 +136,7 @@ def _zoom(phi, gradphi, phiargs, alpha_lo, alpha_hi, phi_lo, phi_hi, c1, c2,
     return alpha, phi_a
 
 def line_search(f, x, p, g_Jx, Jx, args_x, alpha=1.0, alpha_truncationax=50.0,
-                c1=1e-4, c2=0.9, interpolationOrder=2, IMAX=15, IMAX_ZOOM=25):
+                c1=1e-4, c2=0.9, interpolationOrder=1, tol_df=1e-6, tol_sm=1e-5, IMAX=15, IMAX_ZOOM=25):
     """
     Line search method that satisfies the strong Wolfe conditions.
     See Chapter 3 of 'Numerical Optimization' by J. Nocedal for an explanation.
@@ -153,6 +152,11 @@ def line_search(f, x, p, g_Jx, Jx, args_x, alpha=1.0, alpha_truncationax=50.0,
     :param alpha_truncationax: algorithm terminates if alpha reaches this value
     :param c1: value for Armijo condition (see reference)
     :param c2: value for curvature condition (see reference)
+    :param interpolationOrder: the order of the interpolation used (1, 2 or 3)
+    :param tol_df: if using the cubic interpolation, the new value of alpha must 
+    :               differ from the previous value by at least this much
+    :param tol_sm: if using the cubic interpolation, the new value of alpha must
+    :               not be less than tol_sm*(alpha_{i-1})
     :param IMAX: maximum number of iterations to perform
     """
     # this stores the latest gradf(x+a*p) which is returned
@@ -200,15 +204,15 @@ def line_search(f, x, p, g_Jx, Jx, args_x, alpha=1.0, alpha_truncationax=50.0,
     phi_a=phi0
     i=1
     if (interpolationOrder != 1) and (interpolationOrder != 2) and (interpolationOrder != 3):
-        lslogger.debug("WARNING invalid interpolation order. Setting interpolationOrder = 2")
-        interpolationOrder=2
+        lslogger.debug("WARNING invalid interpolation order. Setting interpolationOrder = 1")
+        interpolationOrder=1
     #alpha=2.*alpha
     while i< max(IMAX,2) and alpha>0.:
         phiargs(alpha)
         phi_a=phi(alpha)
         lslogger.debug("iteration %d, alpha=%e, phi(alpha)=%e"%(i,alpha,phi_a))
         if (phi_a > phi0+c1*alpha*gphi0) or ((phi_a>=old_phi_a) and (i>1)):
-            alpha, phi_a = _zoom(phi, gradphi, phiargs, old_alpha, alpha, old_phi_a, phi_a, c1, c2, phi0, gphi0, interpolationOrder, IMAX=IMAX_ZOOM)
+            alpha, phi_a = _zoom(phi, gradphi, phiargs, old_alpha, alpha, old_phi_a, phi_a, c1, c2, phi0, gphi0, interpolationOrder, tol_df, tol_sm, IMAX=IMAX_ZOOM)
             break
 
         gphi_a=gradphi(alpha)
@@ -216,7 +220,7 @@ def line_search(f, x, p, g_Jx, Jx, args_x, alpha=1.0, alpha_truncationax=50.0,
         if np.abs(gphi_a) <= -c2*gphi0:
             break
         if gphi_a >= 0:
-            alpha, phi_a = _zoom(phi, gradphi, phiargs, alpha, old_alpha, phi_a, old_phi_a, c1, c2, phi0, gphi0, interpolationOrder, IMAX=IMAX_ZOOM)
+            alpha, phi_a = _zoom(phi, gradphi, phiargs, alpha, old_alpha, phi_a, old_phi_a, c1, c2, phi0, gphi0, interpolationOrder, tol_df, tol_sm, IMAX=IMAX_ZOOM)
             break
 
         old_alpha=alpha
@@ -377,6 +381,10 @@ class MinimizerLBFGS(AbstractMinimizer):
                 self._max_zoom_steps=opts[o]
             elif o=='interpolationOrder':
                 self.interpolationOrder=opts[o]
+            elif o=='tol_df':
+                self.tol_df=opts[o]
+            elif o=='tol_sm':
+                self.tol_sm=opts[o]
             else:
                 raise KeyError("Invalid option '%s'"%o)
 
@@ -595,6 +603,10 @@ class MinimizerBFGS(AbstractMinimizer):
                 self._initial_H=opts[o]
             elif o=='interpolationOrder':
                 self.interpolationOrder=opts[o]
+            elif o=='tol_df':
+                self.tol_df=opts[o]
+            elif o=='tol_sm':
+                self.tol_sm=opts[o]
             else:
                 raise KeyError("Invalid option '%s'"%o)
 
