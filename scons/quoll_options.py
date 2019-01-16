@@ -14,28 +14,102 @@
 #
 ##############################################################################
 
-# This is a template configuration file for escript on Debian/GNU Linux.
-# Refer to README_FIRST for usage instructions.
+#from .jessie_options import *
+
+#visit=False
+#mpi='OPENMPI'
+
+#pythoncmd='/usr/bin/python'
+
+#mpi_prefix='/usr/lib/x86_64-linux-gnu/openmpi/'
+#trilinos_prefix =['/usr/local/include/','/usr/local/lib/']
+#visit_prefix = ['/usr/local/2.13.2/linux-x86_64/libsim/V2/include/','/usr/local/2.13.2/linux-x86_64/libsim/V2/lib/']
+
+
+# NEW
 
 escript_opts_version = 203
-
-mpi_no_host=True
-
-cxx_extra = '-Wno-deprecated-declarations'
+#cxx_extra = '-Wno-literal-suffix'
 openmp = True
-boost_libs = ['boost_python-py27']
-mpi = 'OPENMPI' 
-mpi_prefix = '/usr/lib/x86_64-linux-gnu/openmpi'
-#mpi_prefix = '/usr/lib/x86_64-linux-gnu/openmpi/include/openmpi/'
-mpi_libs = ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']
-netcdf = True
-#umfpack = True
-umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
-umfpack_libs = ['umfpack', 'blas', 'amd']
-lapack_prefix = ['/usr/include/atlas', '/usr/lib/atlas-base']
+umfpack = True
 silo = True
-silo_libs = ['siloh5']
+# papi = True
+# cuda = True
+mpi = 'OPENMPI'
+# verbose = True
+# debug = True
+trilinos = True
+parmetis = True
+#visit = True
+werror = False
+
+import os
+import subprocess
+
+#boost_prefix=['/home/adam/Documents/zzz/boost_1_68_0/','/home/adam/Documents/zzz/boost_1_68_0/stage/lib']
+# cxx = 'clang++'
+
+prelaunch = "EE=$(echo %e|sed -e 's/,/ -x /g')"
+launcher = "mpirun -x ${EE} --map-by node --bind-to none -np %N %b"
+
+
+python = 2
+
+# nvccflags = "--verbose -arch=sm_35 -ccbin=g++ -DBOOST_NOINLINE='__attribute__((noinline))'"
+# nvccflags = "--verbose -arch=sm_35 -ccbin clang-3.8 "
 dudley_assemble_flags = '-funroll-loops'
+nvccflags = "--verbose -arch=sm_35 -ccbin=/usr/bin/g++"
+# nvccflags = "--verbose -ccbin clang-3.8 -DBOOST_NOINLINE='__attribute__((noinline))'"
+
+d_mpi_path = '/usr/include/openmpi'
+netcdf = 4
+
+mpi_libs = ['mpi_cxx', 'mpi']
+parmetis_libs = ['parmetis', 'metis']
+silo_libs = ['siloh5', 'hdf5_openmpi']
+umfpack_libs = ['umfpack', 'blas', 'amd']
+
+lapack_prefix = ['/usr/include/atlas', '/usr/lib/atlas-base']
+mpi_prefix = os.path.split(os.path.realpath(d_mpi_path))[0]
+parmetis_prefix = ['/usr/include','/usr/lib']
+umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
+trilinos_prefix =['//opt/trilinos_hybrid/include/','/opt/trilinos_hybrid/lib/']
+#visit_prefix = ['/usr/local/visit/2.13.2/linux-x86_64/libsim/V2/include/','/usr/local/visit/2.13.2/linux-x86_64/libsim/V2/lib/']
+visit_prefix = ['/usr/local/2.13.2/linux-x86_64/libsim/V2/include/','/usr/local/2.13.2/linux-x86_64/libsim/V2/lib/']
+
+
+
+p = subprocess.Popen(["ld","--verbose"], stdout=subprocess.PIPE)
+out,err = p.communicate()
+spath = [x[13:-3] for x in out.split() if 'SEARCH_DIR' in x]
+p2name = ''
+p3name = ''
+for name in spath:
+  try:
+    l=os.listdir(name)
+    p2res=[x for x in l if x.startswith('libboost_python-py2') and x.endswith('.so')]
+    p3res=[x for x in l if x.startswith('libboost_python-py3') and x.endswith('.so')]
+    if len(p2name)==0 and len(p2res)>0:
+      p2name=p2res[-1]
+    if len(p3name)==0 and len(p3res)>0:
+      p3name=p3res[-1]
+  except OSError:
+    pass
+
+# boost-python library/libraries to link against
+if python == 2:
+  boost_libs = [p2name[3:-3]]
+  pythoncmd = '/usr/bin/python'
+else:
+  boost_libs = [p3name[3:-3]]
+  pythoncmd = '/usr/bin/python3'
+
+#boost_libs = [p2name[3:-3], 'boost_numpy27']
+# boost_libs = ['boost_python27', 'boost_numpy27']
+
+# this can be used by options files importing us
+boost_py2_libs = [p2name[3:-3]]
+boost_py3_libs = [p3name[3:-3]]
 
 from site_init import getdebbuildflags
 # Now we add the debian build flags
@@ -47,12 +121,7 @@ for i in debstuff:
   v=i[1]
   try:
     exec(k+"+=' "+v+"'")
-  except NameError:   
+  except NameError:
     exec(k+"='"+v+"'")
 
-trilinos=True
-
-trilinos_prefix='/opt/trilinos_hybrid'
-parmetis=True
-
-parmetis_prefix='/usr/local'
+mathjax_path='/usr/share/javascript/mathjax/MathJax.js'
