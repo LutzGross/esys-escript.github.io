@@ -32,7 +32,7 @@ mjpath=''
 if env['mathjax_path']!='default':
     mjpath='-D mathjax_path='+env['mathjax_path']
 
-sphinxstuff=local.Command('stuff', [epy_dir, int_dir, env['pyinstall']], 'doc/sphinx_api/genrst.py '+env['prefix']+' esys '+int_dir+" && sphinx-build -b html -d "+int_dir+"/tree -c doc/sphinx_api "+mjpath+" "+int_dir+" "+epy_dir)
+sphinxstuff=local.Command('stuff', [epy_dir, int_dir, env['pyinstall']], env['pythoncmd'] + ' doc/sphinx_api/genrst.py '+env['prefix']+' esys '+int_dir+" && sphinx-build -b html -d "+int_dir+"/tree -c doc/sphinx_api "+mjpath+" "+int_dir+" "+epy_dir)
 
 env.Alias('sphinxdoc', sphinxstuff)
 #env.Alias('sphinxdoc', [epy_dir, int_dir], 'doc/sphinx_api/genrst.py '+env['prefix']+' esys '+int_dir+" && sphinx-build -b html -d "+int_dir+"/tree -c doc/sphinx_api "+int_dir+" "+epy_dir)
