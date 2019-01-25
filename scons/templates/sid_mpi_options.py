@@ -21,3 +21,10 @@ from .sid_options import *
 
 mpi = 'OPENMPI'
 
+import sysconfig
+multiarch = sysconfig.get_config_var('MULTIARCH')
+mpi_include = '/usr/lib/' + multiarch + '/openmpi/include'
+mpi_lib = '/usr/lib/' + multiarch + '/openmpi/lib'
+mpi_prefix = [mpi_include,mpi_lib]
+
+cxx_extra=' -Wno-stringop-truncation'
