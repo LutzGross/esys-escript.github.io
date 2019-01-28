@@ -103,8 +103,6 @@ if env['mkl']:
     pasolibs += env['mkl_libs']
 if env['umfpack']:
     pasolibs += env['umfpack_libs']
-if env['papi']:
-    pasolibs += env['papi_libs']
 
 local_env.PrependUnique(LIBS = pasolibs)
 env['paso_libs'] = [module_name] + pasolibs

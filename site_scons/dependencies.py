@@ -475,19 +475,6 @@ def checkOptionalLibraries(env):
         env['buildvars']['netcdf_lib_path']=netcdf_lib_path
     env['buildvars']['netcdf']=int(env['netcdf'])
 
-    ######## PAPI
-    papi_inc_path=''
-    papi_lib_path=''
-    if env['papi']:
-        papi_inc_path,papi_lib_path=findLibWithHeader(env, env['papi_libs'], 'papi.h', env['papi_prefix'], lang='c++')
-        env.AppendUnique(CPPPATH = [papi_inc_path])
-        env.AppendUnique(LIBPATH = [papi_lib_path])
-        env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], papi_lib_path)
-        env.Append(CPPDEFINES = ['ESYS_HAVE_PAPI'])
-        env['buildvars']['papi_inc_path']=papi_inc_path
-        env['buildvars']['papi_lib_path']=papi_lib_path
-    env['buildvars']['papi']=int(env['papi'])
-
     ######## MKL
     mkl_inc_path=''
     mkl_lib_path=''

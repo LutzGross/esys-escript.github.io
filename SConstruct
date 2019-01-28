@@ -151,10 +151,6 @@ vars.AddVariables(
   BoolVariable('longindices', 'use long indices (for very large matrices)', False),
   BoolVariable('compressed_files','Enables reading from compressed binary files', True),
   ('compression_libs', 'Compression libraries to link with', ['boost_iostreams']),
-  BoolVariable('papi', 'Enable PAPI', False),
-  ('papi_prefix', 'Prefix/Paths to PAPI installation', default_prefix),
-  ('papi_libs', 'PAPI libraries to link with', ['papi']),
-  BoolVariable('papi_instrument_solver', 'Use PAPI to instrument each iteration of the solver', False),
   BoolVariable('osx_dependency_fix', 'Fix dependencies for libraries to have absolute paths (OSX)', False),
   BoolVariable('stdlocationisprefix', 'Set the prefix as escript root in the launcher', False),
   BoolVariable('mpi_no_host', 'Do not specify --host in run-escript launcher (only OPENMPI)', False),
@@ -497,7 +493,7 @@ if env['cuda'] and 'ripley' in env['domains']:
 ######## optional python modules (sympy, pyproj)
 env=checkOptionalModules(env)
 
-######## optional dependencies (netCDF, PAPI, MKL, UMFPACK, Lapack, Silo, ...)
+######## optional dependencies (netCDF, MKL, UMFPACK, Lapack, Silo, ...)
 env=checkOptionalLibraries(env)
 
 ######## PDFLaTeX (for documentation)
@@ -789,7 +785,7 @@ def print_summary():
         print("          netcdf:  NO")
     e_list=[]
     for i in ('weipa','debug','openmp','cppunit','gdal','mkl',
-             'papi','pyproj','scipy','silo','sympy','umfpack','visit'):
+             'pyproj','scipy','silo','sympy','umfpack','visit'):
         if env[i]: e_list.append(i)
         else: d_list.append(i)
 
