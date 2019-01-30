@@ -550,6 +550,7 @@ class Regularization(CostFunction):
 
         self.getPDE().resetRightHandSideCoefficients()
         self.getPDE().setValue(X=r[1], Y=r[0])
+        self.getPDE().getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
         if not solve:
             return self.getPDE()
         return self.getPDE().getSolution()
