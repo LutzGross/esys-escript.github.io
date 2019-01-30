@@ -420,7 +420,7 @@ def checkForTrilinos(env):
         'Tpetra_Experimental_BlockCrsMatrix.hpp','Tpetra_Experimental_BlockVector.hpp','Tpetra_RowMatrix.hpp',\
         'Tpetra_Vector.hpp','Teuchos_DefaultComm.hpp','Teuchos_ParameterList.hpp']
 
-        print("Looking for the Trilinos libraries...")
+        print("Looking for the Trilinos headers...")
         # if not conf.CheckCXXHeader(dependencies):
         #     print("Could not find a Trilinos header file (tried looking in directory %s)" % (trilinos_inc_path))
         #     env.Exit(1)

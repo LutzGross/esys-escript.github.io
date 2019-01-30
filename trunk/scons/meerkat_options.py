@@ -17,52 +17,52 @@
 # This is a template configuration file for escript on Debian/GNU Linux.
 # Refer to README_FIRST for usage instructions.
 
-escript_opts_version = 203
-#cxx_extra = '-Wno-literal-suffix'
 openmp = True
 umfpack = True
 silo = True
 papi = True
 # cuda = True
 # mpi = 'OPENMPI'
-# verbose = True
-# debug = True
-# trilinos = True
+verbose = True
+debug = True
+trilinos = True
+paso = False
 # parmetis = True
 visit = True
-# werror = False
+#werror = False
+# cxx = 'clang++'
+
+python = 2
+
+##############################################################################
+escript_opts_version = 203
 
 import os
 import subprocess
 
-#boost_prefix=['/home/adam/Documents/zzz/boost_1_68_0/','/home/adam/Documents/zzz/boost_1_68_0/stage/lib']
-# cxx = 'clang++'
+boost_prefix=['/home/adam/Documents/zzz/boost_1_68_0/','/home/adam/Documents/zzz/boost_1_68_0/stage/lib']
 
-python = 3
+cxx_extra += " -fmessage-length=80 -fdiagnostics-color=always "
+if trilinos is True:
+  cxx_extra += "  -Wno-deprecated-declarations -Wno-unused-variable "
 
-# nvccflags = "--verbose -arch=sm_35 -ccbin=g++ -DBOOST_NOINLINE='__attribute__((noinline))'"
-# nvccflags = "--verbose -arch=sm_35 -ccbin clang-3.8 "
-dudley_assemble_flags = '-funroll-loops'
-nvccflags = "--verbose -arch=sm_35 -ccbin=/usr/bin/g++"
-# nvccflags = "--verbose -ccbin clang-3.8 -DBOOST_NOINLINE='__attribute__((noinline))'"
-
-d_mpi_path = '/usr/include/openmpi'
 netcdf = 4
-
 mpi_libs = ['mpi_cxx', 'mpi']
 parmetis_libs = ['parmetis', 'metis']
 silo_libs = ['siloh5', 'hdf5_openmpi']
 umfpack_libs = ['umfpack', 'blas', 'amd']
 
 lapack_prefix = ['/usr/include/atlas', '/usr/lib/atlas-base']
+d_mpi_path = '/usr/include/openmpi'
 mpi_prefix = os.path.split(os.path.realpath(d_mpi_path))[0]
 parmetis_prefix = ['/usr/include','/usr/lib']
 umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
-trilinos_prefix =['/usr/local/trilinos/include/','/usr/local/trilinos/lib/']
+
 visit_prefix = ['/usr/local/visit/2.13.2/linux-x86_64/libsim/V2/include/','/usr/local/visit/2.13.2/linux-x86_64/libsim/V2/lib/']
 
-
-
+trilinos_prefix =['/usr/local/trilinos/include/','/usr/local/trilinos/lib/']
+# trilinos_prefix =['/usr/local/trilinos_mpi/include/','/usr/local/trilinos_mpi/lib/']
+ 
 
 p = subprocess.Popen(["ld","--verbose"], stdout=subprocess.PIPE)
 out,err = p.communicate()
