@@ -51,11 +51,11 @@ RCP<SolverType<ST> > createSolver(const escript::SolverBuddy& sb)
     const bp::dict& pyParams = sb.getTrilinosParameters();
 
     if (method == escript::SO_DEFAULT) {
-        // if (sb.isSymmetric()) {
-        //     method = escript::SO_METHOD_PCG;
-        // } else {
+        if (sb.isSymmetric()) {
+            method = escript::SO_METHOD_PCG;
+        } else {
             method = escript::SO_METHOD_GMRES;
-        // }
+        }
     }
 
     switch (method) {
