@@ -409,8 +409,9 @@ def checkForTrilinos(env):
                 env['trilinos_prefix'], lang='c++', try_link=havelibs)
         env.AppendUnique(CPPPATH = [trilinos_inc_path])
         env.AppendUnique(LIBPATH = [trilinos_lib_path])
-        # env.Append(CPPDEFINES = ['ESYS_HAVE_TRILINOS'])
-        # env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], trilinos_lib_path)
+        env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], trilinos_lib_path)
+        env['buildvars']['trilinos_inc_path']=trilinos_inc_path
+        env['buildvars']['trilinos_lib_path']=trilinos_lib_path
         conf = Configure(env.Clone())
 
         dependencies=['Amesos2.hpp','Amesos2_Solver_decl.hpp','BelosSolverFactory.hpp','BelosSolverManager.hpp',\
@@ -418,14 +419,13 @@ def checkForTrilinos(env):
         'MatrixMarket_Tpetra.hpp','MueLu_CreateTpetraPreconditioner.hpp','Tpetra_CrsGraph.hpp',\
         'Tpetra_CrsMatrix.hpp','Tpetra_DefaultPlatform.hpp','Tpetra_Experimental_BlockCrsMatrix_Helpers.hpp',\
         'Tpetra_Experimental_BlockCrsMatrix.hpp','Tpetra_Experimental_BlockVector.hpp','Tpetra_RowMatrix.hpp',\
-        'Tpetra_Vector.hpp','Teuchos_DefaultComm.hpp','Teuchos_ParameterList.hpp']
+        'Tpetra_Vector.hpp','Teuchos_DefaultComm.hpp','Teuchos_ParameterList.hpp', \
+        'BelosTFQMRIter.hpp','BelosTFQMRSolMgr.hpp']
 
         print("Looking for the Trilinos headers...")
-        # if not conf.CheckCXXHeader(dependencies):
-        #     print("Could not find a Trilinos header file (tried looking in directory %s)" % (trilinos_inc_path))
-        #     env.Exit(1)
         for check in dependencies:
-            if not conf.CheckCXXHeader(check):
+            print("Checking for %s... %s" % (check, "yes" if os.path.isfile(os.path.join(trilinos_inc_path,check)) else "no"))
+            if not os.path.isfile(os.path.join(trilinos_inc_path,check)):
                 print("Could not find a Trilinos header file (tried looking in directory %s)" % (trilinos_inc_path))
                 env.Exit(1)
 
@@ -451,9 +451,9 @@ def checkForTrilinos(env):
             env['trilinos_libs'] = libs
 
         env.Append(CPPDEFINES = ['ESYS_HAVE_TRILINOS'])
-        env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], trilinos_lib_path)
-        env['buildvars']['trilinos_inc_path']=trilinos_inc_path
-        env['buildvars']['trilinos_lib_path']=trilinos_lib_path
+        # env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], trilinos_lib_path)
+        # env['buildvars']['trilinos_inc_path']=trilinos_inc_path
+        # env['buildvars']['trilinos_lib_path']=trilinos_lib_path
     env['buildvars']['trilinos']=int(env['trilinos'])
     return env
 
