@@ -550,10 +550,13 @@ class Regularization(CostFunction):
 
         self.getPDE().resetRightHandSideCoefficients()
         self.getPDE().setValue(X=r[1], Y=r[0])
-        self.getPDE().getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
         if not solve:
             return self.getPDE()
-        return self.getPDE().getSolution()
+        oldsettings = self.getPDE().getSolverOptions().getSolverMethod()
+        self.getPDE().getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
+        solution = self.getPDE().getSolution()
+        self.getPDE().getSolverOptions().setSolverMethod(oldsettings)
+        return solution
 
     def updateHessian(self):
         """
