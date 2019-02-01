@@ -287,7 +287,8 @@ elif cc_name[:3] == 'g++':
     # GNU C++ on any system
     # note that -ffast-math is not used because it breaks isnan(),
     # see mantis #691
-    cc_flags     = "-std=c++11 -pedantic -Wall -fPIC -Wno-unknown-pragmas -Wno-sign-compare -Wno-system-headers -Wno-long-long -Wno-strict-aliasing -finline-functions"
+    cc_flags     = "-std=c++11 -pedantic -Wall -fPIC -finline-functions"
+    cc_flags += " -Wno-unknown-pragmas -Wno-sign-compare -Wno-system-headers -Wno-long-long -Wno-strict-aliasing -Wno-stringop-truncation -Wno-catch-value "
     cc_flags += " --param=max-vartrack-size=100000000"
     cc_optim     = "-O3"
     #max-vartrack-size: avoid vartrack limit being exceeded with escriptcpp.cpp
