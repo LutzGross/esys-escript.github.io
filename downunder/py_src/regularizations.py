@@ -553,7 +553,7 @@ class Regularization(CostFunction):
         if not solve:
             return self.getPDE()
         oldsettings = self.getPDE().getSolverOptions().getSolverMethod()
-        self.getPDE().getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
+        self.getPDE().getSolverOptions().setSolverMethod(SolverOptions.GMRES)
         solution = self.getPDE().getSolution()
         self.getPDE().getSolverOptions().setSolverMethod(oldsettings)
         return solution

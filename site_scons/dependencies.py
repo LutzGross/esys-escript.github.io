@@ -99,9 +99,14 @@ def call_python_config(bin=None):
     cmd=''
     cmd+='import subprocess\n'
     cmd+='import os\n'
+    cmd+='import sys\n'
     cmd+='from distutils import sysconfig\n'
     cmd+='pyversion=sysconfig.get_python_version()\n'
-    cmd+='sp=subprocess.Popen(["python"+pyversion+"-config","--ldflags"], stdout=subprocess.PIPE)\n'
+    cmd+='try:\n'
+    cmd+='  sp=subprocess.Popen(["python"+pyversion+"-config","--ldflags"], stdout=subprocess.PIPE)\n'
+    cmd+='except:\n'
+    cmd+='  pythonroot=sys.exec_prefix+"/bin/"\n'
+    cmd+='  sp=subprocess.Popen([pythonroot+"python"+pyversion+"-config","--ldflags"], stdout=subprocess.PIPE)\n'
     cmd+='d=sp.stdout.readline().split()\n'
     cmd+="libdirs=[z[2:] for z in d if z.startswith(b'-L')]\n"
     cmd+="libs=[z[2:] for z in d if z.startswith(b'-lpython')]\n"
