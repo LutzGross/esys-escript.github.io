@@ -312,6 +312,17 @@ elif cc_name == 'icl':
     cc_debug     = '/Od /RTCcsu /Zi /Y- /debug:all /Qtrapuv'
     omp_flags    = '/Qvec-report0 /Qopenmp /Qopenmp-report0 /Qparallel'
     omp_ldflags  = '/Qvec-report0 /Qopenmp /Qopenmp-report0 /Qparallel'
+elif cc_name == 'clang++':
+    # Clang++ on any system
+    cc_flags     = "-std=c++14 -Wall -fPIC "
+    cc_flags    += "-Wno-unused-private-field -Wno-unused-const-variable -Wno-unknown-pragmas "
+    cc_optim     = "-O3"
+    cc_debug     = "-ggdb3 -O0 -fdiagnostics-fixit-info -pedantic "
+    cc_debug    += "-DDOASSERT -DDOPROF -DBOUNDS_CHECK -DSLOWSHARECHECK "
+    omp_flags    = "-fopenmp"
+    omp_ldflags  = "-fopenmp"
+    fatalwarning = "-Werror"
+    sysheaderopt = "-isystem"
 
 env['sysheaderopt']=sysheaderopt
 
