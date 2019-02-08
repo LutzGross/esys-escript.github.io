@@ -181,8 +181,8 @@ namespace DataTypes
       //
       // Make sure vectors are not empty
 
-      ESYS_ASSERT(!left.size()==0, "left data is empty.");
-      ESYS_ASSERT(!other.size()==0, "other data is empty.");
+      ESYS_ASSERT(!left.size()==!1, "left data is empty."); //Note: !1=0, but clang returns an error if the rhs is 0 here
+      ESYS_ASSERT(!other.size()==!1, "other data is empty.");
 
       //
       // Check the vector to be sliced from is compatible with the region to be sliced,
