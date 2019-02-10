@@ -15,7 +15,8 @@ WORKM=$(CURDIR)/debian/stage2M
 WORK3=$(CURDIR)/debian/stage3
 WORK3M=$(CURDIR)/debian/stage3M
 
-export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+
+
 
 #thanks to the debian manual
 # export DEB_BUILD_OPTIONS="parallel=10"
@@ -61,20 +62,15 @@ override_dh_auto_build:
 	# extract the relevant .py files
 	cd $(WORK); $(PROJROOT)/debian/utils/cppy.py $(PROJROOT); cd $(PROJROOT)
 	cp $(PROJROOT)/doc/manpage/man1/run-escript.1 $(WORK)/run-escript2.man
-	ln $(WORK)/bin/run-escript $(WORK)/bin/run-escript2
+	mv $(WORK)/bin/run-escript $(WORK)/bin/run-escript2
 	find $(WORK) -name '*.pyc' -print0 | xargs -0 rm -f
 	
-	# build_steps for documentation 
-	# depends on the py2 build so don't do anything here
-	# which will overwrite changes made in the py2 build
-	mkdir -p $(BUILD)
-	scons $(sflags) SVN_VERSION=`cat svn_version` build_dir=$(BUILD) verbose=on prefix=$(WORK) options_file=scons/templates/sid_options.py docs
-	find $(WORK) -name '*.pyc' -print0 | xargs -0 rm -f
+
 	
 	# Build steps for py2 with MPI	
 	mkdir -p $(WORKM)
 	if [ ! -f svn_version ];then echo "No svn_version file found"; exit 3;fi
-	scons $(sflags) SVN_VERSION=`cat svn_version` build_dir=$(BUILDM) cc_optim='-O3 -DOVERLORDPATH=\"/usr/lib/python-escript-mpi/\"' verbose=on prefix=$(WORKM) options_file=scons/templates/sid_mpi_options.py
+	scons $(sflags) SVN_VERSION=`cat svn_version` build_dir=$(BUILDM)  cc_optim='-O3 -DOVERLORDPATH=\"/usr/lib/python-escript-mpi/\"' verbose=on prefix=$(WORKM) options_file=scons/templates/sid_mpi_options.py
 	# extract the relevant .py files
 	cd $(WORKM); $(PROJROOT)/debian/utils/cppy.py $(PROJROOT); cd $(PROJROOT)
 	cp $(PROJROOT)/doc/manpage/man1/run-escript.1 $(WORKM)/run-escript2-mpi.man
@@ -92,7 +88,7 @@ override_dh_auto_build:
 	ln $(WORK3)/bin/run-escript $(WORK3)/bin/run-escript3
 	find $(WORK3) -name '*.pyc' -print0| xargs -0 rm -f
 	#rm -rf $(BUILD3)
-
+	
 	# build_steps for documentation 
 	# depends on the py3 build so don't do anything here
 	# which will overwrite changes made in the py3 build
@@ -103,7 +99,7 @@ override_dh_auto_build:
 	# Build steps for py3 with MPI
 	mkdir -p $(WORK3M)
 	if [ ! -f svn_version ];then echo "No svn_version file found"; exit 3;fi
-	scons $(sflags) SVN_VERSION=`cat svn_version` build_dir=$(BUILD3M) cc_optim='-O3 -DOVERLORDPATH=\"/usr/lib/python-escript3-mpi/\"' verbose=on prefix=$(WORK3M) options_file=scons/templates/sid_py3_mpi_options.py
+	scons $(sflags) SVN_VERSION=`cat svn_version` build_dir=$(BUILD3M)  cc_optim='-O3 -DOVERLORDPATH=\"/usr/lib/python-escript3-mpi/\"' verbose=on prefix=$(WORK3M) options_file=scons/templates/sid_py3_mpi_options.py
 	# extract the relevant .py files
 	cd $(WORK3M); $(PROJROOT)/debian/utils/cppy.py $(PROJROOT); cd $(PROJROOT)
 	cp $(PROJROOT)/doc/manpage/man1/run-escript.1 $(WORK3M)/run-escript3-mpi.man
