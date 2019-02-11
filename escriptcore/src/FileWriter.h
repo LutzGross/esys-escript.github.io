@@ -211,8 +211,11 @@ public:
     }
 
 private:
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-private-field"
     MPI_Comm mpiComm;
     int mpiRank;
+#pragma clang diagnostic pop
     int mpiSize;
     bool m_open;
 #ifdef ESYS_MPI

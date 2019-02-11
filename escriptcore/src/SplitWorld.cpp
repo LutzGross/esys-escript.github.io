@@ -324,7 +324,7 @@ boost::python::object SplitWorld::getVarPyList()
 	t.append(it->second);
         l.append(t);
     }
-    return l;
+    return std::move(l);
 }
 
 // We make no committments that the format of the output will remain the same
@@ -339,7 +339,7 @@ boost::python::object SplitWorld::getVarPyInfo()
 	t.append(it->second);
         l.append(t);
     }
-    return l;
+    return std::move(l);
 }
 
 
