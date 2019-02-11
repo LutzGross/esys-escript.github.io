@@ -1516,7 +1516,7 @@ Data::toListOfTuples(bool scalarastuple)
             throw DataException("Unknown rank in ::toListOfTuples()");
         }
     }
-    return res;
+    return std::move(res);
 }
 
 const bp::object
@@ -1765,7 +1765,7 @@ Data::getValueOfGlobalDataPointAsTuple(int procNo, int dataPointNo)
     }
     
     // return the loaded array
-    return t;
+    return std::move(t);
 }
 
 
@@ -1853,7 +1853,7 @@ Data::integrateWorker() const
     bp::tuple result = pointToTuple(shape, integrals);
 #endif
 
-    return result;
+    return std::move(result);
 }
 
 Data

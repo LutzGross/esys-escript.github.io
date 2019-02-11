@@ -25,7 +25,10 @@
 namespace escript {
 
 namespace {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-const-variable"
 const int defaultList[1]={0}; // an array to return in borrowListOfTagsInUse();
+#pragma clang diagnostic pop
 const int TestDomainFS=1;     // Null domains only support 1 functionspace type.
                               // The choice of =1 as the value is arbitrary
 }

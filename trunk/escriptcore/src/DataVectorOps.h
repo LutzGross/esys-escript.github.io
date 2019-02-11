@@ -687,8 +687,11 @@ Note that vector in this context refers to a data vector storing datapoints not 
               const DataTypes::ShapeType& evShape,
               typename DataTypes::CplxVectorType::size_type evOffset)
   {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-variable"
    typename DataTypes::CplxVectorType::ElementType in00,in10,in20,in01,in11,in21,in02,in12,in22;
    typename DataTypes::CplxVectorType::ElementType ev0,ev1,ev2;
+#pragma clang diagnostic pop
    int s=inShape[0];
    if (s==1) {
       in00=in[inOffset+DataTypes::getRelIndex(inShape,0,0)];

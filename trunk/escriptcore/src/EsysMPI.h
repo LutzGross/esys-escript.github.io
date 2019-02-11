@@ -158,8 +158,10 @@ public:
 private:
     JMPI_(MPI_Comm comm, bool owncomm);
     friend JMPI makeInfo(MPI_Comm comm, bool owncom);
-
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-private-field"
     bool ownscomm;
+#pragma clang diagnostic pop
     int msg_tag_counter;
 };
 

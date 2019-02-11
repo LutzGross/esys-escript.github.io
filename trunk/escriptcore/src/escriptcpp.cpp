@@ -709,6 +709,8 @@ args("arg"), "assigns new location to the domain\n\n"
     .def("__le__",block_cmp_data)
     .def("__ge__",block_cmp_data)
     .def("phase",&escript::Data::phase)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wself-assign-overloaded"
     // NOTE:: The order of these declarations is important. Anything
     // declared before the generic declaration isn't found so the generic
     // version will be called. 
@@ -738,6 +740,7 @@ args("arg"), "assigns new location to the domain\n\n"
     // Need scope resolution due to a bug either in the compiler or
     // the boost code. This calls operator << for Data.
     .def(self_ns::str(self))
+#pragma clang diagnostic pop
     .def("_inverse", &escript::Data::matrixInverse, ":return: inverse of square matrices\n"
         "")
 //    .def("__add__", &escript::Data::addOperatorD)
