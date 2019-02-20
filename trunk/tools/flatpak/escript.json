@@ -1,0 +1,353 @@
+{
+    "app-id": "uq.escript.finley",
+    "runtime": "org.freedesktop.Platform",
+    "runtime-version": "18.08",
+    "sdk": "org.freedesktop.Sdk",
+    "command": "run-escript.sh",
+    "modules": [
+        {
+            "name": "openblas",
+            "buildsystem": "cmake",
+            "build-options" : { 
+                "cflags": "-O3 -w",
+                "cxxflags": "-O3 -w",
+                "ldflags": "-lgfortran"
+            },
+            "builddir": true,
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "http://github.com/xianyi/OpenBLAS/archive/v0.2.20.tar.gz",
+                    "sha256": "5ef38b15d9c652985774869efd548b8e3e972e1e99475c673b25537ed7bcf394"
+                }
+            ]
+        },
+        {
+            "name": "lapack",
+            "buildsystem": "cmake",
+            "build-options" : { 
+                "cflags": "-O3 -w",
+                "cxxflags": "-O3 -w",
+                "ldflags": "-lgfortran"
+            },
+            "builddir": true,
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "http://www.netlib.org/lapack/lapack-3.8.0.tar.gz",
+                    "sha256": "deb22cc4a6120bff72621155a9917f485f96ef8319ac074a7afbc68aab88bcf6"
+                }
+            ]
+        },
+        {
+            "name": "metis",
+            "buildsystem": "simple",
+            "build-commands": [
+                "make config prefix=/app",
+                "make install -j`nproc --all`"
+            ],
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis/metis-5.1.0.tar.gz",
+                    "sha256": "76faebe03f6c963127dbb73c13eab58c9a3faeae48779f049066a21c087c5db2"
+                }
+            ]
+        },
+        {
+            "name": "suitesparse",
+            "buildsystem": "simple",
+            "build-options" : { 
+                "cflags": "-w",
+                "cxxflags": "-w",
+                "ldflags": "-lgfortran -llapack -lopenblas -L/app/lib"
+            },
+            "build-commands": [
+                "make library -j`nproc --all` MY_METIS_LIB=/app/lib/libmetis.a INSTALL=/app",
+                "make install -j`nproc --all` MY_METIS_LIB=/app/lib/libmetis.a INSTALL=/app"
+            ],
+            "builddir": true,
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "http://faculty.cse.tamu.edu/davis/SuiteSparse/SuiteSparse-4.5.1.tar.gz",
+                    "sha256": "ac4524b9f69c4f8c2652d720b146c92a414c1943f86d46df49b4ff8377ae8752"
+                }
+            ]
+        },
+        {
+            "name": "boost",
+            "buildsystem": "simple",
+            "build-commands": [
+                "echo import sys > v.py",
+                "echo ver=sys.version_info >> v.py",
+                "echo \"print(\\\"%d.%d\\\"%(ver.major,ver.minor))\" >> v.py",
+                "python3 v.py > VERSION",
+                "sed -i 's+include/python$(version)+include/python$(version)m+g' ./tools/build/src/tools/python.jam",
+                "./bootstrap.sh --with-python-version=`cat VERSION` --prefix=/app",
+                "./bjam cxxflags=\"-fPIC\" -j`nproc --all` --with-iostreams --with-python --with-random -d0 install"
+            ],
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "https://dl.bintray.com/boostorg/release/1.69.0/source/boost_1_69_0.tar.gz",
+                    "sha256": "9a2c2819310839ea373f42d69e733c339b4e9a19deab6bfec448281554aa4dbb"
+                }
+            ]
+        },
+        {
+            "name": "hdf5",
+            "cleanup": [
+                "/bin",
+                "/share"
+            ],
+            "sources": [
+                {
+                    "type": "git",
+                    "url": "https://bitbucket.hdfgroup.org/scm/hdffv/hdf5.git"
+                }
+            ]
+        },
+        {
+            "name": "silo",
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "https://wci.llnl.gov/content/assets/docs/simulation/computer-codes/silo/silo-4.10.2/silo-4.10.2.tar.gz",
+                    "sha256": "3af87e5f0608a69849c00eb7c73b11f8422fa36903dd14610584506e7f68e638"
+                }
+            ]
+        },
+        {
+            "name": "netcdf-c",
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-c-4.6.2.tar.gz",
+                    "sha256": "c37525981167b3cd82d32e1afa3022afb94e59287db5f116c57f5ed4d9c6a638"
+                }
+            ]
+        },
+        {
+            "name": "netcdf-cxx",
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-cxx4-4.3.0.tar.gz",
+                    "sha256": "e34fbc6aba243ec82c23e9ee99db2430555ada849c54c1f3ab081b0ddd0f5f30"
+                }
+            ]
+        },
+        {
+            "name": "python3-numpy",
+            "buildsystem": "simple",
+            "build-commands": [
+                "pip3 install --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} numpy"
+            ],
+            "sources": [
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/2b/26/07472b0de91851b6656cbc86e2f0d5d3a3128e7580f23295ef58b6862d6c/numpy-1.16.1.zip",
+                    "sha256": "31d3fe5b673e99d33d70cfee2ea8fe8dccd60f265c3ed990873a88647e3dd288"
+                }
+            ]
+        },
+        {
+            "name": "python3-pyproj",
+            "buildsystem": "simple",
+            "build-commands": [
+                "pip3 install --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} pyproj"
+            ],
+            "sources": [
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/26/8c/1da0580f334718e04f8bbf74f0515a7fb8185ff96b2560ce080c11aa145b/pyproj-1.9.6.tar.gz",
+                    "sha256": "e0c02b1554b20c710d16d673817b2a89ff94738b0b537aead8ecb2edc4c4487b"
+                }
+            ]
+        },
+        {
+            "name": "python3-matplotlib",
+            "buildsystem": "simple",
+            "build-commands": [
+                "pip3 install --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} matplotlib"
+            ],
+            "sources": [
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/c2/f7/c7b501b783e5a74cf1768bc174ee4fb0a8a6ee5af6afa92274ff964703e0/setuptools-40.8.0.zip",
+                    "sha256": "6e4eec90337e849ade7103723b9a99631c1f0d19990d6e8412dc42f5ae8b304d"
+                },
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/89/0c/653aec68e9cfb775c4fbae8f71011206e5e7fe4d60fcf01ea1a9d3bc957f/matplotlib-3.0.2.tar.gz",
+                    "sha256": "c94b792af431f6adb6859eb218137acd9a35f4f7442cea57e4a59c54751c36af"
+                },
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/c2/4b/137dea450d6e1e3d474e1d873cd1d4f7d3beed7e0dc973b06e8e10d32488/cycler-0.10.0.tar.gz",
+                    "sha256": "cd7b2d1018258d7247a71425e9f26463dfb444d411c39569972f4ce586b0c9d8"
+                },
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/b9/b8/6b32b3e84014148dcd60dd05795e35c2e7f4b72f918616c61fdce83d27fc/pyparsing-2.3.1.tar.gz",
+                    "sha256": "66c9268862641abcac4a96ba74506e594c884e3f57690a696d21ad8210ed667a"
+                },
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/ad/99/5b2e99737edeb28c71bcbec5b5dda19d0d9ef3ca3e92e3e925e7c0bb364c/python-dateutil-2.8.0.tar.gz",
+                    "sha256": "c89805f6f4d64db21ed966fda138f8a5ed7a4fdbc1a8ee329ce1b74e3c74da9e"
+                },
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/31/60/494fcce70d60a598c32ee00e71542e52e27c978e5f8219fae0d4ac6e2864/kiwisolver-1.0.1.tar.gz",
+                    "sha256": "ce3be5d520b4d2c3e5eeb4cd2ef62b9b9ab8ac6b6fedbaa0e39cdb6f50644278"
+                },
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/dd/bf/4138e7bfb757de47d1f4b6994648ec67a51efe58fa907c1e11e350cddfca/six-1.12.0.tar.gz",
+                    "sha256": "d16a0141ec1a18405cd4ce8b4613101da75da0e9a7aec5bdd4fa804d0e0eba73"
+                },
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/54/85/514ba3ca2a022bddd68819f187ae826986051d130ec5b972076e4f58a9f3/setuptools_scm-3.2.0.tar.gz",
+                    "sha256": "52ab47715fa0fc7d8e6cd15168d1a69ba995feb1505131c3e814eb7087b57358"
+                },
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/d9/7d/86df15e317027f6e87aa68ea854abf8437e796b4c0fadd3ae5ee67b77cb2/wheel-0.33.0.tar.gz",
+                    "sha256": "12363e6df5678ecf9daf8429f06f97e7106e701405898f24318ce7f0b79c611a"
+                }
+            ]
+        },
+        {
+            "name": "python3-sympy",
+            "buildsystem": "simple",
+            "build-commands": [
+                "pip3 install --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} sympy"
+            ],
+            "sources": [
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/ca/63/3384ebb3b51af9610086b23ea976e6d27d6d97bf140a76a365bd77a3eb32/mpmath-1.1.0.tar.gz",
+                    "sha256": "fc17abe05fbab3382b61a123c398508183406fa132e0223874578e20946499f6"
+                },
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/dd/f6/ed485ff22efdd7b371d0dbbf6d77ad61c3b3b7e0815a83c89cbb38ce35de/sympy-1.3.tar.gz",
+                    "sha256": "e1319b556207a3758a0efebae14e5e52c648fc1db8975953b05fff12b6871b54"
+                }
+            ]
+        },
+        {
+            "name": "trilinos",
+            "buildsystem": "cmake",
+            "config-opts": [
+                "-DTrilinos_ENABLE_CXX11=ON",
+                "-DTrilinos_ENABLE_Fortran=OFF",
+                "-DBUILD_SHARED_LIBS=ON",
+                "-DOpenMP_C_FLAGS='-w -fopenmp'",
+                "-DOpenMP_CXX_FLAGS='-w -fopenmp'",
+                "-DTPL_ENABLE_BLAS=ON",
+                "-DBLAS_LIBRARY_NAMES='openblas'",
+                "-DTPL_ENABLE_LAPACK=ON",
+                "-DTPL_ENABLE_Boost=ON",
+                "-DTPL_ENABLE_Cholmod=ON",
+                "-DTPL_ENABLE_Matio=ON",
+                "-DTPL_ENABLE_METIS=ON",
+                "-DMETIS_LIBRARY_NAMES='metis'",
+                "-DTPL_ENABLE_UMFPACK=ON",
+                "-DTPL_BLAS_INCLUDE_DIRS=/app/include/",
+                "-DTPL_Matio_INCLUDE_DIRS=/app/include/",
+                "-DTPL_Matio_LIBRARIES=/app/lib",
+                "-DTPL_Cholmod_INCLUDE_DIRS=/app/include/",
+                "-DTPL_Cholmod_LIBRARIES='/app/lib/libcholmod.so;/app/lib/libamd.so;/app/lib/libcolamd.so'",
+                "-DTPL_UMFPACK_INCLUDE_DIRS=/app/include/",
+                "-DTrilinos_ENABLE_Amesos2=ON",
+                "-DTrilinos_ENABLE_Belos=ON",
+                "-DTrilinos_ENABLE_Ifpack2=ON",
+                "-DTrilinos_ENABLE_Kokkos=ON",
+                "-DTrilinos_ENABLE_MueLu=ON",
+                "-DTrilinos_ENABLE_Tpetra=ON",
+                "-DTrilinos_ENABLE_Teuchos=ON",
+                "-DTrilinos_ENABLE_COMPLEX=ON",
+                "-DTrilinos_ENABLE_OpenMP=ON",
+                "-DTrilinos_ENABLE_ALL_OPTIONAL_PACKAGES=OFF",
+                "-DTrilinos_ENABLE_EXPLICIT_INSTANTIATION=ON"
+            ],
+            "builddir": true,
+            "sources": [
+                {
+                    "type": "git",
+                    "url": "https://github.com/trilinos/Trilinos"
+                }
+            ]
+        },
+        {
+            "name": "gmsh",
+            "buildsystem": "cmake",
+            "build-options" : {
+                "cflags": "-w -Wno-dev",
+                "cxxflags": "-w -Wno-dev"
+            },
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "http://gmsh.info/src/gmsh-4.1.5-source.tgz",
+                    "sha256": "654d38203f76035a281006b77dcb838987a44fd549287f11c53a1e9cdf598f46"
+                }
+            ]
+        },   
+        {
+            "name": "scons",
+            "buildsystem": "simple",
+            "build-commands": [
+                "python3 bootstrap.py build/scons",
+                "python3 build/scons/setup.py install --prefix=/app"
+            ],
+            "sources": [
+                {
+                    "type": "git",
+                    "url": "https://github.com/SCons/scons"
+                }
+            ]
+        },
+        {
+            "name": "escript",
+            "buildsystem": "simple",
+            "build-commands": [
+                "scons options_file=scons/flatpak_options.py -j`nproc --all` ",
+                "mv -v bin/* /app/bin",
+                "mv -v lib/* /app/lib",
+                "mv -v include/* /app/include"
+            ],
+            "sources": [
+                {
+                    "type": "svn",
+                    "url": "https://svn.geocomp.uq.edu.au/svn/esys13/trunk"
+                }
+            ]
+        },
+        {
+            "name": "run-escript",
+            "buildsystem": "simple",
+            "build-commands": [
+                "echo \\#\\!/bin/sh > run-escript.sh",
+                "echo export LD_LIBRARY_PATH=/app/lib:$LD_LIBRARY_PATH >> run-escript.sh",
+                "echo export PYTHONPATH=/app:$PYTHONPATH >> run-escript.sh",
+                "echo export PATH=/app/bin:$PATH >> run-escript.sh",
+                "echo /app/bin/run-escript >> run-escript.sh",
+                "install run-escript.sh /app/bin"
+            ],
+            "sources": [
+                {
+                    "type": "svn",
+                    "url": "https://svn.geocomp.uq.edu.au/svn/esys13/trunk"
+                }
+            ]
+        }
+    ],
+    "finish-args": [
+        "--filesystem=host"
+    ]
+}
