@@ -282,22 +282,7 @@
                     "url": "https://github.com/trilinos/Trilinos"
                 }
             ]
-        },
-        {
-            "name": "gmsh",
-            "buildsystem": "cmake",
-            "build-options" : {
-                "cflags": "-w -Wno-dev",
-                "cxxflags": "-w -Wno-dev"
-            },
-            "sources": [
-                {
-                    "type": "archive",
-                    "url": "http://gmsh.info/src/gmsh-4.1.5-source.tgz",
-                    "sha256": "654d38203f76035a281006b77dcb838987a44fd549287f11c53a1e9cdf598f46"
-                }
-            ]
-        },   
+        }, 
         {
             "name": "scons",
             "buildsystem": "simple",
@@ -316,10 +301,7 @@
             "name": "escript",
             "buildsystem": "simple",
             "build-commands": [
-                "scons options_file=scons/flatpak_options.py -j`nproc --all` ",
-                "mv -v bin/* /app/bin",
-                "mv -v lib/* /app/lib",
-                "mv -v include/* /app/include"
+                "scons options_file=scons/flatpak_options.py -j`nproc --all` pythoncmd=`which python3`"
             ],
             "sources": [
                 {
@@ -333,17 +315,9 @@
             "buildsystem": "simple",
             "build-commands": [
                 "echo \\#\\!/bin/sh > run-escript.sh",
-                "echo export LD_LIBRARY_PATH=/app/lib:$LD_LIBRARY_PATH >> run-escript.sh",
-                "echo export PYTHONPATH=/app:$PYTHONPATH >> run-escript.sh",
-                "echo export PATH=/app/bin:$PATH >> run-escript.sh",
-                "echo /app/bin/run-escript >> run-escript.sh",
+                "echo eval `/app/bin/run-escript -e` >> run-escript.sh",
+                "echo run-escript >> run-escript.sh",
                 "install run-escript.sh /app/bin"
-            ],
-            "sources": [
-                {
-                    "type": "svn",
-                    "url": "https://svn.geocomp.uq.edu.au/svn/esys13/trunk"
-                }
             ]
         }
     ],
