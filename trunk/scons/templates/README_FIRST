@@ -317,18 +317,5 @@ osx_dependency_fix = True
   Whether to apply a dependency fix to libraries (only relevant on OS X).
   DEFAULT: False
 
-papi = True
-  Whether to use the PAPI (Performance API) library (currently broken).
-  DEFAULT: False
-
-papi_prefix = '/usr/local'
-  Prefix or paths to PAPI headers and libraries. See note above.
-
-papi_libs = ['papi']
-  PAPI library/libraries to link against
-
-papi_instrument_solver = True
-  Whether to use PAPI to instrument solver iterations. DEFAULT: False
-
 # vim: syntax=rst
 
