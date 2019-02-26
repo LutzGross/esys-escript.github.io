@@ -84,6 +84,20 @@ frame=none,%
 backgroundcolor=\color{LightGrey}%
 }
 
+\lstdefinestyle{myFootnotesizeShell}{%
+language=ksh,
+showstringspaces=false,
+basicstyle=\footnotesize\ttfamily,
+commentstyle=\color{Black}\ttfamily,
+keywordstyle=\color{Black}\ttfamily,
+%identifierstyle=\color{Blue}\ttfamily,
+%functionstyle=\color{Blue}\ttfamily,
+%typestyle=\color{ForestGreen}\ttfamily,
+stringstyle=\color{Black}\ttfamily,%
+frame=none,%
+backgroundcolor=\color{LightGrey}%
+}
+
 \lstdefinestyle{myPython}{%
 language=python,
 showstringspaces=false,
@@ -130,6 +144,9 @@ backgroundcolor=\color{LightGrey}%
 
 % this implements nicely formatted shell code
 \lstnewenvironment{shellCode}[1][]{\lstset{style=myShell}\lstset{#1}}{}
+
+% this implements nicely formatted footnotesize shell code
+\lstnewenvironment{smallShellCode}[1][]{\lstset{style=myFootnotesizeShell}\lstset{#1}}{}
 
 % this implements nicely formatted Perl code
 \lstnewenvironment{perlCode}[1][]{\lstset{style=myPerl}\lstset{#1}}{}
