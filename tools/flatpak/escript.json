@@ -6,25 +6,34 @@
     "command": "run-escript",
     "modules": [
         {
-            "name": "openblas",
-            "buildsystem": "cmake",
-            "build-options" : { 
-                "cflags": "-O3 -w",
-                "cxxflags": "-O3 -w",
-                "ldflags": "-lgfortran"
-            },
+            "name": "python",
             "builddir": true,
+            "buildsystem": "simple",
+            "build-commands": [
+                "./configure --prefix=/app --exec-prefix=/app --enable-shared",
+                "make install -j`nproc --all`",
+                "chmod 755 /app/lib/*"
+            ],
             "sources": [
                 {
                     "type": "archive",
-                    "url": "http://github.com/xianyi/OpenBLAS/archive/v0.2.20.tar.gz",
-                    "sha256": "5ef38b15d9c652985774869efd548b8e3e972e1e99475c673b25537ed7bcf394"
+                    "url": "https://www.python.org/ftp/python/3.7.2/Python-3.7.2.tgz",
+                    "sha256": "f09d83c773b9cc72421abba2c317e4e6e05d919f9bcf34468e192b6a6c8e328d"
                 }
             ]
         },
         {
             "name": "openmpi",
             "builddir": true,
+            "config-opts": [
+                "--enable-mpi-fortran",
+                "--enable-mpi-cxx",
+                "--enable-cxx-exceptions",
+                "--with-gnu-ld",
+                "--prefix=/app",
+                "--exec-prefix=/app",
+                "--disable-dlopen"
+            ],
             "sources": [
                 {
                     "type": "archive",
@@ -41,6 +50,15 @@
                 "cxxflags": "-O3 -w",
                 "ldflags": "-lgfortran"
             },
+            "config-opts": [
+                "-DCMAKE_INSTALL_PREFIX=/app",
+                "-DCMAKE_INSTALL_LIBDIR=lib",
+                "-DCMAKE_BUILD_TYPE=Release",
+                "-DBUILD_SHARED_LIBS=ON",
+                "-DBUILD_TESTING=OFF",
+                "-DLAPACKE=ON",
+                "-DCBLAS=ON"
+            ],
             "builddir": true,
             "sources": [
                 {
@@ -86,11 +104,11 @@
             "build-options" : { 
                 "cflags": "-w",
                 "cxxflags": "-w",
-                "ldflags": "-lgfortran -llapack -lopenblas -L/app/lib"
+                "ldflags": "-lgfortran -llapack -lblas -L/app/lib"
             },
             "build-commands": [
-                "make library -j`nproc --all` MY_METIS_LIB=/app/lib/libmetis.a INSTALL=/app",
-                "make install -j`nproc --all` MY_METIS_LIB=/app/lib/libmetis.a INSTALL=/app"
+                "make library -j`nproc --all` MY_METIS_LIB=/app/lib/libmetis.a BLAS=-lblas INSTALL=/app",
+                "make install -j`nproc --all` MY_METIS_LIB=/app/lib/libmetis.a BLAS=-lblas INSTALL=/app"
             ],
             "builddir": true,
             "sources": [
@@ -265,6 +283,29 @@
                 }
             ]
         },
+		{
+            "name": "python3-scipy",
+            "buildsystem": "simple",
+            "build-commands": [
+                "python3 setup.py build -j`nproc --all`",
+                "python3 setup.py install --prefix=/app --root=/ --optimize=1"
+            ],
+            "build-options": {
+                "env": {
+                    "ATLAS": "None",
+                    "BLAS": "/app/lib",
+                    "LAPACK": "/app/lib",
+                    "LDFLAGS": "-shared"
+                }
+            },
+            "sources": [
+                {
+                    "type": "archive",
+                    "url": "https://files.pythonhosted.org/packages/07/76/7e844757b9f3bf5ab9f951ccd3e4a8eed91ab8720b0aac8c2adcc2fdae9f/scipy-1.1.0.tar.gz",
+                    "sha512": "72fe32c6c009613cb78202598e5db14f8e630b3218839cfe18d43d40550d94cc5aa100c6f5d41f40e86ae148e9b6a13431bb91b0f9be44b0569ccd7b725fe973"
+                }
+            ]
+        },
         {
             "name": "trilinos",
             "buildsystem": "cmake",
@@ -275,20 +316,21 @@
                 "-DOpenMP_C_FLAGS='-w -fopenmp'",
                 "-DOpenMP_CXX_FLAGS='-w -fopenmp'",
                 "-DTPL_ENABLE_BLAS=ON",
-                "-DBLAS_LIBRARY_NAMES='openblas'",
+                "-DBLAS_LIBRARY_NAMES='blas'",
+                "-DTPL_BLAS_INCLUDE_DIRS=/app/include/",
                 "-DTPL_ENABLE_LAPACK=ON",
                 "-DTPL_ENABLE_Boost=ON",
                 "-DTPL_ENABLE_Cholmod=ON",
+                "-DTPL_Cholmod_INCLUDE_DIRS=/app/include/",
+                "-DTPL_Cholmod_LIBRARIES='/app/lib/libcholmod.so;/app/lib/libamd.so;/app/lib/libcolamd.so'",
                 "-DTPL_ENABLE_Matio=ON",
+                "-DTPL_Matio_INCLUDE_DIRS=/app/include/",
+                "-DTPL_Matio_LIBRARIES=/app/lib",
                 "-DTPL_ENABLE_METIS=ON",
                 "-DTPL_ENABLE_ParMETIS=ON",
                 "-DMETIS_LIBRARY_NAMES='metis'",
+                "-DTPL_ENABLE_ScaLAPACK=OFF",
                 "-DTPL_ENABLE_UMFPACK=ON",
-                "-DTPL_BLAS_INCLUDE_DIRS=/app/include/",
-                "-DTPL_Matio_INCLUDE_DIRS=/app/include/",
-                "-DTPL_Matio_LIBRARIES=/app/lib",
-                "-DTPL_Cholmod_INCLUDE_DIRS=/app/include/",
-                "-DTPL_Cholmod_LIBRARIES='/app/lib/libcholmod.so;/app/lib/libamd.so;/app/lib/libcolamd.so'",
                 "-DTPL_UMFPACK_INCLUDE_DIRS=/app/include/",
                 "-DTrilinos_ENABLE_Amesos2=ON",
                 "-DTrilinos_ENABLE_Belos=ON",
@@ -299,7 +341,7 @@
                 "-DTrilinos_ENABLE_Teuchos=ON",
                 "-DTrilinos_ENABLE_COMPLEX=ON",
                 "-DTrilinos_ENABLE_OpenMP=ON",
-                "-DTrilinos_ENABLE_MPI=ON",
+                "-DTrilinos_ENABLE_MPI=OFF",
                 "-DTrilinos_ENABLE_ALL_OPTIONAL_PACKAGES=OFF",
                 "-DTrilinos_ENABLE_EXPLICIT_INSTANTIATION=ON"
             ],
@@ -314,10 +356,12 @@
         {
             "name": "gmsh",
             "buildsystem": "cmake",
-            "build-options" : {
-                "cflags": "-w -Wno-dev",
-                "cxxflags": "-w -Wno-dev"
-            },
+            "config-opts": [
+                "-DDEFAULT=0",
+                "-DENABLE_BUILD_LIB=1",
+                "-DENABLE_POST=1",
+                "-DENABLE_PARSER=1"
+            ],
             "sources": [
                 {
                     "type": "archive",
@@ -344,7 +388,8 @@
             "name": "escript",
             "buildsystem": "simple",
             "build-commands": [
-                "scons options_file=scons/flatpak_options.py -j`nproc --all` pythoncmd=`which python3`"
+                "scons options_file=scons/flatpak_options.py -j`nproc --all` ",
+                "mv /app/bin/run-escript /app/bin/run-escriptB"
             ],
             "sources": [
                 {
@@ -352,11 +397,29 @@
                     "url": "https://svn.geocomp.uq.edu.au/svn/esys13/trunk"
                 }
             ]
+        },
+        {
+            "name": "run-escript",
+            "buildsystem": "simple",
+            "build-commands": [
+                "echo \\#\\!/bin/bash > run-escript",
+                "echo export LD_LIBRARY_PATH=/app/lib:$LD_LIBRARY_PATH >> run-escript",
+                "echo export PYTHONPATH=/app:$PYTHONPATH >> run-escript",
+                "echo export PATH=/app/bin:$PATH >> run-escript",
+                "echo if [ \\$1 = \\\"pip3\\\" ] >> run-escript",
+                "echo then >> run-escript",
+                "echo /app/bin/pip3 \"\\${@:2}\" >> run-escript",
+                "echo else >> run-escript",
+                "echo run-escriptB \"\\$@\" >> run-escript",
+                "echo fi >> run-escript",
+                "chmod +x run-escript",
+                "install run-escript /app/bin"
+            ]
         }
     ],
     "finish-args": [
         "--filesystem=host",
         "--filesystem=home",
-        "--socket=system-bus"
+        "--share=network"
     ]
 }

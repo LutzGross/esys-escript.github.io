@@ -25,10 +25,14 @@ silo=True
 trilinos=True
 
 import os
+import sys
 
-cxx_extra='-w'
+cxx_extra='-w -O3'
 
-prefix='/app'
+pythoncmd='/app/bin/python3'
+pythonlibpath = '/app/lib'
+info=sys.version_info
+pythonincpath = '/app/include/python'+str(info.major)+'.'+str(info.minor)+'m'
 
 boost_prefix=['/app/include','/app/lib']
 netcdf = 4
@@ -40,11 +44,12 @@ silo_prefix = ['/app/include/', '/app/lib']
 silo_libs = ['silo','hdf5']
 trilinos_prefix = ['/app/include/', '/app/lib']
 
+dudley_assemble_flags = '-funroll-loops'
+
 p3name = ''
 for x in os.listdir("/app/lib"):
   if x.startswith('libboost_python3') and x.endswith('.so'):
     p3name=x
-    break
 
 # boost-python library/libraries to link against
 boost_libs = [p3name[3:-3]]
