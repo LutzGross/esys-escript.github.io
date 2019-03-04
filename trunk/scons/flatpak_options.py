@@ -24,6 +24,8 @@ umfpack=True
 silo=True
 trilinos=True
 
+prefix='/app'
+
 import os
 import sys
 
@@ -31,14 +33,13 @@ cxx_extra='-w -O3'
 
 pythoncmd='/app/bin/python3'
 pythonlibpath = '/app/lib'
-info=sys.version_info
-pythonincpath = '/app/include/python'+str(info.major)+'.'+str(info.minor)+'m'
+pythonincpath = '/app/include/python3.7m'
 
 boost_prefix=['/app/include','/app/lib']
 netcdf = 4
 netcdf_prefix=['/app/include','/app/lib']
 umfpack_prefix = ['/app/include','/app/lib']
-umfpack_libs = ['umfpack', 'openblas', 'amd']
+umfpack_libs = ['umfpack', 'blas', 'amd']
 lapack_prefix = ['/app/include/', '/app/lib']
 silo_prefix = ['/app/include/', '/app/lib']
 silo_libs = ['silo','hdf5']

@@ -28,7 +28,7 @@ The following packages should be installed to attempt this build:
 
 
 
-\subsection{Configuration file}
+\subsection{Example configuration file}
 
 \begin{verbatim}
 #!/bin/bash
@@ -96,8 +96,7 @@ cmake \
       -D Trilinos_ENABLE_COMPLEX=ON \
       -D Trilinos_ENABLE_OpenMP=ON \
       -D TPL_ENABLE_MPI=ON \
-      -D Trilinos_DUMP_PACKAGE_DEPENDENCIES=ON \
-      -D Trilinos_ENABLE_ALL_OPTIONAL_PACKAGES=ON \
+      -D Trilinos_ENABLE_ALL_OPTIONAL_PACKAGES=OFF \
       -D KOKKOS_ENABLE_AGGRESSIVE_VECTORIZATION=ON \
 $EXTRA_ARGS \
 $TRILINOS_PATH
