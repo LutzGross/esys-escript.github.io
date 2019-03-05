@@ -20,19 +20,18 @@
 openmp = True
 umfpack = True
 silo = True
-papi = True
 # cuda = True
 # mpi = 'OPENMPI'
 verbose = True
 debug = True
-trilinos = True
-paso = False
+# trilinos = True
+# paso = False
 # parmetis = True
 visit = True
 #werror = False
 # cxx = 'clang++'
 
-python = 2
+python = 3
 
 ##############################################################################
 escript_opts_version = 203
