@@ -37,7 +37,7 @@ from esys.pycad.gmsh import Design
 from esys.escript import *
 import numpy as np
 import pylab as pl #Plotting package
-from cblib import toRegGrid, subsample, HAVE_NATGRID
+from cblib import toRegGrid, subsample
 from esys.escript.unitsSI import *
 from esys.escript.linearPDEs import LinearPDE
 import os, sys
@@ -55,10 +55,7 @@ if getMPISizeWorld() > 1:
         print("This example will not run in an MPI world.")
         sys.exit(0)
 
-if not HAVE_NATGRID:
-    print("This example requires that natgrid is available to matplotlib")
-
-if HAVE_FINLEY and HAVE_NATGRID:
+if HAVE_FINLEY:
     #################################################ESTABLISHING VARIABLES
     # where to put output files
     save_path= os.path.join("data","example06")

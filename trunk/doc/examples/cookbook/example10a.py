@@ -43,7 +43,7 @@ from math import pi, sqrt, sin, cos
 
 from esys.escript.pdetools import Projector
 
-from cblib import toRegGrid, HAVE_NATGRID
+from cblib import toRegGrid
 import pylab as pl #Plotting package
 import numpy as np
 
@@ -58,10 +58,7 @@ if getMPISizeWorld() > 1:
     print("This example will not run in an MPI world.")
     sys.exit(0)
 
-if not HAVE_NATGRID:
-    print("This example requires that natgrid is available to matplotlib")
-
-if HAVE_FINLEY and HAVE_NATGRID:
+if HAVE_FINLEY:
     #################################################ESTABLISHING VARIABLES
     #Domain related.
     mx = 5000*m #meters - model length

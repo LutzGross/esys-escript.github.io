@@ -182,7 +182,7 @@ mypde.setValue(D=kmat*rho)
 src_radius = 50#2*Lsup(domain.getSize())
 print("src_radius = ",src_radius)
 
-dunit=numpy.array([0.,1.]) # defines direction of point source
+dunit=np.array([0.,1.]) # defines direction of point source
 #~ dunit=(x-xc)
 #~ absrc=length(dunit)
 #~ dunit=dunit/maximum(absrc,1e-10)
@@ -260,7 +260,7 @@ while t<tend:
         # plot wave
         uTz[0,0]=maxi
         uTz[0,1]=-maxi
-        CS = pl.imshow(uTz,cmap=cm.spectral)
+        CS = pl.imshow(uTz,cmap=cm.viridis)
         pl.colorbar()
         # labels and formatting
         pl.title("Wave Equation Cookbook Example ABC.")

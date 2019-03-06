@@ -270,7 +270,7 @@ The values \verb|[xi[k], yi[l]]| are the grid points.
 
 The remainder of our contouring commands resides within a \verb|while| loop so
 that a new contour is generated for each time step. For each time step the
-solution must be re-gridded for \modmpl using the \verb|griddata| function. This
+solution must be re-gridded for \modmpl using the SciPy \verb|griddata| function. This
 function interprets irregularly located values \verb|tempT| at locations defined
 by \verb|coordX| and \verb|coordY| as values at the new coordinates of a
 rectangular grid defined by
@@ -283,7 +283,7 @@ visually adjusted using the \modmpl functions and then saved to a file.
 \verb|pl.clf()| clears the figure in readiness for the next time iteration.
 \begin{python}
 #grid the data.
-zi = pl.matplotlib.mlab.griddata(coordX,coordY,tempT,xi,yi)
+zi = scipy.interpolate.griddata((coordX,coordY),tempT,(xi[None,:],yi[:,None]),method='cubic')
 # contour the gridded data, plotting dots at the randomly spaced data points.
 pl.matplotlib.pyplot.autumn()
 pl.contourf(xi,yi,zi,10)

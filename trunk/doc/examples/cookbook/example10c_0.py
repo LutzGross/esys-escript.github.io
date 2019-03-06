@@ -26,6 +26,7 @@ from esys.pycad import *
 from esys.pycad.gmsh import Design
 from esys.escript.unitsSI import *
 from math import tan
+import os
 
 try:
     # This imports the rectangle domain function 
