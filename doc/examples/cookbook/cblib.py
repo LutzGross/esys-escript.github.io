@@ -29,12 +29,7 @@ from esys.escript import inf,sup
 from esys.escript.pdetools import Locator
 import numpy as np
 import pylab as pl
-
-try:
-    from mpl_toolkits.natgrid import _natgrid
-    HAVE_NATGRID=True
-except ImportError:
-    HAVE_NATGRID=False
+import scipy.interpolate
 
 def toXYTuple(coords):
     """
@@ -57,7 +52,8 @@ def toRegGrid(u, nx=50, ny=50):
    yi = np.linspace(inf(xx[1]),sup(xx[1]),ny)
 
    # interpolate u to grid
-   zi = pl.matplotlib.mlab.griddata(coordX,coordY,utemp,xi,yi, interp='linear')
+   zi = scipy.interpolate.griddata((coordX,coordY),utemp,(xi[None,:],yi[:,None]),method='linear')
+
    return xi, yi, zi
 
 def subsample(u, nx=50, ny=50):

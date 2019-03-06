@@ -38,6 +38,7 @@ from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE
 from esys.weipa import saveVTK
 
+import os
 
 # routine to find consecutive coordinates of a loop in pycad
 def getLoopCoords(loop):
@@ -70,7 +71,7 @@ def cbphones(domain,U,phones,dim,savepath=""):
    
    for i in range(0,nphones):
      # define the location of the phone source 
-     L=Locator(domain,numpy.array(phones[i]))
+     L=Locator(domain,np.array(phones[i]))
      # find potential at point source.
      temp = L.getValue(U)
      for j in range(0,dim):
@@ -108,7 +109,7 @@ def wavesolver2d(domain,h,tend,lam,mu,rho,U0,xc,savepath,output="vtk"):
    src_radius = 50#2*Lsup(domain.getSize())
    print("src_radius = ",src_radius)
 
-   dunit=numpy.array([0.,1.]) # defines direction of point source
+   dunit=np.array([0.,1.]) # defines direction of point source
 
    
    # ... set initial values ....
@@ -229,7 +230,7 @@ def wavesolver2df(domain,h,tend,lam,mu,rho,U0,xc,savepath):
    src_radius = 50#2*Lsup(domain.getSize())
    print("src_radius = ",src_radius)
 
-   dunit=numpy.array([0.,1.]) # defines direction of point source
+   dunit=np.array([0.,1.]) # defines direction of point source
 
    
    # ... set initial values ....

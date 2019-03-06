@@ -46,7 +46,8 @@ from esys.escript.unitsSI import *
 import pylab as pl #Plotting package.
 import numpy as np #Array package.
 import os #This package is necessary to handle saving our data.
-from cblib import toXYTuple, HAVE_NATGRID
+import scipy.interpolate
+from cblib import toXYTuple
 try:
     from esys.finley import Rectangle
     HAVE_FINLEY = True
@@ -59,10 +60,7 @@ if getMPISizeWorld() > 1:
         print("This example will not run in an MPI world.")
         sys.exit(0)
 
-if not HAVE_NATGRID:
-    print("This example requires that natgrid is available to matplotlib")
-
-if HAVE_FINLEY and HAVE_NATGRID:
+if HAVE_FINLEY:
     #################################################ESTABLISHING VARIABLES
     #PDE related
     mx = 600*m #meters - model length
@@ -133,7 +131,7 @@ if HAVE_FINLEY and HAVE_NATGRID:
           T=mypde.getSolution()
           tempT = T.toListOfTuples()
           # grid the data.
-          zi = pl.matplotlib.mlab.griddata(coordX,coordY,tempT,xi,yi)
+          zi = scipy.interpolate.griddata((coordX,coordY),tempT,(xi[None,:],yi[:,None]),method='cubic')
           # contour the gridded data, plotting dots at the 
           # randomly spaced data points.
           pl.matplotlib.pyplot.autumn()

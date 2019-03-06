@@ -39,7 +39,7 @@ from esys.escript import *
 from esys.escript.unitsSI import *
 from esys.escript.linearPDEs import LinearPDE
 import pylab as pl #Plotting package
-from cblib import toRegGrid, HAVE_NATGRID
+from cblib import toRegGrid
 import os
 try:
     # This imports the rectangle domain function 
@@ -55,16 +55,7 @@ if getMPISizeWorld() > 1:
     print("This example will not run in an MPI world.")
     sys.exit(0)
 
-try:
-    from mpl_toolkits.natgrid import _natgrid
-    HAVE_NATGRID=True
-except ImportError:
-    HAVE_NATGRID=False
-
-if not HAVE_NATGRID:
-    print("This example requires that natgrid is available to matplotlib")
-
-if HAVE_FINLEY and HAVE_NATGRID:
+if HAVE_FINLEY:
     # make sure path exists
     save_path= os.path.join("data","example04")
     mkDir(save_path)

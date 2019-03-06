@@ -26,7 +26,8 @@ matplotlib.use('agg')    #For interactive use, you can comment out this line
 #It's just here to make testing easier
 
 import numpy
-import pylab 
+import pylab
+import scipy.interpolate
 
 from esys.escript import *
 from esys.escript.linearPDEs import Poisson
@@ -36,12 +37,7 @@ from esys.finley import Rectangle
 try:
     matplotlib.mlab.griddata
 
-    # TO keep the version distributed by openSuse happy
-    interp='nn'
-    try:
-        from mpl_toolkits.natgrid import _natgrid
-    except ImportError:
-        interp='linear'
+    interp = 'linear'
     # generate domain:
     mydomain = Rectangle(l0=1.,l1=1.,n0=40, n1=20)
     # define characteristic function of Gamma^D
@@ -58,7 +54,7 @@ try:
     x=mydomain.getX()[0].toListOfTuples()
     y=mydomain.getX()[1].toListOfTuples()
     z=interpolate(u,mydomain.getX().getFunctionSpace()).toListOfTuples()
-    z_grid = matplotlib.mlab.griddata(x,y,z,xi=x_grid,yi=y_grid,interp=interp )
+    z_grid = scipy.interpolate.griddata((x,y),z,(x_grid[None,:],y_grid[:,None]),interp)
     # interpolate u to a rectangular grid:
     matplotlib.pyplot.contourf(x_grid, y_grid, z_grid, 5)
     matplotlib.pyplot.savefig("u.png")
