@@ -37,6 +37,7 @@ Options::Options(const bp::object& options)
     package = mapEscriptOption(sb.getPackage());
     verbose = sb.isVerbose();
     symmetric = sb.isSymmetric();
+    hermitian = sb.isHermitian();
     tolerance = sb.getTolerance();
     absolute_tolerance = sb.getAbsoluteTolerance();
     inner_tolerance = sb.getInnerTolerance();
@@ -51,21 +52,10 @@ Options::Options(const bp::object& options)
     truncation = sb.getTruncation();
     restart = sb._getRestartForC();
     sweeps = sb.getNumSweeps();
-    pre_sweeps = sb.getNumPreSweeps();
-    post_sweeps = sb.getNumPostSweeps();
-    level_max = sb.getLevelMax();
-    min_coarse_matrix_size = sb.getMinCoarseMatrixSize();
-    coarsening_threshold = sb.getCoarseningThreshold();
     accept_failed_convergence = sb.acceptConvergenceFailure();
-    coarsening_method = mapEscriptOption(sb.getCoarsening());
-    smoother = mapEscriptOption(sb.getSmoother());
     relaxation_factor = sb.getRelaxationFactor();
     use_local_preconditioner = sb.useLocalPreconditioner();
-    min_coarse_sparsity = sb.getMinCoarseMatrixSparsity();
     refinements = sb.getNumRefinements();
-    coarse_matrix_refinements = sb.getNumCoarseMatrixRefinements();
-    usePanel = sb.usePanel();
-    diagonal_dominance_threshold = sb.getDiagonalDominanceThreshold();
 }
 
 void Options::setDefaults()
@@ -74,6 +64,7 @@ void Options::setDefaults()
     method = PASO_DEFAULT;
     package = PASO_DEFAULT;
     symmetric = false;
+    hermitian = false;
     reordering = PASO_NO_REORDERING;
     tolerance = 1.e-8;
     absolute_tolerance = 0.;
@@ -87,22 +78,10 @@ void Options::setDefaults()
     restart = -1;
     truncation = 20;
     sweeps = 2;
-    pre_sweeps = 2;
-    post_sweeps = 2;
-    coarsening_threshold = 0.25;
-    min_coarse_matrix_size = 500;
-    level_max = 100;
     accept_failed_convergence = false;
-    coarsening_method = PASO_DEFAULT;
     relaxation_factor = 0.95;
-    smoother = PASO_GS;
     use_local_preconditioner = false;
-    min_coarse_sparsity = 0.05;
     refinements = 2;
-    coarse_matrix_refinements = 0;
-    diagonal_dominance_threshold = 0.5;
-    cycle_type = 1;
-    usePanel = true;
     ode_solver = PASO_LINEAR_CRANK_NICOLSON;
 
     // diagnostic values
@@ -146,6 +125,7 @@ void Options::show() const
         << "\tmethod = " << name(method) << " (" << method << ")" << std::endl
         << "\tpackage = " << name(package) << " (" << package << ")" << std::endl
         << "\tsymmetric = " << symmetric << std::endl
+        << "\thermitian = " << hermitian << std::endl
         << "\treordering = " << name(reordering) << " (" << reordering << ")" << std::endl
         << "\ttolerance = " << tolerance << std::endl
         << "\tabsolute_tolerance = " << absolute_tolerance << std::endl
@@ -159,18 +139,10 @@ void Options::show() const
         << "\trestart = " << restart << std::endl
         << "\ttruncation = " << truncation << std::endl
         << "\tsweeps = " << sweeps << std::endl
-        << "\tpre_sweeps = " << pre_sweeps << std::endl
-        << "\tpost_sweeps = " << post_sweeps << std::endl
-        << "\tcoarsening_threshold = " << coarsening_threshold << std::endl
-        << "\tlevel_max = " << level_max << std::endl
         << "\taccept_failed_convergence = " << accept_failed_convergence << std::endl
-        << "\tcoarsening_method = " << name(coarsening_method) << " (" << coarsening_method << ")" << std::endl
         << "\trelaxation_factor = " << relaxation_factor << std::endl
         << "\tuse_local_preconditioner = " << use_local_preconditioner << std::endl
-        << "\tmin_coarse_sparsity = " << min_coarse_sparsity << std::endl
         << "\trefinements = " << refinements << std::endl
-        << "\tcoarse_matrix_refinements = " << coarse_matrix_refinements << std::endl
-        << "\tcycle_type = " << cycle_type << std::endl
         << "\tode_solver = " << ode_solver << std::endl;
 }
 
@@ -436,13 +408,6 @@ int Options::mapEscriptOption(int escriptOption)
             return PASO_CRANK_NICOLSON;
         case escript::SO_ODESOLVER_LINEAR_CRANK_NICOLSON:
             return PASO_LINEAR_CRANK_NICOLSON;
-
-        case escript::SO_INTERPOLATION_CLASSIC:
-            return PASO_CLASSIC_INTERPOLATION;
-        case escript::SO_INTERPOLATION_CLASSIC_WITH_FF_COUPLING:
-            return PASO_CLASSIC_INTERPOLATION_WITH_FF_COUPLING;
-        case escript::SO_INTERPOLATION_DIRECT:
-            return PASO_DIRECT_INTERPOLATION;
 
         case escript::SO_REORDERING_DEFAULT:
             return PASO_DEFAULT_REORDERING;

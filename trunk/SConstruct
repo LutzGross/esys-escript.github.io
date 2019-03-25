@@ -288,7 +288,8 @@ elif cc_name[:3] == 'g++':
     # note that -ffast-math is not used because it breaks isnan(),
     # see mantis #691
     cc_flags     = "-std=c++11 -pedantic -Wall -fPIC -finline-functions"
-    cc_flags += " -Wno-unknown-pragmas -Wno-sign-compare -Wno-system-headers -Wno-long-long -Wno-strict-aliasing -Wno-stringop-truncation -Wno-catch-value "
+    cc_flags += " -Wno-unknown-pragmas -Wno-sign-compare -Wno-system-headers -Wno-long-long -Wno-strict-aliasing "
+    cc_flags += " -Wno-stringop-truncation -Wno-catch-value "
     cc_flags += " --param=max-vartrack-size=100000000"
     cc_optim     = "-O3"
     #max-vartrack-size: avoid vartrack limit being exceeded with escriptcpp.cpp
@@ -316,6 +317,8 @@ elif cc_name == 'clang++':
     # Clang++ on any system
     cc_flags     = "-std=c++11 -Wall -fPIC -fdiagnostics-color=always "
     cc_flags    += "-Wno-unused-private-field -Wno-unknown-pragmas "
+    if env['trilinos'] is True:
+      cc_flags += "-Wno-unused-variable -Wno-exceptions -Wno-deprecated-declarations"
     cc_optim     = "-O3"
     cc_debug     = "-ggdb3 -O0 -fdiagnostics-fixit-info -pedantic "
     cc_debug    += "-DDOASSERT -DDOPROF -DBOUNDS_CHECK -DSLOWSHARECHECK "

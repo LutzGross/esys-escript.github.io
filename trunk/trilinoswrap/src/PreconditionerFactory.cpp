@@ -53,10 +53,8 @@ RCP<OpType<ST> > createPreconditioner(RCP<const MatrixType<ST> > mat,
         case escript::SO_PRECONDITIONER_AMG:
             {
 #if 1 //ndef ESYS_INDEXTYPE_LONG
-                params->set("max levels", sb.getLevelMax());
                 params->set("number of equations", 1);
-                params->set("cycle type", sb.getCycleType()==1 ? "V" : "W");
-                params->set("problem: symmetric", sb.isSymmetric());
+                params->set("problem: symmetric", sb.isSymmetric() || sb.isHermitian());
                 params->set("verbosity", sb.isVerbose()? "high":"none");
                 // override parameters if set explicitly for trilinos
                 // The set of available parameters is documented in the MueLu
@@ -122,6 +120,7 @@ RCP<OpType<ST> > createPreconditioner(RCP<const MatrixType<ST> > mat,
             }
             break;
         case escript::SO_PRECONDITIONER_ILUT:
+        {
             ifprec = factory.create<const Matrix>("ILUT", mat);
             params->set("fact: drop tolerance", sb.getDropTolerance());
             params->set("fact: relax value", sb.getRelaxationFactor());
@@ -131,30 +130,52 @@ RCP<OpType<ST> > createPreconditioner(RCP<const MatrixType<ST> > mat,
             extractParamIfSet<int>("fact: ilut level-of-fill", pyParams, *params);
             extractParamIfSet<ST>("fact: absolute threshold", pyParams, *params);
             extractParamIfSet<ST>("fact: relative threshold", pyParams, *params);
+        }
             break;
         case escript::SO_PRECONDITIONER_GAUSS_SEIDEL:
-        case escript::SO_PRECONDITIONER_JACOBI:
-          {
+        {
             ifprec = factory.create<const Matrix>("RELAXATION", mat);
-            if (sb.getPreconditioner() == escript::SO_PRECONDITIONER_JACOBI) {
-                params->set("relaxation: type", "Jacobi");
-            } else {
-                params->set("relaxation: type", (sb.isSymmetric() ?
+            params->set("relaxation: type", ((sb.isSymmetric() || sb.isHermitian())?
                             "Symmetric Gauss-Seidel" : "Gauss-Seidel"));
-            }
             params->set("relaxation: sweeps", sb.getNumSweeps());
             const ST fac = static_cast<ST>(sb.getRelaxationFactor());
             params->set("relaxation: damping factor", fac);
             // override if set explicitly for trilinos
             extractParamIfSet<int>("relaxation: sweeps", pyParams, *params);
             extractParamIfSet<ST>("relaxation: damping factor", pyParams, *params);
-            extractParamIfSet<ST>("relaxation: min diagonal value", pyParams, *params);
-            extractParamIfSet<bool>("relaxation: zero starting solution", pyParams, *params);
             extractParamIfSet<bool>("relaxation: backward mode", pyParams, *params);
+            extractParamIfSet<bool>("relaxation: use l1", pyParams, *params);
+            extractParamIfSet<ST>("relaxation: l1 eta", pyParams, *params);
+            extractParamIfSet<bool>("relaxation: zero starting solution", pyParams, *params);
+            extractParamIfSet<bool>("relaxation: fix tiny diagonal entries", pyParams, *params);
+            extractParamIfSet<ST>("relaxation: min diagonal value", pyParams, *params);
+            extractParamIfSet<bool>("relaxation: check diagonal entries", pyParams, *params);
+            // extractParamIfSet<ST>("relaxation: local smoothing indices", pyParams, *params);
+        }
             break;
-          }
+        case escript::SO_PRECONDITIONER_JACOBI:
+        {
+            ifprec = factory.create<const Matrix>("RELAXATION", mat);
+            params->set("relaxation: type", "Jacobi");
+            params->set("relaxation: sweeps", sb.getNumSweeps());
+            const ST fac = static_cast<ST>(sb.getRelaxationFactor());
+            params->set("relaxation: damping factor", fac);
+            // override if set explicitly for trilinos
+            extractParamIfSet<int>("relaxation: sweeps", pyParams, *params);
+            extractParamIfSet<ST>("relaxation: damping factor", pyParams, *params);
+            extractParamIfSet<bool>("relaxation: backward mode", pyParams, *params);
+            extractParamIfSet<bool>("relaxation: use l1", pyParams, *params);
+            extractParamIfSet<ST>("relaxation: l1 eta", pyParams, *params);
+            extractParamIfSet<bool>("relaxation: zero starting solution", pyParams, *params);
+            extractParamIfSet<bool>("relaxation: fix tiny diagonal entries", pyParams, *params);
+            extractParamIfSet<ST>("relaxation: min diagonal value", pyParams, *params);
+            extractParamIfSet<bool>("relaxation: check diagonal entries", pyParams, *params);
+            // extractParamIfSet<ST>("relaxation: local smoothing indices", pyParams, *params);
+        }
+            break;
         case escript::SO_PRECONDITIONER_ILU0: // to avoid test failures
         case escript::SO_PRECONDITIONER_RILU:
+        {
             if (dynamic_cast<const Tpetra::Experimental::BlockCrsMatrix<ST,LO,GO,NT>* >(mat.get())) {
                 ifprec = factory.create<const Matrix>("RBILUK", mat);
             } else {
@@ -167,6 +188,7 @@ RCP<OpType<ST> > createPreconditioner(RCP<const MatrixType<ST> > mat,
             extractParamIfSet<int>("fact: iluk level-of-overlap", pyParams, *params);
             extractParamIfSet<ST>("fact: absolute threshold", pyParams, *params);
             extractParamIfSet<ST>("fact: relative threshold", pyParams, *params);
+        }
             break;
         default:
             throw escript::ValueError("Unsupported preconditioner requested.");

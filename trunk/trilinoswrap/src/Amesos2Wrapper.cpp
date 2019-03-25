@@ -55,8 +55,6 @@ RCP<DirectSolverType<Matrix,Vector> > createDirectSolver(
         solver = Amesos2::create<Matrix, Vector>("klu2", A, X, B);
         Teuchos::ParameterList solverParams(solver->name());
         // the doco says these params exist but clearly they don't :-(
-        //solverParams.set("DiagPivotThresh", sb.getDiagonalDominanceThreshold());
-        //solverParams.set("SymmetricMode", sb.isSymmetric());
         extractParamIfSet<std::string>("Trans", pyParams, solverParams);
         extractParamIfSet<bool>("Equil", pyParams, solverParams);
         extractParamIfSet<std::string>("IterRefine", pyParams, solverParams);
@@ -68,7 +66,8 @@ RCP<DirectSolverType<Matrix,Vector> > createDirectSolver(
             Amesos2::query("MUMPS")) {
         solver = Amesos2::create<Matrix, Vector>("MUMPS", A, X, B);
         Teuchos::ParameterList solverParams(solver->name());
-        if (sb.isVerbose()) {
+        // solverParams.set("MatrixType", (sb.isSymmetric() || sb.isHermitian()) ? "symmetric" : "general");
+        if (sb.isVerbose()) { 
             solverParams.set("ICNTL(4)", 4);
         }
         extractParamIfSet<int>("ICNTL(1)", pyParams, solverParams);
@@ -82,10 +81,13 @@ RCP<DirectSolverType<Matrix,Vector> > createDirectSolver(
     } else if ((dontcare || method == escript::SO_METHOD_DIRECT_TRILINOS) &&
             Amesos2::query("Basker")) {
         solver = Amesos2::create<Matrix, Vector>("Basker", A, X, B);
+        Teuchos::ParameterList solverParams(solver->name());
+        solverParams.set("MatrixType", (sb.isSymmetric() || sb.isHermitian()) ? "symmetric" : "general");
     } else if ((dontcare || method == escript::SO_METHOD_DIRECT_SUPERLU) &&
             Amesos2::query("superludist")) {
         solver = Amesos2::create<Matrix, Vector>("superludist", A, X, B);
-        Teuchos::ParameterList solverParams(solver->name());
+        Teuchos::ParameterList solverParams(solver->name());  
+        solverParams.set("MatrixType", (sb.isSymmetric() || sb.isHermitian()) ? "symmetric" : "general");
         extractParamIfSet<int>("npcol", pyParams, solverParams);
         extractParamIfSet<int>("nprow", pyParams, solverParams);
         extractParamIfSet<std::string>("ColPerm", pyParams, solverParams);
@@ -95,8 +97,6 @@ RCP<DirectSolverType<Matrix,Vector> > createDirectSolver(
             Amesos2::query("superlu")) {
         solver = Amesos2::create<Matrix, Vector>("superlu", A, X, B);
         Teuchos::ParameterList solverParams(solver->name());
-        solverParams.set("DiagPivotThresh", sb.getDiagonalDominanceThreshold());
-        solverParams.set("ILU_DropTol", sb.getDropTolerance());
         solverParams.set("SymmetricMode", sb.isSymmetric());
         extractParamIfSet<std::string>("Trans", pyParams, solverParams);
         extractParamIfSet<bool>("Equil", pyParams, solverParams);
@@ -120,7 +120,6 @@ RCP<DirectSolverType<Matrix,Vector> > createDirectSolver(
 #else
         solverParams.set("nprocs", 1);
 #endif
-        solverParams.set("DiagPivotThresh", sb.getDiagonalDominanceThreshold());
         solverParams.set("SymmetricMode", sb.isSymmetric());
         extractParamIfSet<int>("nprocs", pyParams, solverParams);
         extractParamIfSet<std::string>("trans", pyParams, solverParams);
@@ -147,7 +146,7 @@ RCP<DirectSolverType<Matrix,Vector> > createDirectSolver(
     } else if (Amesos2::query("amesos2_cholmod")) {
         solver = Amesos2::create<Matrix, Vector>("amesos2_cholmod", A, X, B);
         Teuchos::ParameterList solverParams(solver->name());
-        solverParams.set("DiagPivotThresh", sb.getDiagonalDominanceThreshold());
+
         solverParams.set("SymmetricMode", sb.isSymmetric());
         extractParamIfSet<std::string>("Trans", pyParams, solverParams);
         extractParamIfSet<bool>("Equil", pyParams, solverParams);
@@ -158,6 +157,8 @@ RCP<DirectSolverType<Matrix,Vector> > createDirectSolver(
         amesosParams->set(solver->name(), solverParams);
     } else if (Amesos2::query("lapack")) {
         solver = Amesos2::create<Matrix, Vector>("lapack", A, X, B);
+        Teuchos::ParameterList solverParams(solver->name());
+        solverParams.set("MatrixType", (sb.isSymmetric() || sb.isHermitian()) ? "symmetric" : "general");
     } else {
         if (dontcare) {
             throw TrilinosAdapterException("Could not find an Amesos2 direct solver!");

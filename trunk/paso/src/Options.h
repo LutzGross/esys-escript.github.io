@@ -108,6 +108,7 @@ struct Options
     int method;
     int package;
     bool symmetric;
+    bool hermitian;
     double tolerance;
     double absolute_tolerance;
     double inner_tolerance;
@@ -122,22 +123,10 @@ struct Options
     index_t truncation;
     index_t restart;
     int sweeps;
-    int pre_sweeps;
-    int post_sweeps;
-    int cycle_type;
-    int level_max;
-    dim_t min_coarse_matrix_size;
-    int smoother;
-    double coarsening_threshold;
     bool accept_failed_convergence;
-    index_t coarsening_method;
     double relaxation_factor;
     bool use_local_preconditioner;
-    double min_coarse_sparsity;
     dim_t refinements;
-    dim_t coarse_matrix_refinements;
-    double diagonal_dominance_threshold;
-    bool usePanel;
     int ode_solver;
 
     // diagnostic values

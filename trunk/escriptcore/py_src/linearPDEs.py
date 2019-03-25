@@ -702,6 +702,7 @@ class LinearProblem(object):
           raise ValueError("options must be a SolverOptions object.")
        self.__solver_options.setComplex(self.isComplex())
        self.__solver_options.setSymmetry(self.__sym)
+       self.__solver_options.setDim(self.getDim())
 
    def getSolverOptions(self):
        """
@@ -709,7 +710,6 @@ class LinearProblem(object):
 
        :rtype: `SolverOptions`
        """
-       self.__solver_options.setSymmetry(self.__sym)
        return self.__solver_options
 
    def isUsingLumping(self):
@@ -795,6 +795,45 @@ class LinearProblem(object):
       :note: The method overwrites the symmetry flag set by the solver options
       """
       self.getSolverOptions().setSymmetry(flag)
+
+   # ==========================================================================
+   #    hermitian  flag:
+   # ==========================================================================
+   def isHermitian(self):
+      """
+      Checks if the pde is indicated to be Hermitian.
+
+      :return: True if a Hermitian PDE is indicated, False otherwise
+      :rtype: ``bool``
+      :note: the method is equivalent to use getSolverOptions().isHermitian()
+      """
+      self.getSolverOptions().isHermitian()
+
+   def setHermitianOn(self):
+      """
+      Sets the Hermitian flag.
+      :note: The method overwrites the Hermitian flag set by the solver options
+      """
+      self.__sym=True
+      self.getSolverOptions().setHermitianOn()
+
+   def setHermitianOff(self):
+      """
+      Clears the Hermitian flag.
+      :note: The method overwrites the Hermitian flag set by the solver options
+      """
+      self.__sym=False
+      self.getSolverOptions().setHermitianOff()
+
+   def setHermitian(self,flag=False):
+      """
+      Sets the Hermitian flag to ``flag``.
+
+      :param flag: If True, the Hermitian flag is set otherwise reset.
+      :type flag: ``bool``
+      :note: The method overwrites the Hermitian flag set by the solver options
+      """
+      self.getSolverOptions().setHermitian(flag)
 
    # ==========================================================================
    # function space handling for the equation as well as the solution
@@ -3024,6 +3063,7 @@ class TransportPDE(LinearProblem):
        y_dirac=PDECoef(PDECoef.DIRACDELTA,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE),
        r=PDECoef(PDECoef.SOLUTION,(PDECoef.BY_SOLUTION,),PDECoef.RIGHTHANDSIDE),
        q=PDECoef(PDECoef.SOLUTION,(PDECoef.BY_SOLUTION,),PDECoef.BOTH) )
+     self.getSolverOptions().setPackage(SolverOptions.PASO)
      if not useBackwardEuler is None:
         import warnings
         warnings.warn("Argument useBackwardEuler has expired and will be removed in a later release. Please use SolverOptions.setODESolver() instead.", PendingDeprecationWarning, stacklevel=2)
@@ -3231,8 +3271,8 @@ class TransportPDE(LinearProblem):
                 if u0.getShape()!=():
                   raise ValueError("Illegal shape %s of initial solution."%(u0.getShape(),))
               else:
-                 if u0.getShape()!=(self.getNumSolutions(),):
-                   raise ValueError("Illegal shape %s of initial solution."%(u0.getShape(),))
+                if u0.getShape()!=(self.getNumSolutions(),):
+                  raise ValueError("Illegal shape %s of initial solution."%(u0.getShape(),))
           self.setSolution(self.getOperator().solve(u0, self.getRightHandSide(),dt,option_class))
           self.validSolution()
        return self.getCurrentSolution()
