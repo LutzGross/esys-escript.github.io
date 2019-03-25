@@ -254,6 +254,7 @@ class SiloSaver(unittest.TestCase): #requires subclassing
     def cleanup(self, filename):
         os.remove(filename)
 
+@unittest.skipIf(HAVE_SILO is False, "Silo module not available")
 class Test_Silo_import(unittest.TestCase):
     def test_import(self):
         if not HAVE_SILO:
@@ -264,8 +265,8 @@ class Test_Silo_import(unittest.TestCase):
                     raise unittest.SkipTest("Silo module broken")
 
 @unittest.skipIf(getMPISizeWorld()>1, "MPI size > 1")
-@unittest.skipIf(not HAVE_FINLEY, "finley module not available")
-@unittest.skipIf(not HAVE_SILO, "Silo module not available")
+@unittest.skipIf(HAVE_FINLEY is False, "finley module not available")
+@unittest.skipIf(HAVE_SILO is False, "Silo module not available")
 class Test_Finley_SaveSilo(SiloSaver):
 
   # === Finley hex 2D order 1 with contacts ===================================
@@ -1331,8 +1332,8 @@ class Test_Finley_SaveSilo(SiloSaver):
                                                data_t=x[0]*[[11.,12.,13.],[21.,22.,23.],[31.,32.,33.]])
 
 @unittest.skipIf(getMPISizeWorld()>1, "MPI size > 1")
-@unittest.skipIf(not HAVE_DUDLEY, "dudley module not available")
-@unittest.skipIf(not HAVE_SILO, "Silo module not available")
+@unittest.skipIf(HAVE_DUDLEY is False, "dudley module not available")
+@unittest.skipIf(HAVE_SILO is False, "Silo module not available")
 class Test_Dudley_SaveSilo(SiloSaver):
 
   # === Dudley 2D =============================================================
@@ -1424,8 +1425,8 @@ class Test_Dudley_SaveSilo(SiloSaver):
                                            data_t=x[0]*[[11.,12.,13.],[21.,22.,23.],[31.,32.,33.]])
 
 @unittest.skipIf(getMPISizeWorld()>1, "MPI size > 1")
-@unittest.skipIf(not HAVE_RIPLEY, "ripley module not available")
-@unittest.skipIf(not HAVE_SILO, "Silo module not available")
+@unittest.skipIf(HAVE_RIPLEY is False, "ripley module not available")
+@unittest.skipIf(HAVE_SILO is False, "Silo module not available")
 class Test_Ripley_SaveSilo(SiloSaver):
 
   # === Ripley 2D =============================================================

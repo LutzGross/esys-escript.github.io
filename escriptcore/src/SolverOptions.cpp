@@ -33,20 +33,12 @@ bool convert(bp::object bpo, R& result)
 namespace escript {
 
 SolverBuddy::SolverBuddy() :
-    target(SO_TARGET_CPU),
     package(SO_DEFAULT),
     method(SO_DEFAULT),
     preconditioner(SO_PRECONDITIONER_JACOBI),
     ode_solver(SO_ODESOLVER_LINEAR_CRANK_NICOLSON),
-    smoother(SO_PRECONDITIONER_GAUSS_SEIDEL),
     reordering(SO_REORDERING_DEFAULT),
-    coarsening(SO_DEFAULT),
-    amg_interpolation_method(SO_INTERPOLATION_DIRECT),
-    level_max(100),
-    coarsening_threshold(0.25),
     sweeps(1),
-    pre_sweeps(1),
-    post_sweeps(1),
     tolerance(1e-8),
     absolute_tolerance(0.),
     inner_tolerance(0.9),
@@ -58,20 +50,17 @@ SolverBuddy::SolverBuddy() :
     restart(0),
     is_complex(false),
     symmetric(false),
+    hermitian(false),
     verbose(false),
     adapt_inner_tolerance(true),
     accept_convergence_failure(false),
-    min_coarse_matrix_size(500),
     relaxation(0.3),
     use_local_preconditioner(false),
-    min_sparsity(0.05),
     refinements(2),
-    coarse_refinements(2),
-    use_panel(true),
-    diagonal_dominance_threshold(0.5),
-    cycle_type(1)
+    dim(2)
 {
     resetDiagnostics(true);
+    setup();
 }
 
 SolverBuddy::~SolverBuddy()
@@ -83,72 +72,28 @@ std::string SolverBuddy::getSummary() const
 {
     std::stringstream out;
     out << "Solver Package = " << getName(getPackage()) << std::endl
-        << "Solver target = " << getName(getSolverTarget()) << std::endl
         << "Verbosity = " << isVerbose() << std::endl
         << "Accept failed convergence = " << acceptConvergenceFailure()
         << std::endl
         << "Relative tolerance = " << getTolerance() << std::endl
         << "Absolute tolerance = " << getAbsoluteTolerance() << std::endl
         << "Symmetric problem = " << isSymmetric() << std::endl
+        << "Hermitian problem = " << isHermitian() << std::endl
         << "Maximum number of iteration steps = " << getIterMax() << std::endl
         << "Inner tolerance = " << getInnerTolerance() << std::endl
         << "Adapt innner tolerance = " << adaptInnerTolerance() << std::endl;
 
     if (getPackage() == SO_DEFAULT || getPackage() == SO_PACKAGE_PASO ||
-            getPackage() == SO_PACKAGE_CUSP ||
             getPackage() == SO_PACKAGE_TRILINOS) {
         out << "Solver method = " << getName(getSolverMethod()) << std::endl;
         if (getSolverMethod() == SO_METHOD_GMRES) {
             out << "Truncation  = " << getTruncation() << std::endl
                 << "Restart  = " << getRestart() << std::endl;
-        } else if (getSolverMethod() == SO_PRECONDITIONER_AMG) {
-            out << "Number of pre / post sweeps = " << getNumPreSweeps()
-                << " / " << getNumPostSweeps() << ", " << getNumSweeps()
-                << std::endl
-                << "Maximum number of levels = " << getLevelMax() << std::endl
-                << "Coarsening threshold = " << getCoarseningThreshold()
-                << std::endl
-                << "Coarsening method = " << getName(getCoarsening())
-                << std::endl;
         }
         out << "Preconditioner = " << getName(getPreconditioner()) << std::endl
             << "Apply preconditioner locally = " << useLocalPreconditioner()
             << std::endl;
         switch (getPreconditioner()) {
-            case SO_PRECONDITIONER_AMG:
-                out << "Maximum number of levels = " << getLevelMax()
-                    << std::endl
-                    << "Coarsening threshold = " << getCoarseningThreshold()
-                    << std::endl
-                    << "Minimal sparsity on coarsest level = "
-                    << getMinCoarseMatrixSparsity() << std::endl
-                    << "Smoother = " << getName(getSmoother()) << std::endl
-                    << "Minimum size of the coarsest level matrix = "
-                    << getMinCoarseMatrixSize() << std::endl
-                    << "Number of pre / post sweeps = " << getNumPreSweeps()
-                    << " / " << getNumPostSweeps() << ", " << getNumSweeps()
-                    << std::endl
-                    << "Number of refinement steps in coarsest level solver = "
-                    << getNumCoarseMatrixRefinements() << std::endl
-                    << "Use node panel = " << usePanel() << std::endl
-                    << "Interpolation = " << getName(getAMGInterpolation())
-                    << std::endl
-                    << "Threshold for diagonal dominant rows = "
-                    << getDiagonalDominanceThreshold() << std::endl;
-                break;
-            case SO_PRECONDITIONER_AMLI:
-                out << "Maximum number of levels = " << getLevelMax()
-                    << std::endl
-                    << "Coarsening method = " << getName(getCoarsening())
-                    << std::endl
-                    << "Coarsening threshold = " << getMinCoarseMatrixSize()
-                    << std::endl
-                    << "Minimum size of the coarsest level matrix = "
-                    << getCoarseningThreshold() << std::endl
-                    << "Number of pre / post sweeps = " << getNumPreSweeps()
-                    << " / " << getNumPostSweeps() << ", " << getNumSweeps()
-                    << std::endl;
-                break;
             case SO_PRECONDITIONER_GAUSS_SEIDEL:
                 out << "Number of sweeps = " << getNumSweeps() << std::endl;
                 break;
@@ -172,10 +117,7 @@ const char* SolverBuddy::getName(int key) const
 {
     switch (static_cast<SolverOptions>(key)) {
         case SO_DEFAULT: return "DEFAULT";
-        case SO_TARGET_CPU: return "CPU";
-        case SO_TARGET_GPU: return "GPU";
 
-        case SO_PACKAGE_CUSP: return "CUSP";
         case SO_PACKAGE_MKL: return "MKL";
         case SO_PACKAGE_PASO: return "PASO";
         case SO_PACKAGE_TRILINOS: return "TRILINOS";
@@ -203,7 +145,6 @@ const char* SolverBuddy::getName(int key) const
         case SO_METHOD_TFQMR: return "TFQMR";
 
         case SO_PRECONDITIONER_AMG: return "AMG";
-        case SO_PRECONDITIONER_AMLI: return "AMLI";
         case SO_PRECONDITIONER_GAUSS_SEIDEL: return "GAUSS_SEIDEL";
         case SO_PRECONDITIONER_ILU0: return "ILU0";
         case SO_PRECONDITIONER_ILUT: return "ILUT";
@@ -221,16 +162,6 @@ const char* SolverBuddy::getName(int key) const
             return "CLASSIC_INTERPOLATION_WITH_FF";
         case SO_INTERPOLATION_DIRECT: return "DIRECT_INTERPOLATION";
 
-        case SO_COARSENING_AGGREGATION: return "AGGREGATION_COARSENING";
-        case SO_COARSENING_CIJP: return "CIJP_COARSENING";
-        case SO_COARSENING_CIJP_FIXED_RANDOM:
-            return "CIJP_FIXED_RANDOM_COARSENING";
-        case SO_COARSENING_FALGOUT: return "FALGOUT_COARSENING";
-        case SO_COARSENING_HMIS: return "HMIS_COARSENING";
-        case SO_COARSENING_PMIS: return "PMIS_COARSENING";
-        case SO_COARSENING_RUGE_STUEBEN: return "RUGE_STUEBEN_COARSENING";
-        case SO_COARSENING_STANDARD: return "STANDARD_COARSENING";
-        case SO_COARSENING_YAIR_SHAPIRA: return "YAIR_SHAPIRA_COARSENING";
 
         case SO_REORDERING_DEFAULT: return "DEFAULT_REORDERING";
         case SO_REORDERING_MINIMUM_FILL_IN: return "MINIMUM_FILL_IN";
@@ -263,6 +194,14 @@ void SolverBuddy::resetDiagnostics(bool all)
         cum_set_up_time = 0.;
         cum_net_time = 0.;
     }
+}
+
+void SolverBuddy::setup(){
+    setPackage(SO_DEFAULT);
+    setSolverMethod(SO_DEFAULT);
+    setPreconditioner(SO_PRECONDITIONER_JACOBI);
+    setODESolver(SO_ODESOLVER_LINEAR_CRANK_NICOLSON);
+    setReordering(SO_REORDERING_DEFAULT);
 }
 
 void SolverBuddy::updateDiagnostics(const std::string& name, bool value)
@@ -396,62 +335,18 @@ bool SolverBuddy::hasConverged() const
     return converged;
 }
 
-void SolverBuddy::setCoarsening(int method)
-{
-    SolverOptions meth = static_cast<SolverOptions>(method);
-    switch (meth) {
-        case SO_DEFAULT:
-        case SO_COARSENING_AGGREGATION:
-        case SO_COARSENING_CIJP:
-        case SO_COARSENING_CIJP_FIXED_RANDOM:
-        case SO_COARSENING_FALGOUT:
-        case SO_COARSENING_HMIS:
-        case SO_COARSENING_PMIS:
-        case SO_COARSENING_RUGE_STUEBEN:
-        case SO_COARSENING_STANDARD:
-        case SO_COARSENING_YAIR_SHAPIRA:
-            coarsening = meth;
-            break;
-        default:
-            throw ValueError("unknown coarsening method");
-    }
-}
-
-SolverOptions SolverBuddy::getCoarsening() const
-{
-    return coarsening;
-}
-
-void SolverBuddy::setMinCoarseMatrixSize(int size)
-{
-    if (size < 0) {
-        throw ValueError("minimum size of the coarsest level "
-                                     "matrix must be non-negative.");
-    }
-    min_coarse_matrix_size = size;
-}
-
-int SolverBuddy::getMinCoarseMatrixSize() const
-{
-    return min_coarse_matrix_size;
-}
-
 void SolverBuddy::setPreconditioner(int precon)
 {
     SolverOptions preconditioner = static_cast<SolverOptions>(precon);
     switch(preconditioner) {
         case SO_PRECONDITIONER_AMG:
-/*
-#ifdef ESYS_MPI
-            throw ValueError("AMG preconditioner is not supported in MPI builds");
-            break;
+#ifndef ESYS_HAVE_TRILINOS
+        throw ValueError("escript was not compiled with Trilinos enabled");
 #endif
-*/
-        case SO_PRECONDITIONER_AMLI:
         case SO_PRECONDITIONER_GAUSS_SEIDEL:
+        case SO_PRECONDITIONER_JACOBI: // This is the default preconditioner in ifpack2
         case SO_PRECONDITIONER_ILU0:
         case SO_PRECONDITIONER_ILUT:
-        case SO_PRECONDITIONER_JACOBI:
         case SO_PRECONDITIONER_NONE:
         case SO_PRECONDITIONER_REC_ILU:
         case SO_PRECONDITIONER_RILU:
@@ -467,59 +362,86 @@ SolverOptions SolverBuddy::getPreconditioner() const
     return preconditioner;
 }
 
-void SolverBuddy::setSmoother(int s)
-{
-    SolverOptions smoother = static_cast<SolverOptions>(s);
-    if (smoother != SO_PRECONDITIONER_JACOBI &&
-            smoother != SO_PRECONDITIONER_GAUSS_SEIDEL) {
-        throw ValueError("unknown smoother");
-    }
-    this->smoother = smoother;
-}
-
-SolverOptions SolverBuddy::getSmoother() const
-{
-    return smoother;
-}
-
 void SolverBuddy::setSolverMethod(int method)
 {
     SolverOptions meth = static_cast<SolverOptions>(method);
+
+    // Possible error: User has told escript to use a direct solver but no direct solver is available
+#if !defined(ESYS_HAVE_TRILINOS) && !defined(ESYS_HAVE_UMFPACK) && !defined(ESYS_HAVE_MKL)
+    if(meth == SO_METHOD_DIRECT || meth == SO_METHOD_DIRECT_MUMPS 
+        || meth == SO_METHOD_DIRECT_PARDISO || meth == SO_METHOD_DIRECT_SUPERLU
+        || meth == SO_METHOD_DIRECT_TRILINOS) {
+        throw ValueError("Cannot use DIRECT solver method. eScript was not compiled with a direct solver.");
+    }
+#endif
+    
     switch(meth) {
+            // Default settings:
+            // If we're solving a 2d problem, default to the trilinos direct solver
+            // If trilinos is not available, default to the paso direct solver
+            // If trilinos is not available and there is no paso direct solver, fall back on GMRES
+            // In 3D, always use an iterative method
+
         case SO_DEFAULT:
+            if(dim == 2){
+#ifdef ESYS_HAVE_TRILINOS
+                this->method = SO_METHOD_DIRECT_TRILINOS;
+#elif defined(ESYS_HAVE_UMFPACK) || defined(ESYS_HAVE_MKL)
+                this->method = SO_METHOD_DIRECT;
+#else
+                this->method = SO_METHOD_GMRES;
+#endif
+                break;
+            } else {
+                this->method = SO_METHOD_GMRES;
+                break;
+            }
+
+        case SO_METHOD_DIRECT:
+#ifdef ESYS_HAVE_TRILINOS
+            // Default to trilinos
+            this->method = SO_METHOD_DIRECT_TRILINOS;
+            break;
+#else
+            this->method = SO_METHOD_DIRECT;
+            break;
+#endif
+        case SO_METHOD_DIRECT_MUMPS:
+        case SO_METHOD_DIRECT_PARDISO:
+        case SO_METHOD_DIRECT_SUPERLU:
+        case SO_METHOD_DIRECT_TRILINOS:
+#ifdef ESYS_HAVE_TRILINOS
+            // We're assuming that trilinos was compiled with MUMPS, PARDISO, SUPERLU etc.
+            this->method = meth;
+            break;
+#else
+            throw ValueError("escript was not compiled with Trilinos enabled");
+#endif
+        //These methods are in paso
+        case SO_METHOD_ITERATIVE:
         case SO_METHOD_BICGSTAB:
-        case SO_METHOD_CGLS:
-        case SO_METHOD_CGS:
         case SO_METHOD_CHOLEVSKY:
-        case SO_METHOD_CR:
+        case SO_METHOD_CGS:
         case SO_METHOD_GMRES:
         case SO_METHOD_HRZ_LUMPING:
-        case SO_METHOD_ITERATIVE:
-        case SO_METHOD_LSQR:
+        case SO_METHOD_TFQMR:
         case SO_METHOD_MINRES:
         case SO_METHOD_NONLINEAR_GMRES:
         case SO_METHOD_PCG:
         case SO_METHOD_PRES20:
         case SO_METHOD_ROWSUM_LUMPING:
-        case SO_METHOD_TFQMR:
             this->method = meth;
             break;
-        case SO_METHOD_DIRECT:
-        case SO_METHOD_DIRECT_MUMPS:
-        case SO_METHOD_DIRECT_PARDISO:
-        case SO_METHOD_DIRECT_SUPERLU:
-        case SO_METHOD_DIRECT_TRILINOS:
-#if defined(ESYS_HAVE_UMFPACK) || defined(ESYS_HAVE_TRILINOS) || defined(ESYS_HAVE_MKL)
-#ifndef ESYS_HAVE_TRILINOS
-            // translate specific direct solver setting to generic one for PASO
-            this->method = SO_METHOD_DIRECT;
-#else
+        //These methods are in Trilinos but not in paso
+        case SO_METHOD_CGLS:
+        case SO_METHOD_CR:
+        case SO_METHOD_LSQR:
+#ifdef ESYS_HAVE_TRILINOS
+            this->package = SO_PACKAGE_TRILINOS;
             this->method = meth;
-#endif
             break;
 #else
-            throw ValueError("Cannot use DIRECT solver method, the running "
-                    "escript was not compiled with a direct solver enabled");
+            throw ValueError("escript was not compiled with Trilinos enabled");
 #endif
         default:
             throw ValueError("unknown solver method");
@@ -531,36 +453,53 @@ SolverOptions SolverBuddy::getSolverMethod() const
     return method;
 }
 
-void SolverBuddy::setSolverTarget(int target)
-{
-    SolverOptions targ = static_cast<SolverOptions>(target);
-    switch (targ) {
-        case SO_TARGET_CPU:
-        case SO_TARGET_GPU:
-            this->target = targ;
-            break;
-        default:
-            throw ValueError("unknown solver target");
-    }
-}
-
-SolverOptions SolverBuddy::getSolverTarget() const
-{
-    return target;
-}
-
 void SolverBuddy::setPackage(int package)
 {
     SolverOptions pack = static_cast<SolverOptions>(package);
     switch (pack) {
         case SO_DEFAULT:
-        case SO_PACKAGE_CUSP:
-        case SO_PACKAGE_MKL:
-        case SO_PACKAGE_PASO:
-        case SO_PACKAGE_TRILINOS:
-        case SO_PACKAGE_UMFPACK:
-            this->package = pack;
+        // Default to trilinos if it is available, else use PASO
+        // This should always work because escript cannot be compiled
+        // unless at least one of these is available
+#ifdef ESYS_HAVE_TRILINOS
+            this->package = SO_PACKAGE_TRILINOS;
             break;
+#else
+            this->package = SO_PACKAGE_PASO;
+            break;
+#endif
+        // Set to PASO iff escript was compiled with PASO
+        case SO_PACKAGE_PASO:
+#ifdef ESYS_HAVE_PASO
+            this->package = SO_PACKAGE_PASO;
+            break;
+#else
+            throw ValueError("escript was not compiled with PASO enabled");
+#endif
+        // Set to Trilinos iff escript was compiled with Trilinos
+        case SO_PACKAGE_TRILINOS:
+#ifdef ESYS_HAVE_TRILINOS
+            this->package = SO_PACKAGE_TRILINOS;
+            break;
+#else
+            throw ValueError("escript was not compiled with Trilinos enabled");
+#endif
+        // Set to MKL iff escript was compiled with MKL
+        case SO_PACKAGE_MKL:
+#ifdef ESYS_HAVE_MKL
+            this->package = SO_PACKAGE_MKL;
+            break;
+#else
+            throw ValueError("escript was not compiled with MKL enabled");
+#endif
+        // Set to Umfpack iff escript was compiled with Umfpack
+        case SO_PACKAGE_UMFPACK:
+#ifdef ESYS_HAVE_UMFPACK
+            this->package = SO_PACKAGE_UMFPACK;
+            break;
+#else
+            throw ValueError("escript was not compiled with UMFPACK enabled");
+#endif
         default:
             throw ValueError("unknown solver package");
     }
@@ -612,18 +551,6 @@ int SolverBuddy::_getRestartForC() const
     return r;
 }
 
-void SolverBuddy::setDiagonalDominanceThreshold(double value)
-{
-    if (value < 0. || value > 1.)
-        throw ValueError("Diagonal dominance threshold must be between 0 and 1.");
-    diagonal_dominance_threshold = value;
-}
-
-double SolverBuddy::getDiagonalDominanceThreshold() const
-{
-    return diagonal_dominance_threshold;
-}
-
 void SolverBuddy::setTruncation(int truncation)
 {
     if (truncation < 1)
@@ -660,40 +587,6 @@ int SolverBuddy::getIterMax() const
     return iter_max;
 }
 
-void SolverBuddy::setLevelMax(int level_max)
-{
-    if (level_max < 0)
-        throw ValueError("maximum number of coarsening levels must be non-negative.");
-    this->level_max = level_max;
-}
-
-int SolverBuddy::getLevelMax() const
-{
-    return level_max;
-}
-
-void SolverBuddy::setCycleType(int cycle_type)
-{
-    this->cycle_type = cycle_type;
-}
-
-int SolverBuddy::getCycleType() const
-{
-    return cycle_type;
-}
-
-void SolverBuddy::setCoarseningThreshold(double theta)
-{
-    if (theta < 0. || theta > 1.)
-        throw ValueError("threshold must be between 0 and 1.");
-    coarsening_threshold = theta;
-}
-
-double SolverBuddy::getCoarseningThreshold() const
-{
-    return coarsening_threshold;
-}
-
 void SolverBuddy::setNumSweeps(int sweeps)
 {
     if (sweeps < 1)
@@ -704,30 +597,6 @@ void SolverBuddy::setNumSweeps(int sweeps)
 int SolverBuddy::getNumSweeps() const
 {
     return sweeps;
-}
-
-void SolverBuddy::setNumPreSweeps(int sweeps)
-{
-    if (sweeps < 1)
-        throw ValueError("number of pre-sweeps must be positive.");
-    pre_sweeps = sweeps;
-}
-
-int SolverBuddy::getNumPreSweeps() const
-{
-    return pre_sweeps;
-}
-
-void SolverBuddy::setNumPostSweeps(int sweeps)
-{
-    if (sweeps < 1)
-       throw ValueError("number of post-sweeps must be positive.");
-    post_sweeps = sweeps;
-}
-
-int SolverBuddy::getNumPostSweeps() const
-{
-    return post_sweeps;
 }
 
 void SolverBuddy::setTolerance(double rtol)
@@ -835,6 +704,29 @@ void SolverBuddy::setSymmetry(bool flag)
         setSymmetryOff();
 }
 
+bool SolverBuddy::isHermitian() const
+{
+    return hermitian;
+}
+
+void SolverBuddy::setHermitianOn()
+{
+    hermitian = true;
+}
+
+void SolverBuddy::setHermitianOff()
+{
+    hermitian = false;
+}
+
+void SolverBuddy::setHermitian(bool flag)
+{
+    if (flag)
+        setHermitianOn();
+    else
+        setHermitianOff();
+}
+
 bool SolverBuddy::isVerbose() const
 {
     return verbose;
@@ -927,18 +819,6 @@ void SolverBuddy::setLocalPreconditioner(bool use)
         setLocalPreconditionerOff();
 }
 
-void SolverBuddy::setMinCoarseMatrixSparsity(double sparsity)
-{
-    if (sparsity < 0. || sparsity > 1.)
-        throw ValueError("sparsity must be between 0 and 1.");
-    min_sparsity = sparsity;
-}
-
-double SolverBuddy::getMinCoarseMatrixSparsity() const
-{
-    return min_sparsity;
-}
-
 void SolverBuddy::setNumRefinements(int refinements)
 {
     if (refinements < 0)
@@ -949,60 +829,6 @@ void SolverBuddy::setNumRefinements(int refinements)
 int SolverBuddy::getNumRefinements() const
 {
     return refinements;
-}
-
-void SolverBuddy::setNumCoarseMatrixRefinements(int refinements)
-{
-    if (refinements < 0)
-        throw ValueError("number of coarse matrix refinements must be non-negative.");
-    coarse_refinements = refinements;
-}
-
-int SolverBuddy::getNumCoarseMatrixRefinements() const
-{
-    return coarse_refinements;
-}
-
-bool SolverBuddy::usePanel() const
-{
-    return use_panel;
-}
-
-void SolverBuddy::setUsePanelOn()
-{
-    use_panel = true;
-}
-
-void SolverBuddy::setUsePanelOff()
-{
-    use_panel = false;
-}
-
-void SolverBuddy::setUsePanel(bool use)
-{
-    if (use)
-        setUsePanelOn();
-    else
-        setUsePanelOff();
-}
-
-void SolverBuddy::setAMGInterpolation(int method)
-{
-    SolverOptions meth = static_cast<SolverOptions>(method);
-    switch (meth) {
-        case SO_INTERPOLATION_CLASSIC:
-        case SO_INTERPOLATION_CLASSIC_WITH_FF_COUPLING:
-        case SO_INTERPOLATION_DIRECT:
-            amg_interpolation_method = meth;
-            break;
-        default:
-            throw ValueError("unknown AMG interpolation method");
-    }
-}
-
-SolverOptions SolverBuddy::getAMGInterpolation() const
-{
-    return amg_interpolation_method;
 }
 
 void SolverBuddy::setODESolver(int method)
@@ -1028,13 +854,29 @@ void SolverBuddy::setTrilinosParameter(const std::string& name,
                                        const bp::object& value)
 {
 #ifdef ESYS_HAVE_TRILINOS
-    trilinosParams[name] = value;
+    if (value == "true" || value == "false"){
+        trilinosParams[name] = (value == "true" ? true : false);
+    } else {
+        trilinosParams[name] = value;
+    }
 #endif
 }
 
 bp::dict SolverBuddy::getTrilinosParameters() const
 {
     return trilinosParams;
+}
+
+void SolverBuddy::setDim(int dim)
+{
+    if (dim != 2 && dim != 3)
+        throw ValueError("Dimension must be either 2 or 3.");
+    this->dim = dim;
+}
+
+int SolverBuddy::getDim()
+{
+    return dim;
 }
 
 } // namespace escript

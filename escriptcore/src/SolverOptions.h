@@ -27,10 +27,7 @@ namespace escript {
 This enum defines the options for solving linear/non-linear systems with escript.
 
 SO_DEFAULT: use escript defaults for specific option
-SO_TARGET_CPU: use CPUs to solve system
-SO_TARGET_GPU: use GPUs to solve system
 
-SO_PACKAGE_CUSP: CUDA sparse linear algebra package
 SO_PACKAGE_MKL: Intel's MKL solver library
 SO_PACKAGE_PASO: PASO solver package
 SO_PACKAGE_TRILINOS: The TRILINOS parallel solver class library from Sandia National Labs
@@ -56,7 +53,6 @@ SO_METHOD_ROWSUM_LUMPING: Matrix lumping using row sum
 SO_METHOD_TFQMR: Transpose Free Quasi Minimal Residual method
 
 SO_PRECONDITIONER_AMG: Algebraic Multi Grid
-SO_PRECONDITIONER_AMLI: Algebraic Multi Level Iteration
 SO_PRECONDITIONER_GAUSS_SEIDEL: Gauss-Seidel preconditioner
 SO_PRECONDITIONER_ILU0: The incomplete LU factorization preconditioner with no fill-in
 SO_PRECONDITIONER_ILUT: The incomplete LU factorization preconditioner with fill-in
@@ -73,16 +69,6 @@ SO_INTERPOLATION_CLASSIC: classical interpolation in AMG
 SO_INTERPOLATION_CLASSIC_WITH_FF_COUPLING: classical interpolation in AMG with enforced
 SO_INTERPOLATION_DIRECT: direct interpolation in AMG
 
-SO_COARSENING_AGGREGATION: AMG and AMLI coarsening using (symmetric) aggregation
-SO_COARSENING_CIJP: BoomerAMG parallel coarsening method CIJP
-SO_COARSENING_CIJP_FIXED_RANDOM: BoomerAMG parallel coarsening method CIJP by using fixed random vector
-SO_COARSENING_FALGOUT: BoomerAMG parallel coarsening method falgout
-SO_COARSENING_HMIS: BoomerAMG parallel coarsening method HMIS
-SO_COARSENING_PMIS: BoomerAMG parallel coarsening method PMIS
-SO_COARSENING_RUGE_STUEBEN: AMG and AMLI coarsening method by Ruge and Stueben
-SO_COARSENING_STANDARD: AMG and AMLI standard coarsening using measure of importance of the unknowns
-SO_COARSENING_YAIR_SHAPIRA: AMG and AMLI coarsening method by Yair-Shapira
-
 SO_REORDERING_DEFAULT: the reordering method recommended by the solver
 SO_REORDERING_MINIMUM_FILL_IN: Reorder matrix to reduce fill-in during factorization
 SO_REORDERING_NESTED_DISSECTION: Reorder matrix to improve load balancing during factorization
@@ -92,12 +78,7 @@ enum SolverOptions
 {
     SO_DEFAULT,
 
-    // Solver targets
-    SO_TARGET_CPU,
-    SO_TARGET_GPU,
-
     // Solver packages
-    SO_PACKAGE_CUSP,
     SO_PACKAGE_MKL,
     SO_PACKAGE_PASO,
     SO_PACKAGE_TRILINOS,
@@ -127,7 +108,6 @@ enum SolverOptions
 
     // Preconditioners
     SO_PRECONDITIONER_AMG,
-    SO_PRECONDITIONER_AMLI,
     SO_PRECONDITIONER_GAUSS_SEIDEL,
     SO_PRECONDITIONER_ILU0,
     SO_PRECONDITIONER_ILUT,
@@ -145,17 +125,6 @@ enum SolverOptions
     SO_INTERPOLATION_CLASSIC,
     SO_INTERPOLATION_CLASSIC_WITH_FF_COUPLING,
     SO_INTERPOLATION_DIRECT,
-
-    // Coarsening methods
-    SO_COARSENING_AGGREGATION,
-    SO_COARSENING_CIJP,
-    SO_COARSENING_CIJP_FIXED_RANDOM,
-    SO_COARSENING_FALGOUT,
-    SO_COARSENING_HMIS,
-    SO_COARSENING_PMIS,
-    SO_COARSENING_RUGE_STUEBEN,
-    SO_COARSENING_STANDARD,
-    SO_COARSENING_YAIR_SHAPIRA,
 
     SO_REORDERING_DEFAULT,
     SO_REORDERING_MINIMUM_FILL_IN,
@@ -204,6 +173,11 @@ public:
                 counters are reset.
     */
     void resetDiagnostics(bool all=false);
+
+    /**
+        Initial settings
+    */
+    void setup();
 
     /**
         Updates diagnostic information
@@ -260,35 +234,6 @@ public:
     bool hasConverged() const;
 
     /**
-        Sets the key of the coarsening method to be applied in AMG or AMLI
-
-        \param coarsening the coarsening method, one of
-            `SO_DEFAULT`, `SO_COARSENING_YAIR_SHAPIRA`,
-            `SO_COARSENING_RUGE_STUEBEN`, `SO_COARSENING_AGGREGATION`,
-            `SO_COARSENING_CIJP_FIXED_RANDOM`, `SO_COARSENING_CIJP`,
-            `SO_COARSENING_FALGOUT`, `SO_COARSENING_PMIS`,
-            `SO_COARSENING_HMIS`
-    */
-    void setCoarsening(int coarsening);
-
-    /**
-        Returns the key of the coarsening algorithm to be applied for AMG or AMLI
-    */
-    SolverOptions getCoarsening() const;
-
-    /**
-        Sets the minimum size of the coarsest level matrix in AMG or AMLI
-
-        \param size minimum size of the coarsest level matrix .
-    */
-    void setMinCoarseMatrixSize(int size);
-
-    /**
-        Returns the minimum size of the coarsest level matrix in AMG or AMLI
-    */
-    int getMinCoarseMatrixSize() const;
-
-    /**
         Sets the preconditioner to be used.
 
         \param preconditioner key of the preconditioner to be used, one of
@@ -308,23 +253,6 @@ public:
         Returns the key of the preconditioner to be used.
     */
     SolverOptions getPreconditioner() const;
-
-    /**
-        Sets the smoother to be used.
-
-        \param smoother key of the smoother to be used, should be in
-               `SO_PRECONDITIONER_JACOBI`, `SO_PRECONDITIONER_GAUSS_SEIDEL`
-
-        \note Not all packages support all smoothers. It can be assumed that a
-              package makes a reasonable choice if it encounters an unknown
-              smoother.
-    */
-    void setSmoother(int smoother);
-
-    /**
-        Returns the key of the smoother to be used.
-    */
-    SolverOptions getSmoother() const;
 
     /**
         Sets the solver method to be used. Use ``method``=``SO_METHOD_DIRECT``
@@ -352,23 +280,6 @@ public:
         Returns key of the solver method to be used.
     */
     SolverOptions getSolverMethod() const;
-
-    /**
-        Sets the solver target to be used. By default the solver is run on
-        the host CPU(s). If escript was compiled with GPU support then
-        `SO_TARGET_GPU` is a valid option and the solver will run on GPU(s)
-        if the package supports it.
-
-        \param target key of the solver target. Valid settings:
-               `SO_TARGET_CPU`, `SO_TARGET_GPU`
-
-    */
-    void setSolverTarget(int target);
-
-    /**
-        Returns the key of the solver target.
-    */
-    SolverOptions getSolverTarget() const;
 
     /**
         Sets the solver package to be used as a solver.
@@ -428,18 +339,6 @@ public:
     int _getRestartForC() const;
 
     /**
-        Sets the threshold for diagonal dominant rows which are eliminated
-        during AMG coarsening.
-    */
-    void setDiagonalDominanceThreshold(double threshold);
-
-    /**
-        Returns the threshold for diagonal dominant rows which are eliminated
-        during AMG coarsening.
-    */
-    double getDiagonalDominanceThreshold() const;
-
-    /**
         Sets the number of residuals in GMRES to be stored for
         orthogonalization. The more residuals are stored the faster GMRES
         converges but more memory is required.
@@ -477,48 +376,6 @@ public:
     int getIterMax() const;
 
     /**
-        Sets the maximum number of coarsening levels to be used in an algebraic
-        multi level solver or preconditioner
-
-        \param level_max maximum number of levels
-    */
-    void setLevelMax(int level_max);
-
-    /**
-        Returns the maximum number of coarsening levels to be used in an
-        algebraic multi level solver or preconditioner
-    */
-    int getLevelMax() const;
-
-    /**
-        Sets the cycle type (V-cycle or W-cycle) to be used in an algebraic
-        multi level solver or preconditioner
-
-        \param cycle_type the type of cycle
-    */
-    void setCycleType(int cycle_type);
-
-    /**
-        Returns the cycle type (V- or W-cycle) to be used in an algebraic multi
-        level solver or preconditioner
-    */
-    int getCycleType() const;
-
-    /**
-        Sets the threshold for coarsening in the algebraic multi level solver
-        or preconditioner
-
-        \param theta threshold for coarsening
-    */
-    void setCoarseningThreshold(double theta);
-
-    /**
-        Returns the threshold for coarsening in the algebraic multi level
-        solver or preconditioner
-    */
-    double getCoarseningThreshold() const;
-
-    /**
         Sets the number of sweeps in a Jacobi or Gauss-Seidel/SOR
         preconditioner.
 
@@ -531,34 +388,6 @@ public:
         preconditioner.
     */
     int getNumSweeps() const;
-
-    /**
-        Sets the number of sweeps in the pre-smoothing step of a multi level
-        solver or preconditioner
-
-        \param sweeps number of sweeps
-    */
-    void setNumPreSweeps(int sweeps);
-
-    /**
-        Returns he number of sweeps in the pre-smoothing step of a multi level
-        solver or preconditioner
-    */
-    int getNumPreSweeps() const;
-
-    /**
-        Sets the number of sweeps in the post-smoothing step of a multi level
-        solver or preconditioner
-
-        \param sweeps number of sweeps
-    */
-    void setNumPostSweeps(int sweeps);
-
-    /**
-        Returns the number of sweeps in the post-smoothing step of a multi level
-        solver or preconditioner
-    */
-    int getNumPostSweeps() const;
 
     /**
         Sets the relative tolerance for the solver
@@ -678,6 +507,31 @@ public:
     void setSymmetry(bool symmetry);
 
     /**
+        Checks if the coefficient matrix is indicated to be Hermitian.
+
+        \return true if a Hermitian PDE is indicated, false otherwise
+    */
+    bool isHermitian() const;
+
+    /**
+        Sets the symmetry flag to indicate that the coefficient matrix is
+        Hermitian.
+    */
+    void setHermitianOn();
+
+    /**
+        Clears the Hermitian flag for the coefficient matrix.
+    */
+    void setHermitianOff();
+
+    /**
+        Sets the Hermitian flag for the coefficient matrix to ``flag``.
+
+        \param Hermitian If true, the symmetry flag is set otherwise reset.
+    */
+    void setHermitian(bool hermitian);
+
+    /**
         Returns ``true`` if the solver is expected to be verbose.
 
         \return true if verbosity is on
@@ -784,23 +638,6 @@ public:
     void setLocalPreconditioner(bool local);
 
     /**
-        Sets the minimum sparsity at the coarsest level. Typically a direct
-        solver is used when the sparsity becomes larger than the set limit.
-
-        \param sparsity minimal sparsity
-    */
-    void setMinCoarseMatrixSparsity(double sparsity);
-
-    /**
-        Returns the minimum sparsity on the coarsest level. Typically
-        a direct solver is used when the sparsity becomes bigger than
-        the set limit.
-
-        \returns minimal sparsity
-    */
-    double getMinCoarseMatrixSparsity() const;
-
-    /**
         Sets the number of refinement steps to refine the solution when a
         direct solver is applied.
 
@@ -813,60 +650,6 @@ public:
         direct solver is applied.
     */
     int getNumRefinements() const;
-
-    /**
-        Sets the number of refinement steps to refine the solution on the
-        coarsest level when a direct solver is applied.
-
-        \param refinements number of refinements
-    */
-    void setNumCoarseMatrixRefinements(int refinements);
-
-    /**
-        Returns the number of refinement steps to refine the solution on the
-        coarsest level when a direct solver is applied.
-    */
-    int getNumCoarseMatrixRefinements() const;
-
-    /**
-        Returns ``true`` if a panel is used to search for unknowns in the AMG
-        coarsening, The panel approach is normally faster but can lead to
-        larger coarse level systems.
-    */
-    bool usePanel() const;
-
-    /**
-        Sets the flag to use a panel to find unknowns in AMG coarsening
-    */
-    void setUsePanelOn();
-
-    /**
-        Sets the flag to use a panel to find unknowns in AMG coarsening to off
-    */
-    void setUsePanelOff();
-
-    /**
-        Sets the flag to use a panel to find unknowns in AMG coarsening
-
-        \param use If ``true``, a panel is used to find unknowns in AMG
-               coarsening
-    */
-    void setUsePanel(bool use);
-
-    /**
-        Sets the interpolation method for the AMG preconditioner.
-
-        \param interpolation key of the interpolation method to be used,
-               should be in
-               `SO_INTERPOLATION_CLASSIC_WITH_FF_COUPLING`,
-               `SO_INTERPOLATION_CLASSIC`, `SO_INTERPOLATION_DIRECT`
-    */
-    void setAMGInterpolation(int interpolation);
-
-    /**
-        Returns key of the interpolation method for the AMG preconditioner
-    */
-    SolverOptions getAMGInterpolation() const;
 
     /**
         Sets the solver method for ODEs.
@@ -900,23 +683,25 @@ public:
     */
     boost::python::dict getTrilinosParameters() const;
 
+    /**
+        Sets the dimension of the problem we are solving. 
+    */
+    void setDim(int dim);
+
+    /**
+        Returns the dimension of the problem we are solving. 
+    */
+    int getDim();
+
 protected:
     boost::python::dict trilinosParams;
 
-    SolverOptions target;
     SolverOptions package;
     SolverOptions method;
     SolverOptions preconditioner;
     SolverOptions ode_solver;
-    SolverOptions smoother;
     SolverOptions reordering;
-    SolverOptions coarsening;
-    SolverOptions amg_interpolation_method;
-    int level_max;
-    double coarsening_threshold;
     int sweeps;
-    int pre_sweeps;
-    int post_sweeps;
     double tolerance;
     double absolute_tolerance;
     double inner_tolerance;
@@ -928,18 +713,14 @@ protected:
     int restart; //0 will have to be None in python, will get tricky
     bool is_complex;
     bool symmetric;
+    bool hermitian;
     bool verbose;
     bool adapt_inner_tolerance;
     bool accept_convergence_failure;
-    int min_coarse_matrix_size;
     double relaxation;
     bool use_local_preconditioner;
-    double min_sparsity;
     int refinements;
-    int coarse_refinements;
-    bool use_panel;
-    double diagonal_dominance_threshold;
-    int cycle_type;
+    int dim; // Dimension of the problem, either 2 or 3. Used internally
 
     int num_iter;
     int num_level;

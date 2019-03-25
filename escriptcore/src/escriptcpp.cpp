@@ -954,10 +954,6 @@ args("source", "q", "r","factor"),
   enum_<escript::SolverOptions>("SolverOptions")
     .value("DEFAULT", escript::SO_DEFAULT)
 
-    .value("TARGET_CPU", escript::SO_TARGET_CPU)
-    .value("TARGET_GPU", escript::SO_TARGET_GPU)
-
-    .value("CUSP", escript::SO_PACKAGE_CUSP)
     .value("MKL", escript::SO_PACKAGE_MKL)
     .value("PASO", escript::SO_PACKAGE_PASO)
     .value("TRILINOS", escript::SO_PACKAGE_TRILINOS)
@@ -986,7 +982,6 @@ args("source", "q", "r","factor"),
     .value("TFQMR", escript::SO_METHOD_TFQMR)
 
     .value("AMG", escript::SO_PRECONDITIONER_AMG)
-    .value("AMLI", escript::SO_PRECONDITIONER_AMLI)
     .value("GAUSS_SEIDEL", escript::SO_PRECONDITIONER_GAUSS_SEIDEL)
     .value("ILU0", escript::SO_PRECONDITIONER_ILU0)
     .value("ILUT", escript::SO_PRECONDITIONER_ILUT)
@@ -1002,16 +997,6 @@ args("source", "q", "r","factor"),
     .value("CLASSIC_INTERPOLATION", escript::SO_INTERPOLATION_CLASSIC)
     .value("CLASSIC_INTERPOLATION_WITH_FF_COUPLING", escript::SO_INTERPOLATION_CLASSIC_WITH_FF_COUPLING)
     .value("DIRECT_INTERPOLATION", escript::SO_INTERPOLATION_DIRECT)
-
-    .value("AGGREGATION_COARSENING", escript::SO_COARSENING_AGGREGATION)
-    .value("CIJP_COARSENING", escript::SO_COARSENING_CIJP)
-    .value("CIJP_FIXED_RANDOM_COARSENING", escript::SO_COARSENING_CIJP_FIXED_RANDOM)
-    .value("FALGOUT_COARSENING", escript::SO_COARSENING_FALGOUT)
-    .value("HMIS_COARSENING", escript::SO_COARSENING_HMIS)
-    .value("PMIS_COARSENING", escript::SO_COARSENING_PMIS)
-    .value("RUGE_STUEBEN_COARSENING", escript::SO_COARSENING_RUGE_STUEBEN)
-    .value("STANDARD_COARSENING", escript::SO_COARSENING_STANDARD)
-    .value("YAIR_SHAPIRA_COARSENING", escript::SO_COARSENING_YAIR_SHAPIRA)
 
     .value("DEFAULT_REORDERING", escript::SO_REORDERING_DEFAULT)
     .value("MINIMUM_FILL_IN", escript::SO_REORDERING_MINIMUM_FILL_IN)
@@ -1070,28 +1055,13 @@ args("source", "q", "r","factor"),
     .def("hasConverged", &escript::SolverBuddy::hasConverged,"Returns ``True`` if the last solver call has been finalized successfully.\n\n"
         ":note: if an exception has been thrown by the solver the status of this"
         "flag is undefined.\n")
-    .def("setCoarsening", &escript::SolverBuddy::setCoarsening, args("coarsening"),"Sets the key of the coarsening method to be applied in AMG or AMLI\n\n"
-        ":param method: selects the coarsening method .\n"
-        ":type method: in `DEFAULT`, `YAIR_SHAPIRA_COARSENING`, `RUGE_STUEBEN_COARSENING`, `AGGREGATION_COARSENING`, `CIJP_FIXED_RANDOM_COARSENING`, `CIJP_COARSENING`, `FALGOUT_COARSENING`, `PMIS_COARSENING`, `HMIS_COARSENING`")
-    .def("getCoarsening", &escript::SolverBuddy::getCoarsening,"Returns the key of the coarsening algorithm to be applied AMG or AMLI\n\n"
-        ":rtype: in the list `DEFAULT`, `YAIR_SHAPIRA_COARSENING`, `RUGE_STUEBEN_COARSENING`, `AGGREGATION_COARSENING`, `CIJP_FIXED_RANDOM_COARSENING`, `CIJP_COARSENING`, `FALGOUT_COARSENING`, `PMIS_COARSENING`, `HMIS_COARSENING`")
-    .def("setMinCoarseMatrixSize", &escript::SolverBuddy::setMinCoarseMatrixSize, args("size"),"Sets the minimum size of the coarsest level matrix in AMG or AMLI\n\n"
-        ":param size: minimum size of the coarsest level matrix .\n"
-        ":type size: positive ``int``")
-    .def("getMinCoarseMatrixSize", &escript::SolverBuddy::getMinCoarseMatrixSize,"Returns the minimum size of the coarsest level matrix in AMG or AMLI")
     .def("setPreconditioner", &escript::SolverBuddy::setPreconditioner, args("preconditioner"),"Sets the preconditioner to be used.\n\n"
         ":param preconditioner: key of the preconditioner to be used.\n"
-        ":type preconditioner: in `ILU0`, `ILUT`, `JACOBI`, `AMG`, `AMLI`, `REC_ILU`, `GAUSS_SEIDEL`, `RILU`, `NO_PRECONDITIONER`\n"
+        ":type preconditioner: in `ILU0`, `ILUT`, `JACOBI`, `AMG`, , `REC_ILU`, `GAUSS_SEIDEL`, `RILU`, `NO_PRECONDITIONER`\n"
         ":note: Not all packages support all preconditioner. It can be assumed that a package makes a reasonable choice if it encounters an unknown"
         "preconditioner.\n")
     .def("getPreconditioner", &escript::SolverBuddy::getPreconditioner,"Returns the key of the preconditioner to be used.\n\n"
-        ":rtype: in the list `ILU0`, `ILUT`, `JACOBI`, `AMLI`, `AMG`, `REC_ILU`, `GAUSS_SEIDEL`, `RILU`,  `NO_PRECONDITIONER`")
-    .def("setSmoother", &escript::SolverBuddy::setSmoother, args("smoother"),"Sets the smoother to be used.\n\n"
-        ":param smoother: key of the smoother to be used.\n"
-        ":type smoother: in `JACOBI`, `GAUSS_SEIDEL`\n"
-        ":note: Not all packages support all smoothers. It can be assumed that a package makes a reasonable choice if it encounters an unknown smoother.")
-    .def("getSmoother", &escript::SolverBuddy::getSmoother,"Returns key of the smoother to be used.\n\n"
-        ":rtype: in the list `JACOBI`, `GAUSS_SEIDEL`")
+        ":rtype: in the list `ILU0`, `ILUT`, `JACOBI`, `AMG`, `REC_ILU`, `GAUSS_SEIDEL`, `RILU`,  `NO_PRECONDITIONER`")
     .def("setSolverMethod", &escript::SolverBuddy::setSolverMethod, args("method"),"Sets the solver method to be used. Use ``method``=``DIRECT`` to indicate that a direct rather than an iterative solver should be used and use ``method``=``ITERATIVE`` to indicate that an iterative rather than a direct solver should be used.\n\n"
         ":param method: key of the solver method to be used.\n"
         ":type method: in `DEFAULT`, `DIRECT`, `CHOLEVSKY`, `PCG`, `CR`, `CGS`, `BICGSTAB`, `GMRES`, `PRES20`, `ROWSUM_LUMPING`, `HRZ_LUMPING`, `ITERATIVE`, `NONLINEAR_GMRES`, `TFQMR`, `MINRES`\n"
@@ -1104,11 +1074,6 @@ args("source", "q", "r","factor"),
         ":note: Not all packages are support on all implementation. An exception may be thrown on some platforms if a particular package is requested.")
     .def("getPackage", &escript::SolverBuddy::getPackage,"Returns the solver package key\n\n"
         ":rtype: in the list `DEFAULT`, `PASO`, `CUSP`, `MKL`, `UMFPACK`, `TRILINOS`")
-    .def("setSolverTarget", &escript::SolverBuddy::setSolverTarget, args("target"),"Sets the solver target to be used.\n\n"
-        ":param target: key of the solver target to be used.\n"
-        ":type target: in `TARGET_CPU`, `TARGET_GPU`\n")
-    .def("getSolverTarget", &escript::SolverBuddy::getSolverTarget, "Returns the solver target key\n\n"
-        ":rtype: in the list `TARGET_CPU`, `TARGET_GPU`")
     .def("setReordering", &escript::SolverBuddy::setReordering, args("ordering"),"Sets the key of the reordering method to be applied if supported by the solver. Some direct solvers support reordering to optimize compute time and storage use during elimination.\n\n"
         ":param ordering: selects the reordering strategy.\n"
         ":type ordering: in 'NO_REORDERING', 'MINIMUM_FILL_IN', 'NESTED_DISSECTION', 'DEFAULT_REORDERING'")
@@ -1119,11 +1084,6 @@ args("source", "q", "r","factor"),
         ":type restart: ``int``")
     .def("getRestart", &escript::SolverBuddy::getRestart,"Returns the number of iterations steps after which GMRES performs a restart. If 0 is returned no restart is performed.\n\n"
         ":rtype: ``int``")
-    .def("setDiagonalDominanceThreshold", &escript::SolverBuddy::setDiagonalDominanceThreshold, args("threshold"),"Sets the threshold for diagonal dominant rows which are eliminated during AMG coarsening.\n\n"
-        ":param value: threshold\n"
-        ":type value: ``float``")
-    .def("getDiagonalDominanceThreshold", &escript::SolverBuddy::getDiagonalDominanceThreshold,"Returns the threshold for diagonal dominant rows which are eliminated during AMG coarsening.\n\n"
-        ":rtype: ``float``")
     .def("setTruncation", &escript::SolverBuddy::setTruncation, args("truncation"),"Sets the number of residuals in GMRES to be stored for orthogonalization. The more residuals are stored the faster GMRES converged\n\n"
         ":param truncation: truncation\n"
         ":type truncation: ``int``")
@@ -1139,39 +1099,10 @@ args("source", "q", "r","factor"),
         ":type iter_max: ``int``")
     .def("getIterMax", &escript::SolverBuddy::getIterMax,"Returns maximum number of iteration steps\n\n"
         ":rtype: ``int``")
-    .def("setLevelMax", &escript::SolverBuddy::setLevelMax, args("level_max"),"Sets the maximum number of coarsening levels to be used in an algebraic multi-level solver or preconditioner\n\n"
-        ":param level_max: maximum number of levels\n"
-        ":type level_max: ``int``")
-    .def("getLevelMax", &escript::SolverBuddy::getLevelMax,"Returns the maximum number of coarsening levels to be used in an algebraic multi level solver or preconditioner\n\n"
-        ":rtype: ``int``")
-    .def("setCycleType", &escript::SolverBuddy::setCycleType, args("cycle_type"),"Sets the cycle type (V-cycle or W-cycle) to be used in an algebraic multi-level solver or preconditioner\n\n"
-        ":param cycle_type: the type of cycle\n"
-        ":type cycle_type: ``int``")
-    .def("getCycleType", &escript::SolverBuddy::getCycleType,"Returns the cyle type (V- or W-cycle) to be used in an algebraic multi level solver or preconditioner\n\n"
-        ":rtype: ``int``")
-    .def("setCoarseningThreshold", &escript::SolverBuddy::setCoarseningThreshold, args("theta"),"Sets the threshold for coarsening in the algebraic multi level solver or\n"
-        "preconditioner\n\n"
-        ":param theta: threshold for coarsening\n"
-        ":type theta: positive ``float``")
-    .def("getCoarseningThreshold", &escript::SolverBuddy::getCoarseningThreshold,"Returns the threshold for coarsening in the algebraic multi level solver\n"
-        "or preconditioner\n\n"
-        ":rtype: ``float``")
     .def("setNumSweeps", &escript::SolverBuddy::setNumSweeps, args("sweeps"),"Sets the number of sweeps in a Jacobi or Gauss-Seidel/SOR preconditioner.\n\n"
         ":param sweeps: number of sweeps\n"
         ":type sweeps: positive ``int``")
     .def("getNumSweeps", &escript::SolverBuddy::getNumSweeps,"Returns the number of sweeps in a Jacobi or Gauss-Seidel/SOR preconditioner.\n\n"
-        ":rtype: ``int``")
-    .def("setNumPreSweeps", &escript::SolverBuddy::setNumPreSweeps, args("sweeps"),"Sets the number of sweeps in the pre-smoothing step of a multi level\n"
-        "solver or preconditioner\n\n"
-        ":param sweeps: number of sweeps\n"
-        ":type sweeps: positive ``int``")
-    .def("getNumPreSweeps", &escript::SolverBuddy::getNumPreSweeps,"Returns he number of sweeps in the pre-smoothing step of a multi level solver or preconditioner\n\n"
-        ":rtype: ``int``")
-    .def("setNumPostSweeps", &escript::SolverBuddy::setNumPostSweeps, args("sweeps"),"Sets the number of sweeps in the post-smoothing step of a multi level\n"
-        "solver or preconditioner\n\n"
-        ":param sweeps: number of sweeps\n"
-        ":type sweeps: positive ``int``")
-    .def("getNumPostSweeps", &escript::SolverBuddy::getNumPostSweeps,"Returns he number of sweeps in the post-smoothing step of a multi level solver or preconditioner\n\n"
         ":rtype: ``int``")
     .def("setTolerance", &escript::SolverBuddy::setTolerance, args("rtol"),"Sets the relative tolerance for the solver\n\n"
         ":param rtol: relative tolerance\n"
@@ -1211,6 +1142,11 @@ args("source", "q", "r","factor"),
     .def("setComplex", &escript::SolverBuddy::setComplex, args("complex"),"Sets the complex flag for the coefficient matrix to ``flag``.\n\n"
         ":param flag: If True, the complex flag is set otherwise reset.\n"
         ":type flag: ``bool``")
+    .def("setDim", &escript::SolverBuddy::setDim, args("dim"),"Sets the dimension of the problem.\n\n"
+        ":param dim: Either 2 or 3.\n"
+        ":rtype: ``int``")
+    .def("getDim", &escript::SolverBuddy::setDim, "Returns the dimension of the problem.\n\n"
+        ":rtype: ``int``")
     .def("isSymmetric", &escript::SolverBuddy::isSymmetric,"Checks if symmetry of the coefficient matrix is indicated.\n\n"
         ":return: True if a symmetric PDE is indicated, False otherwise\n"
         ":rtype: ``bool``")
@@ -1218,6 +1154,14 @@ args("source", "q", "r","factor"),
     .def("setSymmetryOff", &escript::SolverBuddy::setSymmetryOff,"Clears the symmetry flag for the coefficient matrix.")
     .def("setSymmetry", &escript::SolverBuddy::setSymmetry, args("symmetry"),"Sets the symmetry flag for the coefficient matrix to ``flag``.\n\n"
         ":param flag: If True, the symmetry flag is set otherwise reset.\n"
+        ":type flag: ``bool``")
+    .def("isHermitian", &escript::SolverBuddy::isHermitian,"Checks if the coefficient matrix is indicated to be Hermitian.\n\n"
+        ":return: True if a hermitian PDE is indicated, False otherwise\n"
+        ":rtype: ``bool``")
+    .def("setHermitianOn", &escript::SolverBuddy::setHermitianOn,"Sets the hermitian flag to indicate that the coefficient matrix is hermitian.")
+    .def("setHermitianOff", &escript::SolverBuddy::setHermitianOff,"Clears the hermitian flag for the coefficient matrix.")
+    .def("setHermitian", &escript::SolverBuddy::setHermitian, args("hermitian"),"Sets the hermitian flag for the coefficient matrix to ``flag``.\n\n"
+        ":param flag: If True, the hermitian flag is set otherwise reset.\n"
         ":type flag: ``bool``")
     .def("isVerbose", &escript::SolverBuddy::isVerbose,"Returns ``True`` if the solver is expected to be verbose.\n\n"
         ":return: True if verbosity of switched on.\n"
@@ -1253,35 +1197,11 @@ args("source", "q", "r","factor"),
     .def("setLocalPreconditioner", &escript::SolverBuddy::setLocalPreconditioner, args("local"),"Sets the flag to use  local preconditioning\n\n"
         ":param use: If ``True``, local preconditioning on each MPI rank is applied\n"
         ":type use: ``bool``")
-    .def("setMinCoarseMatrixSparsity", &escript::SolverBuddy::setMinCoarseMatrixSparsity, args("sparsity"),"Sets the minimum sparsity on the coarsest level. Typically a direct solver is used when the sparsity becomes bigger than the set limit.\n\n"
-        ":param sparsity: minimal sparsity\n"
-        ":type sparsity: ``float``")
-    .def("getMinCoarseMatrixSparsity", &escript::SolverBuddy::getMinCoarseMatrixSparsity,"Returns the minimum sparsity on the coarsest level. Typically a direct solver is used when the sparsity becomes bigger than the set limit.\n\n"
-        ":return: minimal sparsity\n"
-        ":rtype: ``float``")
     .def("setNumRefinements", &escript::SolverBuddy::setNumRefinements, args("refinements"),"Sets the number of refinement steps to refine the solution when a direct solver is applied.\n\n"
         ":param refinements: number of refinements\n"
         ":type refinements: non-negative ``int``")
     .def("getNumRefinements", &escript::SolverBuddy::getNumRefinements,"Returns the number of refinement steps to refine the solution when a direct solver is applied.\n\n"
         ":rtype: non-negative ``int``")
-    .def("setNumCoarseMatrixRefinements", &escript::SolverBuddy::setNumCoarseMatrixRefinements, args("refinements"),"Sets the number of refinement steps to refine the solution on the coarsest level when a direct solver is applied.\n\n"
-        ":param refinements: number of refinements\n"
-        ":type refinements: non-negative ``int``")
-    .def("getNumCoarseMatrixRefinements", &escript::SolverBuddy::getNumCoarseMatrixRefinements,"Returns the number of refinement steps to refine the solution on the coarsest level when a direct solver is applied.\n\n"
-        ":rtype: non-negative ``int``")
-    .def("usePanel", &escript::SolverBuddy::usePanel,"Returns ``True`` if a panel is used to search for unknown in the AMG coarsening, The panel approach is normally faster but can lead to larger coarse level systems.\n\n"
-        ":return: ``True`` if a panel is used to find unknowns in AMG coarsening\n"
-        ":rtype: ``bool``")
-    .def("setUsePanelOn", &escript::SolverBuddy::setUsePanelOn,"Sets the flag to use a panel to find unknowns in AMG coarsening")
-    .def("setUsePanelOff", &escript::SolverBuddy::setUsePanelOff,"Sets the flag to use a panel to find unknowns in AMG coarsening to off")
-    .def("setUsePanel", &escript::SolverBuddy::setUsePanel, args("use"),"Sets the flag to use  a panel to find unknowns in AMG coarsening\n\n"
-        ":param use: If ``True``,a panel is used to find unknowns in AMG coarsening\n"
-        ":type use: ``bool``")
-    .def("setAMGInterpolation", &escript::SolverBuddy::setAMGInterpolation, args("interpolation"),"Set the interpolation method for the AMG preconditioner.\n\n"
-        ":param method: key of the interpolation method to be used.\n"
-        ":type method: in `CLASSIC_INTERPOLATION_WITH_FF_COUPLING`, `CLASSIC_INTERPOLATION`, `DIRECT_INTERPOLATION`")
-    .def("getAMGInterpolation", &escript::SolverBuddy::getAMGInterpolation,"Returns key of the interpolation method for the SAMG preconditioner\n\n"
-        ":rtype: in the list `CLASSIC_INTERPOLATION_WITH_FF_COUPLING`, `CLASSIC_INTERPOLATION`, `DIRECT_INTERPOLATION`")
     .def("setODESolver", &escript::SolverBuddy::setODESolver, args("solver"),"Set the solver method for ODEs.\n\n"
         ":param method: key of the ODE solver method to be used.\n"
         ":type method: in `CRANK_NICOLSON`, `BACKWARD_EULER`, `LINEAR_CRANK_NICOLSON`")

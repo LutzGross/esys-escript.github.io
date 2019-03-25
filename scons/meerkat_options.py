@@ -18,16 +18,16 @@
 # Refer to README_FIRST for usage instructions.
 
 openmp = True
-umfpack = True
-silo = True
+# umfpack = True
+# silo = True
 # cuda = True
 # mpi = 'OPENMPI'
 verbose = True
-debug = True
-# trilinos = True
+#debug = True
+#trilinos = True
 # paso = False
 # parmetis = True
-visit = True
+# visit = True
 #werror = False
 # cxx = 'clang++'
 
@@ -39,11 +39,9 @@ escript_opts_version = 203
 import os
 import subprocess
 
-boost_prefix=['/home/adam/Documents/zzz/boost_1_68_0/','/home/adam/Documents/zzz/boost_1_68_0/stage/lib']
+#boost_prefix=['/home/adam/Documents/zzz/boost_1_68_0/','/home/adam/Documents/zzz/boost_1_68_0/stage/lib']
 
 cxx_extra += " -fmessage-length=80 -fdiagnostics-color=always "
-if trilinos is True:
-  cxx_extra += "  -Wno-deprecated-declarations -Wno-unused-variable "
 
 netcdf = 4
 mpi_libs = ['mpi_cxx', 'mpi']
@@ -60,8 +58,7 @@ umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
 visit_prefix = ['/usr/local/visit/2.13.2/linux-x86_64/libsim/V2/include/','/usr/local/visit/2.13.2/linux-x86_64/libsim/V2/lib/']
 
 trilinos_prefix =['/usr/local/trilinos/include/','/usr/local/trilinos/lib/']
-# trilinos_prefix =['/usr/local/trilinos_mpi/include/','/usr/local/trilinos_mpi/lib/']
- 
+
 
 p = subprocess.Popen(["ld","--verbose"], stdout=subprocess.PIPE)
 out,err = p.communicate()

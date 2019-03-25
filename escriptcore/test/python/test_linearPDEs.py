@@ -38,11 +38,13 @@ import numpy
 import esys.escriptcore.utestselect as unittest
 
 mpisize = getMPISizeWorld()
-# skip_amg = hasFeature("paso") and mpisize > 1
-skip_amg = True
+
 # Transport problems only work with paso
 no_paso = not hasFeature("paso")
+no_mkl = not hasFeature("mkl")
+no_umfpack = not hasFeature("umfpack")
 HAVE_DIRECT = hasFeature("trilinos") or hasFeature("umfpack") or hasFeature("mkl")
+HAVE_TRILINOS = hasFeature("trilinos")
 # PASO_DIRECT is only reported if we have paso and are running single rank
 CAN_USE_DIRECT = hasFeature("PASO_DIRECT") or hasFeature('trilinos')
 skip_muelu_long = False #no_paso and hasFeature("longindex")
@@ -404,42 +406,11 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
     def test_SolverOptions(self):
         sb=SolverBuddy()
         so=SolverOptions
-        self.assertTrue(sb.getSmoother() == so.GAUSS_SEIDEL, "initial Smoother is wrong.")
-        self.assertRaises(ValueError,sb.setSmoother,-1)
-        sb.setSmoother(so.GAUSS_SEIDEL)
-        self.assertTrue(sb.getSmoother() == so.GAUSS_SEIDEL, "Gauss-Seidel smoother is not set.")
-        sb.setSmoother(so.JACOBI)
-        self.assertTrue(sb.getSmoother() == so.JACOBI, "Jacobi smoother is not set.")
-
-        self.assertTrue(sb.getLevelMax() == 100, "initial LevelMax is wrong.")
-        self.assertRaises(ValueError,sb.setLevelMax,-1)
-        sb.setLevelMax(20)
-        self.assertTrue(sb.getLevelMax() == 20, "LevelMax is wrong.")
-
-        self.assertTrue(sb.getCoarseningThreshold() == 0.25, "initial CoarseningThreshold is wrong.")
-        self.assertRaises(ValueError,sb.setCoarseningThreshold,-1)
-        sb.setCoarseningThreshold(0.1)
-        self.assertTrue(sb.getCoarseningThreshold() == 0.1, "CoarseningThreshold is wrong.")
-        
-        self.assertTrue(sb.getMinCoarseMatrixSize() == 500, "initial Minimum Coarse Matrix Size is wrong.")
-        self.assertRaises(ValueError,sb.setMinCoarseMatrixSize,-1)
-        sb.setMinCoarseMatrixSize(1000)
-        self.assertTrue(sb.getMinCoarseMatrixSize() == 1000, "Minimum Coarse Matrix Size is wrong.")
-
+       
         self.assertTrue(sb.getNumSweeps() == 1, "initial number of sweeps is wrong.")
         self.assertRaises(ValueError,sb.setNumSweeps,-1)
         sb.setNumSweeps(3)
         self.assertTrue(sb.getNumSweeps() == 3, "Sweeps is wrong.")
-
-        self.assertTrue(sb.getNumPreSweeps() == 1, "initial PreSweeps is wrong.")
-        self.assertRaises(ValueError,sb.setNumPreSweeps,-1)
-        sb.setNumPreSweeps(4)
-        self.assertTrue(sb.getNumPreSweeps() == 4, "PreSweeps is wrong.")
-
-        self.assertTrue(sb.getNumPostSweeps() == 1, "initial PostSweeps is wrong.")
-        self.assertRaises(ValueError,sb.setNumPostSweeps,-1)
-        sb.setNumPostSweeps(5)
-        self.assertTrue(sb.getNumPostSweeps() == 5, "PostSweeps is wrong.")
 
         self.assertTrue(sb.getTolerance() == 1.e-8, "initial Tolerance is wrong.")
         self.assertRaises(ValueError,sb.setTolerance,-1)
@@ -513,6 +484,16 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         sb.setSymmetry(False)
         self.assertTrue(not sb.isSymmetric(), "symmetry (4) flag is wrong.")
 
+        self.assertTrue(not sb.isHermitian(), "initial hermitian flag is wrong.")
+        sb.setHermitianOn()
+        self.assertTrue(sb.isHermitian(), "hermitian (1) flag is wrong.")
+        sb.setHermitianOff()
+        self.assertTrue(not sb.isHermitian(), "hermitian (2) flag is wrong.")
+        sb.setHermitian(True)
+        self.assertTrue(sb.isHermitian(), "hermitian (3) flag is wrong.")
+        sb.setHermitian(False)
+        self.assertTrue(not sb.isHermitian(), "hermitian (4) flag is wrong.")
+
         self.assertTrue(sb.adaptInnerTolerance(), "initial InnerToleranceAdaption flag is wrong.")
         sb.setInnerToleranceAdaptionOn()
         self.assertTrue(sb.adaptInnerTolerance(), "InnerToleranceAdaption (1) flag is wrong.")
@@ -544,36 +525,62 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         sb.setReordering(so.DEFAULT_REORDERING)
         self.assertTrue(sb.getReordering() == so.DEFAULT_REORDERING, "DEFAULT_REORDERING is not set.")
         
-        self.assertTrue(sb.getPackage() == so.DEFAULT, "initial solver package is wrong.")
+        if hasFeature("trilinos"):
+            self.assertTrue(sb.getPackage() == so.TRILINOS, "initial solver package is wrong.")
+        else:
+            self.assertTrue(sb.getPackage() == so.PASO, "initial solver package is wrong.")
         self.assertRaises(ValueError,sb.setPackage,-1)
-        sb.setPackage(so.PASO)
-        self.assertTrue(sb.getPackage() == so.PASO, "PASO is not set.")
-        sb.setPackage(so.CUSP)
-        self.assertTrue(sb.getPackage() == so.CUSP, "CUSP is not set.")
-        sb.setPackage(so.MKL)
-        self.assertTrue(sb.getPackage() == so.MKL, "MKL is not set.")
-        sb.setPackage(so.UMFPACK)
-        self.assertTrue(sb.getPackage() == so.UMFPACK, "UMFPACK is not set.")
-        sb.setPackage(so.TRILINOS)
-        self.assertTrue(sb.getPackage() == so.TRILINOS, "TRILINOS is not set.")
 
-        self.assertTrue(sb.getSolverMethod() == so.DEFAULT, "initial SolverMethod is wrong.")
+        if no_paso:
+            with self.assertRaises(ValueError) as package:
+                sb.setPackage(so.PASO)
+            self.assertTrue('not compiled' in str(package.exception))
+        else:
+            sb.setPackage(so.PASO)
+            self.assertTrue(sb.getPackage() == so.PASO, "PASO is not set.")
+
+        if no_mkl:
+            with self.assertRaises(ValueError) as package:
+                sb.setPackage(so.MKL)
+            self.assertTrue('not compiled' in str(package.exception))
+        else:
+            sb.setPackage(so.MKL)
+            self.assertTrue(sb.getPackage() == so.MKL, "MKL is not set.")
+
+        if no_umfpack:
+            with self.assertRaises(ValueError) as package:
+                sb.setPackage(so.UMFPACK)
+            self.assertTrue('not compiled' in str(package.exception))
+        else:
+            sb.setPackage(so.UMFPACK)
+            self.assertTrue(sb.getPackage() == so.UMFPACK, "UMFPACK is not set.")
+
+        if HAVE_TRILINOS is False:
+            with self.assertRaises(ValueError) as package:
+                sb.setPackage(so.TRILINOS)
+            self.assertTrue('not compiled' in str(package.exception))
+        else:
+            sb.setPackage(so.TRILINOS)
+            self.assertTrue(sb.getPackage() == so.TRILINOS, "Trilinos is not set.")
+
+        # self.assertTrue(sb.getSolverMethod() == so.DEFAULT, "initial SolverMethod is wrong.") 
         self.assertRaises(ValueError,sb.setSolverMethod,-1)
 
-        if not HAVE_DIRECT:
+        if HAVE_DIRECT is False:
             with self.assertRaises(ValueError) as package:
                 sb.setSolverMethod(so.DIRECT)
             self.assertTrue('not compiled' in str(package.exception))
         else:
             sb.setSolverMethod(so.DIRECT)
-            self.assertTrue(sb.getSolverMethod() == so.DIRECT, "DIRECT is not set.")
+            if HAVE_TRILINOS:
+                self.assertTrue(sb.getSolverMethod() == so.DIRECT_TRILINOS, "DIRECT_TRILINOS is not set.")
+            else:
+                self.assertTrue(sb.getSolverMethod() == so.DIRECT, "DIRECT is not set.")
 
         sb.setSolverMethod(so.CHOLEVSKY)
         self.assertTrue(sb.getSolverMethod() == so.CHOLEVSKY, "CHOLEVSKY is not set.")
         sb.setSolverMethod(so.PCG)
         self.assertTrue(sb.getSolverMethod() == so.PCG, "PCG is not set.")
-        sb.setSolverMethod(so.CR)
-        self.assertTrue(sb.getSolverMethod() == so.CR, "CR is not set.")
         sb.setSolverMethod(so.CGS)
         self.assertTrue(sb.getSolverMethod() == so.CGS, "CGS is not set.")
         sb.setSolverMethod(so.BICGSTAB)
@@ -586,16 +593,31 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(sb.getSolverMethod() == so.LUMPING, "LUMPING is not set.")
         sb.setSolverMethod(so.ITERATIVE)
         self.assertTrue(sb.getSolverMethod() == so.ITERATIVE, "ITERATIVE is not set.")
-        sb.setSolverMethod(so.LSQR)
-        self.assertTrue(sb.getSolverMethod() == so.LSQR, "LSQR is not set.")
         sb.setSolverMethod(so.NONLINEAR_GMRES)
         self.assertTrue(sb.getSolverMethod() == so.NONLINEAR_GMRES, "NONLINEAR_GMRES is not set.")
         sb.setSolverMethod(so.TFQMR)
         self.assertTrue(sb.getSolverMethod() == so.TFQMR, "TFQMR is not set.")
         sb.setSolverMethod(so.MINRES)
         self.assertTrue(sb.getSolverMethod() == so.MINRES, "MINRES is not set.")
-        sb.setSolverMethod(so.DEFAULT)
-        self.assertTrue(sb.getSolverMethod() == so.DEFAULT, "DEFAULT is not set.")
+
+        if HAVE_TRILINOS:
+            sb.setSolverMethod(so.CR)
+            self.assertTrue(sb.getSolverMethod() == so.CR, "CR is not set.")
+            sb.setSolverMethod(so.CGLS)
+            self.assertTrue(sb.getSolverMethod() == so.CGLS, "CGLS is not set.")
+            sb.setSolverMethod(so.LSQR)
+            self.assertTrue(sb.getSolverMethod() == so.LSQR, "LSQR is not set.")
+            self.assertTrue(sb.getPackage() == so.TRILINOS, "Trilinos is not set.")
+        else:
+            with self.assertRaises(ValueError) as package:
+                sb.setSolverMethod(so.CR)
+            self.assertTrue('not compiled' in str(package.exception))
+            with self.assertRaises(ValueError) as package:
+                sb.setSolverMethod(so.CGLS)
+            self.assertTrue('not compiled' in str(package.exception))
+            with self.assertRaises(ValueError) as package:
+                sb.setSolverMethod(so.LSQR)
+            self.assertTrue('not compiled' in str(package.exception))
 
         self.assertTrue(sb.getPreconditioner() == so.JACOBI, "initial Preconditioner is wrong.")
         self.assertRaises(ValueError,sb.setPreconditioner,-1)
@@ -605,32 +627,12 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(sb.getPreconditioner() == so.ILUT, "ILUT is not set.")
         sb.setPreconditioner(so.JACOBI)
         self.assertTrue(sb.getPreconditioner() == so.JACOBI, "JACOBI is not set.")
-        if skip_amg:
-            print("Paso AMG test disabled with more than 1 MPI rank")
-        else:
-            sb.setPreconditioner(so.AMG)
-            self.assertTrue(sb.getPreconditioner() == so.AMG, "AMG is not set.")
         sb.setPreconditioner(so.GAUSS_SEIDEL)
         self.assertTrue(sb.getPreconditioner() == so.GAUSS_SEIDEL, "GAUSS_SEIDEL is not set.")
         sb.setPreconditioner(so.RILU)
         self.assertTrue(sb.getPreconditioner() == so.RILU, "RILU is not set.")
-        sb.setPreconditioner(so.AMLI)
-        self.assertTrue(sb.getPreconditioner() == so.AMLI, "AMLI is not set.")
         sb.setPreconditioner(so.NO_PRECONDITIONER)
         self.assertTrue(sb.getPreconditioner() == so.NO_PRECONDITIONER, "NO_PRECONDITIONER is not set.")        
-
-        self.assertTrue(sb.getCoarsening() == so.DEFAULT, "initial Coarsening is wrong.")
-        self.assertRaises(ValueError,sb.setCoarsening,-1)
-        sb.setCoarsening(so.YAIR_SHAPIRA_COARSENING)
-        self.assertTrue(sb.getCoarsening() == so.YAIR_SHAPIRA_COARSENING, "YAIR_SHAPIRA_COARSENING is not set.")
-        sb.setCoarsening(so.RUGE_STUEBEN_COARSENING)
-        self.assertTrue(sb.getCoarsening() == so.RUGE_STUEBEN_COARSENING, "RUGE_STUEBEN_COARSENING is not set.")
-        sb.setCoarsening(so.AGGREGATION_COARSENING)
-        self.assertTrue(sb.getCoarsening() == so.AGGREGATION_COARSENING, "AGREGATION_COARSENING is not set.")
-        sb.setCoarsening(so.STANDARD_COARSENING)
-        self.assertTrue(sb.getCoarsening() == so.STANDARD_COARSENING, "STANDARD_COARSENING is not set.")
-        sb.setCoarsening(so.DEFAULT)
-        self.assertTrue(sb.getCoarsening() == so.DEFAULT, "DEFAULT is not set.")
 
         self.assertTrue(sb.getDiagnostics("num_iter") == 0, "initial num_iter is wrong.")
         self.assertTrue(sb.getDiagnostics("num_inner_iter") == 0, "initial num_inner_iter is wrong.")
@@ -1714,6 +1716,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
     def test_symmetryOnIterative(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.ITERATIVE)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
@@ -1735,17 +1738,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
-    @unittest.skipIf(skip_amg, "Paso AMG test disabled on more than 1 MPI rank")
-    @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
-    def test_PCG_AMG(self):
-        if self.order!=2:
-            mypde=LinearPDE(self.domain,debug=self.DEBUG)
-            mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-            mypde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-            mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
-            mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-            u=mypde.getSolution()
-            self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_PCG_ILU0(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -1770,23 +1762,21 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
+
+    @unittest.skipIf(not(HAVE_DIRECT), "need to install escript with a direct solver")
     def test_DIRECT(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-        if not HAVE_DIRECT:
-            with self.assertRaises(ValueError) as package:
-                mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
-            self.assertTrue('not compiled' in str(package.exception))
-            return
-        else:
-            mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-        if not CAN_USE_DIRECT:
-            with self.assertRaises(RuntimeError) as package:
-                u=mypde.getSolution()
-        else:
-            u=mypde.getSolution()
-            self.assertTrue(self.check(u,1.),'solution is wrong.')
+        # if not CAN_USE_DIRECT:
+        #     with self.assertRaises(RuntimeError) as package:
+        #         u=mypde.getSolution()
+        # else:
+        #     u=mypde.getSolution()
+        #     self.assertTrue(self.check(u,1.),'solution is wrong.')
+        u=mypde.getSolution()
+        self.assertTrue(self.check(u,1.),'solution is wrong.')
 
     def test_BICGSTAB_JACOBI(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
@@ -1806,17 +1796,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
-    @unittest.skipIf(skip_amg, "Paso AMG test disabled on more than 1 MPI rank")
-    @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
-    def test_BICGSTAB_AMG(self):
-        if self.order!=2:
-            mypde=LinearPDE(self.domain,debug=self.DEBUG)
-            mypde.getSolverOptions().setSolverMethod(SolverOptions.BICGSTAB)
-            mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
-            mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-            mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-            u=mypde.getSolution()
-            self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_BICGSTAB_ILU0(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -1854,23 +1833,11 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setSolverMethod(SolverOptions.MINRES)
         mypde.getSolverOptions().setPreconditioner(SolverOptions.GAUSS_SEIDEL)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-        if not hasFeature('paso'):
+        if HAVE_TRILINOS:
             mypde.getSolverOptions().setNumSweeps(350)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
-
-    @unittest.skipIf(skip_amg, "Paso AMG test disabled on more than 1 MPI rank")
-    @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
-    def test_MINRES_AMG(self):
-        if self.order!=2:
-            mypde=LinearPDE(self.domain,debug=self.DEBUG)
-            mypde.getSolverOptions().setSolverMethod(SolverOptions.MINRES)
-            mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
-            mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-            mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-            u=mypde.getSolution()
-            self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_MINRES_ILU0(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -1913,17 +1880,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
-    @unittest.skipIf(skip_amg, "Paso AMG test disabled on more than 1 MPI rank")
-    @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
-    def test_TFQMR_AMG(self):
-        if self.order!=2:
-            mypde=LinearPDE(self.domain,debug=self.DEBUG)
-            mypde.getSolverOptions().setSolverMethod(SolverOptions.TFQMR)
-            mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
-            mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-            mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-            u=mypde.getSolution()
-            self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_TFQMR_ILU0(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -1966,17 +1922,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
-    @unittest.skipIf(skip_amg, "Paso AMG test disabled on more than 1 MPI rank")
-    @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
-    def test_PRES20_AMG(self):
-        if self.order!=2:
-            mypde=LinearPDE(self.domain,debug=self.DEBUG)
-            mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-            mypde.getSolverOptions().setSolverMethod(SolverOptions.PRES20)
-            mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
-            mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-            u=mypde.getSolution()
-            self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_PRES20_ILU0(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -2021,18 +1966,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
-    @unittest.skipIf(skip_amg, "Paso AMG test disabled on more than 1 MPI rank")
-    @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
-    def test_GMRESnoRestart_AMG(self):
-        if self.order!=2:
-            mypde=LinearPDE(self.domain,debug=self.DEBUG)
-            mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-            mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
-            mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
-            mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-            mypde.getSolverOptions().setTruncation(50)
-            u=mypde.getSolution()
-            self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_GMRESnoRestart_ILU0(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -2078,17 +2011,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
-    @unittest.skipIf(skip_amg, "Paso AMG test disabled on more than 1 MPI rank")
-    @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
-    def test_GMRES_AMG(self):
-        if self.order!=2:
-            mypde=LinearPDE(self.domain,debug=self.DEBUG)
-            mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-            mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
-            mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
-            mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-            u=mypde.getSolution()
-            self.assertTrue(self.check(u,1.),'solution is wrong.')        
     def test_GMRES_ILU0(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -2135,19 +2057,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
-    @unittest.skipIf(skip_amg, "Paso AMG test disabled on more than 1 MPI rank")
-    @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
-    def test_GMRES_truncation_restart_AMG(self):
-        if self.order!=2:
-            mypde=LinearPDE(self.domain,debug=self.DEBUG)
-            mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-            mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
-            mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
-            mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-            mypde.getSolverOptions().setTruncation(10)
-            mypde.getSolverOptions().setRestart(20)
-            u=mypde.getSolution()
-            self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_GMRES_truncation_restart_ILU0(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -2192,6 +2101,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=A,D=D,Y=Y)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.ITERATIVE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
@@ -2227,24 +2137,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
-    @unittest.skipIf(skip_amg, "Paso AMG test disabled on more than 1 MPI rank")
-    @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
-    def test_PCG_AMG_System(self):
-        if self.order!=2:
-            A=Tensor4(0.,Function(self.domain))
-            D=Tensor(1.,Function(self.domain))
-            Y=Vector(self.domain.getDim(),Function(self.domain))
-            for i in range(self.domain.getDim()): 
-                A[i,:,i,:]=kronecker(self.domain)
-                D[i,i]+=i
-                Y[i]+=i
-            mypde=LinearPDE(self.domain,debug=self.DEBUG)
-            mypde.setValue(A=A,D=D,Y=Y)
-            mypde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-            mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
-            mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-            u=mypde.getSolution()
-            self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_PCG_ILU0_System(self):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
@@ -2260,30 +2152,29 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
+    
+    @unittest.skipIf(not(HAVE_DIRECT), "need to install escript with a direct solver")
     def test_DIRECT_System(self):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
         Y=Vector(self.domain.getDim(),Function(self.domain))
-        for i in range(self.domain.getDim()): 
+        for i in range(self.domain.getDim()):
             A[i,:,i,:]=kronecker(self.domain)
             D[i,i]+=i
             Y[i]+=i
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=A,D=D,Y=Y)
-        if not HAVE_DIRECT:
-            with self.assertRaises(ValueError) as package:
-                mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
-            self.assertTrue('not compiled' in str(package.exception))
-            return
-        else:
-            mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-        if not CAN_USE_DIRECT:
-            with self.assertRaises(RuntimeError) as package:
-                u=mypde.getSolution()
-        else:
-            u=mypde.getSolution()
-            self.assertTrue(self.check(u,1.),'solution is wrong.')
+        # if not CAN_USE_DIRECT:
+        #     with self.assertRaises(RuntimeError) as package:
+        #         u=mypde.getSolution()
+        # else:
+        #     u=mypde.getSolution()
+        #     self.assertTrue(self.check(u,1.),'solution is wrong.')
+        u=mypde.getSolution()
+        self.assertTrue(self.check(u,1.),'solution is wrong.')
+
     def test_BICGSTAB_JACOBI_System(self):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
@@ -2316,24 +2207,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
-    @unittest.skipIf(skip_amg, "Paso AMG test disabled on more than 1 MPI rank")
-    @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
-    def test_BICGSTAB_AMG_System(self):
-        if self.order!=2:
-            A=Tensor4(0.,Function(self.domain))
-            D=Tensor(1.,Function(self.domain))
-            Y=Vector(self.domain.getDim(),Function(self.domain))
-            for i in range(self.domain.getDim()): 
-                A[i,:,i,:]=kronecker(self.domain)
-                D[i,i]+=i
-                Y[i]+=i
-            mypde=LinearPDE(self.domain,debug=self.DEBUG)
-            mypde.setValue(A=A,D=D,Y=Y)
-            mypde.getSolverOptions().setSolverMethod(SolverOptions.BICGSTAB)
-            mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
-            mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-            u=mypde.getSolution()
-            self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_BICGSTAB_ILU0_System(self):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
@@ -2381,24 +2254,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
-    @unittest.skipIf(skip_amg, "Paso AMG test disabled on more than 1 MPI rank")
-    @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
-    def test_PRES20_AMG_System(self):
-        if self.order!=2:
-            A=Tensor4(0.,Function(self.domain))
-            D=Tensor(1.,Function(self.domain))
-            Y=Vector(self.domain.getDim(),Function(self.domain))
-            for i in range(self.domain.getDim()): 
-                A[i,:,i,:]=kronecker(self.domain)
-                D[i,i]+=i
-                Y[i]+=i
-            mypde=LinearPDE(self.domain,debug=self.DEBUG)
-            mypde.setValue(A=A,D=D,Y=Y)
-            mypde.getSolverOptions().setSolverMethod(SolverOptions.PRES20)
-            mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
-            mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-            u=mypde.getSolution()
-            self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_PRES20_ILU0_System(self):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
@@ -2446,25 +2301,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
-    @unittest.skipIf(skip_amg, "Paso AMG test disabled on more than 1 MPI rank")
-    @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
-    def test_GMRESnoRestart_AMG_System(self):
-        if self.order!=2:
-            A=Tensor4(0.,Function(self.domain))
-            D=Tensor(1.,Function(self.domain))
-            Y=Vector(self.domain.getDim(),Function(self.domain))
-            for i in range(self.domain.getDim()): 
-                A[i,:,i,:]=kronecker(self.domain)
-                D[i,i]+=i
-                Y[i]+=i
-            mypde=LinearPDE(self.domain,debug=self.DEBUG)
-            mypde.setValue(A=A,D=D,Y=Y)
-            mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
-            mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
-            # u=mypde.getSolution(verbose=self.VERBOSE,truncation=5)
-            mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-            u=mypde.getSolution()
-            self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_GMRESnoRestart_ILU0_System(self):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
@@ -2513,24 +2349,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
-    @unittest.skipIf(skip_amg, "Paso AMG test disabled on more than 1 MPI rank")
-    @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
-    def test_GMRES_AMG_System(self):
-        if self.order!=2:
-            A=Tensor4(0.,Function(self.domain))
-            D=Tensor(1.,Function(self.domain))
-            Y=Vector(self.domain.getDim(),Function(self.domain))
-            for i in range(self.domain.getDim()): 
-                A[i,:,i,:]=kronecker(self.domain)
-                D[i,i]+=i
-                Y[i]+=i
-            mypde=LinearPDE(self.domain,debug=self.DEBUG)
-            mypde.setValue(A=A,D=D,Y=Y)
-            mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
-            mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
-            mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-            u=mypde.getSolution()
-            self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_GMRES_ILU0_System(self):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
@@ -2582,26 +2400,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
-    @unittest.skipIf(skip_amg, "Paso AMG test disabled on more than 1 MPI rank")
-    @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
-    def test_GMRES_truncation_restart_AMG_System(self):
-        if self.order!=2:
-            A=Tensor4(0.,Function(self.domain))
-            D=Tensor(1.,Function(self.domain))
-            Y=Vector(self.domain.getDim(),Function(self.domain))
-            for i in range(self.domain.getDim()): 
-                A[i,:,i,:]=kronecker(self.domain)
-                D[i,i]+=i
-                Y[i]+=i
-            mypde=LinearPDE(self.domain,debug=self.DEBUG)
-            mypde.setValue(A=A,D=D,Y=Y)
-            mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
-            mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
-            mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-            mypde.getSolverOptions().setTruncation(10)
-            mypde.getSolverOptions().setRestart(20)
-            u=mypde.getSolution()
-            self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_GMRES_truncation_restart_ILU0_System(self):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
@@ -2822,7 +2620,7 @@ class Test_LinearPDE(Test_LinearPDE_noLumping):
         u=mypde.getSolution()
         self.assertTrue(self.check(u,0.5),'second solution is wrong.')
 
-
+@unittest.skipIf(no_paso, "Transport PDEs require Paso")
 class Test_TransportPDE(Test_linearPDEs):
     N=4
 

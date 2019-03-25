@@ -22,9 +22,6 @@
 #include <escript/index.h>
 #include <escript/SolverOptions.h>
 
-#ifdef ESYS_HAVE_CUDA
-#include <ripley/RipleySystemMatrix.h>
-#endif
 #ifdef ESYS_HAVE_TRILINOS
 #include <trilinoswrap/TrilinosMatrixAdapter.h>
 #endif
@@ -864,35 +861,6 @@ int RipleyDomain::getSystemMatrixTypeId(const bp::object& options) const
     bool isDirect = escript::isDirectSolver(method);
 #endif
 
-    // use CUSP for single rank and supported solvers+preconditioners if CUDA
-    // is available, PASO or Trilinos otherwise
-#ifdef ESYS_HAVE_CUDA
-    if (package == escript::SO_DEFAULT) {
-        if (m_mpiInfo->size == 1) {
-            switch (method) {
-                case escript::SO_DEFAULT:
-                case escript::SO_METHOD_BICGSTAB:
-                case escript::SO_METHOD_CGLS:
-                case escript::SO_METHOD_GMRES:
-                case escript::SO_METHOD_LSQR:
-                case escript::SO_METHOD_PCG:
-                case escript::SO_METHOD_PRES20:
-                    package = escript::SO_PACKAGE_CUSP;
-                    break;
-                default:
-                    package = escript::SO_DEFAULT;
-                    break;
-            }
-            if (package == escript::SO_PACKAGE_CUSP) {
-                if (sb.getPreconditioner() != escript::SO_PRECONDITIONER_NONE &&
-                        sb.getPreconditioner() != escript::SO_PRECONDITIONER_JACOBI) {
-                    package = escript::SO_DEFAULT;
-                }
-            }
-        }
-    }
-#endif // ESYS_HAVE_CUDA
-
     // the configuration of ripley should have taken care that we have either
     // paso or trilinos so here's how we prioritize
 #if defined(ESYS_HAVE_PASO) && defined(ESYS_HAVE_TRILINOS)
@@ -913,18 +881,7 @@ int RipleyDomain::getSystemMatrixTypeId(const bp::object& options) const
     if (package == escript::SO_DEFAULT)
         package = escript::SO_PACKAGE_TRILINOS;
 #endif
-    if (package == escript::SO_PACKAGE_CUSP) {
-        if (m_mpiInfo->size > 1) {
-            throw NotImplementedError("CUSP matrices are not supported with more than one rank");
-        }
-        if (sb.isComplex()) {
-            throw NotImplementedError("CUSP does not support complex-valued matrices");
-        }
-        int type = (int)SMT_CUSP;
-        if (sb.isSymmetric())
-            type |= (int)SMT_SYMMETRIC;
-        return type;
-    } else if (package == escript::SO_PACKAGE_TRILINOS) {
+    if (package == escript::SO_PACKAGE_TRILINOS) {
 #ifdef ESYS_HAVE_TRILINOS
         int type = (int)SMT_TRILINOS;
         if (sb.isComplex())
@@ -999,16 +956,8 @@ escript::ASM_ptr RipleyDomain::newSystemMatrix(int row_blocksize,
     //    throw NotImplementedError("newSystemMatrix: reduced order not supported");
 
     if (type & (int)SMT_CUSP) {
-#ifdef ESYS_HAVE_CUDA
-        const dim_t numMatrixRows = getNumDOF();
-        bool symmetric = (type & (int)SMT_SYMMETRIC);
-        escript::ASM_ptr sm(new SystemMatrix(m_mpiInfo, row_blocksize,
-                    row_functionspace, numMatrixRows,
-                    getDiagonalIndices(symmetric), symmetric));
-        return sm;
-#else
-        throw RipleyException("newSystemMatrix: ripley was not compiled with "
-               "CUDA support so CUSP solvers & matrices are not available.");
+#ifndef ESYS_HAVE_CUDA
+        throw RipleyException("eScript does not support CUDA.");
 #endif
     } else if (type & (int)SMT_TRILINOS) {
 #ifdef ESYS_HAVE_TRILINOS

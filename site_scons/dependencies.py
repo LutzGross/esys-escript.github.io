@@ -420,12 +420,13 @@ def checkForTrilinos(env):
         conf = Configure(env.Clone())
 
         dependencies=['Amesos2.hpp','Amesos2_Solver_decl.hpp','BelosSolverFactory.hpp','BelosSolverManager.hpp',\
-        'BelosTpetraAdapter.hpp','BelosTypes.hpp','Ifpack2_Factory.hpp','Kokkos_DefaultNode.hpp',\
-        'MatrixMarket_Tpetra.hpp','MueLu_CreateTpetraPreconditioner.hpp','Tpetra_CrsGraph.hpp',\
-        'Tpetra_CrsMatrix.hpp','Tpetra_DefaultPlatform.hpp','Tpetra_Experimental_BlockCrsMatrix_Helpers.hpp',\
+        'BelosTFQMRIter.hpp','BelosTFQMRSolMgr.hpp','BelosTpetraAdapter.hpp','BelosTypes.hpp',\
+        'Ifpack2_Factory.hpp','Kokkos_DefaultNode.hpp',\
+        'MatrixMarket_Tpetra.hpp','MueLu_CreateTpetraPreconditioner.hpp',\
+        'Teuchos_DefaultComm.hpp','Teuchos_ParameterList.hpp',\
+        'Tpetra_CrsGraph.hpp','Tpetra_CrsMatrix.hpp','Tpetra_DefaultPlatform.hpp','Tpetra_Experimental_BlockCrsMatrix_Helpers.hpp',\
         'Tpetra_Experimental_BlockCrsMatrix.hpp','Tpetra_Experimental_BlockVector.hpp','Tpetra_RowMatrix.hpp',\
-        'Tpetra_Vector.hpp','Teuchos_DefaultComm.hpp','Teuchos_ParameterList.hpp', \
-        'BelosTFQMRIter.hpp','BelosTFQMRSolMgr.hpp']
+        'Tpetra_Vector.hpp']
 
         print("Looking for the Trilinos headers...")
         for check in dependencies:
