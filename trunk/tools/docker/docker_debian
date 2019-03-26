@@ -1,0 +1,11 @@
+FROM debian:stretch-slim
+
+WORKDIR /app
+COPY . /app
+
+# Install any needed packages specified in requirements.txt
+RUN apt-get update
+RUN apt-get install -y python-escript
+
+# Command to run
+CMD run-escript
