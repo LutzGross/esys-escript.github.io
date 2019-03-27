@@ -1,9 +1,13 @@
 {
-    "app-id": "uq.escript.finley",
+    "app-id": "uq.esys.escript",
     "runtime": "org.freedesktop.Platform",
     "runtime-version": "18.08",
     "sdk": "org.freedesktop.Sdk",
     "command": "run-escript",
+    "cleanup": [
+        "/app/man",
+        "/app/share"
+    ],
     "modules": [
         {
             "name": "python",
@@ -141,14 +145,12 @@
         },
         {
             "name": "hdf5",
-            "cleanup": [
-                "/bin",
-                "/share"
-            ],
             "sources": [
                 {
                     "type": "git",
-                    "url": "https://bitbucket.hdfgroup.org/scm/hdffv/hdf5.git"
+                    "url": "https://bitbucket.hdfgroup.org/scm/hdffv/hdf5.git",
+                    "tag": "hdf5-1_10_5",
+                    "commit": "dc9412f73acfd0f887f7a112533ea078fedd1f19"
                 }
             ]
         },
@@ -349,7 +351,9 @@
             "sources": [
                 {
                     "type": "git",
-                    "url": "https://github.com/trilinos/Trilinos"
+                    "url": "https://github.com/trilinos/Trilinos",
+                    "tag": "trilinos-release-12-14-1",
+                    "commit": "e3c83e3d5caca8f59432f6f5d2e33ae142a16eff"
                 }
             ]
         },
@@ -380,7 +384,9 @@
             "sources": [
                 {
                     "type": "git",
-                    "url": "https://github.com/SCons/scons"
+                    "url": "https://github.com/SCons/scons",
+                    "tag": "3.0.4",
+                    "commit": "73b2c02d7088c6d6490fdede8396d88103b00482"
                 }
             ]
         },
@@ -388,13 +394,14 @@
             "name": "escript",
             "buildsystem": "simple",
             "build-commands": [
-                "scons options_file=scons/flatpak_options.py -j`nproc --all` ",
+                "scons options_file=scons/flatpak_options.py -j`nproc --all`",
                 "mv /app/bin/run-escript /app/bin/run-escriptB"
             ],
             "sources": [
                 {
                     "type": "svn",
-                    "url": "https://svn.geocomp.uq.edu.au/svn/esys13/trunk"
+                    "url": "https://svn.geocomp.uq.edu.au/svn/esys13/trunk",
+                    "revision": "6800"
                 }
             ]
         },

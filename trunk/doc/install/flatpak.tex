@@ -17,7 +17,7 @@
 
 \chapter{Installing from flatpak}\label{chap:flatpak}
 
-To install \escript on any linux distribution using flatpak, first install flatpak\footnote{Requires flatpak and flatpak-builder version 1.20 or higher.} then add the flathub repo and install the freedesktop SDK
+To install \escript on any linux distribution using flatpak, first install both flatpak and flatpak-builder version 1.20 or later\footnote{If using debian linux, this will require installing flatpak and flatpak-builder from the stretch backports repository.} then add the flathub repo and install the freedesktop SDK
 
 \begin{smallShellCode}
 flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
@@ -30,20 +30,20 @@ Now, download the flatpak manifest file\footnote{Available at \url{https://launc
 flatpak-builder --install --user [some build directory] [path to escript.json]
 \end{smallShellCode}
 
-You can now run escript by typing
+This will install escript with both the Trilinos and PASO solver libraries, with openMP but without OPENMPI. You can now run escript by typing
 
 \begin{smallShellCode}
-flatpak run uq.escript.finley [other arguments to pass to escript]
+flatpak run uq.esys.escript [other arguments to pass to escript]
 \end{smallShellCode}
 
 Unfortunately, flatpak runs applications inside an isolated environment called a `sandbox'. Consequently, \escript will not be able to access any python modules that have been installed on the system. To install a python module inside the flatpak sandbox, so that \escript can load them, type
 
 \begin{smallShellCode}
-flatpak run uq.escript.finley pip3 install [module name]
+flatpak run uq.esys.escript pip3 install [module name]
 \end{smallShellCode}
 
 Finally, to uninstall \escript, type
 
 \begin{smallShellCode}
-flatpak uninstall finley
+flatpak uninstall escript
 \end{smallShellCode}
