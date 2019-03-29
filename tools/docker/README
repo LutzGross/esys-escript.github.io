@@ -4,11 +4,15 @@ Briefly...
 
 Creates a debian:stretch docker container and then installs python-escript from the debian repository.
 
-./build_flatpak.sh
+./build_trilinos.sh
 
 Creates a debian:sid docker container, downloads some libraries from stretch, then runs a script that downloads and compiles escript with Trilinos. 
 
+./build_flatpak.sh
 
-Once either of these installs has been run, escript can be run using:
+Loads an unofficial flatpak-builder docker container and then runs the flatpak install script.
+
+
+Once any of these installs has been run, escript can be run using:
 
 docker run escript [name of your escript]
