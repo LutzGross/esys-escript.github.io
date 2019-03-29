@@ -5,4 +5,4 @@ if [ "$EUID" -ne 0 ]
 	exit
 fi
 
-docker build --tag=escript -f docker_trilinos .
+docker build --tag=escript5.3 -f docker_trilinos .
