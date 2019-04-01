@@ -29,10 +29,12 @@ if local_env['pdflatex']:
 
     # Define command to include SVN revision 
     local_env.Append(PDFLATEXFLAGS=[interaction,'\\\\newcommand{\\\\RepVersion}{%s\\\\xspace}\\\\input{install.tex}'%(local_env['svn_revision'])])
+    install_pdf_name='install.r'+env['svn_revision']+".pdf"
     pdf=local_env.PDF(target='install.pdf', source='install.tex')
     Depends(pdf, tex_src)
 
-    pdf_path=os.path.join(release_dir, 'install', 'install.pdf')
+#    pdf_path=os.path.join(release_dir, 'install', 'install.pdf')
+    pdf_path=os.path.join(release_dir, 'install', install_pdf_name)
     pdf_inst=local_env.InstallAs(target=pdf_path, source='install.pdf')
     env.Alias('install_pdf', pdf_inst)
 else:
