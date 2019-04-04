@@ -1,25 +1,92 @@
 FROM debian:stretch-slim
 
+LABEL maintainer="a.ellery@uq.edu.au"
+
 WORKDIR /app
 COPY . /app
 
-RUN echo deb http://deb.debian.org/debian stretch-backports main >> /etc/apt/sources.list
+ENV DEBIAN_FRONTEND=noninteractive
+RUN echo deb http://deb.debian.org/debian stretch-backports main contrib non-free >> /etc/apt/sources.list
+RUN echo deb http://deb.debian.org/debian stretch main contrib non-free >> /etc/apt/sources.list
 RUN echo deb http://deb.debian.org/debian jessie main >> /etc/apt/sources.list
-RUN apt-get update
-RUN apt-get -t stretch-backports install -y cmake
-RUN apt-get -t jessie install -y libsuperlu-dev
-RUN apt-get -t stretch install -y gmsh git g++ gfortran python3 python3-dev python3-numpy python3-sympy python3-matplotlib python3-scipy python3-pyproj python3-gdal libboost-python-dev libboost-random-dev libboost-iostreams-dev libnetcdf-dev libnetcdf-cxx-legacy-dev libnetcdf-c++4-dev libmetis-dev libmumps-dev libopenmpi-dev libsilo-dev libscotchparmetis-dev libsuitesparse-dev scons subversion lsb-release
-RUN mkdir /app/trilinos_source
+RUN apt-get update && \
+apt-get -t stretch-backports install -y cmake libmkl-dev libparmetis-dev && \
+apt-get -t jessie install -y libsuperlu-dev libsuitesparse-dev && \
+apt-get -t stretch install -y gmsh git g++ python3 python3-dev python3-numpy python3-sympy \
+			python3-matplotlib python3-scipy python3-pip python3-pyproj python3-gdal \
+			libboost-python-dev libboost-random-dev libboost-iostreams-dev libmetis-dev \
+			libmumps-dev libnetcdf-dev libnetcdf-cxx-legacy-dev libnetcdf-c++4-dev libopenmpi-dev \
+			libsilo-dev scons subversion lsb-release vim
 RUN git clone https://github.com/trilinos/Trilinos /app/trilinos_source
-RUN cd /app/trilinos_source && git reset --hard f94b7be34e20e8ac35a1f475f58231f651a2f5c8
+RUN cd /app/trilinos_source && git reset --hard c87c9f7224b36c845aa7ef19a636f9c99c9c02d4
 RUN mkdir /app/trilinos_build
-RUN cd /app/trilinos_build
-RUN cmake -D C_COMPILER=`which g++` -D CXX_COMPILER=`which g++` -D Fortran_COMPILER=`which gfortran` -D CXX_FLAGS="-w -O3 -fdiagnostics-color=always" -D CC_FLAGS="-w -O3 -fdiagnostics-color=always" _D Fortran_FLAGS="-w -O3" -D CMAKE_INSTALL_PREFIX=/app/trilinos/ -D Trilinos_ENABLE_CXX11=ON -D Trilinos_ENABLE_Fortran=ON -D BUILD_SHARED_LIBS=ON -D TPL_ENABLE_BLAS=ON -D TPL_ENABLE_LAPACK=ON -D TPL_ENABLE_Boost=ON -D TPL_ENABLE_Cholmod=ON -D TPL_ENABLE_CppUnit=OFF -D TPL_ENABLE_Matio=OFF -D TPL_ENABLE_METIS=ON -D TPL_ENABLE_MUMPS=ON -D TPL_ENABLE_ParMETIS=OFF -D TPL_ENABLE_Pthread=ON -D TPL_ENABLE_SCALAPACK=ON -D TPL_ENABLE_SuperLU=ON -D TPL_ENABLE_UMFPACK=ON -D TPL_BLAS_INCLUDE_DIRS=/usr/include/suitesparse -D TPL_Cholmod_INCLUDE_DIRS=/usr/include/suitesparse -D TPL_Cholmod_LIBRARIES='/usr/lib/x86_64-linux-gnu/libcholmod.so;/usr/lib/x86_64-linux-gnu/libamd.so;/usr/lib/x86_64-linux-gnu/libcolamd.so' -D TPL_UMFPACK_INCLUDE_DIRS=/usr/include/suitesparse -D TPL_SCALAPACK_LIBRARIES=/usr/lib/libscalapack-openmpi.so -D TPL_SuperLU_INCLUDE_DIRS=/usr/include/superlu -D Trilinos_ENABLE_Amesos=ON -D Trilinos_ENABLE_Amesos2=ON -D Trilinos_ENABLE_Belos=ON -D Trilinos_ENABLE_Ifpack2=ON -D Trilinos_ENABLE_Kokkos=ON -D Trilinos_ENABLE_MueLu=ON -D Trilinos_ENABLE_Teuchos=ON -D Trilinos_ENABLE_Tpetra=ON -D Trilinos_ENABLE_EXPLICIT_INSTANTIATION=ON -D Trilinos_ENABLE_COMPLEX=ON -D Trilinos_ENABLE_OpenMP=ON -D TPL_ENABLE_MPI=ON -D Trilinos_ENABLE_ALL_OPTIONAL_PACKAGES=ON -D KOKKOS_ENABLE_AGGRESSIVE_VECTORIZATION=ON /app/trilinos_source
-RUN make -j`nproc` install
-RUN rm -rf /app/trilinos_build
-RUN rm -rf /app/trilinos_source
+RUN cd /app/trilinos_build && \
+	cmake \
+		-D MPI_CXX_COMPILER=`which mpic++` \
+		-D MPI_C_COMPILER=`which mpicc` \
+		-D MPI_Fortrain_COMPILER=`which mpif77` \
+		-D CMAKE_INSTALL_PREFIX=/usr/local \
+		-D CMAKE_BUILD_TYPE=RELEASE \
+		-D CMAKE_VERBOSE_MAKEFILE=FALSE \
+		-D CMAKE_C_FLAGS=' -O3 -w -fPIC -fopenmp ' \
+		-D CMAKE_CXX_FLAGS=' -O3 -w -fPIC -fopenmp ' \
+		-D CMAKE_Fortran_FLAGS=' -O3 -w -fPIC -fopenmp ' \
+		-D Trilinos_ENABLE_CXX11=ON \
+		-D Trilinos_ENABLE_Fortran=ON \
+		-D BUILD_SHARED_LIBS=ON \
+		-D TPL_ENABLE_MKL=ON \
+		-D TPL_MKL_INCLUDE_DIRS=/usr/include/mkl \
+		-D TPL_ENABLE_PARDISO_MKL=ON \
+		-D TPL_PARDISO_MKL_INCLUDE_DIRS=/usr/include/mkl \
+		-D TPL_ENABLE_BLAS=ON \
+		-D TPL_BLAS_INCLUDE_DIRS=/usr/include/suitesparse \
+		-D TPL_ENABLE_Cholmod=ON \
+		-D TPL_Cholmod_INCLUDE_DIRS=/usr/include/suitesparse \
+		-D TPL_Cholmod_LIBRARIES='libamd.so;libcolamd.so;libcholmod.so;libsuitesparseconfig.so' \
+		-D TPL_ENABLE_LAPACK=ON \
+		-D TPL_ENABLE_Boost=ON \
+		-D TPL_ENABLE_MUMPS=ON \
+		-D TPL_MUMPS_INCLUDE_DIRS=/usr/include/ \
+		-D TPL_ENABLE_METIS=ON \
+		-D TPL_METIS_INCLUDE_DIRS=/usr/include/ \
+		-D TPL_ENABLE_ParMETIS=ON \
+		-D TPL_ENABLE_ScaLAPACK=ON \
+		-D TPL_ENABLE_SuperLU=ON \
+		-D TPL_SuperLU_INCLUDE_DIRS=/usr/include/superlu \
+		-D TPL_ENABLE_UMFPACK=ON \
+		-D TPL_UMFPACK_INCLUDE_DIRS=/usr/include/suitesparse \
+		-D Trilinos_ENABLE_Amesos2=ON \
+		-D Trilinos_ENABLE_Belos=ON \
+		-D Trilinos_ENABLE_Ifpack2=ON \
+		-D Trilinos_ENABLE_Kokkos=ON \
+		-D Trilinos_ENABLE_MueLu=ON \
+		-D Trilinos_ENABLE_Teuchos=ON \
+		-D Trilinos_ENABLE_Tpetra=ON \
+		-D Amesos2_ENABLE_Basker=ON \
+		-D Trilinos_ENABLE_EXPLICIT_INSTANTIATION=ON \
+		-D Trilinos_ENABLE_COMPLEX=ON \
+		-D Trilinos_ENABLE_OpenMP=ON \
+		-D TPL_ENABLE_MPI=ON \
+		-D Trilinos_ENABLE_ALL_OPTIONAL_PACKAGES=ON \
+		-D TpetraKernels_ENABLE_Experimental=ON \
+		-D TPL_FIND_SHARED_LIBS=ON \
+		-D Trilinos_LINK_SEARCH_START_STATIC=OFF /app/trilinos_source && \
+	make -j`nproc` install
+RUN rm -rf /app/trilinos_build /app/trilinos_source
 RUN svn co https://svn.geocomp.uq.edu.au/svn/esys13/trunk /app/escript
-RUN cd /app/escript && scons options_file=scons/templates/stretch_py3_options.py paso=1 umfpack=1 trilinos=1 -j`nproc` prefix=/app/ trilinos_prefix=/app/trilinos/ werror=0 mpi=OPENMPI insane=True
-RUN rm -rf /app/escript
+RUN cd /app/escript && scons options_file=scons/templates/sid_py3_options.py \
+		paso=1 umfpack=1 trilinos=1  werror=0 -j`nproc` prefix=/usr/local \
+		trilinos_prefix=/usr/local mpi=OPENMPI insane=True
+ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+ENV PYTHONPATH=/usr/local/:$PYTHONPATH
+ENV PATH=/usr/local/bin:$PATH
+RUN install /app/dockerwrapper.sh /usr/local/bin/dockerwrapper.sh
+#RUN rm -rf /app/
+RUN useradd -ms /bin/bash appuser
+USER appuser
 
-CMD /app/bin/run-escript
+# Mount folder
+VOLUME /data
+
+#CMD ["/usr/local/bin/run-escript"]
+ENTRYPOINT ["/usr/local/bin/dockerwrapper.sh"]
