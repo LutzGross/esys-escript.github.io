@@ -1,0 +1,49 @@
+package:
+  name: escript
+  version: 3.5
+
+source:
+  - fn:  boost_1_69_0.tar.gz
+    url: https://dl.bintray.com/boostorg/release/1.69.0/source/boost_1_69_0.tar.gz
+    sha256: 9a2c2819310839ea373f42d69e733c339b4e9a19deab6bfec448281554aa4dbb
+    folder: Boost_Source
+
+  - git_url: https://github.com/trilinos/Trilinos
+    git_commit: e3c83e3d5caca8f59432f6f5d2e33ae142a16eff
+    folder: Trilinos_Source
+
+  - svn_url: https://svn.geocomp.uq.edu.au/svn/esys13/trunk
+    svn_rev: 6800
+    folder: escript
+
+build:
+  features:
+    - vc9               [win and py27]
+    - vc10              [win and py34]
+    - vc14              [win and py35]
+
+requirements:
+  build:
+    - python =2.7
+    - bzip2             [unix]
+    - zlib
+    - svn
+    - scons <=3.0.0
+    - cmake
+    - make
+    - numpy
+    - scipy
+    - sympy
+    - pyproj
+    - matplotlib
+    - gdal
+
+  run:
+    - python =2.7
+    - zlib
+    - numpy
+    - scipy
+    - sympy
+    - pyproj
+    - matplotlib
+    - gdal
