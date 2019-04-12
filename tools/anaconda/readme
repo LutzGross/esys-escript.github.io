@@ -1,0 +1,23 @@
+ 
+Briefly, the files build.sh and bld.bat contain conda build scripts for escript for linux and windows, respectively. The file meta.yaml contains metadata that tells anaconda where to locate source tarballs, code repositories etc. and how the build environment and the run environment should be set up. To build the escript package, run the command
+
+conda-build .
+
+inside the directory containing these files. This will build escript and then output a *.tar.bz2 file containing the build information in a directory named "conda-bld" in the anaconda install directory. This file may be in a subdirectory named after the host operating system such as "linux-64" or "win-32" etc. Once this is done, to upload this file to the anaconda cloud, first login using
+
+anaconda login
+
+and then type
+
+anaconda upload [path to file]
+
+After the file is uploaded, an end-user can then install/uninstall escript using the commands
+
+conda install -c [username] escript
+conda uninstall -c escript
+
+Note that if you are compiling on linux, the build script assumes that gcc, g++, gfortran, svn, etc. and other relevant tools are already installed on your system. Similarly, when building on windows the build script assumes that the microsoft compiler is installed. If the script fails to clone the Trilinos repository on windows due to a "Filename too long" error, it may be necessary to configure git to use longpaths. This can be done by running
+
+git config --system core.longpaths true
+
+Note that the build scripts currently use static linking.
