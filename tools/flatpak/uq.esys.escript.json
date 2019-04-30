@@ -344,7 +344,7 @@
                 "-DTrilinos_ENABLE_COMPLEX=ON",
                 "-DTrilinos_ENABLE_OpenMP=ON",
                 "-DTrilinos_ENABLE_MPI=OFF",
-                "-DTrilinos_ENABLE_ALL_OPTIONAL_PACKAGES=OFF",
+                "-DTrilinos_ENABLE_ALL_OPTIONAL_PACKAGES=ON",
                 "-DTrilinos_ENABLE_EXPLICIT_INSTANTIATION=ON"
             ],
             "builddir": true,

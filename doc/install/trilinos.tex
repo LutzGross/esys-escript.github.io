@@ -66,38 +66,24 @@ cmake \
       -D TPL_ENABLE_UMFPACK=ON \
       -D TPL_BLAS_INCLUDE_DIRS=/usr/include/suitesparse \
       -D TPL_Cholmod_INCLUDE_DIRS=/usr/include/suitesparse \
-      -D TPL_Cholmod_LIBRARIES='/usr/lib/x86_64-linux-gnu/libcholmod.so;/usr/lib/x86_64-linux-gnu/libamd.so;/usr/lib/x86_64-linux-gnu/libcolamd.so' \
+      -D TPL_Cholmod_LIBRARIES='libcholmod.so;libamd.so;libcolamd.so' \
       -D TPL_UMFPACK_INCLUDE_DIRS=/usr/include/suitesparse \
       -D TPL_SCALAPACK_LIBRARIES=/usr/lib/libscalapack-openmpi.so \
-      -D Trilinos_ENABLE_Amesos=ON \
       -D Trilinos_ENABLE_Amesos2=ON \
-      -D Trilinos_ENABLE_Anasazi=OFF \
-      -D Trilinos_ENABLE_AztecOO=ON \
       -D Trilinos_ENABLE_Belos=ON \
-      -D Trilinos_ENABLE_Epetra=ON \
-      -D Trilinos_ENABLE_EpetraExt=ON \
-      -D Trilinos_ENABLE_Galeri=OFF \
-      -D Trilinos_ENABLE_Ifpack=ON \
       -D Trilinos_ENABLE_Ifpack2=ON \
-      -D Trilinos_ENABLE_Isorropia=OFF \
       -D Trilinos_ENABLE_Kokkos=ON \
       -D Trilinos_ENABLE_Komplex=ON \
       -D Trilinos_ENABLE_MueLu=ON \
-      -D Trilinos_ENABLE_ML=OFF \
-      -D Trilinos_ENABLE_Moertel=OFF \
       -D Trilinos_ENABLE_Teuchos=ON \
       -D Trilinos_ENABLE_Tpetra=ON \
-      -D Trilinos_ENABLE_Thyra=OFF \
-      -D Trilinos_ENABLE_Pliris=OFF \
-      -D Trilinos_ENABLE_PyTrilinos=OFF \
-      -D Trilinos_ENABLE_Zoltan=OFF \
-      -D Trilinos_ENABLE_Zoltan2=OFF \
       -D Trilinos_ENABLE_EXPLICIT_INSTANTIATION=ON \
       -D Trilinos_ENABLE_COMPLEX=ON \
       -D Trilinos_ENABLE_OpenMP=ON \
       -D TPL_ENABLE_MPI=ON \
-      -D Trilinos_ENABLE_ALL_OPTIONAL_PACKAGES=OFF \
+      -D Trilinos_ENABLE_ALL_OPTIONAL_PACKAGES=ON \
       -D KOKKOS_ENABLE_AGGRESSIVE_VECTORIZATION=ON \
+      -D Tpetra_INST_SERIAL:BOOL=ON \
 $EXTRA_ARGS \
 $TRILINOS_PATH
 \end{verbatim}

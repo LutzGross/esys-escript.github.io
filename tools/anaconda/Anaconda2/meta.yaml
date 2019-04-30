@@ -3,35 +3,6 @@ package:
   version: 3.5
 
 source:
-  - fn: v0.4.1.tar.gz
-    url: https://github.com/JuliaLang/openlibm/archive/v0.4.1.tar.gz
-    sha1: 0ef73a47e33dd08c0ff2766c7b67a2c4ae9f6927
-    folder: openlibm_source
-
-  - fn: lapack-3.8.0.tar.gz
-    url: http://www.netlib.org/lapack/lapack-3.8.0.tar.gz
-    sha1: 55ac9d6be510883c5442c8aca967722cdf58fb29
-    folder: lapack_source
-
-  # - fn: netcdf-c-4.6.2.tar.gz
-  #   url: ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-c-4.6.2.tar.gz
-  #   sha256: c37525981167b3cd82d32e1afa3022afb94e59287db5f116c57f5ed4d9c6a638
-  #   folder: netcdf_source
-
-  # - fn: netcdf-cxx4-4.3.0.tar.gz
-  #   url: ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-cxx4-4.3.0.tar.gz
-  #   sha256: e34fbc6aba243ec82c23e9ee99db2430555ada849c54c1f3ab081b0ddd0f5f30
-  #   folder: netcdf_cxx_source
-
-  - fn:  boost_1_69_0.tar.gz
-    url: https://dl.bintray.com/boostorg/release/1.69.0/source/boost_1_69_0.tar.gz
-    sha256: 9a2c2819310839ea373f42d69e733c339b4e9a19deab6bfec448281554aa4dbb
-    folder: boost_source
-
-  - git_url: https://github.com/trilinos/Trilinos
-    git_commit: e3c83e3d5caca8f59432f6f5d2e33ae142a16eff
-    folder: trilinos_source
-
   - svn_url: https://svn.geocomp.uq.edu.au/svn/esys13/trunk
     svn_rev: 6805
     folder: escript
@@ -44,59 +15,49 @@ build:
 
 requirements:
   build:
-    - atlas             [unix]
-    - blas              
-    - bzip2             
-    - cmake
-    - gdal
-    - git
-    - gxx_linux-64      [unix]
+    - esys-escript-dev-deps
     - gcc_linux-64      [unix]
-    - gfortran_linux-64 [unix]
-    - msvc_runtime      [win]
+    - gdal
+    - gxx_linux-64      [unix]
+    - hdf4
     - hdf5
-    - libgcc
+    - libgcc            [unix]
     - libnetcdf
-    - make              
     - matplotlib
-    - metis
-    - mkl
+    - m2w64-gcc >5.3.0                 [win]
+    - m2w64-gcc-fortran >5.3.0         [win]
+    - m2w64-gcc-libs >5.3.0            [win]
+    - m2w64-gcc-libgfortran >5.3.0     [win]
     - netcdf4
-    - numpy 
+    - numpy
     - python =2.7
     - pyproj
     - scipy
-    - scons <=3.0.0
-    - suitesparse
-    - svn
+    - scons
     - sympy
-    - zlib
+    - svn
     
   run:
-    - atlas             [unix]
-    - blas              
-    - hdf5
+    - esys-escript-dev-deps
     - gdal
-    - libgcc
+    - hdf4
+    - hdf5
     - libnetcdf
     - matplotlib
-    - metis
-    - mkl
-    - numpy 
+    - netcdf4
+    - numpy
     - python =2.7
     - pyproj
     - scipy
     - suitesparse
     - sympy
-    - zlib
 
 about:
   home: https://launchpad.net/escript-finley
   license: Apache2
   summary: esys-escript is a programming tool for implementing mathematical 
     models in python using the finite element method (FEM).
-  description: |
-    esys-escript is a programming tool for implementing mathematical 
+  description: esys-escript is a programming tool for implementing mathematical 
     models in python using the finite element method (FEM). As users
     do not access the data structures it is very easy to use and 
     scripts can run on desktop computers as well as highly parallel
