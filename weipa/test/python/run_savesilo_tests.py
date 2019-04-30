@@ -64,6 +64,9 @@ try:
 except KeyError:
     WEIPA_WORKDIR=os.path.join(os.getcwd(),'weipa/test/python/')
 
+@unittest.skipIf(getMPISizeWorld()>1, "MPI size > 1")
+@unittest.skipIf(HAVE_RIPLEY is False, "ripley module not available")
+@unittest.skipIf(HAVE_SILO is False, "Silo module not available")
 class SiloReader():
     """
     Silo file reader that uses the Python interface to the Silo library.
@@ -144,6 +147,9 @@ class SiloReader():
                 data[v[:-5]] = self.f.GetVar(v)
         return data
 
+@unittest.skipIf(getMPISizeWorld()>1, "MPI size > 1")
+@unittest.skipIf(HAVE_RIPLEY is False, "ripley module not available")
+@unittest.skipIf(HAVE_SILO is False, "Silo module not available")
 class SiloSaver(unittest.TestCase): #requires subclassing
     def numericCompareL2(self, vector1, vector2):
         """

@@ -55,7 +55,7 @@ class AcousticWaveForm(ForwardModel):
     factor a of F is calculated by minimizing the defect.
     """
     def __init__(self, domain, omega, w, data, F, coordinates=None,
-                 fixAtBottom=False, tol=1e-8, saveMemory=True, scaleF=True):
+                 fixAtBottom=False, tol=1e-10, saveMemory=True, scaleF=True):
         """
         initializes a new forward model with acoustic wave form inversion.
 
