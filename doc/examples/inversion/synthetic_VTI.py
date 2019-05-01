@@ -165,7 +165,10 @@ if HAVE_SPECKLEY:
                    tracerNS_z.addRecord(locNS(u[2]))
             print(t, locEW(u[DIM-1])[len(rgEW)//2-4:len(rgEW)//2+1], wl.getValue(t))
             #if n%5 == 0 : saveSilo("tmp/u_%d.silo"%(n/5,), u=u)
-            saveSilo("tmp/u_%d.silo"%(n,), u=u, cycle=n, time=t)
+            try:
+                saveSilo("tmp/u_%d.silo"%(n,), u=u, cycle=n, time=t)
+            except:
+                print("Failed to save silo file. Possibly no Silo support.")
             n+=1
     if tracerEW_x.obspy_available() and getMPISizeWorld() == 1:
         tracerEW_x.write('lineEW_x.sgy')
