@@ -45,8 +45,10 @@ using namespace std;
 TestSuite* EscriptDatasetTestCase::suite()
 {
     TestSuite *testSuite = new TestSuite("EscriptDatasetTestCase");
+#if ESYS_HAVE_SILO
     testSuite->addTest(new TestCaller<EscriptDatasetTestCase>(
                 "testBase",&EscriptDatasetTestCase::testBase));
+#endif
 #if USE_DUDLEY
     testSuite->addTest(new TestCaller<EscriptDatasetTestCase>(
                 "testDudley",&EscriptDatasetTestCase::testDudley));
@@ -66,6 +68,7 @@ TestSuite* EscriptDatasetTestCase::suite()
     return testSuite;
 }
 
+#if ESYS_HAVE_SILO
 void EscriptDatasetTestCase::testBase()
 {
     cout << endl;
@@ -87,6 +90,7 @@ void EscriptDatasetTestCase::testBase()
     cout << "\tTest getMeshVariables without data." << endl;
     CPPUNIT_ASSERT(dataset->getMeshVariables().size() == 0);
 }
+#endif
 
 #if USE_DUDLEY
 void EscriptDatasetTestCase::testDudley()
