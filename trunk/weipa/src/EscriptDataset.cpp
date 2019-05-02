@@ -481,14 +481,6 @@ bool EscriptDataset::saveSilo(string fileName, bool useMultiMesh)
 #endif
 }
 
-bool EscriptDataset::hasSilo(){
-#ifdef ESYS_HAVE_SILO
-    return true;
-#else
-    return false;
-#endif
-}
-
 //
 //
 //

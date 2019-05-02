@@ -31,13 +31,13 @@ from esys.escript import ContinuousFunction, Function, ReducedFunction,\
             FunctionOnContactZero, ReducedFunctionOnContactZero,\
             FunctionOnContactOne, ReducedFunctionOnContactOne,\
             Solution, ReducedSolution, getMPISizeWorld
-from esys.weipa import saveSilo, hasSilo
+from esys.weipa import saveSilo
 
-HAVE_SILO = hasSilo();
-# try:
-#     HAVE_SILO=True
-# except ImportError:
-#     HAVE_SILO=False
+try:
+    import silo
+    HAVE_SILO=True
+except ImportError:
+    HAVE_SILO=False
 try:
     from esys import dudley
     HAVE_DUDLEY=True
