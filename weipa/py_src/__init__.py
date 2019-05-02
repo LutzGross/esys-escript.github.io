@@ -113,14 +113,6 @@ def saveSilo(filename, domain=None, write_meshdata=False, time=0., cycle=0,
     dataset.setSaveMeshData(write_meshdata)
     return dataset.saveSilo(filename)
 
-def hasSilo():
-    """
-    Returns true if escript was compiled with silo support and false otherwise
-    """
-    from .weipacpp import EscriptDataset
-    dataset=EscriptDataset()
-    return dataset.hasSilo()
-
 def saveVTK(filename, domain=None, metadata='', metadata_schema=None,
         write_meshdata=False, time=0., cycle=0, **data):
     """

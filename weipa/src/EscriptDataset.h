@@ -135,9 +135,6 @@ public:
     /// \brief Saves the dataset in the Silo file format.
     bool saveSilo(const std::string fileName, bool useMultiMesh=true);
 
-    /// \brief Checks to see if escript was compiled with silo
-    bool hasSilo();
-
     /// \brief Saves the dataset in the VTK XML file format.
     void saveVTK(const std::string fileName);
 
