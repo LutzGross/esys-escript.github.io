@@ -42,38 +42,36 @@ COORDINATES=CartesianReferenceSystem()
 #COORDINATES=WGS84ReferenceSystem()
 
 def work():
-    # Setup and run the inversion
-    source=ErMapperData(DataSource.GRAVITY, DATASET, scale_factor=DATA_UNITS, reference_system=COORDINATES)
-    db=DomainBuilder(dim=3, reference_system=COORDINATES)
-    db.addSource(source)
-    db.setVerticalExtents(depth=thickness, air_layer=l_air, num_cells=n_cells_v)
-    db.setFractionalPadding(pad_x=PAD_X, pad_y=PAD_Y)
-    db.fixDensityBelow(depth=thickness)
+  # Setup and run the inversion
+  source=ErMapperData(DataSource.GRAVITY, DATASET, scale_factor=DATA_UNITS, reference_system=COORDINATES)
+  db=DomainBuilder(dim=3, reference_system=COORDINATES)
+  db.addSource(source)
+  db.setVerticalExtents(depth=thickness, air_layer=l_air, num_cells=n_cells_v)
+  db.setFractionalPadding(pad_x=PAD_X, pad_y=PAD_Y)
+  db.fixDensityBelow(depth=thickness)
 
-    inv=GravityInversion()
-    inv.setSolverTolerance(1e-4)
-    inv.setSolverMaxIterations(50)
-    inv.setup(db)
-    inv.getCostFunction().setTradeOffFactorsModels(MU)
+  inv=GravityInversion()
+  inv.setSolverTolerance(1e-4)
+  inv.setSolverMaxIterations(50)
+  inv.setup(db)
+  inv.getCostFunction().setTradeOffFactorsModels(MU)
 
-    density = inv.run()
-    print("density = %s"%density)
+  density = inv.run()
+  print("density = %s"%density)
 
-    g, w = db.getGravitySurveys()[0]
-    
-    try: 
-        if saveSilo("result0.silo", density=density, gravity_anomaly=g, gravity_weight=w):
-            print("Results saved in result0.silo")
-    except:
-        print("Failed to save result0.silo. Possibly no Silo support.")
+  g, w =  db.getGravitySurveys()[0]
+  if saveSilo("result0.silo", density=density, gravity_anomaly=g, gravity_weight=w):
+      print("Results saved in result0.silo")
+  else:
+      print("Failed to save result0.silo. Possibly no Silo support.")
 
-    saveVTK("result0.vtu", density=density, gravity_anomaly=g, gravity_weight=w)
-    print("Results saved in result0.vtu")
+  saveVTK("result0.vtu", density=density, gravity_anomaly=g, gravity_weight=w)
+  print("Results saved in result0.vtu")
 
-    saveDataCSV("result0.csv", density=density, x=density.getFunctionSpace().getX())
-    print("Results saved in result0.csv")
+  saveDataCSV("result0.csv", density=density, x=density.getFunctionSpace().getX())
+  print("Results saved in result0.csv")
 
-    print("All done. Have a nice day.!")
+  print("All done. Have a nice day.!")
 
 try:
     import pyproj
@@ -89,9 +87,9 @@ except ImportError:
 
 
 if HAVE_PYPROJ and HAVE_RIPLEY:
-    work()
+  work()
 elif HAVE_RIPLEY:
-    print("This example requires the pyproj package which does not appear to be accessible.")
+  print("This example requires the pyproj package which does not appear to be accessible.")
 else:
-    print("This example requires the ripley module, which is not available")
+  print("This example requires the ripley module, which is not available")
 

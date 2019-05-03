@@ -34,7 +34,7 @@ from esys.escript import ContinuousFunction, Function, ReducedFunction,\
 from esys.weipa import saveSilo
 
 try:
-    import silo
+    import Silo
     HAVE_SILO=True
 except ImportError:
     HAVE_SILO=False

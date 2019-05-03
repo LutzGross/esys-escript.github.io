@@ -161,10 +161,7 @@ if HAVE_SPECKLEY:
             print("t=%s, src=%s: \t %s \t %s \t %s"%(t, wl.getValue(t),srclog(u[1])[0], srclog(u[1])[src_id], srclog(u[1])[-1]))
             if not n_out is None and n%n_out == 0:
                 print("time step %s written to file %s"%(n_out, "output/u_%d.silo"%(k_out,)))
-                try:
-                    saveSilo("output/u_%d.silo"%(k_out,), u=u)
-                except:
-                    print("Failed to save silo file. Possibly no Silo support.")
+                saveSilo("output/u_%d.silo"%(k_out,), u=u)
                 k_out+=1
             n+=1
     if tracer_x.obspy_available() and getMPISizeWorld() == 1:

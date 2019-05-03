@@ -126,12 +126,9 @@ def work():
 
 
   # write everything to file:
-  try:
-    saveSilo("result_gravmag.silo",
+  saveSilo("result_gravmag.silo",
          density=density, susceptability=susceptibility,
          g_data=g, sigma_g=sigma_g, B_data=B, sigma_B=sigma_B)
-  except:
-    print("Failed to save silo file. Possibly no Silo support.")
   saveVTK("result_gravmag.vtu",
          density=density, susceptability=susceptibility,
          g_data=g, sigma_g=sigma_g, B_data=B, sigma_B=sigma_B)
