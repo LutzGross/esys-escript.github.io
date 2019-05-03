@@ -26,9 +26,7 @@
 class EscriptDatasetTestCase : public CppUnit::TestFixture
 {
 public:
-#ifdef ESYS_HAVE_SILO
     void testBase();
-#endif
 #if USE_DUDLEY
     void testDudley();
 #endif

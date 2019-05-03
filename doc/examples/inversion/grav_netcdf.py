@@ -62,10 +62,9 @@ def work():
 
   g, w =  db.getGravitySurveys()[0]
   saveVoxet("result.vo", density=density)
-  try:
-      if saveSilo("result_gravity.silo", density=density, gravity_anomaly=g, gravity_weight=w):
-          print("Results saved in result_gravity.silo")
-  except:
+  if saveSilo("result_gravity.silo", density=density, gravity_anomaly=g, gravity_weight=w):
+      print("Results saved in result_gravity.silo")
+  else:
       print("Failed to save result_gravity.silo. Possibly no Silo support.")
 
   saveVTK("result_gravity.vtu", density=density, gravity_anomaly=g, gravity_weight=w)
