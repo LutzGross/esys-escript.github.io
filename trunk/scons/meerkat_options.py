@@ -18,16 +18,16 @@
 # Refer to README_FIRST for usage instructions.
 
 openmp = True
-# umfpack = True
-# silo = True
+umfpack = True
+silo = True
 # cuda = True
-# mpi = 'OPENMPI'
+mpi = 'OPENMPI'
 verbose = True
 #debug = True
 #trilinos = True
 # paso = False
-# parmetis = True
-# visit = True
+parmetis = True
+visit = True
 #werror = False
 # cxx = 'clang++'
 
@@ -46,7 +46,7 @@ cxx_extra += " -fmessage-length=80 -fdiagnostics-color=always "
 netcdf = 4
 mpi_libs = ['mpi_cxx', 'mpi']
 parmetis_libs = ['parmetis', 'metis']
-silo_libs = ['siloh5', 'hdf5_openmpi']
+silo_libs = ['siloh5', 'hdf5_mpi']
 umfpack_libs = ['umfpack', 'blas', 'amd']
 
 lapack_prefix = ['/usr/include/atlas', '/usr/lib/atlas-base']
@@ -54,8 +54,8 @@ d_mpi_path = '/usr/include/openmpi'
 mpi_prefix = os.path.split(os.path.realpath(d_mpi_path))[0]
 parmetis_prefix = ['/usr/include','/usr/lib']
 umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
-
-visit_prefix = ['/usr/local/visit/2.13.2/linux-x86_64/libsim/V2/include/','/usr/local/visit/2.13.2/linux-x86_64/libsim/V2/lib/']
+silo_prefix = ['/usr/include/', '/usr/lib/x86_64-linux-gnu/']
+visit_prefix = ['/usr/local/2.13.2/linux-x86_64/libsim/V2/include/','/usr/local/2.13.2/linux-x86_64/libsim/V2/lib/']
 
 trilinos_prefix =['/usr/local/trilinos/include/','/usr/local/trilinos/lib/']
 
