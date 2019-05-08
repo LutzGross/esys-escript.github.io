@@ -203,7 +203,7 @@ class TestAcousticInversion(unittest.TestCase):
         self.assertTrue(isinstance(dg, Data))
         self.assertTrue(dg.getShape()==(2,))
         self.assertTrue(dg.getFunctionSpace()==Solution(domain))
-        self.assertLess(Lsup(dg), 1e-10)
+        self.assertLess(Lsup(dg), 1e-8)
         # this shouldn't be zero:
         sigma0=Data([2*sigma.real, sigma.imag/2], Function(domain) )
         args=acw.getArguments(sigma0)
@@ -225,7 +225,6 @@ class TestAcousticInversion(unittest.TestCase):
         sigma1=sigma0+p*[1,0]
         args=acw.getArguments(sigma1)
         d1=acw.getDefect(sigma1, *args)
-
         self.assertLess( abs( d1-d0-integrate(dg0[0]*p) ), 1e-2*abs(d1-d0) )
 
         sigma2=sigma0+p*[0,1]

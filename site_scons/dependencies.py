@@ -424,7 +424,7 @@ def checkForTrilinos(env):
         'Ifpack2_Factory.hpp','Kokkos_DefaultNode.hpp',\
         'MatrixMarket_Tpetra.hpp','MueLu_CreateTpetraPreconditioner.hpp',\
         'Teuchos_DefaultComm.hpp','Teuchos_ParameterList.hpp',\
-        'Tpetra_CrsGraph.hpp','Tpetra_CrsMatrix.hpp','Tpetra_DefaultPlatform.hpp','Tpetra_Experimental_BlockCrsMatrix_Helpers.hpp',\
+        'Tpetra_CrsGraph.hpp','Tpetra_CrsMatrix.hpp','Tpetra_Experimental_BlockCrsMatrix_Helpers.hpp',\
         'Tpetra_Experimental_BlockCrsMatrix.hpp','Tpetra_Experimental_BlockVector.hpp','Tpetra_RowMatrix.hpp',\
         'Tpetra_Vector.hpp']
 
@@ -434,6 +434,10 @@ def checkForTrilinos(env):
             if not os.path.isfile(os.path.join(trilinos_inc_path,check)):
                 print("Could not find a Trilinos header file (tried looking in directory %s)" % (trilinos_inc_path))
                 env.Exit(1)
+
+        if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')):
+            print("Checking for %s... %s" % (check, "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))
+            env.Append(CPPDEFINES = ['ESYS_HAVE_TPETRA_DP'])
 
         if not havelibs:
             packages=['Tpetra','Kokkos','Belos','Amesos2','Ifpack2','MueLu']

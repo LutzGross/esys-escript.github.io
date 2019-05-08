@@ -7,7 +7,7 @@ Since some precompiled distributions of \texttt{Trilinos} are not built with the
 need to compile \texttt{Trilinos} yourself as well.
 
 While we can't provide support for building \texttt{Trilinos}, we do list below, a configuration file which seems to work for 
-under Debian 9 ``stretch''\footnote{At time of writing, \texttt{stretch} is still in testing, but is due to release this month}.
+under Debian 9 ``stretch'.
 
 \section{Debian ``stretch'' configuration}
 
@@ -45,7 +45,7 @@ EXTRA_ARGS=$@
 rm -f CMakeCache.txt
 
 cmake \
-  cmake -D MPI_C_COMPILER=`which mpicc` \
+      -D MPI_C_COMPILER=`which mpicc` \
       -D MPI_CXX_COMPILER=`which mpic++` \
       -D MPI_Fortran_COMPILER=`which mpif77` \
       -D CMAKE_INSTALL_PREFIX=/usr/local/trilinos/ \

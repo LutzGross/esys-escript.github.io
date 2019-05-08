@@ -27,7 +27,10 @@
 #include <MatrixMarket_Tpetra.hpp>
 #include <MueLu_CreateTpetraPreconditioner.hpp>
 
+#ifdef ESYS_HAVE_TPETRA_DP
 #include <Tpetra_DefaultPlatform.hpp>
+#endif
+
 #include <Tpetra_Vector.hpp>
 
 using Teuchos::RCP;

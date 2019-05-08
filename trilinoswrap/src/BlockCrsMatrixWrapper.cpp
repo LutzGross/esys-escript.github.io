@@ -24,7 +24,9 @@
 #include <escript/SolverOptions.h>
 
 #include <Kokkos_DefaultNode.hpp>
+#ifdef ESYS_HAVE_TPETRA_DP
 #include <Tpetra_DefaultPlatform.hpp>
+#endif
 #include <Tpetra_Experimental_BlockCrsMatrix_Helpers.hpp> // for writing
 #include <Tpetra_Vector.hpp>
 
