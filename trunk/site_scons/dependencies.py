@@ -302,9 +302,6 @@ def checkBoost(env):
                                 p2res = x
                             if x.startswith(b'libboost_numpy-py3') and x.endswith(b'.so'):
                                 p3res = x
-                            
-                    #p2res=[x for x in l if x.startswith('libboost_numpy-py') and x.endswith('.so')]
-                    #p3res=[x for x in l if x.startswith('libboost_numpy3-py') and x.endswith('.so')]
 
                     if len(p2name)==0 and len(p2res)>0:
                         p2name=p2res[-1]
@@ -330,11 +327,9 @@ def checkBoost(env):
         except:
             print("Warning: Could not find boost/python/numpy.hpp. Building without numpy support.")
 
-    # boost_numpy_inc_path,boost_numpy_lib_path=findLibWithHeader(env, env['boost_libs'], 'boost/python/numpy.hpp', env['boost_prefix'], lang='c++')
-    # env.AppendUnique(CPPPATH = [boost_numpy_inc_path])
-    # env.AppendUnique(LIBPATH = [boost_numpy_lib_path])
-    # env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], boost_numpy_lib_path)
-    # env.Append(CPPDEFINES=['ESYS_HAVE_BOOST_NUMPY'])
+    # Check if the version of boost we are using is missing BOOST_BYTE_ORDER
+    if boostversion >= 107000:
+        env.Append(CPPDEFINES=['ESYS_DEPRECATED_BOOST_ENDIAN'])
 
     return env
 

@@ -29,6 +29,8 @@
 
 #ifdef ESYS_HAVE_TPETRA_DP
 #include <Tpetra_DefaultPlatform.hpp>
+#else
+#include <Tpetra_Core.hpp>
 #endif
 
 #include <Tpetra_Vector.hpp>

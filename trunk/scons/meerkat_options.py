@@ -22,11 +22,12 @@ umfpack = True
 silo = True
 # cuda = True
 mpi = 'OPENMPI'
-verbose = True
+# verbose = True
 #debug = True
 #trilinos = True
 # paso = False
 parmetis = True
+silo = True
 visit = True
 #werror = False
 # cxx = 'clang++'
@@ -39,26 +40,23 @@ escript_opts_version = 203
 import os
 import subprocess
 
-#boost_prefix=['/home/adam/Documents/zzz/boost_1_68_0/','/home/adam/Documents/zzz/boost_1_68_0/stage/lib']
-
 cxx_extra += " -fmessage-length=80 -fdiagnostics-color=always "
 
 netcdf = 4
 mpi_libs = ['mpi_cxx', 'mpi']
 parmetis_libs = ['parmetis', 'metis']
-silo_libs = ['siloh5', 'hdf5_mpi']
+silo_libs = ['siloh5', 'hdf5_cpp']
 umfpack_libs = ['umfpack', 'blas', 'amd']
 
-
-boost_prefix=['/home/adam/Documents/zzz/boost_1_68_0','/home/adam/Documents/zzz/boost_1_68_0/stage/lib']
-lapack_prefix = ['/usr/include/atlas', '/usr/lib/atlas-base']
+# boost_prefix=['/usr/local/include','/usr/local/lib']
+lapack_prefix = ['/usr/include/atlas','/usr/lib/atlas-base']
 d_mpi_path = '/usr/include/openmpi'
 mpi_prefix = os.path.split(os.path.realpath(d_mpi_path))[0]
 parmetis_prefix = ['/usr/include','/usr/lib']
-umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
-silo_prefix = ['/usr/include/', '/usr/lib/x86_64-linux-gnu/']
+umfpack_prefix = ['/usr/include/suitesparse','/usr/lib']
+silo_prefix = ['/usr/include/','/usr/lib/x86_64-linux-gnu/']
 visit_prefix = ['/usr/local/2.13.2/linux-x86_64/libsim/V2/include/','/usr/local/2.13.2/linux-x86_64/libsim/V2/lib/']
-trilinos_prefix =['/usr/local/trilinos/include/','/usr/local/trilinos/lib/']
+trilinos_prefix =['/usr/local/include/','/usr/local/lib/']
 
 p = subprocess.Popen(["ld","--verbose"], stdout=subprocess.PIPE)
 out,err = p.communicate()
