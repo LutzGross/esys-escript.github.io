@@ -349,7 +349,6 @@ int Options::getPackage(int solver, int pack, bool symmetry,
 
 int Options::mapEscriptOption(int escriptOption)
 {
-    std::cout << "Got escriptOption " << escriptOption << std::endl;
     switch (escriptOption) {
         case escript::SO_DEFAULT:
             return PASO_DEFAULT;

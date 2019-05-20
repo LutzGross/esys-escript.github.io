@@ -435,7 +435,7 @@ def checkForTrilinos(env):
                 env.Exit(1)
 
         if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')):
-            print("Checking for %s... %s" % (check, "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))
+            print("Checking for %s... %s" % ('Tpetra_DefaultPlatform.hpp', "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))
             env.Append(CPPDEFINES = ['ESYS_HAVE_TPETRA_DP'])
 
         if not havelibs:
