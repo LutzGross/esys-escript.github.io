@@ -385,6 +385,7 @@ void SolverBuddy::setSolverMethod(int method)
         case SO_DEFAULT:
             if(dim == 2){
 #ifdef ESYS_HAVE_TRILINOS
+                this->package = SO_PACKAGE_TRILINOS;
                 this->method = SO_METHOD_DIRECT_TRILINOS;
 #elif defined(ESYS_HAVE_UMFPACK) || defined(ESYS_HAVE_MKL)
                 this->method = SO_METHOD_DIRECT;
@@ -400,6 +401,7 @@ void SolverBuddy::setSolverMethod(int method)
         case SO_METHOD_DIRECT:
 #ifdef ESYS_HAVE_TRILINOS
             // Default to trilinos
+            this->package = SO_PACKAGE_TRILINOS;
             this->method = SO_METHOD_DIRECT_TRILINOS;
             break;
 #else

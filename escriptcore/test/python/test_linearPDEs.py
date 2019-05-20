@@ -3556,6 +3556,7 @@ class Test_TransportPDE(Test_linearPDEs):
             return unittest.skip("Domain does not support contact elements")
 
     #==============================================================
+    @unittest.skipIf(no_paso, "Transport PDEs require Paso")
     def test_symmetryCheckTrue_Scalar(self):
         d=self.domain.getDim()
         mypde=TransportPDE(self.domain,debug=self.DEBUG)
@@ -3571,7 +3572,6 @@ class Test_TransportPDE(Test_linearPDEs):
             d_contact=5
             mypde.setValue(d_contact=d_contact,d_contact_reduced=-d_contact)
         self.assertTrue(mypde.checkSymmetry(verbose=False),"symmetry detected")
-
     def test_symmetryCheckFalse_A_Scalar(self):
         d=self.domain.getDim()
         mypde=TransportPDE(self.domain,debug=self.DEBUG)
@@ -3602,8 +3602,6 @@ class Test_TransportPDE(Test_linearPDEs):
         B[0]=1.
         mypde.setValue(B_reduced=B,C_reduced=C)
         self.assertTrue(not mypde.checkSymmetry(verbose=False),"symmetry detected")
-
-    @unittest.skipIf(no_paso, "Transport PDEs require Paso")
     def test_reducedOn(self):
         dt=0.1
         mypde=TransportPDE(self.domain,numSolutions=1,debug=self.DEBUG)
@@ -3613,7 +3611,6 @@ class Test_TransportPDE(Test_linearPDEs):
         u=mypde.getSolution(dt)
         self.assertTrue(u.getFunctionSpace() == ReducedSolution(self.domain), "wrong function space")
         self.assertTrue(self.check(u,10.+dt),'solution is wrong.')
-
     def Off_test_reducedOff(self):
         dt=0.1
         mypde=TransportPDE(self.domain,numSolutions=1,debug=self.DEBUG)

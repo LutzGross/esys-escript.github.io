@@ -479,6 +479,7 @@ class LinearProblem(object):
      self.__reduce_equation_order=False
      self.__reduce_solution_order=False
      self.__sym=False
+     self.__herm=False
      self.__is_RHS_valid=False
      self.__is_operator_valid=False
      self.__COEFFICIENTS={}
@@ -702,6 +703,7 @@ class LinearProblem(object):
           raise ValueError("options must be a SolverOptions object.")
        self.__solver_options.setComplex(self.isComplex())
        self.__solver_options.setSymmetry(self.__sym)
+       self.__solver_options.setHermitian(self.__herm)
        self.__solver_options.setDim(self.getDim())
 
    def getSolverOptions(self):
@@ -814,7 +816,7 @@ class LinearProblem(object):
       Sets the Hermitian flag.
       :note: The method overwrites the Hermitian flag set by the solver options
       """
-      self.__sym=True
+      self.__herm=True
       self.getSolverOptions().setHermitianOn()
 
    def setHermitianOff(self):
@@ -822,7 +824,7 @@ class LinearProblem(object):
       Clears the Hermitian flag.
       :note: The method overwrites the Hermitian flag set by the solver options
       """
-      self.__sym=False
+      self.__herm=False
       self.getSolverOptions().setHermitianOff()
 
    def setHermitian(self,flag=False):
