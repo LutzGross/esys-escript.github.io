@@ -349,6 +349,7 @@ int Options::getPackage(int solver, int pack, bool symmetry,
 
 int Options::mapEscriptOption(int escriptOption)
 {
+    std::cout << "Got escriptOption " << escriptOption << std::endl;
     switch (escriptOption) {
         case escript::SO_DEFAULT:
             return PASO_DEFAULT;
@@ -372,6 +373,8 @@ int Options::mapEscriptOption(int escriptOption)
             return PASO_CR;
         case escript::SO_METHOD_DIRECT:
             return PASO_DIRECT;
+        case escript::SO_METHOD_DIRECT_TRILINOS:
+            return PASO_DIRECT;
         case escript::SO_METHOD_GMRES:
             return PASO_GMRES;
         case escript::SO_METHOD_ITERATIVE:
@@ -386,7 +389,7 @@ int Options::mapEscriptOption(int escriptOption)
             return PASO_PRES20;
         case escript::SO_METHOD_TFQMR:
             return PASO_TFQMR;
-            
+
         case escript::SO_PRECONDITIONER_GAUSS_SEIDEL:
             return PASO_GAUSS_SEIDEL;
         case escript::SO_PRECONDITIONER_ILU0:
