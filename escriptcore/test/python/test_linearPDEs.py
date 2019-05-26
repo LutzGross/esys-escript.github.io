@@ -525,11 +525,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         sb.setReordering(so.DEFAULT_REORDERING)
         self.assertTrue(sb.getReordering() == so.DEFAULT_REORDERING, "DEFAULT_REORDERING is not set.")
         
-        if hasFeature("trilinos"):
-            self.assertTrue(sb.getPackage() == so.TRILINOS, "initial solver package is wrong.")
-        else:
-            self.assertTrue(sb.getPackage() == so.PASO, "initial solver package is wrong.")
-        self.assertRaises(ValueError,sb.setPackage,-1)
+        self.assertTrue(sb.getPackage() == so.DEFAULT, "initial solver package is wrong.")
 
         if no_paso:
             with self.assertRaises(ValueError) as package:
@@ -570,12 +566,12 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
             with self.assertRaises(ValueError) as package:
                 sb.setSolverMethod(so.DIRECT)
             self.assertTrue('not compiled' in str(package.exception))
-        else:
-            sb.setSolverMethod(so.DIRECT)
-            if HAVE_TRILINOS:
-                self.assertTrue(sb.getSolverMethod() == so.DIRECT_TRILINOS, "DIRECT_TRILINOS is not set.")
-            else:
-                self.assertTrue(sb.getSolverMethod() == so.DIRECT, "DIRECT is not set.")
+        # else:
+        #     sb.setSolverMethod(so.DIRECT)
+        #     if HAVE_TRILINOS:
+        #         self.assertTrue(sb.getSolverMethod() == so.SO_METHOD_DIRECT_TRILINOS, "DIRECT_TRILINOS is not set.")
+        #     else:
+        #         self.assertTrue(sb.getSolverMethod() == so.SO_METHOD_DIRECT, "DIRECT is not set.")
 
         sb.setSolverMethod(so.CHOLEVSKY)
         self.assertTrue(sb.getSolverMethod() == so.CHOLEVSKY, "CHOLEVSKY is not set.")

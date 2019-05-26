@@ -729,6 +729,10 @@ def print_summary():
     print("  Install prefix:  %s"%env['prefix'])
     print("          Python:  %s (Version %s)"%(env['pythoncmd'],env['python_version']))
     print("           boost:  %s (Version %s)"%(env['boost_prefix'],env['boost_version']))
+    if env['trilinos']:
+        print("        trilinos:  %s "%(env['trilinos_prefix']))
+    else:
+        print("        trilinos:  NO")
     if env['numpy_h']:
         print("           numpy:  YES (with headers)")
     else:

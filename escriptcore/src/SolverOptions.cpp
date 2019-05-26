@@ -60,7 +60,7 @@ SolverBuddy::SolverBuddy() :
     dim(2)
 {
     resetDiagnostics(true);
-    setup();
+    // setup();
 }
 
 SolverBuddy::~SolverBuddy()
@@ -73,8 +73,7 @@ std::string SolverBuddy::getSummary() const
     std::stringstream out;
     out << "Solver Package = " << getName(getPackage()) << std::endl
         << "Verbosity = " << isVerbose() << std::endl
-        << "Accept failed convergence = " << acceptConvergenceFailure()
-        << std::endl
+        << "Accept failed convergence = " << acceptConvergenceFailure() << std::endl
         << "Relative tolerance = " << getTolerance() << std::endl
         << "Absolute tolerance = " << getAbsoluteTolerance() << std::endl
         << "Symmetric problem = " << isSymmetric() << std::endl

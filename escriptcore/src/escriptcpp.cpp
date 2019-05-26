@@ -1163,6 +1163,8 @@ args("source", "q", "r","factor"),
     .def("setHermitian", &escript::SolverBuddy::setHermitian, args("hermitian"),"Sets the hermitian flag for the coefficient matrix to ``flag``.\n\n"
         ":param flag: If True, the hermitian flag is set otherwise reset.\n"
         ":type flag: ``bool``")
+    // .def("useDirectSolver",&escript::SolverBuddy::useDirect,":rtype: `int`\n"
+    //     ":sets a Direct Solver")
     .def("isVerbose", &escript::SolverBuddy::isVerbose,"Returns ``True`` if the solver is expected to be verbose.\n\n"
         ":return: True if verbosity of switched on.\n"
         ":rtype: ``bool``")
