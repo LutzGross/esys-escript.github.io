@@ -143,7 +143,8 @@ inline bool isDirectSolver(const SolverOptions& method)
         case SO_METHOD_DIRECT_TRILINOS:
             return true;
         default:
-            break;
+            // break;
+            return false;
     }
     return false;
 }

@@ -27,26 +27,6 @@
             ]
         },
         {
-            "name": "openmpi",
-            "builddir": true,
-            "config-opts": [
-                "--enable-mpi-fortran",
-                "--enable-mpi-cxx",
-                "--enable-cxx-exceptions",
-                "--with-gnu-ld",
-                "--prefix=/app",
-                "--exec-prefix=/app",
-                "--disable-dlopen"
-            ],
-            "sources": [
-                {
-                    "type": "archive",
-                    "url": "https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-4.0.0.tar.gz",
-                    "sha256": "36f10daa3f1b1d37530f686bf7f70966b2a13c0bc6e2e05aebc7e85e3d21b10d"
-                }
-            ]
-        },
-        {
             "name": "lapack",
             "buildsystem": "cmake",
             "build-options" : { 
@@ -56,7 +36,8 @@
             },
             "config-opts": [
                 "-DCMAKE_INSTALL_PREFIX=/app",
-                "-DCMAKE_INSTALL_LIBDIR=lib",
+                "-DPYTHON_EXECUTABLE=/usr/bin/python3",
+                "-DCMAKE_INSTALL_LIBDIR=/app/lib",
                 "-DCMAKE_BUILD_TYPE=Release",
                 "-DBUILD_SHARED_LIBS=ON",
                 "-DBUILD_TESTING=OFF",
