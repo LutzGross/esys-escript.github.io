@@ -42,8 +42,6 @@ escript_opts_version = 203
 import os
 import subprocess
 
-# boost_prefix=['/home/adam/Documents/zzz/boost_1_68_0/','/home/adam/Documents/zzz/boost_1_68_0/stage/lib']
-
 cxx_extra += " -fmessage-length=80 -fdiagnostics-color=always "
 if trilinos is True:
   cxx_extra += "  -Wno-deprecated-declarations -Wno-unused-variable "
@@ -64,7 +62,6 @@ umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
 silo_prefix = ['/usr/include','/usr/lib/x86_64-linux-gnu/']
 visit_prefix = ['/usr/local/visit/2.13.2/linux-x86_64/libsim/V2/include/','/usr/local/visit/2.13.2/linux-x86_64/libsim/V2/lib/']
 trilinos_prefix =['/usr/local/trilinos/include/','/usr/local/trilinos/lib/']
- 
 
 p = subprocess.Popen(["ld","--verbose"], stdout=subprocess.PIPE)
 out,err = p.communicate()

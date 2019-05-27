@@ -48,6 +48,10 @@ HAVE_TRILINOS = hasFeature("trilinos")
 # PASO_DIRECT is only reported if we have paso and are running single rank
 CAN_USE_DIRECT = hasFeature("PASO_DIRECT") or hasFeature('trilinos')
 skip_muelu_long = False #no_paso and hasFeature("longindex")
+if getMPISizeWorld() > 1:
+    USING_MPI = True
+else:
+    USING_MPI = False
 
 class Test_linearPDEs(unittest.TestCase):
     TOL=1.e-6
@@ -1760,6 +1764,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(self.check(u,1.),'solution is wrong.')
 
     @unittest.skipIf(not(HAVE_DIRECT), "need to install escript with a direct solver")
+    @unittest.skipIf(hasFeature("mkl") and USING_MPI, "MKL does not support MPI")
     def test_DIRECT(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -2150,6 +2155,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     
     @unittest.skipIf(not(HAVE_DIRECT), "need to install escript with a direct solver")
+    @unittest.skipIf(hasFeature("mkl") and USING_MPI, "MKL does not support MPI")
     def test_DIRECT_System(self):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
