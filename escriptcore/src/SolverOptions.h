@@ -27,6 +27,8 @@ namespace escript {
 This enum defines the options for solving linear/non-linear systems with escript.
 
 SO_DEFAULT: use escript defaults for specific option
+SO_TARGET_CPU: use CPUs to solve system
+SO_TARGET_GPU: use GPUs to solve system
 
 SO_PACKAGE_MKL: Intel's MKL solver library
 SO_PACKAGE_PASO: PASO solver package
@@ -77,6 +79,10 @@ SO_REORDERING_NONE: No matrix reordering allowed
 enum SolverOptions
 {
     SO_DEFAULT,
+
+    // Solver targets
+    SO_TARGET_CPU,
+    SO_TARGET_GPU,
 
     // Solver packages
     SO_PACKAGE_MKL,
@@ -143,8 +149,7 @@ inline bool isDirectSolver(const SolverOptions& method)
         case SO_METHOD_DIRECT_TRILINOS:
             return true;
         default:
-            // break;
-            return false;
+            break;
     }
     return false;
 }
@@ -174,11 +179,6 @@ public:
                 counters are reset.
     */
     void resetDiagnostics(bool all=false);
-
-    /**
-        Initial settings
-    */
-    void setup();
 
     /**
         Updates diagnostic information
@@ -697,6 +697,7 @@ public:
 protected:
     boost::python::dict trilinosParams;
 
+    SolverOptions target;
     SolverOptions package;
     SolverOptions method;
     SolverOptions preconditioner;

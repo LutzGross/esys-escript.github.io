@@ -20,27 +20,25 @@
 openmp = True
 umfpack = True
 silo = True
+# cuda = True
 # mpi = 'OPENMPI'
-# mpi_no_host=True
 verbose = True
-# debug = True
+debug = True
 # trilinos = True
 # paso = False
 # parmetis = True
 visit = True
-werror = False
+#werror = False
 # cxx = 'clang++'
 
 python = 3
-
-# prelaunch = "EE=$(echo -x ${EXPORT_ENV}|sed -e 's/,/ -x /g')"
-# launcher = "mpirun ${EE} --map-by node:pe=${ESCRIPT_NUM_THREADS} -bind-to none -np ${TOTPROC} %b"
 
 ##############################################################################
 escript_opts_version = 203
 
 import os
 import subprocess
+
 
 cxx_extra += " -fmessage-length=80 -fdiagnostics-color=always "
 if trilinos is True:
@@ -49,19 +47,20 @@ if trilinos is True:
 netcdf = 4
 mpi_libs = ['mpi_cxx', 'mpi']
 parmetis_libs = ['parmetis', 'metis']
-silo_libs = ['siloh5', 'hdf5_cpp']
+#silo_libs = ['siloh5', 'hdf5_openmpi']
 umfpack_libs = ['umfpack', 'blas', 'amd']
 
-boost_prefix =['/usr/local/include/','/usr/local/lib/']
-cppunit_prefix = ['/usr/include','/usr/lib/x86_64-linux-gnu/']
 lapack_prefix = ['/usr/include/atlas', '/usr/lib/atlas-base']
 d_mpi_path = '/usr/include/openmpi'
 mpi_prefix = os.path.split(os.path.realpath(d_mpi_path))[0]
 parmetis_prefix = ['/usr/include','/usr/lib']
 umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
-silo_prefix = ['/usr/include','/usr/lib/x86_64-linux-gnu/']
+
 visit_prefix = ['/usr/local/visit/2.13.2/linux-x86_64/libsim/V2/include/','/usr/local/visit/2.13.2/linux-x86_64/libsim/V2/lib/']
+
 trilinos_prefix =['/usr/local/trilinos/include/','/usr/local/trilinos/lib/']
+# trilinos_prefix =['/usr/local/trilinos_mpi/include/','/usr/local/trilinos_mpi/lib/']
+ 
 
 p = subprocess.Popen(["ld","--verbose"], stdout=subprocess.PIPE)
 out,err = p.communicate()

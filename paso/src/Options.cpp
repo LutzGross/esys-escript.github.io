@@ -372,8 +372,6 @@ int Options::mapEscriptOption(int escriptOption)
             return PASO_CR;
         case escript::SO_METHOD_DIRECT:
             return PASO_DIRECT;
-        case escript::SO_METHOD_DIRECT_TRILINOS:
-            return PASO_DIRECT;
         case escript::SO_METHOD_GMRES:
             return PASO_GMRES;
         case escript::SO_METHOD_ITERATIVE:

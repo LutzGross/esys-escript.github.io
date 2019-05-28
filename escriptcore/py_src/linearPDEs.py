@@ -712,6 +712,7 @@ class LinearProblem(object):
 
        :rtype: `SolverOptions`
        """
+       self.__solver_options.setSymmetry(self.__sym)
        return self.__solver_options
 
    def isUsingLumping(self):
@@ -3065,7 +3066,6 @@ class TransportPDE(LinearProblem):
        y_dirac=PDECoef(PDECoef.DIRACDELTA,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE),
        r=PDECoef(PDECoef.SOLUTION,(PDECoef.BY_SOLUTION,),PDECoef.RIGHTHANDSIDE),
        q=PDECoef(PDECoef.SOLUTION,(PDECoef.BY_SOLUTION,),PDECoef.BOTH) )
-     self.getSolverOptions().setPackage(SolverOptions.PASO)
      if not useBackwardEuler is None:
         import warnings
         warnings.warn("Argument useBackwardEuler has expired and will be removed in a later release. Please use SolverOptions.setODESolver() instead.", PendingDeprecationWarning, stacklevel=2)
@@ -3273,8 +3273,8 @@ class TransportPDE(LinearProblem):
                 if u0.getShape()!=():
                   raise ValueError("Illegal shape %s of initial solution."%(u0.getShape(),))
               else:
-                if u0.getShape()!=(self.getNumSolutions(),):
-                  raise ValueError("Illegal shape %s of initial solution."%(u0.getShape(),))
+                 if u0.getShape()!=(self.getNumSolutions(),):
+                   raise ValueError("Illegal shape %s of initial solution."%(u0.getShape(),))
           self.setSolution(self.getOperator().solve(u0, self.getRightHandSide(),dt,option_class))
           self.validSolution()
        return self.getCurrentSolution()

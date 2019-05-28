@@ -566,16 +566,13 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         # self.assertTrue(sb.getSolverMethod() == so.DEFAULT, "initial SolverMethod is wrong.") 
         self.assertRaises(ValueError,sb.setSolverMethod,-1)
 
-        if HAVE_DIRECT is False:
+        if not HAVE_DIRECT:
             with self.assertRaises(ValueError) as package:
                 sb.setSolverMethod(so.DIRECT)
             self.assertTrue('not compiled' in str(package.exception))
-        # else:
-        #     sb.setSolverMethod(so.DIRECT)
-        #     if HAVE_TRILINOS:
-        #         self.assertTrue(sb.getSolverMethod() == so.SO_METHOD_DIRECT_TRILINOS, "DIRECT_TRILINOS is not set.")
-        #     else:
-        #         self.assertTrue(sb.getSolverMethod() == so.SO_METHOD_DIRECT, "DIRECT is not set.")
+        else:
+            sb.setSolverMethod(so.DIRECT)
+            self.assertTrue(sb.getSolverMethod() == so.DIRECT, "DIRECT is not set.")
 
         sb.setSolverMethod(so.CHOLEVSKY)
         self.assertTrue(sb.getSolverMethod() == so.CHOLEVSKY, "CHOLEVSKY is not set.")
@@ -599,25 +596,8 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(sb.getSolverMethod() == so.TFQMR, "TFQMR is not set.")
         sb.setSolverMethod(so.MINRES)
         self.assertTrue(sb.getSolverMethod() == so.MINRES, "MINRES is not set.")
-
-        if HAVE_TRILINOS:
-            sb.setSolverMethod(so.CR)
-            self.assertTrue(sb.getSolverMethod() == so.CR, "CR is not set.")
-            sb.setSolverMethod(so.CGLS)
-            self.assertTrue(sb.getSolverMethod() == so.CGLS, "CGLS is not set.")
-            sb.setSolverMethod(so.LSQR)
-            self.assertTrue(sb.getSolverMethod() == so.LSQR, "LSQR is not set.")
-            self.assertTrue(sb.getPackage() == so.TRILINOS, "Trilinos is not set.")
-        else:
-            with self.assertRaises(ValueError) as package:
-                sb.setSolverMethod(so.CR)
-            self.assertTrue('not compiled' in str(package.exception))
-            with self.assertRaises(ValueError) as package:
-                sb.setSolverMethod(so.CGLS)
-            self.assertTrue('not compiled' in str(package.exception))
-            with self.assertRaises(ValueError) as package:
-                sb.setSolverMethod(so.LSQR)
-            self.assertTrue('not compiled' in str(package.exception))
+        sb.setSolverMethod(so.DEFAULT)
+        self.assertTrue(sb.getSolverMethod() == so.DEFAULT, "DEFAULT is not set.")
 
         self.assertTrue(sb.getPreconditioner() == so.JACOBI, "initial Preconditioner is wrong.")
         self.assertRaises(ValueError,sb.setPreconditioner,-1)
@@ -1716,7 +1696,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
     def test_symmetryOnIterative(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-        mypde.getSolverOptions().setSolverMethod(SolverOptions.ITERATIVE)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
@@ -1762,22 +1741,23 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
-
-    @unittest.skipIf(not(HAVE_DIRECT), "need to install escript with a direct solver")
-    @unittest.skipIf(hasFeature("mkl") and USING_MPI, "MKL does not support MPI")
     def test_DIRECT(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-        mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
+        if not HAVE_DIRECT:
+            with self.assertRaises(ValueError) as package:
+                mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
+            self.assertTrue('not compiled' in str(package.exception))
+            return
+        else:
+            mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-        # if not CAN_USE_DIRECT:
-        #     with self.assertRaises(RuntimeError) as package:
-        #         u=mypde.getSolution()
-        # else:
-        #     u=mypde.getSolution()
-        #     self.assertTrue(self.check(u,1.),'solution is wrong.')
-        u=mypde.getSolution()
-        self.assertTrue(self.check(u,1.),'solution is wrong.')
+        if not CAN_USE_DIRECT:
+            with self.assertRaises(RuntimeError) as package:
+                u=mypde.getSolution()
+        else:
+            u=mypde.getSolution()
+            self.assertTrue(self.check(u,1.),'solution is wrong.')
 
     def test_BICGSTAB_JACOBI(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
@@ -1834,7 +1814,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setSolverMethod(SolverOptions.MINRES)
         mypde.getSolverOptions().setPreconditioner(SolverOptions.GAUSS_SEIDEL)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-        if HAVE_TRILINOS:
+        if not hasFeature('paso'):
             mypde.getSolverOptions().setNumSweeps(350)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
@@ -2153,30 +2133,30 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
-    
-    @unittest.skipIf(not(HAVE_DIRECT), "need to install escript with a direct solver")
-    @unittest.skipIf(hasFeature("mkl") and USING_MPI, "MKL does not support MPI")
     def test_DIRECT_System(self):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
         Y=Vector(self.domain.getDim(),Function(self.domain))
-        for i in range(self.domain.getDim()):
+        for i in range(self.domain.getDim()): 
             A[i,:,i,:]=kronecker(self.domain)
             D[i,i]+=i
             Y[i]+=i
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=A,D=D,Y=Y)
-        mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
+        if not HAVE_DIRECT:
+            with self.assertRaises(ValueError) as package:
+                mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
+            self.assertTrue('not compiled' in str(package.exception))
+            return
+        else:
+            mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-        # if not CAN_USE_DIRECT:
-        #     with self.assertRaises(RuntimeError) as package:
-        #         u=mypde.getSolution()
-        # else:
-        #     u=mypde.getSolution()
-        #     self.assertTrue(self.check(u,1.),'solution is wrong.')
-        u=mypde.getSolution()
-        self.assertTrue(self.check(u,1.),'solution is wrong.')
-
+        if not CAN_USE_DIRECT:
+            with self.assertRaises(RuntimeError) as package:
+                u=mypde.getSolution()
+        else:
+            u=mypde.getSolution()
+            self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_BICGSTAB_JACOBI_System(self):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))

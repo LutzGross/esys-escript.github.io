@@ -33,6 +33,7 @@ bool convert(bp::object bpo, R& result)
 namespace escript {
 
 SolverBuddy::SolverBuddy() :
+    target(SO_TARGET_CPU),
     package(SO_DEFAULT),
     method(SO_DEFAULT),
     preconditioner(SO_PRECONDITIONER_JACOBI),
@@ -60,7 +61,6 @@ SolverBuddy::SolverBuddy() :
     dim(2)
 {
     resetDiagnostics(true);
-    // setup();
 }
 
 SolverBuddy::~SolverBuddy()
@@ -116,6 +116,8 @@ const char* SolverBuddy::getName(int key) const
 {
     switch (static_cast<SolverOptions>(key)) {
         case SO_DEFAULT: return "DEFAULT";
+        case SO_TARGET_CPU: return "CPU";
+        case SO_TARGET_GPU: return "GPU";
 
         case SO_PACKAGE_MKL: return "MKL";
         case SO_PACKAGE_PASO: return "PASO";
@@ -193,14 +195,6 @@ void SolverBuddy::resetDiagnostics(bool all)
         cum_set_up_time = 0.;
         cum_net_time = 0.;
     }
-}
-
-void SolverBuddy::setup(){
-    setPackage(SO_DEFAULT);
-    setSolverMethod(SO_DEFAULT);
-    setPreconditioner(SO_PRECONDITIONER_JACOBI);
-    setODESolver(SO_ODESOLVER_LINEAR_CRANK_NICOLSON);
-    setReordering(SO_REORDERING_DEFAULT);
 }
 
 void SolverBuddy::updateDiagnostics(const std::string& name, bool value)
@@ -364,85 +358,41 @@ SolverOptions SolverBuddy::getPreconditioner() const
 void SolverBuddy::setSolverMethod(int method)
 {
     SolverOptions meth = static_cast<SolverOptions>(method);
-
-    // Possible error: User has told escript to use a direct solver but no direct solver is available
-#if !defined(ESYS_HAVE_TRILINOS) && !defined(ESYS_HAVE_UMFPACK) && !defined(ESYS_HAVE_MKL)
-    if(meth == SO_METHOD_DIRECT || meth == SO_METHOD_DIRECT_MUMPS 
-        || meth == SO_METHOD_DIRECT_PARDISO || meth == SO_METHOD_DIRECT_SUPERLU
-        || meth == SO_METHOD_DIRECT_TRILINOS) {
-        throw ValueError("Cannot use DIRECT solver method. eScript was not compiled with a direct solver.");
-    }
-#endif
-    
     switch(meth) {
-            // Default settings:
-            // If we're solving a 2d problem, default to the trilinos direct solver
-            // If trilinos is not available, default to the paso direct solver
-            // If trilinos is not available and there is no paso direct solver, fall back on GMRES
-            // In 3D, always use an iterative method
-
         case SO_DEFAULT:
-            if(dim == 2){
-#ifdef ESYS_HAVE_TRILINOS
-                this->package = SO_PACKAGE_TRILINOS;
-                this->method = SO_METHOD_DIRECT_TRILINOS;
-#elif defined(ESYS_HAVE_UMFPACK) || defined(ESYS_HAVE_MKL)
-                this->method = SO_METHOD_DIRECT;
-#else
-                this->method = SO_METHOD_GMRES;
-#endif
-                break;
-            } else {
-                this->method = SO_METHOD_GMRES;
-                break;
-            }
-
-        case SO_METHOD_DIRECT:
-#ifdef ESYS_HAVE_TRILINOS
-            // Default to trilinos
-            this->package = SO_PACKAGE_TRILINOS;
-            this->method = SO_METHOD_DIRECT_TRILINOS;
-            break;
-#else
-            this->method = SO_METHOD_DIRECT;
-            break;
-#endif
-        case SO_METHOD_DIRECT_MUMPS:
-        case SO_METHOD_DIRECT_PARDISO:
-        case SO_METHOD_DIRECT_SUPERLU:
-        case SO_METHOD_DIRECT_TRILINOS:
-#ifdef ESYS_HAVE_TRILINOS
-            // We're assuming that trilinos was compiled with MUMPS, PARDISO, SUPERLU etc.
-            this->method = meth;
-            break;
-#else
-            throw ValueError("escript was not compiled with Trilinos enabled");
-#endif
-        //These methods are in paso
-        case SO_METHOD_ITERATIVE:
         case SO_METHOD_BICGSTAB:
-        case SO_METHOD_CHOLEVSKY:
+        case SO_METHOD_CGLS:
         case SO_METHOD_CGS:
+        case SO_METHOD_CHOLEVSKY:
+        case SO_METHOD_CR:
         case SO_METHOD_GMRES:
         case SO_METHOD_HRZ_LUMPING:
-        case SO_METHOD_TFQMR:
+        case SO_METHOD_ITERATIVE:
+        case SO_METHOD_LSQR:
         case SO_METHOD_MINRES:
         case SO_METHOD_NONLINEAR_GMRES:
         case SO_METHOD_PCG:
         case SO_METHOD_PRES20:
         case SO_METHOD_ROWSUM_LUMPING:
+        case SO_METHOD_TFQMR:
             this->method = meth;
             break;
-        //These methods are in Trilinos but not in paso
-        case SO_METHOD_CGLS:
-        case SO_METHOD_CR:
-        case SO_METHOD_LSQR:
-#ifdef ESYS_HAVE_TRILINOS
-            this->package = SO_PACKAGE_TRILINOS;
+        case SO_METHOD_DIRECT:
+        case SO_METHOD_DIRECT_MUMPS:
+        case SO_METHOD_DIRECT_PARDISO:
+        case SO_METHOD_DIRECT_SUPERLU:
+        case SO_METHOD_DIRECT_TRILINOS:
+#if defined(ESYS_HAVE_UMFPACK) || defined(ESYS_HAVE_TRILINOS) || defined(ESYS_HAVE_MKL)
+#ifndef ESYS_HAVE_TRILINOS
+            // translate specific direct solver setting to generic one for PASO
+            this->method = SO_METHOD_DIRECT;
+#else
             this->method = meth;
+#endif
             break;
 #else
-            throw ValueError("escript was not compiled with Trilinos enabled");
+            throw ValueError("Cannot use DIRECT solver method, the running "
+                    "escript was not compiled with a direct solver enabled");
 #endif
         default:
             throw ValueError("unknown solver method");
@@ -855,11 +805,7 @@ void SolverBuddy::setTrilinosParameter(const std::string& name,
                                        const bp::object& value)
 {
 #ifdef ESYS_HAVE_TRILINOS
-    if (value == "true" || value == "false"){
-        trilinosParams[name] = (value == "true" ? true : false);
-    } else {
-        trilinosParams[name] = value;
-    }
+    trilinosParams[name] = value;
 #endif
 }
 
