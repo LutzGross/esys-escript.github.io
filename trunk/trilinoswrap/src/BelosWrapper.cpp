@@ -50,7 +50,7 @@ RCP<SolverType<ST> > createSolver(const escript::SolverBuddy& sb)
     escript::SolverOptions method = sb.getSolverMethod();
     const bp::dict& pyParams = sb.getTrilinosParameters();
 
-    if (method == escript::SO_DEFAULT || method == escript::SO_METHOD_ITERATIVE) {
+    if (method == escript::SO_DEFAULT) {
         if (sb.isSymmetric() || sb.isHermitian()) {
             method = escript::SO_METHOD_PCG;
         } else {
@@ -60,49 +60,35 @@ RCP<SolverType<ST> > createSolver(const escript::SolverBuddy& sb)
 
     switch (method) {
         case escript::SO_METHOD_BICGSTAB:
-        {
             solver = factory.create("BICGSTAB", solverParams);
-        }
             break;
         case escript::SO_METHOD_PCG:
-        {
             solver = factory.create("CG", solverParams);
-        }
             break;
         case escript::SO_METHOD_PRES20:
-        {
             //solverParams->set("Num Blocks", 5);
             //solverParams->set("Maximum Restarts", 20);
             solver = factory.create("GMRES", solverParams);
-        }
             break;
         case escript::SO_METHOD_GMRES:
-        {
             extractParamIfSet<int>("Num Blocks", pyParams, *solverParams);
             extractParamIfSet<int>("Maximum Restarts", pyParams, *solverParams);
             extractParamIfSet<std::string>("Orthogonalization", pyParams, *solverParams);
             solver = factory.create("GMRES", solverParams);
-        }
             break;
         case escript::SO_METHOD_LSQR:
-        {
             extractParamIfSet<ST>("Condition Limit", pyParams, *solverParams);
             extractParamIfSet<int>("Term Iter Max", pyParams, *solverParams);
             extractParamIfSet<ST>("Lambda", pyParams, *solverParams);
             solverParams->set("Rel Mat Err", sb.getTolerance());
             solver = factory.create("LSQR", solverParams);
-        }
             break;
         case escript::SO_METHOD_MINRES:
-        {
             extractParamIfSet<int>("Block Size", pyParams, *solverParams);
             solver = factory.create("MINRES", solverParams);
-        }
             break;
         case escript::SO_METHOD_TFQMR:
-        {
             solver = factory.create("TFQMR", solverParams);
-        }
             break;
         default:
             throw TrilinosAdapterException("Unsupported solver type requested.");

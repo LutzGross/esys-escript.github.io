@@ -66,8 +66,7 @@ RCP<DirectSolverType<Matrix,Vector> > createDirectSolver(
             Amesos2::query("MUMPS")) {
         solver = Amesos2::create<Matrix, Vector>("MUMPS", A, X, B);
         Teuchos::ParameterList solverParams(solver->name());
-        // solverParams.set("MatrixType", (sb.isSymmetric() || sb.isHermitian()) ? "symmetric" : "general");
-        if (sb.isVerbose()) { 
+        if (sb.isVerbose()) {
             solverParams.set("ICNTL(4)", 4);
         }
         extractParamIfSet<int>("ICNTL(1)", pyParams, solverParams);
@@ -146,7 +145,6 @@ RCP<DirectSolverType<Matrix,Vector> > createDirectSolver(
     } else if (Amesos2::query("amesos2_cholmod")) {
         solver = Amesos2::create<Matrix, Vector>("amesos2_cholmod", A, X, B);
         Teuchos::ParameterList solverParams(solver->name());
-
         solverParams.set("SymmetricMode", sb.isSymmetric());
         extractParamIfSet<std::string>("Trans", pyParams, solverParams);
         extractParamIfSet<bool>("Equil", pyParams, solverParams);
