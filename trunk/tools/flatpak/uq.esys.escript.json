@@ -8,6 +8,10 @@
         "/app/man",
         "/app/share"
     ],
+    "build-options" : {
+        "cflags": "-O3 -fPIC",
+        "cxxflags": "-O3 -fPIC"
+    },
     "modules": [
         {
             "name": "python",
@@ -23,84 +27,6 @@
                     "type": "archive",
                     "url": "https://www.python.org/ftp/python/3.7.2/Python-3.7.2.tgz",
                     "sha256": "f09d83c773b9cc72421abba2c317e4e6e05d919f9bcf34468e192b6a6c8e328d"
-                }
-            ]
-        },
-        {
-            "name": "lapack",
-            "buildsystem": "cmake",
-            "build-options" : { 
-                "cflags": "-O3 -w",
-                "cxxflags": "-O3 -w",
-                "ldflags": "-lgfortran"
-            },
-            "config-opts": [
-                "-DCMAKE_INSTALL_PREFIX=/app",
-                "-DPYTHON_EXECUTABLE=/usr/bin/python3",
-                "-DCMAKE_INSTALL_LIBDIR=/app/lib",
-                "-DCMAKE_BUILD_TYPE=Release",
-                "-DBUILD_SHARED_LIBS=ON",
-                "-DBUILD_TESTING=OFF",
-                "-DLAPACKE=ON",
-                "-DCBLAS=ON"
-            ],
-            "builddir": true,
-            "sources": [
-                {
-                    "type": "archive",
-                    "url": "http://www.netlib.org/lapack/lapack-3.8.0.tar.gz",
-                    "sha256": "deb22cc4a6120bff72621155a9917f485f96ef8319ac074a7afbc68aab88bcf6"
-                }
-            ]
-        },
-        {
-            "name": "metis",
-            "buildsystem": "simple",
-            "build-commands": [
-                "make config prefix=/app",
-                "make install -j`nproc --all`"
-            ],
-            "sources": [
-                {
-                    "type": "archive",
-                    "url": "http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis/metis-5.1.0.tar.gz",
-                    "sha256": "76faebe03f6c963127dbb73c13eab58c9a3faeae48779f049066a21c087c5db2"
-                }
-            ]
-        },
-        {
-            "name": "parmetis",
-            "buildsystem": "simple",
-            "build-commands": [
-                "make config prefix=/app",
-                "make install -j`nproc --all`"
-            ],
-            "sources": [
-                {
-                    "type": "archive",
-                    "url": "http://glaros.dtc.umn.edu/gkhome/fetch/sw/parmetis/parmetis-4.0.3.tar.gz",
-                    "sha256": "f2d9a231b7cf97f1fee6e8c9663113ebf6c240d407d3c118c55b3633d6be6e5f"
-                }
-            ]
-        },
-        {
-            "name": "suitesparse",
-            "buildsystem": "simple",
-            "build-options" : { 
-                "cflags": "-w",
-                "cxxflags": "-w",
-                "ldflags": "-lgfortran -llapack -lblas -L/app/lib"
-            },
-            "build-commands": [
-                "make library -j`nproc --all` MY_METIS_LIB=/app/lib/libmetis.a BLAS=-lblas INSTALL=/app",
-                "make install -j`nproc --all` MY_METIS_LIB=/app/lib/libmetis.a BLAS=-lblas INSTALL=/app"
-            ],
-            "builddir": true,
-            "sources": [
-                {
-                    "type": "archive",
-                    "url": "http://faculty.cse.tamu.edu/davis/SuiteSparse/SuiteSparse-4.5.1.tar.gz",
-                    "sha256": "ac4524b9f69c4f8c2652d720b146c92a414c1943f86d46df49b4ff8377ae8752"
                 }
             ]
         },
@@ -266,78 +192,6 @@
                 }
             ]
         },
-		{
-            "name": "python3-scipy",
-            "buildsystem": "simple",
-            "build-commands": [
-                "python3 setup.py build -j`nproc --all`",
-                "python3 setup.py install --prefix=/app --root=/ --optimize=1"
-            ],
-            "build-options": {
-                "env": {
-                    "ATLAS": "None",
-                    "BLAS": "/app/lib",
-                    "LAPACK": "/app/lib",
-                    "LDFLAGS": "-shared"
-                }
-            },
-            "sources": [
-                {
-                    "type": "archive",
-                    "url": "https://files.pythonhosted.org/packages/07/76/7e844757b9f3bf5ab9f951ccd3e4a8eed91ab8720b0aac8c2adcc2fdae9f/scipy-1.1.0.tar.gz",
-                    "sha512": "72fe32c6c009613cb78202598e5db14f8e630b3218839cfe18d43d40550d94cc5aa100c6f5d41f40e86ae148e9b6a13431bb91b0f9be44b0569ccd7b725fe973"
-                }
-            ]
-        },
-        {
-            "name": "trilinos",
-            "buildsystem": "cmake",
-            "config-opts": [
-                "-DTrilinos_ENABLE_CXX11=ON",
-                "-DTrilinos_ENABLE_Fortran=OFF",
-                "-DBUILD_SHARED_LIBS=ON",
-                "-DOpenMP_C_FLAGS='-w -fopenmp'",
-                "-DOpenMP_CXX_FLAGS='-w -fopenmp'",
-                "-DTPL_ENABLE_BLAS=ON",
-                "-DBLAS_LIBRARY_NAMES='blas'",
-                "-DTPL_BLAS_INCLUDE_DIRS=/app/include/",
-                "-DTPL_ENABLE_LAPACK=ON",
-                "-DTPL_ENABLE_Boost=ON",
-                "-DTPL_ENABLE_Cholmod=ON",
-                "-DTPL_Cholmod_INCLUDE_DIRS=/app/include/",
-                "-DTPL_Cholmod_LIBRARIES='/app/lib/libcholmod.so;/app/lib/libamd.so;/app/lib/libcolamd.so'",
-                "-DTPL_ENABLE_Matio=ON",
-                "-DTPL_Matio_INCLUDE_DIRS=/app/include/",
-                "-DTPL_Matio_LIBRARIES=/app/lib",
-                "-DTPL_ENABLE_METIS=ON",
-                "-DTPL_ENABLE_ParMETIS=ON",
-                "-DMETIS_LIBRARY_NAMES='metis'",
-                "-DTPL_ENABLE_ScaLAPACK=OFF",
-                "-DTPL_ENABLE_UMFPACK=ON",
-                "-DTPL_UMFPACK_INCLUDE_DIRS=/app/include/",
-                "-DTrilinos_ENABLE_Amesos2=ON",
-                "-DTrilinos_ENABLE_Belos=ON",
-                "-DTrilinos_ENABLE_Ifpack2=ON",
-                "-DTrilinos_ENABLE_Kokkos=ON",
-                "-DTrilinos_ENABLE_MueLu=ON",
-                "-DTrilinos_ENABLE_Tpetra=ON",
-                "-DTrilinos_ENABLE_Teuchos=ON",
-                "-DTrilinos_ENABLE_COMPLEX=ON",
-                "-DTrilinos_ENABLE_OpenMP=ON",
-                "-DTrilinos_ENABLE_MPI=OFF",
-                "-DTrilinos_ENABLE_ALL_OPTIONAL_PACKAGES=ON",
-                "-DTrilinos_ENABLE_EXPLICIT_INSTANTIATION=ON"
-            ],
-            "builddir": true,
-            "sources": [
-                {
-                    "type": "git",
-                    "url": "https://github.com/trilinos/Trilinos",
-                    "tag": "trilinos-release-12-14-1",
-                    "commit": "e3c83e3d5caca8f59432f6f5d2e33ae142a16eff"
-                }
-            ]
-        },
         {
             "name": "gmsh",
             "buildsystem": "cmake",
@@ -375,14 +229,26 @@
             "name": "escript",
             "buildsystem": "simple",
             "build-commands": [
-                "scons options_file=scons/flatpak_options.py -j`nproc --all`",
+                "mkdir -p /app/share/icons/hicolor/64x64/apps",
+                "mkdir -p /app/share/icons/hicolor/128x128/apps/",
+                "mkdir -p /app/share/icons/hicolor/256x256/apps/",
+                "mkdir -p /app/share/applications/",
+                "mkdir -p /app/share/metainfo",
+                "mkdir -p /app/share/appdata",
+                "cp ./tools/flatpak/64x64_uq.esys.escript.png /app/share/icons/hicolor/64x64/apps/uq.esys.escript.png",
+                "cp ./tools/flatpak/128x128_uq.esys.escript.png /app/share/icons/hicolor/128x128/apps/uq.esys.escript.png",
+                "cp ./tools/flatpak/256x256_uq.esys.escript.png /app/share/icons/hicolor/256x256/apps/uq.esys.escript.png",
+                "cp ./tools/flatpak/uq.esys.escript.desktop /app/share/applications/uq.esys.escript.desktop",
+                "cp ./tools/flatpak/uq.esys.escript.appdata.xml /app/share/metainfo/uq.esys.escript.appdata.xml",
+                "cp ./tools/flatpak/uq.esys.escript.appdata.xml /app/share/appdata/uq.esys.escript.appdata.xml",
+                "scons options_file=scons/flatpak_options.py umfpack=0 trilinos=0 cxx_extra='-fPIC' -j`nproc --all`",
                 "mv /app/bin/run-escript /app/bin/run-escriptB"
             ],
             "sources": [
                 {
                     "type": "svn",
                     "url": "https://svn.geocomp.uq.edu.au/svn/esys13/trunk",
-                    "revision": "6800"
+                    "revision": "6820"
                 }
             ]
         },

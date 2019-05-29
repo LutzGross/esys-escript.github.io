@@ -14,9 +14,18 @@ This will install escript on the local machine. Downloaded files are stored in a
 
 Once this has done, you can run escript using
 
-flatpak run uq.escript.finley {other arguments to pass to escript}
+flatpak run uq.esys.escript {other arguments to pass to escript}
 
 Note that this build does not use the system python installation. Finally, to uninstall, type
 
-flatpak uninstall finley
+flatpak uninstall uq.esys.escript
+
+
+To upload a new build to flathub, do the following:
+-Fork the Flathub repository on GitHub
+-Clone the fork: git clone --branch=new-pr git@github.com:your_github_username/flathub.git
+-Create a new branch: git checkout -b uq.esys.escript
+-Add your the manifest to the new branch, commit it and push the commit
+-Open a pull request against the new-pr branch on Github
+-Wait until the pull request has been reviewed by the flathub mods
 
