@@ -529,7 +529,11 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         sb.setReordering(so.DEFAULT_REORDERING)
         self.assertTrue(sb.getReordering() == so.DEFAULT_REORDERING, "DEFAULT_REORDERING is not set.")
         
-        self.assertTrue(sb.getPackage() == so.DEFAULT, "initial solver package is wrong.")
+        # self.assertTrue(sb.getPackage() == so.DEFAULT, "initial solver package is wrong.")
+        if HAVE_TRILINOS is True:
+            self.assertTrue(sb.getPackage() == so.TRILINOS, "initial solver package is wrong.") 
+        else:
+            self.assertTrue(sb.getPackage() == so.PASO, "initial solver package is wrong.") 
 
         if no_paso:
             with self.assertRaises(ValueError) as package:
@@ -563,7 +567,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
             sb.setPackage(so.TRILINOS)
             self.assertTrue(sb.getPackage() == so.TRILINOS, "Trilinos is not set.")
 
-        # self.assertTrue(sb.getSolverMethod() == so.DEFAULT, "initial SolverMethod is wrong.") 
         self.assertRaises(ValueError,sb.setSolverMethod,-1)
 
         if not HAVE_DIRECT:
@@ -596,8 +599,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(sb.getSolverMethod() == so.TFQMR, "TFQMR is not set.")
         sb.setSolverMethod(so.MINRES)
         self.assertTrue(sb.getSolverMethod() == so.MINRES, "MINRES is not set.")
-        sb.setSolverMethod(so.DEFAULT)
-        self.assertTrue(sb.getSolverMethod() == so.DEFAULT, "DEFAULT is not set.")
 
         self.assertTrue(sb.getPreconditioner() == so.JACOBI, "initial Preconditioner is wrong.")
         self.assertRaises(ValueError,sb.setPreconditioner,-1)
@@ -689,7 +690,32 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(sb.getDiagnostics("cum_num_iter") == 0, "initial cum_num_iter is wrong.")
         self.assertTrue(sb.getDiagnostics("cum_time") ==0, "initial cum_time is wrong.")
         self.assertTrue(sb.getDiagnostics("cum_set_up_time") == 0, "initial cum_set_up_time is wrong.")
-        
+
+        sb.setDim(2)
+        self.assertTrue(sb.getDim() == 2, "either setDim or getDim is wrong.")
+        sb.setDim(3)
+        self.assertTrue(sb.getDim() == 3, "either setDim or getDim is wrong.")
+        try: 
+           success=False
+           sb.setDim(4)
+           sb.setDim(1.53)
+        except ValueError:
+           success=True
+        self.assertTrue(success,'either setDim or getDim is wrong.')
+
+        sb.setDim(3)
+        sb.setSolverMethod(so.DEFAULT)
+        self.assertTrue(sb.getSolverMethod() == so.ITERATIVE, "default solver is wrong")
+        sb.setDim(2)
+        if HAVE_TRILINOS:
+            sb.setPackage(so.TRILINOS)
+            sb.setSolverMethod(so.DEFAULT)
+            self.assertTrue(sb.getSolverMethod() == so.DIRECT, "default solver is wrong")
+        if hasFeature('paso') and HAVE_DIRECT:
+            sb.setPackage(so.PASO)
+            sb.setSolverMethod(so.DEFAULT)
+            self.assertTrue(sb.getSolverMethod() == so.DIRECT, "default solver is wrong")
+
     def test_setCoefficient_WithIllegalFunctionSpace(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         self.assertRaises(IllegalCoefficientFunctionSpace, mypde.setValue, C=Vector(0.,FunctionOnBoundary(self.domain)))

@@ -60,6 +60,8 @@ SolverBuddy::SolverBuddy() :
     refinements(2),
     dim(2)
 {
+    setPackage(SO_DEFAULT);
+    setSolverMethod(SO_DEFAULT);
     resetDiagnostics(true);
 }
 
@@ -358,8 +360,26 @@ SolverOptions SolverBuddy::getPreconditioner() const
 void SolverBuddy::setSolverMethod(int method)
 {
     SolverOptions meth = static_cast<SolverOptions>(method);
+
+    bool havePASODirect = false;
+#if defined(ESYS_HAVE_PASO) && (defined(ESYS_HAVE_MKL) || defined(ESYS_HAVE_UMFPACK))
+    havePASODirect = true;
+#endif
+
     switch(meth) {
         case SO_DEFAULT:
+            if(getDim() == 2){
+                if(getPackage() == SO_PACKAGE_PASO && havePASODirect){
+                    setSolverMethod(SO_METHOD_DIRECT);
+                } else if (getPackage() == SO_PACKAGE_TRILINOS){
+                    setSolverMethod(SO_METHOD_DIRECT);
+                } else {
+                    setSolverMethod(SO_METHOD_ITERATIVE);
+                }
+            } else {
+                setSolverMethod(SO_METHOD_ITERATIVE);
+            }
+            break;
         case SO_METHOD_BICGSTAB:
         case SO_METHOD_CGLS:
         case SO_METHOD_CGS:
