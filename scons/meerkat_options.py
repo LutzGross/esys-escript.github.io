@@ -47,7 +47,7 @@ if trilinos is True:
 netcdf = 4
 mpi_libs = ['mpi_cxx', 'mpi']
 parmetis_libs = ['parmetis', 'metis']
-#silo_libs = ['siloh5', 'hdf5_openmpi']
+silo_libs = ['siloh5', 'hdf5_cpp']
 umfpack_libs = ['umfpack', 'blas', 'amd']
 
 lapack_prefix = ['/usr/include/atlas', '/usr/lib/atlas-base']

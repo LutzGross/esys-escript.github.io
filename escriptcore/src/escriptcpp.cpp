@@ -1148,7 +1148,7 @@ args("source", "q", "r","factor"),
     .def("setDim", &escript::SolverBuddy::setDim, args("dim"),"Sets the dimension of the problem.\n\n"
         ":param dim: Either 2 or 3.\n"
         ":rtype: ``int``")
-    .def("getDim", &escript::SolverBuddy::setDim, "Returns the dimension of the problem.\n\n"
+    .def("getDim", &escript::SolverBuddy::getDim, "Returns the dimension of the problem.\n\n"
         ":rtype: ``int``")
     .def("isSymmetric", &escript::SolverBuddy::isSymmetric,"Checks if symmetry of the coefficient matrix is indicated.\n\n"
         ":return: True if a symmetric PDE is indicated, False otherwise\n"
