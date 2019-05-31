@@ -192,6 +192,10 @@ umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
 umfpack_libs = ['umfpack', 'blas', 'amd']
   UMFPACK library/libraries to link against
 
+use_gmsh = True
+  Whether to build escript with gmsh, if it is available
+  DEFAULT: True
+
 lapack = True
   Whether to use BLAS/LAPACK. Note, LAPACK is incompatible with long indices.
   DEFAULT: 'auto' (try to detect MKL lapack or ATLAS)
