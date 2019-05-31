@@ -97,6 +97,7 @@ vars.AddVariables(
   EnumVariable('mpi', 'Compile parallel version using MPI flavour', 'none', allowed_values=mpi_flavours),
   ('mpi_prefix', 'Prefix/Paths of MPI installation', default_prefix),
   ('mpi_libs', 'MPI shared libraries to link with', ['mpi']),
+  BoolVariable('use_gmsh', 'Enable gmsh, if available', True),
   BoolVariable('cuda', 'Enable GPU code with CUDA (requires thrust)', False),
   ('cuda_prefix', 'Prefix/Paths to NVidia CUDA installation', default_prefix),
   EnumVariable('netcdf', 'Enable netCDF file support', False, allowed_values=netcdf_flavours),
