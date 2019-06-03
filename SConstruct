@@ -80,8 +80,6 @@ vars.AddVariables(
   ('cc_debug', 'Additional (C and C++) flags for a debug build', 'default'),
   ('cxx_extra', 'Extra C++ compiler flags', ''),
   ('ld_extra', 'Extra linker flags', ''),
-  ('nvcc', 'Path to CUDA compiler', 'default'),
-  ('nvccflags', 'Base CUDA compiler flags', 'default'),
   BoolVariable('werror','Treat compiler warnings as errors', True),
   BoolVariable('debug', 'Compile with debug flags', False),
   BoolVariable('openmp', 'Compile parallel version using OpenMP', False),
@@ -98,8 +96,6 @@ vars.AddVariables(
   ('mpi_prefix', 'Prefix/Paths of MPI installation', default_prefix),
   ('mpi_libs', 'MPI shared libraries to link with', ['mpi']),
   BoolVariable('use_gmsh', 'Enable gmsh, if available', True),
-  BoolVariable('cuda', 'Enable GPU code with CUDA (requires thrust)', False),
-  ('cuda_prefix', 'Prefix/Paths to NVidia CUDA installation', default_prefix),
   EnumVariable('netcdf', 'Enable netCDF file support', False, allowed_values=netcdf_flavours),
   ('netcdf_prefix', 'Prefix/Paths of netCDF installation', default_prefix),
   ('netcdf_libs', 'netCDF libraries to link with', 'DEFAULT'),
@@ -218,11 +214,6 @@ if len(vars.UnknownVariables())>0:
         print("Unknown option '%s'" % k)
     Exit(1)
 
-if env['cuda']:
-    if env['nvcc'] != 'default':
-        env['NVCC'] = env['nvcc']
-    env.Tool('nvcc')
-
 if 'dudley' in env['domains']:
     env['domains'].append('finley')
 
@@ -338,10 +329,6 @@ if env['omp_flags']   == 'default': env['omp_flags'] = omp_flags
 if env['omp_ldflags'] == 'default': env['omp_ldflags'] = omp_ldflags
 if env['cxx_extra'] != '': env.Append(CXXFLAGS = env['cxx_extra'])
 if env['ld_extra']  != '': env.Append(LINKFLAGS = env['ld_extra'])
-
-if env['nvccflags'] != 'default':
-    env['NVCCFLAGS'] = env['nvccflags']
-    env['SHNVCCFLAGS'] = env['nvccflags'] + ' -shared'
 
 if env['longindices']:
     env.Append(CPPDEFINES = ['ESYS_INDEXTYPE_LONG'])
@@ -500,11 +487,6 @@ env=checkNumpy(env)
 
 ######## CppUnit (required for tests)
 env=checkCppUnit(env)
-
-######## NVCC version (optional)
-if env['cuda'] and 'ripley' in env['domains']:
-    env=checkCudaVersion(env)
-    env=checkCUDA(env)
 
 ######## optional python modules (sympy, pyproj)
 env=checkOptionalModules(env)
@@ -753,10 +735,6 @@ def print_summary():
         print("          LAPACK:  YES (flavour: %s)"%env['lapack'])
     else:
         d_list.append('lapack')
-    if env['cuda']:
-        print("            CUDA:  YES (nvcc: %s)"%env['nvcc_version'])
-    else:
-        d_list.append('cuda')
     if env['gmshpy']:
         gmshpy=" + python module"
     else:
