@@ -58,10 +58,11 @@ SolverBuddy::SolverBuddy() :
     relaxation(0.3),
     use_local_preconditioner(false),
     refinements(2),
-    dim(2)
+    dim(2),
+    using_default_solver_method(false)
 {
-    setPackage(SO_DEFAULT);
-    setSolverMethod(SO_DEFAULT);
+    // setPackage(SO_DEFAULT);
+    // setSolverMethod(SO_DEFAULT);
     resetDiagnostics(true);
 }
 
@@ -362,32 +363,34 @@ void SolverBuddy::setSolverMethod(int method)
     SolverOptions meth = static_cast<SolverOptions>(method);
 
     bool havePASODirect = false;
+    using_default_solver_method=false;
 #if defined(ESYS_HAVE_PASO) && (defined(ESYS_HAVE_MKL) || defined(ESYS_HAVE_UMFPACK))
     havePASODirect = true;
 #endif
 
     switch(meth) {
         case SO_DEFAULT:
-            if(getDim() == 2){
-                if(getPackage() == SO_PACKAGE_PASO && havePASODirect){
-                    setSolverMethod(SO_METHOD_DIRECT);
-                } else if (getPackage() == SO_PACKAGE_TRILINOS){
-                    setSolverMethod(SO_METHOD_DIRECT);
-                } else {
-                    setSolverMethod(SO_METHOD_ITERATIVE);
-                }
-            } else {
-                setSolverMethod(SO_METHOD_ITERATIVE);
-            }
-            break;
+            // using_default_solver_method=true;
+            // if(getDim() == 2){
+            //     if(getPackage() == SO_PACKAGE_PASO && havePASODirect){
+            //         setSolverMethod(SO_METHOD_DIRECT);
+            //     } else if (getPackage() == SO_PACKAGE_TRILINOS){
+            //         setSolverMethod(SO_METHOD_DIRECT);
+            //     } else {
+            //         setSolverMethod(SO_METHOD_ITERATIVE);
+            //     }
+            // } else {
+            //     setSolverMethod(SO_METHOD_ITERATIVE);
+            // }
+            // break;
         case SO_METHOD_ITERATIVE:
-            if(getPackage() == SO_PACKAGE_PASO){
-                this->method = meth;
-                break;
-            } else if (getPackage() == SO_PACKAGE_TRILINOS){
-                setSolverMethod(SO_METHOD_GMRES);
-                break;
-            }
+            // if(getPackage() == SO_PACKAGE_PASO){
+            //     this->method = meth;
+            //     break;
+            // } else if (getPackage() == SO_PACKAGE_TRILINOS){
+            //     setSolverMethod(SO_METHOD_GMRES);
+            //     break;
+            // }
         case SO_METHOD_BICGSTAB:
         case SO_METHOD_CGLS:
         case SO_METHOD_CGS:
@@ -857,6 +860,11 @@ void SolverBuddy::setDim(int dim)
 int SolverBuddy::getDim()
 {
     return dim;
+}
+
+bool SolverBuddy::using_default_method() const
+{
+    return using_default_solver_method;
 }
 
 } // namespace escript
