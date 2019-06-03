@@ -694,6 +694,12 @@ public:
     */
     int getDim();
 
+    /**
+        True if we are using the default solver settings
+    */
+    bool using_default_method() const;
+
+
 protected:
     boost::python::dict trilinosParams;
 
@@ -741,6 +747,8 @@ protected:
     double cum_time;
     double cum_set_up_time;
     double cum_net_time;
+
+    bool using_default_solver_method;
 };
 
 typedef boost::shared_ptr<SolverBuddy> SB_ptr;
