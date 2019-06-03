@@ -591,8 +591,16 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(sb.getSolverMethod() == so.PRES20, "PRES20 is not set.")
         sb.setSolverMethod(so.LUMPING)
         self.assertTrue(sb.getSolverMethod() == so.LUMPING, "LUMPING is not set.")
-        sb.setSolverMethod(so.ITERATIVE)
-        self.assertTrue(sb.getSolverMethod() == so.ITERATIVE, "ITERATIVE is not set.")
+        currentPackage=sb.getPackage()
+        if HAVE_TRILINOS:
+            sb.setPackage(so.TRILINOS)
+            sb.setSolverMethod(so.ITERATIVE)
+            self.assertTrue(sb.getSolverMethod() == so.GMRES, "ITERATIVE is not set.")
+        if hasFeature('paso'):
+            sb.setPackage(so.PASO)
+            sb.setSolverMethod(so.ITERATIVE)
+            self.assertTrue(sb.getSolverMethod() == so.ITERATIVE, "ITERATIVE is not set.")
+        sb.setPackage(currentPackage)
         sb.setSolverMethod(so.NONLINEAR_GMRES)
         self.assertTrue(sb.getSolverMethod() == so.NONLINEAR_GMRES, "NONLINEAR_GMRES is not set.")
         sb.setSolverMethod(so.TFQMR)
@@ -705,7 +713,10 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
 
         sb.setDim(3)
         sb.setSolverMethod(so.DEFAULT)
-        self.assertTrue(sb.getSolverMethod() == so.ITERATIVE, "default solver is wrong")
+        if HAVE_TRILINOS:
+            self.assertTrue(sb.getSolverMethod() == so.GMRES, "default solver is wrong")
+        if hasFeature('paso'):
+            self.assertTrue(sb.getSolverMethod() == so.ITERATIVE, "default solver is wrong")
         sb.setDim(2)
         if HAVE_TRILINOS:
             sb.setPackage(so.TRILINOS)
@@ -2124,22 +2135,21 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     #
     #   solver checks (PDE system)
-    #
-    # def test_symmetryOnIterative_System(self):
-    #     A=Tensor4(0.,Function(self.domain))
-    #     D=Tensor(1.,Function(self.domain))
-    #     Y=Vector(self.domain.getDim(),Function(self.domain))
-    #     for i in range(self.domain.getDim()): 
-    #         A[i,:,i,:]=kronecker(self.domain)
-    #         D[i,i]+=i
-    #         Y[i]+=i
-    #     mypde=LinearPDE(self.domain,debug=self.DEBUG)
-    #     mypde.setValue(A=A,D=D,Y=Y)
-    #     mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-    #     mypde.getSolverOptions().setSolverMethod(SolverOptions.ITERATIVE)
-    #     u=mypde.getSolution()
-    #     self.assertTrue(self.check(u,1.),'solution is wrong.')
-
+    # 
+    def test_symmetryOnIterative_System(self):
+        A=Tensor4(0.,Function(self.domain))
+        D=Tensor(1.,Function(self.domain))
+        Y=Vector(self.domain.getDim(),Function(self.domain))
+        for i in range(self.domain.getDim()): 
+            A[i,:,i,:]=kronecker(self.domain)
+            D[i,i]+=i
+            Y[i]+=i
+        mypde=LinearPDE(self.domain,debug=self.DEBUG)
+        mypde.setValue(A=A,D=D,Y=Y)
+        mypde.getSolverOptions().setVerbosity(self.VERBOSE)
+        mypde.getSolverOptions().setSolverMethod(SolverOptions.ITERATIVE)
+        u=mypde.getSolution()
+        self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_PCG_JACOBI_System(self):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
@@ -2187,30 +2197,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
-    # def test_DIRECT_System(self):
-    #     A=Tensor4(0.,Function(self.domain))
-    #     D=Tensor(1.,Function(self.domain))
-    #     Y=Vector(self.domain.getDim(),Function(self.domain))
-    #     for i in range(self.domain.getDim()): 
-    #         A[i,:,i,:]=kronecker(self.domain)
-    #         D[i,i]+=i
-    #         Y[i]+=i
-    #     mypde=LinearPDE(self.domain,debug=self.DEBUG)
-    #     mypde.setValue(A=A,D=D,Y=Y)
-    #     if not HAVE_DIRECT:
-    #         with self.assertRaises(ValueError) as package:
-    #             mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
-    #         self.assertTrue('not compiled' in str(package.exception))
-    #         return
-    #     else:
-    #         mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
-    #     mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-    #     if not CAN_USE_DIRECT:
-    #         with self.assertRaises(RuntimeError) as package:
-    #             u=mypde.getSolution()
-    #     else:
-    #         u=mypde.getSolution()
-    #         self.assertTrue(self.check(u,1.),'solution is wrong.')
     @unittest.skipIf(no_paso, "Skipping direct paso test")
     def test_DIRECT_System_PASO(self):
         A=Tensor4(0.,Function(self.domain))

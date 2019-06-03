@@ -380,6 +380,14 @@ void SolverBuddy::setSolverMethod(int method)
                 setSolverMethod(SO_METHOD_ITERATIVE);
             }
             break;
+        case SO_METHOD_ITERATIVE:
+            if(getPackage() == SO_PACKAGE_PASO){
+                this->method = meth;
+                break;
+            } else if (getPackage() == SO_PACKAGE_TRILINOS){
+                setSolverMethod(SO_METHOD_GMRES);
+                break;
+            }
         case SO_METHOD_BICGSTAB:
         case SO_METHOD_CGLS:
         case SO_METHOD_CGS:
@@ -387,7 +395,6 @@ void SolverBuddy::setSolverMethod(int method)
         case SO_METHOD_CR:
         case SO_METHOD_GMRES:
         case SO_METHOD_HRZ_LUMPING:
-        case SO_METHOD_ITERATIVE:
         case SO_METHOD_LSQR:
         case SO_METHOD_MINRES:
         case SO_METHOD_NONLINEAR_GMRES:
@@ -434,15 +441,18 @@ void SolverBuddy::setPackage(int package)
         // unless at least one of these is available
 #ifdef ESYS_HAVE_TRILINOS
             this->package = SO_PACKAGE_TRILINOS;
+            setSolverMethod(getSolverMethod());
             break;
 #else
             this->package = SO_PACKAGE_PASO;
+            setSolverMethod(getSolverMethod());
             break;
 #endif
         // Set to PASO iff escript was compiled with PASO
         case SO_PACKAGE_PASO:
 #ifdef ESYS_HAVE_PASO
             this->package = SO_PACKAGE_PASO;
+            setSolverMethod(getSolverMethod());
             break;
 #else
             throw ValueError("escript was not compiled with PASO enabled");
@@ -451,6 +461,7 @@ void SolverBuddy::setPackage(int package)
         case SO_PACKAGE_TRILINOS:
 #ifdef ESYS_HAVE_TRILINOS
             this->package = SO_PACKAGE_TRILINOS;
+            setSolverMethod(getSolverMethod());
             break;
 #else
             throw ValueError("escript was not compiled with Trilinos enabled");
@@ -459,6 +470,7 @@ void SolverBuddy::setPackage(int package)
         case SO_PACKAGE_MKL:
 #ifdef ESYS_HAVE_MKL
             this->package = SO_PACKAGE_MKL;
+            setSolverMethod(getSolverMethod());
             break;
 #else
             throw ValueError("escript was not compiled with MKL enabled");
@@ -467,6 +479,7 @@ void SolverBuddy::setPackage(int package)
         case SO_PACKAGE_UMFPACK:
 #ifdef ESYS_HAVE_UMFPACK
             this->package = SO_PACKAGE_UMFPACK;
+            setSolverMethod(getSolverMethod());
             break;
 #else
             throw ValueError("escript was not compiled with UMFPACK enabled");
