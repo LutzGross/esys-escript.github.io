@@ -35,14 +35,11 @@ werror = False
 verbose = True
 openmp = True
 
-pythoncmd = "python3"
+pythoncmd="/sw/apps/python/3.5.1/bin/python3"
 
 mpi = 'INTELMPI'
 mpi_prefix = I_MPI_ROOT or '/sw/intel/impi/2018.1.163'
 mpi_prefix += '/intel64'
-#cuda = True
-nvccflags = "-arch=sm_35 -ccbin=icpc -DBOOST_NOINLINE='__attribute__((noinline))'"
-cuda_prefix = ['/sw/libs/cuda/7.5/include', '/sw/libs/cuda/7.5/lib64']
 
 boost_prefix = '/sw/libs/boost/1.61.0'
 boost_libs = ['boost_python3']
@@ -54,19 +51,14 @@ parmetis = True
 parmetis_prefix = '/sw/libs/parmetis/4.0.3-impi'
 parmetis_libs = ['parmetis']
 trilinos = True
-trilinos_prefix = '/sw/libs/trilinos/snapshot-hybrid-eti'
+trilinos_prefix = '/sw/libs/trilinos/trilinos-12.10.1'
 
 mkl = True
 _mklroot=MKLROOT or '/sw/intel/compilers_and_libraries_2018.1.163/linux/mkl'
 mkl_prefix = ['%s/include'%_mklroot, '%s/lib/intel64'%_mklroot]
 mkl_libs = ['mkl_intel_lp64', 'mkl_intel_thread', 'mkl_core', 'pthread']
-#boomeramg = True
-boomeramg_prefix = '/sw/libs/hypre/2.0.0'
-boomeramg_libs = ['HYPRE']
-#boomeramg_libs = ['HYPRE_IJ_mv', 'HYPRE_krylov', 'HYPRE_parcsr_ls']
 silo = True
 silo_prefix = '/sw/libs/silo/4.10.2'
-silo_libs = ['siloh5', 'hdf5']
 visit = False
 visit_prefix = '/sw/apps/visit/2.7.0/linux-x86_64/libsim/V2'
 
