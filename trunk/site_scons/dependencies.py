@@ -217,19 +217,6 @@ def checkPython(env):
 
     return conf.Finish()
 
-def checkCudaVersion(env):
-    # NVCC availability is already checked in the Tool file
-    p = Popen([env['NVCC'], '-V'], stdout=PIPE)
-    out,_ = p.communicate()
-    env['nvcc_version'] = '(unknown version)'
-    for line in out.split('\n'):
-        if 'release' in line:
-            version = line[line.find('release'):].strip()
-            env['nvcc_version'] = version
-            break
-    env['buildvars']['nvcc']=env['NVCC']
-    return env
-
 def checkBoost(env):
     boost_inc_path,boost_lib_path=findLibWithHeader(env, env['boost_libs'], 'boost/python.hpp', env['boost_prefix'], lang='c++')
     if env['sysheaderopt'] == '':
@@ -270,8 +257,7 @@ def checkBoost(env):
     if boostversion >= 106300:
         try:
             boost_numpy_inc_path,boost_numpy_lib_path=findLibWithHeader(env, env['boost_libs'], 'boost/python/numpy.hpp', env['boost_prefix'], lang='c++')
-            print("Found boost/python/numpy.hpp. Building with boost numpy support.")
-
+            
             # Locate the boost numpy files
             p = subprocess.Popen(["ld","--verbose"], stdout=subprocess.PIPE)
             out,err = p.communicate()
@@ -289,24 +275,19 @@ def checkBoost(env):
                     else:
                         string_type = basestring
                     
-                    p2res = ''
-                    p3res = ''
+                    p2name = ''
+                    p3name = ''
                     for x in l:
                         if isinstance(x,string_type):
-                            if x.startswith('libboost_numpy-py') and x.endswith('.so'):
-                                p2res = x
-                            if x.startswith('libboost_numpy-py3') and x.endswith('.so'):
-                                p3res = x
+                            if x.startswith('libboost_numpy2') and x.endswith('.so') and len(p2res)==0:
+                                p2name = x
+                            if x.startswith('libboost_numpy3') and x.endswith('.so') and len(p3name)==0:
+                                p3name = x
                         else:
-                            if x.startswith(b'libboost_numpy-py') and x.endswith(b'.so'):
-                                p2res = x
-                            if x.startswith(b'libboost_numpy-py3') and x.endswith(b'.so'):
-                                p3res = x
-
-                    if len(p2name)==0 and len(p2res)>0:
-                        p2name=p2res[-1]
-                    if len(p3name)==0 and len(p3res)>0:
-                        p3name=p3res[-1]
+                            if x.startswith(b'libboost_numpy2') and x.endswith(b'.so') and len(p2res)==0:
+                                p2name = x
+                            if x.startswith(b'libboost_numpy3') and x.endswith(b'.so') and len(p3res)==0:
+                                p3name = x
                 except OSError:
                     pass
 
@@ -318,14 +299,19 @@ def checkBoost(env):
 
             # If found, add the necessary information to env
             if len(libname) > 0:
+                print("Checking for C++ header file boost/python/numpy.hpp... found lib%s.so" % libname)
                 env.AppendUnique(LIBS = libname)
                 env['boost_libs'].append(libname)
                 env.AppendUnique(CPPPATH = [boost_numpy_inc_path])
                 env.AppendUnique(LIBPATH = [boost_numpy_lib_path])
                 env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], boost_numpy_lib_path)
                 env.Append(CPPDEFINES=['ESYS_HAVE_BOOST_NUMPY'])
+            else:
+                print("Checking for C++ header file boost/python/numpy.hpp... no")        
         except:
-            print("Warning: Could not find boost/python/numpy.hpp. Building without numpy support.")
+            print("Checking for C++ header file boost/python/numpy.hpp... no")
+    else:
+        print("Checking for C++ header file boost/python/numpy.hpp... no")
 
     # Check if the version of boost we are using is missing BOOST_BYTE_ORDER
     if boostversion >= 107000:
@@ -347,18 +333,6 @@ def checkNumpy(env):
         conf.env['numpy_h']=False
 
     return conf.Finish()
-
-def checkCUDA(env):
-    try:
-        cuda_inc_path,cuda_lib_path=findLibWithHeader(env, 'cudart', 'thrust/version.h', env['cuda_prefix'], lang='c++')
-        env.AppendUnique(CPPPATH = [cuda_inc_path])
-        env.AppendUnique(LIBPATH = [cuda_lib_path])
-        env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], cuda_lib_path)
-        env.Append(CPPDEFINES = ['ESYS_HAVE_CUDA'])
-        env['cuda']=True
-    except:
-        env['cuda']=False
-    return env
 
 def checkCppUnit(env):
     try:
@@ -708,6 +682,7 @@ def checkOptionalLibraries(env):
         try:
             boost_inc_path, boost_lib_path = findLibWithHeader(env, env['compression_libs'], 'boost/iostreams/filter/gzip.hpp', env['boost_prefix'], lang='c++')
             env.Append(CPPDEFINES = ['ESYS_HAVE_BOOST_IO'])
+            # env.Append(CCFLAGS='-lboost_iostreams')
         except RuntimeError as e:
             env['compressed_files'] = False
     env['buildvars']['compressed_files']=int(env['compressed_files'])
