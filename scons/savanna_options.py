@@ -35,7 +35,7 @@ werror = False
 verbose = True
 openmp = True
 
-pythoncmd="/sw/apps/python/3.5.1/bin/python3"
+pythoncmd = "/sw/apps/python/3.5.1/bin/python3"
 
 mpi = 'INTELMPI'
 mpi_prefix = I_MPI_ROOT or '/sw/intel/impi/2018.1.163'

@@ -61,7 +61,7 @@ visit_prefix = ['/usr/local/visit/2.13.2/linux-x86_64/libsim/V2/include/','/usr/
 trilinos_prefix =['/usr/local/trilinos/include/','/usr/local/trilinos/lib/']
 # trilinos_prefix =['/usr/local/trilinos_mpi/include/','/usr/local/trilinos_mpi/lib/']
  
-
+boost_prefix='/usr/local'
 p = subprocess.Popen(["ld","--verbose"], stdout=subprocess.PIPE)
 out,err = p.communicate()
 spath = [x[13:-3] for x in out.split() if 'SEARCH_DIR' in x]
@@ -70,8 +70,8 @@ p3name = ''
 for name in spath:
   try:
     l=os.listdir(name)
-    p2res=[x for x in l if x.startswith('libboost_python-py2') and x.endswith('.so')]
-    p3res=[x for x in l if x.startswith('libboost_python-py3') and x.endswith('.so')]
+    p2res=[x for x in l if x.startswith('libboost_python2') and x.endswith('.so')]
+    p3res=[x for x in l if x.startswith('libboost_python3') and x.endswith('.so')]
     if len(p2name)==0 and len(p2res)>0:
       p2name=p2res[-1]
     if len(p3name)==0 and len(p3res)>0:
@@ -86,6 +86,8 @@ if python == 2:
 else:
   boost_libs = [p3name[3:-3]]
   pythoncmd = '/usr/bin/python3'
+
+print("Meerkat config: Linking with %s" % boost_libs) 
 
 #boost_libs = [p2name[3:-3], 'boost_numpy27']
 # boost_libs = ['boost_python27', 'boost_numpy27']
