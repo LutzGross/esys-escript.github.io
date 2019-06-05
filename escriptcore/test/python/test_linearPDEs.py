@@ -1778,42 +1778,20 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
-    # def test_DIRECT(self):
-    #     mypde=LinearPDE(self.domain,debug=self.DEBUG)
-    #     mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-    #     if not HAVE_DIRECT:
-    #         with self.assertRaises(ValueError) as package:
-    #             mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
-    #         self.assertTrue('not compiled' in str(package.exception))
-    #         return
-    #     else:
-    #         mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
-    #     mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-    #     if not CAN_USE_DIRECT:
-    #         with self.assertRaises(RuntimeError) as package:
-    #             u=mypde.getSolution()
-    #     else:
-    #         u=mypde.getSolution()
-    #         self.assertTrue(self.check(u,1.),'solution is wrong.')
     @unittest.skipIf(no_paso, "Skipping direct paso test")
     def test_DIRECT_PASO(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
         mypde.getSolverOptions().setPackage(SolverOptions.PASO)
-        if not HAVE_DIRECT:
-            with self.assertRaises(ValueError) as package:
-                mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
-            self.assertTrue('not compiled' in str(package.exception))
-            return
-        else:
+        if hasFeature("umfpack") or hasFeature("mkl"):
             mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
-        mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-        if not CAN_USE_DIRECT:
-            with self.assertRaises(RuntimeError) as package:
-                u=mypde.getSolution()
-        else:
+            mypde.getSolverOptions().setVerbosity(self.VERBOSE)
             u=mypde.getSolution()
             self.assertTrue(self.check(u,1.),'solution is wrong.')
+        else:
+            with self.assertRaises(ValueError) as package:
+                mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
+            self.assertTrue('not compiled' in str(package.exception))            
     @unittest.skipIf(not(HAVE_TRILINOS), "Skipping direct Trilinos test")
     def test_DIRECT_TRILINOS(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
@@ -1823,7 +1801,6 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
-
     def test_BICGSTAB_JACOBI(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.getSolverOptions().setSolverMethod(SolverOptions.BICGSTAB)
@@ -2135,7 +2112,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     #
     #   solver checks (PDE system)
-    # 
+    #
     def test_symmetryOnIterative_System(self):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
@@ -2209,20 +2186,16 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.getSolverOptions().setPackage(SolverOptions.PASO)
         mypde.setValue(A=A,D=D,Y=Y)
-        if not HAVE_DIRECT:
+        if hasFeature("umfpack") or hasFeature("mkl"):
+            mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
+            mypde.getSolverOptions().setVerbosity(self.VERBOSE)
+            u=mypde.getSolution()
+            self.assertTrue(self.check(u,1.),'solution is wrong.')
+        else:
             with self.assertRaises(ValueError) as package:
                 mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
             self.assertTrue('not compiled' in str(package.exception))
             return
-        else:
-            mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
-        mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-        if not CAN_USE_DIRECT:
-            with self.assertRaises(RuntimeError) as package:
-                u=mypde.getSolution()
-        else:
-            u=mypde.getSolution()
-            self.assertTrue(self.check(u,1.),'solution is wrong.')
     @unittest.skipIf(not(HAVE_TRILINOS), "Skipping direct Trilinos test")
     def test_DIRECT_System_TRILINOS(self):
         A=Tensor4(0.,Function(self.domain))
