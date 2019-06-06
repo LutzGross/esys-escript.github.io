@@ -384,13 +384,6 @@ void SolverBuddy::setSolverMethod(int method)
             // }
             // break;
         case SO_METHOD_ITERATIVE:
-            // if(getPackage() == SO_PACKAGE_PASO){
-            //     this->method = meth;
-            //     break;
-            // } else if (getPackage() == SO_PACKAGE_TRILINOS){
-            //     setSolverMethod(SO_METHOD_GMRES);
-            //     break;
-            // }
         case SO_METHOD_BICGSTAB:
         case SO_METHOD_CGLS:
         case SO_METHOD_CGS:
