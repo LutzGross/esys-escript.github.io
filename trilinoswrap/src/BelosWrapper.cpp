@@ -70,6 +70,7 @@ RCP<SolverType<ST> > createSolver(const escript::SolverBuddy& sb)
             //solverParams->set("Maximum Restarts", 20);
             solver = factory.create("GMRES", solverParams);
             break;
+        case escript::SO_METHOD_ITERATIVE:
         case escript::SO_METHOD_GMRES:
             extractParamIfSet<int>("Num Blocks", pyParams, *solverParams);
             extractParamIfSet<int>("Maximum Restarts", pyParams, *solverParams);
