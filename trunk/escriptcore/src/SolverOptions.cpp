@@ -362,11 +362,11 @@ void SolverBuddy::setSolverMethod(int method)
 {
     SolverOptions meth = static_cast<SolverOptions>(method);
 
-//     bool havePASODirect = false;
-//     using_default_solver_method=false;
-// #if defined(ESYS_HAVE_PASO) && (defined(ESYS_HAVE_MKL) || defined(ESYS_HAVE_UMFPACK))
-//     havePASODirect = true;
-// #endif
+    bool havePASODirect = false;
+    using_default_solver_method=false;
+#if defined(ESYS_HAVE_PASO) && (defined(ESYS_HAVE_MKL) || defined(ESYS_HAVE_UMFPACK))
+    havePASODirect = true;
+#endif
 
     switch(meth) {
         case SO_DEFAULT:
