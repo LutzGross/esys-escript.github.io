@@ -591,6 +591,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(sb.getSolverMethod() == so.PRES20, "PRES20 is not set.")
         sb.setSolverMethod(so.LUMPING)
         self.assertTrue(sb.getSolverMethod() == so.LUMPING, "LUMPING is not set.")
+
         sb.setSolverMethod(so.ITERATIVE)
         self.assertTrue(sb.getSolverMethod() == so.ITERATIVE, "ITERATIVE is not set.")
         # currentPackage=sb.getPackage()
@@ -602,7 +603,8 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         #     sb.setPackage(so.PASO)
         #     sb.setSolverMethod(so.ITERATIVE)
         #     self.assertTrue(sb.getSolverMethod() == so.ITERATIVE, "ITERATIVE is not set.")
-        sb.setPackage(currentPackage)
+        # sb.setPackage(currentPackage)
+        
         sb.setSolverMethod(so.NONLINEAR_GMRES)
         self.assertTrue(sb.getSolverMethod() == so.NONLINEAR_GMRES, "NONLINEAR_GMRES is not set.")
         sb.setSolverMethod(so.TFQMR)
