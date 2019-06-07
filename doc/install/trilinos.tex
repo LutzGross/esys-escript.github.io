@@ -69,21 +69,32 @@ cmake \
       -D TPL_Cholmod_LIBRARIES='libcholmod.so;libamd.so;libcolamd.so' \
       -D TPL_UMFPACK_INCLUDE_DIRS=/usr/include/suitesparse \
       -D TPL_SCALAPACK_LIBRARIES=/usr/lib/libscalapack-openmpi.so \
+      -D Trilinos_ENABLE_Amesos=ON \
       -D Trilinos_ENABLE_Amesos2=ON \
+      -D Trilinos_ENABLE_AztecOO=ON \
       -D Trilinos_ENABLE_Belos=ON \
+      -D Trilinos_ENABLE_Ifpack=ON \
       -D Trilinos_ENABLE_Ifpack2=ON \
       -D Trilinos_ENABLE_Kokkos=ON \
       -D Trilinos_ENABLE_Komplex=ON \
+      -D Trilinos_ENABLE_ML=ON \
       -D Trilinos_ENABLE_MueLu=ON \
       -D Trilinos_ENABLE_Teuchos=ON \
       -D Trilinos_ENABLE_Tpetra=ON \
-      -D Trilinos_ENABLE_EXPLICIT_INSTANTIATION=ON \
-      -D Trilinos_ENABLE_COMPLEX=ON \
-      -D Trilinos_ENABLE_OpenMP=ON \
-      -D TPL_ENABLE_MPI=ON \
       -D Trilinos_ENABLE_ALL_OPTIONAL_PACKAGES=ON \
       -D KOKKOS_ENABLE_AGGRESSIVE_VECTORIZATION=ON \
+      -D Tpetra_INST_COMPLEX_DOUBLE=ON \
+      -D Teuchos_ENABLE_COMPLEX=ON \
+      -D Tpetra_INST_INT_LONG=OFF \
+      -D Tpetra_INST_LONG_LONG=OFF \
+      -D Tpetra_INST_INT_LONG_LONG=OFF \
+      -D TpetraKernels_ENABLE_Experimental=ON \
+      -D Trilinos_ENABLE_OpenMP=ON \
+      -D Trilinos_ENABLE_EXPLICIT_INSTANTIATION=ON \
+      -D KOKKOS_ENABLE_COMPILER_WARNINGS=ON \
+      -D Amesos2_ENABLE_Basker=ON \
       -D Tpetra_INST_SERIAL:BOOL=ON \
+      -D Trilinos_ENABLE_TESTS=OFF \
 $EXTRA_ARGS \
 $TRILINOS_PATH
 \end{verbatim}
