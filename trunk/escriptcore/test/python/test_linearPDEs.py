@@ -1784,15 +1784,15 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
             with self.assertRaises(ValueError) as package:
                 mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
             self.assertTrue('not compiled' in str(package.exception))            
-    @unittest.skipIf(not(HAVE_TRILINOS), "Skipping direct Trilinos test")
-    def test_DIRECT_TRILINOS(self):
-        mypde=LinearPDE(self.domain,debug=self.DEBUG)
-        mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
-        mypde.getSolverOptions().setPackage(SolverOptions.TRILINOS)
-        mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
-        mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-        u=mypde.getSolution()
-        self.assertTrue(self.check(u,1.),'solution is wrong.')
+    # @unittest.skipIf(not(HAVE_TRILINOS), "Skipping direct Trilinos test")
+    # def test_DIRECT_TRILINOS(self):
+    #     mypde=LinearPDE(self.domain,debug=self.DEBUG)
+    #     mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
+    #     mypde.getSolverOptions().setPackage(SolverOptions.TRILINOS)
+    #     mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
+    #     mypde.getSolverOptions().setVerbosity(self.VERBOSE)
+    #     u=mypde.getSolution()
+    #     self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_BICGSTAB_JACOBI(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.getSolverOptions().setSolverMethod(SolverOptions.BICGSTAB)
