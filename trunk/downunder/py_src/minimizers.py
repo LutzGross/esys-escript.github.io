@@ -74,11 +74,11 @@ def _zoom(phi, gradphi, phiargs, alpha_lo, alpha_hi, phi_lo, phi_hi, c1, c2,
             alpha_hi,phi_hi=alpha_lo,phi_lo
         denom=2*phi_hi-2*phi0-2*alpha_hi*gphi0
         if denom == 0:
-            alpha=0.5*(alpha_lo+alpha_hi)
+            alpha=0.5*(alpha_lo+alpha_hi) 
         else:
             alpha=(-alpha_hi**2.0*gphi0)/denom
-            if alpha < alpha_lo or alpha > alpha_hi:
-                alpha=0.5*(alpha_lo+alpha_hi)
+            if alpha < alpha_lo: alpha = alpha_lo
+            if alpha > alpha_hi: alpha = alpha_hi
         return alpha
 
     def cubicinterpolate(alpha_lo,phi_lo,alpha_hi,phi_hi,old_alpha,old_phi):
@@ -253,7 +253,7 @@ class AbstractMinimizer(object):
         self._callback = None
         self.logger = logging.getLogger('inv.%s'%self.__class__.__name__)
         self.setTolerance(m_tol=m_tol, J_tol=J_tol)
-        self.interpolationOrder=2
+        self.interpolationOrder=1
 
     def setCostFunction(self, J):
         """
