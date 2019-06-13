@@ -93,6 +93,18 @@ class TestMinimizerLBFGS(unittest.TestCase):
         # callback should be called once for each iteration (including 0th)
         self.assertEqual(n[0], 11)
 
+    def test_convergence_for_all_interpolation_orders(self):
+        self.minimizer.setTolerance(1e-10)
+        self.minimizer.setMaxIterations(100)
+        self.minimizer.setOptions(interpolationOrder=1)
+        x=self.minimizer.run(self.x0)
+        self.minimizer.setOptions(interpolationOrder=2)
+        xx=self.minimizer.run(self.x0)
+        self.minimizer.setOptions(interpolationOrder=3)
+        xxx=self.minimizer.run(self.x0)
+        self.assertAlmostEqual(np.amax(abs(x-xx)), 0.)
+        self.assertAlmostEqual(np.amax(abs(x-xxx)), 0.)
+
 class TestMinimizerBFGS(unittest.TestCase):
     def setUp(self):
         self.f=RosenFunc()
@@ -163,7 +175,6 @@ class TestMinimizerNLCG(unittest.TestCase):
             pass
         # callback should be called once for each iteration (including 0th)
         self.assertEqual(n[0], 11)
-
 
 if __name__ == '__main__':
     run_tests(__name__, exit_on_failure=True)
