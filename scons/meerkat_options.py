@@ -20,11 +20,10 @@
 openmp = True
 umfpack = True
 silo = True
-# cuda = True
 # mpi = 'OPENMPI'
 # verbose = True
-debug = True
-# trilinos = True
+# debug = True
+trilinos = True
 # paso = False
 # parmetis = True
 visit = True
@@ -58,8 +57,14 @@ umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
 
 visit_prefix = ['/usr/local/visit/2.13.2/linux-x86_64/libsim/V2/include/','/usr/local/visit/2.13.2/linux-x86_64/libsim/V2/lib/']
 
-trilinos_prefix =['/usr/local/trilinos/include/','/usr/local/trilinos/lib/']
-# trilinos_prefix =['/usr/local/trilinos_mpi/include/','/usr/local/trilinos_mpi/lib/']
+if mpi=='OPENMPI':
+  trilinos_prefix =['/usr/local/trilinos_mpi/include/','/usr/local/trilinos_mpi/lib/']
+else:
+  trilinos_prefix =['/usr/local/trilinos/include/','/usr/local/trilinos/lib/']
+
+if trilinos == True:
+  print("Meerkat config: Using trilinos libraries %s" % trilinos_prefix) 
+
  
 boost_prefix='/usr/local'
 p = subprocess.Popen(["ld","--verbose"], stdout=subprocess.PIPE)
