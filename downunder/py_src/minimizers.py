@@ -69,56 +69,75 @@ def _zoom(phi, gradphi, phiargs, alpha_lo, alpha_hi, phi_lo, phi_hi, c1, c2,
     alpha_lo...alpha_hi. See Chapter 3 of 'Numerical Optimization' by
     J. Nocedal for an explanation.
     """
-    def quadinterpolate(alpha_lo,phi_lo,alpha_hi,phi_hi):
-        if alpha_lo > alpha_hi:
-            alpha_hi,phi_hi=alpha_lo,phi_lo
-        denom=2*phi_hi-2*phi0-2*alpha_hi*gphi0
-        if denom == 0:
-            alpha=0.5*(alpha_lo+alpha_hi) 
+
+    def linearinterpolate(alpha_lo,alpha_hi,old_alpha):
+        alpha = 0.5*(alpha_lo+alpha_hi)
+        if old_alpha is None:
+            return alpha
+        elif np.abs(alpha-old_alpha) < tol_df or np.abs(alpha) < tol_sm*np.abs(old_alpha):
+            return 0.5*old_alpha
         else:
-            alpha=(-alpha_hi**2.0*gphi0)/denom
-            if alpha < alpha_lo: alpha = alpha_lo
-            if alpha > alpha_hi: alpha = alpha_hi
+            return alpha
+
+    def quadinterpolate(alpha_lo,alpha_hi,old_alpha,old_phi):
+        if old_alpha is None:
+            return linearinterpolate(alpha_lo,alpha_hi,old_alpha)
+        denom=2.0*(old_phi-phi0-gphi0*old_alpha)
+        if denom == 0:
+            return linearinterpolate(alpha_lo,alpha_hi,old_alpha)
+        alpha=-gphi0*old_alpha*old_alpha/denom
+        if np.abs(alpha-old_alpha) < tol_df or np.abs(alpha) < tol_sm*np.abs(old_alpha):
+            alpha=0.5*old_alpha
+        if abs(alpha) < 1e-8:
+            return linearinterpolate(alpha_lo,alpha_hi,old_alpha)
         return alpha
 
-    def cubicinterpolate(alpha_lo,phi_lo,alpha_hi,phi_hi,old_alpha,old_phi):
-        if alpha_lo > alpha_hi:
-            alpha_hi,phi_hi=alpha_lo,phi_lo
-        if alpha_lo==0:
-            alpha_1,phi_1,alpha_2,phi_2=alpha_hi,phi_hi,old_alpha,old_phi
-        else:
-            alpha_1,phi_1,alpha_2,phi_2=alpha_lo,phi_lo,alpha_hi,phi_hi
-        if alpha_1 == 0 or alpha_2 == 0 or alpha_1 == alpha_2:
-            return quadinterpolate(alpha_lo,phi_lo,alpha_hi,phi_hi)    
-        a1s,a2s,a1c,a2c=alpha_1**2,alpha_2**2,alpha_1**3,alpha_2**3
-        a=(-a1s*phi_2+a2s*phi_1-a2s*phi0+(a1s*alpha_2-alpha_1*a2s)*gphi0)/(a1c*a2s-a1s*a2c)
-        b=-(-a1c*phi_2+a2c*phi_1-a2c*phi0+(a1c*alpha_2-alpha_1*a2c)*gphi0)/(a1c*a2s-a1s*a2c)
-        deter=b**2.0-3.0*a*gphi0
+    def cubicinterpolate(alpha_lo,alpha_hi,old_alpha,old_phi,very_old_alpha,very_old_phi):
+        if very_old_alpha is None:
+            return quadinterpolate(alpha_lo,alpha_hi,old_alpha,old_phi)
+        a0s,a1s=very_old_alpha*very_old_alpha,old_alpha*old_alpha
+        denom=a0s*a1s*(old_alpha-very_old_alpha)
+        if denom==0:
+            return quadinterpolate(alpha_lo,alpha_hi,old_alpha,old_phi)
+        a0c,a1c=a0s*very_old_alpha,a1s*old_alpha
+        tmpA=old_phi-phi0-gphi0*old_alpha 
+        tmpB=very_old_phi-phi0-gphi0*very_old_alpha
+        a=( a0s*tmpA-a1s*tmpB)/denom
+        b=(-a0c*tmpA+a1c*tmpB)/denom
+        deter=b*b-3.0*a*gphi0
         if deter<0:
-            return quadinterpolate(alpha_lo,phi_lo,alpha_hi,phi_hi)
-        A,B=(-b/(3.0*a)),sqrt(deter)/(3.0*a)
-        alpha=A-B+2*B*(6*a*(A+B)+2*b>0)
-        if alpha < alpha_lo or alpha > alpha_hi:
-            return quadinterpolate(alpha_lo,phi_lo,alpha_hi,phi_hi)
+            return quadinterpolate(alpha_lo,alpha_hi,old_alpha,old_phi)
+        alpha=(-b+sqrt(deter))/(3.0*a)
         if np.abs(alpha-old_alpha) < tol_df or np.abs(alpha) < tol_sm*np.abs(old_alpha):
-            alpha=0.5*(alpha_lo+alpha_hi)
+            alpha=0.5*old_alpha
+        if abs(alpha) < 1e-8:
+            return quadinterpolate(alpha_lo,alpha_hi,old_alpha,old_phi)
         return alpha
 
     i=0
-    if interpolationOrder == 3:
-        old_alpha=0.5*(alpha_lo+alpha_hi)
-        old_phi=phi(old_alpha)
+
+    # Previous two values of alpha
+    old_alpha=None
+    old_phi=None
+    very_old_alpha=None
+    very_old_phi=None
+
     while i<=IMAX:
+
         if interpolationOrder == 1:
-            alpha=0.5*(alpha_lo+alpha_hi)
+            alpha=linearinterpolate(alpha_lo,alpha_hi,old_alpha)
         elif interpolationOrder == 2:
-            alpha=quadinterpolate(alpha_lo,phi_lo,alpha_hi,phi_hi)
+            alpha=quadinterpolate(alpha_lo,alpha_hi,old_alpha,old_phi)
         elif interpolationOrder == 3:
-            alpha=cubicinterpolate(alpha_lo,phi_lo,alpha_hi,phi_hi,old_alpha,old_phi)
+            alpha=cubicinterpolate(alpha_lo,alpha_hi,old_alpha,old_phi,very_old_alpha,very_old_phi)
+        else:
+            raise TypeError("Invalid interpolation order")
+
         phiargs(alpha)
         phi_a=phi(alpha)
         zoomlogger.debug("iteration %d, alpha=%e, phi(alpha)=%e"%(i,alpha,phi_a))
         if phi_a > phi0+c1*alpha*gphi0 or phi_a >= phi_lo:
+            very_old_alpha,very_old_phi=old_alpha,old_phi
             old_alpha,old_phi=alpha_hi,phi_hi
             alpha_hi,phi_hi=alpha,phi_a
         else:
@@ -128,6 +147,7 @@ def _zoom(phi, gradphi, phiargs, alpha_lo, alpha_hi, phi_lo, phi_hi, c1, c2,
                 break
             if gphi_a*(alpha_hi-alpha_lo) >= 0:
                 alpha_hi = alpha_lo
+            very_old_alpha,very_old_phi=old_alpha,old_phi
             old_alpha,old_phi=alpha_lo,phi_lo
             alpha_lo,phi_lo=alpha,phi_a
         if not alpha_hi > alpha_lo:
