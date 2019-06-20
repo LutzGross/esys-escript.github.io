@@ -72,12 +72,7 @@ def _zoom(phi, gradphi, phiargs, alpha_lo, alpha_hi, phi_lo, phi_hi, c1, c2,
 
     def linearinterpolate(alpha_lo,alpha_hi,old_alpha):
         alpha = 0.5*(alpha_lo+alpha_hi)
-        if old_alpha is None:
-            return alpha
-        elif np.abs(alpha-old_alpha) < tol_df or np.abs(alpha) < tol_sm*np.abs(old_alpha):
-            return 0.5*old_alpha
-        else:
-            return alpha
+        return alpha
 
     def quadinterpolate(alpha_lo,alpha_hi,old_alpha,old_phi):
         if old_alpha is None:
@@ -114,22 +109,89 @@ def _zoom(phi, gradphi, phiargs, alpha_lo, alpha_hi, phi_lo, phi_hi, c1, c2,
             return quadinterpolate(alpha_lo,alpha_hi,old_alpha,old_phi)
         return alpha
 
+    def newtoninterpolate(alpha_data,phi_data,old_alpha,old_phi):
+        # Interpolates using a polynomial of increasing order
+        # The coefficients of the interpolated polynomial are found using the Newton method
+        if very_old_alpha is None:
+            return quadinterpolate(alpha_lo,alpha_hi,old_alpha,old_phi)
+        if old_alpha in alpha_data:
+            return quadinterpolate(alpha_lo,alpha_hi,old_alpha,old_phi)
+        alpha_data.append(old_alpha)
+        phi_data.append(old_phi)
+        coefs=newton_poly(alpha_data,phi_data)
+        alpha=newtonroot(coefs,alpha_data,old_alpha)
+        if alpha < alpha_lo or alpha > alpha_hi: # Root is outside the domain
+            zoomlogger.debug("NOTE: Newton interpolation converged on a root outside of [alpha_lo,alpha_hi]. Falling back on cubic interpolation")
+            return cubicinterpolate(alpha_lo,alpha_hi,old_alpha,old_phi,very_old_alpha,very_old_phi)
+        if np.abs(alpha-old_alpha) < tol_df or np.abs(alpha) < tol_sm*np.abs(old_alpha):
+            alpha=0.5*old_alpha
+        if abs(alpha) <= 0:
+            zoomlogger.debug("NOTE: Newton interpolation returned alpha <= 0. Falling back on cubic interpolation")
+            return cubicinterpolate(alpha_lo,alpha_hi,old_alpha,old_phi,very_old_alpha,very_old_phi)
+        return alpha
+
+    def newton_poly(alpha_data,phi_data):
+        # Returns the coefficients of the newton form polynomial of phi(alpha)
+        # for the points alpha_data and function values phi_data
+        m=len(alpha_data)
+        x=np.copy(alpha_data)
+        a=np.copy(phi_data)
+        for k in range(1,m):
+            a[k:m]=(a[k:m]-a[k-1])/(x[k:m]-x[k-1])
+        return a
+
+    def newtonroot(coefs,alpha_data,startingGuess):
+        # Solves for the root of a polynomial using the newton method
+        dfcoefs=list(range(1,len(coefs)))
+        for i in range(0,len(coefs)-1):
+            dfcoefs[i]*=coefs[i+1]
+        tol=1e-6
+        error=100
+        maxiterations=100
+        point=startingGuess
+        counter=0
+        for i in range(0,maxiterations):
+            counter+=1
+            product=1
+            numer=coefs[0]
+            denom=dfcoefs[0]
+            for i in range(1, len(coefs)):
+                product*=(point-alpha_data[i-1])
+                numer+=product*coefs[i]
+                if i < len(coefs)-1:
+                    denom+=product*dfcoefs[i]
+            if denom == 0:
+                zoomlogger.debug("NOTE: The Newton solver failed (denom==0). Falling back on cubic interpolation")                
+                return cubicinterpolate(alpha_lo,alpha_hi,old_alpha,old_phi,very_old_alpha,very_old_phi)
+            newpoint=float(point-numer/denom)
+            error=abs(newpoint-point)
+            if error < tol:
+                zoomlogger.debug("Newton interpolation converged in %d iterations. Got alpha = %f" % (counter, newpoint))
+                return newpoint
+            else:
+                point=newpoint
+        zoomlogger.debug("NOTE: Newton interpolation failed to converge (exceeded max iterations). Falling back on cubic interpolation" % error)
+        return cubicinterpolate(alpha_lo,alpha_hi,old_alpha,old_phi,very_old_alpha,very_old_phi)
+
     i=0
 
-    # Previous two values of alpha
+    # Setup
     old_alpha=None
     old_phi=None
     very_old_alpha=None
     very_old_phi=None
+    alpha_data=[0.0]
+    phi_data=[phi0]
 
     while i<=IMAX:
-
         if interpolationOrder == 1:
             alpha=linearinterpolate(alpha_lo,alpha_hi,old_alpha)
         elif interpolationOrder == 2:
             alpha=quadinterpolate(alpha_lo,alpha_hi,old_alpha,old_phi)
         elif interpolationOrder == 3:
             alpha=cubicinterpolate(alpha_lo,alpha_hi,old_alpha,old_phi,very_old_alpha,very_old_phi)
+        elif interpolationOrder == 4:
+            alpha=newtoninterpolate(alpha_data,phi_data,old_alpha,old_phi)
         else:
             raise TypeError("Invalid interpolation order")
 
@@ -173,10 +235,10 @@ def line_search(f, x, p, g_Jx, Jx, args_x, alpha=1.0, alpha_truncationax=50.0,
     :param c1: value for Armijo condition (see reference)
     :param c2: value for curvature condition (see reference)
     :param interpolationOrder: the order of the interpolation used (1, 2 or 3)
-    :param tol_df: if using the cubic interpolation, the new value of alpha must 
-    :               differ from the previous value by at least this much
-    :param tol_sm: if using the cubic interpolation, the new value of alpha must
-    :               not be less than tol_sm*(alpha_{i-1})
+    :param tol_df: the interpolated value of alpha, alpha_i, must differ from the previous
+    :             value by at least this much i.e. abs(alpha_i-alpha_{i-1}) < tol_df
+    :param tol_sm: the interpolated value of alpha must not be less than tol_sm
+    :             i.e. abs(alpha_i) < tol_sm*abs(alpha_{i-1})
     :param IMAX: maximum number of iterations to perform
     """
     # this stores the latest gradf(x+a*p) which is returned
@@ -223,7 +285,7 @@ def line_search(f, x, p, g_Jx, Jx, args_x, alpha=1.0, alpha_truncationax=50.0,
     old_phi_a=phi0
     phi_a=phi0
     i=1
-    if (interpolationOrder != 1) and (interpolationOrder != 2) and (interpolationOrder != 3):
+    if (interpolationOrder != 1) and (interpolationOrder != 2) and (interpolationOrder != 3) and (interpolationOrder != 4):
         lslogger.debug("WARNING invalid interpolation order. Setting interpolationOrder = 1")
         interpolationOrder=1
     #alpha=2.*alpha
