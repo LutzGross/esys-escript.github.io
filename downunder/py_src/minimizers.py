@@ -170,7 +170,7 @@ def _zoom(phi, gradphi, phiargs, alpha_lo, alpha_hi, phi_lo, phi_hi, c1, c2,
                 return newpoint
             else:
                 point=newpoint
-        zoomlogger.debug("NOTE: Newton interpolation failed to converge (exceeded max iterations). Falling back on cubic interpolation" % error)
+        # zoomlogger.debug("NOTE: Newton interpolation failed to converge (exceeded max iterations). Falling back on cubic interpolation" % error)
         return cubicinterpolate(alpha_lo,alpha_hi,old_alpha,old_phi,very_old_alpha,very_old_phi)
 
     i=0
