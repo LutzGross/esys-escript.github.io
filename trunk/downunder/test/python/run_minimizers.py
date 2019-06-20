@@ -102,8 +102,11 @@ class TestMinimizerLBFGS(unittest.TestCase):
         xx=self.minimizer.run(self.x0)
         self.minimizer.setOptions(interpolationOrder=3)
         xxx=self.minimizer.run(self.x0)
+        self.minimizer.setOptions(interpolationOrder=4)
+        xxxx=self.minimizer.run(self.x0)
         self.assertAlmostEqual(np.amax(abs(x-xx)), 0.)
         self.assertAlmostEqual(np.amax(abs(x-xxx)), 0.)
+        self.assertAlmostEqual(np.amax(abs(x-xxxx)), 0.)
 
 class TestMinimizerBFGS(unittest.TestCase):
     def setUp(self):

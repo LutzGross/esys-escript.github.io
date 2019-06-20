@@ -85,7 +85,7 @@ RUN useradd -ms /bin/bash appuser
 USER appuser
 
 # Mount folder
-VOLUME /data
+VOLUME /home/appuser
 
 CMD ["/usr/local/bin/run-escript"]
 # ENTRYPOINT ["/usr/local/bin/dockerwrapper.sh"]
