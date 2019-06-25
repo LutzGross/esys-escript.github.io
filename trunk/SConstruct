@@ -394,6 +394,9 @@ env['svn_revision']=global_revision
 env['buildvars']['svn_revision']=global_revision
 env.Append(CPPDEFINES=['SVN_VERSION='+global_revision])
 
+if global_revision=='-2' or global_revision=='-1':
+  env['warnings'].append("Could not detect the version number!")
+
 env['IS_WINDOWS']=IS_WINDOWS
 env['IS_OSX']=IS_OSX
 
