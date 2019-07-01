@@ -23,12 +23,13 @@ silo = True
 # mpi = 'OPENMPI'
 # verbose = True
 # debug = True
-trilinos = True
+# trilinos = True
 # paso = False
 # parmetis = True
 visit = True
 #werror = False
 # cxx = 'clang++'
+# cxx='/usr/bin/clang++'
 
 python = 3
 
@@ -37,7 +38,6 @@ escript_opts_version = 203
 
 import os
 import subprocess
-
 
 cxx_extra += " -fmessage-length=80 -fdiagnostics-color=always "
 if trilinos is True:
@@ -57,7 +57,9 @@ umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
 
 visit_prefix = ['/usr/local/visit/2.13.2/linux-x86_64/libsim/V2/include/','/usr/local/visit/2.13.2/linux-x86_64/libsim/V2/lib/']
 
-if mpi=='OPENMPI':
+if cxx=='clang++':
+  trilinos_prefix =['/usr/local/trilinos_clang/include/','/usr/local/trilinos_clang/lib/']
+elif mpi=='OPENMPI':
   trilinos_prefix =['/usr/local/trilinos_mpi/include/','/usr/local/trilinos_mpi/lib/']
 else:
   trilinos_prefix =['/usr/local/trilinos/include/','/usr/local/trilinos/lib/']

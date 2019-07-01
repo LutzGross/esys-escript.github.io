@@ -330,7 +330,10 @@ if env['cxx_extra'] != '': env.Append(CXXFLAGS = env['cxx_extra'])
 if env['ld_extra']  != '': env.Append(LINKFLAGS = env['ld_extra'])
 
 if env['longindices']:
+  if env['paso']:
     env.Append(CPPDEFINES = ['ESYS_INDEXTYPE_LONG'])
+  else:
+    env['warnings'].append("The longindices feature requires paso!")
 
 # set up the autolazy values
 if env['forcelazy'] == 1:

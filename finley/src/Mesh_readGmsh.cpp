@@ -370,7 +370,10 @@ int getElementsMaster(escript::JMPI& mpiInfo, FinleyDomain* dom,
     if (!get_line(line, fileHandle))
         errorFlag = EARLY_EOF;
     int scan_ret, numEntityBlocks;
-    if(version >= 4.0){
+    if (version >= 4.1) {
+        int minNodeTag, maxNodeTag;
+        scan_ret = sscanf(&line[0], "%d %d %d %d", &numEntityBlocks, &totalNumElements, &minNodeTag, &maxNodeTag);
+    } else if (version == 4.0){
         scan_ret = sscanf(&line[0], "%d %d", &numEntityBlocks, &totalNumElements);
     } else {
         scan_ret = sscanf(&line[0], "%d", &totalNumElements);
@@ -408,7 +411,7 @@ int getElementsMaster(escript::JMPI& mpiInfo, FinleyDomain* dom,
     int chunkOtherElements = 0;
 
     // read all in
-    if(version >= 4.0){
+    if(version >= 4.0){ 
 
         int count = 0;
 
@@ -419,7 +422,7 @@ int getElementsMaster(escript::JMPI& mpiInfo, FinleyDomain* dom,
                 errorFlag = EARLY_EOF;
 
             int entityTag, entityDim, numElements, gmsh_type;
-            scan_ret = sscanf(&line[0], "%d %d %d %d", &entityTag, &entityDim, &gmsh_type, &numElements);
+            scan_ret = sscanf(&line[0], "%d %d %d %d", &entityDim, &entityTag, &gmsh_type, &numElements);
 
             // Loop over elements in each entity block
             for (index_t e = 0; e < numElements; e++, count++) {
@@ -433,8 +436,7 @@ int getElementsMaster(escript::JMPI& mpiInfo, FinleyDomain* dom,
                 get_line(line, fileHandle);
                 getSingleElementMSH4(fileHandle, numDim, version, element, 
                                         errorMsg, filename, useMacroElements, gmsh_type, &line[0]);
-                
-                
+                element.tag = entityTag;
                 elementType[count] = element.type;
                 id[count] = element.id;
                 tag[count] = element.tag;
@@ -708,11 +710,15 @@ int gather_nodes(FILE* f, std::map<int,int>& tags, std::string& errorMsg,
                  int dim, double version, const std::string& filename)
 {
     int numNodes=0;
+    int numEntityBlocks;
     std::vector<char> line;
     if (!get_line(line, f))
         return EARLY_EOF;
     int scan_ret;
-    if(version >= 4.0){
+    if(version >= 4.1){
+        int minNodes, maxNodes;
+        scan_ret = sscanf(&line[0], "%d %d %d %d", &numEntityBlocks, &numNodes, &minNodes, &maxNodes);
+    } else if (version == 4.0){
         int tmp;
         scan_ret = sscanf(&line[0], "%d %d", &tmp, &numNodes);
         numNodes += tmp;
@@ -722,18 +728,55 @@ int gather_nodes(FILE* f, std::map<int,int>& tags, std::string& errorMsg,
     
     if (scan_ret == EOF)
         return EARLY_EOF;
-    for (int node = 0; node < numNodes; node++) {
-        int tmp = 0;
-        if (!get_line(line, f))
-            return EARLY_EOF;
-        int scan_ret = sscanf(&line[0], "%d", &tmp);
-        if (scan_ret == EOF) {
-            return EARLY_EOF;
-        } else if (scan_ret != 1) {
-            errorMsg = "malformed meshfile";
-            return THROW_ERROR;
+    if(version >= 4.1){
+        for (int entity = 0; entity < numEntityBlocks; entity++) {
+            int entityDim, entityTag, parametric, numNodesInBlock;
+            if (!get_line(line, f))
+                return EARLY_EOF;
+            scan_ret = sscanf(&line[0], "%d %d %d %d", &entityDim, &entityTag, &parametric, &numNodesInBlock);
+
+            if (parametric == 1){
+                errorMsg = "eScript does not supprot nodefiles with parametric coordinates.";
+                return THROW_ERROR;
+            }
+
+            // Tag information
+            for (int nodes = 0; nodes < numNodesInBlock; nodes++){
+                int tag;
+                if (!get_line(line, f))
+                    return EARLY_EOF;
+                scan_ret = sscanf(&line[0], "%d", &tag);
+                if (scan_ret != 1){
+                    errorMsg = "malformed meshfile (broken node section)!";
+                    return THROW_ERROR;
+                }
+            }
+            // Node coordinate information 
+            for (int nodes = 0; nodes < numNodesInBlock; nodes++){
+                if (!get_line(line, f))
+                    return EARLY_EOF;
+                float x, y, z;
+                scan_ret = sscanf(&line[0], "%f %f %f", &x, &y, &z);
+                if (scan_ret != 3){
+                    errorMsg = "malformed meshfile (broken node section)!";
+                    return THROW_ERROR;
+                }
+            }
         }
-        tags[tmp] = -1;
+    } else {
+        for (int node = 0; node < numNodes; node++) {
+            int tmp = 0;
+            if (!get_line(line, f))
+                return EARLY_EOF;
+            scan_ret = sscanf(&line[0], "%d", &tmp);
+            if (scan_ret == EOF) {
+                return EARLY_EOF;
+            } else if (scan_ret != 1) {
+                errorMsg = "malformed meshfile (broken node section)!";
+                return THROW_ERROR;
+            }
+            tags[tmp] = -1;
+        }
     }
     if (!get_line(line, f))
         return EARLY_EOF;
@@ -757,22 +800,37 @@ int gather_nodes(FILE* f, std::map<int,int>& tags, std::string& errorMsg,
     int numBlocks = -1;
     if (!get_line(line, f))
         return EARLY_EOF;
-    if(version >= 4.0){
+    if (version >= 4.1){
+        int minElements, maxElements;
+        scan_ret = sscanf(&line[0], "%d %d %d %d\n", &numBlocks, &numElements, &minElements, &maxElements);
+    } else if (version == 4.0){
         scan_ret = sscanf(&line[0], "%d %d\n", &numBlocks, &numElements);
     } else {
         scan_ret = sscanf(&line[0], "%d\n", &numElements);
     }
     if (scan_ret == EOF) {
         return EARLY_EOF;
-    } else if ((scan_ret != 1 && version < 4.0) || (scan_ret != 2 && version >= 4.0)) {
-        errorMsg = "readGmsh: malformed mesh file";
+    } else if ((scan_ret != 1 && version < 4.0) || (scan_ret != 2 && version == 4.0) || (scan_ret != 4 && version >= 4.1)) {
+        errorMsg = "readGmsh: malformed mesh file ($Elements section contains incorrect header information)";
         return THROW_ERROR;
     }
     struct ElementInfo e;
     std::vector<int> v(MAX_numNodes_gmsh, -1);
     e.vertex = &v[0];
 
-    if(version >= 4.0){
+    if(version >= 4.1){
+        int entityTag, entityDim, gmsh_type;
+        for(int blocks = 0; blocks < numBlocks; blocks++){
+            if (!get_line(line, f))
+                return EARLY_EOF;
+            scan_ret = sscanf(&line[0], "%d %d %d %d", &entityDim, &entityTag, &gmsh_type, &numElements); //Note that entityDim and entityTag are switched in version 4.0
+            for(int elementNumber = 0; elementNumber < numElements; elementNumber++){
+                if (!get_line(line, f))
+                    return EARLY_EOF;
+                getSingleElementMSH4(f, dim, version, e, errorMsg, filename, false, gmsh_type, &line[0]); 
+            }
+        }
+    } else if (version == 4.0){
         for(int x = 0; x < numBlocks; x++){
             int entityTag, entityDim, gmsh_type;
             if (!get_line(line, f))
@@ -806,7 +864,7 @@ int gather_nodes(FILE* f, std::map<int,int>& tags, std::string& errorMsg,
 }
 
 int getNodesMaster(escript::JMPI& mpiInfo, FinleyDomain* dom, FILE* fileHandle,
-                   int numDim, std::string& errorMsg, std::map<int, int>& tags, int version)
+                   int numDim, std::string& errorMsg, std::map<int, int>& tags, double version)
 {
     int errorFlag = 0;
     std::vector<char> line;
@@ -815,7 +873,10 @@ int getNodesMaster(escript::JMPI& mpiInfo, FinleyDomain* dom, FILE* fileHandle,
 
     int numNodes = 0, numBlocks = 0;
     int scan_ret;
-    if(version >= 4.0){
+    if(version >= 4.1){
+        int minNodeTag, maxNodeTag;
+        scan_ret = sscanf(&line[0], "%d %d %d %d", &numBlocks, &numNodes, &minNodeTag, &maxNodeTag);
+    }else if(version == 4.0){
         scan_ret = sscanf(&line[0], "%d %d", &numBlocks, &numNodes);
     } else {
         scan_ret = sscanf(&line[0], "%d", &numNodes);
@@ -842,6 +903,7 @@ int getNodesMaster(escript::JMPI& mpiInfo, FinleyDomain* dom, FILE* fileHandle,
         if (!errorFlag) {
             //read in chunksize nodes
             if(version >= 4.0){
+                int nodeCounter = -1;
                 for (int x = 0; x < numBlocks; x++) {
                     std::vector<char> line;
                     if (!get_line(line, fileHandle))
@@ -854,57 +916,47 @@ int getNodesMaster(escript::JMPI& mpiInfo, FinleyDomain* dom, FILE* fileHandle,
                     }
 
                     int entityTag, entityDim, parametric, numDataPoints;
-                    scan_ret = sscanf(&line[0], "%d %d %d %d\n", &entityTag, &entityDim, &parametric, &numDataPoints);
+                    if (version >= 4.1){
+                        scan_ret = sscanf(&line[0], "%d %d %d %d\n", &entityDim, &entityTag, &parametric, &numDataPoints);
+                    } else {
+                        scan_ret = sscanf(&line[0], "%d %d %d %d\n", &entityTag, &entityDim, &parametric, &numDataPoints);
+                    }
+
+                    if (parametric == 1){
+                        errorMsg = "eScript does not supprot nodefiles with parametric coordinates.";
+                        return THROW_ERROR;
+                    }
+
+                    // Tag information. At the moment this information is discarded.
+                    int temp = nodeCounter;
+                    for (int nodes = 0; nodes < numDataPoints; nodes++){
+                        if (!get_line(line, fileHandle))
+                            return EARLY_EOF;
+                        temp++;
+                        scan_ret = sscanf(&line[0], "%d", &tempInts[temp]);
+                        if (scan_ret != 1){
+                            errorMsg = "malformed meshfile (broken node section)!";
+                            return THROW_ERROR;
+                        }
+                    }
 
                     for(int j = 0; j < numDataPoints; j++){
                         // Get the next line
                         if (!get_line(line, fileHandle))
-                        errorFlag = EARLY_EOF;
+                            return EARLY_EOF;
 
                         // Read the information
-                        if(!parametric){
-                            scan_ret = sscanf(&line[0], "%d %le %le %le\n", &tempInts[(totalNodes+j)], 
-                                        &tempCoords[0+(totalNodes+j)*numDim], 
-                                        &tempCoords[1+(totalNodes+j)*numDim], 
-                                        &tempCoords[2+(totalNodes+j)*numDim]);
+                        nodeCounter++;
+                        if (1 == numDim) {
+                            scan_ret = sscanf(&line[0], "%le\n", &tempCoords[0+nodeCounter*numDim]);
                             SSCANF_CHECK(scan_ret);
-                        } else {
-                            double u = 0., v = 0.; // These are the parametric coordinates. At the moment the code throws this information away
-                            switch(entityDim){
-                                case 0:
-                                    scan_ret = sscanf(&line[0], "%d %le %le %le\n", &tempInts[(totalNodes+j)], 
-                                        &tempCoords[0+(totalNodes+j)*numDim], 
-                                        &tempCoords[1+(totalNodes+j)*numDim], 
-                                        &tempCoords[2+(totalNodes+j)*numDim]);
-                                    SSCANF_CHECK(scan_ret);
-                                    break;
-                                case 1:
-                                    scan_ret = sscanf(&line[0], "%d %le %le %le %le\n", &tempInts[(totalNodes+j)], 
-                                        &tempCoords[0+(totalNodes+j)*numDim], 
-                                        &tempCoords[1+(totalNodes+j)*numDim], 
-                                        &tempCoords[2+(totalNodes+j)*numDim], &u);
-                                    SSCANF_CHECK(scan_ret);
-                                    break;
-                                case 2:
-                                    scan_ret = sscanf(&line[0], "%d %le %le %le %le %le\n", &tempInts[(totalNodes+j)], 
-                                        &tempCoords[0+(totalNodes+j)*numDim], 
-                                        &tempCoords[1+(totalNodes+j)*numDim], 
-                                        &tempCoords[2+(totalNodes+j)*numDim], &u, &v);
-                                    SSCANF_CHECK(scan_ret);
-                                    break;
-                                case 3:
-                                    scan_ret = sscanf(&line[0], "%d %le %le %le\n", &tempInts[(totalNodes+j)], 
-                                        &tempCoords[0+(totalNodes+j)*numDim], 
-                                        &tempCoords[1+(totalNodes+j)*numDim], 
-                                        &tempCoords[2+(totalNodes+j)*numDim]);
-                                    SSCANF_CHECK(scan_ret);
-                                    break;
-                                default:
-                                    errorMsg = "readGmsh: information in $nodes is in the wrong format!";
-                                    errorFlag = THROW_ERROR;
-                            }
+                        } else if (2 == numDim) {
+                            scan_ret = sscanf(&line[0], "%le %le\n", &tempCoords[0+nodeCounter*numDim], &tempCoords[1+nodeCounter*numDim]);
+                            SSCANF_CHECK(scan_ret);
+                        } else if (3 == numDim) {
+                            scan_ret = sscanf(&line[0], "%le %le %le\n", &tempCoords[0+nodeCounter*numDim], &tempCoords[1+nodeCounter*numDim], &tempCoords[2+nodeCounter*numDim]);
+                            SSCANF_CHECK(scan_ret);
                         }
-
                     }
                     totalNodes += numDataPoints;
                 }
