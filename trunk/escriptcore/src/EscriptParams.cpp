@@ -21,9 +21,9 @@
 #include <cmath> // to test if we know how to check for nan
 #include <boost/python/tuple.hpp>
 
-#if defined(ESYS_HAVE_GMSH) || defined(ESYS_GMSH_MPI)
-    #include <gmsh.h>
-#endif
+// #if defined(ESYS_HAVE_GMSH) || defined(ESYS_GMSH_MPI)
+    // #include <gmsh.h>
+// #endif
 
 namespace bp = boost::python;
 
@@ -116,10 +116,10 @@ EscriptParams::EscriptParams()
 #ifdef ESYS_GMSH_MPI
     features.insert("gmsh_mpi");
 #endif
-#if defined(ESYS_HAVE_GMSH) || defined(ESYS_GMSH_MPI)
-    if(GMSH_API_VERSION_MAJOR >= 4)
-        features.insert("gmsh_version_4");
-#endif
+// #if defined(ESYS_HAVE_GMSH) || defined(ESYS_GMSH_MPI)
+    // if(GMSH_API_VERSION_MAJOR >= 4)
+    //     features.insert("gmsh_version_4");
+// #endif
 }
 
 int EscriptParams::getInt(const std::string& name, int sentinel) const
