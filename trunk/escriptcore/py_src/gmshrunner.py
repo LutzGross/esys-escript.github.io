@@ -64,7 +64,11 @@ def _runGmshSerial(geoFile, mshFile, numDim, order, verbosity):
     setNumberOfThreads(1)
     if getMPIRankWorld() == 0:
         import shlex, subprocess
-        cmdline = "gmsh -format msh -%s -order %s -o '%s' '%s'"%(numDim, order, mshFile, geoFile)
+
+        if hasFeature("gmsh_version_4"):
+            cmdline = "gmsh -format msh2 -%s -order %s -o '%s' '%s'"%(numDim, order, mshFile, geoFile)
+        else:
+            cmdline = "gmsh -format msh -%s -order %s -o '%s' '%s'"%(numDim, order, mshFile, geoFile)
         args = shlex.split(cmdline)
         try:
             ret = subprocess.call(args)
@@ -82,7 +86,10 @@ def _runGmshMPI(geoFile, mshFile, numDim, order, verbosity):
     from .escriptcpp import runMPIProgram
     from time import sleep
 
-    cmdline = "gmsh -format msh -%s -order %s -v %s -o '%s' '%s'"%(numDim, order, verbosity, mshFile, geoFile)
+    if hasFeature("gmsh_version_4"):
+        cmdline = "gmsh -format msh2 -%s -order %s -v %s -o '%s' '%s'"%(numDim, order, verbosity, mshFile, geoFile)
+    else:
+        cmdline = "gmsh -format msh -%s -order %s -v %s -o '%s' '%s'"%(numDim, order, verbosity, mshFile, geoFile)
     args = shlex.split(cmdline)
     oldThreads=getNumberOfThreads()
     # This is required on some setups to prevent lockups

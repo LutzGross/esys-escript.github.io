@@ -375,235 +375,235 @@ def generateCommemi1Mesh():
 
 
 
-# class Test_COMMEMI1(unittest.TestCase):
-#     @unittest.skipUnless(HAVE_FINLEY, "Test requires finley to be available")
-#     @unittest.skipUnless(HAVE_GMSH, "Test requires gmsh to be available")
-#     @unittest.skipUnless(HAVE_DIRECT, "Missing direct solver")
-    # def test_comm1(self):
-    #     # ---
-    #     # Initialisations
-    #     # ---
+class Test_COMMEMI1(unittest.TestCase):
+    @unittest.skipUnless(HAVE_FINLEY, "Test requires finley to be available")
+    @unittest.skipUnless(HAVE_GMSH, "Test requires gmsh to be available")
+    @unittest.skipUnless(HAVE_DIRECT, "Missing direct solver")
+    def test_comm1(self):
+        # ---
+        # Initialisations
+        # ---
 
-    #     # Get timing:
-    #     startTime = datetime.datetime.now()
+        # Get timing:
+        startTime = datetime.datetime.now()
 
-    #     # Mode (TE includes air-layer, whereas TM does not):
-    #     mode = 'TE'
+        # Mode (TE includes air-layer, whereas TM does not):
+        mode = 'TE'
 
-    #     # Read the mesh file and define the 'finley' domain:
-    #     #mesh_file = "mesh/commemi-1/commemi1_te.fly"
-    #     #domain = finley.ReadMesh(mesh_file)
-    #     #mesh_file = "mesh/commemi-1/commemi1_te.msh"
-    #     #domain = finley.ReadGmsh(mesh_file, numDim=2)
-    #     domain = generateCommemi1Mesh()
-
-
-    #     # Sounding frequencies (in Hz):
-    #     freq_def = {"high":1.0e+1,"low":1.0e+1,"step":1}
-    #     # Frequencies will be mapped on a log-scale from
-    #     # 'high' to 'low' with 'step' points per decade.
-    #     # (also only one frequency must be passed via dict)
-
-    #     # Step sizes for sampling along vertical and horizontal axis (in m):
-    #     xstep=100
-    #     zstep=250
+        # Read the mesh file and define the 'finley' domain:
+        #mesh_file = "mesh/commemi-1/commemi1_te.fly"
+        #domain = finley.ReadMesh(mesh_file)
+        #mesh_file = "mesh/commemi-1/commemi1_te.msh"
+        #domain = finley.ReadGmsh(mesh_file, numDim=2)
+        domain = generateCommemi1Mesh()
 
 
+        # Sounding frequencies (in Hz):
+        freq_def = {"high":1.0e+1,"low":1.0e+1,"step":1}
+        # Frequencies will be mapped on a log-scale from
+        # 'high' to 'low' with 'step' points per decade.
+        # (also only one frequency must be passed via dict)
 
-
-    #     # ---
-    #     # Resistivity model
-    #     # ---
-
-    #     # Resistivity values assigned to tagged regions (in Ohm.m):
-    #     rho  = [
-    #             1.0e+14, # 0: air
-    #             100.0  , # 1: host
-    #             0.5    # 2: anomaly
-    #         ]
-
-    #     # Tags must match those in the file:
-    #     tags = ["domain_air", "domain_host", "domain_anomaly"]
+        # Step sizes for sampling along vertical and horizontal axis (in m):
+        xstep=100
+        zstep=250
 
 
 
 
-    #     # ---
-    #     # Layer definitions for 1D response at boundaries.
-    #     # ---
+        # ---
+        # Resistivity model
+        # ---
 
-    #     # List with resistivity values for left and right boundary.
-    #     rho_1d_left  = [ rho[0], rho[1] ]
-    #     rho_1d_rght  = [ rho[0], rho[1] ]
+        # Resistivity values assigned to tagged regions (in Ohm.m):
+        rho  = [
+                1.0e+14, # 0: air
+                100.0  , # 1: host
+                0.5    # 2: anomaly
+            ]
 
-    #     # Associated interfaces for 1D response left and right (must match the mesh file).
-    #     ifc_1d_left = [ 20000, 0, -20000]
-    #     ifc_1d_rght = [ 20000, 0, -20000]
-
-    #     # Save in dictionary with layer interfaces and resistivities left and right:
-    #     ifc_1d = {"left":ifc_1d_left , "right":ifc_1d_rght}
-    #     rho_1d = {"left":rho_1d_left , "right":rho_1d_rght}
+        # Tags must match those in the file:
+        tags = ["domain_air", "domain_host", "domain_anomaly"]
 
 
 
 
-    #     # ---
-    #     # Adjust parameters here for TM mode
-    #     # ---
+        # ---
+        # Layer definitions for 1D response at boundaries.
+        # ---
 
-    #     # Simply delete first element from lists:
-    #     if mode.upper() == 'TM':
-    #         tags.pop(0)
-    #         rho.pop(0)
-    #         rho_1d['left'].pop(0)
-    #         rho_1d['right'].pop(0)
-    #         ifc_1d['left'].pop(0)
-    #         ifc_1d['right'].pop(0)
+        # List with resistivity values for left and right boundary.
+        rho_1d_left  = [ rho[0], rho[1] ]
+        rho_1d_rght  = [ rho[0], rho[1] ]
 
+        # Associated interfaces for 1D response left and right (must match the mesh file).
+        ifc_1d_left = [ 20000, 0, -20000]
+        ifc_1d_rght = [ 20000, 0, -20000]
 
-
-
-    #     # ---
-    #     # Run MT_2D
-    #     # ---
-
-    #     # Class options:
-    #     mt2d.MT_2D._solver = "DIRECT" #"ITERATIVE" #"CHOLEVSKY" #"CGLS " #"BICGSTAB" #"DIRECT" "ITERATIVE"
-    #     mt2d.MT_2D._debug   = False
-
-    #     # Instantiate an MT_2D object with required & optional parameters:
-    #     obj_mt2d = mt2d.MT_2D(domain, mode, freq_def, tags, rho, rho_1d, ifc_1d,
-    #             xstep=xstep ,zstep=zstep, maps=None, plot=False)
-
-    #     # Solve for fields, apparent resistivity and phase:
-    #     mt2d_fields, arho_2d, aphi_2d = obj_mt2d.pdeSolve()
-
-    #     #import random
-
-    #     #mt2d_fields[0]['real']+=random.random()
-    #     #mt2d_fields[0]['imag']+=50*random.random()
-
-    #     #print(arho_2d[0][0])
-    #     #for i in range(len(aphi_2d[0])):
-    #         #aphi_2d[0][i]+=(50*random.random())
-
-    #     #for i in range(len(arho_2d[0])):
-    #         #arho_2d[0][i]-=17.8*(random.random())
-
-    #     # ---
-    #     # User defined plots
-    #     # ---
-
-    #     from scipy.interpolate import InterpolatedUnivariateSpline
-
-    #     # Setup abscissas/Ordinates for escript data:
-    #     x  = numpy.array( obj_mt2d.loc.getX() )[:,0]
-    #     y0 = numpy.array( obj_mt2d.loc.getValue(arho_2d[0]) )
-    #     y1 = numpy.array( obj_mt2d.loc.getValue(aphi_2d[0]) )
-
-    #     # Values from Weaver -- Model 2D-1 (EP, T=0.1, z=0), see Zhdanov et al, 1997,
-    #     # "Methods for modelling electromagnetic fields. Results from COMMEMI -- the
-    #     # international project on the comparison of modelling results for electromag-
-    #     # netic induction", Journal of Applied Geophysics, 133-271
-    #     rte = [8.07,   14.10,  51.50,  95.71, 104.00, 100.00, 100.00] # TE rho_a (3 Canada)
-    #     rtm = [9.86,   46.40,  94.80,  98.30,  99.70, 100.00, 100.00] # TM rho_a (3 Canada)
-    #     if mode.lower() == 'te':
-    #         ra = rte
-    #     else:
-    #         ra = rtm
-    #     # Associated stations shifted to match escript coordinates:
-    #     xs = numpy.array( [0, 500, 1000, 2000, 4000, 8000, 16000] ) + x.max()/2.0
-
-    #     # Setup interpolation to get values at specified stations (for comparison):
-    #     fi = InterpolatedUnivariateSpline(x, y0)
-    #     # Save escript values at comparison points in text file:
-    #     # re-enable to allow comparisons
-    #     #numpy.savetxt("commemi1_"+mode.lower()+".dat", numpy.column_stack((xs,fi(xs))), fmt='%g')
+        # Save in dictionary with layer interfaces and resistivities left and right:
+        ifc_1d = {"left":ifc_1d_left , "right":ifc_1d_rght}
+        rho_1d = {"left":rho_1d_left , "right":rho_1d_rght}
 
 
 
-    #     # X plot-limits:
-    #     x0lim = [2000,38000]
-    #     y1lim = [0,120]
-    #     y2lim = [40,85]
 
-    #     # Plot labels:
-    #     title = '    escript COMMEMI-1 MT-2D ' + '(' + mode.upper() + ')' + ' freq: ' + str(obj_mt2d.frequencies[0]) + ' Hz'
-    #     ylbl0 = r'resistivity $(\Omega m)$'
-    #     ylbl1 = r'phase $(\circ)$'
-    #     xlbl1 = 'X (m)'
-    #     # Setup the plot window with app. res. on top and phase on bottom:
-    #     if HAVE_MPL:
-    #         f, ax = pyplot.subplots(2, figsize=(3.33,3.33), dpi=1200,
-    #                 facecolor='w', edgecolor='k', sharex=True) # Mind shared axis
-    #         f.subplots_adjust(hspace=0.1, top=0.95, left=0.135, bottom=0.125, right=0.975)
-    #         f.suptitle(title, y=0.99,fontsize=8) #
+        # ---
+        # Adjust parameters here for TM mode
+        # ---
 
-    #         # Top: apparent resistivity and points from Weaver for comparison:
-    #         ax[0].plot(x, y0, color='red',  label = 'escript')
-    #         ax[0].plot(xs,ra, linestyle='', markersize=3, marker='o',color='blue',  label = 'Weaver')
-    #         ax[0].grid(b=True, which='both', color='grey',linestyle=':')
-    #         ax[0].set_ylabel( ylbl0)
-    #         ax[0].yaxis.set_label_coords(-0.082, 0.5)
-    #         # Plot limits:
-    #         ax[0].set_xlim(x0lim)
-    #         ax[0].set_ylim(y1lim)
+        # Simply delete first element from lists:
+        if mode.upper() == 'TM':
+            tags.pop(0)
+            rho.pop(0)
+            rho_1d['left'].pop(0)
+            rho_1d['right'].pop(0)
+            ifc_1d['left'].pop(0)
+            ifc_1d['right'].pop(0)
 
-    #         # Bottom: phase on linear plot
-    #         ax[1].plot(x,y1, color='blue')
-    #         ax[1].grid(b=True, which='both', color='grey',linestyle=':')
-    #         ax[1].set_xlabel( xlbl1 )
-    #         ax[1].set_ylabel( ylbl1 )
-    #         # Plot limits:
-    #         ax[1].set_xlim(x0lim)
-    #         ax[1].set_ylim(y2lim)
 
-    #         # ask matplotlib for the plotted objects and their labels
-    #         lna, la = ax[0].get_legend_handles_labels()
-    #         ax[0].legend(lna, la, bbox_to_anchor=(0.675, 0.325), loc=2,
-    #                 borderaxespad=0.,prop={'size':8}, frameon=False)
 
-    #         pyplot.ticklabel_format(style='sci', axis='x', scilimits=(0,0), useMathText=True)
-    #         ax[0].xaxis.major.formatter._useMathText = True
-    #         pyplot.rc('font', **{'size': 8,'family':'sans-serif'})
-    #         # Uncomment to inspect visually
-    #         #f.savefig("commemi1_"+mode.lower()+".png", dpi=1200)
 
-    #     # Now let's see if the points match
-    #     # First, we need to find correspondance between xs and x
-    #     indices=[]
-    #     for i in range(len(xs)):
-    #         mindiff=40000
-    #         mindex=0
-    #         for j in range(len(x)):
-    #             if abs(xs[i]-x[j]) < mindiff:
-    #                 mindiff=abs(xs[i]-x[j])
-    #                 mindex=j
-    #         indices.append(mindex)
+        # ---
+        # Run MT_2D
+        # ---
 
-    #     # The following are very simple checks based on the visual shape of the correct result
-    #     maxdiff = 0
-    #     for i in range(len(indices)):
-    #         if abs(y0[indices[i]]-ra[i])>maxdiff:
-    #             maxdiff = abs(y0[indices[i]]-ra[i])
+        # Class options:
+        mt2d.MT_2D._solver = "DIRECT" #"ITERATIVE" #"CHOLEVSKY" #"CGLS " #"BICGSTAB" #"DIRECT" "ITERATIVE"
+        mt2d.MT_2D._debug   = False
 
-    #     # Threshold is pretty arbitrary
-    #     self.assertLess(maxdiff, 5) # "Mismatch with reference data" 
+        # Instantiate an MT_2D object with required & optional parameters:
+        obj_mt2d = mt2d.MT_2D(domain, mode, freq_def, tags, rho, rho_1d, ifc_1d,
+                xstep=xstep ,zstep=zstep, maps=None, plot=False)
 
-    #     c=0
-    #     for y in y1:
-    #         if y < 46:
-    #             c+=1
+        # Solve for fields, apparent resistivity and phase:
+        mt2d_fields, arho_2d, aphi_2d = obj_mt2d.pdeSolve()
 
-    #     self.assertLess(74, escript.Lsup(y1)) # "Peak of bottom plot is off."
-    #     self.assertLess(escript.Lsup(y1), 81) # "Peak of bottom plot is off."
+        #import random
 
-    #     self.assertLess(0.78, c/len(y1)) # "Bottom plot has too many high points"
-    #     self.assertLess(c/len(y1), 0.8) # "Bottom plot has too many high points"
+        #mt2d_fields[0]['real']+=random.random()
+        #mt2d_fields[0]['imag']+=50*random.random()
 
-    #     #
-    #     print (datetime.datetime.now()-startTime)
-    #     print ("Done!")
+        #print(arho_2d[0][0])
+        #for i in range(len(aphi_2d[0])):
+            #aphi_2d[0][i]+=(50*random.random())
+
+        #for i in range(len(arho_2d[0])):
+            #arho_2d[0][i]-=17.8*(random.random())
+
+        # ---
+        # User defined plots
+        # ---
+
+        from scipy.interpolate import InterpolatedUnivariateSpline
+
+        # Setup abscissas/Ordinates for escript data:
+        x  = numpy.array( obj_mt2d.loc.getX() )[:,0]
+        y0 = numpy.array( obj_mt2d.loc.getValue(arho_2d[0]) )
+        y1 = numpy.array( obj_mt2d.loc.getValue(aphi_2d[0]) )
+
+        # Values from Weaver -- Model 2D-1 (EP, T=0.1, z=0), see Zhdanov et al, 1997,
+        # "Methods for modelling electromagnetic fields. Results from COMMEMI -- the
+        # international project on the comparison of modelling results for electromag-
+        # netic induction", Journal of Applied Geophysics, 133-271
+        rte = [8.07,   14.10,  51.50,  95.71, 104.00, 100.00, 100.00] # TE rho_a (3 Canada)
+        rtm = [9.86,   46.40,  94.80,  98.30,  99.70, 100.00, 100.00] # TM rho_a (3 Canada)
+        if mode.lower() == 'te':
+            ra = rte
+        else:
+            ra = rtm
+        # Associated stations shifted to match escript coordinates:
+        xs = numpy.array( [0, 500, 1000, 2000, 4000, 8000, 16000] ) + x.max()/2.0
+
+        # Setup interpolation to get values at specified stations (for comparison):
+        fi = InterpolatedUnivariateSpline(x, y0)
+        # Save escript values at comparison points in text file:
+        # re-enable to allow comparisons
+        #numpy.savetxt("commemi1_"+mode.lower()+".dat", numpy.column_stack((xs,fi(xs))), fmt='%g')
+
+
+
+        # X plot-limits:
+        x0lim = [2000,38000]
+        y1lim = [0,120]
+        y2lim = [40,85]
+
+        # Plot labels:
+        title = '    escript COMMEMI-1 MT-2D ' + '(' + mode.upper() + ')' + ' freq: ' + str(obj_mt2d.frequencies[0]) + ' Hz'
+        ylbl0 = r'resistivity $(\Omega m)$'
+        ylbl1 = r'phase $(\circ)$'
+        xlbl1 = 'X (m)'
+        # Setup the plot window with app. res. on top and phase on bottom:
+        if HAVE_MPL:
+            f, ax = pyplot.subplots(2, figsize=(3.33,3.33), dpi=1200,
+                    facecolor='w', edgecolor='k', sharex=True) # Mind shared axis
+            f.subplots_adjust(hspace=0.1, top=0.95, left=0.135, bottom=0.125, right=0.975)
+            f.suptitle(title, y=0.99,fontsize=8) #
+
+            # Top: apparent resistivity and points from Weaver for comparison:
+            ax[0].plot(x, y0, color='red',  label = 'escript')
+            ax[0].plot(xs,ra, linestyle='', markersize=3, marker='o',color='blue',  label = 'Weaver')
+            ax[0].grid(b=True, which='both', color='grey',linestyle=':')
+            ax[0].set_ylabel( ylbl0)
+            ax[0].yaxis.set_label_coords(-0.082, 0.5)
+            # Plot limits:
+            ax[0].set_xlim(x0lim)
+            ax[0].set_ylim(y1lim)
+
+            # Bottom: phase on linear plot
+            ax[1].plot(x,y1, color='blue')
+            ax[1].grid(b=True, which='both', color='grey',linestyle=':')
+            ax[1].set_xlabel( xlbl1 )
+            ax[1].set_ylabel( ylbl1 )
+            # Plot limits:
+            ax[1].set_xlim(x0lim)
+            ax[1].set_ylim(y2lim)
+
+            # ask matplotlib for the plotted objects and their labels
+            lna, la = ax[0].get_legend_handles_labels()
+            ax[0].legend(lna, la, bbox_to_anchor=(0.675, 0.325), loc=2,
+                    borderaxespad=0.,prop={'size':8}, frameon=False)
+
+            pyplot.ticklabel_format(style='sci', axis='x', scilimits=(0,0), useMathText=True)
+            ax[0].xaxis.major.formatter._useMathText = True
+            pyplot.rc('font', **{'size': 8,'family':'sans-serif'})
+            # Uncomment to inspect visually
+            #f.savefig("commemi1_"+mode.lower()+".png", dpi=1200)
+
+        # Now let's see if the points match
+        # First, we need to find correspondance between xs and x
+        indices=[]
+        for i in range(len(xs)):
+            mindiff=40000
+            mindex=0
+            for j in range(len(x)):
+                if abs(xs[i]-x[j]) < mindiff:
+                    mindiff=abs(xs[i]-x[j])
+                    mindex=j
+            indices.append(mindex)
+
+        # The following are very simple checks based on the visual shape of the correct result
+        maxdiff = 0
+        for i in range(len(indices)):
+            if abs(y0[indices[i]]-ra[i])>maxdiff:
+                maxdiff = abs(y0[indices[i]]-ra[i])
+
+        # Threshold is pretty arbitrary
+        self.assertLess(maxdiff, 5) # "Mismatch with reference data" 
+
+        c=0
+        for y in y1:
+            if y < 46:
+                c+=1
+
+        self.assertLess(74, escript.Lsup(y1)) # "Peak of bottom plot is off."
+        self.assertLess(escript.Lsup(y1), 81) # "Peak of bottom plot is off."
+
+        self.assertLess(0.78, c/len(y1)) # "Bottom plot has too many high points"
+        self.assertLess(c/len(y1), 0.8) # "Bottom plot has too many high points"
+
+        #
+        print (datetime.datetime.now()-startTime)
+        print ("Done!")
 
 
 if __name__ == '__main__':

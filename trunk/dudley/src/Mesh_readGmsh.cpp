@@ -83,7 +83,12 @@ escript::Domain_ptr DudleyDomain::readGmsh(escript::JMPI mpiInfo,
 
                 std::stringstream ss(line);
                 int numBlocks;
-                ss >> numBlocks >> numNodes;              
+                if(version >= 4.1){
+                    int minNodes, maxNodes;
+                    ss >> numBlocks >> numNodes >> minNodes >> maxNodes;
+                } else {
+                    ss >> numBlocks >> numNodes;
+                }
                 NodeFile* nodes = domain->getNodes();
                 nodes->allocTable(numNodes);
 
@@ -96,28 +101,54 @@ escript::Domain_ptr DudleyDomain::readGmsh(escript::JMPI mpiInfo,
                     std::stringstream ss(line);
 
                     int tagEntity, dimEntity, parametric, numNodesInBlock;
-                    ss >> tagEntity >> dimEntity >> parametric >> numNodesInBlock;
+                    if(version >= 4.1){
+                        ss >> dimEntity >> tagEntity >> parametric >> numNodesInBlock;
+                    } else {
+                        ss >> tagEntity >> dimEntity >> parametric >> numNodesInBlock;
+                    }
 
                     if(parametric){
                         throw DudleyException("reading gmsh msh4 files using parametric coordinates is not supported yet.");
                     }
 
-                    for(index_t j0 = 0; j0 < numNodesInBlock; j0++){
-                        std::getline(fileHandle, line);
-                        if (!fileHandle.good())
-                            throw IOError("readGmsh: early EOF while reading file");
-                        std::stringstream ss(line);
-
-                        ss >> nodes->Id[i0] >> nodes->Coordinates[INDEX2(0, idCounter, numDim)] 
-                                            >> nodes->Coordinates[INDEX2(1, idCounter, numDim)]
-                                            >> nodes->Coordinates[INDEX2(2, idCounter, numDim)];
-
-                        idCounter++;
-                        nodes->globalDegreesOfFreedom[i0] = nodes->Id[i0];
-                        nodes->Tag[i0] = 0;
+                    if(version >= 4.1){
+                        // Loop over tag info
+                        for(index_t j0 = 0; j0 < numNodesInBlock; j0++){
+                            std::getline(fileHandle, line);
+                            if (!fileHandle.good())
+                                throw IOError("readGmsh: early EOF while reading file");
+                            std::stringstream ss(line);
+                            ss >> nodes->Id[idCounter+j0];
+                            nodes->globalDegreesOfFreedom[idCounter+j0] = nodes->Id[idCounter+j0];
+                            nodes->Tag[idCounter+j0] = 0;
+                        }
+                        // Loop over everything else
+                        for(index_t j0 = 0; j0 < numNodesInBlock; j0++){
+                            std::getline(fileHandle, line);
+                            if (!fileHandle.good())
+                                throw IOError("readGmsh: early EOF while reading file");
+                            std::stringstream ss(line);
+                            ss >> nodes->Coordinates[INDEX2(0, idCounter, numDim)] 
+                               >> nodes->Coordinates[INDEX2(1, idCounter, numDim)]
+                               >> nodes->Coordinates[INDEX2(2, idCounter, numDim)];
+                            idCounter++;
+                        }
+                    } else {
+                        for(index_t j0 = 0; j0 < numNodesInBlock; j0++){
+                            std::getline(fileHandle, line);
+                            if (!fileHandle.good())
+                                throw IOError("readGmsh: early EOF while reading file");
+                            std::stringstream ss(line);
+                            ss >> nodes->Id[i0] >> nodes->Coordinates[INDEX2(0, idCounter, numDim)] 
+                                                >> nodes->Coordinates[INDEX2(1, idCounter, numDim)]
+                                                >> nodes->Coordinates[INDEX2(2, idCounter, numDim)];
+                            idCounter++;
+                            nodes->globalDegreesOfFreedom[i0] = nodes->Id[i0];
+                            nodes->Tag[i0] = 0;
+                        }
                     }
                 }
-            } else {
+            } else { //version not >= 4.0
                 std::getline(fileHandle, line);
                 if (fileHandle.eof())
                     throw IOError("readGmsh: early EOF while reading file");
@@ -138,7 +169,7 @@ escript::Domain_ptr DudleyDomain::readGmsh(escript::JMPI mpiInfo,
                     nodes->globalDegreesOfFreedom[i0] = nodes->Id[i0];
                     nodes->Tag[i0] = 0;
                 }
-            }    
+            }
         } else if (line.substr(1,3) == "ELM" || line.substr(1,8) == "Elements") {
             // elements
             if(version >= 4.0){
@@ -148,7 +179,12 @@ escript::Domain_ptr DudleyDomain::readGmsh(escript::JMPI mpiInfo,
                 if (fileHandle.eof())
                     throw IOError("readGmsh: early EOF while reading file");
                 std::stringstream ss(line);
-                ss >> totalNumBlocks >> totalNumElements;
+                if(version >= 4.1){
+                    int minElements, maxElements;
+                    ss >> totalNumBlocks >> totalNumElements >> minElements >> maxElements;
+                } else {
+                    ss >> totalNumBlocks >> totalNumElements;
+                }
 
                 //initialise variables
                 ElementTypeId final_element_type = Dudley_NoRef;
@@ -158,11 +194,9 @@ escript::Domain_ptr DudleyDomain::readGmsh(escript::JMPI mpiInfo,
                 ElementTypeId* element_type = new ElementTypeId[totalNumElements];
                 vertices = new index_t[totalNumElements * MAX_numNodes_gmsh];
                 
-                int e = 0; // a counter for the element id number
+                int e = -1; // a counter for the element id number
                 //loop over the blocks
                 for(index_t i0 = 0; i0 < totalNumBlocks; i0++){
-                    int numElements;
-                    int element_dim;
 
                     std::getline(fileHandle, line);
                     if (fileHandle.eof())
@@ -170,14 +204,16 @@ escript::Domain_ptr DudleyDomain::readGmsh(escript::JMPI mpiInfo,
                     std::stringstream ss(line);
 
                     //read the header for this block
-                    int currentElemId;
-                    ss >> currentElemId >> element_dim >> gmsh_type >> numElements;
+                    int numElementsInBlock, element_dim, elementTag;
+                    if(version >= 4.1){
+                        ss >> element_dim >> elementTag >> gmsh_type >> numElementsInBlock;
+                    } else {
+                        ss >> elementTag >> element_dim >> gmsh_type >> numElementsInBlock;
+                    }
 
                     // Loop over element in the block
-                    for(index_t j0 = 0; j0 < numElements; j0++){
+                    for(index_t j0 = 0; j0 < numElementsInBlock; j0++){
                         e++;
-
-                        elementary_id = currentElemId;
 
                         std::getline(fileHandle, line);
                         if (fileHandle.eof())
@@ -213,19 +249,40 @@ escript::Domain_ptr DudleyDomain::readGmsh(escript::JMPI mpiInfo,
                             }
                         }
                         
+
+                        if (element_dim == numDim) {
+                            if (final_element_type == Dudley_NoRef) {
+                                final_element_type = element_type[e];
+                            } else if (final_element_type != element_type[e]) {
+                                throw IOError("Dudley can handle a single type of "
+                                              "internal elements only.");
+                            }
+                            numElements++;
+                        } else if (element_dim == numDim - 1) {
+                            if (final_face_element_type == Dudley_NoRef) {
+                                final_face_element_type = element_type[e];
+                            } else if (final_face_element_type != element_type[e]) {
+                                throw IOError("Dudley can handle a single type of "
+                                              "face elements only.");
+                            }
+                            numFaceElements++;
+                        }
+
                         // loop over vertices
                         ss >> id[e];
-                        if(e != id[e])
-                            throw IOError("readGmsh: invalid element id");
+                        if((e+1) != id[e]){
+                            std::stringstream error;
+                            error << "readGmsh: invalid element id. ( " << e << " != " << id[e] << ").";
+                            throw IOError(error.str());
+                        }
 
                         for (index_t k0 = 0; k0 < element_dim + 1; k0++) {
                             ss >> vertices[INDEX2(k0, e, MAX_numNodes_gmsh)];
                         }
-
-                        tag[e] = 0;
+                        tag[e] = elementTag;
                     }
-
                 }
+
                 // all elements have been read, now we have to identify the
                 // dudley elements to define Elements and FaceElements
                 if (final_element_type == Dudley_NoRef) {
@@ -264,25 +321,25 @@ escript::Domain_ptr DudleyDomain::readGmsh(escript::JMPI mpiInfo,
                 points->maxColor = 0;
                 numElements = 0;
                 numFaceElements = 0;
-                for (index_t e = 0; e < totalNumElements; e++) {
-                    if (element_type[e] == final_element_type) {
-                        elements->Id[numElements] = id[e];
-                        elements->Tag[numElements] = tag[e];
+                for (index_t x = 0; x <= totalNumElements-1; x++) {
+                    if (element_type[x] == final_element_type) {
+                        elements->Id[numElements] = id[x];
+                        elements->Tag[numElements] = tag[x];
                         elements->Color[numElements] = numElements;
                         elements->Owner[numElements] = 0;
                         for (int j = 0; j < elements->numNodes; ++j) {
                             elements->Nodes[INDEX2(j, numElements, elements->numNodes)] =
-                                vertices[INDEX2(j, e, MAX_numNodes_gmsh)];
+                                vertices[INDEX2(j, x, MAX_numNodes_gmsh)];
                         }
                         numElements++;
-                    } else if (element_type[e] == final_face_element_type) {
-                        faces->Id[numFaceElements] = id[e];
-                        faces->Tag[numFaceElements] = tag[e];
+                    } else if (element_type[x] == final_face_element_type) {
+                        faces->Id[numFaceElements] = id[x];
+                        faces->Tag[numFaceElements] = tag[x];
                         faces->Color[numFaceElements] = numFaceElements;
                         faces->Owner[numFaceElements] = 0;
                         for (int j = 0; j < faces->numNodes; ++j) {
                             faces->Nodes[INDEX2(j, numFaceElements, faces->numNodes)] =
-                                vertices[INDEX2(j, e, MAX_numNodes_gmsh)];
+                                vertices[INDEX2(j, x, MAX_numNodes_gmsh)];
                         }
                         numFaceElements++;
                     }
@@ -314,7 +371,7 @@ escript::Domain_ptr DudleyDomain::readGmsh(escript::JMPI mpiInfo,
                         throw IOError("readGmsh: early EOF while reading file");
                     std::stringstream ss(line);
                     ss >> id[e];
-                    ss >> gmsh_type;
+                    ss >> gmsh_type;                   
                     switch (gmsh_type) {
                         case 1: // line order 1
                             element_type[e] = Dudley_Line2;
@@ -380,6 +437,7 @@ escript::Domain_ptr DudleyDomain::readGmsh(escript::JMPI mpiInfo,
                                 tag[e] = itmp;
                             } else if (j == 1) {
                                 elementary_id = itmp;
+                                tag[e] = elementary_id;
                             } else if (j == 2) {
                                 partition_id = itmp;
                             }
@@ -500,4 +558,3 @@ escript::Domain_ptr DudleyDomain::readGmsh(escript::JMPI mpiInfo,
 }
 
 } // namespace dudley
-
