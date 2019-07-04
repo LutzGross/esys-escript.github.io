@@ -397,8 +397,20 @@ env['svn_revision']=global_revision
 env['buildvars']['svn_revision']=global_revision
 env.Append(CPPDEFINES=['SVN_VERSION='+global_revision])
 
+# If that failed, try to get the version number from the file svn_version
 if global_revision=='-2' or global_revision=='-1':
-  env['warnings'].append("Could not detect the version number!")
+    try:
+        global_revision=str(os.popen('cat svn_version 2>/dev/null').read())
+        if global_revision[global_revision.__len__()-1] == '\n':
+            temp=global_revision[0:(global_revision.__len__()-1)]
+        else:
+            temp=global_revision
+        print("Using svn revision information from file. Got revision = %s" % temp)
+    except:
+        global_revision='-2'
+
+if global_revision=='-2' or global_revision=='-1':
+    env['warnings'].append("Could not detect the svn revision number!")
 
 env['IS_WINDOWS']=IS_WINDOWS
 env['IS_OSX']=IS_OSX
