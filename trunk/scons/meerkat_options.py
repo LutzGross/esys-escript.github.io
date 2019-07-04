@@ -49,6 +49,7 @@ parmetis_libs = ['parmetis', 'metis']
 silo_libs = ['siloh5', 'hdf5_cpp']
 umfpack_libs = ['umfpack', 'blas', 'amd']
 
+# gmsh_prefix=['/usr/local/include','/usr/local/lib']
 lapack_prefix = ['/usr/include/atlas', '/usr/lib/atlas-base']
 d_mpi_path = '/usr/include/openmpi'
 mpi_prefix = os.path.split(os.path.realpath(d_mpi_path))[0]
