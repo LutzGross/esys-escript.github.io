@@ -1,70 +1,151 @@
 package:
   name: esys-escript
-  version: 3.5
+  version: 3.6
 
 source:
+  - url: https://dl.bintray.com/boostorg/release/1.70.0/source/boost_1_70_0.tar.gz
+    sha256: 882b48708d211a5f48e60b0124cf5863c1534cd544ecd0664bb534a4b5d506e9
+    folder: escript-boost
+
   - svn_url: https://svn.geocomp.uq.edu.au/svn/esys13/trunk
-    svn_rev: 6805
+    svn_rev: 6848
     folder: escript
 
 build:
-  features:
-    - vc9               [win and py27]
-    - vc10              [win and py34]
-    - vc14              [win and py35]
+  binary_has_prefix_files:
+    - bin/run-escript
+    - bin/runmodel.py
+    - esys
+    - include/cusp
+    - include/dudley
+    - include/escript
+    - include/finley
+    - include/paso
+    - include/ripley
+    - include/speckley
+    - include/weipa
+    - lib/buildvars
+    - lib/libdudley.so
+    - lib/libescriptreader.so
+    - lib/libescript.so
+    - lib/libfinley.so
+    - lib/libpaso.so
+    - lib/libripley.so
+    - lib/libspeckley.so
+    - lib/libweipa.so
+
+  always_include_files:
+    - lib/libpython2.7.so
+    - lib/libpython2.7.so.1.0
+    - lib/libopenblasp-r0.3.6.so
+    - lib/libopenblas.so.0
+    - lib/libboost_system.so.1.70.0
+    - lib/libboost_iostreams.so.1.70.0
+    - lib/libgfortran.so.4
+
+  rpaths:
+    - bin
+    - esys
+    - include
+    - lib
+    - esys/boost/include
+    - esys/boost/lib
+
+# /lib/libboost_iostreams.a
+#     - boost/lib/libboost_iostreams.so
+#     - boost/lib/libboost_iostreams.so.1.70.0
+#     - boost/lib/libboost_python27.so
+#     - boost/lib/libboost_python27.so.1.70.0
+#     - boost/lib/libboost_numpy27.so
+#     - boost/lib/libboost_numpy27.so.1.70.0
+#     - boost/lib/libboost_random.a
+#     - boost/lib/libboost_random.so
+#     - boost/lib/libboost_random.so.1.70.0
 
 requirements:
-  build:
-    - esys-escript-dev-deps
+  host:
+    - {{ compiler('cxx') }}
+    - blas
+    - cppunit
     - gcc_linux-64      [unix]
+    - gcc_impl_linux-64 =7.3.0
     - gdal
     - gxx_linux-64      [unix]
-    - hdf4
-    - hdf5
     - libgcc            [unix]
-    - libnetcdf
+    - libgcc-ng =9.1
     - matplotlib
-    - m2w64-gcc >5.3.0                 [win]
-    - m2w64-gcc-fortran >5.3.0         [win]
-    - m2w64-gcc-libs >5.3.0            [win]
-    - m2w64-gcc-libgfortran >5.3.0     [win]
-    - netcdf4
+    - metis
+    - suitesparse
     - numpy
-    - python =2.7
+    - openblas
+    - python =2.7.15
     - pyproj
     - scipy
-    - scons
     - sympy
-    - svn
-    
-  run:
-    - esys-escript-dev-deps
+    - suitesparse
+    - xz
+    - bzip2
+    - zlib
+
+  build:
+    - {{ compiler('cxx') }}
+    - python =2.7.15
+    - gcc_impl_linux-64 =7.3.0
+    - libgcc-ng =9.1
     - gdal
-    - hdf4
-    - hdf5
-    - libnetcdf
+    - python =2.7.15
+    - make
+    - scons
+    - svn
     - matplotlib
-    - netcdf4
+    - metis
+    - openblas
+    - suitesparse
     - numpy
-    - python =2.7
+    - pyproj
+    - scipy
+    - sympy
+    - xz
+    - bzip2
+    - zlib
+
+  run:
+    - blas
+    - boost-cpp
+    - gdal
+    - gcc_impl_linux-64 =7.3.0
+    - libopenblas
+    - libgfortran-ng
+    - matplotlib
+    - metis
+    - numpy
+    - openblas
+    - python =2.7.15
     - pyproj
     - scipy
     - suitesparse
     - sympy
+    - xz
+    - bzip2
+    - zlib
 
 about:
   home: https://launchpad.net/escript-finley
-  license: Apache2
   summary: esys-escript is a programming tool for implementing mathematical 
     models in python using the finite element method (FEM).
-  description: esys-escript is a programming tool for implementing mathematical 
-    models in python using the finite element method (FEM). As users
-    do not access the data structures it is very easy to use and 
+  license: Apache-2.0
+  description: esys-escript is a programming tool for implementing 
+    mathematical models in python using the finite element method (FEM). 
+    As users do not access the data structures it is very easy to use and 
     scripts can run on desktop computers as well as highly parallel
-    supercomputer without changes. Application areas for escript 
-    include earth mantle convection, geophysical inversion, 
-    earthquakes, porous media flow, reactive transport, plate 
-    subduction, erosion, and tsunamis.
+    supercomputer without changes. Application areas for escript include 
+    earth mantle convection, geophysical inversion, earthquakes, 
+    porous media flow, reactive transport, plate subduction, erosion, 
+    and tsunamis.
   dev_url: https://launchpad.net/escript-finley
   doc_url: https://launchpad.net/escript-finley
   doc_source_url: https://launchpad.net/escript-finley
+
+extra:
+  recipe-maintainers:
+    - AdamEllery
