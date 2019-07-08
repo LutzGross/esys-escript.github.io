@@ -16,8 +16,6 @@ if [ "$(uname)" == "Linux" ]; then
     ./b2 variant=release link=shared runtime-link=shared threading=multi \
         --with-python --with-iostreams --with-random -j"${CPU_COUNT}" install
 
-    # cp ${PREFIX}/include/boost/parameter/python.hpp ${PREFIX}/include/boost/python.hpp
-
     cd ${SRC_DIR}/escript
     scons -j"${CPU_COUNT}" \
         options_file="${SRC_DIR}/escript/scons/templates/stretch_options.py" \
@@ -32,8 +30,8 @@ if [ "$(uname)" == "Linux" ]; then
         paso=1 \
         trilinos=0 \
         trilinos_prefix="${PREFIX}" \
-        umfpack=1 \
-        umfpack_prefix="${PREFIX}" \
+        umfpack=0 \
+        umfpack_prefix=["${PREFIX}/include","${PREFIX}/lib"] \
         lapack=0 \
         lapack_prefix=["${PREFIX}/include/atlas","${PREFIX}/lib"] \
         lapack_libs=['lapack'] \
