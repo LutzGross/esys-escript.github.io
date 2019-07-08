@@ -12,6 +12,10 @@ source:
     folder: escript
 
 build:
+  skip: true [win]
+  
+  number: 0
+
   binary_has_prefix_files:
     - bin/run-escript
     - bin/runmodel.py
@@ -39,28 +43,15 @@ build:
     - lib/libpython2.7.so.1.0
     - lib/libopenblasp-r0.3.6.so
     - lib/libopenblas.so.0
-    - lib/libboost_system.so.1.70.0
-    - lib/libboost_iostreams.so.1.70.0
     - lib/libgfortran.so.4
 
   rpaths:
     - bin
     - esys
-    - include
-    - lib
     - esys/boost/include
     - esys/boost/lib
-
-# /lib/libboost_iostreams.a
-#     - boost/lib/libboost_iostreams.so
-#     - boost/lib/libboost_iostreams.so.1.70.0
-#     - boost/lib/libboost_python27.so
-#     - boost/lib/libboost_python27.so.1.70.0
-#     - boost/lib/libboost_numpy27.so
-#     - boost/lib/libboost_numpy27.so.1.70.0
-#     - boost/lib/libboost_random.a
-#     - boost/lib/libboost_random.so
-#     - boost/lib/libboost_random.so.1.70.0
+    - include
+    - lib
 
 requirements:
   host:
@@ -83,9 +74,6 @@ requirements:
     - scipy
     - sympy
     - suitesparse
-    - xz
-    - bzip2
-    - zlib
 
   build:
     - {{ compiler('cxx') }}
@@ -105,16 +93,12 @@ requirements:
     - pyproj
     - scipy
     - sympy
-    - xz
-    - bzip2
-    - zlib
 
   run:
     - blas
     - boost-cpp
     - gdal
     - gcc_impl_linux-64 =7.3.0
-    - libopenblas
     - libgfortran-ng
     - matplotlib
     - metis
@@ -125,8 +109,6 @@ requirements:
     - scipy
     - suitesparse
     - sympy
-    - xz
-    - bzip2
     - zlib
 
 about:
@@ -148,4 +130,4 @@ about:
 
 extra:
   recipe-maintainers:
-    - AdamEllery
+    - aellery
