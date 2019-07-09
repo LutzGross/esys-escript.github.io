@@ -1,4 +1,4 @@
 #!/bin/bash
 
 
-docker build --tag=escript5.3 -f docker_trilinos .
+docker build --tag=esysescript/esys-escript -f docker_trilinos .
