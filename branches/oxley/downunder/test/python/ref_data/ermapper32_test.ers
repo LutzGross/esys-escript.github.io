@@ -1,0 +1,55 @@
+DatasetHeader Begin
+	Version		= "7.1"
+	Name		= "ermapper32_test.ers"
+	LastUpdated	= Thu Sep 13 02:35:01 GMT 2012
+	DataSetType	= ERStorage
+	DataType	= Raster
+	ByteOrder	= LSBFirst
+	CoordinateSpace Begin
+		Datum		= "GDA94"
+		Projection	= "GEODETIC"
+		CoordinateType	= EN
+		Rotation	= 0:0:0.0
+	CoordinateSpace End
+	RasterInfo Begin
+		CellType	= IEEE4ByteReal
+		NullCellValue	= -99999
+		CellInfo Begin
+			Xdimension	= 0.0054968863129241834
+			Ydimension	= 0.0044168776023883497
+		CellInfo End
+		NrOfLines	= 15
+		NrOfCellsPerLine	= 20
+		RegistrationCoord Begin
+			Eastings	= 150.952243837
+			Northings	= -33.188010556
+		RegistrationCoord End
+		NrOfBands	= 1
+		BandId Begin
+			Value		= "Pseudo Layer"
+		BandId End
+		RegionInfo Begin
+			Type		= Polygon
+			RegionName	= "All"
+			SourceDataset	= "ermapper32_test"
+			RGBcolour Begin
+				Red			= 65535
+				Green		= 65535
+				Blue		= 65535
+			RGBcolour End
+			SubRegion	= {
+				0	0
+				0	3385
+				3656	3385
+				3656	0
+			}
+		RegionInfo End
+		RegionInfo Begin
+			Type		= Polygon
+			RegionName	= "ignore"
+			SubRegion	= {
+			}
+		RegionInfo End
+	RasterInfo End
+DatasetHeader End
+

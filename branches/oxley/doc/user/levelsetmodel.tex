@@ -1,0 +1,111 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright (c) 2003-2018 by The University of Queensland
+% http://www.uq.edu.au
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Apache License, version 2.0
+% http://www.apache.org/licenses/LICENSE-2.0
+%
+% Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+% Development 2012-2013 by School of Earth Sciences
+% Development from 2014 by Centre for Geoscience Computing (GeoComp)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Level Set Method}
+
+The Level Set Method is used for tracking interfaces between two different types of fluids, which may have different physical parameter values for density or viscosity. The interface is represented by a signed distance function, $\phi(x)$, where the isocontour at $\phi(x)=0$ is used to defined the interface. A point in the domain can then be determined on which side of the interface it resides, based on the local sign of $\phi(x)$; for example positive $\phi(x)$ on one side of the interface and negative $\phi(x)$ on the other. Parameters values such as density and viscosity can then be defined for the two different mediums. The Level Set Method consists of two procedures, the advection and reinitialization of the signed distance function, $\phi$. The LevelSet class can be used in conjunction with the StokesProblemCartesian class for solving computational fluid dynamics problems involving the tracking of the interface. The advantage of the Level Set Method is that it can be used to track surfaces that break apart or intersect. Also, the Level Set Method avoids the need for remeshing, which is required by the Lagrangian-Eulerian (ALE) method. 
+
+% An example of using the Level Set Method is described in the tutorial Chapter, Section %\ref{LEVELSET CHAP}.
+
+\subsection{Solution Method}
+
+The displacement of the interface at the zero isocontour of $\phi(x)$ is calculated each time-step by using the velocity field. This is achieved my solving the advection equation:
+%
+\begin{equation}
+\frac{\partial \phi}{\partial t} + \vec{v} \cdot \nabla \phi = 0,
+\label{ADVECTION MODELS}
+\end{equation}
+%
+where $\vec{v}$ is the velocity field. The advection equation is solved using a Taylor-Galerkin scheme with the presence of diffusion; by expanding $\phi$ into a Taylor series:
+%
+\begin{equation}
+\phi^{+} \simeq \phi^{-} + dt\frac{\partial \phi^{-}}{\partial t} + \frac{dt^2}{2}\frac{\partial^{2}\phi^{-}}{\partial t^{2}},
+\label{TAYLOR EXPANSION MODELS}
+\end{equation}
+%
+then by inserting
+%
+\begin{equation}
+\frac{\partial \phi^{-}}{\partial t} = - \vec{v} \cdot \nabla \phi^{-},
+\label{INSERT ADVECTION MODELS}
+\end{equation}
+%
+and
+%
+\begin{equation}
+\frac{\partial^{2} \phi^{-}}{\partial t^{2}} = \frac{\partial}{\partial t}(-\vec{v} \cdot \nabla \phi^{-}) = \vec{v}\cdot \nabla (\vec{v}\cdot \nabla \phi^{-}),
+\label{SECOND ORDER MODELS}
+\end{equation}
+%
+into Equation (\ref{TAYLOR EXPANSION MODELS}), the calculation of the level set function is given by:
+%
+\begin{equation}
+\phi^{+} = \phi^{-} - dt\vec{v}\cdot \nabla \phi^{-} + \frac{dt^2}{2}\vec{v}\cdot \nabla (\vec{v}\cdot \nabla \phi^{-}).
+\label{TAYLOR GALERKIN MODELS}
+\end{equation}
+
+If $\nabla \cdot \vec{v}=0$ is assumed, then the calculation of the second order derivatives in Equation (\ref{TAYLOR GALERKIN MODELS}) can be avoided.
+
+As the computation of the distance function progresses, it becomes distorted, and so it needs to be updated in order to stay regular \cite{SUSSMAN1994}. This process is known as the reinitialization procedure. The aim is to iteratively find a solution to the reinitialization equation:
+%
+\begin{equation}
+\frac{\partial \psi}{\partial \tau} + sign(\phi)(1 - \nabla \psi) = 0.
+\label{REINITIALISATION MODELS}
+\end{equation}
+%
+where $\psi$ shares the same level set with $\phi$, $\tau$ is pseudo time, and $sign(\phi)$ is the smoothed sign function. This equation is solved to meet the definition of the level set function, $\lvert \nabla \psi \rvert = 1$; the normalization condition. Equation (\ref{REINITIALISATION MODELS}) can be rewritten in a similar form to the advection equation:
+%
+\begin{equation}
+\frac{\partial \psi}{\partial \tau} + \vec{w} \cdot \nabla \psi = sign(\phi),
+\label{REINITIALISATION2 MODELS}
+\end{equation}
+%
+where
+%
+\begin{equation}
+\vec{w} = sign(\phi)\frac{\nabla \psi}{|\nabla \psi|}.
+\label{REINITIALISATION3 MODELS}
+\end{equation}
+%
+$\vec{w}$ is the characteristic velocity pointing outward from the free surface. Equation (\ref{REINITIALISATION2 MODELS}) can be solved by a similar technique to what was used in the advection step, using the Taylor-Galerkin procedure.
+When the distance function, $\phi$, is calculated, the physical parameters, density and viscosity, are updated using the sign of $\phi$. The region along the interface is assumed to be of finite thickness of $\alpha h$, where $h$ is the size of the elements in the computational mesh and $\alpha$ is a smoothing parameter. The parameters are updated by the following expression:
+%
+\begin{equation}
+P = 
+\left \{ \begin{array}{l}
+P_{1} \hspace{5cm}  where \ \ \psi < - \alpha h \\
+P_{2} \hspace{5cm}  where \ \ \psi > \alpha h \\
+(P_{2} - P_{1}) \psi/2\alpha h + (P_{1} + P_{2})/2 \ \ \ \ \ \ where \ \ |\psi| < \alpha h.
+\end{array}
+\right.
+\label{UPDATE PARAMETERS MODELS}
+\end{equation} 
+%
+where the subscripts $1$ and $2$ denote the different fluids.
+
+
+\subsection{Functions}
+
+\begin{classdesc}{LevelSet}{domain, func, reinit\_max, reinit\_each, tolerance, smooth}
+opens the LevelSet \index{Level Set} on the \Domain domain. \var{func} defines the initial Level Set function representing the interface between two fluids. \var{reinit\_max} sets the maximum number of iterations to satisfy the normal condition, $|\nabla \phi|=1$, during the reinitialization of the Level Set function. \var{reinit\_each} sets the frequency of reinitialization for a number of time-steps. \var{tolerance} sets the convergence tolerance to satisfy the normal condition during the reinitialization of the Level Set function. \var{smooth} sets the bandwidth of size 2$\alpha h$ along the interface to smooth the physical parameters of density and viscosity; $h$ is the size of the elements in the mesh and $\alpha$ is the smoothing parameter, usually set to 1.
+\end{classdesc}
+
+\begin{methoddesc}[LevelSet]{update\_parameter}{par1, par2}
+updates the physical parameters using the sign of $\phi$. \var{par1} and \var{par2} are the physical parameter values for fluid1 and fluid2 respectively. Usually this method is called twice during each time-step to update the density and viscosity of the two fluids.
+\end{methoddesc}
+
+\begin{methoddesc}[LevelSet]{update\_phi}{vel,  dt, t\_step}
+updates the Level Set function. It performs the advection and reinitialization procedures. \var{vel} is the velocity field of the fluid domain, \var{dt} is the time-step size, and \var{t\_step} is the current time-step to determine when to reinitialize.
+\end{methoddesc}

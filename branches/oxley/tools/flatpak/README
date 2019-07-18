@@ -1,0 +1,31 @@
+
+NOTE: Still experimental
+
+To install escript on any linux distribution, first install flatpak and flatpak-builder version 1.2 or higher, then install the freedesktop SDK from the repo:
+
+flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+flatpak install flathub org.freedesktop.Platform//18.08 org.freedesktop.Sdk//18.08
+
+Then run the command:
+
+flatpak-builder --install --user [some build directory to store info] [path to escript.json]
+
+This will install escript on the local machine. Downloaded files are stored in a hidden directory named .flatpak-builder. Flatpak-builder may prompt you to install some other programs like subversion, depending on what comes with the distro by default and what the user has installed in the past.
+
+Once this has done, you can run escript using
+
+flatpak run uq.esys.escript {other arguments to pass to escript}
+
+Note that this build does not use the system python installation. Finally, to uninstall, type
+
+flatpak uninstall uq.esys.escript
+
+
+To upload a new build to flathub, do the following:
+-Fork the Flathub repository on GitHub
+-Clone the fork: git clone --branch=new-pr git@github.com:your_github_username/flathub.git
+-Create a new branch: git checkout -b uq.esys.escript
+-Add your the manifest to the new branch, commit it and push the commit
+-Open a pull request against the new-pr branch on Github
+-Wait until the pull request has been reviewed by the flathub mods
+

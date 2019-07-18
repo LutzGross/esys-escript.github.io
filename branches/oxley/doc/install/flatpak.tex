@@ -1,0 +1,35 @@
+%!TEX root = install.tex
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright (c) 2012-2018 by The University of Queensland
+% http://www.uq.edu.au
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Apache License, version 2.0
+% http://www.apache.org/licenses/LICENSE-2.0
+%
+% Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+% Development 2012-2013 by School of Earth Sciences
+% Development from 2014 by Centre for Geoscience Computing (GeoComp)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Notes about compilers
+
+\chapter{Installing from flatpak}\label{chap:flatpak}
+
+To install \escript on any linux distribution using flatpak\footnote{For all main linux distributions this can be installed from the repository. Otherwise, flatpak is available at \url{https://flathub.org/home}}, type
+\begin{shellCode}
+flatpak install flathub au.edu.uq.esys.escript
+\end{shellCode}
+
+This wil download and install \escript on your machine. The \escript build installed utilises both the Trilinos and PASO solver libraries, with openMP but without OPENMPI. 
+
+After flatpak has finished downloading and installing \escript, you can launch an \escript window from the menu or run \escript in a terminal with the command:
+\begin{shellCode}
+flatpak run au.edu.uq.esys.escript [other arguments to pass to escript]
+\end{shellCode}
+
+Finally, to uninstall \escript from your machine, type
+\begin{shellCode}
+flatpak uninstall escript
+\end{shellCode}
