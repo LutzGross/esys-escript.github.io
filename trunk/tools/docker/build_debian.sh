@@ -5,4 +5,4 @@ if [ "$EUID" -ne 0 ]
 	exit
 fi
 
-docker build --tag=escript -f docker_debian .
+docker build --tag=esysescript/esys-escript -f docker_debian .
