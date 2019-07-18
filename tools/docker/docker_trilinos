@@ -80,12 +80,7 @@ RUN cd /app/escript && scons options_file=scons/templates/sid_py3_options.py \
 ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 ENV PYTHONPATH=/usr/local/:$PYTHONPATH
 ENV PATH=/usr/local/bin:$PATH
-#RUN rm -rf /app/
 RUN useradd -ms /bin/bash appuser
-USER appuser
+RUN rm -f *
 
-# Mount folder
-VOLUME /home/appuser
-
-CMD ["/usr/local/bin/run-escript"]
-# ENTRYPOINT ["/usr/local/bin/dockerwrapper.sh"]
+CMD ["/bin/bash"]

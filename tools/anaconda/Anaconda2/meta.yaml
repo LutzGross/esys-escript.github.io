@@ -1,121 +1,61 @@
+
 package:
-  name: esys-escript
-  version: 3.6
-
+    name: esys-escript
+    version: 5.4
 source:
-  - url: https://dl.bintray.com/boostorg/release/1.70.0/source/boost_1_70_0.tar.gz
-    sha256: 882b48708d211a5f48e60b0124cf5863c1534cd544ecd0664bb534a4b5d506e9
-    folder: escript-boost
-
-  - svn_url: https://svn.geocomp.uq.edu.au/svn/esys13/trunk
-    svn_rev: 6848
-    folder: escript
-
+    - svn_url: https://svn.geocomp.uq.edu.au/svn/esys13/trunk
+      svn_rev: 6850
+      folder: escript
 build:
-  skip: true [win]
-  
-  number: 0
-
-  binary_has_prefix_files:
-    - bin/run-escript
-    - bin/runmodel.py
-    - esys
-    - include/cusp
-    - include/dudley
-    - include/escript
-    - include/finley
-    - include/paso
-    - include/ripley
-    - include/speckley
-    - include/weipa
-    - lib/buildvars
-    - lib/libdudley.so
-    - lib/libescriptreader.so
-    - lib/libescript.so
-    - lib/libfinley.so
-    - lib/libpaso.so
-    - lib/libripley.so
-    - lib/libspeckley.so
-    - lib/libweipa.so
-
-  always_include_files:
-    - lib/libpython2.7.so
-    - lib/libpython2.7.so.1.0
-    - lib/libopenblasp-r0.3.6.so
-    - lib/libopenblas.so.0
-    - lib/libgfortran.so.4
-
-  rpaths:
-    - bin
-    - esys
-    - esys/boost/include
-    - esys/boost/lib
-    - include
-    - lib
-
+    skip: True  # [osx]
+    skip: True  # [win]
+    number: '0'
+    rpaths:
+        - ${PREFIX}/bin
+        - ${PREFIX}/include
+        - ${PREFIX}/lib
+        - ${SP_DIR}
 requirements:
-  host:
-    - {{ compiler('cxx') }}
-    - blas
-    - cppunit
-    - gcc_linux-64      [unix]
-    - gcc_impl_linux-64 =7.3.0
-    - gdal
-    - gxx_linux-64      [unix]
-    - libgcc            [unix]
-    - libgcc-ng =9.1
-    - matplotlib
-    - metis
-    - suitesparse
-    - numpy
-    - openblas
-    - python =2.7.15
-    - pyproj
-    - scipy
-    - sympy
-    - suitesparse
-
-  build:
-    - {{ compiler('cxx') }}
-    - python =2.7.15
-    - gcc_impl_linux-64 =7.3.0
-    - libgcc-ng =9.1
-    - gdal
-    - python =2.7.15
-    - make
-    - scons
-    - svn
-    - matplotlib
-    - metis
-    - openblas
-    - suitesparse
-    - numpy
-    - pyproj
-    - scipy
-    - sympy
-
-  run:
-    - blas
-    - boost-cpp
-    - gdal
-    - gcc_impl_linux-64 =7.3.0
-    - libgfortran-ng
-    - matplotlib
-    - metis
-    - numpy
-    - openblas
-    - python =2.7.15
-    - pyproj
-    - scipy
-    - suitesparse
-    - sympy
-    - zlib
-
+    build:
+        - {{ compiler('cxx') }}
+        - svn
+        - scons 3.0.5 py27_0
+        - cmake
+        - make
+        - openmp
+    host:
+        - boost-cpp 1.70.0 ha2d47e9_0
+        - boost
+        - python 2.7.15 h721da81_1008
+        - suitesparse 4.5.6 heab0a99_1202
+        - matplotlib 2.2.4 py27_0
+        - gdal 2.4.1 py27hf242f0b_2
+        - pyproj 2.1.3 py27h7bc548f_1
+        - scipy 1.2.1 py27h09a28d5_1
+        - openmp
+        - sympy
+    run:
+        - boost-cpp 1.70.0.*
+        - boost
+        - numpy >=1.14.6,<2.0a0
+        - python >=2.7,<2.8.0a0
+        - suitesparse 4.5.6 heab0a99_1202
+        - matplotlib 2.2.4 py27_0
+        - gdal 2.4.1 py27hf242f0b_2
+        - pyproj 2.1.3 py27h7bc548f_1
+        - scipy 1.2.1 py27h09a28d5_1
+        - openmp
+        - sympy
+test:
+    commands:
+        - run-escript -c
+        - run-escript /tmp/release_sanity.py
 about:
   home: https://launchpad.net/escript-finley
   summary: esys-escript is a programming tool for implementing mathematical 
     models in python using the finite element method (FEM).
   license: Apache-2.0
+  license_file: LICENSE-2.0.txt
   description: esys-escript is a programming tool for implementing 
     mathematical models in python using the finite element method (FEM). 
     As users do not access the data structures it is very easy to use and 
