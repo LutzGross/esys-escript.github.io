@@ -59,7 +59,7 @@ mpi_flavours=('no', 'none', 'MPT', 'MPICH', 'MPICH2', 'OPENMPI', 'INTELMPI')
 netcdf_flavours = ('no', 'off', 'none', 'False', # Must be last of the false alternatives
                    'yes', 'on', 'True', '3', # Must be last of the version 3 alternatives
                    '4')
-all_domains = ['dudley','finley','ripley','speckley']
+all_domains = ['dudley','finley','oxley','ripley','speckley']
 
 #Note that scons construction vars the the following purposes:
 #  CPPFLAGS -> to the preprocessor
@@ -624,6 +624,8 @@ if env['trilinos']:
 
 env['buildvars']['domains'] = ','.join(env['domains'])
 for domain in env['domains']:
+    if domain=='oxley': #ae: This is temporary
+        continue
     env.Append(CPPDEFINES = ['ESYS_HAVE_'+domain.upper()])
     build_all_list += ['build_%s'%domain]
     install_all_list += ['install_%s'%domain]
@@ -647,6 +649,7 @@ env.SConscript('trilinoswrap/SConscript', variant_dir=variant+'trilinoswrap', du
 env.SConscript('cusplibrary/SConscript')
 env.SConscript('dudley/SConscript', variant_dir=variant+'dudley', duplicate=0)
 env.SConscript('finley/SConscript', variant_dir=variant+'finley', duplicate=0)
+env.SConscript('oxley/SConscript', variant_dir=variant+'oxley', duplicate=0)
 env.SConscript('ripley/SConscript', variant_dir=variant+'ripley', duplicate=0)
 env.SConscript('speckley/SConscript', variant_dir=variant+'speckley', duplicate=0)
 env.SConscript('weipa/SConscript', variant_dir=variant+'weipa', duplicate=0)
@@ -680,6 +683,10 @@ if env['domains'] == all_domains and env['insane'] == False:
     env.Default('sanity')
 else:
     env.Default('install')
+
+# If we are building with oxley, compile and install the p4est libraries
+if 'oxley' in env['domains']:
+    install_p4est(env)
 
 ################## Targets to build and run the test suite ###################
 

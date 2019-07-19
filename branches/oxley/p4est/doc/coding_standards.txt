@@ -1,0 +1,54 @@
+
+This file describes coding standards that p4est tries to adhere to.
+
+ * Portability
+
+   The code should be safe for C++ compilers.  This means that all .h
+   files need to protect external declarations with extern "C" { ... }.
+   C++ also needs explicit casts in many places where C does not care.
+ 
+   To test this, try /relative/path/to/configure --enable-mpi \
+   CC=mpicxx CFLAGS="-Wall" CXXFLAGS="-Wall" --enable-debug and run make.
+
+ * Indentation
+
+   All .c and .h files must be indented with the p4estindent script in
+   the main directory.  It calls GNU indent with some extra options.
+   This does not apply for included third party code.
+
+   If ./p4estindent gets it wrong, use /* *INDENT-OFF* */ and -ON comments.
+
+ * Boolean variables
+
+   All boolean parameters will not be checked with (a==true) or (a==false).
+   We follow the standard C convention where (a) is used to test true
+   and (!a) is used to test false.  The bool type is not used.
+   An exception is to test for pointers like (p == NULL) or (p != NULL).
+
+ * Comments
+
+   Use doxygen style for comments whenever possible.  Comments should
+   not exceed the 79th column.
+
+ * Integer types
+
+   For the indexing of trees use the p4est_topidx_t type.
+   For processor-local indexing use the p4est_locidx_t data type.
+   For globally unique indexing of potentially large numbers use the
+   p4est_gloidx_t data type.  Quadrant and node coordinates are of type
+   p4est_qcoord_t.  The int_8 data type may be used only to
+   save storage space.  Generic integers and flags should be
+   of int type whenever possible.  Storage sizes should be size_t.
+   For printf and friends use the following conversions.
+   %lld (long long) int64_t qcoord_t topidx_t locidx_t gloidx_t ssize_t
+   %llu (unsigned long long) uint64_t size_t
+   0x%08x checksums (unsigned)
+
+ * Variable names that are not self-descriptive
+
+   Loop variables of type int can be named as usual: i, j, etc.
+   Loop variables of type size_t should be named iz, jz, etc.
+   Loop variables of type ssize_t should be named is, js, etc.
+   Loop variables of type p4est_topidx_t should be named it, jt, etc.
+   Loop variables of type p4est_locidx_t should be named il, jl, etc.
+   Loop variables of type p4est_gloidx_t should be named ig, jg, etc.

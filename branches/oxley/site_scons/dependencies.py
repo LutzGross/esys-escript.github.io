@@ -722,3 +722,36 @@ def checkPDFLatex(env):
     else:
         env['pdflatex']=False
     return env
+
+def install_p4est(env):
+    #Try to configure (this will bounce an error if )
+    from subprocess import call
+    try:
+        print("Attempting clean of the p4est directory...")
+        call(["make","distclean","./p4est"])
+    except:
+        print("Clean unnecessary...")
+    # Compilation
+    arg1="--prefix="+env['buildvars']['prefix']
+    arg2="--exec-prefix="+env['buildvars']['prefix']
+    arg3="--includedir="+os.path.join(env['buildvars']['prefix'],'include','p4est')
+    arg4="--bindir="+os.path.join(env['buildvars']['prefix'],'bin')
+    arg5="--libdir="+os.path.join(env['buildvars']['prefix'],'lib')
+
+    print("Configuring p4est...")
+    call(["./p4est/configure","-q",arg1,arg2,arg3,arg4,arg5])
+    print("Making p4est...")
+    call(["make","install","V=0"])
+
+    # clean up
+    print("Finished...")
+    print("Clean up....")
+    files=["Doxyfile","Makefile","Makefile.p4est.mk","Makefile.p4est.pre","config.status","example","libtool","sc","src","test","etc","share"]
+    for x in files:
+        print("deleting... %s" % x)
+        call(["rm","-rf",os.path.join(env['buildvars']['prefix'],x)])
+
+    prefix_temp=os.path.abspath(env['buildvars']['prefix'])
+    env.AppendUnique(CPPPATH = os.path.join(prefix_temp,'include','p4est'))
+    env.AppendUnique(LIBPATH = os.path.join(prefix_temp,'lib'))
+    env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], os.path.join(prefix_temp,'lib'))

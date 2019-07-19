@@ -1,0 +1,31 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: Make vertices optional in p4est core functionality
+desc: |-
+  Once {issue 717986f9897b50adad9096285c6a86ae007729a1} is fixed, vertices are only needed for VTK output
+  or other geometry processing.  So it should be allowed to have
+  no vertices at all, especially in the load/save functions.
+type: :bugfix
+component: p4est
+release: "0.3"
+reporter: Carsten Burstedde <carsten@ices.utexas.edu>
+status: :closed
+disposition: :fixed
+creation_time: 2008-11-11 23:29:56.418996 Z
+references: []
+
+id: 7ab3610df158776fa1572b84e130635772281b35
+log_events: 
+- - 2008-11-11 23:29:57.282914 Z
+  - Carsten Burstedde <carsten@ices.utexas.edu>
+  - created
+  - ""
+- - 2009-03-19 19:53:17.892782 Z
+  - Carsten Burstedde <carsten@ices.utexas.edu>
+  - commented
+  - This is good in 3D. Need to do it all over for 2D.
+- - 2009-10-12 23:42:32.660868 Z
+  - Carsten Burstedde <carsten@ices.utexas.edu>
+  - closed with disposition fixed
+  - |-
+    This was done in the 2D z-order conversion.
+    The loadsave test was updated to test both 2D and 3D without vertices.
