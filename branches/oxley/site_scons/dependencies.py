@@ -729,20 +729,21 @@ def install_p4est(env):
     try:
         print("Attempting clean of the p4est directory...")
         call(["make","distclean","./p4est"])
+        print("Done.")
     except:
-        print("Clean unnecessary...")
+        print("Distclean unnecessary...")
+    #Bootstrap
+    call(["./bootstrap"],cwd=os.path.join(os.getcwd(),"p4est"))
     # Compilation
     arg1="--prefix="+env['buildvars']['prefix']
     arg2="--exec-prefix="+env['buildvars']['prefix']
     arg3="--includedir="+os.path.join(env['buildvars']['prefix'],'include','p4est')
     arg4="--bindir="+os.path.join(env['buildvars']['prefix'],'bin')
     arg5="--libdir="+os.path.join(env['buildvars']['prefix'],'lib')
-
     print("Configuring p4est...")
     call(["./p4est/configure","-q",arg1,arg2,arg3,arg4,arg5])
     print("Making p4est...")
-    call(["make","install","V=0"])
-
+    call(["make","install"])
     # clean up
     print("Finished...")
     print("Clean up....")
@@ -750,7 +751,6 @@ def install_p4est(env):
     for x in files:
         print("deleting... %s" % x)
         call(["rm","-rf",os.path.join(env['buildvars']['prefix'],x)])
-
     prefix_temp=os.path.abspath(env['buildvars']['prefix'])
     env.AppendUnique(CPPPATH = os.path.join(prefix_temp,'include','p4est'))
     env.AppendUnique(LIBPATH = os.path.join(prefix_temp,'lib'))
