@@ -1,0 +1,31 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: Make corner ghosts work irrespective of corner balance
+desc: |-
+  The logic for the ghost layer can be changed so it checks ownership
+  of the smallest possible corner neighbor. This would guarantee
+  that build_ghost_layer (FULL) is successful for balance (EDGE) only.
+type: :bugfix
+component: p4est
+release: 
+reporter: Carsten Burstedde <carsten@ices.utexas.edu>
+status: :closed
+disposition: :reorg
+creation_time: 2008-10-20 19:23:12.081863 Z
+references: []
+
+id: 84a74da0a3a4f357666853d81ce8280d22d3d6e1
+log_events: 
+- - 2008-10-20 19:23:13.649694 Z
+  - Carsten Burstedde <carsten@ices.utexas.edu>
+  - created
+  - ""
+- - 2010-01-22 17:45:44.798768 Z
+  - Carsten Burstedde <carsten@ices.utexas.edu>
+  - unassigned from release 0.3
+  - ""
+- - 2010-07-07 15:34:06.051955 Z
+  - Carsten Burstedde <carsten@ices.utexas.edu>
+  - closed with disposition reorg
+  - |-
+    This is superseded by the new ghost layer implementation
+    that does not require any balance condition anymore.

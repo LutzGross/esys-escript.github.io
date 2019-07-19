@@ -1,0 +1,28 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: Check potentially overlapping ghost layer quadrants
+desc: |-
+  Check how quadrants across tree corners or edges are handled.
+  How is the overlap encoded? What implications does this have
+  for the p4est algorithms?
+type: :bugfix
+component: p4est
+release: 
+reporter: Carsten Burstedde <carsten@ices.utexas.edu>
+status: :closed
+disposition: :fixed
+creation_time: 2009-02-11 22:39:28.956924 Z
+references: []
+
+id: e3fb3ea10bbe0196c325c92744bfc3eab28c98da
+log_events: 
+- - 2009-02-11 22:39:29.604725 Z
+  - Carsten Burstedde <carsten@ices.utexas.edu>
+  - created
+  - ""
+- - 2009-08-12 17:03:41.621572 Z
+  - Carsten Burstedde <carsten@ices.utexas.edu>
+  - closed with disposition fixed
+  - |-
+    There was no problem.  Ghosts are ordered by tree first
+    so when they are from different trees they are never searched for
+    in the same call (all searches are only within one tree).

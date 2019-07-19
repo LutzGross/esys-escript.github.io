@@ -77,6 +77,9 @@ EscriptParams::EscriptParams()
 #ifdef _OPENMP
     features.insert("openmp");
 #endif
+#ifdef ESYS_HAVE_OXLEY
+    features.insert("oxley");
+#endif
 #ifdef ESYS_HAVE_PASO
     features.insert("paso");
 #endif

@@ -1,0 +1,31 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: Remove unnecessary global communication
+desc: |-
+  Most of the p4est_comm_count_quadrants calls are not needed.
+  Remove them and introduce a count_dirty flag or similar.
+  The counts are communicated only when needed.
+type: :bugfix
+component: p4est
+release: 
+reporter: Carsten Burstedde <carsten@ices.utexas.edu>
+status: :unstarted
+disposition: 
+creation_time: 2008-11-25 01:31:59.556735 Z
+references: []
+
+id: 3cd73c7e60fb75ee11ee649343679880063eda77
+log_events: 
+- - 2008-11-25 01:32:00.068653 Z
+  - Carsten Burstedde <carsten@ices.utexas.edu>
+  - created
+  - ""
+- - 2009-07-07 02:18:50.085842 Z
+  - Carsten Burstedde <carsten@ices.utexas.edu>
+  - commented
+  - |-
+    The allgather in comm_count_quadrants uses gloidx instead of locidx.
+    Fix and possibly aggregate it with comm_global_partition.
+- - 2010-01-22 17:46:17.813592 Z
+  - Carsten Burstedde <carsten@ices.utexas.edu>
+  - unassigned from release 0.3
+  - ""

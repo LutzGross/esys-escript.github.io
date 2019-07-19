@@ -1,0 +1,24 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: Remove the speed penalty for balancing many trees
+desc: |-
+  Currently the balance algorithm has run time O(nt**2) where nt is the
+  number of trees. This can be changed to O(nt).
+type: :bugfix
+component: p4est
+release: "0.3"
+reporter: Carsten Burstedde <carsten@ices.utexas.edu>
+status: :closed
+disposition: :fixed
+creation_time: 2008-10-16 17:42:15.248214 Z
+references: []
+
+id: 2b15a0df0596919470477c98141355b80cab53bc
+log_events: 
+- - 2008-10-16 17:42:16.544013 Z
+  - Carsten Burstedde <carsten@ices.utexas.edu>
+  - created
+  - ""
+- - 2008-10-31 19:37:59.486704 Z
+  - Carsten Burstedde <carsten@ices.utexas.edu>
+  - closed with disposition fixed
+  - The unintentionally tree-squared algorithm is now quadrant-linear.

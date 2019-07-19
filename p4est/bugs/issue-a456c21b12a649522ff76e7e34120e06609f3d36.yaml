@@ -1,0 +1,36 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: Make ghost_ext/iterate_ext proper API functions
+desc: |-
+  The ghost and iterate versions in p4est_extended.h should be official
+  p4est API functions and moved/renamed into p4est_{ghost,iterate}.h,
+  respectively.
+  If we have several versions we can easily use postfixes such as
+  p4est_ghost_new_with_feature_something.
+type: :bugfix
+component: p4est
+release: "1.4"
+reporter: Carsten Burstedde <burstedde@ins.uni-bonn.de>
+status: :unstarted
+disposition: 
+creation_time: 2014-03-18 10:10:42.506995 Z
+references: []
+
+id: a456c21b12a649522ff76e7e34120e06609f3d36
+log_events: 
+- - 2014-03-18 10:10:43.334029 Z
+  - Carsten Burstedde <burstedde@ins.uni-bonn.de>
+  - created
+  - ""
+- - 2014-05-09 09:01:35.286084 Z
+  - Carsten Burstedde <burstedde@ins.uni-bonn.de>
+  - commented
+  - |-
+    The ghost API seems fine.
+    balance_subtree(_ext) should be just one function not in p4est_extended.h.
+    balance_ext needs to be documented.  Other than that, the file seems fine.
+- - 2014-05-14 09:23:32.138605 Z
+  - Carsten Burstedde <burstedde@ins.uni-bonn.de>
+  - commented
+  - |-
+    balance_ext and balance_subtree_ext can stay in p4est_extended.
+    They just need to be properly doxygenated.
