@@ -19,9 +19,15 @@ Import('*')
 module_name = 'oxley'
 
 sources = """
+    Rectangle.cpp
+    OxleyDomain.cpp
 """.split()
 
 headers = """
+    Rectangle.h
+    system_dep.h
+    Oxley.h
+    OxleyDomain.h
 """.split()
 
 local_env = env.Clone()

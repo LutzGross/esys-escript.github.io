@@ -151,7 +151,10 @@ vars.AddVariables(
   BoolVariable('osx_dependency_fix', 'Fix dependencies for libraries to have absolute paths (OSX)', False),
   BoolVariable('stdlocationisprefix', 'Set the prefix as escript root in the launcher', False),
   BoolVariable('mpi_no_host', 'Do not specify --host in run-escript launcher (only OPENMPI)', False),
-  BoolVariable('insane', 'Instructs scons to not run a sanity check after compilation.', False)
+  BoolVariable('insane', 'Instructs scons to not run a sanity check after compilation.', False),
+  BoolVariable('build_p4est', 'Instructs scons to compile and install p4est.', False),
+  ('p4est_prefix', 'Prefix/Paths to p4est installation', default_prefix),
+  ('p4est_libs', 'p4est libraries to link with', ['p4est-2.2', 'sc-2.2'])
 )
 
 ##################### Create environment and help text #######################
@@ -307,7 +310,7 @@ elif cc_name == 'icl':
 elif cc_name == 'clang++':
     # Clang++ on any system
     cc_flags     = "-std=c++11 -Wall -fPIC -fdiagnostics-color=always "
-    cc_flags    += "-Wno-unused-private-field -Wno-unknown-pragmas "
+    cc_flags    += "-Wno-unused-private-field -Wno-unknown-pragmas -Wno-uninitialized"
     if env['trilinos'] is True:
       cc_flags += "-Wno-unused-variable -Wno-exceptions -Wno-deprecated-declarations"
     cc_optim     = "-O3"
@@ -624,8 +627,6 @@ if env['trilinos']:
 
 env['buildvars']['domains'] = ','.join(env['domains'])
 for domain in env['domains']:
-    if domain=='oxley': #ae: This is temporary
-        continue
     env.Append(CPPDEFINES = ['ESYS_HAVE_'+domain.upper()])
     build_all_list += ['build_%s'%domain]
     install_all_list += ['install_%s'%domain]
@@ -684,9 +685,12 @@ if env['domains'] == all_domains and env['insane'] == False:
 else:
     env.Default('install')
 
-# If we are building with oxley, compile and install the p4est libraries
-if 'oxley' in env['domains']:
+if env['build_p4est'] is True:
     install_p4est(env)
+
+if 'oxley' in env['domains'] or env['build_p4est'] is True:
+    env['p4est_prefix']=env['prefix']  
+    env=add_p4est_to_build_environment(env);
 
 ################## Targets to build and run the test suite ###################
 
@@ -806,7 +810,7 @@ def print_summary():
     else:
         print("          netcdf:  NO")
     e_list=[]
-    for i in ('weipa','debug','openmp','cppunit','gdal','mkl',
+    for i in ('weipa','debug','openmp','cppunit','gdal','mkl','p4est',
              'pyproj','scipy','silo','sympy','umfpack','visit'):
         if env[i]: e_list.append(i)
         else: d_list.append(i)

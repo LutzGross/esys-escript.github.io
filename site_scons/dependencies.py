@@ -737,7 +737,7 @@ def install_p4est(env):
     # Compilation
     arg1="--prefix="+env['buildvars']['prefix']
     arg2="--exec-prefix="+env['buildvars']['prefix']
-    arg3="--includedir="+os.path.join(env['buildvars']['prefix'],'include','p4est')
+    arg3="--includedir="+os.path.join(env['buildvars']['prefix'],'include')
     arg4="--bindir="+os.path.join(env['buildvars']['prefix'],'bin')
     arg5="--libdir="+os.path.join(env['buildvars']['prefix'],'lib')
     print("Configuring p4est...")
@@ -751,7 +751,22 @@ def install_p4est(env):
     for x in files:
         print("deleting... %s" % x)
         call(["rm","-rf",os.path.join(env['buildvars']['prefix'],x)])
+    call(["make","distclean","./p4est"])
+    files=["p4est/Makefile.in","p4est/aclocal.m4","p4est/configure","p4est/sc/Makefile.in","p4est/sc/aclocal.m4","p4est/sc/configure"]    
+
+
+def add_p4est_to_build_environment(env):
     prefix_temp=os.path.abspath(env['buildvars']['prefix'])
-    env.AppendUnique(CPPPATH = os.path.join(prefix_temp,'include','p4est'))
-    env.AppendUnique(LIBPATH = os.path.join(prefix_temp,'lib'))
-    env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], os.path.join(prefix_temp,'lib'))
+
+    if os.path.exists(os.path.join(env['p4est_prefix'],'include','p4est.h')) and os.path.exists(os.path.join(env['p4est_prefix'],'lib','libp4est-2.2.so')):
+        p4est_inc_path = os.path.join(env['p4est_prefix'],'include')
+        p4est_lib_path = os.path.join(env['p4est_prefix'],'lib')
+        env.AppendUnique(CPPPATH = p4est_inc_path)
+        env.AppendUnique(LIBPATH = p4est_lib_path)
+        env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], p4est_lib_path)
+        env['p4est']=True
+        return env
+    else:
+        env['warnings'].append("Could not locate the p4est library! Oxley will not work!")
+        env['p4est']=False
+        return env
