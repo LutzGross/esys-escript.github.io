@@ -15,24 +15,29 @@
 *****************************************************************************/
 
 #include <oxley/OxleyDomain.h>
-#include <oxley/Rectangle.h>
 
-#include <escript/ExceptionTranslators.h>
+namespace bp = boost::python;
 
-#include <boost/python.hpp>
-#include <boost/python/def.hpp>
-#include <boost/python/module.hpp>
-#include <boost/python/detail/defaults_gen.hpp>
-#include <boost/version.hpp>
+using namespace std;
 
-using namespace boost::python;
+namespace oxley {
 
-BOOST_PYTHON_MODULE(oxleycpp)
-{
-    class_<oxley::OxleyDomain, bases<escript::AbstractContinuousDomain>, boost::noncopyable >
-        ("OxleyDomain", "", no_init)
-        .def("getDescription", &oxley::OxleyDomain::getDescription,
-            ":return: a description for this domain\n:rtype: ``string``");
-        
-}
+    /**
+       \brief
+       Constructor 
+    */
+    OxleyDomain::OxleyDomain(){
+
+
+    }
+
+    /**
+       \brief
+       Destructor
+    */
+    OxleyDomain::~OxleyDomain(){
+
+    }
+
+} // end of namespace oxley
 
