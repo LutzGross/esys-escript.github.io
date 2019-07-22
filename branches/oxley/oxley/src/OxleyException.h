@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2018 by The University of Queensland
+* Copyright (c) 2003-2019 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -14,7 +14,10 @@
 *
 *****************************************************************************/
 
-// #include <oxley/system_dep.h>
+#ifndef __OXLEY_EXCEPTION_H__
+#define __OXLEY_EXCEPTION_H__
+#endif
+
 #include <escript/EsysException.h>
 
 namespace oxley {

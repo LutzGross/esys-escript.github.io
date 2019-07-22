@@ -15,6 +15,7 @@
 *****************************************************************************/
 
 #include <oxley/Oxley.h>
+#ifndef __OXLEY_EXCEPTION_H__
 #include <oxley/OxleyException.h>
 
 #include <escript/EsysMPI.h>
@@ -330,3 +331,4 @@ protected:
 } // end of namespace oxley
 
 
+#endif //__OXLEY_EXCEPTION_H__

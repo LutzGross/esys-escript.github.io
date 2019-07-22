@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2018 by The University of Queensland
+* Copyright (c) 2003-2019 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -16,7 +16,7 @@
 
 #include <oxley/Brick.h>
 
-using namespace boost::python;
+namespace bp = boost::python;
 
 namespace oxley {
 
@@ -45,15 +45,69 @@ std::string Brick::getDescription() const{
         return "oxley::Brick";
     }
 
-    /**
-       \brief
-       writes information about the mesh to standard output
-       \param full whether to print additional data
-    */
-void Brick::Print_Mesh_Info(const bool full) const {
+
+/**
+   \brief
+   dumps the mesh to a file with the given name
+   \param filename The name of the output file
+*/
+void Brick::dump(const std::string& filename) const
+{
+    throw OxleyException("dump: not supported");
+}
+
+/**
+   \brief
+   writes the current mesh to a file with the given name
+   \param filename The name of the file to write to
+*/
+void Brick::write(const std::string& filename) const
+{
+    throw OxleyException("write: not supported");
+}
+
+bool Brick::probeInterpolationAcross(int fsType_source,
+        const escript::AbstractDomain& domain, int fsType_target) const
+{
+    throw OxleyException("currently: not supported"); //AE this is temporary
+}
+
+void Brick::interpolateAcross(escript::Data& target, const escript::Data& source) const
+{
+    throw OxleyException("currently: not supported"); //AE this is temporary
+}
+
+void Brick::setToNormal(escript::Data& out) const
+{
+    throw OxleyException("currently: not supported"); //AE this is temporary
+}
+
+void Brick::setToSize(escript::Data& out) const
+{
+    throw OxleyException("currently: not supported"); //AE this is temporary
+}
+
+bool Brick::ownSample(int fsType, index_t id) const
+{
+    throw OxleyException("currently: not supported"); //AE this is temporary
+}
 
 
-    }
+/* This is a wrapper for filtered (and non-filtered) randoms
+ * For detailed doco see randomFillWorker
+*/
+escript::Data Brick::randomFill(const escript::DataTypes::ShapeType& shape,
+                                    const escript::FunctionSpace& fs,
+                                    long seed, const bp::tuple& filter) const
+{
+    throw OxleyException("currently: not supported"); //AE this is temporary
+}
+
+
+const dim_t* Brick::borrowSampleReferenceIDs(int fsType) const
+{
+    throw OxleyException("currently: not supported"); //AE this is temporary
+}
 
 
 
