@@ -9,6 +9,7 @@ from esys.escript import *
 from esys.escript.linearPDEs import Poisson
 import esys.ripley as ripley
 import esys.finley as finley
+import esys.oxley as oxley
 import esys.speckley as speckley
 from esys.weipa import saveVTK
 

@@ -14,6 +14,9 @@
 *
 *****************************************************************************/
 
+#ifndef __OXLEY_RECTANGLE_H__
+#define __OXLEY_RECTANGLE_H__
+
 #include <escript/EsysMPI.h>
 #include <escript/SubWorld.h>
 
@@ -30,7 +33,7 @@ namespace oxley {
 
 /**
    \brief
-   Rectangle is the 2-dimensional implementation of a SpeckleyDomain.
+   Rectangle is the 2-dimensional implementation of a Oxleydomain.
 */
 class Rectangle: public OxleyDomain
 {
@@ -132,3 +135,4 @@ private:
 } //end namespace
 
 
+#endif //__OXLEY_RECTANGLE_H__

@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2018 by The University of Queensland
+* Copyright (c) 2003-2019 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -13,13 +13,6 @@
 * Development from 2014 by Centre for Geoscience Computing (GeoComp)
 *
 *****************************************************************************/
-
-/*****************************************************************************
- *  Ripley is a FE domain library with regular hexagonal/rectangular
- *  elements
- ****************************************************************************/
-
-#include <oxley/system_dep.h>
 
 #include <escript/EsysMPI.h>
 
