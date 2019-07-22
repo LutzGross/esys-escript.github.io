@@ -1,3 +1,4 @@
+
 ##############################################################################
 #
 # Copyright (c) 2003-2018 by The University of Queensland
@@ -13,18 +14,16 @@
 #
 ##############################################################################
 
-Import('env')
-if 'oxley' in env['domains']:
-    if not env['paso'] and not env['trilinos']:
-        print("Oxley requires a solver library! Please either enable Paso or Trilinos.")
-        env.Exit(1)
+Import('*')
+local_env = env.Clone()
 
-    # configure C++ library
-    env.SConscript('src/SConscript', duplicate=0)
+# get the source file names
+sources = Glob('*.py')
 
-    # configure python module
-    env.SConscript('py_src/SConscript', variant_dir='py', duplicate=0)
+# compile
+pyc = local_env.PyCompile(sources)
 
-    # # configure unit tests
-    # env.SConscript('test/SConscript', duplicate=0)
+# install
+py_inst = local_env.Install(Dir('oxley', local_env['pyinstall']), pyc)
+env.Alias('install_oxley', py_inst)
 
