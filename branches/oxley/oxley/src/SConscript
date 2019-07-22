@@ -19,15 +19,18 @@ Import('*')
 module_name = 'oxley'
 
 sources = """
+    Brick.cpp
     Rectangle.cpp
     OxleyDomain.cpp
 """.split()
 
 headers = """
+    Brick.h
     Rectangle.h
     system_dep.h
     Oxley.h
     OxleyDomain.h
+    OxleyException.h
 """.split()
 
 local_env = env.Clone()
