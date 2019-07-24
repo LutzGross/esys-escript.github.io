@@ -22,8 +22,8 @@
 
 #include <oxley/OxleyDomain.h>
 
-#include <p4est/p4est.h>
-#include <p4est/p4est_connectivity.h>
+#include <p4est.h>
+#include <p4est_connectivity.h>
 
 #include <boost/python.hpp>
 
@@ -125,8 +125,29 @@ public:
 
 private:
 
+    // This object records the connectivity of the p4est quadrants
+    p4est_connectivity_t *connectivity;
 
+    // A p4est
+    p4est_t *p4est;
 
+    // origin of domain
+    double m_origin[2];
+
+    // side lengths of domain
+    double m_length[2];
+
+    // number of spatial subdivisions
+    int m_NX[2];
+
+    // total number of elements in each dimension
+    dim_t m_gNE[2];
+
+    // number of elements for this rank in each dimension including shared
+    dim_t m_NE[2];
+
+    // periodic boundary conditions
+    int periodic[2] {false, false};
 
 };
 

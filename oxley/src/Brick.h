@@ -22,8 +22,8 @@
 
 #include <oxley/OxleyDomain.h>
 
-#include <p4est/p4est.h>
-#include <p4est/p4est_connectivity.h>
+#include <p8est.h>
+#include <p8est_connectivity.h>
 
 #include <boost/python.hpp>
 
@@ -128,7 +128,29 @@ public:
 
 private:
 
+    // This object records the connectivity of the p8est quadrants
+    p8est_connectivity_t *connectivity;
 
+    // A p8est
+    p8est_t *p8est;
+
+    // origin of domain
+    double m_origin[3];
+
+    // side lengths of domain
+    double m_length[3];
+
+    // number of spatial subdivisions
+    int m_NX[3];
+
+    // total number of elements in each dimension
+    dim_t m_gNE[3];
+
+    // number of elements for this rank in each dimension including shared
+    dim_t m_NE[3];
+
+    // periodic boundary conditions
+    int periodic[3] {false, false, false};
 
 
 };
