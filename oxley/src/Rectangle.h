@@ -26,6 +26,9 @@
 #include <p4est_connectivity.h>
 
 #include <boost/python.hpp>
+#ifdef ESYS_HAVE_BOOST_NUMPY
+#include <boost/python/numpy.hpp>
+#endif
 
 using namespace boost::python;
 
@@ -46,6 +49,15 @@ public:
     */
     Rectangle(int order, dim_t n0, dim_t n1, double x0, double y0, double x1, double y1, int d0, int d1);
 
+    /**
+       \brief creates a rectangular mesh from numpy arrays [x,y].
+            Requires boost numpy 
+       \param 
+    */
+#ifdef ESYS_HAVE_BOOST_NUMPY
+    Rectangle(int order, dim_t n0, dim_t n1, boost::python::numpy::ndarray x, boost::python::numpy::ndarray y);
+#endif
+    
     /**
        \brief
        Destructor.

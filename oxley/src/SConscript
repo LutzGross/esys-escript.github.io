@@ -38,14 +38,11 @@ local_env = env.Clone()
 # collect dependencies for other modules
 oxleylibs = []
 oxleylibs += env['escript_libs']
+oxleylibs += env['p4est_libs']
 if env['paso']:
     oxleylibs += env['paso_libs']
 if env['trilinos']:
     oxleylibs += env['trilinoswrap_libs']
-if env['silo']:
-    oxleylibs += env['silo_libs']
-if env['compressed_files']:
-    oxleylibs += env['compression_libs']
 
 local_env.PrependUnique(LIBS = oxleylibs)
 

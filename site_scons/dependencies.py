@@ -293,28 +293,29 @@ def checkBoost(env):
                     p3res = ''
                     for x in l:
                         if isinstance(x,string_type):
-                            if x.startswith('libboost_numpy-py') and x.endswith('.so'):
+                            if (x.startswith('libboost_numpy-py') or x.startswith('libboost_numpy2')) and x.endswith('.so'):
                                 p2res = x
-                            if x.startswith('libboost_numpy-py3') and x.endswith('.so'):
+                            if (x.startswith('libboost_numpy-py3') or x.startswith('libboost_numpy3')) and x.endswith('.so'):
                                 p3res = x
                         else:
-                            if x.startswith(b'libboost_numpy-py') and x.endswith(b'.so'):
+                            if (x.startswith(b'libboost_numpy-py') or x.startswith(b'libboost_numpy2')) and x.endswith(b'.so'):
                                 p2res = x
-                            if x.startswith(b'libboost_numpy-py3') and x.endswith(b'.so'):
+                            if (x.startswith(b'libboost_numpy-py3') or x.startswith(b'libboost_numpy3')) and x.endswith(b'.so'):
                                 p3res = x
-
                     if len(p2name)==0 and len(p2res)>0:
-                        p2name=p2res[-1]
+                        p2name=p2res[3:-3]
+                        break
                     if len(p3name)==0 and len(p3res)>0:
-                        p3name=p3res[-1]
+                        p3name=p3res[3:-3]
+                        break
                 except OSError:
                     pass
 
             # Pick the right one
             if int(env['python_version'][0]) == 2:
-                libname = p2name[3:-3]
+                libname = p2name
             else:
-                libname = p3name[3:-3]
+                libname = p3name
 
             # If found, add the necessary information to env
             if len(libname) > 0:
@@ -742,11 +743,11 @@ def install_p4est(env):
     arg5="--libdir="+os.path.join(env['buildvars']['prefix'],'lib')
     print("Configuring p4est...")
     if env['mpi'] == 'no' or env['mpi'] == 'none':
-        # call(["./p4est/configure","-q","--enable-openmp","--with-gnu-ld",arg1,arg2,arg3,arg4,arg5])
-        call(["./p4est/configure","-q","--enable-openmp",arg1,arg2,arg3,arg4,arg5])
+        call(["./p4est/configure","-q","--enable-openmp","--with-gnu-ld",arg1,arg2,arg3,arg4,arg5])
+        # call(["./p4est/configure","-q","--enable-openmp",arg1,arg2,arg3,arg4,arg5])
     else:
-        # call(["./p4est/configure","-q","--enable-openmp","--enable-mpi","--with-gnu-ld",arg1,arg2,arg3,arg4,arg5])
-        call(["./p4est/configure","-q","--enable-openmp","--enable-mpi",arg1,arg2,arg3,arg4,arg5])
+        call(["./p4est/configure","-q","--enable-openmp","--enable-mpi","--with-gnu-ld",arg1,arg2,arg3,arg4,arg5])
+        # call(["./p4est/configure","-q","--enable-openmp","--enable-mpi",arg1,arg2,arg3,arg4,arg5])
     print("Making p4est...")
     call(["make","install"])
     # clean up
@@ -757,16 +758,17 @@ def install_p4est(env):
         print("deleting... %s" % x)
         call(["rm","-rf",os.path.join(env['buildvars']['prefix'],x)])
     call(["make","distclean","./p4est"])
-    files=["p4est/Makefile.in","p4est/aclocal.m4","p4est/configure","p4est/sc/Makefile.in","p4est/sc/aclocal.m4","p4est/sc/configure"]    
-
+    files=["p4est/Makefile.in","p4est/aclocal.m4","p4est/configure","p4est/sc/Makefile.in","p4est/sc/aclocal.m4","p4est/sc/configure"]
 
 def add_p4est_to_build_environment(env):
     if os.path.exists(os.path.join(env['p4est_prefix'],'include','p4est.h')) and os.path.exists(os.path.join(env['p4est_prefix'],'lib','libp4est-2.2.so')):
         p4est_inc_path,p4est_lib_path=findLibWithHeader(env, env['p4est_libs'], 'p4est.h', env['p4est_prefix'], lang='c++')
-        env.AppendUnique(LIBS = env['p4est_libs'])
-        env.AppendUnique(CPPPATH = p4est_inc_path)
-        env.AppendUnique(LIBPATH = p4est_lib_path)
+        env.Append(LIBS = env['p4est_libs'])
+        env.Append(CPPPATH = p4est_inc_path)
+        env.Append(LIBPATH = p4est_lib_path)
         env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], p4est_lib_path)
+        env['buildvars']['p4est_inc_path']=p4est_inc_path
+        env['buildvars']['p4est_lib_path']=p4est_lib_path
         env['p4est']=True
         return env
     else:

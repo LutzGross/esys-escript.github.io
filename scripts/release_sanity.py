@@ -24,5 +24,6 @@ u = mypde.getSolution()
 # write u to an external file  
 #saveVTK("u.vtu",sol=u)
 
+print("Passed the release_sanity test!")
 
 

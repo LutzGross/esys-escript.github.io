@@ -33,6 +33,7 @@ Brick::Brick(int order, dim_t n0, dim_t n1, dim_t n2, double x0, double y0, doub
         throw OxleyException("Number of elements in each spatial dimension must be positive");
 
     // Ignore d0 and d1 if we are running in serial
+    m_mpiInfo = escript::makeInfo(MPI_COMM_WORLD);
     if(m_mpiInfo->size == 1) {
         d0=1;
         d1=1;
