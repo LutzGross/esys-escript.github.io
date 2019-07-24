@@ -14,14 +14,15 @@
 *
 *****************************************************************************/
 
+#include <iostream> //ae: temporary
+
 #include <oxley/Brick.h>
 #include <oxley/Rectangle.h>
 
 #include <boost/python.hpp>
-// #include <boost/python/def.hpp>
-// #include <boost/python/module.hpp>
-// #include <boost/python/detail/defaults_gen.hpp>
-// #include <boost/version.hpp>
+#ifdef ESYS_HAVE_BOOST_NUMPY
+#include <boost/python/numpy.hpp>
+#endif
 
 using namespace boost::python;
 
@@ -65,6 +66,28 @@ escript::Domain_ptr _rectangle(int order, double _n0, double _n1,
 
     return escript::Domain_ptr(new Rectangle(order, n0,n1, x0,y0, x1,y1, d0,d1));
 }
+
+#ifdef ESYS_HAVE_BOOST_NUMPY
+escript::Domain_ptr _rectangle_ndx(int order, 
+    boost::python::numpy::ndarray _ndx, boost::python::numpy::ndarray _ndy, int d0, int d1)
+{
+    // Integration Order
+    if(order < 2 || order > 10)
+        throw OxleyException("Order must be in the range 2 to 10");
+
+    // boost::python::tuple xshape = boost::python::extract<tuple>(_ndx.attr("shape")());
+    // std::cout << "xshape = " << xshape[0] << ", " << xshape[1] << std::endl;
+
+    int n0=10, n1=10, x0=0, y0=0, x1=1, y1=1; // ae: This is temporary
+    return escript::Domain_ptr(new Rectangle(order, n0,n1, x0,y0, x1,y1, d0,d1));
+}
+#else
+escript::Domain_ptr _rectangle_ndx(int order, 
+    boost::python::dict _ndx, boost::python::dict _ndy, int d0, int d1)
+{
+    throw OxleyException("This requires the boost::numpy libraries.");
+}
+#endif
 
 escript::Domain_ptr _brick(int order, double _n0, double _n1, double _n2,
                         const object& l0, const object& l1, const object& l2, 
@@ -120,7 +143,8 @@ escript::Domain_ptr _brick(int order, double _n0, double _n1, double _n2,
 
 BOOST_PYTHON_MODULE(oxleycpp)
 {
-    // class_<oxley::OxleyDomain, bases<escript::AbstractContinuousDomain>, boost::noncopyable >
+    // Initialise numpy, if it wasn't initialised somewhere else
+    boost::python::numpy::initialize();
 
     def("Rectangle", oxley::_rectangle, (arg("order"),arg("n0"),arg("n1"),arg("l0")=1.0,arg("l1")=1.0,arg("d0")=-1,arg("d1")=-1),
 "Creates a rectangular p4est mesh with n0 x n1 elements over the rectangle [0,l0] x [0,l1].\n\n"
@@ -129,6 +153,14 @@ BOOST_PYTHON_MODULE(oxleycpp)
 ":param n1: number of elements in direction 1\n:type n1: ``int``\n"
 ":param l0: length of side 0 or coordinate range of side 0\n:type l0: ``float`` or ``tuple``\n"
 ":param l1: length of side 1 or coordinate range of side 1\n:type l1: ``float`` or ``tuple``\n"
+":param d0: number of subdivisions in direction 0\n:type d0: ``int``\n"
+":param d1: number of subdivisions in direction 1\n:type d1: ``int``");
+
+    def("Rectangle", oxley::_rectangle_ndx, (arg("order"),arg("ndx"),arg("ndy"),arg("d0")=-1,arg("d1")=-1),
+"Creates a rectangular p4est mesh with n0 x n1 elements over the rectangle [0,l0] x [0,l1].\n\n"
+":param order: order of the elements: ``int``\n"
+":param ndx: a numpy array with the coordinates of the nodes in direction 0\n:type ndx: ``numpy::ndarray``\n"
+":param ndy: a numpy array with the coordinates of the nodes in direction 1\n:type ndy: ``numpy::ndarray``\n"
 ":param d0: number of subdivisions in direction 0\n:type d0: ``int``\n"
 ":param d1: number of subdivisions in direction 1\n:type d1: ``int``");
 
@@ -149,3 +181,4 @@ BOOST_PYTHON_MODULE(oxleycpp)
 }
 
 } //namespace oxley
+
