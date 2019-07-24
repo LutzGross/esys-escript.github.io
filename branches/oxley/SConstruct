@@ -154,7 +154,7 @@ vars.AddVariables(
   BoolVariable('insane', 'Instructs scons to not run a sanity check after compilation.', False),
   BoolVariable('build_p4est', 'Instructs scons to compile and install p4est.', False),
   ('p4est_prefix', 'Prefix/Paths to p4est installation', default_prefix),
-  ('p4est_libs', 'p4est libraries to link with', ['p4est-2.2', 'sc-2.2'])
+  ('p4est_libs', 'p4est libraries to link with', ['p4est','sc'])
 )
 
 ##################### Create environment and help text #######################

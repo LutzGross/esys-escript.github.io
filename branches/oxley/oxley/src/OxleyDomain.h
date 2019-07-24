@@ -14,12 +14,17 @@
 *
 *****************************************************************************/
 
+
+
 #include <oxley/Oxley.h>
 #ifndef __OXLEY_EXCEPTION_H__
 #include <oxley/OxleyException.h>
 
 #include <escript/EsysMPI.h>
 #include <escript/AbstractContinuousDomain.h>
+
+// #include <p4est/sc_mpi.h>
+
 
 namespace oxley {
 

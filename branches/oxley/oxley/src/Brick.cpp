@@ -27,6 +27,53 @@ namespace oxley {
 Brick::Brick(int order, dim_t n0, dim_t n1, dim_t n2, double x0, double y0, double z0,
       double x1, double y1, double z1, int d0, int d1, int d2): OxleyDomain(2, order){
 
+
+    // Possible error: User passes invalid values for the dimensions
+    if(n0 <= 0 || n1 <= 0 || n2 <= 0)
+        throw OxleyException("Number of elements in each spatial dimension must be positive");
+
+    // Ignore d0 and d1 if we are running in serial
+    if(m_mpiInfo->size == 1) {
+        d0=1;
+        d1=1;
+        d2=1;
+    }
+
+    // ensure number of subdivisions is valid and nodes can be distributed
+    // among number of ranks
+    if(d0*d1*d2 != m_mpiInfo->size)
+        throw OxleyException("Invalid number of spatial subdivisions");
+
+    //Create a connectivity
+    connectivity = p8est_connectivity_new_brick((int) n0, (int) n1, (int) n2, 
+        periodic[0], periodic[1], periodic[2]);
+
+    // Create a forest that is not refined; it consists of the root octant.
+    p8est = p8est_new(m_mpiInfo->comm, connectivity, 0, NULL, NULL);
+
+    // Record the physical dimensions of the domain and the location of the origin
+    m_origin[0] = x0;
+    m_origin[1] = y0;
+    m_origin[2] = z0;
+    m_length[0] = x1-x0;
+    m_length[1] = y1-y0;
+    m_length[2] = z1-z0;
+
+    // number of elements in each dimension 
+    m_gNE[0] = n0;
+    m_gNE[1] = n1;
+    m_gNE[2] = n2;
+
+    //number of elements for this rank in each dimension including shared
+    m_NX[0] = d0;
+    m_NX[1] = d1;
+    m_NX[2] = d2;
+
+    // local number of elements
+    m_NE[0] = m_gNE[0] / d0;
+    m_NE[1] = m_gNE[1] / d1;
+    m_NE[2] = m_gNE[2] / d2;
+
     }
 
     /**
@@ -34,6 +81,9 @@ Brick::Brick(int order, dim_t n0, dim_t n1, dim_t n2, double x0, double y0, doub
        Destructor.
     */
 Brick::~Brick(){
+
+    p8est_destroy(p8est);
+    p8est_connectivity_destroy(connectivity);
 
     }
 
