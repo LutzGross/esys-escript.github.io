@@ -221,7 +221,9 @@ BOOST_PYTHON_MODULE(oxleycpp)
     class_<oxley::OxleyDomain, bases<escript::AbstractContinuousDomain>, boost::noncopyable >
         ("OxleyDomain", "", no_init)
         .def("getDescription", &oxley::OxleyDomain::getDescription,
-                "Prints out a description of the mesh.");
+                "Prints out a description of the mesh.")
+        .def("writeToVTK", &oxley::OxleyDomain::writeToVTK, (arg("filename")),
+                "Writes the mesh to a VTK file.");
 
 
     class_<oxley::Rectangle, bases<oxley::OxleyDomain> >("OxleyRectangle", "", no_init);

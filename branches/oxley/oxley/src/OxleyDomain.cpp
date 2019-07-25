@@ -138,7 +138,10 @@ namespace oxley {
         throw OxleyException("currently not implemented"); // ae: This is temporary
     }
 
-
+    void OxleyDomain::writeToVTK(std::string filename) const
+    {
+        throw OxleyException("unknown error");
+    }
 
 } // end of namespace oxley
 

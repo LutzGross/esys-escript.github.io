@@ -33,6 +33,31 @@ class Test_GeneratorsOnFinley(unittest.TestCase):
     def test_test(self):
         self.assertEqual(1,1,"Oxley testing code has failed to run.")
 
+    # This just checks that it writes to file and p4est doesn't return an error.
+    # TODO: Check the file itself for errors
+    def test_write_rectangle_to_vtk(self):
+        domain1=Rectangle(order=2,n0=10,n1=10)
+        domain1.writeToVTK("/tmp/rectangle")
+        file_exists=os.path.exists("/tmp/rectangle.vtk_0000.vtu")
+        self.assertEqual(file_exists,True,"Oxley rectangle.writeToVTK.")
+        # Clean up
+        os.remove("/tmp/rectangle.vtk_0000.vtu")
+        os.remove("/tmp/rectangle.vtk.pvtu")
+        os.remove("/tmp/rectangle.vtk.visit")
+
+    # This just checks that it writes to file and p8est doesn't return an error
+    # TODO: Check the file itself for errors
+    def test_write_brick_to_vtk(self):
+        domain1=Brick(order=2,n0=10,n1=10,n2=10)
+        domain1.writeToVTK("/tmp/brick")
+        file_exists=os.path.exists("/tmp/brick.vtk_0000.vtu")
+        self.assertEqual(file_exists,True,"Oxley brick.writeToVTK.")
+        # Clean up
+        os.remove("/tmp/brick.vtk_0000.vtu")
+        os.remove("/tmp/brick.vtk.pvtu")
+        os.remove("/tmp/brick.vtk.visit")
+
+
 if __name__ == '__main__':
     run_tests(__name__, exit_on_failure=True)
 

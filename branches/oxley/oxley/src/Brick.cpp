@@ -15,6 +15,8 @@
 
 #include <oxley/Brick.h>
 
+#include <p8est_vtk.h>
+
 namespace bp = boost::python;
 
 namespace oxley {
@@ -159,7 +161,21 @@ const dim_t* Brick::borrowSampleReferenceIDs(int fsType) const
     throw OxleyException("currently: not supported"); //AE this is temporary
 }
 
+void Brick::writeToVTK(std::string filename) const
+{
+    // Check that the filename is reasonable
+    int stringlength=filename.length();
+    if(stringlength>4){
+        if(filename.compare(stringlength-4,4,".vtk") != 0)
+            filename.append(".vtk");
+    } else {
+        filename.append(".vtk");
+    }
 
+    // Write to file
+    const char * name = filename.c_str();
+    p8est_vtk_write_file(p8est, NULL, name);
+}
 
 } // end of namespace oxley
 

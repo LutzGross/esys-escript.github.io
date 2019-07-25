@@ -325,6 +325,12 @@ public:
     */
     virtual bool supportsContactElements() const { return false; }
 
+    /**
+       \brief
+       writes the mesh to file
+    */
+    virtual void writeToVTK(std::string filename) const;
+
 protected:
     int m_numDim;
     escript::JMPI m_mpiInfo;

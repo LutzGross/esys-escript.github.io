@@ -133,6 +133,12 @@ public:
     */
     const dim_t* borrowSampleReferenceIDs(int fsType) const;
 
+    /**
+       \brief
+       writes the mesh to a VTK file
+       \param filename The file name
+    */
+    virtual void writeToVTK(std::string filename) const;
 
 private:
 
