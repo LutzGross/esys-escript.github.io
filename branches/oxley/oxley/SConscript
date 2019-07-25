@@ -26,5 +26,5 @@ if 'oxley' in env['domains']:
     env.SConscript('py_src/SConscript', variant_dir='py', duplicate=0)
 
     # # configure unit tests
-    # env.SConscript('test/SConscript', duplicate=0)
+    env.SConscript('test/SConscript', duplicate=0)
 

@@ -13,9 +13,6 @@
 #
 ##############################################################################
 
-"""A domain meshed with uniform rectangles or quadrilaterals
-"""
-
 from __future__ import print_function, division
 
 __copyright__="""Copyright (c) 2003-2019 by The University of Queensland
@@ -25,7 +22,17 @@ __license__="""Licensed under the Apache License, version 2.0
 http://www.apache.org/licenses/LICENSE-2.0"""
 __url__="https://launchpad.net/escript-finley"
 
-import esys.escript       # This is just to ensure required libraries are loaded
-from .oxleycpp import *
+import os
+import esys.escriptcore.utestselect as unittest
+from esys.escriptcore.testing import *
+from esys.escript import *
+from esys.oxley import *
 
-__nodocorecursion=['oxleycpp']
+class Test_GeneratorsOnFinley(unittest.TestCase):
+
+    def test_test(self):
+        self.assertEqual(1,1,"Oxley testing code has failed to run.")
+
+if __name__ == '__main__':
+    run_tests(__name__, exit_on_failure=True)
+
