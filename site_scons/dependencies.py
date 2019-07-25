@@ -744,10 +744,8 @@ def install_p4est(env):
     print("Configuring p4est...")
     if env['mpi'] == 'no' or env['mpi'] == 'none':
         call(["./p4est/configure","-q","--enable-openmp","--with-gnu-ld",arg1,arg2,arg3,arg4,arg5])
-        # call(["./p4est/configure","-q","--enable-openmp",arg1,arg2,arg3,arg4,arg5])
     else:
         call(["./p4est/configure","-q","--enable-openmp","--enable-mpi","--with-gnu-ld",arg1,arg2,arg3,arg4,arg5])
-        # call(["./p4est/configure","-q","--enable-openmp","--enable-mpi",arg1,arg2,arg3,arg4,arg5])
     print("Making p4est...")
     call(["make","install"])
     # clean up
@@ -762,7 +760,10 @@ def install_p4est(env):
 
 def add_p4est_to_build_environment(env):
     if os.path.exists(os.path.join(env['p4est_prefix'],'include','p4est.h')) and os.path.exists(os.path.join(env['p4est_prefix'],'lib','libp4est-2.2.so')):
-        p4est_inc_path,p4est_lib_path=findLibWithHeader(env, env['p4est_libs'], 'p4est.h', env['p4est_prefix'], lang='c++')
+        try:
+            p4est_inc_path,p4est_lib_path=findLibWithHeader(env, env['p4est_libs'], 'p4est.h', env['p4est_prefix'], lang='c++')
+        except:
+            print("Try recompiling the p4est library.")
         env.Append(LIBS = env['p4est_libs'])
         env.Append(CPPPATH = p4est_inc_path)
         env.Append(LIBPATH = p4est_lib_path)

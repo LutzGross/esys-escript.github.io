@@ -13,24 +13,19 @@
 *
 *****************************************************************************/
 
-#ifndef __OXLEY_EXCEPTION_H__
-#define __OXLEY_EXCEPTION_H__
-#endif
+#ifndef __OXLEYDOMAIN_TESTCASE_H__
+#define __OXLEYDOMAIN_TESTCASE_H__
 
-#include <escript/EsysException.h>
+#include <cppunit/TestFixture.h>
+#include <cppunit/TestSuite.h>
 
-namespace oxley {
-
-/**
-   \brief
-   OxleyException exception class.
-*/
-class OxleyException : public escript::EsysException
+class OxleyDomainTestCase : public CppUnit::TestFixture
 {
 public:
-    OxleyException(const std::string& str) : escript::EsysException(str) {}
+    void testAll();
+    
+    static CppUnit::TestSuite* suite();
 };
 
-} // end of namespace oxley
-
+#endif // __OXLEYDOMAIN_TESTCASE_H__
 

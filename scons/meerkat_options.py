@@ -1,7 +1,6 @@
-
 ##############################################################################
 #
-# Copyright (c) 2003-2018 by The University of Queensland
+# Copyright (c) 2003-2019 by The University of Queensland
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -23,13 +22,14 @@ silo = True
 # mpi = 'OPENMPI'
 # verbose = True
 # debug = True
-# trilinos = True
+trilinos = True
 # paso = False
 # parmetis = True
 visit = True
 #werror = False
 # cxx = 'clang++'
 # cxx='/usr/bin/clang++'
+domains="oxley"
 
 python = 3
 
