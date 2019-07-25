@@ -15,6 +15,14 @@
 
 #include <oxley/Rectangle.h>
 
+#include <p4est_vtk.h>
+
+// ae - this is temporary
+inline void xx(std::string message){
+    std::cout << message << std::endl;
+}
+
+
 namespace bp = boost::python;
 
 
@@ -154,5 +162,20 @@ const dim_t* Rectangle::borrowSampleReferenceIDs(int fsType) const
     throw OxleyException("currently: not supported"); //AE this is temporary
 }
 
-} // end of namespace oxley
+void Rectangle::writeToVTK(std::string filename) const
+{
+    // Check that the filename is reasonable
+    int stringlength=filename.length();
+    if(stringlength>4){
+        if(filename.compare(stringlength-4,4,".vtk") != 0)
+            filename.append(".vtk");
+    } else {
+        filename.append(".vtk");
+    }
 
+    // Write to file
+    const char * name = filename.c_str();
+    p4est_vtk_write_file(p4est, NULL, name);
+}
+
+} // end of namespace oxley
