@@ -1,73 +1,71 @@
+{% set version = "5.4" %}
 
 package:
     name: esys-escript
-    version: 5.4
+    version: {{ version }}
 source:
-    - svn_url: https://svn.geocomp.uq.edu.au/svn/esys13/trunk
-      svn_rev: 6850
+    - url: https://launchpad.net/escript-finley/3.0+/{{ version }}/+download/python-escript_{{ version }}.tar.gz
+      sha256: 61e1b3b5451d1eca06ab7c3905adfdc41906ed69e8388bfc4db094b944eb403b
       folder: escript
 build:
     skip: True  # [osx]
     skip: True  # [win]
+    skip: True  # [py!=27]
     number: '0'
-    rpaths:
-        - ${PREFIX}/bin
-        - ${PREFIX}/include
-        - ${PREFIX}/lib
-        - ${SP_DIR}
 requirements:
     build:
         - {{ compiler('cxx') }}
         - svn
-        - scons 3.0.5 py27_0
+        - scons >3.0.5
         - cmake
         - make
-        - openmp
+        - python 2.7.*
+        - llvm-openmp  # [osx]
     host:
-        - boost-cpp 1.70.0 ha2d47e9_0
+        - boost-cpp 
         - boost
-        - python 2.7.15 h721da81_1008
-        - suitesparse 4.5.6 heab0a99_1202
-        - matplotlib 2.2.4 py27_0
-        - gdal 2.4.1 py27hf242f0b_2
-        - pyproj 2.1.3 py27h7bc548f_1
-        - scipy 1.2.1 py27h09a28d5_1
-        - openmp
+        - python 
+        - suitesparse
+        - matplotlib
+        - gdal 
+        - pyproj 
+        - scipy 
         - sympy
+        - llvm-openmp  # [osx]
     run:
-        - boost-cpp 1.70.0.*
+        - boost-cpp 
         - boost
-        - numpy >=1.14.6,<2.0a0
-        - python >=2.7,<2.8.0a0
-        - suitesparse 4.5.6 heab0a99_1202
-        - matplotlib 2.2.4 py27_0
-        - gdal 2.4.1 py27hf242f0b_2
-        - pyproj 2.1.3 py27h7bc548f_1
-        - scipy 1.2.1 py27h09a28d5_1
-        - openmp
+        - numpy 
+        - python
+        - suitesparse
+        - matplotlib 
+        - gdal 
+        - pyproj
+        - scipy
         - sympy
+        - llvm-openmp  # [osx]
 test:
     commands:
         - run-escript -c
         - run-escript /tmp/release_sanity.py
 about:
-  home: https://launchpad.net/escript-finley
-  summary: esys-escript is a programming tool for implementing mathematical 
-    models in python using the finite element method (FEM).
-  license: Apache-2.0
-  license_file: LICENSE-2.0.txt
-  description: esys-escript is a programming tool for implementing 
-    mathematical models in python using the finite element method (FEM). 
-    As users do not access the data structures it is very easy to use and 
-    scripts can run on desktop computers as well as highly parallel
-    supercomputer without changes. Application areas for escript include 
-    earth mantle convection, geophysical inversion, earthquakes, 
-    porous media flow, reactive transport, plate subduction, erosion, 
-    and tsunamis.
-  dev_url: https://launchpad.net/escript-finley
-  doc_url: https://launchpad.net/escript-finley
-  doc_source_url: https://launchpad.net/escript-finley
+    home: https://launchpad.net/escript-finley
+    summary: esys-escript is a programming tool for implementing mathematical 
+        models in python using the finite element method (FEM).
+    license: Apache-2.0
+    license_file: LICENSE
+    description: esys-escript is a programming tool for implementing 
+        mathematical models in python using the finite element method (FEM). 
+        As users do not access the data structures it is very easy to use and 
+        scripts can run on desktop computers as well as highly parallel
+        supercomputer without changes. Application areas for escript include 
+        earth mantle convection, geophysical inversion, earthquakes, 
+        porous media flow, reactive transport, plate subduction, erosion, 
+        and tsunamis.
+    dev_url: https://launchpad.net/escript-finley
+    doc_url: https://launchpad.net/escript-finley
+    doc_source_url: https://launchpad.net/escript-finley
 
 extra:
-  recipe-maintainers:
-    - aellery
+    recipe-maintainers:
+        - aellery
