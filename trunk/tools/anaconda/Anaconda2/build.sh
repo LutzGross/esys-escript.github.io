@@ -14,7 +14,7 @@ scons -j"${CPU_COUNT}" \
     boost_libs="boost_python27" \
     cxx=${CXX} \
     cxx_extra="-w -fPIC" \
-    ld_extra="-L${LIBRARY_PATH} -lgomp -lomp" \
+    ld_extra="-L${PREFIX}/lib -lgomp" \
     cppunit_prefix=${PREFIX} \
     openmp=1 \
     omp_flags="-fopenmp" \
@@ -35,6 +35,7 @@ scons -j"${CPU_COUNT}" \
     compressed_files=0 \
     build_full || cat config.log
 
+cp -R ${SRC_DIR}/escript/LICENSE ${SRC_DIR}/LICENSE 
 cp -R ${PREFIX}/esys ${SP_DIR}/esys
 cp -R ${BUILD_PREFIX}/escript_build/scripts/release_sanity.py /tmp/release_sanity.py
 
