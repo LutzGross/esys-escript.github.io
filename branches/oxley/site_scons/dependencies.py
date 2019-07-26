@@ -725,38 +725,43 @@ def checkPDFLatex(env):
     return env
 
 def install_p4est(env):
-    #Try to configure (this will bounce an error if )
-    from subprocess import call
-    try:
-        print("Attempting clean of the p4est directory...")
-        call(["make","distclean","./p4est"])
-        print("Done.")
-    except:
-        print("Distclean unnecessary...")
-    #Bootstrap
-    call(["./bootstrap"],cwd=os.path.join(os.getcwd(),"p4est"))
-    # Compilation
-    arg1="--prefix="+env['buildvars']['prefix']
-    arg2="--exec-prefix="+env['buildvars']['prefix']
-    arg3="--includedir="+os.path.join(env['buildvars']['prefix'],'include')
-    arg4="--bindir="+os.path.join(env['buildvars']['prefix'],'bin')
-    arg5="--libdir="+os.path.join(env['buildvars']['prefix'],'lib')
-    print("Configuring p4est...")
-    if env['mpi'] == 'no' or env['mpi'] == 'none':
-        call(["./p4est/configure","-q","--enable-openmp","--with-gnu-ld",arg1,arg2,arg3,arg4,arg5])
-    else:
-        call(["./p4est/configure","-q","--enable-openmp","--enable-mpi","--with-gnu-ld",arg1,arg2,arg3,arg4,arg5])
-    print("Making p4est...")
-    call(["make","install"])
-    # clean up
-    print("Finished...")
+    startDir=os.getcwd()
+    os.chdir(os.path.join(startDir,"p4est"))
+    res = os.system("./bootstrap")
+    openmp=""
+    if env['openmp'] is True: openmp=" --enable-openmp LIBS=\"-lgomp\""
+    mpi=""
+    if env['mpi'] != 'no' and env['mpi'] != 'none': mpi=" --enable-mpi"
+    dirs=""
+    dirs+=" --prefix="+env['buildvars']['prefix']
+    dirs+=" --exec-prefix="+env['buildvars']['prefix']
+    dirs+=" --includedir="+os.path.join(env['buildvars']['prefix'],'include')
+    dirs+=" --bindir="+os.path.join(env['buildvars']['prefix'],'bin')
+    dirs+=" --libdir="+os.path.join(env['buildvars']['prefix'],'lib')
+    compilerflags =""
+    compilerflags+=" CC=" + env['CC']
+    compilerflags+=" CFLAGS=\"-fopenmp\""
+    compilerflags+=" CXX=" + env['CXX']
+    compilerflags+=" CXXFLAGS=\"-fopenmp\""
+    compilerflags+=" FC=" + env['FORTRAN']
+    compilerflags+=" FCFLAGS=\"-fopenmp\""
+    compilerflags+=" F77=" + env['F77']
+    compilerflags+=" FFLAGS=\"-fopenmp\""
+    import platform
+    if platform.linux_distribution()[0] == 'debian' and platform.linux_distribution()[1] >= 9.8:
+        compilerflags+=" LDFLAGS=\"-L/usr/lib/"+platform.machine()+"-linux-gnu\""
+    command="./configure --with-gnu-ld"+openmp+mpi+dirs+compilerflags
+    res = os.system(command)
+    # res = os.system("make clean")
+    res = os.system("make check")
+    res = os.system("make install")
+    os.chdir(startDir)
     print("Clean up....")
     files=["Doxyfile","Makefile","Makefile.p4est.mk","Makefile.p4est.pre","config.status","example","libtool","sc","src","test","etc","share"]
     for x in files:
         print("deleting... %s" % x)
-        call(["rm","-rf",os.path.join(env['buildvars']['prefix'],x)])
-    call(["make","distclean","./p4est"])
-    files=["p4est/Makefile.in","p4est/aclocal.m4","p4est/configure","p4est/sc/Makefile.in","p4est/sc/aclocal.m4","p4est/sc/configure"]
+        command = "rm -rf " + os.path.join(env['buildvars']['prefix'],x)
+        os.system(command)
 
 def add_p4est_to_build_environment(env):
     if os.path.exists(os.path.join(env['p4est_prefix'],'include','p4est.h')) and os.path.exists(os.path.join(env['p4est_prefix'],'lib','libp4est-2.2.so')):

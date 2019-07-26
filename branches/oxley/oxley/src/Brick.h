@@ -131,6 +131,12 @@ public:
     */
     virtual void writeToVTK(std::string filename) const;
 
+    /**
+       \brief
+       refines the mesh using enum RefinementAlgorithm
+    */
+    virtual void refineMesh(int maxRecursion, std::string RefinementAlgorithm);
+
 private:
 
     // This object records the connectivity of the p8est quadrants

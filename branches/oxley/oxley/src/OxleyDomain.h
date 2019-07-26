@@ -24,7 +24,6 @@
 
 // #include <p4est/sc_mpi.h>
 
-
 namespace oxley {
 
 /* 
@@ -330,6 +329,13 @@ public:
        writes the mesh to file
     */
     virtual void writeToVTK(std::string filename) const;
+
+    /**
+       \brief
+       refines the mesh using enum RefinementAlgorithm
+    */
+    virtual void refineMesh(int maxRecursion, std::string RefinementAlgorithm);
+
 
 protected:
     int m_numDim;
