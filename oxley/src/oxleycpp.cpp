@@ -223,8 +223,11 @@ BOOST_PYTHON_MODULE(oxleycpp)
         .def("getDescription", &oxley::OxleyDomain::getDescription,
                 "Prints out a description of the mesh.")
         .def("writeToVTK", &oxley::OxleyDomain::writeToVTK, (arg("filename")),
-                "Writes the mesh to a VTK file.");
-
+                "Writes the mesh to a VTK file.")
+        .def("refine", &oxley::OxleyDomain::refineMesh, (args("maxRecursion","RefinementAlgorithm")),
+                "Refines the mesh.\n"
+                ":param maxRecursion:\n:type int: `Maximum number of levels of refinement,`\n"
+                ":param RefinementAlgorithm:\n:type string: `The refinement algorithm ('GridCorners')`\n");
 
     class_<oxley::Rectangle, bases<oxley::OxleyDomain> >("OxleyRectangle", "", no_init);
     class_<oxley::Brick, bases<oxley::OxleyDomain> >("OxleyBrick", "", no_init);

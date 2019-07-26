@@ -143,5 +143,10 @@ namespace oxley {
         throw OxleyException("unknown error");
     }
 
+    void OxleyDomain::refineMesh(int maxRecursion, std::string RefinementAlgorithm)
+    {
+        throw OxleyException("unknown error");
+    }
+
 } // end of namespace oxley
 

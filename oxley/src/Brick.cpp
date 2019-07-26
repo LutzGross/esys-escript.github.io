@@ -177,5 +177,10 @@ void Brick::writeToVTK(std::string filename) const
     p8est_vtk_write_file(p8est, NULL, name);
 }
 
+void Brick::refineMesh(int maxRecursion, std::string RefinementAlgorithm)
+{
+    throw OxleyException("currently: not supported"); //AE this is temporary
+}
+
 } // end of namespace oxley
 

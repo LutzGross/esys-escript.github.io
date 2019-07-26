@@ -21,6 +21,7 @@ sources = """
     Brick.cpp
     Rectangle.cpp
     OxleyDomain.cpp
+    RefinementAlgorithms.cpp
 """.split()
 
 headers = """
@@ -30,6 +31,7 @@ headers = """
     Oxley.h
     OxleyDomain.h
     OxleyException.h
+    RefinementAlgorithms.h
 """.split()
 
 local_env = env.Clone()

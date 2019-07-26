@@ -14,18 +14,11 @@
 *****************************************************************************/
 
 #include <oxley/Rectangle.h>
+#include <oxley/RefinementAlgorithms.h>
 
 #include <p4est_vtk.h>
 
-// ae - this is temporary
-inline void xx(std::string message){
-    std::cout << message << std::endl;
-}
-
-
 namespace bp = boost::python;
-
-
 
 namespace oxley {
 
@@ -176,6 +169,15 @@ void Rectangle::writeToVTK(std::string filename) const
     // Write to file
     const char * name = filename.c_str();
     p4est_vtk_write_file(p4est, NULL, name);
+}
+
+void Rectangle::refineMesh(int maxRecursion=2, std::string method="GridCorners")
+{
+    if(method.compare("GridCorners") == true){
+        p4est_refine(p4est, maxRecursion, &refine_uniform, NULL); 
+    } else {
+        throw OxleyException("Unknown refinement algorithm.");
+    }
 }
 
 } // end of namespace oxley
