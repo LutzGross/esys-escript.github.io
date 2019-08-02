@@ -179,7 +179,10 @@ def checkPython(env):
             verstring = str(verstring, 'utf-8')
             
     env['python_version'] = verstring
-    ispython3 = (verstring[0] == '3')
+    try:
+        ispython3 = (verstring[0] == '3')
+    except:
+        ispython3 = sys.version_info[0] == 3
     if ispython3:
         env.Append(CPPDEFINES=['ESPYTHON3'])
     env['buildvars']['python_version'] = verstring
@@ -766,9 +769,13 @@ def install_p4est(env):
 def add_p4est_to_build_environment(env):
     if os.path.exists(os.path.join(env['p4est_prefix'],'include','p4est.h')) and os.path.exists(os.path.join(env['p4est_prefix'],'lib','libp4est-2.2.so')):
         try:
+            print("Trying")
             p4est_inc_path,p4est_lib_path=findLibWithHeader(env, env['p4est_libs'], 'p4est.h', env['p4est_prefix'], lang='c++')
         except:
+            print("p4est_inc_path = %s" % p4est_inc_path)
+            print("p4est_lib_path = %s" % p4est_lib_path)
             print("Try recompiling the p4est library.")
+            env.Exit(1)
         env.Append(LIBS = env['p4est_libs'])
         env.Append(CPPPATH = p4est_inc_path)
         env.Append(LIBPATH = p4est_lib_path)

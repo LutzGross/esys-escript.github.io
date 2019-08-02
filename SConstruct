@@ -152,9 +152,7 @@ vars.AddVariables(
   BoolVariable('stdlocationisprefix', 'Set the prefix as escript root in the launcher', False),
   BoolVariable('mpi_no_host', 'Do not specify --host in run-escript launcher (only OPENMPI)', False),
   BoolVariable('insane', 'Instructs scons to not run a sanity check after compilation.', False),
-  BoolVariable('build_p4est', 'Instructs scons to compile and install p4est.', False),
-  ('p4est_prefix', 'Prefix/Paths to p4est installation', default_prefix),
-  ('p4est_libs', 'p4est libraries to link with', ['p4est','sc'])
+  BoolVariable('build_p4est', 'Instructs scons to compile and install p4est.', False)
 )
 
 ##################### Create environment and help text #######################
@@ -252,7 +250,8 @@ if env['cxx'] != 'default':
     env['CXX'] = env['cxx']
 
 # default compiler/linker options
-cc_flags = '-std=c++11'
+cxx_flags = '-std=c++11'
+cc_flags = ''
 cc_optim = ''
 cc_debug = ''
 omp_flags = ''
@@ -268,7 +267,7 @@ if cc_name == 'icpc':
     # #1478: class "std::auto_ptr<...>" was declared deprecated
     # #1875: offsetof applied to non-POD types is nonstandard (in boost)
     # removed -std=c99 because icpc doesn't like it and we aren't using c anymore
-    cc_flags    = "-std=c++11 -fPIC -w2 -wd1875 -wd1478 -Wno-unknown-pragmas"
+    cxx_flags    = "-std=c++11 -fPIC -w2 -wd1875 -wd1478 -Wno-unknown-pragmas"
     cc_optim    = "-Ofast -ftz -fno-alias -xCORE-AVX2 -ipo"
     #cc_optim    = "-Ofast -ftz -fno-alias -inline-level=2 -ipo -xCORE-AVX2"
     #cc_optim    = "-O2 -ftz -fno-alias -inline-level=2"
@@ -282,7 +281,8 @@ elif cc_name[:3] == 'g++':
     # GNU C++ on any system
     # note that -ffast-math is not used because it breaks isnan(),
     # see mantis #691
-    cc_flags     = "-std=c++11 -pedantic -Wall -fPIC -finline-functions"
+    cc_flags     = " -Wall -fPIC -finline-functions -Wno-format-overflow"
+    cxx_flags     = "-std=c++11 -pedantic -Wall -fPIC -finline-functions"
     cc_flags += " -Wno-unknown-pragmas -Wno-sign-compare -Wno-system-headers -Wno-long-long -Wno-strict-aliasing "
     cc_flags += " --param=max-vartrack-size=100000000"
     cc_optim     = "-O3"
@@ -296,20 +296,20 @@ elif cc_name[:3] == 'g++':
     sysheaderopt = "-isystem"
 elif cc_name == 'cl':
     # Microsoft Visual C on Windows
-    cc_flags     = "/EHsc /MD /GR /wd4068 /D_USE_MATH_DEFINES /DDLL_NETCDF"
+    cxx_flags     = "/EHsc /MD /GR /wd4068 /D_USE_MATH_DEFINES /DDLL_NETCDF"
     cc_optim     = "/O2 /Op /W3"
     cc_debug     = "/Od /RTCcsu /ZI /DBOUNDS_CHECK"
     fatalwarning = "/WX"
 elif cc_name == 'icl':
     # Intel C on Windows
-    cc_flags     = '/EHsc /GR /MD'
+    cxx_flags     = '/EHsc /GR /MD'
     cc_optim     = '/fast /Oi /W3 /Qssp /Qinline-factor- /Qinline-min-size=0 /Qunroll'
     cc_debug     = '/Od /RTCcsu /Zi /Y- /debug:all /Qtrapuv'
     omp_flags    = '/Qvec-report0 /Qopenmp /Qopenmp-report0 /Qparallel'
     omp_ldflags  = '/Qvec-report0 /Qopenmp /Qopenmp-report0 /Qparallel'
 elif cc_name == 'clang++':
     # Clang++ on any system
-    cc_flags     = "-std=c++11 -Wall -fPIC -fdiagnostics-color=always "
+    cxx_flags     = "-std=c++11 -Wall -fPIC -fdiagnostics-color=always "
     cc_flags    += "-Wno-unused-private-field -Wno-unknown-pragmas -Wno-uninitialized"
     if env['trilinos'] is True:
       cc_flags += "-Wno-unused-variable -Wno-exceptions -Wno-deprecated-declarations"
@@ -372,11 +372,14 @@ env['buildvars']['openmp']=int(env['openmp'])
 env['buildvars']['debug']=int(env['debug'])
 if env['debug']:
     env.Append(CCFLAGS = env['cc_debug'])
+    env.Append(CXXFLAGS = env['cc_debug'])
 else:
     env.Append(CCFLAGS = env['cc_optim'])
+    env.Append(CXXFLAGS = env['cc_optim'])
 
 # always add cc_flags
 env.Append(CCFLAGS = env['cc_flags'])
+env.Append(CXXFLAGS = cxx_flags)
 
 # add system libraries
 env.AppendUnique(LIBS = env['sys_libs'])
@@ -571,6 +574,8 @@ env.PrependENVPath('PYTHONPATH', prefix)
 env['ENV']['ESCRIPT_ROOT'] = prefix
 
 if not env['verbose']:
+    env['CCCOMSTR'] = "Compiling $TARGET"
+    env['SHCCCOMSTR'] = "Compiling $TARGET"
     env['CXXCOMSTR'] = "Compiling $TARGET"
     env['SHCXXCOMSTR'] = "Compiling $TARGET"
     env['ARCOMSTR'] = "Linking $TARGET"
@@ -609,6 +614,14 @@ env.Alias('target_init', [target_init])
 # escript can't be turned off
 build_all_list = ['build_escript']
 install_all_list = ['target_init', 'install_escript']
+
+#p4est
+build_all_list += ['build_p4est']
+install_all_list += ['install_p4est']
+env['p4est']=True
+env['p4est_libs']=['p4est','sc']
+env['escript_src']=os.getcwd()
+# env.Append(LIBPATH = [os.path.join(env['prefix'],'lib')])
 
 if env['usempi']:
     build_all_list += ['build_pythonMPI', 'build_overlord']
@@ -650,6 +663,7 @@ env.SConscript('trilinoswrap/SConscript', variant_dir=variant+'trilinoswrap', du
 env.SConscript('cusplibrary/SConscript')
 env.SConscript('dudley/SConscript', variant_dir=variant+'dudley', duplicate=0)
 env.SConscript('finley/SConscript', variant_dir=variant+'finley', duplicate=0)
+env.SConscript('p4est/SConscript', variant_dir=variant+'p4est', duplicate=0)
 env.SConscript('oxley/SConscript', variant_dir=variant+'oxley', duplicate=0)
 env.SConscript('ripley/SConscript', variant_dir=variant+'ripley', duplicate=0)
 env.SConscript('speckley/SConscript', variant_dir=variant+'speckley', duplicate=0)
@@ -684,13 +698,6 @@ if env['domains'] == all_domains and env['insane'] == False:
     env.Default('sanity')
 else:
     env.Default('install')
-
-if env['build_p4est'] is True:
-    install_p4est(env)
-
-if 'oxley' in env['domains'] or env['build_p4est'] is True:
-    env['p4est_prefix']=env['prefix']  
-    env=add_p4est_to_build_environment(env);
 
 ################## Targets to build and run the test suite ###################
 

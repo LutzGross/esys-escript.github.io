@@ -44,6 +44,7 @@
 /* redefine macros */
 #define P4EST_ONDISK_FORMAT             P8EST_ONDISK_FORMAT
 #define P4EST_DIM                       P8EST_DIM
+#define P4EST_DIM_POW                   P8EST_DIM_POW
 #define P4EST_FACES                     P8EST_FACES
 #define P4EST_CHILDREN                  P8EST_CHILDREN
 #define P4EST_HALF                      P8EST_HALF
@@ -285,6 +286,7 @@
 #define p4est_quadrant_shift_corner     p8est_quadrant_shift_corner
 #define p4est_quadrant_linear_id        p8est_quadrant_linear_id
 #define p4est_quadrant_set_morton       p8est_quadrant_set_morton
+#define p4est_quadrant_srand            p8est_quadrant_srand
 
 /* functions in p4est_search */
 #define p4est_find_lower_bound          p8est_find_lower_bound
@@ -351,6 +353,10 @@
 #define p4est_transfer_custom           p8est_transfer_custom
 #define p4est_transfer_custom_begin     p8est_transfer_custom_begin
 #define p4est_transfer_custom_end       p8est_transfer_custom_end
+#define p4est_transfer_items            p8est_transfer_items
+#define p4est_transfer_items_begin      p8est_transfer_items_begin
+#define p4est_transfer_items_end        p8est_transfer_items_end
+#define p4est_transfer_end              p8est_transfer_end
 
 /* functions in p4est_io */
 #define p4est_deflate_quadrants         p8est_deflate_quadrants
