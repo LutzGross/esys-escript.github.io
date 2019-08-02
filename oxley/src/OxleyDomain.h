@@ -129,7 +129,12 @@ public:
     */
     virtual void dump(const std::string& filename) const = 0;
 
-
+    /**
+       \brief
+       returns true if this rank owns the sample id on given function space
+    */
+    virtual bool ownSample(int fsType, index_t id) const = 0;
+    
     /**
        \brief
        returns the tag key for the given sample number
@@ -140,19 +145,13 @@ public:
 
     /**
        \brief
-       returns true if this rank owns the sample id on given function space
-    */
-    virtual bool ownSample(int fsType, index_t id) const = 0;
-
-    /**
-       \brief
        sets a map from a clear tag name to a tag key
        \param name tag name
        \param tag tag key
     */
     virtual void setTagMap(const std::string& name, int tag) {
         m_tagMap[name] = tag;
-    }
+    } 
 
     /**
        \brief
@@ -180,6 +179,35 @@ public:
     */
     virtual std::string showTagNames() const;
 
+    /**
+       \brief
+       returns the number of tags in use for a function space type
+    */
+    virtual int getNumberOfTagsInUse(int fsType) const;
+
+    /**
+       \brief
+       returns a pointer to the list of tags in use for a function space type
+    */
+    virtual const int* borrowListOfTagsInUse(int fsType) const;
+
+    /**
+       \brief
+       checks if this domain allows tags for the specified function space type
+    */
+    virtual bool canTag(int fsType) const;
+
+    /**
+       \brief
+       returns true if name is a defined tag name
+       \param name tag name to be checked
+    */
+    virtual bool isValidTagName(const std::string& name) const {
+        return (m_tagMap.find(name)!=m_tagMap.end());
+    }
+
+    // this is const because setTags is const
+    void updateTagsInUse(int fsType) const;
 
     /**
        \brief
@@ -294,23 +322,7 @@ public:
     */
     virtual bool isCellOriented(int fsType) const;
 
-    /**
-       \brief
-       returns the number of tags in use for a function space type
-    */
-    virtual int getNumberOfTagsInUse(int fsType) const;
 
-    /**
-       \brief
-       returns a pointer to the list of tags in use for a function space type
-    */
-    virtual const int* borrowListOfTagsInUse(int fsType) const;
-
-    /**
-       \brief
-       checks if this domain allows tags for the specified function space type
-    */
-    virtual bool canTag(int fsType) const;
 
     /**
        \brief
@@ -340,7 +352,12 @@ public:
 protected:
     int m_numDim;
     escript::JMPI m_mpiInfo;
+    
+    // Tag information
     TagMap m_tagMap;
+    mutable std::vector<int> m_nodeTags, m_nodeTagsInUse;
+    mutable std::vector<int> m_elementTags, m_elementTagsInUse;
+    mutable std::vector<int> m_faceTags, m_faceTagsInUse;
 
 };
 

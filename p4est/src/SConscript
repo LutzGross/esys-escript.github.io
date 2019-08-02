@@ -18,10 +18,10 @@ Import('*')
 module_name = 'p4est'
 
 sources = """
-    cencode.c
-    cdecode.c
-    dictionary.c
-    iniparser.c
+    libb64/cencode.c
+    libb64/cdecode.c
+    iniparser/dictionary.c
+    iniparser/iniparser.c
     p4est_algorithms.c
     p4est_balance.c
     p4est_base.c
@@ -107,8 +107,8 @@ sources = """
 """.split()
 
 headers = """
-    dictionary.h
-    iniparser.h
+    iniparser/dictionary.h
+    iniparser/iniparser.h
     p4est_algorithms.h
     p4est_balance.h
     p4est_base.h
@@ -210,6 +210,8 @@ p4estlibs = []
 # if env['trilinos']:
 #     p4estlibs += env['trilinoswrap_libs']
 
+# p4estlibs = ['lapack','cblas','f77blas','atlas','z','m']
+p4estlibs = ['lapack']
 local_env.PrependUnique(LIBS = p4estlibs)
 
 env['p4est_libs'] = [module_name] + p4estlibs
@@ -236,6 +238,8 @@ env.Alias('install_p4est', ['build_p4est', lib_inst])
 
 import os
 local_env.PrependUnique(CPPPATH = os.path.abspath(os.getcwd()))
+local_env.PrependUnique(CPPPATH = os.path.abspath(os.path.join(os.getcwd(),"iniparser")))
+local_env.PrependUnique(CPPPATH = os.path.abspath(os.path.join(os.getcwd(),"libb64")))
 
 # if env['MPI']:
 # 	os.system("sed -i 'sz/* #undef ENABLE_MPI */z#define ENABLE_MPI 1zg' p4est_config.h")
