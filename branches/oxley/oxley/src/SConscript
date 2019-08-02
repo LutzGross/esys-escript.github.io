@@ -45,6 +45,10 @@ if env['paso']:
 if env['trilinos']:
     oxleylibs += env['trilinoswrap_libs']
 
+#p4est library
+import os
+local_env.AppendUnique(CPPPATH = [os.path.join(env['escript_src'],'p4est/src')])
+
 local_env.PrependUnique(LIBS = oxleylibs)
 
 env['oxley_libs'] = [module_name] + oxleylibs
@@ -66,4 +70,5 @@ mod_inst = py_env.Install(mod_path, py_lib)
 
 build = env.Alias('build_oxley', [hdr_inst, lib, py_lib])
 env.Alias('install_oxley', ['build_oxley', lib_inst, mod_inst])
+
 

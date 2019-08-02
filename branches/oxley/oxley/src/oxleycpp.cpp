@@ -164,18 +164,14 @@ escript::Domain_ptr _brick_numpy(int order,
     int n0=10,n1=10,n2=10, x0=0,y0=0,z0=0, x1=1,y1=1,z1=1; // ae: This is temporary
     return escript::Domain_ptr(new Brick(order, n0,n1,n2, x0,y0,z0, x1,y1,z1, d0,d1,d2));
 }
-#else
-escript::Domain_ptr _rectangle_numpy(int order, 
-    boost::python::numpy::ndarray ndx, boost::python::numpy::ndarray ndy, boost::python::numpy::ndarray ndz,  int d0, int d1, int d2)
-{
-    throw OxleyException("This requires the boost::numpy libraries.");
-}
 #endif
 
 BOOST_PYTHON_MODULE(oxleycpp)
 {
+#ifdef ESYS_HAVE_BOOST_NUMPY
     // Initialise numpy, if it wasn't initialised somewhere else
     boost::python::numpy::initialize();
+#endif
 
     def("Rectangle", oxley::_rectangle, (arg("order"),arg("n0"),arg("n1"),arg("l0")=1.0,arg("l1")=1.0,arg("d0")=-1,arg("d1")=-1),
 "Creates a rectangular p4est mesh with n0 x n1 elements over the rectangle [0,l0] x [0,l1].\n\n"
@@ -187,6 +183,7 @@ BOOST_PYTHON_MODULE(oxleycpp)
 ":param d0: number of subdivisions in direction 0\n:type d0: ``int``\n"
 ":param d1: number of subdivisions in direction 1\n:type d1: ``int``");
 
+#ifdef ESYS_HAVE_BOOST_NUMPY
     def("Rectangle", oxley::_rectangle_numpy, (arg("order"),arg("ndx"),arg("ndy"),arg("d0")=-1,arg("d1")=-1),
 "Creates a rectangular p4est mesh with n0 x n1 elements over the rectangle [0,l0] x [0,l1].\n\n"
 ":param order: order of the elements: ``int``\n"
@@ -194,6 +191,7 @@ BOOST_PYTHON_MODULE(oxleycpp)
 ":param ndy: a numpy array with the coordinates of the nodes in direction 1\n:type ndy: ``numpy::ndarray``\n"
 ":param d0: number of subdivisions in direction 0\n:type d0: ``int``\n"
 ":param d1: number of subdivisions in direction 1\n:type d1: ``int``");
+#endif
 
     def("Brick", oxley::_brick, (arg("order"),arg("n0"),arg("n1"),arg("n2"),arg("l0")=1.0,arg("l1")=1.0,arg("l2")=1.0,arg("d0")=-1,arg("d1")=-1,arg("d2")=-1),
 "Creates a brick p4est mesh with n0 x n1 x n2 elements over the rectangle [0,l0] x [0,l1] x [0,l2].\n\n"
@@ -208,6 +206,7 @@ BOOST_PYTHON_MODULE(oxleycpp)
 ":param d1: number of subdivisions in direction 1\n:type d1: ``int``\n"
 ":param d2: number of subdivisions in direction 2\n:type d2: ``int``");
 
+#ifdef ESYS_HAVE_BOOST_NUMPY
     def("Rectangle", oxley::_brick_numpy, (arg("order"),arg("ndx"),arg("ndy"),arg("ndz"),arg("d0")=-1,arg("d1")=-1,arg("d2")=-1),
 "Creates a rectangular p4est mesh with n0 x n1 x n2 elements over the rectangle [0,l0] x [0,l1] x [0,l2].\n\n"
 ":param order: order of the elements: ``int``\n"
@@ -217,6 +216,7 @@ BOOST_PYTHON_MODULE(oxleycpp)
 ":param d0: number of subdivisions in direction 0\n:type d0: ``int``\n"
 ":param d1: number of subdivisions in direction 1\n:type d1: ``int``\n"
 ":param d1: number of subdivisions in direction 1\n:type d2: ``int``");
+#endif
 
     class_<oxley::OxleyDomain, bases<escript::AbstractContinuousDomain>, boost::noncopyable >
         ("OxleyDomain", "", no_init)

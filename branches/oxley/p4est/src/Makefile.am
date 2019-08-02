@@ -1,92 +1,54 @@
 
-# This file is part of p4est.
+# This file is part of the SC Library
 # Makefile.am in src
 # included non-recursively from toplevel directory
 
-libp4est_generated_headers = src/p4est_config.h
-libp4est_installed_headers = src/p4est_base.h
-libp4est_internal_headers =
-libp4est_compiled_sources = src/p4est_base.c
-if P4EST_ENABLE_BUILD_2D
-libp4est_installed_headers += \
-        src/p4est_connectivity.h src/p4est.h src/p4est_extended.h \
-        src/p4est_bits.h src/p4est_search.h src/p4est_build.h \
-        src/p4est_algorithms.h src/p4est_communication.h \
-        src/p4est_ghost.h src/p4est_nodes.h src/p4est_vtk.h \
-        src/p4est_points.h src/p4est_geometry.h \
-        src/p4est_iterate.h src/p4est_lnodes.h src/p4est_mesh.h \
-        src/p4est_balance.h src/p4est_io.h \
-        src/p4est_wrap.h src/p4est_plex.h \
-        src/p4est_empty.h
-libp4est_compiled_sources += \
-        src/p4est_connectivity.c src/p4est.c \
-        src/p4est_bits.c src/p4est_search.c src/p4est_build.c \
-        src/p4est_algorithms.c src/p4est_communication.c \
-        src/p4est_ghost.c src/p4est_nodes.c src/p4est_vtk.c \
-        src/p4est_points.c src/p4est_geometry.c \
-        src/p4est_iterate.c src/p4est_lnodes.c src/p4est_mesh.c \
-        src/p4est_balance.c src/p4est_io.c \
-        src/p4est_connrefine.c \
-        src/p4est_wrap.c src/p4est_plex.c \
-        src/p4est_empty.c
-endif
-if P4EST_ENABLE_BUILD_3D
-libp4est_installed_headers += \
-        src/p4est_to_p8est.h \
-        src/p8est_connectivity.h src/p8est.h src/p8est_extended.h \
-        src/p8est_bits.h src/p8est_search.h src/p8est_build.h \
-        src/p8est_algorithms.h src/p8est_communication.h \
-        src/p8est_ghost.h src/p8est_nodes.h src/p8est_vtk.h \
-        src/p8est_points.h src/p8est_geometry.h \
-        src/p8est_iterate.h src/p8est_lnodes.h src/p8est_mesh.h \
-        src/p8est_tets_hexes.h src/p8est_balance.h src/p8est_io.h \
-        src/p8est_wrap.h src/p8est_plex.h \
-        src/p8est_empty.h src/p4est_to_p8est_empty.h
-libp4est_compiled_sources += \
-        src/p8est_connectivity.c src/p8est.c \
-        src/p8est_bits.c src/p8est_search.c src/p8est_build.c  \
-        src/p8est_algorithms.c src/p8est_communication.c \
-        src/p8est_ghost.c src/p8est_nodes.c src/p8est_vtk.c \
-        src/p8est_points.c src/p8est_geometry.c \
-        src/p8est_iterate.c src/p8est_lnodes.c src/p8est_mesh.c \
-        src/p8est_tets_hexes.c src/p8est_balance.c src/p8est_io.c \
-        src/p8est_connrefine.c \
-        src/p8est_wrap.c src/p8est_plex.c \
-        src/p8est_empty.c
-endif
-if P4EST_ENABLE_BUILD_2D
-if P4EST_ENABLE_BUILD_3D
-if P4EST_ENABLE_BUILD_P6EST
-libp4est_installed_headers += \
-        src/p6est.h src/p6est_ghost.h src/p6est_lnodes.h \
-        src/p6est_profile.h src/p6est_vtk.h \
-        src/p6est_extended.h src/p6est_communication.h \
-        src/p6est_empty.h
-libp4est_compiled_sources += \
-        src/p6est.c src/p6est_ghost.c src/p6est_lnodes.c \
-        src/p6est_profile.c src/p6est_vtk.c \
-        src/p6est_communication.c \
-        src/p6est_empty.c
-endif
-endif
-endif
+# append to these variables in subdirectories as necessary
+libsc_generated_headers = src/sc_config.h
+libsc_installed_headers = \
+        src/sc.h src/sc_mpi.h src/sc_containers.h src/sc_avl.h \
+        src/sc_string.h src/sc_unique_counter.h src/sc_private.h \
+        src/sc_options.h src/sc_functions.h src/sc_statistics.h \
+        src/sc_ranges.h src/sc_io.h \
+        src/sc_amr.h src/sc_search.h src/sc_sort.h \
+        src/sc_dmatrix.h src/sc_blas.h src/sc_lapack.h \
+        src/sc_bspline.h src/sc_flops.h src/sc_random.h \
+        src/sc_getopt.h src/sc_obstack.h src/sc_lua.h src/sc_polynom.h \
+        src/sc_keyvalue.h src/sc_refcount.h src/sc_warp.h src/sc_shmem.h \
+        src/sc_allgather.h src/sc_reduce.h src/sc_notify.h
+libsc_internal_headers =
+libsc_compiled_sources = \
+        src/sc.c src/sc_mpi.c src/sc_containers.c src/sc_avl.c \
+        src/sc_string.c src/sc_unique_counter.c \
+        src/sc_options.c src/sc_functions.c src/sc_statistics.c \
+        src/sc_ranges.c src/sc_io.c \
+        src/sc_amr.c src/sc_search.c src/sc_sort.c \
+        src/sc_dmatrix.c src/sc_blas.c src/sc_lapack.c \
+        src/sc_bspline.c src/sc_flops.c src/sc_random.c \
+        src/sc_getopt.c src/sc_obstack.c src/sc_getopt1.c \
+        src/sc_keyvalue.c src/sc_refcount.c src/sc_warp.c src/sc_polynom.c \
+        src/sc_shmem.c src/sc_allgather.c src/sc_reduce.c src/sc_notify.c
+libsc_original_headers = \
+        src/sc_builtin/getopt.h src/sc_builtin/getopt_int.h \
+        src/sc_builtin/obstack.h
 
 # this variable is used for headers that are not publicly installed
-P4EST_CPPFLAGS =
+LIBSC_CPPFLAGS =
 
-lib_LTLIBRARIES += src/libp4est.la
-src_libp4est_la_SOURCES = \
-        $(libp4est_internal_headers) \
-        $(libp4est_compiled_sources)
-src_libp4est_la_CPPFLAGS = $(AM_CPPFLAGS) $(P4EST_CPPFLAGS)
-src_libp4est_la_LDFLAGS = -release $(VERSION)
-src_libp4est_la_LIBADD = @P4EST_SC_LDADD@
-LDADD += @top_builddir@/src/libp4est.la @P4EST_SC_LDADD@
-EXTRA_src_libp4est_la_DEPENDENCIES = @P4EST_SC_LDADD@
+lib_LTLIBRARIES += src/libsc.la
+src_libsc_la_SOURCES = \
+        $(libsc_internal_headers) \
+        $(libsc_compiled_sources)
+src_libsc_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBSC_CPPFLAGS)
+src_libsc_la_LDFLAGS = -release $(VERSION)
+LDADD += @top_builddir@/src/libsc.la
 
-nodist_include_HEADERS += $(libp4est_generated_headers)
-include_HEADERS += $(libp4est_installed_headers)
+nodist_include_HEADERS += $(libsc_generated_headers)
+include_HEADERS += $(libsc_installed_headers)
 
-AM_CPPFLAGS += -I@top_srcdir@/src @P4EST_SC_CPPFLAGS@
+scbuiltindir = $(includedir)/sc_builtin
+scbuiltin_HEADERS = $(libsc_original_headers)
 
-LINT_CSOURCES += $(libp4est_compiled_sources)
+AM_CPPFLAGS += -I@top_srcdir@/src
+
+LINT_CSOURCES += $(libsc_compiled_sources)
