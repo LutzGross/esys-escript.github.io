@@ -3158,7 +3158,7 @@ def safeDiv(arg0, arg1, rtol=None):
       m1=whereZero(arg1,tol=0)
     else:
       m1=whereZero(arg1,tol=None, rtol=rtol)
-    return arg0/(arg1+m1)*(1-m1)
+    return arg0/(arg1+m1)*whereNonPositive(m1)
 
 def condEval(f, tval, fval):
     """
