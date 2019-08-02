@@ -27,12 +27,12 @@
 
 /* C compiler flags */
 #ifndef P4EST_CFLAGS
-#define P4EST_CFLAGS "-g -O2"
+#define P4EST_CFLAGS "-O2"
 #endif
 
 /* C preprocessor */
 #ifndef P4EST_CPP
-#define P4EST_CPP "gcc -E"
+#define P4EST_CPP "gcc"
 #endif
 
 /* C preprocessor flags */
@@ -246,6 +246,7 @@
 /* Libraries */
 #ifndef P4EST_LIBS
 #define P4EST_LIBS "-llapack -lcblas -lf77blas -latlas -lz -lm   "
+// #define P4EST_LIBS " -lz -lm"
 #endif
 
 /* Define to the sub-directory where libtool stores uninstalled libraries. */
