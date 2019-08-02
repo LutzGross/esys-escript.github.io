@@ -484,6 +484,7 @@ class SolverSchemeException(Exception):
    """
    pass
 
+
 class IndefinitePreconditioner(SolverSchemeException):
    """
    Exception thrown if the preconditioner is not positive definite.
@@ -573,7 +574,7 @@ def PCG(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100, ini
    norm_r0=math.sqrt(rhat_dot_r)
    atol2=atol+rtol*norm_r0
    if atol2<=0:
-      raise ValueError("Non-positive tolarance.")
+      raise ValueError("Non-positive tolerance.")
    atol2=max(atol2, 100. * util.EPSILON * norm_r0)
 
    if verbose: print(("PCG: initial residual norm = %e (absolute tolerance = %e)"%(norm_r0, atol2)))
