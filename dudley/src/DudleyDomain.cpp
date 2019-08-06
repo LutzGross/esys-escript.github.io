@@ -1806,6 +1806,13 @@ escript::Data DudleyDomain::getX() const
     return continuousFunction(*this).getX();
 }
 
+#ifdef ESYS_HAVE_BOOST_NUMPY
+boost::python::numpy::ndarray DudleyDomain::getNumpyX() const
+{
+    return continuousFunction(*this).getNumpyX();
+}
+#endif
+
 escript::Data DudleyDomain::getNormal() const
 {
     return functionOnBoundary(*this).getNormal();

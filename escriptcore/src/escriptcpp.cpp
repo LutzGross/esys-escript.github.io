@@ -239,6 +239,11 @@ BOOST_PYTHON_MODULE(escriptcpp)
      .def("getX",&escript::AbstractDomain::getX,":rtype: `Data`\n"
         ":return: Locations in the"
         "`Domain`. FunctionSpace is chosen appropriately")
+#ifdef ESYS_HAVE_BOOST_NUMPY
+     .def("getNumpyX",&escript::AbstractDomain::getNumpyX,":rtype: `numpy ndarray`\n"
+        ":return: Locations in the"
+        "`Domain`. FunctionSpace is chosen appropriately")
+#endif
      .def("getDim",&escript::AbstractDomain::getDim,":rtype: `int`\n"
         ":return: Spatial dimension of the `Domain`")
      .def("getNormal",&escript::AbstractDomain::getNormal,":rtype: `escript`\n"

@@ -2373,6 +2373,13 @@ escript::Data FinleyDomain::getX() const
     return continuousFunction(*this).getX();
 }
 
+#ifdef ESYS_HAVE_BOOST_NUMPY
+boost::python::numpy::ndarray FinleyDomain::getNumpyX() const
+{
+    return continuousFunction(*this).getNumpyX();
+}
+#endif
+
 escript::Data FinleyDomain::getNormal() const
 {
     return functionOnBoundary(*this).getNormal();

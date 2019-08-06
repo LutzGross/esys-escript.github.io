@@ -422,6 +422,13 @@ escript::Data SpeckleyDomain::getX() const
     return escript::continuousFunction(*this).getX();
 }
 
+#ifdef ESYS_HAVE_BOOST_NUMPY
+boost::python::numpy::ndarray SpeckleyDomain::getNumpyX() const
+{
+    return continuousFunction(*this).getNumpyX();
+}
+#endif
+
 escript::Data SpeckleyDomain::getNormal() const
 {
     throw SpeckleyException("Speckley doesn't support getNormal");

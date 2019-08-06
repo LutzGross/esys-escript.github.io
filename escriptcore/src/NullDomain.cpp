@@ -178,6 +178,17 @@ escript::Data NullDomain::getX() const
     throwStandardException("NullDomain::getX");
     return escript::Data();
 }
+#ifdef ESYS_HAVE_BOOST_NUMPY
+boost::python::numpy::ndarray NullDomain::getNumpyX() const
+{
+    throwStandardException("NullDomain::getNumpyX");
+    boost::python::numpy::initialize();
+    boost::python::tuple shape = boost::python::make_tuple(1,1);
+    boost::python::numpy::dtype dtype = boost::python::numpy::dtype::get_builtin<float>();
+    boost::python::numpy::ndarray array = boost::python::numpy::empty(shape, dtype);
+    return array;
+}
+#endif
 void NullDomain::setToX(escript::Data&) const
 {
     throwStandardException("NullDomain::setToX");
