@@ -270,52 +270,34 @@ def checkBoost(env):
     if boostversion >= 106300:
         try:
             boost_numpy_inc_path,boost_numpy_lib_path=findLibWithHeader(env, env['boost_libs'], 'boost/python/numpy.hpp', env['boost_prefix'], lang='c++')
-            print("Found boost/python/numpy.hpp. Building with boost numpy support.")
-
-            # Locate the boost numpy files
-            p = subprocess.Popen(["ld","--verbose"], stdout=subprocess.PIPE)
-            out,err = p.communicate()
-            spath = [x[13:-3] for x in out.split() if b'SEARCH_DIR' in x]
-            spath.append(boost_lib_path)
             p2name = ''
             p3name = ''
-            for name in spath:
-                try:
-                    l=os.listdir(name)
-                    
-                    import sys
-                    if sys.version_info[0] == 3:
-                        string_type = str
-                    else:
-                        string_type = basestring
-                    
-                    p2res = ''
-                    p3res = ''
-                    for x in l:
-                        if isinstance(x,string_type):
-                            if x.startswith('libboost_numpy-py') and x.endswith('.so'):
-                                p2res = x
-                            if x.startswith('libboost_numpy-py3') and x.endswith('.so'):
-                                p3res = x
-                        else:
-                            if x.startswith(b'libboost_numpy-py') and x.endswith(b'.so'):
-                                p2res = x
-                            if x.startswith(b'libboost_numpy-py3') and x.endswith(b'.so'):
-                                p3res = x
-
-                    if len(p2name)==0 and len(p2res)>0:
-                        p2name=p2res[-1]
-                    if len(p3name)==0 and len(p3res)>0:
-                        p3name=p3res[-1]
-                except OSError:
-                    pass
-
+            p2res = ''
+            p3res = ''
+            if sys.version_info[0] == 3:
+                string_type = str
+            else:
+                string_type = basestring
+            for x in os.listdir(boost_lib_path):
+                if isinstance(x,string_type):
+                    if (x.startswith('libboost_numpy-py') or x.startswith('libboost_numpy2')) and x.endswith('.so'):
+                        p2res = x
+                    if (x.startswith('libboost_numpy-py3') or x.startswith('libboost_numpy3')) and x.endswith('.so'):
+                        p3res = x
+                else:
+                    if (x.startswith(b'libboost_numpy-py') or x.startswith(b'libboost_numpy2')) and x.endswith(b'.so'):
+                        p2res = x
+                    if (x.startswith(b'libboost_numpy-py3') or x.startswith(b'libboost_numpy3')) and x.endswith(b'.so'):
+                        p3res = x
+            if len(p2name)==0 and len(p2res)>0:
+                p2name=p2res
+            if len(p3name)==0 and len(p3res)>0:
+                p3name=p3res
             # Pick the right one
             if int(env['python_version'][0]) == 2:
                 libname = p2name[3:-3]
             else:
                 libname = p3name[3:-3]
-
             # If found, add the necessary information to env
             if len(libname) > 0:
                 env.AppendUnique(LIBS = libname)
@@ -324,6 +306,7 @@ def checkBoost(env):
                 env.AppendUnique(LIBPATH = [boost_numpy_lib_path])
                 env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], boost_numpy_lib_path)
                 env.Append(CPPDEFINES=['ESYS_HAVE_BOOST_NUMPY'])
+            print("Found boost/python/numpy.hpp. Building with boost numpy support.")
         except:
             print("Warning: Could not find boost/python/numpy.hpp. Building without numpy support.")
 
