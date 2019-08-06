@@ -429,6 +429,14 @@ The \Domain class provides an abstract interface to the domain of \FunctionSpace
     \Data object is chosen by the \Domain implementation. Typically it will be
     in the \ContinuousFunction.
 \end{methoddesc}
+
+\begin{methoddesc}[Domain]{getNumpyX}{}
+    returns the locations in the \Domain as a numpy ndarray. The \FunctionSpace 
+    of the returned \Data object is chosen by the \Domain implementation. 
+    Typically it will be in the \ContinuousFunction. 
+
+    Note that it is necessary to load numpy first in the escript.
+\end{methoddesc}
 %
 \begin{methoddesc}[Domain]{setX}{newX}
     assigns new locations to the \Domain. \var{newX} has to have \Shape $(d,)$

@@ -24,6 +24,10 @@
 #include "Pointers.h"
 
 #include <boost/python/tuple.hpp>
+#ifdef ESYS_HAVE_BOOST_NUMPY
+#include <boost/python/numpy.hpp>
+#endif
+
 
 #include <vector>
 #include <string>
@@ -276,6 +280,14 @@ public:
      Returns locations in the domain. The function space is chosen appropriately.
     */
     virtual escript::Data getX() const = 0;
+
+#ifdef ESYS_HAVE_BOOST_NUMPY
+    /**
+     \brief
+     Returns locations in the domain as a numpy ndarray. The function space is chosen appropriately.
+    */
+    virtual boost::python::numpy::ndarray getNumpyX() const = 0;
+#endif
 
     /**
      \brief

@@ -289,10 +289,10 @@ def checkBoost(env):
                         p2res = x
                     if (x.startswith(b'libboost_numpy-py3') or x.startswith(b'libboost_numpy3')) and x.endswith(b'.so'):
                         p3res = x
-            if len(p2name)==0 and len(p2res)>0:
-                p2name=p2res
-            if len(p3name)==0 and len(p3res)>0:
-                p3name=p3res
+                if len(p2name)==0 and len(p2res)>0:
+                    p2name=p2res
+                if len(p3name)==0 and len(p3res)>0:
+                    p3name=p3res
             # Pick the right one
             if int(env['python_version'][0]) == 2:
                 libname = p2name[3:-3]
@@ -306,8 +306,13 @@ def checkBoost(env):
                 env.AppendUnique(LIBPATH = [boost_numpy_lib_path])
                 env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], boost_numpy_lib_path)
                 env.Append(CPPDEFINES=['ESYS_HAVE_BOOST_NUMPY'])
-            print("Found boost/python/numpy.hpp. Building with boost numpy support.")
+                env['boost_python_numpy']=True
+                print("Found boost/python/numpy.hpp. Building with boost numpy support.")
+            else:
+                env['boost_python_numpy']=False
+                print("Warning: Could not find boost/python/numpy.hpp. Building without numpy support.")    
         except:
+            env['boost_python_numpy']=False
             print("Warning: Could not find boost/python/numpy.hpp. Building without numpy support.")
 
     # Check if the version of boost we are using is missing BOOST_BYTE_ORDER

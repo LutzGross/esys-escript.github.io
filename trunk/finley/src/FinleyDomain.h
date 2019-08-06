@@ -741,6 +741,13 @@ public:
     */
     virtual escript::Data getX() const;
 
+#ifdef ESYS_HAVE_BOOST_NUMPY
+    /**
+     \brief returns locations in the FEM nodes as a numpy ndarray
+    */
+    virtual boost::python::numpy::ndarray getNumpyX() const;
+#endif
+
     /**
      \brief returns boundary normals at the quadrature point on the face
             elements

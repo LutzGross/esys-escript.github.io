@@ -125,6 +125,9 @@ public:
     virtual int getApproximationOrder(const int functionSpaceCode) const;
 
     virtual escript::Data getX() const;
+#ifdef ESYS_HAVE_BOOST_NUMPY
+    virtual boost::python::numpy::ndarray getNumpyX() const;
+#endif
     virtual escript::Data getNormal() const;
     virtual escript::Data getSize() const;
     virtual void setToX(escript::Data& out) const;

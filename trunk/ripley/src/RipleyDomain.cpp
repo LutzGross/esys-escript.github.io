@@ -557,6 +557,13 @@ escript::Data RipleyDomain::getX() const
     return escript::continuousFunction(*this).getX();
 }
 
+#ifdef ESYS_HAVE_BOOST_NUMPY
+boost::python::numpy::ndarray RipleyDomain::getNumpyX() const
+{
+    return escript::continuousFunction(*this).getNumpyX();
+}
+#endif
+
 escript::Data RipleyDomain::getNormal() const
 {
     return escript::functionOnBoundary(*this).getNormal();

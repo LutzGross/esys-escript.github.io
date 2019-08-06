@@ -141,6 +141,13 @@ public:
       \brief Returns the spatial locations of the data points.
     */
     escript::Data getX() const;
+
+#ifdef ESYS_HAVE_BOOST_NUMPY
+    /**
+      \brief Returns the spatial locations of the data points as a numpy array.
+    */
+    boost::python::numpy::ndarray getNumpyX() const;
+#endif
  
     /**
       \brief Returns the surface normal field.
