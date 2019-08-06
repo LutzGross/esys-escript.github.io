@@ -864,16 +864,16 @@ boost::python::list getNumpy(boost::python::dict arg)
             }
 
         }
-    } catch (EsysException e) {
-        error = 1;
-        if (data[0].getDomain()->getMPISize() == 1) {
+    } catch (EsysException* e) {
+        error=1;
+        if (data[0].getDomain()->getMPISize()==1) {
             throw;
         } else {
-            localmsg = e.what();
+            localmsg=e->what();
         }
     } catch (...) {
-        error = 1;
-        if (data[0].getDomain()->getMPISize() == 1) {
+        error=1;
+        if (data[0].getDomain()->getMPISize()==1) {
             throw;
         }
     }
