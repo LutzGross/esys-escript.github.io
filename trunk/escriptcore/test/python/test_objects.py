@@ -491,6 +491,16 @@ class Test_Domain(unittest.TestCase):
         self.assertTrue(sup(x[0])<=1.)
         if self.domain.getDim()>1: self.assertTrue(sup(x[1])<=1.)
         if self.domain.getDim()>2: self.assertTrue(sup(x[2])<=1.)
+   
+   def test_getNumpyX(self):
+      if hasFeature("boostnumpy"):
+         tups=self.domain.getX().toListOfTuples()
+         numps=self.domain.getNumpyX()
+         for i in range(0,tups.__len__()):
+            for x in range(0, self.domain.getDim()):
+               self.assertEqual(float(tups[i][x]),float(numps[x][i]))
+      else:
+         self.assertRaises(RuntimeError, self.domain.getNumpyX())
    #===========================================================================
 
 class Test_SetDataPointValue(unittest.TestCase):
