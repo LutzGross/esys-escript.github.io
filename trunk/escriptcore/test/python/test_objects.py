@@ -499,8 +499,6 @@ class Test_Domain(unittest.TestCase):
          for i in range(0,tups.__len__()):
             for x in range(0, self.domain.getDim()):
                self.assertEqual(float(tups[i][x]),float(numps[x][i]))
-      else:
-         self.assertRaises(RuntimeError, self.domain.getNumpyX())
    #===========================================================================
 
 class Test_SetDataPointValue(unittest.TestCase):
