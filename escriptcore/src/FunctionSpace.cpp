@@ -260,7 +260,7 @@ FunctionSpace::getNumpyX() const
 
     // Initialise the ndarray
     boost::python::tuple arrayshape = boost::python::make_tuple(dimensions, dpps * numDataPoints);
-    boost::python::numpy::dtype datatype = boost::python::numpy::dtype::get_builtin<float>();
+    boost::python::numpy::dtype datatype = boost::python::numpy::dtype::get_builtin<double>();
     boost::python::numpy::ndarray dataArray = boost::python::numpy::zeros(arrayshape, datatype);
 
     // Initialise variables

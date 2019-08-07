@@ -112,6 +112,10 @@ EscriptParams::EscriptParams()
 #ifdef ESYS_GMSH_MPI
     features.insert("gmsh_mpi");
 #endif
+
+#ifdef ESYS_HAVE_BOOST_NUMPY
+    features.insert("boostnumpy");
+#endif
 }
 
 int EscriptParams::getInt(const std::string& name, int sentinel) const

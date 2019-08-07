@@ -324,13 +324,13 @@ namespace escript {
          break;
       case 1:
          for (int i = 0; i < shape[0]; i++) {
-            dataArray[d + getRelIndex(shape,i)][index] = (float) data[offset+getRelIndex(shape,i)];
+            dataArray[d + getRelIndex(shape,i)][index] = data[offset+getRelIndex(shape,i)];
          }
          break;
       case 2:
          for (int i=0;i<shape[0];i++) {
             for (int j=0;j<shape[1];j++) {
-               dataArray[d + getRelIndex(shape,i,j)][index] = (float) data[offset+getRelIndex(shape,i,j)];
+               dataArray[d + getRelIndex(shape,i,j)][index] = data[offset+getRelIndex(shape,i,j)];
             }
          }
          break;
@@ -338,7 +338,7 @@ namespace escript {
          for (int i=0;i<shape[0];i++) {
             for (int j=0;j<shape[1];j++) {
                for (int k=0;k<shape[2];k++) {
-                  dataArray[d + getRelIndex(shape,i,j,k)][index] = (float) data[offset+getRelIndex(shape,i,j,k)];
+                  dataArray[d + getRelIndex(shape,i,j,k)][index] = data[offset+getRelIndex(shape,i,j,k)];
                }
             }
          }
@@ -348,7 +348,7 @@ namespace escript {
             for (int j=0;j<shape[1];j++) {
                for (int k=0;k<shape[2];k++) {
                   for (int l=0;l<shape[3];l++) {
-                     dataArray[d + getRelIndex(shape,i,j,k,l)][index] = (float) data[offset+getRelIndex(shape,i,j,k,l)];
+                     dataArray[d + getRelIndex(shape,i,j,k,l)][index] = data[offset+getRelIndex(shape,i,j,k,l)];
                   }
                }
             }
