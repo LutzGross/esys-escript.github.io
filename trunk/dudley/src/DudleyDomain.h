@@ -625,6 +625,8 @@ public:
     */
 #ifdef ESYS_HAVE_BOOST_NUMPY
     boost::python::numpy::ndarray getNumpyX() const;
+
+    boost::python::numpy::ndarray getConnectivityInfo() const;
 #endif
 
     /**
