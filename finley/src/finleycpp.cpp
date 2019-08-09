@@ -224,6 +224,10 @@ args("solver", "preconditioner", "package", "symmetry"),
 args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Data`")
       .def("getX", &finley::FinleyDomain::getX, ":return: locations in the FEM nodes\n\n"
 ":rtype: `Data`")
+#ifdef ESYS_HAVE_BOOST_NUMPY
+      .def("getConnectivityInfo", &finley::FinleyDomain::getConnectivityInfo, ":return: returns point and connectivity information\n\n"
+":rtype: `Data`")
+#endif
       .def("getNormal", &finley::FinleyDomain::getNormal,
 ":return: boundary normals at the quadrature point on the face elements\n"
 ":rtype: `Data`")

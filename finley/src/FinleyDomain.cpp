@@ -2378,6 +2378,42 @@ boost::python::numpy::ndarray FinleyDomain::getNumpyX() const
 {
     return continuousFunction(*this).getNumpyX();
 }
+
+boost::python::numpy::ndarray FinleyDomain::getConnectivityInfo() const
+{
+    // Initialise boost numpy
+    boost::python::numpy::initialize();
+
+    // Get the node information
+    escript::DataTypes::index_t * nodedata = m_elements->Nodes;
+
+    // Work out how many elements there are
+    int numberOfElements = m_elements->numElements;
+
+    // Work out how many data points there are per element
+    int numNodesPerElement = m_elements->numNodes;
+
+    // Initialise the ndarray
+    boost::python::tuple arrayshape = boost::python::make_tuple(numberOfElements, numNodesPerElement);
+    boost::python::numpy::dtype datatype = boost::python::numpy::dtype::get_builtin<double>();
+    boost::python::numpy::ndarray dataArray = boost::python::numpy::zeros(arrayshape, datatype);
+
+    // Initialise variables
+    std::string localmsg;
+    std::vector<const escript::DataTypes::real_t*> samplesR(1);
+    
+    // Copy the information over
+    for (int k = 0; k < numberOfElements; k++) {
+        for (int j = 0; j < numNodesPerElement; j++) {
+            dataArray[k][j] = nodedata[j+k*numNodesPerElement];
+        }
+    }
+
+    // Print out the ndarray to the console - used during debugging 
+    // std::cout << "Finished array:\n" << bp::extract<char const *>(bp::str(dataArray)) << std::endl;
+
+    return dataArray;
+}
 #endif
 
 escript::Data FinleyDomain::getNormal() const

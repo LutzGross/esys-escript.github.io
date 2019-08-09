@@ -170,6 +170,10 @@ args("solver", "preconditioner", "package", "symmetry"),
 args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Data`")
       .def("getX", &dudley::DudleyDomain::getX, ":return: locations in the FEM nodes\n\n"
 ":rtype: `Data`")
+#ifdef ESYS_HAVE_BOOST_NUMPY
+      .def("getConnectivityInfo", &dudley::DudleyDomain::getConnectivityInfo, ":return: locations in the FEM nodes\n\n"
+":rtype: `Data`")
+#endif
       .def("getNormal", &dudley::DudleyDomain::getNormal,
 ":return: boundary normals at the quadrature point on the face elements\n"
 ":rtype: `Data`")
