@@ -1836,6 +1836,7 @@ boost::python::numpy::ndarray DudleyDomain::getConnectivityInfo() const
     std::vector<const escript::DataTypes::real_t*> samplesR(1);
     
     // Copy the information over
+#pragma omp parallel for
     for (int k = 0; k < numberOfElements; k++) {
         for (int j = 0; j < numNodesPerElement; j++) {
             dataArray[k][j] = nodedata[j+k*numNodesPerElement];

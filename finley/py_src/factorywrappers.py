@@ -125,26 +125,11 @@ def getTVTK(domain):
     y = domain.getConnectivityInfo()
 
     pointinfo = np.zeros(shape=(x.shape[1],x.shape[0]),dtype=np.float32)
-    if x.shape[0] == 2:
-        for i in range(0, x.shape[1]):
-            pointinfo[i] = np.array([x[0][i],x[1][i]])
-    elif x.shape[0] == 3:
-        for i in range(0, x.shape[1]):
-            pointinfo[i] = np.array([x[0][i],x[1][i]])
-    else:
-        raise Exception("Unknown grid type shape")
+    for i in range(0, x.shape[1]):
+        pointinfo[i] = x[:][i]
 
     connectivityinfo = np.ndarray(shape=(y.shape[0],y.shape[1]),dtype=np.float32)
-    if y.shape[1] == 3:
-        for i in range(0, y.shape[0]):
-            connectivityinfo[i] = y[i]
-    elif y.shape[1] == 4:
-        for i in range(0, y.shape[0]):
-            connectivityinfo[i] = y[i]
-    elif y.shape[1] == 5:
-        for i in range(0, y.shape[0]):
-            connectivityinfo[i] = y[i]
-    else:
-        raise Exception("Unknown element shape")
-
+    for i in range(0, y.shape[0]):
+        connectivityinfo[i] = y[i]
+    
     return pointinfo, connectivityinfo

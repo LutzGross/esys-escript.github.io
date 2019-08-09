@@ -267,6 +267,7 @@ FunctionSpace::getNumpyX() const
     std::string localmsg;
     std::vector<const DataTypes::real_t*> samplesR(1);
     
+#pragma omp parallel for
     for (int i = 0; i < numDataPoints; ++i) {
         for (int j = 0; j < shape[0]; j++) {
             dataArray[j][i] = *(data.getSampleDataRW(i, onlyreal)+j);
