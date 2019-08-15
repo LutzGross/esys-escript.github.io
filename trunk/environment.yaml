@@ -1,6 +1,0 @@
-name: esys-escript
-channels:
-    - conda-forge
-dependencies:
-    build:
-    - esys-escript

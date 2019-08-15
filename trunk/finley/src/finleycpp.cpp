@@ -228,6 +228,8 @@ args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Dat
       .def("getConnectivityInfo", &finley::FinleyDomain::getConnectivityInfo, ":return: returns point and connectivity information\n\n"
 ":rtype: `Data`")
 #endif
+      .def("getVTKElementType", &finley::FinleyDomain::getVTKElementType, ":return: returns the VTK code for this element type\n\n"
+":rtype: `Data`")
       .def("getNormal", &finley::FinleyDomain::getNormal,
 ":return: boundary normals at the quadrature point on the face elements\n"
 ":rtype: `Data`")

@@ -562,6 +562,11 @@ boost::python::numpy::ndarray RipleyDomain::getNumpyX() const
 {
     return escript::continuousFunction(*this).getNumpyX();
 }
+
+boost::python::numpy::ndarray RipleyDomain::getConnectivityInfo() const
+{
+    throw RipleyException("This feature is currently not supported by Ripley.");
+}
 #endif
 
 escript::Data RipleyDomain::getNormal() const

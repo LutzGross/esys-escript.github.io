@@ -427,6 +427,11 @@ boost::python::numpy::ndarray SpeckleyDomain::getNumpyX() const
 {
     return continuousFunction(*this).getNumpyX();
 }
+
+boost::python::numpy::ndarray SpeckleyDomain::getConnectivityInfo() const
+{
+    throw SpeckleyException("This feature is currently not supported by Speckley.");
+}
 #endif
 
 escript::Data SpeckleyDomain::getNormal() const

@@ -290,6 +290,11 @@ public:
        returns locations in the SEM nodes
     */
     virtual boost::python::numpy::ndarray getNumpyX() const;
+
+    /**
+     \brief returns connectivity information as a numpy ndarray
+    */
+    virtual boost::python::numpy::ndarray getConnectivityInfo() const;
 #endif
 
     /**

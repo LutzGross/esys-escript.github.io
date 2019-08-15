@@ -31,7 +31,7 @@ visit = True
 # cxx = 'clang++'
 # cxx='/usr/bin/clang++'
 
-python = 3
+python = 2
 
 ##############################################################################
 escript_opts_version = 203
@@ -69,12 +69,14 @@ if trilinos == True:
   print("Meerkat config: Using trilinos libraries %s" % trilinos_prefix) 
 
  
-boost_prefix='/usr/local'
+# boost_prefix='/usr/local'
+boost_prefix='/usr/local/boost'
 p = subprocess.Popen(["ld","--verbose"], stdout=subprocess.PIPE)
 out,err = p.communicate()
 spath = [x[13:-3] for x in out.split() if 'SEARCH_DIR' in x]
 p2name = ''
 p3name = ''
+spath.append(os.path.join(boost_prefix,"lib"))
 for name in spath:
   try:
     l=os.listdir(name)

@@ -111,25 +111,3 @@ def Brick(n0=1, n1=1, n2=1, order=1, l0=1.0, l1=1.0, l2=1.0, periodic0=0, period
     return __Brick_driver(args)
 
 Brick.__doc__=__Brick_driver.__doc__
-
-def getTVTK(domain):
-    """
-    Returns the point and connectivity information of a finleymesh for tVTK
-    :param domain: a finley domainsation of node labels
-    :return connectivityinfo: ``numpy ndarray``
-    :return pointinfo: ``numpy ndarray``
-    """
-    import numpy as np
-
-    x = domain.getNumpyX()
-    y = domain.getConnectivityInfo()
-
-    pointinfo = np.zeros(shape=(x.shape[1],x.shape[0]),dtype=np.float32)
-    for i in range(0, x.shape[1]):
-        pointinfo[i] = x[:][i]
-
-    connectivityinfo = np.ndarray(shape=(y.shape[0],y.shape[1]),dtype=np.float32)
-    for i in range(0, y.shape[0]):
-        connectivityinfo[i] = y[i]
-    
-    return pointinfo, connectivityinfo

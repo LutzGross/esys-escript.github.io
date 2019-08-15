@@ -754,6 +754,11 @@ public:
 #endif
 
     /**
+     \brief returns the VTK element type
+    */
+    virtual int getVTKElementType() const;
+
+    /**
      \brief returns boundary normals at the quadrature point on the face
             elements
     */

@@ -18,6 +18,7 @@
 #include "Assemble.h"
 #include "FinleyException.h"
 #include "IndexList.h"
+#include "ReferenceElements.h"
 
 #include <escript/Data.h>
 #include <escript/DataFactory.h>
@@ -2416,6 +2417,63 @@ boost::python::numpy::ndarray FinleyDomain::getConnectivityInfo() const
     return dataArray;
 }
 #endif
+
+int FinleyDomain::getVTKElementType() const
+{
+    const_ReferenceElementSet_ptr refElement = m_elements->referenceElementSet;
+    const_ReferenceElement_ptr borrowedRefElement = refElement->borrowReferenceElement(false);
+    const ReferenceElementInfo* type = borrowedRefElement->Type;
+    
+    // From vtkCellType.h
+    // #define VTK_EMPTY_CELL 0
+    // #define VTK_VERTEX 1
+    // #define VTK_POLY_VERTEX 2
+    // #define VTK_LINE 3
+    // #define VTK_POLY_LINE 4
+    // #define VTK_TRIANGLE 5
+    // #define VTK_TRIANGLE_STRIP 6
+    // #define VTK_POLYGON 7
+    // #define VTK_PIXEL 8
+    // #define VTK_QUAD 9
+    // #define VTK_TETRA 10
+    // #define VTK_VOXEL 11
+    // #define VTK_HEXAHEDRON 12
+    // #define VTK_WEDGE 13
+    // #define VTK_PYRAMID 14
+
+    if(std::strcmp(type->Name, "Tri3") 
+        || std::strcmp(type->Name, "Tri6")
+        || std::strcmp(type->Name, "Tri9")
+        || std::strcmp(type->Name, "Tri10"))
+    {
+        return 5; //VTK_TRIANGLE
+    } 
+    else if (std::strcmp(type->Name, "Rec4") 
+        || std::strcmp(type->Name, "Rec8")
+        || std::strcmp(type->Name, "Rec9")
+        || std::strcmp(type->Name, "Rec12")
+        || std::strcmp(type->Name, "Rec16"))
+    {
+        return 8; // VTK_PIXEL
+    }
+    else if (std::strcmp(type->Name, "Tet4") 
+        || std::strcmp(type->Name, "Tet10")
+        || std::strcmp(type->Name, "Tet16"))
+    {
+        return 10; // VTK_TETRA
+    }
+    else if (std::strcmp(type->Name, "Hex8") 
+        || std::strcmp(type->Name, "Hex20")
+        || std::strcmp(type->Name, "Hex27")
+        || std::strcmp(type->Name, "Hex32"))
+    {
+        return 11; // VTK_VOXEL
+    }
+    else
+    {
+        throw FinleyException("getVTKElementType: unknown element type");
+    }
+}
 
 escript::Data FinleyDomain::getNormal() const
 {
