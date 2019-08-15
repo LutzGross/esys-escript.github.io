@@ -267,6 +267,7 @@ def checkBoost(env):
     env['buildvars']['boostversion']=boostversion
 
     # Check for the boost numpy library
+    env['boost_python_numpy']=False
     if boostversion >= 106300:
         try:
             boost_numpy_inc_path,boost_numpy_lib_path=findLibWithHeader(env, env['boost_libs'], 'boost/python/numpy.hpp', env['boost_prefix'], lang='c++')
@@ -312,7 +313,6 @@ def checkBoost(env):
                 env['boost_python_numpy']=False
                 print("Warning: Could not find boost/python/numpy.hpp. Building without numpy support.")    
         except:
-            env['boost_python_numpy']=False
             print("Warning: Could not find boost/python/numpy.hpp. Building without numpy support.")
 
     # Check if the version of boost we are using is missing BOOST_BYTE_ORDER
