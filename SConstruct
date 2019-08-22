@@ -306,7 +306,7 @@ elif cc_name == 'icl':
     omp_ldflags  = '/Qvec-report0 /Qopenmp /Qopenmp-report0 /Qparallel'
 elif cc_name == 'clang++':
     # Clang++ on any system
-    cc_flags     = "-std=c++11 -Wall -fPIC -fdiagnostics-color=always "
+    cc_flags     = "-std=c++11 -Wall -fPIC -fdiagnostics-color=always -Wno-uninitialized "
     cc_flags    += "-Wno-unused-private-field -Wno-unknown-pragmas "
     if env['trilinos'] is True:
       cc_flags += "-Wno-unused-variable -Wno-exceptions -Wno-deprecated-declarations"
