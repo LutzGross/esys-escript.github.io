@@ -206,8 +206,12 @@ BOOST_PYTHON_MODULE(escriptcpp)
         "");
   def("_getNumpy",escript::getNumpy, arg("arg"),
         "Takes in a data object (or objects) and returns a numpy array\n"
-        ":param arg: dictionary containing a single `Data` objects. \n"
-        ":type arg: ``dict``\n"
+        ":param arg: Data object\n"
+        ":rtype: numpy ndarray\n"
+        ""); 
+  def("_convertToNumpy",escript::convertToNumpy, arg("arg"),
+        "Takes in a data object (or objects) and returns a numpy array\n"
+        ":param arg: Data object\n"
         ":rtype: numpy ndarray\n"
         ""); 
   def("canInterpolate", &escript::canInterpolate, args("src", "dest"),":param src: Source FunctionSpace\n"

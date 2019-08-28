@@ -31,7 +31,7 @@ visit = True
 # cxx = 'clang++'
 # cxx='/usr/bin/clang++'
 
-python = 2
+python = 3
 
 ##############################################################################
 escript_opts_version = 203

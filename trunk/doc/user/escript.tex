@@ -431,11 +431,11 @@ The \Domain class provides an abstract interface to the domain of \FunctionSpace
 \end{methoddesc}
 
 \begin{methoddesc}[Domain]{getNumpyX}{}
-    returns the locations in the \Domain as a numpy ndarray. The \FunctionSpace 
+    returns the locations in the \Domain as a \numpy ndarray. The \FunctionSpace 
     of the returned \Data object is chosen by the \Domain implementation. 
     Typically it will be in the \ContinuousFunction. 
 
-    Note that it is necessary to load numpy first in the escript.
+    Note that it is necessary to load \numpy first in the escript.
 \end{methoddesc}
 %
 \begin{methoddesc}[Domain]{setX}{newX}
@@ -1674,7 +1674,8 @@ in a given row always correspond to the same input.
 \subsection{Converting \Data to a Numpy Array}
 \label{sec:getnumpy}
 \index{getNumpy}\index{GN}
-\Data objects can be converted into a numpy structured array.
+\Data objects can be converted into a numpy structured array using the commands \var{getNumpy} and \var{convertNumpy}.
+\subsubsection{getNumpy}
 If \var{mydata1} and \var{mydata2} are scalar \Data, then the command
 \begin{python}
   a,b = getNumpy(U=mydata1, V=mydata2)
@@ -1700,6 +1701,14 @@ values of \var{myscalar}.
 Note that while the order in which output rows are output can vary, all the elements
 in a given row always correspond to the same input.
 
+\subsubsection{convertNumpy}
+\Data objects can also be converted into a numpy structured array using the command \var{convertNumpy}.
+If \var{mydata1} is a \Data object, then the command
+\begin{python}
+  a = convertNumpy(mydata1)
+\end{python}
+will return a structured ndarray containing all of the data in \var{mydata1}. Unlike \var{getNumpy}, this function
+does not support the use of masks and does not use MPI.
 
 \subsection{The \Operator Class}
 The \Operator class provides an abstract access to operators built
