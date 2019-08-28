@@ -268,6 +268,25 @@ def getNumpy(**data):
       raise ValueError("getNumpy: Please pass five or fewer data objects at a time.")
 
 
+def convertToNumpy(data):
+    """
+    Writes `Data` objects to a numpy array.
+
+    The keyword args are Data objects to save.
+    If a scalar `Data` object is passed with the name ``mask``, then only
+    samples which correspond to positive values in ``mask`` will be output.
+
+    Example usage:
+
+    s=Scalar(..)
+    v=Vector(..)
+    t=Tensor(..)
+    f=float()
+    array = getNumpy(a=s, b=v, c=t, d=f)
+    """
+    return escore._convertToNumpy(Data(data,data.getFunctionSpace()))
+
+
 def saveESD(datasetName, dataDir=".", domain=None, timeStep=0, deltaT=1, dynamicMesh=0, timeStepFormat="%04d", **data):
     """
     Saves `Data` objects to files and creates an `escript dataset` (ESD) file

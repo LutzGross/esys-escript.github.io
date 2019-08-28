@@ -115,6 +115,12 @@ ESCRIPT_DLL_API boost::python::list getNumpy(boost::python::dict arg);
 ESCRIPT_DLL_API void getNumpy(boost::python::dict arg);
 #endif
 
+#ifdef ESYS_HAVE_BOOST_NUMPY
+ESCRIPT_DLL_API boost::python::numpy::ndarray convertToNumpy(escript::Data data);
+#else
+ESCRIPT_DLL_API void convertToNumpy(boost::python::dict arg);
+#endif
+
 
 /**
     \brief

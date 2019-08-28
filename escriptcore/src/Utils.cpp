@@ -921,6 +921,67 @@ void getNumpy(bp::dict arg){
 }
 #endif
 
+#ifdef ESYS_HAVE_BOOST_NUMPY
+boost::python::numpy::ndarray convertToNumpy(escript::Data data)
+{
+    // Initialise boost numpy
+    // Py_Initialize();
+    boost::python::numpy::initialize();
+
+    // Check to see if we have complex data
+    bool have_complex = data.isComplex();
+
+    // Work out how many data points there are
+    int numDataPoints = data.getNumSamples();
+    int dpps = data.getNumDataPointsPerSample();
+
+    // Work out the data point shape
+    std::vector<int> shape = data.getDataPointShape();
+    if(shape.size() == 0){ // If we have scalar data, the shape will be ()
+        shape.push_back(1);
+    }
+    
+    // Work out the shape
+    int dimensions = data.getShapeProduct();
+
+    // Initialise the ndarray
+    boost::python::tuple arrayshape = boost::python::make_tuple(dimensions, dpps * numDataPoints);
+    boost::python::numpy::dtype datatype = boost::python::numpy::dtype::get_builtin<double>();
+    if (have_complex) {
+        datatype = boost::python::numpy::dtype::get_builtin<std::complex<double>>();
+    }
+    boost::python::numpy::ndarray dataArray = boost::python::numpy::zeros(arrayshape, datatype);
+
+    // Initialise variables
+    std::string localmsg;
+    std::vector<const DataTypes::real_t*> samplesR(1);
+    
+    // This is needed below in getSampleDataRO
+    const DataTypes::real_t onlyreal = 0;
+    const DataTypes::cplx_t onlycomplex = 0;
+
+// #pragma omp parallel for 
+    for (int i = 0; i < numDataPoints; ++i) {
+        for (int j = 0; j < shape[0]; j++) {
+            if(have_complex){
+                dataArray[j][i] = *(data.getSampleDataRO(i, onlycomplex)+j);
+            } else {
+                dataArray[j][i] = *(data.getSampleDataRO(i, onlyreal)+j);
+            }
+        }
+    }
+
+    // Print out the ndarray to the console - used during debugging 
+    // std::cout << "Finished array:\n" << bp::extract<char const *>(bp::str(dataArray)) << std::endl;
+
+    return dataArray;
+}
+#else
+void convertToNumpy(bp::dict arg){
+    throw DataException("getNumpy: Error - Please recompile escripts with the boost numpy library");
+}
+#endif
+
 void resolveGroup(bp::object obj)
 {
     int len=0;

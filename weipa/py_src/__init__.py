@@ -23,7 +23,7 @@ __license__="""Licensed under the Apache License, version 2.0
 http://www.apache.org/licenses/LICENSE-2.0"""
 __url__="https://launchpad.net/escript-finley"
 
-from esys.escript import getNumpy, hasFeature
+from esys.escript import convertToNumpy, hasFeature
 from .weipacpp import visitInitialize, visitPublishData
 
 __nodocorecursion=['weipacpp']
@@ -337,7 +337,7 @@ class EscriptToTVTK(object):
             assert kwargs[n].getDomain() == self.domain, "domain of argument %s does not match."%n
 
             # Convert to a numpy array. This requires boost v. 1.64 or higher
-            data=getNumpy(x=d)['x']
+            data=convertToNumpy(d)            
 
             # Work out if we have point or vector data
             data_type=''
@@ -355,17 +355,11 @@ class EscriptToTVTK(object):
                 for x in range(0,data.shape[1]):
                     newdata[x]=np.array([data[0][x],data[1][x],data[2][x]])
                 data = newdata
-                print("AEAEAEAE")
-                print(data.shape)
-                print(newdata.shape)
             else:
                 newdata=np.zeros(shape=(data.shape[1],1))
                 for x in range(0,data.shape[1]):
                     newdata[x]=np.array([data[0][x]])
                 data = newdata
-                print("AEAEAEAE")
-                print(data.shape)
-                print(newdata.shape)
 
             if d.getShape() == (): # scalar data
                 if data_type == 'point':
