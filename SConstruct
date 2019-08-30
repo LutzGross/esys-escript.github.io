@@ -729,7 +729,7 @@ def print_summary():
     print("  Install prefix:  %s"%env['prefix'])
     print("          Python:  %s (Version %s)"%(env['pythoncmd'],env['python_version']))
     print("           boost:  %s (Version %s)"%(env['boost_prefix'],env['boost_version']))
-    if env['boost_python_numpy']==True:
+    if env['have_boost_numpy'] is True:
         print("     boost numpy:  YES")
     else:
         print("     boost numpy:  NO")
