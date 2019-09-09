@@ -247,6 +247,9 @@ BOOST_PYTHON_MODULE(escriptcpp)
      .def("getNumpyX",&escript::AbstractDomain::getNumpyX,":rtype: `numpy ndarray`\n"
         ":return: Locations in the"
         "`Domain`. FunctionSpace is chosen appropriately")
+     .def("isCellOriented", &escript::AbstractDomain::isCellOriented, arg("functionSpaceCode"),
+        ":return: true is the data is cell centered.\n"
+        ":rtype: ``int``")
 #endif
      .def("getDim",&escript::AbstractDomain::getDim,":rtype: `int`\n"
         ":return: Spatial dimension of the `Domain`")
@@ -453,6 +456,7 @@ args("arg"), "assigns new location to the domain\n\n"
         ":rtype: ``list``");
   fs_definer.def("getApproximationOrder", &escript::FunctionSpace::getApproximationOrder,":return: the approximation order referring to the maximum degree of a polynomial which can be represented exactly in interpolation and/or integration.\n"
         ":rtype: ``int``");
+  fs_definer.def("getTypeCode",&escript::FunctionSpace::getTypeCode,":rtype: `int`");
   fs_definer.def("__str__", &escript::FunctionSpace::toString);
   fs_definer.def("__lt__",block_cmp_functionspace);
   fs_definer.def("__le__",block_cmp_functionspace);

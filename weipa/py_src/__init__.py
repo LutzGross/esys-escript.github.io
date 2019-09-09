@@ -297,9 +297,9 @@ class EscriptToTVTK(object):
         sets up driver for translating Data objects in domain to TVTK object.
         """
         if HAVE_TVTK == False:
-            raise Exception("Failed to load the TVTK module") 
+            raise Exception("Failed to load the TVTK module")
         if hasFeature("boostnumpy") == False:
-            raise Exception("This feature requires boost version 1.64 or higher") 
+            raise Exception("This feature requires boost version 1.64 or higher")
         if domain is None:
             self.domain=None
         else:
@@ -336,30 +336,29 @@ class EscriptToTVTK(object):
             # Check that the domains match
             assert kwargs[n].getDomain() == self.domain, "domain of argument %s does not match."%n
 
-            # Convert to a numpy array. This requires boost v. 1.64 or higher
-            data=convertToNumpy(d)            
+            # Check data rank
+            assert d.getRank() < 2, "data %s is of rank greater than 2"%n
 
-            # Work out if we have point or vector data
+            # Convert to a numpy array. This requires boost v. 1.64 or higher
+            data=convertToNumpy(d)
+
+            # Work out if we have point-centered or cell-centered data
             data_type=''
-            if data.shape[0] == 1:
-                data_type='point'
+            if self.domain.isCellOriented(d.getFunctionSpace().getTypeCode()):
+                data_type = 'cell'
+            else:
+                data_type = 'point'
 
             # Add a third component of zeros if the array is two dimensional
-            if self.domain.getDim() == 2 and data_type != 'point':
+            if data.shape[0] == 2:
                 padding=np.zeros((1,data.shape[1]))
                 data=np.append(data,padding,axis=0)
 
-            # if we have vector data, reshape the array for tvtk
-            if data_type != 'point':
-                newdata=np.zeros(shape=(data.shape[1],3))
-                for x in range(0,data.shape[1]):
-                    newdata[x]=np.array([data[0][x],data[1][x],data[2][x]])
-                data = newdata
+            # Reshape the array for tvtk
+            if data.shape[0] > 1:
+                data=np.stack((data[0],data[1],data[2]),axis=-1)
             else:
-                newdata=np.zeros(shape=(data.shape[1],1))
-                for x in range(0,data.shape[1]):
-                    newdata[x]=np.array([data[0][x]])
-                data = newdata
+                data=np.stack((data[0]),axis=-1)
 
             if d.getShape() == (): # scalar data
                 if data_type == 'point':
