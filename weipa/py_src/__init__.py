@@ -350,15 +350,14 @@ class EscriptToTVTK(object):
                 data_type = 'point'
 
             # Add a third component of zeros if the array is two dimensional
-            if data.shape[0] == 2:
-                padding=np.zeros((1,data.shape[1]))
-                data=np.append(data,padding,axis=0)
-
-            # Reshape the array for tvtk
-            if data.shape[0] > 1:
-                data=np.stack((data[0],data[1],data[2]),axis=-1)
-            else:
+            if d.getShape() == (): 
                 data=np.stack((data[0]),axis=-1)
+            else:
+                if data.shape[0] == 2:
+                    padding=np.zeros((1,data.shape[1]))
+                    data=np.append(data,padding,axis=0)
+                data=np.stack((data[0],data[1],data[2]),axis=-1)
+
 
             if d.getShape() == (): # scalar data
                 if data_type == 'point':
