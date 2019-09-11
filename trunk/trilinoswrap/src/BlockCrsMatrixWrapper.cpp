@@ -29,7 +29,11 @@
 #else
 #include <Tpetra_Core.hpp>
 #endif
+#ifdef ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKCRSH
 #include <Tpetra_Experimental_BlockCrsMatrix_Helpers.hpp> // for writing
+#else
+#include <Tpetra_BlockCrsMatrix_Helpers.hpp> // for writing
+#endif
 #include <Tpetra_Vector.hpp>
 
 using Teuchos::RCP;
@@ -257,7 +261,11 @@ void BlockCrsMatrixWrapper<ST>::saveMM(const std::string& filename) const
     // for compatibility with paso, not strictly required.
     params.set("precision", 15);
     std::ofstream os(filename);
+#ifdef ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKCRSH
     Tpetra::Experimental::blockCrsMatrixWriter<ST,LO,GO,NT>(mat, os, params);
+#else
+    Tpetra::blockCrsMatrixWriter<ST,LO,GO,NT>(mat, os, params);
+#endif
     os.close();
 }
 
@@ -275,4 +283,3 @@ template class BlockCrsMatrixWrapper<real_t>;
 template class BlockCrsMatrixWrapper<cplx_t>;
 
 }  // end of namespace
-

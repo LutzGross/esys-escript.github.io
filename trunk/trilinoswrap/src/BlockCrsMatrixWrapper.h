@@ -20,14 +20,22 @@
 #include <trilinoswrap/AbstractMatrixWrapper.h>
 #include <trilinoswrap/BelosWrapper.h>
 
+#ifdef ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKCRS
 #include <Tpetra_Experimental_BlockCrsMatrix.hpp>
+#else
+#include <Tpetra_BlockCrsMatrix.hpp>
+#endif
 
 namespace esys_trilinos {
 
 template<typename ST>
 class BlockCrsMatrixWrapper : public AbstractMatrixWrapper<ST>
 {
+#ifdef ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKCRS
     typedef Tpetra::Experimental::BlockCrsMatrix<ST,LO,GO,NT> Matrix;
+#else
+    typedef Tpetra::BlockCrsMatrix<ST,LO,GO,NT> Matrix;
+#endif
 
 public:
     /**
