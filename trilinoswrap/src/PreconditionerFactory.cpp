@@ -176,7 +176,11 @@ RCP<OpType<ST> > createPreconditioner(RCP<const MatrixType<ST> > mat,
         case escript::SO_PRECONDITIONER_ILU0: // to avoid test failures
         case escript::SO_PRECONDITIONER_RILU:
         {
+#ifdef ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKCRS
             if (dynamic_cast<const Tpetra::Experimental::BlockCrsMatrix<ST,LO,GO,NT>* >(mat.get())) {
+#else
+            if (dynamic_cast<const Tpetra::BlockCrsMatrix<ST,LO,GO,NT>* >(mat.get())) {
+#endif
                 ifprec = factory.create<const Matrix>("RBILUK", mat);
             } else {
                 ifprec = factory.create<const Matrix>("RILUK", mat);

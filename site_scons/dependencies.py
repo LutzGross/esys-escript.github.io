@@ -274,7 +274,6 @@ def checkBoost(env):
     if boostversion >= 106300:
         try:
             boost_numpy_inc_path,boost_numpy_lib_path=findLibWithHeader(env, env['boost_libs'], 'boost/python/numpy.hpp', env['boost_prefix'], lang='c++')
-            print("Found boost/python/numpy.hpp. Building with boost numpy support.")
 
             # Locate the boost numpy files
             p = subprocess.Popen(["ld","--verbose"], stdout=subprocess.PIPE)
@@ -328,6 +327,8 @@ def checkBoost(env):
                 env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], boost_numpy_lib_path)
                 env.Append(CPPDEFINES=['ESYS_HAVE_BOOST_NUMPY'])
                 env['have_boost_numpy']=True
+
+            print("Found boost/python/numpy.hpp. Building with boost numpy support.")
         except:
             print("Warning: Could not find boost/python/numpy.hpp. Building without numpy support.")
 
@@ -427,8 +428,7 @@ def checkForTrilinos(env):
         'Ifpack2_Factory.hpp','Kokkos_DefaultNode.hpp',\
         'MatrixMarket_Tpetra.hpp','MueLu_CreateTpetraPreconditioner.hpp',\
         'Teuchos_DefaultComm.hpp','Teuchos_ParameterList.hpp',\
-        'Tpetra_CrsGraph.hpp','Tpetra_CrsMatrix.hpp','Tpetra_Experimental_BlockCrsMatrix_Helpers.hpp',\
-        'Tpetra_Experimental_BlockCrsMatrix.hpp','Tpetra_Experimental_BlockVector.hpp','Tpetra_RowMatrix.hpp',\
+        'Tpetra_CrsGraph.hpp','Tpetra_CrsMatrix.hpp', 'Tpetra_RowMatrix.hpp',\
         'Tpetra_Vector.hpp']
 
         print("Looking for the Trilinos headers...")
@@ -441,6 +441,30 @@ def checkForTrilinos(env):
         if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')):
             print("Checking for %s... %s" % ('Tpetra_DefaultPlatform.hpp', "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))
             env.Append(CPPDEFINES = ['ESYS_HAVE_TPETRA_DP'])
+
+        if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_Experimental_BlockCrsMatrix.hpp')):
+            print("Checking for %s... %s" % ('Tpetra_Experimental_BlockCrsMatrix.hpp', "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))
+            env.Append(CPPDEFINES = ['ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKCRS'])
+        elif os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_BlockCrsMatrix.hpp')):
+            print("Checking for %s... %s" % ('Tpetra_BlockCrsMatrix.hpp', "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))
+        else:
+            raise RuntimeError('Could not locate the Trilinos Block CRS Matrix header')
+
+        if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_Experimental_BlockCrsMatrix_Helpers.hpp')):
+            print("Checking for %s... %s" % ('Tpetra_Experimental_BlockCrsMatrix_Helpers.hpp', "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))
+            env.Append(CPPDEFINES = ['ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKCRSH'])
+        elif os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_BlockCrsMatrix_Helpers.hpp')):
+            print("Checking for %s... %s" % ('Tpetra_BlockCrsMatrix_Helpers.hpp', "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))
+        else:
+            raise RuntimeError('Could not locate the Trilinos Block CRS Matrix Helpers header')
+
+        if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_Experimental_BlockVector.hpp')):
+            print("Checking for %s... %s" % ('Tpetra_Experimental_BlockVector.hpp', "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))
+            env.Append(CPPDEFINES = ['ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKV'])
+        elif os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_BlockVector.hpp')):
+            print("Checking for %s... %s" % ('Tpetra_BlockVector.hpp', "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))
+        else:
+            raise RuntimeError('Could not locate the Trilinos BlockVector header')
 
         if not havelibs:
             packages=['Tpetra','Kokkos','Belos','Amesos2','Ifpack2','MueLu']
