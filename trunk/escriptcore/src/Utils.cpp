@@ -389,7 +389,7 @@ void saveDataCSV(const std::string& filename, bp::dict arg,
 {
     bp::list keys = arg.keys();
     int numdata = bp::extract<int>(arg.attr("__len__")());
-    
+
     bool hasmask = arg.has_key("mask");
     Data mask;
     if (hasmask) {
@@ -602,7 +602,7 @@ void saveDataCSV(const std::string& filename, bp::dict arg,
                     }
 
                     for (int d = 0; d < numdata; ++d) {
-                        DataTypes::pointToStream(os, samples[d], 
+                        DataTypes::pointToStream(os, samples[d],
                             data[d].getDataPointShape(), offset[d], needsep, sep);
                         needsep = true;
                         offset[d] += step[d];
@@ -660,7 +660,7 @@ void saveDataCSV(const std::string& filename, bp::dict arg,
 }
 
 #ifdef ESYS_HAVE_BOOST_NUMPY
-boost::python::list getNumpy(boost::python::dict arg) 
+boost::python::list getNumpy(boost::python::dict arg)
 {
     // Initialise boost python numpy
     bp::numpy::initialize();
@@ -758,7 +758,7 @@ boost::python::list getNumpy(boost::python::dict arg)
     } else {
         arraylength = dpps * numsamples;
     }
-    
+
     //Work out how many rows each array should have
     std::vector<int> spaces(numdata);
     signed int total = 0;
@@ -792,7 +792,7 @@ boost::python::list getNumpy(boost::python::dict arg)
             }
         }
     }
-    
+
     int error = 0;
     int maskcounter = 0;
     std::string localmsg;
@@ -819,7 +819,7 @@ boost::python::list getNumpy(boost::python::dict arg)
             }
 
             // Work out if we want to get this row
-            wantrow = true; 
+            wantrow = true;
             if (hasmask) {
                 masksample = mask.getSampleDataRO(i, onlyreal);
                 if (!expandedmask) {
@@ -851,7 +851,7 @@ boost::python::list getNumpy(boost::python::dict arg)
                             DataTypes::pointToNumpyArray(dataArray, samplesR[d],
                                 data[d].getDataPointShape(), offset[d], spaces[d], hasmask ? maskcounter : i+j*numsamples);
                         }
-                        
+
                         offset[d] += step[d];
                         maskcounter++;
                     }
@@ -910,7 +910,7 @@ boost::python::list getNumpy(boost::python::dict arg)
         answer.append(temp);
     }
 
-    // Print out the ndarray to the console - used during debugging 
+    // Print out the ndarray to the console - used during debugging
     // std::cout << "Finished array:\n" << bp::extract<char const *>(bp::str(dataArray)) << std::endl;
 
     return answer;
@@ -940,7 +940,7 @@ boost::python::numpy::ndarray convertToNumpy(escript::Data data)
     if(shape.size() == 0){ // If we have scalar data, the shape will be ()
         shape.push_back(1);
     }
-    
+
     // Work out the shape
     int dimensions = data.getShapeProduct();
 
@@ -955,12 +955,12 @@ boost::python::numpy::ndarray convertToNumpy(escript::Data data)
     // Initialise variables
     std::string localmsg;
     std::vector<const DataTypes::real_t*> samplesR(1);
-    
+
     // This is needed below in getSampleDataRO
     const DataTypes::real_t onlyreal = 0;
     const DataTypes::cplx_t onlycomplex = 0;
 
-// #pragma omp parallel for 
+// #pragma omp parallel for
     for (int i = 0; i < numDataPoints; ++i) {
         for (int j = 0; j < shape[0]; j++) {
             if(have_complex){
@@ -971,13 +971,13 @@ boost::python::numpy::ndarray convertToNumpy(escript::Data data)
         }
     }
 
-    // Print out the ndarray to the console - used during debugging 
+    // Print out the ndarray to the console - used during debugging
     // std::cout << "Finished array:\n" << bp::extract<char const *>(bp::str(dataArray)) << std::endl;
 
     return dataArray;
 }
 #else
-void convertToNumpy(bp::dict arg){
+void convertToNumpy(escript::Data data){
     throw DataException("getNumpy: Error - Please recompile escripts with the boost numpy library");
 }
 #endif
@@ -1021,4 +1021,3 @@ void resolveGroup(bp::object obj)
 
 
 } // end of namespace
-

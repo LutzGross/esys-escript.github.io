@@ -46,14 +46,14 @@ ESCRIPT_DLL_API void printParallelThreadCnt();
 
 /**
     \brief
-    set the number of threads 
+    set the number of threads
     \warning Use of this method is strongly discouraged. It may be deprecated in future.
 */
 ESCRIPT_DLL_API void setNumberOfThreads(const int num_threads);
 
 /**
     \brief
-    returns the number of threads 
+    returns the number of threads
 */
 ESCRIPT_DLL_API int getNumberOfThreads();
 
@@ -91,7 +91,7 @@ ESCRIPT_DLL_API void MPIBarrierWorld();
 ESCRIPT_DLL_API int runMPIProgram(const boost::python::list args);
 
 /**
-    \brief 
+    \brief
     returns the machine precision
 */
 ESCRIPT_DLL_API double getMachinePrecision();
@@ -105,9 +105,9 @@ ESCRIPT_DLL_API double getMaxFloat();
 ESCRIPT_DLL_API void saveDataCSV(const std::string& filename,
                                  boost::python::dict arg,
                                  const std::string& sep,
-                                 const std::string& csep, 
-                                 bool refid=false, 
-                                 bool append=false); 
+                                 const std::string& csep,
+                                 bool refid=false,
+                                 bool append=false);
 
 #ifdef ESYS_HAVE_BOOST_NUMPY
 ESCRIPT_DLL_API boost::python::list getNumpy(boost::python::dict arg);
@@ -118,7 +118,7 @@ ESCRIPT_DLL_API void getNumpy(boost::python::dict arg);
 #ifdef ESYS_HAVE_BOOST_NUMPY
 ESCRIPT_DLL_API boost::python::numpy::ndarray convertToNumpy(escript::Data data);
 #else
-ESCRIPT_DLL_API void convertToNumpy(boost::python::dict arg);
+ESCRIPT_DLL_API void convertToNumpy(escript::Data data);
 #endif
 
 
@@ -134,4 +134,3 @@ ESCRIPT_DLL_API void resolveGroup(boost::python::object obj);
 } // end of namespace
 
 #endif // __ESCRIPT_UTILS_H__
-
