@@ -8,10 +8,12 @@ RUN cat /etc/os-release
 RUN apt-get update
 RUN apt-get -y install texlive-binaries
 RUN apt-get -y install x11vnc xvfb libglvnd-dev tzdata
+RUN apt-get -y install gmsh
 
 RUN conda update -n base conda
 RUN conda install --yes spyder
 RUN conda install --yes esys-escript -c aellery -c conda-forge
+RUN conda install --yes k3d -c conda-forge
 RUN conda install --yes mayavi -c conda-forge
 RUN conda install --yes jupyter_contrib_nbextensions -c conda-forge
 
