@@ -321,7 +321,8 @@ def checkBoost(env):
             # If found, add the necessary information to env
             if len(libname) > 0:
                 env.AppendUnique(LIBS = libname)
-                env['boost_libs'].append(libname)
+                tmp=env['boost_libs']
+                env['boost_libs']=[tmp,libname]
                 env.AppendUnique(CPPPATH = [boost_numpy_inc_path])
                 env.AppendUnique(LIBPATH = [boost_numpy_lib_path])
                 env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], boost_numpy_lib_path)
