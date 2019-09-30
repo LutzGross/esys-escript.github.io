@@ -20,16 +20,18 @@ openmp = True
 umfpack = True
 silo = True
 # mpi = 'OPENMPI'
-# verbose = True
-# debug = True
-trilinos = True
+verbose = True
 # paso = False
 # parmetis = True
 visit = True
-#werror = False
 # cxx = 'clang++'
-# cxx='/usr/bin/clang++'
-domains="oxley"
+cxx='/usr/local/gcc/bin/g++'
+debug = True
+# cxx_extra='-w '
+cxx_extra = "-Wno-unused-variable -Wno-unused-but-set-variable -Wno-catch-value"
+
+# trilinos = True
+# werror = False
 
 python = 3
 
@@ -39,7 +41,7 @@ escript_opts_version = 203
 import os
 import subprocess
 
-cxx_extra += " -fmessage-length=80 -fdiagnostics-color=always "
+cxx_extra += " -fmessage-length=80 -fdiagnostics-color=always"
 if trilinos is True:
   cxx_extra += "  -Wno-deprecated-declarations -Wno-unused-variable "
 
@@ -59,22 +61,25 @@ umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
 visit_prefix = ['/usr/local/visit/2.13.2/linux-x86_64/libsim/V2/include/','/usr/local/visit/2.13.2/linux-x86_64/libsim/V2/lib/']
 
 if cxx=='clang++':
-  trilinos_prefix =['/usr/local/trilinos_clang/include/','/usr/local/trilinos_clang/lib/']
+  #trilinos_prefix =['/usr/local/trilinos_clang/include/','/usr/local/trilinos_clang/lib/']
+  trilinos_prefix =['/usr/local/trilinos/include/','/usr/local/trilinos/lib/']
 elif mpi=='OPENMPI':
   trilinos_prefix =['/usr/local/trilinos_mpi/include/','/usr/local/trilinos_mpi/lib/']
 else:
   trilinos_prefix =['/usr/local/trilinos/include/','/usr/local/trilinos/lib/']
 
 if trilinos == True:
-  print("Meerkat config: Using trilinos libraries %s" % trilinos_prefix) 
+  print("Meerkat config: Using trilinos libraries %s" % trilinos_prefix)
 
- 
-boost_prefix='/usr/local'
+
+# boost_prefix='/usr/local'
+boost_prefix='/usr/local/boost'
 p = subprocess.Popen(["ld","--verbose"], stdout=subprocess.PIPE)
 out,err = p.communicate()
 spath = [x[13:-3] for x in out.split() if 'SEARCH_DIR' in x]
 p2name = ''
 p3name = ''
+spath.append(os.path.join(boost_prefix,"lib"))
 for name in spath:
   try:
     l=os.listdir(name)
@@ -95,7 +100,7 @@ else:
   boost_libs = [p3name[3:-3]]
   pythoncmd = '/usr/bin/python3'
 
-print("Meerkat config: Linking with %s" % boost_libs) 
+print("Meerkat config: Linking with %s" % boost_libs)
 
 #boost_libs = [p2name[3:-3], 'boost_numpy27']
 # boost_libs = ['boost_python27', 'boost_numpy27']

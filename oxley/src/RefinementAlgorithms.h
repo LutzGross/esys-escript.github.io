@@ -13,14 +13,49 @@
 *
 *****************************************************************************/
 
+#include <oxley/OxleyData.h>
+
 #include <p4est.h>
+#include <p4est_iterate.h>
 #include <p8est.h>
+#include <p8est_iterate.h>
+
+#ifdef ESYS_HAVE_BOOST_NUMPY
+#include <boost/python/numpy.hpp>
+#endif
 
 namespace oxley {
 
-int refine_uniform(p4est_t * p4est, p4est_topidx_t which_tree, p4est_quadrant_t * quadrant);
+// Uniform refinement
+int refine_uniform(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant);
 
-// int refine_uniform(p8est_t * p8est, p8est_topidx_t which_tree, p8est_quadrant_t * quadrant);
+int refine_uniform(p8est_t * p8est, p4est_topidx_t tree, p8est_quadrant_t * quadrant);
+
+/*
+ *  \brief
+ *  gce_first_pass tags the corner node as being above or below the curve
+ */
+void gce_first_pass(p4est_iter_volume_info_t * info, void *quad_data);
+
+void gce_first_pass(p8est_iter_volume_info_t * info, void *quad_data);
+
+/*
+ *  \brief
+ *  gce_second_pass identifies whether a quadrant/octant is in the region being
+ *  refined and identifies whether the nodes are above or below the surface
+ */
+void gce_second_pass(p4est_iter_volume_info_t * info, void *quad_data);
+
+void gce_second_pass(p8est_iter_volume_info_t * info, void *quad_data);
+
+
+/*
+ *  \brief
+ *  refine_gce returns true if we are refining this quadrant/octant
+ */
+int refine_gce(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant);
+
+int refine_gce(p8est_t * p8est, p4est_topidx_t tree, p8est_quadrant_t * quadrant);
 
 
 } //namespace oxley

@@ -15,7 +15,6 @@
 
 #ifndef __OXLEY_EXCEPTION_H__
 #define __OXLEY_EXCEPTION_H__
-#endif
 
 #include <escript/EsysException.h>
 
@@ -34,3 +33,5 @@ public:
 } // end of namespace oxley
 
 
+
+#endif

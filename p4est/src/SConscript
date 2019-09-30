@@ -210,7 +210,6 @@ p4estlibs = []
 # if env['trilinos']:
 #     p4estlibs += env['trilinoswrap_libs']
 
-# p4estlibs = ['lapack','cblas','f77blas','atlas','z','m']
 p4estlibs = ['lapack']
 local_env.PrependUnique(LIBS = p4estlibs)
 
