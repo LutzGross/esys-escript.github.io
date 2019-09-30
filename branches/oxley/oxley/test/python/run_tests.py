@@ -28,10 +28,19 @@ from esys.escriptcore.testing import *
 from esys.escript import *
 from esys.oxley import *
 
-class Test_GeneratorsOnFinley(unittest.TestCase):
+class Test_OxleyDomain(unittest.TestCase):
 
     def test_test(self):
         self.assertEqual(1,1,"Oxley testing code has failed to run.")
+
+    # This just checks that it writes to file and p4est doesn't return an error.
+    def test_getDim(self):
+        domain=Rectangle(order=2,n0=10,n1=10)
+        self.assertEqual(domain.getDim(),2,"Oxley::Rectangle dim is wrong.")
+        domain=Brick(order=2,n0=10,n1=10,n2=10)
+        self.assertEqual(domain.getDim(),3,"Oxley::Rectangle dim is wrong.")
+
+class Test_ReadWriteOxley(unittest.TestCase):
 
     # This just checks that it writes to file and p4est doesn't return an error.
     # TODO: Check the file itself for errors
@@ -57,7 +66,19 @@ class Test_GeneratorsOnFinley(unittest.TestCase):
         os.remove("/tmp/brick.vtk.pvtu")
         os.remove("/tmp/brick.vtk.visit")
 
+# AEAE: List of tests to add
+# addSurface bounces an error when the arrays are of different lengths
+# addSurface bounces an error when the arrays are of inappropriate size for the domain
+# addSurface works for at least one test example in 2D
+# addSurface works for at least one test example in 3D
+# domain.refine bounces an error when incorrect input is passed on
+# uniform refinement works properly for both rectangle and bricks
+# uniform refinement works properly for irregular rectangle and bricks
+# writeToVTK works for a normal mesh in 2D
+# writeToVTK works for a normal mesh in 3D
+# writeToVTK works for a normal mesh in 2D with Tag info
+# writeToVTK works for a normal mesh in 3D with Tag info
+
 
 if __name__ == '__main__':
     run_tests(__name__, exit_on_failure=True)
-

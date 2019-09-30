@@ -18,6 +18,10 @@
 #include <oxley/OxleyDomain.h>
 
 #include <escript/Data.h>
+// #include <escript/DataFactory.h>
+#include <escript/FunctionSpaceFactory.h>
+// #include <escript/index.h>
+// #include <escript/SolverOptions.h>
 
 namespace bp = boost::python;
 
@@ -27,11 +31,11 @@ namespace oxley {
 
     /**
        \brief
-       Constructor 
+       Constructor
     */
     OxleyDomain::OxleyDomain(dim_t dim, int order)
     {
-        
+
     }
 
     /**
@@ -43,7 +47,7 @@ namespace oxley {
     }
 
 
-    std::string OxleyDomain::functionSpaceTypeAsString(int fsType) const 
+    std::string OxleyDomain::functionSpaceTypeAsString(int fsType) const
     {
         throw OxleyException("currently not implemented"); // ae: This is temporary
     }
@@ -54,11 +58,6 @@ namespace oxley {
     }
 
     int OxleyDomain::getTagFromSampleNo(int fsType, index_t sampleNo) const
-    {
-        throw OxleyException("currently not implemented"); // ae: This is temporary
-    }
-
-    string OxleyDomain::showTagNames() const
     {
         throw OxleyException("currently not implemented"); // ae: This is temporary
     }
@@ -86,6 +85,7 @@ namespace oxley {
     escript::Data OxleyDomain::getX() const
     {
         throw OxleyException("currently not implemented"); // ae: This is temporary
+        // return escript::continuousFunction(*this).getX();
     }
 
     std::string OxleyDomain::getDescription() const
@@ -113,11 +113,6 @@ namespace oxley {
         throw OxleyException("currently not implemented"); // ae: This is temporary
     }
 
-    void OxleyDomain::setTags(const int fsType, const int newTag, const escript::Data& mask) const
-    {
-        throw OxleyException("currently not implemented"); // ae: This is temporary
-    }
-
     bool OxleyDomain::isCellOriented(int fsType) const
     {
         throw OxleyException("currently not implemented"); // ae: This is temporary
@@ -125,12 +120,12 @@ namespace oxley {
 
     int OxleyDomain::getNumberOfTagsInUse(int fsType) const
     {
-        throw OxleyException("currently not implemented"); // ae: This is temporary
+        return numberOfTags;
     }
 
     const int* OxleyDomain::borrowListOfTagsInUse(int fsType) const
     {
-        throw OxleyException("currently not implemented"); // ae: This is temporary
+        return &tags[0];
     }
 
     bool OxleyDomain::canTag(int fsType) const
@@ -138,15 +133,44 @@ namespace oxley {
         throw OxleyException("currently not implemented"); // ae: This is temporary
     }
 
-    void OxleyDomain::writeToVTK(std::string filename) const
+    bool OxleyDomain::isValidTagName(const std::string& name) const
+    {
+        throw OxleyException("currently not implemented"); // ae: This is temporary
+    }
+
+    void OxleyDomain::updateTagsInUse(int fsType) const
+    {
+        throw OxleyException("currently not implemented"); // ae: This is temporary
+    }
+
+    void OxleyDomain::writeToVTK(std::string filename, bool writeTagInfo) const
     {
         throw OxleyException("unknown error");
     }
 
-    void OxleyDomain::refineMesh(int maxRecursion, std::string RefinementAlgorithm)
+    void OxleyDomain::refineMesh(int maxRecursion, std::string algorithm)
     {
         throw OxleyException("unknown error");
+    }
+
+    void OxleyDomain::setTagMap(const std::string& name, int tag)
+    {
+        throw OxleyException("currently not implemented"); // ae: This is temporary
+    }
+
+    int OxleyDomain::getTag(const std::string& name) const
+    {
+        throw OxleyException("currently not implemented"); // ae: This is temporary
+    }
+
+    void OxleyDomain::setTags(int fsType, int newTag, const escript::Data& mask) const
+    {
+        throw OxleyException("currently not implemented"); // ae: This is temporary
+    }
+
+    std::string OxleyDomain::showTagNames() const
+    {
+        throw OxleyException("currently not implemented"); // ae: This is temporary
     }
 
 } // end of namespace oxley
-

@@ -19,16 +19,22 @@ module_name = 'oxley'
 
 sources = """
     Brick.cpp
+    InitAlgorithms.cpp
     Rectangle.cpp
+    OtherAlgorithms.cpp
+    OxleyData.cpp
     OxleyDomain.cpp
     RefinementAlgorithms.cpp
 """.split()
 
 headers = """
     Brick.h
+    InitAlgorithms.h
     Rectangle.h
     system_dep.h
+    OtherAlgorithms.h
     Oxley.h
+    OxleyData.h
     OxleyDomain.h
     OxleyException.h
     RefinementAlgorithms.h
@@ -70,5 +76,3 @@ mod_inst = py_env.Install(mod_path, py_lib)
 
 build = env.Alias('build_oxley', [hdr_inst, lib, py_lib])
 env.Alias('install_oxley', ['build_oxley', lib_inst, mod_inst])
-
-

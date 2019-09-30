@@ -21,6 +21,13 @@
 #include <string>
 #include <vector>
 
+#define MAXP4ESTNODES 10000 // Maximum allowed nodes in the p4est / p8est
+#define MAXREFINEMENTLEVELS 5 // Default levels of refinement
+#define MAXTAGS 100 // Maximum allowed number of tags in a domain
+
+#ifndef OXLEYH
+#define OXLEYH
+
 namespace oxley {
 
 using escript::DataTypes::dim_t;
@@ -34,6 +41,7 @@ typedef std::vector<real_t> DoubleVector;
 typedef std::vector<int> RankVector;
 typedef std::map<std::string,int> TagMap;
 
+// fs types
 // enum {
 //     DegreesOfFreedom=1,
 //     ReducedDegreesOfFreedom=2,
@@ -48,4 +56,4 @@ typedef std::map<std::string,int> TagMap;
 
 } // namespace oxley
 
-
+#endif

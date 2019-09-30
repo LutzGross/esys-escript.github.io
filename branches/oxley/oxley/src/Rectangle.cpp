@@ -14,9 +14,13 @@
 *****************************************************************************/
 
 #include <oxley/Rectangle.h>
+#include <oxley/InitAlgorithms.h>
+#include <oxley/OxleyData.h>
 #include <oxley/RefinementAlgorithms.h>
 
+#include <p4est_extended.h>
 #include <p4est_vtk.h>
+#include <p4est_iterate.h>
 
 namespace bp = boost::python;
 
@@ -26,8 +30,8 @@ namespace oxley {
        \brief
        Constructor
     */
-Rectangle::Rectangle(int order, dim_t n0, dim_t n1, 
-    double x0, double y0, double x1, double y1, int d0, int d1): 
+Rectangle::Rectangle(int order, dim_t n0, dim_t n1,
+    double x0, double y0, double x1, double y1, int d0, int d1, int periodic0, int periodic1):
     OxleyDomain(2, order){
 
     // Possible error: User passes invalid values for the dimensions
@@ -47,49 +51,82 @@ Rectangle::Rectangle(int order, dim_t n0, dim_t n1,
         throw OxleyException("Invalid number of spatial subdivisions");
 
     //Create a connectivity
-    connectivity = p4est_connectivity_new_brick((int) n0, (int) n1, periodic[0], periodic[1]);
+    // TODO: change to p4est_connectivity_new_copy
+    connectivity = p4est_connectivity_new_brick((int) n0, (int) n1, periodic0, periodic1);
 
-    // Create a forest that is not refined; it consists of the root octant. 
-    p4est = p4est_new(m_mpiInfo->comm, connectivity, 0, NULL, NULL);
+    if(!p4est_connectivity_is_valid(connectivity))
+        throw OxleyException("Could not create a valid connectivity.");
+
+    // Create a forest that is not refined; it consists of the root octant.
+    long datasize = sizeof(p4estData);
+    // p4est = p4est_new(m_mpiInfo->comm, connectivity, datasize, &init_rectangle_data, NULL);
+    p4est_locidx_t min_quadrants = n0*n1;
+    int min_level = 0;
+    int fill_uniform = 1;
+    p4est = p4est_new_ext(m_mpiInfo->comm, connectivity, min_quadrants,
+            min_level, fill_uniform, datasize, init_rectangle_data, (void *) &forestData);
 
     // Record the physical dimensions of the domain and the location of the origin
-    m_origin[0] = x0;
-    m_origin[1] = y0;
-    m_length[0] = x1-x0;
-    m_length[1] = y1-y0;
+    forestData->m_origin[0] = x0;
+    forestData->m_origin[1] = y0;
+    forestData->m_length[0] = x1-x0;
+    forestData->m_length[1] = y1-y0;
 
-    // number of elements in each dimension 
-    m_gNE[0] = n0;
-    m_gNE[1] = n1;
+    // number of elements in each dimension
+    forestData->m_gNE[0] = n0;
+    forestData->m_gNE[1] = n1;
+
+    // Whether or not we have periodic boundaries
+    forestData->periodic[0] = periodic0;
+    forestData->periodic[1] = periodic1;
 
     //number of elements for this rank in each dimension including shared
-    m_NX[0] = d0;
-    m_NX[1] = d1;
+    forestData->m_NX[0] = d0;
+    forestData->m_NX[1] = d1;
 
     // local number of elements
-    m_NE[0] = m_gNE[0] / d0;
-    m_NE[1] = m_gNE[1] / d1;
+    forestData->m_NE[0] = forestData->m_gNE[0] / d0;
+    forestData->m_NE[1] = forestData->m_gNE[1] / d1;
 
-    }
+    // max levels of refinement
+    forestData->max_levels_refinement = MAXREFINEMENTLEVELS;
 
-    /**
-       \brief
-       Destructor.
-    */
+    // element order
+    m_order = order;
+
+    // initial tag
+    tags[0] = 0;
+    numberOfTags=1;
+
+    // Number of dimensions
+    m_numDim=2;
+
+    // To prevent segmentation faults from using numpy ndarray
+#ifdef ESYS_HAVE_BOOST_NUMPY
+    Py_Initialize();
+    boost::python::numpy::initialize();
+#endif
+}
+
+/**
+   \brief
+   Destructor.
+*/
 Rectangle::~Rectangle(){
 
     p4est_destroy(p4est);
     p4est_connectivity_destroy(connectivity);
+    // sc_finalize();
 
-    }
+}
 
-    /**
-       \brief
-       returns a description for this domain
-    */
+/**
+   \brief
+   returns a description for this domain
+*/
 std::string Rectangle::getDescription() const{
-        return "oxley::Rectangle";
-    }
+    return "oxley::rectangle";
+}
 
 
 /**
@@ -155,7 +192,7 @@ const dim_t* Rectangle::borrowSampleReferenceIDs(int fsType) const
     throw OxleyException("currently: not supported"); //AE this is temporary
 }
 
-void Rectangle::writeToVTK(std::string filename) const
+void Rectangle::writeToVTK(std::string filename, bool writeTagInfo) const
 {
     // Check that the filename is reasonable
     int stringlength=filename.length();
@@ -168,16 +205,58 @@ void Rectangle::writeToVTK(std::string filename) const
 
     // Write to file
     const char * name = filename.c_str();
-    p4est_vtk_write_file(p4est, NULL, name);
+    if(!writeTagInfo)
+    {
+        p4est_vtk_write_file(p4est, NULL, name);
+    }
+    else
+    {
+        // Get the number of quadrants in this thread
+        p4est_locidx_t numquads = p4est->local_num_quadrants;
+
+        // This vector will have one value for each quadrant with double precision
+        sc_array_t * tagNumber = sc_array_new_size(sizeof(double), numquads);
+
+        // Iterate over the p4est and fill the solution values into the sc_array
+        p4est_iterate(p4est, NULL, (void *) tagNumber, getTagVector, NULL, NULL);
+
+        // Create the context for the VTK file
+        p4est_vtk_context_t * context = p4est_vtk_context_new(p4est, name);
+
+        double scale = 1.00;
+        p4est_vtk_context_set_scale(context, scale);
+
+        // Start writing the file
+        context = p4est_vtk_write_header(context);
+        SC_CHECK_ABORT (context != NULL, P4EST_STRING "writeToVTK: Error writing vtk header.");
+        context = p4est_vtk_write_cell_dataf(context, 1, 1, 0, 0, 1, 0, "tag", tagNumber, context);
+        SC_CHECK_ABORT (context != NULL, P4EST_STRING "writeToVTK: Error writing cell data.");
+        context = p4est_vtk_write_point_dataf(context, 0, 0, context);
+        SC_CHECK_ABORT (context != NULL, P4EST_STRING "writeToVTK: Error writing point data.");
+        int temp = p4est_vtk_write_footer(context);
+        SC_CHECK_ABORT(!temp, P4EST_STRING "_vtk: Error writing footer");
+
+        // Cleanup
+        // p4est_vtk_context_destroy(context);
+        sc_array_destroy(tagNumber);
+    }
 }
 
-void Rectangle::refineMesh(int maxRecursion=2, std::string method="GridCorners")
+void Rectangle::refineMesh(int maxRecursion, std::string algorithmname)
 {
-    if(method.compare("GridCorners") == true){
-        p4est_refine(p4est, maxRecursion, &refine_uniform, NULL); 
+    if(!algorithmname.compare("uniform")){
+        p4est_refine_ext(p4est, true, maxRecursion, refine_uniform, NULL, refine_copy_parent_quadrant);
+        p4est_balance_ext(p4est, P4EST_CONNECT_FULL, NULL, refine_copy_parent_quadrant);
+        int partforcoarsen = 1;
+        p4est_partition(p4est, partforcoarsen, NULL);
     } else {
-        throw OxleyException("Unknown refinement algorithm.");
+        throw OxleyException("Unknown refinement algorithm name.");
     }
+}
+
+escript::Data Rectangle::getX() const
+{
+    throw OxleyException("Currently not implemented"); //aeae this is temporary
 }
 
 } // end of namespace oxley

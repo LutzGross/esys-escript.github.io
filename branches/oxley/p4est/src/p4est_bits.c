@@ -837,11 +837,17 @@ p4est_quadrant_enlarge_first (const p4est_quadrant_t * a,
                 p4est_quadrant_is_ancestor (q, &inp));
 
   /* verify that the first corner stayed the same */
-  P4EST_ASSERT (q->x == inp.x && q->y == inp.y
-#ifdef P4_TO_P8
-                && q->z == inp.z
+//   P4EST_ASSERT (q->x == inp.x && q->y == inp.y
+// #ifdef P4_TO_P8
+//                 && q->z == inp.z
+// #endif
+//     );
+#ifndef P4_TO_P8
+    P4EST_ASSERT (q->x == inp.x && q->y == inp.y);
+#else
+    P4EST_ASSERT (q->x == inp.x && q->y == inp.y && q->z == inp.z);
 #endif
-    );
+  // );
 }
 
 void

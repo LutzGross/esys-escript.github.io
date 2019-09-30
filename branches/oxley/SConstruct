@@ -151,8 +151,7 @@ vars.AddVariables(
   BoolVariable('osx_dependency_fix', 'Fix dependencies for libraries to have absolute paths (OSX)', False),
   BoolVariable('stdlocationisprefix', 'Set the prefix as escript root in the launcher', False),
   BoolVariable('mpi_no_host', 'Do not specify --host in run-escript launcher (only OPENMPI)', False),
-  BoolVariable('insane', 'Instructs scons to not run a sanity check after compilation.', False),
-  BoolVariable('build_p4est', 'Instructs scons to compile and install p4est.', False)
+  BoolVariable('insane', 'Instructs scons to not run a sanity check after compilation.', False)
 )
 
 ##################### Create environment and help text #######################
@@ -281,15 +280,15 @@ elif cc_name[:3] == 'g++':
     # GNU C++ on any system
     # note that -ffast-math is not used because it breaks isnan(),
     # see mantis #691
-    cc_flags     = " -Wall -fPIC -finline-functions -Wno-format-overflow"
+    cc_flags     = " -Wall -fPIC -finline-functions "
     cxx_flags     = "-std=c++11 -pedantic -Wall -fPIC -finline-functions"
-    cc_flags += " -Wno-unknown-pragmas -Wno-sign-compare -Wno-system-headers -Wno-long-long -Wno-strict-aliasing "
+    cc_flags += " -Wno-unknown-pragmas -Wno-sign-compare -Wno-system-headers -Wno-long-long -Wno-strict-aliasing -Wno-maybe-uninitialized"
     cc_flags += " --param=max-vartrack-size=100000000"
     cc_optim     = "-O3"
     #max-vartrack-size: avoid vartrack limit being exceeded with escriptcpp.cpp
     cc_debug     = "-g3 -O0  -DDOASSERT -DDOPROF -DBOUNDS_CHECK -DSLOWSHARECHECK --param=max-vartrack-size=100000000"
     #Removed because new netcdf doesn't seem to like it
-    #cc_debug += ' -D_GLIBCXX_DEBUG  ' 
+    #cc_debug += ' -D_GLIBCXX_DEBUG  '
     omp_flags    = "-fopenmp"
     omp_ldflags  = "-fopenmp"
     fatalwarning = "-Werror"
@@ -309,12 +308,12 @@ elif cc_name == 'icl':
     omp_ldflags  = '/Qvec-report0 /Qopenmp /Qopenmp-report0 /Qparallel'
 elif cc_name == 'clang++':
     # Clang++ on any system
-    cxx_flags     = "-std=c++11 -Wall -fPIC -fdiagnostics-color=always "
-    cc_flags    += "-Wno-unused-private-field -Wno-unknown-pragmas -Wno-uninitialized"
+    cxx_flags     = "-std=c++11 -Wall -fPIC -fdiagnostics-color=always  "
+    cc_flags    += "-Wno-unused-private-field -Wno-unknown-pragmas -Wno-uninitialized "
     if env['trilinos'] is True:
-      cc_flags += "-Wno-unused-variable -Wno-exceptions -Wno-deprecated-declarations"
+      cc_flags += "-Wno-unused-variable -Wno-exceptions -Wno-deprecated-declarations "
     cc_optim     = "-O3"
-    cc_debug     = "-ggdb3 -O0 -fdiagnostics-fixit-info -pedantic "
+    cc_debug     = "-ggdb3 -O0  -pedantic "
     cc_debug    += "-DDOASSERT -DDOPROF -DBOUNDS_CHECK -DSLOWSHARECHECK "
     omp_flags    = "-fopenmp"
     omp_ldflags  = "-fopenmp"
@@ -366,6 +365,15 @@ else:
     env['omp_flags']=''
     env['omp_ldflags']=''
 
+# Flags used by the p4est program
+if env['openmp']:
+    env.Append(CPPDEFINES=['P4EST_HAVE_OPENMP'])
+    env.Append(CPPDEFINES=['P4EST_OPENMP'])
+    env.Append(CPPDEFINES=['P4EST_ENABLE_OPENMP'])
+    env.Append(CPPDEFINES=['ENABLE_OPENMP'])
+    env.Append(CPPDEFINES=['HAVE_OPENMP'])
+    env.Append(CPPDEFINES=['OPENMP'])
+
 env['buildvars']['openmp']=int(env['openmp'])
 
 # add debug/non-debug compiler flags
@@ -373,6 +381,7 @@ env['buildvars']['debug']=int(env['debug'])
 if env['debug']:
     env.Append(CCFLAGS = env['cc_debug'])
     env.Append(CXXFLAGS = env['cc_debug'])
+    env.Append(CPPDEFINES=['P4EST_ENABLE_DEBUG'])
 else:
     env.Append(CCFLAGS = env['cc_optim'])
     env.Append(CXXFLAGS = env['cc_optim'])
@@ -533,6 +542,18 @@ if env['prelaunch'] == 'default':
         env['prelaunch'] = "mpdboot -n %n -r ssh -f %f"
     else:
         env['prelaunch'] = ""
+
+# Used by p4est
+if env['mpi'] != 'no' and env['mpi'] != 'none':
+    env.Append(CPPDEFINES = ['P4EST_ENABLE_MPI'])
+    env.Append(CPPDEFINES = ['P4EST_ENABLE_MPICOMMSHARED'])
+    env.Append(CPPDEFINES = ['P4EST_ENABLE_MPIIO'])
+    env.Append(CPPDEFINES = ['P4EST_ENABLE_MPITHREAD'])
+    env.Append(CPPDEFINES = ['P4EST_MPI'])
+    env.Append(CPPDEFINES = ['P4EST_MPIIO'])
+    env.Append(CPPDEFINES = ['MPI'])
+    env.Append(CPPDEFINES = ['MPIIO'])
+
 
 if env['launcher'] == 'default':
     if env['mpi'] == 'INTELMPI':
@@ -747,6 +768,10 @@ def print_summary():
     print("  Install prefix:  %s"%env['prefix'])
     print("          Python:  %s (Version %s)"%(env['pythoncmd'],env['python_version']))
     print("           boost:  %s (Version %s)"%(env['boost_prefix'],env['boost_version']))
+    if env['have_boost_numpy'] is True:
+        print("     boost numpy:  YES")
+    else:
+        print("     boost numpy:  NO")
     if env['trilinos']:
         print("        trilinos:  %s "%(env['trilinos_prefix']))
     else:
@@ -840,4 +865,3 @@ def print_summary():
         print("\nSUCCESS: build complete\n")
 
 atexit.register(print_summary)
-

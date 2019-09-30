@@ -20,6 +20,7 @@
 #include <escript/SubWorld.h>
 
 #include <oxley/OxleyDomain.h>
+#include <oxley/OxleyData.h>
 
 #include <p8est.h>
 #include <p8est_connectivity.h>
@@ -41,12 +42,13 @@ public:
     /**
        \brief creates a rectangular mesh with n0 x n1 x n2 elements over the
               rectangle [x0,x1] x [y0,y1] x [z0,z1].
-       \param 
+       \param
     */
     // Brick();
 
     Brick(int order, dim_t n0, dim_t n1, dim_t n2, double x0, double y0, double z0,
-      double x1, double y1, double z1, int d0, int d1, int d2);
+      double x1, double y1, double z1, int d0, int d1, int d2,
+      int periodic0, int periodic1, int periodic2);
 
     /**
        \brief
@@ -73,7 +75,7 @@ public:
        \param filename The name of the file to write to
     */
     virtual void write(const std::string& filename) const;
-    
+
     /**
        \brief
        interpolates data given on source onto target where source and target
@@ -111,9 +113,9 @@ public:
     virtual void setToSize(escript::Data& out) const;
 
     /**
-     * \brief 
+     * \brief
        Returns a Data object filled with random data passed through filter.
-    */ 
+    */
     virtual escript::Data randomFill(const escript::DataTypes::ShapeType& shape,
        const escript::FunctionSpace& what, long seed, const boost::python::tuple& filter) const;
 
@@ -129,44 +131,45 @@ public:
        writes the mesh to a VTK file
        \param filename The file name
     */
-    virtual void writeToVTK(std::string filename) const;
+    virtual void writeToVTK(std::string filename, bool writeToVTK) const;
 
     /**
        \brief
-       refines the mesh using enum RefinementAlgorithm
+       returns a pointer to the pXest
     */
-    virtual void refineMesh(int maxRecursion, std::string RefinementAlgorithm);
+    virtual p8est_t* borrow_4est() { return p8est; };
+
+    /**
+       \brief
+       refines the mesh
+       \param maxRecursion Max levels of recursion
+       \param algorithmname The algorithm to use
+    */
+    virtual void refineMesh(int maxRecursion, std::string algorithmname);
+
+    /**
+       \brief
+       sets the number of levels of refinement
+    */
+    virtual void setRefinementLevels(int refinementlevels)
+    {
+        forestData->max_levels_refinement = refinementlevels;
+    };
+
+    // A p8est
+    p8est_t *p8est;
+
+    // The data structure in p4est
+    p8estData * forestData;
 
 private:
 
     // This object records the connectivity of the p8est quadrants
     p8est_connectivity_t *connectivity;
 
-    // A p8est
-    p8est_t *p8est;
-
-    // origin of domain
-    double m_origin[3];
-
-    // side lengths of domain
-    double m_length[3];
-
-    // number of spatial subdivisions
-    int m_NX[3];
-
-    // total number of elements in each dimension
-    dim_t m_gNE[3];
-
-    // number of elements for this rank in each dimension including shared
-    dim_t m_NE[3];
-
-    // periodic boundary conditions
-    int periodic[3] {false, false, false};
-
-
 };
 
-////////////////////////////// inline methods ////////////////////////////////
+typedef POINTER_WRAPPER_CLASS(Brick) OxleyDomainBrick_ptr;
 
 } //end namespace
 

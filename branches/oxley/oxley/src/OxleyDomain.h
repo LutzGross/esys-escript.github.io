@@ -13,8 +13,6 @@
 *
 *****************************************************************************/
 
-
-
 #include <oxley/Oxley.h>
 #ifndef __OXLEY_EXCEPTION_H__
 #include <oxley/OxleyException.h>
@@ -22,11 +20,15 @@
 #include <escript/EsysMPI.h>
 #include <escript/AbstractContinuousDomain.h>
 
-// #include <p4est/sc_mpi.h>
+#ifdef ESYS_HAVE_BOOST_NUMPY
+#include <boost/python/numpy.hpp>
+#endif
+
+#include <p4est.h>
 
 namespace oxley {
 
-/* 
+/*
 This class is the parent of Oxley Rectangle and Brick
 */
 class OxleyDomain : public escript::AbstractContinuousDomain
@@ -34,7 +36,7 @@ class OxleyDomain : public escript::AbstractContinuousDomain
 public:
     /**
        \brief
-       Constructor 
+       Constructor
     */
     OxleyDomain(dim_t dim, int order);
 
@@ -49,7 +51,7 @@ public:
        returns a description for this domain
     */
     virtual std::string getDescription() const;
-  
+
 
     /**
      \brief
@@ -67,7 +69,7 @@ public:
        \brief
        returns the MPI rank of this processor
     */
-    virtual int getMPIRank() const { return m_mpiInfo->rank; } 
+    virtual int getMPIRank() const { return m_mpiInfo->rank; }
 
     /**
        \brief
@@ -134,14 +136,14 @@ public:
        returns true if this rank owns the sample id on given function space
     */
     virtual bool ownSample(int fsType, index_t id) const = 0;
-    
+
     /**
        \brief
        returns the tag key for the given sample number
        \param fsType The function space type
        \param sampleNo The sample number
     */
-    int getTagFromSampleNo(int fsType, dim_t sampleNo) const;
+    virtual int getTagFromSampleNo(int fsType, dim_t sampleNo) const;
 
     /**
        \brief
@@ -149,22 +151,17 @@ public:
        \param name tag name
        \param tag tag key
     */
-    virtual void setTagMap(const std::string& name, int tag) {
-        m_tagMap[name] = tag;
-    } 
+    virtual void setTagMap(const std::string& name, int tag);
+    // {
+    //     m_tagMap[name] = tag;
+    // }
 
     /**
        \brief
        returns the tag key for tag name
        \param name tag name
     */
-    virtual int getTag(const std::string& name) const {
-        if (m_tagMap.find(name) != m_tagMap.end()) {
-            return m_tagMap.find(name)->second;
-        } else {
-            throw OxleyException("getTag: invalid tag name");
-        }
-    }
+    virtual int getTag(const std::string& name) const;
 
     /**
        \brief
@@ -202,12 +199,13 @@ public:
        returns true if name is a defined tag name
        \param name tag name to be checked
     */
-    virtual bool isValidTagName(const std::string& name) const {
-        return (m_tagMap.find(name)!=m_tagMap.end());
-    }
+    virtual bool isValidTagName(const std::string& name) const;
+    // {
+    //     return (m_tagMap.find(name)!=m_tagMap.end());
+    // }
 
     // this is const because setTags is const
-    void updateTagsInUse(int fsType) const;
+    virtual void updateTagsInUse(int fsType) const;
 
     /**
        \brief
@@ -283,7 +281,7 @@ public:
 
     /**
        \brief
-       returns locations in the SEM nodes
+       returns locations of the nodes
     */
     virtual escript::Data getX() const;
 
@@ -322,8 +320,6 @@ public:
     */
     virtual bool isCellOriented(int fsType) const;
 
-
-
     /**
        \brief
        returns the approximation order used for a function space
@@ -340,26 +336,43 @@ public:
        \brief
        writes the mesh to file
     */
-    virtual void writeToVTK(std::string filename) const;
+    virtual void writeToVTK(std::string filename, bool writeTagInfo) const;
+
+    /**
+       \brief
+       sets the number of levels of refinement
+    */
+    virtual void setRefinementLevels(int refinementlevels) = 0;
 
     /**
        \brief
        refines the mesh using enum RefinementAlgorithm
     */
-    virtual void refineMesh(int maxRecursion, std::string RefinementAlgorithm);
+    virtual void refineMesh(int maxRecursion, std::string algorithm);
 
+    //List of tags currently in use
+    int tags[MAXTAGS] = {-1};
+
+    // Current number of tags
+    int numberOfTags = 0;
 
 protected:
-    int m_numDim;
-    escript::JMPI m_mpiInfo;
-    
-    // Tag information
-    TagMap m_tagMap;
-    mutable std::vector<int> m_nodeTags, m_nodeTagsInUse;
-    mutable std::vector<int> m_elementTags, m_elementTagsInUse;
-    mutable std::vector<int> m_faceTags, m_faceTagsInUse;
 
+    // element order
+    int m_order;
+
+    // number of dimensions
+    int m_numDim;
+
+    //max levels of refinement
+    int m_refinement_levels;
+
+    // MPI info
+    escript::JMPI m_mpiInfo;
 };
+
+#define POINTER_WRAPPER_CLASS(x) boost::shared_ptr<x>
+typedef POINTER_WRAPPER_CLASS(OxleyDomain) OxleyDomain_ptr;
 
 } // end of namespace oxley
 
