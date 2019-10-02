@@ -156,6 +156,12 @@ public:
         forestData->max_levels_refinement = refinementlevels;
     };
 
+    /**
+       \brief
+       returns a Data object containing the coordinate information
+    */
+    int getNumVertices() const { return connectivity->num_vertices;};
+
     // A p8est
     p8est_t *p8est;
 

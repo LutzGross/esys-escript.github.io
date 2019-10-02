@@ -107,10 +107,13 @@ EscriptParams::EscriptParams()
 #ifdef ESYS_INDEXTYPE_LONG
     features.insert("longindex");
 #endif
+#ifdef ESYS_HAVE_BOOST_NUMPY
+    features.insert("boost_numpy");
+#endif
 
     //TODO: these should be replaced by a runtime check in python
 #ifdef ESYS_HAVE_GMSH
-    features.insert("gmsh");    
+    features.insert("gmsh");
 #endif
 #ifdef ESYS_GMSH_MPI
     features.insert("gmsh_mpi");
@@ -192,4 +195,3 @@ bp::list EscriptParams::listFeatures() const
 }
 
 } // end namespace
-

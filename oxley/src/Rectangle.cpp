@@ -30,8 +30,12 @@ namespace oxley {
        \brief
        Constructor
     */
-Rectangle::Rectangle(int order, dim_t n0, dim_t n1,
-    double x0, double y0, double x1, double y1, int d0, int d1, int periodic0, int periodic1):
+Rectangle::Rectangle(int order,
+    dim_t n0, dim_t n1,
+    double x0, double y0,
+    double x1, double y1,
+    int d0, int d1,
+    int periodic0, int periodic1):
     OxleyDomain(2, order){
 
     // Possible error: User passes invalid values for the dimensions
@@ -50,6 +54,10 @@ Rectangle::Rectangle(int order, dim_t n0, dim_t n1,
     if(d0*d1 != m_mpiInfo->size)
         throw OxleyException("Invalid number of spatial subdivisions");
 
+    // These two statements configure the level of verbosity used by p4est
+    sc_init(m_mpiInfo->comm, 1, LOG_BACKTRACE, NULL, LOG_LEVEL);
+    p4est_init(NULL, LOG_LEVEL);
+
     //Create a connectivity
     // TODO: change to p4est_connectivity_new_copy
     connectivity = p4est_connectivity_new_brick((int) n0, (int) n1, periodic0, periodic1);
@@ -57,14 +65,15 @@ Rectangle::Rectangle(int order, dim_t n0, dim_t n1,
     if(!p4est_connectivity_is_valid(connectivity))
         throw OxleyException("Could not create a valid connectivity.");
 
-    // Create a forest that is not refined; it consists of the root octant.
-    long datasize = sizeof(p4estData);
+    // Allocate some memory
+    forestData = (p4estData *) malloc(sizeof(p4estData));
+
     // p4est = p4est_new(m_mpiInfo->comm, connectivity, datasize, &init_rectangle_data, NULL);
-    p4est_locidx_t min_quadrants = n0*n1;
+    p4est_locidx_t min_quadrants = n0*n1 / m_mpiInfo->size;
     int min_level = 0;
     int fill_uniform = 1;
     p4est = p4est_new_ext(m_mpiInfo->comm, connectivity, min_quadrants,
-            min_level, fill_uniform, datasize, init_rectangle_data, (void *) &forestData);
+            min_level, fill_uniform, sizeof(p4estData), init_rectangle_data, (void *) &forestData);
 
     // Record the physical dimensions of the domain and the location of the origin
     forestData->m_origin[0] = x0;
@@ -114,9 +123,10 @@ Rectangle::Rectangle(int order, dim_t n0, dim_t n1,
 */
 Rectangle::~Rectangle(){
 
-    p4est_destroy(p4est);
+    free(forestData);
     p4est_connectivity_destroy(connectivity);
-    // sc_finalize();
+    p4est_destroy(p4est);
+    sc_finalize();
 
 }
 
@@ -258,5 +268,6 @@ escript::Data Rectangle::getX() const
 {
     throw OxleyException("Currently not implemented"); //aeae this is temporary
 }
+
 
 } // end of namespace oxley

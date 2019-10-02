@@ -350,6 +350,12 @@ public:
     */
     virtual void refineMesh(int maxRecursion, std::string algorithm);
 
+    /**
+       \brief
+       returns a Data object containing the coordinate information
+    */
+    virtual int getNumVertices() const = 0;
+
     //List of tags currently in use
     int tags[MAXTAGS] = {-1};
 
