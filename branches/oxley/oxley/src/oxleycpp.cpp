@@ -289,7 +289,9 @@ BOOST_PYTHON_MODULE(oxleycpp)
                 "Refines the mesh.\n"
                 ":param maxRecursion:\n:type int: `Maximum number of levels of refinement,`\n"
                 ":param RefinementAlgorithm:\n:type string: `The refinement algorithm \n"
-                "       accepted values are \"uniform\"");
+                "       accepted values are \"uniform\"")
+        .def("getNumVertices", &oxley::OxleyDomain::getNumVertices,
+                "Returns the number of corners in the mesh.");
 
     class_<oxley::Rectangle, bases<oxley::OxleyDomain> > ("OxleyRectangle", "", no_init);
     class_<oxley::Brick, bases<oxley::OxleyDomain> > ("OxleyBrick", "", no_init);

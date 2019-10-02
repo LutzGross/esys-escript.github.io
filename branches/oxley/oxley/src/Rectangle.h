@@ -176,8 +176,14 @@ public:
     */
     virtual escript::Data getX() const;
 
+    /**
+       \brief
+       returns a Data object containing the coordinate information
+    */
+    int getNumVertices() const { return connectivity->num_vertices;};
+
     // A p4est
-    p4est_t *p4est;
+    p4est_t * p4est;
 
     // The data structure in p4est
     p4estData * forestData;
@@ -185,7 +191,7 @@ public:
 private:
 
     // This object records the connectivity of the p4est quadrants
-    p4est_connectivity_t *connectivity;
+    p4est_connectivity_t * connectivity;
 
 
 

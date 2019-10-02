@@ -48,7 +48,10 @@ if trilinos is True:
 netcdf = 4
 mpi_libs = ['mpi_cxx', 'mpi']
 parmetis_libs = ['parmetis', 'metis']
-silo_libs = ['siloh5', 'hdf5_cpp']
+#silo_libs = ['siloh5', 'hdf5_cpp']
+silo_libs = ['siloh5']
+
+
 umfpack_libs = ['umfpack', 'blas', 'amd']
 
 # gmsh_prefix=['/usr/local/include','/usr/local/lib']

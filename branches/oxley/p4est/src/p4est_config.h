@@ -245,7 +245,8 @@
 
 /* Libraries */
 #ifndef P4EST_LIBS
-#define P4EST_LIBS "-llapack -lcblas -lf77blas -latlas -lz -lm "
+// #define P4EST_LIBS "-llapack -lcblas -lf77blas -latlas -lz -lm "
+#define P4EST_LIBS ""
 #endif
 
 /* Define to the sub-directory where libtool stores uninstalled libraries. */

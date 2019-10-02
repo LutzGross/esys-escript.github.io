@@ -172,7 +172,8 @@
 #define LDFLAGS ""
 
 /* Libraries */
-#define LIBS "-llapack -lcblas -lf77blas -latlas -lz -lm   "
+// #define LIBS "-llapack -lcblas -lf77blas -latlas -lz -lm   "
+#define LIBS ""
 
 /* Define to the sub-directory where libtool stores uninstalled libraries. */
 #define LT_OBJDIR ".libs/"

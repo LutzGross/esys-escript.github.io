@@ -30,8 +30,11 @@ namespace oxley {
        \brief
        Constructor
     */
-Brick::Brick(int order, dim_t n0, dim_t n1, dim_t n2, double x0, double y0, double z0,
-      double x1, double y1, double z1, int d0, int d1, int d2,
+Brick::Brick(int order,
+      dim_t n0, dim_t n1, dim_t n2,
+      double x0, double y0, double z0,
+      double x1, double y1, double z1,
+      int d0, int d1, int d2,
       int periodic0, int periodic1, int periodic2): OxleyDomain(3, order){
 
     // Possible error: User passes invalid values for the dimensions
@@ -51,23 +54,25 @@ Brick::Brick(int order, dim_t n0, dim_t n1, dim_t n2, double x0, double y0, doub
     if(d0*d1*d2 != m_mpiInfo->size)
         throw OxleyException("Invalid number of spatial subdivisions");
 
+    // These two statements configure the level of verbosity used by p4est
+    sc_init(m_mpiInfo->comm, 1, LOG_BACKTRACE, NULL, LOG_LEVEL);
+    p4est_init(NULL, LOG_LEVEL);
+
     //Create a connectivity
     connectivity = p8est_connectivity_new_brick((int) n0, (int) n1, (int) n2,
         periodic0, periodic1, periodic2);
     if(!p8est_connectivity_is_valid(connectivity))
         throw OxleyException("Could not create a valid connectivity.");
 
-    // Create a forest that is not refined; it consists of the root octant.
-    // p8estData *forestdata = new p8estData[d0*d1*d2];
-    // long datasize = sizeof(octantData)+sizeof(p8estData);
+    // Allocate some memory
+    forestData = (p8estData *) malloc(sizeof(p8estData));
 
-    long datasize = sizeof(p8estData);
-    // p8est = p8est_new(m_mpiInfo->comm, connectivity, datasize, &init_brick_data, NULL);
-    p4est_locidx_t min_quadrants = n0*n1*n2;
+    // p8est = p8est_new(m_mpiInfo->comm, connectivity, sizeof(forestData), &init_brick_data, NULL);
+    p4est_locidx_t min_quadrants = n0*n1*n2 / m_mpiInfo->size;
     int min_level = 0;
     int fill_uniform = 1;
     p8est = p8est_new_ext(m_mpiInfo->comm, connectivity, min_quadrants,
-            min_level, fill_uniform, datasize, &init_brick_data, (void *) &forestData);
+            min_level, fill_uniform, sizeof(p8estData), &init_brick_data, (void *) &forestData);
 
     // Record the physical dimensions of the domain and the location of the origin
     forestData->m_origin[0] = x0;
@@ -110,8 +115,11 @@ Brick::Brick(int order, dim_t n0, dim_t n1, dim_t n2, double x0, double y0, doub
     // Number of dimensions
     m_numDim=3;
 
-    // To prevent segmentation faults
+    // To prevent segmentation faults from using numpy ndarray
+#ifdef ESYS_HAVE_BOOST_NUMPY
+    Py_Initialize();
     boost::python::numpy::initialize();
+#endif
 
 }
 
@@ -121,8 +129,9 @@ Brick::Brick(int order, dim_t n0, dim_t n1, dim_t n2, double x0, double y0, doub
 */
 Brick::~Brick(){
 
-    p8est_destroy(p8est);
+    free(forestData);
     p8est_connectivity_destroy(connectivity);
+    p8est_destroy(p8est);
     sc_finalize();
 
 }
