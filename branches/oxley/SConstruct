@@ -283,7 +283,7 @@ elif cc_name[:3] == 'g++':
     cc_flags     = " -Wall -fPIC -finline-functions "
     cxx_flags     = "-std=c++11 -pedantic -Wall -fPIC -finline-functions"
     cc_flags += " -Wno-unknown-pragmas -Wno-sign-compare -Wno-system-headers -Wno-long-long -Wno-strict-aliasing -Wno-maybe-uninitialized"
-    cc_flags += " --param=max-vartrack-size=100000000"
+    cc_flags += " --param=max-vartrack-size=100000000 -Wno-format-overflow -Wno-catch-value"
     cc_optim     = "-O3"
     #max-vartrack-size: avoid vartrack limit being exceeded with escriptcpp.cpp
     cc_debug     = "-g3 -O0  -DDOASSERT -DDOPROF -DBOUNDS_CHECK -DSLOWSHARECHECK --param=max-vartrack-size=100000000"
