@@ -142,9 +142,9 @@ public:
        \brief
        writes the mesh to a VTK file
        \param filename The file name
-       \param WriteTagInfo whether to write tag information
+       \param writeMesh whether to write tag information
     */
-    virtual void writeToVTK(std::string filename, bool WriteTagInfo) const;
+    virtual void writeToVTK(std::string filename, bool writeMesh) const;
 
     /**
        \brief
@@ -187,8 +187,6 @@ public:
 
     // The data structure in p4est
     p4estData * forestData;
-
-private:
 
     // This object records the connectivity of the p4est quadrants
     p4est_connectivity_t * connectivity;

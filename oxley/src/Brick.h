@@ -131,7 +131,7 @@ public:
        writes the mesh to a VTK file
        \param filename The file name
     */
-    virtual void writeToVTK(std::string filename, bool writeToVTK) const;
+    virtual void writeToVTK(std::string filename, bool writeMesh) const;
 
     /**
        \brief

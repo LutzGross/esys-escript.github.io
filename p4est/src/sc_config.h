@@ -284,7 +284,12 @@
 
 /* Libraries */
 #ifndef SC_LIBS
-#define SC_LIBS "-lgomp -llapack -lcblas -lf77blas -latlas -lz -lm   "
+// #define SC_LIBS "-lgomp -llapack -lcblas -lf77blas -latlas -lz -lm   "
+#ifdef P4EST_HAVE_OPENMP
+#define SC_LIBS "-lgomp "
+#else
+#define SC_LIBS ""
+#endif
 #endif
 
 /* minimal log priority */

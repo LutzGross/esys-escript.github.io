@@ -34,13 +34,13 @@
 //quadrant / octant in the p4est / p8est
 struct quadrantData
 {
-	double u; // A Scalar variable
+	double u;
 
 	// The quadrant's tag
-	int quadTag;
+	long quadTag;
 
 	// Node tag
-	bool nodeTag = 0;
+	double nodeTag = 0;
 
 	// Spatial coordinates of the corner node that defines the quadrant
 	double xy[2];
@@ -51,10 +51,10 @@ struct octantData
 	double u; // A Scalar variable
 
 	// The octant's tag
-	int octantTag;
+	long octantTag;
 
 	// Node tag
-	bool nodeTag = 0;
+	double nodeTag = 0;
 
 	// Spatial coordinates of the corner node that defines the octant
 	double xyz[3];
@@ -129,9 +129,11 @@ struct addSurfaceData {
 namespace oxley {
 
 // Call back function that copies quadrant tags onto tagVector
-void getTagVector(p4est_iter_volume_info_t * info, void *tagVector);
-void getTagVector(p8est_iter_volume_info_t * info, void *tagVector);
+void getQuadTagVector(p4est_iter_volume_info_t * info, void *tagVector);
+void getQuadTagVector(p8est_iter_volume_info_t * info, void *tagVector);
 
+void getNodeTagVector(p4est_iter_volume_info_t * info, void *tagVector);
+void getNodeTagVector(p8est_iter_volume_info_t * info, void *tagVector);
 
 } //namespace oxley
 

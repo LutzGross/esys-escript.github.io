@@ -278,10 +278,10 @@ BOOST_PYTHON_MODULE(oxleycpp)
         ("OxleyDomain", "", no_init)
         .def("getDescription", &oxley::OxleyDomain::getDescription,
                 "Prints out a description of the mesh.")
-        .def("writeToVTK", &oxley::OxleyDomain::writeToVTK, (arg("filename"), arg("writeTagInfo")=false),
+        .def("writeToVTK", &oxley::OxleyDomain::writeToVTK, (arg("filename"), arg("writeMesh")=false),
                 "Writes the mesh to a VTK file.\n"
                 ":param filename: The name of the output file\n"
-                ":param writeTagInfo: Boolean: Whether to output tag info")
+                ":param writeMesh: Boolean: Only writes the mesh to file")
         .def("setRefinementLevels", &oxley::OxleyDomain::setRefinementLevels, (arg("refinementlevels")),
                 "Sets the number of levels of refinement\n"
                 ":param refinementLevels:\ntype int: `Maximum number of levels of refinement,`\n")

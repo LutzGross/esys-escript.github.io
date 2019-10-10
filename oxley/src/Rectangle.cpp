@@ -202,7 +202,7 @@ const dim_t* Rectangle::borrowSampleReferenceIDs(int fsType) const
     throw OxleyException("currently: not supported"); //AE this is temporary
 }
 
-void Rectangle::writeToVTK(std::string filename, bool writeTagInfo) const
+void Rectangle::writeToVTK(std::string filename, bool writeMesh) const
 {
     // Check that the filename is reasonable
     int stringlength=filename.length();
@@ -215,40 +215,44 @@ void Rectangle::writeToVTK(std::string filename, bool writeTagInfo) const
 
     // Write to file
     const char * name = filename.c_str();
-    if(!writeTagInfo)
+    if(writeMesh)
     {
         p4est_vtk_write_file(p4est, NULL, name);
     }
     else
     {
-        // Get the number of quadrants in this thread
-        p4est_locidx_t numquads = p4est->local_num_quadrants;
-
-        // This vector will have one value for each quadrant with double precision
-        sc_array_t * tagNumber = sc_array_new_size(sizeof(double), numquads);
-
-        // Iterate over the p4est and fill the solution values into the sc_array
-        p4est_iterate(p4est, NULL, (void *) tagNumber, getTagVector, NULL, NULL);
-
         // Create the context for the VTK file
         p4est_vtk_context_t * context = p4est_vtk_context_new(p4est, name);
 
-        double scale = 1.00;
-        p4est_vtk_context_set_scale(context, scale);
-
-        // Start writing the file
+        // Write the header
         context = p4est_vtk_write_header(context);
-        SC_CHECK_ABORT (context != NULL, P4EST_STRING "writeToVTK: Error writing vtk header.");
-        context = p4est_vtk_write_cell_dataf(context, 1, 1, 0, 0, 1, 0, "tag", tagNumber, context);
-        SC_CHECK_ABORT (context != NULL, P4EST_STRING "writeToVTK: Error writing cell data.");
+
+        // Get the point and cell data together
+        p4est_locidx_t numquads = p4est->local_num_quadrants;
+        sc_array_t * quadTag = sc_array_new_count(sizeof(double), numquads);
+        p4est_iterate(p4est, NULL, (void *) quadTag, getQuadTagVector, NULL, NULL);
+
+        // Cell Data
+#ifdef P4EST_ENABLE_DEBUG
+        context = p4est_vtk_write_cell_dataf(context,1,1,0,0,1,0,"tag",quadTag,context);
+#else
+        context = p4est_vtk_write_cell_dataf(context,0,0,0,0,1,0,"tag",quadTag,context);
+#endif
+        if(context == NULL)
+            throw OxleyException("Error writing cell data");
+
+        // Point Data
         context = p4est_vtk_write_point_dataf(context, 0, 0, context);
-        SC_CHECK_ABORT (context != NULL, P4EST_STRING "writeToVTK: Error writing point data.");
-        int temp = p4est_vtk_write_footer(context);
-        SC_CHECK_ABORT(!temp, P4EST_STRING "_vtk: Error writing footer");
+        if(context == NULL)
+            throw OxleyException("Error writing point data");
+
+        // Write the footer
+        if(p4est_vtk_write_footer(context))
+                throw OxleyException("Error writing footer.");
 
         // Cleanup
-        // p4est_vtk_context_destroy(context);
-        sc_array_destroy(tagNumber);
+        sc_array_reset(quadTag);
+        sc_array_destroy(quadTag);
     }
 }
 
