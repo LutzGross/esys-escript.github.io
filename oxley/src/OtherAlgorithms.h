@@ -1,0 +1,61 @@
+/*****************************************************************************
+*
+* Copyright (c) 2003-2019 by The University of Queensland
+* http://www.uq.edu.au
+*
+* Primary Business: Queensland, Australia
+* Licensed under the Apache License, version 2.0
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+* Development 2012-2013 by School of Earth Sciences
+* Development from 2014 by Centre for Geoscience Computing (GeoComp)
+*
+*****************************************************************************/
+
+#include <oxley/Brick.h>
+#include <oxley/Rectangle.h>
+
+#include <boost/python/numpy.hpp>
+
+////////////////////////////////////////////////////////////////////////
+// This file contains other algorithms that operate on but are not part of
+// Rectangle and Brick
+////////////////////////////////////////////////////////////////////////
+
+namespace oxley {
+
+#ifdef ESYS_HAVE_BOOST_NUMPY
+void addSurface(OxleyDomainRect_ptr domain);
+void addSurface(OxleyDomainBrick_ptr domain);
+#endif
+
+// Gets a random new tag number
+long getNewTag(OxleyDomainRect_ptr domain);
+long getNewTag(OxleyDomainBrick_ptr domain);
+
+// Returns true if point (_x,_z) lies above the surface defined by x[], z[]
+// When necessary, this uses linear interpolation
+// Array x has nx elements and array z both have nx elements.
+bool aboveCurve(double x[], double z[], int nx, double _x, double _z);
+bool aboveCurve(std::vector<double> x, std::vector<double> z, int nx, double _x, double _z);
+
+
+// Returns the distance between a point and the interpolated curve
+double distanceToCurve(double x[], double z[], int nx, double _x, double _z);
+
+// Returns true if point (_x,_y,_z) lies above the surface defined by x[], y[], z[]
+// When necessary, this uses bilinear interpolation
+// Array x has nx elements and array y has ny elements. Array z has nx*ny elements.
+bool aboveSurface(double x[], double y[], double z[],
+                    int nx, int ny, double _x, double _y, double _z);
+bool aboveSurface(std::vector<double> x, std::vector<double> y, std::vector<double> z,
+                    int nx, int ny, double _x, double _y, double _z);
+
+// Returns the distance between a point and the interpolated surface
+double distanceToSurface(double x[], double y[], double z[],
+                    int nx, int ny, double _x, double _y, double _z);
+
+///////////////////////////////////////////////////////////////////////////
+
+} // end namespace oxley
