@@ -49,6 +49,12 @@ import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 
 try:
+    from scipy.optimize import leastsq
+    HAVE_SCIPY=True
+except:
+    HAVE_SCIPY=False
+
+try:
     # This imports the rectangle domain function 
     from esys.finley import MakeDomain
     HAVE_FINLEY = True
@@ -61,7 +67,7 @@ if getMPISizeWorld() > 1:
     print("This example will not run in an MPI world.")
     sys.exit(0)
 
-if HAVE_FINLEY:
+if HAVE_FINLEY and HAVE_SCIPY:
     #################################################ESTABLISHING VARIABLES
     #Domain related.
     mx = 10000*m #meters - model length
@@ -137,7 +143,6 @@ if HAVE_FINLEY:
     #guess=[400,mx/4,my/4,50]
     guess=[15.,20.]
 
-    from scipy.optimize import leastsq
     #plsq = leastsq(gzpot, guess, args=(sol_angz, sol_anx, mx, my, ndx, ndy),maxfev=20)
     #print plsq
 

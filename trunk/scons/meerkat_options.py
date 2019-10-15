@@ -18,15 +18,15 @@
 # Refer to README_FIRST for usage instructions.
 
 openmp = True
-umfpack = True
-silo = True
+# umfpack = True
+# silo = True
 # mpi = 'OPENMPI'
 # verbose = True
 # debug = True
 # trilinos = True
 # paso = False
 # parmetis = True
-visit = True
+# visit = True
 #werror = False
 # cxx = 'clang++'
 # cxx='/usr/bin/clang++'
@@ -55,7 +55,7 @@ d_mpi_path = '/usr/include/openmpi'
 mpi_prefix = os.path.split(os.path.realpath(d_mpi_path))[0]
 parmetis_prefix = ['/usr/include','/usr/lib']
 umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
-
+boost_prefix = ['/usr/local/boost']
 visit_prefix = ['/usr/local/visit/2.13.2/linux-x86_64/libsim/V2/include/','/usr/local/visit/2.13.2/linux-x86_64/libsim/V2/lib/']
 
 if cxx=='clang++':

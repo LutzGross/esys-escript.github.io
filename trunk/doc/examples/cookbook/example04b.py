@@ -39,7 +39,6 @@ from esys.escript import *
 from esys.escript.unitsSI import *
 from esys.escript.linearPDEs import LinearPDE
 import pylab as pl #Plotting package
-from cblib import toRegGrid
 import os
 try:
     # This imports the rectangle domain function 
@@ -48,6 +47,12 @@ try:
 except ImportError:
     print("Finley module not available")
     HAVE_FINLEY = False
+try:
+    from cblib import toRegGrid
+    HAVE_CBLIB = True
+except:
+    HAVE_CBLIB = False
+
 
 ########################################################MPI WORLD CHECK
 if getMPISizeWorld() > 1:
@@ -55,7 +60,7 @@ if getMPISizeWorld() > 1:
     print("This example will not run in an MPI world.")
     sys.exit(0)
 
-if HAVE_FINLEY:
+if HAVE_FINLEY and HAVE_CBLIB:
     # make sure path exists
     save_path= os.path.join("data","example04")
     mkDir(save_path)

@@ -23,7 +23,11 @@ __url__="https://launchpad.net/escript-finley"
 from esys.escript import *
 from esys.escript import unitsSI as U
 from esys.escript.pdetools import Locator
-from esys.weipa import saveSilo
+try:
+    from esys.weipa import saveSilo
+    HAVE_SILO = True
+except:
+    HAVE_SILO = False
 from esys.downunder import Ricker, TTIWave, SimpleSEGYWriter
 from math import ceil
 import time
@@ -33,7 +37,7 @@ try:
 except ImportError:
     HAVE_SPECKLEY=False
 
-if HAVE_SPECKLEY:
+if HAVE_SPECKLEY and HAVE_SILO:
     # these are the layers from the top down
     layers = [     400*U.m         ,    100*U.m  ,        1.*U.km,         ]
     v_P=     [    2.86* U.km/U.sec ,    1.5 * U.km/U.sec, 2.86 * U.km/U.sec     ]
@@ -161,7 +165,10 @@ if HAVE_SPECKLEY:
             print("t=%s, src=%s: \t %s \t %s \t %s"%(t, wl.getValue(t),srclog(u[1])[0], srclog(u[1])[src_id], srclog(u[1])[-1]))
             if not n_out is None and n%n_out == 0:
                 print("time step %s written to file %s"%(n_out, "output/u_%d.silo"%(k_out,)))
-                saveSilo("output/u_%d.silo"%(k_out,), u=u)
+                try:
+                    saveSilo("output/u_%d.silo"%(k_out,), u=u)
+                except:
+                    print("Failed saving silo file. Was escript build without Silo support?")
                 k_out+=1
             n+=1
     if tracer_x.obspy_available() and getMPISizeWorld() == 1:

@@ -46,7 +46,11 @@ from esys.escript.unitsSI import *
 import pylab as pl #Plotting package.
 import numpy as np #Array package.
 import os #This package is necessary to handle saving our data.
-import scipy.interpolate
+try:
+    import scipy.interpolate
+    HAVE_SCIPY=True
+except:
+    HAVE_SCIPY=False
 from cblib import toXYTuple
 try:
     from esys.finley import Rectangle
@@ -60,7 +64,7 @@ if getMPISizeWorld() > 1:
         print("This example will not run in an MPI world.")
         sys.exit(0)
 
-if HAVE_FINLEY:
+if HAVE_FINLEY and HAVE_SCIPY:
     #################################################ESTABLISHING VARIABLES
     #PDE related
     mx = 600*m #meters - model length
