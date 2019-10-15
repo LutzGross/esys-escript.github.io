@@ -23,7 +23,11 @@ __url__="https://launchpad.net/escript-finley"
 from esys.escript import *
 from esys.escript import unitsSI as U
 from esys.escript.pdetools import Locator
-from esys.weipa import saveSilo
+try:
+    from esys.weipa import saveSilo
+    HAVE_SILO = True
+except:
+    HAVE_SILO = False
 from esys.downunder import Ricker, VTIWave, SimpleSEGYWriter
 from math import ceil
 
@@ -33,7 +37,7 @@ try:
 except ImportError:
     HAVE_SPECKLEY=False
 
-if HAVE_SPECKLEY:
+if HAVE_SPECKLEY and HAVE_SILO:
     DIM=2          # spatial dimension
 
     depth=1*U.km    # depth 
@@ -165,7 +169,10 @@ if HAVE_SPECKLEY:
                    tracerNS_z.addRecord(locNS(u[2]))
             print(t, locEW(u[DIM-1])[len(rgEW)//2-4:len(rgEW)//2+1], wl.getValue(t))
             #if n%5 == 0 : saveSilo("tmp/u_%d.silo"%(n/5,), u=u)
-            saveSilo("tmp/u_%d.silo"%(n,), u=u, cycle=n, time=t)
+            try:
+                saveSilo("tmp/u_%d.silo"%(n,), u=u, cycle=n, time=t)
+            except:
+                print("Failed saving silo file. Was escript build without Silo support?")
             n+=1
     if tracerEW_x.obspy_available() and getMPISizeWorld() == 1:
         tracerEW_x.write('lineEW_x.sgy')

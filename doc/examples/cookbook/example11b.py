@@ -43,9 +43,11 @@ from esys.escript.linearPDEs import LinearPDE # This defines LinearPDE as Linear
 from esys.escript.pdetools import Projector
 from esys.escript.unitsSI import * 
 from esys.weipa import saveVTK
-
-from cblib import toRegGrid
-
+try:
+    from cblib import toRegGrid
+    HAVE_CBLIB = True
+except:
+    HAVE_CBLIB = False
 try:
     from esys.finley import Rectangle
     HAVE_FINLEY = True

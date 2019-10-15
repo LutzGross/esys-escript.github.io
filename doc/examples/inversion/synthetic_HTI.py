@@ -23,7 +23,11 @@ __url__="https://launchpad.net/escript-finley"
 from esys.escript import *
 from esys.escript import unitsSI as U
 from esys.escript.pdetools import Locator
-from esys.weipa import saveSilo
+try:
+    from esys.weipa import saveSilo
+    HAVE_SILO = True
+except:
+    HAVE_SILO = False
 from esys.downunder import Ricker, SimpleSEGYWriter, HTIWave
 from math import ceil
 from time import time
@@ -34,7 +38,7 @@ try:
 except ImportError:
     HAVE_SPECKLEY=False
 
-if HAVE_SPECKLEY:
+if HAVE_SPECKLEY and HAVE_SILO:
     DIM=2          # spatial dimension
 
 
@@ -204,10 +208,16 @@ if HAVE_SPECKLEY:
         print(t, locEW(u[DIM-1])[len(rgEW)//2-4:len(rgEW)//2+1], wl.getValue(t))
         k+=1
         if k%5 == 0:
-            saveSilo("output/normalHTI_%d.silo"%(n,), v_p=v_p, u=u, cycle=k, time=t)
+            try:
+                saveSilo("output/normalHTI_%d.silo"%(n,), v_p=v_p, u=u, cycle=k, time=t)
+            except:
+                print("Failed saving silo file. Was escript build without Silo support?")
             n += 1
     if k%5 != 0:
-        saveSilo("output/normalHTI_%d.silo"%(n,), v_p=v_p, u=u, cycle=k, time=t)
+        try:
+            saveSilo("output/normalHTI_%d.silo"%(n,), v_p=v_p, u=u, cycle=k, time=t)
+        except:
+            print("Failed saving silo file. Was escript build without Silo support?")
     if tracerEW_x.obspy_available() and getMPISizeWorld() == 1:
         tracerEW_x.write('output/lineEW_x.sgy')
         tracerEW_z.write('output/lineEW_z.sgy')

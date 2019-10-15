@@ -42,7 +42,11 @@ from esys.escript.unitsSI import *
 from esys.escript.linearPDEs import LinearPDE, SolverOptions
 from esys.escript.pdetools import Projector
 from esys.weipa import saveVTK
-from cblib import toRegGrid, subsample
+try:
+    from cblib import toRegGrid, subsample
+    HAVE_CBLIB = True
+except:
+    HAVE_CBLIB = False
 import matplotlib
 matplotlib.use('agg') #It's just here for automated testing
 
@@ -60,7 +64,7 @@ if getMPISizeWorld() > 1:
         print("This example will not run in an MPI world.")
         sys.exit(0)
 
-if HAVE_FINLEY:
+if HAVE_FINLEY and HAVE_CBLIB:
     #################################################ESTABLISHING VARIABLES
     #set modal to 1 for a syncline or -1 for an anticline structural 
     #configuration

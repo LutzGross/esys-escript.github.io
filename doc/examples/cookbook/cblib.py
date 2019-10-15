@@ -29,7 +29,11 @@ from esys.escript import inf,sup
 from esys.escript.pdetools import Locator
 import numpy as np
 import pylab as pl
-import scipy.interpolate
+try:
+    import scipy.interpolate
+    HAVE_SCIPY=True
+except:
+    HAVE_SCIPY=False
 
 def toXYTuple(coords):
     """
@@ -39,22 +43,25 @@ def toXYTuple(coords):
     coordX = coords[:,0]; coordY = coords[:,1] #X and Y components.
     return coordX,coordY
 
-def toRegGrid(u, nx=50, ny=50):
-   """
-   returns a nx x ny grid representation of the escript object u
-   """
-   xx=u.getDomain().getX()     
-   x=u.getFunctionSpace().getX()     
-   coordX, coordY = toXYTuple(x)
-   utemp = u.toListOfTuples()
-   # create regular grid
-   xi = np.linspace(inf(xx[0]),sup(xx[0]),nx)
-   yi = np.linspace(inf(xx[1]),sup(xx[1]),ny)
+if HAVE_SCIPY:
+    def toRegGrid(u, nx=50, ny=50):
+        """
+        returns a nx x ny grid representation of the escript object u
+        """
+        xx=u.getDomain().getX()     
+        x=u.getFunctionSpace().getX()     
+        coordX, coordY = toXYTuple(x)
+        utemp = u.toListOfTuples()
+        # create regular grid
+        xi = np.linspace(inf(xx[0]),sup(xx[0]),nx)
+        yi = np.linspace(inf(xx[1]),sup(xx[1]),ny)
 
-   # interpolate u to grid
-   zi = scipy.interpolate.griddata((coordX,coordY),utemp,(xi[None,:],yi[:,None]),method='linear')
+        # interpolate u to grid
+        zi = scipy.interpolate.griddata((coordX,coordY),utemp,(xi[None,:],yi[:,None]),method='linear')
 
-   return xi, yi, zi
+        return xi, yi, zi
+else:
+    print("This feature requires scipy")
 
 def subsample(u, nx=50, ny=50):
     """
