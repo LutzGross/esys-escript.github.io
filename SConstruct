@@ -382,6 +382,7 @@ if env['debug']:
     env.Append(CCFLAGS = env['cc_debug'])
     env.Append(CXXFLAGS = env['cc_debug'])
     env.Append(CPPDEFINES=['P4EST_ENABLE_DEBUG'])
+    env.Append(CPPDEFINES=['SC_ENABLE_DEBUG'])
 else:
     env.Append(CCFLAGS = env['cc_optim'])
     env.Append(CXXFLAGS = env['cc_optim'])

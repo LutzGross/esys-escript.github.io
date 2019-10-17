@@ -55,7 +55,7 @@ Rectangle::Rectangle(int order,
         throw OxleyException("Invalid number of spatial subdivisions");
 
     // These two statements configure the level of verbosity used by p4est
-    sc_init(m_mpiInfo->comm, 1, LOG_BACKTRACE, NULL, LOG_LEVEL);
+    sc_set_log_defaults(NULL, NULL, LOG_LEVEL);
     p4est_init(NULL, LOG_LEVEL);
 
     //Create a connectivity
@@ -70,7 +70,7 @@ Rectangle::Rectangle(int order,
 
     // p4est = p4est_new(m_mpiInfo->comm, connectivity, datasize, &init_rectangle_data, NULL);
     p4est_locidx_t min_quadrants = n0*n1 / m_mpiInfo->size;
-    int min_level = 0;
+    int min_level = 1;
     int fill_uniform = 1;
     p4est = p4est_new_ext(m_mpiInfo->comm, connectivity, min_quadrants,
             min_level, fill_uniform, sizeof(p4estData), init_rectangle_data, (void *) &forestData);
@@ -126,7 +126,7 @@ Rectangle::~Rectangle(){
     free(forestData);
     p4est_connectivity_destroy(connectivity);
     p4est_destroy(p4est);
-    sc_finalize();
+    // sc_finalize();
 
 }
 
@@ -204,14 +204,14 @@ const dim_t* Rectangle::borrowSampleReferenceIDs(int fsType) const
 
 void Rectangle::writeToVTK(std::string filename, bool writeMesh) const
 {
-    // Check that the filename is reasonable
-    int stringlength=filename.length();
-    if(stringlength>4){
-        if(filename.compare(stringlength-4,4,".vtk") != 0)
-            filename.append(".vtk");
-    } else {
-        filename.append(".vtk");
-    }
+    // // Check that the filename is reasonable
+    // int stringlength=filename.length();
+    // if(stringlength>4){
+    //     if(filename.compare(stringlength-4,4,".vtk") != 0)
+    //         filename.append(".vtk");
+    // } else {
+    //     filename.append(".vtk");
+    // }
 
     // Write to file
     const char * name = filename.c_str();
@@ -224,15 +224,22 @@ void Rectangle::writeToVTK(std::string filename, bool writeMesh) const
         // Create the context for the VTK file
         p4est_vtk_context_t * context = p4est_vtk_context_new(p4est, name);
 
+        // Continuous point data
+        p4est_vtk_context_set_continuous(context, true);
+
+        // Set the scale
+        p4est_vtk_context_set_scale(context, 1.0);
+
         // Write the header
         context = p4est_vtk_write_header(context);
 
         // Get the point and cell data together
         p4est_locidx_t numquads = p4est->local_num_quadrants;
         sc_array_t * quadTag = sc_array_new_count(sizeof(double), numquads);
+
         p4est_iterate(p4est, NULL, (void *) quadTag, getQuadTagVector, NULL, NULL);
 
-        // Cell Data
+        // Write the cell Data
 #ifdef P4EST_ENABLE_DEBUG
         context = p4est_vtk_write_cell_dataf(context,1,1,0,0,1,0,"tag",quadTag,context);
 #else
@@ -241,7 +248,7 @@ void Rectangle::writeToVTK(std::string filename, bool writeMesh) const
         if(context == NULL)
             throw OxleyException("Error writing cell data");
 
-        // Point Data
+        // Write the point Data
         context = p4est_vtk_write_point_dataf(context, 0, 0, context);
         if(context == NULL)
             throw OxleyException("Error writing point data");

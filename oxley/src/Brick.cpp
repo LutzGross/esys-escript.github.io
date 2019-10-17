@@ -55,7 +55,7 @@ Brick::Brick(int order,
         throw OxleyException("Invalid number of spatial subdivisions");
 
     // These two statements configure the level of verbosity used by p4est
-    sc_init(m_mpiInfo->comm, 1, LOG_BACKTRACE, NULL, LOG_LEVEL);
+    sc_set_log_defaults(NULL, NULL, LOG_LEVEL);
     p4est_init(NULL, LOG_LEVEL);
 
     //Create a connectivity
