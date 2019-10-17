@@ -34,30 +34,30 @@
 //quadrant / octant in the p4est / p8est
 struct quadrantData
 {
-	double u;
+	double u = 0.0;
 
 	// The quadrant's tag
-	long quadTag;
+	long quadTag = 0;
 
 	// Node tag
 	double nodeTag = 0;
 
 	// Spatial coordinates of the corner node that defines the quadrant
-	double xy[2];
+	double xy[2] = {0.0,0.0};
 };
 
 struct octantData
 {
-	double u; // A Scalar variable
+	double u = 0.0; // A Scalar variable
 
 	// The octant's tag
-	long octantTag;
+	long octantTag = 0;
 
 	// Node tag
 	double nodeTag = 0;
 
 	// Spatial coordinates of the corner node that defines the octant
-	double xyz[3];
+	double xyz[3] = {0.0,0.0,0.0};
 };
 
 //This structure describes the information that is stored with the p4est
@@ -67,25 +67,25 @@ struct p4estData
 	void * info;
 
 	// origin of domain
-    double m_origin[2];
+    double m_origin[2] = {0.0,0.0};
 
     // side lengths of domain
-    double m_length[2];
+    double m_length[2] = {0.0,0.0};
 
     // number of spatial subdivisions
-    int m_NX[2];
+    int m_NX[2] = {0,0};
 
     // total number of elements in each dimension
-    escript::DataTypes::dim_t m_gNE[2];
+    escript::DataTypes::dim_t m_gNE[2] = {0,0};
 
     // number of elements for this rank in each dimension including shared
-    escript::DataTypes::dim_t m_NE[2];
+    escript::DataTypes::dim_t m_NE[2] = {0,0};
 
     // periodic boundary conditions
     bool periodic[2] {false, false};
 
 	// maximum levels of recursion to use during refinement
-	int max_levels_refinement;
+	int max_levels_refinement = 0;
 };
 
 struct p8estData
@@ -94,25 +94,25 @@ struct p8estData
 	void * info;
 
 	// origin of domain
-    double m_origin[3];
+    double m_origin[3] = {0.0,0.0,0.0};
 
     // side lengths of domain
-    double m_length[3];
+    double m_length[3] = {0.0,0.0,0.0};
 
     // number of spatial subdivisions
-    int m_NX[3];
+    int m_NX[3] = {0,0,0};
 
     // total number of elements in each dimension
-    escript::DataTypes::dim_t m_gNE[3];
+    escript::DataTypes::dim_t m_gNE[3] = {0,0,0};
 
     // number of elements for this rank in each dimension including shared
-    escript::DataTypes::dim_t m_NE[3];
+    escript::DataTypes::dim_t m_NE[3] = {0,0,0};
 
     // periodic boundary conditions
     bool periodic[3] {false, false, false};
 
 	// maximum levels of recursion to use during refinement
-	int max_levels_refinement;
+	int max_levels_refinement = 0;
 };
 
 // This structure temporarily stores information used by the addSurface function

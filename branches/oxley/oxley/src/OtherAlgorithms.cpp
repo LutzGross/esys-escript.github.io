@@ -192,20 +192,18 @@ bool aboveCurve(std::vector<double> x, std::vector<double> z, int nx, double _x,
         }
     }
 
-    return 1; //this is temporary
-
-    // // Do the check
-    // if(x[ix1] == _x) // If the point is on the node
-    // {
-    //     return _z > z[ix1];
-    // }
-    // else // otherwise, interpolate
-    // {
-    //     double z0, z1, x0, x1;
-    //     z0=z[ix1]; z1=z[ix2];
-    //     x0=x[ix1]; x1=x[ix2];
-    //     return _z > (z0*(x1-_x)+z1*(_x-x0))/(x1-x0);
-    // }
+    // Do the check
+    if(x[ix1] == _x) // If the point is on the node
+    {
+        return _z > z[ix1];
+    }
+    else // otherwise, interpolate
+    {
+        double z0, z1, x0, x1;
+        z0=z[ix1]; z1=z[ix2];
+        x0=x[ix1]; x1=x[ix2];
+        return _z > (z0*(x1-_x)+z1*(_x-x0))/(x1-x0);
+    }
 }
 
 double distanceToCurve(double x[], double z[], int nx, double _x, double _z)
@@ -301,27 +299,21 @@ bool aboveSurface(std::vector<double> x, std::vector<double> y, std::vector<doub
     // Do the check
     if(x[ix1] == _x && y[iy1] == _y) // If the point is on the node
     {
-        // double temp = _z - z[INDEX2(ix1,iy1,nx)];
-        // return std::abs(temp);
-
-        // ae this is temporary
-        return 1;
+        double temp = _z - z[INDEX2(ix1,iy1,nx)];
+        return std::abs(temp);
     }
     else // otherwise, interpolate
     {
-        // double q11, q12, q21, q22 = 0;
-        // q11=z[INDEX2(ix1,ix1,nx)]; q12=z[INDEX2(ix1,iy2,nx)];
-        // q21=z[INDEX2(ix2,iy1,nx)]; q22=z[INDEX2(ix2,iy2,nx)];
-        // double x1, x2, y1, y2 = 0;
-        // x1=x[ix1];y1=y[iy1];x2=x[ix2];y2=y[iy2];
-        //
-        // double tmp1 = ((x2-_x)/(x2-x1))*q11+((_x-x1)/(x2-x1))*q21;
-        // double tmp2 = ((x2-_x)/(x2-x1))*q12+((_x-x1)/(x2-x1))*q22;
-        // double tmp3 = ((y2-_y)/(y2-y1))*tmp1+((_y-y1)/(y2-y1))*tmp2;
-        // return std::abs(_z - tmp3);
+        double q11, q12, q21, q22 = 0;
+        q11=z[INDEX2(ix1,ix1,nx)]; q12=z[INDEX2(ix1,iy2,nx)];
+        q21=z[INDEX2(ix2,iy1,nx)]; q22=z[INDEX2(ix2,iy2,nx)];
+        double x1, x2, y1, y2 = 0;
+        x1=x[ix1];y1=y[iy1];x2=x[ix2];y2=y[iy2];
 
-        // ae this is temporary
-        return 1;
+        double tmp1 = ((x2-_x)/(x2-x1))*q11+((_x-x1)/(x2-x1))*q21;
+        double tmp2 = ((x2-_x)/(x2-x1))*q12+((_x-x1)/(x2-x1))*q22;
+        double tmp3 = ((y2-_y)/(y2-y1))*tmp1+((_y-y1)/(y2-y1))*tmp2;
+        return std::abs(_z - tmp3);
     }
 }
 

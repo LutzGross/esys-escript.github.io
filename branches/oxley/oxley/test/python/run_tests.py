@@ -32,50 +32,44 @@ from esys.oxley import *
 DONT_HAVE_BOOST_NUMPY = not hasFeature("boost_numpy")
 
 class Test_OxleyDomain(unittest.TestCase):
-
     def test_test(self):
         self.assertEqual(1,1,"Oxley testing code has failed to run.")
 
-    # This just checks that it writes to file and p4est doesn't return an error.
+class Test_Rectangle(unittest.TestCase):
     def test_getDim(self):
         domain=Rectangle(order=2,n0=10,n1=10)
         self.assertEqual(domain.getDim(),2,"Oxley::Rectangle dims are wrong.")
         del domain
-        domain=Brick(order=2,n0=10,n1=10,n2=10)
-        self.assertEqual(domain.getDim(),3,"Oxley::Brick dims are wrong.")
-        del domain
 
-class Test_Rectangle(unittest.TestCase):
+    # def test_write_rectangle_to_vtk(self):
+        # domain=Rectangle(order=2,n0=10,n1=10)
+        # domain.writeToVTK(os.cwd()+"rectangle_domain")
+        # file_exists=os.path.exists(os.cwd()+"rectangle_domain_0000.vtu")
+        # self.assertEqual(file_exists,True,"Oxley rectangle.writeToVTK")
 
-    # This just checks that it writes to file and p4est doesn't return an error.
-    # TODO: Check the file for errors
-    def test_write_rectangle_to_vtk(self):
-        domain1=Rectangle(order=2,n0=10,n1=10)
-        domain1.writeToVTK("/tmp/rectangle")
-        file_exists=os.path.exists("/tmp/rectangle.vtk_0000.vtu")
-        self.assertEqual(file_exists,True,"Oxley rectangle.writeToVTK.")
-        # Clean up
-        os.remove("/tmp/rectangle.vtk_0000.vtu")
-        os.remove("/tmp/rectangle.vtk.pvtu")
-        os.remove("/tmp/rectangle.vtk.visit")
-        del domain1
+        # # Clean up
+        # # os.remove("/tmp/rectangle_0000.vtu")
+        # # os.remove("/tmp/rectangle.pvtu")
+        # # os.remove("/tmp/rectangle.visit")
+        # self.assertEqual(domain.getDim(),2,"Oxley::Rectangle dims are wrong.")
+        # del domain
 
-    def test_write_rectangle_to_vtk_tag_info(self):
-        domain1=Rectangle(order=2,n0=10,n1=10)
-        domain1.writeToVTK(filename="/tmp/rectangle",writeTagInfo=True)
-        file_exists=os.path.exists("/tmp/rectangle.vtk_0000.vtu")
-        self.assertEqual(file_exists,True,"Oxley rectangle.writeToVTK.")
-        # Clean up
-        os.remove("/tmp/rectangle.vtk_0000.vtu")
-        os.remove("/tmp/rectangle.vtk.pvtu")
-        os.remove("/tmp/rectangle.vtk.visit")
-        del domain1
-
-    def test_getNumVertices_Rectangle(self):
-        domain1=Rectangle(order=2,n0=2,n1=2)
-        num_corners = domain1.getNumVertices()
-        self.assertEqual(num_corners,9,"test_getNumCorners")
-        del domain1
+#     def test_write_rectangle_to_vtk_tag_info(self):
+#         domain1=Rectangle(order=2,n0=10,n1=10)
+#         domain1.writeToVTK(filename="/tmp/test_write_rectangle_to_vtk_tag_info",writeTagInfo=True)
+#         file_exists=os.path.exists("/tmp/test_write_rectangle_to_vtk_tag_info.vtk_0000.vtu")
+#         self.assertEqual(file_exists,True,"Oxley rectangle.writeToVTK.")
+#         # Clean up
+#         os.remove("/tmp/test_write_rectangle_to_vtk_tag_info.vtk_0000.vtu")
+#         os.remove("/tmp/test_write_rectangle_to_vtk_tag_info.vtk.pvtu")
+#         os.remove("/tmp/test_write_rectangle_to_vtk_tag_info.vtk.visit")
+#         del domain1
+#
+#     def test_getNumVertices_Rectangle(self):
+#         domain1=Rectangle(order=2,n0=2,n1=2)
+#         num_corners = domain1.getNumVertices()
+#         self.assertEqual(num_corners,9,"test_getNumCorners")
+#         del domain1
 
     # @unittest.skipIf(DONT_HAVE_BOOST_NUMPY is True, "No boost numpy")
     # def test_addSurface_incorrect_input_2D(self):
@@ -96,34 +90,38 @@ class Test_Rectangle(unittest.TestCase):
 
 
 class Test_Brick(unittest.TestCase):
+    def test_getDim(self):
+        domain=Brick(order=2,n0=10,n1=10,n2=10)
+        self.assertEqual(domain.getDim(),3,"Oxley::Brick dims are wrong.")
+        del domain
 
     # def test_write_brick_to_vtk(self):
     #     domain1=Brick(order=2,n0=10,n1=10,n2=10)
-    #     domain1.writeToVTK("/tmp/brick")
-    #     file_exists=os.path.exists("/tmp/brick.vtk_0000.vtu")
-    #     self.assertEqual(file_exists,True,"Oxley brick.writeToVTK.")
+    #     domain1.writeToVTK("/tmp/test_write_brick_to_vtk")
+    #     file_exists=os.path.exists("/tmp/test_write_brick_to_vtk.vtk_0000.vtu")
+    #     self.assertEqual(file_exists,True,"Oxley brick.writeToVTK")
     #     # Clean up
-    #     os.remove("/tmp/brick.vtk_0000.vtu")
-    #     os.remove("/tmp/brick.vtk.pvtu")
-    #     os.remove("/tmp/brick.vtk.visit")
+    #     os.remove("/tmp/test_write_brick_to_vtk.vtk_0000.vtu")
+    #     os.remove("/tmp/test_write_brick_to_vtk.vtk.pvtu")
+    #     os.remove("/tmp/test_write_brick_to_vtk.vtk.visit")
     #     del domain1
 
     # def test_write_brick_to_vtk_tag_info(self):
     #     domain1=Brick(order=2,n0=10,n1=10,n2=10)
-    #     domain1.writeToVTK("/tmp/brick",writeTagInfo=True)
-    #     file_exists=os.path.exists("/tmp/brick.vtk_0000.vtu")
-    #     self.assertEqual(file_exists,True,"Oxley brick.writeToVTK.")
+    #     domain1.writeToVTK("/tmp/test_write_brick_to_vtk_tag_info",writeTagInfo=True)
+    #     file_exists=os.path.exists("/tmp/test_write_brick_to_vtk_tag_info.vtk_0000.vtu")
+    #     self.assertEqual(file_exists,True,"Oxley brick.writeToVTK")
     #     # Clean up
-    #     os.remove("/tmp/brick.vtk_0000.vtu")
-    #     os.remove("/tmp/brick.vtk.pvtu")
-    #     os.remove("/tmp/brick.vtk.visit")
+    #     os.remove("/tmp/test_write_brick_to_vtk_tag_info.vtk_0000.vtu")
+    #     os.remove("/tmp/test_write_brick_to_vtk_tag_info.vtk.pvtu")
+    #     os.remove("/tmp/test_write_brick_to_vtk_tag_info.vtk.visit")
     #     del domain1
-
-    def test_getNumCorners_Brick(self):
-        domain1=Brick(order=2,n0=2,n1=2,n2=2)
-        num_corners = domain1.getNumVertices()
-        self.assertEqual(num_corners,27,"test_getNumCorners")
-        del domain1
+    #
+    # def test_getNumCorners_Brick(self):
+    #     domain1=Brick(order=2,n0=2,n1=2,n2=2)
+    #     num_corners = domain1.getNumVertices()
+    #     self.assertEqual(num_corners,27,"test_getNumCorners")
+    #     del domain1
 
     # @unittest.skipIf(DONT_HAVE_BOOST_NUMPY is True, "No boost numpy")
     # def test_addSurface_incorrect_input_2D(self):

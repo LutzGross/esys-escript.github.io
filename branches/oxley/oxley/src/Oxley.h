@@ -26,13 +26,13 @@
 #define MAXTAGS 100 // Maximum allowed number of tags in a domain
 
 #ifdef P4EST_ENABLE_DEBUG
-#define LOG_BACKTRACE 1  // Print a backtrace if p4est aborts prematurely
+// #define LOG_BACKTRACE 1  // Print a backtrace if p4est aborts prematurely
 #define LOG_LEVEL 0  // Everything
 // #define LOG_LEVEL 4 // Main things that each function does
 // #define LOG_LEVEL 8 // Errors only
 #else
-#define LOG_BACKTRACE 0
-#define LOG_LEVEL 9  // Level of logging used by p4est
+// #define LOG_BACKTRACE 0
+#define LOG_LEVEL 9  // Nothing
 #endif
 // Acceptable values are
 /* log priorities */
