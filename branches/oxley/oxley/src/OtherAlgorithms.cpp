@@ -155,8 +155,7 @@ long getNewTag(OxleyDomainBrick_ptr domain)
 bool aboveCurve(double x[], double z[], int nx, double _x, double _z)
 {
     // Find the index of the corresponding x nodes
-    long ix1, ix2 = 0;
-
+    long ix1 = -1, ix2 = -1;
     for(long i = 0; i < nx; i++){
         if(_x >= x[i]){
             ix1=i;
@@ -164,6 +163,10 @@ bool aboveCurve(double x[], double z[], int nx, double _x, double _z)
             break;
         }
     }
+
+    // Point is outside the domain
+    if(ix1 == -1 && ix2 == -1)
+        throw OxleyException("The arrays are not the same size as the domain");
 
     // Do the check
     if(x[ix1] == _x) // If the point is on the node
@@ -182,15 +185,18 @@ bool aboveCurve(double x[], double z[], int nx, double _x, double _z)
 bool aboveCurve(std::vector<double> x, std::vector<double> z, int nx, double _x, double _z)
 {
     // Find the index of the corresponding x nodes
-    long ix1 = 0, ix2 = 0;
+    long ix1 = -1, ix2 = -1;
 
     for(long i = 0; i < nx; i++){
-        if(_x >= x[1]){
+        if(_x >= x[i]){
             ix1=i;
             ix2=i+1;
             break;
         }
     }
+
+    if(ix1 == -1 && ix2 == -1)
+        throw OxleyException("The arrays are not the same size as the domain");
 
     // Do the check
     if(x[ix1] == _x) // If the point is on the node
@@ -236,7 +242,7 @@ double distanceToCurve(double x[], double z[], int nx, double _x, double _z)
 bool aboveSurface(double x[], double y[], double z[], int nx, int ny, double _x, double _y, double _z)
 {
     // Find the indices of the corresponding x and y nodes
-    long ix1, iy1, ix2, iy2 = 0;
+    long ix1, iy1, ix2, iy2 = -1;
 
     for(long i = 0; i < nx; i++){
         if(_x >= x[i]){
@@ -253,6 +259,12 @@ bool aboveSurface(double x[], double y[], double z[], int nx, int ny, double _x,
             break;
         }
     }
+
+    // Point is outside the domain
+    if(ix1 == -1 && ix2 == -1)
+        throw OxleyException("The arrays are not the same size as the domain");
+    if(iy1 == -1 && iy2 == -1)
+        throw OxleyException("The arrays are not the same size as the domain");
 
     // Do the check
     if(x[ix1] == _x && y[iy1] == _y) // If the point is on the node
@@ -278,7 +290,7 @@ bool aboveSurface(std::vector<double> x, std::vector<double> y, std::vector<doub
                     int nx, int ny, double _x, double _y, double _z)
 {
     // Find the indices of the corresponding x and y nodes
-    long ix1, iy1, ix2, iy2 = 0;
+    long ix1, iy1, ix2, iy2 = -1;
 
     for(long i = 0; i < nx; i++){
         if(_x >= x[i]){
@@ -295,6 +307,12 @@ bool aboveSurface(std::vector<double> x, std::vector<double> y, std::vector<doub
             break;
         }
     }
+
+    // Point is outside the domain
+    if(ix1 == -1 && ix2 == -1)
+        throw OxleyException("The arrays are not the same size as the domain");
+    if(iy1 == -1 && iy2 == -1)
+        throw OxleyException("The arrays are not the same size as the domain");
 
     // Do the check
     if(x[ix1] == _x && y[iy1] == _y) // If the point is on the node
