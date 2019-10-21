@@ -134,6 +134,11 @@ void _addCurve(OxleyDomainRect_ptr domain,
     int ndy = y.get_nd();
     const long int* lx = x.get_shape();
     const long int* ly = y.get_shape();
+
+    if(x.get_dtype() != boost::python::numpy::dtype::get_builtin<double>())
+        throw OxleyException("x must be an array of doubles.");
+    if(y.get_dtype() != boost::python::numpy::dtype::get_builtin<double>())
+        throw OxleyException("y must be an array of doubles.");
     if(ndx != 1)
         throw OxleyException("x has invalid dimensions.");
     if(ndy != 1)
@@ -153,10 +158,10 @@ void _addCurve(OxleyDomainRect_ptr domain,
     double* px = reinterpret_cast<double*>(x.get_data());
     double* py = reinterpret_cast<double*>(y.get_data());
     // Note: boost::python::numpy::ndarray is not threadsafe
-    for(long xx = 0; xx < *lx; xx++)
+    for(long i = 0; i < *lx; i++)
     {
-        surfacedata->x[xx] = *(px + xx);
-        surfacedata->y[xx] = *(py + xx);
+        surfacedata->x[i] = *(px + i);
+        surfacedata->y[i] = *(py + i);
     }
 
     if(!domain->getDescription().compare("oxley::rectangle"))
@@ -185,6 +190,12 @@ void _addSurface(OxleyDomainBrick_ptr domain,
     const long int* lx = x.get_shape();
     const long int* ly = y.get_shape();
     const long int* lz = z.get_shape();
+    if(x.get_dtype() != boost::python::numpy::dtype::get_builtin<double>())
+        throw OxleyException("x must be an array of doubles.");
+    if(y.get_dtype() != boost::python::numpy::dtype::get_builtin<double>())
+        throw OxleyException("y must be an array of doubles.");
+    if(z.get_dtype() != boost::python::numpy::dtype::get_builtin<double>())
+        throw OxleyException("z must be an array of doubles.");
     if(ndx != 1)
         throw OxleyException("x has invalid dimensions.");
     if(ndy != 1)
@@ -212,13 +223,13 @@ void _addSurface(OxleyDomainBrick_ptr domain,
     std::vector<double> vy(*ly);
     std::vector<double> vz(*lz);
     // Note: boost::python::numpy::ndarray is not threadsafe
-    for(long xx = 0; xx < *lx; xx++)
+    for(long i = 0; i < *lx; i++)
     {
-        surfacedata->x[xx] = *(px + xx);
-        surfacedata->y[xx] = *(py + xx);
+        surfacedata->x[i] = *(px + i);
+        surfacedata->y[i] = *(py + i);
     }
-    for(long xx = 0; xx < *lz; xx++){
-        surfacedata->z[xx] = *(pz + xx);
+    for(long i = 0; i < *lz; i++){
+        surfacedata->z[i] = *(pz + i);
     }
 
     if(!domain->getDescription().compare("oxley::rectangle"))
