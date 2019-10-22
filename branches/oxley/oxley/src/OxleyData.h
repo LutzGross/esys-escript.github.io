@@ -118,8 +118,8 @@ struct p8estData
 // This structure temporarily stores information used by the addSurface function
 struct addSurfaceData {
 
-	int oldTag;
-	int newTag;
+	int oldTag = -1;
+	int newTag = -1;
 	std::vector<double> x;
 	std::vector<double> y;
 	std::vector<double> z;
@@ -131,6 +131,14 @@ namespace oxley {
 // Call back function that copies quadrant tags onto tagVector
 void getQuadTagVector(p4est_iter_volume_info_t * info, void *tagVector);
 void getQuadTagVector(p8est_iter_volume_info_t * info, void *tagVector);
+
+// Call back function that copies coordinate info onto tagVector
+void getXCoordVector(p4est_iter_volume_info_t * info, void *tagVector);
+void getYCoordVector(p4est_iter_volume_info_t * info, void *tagVector);
+void getXCoordVector(p8est_iter_volume_info_t * info, void *tagVector);
+void getYCoordVector(p8est_iter_volume_info_t * info, void *tagVector);
+void getZCoordVector(p8est_iter_volume_info_t * info, void *tagVector);
+
 
 void getNodeTagVector(p4est_iter_volume_info_t * info, void *tagVector);
 void getNodeTagVector(p8est_iter_volume_info_t * info, void *tagVector);

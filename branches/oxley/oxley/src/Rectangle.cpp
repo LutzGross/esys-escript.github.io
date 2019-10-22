@@ -235,15 +235,22 @@ void Rectangle::writeToVTK(std::string filename, bool writeMesh) const
 
         // Get the point and cell data together
         p4est_locidx_t numquads = p4est->local_num_quadrants;
-        sc_array_t * quadTag = sc_array_new_count(sizeof(double), numquads);
 
+        // quad Tag
+        sc_array_t * quadTag = sc_array_new_count(sizeof(double), numquads);
         p4est_iterate(p4est, NULL, (void *) quadTag, getQuadTagVector, NULL, NULL);
+        sc_array_t * xcoord = sc_array_new_count(sizeof(double), numquads);
+        p4est_iterate(p4est, NULL, (void *) xcoord, getXCoordVector, NULL, NULL);
+        sc_array_t * ycoord = sc_array_new_count(sizeof(double), numquads);
+        p4est_iterate(p4est, NULL, (void *) ycoord, getYCoordVector, NULL, NULL);
 
         // Write the cell Data
 #ifdef P4EST_ENABLE_DEBUG
-        context = p4est_vtk_write_cell_dataf(context,1,1,0,0,1,0,"tag",quadTag,context);
+        // context = p4est_vtk_write_cell_dataf(context,1,1,0,0,1,0,"tag",quadTag,context);
+        context = p4est_vtk_write_cell_dataf(context,1,1,0,0,3,0,"tag",quadTag,"x",xcoord,"y",ycoord,context);
 #else
-        context = p4est_vtk_write_cell_dataf(context,0,0,0,0,1,0,"tag",quadTag,context);
+        // context = p4est_vtk_write_cell_dataf(context,0,0,0,0,1,0,"tag",quadTag,context);
+        context = p4est_vtk_write_cell_dataf(context,0,0,0,0,3,0,"tag",quadTag,"x",xcoord,"y",ycoord,context);
 #endif
         if(context == NULL)
             throw OxleyException("Error writing cell data");

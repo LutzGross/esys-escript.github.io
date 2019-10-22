@@ -239,12 +239,22 @@ void Brick::writeToVTK(std::string filename, bool writeMesh) const
         p4est_locidx_t numquads = p8est->local_num_quadrants;
         sc_array_t * quadTag = sc_array_new_count(sizeof(double), numquads);
         p8est_iterate(p8est, NULL, (void *) quadTag, getQuadTagVector, NULL, NULL, NULL);
+        sc_array_t * xCoords = sc_array_new_count(sizeof(double), numquads);
+        p8est_iterate(p8est, NULL, (void *) xCoords, getXCoordVector, NULL, NULL, NULL);
+        sc_array_t * yCoords = sc_array_new_count(sizeof(double), numquads);
+        p8est_iterate(p8est, NULL, (void *) yCoords, getYCoordVector, NULL, NULL, NULL);
+        sc_array_t * zCoords = sc_array_new_count(sizeof(double), numquads);
+        p8est_iterate(p8est, NULL, (void *) zCoords, getZCoordVector, NULL, NULL, NULL);
 
         // Cell Data
 #ifdef P4EST_ENABLE_DEBUG
-        context = p8est_vtk_write_cell_dataf(context,1,1,0,0,1,0,"tag",quadTag,context);
+        // context = p8est_vtk_write_cell_dataf(context,1,1,0,0,1,0,"tag",quadTag,context);
+        context = p8est_vtk_write_cell_dataf(context,1,1,0,0,4,0,
+            "tag",quadTag,"x",xCoords,"y",yCoords,"z",zCoords,context);
 #else
-        context = p8est_vtk_write_cell_dataf(context,0,0,0,0,1,0,"tag",quadTag,context);
+        // context = p8est_vtk_write_cell_dataf(context,0,0,0,0,1,0,"tag",quadTag,context);
+        context = p8est_vtk_write_cell_dataf(context,0,0,0,0,4,0,
+            "tag",quadTag,"x",xCoords,"y",yCoords,"z",zCoords,context);
 #endif
         if(context == NULL)
             throw OxleyException("Error writing cell data");

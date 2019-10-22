@@ -61,9 +61,21 @@ void addSurface(OxleyDomainRect_ptr domain)
     // based on this info and info from neighbouring quads
     // The third loop does the refinement and updates the new quads
     p4est_iterate(domain->p4est, NULL, NULL, gce_first_pass, NULL, NULL);
+#ifdef P4EST_ENABLE_DEBUG
+    std::string filename = "first_pass";
+    domain->writeToVTK(filename, false);
+#endif
     p4est_iterate(domain->p4est, NULL, NULL, gce_second_pass, NULL, NULL);
+#ifdef P4EST_ENABLE_DEBUG
+    filename = "second_pass";
+    domain->writeToVTK(filename, false);
+#endif
     p4est_refine_ext(domain->p4est, true, forestData->max_levels_refinement,
         refine_gce, init_rectangle_data, gce_rectangle_replace);
+#ifdef P4EST_ENABLE_DEBUG
+    filename = "refinement";
+    domain->writeToVTK(filename, false);
+#endif
 
     p4est_balance_ext(domain->p4est, P4EST_CONNECT_FULL,
         init_rectangle_data, gce_rectangle_replace);
@@ -166,7 +178,7 @@ bool aboveCurve(double x[], double z[], int nx, double _x, double _z)
 
     // Point is outside the domain
     if(ix1 == -1 && ix2 == -1)
-        throw OxleyException("The arrays are not the same size as the domain");
+        return false;
 
     // Do the check
     if(x[ix1] == _x) // If the point is on the node
@@ -196,7 +208,7 @@ bool aboveCurve(std::vector<double> x, std::vector<double> z, int nx, double _x,
     }
 
     if(ix1 == -1 && ix2 == -1)
-        throw OxleyException("The arrays are not the same size as the domain");
+        return false;
 
     // Do the check
     if(x[ix1] == _x) // If the point is on the node
@@ -262,9 +274,9 @@ bool aboveSurface(double x[], double y[], double z[], int nx, int ny, double _x,
 
     // Point is outside the domain
     if(ix1 == -1 && ix2 == -1)
-        throw OxleyException("The arrays are not the same size as the domain");
+        return false;
     if(iy1 == -1 && iy2 == -1)
-        throw OxleyException("The arrays are not the same size as the domain");
+        return false;
 
     // Do the check
     if(x[ix1] == _x && y[iy1] == _y) // If the point is on the node
@@ -310,9 +322,9 @@ bool aboveSurface(std::vector<double> x, std::vector<double> y, std::vector<doub
 
     // Point is outside the domain
     if(ix1 == -1 && ix2 == -1)
-        throw OxleyException("The arrays are not the same size as the domain");
+        return false;
     if(iy1 == -1 && iy2 == -1)
-        throw OxleyException("The arrays are not the same size as the domain");
+        return false;
 
     // Do the check
     if(x[ix1] == _x && y[iy1] == _y) // If the point is on the node

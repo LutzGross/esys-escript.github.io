@@ -63,41 +63,47 @@ void gce_second_pass(p4est_iter_volume_info_t * info, void *quad_data)
     p4est_t * p4est = info->p4est;
     p4estData * forestData = (p4estData *) p4est->user_pointer;
     p4est_quadrant_t * quad = info->quad;
+    p4est_quadrant_t * tmpquad;
     quadrantData *quaddata = (quadrantData *) quad->p.user_data;
+    // quadrantData *tmpquaddata = (quadrantData *) tmpquad->p.user_data;
+
+    quadrantData * tmpquaddata;
+    tmpquad->p.user_data = & tmpquaddata;
+
     // p4est_topidx_t tree = info->treeid;
 
     // This variable records whether a node is above or below the curve
-    bool ab[4];
+    bool ab[4] = {false};
     ab[0] = quaddata->nodeTag;
 
     // Note: For the numbering scheme used by p4est, cf. Burstedde et al. (2011)
+
     // First face neighbour
-    p4est_quadrant_t * neighbourQuadrant = quad;
     quadrantData *neighbourData = (quadrantData *) quad->p.user_data;
-    p4est_quadrant_face_neighbor(quad, 3, neighbourQuadrant);
-    ab[2] = neighbourData->nodeTag;
+    p4est_quadrant_face_neighbor(quad, 3, tmpquad);
+    // p4est_quadrant_is_outside_face
+    ab[2] = tmpquaddata->nodeTag;
 
     // The corner neighbour
-    p4est_quadrant_corner_neighbor(quad, 2, neighbourQuadrant);
-    ab[3] = neighbourData->nodeTag;
+    p4est_quadrant_corner_neighbor(quad, 3, tmpquad);
+    ab[3] = tmpquaddata->nodeTag;
 
     // Second face neighbour
-    p4est_quadrant_face_neighbor(quad, 1, neighbourQuadrant);
-    ab[1] = neighbourData->nodeTag;
+    p4est_quadrant_face_neighbor(quad, 1, tmpquad);
+    ab[1] = tmpquaddata->nodeTag;
 
     // If at least two of the nodes are on different sides of the curve,
     // record the octant tag for the next step
+    addSurfaceData * surfaceinfo = (addSurfaceData *) forestData->info;
     bool allNodesAreTheSame = ((ab[0] == ab[2]) && (ab[2] == ab[3])
                             && (ab[3] == ab[1]) && (ab[1] == ab[0]));
-
-    addSurfaceData * surfaceinfo = (addSurfaceData *) forestData->info;
     if(surfaceinfo->oldTag == -1 && !allNodesAreTheSame)
         surfaceinfo->oldTag = quaddata->quadTag;
 
     // If the quadrant is not going to be refined, and if it is above the curve
     // update the tag information
     if(allNodesAreTheSame && quaddata->nodeTag)
-        quaddata->quadTag=surfaceinfo->newTag;
+        quaddata->quadTag = surfaceinfo->newTag;
 }
 
 int refine_gce(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quad)
