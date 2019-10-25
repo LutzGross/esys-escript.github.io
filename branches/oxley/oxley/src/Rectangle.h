@@ -182,6 +182,23 @@ public:
     */
     int getNumVertices() const { return connectivity->num_vertices;};
 
+
+    // These functions are used internally
+
+    p4est_t * borrow_p4est() const { return p4est;};
+
+    p4estData * borrow_forestData() const { return forestData;};
+
+    p4est_connectivity_t * borrow_connectivity() const { return connectivity; };
+
+    void * borrow_temp_data() { return temp_data; };
+
+    void set_temp_data(addSurfaceData * x) { temp_data = x; };
+
+    void clear_temp_data() { free(temp_data); };
+
+private:
+
     // A p4est
     p4est_t * p4est;
 
@@ -191,7 +208,8 @@ public:
     // This object records the connectivity of the p4est quadrants
     p4est_connectivity_t * connectivity;
 
-
+    // Pointer that records the location of a temporary data structure
+    void * temp_data;
 
 };
 

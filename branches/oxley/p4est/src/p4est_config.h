@@ -27,7 +27,11 @@
 
 /* C compiler flags */
 #ifndef P4EST_CFLAGS
+#ifdef P4EST_ENABLE_DEBUG
 #define P4EST_CFLAGS "-g -O2"
+#else
+#define P4EST_CFLAGS "-O3"
+#endif
 #endif
 
 /* C preprocessor */
