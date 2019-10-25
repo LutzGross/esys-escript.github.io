@@ -28,7 +28,7 @@ from distutils import sysconfig
 from subprocess import PIPE, Popen
 from SCons.Script.SConscript import Configure
 from site_init import findLibWithHeader, detectModule
-import subprocess 
+import subprocess
 
 REQUIRED_BOOST = (1, 46)
 
@@ -73,7 +73,7 @@ def checkCompiler(env):
 
     if not conf.CheckComplexAcos():
         conf.env.Append(CPPDEFINES = ['ESYS_USE_BOOST_ACOS'])
-    
+
     return conf.Finish()
 
 def get_external_python_sympy(bin):
@@ -83,7 +83,7 @@ def get_external_python_sympy(bin):
     cmd+='print(sympy.__version__)\n'
     sp=subprocess.Popen([bin, '-c', cmd], stdin=None, stderr=None, stdout=subprocess.PIPE)
     #ver=sp.stdout.readline().strip().split('.')
-    
+
     import sys
     if sys.version_info[0] >= 3:
         ver = str(sp.stdout.readline().strip(), 'utf-8')
@@ -170,14 +170,14 @@ def checkPython(env):
     # Note: we assume scons is running python 2 in the following.
     else:
         (python_lib_path, python_libs,verstring, python_inc_path)=call_python_config(env['pythoncmd'])
-    
+
     if sys.version_info[0] == 3:
         if isinstance(verstring, str) is False:
             verstring = str(verstring, 'utf-8')
     else:
         if isinstance(verstring, basestring) is False:
             verstring = str(verstring, 'utf-8')
-            
+
     env['python_version'] = verstring
     try:
         ispython3 = (verstring[0] == '3')
@@ -285,13 +285,13 @@ def checkBoost(env):
             for name in spath:
                 try:
                     l=os.listdir(name)
-                    
+
                     import sys
                     if sys.version_info[0] == 3:
                         string_type = str
                     else:
                         string_type = basestring
-                    
+
                     p2res = ''
                     p3res = ''
                     for x in l:
@@ -430,7 +430,7 @@ def checkForTrilinos(env):
         'MatrixMarket_Tpetra.hpp','MueLu_CreateTpetraPreconditioner.hpp',\
         'Teuchos_DefaultComm.hpp','Teuchos_ParameterList.hpp',\
         'Tpetra_CrsGraph.hpp','Tpetra_CrsMatrix.hpp', 'Tpetra_RowMatrix.hpp',\
-        'Tpetra_Vector.hpp']
+        'Tpetra_Vector.hpp','Trilinos_version.h']
 
         print("Looking for the Trilinos headers...")
         for check in dependencies:
@@ -466,6 +466,20 @@ def checkForTrilinos(env):
             print("Checking for %s... %s" % ('Tpetra_BlockVector.hpp', "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))
         else:
             raise RuntimeError('Could not locate the Trilinos BlockVector header')
+
+        # Try to extract the trilinos version from Trilinos_version.h
+        versionh=open(os.path.join(trilinos_inc_path, 'Trilinos_version.h'))
+        trilinos_version='unknown'
+        env['trilinos_version']='unknown'
+        for line in versionh:
+            ver=re.match(r'#define TRILINOS_MAJOR_MINOR_VERSION (\d+)',line)
+            if ver:
+                trilinos_version=ver.group(1)
+                trilinos_version = int(trilinos_version)
+                major=int(str(trilinos_version)[:2])
+                minor=int(str(trilinos_version)[2:4])
+                tmp=int(str(trilinos_version)[4:6])
+                env['trilinos_version'] = str(major)+"."+str(minor)+"."+str(tmp)
 
         if not havelibs:
             packages=['Tpetra','Kokkos','Belos','Amesos2','Ifpack2','MueLu']
@@ -613,7 +627,7 @@ def checkOptionalLibraries(env):
         env['buildvars']['visit_inc_path']=visit_inc_path
         env['buildvars']['visit_lib_path']=visit_lib_path
     env['buildvars']['visit']=int(env['visit'])
-    
+
     ######## MPI
     if env['mpi']=='no':
         env['mpi']='none'
@@ -731,7 +745,7 @@ def checkOptionalLibraries(env):
                         env['gmsh'] = 's'
                 except OSError:
                     pass
-    
+
     ######## boost::iostreams
     if env['compressed_files']:
         try:

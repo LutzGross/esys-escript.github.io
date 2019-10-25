@@ -14,11 +14,11 @@
 *
 *****************************************************************************/
 
-#include "BlockCrsMatrixWrapper.h" 
-#include "BelosWrapper.h" 
-#include "PreconditionerFactory.h" 
-#include "TrilinosAdapterException.h" 
-#include "util.h" 
+#include "BlockCrsMatrixWrapper.h"
+#include "BelosWrapper.h"
+#include "PreconditionerFactory.h"
+#include "TrilinosAdapterException.h"
+#include "util.h"
 
 #include <escript/index.h>
 #include <escript/SolverOptions.h>
@@ -29,7 +29,7 @@
 #else
 #include <Tpetra_Core.hpp>
 #endif
-#ifdef ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKCRSH
+#if defined(ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKCRSH) && (TRILINOS_MAJOR_MINOR_VERSION < 121400)
 #include <Tpetra_Experimental_BlockCrsMatrix_Helpers.hpp> // for writing
 #else
 #include <Tpetra_BlockCrsMatrix_Helpers.hpp> // for writing
@@ -261,7 +261,7 @@ void BlockCrsMatrixWrapper<ST>::saveMM(const std::string& filename) const
     // for compatibility with paso, not strictly required.
     params.set("precision", 15);
     std::ofstream os(filename);
-#ifdef ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKCRSH
+#if defined(ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKCRSH) && (TRILINOS_MAJOR_MINOR_VERSION < 121400)
     Tpetra::Experimental::blockCrsMatrixWriter<ST,LO,GO,NT>(mat, os, params);
 #else
     Tpetra::blockCrsMatrixWriter<ST,LO,GO,NT>(mat, os, params);
