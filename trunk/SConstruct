@@ -286,7 +286,7 @@ elif cc_name[:3] == 'g++':
     #max-vartrack-size: avoid vartrack limit being exceeded with escriptcpp.cpp
     cc_debug     = "-g3 -O0  -DDOASSERT -DDOPROF -DBOUNDS_CHECK -DSLOWSHARECHECK --param=max-vartrack-size=100000000"
     #Removed because new netcdf doesn't seem to like it
-    #cc_debug += ' -D_GLIBCXX_DEBUG  ' 
+    #cc_debug += ' -D_GLIBCXX_DEBUG  '
     omp_flags    = "-fopenmp"
     omp_ldflags  = "-fopenmp"
     fatalwarning = "-Werror"
@@ -734,7 +734,7 @@ def print_summary():
     else:
         print("     boost numpy:  NO")
     if env['trilinos']:
-        print("        trilinos:  %s "%(env['trilinos_prefix']))
+        print("        trilinos:  %s (Version %s)" % (env['trilinos_prefix'],env['trilinos_version']))
     else:
         print("        trilinos:  NO")
     if env['numpy_h']:
@@ -826,4 +826,3 @@ def print_summary():
         print("\nSUCCESS: build complete\n")
 
 atexit.register(print_summary)
-
