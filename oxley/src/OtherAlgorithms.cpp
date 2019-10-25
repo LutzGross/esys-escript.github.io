@@ -37,10 +37,13 @@ long getNewTag(OxleyDomainBrick_ptr domain);
 #ifdef ESYS_HAVE_BOOST_NUMPY
 void addSurface(OxleyDomainRect_ptr domain)
 {
-    p4estData *forestData = (p4estData *) domain->p4est->user_pointer;
+    p4est_t * p4est = domain->borrow_p4est();
+    // p4estData * forestData = (p4estData *) p4est->user_pointer;
+    p4estData * forestData = (p4estData *) domain->borrow_forestData();
 
     // Get a new tag number and name
-    addSurfaceData * surfacedata = (addSurfaceData *) forestData->info;
+    // addSurfaceData * surfacedata = (addSurfaceData *) forestData->info;
+    addSurfaceData * surfacedata = (addSurfaceData *) domain->borrow_temp_data();
     surfacedata->newTag = getNewTag(domain);
 
     // Add to the list
@@ -60,28 +63,28 @@ void addSurface(OxleyDomainRect_ptr domain)
     // The seconds loop records whether or not a quadrant should be refined
     // based on this info and info from neighbouring quads
     // The third loop does the refinement and updates the new quads
-    p4est_iterate(domain->p4est, NULL, NULL, gce_first_pass, NULL, NULL);
+    p4est_iterate(p4est, NULL, NULL, gce_first_pass, NULL, NULL);
 #ifdef P4EST_ENABLE_DEBUG
     std::string filename = "first_pass";
     domain->writeToVTK(filename, false);
 #endif
-    p4est_iterate(domain->p4est, NULL, NULL, gce_second_pass, NULL, NULL);
+    p4est_iterate(p4est, NULL, NULL, gce_second_pass, NULL, NULL);
 #ifdef P4EST_ENABLE_DEBUG
     filename = "second_pass";
     domain->writeToVTK(filename, false);
 #endif
-    p4est_refine_ext(domain->p4est, true, forestData->max_levels_refinement,
+    p4est_refine_ext(p4est, true, forestData->max_levels_refinement,
         refine_gce, init_rectangle_data, gce_rectangle_replace);
 #ifdef P4EST_ENABLE_DEBUG
     filename = "refinement";
     domain->writeToVTK(filename, false);
 #endif
 
-    p4est_balance_ext(domain->p4est, P4EST_CONNECT_FULL,
+    p4est_balance_ext(p4est, P4EST_CONNECT_FULL,
         init_rectangle_data, gce_rectangle_replace);
 
     int partition_for_coarsening = 0; //Do not allow coarsening while partitioning
-    p4est_partition_ext(domain->p4est, partition_for_coarsening, NULL);
+    p4est_partition_ext(p4est, partition_for_coarsening, NULL);
 
     // clean up
     delete surfacedata;

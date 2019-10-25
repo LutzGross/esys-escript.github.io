@@ -66,6 +66,7 @@ Rectangle::Rectangle(int order,
         throw OxleyException("Could not create a valid connectivity.");
 
     // Allocate some memory
+    forestData = new p4estData;
     forestData = (p4estData *) malloc(sizeof(p4estData));
 
     // p4est = p4est_new(m_mpiInfo->comm, connectivity, datasize, &init_rectangle_data, NULL);
@@ -124,6 +125,7 @@ Rectangle::Rectangle(int order,
 Rectangle::~Rectangle(){
 
     free(forestData);
+    delete forestData;
     p4est_connectivity_destroy(connectivity);
     p4est_destroy(p4est);
     // sc_finalize();

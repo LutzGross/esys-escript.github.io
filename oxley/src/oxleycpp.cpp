@@ -148,9 +148,13 @@ void _addCurve(OxleyDomainRect_ptr domain,
 
     // This structure is used to store the information used during the algorithm
     // a pointer is attached to p4est and then passed around between functions
-    p4estData *forestData = (p4estData *) domain->p4est->user_pointer;
+    p4estData *forestData = (p4estData *) domain->borrow_p4est();
     addSurfaceData * surfacedata = new addSurfaceData;
     forestData->info = surfacedata;
+
+    // addSurfaceData * tmp = (addSurfaceData *) domain->borrow_temp_data(); //AEAE
+    domain->set_temp_data(surfacedata);
+
     surfacedata->x.clear();
     surfacedata->y.clear();
     surfacedata->x.resize(lx[0],-1.0);
@@ -168,10 +172,12 @@ void _addCurve(OxleyDomainRect_ptr domain,
     {
         addSurface(domain);
         delete surfacedata;
+        domain->clear_temp_data();
     }
     else
     {
         delete surfacedata;
+        domain->clear_temp_data();
         throw OxleyException("Invalid domain. Was expecting an oxley::rectangle.");
     }
 }
