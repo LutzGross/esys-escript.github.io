@@ -62,20 +62,20 @@ void addSurface(OxleyDomainRect_ptr domain)
 
     // In order to minimise the number of function calls, this code has three
     // separate loops
-    // The first loop tags the quadrant's corner node, as being above or below
+    // The first loop tags the quadrant's corner node as being above or below
     // the curve and then exits
     // The seconds loop records whether or not a quadrant should be refined
     // based on this info and info from neighbouring quads
     // The third loop does the refinement and updates the new quads
-
     p4est_iterate(p4est, NULL, surfacedata, gce_first_pass, NULL, NULL);
     p4est_iterate(p4est, NULL, surfacedata, gce_second_pass, NULL, NULL);
     p4est_refine_ext(p4est, true, forestData->max_levels_refinement,
         refine_gce, init_rectangle_data, gce_rectangle_replace);
+
+    // Balance and repartition
     p4est_balance_ext(p4est, P4EST_CONNECT_FULL,
         init_rectangle_data, gce_rectangle_replace);
-
-    int partition_for_coarsening = 0; //Do not allow coarsening while partitioning
+    int partition_for_coarsening = 0; //Do not allow coarsening when partitioning
     p4est_partition_ext(p4est, partition_for_coarsening, NULL);
 
     // clean up

@@ -36,6 +36,30 @@ int refine_uniform(p8est_t * p4est, p4est_topidx_t tree, p8est_quadrant_t * quad
     return 1;
 }
 
+// AEAE
+void print_quad_debug_info(p4est_iter_volume_info_t * info, p4est_quadrant_t * quadrant)
+{
+    double xy[2] = {0.0,0.0};
+    if(!p4est_quadrant_is_valid(quadrant))
+        std::cout << "WARNING! Invalid quadrant: " << info->treeid << "." << info->quadid << std::endl;
+    p4est_qcoord_to_vertex(info->p4est->connectivity, info->treeid, quadrant->x, quadrant->y, &xy[0]);
+    std::cout << info->treeid << "." << info->quadid << ":\t(x,y) = (" << xy[0] << "," << xy[1] << ")";
+
+    p4est_quadrant_t * quad = info->quad;
+    quadrantData *quaddata = (quadrantData *) quad->p.user_data;
+    std::cout << ",\tnodetag = " << quaddata->nodeTag << std::endl;
+}
+
+// AEAE
+void print_quad_debug_info(p8est_iter_volume_info_t * info, p8est_quadrant_t * quadrant)
+{
+    double xyz[2] = {0.0,0.0};
+    if(!p8est_quadrant_is_valid(quadrant))
+        std::cout << "WARNING! Invalid quadrant" << info->treeid << "." << info->quadid << std::endl;
+    p8est_qcoord_to_vertex(info->p4est->connectivity, info->treeid, quadrant->x, quadrant->y, quadrant->z, &xyz[0]);
+    std::cout << info->treeid << "." << info->quadid << ": (x,y,z) = (" << xyz[0] << "," << xyz[1] << "," <<xyz[2] << ")" << std::endl;
+}
+
 void gce_first_pass(p4est_iter_volume_info_t * info, void *tmp)
 {
     // Get some pointers
@@ -56,10 +80,14 @@ void gce_first_pass(p4est_iter_volume_info_t * info, void *tmp)
     quaddata->nodeTag = aboveCurve(surfaceinfo->x, surfaceinfo->y,
                                 n, xy[0][0], xy[0][1]);
 
+#ifdef P4EST_ENABLE_DEBUG
+    print_quad_debug_info(info, quad);
+#endif
 }
 
 void gce_second_pass(p4est_iter_volume_info_t * info, void *tmp)
 {
+    // Note: For the numbering scheme used by p4est, cf. Burstedde et al. (2011)
 
     // Get some pointers
     p4est_t * p4est = info->p4est;
@@ -70,31 +98,27 @@ void gce_second_pass(p4est_iter_volume_info_t * info, void *tmp)
 
     // a quadrant to temporarily store data
     p4est_quadrant_t * tmpquad;
-
-    // quadrantData * tmpquaddata;
-    // tmpquad->p.user_data = &tmpquaddata;
-
-    // Note: For the numbering scheme used by p4est, cf. Burstedde et al. (2011)
-
-    // This variable records whether a node is above or below the curve
-    bool ab[4] = {false};
-    ab[0] = quaddata->nodeTag;
-
-    // First face neighbour
-    // quadrantData *neighbourData = (quadrantData *) quad->p.user_data;
-    // quadrantData *tmpquaddata = (quadrantData *) tmpquad->p.user_data;
-
     quadrantData *tmpquaddata;
     tmpquaddata = (quadrantData *) tmpquad->p.user_data;
 
+    // This variable records whether a node is above, on (true) or below (false) the curve
+    bool ab[4] = {false};
+
+    print_quad_debug_info(info, quad); //aeae
+    ab[0] = quaddata->nodeTag;
+
+    // First face neighbour
+    print_quad_debug_info(info, tmpquad); //aeae
     p4est_quadrant_face_neighbor(quad, 1, tmpquad);
     ab[1] = tmpquaddata->nodeTag;
 
     // Second face neighbour
+    print_quad_debug_info(info, tmpquad); //aeae
     p4est_quadrant_face_neighbor(quad, 3, tmpquad);
     ab[2] = tmpquaddata->nodeTag;
 
     // The corner neighbour
+    print_quad_debug_info(info, tmpquad); //aeae
     p4est_quadrant_corner_neighbor(quad, 3, tmpquad);
     ab[3] = tmpquaddata->nodeTag;
 
