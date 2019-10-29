@@ -26,6 +26,9 @@
 
 namespace oxley {
 
+// AEAE
+void print_quad_debug_info(p4est_quadrant_t * quadrant);
+
 // Uniform refinement
 int refine_uniform(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant);
 

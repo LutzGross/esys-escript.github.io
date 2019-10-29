@@ -64,21 +64,18 @@ Rectangle::Rectangle(int order,
     const p4est_topidx_t num_vertices = 4;
     const p4est_topidx_t num_trees = 1;
     const p4est_topidx_t num_ctt = 0;
-    const double vertices[4 * 3] = {
-        x0, y0, 0,
-        x1, y0, 0,
-        x0, y1, 0,
-        x1, y1, 0,
-    };
-    const p4est_topidx_t tree_to_vertex[1 * 4] = {
-        0, 1, 2, 3,
-    };
-    const p4est_topidx_t tree_to_tree[1 * 4] = {
-        0, 0, 0, 0,
-    };
-    const int8_t tree_to_face[1 * 4] = {
-        0, 1, 2, 3,
-    };
+    const double vertices[4 * 3] = {    x0, y0, 0,
+                                        x1, y0, 0,
+                                        x0, y1, 0,
+                                        x1, y1, 0,  };
+    const p4est_topidx_t tree_to_vertex[4] = {0, 1, 2, 3,};
+    const p4est_topidx_t tree_to_tree[4] = {0, 0, 0, 0,};
+    const int8_t tree_to_face[4] = {1, 0, 3, 2,};
+    const p4est_topidx_t tree_to_corner[4] = {0, 0, 0, 0,};
+    const p4est_topidx_t ctt_offset[2] = {0, 4,};
+    const p4est_topidx_t corner_to_tree[4] = {0, 0, 0, 0,};
+    const int8_t corner_to_corner[4] = {0, 1, 2, 3,};
+
     connectivity = p4est_connectivity_new_copy (4, 1, 0,
                                         vertices, tree_to_vertex,
                                         tree_to_tree, tree_to_face,
@@ -94,9 +91,9 @@ Rectangle::Rectangle(int order,
     forestData = (p4estData *) malloc(sizeof(p4estData));
 
     // p4est = p4est_new(m_mpiInfo->comm, connectivity, datasize, &init_rectangle_data, NULL);
-    p4est_locidx_t min_quadrants = n0*n1 / m_mpiInfo->size;
-    int min_level = 1;
-    int fill_uniform = 1;
+    p4est_locidx_t min_quadrants = (n0*n1) / m_mpiInfo->size;
+    int min_level = 0;
+    int fill_uniform = 0;
     p4est = p4est_new_ext(m_mpiInfo->comm, connectivity, min_quadrants,
             min_level, fill_uniform, sizeof(p4estData), init_rectangle_data, (void *) &forestData);
 
@@ -291,7 +288,11 @@ void Rectangle::writeToVTK(std::string filename, bool writeMesh) const
 void Rectangle::refineMesh(int maxRecursion, std::string algorithmname)
 {
     if(!algorithmname.compare("uniform")){
-        p4est_refine_ext(p4est, true, maxRecursion, refine_uniform, NULL, refine_copy_parent_quadrant);
+        if(maxRecursion == 0){
+            p4est_refine_ext(p4est, true, -1, refine_uniform, NULL, refine_copy_parent_quadrant);
+        } else {
+            p4est_refine_ext(p4est, true, maxRecursion+2, refine_uniform, NULL, refine_copy_parent_quadrant);
+        }
         p4est_balance_ext(p4est, P4EST_CONNECT_FULL, NULL, refine_copy_parent_quadrant);
         int partforcoarsen = 1;
         p4est_partition(p4est, partforcoarsen, NULL);
