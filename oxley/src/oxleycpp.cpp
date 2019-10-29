@@ -26,6 +26,8 @@
 #include <boost/python/numpy/dtype.hpp>
 #endif
 
+#include <p4est_algorithms.h> //aeae 
+
 // using namespace boost::python::numpy;
 
 namespace oxley {
@@ -148,8 +150,8 @@ void _addCurve(OxleyDomainRect_ptr domain,
 
     // This structure is used to store the information used during the algorithm
     // a pointer is attached to p4est and then passed around between functions
-    p4estData *forestData = (p4estData *) domain->borrow_p4est();
     addSurfaceData * surfacedata = new addSurfaceData;
+    p4estData *forestData = (p4estData *) domain->borrow_forestData();
     forestData->info = surfacedata;
 
     // addSurfaceData * tmp = (addSurfaceData *) domain->borrow_temp_data(); //AEAE

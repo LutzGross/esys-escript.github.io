@@ -165,13 +165,6 @@ public:
 
     /**
        \brief
-       writes the mesh to a VTK file
-       \param filename The file name
-    */
-    virtual p4est_t * borrow_4est() const { return p4est;};
-
-    /**
-       \brief
        returns a Data object containing the coordinate information
     */
     virtual escript::Data getX() const;
@@ -184,7 +177,6 @@ public:
 
 
     // These functions are used internally
-
     p4est_t * borrow_p4est() const { return p4est;};
 
     p4estData * borrow_forestData() const { return forestData;};
@@ -196,6 +188,8 @@ public:
     void set_temp_data(addSurfaceData * x) { temp_data = x; };
 
     void clear_temp_data() { free(temp_data); };
+
+    void print_debug_report(std::string);
 
 private:
 

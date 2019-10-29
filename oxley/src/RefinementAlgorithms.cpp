@@ -36,12 +36,13 @@ int refine_uniform(p8est_t * p4est, p4est_topidx_t tree, p8est_quadrant_t * quad
     return 1;
 }
 
-void gce_first_pass(p4est_iter_volume_info_t * info, void *quad_data)
+void gce_first_pass(p4est_iter_volume_info_t * info, void *tmp)
 {
     // Get some pointers
     p4est_t * p4est = info->p4est;
     p4estData * forestData = (p4estData *) p4est->user_pointer;
-    addSurfaceData * surfaceinfo = (addSurfaceData *) forestData->info;
+    addSurfaceData * surfaceinfo = (addSurfaceData *) tmp;
+
     p4est_quadrant_t * quad = info->quad;
     quadrantData *quaddata = (quadrantData *) quad->p.user_data;
     p4est_topidx_t tree = info->treeid;
@@ -57,29 +58,35 @@ void gce_first_pass(p4est_iter_volume_info_t * info, void *quad_data)
 
 }
 
-void gce_second_pass(p4est_iter_volume_info_t * info, void *quad_data)
+void gce_second_pass(p4est_iter_volume_info_t * info, void *tmp)
 {
+
     // Get some pointers
     p4est_t * p4est = info->p4est;
     p4estData * forestData = (p4estData *) p4est->user_pointer;
     p4est_quadrant_t * quad = info->quad;
-    p4est_quadrant_t * tmpquad;
     quadrantData *quaddata = (quadrantData *) quad->p.user_data;
-    // quadrantData *tmpquaddata = (quadrantData *) tmpquad->p.user_data;
+    addSurfaceData * surfaceinfo = (addSurfaceData *) tmp;
 
-    quadrantData * tmpquaddata;
-    tmpquad->p.user_data = & tmpquaddata;
+    // a quadrant to temporarily store data
+    p4est_quadrant_t * tmpquad;
 
-    // p4est_topidx_t tree = info->treeid;
+    // quadrantData * tmpquaddata;
+    // tmpquad->p.user_data = &tmpquaddata;
+
+    // Note: For the numbering scheme used by p4est, cf. Burstedde et al. (2011)
 
     // This variable records whether a node is above or below the curve
     bool ab[4] = {false};
     ab[0] = quaddata->nodeTag;
 
-    // Note: For the numbering scheme used by p4est, cf. Burstedde et al. (2011)
-
     // First face neighbour
-    quadrantData *neighbourData = (quadrantData *) quad->p.user_data;
+    // quadrantData *neighbourData = (quadrantData *) quad->p.user_data;
+    // quadrantData *tmpquaddata = (quadrantData *) tmpquad->p.user_data;
+
+    quadrantData *tmpquaddata;
+    tmpquaddata = (quadrantData *) tmpquad->p.user_data;
+
     p4est_quadrant_face_neighbor(quad, 1, tmpquad);
     ab[1] = tmpquaddata->nodeTag;
 
@@ -93,7 +100,7 @@ void gce_second_pass(p4est_iter_volume_info_t * info, void *quad_data)
 
     // If at least two of the nodes are on different sides of the curve,
     // record the octant tag for the next step
-    addSurfaceData * surfaceinfo = (addSurfaceData *) forestData->info;
+    // addSurfaceData * surfaceinfo = (addSurfaceData *) forestData->info;
     bool allNodesAreTheSame = ((ab[0] == ab[2]) && (ab[2] == ab[3])
                             && (ab[3] == ab[1]) && (ab[1] == ab[0]));
     if(surfaceinfo->oldTag == -1 && !allNodesAreTheSame)

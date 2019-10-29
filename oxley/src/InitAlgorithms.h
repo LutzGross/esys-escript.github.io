@@ -59,22 +59,6 @@ void gce_brick_replace(p8est_t *p8est, p4est_topidx_t tree,
     int num_outgoing, p8est_quadrant_t *outgoing[],
     int num_incoming, p8est_quadrant_t *incoming[]);
 
-
-/*
- *  \brief
- *  refine_copy_parent_quadrant copies a parents data onto the children without
- *  modification
- *  Note: When coarsening, the data from the first child is copied to the parent
- *  and all other child data is discarded
- */
-void refine_copy_parent_quadrant(p4est_t * p4est, p4est_topidx_t tree,
-     int num_outgoing, p4est_quadrant_t * outgoing[],
-     int num_incoming, p4est_quadrant_t * incoming[]);
-
-void refine_copy_parent_octant(p8est_t * p8est, p4est_topidx_t tree,
-     int num_outgoing, p8est_quadrant_t * outgoing[],
-     int num_incoming, p8est_quadrant_t * incoming[]);
-
 ///////////////////////////////////////////////////////////////////////////
 
 } //namespace oxley
