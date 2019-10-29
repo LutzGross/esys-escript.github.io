@@ -36,7 +36,11 @@
 
 /* C preprocessor */
 #ifndef P4EST_CPP
+#ifdef P4EST_ENABLE_DEBUG
+#define P4EST_CPP "gcc -g -E -O0"
+#else
 #define P4EST_CPP "gcc -E"
+#endif
 #endif
 
 /* C preprocessor flags */

@@ -22,6 +22,8 @@
 #include <p4est_vtk.h>
 #include <p4est_iterate.h>
 
+#include <p4est_algorithms.h>
+
 namespace bp = boost::python;
 
 namespace oxley {
@@ -58,9 +60,31 @@ Rectangle::Rectangle(int order,
     sc_set_log_defaults(NULL, NULL, LOG_LEVEL);
     p4est_init(NULL, LOG_LEVEL);
 
-    //Create a connectivity
-    // TODO: change to p4est_connectivity_new_copy
-    connectivity = p4est_connectivity_new_brick((int) n0, (int) n1, periodic0, periodic1);
+    // Create the connectivity
+    const p4est_topidx_t num_vertices = 4;
+    const p4est_topidx_t num_trees = 1;
+    const p4est_topidx_t num_ctt = 0;
+    const double vertices[4 * 3] = {
+        x0, y0, 0,
+        x1, y0, 0,
+        x0, y1, 0,
+        x1, y1, 0,
+    };
+    const p4est_topidx_t tree_to_vertex[1 * 4] = {
+        0, 1, 2, 3,
+    };
+    const p4est_topidx_t tree_to_tree[1 * 4] = {
+        0, 0, 0, 0,
+    };
+    const int8_t tree_to_face[1 * 4] = {
+        0, 1, 2, 3,
+    };
+    connectivity = p4est_connectivity_new_copy (4, 1, 0,
+                                        vertices, tree_to_vertex,
+                                        tree_to_tree, tree_to_face,
+                                        NULL, &num_ctt, NULL, NULL);
+
+    // connectivity = p4est_connectivity_new_brick((int) n0, (int) n1, periodic0, periodic1);
 
     if(!p4est_connectivity_is_valid(connectivity))
         throw OxleyException("Could not create a valid connectivity.");
@@ -125,7 +149,6 @@ Rectangle::Rectangle(int order,
 Rectangle::~Rectangle(){
 
     free(forestData);
-    delete forestData;
     p4est_connectivity_destroy(connectivity);
     p4est_destroy(p4est);
     // sc_finalize();
@@ -206,15 +229,6 @@ const dim_t* Rectangle::borrowSampleReferenceIDs(int fsType) const
 
 void Rectangle::writeToVTK(std::string filename, bool writeMesh) const
 {
-    // // Check that the filename is reasonable
-    // int stringlength=filename.length();
-    // if(stringlength>4){
-    //     if(filename.compare(stringlength-4,4,".vtk") != 0)
-    //         filename.append(".vtk");
-    // } else {
-    //     filename.append(".vtk");
-    // }
-
     // Write to file
     const char * name = filename.c_str();
     if(writeMesh)
@@ -248,10 +262,8 @@ void Rectangle::writeToVTK(std::string filename, bool writeMesh) const
 
         // Write the cell Data
 #ifdef P4EST_ENABLE_DEBUG
-        // context = p4est_vtk_write_cell_dataf(context,1,1,0,0,1,0,"tag",quadTag,context);
         context = p4est_vtk_write_cell_dataf(context,1,1,0,0,3,0,"tag",quadTag,"x",xcoord,"y",ycoord,context);
 #else
-        // context = p4est_vtk_write_cell_dataf(context,0,0,0,0,1,0,"tag",quadTag,context);
         context = p4est_vtk_write_cell_dataf(context,0,0,0,0,3,0,"tag",quadTag,"x",xcoord,"y",ycoord,context);
 #endif
         if(context == NULL)
@@ -263,12 +275,16 @@ void Rectangle::writeToVTK(std::string filename, bool writeMesh) const
             throw OxleyException("Error writing point data");
 
         // Write the footer
-        if(p4est_vtk_write_footer(context))
+        if(p4est_vtk_write_footer(context)) // The context is destroyed by this function
                 throw OxleyException("Error writing footer.");
 
         // Cleanup
         sc_array_reset(quadTag);
         sc_array_destroy(quadTag);
+        sc_array_reset(xcoord);
+        sc_array_destroy(xcoord);
+        sc_array_reset(ycoord);
+        sc_array_destroy(ycoord);
     }
 }
 
@@ -287,6 +303,20 @@ void Rectangle::refineMesh(int maxRecursion, std::string algorithmname)
 escript::Data Rectangle::getX() const
 {
     throw OxleyException("Currently not implemented"); //aeae this is temporary
+}
+
+void Rectangle::print_debug_report(std::string locat)
+{
+    std::cout << "report for " <<  locat << std::endl;
+    std::cout << "p4est = " << &p4est << std::endl;
+    if(!p4est_is_valid(p4est))
+        std::cout << "WARNING: p4est is invalid" << std::endl;
+    std::cout << "forestData = " << &forestData << std::endl;
+    std::cout << "connectivity = " << &connectivity << std::endl;
+    if(!p4est_connectivity_is_valid(connectivity))
+        std::cout << "WARNING: connectivity is invalid" << std::endl;
+    std::cout << "temp_data = " << &temp_data << std::endl;
+
 }
 
 
