@@ -50,6 +50,8 @@ void gce_rectangle_replace(p4est_t *p4est, p4est_topidx_t tree,
     int num_outgoing, p4est_quadrant_t *outgoing[],
     int num_incoming, p4est_quadrant_t *incoming[]);
 
+void gce_init_new_rectangle(p4est_t * p4est, p4est_topidx_t which_tree, p4est_quadrant_t * q);
+
 /*
  *  \brief
  *  Update octants such that each node is tagged with the right surface environment
@@ -58,6 +60,8 @@ void gce_rectangle_replace(p4est_t *p4est, p4est_topidx_t tree,
 void gce_brick_replace(p8est_t *p8est, p4est_topidx_t tree,
     int num_outgoing, p8est_quadrant_t *outgoing[],
     int num_incoming, p8est_quadrant_t *incoming[]);
+
+void gce_init_new_rectangle(p8est_t * p8est, p4est_topidx_t which_tree, p8est_quadrant_t * q);
 
 ///////////////////////////////////////////////////////////////////////////
 

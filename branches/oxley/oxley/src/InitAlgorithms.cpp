@@ -159,4 +159,28 @@ void gce_brick_replace(p8est_t *p8est, p4est_topidx_t tree,
     }
 }
 
+void gce_init_new_rectangle(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * q)
+{
+    // the data associated with each quadrant
+    quadrantData *data = (quadrantData *) q->p.user_data;
+
+    data->u=0.0;
+    data->quadTag=-1;
+
+    // Save the spatial coordinates
+    p4est_qcoord_to_vertex(p4est->connectivity, tree, q->x, q->y, &data->xy[0]);
+}
+
+void gce_init_new_rectangle(p8est_t * p8est, p4est_topidx_t tree, p8est_quadrant_t * q)
+{
+    // the data associated with each quadrant
+    octantData *data = (octantData *) q->p.user_data;
+
+    data->u=0.0;
+  	data->octantTag=-1;
+
+    // Save the spatial coordinates
+    p8est_qcoord_to_vertex(p8est->connectivity, tree, q->x, q->y, q->z, &data->xyz[0]);
+}
+
 } // namespace oxley
