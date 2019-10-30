@@ -1,6 +1,6 @@
 #ifndef _SRC_P_EST_CONFIG_H
 #define _SRC_P_EST_CONFIG_H 1
-
+ 
 /* src/p4est_config.h. Generated automatically at end of configure. */
 /* src/pre_config.h.  Generated from pre_config.h.in by configure.  */
 /* src/pre_config.h.in.  Generated from configure.ac by autoheader.  */
@@ -27,20 +27,12 @@
 
 /* C compiler flags */
 #ifndef P4EST_CFLAGS
-#ifdef P4EST_ENABLE_DEBUG
 #define P4EST_CFLAGS "-g -O2"
-#else
-#define P4EST_CFLAGS "-O3"
-#endif
 #endif
 
 /* C preprocessor */
 #ifndef P4EST_CPP
-#ifdef P4EST_ENABLE_DEBUG
-#define P4EST_CPP "gcc -g -E -O0"
-#else
 #define P4EST_CPP "gcc -E"
-#endif
 #endif
 
 /* C preprocessor flags */
@@ -253,8 +245,7 @@
 
 /* Libraries */
 #ifndef P4EST_LIBS
-// #define P4EST_LIBS "-llapack -lcblas -lf77blas -latlas -lz -lm "
-#define P4EST_LIBS ""
+#define P4EST_LIBS "-llapack -lcblas -lf77blas -latlas -lz -lm   "
 #endif
 
 /* Define to the sub-directory where libtool stores uninstalled libraries. */
@@ -304,7 +295,7 @@
 
 /* Define to the full name and version of this package. */
 #ifndef P4EST_PACKAGE_STRING
-#define P4EST_PACKAGE_STRING "p4est 2.2.1-85ab"
+#define P4EST_PACKAGE_STRING "p4est 2.2"
 #endif
 
 /* Define to the one symbol short name of this package. */
@@ -319,7 +310,7 @@
 
 /* Define to the version of this package. */
 #ifndef P4EST_PACKAGE_VERSION
-#define P4EST_PACKAGE_VERSION "2.2.1-85ab"
+#define P4EST_PACKAGE_VERSION "2.2"
 #endif
 
 /* DEPRECATED (use P4EST_WITH_PETSC instead) */
@@ -349,7 +340,7 @@
 
 /* Version number of package */
 #ifndef P4EST_VERSION
-#define P4EST_VERSION "2.2.1-85ab"
+#define P4EST_VERSION "2.2"
 #endif
 
 /* Package major version */
@@ -364,7 +355,7 @@
 
 /* Package point version */
 #ifndef P4EST_VERSION_POINT
-#define P4EST_VERSION_POINT 1-85ab
+#define P4EST_VERSION_POINT 2.2
 #endif
 
 /* DEPRECATED (use P4EST_ENABLE_VTK_BINARY instead) */
@@ -398,6 +389,6 @@
 
 /* path to installed package sc (optional) */
 /* #undef WITH_SC */
-
+ 
 /* once: _SRC_P_EST_CONFIG_H */
 #endif
