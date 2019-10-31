@@ -57,38 +57,15 @@ void print_quad_debug_info(p4est_iter_volume_info_t * info, p4est_quadrant_t * q
 // AEAE
 void print_quad_debug_info(p8est_iter_volume_info_t * info, p8est_quadrant_t * quadrant)
 {
-    double xyz[2] = {0.0,0.0};
+    double xyz[3] = {0.0,0.0,0.0};
     if(!p8est_quadrant_is_valid(quadrant))
         std::cout << "WARNING! Invalid quadrant" << info->treeid << "." << info->quadid << std::endl;
     p8est_qcoord_to_vertex(info->p4est->connectivity, info->treeid, quadrant->x, quadrant->y, quadrant->z, &xyz[0]);
-    std::cout << info->treeid << "." << info->quadid << ": (x,y,z) = (" << xyz[0] << "," << xyz[1] << "," <<xyz[2] << ")" << std::endl;
+    std::cout << info->treeid << "." << info->quadid << ": (x,y,z) = (" << xyz[0] << "," << xyz[1] << "," << xyz[2] << ")" << std::endl;
 }
 
 void gce_first_pass(p4est_iter_volume_info_t * info, void *tmp)
 {
-    // Get some pointers
-    // p4est_t * p4est = info->p4est;
-    // p4estData * forestData = (p4estData *) info->p4est->user_pointer;
-    // addSurfaceData * surfaceinfo = (addSurfaceData *) tmp;
-
-    // p4est_quadrant_t * quad = info->quad;
-    // quadrantData *quaddata = (quadrantData *) info->quad->p.user_data;
-    // p4est_topidx_t tree = info->treeid;
-
-    // Get the spatial coordinates of the corner node
-    double xy[2];
-    p4est_qcoord_to_vertex(info->p4est->connectivity, info->treeid, info->quad->x, info->quad->y, xy);
-
-    // Work out if the node is above or below the curve and update nodeTag
-    addSurfaceData * surfaceinfo = (addSurfaceData *) tmp;
-    long n = surfaceinfo->x.size();
-    quadrantData *quaddata = (quadrantData *) info->quad->p.user_data;
-    quaddata->nodeTag = aboveCurve(surfaceinfo->x, surfaceinfo->y, n, xy[0], xy[1]);
-
-#ifdef P4EST_ENABLE_DEBUG
-    print_quad_debug_info(info, info->quad);
-#endif
-
     if(!p4est_quadrant_is_valid(info->quad))
         throw OxleyException("Invalid quadrant");
 }
@@ -98,56 +75,39 @@ void gce_second_pass(p4est_iter_volume_info_t * info, void *tmp)
 {
     // Note: For the numbering scheme used by p4est, cf. Burstedde et al. (2011)
 
-#ifdef P4EST_ENABLE_DEBUG
-    print_quad_debug_info(info, info->quad);
-#endif
-
     // Get some pointers
     quadrantData * quaddata = (quadrantData *) info->quad->p.user_data;
-
-    // a quadrant to temporarily store data
-    p4est_quadrant_t * tmpquad;
-    quadrantData * tmpquaddata;
-    tmpquaddata = (quadrantData *) tmpquad->p.user_data;
+    addSurfaceData * surfaceinfo = (addSurfaceData *) tmp;
 
     // This variable records whether a node is above, on (true) or below (false) the curve
     bool ab[4] = {false};
 
+    // Get the spatial coordinates of the corner node
+    double xy[2];
+    p4est_qcoord_to_vertex(info->p4est->connectivity, info->treeid, info->quad->x, info->quad->y, xy);
+
+    // Work out the length of the quadrant
+    double l = P4EST_QUADRANT_LEN(info->quad->level);
+
     // Work out which of the nodes are above and below the curve
-    ab[0] = quaddata->nodeTag;
-
-    // First face neighbour
-#ifdef P4EST_ENABLE_DEBUG
-    print_quad_debug_info(info, tmpquad);
-#endif
-    p4est_quadrant_face_neighbor(info->quad, 1, tmpquad);
-    ab[1] = tmpquaddata->nodeTag;
-
-    // Second face neighbour
-#ifdef P4EST_ENABLE_DEBUG
-    print_quad_debug_info(info, tmpquad);
-#endif
-    p4est_quadrant_face_neighbor(info->quad, 3, tmpquad);
-    ab[2] = tmpquaddata->nodeTag;
-
-    // The corner neighbour
-#ifdef P4EST_ENABLE_DEBUG
-    print_quad_debug_info(info, tmpquad);
-#endif
-    p4est_quadrant_corner_neighbor(info->quad, 3, tmpquad);
-    ab[3] = tmpquaddata->nodeTag;
+    long n = surfaceinfo->x.size();
+    // ab[0] = quaddata->nodeTag;
+    ab[0] = aboveCurve(surfaceinfo->x, surfaceinfo->y, n, xy[0],   xy[1]);
+    ab[1] = aboveCurve(surfaceinfo->x, surfaceinfo->y, n, xy[0]+l, xy[1]);
+    ab[2] = aboveCurve(surfaceinfo->x, surfaceinfo->y, n, xy[0],   xy[1]+l);
+    ab[3] = aboveCurve(surfaceinfo->x, surfaceinfo->y, n, xy[0]+l, xy[1]+l);
 
     // If at least two of the nodes are on different sides of the curve,
     // record the octant tag for the next step
     bool allNodesAreTheSame = ((ab[0] == ab[2]) && (ab[2] == ab[3])
                             && (ab[3] == ab[1]) && (ab[1] == ab[0]));
-    addSurfaceData * surfaceinfo = (addSurfaceData *) tmp;
+
     if(surfaceinfo->oldTag == -1 && !allNodesAreTheSame)
-        surfaceinfo->oldTag = quaddata->quadTag;
+            surfaceinfo->oldTag = quaddata->quadTag;
 
     // If the quadrant is not going to be refined, and if it is above the curve
     // update the tag information
-    if(allNodesAreTheSame && quaddata->nodeTag)
+    if(allNodesAreTheSame && ab[0])
         quaddata->quadTag = surfaceinfo->newTag;
 }
 
@@ -159,27 +119,26 @@ int refine_gce(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quad)
     int oldTag = surfaceinfo->oldTag;
 
     // This variable records whether a node is above or below the curve
-    bool ab[4];
-    quadrantData *quaddata = (quadrantData *) quad->p.user_data;
-    ab[0] = quaddata->nodeTag;
-
-    // First face neighbour
-    p4est_quadrant_t * tmpquad = quad;
-    quadrantData *neighbourData = (quadrantData *) tmpquad->p.user_data;
-    p4est_quadrant_face_neighbor(quad, 1, tmpquad);
-    ab[1] = neighbourData->nodeTag;
-
-    // Second face neighbour
-    p4est_quadrant_face_neighbor(quad, 3, tmpquad);
-    ab[2] = neighbourData->nodeTag;
-
-    // The corner neighbour
-    p4est_quadrant_corner_neighbor(quad, 3, tmpquad);
-    ab[3] = neighbourData->nodeTag;
+    // Get the spatial coordinates of the corner node
+    double xy[2];
+    p4est_qcoord_to_vertex(p4est->connectivity, tree, quad->x, quad->y, xy);
 
     // If we are in the region being defined
+    quadrantData * quaddata = (quadrantData *) quad->p.user_data;
     if(quaddata->quadTag == oldTag)
     {
+        bool ab[4] = {false};
+        // quadrantData * quaddata = (quadrantData *) quad->p.user_data;
+        long n = surfaceinfo->x.size();
+
+        // Work out the length of the quadrant
+        double l = P4EST_QUADRANT_LEN(quad->level);
+
+        ab[0] = aboveCurve(surfaceinfo->x, surfaceinfo->y, n, xy[0],   xy[1]);
+        ab[1] = aboveCurve(surfaceinfo->x, surfaceinfo->y, n, xy[0]+l, xy[1]);
+        ab[2] = aboveCurve(surfaceinfo->x, surfaceinfo->y, n, xy[0],   xy[1]+l);
+        ab[3] = aboveCurve(surfaceinfo->x, surfaceinfo->y, n, xy[0]+l, xy[1]+l);
+
         bool AllNodesAreTheSame = ((ab[0] == ab[2]) && (ab[2] == ab[3])
                                 && (ab[3] == ab[1]) && (ab[1] == ab[0]));
         return !AllNodesAreTheSame;
