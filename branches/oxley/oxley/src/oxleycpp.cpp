@@ -26,7 +26,7 @@
 #include <boost/python/numpy/dtype.hpp>
 #endif
 
-#include <p4est_algorithms.h> //aeae 
+#include <p4est_algorithms.h> //aeae
 
 // using namespace boost::python::numpy;
 
@@ -154,7 +154,6 @@ void _addCurve(OxleyDomainRect_ptr domain,
     p4estData *forestData = (p4estData *) domain->borrow_forestData();
     forestData->info = surfacedata;
 
-    // addSurfaceData * tmp = (addSurfaceData *) domain->borrow_temp_data(); //AEAE
     domain->set_temp_data(surfacedata);
 
     surfacedata->x.clear();
@@ -173,13 +172,14 @@ void _addCurve(OxleyDomainRect_ptr domain,
     if(!domain->getDescription().compare("oxley::rectangle"))
     {
         addSurface(domain);
+        // domain->clear_temp_data();
         delete surfacedata;
-        domain->clear_temp_data();
+
     }
     else
     {
         delete surfacedata;
-        domain->clear_temp_data();
+        // domain->clear_temp_data();
         throw OxleyException("Invalid domain. Was expecting an oxley::rectangle.");
     }
 }

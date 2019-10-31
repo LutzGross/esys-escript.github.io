@@ -71,12 +71,12 @@ Rectangle::Rectangle(int order,
     const p4est_topidx_t tree_to_vertex[4] = {0, 1, 2, 3,};
     const p4est_topidx_t tree_to_tree[4] = {0, 0, 0, 0,};
     const int8_t tree_to_face[4] = {1, 0, 3, 2,};
-    const p4est_topidx_t tree_to_corner[4] = {0, 0, 0, 0,};
-    const p4est_topidx_t ctt_offset[2] = {0, 4,};
-    const p4est_topidx_t corner_to_tree[4] = {0, 0, 0, 0,};
-    const int8_t corner_to_corner[4] = {0, 1, 2, 3,};
+    // const p4est_topidx_t tree_to_corner[4] = {0, 0, 0, 0,};
+    // const p4est_topidx_t ctt_offset[2] = {0, 4,};
+    // const p4est_topidx_t corner_to_tree[4] = {0, 0, 0, 0,};
+    // const int8_t corner_to_corner[4] = {0, 1, 2, 3,};
 
-    connectivity = p4est_connectivity_new_copy (4, 1, 0,
+    connectivity = p4est_connectivity_new_copy (num_vertices, num_trees, num_ctt,
                                         vertices, tree_to_vertex,
                                         tree_to_tree, tree_to_face,
                                         NULL, &num_ctt, NULL, NULL);
@@ -145,7 +145,7 @@ Rectangle::Rectangle(int order,
 */
 Rectangle::~Rectangle(){
 
-    free(forestData);
+    // free(forestData);
     p4est_connectivity_destroy(connectivity);
     p4est_destroy(p4est);
     // sc_finalize();
