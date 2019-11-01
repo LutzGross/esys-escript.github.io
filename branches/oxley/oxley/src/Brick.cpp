@@ -61,37 +61,44 @@ Brick::Brick(int order,
     //Create a connectivity
     const p4est_topidx_t num_vertices = 8;
     const p4est_topidx_t num_trees = 1;
-    const p4est_topidx_t num_ett = 0;
-    const p4est_topidx_t num_ctt = 0;
+    const p4est_topidx_t num_edges = 3;
+    const p4est_topidx_t num_corners = 1;
     const double vertices[8 * 3] = {
-        x0, y0, z0,
-        x1, y0, z0,
-        x0, y1, z0,
-        x1, y1, z0,
-        x0, y0, z1,
-        x1, y0, z1,
-        x0, y1, z1,
-        x1, y1, z1,
-    };
-    const p4est_topidx_t tree_to_vertex[8] = { 0, 1, 2, 3, 4, 5, 6, 7,};
+                                    x0, y0, z0,
+                                    x1, y0, z0,
+                                    x0, y1, z0,
+                                    x1, y1, z0,
+                                    x0, y0, z1,
+                                    x1, y0, z1,
+                                    x0, y1, z1,
+                                    x1, y1, z1,
+                                    };
+    const p4est_topidx_t tree_to_vertex[8] = {0, 1, 2, 3, 4, 5, 6, 7,};
     const p4est_topidx_t tree_to_tree[6] = {0, 0, 0, 0, 0, 0,};
-    const int8_t tree_to_face[6] = {0, 1, 2, 3, 4, 5,};
-
-    connectivity = p8est_connectivity_new_copy(num_vertices, num_trees, 0, 0,
-                                      vertices, tree_to_vertex,
+    const int8_t tree_to_face[6] = {1, 0, 3, 2, 5, 4, };
+    const p4est_topidx_t tree_to_edge[12] = {0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2,};
+    const p4est_topidx_t ett_offset[4] = {0, 4, 8, 12,};
+    const p4est_topidx_t edge_to_tree[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,};
+    const int8_t edge_to_edge[12] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,};
+    const p4est_topidx_t tree_to_corner[8] = {0, 0, 0, 0, 0, 0, 0, 0,};
+    const p4est_topidx_t ctt_offset[2] = {0, 8,};
+    const p4est_topidx_t corner_to_tree[8] = {0, 0, 0, 0, 0, 0, 0, 0,};
+    const int8_t corner_to_corner[8] = {0, 1, 2, 3, 4, 5, 6, 7,};
+    connectivity = p8est_connectivity_new_copy(num_vertices, num_trees, num_edges,
+                                      num_corners, vertices, tree_to_vertex,
                                       tree_to_tree, tree_to_face,
-                                      NULL, &num_ett, NULL, NULL,
-                                      NULL, &num_ctt, NULL, NULL);
+                                      tree_to_edge, ett_offset,
+                                      edge_to_tree, edge_to_edge,
+                                      tree_to_corner, ctt_offset,
+                                      corner_to_tree, corner_to_corner);
 
-    // connectivity = p8est_connectivity_new_brick((int) n0, (int) n1, (int) n2,
-    //     periodic0, periodic1, periodic2);
     if(!p8est_connectivity_is_valid(connectivity))
         throw OxleyException("Could not create a valid connectivity.");
 
     // Allocate some memory
     forestData = (p8estData *) malloc(sizeof(p8estData));
 
-    // p8est = p8est_new(m_mpiInfo->comm, connectivity, sizeof(forestData), &init_brick_data, NULL);
+    // Create the p8est
     p4est_locidx_t min_quadrants = n0*n1*n2 / m_mpiInfo->size;
     int min_level = 0;
     int fill_uniform = 1;
@@ -139,7 +146,7 @@ Brick::Brick(int order,
     // Number of dimensions
     m_numDim=3;
 
-    // To prevent segmentation faults from using numpy ndarray
+    // To prevent segmentation faults when using numpy ndarray
 #ifdef ESYS_HAVE_BOOST_NUMPY
     Py_Initialize();
     boost::python::numpy::initialize();
@@ -153,10 +160,10 @@ Brick::Brick(int order,
 */
 Brick::~Brick(){
 
-    free(forestData);
+    // free(forestData);
     p8est_connectivity_destroy(connectivity);
     p8est_destroy(p8est);
-    sc_finalize();
+    // sc_finalize();
 
 }
 
@@ -166,7 +173,7 @@ Brick::~Brick(){
 */
 std::string Brick::getDescription() const{
 
-    return "oxley::Brick";
+    return "oxley::brick";
 
 }
 

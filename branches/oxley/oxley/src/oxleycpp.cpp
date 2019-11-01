@@ -152,10 +152,8 @@ void _addCurve(OxleyDomainRect_ptr domain,
     // a pointer is attached to p4est and then passed around between functions
     addSurfaceData * surfacedata = new addSurfaceData;
     p4estData *forestData = (p4estData *) domain->borrow_forestData();
-    forestData->info = surfacedata;
-
+    forestData->assign_info(surfacedata);
     domain->set_temp_data(surfacedata);
-
     surfacedata->x.clear();
     surfacedata->y.clear();
     surfacedata->x.resize(lx[0],-1.0);
@@ -172,15 +170,14 @@ void _addCurve(OxleyDomainRect_ptr domain,
     if(!domain->getDescription().compare("oxley::rectangle"))
     {
         addSurface(domain);
-        // domain->clear_temp_data();
         delete surfacedata;
 
     }
     else
     {
         delete surfacedata;
-        // domain->clear_temp_data();
-        throw OxleyException("Invalid domain. Was expecting an oxley::rectangle.");
+        std::string message = "Invalid domain. Was expecting an oxley::rectangle, not a " + domain->getDescription();
+        throw OxleyException(message);
     }
 }
 #endif
@@ -211,13 +208,15 @@ void _addSurface(OxleyDomainBrick_ptr domain,
     if(ndz != 1)
         throw OxleyException("z has invalid dimensions");
     if(lz[0] != lx[0]*ly[0])
-        throw OxleyException("z i snot of length x*y.");
+        throw OxleyException("z is not of length x*y.");
 
     // This structure is used to store the information used during the algorithm
     // a pointer is attached to p4est and then passed around between functions
-    p8estData *forestData = (p8estData *) domain->p8est->user_pointer;
     addSurfaceData * surfacedata = new addSurfaceData;
-    forestData->info = surfacedata;
+    p4estData *forestData = (p4estData *) domain->borrow_forestData();
+    // forestData->info = surfacedata;
+    forestData->assign_info(surfacedata);
+    domain->set_temp_data(surfacedata);
     surfacedata->x.clear();
     surfacedata->y.clear();
     surfacedata->z.clear();
@@ -240,7 +239,7 @@ void _addSurface(OxleyDomainBrick_ptr domain,
         surfacedata->z[i] = *(pz + i);
     }
 
-    if(!domain->getDescription().compare("oxley::rectangle"))
+    if(!domain->getDescription().compare("oxley::brick"))
     {
         addSurface(domain);
         delete surfacedata;
@@ -248,7 +247,8 @@ void _addSurface(OxleyDomainBrick_ptr domain,
     else
     {
         delete surfacedata;
-        throw OxleyException("Invalid domain. Was expecting an oxley::rectangle.");
+        std::string message = "Invalid domain. Was expecting an oxley::brick, not a " + domain->getDescription();
+        throw OxleyException(message);
     }
 }
 #endif

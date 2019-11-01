@@ -34,10 +34,9 @@ int refine_uniform(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quad
 
 int refine_uniform(p8est_t * p8est, p4est_topidx_t tree, p8est_quadrant_t * quadrant);
 
-
 /*
  *  \brief
- *  gce_first_pass tags the corner node as being above or below the curve
+ * Checks that the quadrant is valid
  */
 void gce_first_pass(p4est_iter_volume_info_t * info, void *quad_data);
 

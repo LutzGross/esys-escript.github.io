@@ -137,7 +137,7 @@ public:
        \brief
        returns a pointer to the pXest
     */
-    virtual p8est_t* borrow_4est() { return p8est; };
+    virtual p8est_t* borrow_p8est() { return p8est; };
 
     /**
        \brief
@@ -162,16 +162,34 @@ public:
     */
     int getNumVertices() const { return connectivity->num_vertices;};
 
-    // A p8est
-    p8est_t *p8est;
+    // These functions are used internally
+    p8est_t * borrow_p4est() const { return p8est;};
 
-    // The data structure in p4est
-    p8estData * forestData;
+    p8estData * borrow_forestData() { return forestData;};
+
+    p8est_connectivity_t * borrow_connectivity() const { return connectivity; };
+
+    void * borrow_temp_data() { return temp_data; };
+
+    void set_temp_data(addSurfaceData * x) { temp_data = x; };
+
+    void clear_temp_data() { free(temp_data); };
+
+    void print_debug_report(std::string);
 
 private:
 
+    // A p8est
+    p8est_t * p8est;
+
+    // The data structure in p8est
+    p8estData * forestData;
+
     // This object records the connectivity of the p8est quadrants
-    p8est_connectivity_t *connectivity;
+    p8est_connectivity_t * connectivity;
+
+    // Pointer that records the location of a temporary data structure
+    void * temp_data;
 
 };
 
