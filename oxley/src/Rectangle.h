@@ -179,7 +179,7 @@ public:
     // These functions are used internally
     p4est_t * borrow_p4est() const { return p4est;};
 
-    p4estData * borrow_forestData() const { return forestData;};
+    p4estData * borrow_forestData() { return forestData;};
 
     p4est_connectivity_t * borrow_connectivity() const { return connectivity; };
 

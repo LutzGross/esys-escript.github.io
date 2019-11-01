@@ -61,7 +61,7 @@ void gce_brick_replace(p8est_t *p8est, p4est_topidx_t tree,
     int num_outgoing, p8est_quadrant_t *outgoing[],
     int num_incoming, p8est_quadrant_t *incoming[]);
 
-void gce_init_new_rectangle(p8est_t * p8est, p4est_topidx_t which_tree, p8est_quadrant_t * q);
+void gce_init_new_brick(p8est_t * p8est, p4est_topidx_t which_tree, p8est_quadrant_t * q);
 
 ///////////////////////////////////////////////////////////////////////////
 

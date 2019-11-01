@@ -54,45 +54,36 @@ void gce_rectangle_replace(p4est_t *p4est, p4est_topidx_t tree,
     int num_outgoing, p4est_quadrant_t *outgoing[],
     int num_incoming, p4est_quadrant_t *incoming[])
 {
-    if(num_incoming == P4EST_CHILDREN && num_outgoing == 1)
+    if(num_incoming == 4 && num_outgoing == 1)
     {
-        // The tag numbers being used
-        p4estData * forestData = (p4estData *) p4est->user_pointer;
-        addSurfaceData * info = (addSurfaceData *) forestData->info;
-        int newTag = info->newTag;
-        int oldTag = info->oldTag;
+        // Get the tag numbers being used
+        addSurfaceData * surfaceinfo = (addSurfaceData *)p4est->user_pointer;
+        int newTag = surfaceinfo->newTag;
+        int oldTag = surfaceinfo->oldTag;
 
-        // This is written in such a way as to minimise the number of calls
-        // to "aboveCurve" during refinement.
+        // Get the length of the array
+        long n = surfaceinfo->x.size();
 
-        // The first quadrant's corner is the same as the parents
-        quadrantData *parentData = (quadrantData *) outgoing[0]->p.user_data;
-        quadrantData *childData  = (quadrantData *) incoming[0]->p.user_data;
-        if(parentData->nodeTag)
-            childData->quadTag = oldTag;
-        else
-            childData->quadTag = newTag;
-        childData->xy[0] = parentData->xy[0];
-        childData->xy[1] = parentData->xy[1];
-
-        // Loop over the remaining children
-        for(int i = 1; i < P4EST_CHILDREN; i++)
+        // Loop over the children
+        for(int i = 1; i < 4; i++)
         {
-            quadrantData *childData = (quadrantData *) incoming[i]->p.user_data;
-            childData->xy[0] = incoming[i]->x;
-            childData->xy[1] = incoming[i]->y;
+            // Get coordinates
+            double xy[2];
+            p4est_qcoord_to_vertex(p4est->connectivity, tree, incoming[i]->x, incoming[i]->y, xy);
 
-            int n = info->y.size();
-            childData->nodeTag=aboveCurve(info->x,info->y,
-                                n,childData->xy[0],childData->xy[1]);
+            quadrantData * quaddata = (quadrantData *) incoming[i]->p.user_data;
 
-            if(childData->nodeTag)
-                childData->quadTag = oldTag;
+            if(aboveCurve(surfaceinfo->x, surfaceinfo->y, n, xy[0], xy[1]))
+            {
+                quaddata->nodeTag = newTag;
+            }
             else
-                childData->quadTag = newTag;
+            {
+                quaddata->nodeTag = oldTag;
+            }
         }
     }
-    else if(num_incoming == 1 && num_outgoing == P4EST_CHILDREN)
+    else if(num_incoming == 1 && num_outgoing == 4)
     {
         // Coarsening should not occur during the gce algorithm
         throw OxleyException("gce_rectangle_replace: Unexpected attempt to coarsen the mesh.");
@@ -107,16 +98,16 @@ void gce_brick_replace(p8est_t *p8est, p4est_topidx_t tree,
     int num_outgoing, p8est_quadrant_t *outgoing[],
     int num_incoming, p8est_quadrant_t *incoming[])
 {
-    if(num_incoming == P8EST_CHILDREN && num_outgoing == 1)
+    if(num_incoming == 8 && num_outgoing == 1)
     {
-        // The tag numbers being used
-        p8estData * forestData = (p8estData *) p8est->user_pointer;
-        addSurfaceData * surfaceinfo = (addSurfaceData *) forestData->info;
+        // Get the tag numbers being used
+        addSurfaceData * surfaceinfo = (addSurfaceData *) p8est->user_pointer;
         int newTag = surfaceinfo->newTag;
         int oldTag = surfaceinfo->oldTag;
 
-        // This is written in such a way as to minimise the number of calls
-        // to "aboveCurve" during refinement.
+        // Get the length of the arrays for later
+        long nx = surfaceinfo->x.size();
+        long ny = surfaceinfo->y.size();
 
         // The first quadrant's corner is the same as the parents
         octantData *parentData = (octantData *) outgoing[0]->p.user_data;
@@ -130,25 +121,24 @@ void gce_brick_replace(p8est_t *p8est, p4est_topidx_t tree,
         childData->xyz[2] = parentData->xyz[2];
 
         // Loop over the remaining children
-        for(int i = 1; i < P8EST_CHILDREN; i++)
+        for(int i = 1; i < 8; i++)
         {
-            octantData *childData = (octantData *) incoming[i]->p.user_data;
-            childData->xyz[0] = incoming[i]->x;
-            childData->xyz[1] = incoming[i]->y;
-            childData->xyz[2] = incoming[i]->z;
+            // Get coordinates
+            double xyz[3];
+            p8est_qcoord_to_vertex(p8est->connectivity, tree, incoming[i]->x, incoming[i]->y, incoming[i]->z, xyz);
 
-            long nx = surfaceinfo->x.size();
-            long ny = surfaceinfo->y.size();
-            childData->nodeTag=aboveSurface(surfaceinfo->x,surfaceinfo->y,surfaceinfo->z,
-                nx,ny,childData->xyz[0],childData->xyz[1],childData->xyz[2]);
-
-            if(childData->nodeTag)
-                childData->octantTag = oldTag;
+            quadrantData * quaddata = (quadrantData *) incoming[i]->p.user_data;
+            if(aboveSurface(surfaceinfo->x, surfaceinfo->y, surfaceinfo->z, nx, ny, xyz[0], xyz[1], xyz[2]))
+            {
+                quaddata->nodeTag = newTag;
+            }
             else
-                childData->octantTag = newTag;
+            {
+                quaddata->nodeTag = oldTag;
+            }
         }
     }
-    else if(num_incoming == 1 && num_outgoing == P8EST_CHILDREN)
+    else if(num_incoming == 1 && num_outgoing == 8)
     {
         // Coarsening should not occur during the gce algorithm
         throw OxleyException("gce_brick_replace: Unexpected attempt to coarsen the mesh.");
@@ -171,7 +161,7 @@ void gce_init_new_rectangle(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant
     p4est_qcoord_to_vertex(p4est->connectivity, tree, q->x, q->y, &data->xy[0]);
 }
 
-void gce_init_new_rectangle(p8est_t * p8est, p4est_topidx_t tree, p8est_quadrant_t * q)
+void gce_init_new_brick(p8est_t * p8est, p4est_topidx_t tree, p8est_quadrant_t * q)
 {
     // the data associated with each quadrant
     octantData *data = (octantData *) q->p.user_data;

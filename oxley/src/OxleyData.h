@@ -30,6 +30,9 @@
 // This file contains the data structures used by Rectangle and Brick
 ////////////////////////////////////////////////////////////////////////
 
+// Forward declarations
+struct addSurfaceData;
+
 //This structure describes the information that is stored at each
 //quadrant / octant in the p4est / p8est
 struct quadrantData
@@ -61,11 +64,9 @@ struct octantData
 };
 
 //This structure describes the information that is stored with the p4est
-struct p4estData
+class p4estData
 {
-	// This is here to temporarily store information
-	void * info;
-
+public:
 	// origin of domain
     double m_origin[2] = {0.0,0.0};
 
@@ -86,13 +87,19 @@ struct p4estData
 
 	// maximum levels of recursion to use during refinement
 	int max_levels_refinement = 0;
+
+	void assign_info(addSurfaceData * tmp) {info=tmp;};
+
+	addSurfaceData * borrow_info(){return info;};
+
+	// This is here to temporarily store information
+private:
+	addSurfaceData * info;
 };
 
-struct p8estData
+class p8estData
 {
-	// This is here to temporarily store information
-	void * info;
-
+public:
 	// origin of domain
     double m_origin[3] = {0.0,0.0,0.0};
 
@@ -113,6 +120,14 @@ struct p8estData
 
 	// maximum levels of recursion to use during refinement
 	int max_levels_refinement = 0;
+
+	void assign_info(addSurfaceData * tmp) {info=tmp;};
+
+	addSurfaceData * borrow_info(){return info;};
+
+	// This is here to temporarily store information
+private:
+	addSurfaceData * info;
 };
 
 // This structure temporarily stores information used by the addSurface function

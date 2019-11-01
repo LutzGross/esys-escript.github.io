@@ -39,13 +39,14 @@ long getNewTag(OxleyDomainBrick_ptr domain);
 #ifdef ESYS_HAVE_BOOST_NUMPY
 void addSurface(OxleyDomainRect_ptr domain)
 {
-
     p4est_t * p4est = domain->borrow_p4est();
     p4estData * forestData = (p4estData *) domain->borrow_forestData();
 
     // Get a new tag number and name
-    // addSurfaceData * surfacedata = (addSurfaceData *) forestData->info;
-    addSurfaceData * surfacedata = (addSurfaceData *) domain->borrow_temp_data();
+    addSurfaceData * surfacedata;
+    surfacedata = new addSurfaceData;
+    surfacedata = (addSurfaceData *) malloc(sizeof(addSurfaceData));
+    surfacedata = (addSurfaceData *) domain->borrow_temp_data();
     surfacedata->newTag = getNewTag(domain);
 
     // Add to the list
@@ -54,70 +55,54 @@ void addSurface(OxleyDomainRect_ptr domain)
 
     // Note: the forest must be face balanced for p4est_iterate() to execute
     // a callback function on faces (see p4est_balance()).
-
-#ifdef P4EST_ENABLE_DEBUG
-    domain->print_debug_report("gce: gce_first_pass");
-    if(!p4est_is_valid(p4est))
-        throw OxleyException("Invalid p4est.");
-#endif
     p4est_balance(p4est, P4EST_CONNECT_FACE, gce_init_new_rectangle);
     p4est_iterate(p4est, NULL, (void *) surfacedata, gce_first_pass, NULL, NULL);
-
-#ifdef P4EST_ENABLE_DEBUG
-    domain->print_debug_report("gce: p4est_refine_ext");
-    if(!p4est_is_valid(p4est))
-        throw OxleyException("Invalid p4est.");
-#endif
+    forestData->assign_info(surfacedata);
+    p4est_iterate(p4est, NULL, (void *) surfacedata, gce_second_pass, NULL, NULL);
+    p4est->user_pointer = surfacedata;
     p4est_refine_ext(p4est, true, forestData->max_levels_refinement,
         refine_gce, init_rectangle_data, gce_rectangle_replace);
+    p4est->user_pointer = forestData;
 
     // Balance and repartition
-#ifdef P4EST_ENABLE_DEBUG
-    domain->print_debug_report("gce: balance");
-    if(!p4est_is_valid(p4est))
-        throw OxleyException("Invalid p4est.");
-#endif
-    p4est_balance_ext(p4est, P4EST_CONNECT_FULL,
-        init_rectangle_data, gce_rectangle_replace);
+    p4est_balance(p4est, P4EST_CONNECT_FACE, gce_init_new_rectangle);
     int partition_for_coarsening = 0;
     p4est_partition_ext(p4est, partition_for_coarsening, NULL);
-
 }
 #endif
 
 #ifdef ESYS_HAVE_BOOST_NUMPY
 void addSurface(OxleyDomainBrick_ptr domain)
 {
-    p8estData *forestData = (p8estData *) domain->p8est->user_pointer;
+    p8est_t * p8est = domain->borrow_p8est();
+    p8estData * forestData = (p8estData *) domain->borrow_forestData();
 
     // Get a new tag number and name
-    addSurfaceData * surfacedata = (addSurfaceData *) forestData->info;
+    addSurfaceData * surfacedata;
+    surfacedata = new addSurfaceData;
+    surfacedata = (addSurfaceData *) malloc(sizeof(addSurfaceData));
+    surfacedata = (addSurfaceData *) domain->borrow_temp_data();
     surfacedata->newTag = getNewTag(domain);
 
     // Add to the list
     domain->numberOfTags++;
     domain->tags[domain->numberOfTags]=surfacedata->newTag;
 
-    // In order to minimise the number of function calls, this code has three
-    // separate loops
-    // The first loop tags the quadrant's corner node, as being above or below
-    // the curve and then exits
-    // The seconds loop records whether or not a quadrant should be refined
-    // based on info from the first loop.
-    // The third loop does the refinement and updates the new quads
-    p8est_iterate(domain->p8est, NULL, NULL, gce_first_pass, NULL, NULL, NULL);
-    p8est_iterate(domain->p8est, NULL, NULL, gce_second_pass, NULL, NULL, NULL);
-    p8est_refine_ext(domain->p8est, true, forestData->max_levels_refinement,
+    // Note: the forest must be face balanced for p4est_iterate() to execute
+    // a callback function on faces (see p4est_balance()).
+    p8est_balance(p8est, P8EST_CONNECT_FACE, gce_init_new_brick);
+    p8est_iterate(p8est, NULL, (void *) surfacedata, gce_first_pass, NULL, NULL, NULL);
+    forestData->assign_info(surfacedata);
+    p8est_iterate(p8est, NULL, (void *) surfacedata, gce_second_pass, NULL, NULL, NULL);
+    p8est->user_pointer = surfacedata;
+    p8est_refine_ext(p8est, true, forestData->max_levels_refinement,
         refine_gce, init_brick_data, gce_brick_replace);
+    p8est->user_pointer = forestData;
 
-    p8est_balance_ext(domain->p8est, P8EST_CONNECT_FULL,
-        init_brick_data, gce_brick_replace);
-
-    int partition_for_coarsening = 0; //Do not allow coarsening while partitioning
-    p8est_partition_ext(domain->p8est, partition_for_coarsening, NULL);
-
-    // clean up
-    delete surfacedata;
+    // Balance and repartition
+    p8est_balance(p8est, P8EST_CONNECT_FACE, gce_init_new_brick);
+    int partition_for_coarsening = 0;
+    p8est_partition_ext(p8est, partition_for_coarsening, NULL);
 }
 #endif
 
@@ -332,7 +317,7 @@ bool aboveSurface(std::vector<double> x, std::vector<double> y, std::vector<doub
     else // otherwise, interpolate
     {
         double q11, q12, q21, q22 = 0;
-        q11=z[INDEX2(ix1,ix1,nx)]; q12=z[INDEX2(ix1,iy2,nx)];
+        q11=z[INDEX2(ix1,ix1,nx)]; q12=z[INDEX2(ix1,iy2,nx)]; //ae bug here
         q21=z[INDEX2(ix2,iy1,nx)]; q22=z[INDEX2(ix2,iy2,nx)];
         double x1, x2, y1, y2 = 0;
         x1=x[ix1];y1=y[iy1];x2=x[ix2];y2=y[iy2];

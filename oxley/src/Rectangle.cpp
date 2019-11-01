@@ -61,27 +61,29 @@ Rectangle::Rectangle(int order,
     p4est_init(NULL, LOG_LEVEL);
 
     // Create the connectivity
-    const p4est_topidx_t num_vertices = 4;
+    const p4est_topidx_t num_vertices = P4EST_CHILDREN;
     const p4est_topidx_t num_trees = 1;
-    const p4est_topidx_t num_ctt = 0;
-    const double vertices[4 * 3] = {    x0, y0, 0,
-                                        x1, y0, 0,
-                                        x0, y1, 0,
-                                        x1, y1, 0,  };
-    const p4est_topidx_t tree_to_vertex[4] = {0, 1, 2, 3,};
-    const p4est_topidx_t tree_to_tree[4] = {0, 0, 0, 0,};
-    const int8_t tree_to_face[4] = {1, 0, 3, 2,};
-    // const p4est_topidx_t tree_to_corner[4] = {0, 0, 0, 0,};
-    // const p4est_topidx_t ctt_offset[2] = {0, 4,};
-    // const p4est_topidx_t corner_to_tree[4] = {0, 0, 0, 0,};
-    // const int8_t corner_to_corner[4] = {0, 1, 2, 3,};
+    const p4est_topidx_t num_corners = 1;
+    const double vertices[P4EST_CHILDREN * 3] = {
+                                                x0, y0, 0,
+                                                x1, y0, 0,
+                                                x0, y1, 0,
+                                                x1, y1, 0,
+                                                };
+    const p4est_topidx_t tree_to_vertex[P4EST_CHILDREN] = {0, 1, 2, 3,};
+    const p4est_topidx_t tree_to_tree[P4EST_FACES] = {0, 0, 0, 0,};
+    // const int8_t tree_to_face[P4EST_FACES] = {1, 0, 3, 2,}; //aeae todo: add in periodic boundary conditions
+    const int8_t tree_to_face[P4EST_FACES] = {0, 1, 2, 3,};
+    const p4est_topidx_t tree_to_corner[P4EST_CHILDREN] = {0, 0, 0, 0,};
+    const p4est_topidx_t ctt_offset[2] = {0, P4EST_CHILDREN,};
+    const p4est_topidx_t corner_to_tree[P4EST_CHILDREN] = {0, 0, 0, 0,};
+    const int8_t corner_to_corner[P4EST_CHILDREN] = {0, 1, 2, 3,};
 
-    connectivity = p4est_connectivity_new_copy (num_vertices, num_trees, num_ctt,
-                                        vertices, tree_to_vertex,
-                                        tree_to_tree, tree_to_face,
-                                        NULL, &num_ctt, NULL, NULL);
-
-    // connectivity = p4est_connectivity_new_brick((int) n0, (int) n1, periodic0, periodic1);
+    connectivity = p4est_connectivity_new_copy(num_vertices, num_trees,
+                                      num_corners, vertices, tree_to_vertex,
+                                      tree_to_tree, tree_to_face,
+                                      tree_to_corner, ctt_offset,
+                                      corner_to_tree, corner_to_corner);
 
     if(!p4est_connectivity_is_valid(connectivity))
         throw OxleyException("Could not create a valid connectivity.");
@@ -90,10 +92,10 @@ Rectangle::Rectangle(int order,
     forestData = new p4estData;
     forestData = (p4estData *) malloc(sizeof(p4estData));
 
-    // p4est = p4est_new(m_mpiInfo->comm, connectivity, datasize, &init_rectangle_data, NULL);
+    // Create a p4est
     p4est_locidx_t min_quadrants = (n0*n1) / m_mpiInfo->size;
     int min_level = 0;
-    int fill_uniform = 0;
+    int fill_uniform = 1;
     p4est = p4est_new_ext(m_mpiInfo->comm, connectivity, min_quadrants,
             min_level, fill_uniform, sizeof(p4estData), init_rectangle_data, (void *) &forestData);
 
@@ -132,7 +134,7 @@ Rectangle::Rectangle(int order,
     // Number of dimensions
     m_numDim=2;
 
-    // To prevent segmentation faults from using numpy ndarray
+    // To prevent segmentation faults when using numpy ndarray
 #ifdef ESYS_HAVE_BOOST_NUMPY
     Py_Initialize();
     boost::python::numpy::initialize();
