@@ -89,8 +89,10 @@ void addSurface(OxleyDomainBrick_ptr domain)
     domain->tags[domain->numberOfTags]=surfacedata->newTag;
 
     // Note: the forest must be face balanced for p4est_iterate() to execute
-    // a callback function on faces (see p4est_balance()).
+    // a callback function on faces
     p8est_balance(p8est, P8EST_CONNECT_FACE, gce_init_new_brick);
+    int partition_for_coarsening = 0;
+    p8est_partition_ext(p8est, partition_for_coarsening, NULL);
     p8est_iterate(p8est, NULL, (void *) surfacedata, gce_first_pass, NULL, NULL, NULL);
     forestData->assign_info(surfacedata);
     p8est_iterate(p8est, NULL, (void *) surfacedata, gce_second_pass, NULL, NULL, NULL);
@@ -101,7 +103,6 @@ void addSurface(OxleyDomainBrick_ptr domain)
 
     // Balance and repartition
     p8est_balance(p8est, P8EST_CONNECT_FACE, gce_init_new_brick);
-    int partition_for_coarsening = 0;
     p8est_partition_ext(p8est, partition_for_coarsening, NULL);
 }
 #endif
@@ -356,7 +357,7 @@ bool aboveSurface(std::vector<double> x, std::vector<double> y, std::vector<doub
     else // otherwise, interpolate
     {
         double q11 = 0.0, q12 = 0.0, q21 = 0.0, q22 = 0.0;
-        q11=z[INDEX2(ix1,ix1,nx)]; q12=z[INDEX2(ix1,iy2,nx)]; //ae bug here
+        q11=z[INDEX2(ix1,iy1,nx)]; q12=z[INDEX2(ix1,iy2,nx)];
         q21=z[INDEX2(ix2,iy1,nx)]; q22=z[INDEX2(ix2,iy2,nx)];
         double x1, x2, y1, y2 = 0;
         x1=x[ix1];y1=y[iy1];x2=x[ix2];y2=y[iy2];

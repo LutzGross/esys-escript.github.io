@@ -131,12 +131,10 @@ void gce_brick_replace(p8est_t *p8est, p4est_topidx_t tree,
             if(aboveSurface(surfaceinfo->x, surfaceinfo->y, surfaceinfo->z, p8est->connectivity,
                 tree, nx, ny, incoming[i]->x, incoming[i]->y, incoming[i]->z))
             {
-                std::cout << "verdict = above" << std::endl; //aeae this is temporary
                 quaddata->nodeTag = newTag;
             }
             else
             {
-                std::cout << "verdict = below" << std::endl; //aeae this is temporary
                 quaddata->nodeTag = oldTag;
             }
         }
