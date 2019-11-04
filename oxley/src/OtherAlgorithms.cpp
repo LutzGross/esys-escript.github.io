@@ -176,34 +176,45 @@ bool aboveCurve(double x[], double z[], int nx, double _x, double _z)
     }
 }
 
-bool aboveCurve(std::vector<double> x, std::vector<double> z, int nx, double _x, double _z)
+bool aboveCurve(std::vector<double> x, std::vector<double> y,
+                    p4est_connectivity_t * connectivity, p4est_topidx_t treeid,
+                    long n, p4est_qcoord_t qx, p4est_qcoord_t qy)
 {
-    // Find the index of the corresponding x nodes
+    // Get the spatial coordinates of the point we are considering
+    double xy[2] = {-1.0,-1.0};
+    p4est_qcoord_to_vertex(connectivity, treeid, qx, qy, xy);
+    double _x = xy[0];
+    double _y = xy[1];
+
+    // Find the indices of the corresponding x and y nodes
     long ix1 = -1, ix2 = -1;
 
-    for(long i = 0; i < nx; i++){
-        if(_x >= x[i]){
+    for(long i = 0; i < n; i++){
+        if(_x > x[i] && _x < x[i+1])
+        {
             ix1=i;
             ix2=i+1;
             break;
+        } else if (_x > x[i] && i == n)
+        {
+            ix1=i-1;
+            ix2=i;
+            break;
+        } else if(_x == x[i]) {
+            return _y > y[i];
         }
     }
 
-    if(ix1 == -1 && ix2 == -1)
+    // Point is outside the domain
+    if(ix1 == -1)
         return false;
 
-    // Do the check
-    if(x[ix1] == _x) // If the point is on the node
-    {
-        return _z > z[ix1];
-    }
-    else // otherwise, interpolate
-    {
-        double z0, z1, x0, x1;
-        z0=z[ix1]; z1=z[ix2];
-        x0=x[ix1]; x1=x[ix2];
-        return _z > (z0*(x1-_x)+z1*(_x-x0))/(x1-x0);
-    }
+    // interpolate
+    double x1=x[ix1], x2=x[ix2];
+    double y1=y[ix1], y2=y[ix2];
+    double tmp1 = _x*(y1-y2)/(x1-x2);
+    double tmp2 = (x2*y1-x1*y2)/(x1-x2);
+    return _y > tmp1 - tmp2;
 }
 
 double distanceToCurve(double x[], double z[], int nx, double _x, double _z)
@@ -281,23 +292,51 @@ bool aboveSurface(double x[], double y[], double z[], int nx, int ny, double _x,
 }
 
 bool aboveSurface(std::vector<double> x, std::vector<double> y, std::vector<double> z,
-                    int nx, int ny, double _x, double _y, double _z)
+                    p8est_connectivity_t * connectivity, p4est_topidx_t treeid,
+                    long nx, long ny, p4est_qcoord_t qx, p4est_qcoord_t qy, p4est_qcoord_t qz)
 {
+    // Get the spatial coordinates of the point we are considering
+    double xyz[3] = {-1.0,-1.0,-1.0};
+    p8est_qcoord_to_vertex(connectivity, treeid, qx, qy, qz, xyz);
+    double _x = xyz[0];
+    double _y = xyz[1];
+    double _z = xyz[2];
+
     // Find the indices of the corresponding x and y nodes
-    long ix1, iy1, ix2, iy2 = -1;
+    long ix1 = -1, iy1 = -1, ix2 = -1, iy2 = -1;
 
     for(long i = 0; i < nx; i++){
-        if(_x >= x[i]){
+        if(_x > x[i] && _x < x[i+1])
+        {
             ix1=i;
             ix2=i+1;
+            break;
+        }
+        else if (_x > x[i] && i == nx)
+        {
+            ix1=i-1;
+            ix2=i;
+            break;
+        } else if(_x == x[i]) {
+            ix1=i;
             break;
         }
     }
 
     for(long j = 0; j < ny; j++){
-        if(_y >= y[j]){
+        if(_y > y[j] && _y < y[j+1])
+        {
             iy1=j;
             iy2=j+1;
+            break;
+        }
+        else if(_y > y[j] && j == ny)
+        {
+            iy1=j-1;
+            iy2=j;
+            break;
+        } else if(_y == y[j]) {
+            iy1=j;
             break;
         }
     }
@@ -316,7 +355,7 @@ bool aboveSurface(std::vector<double> x, std::vector<double> y, std::vector<doub
     }
     else // otherwise, interpolate
     {
-        double q11, q12, q21, q22 = 0;
+        double q11 = 0.0, q12 = 0.0, q21 = 0.0, q22 = 0.0;
         q11=z[INDEX2(ix1,ix1,nx)]; q12=z[INDEX2(ix1,iy2,nx)]; //ae bug here
         q21=z[INDEX2(ix2,iy1,nx)]; q22=z[INDEX2(ix2,iy2,nx)];
         double x1, x2, y1, y2 = 0;
@@ -357,7 +396,7 @@ double distanceToSurface(double x[], double y[], double z[], int nx, int ny, dou
     }
     else // otherwise, interpolate
     {
-        double q11, q12, q21, q22 = 0;
+        double q11 = 0.0, q12 = 0.0, q21 = 0.0, q22 = 0.0;
         q11=z[INDEX2(ix1,ix1,nx)]; q12=z[INDEX2(ix1,iy2,nx)];
         q21=z[INDEX2(ix2,iy1,nx)]; q22=z[INDEX2(ix2,iy2,nx)];
         double x1, x2, y1, y2 = 0;
