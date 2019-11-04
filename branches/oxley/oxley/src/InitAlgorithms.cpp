@@ -73,7 +73,7 @@ void gce_rectangle_replace(p4est_t *p4est, p4est_topidx_t tree,
 
             quadrantData * quaddata = (quadrantData *) incoming[i]->p.user_data;
 
-            if(aboveCurve(surfaceinfo->x, surfaceinfo->y, n, xy[0], xy[1]))
+            if(aboveCurve(surfaceinfo->x, surfaceinfo->y, p4est->connectivity, tree, n, incoming[i]->x, incoming[i]->y))
             {
                 quaddata->nodeTag = newTag;
             }
@@ -128,12 +128,15 @@ void gce_brick_replace(p8est_t *p8est, p4est_topidx_t tree,
             p8est_qcoord_to_vertex(p8est->connectivity, tree, incoming[i]->x, incoming[i]->y, incoming[i]->z, xyz);
 
             quadrantData * quaddata = (quadrantData *) incoming[i]->p.user_data;
-            if(aboveSurface(surfaceinfo->x, surfaceinfo->y, surfaceinfo->z, nx, ny, xyz[0], xyz[1], xyz[2]))
+            if(aboveSurface(surfaceinfo->x, surfaceinfo->y, surfaceinfo->z, p8est->connectivity,
+                tree, nx, ny, incoming[i]->x, incoming[i]->y, incoming[i]->z))
             {
+                std::cout << "verdict = above" << std::endl; //aeae this is temporary
                 quaddata->nodeTag = newTag;
             }
             else
             {
+                std::cout << "verdict = below" << std::endl; //aeae this is temporary
                 quaddata->nodeTag = oldTag;
             }
         }

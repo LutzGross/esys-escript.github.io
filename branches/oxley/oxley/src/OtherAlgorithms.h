@@ -38,7 +38,9 @@ long getNewTag(OxleyDomainBrick_ptr domain);
 // When necessary, this uses linear interpolation
 // Array x has nx elements and array z both have nx elements.
 bool aboveCurve(double x[], double z[], int nx, double _x, double _z);
-bool aboveCurve(std::vector<double> x, std::vector<double> z, int nx, double _x, double _z);
+bool aboveCurve(std::vector<double> x, std::vector<double> y,
+                    p4est_connectivity_t * connectivity, p4est_topidx_t treeid,
+                    long n, p4est_qcoord_t _x, p4est_qcoord_t _y);
 
 
 // Returns the distance between a point and the interpolated curve
@@ -50,7 +52,8 @@ double distanceToCurve(double x[], double z[], int nx, double _x, double _z);
 bool aboveSurface(double x[], double y[], double z[],
                     int nx, int ny, double _x, double _y, double _z);
 bool aboveSurface(std::vector<double> x, std::vector<double> y, std::vector<double> z,
-                    int nx, int ny, double _x, double _y, double _z);
+                    p8est_connectivity_t * connectivity, p4est_topidx_t treeid,
+                    long nx, long ny, p4est_qcoord_t _x, p4est_qcoord_t _y, p4est_qcoord_t _z);
 
 // Returns the distance between a point and the interpolated surface
 double distanceToSurface(double x[], double y[], double z[],

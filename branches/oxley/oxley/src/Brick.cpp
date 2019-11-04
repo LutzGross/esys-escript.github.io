@@ -146,6 +146,10 @@ Brick::Brick(int order,
     // Number of dimensions
     m_numDim=3;
 
+    // Distribute the p4est across the processors
+    int allow_coarsening = 0;
+    p8est_partition(p8est, allow_coarsening, NULL);
+
     // To prevent segmentation faults when using numpy ndarray
 #ifdef ESYS_HAVE_BOOST_NUMPY
     Py_Initialize();
