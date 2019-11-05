@@ -36,7 +36,7 @@ int refine_uniform(p8est_t * p8est, p4est_topidx_t tree, p8est_quadrant_t * quad
 
 /*
  *  \brief
- * Checks that the quadrant is valid
+ * Checks that the quadrant is valid (used when debugging)
  */
 void gce_first_pass(p4est_iter_volume_info_t * info, void *quad_data);
 
@@ -51,6 +51,14 @@ void gce_second_pass(p4est_iter_volume_info_t * info, void *quad_data);
 
 void gce_second_pass(p8est_iter_volume_info_t * info, void *quad_data);
 
+/*
+ *  \brief
+ *  gce_third_pass updates the tags of quadrants/octants inside the old region
+ *  that were not refined in gce_second_pass
+ */
+void gce_third_pass(p4est_iter_volume_info_t * info, void *quad_data);
+
+void gce_third_pass(p8est_iter_volume_info_t * info, void *quad_data);
 
 /*
  *  \brief

@@ -14,13 +14,13 @@
 #define CC "gcc"
 
 /* C compiler flags */
-#define CFLAGS "-g -O2"
+#define CFLAGS "-g -O2 -fopenmp"
 
 /* C preprocessor */
 #define CPP "gcc -E"
 
 /* C preprocessor flags */
-#define CPPFLAGS ""
+#define CPPFLAGS " "
 
 /* Define to 1 if your C++ compiler doesn't accept -c and -o together. */
 /* #undef CXX_NO_MINUS_C_MINUS_O */
@@ -63,7 +63,7 @@
    CFLAGS; to supply CFLAGS use --enable-openmp=<OPENMP_CFLAGS>. We check
    first for linking without any libraries and then with -lgomp; to avoid the
    latter, specify LIBS=<OPENMP_LIBS> on configure line */
-/* #undef ENABLE_OPENMP */
+#define ENABLE_OPENMP 1
 
 /* enable POSIX threads: Using --enable-pthread without arguments does not
    specify any CFLAGS; to supply CFLAGS use --enable-pthread=<PTHREAD_CFLAGS>.
@@ -78,7 +78,7 @@
 #define ENABLE_VTK_COMPRESSION 1
 
 /* use doubles for vtk file data */
-/* #undef ENABLE_VTK_DOUBLES */
+#define ENABLE_VTK_DOUBLES 1
 
 /* Define to dummy `main' function (if any) required to link to the Fortran
    libraries. */
@@ -139,7 +139,7 @@
 #define HAVE_NETINET_IN_H 1
 
 /* Have we found function omp_get_thread_num. */
-/* #undef HAVE_OPENMP */
+#define HAVE_OPENMP 1
 
 /* Define to 1 if you have the `posix_memalign' function. */
 #define HAVE_POSIX_MEMALIGN 1
@@ -169,11 +169,10 @@
 #define HAVE_ZLIB 1
 
 /* Linker flags */
-#define LDFLAGS ""
+#define LDFLAGS " "
 
 /* Libraries */
-// #define LIBS "-llapack -lcblas -lf77blas -latlas -lz -lm   "
-#define LIBS ""
+#define LIBS "-lmetis -llapack -lcblas -lf77blas -latlas -lz -lm   "
 
 /* Define to the sub-directory where libtool stores uninstalled libraries. */
 #define LT_OBJDIR ".libs/"
@@ -185,7 +184,7 @@
 #define MEMALIGN_BYTES (P4EST_SIZEOF_VOID_P)
 
 /* DEPRECATED (use P4EST_WITH_METIS instead) */
-/* #undef METIS */
+#define METIS 1
 
 /* DEPRECATED (use P4EST_ENABLE_MPI instead) */
 /* #undef MPI */
@@ -197,7 +196,7 @@
 /* #undef NO_MINUS_C_MINUS_O */
 
 /* DEPRECATED (use P4EST_ENABLE_OPENMP instead) */
-/* #undef OPENMP */
+#define OPENMP 1
 
 /* Name of package */
 #define PACKAGE "p4est"
@@ -209,7 +208,7 @@
 #define PACKAGE_NAME "p4est"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "p4est 2.2.1-85ab"
+#define PACKAGE_STRING "p4est 2.2"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "p4est"
@@ -218,7 +217,7 @@
 #define PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "2.2.1-85ab"
+#define PACKAGE_VERSION "2.2"
 
 /* DEPRECATED (use P4EST_WITH_PETSC instead) */
 /* #undef PETSC */
@@ -242,7 +241,7 @@
 #define STDC_HEADERS 1
 
 /* Version number of package */
-#define VERSION "2.2.1-85ab"
+#define VERSION "2.2"
 
 /* Package major version */
 #define VERSION_MAJOR 2
@@ -251,7 +250,7 @@
 #define VERSION_MINOR 2
 
 /* Package point version */
-#define VERSION_POINT 1-85ab
+#define VERSION_POINT 2.2
 
 /* DEPRECATED (use P4EST_ENABLE_VTK_BINARY instead) */
 #define VTK_BINARY 1
@@ -260,7 +259,7 @@
 #define VTK_COMPRESSION 1
 
 /* DEPRECATED (use P4EST_ENABLE_VTK_DOUBLES instead) */
-/* #undef VTK_DOUBLES */
+#define VTK_DOUBLES 1
 
 /* Define to 1 if BLAS is used */
 #define WITH_BLAS 1
@@ -269,7 +268,7 @@
 #define WITH_LAPACK 1
 
 /* enable metis-dependent code */
-/* #undef WITH_METIS */
+#define WITH_METIS 1
 
 /* enable PETSc-dependent code */
 /* #undef WITH_PETSC */

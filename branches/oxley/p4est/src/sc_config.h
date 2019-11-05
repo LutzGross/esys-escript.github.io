@@ -15,7 +15,7 @@
 
 /* C compiler flags */
 #ifndef SC_CFLAGS
-#define SC_CFLAGS "-g -O2 "
+#define SC_CFLAGS "-g -O2 -fopenmp"
 #endif
 
 /* C preprocessor */
@@ -284,12 +284,7 @@
 
 /* Libraries */
 #ifndef SC_LIBS
-// #define SC_LIBS "-lgomp -llapack -lcblas -lf77blas -latlas -lz -lm   "
-#ifdef P4EST_HAVE_OPENMP
-#define SC_LIBS "-lgomp "
-#else
-#define SC_LIBS ""
-#endif
+#define SC_LIBS "-llapack -lcblas -lf77blas -latlas -lz -lm   "
 #endif
 
 /* minimal log priority */
@@ -341,7 +336,7 @@
 
 /* Define to the full name and version of this package. */
 #ifndef SC_PACKAGE_STRING
-#define SC_PACKAGE_STRING "libsc 2.2.36-453d"
+#define SC_PACKAGE_STRING "libsc 2.2"
 #endif
 
 /* Define to the one symbol short name of this package. */
@@ -356,7 +351,7 @@
 
 /* Define to the version of this package. */
 #ifndef SC_PACKAGE_VERSION
-#define SC_PACKAGE_VERSION "2.2.36-453d"
+#define SC_PACKAGE_VERSION "2.2"
 #endif
 
 /* DEPRECATED (use SC_WITH_PAPI instead) */
@@ -413,7 +408,7 @@
 
 /* Version number of package */
 #ifndef SC_VERSION
-#define SC_VERSION "2.2.36-453d"
+#define SC_VERSION "2.2"
 #endif
 
 /* Package major version */
@@ -428,7 +423,7 @@
 
 /* Package point version */
 #ifndef SC_VERSION_POINT
-#define SC_VERSION_POINT 36-453d
+#define SC_VERSION_POINT 2.2
 #endif
 
 /* Define to 1 if BLAS is used */
