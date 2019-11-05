@@ -56,7 +56,9 @@ void addSurface(OxleyDomainRect_ptr domain)
     // Note: the forest must be face balanced for p4est_iterate() to execute
     // a callback function on faces (see p4est_balance()).
     p4est_balance(p4est, P4EST_CONNECT_FACE, gce_init_new_rectangle);
+#ifdef P4EST_ENABLE_DEBUG
     p4est_iterate(p4est, NULL, (void *) surfacedata, gce_first_pass, NULL, NULL);
+#endif
     forestData->assign_info(surfacedata);
     p4est_iterate(p4est, NULL, (void *) surfacedata, gce_second_pass, NULL, NULL);
     p4est->user_pointer = surfacedata;
@@ -93,7 +95,9 @@ void addSurface(OxleyDomainBrick_ptr domain)
     p8est_balance(p8est, P8EST_CONNECT_FACE, gce_init_new_brick);
     int partition_for_coarsening = 0;
     p8est_partition_ext(p8est, partition_for_coarsening, NULL);
+#ifdef P4EST_ENABLE_DEBUG
     p8est_iterate(p8est, NULL, (void *) surfacedata, gce_first_pass, NULL, NULL, NULL);
+#endif
     forestData->assign_info(surfacedata);
     p8est_iterate(p8est, NULL, (void *) surfacedata, gce_second_pass, NULL, NULL, NULL);
     p8est->user_pointer = surfacedata;
