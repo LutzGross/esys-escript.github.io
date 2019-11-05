@@ -61,19 +61,41 @@ void gce_rectangle_replace(p4est_t *p4est, p4est_topidx_t tree,
         int newTag = surfaceinfo->newTag;
         int oldTag = surfaceinfo->oldTag;
 
+        quadrantData * quaddata = (quadrantData *) outgoing[0]->p.user_data;
+        if(aboveCurve(surfaceinfo->x, surfaceinfo->y, p4est->connectivity, tree,
+            surfaceinfo->x.size(), incoming[0]->x, incoming[0]->y))
+        {
+            quaddata->nodeTag = newTag;
+        }
+        else
+        {
+            quaddata->nodeTag = oldTag;
+        }
+
+        // Update the coordinates
+        p4est_qcoord_to_vertex(p4est->connectivity, tree, incoming[0]->x, incoming[0]->y, quaddata->xy);
+    }
+    else if(num_incoming == 1 && num_outgoing == 4)
+    {
+        // Get the tag numbers being used
+        addSurfaceData * surfaceinfo = (addSurfaceData *)p4est->user_pointer;
+        int newTag = surfaceinfo->newTag;
+        int oldTag = surfaceinfo->oldTag;
+
         // Get the length of the array
         long n = surfaceinfo->x.size();
 
         // Loop over the children
         for(int i = 1; i < 4; i++)
         {
-            // Get coordinates
-            double xy[2];
-            p4est_qcoord_to_vertex(p4est->connectivity, tree, incoming[i]->x, incoming[i]->y, xy);
-
             quadrantData * quaddata = (quadrantData *) incoming[i]->p.user_data;
 
-            if(aboveCurve(surfaceinfo->x, surfaceinfo->y, p4est->connectivity, tree, n, incoming[i]->x, incoming[i]->y))
+            // Get coordinates
+            double xy[2];
+            p4est_qcoord_to_vertex(p4est->connectivity, tree, incoming[i]->x, incoming[i]->y, quaddata->xy);
+
+            if(aboveCurve(surfaceinfo->x, surfaceinfo->y, p4est->connectivity, tree,
+                surfaceinfo->x.size(), incoming[i]->x, incoming[i]->y))
             {
                 quaddata->nodeTag = newTag;
             }
@@ -82,11 +104,6 @@ void gce_rectangle_replace(p4est_t *p4est, p4est_topidx_t tree,
                 quaddata->nodeTag = oldTag;
             }
         }
-    }
-    else if(num_incoming == 1 && num_outgoing == 4)
-    {
-        // Coarsening should not occur during the gce algorithm
-        throw OxleyException("gce_rectangle_replace: Unexpected attempt to coarsen the mesh.");
     }
     else
     {
@@ -99,6 +116,29 @@ void gce_brick_replace(p8est_t *p8est, p4est_topidx_t tree,
     int num_incoming, p8est_quadrant_t *incoming[])
 {
     if(num_incoming == 8 && num_outgoing == 1)
+    {
+        // Get the tag numbers being used
+        addSurfaceData * surfaceinfo = (addSurfaceData *)p8est->user_pointer;
+        int newTag = surfaceinfo->newTag;
+        int oldTag = surfaceinfo->oldTag;
+
+        octantData * quaddata = (octantData *) outgoing[0]->p.user_data;
+        if(aboveSurface(surfaceinfo->x, surfaceinfo->y, surfaceinfo->z,
+            p8est->connectivity, tree, surfaceinfo->x.size(), surfaceinfo->y.size(),
+            incoming[0]->x, incoming[0]->y, incoming[0]->z))
+        {
+            quaddata->nodeTag = newTag;
+        }
+        else
+        {
+            quaddata->nodeTag = oldTag;
+        }
+
+        // Update the coordinates
+        p8est_qcoord_to_vertex(p8est->connectivity, tree,
+            incoming[0]->x, incoming[0]->y, incoming[0]->z, quaddata->xyz);
+    }
+    else if(num_incoming == 1 && num_outgoing == 8)
     {
         // Get the tag numbers being used
         addSurfaceData * surfaceinfo = (addSurfaceData *) p8est->user_pointer;
@@ -138,11 +178,6 @@ void gce_brick_replace(p8est_t *p8est, p4est_topidx_t tree,
                 quaddata->nodeTag = oldTag;
             }
         }
-    }
-    else if(num_incoming == 1 && num_outgoing == 8)
-    {
-        // Coarsening should not occur during the gce algorithm
-        throw OxleyException("gce_brick_replace: Unexpected attempt to coarsen the mesh.");
     }
     else
     {

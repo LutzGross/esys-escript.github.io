@@ -27,7 +27,7 @@
 
 /* C compiler flags */
 #ifndef P4EST_CFLAGS
-#define P4EST_CFLAGS "-g -O2"
+#define P4EST_CFLAGS "-g -O2 -fopenmp"
 #endif
 
 /* C preprocessor */
@@ -37,7 +37,7 @@
 
 /* C preprocessor flags */
 #ifndef P4EST_CPPFLAGS
-#define P4EST_CPPFLAGS ""
+#define P4EST_CPPFLAGS " "
 #endif
 
 /* Define to 1 if your C++ compiler doesn't accept -c and -o together. */
@@ -89,7 +89,9 @@
    CFLAGS; to supply CFLAGS use --enable-openmp=<OPENMP_CFLAGS>. We check
    first for linking without any libraries and then with -lgomp; to avoid the
    latter, specify LIBS=<OPENMP_LIBS> on configure line */
-/* #undef ENABLE_OPENMP */
+#ifndef P4EST_ENABLE_OPENMP
+#define P4EST_ENABLE_OPENMP 1
+#endif
 
 /* enable POSIX threads: Using --enable-pthread without arguments does not
    specify any CFLAGS; to supply CFLAGS use --enable-pthread=<PTHREAD_CFLAGS>.
@@ -108,7 +110,9 @@
 #endif
 
 /* use doubles for vtk file data */
-/* #undef ENABLE_VTK_DOUBLES */
+#ifndef P4EST_ENABLE_VTK_DOUBLES
+#define P4EST_ENABLE_VTK_DOUBLES 1
+#endif
 
 /* Define to dummy `main' function (if any) required to link to the Fortran
    libraries. */
@@ -191,7 +195,9 @@
 #endif
 
 /* Have we found function omp_get_thread_num. */
-/* #undef HAVE_OPENMP */
+#ifndef P4EST_HAVE_OPENMP
+#define P4EST_HAVE_OPENMP 1
+#endif
 
 /* Define to 1 if you have the `posix_memalign' function. */
 #ifndef P4EST_HAVE_POSIX_MEMALIGN
@@ -240,12 +246,12 @@
 
 /* Linker flags */
 #ifndef P4EST_LDFLAGS
-#define P4EST_LDFLAGS ""
+#define P4EST_LDFLAGS " "
 #endif
 
 /* Libraries */
 #ifndef P4EST_LIBS
-#define P4EST_LIBS "-llapack -lcblas -lf77blas -latlas -lz -lm   "
+#define P4EST_LIBS "-lmetis -llapack -lcblas -lf77blas -latlas -lz -lm   "
 #endif
 
 /* Define to the sub-directory where libtool stores uninstalled libraries. */
@@ -264,7 +270,9 @@
 #endif
 
 /* DEPRECATED (use P4EST_WITH_METIS instead) */
-/* #undef METIS */
+#ifndef P4EST_METIS
+#define P4EST_METIS 1
+#endif
 
 /* DEPRECATED (use P4EST_ENABLE_MPI instead) */
 /* #undef MPI */
@@ -276,7 +284,9 @@
 /* #undef NO_MINUS_C_MINUS_O */
 
 /* DEPRECATED (use P4EST_ENABLE_OPENMP instead) */
-/* #undef OPENMP */
+#ifndef P4EST_OPENMP
+#define P4EST_OPENMP 1
+#endif
 
 /* Name of package */
 #ifndef P4EST_PACKAGE
@@ -369,7 +379,9 @@
 #endif
 
 /* DEPRECATED (use P4EST_ENABLE_VTK_DOUBLES instead) */
-/* #undef VTK_DOUBLES */
+#ifndef P4EST_VTK_DOUBLES
+#define P4EST_VTK_DOUBLES 1
+#endif
 
 /* Define to 1 if BLAS is used */
 #ifndef P4EST_WITH_BLAS
@@ -382,7 +394,9 @@
 #endif
 
 /* enable metis-dependent code */
-/* #undef WITH_METIS */
+#ifndef P4EST_WITH_METIS
+#define P4EST_WITH_METIS 1
+#endif
 
 /* enable PETSc-dependent code */
 /* #undef WITH_PETSC */

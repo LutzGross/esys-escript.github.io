@@ -56,6 +56,8 @@ void addSurface(OxleyDomainRect_ptr domain)
     // Note: the forest must be face balanced for p4est_iterate() to execute
     // a callback function on faces (see p4est_balance()).
     p4est_balance(p4est, P4EST_CONNECT_FACE, gce_init_new_rectangle);
+    int partition_for_coarsening = 0;
+    p4est_partition_ext(p4est, partition_for_coarsening, NULL);
 #ifdef P4EST_ENABLE_DEBUG
     p4est_iterate(p4est, NULL, (void *) surfacedata, gce_first_pass, NULL, NULL);
 #endif
@@ -63,12 +65,12 @@ void addSurface(OxleyDomainRect_ptr domain)
     p4est_iterate(p4est, NULL, (void *) surfacedata, gce_second_pass, NULL, NULL);
     p4est->user_pointer = surfacedata;
     p4est_refine_ext(p4est, true, forestData->max_levels_refinement,
-        refine_gce, init_rectangle_data, gce_rectangle_replace);
+        refine_gce, gce_init_new_rectangle, gce_rectangle_replace);
     p4est->user_pointer = forestData;
 
     // Balance and repartition
     p4est_balance(p4est, P4EST_CONNECT_FACE, gce_init_new_rectangle);
-    int partition_for_coarsening = 0;
+    p4est_iterate(p4est, NULL, (void *) surfacedata, gce_third_pass, NULL, NULL);
     p4est_partition_ext(p4est, partition_for_coarsening, NULL);
 }
 #endif
@@ -102,11 +104,12 @@ void addSurface(OxleyDomainBrick_ptr domain)
     p8est_iterate(p8est, NULL, (void *) surfacedata, gce_second_pass, NULL, NULL, NULL);
     p8est->user_pointer = surfacedata;
     p8est_refine_ext(p8est, true, forestData->max_levels_refinement,
-        refine_gce, init_brick_data, gce_brick_replace);
+        refine_gce, gce_init_new_brick, gce_brick_replace);
     p8est->user_pointer = forestData;
-
+    
     // Balance and repartition
     p8est_balance(p8est, P8EST_CONNECT_FACE, gce_init_new_brick);
+    p8est_iterate(p8est, NULL, (void *) surfacedata, gce_third_pass, NULL, NULL, NULL);
     p8est_partition_ext(p8est, partition_for_coarsening, NULL);
 }
 #endif
@@ -206,7 +209,7 @@ bool aboveCurve(std::vector<double> x, std::vector<double> y,
             ix2=i;
             break;
         } else if(_x == x[i]) {
-            return _y > y[i];
+            return _y >= y[i] ? true : false;
         }
     }
 
@@ -219,7 +222,7 @@ bool aboveCurve(std::vector<double> x, std::vector<double> y,
     double y1=y[ix1], y2=y[ix2];
     double tmp1 = _x*(y1-y2)/(x1-x2);
     double tmp2 = (x2*y1-x1*y2)/(x1-x2);
-    return _y > tmp1 - tmp2;
+    return _y >= tmp1 - tmp2 ? true : false;
 }
 
 double distanceToCurve(double x[], double z[], int nx, double _x, double _z)
@@ -307,9 +310,8 @@ bool aboveSurface(std::vector<double> x, std::vector<double> y, std::vector<doub
     double _y = xyz[1];
     double _z = xyz[2];
 
-    // Find the indices of the corresponding x and y nodes
+    // Find the indices of the x and y nodes that box in the point
     long ix1 = -1, iy1 = -1, ix2 = -1, iy2 = -1;
-
     for(long i = 0; i < nx; i++){
         if(_x > x[i] && _x < x[i+1])
         {
@@ -355,21 +357,20 @@ bool aboveSurface(std::vector<double> x, std::vector<double> y, std::vector<doub
     // Do the check
     if(x[ix1] == _x && y[iy1] == _y) // If the point is on the node
     {
-        double temp = _z - z[INDEX2(ix1,iy1,nx)];
-        return std::abs(temp);
+        return _z - z[INDEX2(ix1,iy1,nx)] < 0 ? true : false;
     }
-    else // otherwise, interpolate
+    else // this is bilinear interpolation
     {
         double q11 = 0.0, q12 = 0.0, q21 = 0.0, q22 = 0.0;
         q11=z[INDEX2(ix1,iy1,nx)]; q12=z[INDEX2(ix1,iy2,nx)];
         q21=z[INDEX2(ix2,iy1,nx)]; q22=z[INDEX2(ix2,iy2,nx)];
-        double x1, x2, y1, y2 = 0;
-        x1=x[ix1];y1=y[iy1];x2=x[ix2];y2=y[iy2];
+        double x1=x[ix1], y1=y[iy1], x2=x[ix2], y2=y[iy2];
 
         double tmp1 = ((x2-_x)/(x2-x1))*q11+((_x-x1)/(x2-x1))*q21;
         double tmp2 = ((x2-_x)/(x2-x1))*q12+((_x-x1)/(x2-x1))*q22;
         double tmp3 = ((y2-_y)/(y2-y1))*tmp1+((_y-y1)/(y2-y1))*tmp2;
-        return std::abs(_z - tmp3);
+
+        return _z - tmp3 < 0 ? true : false;
     }
 }
 
