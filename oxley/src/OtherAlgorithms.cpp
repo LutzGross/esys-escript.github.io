@@ -53,6 +53,17 @@ void addSurface(OxleyDomainRect_ptr domain)
     domain->numberOfTags++;
     domain->tags[domain->numberOfTags]=surfacedata->newTag;
 
+    // Work out the boundaries of the function z[x,y]
+    surfacedata->xmin = surfacedata->x[0];
+    surfacedata->xmax = surfacedata->x[surfacedata->x.size()];
+    for(int i = 0; i < surfacedata->x.size(); i++)
+    {
+        if(surfacedata->x[i] < surfacedata->xmin)
+            surfacedata->xmin = surfacedata->x[i];
+        if(surfacedata->x[i] > surfacedata->xmax)
+            surfacedata->xmax = surfacedata->x[i];
+    }
+
     // Note: the forest must be face balanced for p4est_iterate() to execute
     // a callback function on faces (see p4est_balance()).
     p4est_balance(p4est, P4EST_CONNECT_FACE, gce_init_new_rectangle);
@@ -69,7 +80,7 @@ void addSurface(OxleyDomainRect_ptr domain)
     p4est->user_pointer = forestData;
 
     // Balance and repartition
-    p4est_balance(p4est, P4EST_CONNECT_FACE, gce_init_new_rectangle);
+    p4est_balance(p4est, P4EST_CONNECT_FULL, gce_init_new_rectangle);
     p4est_iterate(p4est, NULL, (void *) surfacedata, gce_third_pass, NULL, NULL);
     p4est_partition_ext(p4est, partition_for_coarsening, NULL);
 }
@@ -92,6 +103,26 @@ void addSurface(OxleyDomainBrick_ptr domain)
     domain->numberOfTags++;
     domain->tags[domain->numberOfTags]=surfacedata->newTag;
 
+    // Work out the boundaries of the function z[x,y]
+    surfacedata->xmin = surfacedata->x[0];
+    surfacedata->xmax = surfacedata->x[surfacedata->x.size()];
+    for(int i = 0; i < surfacedata->x.size(); i++)
+    {
+        if(surfacedata->x[i] < surfacedata->xmin)
+            surfacedata->xmin = surfacedata->x[i];
+        if(surfacedata->x[i] > surfacedata->xmax)
+            surfacedata->xmax = surfacedata->x[i];
+    }
+    surfacedata->ymin = surfacedata->y[0];
+    surfacedata->ymax = surfacedata->y[surfacedata->y.size()];
+    for(int i = 0; i < surfacedata->y.size(); i++)
+    {
+        if(surfacedata->y[i] < surfacedata->ymin)
+            surfacedata->ymin = surfacedata->y[i];
+        if(surfacedata->y[i] > surfacedata->ymax)
+            surfacedata->ymax = surfacedata->y[i];
+    }
+
     // Note: the forest must be face balanced for p4est_iterate() to execute
     // a callback function on faces
     p8est_balance(p8est, P8EST_CONNECT_FACE, gce_init_new_brick);
@@ -106,7 +137,7 @@ void addSurface(OxleyDomainBrick_ptr domain)
     p8est_refine_ext(p8est, true, forestData->max_levels_refinement,
         refine_gce, gce_init_new_brick, gce_brick_replace);
     p8est->user_pointer = forestData;
-    
+
     // Balance and repartition
     p8est_balance(p8est, P8EST_CONNECT_FACE, gce_init_new_brick);
     p8est_iterate(p8est, NULL, (void *) surfacedata, gce_third_pass, NULL, NULL, NULL);
@@ -273,10 +304,10 @@ bool aboveSurface(double x[], double y[], double z[], int nx, int ny, double _x,
         }
     }
 
-    // Point is outside the domain
-    if(ix1 == -1 && ix2 == -1)
+    // If the point is outside the domain of the vectors x and y
+    if(ix1 == -1)
         return false;
-    if(iy1 == -1 && iy2 == -1)
+    if(iy1 == -1)
         return false;
 
     // Do the check

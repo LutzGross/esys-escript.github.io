@@ -139,6 +139,9 @@ struct addSurfaceData {
 	std::vector<double> y;
 	std::vector<double> z;
 
+	// The domain in which the function z[x,y] is defined
+	double xmin,xmax,ymin,ymax;
+
 };
 
 namespace oxley {
