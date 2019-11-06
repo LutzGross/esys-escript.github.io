@@ -75,7 +75,8 @@ Brick::Brick(int order,
                                     };
     const p4est_topidx_t tree_to_vertex[8] = {0, 1, 2, 3, 4, 5, 6, 7,};
     const p4est_topidx_t tree_to_tree[6] = {0, 0, 0, 0, 0, 0,};
-    const int8_t tree_to_face[6] = {1, 0, 3, 2, 5, 4, };
+    // const int8_t tree_to_face[6] = {1, 0, 3, 2, 5, 4, };
+    const int8_t tree_to_face[6] = {0, 1, 2, 3, 4, 5 };
     const p4est_topidx_t tree_to_edge[12] = {0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2,};
     const p4est_topidx_t ett_offset[4] = {0, 4, 8, 12,};
     const p4est_topidx_t edge_to_tree[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,};

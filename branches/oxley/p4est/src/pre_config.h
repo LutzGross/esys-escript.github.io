@@ -75,7 +75,7 @@
 #define ENABLE_VTK_BINARY 1
 
 /* Undefine if: disable zlib compression for vtk binary data */
-#define ENABLE_VTK_COMPRESSION 1
+/* #undef ENABLE_VTK_COMPRESSION */
 
 /* use doubles for vtk file data */
 #define ENABLE_VTK_DOUBLES 1
@@ -256,7 +256,7 @@
 #define VTK_BINARY 1
 
 /* DEPRECATED (use P4EST_ENABLE_VTK_COMPRESSION instead) */
-#define VTK_COMPRESSION 1
+/* #undef VTK_COMPRESSION */
 
 /* DEPRECATED (use P4EST_ENABLE_VTK_DOUBLES instead) */
 #define VTK_DOUBLES 1
