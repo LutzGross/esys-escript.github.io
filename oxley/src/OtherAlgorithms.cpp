@@ -58,11 +58,13 @@ void addSurface(OxleyDomainRect_ptr domain)
     surfacedata->xmax = surfacedata->x[surfacedata->x.size()];
     for(int i = 0; i < surfacedata->x.size(); i++)
     {
-        if(surfacedata->x[i] < surfacedata->xmin)
-            surfacedata->xmin = surfacedata->x[i];
-        if(surfacedata->x[i] > surfacedata->xmax)
-            surfacedata->xmax = surfacedata->x[i];
+        surfacedata->xmin = std::min(surfacedata->xmin,surfacedata->x[i]);
+        surfacedata->xmax = std::max(surfacedata->xmax,surfacedata->x[i]);
     }
+
+    // scaling information
+    surfacedata->scale[0] = forestData->m_length[0]/forestData->m_gNE[0];
+    surfacedata->scale[1] = forestData->m_length[1]/forestData->m_gNE[1];
 
     // Note: the forest must be face balanced for p4est_iterate() to execute
     // a callback function on faces (see p4est_balance()).
@@ -80,7 +82,7 @@ void addSurface(OxleyDomainRect_ptr domain)
     p4est->user_pointer = forestData;
 
     // Balance and repartition
-    p4est_balance(p4est, P4EST_CONNECT_FULL, gce_init_new_rectangle);
+    p4est_balance(p4est, P4EST_CONNECT_FACE, gce_init_new_rectangle);
     p4est_iterate(p4est, NULL, (void *) surfacedata, gce_third_pass, NULL, NULL);
     p4est_partition_ext(p4est, partition_for_coarsening, NULL);
 }
@@ -105,23 +107,24 @@ void addSurface(OxleyDomainBrick_ptr domain)
 
     // Work out the boundaries of the function z[x,y]
     surfacedata->xmin = surfacedata->x[0];
-    surfacedata->xmax = surfacedata->x[surfacedata->x.size()];
+    surfacedata->xmax = surfacedata->x[0];
     for(int i = 0; i < surfacedata->x.size(); i++)
     {
-        if(surfacedata->x[i] < surfacedata->xmin)
-            surfacedata->xmin = surfacedata->x[i];
-        if(surfacedata->x[i] > surfacedata->xmax)
-            surfacedata->xmax = surfacedata->x[i];
+        surfacedata->xmin = std::min(surfacedata->xmin,surfacedata->x[i]);
+        surfacedata->xmax = std::max(surfacedata->xmax,surfacedata->x[i]);
     }
     surfacedata->ymin = surfacedata->y[0];
-    surfacedata->ymax = surfacedata->y[surfacedata->y.size()];
+    surfacedata->ymax = surfacedata->y[0];
     for(int i = 0; i < surfacedata->y.size(); i++)
     {
-        if(surfacedata->y[i] < surfacedata->ymin)
-            surfacedata->ymin = surfacedata->y[i];
-        if(surfacedata->y[i] > surfacedata->ymax)
-            surfacedata->ymax = surfacedata->y[i];
+        surfacedata->ymin = std::min(surfacedata->ymin,surfacedata->y[i]);
+        surfacedata->ymax = std::max(surfacedata->ymax,surfacedata->y[i]);
     }
+
+    // scaling information
+    surfacedata->scale[0] = forestData->m_length[0]/forestData->m_gNE[0];
+    surfacedata->scale[1] = forestData->m_length[1]/forestData->m_gNE[1];
+    surfacedata->scale[2] = forestData->m_length[2]/forestData->m_gNE[2];
 
     // Note: the forest must be face balanced for p4est_iterate() to execute
     // a callback function on faces
@@ -185,37 +188,7 @@ long getNewTag(OxleyDomainBrick_ptr domain)
     return newTag;
 }
 
-bool aboveCurve(double x[], double z[], int nx, double _x, double _z)
-{
-    // Find the index of the corresponding x nodes
-    long ix1 = -1, ix2 = -1;
-    for(long i = 0; i < nx; i++){
-        if(_x >= x[i]){
-            ix1=i;
-            ix2=i+1;
-            break;
-        }
-    }
-
-    // Point is outside the domain
-    if(ix1 == -1 && ix2 == -1)
-        return false;
-
-    // Do the check
-    if(x[ix1] == _x) // If the point is on the node
-    {
-        return _z > z[ix1];
-    }
-    else // otherwise, interpolate
-    {
-        double z0=z[ix1], z1=z[ix2];
-        double x0=x[ix1], x1=x[ix2];
-        double tmp1 = (z0*(x1-_x)+z1*(_x-x0))/(x1-x0);
-        return _z > tmp1;
-    }
-}
-
-bool aboveCurve(std::vector<double> x, std::vector<double> y,
+signed aboveCurve(std::vector<double> x, std::vector<double> y,
                     p4est_connectivity_t * connectivity, p4est_topidx_t treeid,
                     long n, p4est_qcoord_t qx, p4est_qcoord_t qy)
 {
@@ -234,26 +207,32 @@ bool aboveCurve(std::vector<double> x, std::vector<double> y,
             ix1=i;
             ix2=i+1;
             break;
-        } else if (_x > x[i] && i == n)
+        }
+        else if (_x > x[i] && i == n)
         {
             ix1=i-1;
             ix2=i;
             break;
-        } else if(_x == x[i]) {
-            return _y >= y[i] ? true : false;
+        }
+        else if(_x == x[i])
+        {
+            if( _y == y[i])
+                return 0;
+            else if(_y > y[i])
+                return 1;
+            else
+                return -1;
         }
     }
 
-    // Point is outside the domain
-    if(ix1 == -1)
-        return false;
-
     // interpolate
-    double x1=x[ix1], x2=x[ix2];
-    double y1=y[ix1], y2=y[ix2];
-    double tmp1 = _x*(y1-y2)/(x1-x2);
-    double tmp2 = (x2*y1-x1*y2)/(x1-x2);
-    return _y >= tmp1 - tmp2 ? true : false;
+    double answer = (_x*y[ix1]-x[ix2]*y[ix1]-_x*y[ix2]+x[ix1]*y[ix2])/(x[ix1]-x[ix2]);
+    if( _y == answer)
+        return 0;
+    else if(_y > answer)
+        return 1;
+    else
+        return -1;
 }
 
 double distanceToCurve(double x[], double z[], int nx, double _x, double _z)
@@ -283,54 +262,7 @@ double distanceToCurve(double x[], double z[], int nx, double _x, double _z)
     }
 }
 
-bool aboveSurface(double x[], double y[], double z[], int nx, int ny, double _x, double _y, double _z)
-{
-    // Find the indices of the corresponding x and y nodes
-    long ix1, iy1, ix2, iy2 = -1;
-
-    for(long i = 0; i < nx; i++){
-        if(_x >= x[i]){
-            ix1=i;
-            ix2=i+1;
-            break;
-        }
-    }
-
-    for(long j = 0; j < ny; j++){
-        if(_y >= y[j]){
-            iy1=j;
-            iy2=j+1;
-            break;
-        }
-    }
-
-    // If the point is outside the domain of the vectors x and y
-    if(ix1 == -1)
-        return false;
-    if(iy1 == -1)
-        return false;
-
-    // Do the check
-    if(x[ix1] == _x && y[iy1] == _y) // If the point is on the node
-    {
-        return _z > z[INDEX2(ix1,iy1,nx)];
-    }
-    else // otherwise, interpolate
-    {
-        double q11, q12, q21, q22 = 0;
-        q11=z[INDEX2(ix1,ix1,nx)]; q12=z[INDEX2(ix1,iy2,nx)];
-        q21=z[INDEX2(ix2,iy1,nx)]; q22=z[INDEX2(ix2,iy2,nx)];
-        double x1, x2, y1, y2 = 0;
-        x1=x[ix1];y1=y[iy1];x2=x[ix2];y2=y[iy2];
-
-        double tmp1 = ((x2-_x)/(x2-x1))*q11+((_x-x1)/(x2-x1))*q21;
-        double tmp2 = ((x2-_x)/(x2-x1))*q12+((_x-x1)/(x2-x1))*q22;
-        double tmp3 = ((y2-_y)/(y2-y1))*tmp1+((_y-y1)/(y2-y1))*tmp2;
-        return _z > tmp3;
-    }
-}
-
-bool aboveSurface(std::vector<double> x, std::vector<double> y, std::vector<double> z,
+signed aboveSurface(std::vector<double> x, std::vector<double> y, std::vector<double> z,
                     p8est_connectivity_t * connectivity, p4est_topidx_t treeid,
                     long nx, long ny, p4est_qcoord_t qx, p4est_qcoord_t qy, p4est_qcoord_t qz)
 {
@@ -355,8 +287,11 @@ bool aboveSurface(std::vector<double> x, std::vector<double> y, std::vector<doub
             ix1=i-1;
             ix2=i;
             break;
-        } else if(_x == x[i]) {
+        }
+        else if(_x == x[i])
+        {
             ix1=i;
+            ix2=i;
             break;
         }
     }
@@ -373,35 +308,43 @@ bool aboveSurface(std::vector<double> x, std::vector<double> y, std::vector<doub
             iy1=j-1;
             iy2=j;
             break;
-        } else if(_y == y[j]) {
+        }
+        else if(_y == y[j])
+        {
             iy1=j;
+            iy2=j;
             break;
         }
     }
 
-    // Point is outside the domain
-    if(ix1 == -1 && ix2 == -1)
-        return false;
-    if(iy1 == -1 && iy2 == -1)
-        return false;
-
     // Do the check
     if(x[ix1] == _x && y[iy1] == _y) // If the point is on the node
     {
-        return _z - z[INDEX2(ix1,iy1,nx)] < 0 ? true : false;
+        if( _z - z[INDEX2(ix1,iy1,nx)] == 0)
+            return 0;
+        else if( _z - z[INDEX2(ix1,iy1,nx)] > 0)
+            return 1;
+        else
+            return -1;
     }
     else // this is bilinear interpolation
     {
-        double q11 = 0.0, q12 = 0.0, q21 = 0.0, q22 = 0.0;
-        q11=z[INDEX2(ix1,iy1,nx)]; q12=z[INDEX2(ix1,iy2,nx)];
+        double q11, q12, q21, q22 = 0;
+        q11=z[INDEX2(ix1,ix1,nx)]; q12=z[INDEX2(ix1,iy2,nx)];
         q21=z[INDEX2(ix2,iy1,nx)]; q22=z[INDEX2(ix2,iy2,nx)];
-        double x1=x[ix1], y1=y[iy1], x2=x[ix2], y2=y[iy2];
+        double x1, x2, y1, y2 = 0;
+        x1=x[ix1];y1=y[iy1];x2=x[ix2];y2=y[iy2];
 
         double tmp1 = ((x2-_x)/(x2-x1))*q11+((_x-x1)/(x2-x1))*q21;
         double tmp2 = ((x2-_x)/(x2-x1))*q12+((_x-x1)/(x2-x1))*q22;
         double tmp3 = ((y2-_y)/(y2-y1))*tmp1+((_y-y1)/(y2-y1))*tmp2;
 
-        return _z - tmp3 < 0 ? true : false;
+        if( _z - tmp3 == 0)
+            return 0;
+        else if( _z - tmp3 > 0)
+            return 1;
+        else
+            return -1;
     }
 }
 

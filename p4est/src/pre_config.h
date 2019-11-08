@@ -11,16 +11,16 @@
 #define BUILD_P6EST 1
 
 /* C compiler */
-#define CC "gcc"
+#define CC "mpicc"
 
 /* C compiler flags */
-#define CFLAGS "-g -O2 -fopenmp"
+#define CFLAGS "-g -O2 "
 
 /* C preprocessor */
-#define CPP "gcc -E"
+#define CPP "mpicc -E"
 
 /* C preprocessor flags */
-#define CPPFLAGS " "
+#define CPPFLAGS ""
 
 /* Define to 1 if your C++ compiler doesn't accept -c and -o together. */
 /* #undef CXX_NO_MINUS_C_MINUS_O */
@@ -45,19 +45,19 @@
 #define ENABLE_MEMALIGN 1
 
 /* Define to 1 if we are using MPI */
-/* #undef ENABLE_MPI */
+#define ENABLE_MPI 1
 
 /* Define to 1 if we can use MPI_COMM_TYPE_SHARED */
-/* #undef ENABLE_MPICOMMSHARED */
+#define ENABLE_MPICOMMSHARED 1
 
 /* Define to 1 if we are using MPI I/O */
-/* #undef ENABLE_MPIIO */
+#define ENABLE_MPIIO 1
 
 /* Define to 1 if we are using MPI_Init_thread */
-/* #undef ENABLE_MPITHREAD */
+#define ENABLE_MPITHREAD 1
 
 /* Define to 1 if we can use MPI_Win_allocate_shared */
-/* #undef ENABLE_MPIWINSHARED */
+#define ENABLE_MPIWINSHARED 1
 
 /* enable OpenMP: Using --enable-openmp without arguments does not specify any
    CFLAGS; to supply CFLAGS use --enable-openmp=<OPENMP_CFLAGS>. We check
@@ -169,10 +169,10 @@
 #define HAVE_ZLIB 1
 
 /* Linker flags */
-#define LDFLAGS " "
+#define LDFLAGS ""
 
 /* Libraries */
-#define LIBS "-lmetis -llapack -lcblas -lf77blas -latlas -lz -lm   "
+#define LIBS "-lgomp -llapack -lcblas -lf77blas -latlas -lz -lm   "
 
 /* Define to the sub-directory where libtool stores uninstalled libraries. */
 #define LT_OBJDIR ".libs/"
@@ -184,13 +184,13 @@
 #define MEMALIGN_BYTES (P4EST_SIZEOF_VOID_P)
 
 /* DEPRECATED (use P4EST_WITH_METIS instead) */
-#define METIS 1
+/* #undef METIS */
 
 /* DEPRECATED (use P4EST_ENABLE_MPI instead) */
-/* #undef MPI */
+#define MPI 1
 
 /* DEPRECATED (use P4EST_ENABLE_MPIIO instead) */
-/* #undef MPIIO */
+#define MPIIO 1
 
 /* Define to 1 if your C compiler doesn't accept -c and -o together. */
 /* #undef NO_MINUS_C_MINUS_O */
@@ -268,7 +268,7 @@
 #define WITH_LAPACK 1
 
 /* enable metis-dependent code */
-#define WITH_METIS 1
+/* #undef WITH_METIS */
 
 /* enable PETSc-dependent code */
 /* #undef WITH_PETSC */

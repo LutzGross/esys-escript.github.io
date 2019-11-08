@@ -37,8 +37,7 @@ long getNewTag(OxleyDomainBrick_ptr domain);
 // Returns true if point (_x,_z) lies above the surface defined by x[], z[]
 // When necessary, this uses linear interpolation
 // Array x has nx elements and array z both have nx elements.
-bool aboveCurve(double x[], double z[], int nx, double _x, double _z);
-bool aboveCurve(std::vector<double> x, std::vector<double> y,
+signed aboveCurve(std::vector<double> x, std::vector<double> y,
                     p4est_connectivity_t * connectivity, p4est_topidx_t treeid,
                     long n, p4est_qcoord_t _x, p4est_qcoord_t _y);
 
@@ -49,9 +48,7 @@ double distanceToCurve(double x[], double z[], int nx, double _x, double _z);
 // Returns true if point (_x,_y,_z) lies above the surface defined by x[], y[], z[]
 // When necessary, this uses bilinear interpolation
 // Array x has nx elements and array y has ny elements. Array z has nx*ny elements.
-bool aboveSurface(double x[], double y[], double z[],
-                    int nx, int ny, double _x, double _y, double _z);
-bool aboveSurface(std::vector<double> x, std::vector<double> y, std::vector<double> z,
+signed aboveSurface(std::vector<double> x, std::vector<double> y, std::vector<double> z,
                     p8est_connectivity_t * connectivity, p4est_topidx_t treeid,
                     long nx, long ny, p4est_qcoord_t _x, p4est_qcoord_t _y, p4est_qcoord_t _z);
 

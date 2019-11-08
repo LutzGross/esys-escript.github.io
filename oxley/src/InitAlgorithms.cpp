@@ -82,16 +82,12 @@ void gce_rectangle_replace(p4est_t *p4est, p4est_topidx_t tree,
         int newTag = surfaceinfo->newTag;
         int oldTag = surfaceinfo->oldTag;
 
-        // Get the length of the array
-        long n = surfaceinfo->x.size();
-
         // Loop over the children
         for(int i = 1; i < 4; i++)
         {
             quadrantData * quaddata = (quadrantData *) incoming[i]->p.user_data;
 
             // Get coordinates
-            double xy[2];
             p4est_qcoord_to_vertex(p4est->connectivity, tree, incoming[i]->x, incoming[i]->y, quaddata->xy);
 
             if(aboveCurve(surfaceinfo->x, surfaceinfo->y, p4est->connectivity, tree,

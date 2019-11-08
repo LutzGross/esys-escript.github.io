@@ -549,14 +549,13 @@ if env['prelaunch'] == 'default':
 # Used by p4est
 if env['mpi'] != 'no' and env['mpi'] != 'none':
     env.Append(CPPDEFINES = ['P4EST_ENABLE_MPI'])
-    env.Append(CPPDEFINES = ['P4EST_ENABLE_MPICOMMSHARED'])
-    env.Append(CPPDEFINES = ['P4EST_ENABLE_MPIIO'])
-    env.Append(CPPDEFINES = ['P4EST_ENABLE_MPITHREAD'])
+    # env.Append(CPPDEFINES = ['P4EST_ENABLE_MPICOMMSHARED'])
+    # env.Append(CPPDEFINES = ['P4EST_ENABLE_MPIIO'])
+    # env.Append(CPPDEFINES = ['P4EST_ENABLE_MPITHREAD'])
     env.Append(CPPDEFINES = ['P4EST_MPI'])
-    env.Append(CPPDEFINES = ['P4EST_MPIIO'])
-    env.Append(CPPDEFINES = ['MPI'])
-    env.Append(CPPDEFINES = ['MPIIO'])
-
+    # env.Append(CPPDEFINES = ['P4EST_MPIIO'])
+    # env.Append(CPPDEFINES = ['MPI'])
+    # env.Append(CPPDEFINES = ['MPIIO'])
 
 if env['launcher'] == 'default':
     if env['mpi'] == 'INTELMPI':
@@ -645,7 +644,6 @@ install_all_list += ['install_p4est']
 env['p4est']=True
 env['p4est_libs']=['p4est','sc']
 env['escript_src']=os.getcwd()
-# env.Append(LIBPATH = [os.path.join(env['prefix'],'lib')])
 
 if env['usempi']:
     build_all_list += ['build_pythonMPI', 'build_overlord']
