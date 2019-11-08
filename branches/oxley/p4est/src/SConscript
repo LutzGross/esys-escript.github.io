@@ -203,14 +203,10 @@ local_env = env.Clone()
 
 # collect dependencies for other modules
 p4estlibs = []
-# p4estlibs += env['escript_libs']
-# p4estlibs += env['p4est_libs']
-# if env['paso']:
-#     p4estlibs += env['paso_libs']
-# if env['trilinos']:
-#     p4estlibs += env['trilinoswrap_libs']
 
 p4estlibs = ['lapack']
+if env['mpi']:
+    p4estlibs += env['mpi_libs']
 local_env.PrependUnique(LIBS = p4estlibs)
 
 env['p4est_libs'] = [module_name] + p4estlibs
@@ -221,25 +217,10 @@ hdr_inst = local_env.Install(include_path, headers)
 lib = local_env.SharedLibrary(module_name, sources)
 lib_inst = local_env.Install(local_env['libinstall'], lib)
 
-# ### Python wrapper ###
-# py_env = local_env.Clone()
-# py_env.PrependUnique(LIBS = [module_name])
-# py_lib_name = module_name + 'cpp'
-# py_lib = py_env.PythonModule(py_lib_name, 'p4estcpp.cpp')
-
-# mod_path = Dir(module_name, local_env['pyinstall'])
-# mod_inst = py_env.Install(mod_path, py_lib)
-
-# build = env.Alias('build_p4est', [hdr_inst, lib, py_lib])
 build = env.Alias('build_p4est', [hdr_inst, lib])
-# env.Alias('install_p4est', ['build_p4est', lib_inst, mod_inst])
 env.Alias('install_p4est', ['build_p4est', lib_inst])
 
 import os
 local_env.PrependUnique(CPPPATH = os.path.abspath(os.getcwd()))
 local_env.PrependUnique(CPPPATH = os.path.abspath(os.path.join(os.getcwd(),"iniparser")))
 local_env.PrependUnique(CPPPATH = os.path.abspath(os.path.join(os.getcwd(),"libb64")))
-
-# if env['MPI']:
-# 	os.system("sed -i 'sz/* #undef ENABLE_MPI */z#define ENABLE_MPI 1zg' p4est_config.h")
-	

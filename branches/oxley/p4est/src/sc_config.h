@@ -10,17 +10,17 @@
 
 /* C compiler */
 #ifndef SC_CC
-#define SC_CC "gcc"
+#define SC_CC "mpicc"
 #endif
 
 /* C compiler flags */
 #ifndef SC_CFLAGS
-#define SC_CFLAGS "-g -O2 -fopenmp"
+#define SC_CFLAGS "-g -O2 "
 #endif
 
 /* C preprocessor */
 #ifndef SC_CPP
-#define SC_CPP "gcc -E"
+#define SC_CPP "mpicc -E"
 #endif
 
 /* C preprocessor flags */
@@ -30,7 +30,7 @@
 
 /* CXX compiler */
 #ifndef SC_CXX
-#define SC_CXX "g++"
+#define SC_CXX "mpicxx"
 #endif
 
 /* CXX compiler flags */
@@ -54,19 +54,29 @@
 #endif
 
 /* Define to 1 if we are using MPI */
-/* #undef ENABLE_MPI */
+#ifndef SC_ENABLE_MPI
+#define SC_ENABLE_MPI 1
+#endif
 
 /* Define to 1 if we can use MPI_COMM_TYPE_SHARED */
-/* #undef ENABLE_MPICOMMSHARED */
+#ifndef SC_ENABLE_MPICOMMSHARED
+#define SC_ENABLE_MPICOMMSHARED 1
+#endif
 
 /* Define to 1 if we are using MPI I/O */
-/* #undef ENABLE_MPIIO */
+#ifndef SC_ENABLE_MPIIO
+#define SC_ENABLE_MPIIO 1
+#endif
 
 /* Define to 1 if we are using MPI_Init_thread */
-/* #undef ENABLE_MPITHREAD */
+#ifndef SC_ENABLE_MPITHREAD
+#define SC_ENABLE_MPITHREAD 1
+#endif
 
 /* Define to 1 if we can use MPI_Win_allocate_shared */
-/* #undef ENABLE_MPIWINSHARED */
+#ifndef SC_ENABLE_MPIWINSHARED
+#define SC_ENABLE_MPIWINSHARED 1
+#endif
 
 /* enable OpenMP: Using --enable-openmp without arguments does not specify any
    CFLAGS; to supply CFLAGS use --enable-openmp=<OPENMP_CFLAGS>. We check
@@ -89,7 +99,7 @@
 
 /* F77 compiler */
 #ifndef SC_F77
-#define SC_F77 "gfortran"
+#define SC_F77 "mpif77"
 #endif
 
 /* Define to dummy `main' function (if any) required to link to the Fortran
@@ -112,7 +122,7 @@
 
 /* FC compiler */
 #ifndef SC_FC
-#define SC_FC "gfortran"
+#define SC_FC "mpif90"
 #endif
 
 /* FC compiler flags */
@@ -284,7 +294,7 @@
 
 /* Libraries */
 #ifndef SC_LIBS
-#define SC_LIBS "-llapack -lcblas -lf77blas -latlas -lz -lm   "
+#define SC_LIBS "-lgomp -llapack -lcblas -lf77blas -latlas -lz -lm   "
 #endif
 
 /* minimal log priority */
@@ -306,10 +316,14 @@
 #endif
 
 /* DEPRECATED (use SC_ENABLE_MPI instead) */
-/* #undef MPI */
+#ifndef SC_MPI
+#define SC_MPI 1
+#endif
 
 /* DEPRECATED (use SC_ENABLE_MPIIO instead) */
-/* #undef MPIIO */
+#ifndef SC_MPIIO
+#define SC_MPIIO 1
+#endif
 
 /* Define to 1 if your C compiler doesn't accept -c and -o together. */
 /* #undef NO_MINUS_C_MINUS_O */

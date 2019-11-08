@@ -1,6 +1,7 @@
+
 ##############################################################################
 #
-# Copyright (c) 2003-2019 by The University of Queensland
+# Copyright (c) 2003-2018 by The University of Queensland
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -17,21 +18,18 @@
 # Refer to README_FIRST for usage instructions.
 
 openmp = True
-umfpack = True
-silo = True
+# umfpack = True
+# silo = True
 # mpi = 'OPENMPI'
-verbose = True
+# verbose = True
+# debug = True
+# trilinos = True
 # paso = False
 # parmetis = True
-visit = True
+# visit = True
+#werror = False
 # cxx = 'clang++'
-cxx='/usr/local/gcc/bin/g++'
-debug = True
-# cxx_extra='-w '
-cxx_extra = "-Wno-unused-variable -Wno-unused-but-set-variable -Wno-catch-value"
-
-# trilinos = True
-# werror = False
+# cxx='/usr/bin/clang++'
 
 python = 3
 
@@ -41,17 +39,14 @@ escript_opts_version = 203
 import os
 import subprocess
 
-cxx_extra += " -fmessage-length=80 -fdiagnostics-color=always"
+cxx_extra += " -fmessage-length=80 -fdiagnostics-color=always "
 if trilinos is True:
   cxx_extra += "  -Wno-deprecated-declarations -Wno-unused-variable "
 
 netcdf = 4
 mpi_libs = ['mpi_cxx', 'mpi']
 parmetis_libs = ['parmetis', 'metis']
-#silo_libs = ['siloh5', 'hdf5_cpp']
-silo_libs = ['siloh5']
-
-
+silo_libs = ['siloh5', 'hdf5_cpp']
 umfpack_libs = ['umfpack', 'blas', 'amd']
 
 # gmsh_prefix=['/usr/local/include','/usr/local/lib']
@@ -60,12 +55,12 @@ d_mpi_path = '/usr/include/openmpi'
 mpi_prefix = os.path.split(os.path.realpath(d_mpi_path))[0]
 parmetis_prefix = ['/usr/include','/usr/lib']
 umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
-
+boost_prefix = ['/usr/local/boost']
 visit_prefix = ['/usr/local/visit/2.13.2/linux-x86_64/libsim/V2/include/','/usr/local/visit/2.13.2/linux-x86_64/libsim/V2/lib/']
+mpi_prefix = ['/usr/lib/x86_64-linux-gnu/openmpi/include/','/usr/lib/x86_64-linux-gnu/openmpi/lib/']
 
 if cxx=='clang++':
-  #trilinos_prefix =['/usr/local/trilinos_clang/include/','/usr/local/trilinos_clang/lib/']
-  trilinos_prefix =['/usr/local/trilinos/include/','/usr/local/trilinos/lib/']
+  trilinos_prefix =['/usr/local/trilinos_clang/include/','/usr/local/trilinos_clang/lib/']
 elif mpi=='OPENMPI':
   trilinos_prefix =['/usr/local/trilinos_mpi/include/','/usr/local/trilinos_mpi/lib/']
 else:

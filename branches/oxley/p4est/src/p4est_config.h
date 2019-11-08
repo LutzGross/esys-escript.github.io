@@ -22,22 +22,22 @@
 
 /* C compiler */
 #ifndef P4EST_CC
-#define P4EST_CC "gcc"
+#define P4EST_CC "mpicc"
 #endif
 
 /* C compiler flags */
 #ifndef P4EST_CFLAGS
-#define P4EST_CFLAGS "-g -O2 -fopenmp"
+#define P4EST_CFLAGS "-g -O2 "
 #endif
 
 /* C preprocessor */
 #ifndef P4EST_CPP
-#define P4EST_CPP "gcc -E"
+#define P4EST_CPP "mpicc -E"
 #endif
 
 /* C preprocessor flags */
 #ifndef P4EST_CPPFLAGS
-#define P4EST_CPPFLAGS " "
+#define P4EST_CPPFLAGS ""
 #endif
 
 /* Define to 1 if your C++ compiler doesn't accept -c and -o together. */
@@ -71,19 +71,29 @@
 #endif
 
 /* Define to 1 if we are using MPI */
-/* #undef ENABLE_MPI */
+#ifndef P4EST_ENABLE_MPI
+#define P4EST_ENABLE_MPI 1
+#endif
 
 /* Define to 1 if we can use MPI_COMM_TYPE_SHARED */
-/* #undef ENABLE_MPICOMMSHARED */
+#ifndef P4EST_ENABLE_MPICOMMSHARED
+#define P4EST_ENABLE_MPICOMMSHARED 1
+#endif
 
 /* Define to 1 if we are using MPI I/O */
-/* #undef ENABLE_MPIIO */
+#ifndef P4EST_ENABLE_MPIIO
+#define P4EST_ENABLE_MPIIO 1
+#endif
 
 /* Define to 1 if we are using MPI_Init_thread */
-/* #undef ENABLE_MPITHREAD */
+#ifndef P4EST_ENABLE_MPITHREAD
+#define P4EST_ENABLE_MPITHREAD 1
+#endif
 
 /* Define to 1 if we can use MPI_Win_allocate_shared */
-/* #undef ENABLE_MPIWINSHARED */
+#ifndef P4EST_ENABLE_MPIWINSHARED
+#define P4EST_ENABLE_MPIWINSHARED 1
+#endif
 
 /* enable OpenMP: Using --enable-openmp without arguments does not specify any
    CFLAGS; to supply CFLAGS use --enable-openmp=<OPENMP_CFLAGS>. We check
@@ -244,12 +254,12 @@
 
 /* Linker flags */
 #ifndef P4EST_LDFLAGS
-#define P4EST_LDFLAGS " "
+#define P4EST_LDFLAGS ""
 #endif
 
 /* Libraries */
 #ifndef P4EST_LIBS
-#define P4EST_LIBS "-lmetis -llapack -lcblas -lf77blas -latlas -lz -lm   "
+#define P4EST_LIBS "-lgomp -llapack -lcblas -lf77blas -latlas -lz -lm   "
 #endif
 
 /* Define to the sub-directory where libtool stores uninstalled libraries. */
@@ -268,15 +278,17 @@
 #endif
 
 /* DEPRECATED (use P4EST_WITH_METIS instead) */
-#ifndef P4EST_METIS
-#define P4EST_METIS 1
-#endif
+/* #undef METIS */
 
 /* DEPRECATED (use P4EST_ENABLE_MPI instead) */
-/* #undef MPI */
+#ifndef P4EST_MPI
+#define P4EST_MPI 1
+#endif
 
 /* DEPRECATED (use P4EST_ENABLE_MPIIO instead) */
-/* #undef MPIIO */
+#ifndef P4EST_MPIIO
+#define P4EST_MPIIO 1
+#endif
 
 /* Define to 1 if your C compiler doesn't accept -c and -o together. */
 /* #undef NO_MINUS_C_MINUS_O */
@@ -390,9 +402,7 @@
 #endif
 
 /* enable metis-dependent code */
-#ifndef P4EST_WITH_METIS
-#define P4EST_WITH_METIS 1
-#endif
+/* #undef WITH_METIS */
 
 /* enable PETSc-dependent code */
 /* #undef WITH_PETSC */

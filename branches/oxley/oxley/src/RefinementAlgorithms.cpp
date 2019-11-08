@@ -78,36 +78,41 @@ void gce_second_pass(p4est_iter_volume_info_t * info, void *tmp)
     quadrantData * quaddata = (quadrantData *) info->quad->p.user_data;
     addSurfaceData * surfaceinfo = (addSurfaceData *) tmp;
 
-    // Spatial indices of x, y, z to pass on
-    double x = info->quad->x;
-    double y = info->quad->y;
-    long n = surfaceinfo->x.size();
-
-    // Work out the length of the quadrant
-    double l = P4EST_QUADRANT_LEN(info->quad->level);
-
-    // Check that the point is inside the domain defined by the function
-    double xy[2][2];
-    p4est_qcoord_to_vertex(info->p4est->connectivity, info->treeid, x, y, xy[0]);
-    p4est_qcoord_to_vertex(info->p4est->connectivity, info->treeid, x+l, y, xy[1]);
-    bool insideDomain = (xy[0][0] >= surfaceinfo->xmin) && (xy[1][0] <= surfaceinfo->xmax);
-
-    if(insideDomain && surfaceinfo->oldTag == -1)
+    if(surfaceinfo->oldTag == -1)
     {
-        // This variable records whether a node is above, on (true) or below (false) the curve
-        bool ab[4] = {false};
-        ab[0] = aboveCurve(surfaceinfo->x, surfaceinfo->y, info->p4est->connectivity, info->treeid, n, x, y);
-        ab[1] = aboveCurve(surfaceinfo->x, surfaceinfo->y, info->p4est->connectivity, info->treeid, n, x+l, y);
-        ab[2] = aboveCurve(surfaceinfo->x, surfaceinfo->y, info->p4est->connectivity, info->treeid, n, x, y+l);
-        ab[3] = aboveCurve(surfaceinfo->x, surfaceinfo->y, info->p4est->connectivity, info->treeid, n, x+l, y+l);
+        // Spatial indices of x, y, z to pass on
+        double x = info->quad->x;
+        double y = info->quad->y;
+        long n = surfaceinfo->x.size();
 
-        // If at least two of the nodes are on different sides of the curve,
-        // record the octant tag for the next step
-        bool allNodesAreTheSame = ((ab[0] == ab[1]) && (ab[1] == ab[2])
-                                && (ab[2] == ab[3]) && (ab[3] == ab[0]));
+        // Work out the length of the quadrant
+        double lx = surfaceinfo->scale[0]*P4EST_QUADRANT_LEN(info->quad->level); //aeae bug here
+        double ly = surfaceinfo->scale[1]*P4EST_QUADRANT_LEN(info->quad->level); //aeae bug here
 
-        if(!allNodesAreTheSame)
+        // Check that the point is inside the domain defined by the function
+        double xy[2][2];
+        p4est_qcoord_to_vertex(info->p4est->connectivity, info->treeid, x, y, xy[0]);
+        p4est_qcoord_to_vertex(info->p4est->connectivity, info->treeid, x+lx, y, xy[1]);
+        bool insideDomain = (xy[0][0] >= surfaceinfo->xmin) && (xy[1][0] <= surfaceinfo->xmax);
+
+        if(insideDomain)
+        {
+            // This variable records whether a node is above, on (true) or below (false) the curve
+            signed ab[4] = {0};
+            double increment[4][2] = {{0,0},{lx,0},{0,ly},{lx,ly}};
+#pragma omp parallel for
+            for(int i = 0; i < 4; i++)
+                ab[i] = aboveCurve(surfaceinfo->x, surfaceinfo->y,
+                                    info->p4est->connectivity, info->treeid, n,
+                                    x+increment[i][0], y+increment[i][1]);
+
+            signed sum = 0;
+            for(int i = 0; i < 4; i++)
+                sum += ab[i];
+
+            if(abs(sum) != 4)
                 surfaceinfo->oldTag = quaddata->quadTag;
+        }
     }
 }
 
@@ -147,37 +152,39 @@ int refine_gce(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quad)
     addSurfaceData * surfaceinfo = (addSurfaceData *) p4est->user_pointer;
     quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
-    // The length of the coordinate vector
-    long n = surfaceinfo->x.size();
-
-    // Work out the length of the quadrant
-    double l = P4EST_QUADRANT_LEN(quad->level);
-
-    // Spatial indices of x, y, z to pass on
-    double x = quad->x;
-    double y = quad->y;
-
-    // Check to see if we are inside the domain defined by z[x,y]
-    double xy[2][2];
-    p4est_qcoord_to_vertex(p4est->connectivity, tree, x, y, xy[0]);
-    p4est_qcoord_to_vertex(p4est->connectivity, tree, x+l, y, xy[1]);
-    bool insideDomain = (xy[0][0] >= surfaceinfo->xmin) && (xy[1][0] <= surfaceinfo->xmax);
-    if(!insideDomain)
-        return false;
-
     // If we are in the region being defined
     if(quaddata->quadTag == surfaceinfo->oldTag || quaddata->quadTag == -1)
     {
-        // This variable records whether a node is above, on (true) or below (false) the curve
-        bool ab[4] = {false};
-        ab[0] = aboveCurve(surfaceinfo->x, surfaceinfo->y, p4est->connectivity, tree, n, x, y);
-        ab[1] = aboveCurve(surfaceinfo->x, surfaceinfo->y, p4est->connectivity, tree, n, x+l, y);
-        ab[2] = aboveCurve(surfaceinfo->x, surfaceinfo->y, p4est->connectivity, tree, n, x, y+l);
-        ab[3] = aboveCurve(surfaceinfo->x, surfaceinfo->y, p4est->connectivity, tree, n, x+l, y+l);
+        // The length of the coordinate vector
+        long n = surfaceinfo->x.size();
 
-        bool AllNodesAreTheSame = ((ab[0] == ab[1]) && (ab[1] == ab[2])
-                                && (ab[2] == ab[3]) && (ab[3] == ab[0]));
-        return !AllNodesAreTheSame;
+        // Work out the length of the quadrant
+        double l = P4EST_QUADRANT_LEN(quad->level);
+
+        // Spatial indices of x, y, z to pass on
+        double x = quad->x;
+        double y = quad->y;
+
+        // Check to see if we are inside the domain defined by z[x,y]
+        double xy[2][2];
+        p4est_qcoord_to_vertex(p4est->connectivity, tree, x, y, xy[0]);
+        p4est_qcoord_to_vertex(p4est->connectivity, tree, x+l, y, xy[1]);
+        bool insideDomain = (xy[0][0] >= surfaceinfo->xmin) && (xy[1][0] <= surfaceinfo->xmax);
+        if(!insideDomain)
+            return false;
+
+        // This variable records whether a node is above, on (true) or below (false) the curve
+        signed ab[4] = {0};
+        double increment[4][2] = {{0,0},{l,0},{0,l},{l,l}};
+#pragma omp parallel for
+        for(int i = 0; i < 4; i++)
+            ab[i] = aboveCurve(surfaceinfo->x, surfaceinfo->y, p4est->connectivity, tree, n, x+increment[i][0], y+increment[i][1]);
+
+        signed sum = 0;
+        for(int i = 0; i < 4; i++)
+            sum += ab[i];
+
+        return (abs(sum) == 4) ? false : true;
     }
     else
     {
@@ -201,47 +208,46 @@ void gce_second_pass(p8est_iter_volume_info_t * info, void *tmp)
     octantData * quaddata = (octantData *) info->quad->p.user_data;
     addSurfaceData * surfaceinfo = (addSurfaceData *) tmp;
 
-    // Work out the length of the quadrant
-    double l = P8EST_QUADRANT_LEN(info->quad->level);
-
-    // Spatial indices of x, y, z to pass on
-    double x = info->quad->x;
-    double y = info->quad->y;
-    double z = info->quad->z;
-
-    long nx = surfaceinfo->x.size();
-    long ny = surfaceinfo->y.size();
-
-    // Check that the point is inside the domain defined by the function
-    double xy[3][3];
-    p8est_qcoord_to_vertex(info->p4est->connectivity, info->treeid, x, y, z, xy[0]);
-    p8est_qcoord_to_vertex(info->p4est->connectivity, info->treeid, x+l, y, z, xy[1]);
-    p8est_qcoord_to_vertex(info->p4est->connectivity, info->treeid, x, y+l, z, xy[2]);
-    bool insideDomain = (xy[0][0] >= surfaceinfo->xmin) && (xy[1][0] <= surfaceinfo->xmax)
-                    && (xy[0][1] >= surfaceinfo->ymin) && (xy[2][1] <= surfaceinfo->ymax);
-
-    if(insideDomain && surfaceinfo->oldTag == -1)
+    if(surfaceinfo->oldTag == -1)
     {
-        // This variable records whether a node is above, on (true) or below (false) the curve
-        bool ab[8] = {false};
-        ab[0] = aboveSurface(surfaceinfo->x, surfaceinfo->y, surfaceinfo->z, info->p4est->connectivity, info->treeid, nx, ny, x,    y,      z);
-        ab[1] = aboveSurface(surfaceinfo->x, surfaceinfo->y, surfaceinfo->z, info->p4est->connectivity, info->treeid, nx, ny, x+l,  y,      z);
-        ab[2] = aboveSurface(surfaceinfo->x, surfaceinfo->y, surfaceinfo->z, info->p4est->connectivity, info->treeid, nx, ny, x,    y+l,    z);
-        ab[3] = aboveSurface(surfaceinfo->x, surfaceinfo->y, surfaceinfo->z, info->p4est->connectivity, info->treeid, nx, ny, x+l,  y+l,    z);
-        ab[4] = aboveSurface(surfaceinfo->x, surfaceinfo->y, surfaceinfo->z, info->p4est->connectivity, info->treeid, nx, ny, x,    y,      z+l);
-        ab[5] = aboveSurface(surfaceinfo->x, surfaceinfo->y, surfaceinfo->z, info->p4est->connectivity, info->treeid, nx, ny, x+l,  y,      z+l);
-        ab[6] = aboveSurface(surfaceinfo->x, surfaceinfo->y, surfaceinfo->z, info->p4est->connectivity, info->treeid, nx, ny, x,    y+l,    z+l);
-        ab[7] = aboveSurface(surfaceinfo->x, surfaceinfo->y, surfaceinfo->z, info->p4est->connectivity, info->treeid, nx, ny, x+l,  y+l,    z+l);
+        // Work out the length of the quadrant
+        double l = P8EST_QUADRANT_LEN(info->quad->level);
 
-        // If at least two of the nodes are on different sides of the curve,
-        // record the octant tag for the next step
-        bool allNodesAreTheSame = ((ab[0] == ab[1]) && (ab[1] == ab[2])
-                                && (ab[2] == ab[3]) && (ab[3] == ab[4])
-                                && (ab[4] == ab[5]) && (ab[5] == ab[6])
-                                && (ab[6] == ab[7]) && (ab[7] == ab[0]));
+        // Spatial indices of x, y, z to pass on
+        double x = info->quad->x;
+        double y = info->quad->y;
+        double z = info->quad->z;
 
-        if(!allNodesAreTheSame)
-            surfaceinfo->oldTag = quaddata->octantTag;
+        long nx = surfaceinfo->x.size();
+        long ny = surfaceinfo->y.size();
+
+        // Check that the point is inside the domain defined by the function
+        double xy[3][3];
+        p8est_qcoord_to_vertex(info->p4est->connectivity, info->treeid, x, y, z, xy[0]);
+        p8est_qcoord_to_vertex(info->p4est->connectivity, info->treeid, x+l, y, z, xy[1]);
+        p8est_qcoord_to_vertex(info->p4est->connectivity, info->treeid, x, y+l, z, xy[2]);
+
+        bool insideDomain = (xy[0][0] >= surfaceinfo->xmin) && (xy[1][0] <= surfaceinfo->xmax)
+                         && (xy[1][1] >= surfaceinfo->ymin) && (xy[2][1] <= surfaceinfo->ymax);
+
+        if(insideDomain)
+        {
+            // This variable records whether a node is above, on (true) or below (false) the curve
+            signed ab[8] = {0};
+            double increment[8][3] = {{0,0,0},{l,0,0},{0,l,0},{l,l,0},{0,0,l},{l,0,l},{0,l,l},{l,l,l}};
+#pragma omp parallel for
+            for(int i = 0; i < 8; i++)
+                ab[i] = aboveSurface(surfaceinfo->x, surfaceinfo->y, surfaceinfo->z,
+                    info->p4est->connectivity, info->treeid, nx, ny,
+                    x+increment[i][0], y+increment[i][1], z+increment[i][2]);
+
+            signed sum = 0;
+            for(int i = 0; i < 8; i++)
+                sum += ab[i];
+
+            if(abs(sum) != 8)
+                surfaceinfo->oldTag = quaddata->octantTag;
+        }
     }
 }
 
@@ -287,45 +293,42 @@ int refine_gce(p8est_t * p8est, p4est_topidx_t tree, p8est_quadrant_t * quad)
     int oldTag = surfaceinfo->oldTag;
     octantData * quaddata = (octantData *) quad->p.user_data;
 
-    // Get the length of the quadrant
-    double l = P8EST_QUADRANT_LEN(quad->level);
-
-    // Spatial indices of x, y, z to pass on
-    p4est_qcoord_t x = quad->x;
-    p4est_qcoord_t y = quad->y;
-    p4est_qcoord_t z = quad->z;
-
-    long nx = surfaceinfo->x.size();
-    long ny = surfaceinfo->y.size();
-
-    // Check to see if we are inside the domain defined by z[x,y]
-    double xy[3][3];
-    p8est_qcoord_to_vertex(p8est->connectivity, tree, x, y, z, xy[0]);
-    p8est_qcoord_to_vertex(p8est->connectivity, tree, x+l, y, z, xy[1]);
-    p8est_qcoord_to_vertex(p8est->connectivity, tree, x, y+l, z, xy[2]);
-    bool insideDomain = (xy[0][0] >= surfaceinfo->xmin) && (xy[1][0] <= surfaceinfo->xmax)
-                    && (xy[0][1] >= surfaceinfo->ymin) && (xy[2][1] <= surfaceinfo->ymax);
-    if(!insideDomain)
-        return false;
-
     if(quaddata->octantTag == oldTag || quaddata->octantTag == -1)
     {
-        bool ab[8] = {false};
-        ab[0] = aboveSurface(surfaceinfo->x, surfaceinfo->y, surfaceinfo->z, p8est->connectivity, tree, nx, ny, x, y, z);
-        ab[1] = aboveSurface(surfaceinfo->x, surfaceinfo->y, surfaceinfo->z, p8est->connectivity, tree, nx, ny, x+l, y, z);
-        ab[2] = aboveSurface(surfaceinfo->x, surfaceinfo->y, surfaceinfo->z, p8est->connectivity, tree, nx, ny, x, y+l, z);
-        ab[3] = aboveSurface(surfaceinfo->x, surfaceinfo->y, surfaceinfo->z, p8est->connectivity, tree, nx, ny, x+l, y+l, z);
-        ab[4] = aboveSurface(surfaceinfo->x, surfaceinfo->y, surfaceinfo->z, p8est->connectivity, tree, nx, ny, x, y, z+l);
-        ab[5] = aboveSurface(surfaceinfo->x, surfaceinfo->y, surfaceinfo->z, p8est->connectivity, tree, nx, ny, x+l, y, z+l);
-        ab[6] = aboveSurface(surfaceinfo->x, surfaceinfo->y, surfaceinfo->z, p8est->connectivity, tree, nx, ny, x, y+l, z+l);
-        ab[7] = aboveSurface(surfaceinfo->x, surfaceinfo->y, surfaceinfo->z, p8est->connectivity, tree, nx, ny, x+l, y+l, z+l);
+        // Get the length of the quadrant
+        double l = P8EST_QUADRANT_LEN(quad->level);
 
-        // If we are in the region being defined
-        bool allNodesAreTheSame = ((ab[0] == ab[1]) && (ab[1] == ab[2])
-                                && (ab[2] == ab[3]) && (ab[3] == ab[4])
-                                && (ab[4] == ab[5]) && (ab[5] == ab[6])
-                                && (ab[6] == ab[7]) && (ab[7] == ab[0]));
-        return !allNodesAreTheSame;
+        // Spatial indices of x, y, z to pass on
+        p4est_qcoord_t x = quad->x;
+        p4est_qcoord_t y = quad->y;
+        p4est_qcoord_t z = quad->z;
+
+        long nx = surfaceinfo->x.size();
+        long ny = surfaceinfo->y.size();
+
+        // Check to see if we are inside the domain defined by z[x,y]
+        double xy[3][3];
+        p8est_qcoord_to_vertex(p8est->connectivity, tree, x, y, z, xy[0]);
+        p8est_qcoord_to_vertex(p8est->connectivity, tree, x+l, y, z, xy[1]);
+        p8est_qcoord_to_vertex(p8est->connectivity, tree, x, y+l, z, xy[2]);
+        bool insideDomain = (xy[0][0] >= surfaceinfo->xmin) && (xy[1][0] <= surfaceinfo->xmax)
+                        && (xy[0][1] >= surfaceinfo->ymin) && (xy[2][1] <= surfaceinfo->ymax);
+        if(!insideDomain)
+            return false;
+
+        signed ab[8] = {0};
+        double increment[8][3] = {{0,0,0},{l,0,0},{0,l,0},{l,l,0},{0,0,l},{l,0,l},{0,l,l},{l,l,l}};
+#pragma omp parallel for
+        for(int i = 0; i < 8; i++)
+            ab[i] = aboveSurface(surfaceinfo->x, surfaceinfo->y, surfaceinfo->z,
+                p8est->connectivity, tree, nx, ny,
+                x+increment[i][0], y+increment[i][1], z+increment[i][2]);
+
+        signed sum = 0;
+        for(int i = 0; i < 8; i++)
+            sum += ab[i];
+
+        return (abs(sum) == 8) ? false : true;
     }
     else
     {

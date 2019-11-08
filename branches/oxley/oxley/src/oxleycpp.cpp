@@ -162,10 +162,9 @@ void _addCurve(OxleyDomainRect_ptr domain,
     double* py = reinterpret_cast<double*>(y.get_data());
     // Note: boost::python::numpy::ndarray is not threadsafe
     for(long i = 0; i < *lx; i++)
-    {
         surfacedata->x[i] = *(px + i);
+    for(long i = 0; i < *ly; i++)
         surfacedata->y[i] = *(py + i);
-    }
 
     if(!domain->getDescription().compare("oxley::rectangle"))
     {
@@ -231,13 +230,11 @@ void _addSurface(OxleyDomainBrick_ptr domain,
     std::vector<double> vz(*lz);
     // Note: boost::python::numpy::ndarray is not threadsafe
     for(long i = 0; i < *lx; i++)
-    {
         surfacedata->x[i] = *(px + i);
+    for(long i = 0; i < *ly; i++)
         surfacedata->y[i] = *(py + i);
-    }
-    for(long i = 0; i < *lz; i++){
+    for(long i = 0; i < *lz; i++)
         surfacedata->z[i] = *(pz + i);
-    }
 
     if(!domain->getDescription().compare("oxley::brick"))
     {

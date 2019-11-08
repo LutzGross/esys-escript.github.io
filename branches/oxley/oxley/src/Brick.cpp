@@ -49,10 +49,23 @@ Brick::Brick(int order,
         d2=1;
     }
 
-    // ensure number of subdivisions is valid and nodes can be distributed
-    // among number of ranks
-    if(d0*d1*d2 != m_mpiInfo->size)
-        throw OxleyException("Invalid number of spatial subdivisions");
+    // If the user did not set the number of divisions manually
+    if(d0 == -1 && d1 == -1 && d2 == -1)
+    {
+        d0 = m_mpiInfo->size < 3 ? 1 : m_mpiInfo->size / 3;
+        d1 = m_mpiInfo->size < 3 ? 1 : m_mpiInfo->size / 3;
+        d2 = m_mpiInfo->size / (d0*d1);
+
+        if(d0*d1*d2 != m_mpiInfo->size)
+            throw OxleyException("Could not find values for d0, d1 and d2. Please set them manually.");
+    }
+    // else
+    // {
+    //     // ensure number of subdivisions chosen by the user is valid and nodes can be distributed
+    //     // among number of ranks
+    //     if(d0*d1*d2 != m_mpiInfo->size)
+    //         throw OxleyException("Invalid number of spatial subdivisions");
+    // }
 
     // These two statements configure the level of verbosity used by p4est
     sc_set_log_defaults(NULL, NULL, LOG_LEVEL);
@@ -169,7 +182,6 @@ Brick::~Brick(){
     p8est_connectivity_destroy(connectivity);
     p8est_destroy(p8est);
     // sc_finalize();
-
 }
 
 /**
