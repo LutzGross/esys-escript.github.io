@@ -22,7 +22,7 @@
 
 /* C compiler */
 #ifndef P4EST_CC
-#define P4EST_CC "mpicc"
+#define P4EST_CC "gcc"
 #endif
 
 /* C compiler flags */
@@ -32,7 +32,7 @@
 
 /* C preprocessor */
 #ifndef P4EST_CPP
-#define P4EST_CPP "mpicc -E"
+#define P4EST_CPP "gcc -E"
 #endif
 
 /* C preprocessor flags */
@@ -71,29 +71,19 @@
 #endif
 
 /* Define to 1 if we are using MPI */
-#ifndef P4EST_ENABLE_MPI
-#define P4EST_ENABLE_MPI 1
-#endif
+/* #undef ENABLE_MPI */
 
 /* Define to 1 if we can use MPI_COMM_TYPE_SHARED */
-#ifndef P4EST_ENABLE_MPICOMMSHARED
-#define P4EST_ENABLE_MPICOMMSHARED 1
-#endif
+/* #undef ENABLE_MPICOMMSHARED */
 
 /* Define to 1 if we are using MPI I/O */
-#ifndef P4EST_ENABLE_MPIIO
-#define P4EST_ENABLE_MPIIO 1
-#endif
+/* #undef ENABLE_MPIIO */
 
 /* Define to 1 if we are using MPI_Init_thread */
-#ifndef P4EST_ENABLE_MPITHREAD
-#define P4EST_ENABLE_MPITHREAD 1
-#endif
+/* #undef ENABLE_MPITHREAD */
 
 /* Define to 1 if we can use MPI_Win_allocate_shared */
-#ifndef P4EST_ENABLE_MPIWINSHARED
-#define P4EST_ENABLE_MPIWINSHARED 1
-#endif
+/* #undef ENABLE_MPIWINSHARED */
 
 /* enable OpenMP: Using --enable-openmp without arguments does not specify any
    CFLAGS; to supply CFLAGS use --enable-openmp=<OPENMP_CFLAGS>. We check
@@ -281,14 +271,10 @@
 /* #undef METIS */
 
 /* DEPRECATED (use P4EST_ENABLE_MPI instead) */
-#ifndef P4EST_MPI
-#define P4EST_MPI 1
-#endif
+/* #undef MPI */
 
 /* DEPRECATED (use P4EST_ENABLE_MPIIO instead) */
-#ifndef P4EST_MPIIO
-#define P4EST_MPIIO 1
-#endif
+/* #undef MPIIO */
 
 /* Define to 1 if your C compiler doesn't accept -c and -o together. */
 /* #undef NO_MINUS_C_MINUS_O */

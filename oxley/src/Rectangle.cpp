@@ -52,13 +52,12 @@ Rectangle::Rectangle(int order,
     }
 
     // If the user did not set the number of divisions manually
-    if(d0 == -1 && d1 == -1 && d2 == -1)
+    if(d0 == -1 && d1 == -1)
     {
         d0 = m_mpiInfo->size < 3 ? 1 : m_mpiInfo->size / 3;
-        d1 = m_mpiInfo->size < 3 ? 1 : m_mpiInfo->size / 3;
-        d2 = m_mpiInfo->size / (d0*d1);
+        d1 = m_mpiInfo->size / d0;
 
-        if(d0*d1*d2 != m_mpiInfo->size)
+        if(d0*d1 != m_mpiInfo->size)
             throw OxleyException("Could not find values for d0, d1 and d2. Please set them manually.");
     }
     // // ensure number of subdivisions is valid and nodes can be distributed

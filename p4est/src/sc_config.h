@@ -10,7 +10,7 @@
 
 /* C compiler */
 #ifndef SC_CC
-#define SC_CC "mpicc"
+#define SC_CC "gcc"
 #endif
 
 /* C compiler flags */
@@ -20,7 +20,7 @@
 
 /* C preprocessor */
 #ifndef SC_CPP
-#define SC_CPP "mpicc -E"
+#define SC_CPP "gcc -E"
 #endif
 
 /* C preprocessor flags */
@@ -30,7 +30,7 @@
 
 /* CXX compiler */
 #ifndef SC_CXX
-#define SC_CXX "mpicxx"
+#define SC_CXX "g++"
 #endif
 
 /* CXX compiler flags */
@@ -54,29 +54,19 @@
 #endif
 
 /* Define to 1 if we are using MPI */
-#ifndef SC_ENABLE_MPI
-#define SC_ENABLE_MPI 1
-#endif
+/* #undef ENABLE_MPI */
 
 /* Define to 1 if we can use MPI_COMM_TYPE_SHARED */
-#ifndef SC_ENABLE_MPICOMMSHARED
-#define SC_ENABLE_MPICOMMSHARED 1
-#endif
+/* #undef ENABLE_MPICOMMSHARED */
 
 /* Define to 1 if we are using MPI I/O */
-#ifndef SC_ENABLE_MPIIO
-#define SC_ENABLE_MPIIO 1
-#endif
+/* #undef ENABLE_MPIIO */
 
 /* Define to 1 if we are using MPI_Init_thread */
-#ifndef SC_ENABLE_MPITHREAD
-#define SC_ENABLE_MPITHREAD 1
-#endif
+/* #undef ENABLE_MPITHREAD */
 
 /* Define to 1 if we can use MPI_Win_allocate_shared */
-#ifndef SC_ENABLE_MPIWINSHARED
-#define SC_ENABLE_MPIWINSHARED 1
-#endif
+/* #undef ENABLE_MPIWINSHARED */
 
 /* enable OpenMP: Using --enable-openmp without arguments does not specify any
    CFLAGS; to supply CFLAGS use --enable-openmp=<OPENMP_CFLAGS>. We check
@@ -99,7 +89,7 @@
 
 /* F77 compiler */
 #ifndef SC_F77
-#define SC_F77 "mpif77"
+#define SC_F77 "gfortran"
 #endif
 
 /* Define to dummy `main' function (if any) required to link to the Fortran
@@ -122,7 +112,7 @@
 
 /* FC compiler */
 #ifndef SC_FC
-#define SC_FC "mpif90"
+#define SC_FC "gfortran"
 #endif
 
 /* FC compiler flags */
@@ -316,14 +306,10 @@
 #endif
 
 /* DEPRECATED (use SC_ENABLE_MPI instead) */
-#ifndef SC_MPI
-#define SC_MPI 1
-#endif
+/* #undef MPI */
 
 /* DEPRECATED (use SC_ENABLE_MPIIO instead) */
-#ifndef SC_MPIIO
-#define SC_MPIIO 1
-#endif
+/* #undef MPIIO */
 
 /* Define to 1 if your C compiler doesn't accept -c and -o together. */
 /* #undef NO_MINUS_C_MINUS_O */
