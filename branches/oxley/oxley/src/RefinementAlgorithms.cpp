@@ -86,20 +86,19 @@ void gce_second_pass(p4est_iter_volume_info_t * info, void *tmp)
         long n = surfaceinfo->x.size();
 
         // Work out the length of the quadrant
-        double lx = surfaceinfo->scale[0]*P4EST_QUADRANT_LEN(info->quad->level); //aeae bug here
-        double ly = surfaceinfo->scale[1]*P4EST_QUADRANT_LEN(info->quad->level); //aeae bug here
+        double l = P4EST_QUADRANT_LEN(info->quad->level);
 
         // Check that the point is inside the domain defined by the function
         double xy[2][2];
         p4est_qcoord_to_vertex(info->p4est->connectivity, info->treeid, x, y, xy[0]);
-        p4est_qcoord_to_vertex(info->p4est->connectivity, info->treeid, x+lx, y, xy[1]);
+        p4est_qcoord_to_vertex(info->p4est->connectivity, info->treeid, x+l, y, xy[1]);
         bool insideDomain = (xy[0][0] >= surfaceinfo->xmin) && (xy[1][0] <= surfaceinfo->xmax);
 
         if(insideDomain)
         {
             // This variable records whether a node is above, on (true) or below (false) the curve
             signed ab[4] = {0};
-            double increment[4][2] = {{0,0},{lx,0},{0,ly},{lx,ly}};
+            double increment[4][2] = {{0,0},{l,0},{0,l},{l,l}};
 #pragma omp parallel for
             for(int i = 0; i < 4; i++)
                 ab[i] = aboveCurve(surfaceinfo->x, surfaceinfo->y,

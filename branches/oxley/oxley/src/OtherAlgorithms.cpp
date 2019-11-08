@@ -62,10 +62,6 @@ void addSurface(OxleyDomainRect_ptr domain)
         surfacedata->xmax = std::max(surfacedata->xmax,surfacedata->x[i]);
     }
 
-    // scaling information
-    surfacedata->scale[0] = forestData->m_length[0]/forestData->m_gNE[0];
-    surfacedata->scale[1] = forestData->m_length[1]/forestData->m_gNE[1];
-
     // Note: the forest must be face balanced for p4est_iterate() to execute
     // a callback function on faces (see p4est_balance()).
     p4est_balance(p4est, P4EST_CONNECT_FACE, gce_init_new_rectangle);
@@ -120,11 +116,6 @@ void addSurface(OxleyDomainBrick_ptr domain)
         surfacedata->ymin = std::min(surfacedata->ymin,surfacedata->y[i]);
         surfacedata->ymax = std::max(surfacedata->ymax,surfacedata->y[i]);
     }
-
-    // scaling information
-    surfacedata->scale[0] = forestData->m_length[0]/forestData->m_gNE[0];
-    surfacedata->scale[1] = forestData->m_length[1]/forestData->m_gNE[1];
-    surfacedata->scale[2] = forestData->m_length[2]/forestData->m_gNE[2];
 
     // Note: the forest must be face balanced for p4est_iterate() to execute
     // a callback function on faces
