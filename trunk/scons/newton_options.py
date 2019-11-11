@@ -19,3 +19,5 @@ from templates.sid_py3_options import *
 umfpack = True
 silo = True
 
+mpi_prefix=["/usr/lib/x86_64-linux-gnu/openmpi/include","/usr/lib/x86_64-linux-gnu/openmpi/lib"]
+cxx_extra="-Wno-stringop-truncation"
