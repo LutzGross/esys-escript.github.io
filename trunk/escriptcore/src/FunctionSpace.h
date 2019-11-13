@@ -31,7 +31,7 @@ namespace escript {
 // Forward declaration for class Data.
 class Data;
 
-class ESCRIPT_DLL_API FunctionSpace 
+class ESCRIPT_DLL_API FunctionSpace
 {
 public:
     FunctionSpace();
@@ -55,7 +55,7 @@ public:
     /**
       \brief Return the function space domain. Internal use only! This gets
              around some python difficulties by casting away the const.
-             Do not use this in C++. 
+             Do not use this in C++.
     */
     Domain_ptr getDomainPython() const;
 
@@ -76,7 +76,7 @@ public:
     void setTags(const int newTag, const escript::Data& mask) const;
 
     void setTagsByString(const std::string& name, const escript::Data& mask) const;
-  
+
     /**
       \brief Returns the shape of the data needed to represent the function
              space.
@@ -148,7 +148,7 @@ public:
     */
     boost::python::numpy::ndarray getNumpyX() const;
 #endif
- 
+
     /**
       \brief Returns the surface normal field.
     */
@@ -214,7 +214,7 @@ public:
 
 private:
     /**
-    \brief Assignment operator. 
+    \brief Assignment operator.
            This method is only defined (private) to prevent people from
            using it.
     */
@@ -230,4 +230,3 @@ bool canInterpolate(FunctionSpace src, FunctionSpace dest);
 } // end of namespace
 
 #endif // __ESCRIPT_FUNCTIONSPACE_H__
-

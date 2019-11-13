@@ -478,6 +478,9 @@ args("arg"), "assigns new location to the domain\n\n"
     .def("__str__",&escript::Data::toString)
     .def("getDomain",&escript::Data::getDomainPython,":rtype: `Domain`")
     .def("getFunctionSpace",&escript::Data::getFunctionSpace,return_value_policy<copy_const_reference>(),":rtype: `FunctionSpace`")
+    .def("getX",&escript::Data::getXFromFunctionSpace,
+        "Returns the spatial coordinates of the spatial nodes.\n"
+        ":rtype: `Data`")
     .def("isEmpty",&escript::Data::isEmpty,"Is this object an instance of ``DataEmpty``\n\n"
         ":rtype: ``bool``\n"
         ":note: This is not the same thing as asking if the object contains datapoints.")
