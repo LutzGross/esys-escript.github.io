@@ -281,7 +281,7 @@ void Brick::readNcGrid(escript::Data& out, std::string filename, std::string var
     if (!escript::openNcFile(f, filename))
     {
         throw SpeckleyException("readNcGrid(): cannot open file");
-    }           
+    }
     NcVar var = f.getVar(varname.c_str());
     if (var.isNull())
         throw SpeckleyException("readNcGrid(): invalid variable name");
@@ -297,7 +297,7 @@ void Brick::readNcGrid(escript::Data& out, std::string filename, std::string var
     for (size_t i=0;i<vard.size();++i)
     {
         edges[i]=vard[i].getSize();
-    }    
+    }
 
     // is this a slice of the data object (dims!=3)?
     // note the expected ordering of edges (as in numpy: z,y,x)
@@ -353,21 +353,21 @@ void Brick::readNcGrid(escript::Data& out, std::string filename, std::string var
         counts.push_back(num2);
         counts.push_back(num1);
         counts.push_back(num0);
-        var.getVar(startindex, counts, &values[0]);   
+        var.getVar(startindex, counts, &values[0]);
     } else if (dims==2) {
         // var->set_cur(idx1, idx0);                // from old API
         startindex.push_back(idx1);
         startindex.push_back(idx0);
         counts.push_back(num1);
         counts.push_back(num0);
-        var.getVar(startindex, counts, &values[0]);   
+        var.getVar(startindex, counts, &values[0]);
     } else {
         //var->set_cur(idx0);
         //var->get(&values[0], num0);
         startindex.push_back(idx0);
         counts.push_back(num0);
-        var.getVar(startindex, counts, &values[0]);   
-    }    
+        var.getVar(startindex, counts, &values[0]);
+    }
 
     const int dpp = out.getNumDataPointsPerSample();
     out.requireWrite();
@@ -946,7 +946,7 @@ void Brick::interpolateFromCorners(escript::Data &out) const
                 const dim_t back = front < m_NN[1] - 1 ? front + m_order : front;
                 const dim_t down = z - z%m_order;
                 const dim_t up = down < m_NN[2] - 1 ? down + m_order : down;
-         
+
                 //corner values
                 const double *dlf = out.getSampleDataRO(
                         INDEX3(left, front, down, m_NN[0], m_NN[1]));
@@ -1279,17 +1279,17 @@ void Brick::setToSize(escript::Data& out) const
                     const double x = quad_locs[qx+1] - quad_locs[qx];
                     first_element[INDEX3(qx,qy,qz,numQuad,numQuad)]= sqrt(x*x + y*y + z*z);
                 }
-                first_element[INDEX3(m_order,qy,qz,numQuad,numQuad)] 
+                first_element[INDEX3(m_order,qy,qz,numQuad,numQuad)]
                         = first_element[INDEX3(0,qy,qz,numQuad,numQuad)];
             }
             for (short qx = 0; qx < numQuad; qx++) {
-                first_element[INDEX3(qx,m_order,qz,numQuad,numQuad)] 
+                first_element[INDEX3(qx,m_order,qz,numQuad,numQuad)]
                         = first_element[INDEX3(qx,0,qz,numQuad,numQuad)];
             }
         }
         for (short qy = 0; qy < numQuad; qy++) {
             for (short qx = 0; qx < numQuad; qx++) {
-                first_element[INDEX3(qx,qy,m_order,numQuad,numQuad)] 
+                first_element[INDEX3(qx,qy,m_order,numQuad,numQuad)]
                         = first_element[INDEX3(qx,qy,0,numQuad,numQuad)];
             }
         }
@@ -1428,12 +1428,18 @@ template<typename Scalar>
 void Brick::assembleIntegrateWorker(vector<Scalar>& integrals, const escript::Data& arg) const
 {
     const int fs = arg.getFunctionSpace().getTypeCode();
-    if (fs != Elements)
+    if (fs != Elements && fs != Points)
         throw new SpeckleyException("Speckley doesn't currently support integrals of non-Element functionspaces");
-    if (!arg.actsExpanded())
+    if (!arg.actsExpanded() && fs != Points)
         throw new SpeckleyException("Speckley doesn't currently support unexpanded data");
 
-    if (m_order == 2) {
+#ifdef ESYS_MPI
+    if(fs == Points && escript::getMPIRankWorld() == 0){
+#else
+    if(fs == Points){
+#endif
+        integrals[0] += arg.getNumberOfTaggedValues();
+    } else if (m_order == 2) {
         integral_order2(integrals, arg);
     } else if (m_order == 3) {
         integral_order3(integrals, arg);
@@ -1541,7 +1547,7 @@ void Brick::populateSampleIds()
         int neighbour = rank - m_NX[0] - 1;
         int neighboursLeft = RANK_LEFT(neighbour);
         int neighboursFront = RANK_FRONT(neighbour);
-        index_t begin = m_nodeDistribution[neighbour] 
+        index_t begin = m_nodeDistribution[neighbour]
                     + (m_NN[0]-neighboursLeft)*(m_NN[1]-neighboursFront) - 1;
 #pragma omp parallel for
         for (index_t z = bottom; z < m_NN[2]; z++) {
@@ -1567,7 +1573,7 @@ void Brick::populateSampleIds()
     //re-use nodes on front border
     if (front) {
         int neighbour = rank - m_NX[0];
-        index_t begin = m_nodeDistribution[neighbour] 
+        index_t begin = m_nodeDistribution[neighbour]
                         + (m_NN[0]-RANK_LEFT(neighbour))
                         *(m_NN[1]-RANK_FRONT(neighbour) - 1);
 #pragma omp parallel for
@@ -1656,7 +1662,7 @@ void Brick::interpolateElementsOnNodes(escript::Data& out,
                     }
                 }
             }
-        }        
+        }
     } else {
         for (dim_t colouring = 0; colouring < 2; colouring++) {
     #pragma omp parallel for
@@ -2360,7 +2366,7 @@ void Brick::shareEdges(escript::Data& out, int rx, int ry, int rz) const
         }
     }
     //END SEND
-    
+
     //BEGIN RECV
     if (left) {
         if (front) { //share Z lines
@@ -2430,7 +2436,7 @@ void Brick::shareEdges(escript::Data& out, int rx, int ry, int rz) const
 #pragma omp parallel for
             for (dim_t i = 0; i < m_NN[2]; i++) {
                 double *data = out.getSampleDataRW(
-                            INDEX3(m_NN[0]-1, 0, i, m_NN[0], m_NN[1]));     
+                            INDEX3(m_NN[0]-1, 0, i, m_NN[0], m_NN[1]));
                 for (int comp = 0; comp < numComp; comp++) {
                     data[comp] += buf[i*numComp + comp];
                 }
@@ -2531,7 +2537,7 @@ void Brick::shareEdges(escript::Data& out, int rx, int ry, int rz) const
         }
     }
     //END RECV
-    
+
     //finally, wait for all those Isends to be complete
     MPI_Waitall(reqNum, request, status);
 }
@@ -2563,12 +2569,12 @@ void frontAndBack(escript::Data& out, int ry, const int numComp, int rank,
         MPI_Isend(&front[0], count, MPI_DOUBLE, front_neighbour, rank,
             comm, request);
     }
-    
+
     if (ry < NX[1] - 1) {
         MPI_Isend(&back[0], count, MPI_DOUBLE, back_neighbour, rank,
             comm, request+1);
     }
-    
+
     //front
     if (ry) {
         MPI_Recv(&recv[0], count, MPI_DOUBLE, front_neighbour, front_neighbour,
@@ -2602,7 +2608,7 @@ void frontAndBack(escript::Data& out, int ry, const int numComp, int rank,
             }
         }
     }
-    
+
     if (ry) {
         MPI_Wait(request, &status);
     }
@@ -2637,7 +2643,7 @@ void topAndBottom(escript::Data& out, int rz, int numComp, int rank,
         MPI_Isend(&bottom[0], count, MPI_DOUBLE, bottom_neighbour, rank,
             comm, request);
     }
-   
+
     if (rz < NX[2] - 1) {
         MPI_Isend(&top[0], count, MPI_DOUBLE, top_neighbour, rank,
             comm, request + 1);
@@ -2719,9 +2725,9 @@ void leftAndRight(escript::Data& out, int rx, int numComp, int rank,
         MPI_Isend(&left[0], count, MPI_DOUBLE, left_neighbour,
                 rank, comm, request+1);
     }
-    
+
     //right recv
-    if (rx < NX[0] - 1) {    
+    if (rx < NX[0] - 1) {
         MPI_Recv(&recv[0], count, MPI_DOUBLE, right_neighbour, right_neighbour,
                 comm, &status);
         //unpack to right
@@ -2899,4 +2905,3 @@ void Brick::interpolateAcross(escript::Data& target, const escript::Data& source
 }
 
 } // end of namespace speckley
-

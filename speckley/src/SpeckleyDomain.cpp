@@ -541,6 +541,7 @@ void SpeckleyDomain::setToIntegralsWorker(vector<Scalar>& integrals,
                 assembleIntegrate(integrals, funcArg);
             }
             break;
+        case Points:
         case Elements:
         case ReducedElements:
             assembleIntegrate(integrals, arg);
@@ -908,7 +909,7 @@ void SpeckleyDomain::assemblePDE(escript::AbstractSystemMatrix* mat,
                                escript::Data& rhs, const DataMap& coefs,
                                Assembler_ptr assembler) const
 {
-    if (rhs.isEmpty() && (isNotEmpty("X", coefs) || isNotEmpty("du", coefs)) 
+    if (rhs.isEmpty() && (isNotEmpty("X", coefs) || isNotEmpty("du", coefs))
             && isNotEmpty("Y", coefs))
         throw SpeckleyException("assemblePDE: right hand side coefficients are "
                     "provided but no right hand side vector given");
@@ -1080,4 +1081,3 @@ void SpeckleyDomain::addPoints(const vector<double>& coords,
 }
 
 } // end of namespace speckley
-
