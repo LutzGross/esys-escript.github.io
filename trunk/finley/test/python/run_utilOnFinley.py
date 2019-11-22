@@ -337,11 +337,19 @@ class Test_Util_SpatialFunctionsOnFinleyHex3DOrder2useElementsOnFacewithContact(
         del self.order
         del self.domain
 
-class Test_Point_Data_Integration(Test_Util_Point_Data_Interpolation):
+class Test_2D_Point_Data_Integration(Test_Util_Point_Data_Interpolation):
     def setUp(self):
         Stations = [ (0.,0.), (1.,0), (0,1), (1,1) ]
         StationsTags = ["A1", "A2", "A3", "A4" ]
         self.domain=Rectangle(n0=5,n1=5, diracPoints=Stations, diracTags=StationsTags)
+    def tearDown(self):
+        del self.domain
+
+class Test_3D_Point_Data_Integration(Test_Util_Point_Data_Interpolation):
+    def setUp(self):
+        Stations = [ (0.,0.,0.), (1.,0,0.), (0,1,0.), (1,1,0.) ]
+        StationsTags = ["A1", "A2", "A3", "A4" ]
+        self.domain=Brick(n0=5,n1=5,n2=5,diracPoints=Stations,diracTags=StationsTags)
     def tearDown(self):
         del self.domain
 

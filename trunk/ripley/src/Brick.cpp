@@ -329,12 +329,12 @@ void Brick::readNcGrid(escript::Data& out, string filename, string varname,
             throw ValueError("readNcGrid(): all multipliers must be positive");
 
     // check file existence and size
-        
+
     NcFile f;
     if (!escript::openNcFile(f, filename))
     {
         throw RipleyException("readNcGrid(): cannot open file");
-    }    
+    }
     NcVar var = f.getVar(varname.c_str());
     if (var.isNull())
         throw RipleyException("readNcGrid(): invalid variable name");
@@ -407,20 +407,20 @@ void Brick::readNcGrid(escript::Data& out, string filename, string varname,
         counts.push_back(num2);
         counts.push_back(num1);
         counts.push_back(num0);
-        var.getVar(startindex, counts, &values[0]);   
+        var.getVar(startindex, counts, &values[0]);
     } else if (dims==2) {
         // var->set_cur(idx1, idx0);                // from old API
         startindex.push_back(idx1);
         startindex.push_back(idx0);
         counts.push_back(num1);
         counts.push_back(num0);
-        var.getVar(startindex, counts, &values[0]);   
+        var.getVar(startindex, counts, &values[0]);
     } else {
         //var->set_cur(idx0);
         //var->get(&values[0], num0);
         startindex.push_back(idx0);
         counts.push_back(num0);
-        var.getVar(startindex, counts, &values[0]);   
+        var.getVar(startindex, counts, &values[0]);
     }
 
     const int dpp = out.getNumDataPointsPerSample();
@@ -2224,7 +2224,15 @@ void Brick::assembleIntegrateImpl(vector<Scalar>& integrals, const escript::Data
     const int fs = arg.getFunctionSpace().getTypeCode();
     const Scalar zero = static_cast<Scalar>(0);
 
-    if (fs == Elements && arg.actsExpanded()) {
+    bool HavePointData = arg.getFunctionSpace().getTypeCode() == Points;
+
+#ifdef ESYS_MPI
+    if(HavePointData && escript::getMPIRankWorld() == 0) {
+#else
+    if(HavePointData) {
+#endif
+        integrals[0] += arg.getNumberOfTaggedValues();
+    } else if (fs == Elements && arg.actsExpanded()) {
         const real_t w_0 = m_dx[0]*m_dx[1]*m_dx[2]/8.;
 #pragma omp parallel
         {
@@ -2563,7 +2571,7 @@ paso::SystemMatrixPattern_ptr Brick::getPasoMatrixPattern(
         const int xDiff = conn->send->neighbour[i]%m_NX[0] - x;
         const int yDiff = conn->send->neighbour[i]%(m_NX[0]*m_NX[1])/m_NX[0] - y;
         const int zDiff = conn->send->neighbour[i]/(m_NX[0]*m_NX[1]) - z;
-        
+
         if (xDiff==0 && yDiff==0) {
             // sharing front or back plane
             for (dim_t j = start; j < end; j++) {
@@ -3271,16 +3279,16 @@ void Brick::interpolateNodesOnElements(escript::Data& out,
 {
     if (out.isComplex()!=in.isComplex())
     {
-        throw RipleyException("Programmer Error: in and out parameters do not have the same complexity.");   
+        throw RipleyException("Programmer Error: in and out parameters do not have the same complexity.");
     }
     if (out.isComplex())
     {
-        interpolateNodesOnElementsWorker(out, in, reduced, escript::DataTypes::cplx_t(0));    
+        interpolateNodesOnElementsWorker(out, in, reduced, escript::DataTypes::cplx_t(0));
     }
     else
     {
-        interpolateNodesOnElementsWorker(out, in, reduced, escript::DataTypes::real_t(0));    
-    }  
+        interpolateNodesOnElementsWorker(out, in, reduced, escript::DataTypes::real_t(0));
+    }
 }
 //protected
 void Brick::interpolateNodesOnFaces(escript::Data& out, const escript::Data& in,
@@ -3288,16 +3296,16 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, const escript::Data& in,
 {
     if (out.isComplex()!=in.isComplex())
     {
-        throw RipleyException("Programmer Error: in and out parameters do not have the same complexity.");   
+        throw RipleyException("Programmer Error: in and out parameters do not have the same complexity.");
     }
     if (out.isComplex())
     {
-        interpolateNodesOnFacesWorker(out, in, reduced, escript::DataTypes::cplx_t(0));    
+        interpolateNodesOnFacesWorker(out, in, reduced, escript::DataTypes::cplx_t(0));
     }
     else
     {
-        interpolateNodesOnFacesWorker(out, in, reduced, escript::DataTypes::real_t(0));    
-    }      
+        interpolateNodesOnFacesWorker(out, in, reduced, escript::DataTypes::real_t(0));
+    }
 }
 
 
@@ -3305,7 +3313,7 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, const escript::Data& in,
 template <typename S>
 void Brick::interpolateNodesOnElementsWorker(escript::Data& out,
                                        const escript::Data& in,
-                                       bool reduced, S sentinel) const                                       
+                                       bool reduced, S sentinel) const
 {
     const dim_t numComp = in.getDataPointSize();
     if (reduced) {
@@ -3909,7 +3917,7 @@ dim_t Brick::findNode(const double *coords) const
         //allows for point outside mapping onto node
         double min = m_origin[dim] + m_offset[dim]* m_dx[dim]
                 - m_dx[dim]/2. + escript::DataTypes::real_t_eps();
-        
+
         double max = m_origin[dim] + (m_offset[dim] + m_NE[dim])*m_dx[dim]
                 + m_dx[dim]/2. - escript::DataTypes::real_t_eps();
         if (min > coords[dim] || max < coords[dim]) {
@@ -3987,4 +3995,3 @@ Assembler_ptr Brick::createAssembler(string type, const DataMap& constants) cons
 }
 
 } // end of namespace ripley
-

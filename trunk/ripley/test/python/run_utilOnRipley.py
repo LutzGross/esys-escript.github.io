@@ -27,6 +27,7 @@ import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 from test_util import Test_util
 from test_util import Test_Util_SpatialFunctions, Test_Util_SpatialFunctions_noGradOnBoundary_noContact
+from test_util_interpolation import Test_Util_Point_Data_Interpolation
 from test_symfuncs import Test_symfuncs
 from esys.escript import *
 from esys.ripley import Rectangle, Brick
@@ -85,6 +86,22 @@ class Test_Util_SpatialFunctionsOnRipley3D(Test_Util_SpatialFunctions_noGradOnBo
         del self.order
         del self.domain
 
+class Test_2D_Point_Data_Integration(Test_Util_Point_Data_Interpolation):
+    def setUp(self):
+        Stations = [ (0.,0.), (1.,0), (0,1), (1,1) ]
+        StationsTags = ["A1", "A2", "A3", "A4" ]
+        self.domain=Rectangle(n0=5,n1=5, diracPoints=Stations, diracTags=StationsTags)
+    def tearDown(self):
+        del self.domain
+
+class Test_3D_Point_Data_Integration(Test_Util_Point_Data_Interpolation):
+    def setUp(self):
+        Stations = [ (0.,0.,0.), (1.,0,0.), (0,1,0.), (1,1,0.) ]
+        StationsTags = ["A1", "A2", "A3", "A4" ]
+        self.domain=Brick(n0=5,n1=5,n2=5,diracPoints=Stations,diracTags=StationsTags)
+    def tearDown(self):
+        del self.domain
+
+
 if __name__ == '__main__':
     run_tests(__name__, exit_on_failure=True)
-
