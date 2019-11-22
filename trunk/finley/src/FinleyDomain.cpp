@@ -142,7 +142,7 @@ void FinleyDomain::setPoints(ElementFile* elements)
     m_points = elements;
 }
 
-void FinleyDomain::setOrders() 
+void FinleyDomain::setOrders()
 {
     const int ORDER_MAX = 9999999;
     int locals[4] = { ORDER_MAX, ORDER_MAX, ORDER_MAX, ORDER_MAX };
@@ -246,7 +246,7 @@ void FinleyDomain::dump(const string& fileName) const
 
     // Figure out how much storage is required for tags
     num_Tags = m_tagMap.size();
-    
+
     NcFile dataFile;
     try
     {
@@ -255,9 +255,9 @@ void FinleyDomain::dump(const string& fileName) const
     catch (exceptions::NcException* e)
     {
         throw FinleyException("Error - FinleyDomain:: opening of netCDF file for output failed.");
-    }    
-    
-    
+    }
+
+
     string msgPrefix("Error in FinleyDomain::dump: NetCDF operation failed - ");
     // Define dimensions (num_Elements and dim_Elements are identical,
     // dim_Elements only appears if > 0)
@@ -1724,6 +1724,7 @@ void FinleyDomain::setToIntegralsWorker(vector<Scalar>& integrals,
             Assemble_integrate(m_nodes, m_elements, temp, &integrals[0]);
         }
         break;
+        case Points:
         case Elements:
         case ReducedElements:
             Assemble_integrate(m_nodes, m_elements, arg, &integrals[0]);
@@ -1732,8 +1733,6 @@ void FinleyDomain::setToIntegralsWorker(vector<Scalar>& integrals,
         case ReducedFaceElements:
             Assemble_integrate(m_nodes, m_faceElements, arg, &integrals[0]);
         break;
-        case Points:
-            throw ValueError("Integral of data on points is not supported.");
         case ContactElementsZero:
         case ReducedContactElementsZero:
         case ContactElementsOne:
@@ -2127,7 +2126,7 @@ FinleyDomain::commonFunctionSpace(const vector<int>& fs, int& resultcode) const
         if (hasclass[2] == 1) {
             // something from class 2
             resultcode = (hasrednodes ? ReducedNodes : ReducedDegreesOfFreedom);
-        } else { 
+        } else {
             // something from class 1
             resultcode = (hasnodes ? Nodes : DegreesOfFreedom);
         }
@@ -2402,7 +2401,7 @@ boost::python::numpy::ndarray FinleyDomain::getConnectivityInfo() const
     // Initialise variables
     std::string localmsg;
     std::vector<const escript::DataTypes::real_t*> samplesR(1);
-    
+
     // Copy the information over
 // #pragma omp parallel for
     for (int k = 0; k < numberOfElements; k++) {
@@ -2411,7 +2410,7 @@ boost::python::numpy::ndarray FinleyDomain::getConnectivityInfo() const
         }
     }
 
-    // Print out the ndarray to the console - used during debugging 
+    // Print out the ndarray to the console - used during debugging
     // std::cout << "Finished array:\n" << bp::extract<char const *>(bp::str(dataArray)) << std::endl;
 
     return dataArray;
@@ -2423,7 +2422,7 @@ int FinleyDomain::getVTKElementType() const
     const_ReferenceElementSet_ptr refElement = m_elements->referenceElementSet;
     const_ReferenceElement_ptr borrowedRefElement = refElement->borrowReferenceElement(false);
     const ReferenceElementInfo* type = borrowedRefElement->Type;
-    
+
     // From vtkCellType.h
     // #define VTK_EMPTY_CELL 0
     // #define VTK_VERTEX 1
@@ -2441,14 +2440,14 @@ int FinleyDomain::getVTKElementType() const
     // #define VTK_WEDGE 13
     // #define VTK_PYRAMID 14
 
-    if(std::strcmp(type->Name, "Tri3") 
+    if(std::strcmp(type->Name, "Tri3")
         || std::strcmp(type->Name, "Tri6")
         || std::strcmp(type->Name, "Tri9")
         || std::strcmp(type->Name, "Tri10"))
     {
         return 5; //VTK_TRIANGLE
-    } 
-    else if (std::strcmp(type->Name, "Rec4") 
+    }
+    else if (std::strcmp(type->Name, "Rec4")
         || std::strcmp(type->Name, "Rec8")
         || std::strcmp(type->Name, "Rec9")
         || std::strcmp(type->Name, "Rec12")
@@ -2456,13 +2455,13 @@ int FinleyDomain::getVTKElementType() const
     {
         return 8; // VTK_PIXEL
     }
-    else if (std::strcmp(type->Name, "Tet4") 
+    else if (std::strcmp(type->Name, "Tet4")
         || std::strcmp(type->Name, "Tet10")
         || std::strcmp(type->Name, "Tet16"))
     {
         return 10; // VTK_TETRA
     }
-    else if (std::strcmp(type->Name, "Hex8") 
+    else if (std::strcmp(type->Name, "Hex8")
         || std::strcmp(type->Name, "Hex20")
         || std::strcmp(type->Name, "Hex27")
         || std::strcmp(type->Name, "Hex32"))
@@ -3078,4 +3077,3 @@ void FinleyDomain::updateTagList()
 
 
 }  // end of namespace
-
