@@ -294,11 +294,11 @@ void Rectangle::readNcGrid(escript::Data& out, string filename, string varname,
     if (!escript::openNcFile(f, filename))
     {
         throw RipleyException("readNcGrid(): cannot open file");
-    }       
-    
+    }
+
     NcVar var = f.getVar(varname.c_str());
     if (var.isNull())
-        throw RipleyException("readNcGrid(): invalid variable name");    
+        throw RipleyException("readNcGrid(): invalid variable name");
 
     // TODO: rank>0 data support
     const int numComp = out.getDataPointSize();
@@ -311,7 +311,7 @@ void Rectangle::readNcGrid(escript::Data& out, string filename, string varname,
     for (size_t i=0;i<vard.size();++i)
     {
         edges[i]=vard[i].getSize();
-    }    
+    }
 
     // is this a slice of the data object (dims!=2)?
     // note the expected ordering of edges (as in numpy: y,x)
@@ -347,7 +347,7 @@ void Rectangle::readNcGrid(escript::Data& out, string filename, string varname,
 
     vector<double> values(num0*num1);
     vector<size_t> startindex;
-    vector<size_t> counts;    
+    vector<size_t> counts;
     if (dims==2) {
 //         var->set_cur(idx1, idx0);
 //         var->get(&values[0], num1, num0);
@@ -355,13 +355,13 @@ void Rectangle::readNcGrid(escript::Data& out, string filename, string varname,
         startindex.push_back(idx0);
         counts.push_back(num1);
         counts.push_back(num0);
-        var.getVar(startindex, counts, &values[0]);           
+        var.getVar(startindex, counts, &values[0]);
     } else {
 //         var->set_cur(idx0);
 //         var->get(&values[0], num0);
         startindex.push_back(idx0);
         counts.push_back(num0);
-        var.getVar(startindex, counts, &values[0]);           
+        var.getVar(startindex, counts, &values[0]);
     }
 
     const int dpp = out.getNumDataPointsPerSample();
@@ -1601,7 +1601,15 @@ void Rectangle::assembleIntegrateImpl(vector<Scalar>& integrals,
     const int fs = arg.getFunctionSpace().getTypeCode();
     const Scalar zero = static_cast<Scalar>(0);
 
-    if (fs == Elements && arg.actsExpanded()) {
+    bool HavePointData = arg.getFunctionSpace().getTypeCode() == Points;
+
+#ifdef ESYS_MPI
+    if(HavePointData && escript::getMPIRankWorld() == 0) {
+#else
+    if(HavePointData) {
+#endif
+        integrals[0] += arg.getNumberOfTaggedValues();
+    } else if (fs == Elements && arg.actsExpanded()) {
 #pragma omp parallel
         {
             vector<Scalar> int_local(numComp, zero);
@@ -2264,7 +2272,7 @@ void Rectangle::interpolateNodesOnElements(escript::Data& out,
     }
     else
     {
-        interpolateNodesOnElementsWorker(out, in, reduced, escript::DataTypes::real_t(0));      
+        interpolateNodesOnElementsWorker(out, in, reduced, escript::DataTypes::real_t(0));
     }
 }
 
@@ -2283,12 +2291,12 @@ void Rectangle::interpolateNodesOnFaces(escript::Data& out,
     }
     else
     {
-        interpolateNodesOnFacesWorker(out, in, reduced, escript::DataTypes::real_t(0));      
+        interpolateNodesOnFacesWorker(out, in, reduced, escript::DataTypes::real_t(0));
     }
 }
 
-// private	 
-template <typename S> 
+// private
+template <typename S>
 void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
                                            const escript::Data& in,
                                            bool reduced, S sentinel) const
@@ -2814,4 +2822,3 @@ Assembler_ptr Rectangle::createAssembler(string type,
 }
 
 } // end of namespace ripley
-

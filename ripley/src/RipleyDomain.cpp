@@ -543,7 +543,7 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
                                 copy(src, src+numComp, target.getSampleDataRW(m_diracPoints[i].node));
                             }
                         }
-                
+
                 }
                 break;
             default:
@@ -676,6 +676,11 @@ void RipleyDomain::setToIntegralsWorker(std::vector<Scalar>& integrals,
             {
                 escript::Data funcArg(arg, escript::function(*this));
                 assembleIntegrate(integrals, funcArg);
+            }
+            break;
+        case Points:
+            {
+                assembleIntegrate(integrals, arg);
             }
             break;
         case Elements:
@@ -1325,7 +1330,7 @@ void RipleyDomain::updateTagsInUse(int fsType) const
 }
 
 #ifdef ESYS_HAVE_PASO
-void RipleyDomain::createPasoConnector(const RankVector& neighbour, 
+void RipleyDomain::createPasoConnector(const RankVector& neighbour,
                                        const IndexVector& offsetInSharedSend,
                                        const IndexVector& offsetInSharedRecv,
                                        const IndexVector& sendShared,
@@ -1602,7 +1607,7 @@ void RipleyDomain::assemblePDE(escript::AbstractSystemMatrix* mat,
     if (fsTypes.empty()) {
         return;
     }
-    
+
     int fs=fsTypes[0];
     if (fs != Elements && fs != ReducedElements)
         throw ValueError("assemblePDE: illegal function space type for coefficients");
@@ -1819,4 +1824,3 @@ void RipleyDomain::addPoints(const vector<double>& coords,
 }
 
 } // end of namespace ripley
-
