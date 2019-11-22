@@ -26,6 +26,7 @@
 #include <escript/FileWriter.h>
 #include <escript/FunctionSpaceFactory.h>
 #include <escript/Random.h>
+#include <escript/Utils.h>
 
 #include <boost/scoped_array.hpp>
 #include <boost/math/special_functions/fpclassify.hpp> // for isnan

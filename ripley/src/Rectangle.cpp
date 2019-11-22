@@ -24,6 +24,7 @@
 #include <escript/FileWriter.h>
 #include <escript/index.h>
 #include <escript/Random.h>
+#include <escript/Utils.h>
 
 #ifdef ESYS_HAVE_PASO
 #include <paso/SystemMatrix.h>
