@@ -26,7 +26,6 @@
 #include <escript/FileWriter.h>
 #include <escript/FunctionSpaceFactory.h>
 #include <escript/Random.h>
-#include <escript/Utils.h>
 
 #include <boost/scoped_array.hpp>
 #include <boost/math/special_functions/fpclassify.hpp> // for isnan
@@ -1434,10 +1433,10 @@ void Brick::assembleIntegrateWorker(vector<Scalar>& integrals, const escript::Da
     if (!arg.actsExpanded() && fs != Points)
         throw new SpeckleyException("Speckley doesn't currently support unexpanded data");
 
-#ifdef ESYS_MPI
-    if(fs == Points && escript::getMPIRankWorld() == 0){
-#else
+
     if(fs == Points){
+#ifdef ESYS_MPI
+        if(getMPIRank() == 0)
 #endif
         integrals[0] += arg.getNumberOfTaggedValues();
     } else if (m_order == 2) {
