@@ -3583,6 +3583,13 @@ class Test_TransportPDE(Test_linearPDEs):
         else:
             return unittest.skip("Domain does not support contact elements")
 
+    def test_speckley_lumping_on_by_default(self):
+        if self.domain.getDescription() == 'speckley::Rectangle' or self.domain.getDescription() == 'speckley::Brick':
+            pde=LinearSinglePDE(self.domain, isComplex=False)
+            pde.setValue(D=1)
+            method=pde.getSolverOptions().getSolverMethod()
+            self.assertTrue(method == SolverOptions.LUMPING, "Speckley LUMPING is not on by default")
+
     #==============================================================
     @unittest.skipIf(no_paso, "Transport PDEs require Paso")
     def test_symmetryCheckTrue_Scalar(self):

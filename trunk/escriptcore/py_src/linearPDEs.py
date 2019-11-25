@@ -487,6 +487,9 @@ class LinearProblem(object):
      self.__solution_atol=1.e99
      self.setSolverOptions()
      self.setSymmetryOff()
+     # Set on lumping if we are using Speckley
+     if domain.getDescription() == 'speckley::Rectangle' or domain.getDescription() == 'speckley::Brick':
+         self.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
      # initialize things:
      self.resetAllCoefficients()
      self.initializeSystem()
@@ -1790,7 +1793,7 @@ class LinearPDE(LinearProblem):
        y_dirac=PDECoef(PDECoef.DIRACDELTA,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE, isComplex),
        r=PDECoef(PDECoef.SOLUTION,(PDECoef.BY_SOLUTION,),PDECoef.RIGHTHANDSIDE, isComplex),
        q=PDECoef(PDECoef.SOLUTION,(PDECoef.BY_SOLUTION,),PDECoef.BOTH, False) )
-     
+
    def __str__(self):
      """
      Returns the string representation of the PDE.
@@ -2097,10 +2100,10 @@ class LinearPDE(LinearProblem):
                  col_q=escore.Data(q,self.getFunctionSpaceForSolution())
                  u=self.createSolution()
                  u.copyWithMask(r_s,col_q)
-                 righthandside-=operator*u                 
+                 righthandside-=operator*u
                  operator.nullifyRowsAndCols(row_q,col_q,1.)
          righthandside.copyWithMask(r_s,q)
-         
+
    def setValue(self,**coefficients):
       """
       Sets new values to coefficients.
