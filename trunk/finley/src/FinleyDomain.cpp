@@ -2189,7 +2189,8 @@ bool FinleyDomain::probeInterpolationOnDomain(int functionSpaceType_source,
             return (functionSpaceType_target == Elements ||
                     functionSpaceType_target == ReducedElements);
         case ReducedElements:
-            return (functionSpaceType_target == ReducedElements);
+            return (functionSpaceType_target == ReducedElements ||
+                    functionSpaceType_target == Elements);
         case FaceElements:
             return (functionSpaceType_target == FaceElements ||
                     functionSpaceType_target == ReducedFaceElements);
