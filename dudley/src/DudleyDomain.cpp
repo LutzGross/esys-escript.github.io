@@ -208,7 +208,7 @@ void DudleyDomain::dump(const string& fileName) const
     catch (exceptions::NcException* e)
     {
         throw DudleyException("Error - DudleyDomain:: opening of netCDF file for output failed.");
-    }        
+    }
 
     string msgPrefix("Error in DudleyDomain::dump: NetCDF operation failed - ");
     // Define dimensions (num_Elements and dim_Elements are identical,
@@ -239,7 +239,7 @@ void DudleyDomain::dump(const string& fileName) const
             throw DudleyException(msgPrefix+"add_dim(dim_Tags)");
 
     // Attributes: MPI size, MPI rank, Name, order, reduced_order
-    NcInt ni;        
+    NcInt ni;
     if (dataFile.putAtt("index_size", ni, (int)sizeof(index_t)).isNull())
         throw DudleyException(msgPrefix+"add_att(index_size)");
     if (dataFile.putAtt("mpi_size", ni, mpi_size).isNull())
@@ -318,9 +318,9 @@ void DudleyDomain::dump(const string& fileName) const
         ncds.push_back(ncdims[1]);
         if (( ids = dataFile.addVar("Nodes_Coordinates", ncDouble, ncds)).isNull() )
             throw DudleyException(msgPrefix+"add_var(Nodes_Coordinates)");
-        ids.putVar(m_nodes->Coordinates);  // should be (numNodes, numDim) values written        
-        
-        
+        ids.putVar(m_nodes->Coordinates);  // should be (numNodes, numDim) values written
+
+
     }
 
     // // // // // Elements // // // // //
@@ -351,9 +351,9 @@ void DudleyDomain::dump(const string& fileName) const
         dv.push_back(ncdims[7]);
         if (( ids = dataFile.addVar("Elements_Nodes", ncIdxType, dv) ).isNull() )
             throw DudleyException(msgPrefix+"add_var(Elements_Nodes)");
-        ids.putVar(m_elements->Nodes); //(, num_Elements, num_Elements_numNodes) values written        
-        
-        
+        ids.putVar(m_elements->Nodes); //(, num_Elements, num_Elements_numNodes) values written
+
+
     }
 
     // // // // // Face_Elements // // // // //
@@ -1662,7 +1662,8 @@ bool DudleyDomain::probeInterpolationOnDomain(int functionSpaceType_source,
             return (functionSpaceType_target == Elements ||
                     functionSpaceType_target == ReducedElements);
         case ReducedElements:
-            return (functionSpaceType_target == ReducedElements);
+            return (functionSpaceType_target == Elements ||
+                    functionSpaceType_target == ReducedElements);
         case FaceElements:
             return (functionSpaceType_target == FaceElements ||
                     functionSpaceType_target == ReducedFaceElements);
@@ -1834,7 +1835,7 @@ boost::python::numpy::ndarray DudleyDomain::getConnectivityInfo() const
     // Initialise variables
     std::string localmsg;
     std::vector<const escript::DataTypes::real_t*> samplesR(1);
-    
+
     // Copy the information over
 // #pragma omp parallel for
     for (int k = 0; k < numberOfElements; k++) {
@@ -1843,7 +1844,7 @@ boost::python::numpy::ndarray DudleyDomain::getConnectivityInfo() const
         }
     }
 
-    // Print out the ndarray to the console - used during debugging 
+    // Print out the ndarray to the console - used during debugging
     // std::cout << "Finished array:\n" << bp::extract<char const *>(bp::str(dataArray)) << std::endl;
 
     return dataArray;
@@ -2168,4 +2169,3 @@ void DudleyDomain::updateTagList()
 }
 
 } // end of namespace
-
