@@ -983,6 +983,10 @@ def("ComplexTensor4", escript::ComplexTensor4FromObj,
          (arg("value"),
    	arg("what")=escript::FunctionSpace(),
    	arg("expanded")=false));
+def("ComplexData", escript::ComplexData,
+         (arg("value"),
+   	arg("what")=escript::FunctionSpace(),
+   	arg("expanded")=false));
 
  def("RandomData", escript::randomData, (arg("shape"), arg("fs"), arg("seed")=0, arg("filter")=boost::python::tuple()),
         "Creates a new expanded Data object containing pseudo-random values. With no filter, values are drawn uniformly at random from [0,1].\n\n"

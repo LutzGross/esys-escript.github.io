@@ -166,7 +166,7 @@ Data ComplexVectorFromObj(bp::object o, const FunctionSpace& what, bool expanded
     Data d(o, what, expanded);
     d.complicate();
     if (d.getDataPointShape() != shape) {
-        throw DataException("VectorFromObj: Shape of vector passed to function"
+        throw DataException("ComplexVectorFromObj: Shape of vector passed to function"
                " does not match the dimension of the domain. ");
     }
     return d;
@@ -246,7 +246,7 @@ Data ComplexTensorFromObj(bp::object o, const FunctionSpace& what, bool expanded
     Data d(o, what, expanded);
     d.complicate();
     if (d.getDataPointShape() != shape) {
-        throw DataException("TensorFromObj: Shape of tensor passed to function"
+        throw DataException("ComplexTensorFromObj: Shape of tensor passed to function"
                " does not match the dimension of the domain.");
     }
     return d;
@@ -325,7 +325,7 @@ Data ComplexTensor3FromObj(bp::object o, const FunctionSpace& what, bool expande
     Data d(o, what, expanded);
     d.complicate();
     if (d.getDataPointShape() != shape) {
-        throw DataException("Tensor3FromObj: Shape of tensor passed to "
+        throw DataException("ComplexTensor3FromObj: Shape of tensor passed to "
                 "function does not match the dimension of the domain.");
     }
     return d;
@@ -404,11 +404,45 @@ Data ComplexTensor4FromObj(bp::object o, const FunctionSpace& what, bool expande
     Data d(o, what, expanded);
     d.complicate();
     if (d.getDataPointShape() != shape) {
-        throw DataException("VectorFromObj: Shape of tensor passed to function"
+        throw DataException("ComplexTensor4FromObj: Shape of tensor passed to function"
                " does not match the dimension of the domain.");
     }
     return d;
 }
+
+Data ComplexData(boost::python::object o, const FunctionSpace& what, bool expanded)
+{
+    // first try to get a double and route it to the other method
+    try {
+        double v = bp::extract<double>(o);
+        std::complex<double> c(v,0);
+        DataTypes::ShapeType shape;
+        escript::Data newdata = Data(c, shape, what, expanded);
+        newdata.complicate();
+        return newdata;
+    } catch(...) {
+        PyErr_Clear();
+    }
+    // first try to get a double and route it to the other method
+    try {
+        DataTypes::cplx_t v = bp::extract<DataTypes::cplx_t>(o);
+        DataTypes::ShapeType shape;
+        escript::Data newdata = Data(v, shape, what, expanded);
+        newdata.complicate();
+        return newdata;
+    } catch(...) {
+        PyErr_Clear();
+    }
+    DataTypes::ShapeType shape(1, what.getDomain()->getDim());
+    Data d(o, what, expanded);
+    d.complicate();
+    if (d.getDataPointShape() != shape) {
+        throw DataException("ComplexData: Shape of tensor passed to function"
+               " does not match the dimension of the domain.");
+    }
+    return d;
+}
+
 
 #ifdef NETCDF4
 

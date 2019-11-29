@@ -219,6 +219,12 @@ ComplexTensor4FromObj(boost::python::object o,
 	const FunctionSpace& what=FunctionSpace(),
 	bool expanded=false);
 
+ESCRIPT_DLL_API
+Data
+ComplexData(boost::python::object o,
+	const FunctionSpace& what=FunctionSpace(),
+	bool expanded=false);
+
 /**
    \brief
    reads Data on domain from file in netCDF format
