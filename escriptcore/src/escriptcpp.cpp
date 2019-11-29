@@ -830,6 +830,19 @@ args("arg"), "assigns new location to the domain\n\n"
         ":type what: `FunctionSpace`\n"
         ":param expanded: If True, a value is stored for each point. If False, more efficient representations may be used\n"
         ":type expanded: ``bool``");
+  def("ComplexScalar",escript::ComplexScalarFromObj,
+      (arg("value")=0.0,
+       arg("what")=escript::FunctionSpace(),
+       arg("expanded")=false),
+        "Construct a Data object containing scalar data-points.\n\n"
+        ":param value: scalar value for all points\n"
+        "\n"
+        ":rtype: `Data`\n"
+        ":type value: float\n"
+        ":param what: FunctionSpace for Data\n"
+        ":type what: `FunctionSpace`\n"
+        ":param expanded: If True, a value is stored for each point. If False, more efficient representations may be used\n"
+        ":type expanded: ``bool``");
   def("Vector",escript::Vector,
       (arg("value")=0.0,
        arg("what")=escript::FunctionSpace(),
@@ -843,10 +856,27 @@ args("arg"), "assigns new location to the domain\n\n"
         ":type what: `FunctionSpace`\n"
         ":param expanded: If True, a value is stored for each point. If False, more efficient representations may be used\n"
         ":type expanded: ``bool``");
+  def("ComplexVector",escript::ComplexVector,
+    (arg("value")=0.0,
+     arg("what")=escript::FunctionSpace(),
+     arg("expanded")=false),
+      "Construct a Data object containing rank1 data-points.\n\n"
+      ":param value: scalar value for all points\n"
+      "\n"
+      ":rtype: `Data`\n"
+      ":type value: float\n"
+      ":param what: FunctionSpace for Data\n"
+      ":type what: `FunctionSpace`\n"
+      ":param expanded: If True, a value is stored for each point. If False, more efficient representations may be used\n"
+      ":type expanded: ``bool``");
  def("Vector", escript::VectorFromObj,
       (arg("value"),
 	arg("what")=escript::FunctionSpace(),
 	arg("expanded")=false));
+  def("ComplexVector", escript::ComplexVectorFromObj,
+         (arg("value"),
+   	arg("what")=escript::FunctionSpace(),
+   	arg("expanded")=false));
   def("Tensor",escript::Tensor,
       (arg("value")=0.0,
        arg("what")=escript::FunctionSpace(),
@@ -860,10 +890,27 @@ args("arg"), "assigns new location to the domain\n\n"
         ":type what: `FunctionSpace`\n"
         ":param expanded: If True, a value is stored for each point. If False, more efficient representations may be used\n"
         ":type expanded: ``bool``");
+    def("ComplexTensor",escript::ComplexTensor,
+        (arg("value")=0.0,
+         arg("what")=escript::FunctionSpace(),
+         arg("expanded")=false),
+          "Construct a Data object containing rank2 data-points.\n\n"
+          ":param value: scalar value for all points\n"
+          "\n"
+          ":rtype: `Data`\n"
+          ":type value: float\n"
+          ":param what: FunctionSpace for Data\n"
+          ":type what: `FunctionSpace`\n"
+          ":param expanded: If True, a value is stored for each point. If False, more efficient representations may be used\n"
+          ":type expanded: ``bool``");
  def("Tensor", escript::TensorFromObj,
       (arg("value"),
 	arg("what")=escript::FunctionSpace(),
 	arg("expanded")=false));
+def("ComplexTensor", escript::ComplexTensorFromObj,
+         (arg("value"),
+   	arg("what")=escript::FunctionSpace(),
+   	arg("expanded")=false));
   def("Tensor3",escript::Tensor3,
       (arg("value")=0.0,
        arg("what")=escript::FunctionSpace(),
@@ -877,6 +924,20 @@ args("arg"), "assigns new location to the domain\n\n"
         ":type what: `FunctionSpace`\n"
         ":param expanded: If True, a value is stored for each point. If False, more efficient representations may be used\n"
         ":type expanded: ``bool``"
+);
+def("ComplexTensor3",escript::ComplexTensor3,
+    (arg("value")=0.0,
+     arg("what")=escript::FunctionSpace(),
+     arg("expanded")=false),
+      "Construct a Data object containing rank3 data-points.\n\n"
+      ":param value: scalar value for all points\n"
+      "\n"
+      ":rtype: `Data`\n"
+      ":type value: float\n"
+      ":param what: FunctionSpace for Data\n"
+      ":type what: `FunctionSpace`\n"
+      ":param expanded: If True, a value is stored for each point. If False, more efficient representations may be used\n"
+      ":type expanded: ``bool``"
 );
  def("Tensor3", escript::Tensor3FromObj,
       (arg("value"),
@@ -896,11 +957,32 @@ args("arg"), "assigns new location to the domain\n\n"
         ":param expanded: If True, a value is stored for each point. If False, more efficient representations may be used\n"
         ":type expanded: ``bool``"
 );
+def("ComplexTensor3", escript::ComplexTensor3FromObj,
+     (arg("value"),
+   arg("what")=escript::FunctionSpace(),
+   arg("expanded")=false));
+ def("ComplexTensor4",escript::ComplexTensor4,
+     (arg("value")=0.0,
+      arg("what")=escript::FunctionSpace(),
+      arg("expanded")=false),
+       "Construct a Data object containing rank4 data-points.\n\n"
+       ":param value: scalar value for all points\n"
+       "\n"
+       ":rtype: `Data`\n"
+       ":type value: float\n"
+       ":param what: FunctionSpace for Data\n"
+       ":type what: `FunctionSpace`\n"
+       ":param expanded: If True, a value is stored for each point. If False, more efficient representations may be used\n"
+       ":type expanded: ``bool``"
+);
  def("Tensor4", escript::Tensor4FromObj,
       (arg("value"),
 	arg("what")=escript::FunctionSpace(),
 	arg("expanded")=false));
-
+def("ComplexTensor4", escript::ComplexTensor4FromObj,
+         (arg("value"),
+   	arg("what")=escript::FunctionSpace(),
+   	arg("expanded")=false));
 
  def("RandomData", escript::randomData, (arg("shape"), arg("fs"), arg("seed")=0, arg("filter")=boost::python::tuple()),
         "Creates a new expanded Data object containing pseudo-random values. With no filter, values are drawn uniformly at random from [0,1].\n\n"
