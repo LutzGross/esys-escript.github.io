@@ -17,66 +17,38 @@
 # This is a template configuration file for escript on Debian/GNU Linux.
 # Refer to README_FIRST for usage instructions.
 
-openmp = True
-# umfpack = True
-# silo = True
-# mpi = 'OPENMPI'
-# verbose = True
-# debug = True
-# trilinos = True
-# paso = False
-# parmetis = True
-# visit = True
-#werror = False
-# cxx = 'clang++'
-# cxx='/usr/bin/clang++'
-
-python = 3
-
-##############################################################################
 escript_opts_version = 203
+#cxx_extra = '-Wno-literal-suffix'
+openmp = True
+#mpi = 'OPENMPI'
 
 import os
-import subprocess
 
-cxx_extra += " -fmessage-length=80 -fdiagnostics-color=always "
-if trilinos is True:
-  cxx_extra += "  -Wno-deprecated-declarations -Wno-unused-variable "
-
-netcdf = 4
-mpi_libs = ['mpi_cxx', 'mpi']
-parmetis_libs = ['parmetis', 'metis']
-silo_libs = ['siloh5', 'hdf5_cpp']
-umfpack_libs = ['umfpack', 'blas', 'amd']
-
-# gmsh_prefix=['/usr/local/include','/usr/local/lib']
-lapack_prefix = ['/usr/include/atlas', '/usr/lib/atlas-base']
 d_mpi_path = '/usr/include/openmpi'
 mpi_prefix = os.path.split(os.path.realpath(d_mpi_path))[0]
-parmetis_prefix = ['/usr/include','/usr/lib']
+mpi_libs = ['mpi_cxx', 'mpi']
+netcdf = 4
+umfpack = True
 umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
-boost_prefix = ['/usr/local/boost']
-visit_prefix = ['/usr/local/visit/2.13.2/linux-x86_64/libsim/V2/include/','/usr/local/visit/2.13.2/linux-x86_64/libsim/V2/lib/']
+umfpack_libs = ['umfpack', 'blas', 'amd']
+lapack_prefix = ['/usr/include/atlas', '/usr/lib/atlas-base']
+silo = True
+silo_libs = ['siloh5']
+trilinos = True
+trilinos_prefix = "/usr/local/trilinos"
+dudley_assemble_flags = '-funroll-loops'
+pythoncmd="/usr/bin/python3"
+pythonlibname = 'python3.7m'
+pythonlibpath = '/usr/lib/x86_64-linux-gnu/'
+pythonincpath = '/usr/include/python3.7m'
 
-if cxx=='clang++':
-  trilinos_prefix =['/usr/local/trilinos_clang/include/','/usr/local/trilinos_clang/lib/']
-elif mpi=='OPENMPI':
-  trilinos_prefix =['/usr/local/trilinos_mpi/include/','/usr/local/trilinos_mpi/lib/']
-else:
-  trilinos_prefix =['/usr/local/trilinos/include/','/usr/local/trilinos/lib/']
-
-if trilinos == True:
-  print("Meerkat config: Using trilinos libraries %s" % trilinos_prefix) 
-
- 
-# boost_prefix='/usr/local'
-boost_prefix='/usr/local/boost'
+import subprocess
+import os
 p = subprocess.Popen(["ld","--verbose"], stdout=subprocess.PIPE)
 out,err = p.communicate()
 spath = [x[13:-3] for x in out.split() if 'SEARCH_DIR' in x]
 p2name = ''
 p3name = ''
-spath.append(os.path.join(boost_prefix,"lib"))
 for name in spath:
   try:
     l=os.listdir(name)
@@ -90,17 +62,7 @@ for name in spath:
     pass
 
 # boost-python library/libraries to link against
-if python == 2:
-  boost_libs = [p2name[3:-3]]
-  pythoncmd = '/usr/bin/python'
-else:
-  boost_libs = [p3name[3:-3]]
-  pythoncmd = '/usr/bin/python3'
-
-print("Meerkat config: Linking with %s" % boost_libs) 
-
-#boost_libs = [p2name[3:-3], 'boost_numpy27']
-# boost_libs = ['boost_python27', 'boost_numpy27']
+boost_libs = [p3name[3:-3]]
 
 # this can be used by options files importing us
 boost_py2_libs = [p2name[3:-3]]

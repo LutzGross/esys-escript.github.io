@@ -42,6 +42,12 @@ from esys.dudley import Rectangle, Brick, LoadMesh, ReadMesh, ReadGmsh
 import os as os
 
 try:
+    import numpy
+    HAVE_NUMPY = True
+except:
+    HAVE_NUMPY = False
+
+try:
      DUDLEY_WORKDIR=os.environ['DUDLEY_WORKDIR']
 except KeyError:
      DUDLEY_WORKDIR=os.path.join(os.getcwd(),"dudley/test/")
@@ -164,9 +170,10 @@ class Test_InputOutputOnDudley(unittest.TestCase):
         mydomain2 = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"brick_8x10x12.fly"))
         self.domainsEqual(mydomain1, mydomain2)
 
+     @unittest.skipIf(HAVE_NUMPY is False, "Numpy is not installed")
      def test_connectivity_info(self):
         if hasFeature("boostnumpy"):
-           domain=Rectangle(n0=3,n1=4)      
+           domain=Rectangle(n0=3,n1=4)
            testvalues=domain.getConnectivityInfo()
            correctvalues=[[0., 1., 5., 4.],
                          [ 1., 2., 6., 5.],

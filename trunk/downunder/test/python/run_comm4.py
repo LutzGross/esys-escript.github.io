@@ -42,6 +42,12 @@ try:
     HAVE_FINLEY = True
 except ImportError:
     HAVE_FINLEY = False
+    
+try: 
+    from scipy.interpolate import InterpolatedUnivariateSpline
+    HAVE_SCIPY = True
+except:
+    HAVE_SCIPY = False
 
 HAVE_GMSH = escript.hasFeature("gmsh")
 HAVE_DIRECT = escript.hasFeature("PASO_DIRECT") or escript.hasFeature('trilinos')
@@ -455,6 +461,7 @@ class Test_COMMEMI4(unittest.TestCase):
     @unittest.skipUnless(HAVE_FINLEY, "Test requires finley to be available")
     @unittest.skipUnless(HAVE_GMSH, "Test requires gmsh to be available")
     @unittest.skipUnless(HAVE_DIRECT, "Missing direct solver")
+    @unittest.skipUnless(HAVE_SCIPY, "Test requires scipy to be available")
     def test_comm4(self):
         # ---
         # Initialisations
@@ -576,8 +583,6 @@ class Test_COMMEMI4(unittest.TestCase):
         # ---
         # User defined plots
         # ---
-
-        from scipy.interpolate import InterpolatedUnivariateSpline
 
         # Setup abscissas/Ordinates for escript data:
         x  = numpy.array( obj_mt2d.loc.getX() )[:,0]

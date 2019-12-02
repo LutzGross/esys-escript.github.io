@@ -172,6 +172,16 @@ dimensionality):
     e.g. a stress field
 \item \code{Tensor4(0,Function(mydomain))} equals \code{Data(0,Function(myDomain), (d,d,d,d))},
     e.g. a Hook tensor field
+\item \code{ComplexScalar(0+0j, Function(mydomain))} is the same as \\
+    \code{ComplexData(0+0j, Function(myDomain),(,))}
+    (each value is a complex scalar), e.g. a temperature field
+\item \code{ComplexVector(0+0j, Function(mydomain))} is the same as \\
+    \code{ComplexData(0+0j, Function(myDomain),(d,))}
+    (each value is a complex vector), e.g. a velocity field
+\item \code{ComplexTensor(0+0j, Function(mydomain))} is the same as \\
+\code{ComplexData(0+0j, Function(myDomain), (d,d))}, e.g. a stress field
+\item \code{ComplexTensor4(0+0j,Function(mydomain))} is the same as \\
+\code{ComplexData(0+0j,Function(myDomain), (d,d,d,d))}, e.g. a Hook tensor field
 \end{itemize}
 Here the initial value is 0 but any object that can be converted into
 a \numpyNDA and whose \Shape is consistent with \Shape of the \Data object to
@@ -431,9 +441,9 @@ The \Domain class provides an abstract interface to the domain of \FunctionSpace
 \end{methoddesc}
 
 \begin{methoddesc}[Domain]{getNumpyX}{}
-    returns the locations in the \Domain as a \numpy ndarray. The \FunctionSpace 
-    of the returned \Data object is chosen by the \Domain implementation. 
-    Typically it will be in the \ContinuousFunction. 
+    returns the locations in the \Domain as a \numpy ndarray. The \FunctionSpace
+    of the returned \Data object is chosen by the \Domain implementation.
+    Typically it will be in the \ContinuousFunction.
 
     Note that it is necessary to load \numpy first in the escript.
 \end{methoddesc}
@@ -750,6 +760,61 @@ Values are initialized with \var{value}, a double precision quantity.
 If \var{expanded} is \True the \Data object is represented in expanded form.
 \end{funcdesc}
 
+\begin{funcdesc}{ComplexData}{value, what=FunctionSpace(), expanded=\False}
+creates a \Data object in the \FunctionSpace \var{what}.
+The value for each data sample point is set to the complex value \var{value}, which could be a
+\numpy object, \Data object or a dictionary of \numpy or floating point
+numbers. In the latter case the keys must be integers and are used as tags.
+The \Shape of the returned object is equal to the \Shape of \var{value}.
+If \var{expanded} is \True the \Data object is represented in expanded form.
+\end{funcdesc}
+
+\begin{funcdesc}{ComplexData}{value=0, shape=(,), what=FunctionSpace(), expanded=\False}
+creates a \Data object with \Shape \var{shape} in the \FunctionSpace \var{what}.
+The values at all \DataSamplePoints are set to the complex value \var{value}.
+If \var{expanded} is \True the \Data object is represented in expanded form.
+\end{funcdesc}
+
+\begin{funcdesc}{ComplexData}{}
+creates an \EmptyData object with complex values (i.e. with memory allocated to
+store a complex number). The \EmptyData object is used to indicate that
+an argument is not present where a \Data object is required.
+\end{funcdesc}
+
+\begin{funcdesc}{ComplexScalar}{value=0.+0.j, what=FunctionSpace(), expanded=\False}
+returns a \Data object of rank 0 (a constant) in the \FunctionSpace \var{what}.
+Values are initialized with complex \var{value}, a double precision quantity.
+If \var{expanded} is \True the \Data object is represented in expanded form.
+\end{funcdesc}
+
+\begin{funcdesc}{ComplexData}{value=0.+0.j, what=FunctionSpace(), expanded=\False}
+returns a \Data object of \Shape \var{(d,)} in the \FunctionSpace \var{what},
+where \var{d} is the spatial dimension of the \Domain of \var{what}.
+Values are initialized with complex \var{value}, a double precision quantity.
+If \var{expanded} is \True the \Data object is represented in expanded form.
+\end{funcdesc}
+
+\begin{funcdesc}{ComplexTensor}{value=0.+0.j, what=FunctionSpace(), expanded=\False}
+returns a \Data object of \Shape \var{(d,d)} in the \FunctionSpace \var{what},
+where \var{d} is the spatial dimension of the \Domain of \var{what}.
+Values are initialized with complex \var{value}, a double precision quantity.
+If \var{expanded} is \True the \Data object is represented in expanded form.
+\end{funcdesc}
+
+\begin{funcdesc}{ComplexTensor3}{value=0.+0.j, what=FunctionSpace(), expanded=\False}
+returns a \Data object of \Shape \var{(d,d,d)} in the \FunctionSpace \var{what},
+where \var{d} is the spatial dimension of the \Domain of \var{what}.
+Values are initialized with complex \var{value}, a double precision quantity.
+If \var{expanded} is \True the \Data object is represented in expanded form.
+\end{funcdesc}
+
+\begin{funcdesc}{ComplexTensor4}{value=0.+0.j, what=FunctionSpace(), expanded=\False}
+returns a \Data object of \Shape \var{(d,d,d,d)} in the \FunctionSpace \var{what},
+where \var{d} is the spatial dimension of the \Domain of \var{what}.
+Values are initialized with complex \var{value}, a double precision quantity.
+If \var{expanded} is \True the \Data object is represented in expanded form.
+\end{funcdesc}
+
 \begin{funcdesc}{load}{filename, domain}
 recovers a \Data object on \Domain \var{domain} from the file \var{filename},
 which was created by \function{dump}.
@@ -838,7 +903,7 @@ Ripley's Gaussian smoothing has the following requirements:
           data objects for \ripley domains with whatever shape you require, you
           just can't smooth them unless that shape is scalar).
 \end{enumerate}
-An exception will be raised if either of these requirements is not met. 
+An exception will be raised if either of these requirements is not met.
 
 The components of the matrix used in the kernal for the 2D case are
 defined\cite{gaussfilter} by:
@@ -849,7 +914,7 @@ defined\cite{gaussfilter} by:
 
 \[ G(x,y) = \frac{1}{(\sqrt{2\pi\sigma^2})^3} e^{-\frac{x^2+y^2+z^2}{2\sigma^2}} \]
 
-All distances ($x$,$y$,$z$) refer to the number of points from the centre point. 
+All distances ($x$,$y$,$z$) refer to the number of points from the centre point.
 That is, the closest neighbours have at least one distance of $1$, the next
 ``ring'' of neighbours have at least one $2$ and so on.
 The matrix is normalised before use.
@@ -1355,7 +1420,7 @@ We will produce a \Data object which approximates a sine curve.
   n=4
   r=Rectangle(n,n)
   x=r.getX()
-  toobig=100	
+  toobig=100
 \end{python}
 
 \noindent First we produce an interpolation table:
@@ -1413,7 +1478,7 @@ result2=interpolateTable(table2, x2, (xmin, ymin), (xstep, ystep), toobig)
 We can check the values using \function{whereZero}.
 For example, for $x=0$:
 \begin{python}
-print(result2*whereZero(x[0])) 
+print(result2*whereZero(x[0]))
 \end{python}
 
 Finally let us look at a 3D example. Note that the parameter tuples should be
@@ -1437,7 +1502,7 @@ zstep=(maxval-minval)/(10-1)
 
 zmin=minval
 
-result3=interpolateTable(table3, x3, (xmin, ymin, zmin), 
+result3=interpolateTable(table3, x3, (xmin, ymin, zmin),
     (xstep, ystep, zstep), toobig)
 \end{python}
 
@@ -1451,11 +1516,11 @@ Data.nonuniformSlope(in, out, check_boundaries)
 
 Will produce a new \Data object by mapping the given \Data object through the user-defined function
 specified by \texttt{in} and \texttt{out}.
-The \ldots Interpolate version gives the value of the function at the specified point and the 
+The \ldots Interpolate version gives the value of the function at the specified point and the
 \ldots Slope version gives the slope at those points.
 The check_boundaries boolean argument specifies what the function should do if the \Data object contains
 values outside the range specified by the \texttt{in} parameter.
-If the argument is \texttt{False}, then those datapoints will be interpolated to the value of the edge 
+If the argument is \texttt{False}, then those datapoints will be interpolated to the value of the edge
 they are closest to (or assigned a slope of zero).
 If the argument is \texttt{True}, then an exception will be thrown if out of bounds values are detected.
 Note that the values given by the \texttt{in} parameter must be monotonically increasing.
@@ -1467,31 +1532,31 @@ d.nonuniformInterpolate([1.5, 2, 2.8, 4.6], [4, 5, -1, 1], False)
 \end{python}
 would produce a \Data object containing \texttt{\{4, 5, -0.7777, 0.3333, 1\}}.\\
 A similar call to \texttt{nonuniformSlope} would produce a \Data object containing \texttt{\{0, 2, 1.1111, 1.1111, 0\}}.
-% 
-% 
+%
+%
 % We will interpolate a surface such that the bottom
 % edge is the sine curve described above.
 % The amplitude of the curve decreases as we move towards the top edge.
 % Our interpolation table will have three rows:
-% 
+%
 % \begin{python}
 %   st=numpy.array(sine_table)
 %   table=[st, 0.5*st, 0*st]
 % \end{python}
 % %
 % The use of \numpy and multiplication here is just to save typing.
-% 
+%
 % %  result2=x1.interpolateTable(table, 0, 0.55, x0, minval, step, toobig)
 % \begin{python}
 %   result=interpolateTable(table, x (minval,0), (0.55, step), toobig)
 % \end{python}
-% 
+%
 % In the 2D case the start and step parameters are tuples $(x,y)$.
 % By default, if a point is specified which is outside the boundary, then
 % \var{interpolateTable} will operate as if the point was on the boundary.
 % Passing \code{check_boundaries=True} will lead to the rejection of any points
 % outside the boundaries by \var{interpolateTable}.
-% 
+%
 % This method can also be called with three dimensional tables and \Data objects.
 % Tuples should be ordered $(x,y,z)$.
 
@@ -2058,7 +2123,7 @@ returns the maximum value of the integer \var{a} across all processes within
 
 \section{Lazy Evaluation of Data}
 \label{sec:lazy}
-Constant and Tagged representations of Data are relatively small but Expanded\footnote{Separate values stored for each point of the FunctionSpace.} are larger and 
+Constant and Tagged representations of Data are relatively small but Expanded\footnote{Separate values stored for each point of the FunctionSpace.} are larger and
 will not entirely fit in CPU cache.
 
 Escript's lazy evaluation features record operations performed on Data objects but do not actually carry them out until the Data is ``resolved''.
@@ -2183,5 +2248,3 @@ When the objects being manipulated are large (eg 4-Tensors in Drucker-Prager), s
 See~\cite{lazyauspdc}.
 
 Our best advice is to experiment with it.
-
-
