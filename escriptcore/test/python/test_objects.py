@@ -54,8 +54,13 @@ __author__="Lutz Gross, l.gross@uq.edu.au"
 
 import esys.escriptcore.utestselect as unittest
 import os
-import numpy
 from esys.escript import *
+
+try:
+    import numpy
+    HAVE_NUMPY = True
+except:
+    HAVE_NUMPY = False
 
 try:
      ESCRIPT_WORKDIR=os.environ['ESCRIPT_WORKDIR']
@@ -492,6 +497,7 @@ class Test_Domain(unittest.TestCase):
         if self.domain.getDim()>1: self.assertTrue(sup(x[1])<=1.)
         if self.domain.getDim()>2: self.assertTrue(sup(x[2])<=1.)
 
+   @unittest.skipIf(HAVE_NUMPY is False, "Numpy is not installed")
    def test_getNumpyX(self):
       if hasFeature("boostnumpy"):
          tups=self.domain.getX().toListOfTuples()
