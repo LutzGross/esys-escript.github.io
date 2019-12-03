@@ -457,7 +457,7 @@ public:
        \brief
        returns a Solution FunctionSpace code
     */
-    virtual int getSolutionCode() const { 
+    virtual int getSolutionCode() const {
         return DegreesOfFreedom;
     }
 
@@ -465,7 +465,7 @@ public:
        \brief
        returns a ReducedSolution FunctionSpace code
     */
-    virtual int getReducedSolutionCode() const { 
+    virtual int getReducedSolutionCode() const {
         throw SpeckleyException("Speckley does not support reduced function spaces");
     }
 
@@ -825,9 +825,16 @@ private:
                              escript::Data& rhs, const DataMap& coefs,
                              Assembler_ptr assembler) const;
 
-    void assemblePDEDirac(escript::AbstractSystemMatrix* mat,
+    void assemblePDEDiracWrap(escript::AbstractSystemMatrix* mat,
                           escript::Data& rhs, const DataMap& coefs,
                           Assembler_ptr assembler) const;
+
+    void assemblePDEDirac(escript::AbstractSystemMatrix* mat,
+                        escript::Data& rhs, const DataMap& coefs,
+                        Assembler_ptr assembler) const;
+    void assembleComplexPDEDirac(escript::AbstractSystemMatrix* mat,
+                        escript::Data& rhs, const DataMap& coefs,
+                        Assembler_ptr assembler) const;
 
     template<typename Scalar>
     void setToIntegralsWorker(std::vector<Scalar>& integrals,
@@ -840,4 +847,3 @@ private:
 } // end of namespace speckley
 
 #endif // __Speckley_DOMAIN_H__
-

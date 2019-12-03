@@ -42,6 +42,14 @@ inline bool isNotEmpty(const std::string target, const DataMap& mapping)
     return i != mapping.end() && !i->second.isEmpty();
 }
 
+/// returns trure if the target data object is complex
+inline bool isComplexCoef(const std::string target,
+                                      const DataMap& mapping)
+{
+    DataMap::const_iterator i = mapping.find(target);
+    return i->second.isComplex();
+}
+
 /**
     factorises 'product' and inserts the factors into the vector 'factors'
     in order of smallest to largest
@@ -58,4 +66,3 @@ std::vector<char> unzip(const std::vector<char>& compressed);
 } //namespace speckley
 
 #endif // _SPECKLEY_DOMAINHELPERS_H_
-
