@@ -44,10 +44,15 @@ public:
     ~DefaultAssembler3D() {}
 
     /* The default SpeckleyDomain assemblers, with original signatures */
-    
+
     /// assembles a single PDE into the system matrix 'mat' and the right hand
     /// side 'rhs'
     virtual void assemblePDESingle(escript::AbstractSystemMatrix* mat,
+                               escript::Data& rhs, const escript::Data& A,
+                               const escript::Data& B, const escript::Data& C,
+                               const escript::Data& D, const escript::Data& X,
+                               const escript::Data& Y) const;
+    virtual void assembleComplexPDESingle(escript::AbstractSystemMatrix* mat,
                                escript::Data& rhs, const escript::Data& A,
                                const escript::Data& B, const escript::Data& C,
                                const escript::Data& D, const escript::Data& X,
@@ -58,6 +63,9 @@ public:
     virtual void assemblePDEBoundarySingle(escript::AbstractSystemMatrix* mat,
                                    escript::Data& rhs, const escript::Data& d,
                                    const escript::Data& y) const;
+    virtual void assembleComplexPDEBoundarySingle(escript::AbstractSystemMatrix* mat,
+                                   escript::Data& rhs, const escript::Data& d,
+                                   const escript::Data& y) const;
 
     /// assembles a single PDE with reduced order into the system matrix 'mat'
     /// and the right hand side 'rhs'
@@ -65,10 +73,18 @@ public:
             escript::Data& rhs, const escript::Data& A, const escript::Data& B,
             const escript::Data& C, const escript::Data& D,
             const escript::Data& X, const escript::Data& Y) const;
+    virtual void assembleComplexPDESingleReduced(escript::AbstractSystemMatrix* mat,
+            escript::Data& rhs, const escript::Data& A, const escript::Data& B,
+            const escript::Data& C, const escript::Data& D,
+            const escript::Data& X, const escript::Data& Y) const;
 
     /// assembles boundary conditions of a single PDE with reduced order into
     /// the system matrix 'mat' and the right hand side 'rhs'
     virtual void assemblePDEBoundarySingleReduced(
+                                   escript::AbstractSystemMatrix* mat,
+                                   escript::Data& rhs, const escript::Data& d,
+                                   const escript::Data& y) const;
+    virtual void assembleComplexPDEBoundarySingleReduced(
                                    escript::AbstractSystemMatrix* mat,
                                    escript::Data& rhs, const escript::Data& d,
                                    const escript::Data& y) const;
@@ -80,16 +96,28 @@ public:
                                 const escript::Data& B, const escript::Data& C,
                                 const escript::Data& D, const escript::Data& X,
                                 const escript::Data& Y) const;
+    virtual void assembleComplexPDESystem(escript::AbstractSystemMatrix* mat,
+                                escript::Data& rhs, const escript::Data& A,
+                                const escript::Data& B, const escript::Data& C,
+                                const escript::Data& D, const escript::Data& X,
+                                const escript::Data& Y) const;
 
     /// assembles boundary conditions of a system of PDEs into the system
     /// matrix 'mat' and the right hand side 'rhs'
     virtual void assemblePDEBoundarySystem(escript::AbstractSystemMatrix* mat,
                                    escript::Data& rhs, const escript::Data& d,
                                    const escript::Data& y) const;
+    virtual void assembleComplexPDEBoundarySystem(escript::AbstractSystemMatrix* mat,
+                                  escript::Data& rhs, const escript::Data& d,
+                                  const escript::Data& y) const;
 
     /// assembles a system of PDEs with reduced order into the system matrix
     /// 'mat' and the right hand side 'rhs'
     virtual void assemblePDESystemReduced(escript::AbstractSystemMatrix* mat,
+            escript::Data& rhs, const escript::Data& A, const escript::Data& B,
+            const escript::Data& C, const escript::Data& D,
+            const escript::Data& X, const escript::Data& Y) const;
+    virtual void assembleComplexPDESystemReduced(escript::AbstractSystemMatrix* mat,
             escript::Data& rhs, const escript::Data& A, const escript::Data& B,
             const escript::Data& C, const escript::Data& D,
             const escript::Data& X, const escript::Data& Y) const;
@@ -100,7 +128,11 @@ public:
                                    escript::AbstractSystemMatrix* mat,
                                    escript::Data& rhs, const escript::Data& d,
                                    const escript::Data& y) const;
-    
+    virtual void assembleComplexPDEBoundarySystemReduced(
+                                  escript::AbstractSystemMatrix* mat,
+                                  escript::Data& rhs, const escript::Data& d,
+                                  const escript::Data& y) const;
+
     /* The new interface for assemblers */
 
     virtual void assemblePDESingle(escript::AbstractSystemMatrix* mat,
@@ -121,7 +153,7 @@ public:
     virtual void assemblePDEBoundarySystemReduced(
                               escript::AbstractSystemMatrix* mat,
                               escript::Data& rhs, const DataMap& coefs) const;
-            
+
     void collateFunctionSpaceTypes(std::vector<int>& fsTypes,
                                    const DataMap& coefs) const;
 
@@ -135,4 +167,3 @@ protected:
 } // namespace speckley
 
 #endif // __SPECKLEY_DEFAULTASSEMBLER3D_H__
-
