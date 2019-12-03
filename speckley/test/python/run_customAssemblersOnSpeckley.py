@@ -268,15 +268,17 @@ class Test_Complex_Assembler(unittest.TestCase):
         domain=Rectangle(order=2,n0=10,n1=10)
         pde = LinearSinglePDE(domain, isComplex=True)
         pde.setValue(D=1j)
-        self.assertTrue(Lsup(pde.getSolution())==0, "Failed test_complex_params_Rectangle")
+        pde.setValue(Y=1.0)
+        self.assertTrue(Lsup(pde.getSolution())==1.0, "Failed test_complex_params_Rectangle")
         del domain
 
-    # def test_complex_params_Brick(self):
-    #     domain=Brick(order=2,n0=10,n1=10,n2=10)
-    #     pde = LinearSinglePDE(domain, isComplex=True)
-    #     pde.setValue(D=1j)
-    #     self.assertTrue(Lsup(pde.getSolution())==0, "Failed test_complex_params_Brick")
-    #     del domain
+    def test_complex_params_Brick(self):
+        domain=Brick(order=2,n0=10,n1=10,n2=10)
+        pde = LinearSinglePDE(domain, isComplex=True)
+        pde.setValue(D=1j)
+        pde.setValue(Y=1.0)
+        self.assertTrue(Lsup(pde.getSolution())==1.0, "Failed test_complex_params_Brick")
+        del domain
 
 if __name__ == '__main__':
     run_tests(__name__, exit_on_failure=True)
