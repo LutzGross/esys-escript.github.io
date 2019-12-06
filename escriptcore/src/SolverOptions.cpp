@@ -306,7 +306,6 @@ double SolverBuddy::getDiagnostics(const std::string name) const
 {
     if (name == "num_iter") return num_iter;
     else if (name == "cum_num_iter") return cum_num_iter;
-    else if (name == "num_level") return num_level;
     else if (name == "num_inner_iter") return num_inner_iter;
     else if (name == "cum_num_inner_iter") return cum_num_inner_iter;
     else if (name == "time") return time;
@@ -320,9 +319,6 @@ double SolverBuddy::getDiagnostics(const std::string name) const
     else if (name == "preconditioner_size") return preconditioner_size;
     else if (name == "time_step_backtracking_used")
         return  time_step_backtracking_used;
-    else if (name == "coarse_level_sparsity") return coarse_level_sparsity;
-    else if (name == "num_coarse_unknowns") return num_coarse_unknowns;
-
     throw ValueError(std::string("unknown diagnostic item: ") + name);
 }
 
@@ -861,4 +857,3 @@ bool SolverBuddy::using_default_method() const
 }
 
 } // namespace escript
-
