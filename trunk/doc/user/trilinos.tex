@@ -15,7 +15,7 @@
 
 \chapter{Using Trilinos}
 \label{TRILINOS}
-Trilinos provides a large collection of both direct and indirect solvers accessible from \escript.  Trilinos has a number of packages and we refer the reader to \cite{TrilinosWeb} for detais.  Our focus is on direct linear solvers, Amesos and Amesos 2 which provide access to other solvers including SuperLu; indirect linear solvers, Belos; and preconditioners including multigrid.  We show a few examples for the Trilinos options with a simple example.
+Trilinos has a number of packages and provides a large collection of both direct and indirect solvers.  We refer the reader to \cite{TrilinosWeb} for detais.   We show a few examples for the Trilinos options with a simple example.
 
 Consider Laplacian in domain ($\Omega\in \mathbb{R}^3$) with a simple right hand side,
 \begin{align}
@@ -30,7 +30,7 @@ with $\mathbf{n}$ the outward normal, with $\Gamma_D$ the left boundary and $\Ga
 for all admissible potential functions $v$. 
 
 
-For this example, we just consider a simple, unstructured, 3D domain.  The mesh is created with GMSH using simplemesh.geo (file \ref{simplemesh}).  
+For this example, we just consider a simple, unstructured, 3D domain.  The mesh is created with GMSH using simplemesh.geo (file \ref{simplemesh}) see /escript/doc/examples/usersguide/simplemesh.geo.  To test AMG, a finer mesh is created using    /escript/doc/examples/usersguide/simplemeshfine.geo.
 
 \begin{python}[caption=simplemesh.geo,label=simplemesh]
 // dimensions and mesh size
@@ -99,15 +99,22 @@ u=pde.getSolution()
 saveSilo("asimple", u=u)    
 \end{python}
 
+This script uses default Trilinos solver PCG with Jacobi preconditioner. (It takes 271 iterations to reach the default tolerance of $10^{-8}$).  Tolerance and solver output can be controlled by adding to the basic listing.
+ \begin{python}[caption=tolerance , label=tolerance ]
+options = pde.getSolverOptions()  
+options.setTolerance(1e-8)        
+options.setVerbosityOn()        
+\end{python}
 
 
 
 \section{Direct Solvers}
+There are a number of options that can be set for solving the pde.  The simplest way to choose a direct solver is to use the default Trilinos direct solver KLU2.
+
 To choose the default Trilinos direct solver, set the tolerance for the PDE solver to $10^{-8}$,  use the Trilinos suite of solvers and output information about the solvers, we add code to listing \ref{basic}.
 \begin{python}[caption=default Direct , label=defaultdirect ]
 options = pde.getSolverOptions()  
 options.setSolverMethod(SolverOptions.DIRECT)         
-options.setTolerance(1e-8)        
 options.setPackage(SolverOptions.TRILINOS)
 options.setVerbosityOn()        
 \end{python}
@@ -122,14 +129,20 @@ options.setPackage(SolverOptions.TRILINOS)
 options.setSolverMethod(SolverOptions.DIRECT_SUPERLU)
 options.setVerbosityOn()        
 \end{python}
-
+Trilinos is the default solver package so the setPackage line is not really necessary.
 
 \section{Preconditioned Conjugate Gradient}
 If we want to use preconditioned conjugate gradient, then we remover the DIRECT solver line and add the line
 \begin{python}[caption=Preconditioned conjugate gradient defaults, label=PCG]
 options.setSolverMethod(SolverOptions.PCG)        
 \end{python}
-This results in the BELOS Pseudo Block CG with Ifpack2 solver being used.  
+This takes 271 iterations to reach tolerance using a Jacobi preconditioner, BELOS Pseudo Block CG with Ifpack2.  To change the preconditioner to Gauss-Siedel, we add the line
+\begin{python}
+options.setPreconditioner(SolverOptions.GAUSS_SEIDEL)
+\end{python}
+This takes 120 iterations to reach tolerance.
+
+
 
 \section{Multigrid}
 Geometric multigrid methods were introduced for structured grids to maximise the advantages of iterative methods for solving matrix equations derived from discretised partial differential equations.  Iterative methods for these problems are effective in reducing oscillatory error but stall for smooth error and smooth error appears oscillatory when restricted to a coarser grid.  The idea is to have a succession of grids from fine to coarse and to remove error by iterating on each of the grids in turn reducing the oscillatory error on that grid.  The coarsest grid is chosen small enough so that it can be quickly solved directly or iteratively. If $n$ is the size of the problem then a multigrid algorithm is order $n$.
@@ -190,7 +203,7 @@ MueLu   - setup of AMG, Belos   - linear solvers - Pseudo Block CG, Ifpack2 - it
 
 \subsection{Default MueLu Trilinos options for algebraic multigrid preconditioned conjugate gradient (AMG-PCG)}
 More detail on the various options can be found in the MUELU user guide and other Trilinos user guides \cite{TrilinosWeb}. MUELU uses other Trilinos packages and to access these parameters the XML file must be used.  
-Recall $\mathbf{R}_h^H$ is the restriction operator and $\mathbf{P}^h_H$ is the interpolation (prolongation) operator.  The default values used are
+Recall $\mathbf{R}_h^H$ is the restriction operator and $\mathbf{P}^h_H$ is the interpolation (prolongation) operator.  The default values used are shown in Table \ref{defaultAMG}.  To use AMG-PCG with default paramerters we use script \ref{basicAMG}. 
 
 \begin{table}\center
 \begin{tabular}{|r|l|}
@@ -210,10 +223,10 @@ Recall $\mathbf{R}_h^H$ is the restriction operator and $\mathbf{P}^h_H$ is the 
     coarsest grid solver &  SuperLU\\
     cycle type & V(1,1) \\
     \hline
-\end{tabular}\caption{Default parameters for AMG-PCG}
+\end{tabular}\caption{Default parameters for AMG-PCG}\label{defaultAMG}
 \end{table}
 
-To use AMG-PCG with default paramerters we use script \ref{basicAMG}. 
+
 \begin{python}[caption=basic Trilinos PCG-AMG defaults only script, label=basicAMG ]
 from esys.escript import *
 from esys.weipa import saveVTK, saveSilo
@@ -236,24 +249,22 @@ u=pde.getSolution()
 saveSilo("asimple",u=u)    
 \end{python}
 
-Only two grids were used for the simple mesh.  The first coarse grid, replaces, if possible, 27 fine grid nodes represented by  one coarse grid node.  In 2D this would be 9 fine grid nodes represented with one coarse grid node. The ratio of the fine to coarse grid in this example is 19.21.  For a finer mesh, with mtop = 2 and mbase=1 in the geo file, 3 levels of grids and the coarsest grid is solved with a direct method.  
+Only two grids were used for the simple mesh.  The first coarse grid, replaces, if possible, 27 fine grid nodes represented by  one coarse grid node.  In 2D this would be 9 fine grid nodes represented with one coarse grid node. The ratio of the fine to coarse grid in this example is 19.21.  For a finer mesh, with mtop = 2 and mbase=1 in the geo file, 3 levels of grids and the coarsest grid is solved with a direct method.  AMG-PCG took 11 iterations to reach tolerance.
 
 \subsection{Altering MUELU parameters}
 To access MUELU parameters in the python script we use the general form  
 \begin{python}
 options.setTrilinosParameter( "A", "B")        
 \end{python}
-where "A" is the Trilinos parameter and "B" is its string value.
+where "A" is the Trilinos parameter and "B" is its string value. It is extremely important to have correct spaces in the strings.  
 
 \subsubsection{Debug output}
 Options are "none", "low", "medium", "high" and "extreme".
 \begin{python}
 options.setTrilinosParameter("verbosity", "low")  
-%options.setTrilinosParameter("print initial parameters", True)
-%options.setTrilinosParameter("print unused parameters", True)
 \end{python}
-
- \var{"low"} - setup time,\\
+Options are\\
+\var{"low"} - setup time,\\
 \var{"medium"} - basic AMG data, mesh sizes, smoothers + "low" \\
 \var{"high"} - input data, relaxation solvers and data, aggregate data + "medium"\\
 \var{"extreme"} - may include solver details that MueLu calls + "high "\\
@@ -346,7 +357,7 @@ options.setTrilinosParameter("problem: symmetric", True)
 this is the default.
 
 \subsubsection{Smoothers}
-In the escript script it is possible to choose smoother type, "RELAXATION", "CHEBYSHEV" and "ILUT" or "RILUT" but for more specific control the XML file needs to be used.  It is possible to use different pre and post smoothers.  "RELAXATION" could use Jacobi, Gauss-Seidel, symmetric Gauss-Seidel, multithreaded Gauss-Seidel.  To specify which one the XML file must be used.  Some examples for are 
+In the escript script it is possible to choose smoother type, "RELAXATION", "CHEBYSHEV" and "ILUT" or "RILUT" but for more specific control the XML file needs to be used.  It is possible to use different pre and post smoothers.  "RELAXATION" could use Jacobi, Gauss-Seidel, symmetric Gauss-Seidel, multithreaded Gauss-Seidel.  To specify which one the XML file must be used.  Some examples for this are 
 \begin{python}
 options.setTrilinosParameter("smoother: pre or post", "both")
 options.setTrilinosParameter("smoother: type", "RELAXATION")
@@ -355,13 +366,13 @@ options.setTrilinosParameter("smoother: post type", "RELAXATION")
 \end{python}
 
 \subsubsection{Cycle type}
-Allowable cycle types are "V" and "W".  
+Allowable cycle types are "V" and "W".  The default is a "V" cycle.
 \begin{python}
 options.setTrilinosParameter("cycle type", "V")
 \end{python}
 
 \subsubsection{reuse}
-If multiple PDEs are being solved the reuse strategy can use elements of previous computations.  The level of reuse varies from none to full.  Options are none; S, symbolic coarse levels information; tP, reuse tentative prolongation operator; emin, reuse old prolongator for initial guess; RP, reuse smoothed restrictor and prolongator; RAP, compute only fine level smoothers and reuse all other operators, and full, reuse everything.
+If multiple PDEs are being solved the reuse strategy can use elements of previous computations.  The level of reuse varies from none to full.  Options are \var{"none"}; \var{"S"}, symbolic coarse levels information; \var{"tP"}, reuse tentative prolongation operator; \var{"emin"}, reuse old prolongator for initial guess; \var{"RP"}, reuse smoothed restrictor and prolongator; \var{"RAP"}, compute only fine level smoothers and reuse all other operators, and \var{"full"}, reuse everything.
 \begin{python}
 options.setTrilinosParameter("reuse: type", "full")
 \end{python}
@@ -397,7 +408,7 @@ options = pde.getSolverOptions()
 options.setPackage(SolverOptions.TRILINOS)
 options.setSolverMethod(SolverOptions.PCG)
 options.setPreconditioner(SolverOptions.AMG)
-options.setTrilinosParameter("xml parameter file", "bob.xml")
+options.setTrilinosParameter("xml parameter file", "simplebob.xml")
 
 u=pde.getSolution()    
 saveSilo("asimple",u=u) 
@@ -408,8 +419,9 @@ It is possible to specify how many sweeps of the iterative solvers for pre and p
 Ifpack2 or Ifpack provides iterative matrix solvers Jacobi, Gauss Seidel, polynomial, distribution relaxation, domain decomposition solvers and incomplete factorizations.
 
 
-A very simple XML file is
+A very simple XML file is in file \ref{simplebob}
 \begin{python}[caption=simplebob.xml,label=simplebob]
+<ParameterList name="MueLu"> 
   <Parameter name="verbosity"               type="string"    value="high"/> 
   <Parameter name="max levels"              type="int"       value="4"/>
   <Parameter name="coarse: max size"        type="int"       value="200"/>
@@ -418,9 +430,10 @@ A very simple XML file is
   <Parameter name="transpose: use implicit" type="bool"      value="true"/>
   <Parameter name="sa: damping factor"      type="double"    value="0.1"/> 
   <Parameter name="sa: use filtered matrix" type="bool"      value="true"/>
+</ParameterList>
 \end{python}
 
-A more complicated example that controls the numer or pre and post sweeps is
+A more complicated example that controls the number of pre and post sweeps is in the listing \ref{complicatedbob}
 \begin{python}[caption=complicatedbob.xml,label=complicatedbob]
 <ParameterList name="MueLu">
   <!--    General    -->
@@ -462,7 +475,7 @@ A more complicated example that controls the numer or pre and post sweeps is
 
   <!--  for different level parameter list -->
   <ParameterList name="level 2">
-    <Parameter name="smoother:type" type="string" value="CHEBYSHEV"/>
+    <Parameter name="smoother: type" type="string" value="CHEBYSHEV"/>
   </ParameterList>
 
 </ParameterList>
