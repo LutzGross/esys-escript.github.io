@@ -17,9 +17,9 @@
 \label{DIFFUSION CHAP}
 
 \subsection{\label{DIFFUSION OUT SEC}Outline}
-In this section we will discuss how to solve a time-dependent temperature
+In this section we discuss how to solve a time-dependent temperature
 diffusion\index{diffusion equation} PDE for a given block of material.
-Within the block there is a heat source which drives the temperature diffusion.
+Within the block there is a heat source which drives temperature diffusion.
 On the surface, energy can radiate into the surrounding environment.
 \fig{DIFFUSION FIG 1} shows the configuration.
 
@@ -29,9 +29,9 @@ On the surface, energy can radiate into the surrounding environment.
 \label{DIFFUSION FIG 1}
 \end{figure}
 
-In the next \Sec{DIFFUSION TEMP SEC} we will present the relevant model.
+In \Sec{DIFFUSION TEMP SEC} we present the relevant model.
 A time integration scheme is introduced to calculate the temperature at given time nodes $t^{(n)}$.
-We will see that at each time step a Helmholtz equation\index{Helmholtz equation} must be solved. 
+At each time step a Helmholtz equation\index{Helmholtz equation} must be solved. 
 The implementation of a Helmholtz equation solver will be discussed in \Sec{DIFFUSION HELM SEC}. 
 In Section~\ref{DIFFUSION TRANS SEC} this solver is used to build a solver for
 the temperature diffusion problem.
@@ -44,9 +44,9 @@ The governing equation in the interior of the domain is given by
 \label{DIFFUSION TEMP EQ 1}
 \end{equation}
 where $\rho c_p$ and $\kappa$ are given material constants.
-In case of a composite material the parameters depend on their location in the domain.
+In case of a composite material parameters depend on their location in the domain.
 $q_H$ is a heat source (or sink) within the domain.
-We are using the Einstein summation convention\index{summation convention} as introduced in \Chap{FirstSteps}.
+We use the Einstein summation convention\index{summation convention} as introduced in \Chap{FirstSteps}.
 In our case we assume $q_H$ to be equal to a constant heat
 production rate $q^{c}$ on a circle or sphere with center $x^c$ and radius $r$, and $0$ elsewhere:
 \begin{equation}
@@ -230,16 +230,15 @@ The \method{setSymmetryOn} method is used to declare a PDE symmetric:
   mypde.setValue(A=kappa*kronecker(mydomain))
   mypde.setSymmetryOn()
 \end{python}
-Now we want to see how we actually solve the Helmholtz equation on a
+Now we want to see how we solve the Helmholtz equation on a
 rectangular domain of length $l_{0}=5$ and height $l_{1}=1$.
 We choose a simple test solution such that we can verify the returned solution
-against the exact answer. Actually, we take $T=x_{0}$ (here
-$q_H = 0$) and then calculate the right hand side terms $f$ and $g$
+against the exact answer. We take $T=x_{0}$ (here
+$q_H = 0$) and then calculate right hand side terms $f$ and $g$
 such that the test solution becomes the solution of the problem.
-If we assume $\kappa$ as being constant, an easy calculation shows that we
+If we assume $\kappa$ is constant, an easy calculation shows that we
 have to choose $f=\omega \cdot x_{0}$.
-On the boundary we get $\kappa n_{i} u_{,i}=\kappa n_{0}$.
-Thus we have to set $g=\kappa n_{0}+\eta x_{0}$.
+On the boundary we get $\kappa n_{i} u_{,i}=\kappa n_{0}$, so we set $g=\kappa n_{0}+\eta x_{0}$.
 The following script \file{helmholtz.py}\index{scripts!\file{helmholtz.py}}
 which is available in the \ExampleDirectory implements this test problem using
 the \finley PDE solver:
