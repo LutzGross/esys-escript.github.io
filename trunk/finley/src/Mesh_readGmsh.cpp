@@ -399,7 +399,7 @@ int getElementsMaster(escript::JMPI& mpiInfo, FinleyDomain* dom,
     std::vector<int> elementIndices(storage, -1);
     std::vector<int> faceElementIndices(storage, -1);
 
-#pragma omp parallel for schedule(static)
+#pragma omp parallel for
     for (int i=0; i<storage; i++) {
         id[i] = -1;
         tag[i] = -1;
@@ -500,10 +500,10 @@ int getElementsMaster(escript::JMPI& mpiInfo, FinleyDomain* dom,
                 MPI_Send(&faceElementIndices[0], chunkFaceElements, MPI_INT, cpuId, 81726, mpiInfo->comm);
 
                 // reset arrays for next cpu
-        #pragma omp parallel for schedule(static)
+        #pragma omp parallel for
                 for (index_t i = 0; i < chunkSize*MAX_numNodes_gmsh; i++)
                     vertices[i] = -1;
-        #pragma omp parallel for schedule(static)
+        #pragma omp parallel for
                 for (index_t i = 0; i < chunkSize; i++) {
                     id[i] = -1;
                     tag[i] = -1;
@@ -638,10 +638,10 @@ int getElementsMaster(escript::JMPI& mpiInfo, FinleyDomain* dom,
             MPI_Send(&faceElementIndices[0], chunkFaceElements, MPI_INT, cpuId, 81726, mpiInfo->comm);
 
             // reset arrays for next cpu
-    #pragma omp parallel for schedule(static)
+    #pragma omp parallel for
             for (index_t i = 0; i < chunkSize*MAX_numNodes_gmsh; i++)
                 vertices[i] = -1;
-    #pragma omp parallel for schedule(static)
+    #pragma omp parallel for
             for (index_t i = 0; i < chunkSize; i++) {
                 id[i] = -1;
                 tag[i] = -1;
@@ -729,7 +729,7 @@ int getElementsMaster(escript::JMPI& mpiInfo, FinleyDomain* dom,
     points->minColor = 0;
     points->maxColor = 0;
 
-#pragma omp parallel for schedule(static)
+#pragma omp parallel for
     for (index_t e = 0; e < chunkElements; e++) {
         elements->Id[e] = id[elementIndices[e]];
         elements->Tag[e] = tag[elementIndices[e]];
@@ -741,7 +741,7 @@ int getElementsMaster(escript::JMPI& mpiInfo, FinleyDomain* dom,
         }
     }
 
-#pragma omp parallel for schedule(static)
+#pragma omp parallel for
     for (index_t e = 0; e < chunkFaceElements; e++) {
         faces->Id[e] = id[faceElementIndices[e]];
         faces->Tag[e] = tag[faceElementIndices[e]];
@@ -1082,16 +1082,11 @@ int getNodesMaster(escript::JMPI& mpiInfo, FinleyDomain* dom, FILE* fileHandle,
     NodeFile* nodes = dom->getNodes();
     nodes->allocTable(chunkSize);
 
-#pragma omp parallel for schedule(static)
+// #pragma omp parallel for schedule(static)
     for (index_t i = 0; i < chunkSize; i++) {
         nodes->Id[i] = tempInts[i];
         nodes->globalDegreesOfFreedom[i] = tempInts[i];
-        int tag = tags[tempInts[i]];
-        if (tag == -1) {
-            nodes->Tag[i] = tempInts[i]; //set tag to node label
-        } else {
-            nodes->Tag[i] = tag; //set tag of element
-        }
+        nodes->Tag[i] = tags[tempInts[i]] == -1 ? tempInts[i] : tags[tempInts[i]];
         for (int j=0; j<numDim; j++) {
             nodes->Coordinates[INDEX2(j,i,numDim)] = tempCoords[i*numDim+j];
         }
@@ -1355,16 +1350,11 @@ int getNodesSlave(escript::JMPI& mpiInfo, FinleyDomain* dom, int numDim,
     NodeFile* nodes = dom->getNodes();
     nodes->allocTable(chunkNodes);
 
-#pragma omp parallel for schedule(static)
+// #pragma omp parallel for
     for (index_t i = 0; i < chunkNodes; i++) {
         nodes->Id[i] = tempInts[i];
         nodes->globalDegreesOfFreedom[i] = tempInts[i];
-        int tag = tags[tempInts[i]];
-        if (tag == -1) {
-            nodes->Tag[i] = tempInts[i]; //set tag to node label
-        } else {
-            nodes->Tag[i] = tag; //set tag of element
-        }
+        nodes->Tag[i] = tags[tempInts[i]] == 1 ? tempints[i] : tags[tempInts[i]];
         for (int j = 0; j < numDim; j++) {
             nodes->Coordinates[INDEX2(j,i,numDim)] = tempCoords[i*numDim+j];
         }
@@ -1409,7 +1399,7 @@ int getElementsSlave(escript::JMPI& mpiInfo, FinleyDomain* dom,
     //chunkInfo stores the number of elements and number of face elements
     int chunkInfo[2];
 
-#pragma omp parallel for schedule(static)
+#pragma omp parallel for
     for (int i = 0; i < chunkSize; i++) {
         id[i] = -1;
         tag[i] = -1;
@@ -1470,7 +1460,7 @@ int getElementsSlave(escript::JMPI& mpiInfo, FinleyDomain* dom,
     points->minColor = 0;
     points->maxColor = 0;
 
-#pragma omp parallel for schedule(static)
+#pragma omp parallel for
     for (index_t e = 0; e < chunkElements; e++) {
         elements->Id[e] = id[elementIndices[e]];
         elements->Tag[e] = tag[elementIndices[e]];
@@ -1482,7 +1472,7 @@ int getElementsSlave(escript::JMPI& mpiInfo, FinleyDomain* dom,
         }
     }
 
-#pragma omp parallel for schedule(static)
+#pragma omp parallel
     for (index_t e = 0; e < chunkFaceElements; e++) {
         faces->Id[e] = id[faceElementIndices[e]];
         faces->Tag[e] = tag[faceElementIndices[e]];
