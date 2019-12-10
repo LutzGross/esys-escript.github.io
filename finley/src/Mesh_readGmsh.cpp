@@ -353,7 +353,8 @@ int getSingleElementMSH4(FILE* f, int dim, double version, struct ElementInfo& e
 int getElementsMaster(escript::JMPI& mpiInfo, FinleyDomain* dom,
                       FILE* fileHandle, std::string& errorMsg,
                       bool useMacroElements, const std::string& filename,
-                      int numDim, double version, int order, int reducedOrder)
+                      int numDim, double version, int order, int reducedOrder,
+                      std::map<int,int>& tags)
 {
     /*
      *  This function should read in the elements and distribute
@@ -411,7 +412,7 @@ int getElementsMaster(escript::JMPI& mpiInfo, FinleyDomain* dom,
     int chunkOtherElements = 0;
 
     // read all in
-    if(version >= 4.0){ 
+    if(version >= 4.0){
 
         int count = 0;
 
@@ -434,7 +435,7 @@ int getElementsMaster(escript::JMPI& mpiInfo, FinleyDomain* dom,
                 struct ElementInfo element = {NoRef, 0, 0, &vertices[count*MAX_numNodes_gmsh], 0};
 
                 get_line(line, fileHandle);
-                getSingleElementMSH4(fileHandle, numDim, version, element, 
+                getSingleElementMSH4(fileHandle, numDim, version, element,
                                         errorMsg, filename, useMacroElements, gmsh_type, &line[0]);
                 element.tag = entityTag;
                 elementType[count] = element.type;
@@ -515,7 +516,6 @@ int getElementsMaster(escript::JMPI& mpiInfo, FinleyDomain* dom,
         #endif
             }
         }
-        
     } else { // Version < 4.0
         for (index_t e = 0, count = 0; e < totalNumElements; e++, count++) {
             if (cpuId >= mpiInfo->size-1) {
@@ -534,6 +534,56 @@ int getElementsMaster(escript::JMPI& mpiInfo, FinleyDomain* dom,
                 int vertex = vertices[INDEX2(9, count, MAX_numNodes_gmsh)];
                 vertices[INDEX2(9, count, MAX_numNodes_gmsh)] = vertices[INDEX2(8, count, MAX_numNodes_gmsh)];
                 vertices[INDEX2(8, count, MAX_numNodes_gmsh)] = vertex;
+            }
+
+            //tags
+            int numNodesPerElement = 0;
+            std::vector<int> v(MAX_numNodes_gmsh, -1);
+            element.vertex = &v[0];
+            switch(element.type) {
+                case Point1:
+                    numNodesPerElement = 1;
+                    break;
+                case Line2:
+                    numNodesPerElement = 2;
+                    break;
+                case Tri3:
+                case Line3:
+                case Line3Macro:
+                    numNodesPerElement = 3;
+                    break;
+                case Rec4:
+                case Tet4:
+                    numNodesPerElement = 4;
+                    break;
+                case Tri6:
+                case Tri6Macro:
+                    numNodesPerElement = 6;
+                    break;
+                case Hex8:
+                case Rec8:
+                    numNodesPerElement = 8;
+                    break;
+                case Rec9:
+                case Rec9Macro:
+                    numNodesPerElement = 9;
+                    break;
+                case Tet10:
+                case Tet10Macro:
+                    numNodesPerElement = 10;
+                    break;
+                case Hex20:
+                    numNodesPerElement = 20;
+                    break;
+                default:
+                    std::stringstream ss;
+                    ss << "readGmsh: element contains unknown node (node)";
+                    errorMsg = ss.str();
+                    return THROW_ERROR;
+            }
+// #pragma omp parallel for
+            for (int i = 0; i < numNodesPerElement; i++) {
+                tags[v[i]] = element.tag != 0 ? element.tag : -1;
             }
 
             if (element.dim == numDim) {
@@ -706,162 +756,163 @@ int getElementsMaster(escript::JMPI& mpiInfo, FinleyDomain* dom,
     return errorFlag;
 }
 
-int gather_nodes(FILE* f, std::map<int,int>& tags, std::string& errorMsg,
-                 int dim, double version, const std::string& filename)
-{
-    int numNodes=0;
-    int numEntityBlocks;
-    std::vector<char> line;
-    if (!get_line(line, f))
-        return EARLY_EOF;
-    int scan_ret;
-    if(version >= 4.1){
-        int minNodes, maxNodes;
-        scan_ret = sscanf(&line[0], "%d %d %d %d", &numEntityBlocks, &numNodes, &minNodes, &maxNodes);
-    } else if (version == 4.0){
-        int tmp;
-        scan_ret = sscanf(&line[0], "%d %d", &tmp, &numNodes);
-        numNodes += tmp;
-    } else {
-        scan_ret = sscanf(&line[0], "%d", &numNodes);    
-    }
-    
-    if (scan_ret == EOF)
-        return EARLY_EOF;
-    if(version >= 4.1){
-        for (int entity = 0; entity < numEntityBlocks; entity++) {
-            int entityDim, entityTag, parametric, numNodesInBlock;
-            if (!get_line(line, f))
-                return EARLY_EOF;
-            scan_ret = sscanf(&line[0], "%d %d %d %d", &entityDim, &entityTag, &parametric, &numNodesInBlock);
-
-            if (parametric == 1){
-                errorMsg = "eScript does not supprot nodefiles with parametric coordinates.";
-                return THROW_ERROR;
-            }
-
-            // Tag information
-            for (int nodes = 0; nodes < numNodesInBlock; nodes++){
-                int tag;
-                if (!get_line(line, f))
-                    return EARLY_EOF;
-                scan_ret = sscanf(&line[0], "%d", &tag);
-                if (scan_ret != 1){
-                    errorMsg = "malformed meshfile (broken node section)!";
-                    return THROW_ERROR;
-                }
-            }
-            // Node coordinate information 
-            for (int nodes = 0; nodes < numNodesInBlock; nodes++){
-                if (!get_line(line, f))
-                    return EARLY_EOF;
-                float x, y, z;
-                scan_ret = sscanf(&line[0], "%f %f %f", &x, &y, &z);
-                if (scan_ret != 3){
-                    errorMsg = "malformed meshfile (broken node section)!";
-                    return THROW_ERROR;
-                }
-            }
-        }
-    } else {
-        for (int node = 0; node < numNodes; node++) {
-            int tmp = 0;
-            if (!get_line(line, f))
-                return EARLY_EOF;
-            scan_ret = sscanf(&line[0], "%d", &tmp);
-            if (scan_ret == EOF) {
-                return EARLY_EOF;
-            } else if (scan_ret != 1) {
-                errorMsg = "malformed meshfile (broken node section)!";
-                return THROW_ERROR;
-            }
-            tags[tmp] = -1;
-        }
-    }
-    if (!get_line(line, f))
-        return EARLY_EOF;
-    if (!is_endnode_string(&line[0])) {
-        std::stringstream ss;
-        ss << "readGmsh: malformed mesh file. Expected '$EndNodes', got '"
-            << &line[0] << "'";
-        errorMsg = ss.str();
-        return THROW_ERROR;
-    }
-    if (!get_line(line, f))
-        return EARLY_EOF;
-    if (strncmp(&line[0], "$ELM", 4) && strncmp(&line[0], "$Elements", 9)) {
-        std::stringstream ss;
-        ss << "readGmsh: malformed mesh file. Expected '$Elements', got '"
-            << &line[0] << "'";
-        errorMsg = ss.str();
-        return THROW_ERROR;
-    }
-    int numElements = -1;
-    int numBlocks = -1;
-    if (!get_line(line, f))
-        return EARLY_EOF;
-    if (version >= 4.1){
-        int minElements, maxElements;
-        scan_ret = sscanf(&line[0], "%d %d %d %d\n", &numBlocks, &numElements, &minElements, &maxElements);
-    } else if (version == 4.0){
-        scan_ret = sscanf(&line[0], "%d %d\n", &numBlocks, &numElements);
-    } else {
-        scan_ret = sscanf(&line[0], "%d\n", &numElements);
-    }
-    if (scan_ret == EOF) {
-        return EARLY_EOF;
-    } else if ((scan_ret != 1 && version < 4.0) || (scan_ret != 2 && version == 4.0) || (scan_ret != 4 && version >= 4.1)) {
-        errorMsg = "readGmsh: malformed mesh file ($Elements section contains incorrect header information)";
-        return THROW_ERROR;
-    }
-    struct ElementInfo e;
-    std::vector<int> v(MAX_numNodes_gmsh, -1);
-    e.vertex = &v[0];
-
-    if(version >= 4.1){
-        int entityTag, entityDim, gmsh_type;
-        for(int blocks = 0; blocks < numBlocks; blocks++){
-            if (!get_line(line, f))
-                return EARLY_EOF;
-            scan_ret = sscanf(&line[0], "%d %d %d %d", &entityDim, &entityTag, &gmsh_type, &numElements); //Note that entityDim and entityTag are switched in version 4.0
-            for(int elementNumber = 0; elementNumber < numElements; elementNumber++){
-                if (!get_line(line, f))
-                    return EARLY_EOF;
-                getSingleElementMSH4(f, dim, version, e, errorMsg, filename, false, gmsh_type, &line[0]); 
-            }
-        }
-    } else if (version == 4.0){
-        for(int x = 0; x < numBlocks; x++){
-            int entityTag, entityDim, gmsh_type;
-            if (!get_line(line, f))
-                return EARLY_EOF;
-            scan_ret = sscanf(&line[0], "%d %d %d %d", &entityTag, &entityDim, &gmsh_type, &numElements);
-            for(int i = 0; i < numElements; i++){
-                if (!get_line(line, f))
-                    return EARLY_EOF;
-                getSingleElementMSH4(f, dim, version, e, errorMsg, filename, false, gmsh_type, &line[0]);    
-            }
-        }
-    } else {
-        for (int element = 0; element < numElements; element++) {
-            getSingleElement(f, dim, version, e, errorMsg, filename, false);
-            for (int i = 0; i < MAX_numNodes_gmsh && v[i] >= 0; i++) {
-                std::map<int,int>::iterator it = tags.find(v[i]);
-                if (it == tags.end()) {
-                    std::stringstream ss;
-                    ss << "readGmsh: element contains unknown node (node " << v[i]
-                        << ")";
-                    errorMsg = ss.str();
-                    return THROW_ERROR;
-                }
-                // the first tagged element using a node tags that node too
-                if (it->second == -1 && e.tag != 0)
-                    tags[v[i]] = e.tag;
-            }
-        }
-    }
-    return 0;
-}
+// int gather_nodes(FILE* f, std::map<int,int>& tags, std::string& errorMsg,
+//                  int dim, double version, const std::string& filename)
+// {
+//     int numNodes=0;
+//     int numEntityBlocks;
+//     std::vector<char> line;
+//     if (!get_line(line, f))
+//         return EARLY_EOF;
+//     int scan_ret;
+//     if(version >= 4.1){
+//         int minNodes, maxNodes;
+//         scan_ret = sscanf(&line[0], "%d %d %d %d", &numEntityBlocks, &numNodes, &minNodes, &maxNodes);
+//     } else if (version == 4.0){
+//         int tmp;
+//         scan_ret = sscanf(&line[0], "%d %d", &tmp, &numNodes);
+//         numNodes += tmp;
+//     } else {
+//         scan_ret = sscanf(&line[0], "%d", &numNodes);
+//     }
+//
+//     if (scan_ret == EOF)
+//         return EARLY_EOF;
+//     if(version >= 4.1){
+//         for (int entity = 0; entity < numEntityBlocks; entity++) {
+//             int entityDim, entityTag, parametric, numNodesInBlock;
+//             if (!get_line(line, f))
+//                 return EARLY_EOF;
+//             scan_ret = sscanf(&line[0], "%d %d %d %d", &entityDim, &entityTag, &parametric, &numNodesInBlock);
+//
+//             if (parametric == 1){
+//                 errorMsg = "eScript does not supprot nodefiles with parametric coordinates.";
+//                 return THROW_ERROR;
+//             }
+//
+//             // Tag information
+//             for (int nodes = 0; nodes < numNodesInBlock; nodes++){
+//                 int tag;
+//                 if (!get_line(line, f))
+//                     return EARLY_EOF;
+//                 scan_ret = sscanf(&line[0], "%d", &tag);
+//                 if (scan_ret != 1){
+//                     errorMsg = "malformed meshfile (broken node section)!";
+//                     return THROW_ERROR;
+//                 }
+//             }
+//             // Node coordinate information
+//             for (int nodes = 0; nodes < numNodesInBlock; nodes++){
+//                 if (!get_line(line, f))
+//                     return EARLY_EOF;
+//                 float x, y, z;
+//                 scan_ret = sscanf(&line[0], "%f %f %f", &x, &y, &z);
+//                 if (scan_ret != 3){
+//                     errorMsg = "malformed meshfile (broken node section)!";
+//                     return THROW_ERROR;
+//                 }
+//             }
+//         }
+//     } else {
+//         for (int node = 0; node < numNodes; node++) {
+//             int tmp = 0;
+//             if (!get_line(line, f))
+//                 return EARLY_EOF;
+//             scan_ret = sscanf(&line[0], "%d", &tmp);
+//             if (scan_ret == EOF) {
+//                 return EARLY_EOF;
+//             } else if (scan_ret != 1) {
+//                 errorMsg = "malformed meshfile (broken node section)!";
+//                 return THROW_ERROR;
+//             }
+//             tags[tmp] = -1;
+//         }
+//     }
+//     if (!get_line(line, f))
+//         return EARLY_EOF;
+//     if (!is_endnode_string(&line[0])) {
+//         std::stringstream ss;
+//         ss << "readGmsh: malformed mesh file. Expected '$EndNodes', got '"
+//             << &line[0] << "'";
+//         errorMsg = ss.str();
+//         return THROW_ERROR;
+//     }
+//     if (!get_line(line, f))
+//         return EARLY_EOF;
+//     if (strncmp(&line[0], "$ELM", 4) && strncmp(&line[0], "$Elements", 9)) {
+//         std::stringstream ss;
+//         ss << "readGmsh: malformed mesh file. Expected '$Elements', got '"
+//             << &line[0] << "'";
+//         errorMsg = ss.str();
+//         return THROW_ERROR;
+//     }
+//     int numElements = -1;
+//     int numBlocks = -1;
+//     if (!get_line(line, f))
+//         return EARLY_EOF;
+//     if (version >= 4.1){
+//         int minElements, maxElements;
+//         scan_ret = sscanf(&line[0], "%d %d %d %d\n", &numBlocks, &numElements, &minElements, &maxElements);
+//     } else if (version == 4.0){
+//         scan_ret = sscanf(&line[0], "%d %d\n", &numBlocks, &numElements);
+//     } else {
+//         scan_ret = sscanf(&line[0], "%d\n", &numElements);
+//     }
+//     if (scan_ret == EOF) {
+//         return EARLY_EOF;
+//     } else if ((scan_ret != 1 && version < 4.0) || (scan_ret != 2 && version == 4.0) || (scan_ret != 4 && version >= 4.1)) {
+//         errorMsg = "readGmsh: malformed mesh file ($Elements section contains incorrect header information)";
+//         return THROW_ERROR;
+//     }
+//     struct ElementInfo e;
+//     std::vector<int> v(MAX_numNodes_gmsh, -1);
+//     e.vertex = &v[0];
+//
+//     if(version >= 4.1){
+//         int entityTag, entityDim, gmsh_type;
+//         for(int blocks = 0; blocks < numBlocks; blocks++){
+//             if (!get_line(line, f))
+//                 return EARLY_EOF;
+//             scan_ret = sscanf(&line[0], "%d %d %d %d", &entityDim, &entityTag, &gmsh_type, &numElements); //Note that entityDim and entityTag are switched in version 4.0
+//             for(int elementNumber = 0; elementNumber < numElements; elementNumber++){
+//                 if (!get_line(line, f))
+//                     return EARLY_EOF;
+//                 getSingleElementMSH4(f, dim, version, e, errorMsg, filename, false, gmsh_type, &line[0]);
+//             }
+//         }
+//     } else if (version == 4.0){
+//         for(int x = 0; x < numBlocks; x++){
+//             int entityTag, entityDim, gmsh_type;
+//             if (!get_line(line, f))
+//                 return EARLY_EOF;
+//             scan_ret = sscanf(&line[0], "%d %d %d %d", &entityTag, &entityDim, &gmsh_type, &numElements);
+//             for(int i = 0; i < numElements; i++){
+//                 if (!get_line(line, f))
+//                     return EARLY_EOF;
+//                 getSingleElementMSH4(f, dim, version, e, errorMsg, filename, false, gmsh_type, &line[0]);
+//             }
+//         }
+//     } else {
+//         for (int element = 0; element < numElements; element++) {
+//             getSingleElement(f, dim, version, e, errorMsg, filename, false);
+//             for (int i = 0; i < MAX_numNodes_gmsh && v[i] >= 0; i++) {
+//                 std::map<int,int>::iterator it = tags.find(v[i]);
+//                 if (it == tags.end()) {
+//                     std::stringstream ss;
+//                     ss << "readGmsh: element contains unknown node (node " << v[i]
+//                         << ")";
+//                     errorMsg = ss.str();
+//                     return THROW_ERROR;
+//                 }
+//                 // the first tagged element using a node tags that node too
+//                 if (it->second == -1 && e.tag != 0)
+//                     tags[v[i]] = e.tag;
+//             }
+//
+//         }
+//     }
+//     return 0;
+// }
 
 int getNodesMaster(escript::JMPI& mpiInfo, FinleyDomain* dom, FILE* fileHandle,
                    int numDim, std::string& errorMsg, std::map<int, int>& tags, double version)
@@ -881,7 +932,7 @@ int getNodesMaster(escript::JMPI& mpiInfo, FinleyDomain* dom, FILE* fileHandle,
     } else {
         scan_ret = sscanf(&line[0], "%d", &numNodes);
     }
-    
+
     SSCANF_CHECK(scan_ret);
 #ifdef ESYS_MPI
     // Broadcast numNodes if there are multiple mpi procs
@@ -970,7 +1021,7 @@ int getNodesMaster(escript::JMPI& mpiInfo, FinleyDomain* dom, FILE* fileHandle,
                     errorFlag = THROW_ERROR;
                     break;
                 }
-                
+
             } else { // Not msh version 4.0 or higher
                 for (int chunkNodes = 0; chunkNodes < chunkSize; chunkNodes++) {
                     if (totalNodes > numNodes) {
@@ -1176,8 +1227,9 @@ FinleyDomain* readGmshMaster(escript::JMPI& mpiInfo,
             nodesRead = true;
             std::vector<int> sendable_map;
             long current = ftell(fileHandle);
-            errorFlag = gather_nodes(fileHandle, nodeTags, errorMsg,
-                    numDim, version, filename.c_str());
+            // errorFlag = gather_nodes(fileHandle, nodeTags, errorMsg,
+            //         numDim, version, filename.c_str());
+            errorFlag=0;
             if (!errorFlag && fseek(fileHandle, current, SEEK_SET) < 0) {
                 errorMsg = "Error in file operation";
                 errorFlag = THROW_ERROR;
@@ -1208,7 +1260,7 @@ FinleyDomain* readGmshMaster(escript::JMPI& mpiInfo,
             elementsRead = true;
             errorFlag = getElementsMaster(mpiInfo, dom, fileHandle, errorMsg,
                             useMacroElements, filename, numDim, version, order,
-                            reducedOrder);
+                            reducedOrder,nodeTags);
         }
         // name tags
         // (thanks to Antoine Lefebvre, antoine.lefebvre2@mail.mcgill.ca)
@@ -1558,4 +1610,3 @@ escript::Domain_ptr FinleyDomain::readGmsh(escript::JMPI mpiInfo,
 }
 
 } // namespace finley
-
