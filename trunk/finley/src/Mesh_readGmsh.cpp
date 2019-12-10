@@ -1354,7 +1354,7 @@ int getNodesSlave(escript::JMPI& mpiInfo, FinleyDomain* dom, int numDim,
     for (index_t i = 0; i < chunkNodes; i++) {
         nodes->Id[i] = tempInts[i];
         nodes->globalDegreesOfFreedom[i] = tempInts[i];
-        nodes->Tag[i] = tags[tempInts[i]] == 1 ? tempints[i] : tags[tempInts[i]];
+        nodes->Tag[i] = tags[tempInts[i]] == -1 ? tempInts[i] : tags[tempInts[i]];
         for (int j = 0; j < numDim; j++) {
             nodes->Coordinates[INDEX2(j,i,numDim)] = tempCoords[i*numDim+j];
         }
