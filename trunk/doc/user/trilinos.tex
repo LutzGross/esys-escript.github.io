@@ -15,7 +15,7 @@
 
 \chapter{Using Trilinos}
 \label{TRILINOS}
-Trilinos has a number of packages and provides a large collection of both direct and indirect solvers.  We refer the reader to \cite{TrilinosWeb} for detais.   We show a few examples for the Trilinos options with a simple example.
+Trilinos has a number of packages and provides a large collection of both direct and indirect solvers.  We refer the reader to \cite{TrilinosWeb} for details.  Escript needs to be installed with Trilinos to be able to use the Trilinos solvers.  See the install guide for details.  We show a few examples for the Trilinos options with a simple example.
 
 Consider Laplacian in domain ($\Omega\in \mathbb{R}^3$) with a simple right hand side,
 \begin{align}
@@ -109,7 +109,7 @@ options.setVerbosityOn()
 
 
 \section{Direct Solvers}
-There are a number of options that can be set for solving the pde.  The simplest way to choose a direct solver is to use the default Trilinos direct solver KLU2.
+There are a number of options that can be set for solving the pde.  The simplest way to choose a direct solver is to use the default Trilinos direct solver KLU2.  Escript can only use this feature if it is available in Trilinos.
 
 To choose the default Trilinos direct solver, set the tolerance for the PDE solver to $10^{-8}$,  use the Trilinos suite of solvers and output information about the solvers, we add code to listing \ref{basic}.
 \begin{python}[caption=default Direct , label=defaultdirect ]
