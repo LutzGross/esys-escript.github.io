@@ -462,15 +462,11 @@ class MinimizerLBFGS(AbstractMinimizer):
         rtype: dictionary with keys 'truncation', 'initialHessian', 'restart', 'max_linesearch_steps', 'max_zoom_steps'
         'interpolationOrder', 'tol_df', 'tol_sm' 
         """
-        return {'truncation':self._truncation,'initialHessian':self._initial_H, 'restart':self._restart, 'max_linesearch_steps' : self._max_linesearch_steps, 'max_zoom_steps' : self._max_zoom_steps, 
+        return {'truncation':self._truncation,'initialHessian':self._initial_H, 'restart':self._restart,
+                 'max_linesearch_steps' : self._max_linesearch_steps, 'max_zoom_steps' : self._max_zoom_steps, 
                 'interpolationOrder': self.interpolationOrder,'tol_df': self._tol_df, 'tol.sm': self._tol_sm}
 
-#    .def("setInnerIterMax", &escript::SolverBuddy::setInnerIterMax, args("iter_max"),"Sets the maximum number of iteration steps for the inner iteration.\n\n"
-        ":param iter_max: maximum number of inner iterations\n"
-        ":type iter_max: ``int``")
-#    .def("setIterMax", &escript::SolverBuddy::setIterMax, args("iter_max"),"Sets the maximum number of iteration steps\n\n"
-        ":param iter_max: maximum number of iteration steps\n"
-        ":type iter_max: ``int``")    
+
 
     def setOptions(self, **opts):
         """
