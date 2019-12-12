@@ -428,7 +428,9 @@ class MinimizerLBFGS(AbstractMinimizer):
     """
     Minimizer that uses the limited-memory Broyden-Fletcher-Goldfarb-Shanno
     method.
-    """
+    See Chapter 6 of 'Numerical Optimization' by J. Nocedal for an explanation.
+   
+    """ 
 
     # History size
     _truncation = 30
@@ -444,11 +446,57 @@ class MinimizerLBFGS(AbstractMinimizer):
 
     # maximum number of zoom steps in line search
     _max_zoom_steps = 50
+
+         
+    # tolerance for the interpolated value of alpha in line search must not be less than tol_sm
+    # i.e. abs(alpha_i) < tol_sm*abs(alpha_{i-1})
+    _tol_sm = 1e-5
+    
+    # the interpolated value of alpha, alpha_i in line search, must differ from the previous 
+    # value by at least this much i.e. abs(alpha_i-alpha_{i-1}) < tol_df    
+    _tol_df = 1e-6
     
     def getOptions(self):
-        return {'truncation':self._truncation,'initialHessian':self._initial_H, 'restart':self._restart, 'max_linesearch_steps' : self._max_linesearch_steps, 'max_zoom_steps' : self._max_zoom_steps}
+        """
+        returns a dictionary of LBFGS options 
+        rtype: dictionary with keys 'truncation', 'initialHessian', 'restart', 'max_linesearch_steps', 'max_zoom_steps'
+        'interpolationOrder', 'tol_df', 'tol_sm' 
+        """
+        return {'truncation':self._truncation,'initialHessian':self._initial_H, 'restart':self._restart, 'max_linesearch_steps' : self._max_linesearch_steps, 'max_zoom_steps' : self._max_zoom_steps, 
+                'interpolationOrder': self.interpolationOrder,'tol_df': self._tol_df, 'tol.sm': self._tol_sm}
+
+#    .def("setInnerIterMax", &escript::SolverBuddy::setInnerIterMax, args("iter_max"),"Sets the maximum number of iteration steps for the inner iteration.\n\n"
+        ":param iter_max: maximum number of inner iterations\n"
+        ":type iter_max: ``int``")
+#    .def("setIterMax", &escript::SolverBuddy::setIterMax, args("iter_max"),"Sets the maximum number of iteration steps\n\n"
+        ":param iter_max: maximum number of iteration steps\n"
+        ":type iter_max: ``int``")    
 
     def setOptions(self, **opts):
+        """
+        setOptions for LBFGS.  use       solver.setOptions( key = value)
+        
+        key : type : (default), "explanation"
+        
+        truncation : 'int' : (30), "sets the number of previous LBFGS iterations to keep\n"
+        initialHessian : 1 or 0 : (1), "1 if initial Hessian is given\n"
+        restart: integer : (60), 
+        max_linesearch_steps: 'int' : (25), "maximum number of line search iterations"
+        max_zoom_steps : 'int' : (60). "maximum number of zoom iterations"
+        interpolationOrder: (1,2,3 or 4): (1), "the order of the interpolation used for line search\n"
+        tol_df: float : (1e-6), "the interpolated value of alpha, alpha_i, must differ from the previous
+                  value by at least this much i.e. abs(alpha_i-alpha_{i-1}) < tol_df  (line search)\n"
+        tol_sm: float : (1e-5) "the interpolated value of alpha must not be less than tol_sm
+                  i.e. abs(alpha_i) < tol_sm*abs(alpha_{i-1})\n"        
+        
+            Example of usage::
+
+              cf=DerivedCostFunction()
+              solver=MinimizerLBFGS(J=cf, m_tol = 1e-5, J_tol = 1e-5, imax=300)
+              solver.setOptions(truncation=20, tol_df =1e-7)
+              solver.run(initial_m)
+              result=solver.getResult()
+        """
         self.logger.debug("Setting options: %s"%(str(opts)))
         for o in opts:
             if o=='historySize' or o=='truncation':
