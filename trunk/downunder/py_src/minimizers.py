@@ -68,6 +68,7 @@ def _zoom(phi, gradphi, phiargs, alpha_lo, alpha_hi, phi_lo, phi_hi, c1, c2,
     Helper function for `line_search` below which tries to tighten the range
     alpha_lo...alpha_hi. See Chapter 3 of 'Numerical Optimization' by
     J. Nocedal for an explanation.
+    interpolation options are linear, quadratic, cubic or Newton interpolation.
     """
 
     def linearinterpolate(alpha_lo,alpha_hi,old_alpha):
@@ -319,7 +320,7 @@ def line_search(f, x, p, g_Jx, Jx, args_x, alpha=1.0, alpha_truncationax=50.0,
 ##############################################################################
 class AbstractMinimizer(object):
     """
-    Base class for function minimization methods.
+    Base class for function minimization methods.   
     """
 
     def __init__(self, J=None, m_tol=1e-4, J_tol=None, imax=300):
@@ -328,6 +329,10 @@ class AbstractMinimizer(object):
 
         :param J: the cost function to be minimized
         :type J: `CostFunction`
+        :param m_tol: terminate interations when relative change of the level set 
+                      function is less than or equal m_tol
+        :type m_tol: float
+ 
         """
         self.setCostFunction(J)
         self.setMaxIterations(imax)
@@ -429,7 +434,6 @@ class MinimizerLBFGS(AbstractMinimizer):
     Minimizer that uses the limited-memory Broyden-Fletcher-Goldfarb-Shanno
     method.
     See Chapter 6 of 'Numerical Optimization' by J. Nocedal for an explanation.
-   
     """ 
 
     # History size
@@ -471,22 +475,35 @@ class MinimizerLBFGS(AbstractMinimizer):
     def setOptions(self, **opts):
         """
         setOptions for LBFGS.  use       solver.setOptions( key = value)
-        
-        key : type : (default), "explanation"
-        
-        truncation : 'int' : (30), "sets the number of previous LBFGS iterations to keep\n"
-        initialHessian : 1 or 0 : (1), "1 if initial Hessian is given\n"
-        restart: integer : (60), 
-        max_linesearch_steps: 'int' : (25), "maximum number of line search iterations"
-        max_zoom_steps : 'int' : (60). "maximum number of zoom iterations"
-        interpolationOrder: (1,2,3 or 4): (1), "the order of the interpolation used for line search\n"
-        tol_df: float : (1e-6), "the interpolated value of alpha, alpha_i, must differ from the previous
-                  value by at least this much i.e. abs(alpha_i-alpha_{i-1}) < tol_df  (line search)\n"
-        tol_sm: float : (1e-5) "the interpolated value of alpha must not be less than tol_sm
-                  i.e. abs(alpha_i) < tol_sm*abs(alpha_{i-1})\n"        
+        :key truncation: sets the number of previous LBFGS iterations to keep
+        :type truncation : int
+        :default truncation: 30
+        :key initialHessian: 1 if initial Hessian is given
+        :type initialHessian: 1 or 0    
+        :default initialHessian: 1       
+        :key restart: restart after this many iteration steps
+        :type restart: int
+        :default restart: 60
+        :key max_linesearch_steps: maximum number of line search iterations
+        :type max_linesearch_steps: int
+        :default max_linesearch_steps: 25  
+        :key max_zoom_steps: maximum number of zoom iterations
+        :type max_zoom_steps: int
+        :default max_zoom_steps: 60
+        :key interpolationOrder: order of the interpolation used for line search 
+        :type interpolationOrder: 1,2,3 or 4
+        :default interpolationOrder: 1      
+        :key tol_df: interpolated value of alpha, alpha_i, must differ
+                   : from the previous value by at least this much 
+                   : abs(alpha_i-alpha_{i-1}) < tol_df  (line search)
+        :type tol_df: float
+        :default tol_df: 1e-6
+        :key tol_sm: interpolated value of alpha must not be less than tol_sm
+                   : abs(alpha_i) < tol_sm*abs(alpha_{i-1})
+        :type tol_sm: float
+        :default tol_sm: 1e-5     
         
             Example of usage::
-
               cf=DerivedCostFunction()
               solver=MinimizerLBFGS(J=cf, m_tol = 1e-5, J_tol = 1e-5, imax=300)
               solver.setOptions(truncation=20, tol_df =1e-7)
@@ -724,6 +741,31 @@ class MinimizerBFGS(AbstractMinimizer):
         return {'initialHessian':self._initial_H}
 
     def setOptions(self, **opts):
+        """
+        setOptions for LBFGS.  use       solver.setOptions( key = value)
+        :key initialHessian: 1 if initial Hessian is given
+        :type initialHessian: 1 or 0    
+        :default initialHessian: 1       
+        :key interpolationOrder: order of the interpolation used for line search 
+        :type interpolationOrder: 1,2,3 or 4
+        :default interpolationOrder: 1      
+        :key tol_df: interpolated value of alpha, alpha_i, must differ
+                   : from the previous value by at least this much 
+                   : abs(alpha_i-alpha_{i-1}) < tol_df  (line search)
+        :type tol_df: float
+        :default tol_df: 1e-6
+        :key tol_sm: interpolated value of alpha must not be less than tol_sm
+                   : abs(alpha_i) < tol_sm*abs(alpha_{i-1})
+        :type tol_sm: float
+        :default tol_sm: 1e-5     
+        
+            Example of usage::
+              cf=DerivedCostFunction()
+              solver=MinimizerBFGS(J=cf, m_tol = 1e-5, J_tol = 1e-5, imax=300)
+              solver.setOptions(tol_df =1e-7)
+              solver.run(initial_m)
+              result=solver.getResult()
+        """
         for o in opts:
             if o=='initialHessian':
                 self._initial_H=opts[o]
