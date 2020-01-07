@@ -1056,9 +1056,6 @@ args("source", "q", "r","factor"),
   enum_<escript::SolverOptions>("SolverOptions")
     .value("DEFAULT", escript::SO_DEFAULT)
 
-    .value("TARGET_CPU", escript::SO_TARGET_CPU)
-    .value("TARGET_GPU", escript::SO_TARGET_GPU)
-
     .value("MKL", escript::SO_PACKAGE_MKL)
     .value("PASO", escript::SO_PACKAGE_PASO)
     .value("TRILINOS", escript::SO_PACKAGE_TRILINOS)

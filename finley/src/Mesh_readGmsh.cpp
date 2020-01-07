@@ -537,54 +537,54 @@ int getElementsMaster(escript::JMPI& mpiInfo, FinleyDomain* dom,
             }
 
             //tags
-            int numNodesPerElement = 0;
-            std::vector<int> v(MAX_numNodes_gmsh, -1);
-            element.vertex = &v[0];
-            switch(element.type) {
-                case Point1:
-                    numNodesPerElement = 1;
-                    break;
-                case Line2:
-                    numNodesPerElement = 2;
-                    break;
-                case Tri3:
-                case Line3:
-                case Line3Macro:
-                    numNodesPerElement = 3;
-                    break;
-                case Rec4:
-                case Tet4:
-                    numNodesPerElement = 4;
-                    break;
-                case Tri6:
-                case Tri6Macro:
-                    numNodesPerElement = 6;
-                    break;
-                case Hex8:
-                case Rec8:
-                    numNodesPerElement = 8;
-                    break;
-                case Rec9:
-                case Rec9Macro:
-                    numNodesPerElement = 9;
-                    break;
-                case Tet10:
-                case Tet10Macro:
-                    numNodesPerElement = 10;
-                    break;
-                case Hex20:
-                    numNodesPerElement = 20;
-                    break;
-                default:
-                    std::stringstream ss;
-                    ss << "readGmsh: element contains unknown node (node)";
-                    errorMsg = ss.str();
-                    return THROW_ERROR;
-            }
+            // int numNodesPerElement = 0;
+            // std::vector<int> v(MAX_numNodes_gmsh, -1);
+            // element.vertex = &v[0];
+            // switch(element.type) {
+            //     case Point1:
+            //         numNodesPerElement = 1;
+            //         break;
+            //     case Line2:
+            //         numNodesPerElement = 2;
+            //         break;
+            //     case Tri3:
+            //     case Line3:
+            //     case Line3Macro:
+            //         numNodesPerElement = 3;
+            //         break;
+            //     case Rec4:
+            //     case Tet4:
+            //         numNodesPerElement = 4;
+            //         break;
+            //     case Tri6:
+            //     case Tri6Macro:
+            //         numNodesPerElement = 6;
+            //         break;
+            //     case Hex8:
+            //     case Rec8:
+            //         numNodesPerElement = 8;
+            //         break;
+            //     case Rec9:
+            //     case Rec9Macro:
+            //         numNodesPerElement = 9;
+            //         break;
+            //     case Tet10:
+            //     case Tet10Macro:
+            //         numNodesPerElement = 10;
+            //         break;
+            //     case Hex20:
+            //         numNodesPerElement = 20;
+            //         break;
+            //     default:
+            //         std::stringstream ss;
+            //         ss << "readGmsh: element contains unknown node (node)";
+            //         errorMsg = ss.str();
+            //         return THROW_ERROR;
+            // }
 // #pragma omp parallel for
-            for (int i = 0; i < numNodesPerElement; i++) {
-                tags[v[i]] = element.tag != 0 ? element.tag : -1;
-            }
+            // for (int i = 0; i < numNodesPerElement; i++) {
+            //     tags[v[i]] = element.tag != 0 ? element.tag : -1;
+            // }
 
             if (element.dim == numDim) {
                 if (finalElementType == NoRef) {
@@ -923,9 +923,9 @@ int getNodesMaster(escript::JMPI& mpiInfo, FinleyDomain* dom, FILE* fileHandle,
         errorFlag = EARLY_EOF;
 
     int numNodes = 0, numBlocks = 0;
+    int minNodeTag = 0, maxNodeTag = 0;
     int scan_ret;
     if(version >= 4.1){
-        int minNodeTag, maxNodeTag;
         scan_ret = sscanf(&line[0], "%d %d %d %d", &numBlocks, &numNodes, &minNodeTag, &maxNodeTag);
     }else if(version == 4.0){
         scan_ret = sscanf(&line[0], "%d %d", &numBlocks, &numNodes);
@@ -944,6 +944,7 @@ int getNodesMaster(escript::JMPI& mpiInfo, FinleyDomain* dom, FILE* fileHandle,
     const size_t storage = std::max(chunkSize, rest);
     std::vector<int> tempInts(storage+1, -1);
     std::vector<double> tempCoords(storage*numDim, -1.);
+    std::vector<double> tempTags(storage*numDim, -1.);
 
     int totalNodes = 0;
 
@@ -953,7 +954,7 @@ int getNodesMaster(escript::JMPI& mpiInfo, FinleyDomain* dom, FILE* fileHandle,
 
         if (!errorFlag) {
             //read in chunksize nodes
-            if(version >= 4.0){
+            if(version == 4.1){
                 int nodeCounter = -1;
                 for (int x = 0; x < numBlocks; x++) {
                     std::vector<char> line;
@@ -967,18 +968,14 @@ int getNodesMaster(escript::JMPI& mpiInfo, FinleyDomain* dom, FILE* fileHandle,
                     }
 
                     int entityTag, entityDim, parametric, numDataPoints;
-                    if (version >= 4.1){
-                        scan_ret = sscanf(&line[0], "%d %d %d %d\n", &entityDim, &entityTag, &parametric, &numDataPoints);
-                    } else {
-                        scan_ret = sscanf(&line[0], "%d %d %d %d\n", &entityTag, &entityDim, &parametric, &numDataPoints);
-                    }
+                    scan_ret = sscanf(&line[0], "%d %d %d %d\n", &entityDim, &entityTag, &parametric, &numDataPoints);
 
                     if (parametric == 1){
                         errorMsg = "eScript does not supprot nodefiles with parametric coordinates.";
                         return THROW_ERROR;
                     }
 
-                    // Tag information. At the moment this information is discarded.
+                    // Node tag information.
                     int temp = nodeCounter;
                     for (int nodes = 0; nodes < numDataPoints; nodes++){
                         if (!get_line(line, fileHandle))
@@ -1008,6 +1005,10 @@ int getNodesMaster(escript::JMPI& mpiInfo, FinleyDomain* dom, FILE* fileHandle,
                             scan_ret = sscanf(&line[0], "%le %le %le\n", &tempCoords[0+nodeCounter*numDim], &tempCoords[1+nodeCounter*numDim], &tempCoords[2+nodeCounter*numDim]);
                             SSCANF_CHECK(scan_ret);
                         }
+                        if(scan_ret != numDim){
+                            errorMsg = "malformed meshfile (broken node section)!";
+                            return THROW_ERROR;
+                        }
                     }
                     totalNodes += numDataPoints;
                 }
@@ -1022,7 +1023,62 @@ int getNodesMaster(escript::JMPI& mpiInfo, FinleyDomain* dom, FILE* fileHandle,
                     break;
                 }
 
-            } else { // Not msh version 4.0 or higher
+            } else if (version == 4.0) {
+                int nodeCounter = -1;
+                for (int x = 0; x < numBlocks; x++) {
+                    std::vector<char> line;
+                    if (!get_line(line, fileHandle))
+                        errorFlag = EARLY_EOF;
+
+                    if (is_endnode_string(&line[0])) {
+                        errorMsg = "readGmsh: found end node string while still reading nodes!";
+                        errorFlag = THROW_ERROR;
+                        break;
+                    }
+
+                    int entityTag, entityDim, typeNode, numDataPoints;
+                    scan_ret = sscanf(&line[0], "%d %d %d %d\n", &entityTag, &entityDim, &typeNode, &numDataPoints);
+
+                    // if (typeNode == 1){
+                    //     errorMsg = "eScript does not supprot nodefiles with parametric coordinates.";
+                    //     return THROW_ERROR;
+                    // }
+
+                    for(int j = 0; j < numDataPoints; j++){
+                        // Get the next line
+                        if (!get_line(line, fileHandle))
+                            return EARLY_EOF;
+
+                        // Read the information
+                        nodeCounter++;
+                        if (1 == numDim) {
+                            scan_ret = sscanf(&line[0], "%d %le\n", &tempInts[nodeCounter], &tempCoords[0+nodeCounter*numDim]);
+                            SSCANF_CHECK(scan_ret);
+                        } else if (2 == numDim) {
+                            scan_ret = sscanf(&line[0], "%d %le %le\n", &tempInts[nodeCounter], &tempCoords[0+nodeCounter*numDim], &tempCoords[1+nodeCounter*numDim]);
+                            SSCANF_CHECK(scan_ret);
+                        } else if (3 == numDim) {
+                            scan_ret = sscanf(&line[0], "%d %le %le %le\n", &tempInts[nodeCounter], &tempCoords[0+nodeCounter*numDim], &tempCoords[1+nodeCounter*numDim], &tempCoords[2+nodeCounter*numDim]);
+                            SSCANF_CHECK(scan_ret);
+                        }
+                        if(scan_ret != numDim+1){
+                            errorMsg = "malformed meshfile (broken node section)!";
+                            return THROW_ERROR;
+                        }
+                    }
+                    totalNodes += numDataPoints;
+                }
+
+                // Possible error (if nodes file is malformed)
+                if (totalNodes > numNodes) {
+                    std::stringstream ss;
+                    ss << "readGmsh: too many nodes (" << totalNodes << " < "
+                        << numNodes << ")";
+                    errorMsg = ss.str();
+                    errorFlag = THROW_ERROR;
+                    break;
+                }
+            } else { // msh version 2.0
                 for (int chunkNodes = 0; chunkNodes < chunkSize; chunkNodes++) {
                     if (totalNodes > numNodes) {
                         std::stringstream ss;
@@ -1082,8 +1138,8 @@ int getNodesMaster(escript::JMPI& mpiInfo, FinleyDomain* dom, FILE* fileHandle,
     NodeFile* nodes = dom->getNodes();
     nodes->allocTable(chunkSize);
 
-// #pragma omp parallel for schedule(static)
-    for (index_t i = 0; i < chunkSize; i++) {
+#pragma omp parallel for private(tags)
+    for(index_t i = 0; i < chunkSize; i++) {
         nodes->Id[i] = tempInts[i];
         nodes->globalDegreesOfFreedom[i] = tempInts[i];
         nodes->Tag[i] = tags[tempInts[i]] == -1 ? tempInts[i] : tags[tempInts[i]];
@@ -1216,6 +1272,16 @@ FinleyDomain* readGmshMaster(escript::JMPI& mpiInfo,
                 errorFlag = EARLY_EOF;
             scan_ret = sscanf(&fmt[0], "%lf %d %d\n", &version, &format, &size);
             SSCANF_CHECK(scan_ret);
+            if(format == 1)
+            {
+                errorMsg = "Finley does not support binary msh files.";
+                errorFlag = THROW_ERROR;
+            }
+            if(!(version == 2.0) && !(version == 2.2) && !(version == 4.0) && !(version == 4.1))
+            {
+                errorMsg = "Finley only supports MSH formats 2.0, 2.2, 4.0 and 4.1.";
+                errorFlag = THROW_ERROR;
+            }
         }
         // nodes are read
         else if (logicFlag == 2 && !errorFlag) {
@@ -1350,7 +1416,7 @@ int getNodesSlave(escript::JMPI& mpiInfo, FinleyDomain* dom, int numDim,
     NodeFile* nodes = dom->getNodes();
     nodes->allocTable(chunkNodes);
 
-// #pragma omp parallel for
+#pragma omp parallel for private(tags)
     for (index_t i = 0; i < chunkNodes; i++) {
         nodes->Id[i] = tempInts[i];
         nodes->globalDegreesOfFreedom[i] = tempInts[i];
