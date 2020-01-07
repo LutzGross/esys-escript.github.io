@@ -366,19 +366,6 @@ void SolverBuddy::setSolverMethod(int method)
 
     switch(meth) {
         case SO_DEFAULT:
-            // using_default_solver_method=true;
-            // if(getDim() == 2){
-            //     if(getPackage() == SO_PACKAGE_PASO && havePASODirect){
-            //         setSolverMethod(SO_METHOD_DIRECT);
-            //     } else if (getPackage() == SO_PACKAGE_TRILINOS){
-            //         setSolverMethod(SO_METHOD_DIRECT);
-            //     } else {
-            //         setSolverMethod(SO_METHOD_ITERATIVE);
-            //     }
-            // } else {
-            //     setSolverMethod(SO_METHOD_ITERATIVE);
-            // }
-            // break;
         case SO_METHOD_ITERATIVE:
         case SO_METHOD_BICGSTAB:
         case SO_METHOD_CGLS:

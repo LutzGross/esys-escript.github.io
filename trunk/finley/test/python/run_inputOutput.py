@@ -205,7 +205,7 @@ class Test_InputOutputOnFinley(unittest.TestCase):
 
      def test_connectivity_info(self):
         if hasFeature("boostnumpy"):
-           domain=Rectangle(n0=3,n1=4)      
+           domain=Rectangle(n0=3,n1=4)
            testvalues=domain.getConnectivityInfo()
            correctvalues=[[0., 1., 5., 4.],
                          [ 1., 2., 6., 5.],
@@ -223,6 +223,13 @@ class Test_InputOutputOnFinley(unittest.TestCase):
                 for j in range(0,4):
                     self.assertEqual(testvalues[i][j],correctvalues[i][j])
 
+     def test_readgmsh_format_3_0(self):
+       self.assertRaises(ValueError, ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,"test.v3.msh"), numDim=3))
+
+     def test_readgmsh_format_4_0(self):
+        mydomain1 = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,"test.v2.msh"), numDim=3)
+        mydomain2 = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,"test.v4.msh"), numDim=3)
+        self.domainsEqual(mydomain1, mydomain2)
 
 if __name__ == '__main__':
     run_tests(__name__, exit_on_failure=True)
