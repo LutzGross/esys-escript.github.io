@@ -490,6 +490,8 @@ class LinearProblem(object):
      # Set on lumping if we are using Speckley
      if domain.getDescription() == 'speckley::Rectangle' or domain.getDescription() == 'speckley::Brick':
          self.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
+     # set number of equations in trilinos
+     self.getSolverOptions().setTrilinosParameter("number of equations", numEquations)
      # initialize things:
      self.resetAllCoefficients()
      self.initializeSystem()
@@ -624,6 +626,7 @@ class LinearProblem(object):
             raise UndefinedPDEError("Number of equations is undefined. Please specify argument numEquations.")
          else:
             self.__numEquations=self.__numSolutions
+            self.getSolverOptions().setTrilinosParameter("number of equations", self.__numEquations)
      return self.__numEquations
 
    def getNumSolutions(self):
