@@ -28,7 +28,11 @@ Author: Antony Hallam antony.hallam@uqconnect.edu.au
 from esys.escript import inf,sup
 from esys.escript.pdetools import Locator
 import numpy as np
-import pylab as pl
+# try:
+#     import pylab as pl
+#     HAVE_PYLAB=True
+# except:
+#     HAVE_PYLAB=False
 try:
     import scipy.interpolate
     HAVE_SCIPY=True
@@ -48,8 +52,8 @@ if HAVE_SCIPY:
         """
         returns a nx x ny grid representation of the escript object u
         """
-        xx=u.getDomain().getX()     
-        x=u.getFunctionSpace().getX()     
+        xx=u.getDomain().getX()
+        x=u.getFunctionSpace().getX()
         coordX, coordY = toXYTuple(x)
         utemp = u.toListOfTuples()
         # create regular grid
@@ -70,11 +74,11 @@ def subsample(u, nx=50, ny=50):
     used for subsampling.
     """
     xx=u.getDomain().getX()  # points of the domain
-    x0=inf(xx[0])         
+    x0=inf(xx[0])
     y0=inf(xx[1])
     dx = (sup(xx[0])-x0)/nx # x spacing
     dy = (sup(xx[1])-y0)/ny # y spacing
-    grid = [ ] 
+    grid = [ ]
     for j in range(0,ny-1):
         for i in range(0,nx-1):
                grid.append([x0+dx/2+dx*i,y0+dy/2+dy*j])
@@ -82,4 +86,3 @@ def subsample(u, nx=50, ny=50):
     subu= uLoc(u) # get data of u at sample points closests to grid points
     usublocs = uLoc.getX() #returns actual locations from data
     return np.array(usublocs), np.array(subu)
-    
