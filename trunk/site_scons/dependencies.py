@@ -11,6 +11,7 @@
 # Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 # Development 2012-2013 by School of Earth Sciences
 # Development from 2014 by Centre for Geoscience Computing (GeoComp)
+# Development from 2019 by School of Earth and Environmental Sciences
 #
 ##############################################################################
 
@@ -76,7 +77,7 @@ def checkCompiler(env):
 
     return conf.Finish()
 
-def get_external_python_sympy(bin):
+def get_external_python_sympy(env,bin):
     import subprocess
     cmd=''
     cmd+='import sympy\n'
@@ -93,6 +94,11 @@ def get_external_python_sympy(bin):
     if int(ver[0]) == 0 and int(ver[1]) < 7:
         env['sympy'] = False
         env['warnings'].append("sympy version is too old.")
+    if (int(ver[0]) == 1 and int(ver[1]) >= 2) or int(ver[0]) >= 2:
+        env['sympy']=False
+        env['warnings'].append("escript does not support sympy version 1.2 and higher.")
+
+    return env
 
 def call_python_config(bin=None):
     import subprocess
@@ -395,14 +401,18 @@ def checkOptionalModules(env):
         env['warnings'].append("Cannot import sympy. Symbolic toolbox and nonlinear PDEs will not be available.")
     else:
         if env['pythoncmd'] is not None:
-            get_external_python_sympy(env['pythoncmd'])
+            env=get_external_python_sympy(env, env['pythoncmd'])
         else:
             import sympy as sp
+            import distutils.version as duv
             spVer=sp.__version__
             spl=spVer.split('.')
-            if int(spl[0]) == 0 and int(spl[1]) < 7:
+            if duv.LooseVersion(sympy.__version__) < duv.LooseVersion('0.7'):
                 env['sympy']=False
                 env['warnings'].append("sympy version too old. Symbolic toolbox and nonlinear PDEs will not be available.")
+            if duv.LooseVersion(sympy.__version__) > duv.LooseVersion('1.2'):
+                env['sympy']=False
+                env['warnings'].append("escript does not support sympy version 1.2 and higher.")
 
     ######## gmshpy
     env['gmshpy'] = detectModule(env, 'gmshpy')
