@@ -103,7 +103,8 @@ class DataManager(object):
             restart_folders = []
             for f in os.listdir(self._workdir):
                 if f.startswith(self._restartprefix):
-                    restart_folders.append(f)
+                    if os.path.isdir(f):
+                        restart_folders.append(f)
             # remove unneeded restart directories
             if len(restart_folders)>0:
                 restart_folders.sort()
@@ -341,4 +342,3 @@ class DataManager(object):
             shutil.rmtree(path, True)
             #print("Removed restart directory %s."%path)
         esc.MPIBarrierWorld()
-
