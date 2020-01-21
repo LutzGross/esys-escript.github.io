@@ -48,6 +48,7 @@ HAVE_TRILINOS = hasFeature("trilinos")
 # PASO_DIRECT is only reported if we have paso and are running single rank
 CAN_USE_DIRECT = hasFeature("PASO_DIRECT") or hasFeature('trilinos')
 skip_muelu_long = False #no_paso and hasFeature("longindex")
+no_paso_direct = not hasFeature("PASO_DIRECT")
 if getMPISizeWorld() > 1:
     USING_MPI = True
 else:
@@ -1770,7 +1771,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
-    @unittest.skipIf(no_paso, "Skipping direct paso test")
+    @unittest.skipIf(no_paso_direct, "Skipping direct paso test")
     def test_DIRECT_PASO(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
@@ -2166,7 +2167,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
-    @unittest.skipIf(no_paso, "Skipping direct paso test")
+    @unittest.skipIf(no_paso_direct, "Skipping direct paso test")
     def test_DIRECT_System_PASO(self):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))

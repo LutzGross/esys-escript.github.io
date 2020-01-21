@@ -96,7 +96,7 @@ def get_external_python_sympy(env,bin):
         env['warnings'].append("sympy version is too old.")
     if (int(ver[0]) == 1 and int(ver[1]) >= 2) or int(ver[0]) >= 2:
         env['sympy']=False
-        env['warnings'].append("escript does not support sympy version 1.2 and higher.")
+        env['warnings'].append("escript does not support sympy version 1.2 and higher. Found version %d.%d" % (int(ver[0]),int(ver[1])))
 
     return env
 
@@ -412,7 +412,7 @@ def checkOptionalModules(env):
                 env['warnings'].append("sympy version too old. Symbolic toolbox and nonlinear PDEs will not be available.")
             if duv.LooseVersion(sympy.__version__) > duv.LooseVersion('1.2'):
                 env['sympy']=False
-                env['warnings'].append("escript does not support sympy version 1.2 and higher.")
+                env['warnings'].append("escript does not support sympy version 1.2 and higher. Found %d" % duv.LooseVersion(sympy.__version__))
 
     ######## gmshpy
     env['gmshpy'] = detectModule(env, 'gmshpy')
