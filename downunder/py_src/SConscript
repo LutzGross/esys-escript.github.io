@@ -21,15 +21,18 @@ local_env = env.Clone()
 # get the source file names
 sources = Glob('*.py')
 fmsources = Glob('forwardmodels/*.py')
+appsources = Glob('apps/*.py')
 
 # compile
 pyc = local_env.PyCompile(sources)
 fmpyc = local_env.PyCompile(fmsources)
+apppyc = local_env.PyCompile(appsources)
 
 # install
 py_inst = local_env.Install(local_env['pyinstall']+'/downunder', pyc)
 fmpy_inst = local_env.Install(local_env['pyinstall']+'/downunder/forwardmodels', fmpyc)
-env.Alias('install_downunder_py', [py_inst, fmpy_inst])
+apppy_inst = local_env.Install(local_env['pyinstall']+'/downunder/apps', apppyc)
+env.Alias('install_downunder_py', [py_inst, fmpy_inst, apppy_inst])
 
 # configure unit tests
 local_env.SConscript(dirs = ['#/downunder/test/python'], variant_dir='$BUILD_DIR/$PLATFORM/downunder/test/python', duplicate=0)
