@@ -743,7 +743,7 @@ class MinimizerBFGS(AbstractMinimizer):
 
     def setOptions(self, **opts):
         """
-        setOptions for LBFGS.  use       solver.setOptions( key = value)
+        setOptions for LBFGS.      use   solver.setOptions( key = value)
         :key initialHessian: 1 if initial Hessian is given
         :type initialHessian: 1 or 0    
         :default initialHessian: 1       
