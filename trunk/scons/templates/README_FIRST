@@ -317,6 +317,10 @@ compressed_files = False
 compression_libs = 'boost_iostreams-mt'
   Compression libraries to link with. DEFAULT: 'boost_iostreams'
 
+disable_boost_numpy = False
+  Do not build escript with the boost numpy libraries, even if they are available.
+  DEFAULT: False
+
 osx_dependency_fix = True
   Whether to apply a dependency fix to libraries (only relevant on OS X).
   DEFAULT: False

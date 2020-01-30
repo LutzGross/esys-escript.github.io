@@ -148,6 +148,7 @@ vars.AddVariables(
   BoolVariable('longindices', 'use long indices (for very large matrices)', False),
   BoolVariable('compressed_files','Enables reading from compressed binary files', True),
   ('compression_libs', 'Compression libraries to link with', ['boost_iostreams']),
+  BoolVariable('disable_boost_numpy', 'Do not build using boost_numpy, even if it is available', False),
   BoolVariable('osx_dependency_fix', 'Fix dependencies for libraries to have absolute paths (OSX)', False),
   BoolVariable('stdlocationisprefix', 'Set the prefix as escript root in the launcher', False),
   BoolVariable('mpi_no_host', 'Do not specify --host in run-escript launcher (only OPENMPI)', False),
