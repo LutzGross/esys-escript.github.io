@@ -20,10 +20,13 @@
 
 escript_opts_version = 203
 openmp = True
-boost_libs = ['boost_python']
-netcdf = True
+pythoncmd='/usr/bin/python2'
 pythonlibpath = ['/usr/lib64']
 pythonlibname = ['python2.7']
 pythonincpath = ['/usr/include/python2.7']
-umfpack = True
-umfpack_prefix = ['/usr/include/suitesparse','/usr/lib']
+boost_libs = ['boost_python27']
+boost_prefix=['/usr/include','/usr/lib64']
+disable_boost_numpy=True
+umfpack=True
+umfpack_prefix=['/usr/include/suitesparse','/usr/lib64']
+netcdf=4

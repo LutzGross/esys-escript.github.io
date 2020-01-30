@@ -91,12 +91,17 @@ def get_external_python_sympy(env,bin):
     else:
         ver = sp.stdout.readline().strip().split('.')
 
-    if int(ver[0]) == 0 and int(ver[1]) < 7:
+    tmp1 = ver[0]
+    tmp2 = ver[1]
+    if tmp2 == '.':
+        tmp2 = ver[2]
+        
+    if int(tmp1) == 0 and int(tmp2) < 7:
         env['sympy'] = False
         env['warnings'].append("sympy version is too old.")
-    if (int(ver[0]) == 1 and int(ver[1]) >= 2) or int(ver[0]) >= 2:
+    if (int(tmp1) == 1 and int(tmp2) >= 2) or int(tmp1) >= 2:
         env['sympy']=False
-        env['warnings'].append("escript does not support sympy version 1.2 and higher. Found version %d.%d" % (int(ver[0]),int(ver[1])))
+        env['warnings'].append("escript does not support sympy version 1.2 and higher. Found version %d.%d" % (int(tmp1),int(tmp2)))
 
     return env
 
@@ -277,7 +282,7 @@ def checkBoost(env):
 
     # Check for the boost numpy library
     env['have_boost_numpy']=False
-    if boostversion >= 106300:
+    if boostversion >= 106300 and env['disable_boost_numpy'] is False:
         try:
             boost_numpy_inc_path,boost_numpy_lib_path=findLibWithHeader(env, env['boost_libs'], 'boost/python/numpy.hpp', env['boost_prefix'], lang='c++')
 

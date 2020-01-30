@@ -27,5 +27,5 @@ pythonlibname = ['python2.7']
 pythonincpath = ['/usr/include/python2.7']
 netcdf = True
 umfpack = True
-umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
-umfpack_libs = ['umfpack', 'blas', 'amd']
+umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib64']
+umfpack_libs = ['umfpack', 'amd']
