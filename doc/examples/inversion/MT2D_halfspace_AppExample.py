@@ -12,7 +12,7 @@ The script will not run under more than one MPI rank.
 """
 from esys.escript import *
 from esys.ripley import Rectangle
-from esys.downunder.apps.MTModels import MT2DTEModel, MT2DTMModel
+from esys.downunder.apps import MT2DTEModel, MT2DTMModel
 
 from esys.weipa import saveVTK, saveSilo
 from esys.escript.pdetools import Locator

@@ -9,7 +9,7 @@ class MagneticModel2D(object):
     """
     This class is a simple wrapper for a 2D magnetic PDE model.  
     It solves PDE
-        - div (grad u) = k . Bh
+        - div (grad u) = -div(k Bh)
     where 
        k  is magnetic susceptibility and 
        Bh is background magnetic field.
@@ -120,7 +120,7 @@ class MagneticModel3D(object):
     """
     This class is a simple wrapper for a 3D magnetic forward model.  
     It solves PDE
-        - div (grad u) = k . Bh
+        - div (grad u) = -div(k Bh)
     where 
        k  is magnetic susceptibility and 
        Bh is background magnetic field.

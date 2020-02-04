@@ -23,7 +23,7 @@ The output from this code is a silo file containing susceptibility, k, and magne
 from esys.escript import *
 from esys.finley import Rectangle
 from esys.weipa import saveSilo
-from esys.downunder.apps.magneticModels import MagneticModel2D
+from esys.downunder.apps import MagneticModel2D
 import numpy as np 
 
 # Set Parameters

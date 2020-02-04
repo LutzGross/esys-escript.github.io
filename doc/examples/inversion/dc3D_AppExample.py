@@ -18,14 +18,14 @@ This example is for a model with conductivity = 1 apart from a small sphere cent
 
 Sources are on the top of the domain, z=zmax.
 
-The output from this code is a silo file containing susceptibility, k, and magnetic field, ba.   
+The output from this code is a silo file containing conductivity and primary and secondary electric potential.   
 """
 
 # Import required modules
 from esys.escript import *
 from esys.finley import Brick
 from esys.weipa import saveSilo
-from esys.downunder.apps.dcModels import dcResistivityModel
+from esys.downunder.apps import DCResistivityModel
 import numpy as np 
 
 # Set Parameters
@@ -36,7 +36,7 @@ NEz = 200      # number of nodes in the z direction
 H0 = 600       # height [m] of transect above bottom of domain (will be locked to grid)
 sig_p = 1.     # primary conductivity
 sig_2 = 100.   # conductivity in ball
-useAnalytic = False
+useAnalytic = True
 
 POSx = 100
 POSy = 70
@@ -70,7 +70,7 @@ x=domain.getX()
 d=length(x-c)
 
 sigma = Scalar(sig_p,ContinuousFunction(domain))
-model=dcResistivityModel(domain,sigma0=sigma,useFastSolver = True)
+model=DCResistivityModel(domain,sigma0=sigma,useFastSolver = True)
 print("ERT forward model created.")
 print("background conductivity = %s"%(sigma))
 
@@ -94,5 +94,5 @@ sphereCond=sigma+(sig_2-sig_p)*whereNegative(d-R)    # 0 for d>R and 1 for d<R
 
 model.setConductivity(sphereCond)
 
-saveSilo("dcFEonly",sigma=model.getConductivity(), u2=model.getSecondaryPotential(),up=model.getPrimaryPotential())
+saveSilo("dcAppExample",sigma=model.getConductivity(), u2=model.getSecondaryPotential(),up=model.getPrimaryPotential())
 

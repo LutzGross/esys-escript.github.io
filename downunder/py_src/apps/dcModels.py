@@ -11,7 +11,7 @@ from esys.weipa import saveVTK, saveSilo
 from esys.escript.pdetools import Locator
 from esys.escript.linearPDEs import LinearSinglePDE, SolverOptions
 
-class dcResistivityModel(object):
+class DCResistivityModel(object):
     """
     This class is a simple wrapper for 3D Dirac function direct current sources PDE model.  
     It solves PDE
@@ -148,7 +148,6 @@ class dcResistivityModel(object):
     def getPrimaryField(self):
         """
         returns the primary electric field. This is -grad(getPrimaryPotential())
-        
         """
         if self.primary_E is None:
             raise ValueError("no primary field set.")
@@ -203,3 +202,116 @@ class dcResistivityModel(object):
         returns the total potential. This is -grad(getPotential())
         """
         return self.getPrimaryField()+self.getSecondaryField()  
+    
+class DCResistivityModelNoPrimary(object):
+    """
+    This class is a simple wrapper for 3D Dirac function direct current sources PDE model.  
+    It solves PDE
+        - div (sigma grad u) = sum (I_s d_dirac(x_s))
+    where 
+       I_s  is the applied cirrent at x_s and 
+       we sum over all sources s. 
+    Possible boundary conditions included in the class are Dirichlet on 
+       - top (default) or  
+       - top and base
+       
+    It solves just the one load condition, either with 
+       - sources as one function = sum (I_s d_dirac(x_s) (FE primary solution)
+
+    It has a function to set ground property 
+       - setConductivity
+    get ground property
+       - getConductivity
+    
+    It just solves PDE without splitting into primary and secondary.
+    
+    Output solution
+       - getSecondaryPotential
+       - getSecondaryField
+       - getPotential
+       - getField
+    """
+
+    def __init__(self, domain, source, sigma=0.001, fixAllFaces=True, useFastSolver=False):
+        """
+        Initialise the class with domain and boundary conditions.
+        Setup PDE and conductivity.
+        :param domain: the domain 
+        :type domain: `Domain`
+        :param sigma0: background electric conductivity for the primary potential
+        :type sigma0: typically `float`
+        :param fixAllFaces: if true the potential at all faces except the top are set to zero. 
+            Otherwise only the base is set to zero.
+        :type fixAllFaces: `bool`
+        :param useFastSolver: use multigrid solver. This may fail.  (Changing the mesh could stop this fail.) 
+        :type useFastSolver: `bool`
+        """
+        self.domain = domain
+        self.fixAllFaces = fixAllFaces
+        self.useFastSolver = useFastSolver
+        self.sigma = sigma
+        self.potential = None
+        self.source=source
+        self.pde=self.__createPDE()
+
+
+    def __createPDE(self):
+        """
+        Create the PDE and set boundary conditions.
+        """
+        pde = LinearSinglePDE(self.domain, isComplex=False)
+        optionsG = pde.getSolverOptions()
+        optionsG.setSolverMethod(SolverOptions.PCG)
+        pde.setSymmetryOn()
+        assert self.source.getFunctionSpace() == DiracDeltaFunctions(self.domain)
+        sigma=interpolate(self.sigma, Function(self.domain))
+        pde.setValue(A=sigma*kronecker(self.domain), y_dirac=self.source)
+        if self.useFastSolver and hasFeature('trilinos'):
+            optionsG.setPackage(SolverOptions.TRILINOS)
+            optionsG.setPreconditioner(SolverOptions.AMG)
+        if self.fixAllFaces:
+            x=pde.getDomain().getX()[0]
+            y=pde.getDomain().getX()[1]
+            z=pde.getDomain().getX()[2]
+            pde.setValue(q=whereZero(x-inf(x))+whereZero(x-sup(x))+ whereZero(y-inf(y))+whereZero(y-sup(y))+whereZero(z-inf(z)))
+        else:
+            z=pde.getDomain().getX()[2]
+            pde.setValue(q=whereZero(z-inf(z)))
+        return pde
+        
+    def getPotential(self, source = None):
+        """
+        get the potential using the source term `source`.
+        :param source: source of charges as `DiracDeltaFunctions` object
+        :type source: `Data` object
+        """
+        u = self.pde.getSolution()
+        self.potential= u  #interpolate(u, Function(self.domain))
+        return self.potential
+            
+    def getPrimaryField(self):
+        """
+        returns the primary electric field. This is -grad(getPrimaryPotential())
+        """
+        if self.potential is None:
+            raise ValueError("no potential yet.")
+        self.field  = -grad(self.potential, Function(self.domain))
+        return self.field
+    
+    def setConductivity(self,sig):
+        """
+        returns the conductivity
+        """
+        self.sigma=sig        
+        sigma=interpolate(self.sigma, Function(self.domain))
+        self.pde.setValue(A=sigma*kronecker(self.domain.getDim()))
+        return self
+    
+    def getConductivity(self):
+        """
+        returns the conductivity
+        """
+        return self.sigma
+    
+   
+ 
