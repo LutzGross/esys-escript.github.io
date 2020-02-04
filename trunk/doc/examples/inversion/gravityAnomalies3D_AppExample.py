@@ -23,7 +23,7 @@ The output from this code is a silo file containing density, and vertical gravit
 from esys.escript import *
 from esys.finley import Brick
 from esys.weipa import saveSilo
-from esys.downunder.apps.gravityModels import GravityModel
+from esys.downunder.apps import GravityModel
 import numpy as np 
 
 # Set Parameters
