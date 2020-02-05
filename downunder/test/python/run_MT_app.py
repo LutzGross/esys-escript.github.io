@@ -2,13 +2,15 @@ __copyright__ = "Copyright (c) 2020 by University of Queensland http://www.uq.ed
 __license__   = "Licensed under the Apache License, version 2.0 http://www.apache.org/licenses/LICENSE-2.0"
 __credits__   = "Lutz Gross"
 
-import unittest
+# import unittest
 import sys
 import numpy as np
 from esys.escript import *
 from esys.escript.pdetools import Locator
 from esys.ripley import Rectangle
 from esys.downunder.apps import MT2DTEModel, MT2DTMModel
+import esys.escriptcore.utestselect as unittest
+from esys.escriptcore.testing import *
 
 class TestMT2DTE(unittest.TestCase):
     

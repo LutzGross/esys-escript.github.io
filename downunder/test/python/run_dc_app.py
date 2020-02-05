@@ -19,9 +19,9 @@ from esys.escript.linearPDEs import LinearSinglePDE, SolverOptions
 class TestDCResistivityApp(unittest.TestCase):
 
     dx = 10         # grid line spacing in [m]
-    NEx = 200      # number of nodes in the x direction
-    NEy = 200      # number of nodes in the y direction
-    NEz = 200      # number of nodes in the z direction
+    NEx = 50      # number of nodes in the x direction
+    NEy = 50      # number of nodes in the y direction
+    NEz = 50      # number of nodes in the z direction
     H0 = 600       # height [m] of transect above bottom of domain (will be locked to grid)
     sig_p = 1.     # primary conductivity
     sig_2 = 100.   # conductivity in ball    xdim = 1000.

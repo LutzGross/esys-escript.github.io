@@ -2,7 +2,8 @@ __copyright__ = "Copyright (c) 2020 by University of Queensland http://www.uq.ed
 __license__   = "Licensed under the Apache License, version 2.0 http://www.apache.org/licenses/LICENSE-2.0"
 __credits__   = "Andrea Codd"
 
-import unittest
+import esys.escriptcore.utestselect as unittest
+from esys.escriptcore.testing import *
 import sys
 import numpy as np
 import esys.escript.unitsSI as U
