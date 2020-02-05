@@ -887,7 +887,7 @@ int getNodesMaster(escript::JMPI& mpiInfo, FinleyDomain* dom, FILE* fileHandle,
 
         if (!errorFlag) {
             //read in chunksize nodes
-            if(version >= 4.0){
+            if(version == 4.1){
                 int nodeCounter = -1;
                 for (int x = 0; x < numBlocks; x++) {
                     std::vector<char> line;
@@ -901,11 +901,7 @@ int getNodesMaster(escript::JMPI& mpiInfo, FinleyDomain* dom, FILE* fileHandle,
                     }
 
                     int entityTag, entityDim, parametric, numDataPoints;
-                    if (version >= 4.1){
-                        scan_ret = sscanf(&line[0], "%d %d %d %d\n", &entityDim, &entityTag, &parametric, &numDataPoints);
-                    } else {
-                        scan_ret = sscanf(&line[0], "%d %d %d %d\n", &entityTag, &entityDim, &parametric, &numDataPoints);
-                    }
+                    scan_ret = sscanf(&line[0], "%d %d %d %d\n", &entityDim, &entityTag, &parametric, &numDataPoints);
 
                     if (parametric == 1){
                         errorMsg = "eScript does not supprot nodefiles with parametric coordinates.";
@@ -944,6 +940,58 @@ int getNodesMaster(escript::JMPI& mpiInfo, FinleyDomain* dom, FILE* fileHandle,
                         }
                     }
                     totalNodes += numDataPoints;
+                }
+
+                // Possible error (if nodes file is malformed)
+                if (totalNodes > numNodes) {
+                    std::stringstream ss;
+                    ss << "readGmsh: too many nodes (" << totalNodes << " < "
+                        << numNodes << ")";
+                    errorMsg = ss.str();
+                    errorFlag = THROW_ERROR;
+                    break;
+                }
+
+            } else if(version == 4.0){
+                int nodeCounter = -1;
+                for (int x = 0; x < numBlocks; x++) {
+                    std::vector<char> line;
+                    if (!get_line(line, fileHandle))
+                        errorFlag = EARLY_EOF;
+
+                    if (!strncmp(&line[0], "$ENDNOD", 7) || !strncmp(&line[0], "$ENDNOE", 7) || !strncmp(&line[0], "$EndNodes", 9)) {
+                        errorMsg = "readGmsh: found end node string while still reading nodes!";
+                        errorFlag = THROW_ERROR;
+                        break;
+                    }
+
+                    int entityTag, entityDim, parametric, numNodes;
+                    scan_ret = sscanf(&line[0], "%d %d %d %d\n", &entityTag, &entityDim, &parametric, &numNodes);
+                    
+                    if (parametric == 1){
+                        errorMsg = "eScript does not supprot nodefiles with parametric coordinates.";
+                        return THROW_ERROR;
+                    }
+
+                    for(int j = 0; j < numNodes; j++){
+                        // Get the next line
+                        if (!get_line(line, fileHandle))
+                            return EARLY_EOF;
+
+                        // Read the information
+                        nodeCounter++;
+                        if (1 == numDim) {
+                            scan_ret = sscanf(&line[0], "%d %le\n", &tempInts[nodeCounter], &tempCoords[0+nodeCounter*numDim]);
+                            SSCANF_CHECK(scan_ret);
+                        } else if (2 == numDim) {
+                            scan_ret = sscanf(&line[0], "%d %le %le\n", &tempInts[nodeCounter], &tempCoords[0+nodeCounter*numDim], &tempCoords[1+nodeCounter*numDim]);
+                            SSCANF_CHECK(scan_ret);
+                        } else if (3 == numDim) {
+                            scan_ret = sscanf(&line[0], "%d %le %le %le\n", &tempInts[nodeCounter], &tempCoords[0+nodeCounter*numDim], &tempCoords[1+nodeCounter*numDim], &tempCoords[2+nodeCounter*numDim]);
+                            SSCANF_CHECK(scan_ret);
+                        }
+                    }
+                    totalNodes += numNodes;
                 }
 
                 // Possible error (if nodes file is malformed)
