@@ -66,8 +66,8 @@
             "sources": [
                 {
                     "type": "archive",
-                    "url": "ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-c-4.6.2.tar.gz",
-                    "sha256": "c37525981167b3cd82d32e1afa3022afb94e59287db5f116c57f5ed4d9c6a638"
+                    "url": "ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-c-4.7.3.tar.gz",
+                    "sha256": "8e8c9f4ee15531debcf83788594744bd6553b8489c06a43485a15c93b4e0448b"
                 }
             ]
         },
@@ -235,7 +235,7 @@
                 {
                     "type": "svn",
                     "url": "https://svn.geocomp.uq.edu.au/svn/esys13/trunk",
-                    "revision": "6838"
+                    "revision": "6945"
                 }
             ]
         }

@@ -16,6 +16,28 @@
 \chapter{Changes from previous releases}
 \label{app:changes}
 
+\subsection*{5.5}
+\begin{itemize}
+\item New classes for Magnetic, Gravity, 2DMT, Seismic (frequency domain). See doc/examples for documentation.
+\item Extended escript support for numpy with several new functions (getNumpyX, convertToNumpy).
+\item The getX function now works on Data objects.
+\item Finley, Ripley and Speckley now allow integration over Dirac Delta Data objects.
+\item Finley and Dudley now allow users to interpolate from Reduced Function Data to Function Data.
+\item Added complex version of Scalar, Vector and Tensor objects (ComplexScalar, ComplexVector, ComplexTensor).
+\item Added a new function, ComplexData, that returns a Complex Data object.
+\item Speckley has a new assembler that allows a user to assembled a lumped matrix with complex values.
+\item Lumping is now the default setting when solving PDEs using Speckley.
+\item Added support for Gmsh MSH4.1 files in Finley readGmsh.
+\item The Finley readGmsh function is now much faster.
+\item Added several functions to aid plotting Data objects in Jupyter notebooks.
+\item Added support for Trilinos 12.12.
+\item Added Trilinos section to the userguide.
+\item Added Scons options files for Python 3 builds.
+\item The Install guide now lists the Python 3 versions of packages.
+\item More complete API.
+\item Bug fixes.
+\end{itemize}
+
 \subsection*{5.4}
 \begin{itemize}
 \item New deployment options: Flatpak, Docker, Anaconda (Linux)
