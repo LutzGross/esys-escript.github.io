@@ -18,7 +18,7 @@
 # Refer to README_FIRST for usage instructions.
 
 openmp = True
-# umfpack = True
+umfpack = True
 # silo = True
 # mpi = 'OPENMPI'
 # verbose = True
@@ -48,9 +48,7 @@ mpi_libs = ['mpi_cxx', 'mpi']
 parmetis_libs = ['parmetis', 'metis']
 silo_libs = ['siloh5', 'hdf5_cpp']
 umfpack_libs = ['umfpack', 'blas', 'amd']
-
-# gmsh_prefix=['/usr/local/include','/usr/local/lib']
-lapack_prefix = ['/usr/include/atlas', '/usr/lib/atlas-base']
+lapack_prefix = ['/usr/include/x86_64-linux-gnu', '/usr/lib/x86_64-linux-gnu']
 d_mpi_path = '/usr/include/openmpi'
 mpi_prefix = os.path.split(os.path.realpath(d_mpi_path))[0]
 parmetis_prefix = ['/usr/include','/usr/lib']
@@ -64,7 +62,7 @@ if cxx=='clang++':
 elif mpi=='OPENMPI':
   trilinos_prefix =['/usr/local/trilinos_mpi/include/','/usr/local/trilinos_mpi/lib/']
 else:
-  trilinos_prefix =['/usr/local/trilinos/include/','/usr/local/trilinos/lib/']
+  trilinos_prefix =['/usr/local/trilinos_nompi/include/','/usr/local/trilinos_nompi/lib/']
 
 if trilinos == True:
   print("Meerkat config: Using trilinos libraries %s" % trilinos_prefix)

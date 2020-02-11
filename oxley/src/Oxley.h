@@ -21,6 +21,8 @@
 #include <string>
 #include <vector>
 
+#include <p4est_base.h>
+
 #define MAXP4ESTNODES 10000 // Maximum allowed nodes in the p4est / p8est
 #define MAXREFINEMENTLEVELS 5 // Default levels of refinement
 #define MAXTAGS 100 // Maximum allowed number of tags in a domain
@@ -65,6 +67,8 @@ typedef std::vector<index_t> IndexVector;
 typedef std::vector<real_t> DoubleVector;
 typedef std::vector<int> RankVector;
 typedef std::map<std::string,int> TagMap;
+
+typedef p4est_topidx_t p8est_topidx_t;
 
 // fs types
 // enum {

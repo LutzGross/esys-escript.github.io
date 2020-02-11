@@ -56,6 +56,14 @@ signed aboveSurface(std::vector<double> x, std::vector<double> y, std::vector<do
 double distanceToSurface(double x[], double y[], double z[],
                     int nx, int ny, double _x, double _y, double _z);
 
+// Returns true if the quadrant/octant is on the boundary
+bool onBoundary(p4est_quadrant_t * quadrant);
+bool onBoundary(p8est_quadrant_t * octant);
+
+// Returns true if the quadrant/octant has a hanging node
+bool isHanging(p4est_quadrant_t * quadrant);
+bool isHanging(p8est_quadrant_t * octant);
+
 ///////////////////////////////////////////////////////////////////////////
 
 } // end namespace oxley
