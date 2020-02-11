@@ -164,6 +164,9 @@ Brick::Brick(int order,
     int allow_coarsening = 0;
     p8est_partition(p8est, allow_coarsening, NULL);
 
+    // Create the node numbering scheme
+    nodes = p8est_lnodes_new(p8est, NULL, 2);
+
     // To prevent segmentation faults when using numpy ndarray
 #ifdef ESYS_HAVE_BOOST_NUMPY
     Py_Initialize();
@@ -181,6 +184,7 @@ Brick::~Brick(){
     // free(forestData);
     p8est_connectivity_destroy(connectivity);
     p8est_destroy(p8est);
+    p8est_lnodes_destroy(nodes);
     // sc_finalize();
 }
 

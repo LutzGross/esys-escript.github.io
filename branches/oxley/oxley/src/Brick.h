@@ -24,6 +24,7 @@
 
 #include <p8est.h>
 #include <p8est_connectivity.h>
+#include <p8est_lnodes.h>
 
 #include <boost/python.hpp>
 
@@ -187,6 +188,9 @@ private:
 
     // This object records the connectivity of the p8est quadrants
     p8est_connectivity_t * connectivity;
+
+    // This structure records the node numbering information
+    p8est_lnodes * nodes;
 
     // Pointer that records the location of a temporary data structure
     void * temp_data;

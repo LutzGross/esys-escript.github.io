@@ -28,7 +28,14 @@
 #include <p4est_iterate.h>
 #include <p4est_lnodes.h>
 
-#include <p4est_algorithms.h> //aeae delete this
+#include <p8est.h>
+// #include <p8est_bits.h>
+// #include <p8est_extended.h>
+// #include <p8est_ghost.h>
+// #include <p8est_iterate.h>
+// #include <p8est_lnodes.h>
+
+// #include <p4est_algorithms.h> 
 
 namespace oxley {
 
@@ -381,5 +388,20 @@ double distanceToSurface(double x[], double y[], double z[], int nx, int ny, dou
 }
 
 
+
+bool onBoundary(p4est_quadrant_t * quadrant)
+{
+    return  (quadrant->x == 0) || (quadrant->x == P4EST_ROOT_LEN) ||
+            (quadrant->y == 0) || (quadrant->y == P4EST_ROOT_LEN);
+
+
+}
+
+bool onBoundary(p8est_quadrant_t * octant)
+{
+    return  (octant->x == 0) || (octant->x == P8EST_ROOT_LEN) ||
+            (octant->y == 0) || (octant->y == P8EST_ROOT_LEN) ||
+            (octant->z == 0) || (octant->z == P8EST_ROOT_LEN);
+}
 
 } // end namespace oxley

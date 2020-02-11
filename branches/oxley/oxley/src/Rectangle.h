@@ -25,6 +25,7 @@
 
 #include <p4est.h>
 #include <p4est_connectivity.h>
+#include <p4est_lnodes.h>
 
 #include <boost/python.hpp>
 #ifdef ESYS_HAVE_BOOST_NUMPY
@@ -199,8 +200,11 @@ private:
     // The data structure in p4est
     p4estData * forestData;
 
-    // This object records the connectivity of the p4est quadrants
+    // This structure records the connectivity of the p4est quadrants
     p4est_connectivity_t * connectivity;
+
+    // This structure records the node numbering information
+    p4est_lnodes * nodes;
 
     // Pointer that records the location of a temporary data structure
     void * temp_data;
