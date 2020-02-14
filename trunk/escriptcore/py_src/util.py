@@ -111,6 +111,7 @@ def insertTaggedValues(target,**kwargs):
 
 
 def interpolateTable(tab, dat, start, step, undef=1.e50, check_boundaries=False):
+    print("WARNING: This function is deprecated and is known to contain bugs.")
     try:
         dim=len(start)
     except TypeError:
