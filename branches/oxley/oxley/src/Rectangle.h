@@ -20,6 +20,7 @@
 #include <escript/EsysMPI.h>
 #include <escript/SubWorld.h>
 
+#include <oxley/AbstractAssembler.h>
 #include <oxley/OxleyData.h>
 #include <oxley/OxleyDomain.h>
 
@@ -42,6 +43,9 @@ namespace oxley {
 */
 class Rectangle: public OxleyDomain
 {
+
+    template<class Scalar> friend class DefaultAssembler2D;
+
 public:
 
     /**
@@ -77,17 +81,22 @@ public:
 
     /**
        \brief
+       writes the current mesh to a file with the given name
+       \param filename The name of the file to write to
+    */
+    virtual void write(const std::string& filename) const;
+
+    /**
+       \brief
        dumps the mesh to a file with the given name
        \param filename The name of the output file
     */
     virtual void dump(const std::string& filename) const;
 
     /**
-       \brief
-       writes the current mesh to a file with the given name
-       \param filename The name of the file to write to
+       \brief equality operator
     */
-    virtual void write(const std::string& filename) const;
+    virtual bool operator==(const escript::AbstractDomain& other) const;
 
     /**
        \brief
@@ -172,24 +181,33 @@ public:
 
     /**
        \brief
-       returns a Data object containing the coordinate information
+       returns the number of vertices (int)
     */
     int getNumVertices() const { return connectivity->num_vertices;};
 
+    /**
+       \brief
+       creates and returns an assembler of the requested type.
+    */
+    virtual Assembler_ptr createAssembler(std::string type, const DataMap& options) const;
 
-    // These functions are used internally
+
+    virtual dim_t findNode(const double *coords) const;
+
+    /**
+       \brief inequality operator
+    */
+    // virtual bool operator!=(const escript::AbstractDomain& other) const {
+    //     return !(operator==(other));
+    // }
+
+    // These functions are used internally and are not exposed to python
     p4est_t * borrow_p4est() const { return p4est;};
-
     p4estData * borrow_forestData() { return forestData;};
-
     p4est_connectivity_t * borrow_connectivity() const { return connectivity; };
-
     void * borrow_temp_data() { return temp_data; };
-
     void set_temp_data(addSurfaceData * x) { temp_data = x; };
-
     void clear_temp_data() { free(temp_data); };
-
     void print_debug_report(std::string);
 
 private:
@@ -206,10 +224,71 @@ private:
     // This structure records the node numbering information
     p4est_lnodes * nodes;
 
+    // This ghost is needed to initialise the node numbering structure p4est_lnodes
+    p4est_ghost_t * nodes_ghost;
+
     // Pointer that records the location of a temporary data structure
     void * temp_data;
 
+protected:
+    virtual dim_t getNumNodes() const;
+    virtual dim_t getNumElements() const;
+    virtual dim_t getNumFaceElements() const;
+    virtual dim_t getNumDOF() const;
+    // virtual dim_t getNumDOFInAxis(unsigned axis) const;
+    // virtual index_t getFirstInDim(unsigned axis) const;
+    // virtual IndexVector getDiagonalIndices(bool upperOnly) const;
+    virtual void assembleCoordinates(escript::Data& arg) const;
+    virtual void assembleGradient(escript::Data& out, const escript::Data& in) const;
+    // virtual void assembleIntegrate(std::vector<real_t>& integrals, const escript::Data& arg) const;
+    // virtual void assembleIntegrate(std::vector<cplx_t>& integrals, const escript::Data& arg) const;
+    virtual std::vector<IndexVector> getConnections(bool includeShared=false) const;
+#ifdef ESYS_HAVE_TRILINOS
+    virtual esys_trilinos::const_TrilinosGraph_ptr getTrilinosGraph() const;
+#endif
+#ifdef ESYS_HAVE_PASO
+    virtual paso::SystemMatrixPattern_ptr getPasoMatrixPattern(bool reducedRowOrder, bool reducedColOrder) const;
+#endif
+    virtual void interpolateNodesOnElements(escript::Data& out, const escript::Data& in, bool reduced) const;   
+    virtual void interpolateNodesOnFaces(escript::Data& out, const escript::Data& in, bool reduced) const;
+    virtual void nodesToDOF(escript::Data& out, const escript::Data& in) const;
+    virtual dim_t getDofOfNode(dim_t node) const;
+    virtual void populateSampleIds();
+    virtual void populateDofMap();
+
+    template <typename S>
+    void interpolateNodesOnElementsWorker(escript::Data& out,
+                                  const escript::Data& in, bool reduced, S sentinel) const;   
+    template <typename S>
+    void interpolateNodesOnFacesWorker(escript::Data& out,
+                                         const escript::Data& in,
+                                         bool reduced, S sentinel) const;  
+
+    template<typename Scalar>
+    void assembleGradientImpl(escript::Data& out,
+                              const escript::Data& in) const;
+
+    template<typename Scalar> void addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F,
+           const std::vector<Scalar>& EM_S, const std::vector<Scalar>& EM_F,
+           bool addS, bool addF, index_t firstNode, int nEq=1, int nComp=1) const;
+
+    // Updates m_faceOffset for each quadrant
+    void updateFaceOffset();
+
+#ifdef ESYS_HAVE_PASO
+    // the Paso System Matrix pattern
+    mutable paso::SystemMatrixPattern_ptr m_pattern;
+#endif
+
+#ifdef ESYS_HAVE_TRILINOS
+    /// Trilinos graph structure, cached for efficiency
+    mutable esys_trilinos::const_TrilinosGraph_ptr m_graph;
+#endif
+
+    IndexVector getNodeDistribution() const;
+
 };
+
 
 typedef POINTER_WRAPPER_CLASS(Rectangle) OxleyDomainRect_ptr;
 

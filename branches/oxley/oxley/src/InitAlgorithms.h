@@ -63,6 +63,15 @@ void gce_brick_replace(p8est_t *p8est, p4est_topidx_t tree,
 
 void gce_init_new_brick(p8est_t * p8est, p4est_topidx_t which_tree, p8est_quadrant_t * q);
 
+
+/*
+ *  \brief
+ *  used to calculate the neighbouring nodes in the assembler
+ */
+void getConnections_shared(p4est_iter_face_info_t *info, void *user_data);
+void getConnections_notshared(p4est_iter_face_info_t *info, void *user_data);
+
+
 ///////////////////////////////////////////////////////////////////////////
 
 } //namespace oxley

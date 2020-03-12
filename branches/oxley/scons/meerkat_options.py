@@ -23,13 +23,14 @@ umfpack = True
 # mpi = 'OPENMPI'
 # verbose = True
 # debug = True
-# trilinos = True
+trilinos = True
 # paso = False
 # parmetis = True
 # visit = True
 #werror = False
 # cxx = 'clang++'
 # cxx='/usr/bin/clang++'
+compressed_files = True
 
 python = 3
 
@@ -53,16 +54,11 @@ d_mpi_path = '/usr/include/openmpi'
 mpi_prefix = os.path.split(os.path.realpath(d_mpi_path))[0]
 parmetis_prefix = ['/usr/include','/usr/lib']
 umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
-boost_prefix = ['/usr/local/boost']
+boost_prefix = ['/usr/local/boost.1.72.0']
 visit_prefix = ['/usr/local/visit/2.13.2/linux-x86_64/libsim/V2/include/','/usr/local/visit/2.13.2/linux-x86_64/libsim/V2/lib/']
 mpi_prefix = ['/usr/lib/x86_64-linux-gnu/openmpi/include/','/usr/lib/x86_64-linux-gnu/openmpi/lib/']
 
-if cxx=='clang++':
-  trilinos_prefix =['/usr/local/trilinos_clang/include/','/usr/local/trilinos_clang/lib/']
-elif mpi=='OPENMPI':
-  trilinos_prefix =['/usr/local/trilinos_mpi/include/','/usr/local/trilinos_mpi/lib/']
-else:
-  trilinos_prefix =['/usr/local/trilinos_nompi/include/','/usr/local/trilinos_nompi/lib/']
+trilinos_prefix =['/usr/local/trilinos_nompi/include/','/usr/local/trilinos_nompi/lib/']
 
 if trilinos == True:
   print("Meerkat config: Using trilinos libraries %s" % trilinos_prefix)

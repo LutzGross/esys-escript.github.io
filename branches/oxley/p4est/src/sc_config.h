@@ -54,19 +54,24 @@
 #endif
 
 /* Define to 1 if we are using MPI */
-/* #undef ENABLE_MPI */
+ // #undef ENABLE_MPI 
+// #define ENABLE_MPI 1
 
 /* Define to 1 if we can use MPI_COMM_TYPE_SHARED */
 /* #undef ENABLE_MPICOMMSHARED */
+// #define ENABLE_MPICOMMSHARED 1
 
 /* Define to 1 if we are using MPI I/O */
 /* #undef ENABLE_MPIIO */
+// #define ENABLE_MPIIO 1
 
 /* Define to 1 if we are using MPI_Init_thread */
-/* #undef ENABLE_MPITHREAD */
+ // #undef ENABLE_MPITHREAD 
+// #define ENABLE_MPITHREAD 1
 
 /* Define to 1 if we can use MPI_Win_allocate_shared */
 /* #undef ENABLE_MPIWINSHARED */
+
 
 /* enable OpenMP: Using --enable-openmp without arguments does not specify any
    CFLAGS; to supply CFLAGS use --enable-openmp=<OPENMP_CFLAGS>. We check
@@ -271,7 +276,7 @@
 
 /* Have we found function adler32_combine. */
 #ifndef SC_HAVE_ZLIB
-#define SC_HAVE_ZLIB 1
+#define SC_HAVE_ZLIB 0
 #endif
 
 /* Define to 1 on a bigendian machine */
@@ -307,9 +312,11 @@
 
 /* DEPRECATED (use SC_ENABLE_MPI instead) */
 /* #undef MPI */
+// #define SC_ENABLE_MPI 1
 
 /* DEPRECATED (use SC_ENABLE_MPIIO instead) */
 /* #undef MPIIO */
+// #define SC_ENABLE_MPIIO 1
 
 /* Define to 1 if your C compiler doesn't accept -c and -o together. */
 /* #undef NO_MINUS_C_MINUS_O */

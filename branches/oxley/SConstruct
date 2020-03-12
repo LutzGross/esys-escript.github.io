@@ -549,10 +549,11 @@ if env['prelaunch'] == 'default':
 # Used by p4est
 if env['mpi'] != 'no' and env['mpi'] != 'none':
     env.Append(CPPDEFINES = ['P4EST_ENABLE_MPI'])
+    env.Append(CPPDEFINES = ['SC_ENABLE_MPI'])
+    env.Append(CPPDEFINES = ['P4EST_MPI'])
     # env.Append(CPPDEFINES = ['P4EST_ENABLE_MPICOMMSHARED'])
     # env.Append(CPPDEFINES = ['P4EST_ENABLE_MPIIO'])
     # env.Append(CPPDEFINES = ['P4EST_ENABLE_MPITHREAD'])
-    env.Append(CPPDEFINES = ['P4EST_MPI'])
     # env.Append(CPPDEFINES = ['P4EST_MPIIO'])
     # env.Append(CPPDEFINES = ['MPI'])
     # env.Append(CPPDEFINES = ['MPIIO'])
@@ -590,6 +591,8 @@ if env['postlaunch'] == 'default':
 
 if len(env['domains']) == 0:
    env['warnings'].append("No domains have been built, escript will not be very useful!")
+else:
+   print("Building escript with the domains:  %s"%(", ".join(env['domains'])))
 
 # keep some of our install paths first in the list for the unit tests
 env.PrependENVPath(LD_LIBRARY_PATH_KEY, env['libinstall'])

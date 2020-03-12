@@ -29,9 +29,9 @@
 
 #ifdef P4EST_ENABLE_DEBUG
 // #define LOG_BACKTRACE 1  // Print a backtrace if p4est aborts prematurely
-#define LOG_LEVEL 0  // Everything
+// #define LOG_LEVEL 0  // Everything
 // #define LOG_LEVEL 4 // Main things that each function does
-// #define LOG_LEVEL 8 // Errors only
+#define LOG_LEVEL 8 // Errors only
 #else
 // #define LOG_BACKTRACE 0
 #define LOG_LEVEL 9  // Nothing
@@ -71,17 +71,17 @@ typedef std::map<std::string,int> TagMap;
 typedef p4est_topidx_t p8est_topidx_t;
 
 // fs types
-// enum {
-//     DegreesOfFreedom=1,
-//     ReducedDegreesOfFreedom=2,
-//     Nodes=3,
-//     ReducedNodes=14,
-//     Elements=4,
-//     ReducedElements=10,
-//     FaceElements=5,
-//     ReducedFaceElements=11,
-//     Points=6
-// };
+enum {
+    DegreesOfFreedom=1,
+    ReducedDegreesOfFreedom=2,
+    Nodes=3,
+    ReducedNodes=14,
+    Elements=4,
+    ReducedElements=10,
+    FaceElements=5,
+    ReducedFaceElements=11,
+    Points=6
+};
 
 } // namespace oxley
 

@@ -72,15 +72,20 @@
 
 /* Define to 1 if we are using MPI */
 /* #undef ENABLE_MPI */
+// #define ENABLE_MPI 1
 
 /* Define to 1 if we can use MPI_COMM_TYPE_SHARED */
 /* #undef ENABLE_MPICOMMSHARED */
+// #define ENABLE_MPICOMMSHARED 1
 
 /* Define to 1 if we are using MPI I/O */
 /* #undef ENABLE_MPIIO */
+// #define ENABLE_MPIIO 1
 
 /* Define to 1 if we are using MPI_Init_thread */
 /* #undef ENABLE_MPITHREAD */
+// #define ENABLE_MPITHREAD 1
+
 
 /* Define to 1 if we can use MPI_Win_allocate_shared */
 /* #undef ENABLE_MPIWINSHARED */
@@ -239,7 +244,7 @@
 
 /* Have we found function adler32_combine. */
 #ifndef P4EST_HAVE_ZLIB
-#define P4EST_HAVE_ZLIB 1
+#define P4EST_HAVE_ZLIB 0
 #endif
 
 /* Linker flags */
@@ -272,9 +277,11 @@
 
 /* DEPRECATED (use P4EST_ENABLE_MPI instead) */
 /* #undef MPI */
+// #define P4EST_ENABLE_MPI 1
 
 /* DEPRECATED (use P4EST_ENABLE_MPIIO instead) */
 /* #undef MPIIO */
+// #define P4EST_ENABLE_MPIIO 1
 
 /* Define to 1 if your C compiler doesn't accept -c and -o together. */
 /* #undef NO_MINUS_C_MINUS_O */

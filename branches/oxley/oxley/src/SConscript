@@ -19,6 +19,8 @@ module_name = 'oxley'
 
 sources = """
     Brick.cpp
+    DefaultAssembler2D.cpp
+    domainhelpers.cpp
     InitAlgorithms.cpp
     Rectangle.cpp
     OtherAlgorithms.cpp
@@ -28,7 +30,10 @@ sources = """
 """.split()
 
 headers = """
+    AbstractAssembler.h
     Brick.h
+    DefaultAssembler2D.h
+    domainhelpers.h
     InitAlgorithms.h
     Rectangle.h
     system_dep.h
@@ -50,6 +55,8 @@ if env['paso']:
     oxleylibs += env['paso_libs']
 if env['trilinos']:
     oxleylibs += env['trilinoswrap_libs']
+if env['compressed_files']:
+    oxleylibs += env['compression_libs']
 
 #p4est library
 import os

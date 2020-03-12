@@ -13,8 +13,6 @@
 *
 *****************************************************************************/
 
-#include <iostream> //ae: temporary
-
 #include <oxley/Brick.h>
 #include <oxley/Rectangle.h>
 #include <oxley/OtherAlgorithms.h>
@@ -26,7 +24,7 @@
 #include <boost/python/numpy/dtype.hpp>
 #endif
 
-#include <p4est_algorithms.h> //aeae
+// #include <p4est_algorithms.h> //aeae
 
 // using namespace boost::python::numpy;
 
@@ -307,7 +305,35 @@ BOOST_PYTHON_MODULE(oxleycpp)
                 ":param RefinementAlgorithm:\n:type string: `The refinement algorithm \n"
                 "       accepted values are \"uniform\"")
         .def("getNumVertices", &oxley::OxleyDomain::getNumVertices,
-                "Returns the number of corners in the mesh.");
+                "Returns the number of corners in the mesh.")
+        .def("getDim", &oxley::OxleyDomain::getDim, ":rtype: ``int``")
+        .def("getDataShape", &oxley::OxleyDomain::getDataShape, args("functionSpaceCode"),
+                ":return: a pair (dps, ns) where dps is the number of data points per sample, and ns is the number of samples\n"
+                ":rtype: ``tuple``")
+        .def("newOperator",&oxley::OxleyDomain::newSystemMatrix,
+            args("row_blocksize", "row_functionspace", "column_blocksize", "column_functionspace", "type"),
+            "creates a SystemMatrixAdapter stiffness matrix and initializes it with zeros\n\n"
+            ":param row_blocksize:\n:type row_blocksize: ``int``\n"
+            ":param row_functionspace:\n:type row_functionspace: `FunctionSpace`\n"
+            ":param column_blocksize:\n:type column_blocksize: ``int``\n"
+            ":param column_functionspace:\n:type column_functionspace: `FunctionSpace`\n"
+            ":param type:\n:type type: ``int``"
+            )
+        .def("getSystemMatrixTypeId",&oxley::OxleyDomain::getSystemMatrixTypeId,
+            args("options"),
+            ":return: the identifier of the matrix type to be used for the global stiffness matrix when particular solver options are used.\n"
+            ":rtype: ``int``\n"
+            ":param options:\n:type options: `SolverBuddy`\n"
+            )
+        .def("getTransportTypeId",&oxley::OxleyDomain::getTransportTypeId,
+            args("solver", "preconditioner", "package", "symmetry"),
+            ":return: the identifier of the transport problem type to be used when a particular solver, preconditioner, package and symmetric matrix is used.\n"
+            ":rtype: ``int``\n"
+            ":param solver:\n:type solver: ``int``\n"
+            ":param preconditioner:\n:type preconditioner: ``int``\n"
+            ":param package:\n:type package: ``int``\n"
+            ":param symmetry:\n:type symmetry: ``int``"
+            );
 
     class_<oxley::Rectangle, bases<oxley::OxleyDomain> > ("OxleyRectangle", "", no_init);
     class_<oxley::Brick, bases<oxley::OxleyDomain> > ("OxleyBrick", "", no_init);
