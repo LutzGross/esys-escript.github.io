@@ -18,6 +18,8 @@
 
 #include <escript/EsysException.h>
 
+#include <exception>
+
 namespace oxley {
 
 /**
@@ -33,5 +35,14 @@ public:
 } // end of namespace oxley
 
 
+/**
+  \brief
+  An exception class that signals an invalid argument value
+*/
+class ValueError : public escript::EsysException
+{
+public:
+    ValueError(const std::string& str) : EsysException(str) {}
+};
 
 #endif

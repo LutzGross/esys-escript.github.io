@@ -430,4 +430,102 @@ void refine_copy_parent_octant(p8est_t * p8est, p4est_topidx_t tree,
     }
 }
 
+void get_interpolateNodesOnElementWorker_data(p4est_iter_volume_info_t * info, void *fxx)
+{
+    //AEAE todo
+
+    // memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,k1, m_NN[0]), sentinel), numComp*sizeof(S));
+    // memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,k1+1, m_NN[0]), sentinel), numComp*sizeof(S));
+    // memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,k1, m_NN[0]), sentinel), numComp*sizeof(S));
+    // memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,k1+1, m_NN[0]), sentinel), numComp*sizeof(S));
+
+}
+
+void get_interpolateNodesOnElementWorker_data(p8est_iter_volume_info_t * info, void *fxx)
+{
+    //AEAE todo
+}
+
+
+void get_interpolateNodesOnFacesWorker_data(p4est_iter_volume_info_t * info, void *fxx)
+{
+    //AEAE todo
+
+//     node->x == 0 || node->x == P4EST_ROOT_LEN ||
+//           node->y == 0 || node->y == P4EST_ROOT_LEN 
+
+        //direction 0
+//                     memcpy(&f_00[0], in.getSampleDataRO(INDEX2(0,k1, m_NN[0]), sentinel), numComp*sizeof(S));
+//                     memcpy(&f_01[0], in.getSampleDataRO(INDEX2(0,k1+1, m_NN[0]), sentinel), numComp*sizeof(S));
+
+    // face 1
+    // memcpy(&f_10[0], in.getSampleDataRO(INDEX2(m_NN[0]-1,k1, m_NN[0]), sentinel), numComp*sizeof(S));
+//                     memcpy(&f_11[0], in.getSampleDataRO(INDEX2(m_NN[0]-1,k1+1, m_NN[0]), sentinel), numComp*sizeof(S));
+
+
+    //face 2
+
+// memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,0, m_NN[0]), sentinel), numComp*sizeof(S));
+//                     memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,0, m_NN[0]), sentinel), numComp*sizeof(S));
+
+
+    //face 3
+// memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,m_NN[1]-1, m_NN[0]), sentinel), numComp*sizeof(S));
+//                     memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,m_NN[1]-1, m_NN[0]), sentinel), numComp*sizeof(S));
+
+
+    /////////////////////////////////////////////////////////
+    // shared
+    /////////////////////////////////////////////////////////
+
+    //face 0
+    // memcpy(&f_00[0], in.getSampleDataRO(INDEX2(0,k1, m_NN[0]), sentinel), numComp*sizeof(S));
+    // memcpy(&f_01[0], in.getSampleDataRO(INDEX2(0,k1+1, m_NN[0]), sentinel), numComp*sizeof(S));
+
+    //face 1
+    // memcpy(&f_10[0], in.getSampleDataRO(INDEX2(m_NN[0]-1,k1, m_NN[0]), sentinel), numComp*sizeof(S));
+    //memcpy(&f_11[0], in.getSampleDataRO(INDEX2(m_NN[0]-1,k1+1, m_NN[0]), sentinel), numComp*sizeof(S));
+
+    //face 2
+// memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,0, m_NN[0]), sentinel), numComp*sizeof(S));
+//                     memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,0, m_NN[0]), sentinel), numComp*sizeof(S));
+
+
+    //face 3
+// memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,m_NN[1]-1, m_NN[0]), sentinel), numComp*sizeof(S));
+//                     memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,m_NN[1]-1, m_NN[0]), sentinel), numComp*sizeof(S));
+
+}
+
+// void get_interpolateNodesOnFacesWorker_data(p8est_iter_volume_info_t * info, void *fxx);
+// {
+//     //AEAE todo
+// }
+
+
+void update_node_faceoffset(p4est_iter_volume_info_t * info, void *fxx)
+{
+    quadrantData * quaddata = (quadrantData *) info->quad->p.user_data;
+
+    // faceOffset[i]=-1 if face i is not an external face, otherwise it is
+    // the index of that face (where i: 0=left, 1=right, 2=bottom, 3=top)
+    // escript::DataTypes::IndexVector m_faceOffset;
+    quaddata->m_faceOffset = -1;
+    if(info->quad->x == 0)
+        quaddata->m_faceOffset = 0;
+    if(info->quad->x == P4EST_ROOT_LEN)
+        quaddata->m_faceOffset = 1;
+    if(info->quad->y == 0)
+        quaddata->m_faceOffset = 2;
+    if(info->quad->y == P4EST_ROOT_LEN)
+        quaddata->m_faceOffset = 3;
+}
+
+void update_node_faceoffset(p8est_iter_volume_info_t * info, void *fxx)
+{
+
+}
+
+
+
 } // namespace oxley

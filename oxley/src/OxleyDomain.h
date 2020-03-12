@@ -13,20 +13,55 @@
 *
 *****************************************************************************/
 
-#include <oxley/Oxley.h>
 #ifndef __OXLEY_EXCEPTION_H__
+
+#include <oxley/Oxley.h>
 #include <oxley/OxleyException.h>
+#include <oxley/AbstractAssembler.h>
 
 #include <escript/EsysMPI.h>
 #include <escript/AbstractContinuousDomain.h>
+
+#ifdef ESYS_HAVE_PASO
+#include <paso/SystemMatrix.h>
+#endif
 
 #ifdef ESYS_HAVE_BOOST_NUMPY
 #include <boost/python/numpy.hpp>
 #endif
 
+#ifdef ESYS_HAVE_TRILINOS
+#include <trilinoswrap/types.h>
+#endif
+
 #include <p4est.h>
 
 namespace oxley {
+
+enum assembler_t {
+    DEFAULT_ASSEMBLER,
+    WAVE_ASSEMBLER,
+    LAME_ASSEMBLER
+};
+
+enum SystemMatrixType {
+    SMT_PASO = 1<<8,
+    SMT_CUSP = 1<<9,
+    SMT_TRILINOS = 1<<10,
+    SMT_SYMMETRIC = 1<<15,
+    SMT_COMPLEX = 1<<16,
+    SMT_UNROLL = 1<<17
+};
+
+/**
+  \brief
+  A struct to contain a dirac point's information.
+*/
+struct DiracPoint
+{
+    dim_t node;
+    int tag;
+};
 
 /*
 This class is the parent of Oxley Rectangle and Brick
@@ -51,7 +86,6 @@ public:
        returns a description for this domain
     */
     virtual std::string getDescription() const;
-
 
     /**
      \brief
@@ -95,6 +129,13 @@ public:
 
     /**
        \brief
+       returns true if the argument is a valid function space type for this
+       domain
+    */
+    virtual bool isValidFunctionSpaceType(int fsType) const;
+
+    /**
+       \brief
        returns a description for the given function space type code
     */
     virtual std::string functionSpaceTypeAsString(int fsType) const;
@@ -116,6 +157,14 @@ public:
     virtual bool operator!=(const escript::AbstractDomain& other) const {
         return !(operator==(other));
     }
+
+    /**
+       \brief
+       returns the number of data points per sample, and the number of samples
+       as a pair.
+       \param fsType The function space type
+    */
+    virtual std::pair<int,dim_t> getDataShape(int fsType) const;
 
     /**
        \brief
@@ -234,16 +283,14 @@ public:
        interpolates data given on source onto target where source and target
        have to be given on the same domain
     */
-    virtual void interpolateOnDomain(escript::Data& target,
-            const escript::Data& source) const;
+    virtual void interpolateOnDomain(escript::Data& target, const escript::Data& source) const;
 
     /**
        \brief
        returns true if data on fsType_source can be interpolated onto
        fsType_target, false otherwise
     */
-    virtual bool probeInterpolationOnDomain(int fsType_source,
-            int fsType_target) const;
+    virtual bool probeInterpolationOnDomain(int fsType_source, int fsType_target) const;
 
     /**
        \brief Preferred direction of interpolation.
@@ -289,7 +336,8 @@ public:
        \brief
        returns boundary normals at the quadrature point on the face elements
     */
-    virtual escript::Data getNormal() const;
+    virtual escript::Data getNormal()
+    const;
 
     /**
        \brief returns the element size
@@ -322,15 +370,17 @@ public:
 
     /**
        \brief
-       returns the approximation order used for a function space
+       returns a status indicator of the domain. The status identifier should
+       be unique over the lifetime of the object but may be updated if changes
+       to the domain happen, e.g. modifications to its geometry.
     */
-    virtual int getApproximationOrder(int fsType) const { return 1; }
+    virtual StatusType getStatus() const { return m_status; }
 
     /**
        \brief
-       returns true if this domain supports contact elements, false otherwise
+       returns the approximation order used for a function space
     */
-    virtual bool supportsContactElements() const { return false; }
+    virtual int getApproximationOrder(int fsType) const { return 1; }
 
     /**
        \brief
@@ -356,6 +406,168 @@ public:
     */
     virtual int getNumVertices() const = 0;
 
+    /**
+       \brief
+       returns true if this domain supports contact elements, false otherwise
+    */
+    virtual bool supportsContactElements() const { return false; }
+
+    /**
+       \brief
+       returns a continuous FunctionSpace code
+    */
+    virtual int getContinuousFunctionCode() const { return Nodes; }
+
+    /**
+       \brief
+       returns a continuous on reduced order nodes FunctionSpace code
+    */
+    virtual int getReducedContinuousFunctionCode() const { return ReducedNodes; }
+
+    /**
+       \brief
+       returns a function FunctionSpace code
+    */
+    virtual int getFunctionCode() const { return Elements; }
+
+    /**
+       \brief
+       returns a function with reduced integration order FunctionSpace code
+    */
+    virtual int getReducedFunctionCode() const { return ReducedElements; }
+
+    /**
+       \brief
+       returns a function on boundary FunctionSpace code
+    */
+    virtual int getFunctionOnBoundaryCode() const { return FaceElements; }
+
+    /**
+       \brief
+       returns a function on boundary with reduced integration order
+       FunctionSpace code
+    */
+    virtual int getReducedFunctionOnBoundaryCode() const { return ReducedFaceElements; }
+
+
+    /**
+       \brief
+       adds a PDE onto the stiffness matrix mat and rhs, used for custom
+       solvers with varying arguments counts and so on
+    */
+    virtual void addToSystem(escript::AbstractSystemMatrix& mat,
+                             escript::Data& rhs, const DataMap& data,
+                             Assembler_ptr assembler) const;
+
+    /**
+       \brief
+       a wrapper for addToSystem that allows calling from Python
+    */
+    virtual void addToSystemFromPython(escript::AbstractSystemMatrix& mat,
+            escript::Data& rhs, const boost::python::list& data,
+            Assembler_ptr assembler) const;
+
+
+    /**
+       \brief
+       adds a PDE onto rhs, used for custom
+       solvers with varying arguments counts and so on
+    */
+    virtual void addToRHS(escript::Data& rhs, const DataMap& data,
+                          Assembler_ptr assembler) const;
+
+    /**
+       \brief
+       a wrapper for addToRHS that allows calling from Python
+    */
+    virtual void addToRHSFromPython(escript::Data& rhs,
+                                    const boost::python::list& data,
+                                    Assembler_ptr assembler) const;
+
+
+    /**
+       \brief
+       return a FunctionOnContactZero code
+    */
+    virtual int getFunctionOnContactZeroCode() const {
+        throw escript::NotImplementedError("Oxley does not support contact elements");
+    }
+
+    /**
+       \brief
+       returns a FunctionOnContactZero code with reduced integration order
+    */
+    virtual int getReducedFunctionOnContactZeroCode() const {
+        throw escript::NotImplementedError("Oxley does not support contact elements");
+    }
+
+    /**
+       \brief
+       returns a FunctionOnContactOne code
+    */
+    virtual int getFunctionOnContactOneCode() const {
+        throw escript::NotImplementedError("Oxley does not support contact elements");
+    }
+
+    /**
+       \brief
+       returns a FunctionOnContactOne code with reduced integration order
+    */
+    virtual int getReducedFunctionOnContactOneCode() const {
+        throw escript::NotImplementedError("Oxley does not support contact elements");
+    }
+
+    /**
+       \brief
+       returns a Solution FunctionSpace code
+    */
+    virtual int getSolutionCode() const { return DegreesOfFreedom; }
+
+    /**
+       \brief
+       returns a ReducedSolution FunctionSpace code
+    */
+    virtual int getReducedSolutionCode() const { return ReducedDegreesOfFreedom; }
+
+    /**
+       \brief
+       returns a DiracDeltaFunctions FunctionSpace code
+    */
+    virtual int getDiracDeltaFunctionsCode() const { return Points; }
+
+
+    /**
+       \brief
+       creates a stiffness matrix and initializes it with zeros
+    */
+    virtual escript::ASM_ptr newSystemMatrix(int row_blocksize,
+            const escript::FunctionSpace& row_functionspace,
+            int column_blocksize,
+            const escript::FunctionSpace& column_functionspace, int type) const;
+
+    /**
+       \brief
+       returns the identifier of the transport problem type to be used when a
+       particular solver, preconditioner, package and symmetric matrix is used
+       \param solver
+       \param preconditioner
+       \param package
+       \param symmetry
+    */
+    virtual int getTransportTypeId(int solver, int preconditioner, int package,
+                                   bool symmetry) const;
+
+    /**
+       \brief
+       returns the identifier of the matrix type to be used for the global
+       stiffness matrix when a particular solver, package, preconditioner,
+       and symmetric matrix is used
+       \param options a python object containing the solver, package,
+                preconditioner and symmetry
+    */
+    virtual int getSystemMatrixTypeId(const boost::python::object& options) const;
+
+
     //List of tags currently in use
     int tags[MAXTAGS] = {-1};
 
@@ -370,11 +582,132 @@ protected:
     // number of dimensions
     int m_numDim;
 
+    // Status
+    StatusType m_status;
+
     //max levels of refinement
     int m_refinement_levels;
 
     // MPI info
     escript::JMPI m_mpiInfo;
+
+    // Vector of the dirac points
+    std::vector<DiracPoint> m_diracPoints;
+
+    /// returns the number of nodes per MPI rank
+    virtual dim_t getNumNodes() const = 0;
+
+    /// returns the number of elements per MPI rank
+    virtual dim_t getNumElements() const = 0;
+
+    /// returns the number of degrees of freedom per MPI rank
+    virtual dim_t getNumDOF() const = 0;
+
+    /// returns the number of face elements on current MPI rank
+    virtual dim_t getNumFaceElements() const = 0;
+
+    // Function sused by the assembler
+    template<typename Scalar>
+    void addToSystemMatrix(escript::AbstractSystemMatrix* mat,
+                           const IndexVector& nodes, dim_t numEq,
+                           const std::vector<Scalar>& array) const;
+
+    /// computes the gradient of 'in' and puts the result in 'out'
+    virtual void assembleGradient(escript::Data& out, const escript::Data& in) const = 0;
+
+    /// populates the data object 'arg' with the node coordinates
+    virtual void assembleCoordinates(escript::Data& arg) const = 0;
+
+#ifdef ESYS_HAVE_TRILINOS
+    /// returns the Trilinos matrix graph
+    virtual esys_trilinos::const_TrilinosGraph_ptr getTrilinosGraph() const = 0;
+#endif
+
+//protected
+#ifdef ESYS_HAVE_PASO
+    /// returns the Paso system matrix pattern
+    virtual paso::SystemMatrixPattern_ptr getPasoMatrixPattern(bool reducedRowOrder, bool reducedColOrder) const = 0;
+
+    /// creates a Paso connector
+    void createPasoConnector(const RankVector& neighbour,
+                             const IndexVector& offsetInSharedSend,
+                             const IndexVector& offsetInSharedRecv,
+                             const IndexVector& sendShared,
+                             const IndexVector& recvShared);
+
+    /// returns a Paso connector required for data transfer and distributed
+    /// system matrices
+    paso::Connector_ptr getPasoConnector() const { return m_connector; }
+
+    /// allocates and returns a Paso pattern structure
+    paso::Pattern_ptr createPasoPattern(const std::vector<IndexVector>& indices,
+                                        dim_t N) const;
+#endif
+
+    /// copies data in 'in' to 'out' (both must be on same function space)
+    template<typename Scalar>
+    void copyData(escript::Data& out, const escript::Data& in) const;
+
+    /// averages data in 'in' to 'out' (from non-reduced to reduced fs)
+    template<typename Scalar>
+    void averageData(escript::Data& out, const escript::Data& in) const;
+
+    /// copies data in 'in' to 'out' (from reduced to non-reduced fs)
+    template<typename Scalar>
+    void multiplyData(escript::Data& out, const escript::Data& in) const;
+
+    /// interpolates data on nodes in 'in' onto (reduced) elements in 'out'
+    virtual void interpolateNodesOnElements(escript::Data& out,
+                                            const escript::Data& in,
+                                            bool reduced) const = 0;
+
+    /// interpolates data on nodes in 'in' onto (reduced) face elements in 'out'
+    virtual void interpolateNodesOnFaces(escript::Data& out,
+                                         const escript::Data& in,
+                                         bool reduced) const = 0;
+
+    /// converts data on nodes in 'in' to degrees of freedom in 'out'
+    virtual void nodesToDOF(escript::Data& out, const escript::Data& in) const = 0;
+
+    /// converts data on degrees of freedom in 'in' to nodes in 'out'
+    template<typename Scalar>
+    void dofToNodes(escript::Data& out, const escript::Data& in) const;
+
+    virtual dim_t getDofOfNode(dim_t node) const = 0;
+
+private:
+
+#ifdef ESYS_HAVE_PASO
+    // Paso connector used by the system matrix and to interpolate DOF to
+    // nodes
+    paso::Connector_ptr m_connector;
+
+    /// paso version of adding element matrices to System Matrix
+    void addToPasoMatrix(paso::SystemMatrix* in, const IndexVector& nodes,
+                         dim_t numEq, const DoubleVector& array) const;
+#endif
+
+    /// calls the right PDE assembly routines after performing input checks
+    void assemblePDE(escript::AbstractSystemMatrix* mat, escript::Data& rhs,
+            const DataMap& coefs, Assembler_ptr assembler) const;
+
+    /// calls the right PDE boundary assembly routines after performing input
+    /// checks
+    void assemblePDEBoundary(escript::AbstractSystemMatrix* mat,
+                             escript::Data& rhs, const DataMap& coefs,
+                             Assembler_ptr assembler) const;
+
+    void assemblePDEDirac(escript::AbstractSystemMatrix* mat,
+                          escript::Data& rhs, const DataMap& coefs,
+                          Assembler_ptr assembler) const;
+
+    template<typename Scalar>
+    void setToIntegralsWorker(std::vector<Scalar>& integrals,
+                              const escript::Data& arg) const;
+
+    /// finds the node that the given point coordinates belong to
+    virtual dim_t findNode(const double *coords) const = 0;
+
 };
 
 #define POINTER_WRAPPER_CLASS(x) boost::shared_ptr<x>

@@ -16,7 +16,6 @@
 
 #include <oxley/OxleyData.h>
 
-
 namespace oxley {
 
 void getQuadTagVector(p4est_iter_volume_info_t * info, void *tagVector)

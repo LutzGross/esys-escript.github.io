@@ -82,4 +82,14 @@ void refine_copy_parent_octant(p8est_t * p8est, p4est_topidx_t tree,
                                  int num_incoming,
                                  p8est_quadrant_t * incoming[]);
 
+void get_interpolateNodesOnElementWorker_data(p4est_iter_volume_info_t * info, void *fxx);
+void get_interpolateNodesOnElementWorker_data(p8est_iter_volume_info_t * info, void *fxx);
+
+void get_interpolateNodesOnFacesWorker_data(p4est_iter_volume_info_t * info, void *fxx);
+void get_interpolateNodesOnFacesWorker_data(p8est_iter_volume_info_t * info, void *fxx);
+
+// Updates m_faceOffset for each quadrant / octant
+void update_node_faceoffset(p4est_iter_volume_info_t * info, void *fxx);
+void update_node_faceoffset(p8est_iter_volume_info_t * info, void *fxx);
+
 } //namespace oxley

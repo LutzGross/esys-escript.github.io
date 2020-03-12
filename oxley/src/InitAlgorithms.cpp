@@ -205,4 +205,25 @@ void gce_init_new_brick(p8est_t * p8est, p4est_topidx_t tree, p8est_quadrant_t *
     p8est_qcoord_to_vertex(p8est->connectivity, tree, q->x, q->y, q->z, &data->xyz[0]);
 }
 
+
+void getConnections_shared(p4est_iter_face_info_t *info, void *indices)
+{
+
+}
+
+void getConnections_notshared(p4est_iter_face_info_t *info, void *indices)
+{
+    // if(info->tree_boundary == True) // On the boundary of the forest, not the interior
+    // {
+    //     p4est_quadrant_t * quad = inf0->sides[0];
+
+    //     int n0, n1;
+        
+
+    //     indices[n0].push_back(n1);
+    //     indices[n1].push_back(n0);
+    // }
+}
+
+
 } // namespace oxley
