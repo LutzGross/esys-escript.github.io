@@ -14,6 +14,8 @@
 *****************************************************************************/
 
 #include <escript/Data.h>
+#include <escript/DataFactory.h>
+#include <escript/FunctionSpaceFactory.h>
 
 #include <oxley/AbstractAssembler.h>
 #include <oxley/DefaultAssembler2D.h>
@@ -99,7 +101,7 @@ Rectangle::Rectangle(int order,
     forestData = (p4estData *) malloc(sizeof(p4estData));
 
     // Create a p4est
-    p4est_locidx_t min_quadrants = (n0*n1) / m_mpiInfo->size;
+    p4est_locidx_t min_quadrants = n0*n1;
     int min_level = 0;
     int fill_uniform = 1;
     p4est = p4est_new_ext(m_mpiInfo->comm, connectivity, min_quadrants,
@@ -127,10 +129,10 @@ Rectangle::Rectangle(int order,
     forestData->max_levels_refinement = MAXREFINEMENTLEVELS;
 
     // number of face elements per edge
-    forestData->m_faceCount[0] = n0; //AEAE check this
-    forestData->m_faceCount[1] = n0;
-    forestData->m_faceCount[2] = n1;
-    forestData->m_faceCount[3] = n1;
+    // forestData->m_faceCount[0] = n0; //AEAE check this
+    // forestData->m_faceCount[1] = n0;
+    // forestData->m_faceCount[2] = n1;
+    // forestData->m_faceCount[3] = n1;
 
     // face offsets //AEAE todo
     // index_t offset = 0;
@@ -441,53 +443,10 @@ void Rectangle::refineMesh(int maxRecursion, std::string algorithmname)
 
 escript::Data Rectangle::getX() const
 {
-    //AEAE todo
-
-    // if (m_dpsize<2) {
-    //     Data res(0,DataTypes::scalarShape,FunctionSpace( getPtr(), getDefaultCode()),true);
-    //     DataTypes::RealVectorType& vec=res.getReady()->getVectorRW();
-    //     for (DataTypes::dim_t i=0; i<m_samples; ++i) {
-    //         for (int j=0; j<m_dpps; ++j) {
-    //             vec[i*m_dpps+j]=m_originsample+i+(1.0*j)/m_dpps;
-    //         }
-    //     }
-    //     return res;
-    // }
-    
-    // DataTypes::ShapeType p;
-    // p.push_back(m_dpsize);
-    // Data res(0,p,FunctionSpace(getPtr(), getDefaultCode()),true);
-    // DataTypes::RealVectorType& vec=res.getReady()->getVectorRW();
-    // double majorstep=double(1)/m_dpps;
-    // double minorstep=majorstep*0.9/m_dpsize;
-    // for (DataTypes::dim_t i=0; i<m_samples; ++i) {
-    //     for (int j=0; j<m_dpps; ++j) {
-    //         for (int k=0; k<m_dpsize; ++k) {
-    //             vec[i*m_dpsize*m_dpps+j*m_dpsize+k]=(i+m_originsample)+j*majorstep+k*minorstep;
-    //         }
-    //     }
-    // }
-    // return res;
-
-//     for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; treeid++)
-//     {
-//         p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, treeid);
-//         sc_array_t * tquadrants = &currenttree->quadrants;
-//         p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-// #pragma omp parallel for
-//         for (p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++) // Loop over every quadrant within the tree
-//         {
-//             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
-//             double * point = arg.getSampleDataRW(e);
-//             double temporary[3];
-//             p4est_qcoord_to_vertex(connectivity, treeid, quad->x, quad->y, &temporary[0]);
-//             point[0]=temporary[0];
-//             point[1]=temporary[1];
-//         }
-//     }
-
-    return escript::Data(); //AEAE todo
-
+    escript::Data out=escript::Vector(0,escript::continuousFunction(*this),true);
+    setToX(out);
+    out.setProtection();
+    return out;
 }
 
 void Rectangle::print_debug_report(std::string locat)
@@ -534,20 +493,45 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
         throw ValueError("assembleCoordinates: Illegal number of samples in Data object");
     arg.requireWrite();
 
+    double l0 = forestData->m_length[0]+forestData->m_origin[0];
+    double l1 = forestData->m_length[1]+forestData->m_origin[1];
     for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; treeid++)
     {
         p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, treeid);
         sc_array_t * tquadrants = &currenttree->quadrants;
         p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-#pragma omp parallel for
-        for (p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++) // Loop over every quadrant within the tree
+        int counter = 0;
+// #pragma omp parallel for
+        for (p4est_locidx_t e = 0; e < Q; e++)
         {
+            double xy[2];
+
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
             double * point = arg.getSampleDataRW(e);
-            double temporary[3];
-            p4est_qcoord_to_vertex(connectivity, treeid, quad->x, quad->y, &temporary[0]);
-            point[0]=temporary[0];
-            point[1]=temporary[1];
+            p4est_qcoord_to_vertex(connectivity, treeid, quad->x, quad->y, &point[0]);
+            p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
+            p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+length,quad->y,xy);
+
+            if(xy[0] == l0){
+                double * pointx = arg.getSampleDataRW(Q+counter);
+                pointx[0] = xy[0];
+                pointx[1] = xy[1];
+                counter++;
+            }
+            p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x,quad->y+length,xy);
+            if(xy[1] == l1){
+                double * pointy = arg.getSampleDataRW(Q+counter);
+                pointy[0] = xy[0];
+                pointy[1] = xy[1];
+                counter++;
+            }
+            p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+length,quad->y+length,xy);
+            if(xy[0] == l0 && xy[1] == l1){
+                double * pointxy = arg.getSampleDataRW(Q+counter);
+                pointxy[0] = xy[0];
+                pointxy[1] = xy[1];
+                counter++;
+            }
         }
     }
 }
@@ -1017,7 +1001,35 @@ inline dim_t Rectangle::getDofOfNode(dim_t node) const
 //protected
 inline dim_t Rectangle::getNumNodes() const
 {
-    return nodes->num_local_nodes + *nodes->nonlocal_nodes;
+    double xy[2];
+    double l0 = forestData->m_length[0]+forestData->m_origin[0];
+    double l1 = forestData->m_length[1]+forestData->m_origin[1];
+    p4est_locidx_t numnodes = 0;
+    for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
+    {
+        p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
+        sc_array_t * tquadrants = &currenttree->quadrants;
+        numnodes += (p4est_locidx_t) tquadrants->elem_count;
+        for (p4est_locidx_t e = 0; e < tquadrants->elem_count; e++)
+        {
+            p4est_quadrant_t * q = p4est_quadrant_array_index(tquadrants, e);
+            p4est_qcoord_t length = P4EST_QUADRANT_LEN(q->level);
+
+            p4est_qcoord_to_vertex(p4est->connectivity, t, q->x+length,q->y,xy);
+            if(xy[0] == l0){
+                numnodes++;
+            }
+            p4est_qcoord_to_vertex(p4est->connectivity, t, q->x,q->y+length,xy);
+            if(xy[1] == l1){
+                numnodes++;
+            }
+            p4est_qcoord_to_vertex(p4est->connectivity, t, q->x+length,q->y+length,xy);
+            if(xy[0] == l0 && xy[1] == l1){
+                numnodes++;
+            }
+        }
+    }
+    return numnodes;
 }
 
 //protected
@@ -1029,15 +1041,40 @@ inline dim_t Rectangle::getNumElements() const
 //protected
 inline dim_t Rectangle::getNumFaceElements() const
 {
-    return forestData->m_faceCount[0] + forestData->m_faceCount[1] +
-           forestData->m_faceCount[2] + forestData->m_faceCount[3];
+    double xy[2];
+    double x0 = forestData->m_origin[0];
+    double y0 = forestData->m_origin[1];
+    double x1 = forestData->m_length[0]+forestData->m_origin[0];
+    double y1 = forestData->m_length[1]+forestData->m_origin[1];
+    p4est_locidx_t numFaceElements = 0;
+    for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
+    {
+        p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
+        sc_array_t * tquadrants = &currenttree->quadrants;
+        for (p4est_locidx_t e = 0; e < tquadrants->elem_count; e++)
+        {
+            p4est_quadrant_t * q = p4est_quadrant_array_index(tquadrants, e);
+            p4est_qcoord_t length = P4EST_QUADRANT_LEN(q->level);
+            p4est_qcoord_to_vertex(p4est->connectivity, t, q->x,q->y,xy);
+            if(xy[0] == x0 || xy[1] == y0){
+                numFaceElements++;
+                break;
+            }
+            p4est_qcoord_to_vertex(p4est->connectivity, t, q->x+length,q->y+length,xy);
+            if(xy[0] == x1 || xy[1] == y1){
+                numFaceElements++;
+                break;
+            }
+        }
+    }
+    return numFaceElements;
 }
 
 //protected
 inline dim_t Rectangle::getNumDOF() const
 {
-    // return (m_gNE[0]+1)/m_NX[0]*(m_gNE[1]+1)/m_NX[1];
-    return getNumNodes(); //AEAE todo
+    throw OxleyException("getNumDOF not implemented");
+    return -1;
 }
 
 #ifdef ESYS_HAVE_TRILINOS
