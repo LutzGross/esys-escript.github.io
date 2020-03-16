@@ -670,14 +670,14 @@ namespace oxley {
 
     pair<int,dim_t> OxleyDomain::getDataShape(int fsType) const
     {
-        const int ptsPerSample = (m_numDim==2 ? 4 : 8);
+        const int ptsPerSample = (m_numDim == 2 ? 4 : 8);
         switch (fsType) {
             case Nodes:
             case ReducedNodes:
                 return pair<int,dim_t>(1, getNumNodes());
-            case DegreesOfFreedom:
-            case ReducedDegreesOfFreedom:
-                return pair<int,dim_t>(1, getNumDOF());
+            // case DegreesOfFreedom:
+            // case ReducedDegreesOfFreedom:
+            //     return pair<int,dim_t>(1, getNumDOF());
             case Elements:
                 return pair<int,dim_t>(ptsPerSample, getNumElements());
             case FaceElements:
@@ -686,15 +686,14 @@ namespace oxley {
                 return pair<int,dim_t>(1, getNumElements());
             case ReducedFaceElements:
                 return pair<int,dim_t>(1, getNumFaceElements());
-            case Points:
-                return pair<int,dim_t>(1, m_diracPoints.size());
+            // case Points:
+            //     return pair<int,dim_t>(1, m_diracPoints.size());
             default:
                 break;
         }
 
         stringstream msg;
-        msg << "getDataShape: Invalid function space type " << fsType
-            << " for " << getDescription();
+        msg << "getDataShape: Invalid function space type " << fsType << " for " << getDescription();
         throw ValueError(msg.str());
     }
 

@@ -333,7 +333,12 @@ BOOST_PYTHON_MODULE(oxleycpp)
             ":param preconditioner:\n:type preconditioner: ``int``\n"
             ":param package:\n:type package: ``int``\n"
             ":param symmetry:\n:type symmetry: ``int``"
-            );
+            )
+        .def("getX",&oxley::OxleyDomain::getX, ":return: locations in the FEM nodes\n\n"
+            ":rtype: `Data`")
+        .def("getNormal",&oxley::OxleyDomain::getNormal,
+            ":return: boundary normals at the quadrature point on the face elements\n"
+            ":rtype: `Data`");
 
     class_<oxley::Rectangle, bases<oxley::OxleyDomain> > ("OxleyRectangle", "", no_init);
     class_<oxley::Brick, bases<oxley::OxleyDomain> > ("OxleyBrick", "", no_init);
