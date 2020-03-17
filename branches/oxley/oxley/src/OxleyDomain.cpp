@@ -92,7 +92,29 @@ namespace oxley {
 
     std::string OxleyDomain::functionSpaceTypeAsString(int fsType) const
     {
-        throw OxleyException("1currently not implemented"); // ae: This is temporary
+        switch (fsType) {
+        case DegreesOfFreedom:
+            return "Oxley_DegreesOfFreedom [Solution(domain)]";
+        case ReducedDegreesOfFreedom:
+            return "Oxley_ReducedDegreesOfFreedom [ReducedSolution(domain)]";
+        case Nodes:
+            return "Oxley_Nodes [ContinuousFunction(domain)]";
+        case ReducedNodes:
+            return "Oxley_ReducedNodes [ReducedContinuousFunction(domain)]";
+        case Elements:
+            return "Oxley_Elements [Function(domain)]";
+        case ReducedElements:
+            return "Oxley_ReducedElements [ReducedFunction(domain)]";
+        case FaceElements:
+            return "Oxley_FaceElements [FunctionOnBoundary(domain)]";
+        case ReducedFaceElements:
+            return "Oxley_ReducedFaceElements [ReducedFunctionOnBoundary(domain)]";
+        case Points:
+            return "Oxley_Points [DiracDeltaFunctions(domain)]";
+        default:
+            break;
+    }
+    return "Invalid function space type code";
     }
 
     bool OxleyDomain::operator==(const AbstractDomain& other) const
@@ -675,9 +697,9 @@ namespace oxley {
             case Nodes:
             case ReducedNodes:
                 return pair<int,dim_t>(1, getNumNodes());
-            // case DegreesOfFreedom:
-            // case ReducedDegreesOfFreedom:
-            //     return pair<int,dim_t>(1, getNumDOF());
+            case DegreesOfFreedom:
+            case ReducedDegreesOfFreedom:
+                return pair<int,dim_t>(1, getNumDOF());
             case Elements:
                 return pair<int,dim_t>(ptsPerSample, getNumElements());
             case FaceElements:

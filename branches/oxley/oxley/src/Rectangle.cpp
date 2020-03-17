@@ -337,7 +337,72 @@ void Rectangle::setToNormal(escript::Data& out) const
 
 void Rectangle::setToSize(escript::Data& out) const
 {
-    throw OxleyException("4currently: not supported"); //AE this is temporary
+    if (out.getFunctionSpace().getTypeCode() == Elements
+        || out.getFunctionSpace().getTypeCode() == ReducedElements)
+    {
+        out.requireWrite();
+        const dim_t numQuad = out.getNumDataPointsPerSample();
+        const dim_t numElements = getNumElements();
+
+        for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
+        {
+            p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
+            sc_array_t * tquadrants = &currenttree->quadrants;
+            p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+        #pragma omp parallel for
+            for (p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
+            {
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
+                int l = quad->level;
+                const double size = sqrt(forestData->m_dx[0][quad->level]*forestData->m_dx[0][quad->level]
+                                        +forestData->m_dx[1][quad->level]*forestData->m_dx[1][quad->level]);
+                double* o = out.getSampleDataRW(e);
+                std::fill(o, o+numQuad, size);
+            }
+        }
+    } 
+    else if (out.getFunctionSpace().getTypeCode() == FaceElements
+            || out.getFunctionSpace().getTypeCode() == ReducedFaceElements) 
+    {
+        out.requireWrite();
+        const dim_t numQuad=out.getNumDataPointsPerSample();
+
+        for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
+        {
+            p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
+            sc_array_t * tquadrants = &currenttree->quadrants;
+            p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+        #pragma omp parallel for
+            for (p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
+            {
+                // Work out what level this element is on 
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
+                quadrantData * quaddata = (quadrantData *) quad->p.user_data;
+
+                if (quaddata->m_faceOffset == 0) {
+                    double* o = out.getSampleDataRW(e);
+                    std::fill(o, o+numQuad, forestData->m_dx[1][quad->level]);
+                }
+                else if (quaddata->m_faceOffset == 1) {
+                    double* o = out.getSampleDataRW(e);
+                    std::fill(o, o+numQuad, forestData->m_dx[1][quad->level]);
+                }
+                else if (quaddata->m_faceOffset == 2) {
+                    double* o = out.getSampleDataRW(e);
+                    std::fill(o, o+numQuad, forestData->m_dx[0][quad->level]);
+                }
+                else if (quaddata->m_faceOffset == 3) {
+                    double* o = out.getSampleDataRW(e);
+                    std::fill(o, o+numQuad, forestData->m_dx[0][quad->level]);
+                }
+            }
+        }
+    } else {
+        std::stringstream msg;
+        msg << "setToSize: invalid function space type "
+            << out.getFunctionSpace().getTypeCode();
+        throw ValueError(msg.str());
+    }
 }
 
 bool Rectangle::ownSample(int fsType, index_t id) const
@@ -1014,19 +1079,10 @@ inline dim_t Rectangle::getNumNodes() const
         {
             p4est_quadrant_t * q = p4est_quadrant_array_index(tquadrants, e);
             p4est_qcoord_t length = P4EST_QUADRANT_LEN(q->level);
-
-            p4est_qcoord_to_vertex(p4est->connectivity, t, q->x+length,q->y,xy);
-            if(xy[0] == l0){
-                numnodes++;
-            }
-            p4est_qcoord_to_vertex(p4est->connectivity, t, q->x,q->y+length,xy);
-            if(xy[1] == l1){
-                numnodes++;
-            }
             p4est_qcoord_to_vertex(p4est->connectivity, t, q->x+length,q->y+length,xy);
-            if(xy[0] == l0 && xy[1] == l1){
-                numnodes++;
-            }
+            numnodes += (xy[0] == l0);
+            numnodes += (xy[1] == l1);
+            numnodes += (xy[0] == l0) && (xy[1] == l1);
         }
     }
     return numnodes;
@@ -1073,8 +1129,7 @@ inline dim_t Rectangle::getNumFaceElements() const
 //protected
 inline dim_t Rectangle::getNumDOF() const
 {
-    throw OxleyException("getNumDOF not implemented");
-    return -1;
+    return getNumNodes();
 }
 
 #ifdef ESYS_HAVE_TRILINOS
