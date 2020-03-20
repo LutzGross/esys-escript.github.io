@@ -621,7 +621,15 @@ protected:
 #ifdef ESYS_HAVE_TRILINOS
     /// returns the Trilinos matrix graph
     virtual esys_trilinos::const_TrilinosGraph_ptr getTrilinosGraph() const = 0;
+
+    /// creates and returns a Trilinos CRS graph suitable to build a sparse
+    /// matrix
+    esys_trilinos::const_TrilinosGraph_ptr createTrilinosGraph(
+            const IndexVector& myRows, const IndexVector& myColumns) const;
 #endif
+
+    /// returns occupied matrix column indices for all matrix rows
+    virtual std::vector<IndexVector> getConnections(bool includeShared) const = 0;
 
 //protected
 #ifdef ESYS_HAVE_PASO
