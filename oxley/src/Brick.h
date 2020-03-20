@@ -213,6 +213,7 @@ protected:
     virtual index_t getFirstInDim(unsigned axis) const;
 
     virtual void assembleCoordinates(escript::Data& arg) const;
+    virtual std::vector<IndexVector> getConnections(bool includeShared=false) const;
 
 #ifdef ESYS_HAVE_PASO
     // the Paso System Matrix pattern

@@ -230,6 +230,10 @@ private:
     // Pointer that records the location of a temporary data structure
     void * temp_data;
 
+p4est_connectivity_t *
+new_rectangle_connectivity(int mi, int ni, int periodic_a, int periodic_b, 
+    double x0, double x1, double y0, double y1);
+
 protected:
     virtual dim_t getNumNodes() const;
     virtual dim_t getNumElements() const;

@@ -1541,4 +1541,69 @@ dim_t Brick::findNode(const double *coords) const
     
 }
 
+std::vector<IndexVector> Brick::getConnections(bool includeShared) const
+{
+    //AEAE todo
+
+//     // returns a vector v of size numDOF where v[i] is a vector with indices
+//     // of DOFs connected to i (up to 27 in 3D).
+//     // In other words this method returns the occupied (local) matrix columns
+//     // for all (local) matrix rows.
+//     // If includeShared==true then connections to non-owned DOFs are also
+//     // returned (i.e. indices of the column couplings)
+//     const dim_t nDOF0 = getNumDOFInAxis(0);
+//     const dim_t nDOF1 = getNumDOFInAxis(1);
+//     const dim_t nDOF2 = getNumDOFInAxis(2);
+//     const dim_t numMatrixRows = nDOF0*nDOF1*nDOF2;
+//     vector<IndexVector> indices(numMatrixRows);
+
+//     if (includeShared) {
+//         const index_t left = getFirstInDim(0);
+//         const index_t bottom = getFirstInDim(1);
+//         const index_t front = getFirstInDim(2);
+//         const dim_t NN0 = m_NN[0];
+//         const dim_t NN1 = m_NN[1];
+//         const dim_t NN2 = m_NN[2];
+// #pragma omp parallel for
+//         for (index_t i=0; i < numMatrixRows; i++) {
+//             const index_t x = left + i % nDOF0;
+//             const index_t y = bottom + i % (nDOF0*nDOF1)/nDOF0;
+//             const index_t z = front + i / (nDOF0*nDOF1);
+//             // loop through potential neighbours and add to index if positions
+//             // are within bounds
+//             for (int i2=z-1; i2<z+2; i2++) {
+//                 for (int i1=y-1; i1<y+2; i1++) {
+//                     for (int i0=x-1; i0<x+2; i0++) {
+//                         if (i0>=0 && i1>=0 && i2>=0
+//                                 && i0<NN0 && i1<NN1 && i2<NN2) {
+//                             indices[i].push_back(m_dofMap[i2*NN0*NN1+i1*NN0+i0]);
+//                         }
+//                     }
+//                 }
+//             }
+//             sort(indices[i].begin(), indices[i].end());
+//         }
+//     } else {
+// #pragma omp parallel for
+//         for (index_t i=0; i < numMatrixRows; i++) {
+//             const index_t x = i % nDOF0;
+//             const index_t y = i % (nDOF0*nDOF1)/nDOF0;
+//             const index_t z = i / (nDOF0*nDOF1);
+//             // loop through potential neighbours and add to index if positions
+//             // are within bounds
+//             for (int i2=z-1; i2<z+2; i2++) {
+//                 for (int i1=y-1; i1<y+2; i1++) {
+//                     for (int i0=x-1; i0<x+2; i0++) {
+//                         if (i0>=0 && i1>=0 && i2>=0
+//                                 && i0<nDOF0 && i1<nDOF1 && i2<nDOF2) {
+//                             indices[i].push_back(i2*nDOF0*nDOF1+i1*nDOF0+i0);
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+//     }
+//     return indices;
+}
+
 } // end of namespace oxley
