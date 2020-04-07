@@ -218,8 +218,11 @@ private:
     // The data structure in p4est
     p4estData * forestData;
 
-    // This structure records the connectivity of the p4est quadrants
+    // Connectivity information
     p4est_connectivity_t * connectivity;
+
+    // Node numbering
+    p4est_lnodes_t * nodes;
 
     // Node numbering
     std::vector<long> nodeNumbering;
