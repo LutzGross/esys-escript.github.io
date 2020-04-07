@@ -221,15 +221,13 @@ private:
     // This structure records the connectivity of the p4est quadrants
     p4est_connectivity_t * connectivity;
 
-    // This structure records the node numbering information
-    p4est_lnodes * nodes;
-
-    // This ghost is needed to initialise the node numbering structure p4est_lnodes
-    p4est_ghost_t * nodes_ghost;
+    // Node numbering
+    std::vector<long> nodeNumbering;
 
     // Pointer that records the location of a temporary data structure
     void * temp_data;
 
+    // This is a modified version of the p4est library function new_connectivity
 p4est_connectivity_t *
 new_rectangle_connectivity(int mi, int ni, int periodic_a, int periodic_b, 
     double x0, double x1, double y0, double y1);
@@ -239,9 +237,13 @@ protected:
     virtual dim_t getNumElements() const;
     virtual dim_t getNumFaceElements() const;
     virtual dim_t getNumDOF() const;
+    void updateNodeNumbering() const;
     // virtual dim_t getNumDOFInAxis(unsigned axis) const;
     // virtual index_t getFirstInDim(unsigned axis) const;
     // virtual IndexVector getDiagonalIndices(bool upperOnly) const;
+    bool isBoundaryNode(p4est_quadrant_t * quad, int n, p4est_topidx_t treeid, p4est_qcoord_t length) const;
+    bool isUpperBoundaryNode(p4est_quadrant_t * quad, int n, p4est_topidx_t treeid, p4est_qcoord_t length) const;
+    bool isHangingNode(p4est_lnodes_code_t face_code, int n) const;
     virtual void assembleCoordinates(escript::Data& arg) const;
     virtual void assembleGradient(escript::Data& out, const escript::Data& in) const;
     // virtual void assembleIntegrate(std::vector<real_t>& integrals, const escript::Data& arg) const;

@@ -13,6 +13,7 @@
 *
 *****************************************************************************/
 
+#include <random>
 #include <iostream>
 
 #include <oxley/RefinementAlgorithms.h>
@@ -34,6 +35,16 @@ int refine_uniform(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quad
 int refine_uniform(p8est_t * p4est, p4est_topidx_t tree, p8est_quadrant_t * quadrant)
 {
     return 1;
+}
+
+int random_refine(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
+{
+    return ((int) rand() % 2) == 0;
+}
+
+int random_refine(p8est_t * p4est, p4est_topidx_t tree, p8est_quadrant_t * quadrant)
+{
+    return ((int) rand() % 2) == 0;
 }
 
 // AEAE

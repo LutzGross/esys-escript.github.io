@@ -23,8 +23,9 @@
 
 #include <p4est_base.h>
 
-#define MAXP4ESTNODES 10000 // Maximum allowed nodes in the p4est / p8est
-#define MAXREFINEMENTLEVELS 5 // Default levels of refinement
+#define MAXP4ESTNODES 1024*1024 // Maximum allowed nodes in the p4est / p8est
+#define MAXTREES 1024*1024 // Maximum allowed trees
+#define MAXREFINEMENTLEVELS 16 // Default levels of refinement
 #define MAXTAGS 100 // Maximum allowed number of tags in a domain
 
 #ifdef P4EST_ENABLE_DEBUG

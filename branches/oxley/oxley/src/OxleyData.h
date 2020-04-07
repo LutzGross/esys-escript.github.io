@@ -79,6 +79,9 @@ public:
 	// origin of domain
     double m_origin[2] = {0.0};
 
+    // extent of the domain
+    double m_lxy[2] = {0.0};
+
     // side lengths of domain
     double m_length[2] = {0.0};
 
