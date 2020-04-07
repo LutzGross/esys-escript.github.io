@@ -861,14 +861,15 @@ namespace oxley {
             throw OxleyException("newSystemMatrix: oxley was not compiled with Trilinos support so the Trilinos solver stack cannot be used.");
     #endif
         } else if (type & (int)SMT_PASO) {
-    #ifdef ESYS_HAVE_PASO
-            paso::SystemMatrixPattern_ptr pattern(getPasoMatrixPattern(reduceRowOrder, reduceColOrder));
-            type -= (int)SMT_PASO;
-            escript::ASM_ptr sm(new paso::SystemMatrix(type, pattern, row_blocksize, column_blocksize, false, row_functionspace, column_functionspace));
-            return sm;
-    #else
-            throw OxleyException("newSystemMatrix: oxley was not compiled with Paso support so the Paso solver stack cannot be used.");
-    #endif
+    // #ifdef ESYS_HAVE_PASO
+    //         paso::SystemMatrixPattern_ptr pattern(getPasoMatrixPattern(reduceRowOrder, reduceColOrder));
+    //         type -= (int)SMT_PASO;
+    //         escript::ASM_ptr sm(new paso::SystemMatrix(type, pattern, row_blocksize, column_blocksize, false, row_functionspace, column_functionspace));
+    //         return sm;
+    // #else
+    //         throw OxleyException("newSystemMatrix: oxley was not compiled with Paso support so the Paso solver stack cannot be used.");
+    // #endif
+            throw OxleyException("newSystemMatrix: oxley does not support Paso."); // AE this is temporary
         } else {
             throw OxleyException("newSystemMatrix: unknown matrix type ID");
         }

@@ -114,6 +114,11 @@ Rectangle::Rectangle(int order,
     p4est = p4est_new_ext(m_mpiInfo->comm, connectivity, min_quadrants,
             min_level, fill_uniform, sizeof(p4estData), init_rectangle_data, (void *) &forestData);
 
+    // Nodes numbering
+    p4est_ghost_t * ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
+    nodes = p4est_lnodes_new(p4est, ghost, 1);
+    p4est_ghost_destroy(ghost);
+
     // Record the physical dimensions of the domain and the location of the origin
     forestData->m_origin[0] = x0;
     forestData->m_origin[1] = y0;
@@ -136,19 +141,6 @@ Rectangle::Rectangle(int order,
 
     // max levels of refinement
     forestData->max_levels_refinement = MAXREFINEMENTLEVELS;
-
-    // number of face elements per edge
-    // forestData->m_faceCount[0] = n0; //AEAE check this
-    // forestData->m_faceCount[1] = n0;
-    // forestData->m_faceCount[2] = n1;
-    // forestData->m_faceCount[3] = n1;
-
-    // face offsets //AEAE todo
-    // index_t offset = 0;
-    // for(int i = 0; i < 4; i++){
-    //     forestData->m_faceOffset[i]=offset;
-    //     offset+=forestData->m_faceCount[i];
-    // }
     
     // element order
     m_order = order;
@@ -223,10 +215,6 @@ void Rectangle::interpolateAcross(escript::Data& target, const escript::Data& so
 
 void Rectangle::setToNormal(escript::Data& out) const
 {
-    p4est_ghost_t * ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
-    p4est_lnodes_t * nodes = p4est_lnodes_new(p4est, ghost, 1);
-    p4est_ghost_destroy(ghost);
-
     if (out.getFunctionSpace().getTypeCode() == FaceElements) {
         out.requireWrite();
         for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
@@ -321,19 +309,12 @@ void Rectangle::setToNormal(escript::Data& out) const
         std::stringstream msg;
         msg << "setToNormal: invalid function space type "
             << out.getFunctionSpace().getTypeCode();
-        p4est_lnodes_destroy(nodes);
         throw ValueError(msg.str());
     }
-
-    p4est_lnodes_destroy(nodes);
 }
 
 void Rectangle::setToSize(escript::Data& out) const
 {
-    p4est_ghost_t * ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
-    p4est_lnodes_t * nodes = p4est_lnodes_new(p4est, ghost, 1);
-    p4est_ghost_destroy(ghost);
-
     if (out.getFunctionSpace().getTypeCode() == Elements
         || out.getFunctionSpace().getTypeCode() == ReducedElements)
     {
@@ -350,7 +331,7 @@ void Rectangle::setToSize(escript::Data& out) const
             for (p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
             {
                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
-                int l = quad->level;
+                // int l = quad->level;
                 const double size = sqrt(forestData->m_dx[0][quad->level]*forestData->m_dx[0][quad->level]
                                         +forestData->m_dx[1][quad->level]*forestData->m_dx[1][quad->level]);
                 double* o = out.getSampleDataRW(e);
@@ -400,8 +381,6 @@ void Rectangle::setToSize(escript::Data& out) const
             << out.getFunctionSpace().getTypeCode();
         throw ValueError(msg.str());
     }
-
-    p4est_lnodes_destroy(nodes);
 }
 
 bool Rectangle::ownSample(int fsType, index_t id) const
@@ -614,9 +593,6 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
         throw ValueError("assembleCoordinates: Illegal number of samples in Data object");
     arg.requireWrite();
 
-    p4est_ghost_t * ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
-    p4est_lnodes_t * nodes = p4est_lnodes_new(p4est, ghost, 1);
-    p4est_ghost_destroy(ghost);
     p4est_locidx_t owned = nodes->owned_count; //number of owned nodes
 
     for(p4est_topidx_t treeid = p4est->first_local_tree, k=0; treeid <= p4est->last_local_tree; ++treeid) {
@@ -658,9 +634,6 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
             }
         }
     }
-
-    //cleanup
-    p4est_lnodes_destroy(nodes);
 }
 
 //private
@@ -676,10 +649,6 @@ void Rectangle::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Dat
          const std::vector<Scalar>& EM_S, const std::vector<Scalar>& EM_F, 
          bool addS, bool addF, index_t firstNode, int nEq, int nComp) const
 {
-    p4est_ghost_t * ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
-    p4est_lnodes_t * nodes = p4est_lnodes_new(p4est, ghost, 1);
-    p4est_ghost_destroy(ghost);
-
     //AEAEAEAE todo:
     
     IndexVector rowIndex(4);
@@ -705,8 +674,6 @@ void Rectangle::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Dat
     {
         addToSystemMatrix<Scalar>(S, rowIndex, nEq, EM_S);
     }
-
-    p4est_lnodes_destroy(nodes);
 }
 
 template
@@ -764,10 +731,6 @@ void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
                                            const escript::Data& in,
                                            bool reduced, S sentinel) const
 {
-    p4est_ghost_t * ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
-    p4est_lnodes_t * nodes = p4est_lnodes_new(p4est, ghost, 1);
-    p4est_ghost_destroy(ghost);
-
     const dim_t numComp = in.getDataPointSize();
     const long  numNodes = getNumNodes();
     if (reduced) {
@@ -836,7 +799,6 @@ void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
         }
         delete[] fxx;
     }
-    p4est_lnodes_destroy(nodes);
 }
 
 //private
@@ -845,10 +807,6 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
                                         const escript::Data& in,
                                         bool reduced, S sentinel) const
 {
-    p4est_ghost_t * ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
-    p4est_lnodes_t * nodes = p4est_lnodes_new(p4est, ghost, 1);
-    p4est_ghost_destroy(ghost);
-
     const dim_t numComp = in.getDataPointSize();
     const dim_t numNodes = getNumNodes();
     if (reduced) {
@@ -981,7 +939,6 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
             }
         }
     }
-    p4est_lnodes_destroy(nodes);
 }
 
 ////////////////////////////// inline methods ////////////////////////////////
@@ -1083,51 +1040,51 @@ paso::SystemMatrixPattern_ptr Rectangle::getPasoMatrixPattern(
 {
     //AEAE todo
 
-    if (m_pattern.get())
-        return m_pattern;
+//     if (m_pattern.get())
+//         return m_pattern;
 
-    // first call - create pattern, then return
-    paso::Connector_ptr conn(getPasoConnector());
-    const dim_t numDOF = getNumDOF();
-    const dim_t numShared = conn->send->numSharedComponents;
-    const dim_t numNeighbours = conn->send->neighbour.size();
-    const std::vector<index_t>& offsetInShared(conn->send->offsetInShared);
-    const index_t* sendShared = conn->send->shared;
+//     // first call - create pattern, then return
+//     paso::Connector_ptr conn(getPasoConnector());
+//     const dim_t numDOF = getNumDOF();
+//     const dim_t numShared = conn->send->numSharedComponents;
+//     const dim_t numNeighbours = conn->send->neighbour.size();
+//     const std::vector<index_t>& offsetInShared(conn->send->offsetInShared);
+//     const index_t* sendShared = conn->send->shared;
 
-    // these are for the couple blocks
-    std::vector<IndexVector> colIndices(numDOF);
-    std::vector<IndexVector> rowIndices(numShared);
+//     // these are for the couple blocks
+//     std::vector<IndexVector> colIndices(numDOF);
+//     std::vector<IndexVector> rowIndices(numShared);
 
-    for (dim_t i=0; i<numNeighbours; i++) {
-        const dim_t start = offsetInShared[i];
-        const dim_t end = offsetInShared[i+1];
-        for (dim_t j = start; j < end; j++) {
-            if (j > start)
-                doublyLink(colIndices, rowIndices, sendShared[j-1], j);
-            doublyLink(colIndices, rowIndices, sendShared[j], j);
-            if (j < end-1)
-                doublyLink(colIndices, rowIndices, sendShared[j+1], j);
-        }
-    }
-#pragma omp parallel for
-    for (dim_t i = 0; i < numShared; i++) {
-        sort(rowIndices[i].begin(), rowIndices[i].end());
-    }
+//     for (dim_t i=0; i<numNeighbours; i++) {
+//         const dim_t start = offsetInShared[i];
+//         const dim_t end = offsetInShared[i+1];
+//         for (dim_t j = start; j < end; j++) {
+//             if (j > start)
+//                 doublyLink(colIndices, rowIndices, sendShared[j-1], j);
+//             doublyLink(colIndices, rowIndices, sendShared[j], j);
+//             if (j < end-1)
+//                 doublyLink(colIndices, rowIndices, sendShared[j+1], j);
+//         }
+//     }
+// #pragma omp parallel for
+//     for (dim_t i = 0; i < numShared; i++) {
+//         sort(rowIndices[i].begin(), rowIndices[i].end());
+//     }
 
-    // create main and couple blocks
-    paso::Pattern_ptr mainPattern = createPasoPattern(getConnections(), numDOF);
-    paso::Pattern_ptr colPattern = createPasoPattern(colIndices, numShared);
-    paso::Pattern_ptr rowPattern = createPasoPattern(rowIndices, numDOF);
+//     // create main and couple blocks
+//     paso::Pattern_ptr mainPattern = createPasoPattern(getConnections(), numDOF);
+//     paso::Pattern_ptr colPattern = createPasoPattern(colIndices, numShared);
+//     paso::Pattern_ptr rowPattern = createPasoPattern(rowIndices, numDOF);
 
-    // allocate paso distribution
-    IndexVector m_nodeDistribution = getNodeDistribution();
-    escript::Distribution_ptr distribution(new escript::Distribution(m_mpiInfo, m_nodeDistribution));
+//     // allocate paso distribution
+//     IndexVector m_nodeDistribution = getNodeDistribution();
+//     escript::Distribution_ptr distribution(new escript::Distribution(m_mpiInfo, m_nodeDistribution));
 
-    // finally create the system matrix pattern
-    m_pattern.reset(new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
-            distribution, distribution, mainPattern, colPattern, rowPattern,
-            conn, conn));
-    return m_pattern;
+//     // finally create the system matrix pattern
+//     m_pattern.reset(new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
+//             distribution, distribution, mainPattern, colPattern, rowPattern,
+//             conn, conn));
+//     return m_pattern;
 }
 #endif // ESYS_HAVE_PASO
 
