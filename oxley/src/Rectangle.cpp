@@ -599,12 +599,12 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
         p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
         sc_array_t * tquadrants = &tree->quadrants;
         p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-#pragma omp parallel for
         for (int q = 0; q < Q; ++q, ++k) { // Loop over the elements attached to the tree
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
             p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
 
             // Loop over the four corners of the quadrant
+#pragma omp parallel for
             for(int n = 0; n < 4; ++n){
                 long lidx = nodes->element_nodes[4*k+n];
 
