@@ -13,6 +13,9 @@
 *
 *****************************************************************************/
 
+#include <random>
+#include <ctime>
+
 #include <escript/Data.h>
 #include <escript/DataFactory.h>
 #include <escript/FunctionSpaceFactory.h>
@@ -26,6 +29,7 @@
 
 #include <p4est.h>
 #include <p4est_algorithms.h>
+#include <p4est_bits.h>
 #include <p4est_extended.h>
 #include <p4est_iterate.h>
 #include <p4est_lnodes.h>
@@ -113,6 +117,8 @@ Rectangle::Rectangle(int order,
     // Record the physical dimensions of the domain and the location of the origin
     forestData->m_origin[0] = x0;
     forestData->m_origin[1] = y0;
+    forestData->m_lxy[0] = x1;
+    forestData->m_lxy[1] = y1;
     forestData->m_length[0] = x1-x0;
     forestData->m_length[1] = y1-y0;
 
@@ -154,27 +160,9 @@ Rectangle::Rectangle(int order,
     // Number of dimensions
     m_numDim=2;
 
-    // Create the node numbering scheme
-    // This is the local numbering of the nodes that is used by p4est:
-    //  *
-    //  *         f_3
-    //  *  c_2           c_3
-    //  *      6---7---8
-    //  *      |       |
-    //  * f_0  3   4   5  f_1
-    //  *      |       |
-    //  *      0---1---2
-    //  *  c_0           c_1
-    //  *         f_2
-    // Note that hanging nodes don't have a global number.
-
-    nodes_ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
-    nodes = p4est_lnodes_new(p4est, nodes_ghost, 2);
-
     // Distribute the p4est across the processors
     int allow_coarsening = 0;
     p4est_partition(p4est, allow_coarsening, NULL);
-    p4est_partition_lnodes(p4est, NULL, 2, allow_coarsening);
 
     // To prevent segmentation faults when using numpy ndarray
 #ifdef ESYS_HAVE_BOOST_NUMPY
@@ -189,13 +177,8 @@ Rectangle::Rectangle(int order,
    Destructor.
 */
 Rectangle::~Rectangle(){
-
-    // free(forestData);
     p4est_connectivity_destroy(connectivity);
-    p4est_lnodes_destroy(nodes);
-    p4est_ghost_destroy(nodes_ghost);
     p4est_destroy(p4est);
-    // sc_finalize();
 }
 
 /**
@@ -240,6 +223,10 @@ void Rectangle::interpolateAcross(escript::Data& target, const escript::Data& so
 
 void Rectangle::setToNormal(escript::Data& out) const
 {
+    p4est_ghost_t * ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
+    p4est_lnodes_t * nodes = p4est_lnodes_new(p4est, ghost, 1);
+    p4est_ghost_destroy(ghost);
+
     if (out.getFunctionSpace().getTypeCode() == FaceElements) {
         out.requireWrite();
         for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
@@ -334,12 +321,19 @@ void Rectangle::setToNormal(escript::Data& out) const
         std::stringstream msg;
         msg << "setToNormal: invalid function space type "
             << out.getFunctionSpace().getTypeCode();
+        p4est_lnodes_destroy(nodes);
         throw ValueError(msg.str());
     }
+
+    p4est_lnodes_destroy(nodes);
 }
 
 void Rectangle::setToSize(escript::Data& out) const
 {
+    p4est_ghost_t * ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
+    p4est_lnodes_t * nodes = p4est_lnodes_new(p4est, ghost, 1);
+    p4est_ghost_destroy(ghost);
+
     if (out.getFunctionSpace().getTypeCode() == Elements
         || out.getFunctionSpace().getTypeCode() == ReducedElements)
     {
@@ -406,6 +400,8 @@ void Rectangle::setToSize(escript::Data& out) const
             << out.getFunctionSpace().getTypeCode();
         throw ValueError(msg.str());
     }
+
+    p4est_lnodes_destroy(nodes);
 }
 
 bool Rectangle::ownSample(int fsType, index_t id) const
@@ -504,7 +500,20 @@ void Rectangle::refineMesh(int maxRecursion, std::string algorithmname)
         p4est_balance_ext(p4est, P4EST_CONNECT_FULL, NULL, refine_copy_parent_quadrant);
         int partforcoarsen = 1;
         p4est_partition(p4est, partforcoarsen, NULL);
-    } else {
+        p4est_partition_lnodes(p4est, NULL, 2, 0);
+    } 
+#ifdef P4EST_ENABLE_DEBUG
+    else if(!algorithmname.compare("random"))
+    {
+        // srand(time(NULL));
+        int temp = (maxRecursion == -1) ? 1 : maxRecursion;
+        p4est_refine_ext(p4est, true, temp, random_refine, NULL, NULL);
+        p4est_balance_ext(p4est, P4EST_CONNECT_FULL, NULL, NULL);
+        p4est_partition(p4est, 1, NULL); // Needed if refined more than once by the user
+        p4est_partition_lnodes(p4est, NULL, 2, 0);
+    }
+#endif
+    else {
         throw OxleyException("Unknown refinement algorithm name.");
     }
 }
@@ -552,6 +561,50 @@ Assembler_ptr Rectangle::createAssembler(std::string type, const DataMap& consta
     throw escript::NotImplementedError("oxley::rectangle does not support the requested assembler");
 }
 
+// return True for a boundary node and False for an internal node
+bool Rectangle::isBoundaryNode(p4est_quadrant_t * quad, int n, p4est_topidx_t treeid, p4est_qcoord_t length) const
+{
+    double lx = length * ((int) (n % 2) == 1);
+    double ly = length * ((int) (n / 2) == 1);
+    double xy[3];
+    p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
+    return (xy[0] == 0) || (xy[0] == forestData->m_lxy[0]) || (xy[1] == 0) || (xy[1] == forestData->m_lxy[1]);
+}
+
+// returns True for a boundary node on the north or east of the domain
+bool Rectangle::isUpperBoundaryNode(p4est_quadrant_t * quad, int n, p4est_topidx_t treeid, p4est_qcoord_t length) const
+{
+    double lx = length * ((int) (n % 2) == 1);
+    double ly = length * ((int) (n / 2) == 1);
+    double xy[3];
+    p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
+    return (xy[0] == forestData->m_lxy[0]) || (xy[1] == forestData->m_lxy[1]);
+}
+
+// return True for a hanging node and False for an non-hanging node
+bool Rectangle::isHangingNode(p4est_lnodes_code_t face_code, int n) const
+{
+    if(face_code == 0)
+    {
+        return false;
+    }
+    else
+    {
+        int8_t c = face_code & 0x03;
+        int8_t ishanging0 = (face_code >> 2) & 0x01;
+        int8_t ishanging1 = face_code >> 3;
+
+        int8_t f0 = p4est_corner_faces[c][0];
+        int8_t f1 = p4est_corner_faces[c][1];
+
+        int d0 = c / 2 == 0;
+        int d1 = c % 2 == 0;
+        
+        return ((ishanging0 == 1) && (p4est_face_corners[f0][d0] == n)) 
+            || ((ishanging1 == 1) && (p4est_face_corners[f1][d1] == n));
+    }
+}
+
 //protected
 void Rectangle::assembleCoordinates(escript::Data& arg) const
 {
@@ -561,187 +614,59 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
         throw ValueError("assembleCoordinates: Illegal number of samples in Data object");
     arg.requireWrite();
 
-    double l0 = forestData->m_length[0]+forestData->m_origin[0];
-    double l1 = forestData->m_length[1]+forestData->m_origin[1];
-    for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; treeid++)
-    {
-        p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, treeid);
-        sc_array_t * tquadrants = &currenttree->quadrants;
+    p4est_ghost_t * ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
+    p4est_lnodes_t * nodes = p4est_lnodes_new(p4est, ghost, 1);
+    p4est_ghost_destroy(ghost);
+    p4est_locidx_t owned = nodes->owned_count; //number of owned nodes
+
+    for(p4est_topidx_t treeid = p4est->first_local_tree, k=0; treeid <= p4est->last_local_tree; ++treeid) {
+        p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
+        sc_array_t * tquadrants = &tree->quadrants;
         p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-        int counter = 0;
-// #pragma omp parallel for
-        for (p4est_locidx_t e = 0; e < Q; e++)
-        {
-            double xy[2];
-
-            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
-            double * point = arg.getSampleDataRW(e);
-            p4est_qcoord_to_vertex(connectivity, treeid, quad->x, quad->y, &point[0]);
+#pragma omp parallel for
+        for (int q = 0; q < Q; ++q, ++k) { // Loop over the elements attached to the tree
+            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
             p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
-            p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+length,quad->y,xy);
 
-            if(xy[0] == l0){
-                double * pointx = arg.getSampleDataRW(Q+counter);
-                pointx[0] = xy[0];
-                pointx[1] = xy[1];
-                counter++;
-            }
-            p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x,quad->y+length,xy);
-            if(xy[1] == l1){
-                double * pointy = arg.getSampleDataRW(Q+counter);
-                pointy[0] = xy[0];
-                pointy[1] = xy[1];
-                counter++;
-            }
-            p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+length,quad->y+length,xy);
-            if(xy[0] == l0 && xy[1] == l1){
-                double * pointxy = arg.getSampleDataRW(Q+counter);
-                pointxy[0] = xy[0];
-                pointxy[1] = xy[1];
-                counter++;
+            // Loop over the four corners of the quadrant
+            for(int n = 0; n < 4; ++n){
+                long lidx = nodes->element_nodes[4*k+n];
+
+                if(isHangingNode(nodes->face_code[k], n))
+                    continue;
+
+                double lx = length * ((int) (n % 2) == 1);
+                double ly = length * ((int) (n / 2) == 1);
+                double xy[3];
+                p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
+
+                if(     (n == 0) 
+                    || ((n == 1) && (xy[0] == forestData->m_lxy[0]))
+                    || ((n == 2) && (xy[1] == forestData->m_lxy[1]))
+                    || ((n == 3) && (xy[0] == forestData->m_lxy[0]) && (xy[1] == forestData->m_lxy[1]))
+                  )
+                {
+                    if(lidx < owned) // if this process owns the node
+                    {
+                        long lni = nodes->global_offset + lidx;
+                        double * point = arg.getSampleDataRW(lni);
+                        point[0] = xy[0];
+                        point[1] = xy[1];
+                        
+                    }
+                }
             }
         }
     }
+
+    //cleanup
+    p4est_lnodes_destroy(nodes);
 }
 
 //private
 void Rectangle::populateDofMap()
 {
-    OxleyException("Programming error");
-//     const dim_t nDOF0 = getNumDOFInAxis(0);
-//     const dim_t nDOF1 = getNumDOFInAxis(1);
-//     const index_t left = getFirstInDim(0);
-//     const index_t bottom = getFirstInDim(1);
-
-//     // populate node->DOF mapping with own degrees of freedom.
-//     // The rest is assigned in the loop further down
-//     m_dofMap.assign(getNumNodes(), 0);
-// #pragma omp parallel for
-//     for (index_t i=bottom; i<bottom+nDOF1; i++) {
-//         for (index_t j=left; j<left+nDOF0; j++) {
-//             m_dofMap[i*m_NN[0]+j]=(i-bottom)*nDOF0+j-left;
-//         }
-//     }
-
-//     // build list of shared components and neighbours by looping through
-//     // all potential neighbouring ranks and checking if positions are
-//     // within bounds
-//     const dim_t numDOF=nDOF0*nDOF1;
-//     RankVector neighbour;
-//     IndexVector offsetInShared(1,0);
-//     IndexVector sendShared, recvShared;
-//     const int x=m_mpiInfo->rank%m_NX[0];
-//     const int y=m_mpiInfo->rank/m_NX[0];
-//     // numShared will contain the number of shared DOFs after the following
-//     // blocks
-//     dim_t numShared=0;
-//     // sharing bottom edge
-//     if (y > 0) {
-//         neighbour.push_back((y-1)*m_NX[0] + x);
-//         const dim_t num = nDOF0;
-//         offsetInShared.push_back(offsetInShared.back()+num);
-//         for (dim_t i=0; i<num; i++, numShared++) {
-//             sendShared.push_back(i);
-//             recvShared.push_back(numDOF+numShared);
-//             m_dofMap[left+i]=numDOF+numShared;
-//         }
-//     }
-//     // sharing top edge
-//     if (y < m_NX[1] - 1) {
-//         neighbour.push_back((y+1)*m_NX[0] + x);
-//         const dim_t num = nDOF0;
-//         offsetInShared.push_back(offsetInShared.back()+num);
-//         for (dim_t i=0; i<num; i++, numShared++) {
-//             sendShared.push_back(numDOF-num+i);
-//             recvShared.push_back(numDOF+numShared);
-//             m_dofMap[m_NN[0]*(m_NN[1]-1)+left+i]=numDOF+numShared;
-//         }
-//     }
-//     // sharing left edge
-//     if (x > 0) {
-//         neighbour.push_back(y*m_NX[0] + x-1);
-//         const dim_t num = nDOF1;
-//         offsetInShared.push_back(offsetInShared.back()+num);
-//         for (dim_t i=0; i<num; i++, numShared++) {
-//             sendShared.push_back(i*nDOF0);
-//             recvShared.push_back(numDOF+numShared);
-//             m_dofMap[(bottom+i)*m_NN[0]]=numDOF+numShared;
-//         }
-//     }
-//     // sharing right edge
-//     if (x < m_NX[0] - 1) {
-//         neighbour.push_back(y*m_NX[0] + x+1);
-//         const dim_t num = nDOF1;
-//         offsetInShared.push_back(offsetInShared.back()+num);
-//         for (dim_t i=0; i<num; i++, numShared++) {
-//             sendShared.push_back((i+1)*nDOF0-1);
-//             recvShared.push_back(numDOF+numShared);
-//             m_dofMap[(bottom+1+i)*m_NN[0]-1]=numDOF+numShared;
-//         }
-//     }
-//     // sharing bottom-left node
-//     if (x > 0 && y > 0) {
-//         neighbour.push_back((y-1)*m_NX[0] + x-1);
-//         // sharing a node
-//         offsetInShared.push_back(offsetInShared.back()+1);
-//         sendShared.push_back(0);
-//         recvShared.push_back(numDOF+numShared);
-//         m_dofMap[0]=numDOF+numShared;
-//         ++numShared;
-//     }
-//     // sharing top-left node
-//     if (x > 0 && y < m_NX[1]-1) {
-//         neighbour.push_back((y+1)*m_NX[0] + x-1);
-//         offsetInShared.push_back(offsetInShared.back()+1);
-//         sendShared.push_back(numDOF-nDOF0);
-//         recvShared.push_back(numDOF+numShared);
-//         m_dofMap[m_NN[0]*(m_NN[1]-1)]=numDOF+numShared;
-//         ++numShared;
-//     }
-//     // sharing bottom-right node
-//     if (x < m_NX[0]-1 && y > 0) {
-//         neighbour.push_back((y-1)*m_NX[0] + x+1);
-//         offsetInShared.push_back(offsetInShared.back()+1);
-//         sendShared.push_back(nDOF0-1);
-//         recvShared.push_back(numDOF+numShared);
-//         m_dofMap[m_NN[0]-1]=numDOF+numShared;
-//         ++numShared;
-//     }
-//     // sharing top-right node
-//     if (x < m_NX[0]-1 && y < m_NX[1]-1) {
-//         neighbour.push_back((y+1)*m_NX[0] + x+1);
-//         offsetInShared.push_back(offsetInShared.back()+1);
-//         sendShared.push_back(numDOF-1);
-//         recvShared.push_back(numDOF+numShared);
-//         m_dofMap[m_NN[0]*m_NN[1]-1]=numDOF+numShared;
-//         ++numShared;
-//     }
-
-// #ifdef ESYS_HAVE_PASO
-//     createPasoConnector(neighbour, offsetInShared, offsetInShared, sendShared,
-//                         recvShared);
-// #endif
-
-    // useful debug output
-    
-    // std::cout << "--- rcv_shcomp ---" << std::endl;
-    // std::cout << "numDOF=" << numDOF << ", numNeighbors=" << neighbour.size() << std::endl;
-    // for (size_t i=0; i<neighbour.size(); i++) {
-    //     std::cout << "neighbor[" << i << "]=" << neighbour[i]
-    //         << " offsetInShared[" << i+1 << "]=" << offsetInShared[i+1] << std::endl;
-    // }
-    // for (size_t i=0; i<recvShared.size(); i++) {
-    //     std::cout << "shared[" << i << "]=" << recvShared[i] << std::endl;
-    // }
-    // std::cout << "--- snd_shcomp ---" << std::endl;
-    // for (size_t i=0; i<sendShared.size(); i++) {
-    //     std::cout << "shared[" << i << "]=" << sendShared[i] << std::endl;
-    // }
-    // std::cout << "--- dofMap ---" << std::endl;
-    // for (size_t i=0; i<m_dofMap.size(); i++) {
-    //     std::cout << "m_dofMap[" << i << "]=" << m_dofMap[i] << std::endl;
-    // }
-    
+    OxleyException("Programming error");   
 }
 
 
@@ -751,6 +676,10 @@ void Rectangle::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Dat
          const std::vector<Scalar>& EM_S, const std::vector<Scalar>& EM_F, 
          bool addS, bool addF, index_t firstNode, int nEq, int nComp) const
 {
+    p4est_ghost_t * ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
+    p4est_lnodes_t * nodes = p4est_lnodes_new(p4est, ghost, 1);
+    p4est_ghost_destroy(ghost);
+
     //AEAEAEAE todo:
     
     IndexVector rowIndex(4);
@@ -776,6 +705,8 @@ void Rectangle::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Dat
     {
         addToSystemMatrix<Scalar>(S, rowIndex, nEq, EM_S);
     }
+
+    p4est_lnodes_destroy(nodes);
 }
 
 template
@@ -833,6 +764,10 @@ void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
                                            const escript::Data& in,
                                            bool reduced, S sentinel) const
 {
+    p4est_ghost_t * ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
+    p4est_lnodes_t * nodes = p4est_lnodes_new(p4est, ghost, 1);
+    p4est_ghost_destroy(ghost);
+
     const dim_t numComp = in.getDataPointSize();
     const long  numNodes = getNumNodes();
     if (reduced) {
@@ -846,7 +781,7 @@ void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
         interpolateData.sentinel = sentinel;
         interpolateData.offset = numComp*sizeof(S);
 
-        p4est_iterate(p4est, nodes_ghost, &interpolateData, get_interpolateNodesOnElementWorker_data, NULL, NULL);
+        p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnElementWorker_data, NULL, NULL);
         for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; treeid++)
         {
             p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, treeid);
@@ -877,7 +812,7 @@ void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
         interpolateData.fxx = fxx;
         interpolateData.sentinel = sentinel;
         interpolateData.offset = numComp*sizeof(S);
-        p4est_iterate(p4est, nodes_ghost, &interpolateData, get_interpolateNodesOnElementWorker_data, NULL, NULL);
+        p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnElementWorker_data, NULL, NULL);
         for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; treeid++)
         {
             p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, treeid);
@@ -901,6 +836,7 @@ void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
         }
         delete[] fxx;
     }
+    p4est_lnodes_destroy(nodes);
 }
 
 //private
@@ -909,6 +845,10 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
                                         const escript::Data& in,
                                         bool reduced, S sentinel) const
 {
+    p4est_ghost_t * ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
+    p4est_lnodes_t * nodes = p4est_lnodes_new(p4est, ghost, 1);
+    p4est_ghost_destroy(ghost);
+
     const dim_t numComp = in.getDataPointSize();
     const dim_t numNodes = getNumNodes();
     if (reduced) {
@@ -932,7 +872,7 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
                 if(quad->x == 0)
                 {
                     interpolateData.direction=0;
-                    p4est_iterate(p4est, nodes_ghost, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
+                    p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
 
                     S* o = out.getSampleDataRW(e, sentinel);
                     for (index_t i=0; i < numComp; ++i) {
@@ -943,7 +883,7 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
                 if(quad->x == P4EST_ROOT_LEN)
                 {
                     interpolateData.direction=1;
-                    p4est_iterate(p4est, nodes_ghost, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
+                    p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
 
                     S* o = out.getSampleDataRW(e, sentinel);
                     for (index_t i=0; i < numComp; ++i) {
@@ -954,7 +894,7 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
                 if(quad->y == 0)
                 {
                     interpolateData.direction=2;
-                    p4est_iterate(p4est, nodes_ghost, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
+                    p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
 
                     S* o = out.getSampleDataRW(e, sentinel);
                     for (index_t i=0; i < numComp; ++i) {
@@ -965,7 +905,7 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
                 if(quad->y == P4EST_ROOT_LEN)
                 {
                     interpolateData.direction=3;
-                    p4est_iterate(p4est, nodes_ghost, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
+                    p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
 
                     S* o = out.getSampleDataRW(e, sentinel);
                     for (index_t i=0; i < numComp; ++i) {
@@ -998,7 +938,7 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
                 if(quad->x == 0)
                 {
                     interpolateData.direction=0;
-                    p4est_iterate(p4est, nodes_ghost, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
+                    p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
                     S* o = out.getSampleDataRW(e, sentinel);
                     for (index_t i=0; i < numComp; ++i) {
                         o[INDEX2(i,numComp,0)] = c0*fxx[INDEX3(1,i,e,numComp,numNodes)] + c1*fxx[INDEX3(0,i,e,numComp,numNodes)];
@@ -1009,7 +949,7 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
                 if(quad->x == P4EST_ROOT_LEN)
                 {
                     interpolateData.direction=1;
-                    p4est_iterate(p4est, nodes_ghost, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
+                    p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
                     S* o = out.getSampleDataRW(e, sentinel);
                     for (index_t i=0; i < numComp; ++i) {
                         o[INDEX2(i,numComp,0)] = c1*fxx[INDEX3(2,i,e,numComp,numNodes)] + c0*fxx[INDEX3(3,i,e,numComp,numNodes)];
@@ -1020,7 +960,7 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
                 if(quad->y == 0)
                 {
                     interpolateData.direction=2;
-                    p4est_iterate(p4est, nodes_ghost, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
+                    p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
                     S* o = out.getSampleDataRW(e, sentinel);
                     for (index_t i=0; i < numComp; ++i) {
                         o[INDEX2(i,numComp,0)] = c0*fxx[INDEX3(2,i,e,numComp,numNodes)] + c1*fxx[INDEX3(0,i,e,numComp,numNodes)];
@@ -1031,7 +971,7 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
                 if(quad->y == P4EST_ROOT_LEN)
                 {
                     interpolateData.direction=3;
-                    p4est_iterate(p4est, nodes_ghost, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
+                    p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
                     S* o = out.getSampleDataRW(e, sentinel);
                     for (index_t i=0; i < numComp; ++i) {
                         o[INDEX2(i,numComp,0)] = c0*fxx[INDEX3(3,i,e,numComp,numNodes)] + c1*fxx[INDEX3(1,i,e,numComp,numNodes)];
@@ -1041,6 +981,7 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
             }
         }
     }
+    p4est_lnodes_destroy(nodes);
 }
 
 ////////////////////////////// inline methods ////////////////////////////////
@@ -1069,26 +1010,12 @@ inline dim_t Rectangle::getDofOfNode(dim_t node) const
 //protected
 inline dim_t Rectangle::getNumNodes() const
 {
-    double xy[2];
-    double l0 = forestData->m_length[0]+forestData->m_origin[0];
-    double l1 = forestData->m_length[1]+forestData->m_origin[1];
-    p4est_locidx_t numnodes = 0;
-    for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
-    {
-        p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
-        sc_array_t * tquadrants = &currenttree->quadrants;
-        numnodes += (p4est_locidx_t) tquadrants->elem_count;
-        for (p4est_locidx_t e = 0; e < tquadrants->elem_count; e++)
-        {
-            p4est_quadrant_t * q = p4est_quadrant_array_index(tquadrants, e);
-            p4est_qcoord_t length = P4EST_QUADRANT_LEN(q->level);
-            p4est_qcoord_to_vertex(p4est->connectivity, t, q->x+length,q->y+length,xy);
-            numnodes += (xy[0] == l0);
-            numnodes += (xy[1] == l1);
-            numnodes += (xy[0] == l0) && (xy[1] == l1);
-        }
-    }
-    return numnodes;
+    p4est_ghost_t * ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
+    p4est_lnodes_t * nodes = p4est_lnodes_new(p4est, ghost, 1);
+    long numNodes = nodes->num_local_nodes;
+    p4est_ghost_destroy(ghost);
+    p4est_lnodes_destroy(nodes);
+    return numNodes;
 }
 
 //protected
@@ -1730,7 +1657,7 @@ void Rectangle::nodesToDOF(escript::Data& out, const escript::Data& in) const
 // Updates m_faceOffset for each quadrant
 void Rectangle::updateFaceOffset()
 {
-    p4est_iterate(p4est, nodes_ghost, NULL, update_node_faceoffset, NULL, NULL);
+    p4est_iterate(p4est, NULL, NULL, update_node_faceoffset, NULL, NULL);
 }
 
 static inline void
@@ -1834,82 +1761,84 @@ p4est_connectivity_t * Rectangle::new_rectangle_connectivity(
                             int mi, int ni, int periodic_a, int periodic_b, 
                             double x0, double x1, double y0, double y1)
 {
-  const p4est_topidx_t m = (p4est_topidx_t) mi;
-  const p4est_topidx_t n = (p4est_topidx_t) ni;
-  const p4est_topidx_t mc = periodic_a ? m : (m - 1);
-  const p4est_topidx_t nc = periodic_b ? n : (n - 1);
-  const p4est_topidx_t num_trees = m * n;
-  const p4est_topidx_t num_corners = mc * nc;
-  const p4est_topidx_t num_ctt = P4EST_CHILDREN * num_corners;
-  const p4est_topidx_t num_vertices = (m + 1) * (n + 1);
-  const int           periodic[P4EST_DIM] = { periodic_a, periodic_b };
-  const p4est_topidx_t max[P4EST_DIM] = { m - 1, n - 1 };
+    const p4est_topidx_t m = (p4est_topidx_t) mi;
+    const p4est_topidx_t n = (p4est_topidx_t) ni;
+    const p4est_topidx_t mc = periodic_a ? m : (m - 1);
+    const p4est_topidx_t nc = periodic_b ? n : (n - 1);
+    const p4est_topidx_t num_trees = m * n;
+    const p4est_topidx_t num_corners = mc * nc;
+    const p4est_topidx_t num_ctt = P4EST_CHILDREN * num_corners;
+    const p4est_topidx_t num_vertices = (m + 1) * (n + 1);
+    const int           periodic[P4EST_DIM] = { periodic_a, periodic_b };
+    const p4est_topidx_t max[P4EST_DIM] = { m - 1, n - 1 };
 
-  double             *vertices;
-  p4est_topidx_t     *tree_to_vertex;
-  p4est_topidx_t     *tree_to_tree;
-  int8_t             *tree_to_face;
-  p4est_topidx_t     *tree_to_corner;
-  p4est_topidx_t     *ctt_offset;
-  p4est_topidx_t     *corner_to_tree;
-  int8_t             *corner_to_corner;
-  p4est_topidx_t      n_iter;
-  int                 logx[P4EST_DIM];
-  int                 rankx[P4EST_DIM];
-  int                 i, j, l;
-  p4est_topidx_t      ti, tj, tk;
-  p4est_topidx_t      tx, ty;
-  p4est_topidx_t      tf[P4EST_FACES], tc[P4EST_CHILDREN];
-  p4est_topidx_t      coord[P4EST_DIM], coord2[P4EST_DIM], ttemp;
-  p4est_topidx_t     *linear_to_tree;
-  p4est_topidx_t     *tree_to_corner2;
-  p4est_topidx_t      vcount = 0, vicount = 0;
-  int                 c[P4EST_DIM];
-  p4est_connectivity_t *conn;
+    double             *vertices;
+    p4est_topidx_t     *tree_to_vertex;
+    p4est_topidx_t     *tree_to_tree;
+    int8_t             *tree_to_face;
+    p4est_topidx_t     *tree_to_corner;
+    p4est_topidx_t     *ctt_offset;
+    p4est_topidx_t     *corner_to_tree;
+    int8_t             *corner_to_corner;
+    p4est_topidx_t      n_iter;
+    int                 logx[P4EST_DIM];
+    int                 rankx[P4EST_DIM];
+    int                 i, j, l;
+    p4est_topidx_t      ti, tj, tk;
+    p4est_topidx_t      tx, ty;
+    p4est_topidx_t      tf[P4EST_FACES], tc[P4EST_CHILDREN];
+    p4est_topidx_t      coord[P4EST_DIM], coord2[P4EST_DIM], ttemp;
+    p4est_topidx_t     *linear_to_tree;
+    p4est_topidx_t     *tree_to_corner2;
+    p4est_topidx_t      vcount = 0, vicount = 0;
+    int                 c[P4EST_DIM];
+    p4est_connectivity_t *conn;
 
-  P4EST_ASSERT (m > 0 && n > 0);
+    P4EST_ASSERT (m > 0 && n > 0);
 
-  conn = p4est_connectivity_new (num_vertices, num_trees,
-                                 num_corners, num_ctt);
+    if(num_trees > MAXTREES)
+        throw OxleyException("n0*n1 exceeds the maximum number of allowable trees.");
+    else
+        conn = p4est_connectivity_new(num_vertices, num_trees, num_corners, num_ctt);
 
-  double dx = (x1 - x0) / mi;
-  double dy = (y1 - y0) / ni;
+    double dx = (x1 - x0) / mi;
+    double dy = (y1 - y0) / ni;
 
-  vertices = conn->vertices;
-  tree_to_vertex = conn->tree_to_vertex;
-  tree_to_tree = conn->tree_to_tree;
-  tree_to_face = conn->tree_to_face;
-  tree_to_corner = conn->tree_to_corner;
-  ctt_offset = conn->ctt_offset;
-  corner_to_tree = conn->corner_to_tree;
-  corner_to_corner = conn->corner_to_corner;
+    vertices = conn->vertices;
+    tree_to_vertex = conn->tree_to_vertex;
+    tree_to_tree = conn->tree_to_tree;
+    tree_to_face = conn->tree_to_face;
+    tree_to_corner = conn->tree_to_corner;
+    ctt_offset = conn->ctt_offset;
+    corner_to_tree = conn->corner_to_tree;
+    corner_to_corner = conn->corner_to_corner;
 
-  for (ti = 0; ti < num_corners + 1; ti++) {
-    ctt_offset[ti] = P4EST_CHILDREN * ti;
-  }
+    for (ti = 0; ti < num_corners + 1; ti++) {
+        ctt_offset[ti] = P4EST_CHILDREN * ti;
+    }
 
-  for (ti = 0; ti < P4EST_CHILDREN * num_trees; ti++) {
-    tree_to_vertex[ti] = -1;
-  }
+    for (ti = 0; ti < P4EST_CHILDREN * num_trees; ti++) {
+        tree_to_vertex[ti] = -1;
+    }
 
-  logx[0] = SC_LOG2_32 (m - 1) + 1;
-  logx[1] = SC_LOG2_32 (n - 1) + 1;
-  n_iter = (1 << logx[0]) * (1 << logx[1]);
-  if (logx[0] <= logx[1]) {
-    rankx[0] = 0;
-    rankx[1] = 1;
-  }
-  else {
-    rankx[0] = 1;
-    rankx[1] = 0;
-  }
+    logx[0] = SC_LOG2_32 (m - 1) + 1;
+    logx[1] = SC_LOG2_32 (n - 1) + 1;
+    n_iter = (1 << logx[0]) * (1 << logx[1]);
+    if (logx[0] <= logx[1]) {
+        rankx[0] = 0;
+        rankx[1] = 1;
+    }
+    else {
+        rankx[0] = 1;
+        rankx[1] = 0;
+    }
 
-  linear_to_tree = P4EST_ALLOC (p4est_topidx_t, n_iter);
-  tree_to_corner2 = P4EST_ALLOC (p4est_topidx_t, num_trees);
+    linear_to_tree = P4EST_ALLOC (p4est_topidx_t, n_iter);
+    tree_to_corner2 = P4EST_ALLOC (p4est_topidx_t, num_trees);
 
-  tj = 0;
-  tk = 0;
-  for (ti = 0; ti < n_iter; ti++) {
+    tj = 0;
+    tk = 0;
+    for (ti = 0; ti < n_iter; ti++) {
     brick_linear_to_xyz (ti, logx, rankx, coord);
     tx = coord[0];
     ty = coord[1];
@@ -1928,11 +1857,11 @@ p4est_connectivity_t * Rectangle::new_rectangle_connectivity(
     else {
       linear_to_tree[ti] = -1;
     }
-  }
-  P4EST_ASSERT (tj == num_trees);
-  P4EST_ASSERT (tk == num_corners);
+    }
+    P4EST_ASSERT (tj == num_trees);
+    P4EST_ASSERT (tk == num_corners);
 
-  for (ti = 0; ti < n_iter; ti++) {
+    for (ti = 0; ti < n_iter; ti++) {
     brick_linear_to_xyz (ti, logx, rankx, coord);
     tx = coord[0];
     ty = coord[1];
@@ -2028,17 +1957,15 @@ p4est_connectivity_t * Rectangle::new_rectangle_connectivity(
         }
       }
     }
-  }
+    }
 
-  P4EST_ASSERT (vcount == num_vertices);
-  P4EST_FREE (linear_to_tree);
-  P4EST_FREE (tree_to_corner2);
-  P4EST_ASSERT (p4est_connectivity_is_valid (conn));
+    P4EST_ASSERT (vcount == num_vertices);
+    P4EST_FREE (linear_to_tree);
+    P4EST_FREE (tree_to_corner2);
+    P4EST_ASSERT (p4est_connectivity_is_valid (conn));
 
-  return conn;
+    return conn;
 }
-
-
 
 // instantiate our two supported versions
 template
