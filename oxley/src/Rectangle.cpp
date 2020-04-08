@@ -115,9 +115,9 @@ Rectangle::Rectangle(int order,
             min_level, fill_uniform, sizeof(p4estData), init_rectangle_data, (void *) &forestData);
 
     // Nodes numbering
-    p4est_ghost_t * ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
-    nodes = p4est_lnodes_new(p4est, ghost, 1);
-    p4est_ghost_destroy(ghost);
+    // p4est_ghost_t * ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
+    // nodes = p4est_lnodes_new(p4est, ghost, 1);
+    // p4est_ghost_destroy(ghost);
 
     // Record the physical dimensions of the domain and the location of the origin
     forestData->m_origin[0] = x0;
@@ -488,7 +488,7 @@ void Rectangle::refineMesh(int maxRecursion, std::string algorithmname)
         int temp = (maxRecursion == -1) ? 1 : maxRecursion;
         p4est_refine_ext(p4est, true, temp, random_refine, NULL, NULL);
         p4est_balance_ext(p4est, P4EST_CONNECT_FULL, NULL, NULL);
-        p4est_partition(p4est, 1, NULL); // Needed if refined more than once by the user
+        p4est_partition(p4est, 1, NULL);
         p4est_partition_lnodes(p4est, NULL, 2, 0);
     }
 #endif
@@ -587,13 +587,18 @@ bool Rectangle::isHangingNode(p4est_lnodes_code_t face_code, int n) const
 //protected
 void Rectangle::assembleCoordinates(escript::Data& arg) const
 {
+    //
+    p4est_ghost_t * ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
+    p4est_lnodes_t * nnodes = p4est_lnodes_new(p4est, ghost, 1);
+    p4est_ghost_destroy(ghost);
+
     if (!arg.isDataPointShapeEqual(1, &m_numDim))
         throw ValueError("assembleCoordinates: Invalid Data object shape");
     if (!arg.numSamplesEqual(1, getNumNodes()))
         throw ValueError("assembleCoordinates: Illegal number of samples in Data object");
     arg.requireWrite();
 
-    p4est_locidx_t owned = nodes->owned_count; //number of owned nodes
+    p4est_locidx_t owned = nnodes->owned_count; //number of owned nodes
 
     for(p4est_topidx_t treeid = p4est->first_local_tree, k=0; treeid <= p4est->last_local_tree; ++treeid) {
         p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
@@ -604,11 +609,11 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
             p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
 
             // Loop over the four corners of the quadrant
-#pragma omp parallel for
+// #pragma omp parallel for
             for(int n = 0; n < 4; ++n){
-                long lidx = nodes->element_nodes[4*k+n];
+                long lidx = nnodes->element_nodes[4*k+n];
 
-                if(isHangingNode(nodes->face_code[k], n))
+                if(isHangingNode(nnodes->face_code[k], n))
                     continue;
 
                 double lx = length * ((int) (n % 2) == 1);
@@ -624,7 +629,7 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
                 {
                     if(lidx < owned) // if this process owns the node
                     {
-                        long lni = nodes->global_offset + lidx;
+                        long lni = nnodes->global_offset + lidx;
                         double * point = arg.getSampleDataRW(lni);
                         point[0] = xy[0];
                         point[1] = xy[1];
@@ -634,6 +639,7 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
             }
         }
     }
+    p4est_lnodes_destroy(nnodes);
 }
 
 //private
