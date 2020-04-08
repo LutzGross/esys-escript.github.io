@@ -223,9 +223,7 @@ private:
 
     // Node numbering
     p4est_lnodes_t * nodes;
-
-    // Node numbering
-    std::vector<long> nodeNumbering;
+    long nodeIncrements[MAXTREES] = {0};
 
     // Pointer that records the location of a temporary data structure
     void * temp_data;
@@ -240,13 +238,13 @@ protected:
     virtual dim_t getNumElements() const;
     virtual dim_t getNumFaceElements() const;
     virtual dim_t getNumDOF() const;
-    void updateNodeNumbering() const;
     // virtual dim_t getNumDOFInAxis(unsigned axis) const;
     // virtual index_t getFirstInDim(unsigned axis) const;
     // virtual IndexVector getDiagonalIndices(bool upperOnly) const;
     bool isBoundaryNode(p4est_quadrant_t * quad, int n, p4est_topidx_t treeid, p4est_qcoord_t length) const;
     bool isUpperBoundaryNode(p4est_quadrant_t * quad, int n, p4est_topidx_t treeid, p4est_qcoord_t length) const;
     bool isHangingNode(p4est_lnodes_code_t face_code, int n) const;
+    void updateNodeIncrements();
     virtual void assembleCoordinates(escript::Data& arg) const;
     virtual void assembleGradient(escript::Data& out, const escript::Data& in) const;
     // virtual void assembleIntegrate(std::vector<real_t>& integrals, const escript::Data& arg) const;
