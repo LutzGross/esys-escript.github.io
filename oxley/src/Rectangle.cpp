@@ -115,9 +115,9 @@ Rectangle::Rectangle(int order,
             min_level, fill_uniform, sizeof(p4estData), init_rectangle_data, (void *) &forestData);
 
     // Nodes numbering
-    // p4est_ghost_t * ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
-    // nodes = p4est_lnodes_new(p4est, ghost, 1);
-    // p4est_ghost_destroy(ghost);
+    p4est_ghost_t * ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
+    nodes = p4est_lnodes_new(p4est, ghost, 1);
+    p4est_ghost_destroy(ghost);
 
     // Record the physical dimensions of the domain and the location of the origin
     forestData->m_origin[0] = x0;
@@ -479,9 +479,8 @@ void Rectangle::refineMesh(int maxRecursion, std::string algorithmname)
         p4est_balance_ext(p4est, P4EST_CONNECT_FULL, NULL, refine_copy_parent_quadrant);
         int partforcoarsen = 1;
         p4est_partition(p4est, partforcoarsen, NULL);
-        p4est_partition_lnodes(p4est, NULL, 2, 0);
     } 
-#ifdef P4EST_ENABLE_DEBUG
+// #ifdef P4EST_ENABLE_DEBUG
     else if(!algorithmname.compare("random"))
     {
         // srand(time(NULL));
@@ -489,12 +488,16 @@ void Rectangle::refineMesh(int maxRecursion, std::string algorithmname)
         p4est_refine_ext(p4est, true, temp, random_refine, NULL, NULL);
         p4est_balance_ext(p4est, P4EST_CONNECT_FULL, NULL, NULL);
         p4est_partition(p4est, 1, NULL);
-        p4est_partition_lnodes(p4est, NULL, 2, 0);
     }
-#endif
+// #endif
     else {
         throw OxleyException("Unknown refinement algorithm name.");
     }
+    p4est_lnodes_destroy(nodes);
+    p4est_ghost_t * ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
+    nodes=p4est_lnodes_new(p4est, ghost, 1);
+    p4est_ghost_destroy(ghost);
+    updateNodeIncrements();
 }
 
 escript::Data Rectangle::getX() const
@@ -585,51 +588,60 @@ bool Rectangle::isHangingNode(p4est_lnodes_code_t face_code, int n) const
 }
 
 //protected
+void Rectangle::updateNodeIncrements()
+{
+    nodeIncrements[0] = 1;
+    for(p4est_topidx_t treeid = p4est->first_local_tree+1, k=1; treeid <= p4est->last_local_tree; ++treeid, ++k) 
+    {
+        p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
+        sc_array_t * tquadrants = &tree->quadrants;
+        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+        nodeIncrements[k] = nodeIncrements[k-1] + Q;
+    }
+}
+
+//protected
 void Rectangle::assembleCoordinates(escript::Data& arg) const
 {
-    //
-    p4est_ghost_t * ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
-    p4est_lnodes_t * nnodes = p4est_lnodes_new(p4est, ghost, 1);
-    p4est_ghost_destroy(ghost);
-
+    
     if (!arg.isDataPointShapeEqual(1, &m_numDim))
         throw ValueError("assembleCoordinates: Invalid Data object shape");
     if (!arg.numSamplesEqual(1, getNumNodes()))
         throw ValueError("assembleCoordinates: Illegal number of samples in Data object");
     arg.requireWrite();
 
-    p4est_locidx_t owned = nnodes->owned_count; //number of owned nodes
-
-    for(p4est_topidx_t treeid = p4est->first_local_tree, k=0; treeid <= p4est->last_local_tree; ++treeid) {
+    for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) {
         p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
         sc_array_t * tquadrants = &tree->quadrants;
         p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-        for (int q = 0; q < Q; ++q, ++k) { // Loop over the elements attached to the tree
+
+#pragma omp parallel for
+        for (int q = 0; q < Q; ++q) { // Loop over the elements attached to the tree
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
             p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
 
             // Loop over the four corners of the quadrant
-// #pragma omp parallel for
             for(int n = 0; n < 4; ++n){
-                long lidx = nnodes->element_nodes[4*k+n];
+                int k = q - Q + nodeIncrements[treeid - p4est->first_local_tree];
+                long lidx = nodes->element_nodes[4*k+n];
 
-                if(isHangingNode(nnodes->face_code[k], n))
-                    continue;
-
-                double lx = length * ((int) (n % 2) == 1);
-                double ly = length * ((int) (n / 2) == 1);
-                double xy[3];
-                p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
-
-                if(     (n == 0) 
-                    || ((n == 1) && (xy[0] == forestData->m_lxy[0]))
-                    || ((n == 2) && (xy[1] == forestData->m_lxy[1]))
-                    || ((n == 3) && (xy[0] == forestData->m_lxy[0]) && (xy[1] == forestData->m_lxy[1]))
-                  )
+                if(lidx < nodes->owned_count) // if this process owns the node
                 {
-                    if(lidx < owned) // if this process owns the node
+                    if(isHangingNode(nodes->face_code[k], n))
+                        continue;
+
+                    double lx = length * ((int) (n % 2) == 1);
+                    double ly = length * ((int) (n / 2) == 1);
+                    double xy[3];
+                    p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
+
+                    if(     (n == 0) 
+                        || ((n == 1) && (xy[0] == forestData->m_lxy[0]))
+                        || ((n == 2) && (xy[1] == forestData->m_lxy[1]))
+                        || ((n == 3) && (xy[0] == forestData->m_lxy[0]) && (xy[1] == forestData->m_lxy[1]))
+                      )
                     {
-                        long lni = nnodes->global_offset + lidx;
+                        long lni = nodes->global_offset + lidx;
                         double * point = arg.getSampleDataRW(lni);
                         point[0] = xy[0];
                         point[1] = xy[1];
@@ -639,7 +651,6 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
             }
         }
     }
-    p4est_lnodes_destroy(nnodes);
 }
 
 //private
@@ -950,9 +961,8 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
 ////////////////////////////// inline methods ////////////////////////////////
 inline dim_t Rectangle::getDofOfNode(dim_t node) const
 {
-    //AEAE todo 
+    throw OxleyException("Programming error");
     return -1;
-    // return m_dofMap[node];
 }
 
 // //protected
@@ -1029,10 +1039,8 @@ inline dim_t Rectangle::getNumDOF() const
 //protected
 esys_trilinos::const_TrilinosGraph_ptr Rectangle::getTrilinosGraph() const
 {
-    //AEAE todo
-
     // if (m_graph.is_null()) {
-    //     m_graph = createTrilinosGraph(m_dofId, m_nodeId);
+        // m_graph = createTrilinosGraph(m_dofId, m_nodeId);
     // }
     return m_graph;
 }
