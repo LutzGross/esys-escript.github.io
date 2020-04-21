@@ -255,6 +255,11 @@ bool Brick::ownSample(int fsType, index_t id) const
     throw OxleyException("currently: not supported"); //AE this is temporary
 }
 
+dim_t Brick::getNumDataPointsGlobal() const
+{
+    return getNumNodes();
+}
+
 
 /* This is a wrapper for filtered (and non-filtered) randoms
  * For detailed doco see randomFillWorker

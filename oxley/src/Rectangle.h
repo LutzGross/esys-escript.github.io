@@ -121,6 +121,12 @@ public:
 
     /**
        \brief
+       returns the number of data points summed across all MPI processes
+    */
+    virtual dim_t getNumDataPointsGlobal() const;
+
+    /**
+       \brief
        copies the surface normals at data points into out. The actual function
        space to be considered is defined by out. out has to be defined on this
        domain.
@@ -243,6 +249,7 @@ protected:
     // virtual IndexVector getDiagonalIndices(bool upperOnly) const;
     bool isBoundaryNode(p4est_quadrant_t * quad, int n, p4est_topidx_t treeid, p4est_qcoord_t length) const;
     bool isUpperBoundaryNode(p4est_quadrant_t * quad, int n, p4est_topidx_t treeid, p4est_qcoord_t length) const;
+    bool isHangingFace(p4est_lnodes_code_t face_code, int n) const;
     bool isHangingNode(p4est_lnodes_code_t face_code, int n) const;
     void updateNodeIncrements();
     virtual void assembleCoordinates(escript::Data& arg) const;
@@ -262,6 +269,10 @@ protected:
     virtual dim_t getDofOfNode(dim_t node) const;
     virtual void populateSampleIds();
     virtual void populateDofMap();
+    void updateHangingNodeIds();
+
+    // Updates myRows and myColumns
+    void updateRowsColumns();
 
     template <typename S>
     void interpolateNodesOnElementsWorker(escript::Data& out,
@@ -293,6 +304,12 @@ protected:
 #endif
 
     IndexVector getNodeDistribution() const;
+    IndexVector hangingNodes; //global ids of the hanging nodes
+    long numHanging = 0;
+
+    // Row and column indices
+    IndexVector myRows;
+    IndexVector myColumns;
 
 };
 

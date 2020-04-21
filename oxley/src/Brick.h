@@ -100,6 +100,12 @@ public:
 
     /**
        \brief
+       returns the number of data points summed across all MPI processes
+    */
+    virtual dim_t getNumDataPointsGlobal() const;
+
+    /**
+       \brief
        copies the surface normals at data points into out. The actual function
        space to be considered is defined by out. out has to be defined on this
        domain.

@@ -30,6 +30,7 @@
 #include <p4est.h>
 #include <p4est_algorithms.h>
 #include <p4est_bits.h>
+#include <p4est_connectivity.h>
 #include <p4est_extended.h>
 #include <p4est_iterate.h>
 #include <p4est_lnodes.h>
@@ -215,6 +216,8 @@ void Rectangle::interpolateAcross(escript::Data& target, const escript::Data& so
 
 void Rectangle::setToNormal(escript::Data& out) const
 {
+    throw OxleyException("33currently: not supported"); //AE this is temporary
+
     if (out.getFunctionSpace().getTypeCode() == FaceElements) {
         out.requireWrite();
         for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
@@ -315,6 +318,8 @@ void Rectangle::setToNormal(escript::Data& out) const
 
 void Rectangle::setToSize(escript::Data& out) const
 {
+    throw OxleyException("34currently: not supported"); //AE this is temporary
+
     if (out.getFunctionSpace().getTypeCode() == Elements
         || out.getFunctionSpace().getTypeCode() == ReducedElements)
     {
@@ -389,6 +394,11 @@ bool Rectangle::ownSample(int fsType, index_t id) const
 }
 
 
+dim_t Rectangle::getNumDataPointsGlobal() const
+{
+    return getNumNodes();
+}
+
 /* This is a wrapper for filtered (and non-filtered) randoms
  * For detailed doco see randomFillWorker
 */
@@ -402,7 +412,29 @@ escript::Data Rectangle::randomFill(const escript::DataTypes::ShapeType& shape,
 
 const dim_t* Rectangle::borrowSampleReferenceIDs(int fsType) const
 {
-    throw OxleyException("7currently: not supported"); //AE this is temporary
+    throw OxleyException("67currently: not supported"); //AE this is temporary
+    // switch (fsType) {
+    //     case Nodes:
+    //     case ReducedNodes:
+    //         return &m_nodeId[0];
+    //     case DegreesOfFreedom:
+    //     case ReducedDegreesOfFreedom:
+    //         throw OxleyException("Unknown Error.");
+    //     case Elements:
+    //     case ReducedElements:
+    //         return &m_elementId[0];
+    //     case FaceElements:
+    //     case ReducedFaceElements:
+    //         return &m_faceId[0];
+    //     case Points:
+    //         return &m_diracPointNodeIDs[0];
+    //     default:
+    //         break;
+    // }
+
+    // std::stringstream msg;
+    // msg << "borrowSampleReferenceIDs: invalid function space type " << fsType;
+    // throw ValueError(msg.str());
 }
 
 void Rectangle::writeToVTK(std::string filename, bool writeMesh) const
@@ -498,6 +530,7 @@ void Rectangle::refineMesh(int maxRecursion, std::string algorithmname)
     nodes=p4est_lnodes_new(p4est, ghost, 1);
     p4est_ghost_destroy(ghost);
     updateNodeIncrements();
+    updateRowsColumns();
 }
 
 escript::Data Rectangle::getX() const
@@ -667,30 +700,31 @@ void Rectangle::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Dat
          bool addS, bool addF, index_t firstNode, int nEq, int nComp) const
 {
     //AEAEAEAE todo:
+    throw OxleyException("1 programming error");
     
-    IndexVector rowIndex(4);
-    // rowIndex[0] = m_dofMap[firstNode];
-    // rowIndex[1] = m_dofMap[firstNode+1];
-    // rowIndex[2] = m_dofMap[firstNode+m_NN[0]];
-    // rowIndex[3] = m_dofMap[firstNode+m_NN[0]+1];
+//     IndexVector rowIndex(4);
+//     // rowIndex[0] = m_dofMap[firstNode];
+//     // rowIndex[1] = m_dofMap[firstNode+1];
+//     // rowIndex[2] = m_dofMap[firstNode+m_NN[0]];
+//     // rowIndex[3] = m_dofMap[firstNode+m_NN[0]+1];
 
-    if(addF)
-    {
-        Scalar* F_p = F.getSampleDataRW(0, static_cast<Scalar>(0));
-        for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; treeid++)
-        {
-            p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, treeid);
-            sc_array_t * tquadrants = &currenttree->quadrants;
-            p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-#pragma omp parallel for
-            for (p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
-                F_p[e]+=EM_F[e];
-        }
-    }
-    if(addS)
-    {
-        addToSystemMatrix<Scalar>(S, rowIndex, nEq, EM_S);
-    }
+//     if(addF)
+//     {
+//         Scalar* F_p = F.getSampleDataRW(0, static_cast<Scalar>(0));
+//         for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; treeid++)
+//         {
+//             p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, treeid);
+//             sc_array_t * tquadrants = &currenttree->quadrants;
+//             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+// #pragma omp parallel for
+//             for (p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
+//                 F_p[e]+=EM_F[e];
+//         }
+//     }
+//     if(addS)
+//     {
+//         addToSystemMatrix<Scalar>(S, rowIndex, nEq, EM_S);
+//     }
 }
 
 template
@@ -708,18 +742,21 @@ void Rectangle::interpolateNodesOnElements(escript::Data& out,
                                            const escript::Data& in,
                                            bool reduced) const
 {
-    if (in.isComplex()!=out.isComplex())
-    {
-        throw OxleyException("Programmer Error: in and out parameters do not have the same complexity.");
-    }
-    if (in.isComplex())
-    {
-        interpolateNodesOnElementsWorker(out, in, reduced, escript::DataTypes::cplx_t(0));
-    }
-    else
-    {
-        interpolateNodesOnElementsWorker(out, in, reduced, escript::DataTypes::real_t(0));      
-    }
+    //AEAEAEAE todo:
+    throw OxleyException("2 programming error");
+
+    // if (in.isComplex()!=out.isComplex())
+    // {
+    //     throw OxleyException("Programmer Error: in and out parameters do not have the same complexity.");
+    // }
+    // if (in.isComplex())
+    // {
+    //     interpolateNodesOnElementsWorker(out, in, reduced, escript::DataTypes::cplx_t(0));
+    // }
+    // else
+    // {
+    //     interpolateNodesOnElementsWorker(out, in, reduced, escript::DataTypes::real_t(0));      
+    // }
 }
 
 //protected
@@ -727,18 +764,21 @@ void Rectangle::interpolateNodesOnFaces(escript::Data& out,
                                            const escript::Data& in,
                                            bool reduced) const
 {
-    if (in.isComplex()!=out.isComplex())
-    {
-        throw OxleyException("Programmer Error: in and out parameters do not have the same complexity.");
-    }
-    if (in.isComplex())
-    {
-        interpolateNodesOnFacesWorker(out, in, reduced, escript::DataTypes::cplx_t(0));
-    }
-    else
-    {
-        interpolateNodesOnFacesWorker(out, in, reduced, escript::DataTypes::real_t(0));      
-    }
+    //AEAEAEAE todo:
+    throw OxleyException("3 programming error");
+
+    // if (in.isComplex()!=out.isComplex())
+    // {
+    //     throw OxleyException("Programmer Error: in and out parameters do not have the same complexity.");
+    // }
+    // if (in.isComplex())
+    // {
+    //     interpolateNodesOnFacesWorker(out, in, reduced, escript::DataTypes::cplx_t(0));
+    // }
+    // else
+    // {
+    //     interpolateNodesOnFacesWorker(out, in, reduced, escript::DataTypes::real_t(0));      
+    // }
 }
 
 
@@ -748,74 +788,77 @@ void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
                                            const escript::Data& in,
                                            bool reduced, S sentinel) const
 {
-    const dim_t numComp = in.getDataPointSize();
-    const long  numNodes = getNumNodes();
-    if (reduced) {
-        out.requireWrite();
-        const S c0 = 0.25;
-        double * fxx = new double[4*numComp*numNodes];
+    //AEAEAEAE todo:
+    throw OxleyException("4 programming error");
 
-        // This structure is used to store info needed by p4est
-        interpolateNodesOnElementsWorker_Data<S> interpolateData;
-        interpolateData.fxx = fxx;
-        interpolateData.sentinel = sentinel;
-        interpolateData.offset = numComp*sizeof(S);
+//     const dim_t numComp = in.getDataPointSize();
+//     const long  numNodes = getNumNodes();
+//     if (reduced) {
+//         out.requireWrite();
+//         const S c0 = 0.25;
+//         double * fxx = new double[4*numComp*numNodes];
 
-        p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnElementWorker_data, NULL, NULL);
-        for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; treeid++)
-        {
-            p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, treeid);
-            sc_array_t * tquadrants = &currenttree->quadrants;
-            p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-#pragma omp parallel for
-            for (p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
-            {
-                S* o = out.getSampleDataRW(e, sentinel);
-                for (index_t i=0; i < numComp; ++i) 
-                {
-                    o[i] = c0*(fxx[INDEX3(0,i,e,numComp,numNodes)] + 
-                               fxx[INDEX3(1,i,e,numComp,numNodes)] + 
-                               fxx[INDEX3(2,i,e,numComp,numNodes)] + 
-                               fxx[INDEX3(3,i,e,numComp,numNodes)]);
-                }
-            }
-        }
-        delete[] fxx;
-    } else {
-        out.requireWrite();
-        const S c0 = 0.16666666666666666667;
-        const S c1 = 0.044658198738520451079;
-        const S c2 = 0.62200846792814621559;
-        double * fxx = new double[4*numComp*numNodes];
-        // This structure is used to store info needed by p4est
-        interpolateNodesOnElementsWorker_Data<S> interpolateData;
-        interpolateData.fxx = fxx;
-        interpolateData.sentinel = sentinel;
-        interpolateData.offset = numComp*sizeof(S);
-        p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnElementWorker_data, NULL, NULL);
-        for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; treeid++)
-        {
-            p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, treeid);
-            sc_array_t * tquadrants = &currenttree->quadrants;
-            p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-#pragma omp parallel for
-            for (p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
-            {
-                S* o = out.getSampleDataRW(e, sentinel);
-                for (index_t i=0; i < numComp; ++i) {
-                    o[INDEX2(i,numComp,0)] = c0*(fxx[INDEX3(1,i,e,numComp,numNodes)] +    fxx[INDEX3(2,i,e,numComp,numNodes)]) + 
-                                             c1* fxx[INDEX3(3,i,e,numComp,numNodes)] + c2*fxx[INDEX3(0,i,e,numComp,numNodes)];
-                    o[INDEX2(i,numComp,1)] = c0*(fxx[INDEX3(2,i,e,numComp,numNodes)] +    fxx[INDEX3(3,i,e,numComp,numNodes)]) + 
-                                             c1* fxx[INDEX3(1,i,e,numComp,numNodes)] + c2*fxx[INDEX3(2,i,e,numComp,numNodes)];
-                    o[INDEX2(i,numComp,2)] = c0*(fxx[INDEX3(0,i,e,numComp,numNodes)] +    fxx[INDEX3(3,i,e,numComp,numNodes)]) + 
-                                             c1* fxx[INDEX3(2,i,e,numComp,numNodes)] + c2*fxx[INDEX3(1,i,e,numComp,numNodes)];
-                    o[INDEX2(i,numComp,3)] = c0*(fxx[INDEX3(1,i,e,numComp,numNodes)] +    fxx[INDEX3(2,i,e,numComp,numNodes)]) + 
-                                             c1* fxx[INDEX3(0,i,e,numComp,numNodes)] + c2*fxx[INDEX3(3,i,e,numComp,numNodes)];
-                }
-            }
-        }
-        delete[] fxx;
-    }
+//         // This structure is used to store info needed by p4est
+//         interpolateNodesOnElementsWorker_Data<S> interpolateData;
+//         interpolateData.fxx = fxx;
+//         interpolateData.sentinel = sentinel;
+//         interpolateData.offset = numComp*sizeof(S);
+
+//         p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnElementWorker_data, NULL, NULL);
+//         for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; treeid++)
+//         {
+//             p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, treeid);
+//             sc_array_t * tquadrants = &currenttree->quadrants;
+//             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+// #pragma omp parallel for
+//             for (p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
+//             {
+//                 S* o = out.getSampleDataRW(e, sentinel);
+//                 for (index_t i=0; i < numComp; ++i) 
+//                 {
+//                     o[i] = c0*(fxx[INDEX3(0,i,e,numComp,numNodes)] + 
+//                                fxx[INDEX3(1,i,e,numComp,numNodes)] + 
+//                                fxx[INDEX3(2,i,e,numComp,numNodes)] + 
+//                                fxx[INDEX3(3,i,e,numComp,numNodes)]);
+//                 }
+//             }
+//         }
+//         delete[] fxx;
+//     } else {
+//         out.requireWrite();
+//         const S c0 = 0.16666666666666666667;
+//         const S c1 = 0.044658198738520451079;
+//         const S c2 = 0.62200846792814621559;
+//         double * fxx = new double[4*numComp*numNodes];
+//         // This structure is used to store info needed by p4est
+//         interpolateNodesOnElementsWorker_Data<S> interpolateData;
+//         interpolateData.fxx = fxx;
+//         interpolateData.sentinel = sentinel;
+//         interpolateData.offset = numComp*sizeof(S);
+//         p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnElementWorker_data, NULL, NULL);
+//         for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; treeid++)
+//         {
+//             p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, treeid);
+//             sc_array_t * tquadrants = &currenttree->quadrants;
+//             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+// #pragma omp parallel for
+//             for (p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
+//             {
+//                 S* o = out.getSampleDataRW(e, sentinel);
+//                 for (index_t i=0; i < numComp; ++i) {
+//                     o[INDEX2(i,numComp,0)] = c0*(fxx[INDEX3(1,i,e,numComp,numNodes)] +    fxx[INDEX3(2,i,e,numComp,numNodes)]) + 
+//                                              c1* fxx[INDEX3(3,i,e,numComp,numNodes)] + c2*fxx[INDEX3(0,i,e,numComp,numNodes)];
+//                     o[INDEX2(i,numComp,1)] = c0*(fxx[INDEX3(2,i,e,numComp,numNodes)] +    fxx[INDEX3(3,i,e,numComp,numNodes)]) + 
+//                                              c1* fxx[INDEX3(1,i,e,numComp,numNodes)] + c2*fxx[INDEX3(2,i,e,numComp,numNodes)];
+//                     o[INDEX2(i,numComp,2)] = c0*(fxx[INDEX3(0,i,e,numComp,numNodes)] +    fxx[INDEX3(3,i,e,numComp,numNodes)]) + 
+//                                              c1* fxx[INDEX3(2,i,e,numComp,numNodes)] + c2*fxx[INDEX3(1,i,e,numComp,numNodes)];
+//                     o[INDEX2(i,numComp,3)] = c0*(fxx[INDEX3(1,i,e,numComp,numNodes)] +    fxx[INDEX3(2,i,e,numComp,numNodes)]) + 
+//                                              c1* fxx[INDEX3(0,i,e,numComp,numNodes)] + c2*fxx[INDEX3(3,i,e,numComp,numNodes)];
+//                 }
+//             }
+//         }
+//         delete[] fxx;
+//     }
 }
 
 //private
@@ -824,144 +867,147 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
                                         const escript::Data& in,
                                         bool reduced, S sentinel) const
 {
-    const dim_t numComp = in.getDataPointSize();
-    const dim_t numNodes = getNumNodes();
-    if (reduced) {
-        out.requireWrite();
-        double * fxx = new double[4*numComp*numNodes];
-        // This structure is used to store info needed by p4est
-        interpolateNodesOnFacesWorker_Data<S> interpolateData;
-        interpolateData.fxx = fxx;
-        interpolateData.sentinel = sentinel;
-        interpolateData.offset = numComp*sizeof(S);
-        for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; treeid++)
-        {
-            p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, treeid);
-            sc_array_t * tquadrants = &currenttree->quadrants;
-            p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-#pragma omp parallel for
-            for (p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
-            {
-                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
+    //AEAEAEAE todo:
+    throw OxleyException("5 programming error");
 
-                if(quad->x == 0)
-                {
-                    interpolateData.direction=0;
-                    p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
+//     const dim_t numComp = in.getDataPointSize();
+//     const dim_t numNodes = getNumNodes();
+//     if (reduced) {
+//         out.requireWrite();
+//         double * fxx = new double[4*numComp*numNodes];
+//         // This structure is used to store info needed by p4est
+//         interpolateNodesOnFacesWorker_Data<S> interpolateData;
+//         interpolateData.fxx = fxx;
+//         interpolateData.sentinel = sentinel;
+//         interpolateData.offset = numComp*sizeof(S);
+//         for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; treeid++)
+//         {
+//             p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, treeid);
+//             sc_array_t * tquadrants = &currenttree->quadrants;
+//             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+// #pragma omp parallel for
+//             for (p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
+//             {
+//                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
 
-                    S* o = out.getSampleDataRW(e, sentinel);
-                    for (index_t i=0; i < numComp; ++i) {
-                        o[e] = (fxx[INDEX3(0,i,e,numComp,numNodes)] + fxx[INDEX3(1,i,e,numComp,numNodes)])/static_cast<S>(2);
-                    }
-                }
+//                 if(quad->x == 0)
+//                 {
+//                     interpolateData.direction=0;
+//                     p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
 
-                if(quad->x == P4EST_ROOT_LEN)
-                {
-                    interpolateData.direction=1;
-                    p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
+//                     S* o = out.getSampleDataRW(e, sentinel);
+//                     for (index_t i=0; i < numComp; ++i) {
+//                         o[e] = (fxx[INDEX3(0,i,e,numComp,numNodes)] + fxx[INDEX3(1,i,e,numComp,numNodes)])/static_cast<S>(2);
+//                     }
+//                 }
 
-                    S* o = out.getSampleDataRW(e, sentinel);
-                    for (index_t i=0; i < numComp; ++i) {
-                        o[e] = (fxx[INDEX3(2,i,e,numComp,numNodes)] + fxx[INDEX3(3,i,e,numComp,numNodes)])/static_cast<S>(2);
-                    }
-                }
+//                 if(quad->x == P4EST_ROOT_LEN)
+//                 {
+//                     interpolateData.direction=1;
+//                     p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
 
-                if(quad->y == 0)
-                {
-                    interpolateData.direction=2;
-                    p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
+//                     S* o = out.getSampleDataRW(e, sentinel);
+//                     for (index_t i=0; i < numComp; ++i) {
+//                         o[e] = (fxx[INDEX3(2,i,e,numComp,numNodes)] + fxx[INDEX3(3,i,e,numComp,numNodes)])/static_cast<S>(2);
+//                     }
+//                 }
 
-                    S* o = out.getSampleDataRW(e, sentinel);
-                    for (index_t i=0; i < numComp; ++i) {
-                        o[e] = (fxx[INDEX3(0,i,e,numComp,numNodes)] + fxx[INDEX3(2,i,e,numComp,numNodes)])/static_cast<S>(2);
-                    }
-                }
+//                 if(quad->y == 0)
+//                 {
+//                     interpolateData.direction=2;
+//                     p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
 
-                if(quad->y == P4EST_ROOT_LEN)
-                {
-                    interpolateData.direction=3;
-                    p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
+//                     S* o = out.getSampleDataRW(e, sentinel);
+//                     for (index_t i=0; i < numComp; ++i) {
+//                         o[e] = (fxx[INDEX3(0,i,e,numComp,numNodes)] + fxx[INDEX3(2,i,e,numComp,numNodes)])/static_cast<S>(2);
+//                     }
+//                 }
 
-                    S* o = out.getSampleDataRW(e, sentinel);
-                    for (index_t i=0; i < numComp; ++i) {
-                        o[e] = (fxx[INDEX3(1,i,e,numComp,numNodes)] + fxx[INDEX3(3,i,e,numComp,numNodes)])/static_cast<S>(2);
-                    }
-                }
-            }
-        }
-    } else {
-        out.requireWrite();
-        const S c0 = 0.21132486540518711775;
-        const S c1 = 0.78867513459481288225;
+//                 if(quad->y == P4EST_ROOT_LEN)
+//                 {
+//                     interpolateData.direction=3;
+//                     p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
 
-        double * fxx = new double[4*numComp*numNodes];
-        // This structure is used to store info needed by p4est
-        interpolateNodesOnFacesWorker_Data<S> interpolateData;
-        interpolateData.fxx = fxx;
-        interpolateData.sentinel = sentinel;
-        interpolateData.offset = numComp*sizeof(S);
-        for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; treeid++)
-        {
-            p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, treeid);
-            sc_array_t * tquadrants = &currenttree->quadrants;
-            p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-#pragma omp parallel for
-            for (p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
-            {
-                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
+//                     S* o = out.getSampleDataRW(e, sentinel);
+//                     for (index_t i=0; i < numComp; ++i) {
+//                         o[e] = (fxx[INDEX3(1,i,e,numComp,numNodes)] + fxx[INDEX3(3,i,e,numComp,numNodes)])/static_cast<S>(2);
+//                     }
+//                 }
+//             }
+//         }
+//     } else {
+//         out.requireWrite();
+//         const S c0 = 0.21132486540518711775;
+//         const S c1 = 0.78867513459481288225;
 
-                if(quad->x == 0)
-                {
-                    interpolateData.direction=0;
-                    p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
-                    S* o = out.getSampleDataRW(e, sentinel);
-                    for (index_t i=0; i < numComp; ++i) {
-                        o[INDEX2(i,numComp,0)] = c0*fxx[INDEX3(1,i,e,numComp,numNodes)] + c1*fxx[INDEX3(0,i,e,numComp,numNodes)];
-                        o[INDEX2(i,numComp,1)] = c0*fxx[INDEX3(0,i,e,numComp,numNodes)] + c1*fxx[INDEX3(1,i,e,numComp,numNodes)];
-                    }
-                }
+//         double * fxx = new double[4*numComp*numNodes];
+//         // This structure is used to store info needed by p4est
+//         interpolateNodesOnFacesWorker_Data<S> interpolateData;
+//         interpolateData.fxx = fxx;
+//         interpolateData.sentinel = sentinel;
+//         interpolateData.offset = numComp*sizeof(S);
+//         for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; treeid++)
+//         {
+//             p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, treeid);
+//             sc_array_t * tquadrants = &currenttree->quadrants;
+//             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+// #pragma omp parallel for
+//             for (p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
+//             {
+//                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
 
-                if(quad->x == P4EST_ROOT_LEN)
-                {
-                    interpolateData.direction=1;
-                    p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
-                    S* o = out.getSampleDataRW(e, sentinel);
-                    for (index_t i=0; i < numComp; ++i) {
-                        o[INDEX2(i,numComp,0)] = c1*fxx[INDEX3(2,i,e,numComp,numNodes)] + c0*fxx[INDEX3(3,i,e,numComp,numNodes)];
-                        o[INDEX2(i,numComp,1)] = c1*fxx[INDEX3(3,i,e,numComp,numNodes)] + c0*fxx[INDEX3(2,i,e,numComp,numNodes)];
-                    }
-                }
+//                 if(quad->x == 0)
+//                 {
+//                     interpolateData.direction=0;
+//                     p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
+//                     S* o = out.getSampleDataRW(e, sentinel);
+//                     for (index_t i=0; i < numComp; ++i) {
+//                         o[INDEX2(i,numComp,0)] = c0*fxx[INDEX3(1,i,e,numComp,numNodes)] + c1*fxx[INDEX3(0,i,e,numComp,numNodes)];
+//                         o[INDEX2(i,numComp,1)] = c0*fxx[INDEX3(0,i,e,numComp,numNodes)] + c1*fxx[INDEX3(1,i,e,numComp,numNodes)];
+//                     }
+//                 }
 
-                if(quad->y == 0)
-                {
-                    interpolateData.direction=2;
-                    p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
-                    S* o = out.getSampleDataRW(e, sentinel);
-                    for (index_t i=0; i < numComp; ++i) {
-                        o[INDEX2(i,numComp,0)] = c0*fxx[INDEX3(2,i,e,numComp,numNodes)] + c1*fxx[INDEX3(0,i,e,numComp,numNodes)];
-                        o[INDEX2(i,numComp,1)] = c0*fxx[INDEX3(0,i,e,numComp,numNodes)] + c1*fxx[INDEX3(2,i,e,numComp,numNodes)];
-                    }
-                }
+//                 if(quad->x == P4EST_ROOT_LEN)
+//                 {
+//                     interpolateData.direction=1;
+//                     p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
+//                     S* o = out.getSampleDataRW(e, sentinel);
+//                     for (index_t i=0; i < numComp; ++i) {
+//                         o[INDEX2(i,numComp,0)] = c1*fxx[INDEX3(2,i,e,numComp,numNodes)] + c0*fxx[INDEX3(3,i,e,numComp,numNodes)];
+//                         o[INDEX2(i,numComp,1)] = c1*fxx[INDEX3(3,i,e,numComp,numNodes)] + c0*fxx[INDEX3(2,i,e,numComp,numNodes)];
+//                     }
+//                 }
 
-                if(quad->y == P4EST_ROOT_LEN)
-                {
-                    interpolateData.direction=3;
-                    p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
-                    S* o = out.getSampleDataRW(e, sentinel);
-                    for (index_t i=0; i < numComp; ++i) {
-                        o[INDEX2(i,numComp,0)] = c0*fxx[INDEX3(3,i,e,numComp,numNodes)] + c1*fxx[INDEX3(1,i,e,numComp,numNodes)];
-                        o[INDEX2(i,numComp,1)] = c0*fxx[INDEX3(1,i,e,numComp,numNodes)] + c1*fxx[INDEX3(3,i,e,numComp,numNodes)];
-                    }
-                }
-            }
-        }
-    }
+//                 if(quad->y == 0)
+//                 {
+//                     interpolateData.direction=2;
+//                     p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
+//                     S* o = out.getSampleDataRW(e, sentinel);
+//                     for (index_t i=0; i < numComp; ++i) {
+//                         o[INDEX2(i,numComp,0)] = c0*fxx[INDEX3(2,i,e,numComp,numNodes)] + c1*fxx[INDEX3(0,i,e,numComp,numNodes)];
+//                         o[INDEX2(i,numComp,1)] = c0*fxx[INDEX3(0,i,e,numComp,numNodes)] + c1*fxx[INDEX3(2,i,e,numComp,numNodes)];
+//                     }
+//                 }
+
+//                 if(quad->y == P4EST_ROOT_LEN)
+//                 {
+//                     interpolateData.direction=3;
+//                     p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
+//                     S* o = out.getSampleDataRW(e, sentinel);
+//                     for (index_t i=0; i < numComp; ++i) {
+//                         o[INDEX2(i,numComp,0)] = c0*fxx[INDEX3(3,i,e,numComp,numNodes)] + c1*fxx[INDEX3(1,i,e,numComp,numNodes)];
+//                         o[INDEX2(i,numComp,1)] = c0*fxx[INDEX3(1,i,e,numComp,numNodes)] + c1*fxx[INDEX3(3,i,e,numComp,numNodes)];
+//                     }
+//                 }
+//             }
+//         }
+//     }
 }
 
 ////////////////////////////// inline methods ////////////////////////////////
 inline dim_t Rectangle::getDofOfNode(dim_t node) const
 {
-    throw OxleyException("Programming error");
+    throw OxleyException("6 Programming error");
     return -1;
 }
 
@@ -983,18 +1029,13 @@ inline dim_t Rectangle::getDofOfNode(dim_t node) const
 //protected
 inline dim_t Rectangle::getNumNodes() const
 {
-    p4est_ghost_t * ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
-    p4est_lnodes_t * nodes = p4est_lnodes_new(p4est, ghost, 1);
-    long numNodes = nodes->num_local_nodes;
-    p4est_ghost_destroy(ghost);
-    p4est_lnodes_destroy(nodes);
-    return numNodes;
+    return nodes->num_local_nodes;
 }
 
 //protected
 inline dim_t Rectangle::getNumElements() const
 {
-    return p4est->global_num_quadrants;
+    return nodes->num_local_elements;
 }
 
 //protected
@@ -1029,19 +1070,20 @@ inline dim_t Rectangle::getNumFaceElements() const
     return numFaceElements;
 }
 
-//protected
-inline dim_t Rectangle::getNumDOF() const
+
+void Rectangle::updateRowsColumns()
 {
-    return getNumNodes();
+    // throw OxleyException("1234 todo");
+
 }
 
 #ifdef ESYS_HAVE_TRILINOS
 //protected
 esys_trilinos::const_TrilinosGraph_ptr Rectangle::getTrilinosGraph() const
-{
-    // if (m_graph.is_null()) {
-        // m_graph = createTrilinosGraph(m_dofId, m_nodeId);
-    // }
+{   
+    if (m_graph.is_null()) {
+        m_graph = createTrilinosGraph(myRows, myColumns);
+    }
     return m_graph;
 }
 #endif
@@ -1607,6 +1649,8 @@ dim_t Rectangle::findNode(const double *coords) const
 void Rectangle::nodesToDOF(escript::Data& out, const escript::Data& in) const
 {
     //AEAE todo
+    //AEAEAEAE todo:
+    throw OxleyException("14 programming error");
 
 //     const dim_t numComp = in.getDataPointSize();
 //     out.requireWrite();
@@ -1906,10 +1950,8 @@ p4est_connectivity_t * Rectangle::new_rectangle_connectivity(
             ttemp = tree_to_corner2[ttemp];
             P4EST_ASSERT (ttemp >= 0);
             tree_to_corner[tj * P4EST_CHILDREN + i] = ttemp;
-            corner_to_tree[ttemp * P4EST_CHILDREN +
-                           (P4EST_CHILDREN - 1 - i)] = tj;
-            corner_to_corner[ttemp * P4EST_CHILDREN +
-                             (P4EST_CHILDREN - 1 - i)] = (int8_t) i;
+            corner_to_tree[ttemp * P4EST_CHILDREN + (P4EST_CHILDREN - 1 - i)] = tj;
+            corner_to_corner[ttemp * P4EST_CHILDREN + (P4EST_CHILDREN - 1 - i)] = (int8_t) i;
           }
         }
         if (ty > 0 && ((i >> 1) & 1) == 0) {

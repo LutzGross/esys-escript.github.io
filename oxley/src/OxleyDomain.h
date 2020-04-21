@@ -188,6 +188,12 @@ public:
 
     /**
        \brief
+       returns the number of data points summed across all MPI processes
+    */
+    virtual dim_t getNumDataPointsGlobal() const = 0;
+
+    /**
+       \brief
        returns the tag key for the given sample number
        \param fsType The function space type
        \param sampleNo The sample number
