@@ -882,8 +882,6 @@ esys_trilinos::const_TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
                                             const IndexVector& myRows,
                                             const IndexVector& myColumns) const
 {
-    std::cout << "AEAE just checking... in oxley createTrilinosGraph" << std::endl;
-
     using namespace esys_trilinos;
 
     const dim_t numMatrixRows = getNumDOF();
