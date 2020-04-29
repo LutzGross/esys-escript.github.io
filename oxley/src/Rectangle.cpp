@@ -157,6 +157,9 @@ Rectangle::Rectangle(int order,
     int allow_coarsening = 0;
     p4est_partition(p4est, allow_coarsening, NULL);
 
+    // 
+    updateNodeIncrements();
+
     // To prevent segmentation faults when using numpy ndarray
 #ifdef ESYS_HAVE_BOOST_NUMPY
     Py_Initialize();
@@ -206,17 +209,17 @@ void Rectangle::write(const std::string& filename) const
 bool Rectangle::probeInterpolationAcross(int fsType_source,
         const escript::AbstractDomain& domain, int fsType_target) const
 {
-    throw OxleyException("1currently: not supported"); //AE this is temporary
+    throw OxleyException("probeInterpolationAcross"); //AE this is temporary
 }
 
 void Rectangle::interpolateAcross(escript::Data& target, const escript::Data& source) const
 {
-    throw OxleyException("2currently: not supported"); //AE this is temporary
+    throw OxleyException("interpolateAcross"); //AE this is temporary
 }
 
 void Rectangle::setToNormal(escript::Data& out) const
 {
-    throw OxleyException("33currently: not supported"); //AE this is temporary
+    throw OxleyException("setToNormal"); //AE this is temporary
 
     if (out.getFunctionSpace().getTypeCode() == FaceElements) {
         out.requireWrite();
@@ -318,7 +321,7 @@ void Rectangle::setToNormal(escript::Data& out) const
 
 void Rectangle::setToSize(escript::Data& out) const
 {
-    throw OxleyException("34currently: not supported"); //AE this is temporary
+    throw OxleyException("setToSize"); //AE this is temporary
 
     if (out.getFunctionSpace().getTypeCode() == Elements
         || out.getFunctionSpace().getTypeCode() == ReducedElements)
@@ -390,7 +393,7 @@ void Rectangle::setToSize(escript::Data& out) const
 
 bool Rectangle::ownSample(int fsType, index_t id) const
 {
-    throw OxleyException("5currently: not supported"); //AE this is temporary
+    throw OxleyException("ownSample"); //AE this is temporary
 }
 
 
@@ -406,13 +409,14 @@ escript::Data Rectangle::randomFill(const escript::DataTypes::ShapeType& shape,
                                     const escript::FunctionSpace& fs,
                                     long seed, const bp::tuple& filter) const
 {
-    throw OxleyException("6currently: not supported"); //AE this is temporary
+    throw OxleyException("randomFill"); //AE this is temporary
 }
 
 
 const dim_t* Rectangle::borrowSampleReferenceIDs(int fsType) const
 {
-    throw OxleyException("67currently: not supported"); //AE this is temporary
+    throw OxleyException("borrowSampleReferenceIDs"); 
+    
     // switch (fsType) {
     //     case Nodes:
     //     case ReducedNodes:
@@ -502,34 +506,35 @@ void Rectangle::writeToVTK(std::string filename, bool writeMesh) const
 
 void Rectangle::refineMesh(int maxRecursion, std::string algorithmname)
 {
-    if(!algorithmname.compare("uniform")){
+    if(!algorithmname.compare("uniform"))
+    {
+        if(maxRecursion < 0)
+            throw OxleyException("Invalid value for maxRecursion");
+
         if(maxRecursion == 0){
             p4est_refine_ext(p4est, true, -1, refine_uniform, NULL, refine_copy_parent_quadrant);
         } else {
             p4est_refine_ext(p4est, true, maxRecursion+2, refine_uniform, NULL, refine_copy_parent_quadrant);
         }
         p4est_balance_ext(p4est, P4EST_CONNECT_FULL, NULL, refine_copy_parent_quadrant);
-        int partforcoarsen = 1;
-        p4est_partition(p4est, partforcoarsen, NULL);
     } 
-// #ifdef P4EST_ENABLE_DEBUG
     else if(!algorithmname.compare("random"))
     {
         // srand(time(NULL));
         int temp = (maxRecursion == -1) ? 1 : maxRecursion;
         p4est_refine_ext(p4est, true, temp, random_refine, NULL, NULL);
         p4est_balance_ext(p4est, P4EST_CONNECT_FULL, NULL, NULL);
-        p4est_partition(p4est, 1, NULL);
     }
-// #endif
     else {
         throw OxleyException("Unknown refinement algorithm name.");
     }
+    p4est_partition(p4est, 1, NULL);
     p4est_lnodes_destroy(nodes);
     p4est_ghost_t * ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
     nodes=p4est_lnodes_new(p4est, ghost, 1);
     p4est_ghost_destroy(ghost);
     updateNodeIncrements();
+    renumberHangingNodes();
     updateRowsColumns();
 }
 
@@ -557,6 +562,8 @@ void Rectangle::print_debug_report(std::string locat)
 
 Assembler_ptr Rectangle::createAssembler(std::string type, const DataMap& constants) const
 {
+    throw OxleyException("createAssembler");
+
     bool isComplex = false;
     DataMap::const_iterator it;
     for(it = constants.begin(); it != constants.end(); it++) {
@@ -633,6 +640,70 @@ void Rectangle::updateNodeIncrements()
     }
 }
 
+void Rectangle::renumberHangingNodes()
+{
+    long numNodes = getNumNodes();
+
+#pragma omp for
+    for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) {
+        p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
+        sc_array_t * tquadrants = &tree->quadrants;
+        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+        // This records which faces have hanging nodes on them
+        bool hanging[4] = {false};
+
+        for(int q = 0; q < Q; ++q) { 
+            int k = q - Q + nodeIncrements[treeid - p4est->first_local_tree];
+   
+            // If there are no hanging nodes here, skip to the next quadrant
+            if(nodes->face_code[k] == 0)
+            {
+                continue;
+            }
+
+            // Loop over the four corners of this quadrant
+            int8_t face_code = nodes->face_code[k];
+            int8_t c = face_code & 0x03;
+            int8_t ishanging0 = (face_code >> 2) & 0x01;
+            int8_t ishanging1 = face_code >> 3;
+
+            int8_t f0 = p4est_corner_faces[c][0];
+            int8_t f1 = p4est_corner_faces[c][1];
+
+            int d0 = c / 2 == 0;
+            int d1 = c % 2 == 0;
+
+            int tmp0 = p4est_face_corners[f0][d0];
+            int tmp1 = p4est_face_corners[f1][d1];
+            
+            // Record which nodes are hanging
+            if(ishanging0 || ishanging1)
+            {
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+                p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
+                double xy[3];
+
+                if(ishanging0)
+                {                   
+                    double lx = length * ((int) (tmp0 % 2) == 1);
+                    double ly = length * ((int) (tmp0 / 2) == 1);
+                    p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
+                    if(!hangingNodes.count(std::make_pair(xy[0],xy[1])))
+                        hangingNodes[std::make_pair(xy[0],xy[1])]=hangingNodes.size()+numNodes;
+                }
+                if(ishanging1)
+                {
+                    double lx = length * ((int) (tmp1 % 2) == 1);
+                    double ly = length * ((int) (tmp1 / 2) == 1);
+                    p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
+                    if(!hangingNodes.count(std::make_pair(xy[0],xy[1])))
+                        hangingNodes[std::make_pair(xy[0],xy[1])]=hangingNodes.size()+numNodes;
+                }
+            }   
+        }
+    }
+}
+
 //protected
 void Rectangle::assembleCoordinates(escript::Data& arg) const
 {
@@ -660,8 +731,22 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
 
                 if(lidx < nodes->owned_count) // if this process owns the node
                 {
+
                     if(isHangingNode(nodes->face_code[k], n))
+                    {
+                        double lx = length * ((int) (n % 2) == 1);
+                        double ly = length * ((int) (n / 2) == 1);
+                        double xy[3];
+                        p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
+
+                        std::pair<double,double> coords = std::make_pair(xy[0],xy[1]);
+                        long lni = hangingNodes.find(std::make_pair(xy[0],xy[1]))->second;
+                        double * point = arg.getSampleDataRW(lni);
+                        point[0] = xy[0];
+                        point[1] = xy[1];
+
                         continue;
+                    }
 
                     double lx = length * ((int) (n % 2) == 1);
                     double ly = length * ((int) (n / 2) == 1);
@@ -699,8 +784,8 @@ void Rectangle::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Dat
          const std::vector<Scalar>& EM_S, const std::vector<Scalar>& EM_F, 
          bool addS, bool addF, index_t firstNode, int nEq, int nComp) const
 {
-    //AEAEAEAE todo:
-    throw OxleyException("1 programming error");
+    //todo:
+    throw OxleyException("addToMatrixAndRHS");
     
 //     IndexVector rowIndex(4);
 //     // rowIndex[0] = m_dofMap[firstNode];
@@ -742,8 +827,8 @@ void Rectangle::interpolateNodesOnElements(escript::Data& out,
                                            const escript::Data& in,
                                            bool reduced) const
 {
-    //AEAEAEAE todo:
-    throw OxleyException("2 programming error");
+    //todo:
+    throw OxleyException("interpolateNodesOnElements");
 
     // if (in.isComplex()!=out.isComplex())
     // {
@@ -764,8 +849,8 @@ void Rectangle::interpolateNodesOnFaces(escript::Data& out,
                                            const escript::Data& in,
                                            bool reduced) const
 {
-    //AEAEAEAE todo:
-    throw OxleyException("3 programming error");
+    //todo:
+    throw OxleyException("interpolateNodesOnFaces");
 
     // if (in.isComplex()!=out.isComplex())
     // {
@@ -788,8 +873,8 @@ void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
                                            const escript::Data& in,
                                            bool reduced, S sentinel) const
 {
-    //AEAEAEAE todo:
-    throw OxleyException("4 programming error");
+    //todo:
+    throw OxleyException("interpolateNodesOnElementsWorker");
 
 //     const dim_t numComp = in.getDataPointSize();
 //     const long  numNodes = getNumNodes();
@@ -867,8 +952,8 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
                                         const escript::Data& in,
                                         bool reduced, S sentinel) const
 {
-    //AEAEAEAE todo:
-    throw OxleyException("5 programming error");
+    //todo:
+    throw OxleyException("interpolateNodesOnFacesWorker");
 
 //     const dim_t numComp = in.getDataPointSize();
 //     const dim_t numNodes = getNumNodes();
@@ -1007,7 +1092,7 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
 ////////////////////////////// inline methods ////////////////////////////////
 inline dim_t Rectangle::getDofOfNode(dim_t node) const
 {
-    throw OxleyException("6 Programming error");
+    throw OxleyException("getDofOfNode");
     return -1;
 }
 
@@ -1016,7 +1101,7 @@ inline dim_t Rectangle::getDofOfNode(dim_t node) const
 // {
 //     ESYS_ASSERT(axis < m_numDim, "Invalid axis");
 //     return (m_gNE[axis]+1)/m_NX[axis];
-//     // return 0; //AEAE todo
+//     // return 0; //todo
 // }
 
 // protected
@@ -1029,7 +1114,7 @@ inline dim_t Rectangle::getDofOfNode(dim_t node) const
 //protected
 inline dim_t Rectangle::getNumNodes() const
 {
-    return nodes->num_local_nodes;
+    return nodes->num_local_nodes + hangingNodes.size();
 }
 
 //protected
@@ -1041,40 +1126,83 @@ inline dim_t Rectangle::getNumElements() const
 //protected
 inline dim_t Rectangle::getNumFaceElements() const
 {
-    double xy[2];
-    double x0 = forestData->m_origin[0];
-    double y0 = forestData->m_origin[1];
-    double x1 = forestData->m_length[0]+forestData->m_origin[0];
-    double y1 = forestData->m_length[1]+forestData->m_origin[1];
-    p4est_locidx_t numFaceElements = 0;
-    for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
-    {
-        p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
-        sc_array_t * tquadrants = &currenttree->quadrants;
-        for (p4est_locidx_t e = 0; e < tquadrants->elem_count; e++)
-        {
-            p4est_quadrant_t * q = p4est_quadrant_array_index(tquadrants, e);
-            p4est_qcoord_t length = P4EST_QUADRANT_LEN(q->level);
-            p4est_qcoord_to_vertex(p4est->connectivity, t, q->x,q->y,xy);
-            if(xy[0] == x0 || xy[1] == y0){
-                numFaceElements++;
-                break;
-            }
-            p4est_qcoord_to_vertex(p4est->connectivity, t, q->x+length,q->y+length,xy);
-            if(xy[0] == x1 || xy[1] == y1){
-                numFaceElements++;
-                break;
-            }
-        }
-    }
-    return numFaceElements;
+    throw OxleyException("getNumFaceElements");
+    // double xy[2];
+    // double x0 = forestData->m_origin[0];
+    // double y0 = forestData->m_origin[1];
+    // double x1 = forestData->m_length[0]+forestData->m_origin[0];
+    // double y1 = forestData->m_length[1]+forestData->m_origin[1];
+    // p4est_locidx_t numFaceElements = 0;
+    // for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
+    // {
+    //     p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
+    //     sc_array_t * tquadrants = &currenttree->quadrants;
+    //     for (p4est_locidx_t e = 0; e < tquadrants->elem_count; e++)
+    //     {
+    //         p4est_quadrant_t * q = p4est_quadrant_array_index(tquadrants, e);
+    //         p4est_qcoord_t length = P4EST_QUADRANT_LEN(q->level);
+    //         p4est_qcoord_to_vertex(p4est->connectivity, t, q->x,q->y,xy);
+    //         if(xy[0] == x0 || xy[1] == y0){
+    //             numFaceElements++;
+    //             break;
+    //         }
+    //         p4est_qcoord_to_vertex(p4est->connectivity, t, q->x+length,q->y+length,xy);
+    //         if(xy[0] == x1 || xy[1] == y1){
+    //             numFaceElements++;
+    //             break;
+    //         }
+    //     }
+    // }
+    // return numFaceElements;
 }
 
+dim_t Rectangle::getNumDOF() const
+{
+    throw OxleyException("Programming Error.");
+}
 
 void Rectangle::updateRowsColumns()
 {
-    // throw OxleyException("1234 todo");
+//     for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) {
+//         p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
+//         sc_array_t * tquadrants = &tree->quadrants;
+//         p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
 
+// #pragma omp parallel for
+//         for (int q = 0; q < Q; ++q) { // Loop over the elements attached to the tree
+//             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+//             p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
+
+//             // Loop over the four corners of the quadrant
+//             for(int n = 0; n < 4; ++n){
+//                 int k = q - Q + nodeIncrements[treeid - p4est->first_local_tree];
+//                 long lidx = nodes->element_nodes[4*k+n];
+
+//                 if(lidx < nodes->owned_count) // if this process owns the node
+//                 {
+//                     if(isHangingNode(nodes->face_code[k], n))
+//                         continue;
+
+//                     double lx = length * ((int) (n % 2) == 1);
+//                     double ly = length * ((int) (n / 2) == 1);
+//                     double xy[3];
+//                     p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
+
+//                     if(     (n == 0) 
+//                         || ((n == 1) && (xy[0] == forestData->m_lxy[0]))
+//                         || ((n == 2) && (xy[1] == forestData->m_lxy[1]))
+//                         || ((n == 3) && (xy[0] == forestData->m_lxy[0]) && (xy[1] == forestData->m_lxy[1]))
+//                       )
+//                     {
+//                         long lni = nodes->global_offset + lidx;
+                        
+//                     }
+//                 }
+//             }
+//         }
+//     }
+
+    // throw OxleyException("updateRowsColumns"); 
 }
 
 #ifdef ESYS_HAVE_TRILINOS
@@ -1094,7 +1222,7 @@ paso::SystemMatrixPattern_ptr Rectangle::getPasoMatrixPattern(
                                                     bool reducedRowOrder,
                                                     bool reducedColOrder) const
 {
-    //AEAE todo
+    throw OxleyException("getPasoMatrixPattern");
 
 //     if (m_pattern.get())
 //         return m_pattern;
@@ -1147,7 +1275,7 @@ paso::SystemMatrixPattern_ptr Rectangle::getPasoMatrixPattern(
 //private
 void Rectangle::populateSampleIds()
 {
-    // AEAE todo
+    throw OxleyException("populateSampleIds");
 
 //     // degrees of freedom are numbered from left to right, bottom to top in
 //     // each rank, continuing on the next rank (ranks also go left-right,
@@ -1314,6 +1442,8 @@ void Rectangle::populateSampleIds()
 // This is a wrapper that converts the p4est node information into an IndexVector
 IndexVector Rectangle::getNodeDistribution() const
 {
+    throw OxleyException("getNodeDistribution");
+
     IndexVector m_nodeDistribution;
 
 #pragma omp parallel for
@@ -1326,6 +1456,9 @@ IndexVector Rectangle::getNodeDistribution() const
 //private
 std::vector<IndexVector> Rectangle::getConnections(bool includeShared) const
 {
+
+    throw OxleyException("getConnections");
+
     // returns a vector v of size numMatrixRows where v[i] is a vector with indices
     // of DOFs connected to i 
     // In other words this method returns the occupied (local) matrix columns
@@ -1373,7 +1506,7 @@ template<typename Scalar>
 void Rectangle::assembleGradientImpl(escript::Data& out,
                                      const escript::Data& in) const
 {
-    //AEAE todo
+    throw OxleyException("assembleGradientImpl");
 
     const dim_t numComp = in.getDataPointSize();
     
@@ -1592,7 +1725,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
 
 dim_t Rectangle::findNode(const double *coords) const
 {
-    //AEAE todo
+    throw OxleyException("findNode");
     return -1;
 
     // const dim_t NOT_MINE = -1;
@@ -1649,8 +1782,7 @@ dim_t Rectangle::findNode(const double *coords) const
 void Rectangle::nodesToDOF(escript::Data& out, const escript::Data& in) const
 {
     //AEAE todo
-    //AEAEAEAE todo:
-    throw OxleyException("14 programming error");
+    throw OxleyException("nodesToDOF");
 
 //     const dim_t numComp = in.getDataPointSize();
 //     out.requireWrite();
