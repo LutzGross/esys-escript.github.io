@@ -16,11 +16,17 @@
 #ifndef __OXLEY_RECTANGLE_H__
 #define __OXLEY_RECTANGLE_H__
 
+#include <unordered_map>
+#include <utility>
+
+#include <boost/functional/hash.hpp>
+
 #include <escript/Data.h>
 #include <escript/EsysMPI.h>
 #include <escript/SubWorld.h>
 
 #include <oxley/AbstractAssembler.h>
+#include <oxley/Oxley.h>
 #include <oxley/OxleyData.h>
 #include <oxley/OxleyDomain.h>
 
@@ -32,6 +38,8 @@
 #ifdef ESYS_HAVE_BOOST_NUMPY
 #include <boost/python/numpy.hpp>
 #endif
+
+typedef std::pair<double,double> pair;
 
 using namespace boost::python;
 
@@ -243,7 +251,7 @@ protected:
     virtual dim_t getNumNodes() const;
     virtual dim_t getNumElements() const;
     virtual dim_t getNumFaceElements() const;
-    virtual dim_t getNumDOF() const;
+    inline dim_t getNumDOF() const;
     // virtual dim_t getNumDOFInAxis(unsigned axis) const;
     // virtual index_t getFirstInDim(unsigned axis) const;
     // virtual IndexVector getDiagonalIndices(bool upperOnly) const;
@@ -252,6 +260,7 @@ protected:
     bool isHangingFace(p4est_lnodes_code_t face_code, int n) const;
     bool isHangingNode(p4est_lnodes_code_t face_code, int n) const;
     void updateNodeIncrements();
+    void renumberHangingNodes();
     virtual void assembleCoordinates(escript::Data& arg) const;
     virtual void assembleGradient(escript::Data& out, const escript::Data& in) const;
     // virtual void assembleIntegrate(std::vector<real_t>& integrals, const escript::Data& arg) const;
@@ -304,8 +313,8 @@ protected:
 #endif
 
     IndexVector getNodeDistribution() const;
-    IndexVector hangingNodes; //global ids of the hanging nodes
-    long numHanging = 0;
+    // std::map<std::pair<double,double>,long> hangingNodes; //global ids of the hanging nodes
+    std::unordered_map<pair,long,boost::hash<pair>> hangingNodes; //global ids of the hanging nodes
 
     // Row and column indices
     IndexVector myRows;
