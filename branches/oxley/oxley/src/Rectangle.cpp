@@ -696,21 +696,17 @@ void Rectangle::renumberHangingNodes()
                 {                   
                     double lx = length * ((int) (tmp0 % 2) == 1);
                     double ly = length * ((int) (tmp0 / 2) == 1);
-                    // p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
-                    // if(!hangingNodeIDs.count(std::make_pair(xy[0],xy[1])))
-                    //     hangingNodeIDs[std::make_pair(xy[0],xy[1])]=hangingNodeIDs.size()+numNodes;
-                    if(!hangingNodeIDs.count(std::make_pair(quad->x+lx, quad->y+ly)))
-                        hangingNodeIDs[std::make_pair(quad->x+lx, quad->y+ly)]=hangingNodeIDs.size()+numNodes;
+                    p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
+                    if(!hangingNodeIDs.count(std::make_pair(xy[0],xy[1])))
+                        hangingNodeIDs[std::make_pair(xy[0],xy[1])]=hangingNodeIDs.size()+numNodes;
                 }
                 if(ishanging1)
                 {
                     double lx = length * ((int) (tmp1 % 2) == 1);
                     double ly = length * ((int) (tmp1 / 2) == 1);
-                    // p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
-                    // if(!hangingNodeIDs.count(std::make_pair(xy[0],xy[1])))
-                    //     hangingNodeIDs[std::make_pair(xy[0],xy[1])]=hangingNodeIDs.size()+numNodes;
-                    if(!hangingNodeIDs.count(std::make_pair(quad->x+lx, quad->y+ly)))
-                        hangingNodeIDs[std::make_pair(quad->x+lx, quad->y+ly)]=hangingNodeIDs.size()+numNodes;
+                    p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
+                    if(!hangingNodeIDs.count(std::make_pair(xy[0],xy[1])))
+                        hangingNodeIDs[std::make_pair(xy[0],xy[1])]=hangingNodeIDs.size()+numNodes;
                 }
             }   
         }
@@ -743,10 +739,8 @@ void Rectangle::renumberNodes()
                     || ((n == 3) && (xy[0] == forestData->m_lxy[0]) && (xy[1] == forestData->m_lxy[1]))
                   )
                 {
-                    // if(NodeIDs.count(std::make_pair(xy[0],xy[1]))==0)
-                    //     NodeIDs[std::make_pair(xy[0],xy[1])]=NodeIDs.size();
-                    if(NodeIDs.count(std::make_pair(quad->x+lx, quad->y+ly))==0)
-                        NodeIDs[std::make_pair(quad->x+lx, quad->y+ly)]=NodeIDs.size();
+                    if(NodeIDs.count(std::make_pair(xy[0],xy[1]))==0)
+                        NodeIDs[std::make_pair(xy[0],xy[1])]=NodeIDs.size();
                 }
             }
         }
@@ -789,8 +783,7 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
                         p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
 
                         std::pair<double,double> coords = std::make_pair(xy[0],xy[1]);
-                        // long lni = hangingNodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-                        long lni = hangingNodeIDs.find(std::make_pair(quad->x+lx,quad->y+ly))->second;
+                        long lni = hangingNodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
                         double * point = arg.getSampleDataRW(lni);
                         point[0] = xy[0];
                         point[1] = xy[1];
@@ -809,8 +802,7 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
                         || ((n == 3) && (xy[0] == forestData->m_lxy[0]) && (xy[1] == forestData->m_lxy[1]))
                       )
                     {
-                        // long lni = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-                        long lni = NodeIDs.find(std::make_pair(quad->x+lx,quad->y+ly))->second;
+                        long lni = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
                         double * point = arg.getSampleDataRW(lni);
                         point[0] = xy[0];
                         point[1] = xy[1];
