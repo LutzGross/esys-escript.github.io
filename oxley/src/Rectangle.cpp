@@ -159,6 +159,11 @@ Rectangle::Rectangle(int order,
 
     // 
     updateNodeIncrements();
+    renumberNodes();
+    renumberHangingNodes();
+    updateTreeIDs();
+    updateRowsColumns();
+
 
     // To prevent segmentation faults when using numpy ndarray
 #ifdef ESYS_HAVE_BOOST_NUMPY
@@ -417,28 +422,29 @@ const dim_t* Rectangle::borrowSampleReferenceIDs(int fsType) const
 {
     throw OxleyException("borrowSampleReferenceIDs"); 
     
-    // switch (fsType) {
-    //     case Nodes:
-    //     case ReducedNodes:
-    //         return &m_nodeId[0];
-    //     case DegreesOfFreedom:
-    //     case ReducedDegreesOfFreedom:
-    //         throw OxleyException("Unknown Error.");
-    //     case Elements:
-    //     case ReducedElements:
-    //         return &m_elementId[0];
-    //     case FaceElements:
-    //     case ReducedFaceElements:
-    //         return &m_faceId[0];
-    //     case Points:
-    //         return &m_diracPointNodeIDs[0];
-    //     default:
-    //         break;
-    // }
-
-    // std::stringstream msg;
-    // msg << "borrowSampleReferenceIDs: invalid function space type " << fsType;
-    // throw ValueError(msg.str());
+    switch (fsType) {
+        case Nodes:
+        case ReducedNodes:
+            return &myColumns[0];
+        case DegreesOfFreedom:
+        case ReducedDegreesOfFreedom:
+            throw OxleyException("Unknown Error.");
+        case Elements:
+        case ReducedElements:
+            throw OxleyException("borrowSampleReferenceIDs: Elements");
+            // return &m_elementId[0];
+        case FaceElements:
+        case ReducedFaceElements:
+            throw OxleyException("borrowSampleReferenceIDs: FaceIDs");
+            // return &m_faceId[0];
+        case Points:
+            throw OxleyException("borrowSampleReferenceIDs: m_diracPointNodeIDs");
+            // return &m_diracPointNodeIDs[0];
+        default:
+            std::stringstream msg;
+            msg << "borrowSampleReferenceIDs: invalid function space type " << fsType;
+            throw ValueError(msg.str());
+    }    
 }
 
 void Rectangle::writeToVTK(std::string filename, bool writeMesh) const
@@ -534,6 +540,8 @@ void Rectangle::refineMesh(int maxRecursion, std::string algorithmname)
     nodes=p4est_lnodes_new(p4est, ghost, 1);
     p4est_ghost_destroy(ghost);
     updateNodeIncrements();
+    updateTreeIDs();
+    renumberNodes();
     renumberHangingNodes();
     updateRowsColumns();
 }
@@ -642,6 +650,7 @@ void Rectangle::updateNodeIncrements()
 
 void Rectangle::renumberHangingNodes()
 {
+    hangingNodeIDs.clear();
     long numNodes = getNumNodes();
 
 #pragma omp for
@@ -687,19 +696,59 @@ void Rectangle::renumberHangingNodes()
                 {                   
                     double lx = length * ((int) (tmp0 % 2) == 1);
                     double ly = length * ((int) (tmp0 / 2) == 1);
-                    p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
-                    if(!hangingNodes.count(std::make_pair(xy[0],xy[1])))
-                        hangingNodes[std::make_pair(xy[0],xy[1])]=hangingNodes.size()+numNodes;
+                    // p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
+                    // if(!hangingNodeIDs.count(std::make_pair(xy[0],xy[1])))
+                    //     hangingNodeIDs[std::make_pair(xy[0],xy[1])]=hangingNodeIDs.size()+numNodes;
+                    if(!hangingNodeIDs.count(std::make_pair(quad->x+lx, quad->y+ly)))
+                        hangingNodeIDs[std::make_pair(quad->x+lx, quad->y+ly)]=hangingNodeIDs.size()+numNodes;
                 }
                 if(ishanging1)
                 {
                     double lx = length * ((int) (tmp1 % 2) == 1);
                     double ly = length * ((int) (tmp1 / 2) == 1);
-                    p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
-                    if(!hangingNodes.count(std::make_pair(xy[0],xy[1])))
-                        hangingNodes[std::make_pair(xy[0],xy[1])]=hangingNodes.size()+numNodes;
+                    // p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
+                    // if(!hangingNodeIDs.count(std::make_pair(xy[0],xy[1])))
+                    //     hangingNodeIDs[std::make_pair(xy[0],xy[1])]=hangingNodeIDs.size()+numNodes;
+                    if(!hangingNodeIDs.count(std::make_pair(quad->x+lx, quad->y+ly)))
+                        hangingNodeIDs[std::make_pair(quad->x+lx, quad->y+ly)]=hangingNodeIDs.size()+numNodes;
                 }
             }   
+        }
+    }
+}
+
+void Rectangle::renumberNodes()
+{
+    NodeIDs.clear();
+#pragma omp for
+    for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) {
+        p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
+        sc_array_t * tquadrants = &tree->quadrants;
+        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+        for(int q = 0; q < Q; ++q) { 
+            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+            p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
+            int k = q - Q + nodeIncrements[treeid - p4est->first_local_tree];
+            for(int n = 0; n < 4; n++)
+            {
+                if(isHangingNode(nodes->face_code[k], n))
+                    continue;
+                double lx = length * ((int) (n % 2) == 1);
+                double ly = length * ((int) (n / 2) == 1);
+                double xy[3];
+                p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
+                if( (n == 0) 
+                    || ((n == 1) && (xy[0] == forestData->m_lxy[0]))
+                    || ((n == 2) && (xy[1] == forestData->m_lxy[1]))
+                    || ((n == 3) && (xy[0] == forestData->m_lxy[0]) && (xy[1] == forestData->m_lxy[1]))
+                  )
+                {
+                    // if(NodeIDs.count(std::make_pair(xy[0],xy[1]))==0)
+                    //     NodeIDs[std::make_pair(xy[0],xy[1])]=NodeIDs.size();
+                    if(NodeIDs.count(std::make_pair(quad->x+lx, quad->y+ly))==0)
+                        NodeIDs[std::make_pair(quad->x+lx, quad->y+ly)]=NodeIDs.size();
+                }
+            }
         }
     }
 }
@@ -740,7 +789,8 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
                         p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
 
                         std::pair<double,double> coords = std::make_pair(xy[0],xy[1]);
-                        long lni = hangingNodes.find(std::make_pair(xy[0],xy[1]))->second;
+                        // long lni = hangingNodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+                        long lni = hangingNodeIDs.find(std::make_pair(quad->x+lx,quad->y+ly))->second;
                         double * point = arg.getSampleDataRW(lni);
                         point[0] = xy[0];
                         point[1] = xy[1];
@@ -759,11 +809,11 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
                         || ((n == 3) && (xy[0] == forestData->m_lxy[0]) && (xy[1] == forestData->m_lxy[1]))
                       )
                     {
-                        long lni = nodes->global_offset + lidx;
+                        // long lni = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+                        long lni = NodeIDs.find(std::make_pair(quad->x+lx,quad->y+ly))->second;
                         double * point = arg.getSampleDataRW(lni);
                         point[0] = xy[0];
                         point[1] = xy[1];
-                        
                     }
                 }
             }
@@ -774,7 +824,7 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
 //private
 void Rectangle::populateDofMap()
 {
-    OxleyException("Programming error");   
+    throw OxleyException("Programming error");   
 }
 
 
@@ -1114,7 +1164,7 @@ inline dim_t Rectangle::getDofOfNode(dim_t node) const
 //protected
 inline dim_t Rectangle::getNumNodes() const
 {
-    return nodes->num_local_nodes + hangingNodes.size();
+    return NodeIDs.size() + hangingNodeIDs.size();
 }
 
 //protected
@@ -1161,27 +1211,54 @@ dim_t Rectangle::getNumDOF() const
     throw OxleyException("Programming Error.");
 }
 
+void Rectangle::updateTreeIDs()
+{
+    treeIDs.clear();
+
+    // p4est_iterate(p4est, NULL, NULL, updateTreeIDs, NULL, NULL);
+
+    for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) {
+        p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
+        sc_array_t * tquadrants = &tree->quadrants;
+        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+#pragma omp parallel for
+        for (int q = 0; q < Q; ++q) { // Loop over the elements attached to the tree
+            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+            treeIDs[std::make_pair(quad->x,quad->y)]=treeid;
+        }
+    }
+}
+
 void Rectangle::updateRowsColumns()
 {
+    // update_RC_data * data;
+
+    // auto it = NodeIDs->begin();
+
+    // data->pNodeIDs = &NodeIDs.begin();
+    // data->phangingNodeIDs = &hangingNodeIDs.begin();
+
+    // p4est_iterate_ext(p4est, NULL, data, NULL, update_RC, NULL, true);
+
 //     for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) {
 //         p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
 //         sc_array_t * tquadrants = &tree->quadrants;
 //         p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-
 // #pragma omp parallel for
 //         for (int q = 0; q < Q; ++q) { // Loop over the elements attached to the tree
 //             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
 //             p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
-
 //             // Loop over the four corners of the quadrant
 //             for(int n = 0; n < 4; ++n){
 //                 int k = q - Q + nodeIncrements[treeid - p4est->first_local_tree];
 //                 long lidx = nodes->element_nodes[4*k+n];
-
 //                 if(lidx < nodes->owned_count) // if this process owns the node
 //                 {
 //                     if(isHangingNode(nodes->face_code[k], n))
+//                     {
+//                         getNeighbourNodeIds(n, treeid, quad);
 //                         continue;
+//                     }
 
 //                     double lx = length * ((int) (n % 2) == 1);
 //                     double ly = length * ((int) (n / 2) == 1);
@@ -1194,15 +1271,12 @@ void Rectangle::updateRowsColumns()
 //                         || ((n == 3) && (xy[0] == forestData->m_lxy[0]) && (xy[1] == forestData->m_lxy[1]))
 //                       )
 //                     {
-//                         long lni = nodes->global_offset + lidx;
-                        
+//                         getNeighbourNodeIds(n, treeid, quad);
 //                     }
 //                 }
 //             }
 //         }
 //     }
-
-    // throw OxleyException("updateRowsColumns"); 
 }
 
 #ifdef ESYS_HAVE_TRILINOS

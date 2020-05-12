@@ -537,6 +537,48 @@ void update_node_faceoffset(p8est_iter_volume_info_t * info, void *fxx)
 
 }
 
+void update_RC(p4est_iter_face_info_t *info, void *user_data)
+{
+    // update_RC_data * data = (update_RC_data *) user_data;
 
+    // sc_array_t * sides = &(info->sides);
+
+    // p4est_iter_face_side_t * side[2];
+
+    // // Nt: elem_count is 1 for boundary faces and 2 for interior faces
+    // std::cout << sides->elem_count << std::endl;
+
+    // side[0] = p4est_iter_fside_array_index_int(sides, 0);
+    // // p4est_quadrant_t * quad0 = side[0]->p4est_iter_face_side_data->quad;
+    
+    // p4est_quadrant_t * quad0;
+    // if(side[0]->is_hanging)
+    //     quad0 = side[0]->is.hanging.quad[0];
+    // else
+    //     quad0 = side[0]->is.full.quad;
+    
+    // long lni0 = data->phangingNodeIDs.find(std::make_pair(quad0->x,quad0->y))->second;
+
+    // double xy[3];
+    // p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad0->x, quad0->y, xy);
+    // std::pair<double,double> coords = std::make_pair(xy[0],xy[1]);
+    // long lni0 = hangingNodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+    // std::cout << lni0 << std::endl;    
+
+    // if(sides->elem_count == 2)
+    // {
+    //     side[1] = p4est_iter_fside_array_index_int(sides, 1);
+    //     p4est_quadrant_t * quad1 = side[1]->p4est_iter_face_side_data->quad;
+    //     p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad1->x, quad1->y, xy);
+    //     std::pair<double,double> coords = std::make_pair(xy[0],xy[1]);
+    //     long lni1 = hangingNodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+    // }
+    
+    
+    // 
+
+    // std::cout << lni0 << ", " << lni1 << std::endl;
+
+}
 
 } // namespace oxley

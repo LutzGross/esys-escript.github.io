@@ -15,10 +15,16 @@
 
 #include <escript/DataTypes.h>
 
+#include <unordered_map>
+#include <utility>
+
+#include <boost/functional/hash.hpp>
 #include <boost/python/numpy.hpp>
 
 #include <p4est_iterate.h>
 #include <p8est_iterate.h>
+
+typedef std::pair<double,double> pair;
 
 #ifndef __OXLEY_DATA_H__
 #define __OXLEY_DATA_H__
@@ -51,6 +57,9 @@ struct quadrantData
 
 	// Spatial coordinates of the corner node that defines the quadrant
 	double xy[2] = {0.0,0.0};
+
+	// treeid index
+	long treeid = -1;
 
 	// faceOffset[i]=-1 if face i is not an external face, otherwise it is
     // the index of that face (where i: 0=left, 1=right, 2=bottom, 3=top)
@@ -154,6 +163,14 @@ struct addSurfaceData {
 
 	// The domain in which the function z[x,y] is defined
 	double xmin,xmax,ymin,ymax;
+
+};
+
+struct update_RC_data {
+
+	std::unordered_map<pair,long,boost::hash<pair>> * pNodeIDs; 
+	std::unordered_map<pair,long,boost::hash<pair>> * phangingNodeIDs; 
+
 
 };
 

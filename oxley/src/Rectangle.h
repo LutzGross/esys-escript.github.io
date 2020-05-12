@@ -242,6 +242,14 @@ private:
     // Pointer that records the location of a temporary data structure
     void * temp_data;
 
+    std::unordered_map<pair,long,boost::hash<pair>> NodeIDs; //global ids of the nodes
+    std::unordered_map<pair,long,boost::hash<pair>> hangingNodeIDs; //global ids of the hanging nodes
+    std::unordered_map<pair,long,boost::hash<pair>> treeIDs; //global ids of the hanging nodes
+    
+    // Row and column indices in CRS format
+    IndexVector myRows;
+    IndexVector myColumns;
+
     // This is a modified version of the p4est library function new_connectivity
 p4est_connectivity_t *
 new_rectangle_connectivity(int mi, int ni, int periodic_a, int periodic_b, 
@@ -260,6 +268,7 @@ protected:
     bool isHangingFace(p4est_lnodes_code_t face_code, int n) const;
     bool isHangingNode(p4est_lnodes_code_t face_code, int n) const;
     void updateNodeIncrements();
+    void renumberNodes();
     void renumberHangingNodes();
     virtual void assembleCoordinates(escript::Data& arg) const;
     virtual void assembleGradient(escript::Data& out, const escript::Data& in) const;
@@ -278,10 +287,11 @@ protected:
     virtual dim_t getDofOfNode(dim_t node) const;
     virtual void populateSampleIds();
     virtual void populateDofMap();
-    void updateHangingNodeIds();
+    void updateHangingNodeIDs();
 
     // Updates myRows and myColumns
     void updateRowsColumns();
+    void updateTreeIDs();
 
     template <typename S>
     void interpolateNodesOnElementsWorker(escript::Data& out,
@@ -313,13 +323,6 @@ protected:
 #endif
 
     IndexVector getNodeDistribution() const;
-    // std::map<std::pair<double,double>,long> hangingNodes; //global ids of the hanging nodes
-    std::unordered_map<pair,long,boost::hash<pair>> hangingNodes; //global ids of the hanging nodes
-
-    // Row and column indices
-    IndexVector myRows;
-    IndexVector myColumns;
-
 };
 
 
