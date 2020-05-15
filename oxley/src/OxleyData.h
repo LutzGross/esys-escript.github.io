@@ -15,6 +15,8 @@
 
 #include <escript/DataTypes.h>
 
+#include <oxley/Oxley.h>
+
 #include <unordered_map>
 #include <utility>
 
@@ -23,8 +25,6 @@
 
 #include <p4est_iterate.h>
 #include <p8est_iterate.h>
-
-typedef std::pair<double,double> pair;
 
 #ifndef __OXLEY_DATA_H__
 #define __OXLEY_DATA_H__
@@ -168,9 +168,10 @@ struct addSurfaceData {
 
 struct update_RC_data {
 
-	std::unordered_map<pair,long,boost::hash<pair>> * pNodeIDs; 
-	std::unordered_map<pair,long,boost::hash<pair>> * phangingNodeIDs; 
-
+	std::unordered_map<DoublePair,long,boost::hash<DoublePair>> * pNodeIDs; 
+	std::unordered_map<DoublePair,long,boost::hash<DoublePair>> * phangingNodeIDs; 
+	p4est_t * p4est;
+	std::vector< std::vector<long> > * indices;
 
 };
 

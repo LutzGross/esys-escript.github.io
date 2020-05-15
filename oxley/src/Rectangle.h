@@ -39,8 +39,6 @@
 #include <boost/python/numpy.hpp>
 #endif
 
-typedef std::pair<double,double> pair;
-
 using namespace boost::python;
 
 namespace oxley {
@@ -242,9 +240,9 @@ private:
     // Pointer that records the location of a temporary data structure
     void * temp_data;
 
-    std::unordered_map<pair,long,boost::hash<pair>> NodeIDs; //global ids of the nodes
-    std::unordered_map<pair,long,boost::hash<pair>> hangingNodeIDs; //global ids of the hanging nodes
-    std::unordered_map<pair,long,boost::hash<pair>> treeIDs; //global ids of the hanging nodes
+    std::unordered_map<DoublePair,long,boost::hash<DoublePair>> NodeIDs; //global ids of the nodes
+    std::unordered_map<DoublePair,long,boost::hash<DoublePair>> hangingNodeIDs; //global ids of the hanging nodes
+    std::unordered_map<DoublePair,long,boost::hash<DoublePair>> treeIDs; //global ids of the hanging nodes
     
     // Row and column indices in CRS format
     IndexVector myRows;
