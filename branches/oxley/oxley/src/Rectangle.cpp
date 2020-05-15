@@ -1202,7 +1202,7 @@ inline dim_t Rectangle::getNumFaceElements() const
 
 dim_t Rectangle::getNumDOF() const
 {
-    throw OxleyException("Programming Error.");
+    return getNumNodes();
 }
 
 void Rectangle::updateTreeIDs()
@@ -1236,7 +1236,6 @@ void Rectangle::updateRowsColumns()
     data->pNodeIDs = &NodeIDs;
     data->phangingNodeIDs = &hangingNodeIDs;
     data->p4est = p4est;
-    // std::malloc(data);
 
     // This only covers the interior nodes and does not loop over nodes on the boundaries
     // x = Lx and y = Ly
@@ -1319,7 +1318,6 @@ void Rectangle::updateRowsColumns()
         }
     }
 
-
     // // Output for debugging
     // for(int i = 0; i < getNumNodes(); i++){
     //     std::vector<long> * idx0 = &indices[0][i];
@@ -1327,6 +1325,22 @@ void Rectangle::updateRowsColumns()
     //         std::cout << idx0[0][j] << ", ";
     //     std::cout << std::endl;
     // }
+
+    // Convert to CRS format
+    myRows.clear();
+    myRows.push_back(0);
+    myColumns.clear();
+    long counter = 0;
+    for(int i = 0; i < getNumNodes(); i++)
+    {
+        std::vector<long> * idx0 = &indices[0][i];
+        for(int j = 1; j < idx0[0][0]+1; j++)
+        {
+            myColumns.push_back(idx0[0][j]);
+            counter++;
+        }
+        myRows.push_back(counter);
+    }
 
     delete data;
     delete indices;
