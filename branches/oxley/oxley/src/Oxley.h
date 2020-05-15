@@ -13,15 +13,21 @@
 *
 *****************************************************************************/
 
-#include <escript/EsysMPI.h>
+#ifndef __OXLEY_H__
+#define __OXLEY_H__
 
-#include <boost/shared_ptr.hpp>
 #include <list>
 #include <map>
 #include <string>
 #include <vector>
 
+#include <boost/shared_ptr.hpp>
+
 #include <p4est_base.h>
+
+#include <escript/EsysMPI.h>
+
+// #include <oxley/Oxley.h>
 
 #define MAXP4ESTNODES 1024*1024 // Maximum allowed nodes in the p4est / p8est
 #define MAXTREES 1024*1024 // Maximum allowed trees
@@ -52,9 +58,7 @@
 // #define SC_LP_SILENT      9     /**< this never logs anything */
 /*@}*/
 
-
-#ifndef OXLEYH
-#define OXLEYH
+typedef std::pair<double,double> DoublePair;
 
 namespace oxley {
 

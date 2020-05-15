@@ -23,6 +23,7 @@
 #include <oxley/AbstractAssembler.h>
 #include <oxley/DefaultAssembler2D.h>
 #include <oxley/InitAlgorithms.h>
+#include <oxley/Oxley.h>
 #include <oxley/OxleyData.h>
 #include <oxley/Rectangle.h>
 #include <oxley/RefinementAlgorithms.h>
@@ -157,7 +158,7 @@ Rectangle::Rectangle(int order,
     int allow_coarsening = 0;
     p4est_partition(p4est, allow_coarsening, NULL);
 
-    // 
+    // Renumber the nodes
     updateNodeIncrements();
     renumberNodes();
     renumberHangingNodes();
@@ -670,7 +671,7 @@ void Rectangle::renumberHangingNodes()
                 continue;
             }
 
-            // Loop over the four corners of this quadrant
+            // Decode the info
             int8_t face_code = nodes->face_code[k];
             int8_t c = face_code & 0x03;
             int8_t ishanging0 = (face_code >> 2) & 0x01;
@@ -806,6 +807,7 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
                         double * point = arg.getSampleDataRW(lni);
                         point[0] = xy[0];
                         point[1] = xy[1];
+                        // std::cout << lni << ": (" << xy[0] << ", " << xy[1] << ")" << std::endl;
                     }
                 }
             }
@@ -1223,52 +1225,111 @@ void Rectangle::updateTreeIDs()
 
 void Rectangle::updateRowsColumns()
 {
-    // update_RC_data * data;
+    std::vector<std::vector<long>> * indices;
+    indices = new std::vector<std::vector<long>>;
+    int initial[] = {0, -1, -1, -1, -1};
+    indices->resize(getNumNodes(), std::vector<long>(initial, initial+5));
 
-    // auto it = NodeIDs->begin();
+    update_RC_data * data;
+    data = new update_RC_data;
+    data->indices = indices;
+    data->pNodeIDs = &NodeIDs;
+    data->phangingNodeIDs = &hangingNodeIDs;
+    data->p4est = p4est;
+    // std::malloc(data);
 
-    // data->pNodeIDs = &NodeIDs.begin();
-    // data->phangingNodeIDs = &hangingNodeIDs.begin();
+    // This only covers the interior nodes and does not loop over nodes on the boundaries
+    // x = Lx and y = Ly
+    p4est_iterate_ext(p4est, NULL, data, NULL, update_RC, NULL, true);
 
-    // p4est_iterate_ext(p4est, NULL, data, NULL, update_RC, NULL, true);
+    // Find the indices of the nodes on the boundaries x = Lx and y = Ly
+    for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) {
+        p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
+        sc_array_t * tquadrants = &tree->quadrants;
+        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+#pragma omp parallel for
+        for (int q = 0; q < Q; ++q) { // Loop over the elements attached to the tree
+            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+            p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
+            // Loop over the four corners of the quadrant
+            for(int n = 1; n < 3; ++n){
+                int k = q - Q + nodeIncrements[treeid - p4est->first_local_tree];
+                long lidx = nodes->element_nodes[4*k+n];
+                if(lidx < nodes->owned_count) // if this process owns the node
+                {
+                    double lx = length * ((int) (n % 2) == 1);
+                    double ly = length * ((int) (n / 2) == 1);
+                    double xy[3];
+                    p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
 
-//     for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) {
-//         p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
-//         sc_array_t * tquadrants = &tree->quadrants;
-//         p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-// #pragma omp parallel for
-//         for (int q = 0; q < Q; ++q) { // Loop over the elements attached to the tree
-//             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-//             p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
-//             // Loop over the four corners of the quadrant
-//             for(int n = 0; n < 4; ++n){
-//                 int k = q - Q + nodeIncrements[treeid - p4est->first_local_tree];
-//                 long lidx = nodes->element_nodes[4*k+n];
-//                 if(lidx < nodes->owned_count) // if this process owns the node
-//                 {
-//                     if(isHangingNode(nodes->face_code[k], n))
-//                     {
-//                         getNeighbourNodeIds(n, treeid, quad);
-//                         continue;
-//                     }
+                    // If the node is on the boundary x=Lx or y=Ly
+                    if( (n == 1) && (xy[0] == forestData->m_lxy[0]) )
+                      
+                    {
+                        // Get the node IDs
+                        long lni0 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+                        p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+length, xy);
+                        long lni1 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
 
-//                     double lx = length * ((int) (n % 2) == 1);
-//                     double ly = length * ((int) (n / 2) == 1);
-//                     double xy[3];
-//                     p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
+                        std::vector<long> * idx0 = &indices[0][lni0];
+                        std::vector<long> * idx1 = &indices[0][lni1];
 
-//                     if(     (n == 0) 
-//                         || ((n == 1) && (xy[0] == forestData->m_lxy[0]))
-//                         || ((n == 2) && (xy[1] == forestData->m_lxy[1]))
-//                         || ((n == 3) && (xy[0] == forestData->m_lxy[0]) && (xy[1] == forestData->m_lxy[1]))
-//                       )
-//                     {
-//                         getNeighbourNodeIds(n, treeid, quad);
-//                     }
-//                 }
-//             }
-//         }
-//     }
+                        // Check for duplicates
+                        bool dup = false;
+                        for(int i = 1; i < idx0[0][0] + 1; i++)
+                            if(idx0[0][i] == lni1)
+                                dup = true;
+
+                        // Add the new indices
+                        if(dup == false)
+                        {
+                            idx0[0][0]++;
+                            idx1[0][0]++;
+                            idx0[0][idx0[0][0]]=lni1;
+                            idx1[0][idx1[0][0]]=lni0;
+                        }
+                    }
+                    else if((n == 2) && (xy[1] == forestData->m_lxy[1]))
+                    {
+                        // Get the node IDs
+                        long lni0 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+                        p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+length, quad->y+ly, xy);
+                        long lni1 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+
+                        std::vector<long> * idx0 = &indices[0][lni0];
+                        std::vector<long> * idx1 = &indices[0][lni1];
+
+                        // Check for duplicates
+                        bool dup = false;
+                        for(int i = 1; i < idx0[0][0] + 1; i++)
+                            if(idx0[0][i] == lni1)
+                                dup = true;
+
+                        // Add the new indices
+                        if(dup == false)
+                        {
+                            idx0[0][0]++;
+                            idx1[0][0]++;
+                            idx0[0][idx0[0][0]]=lni1;
+                            idx1[0][idx1[0][0]]=lni0;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+    // // Output for debugging
+    // for(int i = 0; i < getNumNodes(); i++){
+    //     std::vector<long> * idx0 = &indices[0][i];
+    //     for(int j = 1; j < idx0[0][0]+1; j++)
+    //         std::cout << idx0[0][j] << ", ";
+    //     std::cout << std::endl;
+    // }
+
+    delete data;
+    delete indices;
 }
 
 #ifdef ESYS_HAVE_TRILINOS
