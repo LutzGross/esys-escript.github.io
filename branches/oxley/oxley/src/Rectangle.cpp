@@ -165,6 +165,8 @@ Rectangle::Rectangle(int order,
     updateTreeIDs();
     updateRowsColumns();
 
+    populateDofMap();
+
 
     // To prevent segmentation faults when using numpy ndarray
 #ifdef ESYS_HAVE_BOOST_NUMPY
@@ -818,7 +820,14 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
 //private
 void Rectangle::populateDofMap()
 {
-    throw OxleyException("Programming error");   
+    // populate node->DOF mapping with own degrees of freedom.
+    // The rest is assigned in the loop further down
+    
+    m_dofMap.assign(getNumNodes(), 0);
+#pragma omp parallel for                                // AE this is temporary
+    for (index_t i=-0; i<getNumNodes(); i++) {
+        m_dofMap[i]=i;
+    }
 }
 
 
@@ -1136,8 +1145,7 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
 ////////////////////////////// inline methods ////////////////////////////////
 inline dim_t Rectangle::getDofOfNode(dim_t node) const
 {
-    throw OxleyException("getDofOfNode");
-    return -1;
+    return m_dofMap[node];
 }
 
 // //protected
@@ -1597,26 +1605,24 @@ IndexVector Rectangle::getNodeDistribution() const
 //private
 std::vector<IndexVector> Rectangle::getConnections(bool includeShared) const
 {
-
-    throw OxleyException("getConnections");
-
-    // returns a vector v of size numMatrixRows where v[i] is a vector with indices
-    // of DOFs connected to i 
+    // returns a vector v of size numDOF where v[i] is a vector with indices
+    // of DOFs connected to i (up to 9 in 2D).
     // In other words this method returns the occupied (local) matrix columns
     // for all (local) matrix rows.
     // If includeShared==true then connections to non-owned DOFs are also
     // returned (i.e. indices of the column couplings)
 
-    const dim_t numMatrixRows = getNumNodes();
-    std::vector<IndexVector> indices(numMatrixRows);
+    long numNodes = getNumNodes();
+    std::vector<IndexVector> indices(numNodes);
 
-    if (includeShared) {
-        throw OxleyException("Not implemented"); //AEAE todo
-    } else {
 #pragma omp parallel for
-        for(int i = 0; i < connectivity->num_vertices; i++)
-            indices[i].push_back(connectivity->corner_to_corner[i]);
+    for(long r = 0; r <= numNodes; r++)
+    {
+        for(int c = myRows[r]; c < myRows[r+1]; c++)
+            indices[r].push_back(myColumns[c]);
+        sort(indices[r].begin(), indices[r].end());
     }
+
     return indices;
 }
 

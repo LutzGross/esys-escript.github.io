@@ -248,6 +248,9 @@ private:
     IndexVector myRows;
     IndexVector myColumns;
 
+    // vector that maps each node to a DOF index (used for the coupler)
+    IndexVector m_dofMap;
+
     // This is a modified version of the p4est library function new_connectivity
 p4est_connectivity_t *
 new_rectangle_connectivity(int mi, int ni, int periodic_a, int periodic_b, 
