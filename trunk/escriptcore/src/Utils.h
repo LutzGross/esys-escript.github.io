@@ -122,6 +122,14 @@ ESCRIPT_DLL_API boost::python::numpy::ndarray convertToNumpy(escript::Data data)
 ESCRIPT_DLL_API void convertToNumpy(escript::Data data);
 #endif
 
+// #ifdef ESYS_HAVE_BOOST_NUMPY
+// void initBoostNumpy();
+// #endif
+
+#ifdef ESYS_HAVE_BOOST_NUMPY
+escript::Data numpyToData(boost::python::numpy::ndarray& array, bool isComplex, FunctionSpace& functionspace);
+#endif
+
 
 /**
     \brief

@@ -59,6 +59,8 @@ from .escriptcpp import listEscriptParams
 from . import symbolic as sym
 from .gmshrunner import gmshGeo2Msh
 
+from esys.escript import hasFeature
+
 
 #=========================================================
 #   some helpers:
@@ -288,6 +290,23 @@ def convertToNumpy(data):
     """
     return escore._convertToNumpy(Data(data,data.getFunctionSpace()))
 
+def NumpyToData(array, isComplex, functionspace):
+    """
+    Uses a numpy ndarray to create a `Data` object
+
+    Example usage:
+    NewDataObject = NumpyToData(ndarray, isComplex, FunctionSpace)
+    """
+    if hasFeature("boostnumpy"):
+      if(not isinstance(array, (numpy.ndarray, numpy.generic))):
+        raise ValueError("NumpyToData: Invalid argument for array.")
+      if(not isinstance(functionspace, escore.FunctionSpace)):
+        raise ValueError("NumpyToData: Invalid argument for functionspace.")
+      # escore.internal_initBoostNumpy();
+      return escore._numpyToData(array, isComplex, functionspace)
+    else:
+      raise ValueError("NumpyToData: Please recompile escript with boost numpy.")
+      
 
 def saveESD(datasetName, dataDir=".", domain=None, timeStep=0, deltaT=1, dynamicMesh=0, timeStepFormat="%04d", **data):
     """

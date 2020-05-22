@@ -120,6 +120,9 @@ BOOST_PYTHON_MODULE(escriptcpp)
 // params are: bool show_user_defined, bool show_py_signatures, bool show_cpp_signatures
     docstring_options docopt(true,true,false);
 #endif
+#ifdef ESYS_HAVE_BOOST_NUMPY
+    numpy::initialize();
+#endif
 
     scope().attr("__doc__") = "To use this module, please import esys.escript";
 
@@ -139,8 +142,9 @@ BOOST_PYTHON_MODULE(escriptcpp)
   def("internal_addJob", raw_function(escript::raw_addJob,2));
   def("internal_addJobPerWorld", raw_function(escript::raw_addJobPerWorld,2));
   def("internal_addVariable", raw_function(escript::raw_addVariable,3));
-
-
+// #ifdef ESYS_HAVE_BOOST_NUMPY
+//   def("internal_initBoostNumpy", &escript::initBoostNumpy);
+// #endif
   def("internal_makeDataReducer", escript::makeDataReducer, arg("op"), "Create a reducer to work with Data and the specified operation.");
   def("internal_makeScalarReducer", escript::makeScalarReducer, arg("op"), "Create a reducer to work with doubles and the specified operation.");
   def("internal_makeLocalOnly", escript::makeNonReducedVariable, "Create a variable which is not connected to copies in other worlds.");
@@ -215,6 +219,15 @@ BOOST_PYTHON_MODULE(escriptcpp)
         ":param arg: Data object\n"
         ":rtype: numpy ndarray\n"
         "");
+#ifdef ESYS_HAVE_BOOST_NUMPY
+  def("_numpyToData", escript::numpyToData,(arg("array"), arg("isComplex"), arg("functionspace")),
+        "Takes in a numpy ndarray and function space and returns a Data object\n"
+        ":param array: A numpy ndarray\n"
+        ":param isComplex: boolean. True for complex data \n"
+        ":param functionspace: A FunctionSpace\n"
+        ":rtype: Data object\n"
+        "");
+#endif
   def("canInterpolate", &escript::canInterpolate, args("src", "dest"),":param src: Source FunctionSpace\n"
         ":param dest: Destination FunctionSpace\n"
         ":return: True if src can be interpolated to dest\n"

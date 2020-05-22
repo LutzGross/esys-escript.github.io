@@ -983,6 +983,52 @@ void convertToNumpy(escript::Data data){
 }
 #endif
 
+// #ifdef ESYS_HAVE_BOOST_NUMPY
+// void initBoostNumpy()
+// {
+//     // Py_Initialize();
+//     boost::python::numpy::initialize();
+// }
+// #endif
+
+#ifdef ESYS_HAVE_BOOST_NUMPY
+escript::Data numpyToData(boost::python::numpy::ndarray& array, bool isComplex, FunctionSpace& functionspace)
+{
+    // Work out the shape
+    auto shape = array.get_shape();
+    int dim = shape[0];
+    int numDataPoints = shape[1];
+
+    int type = 0; //todo: should be scalar: 0, vector: 1, tensor: 2, tensor3: 3, tensor4: 4
+
+    DataTypes::ShapeType dataPointShape(type,dim-1);
+
+    if(isComplex)
+    {
+        escript::Data data = Data(0,dataPointShape,functionspace,false);
+        data.complicate();
+        const DataTypes::cplx_t onlycomplex = 0;
+        std::complex<double>* array_ptr = reinterpret_cast<std::complex<double>*>(array.get_data());
+#pragma omp parallel for
+        for (int i = 0; i < numDataPoints; i++)
+            for (int j = 0; j < dim; j++)
+                *(data.getSampleDataRW(i, onlycomplex)+j) = *(array_ptr + j + i*dim);
+        return data;
+    }
+    else
+    {
+        escript::Data data = Data(0,dataPointShape,functionspace,false);       
+        double* array_ptr = reinterpret_cast<double*>(array.get_data());
+        const DataTypes::real_t onlyreal = 0;
+#pragma omp parallel for
+        for (int i = 0; i < numDataPoints; i++) 
+            for (int j = 0; j < dim; j++)
+                *(data.getSampleDataRW(i, onlyreal)+j) = *(array_ptr + j + i*dim);
+        return data;
+    }
+}
+#endif
+
 void resolveGroup(bp::object obj)
 {
     int len=0;
