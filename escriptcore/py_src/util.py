@@ -59,7 +59,7 @@ from .escriptcpp import listEscriptParams
 from . import symbolic as sym
 from .gmshrunner import gmshGeo2Msh
 
-from esys.escript import hasFeature
+from .escriptcpp import hasFeature
 
 
 #=========================================================
@@ -2806,7 +2806,7 @@ def interpolate(arg,where):
     elif isinstance(arg,sym.Symbol):
        return sym.symfn.interpolate(arg, where)
     else:
-       return escore.Data(arg,where)
+       return escore.Data(arg, where)
 
 def div(arg,where=None):
     """
