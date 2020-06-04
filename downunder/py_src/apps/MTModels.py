@@ -234,7 +234,6 @@ class MT2DTMModel(object):
                 self.rho_boundary=interpolate(rho_boundary, FunctionOnBoundary(self.domain))
             else:
                 self.rho_boundary=interpolate(rho, FunctionOnBoundary(self.domain))
-                print(self.rho_boundary)
 
         self.pde.setValue(A=self.rho*kronecker(self.domain.getDim()))        
         return self

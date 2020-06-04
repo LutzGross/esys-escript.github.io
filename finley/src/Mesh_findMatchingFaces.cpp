@@ -164,7 +164,7 @@ void FinleyDomain::findMatchingFaces(double safety_factor, double tolerance,
                     throw escript::ValueError(ss.str());
                 }
             }
-            // now we check if the second nodes match
+            // now we check if the second node match
             if (numNodesOnFace > 1) {
                 dist = getDist(e_0, 1, e_1, perm[faceNodes[1]], numDim, NN, X);
                 // if the second node does not match we reverse the

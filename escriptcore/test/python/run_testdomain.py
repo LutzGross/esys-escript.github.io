@@ -23,11 +23,12 @@ __license__="""Licensed under the Apache License, version 2.0
 http://www.apache.org/licenses/LICENSE-2.0"""
 __url__="https://launchpad.net/escript-finley"
 
+from esys.escript import *
 import numpy
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 import sys
-from esys.escript import *
+
 
 class TestDomainTests(unittest.TestCase):
     """

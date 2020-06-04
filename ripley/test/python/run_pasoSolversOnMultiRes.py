@@ -27,7 +27,7 @@ __url__="https://launchpad.net/escript-finley"
 Test suite for PDE solvers on ripley multiresolution domains
 """
 
-from test_simplesolve import SimpleSolveTestCase
+from test_simplesolve import SolveTestCaseOrder1, SimpleSolveTestCase
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 
