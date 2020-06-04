@@ -697,7 +697,7 @@ class Test_COMMEMI4(unittest.TestCase):
         if not (62 < escript.Lsup(y1) < 64):
             raise RuntimeError("Peak of bottom plot is off.")
             
-        if not (0.62 < c/len(y1) < 0.65):
+        if not (0.61 < c/len(y1) < 0.65):
             print(c/len(y1))
             raise RuntimeError("Bottom plot has too many high points")
 

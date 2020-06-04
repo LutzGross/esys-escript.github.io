@@ -20,7 +20,7 @@
 
 from .jessie_options import *
 
-boost_libs = ['boost_python-py34']
+boost_libs = ['boost_python-py37']
 pythoncmd = 'python3'
 #pythonlibname = 'python3.4m'
 #pythonincpath = '/usr/include/python3.4'

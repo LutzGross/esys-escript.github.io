@@ -441,7 +441,7 @@ class MinimizerLBFGS(AbstractMinimizer):
     _truncation = 30
 
     # Initial Hessian multiplier
-    _initial_H = 1
+    _initial_H = 1.
 
     # Restart after this many iteration steps
     _restart = 60
@@ -514,6 +514,7 @@ class MinimizerLBFGS(AbstractMinimizer):
         self.logger.debug("Setting options: %s"%(str(opts)))
         for o in opts:
             if o=='historySize' or o=='truncation':
+                assert opts[o]>2, "Trancation must be greater than 2."
                 self._truncation=opts[o]
             elif o=='initialHessian':
                 self._initial_H=opts[o]
@@ -547,12 +548,12 @@ class MinimizerLBFGS(AbstractMinimizer):
         :return: Level set function representing the solution
         :rtype: `Data`
         """
-        if self.getCostFunction().provides_inverse_Hessian_approximation:
-            self.getCostFunction().updateHessian()
-            invH_scale = None
-        else:
-            invH_scale = self._initial_H
-
+        #if self.getCostFunction().provides_inverse_Hessian_approximation:
+        #    self.getCostFunction().updateHessian()
+        #    invH_scale = None
+        #else:
+        #    invH_scale = self._initial_H
+        invH_scale = 1./self._initial_H
         # start the iteration:
         n_iter = 0
         n_last_break_down=-1
@@ -604,7 +605,7 @@ class MinimizerLBFGS(AbstractMinimizer):
                 else:
                     # reset alpha for the case that the cost function does not
                     # provide an approximation of inverse H
-                    alpha=1.0
+                    alpha=1.0*alpha
                 alpha, Jx_new, g_Jx_new, args_new = line_search(self.getCostFunction(), x, p, g_Jx, Jx, args, alpha, interpolationOrder=self.interpolationOrder, IMAX=self._max_linesearch_steps, IMAX_ZOOM=self._max_zoom_steps)
                 # this function returns a scaling alpha for the search
                 # direction as well as the cost function evaluation and
@@ -674,14 +675,24 @@ class MinimizerLBFGS(AbstractMinimizer):
                 # delete oldest vector pair
                 if k>self._truncation: s_and_y.pop(0)
 
-                if not self.getCostFunction().provides_inverse_Hessian_approximation and not break_down:
-                    # set the new scaling factor (approximation of inverse Hessian)
-                    denom=self.getCostFunction().getDualProduct(delta_g, delta_g)
-                    if denom > 0:
-                        invH_scale=self.getCostFunction().getDualProduct(delta_x,delta_g)/denom
+                #if not self.getCostFunction().provides_inverse_Hessian_approximation and not break_down:
+                if not break_down:
+                    if self.getCostFunction().provides_inverse_Hessian_approximation:
+                        # set the new scaling factor (approximation of inverse Hessian)
+                        denom=abs(self.getCostFunction().getDualProduct(delta_x, delta_g))
+                        if denom > 0:
+                            invH_scale=self.getCostFunction().getNorm(delta_x)**2/denom
+                        else:
+                            invH_scale=1./self._initial_H
+                            self.logger.debug("** Break down in H update. Resetting to initial value %s."%(1./self._initial_H))
                     else:
-                        invH_scale=self._initial_H
-                        self.logger.debug("** Break down in H update. Resetting to initial value %s."%self._initial_H)
+                        # set the new scaling factor (approximation of inverse Hessian)
+                        denom=self.getCostFunction().getDualProduct(delta_g, delta_g)
+                        if denom > 0:
+                            invH_scale=self.getCostFunction().getDualProduct(delta_x,delta_g)/denom
+                        else:
+                            invH_scale=1./self._initial_H
+                            self.logger.debug("** Break down in H update. Resetting to initial value %s."%(1./self._initial_H))
           # case handling for inner iteration:
           if break_down:
               if n_iter == n_last_break_down+1:
@@ -719,7 +730,11 @@ class MinimizerLBFGS(AbstractMinimizer):
             q=q-a*y
         
         if self.getCostFunction().provides_inverse_Hessian_approximation:
-             r = self.getCostFunction().getInverseHessianApproximation(x, q, *args)
+            r = self.getCostFunction().getInverseHessianApproximation(x, q, *args)
+            # we check the scaling:
+            rescale=invH_scale*abs(self.getCostFunction().getDualProduct(r, q))/self.getCostFunction().getNorm(r)**2
+            r*=rescale
+            self.logger.debug("initial rescale of search direction : %s, r=%s"%(rescale,self.getCostFunction().getNorm(r) ))
         else:
              r = invH_scale * q
 

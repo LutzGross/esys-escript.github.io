@@ -52,9 +52,10 @@ method to run:
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
+from esys.escript import *
 import esys.escriptcore.utestselect as unittest
 import os
-from esys.escript import *
+
 
 try:
     import numpy
