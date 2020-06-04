@@ -175,21 +175,34 @@ class Test_InputOutputOnDudley(unittest.TestCase):
         if hasFeature("boostnumpy"):
            domain=Rectangle(n0=3,n1=4)
            testvalues=domain.getConnectivityInfo()
-           correctvalues=[[0., 1., 5., 4.],
-                         [ 1., 2., 6., 5.],
-                         [ 2., 3., 7., 6.],
-                         [ 4., 5., 9., 8.],
-                         [ 5., 6.,10., 9.],
-                         [ 6., 7.,11.,10.],
-                         [ 8., 9.,13.,12.],
-                         [ 9.,10.,14.,13.],
-                         [10.,11.,15.,14.],
-                         [12.,13.,17.,16.],
-                         [13.,14.,18.,17.],
-                         [14.,15.,19.,18.]]
+           correctvalues= [[  0. , 1.,  5.],
+                          [  0. , 5.,  4.],
+                          [  1. , 2.,  5.],
+                          [  2. , 6.,  5.],
+                          [  2. , 3.,  7.],
+                          [  2. , 7.,  6.],
+                          [  4. , 5.,  9.],
+                          [  4. , 9.,  8.],
+                          [  5. , 6.,  9.],
+                          [  6. ,10.,  9.],
+                          [  6. , 7., 11.],
+                          [  6. ,11., 10.],
+                          [  8. , 9., 13.],
+                          [  8. ,13., 12.],
+                          [  9. ,10., 13.],
+                          [ 10. ,14., 13.],
+                          [ 10. ,11., 15.],
+                          [ 10. ,15., 14.],
+                          [ 12. ,13., 17.],
+                          [ 12. ,17., 16.],
+                          [ 13. ,14., 17.],
+                          [ 14. ,18., 17.],
+                          [ 14. ,15., 19.],
+                          [ 14. ,19., 18.]]
+
+           self.assertEqual(testvalues.shape,numpy.array(correctvalues).shape)
            for i in range(0,testvalues.shape[0]):
-                for j in range(0,4):
-                    self.assertEqual(testvalues[i][j],correctvalues[i][j])
+                self.assertTrue( testvalues[i].tolist() in correctvalues)
 
 if __name__ == '__main__':
     run_tests(__name__, exit_on_failure=True)
