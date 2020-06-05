@@ -27,14 +27,13 @@ http://www.apache.org/licenses/LICENSE-2.0"""
 __url__="https://launchpad.net/escript-finley"
 
 __all__ = ['MinimizerException', 'MinimizerIterationIncurableBreakDown',\
-           'MinimizerMaxIterReached' , 'AbstractMinimizer', 'MinimizerLBFGS',
-           'MinimizerBFGS', 'MinimizerNLCG']
+           'MinimizerMaxIterReached' , 'AbstractMinimizer', 'MinimizerLBFGS', 'MinimizerNLCG']
 
 import logging
 import numpy as np
 
 try:
-    from esys.escript import Lsup, sqrt, EPSILON
+    from esys.escript import Lsup, sqrt, EPSILON, getMPIRankWorld
 except:
     Lsup=lambda x: np.amax(abs(x))
     sqrt=np.sqrt
@@ -123,12 +122,14 @@ def _zoom(phi, gradphi, phiargs, alpha_lo, alpha_hi, phi_lo, phi_hi, c1, c2,
         coefs=newton_poly(alpha_data,phi_data)
         alpha=newtonroot(coefs,alpha_data,old_alpha)
         if alpha < alpha_lo or alpha > alpha_hi: # Root is outside the domain
-            zoomlogger.debug("NOTE: Newton interpolation converged on a root outside of [alpha_lo,alpha_hi]. Falling back on cubic interpolation")
+            if getMPIRankWorld() == 0:
+                zoomlogger.debug("NOTE: Newton interpolation converged on a root outside of [alpha_lo,alpha_hi]. Falling back on cubic interpolation")
             return cubicinterpolate(alpha_lo,alpha_hi,old_alpha,old_phi,very_old_alpha,very_old_phi)
         if np.abs(alpha-old_alpha) < tol_df or np.abs(alpha) < tol_sm*np.abs(old_alpha):
             alpha=0.5*old_alpha
         if abs(alpha) <= 0:
-            zoomlogger.debug("NOTE: Newton interpolation returned alpha <= 0. Falling back on cubic interpolation")
+            if getMPIRankWorld() == 0:
+                zoomlogger.debug("NOTE: Newton interpolation returned alpha <= 0. Falling back on cubic interpolation")
             return cubicinterpolate(alpha_lo,alpha_hi,old_alpha,old_phi,very_old_alpha,very_old_phi)
         return alpha
 
@@ -163,12 +164,14 @@ def _zoom(phi, gradphi, phiargs, alpha_lo, alpha_hi, phi_lo, phi_hi, c1, c2,
                 if i < len(coefs)-1:
                     denom+=product*dfcoefs[i]
             if denom == 0:
-                zoomlogger.debug("NOTE: The Newton solver failed (denom==0). Falling back on cubic interpolation")                
+                if getMPIRankWorld() == 0:
+                    zoomlogger.debug("NOTE: The Newton solver failed (denom==0). Falling back on cubic interpolation")                
                 return cubicinterpolate(alpha_lo,alpha_hi,old_alpha,old_phi,very_old_alpha,very_old_phi)
             newpoint=float(point-numer/denom)
             error=abs(newpoint-point)
             if error < tol:
-                zoomlogger.debug("Newton interpolation converged in %d iterations. Got alpha = %f" % (counter, newpoint))
+                if getMPIRankWorld() == 0:
+                    zoomlogger.debug("Newton interpolation converged in %d iterations. Got alpha = %f" % (counter, newpoint))
                 return newpoint
             else:
                 point=newpoint
@@ -199,14 +202,16 @@ def _zoom(phi, gradphi, phiargs, alpha_lo, alpha_hi, phi_lo, phi_hi, c1, c2,
 
         phiargs(alpha)
         phi_a=phi(alpha)
-        zoomlogger.debug("iteration %d, alpha=%e, phi(alpha)=%e"%(i,alpha,phi_a))
+        if getMPIRankWorld() == 0:
+            zoomlogger.debug("iteration %d, alpha=%e, phi(alpha)=%e"%(i,alpha,phi_a))
         if phi_a > phi0+c1*alpha*gphi0 or phi_a >= phi_lo:
             very_old_alpha,very_old_phi=old_alpha,old_phi
             old_alpha,old_phi=alpha_hi,phi_hi
             alpha_hi,phi_hi=alpha,phi_a
         else:
             gphi_a=gradphi(alpha)
-            zoomlogger.debug("\tphi'(alpha)=%e"%(gphi_a))
+            if getMPIRankWorld() == 0:
+                zoomlogger.debug("\tphi'(alpha)=%e"%(gphi_a))
             if np.abs(gphi_a) <= -c2*gphi0:
                 break
             if gphi_a*(alpha_hi-alpha_lo) >= 0:
@@ -250,10 +255,12 @@ def line_search(f, x, p, g_Jx, Jx, args_x, alpha=1.0, alpha_truncationax=50.0,
         g_Jx=None
     if Jx is None:
         Jx=f(x, *args_x)
-        lslogger.debug("initial J(x) calculated= %s"%str(Jx))
+        if getMPIRankWorld() == 0:
+            lslogger.debug("initial J(x) calculated= %s"%str(Jx))
     if g_Jx is None:
         g_Jx=f.getGradient(x, *args_x)
-        lslogger.debug("initial grad J(x) calculated.")
+        if getMPIRankWorld() == 0:
+            lslogger.debug("initial grad J(x) calculated.")
     # this stores the latest gradf(x+a*p) which is returned
     g_Jx_new=[args_x, Jx, g_Jx]
     def phi(a):
@@ -266,7 +273,8 @@ def line_search(f, x, p, g_Jx, Jx, args_x, alpha=1.0, alpha_truncationax=50.0,
         if g_Jx_new[0] is None:
             phiargs(a)
         g_Jx_new[2]=f.getGradient(x+a*p, *g_Jx_new[0])
-        lslogger.debug("grad J(x+alpha*p) calculated.")
+        if getMPIRankWorld() == 0:    
+            lslogger.debug("grad J(x+alpha*p) calculated.")
         return f.getDualProduct(p, g_Jx_new[2])
     
     def phiargs(a):
@@ -281,26 +289,31 @@ def line_search(f, x, p, g_Jx, Jx, args_x, alpha=1.0, alpha_truncationax=50.0,
     
     old_alpha=0.
     phi0=Jx
-    lslogger.debug("phi(0)=%e"%(phi0))
+    if getMPIRankWorld() == 0:    
+        lslogger.debug("phi(0)=%e"%(phi0))
     gphi0=f.getDualProduct(p, g_Jx) #gradphi(0., *args0)
-    lslogger.debug("phi'(0)=%e"%(gphi0))
+    if getMPIRankWorld() == 0:
+        lslogger.debug("phi'(0)=%e"%(gphi0))
     old_phi_a=phi0
     phi_a=phi0
     i=1
     if (interpolationOrder != 1) and (interpolationOrder != 2) and (interpolationOrder != 3) and (interpolationOrder != 4):
-        lslogger.debug("WARNING invalid interpolation order. Setting interpolationOrder = 1")
+        if getMPIRankWorld() == 0:
+            lslogger.debug("WARNING invalid interpolation order. Setting interpolationOrder = 1")
         interpolationOrder=1
     #alpha=2.*alpha
     while i< max(IMAX,2) and alpha>0.:
         phiargs(alpha)
         phi_a=phi(alpha)
-        lslogger.debug("iteration %d, alpha=%e, phi(alpha)=%e"%(i,alpha,phi_a))
+        if getMPIRankWorld() == 0:
+            lslogger.debug("iteration %d, alpha=%e, phi(alpha)=%e"%(i,alpha,phi_a))
         if (phi_a > phi0+c1*alpha*gphi0) or ((phi_a>=old_phi_a) and (i>1)):
             alpha, phi_a = _zoom(phi, gradphi, phiargs, old_alpha, alpha, old_phi_a, phi_a, c1, c2, phi0, gphi0, interpolationOrder, tol_df, tol_sm, IMAX=IMAX_ZOOM)
             break
 
         gphi_a=gradphi(alpha)
-        lslogger.debug("phi'(alpha)=%e"%(gphi_a))
+        if getMPIRankWorld() == 0:
+            lslogger.debug("phi'(alpha)=%e"%(gphi_a))
         if np.abs(gphi_a) <= -c2*gphi0:
             break
         if gphi_a >= 0:
@@ -339,7 +352,7 @@ class AbstractMinimizer(object):
         self.setMaxIterations(imax)
         self._result = None
         self._callback = None
-        self.logger = logging.getLogger('inv.%s'%self.__class__.__name__)
+        self.logger = logging.getLogger('inv.minimizer.%s'%self.__class__.__name__)
         self.setTolerance(m_tol=m_tol, J_tol=J_tol)
         self.interpolationOrder=1
 
@@ -422,7 +435,7 @@ class AbstractMinimizer(object):
         """
         Outputs a summary of the completed minimization process to the logger.
         """
-        if hasattr(self.getCostFunction(), "Value_calls"):
+        if hasattr(self.getCostFunction(), "Value_calls") and getMPIRankWorld() == 0:
             self.logger.info("Number of cost function evaluations: %d"%self.getCostFunction().Value_calls)
             self.logger.info("Number of gradient evaluations: %d"%self.getCostFunction().Gradient_calls)
             self.logger.info("Number of inner product evaluations: %d"%self.getCostFunction().DualProduct_calls)
@@ -562,7 +575,8 @@ class MinimizerLBFGS(AbstractMinimizer):
         converged = False
         args=self.getCostFunction().getArguments(x)
         g_Jx=self.getCostFunction().getGradient(x, *args)
-        self.logger.debug("initial grad J(x) calculated.")
+        if getMPIRankWorld() == 0:
+            self.logger.debug("initial grad J(x) calculated.")
         # equivalent to getValue() for Downunder CostFunctions
         Jx=self.getCostFunction()(x, *args)
         Jx_0=Jx
@@ -581,8 +595,9 @@ class MinimizerLBFGS(AbstractMinimizer):
 
           while not converged and not break_down and k < self._restart and n_iter < self._imax:
                 #self.logger.info("\033[1;31miteration %d\033[1;30m"%n_iter)
-                self.logger.info("********** iteration %3d **********"%n_iter)
-                self.logger.info("\tJ(x) = %s"%Jx)
+                if getMPIRankWorld() == 0:
+                    self.logger.info("********** iteration %3d **********"%n_iter)
+                    self.logger.info("\tJ(x) = %s"%Jx)
                 #self.logger.debug("\tgrad f(x) = %s"%g_Jx)
                 if invH_scale:
                     self.logger.debug("\tH = %s"%invH_scale)
@@ -621,7 +636,7 @@ class MinimizerLBFGS(AbstractMinimizer):
                     dJ = abs(Jx_new-Jx)
                     JJtol = self._J_tol * abs(Jx_new-Jx_0)
                     flag = dJ <= JJtol
-                    if self.logger.isEnabledFor(logging.DEBUG):
+                    if self.logger.isEnabledFor(logging.DEBUG) and getMPIRankWorld() == 0:
                         if flag:
                             self.logger.debug("Cost function has converged: dJ=%e, J*J_tol=%e"%(dJ,JJtol))
                         else:
@@ -633,7 +648,7 @@ class MinimizerLBFGS(AbstractMinimizer):
                     norm_x = self.getCostFunction().getNorm(x_new)
                     norm_dx = self.getCostFunction().getNorm(delta_x)
                     flag = norm_dx <= self._m_tol * norm_x
-                    if self.logger.isEnabledFor(logging.DEBUG):
+                    if self.logger.isEnabledFor(logging.DEBUG) and getMPIRankWorld() == 0:
                         if flag:
                             self.logger.debug("Solution has converged: dx=%e, x*m_tol=%e"%(norm_dx, norm_x*self._m_tol))
                         else:
@@ -643,13 +658,15 @@ class MinimizerLBFGS(AbstractMinimizer):
 
                 
                 if converged:
-                    self.logger.info("********** iteration %3d **********"%(n_iter+1,))
-                    self.logger.info("\tJ(x) = %s"%Jx_new)
+                    if getMPIRankWorld() == 0:
+                        self.logger.info("********** iteration %3d **********"%(n_iter+1,))
+                        self.logger.info("\tJ(x) = %s"%Jx_new)
                     break
                 
                 # unfortunately there is more work to do!
                 if g_Jx_new is None:
-                    self.logger.debug("Calculating missing gradient for x+alpha*p.")
+                    if getMPIRankWorld() == 0:
+                        self.logger.debug("Calculating missing gradient for x+alpha*p.")
                     args_new=self.getCostFunction().getArguments(x_new)
                     g_Jx_new=self.getCostFunction().getGradient(x_new, *args_new)
                     #self.logger.debug("grad J(x+alpha*p) = %s"%str(g_Jx_new))
@@ -684,7 +701,8 @@ class MinimizerLBFGS(AbstractMinimizer):
                             invH_scale=self.getCostFunction().getNorm(delta_x)**2/denom
                         else:
                             invH_scale=1./self._initial_H
-                            self.logger.debug("** Break down in H update. Resetting to initial value %s."%(1./self._initial_H))
+                            if getMPIRankWorld() == 0:
+                                self.logger.debug("** Break down in H update. Resetting to initial value %s."%(1./self._initial_H))
                     else:
                         # set the new scaling factor (approximation of inverse Hessian)
                         denom=self.getCostFunction().getDualProduct(delta_g, delta_g)
@@ -692,28 +710,33 @@ class MinimizerLBFGS(AbstractMinimizer):
                             invH_scale=self.getCostFunction().getDualProduct(delta_x,delta_g)/denom
                         else:
                             invH_scale=1./self._initial_H
-                            self.logger.debug("** Break down in H update. Resetting to initial value %s."%(1./self._initial_H))
+                            if getMPIRankWorld() == 0:
+                                self.logger.debug("** Break down in H update. Resetting to initial value %s."%(1./self._initial_H))
           # case handling for inner iteration:
           if break_down:
               if n_iter == n_last_break_down+1:
                   non_curable_break_down = True
-                  self.logger.debug("** Incurable break down detected in step %d."%n_iter)
+                  if getMPIRankWorld() == 0:
+                    self.logger.debug("** Incurable break down detected in step %d."%n_iter)
               else:
                   n_last_break_down = n_iter
-                  self.logger.debug("** Break down detected in step %d. Iteration is restarted."%n_iter)
+                  if getMPIRankWorld() == 0:
+                    self.logger.debug("** Break down detected in step %d. Iteration is restarted."%n_iter)
           if not k < self._restart:
               self.logger.debug("Iteration is restarted after %d steps."%n_iter)
 
         # case handling for inner iteration:
         self._result=x
         if n_iter >= self._imax:
-            self.logger.warning(">>>>>>>>>> Maximum number of iterations reached! <<<<<<<<<<")
+            if getMPIRankWorld() == 0:
+                self.logger.warning(">>>>>>>>>> Maximum number of iterations reached! <<<<<<<<<<")
             raise MinimizerMaxIterReached("Gave up after %d steps."%n_iter)
         elif non_curable_break_down:
-            self.logger.warning(">>>>>>>>>> Incurable breakdown! <<<<<<<<<<")
+            if getMPIRankWorld() == 0:
+                self.logger.warning(">>>>>>>>>> Incurable breakdown! <<<<<<<<<<")
             raise MinimizerIterationIncurableBreakDown("Gave up after %d steps."%n_iter)
-
-        self.logger.info("Success after %d iterations!"%n_iter)
+        if getMPIRankWorld() == 0:
+            self.logger.info("Success after %d iterations!"%n_iter)
         return self._result
 
     def _twoLoop(self, invH_scale, g_Jx, s_and_y, x, *args):
@@ -734,7 +757,8 @@ class MinimizerLBFGS(AbstractMinimizer):
             # we check the scaling:
             rescale=invH_scale*abs(self.getCostFunction().getDualProduct(r, q))/self.getCostFunction().getNorm(r)**2
             r*=rescale
-            self.logger.debug("initial rescale of search direction : %s, r=%s"%(rescale,self.getCostFunction().getNorm(r) ))
+            if getMPIRankWorld() == 0:
+                self.logger.debug("initial rescale of search direction : %s, r=%s"%(rescale,self.getCostFunction().getNorm(r) ))
         else:
              r = invH_scale * q
 
@@ -744,125 +768,6 @@ class MinimizerLBFGS(AbstractMinimizer):
             r = r + s * (a-beta)
         return r
 
-##############################################################################
-class MinimizerBFGS(AbstractMinimizer):
-    """
-    Minimizer that uses the Broyden-Fletcher-Goldfarb-Shanno method.
-    """
-
-    # Initial Hessian multiplier
-    _initial_H = 1
-
-    def getOptions(self):
-        return {'initialHessian':self._initial_H}
-
-    def setOptions(self, **opts):
-        """
-        setOptions for LBFGS.      use   solver.setOptions( key = value)
-        :key initialHessian: 1 if initial Hessian is given
-        :type initialHessian: 1 or 0    
-        :default initialHessian: 1       
-        :key interpolationOrder: order of the interpolation used for line search 
-        :type interpolationOrder: 1,2,3 or 4
-        :default interpolationOrder: 1      
-        :key tol_df: interpolated value of alpha, alpha_i, must differ
-                   : from the previous value by at least this much 
-                   : abs(alpha_i-alpha_{i-1}) < tol_df  (line search)
-        :type tol_df: float
-        :default tol_df: 1e-6
-        :key tol_sm: interpolated value of alpha must not be less than tol_sm
-                   : abs(alpha_i) < tol_sm*abs(alpha_{i-1})
-        :type tol_sm: float
-        :default tol_sm: 1e-5     
-        
-            Example of usage::
-              cf=DerivedCostFunction()
-              solver=MinimizerBFGS(J=cf, m_tol = 1e-5, J_tol = 1e-5, imax=300)
-              solver.setOptions(tol_df =1e-7)
-              solver.run(initial_m)
-              result=solver.getResult()
-        """
-        for o in opts:
-            if o=='initialHessian':
-                self._initial_H=opts[o]
-            elif o=='interpolationOrder':
-                self.interpolationOrder=opts[o]
-            elif o=='tol_df':
-                self.tol_df=opts[o]
-            elif o=='tol_sm':
-                self.tol_sm=opts[o]
-            else:
-                raise KeyError("Invalid option '%s'"%o)
-
-    def run(self, x):
-        """
-        The callback function is called with the following arguments:
-            k     - iteration number
-            x     - current estimate
-            Jx    - value of cost function at x
-            g_Jx  - gradient of cost function at x
-            gnorm - norm of g_Jx (stopping criterion)
-        """
-
-        args=self.getCostFunction().getArguments(x)
-        g_Jx=self.getCostFunction().getGradient(x, *args)
-        Jx=self.getCostFunction()(x, *args)
-        k=0
-        try:
-            n=len(x)
-        except:
-            n=x.getNumberOfDataPoints()
-        I=np.eye(n)
-        H=self._initial_H*I
-        gnorm=Lsup(g_Jx)
-        self._doCallback(k=k, x=x, Jx=Jx, g_Jx=g_Jx, gnorm=gnorm)
-
-        while gnorm > self._m_tol and k < self._imax:
-            self.logger.debug("iteration %d, gnorm=%e"%(k,gnorm))
-
-            # determine search direction
-            d=-self.getCostFunction().getDualProduct(H, g_Jx)
-
-            self.logger.debug("H = %s"%H)
-            self.logger.debug("grad f(x) = %s"%g_Jx)
-            self.logger.debug("d = %s"%d)
-            self.logger.debug("x = %s"%x)
-
-            # determine step length
-            alpha, Jx, g_Jx_new, args_new  = line_search(self.getCostFunction(), x, d, g_Jx, Jx, args)
-            self.logger.debug("alpha=%e"%alpha)
-            # execute the step
-            x_new=x+alpha*d
-            delta_x=x_new-x
-            x=x_new
-            if g_Jx_new is None:
-                g_Jx_new=self.getCostFunction().getGradient(x_new)
-            delta_g=g_Jx_new-g_Jx
-            g_Jx=g_Jx_new
-            args=args_new
-            k+=1
-            gnorm=Lsup(g_Jx)
-            self._doCallback(k=k, x=x, Jx=Jx, g_Jx=g_Jx, gnorm=gnorm)
-            self._result=x
-            if (gnorm<=self._m_tol): break
-
-            # update Hessian
-            denom=self.getCostFunction().getDualProduct(delta_x, delta_g)
-            if denom < EPSILON * gnorm:
-                denom=1e-5
-                self.logger.debug("Break down in H update. Resetting.")
-            rho=1./denom
-            self.logger.debug("rho=%e"%rho)
-            A=I-rho*delta_x[:,None]*delta_g[None,:]
-            AT=I-rho*delta_g[:,None]*delta_x[None,:]
-            H=self.getCostFunction().getDualProduct(A, self.getCostFunction().getDualProduct(H,AT)) + rho*delta_x[:,None]*delta_x[None,:]
-
-        if k >= self._imax:
-            self.logger.warning(">>>>>>>>>> Maximum number of iterations reached! <<<<<<<<<<")
-            raise MinimizerMaxIterReached("Gave up after %d steps."%k)
-
-        self.logger.info("Success after %d iterations! Final gnorm=%e"%(k,gnorm))
-        return self._result
 
 ##############################################################################
 class MinimizerNLCG(AbstractMinimizer):

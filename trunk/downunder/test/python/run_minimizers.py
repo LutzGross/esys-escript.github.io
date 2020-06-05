@@ -35,7 +35,8 @@ from esys.downunder.costfunctions import CostFunction
 N=3
 
 # this is mainly to avoid warning messages
-logging.basicConfig(format='%(name)s: %(message)s', level=logging.INFO)
+logging.basicConfig(format='%(name)s: %(message)s', level=logging.DEBUG)
+lslogger=logging.getLogger('inv').setLevel(logging.DEBUG)
 
 # Rosenbrock test function to be minimized. The minimum is 0 and lies at
 # [1,1,...,1].
@@ -71,8 +72,8 @@ class TestMinimizerLBFGS(unittest.TestCase):
         self.assertRaises(MinimizerMaxIterReached, self.minimizer.run,self.x0)
 
     def test_solution(self):
-        self.minimizer.setTolerance(1e-8)
-        self.minimizer.setMaxIterations(100)
+        self.minimizer.setTolerance(1e-10)
+        self.minimizer.setMaxIterations(120)
         x=self.minimizer.run(self.x0)
         xx=self.minimizer.getResult()
         self.assertEqual(np.amax(abs(x-xx)), 0.)
@@ -93,56 +94,37 @@ class TestMinimizerLBFGS(unittest.TestCase):
         # callback should be called once for each iteration (including 0th)
         self.assertEqual(n[0], 11)
 
-    def test_convergence_for_all_interpolation_orders(self):
+    def test_solution_with_interpolation_order1(self):
         self.minimizer.setTolerance(1e-10)
-        self.minimizer.setMaxIterations(100)
+        self.minimizer.setMaxIterations(120)
         self.minimizer.setOptions(interpolationOrder=1)
         x=self.minimizer.run(self.x0)
+
+        self.assertLess(np.amax(abs(x-self.xstar)), 1e-7)
+        
+    def test_solution_with_interpolation_order2(self):
+        self.minimizer.setTolerance(1e-10)
+        self.minimizer.setMaxIterations(200)
         self.minimizer.setOptions(interpolationOrder=2)
+        
         xx=self.minimizer.run(self.x0)
+
+        self.assertLess(np.amax(abs(xx-self.xstar)), 1e-7)
+        
+    def test_solution_with_interpolation_order3(self):
+        self.minimizer.setTolerance(1e-10)
+        self.minimizer.setMaxIterations(200)
         self.minimizer.setOptions(interpolationOrder=3)
         xxx=self.minimizer.run(self.x0)
+        self.assertLess(np.amax(abs(xxx-self.xstar)), 1e-7)
+    
+    def test_solution_with_interpolation_order4(self):
+        self.minimizer.setTolerance(1e-10)
+        self.minimizer.setMaxIterations(200)
         self.minimizer.setOptions(interpolationOrder=4)
         xxxx=self.minimizer.run(self.x0)
-        self.assertAlmostEqual(np.amax(abs(x-xx)), 0.)
-        self.assertAlmostEqual(np.amax(abs(x-xxx)), 0.)
-        self.assertAlmostEqual(np.amax(abs(x-xxxx)), 0.)
+        self.assertLess(np.amax(abs(xxxx-self.xstar)), 1e-7)
 
-class TestMinimizerBFGS(unittest.TestCase):
-    def setUp(self):
-        self.f=RosenFunc()
-        self.minimizer=MinimizerBFGS(self.f)
-        self.x0=np.array([2.]*N)
-        self.xstar=np.array([1.]*N)
-
-    def test_max_iterations(self):
-        self.minimizer.setTolerance(1e-10)
-        self.minimizer.setMaxIterations(1)
-        self.assertRaises(MinimizerMaxIterReached, self.minimizer.run, self.x0)
-
-    def test_solution(self):
-        self.minimizer.setTolerance(1e-6)
-        self.minimizer.setMaxIterations(100)
-        self.minimizer.setOptions(initialHessian=1e-3)
-        x=self.minimizer.run(self.x0)
-        xx=self.minimizer.getResult()
-        self.assertEqual(np.amax(abs(x-xx)), 0.)
-        # We should be able to get a solution in under 100 iterations
-        self.assertAlmostEqual(np.amax(abs(x-self.xstar)), 0.)
-
-    def test_callback(self):
-        n=[0]
-        def callback(**args):
-            n[0]=n[0]+1
-        self.minimizer.setCallback(callback)
-        self.minimizer.setTolerance(1e-10)
-        self.minimizer.setMaxIterations(10)
-        try:
-            x=self.minimizer.run(self.x0)
-        except MinimizerMaxIterReached:
-            pass
-        # callback should be called once for each iteration (including 0th)
-        self.assertEqual(n[0], 11)
 
 class TestMinimizerNLCG(unittest.TestCase):
     def setUp(self):
