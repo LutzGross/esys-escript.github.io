@@ -24,22 +24,19 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-Test suite for PDE solvers on finley
+Test suite for PDE solvers on Dudley
 """
 
-from test_simplesolve import SimpleSolveTestCase, SimpleSolveTestCaseOrder2
+from test_simplesolve import SimpleSolveTestCase
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 
 from esys.escript import getMPISizeWorld, Data, Solution, Vector, hasFeature
-from esys.finley import Rectangle, Brick
+from esys.dudley import Rectangle, Brick
 from esys.escript.linearPDEs import SolverOptions
-
-
 
 SOLVER="umfpack"
 HAVE_REQUESTED_SOLVER = hasFeature(SOLVER)
-
 
 mpiSize=getMPISizeWorld()
 # number of elements in the spatial directions
@@ -49,43 +46,26 @@ NE2=8
 OPTIMIZE=True
 
 
-
 @unittest.skipIf(not HAVE_REQUESTED_SOLVER, "%s not available"%SOLVER)
-class Test_SimpleSolveFinleyRect_Order1_PasoUMFPACK(SimpleSolveTestCase):
+@unittest.skipIf(mpiSize > 1, "UMFPACK runs on single rank only.")
+class Test_SimpleSolveDudleyRect_Umfpack_Direct(SimpleSolveTestCase):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
+        self.domain = Rectangle(NE0, NE1, optimize=OPTIMIZE)
         self.package = SolverOptions.UMFPACK
         self.method = SolverOptions.DIRECT
 
     def tearDown(self):
         del self.domain
-
+        
 @unittest.skipIf(not HAVE_REQUESTED_SOLVER, "%s not available"%SOLVER)
-class Test_SimpleSolveFinleyRect_Order2_PasoUMFPACK(SimpleSolveTestCaseOrder2):
+@unittest.skipIf(mpiSize > 1, "UMFPACK runs on single rank only.")
+class Test_SimpleSolveDudleyBrick_Umfpack_Direct(SimpleSolveTestCase):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 2, optimize=OPTIMIZE)
+        self.domain = Brick(NE0, NE1, NE2, optimize=OPTIMIZE)
         self.package = SolverOptions.UMFPACK
         self.method = SolverOptions.DIRECT
 
     def tearDown(self):
         del self.domain
+        
 
-@unittest.skipIf(not HAVE_REQUESTED_SOLVER, "%s not available"%SOLVER)
-class Test_SimpleSolveFinleyBrick_Order1_PasoUMFPACK(SimpleSolveTestCase):
-    def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.UMFPACK
-        self.method = SolverOptions.DIRECT
-
-    def tearDown(self):
-        del self.domain
-
-@unittest.skipIf(not HAVE_REQUESTED_SOLVER, "%s not available"%SOLVER)
-class Test_SimpleSolveFinleyBrick_Order2_PasoUMFPACK(SimpleSolveTestCaseOrder2):
-    def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 2, optimize=OPTIMIZE)
-        self.package = SolverOptions.UMFPACK
-        self.method = SolverOptions.DIRECT
-
-    def tearDown(self):
-        del self.domain

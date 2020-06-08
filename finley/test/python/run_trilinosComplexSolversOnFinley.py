@@ -71,6 +71,26 @@ class Test_ComplexSolveFinleyRect_Order2_Trilinos_Direct(ComplexSolveOnTrilinosO
     def tearDown(self):
         del self.domain
 
+## direct
+class Test_ComplexSolveFinleyBrick_Order1_Trilinos_Direct(ComplexSolveOnTrilinos):
+    def setUp(self):
+        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
+        self.package = SolverOptions.TRILINOS
+        self.method = SolverOptions.DIRECT
+
+    def tearDown(self):
+        del self.domain
+
+## direct
+class Test_ComplexSolveFinleyBrick_Order2_Trilinos_Direct(ComplexSolveOnTrilinos):
+    def setUp(self):
+        self.domain = Brick(NE0, NE1, NE2, 2, optimize=OPTIMIZE)
+        self.package = SolverOptions.TRILINOS
+        self.method = SolverOptions.DIRECT
+
+    def tearDown(self):
+        del self.domain
+        
 ### BiCGStab + Jacobi
 @unittest.skip("fails with Nan during iteration.")
 class Test_ComplexSolveFinleyRect_Order1_Trilinos_BICGSTAB_Jacobi(ComplexSolveOnTrilinos):
@@ -94,25 +114,7 @@ class Test_ComplexSolveFinleyRect_Order2_Trilinos_BICGSTAB_Jacobi(ComplexSolveOn
     def tearDown(self):
         del self.domain
 
-## direct
-class Test_ComplexSolveFinleyBrick_Order1_Trilinos_Direct(ComplexSolveOnTrilinos):
-    def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
-        self.method = SolverOptions.DIRECT
 
-    def tearDown(self):
-        del self.domain
-
-## direct
-class Test_ComplexSolveFinleyBrick_Order2_Trilinos_Direct(ComplexSolveOnTrilinos):
-    def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 2, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
-        self.method = SolverOptions.DIRECT
-
-    def tearDown(self):
-        del self.domain
         
 class Test_ComplexSolveFinleyBrick_Order1_Trilinos_BICGSTAB_Jacobi(ComplexSolveOnTrilinos):
     def setUp(self):
