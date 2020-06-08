@@ -51,6 +51,7 @@ OPTIMIZE=True
 
 
 @unittest.skipIf(not HAVE_REQUESTED_SOLVER, "%s not available"%SOLVER)
+@unittest.skipIf(mpiSize > 1, "UMFPACK runs on single rank only.")
 class Test_SimpleSolveFinleyRect_Order1_PasoUMFPACK(SimpleSolveTestCase):
     def setUp(self):
         self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
@@ -61,6 +62,7 @@ class Test_SimpleSolveFinleyRect_Order1_PasoUMFPACK(SimpleSolveTestCase):
         del self.domain
 
 @unittest.skipIf(not HAVE_REQUESTED_SOLVER, "%s not available"%SOLVER)
+@unittest.skipIf(mpiSize > 1, "UMFPACK runs on single rank only.")
 class Test_SimpleSolveFinleyRect_Order2_PasoUMFPACK(SimpleSolveTestCaseOrder2):
     def setUp(self):
         self.domain = Rectangle(NE0, NE1, 2, optimize=OPTIMIZE)
@@ -71,6 +73,7 @@ class Test_SimpleSolveFinleyRect_Order2_PasoUMFPACK(SimpleSolveTestCaseOrder2):
         del self.domain
 
 @unittest.skipIf(not HAVE_REQUESTED_SOLVER, "%s not available"%SOLVER)
+@unittest.skipIf(mpiSize > 1, "UMFPACK runs on single rank only.")
 class Test_SimpleSolveFinleyBrick_Order1_PasoUMFPACK(SimpleSolveTestCase):
     def setUp(self):
         self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
@@ -81,6 +84,7 @@ class Test_SimpleSolveFinleyBrick_Order1_PasoUMFPACK(SimpleSolveTestCase):
         del self.domain
 
 @unittest.skipIf(not HAVE_REQUESTED_SOLVER, "%s not available"%SOLVER)
+@unittest.skipIf(mpiSize > 1, "UMFPACK runs on single rank only.")
 class Test_SimpleSolveFinleyBrick_Order2_PasoUMFPACK(SimpleSolveTestCaseOrder2):
     def setUp(self):
         self.domain = Brick(NE0, NE1, NE2, 2, optimize=OPTIMIZE)

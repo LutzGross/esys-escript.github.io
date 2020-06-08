@@ -24,70 +24,48 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-Test suite for PDE solvers on finley
+Test suite for PDE solvers on Dudley
 """
 
-from test_simplesolve import SimpleSolveTestCase, SimpleSolveTestCaseOrder2
+from test_simplesolve import SimpleSolveTestCase
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 
 from esys.escript import getMPISizeWorld, Data, Solution, Vector, hasFeature
-from esys.finley import Rectangle, Brick
+from esys.dudley import Rectangle, Brick
 from esys.escript.linearPDEs import SolverOptions
 
 SOLVER="mkl"
 HAVE_REQUESTED_SOLVER = hasFeature(SOLVER)
 
-
+mpiSize=getMPISizeWorld()
 # number of elements in the spatial directions
 NE0=12
 NE1=12
 NE2=8
 OPTIMIZE=True
 
-mpiSize=getMPISizeWorld()
 
 @unittest.skipIf(not HAVE_REQUESTED_SOLVER, "%s not available"%SOLVER)
 @unittest.skipIf(mpiSize > 1, "MKL runs on single rank only.")
-class Test_SimpleSolveFinleyRect_Order1_PasoMKL(SimpleSolveTestCase):
+class Test_SimpleSolveDudleyRect_MKL_Direct(SimpleSolveTestCase):
     def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.MKL
-        self.method = SolverOptions.DIRECT
-
-    def tearDown(self):
-        del self.domain
-
-@unittest.skipIf(not HAVE_REQUESTED_SOLVER, "%s not available"%SOLVER)
-@unittest.skipIf(mpiSize > 1, "MKL runs on single rank only.")
-class Test_SimpleSolveFinleyRect_Order2_PasoMKL(SimpleSolveTestCaseOrder2):
-    def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 2, optimize=OPTIMIZE)
-        self.package = SolverOptions.MKL
-        self.method = SolverOptions.DIRECT
-
-    def tearDown(self):
-        del self.domain
-
-@unittest.skipIf(not HAVE_REQUESTED_SOLVER, "%s not available"%SOLVER)
-@unittest.skipIf(mpiSize > 1, "MKL runs on single rank only.")
-class Test_SimpleSolveFinleyBrick_Order1_PasoMKL(SimpleSolveTestCase):
-    def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.MKL
-        self.method = SolverOptions.DIRECT
-
-    def tearDown(self):
-        del self.domain
-
-@unittest.skipIf(not HAVE_REQUESTED_SOLVER, "%s not available"%SOLVER)
-@unittest.skipIf(mpiSize > 1, "MKL runs on single rank only.")
-class Test_SimpleSolveFinleyBrick_Order2_PasoMKL(SimpleSolveTestCaseOrder2):
-    def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 2, optimize=OPTIMIZE)
+        self.domain = Rectangle(NE0, NE1, optimize=OPTIMIZE)
         self.package = SolverOptions.MKL
         self.method = SolverOptions.DIRECT
 
     def tearDown(self):
         del self.domain
         
+@unittest.skipIf(not HAVE_REQUESTED_SOLVER, "%s not available"%SOLVER)
+@unittest.skipIf(mpiSize > 1, "MKL runs on single rank only.")
+class Test_SimpleSolveDudleyBrick_MKL_Direct(SimpleSolveTestCase):
+    def setUp(self):
+        self.domain = Brick(NE0, NE1, NE2, optimize=OPTIMIZE)
+        self.package = SolverOptions.MKL
+        self.method = SolverOptions.DIRECT
+
+    def tearDown(self):
+        del self.domain
+        
+
