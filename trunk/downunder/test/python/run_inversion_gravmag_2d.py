@@ -45,7 +45,7 @@ except KeyError:
 @unittest.skipIf(not HAVE_RIPLEY, "Ripley module not available")
 class Test_JoinInversion(unittest.TestCase):
     def test_2D_inversion(self):
-        logging.getLogger('inv.MinimizerLBFGS').setLevel(logging.CRITICAL)
+        logging.getLogger('inv.minimize.MinimizerLBFGS').setLevel(logging.CRITICAL)
         logging.getLogger('inv.JointGravityMagneticInversion').setLevel(logging.CRITICAL)
         # interesting parameters:
         depth_offset = 10 * U.km

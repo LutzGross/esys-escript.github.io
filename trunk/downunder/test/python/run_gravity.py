@@ -47,7 +47,7 @@ except KeyError:
 class Test_GravityInversion2D(unittest.TestCase):
     def test_inversion(self):
         #be quiet about it
-        logging.getLogger('inv.MinimizerLBFGS').setLevel(logging.CRITICAL)
+        logging.getLogger('inv.minimize.MinimizerLBFGS').setLevel(logging.CRITICAL)
         logging.getLogger('inv.GravityInversion').setLevel(logging.CRITICAL)
 
         # interesting parameters:
