@@ -219,15 +219,15 @@ BOOST_PYTHON_MODULE(escriptcpp)
         ":param arg: Data object\n"
         ":rtype: numpy ndarray\n"
         "");
-#ifdef ESYS_HAVE_BOOST_NUMPY
-  def("_numpyToData", escript::numpyToData,(arg("array"), arg("isComplex"), arg("functionspace")),
-        "Takes in a numpy ndarray and function space and returns a Data object\n"
-        ":param array: A numpy ndarray\n"
-        ":param isComplex: boolean. True for complex data \n"
-        ":param functionspace: A FunctionSpace\n"
-        ":rtype: Data object\n"
-        "");
-#endif
+// #ifdef ESYS_HAVE_BOOST_NUMPY
+//   def("_numpyToData", escript::numpyToData,(arg("array"), arg("isComplex"), arg("functionspace")),
+//         "Takes in a numpy ndarray and function space and returns a Data object\n"
+//         ":param array: A numpy ndarray\n"
+//         ":param isComplex: boolean. True for complex data \n"
+//         ":param functionspace: A FunctionSpace\n"
+//         ":rtype: Data object\n"
+//         "");
+// #endif
   def("canInterpolate", &escript::canInterpolate, args("src", "dest"),":param src: Source FunctionSpace\n"
         ":param dest: Destination FunctionSpace\n"
         ":return: True if src can be interpolated to dest\n"
