@@ -524,7 +524,8 @@ class MinimizerLBFGS(AbstractMinimizer):
               solver.run(initial_m)
               result=solver.getResult()
         """
-        self.logger.debug("Setting options: %s"%(str(opts)))
+        if getMPIRankWorld() == 0:
+            self.logger.debug("Setting options: %s"%(str(opts)))
         for o in opts:
             if o=='historySize' or o=='truncation':
                 assert opts[o]>2, "Trancation must be greater than 2."
@@ -625,7 +626,8 @@ class MinimizerLBFGS(AbstractMinimizer):
                 # this function returns a scaling alpha for the search
                 # direction as well as the cost function evaluation and
                 # gradient for the new solution approximation x_new=x+alpha*p
-                self.logger.debug("Search direction scaling alpha=%e"%alpha)
+                if getMPIRankWorld() == 0:
+                    self.logger.debug("Search direction scaling alpha=%e"%alpha)
 
                 # execute the step
                 delta_x = alpha*p
@@ -723,7 +725,8 @@ class MinimizerLBFGS(AbstractMinimizer):
                   if getMPIRankWorld() == 0:
                     self.logger.debug("** Break down detected in step %d. Iteration is restarted."%n_iter)
           if not k < self._restart:
-              self.logger.debug("Iteration is restarted after %d steps."%n_iter)
+              if getMPIRankWorld() == 0:
+                    self.logger.debug("Iteration is restarted after %d steps."%n_iter)
 
         # case handling for inner iteration:
         self._result=x
