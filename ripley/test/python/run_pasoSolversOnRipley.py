@@ -59,6 +59,22 @@ for x in [(int(mpiSize**(1/3.)),int(mpiSize**(1/3.))),(2,3),(2,2),(1,2),(1,1)]:
 class SimpleSolveOnPaso(SimpleSolveTestCase):
     pass
 
+class Test_SimpleSolveRipley2D_Paso_Direct(SimpleSolveOnPaso):
+    def setUp(self):
+        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.package = SolverOptions.PASO
+        self.method = SolverOptions.DIRECT
+
+    def tearDown(self):
+        del self.domain
+
+class Test_SimpleSolveRipley3D_Paso_Trilinos_Direct(SimpleSolveOnPaso):
+    def setUp(self):
+        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
+        self.package = SolverOptions.PASO
+        self.method = SolverOptions.DIRECT
+        
+
 class Test_SimpleSolveRipley2D_Paso_BICGSTAB_Jacobi(SimpleSolveOnPaso):
     def setUp(self):
         self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
