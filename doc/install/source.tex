@@ -479,3 +479,17 @@ PDEs (i.e. no PDE systems).
 
 If your distribution does not provide Trilinos packages you can build a working
 version from source. (See Appendix~\ref{app:trilinos})
+
+
+\section{Testing \escript}\label{chap:utest}
+
+\escript has extensive testing that can be used to confirm that the program is working correctly. To run the unit testing, compile \escript with the flag \texttt{build_full}. This will build \escript normally and then create a shell script named \texttt{utest.sh}. Once this file has been created, you can run unit testing using the command
+\begin{shellCode}
+sh utest.sh path_to_build_folder '-tT -nN -pP'
+\end{shellCode}
+where \texttt{T}, \texttt{N} and \texttt{P} represent the number of threads, nodes and processes to run the testing on. Some of these terms can be omitted. For example, to run the testing in serial, you would run
+\begin{shellCode}
+sh utest.sh path_to_build_folder '-t1'
+\end{shellCode}
+
+Note that a careless selection of these parameters may cause the testing program to skip many of the tests. For example, if you compile \escript with OpenMP enabled but then instruct the testing program to run on a single thread, many of the OpenMP tests will not be run.
