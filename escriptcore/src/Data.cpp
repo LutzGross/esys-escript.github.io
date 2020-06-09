@@ -4646,7 +4646,8 @@ Data::borrowReadyPtr() const
 std::string
 Data::toString() const
 {
-    int localNeedSummary=0;
+    // int localNeedSummary=0;
+    int localNeedSummary=1;
 #ifdef ESYS_MPI
     int globalNeedSummary=0;
 #endif
