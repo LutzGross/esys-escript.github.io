@@ -35,8 +35,7 @@ from esys.downunder.costfunctions import CostFunction
 N=3
 
 # this is mainly to avoid warning messages
-logging.basicConfig(format='%(name)s: %(message)s', level=logging.DEBUG)
-lslogger=logging.getLogger('inv').setLevel(logging.DEBUG)
+lslogger=logging.getLogger('inv').setLevel(logging.CRITICAL)
 
 # Rosenbrock test function to be minimized. The minimum is 0 and lies at
 # [1,1,...,1].
