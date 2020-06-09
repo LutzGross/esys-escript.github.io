@@ -73,7 +73,7 @@ def _zoom(phi, gradphi, phiargs, alpha_lo, alpha_hi, phi_lo, phi_hi, c1, c2,
 
     def linearinterpolate(alpha_lo,alpha_hi,old_alpha):
         alpha = 0.5*(alpha_lo+alpha_hi)
-        return alpha
+        return alpha, 1
 
     def quadinterpolate(alpha_lo,alpha_hi,old_alpha,old_phi):
         if old_alpha is None:
@@ -86,7 +86,7 @@ def _zoom(phi, gradphi, phiargs, alpha_lo, alpha_hi, phi_lo, phi_hi, c1, c2,
             alpha=0.5*old_alpha
         if abs(alpha) < 1e-8:
             return linearinterpolate(alpha_lo,alpha_hi,old_alpha)
-        return alpha
+        return alpha, 2
 
     def cubicinterpolate(alpha_lo,alpha_hi,old_alpha,old_phi,very_old_alpha,very_old_phi):
         if very_old_alpha is None:
@@ -108,7 +108,7 @@ def _zoom(phi, gradphi, phiargs, alpha_lo, alpha_hi, phi_lo, phi_hi, c1, c2,
             alpha=0.5*old_alpha
         if abs(alpha) < 1e-8:
             return quadinterpolate(alpha_lo,alpha_hi,old_alpha,old_phi)
-        return alpha
+        return alpha, 3
 
     def newtoninterpolate(alpha_data,phi_data,old_alpha,old_phi):
         # Interpolates using a polynomial of increasing order
@@ -120,7 +120,7 @@ def _zoom(phi, gradphi, phiargs, alpha_lo, alpha_hi, phi_lo, phi_hi, c1, c2,
         alpha_data.append(old_alpha)
         phi_data.append(old_phi)
         coefs=newton_poly(alpha_data,phi_data)
-        alpha=newtonroot(coefs,alpha_data,old_alpha)
+        alpha, ii=newtonroot(coefs,alpha_data,old_alpha)
         if alpha < alpha_lo or alpha > alpha_hi: # Root is outside the domain
             if getMPIRankWorld() == 0:
                 zoomlogger.debug("NOTE: Newton interpolation converged on a root outside of [alpha_lo,alpha_hi]. Falling back on cubic interpolation")
@@ -131,7 +131,7 @@ def _zoom(phi, gradphi, phiargs, alpha_lo, alpha_hi, phi_lo, phi_hi, c1, c2,
             if getMPIRankWorld() == 0:
                 zoomlogger.debug("NOTE: Newton interpolation returned alpha <= 0. Falling back on cubic interpolation")
             return cubicinterpolate(alpha_lo,alpha_hi,old_alpha,old_phi,very_old_alpha,very_old_phi)
-        return alpha
+        return alpha, len(alpha_data)
 
     def newton_poly(alpha_data,phi_data):
         # Returns the coefficients of the newton form polynomial of phi(alpha)
@@ -172,7 +172,7 @@ def _zoom(phi, gradphi, phiargs, alpha_lo, alpha_hi, phi_lo, phi_hi, c1, c2,
             if error < tol:
                 if getMPIRankWorld() == 0:
                     zoomlogger.debug("Newton interpolation converged in %d iterations. Got alpha = %f" % (counter, newpoint))
-                return newpoint
+                return newpoint, counter
             else:
                 point=newpoint
         # zoomlogger.debug("NOTE: Newton interpolation failed to converge (exceeded max iterations). Falling back on cubic interpolation" % error)
@@ -190,20 +190,20 @@ def _zoom(phi, gradphi, phiargs, alpha_lo, alpha_hi, phi_lo, phi_hi, c1, c2,
 
     while i<=IMAX:
         if interpolationOrder == 1:
-            alpha=linearinterpolate(alpha_lo,alpha_hi,old_alpha)
+            alpha, o=linearinterpolate(alpha_lo,alpha_hi,old_alpha)
         elif interpolationOrder == 2:
-            alpha=quadinterpolate(alpha_lo,alpha_hi,old_alpha,old_phi)
+            alpha, o=quadinterpolate(alpha_lo,alpha_hi,old_alpha,old_phi)
         elif interpolationOrder == 3:
-            alpha=cubicinterpolate(alpha_lo,alpha_hi,old_alpha,old_phi,very_old_alpha,very_old_phi)
+            alpha, o=cubicinterpolate(alpha_lo,alpha_hi,old_alpha,old_phi,very_old_alpha,very_old_phi)
         elif interpolationOrder == 4:
-            alpha=newtoninterpolate(alpha_data,phi_data,old_alpha,old_phi)
+            alpha, o=newtoninterpolate(alpha_data,phi_data,old_alpha,old_phi)
         else:
             raise TypeError("Invalid interpolation order")
 
         phiargs(alpha)
         phi_a=phi(alpha)
         if getMPIRankWorld() == 0:
-            zoomlogger.debug("iteration %d, alpha=%e, phi(alpha)=%e"%(i,alpha,phi_a))
+            zoomlogger.debug("iteration %d, alpha=%g, phi(alpha)=%g (interpolation order = %d)"%(i,alpha,phi_a, o))
         if phi_a > phi0+c1*alpha*gphi0 or phi_a >= phi_lo:
             very_old_alpha,very_old_phi=old_alpha,old_phi
             old_alpha,old_phi=alpha_hi,phi_hi
@@ -693,9 +693,17 @@ class MinimizerLBFGS(AbstractMinimizer):
 
                 # delete oldest vector pair
                 if k>self._truncation: s_and_y.pop(0)
-
-                #if not self.getCostFunction().provides_inverse_Hessian_approximation and not break_down:
+                
                 if not break_down:
+                    # an estimation of the inverse Hessian if it would be a scalar P=invH_scale:
+                    # the idea is that 
+                    #  
+                    #      dx=P*dg
+                    # 
+                    #  if there is a inverse Hessian approximation provided we use 
+                    #
+                    #     |dx|^2 = P <dx, dg> ->   invH_scale =|dx|^2 / <dx, dg> 
+                    
                     if self.getCostFunction().provides_inverse_Hessian_approximation:
                         # set the new scaling factor (approximation of inverse Hessian)
                         denom=abs(self.getCostFunction().getDualProduct(delta_x, delta_g))
@@ -706,7 +714,10 @@ class MinimizerLBFGS(AbstractMinimizer):
                             if getMPIRankWorld() == 0:
                                 self.logger.debug("** Break down in H update. Resetting to initial value %s."%(1./self._initial_H))
                     else:
-                        # set the new scaling factor (approximation of inverse Hessian)
+                        # if there no inverse Hessian approximation is provided
+                        #
+                        #     <dg, dx> = P <dg, dg> ->   invH_scale =<dg, dx> / <dg, dg> 
+                        #
                         denom=self.getCostFunction().getDualProduct(delta_g, delta_g)
                         if denom > 0:
                             invH_scale=self.getCostFunction().getDualProduct(delta_x,delta_g)/denom
@@ -757,14 +768,20 @@ class MinimizerLBFGS(AbstractMinimizer):
         
         if self.getCostFunction().provides_inverse_Hessian_approximation:
             r = self.getCostFunction().getInverseHessianApproximation(x, q, *args)
-            # we check the scaling:
-            rescale=invH_scale*abs(self.getCostFunction().getDualProduct(r, q))/self.getCostFunction().getNorm(r)**2
-            r*=rescale
-            if getMPIRankWorld() == 0:
-                self.logger.debug("initial rescale of search direction : %s, r=%s"%(rescale,self.getCostFunction().getNorm(r) ))
+            #  we  would like to see that  | r | ^2 = P * < r, q> with P=invH_scale
+            
+            norm_r=self.getCostFunction().getNorm(r)
+            if norm_r > 0:
+                rescale=invH_scale*abs(self.getCostFunction().getDualProduct(r, q))/norm_r**2
+                r*=rescale
+                if getMPIRankWorld() == 0:
+                    self.logger.debug("rescale of search direction : r=%g (re-scale = %g, invH = %g)"%(norm_r*rescale, rescale, invH_scale))
+            else:
+                raise MinimizerException("approximate Hessian inverse returns zero.")
         else:
+             # if there no inverse Hessian approximation is provided then set r = P * q with invH_scale=P
              r = invH_scale * q
-
+                        
         for s,y,rho in s_and_y:
             beta = self.getCostFunction().getDualProduct(r, y)/rho
             a = alpha.pop()
