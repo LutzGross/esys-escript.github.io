@@ -57,7 +57,7 @@ def work():
 
   inv=MagneticInversion(self_demagnetization=True)
   inv.setSolverTolerance(1e-4)
-  inv.setSolverMaxIterations(50)
+  inv.setSolverMaxIterations(100)
   inv.fixMagneticPotentialAtBottom(False)
   inv.setup(db)
   inv.getCostFunction().setTradeOffFactorsModels(MU)

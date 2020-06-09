@@ -53,7 +53,7 @@ def work():
 
   inv=GravityInversion()
   inv.setSolverTolerance(1e-4)
-  inv.setSolverMaxIterations(50)
+  inv.setSolverMaxIterations(100)
   inv.setup(db)
   inv.getCostFunction().setTradeOffFactorsModels(MU)
 
