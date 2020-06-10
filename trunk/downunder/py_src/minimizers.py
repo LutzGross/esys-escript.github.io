@@ -576,18 +576,20 @@ class MinimizerLBFGS(AbstractMinimizer):
         converged = False
         args=self.getCostFunction().getArguments(x)
         g_Jx=self.getCostFunction().getGradient(x, *args)
+
         if getMPIRankWorld() == 0:
             self.logger.debug("initial grad J(x) calculated.")
         # equivalent to getValue() for Downunder CostFunctions
         Jx=self.getCostFunction()(x, *args)
         Jx_0=Jx
+
         cbargs = {'k':n_iter, 'x':x, 'Jx':Jx, 'g_Jx':g_Jx}
         if self._J_tol:
             cbargs.update(norm_dJ=None)
         if self._m_tol:
             cbargs.update(norm_dx=None)
-
         self._doCallback(**cbargs)
+
         while not converged and not non_curable_break_down and n_iter < self._imax:
           k=0
           break_down = False
@@ -600,7 +602,7 @@ class MinimizerLBFGS(AbstractMinimizer):
                     self.logger.info("********** iteration %3d **********"%n_iter)
                     self.logger.info("\tJ(x) = %s"%Jx)
                 #self.logger.debug("\tgrad f(x) = %s"%g_Jx)
-                if invH_scale:
+                if invH_scale and getMPIRankWorld() == 0:
                     self.logger.debug("\tH = %s"%invH_scale)
 
                 # determine search direction
@@ -760,7 +762,6 @@ class MinimizerLBFGS(AbstractMinimizer):
         """
         q=g_Jx
         alpha=[]
-         
         for s,y, rho in reversed(s_and_y):
             a=self.getCostFunction().getDualProduct(s, q)/rho
             alpha.append(a)
@@ -847,11 +848,12 @@ class MinimizerNLCG(AbstractMinimizer):
             self._result=x
 
         if i >= self._imax:
-            self.logger.warning(">>>>>>>>>> Maximum number of iterations %s reached! <<<<<<<<<<"%i)
+            if getMPIRankWorld() == 0:
+                    self.logger.warning(">>>>>>>>>> Maximum number of iterations %s reached! <<<<<<<<<<"%i)
             raise MinimizerMaxIterReached("Gave up after %d steps."%i)
 
-
-        self.logger.info("Success after %d iterations! Initial/Final gradient=%e/%e"%(i,gnorm0, gnorm))
+        if getMPIRankWorld() == 0:
+           self.logger.info("Success after %d iterations! Initial/Final gradient=%e/%e"%(i,gnorm0, gnorm))
         return self._result
 
 
