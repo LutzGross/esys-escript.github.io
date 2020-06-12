@@ -12,6 +12,8 @@ from esys.downunder.apps import MT2DTEModel, MT2DTMModel
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 
+NO_TRILINOS = not hasFeature("trilinos")
+
 class TestMT2DTE(unittest.TestCase):
     
     DEPTH=3000.
@@ -56,7 +58,7 @@ class TestMT2DTE(unittest.TestCase):
             self.assertAlmostEqual(self.loc(rho)[0], self.TRUE_RHO, delta=TOL*self.TRUE_RHO)
             self.assertAlmostEqual(self.loc(phi)[0], self.TRUE_PHASE, delta=TOL*self.TRUE_PHASE)
             
-
+    @unittest.skipIf(NO_TRILINOS, "requires Trilinos")
     def test_SigmaFloatSigmaBFloat(self):
         """
         conductivity set as float, radiation condition
@@ -65,7 +67,8 @@ class TestMT2DTE(unittest.TestCase):
         model=MT2DTEModel(self.domain, fixBottom=False, useFastSolver=self.USEFASTSOLVER)
         model.setConductivity(self.SIGMA0, sigma_boundary=self.SIGMA0)
         self.runModel(model, PERIODS, TOL=1.e-3)
-
+            
+    @unittest.skipIf(NO_TRILINOS, "requires Trilinos")
     def test_SigmaFloatNoSigmaB(self):
         """
         conductivity set as float, no value on boundary, radiation condition 
@@ -74,7 +77,8 @@ class TestMT2DTE(unittest.TestCase):
         model=MT2DTEModel(self.domain, fixBottom=False, useFastSolver=self.USEFASTSOLVER)
         model.setConductivity(self.SIGMA0)
         self.runModel(model, PERIODS, TOL=1.e-3)
-
+            
+    @unittest.skipIf(NO_TRILINOS, "requires Trilinos")
     def test_SigmaDataNoSigmaB(self):
         """
         conductivity set as Scalar, no value on boundary, radiation condition 
@@ -84,7 +88,8 @@ class TestMT2DTE(unittest.TestCase):
         sigma=Scalar(self.SIGMA0, ContinuousFunction(self.domain))
         model.setConductivity(sigma)
         self.runModel(model, PERIODS, TOL=1.e-3)
-    
+            
+    @unittest.skipIf(NO_TRILINOS, "requires Trilinos")    
     def test_SigmaDataNoSigmaBFails(self):
         """
         conductivity set as Scalar, no value on boundary but interpolation is not possible
@@ -92,7 +97,8 @@ class TestMT2DTE(unittest.TestCase):
         model=MT2DTEModel(self.domain, fixBottom=False, useFastSolver=self.USEFASTSOLVER)
         sigma=Scalar(self.SIGMA0, Function(self.domain))
         self.assertRaises(RuntimeError, model.setConductivity, *(sigma, ))
-
+            
+    @unittest.skipIf(NO_TRILINOS, "requires Trilinos")
     def test_SigmaFloatSigmaBFloatFixedButtom(self):
         """
         conductivity set as float, fixed bottom -> TRUE values are not matched exactly
@@ -101,7 +107,8 @@ class TestMT2DTE(unittest.TestCase):
         model=MT2DTEModel(self.domain, fixBottom=True, useFastSolver=self.USEFASTSOLVER)
         model.setConductivity(self.SIGMA0, sigma_boundary=self.SIGMA0)
         self.runModel(model, PERIODS, TOL=1.e-1)
-
+            
+    @unittest.skipIf(NO_TRILINOS, "requires Trilinos")
     def test_SigmaFloatNoSigmaBFixedButtom(self):
         """
         conductivity set as float, no value on boundary, fixed bottom -> TRUE values are not matched exactly
@@ -110,7 +117,8 @@ class TestMT2DTE(unittest.TestCase):
         model=MT2DTEModel(self.domain, fixBottom=True, useFastSolver=self.USEFASTSOLVER)
         model.setConductivity(self.SIGMA0)
         self.runModel(model, PERIODS, TOL=1.e-1)
-
+            
+    @unittest.skipIf(NO_TRILINOS, "requires Trilinos")
     def test_SigmaDataNoSigmaBFixedButtom(self):
         """
         conductivity set as Scalar, no value on boundary, fixed bottom -> TRUE values are not matched exactly
@@ -120,7 +128,8 @@ class TestMT2DTE(unittest.TestCase):
         sigma=Scalar(self.SIGMA0, ContinuousFunction(self.domain))
         model.setConductivity(sigma)
         self.runModel(model, PERIODS, TOL=1.e-1)
-    
+            
+    @unittest.skipIf(NO_TRILINOS, "requires Trilinos")    
     def test_SigmaDataNoSigmaBFixedButtom2(self):
         """
         conductivity set as Scalar, no value on boundary, interpolation is not possible but fixed bottom -> TRUE values are not matched exactly
@@ -174,7 +183,8 @@ class TestMT2DTMNoAirLayer(unittest.TestCase):
             #print(frq, self.loc(rho)[0], self.loc(phi)[0])
             self.assertAlmostEqual(self.loc(rho)[0], self.TRUE_RHO, delta=TOL*self.TRUE_RHO)
             self.assertAlmostEqual(self.loc(phi)[0], self.TRUE_PHASE, delta=TOL*self.TRUE_PHASE)
-
+            
+    @unittest.skipIf(NO_TRILINOS, "requires Trilinos")
     def test_RhoFloatRhoBFloat(self):
         """
         resistivity set as float, radiation condition
@@ -183,7 +193,8 @@ class TestMT2DTMNoAirLayer(unittest.TestCase):
         model=MT2DTMModel(self.domain, fixBottom=False, useFastSolver=self.USEFASTSOLVER)
         model.setResistivity(self.RHO0, rho_boundary=self.RHO0)
         self.runModel(model, PERIODS, TOL=1.e-3)
-
+            
+    @unittest.skipIf(NO_TRILINOS, "requires Trilinos")
     def test_RhoFloatNoRhoB(self):
         """
         resistivity set as float, no value on boundary, radiation condition 
@@ -192,7 +203,8 @@ class TestMT2DTMNoAirLayer(unittest.TestCase):
         model=MT2DTMModel(self.domain, fixBottom=False, useFastSolver=self.USEFASTSOLVER)
         model.setResistivity(self.RHO0)
         self.runModel(model, PERIODS, TOL=1.e-3)
-
+            
+    @unittest.skipIf(NO_TRILINOS, "requires Trilinos")
     def test_RhoDataNoRhoB(self):
         """
         resistivity set as Scalar, no value on boundary, radiation condition 
@@ -202,7 +214,8 @@ class TestMT2DTMNoAirLayer(unittest.TestCase):
         rho=Scalar(self.RHO0, ContinuousFunction(self.domain))
         model.setResistivity(rho)
         self.runModel(model, PERIODS, TOL=1.e-3)
-    
+            
+    @unittest.skipIf(NO_TRILINOS, "requires Trilinos")    
     def test_RhoDataNoRhoBFails(self):
         """
         resistivity set as Scalar, no value on boundary but interpolation is not possible
@@ -210,7 +223,8 @@ class TestMT2DTMNoAirLayer(unittest.TestCase):
         model=MT2DTMModel(self.domain, fixBottom=False, useFastSolver=self.USEFASTSOLVER)
         rho=Scalar(self.RHO0, Function(self.domain))
         self.assertRaises(RuntimeError, model.setResistivity, *(rho, ))
-
+            
+    @unittest.skipIf(NO_TRILINOS, "requires Trilinos")
     def test_RhoFloatRhoBFloatFixedButtom(self):
         """
         resistivity set as float, fixed bottom -> TRUE values are not matched exactly
@@ -219,7 +233,8 @@ class TestMT2DTMNoAirLayer(unittest.TestCase):
         model=MT2DTMModel(self.domain, fixBottom=True, useFastSolver=self.USEFASTSOLVER)
         model.setResistivity(self.RHO0, rho_boundary=self.RHO0)
         self.runModel(model, PERIODS, TOL=1.e-1)
-
+            
+    @unittest.skipIf(NO_TRILINOS, "requires Trilinos")
     def test_RhoFloatNoRhoBFixedButtom(self):
         """
         resistivity set as float, no value on boundary, fixed bottom -> TRUE values are not matched exactly
@@ -228,7 +243,8 @@ class TestMT2DTMNoAirLayer(unittest.TestCase):
         model=MT2DTMModel(self.domain, fixBottom=True, useFastSolver=self.USEFASTSOLVER)
         model.setResistivity(self.RHO0)
         self.runModel(model, PERIODS, TOL=1.e-1)
-
+            
+    @unittest.skipIf(NO_TRILINOS, "requires Trilinos")
     def test_RhoDataNoRhoBFixedButtom(self):
         """
         resistivity set as Scalar, no value on boundary, fixed bottom -> TRUE values are not matched exactly
@@ -238,7 +254,8 @@ class TestMT2DTMNoAirLayer(unittest.TestCase):
         rho=Scalar(self.RHO0, ContinuousFunction(self.domain))
         model.setResistivity(rho)
         self.runModel(model, PERIODS, TOL=1.e-1)
-    
+            
+    @unittest.skipIf(NO_TRILINOS, "requires Trilinos")    
     def test_RhoDataNoRhoBFixedButtom2(self):
         """
         resistivity set as Scalar, no value on boundary, interpolation is not possible but fixed bottom -> TRUE values are not matched exactly
@@ -297,6 +314,7 @@ class TestMT2DTMWithAirLayer(unittest.TestCase):
             self.assertAlmostEqual(self.loc(rho)[0], self.TRUE_RHO, delta=TOL*self.TRUE_RHO)
             self.assertAlmostEqual(self.loc(phi)[0], self.TRUE_PHASE, delta=TOL*self.TRUE_PHASE)
             
+    @unittest.skipIf(NO_TRILINOS, "requires Trilinos")            
     def test_RhoBFloat(self):
         """
         resistivity set on elements, radiation condition
@@ -307,7 +325,8 @@ class TestMT2DTMWithAirLayer(unittest.TestCase):
         self.assertEqual(0, Lsup(model.airLayer-self.airLayerMask))
         model.setResistivity(rho, rho_boundary=self.RHO0)
         self.runModel(model, PERIODS, TOL=1.e-3)
-
+            
+    @unittest.skipIf(NO_TRILINOS, "requires Trilinos")
     def test_RhoBDataFixedButtom(self):
         """
         resistivity set on elements, no value on boundary but interpolation is not possible fixed bottom 
@@ -318,7 +337,8 @@ class TestMT2DTMWithAirLayer(unittest.TestCase):
         self.assertEqual(0, Lsup(model.airLayer-self.airLayerMask))
         model.setResistivity(rho)
         self.runModel(model, PERIODS, TOL=1.e-1)
-
+            
+    @unittest.skipIf(NO_TRILINOS, "requires Trilinos")
     def test_RhoBDataFailed(self):
         """
         resistivity set on elements, no value on boundary but interpolation is not possible fixed bottom 
