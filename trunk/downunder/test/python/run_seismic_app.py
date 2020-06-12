@@ -13,6 +13,8 @@ from esys.escript.pdetools import Locator
 
 import numpy as np
 
+NO_TRILINOS = not hasFeature("trilinos")
+
 class TestSeismic2D(unittest.TestCase):
     # grid spacing in 
     DX=10.
@@ -40,8 +42,8 @@ class TestSeismic2D(unittest.TestCase):
         del self.loc
         del self.source
         del self.sourceX
-    
-            
+                 
+    @unittest.skipIf(NO_TRILINOS, "requires Trilinos")           
     def test_RadialWaveLowF(self):
         Frequency=0.01
         k=Frequency/self.VP*2*np.pi
@@ -60,7 +62,8 @@ class TestSeismic2D(unittest.TestCase):
         errorA=max(abs(uu2-uu))
         A=max(abs(uu2))
         self.assertLessEqual(errorA, A*self.TESTTOL)
-        
+            
+    @unittest.skipIf(NO_TRILINOS, "requires Trilinos")        
     def test_RadialWaveMediumF(self):
         Frequency=1.
         k=Frequency/self.VP*2*np.pi
@@ -79,7 +82,8 @@ class TestSeismic2D(unittest.TestCase):
         errorA=max(abs(uu2-uu))
         A=max(abs(uu2))
         self.assertLessEqual(errorA, A*self.TESTTOL)
-        
+            
+    @unittest.skipIf(NO_TRILINOS, "requires Trilinos")        
     def test_RadialWaveHighF(self):
         Frequency=10.
         k=Frequency/self.VP*2*np.pi

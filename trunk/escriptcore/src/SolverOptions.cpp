@@ -20,6 +20,10 @@
 
 #include <boost/python.hpp>
 
+#ifdef ESYS_HAVE_TRILINOS
+#include <Amesos2.hpp>
+#endif
+
 namespace bp = boost::python;
 
 template <class R>
@@ -384,22 +388,69 @@ void SolverBuddy::setSolverMethod(int method)
         case SO_METHOD_TFQMR:
             this->method = meth;
             break;
+//         case SO_METHOD_DIRECT:
+//         case SO_METHOD_DIRECT_MUMPS:
+//         case SO_METHOD_DIRECT_PARDISO:
+//         case SO_METHOD_DIRECT_SUPERLU:
+//         case SO_METHOD_DIRECT_TRILINOS:
+// #if defined(ESYS_HAVE_UMFPACK) || defined(ESYS_HAVE_TRILINOS) || defined(ESYS_HAVE_MKL)
+// #ifndef ESYS_HAVE_TRILINOS
+//             // translate specific direct solver setting to generic one for PASO
+//             this->method = SO_METHOD_DIRECT;
+// #else
+//             this->method = meth;
+// #endif
+//             break;
+// #else
+//             throw ValueError("Cannot use DIRECT solver method, the running "
+//                     "escript was not compiled with a direct solver enabled");
+// #endif
         case SO_METHOD_DIRECT:
-        case SO_METHOD_DIRECT_MUMPS:
-        case SO_METHOD_DIRECT_PARDISO:
-        case SO_METHOD_DIRECT_SUPERLU:
-        case SO_METHOD_DIRECT_TRILINOS:
 #if defined(ESYS_HAVE_UMFPACK) || defined(ESYS_HAVE_TRILINOS) || defined(ESYS_HAVE_MKL)
-#ifndef ESYS_HAVE_TRILINOS
+#ifdef ESYS_HAVE_TRILINOS
             // translate specific direct solver setting to generic one for PASO
-            this->method = SO_METHOD_DIRECT;
-#else
             this->method = meth;
+#else
+            this->method = SO_METHOD_DIRECT;
 #endif
             break;
 #else
             throw ValueError("Cannot use DIRECT solver method, the running "
                     "escript was not compiled with a direct solver enabled");
+#endif
+        case SO_METHOD_DIRECT_TRILINOS:
+#ifdef ESYS_HAVE_TRILINOS
+            this->method = meth;
+            break;
+#else
+            throw ValueError("aa escript was not compiled with Trilinos");
+#endif
+        case SO_METHOD_DIRECT_MUMPS:
+#ifdef ESYS_HAVE_TRILINOS
+            if(Amesos2::query("MUMPS"))
+                this->method = meth;
+            else
+                throw ValueError("Trilinos was not compiled with MUMPS support");
+#else
+            throw ValueError("escript was not compiled with Trilinos");
+#endif
+        case SO_METHOD_DIRECT_PARDISO:
+#ifdef ESYS_HAVE_TRILINOS
+            if(Amesos2::query("pardiso_mkl"))
+                this->method = meth;
+            else
+                throw ValueError("Trilinos was not compiled with MKL Pardiso");
+#else
+            throw ValueError("escript was not compiled with Trilinos");
+#endif
+        case SO_METHOD_DIRECT_SUPERLU:
+#ifdef ESYS_HAVE_TRILINOS
+            if(Amesos2::query("superludist") || Amesos2::query("superlu") || Amesos2::query("superlumt"))
+                this->method = meth;
+            else
+                throw ValueError("Trilinos was not compiled with SuperLU ");
+#else
+            throw ValueError("escript was not compiled with Trilinos");
 #endif
         default:
             throw ValueError("unknown solver method");
