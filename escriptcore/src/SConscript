@@ -138,6 +138,8 @@ if env['mkl']:
     escriptlibs += env['mkl_libs']
 if env['netcdf']:
     escriptlibs += env['netcdf_libs']
+if env['trilinos']:
+    escriptlibs += env['trilinos_libs']
 
 local_env.PrependUnique(LIBS = escriptlibs)
 env['escript_libs'] = [module_name] + escriptlibs
