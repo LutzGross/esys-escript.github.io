@@ -28,10 +28,14 @@ Generic base class for PDE solving tests
 """
 
 from esys.escript import Data, Function, Lsup, Solution, Tensor4, Vector, \
-                         grad, inner, kronecker, matrixmult, whereZero
+                         grad, inner, kronecker, matrixmult, whereZero, hasFeature
 from esys.escript.linearPDEs import LinearPDE, SolverOptions
 import esys.escriptcore.utestselect as unittest
 import numpy
+
+HAVE_DIRECT_PASO = hasFeature('paso') and (hasFeature('umfpack') or hasFeature("mkl"))
+HAVE_TRILINOS = hasFeature('trilinos')
+HAVE_SOLVER = HAVE_DIRECT_PASO or HAVE_TRILINOS
 
 class SolveTestCaseTemplate(unittest.TestCase):
     """
@@ -274,6 +278,7 @@ class SimpleSolveTestCase(SolveTestCaseOrder1):
         error = Lsup(u-u_ex)
         self.assertLess(error, self.REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
+    @unittest.skipIf(not HAVE_SOLVER, "No solver available")
     def test_system(self):
         pde, u_ex, g_ex = self.getPDE(True)
         g = grad(u_ex)
@@ -300,6 +305,7 @@ class SimpleSolveTestCaseOrder2(SolveTestCaseOrder2):
         error = Lsup(u-u_ex)
         self.assertLess(error, self.REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
+    @unittest.skipIf(not HAVE_SOLVER, "No solver available")
     def test_system(self):
         pde, u_ex, g_ex = self.getPDE(True)
         g = grad(u_ex)
@@ -316,6 +322,8 @@ class ComplexSolveTestCase(SolveTestCaseOrder1):
     """
     FAC_DIAG = 1.+0.2j
     FAC_OFFDIAG = -0.4
+
+    @unittest.skipIf(not HAVE_TRILINOS, "No solver available")
     def test_singlecomplex(self):
         pde, u_ex, g_ex = self.getPDE(False, iscomplex=True)
         g=grad(u_ex)
@@ -326,6 +334,7 @@ class ComplexSolveTestCase(SolveTestCaseOrder1):
         self.assertEqual(u.getShape(), ())
         self.assertLess(error, self.REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
+    @unittest.skipIf(not HAVE_TRILINOS, "No solver available")
     def test_systemcomplex(self):
         pde, u_ex, g_ex = self.getPDE(True, iscomplex=True)
         g = grad(u_ex)
@@ -343,6 +352,8 @@ class ComplexSolveTestCaseOrder2(SolveTestCaseOrder2):
     """
     FAC_DIAG = 1.+0.2j
     FAC_OFFDIAG = -0.4
+
+    @unittest.skipIf(not HAVE_TRILINOS, "No solver available")
     def test_singlecomplex(self):
         pde, u_ex, g_ex = self.getPDE(False, iscomplex=True)
         g=grad(u_ex)
@@ -353,6 +364,7 @@ class ComplexSolveTestCaseOrder2(SolveTestCaseOrder2):
         error = Lsup(u-u_ex)
         self.assertLess(error, self.REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
+    @unittest.skipIf(not HAVE_TRILINOS, "No solver available")
     def test_systemcomplex(self):
         pde, u_ex, g_ex = self.getPDE(True, iscomplex=True)
         g = grad(u_ex)
