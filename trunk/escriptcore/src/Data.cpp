@@ -4646,8 +4646,7 @@ Data::borrowReadyPtr() const
 std::string
 Data::toString() const
 {
-    // int localNeedSummary=0;
-    int localNeedSummary=1;
+    int localNeedSummary=0;
 #ifdef ESYS_MPI
     int globalNeedSummary=0;
 #endif
@@ -4666,17 +4665,17 @@ Data::toString() const
 
     if (localNeedSummary){
         if (isComplex())
-	{
-	    stringstream temp;
-	    temp << "Summary: Lsup="<< Lsup_const() << " data points=" << getNumDataPoints();
-	    return  temp.str();
-	}
-	else
-	{
-	    stringstream temp;
-	    temp << "Summary: inf="<< inf_const() << " sup=" << sup_const() << " data points=" << getNumDataPoints();
-	    return  temp.str();
-	}
+    	{
+    	    stringstream temp;
+    	    temp << "Summary: Lsup="<< Lsup_const() << " data points=" << getNumDataPoints();
+    	    return  temp.str();
+    	}
+    	else
+    	{
+    	    stringstream temp;
+    	    temp << "Summary: inf="<< inf_const() << " sup=" << sup_const() << " data points=" << getNumDataPoints();
+    	    return  temp.str();
+    	}
     }
     return m_data->toString();
 }

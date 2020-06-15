@@ -35,8 +35,8 @@ from esys.escript import getMPISizeWorld, Data, Solution, Vector, hasFeature
 from esys.dudley import Rectangle, Brick
 from esys.escript.linearPDEs import SolverOptions
 
-SOLVER="umfpack"
-HAVE_REQUESTED_SOLVER = hasFeature(SOLVER)
+SOLVER='umfpack'
+HAVE_REQUESTED_SOLVER = hasFeature(SOLVER) and hasFeature('paso')
 
 mpiSize=getMPISizeWorld()
 # number of elements in the spatial directions

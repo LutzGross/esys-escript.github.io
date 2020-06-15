@@ -37,8 +37,8 @@ from esys.escript.linearPDEs import SolverOptions
 
 
 
-SOLVER="umfpack"
-HAVE_REQUESTED_SOLVER = hasFeature(SOLVER)
+SOLVER='umfpack'
+HAVE_REQUESTED_SOLVER = hasFeature(SOLVER) and hasFeature('paso')
 
 
 mpiSize=getMPISizeWorld()
