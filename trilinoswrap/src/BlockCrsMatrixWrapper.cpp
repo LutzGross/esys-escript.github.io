@@ -262,7 +262,7 @@ void BlockCrsMatrixWrapper<ST>::saveMM(const std::string& filename) const
     // for compatibility with paso, not strictly required.
     params.set("precision", 15);
     std::ofstream os(filename);
-#if defined(ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKCRSH) && (TRILINOS_MAJOR_MINOR_VERSION < 121400)
+#if defined(ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKCRSH)
     Tpetra::Experimental::blockCrsMatrixWriter<ST,LO,GO,NT>(mat, os, params);
 #else
     Tpetra::blockCrsMatrixWriter<ST,LO,GO,NT>(mat, os, params);
