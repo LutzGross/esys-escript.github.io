@@ -490,6 +490,7 @@ args("arg"), "assigns new location to the domain\n\n"
     // Note for Lutz, Need to specify the call policy in order to return a
     // reference. In this case return_internal_reference.
     .def("__str__",&escript::Data::toString)
+    .def("__repr__",&escript::Data::toRepr)
     .def("getDomain",&escript::Data::getDomainPython,":rtype: `Domain`")
     .def("getFunctionSpace",&escript::Data::getFunctionSpace,return_value_policy<copy_const_reference>(),":rtype: `FunctionSpace`")
     .def("getX",&escript::Data::getXFromFunctionSpace,

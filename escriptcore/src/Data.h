@@ -326,6 +326,13 @@ class Data {
 
   /**
      \brief
+     Write the data as a string. For large amounts of data, a summary is printed.
+  */
+  std::string
+  toRepr() const;
+
+  /**
+     \brief
      Whatever the current Data type make this into a DataExpanded.
   */
   void
