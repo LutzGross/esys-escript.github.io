@@ -4680,6 +4680,42 @@ Data::toString() const
     return m_data->toString();
 }
 
+std::string
+Data::toRepr() const
+{
+    int localNeedSummary=0;
+#ifdef ESYS_MPI
+    int globalNeedSummary=0;
+#endif
+    if (!m_data->isEmpty() &&
+        m_data->isExpanded() &&
+        !m_data->isLazy() && 
+        getLength() > escriptParams.getTooManyLines())
+    {
+        localNeedSummary=1;
+    }
+
+#ifdef ESYS_MPI
+    MPI_Allreduce( &localNeedSummary, &globalNeedSummary, 1, MPI_INT, MPI_MAX, get_MPIComm() );
+    localNeedSummary=globalNeedSummary;
+#endif
+
+    if (localNeedSummary){
+        if (isComplex())
+        {
+            stringstream temp;
+            temp << "Summary: Lsup="<< Lsup_const() << " data points=" << getNumDataPoints();
+            return  temp.str();
+        }
+        else
+        {
+            stringstream temp;
+            temp << "Summary: inf="<< inf_const() << " sup=" << sup_const() << " data points=" << getNumDataPoints();
+            return  temp.str();
+        }
+    }
+    return m_data->toString();
+}
 
 // This method is not thread-safe
 DataTypes::RealVectorType::reference
