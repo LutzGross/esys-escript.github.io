@@ -1181,10 +1181,10 @@ args("source", "q", "r","factor"),
         ":rtype: in the list `ILU0`, `ILUT`, `JACOBI`, `AMG`, `REC_ILU`, `GAUSS_SEIDEL`, `RILU`,  `NO_PRECONDITIONER`")
     .def("setSolverMethod", &escript::SolverBuddy::setSolverMethod, args("method"),"Sets the solver method to be used. Use ``method``=``DIRECT`` to indicate that a direct rather than an iterative solver should be used and use ``method``=``ITERATIVE`` to indicate that an iterative rather than a direct solver should be used.\n\n"
         ":param method: key of the solver method to be used.\n"
-        ":type method: in `DEFAULT`, `DIRECT`, `CHOLEVSKY`, `PCG`, `CR`, `CGS`, `BICGSTAB`, `GMRES`, `PRES20`, `ROWSUM_LUMPING`, `HRZ_LUMPING`, `ITERATIVE`, `NONLINEAR_GMRES`, `TFQMR`, `MINRES`\n"
+        ":type method: in `DEFAULT`, `DIRECT`, `CHOLEVSKY`, `PCG`, `CR`, `CGS`, `CGLS`, `BICGSTAB`, `GMRES`, `PRES20`, `ROWSUM_LUMPING`, `HRZ_LUMPING`, `ITERATIVE`, `NONLINEAR_GMRES`, `TFQMR`, `MINRES`, `DIRECT_MUMPS`, `DIRECT_PARDISO`, `DIRECT_SUPERLU`, `DIRECT_TRILINOS`, `LSQR`, `LUMPING`\n" 
         ":note: Not all packages support all solvers. It can be assumed that a package makes a reasonable choice if it encounters an unknown solver method.")
     .def("getSolverMethod", &escript::SolverBuddy::getSolverMethod,"Returns key of the solver method to be used.\n\n"
-        ":rtype: in the list `DEFAULT`, `DIRECT`, `CHOLEVSKY`, `PCG`, `CR`, `CGS`, `BICGSTAB`, `GMRES`, `PRES20`, `ROWSUM_LUMPING`, `HRZ_LUMPING`, `MINRES`, `ITERATIVE`, `NONLINEAR_GMRES`, `TFQMR`")
+        ":rtype: in the list `DEFAULT`, `DIRECT`, `CHOLEVSKY`, `PCG`, `CR`, `CGS`, `CGLS`, `BICGSTAB`, `GMRES`, `PRES20`, `ROWSUM_LUMPING`, `HRZ_LUMPING`, `ITERATIVE`, `NONLINEAR_GMRES`, `TFQMR`, `MINRES`, `DIRECT_MUMPS`, `DIRECT_PARDISO`, `DIRECT_SUPERLU`, `DIRECT_TRILINOS`, `LSQR`, `LUMPING`\n")
     .def("setPackage", &escript::SolverBuddy::setPackage, args("package"),"Sets the solver package to be used as a solver.\n\n"
         ":param package: key of the solver package to be used.\n"
         ":type package: in `DEFAULT`, `PASO`, `CUSP`, `MKL`, `UMFPACK`, `TRILINOS`\n"
