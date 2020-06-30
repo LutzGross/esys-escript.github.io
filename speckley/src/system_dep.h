@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2020 by The University of Queensland
+* Copyright (c) 2003-2018 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -10,9 +10,8 @@
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
-* Development from 2014-2017 by Centre for Geoscience Computing (GeoComp)
-* Development from 2019 by School of Earth and Environmental Sciences
-**
+* Development from 2014 by Centre for Geoscience Computing (GeoComp)
+*
 *****************************************************************************/
 
 #ifndef __SPECKLEY_SYSTEM_DEP_H__
@@ -36,25 +35,42 @@
 
 // byte swapping / endianness:
 
-#include <boost/detail/endian.hpp>
-#ifdef ESYS_DEPRECATED_BOOST_ENDIAN
-#include <boost/predef/other/endian.h>
+#if defined(ESYS_DEPRECATED_BOOST_ENDIAN)
+    #include <boost/predef/other/endian.h>
+#elif defined(ESYS_MOVED_BOOST_ENDIAN)
+    #include <boost/endian.hpp>
+#else
+    #include <boost/detail/endian.hpp>
 #endif
 
 namespace speckley {
 
 enum {
-#ifndef ESYS_DEPRECATED_BOOST_ENDIAN
-    BYTEORDER_NATIVE = BOOST_BYTE_ORDER,
-#elif defined(ESYS_DEPRECATED_BOOST_ENDIAN) && defined(BOOST_ENDIAN_BIG_BYTE)
-    BYTEORDER_NATIVE = 4321,
-#elif defined(ESYS_DEPRECATED_BOOST_ENDIAN) && defined(BOOST_ENDIAN_LITTLE_BYTE)
-    BYTEORDER_NATIVE = 1234,
-#elif defined(ESYS_DEPRECATED_BOOST_ENDIAN) && defined(BOOST_ENDIAN_LITTLE_WORD)
-    BYTEORDER_NATIVE = 2134,
-#endif
-    BYTEORDER_LITTLE_ENDIAN = 1234,
-    BYTEORDER_BIG_ENDIAN = 4321
+    #ifdef ESYS_MOVED_BOOST_ENDIAN
+        #ifndef ESYS_DEPRECATED_BOOST_ENDIAN
+            BYTEORDER_NATIVE = BYTE_ORDER,
+        #elif defined(ESYS_DEPRECATED_BOOST_ENDIAN) && defined(BOOST_ENDIAN_BIG_BYTE)
+            BYTEORDER_NATIVE = 4321,
+        #elif defined(ESYS_DEPRECATED_BOOST_ENDIAN) && defined(BOOST_ENDIAN_LITTLE_BYTE)
+            BYTEORDER_NATIVE = 1234,
+        #elif defined(ESYS_DEPRECATED_BOOST_ENDIAN) && defined(BOOST_ENDIAN_LITTLE_WORD)
+            BYTEORDER_NATIVE = 2134,
+        #endif
+            BYTEORDER_LITTLE_ENDIAN = 1234,
+            BYTEORDER_BIG_ENDIAN = 4321
+    #else
+        #ifndef ESYS_DEPRECATED_BOOST_ENDIAN
+            BYTEORDER_NATIVE = BOOST_BYTE_ORDER,
+        #elif defined(ESYS_DEPRECATED_BOOST_ENDIAN) && defined(BOOST_ENDIAN_BIG_BYTE)
+            BYTEORDER_NATIVE = 4321,
+        #elif defined(ESYS_DEPRECATED_BOOST_ENDIAN) && defined(BOOST_ENDIAN_LITTLE_BYTE)
+            BYTEORDER_NATIVE = 1234,
+        #elif defined(ESYS_DEPRECATED_BOOST_ENDIAN) && defined(BOOST_ENDIAN_LITTLE_WORD)
+            BYTEORDER_NATIVE = 2134,
+        #endif
+            BYTEORDER_LITTLE_ENDIAN = 1234,
+            BYTEORDER_BIG_ENDIAN = 4321
+    #endif
 };
 
 enum {
