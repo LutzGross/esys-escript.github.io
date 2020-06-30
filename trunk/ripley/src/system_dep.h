@@ -35,25 +35,46 @@
 
 // byte swapping / endianness:
 
-#include <boost/detail/endian.hpp>
 #ifdef ESYS_DEPRECATED_BOOST_ENDIAN
-#include <boost/predef/other/endian.h>
+    #include <boost/predef/other/endian.h>
+#else
+    #ifdef ESYS_MOVED_BOOST_ENDIAN
+        #include <boost/endian.hpp>
+    #else
+        #include <boost/detail/endian.hpp>
+    #endif
 #endif
+
+
 
 namespace ripley {
 
 enum {
-#ifndef ESYS_DEPRECATED_BOOST_ENDIAN
-    BYTEORDER_NATIVE = BOOST_BYTE_ORDER,
-#elif defined(ESYS_DEPRECATED_BOOST_ENDIAN) && defined(BOOST_ENDIAN_BIG_BYTE)
-    BYTEORDER_NATIVE = 4321,
-#elif defined(ESYS_DEPRECATED_BOOST_ENDIAN) && defined(BOOST_ENDIAN_LITTLE_BYTE)
-    BYTEORDER_NATIVE = 1234,
-#elif defined(ESYS_DEPRECATED_BOOST_ENDIAN) && defined(BOOST_ENDIAN_LITTLE_WORD)
-    BYTEORDER_NATIVE = 2134,
-#endif
-    BYTEORDER_LITTLE_ENDIAN = 1234,
-    BYTEORDER_BIG_ENDIAN = 4321
+    #ifdef ESYS_MOVED_BOOST_ENDIAN
+        #ifndef ESYS_DEPRECATED_BOOST_ENDIAN
+            BYTEORDER_NATIVE = BYTE_ORDER,
+        #elif defined(ESYS_DEPRECATED_BOOST_ENDIAN) && defined(BOOST_ENDIAN_BIG_BYTE)
+            BYTEORDER_NATIVE = 4321,
+        #elif defined(ESYS_DEPRECATED_BOOST_ENDIAN) && defined(BOOST_ENDIAN_LITTLE_BYTE)
+            BYTEORDER_NATIVE = 1234,
+        #elif defined(ESYS_DEPRECATED_BOOST_ENDIAN) && defined(BOOST_ENDIAN_LITTLE_WORD)
+            BYTEORDER_NATIVE = 2134,
+        #endif
+            BYTEORDER_LITTLE_ENDIAN = 1234,
+            BYTEORDER_BIG_ENDIAN = 4321
+    #else
+        #ifndef ESYS_DEPRECATED_BOOST_ENDIAN
+            BYTEORDER_NATIVE = BOOST_BYTE_ORDER,
+        #elif defined(ESYS_DEPRECATED_BOOST_ENDIAN) && defined(BOOST_ENDIAN_BIG_BYTE)
+            BYTEORDER_NATIVE = 4321,
+        #elif defined(ESYS_DEPRECATED_BOOST_ENDIAN) && defined(BOOST_ENDIAN_LITTLE_BYTE)
+            BYTEORDER_NATIVE = 1234,
+        #elif defined(ESYS_DEPRECATED_BOOST_ENDIAN) && defined(BOOST_ENDIAN_LITTLE_WORD)
+            BYTEORDER_NATIVE = 2134,
+        #endif
+            BYTEORDER_LITTLE_ENDIAN = 1234,
+            BYTEORDER_BIG_ENDIAN = 4321
+    #endif
 };
 
 enum {

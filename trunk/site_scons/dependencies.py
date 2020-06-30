@@ -347,6 +347,8 @@ def checkBoost(env):
     # Check if the version of boost we are using is missing BOOST_BYTE_ORDER
     if boostversion >= 107000:
         env.Append(CPPDEFINES=['ESYS_DEPRECATED_BOOST_ENDIAN'])
+    if boostversion >= 107200:
+        env.Append(CPPDEFINES=['ESYS_MOVED_BOOST_ENDIAN'])
 
     return env
 
@@ -678,8 +680,10 @@ def checkOptionalLibraries(env):
                 p = Popen(['orterun', '-V'], stdout=PIPE, stderr=PIPE)
                 o,e = p.communicate()
                 try:
+                    e=e.decode()
                     ver = e.split('\n')[0].split()[-1]
                 except IndexError:
+                    o=o.decode()
                     ver = o.split('\n')[0].split()[-1]
                 if len(ver) > 0:
                     env['orte_version'] = ver
