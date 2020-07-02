@@ -804,7 +804,7 @@ If false, the result is a list of scalars [1, 2, ...]
 
   /**
     \brief
-    Copy other Data object into this Data object where mask is positive.
+    Selectively copies other Data object into this Data object where mask is positive.
   */
   void
   copyWithMask(const Data& other,
