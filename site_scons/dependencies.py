@@ -99,9 +99,11 @@ def get_external_python_sympy(env,bin):
     if int(tmp1) == 0 and int(tmp2) < 7:
         env['sympy'] = False
         env['warnings'].append("sympy version is too old.")
+        env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
     if (int(tmp1) == 1 and int(tmp2) >= 2) or int(tmp1) >= 2:
         env['sympy']=False
         env['warnings'].append("escript does not support sympy version 1.2 and higher. Found version %d.%d" % (int(tmp1),int(tmp2)))
+        env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
 
     return env
 
@@ -406,6 +408,7 @@ def checkOptionalModules(env):
     ######## sympy
     if not detectModule(env, 'sympy'):
         env['warnings'].append("Cannot import sympy. Symbolic toolbox and nonlinear PDEs will not be available.")
+        env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
     else:
         if env['pythoncmd'] is not None:
             env=get_external_python_sympy(env, env['pythoncmd'])
@@ -417,9 +420,11 @@ def checkOptionalModules(env):
             if duv.LooseVersion(sympy.__version__) < duv.LooseVersion('0.7'):
                 env['sympy']=False
                 env['warnings'].append("sympy version too old. Symbolic toolbox and nonlinear PDEs will not be available.")
+                env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
             if duv.LooseVersion(sympy.__version__) > duv.LooseVersion('1.2'):
                 env['sympy']=False
                 env['warnings'].append("escript does not support sympy version 1.2 and higher. Found %d" % duv.LooseVersion(sympy.__version__))
+                env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
 
     ######## gmshpy
     env['gmshpy'] = detectModule(env, 'gmshpy')
@@ -765,6 +770,7 @@ def checkOptionalLibraries(env):
                 try:
                     p=Popen(cmd, stdout=PIPE)
                     gmshlibs,_ = p.communicate()
+                    gmshlibs.decode()
                     env.Append(CPPDEFINES=['ESYS_HAVE_GMSH'])
                     if p.returncode == 0 and 'libmpi' in gmshlibs:
                         env['gmsh'] = 'm'

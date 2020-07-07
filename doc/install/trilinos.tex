@@ -34,7 +34,7 @@ The following packages should be installed to attempt this build:
 % #!/bin/bash
 
 % # Set this to the root of your Trilinos source directory.
-% TRILINOS_PATH=../trilinos-12.12.1-Source
+% TRILINOS_PATH=../trilinos_source
 
 % #
 % # You can invoke this shell script with additional command-line
@@ -106,34 +106,24 @@ rm -f CMakeCache.txt
 EXTRA_ARGS=$@
 
 cmake \
-      -D CMAKE_C_COMPILER=/usr/bin/gcc \
-      -D CMAKE_CXX_COMPILER=/usr/bin/g++ \
-      -D CMAKE_Fortran_COMPILER=/usr/bin/f95 \
-      -D PYTHON_EXECUTABLE=/usr/bin/python3 \
+      -D CMAKE_BUILD_TYPE=RELEASE \
+      -D CMAKE_CXX_FLAGS="-fPIC"\
       -D CMAKE_INSTALL_PREFIX=/usr/local/trilinos_nompi/ \
-      -D Trilinos_ENABLE_CXX11=ON \
-      -D Trilinos_ENABLE_Fortran=ON \
       -D Trilinos_ENABLE_CXX11=ON \
       -D Trilinos_ENABLE_Fortran=ON \
       -D BUILD_SHARED_LIBS=ON \
       -D TPL_ENABLE_BLAS=ON \
+      -D TPL_ENABLE_LAPACK=ON \
       -D TPL_ENABLE_Boost=ON \
       -D TPL_ENABLE_Cholmod=ON \
-      -D TPL_ENABLE_LAPACK=ON \
+      -D TPL_ENABLE_CppUnit=ON \
       -D TPL_ENABLE_METIS=ON \
-      -D TPL_ENABLE_SuperLU=OFF \
+      -D TPL_ENABLE_Pthread=OFF \
       -D TPL_ENABLE_UMFPACK=ON \
-      -D TPL_ENABLE_ParMETIS=OFF \
-      -D TPL_ENABLE_MPI=OFF \
-      -D TPL_ENABLE_MUMPS=OFF \
-      -D TPL_ENABLE_ScaLAPACK=OFF \
       -D TPL_BLAS_INCLUDE_DIRS=/usr/include/suitesparse \
       -D TPL_Cholmod_INCLUDE_DIRS=/usr/include/suitesparse \
       -D TPL_Cholmod_LIBRARIES='libcholmod.so;libamd.so;libcolamd.so' \
       -D TPL_UMFPACK_INCLUDE_DIRS=/usr/include/suitesparse \
-      -D TPL_Boost_INCLUDE_DIRS=/usr/local/include \
-      -D TPL_Boost_LIBRARY_DIRS=/usr/local/lib \
-      -D TPL_ParMETIS_INCLUDE_DIRS=/usr/include/parmetis/ \
       -D Trilinos_ENABLE_Amesos=ON \
       -D Trilinos_ENABLE_Amesos2=ON \
       -D Trilinos_ENABLE_AztecOO=ON \
@@ -146,22 +136,14 @@ cmake \
       -D Trilinos_ENABLE_MueLu=ON \
       -D Trilinos_ENABLE_Teuchos=ON \
       -D Trilinos_ENABLE_Tpetra=ON \
-      -D Trilinos_ENABLE_ALL_OPTIONAL_PACKAGES=ON \
-      -D Kokkos_ENABLE_AGGRESSIVE_VECTORIZATION=ON \
-      -D Tpetra_INST_COMPLEX_DOUBLE=ON \
-      -D Teuchos_ENABLE_COMPLEX=ON \
-      -D Trilinos_ENABLE_COMPLEX_DOUBLE=ON \
-      -D Tpetra_INST_INT_LONG=OFF \
-      -D Tpetra_INST_LONG_LONG=OFF \
-      -D Tpetra_INST_INT_LONG_LONG=OFF \
-      -D Tpetra_INST_INT_INT=ON \
-      -D Tpetra_ENABLE_DEPRECATED_CODE=ON \
       -D Trilinos_ENABLE_OpenMP=ON \
+      -D Teuchos_ENABLE_COMPLEX=ON \
+      -D Tpetra_INST_COMPLEX_DOUBLE=ON \
+      -D TPL_ENABLE_MPI=OFF \
+      -D Trilinos_ENABLE_ALL_OPTIONAL_PACKAGES=ON \
       -D Trilinos_ENABLE_EXPLICIT_INSTANTIATION=ON \
-      -D Kokkos_ENABLE_COMPILER_WARNINGS=ON \
+      -D Tpetra_INST_INT_INT=ON \
       -D Amesos2_ENABLE_Basker=ON \
-      -D Tpetra_INST_SERIAL:BOOL=ON \
-      -D Trilinos_ENABLE_TESTS=OFF \
 $EXTRA_ARGS \
 $TRILINOS_PATH
 \end{verbatim}
