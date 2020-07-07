@@ -15,6 +15,8 @@
 **
 *****************************************************************************/
 
+#include <fstream>
+
 #include "BlockCrsMatrixWrapper.h"
 #include "BelosWrapper.h"
 #include "PreconditionerFactory.h"
