@@ -42,16 +42,10 @@ import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 import numpy
 
-sympyavail=True
-try:
-    import sympy as sp
-    spVer=sp.__version__
-    spl=spVer.split('.')
-    if int(spl[0]) == 0 and int(spl[1]) < 7:
-        sympyavail=False
-except ImportError as e:
+if hasFeature('sympy'):
+    sympyavail=True
+else:
     sympyavail=False
-
 @unittest.skipIf(not sympyavail, 'sympy not available')
 class Test_SymbolicTestCase(unittest.TestCase):
 
