@@ -276,6 +276,12 @@ class SimpleSolveTestCase(SolveTestCaseOrder1):
         self.assertFalse(u.isComplex())
         self.assertEqual(u.getShape(), ( ))
         error = Lsup(u-u_ex)
+        
+        from esys.weipa import saveSilo
+        saveSilo("/home/lutz/Downloads/test", u=u, uex=u_ex, e=u-u_ex, q=pde.getCoefficient('q'), r=pde.getCoefficient('r'))
+        if self.REL_TOL*Lsup(u_ex) > error:
+            exit()
+        
         self.assertLess(error, self.REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
     @unittest.skipIf(not HAVE_SOLVER, "No solver available")
