@@ -117,10 +117,6 @@ EscriptParams::EscriptParams()
 #ifdef ESYS_HAVE_BOOST_NUMPY
     features.insert("boostnumpy");
 #endif
-
-#ifndef ESYS_NO_SYMPY
-    features.insert("sympy");
-#endif
 }
 
 int EscriptParams::getInt(const std::string& name, int sentinel) const

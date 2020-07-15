@@ -569,61 +569,53 @@ void saveDataCSV(const std::string& filename, bp::dict arg,
     try {
         std::vector<int> offset(numdata);
         std::vector<const DataTypes::real_t*> samples(numdata);
-#ifdef ESYS_MPI
-        // Loop over the MPI ranks
-        for(int token = 0; token < data[0].getDomain()->getMPISize(); token++)
-        {
-            data[0].getDomain()->MPIBarrier();
-            if(data[0].getDomain()->getMPIRank() != token)
-                continue;
-#endif
 
-	    	const DataTypes::real_t onlyreal=0;
-            for (int i=0; i<numsamples; ++i) {
-                if (!best.ownSample(i)) {
-                    continue;
-                }
-                wantrow = true;
-                for (int d=0; d<numdata; ++d) {
-                    samples[d] = data[d].getSampleDataRO(i, onlyreal);
-                }
-                if (hasmask) {
-                    masksample = mask.getSampleDataRO(i, onlyreal);
-                    if (!expandedmask) {
-                        // mask controls whole sample
-                        if (masksample[0] <= 0) {
-                            wantrow = false;
-                        }
+	const DataTypes::real_t onlyreal=0;
+        for (int i=0; i<numsamples; ++i) {
+            if (!best.ownSample(i)) {
+                continue;
+            }
+            wantrow = true;
+            for (int d=0; d<numdata; ++d) {
+                samples[d] = data[d].getSampleDataRO(i, onlyreal);
+            }
+            if (hasmask) {
+                masksample = mask.getSampleDataRO(i, onlyreal);
+                if (!expandedmask) {
+                    // mask controls whole sample
+                    if (masksample[0] <= 0) {
+                        wantrow = false;
                     }
-                }
-                for (int j=0; j<dpps; ++j) {
-                    // now we need to check if this point is masked off
-                    if (expandedmask) {
-                        // masks are scalar so the relevant value is at [j]
-                        wantrow = (masksample[j]>0);
-                    }
-                    if (wantrow) {
-                        bool needsep = false;
-                        // If necessary, write the element id to the output stream
-                        if(refid){
-                            os << best.getReferenceIDOfSample(i) << sep;
-                        }
-                        for (int d = 0; d < numdata; ++d) {
-                            DataTypes::pointToStream(os, samples[d],
-                                data[d].getDataPointShape(), offset[d], needsep, sep);
-                            needsep = true;
-                            offset[d] += step[d];
-                        }
-                        os << std::endl;
-                    }
-                }
-                for (int d = 0; d<numdata; d++) {
-                    offset[d]=0;
                 }
             }
-#ifdef ESYS_MPI
+            for (int j=0; j<dpps; ++j) {
+                // now we need to check if this point is masked off
+                if (expandedmask) {
+                    // masks are scalar so the relevant value is at [j]
+                    wantrow = (masksample[j]>0);
+                }
+                if (wantrow) {
+                    bool needsep = false;
+
+                    // If necessary, write the element id to the output stream
+                    if(refid){
+                        os << best.getReferenceIDOfSample(i) << sep;
+                    }
+
+                    for (int d = 0; d < numdata; ++d) {
+                        DataTypes::pointToStream(os, samples[d],
+                            data[d].getDataPointShape(), offset[d], needsep, sep);
+                        needsep = true;
+                        offset[d] += step[d];
+                    }
+                    os << std::endl;
+                }
+            }
+
+            for (int d = 0; d<numdata; d++) {
+                offset[d]=0;
+            }
         }
-#endif
     } catch (EsysException* e) {
         error=1;
         if (data[0].getDomain()->getMPISize()==1) {
@@ -988,6 +980,52 @@ boost::python::numpy::ndarray convertToNumpy(escript::Data data)
 #else
 void convertToNumpy(escript::Data data){
     throw DataException("getNumpy: Error - Please recompile escripts with the boost numpy library");
+}
+#endif
+
+// #ifdef ESYS_HAVE_BOOST_NUMPY
+// void initBoostNumpy()
+// {
+//     // Py_Initialize();
+//     boost::python::numpy::initialize();
+// }
+// #endif
+
+#ifdef ESYS_HAVE_BOOST_NUMPY
+escript::Data numpyToData(boost::python::numpy::ndarray& array, bool isComplex, FunctionSpace& functionspace)
+{
+    // Work out the shape
+    auto shape = array.get_shape();
+    int dim = shape[0];
+    int numDataPoints = shape[1];
+
+    int type = 0; //todo: should be scalar: 0, vector: 1, tensor: 2, tensor3: 3, tensor4: 4
+
+    DataTypes::ShapeType dataPointShape(type,dim-1);
+
+    if(isComplex)
+    {
+        escript::Data data = Data(0,dataPointShape,functionspace,false);
+        data.complicate();
+        const DataTypes::cplx_t onlycomplex = 0;
+        std::complex<double>* array_ptr = reinterpret_cast<std::complex<double>*>(array.get_data());
+#pragma omp parallel for
+        for (int i = 0; i < numDataPoints; i++)
+            for (int j = 0; j < dim; j++)
+                *(data.getSampleDataRW(i, onlycomplex)+j) = *(array_ptr + j + i*dim);
+        return data;
+    }
+    else
+    {
+        escript::Data data = Data(0,dataPointShape,functionspace,false);       
+        double* array_ptr = reinterpret_cast<double*>(array.get_data());
+        const DataTypes::real_t onlyreal = 0;
+#pragma omp parallel for
+        for (int i = 0; i < numDataPoints; i++) 
+            for (int j = 0; j < dim; j++)
+                *(data.getSampleDataRW(i, onlyreal)+j) = *(array_ptr + j + i*dim);
+        return data;
+    }
 }
 #endif
 

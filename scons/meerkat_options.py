@@ -24,7 +24,7 @@ openmp = True
 
 import os
 
-#domains=['ripley']
+# domains=['finley']
 
 # d_mpi_path = '/usr/include/openmpi'
 # mpi_prefix = os.path.split(os.path.realpath(d_mpi_path))[0]
@@ -38,12 +38,15 @@ lapack_prefix = ['/usr/include/x86_64-linux-gnu', '/usr/lib/x86_64-linux-gnu']
 silo = True
 silo_libs = ['siloh5']
 trilinos = True
-trilinos_prefix = "/usr/local/trilinos"
+trilinos_prefix = "/usr/local/trilinos_nompi"
 dudley_assemble_flags = '-funroll-loops'
 pythoncmd="/usr/bin/python3"
 pythonlibname = 'python3.7m'
-pythonlibpath = '/usr/lib/x86_64-linux-gnu/'
+pythonlibpath = '/usr/lib/x86_64-linux-gnu'
 pythonincpath = '/usr/include/python3.7m'
+
+
+# boost_prefix='/usr/local/boost.1.73.0'
 
 import subprocess
 import os

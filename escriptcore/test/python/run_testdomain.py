@@ -38,6 +38,7 @@ class TestDomainTests(unittest.TestCase):
     
     This set of tests checks that domain.
     """
+    EPSILON=1e-8
     TOL=EPSILON*100.
     def testreduction(self):
         dom = getTestDomainFunctionSpace(4,2,2).getDomain()

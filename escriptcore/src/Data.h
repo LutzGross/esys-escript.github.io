@@ -326,13 +326,6 @@ class Data {
 
   /**
      \brief
-     Write the data as a string. For large amounts of data, a summary is printed.
-  */
-  std::string
-  toRepr() const;
-
-  /**
-     \brief
      Whatever the current Data type make this into a DataExpanded.
   */
   void
@@ -804,7 +797,7 @@ If false, the result is a list of scalars [1, 2, ...]
 
   /**
     \brief
-    Selectively copies other Data object into this Data object where mask is positive.
+    Copy other Data object into this Data object where mask is positive.
   */
   void
   copyWithMask(const Data& other,
