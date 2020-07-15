@@ -855,127 +855,140 @@ void
 Data::copyWithMask(const Data& other,
                    const Data& mask)
 {
-    // Possible input errors
-    if (other.isEmpty())
-        throw DataException("copyWithMask: other is empty. copyWithMask not permitted using instances of DataEmpty.");
-    if (mask.isEmpty())
-        throw DataException("copyWithMask: mask is empty. copyWithMask not permitted using instances of DataEmpty.");
+    // 1. Interpolate if required so all Data use the same FS as this
+    // 2. Tag or Expand so that all Data's are the same type
+    // 3. Iterate over the data vectors copying values where mask is >0
+    if (other.isEmpty() || mask.isEmpty())
+    {
+        throw DataException("Error - copyWithMask not permitted using instances of DataEmpty.");
+    }
     if (mask.isComplex())
-        throw DataException("copyWithMask: mask is complex. copyWithMask not permitted using a complex mask.");
-    if (!this->isConstant() && !this->isExpanded() && !this->isTagged())
-        throw DataException("copyWithMask: Unsupported DataAbstract object passed to copyWithMask.");
-    
-    // Initialise some variables
-    Data new_other(other);
-    Data new_mask(mask);
-
-    // If Data is Lazy then make the Data ready
-    new_other.resolve();
-    new_mask.resolve();
+    {
+        throw DataException("Error - copyWithMask not permitted using a complex mask.");
+    }
+    Data other2(other);
+    Data mask2(mask);
+    other2.resolve();
+    mask2.resolve();
     this->resolve();
-
-    // Interpolate if required so all Data use the same function space
-    FunctionSpace data_fs = getFunctionSpace();
-    FunctionSpace other_fs = other.getFunctionSpace();
-    FunctionSpace mask_fs = mask.getFunctionSpace();
-    
-    if (other_fs != data_fs)
+    FunctionSpace myFS=getFunctionSpace();
+    FunctionSpace oFS=other2.getFunctionSpace();
+    FunctionSpace mFS=mask2.getFunctionSpace();
+    if (oFS!=myFS)
     {
-        if (new_other.probeInterpolation(data_fs))
-            new_other = new_other.interpolate(data_fs);
+        if (other2.probeInterpolation(myFS))
+        {
+            other2=other2.interpolate(myFS);
+        }
         else
-            throw DataException("copyWithMask: other FunctionSpace is not compatible with this one.");
+        {
+            throw DataException("Error - copyWithMask: other FunctionSpace is not compatible with this one.");
+        }
     }
-    if (mask_fs != data_fs)
+    if (mFS!=myFS)
     {
-        if (new_mask.probeInterpolation(data_fs))
-            new_mask = new_mask.interpolate(data_fs);
+        if (mask2.probeInterpolation(myFS))
+        {
+            mask2=mask2.interpolate(myFS);
+        }
         else
-            throw DataException("copyWithMask: mask FunctionSpace is not compatible with this one.");
+        {
+            throw DataException("Error - copyWithMask: mask FunctionSpace is not compatible with this one.");
+        }
     }
-
-    // Ensure that all the Data objects have the same type
-    if (this->isExpanded())
+    // Ensure that all args have the same type
+    if (this->isExpanded() || mask2.isExpanded() || other2.isExpanded())
     {
-        new_other.expand();
-        new_mask.expand();
+        this->expand();
+        other2.expand();
+        mask2.expand();
     }
-    else if (this->isTagged())
+    else if (this->isTagged() || mask2.isTagged() || other2.isTagged())
     {
-        new_other.tag();
-        new_mask.tag();
+        this->tag();
+        other2.tag();
+        mask2.tag();
     }
-    
-    // If data is complex, complicate new_other before copying
-    if (isComplex() != new_other.isComplex())
-        new_other.complicate();
-
-    // Test for other possible input errors
-    // unsigned int rank = getDataPointRank();
-    unsigned int rank_other = new_other.getDataPointRank();
-    unsigned int rank_mask = new_mask.getDataPointRank();
-    auto rank_shape = getDataPointShape();
-    auto other_shape = new_other.getDataPointShape();
-    auto mask_shape = new_mask.getDataPointShape();
-
-    // copyWithMask assumes that either the shape of the Data object and the shape of other are the same,
-    // or that the rank of other is a scalar (in which case the same value is copied everywhere)
-    if((rank_other != 0) && (rank_shape != other_shape))
-        throw DataException("Other must either be the same rank as the Data object, or a scalar.");
-
-    // copyWithMask also assumes that the shape of mask is the same as the shape of other as well as 
-    // the smae of the the Data object, or that mask is a scalar (in which case all values are copied
-    // at that relevant point)
-    if((rank_mask  != 0) && (rank_shape != mask_shape))
-        throw DataException("Mask must either be the same rank as the Data object, or a scalar.");
-    
-    // Now copy everything
-    exclusiveWrite();
-    if(isComplex())
-        maskWorker(new_other, new_mask, DataTypes::cplx_t(0));
+    else if (this->isConstant() && mask2.isConstant() && other2.isConstant())
+    {
+    }
     else
-	    maskWorker(new_other, new_mask, DataTypes::real_t(0));
+    {
+        throw DataException("Error - Unknown DataAbstract passed to copyWithMask.");
+    }
+    unsigned int selfrank=getDataPointRank();
+    unsigned int otherrank=other2.getDataPointRank();
+    unsigned int maskrank=mask2.getDataPointRank();
+    if ((selfrank==0) && (otherrank>0 || maskrank>0))
+    {
+        // to get here we must be copying from a large object into a scalar
+        // I am not allowing this.
+        // If you are calling copyWithMask then you are considering keeping some existing values
+        // and so I'm going to assume that you don't want your data objects getting a new shape.
+        throw DataException("Attempt to copyWithMask into a scalar from an object or mask with rank>0.");
+    }
+    if ((selfrank>0) && (otherrank==0) &&(maskrank==0))
+    {
+        // Not allowing this combination.
+        // it is not clear what the rank of the target should be.
+        // Should it be filled with the scalar (rank stays the same); 
+        // or should the target object be reshaped to be a scalar as well.
+        throw DataException("Attempt to copyWithMask from scalar mask and data into non-scalar target.");
+    }
+    
+    if (isComplex()!=other2.isComplex())
+    {
+        complicate();
+        other2.complicate();
+    }
+    
+    exclusiveWrite();
+    if (!isComplex())
+    {
+	maskWorker(other2, mask2, DataTypes::real_t(0));
+    }
+    else
+    {
+	maskWorker(other2, mask2, DataTypes::cplx_t(0));
+    }
 }
 
 template <typename S>
 void 
-Data::maskWorker(Data& other, Data& mask, S sentinel)
+Data::maskWorker(Data& other2, Data& mask2, S sentinel)
 {
-
-    // OPENMP 3.0 allows unsigned loop vars.
-#if defined(_OPENMP) && (_OPENMP < 200805)
-    typedef long i_type;
-#else
-    typedef size_t i_type;
-#endif
-
+     // Now we iterate over the elements
     auto& self=getReady()->getTypedVectorRW(sentinel);
-    auto& ovec=other.getReadyPtr()->getTypedVectorRO(sentinel);
-    auto& mvec=mask.getReadyPtr()->getTypedVectorRO(DataTypes::real_t(0));
+    auto& ovec=other2.getReadyPtr()->getTypedVectorRO(sentinel);
+    auto& mvec=mask2.getReadyPtr()->getTypedVectorRO(DataTypes::real_t(0));
 
-    unsigned int   self_rank=getDataPointRank();
-    unsigned int  other_rank=other.getDataPointRank();
-    unsigned int   mask_rank=mask.getDataPointRank();
-    ShapeType  self_shape=getDataPointShape();
-    ShapeType other_shape=other.getDataPointShape();
-    ShapeType  mask_shape=mask.getDataPointShape();
-    size_t dpsize = getDataPointSize();
-    size_t num_points=self.size();
+    unsigned int selfrank=getDataPointRank();
+    unsigned int otherrank=other2.getDataPointRank();
+    unsigned int maskrank=mask2.getDataPointRank();    
 
-    // Special case: Tagged Data. In this case the tags need to be copied as well.
-    if(isTagged())
+    if ((selfrank>0) && (otherrank>0) &&(maskrank==0))
     {
-        if(self_shape != mask_shape)
-            throw DataException("copyWithMask: For tagged Data, Data and mask must have the same shape.");
-        if(other_shape != self_shape && other_rank != 0)
-            throw DataException("copyWithMask: For tagged Data, other must either be the same shape as Data or a scalar");
+        if (mvec[0]>0)          // copy whole object if scalar is >0
+        {
+            copy(other2);
+        }
+        return;
+    }
+    if (isTagged())               // so all objects involved will also be tagged
+    {
+        // note the !
+        if (!((getDataPointShape()==mask2.getDataPointShape()) && 
+                ((other2.getDataPointShape()==mask2.getDataPointShape()) || (otherrank==0))))
+        {
+            throw DataException("copyWithMask, shape mismatch.");
+        }
 
         // We need to consider the possibility that tags are missing or in the wrong order
         // My guiding assumption here is: All tagged Data are assumed to have the default value for
         // all tags which are not explicitly defined
 
-        const DataTagged* mptr=dynamic_cast<const DataTagged*>(mask.m_data.get());
-        const DataTagged* optr=dynamic_cast<const DataTagged*>(other.m_data.get());
+        const DataTagged* mptr=dynamic_cast<const DataTagged*>(mask2.m_data.get());
+        const DataTagged* optr=dynamic_cast<const DataTagged*>(other2.m_data.get());
         DataTagged* tptr=dynamic_cast<DataTagged*>(m_data.get());
 
         // first, add any tags missing from other or mask
@@ -984,107 +997,118 @@ Data::maskWorker(Data& other, Data& mask, S sentinel)
         const DataTagged::DataMapType& tlookup=tptr->getTagLookup();
         DataTagged::DataMapType::const_iterator i; // i->first is a tag, i->second is an offset into memory
         for (i=olookup.begin();i!=olookup.end();i++)
+        {
             tptr->addTag(i->first); 
-        for (i=mlookup.begin();i!=mlookup.end();i++) 
+        }
+        for (i=mlookup.begin();i!=mlookup.end();i++) {
             tptr->addTag(i->first);
-
+        }
         // now we know that *this has all the required tags but they aren't guaranteed to be in
         // the same order
 
         // There are two possibilities: 1. all objects have the same rank. 2. other is a scalar
-        if ((self_rank == other_rank) && (other_rank == mask_rank))
+        if ((selfrank==otherrank) && (otherrank==maskrank))
         {
-            for (i = tlookup.begin(); i != tlookup.end();i++)
+            for (i=tlookup.begin();i!=tlookup.end();i++)
             {
                 // get the target offset
-	            // yes this is explicitly RealType but size_t should not vary
-	            DataTypes::RealVectorType::size_type toff=tptr->getOffsetForTag(i->first);
+	        // yes this is explicitly RealType but size_t should not vary
+	        DataTypes::RealVectorType::size_type toff=tptr->getOffsetForTag(i->first);
                 DataTypes::RealVectorType::size_type moff=mptr->getOffsetForTag(i->first);
                 DataTypes::RealVectorType::size_type ooff=optr->getOffsetForTag(i->first);
-#pragma omp parallel for
-                for (int j = 0; j < dpsize; ++j)
+                for (int j=0;j<getDataPointSize();++j)
+                {
                     if (mvec[j+moff]>0)
+                    {
                         self[j+toff]=ovec[j+ooff];
+                    }
+                }
             }
             // now for the default value
-#pragma omp parallel for
-            for (int j = 0; j < dpsize; ++j)
-                if (mvec[j+mptr->getDefaultOffset()] > 0)
+            for (int j=0;j<getDataPointSize();++j)
+            {
+                if (mvec[j+mptr->getDefaultOffset()]>0)
+                {
                     self[j+tptr->getDefaultOffset()]=ovec[j+optr->getDefaultOffset()];
+                }
+            }
         }
         else    // other is a scalar
         {
-            for (i = tlookup.begin(); i != tlookup.end();i++)
+            for (i=tlookup.begin();i!=tlookup.end();i++)
             {
                 // get the target offset
-	            DataTypes::RealVectorType::size_type toff=tptr->getOffsetForTag(i->first);
+	        DataTypes::RealVectorType::size_type toff=tptr->getOffsetForTag(i->first);
                 DataTypes::RealVectorType::size_type moff=mptr->getOffsetForTag(i->first);
-                DataTypes::RealVectorType::size_type ooff=optr->getOffsetForTag(i->first);
-
-#pragma omp parallel for
-                for (int j = 0; j < dpsize;++j)
+                DataTypes::RealVectorType::size_type ooff=optr->getOffsetForTag(i->first);	      
+                for (int j=0;j<getDataPointSize();++j)
+                {
                     if (mvec[j+moff]>0)
+                    {
                         self[j+toff]=ovec[ooff];
+                    }
+                }
             }
             // now for the default value
-
-#pragma omp parallel for
-            for (int j = 0; j < dpsize; ++j)
+            for (int j=0;j<getDataPointSize();++j)
+            {
                 if (mvec[j+mptr->getDefaultOffset()]>0)
+                {
                     self[j+tptr->getDefaultOffset()]=ovec[0];
+                }
+            }
         }
 
-        return;
+        return;  // ugly
     }
-
-    // Special case: Mask is a scalar and Data and other have the same shape
-    //   In this case either copy everything or copy nothing, and then return.
-    if ((self_shape == other_shape) && (mask_rank==0))
+    // mixed scalar and non-scalar operation
+    if ((selfrank>0) && (otherrank==0) && (mask2.getDataPointShape()==getDataPointShape()))
     {
-        if (mvec[0] > 0)
-            copy(other);
-        return;
-    }
-
-    // Special case: Other is a scalar, mask and self have the same shape
-    if ((self_rank > 0) && (other_rank == 0) && (mask_shape == self_shape))
-    {          
-#pragma omp parallel for
-        for (i_type i = 0; i < num_points; ++i)
-            if (mvec[i]>0)
-                self[i]=ovec[i/dpsize]; 
-        return; 
-    }
-
-    // Special case: Both mask and other are scalars
-    if((other_rank == 0) && (mask_rank == 0))
-    {
-        if (mvec[0]>0)
+        size_t num_points=self.size();
+        // OPENMP 3.0 allows unsigned loop vars.
+        #if defined(_OPENMP) && (_OPENMP < 200805)
+        long i;
+        #else
+        size_t i;
+        #endif  
+        size_t psize=getDataPointSize();        
+        #pragma omp parallel for private(i) schedule(static)
+        for (i=0;i<num_points;++i)
         {
-#pragma omp parallel for
-            for (i_type i = 0; i < num_points; ++i)
-                self[i]=ovec[i/dpsize]; 
-        }
-        return; 
+            if (mvec[i]>0)
+            {
+                self[i]=ovec[i/psize]; // since this is expanded there is one scalar 
+            }                          // dest point
+        } 
+        return; // ugly!
     }
-
-    // With the exception of the above special cases, other cases in which Data, other and mask
-    // have different shapes is unsupported.
-    if(self_shape != other_shape || self_shape != mask_shape)
+    // tagged data is already taken care of so we only need to worry about shapes
+    // special cases with scalars are already dealt with so all we need to worry about is shape
+    if ((getDataPointShape()!=other2.getDataPointShape()) || getDataPointShape()!=mask2.getDataPointShape())
     {
         ostringstream oss;
-        oss << "Error - shape mismatch in arguments to copyWithMask.\n";
-        oss << " data_shape  =" << DataTypes::shapeToString(self_shape);
-        oss << " other_shape =" << DataTypes::shapeToString(other_shape);
-        oss << " mask_shape  =" << DataTypes::shapeToString(mask_shape);
+        oss <<"Error - size mismatch in arguments to copyWithMask.";
+        oss << "\nself_shape=" << DataTypes::shapeToString(getDataPointShape());
+        oss << " other2_shape=" << DataTypes::shapeToString(other2.getDataPointShape());
+        oss << " mask2_shape=" << DataTypes::shapeToString(mask2.getDataPointShape());
         throw DataException(oss.str());
     }
+    size_t num_points=self.size();
 
-    // All other cases
-#pragma omp parallel for
-    for(i_type i = 0; i < num_points; ++i)
+    // OPENMP 3.0 allows unsigned loop vars.
+#if defined(_OPENMP) && (_OPENMP < 200805)
+    long i;
+#else
+    size_t i;
+#endif
+#pragma omp parallel for private(i) schedule(static)
+    for (i=0;i<num_points;++i)
+    {
         if (mvec[i]>0)
-            self[i] = ovec[i];
+        {
+            self[i]=ovec[i];
+        }
+    }
 }
 
 bool
@@ -4656,42 +4680,6 @@ Data::toString() const
     return m_data->toString();
 }
 
-std::string
-Data::toRepr() const
-{
-    int localNeedSummary=0;
-#ifdef ESYS_MPI
-    int globalNeedSummary=0;
-#endif
-    if (!m_data->isEmpty() &&
-        m_data->isExpanded() &&
-        !m_data->isLazy() && 
-        getLength() > escriptParams.getTooManyLines())
-    {
-        localNeedSummary=1;
-    }
-
-#ifdef ESYS_MPI
-    MPI_Allreduce( &localNeedSummary, &globalNeedSummary, 1, MPI_INT, MPI_MAX, get_MPIComm() );
-    localNeedSummary=globalNeedSummary;
-#endif
-
-    if (localNeedSummary){
-        if (isComplex())
-        {
-            stringstream temp;
-            temp << "Summary: Lsup="<< Lsup_const() << " data points=" << getNumDataPoints();
-            return  temp.str();
-        }
-        else
-        {
-            stringstream temp;
-            temp << "Summary: inf="<< inf_const() << " sup=" << sup_const() << " data points=" << getNumDataPoints();
-            return  temp.str();
-        }
-    }
-    return m_data->toString();
-}
 
 // This method is not thread-safe
 DataTypes::RealVectorType::reference
