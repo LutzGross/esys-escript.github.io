@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2020 by The University of Queensland
+* Copyright (c) 2003-2018 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -10,9 +10,8 @@
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
-* Development from 2014-2017 by Centre for Geoscience Computing (GeoComp)
-* Development from 2019 by School of Earth and Environmental Sciences
-**
+* Development from 2014 by Centre for Geoscience Computing (GeoComp)
+*
 *****************************************************************************/
 
 
@@ -266,6 +265,94 @@ void SparseMatrix_MatrixVector_CSR_OFFSET1(double alpha,
                         for (index_t icb=0; icb < A->col_block_size; icb++) {
                             const index_t icol=icb+A->col_block_size*(A->pattern->index[iptr]-1);
                             reg += A->val[iptr*A->block_size+irb+A->row_block_size*icb] * in[icol];
+                        }
+                        const index_t irow=irb+A->row_block_size*ir;
+                        out[irow] += alpha * reg;
+                    }
+                }
+            }
+        } // blocksizes
+    } // alpha > 0
+}
+
+/* complex CSR format with offset 1 */
+void SparseMatrix_MatrixVector_CSR_OFFSET1(double alpha,
+                                           const_SparseMatrix_ptr A,
+                                           const cplx_t* in,
+                                           double beta, cplx_t* out)
+{
+    const int totalRowSize = A->numRows * A->row_block_size;
+    if (std::abs(beta) > 0) {
+        if (beta != 1.) {
+#pragma omp parallel for schedule(static)
+            for (index_t irow=0; irow < totalRowSize; irow++) {
+                out[irow] *= beta;
+            }
+        }
+    } else {
+#pragma omp parallel for schedule(static)
+        for (index_t irow=0; irow < totalRowSize; irow++) {
+            out[irow] = cplx_t(0.,0.);
+        }
+    }
+
+    if (std::abs(alpha) > 0) {
+        const int nRows = A->pattern->numOutput;
+        if (A->col_block_size==1 && A->row_block_size==1) {
+#pragma omp parallel for schedule(static)
+            for (index_t irow=0; irow < nRows; irow++) {
+                cplx_t reg=cplx_t(0.,0.);
+                #pragma ivdep
+                for (index_t iptr=A->pattern->ptr[irow]-1;
+                        iptr < A->pattern->ptr[irow+1]-1; ++iptr) {
+                    reg += A->cval[iptr] * in[A->pattern->index[iptr]-1];
+                }
+                out[irow] += alpha * reg;
+            }
+        } else if (A->col_block_size==2 && A->row_block_size==2) {
+#pragma omp parallel for schedule(static)
+            for (index_t ir=0; ir < nRows; ir++) {
+                cplx_t reg1=cplx_t(0.,0.);
+                cplx_t reg2=cplx_t(0.,0.);
+                #pragma ivdep
+                for (index_t iptr=A->pattern->ptr[ir]-1;
+                        iptr < A->pattern->ptr[ir+1]-1; iptr++) {
+                    const index_t ic=2*(A->pattern->index[iptr]-1);
+                    reg1 += A->cval[iptr*4  ]*in[ic] + A->cval[iptr*4+2]*in[1+ic];
+                    reg2 += A->cval[iptr*4+1]*in[ic] + A->cval[iptr*4+3]*in[1+ic];
+                }
+                out[  2*ir] += alpha * reg1;
+                out[1+2*ir] += alpha * reg2;
+            }
+        } else if (A->col_block_size==3 && A->row_block_size==3) {
+#pragma omp parallel for  schedule(static)
+            for (index_t ir=0; ir < nRows; ir++) {
+                cplx_t reg1=cplx_t(0.,0.);
+                cplx_t reg2=cplx_t(0.,0.);
+                cplx_t reg3=cplx_t(0.,0.);
+                #pragma ivdep
+                for (index_t iptr=A->pattern->ptr[ir]-1;
+                        iptr < A->pattern->ptr[ir+1]-1; iptr++) {
+                    const index_t ic=3*(A->pattern->index[iptr]-1);
+                    reg1 += A->cval[iptr*9  ]*in[ic] + A->cval[iptr*9+3]*in[1+ic] + A->cval[iptr*9+6]*in[2+ic];
+                    reg2 += A->cval[iptr*9+1]*in[ic] + A->cval[iptr*9+4]*in[1+ic] + A->cval[iptr*9+7]*in[2+ic];
+                    reg3 += A->cval[iptr*9+2]*in[ic] + A->cval[iptr*9+5]*in[1+ic] + A->cval[iptr*9+8]*in[2+ic];
+                }
+                out[  3*ir] += alpha * reg1;
+                out[1+3*ir] += alpha * reg2;
+                out[2+3*ir] += alpha * reg3;
+            }
+        } else {
+#pragma omp parallel for schedule(static)
+            for (index_t ir=0; ir < nRows; ir++) {
+                for (index_t iptr=A->pattern->ptr[ir]-1;
+                        iptr < A->pattern->ptr[ir+1]-1; iptr++) {
+                    for (index_t irb=0; irb < A->row_block_size; irb++) {
+                        cplx_t reg=cplx_t(0.,0.);
+                        #pragma ivdep
+                        for (index_t icb=0; icb < A->col_block_size; icb++) {
+                            const index_t icol=icb+A->col_block_size*(A->pattern->index[iptr]-1);
+                            reg += A->cval[iptr*A->block_size+irb+A->row_block_size*icb] * in[icol];
                         }
                         const index_t irow=irb+A->row_block_size*ir;
                         out[irow] += alpha * reg;

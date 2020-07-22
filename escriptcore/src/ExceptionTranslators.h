@@ -18,6 +18,7 @@
 #ifndef __ESCRIPT_EXCEPTIONTRANSLATORS_H__
 #define __ESCRIPT_EXCEPTIONTRANSLATORS_H__
 
+#include "system_dep.h"
 #include "DataTypes.h"
 #include "EsysException.h"
 
@@ -35,30 +36,35 @@ namespace escript {
      \brief
      Function which translates an EsysException into a python AssertionError
   */
+  ESCRIPT_DLL_API
   void AssertionErrorTranslator(const EsysException& e);
 
   /**
      \brief
      Function which translates an EsysException into a python IOError
   */
+  ESCRIPT_DLL_API
   void IOErrorTranslator(const EsysException& e);
 
   /**
      \brief
      Function which translates an EsysException into a python NotImplementedError
   */
+  ESCRIPT_DLL_API
   void NotImplementedErrorTranslator(const EsysException& e);
 
   /**
      \brief
      Function which translates an EsysException into a python RuntimeError
   */
+  ESCRIPT_DLL_API
   void RuntimeErrorTranslator(const EsysException& e);
 
   /**
      \brief
      Function which translates an EsysException into a python ValueError
   */
+  ESCRIPT_DLL_API
   void ValueErrorTranslator(const EsysException& e);
 
 } // end of namespace

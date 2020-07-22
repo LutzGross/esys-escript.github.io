@@ -79,6 +79,7 @@ private:
 };
 
 
+ESCRIPT_DLL_API
 Reducer_ptr makeScalarReducer(std::string type);
 
 }

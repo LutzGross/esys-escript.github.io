@@ -18,9 +18,14 @@
 #ifndef __ESCRIPT_NCHELPER_H__
 #define __ESCRIPT_NCHELPER_H__
 
+#include "system_dep.h"
+
 namespace escript
 {
+#ifndef _WIN32
 #include <string>
+#endif
+ESCRIPT_DLL_API
 char NcFType(const std::string& name);
 }
 
@@ -28,6 +33,7 @@ char NcFType(const std::string& name);
 #include <ncFile.h>
 namespace escript
 {
+ESCRIPT_DLL_API
 bool openNcFile(netCDF::NcFile& f, const std::string& name);
 }
 #endif

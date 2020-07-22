@@ -45,7 +45,7 @@ typedef boost::shared_ptr<const SystemMatrix> const_SystemMatrix_ptr;
 typedef int SystemMatrixType;
 
 /// this class holds a (distributed) stiffness matrix
-class SystemMatrix : public escript::AbstractSystemMatrix
+class PASO_DLL_API SystemMatrix : public escript::AbstractSystemMatrix
 {
 public:
     /// default constructor - throws exception.
@@ -296,6 +296,9 @@ public:
     void MatrixVector(double alpha, const double* in, double beta,
                       double* out) const;
 
+    void MatrixVector(double alpha, const cplx_t* in, double beta,
+                      cplx_t* out) const;
+
     void MatrixVector_CSR_OFFSET0(double alpha, const double* in, double beta,
                                   double* out) const;
 
@@ -358,6 +361,8 @@ private:
     virtual void ypAx(escript::Data& y, escript::Data& x) const;
 
     void solve(double* out, double* in, Options* options) const;
+
+    void solve(cplx_t* out, cplx_t* in, Options* options) const;
 };
 
 

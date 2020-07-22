@@ -28,6 +28,13 @@ from SCons.Defaults import Chmod, Copy
 from grouptest import *
 from extractdebbuild import *
 
+IS_WINDOWS = (os.name == 'nt')
+
+if IS_WINDOWS:
+    env1, env2 = '%', '%'
+else:
+    env1, env2 = '${', '}'
+
 def findLibWithHeader(env, libs, header, paths, lang='c++', try_link=True):
     from SCons.Script.SConscript import Configure
     inc_path=''
@@ -95,9 +102,9 @@ def write_buildvars(env):
     buildvars.close()
 
 def write_launcher(env):
-    reps={'%n':'${ESCRIPT_NUM_NODES}', '%p':'${ESCRIPT_NUM_PROCS}',
-          '%N':'${TOTPROC}', '%t':'${ESCRIPT_NUM_THREADS}', '%f':'${HOSTFILE}',
-          '%h':'${HOSTLIST}', '%e':'${EXPORT_ENV}', '%b':'${EXEC_CMD}'}
+    reps={'%n':env1+'ESCRIPT_NUM_NODES'+env2, '%p':env1+'ESCRIPT_NUM_PROCS'+env2,
+          '%N':env1+'TOTPROC'+env2, '%t':env1+'ESCRIPT_NUM_THREADS'+env2, '%f':env1+'HOSTFILE'+env2,
+          '%h':env1+'HOSTLIST'+env2, '%e':env1+'EXPORT_ENV'+env2, '%b':env1+'EXEC_CMD'+env2}
     pre=env['prelaunch']
     cmd=env['launcher']
     post=env['postlaunch']
@@ -118,49 +125,65 @@ def write_launcher(env):
             post = post.replace(k, v)
     try:
         launchscript = os.path.join(env['bininstall'], 'run-escript')
-        launcher=open(launchscript, 'w')
+        if IS_WINDOWS:
+            launcher=open(launchscript+'.py', 'w')
+        else:
+            launcher=open(launchscript, 'w')
         if not env['stdlocationisprefix']:
             usestdlocation='0'
             stdlocation='/usr/lib/python-escript'
         else:
             usestdlocation='1'
             stdlocation=env['prefix']     
-        for line in open('run-escript.in','r').readlines():
-            s=line.replace('@@PRELAUNCH', pre).replace('@@LAUNCH', cmd).replace('@@POSTLAUNCH', post)
-            s=s.replace('@@STDLOCATION', usestdlocation).replace('@@ESROOT',stdlocation)
-            launcher.write(s)
+        if IS_WINDOWS:
+            with open('run-escript-py.in','r') as f:
+                launcher.write(f.read() % {'PRELAUNCH': pre, 'LAUNCH': cmd, 'POSTLAUNCH': post,
+                    'STDLOCATION': usestdlocation, 'ESROOT': stdlocation})
+        else:
+            for line in open('run-escript.in','r').readlines():
+                s=line.replace('@@PRELAUNCH', pre).replace('@@LAUNCH', cmd).replace('@@POSTLAUNCH', post)
+                s=s.replace('@@STDLOCATION', usestdlocation).replace('@@ESROOT',stdlocation)
+                launcher.write(s)
         launcher.close()
-        env.Execute(Chmod(launchscript, 0o755))
+        if IS_WINDOWS:
+            with open(launchscript+'.cmd', 'w') as cmdfile:
+                cmdfile.write('python '+launchscript+'.py %*')
+        else:
+            env.Execute(Chmod(launchscript, 0o755))
     except IOError:
         env['warnings'].append("Error attempting to write launcher script.")
 
 def generateTestScripts(env, TestGroups):
     try:
-        utest=open('utest.sh','w')
+        if IS_WINDOWS:
+            script_name, env1, env2 = 'test.py', '%', '%'
+        else:
+            script_name, env1, env2 = 'test.sh', '$', ''
+        utest=open('u'+script_name,'w')
         utest.write(GroupTest.makeHeader(env['PLATFORM'], env['prefix'], False))
         for tests in TestGroups:
             utest.write(tests.makeString())
         utest.write(tests.makeFooter())
         utest.close()
-        env.Execute(Chmod('utest.sh', 0o755))
-        print("Generated utest.sh.")
+        env.Execute(Chmod('u'+script_name, 0o755))
+        print('Generated u'+script_name+'.')
         # This version contains only python tests - I want this to be usable
         # from a binary only install if you have the test files
-        utest=open('itest.sh','w')
+        utest=open('i'+script_name,'w')
         utest.write(GroupTest.makeHeader(env['PLATFORM'], env['prefix'], True))
         for tests in TestGroups:
-          if tests.exec_cmd=='$PYTHONRUNNER ':
+          if tests.exec_cmd==env1+'PYTHONRUNNER'+env2+' ':
             utest.write(tests.makeString())
         utest.write(tests.makeFooter())
         utest.close()
-        env.Execute(Chmod('itest.sh', 0o755))
-        print("Generated itest.sh.")        
+        env.Execute(Chmod('i'+script_name, 0o755))
+        print('Generated i'+script_name+'.')
     except IOError:
         env['warnings'].append("Error attempting to write unit test script(s).")
 
     # delete scripts upon cleanup
-    env.Clean('target_init', 'utest.sh')
-    env.Clean('target_init', 'itest.sh')
+    env.Clean('target_init', 'u'+script_name)
+    env.Clean('target_init', 'i'+script_name)
 
 # Code to build .pyc from .py
 def build_py(target, source, env):

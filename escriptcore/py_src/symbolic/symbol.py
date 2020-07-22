@@ -38,9 +38,9 @@ import numpy
 from esys.escriptcore.escriptcpp import Data, FunctionSpace
 if HAVE_SYMBOLS:
     import sympy
-
+    
 __all__= ['Symbol']
-
+   
 class Symbol(object):
     """
     `Symbol` objects are placeholders for a single mathematical symbol, such as
@@ -166,7 +166,7 @@ class Symbol(object):
         if self.getShape()!=other.getShape():
             return False
         return (self._arr==other._arr).all()
-
+        
     def __hash__(self):
         return id(self)
 
@@ -350,7 +350,7 @@ class Symbol(object):
         checked component by component.
 
         Example::
-
+        
             x=Symbol('x', (2,2))
             y=3*x
             print y.coeff(x)
@@ -413,7 +413,7 @@ class Symbol(object):
             result=Symbol(result, dim=self._dim, subs=subs)
         elif isinstance(old, Symbol) and old.getRank()>0:
             if isinstance(new, Symbol):
-                dataSubs=new.getDataSubstitutions()
+                dataSubs=new.getDataSubstitutions()    
             if hasattr(new, '__array__'):
                 new=new.__array__()
             else:
@@ -429,7 +429,7 @@ class Symbol(object):
             result=Symbol(result, dim=self._dim, subs=self._subs)
         else: # scalar
             if isinstance(new, Symbol):
-                dataSubs=new.getDataSubstitutions()
+                dataSubs=new.getDataSubstitutions()    
                 new=new.item()
             if isinstance(old, Symbol):
                 old=old.item()
@@ -701,7 +701,7 @@ class Symbol(object):
         Applies the sympy.simplify operation on all elements in this symbol
         """
         return self.applyfunc(sympy.simplify, sympy.Basic)
-
+    
     def evalf(self):
         """
         Applies the sympy.evalf operation on all elements in this symbol
@@ -779,12 +779,12 @@ class Symbol(object):
 
     def __truediv__(self, other):
         return self.__binaryop('__truediv__', other)
-
+            
     def __rdiv__(self, other):
         return self.__binaryop('__rdiv__', other)
-
+    
     def __rtruediv__(self, other):
-        return self.__binaryop('__rtruediv__', other)
+        return self.__binaryop('__rtruediv__', other)     
     def __pow__(self, other):
         return self.__binaryop('__pow__', other)
 
@@ -846,3 +846,4 @@ class Symbol(object):
                     yield s
             else:
                 yield s
+

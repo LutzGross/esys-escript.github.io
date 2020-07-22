@@ -22,7 +22,9 @@
 
 #include <cstring>
 #include <fstream>
-#include <unistd.h>
+#ifndef _WIN32
+# include <unistd.h>
+#endif // _WIN32
 
 #include <boost/python.hpp>
 #include <boost/scoped_array.hpp>

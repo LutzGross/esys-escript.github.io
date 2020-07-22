@@ -30,7 +30,10 @@ REQUIRED_OPTS_VERSION=203
 # MS Windows support, many thanks to PH
 IS_WINDOWS = (os.name == 'nt')
 
-IS_OSX = (os.uname()[0] == 'Darwin')
+if IS_WINDOWS:
+    IS_OSX = False
+else:
+    IS_OSX = (os.uname()[0] == 'Darwin')
 
 ########################## Determine options file ############################
 # 1. command line
@@ -108,6 +111,10 @@ vars.AddVariables(
   BoolVariable('umfpack', 'Enable UMFPACK', False),
   ('umfpack_prefix', 'Prefix/Paths to UMFPACK installation', default_prefix),
   ('umfpack_libs', 'UMFPACK libraries to link with', ['umfpack']),
+  BoolVariable('mumps', 'Enable MUMPS', False),
+  ('mumps_prefix', 'Prefix/Paths to MUMPS installation', default_prefix),
+  ('mumps_libs', 'MUMPS libraries to link with', ['mumps_common','pord','dmumps','zmumps',
+    'mpiseq','lapack','metis','scotch','esmumps','gfortran']),
   TristateVariable('lapack', 'Enable LAPACK', 'auto'),
   ('lapack_prefix', 'Prefix/Paths to LAPACK installation', default_prefix),
   ('lapack_libs', 'LAPACK libraries to link with', []),
@@ -468,7 +475,8 @@ except KeyError:
 
 # Takes care of prefix and suffix for Python modules:
 def build_python_module(env, target, source):
-    return env.SharedLibrary(target, source, SHLIBPREFIX='', SHLIBSUFFIX='.so')
+    sl_suffix = '.pyd' if IS_WINDOWS else '.so'
+    return env.SharedLibrary(target, source, SHLIBPREFIX='', SHLIBSUFFIX=sl_suffix)
 env.AddMethod(build_python_module, "PythonModule")
 
 if env['pythoncmd']=='python':
@@ -509,7 +517,7 @@ env=checkCppUnit(env)
 ######## optional python modules (sympy, pyproj)
 env=checkOptionalModules(env)
 
-######## optional dependencies (netCDF, MKL, UMFPACK, Lapack, Silo, ...)
+######## optional dependencies (netCDF, MKL, UMFPACK, MUMPS, Lapack, Silo, ...)
 env=checkOptionalLibraries(env)
 
 ######## PDFLaTeX (for documentation)
@@ -705,8 +713,7 @@ env.Alias('release_prep_old', ['basedocs', 'api_epydoc', 'install'])
 # generate the testscripts without doing a full build
 env.Alias('testscripts',[])
 
-if not IS_WINDOWS:
-    generateTestScripts(env, TestGroups)
+generateTestScripts(env, TestGroups)
 
 ######################## Populate the buildvars file #########################
 
@@ -783,6 +790,8 @@ def print_summary():
             direct.append('mkl')
         if env['umfpack']:
             direct.append('umfpack')
+        if env['mumps']:
+            direct.append('mumps')
     else:
         d_list.append('paso')
     if env['trilinos']:
@@ -805,7 +814,7 @@ def print_summary():
         print("          netcdf:  NO")
     e_list=[]
     for i in ('weipa','debug','openmp','cppunit','gdal','mkl',
-             'pyproj','scipy','silo','sympy','umfpack','visit'):
+             'mumps','pyproj','scipy','silo','sympy','umfpack','visit'):
         if env[i]: e_list.append(i)
         else: d_list.append(i)
 

@@ -28,14 +28,22 @@
 #define escript_system_dep_h
 
 #define ESCRIPT_DLL_API
+#define ESCRIPT_INLINE_DLL_API
 
 #ifdef _WIN32
 # undef ESCRIPT_DLL_API
+# undef ESCRIPT_INLINE_DLL_API
 # ifdef ESCRIPT_EXPORTS
 #   define ESCRIPT_DLL_API __declspec(dllexport)
+#   define ESCRIPT_INLINE_DLL_API __declspec(dllexport)
+/* TODO: fix boost numpy
+#   define BOOST_PYTHON_STATIC_LIB
+#   define BOOST_NUMPY_STATIC_LIB */
 # else
 #   define ESCRIPT_DLL_API __declspec(dllimport)
+#   define ESCRIPT_INLINE_DLL_API
 # endif
+
 #endif
 
 #endif

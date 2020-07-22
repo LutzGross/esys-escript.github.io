@@ -14,6 +14,10 @@
 **
 *****************************************************************************/
 
+#ifdef _WIN32
+#include "Random.h"
+#endif
+
 #include <escript/EsysMPI.h>
 
 #include <algorithm>
@@ -109,7 +113,12 @@ void randomFillArray(long seed, double* array, size_t n)
     
 #pragma omp parallel
     {
-        size_t i;
+#ifdef _WIN32 // error C3016: 'i': index variable in OpenMP 'for' statement must have signed integral type
+#define OMP_LOOP_IDX_T int
+#else
+#define OMP_LOOP_IDX_T size_t
+#endif
+        OMP_LOOP_IDX_T i;
 #ifdef _OPENMP
         int tnum=omp_get_thread_num();
 #else

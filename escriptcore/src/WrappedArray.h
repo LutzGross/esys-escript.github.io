@@ -29,7 +29,7 @@
 namespace escript
 {
 
-class WrappedArray
+class ESCRIPT_DLL_API WrappedArray
 {
 public:
 	WrappedArray(const boost::python::object& obj_in);

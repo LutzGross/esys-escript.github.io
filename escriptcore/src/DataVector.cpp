@@ -208,8 +208,8 @@ namespace escript {
    {
       using namespace std;
       
-      // ESYS_ASSERT(data != 0, "Error - data is null");
-      // ESYS_ASSERT(data.size() > 0,"Error - Data object is empty.");
+      ESYS_ASSERT(data != 0, "Error - data is null");
+      ESYS_ASSERT(data.size() > 0,"Error - Data object is empty.");
 
       switch (getRank(shape)) {
       case 0:
@@ -263,8 +263,8 @@ namespace escript {
       using namespace std;
 
       
-      // ESYS_ASSERT(data != 0, "Error - data is null");
-      // ESYS_ASSERT(data.size() > 0,"Error - Data object is empty.");
+      ESYS_ASSERT(data != 0, "Error - data is null");
+      ESYS_ASSERT(data.size() > 0,"Error - Data object is empty.");
 
       switch (getRank(shape)) {
       case 0:
@@ -316,8 +316,8 @@ namespace escript {
    {
       using namespace std;
 
-      // ESYS_ASSERT(data != 0, "Error - data is null");
-      // ESYS_ASSERT(data.size() > 0,"Error - Data object is empty.");
+      ESYS_ASSERT(data != 0, "Error - data is null");
+      ESYS_ASSERT(data.size() > 0,"Error - Data object is empty.");
 
       switch (getRank(shape)) {
       case 0:
@@ -370,8 +370,8 @@ namespace escript {
       
       using namespace std;
       
-      // ESYS_ASSERT(data != 0, "Error - data is null");
-      // ESYS_ASSERT(data.size() > 0,"Error - Data object is empty.");
+      ESYS_ASSERT(data != 0, "Error - data is null");
+      ESYS_ASSERT(data.size() > 0,"Error - Data object is empty.");
 
       switch (getRank(shape)) {
       case 0:
@@ -589,8 +589,13 @@ namespace escript {
 	   c.resize(r.size(), 0, 1);
        }
        size_t limit=r.size();
+#ifdef _WIN32 // error C3016: 'i': index variable in OpenMP 'for' statement must have signed integral type
+#define OMP_LOOP_IDX_T int
+#else
+#define OMP_LOOP_IDX_T size_t
+#endif
        #pragma omp parallel for schedule(static)
-       for (size_t i=0;i<limit;++i)
+       for (OMP_LOOP_IDX_T i=0;i<limit;++i)
        {
 	   c[i]=r[i];
        }

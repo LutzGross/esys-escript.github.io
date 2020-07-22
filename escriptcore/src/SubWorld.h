@@ -45,7 +45,7 @@ namespace escript
  *   world 2:  v+=1   --- local v=1+9
  * What is the value of v? 20, not 11
 */
-class SubWorld : public REFCOUNT_BASE_CLASS(SubWorld)
+class ESCRIPT_DLL_API SubWorld : public REFCOUNT_BASE_CLASS(SubWorld)
 {
 public:
     SubWorld(JMPI& globalcom, JMPI& comm, JMPI& corr,

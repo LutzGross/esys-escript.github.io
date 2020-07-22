@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2020 by The University of Queensland
+* Copyright (c) 2003-2018 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -10,9 +10,8 @@
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
-* Development from 2014-2017 by Centre for Geoscience Computing (GeoComp)
-* Development from 2019 by School of Earth and Environmental Sciences
-**
+* Development from 2014 by Centre for Geoscience Computing (GeoComp)
+*
 *****************************************************************************/
 
 #include "Paso.h"
@@ -184,6 +183,8 @@ const char* Options::name(int key)
             return "MKL";
        case PASO_UMFPACK:
             return "UMFPACK";
+       case PASO_MUMPS:
+            return "MUMPS";
        case PASO_ITERATIVE:
             return "ITERATIVE";
        case PASO_PASO:
@@ -302,6 +303,9 @@ int Options::getSolver(int solver, int pack, bool symmetry,
     // UMFPACK //
     } else if (pack==PASO_UMFPACK) {
         out=PASO_DIRECT;
+    // MUMPS //
+    } else if (pack==PASO_MUMPS) {
+        out=PASO_DIRECT;
     } else {
         throw PasoException("Options::getSolver: Unidentified package.");
     }
@@ -322,12 +326,16 @@ int Options::getPackage(int solver, int pack, bool symmetry,
                     out = PASO_MKL;
 #elif defined ESYS_HAVE_UMFPACK
                     out = PASO_UMFPACK;
+#elif defined ESYS_HAVE_MUMPS
+                    out = PASO_MUMPS;
 #endif
                 } else{
 #ifdef ESYS_HAVE_MKL
                     throw PasoException("MKL does not currently support MPI");
 #elif defined ESYS_HAVE_UMFPACK
                     throw PasoException("UMFPACK does not currently support MPI");
+#elif defined ESYS_HAVE_MUMPS
+                    throw PasoException("MUMPS does not currently support MPI");
 #endif
                 }
             }
@@ -338,6 +346,7 @@ int Options::getPackage(int solver, int pack, bool symmetry,
 
         case PASO_MKL:
         case PASO_UMFPACK:
+        case PASO_MUMPS:
         case PASO_TRILINOS:
             out = pack;
             break;
@@ -362,6 +371,8 @@ int Options::mapEscriptOption(int escriptOption)
             return PASO_TRILINOS;
         case escript::SO_PACKAGE_UMFPACK:
             return PASO_UMFPACK;
+        case escript::SO_PACKAGE_MUMPS:
+            return PASO_MUMPS;
 
         case escript::SO_METHOD_BICGSTAB:
             return PASO_BICGSTAB;
