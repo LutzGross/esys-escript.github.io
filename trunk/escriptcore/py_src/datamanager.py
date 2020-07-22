@@ -342,3 +342,4 @@ class DataManager(object):
             shutil.rmtree(path, True)
             #print("Removed restart directory %s."%path)
         esc.MPIBarrierWorld()
+

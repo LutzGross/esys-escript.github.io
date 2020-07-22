@@ -336,7 +336,7 @@ Note that vector in this context refers to a data vector storing datapoints not 
      \param evOffset - starting location for storing the output matrix in vector ev
      \param axis_offset
   */
-  ESCRIPT_DLL_API
+  // ESCRIPT_DLL_API can only export template specialisation!
   template <class VEC>
   inline
   void
@@ -481,7 +481,7 @@ Note that vector in this context refers to a data vector storing datapoints not 
      \param axis0 - axis index
      \param axis1 - axis index
   */
-  ESCRIPT_DLL_API
+  // ESCRIPT_DLL_API can only export template specialisation!
   template <class VEC>
   inline
   void

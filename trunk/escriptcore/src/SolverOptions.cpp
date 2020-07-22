@@ -128,6 +128,7 @@ const char* SolverBuddy::getName(int key) const
         case SO_TARGET_GPU: return "GPU";
 
         case SO_PACKAGE_MKL: return "MKL";
+        case SO_PACKAGE_MUMPS: return "MUMPS";
         case SO_PACKAGE_PASO: return "PASO";
         case SO_PACKAGE_TRILINOS: return "TRILINOS";
         case SO_PACKAGE_UMFPACK: return "UMFPACK";
@@ -388,25 +389,8 @@ void SolverBuddy::setSolverMethod(int method)
         case SO_METHOD_TFQMR:
             this->method = meth;
             break;
-//         case SO_METHOD_DIRECT:
-//         case SO_METHOD_DIRECT_MUMPS:
-//         case SO_METHOD_DIRECT_PARDISO:
-//         case SO_METHOD_DIRECT_SUPERLU:
-//         case SO_METHOD_DIRECT_TRILINOS:
-// #if defined(ESYS_HAVE_UMFPACK) || defined(ESYS_HAVE_TRILINOS) || defined(ESYS_HAVE_MKL)
-// #ifndef ESYS_HAVE_TRILINOS
-//             // translate specific direct solver setting to generic one for PASO
-//             this->method = SO_METHOD_DIRECT;
-// #else
-//             this->method = meth;
-// #endif
-//             break;
-// #else
-//             throw ValueError("Cannot use DIRECT solver method, the running "
-//                     "escript was not compiled with a direct solver enabled");
-// #endif
         case SO_METHOD_DIRECT:
-#if defined(ESYS_HAVE_UMFPACK) || defined(ESYS_HAVE_TRILINOS) || defined(ESYS_HAVE_MKL)
+#if defined(ESYS_HAVE_UMFPACK) || defined(ESYS_HAVE_TRILINOS) || defined(ESYS_HAVE_MKL) || defined(ESYS_HAVE_MUMPS)
 #ifdef ESYS_HAVE_TRILINOS
             // translate specific direct solver setting to generic one for PASO
             this->method = meth;
@@ -423,16 +407,13 @@ void SolverBuddy::setSolverMethod(int method)
             this->method = meth;
             break;
 #else
-            throw ValueError("aa escript was not compiled with Trilinos");
+            throw ValueError("escript was not compiled with Trilinos");
 #endif
         case SO_METHOD_DIRECT_MUMPS:
-#ifdef ESYS_HAVE_TRILINOS
-            if(Amesos2::query("MUMPS"))
-                this->method = meth;
-            else
-                throw ValueError("Trilinos was not compiled with MUMPS support");
+#ifdef ESYS_HAVE_MUMPS
+            this->method=meth;
 #else
-            throw ValueError("escript was not compiled with Trilinos");
+            throw ValueError("escript was not compiled with MUMPS");
 #endif
         case SO_METHOD_DIRECT_PARDISO:
 #ifdef ESYS_HAVE_TRILINOS
@@ -510,6 +491,15 @@ void SolverBuddy::setPackage(int package)
         case SO_PACKAGE_UMFPACK:
 #ifdef ESYS_HAVE_UMFPACK
             this->package = SO_PACKAGE_UMFPACK;
+            setSolverMethod(getSolverMethod());
+            break;
+#else
+            throw ValueError("escript was not compiled with UMFPACK enabled");
+#endif
+        // Set to MUMPS iff escript was compiled with Umfpack
+        case SO_PACKAGE_MUMPS:
+#ifdef ESYS_HAVE_MUMPS
+            this->package = SO_PACKAGE_MUMPS;
             setSolverMethod(getSolverMethod());
             break;
 #else

@@ -2114,12 +2114,8 @@ Data::tanh() const
 Data
 Data::erf() const
 {
-#if defined (_WIN32) && !defined(__INTEL_COMPILER)
-    throw DataException("Error - Data:: erf function is not supported on _WIN32 platforms.");
-#else
     MAKELAZYOP(ERF);
     return C_TensorUnaryOperation(*this, escript::ES_optype::ERF);
-#endif
 }
 
 Data

@@ -29,11 +29,11 @@
 
 namespace paso {
 
-class TransportProblem;
+class PASO_DLL_API TransportProblem;
 typedef boost::shared_ptr<TransportProblem> TransportProblem_ptr;
 typedef boost::shared_ptr<const TransportProblem> const_TransportProblem_ptr;
 
-class TransportProblem : public escript::AbstractTransportProblem,
+class PASO_DLL_API TransportProblem : public escript::AbstractTransportProblem,
                          public boost::enable_shared_from_this<TransportProblem>
 {
 public:

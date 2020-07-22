@@ -26,7 +26,7 @@ namespace bp = boost::python;
 
 namespace escript {
 
-EscriptParams escriptParams; // externed in header file
+ESCRIPT_DLL_API EscriptParams escriptParams; // externed in header file
 
 
 EscriptParams::EscriptParams()
@@ -95,6 +95,9 @@ EscriptParams::EscriptParams()
 #endif
 #ifdef ESYS_HAVE_UMFPACK
     features.insert("umfpack");
+#endif
+#ifdef ESYS_HAVE_MUMPS
+    features.insert("mumps");
 #endif
 #ifdef ESYS_HAVE_WEIPA
     features.insert("weipa");
@@ -178,7 +181,7 @@ bool EscriptParams::hasFeature(const std::string& name) const
         if (MPI_Comm_size(MPI_COMM_WORLD, &size) != MPI_SUCCESS || size > 1)
             return false;
 #endif
-        return hasFeature("paso") && (hasFeature("umfpack") || hasFeature("mkl"));
+        return hasFeature("paso") && (hasFeature("umfpack") || hasFeature("mkl") || hasFeature("mumps"));
     }
 
     return features.count(name) > 0;

@@ -43,8 +43,7 @@ template<typename Scalar> struct Coupler;
 template<typename T> using Coupler_ptr = boost::shared_ptr<Coupler<T> >;
 template<typename T> using const_Coupler_ptr = boost::shared_ptr<const Coupler<T> >;
 
-PASO_DLL_API
-struct Connector
+struct PASO_DLL_API Connector
 {
     SharedComponents_ptr send;
     SharedComponents_ptr recv;
@@ -97,7 +96,7 @@ struct Connector
 
 
 template<typename Scalar>
-struct Coupler
+struct PASO_DLL_API Coupler
 {
     Coupler(const_Connector_ptr, dim_t blockSize, escript::JMPI mpiInfo);
     ~Coupler();

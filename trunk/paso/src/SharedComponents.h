@@ -37,8 +37,7 @@ struct SharedComponents;
 typedef boost::shared_ptr<SharedComponents> SharedComponents_ptr;
 typedef boost::shared_ptr<const SharedComponents> const_SharedComponents_ptr;
 
-PASO_DLL_API
-struct SharedComponents
+struct PASO_DLL_API SharedComponents
 {
     SharedComponents(dim_t localLength, const std::vector<int>& neighbours,
                      const index_t* sharedArray,

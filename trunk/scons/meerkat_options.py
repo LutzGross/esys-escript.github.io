@@ -26,18 +26,24 @@ import os
 
 # domains=['finley']
 
+mumps = True
+# umfpack = True
+
+
+mumps_libs=['cmumps_seq','dmumps_seq','mumps_common_seq','smumps_seq','zmumps_seq']
+
 # d_mpi_path = '/usr/include/openmpi'
 # mpi_prefix = os.path.split(os.path.realpath(d_mpi_path))[0]
 mpi_prefix=['/usr/lib/x86_64-linux-gnu/openmpi/include/','/usr/lib/x86_64-linux-gnu/']
 mpi_libs = ['mpi_cxx', 'mpi']
 netcdf = 4
-umfpack = True
 umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
 umfpack_libs = ['umfpack', 'blas', 'amd']
+lapack = 0
 lapack_prefix = ['/usr/include/x86_64-linux-gnu', '/usr/lib/x86_64-linux-gnu']
 silo = True
 silo_libs = ['siloh5']
-trilinos = True
+# trilinos = True
 trilinos_prefix = "/usr/local/trilinos_nompi"
 dudley_assemble_flags = '-funroll-loops'
 pythoncmd="/usr/bin/python3"

@@ -72,6 +72,7 @@ private:
     boost::python::object identity;
 };
 
+ESCRIPT_DLL_API
 Reducer_ptr makeNonReducedVariable();
 
 } // namespace escript

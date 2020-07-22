@@ -41,8 +41,7 @@ struct SystemMatrixPattern;
 typedef boost::shared_ptr<SystemMatrixPattern> SystemMatrixPattern_ptr;
 typedef boost::shared_ptr<const SystemMatrixPattern> const_SystemMatrixPattern_ptr;
 
-PASO_DLL_API
-struct SystemMatrixPattern : boost::enable_shared_from_this<SystemMatrixPattern>
+struct PASO_DLL_API SystemMatrixPattern : boost::enable_shared_from_this<SystemMatrixPattern>
 {
     // constructor
     SystemMatrixPattern(int type, escript::Distribution_ptr output_distribution,

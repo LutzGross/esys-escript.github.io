@@ -18,6 +18,8 @@
 #ifndef __ESCRIPT_ESOPTYPE_H__
 #define __ESCRIPT_ESOPTYPE_H__
 
+#include "system_dep.h"
+
 #include <string>
 
 namespace escript
@@ -83,6 +85,7 @@ enum ES_optype
 	PROM=PHS+1         // promote real to complex
 };
 
+ESCRIPT_DLL_API
 const std::string&
 opToString(ES_optype op);
 

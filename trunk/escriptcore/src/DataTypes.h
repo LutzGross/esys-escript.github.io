@@ -20,6 +20,7 @@
 
 #include <boost/python/object_fwd.hpp>
 
+#include "system_dep.h"
 #include "Assert.h"
 
 #include <complex>
@@ -104,6 +105,7 @@ namespace DataTypes {
      \brief
      Calculate the number of values in a datapoint with the given shape.
   */
+  ESCRIPT_DLL_API
   int
   noValues(const DataTypes::ShapeType& shape);
 
@@ -111,6 +113,7 @@ namespace DataTypes {
      \brief
      Calculate the number of values for the given region.
   */
+  ESCRIPT_DLL_API
   int
   noValues(const DataTypes::RegionLoopRangeType& region);
 
@@ -120,6 +123,7 @@ namespace DataTypes {
 
      \param shape - Input.
   */
+  ESCRIPT_DLL_API
   std::string
   shapeToString(const DataTypes::ShapeType& shape);
 
@@ -129,6 +133,7 @@ namespace DataTypes {
 
      \param region - Input - Slice region
   */
+  ESCRIPT_DLL_API
   DataTypes::ShapeType
   getResultSliceShape(const DataTypes::RegionType& region);
 
@@ -205,6 +210,7 @@ namespace DataTypes {
    the slice region is of size 1. So in the above example, we modify the above
    region like so: <<1,2><0,3><0,3>> and take this slice.
   */
+  ESCRIPT_DLL_API
   DataTypes::RegionLoopRangeType
   getSliceRegionLoopRange(const DataTypes::RegionType& region);
 
@@ -314,6 +320,7 @@ namespace DataTypes {
    \param other - displayed in the message as "Other shape"
    \param thisShape - displayed in the message as "This shape"
   */
+   ESCRIPT_DLL_API
    std::string
    createShapeErrorMessage(const std::string& messagePrefix,
                                           const DataTypes::ShapeType& other,

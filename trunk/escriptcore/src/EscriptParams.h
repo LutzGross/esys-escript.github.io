@@ -18,6 +18,8 @@
 #ifndef __ESCRIPT_PARAMS_H__
 #define __ESCRIPT_PARAMS_H__
 
+#include "system_dep.h"
+
 #include <boost/python/list.hpp>
 
 #include <string>
@@ -26,7 +28,7 @@
 namespace escript
 {
 
-class EscriptParams
+class ESCRIPT_DLL_API EscriptParams
 {
     typedef std::unordered_set<std::string> FeatureSet;
 
@@ -60,7 +62,7 @@ private:
 };
 
 
-extern EscriptParams escriptParams;
+ESCRIPT_DLL_API extern EscriptParams escriptParams;
 
 /**
     \brief Set the value of a named parameter.
@@ -93,6 +95,7 @@ inline boost::python::list listEscriptParams()
     \brief returns true if escript was compiled with the feature `name`,
            false otherwise.
 */
+ESCRIPT_DLL_API
 inline bool hasFeature(const std::string& name)
 {
     return escriptParams.hasFeature(name);

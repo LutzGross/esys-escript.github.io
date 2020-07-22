@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2020 by The University of Queensland
+* Copyright (c) 2003-2018 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -10,9 +10,8 @@
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
-* Development from 2014-2017 by Centre for Geoscience Computing (GeoComp)
-* Development from 2019 by School of Earth and Environmental Sciences
-**
+* Development from 2014 by Centre for Geoscience Computing (GeoComp)
+*
 *****************************************************************************/
 
 
@@ -46,7 +45,9 @@ Pattern::Pattern(int ntype, dim_t numOut, dim_t numIn, index_t* inPtr,
     index(idx),
     main_iptr(NULL),
     numColors(-1),
-    coloring(NULL)
+    coloring(NULL),
+    hb_row(NULL),
+    hb_col(NULL)
 {
     const index_t index_offset = (ntype & MATRIX_FORMAT_OFFSET1 ? 1:0);
     index_t min_index = index_offset, max_index = index_offset-1;
@@ -96,6 +97,8 @@ Pattern::~Pattern()
     delete[] index;
     delete[] main_iptr;
     delete[] coloring;
+    delete[] hb_row;
+    delete[] hb_col;
 }
 
 /* creates a pattern from a range of indices */

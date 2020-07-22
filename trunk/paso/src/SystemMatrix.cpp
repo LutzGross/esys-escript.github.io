@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2020 by The University of Queensland
+* Copyright (c) 2003-2018 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -10,9 +10,8 @@
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
-* Development from 2014-2017 by Centre for Geoscience Computing (GeoComp)
-* Development from 2019 by School of Earth and Environmental Sciences
-**
+* Development from 2014 by Centre for Geoscience Computing (GeoComp)
+*
 *****************************************************************************/
 
 
@@ -314,10 +313,12 @@ void SystemMatrix::resetValues(bool preserveSolverData)
 void SystemMatrix::setToSolution(escript::Data& out, escript::Data& in,
                                  boost::python::object& options) const
 {
+#if !defined(ESYS_HAVE_MUMPS)
     if (in.isComplex() || out.isComplex())
     {
         throw PasoException("SystemMatrix::setToSolution: complex arguments not supported.");
     }
+#endif
     options.attr("resetDiagnostics")();
     Options paso_options(options);
     if (out.getDataPointSize() != getColumnBlockSize()) {
@@ -333,18 +334,27 @@ void SystemMatrix::setToSolution(escript::Data& out, escript::Data& in,
     in.expand();
     out.requireWrite();
     in.requireWrite();
-    double* out_dp = out.getExpandedVectorReference(static_cast<escript::DataTypes::real_t>(0)).data();        
-    double* in_dp = in.getExpandedVectorReference(static_cast<escript::DataTypes::real_t>(0)).data();                
-    solve(out_dp, in_dp, &paso_options);
+    if ( !(in.isComplex() && out.isComplex()) )
+    {
+        double* out_dp = out.getExpandedVectorReference(static_cast<escript::DataTypes::real_t>(0)).data();
+        double* in_dp = in.getExpandedVectorReference(static_cast<escript::DataTypes::real_t>(0)).data();
+        solve(out_dp, in_dp, &paso_options);
+    } else {
+        cplx_t* out_dp = out.getExpandedVectorReference(static_cast<escript::DataTypes::cplx_t>(0)).data();
+        cplx_t* in_dp = in.getExpandedVectorReference(static_cast<escript::DataTypes::cplx_t>(0)).data();
+        solve(out_dp, in_dp, &paso_options);
+    }
     paso_options.updateEscriptDiagnostics(options);
 }
 
 void SystemMatrix::ypAx(escript::Data& y, escript::Data& x) const 
 {
+#if !defined(ESYS_HAVE_MUMPS)
     if (x.isComplex() || y.isComplex())
     {
         throw PasoException("SystemMatrix::ypAx: complex arguments not supported.");
     }  
+#endif
     if (x.getDataPointSize() != getColumnBlockSize()) {
         throw PasoException("matrix vector product: column block size does not match the number of components in input.");
     } else if (y.getDataPointSize() != getRowBlockSize()) {
@@ -358,9 +368,16 @@ void SystemMatrix::ypAx(escript::Data& y, escript::Data& x) const
     y.expand();
     x.requireWrite();
     y.requireWrite();
-    double* x_dp = x.getExpandedVectorReference(static_cast<escript::DataTypes::real_t>(0)).data();
-    double* y_dp = y.getExpandedVectorReference(static_cast<escript::DataTypes::real_t>(0)).data();
-    MatrixVector(1., x_dp, 1., y_dp);
+    if ( !(x.isComplex() && y.isComplex()) )
+    {
+        double* x_dp = x.getExpandedVectorReference(static_cast<escript::DataTypes::real_t>(0)).data();
+        double* y_dp = y.getExpandedVectorReference(static_cast<escript::DataTypes::real_t>(0)).data();
+        MatrixVector(1., x_dp, 1., y_dp);
+    } else {
+        cplx_t* x_dp = x.getExpandedVectorReference(static_cast<escript::DataTypes::cplx_t>(0)).data();
+        cplx_t* y_dp = y.getExpandedVectorReference(static_cast<escript::DataTypes::cplx_t>(0)).data();
+        MatrixVector(1., x_dp, 1., y_dp);
+    }
 }
 
 void SystemMatrix::copyColCoupleBlock()
@@ -556,6 +573,10 @@ int SystemMatrix::getSystemMatrixTypeId(int solver, int preconditioner,
             } else {
                 out = MATRIX_FORMAT_CSC | MATRIX_FORMAT_BLK1;
             }
+        break;
+
+        case PASO_MUMPS:
+            out = MATRIX_FORMAT_BLK1 | MATRIX_FORMAT_OFFSET1;
         break;
 
         default:

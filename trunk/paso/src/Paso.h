@@ -30,6 +30,7 @@
 #ifndef __PASO_H__
 #define __PASO_H__
 
+#include "system_dep.h"
 #include <escript/index.h>
 #include <escript/DataTypes.h>
 #include <escript/EsysMPI.h>
@@ -56,8 +57,6 @@ using escript::DataTypes::real_t;
 using escript::DataTypes::cplx_t;
 
 }
-
-#define PASO_DLL_API
 
 #define MATRIX_FORMAT_DEFAULT 1
 #define MATRIX_FORMAT_CSC 2
