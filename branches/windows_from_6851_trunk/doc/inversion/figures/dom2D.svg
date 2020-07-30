@@ -1,0 +1,549 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:latexdraw="http://latexdraw.sourceforge.net/namespaces/latexdraw"
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.1"
+   id="svg2"
+   inkscape:version="0.48.3.1 r9886"
+   width="766.09705"
+   height="453.17322"
+   sodipodi:docname="dom2D.svg">
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1118"
+     inkscape:window-height="962"
+     id="namedview131"
+     showgrid="false"
+     units="mm"
+     fit-margin-top="2"
+     fit-margin-left="2"
+     fit-margin-right="2"
+     fit-margin-bottom="2"
+     inkscape:zoom="0.84"
+     inkscape:cx="374.07438"
+     inkscape:cy="145.95314"
+     inkscape:window-x="0"
+     inkscape:window-y="23"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg2" />
+  <defs
+     id="defs4">
+    <linearGradient
+       id="linearGradient1132"
+       x1="423.35873"
+       y1="564.69861"
+       x2="496.64127"
+       y2="169.30138"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         offset="0"
+         stop-color="#e93b3b"
+         id="stop7" />
+      <stop
+         offset="0.49"
+         stop-color="#00ff5f"
+         id="stop9" />
+      <stop
+         offset="1"
+         stop-color="#e93b3b"
+         id="stop11" />
+    </linearGradient>
+    <marker
+       overflow="visible"
+       orient="auto"
+       id="arrow2-1140"
+       style="overflow:visible">
+      <path
+         d="M 0,0 -4.6520833,1.6614583 -2.79125,0 -4.6520833,-1.6614583 z"
+         latexdraw:arrSizeNum="2.0"
+         id="path14"
+         inkscape:connector-curvature="0"
+         style="fill:#000000" />
+    </marker>
+    <marker
+       overflow="visible"
+       orient="auto"
+       id="arrow1-1144"
+       style="overflow:visible">
+      <path
+         d="M 0,0 4.6520833,1.6614583 2.79125,0 4.6520833,-1.6614583 z"
+         latexdraw:arrSizeNum="2.0"
+         id="path17"
+         inkscape:connector-curvature="0"
+         style="fill:#000000" />
+    </marker>
+    <marker
+       overflow="visible"
+       orient="auto"
+       id="arrow1-1160"
+       style="overflow:visible">
+      <path
+         d="M 0,0 4.6520833,1.6614583 2.79125,0 4.6520833,-1.6614583 z"
+         latexdraw:arrSizeNum="2.0"
+         id="path20"
+         inkscape:connector-curvature="0"
+         style="fill:#000000" />
+    </marker>
+    <marker
+       overflow="visible"
+       orient="auto"
+       id="arrow2-1160"
+       style="overflow:visible">
+      <path
+         d="M 0,0 -4.6520833,1.6614583 -2.79125,0 -4.6520833,-1.6614583 z"
+         latexdraw:arrSizeNum="2.0"
+         id="path23"
+         inkscape:connector-curvature="0"
+         style="fill:#000000" />
+    </marker>
+    <marker
+       overflow="visible"
+       orient="auto"
+       id="arrow1-1161"
+       style="overflow:visible">
+      <path
+         d="M 0,0 4.6520833,1.6614583 2.79125,0 4.6520833,-1.6614583 z"
+         latexdraw:arrSizeNum="2.0"
+         id="path26"
+         inkscape:connector-curvature="0"
+         style="fill:#000000" />
+    </marker>
+    <marker
+       overflow="visible"
+       orient="auto"
+       id="arrow2-1161"
+       style="overflow:visible">
+      <path
+         d="M 0,0 -4.6520833,1.6614583 -2.79125,0 -4.6520833,-1.6614583 z"
+         latexdraw:arrSizeNum="2.0"
+         id="path29"
+         inkscape:connector-curvature="0"
+         style="fill:#000000" />
+    </marker>
+    <marker
+       overflow="visible"
+       orient="auto"
+       id="arrow1-1165"
+       style="overflow:visible">
+      <path
+         d="M 0,0 4.6520833,1.6614583 2.79125,0 4.6520833,-1.6614583 z"
+         latexdraw:arrSizeNum="2.0"
+         id="path32"
+         inkscape:connector-curvature="0"
+         style="fill:#000000" />
+    </marker>
+    <marker
+       overflow="visible"
+       orient="auto"
+       id="arrow2-1165"
+       style="overflow:visible">
+      <path
+         d="M 0,0 -4.6520833,1.6614583 -2.79125,0 -4.6520833,-1.6614583 z"
+         latexdraw:arrSizeNum="2.0"
+         id="path35"
+         inkscape:connector-curvature="0"
+         style="fill:#000000" />
+    </marker>
+    <marker
+       overflow="visible"
+       orient="auto"
+       id="arrow1-1169"
+       style="overflow:visible">
+      <path
+         d="M 0,0 4.6520833,1.6614583 2.79125,0 4.6520833,-1.6614583 z"
+         latexdraw:arrSizeNum="2.0"
+         id="path38"
+         inkscape:connector-curvature="0"
+         style="fill:#000000" />
+    </marker>
+    <marker
+       overflow="visible"
+       orient="auto"
+       id="arrow2-1169"
+       style="overflow:visible">
+      <path
+         d="M 0,0 -4.6520833,1.6614583 -2.79125,0 -4.6520833,-1.6614583 z"
+         latexdraw:arrSizeNum="2.0"
+         id="path41"
+         inkscape:connector-curvature="0"
+         style="fill:#000000" />
+    </marker>
+    <marker
+       overflow="visible"
+       orient="auto"
+       id="arrow1-1176"
+       style="overflow:visible">
+      <path
+         d="M 0,0 4.6520833,1.6614583 2.79125,0 4.6520833,-1.6614583 z"
+         latexdraw:arrSizeNum="2.0"
+         id="path44"
+         inkscape:connector-curvature="0"
+         style="fill:#000000" />
+    </marker>
+    <marker
+       overflow="visible"
+       orient="auto"
+       id="arrow2-1176"
+       style="overflow:visible">
+      <path
+         d="M 0,0 -4.6520833,1.6614583 -2.79125,0 -4.6520833,-1.6614583 z"
+         latexdraw:arrSizeNum="2.0"
+         id="path47"
+         inkscape:connector-curvature="0"
+         style="fill:#000000" />
+    </marker>
+  </defs>
+  <g
+     id="g49"
+     transform="translate(-100.35382,-71.913386)">
+    <g
+       latexdraw:type="rectangle"
+       id="id1132">
+      <rect
+         x="167"
+         y="218"
+         width="586"
+         height="298"
+         latexdraw:borderPos="outer"
+         id="rect52"
+         style="fill:url(#linearGradient1132);stroke:#000000;stroke-width:2" />
+    </g>
+    <g
+       latexdraw:type="rectangle"
+       id="id1133">
+      <rect
+         x="167"
+         y="91"
+         width="586"
+         height="128"
+         latexdraw:borderPos="outer"
+         id="rect55"
+         style="fill:#9cbcdb;stroke:#000000;stroke-width:2" />
+    </g>
+    <g
+       latexdraw:type="text"
+       id="id1134"
+       font-size="22"
+       latexdraw:x="707.0"
+       style="font-size:22px;fill:#000000;font-family:Times New Roman">
+      <text
+         x="707"
+         y="210"
+         id="text58">air</text>
+    </g>
+    <g
+       latexdraw:type="text"
+       id="id1137"
+       font-size="22"
+       latexdraw:x="645.0"
+       style="font-size:22px;fill:#000000;font-family:Times New Roman">
+      <text
+         x="645"
+         y="251"
+         id="text61">subsurface</text>
+    </g>
+    <g
+       latexdraw:type="line"
+       id="id1140">
+      <line
+         x1="119"
+         x2="159"
+         y1="219"
+         y2="219"
+         latexdraw:rotationAngle="0.0"
+         id="line64"
+         style="stroke:#000000;stroke-width:2;marker-end:url(#arrow2-1140)" />
+    </g>
+    <g
+       latexdraw:type="text"
+       id="id1141"
+       font-size="22"
+       latexdraw:x="142.0"
+       style="font-size:22px;fill:#000000;font-family:Times New Roman">
+      <text
+         x="142"
+         y="233"
+         id="text67">x</text>
+    </g>
+    <g
+       latexdraw:type="line"
+       id="id1144">
+      <line
+         x1="120"
+         x2="120"
+         y1="182"
+         y2="219"
+         latexdraw:rotationAngle="0.0"
+         id="line70"
+         style="stroke:#000000;stroke-width:2;marker-start:url(#arrow1-1144)" />
+    </g>
+    <g
+       latexdraw:type="text"
+       id="id1145"
+       font-size="22"
+       latexdraw:x="107.0"
+       style="font-size:22px;fill:#000000;font-family:Times New Roman">
+      <text
+         x="107"
+         y="185"
+         id="text73">z</text>
+    </g>
+    <g
+       latexdraw:type="text"
+       id="id1148"
+       font-size="22"
+       latexdraw:x="190.0"
+       style="font-size:22px;fill:#000000;font-family:Times New Roman">
+      <text
+         x="190"
+         y="246"
+         id="text76">density = ?</text>
+    </g>
+    <g
+       latexdraw:type="text"
+       id="id1151"
+       font-size="22"
+       latexdraw:x="186.0"
+       style="font-size:22px;fill:#000000;font-family:Times New Roman">
+      <text
+         x="186"
+         y="209"
+         id="text79">density = 0</text>
+    </g>
+    <g
+       latexdraw:type="line"
+       id="id1154">
+      <line
+         x1="294"
+         x2="632"
+         y1="138"
+         y2="138"
+         latexdraw:rotationAngle="0.0"
+         id="line82"
+         style="stroke:#e8851f;stroke-width:16.20000076" />
+    </g>
+    <g
+       latexdraw:type="text"
+       id="id1155"
+       font-size="22"
+       latexdraw:x="431.0"
+       style="font-size:22px;fill:#000000;font-family:Times New Roman">
+      <text
+         x="431"
+         y="125"
+         id="text85">gravity data</text>
+    </g>
+    <g
+       latexdraw:type="line"
+       id="id1158">
+      <line
+         x1="294"
+         x2="294"
+         y1="79"
+         y2="516"
+         latexdraw:rotationAngle="0.0"
+         id="line88"
+         style="stroke:#000000;stroke-width:2;stroke-dasharray:8, 8" />
+    </g>
+    <g
+       latexdraw:type="line"
+       id="id1159">
+      <line
+         x1="632"
+         x2="632"
+         y1="79"
+         y2="514"
+         latexdraw:rotationAngle="0.0"
+         id="line91"
+         style="stroke:#000000;stroke-width:2;stroke-dasharray:8, 8" />
+    </g>
+    <g
+       latexdraw:type="line"
+       id="id1160">
+      <line
+         x1="168"
+         x2="295"
+         y1="140"
+         y2="140"
+         latexdraw:rotationAngle="0.0"
+         id="line94"
+         style="stroke:#000000;stroke-width:2;marker-start:url(#arrow1-1160);marker-end:url(#arrow2-1160)" />
+    </g>
+    <g
+       latexdraw:type="line"
+       id="id1161">
+      <line
+         x1="633"
+         x2="754"
+         y1="141"
+         y2="141"
+         latexdraw:rotationAngle="0.0"
+         id="line97"
+         style="stroke:#000000;stroke-width:2;marker-start:url(#arrow1-1161);marker-end:url(#arrow2-1161)" />
+    </g>
+    <g
+       latexdraw:type="text"
+       id="id1162"
+       font-size="22"
+       latexdraw:x="204.0"
+       style="font-size:22px;fill:#000000;font-family:Times New Roman">
+      <text
+         x="204"
+         y="134"
+         id="text100">padding</text>
+    </g>
+    <g
+       latexdraw:type="line"
+       id="id1165">
+      <line
+         x1="775"
+         x2="775"
+         y1="515"
+         y2="218"
+         latexdraw:rotationAngle="0.0"
+         id="line103"
+         style="stroke:#000000;stroke-width:2;marker-start:url(#arrow1-1165);marker-end:url(#arrow2-1165)" />
+    </g>
+    <g
+       latexdraw:type="text"
+       id="id1166"
+       font-size="22"
+       latexdraw:x="780.0"
+       style="font-size:22px;fill:#000000;font-family:Times New Roman">
+      <text
+         x="780"
+         y="331"
+         id="text106">depth</text>
+    </g>
+    <g
+       latexdraw:type="line"
+       id="id1169">
+      <line
+         x1="775"
+         x2="775"
+         y1="217"
+         y2="88"
+         latexdraw:rotationAngle="0.0"
+         id="line109"
+         style="stroke:#000000;stroke-width:2;marker-start:url(#arrow1-1169);marker-end:url(#arrow2-1169)" />
+    </g>
+    <g
+       latexdraw:type="text"
+       id="id1170"
+       font-size="22"
+       latexdraw:x="781.0"
+       style="font-size:22px;fill:#000000;font-family:Times New Roman">
+      <text
+         x="781"
+         y="165"
+         id="text112">air_layer</text>
+    </g>
+    <g
+       latexdraw:type="text"
+       id="id1173"
+       font-size="22"
+       latexdraw:x="428.0"
+       style="font-size:22px;fill:#000000;font-family:Times New Roman">
+      <text
+         x="428"
+         y="180"
+         id="text115">altitude</text>
+    </g>
+    <g
+       latexdraw:type="line"
+       id="id1176">
+      <line
+         x1="420"
+         x2="420"
+         y1="218"
+         y2="147"
+         latexdraw:rotationAngle="0.0"
+         id="line118"
+         style="stroke:#000000;stroke-width:2;marker-start:url(#arrow1-1176);marker-end:url(#arrow2-1176)" />
+    </g>
+    <g
+       latexdraw:type="text"
+       id="id1177"
+       font-size="18"
+       latexdraw:x="662.0"
+       style="font-size:18px;fill:#000000;font-family:Times New Roman">
+      <text
+         x="662"
+         y="162"
+         id="text121">pad_x</text>
+    </g>
+    <g
+       latexdraw:type="text"
+       id="id1180"
+       font-size="22"
+       latexdraw:x="661.0"
+       style="font-size:22px;fill:#000000;font-family:Times New Roman">
+      <text
+         x="661"
+         y="136"
+         id="text124">padding</text>
+    </g>
+    <g
+       latexdraw:type="text"
+       id="id1183"
+       font-size="18"
+       latexdraw:x="211.0"
+       style="font-size:18px;fill:#000000;font-family:Times New Roman">
+      <text
+         x="211"
+         y="160"
+         id="text127">pad_x</text>
+    </g>
+  </g>
+  <metadata
+     id="metadata129">
+    <latexdraw:metadata>
+      <latexdraw:displayBorders>true</latexdraw:displayBorders>
+      <latexdraw:autoAdjust>true</latexdraw:autoAdjust>
+      <latexdraw:ppc>50</latexdraw:ppc>
+      <latexdraw:zoom>1.0</latexdraw:zoom>
+      <latexdraw:unit>cm</latexdraw:unit>
+      <latexdraw:classicGrid>false</latexdraw:classicGrid>
+      <latexdraw:gridGap>10</latexdraw:gridGap>
+      <latexdraw:code>0</latexdraw:code>
+      <latexdraw:displayGrid>true</latexdraw:displayGrid>
+      <latexdraw:magneticGrid>false</latexdraw:magneticGrid>
+      <latexdraw:autoUpdate>true</latexdraw:autoUpdate>
+      <latexdraw:version>2.0.8</latexdraw:version>
+      <latexdraw:size>
+        <latexdraw:width>1280</latexdraw:width>
+        <latexdraw:height>949</latexdraw:height>
+      </latexdraw:size>
+      <latexdraw:position>
+        <latexdraw:x>0</latexdraw:x>
+        <latexdraw:y>51</latexdraw:y>
+      </latexdraw:position>
+      <latexdraw:dividerPosition>0.70078125</latexdraw:dividerPosition>
+      <latexdraw:displayCodePanel>true</latexdraw:displayCodePanel>
+      <latexdraw:displayXScale>true</latexdraw:displayXScale>
+      <latexdraw:displayYScale>true</latexdraw:displayYScale>
+      <latexdraw:delimitorOpacity>130</latexdraw:delimitorOpacity>
+    </latexdraw:metadata>
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+</svg>

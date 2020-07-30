@@ -1,0 +1,172 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright (c) 2003-2018 by The University of Queensland
+% http://www.uq.edu.au
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Apache License, version 2.0
+% http://www.apache.org/licenses/LICENSE-2.0
+%
+% Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+% Development 2012-2013 by School of Earth Sciences
+% Development from 2014 by Centre for Geoscience Computing (GeoComp)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\section{Linear Magnetic Intensity Inversion}\label{sec:forward magnetic intensity}
+An alternative target for then inversion is the intensity anomaly of the magnetic flux
+density. In this case the difference $b$ of the length of the total flux
+density $B^{tot}=B^b+B$ to the back ground flux density $B^b$~\index{magnetic flux density}:
+\begin{equation}\label{ref:IMAG:EQU:0}
+b=\|B^{tot}\| -\|B^{b}\|
+\end{equation}
+where is the Euclean norm is defined as  
+\begin{equation}\label{ref:IMAG:EQU:1}
+\|B\| =  \sqrt{B_i B_i}
+\end{equation}
+and we use the notations of the previous section~\ref{sec:forward magnetic}.   
+We have 
+\begin{equation}\label{ref:IMAG:EQU:1b}
+\|B^{tot}\|^2 = \|B^{b}\|^2 + 2 B^{b}_i B_i + \|B\|^2 \approx  \|B^{b}\|^2 + 2 B^{b}_i B_i
+\end{equation}
+where the term $\|B\|^2$ of the anomaly can is assumed to be neglagable. 
+This gives 
+\begin{equation}\label{ref:IMAG:EQU:1bb}
+\|B^{tot}\|  = \|B^{b}\| \sqrt{1 + \frac{2 B^{b}_i B_i}{\|B^{b}\|^2}} \approx  \|B^{b}\| \left(1 + \frac{B^{b}_i B_i}{\|B^{b}\|^2} \right) 
+\end{equation}
+and therefore
+\begin{equation}\label{ref:IMAG:EQU:0b}
+b= \frac{B^{b}_i B_i}{\|B^{b}\|}  = \hat{B}^{b}_i B_i \mbox{ with } \hat{B}^{b}_i = \frac{B^b_i}{\|B^{b}\|} 
+\end{equation}
+If $b^{(s)}_i$ is the measurement of the magnetic flux density intensity anomaly for
+survey $s$ and $\omega^{(s)}$ is a weighting factor the data defect
+$J^{mag}(k)$ in the notation of Chapter~\ref{chapter:ref:inversion cost function} is given as
+\begin{equation}\label{ref:IMAG:EQU:9}
+J^{mag}(k) = \frac{1}{2}\sum_{s} \int_{\Omega} \left( \omega^{(s)} \cdot ( \hat{B}^{b}_i B_i - b^{(s)} )\right)^2 dx
+\end{equation} 
+
+The cost function kernel\index{cost function!kernel} is given as
+\begin{equation}\label{ref:IMAG:EQU:10}
+K^{mag}(\psi_{,i},k) = \frac{1}{2}\sum_{s} \left( \omega^{(s)} \cdot (k \cdot  \|B^{b}\|  -  \hat{B}^{b}_i \psi_{,i} - b^{(s)}) \right)^2
+\end{equation} 
+Notice that if magnetic flux density is measured in air one can ignore the
+$k\cdot B^b_i$ as the susceptibility is zero.
+
+In practice the magnetic flux density intensity $b^{(s)}$ is measured 
+with a standard error deviation $\sigma^{(s)}$ at certain locations in the domain.
+In this case one sets the weighting
+factors $\omega^{(s)}$ as
+\begin{equation}\label{ref:IMAG:EQU:11}
+\omega^{(s)} 
+= \left\{
+\begin{array}{lcl}
+f \cdot  \frac{f}{\sigma^{(s)}} & & \mbox{data are available} \\
+& \mbox{ where } & \\
+0 & & \mbox{ otherwise } \\
+\end{array}
+\right.
+\end{equation} 
+With the objective to control the 
+gradient of the cost function the scaling factor $f$ is chosen in the way that 
+\begin{equation}\label{ref:IMAG:EQU:12}
+\sum_{s} \int_{\Omega} ( \omega^{(s)}_i B^{(s)}_i ) 
+ \cdot ( \omega^{(s)}_j \frac{1}{L_j} ) \cdot L^2 \cdot
+( B^b_n \frac{1}{L_n} )
+ \cdot k' \;
+ dx =\alpha
+\end{equation} 
+where $\alpha$ defines a scaling factor which is typically set to one and $L$ is defined by equation~(\ref{ref:EQU:REG:6b}).
+$k'$ is considering the 
+derivative of the density with respect to the level set function. 
+
+
+
+\subsection{Usage}
+
+\begin{classdesc}{MagneticIntensityModel}{domain, w, b, background_field,
+        \optional{, fixPotentialAtBottom=False},
+        \optional{, tol=1e-8},
+}
+opens a magnetic forward model over the \Domain \member{domain} with 
+weighting factors \member{w} ($=\omega^{(s)}$) and measured magnetic flux
+density anomalies \member{b} ($=b^{(s)}$).
+The weighting factors and the  measured magnetic flux density anomalies must be scalars.
+\member{background_field} defines the background magnetic flux density $B^b$
+as a vector with north, east and vertical components. 
+\member{tol} sets the tolerance for the solution of the PDE~(\ref{ref:MAG:EQU:8}).
+If \member{fixPotentialAtBottom} is set to  \True, the magnetic potential 
+at the bottom is set to zero in addition to the potential on the top. 
+\member{coordinates} set the reference coordinate system to be used. By the default the 
+Cartesian coordinate system is used.
+\end{classdesc}
+
+\begin{methoddesc}[MagneticModel]{rescaleWeights}{
+        \optional{scale=1.}
+ \optional{k_scale=1.}}
+rescale the weighting factors such condition~(\ref{ref:IMAG:EQU:12}) holds where 
+\member{scale} sets the scale $\alpha$
+and \member{k_scale} sets $k'$. This method should be called before any inversion is started
+in order to make sure that all components of the cost function are appropriately scaled.
+\end{methoddesc}
+
+
+\subsection{Gradient Calculation}
+This section briefly explains how the gradient
+$\frac{\partial J^{mag}}{\partial k}$ of the cost function $J^{mag}$ with
+respect to the susceptibility $k$ is calculated.  We follow the concept as outlined in section~\ref{chapter:ref:inversion cost function:gradient}.
+
+The magnetic potential $\psi$ from PDE~(\ref{ref:MAG:EQU:8}) is solved in weak form:
+\begin{equation}\label{ref:IMAG:EQU:201}
+\int_{\Omega} q_{,i} \psi_{,i} \; dx  = \int_{\Omega}  k \cdot q_{,i}  B^r_i \; dx 
+\end{equation} 
+for all $q$ with $q=0$ on $\Gamma_{0}$.
+In the following we set $\Psi[k]=\psi$ for a given susceptibility $k$ as
+solution of the variational problem~(\ref{ref:MAG:EQU:201}).
+If $\Gamma_{k}$ denotes the region of the domain where the susceptibility is
+known and for a given direction $p$ with $p=0$ on $\Gamma_{k}$ one has
+\begin{equation}\label{ref:IMAG:EQU:201aa}
+\int_{\Omega}   \frac{\partial J^{mag}}{\partial k} \cdot p \; dx  = \int_{\Omega}  
+\sum_{s} 
+\omega^{(s)} \; \left(b^{(s)} - k \cdot  \|B^{b}\|  +  \hat{B}^{b}_i \psi_{,i}  \right)
+\cdot \omega^{(s)} \; \left(\hat{B}^{b}_i \Psi[p]_{,i} - p \cdot  \|B^{b}\| \right) \; dx  
+\end{equation}
+With
+\begin{equation}\label{ref:IMAG:EQU:202c}
+Y_i[\psi]=   \sum_{s} 
+(\omega^{(s)})^2 
+\left(b^{(s)} - k \cdot  \|B^{b}\|  +  \hat{B}^{b}_i \psi_{,i} \right) \hat{B}^{b}_i
+\end{equation} 
+this is written as 
+\begin{equation}\label{ref:IMAG:EQU:202cc}
+\int_{\Omega}   \frac{\partial J^{mag}}{\partial k} \cdot p \;  dx  = \int_{\Omega}  
+(Y_i[\psi] \Psi[p]_{,i} -p \cdot Y_i[\psi]B^b_i)   \; dx  
+\end{equation} 
+We then set adjoint function $Y^*[\psi]$ as the solution of the equation 
+\begin{equation}\label{ref:IMAG:EQU:202d}
+\int_{\Omega} r_{,i} Y^*[\psi]_{,i} \; dx  =  \int_{\Omega} r_{,i} Y_i[\psi]  \; dx  \mbox{ for all } r \mbox{ with } r=0 \mbox{ on } \Gamma_{0}
+\end{equation} 
+with $Y^*[\psi]=0$ on $\Gamma_{0}$. With $r=\Psi[p]$ we get
+\begin{equation}\label{ref:IMAG:EQU:202dd}
+\int_{\Omega} \Psi[p]_{,i} Y^*[\psi]_{,i} \; dx  =  \int_{\Omega} \Psi[p]_{,i} Y_i[\psi]  \; dx
+\end{equation} 
+and from Equation~(\ref{ref:IMAG:EQU:201}) with $q=Y^*[\psi]$ we get
+\begin{equation}\label{ref:IMAG:EQU:20e}
+\int_{\Omega} Y^*[\psi]_{,i}  \Psi[p]_{,i} \; dx  = \int_{\Omega}  p \cdot Y^*[\psi]_{,i}  B^r_i \; dx  
+\end{equation}
+which leads to 
+\begin{equation}\label{ref:IMAG:EQU:20ee}
+\int_{\Omega} \Psi[p]_{,i} ,Y_i[\psi]  \; dx  = \int_{\Omega}  p \cdot Y^*[\psi]_{,i}  B^r_i \; dx  
+\end{equation}
+and finally
+\begin{equation}\label{ref:IMAG:EQU:201a}
+\int_{\Omega}   \frac{\partial J^{mag}}{\partial k} \cdot p \;  dx  = \int_{\Omega}  
+p \cdot (Y^*[\psi]_{,i}  B^r_i - Y_i[\psi] B^b_i) \; dx  
+\end{equation} 
+or 
+\begin{equation}\label{ref:IMAG:EQU:201b}
+\frac{\partial J^{mag}}{\partial k} = Y^*[\psi]_{,i}  B^r_i - Y_i[\psi] B^b_i
+\end{equation}
+
+\subsection{Geodetic Coordinates}
+Not supported yet.

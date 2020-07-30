@@ -1,0 +1,154 @@
+%!TEX root = inversion.tex
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright (c) 2003-2018 by The University of Queensland
+% http://www.uq.edu.au
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Apache License, version 2.0
+% http://www.apache.org/licenses/LICENSE-2.0
+%
+% Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+% Development 2012-2013 by School of Earth Sciences
+% Development from 2014 by Centre for Geoscience Computing (GeoComp)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{DC resistivity inversion: 3D}\label{sec:forward DCRES}
+This section will discuss DC resistivity\index{DC forward} forward modelling, as well as an \escript
+class which allows for solutions of these forward problems. The DC resistivity 
+forward problem is modelled via the application of Ohm's Law to the flow of current
+through the ground. When sources are treated as a point sources and Ohm's Law 
+is written in terms of the potential field, the equation becomes:
+\begin{equation} \label{ref:dcres:eq1}
+\nabla \cdot (\sigma \nabla \phi) = -I \delta(x-x_s) \delta(y-y_s) \delta(z-z_s)
+\end{equation}
+Where $(x,y,z)$ and $(x_s, y_s, z_s)$ are the coordinates of the observation and source
+points respectively. The total potential, $\phi$, is split into primary and secondary 
+potentials $\phi = \phi_p + \phi_s$, where the primary potential is analytically calculated 
+as a flat half-space background model with conductivity of $\sigma_p$. 
+The secondary potential is due to conductivity deviations 
+from the background model and has its conductivity denoted as $\sigma_s$. 
+This approach effectively removes the singularities of the Dirac delta 
+source and provides more accurate results \cite{rucker2006three}.
+An analytical solution is available for the primary potential of a uniform half-space due to a single pole source and is given by:
+\begin{equation} \label{ref:dcres:eq2}
+\phi_p = \frac{I}{2 \pi \sigma_1 R}
+\end{equation}
+Where $I$ is the current and $R$ is the distance from the observation points to the source.
+In \escript the observation points are the nodes of the domain and $R$ is given by
+\begin{equation} \label{ref:dcres:eq3}
+R = \sqrt{(x-x_s)^2+(y-y_s)^2 + z^2}
+\end{equation}
+The secondary potential, $\phi_s$, is given by
+\begin{equation}\label{ref:dcres:eq4}
+-\mathbf{\nabla}\cdot\left(\sigma\,\nabla \phi_s \right)  = 
+ \mathbf{\nabla}\cdot\left( \left(\sigma_p-\sigma\right)\,\nabla \phi_p  \right)
+\end{equation} 
+where $\sigma_p$ is the conductivity of the background half-space.
+The weak form of above PDE is given by multiplication of a suitable test function, $w$, and integrating over the domain $\Omega$:
+\begin{multline}\label{ref:dcres:eq5}
+-\int_{\partial\Omega} \sigma\,\nabla \phi_s  \cdot \hat{n} w\,ds +
+ \int_{\Omega} \sigma\,\nabla \phi_s  \cdot \nabla w\,d\Omega =\\
+-\int_{\partial\Omega} \left(\sigma_p-\sigma\right)\,\nabla \phi_p  
+\cdot \hat{n} w\,ds + \int_{\Omega} \left(\sigma_p-\sigma\right)\,\nabla \phi_p  \cdot \nabla w\,d\Omega 
+\end{multline}
+The integrals over the domain boundary provide the boundary conditions which are
+implemented as Dirichlet conditions (i.e. zero potential) at all interfaces except the
+top, where Neumann conditions apply (i.e. no current flux through the air-earth interface).
+From the integrals over the domain, the \escript coefficients can be deduced: the 
+left-hand-side conforms to \escript coefficient $A$, whereas the right-hand-side agrees
+with the coefficient $X$ (see User Guide).
+
+A number a of different configurations for electrode set-up are available \cite[pg 5]{LOKE2014}.
+An \escript class is provided for each of the following survey types:
+\begin{itemize}
+\item Wenner alpha
+\item Pole-Pole
+\item Dipole-Dipole
+\item Pole-Dipole
+\item Schlumberger
+\end{itemize}
+
+These configurations are comprised of at least one pair of current and potential
+electrodes separated by a distance $a$. In those configurations which use $n$,
+electrodes in the currently active set may be separated by $na$. In the classes
+that follow, the specified value of $n$ is an upper limit. That is $n$ will
+start at 1 and iterate up to the value specified.
+
+\subsection{Usage}
+The DC resistivity forward modelling classes are specified as follows:
+
+\begin{classdesc}{WennerSurvey}{self, domain, primaryConductivity, secondaryConductivity,
+current, a, midPoint, directionVector, numElectrodes}
+\end{classdesc}
+
+\begin{classdesc}{polepoleSurvey}{domain, primaryConductivity, secondaryConductivity, 
+current, a, midPoint, directionVector, numElectrodes}
+\end{classdesc}
+
+\begin{classdesc}{DipoleDipoleSurvey}{self, domain, primaryConductivity, secondaryConductivity,
+current, a, n, midPoint, directionVector, numElectrodes}
+\end{classdesc}
+
+\begin{classdesc}{PoleDipoleSurvey}{self, domain, primaryConductivity, secondaryConductivity,
+current, a, n, midPoint, directionVector, numElectrodes}
+\end{classdesc}
+
+\begin{classdesc}{SchlumbergerSurvey}{self, domain, primaryConductivity, secondaryConductivity,
+current, a, n, midPoint, directionVector, numElectrodes}
+\end{classdesc}
+
+\noindent Where:
+\begin{itemize}
+\item \texttt{domain} is the domain which represent the half-space of interest. 
+it is important that a node exists at the points where the electrodes will be placed.
+\item \texttt{primaryConductivity} is a data object which defines the primary conductivity
+it should be defined on the ContinuousFunction function space.
+\item \texttt{secondaryConductivity} is a data object which defines the secondary conductivity
+it should be defined on the ContinuousFunction function space.
+\item \texttt{current} is the value of the injection current to be used in amps this is a currently a
+constant.
+\item \texttt{a} is the electrode separation distance.
+\item \texttt{n} is the electrode separation distance multiplier.
+\item \texttt{midpoint} is the centre of the survey. Electrodes will spread from this point
+in the direction defined by the direction vector and in the opposite direction, placing
+half of the electrodes on either side.
+\item \texttt{directionVector} defines as the direction in which electrodes are spread.
+\item \texttt{numElectrodes} is the number of electrodes to be used in the survey.
+\end{itemize} 
+
+When calculating the potentials the survey is moved along the set of electrodes.
+The process of moving the electrodes along is repeated for each consecutive value of $n$.
+As $n$ increases less potentials are calculated, this is because a greater spacing is
+required and hence some electrodes are skipped. The process of building up these
+pseudo-sections is covered in greater depth by Loke (2014)\cite[pg 19]{LOKE2014}.
+These classes all share common member functions described below. For the surveys
+where $n$ is not specified only one list will be returned. 
+
+\begin{methoddesc}[]{getPotential}{}
+Returns 3 lists, each made up of a number of lists containing primary, secondary and total
+potential differences. Each of the lists contains $n$ sublists.
+\end{methoddesc}
+
+\begin{methoddesc}[]{getElectrodes}{}
+Returns a list containing the positions of the electrodes
+\end{methoddesc}
+
+\begin{methoddesc}[]{getApparentResistivityPrimary}{}
+Returns a series of lists containing primary apparent resistivities one for each 
+value of $n$.
+\end{methoddesc}
+
+\begin{methoddesc}[]{getApparentResistivitySecondary}{}
+Returns a series of lists containing secondary apparent resistivities one for each 
+value of $n$.
+\end{methoddesc}
+
+\begin{methoddesc}[]{getApparentResistivityTotal}{}
+Returns a series of lists containing total apparent resistivities, one for each 
+value of $n$. This is generally the result of interest.
+\end{methoddesc}
+
+The apparent resistivities are calculated by applying a geometric factor to the
+measured potentials.
+

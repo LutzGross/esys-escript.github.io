@@ -1,0 +1,372 @@
+\chapter{Cost Function}\label{chapter:ref:inversion cost function}
+The general form of the cost function minimized in the inversion is given in the form (see also Chapter~\ref{chapter:ref:Drivers})
+\begin{equation}\label{REF:EQU:DRIVE:10}
+J(m) = J^{reg}(m) + \sum_{f} \mu^{data}_{f} \cdot J^{f}(p^f)
+\end{equation} 
+where $m$ represents the level set function, $J^{reg}$ is the regularization term, see Chapter~\ref{Chp:ref:regularization},
+and $J^{f}$ are a set of cost functions for forward models, (see Chapter~\ref{Chp:ref:forward models}) depending on 
+physical parameters $p^f$.  The physical parameters $p^f$ are known functions 
+of the  level set function $m$ which is the unknown to be calculated by the optimization process. 
+$\mu^{data}_{f}$ are trade-off factors. It is pointed out that the regularization term includes additional trade-off factors 
+The \class{InversionCostFunction} is class to define cost functions of an inversion. It is pointed out that
+the \class{InversionCostFunction} class implements the \class{CostFunction} template class, see Chapter~\ref{chapter:ref:Minimization}.
+
+In the simplest case there is a single forward model using a single physical parameter which is 
+derived form single-values level set function. The following script snippet shows the creation of the
+cost function for the case of a gravity inversion:
+\begin{verbatim}
+p=DensityMapping(...)
+f=GravityModel(...)
+J=InversionCostFunction(Regularization(...), \
+                        mappings=p, \
+                        forward_models=f)
+\end{verbatim}
+The argument \verb|...| refers to an appropriate argument list.
+
+If two forward models are coming into play using two different physical parameters 
+the \member{mappings} and \member{forward_models} are defined as lists in the following form:
+\begin{verbatim}
+p_rho=DensityMapping(...)
+p_k=SusceptibilityMapping(...)
+f_mag=MagneticModel(...)
+f_grav=GravityModel(...)
+
+J=InversionCostFunction(Regularization(...), \
+                        mappings=[p_rho, p_k], \
+                        forward_models=[(f_mag, 1), (f_grav,0)])
+\end{verbatim}
+Here we define a joint inversion of gravity and magnetic data. \member{forward_models} is given as a list of
+a tuple of a forward model and an index which referring to parameter in the \member{mappings} list to be used as an input.
+The magnetic forward model \member{f_mag} is using the second parameter (=\member{p_k}) in \member{mappings} list.
+In this case the physical parameters are defined by a single-valued level set function. It is also possible
+to link physical parameters to components of a level set function:
+\begin{verbatim}
+p_rho=DensityMapping(...)
+p_k=SusceptibilityMapping(...)
+f_mag=MagneticModel(...)
+f_grav=GravityModel(...)
+
+J=InversionCostFunction(Regularization(numLevelSets=2,...), \
+                        mappings=[(p_rho,0), (p_k,1)], \
+                        forward_models=[[(f_mag, 1), (f_grav,0)])   
+\end{verbatim}
+The \member{mappings} argument is now a list of pairs where the first pair entry specifies the parameter mapping and
+the second pair entry specifies the index of the component of the level set function to be used to evaluate the parameter.
+In this case the level set function has two components, where the density mapping uses the first component of the level set function 
+while the susceptibility mapping uses the second component.
+
+\section{\class{InversionCostFunction} API}\label{chapter:ref:inversion cost function:api}
+
+The \class{InversionCostFunction} implements a \class{CostFunction} class used
+to run optimization solvers, see Section~\ref{chapter:ref:Minimization: costfunction class}.
+Its API is defined as follows:
+
+\begin{classdesc}{InversionCostFunction}{regularization, mappings, forward_models}
+Constructor for the inversion cost function. \member{regularization} sets the regularization to be used, see Chapter~\ref{Chp:ref:regularization}.
+\member{mappings} is a list of pairs where each pair comprises of a 
+physical parameter mapping (see Chapter~\ref{Chp:ref:mapping}) and an index which refers to the component of level set function
+defined by the \member{regularization} to be used to calculate the corresponding physical parameter.
+If the level set function has a single component the index can be omitted.
+If in addition there is a single physical parameter the mapping can be given instead of a list.
+\member{forward_models} is a list of pairs where the first pair component is a
+forward model (see Chapter~\ref{Chp:ref:forward models}) and the second pair
+component refers to the physical parameter in the \member{mappings} list
+providing the physical parameter for the model.
+If a single physical parameter is present the index can be omitted.
+If in addition a single forward model is used this forward model can be
+assigned to \member{forward_models} in replacement of a list.
+The \member{regularization} and all \member{forward_models} must use the same
+\class{ReferenceSystem}, see Section~\ref{sec:ref:reference systems}.
+\end{classdesc}
+
+\begin{methoddesc}[InversionCostFunction]{getDomain}{}
+returns the \escript domain of the inversion, see~\cite{ESCRIPT}.
+\end{methoddesc}
+        
+\begin{methoddesc}[InversionCostFunction]{getNumTradeOffFactors}{}
+returns the total number of trade-off factors.
+The count includes the trade-off factors $\mu^{data}_{f}$ for the forward
+models and (hidden) trade-off factors in the regularization term,
+see Definition~\ref{REF:EQU:DRIVE:10}.
+\end{methoddesc}
+
+\begin{methoddesc}[InversionCostFunction]{getForwardModel}{\optional{idx=\None}}
+returns the forward model with index \member{idx}.
+If the cost function contains one model only argument \member{idx} can be omitted.
+\end{methoddesc}
+        
+\begin{methoddesc}[InversionCostFunction]{getRegularization}{}
+returns the regularization component of the cost function, see \class{regularization} in Chapter~\ref{Chp:ref:regularization}.
+\end{methoddesc}
+
+\begin{methoddesc}[InversionCostFunction]{setTradeOffFactorsModels}{\optional{mu=\None}}
+sets the trade-off factors $\mu^{data}_{f}$ for the forward model components.
+If a single model is present \member{mu} must be a floating point number.
+Otherwise \member{mu} must be a list of floating point numbers.
+It is assumed that all numbers are positive.
+The default value for all trade-off factors is one.
+\end{methoddesc}
+
+\begin{methoddesc}[InversionCostFunction]{getTradeOffFactorsModels}{}
+returns the values of the trade-off factors $\mu^{data}_{f}$ for the forward model components.
+\end{methoddesc}
+
+\begin{methoddesc}[InversionCostFunction]{setTradeOffFactorsRegularization}{\optional{mu=\None}, \optional{mu_c=\None}}
+sets the trade-off factors for the regularization component of the cost function.
+\member{mu} defines the trade-off factors for the level-set variation part and
+\member{mu_c} sets the trade-off factors for the cross-gradient variation part.
+This method is a shortcut for calling \member{setTradeOffFactorsForVariation}
+and \member{setTradeOffFactorsForCrossGradient} for the underlying the
+regularization.
+Please see \class{Regularization} in Chapter~\ref{Chp:ref:regularization} for
+more details on the arguments \member{mu} and \member{mu_c}.
+\end{methoddesc}
+        
+\begin{methoddesc}[InversionCostFunction]{setTradeOffFactors}{\optional{mu=\None}}
+sets the trade-off factors for the forward model and regularization terms.
+\member{mu} is a list of positive floats. The length of the list is the total
+number of trade-off factors given by the method \method{getNumTradeOffFactors}.
+The first part of \member{mu} defines the trade-off factors $\mu^{data}_{f}$
+for the forward model components while the remaining entries define the
+trade-off factors for the regularization components of the cost function.
+By default all values are set to one.
+\end{methoddesc}
+
+\begin{methoddesc}[InversionCostFunction]{getProperties}{m}
+returns the physical properties from a given level set function \member{m}
+using the mappings of the cost function. The physical properties are
+returned in the order in which they are given in the \member{mappings} argument
+in the class constructor.
+\end{methoddesc}
+
+\begin{methoddesc}[InversionCostFunction]{createLevelSetFunction}{*props}
+returns the level set function corresponding to set of given physical properties.
+This method is the inverse of the \method{getProperties} method.
+The arguments \member{props} define a tuple of values for the physical
+properties where the order needs to correspond to the order in which the
+physical property mappings are given in the \member{mappings} argument in the
+class constructor. If a value for a physical property is given as \None the
+corresponding component of the returned level set function is set to zero.
+If no physical properties are given all components of the level set function
+are set to zero.
+\end{methoddesc}
+    
+\begin{methoddesc}[InversionCostFunction]{getNorm}{m}
+returns the norm of a level set function \member{m} as a floating point number.
+\end{methoddesc}
+
+\begin{methoddesc}[InversionCostFunction]{getArguments}{m}
+returns pre-computed values for the evaluation of the cost function and its
+gradient for a given value \member{m} of the level set function.
+In essence the method collects pre-computed values for the underlying
+regularization and forward models\footnote{Using pre-computed values can
+significantly speed up the optimization process when the value of the cost
+function and its gradient are needed for the same level set function.}.
+\end{methoddesc}
+
+\begin{methoddesc}[InversionCostFunction]{getValue}{m\optional{, *args}}
+returns the value of the cost function for a given level set function \member{m}
+and corresponding pre-computed values \member{args}.
+If the pre-computed values are not supplied \member{getArguments} is called.
+\end{methoddesc}
+
+\begin{methoddesc}[InversionCostFunction]{getGradient}{m\optional{, *args}}
+returns the gradient of the cost function at level set function \member{m}
+using the corresponding pre-computed values \member{args}.
+If the pre-computed values are not supplied \member{getArguments} is called.
+The gradient is represented as a tuple $(Y,X)$ where in essence $Y$ represents
+the derivative of the cost function kernel with respect to the level set
+function and $X$ represents the derivative of the cost function kernel with
+respect to the gradient of the level set function, see
+Section~\ref{chapter:ref:inversion cost function:gradient} for more details.
+\end{methoddesc}
+       
+\begin{methoddesc}[InversionCostFunction]{getDualProduct}{m, g}
+returns the dual product of a level set function \member{m} with a gradient
+\member{g}, see Section~\ref{chapter:ref:inversion cost function:gradient} for more details.
+This method uses the dual product of the regularization.
+\end{methoddesc}
+
+\begin{methoddesc}[InversionCostFunction]{getInverseHessianApproximation}{m, g \optional{, *args}}
+returns an approximative evaluation of the inverse of the Hessian operator of
+the cost function for a given gradient \member{g} at a given level set function
+\member{m} using the corresponding pre-computed values \member{args}.
+If no pre-computed values are present \member{getArguments} is called.
+In the current implementation contributions to the Hessian operator from the
+forward models are ignored and only contributions from the regularization and
+cross-gradient term are used.
+\end{methoddesc}
+
+
+\section{Gradient calculation}\label{chapter:ref:inversion cost function:gradient}
+In this section we briefly discuss the calculation of the gradient and the Hessian operator.
+If $\nabla$ denotes the gradient operator (with respect to the level set function $m$) 
+the gradient of  $J$ is given as
+\begin{equation}\label{REF:EQU:DRIVE:10b}
+\nabla J(m) = \nabla J^{reg}(m) + \sum_{f} \mu^{data}_{f} \cdot \nabla J^{f}(p^f) \; .
+\end{equation} 
+We first focus on the calculation of $\nabla J^{reg}$. In fact the 
+regularization cost function $J^{reg}$ is given through a cost function
+kernel\index{cost function!kernel} $K^{reg}$ in the form
+\begin{equation}\label{REF:EQU:INTRO 2a}
+J^{reg}(m) = \int_{\Omega} K^{reg} \; dx
+\end{equation} 
+where $K^{reg}$ is a given function of the
+level set function $m_k$ and its spatial derivative $m_{k,i}$. If $n$ is an increment to the level set function 
+then the directional derivative of $J^{ref}$ in the direction of $n$ is given as
+\begin{equation}\label{REF:EQU:INTRO 2aa}
+<n, \nabla J^{reg}(m)> = \int_{\Omega} \frac{ \partial K^{reg}}{\partial m_k} n_k + \frac{ \partial K^{reg}}{\partial m_{k,i}} n_{k,i} \; dx
+\end{equation} 
+where $<.,.>$ denotes the dual product, see Chapter~\ref{chapter:ref:Minimization}. Consequently, the gradient $\nabla J^{reg}$
+can be represented by a pair of values $Y$ and $X$ 
+\begin{equation}\label{ref:EQU:CS:101}
+\begin{array}{rcl}
+  Y_k & = & \displaystyle{\frac{\partial K^{reg}}{\partial m_k}} \\
+   X_{ki} & = & \displaystyle{\frac{\partial K^{reg}}{\partial m_{k,i}}} 
+\end{array}
+\end{equation} 
+while the dual product $<.,.>$ of a level set increment $n$ and a gradient increment $g=(Y,X)$ is given as
+\begin{equation}\label{REF:EQU:INTRO 2aaa}
+<n,g> = \int_{\Omega} Y_k n_k + X_{ki} n_{k,i} \; dx
+\end{equation} 
+We also need to provide (an approximation of) the value $p$ of the inverse of the Hessian operator $\nabla \nabla J$
+for a given gradient increment $g=(Y,X)$. This means we need to (approximatively) solve the variational problem 
+\begin{equation}\label{REF:EQU:INTRO 2b}
+<n,\nabla \nabla J p > = \int_{\Omega} Y_k n_k + X_{ki} n_{k,i} \; dx
+\end{equation} 
+for all increments $n$ of the level set function. If we ignore contributions 
+from the forward models the left hand side takes the form
+\begin{equation}\label{REF:EQU:INTRO 2c}
+<n,\nabla \nabla J^{reg} p > = \int_{\Omega} 
+\displaystyle{\frac{\partial Y_k}{\partial m_l}} p_l n_k +
+\displaystyle{\frac{\partial Y_k}{\partial m_{l,j}}} p_{l,j} n_k +
+\displaystyle{\frac{\partial X_{ki}}{\partial m_l}} p_l n_{k,i} +
+\displaystyle{\frac{\partial X_{ki}}{\partial m_{l,j}}} p_{l,j} n_{k,i} 
+\; dx
+\end{equation}  We follow the concept as outlined in section~\ref{chapter:ref:inversion cost function:gradient}.
+Notice that equation~\ref{REF:EQU:INTRO 2b} defines a system of linear PDEs
+which is solved using \escript \class{LinearPDE} class. In the \escript notation we need to provide 
+\begin{equation}\label{ref:EQU:REG:600}
+\begin{array}{rcl}
+ A_{kilj} & = &  \displaystyle{\frac{\partial X_{ki}}{\partial m_{l,j}}}  \\
+ B_{kil} & = &  \displaystyle{\frac{\partial X_{ki}}{\partial m_l}}   \\
+ C_{klj} & = &  \displaystyle{\frac{\partial Y_k}{\partial m_{l,j}}}    \\
+  D_{kl} & = & \displaystyle{\frac{\partial Y_k}{\partial m_l}}    \\ 
+\end{array}
+\end{equation} 
+The calculation of the gradient of the forward model component is more complicated:
+the data defect $J^{f}$ for forward model $f$ is expressed using a cost function kernel $K^{f}$ 
+\begin{equation}\label{REF:EQU:INTRO 2bb}
+J^{f}(p^f) = \int_{\Omega} K^{f} \; dx
+\end{equation} 
+In this case the cost function kernel $K^{f}$ is a function of the 
+physical parameter $p^f$, which again is a function of the level-set function,
+and the state variable $u^f_{k}$ and its gradient $u^f_{k,i}$. For the sake of a simpler 
+presentation the upper index $f$ is dropped.
+ 
+The gradient $\nabla_{p} J$ of the  $J$ with respect to
+the physical property $p$ is given as 
+\begin{equation}\label{REF:EQU:costfunction 100b}
+<q, \nabla_{p} J(p)> =    \int_{\Omega}
+\displaystyle{\frac{\partial K }{\partial u_k }  } \displaystyle{\frac{\partial u_k }{\partial q }  } +
+\displaystyle{\frac{\partial K }{\partial u_{k,i} }  } \left( \displaystyle{\frac{\partial u_k }{\partial q }  } \right)_{,i}+
+\displaystyle{\frac{\partial K }{\partial p }  }  q \; dx
+\end{equation}
+for any $q$ as an increment to the physical parameter $p$. If the change 
+  of the state variable
+$u_f$ for physical parameter $p$ in the direction of $q$ is denoted as
+\begin{equation}\label{REF:EQU:costfunction 100c}
+d_k =\displaystyle{\frac{\partial u_k }{\partial q }  }
+\end{equation} 
+equation~\ref{REF:EQU:costfunction 100b} can be written as
+\begin{equation}\label{REF:EQU:costfunction 100d}
+<q, \nabla_{p} J(p)> =    \int_{\Omega}
+\displaystyle{\frac{\partial K }{\partial u_k }  } d_k +
+\displaystyle{\frac{\partial K }{\partial u_{k,i} }  } d_{k,i}+
+\displaystyle{\frac{\partial K }{\partial p }  }  q \; dx
+\end{equation}
+The  state variable are the solution of PDE which in variational from is given
+\begin{equation}\label{REF:EQU:costfunction 100}
+\int_{\Omega} F_k \cdot r_k +  G_{li} \cdot r_{k,i} \; dx = 0 
+\end{equation} 
+for all increments $r$ to the stat $u$. The functions $F$ and $G$ are given and describe the physical
+model. They depend of the state variable $u_{k}$ and its gradient $u_{k,i}$ and the physical parameter $p$. The change 
+$d_k$  of the state 
+$u_f$ for physical parameter $p$ in the direction of $q$ is given from the equation
+\begin{equation}\label{REF:EQU:costfunction 100bb}
+ \int_{\Omega} 
+\displaystyle{\frac{\partial F_k }{\partial u_l }  } d_l r_k +
+\displaystyle{\frac{\partial F_k }{\partial u_{l,j}} } d_{l,j} r_k +
+\displaystyle{\frac{\partial F_k }{\partial p} }q r_k +
+\displaystyle{\frac{\partial G_{ki}}{\partial u_l} } d_l r_{k,i} +
+\displaystyle{\frac{\partial G_{ki}}{\partial u_{l,j}} } d_{l,j} r_{k,i}+
+\displaystyle{\frac{\partial G_{ki}}{\partial p} } q r_{k,i}  
+\; dx = 0  
+\end{equation}
+to be fulfilled for all functions $r$. Now let $d^*_k$ be the solution of the 
+variational equation
+\begin{equation}\label{REF:EQU:costfunction 100dd}
+ \int_{\Omega} 
+\displaystyle{\frac{\partial F_k }{\partial u_l }  } h_l d^*_k +
+\displaystyle{\frac{\partial F_k }{\partial u_{l,j}} } h_{l,j} d^*_k +
+\displaystyle{\frac{\partial G_{ki}}{\partial u_l} } h_l d^*_{k,i} +
+\displaystyle{\frac{\partial G_{ki}}{\partial u_{l,j}} } h_{l,j} d^*_{k,i}
+\; dx
+= \int_{\Omega} 
+\displaystyle{\frac{\partial K }{\partial u_k }  } h_k +
+\displaystyle{\frac{\partial K }{\partial u_{k,i} }  } h_{k,i}  \; dx
+\end{equation}
+for all increments $h_k$ to the physical property $p$. This problem
+is solved using \escript \class{LinearPDE} class. In the \escript notation we need to provide 
+\begin{equation}\label{ref:EQU:REG:600b}
+\begin{array}{rcl}
+ A_{kilj} & = &  \displaystyle{\frac{\partial G_{lj}}{\partial u_{k,i}} }  \\
+ B_{kil} & = &  \displaystyle{\frac{\partial F_l }{\partial u_{k,i}} }   \\
+ C_{klj} & = & \displaystyle{\frac{\partial G_{lj}}{\partial u_k} }    \\
+  D_{kl} & = & \displaystyle{\frac{\partial F_l }{\partial u_k }  }   \\ 
+  Y_{k} & = & \displaystyle{\frac{\partial K }{\partial u_k }  }     \\ 
+  X_{ki} & = & \displaystyle{\frac{\partial K }{\partial u_{k,i} }  }    \\ 
+\end{array}
+\end{equation} 
+Notice that these coefficient are transposed to the coefficients used to solve for the 
+state variables in equation~\ref{REF:EQU:costfunction 100}. 
+
+Setting $h_l=d_l$ in equation~\ref{REF:EQU:costfunction 100d} and
+$r_k=d^*_k$ in equation~\ref{REF:EQU:costfunction 100b} one gets
+\begin{equation}\label{ref:EQU:costfunction:601}
+\int_{\Omega}
+\displaystyle{\frac{\partial K }{\partial u_k }  } d_k +
+\displaystyle{\frac{\partial K }{\partial u_{k,i} }  } d_{k,i}+
+\displaystyle{\frac{\partial F_k }{\partial p} } q d^*_k +
+\displaystyle{\frac{\partial G_{ki}}{\partial p} } q d^*_{k,i}  
+\; dx = 0  
+\end{equation} 
+which is inserted into equation~\ref{REF:EQU:costfunction 100d} to get
+\begin{equation}\label{REF:EQU:costfunction 602}
+<q, \nabla_{p} J(p)> =    \int_{\Omega} \left(
+\displaystyle{\frac{\partial K }{\partial p }  } - \displaystyle{\frac{\partial F_k }{\partial p} } d^*_k
+- \displaystyle{\frac{\partial G_{ki}}{\partial p} }  d^*_{k,i} \right) q \; dx
+\end{equation}
+We need in fact the gradient of $J^f$ with respect to the level set function which is given as
+\begin{equation}\label{REF:EQU:costfunction 603}
+<n, \nabla J^f> =    \int_{\Omega} \left(
+\displaystyle{\frac{\partial K^f}{\partial p^f}  } - \displaystyle{\frac{\partial F^f_k }{\partial p^f} } d^{f*}_k
+- \displaystyle{\frac{\partial G^f_{ki}}{\partial p^f} }  d^{f*}_{k,i} \right) 
+\cdot \displaystyle{\frac{\partial p^f }{\partial m_l} } n_l \; dx
+\end{equation}
+for any increment $n$ to the level set function. So in summary we get  
+\begin{equation}\label{ref:EQU:CS:101b}
+\begin{array}{rcl}
+  Y_k & = & \displaystyle{\frac{\partial K^{reg}}{\partial m_k}} + 
+ \sum_{f} \mu^{data}_{f} \left(
+\displaystyle{\frac{\partial K^f}{\partial p^f}  } - \displaystyle{\frac{\partial F^f_l }{\partial p^f} } d^{f*}_l
+- \displaystyle{\frac{\partial G^f_{li}}{\partial p^f} }  d^{f*}_{l,i} \right) 
+\cdot \displaystyle{\frac{\partial p^f }{\partial m_k} } 
+
+\\
+   X_{ki} & = & \displaystyle{\frac{\partial K^{reg}}{\partial m_{k,i}}} 
+\end{array}
+\end{equation} 
+to represent $\nabla J$ as the tuple $(Y,X)$. Contributions of the forward model to the 
+Hessian operator are ignored.
+

@@ -1,0 +1,24 @@
+Description: Changes to some maint scripts to account for debian/ moving.
+  This does not directly affect debian builds because that directory
+  is removed anyway. But it allows the source to be kept in synch.
+Author: Joel Fenwick <joelfenwick@uq.edu.au>
+Forwarded: yes
+Applied-Upstream: yes
+
+--- a/scripts/extracttests.sh
++++ b/scripts/extracttests.sh
+@@ -55,4 +55,4 @@ find . -name 'src' | xargs rm -r
+ rm -r scons
+ rm -r doc/user doc/cookbook 
+ find doc -name '*.tex' | xargs rm
+-rm -rf debian
++rm -rf localdebian
+--- a/scripts/makesrc.sh
++++ b/scripts/makesrc.sh
+@@ -13,5 +13,5 @@ then
+ fi
+ svnversion > svn_version
+ 
+-tar -czf ../python-escript_$SRCVERSION.orig.tar.gz --exclude-vcs --exclude=debian --exclude=scons/*options.py *
++tar -czf ../python-escript_$SRCVERSION.orig.tar.gz --exclude-vcs --exclude=debian --exclude=localdebian --exclude=scons/*options.py *
+ 

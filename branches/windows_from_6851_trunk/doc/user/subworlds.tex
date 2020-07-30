@@ -1,0 +1,224 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright (c) 2015-2018 by The University of Queensland
+% http://www.uq.edu.au
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Apache License, version 2.0
+% http://www.apache.org/licenses/LICENSE-2.0
+%
+% Development from 2014 by Centre for Geoscience Computing (GeoComp)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%!TEX root = user.tex
+\chapter{Escript \code{Splitworlds}}
+\label{CHAP:subworld}
+\section{Introduction}
+By default, when \escript is used with multiple processes\footnote{That is, when MPI is employed 
+(probably in a cluster setting).
+This discussion is not concerned with using multiple threads within a single process (OpenMP).
+The functionality described here is compatible with OpenMP but orthogonal to it (in the same sense that MPI and OpenMP are
+orthogonal).}, it automatically uses all available resources to solve each PDE. 
+When solving PDEs on high resolution domains, this is the most desirable solution technique. 
+However there are cases, for example, geological inversion problems, for which it may be desirable to solve a large number of lower resolution problems simultaneously. 
+To make these problems tractable, \escript's splitworlds package allows you to subdivide \escript's processes into smaller groups, named subworlds, that can each be assigned separate tasks.
+
+\vspace{\baselineskip}
+\noindent For example, if escript is started with 8 MPI processes\footnote{see the \texttt{run-escript} launcher or 
+your system's mpirun for details.}, then these could be subdivided into 2 groups of 4 processes, 4 groups of 2 or 8 groups of 1 node
+\footnote{1 group of 8 processes is also possible, but perhaps not particularly useful aside from debugging scripts.}. These smaller groups of processes are referred to as ``subworlds" and a group of subworlds is referred to as a ``splitworld".
+
+\section{The \code{Splitworld} class}
+The creation and management of a splitworld is managed using the splitworld class in the \escript module. Once the \escript module has been loaded, the command
+\begin{python}
+sw=SplitWorld(n) 
+\end{python}
+will initialise a ``splitworld" that consists of $n$ ``subworlds". Each subworld in this splitworld controls $1/n^\textit{th}$ of the resources available to escript. This command with throw an exception if the requested number of subworlds is not a factor of current number of MPI processes. If the number of MPI processes is not known in advance, you could alternatively run the command \code{Splitworld(getMPISizeWorld())} which will initialise as many subworlds as there are available MPI processes.
+
+\vspace{\baselineskip}
+\noindent A ``subworld" is the context in which a job executes. All processes that execute a particular job belong to the same subworld and the subworld provides the process with information about the spatial domain as well as some other variables. Note that creating a splitworld object does not prevent \escript from solving PDEs normally. You can write an escript that uses both modes of operation.
+
+\vspace{\baselineskip}
+\noindent After a splitworld has been initialized, it is necessary to inform the splitworld what type of domain that the PDE is defined on. First load a domain object from an \escript module and then use the command \code{buildDomains} to instruct the splitworld what type of domain to create. For example, the command
+\begin{python}
+from esys.finley import Rectangle
+sw.buildDomains(Rectangle,n0=10,n1=10)
+\end{python}
+will load the rectangle object from the \finley module into memory and then instruct the splitworld \code{sw} that each subworld is going to solve PDEs on a \finley rectangle. It is not possible to create subworlds inside the same splitworld class that utilize different domain types.
+
+\vspace{\baselineskip}
+\noindent Each subworld stores domain information independently. This means that objects built directly (or indirectly) on domains inside a subworld cannot be passed directly into, out of, or between subworlds. This includes Data objects, FunctionSpaces and LinearPDEs.
+
+\vspace{\baselineskip}
+\noindent The work that you want the subworld to perform is described by a python function. The same function can be executed many times (possibly with different parameters) and each execution is handled by a separate instance. Jobs can be added to the splitworld using one of two commands:
+\begin{python}
+sw.addJob(FunctionJob, JobName, par1=value1, par2=value2)
+sw.addJobPerWorld(FunctionJob, JobName, par1=value1, par2=value2)
+\end{python}
+\code{FunctionJob} is the name of an \escript class that is used to handle some variables inside the subworld and \code{JobName} is the name of the python function describing the work to be done in the subworld. 
+The first of these commands, \code{addJob}, adds a single job to execute on an available subworld. The second command, \code{addJobPerWorld} creates a job instance on every subworld\footnote{
+Note that this is not the same as calling \texttt{addJob} $n$ times where $n$ is the number of subworlds.
+It is better not to make assumptions about how SplitWorld distributes jobs to subworlds.
+}. One use of this would be to run a setup program on each subworld. The parameters \code{par1} and \code{par2} are illustrative only and can be customized. 
+
+\vspace{\baselineskip}
+\noindent Since task functions run by jobs must have the parameter list \code{(self, **kwargs)}, keyword arguments are the best way to get extra information into \code{JobName}. However, it is also possible to pass information downward from the top-level python script to a subworld and to pass information between jobs. To create a variable on all subworlds, use the command
+\begin{python}
+sw.addVariable("variable name",variable_type)
+\end{python}
+where \code{"variable name"} is the name of the variable and \code{variable_type} is a string describing the type of variable to create. Supported variable types are \code{"local"}, which creates an integer variable, \code{"float"} which creates a floating point variable and \code{"Data"S}, which creates a data object. Each subworld has a local copy of the variable. Similarly, to remove an added variable, run the command
+\begin{python}
+sw.removeVariable("variable",variable_type)
+\end{python}
+in the top level python script.
+
+\vspace{\baselineskip}
+\noindent To access a variable inside a subworld task, first declare it and then import it using
+\begin{python}
+self.declareImport("variable name")
+var = self.importValue("variable name")
+\end{python}
+More information on this feature is included in Section \ref{splitworldClass} .
+
+\vspace{\baselineskip}
+\noindent Once all the jobs have been added to the stack, they can be executed by running\footnote{If each instance of \code{JobName} is writing output to the console independently, it may be necessary to run \escript with the ``\textrm{-o}'' flag to ensure that each MPI process outputs data to a separate file.}
+\begin{python}
+sw.runJobs()
+\end{python}
+If any of the jobs raise an exception (or if there is some other problem), then an exception will be raised in the top level python script to help you diagnose the fault\footnote{
+Some things preventing this:
+\begin{itemize}
+ \item Only one of the exceptions will be reported (if multiple jobs raise, you will only see one message).
+ \item The exception does not contain the payload and type of the original exception.
+ \item We do not guarantee that all jobs have been attempted if an exception is raised.
+ \item Variables may be reset and so values may be lost.
+\end{itemize}
+}.
+
+
+\section{Example}
+This example script initialises a splitworld that consists of as many subworlds as there are running MPI processes, instructs the splitworld that each subworld is going to solve a PDE on a \ripley Rectangle, adds twenty jobs to the job stack and then runs everything:
+
+\begin{python}
+from esys.escript import *
+from esys.escript.linearPDEs import Poisson
+from esys.ripley import Rectangle 
+
+# Initialise a Splitworld
+sw=SplitWorld(getMPISizeWorld())
+
+# Initialise a domain on each Subworld inside the Splitworld
+sw.buildDomains(Rectangle, n0=100, n1=100)
+
+# This python function describes the work that each subworld is going to do.
+# In this case we solve a Poisson equation
+def task(self, **kwargs):
+    v=kwargs['v']
+    dom=self.domain
+    pde=Poisson(dom)
+    x=dom.getX()
+    gammaD=whereZero(x[0])+whereZero(x[1])
+    pde.setValue(f=v, q=gammaD)
+    soln=pde.getSolution()
+    soln.dump('soln%d.ncdf'%v)
+
+# Add some jobs
+for i in range(1,20):
+    sw.addJob(FunctionJob, task, v=i)
+
+# Run the jobs
+sw.runJobs() 
+\end{python}
+
+\section{Classes and Functions}
+\label{splitworldClass}
+\subsection{The Splitworld class}
+
+\begin{methoddesc}[SplitWorld]{SplitWorld}{n}
+Returns a SplitWorld which contains $n$ subworlds; will raise an exception if this is not possible.
+\end{methoddesc}
+
+\vspace{\baselineskip}
+\noindent All of these methods outlined in this subsection are only to be called by the top level python script. Do not attempt to use them inside a job:
+
+\begin{funcdesc}{addVariable}{name, constructor, args}
+Adds a variable to each of the subworlds built by the function \var{constructor} with arguments \var{args}. 
+\end{funcdesc}
+
+\begin{methoddesc}[SplitWorld]{clearVariable}{name}
+Clears the value of the named variable on all worlds.
+The variable no longer has a value but a new value can be exported for it.
+\end{methoddesc}
+
+\begin{methoddesc}[SplitWorld]{copyVariable}{source, dest}
+Copies\footnote{ This is a deep copy for Data objects.} the value into the named variable.
+This avoids the need to create jobs merely to importValue+exportValue into the new name. \newline
+\end{methoddesc}
+
+\begin{methoddesc}[SplitWorld]{getDoubleVariable}{name}
+Extracts a floating point value of the named variable to the top level python script.
+If the named variable does not support this an exception will be raised.
+\end{methoddesc}
+
+\begin{methoddesc}[SplitWorld]{getSubWorldCount}{}
+Returns the number of subworlds.
+\end{methoddesc}
+
+\begin{methoddesc}[SplitWorld]{getSubWorldID}{}
+Returns the id of the local world.
+\end{methoddesc}
+
+\begin{methoddesc}[SplitWorld]{getVarList}{}
+Return a python list of pairs \texttt{[name, hasvalue]} (one for each variable).
+\var{hasvalue} is True if the variable currently has a value.
+Mainly useful for debugging.
+\end{methoddesc}
+
+\begin{funcdesc}{buildDomains}{constructor, args}
+Indicates how subworlds should construct their domains.
+\emph{Note that the splitworld code does not support multi-resolution ripley domains yet.}
+\end{funcdesc}
+
+\begin{funcdesc}{addJob}{FunctionJob, function, args}
+Submit a job to run \var{function} with \var{args} to be executed in an available subworld.
+\end{funcdesc}
+
+\begin{funcdesc}{addJobPerWorld}{FunctionJob, function, args}
+Submit a job to run \var{function} with \var{args} to be executed in each subworld.
+Individual jobs can use properties of \var{self} such as \member{swid} or \member{jobid} to distinguish between
+themselves.
+\end{funcdesc}
+
+\begin{methoddesc}[SplitWorld]{removeVariable}{name}
+Removes a variable and its value from all subworlds.
+\end{methoddesc}
+
+\begin{funcdesc}{runJobs}{ }
+Runs all queued jobs in the splitworld.
+\end{funcdesc}
+
+\subsection{FunctionJob methods and members}
+The following parameters may be accessed inside a FunctionJob.
+
+\begin{memberdesc}[FunctionJob]{jobid}
+Returns the id of the current job
+\end{memberdesc}
+
+\begin{memberdesc}[FunctionJob]{swcount}
+Returns the number of subworlds in the SplitWorld. 
+\end{memberdesc}
+
+\begin{memberdesc}[FunctionJob]{swid}
+Returns the id of the subworld this job is running in.
+\end{memberdesc}
+
+\begin{methoddesc}[FunctionJob]{importValue}{name}
+Retrieves the value for the named variable.
+This is a shallow copy so modifications made in the function may affect the variable (LocalOnly). 
+Do not abuse this, use \texttt{exportValue} instead.
+\end{methoddesc}
+
+\begin{methoddesc}[FunctionJob]{exportValue}{name, value}
+Contributes a new value for the named variable.
+\end{methoddesc}

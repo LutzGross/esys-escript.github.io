@@ -1,0 +1,161 @@
+%!TEX root = inversion.tex
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright (c) 2003-2018 by The University of Queensland
+% http://www.uq.edu.au
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Apache License, version 2.0
+% http://www.apache.org/licenses/LICENSE-2.0
+%
+% Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+% Development 2012-2013 by School of Earth Sciences
+% Development from 2014 by Centre for Geoscience Computing (GeoComp)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\section{MT inversion: 2D TE Mode}\label{sec:forward 2DMT TEMode}
+In this section we present the forward model for the magnetotelluric (MT)\index{magnetotelluric}\index{MT}inversion case~\cite{chave2012magnetotelluric} 
+where we particularly looking into the two-dimensional case of the electrical field polarization\index{electrical field polarization}.
+For this case the horizontal electrical field $E_x$\index{electrical field} and the magnetic field $H_y$\index{magnetic field} component 
+for a given frequency $\omega$ are measured and the horizontal impedance $Z_{xy}$\index{impedance}  is recorded as the ratio of
+electrical and magentical field: 
+\begin{equation}\label{ref:2DMTTE:EQU:1}
+E_x  = Z_{xy} \cdot H_y 
+\end{equation}
+It is common practice to record the impedance using the apparent resistivity $\rho_a$\index{resistivity!apparent} and the 
+phase $\phi$ as 
+\begin{equation}\label{ref:2DMTTE:EQU:2}
+Z_{xy} = (\rho_a \cdot \omega \cdot \mu) ^{\frac{1}{2}} \cdot e^{\mathbf{i} \phi}
+\end{equation}
+where $\mu$ is the permeability (e.g. $mu = 4 \pi \cdot 10^{-7} \frac{Vs}{Am}$). Notice that the impedance is independent of the scale of the $E_x$ and $E_y$.
+The electrical field $E_x$ as function of depth $z$ and horizontal coordinate $y$ is given as the solution of the 
+PDE
+\begin{equation}\label{ref:2DMTTE:EQU:3}
+- E_{x,kk}  + \mathbf{i} \omega \mu \sigma \cdot E_x = 0 
+\end{equation}
+where $\mathbf{i}$ is the complex unit, and $k=0$ and $k=1$ correspond to the $y$ and $z$ direction.
+$\sigma$ is the unknown conductivity to be calculated through the inversion. The domain 
+of the PDE is comprised of the subsurface region in which the conductivity is to be calculated 
+and a sufficient high airlayer in which the conductivity is assumed to be zero.
+
+
+It is assumed that $E_x$ takes the value $1$ at the top of the domain $\Gamma_0$ representing an incoming 
+electro-magnetic wave front. On the other faces of the domain homogeneous Neuman conditions 
+are set to model the assumption that the electrical field is constant away from the domain.
+\begin{equation}\label{ref:2DMTTE:EQU:4}
+H_y = - \frac{1}{\mathbf{i} \omega \mu} E_{x,z}
+\end{equation}
+
+The impedance $Z_{xy}^{(s)}$ is measured at certain points ${\mathbf x}^{(s)}$. The defect 
+of the measurements for the prediction $E_x$ is given as 
+\begin{equation}\label{ref:2DMTTE:EQU:5}
+J^{MT}(\sigma) = \frac{1}{2}\sum_{s} \int_{\Omega}
+w^{(s)} \cdot \| E_x - Z_{xy}^{(s)} \cdot H_y \|^2 d{\mathbf x}
+\end{equation} 
+where $w^{(s)}$ is a spatially dependent weighting faction. Here we use the Gaussian profile 
+\begin{equation}\label{ref:2DMTTE:EQU:6}
+w^{(s)}({\mathbf x}) = \frac{w^{(s)}_0}{2\pi (\eta^{(s)})^2} \cdot e^{-\frac{\|{\mathbf x} - {\mathbf x}^{(s)} \|^2}{2(\eta^{(s)})^2}}
+\end{equation} 
+where $\eta^{(s)}$ is measuring the spatial validity 
+and $w^{(s)}_0$ is confidence of the measurement $s$ (e.g. $w^{(s)}_0$ is set to the inverse of the measurement error. )
+
+\subsection{Usage}
+
+\begin{classdesc}{MT2DModelTEMode}{domain, omega, x, Z_XY, eta,
+        \optional{, w0=1}
+        \optional{, mu=4E-7 * PI }
+        \optional{, coordinates=\None}
+        \optional{, fixAtBottom=False}
+        \optional{, tol=1e-8}
+}
+\end{classdesc}
+
+\subsection{Gradient Calculation}
+
+For the implemtation we set
+\begin{equation}\label{ref:2DMTTE:EQU:100}
+E_x  = u_0 + \mathbf{i} \cdot u_1
+\end{equation}
+which translates teh forward model~\ref{ref:2DMTTE:EQU:3}
+\begin{align}\label{ref:2DMTTE:EQU:103}
+- u_{0,kk}  - \omega \mu \sigma u_1 = 0 \\
+- u_{1,kk}  + \omega \mu \sigma u_0 = 0 
+\end{align}
+In weak form this takes the form 
+\begin{equation}\label{ref:2DMTTE:EQU:104}
+\int_{\Omega}
+\left(
+v_{0,k}u_{0,k}
++ v_{1,k}u_{1,k}
++ \omega \mu \sigma \cdot ( v_1 u_0 - v_0 u_1) \right) dx =0  
+\end{equation}
+for all test function $v_i$ with $v_i$ zero on $\Gamma_0$. 
+Using the complex data 
+\begin{equation}\label{ref:2DMTTE:EQU:105}
+d^{(s)} = - \frac{1}{\mathbf{i} \omega \mu} \cdot Z_{xy}^{(s)} = d^{(s)}_0 +  \mathbf{i} \cdot d_1^{(s)}
+\end{equation}
+the cost function~\ref{ref:2DMTTE:EQU:6} takes the form
+\begin{equation}\label{ref:2DMTTE:EQU:106}
+J^{MT}(\sigma)=
+\frac{1}{2}\sum_{s} \int_{\Omega} w^{(s)} \cdot \left(  (u_0- u_{0,1} \cdot d_0^{(s)} + u_{1,1} \cdot d_1^{(s)}  )^2 
+ + ( u_1- u_{0,1} \cdot d_1^{(s)} -u_{1,1} \cdot d_0^{(s)} )^2 \right) dx 
+\end{equation} 
+
+We need to calculate the gardient 
+$\frac{\partial J^{MT}}{\partial \sigma}$ of the cost function $J^{{MT}}$ with
+respect to the susceptibility $\sigma$.  We follow the concept as outlined in section~\ref{chapter:ref:inversion cost function:gradient}.
+
+If $\Gamma_{\sigma}$ denotes the region of the domain where the susceptibility is
+known and for a given direction $\hat{\sigma}$ with $\hat{\sigma}=0$ on $\Gamma_{\sigma}$ one has
+\begin{align}\label{ref:2DMTTE:EQU:201aa}
+\int_{\Omega}   \frac{\partial J^{MT}}{\partial \sigma} \cdot \hat{\sigma} \; dx  & = &
+\sum_{s} \int_{\Omega}  w^{(s)} \cdot \left(  u_0 - u_{0,1} \cdot d_0^{(s)} + u_{1,1} \cdot d_1^{(s)}  \right ) \left(  \hat{u}_0 - \hat{u}_{0,1} \cdot d_0^{(s)} + \hat{u}_{1,1}\cdot d_1^{(s)}  \right )  \\
+& + &  w^{(s)} \cdot \left(u_1- u_{0,1} \cdot d_1^{(s)} -u_{1,1} \cdot d_0^{(s)}  \right)   \left(\hat{u}_1- \hat{u}_{0,1} \cdot d_1^{(s)} -\hat{u}_{1,1} \cdot d_0^{(s)} \right) \; dx 
+\end{align} 
+with
+\begin{equation}\label{ref:2DMTTE:EQU:201A}
+\int_{\Omega}
+\left(
+q_{0,k}\hat{u}_{0,k}
++ q_{1,k}\hat{u}_{1,k}
++ \omega \mu \sigma \cdot ( q_1 \hat{u}_0 - q_0 \hat{u}_1)   
++ \omega \mu \hat{\sigma} \cdot ( q_1 u_0 - q_0 u_1) \right) dx =0
+\end{equation}
+for all $q_i$ with $q_i=0$ on $\Gamma_{0}$. This equation is obtained from equation~(\ref{ref:2DMTTE:EQU:104}).
+With
+\begin{align}\label{ref:2DMTTE:EQU:202b}
+Y_0  = & \sum_{s} w^{(s)} \cdot \left(  u_0 - u_{0,1} \cdot d_0^{(s)} + u_{1,1} \cdot d_1^{(s)}  \right) \\
+Y_1  = & \sum_{s} w^{(s)} \cdot \left(  u_1 - u_{0,1} \cdot d_1^{(s)} - u_{1,1} \cdot d_0^{(s)}  \right)   \\
+X_{01}  = &  \sum_{s} w^{(s)} \cdot \left(    u_{0,1} \cdot ( ( d_0^{(s)})^2 + (d_1^{(s)})^2) -  u_0 \cdot d_0^{(s)} -  u_1 \cdot d_1^{(s)} \right)    \\
+X_{11}  = & \sum_{s} w^{(s)} \cdot \left(  u_{1,1} \cdot ( ( d_0^{(s)})^2 + (d_1^{(s)})^2)  + u_0 \cdot d_1^{(s)} - u_1 \cdot d_0^{(s)} \right)
+\end{align} 
+and $X_{00}=X_{10}=0$ we can write Equation~(\ref{ref:2DMTTE:EQU:201aa}) as 
+\begin{equation}\label{ref:2DMTTE:EQU:202c}
+\int_{\Omega}   \frac{\partial J^{MT}}{\partial \sigma} \cdot \hat{\sigma} \; dx  =
+\int_{\Omega}  Y_i \hat{u}_i + X_{ij}  \hat{u}_{i,j} \; dx
+\end{equation}
+We then set adjoint function $u_i^*$ with $u_i^*=0$ on $\Gamma_{0}$ as the solution of the variational problem  
+\begin{equation}\label{ref:2DMTTE:EQU:202d}
+\int_{\Omega}
+\left(
+u^*_{0,k} v_{0,k}
++ u^*_{1,k} v_{1,k}
++ \omega \mu \sigma \cdot ( u^*_1 v_0 - u^*_0 v_1) \right) dx = \int_{\Omega}  Y_i v_i + X_{ij}  v_{i,j} \; dx  
+\end{equation}
+for all $v_i$ with $v_i=0$ on $\Gamma_{0}$. Setting $q=u^*$ in Equation~(\ref{ref:2DMTTE:EQU:201A}) and 
+$v_i=\hat{u}_i$ in Equation~(\ref{ref:2DMTTE:EQU:202d}) Equation~(\ref{ref:2DMTTE:EQU:201A}) gives
+\begin{equation}\label{ref:2DMTTE:EQU:290}
+\int_{\Omega} \omega \mu \hat{\sigma} \cdot ( u^*_0 u_1 - u^*_1 u_0) \; dx
+= \int_{\Omega}  Y_i \hat{u}_i + X_{ij}  \hat{u}_{i,j} \; dx  
+\end{equation}
+This gives 
+\begin{equation}\label{ref:2DMTTE:EQU:300}
+\int_{\Omega}   \frac{\partial J^{MT}}{\partial \sigma} \cdot \hat{\sigma} \; dx  =
+\int_{\Omega} \omega \mu \hat{\sigma} \cdot ( u^*_0 u_1 - u^*_1 u_0) \; dx
+\end{equation}
+or 
+\begin{equation}\label{ref:2DMTTE:EQU:301}
+\frac{\partial J^{MT}}{\partial \sigma} = \omega \mu \cdot ( u^*_0 u_1 - u^*_1 u_0)
+\end{equation}
+

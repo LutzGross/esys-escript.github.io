@@ -1,0 +1,100 @@
+\chapter{Trilinos}
+\label{app:trilinos}
+
+In order to solve PDEs with complex coefficients, escript needs to be compiled with \texttt{Trilinos} support.
+This requires that your version of Trilinos has certain features enabled.
+Since some precompiled distributions of \texttt{Trilinos} are not built with these features, you may 
+need to compile \texttt{Trilinos} yourself as well.
+
+While we can't provide support for building \texttt{Trilinos}, we do list below, a configuration file which seems to work for 
+under Debian 9 ``stretch'.
+
+\section{Debian ``stretch'' configuration}
+
+
+\subsection{Required packages}
+
+The following packages should be installed to attempt this build:
+\begin{itemize}
+\item[] cmake
+\item[] g++
+\item[] libsuitesparse-dev
+\item[] libmumps-dev
+\item[] libboost-dev
+\item[] libscotchparmetis-dev
+\item[] libmetis-dev
+\item[] libcppunit-dev
+\end{itemize}
+
+
+
+\subsection{Example configuration file}
+
+\begin{verbatim}
+#!/bin/bash
+
+# Set this to the root of your Trilinos source directory.
+TRILINOS_PATH=../trilinos-12.12.1-Source
+
+#
+# You can invoke this shell script with additional command-line
+# arguments.  They will be passed directly to CMake.
+#
+EXTRA_ARGS=$@
+
+rm -f CMakeCache.txt
+
+cmake \
+      -D MPI_C_COMPILER=`which mpicc` \
+      -D MPI_CXX_COMPILER=`which mpic++` \
+      -D MPI_Fortran_COMPILER=`which mpif77` \
+      -D CMAKE_INSTALL_PREFIX=/usr/local/trilinos/ \
+      -D Trilinos_ENABLE_CXX11=ON \
+      -D Trilinos_ENABLE_Fortran=ON \
+      -D BUILD_SHARED_LIBS=ON \
+      -D TPL_ENABLE_BLAS=ON \
+      -D TPL_ENABLE_LAPACK=ON \
+      -D TPL_ENABLE_Boost=ON \
+      -D TPL_ENABLE_Cholmod=ON \
+      -D TPL_ENABLE_CppUnit=ON \
+      -D TPL_ENABLE_Matio=ON \
+      -D TPL_ENABLE_METIS=ON \
+      -D TPL_ENABLE_MUMPS=ON \
+      -D TPL_ENABLE_ParMETIS=ON \
+      -D TPL_ENABLE_Pthread=ON \
+      -D TPL_ENABLE_SCALAPACK=ON \
+      -D TPL_ENABLE_UMFPACK=ON \
+      -D TPL_BLAS_INCLUDE_DIRS=/usr/include/suitesparse \
+      -D TPL_Cholmod_INCLUDE_DIRS=/usr/include/suitesparse \
+      -D TPL_Cholmod_LIBRARIES='libcholmod.so;libamd.so;libcolamd.so' \
+      -D TPL_UMFPACK_INCLUDE_DIRS=/usr/include/suitesparse \
+      -D TPL_SCALAPACK_LIBRARIES=/usr/lib/libscalapack-openmpi.so \
+      -D Trilinos_ENABLE_Amesos=ON \
+      -D Trilinos_ENABLE_Amesos2=ON \
+      -D Trilinos_ENABLE_AztecOO=ON \
+      -D Trilinos_ENABLE_Belos=ON \
+      -D Trilinos_ENABLE_Ifpack=ON \
+      -D Trilinos_ENABLE_Ifpack2=ON \
+      -D Trilinos_ENABLE_Kokkos=ON \
+      -D Trilinos_ENABLE_Komplex=ON \
+      -D Trilinos_ENABLE_ML=ON \
+      -D Trilinos_ENABLE_MueLu=ON \
+      -D Trilinos_ENABLE_Teuchos=ON \
+      -D Trilinos_ENABLE_Tpetra=ON \
+      -D Trilinos_ENABLE_ALL_OPTIONAL_PACKAGES=ON \
+      -D KOKKOS_ENABLE_AGGRESSIVE_VECTORIZATION=ON \
+      -D Tpetra_INST_COMPLEX_DOUBLE=ON \
+      -D Teuchos_ENABLE_COMPLEX=ON \
+      -D Tpetra_INST_INT_LONG=OFF \
+      -D Tpetra_INST_LONG_LONG=OFF \
+      -D Tpetra_INST_INT_LONG_LONG=OFF \
+      -D TpetraKernels_ENABLE_Experimental=ON \
+      -D Trilinos_ENABLE_OpenMP=ON \
+      -D Trilinos_ENABLE_EXPLICIT_INSTANTIATION=ON \
+      -D KOKKOS_ENABLE_COMPILER_WARNINGS=ON \
+      -D Amesos2_ENABLE_Basker=ON \
+      -D Tpetra_INST_SERIAL:BOOL=ON \
+      -D Trilinos_ENABLE_TESTS=OFF \
+$EXTRA_ARGS \
+$TRILINOS_PATH
+\end{verbatim}
