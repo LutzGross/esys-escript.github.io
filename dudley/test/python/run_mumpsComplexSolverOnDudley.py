@@ -1,7 +1,7 @@
 
 ##############################################################################
 #
-# Copyright (c) 2003-2018 by The University of Queensland
+# Copyright (c) 2003-2020 by The University of Queensland
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -59,170 +59,12 @@ class Test_ComplexSolveDudleyRect_Order1_Mumps_Direct(ComplexSolveOnMumps):
     def tearDown(self):
         del self.domain
 
-### BiCGStab + Jacobi
-class Test_ComplexSolveDudleyRect_Order1_Mumps_BICGSTAB_Jacobi(ComplexSolveOnMumps):
-    def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.MUMPS
-        self.method = SolverOptions.BICGSTAB
-        self.preconditioner = SolverOptions.JACOBI
-
-    def tearDown(self):
-        del self.domain
-
 ## direct
 class Test_ComplexSolveDudleyBrick_Order1_Mumps_Direct(ComplexSolveOnMumps):
     def setUp(self):
         self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
         self.package = SolverOptions.MUMPS
         self.method = SolverOptions.DIRECT
-
-    def tearDown(self):
-        del self.domain
-
-## direct
-class Test_ComplexSolveDudleyBrick_Order1_Mumps_BICGSTAB_Jacobi(ComplexSolveOnMumps):
-    def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.MUMPS
-        self.method = SolverOptions.BICGSTAB
-        self.preconditioner = SolverOptions.JACOBI
-
-    def tearDown(self):
-        del self.domain
-        
-### PCG + Jacobi
-
-class Test_ComplexSolveDudleyRect_Order1_Mumps_PCG_Jacobi(ComplexSolveOnMumps):
-    def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.MUMPS
-        self.method = SolverOptions.PCG
-        self.preconditioner = SolverOptions.JACOBI
-
-    def tearDown(self):
-        del self.domain
-
-class Test_ComplexSolveDudleyBrick_Order1_Mumps_PCG_Jacobi(ComplexSolveOnMumps):
-    def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.MUMPS
-        self.method = SolverOptions.PCG
-        self.preconditioner = SolverOptions.JACOBI
-
-    def tearDown(self):
-        del self.domain
-
-### BiCGStab + Gauss-Seidel
-
-class Test_ComplexSolveDudleyRect_Order1_Mumps_BICGSTAB_GaussSeidel(ComplexSolveOnMumps):
-    def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.MUMPS
-        self.method = SolverOptions.BICGSTAB
-        self.preconditioner = SolverOptions.GAUSS_SEIDEL
-
-    def tearDown(self):
-        del self.domain
-
-class Test_ComplexSolveDudleyBrick_Order1_Mumps_BICGSTAB_GaussSeidel(ComplexSolveOnMumps):
-    def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.MUMPS
-        self.method = SolverOptions.BICGSTAB
-        self.preconditioner = SolverOptions.GAUSS_SEIDEL
-
-    def tearDown(self):
-        del self.domain
-
-### PCG + AMG
-
-@unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
-@unittest.skipIf(skip_amg, "AMG not available")
-class Test_ComplexSolveDudleyRect_Order1_Mumps_PCG_AMG(ComplexSolveOnMumps):
-    def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.MUMPS
-        self.method = SolverOptions.PCG
-        self.preconditioner = SolverOptions.AMG
-
-    def tearDown(self):
-        del self.domain
-
-@unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
-@unittest.skipIf(skip_amg, "AMG not available")
-class Test_ComplexSolveDudleyBrick_Order1_Mumps_PCG_AMG(ComplexSolveOnMumps):
-    def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.MUMPS
-        self.method = SolverOptions.PCG
-        self.preconditioner = SolverOptions.AMG
-
-    def tearDown(self):
-        del self.domain
-
-### BiCGStab + RILU
-
-class Test_ComplexSolveDudleyRect_Order1_Mumps_BICGSTAB_RILU(ComplexSolveOnMumps):
-    def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.MUMPS
-        self.method = SolverOptions.BICGSTAB
-        self.preconditioner = SolverOptions.RILU
-
-    def tearDown(self):
-        del self.domain
-
-class Test_ComplexSolveDudleyBrick_Order1_Mumps_BICGSTAB_RILU(ComplexSolveOnMumps):
-    def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.MUMPS
-        self.method = SolverOptions.BICGSTAB
-        self.preconditioner = SolverOptions.RILU
-
-    def tearDown(self):
-        del self.domain
-
-### PCG + RILU
-
-class Test_ComplexSolveDudleyRect_Order1_Mumps_PCG_RILU(ComplexSolveOnMumps):
-    def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.MUMPS
-        self.method = SolverOptions.PCG
-        self.preconditioner = SolverOptions.RILU
-
-    def tearDown(self):
-        del self.domain
-
-class Test_ComplexSolveDudleyBrick_Order1_Mumps_PCG_RILU(ComplexSolveOnMumps):
-    def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.MUMPS
-        self.method = SolverOptions.PCG
-        self.preconditioner = SolverOptions.RILU
-
-    def tearDown(self):
-        del self.domain
-
-### PCG + ILUT
-
-class Test_ComplexSolveDudleyRect_Order1_Mumps_PCG_ILUT(ComplexSolveOnMumps):
-    def setUp(self):
-        self.domain = Rectangle(NE0, NE1, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.MUMPS
-        self.method = SolverOptions.PCG
-        self.preconditioner = SolverOptions.ILUT
-
-    def tearDown(self):
-        del self.domain
-
-class Test_ComplexSolveDudleyBrick_Order1_Mumps_PCG_ILUT(ComplexSolveOnMumps):
-    def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)
-        self.package = SolverOptions.MUMPS
-        self.method = SolverOptions.PCG
-        self.preconditioner = SolverOptions.ILUT
 
     def tearDown(self):
         del self.domain
