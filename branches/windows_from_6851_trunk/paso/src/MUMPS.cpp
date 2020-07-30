@@ -109,6 +109,30 @@ void MUMPS_solve(SparseMatrix_ptr A, double* out, double* in,
         MUMPS_INT* jcn = reinterpret_cast<MUMPS_INT*>(A->pattern->hb_col);  // col indices array
         pt->verbose = verbose;
         pt->isComplex = false;
+        if (pt->verbose) {
+            std::cout << "MUMPS in  ===>" << std::endl;
+            std::cout << "isComplex = " << pt->isComplex << std::endl;
+            std::cout << "n = " << n << std::endl;
+            std::cout << "nnz = " << nnz << std::endl;
+            std::cout << "val = [";
+            for (int i=0; i<nnz; i++) std::cout << A->val[i] << ",";
+            std::cout << "]" << std::endl;
+            std::cout << "in = [";
+            for (int i=0; i<n; i++) std::cout << in[i] << ",";
+            std::cout << "]" << std::endl;
+            std::cout << "ptr = [";
+            for (int i=0; i<n+1; i++) std::cout << A->pattern->ptr[i] << ",";
+            std::cout << "]" << std::endl;
+            std::cout << "index = [";
+            for (int i=0; i<nnz; i++) std::cout << A->pattern->index[i] << ",";
+            std::cout << "]" << std::endl;
+            std::cout << "hb_row = [";
+            for (int i=0; i<nnz; i++) std::cout << A->pattern->hb_row[i] << ",";
+            std::cout << "]" << std::endl;
+            std::cout << "hb_col = [";
+            for (int i=0; i<nnz; i++) std::cout << A->pattern->hb_col[i] << ",";
+            std::cout << "]" << std::endl;
+        }
         pt->rhs = new double[n];
         std::memcpy(pt->rhs, in, n*sizeof(double));
         MUMPS_INT ierr;
@@ -152,6 +176,10 @@ void MUMPS_solve(SparseMatrix_ptr A, double* out, double* in,
                     << ", INFOG(2)=" << pt->id.infog[1];
             }
             if (pt->verbose) {
+                std::cout << "MUMPS out ===>" << std::endl;
+                std::cout << "out = [";
+                for (int i=0; i<n; i++) std::cout << out[i] << ",";
+                std::cout << "]" << std::endl;
                 std::cout << "MUMPS: factorization and solve completed (time = "
                     << escript::gettime()-time0 << ")." << std::endl;
             }
