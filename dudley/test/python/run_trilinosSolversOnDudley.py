@@ -48,26 +48,6 @@ OPTIMIZE=True
 class SimpleSolveOnTrilinos(SimpleSolveTestCase):
     pass
 
-
-## direct
-class Test_SimpleSolveDudleyRect_Trilinos_Direct(SimpleSolveOnTrilinos):
-    def setUp(self):
-        self.domain = Rectangle(NE0, NE1, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
-        self.method = SolverOptions.DIRECT
-
-    def tearDown(self):
-        del self.domain
-
-class Test_SimpleSolveDudleyBrick_Trilinos_Direct(SimpleSolveOnTrilinos):
-    def setUp(self):
-        self.domain = Brick(NE0, NE1, NE2, optimize=OPTIMIZE)
-        self.package = SolverOptions.TRILINOS
-        self.method = SolverOptions.DIRECT
-
-    def tearDown(self):
-        del self.domain
-        
 ### BiCGStab + Jacobi
 
 class Test_SimpleSolveDudleyRect_Trilinos_BICGSTAB_Jacobi(SimpleSolveOnTrilinos):

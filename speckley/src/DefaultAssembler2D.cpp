@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2020 by The University of Queensland
+* Copyright (c) 2003-2018 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -10,9 +10,8 @@
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
-* Development from 2014-2017 by Centre for Geoscience Computing (GeoComp)
-* Development from 2019 by School of Earth and Environmental Sciences
-**
+* Development from 2014 by Centre for Geoscience Computing (GeoComp)
+*
 *****************************************************************************/
 
 #include <speckley/DefaultAssembler2D.h>
@@ -139,29 +138,16 @@ void DefaultAssembler2D::assemblePDESingle(AbstractSystemMatrix* mat,
     const Data& D = unpackData("D", coefs);
     const Data& X = unpackData("X", coefs);
     const Data& Y = unpackData("Y", coefs);
-
-    bool complexpde = A.isComplex() || B.isComplex() || C.isComplex()
-                    || D.isComplex() || X.isComplex() || Y.isComplex()
-                    || rhs.isComplex();
-    if(complexpde)
-        assembleComplexPDESingle(mat, rhs, A, B, C, D, X, Y);
-    else
-        assemblePDESingle(mat, rhs, A, B, C, D, X, Y);
+    assemblePDESingle(mat, rhs, A, B, C, D, X, Y);
 
 }
 
 void DefaultAssembler2D::assemblePDEBoundarySingle(AbstractSystemMatrix* mat,
-                                        Data& rhs, const DataMap& coefs) const
+                                        Data& rhs, const DataMap& coefs) const 
 {
     const Data& d = unpackData("d", coefs);
     const Data& y = unpackData("y", coefs);
-
-    bool complexpde = d.isComplex() || y.isComplex() || rhs.isComplex();
-
-    if(complexpde)
-        assembleComplexPDEBoundarySingle(mat, rhs, d, y);
-    else
-        assemblePDEBoundarySingle(mat, rhs, d, y);
+    assemblePDEBoundarySingle(mat, rhs, d, y);
 }
 
 void DefaultAssembler2D::assemblePDESingleReduced(AbstractSystemMatrix* mat,
@@ -173,15 +159,7 @@ void DefaultAssembler2D::assemblePDESingleReduced(AbstractSystemMatrix* mat,
     const Data& D = unpackData("D", coefs);
     const Data& X = unpackData("X", coefs);
     const Data& Y = unpackData("Y", coefs);
-
-    bool complexpde = A.isComplex() || B.isComplex() || C.isComplex()
-                    || D.isComplex() || X.isComplex() || Y.isComplex()
-                    || rhs.isComplex();
-
-    if(complexpde)
-        assembleComplexPDESingleReduced(mat, rhs, A, B, C, D, X, Y);
-    else
-        assemblePDESingleReduced(mat, rhs, A, B, C, D, X, Y);
+    assemblePDESingleReduced(mat, rhs, A, B, C, D, X, Y);
 }
 
 void DefaultAssembler2D::assemblePDEBoundarySingleReduced(
@@ -190,13 +168,7 @@ void DefaultAssembler2D::assemblePDEBoundarySingleReduced(
 {
     const Data& d = unpackData("d", coefs);
     const Data& y = unpackData("y", coefs);
-
-    bool complexpde = d.isComplex() || y.isComplex() || rhs.isComplex();
-
-    if(complexpde)
-        assembleComplexPDEBoundarySingleReduced(mat, rhs, d, y);
-    else
-        assemblePDEBoundarySingleReduced(mat, rhs, d, y);
+    assemblePDEBoundarySingleReduced(mat, rhs, d, y);
 }
 
 void DefaultAssembler2D::assemblePDESystem(AbstractSystemMatrix* mat,
@@ -208,15 +180,7 @@ void DefaultAssembler2D::assemblePDESystem(AbstractSystemMatrix* mat,
     const Data& D = unpackData("D", coefs);
     const Data& X = unpackData("X", coefs);
     const Data& Y = unpackData("Y", coefs);
-
-    bool complexpde = A.isComplex() || B.isComplex() || C.isComplex()
-                    || D.isComplex() || X.isComplex() || Y.isComplex()
-                    || rhs.isComplex();
-
-    if(complexpde)
-        assembleComplexPDESystem(mat, rhs, A, B, C, D, X, Y);
-    else
-        assemblePDESystem(mat, rhs, A, B, C, D, X, Y);
+    assemblePDESystem(mat, rhs, A, B, C, D, X, Y);
 }
 
 void DefaultAssembler2D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
@@ -224,13 +188,7 @@ void DefaultAssembler2D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
 {
     const Data& d = unpackData("d", coefs);
     const Data& y = unpackData("y", coefs);
-
-    bool complexpde = d.isComplex() || y.isComplex() || rhs.isComplex();
-
-    if(complexpde)
-        assembleComplexPDEBoundarySystem(mat, rhs, d, y);
-    else
-        assemblePDEBoundarySystem(mat, rhs, d, y);
+    assemblePDEBoundarySystem(mat, rhs, d, y);
 }
 
 void DefaultAssembler2D::assemblePDESystemReduced(AbstractSystemMatrix* mat,
@@ -242,15 +200,7 @@ void DefaultAssembler2D::assemblePDESystemReduced(AbstractSystemMatrix* mat,
     const Data& D = unpackData("D", coefs);
     const Data& X = unpackData("X", coefs);
     const Data& Y = unpackData("Y", coefs);
-
-    bool complexpde = A.isComplex() || B.isComplex() || C.isComplex()
-                    || D.isComplex() || X.isComplex() || Y.isComplex()
-                    || rhs.isComplex();
-
-    if(complexpde)
-        assembleComplexPDESystemReduced(mat, rhs, A, B, C, D, X, Y);
-    else
-        assemblePDESystemReduced(mat, rhs, A, B, C, D, X, Y);
+    assemblePDESystemReduced(mat, rhs, A, B, C, D, X, Y);
 }
 
 void DefaultAssembler2D::assemblePDEBoundarySystemReduced(
@@ -259,13 +209,7 @@ void DefaultAssembler2D::assemblePDEBoundarySystemReduced(
 {
     const Data& d = unpackData("d", coefs);
     const Data& y = unpackData("y", coefs);
-
-    bool complexpde = d.isComplex() || y.isComplex() || rhs.isComplex();
-
-    if(complexpde)
-        assembleComplexPDEBoundarySystemReduced(mat, rhs, d, y);
-    else
-        assemblePDEBoundarySystemReduced(mat, rhs, d, y);
+    assemblePDEBoundarySystemReduced(mat, rhs, d, y);
 }
 
 void DefaultAssembler2D::assemblePDESystem(AbstractSystemMatrix* mat,
@@ -288,7 +232,7 @@ void DefaultAssembler2D::assemblePDESystem(AbstractSystemMatrix* mat,
     else {
         numComp=mat->getColumnBlockSize();
     }
-
+    
     rhs.requireWrite();
     int size = 1;
     if (!Y.isEmpty()) {
@@ -303,7 +247,7 @@ void DefaultAssembler2D::assemblePDESystem(AbstractSystemMatrix* mat,
 
     if (!D.isEmpty() && (!X.isEmpty() || !Y.isEmpty()))
         throw SpeckleyException("Speckley does not support adding left and right sides concurrently");
-
+    
     for (dim_t colouring = 0; colouring < 2; colouring++) {
 #pragma omp parallel for
         for (dim_t ey = colouring; ey < NE1; ey += 2) {
@@ -318,7 +262,7 @@ void DefaultAssembler2D::assemblePDESystem(AbstractSystemMatrix* mat,
                             for (short qy = 0; qy < quads; qy++) {
                                 for (short qx = 0; qx < quads; qx++) {
                                     double *out = rhs.getSampleDataRW(start + INDEX2(qx,qy,max_x));
-/* D */ out[comp] += volume_product * weights[qx] * weights[qy]
+/* D */ out[comp] += volume_product * weights[qx] * weights[qy] 
                         * e[INDEX3(comp, qx, qy, numComp, quads)]; //D(i),qx,qy
                                 }
                             }
@@ -328,14 +272,14 @@ void DefaultAssembler2D::assemblePDESystem(AbstractSystemMatrix* mat,
                             for (short qy = 0; qy < quads; qy++) {
                                 for (short qx = 0; qx < quads; qx++) {
                                     double *out = rhs.getSampleDataRW(start + INDEX2(qx,qy,max_x));
-/* D */ out[comp] += volume_product * weights[qx] * weights[qy]
+/* D */ out[comp] += volume_product * weights[qx] * weights[qy] 
                         * e[d_indices[comp]]; //D(i)
                                 }
                             }
                         }
                     }
                 }
-
+                
                 if (!X.isEmpty()) {
                     const double *e = X.getSampleDataRO(e_index);
                     if (X.actsExpanded()) {
@@ -347,10 +291,10 @@ void DefaultAssembler2D::assemblePDESystem(AbstractSystemMatrix* mat,
                                     for (short k = 0; k < quads; k++) {
                                         res_a += weights[k] * all_lagrange_derivs[order-2][qx][k]
                                                 * e[INDEX4(comp,0,k,qy,numComp,2,quads)]; //X(i1),k,qy
-                                        res_b += weights[k] * all_lagrange_derivs[order-2][qy][k]
+                                        res_b += weights[k] * all_lagrange_derivs[order-2][qy][k] 
                                                 * e[INDEX4(comp,1,qx,k,numComp,2,quads)]; //X(i2),qx,k
                                     }
-/* X */ out[comp] += 2 * volume_product
+/* X */ out[comp] += 2 * volume_product 
             * (res_a * weights[qy] / m_dx[0] + res_b * weights[qx] / m_dx[1]);
                                 }
                             }
@@ -364,17 +308,17 @@ void DefaultAssembler2D::assemblePDESystem(AbstractSystemMatrix* mat,
                                     for (short k = 0; k < quads; k++) {
                                         res_a += weights[k] * all_lagrange_derivs[order-2][qx][k]
                                                 * e[INDEX2(comp,0,numComp)]; //X(i1)
-                                        res_b += weights[k] * all_lagrange_derivs[order-2][qy][k]
+                                        res_b += weights[k] * all_lagrange_derivs[order-2][qy][k] 
                                                 * e[INDEX2(comp,1,numComp)]; //X(i2)
                                     }
-/* X */ out[comp] += 2 * volume_product
+/* X */ out[comp] += 2 * volume_product 
             * (res_a * weights[qy] / m_dx[0] + res_b * weights[qx] / m_dx[1]);
                                 }
                             }
                         }
                     }
                 }
-
+                
                 if (!Y.isEmpty()) {
                     const double *e = Y.getSampleDataRO(e_index);
                     if (Y.actsExpanded()) {
@@ -382,7 +326,7 @@ void DefaultAssembler2D::assemblePDESystem(AbstractSystemMatrix* mat,
                             for (short qy = 0; qy < quads; qy++) {
                                 for (short qx = 0; qx < quads; qx++) {
                                     double *out = rhs.getSampleDataRW(start + INDEX2(qx,qy,max_x));
-/* Y */ out[comp] += volume_product * weights[qx] * weights[qy]
+/* Y */ out[comp] += volume_product * weights[qx] * weights[qy] 
                         * e[INDEX3(comp, qx, qy, numComp, quads)]; //Y(i),qx,qy
                                 }
                             }
@@ -392,7 +336,7 @@ void DefaultAssembler2D::assemblePDESystem(AbstractSystemMatrix* mat,
                             for (short qy = 0; qy < quads; qy++) {
                                 for (short qx = 0; qx < quads; qx++) {
                                     double *out = rhs.getSampleDataRW(start + INDEX2(qx,qy,max_x));
-/* Y */ out[comp] += volume_product * weights[qx] * weights[qy]
+/* Y */ out[comp] += volume_product * weights[qx] * weights[qy] 
                         * e[y_indices[comp]]; //Y(i)
                                 }
                             }
@@ -404,174 +348,16 @@ void DefaultAssembler2D::assemblePDESystem(AbstractSystemMatrix* mat,
     }
 }
 
-void DefaultAssembler2D::assembleComplexPDESystem(AbstractSystemMatrix* mat,
-                                     Data& rhs, const Data& AA, const Data& BB,
-                                     const Data& CC, const Data& DD,
-                                     const Data& XX, const Data& YY) const
-{
-    if (!(AA.isEmpty() && BB.isEmpty() && CC.isEmpty()))
-        throw SpeckleyException("Speckley does not support PDEs using A, B or C");
-
-    //shallow copies
-    escript::Data X = Data(X);
-    escript::Data Y = Data(Y);
-    escript::Data D = Data(D);
-
-    // complicate everything
-    if(!D.isEmpty())
-        D.complicate();
-    if(!X.isEmpty())
-        X.complicate();
-    if(!Y.isEmpty())
-        Y.complicate();
-
-    escript::DataTypes::cplx_t cdummy;
-
-    int order = domain->m_order;
-    const double *weights = all_weights[order-2];
-    const double volume_product = m_dx[0]*m_dx[1]/4.;
-    const int NE0 = m_NE[0];
-    const int NE1 = m_NE[1];
-    const int quads = order + 1;
-    const int max_x = m_NN[0];
-    dim_t numComp;
-    if (!mat)
-        numComp=(rhs.isEmpty() ? 1 : rhs.getDataPointSize());
-    else {
-        numComp=mat->getColumnBlockSize();
-    }
-
-    rhs.requireWrite();
-    int size = 1;
-    if (!Y.isEmpty()) {
-        size = Y.getDataPointSize();
-    }
-    const index_t y_indices[2] = {0,size-1};
-    size = 1;
-    if (!D.isEmpty()) {
-        size = D.getDataPointSize();
-    }
-    const index_t d_indices[2] = {0,size-1};
-
-    if (!D.isEmpty() && (!X.isEmpty() || !Y.isEmpty()))
-        throw SpeckleyException("Speckley does not support adding left and right sides concurrently");
-
-    for (dim_t colouring = 0; colouring < 2; colouring++) {
-#pragma omp parallel for
-        for (dim_t ey = colouring; ey < NE1; ey += 2) {
-            for (dim_t ex = 0; ex < NE0; ex++) {
-                const index_t e_index = ex + ey*NE0; //element number for Elements
-                const index_t start = ex*order + ey*max_x*order; //node start for Nodes
-
-                if (!D.isEmpty()) {
-                    const std::complex<double> *e = D.getSampleDataRO(e_index, cdummy);
-                    if (D.actsExpanded()) {
-                        for (index_t comp = 0; comp < numComp; comp++) {
-                            for (short qy = 0; qy < quads; qy++) {
-                                for (short qx = 0; qx < quads; qx++) {
-                                    std::complex<double> *out = rhs.getSampleDataRW(start + INDEX2(qx,qy,max_x), cdummy);
-/* D */                             out[comp] += volume_product * weights[qx] * weights[qy] * e[INDEX3(comp, qx, qy, numComp, quads)]; //D(i),qx,qy
-                                }
-                            }
-                        }
-                    } else { //constant
-                        for (index_t comp = 0; comp < numComp; comp++) {
-                            for (short qy = 0; qy < quads; qy++) {
-                                for (short qx = 0; qx < quads; qx++) {
-                                    std::complex<double> *out = rhs.getSampleDataRW(start + INDEX2(qx,qy,max_x), cdummy);
-/* D */                             out[comp] += volume_product * weights[qx] * weights[qy] * e[d_indices[comp]]; //D(i)
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if (!X.isEmpty()) {
-                    const std::complex<double> *e = X.getSampleDataRO(e_index, cdummy);
-                    if (X.actsExpanded()) {
-                        for (index_t comp = 0; comp < numComp; comp++) {
-                            for (short qy = 0; qy < quads; qy++) {
-                                for (short qx = 0; qx < quads; qx++) {
-                                    std::complex<double> *out = rhs.getSampleDataRW(start + INDEX2(qx,qy,max_x), cdummy);
-                                    std::complex<double> res_a = 0, res_b = 0;
-                                    for (short k = 0; k < quads; k++) {
-                                        res_a += weights[k] * all_lagrange_derivs[order-2][qx][k] * e[INDEX4(comp,0,k,qy,numComp,2,quads)]; //X(i1),k,qy
-                                        res_b += weights[k] * all_lagrange_derivs[order-2][qy][k] * e[INDEX4(comp,1,qx,k,numComp,2,quads)]; //X(i2),qx,k
-                                    }
-/* X */                             out[comp] += 2 * volume_product * (res_a * weights[qy] / m_dx[0] + res_b * weights[qx] / m_dx[1]);
-                                }
-                            }
-                        }
-                    } else { //constant
-                        for (index_t comp = 0; comp < numComp; comp++) {
-                            for (short qy = 0; qy < quads; qy++) {
-                                for (short qx = 0; qx < quads; qx++) {
-                                    std::complex<double> *out = rhs.getSampleDataRW(start + INDEX2(qx,qy,max_x), cdummy);
-                                    std::complex<double> res_a = 0, res_b = 0;
-                                    for (short k = 0; k < quads; k++) {
-                                        res_a += weights[k] * all_lagrange_derivs[order-2][qx][k] * e[INDEX2(comp,0,numComp)]; //X(i1)
-                                        res_b += weights[k] * all_lagrange_derivs[order-2][qy][k] * e[INDEX2(comp,1,numComp)]; //X(i2)
-                                    }
-/* X */                             out[comp] += 2 * volume_product * (res_a * weights[qy] / m_dx[0] + res_b * weights[qx] / m_dx[1]);
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if (!Y.isEmpty()) {
-                    const std::complex<double> *e = Y.getSampleDataRO(e_index, cdummy);
-                    if (Y.actsExpanded()) {
-                        for (index_t comp = 0; comp < numComp; comp++) {
-                            for (short qy = 0; qy < quads; qy++) {
-                                for (short qx = 0; qx < quads; qx++) {
-                                    std::complex<double> *out = rhs.getSampleDataRW(start + INDEX2(qx,qy,max_x), cdummy);
-/* Y */                             out[comp] += volume_product * weights[qx] * weights[qy] * e[INDEX3(comp, qx, qy, numComp, quads)]; //Y(i),qx,qy
-                                }
-                            }
-                        }
-                    } else { //constant
-                        for (index_t comp = 0; comp < numComp; comp++) {
-                            for (short qy = 0; qy < quads; qy++) {
-                                for (short qx = 0; qx < quads; qx++) {
-                                    std::complex<double> *out = rhs.getSampleDataRW(start + INDEX2(qx,qy,max_x), cdummy);
-/* Y */                             out[comp] += volume_product * weights[qx] * weights[qy] * e[y_indices[comp]]; //Y(i)
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-
 void DefaultAssembler2D::assemblePDESystemReduced(AbstractSystemMatrix* mat,
                                     Data& rhs, const Data& A, const Data& B,
                                     const Data& C, const Data& D,
                                     const Data& X, const Data& Y) const
 {
     throw SpeckleyException("Speckley does not support reduced functionspaces");
-
-}
-
-void DefaultAssembler2D::assembleComplexPDESystemReduced(AbstractSystemMatrix* mat,
-                                    Data& rhs, const Data& A, const Data& B,
-                                    const Data& C, const Data& D,
-                                    const Data& X, const Data& Y) const
-{
-    throw SpeckleyException("Speckley does not support reduced functionspaces");
-
+    
 }
 
 void DefaultAssembler2D::assemblePDEBoundarySingle(AbstractSystemMatrix* mat,
-                                Data& rhs, const Data& d, const Data& y) const
-{
-    throw SpeckleyException("Speckley does not support boundary functionspaces");
-}
-
-void DefaultAssembler2D::assembleComplexPDEBoundarySingle(AbstractSystemMatrix* mat,
                                 Data& rhs, const Data& d, const Data& y) const
 {
     throw SpeckleyException("Speckley does not support boundary functionspaces");
@@ -584,33 +370,13 @@ void DefaultAssembler2D::assemblePDEBoundarySingleReduced(
     throw SpeckleyException("Speckley does not support reduced functionspaces");
 }
 
-void DefaultAssembler2D::assembleComplexPDEBoundarySingleReduced(
-                                        AbstractSystemMatrix* mat, Data& rhs,
-                                        const Data& d, const Data& y) const
-{
-    throw SpeckleyException("Speckley does not support reduced functionspaces");
-}
-
 void DefaultAssembler2D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
                                Data& rhs, const Data& d, const Data& y) const
 {
     throw SpeckleyException("Speckley does not support boundary functionspaces");
 }
 
-void DefaultAssembler2D::assembleComplexPDEBoundarySystem(AbstractSystemMatrix* mat,
-                               Data& rhs, const Data& d, const Data& y) const
-{
-    throw SpeckleyException("Speckley does not support boundary functionspaces");
-}
-
 void DefaultAssembler2D::assemblePDEBoundarySystemReduced(
-                                         AbstractSystemMatrix* mat, Data& rhs,
-                                         const Data& d, const Data& y) const
-{
-    throw SpeckleyException("Speckley does not support reduced functionspaces");
-}
-
-void DefaultAssembler2D::assembleComplexPDEBoundarySystemReduced(
                                          AbstractSystemMatrix* mat, Data& rhs,
                                          const Data& d, const Data& y) const
 {
@@ -633,11 +399,11 @@ void DefaultAssembler2D::assemblePDESingle(AbstractSystemMatrix *mat,
     const int quads = order + 1;
     const int max_x = m_NN[0];
     rhs.requireWrite();
-
-
+    
+    
     if (!D.isEmpty() && (!X.isEmpty() || !Y.isEmpty()))
         throw SpeckleyException("Speckley does not support adding left and right sides concurrently");
-
+    
     for (dim_t colouring = 0; colouring < 2; colouring++) {
 #pragma omp parallel for
         for (dim_t ey = colouring; ey < NE1; ey += 2) {
@@ -651,7 +417,7 @@ void DefaultAssembler2D::assemblePDESingle(AbstractSystemMatrix *mat,
                         for (short qy = 0; qy < quads; qy++) {
                             for (short qx = 0; qx < quads; qx++) {
                                 double *out = rhs.getSampleDataRW(start + INDEX2(qx,qy,max_x));
-/* D */ out[0] += volume_product * weights[qx] * weights[qy]
+/* D */ out[0] += volume_product * weights[qx] * weights[qy] 
                     * e[INDEX2(qx, qy, quads)]; //D,qx,qy
                             }
                         }
@@ -664,7 +430,7 @@ void DefaultAssembler2D::assemblePDESingle(AbstractSystemMatrix *mat,
                         }
                     }
                 }
-
+                
                 if (!X.isEmpty()) {
                     const double *e = X.getSampleDataRO(e_index);
                     if (X.actsExpanded()) {
@@ -675,7 +441,7 @@ void DefaultAssembler2D::assemblePDESingle(AbstractSystemMatrix *mat,
                                 for (short k = 0; k < quads; k++) {
                                     res_a += weights[k] * all_lagrange_derivs[order-2][qx][k]
                                             * e[INDEX3(0,k,qy,2,quads)]; //X(1),k,qy
-                                    res_b += weights[k] * all_lagrange_derivs[order-2][qy][k]
+                                    res_b += weights[k] * all_lagrange_derivs[order-2][qy][k] 
                                             * e[INDEX3(1,qx,k,2,quads)]; //X(2),qx,k
                                 }
 /* X */ out[0] += 2 * volume_product * (res_a * weights[qy] / m_dx[0] + res_b * weights[qx] / m_dx[1]);
@@ -689,23 +455,23 @@ void DefaultAssembler2D::assemblePDESingle(AbstractSystemMatrix *mat,
                                 for (short k = 0; k < quads; k++) {
                                     res_a += weights[k] * all_lagrange_derivs[order-2][qx][k]
                                             * e[0]; //X(1)
-                                    res_b += weights[k] * all_lagrange_derivs[order-2][qy][k]
+                                    res_b += weights[k] * all_lagrange_derivs[order-2][qy][k] 
                                             * e[1]; //X(2)
                                 }
-/* X */ out[0] += 2 * volume_product
+/* X */ out[0] += 2 * volume_product 
             * (res_a * weights[qy] / m_dx[0] + res_b * weights[qx] / m_dx[1]);
                             }
                         }
                     }
                 }
-
+                
                 if (!Y.isEmpty()) {
                     const double *e = Y.getSampleDataRO(e_index);
                     if (Y.actsExpanded()) {
                         for (short qy = 0; qy < quads; qy++) {
                             for (short qx = 0; qx < quads; qx++) {
                                 double *out = rhs.getSampleDataRW(start + INDEX2(qx,qy,max_x));
-/* Y */ out[0] += volume_product * weights[qx] * weights[qy]
+/* Y */ out[0] += volume_product * weights[qx] * weights[qy] 
                     * e[INDEX2(qx, qy, quads)]; //Y,qx,qy
                             }
                         }
@@ -724,122 +490,6 @@ void DefaultAssembler2D::assemblePDESingle(AbstractSystemMatrix *mat,
 }
 
 //protected
-void DefaultAssembler2D::assembleComplexPDESingle(AbstractSystemMatrix *mat,
-        escript::Data& rhs, const escript::Data& AA, const escript::Data& BB,
-        const escript::Data& CC, const escript::Data& DD,
-        const escript::Data& XX, const escript::Data& YY) const
-{
-    if (!(AA.isEmpty() && BB.isEmpty() && CC.isEmpty()))
-        throw SpeckleyException("Speckley does not support PDEs using A, B or C");
-    int order = domain->m_order;
-    const double *weights = all_weights[order-2];
-    const double volume_product = m_dx[0]*m_dx[1]/4.;
-    const int NE0 = m_NE[0];
-    const int NE1 = m_NE[1];
-    const int quads = order + 1;
-    const int max_x = m_NN[0];
-    rhs.requireWrite();
-
-    if (!DD.isEmpty() && (!XX.isEmpty() || !YY.isEmpty()))
-        throw SpeckleyException("Speckley does not support adding left and right sides concurrently");
-
-    // These are shallow copies
-    escript::Data D=Data(DD);
-    escript::Data X=Data(XX);
-    escript::Data Y=Data(YY);
-
-    // complicate things
-    if (!D.isEmpty() && !D.isComplex())
-        D.complicate();
-    if (!X.isEmpty() && !X.isComplex())
-        X.complicate();
-    if (!Y.isEmpty() && !Y.isComplex())
-        Y.complicate();
-    if (!rhs.isEmpty() && !rhs.isComplex())
-        rhs.complicate();
-
-    escript::DataTypes::cplx_t cdummy;
-
-    for (dim_t colouring = 0; colouring < 2; colouring++) {
-#pragma omp parallel for
-        for (dim_t ey = colouring; ey < NE1; ey += 2) {
-            for (dim_t ex = 0; ex < NE0; ex++) {
-                const index_t e_index = INDEX2(ex,ey,NE0); //element number for Elements
-                const index_t start = order * (INDEX2(ex, ey, max_x)); //node start for Nodes
-
-                if (!D.isEmpty()) {
-                    const std::complex<double> *e = D.getSampleDataRO(e_index, cdummy);
-                    if (D.actsExpanded()) {
-                        for (short qy = 0; qy < quads; qy++) {
-                            for (short qx = 0; qx < quads; qx++) {
-                                std::complex<double> *out = rhs.getSampleDataRW(start + INDEX2(qx,qy,max_x), cdummy);
-/* D */                         out[0] += volume_product * weights[qx] * weights[qy] * e[INDEX2(qx, qy, quads)]; //D,qx,qy
-                            }
-                        }
-                    } else {    // constant form
-                        for (short qy = 0; qy < quads; qy++) {
-                            for (short qx = 0; qx < quads; qx++) {
-                                std::complex<double> *out = rhs.getSampleDataRW(start + INDEX2(qx,qy,max_x), cdummy);
-/* D */                         out[0] += volume_product * weights[qx] * weights[qy]  * e[0]; //D
-                            }
-                        }
-                    }
-                }
-
-                if (!X.isEmpty()) {
-                    const std::complex<double> *e = X.getSampleDataRO(e_index, cdummy);
-                    if (X.actsExpanded()) {
-                        for (short qy = 0; qy < quads; qy++) {
-                            for (short qx = 0; qx < quads; qx++) {
-                                std::complex<double> *out = rhs.getSampleDataRW(start + INDEX2(qx,qy,max_x), cdummy);
-                                std::complex<double> res_a = 0, res_b = 0;
-                                for (short k = 0; k < quads; k++) {
-                                    res_a += weights[k] * all_lagrange_derivs[order-2][qx][k] * e[INDEX3(0,k,qy,2,quads)]; //X(1),k,qy
-                                    res_b += weights[k] * all_lagrange_derivs[order-2][qy][k] * e[INDEX3(1,qx,k,2,quads)]; //X(2),qx,k
-                                }
-/* X */                         out[0] += 2 * volume_product * (res_a * weights[qy] / m_dx[0] + res_b * weights[qx] / m_dx[1]);
-                            }
-                        }
-                    } else { //constant
-                        for (short qy = 0; qy < quads; qy++) {
-                            for (short qx = 0; qx < quads; qx++) {
-                                std::complex<double> *out = rhs.getSampleDataRW(start + INDEX2(qx,qy,max_x), cdummy);
-                                std::complex<double> res_a = 0, res_b = 0;
-                                for (short k = 0; k < quads; k++) {
-                                    res_a += weights[k] * all_lagrange_derivs[order-2][qx][k] * e[0]; //X(1)
-                                    res_b += weights[k] * all_lagrange_derivs[order-2][qy][k] * e[1]; //X(2)
-                                }
-/* X */                         out[0] += 2 * volume_product * (res_a * weights[qy] / m_dx[0] + res_b * weights[qx] / m_dx[1]);
-                            }
-                        }
-                    }
-                }
-
-                if (!Y.isEmpty()) {
-                    const std::complex<double> *e = Y.getSampleDataRO(e_index, cdummy);
-                    if (Y.actsExpanded()) {
-                        for (short qy = 0; qy < quads; qy++) {
-                            for (short qx = 0; qx < quads; qx++) {
-                                std::complex<double> *out = rhs.getSampleDataRW(start + INDEX2(qx,qy,max_x), cdummy);
-/* Y */                         out[0] += volume_product * weights[qx] * weights[qy] * e[INDEX2(qx, qy, quads)]; //Y,qx,qy
-                            }
-                        }
-                    } else {    // constant form
-                        for (short qy = 0; qy < quads; qy++) {
-                            for (short qx = 0; qx < quads; qx++) {
-                                std::complex<double> *out = rhs.getSampleDataRW(start + INDEX2(qx,qy,max_x), cdummy);
-/* Y */                         out[0] += volume_product * weights[qx] * weights[qy] * e[0]; //Y
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-
-//protected
 void DefaultAssembler2D::assemblePDESingleReduced(AbstractSystemMatrix* mat,
                                     Data& rhs, const Data& A, const Data& B,
                                     const Data& C, const Data& D,
@@ -848,12 +498,6 @@ void DefaultAssembler2D::assemblePDESingleReduced(AbstractSystemMatrix* mat,
     throw SpeckleyException("Speckley does not support reduced functionspaces");
 }
 
-void DefaultAssembler2D::assembleComplexPDESingleReduced(AbstractSystemMatrix* mat,
-                                    Data& rhs, const Data& A, const Data& B,
-                                    const Data& C, const Data& D,
-                                    const Data& X, const Data& Y) const
-{
-    throw SpeckleyException("Speckley does not support reduced functionspaces");
-}
 
 } // namespace speckley
+

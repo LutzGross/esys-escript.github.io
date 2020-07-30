@@ -1,7 +1,7 @@
 
 ##############################################################################
 #
-# Copyright (c) 2003-2020 by The University of Queensland
+# Copyright (c) 2003-2018 by The University of Queensland
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -11,31 +11,21 @@
 # Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 # Development 2012-2013 by School of Earth Sciences
 # Development from 2014 by Centre for Geoscience Computing (GeoComp)
-# Development from 2019 by School of Earth and Environmental Sciences
 #
 ##############################################################################
 
 from __future__ import print_function, division
 
-__copyright__="""Copyright (c) 2003-2020 by The University of Queensland
+__copyright__="""Copyright (c) 2003-2018 by The University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Apache License, version 2.0
 http://www.apache.org/licenses/LICENSE-2.0"""
 __url__="https://launchpad.net/escript-finley"
 
-from esys.escript import convertToNumpy, hasFeature
 from .weipacpp import visitInitialize, visitPublishData
 
 __nodocorecursion=['weipacpp']
-
-import numpy as np
-try:
-    from tvtk.api import tvtk
-    HAVE_TVTK = True
-except:
-    HAVE_TVTK = False
-
 
 def interpolateEscriptData(domain, data):
     """
@@ -289,94 +279,3 @@ END_ORIGINAL_COORDINATE_SYSTEM\n""")
         f.write("PROP_FILE %d %s\n"%(num,propfile))
     f.close()
 
-class EscriptToTVTK(object):
-    """
-    a simple interface from escript to TVTK for rendering with mayavi.mlab
-    """
-    def __init__(self, domain=None):
-        """
-        sets up driver for translating Data objects in domain to TVTK object.
-        """
-        if HAVE_TVTK == False:
-            raise Exception("Failed to load the TVTK module")
-        if hasFeature("boostnumpy") == False:
-            raise Exception("This feature requires boost version 1.64 or higher")
-        if domain is None:
-            self.domain=None
-        else:
-            self.setDomain(domain)
-    def setDomain(self, domain):
-        """
-        resets the domain
-        """
-        x=domain.getNumpyX()
-        cells=domain.getConnectivityInfo()
-        cell_type=domain.getVTKElementType()
-        points=np.zeros(shape=(x.shape[1],3),dtype=np.float32)
-        for i in range(0, x.shape[1]):
-            if domain.getDim() == 2:
-                points[i]=[x[0][i],x[1][i],0.0]
-            else:
-                points[i]=[x[0][i],x[1][i],x[2][i]]
-        self.tvtk = tvtk.UnstructuredGrid(points=points)
-        self.tvtk.set_cells(cell_type, cells)
-        self.domain = domain
-        return self
-    
-    def getDomain(self):
-        return self.domain()
-    
-    def setData(self, **kwargs):
-        """
-        set the scalar data set:
-        """
-        assert self.domain is not None, "no domain set."
-        for n in kwargs:
-            d=kwargs[n]
-
-            # Check that the domains match
-            assert kwargs[n].getDomain() == self.domain, "domain of argument %s does not match."%n
-
-            # Check data rank
-            assert d.getRank() < 2, "data %s is of rank greater than 2"%n
-
-            # Convert to a numpy array. This requires boost v. 1.64 or higher
-            data=convertToNumpy(d)
-
-            # Work out if we have point-centered or cell-centered data
-            data_type=''
-            if self.domain.isCellOriented(d.getFunctionSpace().getTypeCode()):
-                data_type = 'cell'
-            else:
-                data_type = 'point'
-
-            # Add a third component of zeros if the array is two dimensional
-            if d.getShape() == (): 
-                data=np.stack((data[0]),axis=-1)
-            else:
-                if data.shape[0] == 2:
-                    padding=np.zeros((1,data.shape[1]))
-                    data=np.append(data,padding,axis=0)
-                data=np.stack((data[0],data[1],data[2]),axis=-1)
-
-
-            if d.getShape() == (): # scalar data
-                if data_type == 'point':
-                    self.tvtk.point_data.scalars = data
-                    self.tvtk.point_data.scalars.name = n
-                else:
-                    self.tvtk.cell_data.scalars = data
-                    self.tvtk.cell_data.scalars.name = n
-            elif d.getShape() == (self.domain.getDim(),): # vector data
-                if data_type == 'point':
-                    self.tvtk.point_data.vectors = data
-                    self.tvtk.point_data.vectors.name = n
-                else:
-                    self.tvtk.cell_data.vectors = data
-                    self.tvtk.cell_data.vectors.name = n
-
-        return self
-
-    def getTVTK(self):
-        return self.tvtk
-    

@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2020 by The University of Queensland
+* Copyright (c) 2003-2018 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -10,9 +10,8 @@
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
-* Development from 2014-2017 by Centre for Geoscience Computing (GeoComp)
-* Development from 2019 by School of Earth and Environmental Sciences
-**
+* Development from 2014 by Centre for Geoscience Computing (GeoComp)
+*
 *****************************************************************************/
 
 #include "Data.h"
@@ -2114,8 +2113,12 @@ Data::tanh() const
 Data
 Data::erf() const
 {
+#if defined (_WIN32) && !defined(__INTEL_COMPILER)
+    throw DataException("Error - Data:: erf function is not supported on _WIN32 platforms.");
+#else
     MAKELAZYOP(ERF);
     return C_TensorUnaryOperation(*this, escript::ES_optype::ERF);
+#endif
 }
 
 Data
@@ -4661,17 +4664,17 @@ Data::toString() const
 
     if (localNeedSummary){
         if (isComplex())
-    	{
-    	    stringstream temp;
-    	    temp << "Summary: Lsup="<< Lsup_const() << " data points=" << getNumDataPoints();
-    	    return  temp.str();
-    	}
-    	else
-    	{
-    	    stringstream temp;
-    	    temp << "Summary: inf="<< inf_const() << " sup=" << sup_const() << " data points=" << getNumDataPoints();
-    	    return  temp.str();
-    	}
+	{
+	    stringstream temp;
+	    temp << "Summary: Lsup="<< Lsup_const() << " data points=" << getNumDataPoints();
+	    return  temp.str();
+	}
+	else
+	{
+	    stringstream temp;
+	    temp << "Summary: inf="<< inf_const() << " sup=" << sup_const() << " data points=" << getNumDataPoints();
+	    return  temp.str();
+	}
     }
     return m_data->toString();
 }

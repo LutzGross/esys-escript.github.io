@@ -9,14 +9,9 @@
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
-* Development from 2014-2017 by Centre for Geoscience Computing (GeoComp)
-* Development from 2019 by School of Earth and Environmental Sciences
-**
+* Development from 2014 by Centre for Geoscience Computing (GeoComp)
+*
 *****************************************************************************/
-
-#ifdef _WIN32
-#include "Random.h"
-#endif
 
 #include <escript/EsysMPI.h>
 
@@ -113,12 +108,7 @@ void randomFillArray(long seed, double* array, size_t n)
     
 #pragma omp parallel
     {
-#ifdef _WIN32 // error C3016: 'i': index variable in OpenMP 'for' statement must have signed integral type
-#define OMP_LOOP_IDX_T int
-#else
-#define OMP_LOOP_IDX_T size_t
-#endif
-        OMP_LOOP_IDX_T i;
+        size_t i;
 #ifdef _OPENMP
         int tnum=omp_get_thread_num();
 #else

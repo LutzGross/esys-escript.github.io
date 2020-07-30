@@ -102,7 +102,7 @@ sortOutExample('usersguide/trapezoid.py', needsGMSH=True, allowsMPI=False)
 sortOutExample('usersguide/quad.py', needsGMSH=True)
 sortOutExample('usersguide/brick.py', needsGMSH=True)
 sortOutExample('usersguide/refine.py', needsGMSH=True)
-sortOutExample('usersguide/poisson_matplotlib.py', allowsMPI=False, needsGD=True)
+sortOutExample('usersguide/poisson_matplotlib.py', needsGD=True, allowsMPI=False)
 sortOutExample('usersguide/voxet_reader.py')
 
 sortOutExample('geotutorial/steadystate_variablek.py')
@@ -116,14 +116,14 @@ sortOutExample('cookbook/example01a.py')
 sortOutExample('cookbook/example01b.py', needsMPL=True)
 sortOutExample('cookbook/example01c.py', needsMPL=True, allowsMPI=False)
 sortOutExample('cookbook/example02.py', needsMPL=True, allowsMPI=False)
-sortOutExample('cookbook/example03a.py', allowsMPI=False)
+sortOutExample('cookbook/example03a.py', needsGD=True, allowsMPI=False)
 sortOutExample('cookbook/example03b.py')
 sortOutExample('cookbook/example04a.py', needsGMSH=True)
-sortOutExample('cookbook/example04b.py', needsGMSH=True, )
-sortOutExample('cookbook/example05a.py', needsGMSH=True, )
-sortOutExample('cookbook/example05b.py', needsGMSH=True)
-sortOutExample('cookbook/example05c.py', needsGMSH=True, needsMagicMPL=True)
-sortOutExample('cookbook/example06.py', needsGMSH=True, needsMagicMPL=True)
+sortOutExample('cookbook/example04b.py', needsGMSH=True, needsGD=True)
+sortOutExample('cookbook/example05a.py', needsGMSH=True, needsGD=True)
+sortOutExample('cookbook/example05b.py', needsGMSH=True, needsGD=True)
+sortOutExample('cookbook/example05c.py', needsGMSH=True, needsGD=True, needsMagicMPL=True)
+sortOutExample('cookbook/example06.py', needsGMSH=True, needsGD=True, needsMagicMPL=True)
 sortOutExample('cookbook/example07a.py', needsMagicMPL=True, allowsMPI=False)
 sortOutExample('cookbook/example07b.py', needsMagicMPL=True, allowsMPI=False)
 sortOutExample('cookbook/example08a.py', needsMagicMPL=True, allowsMPI=False)
@@ -175,13 +175,11 @@ if len(skipped_tests)>0:
 
 example_files = example_files_allow_mpi + example_files_no_mpi + example_deps
 
-# wave_examples = ['inversion/synthetic_HTI.py',
-#     'inversion/synthetic_VTI.py',
-#     'inversion/synthetic_TTI.py',
-#     'inversion/synthetic_sonic.py',
-#     'inversion/synthetic_sonicHTI.py']
-
-wave_examples = []
+wave_examples = ['inversion/synthetic_HTI.py',
+    'inversion/synthetic_VTI.py',
+    'inversion/synthetic_TTI.py',
+    'inversion/synthetic_sonic.py',
+    'inversion/synthetic_sonicHTI.py']
 
 for i in wave_examples:
     sortOutExample(i)
@@ -223,3 +221,4 @@ local_env.SConscript(dirs = ['#/doc/sphinx_api'], variant_dir='sphinx_api', dupl
 local_env.SConscript(dirs = ['#/doc/doxygen'], variant_dir='doxygen', duplicate=1)
 local_env.SConscript(dirs = ['#/doc/install'], variant_dir='install', duplicate=1)
 local_env.SConscript(dirs = ['#/doc/examples'], variant_dir='examples', duplicate=1, exports=['example_files_allow_mpi', 'example_files_no_mpi', 'example_deps'])
+

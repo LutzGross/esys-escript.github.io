@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2020 by The University of Queensland
+* Copyright (c) 2003-2018 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -10,9 +10,8 @@
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
-* Development from 2014-2017 by Centre for Geoscience Computing (GeoComp)
-* Development from 2019 by School of Earth and Environmental Sciences
-**
+* Development from 2014 by Centre for Geoscience Computing (GeoComp)
+*
 *****************************************************************************/
 
 #include "DataFactory.h"
@@ -30,9 +29,9 @@
   #include <ncDim.h>
   #include <ncVar.h>
   #include <ncFile.h>
-
- #include "NCHelper.h"
-
+  
+ #include "NCHelper.h"  
+  
  #else
   #include <netcdfcpp.h>
  #endif
@@ -60,24 +59,6 @@ Data Scalar(DataTypes::cplx_t value, const FunctionSpace& what, bool expanded)
     return Data(value, shape, what, expanded);
 }
 
-Data ComplexScalar(double value, const FunctionSpace& what, bool expanded)
-{
-    // an empty shape is a scalar
-    DataTypes::ShapeType shape;
-    escript::Data newdata = Data(value, shape, what, expanded);
-    newdata.complicate();
-    return newdata;
-}
-
-Data ComplexScalar(DataTypes::cplx_t value, const FunctionSpace& what, bool expanded)
-{
-    // an empty shape is a scalar
-    DataTypes::ShapeType shape;
-    escript::Data newdata = Data(value, shape, what, expanded);
-    newdata.complicate();
-    return newdata;
-}
-
 Data
 ScalarFromObj(boost::python::object o,
 	const FunctionSpace& what,
@@ -89,36 +70,14 @@ ScalarFromObj(boost::python::object o,
         return Scalar(v, what, expanded);
     } catch(...) {
         PyErr_Clear();
-    }
+    }    
     // check for real first
     try {
         DataTypes::cplx_t v = bp::extract<DataTypes::cplx_t>(o);
         return Scalar(v, what, expanded);
     } catch(...) {
         PyErr_Clear();
-    }
-    throw DataException("Can not make a Scalar from a non-scalar value.");
-}
-
-Data
-ComplexScalarFromObj(boost::python::object o,
-	const FunctionSpace& what,
-	bool expanded)
-{
-    // check for real first
-    try {
-        double v = bp::extract<double>(o);
-        return ComplexScalar(v, what, expanded);
-    } catch(...) {
-        PyErr_Clear();
-    }
-    // check for real first
-    try {
-        DataTypes::cplx_t v = bp::extract<DataTypes::cplx_t>(o);
-        return ComplexScalar(v, what, expanded);
-    } catch(...) {
-        PyErr_Clear();
-    }
+    }    
     throw DataException("Can not make a Scalar from a non-scalar value.");
 }
 
@@ -128,16 +87,8 @@ Data Vector(double value, const FunctionSpace& what, bool expanded)
     return Data(value, shape, what, expanded);
 }
 
-Data ComplexVector(double value, const FunctionSpace& what, bool expanded)
-{
-    DataTypes::ShapeType shape(1, what.getDomain()->getDim());
-    escript::Data newdata = Data(value, shape, what, expanded);
-    newdata.complicate();
-    return newdata;
-}
-
 Data VectorFromObj(bp::object o, const FunctionSpace& what, bool expanded)
-{
+{    
     // first try to get a double and route it to the other method
     try {
         double v = bp::extract<double>(o);
@@ -154,51 +105,16 @@ Data VectorFromObj(bp::object o, const FunctionSpace& what, bool expanded)
     return d;
 }
 
-Data ComplexVectorFromObj(bp::object o, const FunctionSpace& what, bool expanded)
-{
-    // first try to get a double and route it to the other method
-    try {
-        double v = bp::extract<double>(o);
-        return ComplexVector(v, what, expanded);
-    } catch(...) {
-        PyErr_Clear();
-    }
-    DataTypes::ShapeType shape(1, what.getDomain()->getDim());
-    Data d(o, what, expanded);
-    d.complicate();
-    if (d.getDataPointShape() != shape) {
-        throw DataException("ComplexVectorFromObj: Shape of vector passed to function"
-               " does not match the dimension of the domain. ");
-    }
-    return d;
-}
-
 Data Tensor(double value, const FunctionSpace& what, bool expanded)
 {
     DataTypes::ShapeType shape(2, what.getDomain()->getDim());
     return Data(value, shape, what, expanded);
 }
 
-Data ComplexTensor(double value, const FunctionSpace& what, bool expanded)
-{
-    DataTypes::ShapeType shape(2, what.getDomain()->getDim());
-    escript::Data newdata = Data(value, shape, what, expanded);
-    newdata.complicate();
-    return newdata;
-}
-
 Data TensorC(DataTypes::cplx_t value, const FunctionSpace& what, bool expanded)
 {
     DataTypes::ShapeType shape(2, what.getDomain()->getDim());
     return Data(value, shape, what, expanded);
-}
-
-Data ComplexTensorC(DataTypes::cplx_t value, const FunctionSpace& what, bool expanded)
-{
-    DataTypes::ShapeType shape(2, what.getDomain()->getDim());
-    escript::Data newdata = Data(value, shape, what, expanded);
-    newdata.complicate();
-    return newdata;
 }
 
 // We need to take some care here because this signature trumps the other one from boost's point of view
@@ -217,37 +133,11 @@ Data TensorFromObj(bp::object o, const FunctionSpace& what, bool expanded)
         return TensorC(v, what, expanded);
     } catch(...) {
         PyErr_Clear();
-    }
+    }    
     DataTypes::ShapeType shape(2, what.getDomain()->getDim());
     Data d(o, what, expanded);
     if (d.getDataPointShape() != shape) {
         throw DataException("TensorFromObj: Shape of tensor passed to function"
-               " does not match the dimension of the domain.");
-    }
-    return d;
-}
-
-Data ComplexTensorFromObj(bp::object o, const FunctionSpace& what, bool expanded)
-{
-    // first try to get a double and route it to the other method
-    try {
-        double v = bp::extract<double>(o);
-        return ComplexTensor(v, what, expanded);
-    } catch(...) {
-        PyErr_Clear();
-    }
-    // now try to get a complex and route to scalar factory
-    try {
-        DataTypes::cplx_t v = bp::extract<DataTypes::cplx_t>(o);
-        return ComplexTensorC(v, what, expanded);
-    } catch(...) {
-        PyErr_Clear();
-    }
-    DataTypes::ShapeType shape(2, what.getDomain()->getDim());
-    Data d(o, what, expanded);
-    d.complicate();
-    if (d.getDataPointShape() != shape) {
-        throw DataException("ComplexTensorFromObj: Shape of tensor passed to function"
                " does not match the dimension of the domain.");
     }
     return d;
@@ -259,27 +149,12 @@ Data Tensor3(double value, const FunctionSpace& what, bool expanded)
     return Data(value, shape, what, expanded);
 }
 
-Data ComplexTensor3(double value, const FunctionSpace& what, bool expanded)
-{
-    DataTypes::ShapeType shape(3, what.getDomain()->getDim());
-    escript::Data newdata = Data(value, shape, what, expanded);
-    newdata.complicate();
-    return newdata;
-}
-
 Data Tensor3C(DataTypes::cplx_t  value, const FunctionSpace& what, bool expanded)
 {
     DataTypes::ShapeType shape(3, what.getDomain()->getDim());
     return Data(value, shape, what, expanded);
 }
 
-Data ComplexTensor3C(DataTypes::cplx_t  value, const FunctionSpace& what, bool expanded)
-{
-    DataTypes::ShapeType shape(3, what.getDomain()->getDim());
-    escript::Data newdata = Data(value, shape, what, expanded);
-    newdata.complicate();
-    return newdata;
-}
 
 Data Tensor3FromObj(bp::object o, const FunctionSpace& what, bool expanded)
 {
@@ -296,37 +171,11 @@ Data Tensor3FromObj(bp::object o, const FunctionSpace& what, bool expanded)
         return Tensor3C(v, what, expanded);
     } catch(...) {
         PyErr_Clear();
-    }
+    }    
     DataTypes::ShapeType shape(3, what.getDomain()->getDim());
     Data d(o, what, expanded);
     if (d.getDataPointShape() != shape) {
         throw DataException("Tensor3FromObj: Shape of tensor passed to "
-                "function does not match the dimension of the domain.");
-    }
-    return d;
-}
-
-Data ComplexTensor3FromObj(bp::object o, const FunctionSpace& what, bool expanded)
-{
-    // first try to get a double and route it to the other method
-    try {
-        double v = bp::extract<double>(o);
-        return ComplexTensor3(v, what, expanded);
-    } catch(...) {
-        PyErr_Clear();
-    }
-    // first try to get a complex and route it to the other method
-    try {
-        DataTypes::cplx_t v = bp::extract<DataTypes::cplx_t>(o);
-        return ComplexTensor3C(v, what, expanded);
-    } catch(...) {
-        PyErr_Clear();
-    }
-    DataTypes::ShapeType shape(3, what.getDomain()->getDim());
-    Data d(o, what, expanded);
-    d.complicate();
-    if (d.getDataPointShape() != shape) {
-        throw DataException("ComplexTensor3FromObj: Shape of tensor passed to "
                 "function does not match the dimension of the domain.");
     }
     return d;
@@ -338,27 +187,12 @@ Data Tensor4(double value, const FunctionSpace& what, bool expanded)
     return Data(value, shape, what, expanded);
 }
 
-Data ComplexTensor4(double value, const FunctionSpace& what, bool expanded)
-{
-    DataTypes::ShapeType shape(4, what.getDomain()->getDim());
-    escript::Data newdata = Data(value, shape, what, expanded);
-    newdata.complicate();
-    return newdata;
-}
-
 Data Tensor4C(DataTypes::cplx_t value, const FunctionSpace& what, bool expanded)
 {
     DataTypes::ShapeType shape(4, what.getDomain()->getDim());
     return Data(value, shape, what, expanded);
 }
 
-Data ComplexTensor4C(DataTypes::cplx_t value, const FunctionSpace& what, bool expanded)
-{
-    DataTypes::ShapeType shape(4, what.getDomain()->getDim());
-    escript::Data newdata = Data(value, shape, what, expanded);
-    newdata.complicate();
-    return newdata;
-}
 
 Data Tensor4FromObj(bp::object o, const FunctionSpace& what, bool expanded)
 {
@@ -375,7 +209,7 @@ Data Tensor4FromObj(bp::object o, const FunctionSpace& what, bool expanded)
         return Tensor4C(v, what, expanded);
     } catch(...) {
         PyErr_Clear();
-    }
+    }    
     DataTypes::ShapeType shape(4, what.getDomain()->getDim());
     Data d(o, what, expanded);
     if (d.getDataPointShape() != shape) {
@@ -384,66 +218,6 @@ Data Tensor4FromObj(bp::object o, const FunctionSpace& what, bool expanded)
     }
     return d;
 }
-
-Data ComplexTensor4FromObj(bp::object o, const FunctionSpace& what, bool expanded)
-{
-    // first try to get a double and route it to the other method
-    try {
-        double v = bp::extract<double>(o);
-        return ComplexTensor4(v, what, expanded);
-    } catch(...) {
-        PyErr_Clear();
-    }
-    // first try to get a double and route it to the other method
-    try {
-        DataTypes::cplx_t v = bp::extract<DataTypes::cplx_t>(o);
-        return ComplexTensor4C(v, what, expanded);
-    } catch(...) {
-        PyErr_Clear();
-    }
-    DataTypes::ShapeType shape(4, what.getDomain()->getDim());
-    Data d(o, what, expanded);
-    d.complicate();
-    if (d.getDataPointShape() != shape) {
-        throw DataException("ComplexTensor4FromObj: Shape of tensor passed to function"
-               " does not match the dimension of the domain.");
-    }
-    return d;
-}
-
-Data ComplexData(boost::python::object o, const FunctionSpace& what, bool expanded)
-{
-    // first try to get a double and route it to the other method
-    try {
-        double v = bp::extract<double>(o);
-        std::complex<double> c(v,0);
-        DataTypes::ShapeType shape;
-        escript::Data newdata = Data(c, shape, what, expanded);
-        newdata.complicate();
-        return newdata;
-    } catch(...) {
-        PyErr_Clear();
-    }
-    // first try to get a double and route it to the other method
-    try {
-        DataTypes::cplx_t v = bp::extract<DataTypes::cplx_t>(o);
-        DataTypes::ShapeType shape;
-        escript::Data newdata = Data(v, shape, what, expanded);
-        newdata.complicate();
-        return newdata;
-    } catch(...) {
-        PyErr_Clear();
-    }
-    DataTypes::ShapeType shape(1, what.getDomain()->getDim());
-    Data d(o, what, expanded);
-    d.complicate();
-    if (d.getDataPointShape() != shape) {
-        throw DataException("ComplexData: Shape of tensor passed to function"
-               " does not match the dimension of the domain.");
-    }
-    return d;
-}
-
 
 #ifdef NETCDF4
 
@@ -470,7 +244,7 @@ Data load(const std::string fileName, const AbstractDomain& domain)
         int function_space_type=0;  // =0 should not actually be used but we keep compiler happy
         try
         {
-            // recover function space
+            // recover function space            
             NcGroupAtt fst=dataFile.getAtt("function_space_type");
             if (fst.getAttLength()!=1)
             {
@@ -480,7 +254,7 @@ Data load(const std::string fileName, const AbstractDomain& domain)
         }
         catch (exceptions::NcException* e)
         {
-                throw DataException("load: cannot recover function_space_type attribute from escript netCDF file.");
+                throw DataException("load: cannot recover function_space_type attribute from escript netCDF file.");    
         }
         line=0;
         if (!domain.isValidFunctionSpaceType(function_space_type))
@@ -499,7 +273,7 @@ Data load(const std::string fileName, const AbstractDomain& domain)
             rt.getValues(&rank);
             line++;
             if (rank<0 || rank>DataTypes::maxRank)
-                throw DataException("load: rank in escript netCDF file is greater than maximum rank.");
+                throw DataException("load: rank in escript netCDF file is greater than maximum rank.");            
             // recover type attribute
             //   looks like we can have either "type" or "typeid"
             NcGroupAtt tatt=dataFile.getAtt("type");
@@ -520,7 +294,7 @@ Data load(const std::string fileName, const AbstractDomain& domain)
                     type = 2;
                 }
             }
-            else
+            else 
             {
                 tatt=dataFile.getAtt("type_id");
                 if (!tatt.isNull())
@@ -604,7 +378,7 @@ Data load(const std::string fileName, const AbstractDomain& domain)
             if ((var = dataFile.getVar("data")).isNull())
                 throw DataException("load: unable to find data in netCDF file.");
             var.getVar(&(out.getDataAtOffsetRW(out.getDataOffset(0,0), static_cast<DataTypes::real_t>(0))));
-        } else if (type == 1) {
+        } else if (type == 1) { 
             // tagged data
             if ( ! (ndims == rank + 1) )
                 throw DataException("load: illegal number of dimensions for tagged data in netCDF file.");
@@ -628,7 +402,7 @@ Data load(const std::string fileName, const AbstractDomain& domain)
             DataTypes::RealVectorType data1(len_data_point * ntags, 0., len_data_point * ntags);
             if ((var1 = dataFile.getVar("data")).isNull())
                 throw DataException("load: unable to find data in netCDF file.");
-            var1.getVar(&(data1[0]));
+            var1.getVar(&(data1[0])); 
             DataTagged* dt=new DataTagged(function_space, shape, &tags[0], data1);
             out=Data(dt);
         } else if (type == 2) {
@@ -726,7 +500,7 @@ Data load(const std::string fileName, const AbstractDomain& domain)
         int function_space_type = function_space_type_att->as_int(0);
         delete function_space_type_att;
         // test if function space id is valid and create function space instance
-        if (!domain.isValidFunctionSpaceType(function_space_type))
+        if (!domain.isValidFunctionSpaceType(function_space_type)) 
             throw DataException("load: function space type code in netCDF file is invalid for given domain.");
         FunctionSpace function_space=FunctionSpace(domain.getPtr(), function_space_type);
         // recover rank
@@ -810,9 +584,9 @@ Data load(const std::string fileName, const AbstractDomain& domain)
             out=Data(0,shape,function_space,false);
             if (!(var = dataFile.get_var("data")))
                 throw DataException("load: unable to find data in netCDF file.");
-            if (! var->get(&(out.getDataAtOffsetRW(out.getDataOffset(0,0), static_cast<DataTypes::real_t>(0))), dims) )
+            if (! var->get(&(out.getDataAtOffsetRW(out.getDataOffset(0,0), static_cast<DataTypes::real_t>(0))), dims) ) 
                 throw DataException("load: unable to recover data from netCDF file.");
-        } else if (type == 1) {
+        } else if (type == 1) { 
             // tagged data
             if ( ! (ndims == rank + 1) )
                 throw DataException("load: illegal number of dimensions for tagged data in netCDF file.");
@@ -823,7 +597,7 @@ Data load(const std::string fileName, const AbstractDomain& domain)
             std::vector<int> tags(ntags);
             if (! ( tags_var = dataFile.get_var("tags")) )
                 throw DataException("load: unable to find tags in netCDF file.");
-            if (! tags_var->get(&tags[0], ntags) )
+            if (! tags_var->get(&tags[0], ntags) ) 
                 throw DataException("load: unable to recover tags from netCDF file.");
 
             // A) create a DataTagged dt
@@ -836,7 +610,7 @@ Data load(const std::string fileName, const AbstractDomain& domain)
             DataTypes::RealVectorType data1(len_data_point * ntags, 0., len_data_point * ntags);
             if (!(var1 = dataFile.get_var("data")))
                 throw DataException("load: unable to find data in netCDF file.");
-            if (! var1->get(&(data1[0]), dims) )
+            if (! var1->get(&(data1[0]), dims) ) 
                 throw DataException("load: unable to recover data from netCDF file.");
             DataTagged* dt=new DataTagged(function_space, shape, &tags[0], data1);
             out=Data(dt);
@@ -861,7 +635,7 @@ Data load(const std::string fileName, const AbstractDomain& domain)
                     throw DataException("load: unable to find reference ids in netCDF file.");
                 const DataTypes::dim_t* ids_p=function_space.borrowSampleReferenceIDs();
                 std::vector<DataTypes::dim_t> ids_of_nc(num_samples);
-                if (! ids_var->get(&ids_of_nc[0], (long) num_samples) )
+                if (! ids_var->get(&ids_of_nc[0], (long) num_samples) ) 
                     throw DataException("load: unable to recover ids from netCDF file.");
                 // check order:
                 int failed=-1, local_failed=-1, i;
@@ -881,7 +655,7 @@ Data load(const std::string fileName, const AbstractDomain& domain)
                 out=Data(0,shape,function_space,true);
                 if (!(var = dataFile.get_var("data")))
                     throw DataException("load: unable to find data in netCDF file.");
-                if (! var->get(&(out.getDataAtOffsetRW(out.getDataOffset(0,0), static_cast<DataTypes::real_t>(0))), dims))
+                if (! var->get(&(out.getDataAtOffsetRW(out.getDataOffset(0,0), static_cast<DataTypes::real_t>(0))), dims)) 
                     throw DataException("load: unable to recover data from netCDF file.");
                 if (failed >= 0) {
                     try {
@@ -924,9 +698,9 @@ bool loadConfigured()
 #endif
 }
 
-Data convertToData(const bp::object& value, const FunctionSpace& what)
+Data convertToData(const bp::object& value, const FunctionSpace& what) 
 {
-    // first we try to extract a Data object from value
+    // first we try to extract a Data object from value 
     bp::extract<Data> value_data(value);
     if (value_data.check()) {
         Data extracted_data=value_data();
@@ -941,3 +715,4 @@ Data convertToData(const bp::object& value, const FunctionSpace& what)
 }
 
 }  // end of namespace
+

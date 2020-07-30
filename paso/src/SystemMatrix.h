@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2020 by The University of Queensland
+* Copyright (c) 2003-2018 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -10,9 +10,8 @@
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
-* Development from 2014-2017 by Centre for Geoscience Computing (GeoComp)
-* Development from 2019 by School of Earth and Environmental Sciences
-**
+* Development from 2014 by Centre for Geoscience Computing (GeoComp)
+*
 *****************************************************************************/
 
 
@@ -45,7 +44,7 @@ typedef boost::shared_ptr<const SystemMatrix> const_SystemMatrix_ptr;
 typedef int SystemMatrixType;
 
 /// this class holds a (distributed) stiffness matrix
-class PASO_DLL_API SystemMatrix : public escript::AbstractSystemMatrix
+class SystemMatrix : public escript::AbstractSystemMatrix
 {
 public:
     /// default constructor - throws exception.
@@ -296,9 +295,6 @@ public:
     void MatrixVector(double alpha, const double* in, double beta,
                       double* out) const;
 
-    void MatrixVector(double alpha, const cplx_t* in, double beta,
-                      cplx_t* out) const;
-
     void MatrixVector_CSR_OFFSET0(double alpha, const double* in, double beta,
                                   double* out) const;
 
@@ -361,8 +357,6 @@ private:
     virtual void ypAx(escript::Data& y, escript::Data& x) const;
 
     void solve(double* out, double* in, Options* options) const;
-
-    void solve(cplx_t* out, cplx_t* in, Options* options) const;
 };
 
 

@@ -11,7 +11,6 @@
 # Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 # Development 2012-2013 by School of Earth Sciences
 # Development from 2014 by Centre for Geoscience Computing (GeoComp)
-# Development from 2019 by School of Earth and Environmental Sciences
 #
 ##############################################################################
 
@@ -122,39 +121,3 @@ def Brick(n0=1, n1=1, n2=1, order=1, l0=1.0, l1=1.0, l2=1.0, periodic0=False,
 
 Brick.__doc__=__Brick_driver.__doc__
 
-def getTVTK(domain):
-    """
-    Returns the point and connectivity information of a finleymesh for tVTK
-    :param domain: a finley domainsation of node labels
-    :return connectivityinfo: ``numpy ndarray``
-    :return pointinfo: ``numpy ndarray``
-    """
-    import numpy as np
-
-    x = domain.getNumpyX()
-    y = domain.getConnectivityInfo()
-
-    pointinfo = np.zeros(shape=(x.shape[1],x.shape[0]),dtype=np.float32)
-    if x.shape[0] == 2:
-        for i in range(0, x.shape[1]):
-            pointinfo[i] = np.array([x[0][i],x[1][i]])
-    elif x.shape[0] == 3:
-        for i in range(0, x.shape[1]):
-            pointinfo[i] = np.array([x[0][i],x[1][i]])
-    else:
-        raise Exception("Unknown grid type shape")
-
-    connectivityinfo = np.ndarray(shape=(y.shape[0],y.shape[1]),dtype=np.float32)
-    if y.shape[1] == 3:
-        for i in range(0, y.shape[0]):
-            connectivityinfo[i] = y[i]
-    elif y.shape[1] == 4:
-        for i in range(0, y.shape[0]):
-            connectivityinfo[i] = y[i]
-    elif y.shape[1] == 5:
-        for i in range(0, y.shape[0]):
-            connectivityinfo[i] = y[i]
-    else:
-        raise Exception("Unknown element shape")
-
-    return pointinfo, connectivityinfo

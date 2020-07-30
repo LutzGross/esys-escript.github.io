@@ -2,7 +2,7 @@
 
 ##############################################################################
 #
-# Copyright (c) 2003-2020 by The University of Queensland
+# Copyright (c) 2003-2018 by The University of Queensland
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -12,13 +12,12 @@
 # Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 # Development 2012-2013 by School of Earth Sciences
 # Development from 2014 by Centre for Geoscience Computing (GeoComp)
-# Development from 2019 by School of Earth and Environmental Sciences
 #
 ##############################################################################
 
 from __future__ import print_function, division
 
-__copyright__="""Copyright (c) 2003-2020 by The University of Queensland
+__copyright__="""Copyright (c) 2003-2018 by The University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Apache License, version 2.0
@@ -488,11 +487,6 @@ class LinearProblem(object):
      self.__solution_atol=1.e99
      self.setSolverOptions()
      self.setSymmetryOff()
-     # Set on lumping if we are using Speckley
-     if domain.getDescription() == 'speckley::Rectangle' or domain.getDescription() == 'speckley::Brick':
-         self.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
-     # set number of equations in trilinos
-     self.getSolverOptions().setTrilinosParameter("number of equations", numEquations)
      # initialize things:
      self.resetAllCoefficients()
      self.initializeSystem()
@@ -627,7 +621,6 @@ class LinearProblem(object):
             raise UndefinedPDEError("Number of equations is undefined. Please specify argument numEquations.")
          else:
             self.__numEquations=self.__numSolutions
-            self.getSolverOptions().setTrilinosParameter("number of equations", self.__numEquations)
      return self.__numEquations
 
    def getNumSolutions(self):
@@ -1797,7 +1790,7 @@ class LinearPDE(LinearProblem):
        y_dirac=PDECoef(PDECoef.DIRACDELTA,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE, isComplex),
        r=PDECoef(PDECoef.SOLUTION,(PDECoef.BY_SOLUTION,),PDECoef.RIGHTHANDSIDE, isComplex),
        q=PDECoef(PDECoef.SOLUTION,(PDECoef.BY_SOLUTION,),PDECoef.BOTH, False) )
-
+     
    def __str__(self):
      """
      Returns the string representation of the PDE.
@@ -2104,10 +2097,10 @@ class LinearPDE(LinearProblem):
                  col_q=escore.Data(q,self.getFunctionSpaceForSolution())
                  u=self.createSolution()
                  u.copyWithMask(r_s,col_q)
-                 righthandside-=operator*u
+                 righthandside-=operator*u                 
                  operator.nullifyRowsAndCols(row_q,col_q,1.)
          righthandside.copyWithMask(r_s,q)
-
+         
    def setValue(self,**coefficients):
       """
       Sets new values to coefficients.

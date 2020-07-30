@@ -1,6 +1,6 @@
 %!TEX root = install.tex
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Copyright (c) 2012-2020 by The University of Queensland
+% Copyright (c) 2012-2018 by The University of Queensland
 % http://www.uq.edu.au
 %
 % Primary Business: Queensland, Australia
@@ -39,7 +39,7 @@ See Appendix~\ref{app:cxxfeatures} for a list.
 
 Our current test compilers include:
 \begin{itemize}
- \item g++ 8
+ \item g++ 6
  \item clang++ 7
  \item intel icpc v17
 \end{itemize}
@@ -51,22 +51,22 @@ Note that:
 \end{itemize}
 
 \subsection{What parallel technology do I need?}\label{sec:needpar}
-If you are using any version of Linux released in the past few years, then your system compiler will support
+If you are using any version of Linux released in the past few years, then your system compiler will support 
 \openmp with no extra work (and give better performance); so you should use it.
 You will not need MPI unless your computer is some form of cluster.
 
 If you are using BSD or MacOSX and you are just experimenting with \escript, then performance is
-probably not a major issue for you at the moment so you don't need to use either \openmp or MPI.
+probably not a major issue for you at the moment so you don't need to use either \openmp or MPI. 
 This also applies if you write and polish your scripts on your computer and then send them to a cluster to execute.
-If in the future you find escript useful and your scripts take significant time to run, then you may want to recompile
+If in the future you find escript useful and your scripts take significant time to run, then you may want to recompile 
 \escript with more options.
 
 
 
-Note that even if your version of \escript has support for \openmp or MPI, you will still need to tell the system to
+Note that even if your version of \escript has support for \openmp or MPI, you will still need to tell the system to 
 use it when you run your scripts.
 If you are using the \texttt{run-escript} launcher, then this is controlled by
-the \texttt{-t}, \texttt{-p}, and \texttt{-n} flags.
+the \texttt{-t}, \texttt{-p}, and \texttt{-n} options.
 If not, then consult the documentation for your MPI libraries (or the compiler documentation in the case of OpenMP
 \footnote{It may be enough to set the \texttt{OMP\_NUM\_THREADS} environment variable.}).
 
@@ -74,25 +74,26 @@ If you are using MacOSX, then see the next section, if not, then skip to Section
 
 \section{MacOS}
 This release of \escript has only been tested on OSX 10.13.
-For this section we assume you are using either \texttt{homebrew} or \texttt{MacPorts} as a package
-manager\footnote{Note that package managers will make changes to your computer based on programs configured by other people from
+For this section we assume you are using either \texttt{homebrew} or \texttt{MacPorts} as a package 
+manager\footnote{Note that package managers will make changes to your computer based on programs configured by other people from 
 various places around the internet. It is important to satisfy yourself as to the security of those systems.}.
 You can of course install prerequisite software in other ways.
-For example, we have had \emph{some} success changing the default
+For example, we have had \emph{some} success changing the default 
 compilers used by those systems. However this is more complicated and we do not provide a guide here.
 
-\noindent Both of those systems require the XCode command line tools to be installed\footnote{As of OSX10.9, the
+\noindent Both of those systems require the XCode command line tools to be installed\footnote{As of OSX10.9, the 
 command \texttt{xcode-select --install} will allow you to download and install the commandline tools.}.
 
 \section{Building}\label{sec:build}
 
-\esfinley is built using \textit{SCons}. To simplify the installation process, we have prepared \textit{SCons} \textit{_options.py} files for a number of common systems\footnote{These are correct a time of writing but later versions of those systems may require tweaks.
+To simplify things for people, we have prepared \texttt{_options.py} files for a number of 
+systems\footnote{These are correct a time of writing but later versions of those systems may require tweaks. 
 Also, these systems represent a cross section of possible platforms rather than meaning those systems get particular support.}.
-The options files are located in the \textit{scons/templates} directory. We suggest that the file most relevant to your OS
-be copied from the templates directory to the scons directory and renamed to the form XXXX_options.py where XXXX
+The options files are located in the \texttt{scons/templates} directory. We suggest that the file most relevant to your OS 
+be copied from the templates directory to the scons directory and renamed to the form XXXX_options.py where XXXX 
 should be replaced with your computer's (host-)name.
-If your particular system is not in the list below, or if you want a more customised
-build,
+If your particular system is not in the list below, or if you want a more customised 
+build, 
 see Section~\ref{sec:othersrc} for instructions.
 \begin{itemize}
  \item Debian - \ref{sec:debsrc}
@@ -107,134 +108,103 @@ see Section~\ref{sec:othersrc} for instructions.
 
 Once these are done proceed to Section~\ref{sec:cleanup} for cleanup steps.
 
-\noindent All of these instructions assume that you have obtained the \escript source (and uncompressed it if necessary).
+All of these instructions assume that you have obtained the \escript source (and uncompressed it if necessary).
 \subsection{Debian}\label{sec:debsrc}
-\noindent These instructions were prepared on Debian 10 \textit{Buster}.
 
-\noindent As a preliminary step, you should install the dependencies that \esfinley requires from the repository.
-If you intend to use Python 2.7, then you should install the following
 \begin{shellCode}
-sudo apt-get install python-dev python-numpy python-pyproj python-gdal
-sudo apt-get install python-sympy python-matplotlib python-scipy
-sudo apt-get install libboost-python-dev libboost-random-dev
-sudo apt-get install libnetcdf-dev libnetcdf-cxx-legacy-dev libnetcdf-c++4-dev
-sudo apt-get install scons lsb-release libsuitesparse-dev gmsh
+sudo aptitude install python-dev python-numpy libboost-python-dev libnetcdf-dev 
+sudo aptitude install libnetcdf-cxx-legacy-dev libnetcdf-c++4-dev
+sudo aptitude install scons lsb-release libboost-random-dev
+sudo aptitude install python-sympy python-matplotlib python-scipy
+sudo aptitude install python-pyproj python-gdal 
 \end{shellCode}
 
-\noindent If you intend to use Python 3.0+, then you should install the following
+\noindent If you are running \textit{Wheezy}, you can use:
 \begin{shellCode}
-sudo apt-get install python3-dev python3-numpy python3-pyproj python3-gdal
-sudo apt-get install python3-sympy python3-matplotlib python3-scipy
-sudo apt-get install libboost-python-dev libboost-random-dev
-sudo apt-get install libnetcdf-dev libnetcdf-cxx-legacy-dev libnetcdf-c++4-dev
-sudo apt-get install libsuitesparse-dev scons lsb-release gmsh
+sudo aptitude install gmsh 
 \end{shellCode}
+to add extra meshing functionality.
 
-\noindent In the source directory execute the following (substitute \textit{buster_py2} or \textit{buster_py3} for XXXX):
+\begin{optionalstep}
+If for some reason, you wish to rebuild the documentation, you would also need the following:
+\begin{shellCode}
+sudo aptitude install python-sphinx doxygen python-docutils texlive 
+sudo aptitude install zip texlive-latex-extra latex-xcolor 
+\end{shellCode}
+\end{optionalstep}
+
+\noindent In the source directory execute the following (substitute jessie for XXXX):
 \begin{shellCode}
 scons -j1 options_file=scons/templates/XXXX_options.py
 \end{shellCode}
 
 \noindent If you wish to test your build, you can use the following:
 \begin{shellCode}
-scons -j1 py_tests options_file=scons/templates/XXXX_options.py
+scons -j1 py_tests options_file=scons/templates/XXXX_options.py 
 \end{shellCode}
-
-% \begin{optionalstep}
-% If for some reason, you wish to rebuild the documentation, you would also need the following:
-% \begin{shellCode}
-% sudo aptitude install python-sphinx doxygen python-docutils texlive
-% sudo aptitude install zip texlive-latex-extra latex-xcolor
-% \end{shellCode}
-% \end{optionalstep}
 
 \subsection{Ubuntu}\label{sec:ubsrc}
-These instructions were prepared on Ubuntu 18.04 \textit{Bionic Beaver}. \newline
 
-
-\noindent As a preliminary step, you should install the dependencies that \esfinley requires from the repository.
-If you intend to use Python 2.7, then you should install the following packages:
+If you have not installed \texttt{aptitude}, then substitute \texttt{apt-get} in the following.
 \begin{shellCode}
-sudo apt-get install python-dev python-numpy python-pyproj python-gdal
-sudo apt-get install python-sympy python-matplotlib python-scipy
-sudo apt-get install libnetcdf-cxx-legacy-dev libnetcdf-c++4-dev libnetcdf-dev
-sudo apt-get install libboost-random-dev libboost-python-dev libboost-iostreams-dev
-sudo apt-get install scons lsb-release libsuitesparse-dev
+sudo aptitude install python-dev python-numpy python-pyproj python-gdal 
+sudo aptitude install python-sympy python-matplotlib python-scipy
+sudo aptitude install libnetcdf-cxx-legacy-dev libnetcdf-c++4-dev libnetcdf-dev 
+sudo aptitude install libboost-random-dev libboost-python-dev 
+sudo aptitude install scons lsb-release libsuitesparse-dev
 \end{shellCode}
 
-For Python 3.0+, you should instead install the following packages:
+
+\begin{optionalstep}
+If for some reason, you wish to rebuild the documentation, you would also need the following:
 \begin{shellCode}
-sudo apt-get install python3-dev python3-numpy python3-pyproj python3-gdal
-sudo apt-get install python3-sympy python3-matplotlib python3-scipy
-sudo apt-get install libnetcdf-cxx-legacy-dev libnetcdf-c++4-dev libnetcdf-dev
-sudo apt-get install libboost-random-dev libboost-python-dev libboost-iostreams-dev
-sudo apt-get install scons lsb-release libsuitesparse-dev
+sudo aptitude install python-sphinx doxygen python-docutils texlive 
+sudo aptitude install zip texlive-latex-extra latex-xcolor 
 \end{shellCode}
+\end{optionalstep}
 
-% \begin{optionalstep}
-% If for some reason, you wish to rebuild the documentation, you would also need the following:
-% \begin{shellCode}
-% sudo aptitude install python-sphinx doxygen python-docutils texlive
-% sudo aptitude install zip texlive-latex-extra latex-xcolor
-% \end{shellCode}
-% \end{optionalstep}
-
-\noindent Then navigate to the source directory and execute the following (substitute \textit{bionic_py2} or \textit{bionic_py3} as appropriate for XXXX):
+\noindent In the source directory execute the following (substitute precise, quantal or raring as appropriate for XXXX):
 \begin{shellCode}
 scons -j1 options_file=scons/templates/XXXX_options.py
 \end{shellCode}
 
-% \noindent If you wish to test your build, you can use the following:
-% \begin{shellCode}
-% scons -j1 py_tests options_file=scons/templates/XXXX_options.py
-% \end{shellCode}
+\noindent If you wish to test your build, you can use the following:
+\begin{shellCode}
+scons -j1 py_tests options_file=scons/templates/XXXX_options.py 
+\end{shellCode}
 
 
 
 \subsection{OpenSuse}\label{sec:susesrc}
-These instructions were prepared using OpenSUSE Leap 15.1. \newline
+These instructions were prepared using openSUSE version 15.0.
 
-\noindent As a preliminary step, you should install the dependencies that \esfinley requires from the repository.
-\noindent  If you intend to use Python 2.7, then you should install the following packages
+\noindent Install packages from the main distribution:
 \begin{shellCode}
 sudo zypper in python-devel python2-numpy python-gdal
-sudo zypper in python2-scipy python2-sympy python2-matplotlib
+sudo zypper in python2-scipy python2-sympy python2-matplotlib 
 sudo zypper in gcc gcc-c++ scons netcdf-devel libnetcdf_c++-devel
 sudo zypper in libboost_python-py2_7-1_66_0-devel libboost_numpy-py2_7-1_66_0-devel
 sudo zypper in libboost_iostreams1_66_0-devel suitesparse-devel
 \end{shellCode}
 
-\noindent If you intend to use Python 3.0, then you should instead install the following packages
+Now to build escript itself.
+In the escript source directory:
 \begin{shellCode}
-sudo zypper in python3-devel python3-numpy python3-GDAL
-sudo zypper in python3-scipy python3-sympy python3-matplotlib
-sudo zypper in gcc gcc-c++ scons netcdf-devel libnetcdf_c++-devel
-sudo zypper in libboost_python-py3-1_66_0-devel libboost_numpy-py3-1_66_0-devel
-sudo zypper in libboost_random1_66_0-devel libboost_iostreams1_66_0-devel
-sudo zypper in suitesparse-devel
-\end{shellCode}
-
-\noindent Now to build escript itself.
-\noindent In the escript source directory execute the following (substitute \textit{opensuse_py2} or \textit{opensuse_py3} as appropriate for XXXX):
-\begin{shellCode}
-scons -j1 options_file=scons/templates/XXXX_options.py
+scons -j1 options_file=scons/templates/opensuse_options.py
 \end{shellCode}
 
 \noindent If you wish to test your build, you can use the following:
 \begin{shellCode}
-scons -j1 py_tests options_file=scons/templates/XXXX_options.py
+scons -j1 py_tests options_file=scons/templates/opensuse_options.py 
 \end{shellCode}
 
 \noindent Now go to Section~\ref{sec:cleanup} for cleanup.
 
 \subsection{CentOS}\label{sec:centossrc}
-It is possible to install \escript on both CentOS releases $7$ and $8$. We include separate instructions for each of these CentOS releases in this section.
-\subsubsection{CentOS release $7$}
+These instructions were prepared using CentOS release $7$ (from late 2016).
 The core of escript works, however some functionality is not available because the default packages for some dependencies in CentOS are too old.
-At present, it is not possible to compile \escript using Python 3.0+ on CentOS $7$ as Python 3.0+ versions of many of the dependencies are not currently available in any of the CentOS repositories, but this may change in the future. 
-In this section we only outline how to install a version of \escript that uses Python 2.7.
 
-\noindent First, add the \texttt{EPEL} repository.
+\noindent Add the \texttt{EPEL} repository.
 \begin{shellCode}
 yum install epel-release.noarch
 \end{shellCode}
@@ -244,8 +214,16 @@ yum install epel-release.noarch
 yum install netcdf-devel netcdf-cxx-devel gdal-python
 yum install python-devel numpy scipy sympy python2-scons
 yum install python-matplotlib gcc gcc-c++ boost-devel
-yum install boost-python gdal-devel suitesparse-devel pyproj
+yum install boost-python gdal-devel suitesparse-devel
 \end{shellCode}
+
+The above packages will allow you to use most features except 
+the \downunder inversion library.
+If you wish to use those it, you will need to install some additional packages.
+
+\noindent For some coordinate transformations, \downunder can also make use of the python interface to a tool called \texttt{proj}.
+There does not seem to be an obvious CentOS repository for this though.
+If it turns out to be necessary for your particular application, the source can be downloaded. 
 
 \noindent Now to build escript itself.
 In the escript source directory:
@@ -255,53 +233,25 @@ scons -j1 options_file=scons/templates/centos7_0_options.py
 
 \noindent Now go to Section~\ref{sec:cleanup} for cleanup.
 
-\subsubsection{CentOS release $8$}
-The core of escript works in CentOS $8$, however some functionality is not available because the default packages for some dependencies in CentOS are too old. This install is for Python 3.
-
-First, add the EPEL, PowerTools and Okay repositories:
-\begin{shellCode}
-yum update
-yum install epel-release.noarch dnf-plugins-core
-yum config-manager --set-enabled PowerTools
-rpm -ivh http://repo.okay.com.mx/centos/8/x86_64/release/okay-release-1-3.el8.noarch.rpm
-yum update
-\end{shellCode}
-
-Now, install the packages:
-\begin{shellCode}
-yum install python3-devel python3-numpy python3-scipy python3-pyproj
-yum install boost-devel boost-python3 boost-python3-devel
-yum install gcc gcc-c++ scons
-yum install suitesparse suitesparse-devel 
-\end{shellCode}
-
-Finally, you can compile \escript with the command
-\begin{shellCode}
-scons -j1 options_file=scons/templates/centos8_0_options.py
-\end{shellCode}
-
 \subsection{Fedora}\label{sec:fedorasrc}
-These instructions were prepared using Fedora $31$ Workstation.
+These instructions were prepared using the $28$ alpha.
 
-\noindent To build the a version of \escript that uses Python 2.7, install the following packages:
+\noindent Install packages
 \begin{shellCode}
-yum install gcc-c++ scons suitesparse-devel
-yum install python2-devel boost-python2-devel
-yum install python2-scipy
-yum install netcdf-devel netcdf-cxx-devel netcdf-cxx4-devel
+yum install netcdf-cxx-devel gcc-c++ scipy 
+yum install sympy scons pyproj gdal python-matplotlib 
+yum install boost-devel suitesparse-devel gmsh python2-gdal
 \end{shellCode}
 
-\noindent To build the a version of \escript that uses Python 3.0+, install the following packages:
+\noindent Now to build escript itself.
+In the escript source directory:
 \begin{shellCode}
-yum install gcc-c++ scons suitesparse-devel
-yum install python3-devel boost-python3-devel
-yum install python3-scipy python3-pyproj python3-matplotlib
-yum install netcdf-devel netcdf-cxx-devel netcdf-cxx4-devel
+scons -j1 options_file=scons/templates/fedora_options.py
 \end{shellCode}
 
-\noindent In the source directory execute the following (substitute \textit{fedora_py2} or \textit{fedora_py3} for XXXX):
+\noindent If you wish to test your build, you can use the following:
 \begin{shellCode}
-scons -j1 options_file=scons/templates/XXXX_options.py
+scons -j1 py_tests options_file=scons/templates/fedora_options.py 
 \end{shellCode}
 
 \noindent Now go to Section~\ref{sec:cleanup} for cleanup.
@@ -325,7 +275,7 @@ sudo port install silo
 \end{shellCode}
 
 \begin{shellCode}
-scons -j1 options_file=scons/templates/macports_10.10options.py
+scons -j1 options_file=scons/templates/macports_10.10options.py 
 \end{shellCode}
 
 
@@ -336,7 +286,7 @@ The following will install the capabilities needed for the \texttt{homebrew_10.1
 \begin{shellCode}
 brew install scons
 brew install boost-python
-brew install netcdf
+brew install netcdf 
 \end{shellCode}
 
 There do not appear to be formulae for \texttt{sympy} or \texttt{pyproj} so if you wish to use those features, then
@@ -400,23 +350,23 @@ For the second type, you can install them at any time (ensuring that python can 
 For the first type, you need to modify the options file and recompile with scons.
 The rest of this section deals with this.
 
-To avoid having to specify the options file each time you run scons, copy an existing \texttt{_options.py} file from the
-\texttt{scons/} or \texttt{scons/templates/} directories. Put the file in the \texttt{scons} directory and name
-it \textit{yourmachinename}\texttt{_options.py}.\footnote{If the name
+To avoid having to specify the options file each time you run scons, copy an existing \texttt{_options.py} file from the 
+\texttt{scons/} or \texttt{scons/templates/} directories. Put the file in the \texttt{scons} directory and name 
+it \textit{yourmachinename}\texttt{_options.py}.\footnote{If the name 
 has - or other non-alpha characters, they must be replaced with underscores in the filename}.
 For example: on a machine named toybox, the file would be \texttt{scons/toybox_options.py}.
 
 Individual lines can be enabled/disabled, by removing or adding \# (the python comment character) to the beginning of the line.
 For example, to enable OpenMP, change the line
 \begin{verbatim}
-#openmp = True
+#openmp = True 
 \end{verbatim}
 to
 \begin{verbatim}
-openmp = True
+openmp = True 
 \end{verbatim}
 
-If you are using libraries which are not installed in the standard places (or have different names) you will need to
+If you are using libraries which are not installed in the standard places (or have different names) you will need to 
 change the relevant lines.
 A common need for this would be using a more recent version of the boost::python library.
 You can also change the compiler or the options passed to it by modifying the relevant lines.
@@ -426,6 +376,24 @@ If you wish to enable or disable MPI, or if you wish to use a different implemen
 configuration variable.
 You will also need to ensure that the \texttt{mpi_prefix} and \texttt{mpi_libs} variables are uncommented and set correctly.
 To disable MPI use, \verb|mpi = 'none'|.
+
+\subsubsection{Python3}
+\escript works with \texttt{python3} but until recently, many distributions have not distributed python3 versions of their packages.
+You can try it out though by modifying or adding the following variables in your options file:
+
+\begin{verbatim}
+pythoncmd='python3'
+\end{verbatim}
+
+\begin{verbatim}
+usepython3=True
+\end{verbatim}
+
+\begin{verbatim}
+pythonlibname='whatever_your_python3_library_is_called'
+\end{verbatim}
+
+
 
 
 \subsubsection{Testing}
@@ -463,7 +431,7 @@ Some other packages which might be useful include:
 \begin{itemize}
  \item Lapack and UMFPACK --- direct solvers (install the relevant libraries and enable them in the options file).
  \item support for the Silo file format (install the relevant libraries and enable them in the options file).
- \item VisIt --- visualisation package. Can be used independently but our \texttt{weipa} library can make a Visit
+ \item VisIt --- visualisation package. Can be used independently but our \texttt{weipa} library can make a Visit 
 plug-in to allow direct visualisation of escript simulations.
  \item gmsh --- meshing software used by our \texttt{pycad} library.
  \item Mayavi2 --- another visualisation tool.
@@ -480,16 +448,3 @@ PDEs (i.e. no PDE systems).
 If your distribution does not provide Trilinos packages you can build a working
 version from source. (See Appendix~\ref{app:trilinos})
 
-
-\section{Testing \escript}\label{chap:utest}
-
-\escript has extensive testing that can be used to confirm that the program is working correctly. To run the unit testing, compile \escript with the flag \texttt{build_full}. This will build \escript normally and then create a shell script named \texttt{utest.sh}. Once this file has been created, you can run unit testing using the command
-\begin{shellCode}
-sh utest.sh path_to_build_folder '-tT -nN -pP'
-\end{shellCode}
-where \texttt{T}, \texttt{N} and \texttt{P} represent the number of threads, nodes and processes to run the testing on. Some of these terms can be omitted. For example, to run the testing in serial, you would run
-\begin{shellCode}
-sh utest.sh path_to_build_folder '-t1'
-\end{shellCode}
-
-Note that a careless selection of these parameters may cause the testing program to skip many of the tests. For example, if you compile \escript with OpenMP enabled but then instruct the testing program to run on a single thread, many of the OpenMP tests will not be run.

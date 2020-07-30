@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2020 by The University of Queensland
+* Copyright (c) 2003-2018 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -10,9 +10,8 @@
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
-* Development from 2014-2017 by Centre for Geoscience Computing (GeoComp)
-* Development from 2019 by School of Earth and Environmental Sciences
-**
+* Development from 2014 by Centre for Geoscience Computing (GeoComp)
+*
 *****************************************************************************/
 
 #ifndef __Speckley_DOMAIN_H__
@@ -285,19 +284,6 @@ public:
     */
     virtual escript::Data getX() const;
 
-#ifdef ESYS_HAVE_BOOST_NUMPY
-    /**
-       \brief
-       returns locations in the SEM nodes
-    */
-    virtual boost::python::numpy::ndarray getNumpyX() const;
-
-    /**
-     \brief returns connectivity information as a numpy ndarray
-    */
-    virtual boost::python::numpy::ndarray getConnectivityInfo() const;
-#endif
-
     /**
        \brief
        returns boundary normals at the quadrature point on the face elements
@@ -458,7 +444,7 @@ public:
        \brief
        returns a Solution FunctionSpace code
     */
-    virtual int getSolutionCode() const {
+    virtual int getSolutionCode() const { 
         return DegreesOfFreedom;
     }
 
@@ -466,7 +452,7 @@ public:
        \brief
        returns a ReducedSolution FunctionSpace code
     */
-    virtual int getReducedSolutionCode() const {
+    virtual int getReducedSolutionCode() const { 
         throw SpeckleyException("Speckley does not support reduced function spaces");
     }
 
@@ -826,16 +812,9 @@ private:
                              escript::Data& rhs, const DataMap& coefs,
                              Assembler_ptr assembler) const;
 
-    void assemblePDEDiracWrap(escript::AbstractSystemMatrix* mat,
+    void assemblePDEDirac(escript::AbstractSystemMatrix* mat,
                           escript::Data& rhs, const DataMap& coefs,
                           Assembler_ptr assembler) const;
-
-    void assemblePDEDirac(escript::AbstractSystemMatrix* mat,
-                        escript::Data& rhs, const DataMap& coefs,
-                        Assembler_ptr assembler) const;
-    void assembleComplexPDEDirac(escript::AbstractSystemMatrix* mat,
-                        escript::Data& rhs, const DataMap& coefs,
-                        Assembler_ptr assembler) const;
 
     template<typename Scalar>
     void setToIntegralsWorker(std::vector<Scalar>& integrals,
@@ -848,3 +827,4 @@ private:
 } // end of namespace speckley
 
 #endif // __Speckley_DOMAIN_H__
+

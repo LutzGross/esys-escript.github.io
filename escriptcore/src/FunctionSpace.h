@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2020 by The University of Queensland
+* Copyright (c) 2003-2018 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -10,9 +10,8 @@
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
-* Development from 2014-2017 by Centre for Geoscience Computing (GeoComp)
-* Development from 2019 by School of Earth and Environmental Sciences
-**
+* Development from 2014 by Centre for Geoscience Computing (GeoComp)
+*
 *****************************************************************************/
 
 
@@ -32,7 +31,7 @@ namespace escript {
 // Forward declaration for class Data.
 class Data;
 
-class ESCRIPT_DLL_API FunctionSpace
+class ESCRIPT_DLL_API FunctionSpace 
 {
 public:
     FunctionSpace();
@@ -56,7 +55,7 @@ public:
     /**
       \brief Return the function space domain. Internal use only! This gets
              around some python difficulties by casting away the const.
-             Do not use this in C++.
+             Do not use this in C++. 
     */
     Domain_ptr getDomainPython() const;
 
@@ -77,7 +76,7 @@ public:
     void setTags(const int newTag, const escript::Data& mask) const;
 
     void setTagsByString(const std::string& name, const escript::Data& mask) const;
-
+  
     /**
       \brief Returns the shape of the data needed to represent the function
              space.
@@ -142,14 +141,7 @@ public:
       \brief Returns the spatial locations of the data points.
     */
     escript::Data getX() const;
-
-#ifdef ESYS_HAVE_BOOST_NUMPY
-    /**
-      \brief Returns the spatial locations of the data points as a numpy array.
-    */
-    boost::python::numpy::ndarray getNumpyX() const;
-#endif
-
+ 
     /**
       \brief Returns the surface normal field.
     */
@@ -215,7 +207,7 @@ public:
 
 private:
     /**
-    \brief Assignment operator.
+    \brief Assignment operator. 
            This method is only defined (private) to prevent people from
            using it.
     */
@@ -226,9 +218,9 @@ private:
     int m_functionSpaceType;
 };
 
-ESCRIPT_DLL_API
 bool canInterpolate(FunctionSpace src, FunctionSpace dest);
 
 } // end of namespace
 
 #endif // __ESCRIPT_FUNCTIONSPACE_H__
+

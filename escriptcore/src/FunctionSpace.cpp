@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2020 by The University of Queensland
+* Copyright (c) 2003-2018 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -10,9 +10,8 @@
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
-* Development from 2014-2017 by Centre for Geoscience Computing (GeoComp)
-* Development from 2019 by School of Earth and Environmental Sciences
-**
+* Development from 2014 by Centre for Geoscience Computing (GeoComp)
+*
 *****************************************************************************/
 
 #include "FunctionSpace.h" 
@@ -233,54 +232,6 @@ FunctionSpace::getX() const
   out.setProtection();
   return out;
 }
-
-#ifdef ESYS_HAVE_BOOST_NUMPY
-boost::python::numpy::ndarray 
-FunctionSpace::getNumpyX() const
-{
-    // Initialise boost numpy
-    boost::python::numpy::initialize();
-
-    // Get the data
-    Data data=escript::Vector(0,*this,true);
-    getDomain()->setToX(data);
-    data.setProtection();
-
-    // This is needed below in getSampleDataRW
-    const DataTypes::real_t onlyreal = 0;
-
-    // Work out how many data points there are
-    int numDataPoints = data.getNumSamples();
-    int dpps = data.getNumDataPointsPerSample();
-
-    // Work out the data point shape
-    std::vector<int> shape = data.getDataPointShape();
-    
-    // Work out how many spatial dimensions there are
-    int dimensions = data.getShapeProduct();
-
-    // Initialise the ndarray
-    boost::python::tuple arrayshape = boost::python::make_tuple(dimensions, dpps * numDataPoints);
-    boost::python::numpy::dtype datatype = boost::python::numpy::dtype::get_builtin<double>();
-    boost::python::numpy::ndarray dataArray = boost::python::numpy::zeros(arrayshape, datatype);
-
-    // Initialise variables
-    std::string localmsg;
-    std::vector<const DataTypes::real_t*> samplesR(1);
-    
-// #pragma omp parallel for 
-    for (int i = 0; i < numDataPoints; ++i) {
-        for (int j = 0; j < shape[0]; j++) {
-            dataArray[j][i] = *(data.getSampleDataRW(i, onlyreal)+j);
-        }
-    }
-
-    // Print out the ndarray to the console - used during debugging 
-    // std::cout << "Finished array:\n" << bp::extract<char const *>(bp::str(dataArray)) << std::endl;
-
-    return dataArray;
-}
-#endif
 
 escript::Data
 FunctionSpace::getNormal() const

@@ -313,12 +313,10 @@ void SystemMatrix::resetValues(bool preserveSolverData)
 void SystemMatrix::setToSolution(escript::Data& out, escript::Data& in,
                                  boost::python::object& options) const
 {
-#if !defined(ESYS_HAVE_MUMPS)
     if (in.isComplex() || out.isComplex())
     {
         throw PasoException("SystemMatrix::setToSolution: complex arguments not supported.");
     }
-#endif
     options.attr("resetDiagnostics")();
     Options paso_options(options);
     if (out.getDataPointSize() != getColumnBlockSize()) {
@@ -334,27 +332,18 @@ void SystemMatrix::setToSolution(escript::Data& out, escript::Data& in,
     in.expand();
     out.requireWrite();
     in.requireWrite();
-    if ( !(in.isComplex() && out.isComplex()) )
-    {
-        double* out_dp = out.getExpandedVectorReference(static_cast<escript::DataTypes::real_t>(0)).data();
-        double* in_dp = in.getExpandedVectorReference(static_cast<escript::DataTypes::real_t>(0)).data();
-        solve(out_dp, in_dp, &paso_options);
-    } else {
-        cplx_t* out_dp = out.getExpandedVectorReference(static_cast<escript::DataTypes::cplx_t>(0)).data();
-        cplx_t* in_dp = in.getExpandedVectorReference(static_cast<escript::DataTypes::cplx_t>(0)).data();
-        solve(out_dp, in_dp, &paso_options);
-    }
+    double* out_dp = out.getExpandedVectorReference(static_cast<escript::DataTypes::real_t>(0)).data();        
+    double* in_dp = in.getExpandedVectorReference(static_cast<escript::DataTypes::real_t>(0)).data();                
+    solve(out_dp, in_dp, &paso_options);
     paso_options.updateEscriptDiagnostics(options);
 }
 
 void SystemMatrix::ypAx(escript::Data& y, escript::Data& x) const 
 {
-#if !defined(ESYS_HAVE_MUMPS)
     if (x.isComplex() || y.isComplex())
     {
         throw PasoException("SystemMatrix::ypAx: complex arguments not supported.");
     }  
-#endif
     if (x.getDataPointSize() != getColumnBlockSize()) {
         throw PasoException("matrix vector product: column block size does not match the number of components in input.");
     } else if (y.getDataPointSize() != getRowBlockSize()) {
@@ -368,16 +357,9 @@ void SystemMatrix::ypAx(escript::Data& y, escript::Data& x) const
     y.expand();
     x.requireWrite();
     y.requireWrite();
-    if ( !(x.isComplex() && y.isComplex()) )
-    {
-        double* x_dp = x.getExpandedVectorReference(static_cast<escript::DataTypes::real_t>(0)).data();
-        double* y_dp = y.getExpandedVectorReference(static_cast<escript::DataTypes::real_t>(0)).data();
-        MatrixVector(1., x_dp, 1., y_dp);
-    } else {
-        cplx_t* x_dp = x.getExpandedVectorReference(static_cast<escript::DataTypes::cplx_t>(0)).data();
-        cplx_t* y_dp = y.getExpandedVectorReference(static_cast<escript::DataTypes::cplx_t>(0)).data();
-        MatrixVector(1., x_dp, 1., y_dp);
-    }
+    double* x_dp = x.getExpandedVectorReference(static_cast<escript::DataTypes::real_t>(0)).data();
+    double* y_dp = y.getExpandedVectorReference(static_cast<escript::DataTypes::real_t>(0)).data();
+    MatrixVector(1., x_dp, 1., y_dp);
 }
 
 void SystemMatrix::copyColCoupleBlock()
@@ -573,10 +555,6 @@ int SystemMatrix::getSystemMatrixTypeId(int solver, int preconditioner,
             } else {
                 out = MATRIX_FORMAT_CSC | MATRIX_FORMAT_BLK1;
             }
-        break;
-
-        case PASO_MUMPS:
-            out = MATRIX_FORMAT_BLK1 | MATRIX_FORMAT_OFFSET1;
         break;
 
         default:

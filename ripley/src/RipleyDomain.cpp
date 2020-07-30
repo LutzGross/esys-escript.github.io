@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2020 by The University of Queensland
+* Copyright (c) 2003-2018 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -10,9 +10,8 @@
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
-* Development from 2014-2017 by Centre for Geoscience Computing (GeoComp)
-* Development from 2019 by School of Earth and Environmental Sciences
-**
+* Development from 2014 by Centre for Geoscience Computing (GeoComp)
+*
 *****************************************************************************/
 
 #include <ripley/RipleyDomain.h>
@@ -544,7 +543,7 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
                                 copy(src, src+numComp, target.getSampleDataRW(m_diracPoints[i].node));
                             }
                         }
-
+                
                 }
                 break;
             default:
@@ -557,18 +556,6 @@ escript::Data RipleyDomain::getX() const
 {
     return escript::continuousFunction(*this).getX();
 }
-
-#ifdef ESYS_HAVE_BOOST_NUMPY
-boost::python::numpy::ndarray RipleyDomain::getNumpyX() const
-{
-    return escript::continuousFunction(*this).getNumpyX();
-}
-
-boost::python::numpy::ndarray RipleyDomain::getConnectivityInfo() const
-{
-    throw RipleyException("This feature is currently not supported by Ripley.");
-}
-#endif
 
 escript::Data RipleyDomain::getNormal() const
 {
@@ -677,11 +664,6 @@ void RipleyDomain::setToIntegralsWorker(std::vector<Scalar>& integrals,
             {
                 escript::Data funcArg(arg, escript::function(*this));
                 assembleIntegrate(integrals, funcArg);
-            }
-            break;
-        case Points:
-            {
-                assembleIntegrate(integrals, arg);
             }
             break;
         case Elements:
@@ -1331,7 +1313,7 @@ void RipleyDomain::updateTagsInUse(int fsType) const
 }
 
 #ifdef ESYS_HAVE_PASO
-void RipleyDomain::createPasoConnector(const RankVector& neighbour,
+void RipleyDomain::createPasoConnector(const RankVector& neighbour, 
                                        const IndexVector& offsetInSharedSend,
                                        const IndexVector& offsetInSharedRecv,
                                        const IndexVector& sendShared,
@@ -1608,7 +1590,7 @@ void RipleyDomain::assemblePDE(escript::AbstractSystemMatrix* mat,
     if (fsTypes.empty()) {
         return;
     }
-
+    
     int fs=fsTypes[0];
     if (fs != Elements && fs != ReducedElements)
         throw ValueError("assemblePDE: illegal function space type for coefficients");
@@ -1825,3 +1807,4 @@ void RipleyDomain::addPoints(const vector<double>& coords,
 }
 
 } // end of namespace ripley
+

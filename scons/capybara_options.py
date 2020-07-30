@@ -26,8 +26,6 @@ umfpack = True
 silo = True
 #trilinos = True
 trilinos_prefix = '/usr/local/trilinos/post12.12-1'
-mpi_prefix=["/usr/lib/x86_64-linux-gnu/openmpi/include","/usr/lib/x86_64-linux-gnu/openmpi/lib"]
-cxx_extra="-Wno-stringop-truncation"
 #cxx_extra += " -Wextra -Wno-deprecated-declarations -Wno-unused-parameter"
 launcher = "mpirun ${AGENTOVERRIDE} ${EE} --mca io romio314 --oversubscribe --map-by node:pe=%t -bind-to none -np %N %b"
 

@@ -68,7 +68,6 @@ void SparseMatrix::nullifyRowsAndCols_CSR_BLK1(const double* mask_row,
             const index_t icol = pattern->index[iptr]-index_offset;
             if (mask_col[icol]>0. || mask_row[irow]>0.) {
                 val[iptr] = (irow==icol ? main_diagonal_value : 0);
-                cval[iptr] = (irow==icol ? main_diagonal_value : 0);
             }
         }
     }

@@ -27,7 +27,7 @@ import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 from esys.escript import *
 from esys.speckley import Rectangle, Brick
-from esys.escript.linearPDEs import LameEquation, LinearPDESystem, WavePDE, LinearSinglePDE
+from esys.escript.linearPDEs import LameEquation, LinearPDESystem, WavePDE
 from esys.downunder import HTIWave, VTIWave, Ricker
 
 EXPANDED, SCALAR, CONSTANT = range(3)
@@ -123,7 +123,7 @@ class SpeckleyWaveAssemblerTestBase(unittest.TestCase):
         D = 2500.*kronecker(dim)
         pde.setValue(X=pde.createCoefficient('X'))
         sigma = pde.getCoefficient('X')
-
+        
         if dim == 3:
             e11=du[0,0]
             e22=du[1,1]
@@ -134,7 +134,7 @@ class SpeckleyWaveAssemblerTestBase(unittest.TestCase):
 
             s=self.c44*(du[2,1]+du[1,2])
             sigma[1,2]=s
-            sigma[2,1]=s
+            sigma[2,1]=s             
 
             s=self.c44*(du[2,0]+du[0,2])
             sigma[0,2]=s
@@ -154,7 +154,7 @@ class SpeckleyWaveAssemblerTestBase(unittest.TestCase):
 
         pde.setValue(D=D, X=-sigma, y_dirac=y)
         return pde.getSolution()
-    @unittest.skip("is failing")
+
     def run_HTI_assembly(self, domain):
         model = HTIWave(domain, self.V_p, self.V_s, self.wavelet, "source",
                 source_vector=[0,0,1], eps=0., gamma=0., delta=0.,
@@ -171,7 +171,7 @@ class SpeckleyWaveAssemblerTestBase(unittest.TestCase):
         fast = self.generate_fast_HTI_PDE_solution(domain)
 
         self.assertLess(Lsup(fast - slow), 1e-12*Lsup(slow)) #comparison between them
-    @unittest.skip("is failing")
+
     def run_VTI_assembly(self, domain):
         model = VTIWave(domain, self.V_p, self.V_s, self.wavelet, "source",
                 source_vector=[0,0,1], eps=0., gamma=0., delta=0.,
@@ -183,7 +183,7 @@ class SpeckleyWaveAssemblerTestBase(unittest.TestCase):
                 source_vector=[0,0,1], eps=0., gamma=0., delta=0.,
                 rho=2000., absorption_zone=None, lumping=True)
         self.assertTrue(model.fastAssembler) #ensure fast is actually used
-
+        
         slow = self.generate_slow_VTI_PDE_solution(domain)
         fast = self.generate_fast_VTI_PDE_solution(domain)
 
@@ -209,7 +209,7 @@ class SpeckleyWaveAssemblerTestBase(unittest.TestCase):
             with self.assertRaises(RuntimeError) as e:
                 self.run_VTI_assembly(domain)
             self.assertTrue("C tensor elements must be reduced" in str(e.exception))
-
+    
     def test_ReducedFunction_params(self):
         for domain in self.domains:
             self.V_p = Data(2500., (), ReducedFunction(domain))
@@ -248,7 +248,7 @@ class Test_SpeckleyWaveAssembler2D(SpeckleyWaveAssemblerTestBase):
             self.domains.append(Rectangle(order,10,10,l0=100,l1=100,diracTags=["source"],
                     diracPoints=[(0,0)]))
         self.wavelet = Ricker(100.)
-
+        
     def tearDown(self):
         del self.domains
 
@@ -263,22 +263,7 @@ class Test_SpeckleyWaveAssembler3D(SpeckleyWaveAssemblerTestBase):
     def tearDown(self):
         del self.domains
 
-class Test_Complex_Assembler(unittest.TestCase):
-    def test_complex_params_Rectangle(self):
-        domain=Rectangle(order=2,n0=10,n1=10)
-        pde = LinearSinglePDE(domain, isComplex=True)
-        pde.setValue(D=1j)
-        pde.setValue(Y=1.0)
-        self.assertTrue(Lsup(pde.getSolution())==1.0, "Failed test_complex_params_Rectangle")
-        del domain
-
-    def test_complex_params_Brick(self):
-        domain=Brick(order=2,n0=10,n1=10,n2=10)
-        pde = LinearSinglePDE(domain, isComplex=True)
-        pde.setValue(D=1j)
-        pde.setValue(Y=1.0)
-        self.assertTrue(Lsup(pde.getSolution())==1.0, "Failed test_complex_params_Brick")
-        del domain
 
 if __name__ == '__main__':
     run_tests(__name__, exit_on_failure=True)
+

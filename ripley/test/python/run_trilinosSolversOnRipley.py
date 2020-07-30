@@ -60,25 +60,6 @@ for x in [(int(mpiSize**(1/3.)),int(mpiSize**(1/3.))),(2,3),(2,2),(1,2),(1,1)]:
 class SimpleSolveOnTrilinos(SimpleSolveTestCase):
     pass
 
-
-## direct
-class Test_SimpleSolveRipley2D_Trilinos_Direct(SimpleSolveOnTrilinos):
-    def setUp(self):
-        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
-        self.package = SolverOptions.TRILINOS
-        self.method = SolverOptions.DIRECT
-
-    def tearDown(self):
-        del self.domain
-
-class Test_SimpleSolveRipley3D_Trilinos_Direct(SimpleSolveOnTrilinos):
-    def setUp(self):
-        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-        self.package = SolverOptions.TRILINOS
-        self.method = SolverOptions.DIRECT
-
-    def tearDown(self):
-        del self.domain
 ### BiCGStab + Jacobi
 
 class Test_SimpleSolveRipley2D_Trilinos_BICGSTAB_Jacobi(SimpleSolveOnTrilinos):

@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2020 by The University of Queensland
+* Copyright (c) 2003-2018 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -10,9 +10,8 @@
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
-* Development from 2014-2017 by Centre for Geoscience Computing (GeoComp)
-* Development from 2019 by School of Earth and Environmental Sciences
-**
+* Development from 2014 by Centre for Geoscience Computing (GeoComp)
+*
 *****************************************************************************/
 
 
@@ -99,7 +98,7 @@ class ESCRIPT_DLL_API DataVectorAlt {
      Description:
      Destroys the current DataVectorAlt object.
   */
-  ESCRIPT_INLINE_DLL_API ~DataVectorAlt();
+  ~DataVectorAlt();
 
   /**
      \brief
@@ -137,7 +136,7 @@ class ESCRIPT_DLL_API DataVectorAlt {
      Return the number of elements in this DataVectorAlt.
   */
   inline
-  ESCRIPT_INLINE_DLL_API size_type
+  size_type
   size() const;
 
   /**
@@ -173,16 +172,16 @@ class ESCRIPT_DLL_API DataVectorAlt {
     in order to provide a facility equivalent to an end() pointer.
   */
   inline
-  ESCRIPT_INLINE_DLL_API reference
+  reference
   operator[](const size_type i);
 
   inline
-  ESCRIPT_INLINE_DLL_API const_reference
+  const_reference
   operator[](const size_type i) const;
 
     // for compatibility with std::vector
-  ESCRIPT_INLINE_DLL_API ElementType* data();
-  ESCRIPT_INLINE_DLL_API const ElementType* data() const; 
+  ElementType* data();
+  const ElementType* data() const; 
   
  protected:
 

@@ -52,7 +52,7 @@ def work():
 
   inv=GravityInversion()
   inv.setSolverTolerance(1e-4)
-  inv.setSolverMaxIterations(100)
+  inv.setSolverMaxIterations(50)
   inv.setup(db)
   inv.getCostFunction().setTradeOffFactorsModels(MU)
 
@@ -60,10 +60,9 @@ def work():
   print("density = %s"%density)
 
   g, w =  db.getGravitySurveys()[0]
-  try:
-      saveSilo("result0.silo", density=density, gravity_anomaly=g, gravity_weight=w)
+  if saveSilo("result0.silo", density=density, gravity_anomaly=g, gravity_weight=w):
       print("Results saved in result0.silo")
-  except:
+  else:
       print("Failed to save result0.silo. Possibly no Silo support.")
 
   saveVTK("result0.vtu", density=density, gravity_anomaly=g, gravity_weight=w)

@@ -30,10 +30,7 @@ REQUIRED_OPTS_VERSION=203
 # MS Windows support, many thanks to PH
 IS_WINDOWS = (os.name == 'nt')
 
-if IS_WINDOWS:
-    IS_OSX = False
-else:
-    IS_OSX = (os.uname()[0] == 'Darwin')
+IS_OSX = (os.uname()[0] == 'Darwin')
 
 ########################## Determine options file ############################
 # 1. command line
@@ -111,10 +108,6 @@ vars.AddVariables(
   BoolVariable('umfpack', 'Enable UMFPACK', False),
   ('umfpack_prefix', 'Prefix/Paths to UMFPACK installation', default_prefix),
   ('umfpack_libs', 'UMFPACK libraries to link with', ['umfpack']),
-  BoolVariable('mumps', 'Enable MUMPS', False),
-  ('mumps_prefix', 'Prefix/Paths to MUMPS installation', default_prefix),
-  ('mumps_libs', 'MUMPS libraries to link with', ['mumps_common','pord','dmumps','zmumps',
-    'mpiseq','lapack','metis','scotch','esmumps','gfortran']),
   TristateVariable('lapack', 'Enable LAPACK', 'auto'),
   ('lapack_prefix', 'Prefix/Paths to LAPACK installation', default_prefix),
   ('lapack_libs', 'LAPACK libraries to link with', []),
@@ -155,7 +148,6 @@ vars.AddVariables(
   BoolVariable('longindices', 'use long indices (for very large matrices)', False),
   BoolVariable('compressed_files','Enables reading from compressed binary files', True),
   ('compression_libs', 'Compression libraries to link with', ['boost_iostreams']),
-  BoolVariable('disable_boost_numpy', 'Do not build using boost_numpy, even if it is available', False),
   BoolVariable('osx_dependency_fix', 'Fix dependencies for libraries to have absolute paths (OSX)', False),
   BoolVariable('stdlocationisprefix', 'Set the prefix as escript root in the launcher', False),
   BoolVariable('mpi_no_host', 'Do not specify --host in run-escript launcher (only OPENMPI)', False),
@@ -289,12 +281,12 @@ elif cc_name[:3] == 'g++':
     # see mantis #691
     cc_flags     = "-std=c++11 -pedantic -Wall -fPIC -finline-functions"
     cc_flags += " -Wno-unknown-pragmas -Wno-sign-compare -Wno-system-headers -Wno-long-long -Wno-strict-aliasing "
-    cc_flags += " -Wno-stringop-truncation -Wno-deprecated-declarations --param=max-vartrack-size=100000000"
+    cc_flags += " --param=max-vartrack-size=100000000"
     cc_optim     = "-O3"
     #max-vartrack-size: avoid vartrack limit being exceeded with escriptcpp.cpp
     cc_debug     = "-g3 -O0  -DDOASSERT -DDOPROF -DBOUNDS_CHECK -DSLOWSHARECHECK --param=max-vartrack-size=100000000"
     #Removed because new netcdf doesn't seem to like it
-    #cc_debug += ' -D_GLIBCXX_DEBUG  '
+    #cc_debug += ' -D_GLIBCXX_DEBUG  ' 
     omp_flags    = "-fopenmp"
     omp_ldflags  = "-fopenmp"
     fatalwarning = "-Werror"
@@ -314,7 +306,7 @@ elif cc_name == 'icl':
     omp_ldflags  = '/Qvec-report0 /Qopenmp /Qopenmp-report0 /Qparallel'
 elif cc_name == 'clang++':
     # Clang++ on any system
-    cc_flags     = "-std=c++11 -Wall -fPIC -fdiagnostics-color=always -Wno-uninitialized "
+    cc_flags     = "-std=c++11 -Wall -fPIC -fdiagnostics-color=always "
     cc_flags    += "-Wno-unused-private-field -Wno-unknown-pragmas "
     if env['trilinos'] is True:
       cc_flags += "-Wno-unused-variable -Wno-exceptions -Wno-deprecated-declarations"
@@ -475,8 +467,7 @@ except KeyError:
 
 # Takes care of prefix and suffix for Python modules:
 def build_python_module(env, target, source):
-    sl_suffix = '.pyd' if IS_WINDOWS else '.so'
-    return env.SharedLibrary(target, source, SHLIBPREFIX='', SHLIBSUFFIX=sl_suffix)
+    return env.SharedLibrary(target, source, SHLIBPREFIX='', SHLIBSUFFIX='.so')
 env.AddMethod(build_python_module, "PythonModule")
 
 if env['pythoncmd']=='python':
@@ -517,7 +508,7 @@ env=checkCppUnit(env)
 ######## optional python modules (sympy, pyproj)
 env=checkOptionalModules(env)
 
-######## optional dependencies (netCDF, MKL, UMFPACK, MUMPS, Lapack, Silo, ...)
+######## optional dependencies (netCDF, MKL, UMFPACK, Lapack, Silo, ...)
 env=checkOptionalLibraries(env)
 
 ######## PDFLaTeX (for documentation)
@@ -713,7 +704,8 @@ env.Alias('release_prep_old', ['basedocs', 'api_epydoc', 'install'])
 # generate the testscripts without doing a full build
 env.Alias('testscripts',[])
 
-generateTestScripts(env, TestGroups)
+if not IS_WINDOWS:
+    generateTestScripts(env, TestGroups)
 
 ######################## Populate the buildvars file #########################
 
@@ -737,12 +729,8 @@ def print_summary():
     print("  Install prefix:  %s"%env['prefix'])
     print("          Python:  %s (Version %s)"%(env['pythoncmd'],env['python_version']))
     print("           boost:  %s (Version %s)"%(env['boost_prefix'],env['boost_version']))
-    if env['have_boost_numpy'] is True:
-        print("     boost numpy:  YES")
-    else:
-        print("     boost numpy:  NO")
     if env['trilinos']:
-        print("        trilinos:  %s (Version %s)" % (env['trilinos_prefix'],env['trilinos_version']))
+        print("        trilinos:  %s "%(env['trilinos_prefix']))
     else:
         print("        trilinos:  NO")
     if env['numpy_h']:
@@ -790,8 +778,6 @@ def print_summary():
             direct.append('mkl')
         if env['umfpack']:
             direct.append('umfpack')
-        if env['mumps']:
-            direct.append('mumps')
     else:
         d_list.append('paso')
     if env['trilinos']:
@@ -814,7 +800,7 @@ def print_summary():
         print("          netcdf:  NO")
     e_list=[]
     for i in ('weipa','debug','openmp','cppunit','gdal','mkl',
-             'mumps','pyproj','scipy','silo','sympy','umfpack','visit'):
+             'pyproj','scipy','silo','sympy','umfpack','visit'):
         if env[i]: e_list.append(i)
         else: d_list.append(i)
 
@@ -836,3 +822,4 @@ def print_summary():
         print("\nSUCCESS: build complete\n")
 
 atexit.register(print_summary)
+

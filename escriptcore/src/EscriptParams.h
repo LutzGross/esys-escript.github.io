@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2020 by The University of Queensland
+* Copyright (c) 2003-2018 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -10,15 +10,12 @@
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
-* Development from 2014-2017 by Centre for Geoscience Computing (GeoComp)
-* Development from 2019 by School of Earth and Environmental Sciences
-**
+* Development from 2014 by Centre for Geoscience Computing (GeoComp)
+*
 *****************************************************************************/
 
 #ifndef __ESCRIPT_PARAMS_H__
 #define __ESCRIPT_PARAMS_H__
-
-#include "system_dep.h"
 
 #include <boost/python/list.hpp>
 
@@ -28,7 +25,7 @@
 namespace escript
 {
 
-class ESCRIPT_DLL_API EscriptParams
+class EscriptParams
 {
     typedef std::unordered_set<std::string> FeatureSet;
 
@@ -62,7 +59,7 @@ private:
 };
 
 
-ESCRIPT_DLL_API extern EscriptParams escriptParams;
+extern EscriptParams escriptParams;
 
 /**
     \brief Set the value of a named parameter.
@@ -95,7 +92,6 @@ inline boost::python::list listEscriptParams()
     \brief returns true if escript was compiled with the feature `name`,
            false otherwise.
 */
-ESCRIPT_DLL_API
 inline bool hasFeature(const std::string& name)
 {
     return escriptParams.hasFeature(name);

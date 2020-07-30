@@ -28,16 +28,8 @@ Author: Antony Hallam antony.hallam@uqconnect.edu.au
 from esys.escript import inf,sup
 from esys.escript.pdetools import Locator
 import numpy as np
-# try:
-#     import pylab as pl
-#     HAVE_PYLAB=True
-# except:
-#     HAVE_PYLAB=False
-try:
-    import scipy.interpolate
-    HAVE_SCIPY=True
-except:
-    HAVE_SCIPY=False
+import pylab as pl
+import scipy.interpolate
 
 def toXYTuple(coords):
     """
@@ -47,25 +39,22 @@ def toXYTuple(coords):
     coordX = coords[:,0]; coordY = coords[:,1] #X and Y components.
     return coordX,coordY
 
-if HAVE_SCIPY:
-    def toRegGrid(u, nx=50, ny=50):
-        """
-        returns a nx x ny grid representation of the escript object u
-        """
-        xx=u.getDomain().getX()
-        x=u.getFunctionSpace().getX()
-        coordX, coordY = toXYTuple(x)
-        utemp = u.toListOfTuples()
-        # create regular grid
-        xi = np.linspace(inf(xx[0]),sup(xx[0]),nx)
-        yi = np.linspace(inf(xx[1]),sup(xx[1]),ny)
+def toRegGrid(u, nx=50, ny=50):
+   """
+   returns a nx x ny grid representation of the escript object u
+   """
+   xx=u.getDomain().getX()     
+   x=u.getFunctionSpace().getX()     
+   coordX, coordY = toXYTuple(x)
+   utemp = u.toListOfTuples()
+   # create regular grid
+   xi = np.linspace(inf(xx[0]),sup(xx[0]),nx)
+   yi = np.linspace(inf(xx[1]),sup(xx[1]),ny)
 
-        # interpolate u to grid
-        zi = scipy.interpolate.griddata((coordX,coordY),utemp,(xi[None,:],yi[:,None]),method='linear')
+   # interpolate u to grid
+   zi = scipy.interpolate.griddata((coordX,coordY),utemp,(xi[None,:],yi[:,None]),method='linear')
 
-        return xi, yi, zi
-else:
-    print("This feature requires scipy")
+   return xi, yi, zi
 
 def subsample(u, nx=50, ny=50):
     """
@@ -74,11 +63,11 @@ def subsample(u, nx=50, ny=50):
     used for subsampling.
     """
     xx=u.getDomain().getX()  # points of the domain
-    x0=inf(xx[0])
+    x0=inf(xx[0])         
     y0=inf(xx[1])
     dx = (sup(xx[0])-x0)/nx # x spacing
     dy = (sup(xx[1])-y0)/ny # y spacing
-    grid = [ ]
+    grid = [ ] 
     for j in range(0,ny-1):
         for i in range(0,nx-1):
                grid.append([x0+dx/2+dx*i,y0+dy/2+dy*j])
@@ -86,3 +75,4 @@ def subsample(u, nx=50, ny=50):
     subu= uLoc(u) # get data of u at sample points closests to grid points
     usublocs = uLoc.getX() #returns actual locations from data
     return np.array(usublocs), np.array(subu)
+    

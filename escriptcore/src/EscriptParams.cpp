@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2020 by The University of Queensland
+* Copyright (c) 2003-2018 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -10,9 +10,8 @@
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
-* Development from 2014-2017 by Centre for Geoscience Computing (GeoComp)
-* Development from 2019 by School of Earth and Environmental Sciences
-**
+* Development from 2014 by Centre for Geoscience Computing (GeoComp)
+*
 *****************************************************************************/
 
 #include "EscriptParams.h"
@@ -26,7 +25,7 @@ namespace bp = boost::python;
 
 namespace escript {
 
-ESCRIPT_DLL_API EscriptParams escriptParams; // externed in header file
+EscriptParams escriptParams; // externed in header file
 
 
 EscriptParams::EscriptParams()
@@ -96,9 +95,6 @@ EscriptParams::EscriptParams()
 #ifdef ESYS_HAVE_UMFPACK
     features.insert("umfpack");
 #endif
-#ifdef ESYS_HAVE_MUMPS
-    features.insert("mumps");
-#endif
 #ifdef ESYS_HAVE_WEIPA
     features.insert("weipa");
 #endif
@@ -115,10 +111,6 @@ EscriptParams::EscriptParams()
 #endif
 #ifdef ESYS_GMSH_MPI
     features.insert("gmsh_mpi");
-#endif
-
-#ifdef ESYS_HAVE_BOOST_NUMPY
-    features.insert("boostnumpy");
 #endif
 }
 
@@ -181,7 +173,7 @@ bool EscriptParams::hasFeature(const std::string& name) const
         if (MPI_Comm_size(MPI_COMM_WORLD, &size) != MPI_SUCCESS || size > 1)
             return false;
 #endif
-        return hasFeature("paso") && (hasFeature("umfpack") || hasFeature("mkl") || hasFeature("mumps"));
+        return hasFeature("paso") && (hasFeature("umfpack") || hasFeature("mkl"));
     }
 
     return features.count(name) > 0;

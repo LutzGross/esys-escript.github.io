@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2020 by The University of Queensland
+* Copyright (c) 2003-2018 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -10,9 +10,8 @@
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
-* Development from 2014-2017 by Centre for Geoscience Computing (GeoComp)
-* Development from 2019 by School of Earth and Environmental Sciences
-**
+* Development from 2014 by Centre for Geoscience Computing (GeoComp)
+*
 *****************************************************************************/
 
 #include <escript/Data.h>
@@ -1267,6 +1266,9 @@ cerr << "Ending sin" << endl;
       }
     }
   }
+#if defined (_WIN32) && !defined (__INTEL_COMPILER)
+  cout << "\tSkip test Data::erf on windows with MSVC compiler." << endl;
+#else
   cout << "\tTest Data::erf." << endl;
   for (int z=0;z<NUMDATS;++z)
   {
@@ -1290,6 +1292,7 @@ cerr << "Ending sin" << endl;
       }
     }
   }
+#endif
 
 
   cout << "\tTest Data::abs." << endl;

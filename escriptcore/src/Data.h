@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2020 by The University of Queensland
+* Copyright (c) 2003-2018 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -10,9 +10,8 @@
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
-* Development from 2014-2017 by Centre for Geoscience Computing (GeoComp)
-* Development from 2019 by School of Earth and Environmental Sciences
-**
+* Development from 2014 by Centre for Geoscience Computing (GeoComp)
+*
 *****************************************************************************/
 
 /** \file Data.h */
@@ -94,7 +93,7 @@ class Data {
 
   /**
      \brief Copy Data from an existing vector
-  */
+  */ 
   Data(const DataTypes::RealVectorType& value,
                  const DataTypes::ShapeType& shape,
                  const FunctionSpace& what,
@@ -153,10 +152,10 @@ class Data {
      \param expanded - Input - Flag, if true fill the entire container with
                        the value. Otherwise a more efficient storage
                        mechanism will be used.
-  */
+  */       
   Data(const WrappedArray& w, const FunctionSpace& what,
-           bool expanded);
-
+           bool expanded);       
+       
 
   /**
      \brief
@@ -169,35 +168,35 @@ class Data {
   */
   Data(const boost::python::object& value,
        const Data& other);
-
+  
   /**
      This constructor subsumes a number of previous python ones.
-
+     
   Data(const boost::python::object& value,
        const FunctionSpace& what=FunctionSpace(),
        bool expanded=false);
-
+       
   Data(DataTypes::real_t value,
        const boost::python::tuple& shape=boost::python::make_tuple(),
        const FunctionSpace& what=FunctionSpace(),
        bool expanded=false);
-
-  and a new
-
+       
+  and a new 
+  
   Data(cplx_t value,
        const boost::python::tuple& shape=boost::python::make_tuple(),
        const FunctionSpace& what=FunctionSpace(),
-       bool expanded=false);
-
+       bool expanded=false);  
+  
   */
   Data(boost::python::object value,
        boost::python::object par1=boost::python::object(),
        boost::python::object par2=boost::python::object(),
-       boost::python::object par3=boost::python::object());
-
-
-
-
+       boost::python::object par3=boost::python::object());  
+  
+  
+  
+  
 
   /**
         \brief Create a Data using an existing DataAbstract. Warning: The new object assumes ownership of the pointer!
@@ -238,7 +237,7 @@ class Data {
   /**
      \brief convert the current data into lazy data.
   */
-  void
+  void 
   delaySelf();
 
 
@@ -264,7 +263,7 @@ class Data {
 
 
 /**
-   \brief
+   \brief 
    Return the value of a data point as a python tuple.
 */
   const boost::python::object
@@ -290,10 +289,10 @@ class Data {
   */
   void
   setValueOfDataPoint(int dataPointNo, const DataTypes::real_t);
-
+  
   void
-  setValueOfDataPointC(int dataPointNo, const DataTypes::cplx_t);
-
+  setValueOfDataPointC(int dataPointNo, const DataTypes::cplx_t);  
+  
 
   /**
      \brief Return a data point across all processors as a python tuple.
@@ -301,13 +300,13 @@ class Data {
   const boost::python::object
   getValueOfGlobalDataPointAsTuple(int procNo, int dataPointNo);
 
-
+  
   /**
      \brief Set the value of a global data point
   */
   void
   setTupleForGlobalDataPoint(int id, int proc, boost::python::object);
-
+  
   /**
      \brief
      Return the tag number associated with the given data-point.
@@ -356,22 +355,22 @@ class Data {
   hasNaN();
 
   /**
-  \brief replaces all NaN values with value
+  \brief replaces all NaN values with value 
   */
   void
   replaceNaN(DataTypes::real_t value);
-
+  
   /**
-  \brief replaces all NaN values with value
+  \brief replaces all NaN values with value 
   */
   void
-  replaceNaN(DataTypes::cplx_t value);
-
+  replaceNaN(DataTypes::cplx_t value);  
+  
   /**
-  \brief replaces all NaN values with value
+  \brief replaces all NaN values with value 
   */
   void
-  replaceNaNPython(boost::python::object obj);
+  replaceNaNPython(boost::python::object obj);  
 
   bool
   hasInf();
@@ -384,7 +383,7 @@ class Data {
 
   void
   replaceInfPython(boost::python::object obj);
-
+  
 
   /**
    \brief Ensures data is ready for write access.
@@ -411,7 +410,7 @@ class Data {
   */
   bool
   actsExpanded() const;
-
+  
 
   /**
      \brief
@@ -441,7 +440,7 @@ class Data {
 
   /**
      \brief
-     Return true if this Data holds an instance of DataEmpty. This is _not_ the same as asking if the object
+     Return true if this Data holds an instance of DataEmpty. This is _not_ the same as asking if the object 
 contains datapoints.
   */
   bool
@@ -463,18 +462,6 @@ contains datapoints.
   getFunctionSpace() const
   {
     return m_data->getFunctionSpace();
-  }
-
-  /**
-     \brief
-     Returns the spatial locations of the data points.
-  */
-  inline
-  escript::Data
-  getXFromFunctionSpace() const
-  {
-      // This is exposed to Python as [Data object].getX()
-      return m_data->getFunctionSpace().getX();
   }
 
   /**
@@ -612,7 +599,7 @@ If false, the result is a list of scalars [1, 2, ...]
 
   const DataTypes::cplx_t*
   getSampleDataRO(DataTypes::CplxVectorType::size_type sampleNo, DataTypes::cplx_t dummy) const;
-
+  
 
   /**
      \brief
@@ -625,9 +612,9 @@ If false, the result is a list of scalars [1, 2, ...]
   getSampleDataRW(DataTypes::RealVectorType::size_type sampleNo, DataTypes::real_t dummy=0);
 
   DataTypes::cplx_t*
-  getSampleDataRW(DataTypes::RealVectorType::size_type sampleNo, DataTypes::cplx_t dummy);
-
-
+  getSampleDataRW(DataTypes::RealVectorType::size_type sampleNo, DataTypes::cplx_t dummy);  
+  
+  
 
  /**
     \brief
@@ -636,13 +623,13 @@ If false, the result is a list of scalars [1, 2, ...]
     \return pointer to the data.
 */
   const DataTypes::real_t*
-  getDataRO(DataTypes::real_t dummy=0) const;
-
+  getDataRO(DataTypes::real_t dummy=0) const;  
+  
   const DataTypes::cplx_t*
-  getDataRO(DataTypes::cplx_t dummy) const;
-
-
-
+  getDataRO(DataTypes::cplx_t dummy) const;    
+  
+  
+  
   /**
      \brief
      Return the sample data for the given tag. If an attempt is made to
@@ -655,14 +642,14 @@ If false, the result is a list of scalars [1, 2, ...]
   {
     return m_data->getSampleDataByTag(tag, dummy);
   }
-
+  
   inline
   DataTypes::cplx_t*
   getSampleDataByTag(int tag, DataTypes::cplx_t dummy)
   {
     return m_data->getSampleDataByTag(tag, dummy);
-  }
-
+  }  
+  
 
   /**
      \brief
@@ -685,7 +672,7 @@ If false, the result is a list of scalars [1, 2, ...]
 
 
   /**
-     \brief
+     \brief 
      Return the offset for the given sample and point within the sample
   */
   inline
@@ -739,7 +726,7 @@ If false, the result is a list of scalars [1, 2, ...]
 
   /**
   \brief Return true if this object contains no samples.
-  This is not the same as isEmpty()
+  This is not the same as isEmpty() 
   */
   bool
   hasNoSamples() const
@@ -793,7 +780,7 @@ If false, the result is a list of scalars [1, 2, ...]
   setTaggedValueFromCPP(int tagKey,
                         const DataTypes::ShapeType& pointshape,
                         const DataTypes::CplxVectorType& value,
-                        int dataOffset=0);
+                        int dataOffset=0);  
 
   /**
     \brief
@@ -826,7 +813,7 @@ If false, the result is a list of scalars [1, 2, ...]
 
   Data
   interpolateFromTable3D(const WrappedArray& table, DataTypes::real_t Amin, DataTypes::real_t Astep,
-                       DataTypes::real_t undef, Data& B, DataTypes::real_t Bmin, DataTypes::real_t Bstep, Data& C,
+                       DataTypes::real_t undef, Data& B, DataTypes::real_t Bmin, DataTypes::real_t Bstep, Data& C, 
                         DataTypes::real_t Cmin, DataTypes::real_t Cstep, bool check_boundaries);
 
   Data
@@ -850,13 +837,13 @@ If false, the result is a list of scalars [1, 2, ...]
   Data
   interpolateFromTable1DP(boost::python::object table, DataTypes::real_t Amin, DataTypes::real_t Astep,
                         DataTypes::real_t undef,bool check_boundaries);
-
+  
   Data
   nonuniforminterp(boost::python::object in, boost::python::object out, bool check_boundaries);
 
   Data
-  nonuniformslope(boost::python::object in, boost::python::object out, bool check_boundaries);
-
+  nonuniformslope(boost::python::object in, boost::python::object out, bool check_boundaries);  
+  
   /**
      \brief
      Calculates the gradient of the data at the data points of functionspace.
@@ -1003,7 +990,7 @@ If false, the result is a list of scalars [1, 2, ...]
   */
   Data
   abs() const;
-
+  
   /**
      \brief
      Return the phase/arg/angular-part of complex values.
@@ -1011,7 +998,7 @@ If false, the result is a list of scalars [1, 2, ...]
   */
   Data
   phase() const;
-
+  
 
   /**
      \brief
@@ -1033,7 +1020,7 @@ If false, the result is a list of scalars [1, 2, ...]
      \brief
      Return the (sample number, data-point number) of the data point with
      the minimum component value in this Data object.
-     \note If you are working in python, please consider using Locator
+     \note If you are working in python, please consider using Locator 
 instead of manually manipulating process and point IDs.
   */
   const boost::python::tuple
@@ -1043,7 +1030,7 @@ instead of manually manipulating process and point IDs.
      \brief
      Return the (sample number, data-point number) of the data point with
      the minimum component value in this Data object.
-     \note If you are working in python, please consider using Locator
+     \note If you are working in python, please consider using Locator 
 instead of manually manipulating process and point IDs.
   */
   const boost::python::tuple
@@ -1154,12 +1141,12 @@ instead of manually manipulating process and point IDs.
   */
   Data
   conjugate() const;
-
+  
   Data
-  real() const;
-
+  real() const;  
+  
   Data
-  imag() const;
+  imag() const;  
 
   /**
      \brief
@@ -1184,7 +1171,7 @@ instead of manually manipulating process and point IDs.
   */
   Data
   bessel(int order, DataTypes::real_t (*besselfunc) (int,DataTypes::real_t) );
-
+  
 
   /**
      \brief
@@ -1424,38 +1411,38 @@ instead of manually manipulating process and point IDs.
     wrapper for python add operation
   */
   boost::python::object __add__(const boost::python::object& right);
-
+  
 
   /**
     \brief
     wrapper for python subtract operation
   */
   boost::python::object __sub__(const boost::python::object& right);
-
+  
   /**
     \brief
     wrapper for python reverse subtract operation
   */
-  boost::python::object __rsub__(const boost::python::object& right);
+  boost::python::object __rsub__(const boost::python::object& right);  
 
   /**
     \brief
     wrapper for python multiply operation
   */
   boost::python::object __mul__(const boost::python::object& right);
-
+    
   /**
     \brief
     wrapper for python divide operation
   */
   boost::python::object __div__(const boost::python::object& right);
-
+  
   /**
     \brief
     wrapper for python reverse divide operation
   */
-  boost::python::object __rdiv__(const boost::python::object& right);
-
+  boost::python::object __rdiv__(const boost::python::object& right);    
+  
   /**
         \brief return inverse of matricies.
   */
@@ -1601,13 +1588,13 @@ instead of manually manipulating process and point IDs.
 
         DataTypes::RealVectorType::reference
         getDataAtOffsetRW(DataTypes::RealVectorType::size_type i, DataTypes::real_t dummy);
-
+        
         DataTypes::CplxVectorType::const_reference
         getDataAtOffsetRO(DataTypes::CplxVectorType::size_type i, DataTypes::cplx_t dummy);
 
         DataTypes::CplxVectorType::reference
-        getDataAtOffsetRW(DataTypes::CplxVectorType::size_type i, DataTypes::cplx_t dummy);
-
+        getDataAtOffsetRW(DataTypes::CplxVectorType::size_type i, DataTypes::cplx_t dummy);     
+        
 
   /**
     \brief Ensures that the Data is expanded and returns its underlying vector
@@ -1615,7 +1602,7 @@ instead of manually manipulating process and point IDs.
     Is a posibility.
     \warning For domain implementors only. Using this function will
     avoid using optimisations like lazy evaluation. It is intended
-    to allow quick initialisation of Data by domain; not as a bypass around
+    to allow quick initialisation of Data by domain; not as a bypass around 
     escript's other mechanisms.
   */
   DataTypes::RealVectorType&
@@ -1623,12 +1610,12 @@ instead of manually manipulating process and point IDs.
 
   DataTypes::CplxVectorType&
   getExpandedVectorReference(DataTypes::cplx_t dummy);
-
-
+  
+  
   /**
    * \brief For tagged Data returns the number of tags with values.
    * For non-tagged data will return 0 (even Data which has been expanded from tagged).
-  */
+  */ 
   size_t
   getNumberOfTaggedValues() const;
 
@@ -1636,19 +1623,19 @@ instead of manually manipulating process and point IDs.
   * \brief make the data complex
   */
   void complicate();
-
+ 
  protected:
 
  private:
    void init_from_data_and_fs(const Data& inData,
-           const FunctionSpace& functionspace);
-
+           const FunctionSpace& functionspace);   
+   
    template <typename S>
-   void
+   void 
    maskWorker(Data& other2, Data& mask2, S sentinel);
 
   template <class BinaryOp>
-  DataTypes::real_t
+  DataTypes::real_t 
 #ifdef ESYS_MPI
   lazyAlgWorker(DataTypes::real_t init, MPI_Op mpiop_type);
 #else
@@ -1747,12 +1734,12 @@ instead of manually manipulating process and point IDs.
              const DataTypes::ShapeType& shape,
              const FunctionSpace& what,
              bool expanded);
-
+  
   void
   initialise(const DataTypes::CplxVectorType& value,
              const DataTypes::ShapeType& shape,
              const FunctionSpace& what,
-             bool expanded);
+             bool expanded);  
 
   void
   initialise(const WrappedArray& value,
@@ -1769,7 +1756,7 @@ instead of manually manipulating process and point IDs.
   initialise(const DataTypes::cplx_t value,
              const DataTypes::ShapeType& shape,
              const FunctionSpace& what,
-             bool expanded);
+             bool expanded);  
   //
   // flag to protect the data object against any update
   bool m_protected;
@@ -1788,7 +1775,7 @@ instead of manually manipulating process and point IDs.
    const DataReady* dr=dynamic_cast<const DataReady*>(m_data.get());
    ESYS_ASSERT(dr!=0, "error casting to DataReady.");
    return dr;
-}
+}  
 
   DataReady*
   getReady()
@@ -1796,11 +1783,11 @@ instead of manually manipulating process and point IDs.
    DataReady* dr=dynamic_cast<DataReady*>(m_data.get());
    ESYS_ASSERT(dr!=0, "error casting to DataReady.");
    return dr;
-}
+}  
 
 
 // Be wary of using this for local operations since it (temporarily) increases reference count.
-// If you are just using this to call a method on DataReady instead of DataAbstract consider using
+// If you are just using this to call a method on DataReady instead of DataAbstract consider using 
 // getReady() instead
   DataReady_ptr
   getReadyPtr()
@@ -1808,7 +1795,7 @@ instead of manually manipulating process and point IDs.
    DataReady_ptr dr=REFCOUNTNS::dynamic_pointer_cast<DataReady>(m_data);
    ESYS_ASSERT(dr.get()!=0, "error casting to DataReady.");
    return dr;
-}
+}  
 
   const_DataReady_ptr
   getReadyPtr() const
@@ -1816,12 +1803,12 @@ instead of manually manipulating process and point IDs.
    const_DataReady_ptr dr=REFCOUNTNS::dynamic_pointer_cast<const DataReady>(m_data);
    ESYS_ASSERT(dr.get()!=0, "error casting to DataReady.");
    return dr;
-}
+}    
 
   // In the isShared() method below:
-  // A problem would occur if m_data (the address pointed to) were being modified
+  // A problem would occur if m_data (the address pointed to) were being modified 
   // while the call m_data->is_shared is being executed.
-  //
+  // 
   // Q: So why do I think this code can be thread safe/correct?
   // A: We need to make some assumptions.
   // 1. We assume it is acceptable to return true under some conditions when we aren't shared.
@@ -1834,11 +1821,11 @@ instead of manually manipulating process and point IDs.
   // For any threads executing before the flag switches they will assume the object is still shared.
   bool isShared() const
   {
-#ifdef SLOWSHARECHECK
+#ifdef SLOWSHARECHECK        
 	return m_data->isShared();      // single threadsafe check for this
 #else
 	return !m_data.unique();
-#endif
+#endif	
   }
 
   void forceResolve()
@@ -1856,7 +1843,7 @@ instead of manually manipulating process and point IDs.
   }
 
   /**
-  \brief if another object is sharing out member data make a copy to work with instead.
+  \brief if another object is sharing out member data make a copy to work with instead. 
   This code should only be called from single threaded sections of code.
   */
   void exclusiveWrite()
@@ -1873,9 +1860,9 @@ instead of manually manipulating process and point IDs.
                 DataAbstract* t=m_data->deepCopy();
                 set_m_data(DataAbstract_ptr(t));
         }
-#ifdef EXWRITECHK
+#ifdef EXWRITECHK               
         m_data->exclusivewritecalled=true;
-#endif
+#endif  
   }
 
   /**
@@ -1886,7 +1873,7 @@ instead of manually manipulating process and point IDs.
         if  (isLazy() || isShared())
         {
                 std::ostringstream oss;
-                oss << "Programming error. ExclusiveWrite required - please call requireWrite() isLazy=" << isLazy() << " isShared()=" << isShared();
+                oss << "Programming error. ExclusiveWrite required - please call requireWrite() isLazy=" << isLazy() << " isShared()=" << isShared(); 
                 throw DataException(oss.str());
         }
   }
@@ -1899,9 +1886,9 @@ instead of manually manipulating process and point IDs.
   */
   void set_m_data(DataAbstract_ptr p);
 
-
-  void TensorSelfUpdateBinaryOperation(const Data& right, escript::ES_optype operation);
-
+  
+  void TensorSelfUpdateBinaryOperation(const Data& right, escript::ES_optype operation);  
+  
   friend class DataAbstract;            // To allow calls to updateShareStatus
   friend class TestDomain;              // so its getX will work quickly
 #ifdef IKNOWWHATIMDOING
@@ -1919,7 +1906,6 @@ Data
 applyBinaryCFunction(boost::python::object func, boost::python::tuple shape, escript::Data& d, escript::Data& e);
 #endif
 
-ESCRIPT_DLL_API
 Data
 condEval(escript::Data& mask, escript::Data& trueval, escript::Data& falseval);
 
@@ -1928,7 +1914,6 @@ condEval(escript::Data& mask, escript::Data& trueval, escript::Data& falseval);
 /**
  \brief Create a new Expanded Data object filled with pseudo-random data.
 */
-ESCRIPT_DLL_API
 Data randomData(const boost::python::tuple& shape,
        const FunctionSpace& what,
        long seed, const boost::python::tuple& filter);
@@ -2007,7 +1992,7 @@ Data::getSampleDataRO(DataTypes::RealVectorType::size_type sampleNo, DataTypes::
    DataLazy* l=dynamic_cast<DataLazy*>(m_data.get());
    if (l!=0)
    {
-	throw DataException("Programming error: complex lazy objects are not supported.");
+	throw DataException("Programming error: complex lazy objects are not supported.");	
    }
    return getReady()->getSampleDataRO(sampleNo, dummy);
 }
@@ -2063,7 +2048,6 @@ inline DataTypes::real_t rpow(DataTypes::real_t x,DataTypes::real_t y)
   Operator+
   Takes two Data objects.
 */
-ESCRIPT_DLL_API
 Data operator+(const Data& left, const Data& right);
 
 /**
@@ -2071,7 +2055,6 @@ Data operator+(const Data& left, const Data& right);
   Operator-
   Takes two Data objects.
 */
-ESCRIPT_DLL_API
 Data operator-(const Data& left, const Data& right);
 
 /**
@@ -2079,7 +2062,6 @@ Data operator-(const Data& left, const Data& right);
   Operator*
   Takes two Data objects.
 */
-ESCRIPT_DLL_API
 Data operator*(const Data& left, const Data& right);
 
 /**
@@ -2087,7 +2069,6 @@ Data operator*(const Data& left, const Data& right);
   Operator/
   Takes two Data objects.
 */
-ESCRIPT_DLL_API
 Data operator/(const Data& left, const Data& right);
 
 /**
@@ -2096,7 +2077,6 @@ Data operator/(const Data& left, const Data& right);
   Takes LHS Data object and RHS python::object.
   python::object must be convertable to Data type.
 */
-ESCRIPT_DLL_API
 Data operator+(const Data& left, const boost::python::object& right);
 
 /**
@@ -2105,7 +2085,6 @@ Data operator+(const Data& left, const boost::python::object& right);
   Takes LHS Data object and RHS python::object.
   python::object must be convertable to Data type.
 */
-ESCRIPT_DLL_API
 Data operator-(const Data& left, const boost::python::object& right);
 
 /**
@@ -2114,7 +2093,6 @@ Data operator-(const Data& left, const boost::python::object& right);
   Takes LHS Data object and RHS python::object.
   python::object must be convertable to Data type.
 */
-ESCRIPT_DLL_API
 Data operator*(const Data& left, const boost::python::object& right);
 
 /**
@@ -2123,7 +2101,6 @@ Data operator*(const Data& left, const boost::python::object& right);
   Takes LHS Data object and RHS python::object.
   python::object must be convertable to Data type.
 */
-ESCRIPT_DLL_API
 Data operator/(const Data& left, const boost::python::object& right);
 
 /**
@@ -2132,7 +2109,6 @@ Data operator/(const Data& left, const boost::python::object& right);
   Takes LHS python::object and RHS Data object.
   python::object must be convertable to Data type.
 */
-ESCRIPT_DLL_API
 Data operator+(const boost::python::object& left, const Data& right);
 
 /**
@@ -2141,7 +2117,6 @@ Data operator+(const boost::python::object& left, const Data& right);
   Takes LHS python::object and RHS Data object.
   python::object must be convertable to Data type.
 */
-ESCRIPT_DLL_API
 Data operator-(const boost::python::object& left, const Data& right);
 
 /**
@@ -2150,7 +2125,6 @@ Data operator-(const boost::python::object& left, const Data& right);
   Takes LHS python::object and RHS Data object.
   python::object must be convertable to Data type.
 */
-ESCRIPT_DLL_API
 Data operator*(const boost::python::object& left, const Data& right);
 
 /**
@@ -2159,7 +2133,6 @@ Data operator*(const boost::python::object& left, const Data& right);
   Takes LHS python::object and RHS Data object.
   python::object must be convertable to Data type.
 */
-ESCRIPT_DLL_API
 Data operator/(const boost::python::object& left, const Data& right);
 
 
@@ -2168,7 +2141,6 @@ Data operator/(const boost::python::object& left, const Data& right);
   \brief
   Output operator
 */
-ESCRIPT_DLL_API
 std::ostream& operator<<(std::ostream& o, const Data& data);
 
 /**
@@ -2179,7 +2151,6 @@ std::ostream& operator<<(std::ostream& o, const Data& data);
   \param axis_offset - Input - axis offset
   \param transpose - Input - 0: transpose neither, 1: transpose arg0, 2: transpose arg1
 */
-ESCRIPT_DLL_API
 Data
 C_GeneralTensorProduct(Data& arg_0,
                      Data& arg_1,
@@ -2269,7 +2240,7 @@ Data::reduction(BinaryFunction operation, DataTypes::real_t initial_value) const
   } else if (isTagged()) {
     DataTagged* leftC=dynamic_cast<DataTagged*>(m_data.get());
     ESYS_ASSERT(leftC!=0, "Programming error - casting to DataTagged.");
-
+    
     DataTagged& data=*leftC;
     DataTypes::real_t current_value=initial_value;
 
@@ -2290,11 +2261,11 @@ Data::reduction(BinaryFunction operation, DataTypes::real_t initial_value) const
         current_value=operation(current_value,escript::reductionOpVector(vec,shape,it->second,operation,initial_value));
       }
     }
-    return current_value;
+    return current_value;    
   } else if (isConstant()) {
     DataConstant* leftC=dynamic_cast<DataConstant*>(m_data.get());
     ESYS_ASSERT(leftC!=0, "Programming error - casting to DataConstant.");
-    return escript::reductionOpVector(leftC->getTypedVectorRO(typename BinaryFunction::first_argument_type(0)),leftC->getShape(),0,operation,initial_value);
+    return escript::reductionOpVector(leftC->getTypedVectorRO(typename BinaryFunction::first_argument_type(0)),leftC->getShape(),0,operation,initial_value);    
   } else if (isEmpty()) {
     throw DataException("Error - Operations (algorithm) not permitted on instances of DataEmpty.");
   } else if (isLazy()) {
@@ -2319,16 +2290,16 @@ Data::dp_algorithm(BinaryFunction operation, DataTypes::real_t initial_value) co
 {
   if (isEmpty()) {
     throw DataException("Error - Operations (dp_algorithm) not permitted on instances of DataEmpty.");
-  }
+  } 
   else if (isExpanded()) {
     Data result(0,DataTypes::ShapeType(),getFunctionSpace(),isExpanded());
     DataExpanded* dataE=dynamic_cast<DataExpanded*>(m_data.get());
     DataExpanded* resultE=dynamic_cast<DataExpanded*>(result.m_data.get());
     ESYS_ASSERT(dataE!=0, "Programming error - casting data to DataExpanded.");
     ESYS_ASSERT(resultE!=0, "Programming error - casting result to DataExpanded.");
-
-
-
+    
+    
+    
     int i,j;
     int numSamples=dataE->getNumSamples();
     int numDPPSample=dataE->getNumDPPSample();
@@ -2346,7 +2317,7 @@ Data::dp_algorithm(BinaryFunction operation, DataTypes::real_t initial_value) co
 	  escript::reductionOpVector(dataVec, shape, dataE->getPointOffset(i,j),operation,initial_value);
 
       }
-    }
+    }    
     //escript::dp_algorithm(*dataE,*resultE,operation,initial_value);
     return result;
   }
@@ -2356,34 +2327,34 @@ Data::dp_algorithm(BinaryFunction operation, DataTypes::real_t initial_value) co
     DataTypes::RealVectorType defval(1);
     defval[0]=0;
     DataTagged* resultT=new DataTagged(getFunctionSpace(), DataTypes::scalarShape, defval, dataT);
-
-
+    
+    
     const DataTypes::ShapeType& shape=dataT->getShape();
     const auto& vec=dataT->getTypedVectorRO(initial_value);
     const DataTagged::DataMapType& lookup=dataT->getTagLookup();
     for (DataTagged::DataMapType::const_iterator i=lookup.begin(); i!=lookup.end(); i++) {
       resultT->getDataByTagRW(i->first,0) =
 	  escript::reductionOpVector(vec,shape,dataT->getOffsetForTag(i->first),operation,initial_value);
-    }
+    }    
     resultT->getTypedVectorRW(initial_value)[resultT->getDefaultOffset()] = escript::reductionOpVector(dataT->getTypedVectorRO(initial_value),dataT->getShape(),dataT->getDefaultOffset(),operation,initial_value);
-
-
-
-
+    
+    
+    
+    
     //escript::dp_algorithm(*dataT,*resultT,operation,initial_value);
     return Data(resultT);   // note: the Data object now owns the resultT pointer
-  }
+  } 
   else if (isConstant()) {
     Data result(0,DataTypes::ShapeType(),getFunctionSpace(),isExpanded());
     DataConstant* dataC=dynamic_cast<DataConstant*>(m_data.get());
     DataConstant* resultC=dynamic_cast<DataConstant*>(result.m_data.get());
     ESYS_ASSERT(dataC!=0, "Programming error - casting data to DataConstant.");
     ESYS_ASSERT(resultC!=0, "Programming error - casting result to DataConstant.");
-
+    
     DataConstant& data=*dataC;
     resultC->getTypedVectorRW(initial_value)[0] =
-	escript::reductionOpVector(data.getTypedVectorRO(initial_value),data.getShape(),0,operation,initial_value);
-
+	escript::reductionOpVector(data.getTypedVectorRO(initial_value),data.getShape(),0,operation,initial_value);    
+    
     //escript::dp_algorithm(*dataC,*resultC,operation,initial_value);
     return result;
   } else if (isLazy()) {
@@ -2415,3 +2386,4 @@ C_TensorUnaryOperation(Data const &arg_0,
 } // namespace escript
 
 #endif // __ESCRIPT_DATA_H__
+

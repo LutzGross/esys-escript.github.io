@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2020 by The University of Queensland
+* Copyright (c) 2003-2018 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -10,13 +10,11 @@
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
-* Development from 2014-2017 by Centre for Geoscience Computing (GeoComp)
-* Development from 2019 by School of Earth and Environmental Sciences
-**
+* Development from 2014 by Centre for Geoscience Computing (GeoComp)
+*
 *****************************************************************************/
 
 #include <speckley/Rectangle.h>
-#include <speckley/Speckley.h>
 #include <speckley/DefaultAssembler2D.h>
 #include <speckley/WaveAssembler2D.h>
 #ifdef USE_RIPLEY
@@ -179,7 +177,7 @@ Rectangle::Rectangle(int order, dim_t n0, dim_t n1, double x0, double y0, double
         setTagMap(i->first, i->second);
     }
     addPoints(points, tags);
-
+    
 
 #ifdef USE_RIPLEY
     coupler = NULL;
@@ -250,7 +248,7 @@ void Rectangle::readNcGrid(escript::Data& out, std::string filename,
     if (!escript::openNcFile(f, filename))
     {
         throw SpeckleyException("readNcGrid(): cannot open file");
-    }
+    }       
 
     NcVar var = f.getVar(varname.c_str());
     if (var.isNull())
@@ -267,7 +265,7 @@ void Rectangle::readNcGrid(escript::Data& out, std::string filename,
     for (size_t i=0;i<vard.size();++i)
     {
         edges[i]=vard[i].getSize();
-    }
+    }       
 
     // is this a slice of the data object (dims!=2)?
     // note the expected ordering of edges (as in numpy: y,x)
@@ -310,14 +308,14 @@ void Rectangle::readNcGrid(escript::Data& out, std::string filename,
         startindex.push_back(idx0);
         counts.push_back(num1);
         counts.push_back(num0);
-        var.getVar(startindex, counts, &values[0]);
+        var.getVar(startindex, counts, &values[0]);   
     } else {
         //var->set_cur(idx0);
         //var->get(&values[0], num0);
         startindex.push_back(idx0);
         counts.push_back(num0);
-        var.getVar(startindex, counts, &values[0]);
-    }
+        var.getVar(startindex, counts, &values[0]);   
+    }      
 
     const int dpp = out.getNumDataPointsPerSample();
     out.requireWrite();
@@ -1218,20 +1216,16 @@ void Rectangle::assembleIntegrate(std::vector<cplx_t>& integrals,
 
 //private
 template<typename Scalar>
-void Rectangle::assembleIntegrateWorker(std::vector<Scalar>& integrals, const escript::Data& arg) const
+void Rectangle::assembleIntegrateWorker(std::vector<Scalar>& integrals,
+                                        const escript::Data& arg) const
 {
     const int fs = arg.getFunctionSpace().getTypeCode();
-    if (fs != Elements && fs != Points)
+    if (fs != Elements)
         throw new SpeckleyException("Speckley doesn't currently support integrals of non-Element functionspaces");
-    if (!arg.actsExpanded() && fs != Points)
+    if (!arg.actsExpanded())
         throw new SpeckleyException("Speckley doesn't currently support unexpanded data");
 
-    if(fs == Points){
-#ifdef ESYS_MPI
-        if(getMPIRank() == 0)
-#endif
-        integrals[0] += arg.getNumberOfTaggedValues();
-    } else if (m_order == 2) {
+    if (m_order == 2) {
         integral_order2(integrals, arg);
     } else if (m_order == 3) {
         integral_order3(integrals, arg);
@@ -1761,7 +1755,7 @@ void Rectangle::shareVertical(escript::Data& out, int rx, int ry) const
     MPI_Datatype mpiType = (sizeof(Scalar) == sizeof(double) ? MPI_DOUBLE : MPI_DOUBLE_COMPLEX);
 
     MPI_Request request[2];
-
+    
     if (ry) {
         MPI_Isend(bottom, count, mpiType, down_neighbour, tag,
                 m_mpiInfo->comm, request);
@@ -1771,7 +1765,7 @@ void Rectangle::shareVertical(escript::Data& out, int rx, int ry) const
         MPI_Isend(top, count, mpiType, up_neighbour, tag,
             m_mpiInfo->comm, request+1);
     }
-
+    
     //read down
     if (ry) {
         MPI_Recv(&recv[0], count, mpiType, down_neighbour, tag,
@@ -1793,7 +1787,7 @@ void Rectangle::shareVertical(escript::Data& out, int rx, int ry) const
             top[i] += recv[i];
         }
     }
-
+    
     if (ry) {
         MPI_Wait(request, &status);
     }
@@ -1965,3 +1959,4 @@ void Rectangle::interpolateAcross(escript::Data& target, const escript::Data& so
 }
 
 } // end of namespace speckley
+

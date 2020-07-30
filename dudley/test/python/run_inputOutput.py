@@ -42,12 +42,6 @@ from esys.dudley import Rectangle, Brick, LoadMesh, ReadMesh, ReadGmsh
 import os as os
 
 try:
-    import numpy
-    HAVE_NUMPY = True
-except:
-    HAVE_NUMPY = False
-
-try:
      DUDLEY_WORKDIR=os.environ['DUDLEY_WORKDIR']
 except KeyError:
      DUDLEY_WORKDIR=os.path.join(os.getcwd(),"dudley/test/")
@@ -169,58 +163,6 @@ class Test_InputOutputOnDudley(unittest.TestCase):
         mydomain1 = Brick(n0=8, n1=10, n2=12, order=1, l0=1., l1=1., l2=1., optimize=False)
         mydomain2 = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"brick_8x10x12.fly"))
         self.domainsEqual(mydomain1, mydomain2)
-
-     @unittest.skipIf(HAVE_NUMPY is False, "Numpy is not installed")
-     def test_connectivity_info(self):
-        if hasFeature("boostnumpy"):
-            domain=Rectangle(n0=3,n1=4)
-            testvalues=domain.getConnectivityInfo()
-            if(domain.getDescription()=='FinleyMesh'):
-                correctvalues=[[0., 1., 5., 4.],
-                          [ 1., 2., 6., 5.],
-                          [ 2., 3., 7., 6.],
-                          [ 4., 5., 9., 8.],
-                          [ 5., 6.,10., 9.],
-                          [ 6., 7.,11.,10.],
-                          [ 8., 9.,13.,12.],
-                          [ 9.,10.,14.,13.],
-                          [10.,11.,15.,14.],
-                          [12.,13.,17.,16.],
-                          [13.,14.,18.,17.],
-                          [14.,15.,19.,18.]]
-                jlim=4
-            elif(domain.getDescription()=='DudleyMesh'):
-                correctvalues=[[ 0., 1., 5.],
-                               [ 0., 5., 4.],
-                               [ 1., 2., 5.],
-                               [ 2., 6., 5.],
-                               [ 2., 3., 7.],
-                               [ 2., 7., 6.],
-                               [ 4., 5., 9.],
-                               [ 4., 9., 8.],
-                               [ 5., 6., 9.],
-                               [ 6.,10., 9.],
-                               [ 6., 7.,11.],
-                               [ 6.,11.,10.],
-                               [ 8., 9.,13.],
-                               [ 8.,13.,12.],
-                               [ 9.,10.,13.],
-                               [10.,14.,13.],
-                               [10.,11.,15.],
-                               [10.,15.,14.],
-                               [12.,13.,17.],
-                               [12.,17.,16.],
-                               [13.,14.,17.],
-                               [14.,18.,17.],
-                               [14.,15.,19.],
-                               [14.,19.,18.]]
-                jlim=3
-            else:
-                msg="Unrecognised domain type %s" % domain.getDescription()
-                self.assertEqual(1,-1,msg)
-            for i in range(0,testvalues.shape[0]):
-                for j in range(0,jlim):
-                    self.assertEqual(testvalues[i][j],correctvalues[i][j])
 
 if __name__ == '__main__':
     run_tests(__name__, exit_on_failure=True)

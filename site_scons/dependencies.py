@@ -11,7 +11,6 @@
 # Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 # Development 2012-2013 by School of Earth Sciences
 # Development from 2014 by Centre for Geoscience Computing (GeoComp)
-# Development from 2019 by School of Earth and Environmental Sciences
 #
 ##############################################################################
 
@@ -29,7 +28,7 @@ from distutils import sysconfig
 from subprocess import PIPE, Popen
 from SCons.Script.SConscript import Configure
 from site_init import findLibWithHeader, detectModule
-import subprocess
+import subprocess 
 
 REQUIRED_BOOST = (1, 46)
 
@@ -74,38 +73,26 @@ def checkCompiler(env):
 
     if not conf.CheckComplexAcos():
         conf.env.Append(CPPDEFINES = ['ESYS_USE_BOOST_ACOS'])
-
+    
     return conf.Finish()
 
-def get_external_python_sympy(env,bin):
+def get_external_python_sympy(bin):
     import subprocess
     cmd=''
     cmd+='import sympy\n'
     cmd+='print(sympy.__version__)\n'
     sp=subprocess.Popen([bin, '-c', cmd], stdin=None, stderr=None, stdout=subprocess.PIPE)
     #ver=sp.stdout.readline().strip().split('.')
-
+    
     import sys
     if sys.version_info[0] >= 3:
         ver = str(sp.stdout.readline().strip(), 'utf-8')
     else:
         ver = sp.stdout.readline().strip().split('.')
 
-    tmp1 = ver[0]
-    tmp2 = ver[1]
-    if tmp2 == '.':
-        tmp2 = ver[2]
-        
-    if int(tmp1) == 0 and int(tmp2) < 7:
+    if int(ver[0]) == 0 and int(ver[1]) < 7:
         env['sympy'] = False
         env['warnings'].append("sympy version is too old.")
-        env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
-    if (int(tmp1) == 1 and int(tmp2) >= 2) or int(tmp1) >= 2:
-        env['sympy']=False
-        env['warnings'].append("escript does not support sympy version 1.2 and higher. Found version %d.%d" % (int(tmp1),int(tmp2)))
-        env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
-
-    return env
 
 def call_python_config(bin=None):
     import subprocess
@@ -182,23 +169,7 @@ def checkPython(env):
     # if we want to use a python other than the one scons is running
     # Note: we assume scons is running python 2 in the following.
     else:
-        if env['IS_WINDOWS']:
-            cmd = "import os, sys\n"
-            cmd += "from distutils import sysconfig\n"
-            cmd += "print(sysconfig.get_python_inc())\n"
-            cmd += "print(os.path.join(sysconfig.get_config_var('prefix'), 'libs'))\n"
-            cmd += "print('python%s%s'%(sys.version_info[0], sys.version_info[1]))\n"
-            cmd += "print('.'.join([str(i) for i in sys.version_info[:3]]))"
-            pout = subprocess.Popen([env['pythoncmd'], '-c', cmd], stdout=subprocess.PIPE).stdout.read()
-            if isinstance(pout, bytes):
-                pout = pout.decode(sys.stdout.encoding)
-            lines = pout.split('\n')
-            python_inc_path = lines[0].strip()
-            python_lib_path = lines[1].strip()
-            python_libs = [lines[2].strip()]
-            verstring = lines[3].strip()
-        else:
-            (python_lib_path, python_libs,verstring, python_inc_path)=call_python_config(env['pythoncmd'])
+        (python_lib_path, python_libs,verstring, python_inc_path)=call_python_config(env['pythoncmd'])
     
     if sys.version_info[0] == 3:
         if isinstance(verstring, str) is False:
@@ -206,12 +177,9 @@ def checkPython(env):
     else:
         if isinstance(verstring, basestring) is False:
             verstring = str(verstring, 'utf-8')
-
+            
     env['python_version'] = verstring
-    try:
-        ispython3 = (verstring[0] == '3')
-    except:
-        ispython3 = sys.version_info[0] == 3
+    ispython3 = (verstring[0] == '3')
     if ispython3:
         env.Append(CPPDEFINES=['ESPYTHON3'])
     env['buildvars']['python_version'] = verstring
@@ -299,82 +267,69 @@ def checkBoost(env):
     env['buildvars']['boostversion']=boostversion
 
     # Check for the boost numpy library
-    env['have_boost_numpy']=False
-    if boostversion >= 106300 and env['disable_boost_numpy'] is False:
+    if boostversion >= 106300:
         try:
             boost_numpy_inc_path,boost_numpy_lib_path=findLibWithHeader(env, env['boost_libs'], 'boost/python/numpy.hpp', env['boost_prefix'], lang='c++')
+            print("Found boost/python/numpy.hpp. Building with boost numpy support.")
 
             # Locate the boost numpy files
-            if env['IS_WINDOWS']:
-                raise Exception # TODO: fix boost numpy dll ex/import compile errors
-                import sys
-                for l in os.listdir(env['boost_prefix'] + '\\lib'):
-                    if l.startswith('boost_numpy{}{}'.format(sys.version_info.major,sys.version_info.minor)):
-                        libname = os.path.splitext(l)[0]
-            else:
-                p = subprocess.Popen(["ld","--verbose"], stdout=subprocess.PIPE)
-                out,err = p.communicate()
-                spath = [x[13:-3] for x in out.split() if b'SEARCH_DIR' in x]
-                spath.append(boost_lib_path)
-                p2name = ''
-                p3name = ''
-                for name in spath:
-                    try:
-                        l=os.listdir(name)
-
-                        import sys
-                        if sys.version_info[0] == 3:
-                            string_type = str
+            p = subprocess.Popen(["ld","--verbose"], stdout=subprocess.PIPE)
+            out,err = p.communicate()
+            spath = [x[13:-3] for x in out.split() if b'SEARCH_DIR' in x]
+            spath.append(boost_lib_path)
+            p2name = ''
+            p3name = ''
+            for name in spath:
+                try:
+                    l=os.listdir(name)
+                    
+                    import sys
+                    if sys.version_info[0] == 3:
+                        string_type = str
+                    else:
+                        string_type = basestring
+                    
+                    p2res = ''
+                    p3res = ''
+                    for x in l:
+                        if isinstance(x,string_type):
+                            if x.startswith('libboost_numpy-py') and x.endswith('.so'):
+                                p2res = x
+                            if x.startswith('libboost_numpy-py3') and x.endswith('.so'):
+                                p3res = x
                         else:
-                            string_type = basestring
+                            if x.startswith(b'libboost_numpy-py') and x.endswith(b'.so'):
+                                p2res = x
+                            if x.startswith(b'libboost_numpy-py3') and x.endswith(b'.so'):
+                                p3res = x
 
-                        p2res = ''
-                        p3res = ''
-                        for x in l:
-                            if isinstance(x,string_type):
-                                if x.startswith('libboost_numpy-py') and x.endswith('.so'):
-                                    p2res = x
-                                if x.startswith('libboost_numpy-py3') and x.endswith('.so'):
-                                    p3res = x
-                            else:
-                                if x.startswith(b'libboost_numpy-py') and x.endswith(b'.so'):
-                                    p2res = x
-                                if x.startswith(b'libboost_numpy-py3') and x.endswith(b'.so'):
-                                    p3res = x
+                    if len(p2name)==0 and len(p2res)>0:
+                        p2name=p2res[-1]
+                    if len(p3name)==0 and len(p3res)>0:
+                        p3name=p3res[-1]
+                except OSError:
+                    pass
 
-                        if len(p2name)==0 and len(p2res)>0:
-                            p2name=p2res[-1]
-                        if len(p3name)==0 and len(p3res)>0:
-                            p3name=p3res[-1]
-                    except OSError:
-                        pass
-
-                # Pick the right one
-                if int(env['python_version'][0]) == 2:
-                    libname = p2name[3:-3]
-                else:
-                    libname = p3name[3:-3]
+            # Pick the right one
+            if int(env['python_version'][0]) == 2:
+                libname = p2name[3:-3]
+            else:
+                libname = p3name[3:-3]
 
             # If found, add the necessary information to env
             if len(libname) > 0:
                 env.AppendUnique(LIBS = libname)
-                tmp=env['boost_libs']
-                env['boost_libs']=[tmp,libname]
+                env['boost_libs'].append(libname)
                 env.AppendUnique(CPPPATH = [boost_numpy_inc_path])
                 env.AppendUnique(LIBPATH = [boost_numpy_lib_path])
                 env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], boost_numpy_lib_path)
                 env.Append(CPPDEFINES=['ESYS_HAVE_BOOST_NUMPY'])
-                env['have_boost_numpy']=True
-
-            print("Found boost/python/numpy.hpp. Building with boost numpy support.")
         except:
             print("Warning: Could not find boost/python/numpy.hpp. Building without numpy support.")
 
     # Check if the version of boost we are using is missing BOOST_BYTE_ORDER
     if boostversion >= 107000:
         env.Append(CPPDEFINES=['ESYS_DEPRECATED_BOOST_ENDIAN'])
-    if boostversion >= 107200:
-        env.Append(CPPDEFINES=['ESYS_MOVED_BOOST_ENDIAN'])
 
     return env
 
@@ -432,23 +387,16 @@ def checkOptionalModules(env):
     ######## sympy
     if not detectModule(env, 'sympy'):
         env['warnings'].append("Cannot import sympy. Symbolic toolbox and nonlinear PDEs will not be available.")
-        env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
     else:
         if env['pythoncmd'] is not None:
-            env=get_external_python_sympy(env, env['pythoncmd'])
+            get_external_python_sympy(env['pythoncmd'])
         else:
             import sympy as sp
-            import distutils.version as duv
             spVer=sp.__version__
             spl=spVer.split('.')
-            if duv.LooseVersion(sympy.__version__) < duv.LooseVersion('0.7'):
+            if int(spl[0]) == 0 and int(spl[1]) < 7:
                 env['sympy']=False
                 env['warnings'].append("sympy version too old. Symbolic toolbox and nonlinear PDEs will not be available.")
-                env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
-            if duv.LooseVersion(sympy.__version__) > duv.LooseVersion('1.2'):
-                env['sympy']=False
-                env['warnings'].append("escript does not support sympy version 1.2 and higher. Found %d" % duv.LooseVersion(sympy.__version__))
-                env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
 
     ######## gmshpy
     env['gmshpy'] = detectModule(env, 'gmshpy')
@@ -475,8 +423,9 @@ def checkForTrilinos(env):
         'Ifpack2_Factory.hpp','Kokkos_DefaultNode.hpp',\
         'MatrixMarket_Tpetra.hpp','MueLu_CreateTpetraPreconditioner.hpp',\
         'Teuchos_DefaultComm.hpp','Teuchos_ParameterList.hpp',\
-        'Tpetra_CrsGraph.hpp','Tpetra_CrsMatrix.hpp', 'Tpetra_RowMatrix.hpp',\
-        'Tpetra_Vector.hpp','Trilinos_version.h']
+        'Tpetra_CrsGraph.hpp','Tpetra_CrsMatrix.hpp','Tpetra_Experimental_BlockCrsMatrix_Helpers.hpp',\
+        'Tpetra_Experimental_BlockCrsMatrix.hpp','Tpetra_Experimental_BlockVector.hpp','Tpetra_RowMatrix.hpp',\
+        'Tpetra_Vector.hpp']
 
         print("Looking for the Trilinos headers...")
         for check in dependencies:
@@ -488,44 +437,6 @@ def checkForTrilinos(env):
         if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')):
             print("Checking for %s... %s" % ('Tpetra_DefaultPlatform.hpp', "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))
             env.Append(CPPDEFINES = ['ESYS_HAVE_TPETRA_DP'])
-
-        if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_BlockCrsMatrix.hpp')):
-            print("Checking for %s... %s" % ('Tpetra_BlockCrsMatrix.hpp', "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))
-        elif os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_Experimental_BlockCrsMatrix.hpp')):
-            print("Checking for %s... %s" % ('Tpetra_Experimental_BlockCrsMatrix.hpp', "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))
-            env.Append(CPPDEFINES = ['ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKCRS'])
-        else:
-            raise RuntimeError('Could not locate the Trilinos Block CRS Matrix header')
-
-        if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_BlockCrsMatrix_Helpers.hpp')):
-            print("Checking for %s... %s" % ('Tpetra_BlockCrsMatrix_Helpers.hpp', "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))
-        elif os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_Experimental_BlockCrsMatrix_Helpers.hpp')):
-            print("Checking for %s... %s" % ('Tpetra_Experimental_BlockCrsMatrix_Helpers.hpp', "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))
-            env.Append(CPPDEFINES = ['ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKCRSH'])
-        else:
-            raise RuntimeError('Could not locate the Trilinos Block CRS Matrix Helpers header')
-
-        if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_BlockVector.hpp')):
-            print("Checking for %s... %s" % ('Tpetra_BlockVector.hpp', "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))
-        elif os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_Experimental_BlockVector.hpp')):
-            print("Checking for %s... %s" % ('Tpetra_Experimental_BlockVector.hpp', "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))
-            env.Append(CPPDEFINES = ['ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKV'])
-        else:
-            raise RuntimeError('Could not locate the Trilinos BlockVector header')
-
-        # Try to extract the trilinos version from Trilinos_version.h
-        versionh=open(os.path.join(trilinos_inc_path, 'Trilinos_version.h'))
-        trilinos_version='unknown'
-        env['trilinos_version']='unknown'
-        for line in versionh:
-            ver=re.match(r'#define TRILINOS_MAJOR_MINOR_VERSION (\d+)',line)
-            if ver:
-                trilinos_version=ver.group(1)
-                trilinos_version = int(trilinos_version)
-                major=int(str(trilinos_version)[:2])
-                minor=int(str(trilinos_version)[2:4])
-                tmp=int(str(trilinos_version)[4:6])
-                env['trilinos_version'] = str(major)+"."+str(minor)+"."+str(tmp)
 
         if not havelibs:
             packages=['Tpetra','Kokkos','Belos','Amesos2','Ifpack2','MueLu']
@@ -598,19 +509,6 @@ def checkOptionalLibraries(env):
         env['buildvars']['umfpack_inc_path']=umfpack_inc_path
         env['buildvars']['umfpack_lib_path']=umfpack_lib_path
     env['buildvars']['umfpack']=int(env['umfpack'])
-
-    ######## MUMPS
-    mumps_inc_path=''
-    mumps_lib_path=''
-    if env['mumps']:
-        mumps_inc_path,mumps_lib_path=findLibWithHeader(env, env['mumps_libs'], 'mumps_seq/mpi.h', env['mumps_prefix'], lang='c++')
-        env.AppendUnique(CPPPATH = [mumps_inc_path])
-        env.AppendUnique(LIBPATH = [mumps_lib_path])
-        env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], mumps_lib_path)
-        env.Append(CPPDEFINES = ['ESYS_HAVE_MUMPS'])
-        env['buildvars']['mumps_inc_path']=mumps_inc_path
-        env['buildvars']['mumps_lib_path']=mumps_lib_path
-    env['buildvars']['mumps']=int(env['mumps'])
 
     ######## LAPACK
     lapack_inc_path=''
@@ -686,7 +584,7 @@ def checkOptionalLibraries(env):
         env['buildvars']['visit_inc_path']=visit_inc_path
         env['buildvars']['visit_lib_path']=visit_lib_path
     env['buildvars']['visit']=int(env['visit'])
-
+    
     ######## MPI
     if env['mpi']=='no':
         env['mpi']='none'
@@ -713,10 +611,8 @@ def checkOptionalLibraries(env):
                 p = Popen(['orterun', '-V'], stdout=PIPE, stderr=PIPE)
                 o,e = p.communicate()
                 try:
-                    e=e.decode()
                     ver = e.split('\n')[0].split()[-1]
                 except IndexError:
-                    o=o.decode()
                     ver = o.split('\n')[0].split()[-1]
                 if len(ver) > 0:
                     env['orte_version'] = ver
@@ -782,10 +678,8 @@ def checkOptionalLibraries(env):
             try:
                 p=Popen(['gmsh', '-info'], stderr=PIPE)
                 _,e=p.communicate()
-                env.Append(CPPDEFINES=['ESYS_HAVE_GMSH'])
                 if e.split().count("MPI"):
                     env['gmsh']='m'
-                    env.Append(CPPDEFINES=['ESYS_GMSH_MPI'])
                 else:
                     env['gmsh']='s'
             except OSError:
@@ -800,7 +694,6 @@ def checkOptionalLibraries(env):
                 try:
                     p=Popen(cmd, stdout=PIPE)
                     gmshlibs,_ = p.communicate()
-                    gmshlibs.decode()
                     env.Append(CPPDEFINES=['ESYS_HAVE_GMSH'])
                     if p.returncode == 0 and 'libmpi' in gmshlibs:
                         env['gmsh'] = 'm'
@@ -809,7 +702,7 @@ def checkOptionalLibraries(env):
                         env['gmsh'] = 's'
                 except OSError:
                     pass
-
+    
     ######## boost::iostreams
     if env['compressed_files']:
         try:

@@ -42,12 +42,6 @@ try:
     HAVE_FINLEY = True
 except ImportError:
     HAVE_FINLEY = False
-    
-try: 
-    from scipy.interpolate import InterpolatedUnivariateSpline
-    HAVE_SCIPY = True
-except:
-    HAVE_SCIPY = False
 
 HAVE_GMSH = escript.hasFeature("gmsh")
 HAVE_DIRECT = escript.hasFeature("PASO_DIRECT") or escript.hasFeature('trilinos')
@@ -461,7 +455,6 @@ class Test_COMMEMI4(unittest.TestCase):
     @unittest.skipUnless(HAVE_FINLEY, "Test requires finley to be available")
     @unittest.skipUnless(HAVE_GMSH, "Test requires gmsh to be available")
     @unittest.skipUnless(HAVE_DIRECT, "Missing direct solver")
-    @unittest.skipUnless(HAVE_SCIPY, "Test requires scipy to be available")
     def test_comm4(self):
         # ---
         # Initialisations
@@ -584,6 +577,8 @@ class Test_COMMEMI4(unittest.TestCase):
         # User defined plots
         # ---
 
+        from scipy.interpolate import InterpolatedUnivariateSpline
+
         # Setup abscissas/Ordinates for escript data:
         x  = numpy.array( obj_mt2d.loc.getX() )[:,0]
         y0 = numpy.array( obj_mt2d.loc.getValue(arho_2d[0]) )
@@ -697,7 +692,7 @@ class Test_COMMEMI4(unittest.TestCase):
         if not (62 < escript.Lsup(y1) < 64):
             raise RuntimeError("Peak of bottom plot is off.")
             
-        if not (0.61 < c/len(y1) < 0.65):
+        if not (0.62 < c/len(y1) < 0.65):
             print(c/len(y1))
             raise RuntimeError("Bottom plot has too many high points")
 

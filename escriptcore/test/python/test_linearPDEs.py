@@ -43,12 +43,11 @@ mpisize = getMPISizeWorld()
 no_paso = not hasFeature("paso")
 no_mkl = not hasFeature("mkl")
 no_umfpack = not hasFeature("umfpack")
-HAVE_DIRECT = hasFeature("trilinos") or hasFeature("umfpack") or hasFeature("mkl") or hasFeature("mumps")
+HAVE_DIRECT = hasFeature("trilinos") or hasFeature("umfpack") or hasFeature("mkl")
 HAVE_TRILINOS = hasFeature("trilinos")
 # PASO_DIRECT is only reported if we have paso and are running single rank
 CAN_USE_DIRECT = hasFeature("PASO_DIRECT") or hasFeature('trilinos')
 skip_muelu_long = False #no_paso and hasFeature("longindex")
-no_paso_direct = not hasFeature("PASO_DIRECT")
 if getMPISizeWorld() > 1:
     USING_MPI = True
 else:
@@ -84,12 +83,12 @@ class Test_linearPDEs(unittest.TestCase):
             coef += "_reduced"
             self.assertTrue(pde.getCoefficient(coef).isEmpty(),
                     "%s is not empty"%coef)
-
+    
     def checkContactsNotEmpty(self, pde):
         if self.domain.supportsContactElements():
             self.checkIfNotEmpty(pde, ["d_contact", "y_contact"])
             self.checkIfReducedNotEmpty(pde, ["d_contact", "y_contact"])
-
+    
 class Test_LameEquation(Test_linearPDEs):
     def test_config(self):
         mypde=LameEquation(self.domain,debug=self.DEBUG)
@@ -119,7 +118,7 @@ class Test_LameEquation(Test_linearPDEs):
         self.checkIfNotEmpty(mypde, ["B", "C", "D", "X", "Y", "y", "d", "q"])
         self.checkIfReducedNotEmpty(mypde, ["A", "B", "C", "D", "X", "Y", "y", "d"])
         self.checkContactsNotEmpty(mypde)
-
+        
         self.assertTrue(self.check(mypde.getCoefficient("A"),0),"A is not 0")
         self.assertTrue(self.check(mypde.getCoefficient("r"),r_ref),"r is not x")
 
@@ -144,7 +143,7 @@ class Test_LameEquation(Test_linearPDEs):
         mypde.setValue(f=x)
 
         y_ref=interpolate(x,FunctionOnBoundary(self.domain))
-
+        
         self.checkIfNotEmpty(mypde, ["B", "C", "D", "X", "Y", "d", "q", "r"])
         self.checkIfReducedNotEmpty(mypde, ["A", "B", "C", "D", "X", "Y", "y", "d"])
         self.checkContactsNotEmpty(mypde)
@@ -411,7 +410,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
     def test_SolverOptions(self):
         sb=SolverBuddy()
         so=SolverOptions
-
+       
         self.assertTrue(sb.getNumSweeps() == 1, "initial number of sweeps is wrong.")
         self.assertRaises(ValueError,sb.setNumSweeps,-1)
         sb.setNumSweeps(3)
@@ -441,7 +440,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertRaises(ValueError,sb.setDropStorage,-1)
         sb.setDropStorage(10)
         self.assertTrue(sb.getDropStorage() == 10, "DropStorage is wrong.")
-
+        
         self.assertTrue(sb.getRelaxationFactor() == 0.3, "initial RelaxationFactor is wrong.")
         self.assertRaises(ValueError,sb.setRelaxationFactor,-1)
         sb.setRelaxationFactor(0.1)
@@ -468,7 +467,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(sb.getRestart() == 14, "Truncation is wrong.")
         sb.setRestart(0)
         self.assertTrue(sb.getRestart() == 0, "Truncation is wrong.")
-
+        
         self.assertTrue(not sb.isVerbose(), "initial verbosity flag is wrong.")
         sb.setVerbosityOn()
         self.assertTrue(sb.isVerbose(), "verbosity (1) flag is wrong.")
@@ -508,7 +507,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(sb.adaptInnerTolerance(), "InnerToleranceAdaption (3) flag is wrong.")
         sb.setInnerToleranceAdaption(adapt=False)
         self.assertTrue(not sb.adaptInnerTolerance(), "InnerToleranceAdaption (4) flag is wrong.")
-
+     
         self.assertTrue(not sb.acceptConvergenceFailure(), "initial acceptConvergenceFailure flag is wrong.")
         sb.setAcceptanceConvergenceFailureOn()
         self.assertTrue(sb.acceptConvergenceFailure(), "acceptConvergenceFailure (1) flag is wrong.")
@@ -517,8 +516,8 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         sb.setAcceptanceConvergenceFailure(accept=True)
         self.assertTrue(sb.acceptConvergenceFailure(), "acceptConvergenceFailure (3) flag is wrong.")
         sb.setAcceptanceConvergenceFailure(accept=False)
-        self.assertTrue(not sb.acceptConvergenceFailure(), "acceptConvergenceFailure (4) flag is wrong.")
-
+        self.assertTrue(not sb.acceptConvergenceFailure(), "acceptConvergenceFailure (4) flag is wrong.")   
+        
         self.assertTrue(sb.getReordering() == so.DEFAULT_REORDERING, "initial Reordering is wrong.")
         self.assertRaises(ValueError,sb.setReordering,-1)
         sb.setReordering(so.NO_REORDERING)
@@ -529,12 +528,12 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(sb.getReordering() == so.NESTED_DISSECTION, "NESTED_DISSECTION is not set.")
         sb.setReordering(so.DEFAULT_REORDERING)
         self.assertTrue(sb.getReordering() == so.DEFAULT_REORDERING, "DEFAULT_REORDERING is not set.")
-
+        
         # self.assertTrue(sb.getPackage() == so.DEFAULT, "initial solver package is wrong.")
         # if HAVE_TRILINOS is True:
-        #     self.assertTrue(sb.getPackage() == so.TRILINOS, "initial solver package is wrong.")
+        #     self.assertTrue(sb.getPackage() == so.TRILINOS, "initial solver package is wrong.") 
         # else:
-        #     self.assertTrue(sb.getPackage() == so.PASO, "initial solver package is wrong.")
+        #     self.assertTrue(sb.getPackage() == so.PASO, "initial solver package is wrong.") 
 
         if no_paso:
             with self.assertRaises(ValueError) as package:
@@ -614,7 +613,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         sb.setPreconditioner(so.RILU)
         self.assertTrue(sb.getPreconditioner() == so.RILU, "RILU is not set.")
         sb.setPreconditioner(so.NO_PRECONDITIONER)
-        self.assertTrue(sb.getPreconditioner() == so.NO_PRECONDITIONER, "NO_PRECONDITIONER is not set.")
+        self.assertTrue(sb.getPreconditioner() == so.NO_PRECONDITIONER, "NO_PRECONDITIONER is not set.")        
 
         self.assertTrue(sb.getDiagnostics("num_iter") == 0, "initial num_iter is wrong.")
         self.assertTrue(sb.getDiagnostics("num_inner_iter") == 0, "initial num_inner_iter is wrong.")
@@ -645,8 +644,8 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(sb.getDiagnostics("cum_num_inner_iter") == 2, "cum_num_inner_iter is wrong.")
         self.assertTrue(sb.getDiagnostics("cum_num_iter") == 1, "cum_num_iter is wrong.")
         self.assertTrue(sb.getDiagnostics("cum_time") ==3, "cum_time is wrong.")
-        self.assertTrue(sb.getDiagnostics("cum_set_up_time") == 4, "cum_set_up_time is wrong.")
-
+        self.assertTrue(sb.getDiagnostics("cum_set_up_time") == 4, "cum_set_up_time is wrong.")  
+        
         sb.resetDiagnostics()
         self.assertTrue(sb.getDiagnostics("num_iter") == 0, "initial num_iter is wrong.")
         self.assertTrue(sb.getDiagnostics("num_inner_iter") == 0, "initial num_inner_iter is wrong.")
@@ -654,7 +653,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(sb.getDiagnostics("set_up_time") == 0, "initial set_up_time is wrong.")
         self.assertTrue(sb.getDiagnostics("residual_norm") == 0, "initial residual_norm is wrong.")
         self.assertTrue(sb.getDiagnostics("converged") == 0, "initial converged is wrong.")
-        self.assertTrue(sb.hasConverged() == 0, "initial convergence flag is wrong")
+        self.assertTrue(sb.hasConverged() == 0, "initial convergence flag is wrong")       
         self.assertTrue(sb.getDiagnostics("cum_num_inner_iter") == 2, "cum_num_inner_iter is wrong.")
         self.assertTrue(sb.getDiagnostics("cum_num_iter") == 1, "cum_num_iter is wrong.")
         self.assertTrue(sb.getDiagnostics("cum_time") == 3, "cum_time is wrong.")
@@ -677,7 +676,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(sb.getDiagnostics("cum_num_inner_iter") == 22, "cum_num_inner_iter is wrong.")
         self.assertTrue(sb.getDiagnostics("cum_num_iter") == 11, "cum_num_iter is wrong.")
         self.assertTrue(sb.getDiagnostics("cum_time") ==33, "cum_time is wrong.")
-        self.assertTrue(sb.getDiagnostics("cum_set_up_time") == 44, "cum_set_up_time is wrong.")
+        self.assertTrue(sb.getDiagnostics("cum_set_up_time") == 44, "cum_set_up_time is wrong.")  
 
         sb.resetDiagnostics(all=True)
         self.assertTrue(sb.getDiagnostics("num_iter") == 0, "initial num_iter is wrong.")
@@ -696,7 +695,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertTrue(sb.getDim() == 2, "either setDim or getDim is wrong.")
         sb.setDim(3)
         self.assertTrue(sb.getDim() == 3, "either setDim or getDim is wrong.")
-        try:
+        try: 
            success=False
            sb.setDim(4)
            sb.setDim(1.53)
@@ -1167,7 +1166,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumSolutions(), mypde.getNumEquations()),((self.N,d,self.N,d),Function(self.domain),self.N,self.N))
         mypde.resetRightHandSideCoefficients()
         self.assertFalse(mypde.getCoefficient("A").isEmpty(),"A is empty after reset of right hand side coefficients")
-
+        
     def test_setCoefficient_B_System(self):
         d=self.domain.getDim()
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
@@ -1771,12 +1770,12 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
-    @unittest.skipIf(no_paso_direct, "Skipping direct paso test")
+    @unittest.skipIf(no_paso, "Skipping direct paso test")
     def test_DIRECT_PASO(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
         mypde.getSolverOptions().setPackage(SolverOptions.PASO)
-        if hasFeature("umfpack") or hasFeature("mkl") or hasFeature("mumps"):
+        if hasFeature("umfpack") or hasFeature("mkl"):
             mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
             mypde.getSolverOptions().setVerbosity(self.VERBOSE)
             u=mypde.getSolution()
@@ -1784,7 +1783,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         else:
             with self.assertRaises(ValueError) as package:
                 mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
-            self.assertTrue('not compiled' in str(package.exception))
+            self.assertTrue('not compiled' in str(package.exception))            
     @unittest.skipIf(not(HAVE_TRILINOS), "Skipping direct Trilinos test")
     def test_DIRECT_TRILINOS(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
@@ -1988,7 +1987,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
         mypde.getSolverOptions().setPreconditioner(SolverOptions.ILU0)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-        mypde.getSolverOptions().setTruncation(50)
+        mypde.getSolverOptions().setTruncation(50)                         
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_GMRESnoRestart_ILUT(self):
@@ -1997,7 +1996,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setSolverMethod(SolverOptions.GMRES)
         mypde.getSolverOptions().setPreconditioner(SolverOptions.ILUT)
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-        mypde.getSolverOptions().setTruncation(50)
+        mypde.getSolverOptions().setTruncation(50)                         
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
     def test_GMRESnoRestart_RILU(self):
@@ -2110,7 +2109,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
         Y=Vector(self.domain.getDim(),Function(self.domain))
-        for i in range(self.domain.getDim()):
+        for i in range(self.domain.getDim()): 
             A[i,:,i,:]=kronecker(self.domain)
             D[i,i]+=i
             Y[i]+=i
@@ -2124,7 +2123,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
         Y=Vector(self.domain.getDim(),Function(self.domain))
-        for i in range(self.domain.getDim()):
+        for i in range(self.domain.getDim()): 
             A[i,:,i,:]=kronecker(self.domain)
             D[i,i]+=i
             Y[i]+=i
@@ -2139,7 +2138,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
         Y=Vector(self.domain.getDim(),Function(self.domain))
-        for i in range(self.domain.getDim()):
+        for i in range(self.domain.getDim()): 
             A[i,:,i,:]=kronecker(self.domain)
             D[i,i]+=i
             Y[i]+=i
@@ -2156,7 +2155,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
         Y=Vector(self.domain.getDim(),Function(self.domain))
-        for i in range(self.domain.getDim()):
+        for i in range(self.domain.getDim()): 
             A[i,:,i,:]=kronecker(self.domain)
             D[i,i]+=i
             Y[i]+=i
@@ -2167,19 +2166,19 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde.getSolverOptions().setVerbosity(self.VERBOSE)
         u=mypde.getSolution()
         self.assertTrue(self.check(u,1.),'solution is wrong.')
-    @unittest.skipIf(no_paso_direct, "Skipping direct paso test")
+    @unittest.skipIf(no_paso, "Skipping direct paso test")
     def test_DIRECT_System_PASO(self):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
         Y=Vector(self.domain.getDim(),Function(self.domain))
-        for i in range(self.domain.getDim()):
+        for i in range(self.domain.getDim()): 
             A[i,:,i,:]=kronecker(self.domain)
             D[i,i]+=i
             Y[i]+=i
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.getSolverOptions().setPackage(SolverOptions.PASO)
         mypde.setValue(A=A,D=D,Y=Y)
-        if hasFeature("umfpack") or hasFeature("mkl") or hasFeature("mumps"):
+        if hasFeature("umfpack") or hasFeature("mkl"):
             mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
             mypde.getSolverOptions().setVerbosity(self.VERBOSE)
             u=mypde.getSolution()
@@ -2194,7 +2193,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
         Y=Vector(self.domain.getDim(),Function(self.domain))
-        for i in range(self.domain.getDim()):
+        for i in range(self.domain.getDim()): 
             A[i,:,i,:]=kronecker(self.domain)
             D[i,i]+=i
             Y[i]+=i
@@ -2208,7 +2207,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
         Y=Vector(self.domain.getDim(),Function(self.domain))
-        for i in range(self.domain.getDim()):
+        for i in range(self.domain.getDim()): 
             A[i,:,i,:]=kronecker(self.domain)
             D[i,i]+=i
             Y[i]+=i
@@ -2223,7 +2222,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
         Y=Vector(self.domain.getDim(),Function(self.domain))
-        for i in range(self.domain.getDim()):
+        for i in range(self.domain.getDim()): 
             A[i,:,i,:]=kronecker(self.domain)
             D[i,i]+=i
             Y[i]+=i
@@ -2240,7 +2239,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
         Y=Vector(self.domain.getDim(),Function(self.domain))
-        for i in range(self.domain.getDim()):
+        for i in range(self.domain.getDim()): 
             A[i,:,i,:]=kronecker(self.domain)
             D[i,i]+=i
             Y[i]+=i
@@ -2255,7 +2254,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
         Y=Vector(self.domain.getDim(),Function(self.domain))
-        for i in range(self.domain.getDim()):
+        for i in range(self.domain.getDim()): 
             A[i,:,i,:]=kronecker(self.domain)
             D[i,i]+=i
             Y[i]+=i
@@ -2270,7 +2269,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
         Y=Vector(self.domain.getDim(),Function(self.domain))
-        for i in range(self.domain.getDim()):
+        for i in range(self.domain.getDim()): 
             A[i,:,i,:]=kronecker(self.domain)
             D[i,i]+=i
             Y[i]+=i
@@ -2287,7 +2286,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
         Y=Vector(self.domain.getDim(),Function(self.domain))
-        for i in range(self.domain.getDim()):
+        for i in range(self.domain.getDim()): 
             A[i,:,i,:]=kronecker(self.domain)
             D[i,i]+=i
             Y[i]+=i
@@ -2302,7 +2301,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
         Y=Vector(self.domain.getDim(),Function(self.domain))
-        for i in range(self.domain.getDim()):
+        for i in range(self.domain.getDim()): 
             A[i,:,i,:]=kronecker(self.domain)
             D[i,i]+=i
             Y[i]+=i
@@ -2317,7 +2316,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
         Y=Vector(self.domain.getDim(),Function(self.domain))
-        for i in range(self.domain.getDim()):
+        for i in range(self.domain.getDim()): 
             A[i,:,i,:]=kronecker(self.domain)
             D[i,i]+=i
             Y[i]+=i
@@ -2334,7 +2333,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
         Y=Vector(self.domain.getDim(),Function(self.domain))
-        for i in range(self.domain.getDim()):
+        for i in range(self.domain.getDim()): 
             A[i,:,i,:]=kronecker(self.domain)
             D[i,i]+=i
             Y[i]+=i
@@ -2350,7 +2349,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
         Y=Vector(self.domain.getDim(),Function(self.domain))
-        for i in range(self.domain.getDim()):
+        for i in range(self.domain.getDim()): 
             A[i,:,i,:]=kronecker(self.domain)
             D[i,i]+=i
             Y[i]+=i
@@ -2365,7 +2364,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
         Y=Vector(self.domain.getDim(),Function(self.domain))
-        for i in range(self.domain.getDim()):
+        for i in range(self.domain.getDim()): 
             A[i,:,i,:]=kronecker(self.domain)
             D[i,i]+=i
             Y[i]+=i
@@ -2382,7 +2381,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
         Y=Vector(self.domain.getDim(),Function(self.domain))
-        for i in range(self.domain.getDim()):
+        for i in range(self.domain.getDim()): 
             A[i,:,i,:]=kronecker(self.domain)
             D[i,i]+=i
             Y[i]+=i
@@ -2397,7 +2396,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
         Y=Vector(self.domain.getDim(),Function(self.domain))
-        for i in range(self.domain.getDim()):
+        for i in range(self.domain.getDim()): 
             A[i,:,i,:]=kronecker(self.domain)
             D[i,i]+=i
             Y[i]+=i
@@ -2414,7 +2413,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
         Y=Vector(self.domain.getDim(),Function(self.domain))
-        for i in range(self.domain.getDim()):
+        for i in range(self.domain.getDim()): 
             A[i,:,i,:]=kronecker(self.domain)
             D[i,i]+=i
             Y[i]+=i
@@ -2433,7 +2432,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         A=Tensor4(0.,Function(self.domain))
         D=Tensor(1.,Function(self.domain))
         Y=Vector(self.domain.getDim(),Function(self.domain))
-        for i in range(self.domain.getDim()):
+        for i in range(self.domain.getDim()): 
             A[i,:,i,:]=kronecker(self.domain)
             D[i,i]+=i
             Y[i]+=i
@@ -2522,22 +2521,22 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         self.assertEqual(f.getFunctionSpace(),FS(self.domain),"wrong function space")
         f_ref=X*(5*x[0]-1+10)
         self.assertTrue(self.check(f_ref, f),"wrong result")   #swapped
-
+        
 class Test_LinearPDE(Test_LinearPDE_noLumping):
     def test_Lumping_attemptToSetA(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
-        try:
+        try: 
            success=True
            mypde.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
            mypde.setValue(A=kronecker(self.domain))
            mypde.getSolverOptions().setVerbosity(self.VERBOSE)
-           u=mypde.getSolution()
+           u=mypde.getSolution()        
         except ValueError:
            success=False
         self.assertTrue(not success,'error should be issued')
     def test_Lumping_attemptToSetB(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
-        try:
+        try: 
            success=True
            mypde.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
            mypde.setValue(B=kronecker(self.domain)[0])
@@ -2548,7 +2547,7 @@ class Test_LinearPDE(Test_LinearPDE_noLumping):
         self.assertTrue(not success,'error should be issued')
     def test_Lumping_attemptToSetC(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
-        try:
+        try: 
            success=True
            mypde.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
            mypde.setValue(C=kronecker(self.domain)[0])
@@ -2557,10 +2556,10 @@ class Test_LinearPDE(Test_LinearPDE_noLumping):
         except ValueError:
            success=False
         self.assertTrue(not success,'error should be issued')
-
+        
     def test_Lumping_attemptToSetA_reduced(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
-        try:
+        try: 
            success=True
            mypde.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
            mypde.setValue(A_reduced=kronecker(self.domain))
@@ -2571,7 +2570,7 @@ class Test_LinearPDE(Test_LinearPDE_noLumping):
         self.assertTrue(not success,'error should be issued')
     def test_Lumping_attemptToSetB_reduced(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
-        try:
+        try: 
            success=True
            mypde.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
            mypde.setValue(B_reduced=kronecker(self.domain)[0])
@@ -2582,7 +2581,7 @@ class Test_LinearPDE(Test_LinearPDE_noLumping):
         self.assertTrue(not success,'error should be issued')
     def test_Lumping_attemptToSetC_reduced(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
-        try:
+        try: 
            success=True
            mypde.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
            mypde.setValue(C_reduced=kronecker(self.domain)[0])
@@ -2591,7 +2590,7 @@ class Test_LinearPDE(Test_LinearPDE_noLumping):
         except ValueError:
            success=False
         self.assertTrue(not success,'error should be issued')
-
+        
     def test_Lumping(self):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
@@ -2663,7 +2662,7 @@ class Test_TransportPDE(Test_linearPDEs):
     def test_setCoefficient_WithIllegalFunctionSpace(self):
         mypde=TransportPDE(self.domain,debug=self.DEBUG)
         self.assertRaises(IllegalCoefficientFunctionSpace, mypde.setValue,C=Vector(0.,FunctionOnBoundary(self.domain)))
-
+        
     def test_resetCoefficient_WithWrongShape(self):
         mypde=TransportPDE(self.domain,numEquations=2,debug=self.DEBUG)
         self.assertRaises(IllegalCoefficientValue, mypde.setValue, C=0.)
@@ -3584,13 +3583,6 @@ class Test_TransportPDE(Test_linearPDEs):
         else:
             return unittest.skip("Domain does not support contact elements")
 
-    def test_speckley_lumping_on_by_default(self):
-        if self.domain.getDescription() == 'speckley::Rectangle' or self.domain.getDescription() == 'speckley::Brick':
-            pde=LinearSinglePDE(self.domain, isComplex=False)
-            pde.setValue(D=1)
-            method=pde.getSolverOptions().getSolverMethod()
-            self.assertTrue(method == SolverOptions.LUMPING, "Speckley LUMPING is not on by default")
-
     #==============================================================
     @unittest.skipIf(no_paso, "Transport PDEs require Paso")
     def test_symmetryCheckTrue_Scalar(self):
@@ -3655,3 +3647,4 @@ class Test_TransportPDE(Test_linearPDEs):
         u=mypde.getSolution(0.1)
         self.assertTrue(u.getFunctionSpace() == Solution(self.domain), "wrong function space")
         self.assertTrue(self.check(u,10.+dt),'solution is wrong.')
+

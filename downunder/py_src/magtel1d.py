@@ -11,7 +11,6 @@
 # Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 # Development 2012-2013 by School of Earth Sciences
 # Development from 2014 by Centre for Geoscience Computing (GeoComp)
-# Development from 2019 by School of Earth and Environmental Sciences
 #
 ##############################################################################
 

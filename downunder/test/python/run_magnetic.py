@@ -44,9 +44,8 @@ except KeyError:
 @unittest.skipIf(not HAVE_RIPLEY, "Ripley module not available")
 class Test_MagneticInversion2D(unittest.TestCase):
     def test_2D_inversion(self):
-        logging.getLogger('inv.minimizer.MinimizerLBFGS').setLevel(logging.CRITICAL)
-        #logging.getLogger('inv.MagneticInversion').setLevel(logging.CRITICAL)
-        logging.getLogger('inv').setLevel(logging.CRITICAL)
+        logging.getLogger('inv.MinimizerLBFGS').setLevel(logging.CRITICAL)
+        logging.getLogger('inv.MagneticInversion').setLevel(logging.CRITICAL)
         # interesting parameters:
         depth_offset = 0. * U.km
         n_humps_h = 1
@@ -81,7 +80,7 @@ class Test_MagneticInversion2D(unittest.TestCase):
 
         inv=MagneticInversion()
         inv.setSolverTolerance(1e-4)
-        inv.setSolverMaxIterations(70)
+        inv.setSolverMaxIterations(50)
         inv.setup(domainbuilder)
         inv.getCostFunction().setTradeOffFactorsModels(mu)
 

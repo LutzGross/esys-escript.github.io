@@ -38,12 +38,6 @@ Test suite for the escript.symbolic module
 from esys.escript import *
 import esys.escriptcore.utestselect as unittest
 
-if hasFeature("sympy"):
-    sympyavail=True
-else:
-    sympyavail=False
-
-@unittest.skipIf(not sympyavail, 'sympy not available')
 class Test_symfuncs(unittest.TestCase):
     RES_TOL = 1.e-7
 

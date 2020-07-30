@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2020 by The University of Queensland
+* Copyright (c) 2003-2018 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -10,9 +10,8 @@
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
-* Development from 2014-2017 by Centre for Geoscience Computing (GeoComp)
-* Development from 2019 by School of Earth and Environmental Sciences
-**
+* Development from 2014 by Centre for Geoscience Computing (GeoComp)
+*
 *****************************************************************************/
 
 
@@ -25,10 +24,6 @@
 #include "Pointers.h"
 
 #include <boost/python/tuple.hpp>
-#ifdef ESYS_HAVE_BOOST_NUMPY
-#include <boost/python/numpy.hpp>
-#endif
-
 
 #include <vector>
 #include <string>
@@ -281,14 +276,6 @@ public:
      Returns locations in the domain. The function space is chosen appropriately.
     */
     virtual escript::Data getX() const = 0;
-
-#ifdef ESYS_HAVE_BOOST_NUMPY
-    /**
-     \brief
-     Returns locations in the domain as a numpy ndarray. The function space is chosen appropriately.
-    */
-    virtual boost::python::numpy::ndarray getNumpyX() const = 0;
-#endif
 
     /**
      \brief

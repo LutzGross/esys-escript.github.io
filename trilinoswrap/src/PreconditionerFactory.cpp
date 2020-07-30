@@ -10,9 +10,8 @@
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
-* Development from 2014-2017 by Centre for Geoscience Computing (GeoComp)
-* Development from 2019 by School of Earth and Environmental Sciences
-**
+* Development from 2014 by Centre for Geoscience Computing (GeoComp)
+*
 *****************************************************************************/
 
 #include <trilinoswrap/PreconditionerFactory.h>
@@ -177,11 +176,7 @@ RCP<OpType<ST> > createPreconditioner(RCP<const MatrixType<ST> > mat,
         case escript::SO_PRECONDITIONER_ILU0: // to avoid test failures
         case escript::SO_PRECONDITIONER_RILU:
         {
-#if defined(ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKCRSH)
             if (dynamic_cast<const Tpetra::Experimental::BlockCrsMatrix<ST,LO,GO,NT>* >(mat.get())) {
-#else
-            if (dynamic_cast<const Tpetra::BlockCrsMatrix<ST,LO,GO,NT>* >(mat.get())) {
-#endif
                 ifprec = factory.create<const Matrix>("RBILUK", mat);
             } else {
                 ifprec = factory.create<const Matrix>("RILUK", mat);
@@ -219,3 +214,4 @@ RCP<ComplexOperator> createPreconditioner<cplx_t>(RCP<const ComplexMatrix> mat,
                                                const escript::SolverBuddy& sb);
 
 }  // end of namespace
+

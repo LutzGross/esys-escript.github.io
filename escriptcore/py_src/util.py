@@ -2,7 +2,7 @@
 
 ##############################################################################
 #
-# Copyright (c) 2003-2020 by The University of Queensland
+# Copyright (c) 2003-2018 by The University of Queensland
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -12,13 +12,12 @@
 # Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 # Development 2012-2013 by School of Earth Sciences
 # Development from 2014 by Centre for Geoscience Computing (GeoComp)
-# Development from 2019 by School of Earth and Environmental Sciences
 #
 ##############################################################################
 
 from __future__ import print_function, division
 
-__copyright__="""Copyright (c) 2003-2020 by The University of Queensland
+__copyright__="""Copyright (c) 2003-2018 by The University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Apache License, version 2.0
@@ -58,8 +57,6 @@ from .escriptcpp import printParallelThreadCounts
 from .escriptcpp import listEscriptParams
 from . import symbolic as sym
 from .gmshrunner import gmshGeo2Msh
-
-from .escriptcpp import hasFeature
 
 
 #=========================================================
@@ -113,7 +110,6 @@ def insertTaggedValues(target,**kwargs):
 
 
 def interpolateTable(tab, dat, start, step, undef=1.e50, check_boundaries=False):
-    print("WARNING: This function is deprecated and is known to contain bugs.")
     try:
         dim=len(start)
     except TypeError:
@@ -271,42 +267,6 @@ def getNumpy(**data):
     else:
       raise ValueError("getNumpy: Please pass five or fewer data objects at a time.")
 
-
-def convertToNumpy(data):
-    """
-    Writes `Data` objects to a numpy array.
-
-    The keyword args are Data objects to save.
-    If a scalar `Data` object is passed with the name ``mask``, then only
-    samples which correspond to positive values in ``mask`` will be output.
-
-    Example usage:
-
-    s=Scalar(..)
-    v=Vector(..)
-    t=Tensor(..)
-    f=float()
-    array = getNumpy(a=s, b=v, c=t, d=f)
-    """
-    return escore._convertToNumpy(Data(data,data.getFunctionSpace()))
-
-def NumpyToData(array, isComplex, functionspace):
-    """
-    Uses a numpy ndarray to create a `Data` object
-
-    Example usage:
-    NewDataObject = NumpyToData(ndarray, isComplex, FunctionSpace)
-    """
-    if hasFeature("boostnumpy"):
-      if(not isinstance(array, (numpy.ndarray, numpy.generic))):
-        raise ValueError("NumpyToData: Invalid argument for array.")
-      if(not isinstance(functionspace, escore.FunctionSpace)):
-        raise ValueError("NumpyToData: Invalid argument for functionspace.")
-      # escore.internal_initBoostNumpy();
-      return escore._numpyToData(array, isComplex, functionspace)
-    else:
-      raise ValueError("NumpyToData: Please recompile escript with boost numpy.")
-      
 
 def saveESD(datasetName, dataDir=".", domain=None, timeStep=0, deltaT=1, dynamicMesh=0, timeStepFormat="%04d", **data):
     """
@@ -2806,7 +2766,7 @@ def interpolate(arg,where):
     elif isinstance(arg,sym.Symbol):
        return sym.symfn.interpolate(arg, where)
     else:
-       return escore.Data(arg, where)
+       return escore.Data(arg,where)
 
 def div(arg,where=None):
     """
@@ -3198,7 +3158,7 @@ def safeDiv(arg0, arg1, rtol=None):
       m1=whereZero(arg1,tol=0)
     else:
       m1=whereZero(arg1,tol=None, rtol=rtol)
-    return arg0/(arg1+m1)*whereNonPositive(m1)
+    return arg0/(arg1+m1)*(1-m1)
 
 def condEval(f, tval, fval):
     """

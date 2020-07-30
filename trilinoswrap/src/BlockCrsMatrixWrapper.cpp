@@ -10,18 +10,15 @@
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
-* Development from 2014-2017 by Centre for Geoscience Computing (GeoComp)
-* Development from 2019 by School of Earth and Environmental Sciences
-**
+* Development from 2014 by Centre for Geoscience Computing (GeoComp)
+*
 *****************************************************************************/
 
-#include <fstream>
-
-#include "BlockCrsMatrixWrapper.h"
-#include "BelosWrapper.h"
-#include "PreconditionerFactory.h"
-#include "TrilinosAdapterException.h"
-#include "util.h"
+#include "BlockCrsMatrixWrapper.h" 
+#include "BelosWrapper.h" 
+#include "PreconditionerFactory.h" 
+#include "TrilinosAdapterException.h" 
+#include "util.h" 
 
 #include <escript/index.h>
 #include <escript/SolverOptions.h>
@@ -32,11 +29,7 @@
 #else
 #include <Tpetra_Core.hpp>
 #endif
-#if defined(ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKCRSH) && (TRILINOS_MAJOR_MINOR_VERSION < 121400)
 #include <Tpetra_Experimental_BlockCrsMatrix_Helpers.hpp> // for writing
-#else
-#include <Tpetra_BlockCrsMatrix_Helpers.hpp> // for writing
-#endif
 #include <Tpetra_Vector.hpp>
 
 using Teuchos::RCP;
@@ -264,11 +257,7 @@ void BlockCrsMatrixWrapper<ST>::saveMM(const std::string& filename) const
     // for compatibility with paso, not strictly required.
     params.set("precision", 15);
     std::ofstream os(filename);
-#if defined(ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKCRSH)
     Tpetra::Experimental::blockCrsMatrixWriter<ST,LO,GO,NT>(mat, os, params);
-#else
-    Tpetra::blockCrsMatrixWriter<ST,LO,GO,NT>(mat, os, params);
-#endif
     os.close();
 }
 
@@ -286,3 +275,4 @@ template class BlockCrsMatrixWrapper<real_t>;
 template class BlockCrsMatrixWrapper<cplx_t>;
 
 }  // end of namespace
+

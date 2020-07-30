@@ -40,7 +40,6 @@ from esys.escriptcore.testing import *
 from esys.escript import *
 from esys.finley import Rectangle, Brick, LoadMesh, ReadMesh, GetMeshFromFile, ReadGmsh
 import os as os
-import numpy as np
 
 try:
      FINLEY_WORKDIR=os.environ['FINLEY_WORKDIR']
@@ -202,36 +201,6 @@ class Test_InputOutputOnFinley(unittest.TestCase):
            m=GetMeshFromFile(os.path.join(FINLEY_TEST_MESH_PATH, 'tet10.fly'))
            # now we try some params
            m=GetMeshFromFile(os.path.join(FINLEY_TEST_MESH_PATH,'tet10_gmsh.msh'), numDim=3, integrationOrder=2)
-
-     def test_connectivity_info(self):
-        if hasFeature("boostnumpy"):
-           domain=Rectangle(n0=3,n1=4)
-           testvalues=domain.getConnectivityInfo()
-           correctvalues=[[0., 1., 5., 4.],
-                         [ 1., 2., 6., 5.],
-                         [ 2., 3., 7., 6.],
-                         [ 4., 5., 9., 8.],
-                         [ 5., 6.,10., 9.],
-                         [ 6., 7.,11.,10.],
-                         [ 8., 9.,13.,12.],
-                         [ 9.,10.,14.,13.],
-                         [10.,11.,15.,14.],
-                         [12.,13.,17.,16.],
-                         [13.,14.,18.,17.],
-                         [14.,15.,19.,18.]]
-           for i in range(0,testvalues.shape[0]):
-                for j in range(0,4):
-                    self.assertEqual(testvalues[i][j],correctvalues[i][j])
-
-     def test_readgmsh_format_4_0(self):
-        mydomain1 = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,"testcube.2.2.msh"), numDim=3)
-        mydomain2 = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,"testcube.4.0.msh"), numDim=3)
-        self.domainsEqual(mydomain1, mydomain2)
-
-     def test_readgmsh_format_4_1(self):
-        mydomain1 = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,"testcube.2.2.msh"), numDim=3)
-        mydomain2 = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,"testcube.4.1.msh"), numDim=3)
-        self.domainsEqual(mydomain1, mydomain2)
 
 if __name__ == '__main__':
     run_tests(__name__, exit_on_failure=True)

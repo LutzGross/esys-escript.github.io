@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2020 by The University of Queensland
+* Copyright (c) 2003-2018 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -10,9 +10,8 @@
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
-* Development from 2014-2017 by Centre for Geoscience Computing (GeoComp)
-* Development from 2019 by School of Earth and Environmental Sciences
-**
+* Development from 2014 by Centre for Geoscience Computing (GeoComp)
+*
 *****************************************************************************/
 
 
@@ -164,7 +163,7 @@ void FinleyDomain::findMatchingFaces(double safety_factor, double tolerance,
                     throw escript::ValueError(ss.str());
                 }
             }
-            // now we check if the second node match
+            // now we check if the second nodes match
             if (numNodesOnFace > 1) {
                 dist = getDist(e_0, 1, e_1, perm[faceNodes[1]], numDim, NN, X);
                 // if the second node does not match we reverse the
