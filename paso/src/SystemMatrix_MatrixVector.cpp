@@ -60,6 +60,24 @@ void SystemMatrix::MatrixVector(double alpha, const double* in, double beta,
     }
 }
 
+void SystemMatrix::MatrixVector(double alpha, const cplx_t* in, double beta,
+                                cplx_t* out) const
+{
+#if defined(ESYS_HAVE_MUMPS)
+    if (is_balanced) {
+        throw PasoException("MatrixVector: balanced matrix is not supported.");
+    }
+    if (type & (MATRIX_FORMAT_OFFSET1 + MATRIX_FORMAT_BLK1)) {
+        SparseMatrix_MatrixVector_CSR_OFFSET1(alpha, mainBlock, in, beta, out);
+        return;
+    } else {
+        throw PasoException("MatrixVector: MUMPS requires CSR format with "
+                            "index offset 1 and block size 1.");
+    }
+#endif
+    throw PasoException("MatrixVector: require MUMPS for complex matrices.");
+}
+
 void SystemMatrix::MatrixVector_CSR_OFFSET0(double alpha, const double* in,
                                             double beta, double* out) const
 {

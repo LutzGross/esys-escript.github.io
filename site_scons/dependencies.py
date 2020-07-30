@@ -273,48 +273,55 @@ def checkBoost(env):
             print("Found boost/python/numpy.hpp. Building with boost numpy support.")
 
             # Locate the boost numpy files
-            p = subprocess.Popen(["ld","--verbose"], stdout=subprocess.PIPE)
-            out,err = p.communicate()
-            spath = [x[13:-3] for x in out.split() if b'SEARCH_DIR' in x]
-            spath.append(boost_lib_path)
-            p2name = ''
-            p3name = ''
-            for name in spath:
-                try:
-                    l=os.listdir(name)
-                    
-                    import sys
-                    if sys.version_info[0] == 3:
-                        string_type = str
-                    else:
-                        string_type = basestring
-                    
-                    p2res = ''
-                    p3res = ''
-                    for x in l:
-                        if isinstance(x,string_type):
-                            if x.startswith('libboost_numpy-py') and x.endswith('.so'):
-                                p2res = x
-                            if x.startswith('libboost_numpy-py3') and x.endswith('.so'):
-                                p3res = x
-                        else:
-                            if x.startswith(b'libboost_numpy-py') and x.endswith(b'.so'):
-                                p2res = x
-                            if x.startswith(b'libboost_numpy-py3') and x.endswith(b'.so'):
-                                p3res = x
-
-                    if len(p2name)==0 and len(p2res)>0:
-                        p2name=p2res[-1]
-                    if len(p3name)==0 and len(p3res)>0:
-                        p3name=p3res[-1]
-                except OSError:
-                    pass
-
-            # Pick the right one
-            if int(env['python_version'][0]) == 2:
-                libname = p2name[3:-3]
+            if env['IS_WINDOWS']:
+                raise Exception # TODO: fix boost numpy dll ex/import compile errors
+                import sys
+                for l in os.listdir(env['boost_prefix'] + '\\lib'):
+                    if l.startswith('libboost_numpy{}{}'.format(sys.version_info.major,sys.version_info.minor)):
+                        libname = os.path.splitext(l)[0]
             else:
-                libname = p3name[3:-3]
+                p = subprocess.Popen(["ld","--verbose"], stdout=subprocess.PIPE)
+                out,err = p.communicate()
+                spath = [x[13:-3] for x in out.split() if b'SEARCH_DIR' in x]
+                spath.append(boost_lib_path)
+                p2name = ''
+                p3name = ''
+                for name in spath:
+                    try:
+                        l=os.listdir(name)
+
+                        import sys
+                        if sys.version_info[0] == 3:
+                            string_type = str
+                        else:
+                            string_type = basestring
+
+                        p2res = ''
+                        p3res = ''
+                        for x in l:
+                            if isinstance(x,string_type):
+                                if x.startswith('libboost_numpy-py') and x.endswith('.so'):
+                                    p2res = x
+                                if x.startswith('libboost_numpy-py3') and x.endswith('.so'):
+                                    p3res = x
+                            else:
+                                if x.startswith(b'libboost_numpy-py') and x.endswith(b'.so'):
+                                    p2res = x
+                                if x.startswith(b'libboost_numpy-py3') and x.endswith(b'.so'):
+                                    p3res = x
+
+                        if len(p2name)==0 and len(p2res)>0:
+                            p2name=p2res[-1]
+                        if len(p3name)==0 and len(p3res)>0:
+                            p3name=p3res[-1]
+                    except OSError:
+                        pass
+
+                # Pick the right one
+                if int(env['python_version'][0]) == 2:
+                    libname = p2name[3:-3]
+                else:
+                    libname = p3name[3:-3]
 
             # If found, add the necessary information to env
             if len(libname) > 0:
@@ -509,6 +516,19 @@ def checkOptionalLibraries(env):
         env['buildvars']['umfpack_inc_path']=umfpack_inc_path
         env['buildvars']['umfpack_lib_path']=umfpack_lib_path
     env['buildvars']['umfpack']=int(env['umfpack'])
+
+    ######## MUMPS
+    mumps_inc_path=''
+    mumps_lib_path=''
+    if env['mumps']:
+        mumps_inc_path,mumps_lib_path=findLibWithHeader(env, env['mumps_libs'], 'mumps_mpi.h', env['mumps_prefix'], lang='c++')
+        env.AppendUnique(CPPPATH = [mumps_inc_path])
+        env.AppendUnique(LIBPATH = [mumps_lib_path])
+        env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], mumps_lib_path)
+        env.Append(CPPDEFINES = ['ESYS_HAVE_MUMPS'])
+        env['buildvars']['mumps_inc_path']=mumps_inc_path
+        env['buildvars']['mumps_lib_path']=mumps_lib_path
+    env['buildvars']['mumps']=int(env['mumps'])
 
     ######## LAPACK
     lapack_inc_path=''

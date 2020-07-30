@@ -126,6 +126,7 @@ const char* SolverBuddy::getName(int key) const
         case SO_PACKAGE_PASO: return "PASO";
         case SO_PACKAGE_TRILINOS: return "TRILINOS";
         case SO_PACKAGE_UMFPACK: return "UMFPACK";
+        case SO_PACKAGE_MUMPS: return "MUMPS";
 
         case SO_METHOD_BICGSTAB: return "BICGSTAB";
         case SO_METHOD_CGLS: return "CGLS";
@@ -336,8 +337,8 @@ void SolverBuddy::setPreconditioner(int precon)
     SolverOptions preconditioner = static_cast<SolverOptions>(precon);
     switch(preconditioner) {
         case SO_PRECONDITIONER_AMG:
-#ifndef ESYS_HAVE_TRILINOS
-        throw ValueError("escript was not compiled with Trilinos enabled");
+#if !defined(ESYS_HAVE_TRILINOS) && !defined(ESYS_HAVE_MUMPS)
+        throw ValueError("escript was not compiled with Trilinos or MUMPS enabled");
 #endif
         case SO_PRECONDITIONER_GAUSS_SEIDEL:
         case SO_PRECONDITIONER_JACOBI: // This is the default preconditioner in ifpack2
@@ -364,7 +365,7 @@ void SolverBuddy::setSolverMethod(int method)
 
 //     bool havePASODirect = false;
 //     using_default_solver_method=false;
-// #if defined(ESYS_HAVE_PASO) && (defined(ESYS_HAVE_MKL) || defined(ESYS_HAVE_UMFPACK))
+// #if defined(ESYS_HAVE_PASO) && (defined(ESYS_HAVE_MKL) || defined(ESYS_HAVE_UMFPACK) || defined(ESYS_HAVE_MUMPS))
 //     havePASODirect = true;
 // #endif
 
@@ -405,7 +406,7 @@ void SolverBuddy::setSolverMethod(int method)
         case SO_METHOD_DIRECT_PARDISO:
         case SO_METHOD_DIRECT_SUPERLU:
         case SO_METHOD_DIRECT_TRILINOS:
-#if defined(ESYS_HAVE_UMFPACK) || defined(ESYS_HAVE_TRILINOS) || defined(ESYS_HAVE_MKL)
+#if defined(ESYS_HAVE_UMFPACK) || defined(ESYS_HAVE_TRILINOS) || defined(ESYS_HAVE_MKL) || defined(ESYS_HAVE_MUMPS)
 #ifndef ESYS_HAVE_TRILINOS
             // translate specific direct solver setting to generic one for PASO
             this->method = SO_METHOD_DIRECT;
@@ -479,6 +480,15 @@ void SolverBuddy::setPackage(int package)
             break;
 #else
             throw ValueError("escript was not compiled with UMFPACK enabled");
+#endif
+        // Set to MUMPS iff escript was compiled with MUMPS
+        case SO_PACKAGE_MUMPS:
+#ifdef ESYS_HAVE_MUMPS
+            this->package = SO_PACKAGE_MUMPS;
+            setSolverMethod(getSolverMethod());
+            break;
+#else
+            throw ValueError("escript was not compiled with MUMPS enabled");
 #endif
         default:
             throw ValueError("unknown solver package");

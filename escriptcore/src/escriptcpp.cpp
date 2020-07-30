@@ -965,6 +965,7 @@ args("source", "q", "r","factor"),
     .value("PASO", escript::SO_PACKAGE_PASO)
     .value("TRILINOS", escript::SO_PACKAGE_TRILINOS)
     .value("UMFPACK", escript::SO_PACKAGE_UMFPACK)
+    .value("MUMPS", escript::SO_PACKAGE_MUMPS)
 
     .value("BICGSTAB", escript::SO_METHOD_BICGSTAB)
     .value("CGLS", escript::SO_METHOD_CGLS)
@@ -1077,10 +1078,10 @@ args("source", "q", "r","factor"),
         ":rtype: in the list `DEFAULT`, `DIRECT`, `CHOLEVSKY`, `PCG`, `CR`, `CGS`, `BICGSTAB`, `GMRES`, `PRES20`, `ROWSUM_LUMPING`, `HRZ_LUMPING`, `MINRES`, `ITERATIVE`, `NONLINEAR_GMRES`, `TFQMR`")
     .def("setPackage", &escript::SolverBuddy::setPackage, args("package"),"Sets the solver package to be used as a solver.\n\n"
         ":param package: key of the solver package to be used.\n"
-        ":type package: in `DEFAULT`, `PASO`, `CUSP`, `MKL`, `UMFPACK`, `TRILINOS`\n"
+        ":type package: in `DEFAULT`, `PASO`, `CUSP`, `MKL`, `UMFPACK`, `MUMPS`, `TRILINOS`\n"
         ":note: Not all packages are support on all implementation. An exception may be thrown on some platforms if a particular package is requested.")
     .def("getPackage", &escript::SolverBuddy::getPackage,"Returns the solver package key\n\n"
-        ":rtype: in the list `DEFAULT`, `PASO`, `CUSP`, `MKL`, `UMFPACK`, `TRILINOS`")
+        ":rtype: in the list `DEFAULT`, `PASO`, `CUSP`, `MKL`, `UMFPACK`, `MUMPS`, `TRILINOS`")
     .def("setReordering", &escript::SolverBuddy::setReordering, args("ordering"),"Sets the key of the reordering method to be applied if supported by the solver. Some direct solvers support reordering to optimize compute time and storage use during elimination.\n\n"
         ":param ordering: selects the reordering strategy.\n"
         ":type ordering: in 'NO_REORDERING', 'MINIMUM_FILL_IN', 'NESTED_DISSECTION', 'DEFAULT_REORDERING'")

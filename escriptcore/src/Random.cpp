@@ -13,7 +13,9 @@
 *
 *****************************************************************************/
 
+#ifdef _WIN32
 #include "Random.h"
+#endif
 
 #include <escript/EsysMPI.h>
 

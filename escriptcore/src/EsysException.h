@@ -19,6 +19,7 @@
 
 #include <exception>
 #include <string>
+#include <iostream>
 
 namespace escript {
 
@@ -34,7 +35,14 @@ public:
      
       @param message - Exception message.
     */
-    EsysException(const std::string& message) : msg(message) {}
+    EsysException(const std::string& message) : msg(message)
+    {
+#ifdef _WIN32
+        std::cerr << std::endl << "EsysException:" << std::endl
+                  << message << std::endl << std::endl
+                  << std::flush;
+#endif
+    }
 
     /// Destructor
     virtual ~EsysException() throw() {}

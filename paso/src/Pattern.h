@@ -29,6 +29,7 @@
 #define __PASO_PATTERN_H__
 
 #include "Paso.h"
+#include "PasoException.h"
 
 #include <escript/IndexList.h>
 
@@ -101,6 +102,30 @@ struct PASO_DLL_API Pattern : boost::enable_shared_from_this<Pattern>
         return deg;
     }
 
+    // convert csr row ptr and col indices to harwell-boeing format
+    inline void csrToHB()
+    {
+        // TODO: add openmp
+        if (! (type & (MATRIX_FORMAT_OFFSET1 + MATRIX_FORMAT_BLK1)) ) {
+            throw PasoException(
+                "Paso: Harwell-Boeing format requires CSR format with index offset 1 and block size 1.");
+        }
+
+        if ( !(hb_row == NULL && hb_col == NULL) ) {
+            return;
+        }
+
+        hb_row = new index_t[len];
+        hb_col = new index_t[len];
+        for (dim_t i=0, k=0; i<numOutput; i++)
+        {
+            for (dim_t j=ptr[i]; j<ptr[i+1]; j++, k++)
+            {
+                hb_row[k] = i+1;
+                hb_col[k] = index[j-1];
+            }
+        }
+    }
 
     int type;
     // Number of rows in the ptr array [CSR] / number of cols for CSC
@@ -119,6 +144,10 @@ struct PASO_DLL_API Pattern : boost::enable_shared_from_this<Pattern>
     dim_t numColors;
     // coloring index: inputs with the same color are not connected
     index_t* coloring;
+    // row indices in harwell-boeing format
+    index_t* hb_row;
+    // col indices in harwell-boeing format
+    index_t* hb_col;
 };
 
 

@@ -43,7 +43,8 @@ mpisize = getMPISizeWorld()
 no_paso = not hasFeature("paso")
 no_mkl = not hasFeature("mkl")
 no_umfpack = not hasFeature("umfpack")
-HAVE_DIRECT = hasFeature("trilinos") or hasFeature("umfpack") or hasFeature("mkl")
+no_mumps = not hasFeature("mumps")
+HAVE_DIRECT = hasFeature("trilinos") or hasFeature("umfpack") or hasFeature("mkl") or hasFeature("mumps")
 HAVE_TRILINOS = hasFeature("trilinos")
 # PASO_DIRECT is only reported if we have paso and are running single rank
 CAN_USE_DIRECT = hasFeature("PASO_DIRECT") or hasFeature('trilinos')
@@ -558,6 +559,14 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         else:
             sb.setPackage(so.UMFPACK)
             self.assertTrue(sb.getPackage() == so.UMFPACK, "UMFPACK is not set.")
+
+        if no_mumps:
+            with self.assertRaises(ValueError) as package:
+                sb.setPackage(so.MUMPS)
+            self.assertTrue('not compiled' in str(package.exception))
+        else:
+            sb.setPackage(so.MUMPS)
+            self.assertTrue(sb.getPackage() == so.MUMPS, "MUMPS is not set.")
 
         if HAVE_TRILINOS is False:
             with self.assertRaises(ValueError) as package:
@@ -1775,7 +1784,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.setValue(A=kronecker(self.domain),D=1.,Y=1.)
         mypde.getSolverOptions().setPackage(SolverOptions.PASO)
-        if hasFeature("umfpack") or hasFeature("mkl"):
+        if hasFeature("umfpack") or hasFeature("mkl") or hasFeature("mumps"):
             mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
             mypde.getSolverOptions().setVerbosity(self.VERBOSE)
             u=mypde.getSolution()
@@ -2178,7 +2187,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         mypde=LinearPDE(self.domain,debug=self.DEBUG)
         mypde.getSolverOptions().setPackage(SolverOptions.PASO)
         mypde.setValue(A=A,D=D,Y=Y)
-        if hasFeature("umfpack") or hasFeature("mkl"):
+        if hasFeature("umfpack") or hasFeature("mkl") or hasFeature("mumps"):
             mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
             mypde.getSolverOptions().setVerbosity(self.VERBOSE)
             u=mypde.getSolution()
