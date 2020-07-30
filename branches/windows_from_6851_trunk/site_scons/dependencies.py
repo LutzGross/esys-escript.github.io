@@ -159,17 +159,33 @@ def checkPython(env):
     # Use the python scons is running
     if env['pythoncmd'] == sys.executable:
         if env['IS_WINDOWS']:
-            python_inc_path=sysconfig.get_python_inc()
-            python_lib_path=os.path.join(sysconfig.get_config_var('prefix'), 'libs')
-            python_libs=['python%s%s'%(sys.version_info[0], sys.version_info[1])]
-            verstring=".".join([str(i) for i in sys.version_info[:3]])
+            python_inc_path = sysconfig.get_python_inc()
+            python_lib_path = os.path.join(sysconfig.get_config_var('prefix'), 'libs')
+            python_libs = ['python%s%s'%(sys.version_info[0], sys.version_info[1])]
+            verstring = '.'.join([str(i) for i in sys.version_info[:3]])
         else:
             (python_lib_path, python_libs,verstring, python_inc_path)=call_python_config(env['pythoncmd'])
 
     # if we want to use a python other than the one scons is running
     # Note: we assume scons is running python 2 in the following.
     else:
-        (python_lib_path, python_libs,verstring, python_inc_path)=call_python_config(env['pythoncmd'])
+        if env['IS_WINDOWS']:
+            cmd = "import os, sys\n"
+            cmd += "from distutils import sysconfig\n"
+            cmd += "print(sysconfig.get_python_inc())\n"
+            cmd += "print(os.path.join(sysconfig.get_config_var('prefix'), 'libs'))\n"
+            cmd += "print('python%s%s'%(sys.version_info[0], sys.version_info[1]))\n"
+            cmd += "print('.'.join([str(i) for i in sys.version_info[:3]]))"
+            pout = subprocess.Popen([env['pythoncmd'], '-c', cmd], stdout=subprocess.PIPE).stdout.read()
+            if isinstance(pout, bytes):
+                pout = pout.decode(sys.stdout.encoding)
+            lines = pout.split('\n')
+            python_inc_path = lines[0].strip()
+            python_lib_path = lines[1].strip()
+            python_libs = [lines[2].strip()]
+            verstring = lines[3].strip()
+        else:
+            (python_lib_path, python_libs,verstring, python_inc_path)=call_python_config(env['pythoncmd'])
     
     if sys.version_info[0] == 3:
         if isinstance(verstring, str) is False:
@@ -269,16 +285,14 @@ def checkBoost(env):
     # Check for the boost numpy library
     if boostversion >= 106300:
         try:
-            boost_numpy_inc_path,boost_numpy_lib_path=findLibWithHeader(env, env['boost_libs'], 'boost/python/numpy.hpp', env['boost_prefix'], lang='c++')
+            boost_numpy_inc_path,boost_numpy_lib_path=findLibWithHeader(env, env['boost_libs'],
+                'boost/python/numpy.hpp', env['boost_prefix'], lang='c++')
             print("Found boost/python/numpy.hpp. Building with boost numpy support.")
 
             # Locate the boost numpy files
             if env['IS_WINDOWS']:
-                raise Exception # TODO: fix boost numpy dll ex/import compile errors
-                import sys
-                for l in os.listdir(env['boost_prefix'] + '\\lib'):
-                    if l.startswith('libboost_numpy{}{}'.format(sys.version_info.major,sys.version_info.minor)):
-                        libname = os.path.splitext(l)[0]
+                # windows scons template adds boost_numpy to boost_libs
+                env.Append(CPPDEFINES=['ESYS_HAVE_BOOST_NUMPY'])
             else:
                 p = subprocess.Popen(["ld","--verbose"], stdout=subprocess.PIPE)
                 out,err = p.communicate()
@@ -323,14 +337,15 @@ def checkBoost(env):
                 else:
                     libname = p3name[3:-3]
 
-            # If found, add the necessary information to env
-            if len(libname) > 0:
-                env.AppendUnique(LIBS = libname)
-                env['boost_libs'].append(libname)
-                env.AppendUnique(CPPPATH = [boost_numpy_inc_path])
-                env.AppendUnique(LIBPATH = [boost_numpy_lib_path])
-                env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], boost_numpy_lib_path)
-                env.Append(CPPDEFINES=['ESYS_HAVE_BOOST_NUMPY'])
+                # If found, add the necessary information to env
+                if len(libname) > 0:
+                    env.AppendUnique(LIBS = libname)
+                    env['boost_libs'].append(libname)
+                    env.AppendUnique(CPPPATH = [boost_numpy_inc_path])
+                    env.AppendUnique(LIBPATH = [boost_numpy_lib_path])
+                    env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], boost_numpy_lib_path)
+                    env.Append(CPPDEFINES=['ESYS_HAVE_BOOST_NUMPY'])
+
         except:
             print("Warning: Could not find boost/python/numpy.hpp. Building without numpy support.")
 
@@ -345,13 +360,25 @@ def checkNumpy(env):
         print("Cannot import numpy. If it is installed try setting your PYTHONPATH and probably %s"%env['LD_LIBRARY_PATH_KEY'])
         env.Exit(1)
 
-    ## check for numpy header (optional)
     conf = Configure(env.Clone())
+    numpy_h = False
+    ## check for numpy header (optional)
     if conf.CheckCXXHeader(['Python.h','numpy/ndarrayobject.h']):
-        conf.env.Append(CPPDEFINES = ['ESYS_HAVE_NUMPY_H'])
-        conf.env['numpy_h']=True
+        numpy_h = True
     else:
-        conf.env['numpy_h']=False
+        conda_prefix = os.environ.get('CONDA_PREFIX')
+        if conda_prefix:
+            # make a copy of CPPPATH so it can be restored if header check fails
+            cpp_path_old = conf.env.get('CPPPATH', []).copy()
+            conf.env.Append(CPPPATH = [conda_prefix+'/Lib/site-packages/numpy/core/include'])
+            if conf.CheckCXXHeader(['Python.h','numpy/ndarrayobject.h']):
+                numpy_h = True
+            else:
+                conf.env['CPPPATH'] = cpp_path_old
+
+    conf.env['numpy_h'] = numpy_h
+    if numpy_h:
+        conf.env.Append(CPPDEFINES = ['ESYS_HAVE_NUMPY_H'])
 
     return conf.Finish()
 

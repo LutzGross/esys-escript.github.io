@@ -320,7 +320,7 @@ bool FinleyElements::readFromNc(netCDF::NcFile& ncfile)
 
         // if we don't link with finley we can't get the quadrature nodes
         // and hence cannot interpolate data properly
-#if not defined VISIT_PLUGIN && defined USE_FINLEY
+#if !defined(VISIT_PLUGIN) && defined(USE_FINLEY)
         if (f.useQuadNodes) {
             att = ncfile.getAtt("order");
             int order;

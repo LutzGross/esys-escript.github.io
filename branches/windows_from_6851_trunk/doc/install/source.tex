@@ -45,7 +45,7 @@ Our current test compilers include:
  \item g++ 6
  \item clang++ 7
  \item intel icpc v17
- \item MSVC 2019
+ \item MSVC 2017 or 2019
 \end{itemize}
 
 Note that:
@@ -54,12 +54,12 @@ Note that:
  \item icpc v11 has a subtle bug involving OpenMP and C++ exception handling, so this combination should not be used.
 \end{itemize}
 
-\subsection{What parallel technology do I need?}\label{sec:needpar}
-If you are using any version of Linux released in the past few years, then your
-system compiler will support \openmp with no extra work (and give better
-performance); so you should use it. MSVC 2019 also has \openmp support on
-Windows (\openmp 2.0). You will not need MPI unless your computer is some form
-of cluster. MPI is not recommended on Windows as it will interfer with Jupyter.
+\subsection{What parallel technology do I need?}\label{sec:needpar} If you are
+using any version of Linux released in the past few years, then your system
+compiler will support \openmp with no extra work (and give better performance);
+so you should use it. MSVC 2017 and 2019 also have \openmp support on Windows
+(\openmp 2.0). You will not need MPI unless your computer is some form of
+cluster. MPI is not recommended on Windows as it will interfer with Jupyter.
 
 If you are using BSD or MacOSX and you are just experimenting with \escript, then performance is
 probably not a major issue for you at the moment so you don't need to use either \openmp or MPI. 
@@ -357,13 +357,15 @@ libgcc_s.so.1 gcc47/libgcc_s.so.1
 \begin{itemize}
 \item Microsoft Visual Studio
 \begin{enumerate}
-\item Download the Microsoft Visual Studio Community 2019 installer from
+\item Download the Microsoft Visual Studio Community 2017 (or VS 2019 if
+preferred) installer from
 \begin{itemize}
 \item[] \url{https://visualstudio.microsoft.com}.
 \end{itemize}
 \item Launch the Visual Studio installer, selecting Individual components:
 \begin{itemize}
-\item \textbf{MSVC v142 - VS 2019 C++ x64/x86 build tools}
+\item VS 2017: \textbf{VC++ 2017 latest v141 tools} \\
+VS 2019: \textbf{MSVC v142 - VS 2019 C++ build tools}
 \item \textbf{Windows 10 SDK}
 \end{itemize}
 \end{enumerate}
@@ -376,14 +378,6 @@ libgcc_s.so.1 gcc47/libgcc_s.so.1
 \item Launch the Anaconda installer, selecting installation type: \textbf{Just
 Me} and destination folder: \newline \verb!C:\Users\%USERNAME%\Anaconda3!.
 \end{enumerate}
-\item Gmsh
-\begin{enumerate}
-\item Download the Gmsh 4.6.0 for Windows 64-bit package from
-\begin{itemize}
-\item[] \url{http://gmsh.info}.
-\end{itemize}
-\item Extract the Gmsh package to \verb!C:\Users\%USERNAME%!.
-\end{enumerate}
 \end{itemize}
 
 \noindent Next, open Windows Command Prompt (\file{cmd.exe}) and set-up the
@@ -395,20 +389,18 @@ Me} and destination folder: \newline \verb!C:\Users\%USERNAME%\Anaconda3!.
 \item Create and activate a new environment
 \begin{shellCode}
 C:\Users\%USERNAME%\Anaconda3\Scripts\activate
-    C:\Users\%USERNAME%\Anaconda3
-conda create --name escript
+conda create --name escript python=3.7
 conda deactivate
-C:\Users\%USERNAME%\Anaconda3\Scripts\activate
-    C:\Users\%USERNAME%\Anaconda3\envs\escript
+C:\Users\%USERNAME%\Anaconda3\Scripts\activate escript
 \end{shellCode}
 \item Install required conda modules
 \begin{shellCode}
 conda install numpy==1.15.4 matplotlib==2.2.2 sympy==1.1.1
-    boost gdal git pyproj scons scipy
-conda install mumps -c conda-forge
+    boost gdal git pyproj scons scipy m2-patch mumps gmsh
+    -c defaults -c conda-forge
 \end{shellCode}
 \end{enumerate}
-\item Vcpkg packages
+\item Vcpkg
 \begin{enumerate}
 \item Build vcpkg package manager
 \begin{shellCode}
@@ -417,9 +409,9 @@ git clone https://github.com/Microsoft/vcpkg.git
 cd vcpkg
 bootstrap-vcpkg
 \end{shellCode}
-\item Install the CppUnit and NetCDF vcpkg packages
+\item Install the CppUnit vcpkg package
 \begin{shellCode}
-vcpkg install cppunit:x64-windows netcdf-cxx4:x64-windows
+vcpkg install cppunit:x64-windows
 \end{shellCode}
 \end{enumerate}
 \end{itemize}
@@ -430,17 +422,15 @@ build \escript from source.
 \begin{enumerate}
 \item Activate the conda environment (if not active).
 \begin{shellCode}
-C:\Users\%USERNAME%\Anaconda3\Scripts\activate
-    C:\Users\%USERNAME%\Anaconda3\envs\escript
+C:\Users\%USERNAME%\Anaconda3\Scripts\activate escript
 \end{shellCode}
 \item Set-up the Command Prompt for the 64-bit MSVC command line build environment.
 \begin{shellCode}
-"C:\Program Files (x86)\Microsoft Visual Studio\2019\
+"C:\Program Files (x86)\Microsoft Visual Studio\2017\
     Community\VC\Auxiliary\Build\vcvars64.bat"
 \end{shellCode}
-\item Add Gmsh and CppUnit to the Windows System Path.
+\item Add CppUnit to the Windows System Path.
 \begin{shellCode}
-set PATH=%PATH%;C:\Users\%USERNAME%\gmsh-4.6.0-Windows64
 set PATH=%PATH%;C:\Users\%USERNAME%\vcpkg\packages\cppunit_x64-windows\bin
 \end{shellCode}
 \item Download the \escript source code tarball from
@@ -448,10 +438,33 @@ set PATH=%PATH%;C:\Users\%USERNAME%\vcpkg\packages\cppunit_x64-windows\bin
 \item[] \url{https://launchpad.net/escript-finley}
 \end{itemize}
 Extract the tarball to \verb!C:\Users\%USERNAME%\escript!
-\item Kick-off the \escript build.
+\item Build and install the netCDF-4 C++ library before starting the \escript
+build.  Download the netCDF-4 C++ v4.3.1 source code tarball from
+\begin{itemize}
+\item[] \url{https://github.com/Unidata/netcdf-cxx4/archive/v4.3.1.tar.gz}
+\end{itemize}
+Extract the tarball to \verb!C:\Users\%USERNAME%\escript!
+\item Apply the provided patch.
+\begin{shellCode}
+cd C:\Users\%USERNAME%\escript\netcdf-cxx4-4.3.1
+patch -p1 < ..\src\tools\anaconda\Anaconda3\netcdf-cxx4.patch
+\end{shellCode}
+\item Configure, build, and install netcdf-cxx4.
+\begin{shellCode}
+mkdir build
+cd build
+cmake -G "Visual Studio 15 2017 Win64" -DBUILD_SHARED_LIBS=OFF
+    -DCMAKE_INSTALL_PREFIX="%CONDA_PREFIX%\Library"
+    -DCMAKE_LIBRARY_PATH="%CONDA_PREFIX%\Library\lib"
+    -DCMAKE_PREFIX_PATH="%CONDA_PREFIX%\Library"
+    -DNETCDF_LIB_NAME="netcdf" -DHDF5_LIB_NAME="hdf5" ..
+cmake --build . --config Release
+cmake --build . --config Release --target install
+\end{shellCode}
+\item Kick-off the \escript build when the netCDF-4 C++ install is complete.
 \begin{shellCode}
 cd C:\Users\%USERNAME%\escript\src
-scons -j1 build_full options_file=scons/templates/windows_msvc142_options.py
+scons -j1 build_full options_file=scons/templates/windows_msvc141_options.py
 \end{shellCode}
 \item Once the build completes successfully, you can validate \escript using
 the provided test script.

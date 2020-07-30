@@ -21,8 +21,7 @@ escript_opts_version = 203
 openmp = True
 netcdf = 4
 
-import os
-import sys
+import os, subprocess, sys
 
 # cc_flags for boost
 # /EHsc : for unresolved external symbol "void __cdecl boost::throw_exception(...
@@ -33,36 +32,50 @@ cc_flags = '/EHsc /MD /DBOOST_ALL_NO_LIB /wd4068'
 # cxx_extra = ''
 omp_flags = '/openmp'
 username = os.environ['USERNAME']
-vcpkg_prefix = 'C:/Users/{usr}/vcpkg/packages'.format(usr=username)
 
 # Additional flags to add to the linker
 # DEFAULT: '' (empty)
-ld_extra = '/LIBPATH:"{vcp}/hdf5_x64-windows/lib" /LIBPATH:"{vcp}/curl_x64-windows/lib" \
-            /LIBPATH:"{vcp}/zlib_x64-windows/lib" /LIBPATH:"{vcp}/szip_x64-windows/lib"'.format(vcp=vcpkg_prefix)
+ld_extra = ''
 
-netcdf_prefix = '{vcp}/netcdf-cxx4_x64-windows'.format(vcp=vcpkg_prefix)
-netcdf_libs = ['netcdf-cxx4','netcdf','libhdf5','libcurl','zlib','szip']
-ld_extra = ' /LIBPATH:"{ncp}/lib" {ld}'.format(ncp=netcdf_prefix, ld=ld_extra)
-
-cppunit_prefix = '{vcp}/cppunit_x64-windows'.format(vcp=vcpkg_prefix)
+cppunit_prefix = 'C:/Users/{usr}/vcpkg/packages/cppunit_x64-windows'.format(usr=username)
 cppunit_libs = ['cppunit_dll']
 
-conda_prefix = os.environ['CONDA_PREFIX']
+conda_prefix = os.environ.get('CONDA_PREFIX')
+if os.environ.get('CONDA_BUILD'):
+    pythoncmd = os.environ['PYTHON']
+    build_dir = os.environ['BUILD_PREFIX']
+    conda_prefix = os.environ['PREFIX']
+    lib_prefix = os.environ['LIBRARY_PREFIX']
+elif conda_prefix:
+    pythoncmd = conda_prefix + '\\python.exe'
+    lib_prefix = conda_prefix + '\\Library'
+
 if conda_prefix:
-    ld_extra = ' /LIBPATH:"{cp}\\libs" {ld}'.format(cp=conda_prefix, ld=ld_extra)
-    boost_prefix = conda_prefix + '\\Library'
+    ld_extra = ' '.join(filter(None, ('/LIBPATH:{cp}\\Library\\lib /LIBPATH:"{cp}\\libs"'.format(
+        cp=conda_prefix), ld_extra)))
+    netcdf_prefix = lib_prefix
+    netcdf_libs = ['netcdf-cxx4','netcdf','libhdf5','libcurl','zlib']
+    boost_prefix = lib_prefix
     # boost_libs ='boost_python37-vc140-mt-x64-1_67'
+#    boost_libs, compression_libs = [], []
     boost_libs = []
+    cmd = "import sys;print(''.join(str(i) for i in sys.version_info[:2]))"
+    py_ver = subprocess.Popen([pythoncmd, '-c', cmd], stdout=subprocess.PIPE).stdout.read().strip()
+    if isinstance(py_ver, bytes):
+        py_ver = py_ver.decode(sys.stdout.encoding)
     for l in os.listdir(boost_prefix + '\\lib'):
-        if l.startswith('boost_python{}{}'.format(sys.version_info.major,sys.version_info.minor)):
+        if l.startswith('boost_python'+py_ver) or l.startswith('boost_numpy'+py_ver):
             boost_libs.append(os.path.splitext(l)[0])
+#        elif l.startswith('boost_iostreams'):
+#            compression_libs.append(os.path.splitext(l)[0])
     # list comprehension not working with scons?
     # boost_libs = [os.path.splitext(l)[0] for l in os.listdir(boost_prefix + '\\lib')
     #     if l.startswith('boost_python')][-1]
     mumps = True
-    mumps_prefix = conda_prefix + '\\Library\\mingw-w64'
-    ld_extra = ' {ld} /LIBPATH:"{mp}\\lib" /LIBPATH:"{mp}\\bin"'.format(mp=mumps_prefix, ld=ld_extra)
-    ld_extra = ld_extra+' libmumps_common.a libdmumps.dll.a libzmumps.dll.a'
+    mumps_prefix = lib_prefix + '\\mingw-w64'
+    ld_extra = ' '.join(filter(None, ('/LIBPATH:"{mp}\\lib" /LIBPATH:"{mp}\\bin"'.format(mp=mumps_prefix), ld_extra)))
+    ld_extra = ' '.join(filter(None, ('libmumps_common.a libdmumps.dll.a libzmumps.dll.a', ld_extra)))
+#    mumps_libs = ['libmumps_common.a', 'libdmumps.dll.a', 'libzmumps.dll.a']
     mumps_libs = []
 
 tools_names = ['msvc']

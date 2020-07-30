@@ -24,6 +24,8 @@
 #ifndef __FINLEY_REFERENCEELEMENTS_H__
 #define __FINLEY_REFERENCEELEMENTS_H__
 
+#include "system_dep.h"
+
 #include "Finley.h"
 #include "ShapeFunctions.h"
 #include "Quadrature.h"
@@ -117,7 +119,7 @@ typedef enum {
 
 
 /// this struct holds the definition of the reference element
-struct ReferenceElementInfo {
+struct FINLEY_DLL_API ReferenceElementInfo {
     /// the type
     ElementTypeId TypeId;
     /// the name in text form e.g. "Line1", "Rec12", ...
@@ -173,7 +175,7 @@ struct ReferenceElementInfo {
 
 
 /// this struct holds the realization of a reference element
-struct ReferenceElement {
+struct FINLEY_DLL_API ReferenceElement {
     /// constructor with type ID and integration order
     ReferenceElement(ElementTypeId id, int order);
 
