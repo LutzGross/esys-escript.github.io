@@ -1034,7 +1034,11 @@ void Brick::writeBinaryGridImpl(const escript::Data& in,
 
     // from here on we know that each sample consists of one value
     FileWriter fw;
+#ifdef _WIN32
+    fw.openFile(filename, fileSize, true); // open in binary mode to allow seek
+#else
     fw.openFile(filename, fileSize);
+#endif
     MPIBarrier();
 
     for (index_t z=0; z<myN2; z++) {

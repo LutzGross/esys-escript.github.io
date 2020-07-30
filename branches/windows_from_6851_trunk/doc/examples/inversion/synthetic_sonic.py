@@ -135,7 +135,11 @@ if HAVE_SPECKLEY:
         tracerEW.addRecord(locEW(p))
         if DIM==3: tracerNS.addRecord(locNS(p))
         print(t, locEW(p)[:4], wl.getValue(t))
-        if n%5 == 0 : saveSilo("tmp/u_%d.silo"%(n//5,), p=p)
+        if n%5 == 0:
+            if hasFeature("silo"):
+                saveSilo("tmp/u_%d.silo"%(n//5,), p=p)
+            else:
+                print("skipped saveSilo - Silo module not available")
         n+=1
     if tracerEW.obspy_available() and getMPISizeWorld() == 1:
         tracerEW.write('lineEW.sgy')

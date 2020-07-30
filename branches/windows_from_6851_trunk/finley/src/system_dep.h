@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2017-2018 by The University of Queensland
+* Copyright (c) 2003-2020 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -14,27 +14,28 @@
 *
 *****************************************************************************/
 
-#ifndef __ESCRIPT_NCHELPER_H__
-#define __ESCRIPT_NCHELPER_H__
 
-#include "system_dep.h"
+/**
+\file finley/src/system_dep.h
+\ingroup Other
+ */
+/*
+ @(#) system_dep.h
+*/
 
-namespace escript
-{
-#ifndef _WIN32
-#include <string>
+#ifndef finley_system_dep_h
+#define finley_system_dep_h
+
+#define FINLEY_DLL_API
+
+#ifdef _WIN32
+# undef FINLEY_DLL_API
+# ifdef FINLEY_EXPORTS
+#   define FINLEY_DLL_API __declspec(dllexport)
+# else
+#   define FINLEY_DLL_API __declspec(dllimport)
+# endif
 #endif
-ESCRIPT_DLL_API
-char NcFType(const std::string& name);
-}
-
-#ifdef NETCDF4
-#include <ncFile.h>
-namespace escript
-{
-ESCRIPT_DLL_API
-bool openNcFile(netCDF::NcFile& f, const std::string& name);
-}
-#endif
 
 #endif
+

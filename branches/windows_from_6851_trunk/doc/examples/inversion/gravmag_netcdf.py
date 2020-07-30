@@ -27,6 +27,7 @@ __url__="https://launchpad.net/escript-finley"
 from esys.downunder import *
 from esys.escript import unitsSI as U
 from esys.escript import saveDataCSV
+from esys.escript import hasFeature
 from esys.weipa import *
 import logging
 logger=logging.getLogger('inv.MinimizerLBFGS')
@@ -76,10 +77,13 @@ def work():
 
   g, wg = db.getGravitySurveys()[0]
   B, wB = db.getMagneticSurveys()[0]
-  if saveSilo("result_gravmag.silo", density=density, gravity_anomaly=g, gravity_weight=wg, susceptibility=susceptibility, magnetic_anomaly=B,   magnetic_weight=wB):
-      print("Results saved in result_gravmag.silo")
+  if hasFeature("silo"):
+      if saveSilo("result_gravmag.silo", density=density, gravity_anomaly=g, gravity_weight=wg, susceptibility=susceptibility, magnetic_anomaly=B,   magnetic_weight=wB):
+          print("Results saved in result_gravmag.silo")
+      else:
+          print("Failed to save result_gravmag.silo.")
   else:
-      print("Failed to save result_gravmag.silo. Possibly no Silo support.")
+      print("skipped saveSilo - Silo module not available")
 
   saveVTK("result_gravmag.vtu", density=density, gravity_anomaly=g, gravity_weight=wg, susceptibility=susceptibility, magnetic_anomaly=B,   magnetic_weight=wB)
   print("Results saved in result_gravmag.vtu")

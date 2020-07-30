@@ -23,6 +23,9 @@
 #include <iostream>
 #include <cmath>
 #include <complex>
+#ifdef _WIN32
+# include <algorithm>
+#endif // _WIN32
 
 #ifdef ESYS_USE_BOOST_ACOS
 #include <boost/math/complex/acos.hpp>	// std::acos for complex on OSX (elcapitan) is wrong
@@ -597,9 +600,6 @@ void matrix_matrix_product(const int SL, const int SM, const int SR, const LEFT*
   }
 }
 
-#if defined (_WIN32) && !defined(__INTEL_COMPILER)
-#else
-
 inline
 DataTypes::real_t calc_erf(DataTypes::real_t x)
 {
@@ -611,8 +611,6 @@ DataTypes::cplx_t calc_erf(DataTypes::cplx_t x)
 {
     return makeNaN();
 }
-
-#endif
 
 inline DataTypes::real_t calc_sign(DataTypes::real_t x)
 {

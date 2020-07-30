@@ -54,6 +54,8 @@
 
 *****************************************************************************/
 
+#include "system_dep.h"
+
 #include <finley/Finley.h>
 #include <finley/ElementFile.h>
 #include <finley/NodeFile.h>
@@ -90,7 +92,7 @@ enum SystemMatrixType {
     FinleyDomain implements the AbstractContinuousDomain interface for the
     Finley library.
 */
-class FinleyDomain : public escript::AbstractContinuousDomain
+class FINLEY_DLL_API FinleyDomain : public escript::AbstractContinuousDomain
 {
 public:
     /**

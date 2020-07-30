@@ -204,10 +204,16 @@ if HAVE_SPECKLEY:
         print(t, locEW(u[DIM-1])[len(rgEW)//2-4:len(rgEW)//2+1], wl.getValue(t))
         k+=1
         if k%5 == 0:
-            saveSilo("output/normalHTI_%d.silo"%(n,), v_p=v_p, u=u, cycle=k, time=t)
+            if hasFeature("silo"):
+                saveSilo("output/normalHTI_%d.silo"%(n,), v_p=v_p, u=u, cycle=k, time=t)
+            else:
+                print("skipped saveSilo - Silo module not available")
             n += 1
     if k%5 != 0:
-        saveSilo("output/normalHTI_%d.silo"%(n,), v_p=v_p, u=u, cycle=k, time=t)
+        if hasFeature("silo"):
+            saveSilo("output/normalHTI_%d.silo"%(n,), v_p=v_p, u=u, cycle=k, time=t)
+        else:
+            print("skipped saveSilo - Silo module not available")
     if tracerEW_x.obspy_available() and getMPISizeWorld() == 1:
         tracerEW_x.write('output/lineEW_x.sgy')
         tracerEW_z.write('output/lineEW_z.sgy')

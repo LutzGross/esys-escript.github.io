@@ -210,7 +210,7 @@ public:
        Returns a borrowed pointer to the sample reference number id list
        \param functionSpaceType Input - The function space type.
     */
-    ESCRIPT_DLL_API
+    // ESCRIPT_DLL_API class already exported
     virtual const DataTypes::dim_t* borrowSampleReferenceIDs(int functionSpaceType) const = 0;
 
     /**

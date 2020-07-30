@@ -16,6 +16,7 @@
 #ifndef __ESCRIPT_ABSTRACTREDUCER_H__
 #define __ESCRIPT_ABSTRACTREDUCER_H__
 
+#include "system_dep.h"
 #include <escript/Data.h>
 #include <escript/EsysMPI.h>
 

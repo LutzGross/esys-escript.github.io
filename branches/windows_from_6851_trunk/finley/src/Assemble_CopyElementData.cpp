@@ -74,7 +74,9 @@ void Assemble_CopyElementData(const ElementFile* elements, escript::Data& out,
             out.requireWrite();
             if (in.actsExpanded()) {
                 const size_t len_size = numComps*numQuad_in*sizeof(Scalar);
+#ifndef _WIN32 // TODO: why fatal error C1001: An internal error has occurred in the compiler.?
 #pragma omp parallel for
+#endif
                 for (index_t n = 0; n < numElements; n++) 
                     memcpy(out.getSampleDataRW(n, zero),
                             in.getSampleDataRO(n, zero), len_size);

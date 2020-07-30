@@ -23,8 +23,7 @@
 
 namespace paso {
 
-PASO_DLL_API
-struct FCT_Solver
+struct PASO_DLL_API FCT_Solver
 {
     FCT_Solver(const_TransportProblem_ptr tp, Options* options);
 

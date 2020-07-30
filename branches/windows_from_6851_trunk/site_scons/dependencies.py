@@ -678,8 +678,10 @@ def checkOptionalLibraries(env):
             try:
                 p=Popen(['gmsh', '-info'], stderr=PIPE)
                 _,e=p.communicate()
+                env.Append(CPPDEFINES=['ESYS_HAVE_GMSH'])
                 if e.split().count("MPI"):
                     env['gmsh']='m'
+                    env.Append(CPPDEFINES=['ESYS_GMSH_MPI'])
                 else:
                     env['gmsh']='s'
             except OSError:
