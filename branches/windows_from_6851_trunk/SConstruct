@@ -111,6 +111,10 @@ vars.AddVariables(
   BoolVariable('umfpack', 'Enable UMFPACK', False),
   ('umfpack_prefix', 'Prefix/Paths to UMFPACK installation', default_prefix),
   ('umfpack_libs', 'UMFPACK libraries to link with', ['umfpack']),
+  BoolVariable('mumps', 'Enable MUMPS', False),
+  ('mumps_prefix', 'Prefix/Paths to MUMPS installation', default_prefix),
+  ('mumps_libs', 'MUMPS libraries to link with', ['mumps_common','pord','dmumps','zmumps',
+    'mpiseq','lapack','metis','scotch','esmumps','gfortran']),
   TristateVariable('lapack', 'Enable LAPACK', 'auto'),
   ('lapack_prefix', 'Prefix/Paths to LAPACK installation', default_prefix),
   ('lapack_libs', 'LAPACK libraries to link with', []),
@@ -512,7 +516,7 @@ env=checkCppUnit(env)
 ######## optional python modules (sympy, pyproj)
 env=checkOptionalModules(env)
 
-######## optional dependencies (netCDF, MKL, UMFPACK, Lapack, Silo, ...)
+######## optional dependencies (netCDF, MKL, UMFPACK, MUMPS, Lapack, Silo, ...)
 env=checkOptionalLibraries(env)
 
 ######## PDFLaTeX (for documentation)
@@ -781,6 +785,8 @@ def print_summary():
             direct.append('mkl')
         if env['umfpack']:
             direct.append('umfpack')
+        if env['mumps']:
+            direct.append('mumps')
     else:
         d_list.append('paso')
     if env['trilinos']:
@@ -803,7 +809,7 @@ def print_summary():
         print("          netcdf:  NO")
     e_list=[]
     for i in ('weipa','debug','openmp','cppunit','gdal','mkl',
-             'pyproj','scipy','silo','sympy','umfpack','visit'):
+             'mumps','pyproj','scipy','silo','sympy','umfpack','visit'):
         if env[i]: e_list.append(i)
         else: d_list.append(i)
 

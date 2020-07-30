@@ -98,7 +98,7 @@ class /* ESCRIPT_DLL_API */ DataVectorAlt {
      Description:
      Destroys the current DataVectorAlt object.
   */
-  ~DataVectorAlt();
+  ESCRIPT_INLINE_DLL_API ~DataVectorAlt();
 
   /**
      \brief
@@ -136,7 +136,7 @@ class /* ESCRIPT_DLL_API */ DataVectorAlt {
      Return the number of elements in this DataVectorAlt.
   */
   inline
-  size_type
+  ESCRIPT_INLINE_DLL_API size_type
   size() const;
 
   /**
@@ -172,16 +172,16 @@ class /* ESCRIPT_DLL_API */ DataVectorAlt {
     in order to provide a facility equivalent to an end() pointer.
   */
   inline
-  reference
+  ESCRIPT_INLINE_DLL_API reference
   operator[](const size_type i);
 
   inline
-  const_reference
+  ESCRIPT_INLINE_DLL_API const_reference
   operator[](const size_type i) const;
 
     // for compatibility with std::vector
-  ElementType* data();
-  const ElementType* data() const; 
+  ESCRIPT_INLINE_DLL_API ElementType* data();
+  ESCRIPT_INLINE_DLL_API const ElementType* data() const; 
   
  protected:
 

@@ -27,6 +27,7 @@ sources = """
     GMRES.cpp
     GMRES2.cpp
     MKL.cpp
+    MUMPS.cpp
     NewtonGMRES.cpp
     Options.cpp
     PCG.cpp
@@ -75,6 +76,7 @@ headers = """
     FluxLimiter.h
     Functions.h
     MKL.h
+    MUMPS.h
     mmio.h
     Options.h
     Paso.h
@@ -104,6 +106,8 @@ if env['mkl']:
     pasolibs += env['mkl_libs']
 if env['umfpack']:
     pasolibs += env['umfpack_libs']
+if env['mumps']:
+    pasolibs += env['mumps_libs']
 
 local_env.PrependUnique(LIBS = pasolibs)
 env['paso_libs'] = [module_name] + pasolibs

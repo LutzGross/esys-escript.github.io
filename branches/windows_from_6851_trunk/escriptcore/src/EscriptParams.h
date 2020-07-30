@@ -61,8 +61,7 @@ private:
 };
 
 
-// TODO: need a define for this
-extern __declspec(dllimport) EscriptParams escriptParams;
+ESCRIPT_DLL_API extern EscriptParams escriptParams;
 
 /**
     \brief Set the value of a named parameter.

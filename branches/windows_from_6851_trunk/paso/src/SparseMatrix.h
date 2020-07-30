@@ -49,6 +49,8 @@ struct SparseMatrix : boost::enable_shared_from_this<SparseMatrix>
 
     void setValues(double value);
 
+    void setValues(cplx_t value);
+
     void copyFromMainDiagonal(double* out) const;
 
     void copyToMainDiagonal(const double* in);
@@ -168,6 +170,9 @@ struct SparseMatrix : boost::enable_shared_from_this<SparseMatrix>
     /// this is used for classical CSR or CSC
     double *val;
 
+    /// this is used for complex CSR
+    cplx_t *cval;
+
     /// package controlling the solver pointer
     index_t solver_package;
 
@@ -196,6 +201,11 @@ void SparseMatrix_MatrixVector_CSR_OFFSET1(const double alpha,
                                            const_SparseMatrix_ptr A,
                                            const double* in,
                                            const double beta, double* out);
+
+void SparseMatrix_MatrixVector_CSR_OFFSET1(const double alpha,
+                                           const_SparseMatrix_ptr A,
+                                           const cplx_t* in,
+                                           const double beta, cplx_t* out);
 
 void SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(const double alpha,
                                                 const_SparseMatrix_ptr A,

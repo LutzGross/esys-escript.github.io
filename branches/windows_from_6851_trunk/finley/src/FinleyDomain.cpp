@@ -2345,9 +2345,11 @@ int FinleyDomain::getSystemMatrixTypeId(const bp::object& options) const
 #endif
     }
 #ifdef ESYS_HAVE_PASO
+#ifndef ESYS_HAVE_MUMPS
     if (sb.isComplex()) {
-        throw NotImplementedError("Paso does not support complex-valued matrices");
+        throw NotImplementedError("Paso requires MUMPS for complex-valued matrices.");
     }
+#endif
     return (int)SMT_PASO | paso::SystemMatrix::getSystemMatrixTypeId(
                 method, sb.getPreconditioner(), sb.getPackage(),
                 sb.isSymmetric(), m_mpiInfo);

@@ -20,7 +20,6 @@
 escript_opts_version = 203
 openmp = True
 netcdf = 4
-verbose = True
 
 import os
 import sys
@@ -33,25 +32,24 @@ import sys
 cc_flags = '/EHsc /MD /DBOOST_ALL_NO_LIB /wd4068'
 # cxx_extra = ''
 omp_flags = '/openmp'
+username = os.environ['USERNAME']
+vcpkg_prefix = 'C:/Users/{usr}/vcpkg/packages'.format(usr=username)
 
 # Additional flags to add to the linker
 # DEFAULT: '' (empty)
-#ld_extra = '/LIBPATH:"C:/Program Files (x86)/Windows Kits/10/Lib/10.0.18362.0/ucrt/x86" \
-#            /LIBPATH:"C:/Program Files (x86)/Windows Kits/10/Lib/10.0.18362.0/um/x86"'
-ld_extra = '/LIBPATH:"C:/Users/Mark/Documents/work/sees/escript/vcpkg/packages/netcdf-c_x64-windows/lib" \
-            /LIBPATH:"C:/Users/Mark/Documents/work/sees/escript/vcpkg/packages/hdf5_x64-windows/lib" \
-            /LIBPATH:"C:/Users/Mark/Documents/work/sees/escript/vcpkg/packages/curl_x64-windows/lib" \
-            /LIBPATH:"C:/Users/Mark/Documents/work/sees/escript/vcpkg/packages/zlib_x64-windows/lib" \
-            /LIBPATH:"C:/Users/Mark/Documents/work/sees/escript/vcpkg/packages/szip_x64-windows/lib"'
+ld_extra = '/LIBPATH:"{vcp}/hdf5_x64-windows/lib" /LIBPATH:"{vcp}/curl_x64-windows/lib" \
+            /LIBPATH:"{vcp}/zlib_x64-windows/lib" /LIBPATH:"{vcp}/szip_x64-windows/lib"'.format(vcp=vcpkg_prefix)
 
-netcdf_prefix = 'C:/Users/Mark/Documents/work/sees/escript/vcpkg/packages/netcdf-cxx4_x64-windows'
+netcdf_prefix = '{vcp}/netcdf-cxx4_x64-windows'.format(vcp=vcpkg_prefix)
 netcdf_libs = ['netcdf-cxx4','netcdf','libhdf5','libcurl','zlib','szip']
+ld_extra = ' /LIBPATH:"{ncp}/lib" {ld}'.format(ncp=netcdf_prefix, ld=ld_extra)
 
-cppunit_prefix = 'C:/Users/Mark/Documents/work/sees/escript/vcpkg/packages/cppunit_x64-windows'
+cppunit_prefix = '{vcp}/cppunit_x64-windows'.format(vcp=vcpkg_prefix)
 cppunit_libs = ['cppunit_dll']
 
-conda_prefix = os.environ.get('CONDA_PREFIX')
+conda_prefix = os.environ['CONDA_PREFIX']
 if conda_prefix:
+    ld_extra = ' /LIBPATH:"{cp}\\libs" {ld}'.format(cp=conda_prefix, ld=ld_extra)
     boost_prefix = conda_prefix + '\\Library'
     # boost_libs ='boost_python37-vc140-mt-x64-1_67'
     boost_libs = []
@@ -59,8 +57,12 @@ if conda_prefix:
         if l.startswith('boost_python{}{}'.format(sys.version_info.major,sys.version_info.minor)):
             boost_libs.append(os.path.splitext(l)[0])
     # list comprehension not working with scons?
-    # boost_libs = [os.path.splitext(l)[0] for l in os.listdir(boost_prefix + '\\lib') if l.startswith('boost_python')][-1]
-    # netcdf_prefix = conda_prefix + '\\Library'
-    # netcdf_libs = ['netcdf']
+    # boost_libs = [os.path.splitext(l)[0] for l in os.listdir(boost_prefix + '\\lib')
+    #     if l.startswith('boost_python')][-1]
+    mumps = True
+    mumps_prefix = conda_prefix + '\\Library\\mingw-w64'
+    ld_extra = ' {ld} /LIBPATH:"{mp}\\lib" /LIBPATH:"{mp}\\bin"'.format(mp=mumps_prefix, ld=ld_extra)
+    ld_extra = ld_extra+' libmumps_common.a libdmumps.dll.a libzmumps.dll.a'
+    mumps_libs = []
 
 tools_names = ['msvc']
