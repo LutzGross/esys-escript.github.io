@@ -74,6 +74,7 @@ private:
     bool had_an_export_this_round;
 };
 
+ESCRIPT_DLL_API
 Reducer_ptr makeDataReducer(std::string type);
 
 }

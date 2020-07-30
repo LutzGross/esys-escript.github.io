@@ -28,6 +28,7 @@ from esys.downunder import *
 from esys.weipa import *
 from esys.escript import unitsSI as U
 from esys.escript import saveDataCSV
+from esys.escript import hasFeature
 
 # Set parameters
 DATASET = 'data/GravitySmall.ers'
@@ -60,10 +61,13 @@ def work():
   print("density = %s"%density)
 
   g, w =  db.getGravitySurveys()[0]
-  if saveSilo("result0.silo", density=density, gravity_anomaly=g, gravity_weight=w):
-      print("Results saved in result0.silo")
+  if hasFeature("silo"):
+      if saveSilo("result0.silo", density=density, gravity_anomaly=g, gravity_weight=w):
+          print("Results saved in result0.silo")
+      else:
+          print("Failed to save result0.silo.")
   else:
-      print("Failed to save result0.silo. Possibly no Silo support.")
+      print("skipped saveSilo - Silo module not available")
 
   saveVTK("result0.vtu", density=density, gravity_anomaly=g, gravity_weight=w)
   print("Results saved in result0.vtu")

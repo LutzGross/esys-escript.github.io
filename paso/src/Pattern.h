@@ -38,7 +38,7 @@ struct Pattern;
 typedef boost::shared_ptr<Pattern> Pattern_ptr;
 typedef boost::shared_ptr<const Pattern> const_Pattern_ptr;
 
-struct Pattern : boost::enable_shared_from_this<Pattern>
+struct PASO_DLL_API Pattern : boost::enable_shared_from_this<Pattern>
 {
     Pattern(int type, dim_t numOutput, dim_t numInput, index_t* ptr,
             index_t* index);

@@ -22,8 +22,7 @@
 namespace paso {
 
 
-PASO_DLL_API
-struct FCT_FluxLimiter
+struct PASO_DLL_API FCT_FluxLimiter
 {
     FCT_FluxLimiter(const_TransportProblem_ptr tp);
     ~FCT_FluxLimiter();

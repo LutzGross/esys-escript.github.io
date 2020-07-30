@@ -72,8 +72,10 @@ void EscriptDatasetTestCase::testBase()
     cout << "\tTest default constructor." << endl;
     EscriptDataset_ptr dataset(new EscriptDataset());
 
+#ifdef ESYS_HAVE_SILO
     cout << "\tTest saveSilo without data." << endl;
     CPPUNIT_ASSERT(dataset->saveSilo("dummy") == false);
+#endif
 
     cout << "\tTest saveVTK without data." << endl;
     CPPUNIT_ASSERT_THROW(dataset->saveVTK("dummy"),weipa::WeipaException);

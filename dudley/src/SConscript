@@ -80,6 +80,7 @@ headers = """
     NodeMapping.h
     ShapeTable.h
     Util.h
+    system_dep.h
 """.split()
 
 local_env = env.Clone()

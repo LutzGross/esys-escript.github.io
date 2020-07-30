@@ -44,7 +44,7 @@ typedef boost::shared_ptr<const SystemMatrix> const_SystemMatrix_ptr;
 typedef int SystemMatrixType;
 
 /// this class holds a (distributed) stiffness matrix
-class SystemMatrix : public escript::AbstractSystemMatrix
+class PASO_DLL_API SystemMatrix : public escript::AbstractSystemMatrix
 {
 public:
     /// default constructor - throws exception.

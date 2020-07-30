@@ -27,7 +27,9 @@
 #include "FunctionSpaceFactory.h"
 #include "MPIDataReducer.h"
 #include "MPIScalarReducer.h"
-#include "NCHelper.h"
+#ifdef NETCDF4
+  #include "NCHelper.h"
+#endif
 #include "NonReducedVariable.h"
 #include "SolverOptions.h"
 #include "SplitWorld.h"
@@ -126,7 +128,9 @@ BOOST_PYTHON_MODULE(escriptcpp)
     REGISTER_ESCRIPT_EXCEPTION_TRANSLATORS;
     
     
+#ifdef NETCDF4
     def("NcFType", escript::NcFType, arg("filename"), "Return a character indicating what netcdf format a file uses.\nc or C indicates netCDF3.\n4 indicates netCDF4.\nu indicates unsupported format (eg netCDF4 file in an escript build which does not support it\n? indicates unknown.");
+#endif
 
 /* begin SubWorld things */
 

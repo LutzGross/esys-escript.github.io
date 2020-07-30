@@ -35,7 +35,7 @@ namespace escript
  * The main reason for this class, is to insulate users from the MPI type thinking needed for
  * subworlds and instead provide an interface which allows them to think about subworlds as a group.
 */
-class SplitWorld
+class ESCRIPT_DLL_API SplitWorld
 {
 public:
     SplitWorld(unsigned int numgroups, MPI_Comm global=MPI_COMM_WORLD);
@@ -88,21 +88,25 @@ private:
 /**
   used to invoke the SplitWorld version from python (in lieu of a method based equivalent to raw_function) 
 */
+ESCRIPT_DLL_API
 boost::python::object raw_buildDomains(boost::python::tuple t, boost::python::dict kwargs);
 
 /**
  used to invoke the SplitWorld version from python (in lieu of a method based equivalent to raw_function)
 */
+ESCRIPT_DLL_API
 boost::python::object raw_addJob(boost::python::tuple t, boost::python::dict kwargs);
 
 /**
  used to invoke the SplitWorld version from python (in lieu of a method based equivalent to raw_function)
 */
+ESCRIPT_DLL_API
 boost::python::object raw_addJobPerWorld(boost::python::tuple t, boost::python::dict kwargs);
 
 /**
  used to add a reducer for shared values.
 */
+ESCRIPT_DLL_API
 boost::python::object raw_addVariable(boost::python::tuple t, boost::python::dict kwargs);
 }
 #endif

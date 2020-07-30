@@ -30,7 +30,10 @@ REQUIRED_OPTS_VERSION=203
 # MS Windows support, many thanks to PH
 IS_WINDOWS = (os.name == 'nt')
 
-IS_OSX = (os.uname()[0] == 'Darwin')
+if IS_WINDOWS:
+    IS_OSX = False
+else:
+    IS_OSX = (os.uname()[0] == 'Darwin')
 
 ########################## Determine options file ############################
 # 1. command line
@@ -467,7 +470,8 @@ except KeyError:
 
 # Takes care of prefix and suffix for Python modules:
 def build_python_module(env, target, source):
-    return env.SharedLibrary(target, source, SHLIBPREFIX='', SHLIBSUFFIX='.so')
+    sl_suffix = '.pyd' if IS_WINDOWS else '.so'
+    return env.SharedLibrary(target, source, SHLIBPREFIX='', SHLIBSUFFIX=sl_suffix)
 env.AddMethod(build_python_module, "PythonModule")
 
 if env['pythoncmd']=='python':
@@ -704,8 +708,7 @@ env.Alias('release_prep_old', ['basedocs', 'api_epydoc', 'install'])
 # generate the testscripts without doing a full build
 env.Alias('testscripts',[])
 
-if not IS_WINDOWS:
-    generateTestScripts(env, TestGroups)
+generateTestScripts(env, TestGroups)
 
 ######################## Populate the buildvars file #########################
 

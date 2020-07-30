@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2017-2018 by The University of Queensland
+* Copyright (c) 2003-2020 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -14,27 +14,28 @@
 *
 *****************************************************************************/
 
-#ifndef __ESCRIPT_NCHELPER_H__
-#define __ESCRIPT_NCHELPER_H__
 
-#include "system_dep.h"
+/**
+\file dudley/src/system_dep.h
+\ingroup Other
+ */
+/*
+ @(#) system_dep.h
+*/
 
-namespace escript
-{
-#ifndef _WIN32
-#include <string>
+#ifndef dudley_system_dep_h
+#define dudley_system_dep_h
+
+#define DUDLEY_DLL_API
+
+#ifdef _WIN32
+# undef DUDLEY_DLL_API
+# ifdef DUDLEY_EXPORTS
+#   define DUDLEY_DLL_API __declspec(dllexport)
+# else
+#   define DUDLEY_DLL_API __declspec(dllimport)
+# endif
 #endif
-ESCRIPT_DLL_API
-char NcFType(const std::string& name);
-}
-
-#ifdef NETCDF4
-#include <ncFile.h>
-namespace escript
-{
-ESCRIPT_DLL_API
-bool openNcFile(netCDF::NcFile& f, const std::string& name);
-}
-#endif
 
 #endif
+

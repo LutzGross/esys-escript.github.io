@@ -45,6 +45,8 @@
 
 *****************************************************************************/
 
+#include "system_dep.h"
+
 #include <dudley/Dudley.h>
 #include <dudley/ElementFile.h>
 #include <dudley/NodeFile.h>
@@ -81,7 +83,7 @@ enum SystemMatrixType {
     DudleyDomain implements the AbstractContinuousDomain interface for the
     Dudley library.
 */
-class DudleyDomain : public escript::AbstractContinuousDomain
+class DUDLEY_DLL_API DudleyDomain : public escript::AbstractContinuousDomain
 {
 public:
     /**

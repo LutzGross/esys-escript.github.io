@@ -175,21 +175,21 @@ TODO Make sure to document the relationship between tags and data, ie: data also
   /**
    \brief Return true if data contains Inf or -Inf 
   */
-  ESCRIPT_DLL_API
+  // ESCRIPT_DLL_API class already exported
   virtual bool
   hasInf() const;
 
   /**
   \brief replaces all (+/-)Inf values with value 
   */
-  ESCRIPT_DLL_API
+  // ESCRIPT_DLL_API class already exported
   virtual void
   replaceInf(DataTypes::real_t value);
   
   /**
   \brief replaces all (+/-)Inf values with value 
   */
-  ESCRIPT_DLL_API
+  // ESCRIPT_DLL_API class already exported
   virtual void
   replaceInf(DataTypes::cplx_t value);    
   
@@ -206,7 +206,7 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      \brief Return an object with the same type, domain (and tags if appropriate)
      as this, but all values are zeroed.
   */  
-  ESCRIPT_DLL_API
+  // ESCRIPT_DLL_API class already exported
   virtual
   DataAbstract*
   zeroedCopy() const;  

@@ -60,7 +60,7 @@ class DataLazy;
    Doing so will lead to invalid memory access.
    This should not affect any methods exposed via boost::python.
 */
-class Data {
+class ESCRIPT_DLL_API Data {
 
   public:
 
@@ -1896,7 +1896,7 @@ instead of manually manipulating process and point IDs.
 #endif
   template <typename S>
   friend Data condEvalWorker(escript::Data& mask, escript::Data& trueval, escript::Data& falseval, S sentinel);
-  friend Data randomData(const boost::python::tuple& shape, const FunctionSpace& what, long seed, const boost::python::tuple& filter);
+  friend ESCRIPT_DLL_API Data randomData(const boost::python::tuple& shape, const FunctionSpace& what, long seed, const boost::python::tuple& filter);
 
 };
 
@@ -1906,6 +1906,7 @@ Data
 applyBinaryCFunction(boost::python::object func, boost::python::tuple shape, escript::Data& d, escript::Data& e);
 #endif
 
+ESCRIPT_DLL_API
 Data
 condEval(escript::Data& mask, escript::Data& trueval, escript::Data& falseval);
 
@@ -1914,6 +1915,7 @@ condEval(escript::Data& mask, escript::Data& trueval, escript::Data& falseval);
 /**
  \brief Create a new Expanded Data object filled with pseudo-random data.
 */
+ESCRIPT_DLL_API
 Data randomData(const boost::python::tuple& shape,
        const FunctionSpace& what,
        long seed, const boost::python::tuple& filter);
@@ -2048,6 +2050,7 @@ inline DataTypes::real_t rpow(DataTypes::real_t x,DataTypes::real_t y)
   Operator+
   Takes two Data objects.
 */
+ESCRIPT_DLL_API
 Data operator+(const Data& left, const Data& right);
 
 /**
@@ -2055,6 +2058,7 @@ Data operator+(const Data& left, const Data& right);
   Operator-
   Takes two Data objects.
 */
+ESCRIPT_DLL_API
 Data operator-(const Data& left, const Data& right);
 
 /**
@@ -2062,6 +2066,7 @@ Data operator-(const Data& left, const Data& right);
   Operator*
   Takes two Data objects.
 */
+ESCRIPT_DLL_API
 Data operator*(const Data& left, const Data& right);
 
 /**
@@ -2069,6 +2074,7 @@ Data operator*(const Data& left, const Data& right);
   Operator/
   Takes two Data objects.
 */
+ESCRIPT_DLL_API
 Data operator/(const Data& left, const Data& right);
 
 /**
@@ -2077,6 +2083,7 @@ Data operator/(const Data& left, const Data& right);
   Takes LHS Data object and RHS python::object.
   python::object must be convertable to Data type.
 */
+ESCRIPT_DLL_API
 Data operator+(const Data& left, const boost::python::object& right);
 
 /**
@@ -2085,6 +2092,7 @@ Data operator+(const Data& left, const boost::python::object& right);
   Takes LHS Data object and RHS python::object.
   python::object must be convertable to Data type.
 */
+ESCRIPT_DLL_API
 Data operator-(const Data& left, const boost::python::object& right);
 
 /**
@@ -2093,6 +2101,7 @@ Data operator-(const Data& left, const boost::python::object& right);
   Takes LHS Data object and RHS python::object.
   python::object must be convertable to Data type.
 */
+ESCRIPT_DLL_API
 Data operator*(const Data& left, const boost::python::object& right);
 
 /**
@@ -2101,6 +2110,7 @@ Data operator*(const Data& left, const boost::python::object& right);
   Takes LHS Data object and RHS python::object.
   python::object must be convertable to Data type.
 */
+ESCRIPT_DLL_API
 Data operator/(const Data& left, const boost::python::object& right);
 
 /**
@@ -2109,6 +2119,7 @@ Data operator/(const Data& left, const boost::python::object& right);
   Takes LHS python::object and RHS Data object.
   python::object must be convertable to Data type.
 */
+ESCRIPT_DLL_API
 Data operator+(const boost::python::object& left, const Data& right);
 
 /**
@@ -2117,6 +2128,7 @@ Data operator+(const boost::python::object& left, const Data& right);
   Takes LHS python::object and RHS Data object.
   python::object must be convertable to Data type.
 */
+ESCRIPT_DLL_API
 Data operator-(const boost::python::object& left, const Data& right);
 
 /**
@@ -2125,6 +2137,7 @@ Data operator-(const boost::python::object& left, const Data& right);
   Takes LHS python::object and RHS Data object.
   python::object must be convertable to Data type.
 */
+ESCRIPT_DLL_API
 Data operator*(const boost::python::object& left, const Data& right);
 
 /**
@@ -2133,6 +2146,7 @@ Data operator*(const boost::python::object& left, const Data& right);
   Takes LHS python::object and RHS Data object.
   python::object must be convertable to Data type.
 */
+ESCRIPT_DLL_API
 Data operator/(const boost::python::object& left, const Data& right);
 
 
@@ -2141,6 +2155,7 @@ Data operator/(const boost::python::object& left, const Data& right);
   \brief
   Output operator
 */
+ESCRIPT_DLL_API
 std::ostream& operator<<(std::ostream& o, const Data& data);
 
 /**
@@ -2151,6 +2166,7 @@ std::ostream& operator<<(std::ostream& o, const Data& data);
   \param axis_offset - Input - axis offset
   \param transpose - Input - 0: transpose neither, 1: transpose arg0, 2: transpose arg1
 */
+ESCRIPT_DLL_API
 Data
 C_GeneralTensorProduct(Data& arg_0,
                      Data& arg_1,

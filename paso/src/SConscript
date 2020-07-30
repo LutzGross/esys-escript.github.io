@@ -89,6 +89,7 @@ headers = """
     SparseMatrix.h
     SystemMatrix.h
     SystemMatrixPattern.h
+    system_dep.h
     Transport.h
     UMFPACK.h
 """.split()

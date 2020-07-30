@@ -160,8 +160,11 @@ if HAVE_SPECKLEY:
             tracer_z.addRecord(srclog(u[1]))
             print("t=%s, src=%s: \t %s \t %s \t %s"%(t, wl.getValue(t),srclog(u[1])[0], srclog(u[1])[src_id], srclog(u[1])[-1]))
             if not n_out is None and n%n_out == 0:
-                print("time step %s written to file %s"%(n_out, "output/u_%d.silo"%(k_out,)))
-                saveSilo("output/u_%d.silo"%(k_out,), u=u)
+                if hasFeature("silo"):
+                    print("time step %s written to file %s"%(n_out, "output/u_%d.silo"%(k_out,)))
+                    saveSilo("output/u_%d.silo"%(k_out,), u=u)
+                else:
+                    print("skipped saveSilo - Silo module not available")
                 k_out+=1
             n+=1
     if tracer_x.obspy_available() and getMPISizeWorld() == 1:

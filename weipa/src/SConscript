@@ -36,6 +36,9 @@ headers = """
 
 local_env = env.Clone()
 
+if IS_WINDOWS:
+    local_env.Append(CPPDEFINES = ['WEIPA_EXPORTS'])
+
 # collect dependencies for other modules
 weipalibs = []
 weipalibs += env['escript_libs']
@@ -80,9 +83,6 @@ if local_env['visit']:
 
 local_env.PrependUnique(LIBS = weipalibs)
 env['weipa_libs'] = [module_name] + weipalibs
-
-if IS_WINDOWS:
-    local_env.Append(CPPDEFINES = ['WEIPA_EXPORTS'])
 
 include_path = Dir(module_name, local_env['incinstall'])
 hdr_inst = local_env.Install(include_path, headers)

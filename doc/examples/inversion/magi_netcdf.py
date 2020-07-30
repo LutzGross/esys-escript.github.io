@@ -28,6 +28,7 @@ from esys.downunder import *
 from esys.weipa import *
 from esys.escript import unitsSI as U
 from esys.escript import saveDataCSV
+from esys.escript import hasFeature
 
 # Set parameters
 DATASET = 'data/MagneticSmall.nc'
@@ -65,10 +66,13 @@ def work():
   print("susceptibility = %s"%susceptibility)
 
   B, w =  db.getMagneticSurveys()[0]
-  if saveSilo("result_magnetic.silo", susceptibility=susceptibility, magnetic_anomaly=B, magnetic_weight=w):
-      print("Results saved in result_magnetic.silo")
+  if hasFeature("silo"):
+      if saveSilo("result_magnetic.silo", susceptibility=susceptibility, magnetic_anomaly=B, magnetic_weight=w):
+          print("Results saved in result_magnetic.silo")
+      else:
+          print("Failed to save result_magnetic.silo.")
   else:
-      print("Failed to save result_magnetic.silo. Possibly no Silo support.")
+      print("skipped saveSilo - Silo module not available")
 
   saveVTK("result_magnetic.vtu", susceptibility=susceptibility, magnetic_anomaly=B, magnetic_weight=w)
   print("Results saved in result_magnetic.vtu")

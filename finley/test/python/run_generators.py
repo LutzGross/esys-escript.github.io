@@ -71,8 +71,6 @@ class Test_GeneratorsOnFinley(unittest.TestCase):
       # order
       for l in range(1, len(ref_string)):
          line=dom_string[l].strip()
-         if os.name == "nt":
-               line=line.replace("e+00","e+0").replace("e-00","e-0")
          if not reading_tags:
              self.assertEqual(line,ref_string[l].strip(),"line %d (%s) in mesh file does not match reference (%s)"%(l,ref_string[l].strip(),line))
          else:
@@ -205,8 +203,6 @@ class Test_GmshReaderOnFinley(unittest.TestCase):
       self.assertEqual(len(dom_string),len(ref_string),"number of lines in mesh files does not match reference")
       for l in range(1,len(ref_string)):
          line=dom_string[l].strip()
-         if os.name == "nt":
-               line=line.replace("e+00","e+0").replace("e-00","e-0")
          self.assertEqual(line,ref_string[l].strip(),"line %d (%s) in mesh files does not match reference (%s)"%(l,ref_string[l].strip(),line))
 
    def test_Tri3(self):

@@ -168,7 +168,7 @@ namespace DataTypes
                       Region in other vector to copy data from.
   */
    template <class VEC>
-   ESCRIPT_DLL_API
+   // ESCRIPT_DLL_API
    void
    copySlice(VEC& left,
              const ShapeType& leftShape,
@@ -275,7 +275,7 @@ namespace DataTypes
                       Region in the left vector to copy data to.
   */
    template<typename VEC>
-   ESCRIPT_DLL_API
+   // ESCRIPT_DLL_API
    void
    copySliceFrom(VEC& left,
                  const ShapeType& leftShape,

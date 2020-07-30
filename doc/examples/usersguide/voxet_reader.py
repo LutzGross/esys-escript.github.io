@@ -221,7 +221,8 @@ if __name__ == "__main__":
         u = pde.getSolution()
         u=interpolate(u+dom.getX()[2], ReducedFunction(dom))
         print(u)
-        filename = "/tmp/temp.vo"
+        tempdir = os.environ['TEMP'] if os.name == 'nt' else '/tmp'
+        filename = tempdir+os.sep+'temp.vo'
         saveVoxet(filename, u=u)
 
         print("-------")
