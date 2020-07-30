@@ -37,11 +37,11 @@ public:
     */
     EsysException(const std::string& message) : msg(message)
     {
-#ifdef _WIN32
+//#ifdef _WIN32
         std::cerr << std::endl << "EsysException:" << std::endl
                   << message << std::endl << std::endl
                   << std::flush;
-#endif
+//#endif
     }
 
     /// Destructor
