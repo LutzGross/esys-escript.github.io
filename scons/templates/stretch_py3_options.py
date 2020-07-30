@@ -19,7 +19,10 @@
 
 from scons.templates.stretch_options import *
 
+werror = False
 pythoncmd = 'python3'
 
 boost_libs = boost_py3_libs
 
+mumps = True
+mumps_prefix = '/home/escript/anaconda3/envs/escript'
