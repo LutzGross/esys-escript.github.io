@@ -682,7 +682,6 @@ class LinearProblem(object):
      if self.reduceSolutionOrder():
          return escore.ReducedSolution(self.getDomain())
      else:
-         print('=================> ME 131')
          return escore.Solution(self.getDomain())
 
    # ==========================================================================
@@ -2197,7 +2196,7 @@ class LinearPDE(LinearProblem):
                self.invalidateSystem()
 
 
-   def getResidual(self,u=None, y=False):
+   def getResidual(self,u=None):
      """
      Returns the residual of u or the current solution if u is not present.
 
@@ -2208,14 +2207,9 @@ class LinearPDE(LinearProblem):
      :return: residual of u
      :rtype: `Data`
      """
-     print('=================> ME 11')
      if u is None:
-        if y:
-           print('=================> ME 12')
         return self.getOperator()*self.getSolution()-self.getRightHandSide()
      else:
-        if y:
-           print('=================> ME 13')
         return self.getOperator()*escore.Data(u,self.getFunctionSpaceForSolution())-self.getRightHandSide()
 
    def getFlux(self,u=None):
