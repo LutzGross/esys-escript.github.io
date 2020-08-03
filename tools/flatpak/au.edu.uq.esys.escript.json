@@ -13,7 +13,7 @@
         "cxxflags": "-O3 -fPIC"
     },
     "modules": [
-        {
+                {
             "name": "python",
             "builddir": true,
             "buildsystem": "simple",
@@ -40,13 +40,13 @@
                 "python3 v.py > VERSION",
                 "sed -i 's+include/python$(version)+include/python$(version)m+g' ./tools/build/src/tools/python.jam",
                 "./bootstrap.sh --with-python-version=`cat VERSION` --prefix=/app",
-                "./bjam cxxflags=\"-fPIC\" -j`nproc --all` --with-iostreams --with-python --with-random -d0 install"
+                "./b2 cxxflags=\"-fPIC\" --with-python --with-iostreams --with-random -j`nproc --all` install"
             ],
             "sources": [
                 {
                     "type": "archive",
-                    "url": "https://dl.bintray.com/boostorg/release/1.69.0/source/boost_1_69_0.tar.gz",
-                    "sha256": "9a2c2819310839ea373f42d69e733c339b4e9a19deab6bfec448281554aa4dbb"
+                    "url": "https://dl.bintray.com/boostorg/release/1.72.0/source/boost_1_72_0.tar.gz",
+                    "sha256": "c66e88d5786f2ca4dbebb14e06b566fb642a1a6947ad8cc9091f9f445134143f"
                 }
             ]
         },
@@ -235,7 +235,7 @@
                 {
                     "type": "svn",
                     "url": "https://svn.geocomp.uq.edu.au/svn/esys13/trunk",
-                    "revision": "6945"
+                    "revision": "7019"
                 }
             ]
         }

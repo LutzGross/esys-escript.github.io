@@ -26,7 +26,7 @@ import os
 
 # domains=['finley']
 
-mumps = True
+mumps = False
 # umfpack = True
 
 
@@ -52,7 +52,12 @@ pythonlibpath = '/usr/lib/x86_64-linux-gnu'
 pythonincpath = '/usr/include/python3.7m'
 
 
-# boost_prefix='/usr/local/boost.1.73.0'
+# boost_prefix='/usr/local/boost.1.68.0'
+# boost_prefix='/usr/local/boost.1.69.0'
+# boost_prefix='/usr/local/boost.1.70.0'
+# boost_prefix='/usr/local/boost.1.71.0'
+# boost_prefix='/usr/local/boost.1.72.0'
+boost_prefix='/usr/local/boost.1.73.0'
 
 import subprocess
 import os
