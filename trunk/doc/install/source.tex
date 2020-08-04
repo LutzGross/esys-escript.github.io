@@ -149,18 +149,18 @@ scons -j1 py_tests options_file=scons/templates/XXXX_options.py
 % \end{optionalstep}
 
 \subsection{Ubuntu}\label{sec:ubsrc}
-These instructions were prepared on Ubuntu 18.04 \textit{Bionic Beaver}. \newline
+These instructions were prepared on Ubuntu 20.04 LTS \textit{Focal Fossa}. \newline
 
 
 \noindent As a preliminary step, you should install the dependencies that \esfinley requires from the repository.
-If you intend to use Python 2.7, then you should install the following packages:
-\begin{shellCode}
-sudo apt-get install python-dev python-numpy python-pyproj python-gdal
-sudo apt-get install python-sympy python-matplotlib python-scipy
-sudo apt-get install libnetcdf-cxx-legacy-dev libnetcdf-c++4-dev libnetcdf-dev
-sudo apt-get install libboost-random-dev libboost-python-dev libboost-iostreams-dev
-sudo apt-get install scons lsb-release libsuitesparse-dev
-\end{shellCode}
+% If you intend to use Python 2.7, then you should install the following packages:
+% \begin{shellCode}
+% sudo apt-get install python-dev python-numpy python-pyproj python-gdal
+% sudo apt-get install python-sympy python-matplotlib python-scipy
+% sudo apt-get install libnetcdf-cxx-legacy-dev libnetcdf-c++4-dev libnetcdf-dev
+% sudo apt-get install libboost-random-dev libboost-python-dev libboost-iostreams-dev
+% sudo apt-get install scons lsb-release libsuitesparse-dev
+% \end{shellCode}
 
 For Python 3.0+, you should instead install the following packages:
 \begin{shellCode}
@@ -179,9 +179,14 @@ sudo apt-get install scons lsb-release libsuitesparse-dev
 % \end{shellCode}
 % \end{optionalstep}
 
-\noindent Then navigate to the source directory and execute the following (substitute \textit{bionic_py2} or \textit{bionic_py3} as appropriate for XXXX):
+% \noindent Then navigate to the source directory and execute the following (substitute \textit{focus_py2} or \textit{focus_py3} as appropriate for XXXX):
+% \begin{shellCode}
+% scons -j1 options_file=scons/templates/XXXX_options.py
+% \end{shellCode}
+
+\noindent Then navigate to the source directory and execute the following 
 \begin{shellCode}
-scons -j1 options_file=scons/templates/XXXX_options.py
+scons -j1 options_file=scons/templates/focus_options.py
 \end{shellCode}
 
 % \noindent If you wish to test your build, you can use the following:
@@ -192,7 +197,7 @@ scons -j1 options_file=scons/templates/XXXX_options.py
 
 
 \subsection{OpenSuse}\label{sec:susesrc}
-These instructions were prepared using OpenSUSE Leap 15.1. \newline
+These instructions were prepared using OpenSUSE Leap 15.2. \newline
 
 \noindent As a preliminary step, you should install the dependencies that \esfinley requires from the repository.
 \noindent  If you intend to use Python 2.7, then you should install the following packages
