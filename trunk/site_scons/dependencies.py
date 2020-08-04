@@ -802,7 +802,7 @@ def checkOptionalLibraries(env):
                     gmshlibs,_ = p.communicate()
                     gmshlibs.decode()
                     env.Append(CPPDEFINES=['ESYS_HAVE_GMSH'])
-                    if p.returncode == 0 and 'libmpi' in gmshlibs:
+                    if p.returncode == 0 and 'libmpi' in gmshlibs.decode('utf-8'):
                         env['gmsh'] = 'm'
                         env.Append(CPPDEFINES=['ESYS_GMSH_MPI'])
                     else:
