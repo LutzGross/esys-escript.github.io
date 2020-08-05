@@ -13,53 +13,63 @@ RUN apt-get update && \
 	libmumps-dev libnetcdf-dev libnetcdf-cxx-legacy-dev libnetcdf-c++4-dev \
 	libsuitesparse-dev libsilo-dev scons subversion lsb-release cmake make
 RUN git clone https://github.com/trilinos/Trilinos /app/trilinos_source
-RUN cd /app/trilinos_source && git reset --hard c87c9f7224b36c845aa7ef19a636f9c99c9c02d4
+RUN svn co https://svn.geocomp.uq.edu.au/svn/esys13/trunk /app/escript
 RUN mkdir /app/trilinos_build
 RUN cd /app/trilinos_build && \
 	cmake \
-		-D MPI_CXX_COMPILER=`which mpic++` \
-		-D MPI_C_COMPILER=`which mpicc` \
-		-D MPI_Fortran_COMPILER=`which mpif77` \
-		-D CMAKE_INSTALL_PREFIX=/usr/local \
-		-D CMAKE_BUILD_TYPE=RELEASE \
-		-D CMAKE_VERBOSE_MAKEFILE=FALSE \
-		-D CMAKE_C_FLAGS=' -O3 -w -fPIC -fopenmp ' \
-		-D CMAKE_CXX_FLAGS=' -O3 -w -fPIC -fopenmp ' \
-		-D CMAKE_Fortran_FLAGS=' -O3 -w -fPIC -fopenmp ' \
-		-D Trilinos_ENABLE_CXX11=ON \
-		-D Trilinos_ENABLE_Fortran=ON \
-		-D BUILD_SHARED_LIBS=ON \
-		-D TPL_ENABLE_BLAS=ON \
-		-D TPL_BLAS_INCLUDE_DIRS=/usr/include/suitesparse \
-		-D TPL_ENABLE_Cholmod=ON \
-		-D TPL_Cholmod_INCLUDE_DIRS=/usr/include/suitesparse \
-		-D TPL_Cholmod_LIBRARIES='libamd.so;libcolamd.so;libcholmod.so;libsuitesparseconfig.so' \
-		-D TPL_ENABLE_LAPACK=ON \
-		-D TPL_ENABLE_Boost=ON \
-		-D TPL_MUMPS_INCLUDE_DIRS=/usr/include/ \
-		-D TPL_ENABLE_METIS=ON \
-		-D TPL_METIS_INCLUDE_DIRS=/usr/include/ \
-		-D TPL_ENABLE_UMFPACK=ON \
-		-D TPL_UMFPACK_INCLUDE_DIRS=/usr/include/suitesparse \
-		-D Trilinos_ENABLE_Amesos2=ON \
-		-D Trilinos_ENABLE_Belos=ON \
-		-D Trilinos_ENABLE_Ifpack2=ON \
-		-D Trilinos_ENABLE_Kokkos=ON \
-		-D Trilinos_ENABLE_MueLu=ON \
-		-D Trilinos_ENABLE_Teuchos=ON \
-		-D Trilinos_ENABLE_Tpetra=ON \
-		-D Amesos2_ENABLE_Basker=ON \
-		-D Trilinos_ENABLE_EXPLICIT_INSTANTIATION=ON \
-		-D Trilinos_ENABLE_COMPLEX=ON \
-		-D Trilinos_ENABLE_OpenMP=ON \
-		-D TPL_ENABLE_MPI=OFF \
-		-D Trilinos_ENABLE_ALL_OPTIONAL_PACKAGES=ON \
-		-D TpetraKernels_ENABLE_Experimental=ON \
+        -D CMAKE_C_COMPILER=`which gcc` \
+        -D CMAKE_CXX_COMPILER=`which g++` \
+        -D CMAKE_Fortran_COMPILER=`which gfortran` \
+        -D PYTHON_EXECUTABLE=/usr/bin/python \
+        -D CMAKE_INSTALL_PREFIX=/usr/local/ \
+        -D Trilinos_ENABLE_CXX11=ON \
+        -D CMAKE_C_FLAGS=' -w -fopenmp' \
+        -D CMAKE_CXX_FLAGS=' -w -fopenmp'\
+        -D Trilinos_ENABLE_Fortran=ON \
+        -D BUILD_SHARED_LIBS=ON \
+        -D TPL_ENABLE_BLAS=ON \
+        -D TPL_ENABLE_Boost=ON \
+        -D TPL_ENABLE_Cholmod=ON \
+        -D TPL_ENABLE_LAPACK=ON \
+        -D TPL_ENABLE_METIS=ON \
+        -D TPL_ENABLE_SuperLU=OFF \
+        -D TPL_ENABLE_UMFPACK=ON \
+        -D TPL_BLAS_INCLUDE_DIRS=/usr/include/suitesparse \
+        -D TPL_Cholmod_INCLUDE_DIRS=/usr/include/suitesparse \
+        -D TPL_Cholmod_LIBRARIES='libcholmod.so;libamd.so;libcolamd.so' \
+        -D TPL_UMFPACK_INCLUDE_DIRS=/usr/include/suitesparse \
+        -D TPL_Boost_INCLUDE_DIRS=/usr/local/boost/include \
+        -D TPL_Boost_LIBRARY_DIRS=lib \
+        -D Trilinos_ENABLE_Amesos=ON \
+        -D Trilinos_ENABLE_Amesos2=ON \
+        -D Trilinos_ENABLE_AztecOO=ON \
+        -D Trilinos_ENABLE_Belos=ON \
+        -D Trilinos_ENABLE_Ifpack=ON \
+        -D Trilinos_ENABLE_Ifpack2=ON \
+        -D Trilinos_ENABLE_Kokkos=ON \
+        -D Trilinos_ENABLE_Komplex=ON \
+        -D Trilinos_ENABLE_ML=ON \
+        -D Trilinos_ENABLE_MueLu=ON \
+        -D Trilinos_ENABLE_Teuchos=ON \
+        -D Trilinos_ENABLE_Tpetra=ON \
+        -D Trilinos_ENABLE_ALL_OPTIONAL_PACKAGES=ON \
+        -D Kokkos_ENABLE_AGGRESSIVE_VECTORIZATION=ON \
+        -D Tpetra_INST_COMPLEX_DOUBLE=ON \
+        -D Trilinos_ENABLE_COMPLEX_DOUBLE=ON \
+        -D Teuchos_ENABLE_COMPLEX=ON \
+        -D Tpetra_INST_INT_INT=ON \
+        -D Tpetra_ENABLE_DEPRECATED_CODE=ON \
+        -D Trilinos_ENABLE_OpenMP=ON \
+        -D Trilinos_ENABLE_MPI=OFF \
+        -D Trilinos_ENABLE_EXPLICIT_INSTANTIATION=ON \
+        -D Kokkos_ENABLE_COMPILER_WARNINGS=ON \
+        -D Amesos2_ENABLE_Basker=ON \
+        -D Tpetra_INST_SERIAL:BOOL=ON \
+        -D Trilinos_ENABLE_TESTS=OFF \
 		-D TPL_FIND_SHARED_LIBS=ON \
 		-D Trilinos_LINK_SEARCH_START_STATIC=OFF /app/trilinos_source && \
 	make -j`nproc` install
 RUN rm -rf /app/trilinos_build /app/trilinos_source
-RUN svn co https://svn.geocomp.uq.edu.au/svn/esys13/trunk /app/escript
 RUN cd /app/escript && scons options_file=scons/templates/sid_py3_options.py \
 		paso=1 umfpack=1 trilinos=1  werror=0 -j`nproc` prefix=/usr/local \
 		trilinos_prefix=/usr/local mpi=none insane=True build_full
@@ -67,7 +77,7 @@ ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 ENV PYTHONPATH=/usr/local/:$PYTHONPATH
 ENV PATH=/usr/local/bin:$PATH
 RUN useradd -ms /bin/bash appuser
-RUN rm -f *
 RUN run-escript /app/escript/scripts/release_sanity.py
+RUN rm -rf *
 
 CMD ["/bin/bash"]
