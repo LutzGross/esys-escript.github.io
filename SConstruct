@@ -184,6 +184,9 @@ if env['tools_names'] != ['default']:
     env = Environment(tools = ['default'] + env['tools_names'], options = vars,
                       ENV = {'PATH' : os.environ['PATH']})
 
+#Disable MUMPS
+env['mumps'] = False
+
 # Covert env['netcdf'] into one of False, 3, 4
 # Also choose default values for libraries
 pos1=netcdf_flavours.index('False')
@@ -790,8 +793,8 @@ def print_summary():
             direct.append('mkl')
         if env['umfpack']:
             direct.append('umfpack')
-        if env['mumps']:
-            direct.append('mumps')
+        # if env['mumps']:
+        #     direct.append('mumps')
     else:
         d_list.append('paso')
     if env['trilinos']:
@@ -814,7 +817,7 @@ def print_summary():
         print("          netcdf:  NO")
     e_list=[]
     for i in ('weipa','debug','openmp','cppunit','gdal','mkl',
-             'mumps','pyproj','scipy','silo','sympy','umfpack','visit'):
+             'pyproj','scipy','silo','sympy','umfpack','visit'):
         if env[i]: e_list.append(i)
         else: d_list.append(i)
 
