@@ -76,7 +76,7 @@ The coefficient $d$ is a \RankTwo and $y$ is a \RankOne both in the
 u_{i}=r_{i} \mbox{ where } q_{i}>0
 \end{equation}
 $r$ and $q$ are each a \RankOne. Notice that not necessarily all components
-must have a constraint at all locations.  An example for a system of PDEs is shown in the elastic deformation example in section \ref{ELASTIC CHAP}
+must have a constraint at all locations.  An example for a system of PDEs is shown in the elastic deformation example in section \Refe{ELASTIC CHAP}
 
 \LinearPDE also supports solution discontinuities\index{discontinuity} over a
 contact region $\Gamma^{contact}$ in the domain $\Omega$.
@@ -178,7 +178,7 @@ object gives access to diagnostic information:
       mypde.getDiagnostics('residual_norm'))
 \end{python}
 Typically, a negative value for a diagnostic variable indicates that it is
-undefined.  For more details on \SolverOptions and Trilinos see chapter \ref{TRILINOS}.
+undefined.  For more details on \SolverOptions and Trilinos see chapter \Refe{TRILINOS}.
 
 \subsection{Classes}
 %\declaremodule{extension}{esys.escript.linearPDEs} 
@@ -419,7 +419,7 @@ as discussed in \Chap{ESCRIPT CHAP}. If you consider the stripped-down version
 \begin{equation}\label{PROJ.1}
 u = Y
 \end{equation}
-of the general scalar PDE~\ref{LINEARPDE.SINGLE.1} (boundary conditions are
+of the general scalar PDE~\Refe{LINEARPDE.SINGLE.1} (boundary conditions are
 irrelevant), you can see the solution $u$ of this PDE as a projection of the
 input function $Y$ which has the \Function attribute to a function with the
 \SolutionFS or \ReducedSolutionFS attribute.
@@ -450,7 +450,7 @@ to a function with the \ReducedSolutionFS attribute (default target):
   # alternative call:
   u=proj(jmp)
 \end{python}
-By default the class uses lumping to solve the PDE~\ref{PROJ.1}.
+By default the class uses lumping to solve the PDE~\Refe{PROJ.1}.
 This technique is faster than using the standard solver techniques of PDEs.
 In essence it leads to using the average of neighbour element values to
 calculate the value at each FEM node. 
@@ -526,11 +526,10 @@ The value of \var{method} must be one of the constants:\\
  \member{SolverOptions.DIRECT} -- use a direct solver if available\\
 %\member{Solver.Options.DIRECT_MUMPS}--runtime error\\
 %\member{SolverOptions.DIRECT_PARDISO}--runtime error\\
- \member{SolverOptions.DIRECT_PARDISO} -- use a direct MKL_PARDISO solver\\
  \member{SolverOptions.DIRECT_SUPERLU} -- use a direct SUPERLU solver\\
- \member{SolverOptions.DIRECT_TRILINOS} -- use default TRILINOS default solver (KLU2) (chapter \ref{TRILINOS})\\  
+ \member{SolverOptions.DIRECT_TRILINOS} -- use default TRILINOS default solver (KLU2) (chapter \Refe{TRILINOS})\\  
  \member{SolverOptions.GMRES} -- Gram-Schmidt minimum residual method\\
- \member{SolverOptions.HRZ_LUMPING} -- Matrix lumping using the HRZ approach (section \ref{WAVE CHAP})\\
+ \member{SolverOptions.HRZ_LUMPING} -- Matrix lumping using the HRZ approach (section \Refe{WAVE CHAP})\\
  \member{SolverOptions.ITERATIVE} -- use a suitable iterative solver\\
  \member{SolverOptions.LSQR} -- Least squares based LSQR solver\\
  \member{SolverOptions.LUMPING} -- Matrix lumping\\
@@ -542,7 +541,7 @@ The value of \var{method} must be one of the constants:\\
  \member{SolverOptions.TFQMR} -- Transpose Free Quasi Minimum Residual method.\\
 Not all packages support all solvers. It can be assumed that a package makes a
 reasonable choice if it encounters an unknown solver.
-See Table~\ref{TAB FINLEY SOLVER OPTIONS 1} for the solvers supported by
+See Table~\Refe{TAB FINLEY SOLVER OPTIONS 1} for the solvers supported by
 \finley.
 \end{methoddesc}
 
@@ -564,7 +563,7 @@ The value of \var{preconditioner} must be one of the constants:\\
  \member{SolverOptions.RILU} -- relaxed ILU0.\\
 Not all packages support all preconditioners. It can be assumed that a package
 makes a reasonable choice if it encounters an unknown preconditioner.
-See Table~\ref{TAB FINLEY SOLVER OPTIONS 2} for the preconditioners supported
+See Table~\Refe{TAB FINLEY SOLVER OPTIONS 2} for the preconditioners supported
 by \finley.
 \end{methoddesc}
    
@@ -579,7 +578,7 @@ The value of \var{package} must be one of the constants:\\
  \member{SolverOptions.CUSP} -- CUDA sparse linear algebra package\\
  \member{SolverOptions.MKL} -- Intel MKL direct solver\\
  \member{SolverOptions.PASO} -- built-in PASO solver library\\
- \member{SolverOptions.TRILINOS} -- Trilinos solver package (chapter \ref{TRILINOS})\\
+ \member{SolverOptions.TRILINOS} -- Trilinos solver package (chapter \Refe{TRILINOS})\\
  \member{SolverOptions.UMFPACK} -- direct solver from the UMFPACK library.\\
 Not all packages are supported on all implementations. An exception may be
 thrown on some platforms if a particular package is requested.
@@ -912,12 +911,12 @@ An appropriate method should be chosen by the used PDE solver library.
 \end{memberdesc}
 
 \begin{memberdesc}[SolverOptions]{MKL}
-the \MKL library by Intel, \Ref{MKL}\footnote{The \MKL library will only be
+the \MKL library by Intel, \Refe{MKL}\footnote{The \MKL library will only be
 available when the Intel compilation environment was used to build \escript.}.
 \end{memberdesc}
 
 \begin{memberdesc}[SolverOptions]{UMFPACK}
-the \UMFPACK library, \Ref{UMFPACK}. Note that \UMFPACK is not parallelized.
+the \UMFPACK library, \Refe{UMFPACK}. Note that \UMFPACK is not parallelized.
 \end{memberdesc}
 
 \begin{memberdesc}[SolverOptions]{PASO}
@@ -936,21 +935,21 @@ the default direct linear solver.
 \end{memberdesc}
 
 \begin{memberdesc}[SolverOptions]{CHOLEVSKY}
-direct solver based on Cholevsky factorization (or similar), see \Ref{Saad}.
+direct solver based on Cholevsky factorization (or similar), see \Refe{Saad}.
 The solver requires a symmetric PDE.
 \end{memberdesc}
 
 \begin{memberdesc}[SolverOptions]{PCG}
-preconditioned conjugate gradient method, see \Ref{WEISS}\index{linear solver!PCG}\index{PCG}.
+preconditioned conjugate gradient method, see \Refe{WEISS}\index{linear solver!PCG}\index{PCG}.
 The solver requires a symmetric PDE.
 \end{memberdesc}
 
 \begin{memberdesc}[SolverOptions]{TFQMR}
-transpose-free quasi-minimal residual method, see \Ref{WEISS}\index{linear solver!TFQMR}\index{TFQMR}.
+transpose-free quasi-minimal residual method, see \Refe{WEISS}\index{linear solver!TFQMR}\index{TFQMR}.
 \end{memberdesc}
 
 \begin{memberdesc}[SolverOptions]{GMRES}
-the GMRES method, see \Ref{WEISS}\index{linear solver!GMRES}\index{GMRES}.
+the GMRES method, see \Refe{WEISS}\index{linear solver!GMRES}\index{GMRES}.
 Truncation and restart are controlled by the \var{truncation} and \var{restart}
 parameters of \method{getSolution}.
 \end{memberdesc}
@@ -960,60 +959,60 @@ minimal residual method\index{linear solver!MINRES}\index{MINRES}
 \end{memberdesc}
 
 \begin{memberdesc}[SolverOptions]{ROWSUM_LUMPING}
-row sum lumping of the stiffness matrix, see Section~\ref{LUMPING} for details\index{linear solver!row sum lumping}\index{row sum lumping}.
+row sum lumping of the stiffness matrix, see Section~\Refe{LUMPING} for details\index{linear solver!row sum lumping}\index{row sum lumping}.
 Lumping does not use the linear system solver library.
 \end{memberdesc}
 
 \begin{memberdesc}[SolverOptions]{HRZ_LUMPING}
-HRZ lumping of the stiffness matrix, see Section~\ref{LUMPING} for details\index{linear solver!HRZ lumping}\index{HRZ lumping}.
+HRZ lumping of the stiffness matrix, see Section~\Refe{LUMPING} for details\index{linear solver!HRZ lumping}\index{HRZ lumping}.
 Lumping does not use the linear system solver library.
 \end{memberdesc}
 
 \begin{memberdesc}[SolverOptions]{PRES20}
 the GMRES method with truncation after five residuals and restart after
-20 steps, see \Ref{WEISS}.
+20 steps, see \Refe{WEISS}.
 \end{memberdesc}
 
 \begin{memberdesc}[SolverOptions]{CGS}
-conjugate gradient squared method, see \Ref{WEISS}.
+conjugate gradient squared method, see \Refe{WEISS}.
 \end{memberdesc}
 
 \begin{memberdesc}[SolverOptions]{BICGSTAB}
-stabilized bi-conjugate gradients methods, see \Ref{WEISS}.
+stabilized bi-conjugate gradients methods, see \Refe{WEISS}.
 \end{memberdesc}
 
 \begin{memberdesc}[SolverOptions]{SSOR}
-symmetric successive over-relaxation method, see \Ref{WEISS}.
+symmetric successive over-relaxation method, see \Refe{WEISS}.
 Typically used as preconditioner but some linear solver libraries support
 this as a solver.
 \end{memberdesc}
 
 \begin{memberdesc}[SolverOptions]{ILU0}
-the incomplete LU factorization preconditioner with no fill-in, see \Ref{Saad}.
+the incomplete LU factorization preconditioner with no fill-in, see \Refe{Saad}.
 \end{memberdesc}
 
 \begin{memberdesc}[SolverOptions]{JACOBI}
-the Jacobi preconditioner, see \Ref{Saad}.
+the Jacobi preconditioner, see \Refe{Saad}.
 \end{memberdesc}
 
 \begin{memberdesc}[SolverOptions]{AMG}
-the algebraic multi grid method, see \Ref{AMG}. This method can be used as
+the algebraic multi grid method, see \Refe{AMG}. This method can be used as
 linear solver method but is more robust when used as a preconditioner.
 \end{memberdesc}
 
 \begin{memberdesc}[SolverOptions]{GAUSS_SEIDEL}
-the symmetric Gauss-Seidel preconditioner, see \Ref{Saad}.
+the symmetric Gauss-Seidel preconditioner, see \Refe{Saad}.
 \member{getNumSweeps()} is the number of sweeps used.
 \end{memberdesc}
 
 %\begin{memberdesc}[SolverOptions]{RILU}
-%relaxed incomplete LU factorization preconditioner, see \Ref{RELAXILU}.
+%relaxed incomplete LU factorization preconditioner, see \Refe{RELAXILU}.
 %This method is similar to the one used for \ILU but dropped elements are added
 %to the main diagonal with the relaxation factor \member{getRelaxationFactor}.
 %\end{memberdesc}
 
 \begin{memberdesc}[SolverOptions]{REC_ILU}
-recursive incomplete LU factorization preconditioner, see \Ref{RILU}.
+recursive incomplete LU factorization preconditioner, see \Refe{RILU}.
 This method is similar to the one used for \ILU but applies reordering during
 the factorization.
 \end{memberdesc}
