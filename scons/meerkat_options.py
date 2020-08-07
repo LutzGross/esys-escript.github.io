@@ -17,86 +17,104 @@
 # This is a template configuration file for escript on Debian/GNU Linux.
 # Refer to README_FIRST for usage instructions.
 
+openmp = True
+umfpack = True
+silo = True
+# mpi = 'OPENMPI'
+# verbose = True
+# debug = True
+# trilinos = True
+# paso = False
+# parmetis = True
+visit = True
+#werror = False
+# cxx = 'clang++'
+# cxx='/usr/bin/clang++'
+
+python = 3
+
+##############################################################################
 escript_opts_version = 203
-# #cxx_extra = '-Wno-literal-suffix'
-# openmp = True
-# #mpi = 'OPENMPI'
 
-# import os
+import os
+import subprocess
 
-# # domains=['finley']
+cxx_extra += " -fmessage-length=80 -fdiagnostics-color=always "
+if trilinos is True:
+  cxx_extra += "  -Wno-deprecated-declarations -Wno-unused-variable "
 
-# mumps = False
-# # umfpack = True
+netcdf = 4
+mpi_libs = ['mpi_cxx', 'mpi']
+parmetis_libs = ['parmetis', 'metis']
+silo_libs = ['siloh5', 'hdf5_cpp']
+umfpack_libs = ['umfpack', 'blas', 'amd']
 
+# gmsh_prefix=['/usr/local/include','/usr/local/lib']
+lapack_prefix = ['/usr/include/atlas', '/usr/lib/atlas-base']
+d_mpi_path = '/usr/include/openmpi'
+mpi_prefix = os.path.split(os.path.realpath(d_mpi_path))[0]
+parmetis_prefix = ['/usr/include','/usr/lib']
+umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
 
-# mumps_libs=['cmumps_seq','dmumps_seq','mumps_common_seq','smumps_seq','zmumps_seq']
+visit_prefix = ['/usr/local/visit/2.13.2/linux-x86_64/libsim/V2/include/','/usr/local/visit/2.13.2/linux-x86_64/libsim/V2/lib/']
 
-# # d_mpi_path = '/usr/include/openmpi'
-# # mpi_prefix = os.path.split(os.path.realpath(d_mpi_path))[0]
-# mpi_prefix=['/usr/lib/x86_64-linux-gnu/openmpi/include/','/usr/lib/x86_64-linux-gnu/']
-# mpi_libs = ['mpi_cxx', 'mpi']
-# netcdf = 4
-# umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
-# umfpack_libs = ['umfpack', 'blas', 'amd']
-# lapack = 0
-# lapack_prefix = ['/usr/include/x86_64-linux-gnu', '/usr/lib/x86_64-linux-gnu']
-# silo = True
-# silo_libs = ['siloh5']
-# # trilinos = True
-# trilinos_prefix = "/usr/local/trilinos_nompi"
-# dudley_assemble_flags = '-funroll-loops'
-pythoncmd="/usr/bin/python3"
-pythonlibname = 'python3.7m'
-pythonlibpath = '/usr/lib/x86_64-linux-gnu'
-pythonincpath = '/usr/include/python3.7m'
+if cxx=='clang++':
+  trilinos_prefix =['/usr/local/trilinos_clang/include/','/usr/local/trilinos_clang/lib/']
+elif mpi=='OPENMPI':
+  trilinos_prefix =['/usr/local/trilinos_mpi/include/','/usr/local/trilinos_mpi/lib/']
+else:
+  trilinos_prefix =['/usr/local/trilinos/include/','/usr/local/trilinos/lib/']
 
+if trilinos == True:
+  print("Meerkat config: Using trilinos libraries %s" % trilinos_prefix) 
 
-# # boost_prefix='/usr/local/boost.1.68.0'
-# # boost_prefix='/usr/local/boost.1.69.0'
-# # boost_prefix='/usr/local/boost.1.70.0'
-# # boost_prefix='/usr/local/boost.1.71.0'
-# # boost_prefix='/usr/local/boost.1.72.0'
-boost_prefix='/usr/local/boost.1.73.0'
-boost_libs='boost_python37'
+ 
+boost_prefix='/usr/local'
+p = subprocess.Popen(["ld","--verbose"], stdout=subprocess.PIPE)
+out,err = p.communicate()
+spath = [x[13:-3] for x in out.split() if 'SEARCH_DIR' in x]
+p2name = ''
+p3name = ''
+for name in spath:
+  try:
+    l=os.listdir(name)
+    p2res=[x for x in l if x.startswith('libboost_python2') and x.endswith('.so')]
+    p3res=[x for x in l if x.startswith('libboost_python3') and x.endswith('.so')]
+    if len(p2name)==0 and len(p2res)>0:
+      p2name=p2res[-1]
+    if len(p3name)==0 and len(p3res)>0:
+      p3name=p3res[-1]
+  except OSError:
+    pass
 
-# import subprocess
-# import os
-# p = subprocess.Popen(["ld","--verbose"], stdout=subprocess.PIPE)
-# out,err = p.communicate()
-# spath = [x[13:-3] for x in out.split() if 'SEARCH_DIR' in x]
-# p2name = ''
-# p3name = ''
-# for name in spath:
-#   try:
-#     l=os.listdir(name)
-#     p2res=[x for x in l if x.startswith('libboost_python2') and x.endswith('.so')]
-#     p3res=[x for x in l if x.startswith('libboost_python3') and x.endswith('.so')]
-#     if len(p2name)==0 and len(p2res)>0:
-#       p2name=p2res[-1]
-#     if len(p3name)==0 and len(p3res)>0:
-#       p3name=p3res[-1]
-#   except OSError:
-#     pass
+# boost-python library/libraries to link against
+if python == 2:
+  boost_libs = [p2name[3:-3]]
+  pythoncmd = '/usr/bin/python'
+else:
+  boost_libs = [p3name[3:-3]]
+  pythoncmd = '/usr/bin/python3'
 
-# # boost-python library/libraries to link against
-# boost_libs = [p3name[3:-3]]
+print("Meerkat config: Linking with %s" % boost_libs) 
 
-# # this can be used by options files importing us
-# boost_py2_libs = [p2name[3:-3]]
-# boost_py3_libs = [p3name[3:-3]]
+#boost_libs = [p2name[3:-3], 'boost_numpy27']
+# boost_libs = ['boost_python27', 'boost_numpy27']
 
-# from site_init import getdebbuildflags
-# # Now we add the debian build flags
-# debstuff = getdebbuildflags()
-# if len(debstuff) > 0:
-#   print("Building with the following additional flags from debian: "+str(debstuff))
-# for i in debstuff:
-#   k=i[0]
-#   v=i[1]
-#   try:
-#     exec(k+"+=' "+v+"'")
-#   except NameError:
-#     exec(k+"='"+v+"'")
+# this can be used by options files importing us
+boost_py2_libs = [p2name[3:-3]]
+boost_py3_libs = [p3name[3:-3]]
 
-# mathjax_path='/usr/share/javascript/mathjax/MathJax.js'
+from site_init import getdebbuildflags
+# Now we add the debian build flags
+debstuff = getdebbuildflags()
+if len(debstuff) > 0:
+  print("Building with the following additional flags from debian: "+str(debstuff))
+for i in debstuff:
+  k=i[0]
+  v=i[1]
+  try:
+    exec(k+"+=' "+v+"'")
+  except NameError:
+    exec(k+"='"+v+"'")
+
+mathjax_path='/usr/share/javascript/mathjax/MathJax.js'

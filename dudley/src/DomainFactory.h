@@ -40,6 +40,7 @@ namespace dudley {
     \param reducedIntegrationOrder ignored
     \param optimize whether to optimize the node labels
 */
+DUDLEY_DLL_API
 escript::Domain_ptr readMesh(const std::string& fileName,
                              int integrationOrder = -1,
                              int reducedIntegrationOrder = -1,
@@ -54,6 +55,7 @@ escript::Domain_ptr readMesh(const std::string& fileName,
     \param reducedIntegrationOrder ignored
     \param optimize whether to optimize the node labels 
 */
+DUDLEY_DLL_API
 escript::Domain_ptr readGmsh(const std::string& fileName, int numDim,
                              int integrationOrder = -1,
                              int reducedIntegrationOrder = -1,
@@ -72,6 +74,7 @@ escript::Domain_ptr readGmsh(const std::string& fileName, int numDim,
     \param reducedIntegrationOrder ignored
     \param optimize
 */
+DUDLEY_DLL_API
 escript::Domain_ptr brick(escript::JMPI jmpi,
                     dim_t n0=1, dim_t n1=1, dim_t n2=1, int order=1,
                     double l0=1.0, double l1=1.0, double l2=1.0,
@@ -84,6 +87,7 @@ escript::Domain_ptr brick(escript::JMPI jmpi,
     \brief Python driver for brick()
     \param args see brick() definition for order of params
 */
+DUDLEY_DLL_API
 escript::Domain_ptr brick_driver(const boost::python::list& args);
 
 /**
@@ -103,6 +107,7 @@ escript::Domain_ptr brick_driver(const boost::python::list& args);
     \param useFullElementOrder ignored
     \param optimize whether to optimize labelling
 */
+DUDLEY_DLL_API
 escript::Domain_ptr rectangle(escript::JMPI jmpi,
                               dim_t n0 = 1, dim_t n1 = 1, int order = 1,
                               double l0 = 1.0, double l1 = 1.0,
@@ -117,6 +122,7 @@ escript::Domain_ptr rectangle(escript::JMPI jmpi,
     \brief Python driver for rectangle()
     \param args see rectangle() definition for order of params
 */
+DUDLEY_DLL_API
 escript::Domain_ptr rectangle_driver(const boost::python::list& args);
 
 

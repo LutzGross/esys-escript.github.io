@@ -34,7 +34,7 @@ namespace DataTypes
 {
 
 template <class T>
-class ESCRIPT_DLL_API DataVectorAlt {
+class /* ESCRIPT_DLL_API */ DataVectorAlt {
 
  public:
 

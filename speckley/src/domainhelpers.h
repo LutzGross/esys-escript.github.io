@@ -43,7 +43,7 @@ inline bool isNotEmpty(const std::string target, const DataMap& mapping)
     return i != mapping.end() && !i->second.isEmpty();
 }
 
-/// returns trure if the target data object is complex
+/// returns true if the target data object is complex
 inline bool isComplexCoef(const std::string target,
                                       const DataMap& mapping)
 {

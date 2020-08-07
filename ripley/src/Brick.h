@@ -18,6 +18,11 @@
 #ifndef __RIPLEY_BRICK_H__
 #define __RIPLEY_BRICK_H__
 
+#ifdef _WIN32 // for M_1_PI
+#define _USE_MATH_DEFINES
+#include <math.h>
+#endif
+
 #include <ripley/RipleyDomain.h>
 
 namespace ripley {

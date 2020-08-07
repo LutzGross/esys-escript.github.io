@@ -35,12 +35,14 @@ namespace finley {
     \brief Python driver for readMesh()
     \param args see readMesh() definition for order of parameters
 */
+FINLEY_DLL_API
 escript::Domain_ptr readMesh_driver(const boost::python::list& args);
    
 /**
     \brief Python driver for readGMesh()
     \param args see readGMesh() definition for order of parameters
 */
+FINLEY_DLL_API
 escript::Domain_ptr readGmsh_driver(const boost::python::list& args);
 
 /**
@@ -66,6 +68,7 @@ escript::Domain_ptr readGmsh_driver(const boost::python::list& args);
     \param tags
     \param tagNamesToNums
 */
+FINLEY_DLL_API
 escript::Domain_ptr brick(escript::JMPI jmpi,
                     dim_t n0=1, dim_t n1=1, dim_t n2=1, int order=1,
                     double l0=1.0, double l1=1.0, double l2=1.0,
@@ -81,6 +84,7 @@ escript::Domain_ptr brick(escript::JMPI jmpi,
     \brief Python driver for brick()
     \param args see brick() definition for order of params
 */
+FINLEY_DLL_API
 escript::Domain_ptr brick_driver(const boost::python::list& args);
 
 /**
@@ -106,6 +110,7 @@ escript::Domain_ptr brick_driver(const boost::python::list& args);
     \param tags
     \param tagNamesToNums
 */
+FINLEY_DLL_API
 escript::Domain_ptr rectangle(escript::JMPI jmpi,
                               dim_t n0 = 1, dim_t n1 = 1, int order = 1,
                               double l0 = 1.0, double l1 = 1.0,
@@ -123,6 +128,7 @@ escript::Domain_ptr rectangle(escript::JMPI jmpi,
     \brief Python driver for rectangle()
     \param args see rectangle() definition for order of params
 */
+FINLEY_DLL_API
 escript::Domain_ptr rectangle_driver(const boost::python::list& args);
 
 /**
@@ -130,6 +136,7 @@ escript::Domain_ptr rectangle_driver(const boost::python::list& args);
     Merges a list of meshes into one list.
     \param meshList Input - The list of meshes.
 */
+FINLEY_DLL_API
 escript::Domain_ptr meshMerge(const boost::python::list& meshList);
 
 /**
@@ -141,6 +148,7 @@ escript::Domain_ptr meshMerge(const boost::python::list& meshList);
     \param tolerance
     \param optimize switches on the optimization of node labels 
 */
+FINLEY_DLL_API
 escript::Domain_ptr glueFaces(const boost::python::list& meshList,
                               double safetyFactor = 0.2, double tolerance = 1.e-8,
                               bool optimize = false);
@@ -153,6 +161,7 @@ escript::Domain_ptr glueFaces(const boost::python::list& meshList,
     \param tolerance
     \param optimize switches on the optimization of node labels 
 */
+FINLEY_DLL_API
 escript::Domain_ptr joinFaces(const boost::python::list& meshList,
                               double safetyFactor = 0.2, double tolerance = 1.e-8,
                               bool optimize = false);

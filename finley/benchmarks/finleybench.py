@@ -114,6 +114,7 @@ class FinleyOptions(Options):
                       SolverOptions.NESTED_DISSECTION: "NESTED_DISSECTION",
                       SolverOptions.MKL:  "MKL",
                       SolverOptions.UMFPACK: "UMFPACK",
+                      SolverOptions.MUMPS: "MUMPS",
                       SolverOptions.TRILINOS: "TRILINOS",
                       SolverOptions.PASO:  "PASO",
                       SolverOptions.RILU: "RILU",

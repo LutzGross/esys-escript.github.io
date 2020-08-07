@@ -847,7 +847,11 @@ void Rectangle::writeBinaryGridImpl(const escript::Data& in,
 
     // from here on we know that each sample consists of one value
     FileWriter fw;
+#ifdef _WIN32
+    fw.openFile(filename, fileSize, true); // open in binary mode to allow seek
+#else
     fw.openFile(filename, fileSize);
+#endif
     MPIBarrier();
 
     for (index_t y=0; y<myN1; y++) {

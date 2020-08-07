@@ -29,16 +29,18 @@
 # NEW
 
 escript_opts_version = 203
-
+#cxx_extra = '-Wno-literal-suffix'
 openmp = True
 umfpack = True
 silo = True
+# papi = True
+# cuda = True
 mpi = 'OPENMPI'
+# verbose = True
+# debug = True
 trilinos = True
 parmetis = True
-visit = True
-
-
+#visit = True
 werror = False
 
 import os
@@ -50,24 +52,28 @@ import subprocess
 prelaunch = "EE=$(echo %e|sed -e 's/,/ -x /g')"
 launcher = "mpirun -x ${EE} --map-by node --bind-to none -np %N %b"
 
-python = 3
+
+python = 2
+
+# nvccflags = "--verbose -arch=sm_35 -ccbin=g++ -DBOOST_NOINLINE='__attribute__((noinline))'"
+# nvccflags = "--verbose -arch=sm_35 -ccbin clang-3.8 "
+dudley_assemble_flags = '-funroll-loops'
+nvccflags = "--verbose -arch=sm_35 -ccbin=/usr/bin/g++"
+# nvccflags = "--verbose -ccbin clang-3.8 -DBOOST_NOINLINE='__attribute__((noinline))'"
 
 d_mpi_path = '/usr/include/openmpi'
-mpi_prefix = os.path.split(os.path.realpath(d_mpi_path))[0]
-
 netcdf = 4
 
-#mpi_prefix='/usr/lib/x86_64-linux-gnu/openmpi/include/'
 mpi_libs = ['mpi_cxx', 'mpi']
 parmetis_libs = ['parmetis', 'metis']
 silo_libs = ['siloh5', 'hdf5_openmpi']
 umfpack_libs = ['umfpack', 'blas', 'amd']
 
 lapack_prefix = ['/usr/include/atlas', '/usr/lib/atlas-base']
-
+mpi_prefix = os.path.split(os.path.realpath(d_mpi_path))[0]
 parmetis_prefix = ['/usr/include','/usr/lib']
 umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
-trilinos_prefix =['/opt/trilinos_hybrid/include/','/opt/trilinos_hybrid/lib/']
+trilinos_prefix =['//opt/trilinos_hybrid/include/','/opt/trilinos_hybrid/lib/']
 #visit_prefix = ['/usr/local/visit/2.13.2/linux-x86_64/libsim/V2/include/','/usr/local/visit/2.13.2/linux-x86_64/libsim/V2/lib/']
 visit_prefix = ['/usr/local/2.13.2/linux-x86_64/libsim/V2/include/','/usr/local/2.13.2/linux-x86_64/libsim/V2/lib/']
 

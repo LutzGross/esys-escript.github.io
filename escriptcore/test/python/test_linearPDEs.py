@@ -43,6 +43,7 @@ mpisize = getMPISizeWorld()
 no_paso = not hasFeature("paso")
 no_mkl = not hasFeature("mkl")
 no_umfpack = not hasFeature("umfpack")
+no_mumps = not hasFeature("mumps")
 HAVE_DIRECT = hasFeature("trilinos") or hasFeature("umfpack") or hasFeature("mkl") or hasFeature("mumps")
 HAVE_TRILINOS = hasFeature("trilinos")
 # PASO_DIRECT is only reported if we have paso and are running single rank
@@ -559,6 +560,14 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         else:
             sb.setPackage(so.UMFPACK)
             self.assertTrue(sb.getPackage() == so.UMFPACK, "UMFPACK is not set.")
+
+        if no_mumps:
+            with self.assertRaises(ValueError) as package:
+                sb.setPackage(so.MUMPS)
+            self.assertTrue('not compiled' in str(package.exception))
+        else:
+            sb.setPackage(so.MUMPS)
+            self.assertTrue(sb.getPackage() == so.MUMPS, "MUMPS is not set.")
 
         if HAVE_TRILINOS is False:
             with self.assertRaises(ValueError) as package:

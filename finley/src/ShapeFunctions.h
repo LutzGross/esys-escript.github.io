@@ -18,6 +18,8 @@
 #ifndef __FINLEY_SHAPEFUNCTIONS_H__
 #define __FINLEY_SHAPEFUNCTIONS_H__
 
+#include "system_dep.h"
+
 #include "Finley.h"
 
 #include <boost/shared_ptr.hpp>
@@ -74,7 +76,7 @@ struct ShapeFunctionInfo {
 
 
 /// this struct holds the evaluation of a shape function on a quadrature scheme
-struct ShapeFunction {
+struct FINLEY_DLL_API ShapeFunction {
     ShapeFunction(ShapeFunctionTypeId id, int numQuadDim, int numQuadNodes,
                   const std::vector<double>& QuadNodes,
                   const std::vector<double>& QuadWeights);
