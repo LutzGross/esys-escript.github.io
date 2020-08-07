@@ -40,14 +40,13 @@ skip_amg = True
 skip_muelu_long = False #hasFeature("longindex")
 
 # number of elements in the spatial directions
-NE0=2
-NE1=2
+NE0=12
+NE1=12
 NE2=8
 OPTIMIZE=True
 
 @unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
 class ComplexSolveOnMumps(ComplexSolveTestCase):
-    SOLVER_VERBOSE = True
     pass
 
 ## direct
@@ -61,7 +60,6 @@ class Test_ComplexSolveDudleyRect_Order1_Mumps_Direct(ComplexSolveOnMumps):
         del self.domain
 
 ## direct
-@unittest.skip("Debug")
 class Test_ComplexSolveDudleyBrick_Order1_Mumps_Direct(ComplexSolveOnMumps):
     def setUp(self):
         self.domain = Brick(NE0, NE1, NE2, 1, optimize=OPTIMIZE)

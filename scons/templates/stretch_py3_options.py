@@ -17,6 +17,7 @@
 # This is a template configuration file for escript on Debian/GNU Linux.
 # Refer to README_FIRST for usage instructions.
 
+import os
 from scons.templates.stretch_options import *
 
 werror = False
@@ -24,5 +25,7 @@ pythoncmd = 'python3'
 
 boost_libs = boost_py3_libs
 
-mumps = True
-mumps_prefix = '/home/escript/anaconda3/envs/escript'
+conda_prefix = os.environ.get('CONDA_PREFIX')
+if conda_prefix:
+    mumps = True
+    mumps_prefix = conda_prefix
