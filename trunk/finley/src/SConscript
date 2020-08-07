@@ -86,6 +86,7 @@ headers = """
     ShapeFunctions.h
     Util.h
     ReferenceElementSets.h
+    system_dep.h
 """.split()
 
 local_env = env.Clone()

@@ -184,9 +184,6 @@ if env['tools_names'] != ['default']:
     env = Environment(tools = ['default'] + env['tools_names'], options = vars,
                       ENV = {'PATH' : os.environ['PATH']})
 
-#Disable MUMPS
-env['mumps'] = False
-
 # Covert env['netcdf'] into one of False, 3, 4
 # Also choose default values for libraries
 pos1=netcdf_flavours.index('False')
@@ -292,6 +289,7 @@ elif cc_name[:3] == 'g++':
     # see mantis #691
     cc_flags     = "-std=c++11 -pedantic -Wall -fPIC -finline-functions"
     cc_flags += " -Wno-unknown-pragmas -Wno-sign-compare -Wno-system-headers -Wno-long-long -Wno-strict-aliasing "
+    cc_flags += " -Wno-unused-function"
     cc_flags += " -Wno-stringop-truncation -Wno-deprecated-declarations --param=max-vartrack-size=100000000"
     cc_optim     = "-O3"
     #max-vartrack-size: avoid vartrack limit being exceeded with escriptcpp.cpp
@@ -793,8 +791,8 @@ def print_summary():
             direct.append('mkl')
         if env['umfpack']:
             direct.append('umfpack')
-        # if env['mumps']:
-        #     direct.append('mumps')
+        if env['mumps']:
+            direct.append('mumps')
     else:
         d_list.append('paso')
     if env['trilinos']:
@@ -817,7 +815,7 @@ def print_summary():
         print("          netcdf:  NO")
     e_list=[]
     for i in ('weipa','debug','openmp','cppunit','gdal','mkl',
-             'pyproj','scipy','silo','sympy','umfpack','visit'):
+             'mumps','pyproj','scipy','silo','sympy','umfpack','visit'):
         if env[i]: e_list.append(i)
         else: d_list.append(i)
 

@@ -66,9 +66,7 @@ void MUMPS_free(SparseMatrix* A)
                 throw PasoException(message);
             }
         }
-// #ifdef ESYS_MPI
-//         MUMPS_INT ierr = MPI_Finalize();
-// #endif
+        MUMPS_INT ierr = MPI_Finalize();
         if (pt->verbose) {
             std::cout << "MUMPS: instance terminated." << std::endl;
         }
@@ -113,16 +111,13 @@ void MUMPS_solve(SparseMatrix_ptr A, double* out, double* in,
         pt->isComplex = false;
         pt->rhs = new double[n];
         std::memcpy(pt->rhs, in, n*sizeof(double));
-// #ifdef ESYS_MPI
-        // MUMPS_INT ierr;
-        // ierr = MPI_Init(NULL, NULL);
-        // ierr = MPI_Comm_rank(MPI_COMM_WORLD, &pt->myid);
-// #endif
+        MUMPS_INT ierr;
+        ierr = MPI_Init(NULL, NULL);
+        ierr = MPI_Comm_rank(MPI_COMM_WORLD, &pt->myid);
 
         // Initialize a MUMPS instance. Use MPI_COMM_WORLD
         pt->id.comm_fortran = MUMPS_USE_COMM_WORLD;
-        pt->id.par = 1; 
-        pt->id.sym = 0;
+        pt->id.par = 1; pt->id.sym = 0;
         pt->id.job = MUMPS_JOB_INIT;
 #ifdef _WIN32
         pt->dmumps_c(&pt->id);
@@ -223,16 +218,13 @@ void MUMPS_solve(SparseMatrix_ptr A, cplx_t* out, cplx_t* in,
         }
         pt->crhs = new cplx_t[n];
         std::memcpy(pt->crhs, in, n*sizeof(cplx_t));
-// #ifdef ESYS_MPI
-        // MUMPS_INT ierr;
-        // ierr = MPI_Init(NULL, NULL);
-        // ierr = MPI_Comm_rank(MPI_COMM_WORLD, &pt->myid);
-// #endif
+        MUMPS_INT ierr;
+        ierr = MPI_Init(NULL, NULL);
+        ierr = MPI_Comm_rank(MPI_COMM_WORLD, &pt->myid);
 
         // Initialize a MUMPS instance. Use MPI_COMM_WORLD
         pt->zid.comm_fortran = MUMPS_USE_COMM_WORLD;
-        pt->zid.par = 1; 
-        pt->zid.sym = 0;
+        pt->zid.par = 1; pt->zid.sym = 0;
         pt->zid.job = MUMPS_JOB_INIT;
 #ifdef _WIN32
         pt->zmumps_c(&pt->zid);
