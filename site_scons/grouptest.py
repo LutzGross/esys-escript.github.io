@@ -283,7 +283,7 @@ else:
             res += tt+'if MPIPROD <= 1:\n'
             tt += '    '
             for t in self.single_process_tests:
-                res += tt+"print(r'Starting "+t+"'+'\\n"+tt+"'+now())\n"
+                res += tt+"print('Starting "+t+"\\n'+now())\n"+tt+"sys.stdout.flush()\n"
                 skipoutputfile = ''
                 failoutputfile = ''
                 cmd = self.exec_cmd
@@ -294,10 +294,10 @@ else:
                     cmd = cmd.replace('PYTHONRUNNER', 'PYTHONTESTRUNNER')
                 res += tt+"if subprocess.call(r'"+cmd+t+failoutputfile+skipoutputfile+"', shell=True) != 0:\n"
                 res += tt+tt+"failed(r'"+t+"')\n"
-                res += tt+"print(r'Completed "+t+"')\n"
+                res += tt+"print('Completed "+t+"')\n"
             tt = '    '
         for t in self.test_list:
-            res += tt+"print(r'Starting "+t+"'+'\\n"+tt+"'+now())\n"
+            res += tt+"print('Starting "+t+"\\n'+now())\n"+tt+"sys.stdout.flush()\n"
             skipoutputfile = ''
             failoutputfile = ''
             cmd = self.exec_cmd
@@ -308,7 +308,7 @@ else:
                 cmd = cmd.replace('PYTHONRUNNER', 'PYTHONTESTRUNNER')
             res += tt+"if subprocess.call(r'"+cmd+t+failoutputfile+skipoutputfile+"', shell=True) != 0:\n"
             res += tt+tt+"failed(r'"+t+"')\n"
-            res += tt+"print(r'Completed "+t+"')\n"
+            res += tt+"print('Completed "+t+"')\n"
         res += '\n'
         return res
 
