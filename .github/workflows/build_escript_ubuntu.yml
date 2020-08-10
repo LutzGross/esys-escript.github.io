@@ -38,7 +38,7 @@ jobs:
         find /usr -iname "libboost_python*" 2>/dev/null      
     
     - name: Building escript
-      run: scons -j2 options_file=scons/templates/focal_options.py build_full || cat config.log
+      run: scons -j2 options_file=scons/templates/bionic_py3_options.py build_full || cat config.log
       
     - name: Running unit tests
       run: sh utest.sh `pwd`/build '-t2'
