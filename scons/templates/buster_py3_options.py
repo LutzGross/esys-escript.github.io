@@ -25,9 +25,8 @@ openmp = True
 
 import os
 
-d_mpi_path = '/usr/include/openmpi'
-mpi_prefix = os.path.split(os.path.realpath(d_mpi_path))[0]
-mpi_libs = ['mpi_cxx', 'mpi']
+mpi_prefix=['/usr/lib/x86_64-linux-gnu/openmpi/include/','/usr/lib/x86_64-linux-gnu/openmpi/lib/']
+mpi_libs = ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']
 netcdf = 4
 umfpack = True
 umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
