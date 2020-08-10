@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: CI
+name: ubuntu
 
 # Controls when the action will run. Triggers the workflow on push or pull request
 # events but only for the master branch
@@ -28,18 +28,18 @@ jobs:
         sudo apt-get -y update
         sudo apt-get -y install python3-dev libpython3.6-dev python3-numpy python3-pyproj python3-gdal python3-sympy python3-matplotlib python3-scipy libnetcdf-cxx-legacy-dev libnetcdf-c++4-dev libnetcdf-dev libboost-random-dev libboost-python-dev libboost-iostreams-dev scons lsb-release libsuitesparse-dev screenfetch
     
-    - name: Print debugging info
-      run: |
-        screenfetch
-        python3 --version
-        scons --version
-        find /usr -iname "Python.h" 2>/dev/null
-        find /usr -iname "libpython*" 2>/dev/null
-        find /usr -iname "libboost_python*" 2>/dev/null      
+    # - name: Print debugging info
+    #   run: |
+    #     screenfetch
+    #     python3 --version
+    #     scons --version
+    #     find /usr -iname "Python.h" 2>/dev/null
+    #     find /usr -iname "libpython*" 2>/dev/null
+    #     find /usr -iname "libboost_python*" 2>/dev/null      
     
     - name: Building escript
-      run: scons -j2 options_file=scons/templates/bionic_py3_options.py build_full || cat config.log
+      run: scons -j4 options_file=scons/templates/bionic_py3_options.py build_full || cat config.log
       
     - name: Running unit tests
-      run: sh utest.sh `pwd`/build '-t2'
+      run: sh utest.sh `pwd`/build '-t4'
         
