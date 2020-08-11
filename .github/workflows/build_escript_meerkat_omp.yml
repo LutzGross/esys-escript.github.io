@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: eungella_omp
+name: meerkat_omp
 
 on:
   push:
