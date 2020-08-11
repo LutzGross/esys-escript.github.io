@@ -21,5 +21,7 @@ jobs:
       run: scons -j8 lapack=1 options_file=scons/meerkat_options.py build_full || cat config.log
 
     - name: Running unit tests
-      run: sh utest.sh `pwd`/build '-t8'
+      run: |
+          export LD_LIBRARY_PATH=/usr/local/trilinos_nompi/lib:/usr/local/boost.1.73.0/lib:$LD_LIBRARY_PATH
+          sh utest.sh `pwd`/build '-t8'
         
