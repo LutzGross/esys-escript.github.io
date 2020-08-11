@@ -19,8 +19,7 @@ jobs:
 
     - name: Building escript
       run: scons -j8 lapack=1 options_file=scons/meerkat_options.py build_full || cat config.log
-  
-  run_tests:    
+
     - name: Running unit tests
       run: sh utest.sh `pwd`/build '-t8'
         
