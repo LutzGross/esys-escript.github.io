@@ -27,7 +27,7 @@ import esys.escriptcore.utestselect as unittest
 from esys.escript import *
 from esys.escriptcore.testing import *
 
-class Test_copyWithMask(unittest.TestCase):
+# class Test_copyWithMask(unittest.TestCase):
     #  TODO
 
 
