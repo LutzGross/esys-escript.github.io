@@ -1,5 +1,5 @@
 #This tests the code in the master branch on meerkat every day at 11:00 pm AEST
-name: meerkat_omp
+name: meerkat_mpi
 
 on:
   schedule:
