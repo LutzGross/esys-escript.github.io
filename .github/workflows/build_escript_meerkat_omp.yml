@@ -4,7 +4,9 @@ name: meerkat_omp
 on:
   schedule:
     - cron: '0 13 * * *'
-
+  push:
+    branches: [ master ]
+  
 jobs:
   build:
     runs-on: [self-hosted, linux, x64, meerkat]
