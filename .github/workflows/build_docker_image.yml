@@ -1,4 +1,4 @@
-name: Docker Image CI
+name: Build Docker Image
 
 on:
   push:
@@ -14,5 +14,5 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Build the Docker image
-      run: docker build . --file /tools/docker/docker_trilinos --tag esys-escript:$(date +%s)
+    - name: Building the Docker image...
+      run: docker build . --file ./tools/docker/docker_trilinos --tag esys-escript:$(date +%s)
