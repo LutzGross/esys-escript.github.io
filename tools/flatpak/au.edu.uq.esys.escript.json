@@ -233,9 +233,8 @@
             ],
             "sources": [
                 {
-                    "type": "svn",
-                    "url": "https://svn.geocomp.uq.edu.au/svn/esys13/trunk",
-                    "revision": "7019"
+                    "type": "git",
+                    "url": "https://github.com/esys-escript/esys-escript.github.io"
                 }
             ]
         }
