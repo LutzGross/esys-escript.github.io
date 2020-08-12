@@ -66,7 +66,7 @@
             "sources": [
                 {
                     "type": "archive",
-                    "url": "ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-c-4.7.3.tar.gz",
+                    "url": "https://mirror.sobukus.de/files/src/netcdf/netcdf-c-4.7.3.tar.gz",
                     "sha256": "8e8c9f4ee15531debcf83788594744bd6553b8489c06a43485a15c93b4e0448b"
                 }
             ]
@@ -76,7 +76,7 @@
             "sources": [
                 {
                     "type": "archive",
-                    "url": "ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-cxx4-4.3.0.tar.gz",
+                    "url": "https://mirror.sobukus.de/files/src/netcdf/netcdf-cxx4-4.3.0.tar.gz",
                     "sha256": "e34fbc6aba243ec82c23e9ee99db2430555ada849c54c1f3ab081b0ddd0f5f30"
                 }
             ]
