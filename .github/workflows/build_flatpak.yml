@@ -23,4 +23,4 @@ jobs:
       run: sudo flatpak install flathub org.freedesktop.Platform//18.08 org.freedesktop.Sdk//18.08
     
     - name: Building the flatpak...
-      run: flatpak-builder ./build ./tools/flatpak/au.edu.uq.esys.escript.json
+      run: sudo flatpak-builder ./build ./tools/flatpak/au.edu.uq.esys.escript.json
