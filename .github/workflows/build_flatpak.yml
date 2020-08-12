@@ -20,7 +20,7 @@ jobs:
       run: sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 
     - name: Installing freedesktop platform and sdk
-      run: sudo flatpak install flathub org.freedesktop.Platform//18.08 org.freedesktop.Sdk//18.08
+      run: sudo flatpak install -y flathub org.freedesktop.Platform//18.08 org.freedesktop.Sdk//18.08
     
     - name: Building the flatpak...
       run: sudo flatpak-builder ./build ./tools/flatpak/au.edu.uq.esys.escript.json
