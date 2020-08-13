@@ -32,6 +32,7 @@
 #include "PasoUtil.h"
 #include "Preconditioner.h"
 #include "UMFPACK.h"
+#include "MUMPS.h"
 #include "mmio.h"
 
 #include <boost/scoped_array.hpp>
@@ -109,6 +110,7 @@ SparseMatrix::SparseMatrix(SparseMatrixType ntype, Pattern_ptr npattern,
                            bool patternIsUnrolled) :
     type(ntype),
     val(NULL),
+    cval(NULL),
     solver_package(PASO_PASO),
     solver_p(NULL)
 {
@@ -179,6 +181,8 @@ SparseMatrix::SparseMatrix(SparseMatrixType ntype, Pattern_ptr npattern,
 
     val=new double[len];
     setValues(0.);
+    cval=new cplx_t[len];
+    setValues(cplx_t(0.,0.));
 }
 
 SparseMatrix::~SparseMatrix()
@@ -194,6 +198,10 @@ SparseMatrix::~SparseMatrix()
 
         case PASO_UMFPACK:
             UMFPACK_free(this);
+            break;
+
+        case PASO_MUMPS:
+            MUMPS_free(this);
             break;
     }
     delete[] val;
@@ -483,6 +491,21 @@ void SparseMatrix::setValues(double value)
             for (index_t iptr=pattern->ptr[i]-index_offset; iptr < pattern->ptr[i+1]-index_offset; ++iptr) {
                 for (dim_t j=0; j<block_size; ++j)
                     val[iptr*block_size+j] = value;
+            }
+        }
+    }
+}
+
+void SparseMatrix::setValues(cplx_t value)
+{
+    const index_t index_offset=(type & MATRIX_FORMAT_OFFSET1 ? 1:0);
+    if (!pattern->isEmpty()) {
+        const dim_t nOut = pattern->numOutput;
+#pragma omp parallel for
+        for (dim_t i=0; i < nOut; ++i) {
+            for (index_t iptr=pattern->ptr[i]-index_offset; iptr < pattern->ptr[i+1]-index_offset; ++iptr) {
+                for (dim_t j=0; j<block_size; ++j)
+                    cval[iptr*block_size+j] = value;
             }
         }
     }

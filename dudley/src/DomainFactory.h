@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2018 by The University of Queensland
+* Copyright (c) 2003-2020 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -10,8 +10,9 @@
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
-* Development from 2014 by Centre for Geoscience Computing (GeoComp)
-*
+* Development from 2014-2017 by Centre for Geoscience Computing (GeoComp)
+* Development from 2019 by School of Earth and Environmental Sciences
+**
 *****************************************************************************/
 
 #ifndef __DUDLEY_DOMAINFACTORY_H__
@@ -39,6 +40,7 @@ namespace dudley {
     \param reducedIntegrationOrder ignored
     \param optimize whether to optimize the node labels
 */
+DUDLEY_DLL_API
 escript::Domain_ptr readMesh(const std::string& fileName,
                              int integrationOrder = -1,
                              int reducedIntegrationOrder = -1,
@@ -53,6 +55,7 @@ escript::Domain_ptr readMesh(const std::string& fileName,
     \param reducedIntegrationOrder ignored
     \param optimize whether to optimize the node labels 
 */
+DUDLEY_DLL_API
 escript::Domain_ptr readGmsh(const std::string& fileName, int numDim,
                              int integrationOrder = -1,
                              int reducedIntegrationOrder = -1,
@@ -71,6 +74,7 @@ escript::Domain_ptr readGmsh(const std::string& fileName, int numDim,
     \param reducedIntegrationOrder ignored
     \param optimize
 */
+DUDLEY_DLL_API
 escript::Domain_ptr brick(escript::JMPI jmpi,
                     dim_t n0=1, dim_t n1=1, dim_t n2=1, int order=1,
                     double l0=1.0, double l1=1.0, double l2=1.0,
@@ -83,6 +87,7 @@ escript::Domain_ptr brick(escript::JMPI jmpi,
     \brief Python driver for brick()
     \param args see brick() definition for order of params
 */
+DUDLEY_DLL_API
 escript::Domain_ptr brick_driver(const boost::python::list& args);
 
 /**
@@ -102,6 +107,7 @@ escript::Domain_ptr brick_driver(const boost::python::list& args);
     \param useFullElementOrder ignored
     \param optimize whether to optimize labelling
 */
+DUDLEY_DLL_API
 escript::Domain_ptr rectangle(escript::JMPI jmpi,
                               dim_t n0 = 1, dim_t n1 = 1, int order = 1,
                               double l0 = 1.0, double l1 = 1.0,
@@ -116,6 +122,7 @@ escript::Domain_ptr rectangle(escript::JMPI jmpi,
     \brief Python driver for rectangle()
     \param args see rectangle() definition for order of params
 */
+DUDLEY_DLL_API
 escript::Domain_ptr rectangle_driver(const boost::python::list& args);
 
 

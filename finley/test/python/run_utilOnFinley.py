@@ -28,7 +28,9 @@ from esys.escriptcore.testing import *
 from test_util import Test_util, Test_Util_SpatialFunctions, \
         Test_Util_SpatialFunctions_noGradOnBoundary, \
         Test_Util_SpatialFunctions_noGradOnBoundary_noContact
+from test_util_interpolation import Test_Util_Point_Data_Interpolation
 from test_util_NaN_funcs import Test_util_NaN_funcs
+# from test_copyWithData import Test_copyWithMask
 
 from esys.escript import FunctionOnBoundary, getMPISizeWorld, HAVE_SYMBOLS
 from esys.finley import Rectangle, Brick, JoinFaces, ReadMesh
@@ -336,6 +338,28 @@ class Test_Util_SpatialFunctionsOnFinleyHex3DOrder2useElementsOnFacewithContact(
         del self.order
         del self.domain
 
+class Test_2D_Point_Data_Integration(Test_Util_Point_Data_Interpolation):
+    def setUp(self):
+        Stations = [ (0.,0.), (1.,0), (0,1), (1,1) ]
+        StationsTags = ["A1", "A2", "A3", "A4" ]
+        self.domain=Rectangle(n0=5,n1=5, diracPoints=Stations, diracTags=StationsTags)
+    def tearDown(self):
+        del self.domain
+
+class Test_3D_Point_Data_Integration(Test_Util_Point_Data_Interpolation):
+    def setUp(self):
+        Stations = [ (0.,0.,0.), (1.,0,0.), (0,1,0.), (1,1,0.) ]
+        StationsTags = ["A1", "A2", "A3", "A4" ]
+        self.domain=Brick(n0=5,n1=5,n2=5,diracPoints=Stations,diracTags=StationsTags)
+    def tearDown(self):
+        del self.domain
+
+# TODO
+# class Test_copyWithMask_rectangle(Test_copyWithMask):
+#     def setUp(self):
+#         self.domain=Rectangle(n0=5,n1=7)
+#     def tearDown(self):
+#         del self.domain
+
 if __name__ == '__main__':
     run_tests(__name__, exit_on_failure=True)
-

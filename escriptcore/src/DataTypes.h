@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2018 by The University of Queensland
+* Copyright (c) 2003-2020 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -10,8 +10,9 @@
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
-* Development from 2014 by Centre for Geoscience Computing (GeoComp)
-*
+* Development from 2014-2017 by Centre for Geoscience Computing (GeoComp)
+* Development from 2019 by School of Earth and Environmental Sciences
+**
 *****************************************************************************/
 
 #ifndef __ESCRIPT_DATATYPES_H__
@@ -19,6 +20,7 @@
 
 #include <boost/python/object_fwd.hpp>
 
+#include "system_dep.h"
 #include "Assert.h"
 
 #include <complex>
@@ -103,6 +105,7 @@ namespace DataTypes {
      \brief
      Calculate the number of values in a datapoint with the given shape.
   */
+  ESCRIPT_DLL_API
   int
   noValues(const DataTypes::ShapeType& shape);
 
@@ -110,6 +113,7 @@ namespace DataTypes {
      \brief
      Calculate the number of values for the given region.
   */
+  ESCRIPT_DLL_API
   int
   noValues(const DataTypes::RegionLoopRangeType& region);
 
@@ -119,6 +123,7 @@ namespace DataTypes {
 
      \param shape - Input.
   */
+  ESCRIPT_DLL_API
   std::string
   shapeToString(const DataTypes::ShapeType& shape);
 
@@ -128,6 +133,7 @@ namespace DataTypes {
 
      \param region - Input - Slice region
   */
+  ESCRIPT_DLL_API
   DataTypes::ShapeType
   getResultSliceShape(const DataTypes::RegionType& region);
 
@@ -204,6 +210,7 @@ namespace DataTypes {
    the slice region is of size 1. So in the above example, we modify the above
    region like so: <<1,2><0,3><0,3>> and take this slice.
   */
+  ESCRIPT_DLL_API
   DataTypes::RegionLoopRangeType
   getSliceRegionLoopRange(const DataTypes::RegionType& region);
 
@@ -313,6 +320,7 @@ namespace DataTypes {
    \param other - displayed in the message as "Other shape"
    \param thisShape - displayed in the message as "This shape"
   */
+   ESCRIPT_DLL_API
    std::string
    createShapeErrorMessage(const std::string& messagePrefix,
                                           const DataTypes::ShapeType& other,

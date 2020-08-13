@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2018 by The University of Queensland
+* Copyright (c) 2003-2020 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -10,14 +10,19 @@
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
-* Development from 2014 by Centre for Geoscience Computing (GeoComp)
-*
+* Development from 2014-2017 by Centre for Geoscience Computing (GeoComp)
+* Development from 2019 by School of Earth and Environmental Sciences
+**
 *****************************************************************************/
 
 #include "SolverOptions.h"
 #include "EsysException.h"
 
 #include <boost/python.hpp>
+
+#ifdef ESYS_HAVE_TRILINOS
+#include <Amesos2.hpp>
+#endif
 
 namespace bp = boost::python;
 
@@ -126,6 +131,7 @@ const char* SolverBuddy::getName(int key) const
         case SO_PACKAGE_PASO: return "PASO";
         case SO_PACKAGE_TRILINOS: return "TRILINOS";
         case SO_PACKAGE_UMFPACK: return "UMFPACK";
+        case SO_PACKAGE_MUMPS: return "MUMPS";
 
         case SO_METHOD_BICGSTAB: return "BICGSTAB";
         case SO_METHOD_CGLS: return "CGLS";
@@ -306,7 +312,6 @@ double SolverBuddy::getDiagnostics(const std::string name) const
 {
     if (name == "num_iter") return num_iter;
     else if (name == "cum_num_iter") return cum_num_iter;
-    else if (name == "num_level") return num_level;
     else if (name == "num_inner_iter") return num_inner_iter;
     else if (name == "cum_num_inner_iter") return cum_num_inner_iter;
     else if (name == "time") return time;
@@ -320,9 +325,6 @@ double SolverBuddy::getDiagnostics(const std::string name) const
     else if (name == "preconditioner_size") return preconditioner_size;
     else if (name == "time_step_backtracking_used")
         return  time_step_backtracking_used;
-    else if (name == "coarse_level_sparsity") return coarse_level_sparsity;
-    else if (name == "num_coarse_unknowns") return num_coarse_unknowns;
-
     throw ValueError(std::string("unknown diagnostic item: ") + name);
 }
 
@@ -336,8 +338,8 @@ void SolverBuddy::setPreconditioner(int precon)
     SolverOptions preconditioner = static_cast<SolverOptions>(precon);
     switch(preconditioner) {
         case SO_PRECONDITIONER_AMG:
-#ifndef ESYS_HAVE_TRILINOS
-        throw ValueError("escript was not compiled with Trilinos enabled");
+#if !defined(ESYS_HAVE_TRILINOS) && !defined(ESYS_HAVE_MUMPS)
+        throw ValueError("escript was not compiled with Trilinos or MUMPS enabled");
 #endif
         case SO_PRECONDITIONER_GAUSS_SEIDEL:
         case SO_PRECONDITIONER_JACOBI: // This is the default preconditioner in ifpack2
@@ -364,25 +366,12 @@ void SolverBuddy::setSolverMethod(int method)
 
 //     bool havePASODirect = false;
 //     using_default_solver_method=false;
-// #if defined(ESYS_HAVE_PASO) && (defined(ESYS_HAVE_MKL) || defined(ESYS_HAVE_UMFPACK))
+// #if defined(ESYS_HAVE_PASO) && (defined(ESYS_HAVE_MKL) || defined(ESYS_HAVE_UMFPACK) || defined(ESYS_HAVE_MUMPS))
 //     havePASODirect = true;
 // #endif
 
     switch(meth) {
         case SO_DEFAULT:
-            // using_default_solver_method=true;
-            // if(getDim() == 2){
-            //     if(getPackage() == SO_PACKAGE_PASO && havePASODirect){
-            //         setSolverMethod(SO_METHOD_DIRECT);
-            //     } else if (getPackage() == SO_PACKAGE_TRILINOS){
-            //         setSolverMethod(SO_METHOD_DIRECT);
-            //     } else {
-            //         setSolverMethod(SO_METHOD_ITERATIVE);
-            //     }
-            // } else {
-            //     setSolverMethod(SO_METHOD_ITERATIVE);
-            // }
-            // break;
         case SO_METHOD_ITERATIVE:
         case SO_METHOD_BICGSTAB:
         case SO_METHOD_CGLS:
@@ -401,21 +390,48 @@ void SolverBuddy::setSolverMethod(int method)
             this->method = meth;
             break;
         case SO_METHOD_DIRECT:
-        case SO_METHOD_DIRECT_MUMPS:
-        case SO_METHOD_DIRECT_PARDISO:
-        case SO_METHOD_DIRECT_SUPERLU:
-        case SO_METHOD_DIRECT_TRILINOS:
-#if defined(ESYS_HAVE_UMFPACK) || defined(ESYS_HAVE_TRILINOS) || defined(ESYS_HAVE_MKL)
-#ifndef ESYS_HAVE_TRILINOS
+#if defined(ESYS_HAVE_UMFPACK) || defined(ESYS_HAVE_TRILINOS) || defined(ESYS_HAVE_MKL) || defined(ESYS_HAVE_MUMPS)
+#ifdef ESYS_HAVE_TRILINOS
             // translate specific direct solver setting to generic one for PASO
-            this->method = SO_METHOD_DIRECT;
-#else
             this->method = meth;
+#else
+            this->method = SO_METHOD_DIRECT;
 #endif
             break;
 #else
             throw ValueError("Cannot use DIRECT solver method, the running "
                     "escript was not compiled with a direct solver enabled");
+#endif
+        case SO_METHOD_DIRECT_TRILINOS:
+#ifdef ESYS_HAVE_TRILINOS
+            this->method = meth;
+            break;
+#else
+            throw ValueError("escript was not compiled with Trilinos");
+#endif
+        case SO_METHOD_DIRECT_MUMPS:
+#ifdef ESYS_HAVE_MUMPS
+            this->method=meth;
+#else
+            throw ValueError("escript was not compiled with MUMPS");
+#endif
+        case SO_METHOD_DIRECT_PARDISO:
+#ifdef ESYS_HAVE_TRILINOS
+            if(Amesos2::query("pardiso_mkl"))
+                this->method = meth;
+            else
+                throw ValueError("Trilinos was not compiled with MKL Pardiso");
+#else
+            throw ValueError("escript was not compiled with Trilinos");
+#endif
+        case SO_METHOD_DIRECT_SUPERLU:
+#ifdef ESYS_HAVE_TRILINOS
+            if(Amesos2::query("superludist") || Amesos2::query("superlu") || Amesos2::query("superlumt"))
+                this->method = meth;
+            else
+                throw ValueError("Trilinos was not compiled with SuperLU ");
+#else
+            throw ValueError("escript was not compiled with Trilinos");
 #endif
         default:
             throw ValueError("unknown solver method");
@@ -479,6 +495,15 @@ void SolverBuddy::setPackage(int package)
             break;
 #else
             throw ValueError("escript was not compiled with UMFPACK enabled");
+#endif
+        // Set to MUMPS iff escript was compiled with MUMPS
+        case SO_PACKAGE_MUMPS:
+#ifdef ESYS_HAVE_MUMPS
+            this->package = SO_PACKAGE_MUMPS;
+            setSolverMethod(getSolverMethod());
+            break;
+#else
+            throw ValueError("escript was not compiled with MUMPS enabled");
 #endif
         default:
             throw ValueError("unknown solver package");
@@ -861,4 +886,3 @@ bool SolverBuddy::using_default_method() const
 }
 
 } // namespace escript
-

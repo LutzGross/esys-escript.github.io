@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2018 by The University of Queensland
+* Copyright (c) 2003-2020 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -10,8 +10,9 @@
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
-* Development from 2014 by Centre for Geoscience Computing (GeoComp)
-*
+* Development from 2014-2017 by Centre for Geoscience Computing (GeoComp)
+* Development from 2019 by School of Earth and Environmental Sciences
+**
 *****************************************************************************/
 
 
@@ -25,6 +26,7 @@
 #include "Util.h"
 
 #include <escript/index.h>
+#include <escript/Utils.h>
 
 namespace finley {
 
@@ -39,9 +41,11 @@ void Assemble_integrate(const NodeFile* nodes, const ElementFile* elements,
     ElementFile_Jacobians* jac = elements->borrowJacobians(nodes, false,
                                     util::hasReducedIntegrationOrder(data));
 
+    bool HavePointData = data.getFunctionSpace().getTypeCode() == Points;
+
     const int numQuadTotal = jac->numQuadTotal;
     // check the shape of the data
-    if (!data.numSamplesEqual(numQuadTotal, elements->numElements)) {
+    if (!data.numSamplesEqual(numQuadTotal, elements->numElements) && !HavePointData) {
         throw escript::ValueError("Assemble_integrate: illegal number of samples of integrant kernel Data object");
     }
 
@@ -51,31 +55,39 @@ void Assemble_integrate(const NodeFile* nodes, const ElementFile* elements,
     for (int q = 0; q < numComps; q++)
         out[q] = zero;
 
+#ifdef ESYS_MPI
+    if(HavePointData && escript::getMPIRankWorld() == 0)
+#else
+    if(HavePointData)
+#endif
+        out[0] += data.getNumberOfTaggedValues();
+    else
 #pragma omp parallel
     {
         std::vector<Scalar> out_local(numComps);
-
-        if (data.actsExpanded()) {
+        {
+            if (data.actsExpanded()) {
 #pragma omp for
-            for (index_t e = 0; e < elements->numElements; e++) {
-                if (elements->Owner[e] == my_mpi_rank) {
-                    const Scalar* data_array = data.getSampleDataRO(e, zero);
-                    for (int q = 0; q < numQuadTotal; q++) {
-                        for (int i = 0; i < numComps; i++)
-                            out_local[i] += data_array[INDEX2(i,q,numComps)]*jac->volume[INDEX2(q,e,numQuadTotal)];
+                for (index_t e = 0; e < elements->numElements; e++) {
+                    if (elements->Owner[e] == my_mpi_rank) {
+                        const Scalar* data_array = data.getSampleDataRO(e, zero);
+                        for (int q = 0; q < numQuadTotal; q++) {
+                            for (int i = 0; i < numComps; i++)
+                                out_local[i] += data_array[INDEX2(i,q,numComps)]*jac->volume[INDEX2(q,e,numQuadTotal)];
+                        }
                     }
                 }
-            }
-        } else {
+            } else {
 #pragma omp for
-            for (index_t e = 0; e < elements->numElements; e++) {
-                if (elements->Owner[e] == my_mpi_rank) {
-                    const Scalar* data_array = data.getSampleDataRO(e, zero);
-                    double rtmp = 0.;
-                    for (int q = 0; q < numQuadTotal; q++)
-                        rtmp += jac->volume[INDEX2(q, e, numQuadTotal)];
-                    for (int i = 0; i < numComps; i++)
-                        out_local[i] += data_array[i] * rtmp;
+                for (index_t e = 0; e < elements->numElements; e++) {
+                    if (elements->Owner[e] == my_mpi_rank) {
+                        const Scalar* data_array = data.getSampleDataRO(e, zero);
+                        double rtmp = 0.;
+                        for (int q = 0; q < numQuadTotal; q++)
+                            rtmp += jac->volume[INDEX2(q, e, numQuadTotal)];
+                        for (int i = 0; i < numComps; i++)
+                            out_local[i] += data_array[i] * rtmp;
+                    }
                 }
             }
         }
@@ -95,4 +107,3 @@ template void Assemble_integrate<escript::DataTypes::cplx_t>(
                     const escript::Data& data, escript::DataTypes::cplx_t* out);
 
 } // namespace finley
-

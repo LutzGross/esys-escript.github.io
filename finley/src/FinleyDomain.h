@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2018 by The University of Queensland
+* Copyright (c) 2003-2020 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -10,8 +10,9 @@
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
-* Development from 2014 by Centre for Geoscience Computing (GeoComp)
-*
+* Development from 2014-2017 by Centre for Geoscience Computing (GeoComp)
+* Development from 2019 by School of Earth and Environmental Sciences
+**
 *****************************************************************************/
 
 #ifndef __FINLEY_DOMAIN_H__
@@ -54,6 +55,8 @@
 
 *****************************************************************************/
 
+#include "system_dep.h"
+
 #include <finley/Finley.h>
 #include <finley/ElementFile.h>
 #include <finley/NodeFile.h>
@@ -90,7 +93,7 @@ enum SystemMatrixType {
     FinleyDomain implements the AbstractContinuousDomain interface for the
     Finley library.
 */
-class FinleyDomain : public escript::AbstractContinuousDomain
+class FINLEY_DLL_API FinleyDomain : public escript::AbstractContinuousDomain
 {
 public:
     /**
@@ -740,6 +743,23 @@ public:
      \brief returns locations in the FEM nodes
     */
     virtual escript::Data getX() const;
+
+#ifdef ESYS_HAVE_BOOST_NUMPY
+    /**
+     \brief returns locations in the FEM nodes as a numpy ndarray
+    */
+    virtual boost::python::numpy::ndarray getNumpyX() const;
+
+    /**
+     \brief returns connectivity information as a numpy ndarray
+    */
+    virtual boost::python::numpy::ndarray getConnectivityInfo() const;
+#endif
+
+    /**
+     \brief returns the VTK element type
+    */
+    virtual int getVTKElementType() const;
 
     /**
      \brief returns boundary normals at the quadrature point on the face

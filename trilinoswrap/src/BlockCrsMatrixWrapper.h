@@ -10,8 +10,9 @@
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
-* Development from 2014 by Centre for Geoscience Computing (GeoComp)
-*
+* Development from 2014-2017 by Centre for Geoscience Computing (GeoComp)
+* Development from 2019 by School of Earth and Environmental Sciences
+**
 *****************************************************************************/
 
 #ifndef __ESYS_TRILINOS_BLOCKCRSMATRIXWRAPPER_H__
@@ -20,14 +21,22 @@
 #include <trilinoswrap/AbstractMatrixWrapper.h>
 #include <trilinoswrap/BelosWrapper.h>
 
+#ifdef ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKCRS
 #include <Tpetra_Experimental_BlockCrsMatrix.hpp>
+#else
+#include <Tpetra_BlockCrsMatrix.hpp>
+#endif
 
 namespace esys_trilinos {
 
 template<typename ST>
 class BlockCrsMatrixWrapper : public AbstractMatrixWrapper<ST>
 {
+#ifdef ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKCRS
     typedef Tpetra::Experimental::BlockCrsMatrix<ST,LO,GO,NT> Matrix;
+#else
+    typedef Tpetra::BlockCrsMatrix<ST,LO,GO,NT> Matrix;
+#endif
 
 public:
     /**

@@ -72,13 +72,13 @@
 /* #undef ENABLE_PTHREAD */
 
 /* Undefine if: write vtk ascii file data */
-#define ENABLE_VTK_BINARY 1
+/* #undef ENABLE_VTK_BINARY */
 
 /* Undefine if: disable zlib compression for vtk binary data */
 /* #undef ENABLE_VTK_COMPRESSION */
 
 /* use doubles for vtk file data */
-#define ENABLE_VTK_DOUBLES 1
+/* #undef ENABLE_VTK_DOUBLES */
 
 /* Define to dummy `main' function (if any) required to link to the Fortran
    libraries. */
@@ -130,7 +130,7 @@
 /* #undef HAVE_LPTHREAD */
 
 /* Have we found function lua_createtable. */
-/* #undef HAVE_LUA */
+#define HAVE_LUA 1
 
 /* Define to 1 if you have the <memory.h> header file. */
 #define HAVE_MEMORY_H 1
@@ -172,7 +172,7 @@
 #define LDFLAGS ""
 
 /* Libraries */
-#define LIBS "-lgomp -llapack -lcblas -lf77blas -latlas -lz -lm   "
+#define LIBS "-lgomp -llapack -lblas -llua5.2 -lz -lm   "
 
 /* Define to the sub-directory where libtool stores uninstalled libraries. */
 #define LT_OBJDIR ".libs/"
@@ -253,13 +253,13 @@
 #define VERSION_POINT 2.2
 
 /* DEPRECATED (use P4EST_ENABLE_VTK_BINARY instead) */
-#define VTK_BINARY 1
+/* #undef VTK_BINARY */
 
 /* DEPRECATED (use P4EST_ENABLE_VTK_COMPRESSION instead) */
 /* #undef VTK_COMPRESSION */
 
 /* DEPRECATED (use P4EST_ENABLE_VTK_DOUBLES instead) */
-#define VTK_DOUBLES 1
+/* #undef VTK_DOUBLES */
 
 /* Define to 1 if BLAS is used */
 #define WITH_BLAS 1

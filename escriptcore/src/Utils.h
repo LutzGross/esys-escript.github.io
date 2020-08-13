@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2018 by The University of Queensland
+* Copyright (c) 2003-2020 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -10,8 +10,9 @@
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
-* Development from 2014 by Centre for Geoscience Computing (GeoComp)
-*
+* Development from 2014-2017 by Centre for Geoscience Computing (GeoComp)
+* Development from 2019 by School of Earth and Environmental Sciences
+**
 *****************************************************************************/
 
 #ifndef __ESCRIPT_UTILS_H__
@@ -46,14 +47,14 @@ ESCRIPT_DLL_API void printParallelThreadCnt();
 
 /**
     \brief
-    set the number of threads 
+    set the number of threads
     \warning Use of this method is strongly discouraged. It may be deprecated in future.
 */
 ESCRIPT_DLL_API void setNumberOfThreads(const int num_threads);
 
 /**
     \brief
-    returns the number of threads 
+    returns the number of threads
 */
 ESCRIPT_DLL_API int getNumberOfThreads();
 
@@ -91,7 +92,7 @@ ESCRIPT_DLL_API void MPIBarrierWorld();
 ESCRIPT_DLL_API int runMPIProgram(const boost::python::list args);
 
 /**
-    \brief 
+    \brief
     returns the machine precision
 */
 ESCRIPT_DLL_API double getMachinePrecision();
@@ -105,14 +106,28 @@ ESCRIPT_DLL_API double getMaxFloat();
 ESCRIPT_DLL_API void saveDataCSV(const std::string& filename,
                                  boost::python::dict arg,
                                  const std::string& sep,
-                                 const std::string& csep, 
-                                 bool refid=false, 
-                                 bool append=false); 
+                                 const std::string& csep,
+                                 bool refid=false,
+                                 bool append=false);
 
 #ifdef ESYS_HAVE_BOOST_NUMPY
 ESCRIPT_DLL_API boost::python::list getNumpy(boost::python::dict arg);
 #else
 ESCRIPT_DLL_API void getNumpy(boost::python::dict arg);
+#endif
+
+#ifdef ESYS_HAVE_BOOST_NUMPY
+ESCRIPT_DLL_API boost::python::numpy::ndarray convertToNumpy(escript::Data data);
+#else
+ESCRIPT_DLL_API void convertToNumpy(escript::Data data);
+#endif
+
+// #ifdef ESYS_HAVE_BOOST_NUMPY
+// void initBoostNumpy();
+// #endif
+
+#ifdef ESYS_HAVE_BOOST_NUMPY
+escript::Data numpyToData(boost::python::numpy::ndarray& array, bool isComplex, FunctionSpace& functionspace);
 #endif
 
 
@@ -128,4 +143,3 @@ ESCRIPT_DLL_API void resolveGroup(boost::python::object obj);
 } // end of namespace
 
 #endif // __ESCRIPT_UTILS_H__
-

@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2018 by The University of Queensland
+* Copyright (c) 2003-2020 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -10,8 +10,9 @@
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
-* Development from 2014 by Centre for Geoscience Computing (GeoComp)
-*
+* Development from 2014-2017 by Centre for Geoscience Computing (GeoComp)
+* Development from 2019 by School of Earth and Environmental Sciences
+**
 *****************************************************************************/
 
 #include "Data.h"
@@ -21,7 +22,9 @@
 
 #include <cstring>
 #include <fstream>
-#include <unistd.h>
+#ifndef _WIN32
+# include <unistd.h>
+#endif // _WIN32
 
 #include <boost/python.hpp>
 #include <boost/scoped_array.hpp>
@@ -389,7 +392,7 @@ void saveDataCSV(const std::string& filename, bp::dict arg,
 {
     bp::list keys = arg.keys();
     int numdata = bp::extract<int>(arg.attr("__len__")());
-    
+
     bool hasmask = arg.has_key("mask");
     Data mask;
     if (hasmask) {
@@ -568,53 +571,61 @@ void saveDataCSV(const std::string& filename, bp::dict arg,
     try {
         std::vector<int> offset(numdata);
         std::vector<const DataTypes::real_t*> samples(numdata);
-
-	const DataTypes::real_t onlyreal=0;
-        for (int i=0; i<numsamples; ++i) {
-            if (!best.ownSample(i)) {
+#ifdef ESYS_MPI
+        // Loop over the MPI ranks
+        for(int token = 0; token < data[0].getDomain()->getMPISize(); token++)
+        {
+            data[0].getDomain()->MPIBarrier();
+            if(data[0].getDomain()->getMPIRank() != token)
                 continue;
-            }
-            wantrow = true;
-            for (int d=0; d<numdata; ++d) {
-                samples[d] = data[d].getSampleDataRO(i, onlyreal);
-            }
-            if (hasmask) {
-                masksample = mask.getSampleDataRO(i, onlyreal);
-                if (!expandedmask) {
-                    // mask controls whole sample
-                    if (masksample[0] <= 0) {
-                        wantrow = false;
+#endif
+
+	    	const DataTypes::real_t onlyreal=0;
+            for (int i=0; i<numsamples; ++i) {
+                if (!best.ownSample(i)) {
+                    continue;
+                }
+                wantrow = true;
+                for (int d=0; d<numdata; ++d) {
+                    samples[d] = data[d].getSampleDataRO(i, onlyreal);
+                }
+                if (hasmask) {
+                    masksample = mask.getSampleDataRO(i, onlyreal);
+                    if (!expandedmask) {
+                        // mask controls whole sample
+                        if (masksample[0] <= 0) {
+                            wantrow = false;
+                        }
                     }
                 }
-            }
-            for (int j=0; j<dpps; ++j) {
-                // now we need to check if this point is masked off
-                if (expandedmask) {
-                    // masks are scalar so the relevant value is at [j]
-                    wantrow = (masksample[j]>0);
-                }
-                if (wantrow) {
-                    bool needsep = false;
-
-                    // If necessary, write the element id to the output stream
-                    if(refid){
-                        os << best.getReferenceIDOfSample(i) << sep;
+                for (int j=0; j<dpps; ++j) {
+                    // now we need to check if this point is masked off
+                    if (expandedmask) {
+                        // masks are scalar so the relevant value is at [j]
+                        wantrow = (masksample[j]>0);
                     }
-
-                    for (int d = 0; d < numdata; ++d) {
-                        DataTypes::pointToStream(os, samples[d], 
-                            data[d].getDataPointShape(), offset[d], needsep, sep);
-                        needsep = true;
-                        offset[d] += step[d];
+                    if (wantrow) {
+                        bool needsep = false;
+                        // If necessary, write the element id to the output stream
+                        if(refid){
+                            os << best.getReferenceIDOfSample(i) << sep;
+                        }
+                        for (int d = 0; d < numdata; ++d) {
+                            DataTypes::pointToStream(os, samples[d],
+                                data[d].getDataPointShape(), offset[d], needsep, sep);
+                            needsep = true;
+                            offset[d] += step[d];
+                        }
+                        os << std::endl;
                     }
-                    os << std::endl;
+                }
+                for (int d = 0; d<numdata; d++) {
+                    offset[d]=0;
                 }
             }
-
-            for (int d = 0; d<numdata; d++) {
-                offset[d]=0;
-            }
+#ifdef ESYS_MPI
         }
+#endif
     } catch (EsysException* e) {
         error=1;
         if (data[0].getDomain()->getMPISize()==1) {
@@ -660,7 +671,7 @@ void saveDataCSV(const std::string& filename, bp::dict arg,
 }
 
 #ifdef ESYS_HAVE_BOOST_NUMPY
-boost::python::list getNumpy(boost::python::dict arg) 
+boost::python::list getNumpy(boost::python::dict arg)
 {
     // Initialise boost python numpy
     bp::numpy::initialize();
@@ -758,7 +769,7 @@ boost::python::list getNumpy(boost::python::dict arg)
     } else {
         arraylength = dpps * numsamples;
     }
-    
+
     //Work out how many rows each array should have
     std::vector<int> spaces(numdata);
     signed int total = 0;
@@ -792,7 +803,7 @@ boost::python::list getNumpy(boost::python::dict arg)
             }
         }
     }
-    
+
     int error = 0;
     int maskcounter = 0;
     std::string localmsg;
@@ -819,7 +830,7 @@ boost::python::list getNumpy(boost::python::dict arg)
             }
 
             // Work out if we want to get this row
-            wantrow = true; 
+            wantrow = true;
             if (hasmask) {
                 masksample = mask.getSampleDataRO(i, onlyreal);
                 if (!expandedmask) {
@@ -851,7 +862,7 @@ boost::python::list getNumpy(boost::python::dict arg)
                             DataTypes::pointToNumpyArray(dataArray, samplesR[d],
                                 data[d].getDataPointShape(), offset[d], spaces[d], hasmask ? maskcounter : i+j*numsamples);
                         }
-                        
+
                         offset[d] += step[d];
                         maskcounter++;
                     }
@@ -864,16 +875,16 @@ boost::python::list getNumpy(boost::python::dict arg)
             }
 
         }
-    } catch (EsysException e) {
-        error = 1;
-        if (data[0].getDomain()->getMPISize() == 1) {
+    } catch (EsysException* e) {
+        error=1;
+        if (data[0].getDomain()->getMPISize()==1) {
             throw;
         } else {
-            localmsg = e.what();
+            localmsg=e->what();
         }
     } catch (...) {
-        error = 1;
-        if (data[0].getDomain()->getMPISize() == 1) {
+        error=1;
+        if (data[0].getDomain()->getMPISize()==1) {
             throw;
         }
     }
@@ -910,13 +921,74 @@ boost::python::list getNumpy(boost::python::dict arg)
         answer.append(temp);
     }
 
-    // Print out the ndarray to the console - used during debugging 
+    // Print out the ndarray to the console - used during debugging
     // std::cout << "Finished array:\n" << bp::extract<char const *>(bp::str(dataArray)) << std::endl;
 
     return answer;
 }
 #else
 void getNumpy(bp::dict arg){
+    throw DataException("getNumpy: Error - Please recompile escripts with the boost numpy library");
+}
+#endif
+
+#ifdef ESYS_HAVE_BOOST_NUMPY
+boost::python::numpy::ndarray convertToNumpy(escript::Data data)
+{
+    // Initialise boost numpy
+    // Py_Initialize();
+    boost::python::numpy::initialize();
+
+    // Check to see if we have complex data
+    bool have_complex = data.isComplex();
+
+    // Work out how many data points there are
+    int numDataPoints = data.getNumSamples();
+    int dpps = data.getNumDataPointsPerSample();
+
+    // Work out the data point shape
+    std::vector<int> shape = data.getDataPointShape();
+    if(shape.size() == 0){ // If we have scalar data, the shape will be ()
+        shape.push_back(1);
+    }
+
+    // Work out the shape
+    int dimensions = data.getShapeProduct();
+
+    // Initialise the ndarray
+    boost::python::tuple arrayshape = boost::python::make_tuple(dimensions, dpps * numDataPoints);
+    boost::python::numpy::dtype datatype = boost::python::numpy::dtype::get_builtin<double>();
+    if (have_complex) {
+        datatype = boost::python::numpy::dtype::get_builtin<std::complex<double>>();
+    }
+    boost::python::numpy::ndarray dataArray = boost::python::numpy::zeros(arrayshape, datatype);
+
+    // Initialise variables
+    std::string localmsg;
+    std::vector<const DataTypes::real_t*> samplesR(1);
+
+    // This is needed below in getSampleDataRO
+    const DataTypes::real_t onlyreal = 0;
+    const DataTypes::cplx_t onlycomplex = 0;
+
+// #pragma omp parallel for
+    for (int i = 0; i < numDataPoints; ++i) {
+        for (int j = 0; j < shape[0]; j++) {
+            if(have_complex){
+                dataArray[j][i] = *(data.getSampleDataRO(i, onlycomplex)+j);
+            } else {
+                dataArray[j][i] = *(data.getSampleDataRO(i, onlyreal)+j);
+            }
+        }
+    }
+
+    // Print out the ndarray to the console - used during debugging
+    // std::cout << "Finished array:\n" << bp::extract<char const *>(bp::str(dataArray)) << std::endl;
+
+    return dataArray;
+}
+#else
+void convertToNumpy(escript::Data data){
     throw DataException("getNumpy: Error - Please recompile escripts with the boost numpy library");
 }
 #endif
@@ -960,4 +1032,3 @@ void resolveGroup(bp::object obj)
 
 
 } // end of namespace
-

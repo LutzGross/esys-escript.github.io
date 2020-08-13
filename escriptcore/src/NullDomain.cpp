@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2018 by The University of Queensland
+* Copyright (c) 2003-2020 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -10,8 +10,9 @@
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
-* Development from 2014 by Centre for Geoscience Computing (GeoComp)
-*
+* Development from 2014-2017 by Centre for Geoscience Computing (GeoComp)
+* Development from 2019 by School of Earth and Environmental Sciences
+**
 *****************************************************************************/
 
 #include "NullDomain.h" 
@@ -178,6 +179,17 @@ escript::Data NullDomain::getX() const
     throwStandardException("NullDomain::getX");
     return escript::Data();
 }
+#ifdef ESYS_HAVE_BOOST_NUMPY
+boost::python::numpy::ndarray NullDomain::getNumpyX() const
+{
+    throwStandardException("NullDomain::getNumpyX");
+    boost::python::numpy::initialize();
+    boost::python::tuple shape = boost::python::make_tuple(1,1);
+    boost::python::numpy::dtype dtype = boost::python::numpy::dtype::get_builtin<float>();
+    boost::python::numpy::ndarray array = boost::python::numpy::empty(shape, dtype);
+    return array;
+}
+#endif
 void NullDomain::setToX(escript::Data&) const
 {
     throwStandardException("NullDomain::setToX");

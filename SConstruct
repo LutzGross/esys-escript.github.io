@@ -30,7 +30,10 @@ REQUIRED_OPTS_VERSION=203
 # MS Windows support, many thanks to PH
 IS_WINDOWS = (os.name == 'nt')
 
-IS_OSX = (os.uname()[0] == 'Darwin')
+if IS_WINDOWS:
+    IS_OSX = False
+else:
+    IS_OSX = (os.uname()[0] == 'Darwin')
 
 ########################## Determine options file ############################
 # 1. command line
@@ -108,6 +111,10 @@ vars.AddVariables(
   BoolVariable('umfpack', 'Enable UMFPACK', False),
   ('umfpack_prefix', 'Prefix/Paths to UMFPACK installation', default_prefix),
   ('umfpack_libs', 'UMFPACK libraries to link with', ['umfpack']),
+  BoolVariable('mumps', 'Enable MUMPS', False),
+  ('mumps_prefix', 'Prefix/Paths to MUMPS installation', default_prefix),
+  ('mumps_libs', 'MUMPS libraries to link with', ['mumps_common','pord','dmumps','zmumps',
+    'mpiseq','lapack','metis','scotch','esmumps','gfortran']),
   TristateVariable('lapack', 'Enable LAPACK', 'auto'),
   ('lapack_prefix', 'Prefix/Paths to LAPACK installation', default_prefix),
   ('lapack_libs', 'LAPACK libraries to link with', []),
@@ -148,6 +155,7 @@ vars.AddVariables(
   BoolVariable('longindices', 'use long indices (for very large matrices)', False),
   BoolVariable('compressed_files','Enables reading from compressed binary files', True),
   ('compression_libs', 'Compression libraries to link with', ['boost_iostreams']),
+  BoolVariable('disable_boost_numpy', 'Do not build using boost_numpy, even if it is available', False),
   BoolVariable('osx_dependency_fix', 'Fix dependencies for libraries to have absolute paths (OSX)', False),
   BoolVariable('stdlocationisprefix', 'Set the prefix as escript root in the launcher', False),
   BoolVariable('mpi_no_host', 'Do not specify --host in run-escript launcher (only OPENMPI)', False),
@@ -283,7 +291,7 @@ elif cc_name[:3] == 'g++':
     cc_flags     = " -Wall -fPIC -finline-functions "
     cxx_flags     = "-std=c++11 -pedantic -Wall -fPIC -finline-functions"
     cc_flags += " -Wno-unknown-pragmas -Wno-sign-compare -Wno-system-headers -Wno-long-long -Wno-strict-aliasing -Wno-maybe-uninitialized"
-    cc_flags += " --param=max-vartrack-size=100000000 -Wno-format-overflow -Wno-catch-value"
+    cc_flags += " --param=max-vartrack-size=100000000 -Wno-format-overflow"
     if(env['debug']):
         cc_flags += " -DP4EST_ENABLE_DEBUG"
     cc_optim     = "-O3"
@@ -485,7 +493,8 @@ except KeyError:
 
 # Takes care of prefix and suffix for Python modules:
 def build_python_module(env, target, source):
-    return env.SharedLibrary(target, source, SHLIBPREFIX='', SHLIBSUFFIX='.so')
+    sl_suffix = '.pyd' if IS_WINDOWS else '.so'
+    return env.SharedLibrary(target, source, SHLIBPREFIX='', SHLIBSUFFIX=sl_suffix)
 env.AddMethod(build_python_module, "PythonModule")
 
 if env['pythoncmd']=='python':
@@ -526,7 +535,7 @@ env=checkCppUnit(env)
 ######## optional python modules (sympy, pyproj)
 env=checkOptionalModules(env)
 
-######## optional dependencies (netCDF, MKL, UMFPACK, Lapack, Silo, ...)
+######## optional dependencies (netCDF, MKL, UMFPACK, MUMPS, Lapack, Silo, ...)
 env=checkOptionalLibraries(env)
 
 ######## PDFLaTeX (for documentation)
@@ -777,7 +786,7 @@ def print_summary():
     else:
         print("     boost numpy:  NO")
     if env['trilinos']:
-        print("        trilinos:  %s "%(env['trilinos_prefix']))
+        print("        trilinos:  %s (Version %s)" % (env['trilinos_prefix'],env['trilinos_version']))
     else:
         print("        trilinos:  NO")
     if env['numpy_h']:
@@ -825,6 +834,8 @@ def print_summary():
             direct.append('mkl')
         if env['umfpack']:
             direct.append('umfpack')
+        if env['mumps']:
+            direct.append('mumps')
     else:
         d_list.append('paso')
     if env['trilinos']:
@@ -846,8 +857,8 @@ def print_summary():
     else:
         print("          netcdf:  NO")
     e_list=[]
-    for i in ('weipa','debug','openmp','cppunit','gdal','mkl','p4est',
-             'pyproj','scipy','silo','sympy','umfpack','visit'):
+    for i in ('weipa','debug','openmp','cppunit','gdal','mkl',
+             'mumps','pyproj','scipy','silo','sympy','umfpack','visit'):
         if env[i]: e_list.append(i)
         else: d_list.append(i)
 

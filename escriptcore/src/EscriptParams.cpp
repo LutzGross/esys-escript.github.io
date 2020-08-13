@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2018 by The University of Queensland
+* Copyright (c) 2003-2020 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -10,8 +10,9 @@
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
-* Development from 2014 by Centre for Geoscience Computing (GeoComp)
-*
+* Development from 2014-2017 by Centre for Geoscience Computing (GeoComp)
+* Development from 2019 by School of Earth and Environmental Sciences
+**
 *****************************************************************************/
 
 #include "EscriptParams.h"
@@ -25,7 +26,7 @@ namespace bp = boost::python;
 
 namespace escript {
 
-EscriptParams escriptParams; // externed in header file
+ESCRIPT_DLL_API EscriptParams escriptParams; // externed in header file
 
 
 EscriptParams::EscriptParams()
@@ -77,9 +78,6 @@ EscriptParams::EscriptParams()
 #ifdef _OPENMP
     features.insert("openmp");
 #endif
-#ifdef ESYS_HAVE_OXLEY
-    features.insert("oxley");
-#endif
 #ifdef ESYS_HAVE_PASO
     features.insert("paso");
 #endif
@@ -98,6 +96,9 @@ EscriptParams::EscriptParams()
 #ifdef ESYS_HAVE_UMFPACK
     features.insert("umfpack");
 #endif
+#ifdef ESYS_HAVE_MUMPS
+    features.insert("mumps");
+#endif
 #ifdef ESYS_HAVE_WEIPA
     features.insert("weipa");
 #endif
@@ -107,16 +108,17 @@ EscriptParams::EscriptParams()
 #ifdef ESYS_INDEXTYPE_LONG
     features.insert("longindex");
 #endif
-#ifdef ESYS_HAVE_BOOST_NUMPY
-    features.insert("boost_numpy");
-#endif
 
     //TODO: these should be replaced by a runtime check in python
 #ifdef ESYS_HAVE_GMSH
-    features.insert("gmsh");
+    features.insert("gmsh");    
 #endif
 #ifdef ESYS_GMSH_MPI
     features.insert("gmsh_mpi");
+#endif
+
+#ifdef ESYS_HAVE_BOOST_NUMPY
+    features.insert("boostnumpy");
 #endif
 }
 
@@ -179,7 +181,7 @@ bool EscriptParams::hasFeature(const std::string& name) const
         if (MPI_Comm_size(MPI_COMM_WORLD, &size) != MPI_SUCCESS || size > 1)
             return false;
 #endif
-        return hasFeature("paso") && (hasFeature("umfpack") || hasFeature("mkl"));
+        return hasFeature("paso") && (hasFeature("umfpack") || hasFeature("mkl") || hasFeature("mumps"));
     }
 
     return features.count(name) > 0;
@@ -195,3 +197,4 @@ bp::list EscriptParams::listFeatures() const
 }
 
 } // end namespace
+

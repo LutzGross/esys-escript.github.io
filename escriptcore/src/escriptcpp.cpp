@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2018 by The University of Queensland
+* Copyright (c) 2003-2020 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -10,8 +10,9 @@
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
-* Development from 2014 by Centre for Geoscience Computing (GeoComp)
-*
+* Development from 2014-2017 by Centre for Geoscience Computing (GeoComp)
+* Development from 2019 by School of Earth and Environmental Sciences
+**
 *****************************************************************************/
 
 #include "AbstractContinuousDomain.h"
@@ -27,7 +28,9 @@
 #include "FunctionSpaceFactory.h"
 #include "MPIDataReducer.h"
 #include "MPIScalarReducer.h"
-#include "NCHelper.h"
+#ifdef NETCDF4
+  #include "NCHelper.h"
+#endif
 #include "NonReducedVariable.h"
 #include "SolverOptions.h"
 #include "SplitWorld.h"
@@ -65,7 +68,7 @@ using namespace boost::python;
  * - \ref dudley
  *
  * - \ref ripley
- * 
+ *
  * - \ref speckley
  *
  * - \ref weipa
@@ -84,7 +87,7 @@ namespace
 bool block_cmp_data(const escript::Data&, boost::python::object o)
 {
     PyErr_SetString(PyExc_TypeError,"Python relational operators are not defined for Data objects.");
-    boost::python::throw_error_already_set();   
+    boost::python::throw_error_already_set();
     return false;
 }
 
@@ -94,21 +97,21 @@ bool block_eq_data(const escript::Data&, boost::python::object o)
     PyErr_SetString(PyExc_TypeError,"The Python == and != operators are not defined for Data objects. "
       "To check for object identity use 'is'.  To check for numerical similarity of x and y, use Lsup(x-y)<TOL "
       "for a suitable tolerance.");
-    boost::python::throw_error_already_set();   
+    boost::python::throw_error_already_set();
     return false;
 }
 
 bool block_cmp_functionspace(const escript::FunctionSpace&, boost::python::object o)
 {
     PyErr_SetString(PyExc_TypeError,"Python relational operators are not defined for FunctionSpaces.");
-    boost::python::throw_error_already_set();   
+    boost::python::throw_error_already_set();
     return false;
 }
 
 bool block_cmp_domains(const escript::AbstractDomain&, boost::python::object o)
 {
     PyErr_SetString(PyExc_TypeError,"Python relational operators are not defined for Domains.");
-    boost::python::throw_error_already_set();   
+    boost::python::throw_error_already_set();
     return false;
 }
 }
@@ -119,6 +122,9 @@ BOOST_PYTHON_MODULE(escriptcpp)
 // params are: bool show_user_defined, bool show_py_signatures, bool show_cpp_signatures
     docstring_options docopt(true,true,false);
 #endif
+#ifdef ESYS_HAVE_BOOST_NUMPY
+    numpy::initialize();
+#endif
 
     scope().attr("__doc__") = "To use this module, please import esys.escript";
 
@@ -126,24 +132,27 @@ BOOST_PYTHON_MODULE(escriptcpp)
     REGISTER_ESCRIPT_EXCEPTION_TRANSLATORS;
     
     
+#ifdef NETCDF4
     def("NcFType", escript::NcFType, arg("filename"), "Return a character indicating what netcdf format a file uses.\nc or C indicates netCDF3.\n4 indicates netCDF4.\nu indicates unsupported format (eg netCDF4 file in an escript build which does not support it\n? indicates unknown.");
+#endif
 
 /* begin SubWorld things */
 
   class_<escript::AbstractReducer, escript::Reducer_ptr, boost::noncopyable>("Reducer", "", no_init);
-  
+
   // Why doesn't this have a doc-string?   Because it doesn't compile if you try to add one
   // These functions take a SplitWorld instance as their first parameter
   def("internal_buildDomains", raw_function(escript::raw_buildDomains,2));
   def("internal_addJob", raw_function(escript::raw_addJob,2));
   def("internal_addJobPerWorld", raw_function(escript::raw_addJobPerWorld,2));
   def("internal_addVariable", raw_function(escript::raw_addVariable,3));
-  
-  
+// #ifdef ESYS_HAVE_BOOST_NUMPY
+//   def("internal_initBoostNumpy", &escript::initBoostNumpy);
+// #endif
   def("internal_makeDataReducer", escript::makeDataReducer, arg("op"), "Create a reducer to work with Data and the specified operation.");
   def("internal_makeScalarReducer", escript::makeScalarReducer, arg("op"), "Create a reducer to work with doubles and the specified operation.");
   def("internal_makeLocalOnly", escript::makeNonReducedVariable, "Create a variable which is not connected to copies in other worlds.");
-      
+
   class_<escript::SplitWorld, boost::noncopyable>("Internal_SplitWorld", "Manages a group of sub worlds. For internal use only.", init<unsigned int>(args("num_worlds")))
     .def("runJobs", &escript::SplitWorld::runJobs, "Execute pending jobs.")
     .def("removeVariable", &escript::SplitWorld::removeVariable, arg("name"), "Remove the named variable from the SplitWorld")
@@ -155,11 +164,11 @@ BOOST_PYTHON_MODULE(escriptcpp)
     .def("getSubWorldCount",&escript::SplitWorld::getSubWorldCount)
     .def("getSubWorldID", &escript::SplitWorld::getSubWorldID)
     .def("copyVariable", &escript::SplitWorld::copyVariable, args("source","destination"), "Copy the contents of one variable to another");
-    
-  // This class has no methods. This is deliberate - at this stage, I would like this to be an opaque type  
+
+  // This class has no methods. This is deliberate - at this stage, I would like this to be an opaque type
   class_ <escript::SubWorld, escript::SubWorld_ptr, boost::noncopyable>("SubWorld", "Information about a group of workers.", no_init);
 /* end SubWorld things */
-  
+
   def("setNumberOfThreads",escript::setNumberOfThreads,"Use of this method is strongly discouraged.");
   def("getNumberOfThreads",escript::getNumberOfThreads,"Return the maximum number of threads"
         " available to OpenMP.");
@@ -206,10 +215,23 @@ BOOST_PYTHON_MODULE(escriptcpp)
         "");
   def("_getNumpy",escript::getNumpy, arg("arg"),
         "Takes in a data object (or objects) and returns a numpy array\n"
-        ":param arg: dictionary containing a single `Data` objects. \n"
-        ":type arg: ``dict``\n"
+        ":param arg: Data object\n"
         ":rtype: numpy ndarray\n"
-        ""); 
+        "");
+  def("_convertToNumpy",escript::convertToNumpy, arg("arg"),
+        "Takes in a data object (or objects) and returns a numpy array\n"
+        ":param arg: Data object\n"
+        ":rtype: numpy ndarray\n"
+        "");
+// #ifdef ESYS_HAVE_BOOST_NUMPY
+//   def("_numpyToData", escript::numpyToData,(arg("array"), arg("isComplex"), arg("functionspace")),
+//         "Takes in a numpy ndarray and function space and returns a Data object\n"
+//         ":param array: A numpy ndarray\n"
+//         ":param isComplex: boolean. True for complex data \n"
+//         ":param functionspace: A FunctionSpace\n"
+//         ":rtype: Data object\n"
+//         "");
+// #endif
   def("canInterpolate", &escript::canInterpolate, args("src", "dest"),":param src: Source FunctionSpace\n"
         ":param dest: Destination FunctionSpace\n"
         ":return: True if src can be interpolated to dest\n"
@@ -239,6 +261,14 @@ BOOST_PYTHON_MODULE(escriptcpp)
      .def("getX",&escript::AbstractDomain::getX,":rtype: `Data`\n"
         ":return: Locations in the"
         "`Domain`. FunctionSpace is chosen appropriately")
+#ifdef ESYS_HAVE_BOOST_NUMPY
+     .def("getNumpyX",&escript::AbstractDomain::getNumpyX,":rtype: `numpy ndarray`\n"
+        ":return: Locations in the"
+        "`Domain`. FunctionSpace is chosen appropriately")
+     .def("isCellOriented", &escript::AbstractDomain::isCellOriented, arg("functionSpaceCode"),
+        ":return: true is the data is cell centered.\n"
+        ":rtype: ``int``")
+#endif
      .def("getDim",&escript::AbstractDomain::getDim,":rtype: `int`\n"
         ":return: Spatial dimension of the `Domain`")
      .def("getNormal",&escript::AbstractDomain::getNormal,":rtype: `escript`\n"
@@ -305,7 +335,7 @@ args("mat", "rhs","A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", "y_contac
         ":param y_dirac:\n"
         ":type y_dirac: `Data`\n"
 )
-      .def("addPDEToRHS",&escript::AbstractContinuousDomain::addPDEToRHS, 
+      .def("addPDEToRHS",&escript::AbstractContinuousDomain::addPDEToRHS,
 args("rhs", "X", "Y", "y", "y_contact", "y_dirac"),
         "adds a PDE onto the stiffness matrix mat and a rhs\n\n"
         ":param rhs:\n"
@@ -403,11 +433,11 @@ args("arg"), "assigns new location to the domain\n\n"
   //
   // Interface for TestDomain
   //
-  class_ <escript::TestDomain, bases<escript::AbstractDomain> >("TestDomain", 
+  class_ <escript::TestDomain, bases<escript::AbstractDomain> >("TestDomain",
 	"Test Class for domains with no structure. May be removed from future releases without notice.", no_init);
 
   // This is the only python visible way to get a TestDomain
-  def("getTestDomainFunctionSpace",&escript::getTestDomainFunctionSpace, (arg("dpps"), 
+  def("getTestDomainFunctionSpace",&escript::getTestDomainFunctionSpace, (arg("dpps"),
  arg("samples"), arg("size")=1),
         "For testing only. May be removed without notice.");
 
@@ -444,6 +474,7 @@ args("arg"), "assigns new location to the domain\n\n"
         ":rtype: ``list``");
   fs_definer.def("getApproximationOrder", &escript::FunctionSpace::getApproximationOrder,":return: the approximation order referring to the maximum degree of a polynomial which can be represented exactly in interpolation and/or integration.\n"
         ":rtype: ``int``");
+  fs_definer.def("getTypeCode",&escript::FunctionSpace::getTypeCode,":rtype: `int`");
   fs_definer.def("__str__", &escript::FunctionSpace::toString);
   fs_definer.def("__lt__",block_cmp_functionspace);
   fs_definer.def("__le__",block_cmp_functionspace);
@@ -452,19 +483,22 @@ args("arg"), "assigns new location to the domain\n\n"
   fs_definer.def(self == self);
   fs_definer.def(self != self);
 
-  
-  
+
+
   //
   // Interface for Data
   //
   class_<escript::Data>("Data"/*,shared_ptr<Data>*/, "Represents a collection of datapoints. It is used to store the values of a function. For more details please consult the c++ class documentation.",init<>())
     // various constructors for Data objects
-    .def(init<object, optional<object, object, object>>(args("value", "p2", "p3", "p4")))    
+    .def(init<object, optional<object, object, object>>(args("value", "p2", "p3", "p4")))
     // Note for Lutz, Need to specify the call policy in order to return a
     // reference. In this case return_internal_reference.
     .def("__str__",&escript::Data::toString)
     .def("getDomain",&escript::Data::getDomainPython,":rtype: `Domain`")
     .def("getFunctionSpace",&escript::Data::getFunctionSpace,return_value_policy<copy_const_reference>(),":rtype: `FunctionSpace`")
+    .def("getX",&escript::Data::getXFromFunctionSpace,
+        "Returns the spatial coordinates of the spatial nodes.\n"
+        ":rtype: `Data`")
     .def("isEmpty",&escript::Data::isEmpty,"Is this object an instance of ``DataEmpty``\n\n"
         ":rtype: ``bool``\n"
         ":note: This is not the same thing as asking if the object contains datapoints.")
@@ -554,11 +588,11 @@ args("arg"), "assigns new location to the domain\n\n"
         ":type dataPointNo: int")
     .def("setToZero",&escript::Data::setToZero,"After this call the object will store values of the same shape as before but all components will be zero.")
     .def("interpolate",&escript::Data::interpolate,args("functionspace"),"Interpolate this object's values into a new functionspace.")
-    .def("_interpolateTable3d", &escript::Data::interpolateFromTable3DP, 
+    .def("_interpolateTable3d", &escript::Data::interpolateFromTable3DP,
 (arg("table"),arg("Amin"),arg("Astep"), arg("B"), arg("Bmin"), arg("Bstep"), arg("C"), arg("Cmin"), arg("Cstep"), arg("undef")=1.e50, arg("check_boundaries")=false, "For internal use only. Please use the interpolateTable function.")
 )
 
-    .def("interpolateTable", &escript::Data::interpolateFromTable2DP, 
+    .def("interpolateTable", &escript::Data::interpolateFromTable2DP,
 (arg("table"),arg("Amin"),arg("Astep"), arg("B"), arg("Bmin"), arg("Bstep"), arg("undef")=1.e50, arg("check_boundaries")=false),
         "Creates a new Data object by interpolating using the source data (which are\n"
         "looked up in ``table``)\n"
@@ -581,7 +615,7 @@ args("arg"), "assigns new location to the domain\n\n"
         "\n"
         ":rtype: `Data`"
 )
-    .def("interpolateTable", &escript::Data::interpolateFromTable1DP, 
+    .def("interpolateTable", &escript::Data::interpolateFromTable1DP,
 (arg("table"),arg("Amin"),arg("Astep"), arg("undef")=1.e50, arg("check_boundaries")=false)/*,
         "Creates a new Data object by interpolating using the source data (which are\n"
         "looked up in ``table``)\n\n"
@@ -613,7 +647,7 @@ args("arg"), "assigns new location to the domain\n\n"
         ":param out: corresponding output values of interpolation function\n"
         ":param check_boundaries: If True, an exception will the thrown if the data object contains values"
         "outside the range given by ``in``.\n"
-    )	 
+    )
     .def("internal_minGlobalDataPoint",&escript::Data::minGlobalDataPoint,"Please consider using getInfLocator() from pdetools instead.")
     .def("internal_maxGlobalDataPoint",&escript::Data::maxGlobalDataPoint, "Please consider using getSupLocator() from pdetools instead.")
     .def("getTagNumber",&escript::Data::getTagNumber,args("dpno"),"Return tag number for the specified datapoint\n\n"
@@ -661,7 +695,7 @@ args("arg"), "assigns new location to the domain\n\n"
     .def("_symmetric",&escript::Data::symmetric)
     .def("_antisymmetric",&escript::Data::antisymmetric)
     .def("_hermitian",&escript::Data::hermitian)
-    .def("_antihermitian",&escript::Data::antihermitian)    
+    .def("_antihermitian",&escript::Data::antihermitian)
     .def("_trace",&escript::Data::trace)
     .def("_swap_axes",&escript::Data::swapaxes)
     .def("_eigenvalues",&escript::Data::eigenvalues)
@@ -713,7 +747,7 @@ args("arg"), "assigns new location to the domain\n\n"
 #pragma clang diagnostic ignored "-Wself-assign-overloaded"
     // NOTE:: The order of these declarations is important. Anything
     // declared before the generic declaration isn't found so the generic
-    // version will be called. 
+    // version will be called.
 //    .def(self + other<object>())
 //    .def(other<object>() + self)
 //    .def(self + self)
@@ -748,12 +782,12 @@ args("arg"), "assigns new location to the domain\n\n"
     .def("__radd__", &escript::Data::__add__)  // its the same coz + is commutative
     .def("__sub__", &escript::Data::__sub__)
     .def("__rsub__", &escript::Data::__rsub__)
-    .def("__mul__", &escript::Data::__mul__)   
+    .def("__mul__", &escript::Data::__mul__)
     .def("__rmul__", &escript::Data::__mul__)   // commutative
-    .def("__div__", &escript::Data::__div__)   
+    .def("__div__", &escript::Data::__div__)
     .def("__rdiv__", &escript::Data::__rdiv__)   // commutative
-    .def("__eq__", block_eq_data)		// stop people from using == 
-    .def("__ne__", block_eq_data)		// stop people from using != 
+    .def("__eq__", block_eq_data)		// stop people from using ==
+    .def("__ne__", block_eq_data)		// stop people from using !=
     ;
 
   //
@@ -771,7 +805,7 @@ args("arg"), "assigns new location to the domain\n\n"
         ":rtype: `FunctionSpace`");
   def("FunctionOnBoundary",escript::functionOnBoundary, args("domain"), ":return: a function on boundary FunctionSpace\n"
         ":rtype: `FunctionSpace`");
-  def("ReducedFunctionOnBoundary",escript::reducedFunctionOnBoundary, args("domain"), 
+  def("ReducedFunctionOnBoundary",escript::reducedFunctionOnBoundary, args("domain"),
         ":return: a function on boundary FunctionSpace with reduced integration order\n"
         ":rtype: `FunctionSpace`");
   def("FunctionOnContactZero",escript::functionOnContactZero, args("domain"), ":return: Return a FunctionSpace on left side of contact\n"
@@ -814,6 +848,19 @@ args("arg"), "assigns new location to the domain\n\n"
         ":type what: `FunctionSpace`\n"
         ":param expanded: If True, a value is stored for each point. If False, more efficient representations may be used\n"
         ":type expanded: ``bool``");
+  def("ComplexScalar",escript::ComplexScalarFromObj,
+      (arg("value")=0.0,
+       arg("what")=escript::FunctionSpace(),
+       arg("expanded")=false),
+        "Construct a Data object containing scalar data-points.\n\n"
+        ":param value: scalar value for all points\n"
+        "\n"
+        ":rtype: `Data`\n"
+        ":type value: float\n"
+        ":param what: FunctionSpace for Data\n"
+        ":type what: `FunctionSpace`\n"
+        ":param expanded: If True, a value is stored for each point. If False, more efficient representations may be used\n"
+        ":type expanded: ``bool``");
   def("Vector",escript::Vector,
       (arg("value")=0.0,
        arg("what")=escript::FunctionSpace(),
@@ -827,10 +874,27 @@ args("arg"), "assigns new location to the domain\n\n"
         ":type what: `FunctionSpace`\n"
         ":param expanded: If True, a value is stored for each point. If False, more efficient representations may be used\n"
         ":type expanded: ``bool``");
+  def("ComplexVector",escript::ComplexVector,
+    (arg("value")=0.0,
+     arg("what")=escript::FunctionSpace(),
+     arg("expanded")=false),
+      "Construct a Data object containing rank1 data-points.\n\n"
+      ":param value: scalar value for all points\n"
+      "\n"
+      ":rtype: `Data`\n"
+      ":type value: float\n"
+      ":param what: FunctionSpace for Data\n"
+      ":type what: `FunctionSpace`\n"
+      ":param expanded: If True, a value is stored for each point. If False, more efficient representations may be used\n"
+      ":type expanded: ``bool``");
  def("Vector", escript::VectorFromObj,
       (arg("value"),
 	arg("what")=escript::FunctionSpace(),
 	arg("expanded")=false));
+  def("ComplexVector", escript::ComplexVectorFromObj,
+         (arg("value"),
+   	arg("what")=escript::FunctionSpace(),
+   	arg("expanded")=false));
   def("Tensor",escript::Tensor,
       (arg("value")=0.0,
        arg("what")=escript::FunctionSpace(),
@@ -844,10 +908,27 @@ args("arg"), "assigns new location to the domain\n\n"
         ":type what: `FunctionSpace`\n"
         ":param expanded: If True, a value is stored for each point. If False, more efficient representations may be used\n"
         ":type expanded: ``bool``");
+    def("ComplexTensor",escript::ComplexTensor,
+        (arg("value")=0.0,
+         arg("what")=escript::FunctionSpace(),
+         arg("expanded")=false),
+          "Construct a Data object containing rank2 data-points.\n\n"
+          ":param value: scalar value for all points\n"
+          "\n"
+          ":rtype: `Data`\n"
+          ":type value: float\n"
+          ":param what: FunctionSpace for Data\n"
+          ":type what: `FunctionSpace`\n"
+          ":param expanded: If True, a value is stored for each point. If False, more efficient representations may be used\n"
+          ":type expanded: ``bool``");
  def("Tensor", escript::TensorFromObj,
       (arg("value"),
 	arg("what")=escript::FunctionSpace(),
 	arg("expanded")=false));
+def("ComplexTensor", escript::ComplexTensorFromObj,
+         (arg("value"),
+   	arg("what")=escript::FunctionSpace(),
+   	arg("expanded")=false));
   def("Tensor3",escript::Tensor3,
       (arg("value")=0.0,
        arg("what")=escript::FunctionSpace(),
@@ -861,6 +942,20 @@ args("arg"), "assigns new location to the domain\n\n"
         ":type what: `FunctionSpace`\n"
         ":param expanded: If True, a value is stored for each point. If False, more efficient representations may be used\n"
         ":type expanded: ``bool``"
+);
+def("ComplexTensor3",escript::ComplexTensor3,
+    (arg("value")=0.0,
+     arg("what")=escript::FunctionSpace(),
+     arg("expanded")=false),
+      "Construct a Data object containing rank3 data-points.\n\n"
+      ":param value: scalar value for all points\n"
+      "\n"
+      ":rtype: `Data`\n"
+      ":type value: float\n"
+      ":param what: FunctionSpace for Data\n"
+      ":type what: `FunctionSpace`\n"
+      ":param expanded: If True, a value is stored for each point. If False, more efficient representations may be used\n"
+      ":type expanded: ``bool``"
 );
  def("Tensor3", escript::Tensor3FromObj,
       (arg("value"),
@@ -880,11 +975,36 @@ args("arg"), "assigns new location to the domain\n\n"
         ":param expanded: If True, a value is stored for each point. If False, more efficient representations may be used\n"
         ":type expanded: ``bool``"
 );
+def("ComplexTensor3", escript::ComplexTensor3FromObj,
+     (arg("value"),
+   arg("what")=escript::FunctionSpace(),
+   arg("expanded")=false));
+ def("ComplexTensor4",escript::ComplexTensor4,
+     (arg("value")=0.0,
+      arg("what")=escript::FunctionSpace(),
+      arg("expanded")=false),
+       "Construct a Data object containing rank4 data-points.\n\n"
+       ":param value: scalar value for all points\n"
+       "\n"
+       ":rtype: `Data`\n"
+       ":type value: float\n"
+       ":param what: FunctionSpace for Data\n"
+       ":type what: `FunctionSpace`\n"
+       ":param expanded: If True, a value is stored for each point. If False, more efficient representations may be used\n"
+       ":type expanded: ``bool``"
+);
  def("Tensor4", escript::Tensor4FromObj,
       (arg("value"),
 	arg("what")=escript::FunctionSpace(),
 	arg("expanded")=false));
-
+def("ComplexTensor4", escript::ComplexTensor4FromObj,
+         (arg("value"),
+   	arg("what")=escript::FunctionSpace(),
+   	arg("expanded")=false));
+def("ComplexData", escript::ComplexData,
+         (arg("value"),
+   	arg("what")=escript::FunctionSpace(),
+   	arg("expanded")=false));
 
  def("RandomData", escript::randomData, (arg("shape"), arg("fs"), arg("seed")=0, arg("filter")=boost::python::tuple()),
         "Creates a new expanded Data object containing pseudo-random values. With no filter, values are drawn uniformly at random from [0,1].\n\n"
@@ -926,11 +1046,11 @@ args("arg"), "assigns new location to the domain\n\n"
      .def("of",&escript::AbstractSystemMatrix::vectorMultiply,args("right"),
         "matrix*vector multiplication")
      .def("nullifyRowsAndCols",&escript::AbstractSystemMatrix::nullifyRowsAndCols)
-     .def("saveMM",&escript::AbstractSystemMatrix::saveMM, args("fileName"), 
+     .def("saveMM",&escript::AbstractSystemMatrix::saveMM, args("fileName"),
         "writes the matrix to a file using the Matrix Market file format")
      .def("saveHB",&escript::AbstractSystemMatrix::saveHB, args("filename"),
         "writes the matrix to a file using the Harwell-Boeing file format")
-     .def("resetValues",&escript::AbstractSystemMatrix::resetValues, "resets the matrix entries")   
+     .def("resetValues",&escript::AbstractSystemMatrix::resetValues, "resets the matrix entries")
      .def(self*other<escript::Data>());
   //
   // Interface for AbstractTransportProblem
@@ -954,13 +1074,11 @@ args("source", "q", "r","factor"),
   enum_<escript::SolverOptions>("SolverOptions")
     .value("DEFAULT", escript::SO_DEFAULT)
 
-    .value("TARGET_CPU", escript::SO_TARGET_CPU)
-    .value("TARGET_GPU", escript::SO_TARGET_GPU)
-
     .value("MKL", escript::SO_PACKAGE_MKL)
     .value("PASO", escript::SO_PACKAGE_PASO)
     .value("TRILINOS", escript::SO_PACKAGE_TRILINOS)
     .value("UMFPACK", escript::SO_PACKAGE_UMFPACK)
+    .value("MUMPS", escript::SO_PACKAGE_MUMPS)
 
     .value("BICGSTAB", escript::SO_METHOD_BICGSTAB)
     .value("CGLS", escript::SO_METHOD_CGLS)
@@ -1073,10 +1191,10 @@ args("source", "q", "r","factor"),
         ":rtype: in the list `DEFAULT`, `DIRECT`, `CHOLEVSKY`, `PCG`, `CR`, `CGS`, `BICGSTAB`, `GMRES`, `PRES20`, `ROWSUM_LUMPING`, `HRZ_LUMPING`, `MINRES`, `ITERATIVE`, `NONLINEAR_GMRES`, `TFQMR`")
     .def("setPackage", &escript::SolverBuddy::setPackage, args("package"),"Sets the solver package to be used as a solver.\n\n"
         ":param package: key of the solver package to be used.\n"
-        ":type package: in `DEFAULT`, `PASO`, `CUSP`, `MKL`, `UMFPACK`, `TRILINOS`\n"
+        ":type package: in `DEFAULT`, `PASO`, `CUSP`, `MKL`, `UMFPACK`, `MUMPS`, `TRILINOS`\n"
         ":note: Not all packages are support on all implementation. An exception may be thrown on some platforms if a particular package is requested.")
     .def("getPackage", &escript::SolverBuddy::getPackage,"Returns the solver package key\n\n"
-        ":rtype: in the list `DEFAULT`, `PASO`, `CUSP`, `MKL`, `UMFPACK`, `TRILINOS`")
+        ":rtype: in the list `DEFAULT`, `PASO`, `CUSP`, `MKL`, `UMFPACK`, `MUMPS`, `TRILINOS`")
     .def("setReordering", &escript::SolverBuddy::setReordering, args("ordering"),"Sets the key of the reordering method to be applied if supported by the solver. Some direct solvers support reordering to optimize compute time and storage use during elimination.\n\n"
         ":param ordering: selects the reordering strategy.\n"
         ":type ordering: in 'NO_REORDERING', 'MINIMUM_FILL_IN', 'NESTED_DISSECTION', 'DEFAULT_REORDERING'")
@@ -1251,4 +1369,3 @@ args("source", "q", "r","factor"),
 
   def("_condEval", escript::condEval, (arg("mask"), arg("trueval"), arg("falseval")));
 }
-

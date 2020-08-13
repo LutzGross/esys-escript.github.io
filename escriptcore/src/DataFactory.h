@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2018 by The University of Queensland
+* Copyright (c) 2003-2020 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -10,8 +10,9 @@
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
-* Development from 2014 by Centre for Geoscience Computing (GeoComp)
-*
+* Development from 2014-2017 by Centre for Geoscience Computing (GeoComp)
+* Development from 2019 by School of Earth and Environmental Sciences
+**
 *****************************************************************************/
 
 
@@ -40,8 +41,8 @@ namespace escript {
    ie: rank 0 data-points.
    \param value - Input - Single value applied to all Data.
    \param what - Input - A description of what this data represents.
-   \param expanded - Input - if true fill the entire container with 
-                     the value. Otherwise a more efficient storage 
+   \param expanded - Input - if true fill the entire container with
+                     the value. Otherwise a more efficient storage
                      mechanism will be used.
 */
 ESCRIPT_DLL_API Data
@@ -49,6 +50,20 @@ Scalar(double value,
        const FunctionSpace& what=FunctionSpace(),
        bool expanded=false);
 
+/**
+  \brief
+  Return a Complex Data object containing scalar data-points.
+  ie: rank 0 data-points.
+  \param value - Input - Single value applied to all Data.
+  \param what - Input - A description of what this data represents.
+  \param expanded - Input - if true fill the entire container with
+                    the value. Otherwise a more efficient storage
+                    mechanism will be used.
+*/
+ESCRIPT_DLL_API Data
+ComplexScalar(double value,
+      const FunctionSpace& what=FunctionSpace(),
+      bool expanded=false);
 
 /**
    \brief
@@ -56,8 +71,8 @@ Scalar(double value,
    ie: rank 0 data-points.
    \param value - Input - Single value applied to all Data.
    \param what - Input - A description of what this data represents.
-   \param expanded - Input - if true fill the entire container with 
-                     the value. Otherwise a more efficient storage 
+   \param expanded - Input - if true fill the entire container with
+                     the value. Otherwise a more efficient storage
                      mechanism will be used.
 */
 ESCRIPT_DLL_API Data
@@ -66,7 +81,22 @@ Scalar(DataTypes::cplx_t value,
        bool expanded=false);
 
 /**
- * \brief Python interface for the Scalar factory 
+  \brief
+  Return a Data object containing scalar data-points.
+  ie: rank 0 data-points.
+  \param value - Input - Single value applied to all Data.
+  \param what - Input - A description of what this data represents.
+  \param expanded - Input - if true fill the entire container with
+                    the value. Otherwise a more efficient storage
+                    mechanism will be used.
+*/
+ESCRIPT_DLL_API Data
+ComplexScalar(DataTypes::cplx_t value,
+      const FunctionSpace& what=FunctionSpace(),
+      bool expanded=false);
+
+/**
+ * \brief Python interface for the Scalar factory
 */
 ESCRIPT_DLL_API
 Data
@@ -74,6 +104,14 @@ ScalarFromObj(boost::python::object o,
 	const FunctionSpace& what=FunctionSpace(),
 	bool expanded=false);
 
+/**
+ * \brief Python interface for the Complex Scalar factory
+*/
+ESCRIPT_DLL_API
+Data
+ComplexScalarFromObj(boost::python::object o,
+	const FunctionSpace& what=FunctionSpace(),
+	bool expanded=false);
 
 /**
    \brief
@@ -85,12 +123,22 @@ Vector(double value,
        const FunctionSpace& what=FunctionSpace(),
        bool expanded=false);
 
+ESCRIPT_DLL_API Data
+ComplexVector(double value,
+      const FunctionSpace& what=FunctionSpace(),
+      bool expanded=false);
+
 ESCRIPT_DLL_API
 Data
 VectorFromObj(boost::python::object o,
 	const FunctionSpace& what=FunctionSpace(),
 	bool expanded=false);
 
+ESCRIPT_DLL_API
+Data
+ComplexVectorFromObj(boost::python::object o,
+	const FunctionSpace& what=FunctionSpace(),
+	bool expanded=false);
 /**
    \brief
    Return a Data object containing tensor datapoints.
@@ -101,11 +149,23 @@ Tensor(double value,
        const FunctionSpace& what=FunctionSpace(),
        bool expanded=false);
 
+ESCRIPT_DLL_API Data
+ComplexTensor(double value,
+      const FunctionSpace& what=FunctionSpace(),
+      bool expanded=false);
+
 ESCRIPT_DLL_API
 Data
 TensorFromObj(boost::python::object o,
 	const FunctionSpace& what=FunctionSpace(),
 	bool expanded=false);
+
+ESCRIPT_DLL_API
+Data
+ComplexTensorFromObj(boost::python::object o,
+	const FunctionSpace& what=FunctionSpace(),
+	bool expanded=false);
+
 /**
    \brief
    Return a Data object containing tensor3 datapoints.
@@ -116,9 +176,20 @@ Tensor3(double value,
         const FunctionSpace& what=FunctionSpace(),
         bool expanded=false);
 
+ESCRIPT_DLL_API Data
+ComplexTensor3(double value,
+        const FunctionSpace& what=FunctionSpace(),
+        bool expanded=false);
+
 ESCRIPT_DLL_API
 Data
 Tensor3FromObj(boost::python::object o,
+	const FunctionSpace& what=FunctionSpace(),
+	bool expanded=false);
+
+ESCRIPT_DLL_API
+Data
+ComplexTensor3FromObj(boost::python::object o,
 	const FunctionSpace& what=FunctionSpace(),
 	bool expanded=false);
 
@@ -132,9 +203,26 @@ Tensor4(double value,
         const FunctionSpace& what=FunctionSpace(),
         bool expanded=false);
 
+ESCRIPT_DLL_API Data
+ComplexTensor4(double value,
+        const FunctionSpace& what=FunctionSpace(),
+        bool expanded=false);
+
 ESCRIPT_DLL_API
 Data
 Tensor4FromObj(boost::python::object o,
+	const FunctionSpace& what=FunctionSpace(),
+	bool expanded=false);
+
+ESCRIPT_DLL_API
+Data
+ComplexTensor4FromObj(boost::python::object o,
+	const FunctionSpace& what=FunctionSpace(),
+	bool expanded=false);
+
+ESCRIPT_DLL_API
+Data
+ComplexData(boost::python::object o,
 	const FunctionSpace& what=FunctionSpace(),
 	bool expanded=false);
 
@@ -142,7 +230,7 @@ Tensor4FromObj(boost::python::object o,
    \brief
    reads Data on domain from file in netCDF format
 */
-ESCRIPT_DLL_API Data 
+ESCRIPT_DLL_API Data
 load(const std::string fileName,
      const AbstractDomain& domain);
 /**

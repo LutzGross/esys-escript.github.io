@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2018 by The University of Queensland
+* Copyright (c) 2003-2020 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -10,12 +10,15 @@
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
-* Development from 2014 by Centre for Geoscience Computing (GeoComp)
-*
+* Development from 2014-2017 by Centre for Geoscience Computing (GeoComp)
+* Development from 2019 by School of Earth and Environmental Sciences
+**
 *****************************************************************************/
 
 #ifndef __ESCRIPT_ESYSMPI_H__
 #define __ESCRIPT_ESYSMPI_H__
+
+#include "system_dep.h"
 
 #include <escript/DataTypes.h>
 
@@ -74,9 +77,10 @@ typedef boost::shared_ptr<JMPI_> JMPI;
 
 /// creates a JMPI shared pointer from MPI communicator
 /// if owncom is true, the communicator is freed when mpi info is destroyed.
+ESCRIPT_DLL_API
 JMPI makeInfo(MPI_Comm comm, bool owncom=false);
 
-class JMPI_
+class ESCRIPT_DLL_API JMPI_
 {
 public:
     ~JMPI_();
@@ -157,7 +161,7 @@ public:
 
 private:
     JMPI_(MPI_Comm comm, bool owncomm);
-    friend JMPI makeInfo(MPI_Comm comm, bool owncom);
+    friend ESCRIPT_DLL_API JMPI makeInfo(MPI_Comm comm, bool owncom);
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-private-field"
     bool ownscomm;
@@ -175,11 +179,13 @@ public:
 };
 
 /// Everyone puts in their error code and everyone gets the largest one
+ESCRIPT_DLL_API
 bool checkResult(int input, int& output, const JMPI& comm);
 
 /// ensure that the any ranks with an empty src argument end up with the
 /// string from one of the other ranks.
 /// With no MPI, it makes dest point at a copy of src.
+ESCRIPT_DLL_API
 bool shipString(const char* src, char** dest, MPI_Comm& comm);
 
 /// returns the current ticks for timing

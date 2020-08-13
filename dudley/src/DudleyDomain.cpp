@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2018 by The University of Queensland
+* Copyright (c) 2003-2020 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -10,8 +10,9 @@
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
-* Development from 2014 by Centre for Geoscience Computing (GeoComp)
-*
+* Development from 2014-2017 by Centre for Geoscience Computing (GeoComp)
+* Development from 2019 by School of Earth and Environmental Sciences
+**
 *****************************************************************************/
 
 #include <dudley/DudleyDomain.h>
@@ -1778,9 +1779,11 @@ int DudleyDomain::getSystemMatrixTypeId(const bp::object& options) const
 #endif
     }
 #ifdef ESYS_HAVE_PASO
+#ifndef ESYS_HAVE_MUMPS
     if (sb.isComplex()) {
-        throw NotImplementedError("Paso does not support complex-valued matrices");
+        throw NotImplementedError("Paso requires MUMPS for complex-valued matrices.");
     }
+#endif
     return (int)SMT_PASO | paso::SystemMatrix::getSystemMatrixTypeId(
                 method, sb.getPreconditioner(), sb.getPackage(),
                 sb.isSymmetric(), m_mpiInfo);
@@ -1805,6 +1808,50 @@ escript::Data DudleyDomain::getX() const
 {
     return continuousFunction(*this).getX();
 }
+
+#ifdef ESYS_HAVE_BOOST_NUMPY
+boost::python::numpy::ndarray DudleyDomain::getNumpyX() const
+{
+    return continuousFunction(*this).getNumpyX();
+}
+
+boost::python::numpy::ndarray DudleyDomain::getConnectivityInfo() const
+{
+    // Initialise boost numpy
+    boost::python::numpy::initialize();
+
+    // Get the node information
+    escript::DataTypes::index_t * nodedata = m_elements->Nodes;
+
+    // Work out how many elements there are
+    int numberOfElements = m_elements->numElements;
+
+    // Work out how many data points there are per element
+    int numNodesPerElement = m_elements->numNodes;
+
+    // Initialise the ndarray
+    boost::python::tuple arrayshape = boost::python::make_tuple(numberOfElements, numNodesPerElement);
+    boost::python::numpy::dtype datatype = boost::python::numpy::dtype::get_builtin<double>();
+    boost::python::numpy::ndarray dataArray = boost::python::numpy::zeros(arrayshape, datatype);
+
+    // Initialise variables
+    std::string localmsg;
+    std::vector<const escript::DataTypes::real_t*> samplesR(1);
+    
+    // Copy the information over
+// #pragma omp parallel for
+    for (int k = 0; k < numberOfElements; k++) {
+        for (int j = 0; j < numNodesPerElement; j++) {
+            dataArray[k][j] = nodedata[j+k*numNodesPerElement];
+        }
+    }
+
+    // Print out the ndarray to the console - used during debugging 
+    // std::cout << "Finished array:\n" << bp::extract<char const *>(bp::str(dataArray)) << std::endl;
+
+    return dataArray;
+}
+#endif
 
 escript::Data DudleyDomain::getNormal() const
 {

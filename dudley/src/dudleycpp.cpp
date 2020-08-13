@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2018 by The University of Queensland
+* Copyright (c) 2003-2020 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -10,8 +10,9 @@
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
-* Development from 2014 by Centre for Geoscience Computing (GeoComp)
-*
+* Development from 2014-2017 by Centre for Geoscience Computing (GeoComp)
+* Development from 2019 by School of Earth and Environmental Sciences
+**
 *****************************************************************************/
 
 #include <dudley/Dudley.h>
@@ -170,6 +171,10 @@ args("solver", "preconditioner", "package", "symmetry"),
 args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Data`")
       .def("getX", &dudley::DudleyDomain::getX, ":return: locations in the FEM nodes\n\n"
 ":rtype: `Data`")
+#ifdef ESYS_HAVE_BOOST_NUMPY
+      .def("getConnectivityInfo", &dudley::DudleyDomain::getConnectivityInfo, ":return: locations in the FEM nodes\n\n"
+":rtype: `Data`")
+#endif
       .def("getNormal", &dudley::DudleyDomain::getNormal,
 ":return: boundary normals at the quadrature point on the face elements\n"
 ":rtype: `Data`")

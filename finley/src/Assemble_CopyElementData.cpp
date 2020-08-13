@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2018 by The University of Queensland
+* Copyright (c) 2003-2020 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -10,8 +10,9 @@
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
-* Development from 2014 by Centre for Geoscience Computing (GeoComp)
-*
+* Development from 2014-2017 by Centre for Geoscience Computing (GeoComp)
+* Development from 2019 by School of Earth and Environmental Sciences
+**
 *****************************************************************************/
 
 
@@ -74,7 +75,9 @@ void Assemble_CopyElementData(const ElementFile* elements, escript::Data& out,
             out.requireWrite();
             if (in.actsExpanded()) {
                 const size_t len_size = numComps*numQuad_in*sizeof(Scalar);
+#ifndef _WIN32 // TODO: why fatal error C1001: An internal error has occurred in the compiler.?
 #pragma omp parallel for
+#endif
                 for (index_t n = 0; n < numElements; n++) 
                     memcpy(out.getSampleDataRW(n, zero),
                             in.getSampleDataRO(n, zero), len_size);

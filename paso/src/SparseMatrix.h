@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2018 by The University of Queensland
+* Copyright (c) 2003-2020 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -10,8 +10,9 @@
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
-* Development from 2014 by Centre for Geoscience Computing (GeoComp)
-*
+* Development from 2014-2017 by Centre for Geoscience Computing (GeoComp)
+* Development from 2019 by School of Earth and Environmental Sciences
+**
 *****************************************************************************/
 
 
@@ -48,6 +49,8 @@ struct SparseMatrix : boost::enable_shared_from_this<SparseMatrix>
     ~SparseMatrix();
 
     void setValues(double value);
+
+    void setValues(cplx_t value);
 
     void copyFromMainDiagonal(double* out) const;
 
@@ -168,6 +171,9 @@ struct SparseMatrix : boost::enable_shared_from_this<SparseMatrix>
     /// this is used for classical CSR or CSC
     double *val;
 
+    /// this is used for complex CSR
+    cplx_t *cval;
+
     /// package controlling the solver pointer
     index_t solver_package;
 
@@ -196,6 +202,11 @@ void SparseMatrix_MatrixVector_CSR_OFFSET1(const double alpha,
                                            const_SparseMatrix_ptr A,
                                            const double* in,
                                            const double beta, double* out);
+
+void SparseMatrix_MatrixVector_CSR_OFFSET1(const double alpha,
+                                           const_SparseMatrix_ptr A,
+                                           const cplx_t* in,
+                                           const double beta, cplx_t* out);
 
 void SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(const double alpha,
                                                 const_SparseMatrix_ptr A,

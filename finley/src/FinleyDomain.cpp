@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2018 by The University of Queensland
+* Copyright (c) 2003-2020 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -10,14 +10,16 @@
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
-* Development from 2014 by Centre for Geoscience Computing (GeoComp)
-*
+* Development from 2014-2017 by Centre for Geoscience Computing (GeoComp)
+* Development from 2019 by School of Earth and Environmental Sciences
+**
 *****************************************************************************/
 
 #include "FinleyDomain.h"
 #include "Assemble.h"
 #include "FinleyException.h"
 #include "IndexList.h"
+#include "ReferenceElements.h"
 
 #include <escript/Data.h>
 #include <escript/DataFactory.h>
@@ -141,7 +143,7 @@ void FinleyDomain::setPoints(ElementFile* elements)
     m_points = elements;
 }
 
-void FinleyDomain::setOrders() 
+void FinleyDomain::setOrders()
 {
     const int ORDER_MAX = 9999999;
     int locals[4] = { ORDER_MAX, ORDER_MAX, ORDER_MAX, ORDER_MAX };
@@ -245,7 +247,7 @@ void FinleyDomain::dump(const string& fileName) const
 
     // Figure out how much storage is required for tags
     num_Tags = m_tagMap.size();
-    
+
     NcFile dataFile;
     try
     {
@@ -254,9 +256,9 @@ void FinleyDomain::dump(const string& fileName) const
     catch (exceptions::NcException* e)
     {
         throw FinleyException("Error - FinleyDomain:: opening of netCDF file for output failed.");
-    }    
-    
-    
+    }
+
+
     string msgPrefix("Error in FinleyDomain::dump: NetCDF operation failed - ");
     // Define dimensions (num_Elements and dim_Elements are identical,
     // dim_Elements only appears if > 0)
@@ -1723,6 +1725,7 @@ void FinleyDomain::setToIntegralsWorker(vector<Scalar>& integrals,
             Assemble_integrate(m_nodes, m_elements, temp, &integrals[0]);
         }
         break;
+        case Points:
         case Elements:
         case ReducedElements:
             Assemble_integrate(m_nodes, m_elements, arg, &integrals[0]);
@@ -1731,8 +1734,6 @@ void FinleyDomain::setToIntegralsWorker(vector<Scalar>& integrals,
         case ReducedFaceElements:
             Assemble_integrate(m_nodes, m_faceElements, arg, &integrals[0]);
         break;
-        case Points:
-            throw ValueError("Integral of data on points is not supported.");
         case ContactElementsZero:
         case ReducedContactElementsZero:
         case ContactElementsOne:
@@ -2126,7 +2127,7 @@ FinleyDomain::commonFunctionSpace(const vector<int>& fs, int& resultcode) const
         if (hasclass[2] == 1) {
             // something from class 2
             resultcode = (hasrednodes ? ReducedNodes : ReducedDegreesOfFreedom);
-        } else { 
+        } else {
             // something from class 1
             resultcode = (hasnodes ? Nodes : DegreesOfFreedom);
         }
@@ -2345,9 +2346,11 @@ int FinleyDomain::getSystemMatrixTypeId(const bp::object& options) const
 #endif
     }
 #ifdef ESYS_HAVE_PASO
+#ifndef ESYS_HAVE_MUMPS
     if (sb.isComplex()) {
-        throw NotImplementedError("Paso does not support complex-valued matrices");
+        throw NotImplementedError("Paso requires MUMPS for complex-valued matrices.");
     }
+#endif
     return (int)SMT_PASO | paso::SystemMatrix::getSystemMatrixTypeId(
                 method, sb.getPreconditioner(), sb.getPackage(),
                 sb.isSymmetric(), m_mpiInfo);
@@ -2371,6 +2374,107 @@ int FinleyDomain::getTransportTypeId(int solver, int preconditioner,
 escript::Data FinleyDomain::getX() const
 {
     return continuousFunction(*this).getX();
+}
+
+#ifdef ESYS_HAVE_BOOST_NUMPY
+boost::python::numpy::ndarray FinleyDomain::getNumpyX() const
+{
+    return continuousFunction(*this).getNumpyX();
+}
+
+boost::python::numpy::ndarray FinleyDomain::getConnectivityInfo() const
+{
+    // Initialise boost numpy
+    boost::python::numpy::initialize();
+
+    // Get the node information
+    escript::DataTypes::index_t * nodedata = m_elements->Nodes;
+
+    // Work out how many elements there are
+    int numberOfElements = m_elements->numElements;
+
+    // Work out how many data points there are per element
+    int numNodesPerElement = m_elements->numNodes;
+
+    // Initialise the ndarray
+    boost::python::tuple arrayshape = boost::python::make_tuple(numberOfElements, numNodesPerElement);
+    boost::python::numpy::dtype datatype = boost::python::numpy::dtype::get_builtin<double>();
+    boost::python::numpy::ndarray dataArray = boost::python::numpy::zeros(arrayshape, datatype);
+
+    // Initialise variables
+    std::string localmsg;
+    std::vector<const escript::DataTypes::real_t*> samplesR(1);
+
+    // Copy the information over
+// #pragma omp parallel for
+    for (int k = 0; k < numberOfElements; k++) {
+        for (int j = 0; j < numNodesPerElement; j++) {
+            dataArray[k][j] = nodedata[j+k*numNodesPerElement];
+        }
+    }
+
+    // Print out the ndarray to the console - used during debugging
+    // std::cout << "Finished array:\n" << bp::extract<char const *>(bp::str(dataArray)) << std::endl;
+
+    return dataArray;
+}
+#endif
+
+int FinleyDomain::getVTKElementType() const
+{
+    const_ReferenceElementSet_ptr refElement = m_elements->referenceElementSet;
+    const_ReferenceElement_ptr borrowedRefElement = refElement->borrowReferenceElement(false);
+    const ReferenceElementInfo* type = borrowedRefElement->Type;
+
+    // From vtkCellType.h
+    // #define VTK_EMPTY_CELL 0
+    // #define VTK_VERTEX 1
+    // #define VTK_POLY_VERTEX 2
+    // #define VTK_LINE 3
+    // #define VTK_POLY_LINE 4
+    // #define VTK_TRIANGLE 5
+    // #define VTK_TRIANGLE_STRIP 6
+    // #define VTK_POLYGON 7
+    // #define VTK_PIXEL 8
+    // #define VTK_QUAD 9
+    // #define VTK_TETRA 10
+    // #define VTK_VOXEL 11
+    // #define VTK_HEXAHEDRON 12
+    // #define VTK_WEDGE 13
+    // #define VTK_PYRAMID 14
+
+    if(std::strcmp(type->Name, "Tri3")
+        || std::strcmp(type->Name, "Tri6")
+        || std::strcmp(type->Name, "Tri9")
+        || std::strcmp(type->Name, "Tri10"))
+    {
+        return 5; //VTK_TRIANGLE
+    }
+    else if (std::strcmp(type->Name, "Rec4")
+        || std::strcmp(type->Name, "Rec8")
+        || std::strcmp(type->Name, "Rec9")
+        || std::strcmp(type->Name, "Rec12")
+        || std::strcmp(type->Name, "Rec16"))
+    {
+        return 8; // VTK_PIXEL
+    }
+    else if (std::strcmp(type->Name, "Tet4")
+        || std::strcmp(type->Name, "Tet10")
+        || std::strcmp(type->Name, "Tet16"))
+    {
+        return 10; // VTK_TETRA
+    }
+    else if (std::strcmp(type->Name, "Hex8")
+        || std::strcmp(type->Name, "Hex20")
+        || std::strcmp(type->Name, "Hex27")
+        || std::strcmp(type->Name, "Hex32"))
+    {
+        return 11; // VTK_VOXEL
+    }
+    else
+    {
+        throw FinleyException("getVTKElementType: unknown element type");
+    }
 }
 
 escript::Data FinleyDomain::getNormal() const

@@ -52,10 +52,16 @@ method to run:
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
+from esys.escript import *
 import esys.escriptcore.utestselect as unittest
 import os
-import numpy
-from esys.escript import *
+
+
+try:
+    import numpy
+    HAVE_NUMPY = True
+except:
+    HAVE_NUMPY = False
 
 try:
      ESCRIPT_WORKDIR=os.environ['ESCRIPT_WORKDIR']
@@ -63,7 +69,7 @@ except KeyError:
      ESCRIPT_WORKDIR='.'
 
 class Test_tagMap(unittest.TestCase):
-    
+
     def test_makeTagMap(self):
         for fs in self.functionspaces:
             d=makeTagMap(fs)
@@ -136,14 +142,14 @@ class Test_TableInterpolation(unittest.TestCase):
                     res=interpolateTable(table, points, (xmin, ymin, zmin), (xwidth, ywidth, zwidth),900)
                     self.assertTrue(Lsup(res-ref)/Lsup(ref)<self.RES_TOL,"Failed for %s"%str(fs))
                     # Test undef
-                    self.assertRaises(RuntimeError, interpolateTable, table, points, (xmin, ymin, zmin), (xwidth, ywidth, 
+                    self.assertRaises(RuntimeError, interpolateTable, table, points, (xmin, ymin, zmin), (xwidth, ywidth,
 zwidth), -1)
                     # Test bounds checking
-                    self.assertRaises(RuntimeError, interpolateTable, table, points, (xmin, ymin, zmin), (xwidth/3, ywidth, 
+                    self.assertRaises(RuntimeError, interpolateTable, table, points, (xmin, ymin, zmin), (xwidth/3, ywidth,
 zwidth), 900,True)
-                    self.assertRaises(RuntimeError, interpolateTable, table, points, (xmin, ymin, zmin), (xwidth, ywidth/3, 
+                    self.assertRaises(RuntimeError, interpolateTable, table, points, (xmin, ymin, zmin), (xwidth, ywidth/3,
 zwidth), 900, True)
-                    self.assertRaises(RuntimeError, interpolateTable, table, points, (xmin, ymin, zmin), (xwidth, ywidth, 
+                    self.assertRaises(RuntimeError, interpolateTable, table, points, (xmin, ymin, zmin), (xwidth, ywidth,
 zwidth/3), 900, True)
 
     def test_FunctionSpace2D(self):
@@ -491,21 +497,30 @@ class Test_Domain(unittest.TestCase):
         self.assertTrue(sup(x[0])<=1.)
         if self.domain.getDim()>1: self.assertTrue(sup(x[1])<=1.)
         if self.domain.getDim()>2: self.assertTrue(sup(x[2])<=1.)
+
+   @unittest.skipIf(HAVE_NUMPY is False, "Numpy is not installed")
+   def test_getNumpyX(self):
+      if hasFeature("boostnumpy"):
+         tups=self.domain.getX().toListOfTuples()
+         numps=self.domain.getNumpyX()
+         for i in range(0,tups.__len__()):
+            for x in range(0, self.domain.getDim()):
+               self.assertEqual(float(tups[i][x]),float(numps[x][i]))
    #===========================================================================
 
 class Test_SetDataPointValue(unittest.TestCase):
     args=[9.81,
         numpy.array([3.098, -3.111]),
-        numpy.array([[3.82, -3.81, -0.957, 0.892, -1.367], [-4.589, -1.835, -2.679, -1.517, -4.2515], [-4.909, 1.634, -2.883, 
+        numpy.array([[3.82, -3.81, -0.957, 0.892, -1.367], [-4.589, -1.835, -2.679, -1.517, -4.2515], [-4.909, 1.634, -2.883,
 -2.135, 1.187], [0.6431, 4.638, -4.616, -0.196, -4.370]]),
-        numpy.array([[[-2.3667, -0.040], [-4.7398, -3.2412]], [[-2.125, -2.240], [2.237, -4.279]], [[0.68720, 2.4059], 
-[-2.4964, 3.17453]], [[-4.907, -4.9431], [-0.3604, 0.4269]], [[1.4179, 3.326], [1.356, -0.4610]], [[3.378, 2.0902], [-2.6857, 
+        numpy.array([[[-2.3667, -0.040], [-4.7398, -3.2412]], [[-2.125, -2.240], [2.237, -4.279]], [[0.68720, 2.4059],
+[-2.4964, 3.17453]], [[-4.907, -4.9431], [-0.3604, 0.4269]], [[1.4179, 3.326], [1.356, -0.4610]], [[3.378, 2.0902], [-2.6857,
 1.3585]]]),
-        numpy.array([[[[-3.810, -1.3597, -1.5307, 1.099], [-1.828, 0.2526, -1.4429, 2.326], [4.9732, -2.063, 1.3153, -3.809]], 
-[[-4.8902, -4.714, 1.520, -1.931], [-3.8847, 4.3867, 1.894030, 2.432], [-1.2082, -0.8304, 2.2612, 4.6399]]], [[[-4.5922, 
--3.309, -0.8171, -0.7210], [2.8051, -4.93047, 0.08450, 4.3824], [0.43204, 2.1908, 4.512633, -1.8218]], [[2.2493, -4.190, 
--2.3893, -4.147], [-2.104, -4.635, -4.2767, -3.53151], [-2.351, -1.6614, 2.9385, 4.099]]], [[[1.710, 0.2235, -3.4917, 0.8713], 
-[-0.2881, 4.6278, 3.603, -2.1211], [-0.565, 4.294, -2.210827, -0.37651]], [[0.6578, -2.869, -2.490, -4.789], [3.232, 2.483, 
+        numpy.array([[[[-3.810, -1.3597, -1.5307, 1.099], [-1.828, 0.2526, -1.4429, 2.326], [4.9732, -2.063, 1.3153, -3.809]],
+[[-4.8902, -4.714, 1.520, -1.931], [-3.8847, 4.3867, 1.894030, 2.432], [-1.2082, -0.8304, 2.2612, 4.6399]]], [[[-4.5922,
+-3.309, -0.8171, -0.7210], [2.8051, -4.93047, 0.08450, 4.3824], [0.43204, 2.1908, 4.512633, -1.8218]], [[2.2493, -4.190,
+-2.3893, -4.147], [-2.104, -4.635, -4.2767, -3.53151], [-2.351, -1.6614, 2.9385, 4.099]]], [[[1.710, 0.2235, -3.4917, 0.8713],
+[-0.2881, 4.6278, 3.603, -2.1211], [-0.565, 4.294, -2.210827, -0.37651]], [[0.6578, -2.869, -2.490, -4.789], [3.232, 2.483,
 0.9531, 2.260], [-1.785, 0.42156, -1.8379, 4.212]]]])
         ]
     def test_SetDataPointValue_Function(self):
@@ -563,16 +578,16 @@ class Test_SetDataPointValue(unittest.TestCase):
 class Test_Dump(unittest.TestCase):
    args=[9.81,
         numpy.array([3.098, -3.111]),
-        numpy.array([[3.82, -3.81, -0.957, 0.892, -1.367], [-4.589, -1.835, -2.679, -1.517, -4.2515], [-4.909, 1.634, -2.883, 
+        numpy.array([[3.82, -3.81, -0.957, 0.892, -1.367], [-4.589, -1.835, -2.679, -1.517, -4.2515], [-4.909, 1.634, -2.883,
 -2.135, 1.187], [0.6431, 4.638, -4.616, -0.196, -4.370]]),
-        numpy.array([[[-2.3667, -0.040], [-4.7398, -3.2412]], [[-2.125, -2.240], [2.237, -4.279]], [[0.68720, 2.4059], 
-[-2.4964, 3.17453]], [[-4.907, -4.9431], [-0.3604, 0.4269]], [[1.4179, 3.326], [1.356, -0.4610]], [[3.378, 2.0902], [-2.6857, 
+        numpy.array([[[-2.3667, -0.040], [-4.7398, -3.2412]], [[-2.125, -2.240], [2.237, -4.279]], [[0.68720, 2.4059],
+[-2.4964, 3.17453]], [[-4.907, -4.9431], [-0.3604, 0.4269]], [[1.4179, 3.326], [1.356, -0.4610]], [[3.378, 2.0902], [-2.6857,
 1.3585]]]),
-        numpy.array([[[[-3.810, -1.3597, -1.5307, 1.099], [-1.828, 0.2526, -1.4429, 2.326], [4.9732, -2.063, 1.3153, -3.809]], 
-[[-4.8902, -4.714, 1.520, -1.931], [-3.8847, 4.3867, 1.894030, 2.432], [-1.2082, -0.8304, 2.2612, 4.6399]]], [[[-4.5922, 
--3.309, -0.8171, -0.7210], [2.8051, -4.93047, 0.08450, 4.3824], [0.43204, 2.1908, 4.512633, -1.8218]], [[2.2493, -4.190, 
--2.3893, -4.147], [-2.104, -4.635, -4.2767, -3.53151], [-2.351, -1.6614, 2.9385, 4.099]]], [[[1.710, 0.2235, -3.4917, 0.8713], 
-[-0.2881, 4.6278, 3.603, -2.1211], [-0.565, 4.294, -2.210827, -0.37651]], [[0.6578, -2.869, -2.490, -4.789], [3.232, 2.483, 
+        numpy.array([[[[-3.810, -1.3597, -1.5307, 1.099], [-1.828, 0.2526, -1.4429, 2.326], [4.9732, -2.063, 1.3153, -3.809]],
+[[-4.8902, -4.714, 1.520, -1.931], [-3.8847, 4.3867, 1.894030, 2.432], [-1.2082, -0.8304, 2.2612, 4.6399]]], [[[-4.5922,
+-3.309, -0.8171, -0.7210], [2.8051, -4.93047, 0.08450, 4.3824], [0.43204, 2.1908, 4.512633, -1.8218]], [[2.2493, -4.190,
+-2.3893, -4.147], [-2.104, -4.635, -4.2767, -3.53151], [-2.351, -1.6614, 2.9385, 4.099]]], [[[1.710, 0.2235, -3.4917, 0.8713],
+[-0.2881, 4.6278, 3.603, -2.1211], [-0.565, 4.294, -2.210827, -0.37651]], [[0.6578, -2.869, -2.490, -4.789], [3.232, 2.483,
 0.9531, 2.260], [-1.785, 0.42156, -1.8379, 4.212]]]])
         ]
 
@@ -597,7 +612,7 @@ class Test_Dump(unittest.TestCase):
                 (FunctionOnBoundary, "function_on_boundary"),
                 (ReducedFunctionOnBoundary, "reduced_function_on_boundary")
             ]:
-                
+
             for rank in range(5):
                 filename=os.path.join(self.filename_base,
                         "constant_{0}_rank{1}.nc".format(spacename, rank))
@@ -614,7 +629,7 @@ class Test_Dump(unittest.TestCase):
                 (FunctionOnBoundary, "function_on_boundary"),
                 (ReducedFunctionOnBoundary, "reduced_function_on_boundary")
             ]:
-                
+
             for rank in range(5):
                 filename=os.path.join(self.filename_base,
                         "expanded_{0}_rank{1}.nc".format(spacename, rank))
@@ -626,7 +641,7 @@ class Test_Dump(unittest.TestCase):
                 self.assertRaises(RuntimeError, load, filename,
                         self.domain_with_different_number_of_data_points_per_sample)
                 if getMPISizeWorld() ==1:
-                    d=Data(length(functionspace(self.domain_with_different_sample_ordering).getX()) * 
+                    d=Data(length(functionspace(self.domain_with_different_sample_ordering).getX()) *
                         self.args[0], functionspace(self.domain_with_different_sample_ordering))
                     self._diffDataObjects(d, filename, use_old_file=True)
 
@@ -640,7 +655,7 @@ class Test_Dump(unittest.TestCase):
                 (FunctionOnBoundary, "function_on_boundary"),
                 (ReducedFunctionOnBoundary, "reduced_function_on_boundary")
             ]:
-                
+
             for rank in range(5):
                 filename=os.path.join(self.filename_base,
                         "tagged_{0}_rank{1}.nc".format(spacename, rank))
@@ -685,4 +700,38 @@ class Test_Lazy(unittest.TestCase):
         err=Lsup(rr1-r1)+Lsup(rr2-r2)+Lsup(rr3-r3)+Lsup(rt-t)+Lsup(rf-f)
         self.assertTrue(err<0.001, "Same functionspace group resolve with mixed functionspaces")
 
+  def test_data_getX_Scalar(self): # This tests the Data getXFromFunctionSpace function
+        s = Scalar(0, ContinuousFunction(self.domain))
+        x1=s.getX()
+        x2=s.getFunctionSpace().getX()
+        y=x1-x2
+        self.assertTrue(inf(y)==0,'Fail test_data_getX_Scalar')
+        self.assertTrue(sup(y)==0,'Fail test_data_getX_Scalar')
 
+  def test_complex_data(self):
+        s1=Scalar(0,ContinuousFunction(self.domain))
+        s2=ComplexScalar(0,ContinuousFunction(self.domain))
+        self.assertTrue(s1.isComplex() == False, 'Fail test_complex_data')
+        self.assertTrue(s2.isComplex() == True, 'Fail test_complex_data')
+        v1=Vector(0,ContinuousFunction(self.domain))
+        v2=ComplexVector(0,ContinuousFunction(self.domain))
+        self.assertTrue(v1.isComplex() == False, 'Fail test_complex_data')
+        self.assertTrue(v2.isComplex() == True, 'Fail test_complex_data')
+        t1=Tensor(0,ContinuousFunction(self.domain))
+        t2=ComplexTensor(0,ContinuousFunction(self.domain))
+        self.assertTrue(t1.isComplex() == False, 'Fail test_complex_data')
+        self.assertTrue(t2.isComplex() == True, 'Fail test_complex_data')
+        t3=Tensor3(0,ContinuousFunction(self.domain))
+        t4=ComplexTensor3(0,ContinuousFunction(self.domain))
+        self.assertTrue(t3.isComplex() == False, 'Fail test_complex_data')
+        self.assertTrue(t4.isComplex() == True, 'Fail test_complex_data')
+        t5=Tensor4(0,ContinuousFunction(self.domain))
+        t6=ComplexTensor4(0,ContinuousFunction(self.domain))
+        self.assertTrue(t5.isComplex() == False, 'Fail test_complex_data')
+        self.assertTrue(t6.isComplex() == True, 'Fail test_complex_data')
+        d1=Data(0,ContinuousFunction(self.domain))
+        d2=ComplexData(0,ContinuousFunction(self.domain))
+        d3=ComplexData(1j,ContinuousFunction(self.domain))
+        self.assertTrue(d1.isComplex() == False, 'Fail test_complex_data')
+        self.assertTrue(d2.isComplex() == True, 'Fail test_complex_data')
+        self.assertTrue(d3.isComplex() == True, 'Fail test_complex_data')
