@@ -1,63 +1,60 @@
-{% set version = "5.4" %}
-# conda-build esys-escript-feedstock -c defaults -c conda-forge
+{% set version = "5.6" %}
 
 package:
     name: esys-escript
     version: {{ version }}
 source:
-    # - url: https://launchpad.net/escript-finley/3.0+/{{ version }}/+download/python-escript_{{ version }}.tar.gz
-    #   sha256: 47feb3b14de6b9415d2221f178af6843127a6d6cce5c6b4bae74e2833109fbaf
-      - svn_url: https://svn.geocomp.uq.edu.au/svn/esys13/trunk
-        revision: 7020
-        folder: escript
+    - url: https://launchpad.net/escript-finley/3.0+/{{ version }}/+download/python_escript_{{ version }}.tar.gz
+      sha256: 99c5bc9e7262fb0baef5d9aa3a99bcbf3965b9d718835c6b56c516e39bb6c992
+      folder: escript
 build:
     skip: True  # [win and (py!=37 or vc<14)]
+    skip: True  # [linux and py!=38]
+    skip: True  # [osx]
     number: 0
 requirements:
     build:
         - {{ compiler('cxx') }}
-        - svn
         - scons >3.0.5 
         - cmake
         - make
         - python
-        - git
     host:
         - boost-cpp
         - boost
-        - cppunit # [linux]
-        - numpy ==1.15.4 # [win]
+        - cppunit  # [linux]
+        - numpy ==1.15.4  # [win]
         - python 
-        - matplotlib # [linux]
-        - matplotlib ==2.2.2 # [win]
+        - matplotlib  # [linux]
+        - matplotlib ==2.2.2  # [win]
         - gdal
-        - libopenblas # [linux]
-        - libgomp # [linux]
+        - libopenblas  # [linux]
+        - libgomp  # [linux]
         - pyproj 
         - scipy 
-        - suitesparse # [linux]
-        - sympy ==1.1.1 # [win]
-        - gmsh # [win]
-        - mumps # [win]
+        - suitesparse  # [linux]
+        - sympy ==1.1.1  # [win]
+        - gmsh  # [win]
+        - mumps  # [win]
     run:
         - boost-cpp
         - boost
-        - numpy # [linux]
-        - numpy ==1.15.4 # [win]
+        - numpy  # [linux]
+        - numpy ==1.15.4  # [win]
         - python
-        - matplotlib # [linux]
-        - matplotlib ==2.2.2 # [win]
+        - matplotlib  # [linux]
+        - matplotlib ==2.2.2  # [win]
         - gdal 
         - pyproj
         - scipy
-        - sympy ==1.1.1 # [win]
-        - gmsh # [win]
-        - mumps # [win]
+        - sympy ==1.1.1  # [win]
+        - gmsh  # [win]
+        - mumps  # [win]
 test:
     commands:
         - run-escript -c
-        - run-escript /tmp/release_sanity.py # [linux]
-        - run-escript %TEMP%/release_sanity.py # [win]
+        - run-escript /tmp/release_sanity.py  # [linux]
+        - run-escript %TEMP%/release_sanity.py  # [win]
 about:
     home: https://launchpad.net/escript-finley
     summary: esys-escript is a programming tool for implementing mathematical 
@@ -78,4 +75,4 @@ about:
 
 extra:
     recipe-maintainers:
-        - aellery
+        - esys-escript
