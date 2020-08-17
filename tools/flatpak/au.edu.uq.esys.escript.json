@@ -76,7 +76,7 @@
             "sources": [
                 {
                     "type": "archive",
-                    "url": "https://mirror.sobukus.de/files/src/netcdf/netcdf-cxx4-4.3.0.tar.gz",
+                    "url":  "https://mirror.sobukus.de/files/src/netcdf/netcdf-cxx4-4.3.0.tar.gz",
                     "sha256": "e34fbc6aba243ec82c23e9ee99db2430555ada849c54c1f3ab081b0ddd0f5f30"
                 }
             ]
