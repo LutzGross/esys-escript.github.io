@@ -1,19 +1,16 @@
-# Read the Docs configuration file
-# See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
-
-# Required
+# readthedocs yaml config file version
 version: 2
 
-# Build documentation in the docs/ directory with Sphinx
+build:
+    image: latest
+
 sphinx:
     builder: html
     configuration: ./sphinx_api/conf.py
     fail_on_warning: false
 
-# # Required version of python
-# python:
-#     version: 3.8
+python:
+    version: 3.7
   
-# This sets up the environment using the anaconda python docs
 conda:
     environment: environment.yaml
