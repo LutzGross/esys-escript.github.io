@@ -7,17 +7,12 @@ version: 2
 # Build documentation in the docs/ directory with Sphinx
 sphinx:
     builder: html
-    configuration: ./source/conf.py
+    configuration: ./sphinx_api/conf.py
     fail_on_warning: false
 
-# Also build a PDF and an ePub file
-formats: 
-    - pdf 
-    - epub
-
-# Required version of python
-python:
-    version: 3.8
+# # Required version of python
+# python:
+#     version: 3.8
   
 # This sets up the environment using the anaconda python docs
 conda:
