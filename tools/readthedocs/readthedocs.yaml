@@ -13,4 +13,4 @@ python:
     version: 3.7
   
 conda:
-    environment: environment.yaml
+    environment: ./tools/readthedocs/environment.yaml
