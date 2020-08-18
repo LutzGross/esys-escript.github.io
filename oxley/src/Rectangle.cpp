@@ -1620,7 +1620,7 @@ std::vector<IndexVector> Rectangle::getConnections(bool includeShared) const
     {
         for(int c = myRows[r]; c < myRows[r+1]; c++)
             indices[r].push_back(myColumns[c]);
-        sort(indices[r].begin(), indices[r].end());
+        // sort(indices[r].begin(), indices[r].end());
     }
 
     return indices;
