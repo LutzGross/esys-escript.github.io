@@ -1,0 +1,706 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>esys.dudley Package &#8212; esys.escript 5.5 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="esys.escript Package" href="esys.escript.html" />
+    <link rel="prev" title="esys.downunder.splitregularizations Package" href="esys.downunder.splitregularizations.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="esys.escript.html" title="esys.escript Package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="esys.downunder.splitregularizations.html" title="esys.downunder.splitregularizations Package"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">esys.escript 5.5 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-esys.dudley">
+<span id="esys-dudley-package"></span><h1>esys.dudley Package<a class="headerlink" href="#module-esys.dudley" title="Permalink to this headline">¶</a></h1>
+<p>A domain meshed with triangles or tetrahedra only. Imports submodules into its namespace</p>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><a class="reference internal" href="#esys.dudley.DudleyDomain" title="esys.dudley.DudleyDomain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DudleyDomain</span></code></a></li>
+<li><a class="reference internal" href="#esys.dudley.GMSHDesign" title="esys.dudley.GMSHDesign"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GMSHDesign</span></code></a></li>
+</ul>
+<dl class="class">
+<dt id="esys.dudley.DudleyDomain">
+<em class="property">class </em><code class="descclassname">esys.dudley.</code><code class="descname">DudleyDomain</code><a class="headerlink" href="#esys.dudley.DudleyDomain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">esys.escriptcore.escriptcpp.ContinuousDomain</span></code></p>
+<p>A concrete class representing a dudley domain. For more details, please consult the C++ documentation.</p>
+<dl class="method">
+<dt id="esys.dudley.DudleyDomain.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>(object)arg1</em>, <em>(DudleyDomain)arg2</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#esys.dudley.DudleyDomain.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.dudley.DudleyDomain.MPIBarrier">
+<code class="descname">MPIBarrier</code><span class="sig-paren">(</span><em>(DudleyDomain)arg1</em><span class="sig-paren">)</span> &#x2192; None :<a class="headerlink" href="#esys.dudley.DudleyDomain.MPIBarrier" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wait until all processes have reached this point</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.dudley.DudleyDomain.addPDEToLumpedSystem">
+<code class="descname">addPDEToLumpedSystem</code><span class="sig-paren">(</span><em>(DudleyDomain)arg1</em>, <em>(Data)arg2</em>, <em>(Data)arg3</em>, <em>(Data)mat</em>, <em>(Data)D</em>, <em>(bool)d</em><span class="sig-paren">)</span> &#x2192; None :<a class="headerlink" href="#esys.dudley.DudleyDomain.addPDEToLumpedSystem" title="Permalink to this definition">¶</a></dt>
+<dd><p>adds a PDE onto the lumped stiffness matrix</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>mat</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code>) – </li>
+<li><strong>D</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code>) – </li>
+<li><strong>d</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code>) – </li>
+<li><strong>useHRZ</strong> (<em>bool</em>) – </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.dudley.DudleyDomain.addPDEToRHS">
+<code class="descname">addPDEToRHS</code><span class="sig-paren">(</span><em>(DudleyDomain)arg1</em>, <em>(Data)arg2</em>, <em>(Data)rhs</em>, <em>(Data)X</em>, <em>(Data)Y</em>, <em>(Data)y</em>, <em>(Data)y_contact</em><span class="sig-paren">)</span> &#x2192; None :<a class="headerlink" href="#esys.dudley.DudleyDomain.addPDEToRHS" title="Permalink to this definition">¶</a></dt>
+<dd><p>adds a PDE onto the stiffness matrix mat and a rhs</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>rhs</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code>) – </li>
+<li><strong>X</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code>) – </li>
+<li><strong>Y</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code>) – </li>
+<li><strong>y</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code>) – </li>
+<li><strong>y_contact</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code>) – </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.dudley.DudleyDomain.addPDEToSystem">
+<code class="descname">addPDEToSystem</code><span class="sig-paren">(</span><em>(DudleyDomain)arg1</em>, <em>(Operator)arg2</em>, <em>(Data)arg3</em>, <em>(Data)mat</em>, <em>(Data)rhs</em>, <em>(Data)A</em>, <em>(Data)B</em>, <em>(Data)C</em>, <em>(Data)D</em>, <em>(Data)X</em>, <em>(Data)Y</em>, <em>(Data)d</em>, <em>(Data)y</em>, <em>(Data)d_contact</em>, <em>(Data)y_contact</em><span class="sig-paren">)</span> &#x2192; None :<a class="headerlink" href="#esys.dudley.DudleyDomain.addPDEToSystem" title="Permalink to this definition">¶</a></dt>
+<dd><p>adds a PDE onto the stiffness matrix mat and a rhs</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>mat</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">OperatorAdapter</span></code>) – </li>
+<li><strong>rhs</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code>) – </li>
+<li><strong>A</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code>) – </li>
+<li><strong>B</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code>) – </li>
+<li><strong>C</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code>) – </li>
+<li><strong>D</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code>) – </li>
+<li><strong>X</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code>) – </li>
+<li><strong>Y</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code>) – </li>
+<li><strong>d</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code>) – </li>
+<li><strong>d_contact</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code>) – </li>
+<li><strong>y_contact</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code>) – </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.dudley.DudleyDomain.addPDEToTransportProblem">
+<code class="descname">addPDEToTransportProblem</code><span class="sig-paren">(</span><em>(DudleyDomain)arg1</em>, <em>(TransportProblem)arg2</em>, <em>(Data)arg3</em>, <em>(Data)tp</em>, <em>(Data)source</em>, <em>(Data)M</em>, <em>(Data)A</em>, <em>(Data)B</em>, <em>(Data)C</em>, <em>(Data)D</em>, <em>(Data)X</em>, <em>(Data)Y</em>, <em>(Data)d</em>, <em>(Data)y</em>, <em>(Data)d_contact</em>, <em>(Data)y_contact</em><span class="sig-paren">)</span> &#x2192; None :<a class="headerlink" href="#esys.dudley.DudleyDomain.addPDEToTransportProblem" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>tp</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">AbstractTransportProblem</span></code>) – </li>
+<li><strong>source</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code>) – </li>
+<li><strong>M</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code>) – </li>
+<li><strong>A</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code>) – </li>
+<li><strong>B</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code>) – </li>
+<li><strong>C</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code>) – </li>
+<li><strong>D</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code>) – </li>
+<li><strong>X</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code>) – </li>
+<li><strong>Y</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code>) – </li>
+<li><strong>d</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code>) – </li>
+<li><strong>y</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code>) – </li>
+<li><strong>d_contact</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code>) – </li>
+<li><strong>y_contact</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code>) – </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.dudley.DudleyDomain.dump">
+<code class="descname">dump</code><span class="sig-paren">(</span><em>(DudleyDomain)arg1</em>, <em>(str)fileName</em><span class="sig-paren">)</span> &#x2192; None :<a class="headerlink" href="#esys.dudley.DudleyDomain.dump" title="Permalink to this definition">¶</a></dt>
+<dd><p>dumps the mesh to a file with the given name.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.dudley.DudleyDomain.getDataShape">
+<code class="descname">getDataShape</code><span class="sig-paren">(</span><em>(DudleyDomain)arg1</em>, <em>(int)functionSpaceCode</em><span class="sig-paren">)</span> &#x2192; object :<a class="headerlink" href="#esys.dudley.DudleyDomain.getDataShape" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a pair (dps, ns) where dps=the number of data points per sample, and ns=the number of samples</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">tuple</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.dudley.DudleyDomain.getDescription">
+<code class="descname">getDescription</code><span class="sig-paren">(</span><em>(DudleyDomain)arg1</em><span class="sig-paren">)</span> &#x2192; str :<a class="headerlink" href="#esys.dudley.DudleyDomain.getDescription" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a description for this domain</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">string</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.dudley.DudleyDomain.getDim">
+<code class="descname">getDim</code><span class="sig-paren">(</span><em>(DudleyDomain)arg1</em><span class="sig-paren">)</span> &#x2192; int :<a class="headerlink" href="#esys.dudley.DudleyDomain.getDim" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">int</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.dudley.DudleyDomain.getMPIRank">
+<code class="descname">getMPIRank</code><span class="sig-paren">(</span><em>(DudleyDomain)arg1</em><span class="sig-paren">)</span> &#x2192; int :<a class="headerlink" href="#esys.dudley.DudleyDomain.getMPIRank" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the rank of this process</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">int</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.dudley.DudleyDomain.getMPISize">
+<code class="descname">getMPISize</code><span class="sig-paren">(</span><em>(DudleyDomain)arg1</em><span class="sig-paren">)</span> &#x2192; int :<a class="headerlink" href="#esys.dudley.DudleyDomain.getMPISize" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the number of processes used for this <code class="xref py py-obj docutils literal notranslate"><span class="pre">Domain</span></code></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">int</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.dudley.DudleyDomain.getNormal">
+<code class="descname">getNormal</code><span class="sig-paren">(</span><em>(DudleyDomain)arg1</em><span class="sig-paren">)</span> &#x2192; Data :<a class="headerlink" href="#esys.dudley.DudleyDomain.getNormal" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">boundary normals at the quadrature point on the face elements</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.dudley.DudleyDomain.getNumDataPointsGlobal">
+<code class="descname">getNumDataPointsGlobal</code><span class="sig-paren">(</span><em>(DudleyDomain)arg1</em><span class="sig-paren">)</span> &#x2192; int :<a class="headerlink" href="#esys.dudley.DudleyDomain.getNumDataPointsGlobal" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the number of data points summed across all MPI processes</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">int</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.dudley.DudleyDomain.getSize">
+<code class="descname">getSize</code><span class="sig-paren">(</span><em>(DudleyDomain)arg1</em><span class="sig-paren">)</span> &#x2192; Data :<a class="headerlink" href="#esys.dudley.DudleyDomain.getSize" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the element size</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.dudley.DudleyDomain.getStatus">
+<code class="descname">getStatus</code><span class="sig-paren">(</span><em>(Domain)arg1</em><span class="sig-paren">)</span> &#x2192; int :<a class="headerlink" href="#esys.dudley.DudleyDomain.getStatus" title="Permalink to this definition">¶</a></dt>
+<dd><p>The status of a domain changes whenever the domain is modified</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">int</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.dudley.DudleyDomain.getSystemMatrixTypeId">
+<code class="descname">getSystemMatrixTypeId</code><span class="sig-paren">(</span><em>(DudleyDomain)arg1</em>, <em>(object)options</em><span class="sig-paren">)</span> &#x2192; int :<a class="headerlink" href="#esys.dudley.DudleyDomain.getSystemMatrixTypeId" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the identifier of the matrix type to be used for the global stiffness matrix when particular solver options are used.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">int</span></code></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>options</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">SolverBuddy</span></code>) – </td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.dudley.DudleyDomain.getTag">
+<code class="descname">getTag</code><span class="sig-paren">(</span><em>(DudleyDomain)arg1</em>, <em>(str)name</em><span class="sig-paren">)</span> &#x2192; int :<a class="headerlink" href="#esys.dudley.DudleyDomain.getTag" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">tag id for <code class="docutils literal notranslate"><span class="pre">name</span></code></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">string</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.dudley.DudleyDomain.getTransportTypeId">
+<code class="descname">getTransportTypeId</code><span class="sig-paren">(</span><em>(DudleyDomain)arg1</em>, <em>(int)solver</em>, <em>(int)preconditioner</em>, <em>(int)package</em>, <em>(bool)symmetry</em><span class="sig-paren">)</span> &#x2192; int :<a class="headerlink" href="#esys.dudley.DudleyDomain.getTransportTypeId" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">the identifier of the transport problem type to be used when a particular solver, preconditioner, package and symmetric matrix is used.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first"><code class="docutils literal notranslate"><span class="pre">int</span></code></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>solver</strong> (<code class="docutils literal notranslate"><span class="pre">int</span></code>) – </li>
+<li><strong>preconditioner</strong> (<code class="docutils literal notranslate"><span class="pre">int</span></code>) – </li>
+<li><strong>package</strong> (<code class="docutils literal notranslate"><span class="pre">int</span></code>) – </li>
+<li><strong>symmetry</strong> (<code class="docutils literal notranslate"><span class="pre">int</span></code>) – </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.dudley.DudleyDomain.getX">
+<code class="descname">getX</code><span class="sig-paren">(</span><em>(DudleyDomain)arg1</em><span class="sig-paren">)</span> &#x2192; Data :<a class="headerlink" href="#esys.dudley.DudleyDomain.getX" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">locations in the FEM nodes</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.dudley.DudleyDomain.isValidTagName">
+<code class="descname">isValidTagName</code><span class="sig-paren">(</span><em>(DudleyDomain)arg1</em>, <em>(str)name</em><span class="sig-paren">)</span> &#x2192; bool :<a class="headerlink" href="#esys.dudley.DudleyDomain.isValidTagName" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True is <code class="docutils literal notranslate"><span class="pre">name</span></code> corresponds to a tag</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">bool</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.dudley.DudleyDomain.newOperator">
+<code class="descname">newOperator</code><span class="sig-paren">(</span><em>(DudleyDomain)arg1</em>, <em>(int)row_blocksize</em>, <em>(FunctionSpace)row_functionspace</em>, <em>(int)column_blocksize</em>, <em>(FunctionSpace)column_functionspace</em>, <em>(int)type</em><span class="sig-paren">)</span> &#x2192; Operator :<a class="headerlink" href="#esys.dudley.DudleyDomain.newOperator" title="Permalink to this definition">¶</a></dt>
+<dd><p>creates a stiffness matrix and initializes it with zeros</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>row_blocksize</strong> (<code class="docutils literal notranslate"><span class="pre">int</span></code>) – </li>
+<li><strong>row_functionspace</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">FunctionSpace</span></code>) – </li>
+<li><strong>column_blocksize</strong> (<code class="docutils literal notranslate"><span class="pre">int</span></code>) – </li>
+<li><strong>column_functionspace</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">FunctionSpace</span></code>) – </li>
+<li><strong>type</strong> (<code class="docutils literal notranslate"><span class="pre">int</span></code>) – </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.dudley.DudleyDomain.newTransportProblem">
+<code class="descname">newTransportProblem</code><span class="sig-paren">(</span><em>(DudleyDomain)theta</em>, <em>(int)blocksize</em>, <em>(FunctionSpace)functionspace</em>, <em>(int)type</em><span class="sig-paren">)</span> &#x2192; TransportProblem :<a class="headerlink" href="#esys.dudley.DudleyDomain.newTransportProblem" title="Permalink to this definition">¶</a></dt>
+<dd><p>creates a TransportProblem</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>theta</strong> (<code class="docutils literal notranslate"><span class="pre">float</span></code>) – </li>
+<li><strong>blocksize</strong> (<code class="docutils literal notranslate"><span class="pre">int</span></code>) – </li>
+<li><strong>functionspace</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">FunctionSpace</span></code>) – </li>
+<li><strong>type</strong> (<code class="docutils literal notranslate"><span class="pre">int</span></code>) – </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.dudley.DudleyDomain.onMasterProcessor">
+<code class="descname">onMasterProcessor</code><span class="sig-paren">(</span><em>(DudleyDomain)arg1</em><span class="sig-paren">)</span> &#x2192; bool :<a class="headerlink" href="#esys.dudley.DudleyDomain.onMasterProcessor" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">True if this code is executing on the master process</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.dudley.DudleyDomain.print_mesh_info">
+<code class="descname">print_mesh_info</code><span class="sig-paren">(</span><em>(DudleyDomain)arg1</em><span class="optional">[</span>, <em>(bool)full=False</em><span class="optional">]</span><span class="sig-paren">)</span> &#x2192; None :<a class="headerlink" href="#esys.dudley.DudleyDomain.print_mesh_info" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>full</strong> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>) – </td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.dudley.DudleyDomain.setTagMap">
+<code class="descname">setTagMap</code><span class="sig-paren">(</span><em>(DudleyDomain)arg1</em>, <em>(str)name</em>, <em>(int)tag</em><span class="sig-paren">)</span> &#x2192; None :<a class="headerlink" href="#esys.dudley.DudleyDomain.setTagMap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Give a tag number a name.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>name</strong> (<code class="docutils literal notranslate"><span class="pre">string</span></code>) – Name for the tag</li>
+<li><strong>tag</strong> (<code class="docutils literal notranslate"><span class="pre">int</span></code>) – numeric id</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Note:</th><td class="field-body"><p class="first last">Tag names must be unique within a domain</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.dudley.DudleyDomain.setX">
+<code class="descname">setX</code><span class="sig-paren">(</span><em>(DudleyDomain)arg1</em>, <em>(Data)arg</em><span class="sig-paren">)</span> &#x2192; None :<a class="headerlink" href="#esys.dudley.DudleyDomain.setX" title="Permalink to this definition">¶</a></dt>
+<dd><p>assigns new location to the domain</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>arg</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code>) – </td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.dudley.DudleyDomain.showTagNames">
+<code class="descname">showTagNames</code><span class="sig-paren">(</span><em>(DudleyDomain)arg1</em><span class="sig-paren">)</span> &#x2192; str :<a class="headerlink" href="#esys.dudley.DudleyDomain.showTagNames" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A space separated list of tag names</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">string</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.dudley.DudleyDomain.supportsContactElements">
+<code class="descname">supportsContactElements</code><span class="sig-paren">(</span><em>(Domain)arg1</em><span class="sig-paren">)</span> &#x2192; bool :<a class="headerlink" href="#esys.dudley.DudleyDomain.supportsContactElements" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does this domain support contact elements.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.dudley.DudleyDomain.write">
+<code class="descname">write</code><span class="sig-paren">(</span><em>(DudleyDomain)arg1</em>, <em>(str)filename</em><span class="sig-paren">)</span> &#x2192; None :<a class="headerlink" href="#esys.dudley.DudleyDomain.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write the current mesh to a file with the given name.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="attribute">
+<dt id="esys.dudley.GMSHDesign">
+<code class="descclassname">esys.dudley.</code><code class="descname">GMSHDesign</code><a class="headerlink" href="#esys.dudley.GMSHDesign" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="esys.pycad.gmsh.html#esys.pycad.gmsh.Design" title="esys.pycad.gmsh.Design"><code class="xref py py-class docutils literal notranslate"><span class="pre">esys.pycad.gmsh.Design</span></code></a></p>
+</dd></dl>
+
+</div>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="esys.dudley.Brick">
+<code class="descclassname">esys.dudley.</code><code class="descname">Brick</code><span class="sig-paren">(</span><em>n0=1</em>, <em>n1=1</em>, <em>n2=1</em>, <em>order=1</em>, <em>l0=1.0</em>, <em>l1=1.0</em>, <em>l2=1.0</em>, <em>periodic0=False</em>, <em>periodic1=False</em>, <em>periodic2=False</em>, <em>integrationOrder=-1</em>, <em>reducedIntegrationOrder=-1</em>, <em>useElementsOnFace=False</em>, <em>useFullElementOrder=False</em>, <em>optimize=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.dudley.Brick" title="Permalink to this definition">¶</a></dt>
+<dd><p>__Brick_driver( (list)args) -&gt; Domain</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="esys.dudley.LoadMesh">
+<code class="descclassname">esys.dudley.</code><code class="descname">LoadMesh</code><span class="sig-paren">(</span><span class="optional">[</span><em>(str)fileName='file.nc'</em><span class="optional">]</span><span class="sig-paren">)</span> &#x2192; Domain :<a class="headerlink" href="#esys.dudley.LoadMesh" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="#esys.dudley.DudleyDomain" title="esys.dudley.DudleyDomain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DudleyDomain</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="esys.dudley.MakeDomain">
+<code class="descclassname">esys.dudley.</code><code class="descname">MakeDomain</code><span class="sig-paren">(</span><em>design</em>, <em>integrationOrder=-1</em>, <em>reducedIntegrationOrder=-1</em>, <em>optimizeLabeling=True</em>, <em>useMacroElements=False</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.dudley.MakeDomain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a Dudley <code class="xref py py-obj docutils literal notranslate"><span class="pre">Domain</span></code> from a <code class="xref py py-obj docutils literal notranslate"><span class="pre">esys.pycad.design.Design</span></code> object.
+Currently only gmsh is supported.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>design</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">esys.pycad.design.Design</span></code>) – the geometry</li>
+<li><strong>integrationOrder</strong> (<code class="docutils literal notranslate"><span class="pre">int</span></code>) – integration order. If -1 the default is used.</li>
+<li><strong>reducedIntegrationOrder</strong> (<code class="docutils literal notranslate"><span class="pre">int</span></code>) – reduced integration order. If -1 the
+default is used.</li>
+<li><strong>optimizeLabeling</strong> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>) – if set the labeling of the mesh nodes is optimized</li>
+<li><strong>useMacroElements</strong> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>) – for compatibility with finley. Must be False</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">the Dudley domain defined by the design</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Domain</span></code></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="esys.dudley.ReadGmsh">
+<code class="descclassname">esys.dudley.</code><code class="descname">ReadGmsh</code><span class="sig-paren">(</span><em>(str)fileName='file.msh'</em>, <em>(int)numDim</em><span class="optional">[</span>, <em>(int)integrationOrder=-1</em><span class="optional">[</span>, <em>(int)reducedIntegrationOrder=-1</em><span class="optional">[</span>, <em>(bool)optimize=True</em><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="sig-paren">)</span> &#x2192; Domain :<a class="headerlink" href="#esys.dudley.ReadGmsh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read a gmsh mesh file</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Domain</span></code></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>fileName</strong> (<code class="docutils literal notranslate"><span class="pre">string</span></code>) – </li>
+<li><strong>integrationOrder</strong> (<code class="docutils literal notranslate"><span class="pre">int</span></code>) – order of the quadrature scheme. Always 2.</li>
+<li><strong>reducedIntegrationOrder</strong> – order of reduced quadrature scheme. Always 0.</li>
+<li><strong>optimize</strong> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>) – Enable optimisation of node labels</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="esys.dudley.ReadMesh">
+<code class="descclassname">esys.dudley.</code><code class="descname">ReadMesh</code><span class="sig-paren">(</span><span class="optional">[</span><em>(str)fileName='file.fly'</em><span class="optional">[</span>, <em>(int)integrationOrder=-1</em><span class="optional">[</span>, <em>(int)reducedIntegrationOrder=-1</em><span class="optional">[</span>, <em>(bool)optimize=True</em><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="optional">]</span><span class="sig-paren">)</span> &#x2192; Domain :<a class="headerlink" href="#esys.dudley.ReadMesh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read a mesh from a fly file. For MPI parallel runs fan out the mesh to multiple processes.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Domain</span></code></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>fileName</strong> (<code class="docutils literal notranslate"><span class="pre">string</span></code>) – </li>
+<li><strong>integrationOrder</strong> (<code class="docutils literal notranslate"><span class="pre">int</span></code>) – order of the quadrature scheme. Ignored.</li>
+<li><strong>reducedIntegrationOrder</strong> – order of reduced quadrature scheme. Ignored.</li>
+<li><strong>optimize</strong> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>) – Enable optimisation of node labels</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="esys.dudley.Rectangle">
+<code class="descclassname">esys.dudley.</code><code class="descname">Rectangle</code><span class="sig-paren">(</span><em>n0=1</em>, <em>n1=1</em>, <em>order=1</em>, <em>l0=1.0</em>, <em>l1=1.0</em>, <em>periodic0=False</em>, <em>periodic1=False</em>, <em>integrationOrder=-1</em>, <em>reducedIntegrationOrder=-1</em>, <em>useElementsOnFace=False</em>, <em>useFullElementOrder=False</em>, <em>optimize=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.dudley.Rectangle" title="Permalink to this definition">¶</a></dt>
+<dd><p>__Rectangle_driver( (list)args) -&gt; Domain</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="esys.dudley.getTVTK">
+<code class="descclassname">esys.dudley.</code><code class="descname">getTVTK</code><span class="sig-paren">(</span><em>domain</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.dudley.getTVTK" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the point and connectivity information of a finleymesh for tVTK
+:param domain: a finley domainsation of node labels
+:return connectivityinfo: <code class="docutils literal notranslate"><span class="pre">numpy</span> <span class="pre">ndarray</span></code>
+:return pointinfo: <code class="docutils literal notranslate"><span class="pre">numpy</span> <span class="pre">ndarray</span></code></p>
+</dd></dl>
+
+</div>
+<div class="section" id="others">
+<h2>Others<a class="headerlink" href="#others" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="packages">
+<h2>Packages<a class="headerlink" href="#packages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">esys.dudley Package</a><ul>
+<li><a class="reference internal" href="#classes">Classes</a></li>
+<li><a class="reference internal" href="#functions">Functions</a></li>
+<li><a class="reference internal" href="#others">Others</a></li>
+<li><a class="reference internal" href="#packages">Packages</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="esys.downunder.splitregularizations.html"
+                        title="previous chapter">esys.downunder.splitregularizations Package</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="esys.escript.html"
+                        title="next chapter">esys.escript Package</a></p>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="esys.escript.html" title="esys.escript Package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="esys.downunder.splitregularizations.html" title="esys.downunder.splitregularizations Package"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">esys.escript 5.5 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2012-2014, Author.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.4.
+    </div>
+  </body>
+</html>

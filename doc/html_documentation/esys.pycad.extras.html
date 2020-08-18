@@ -1,0 +1,138 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>esys.pycad.extras Package &#8212; esys.escript 5.5 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">esys.escript 5.5 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-esys.pycad.extras">
+<span id="esys-pycad-extras-package"></span><h1>esys.pycad.extras Package<a class="headerlink" href="#module-esys.pycad.extras" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li></li>
+</ul>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="esys.pycad.extras.buildFreeSurface">
+<code class="descclassname">esys.pycad.extras.</code><code class="descname">buildFreeSurface</code><span class="sig-paren">(</span><em>xwidth</em>, <em>ywidth</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.extras.buildFreeSurface" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Build a free surface to start the layer cake model.</dt>
+<dd>This surface is planar.</dd>
+<dt>Parameters:</dt>
+<dd>xwidth :: width in x direction in meters.        ywidth :: width in y direction in meters.</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="esys.pycad.extras.buildLayer">
+<code class="descclassname">esys.pycad.extras.</code><code class="descname">buildLayer</code><span class="sig-paren">(</span><em>xwidth</em>, <em>ywidth</em>, <em>depth</em>, <em>lay_surf</em>, <em>hor_lines</em>, <em>corner_points</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.extras.buildLayer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Builds a boxlike volume and returns primatives for layered model
+construction.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>xwidth :: width in x direction in meters.        ywidth :: width in y direction in meters.        depth  :: depth to bottom of layer in meters.        lay_surf :: surface at top of layer (see buildFreeSurf)        hor_lines :: lines of lay_surf        corner_points :: points of hor_lines</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="esys.pycad.extras.layer_cake">
+<code class="descclassname">esys.pycad.extras.</code><code class="descname">layer_cake</code><span class="sig-paren">(</span><em>domain</em>, <em>xwidth</em>, <em>ywidth</em>, <em>depths</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.extras.layer_cake" title="Permalink to this definition">¶</a></dt>
+<dd><p>Builds a horizontally layered box like model. All layers are 
+tagged as ‘intface_i’ where i is the python style integer denoting
+that layer. For example, the free surface is tagged ‘interface_0’.
+Volumes are similarly tagged as ‘volume_i’.</p>
+<dl class="docutils">
+<dt>Parameters:</dt>
+<dd>domain :: output of Pycad.Design - It needs to be dim 3.       xwidth :: width in x direction in meters.       ywidth :: width in y direction in meters.       depth  :: depth to bottom of layer in meters.</dd>
+<dt>One may save the domain using:</dt>
+<dd># Output settings.   
+domain.setScriptFileName(os.path.join(save_path,fname+”.geo”))        domain.setMeshFileName(os.path.join(save_path,fname+”.msh”))        findomain=fin.MakeDomain(domain) #  make the finley domain:    
+Create a file that can be read back in to python with ReadMesh.        findomain.write(os.path.join(save_path,fname+”.fly”))</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="others">
+<h2>Others<a class="headerlink" href="#others" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="packages">
+<h2>Packages<a class="headerlink" href="#packages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">esys.pycad.extras Package</a><ul>
+<li><a class="reference internal" href="#classes">Classes</a></li>
+<li><a class="reference internal" href="#functions">Functions</a></li>
+<li><a class="reference internal" href="#others">Others</a></li>
+<li><a class="reference internal" href="#packages">Packages</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">esys.escript 5.5 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2012-2014, Author.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.4.
+    </div>
+  </body>
+</html>

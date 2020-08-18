@@ -1,0 +1,1149 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>esys.escript.modelframe Package &#8212; esys.escript 5.5 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">esys.escript 5.5 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-esys.escript.modelframe">
+<span id="esys-escript-modelframe-package"></span><h1>esys.escript.modelframe Package<a class="headerlink" href="#module-esys.escript.modelframe" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li></li>
+</ul>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><a class="reference internal" href="#esys.escript.modelframe.DataSource" title="esys.escript.modelframe.DataSource"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataSource</span></code></a></li>
+<li><a class="reference internal" href="#esys.escript.modelframe.ESySXMLCreator" title="esys.escript.modelframe.ESySXMLCreator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ESySXMLCreator</span></code></a></li>
+<li><a class="reference internal" href="#esys.escript.modelframe.ESySXMLParser" title="esys.escript.modelframe.ESySXMLParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ESySXMLParser</span></code></a></li>
+<li><a class="reference internal" href="#esys.escript.modelframe.FailedTimeStepError" title="esys.escript.modelframe.FailedTimeStepError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FailedTimeStepError</span></code></a></li>
+<li><a class="reference internal" href="#esys.escript.modelframe.IterationDivergenceError" title="esys.escript.modelframe.IterationDivergenceError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IterationDivergenceError</span></code></a></li>
+<li><a class="reference internal" href="#esys.escript.modelframe.Link" title="esys.escript.modelframe.Link"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Link</span></code></a></li>
+<li><a class="reference internal" href="#esys.escript.modelframe.LinkableObject" title="esys.escript.modelframe.LinkableObject"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LinkableObject</span></code></a></li>
+<li><a class="reference internal" href="#esys.escript.modelframe.MissingLink" title="esys.escript.modelframe.MissingLink"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MissingLink</span></code></a></li>
+<li><a class="reference internal" href="#esys.escript.modelframe.Model" title="esys.escript.modelframe.Model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Model</span></code></a></li>
+<li><a class="reference internal" href="#esys.escript.modelframe.NonPositiveStepSizeError" title="esys.escript.modelframe.NonPositiveStepSizeError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NonPositiveStepSizeError</span></code></a></li>
+<li><a class="reference internal" href="#esys.escript.modelframe.ParameterSet" title="esys.escript.modelframe.ParameterSet"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ParameterSet</span></code></a></li>
+<li><a class="reference internal" href="#esys.escript.modelframe.RestartManager" title="esys.escript.modelframe.RestartManager"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RestartManager</span></code></a></li>
+<li><a class="reference internal" href="#esys.escript.modelframe.Simulation" title="esys.escript.modelframe.Simulation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Simulation</span></code></a></li>
+<li><a class="reference internal" href="#esys.escript.modelframe.SimulationBreakDownError" title="esys.escript.modelframe.SimulationBreakDownError"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SimulationBreakDownError</span></code></a></li>
+</ul>
+<dl class="class">
+<dt id="esys.escript.modelframe.DataSource">
+<em class="property">class </em><code class="descclassname">esys.escript.modelframe.</code><code class="descname">DataSource</code><span class="sig-paren">(</span><em>uri='file.ext'</em>, <em>fileformat='unknown'</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.DataSource" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Class for handling data sources, including local and remote files.
+This class is under development.</p>
+<dl class="method">
+<dt id="esys.escript.modelframe.DataSource.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>uri='file.ext'</em>, <em>fileformat='unknown'</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.DataSource.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="esys.escript.modelframe.DataSource.fromDom">
+<em class="property">classmethod </em><code class="descname">fromDom</code><span class="sig-paren">(</span><em>esysxml</em>, <em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.DataSource.fromDom" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.DataSource.getLocalFileName">
+<code class="descname">getLocalFileName</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.DataSource.getLocalFileName" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.DataSource.toDom">
+<code class="descname">toDom</code><span class="sig-paren">(</span><em>esysxml</em>, <em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.DataSource.toDom" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">toDom</span></code> method of DataSource. Creates a DataSource node and appends
+it to the current XML esysxml.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="esys.escript.modelframe.ESySXMLCreator">
+<em class="property">class </em><code class="descclassname">esys.escript.modelframe.</code><code class="descname">ESySXMLCreator</code><a class="headerlink" href="#esys.escript.modelframe.ESySXMLCreator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Creates an XML Dom representation.</p>
+<dl class="method">
+<dt id="esys.escript.modelframe.ESySXMLCreator.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.ESySXMLCreator.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.ESySXMLCreator.createDataNode">
+<code class="descname">createDataNode</code><span class="sig-paren">(</span><em>tagName</em>, <em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.ESySXMLCreator.createDataNode" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">createDataNode</span></code> s are the building blocks of the XML documents
+constructed in this module.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>tagName</strong> – the associated XML tag</li>
+<li><strong>data</strong> – the values in the tag</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.ESySXMLCreator.createElement">
+<code class="descname">createElement</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.ESySXMLCreator.createElement" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.ESySXMLCreator.createTextNode">
+<code class="descname">createTextNode</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.ESySXMLCreator.createTextNode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.ESySXMLCreator.getElementById">
+<code class="descname">getElementById</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.ESySXMLCreator.getElementById" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.ESySXMLCreator.getLinkableObjectId">
+<code class="descname">getLinkableObjectId</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.ESySXMLCreator.getLinkableObjectId" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.ESySXMLCreator.getRoot">
+<code class="descname">getRoot</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.ESySXMLCreator.getRoot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.ESySXMLCreator.includeTargets">
+<code class="descname">includeTargets</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.ESySXMLCreator.includeTargets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.ESySXMLCreator.registerLinkableObject">
+<code class="descname">registerLinkableObject</code><span class="sig-paren">(</span><em>obj</em>, <em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.ESySXMLCreator.registerLinkableObject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a unique object id for object <code class="docutils literal notranslate"><span class="pre">obj</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.ESySXMLCreator.toprettyxml">
+<code class="descname">toprettyxml</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.ESySXMLCreator.toprettyxml" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="esys.escript.modelframe.ESySXMLParser">
+<em class="property">class </em><code class="descclassname">esys.escript.modelframe.</code><code class="descname">ESySXMLParser</code><span class="sig-paren">(</span><em>xml</em>, <em>debug=False</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.ESySXMLParser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Parser for an ESysXML file.</p>
+<dl class="method">
+<dt id="esys.escript.modelframe.ESySXMLParser.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>xml</em>, <em>debug=False</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.ESySXMLParser.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.ESySXMLParser.getClassPath">
+<code class="descname">getClassPath</code><span class="sig-paren">(</span><em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.ESySXMLParser.getClassPath" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.ESySXMLParser.getComponent">
+<code class="descname">getComponent</code><span class="sig-paren">(</span><em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.ESySXMLParser.getComponent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a single component + rank from a simulation.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.ESySXMLParser.parse">
+<code class="descname">parse</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.ESySXMLParser.parse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parses EsysXML and returns the list of generating ParameterSets.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.ESySXMLParser.registerLink">
+<code class="descname">registerLink</code><span class="sig-paren">(</span><em>obj_id</em>, <em>link</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.ESySXMLParser.registerLink" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.ESySXMLParser.registerLinkableObject">
+<code class="descname">registerLinkableObject</code><span class="sig-paren">(</span><em>obj</em>, <em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.ESySXMLParser.registerLinkableObject" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.ESySXMLParser.setLinks">
+<code class="descname">setLinks</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.ESySXMLParser.setLinks" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="esys.escript.modelframe.FailedTimeStepError">
+<em class="property">class </em><code class="descclassname">esys.escript.modelframe.</code><code class="descname">FailedTimeStepError</code><a class="headerlink" href="#esys.escript.modelframe.FailedTimeStepError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Exception which is thrown if the time step fails because of a step
+size that has been chosen to be too large.</p>
+<dl class="method">
+<dt id="esys.escript.modelframe.FailedTimeStepError.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.FailedTimeStepError.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="esys.escript.modelframe.FailedTimeStepError.args">
+<code class="descname">args</code><a class="headerlink" href="#esys.escript.modelframe.FailedTimeStepError.args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.FailedTimeStepError.with_traceback">
+<code class="descname">with_traceback</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.FailedTimeStepError.with_traceback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exception.with_traceback(tb) –
+set self.__traceback__ to tb and return self.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="esys.escript.modelframe.IterationDivergenceError">
+<em class="property">class </em><code class="descclassname">esys.escript.modelframe.</code><code class="descname">IterationDivergenceError</code><a class="headerlink" href="#esys.escript.modelframe.IterationDivergenceError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Exception which is thrown if there is no convergence of the iteration
+process at a time step.</p>
+<p>But there is a chance that a smaller step could help to reach convergence.</p>
+<dl class="method">
+<dt id="esys.escript.modelframe.IterationDivergenceError.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.IterationDivergenceError.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="esys.escript.modelframe.IterationDivergenceError.args">
+<code class="descname">args</code><a class="headerlink" href="#esys.escript.modelframe.IterationDivergenceError.args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.IterationDivergenceError.with_traceback">
+<code class="descname">with_traceback</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.IterationDivergenceError.with_traceback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exception.with_traceback(tb) –
+set self.__traceback__ to tb and return self.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="esys.escript.modelframe.Link">
+<em class="property">class </em><code class="descclassname">esys.escript.modelframe.</code><code class="descname">Link</code><span class="sig-paren">(</span><em>target</em>, <em>attribute=None</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Link" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A Link makes an attribute of an object callable:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">o</span><span class="o">.</span><span class="n">object</span><span class="p">()</span>
+<span class="n">o</span><span class="o">.</span><span class="n">a</span><span class="o">=</span><span class="mi">8</span>
+<span class="n">l</span><span class="o">=</span><span class="n">Link</span><span class="p">(</span><span class="n">o</span><span class="p">,</span><span class="s2">&quot;a&quot;</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">l</span><span class="p">()</span><span class="o">==</span><span class="mi">8</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="esys.escript.modelframe.Link.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>target</em>, <em>attribute=None</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Link.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a link to the object target. If attribute is given, the link is
+established to this attribute of the target. Otherwise the attribute is
+undefined.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="esys.escript.modelframe.Link.fromDom">
+<em class="property">classmethod </em><code class="descname">fromDom</code><span class="sig-paren">(</span><em>esysxml</em>, <em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Link.fromDom" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Link.getAttributeName">
+<code class="descname">getAttributeName</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Link.getAttributeName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the name of the attribute the link is pointing to.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Link.getTarget">
+<code class="descname">getTarget</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Link.getTarget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the target.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Link.hasDefinedAttributeName">
+<code class="descname">hasDefinedAttributeName</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Link.hasDefinedAttributeName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns true if an attribute name is set.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Link.setAttributeName">
+<code class="descname">setAttributeName</code><span class="sig-paren">(</span><em>attribute</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Link.setAttributeName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets a new attribute name to be collected from the target object. The
+target object must have the attribute with name attribute.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Link.toDom">
+<code class="descname">toDom</code><span class="sig-paren">(</span><em>esysxml</em>, <em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Link.toDom" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">toDom</span></code> method of Link. Creates a Link node and appends it to the
+current XML esysxml.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="esys.escript.modelframe.LinkableObject">
+<em class="property">class </em><code class="descclassname">esys.escript.modelframe.</code><code class="descname">LinkableObject</code><span class="sig-paren">(</span><em>id=None</em>, <em>debug=False</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.LinkableObject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>An object that allows to link its attributes to attributes of other objects
+via a Link object. For instance:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">p</span> <span class="o">=</span> <span class="n">LinkableObject</span><span class="p">()</span>
+<span class="n">p</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">Link</span><span class="p">(</span><span class="n">o</span><span class="p">,</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
+<span class="nb">print</span> <span class="n">p</span><span class="o">.</span><span class="n">x</span>
+</pre></div>
+</div>
+<p>links attribute <code class="docutils literal notranslate"><span class="pre">x</span></code> of <code class="docutils literal notranslate"><span class="pre">p</span></code> to the attribute name of object <code class="docutils literal notranslate"><span class="pre">o</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">p.x</span></code> will contain the current value of attribute <code class="docutils literal notranslate"><span class="pre">name</span></code> of object <code class="docutils literal notranslate"><span class="pre">o</span></code>.</p>
+<p>If the value of <code class="docutils literal notranslate"><span class="pre">getattr(o,</span> <span class="pre">&quot;name&quot;)</span></code> is callable, <code class="docutils literal notranslate"><span class="pre">p.x</span></code> will return
+the return value of the call.</p>
+<dl class="method">
+<dt id="esys.escript.modelframe.LinkableObject.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>id=None</em>, <em>debug=False</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.LinkableObject.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes LinkableObject so that we can operate on Links.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.LinkableObject.getAttributeObject">
+<code class="descname">getAttributeObject</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.LinkableObject.getAttributeObject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the object stored for attribute <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.LinkableObject.hasAttribute">
+<code class="descname">hasAttribute</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.LinkableObject.hasAttribute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if self has attribute <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.LinkableObject.trace">
+<code class="descname">trace</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.LinkableObject.trace" title="Permalink to this definition">¶</a></dt>
+<dd><p>If debugging is on, prints the message, otherwise does nothing.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="esys.escript.modelframe.MissingLink">
+<em class="property">class </em><code class="descclassname">esys.escript.modelframe.</code><code class="descname">MissingLink</code><a class="headerlink" href="#esys.escript.modelframe.MissingLink" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Exception which is thrown when a link is missing.</p>
+<dl class="method">
+<dt id="esys.escript.modelframe.MissingLink.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.MissingLink.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="esys.escript.modelframe.MissingLink.args">
+<code class="descname">args</code><a class="headerlink" href="#esys.escript.modelframe.MissingLink.args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.MissingLink.with_traceback">
+<code class="descname">with_traceback</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.MissingLink.with_traceback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exception.with_traceback(tb) –
+set self.__traceback__ to tb and return self.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="esys.escript.modelframe.Model">
+<em class="property">class </em><code class="descclassname">esys.escript.modelframe.</code><code class="descname">Model</code><span class="sig-paren">(</span><em>parameters=[]</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">esys.escriptcore.modelframe.ParameterSet</span></code></p>
+<p>A Model object represents a process marching over time until a
+finalizing condition is fulfilled. At each time step an iterative
+process can be performed and the time step size can be controlled. A
+Model has the following work flow:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">doInitialization</span><span class="p">()</span>
+<span class="k">while</span> <span class="ow">not</span> <span class="n">terminateInitialIteration</span><span class="p">():</span> <span class="n">doInitialStep</span><span class="p">()</span>
+<span class="n">doInitialPostprocessing</span><span class="p">()</span>
+<span class="k">while</span> <span class="ow">not</span> <span class="n">finalize</span><span class="p">():</span>
+    <span class="n">dt</span><span class="o">=</span><span class="n">getSafeTimeStepSize</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
+    <span class="n">doStepPreprocessing</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
+    <span class="k">while</span> <span class="ow">not</span> <span class="n">terminateIteration</span><span class="p">():</span> <span class="n">doStep</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
+    <span class="n">doStepPostprocessing</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
+<span class="n">doFinalization</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">doInitialization</span></code>, <code class="docutils literal notranslate"><span class="pre">finalize</span></code>, <code class="docutils literal notranslate"><span class="pre">getSafeTimeStepSize</span></code>,
+<code class="docutils literal notranslate"><span class="pre">doStepPreprocessing</span></code>, <code class="docutils literal notranslate"><span class="pre">terminateIteration</span></code>, <code class="docutils literal notranslate"><span class="pre">doStepPostprocessing</span></code>,
+<code class="docutils literal notranslate"><span class="pre">doFinalization</span></code> are methods of the particular instance of a Model. The
+default implementations of these methods have to be overwritten by the
+subclass implementing a Model.</p>
+<dl class="method">
+<dt id="esys.escript.modelframe.Model.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>parameters=[]</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Model.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a model.</p>
+<p>Just calls the parent constructor.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="esys.escript.modelframe.Model.UNDEF_DT">
+<code class="descname">UNDEF_DT</code><em class="property"> = 1e+300</em><a class="headerlink" href="#esys.escript.modelframe.Model.UNDEF_DT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Model.checkLinkTargets">
+<code class="descname">checkLinkTargets</code><span class="sig-paren">(</span><em>models</em>, <em>hash</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Model.checkLinkTargets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a set of tuples (“&lt;self&gt;(&lt;name&gt;)”, &lt;target model&gt;) if the
+parameter &lt;name&gt; is linked to model &lt;target model&gt; but &lt;target model&gt;
+is not in the list of models. If a parameter is linked to another
+parameter set which is not in the hash list the parameter set is
+checked for its models. hash gives the call history.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Model.declareParameter">
+<code class="descname">declareParameter</code><span class="sig-paren">(</span><em>**parameters</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Model.declareParameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Declares one or more new parameters and their initial value.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Model.declareParameters">
+<code class="descname">declareParameters</code><span class="sig-paren">(</span><em>parameters</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Model.declareParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Declares a set of parameters. parameters can be a list, a dictionary
+or a ParameterSet.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Model.doFinalization">
+<code class="descname">doFinalization</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Model.doFinalization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finalizes the time stepping.</p>
+<p>This function may be overwritten.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Model.doInitialPostprocessing">
+<code class="descname">doInitialPostprocessing</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Model.doInitialPostprocessing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finalises the initialization iteration process. This method is not
+called in case of a restart.</p>
+<p>This function may be overwritten.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Model.doInitialStep">
+<code class="descname">doInitialStep</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Model.doInitialStep" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs an iteration step in the initialization phase. This method
+is not called in case of a restart.</p>
+<p>This function may be overwritten.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Model.doInitialization">
+<code class="descname">doInitialization</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Model.doInitialization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the time stepping scheme. This method is not called in
+case of a restart.</p>
+<p>This function may be overwritten.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Model.doStep">
+<code class="descname">doStep</code><span class="sig-paren">(</span><em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Model.doStep" title="Permalink to this definition">¶</a></dt>
+<dd><p>Executes an iteration step at a time step.</p>
+<p><code class="docutils literal notranslate"><span class="pre">dt</span></code> is the currently used time step size.</p>
+<p>This function may be overwritten.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Model.doStepPostprocessing">
+<code class="descname">doStepPostprocessing</code><span class="sig-paren">(</span><em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Model.doStepPostprocessing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finalises the time step.</p>
+<p>dt is the currently used time step size.</p>
+<p>This function may be overwritten.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Model.doStepPreprocessing">
+<code class="descname">doStepPreprocessing</code><span class="sig-paren">(</span><em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Model.doStepPreprocessing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets up a time step of step size dt.</p>
+<p>This function may be overwritten.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Model.finalize">
+<code class="descname">finalize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Model.finalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns False if the time stepping is finalized.</p>
+<p>This function may be overwritten.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="esys.escript.modelframe.Model.fromDom">
+<em class="property">classmethod </em><code class="descname">fromDom</code><span class="sig-paren">(</span><em>esysxml</em>, <em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Model.fromDom" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Model.getAttributeObject">
+<code class="descname">getAttributeObject</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Model.getAttributeObject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the object stored for attribute <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Model.getSafeTimeStepSize">
+<code class="descname">getSafeTimeStepSize</code><span class="sig-paren">(</span><em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Model.getSafeTimeStepSize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a time step size which can be safely used.</p>
+<p><code class="docutils literal notranslate"><span class="pre">dt</span></code> gives the previously used step size.</p>
+<p>This function may be overwritten.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Model.hasAttribute">
+<code class="descname">hasAttribute</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Model.hasAttribute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if self has attribute <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Model.releaseParameters">
+<code class="descname">releaseParameters</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Model.releaseParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes parameter name from the parameters.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Model.setUp">
+<code class="descname">setUp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Model.setUp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets up the model.</p>
+<p>This function may be overwritten.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Model.showParameters">
+<code class="descname">showParameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Model.showParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a description of the parameters.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Model.terminateInitialIteration">
+<code class="descname">terminateInitialIteration</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Model.terminateInitialIteration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if iteration at the inital phase is terminated.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Model.terminateIteration">
+<code class="descname">terminateIteration</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Model.terminateIteration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if iteration on a time step is terminated.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Model.toDom">
+<code class="descname">toDom</code><span class="sig-paren">(</span><em>esysxml</em>, <em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Model.toDom" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">toDom</span></code> method of Model class.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Model.trace">
+<code class="descname">trace</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Model.trace" title="Permalink to this definition">¶</a></dt>
+<dd><p>If debugging is on, prints the message, otherwise does nothing.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Model.writeXML">
+<code class="descname">writeXML</code><span class="sig-paren">(</span><em>ostream=&lt;_io.TextIOWrapper name='&lt;stdout&gt;' mode='w' encoding='UTF-8'&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Model.writeXML" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the object as an XML object into an output stream.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="esys.escript.modelframe.NonPositiveStepSizeError">
+<em class="property">class </em><code class="descclassname">esys.escript.modelframe.</code><code class="descname">NonPositiveStepSizeError</code><a class="headerlink" href="#esys.escript.modelframe.NonPositiveStepSizeError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Exception which is thrown if the step size is not positive.</p>
+<dl class="method">
+<dt id="esys.escript.modelframe.NonPositiveStepSizeError.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.NonPositiveStepSizeError.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="esys.escript.modelframe.NonPositiveStepSizeError.args">
+<code class="descname">args</code><a class="headerlink" href="#esys.escript.modelframe.NonPositiveStepSizeError.args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.NonPositiveStepSizeError.with_traceback">
+<code class="descname">with_traceback</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.NonPositiveStepSizeError.with_traceback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exception.with_traceback(tb) –
+set self.__traceback__ to tb and return self.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="esys.escript.modelframe.ParameterSet">
+<em class="property">class </em><code class="descclassname">esys.escript.modelframe.</code><code class="descname">ParameterSet</code><span class="sig-paren">(</span><em>parameters=[]</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.ParameterSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">esys.escriptcore.modelframe.LinkableObject</span></code></p>
+<p>A class which allows to emphasize attributes to be written and read to XML.</p>
+<p>Leaves of an ESySParameters object can be:</p>
+<blockquote>
+<div><ul class="simple">
+<li>a real number</li>
+<li>an integer number</li>
+<li>a string</li>
+<li>a boolean value</li>
+<li>a ParameterSet object</li>
+<li>a Simulation object</li>
+<li>a Model object</li>
+<li>a numpy object</li>
+<li>a list of booleans</li>
+<li>any other object (not considered by writeESySXML and writeXML)</li>
+</ul>
+</div></blockquote>
+<p>Example for how to create an ESySParameters object:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">p11</span><span class="o">=</span><span class="n">ParameterSet</span><span class="p">(</span><span class="n">gamma1</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span><span class="n">gamma2</span><span class="o">=</span><span class="mf">2.</span><span class="p">,</span><span class="n">gamma3</span><span class="o">=</span><span class="mf">3.</span><span class="p">)</span>
+<span class="n">p1</span><span class="o">=</span><span class="n">ParameterSet</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="n">tol_v</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span><span class="n">output_file</span><span class="o">=</span><span class="s2">&quot;/tmp/u.</span><span class="si">%3.3d</span><span class="s2">.dx&quot;</span><span class="p">,</span><span class="n">runFlag</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">parm11</span><span class="o">=</span><span class="n">p11</span><span class="p">)</span>
+<span class="n">parm</span><span class="o">=</span><span class="n">ParameterSet</span><span class="p">(</span><span class="n">parm1</span><span class="o">=</span><span class="n">p1</span><span class="p">,</span><span class="n">parm2</span><span class="o">=</span><span class="n">ParameterSet</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="n">Link</span><span class="p">(</span><span class="n">p11</span><span class="p">,</span><span class="s2">&quot;gamma1&quot;</span><span class="p">)))</span>
+</pre></div>
+</div>
+<p>This can be accessed as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">parm</span><span class="o">.</span><span class="n">parm1</span><span class="o">.</span><span class="n">gamma</span><span class="o">=</span><span class="mf">0.</span>
+<span class="n">parm</span><span class="o">.</span><span class="n">parm1</span><span class="o">.</span><span class="n">dim</span><span class="o">=</span><span class="mi">2</span>
+<span class="n">parm</span><span class="o">.</span><span class="n">parm1</span><span class="o">.</span><span class="n">tol_v</span><span class="o">=</span><span class="mf">0.001</span>
+<span class="n">parm</span><span class="o">.</span><span class="n">parm1</span><span class="o">.</span><span class="n">output_file</span><span class="o">=</span><span class="s2">&quot;/tmp/u.</span><span class="si">%3.3d</span><span class="s2">.dx&quot;</span>
+<span class="n">parm</span><span class="o">.</span><span class="n">parm1</span><span class="o">.</span><span class="n">runFlag</span><span class="o">=</span><span class="kc">True</span>
+<span class="n">parm</span><span class="o">.</span><span class="n">parm1</span><span class="o">.</span><span class="n">parm11</span><span class="o">.</span><span class="n">gamma1</span><span class="o">=</span><span class="mf">1.</span>
+<span class="n">parm</span><span class="o">.</span><span class="n">parm1</span><span class="o">.</span><span class="n">parm11</span><span class="o">.</span><span class="n">gamma2</span><span class="o">=</span><span class="mf">2.</span>
+<span class="n">parm</span><span class="o">.</span><span class="n">parm1</span><span class="o">.</span><span class="n">parm11</span><span class="o">.</span><span class="n">gamma3</span><span class="o">=</span><span class="mf">3.</span>
+<span class="n">parm</span><span class="o">.</span><span class="n">parm2</span><span class="o">.</span><span class="n">alpha</span><span class="o">=</span><span class="mf">1.</span> <span class="p">(</span><span class="n">value</span> <span class="n">of</span> <span class="n">parm</span><span class="o">.</span><span class="n">parm1</span><span class="o">.</span><span class="n">parm11</span><span class="o">.</span><span class="n">gamma1</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="esys.escript.modelframe.ParameterSet.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>parameters=[]</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.ParameterSet.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a ParameterSet with given parameters.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.ParameterSet.checkLinkTargets">
+<code class="descname">checkLinkTargets</code><span class="sig-paren">(</span><em>models</em>, <em>hash</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.ParameterSet.checkLinkTargets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a set of tuples (“&lt;self&gt;(&lt;name&gt;)”, &lt;target model&gt;) if the
+parameter &lt;name&gt; is linked to model &lt;target model&gt; but &lt;target model&gt;
+is not in the list of models. If a parameter is linked to another
+parameter set which is not in the hash list the parameter set is
+checked for its models. hash gives the call history.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.ParameterSet.declareParameter">
+<code class="descname">declareParameter</code><span class="sig-paren">(</span><em>**parameters</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.ParameterSet.declareParameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Declares one or more new parameters and their initial value.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.ParameterSet.declareParameters">
+<code class="descname">declareParameters</code><span class="sig-paren">(</span><em>parameters</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.ParameterSet.declareParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Declares a set of parameters. parameters can be a list, a dictionary
+or a ParameterSet.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="esys.escript.modelframe.ParameterSet.fromDom">
+<em class="property">classmethod </em><code class="descname">fromDom</code><span class="sig-paren">(</span><em>esysxml</em>, <em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.ParameterSet.fromDom" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.ParameterSet.getAttributeObject">
+<code class="descname">getAttributeObject</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.ParameterSet.getAttributeObject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the object stored for attribute <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.ParameterSet.hasAttribute">
+<code class="descname">hasAttribute</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.ParameterSet.hasAttribute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if self has attribute <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.ParameterSet.releaseParameters">
+<code class="descname">releaseParameters</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.ParameterSet.releaseParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes parameter name from the parameters.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.ParameterSet.showParameters">
+<code class="descname">showParameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.ParameterSet.showParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a description of the parameters.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.ParameterSet.toDom">
+<code class="descname">toDom</code><span class="sig-paren">(</span><em>esysxml</em>, <em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.ParameterSet.toDom" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">toDom</span></code> method of Model class.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.ParameterSet.trace">
+<code class="descname">trace</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.ParameterSet.trace" title="Permalink to this definition">¶</a></dt>
+<dd><p>If debugging is on, prints the message, otherwise does nothing.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.ParameterSet.writeXML">
+<code class="descname">writeXML</code><span class="sig-paren">(</span><em>ostream=&lt;_io.TextIOWrapper name='&lt;stdout&gt;' mode='w' encoding='UTF-8'&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.ParameterSet.writeXML" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the object as an XML object into an output stream.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="esys.escript.modelframe.RestartManager">
+<em class="property">class </em><code class="descclassname">esys.escript.modelframe.</code><code class="descname">RestartManager</code><span class="sig-paren">(</span><em>dump_time=1080.0</em>, <em>dump_step=None</em>, <em>dumper=None</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.RestartManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A restart manager which does two things: it decides when restart files
+were created (when doDump returns true) and manages directories for
+restart files. The method getNewDumper creates a new directory and
+returns its name.</p>
+<p>This restart manager will decide to dump restart files every dump_step
+calls of doDump or if more than dump_time since the last dump has
+elapsed. The restart manager controls two directories for dumping
+restart data, namely for the current and previous dump. This way the
+previous dump can be used for restart in the case the current dump failed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><a class="reference internal" href="#esys.escript.modelframe.RestartManager.SEC" title="esys.escript.modelframe.RestartManager.SEC"><strong>SEC</strong></a> – unit of seconds, for instance 5*RestartManager.SEC defines 5 seconds</li>
+<li><a class="reference internal" href="#esys.escript.modelframe.RestartManager.MIN" title="esys.escript.modelframe.RestartManager.MIN"><strong>MIN</strong></a> – unit of minutes, for instance 5*RestartManager.MIN defines 5 minutes</li>
+<li><a class="reference internal" href="#esys.escript.modelframe.RestartManager.H" title="esys.escript.modelframe.RestartManager.H"><strong>H</strong></a> – unit of hours, for instance 5*RestartManager.H defines 5 hours</li>
+<li><a class="reference internal" href="#esys.escript.modelframe.RestartManager.D" title="esys.escript.modelframe.RestartManager.D"><strong>D</strong></a> – unit of days, for instance 5*RestartManager.D defines 5 days</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="esys.escript.modelframe.RestartManager.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>dump_time=1080.0</em>, <em>dump_step=None</em>, <em>dumper=None</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.RestartManager.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the RestartManager.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>dump_time</strong> – defines the minimum time interval in SEC between two
+dumps. If <code class="docutils literal notranslate"><span class="pre">None</span></code>, time is not used as criterion.</li>
+<li><strong>dump_step</strong> – defines the number of calls of doDump between two
+dump events. If <code class="docutils literal notranslate"><span class="pre">None</span></code>, the call counter is not
+used as criterion.</li>
+<li><strong>dumper</strong> – defines the directory for dumping restart files.
+Additionally, the directories dumper+”_bkp” and
+dumper+”_bkp2” are used. If the directory does not
+exist it is created. If dumper is not present a unique
+directory within the current working directory is used.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="esys.escript.modelframe.RestartManager.D">
+<code class="descname">D</code><em class="property"> = 8640.0</em><a class="headerlink" href="#esys.escript.modelframe.RestartManager.D" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="esys.escript.modelframe.RestartManager.H">
+<code class="descname">H</code><em class="property"> = 360.0</em><a class="headerlink" href="#esys.escript.modelframe.RestartManager.H" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="esys.escript.modelframe.RestartManager.MIN">
+<code class="descname">MIN</code><em class="property"> = 60.0</em><a class="headerlink" href="#esys.escript.modelframe.RestartManager.MIN" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="esys.escript.modelframe.RestartManager.SEC">
+<code class="descname">SEC</code><em class="property"> = 1.0</em><a class="headerlink" href="#esys.escript.modelframe.RestartManager.SEC" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.RestartManager.doDump">
+<code class="descname">doDump</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.RestartManager.doDump" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns true if the restart should be dumped. Use <code class="docutils literal notranslate"><span class="pre">getNewDumper</span></code> to
+retrieve the directory name to be used for dumping.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.RestartManager.getCurrentDumper">
+<code class="descname">getCurrentDumper</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.RestartManager.getCurrentDumper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the name of the currently used dumper.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.RestartManager.getNewDumper">
+<code class="descname">getNewDumper</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.RestartManager.getNewDumper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a new directory to be used for dumping and returns its name.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="esys.escript.modelframe.Simulation">
+<em class="property">class </em><code class="descclassname">esys.escript.modelframe.</code><code class="descname">Simulation</code><span class="sig-paren">(</span><em>models=[]</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Simulation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">esys.escriptcore.modelframe.Model</span></code></p>
+<p>A Simulation object is a special Model which runs a sequence of Models.</p>
+<p>The methods <code class="docutils literal notranslate"><span class="pre">doInitialization</span></code>, <code class="docutils literal notranslate"><span class="pre">finalize</span></code>, <code class="docutils literal notranslate"><span class="pre">getSafeTimeStepSize</span></code>,
+<code class="docutils literal notranslate"><span class="pre">doStepPreprocessing</span></code>, <code class="docutils literal notranslate"><span class="pre">terminateIteration</span></code>, <code class="docutils literal notranslate"><span class="pre">doStepPostprocessing</span></code>,
+<code class="docutils literal notranslate"><span class="pre">doFinalization</span></code> execute the corresponding methods of the models in
+the simulation.</p>
+<dl class="method">
+<dt id="esys.escript.modelframe.Simulation.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>models=[]</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Simulation.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initiates a simulation from a list of models.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="esys.escript.modelframe.Simulation.FAILED_TIME_STEPS_MAX">
+<code class="descname">FAILED_TIME_STEPS_MAX</code><em class="property"> = 20</em><a class="headerlink" href="#esys.escript.modelframe.Simulation.FAILED_TIME_STEPS_MAX" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="esys.escript.modelframe.Simulation.MAX_CHANGE_OF_DT">
+<code class="descname">MAX_CHANGE_OF_DT</code><em class="property"> = 2.0</em><a class="headerlink" href="#esys.escript.modelframe.Simulation.MAX_CHANGE_OF_DT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="esys.escript.modelframe.Simulation.MAX_ITER_STEPS">
+<code class="descname">MAX_ITER_STEPS</code><em class="property"> = 50</em><a class="headerlink" href="#esys.escript.modelframe.Simulation.MAX_ITER_STEPS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="esys.escript.modelframe.Simulation.UNDEF_DT">
+<code class="descname">UNDEF_DT</code><em class="property"> = 1e+300</em><a class="headerlink" href="#esys.escript.modelframe.Simulation.UNDEF_DT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Simulation.checkLinkTargets">
+<code class="descname">checkLinkTargets</code><span class="sig-paren">(</span><em>models</em>, <em>hash</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Simulation.checkLinkTargets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a set of tuples (“&lt;self&gt;(&lt;name&gt;)”, &lt;target model&gt;) if the
+parameter &lt;name&gt; is linked to model &lt;target model&gt; but &lt;target model&gt;
+is not in the list of models. If a parameter is linked to another
+parameter set which is not in the hash list the parameter set is
+checked for its models. hash gives the call history.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Simulation.checkModels">
+<code class="descname">checkModels</code><span class="sig-paren">(</span><em>models</em>, <em>hash</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Simulation.checkModels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of (model, parameter, target model) if the parameter
+of model is linking to the target_model which is not in the list of
+models.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Simulation.declareParameter">
+<code class="descname">declareParameter</code><span class="sig-paren">(</span><em>**parameters</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Simulation.declareParameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Declares one or more new parameters and their initial value.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Simulation.declareParameters">
+<code class="descname">declareParameters</code><span class="sig-paren">(</span><em>parameters</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Simulation.declareParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Declares a set of parameters. parameters can be a list, a dictionary
+or a ParameterSet.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Simulation.doFinalization">
+<code class="descname">doFinalization</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Simulation.doFinalization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finalises the time stepping for all models.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Simulation.doInitialPostprocessing">
+<code class="descname">doInitialPostprocessing</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Simulation.doInitialPostprocessing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finalises the initialization iteration process for all models.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Simulation.doInitialStep">
+<code class="descname">doInitialStep</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Simulation.doInitialStep" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs an iteration step in the initialization step for all models.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Simulation.doInitialization">
+<code class="descname">doInitialization</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Simulation.doInitialization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes all models.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Simulation.doStep">
+<code class="descname">doStep</code><span class="sig-paren">(</span><em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Simulation.doStep" title="Permalink to this definition">¶</a></dt>
+<dd><p>Executes the iteration step at a time step for all models</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Simulation.doStepPostprocessing">
+<code class="descname">doStepPostprocessing</code><span class="sig-paren">(</span><em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Simulation.doStepPostprocessing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finalises the iteration process for all models.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Simulation.doStepPreprocessing">
+<code class="descname">doStepPreprocessing</code><span class="sig-paren">(</span><em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Simulation.doStepPreprocessing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the time step for all models.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Simulation.finalize">
+<code class="descname">finalize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Simulation.finalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if any of the models is to be finalized.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="esys.escript.modelframe.Simulation.fromDom">
+<em class="property">classmethod </em><code class="descname">fromDom</code><span class="sig-paren">(</span><em>esysxml</em>, <em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Simulation.fromDom" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Simulation.getAllModels">
+<code class="descname">getAllModels</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Simulation.getAllModels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of all models used in the Simulation including
+subsimulations.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Simulation.getAttributeObject">
+<code class="descname">getAttributeObject</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Simulation.getAttributeObject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the object stored for attribute <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Simulation.getSafeTimeStepSize">
+<code class="descname">getSafeTimeStepSize</code><span class="sig-paren">(</span><em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Simulation.getSafeTimeStepSize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a time step size which can be safely used by all models.</p>
+<p>This is the minimum over the time step sizes of all models.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Simulation.hasAttribute">
+<code class="descname">hasAttribute</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Simulation.hasAttribute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if self has attribute <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Simulation.iterModels">
+<code class="descname">iterModels</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Simulation.iterModels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an iterator over the models.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Simulation.releaseParameters">
+<code class="descname">releaseParameters</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Simulation.releaseParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes parameter name from the parameters.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Simulation.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>check_pointing=None</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Simulation.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Runs the simulation by performing essentially:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="bp">self</span><span class="o">.</span><span class="n">setUp</span><span class="p">()</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">restart</span><span class="p">:</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">doInitialization</span><span class="p">()</span>
+    <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">terminateInitialIteration</span><span class="p">():</span> <span class="bp">self</span><span class="o">.</span><span class="n">doInitialStep</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">doInitialPostprocessing</span><span class="p">()</span>
+<span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">finalize</span><span class="p">():</span>
+    <span class="n">dt</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getSafeTimeStepSize</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">doStepPreprocessing</span><span class="p">(</span><span class="n">dt_new</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">doStep</span><span class="p">(</span><span class="n">dt_new</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">doStepPostprocessing</span><span class="p">(</span><span class="n">dt_new</span><span class="p">)</span>
+<span class="bp">self</span><span class="o">.</span><span class="n">doFinalization</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>If one of the models throws a <code class="docutils literal notranslate"><span class="pre">FailedTimeStepError</span></code> exception a
+new time step size is computed through getSafeTimeStepSize() and the
+time step is repeated.</p>
+<p>If one of the models throws a <code class="docutils literal notranslate"><span class="pre">IterationDivergenceError</span></code>
+exception the time step size is halved and the time step is repeated.</p>
+<p>In both cases the time integration is given up after
+<code class="docutils literal notranslate"><span class="pre">Simulation.FAILED_TIME_STEPS_MAX</span></code> attempts.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Simulation.setUp">
+<code class="descname">setUp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Simulation.setUp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs the setup for all models.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Simulation.showParameters">
+<code class="descname">showParameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Simulation.showParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a description of the parameters.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Simulation.terminateInitialIteration">
+<code class="descname">terminateInitialIteration</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Simulation.terminateInitialIteration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if all initial iterations for all models are terminated.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Simulation.terminateIteration">
+<code class="descname">terminateIteration</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Simulation.terminateIteration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if all iterations for all models are terminated.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Simulation.toDom">
+<code class="descname">toDom</code><span class="sig-paren">(</span><em>esysxml</em>, <em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Simulation.toDom" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">toDom</span></code> method of Simulation class.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Simulation.trace">
+<code class="descname">trace</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Simulation.trace" title="Permalink to this definition">¶</a></dt>
+<dd><p>If debugging is on, prints the message, otherwise does nothing.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.Simulation.writeXML">
+<code class="descname">writeXML</code><span class="sig-paren">(</span><em>ostream=&lt;_io.TextIOWrapper name='&lt;stdout&gt;' mode='w' encoding='UTF-8'&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.Simulation.writeXML" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the object as an XML object into an output stream.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="esys.escript.modelframe.SimulationBreakDownError">
+<em class="property">class </em><code class="descclassname">esys.escript.modelframe.</code><code class="descname">SimulationBreakDownError</code><a class="headerlink" href="#esys.escript.modelframe.SimulationBreakDownError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Exception which is thrown if the simulation does not manage to progress
+in time.</p>
+<dl class="method">
+<dt id="esys.escript.modelframe.SimulationBreakDownError.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.SimulationBreakDownError.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="esys.escript.modelframe.SimulationBreakDownError.args">
+<code class="descname">args</code><a class="headerlink" href="#esys.escript.modelframe.SimulationBreakDownError.args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.modelframe.SimulationBreakDownError.with_traceback">
+<code class="descname">with_traceback</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.SimulationBreakDownError.with_traceback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exception.with_traceback(tb) –
+set self.__traceback__ to tb and return self.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="esys.escript.modelframe.all">
+<code class="descclassname">esys.escript.modelframe.</code><code class="descname">all</code><span class="sig-paren">(</span><em>seq</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.all" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if no element in <code class="docutils literal notranslate"><span class="pre">seq</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>, False otherwise.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="esys.escript.modelframe.any">
+<code class="descclassname">esys.escript.modelframe.</code><code class="descname">any</code><span class="sig-paren">(</span><em>seq</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.any" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if not all elements in <code class="docutils literal notranslate"><span class="pre">seq</span></code> are <code class="docutils literal notranslate"><span class="pre">None</span></code>, False otherwise.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="esys.escript.modelframe.importName">
+<code class="descclassname">esys.escript.modelframe.</code><code class="descname">importName</code><span class="sig-paren">(</span><em>modulename</em>, <em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.modelframe.importName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Imports a named object from a module in the context of this function,
+which means you should use fully qualified module paths.
+Returns None on failure.</p>
+<p>This function is from <a class="reference external" href="http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/52241">http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/52241</a></p>
+</dd></dl>
+
+</div>
+<div class="section" id="others">
+<h2>Others<a class="headerlink" href="#others" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>reduce</li>
+</ul>
+</div>
+<div class="section" id="packages">
+<h2>Packages<a class="headerlink" href="#packages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">esys.escript.modelframe Package</a><ul>
+<li><a class="reference internal" href="#classes">Classes</a></li>
+<li><a class="reference internal" href="#functions">Functions</a></li>
+<li><a class="reference internal" href="#others">Others</a></li>
+<li><a class="reference internal" href="#packages">Packages</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">esys.escript 5.5 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2012-2014, Author.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.4.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,350 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>esys.downunder.forwardmodels.acoustic Package &#8212; esys.escript 5.5 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">esys.escript 5.5 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-esys.downunder.forwardmodels.acoustic">
+<span id="esys-downunder-forwardmodels-acoustic-package"></span><h1>esys.downunder.forwardmodels.acoustic Package<a class="headerlink" href="#module-esys.downunder.forwardmodels.acoustic" title="Permalink to this headline">¶</a></h1>
+<p>Forward model for acoustic wave forms</p>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><a class="reference internal" href="#esys.downunder.forwardmodels.acoustic.AcousticWaveForm" title="esys.downunder.forwardmodels.acoustic.AcousticWaveForm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AcousticWaveForm</span></code></a></li>
+<li><a class="reference internal" href="#esys.downunder.forwardmodels.acoustic.ForwardModel" title="esys.downunder.forwardmodels.acoustic.ForwardModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ForwardModel</span></code></a></li>
+</ul>
+<dl class="class">
+<dt id="esys.downunder.forwardmodels.acoustic.AcousticWaveForm">
+<em class="property">class </em><code class="descclassname">esys.downunder.forwardmodels.acoustic.</code><code class="descname">AcousticWaveForm</code><span class="sig-paren">(</span><em>domain</em>, <em>omega</em>, <em>w</em>, <em>data</em>, <em>F</em>, <em>coordinates=None</em>, <em>fixAtBottom=False</em>, <em>tol=1e-10</em>, <em>saveMemory=True</em>, <em>scaleF=True</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.acoustic.AcousticWaveForm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="esys.downunder.forwardmodels.base.html#esys.downunder.forwardmodels.base.ForwardModel" title="esys.downunder.forwardmodels.base.ForwardModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">esys.downunder.forwardmodels.base.ForwardModel</span></code></a></p>
+<p>Forward Model for acoustic waveform inversion in the frequency domain.
+It defines a cost function:</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Math:</th><td class="field-body"><code class="xref py py-obj docutils literal notranslate"><span class="pre">defect</span> <span class="pre">=</span> <span class="pre">1/2</span> <span class="pre">integrate(</span> <span class="pre">(</span> <span class="pre">w</span> <span class="pre">*</span> <span class="pre">(</span> <span class="pre">a</span> <span class="pre">*</span> <span class="pre">u</span> <span class="pre">-</span> <span class="pre">data</span> <span class="pre">)</span> <span class="pre">)</span> <span class="pre">**</span> <span class="pre">2</span> <span class="pre">)</span></code></td>
+</tr>
+</tbody>
+</table>
+<p>where w are weighting factors, data are the measured data (as a 2-comp
+vector of real and imaginary part) for real frequency omega, and u is
+the corresponding result produced by the forward model.
+u (as a 2-comp vector) is the solution of the complex Helmholtz equation
+for frequency omega, source F and complex, inverse, squared p-velocity
+sigma:</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Math:</th><td class="field-body"><code class="xref py py-obj docutils literal notranslate"><span class="pre">-u_{ii}</span> <span class="pre">-</span> <span class="pre">omega**2</span> <span class="pre">*</span> <span class="pre">sigma</span> <span class="pre">*</span> <span class="pre">u</span> <span class="pre">=</span> <span class="pre">F</span></code></td>
+</tr>
+</tbody>
+</table>
+<p>It is assumed that the exact scale of source F is unknown and the scaling
+factor a of F is calculated by minimizing the defect.</p>
+<dl class="method">
+<dt id="esys.downunder.forwardmodels.acoustic.AcousticWaveForm.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>domain</em>, <em>omega</em>, <em>w</em>, <em>data</em>, <em>F</em>, <em>coordinates=None</em>, <em>fixAtBottom=False</em>, <em>tol=1e-10</em>, <em>saveMemory=True</em>, <em>scaleF=True</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.acoustic.AcousticWaveForm.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>initializes a new forward model with acoustic wave form inversion.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>domain</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Domain</span></code>) – domain of the model</li>
+<li><strong>w</strong> (<code class="docutils literal notranslate"><span class="pre">Scalar</span></code>) – weighting factors</li>
+<li><strong>data</strong> (<code class="docutils literal notranslate"><span class="pre">escript.Data</span></code> of shape (2,)) – real and imaginary part of data</li>
+<li><strong>F</strong> (<code class="docutils literal notranslate"><span class="pre">escript.Data</span></code> of shape (2,)) – real and imaginary part of source given at Dirac points,
+on surface or at volume.</li>
+<li><strong>coordinates</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">ReferenceSystem</span></code> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">SpatialCoordinateTransformation</span></code>) – defines coordinate system to be used (not supported yet)</li>
+<li><strong>tol</strong> (positive <code class="docutils literal notranslate"><span class="pre">float</span></code>) – tolerance of underlying PDE</li>
+<li><strong>saveMemory</strong> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>) – if true stiffness matrix is deleted after solution
+of PDE to minimize memory requests. This will
+require more compute time as the matrix needs to be
+reallocated.</li>
+<li><strong>scaleF</strong> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>) – if true source F is scaled to minimize defect.</li>
+<li><strong>fixAtBottom</strong> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>) – if true pressure is fixed to zero at the bottom of
+the domain</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.forwardmodels.acoustic.AcousticWaveForm.getArguments">
+<code class="descname">getArguments</code><span class="sig-paren">(</span><em>sigma</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.acoustic.AcousticWaveForm.getArguments" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns precomputed values shared by <a class="reference internal" href="#esys.downunder.forwardmodels.acoustic.AcousticWaveForm.getDefect" title="esys.downunder.forwardmodels.acoustic.AcousticWaveForm.getDefect"><code class="xref py py-obj docutils literal notranslate"><span class="pre">getDefect()</span></code></a> and <a class="reference internal" href="#esys.downunder.forwardmodels.acoustic.AcousticWaveForm.getGradient" title="esys.downunder.forwardmodels.acoustic.AcousticWaveForm.getGradient"><code class="xref py py-obj docutils literal notranslate"><span class="pre">getGradient()</span></code></a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sigma</strong> (<code class="docutils literal notranslate"><span class="pre">escript.Data</span></code> of shape (2,)) – a suggestion for complex 1/V**2</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">solution,  uTar, uTai, uTu</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">escript.Data</span></code> of shape (2,), 3 x <code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.forwardmodels.acoustic.AcousticWaveForm.getCoordinateTransformation">
+<code class="descname">getCoordinateTransformation</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.acoustic.AcousticWaveForm.getCoordinateTransformation" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the coordinate transformation being used</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">CoordinateTransformation</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.forwardmodels.acoustic.AcousticWaveForm.getDefect">
+<code class="descname">getDefect</code><span class="sig-paren">(</span><em>sigma</em>, <em>u</em>, <em>uTar</em>, <em>uTai</em>, <em>uTu</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.acoustic.AcousticWaveForm.getDefect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the defect value.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>sigma</strong> (<code class="docutils literal notranslate"><span class="pre">escript.Data</span></code> of shape (2,)) – a suggestion for complex 1/V**2</li>
+<li><strong>u</strong> (<code class="docutils literal notranslate"><span class="pre">escript.Data</span></code> of shape (2,)) – a u vector</li>
+<li><strong>uTar</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>) – equals <code class="xref py py-obj docutils literal notranslate"><span class="pre">integrate(</span> <span class="pre">w</span>&#160; <span class="pre">*</span> <span class="pre">(data[0]*u[0]+data[1]*u[1]))</span></code></li>
+<li><strong>uTai</strong> – equals <code class="xref py py-obj docutils literal notranslate"><span class="pre">integrate(</span> <span class="pre">w</span>&#160; <span class="pre">*</span> <span class="pre">(data[1]*u[0]-data[0]*u[1]))</span></code></li>
+<li><strong>uTu</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>) – equals <code class="xref py py-obj docutils literal notranslate"><span class="pre">integrate(</span> <span class="pre">w</span>&#160; <span class="pre">*</span> <span class="pre">(u,u))</span></code></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="docutils literal notranslate"><span class="pre">float</span></code></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.forwardmodels.acoustic.AcousticWaveForm.getDomain">
+<code class="descname">getDomain</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.acoustic.AcousticWaveForm.getDomain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the domain of the forward model.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Domain</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.forwardmodels.acoustic.AcousticWaveForm.getGradient">
+<code class="descname">getGradient</code><span class="sig-paren">(</span><em>sigma</em>, <em>u</em>, <em>uTar</em>, <em>uTai</em>, <em>uTu</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.acoustic.AcousticWaveForm.getGradient" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the gradient of the defect with respect to density.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>sigma</strong> (<code class="docutils literal notranslate"><span class="pre">escript.Data</span></code> of shape (2,)) – a suggestion for complex 1/V**2</li>
+<li><strong>u</strong> (<code class="docutils literal notranslate"><span class="pre">escript.Data</span></code> of shape (2,)) – a u vector</li>
+<li><strong>uTar</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>) – equals <code class="xref py py-obj docutils literal notranslate"><span class="pre">integrate(</span> <span class="pre">w</span>&#160; <span class="pre">*</span> <span class="pre">(data[0]*u[0]+data[1]*u[1]))</span></code></li>
+<li><strong>uTai</strong> – equals <code class="xref py py-obj docutils literal notranslate"><span class="pre">integrate(</span> <span class="pre">w</span>&#160; <span class="pre">*</span> <span class="pre">(data[1]*u[0]-data[0]*u[1]))</span></code></li>
+<li><strong>uTu</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code>) – equals <code class="xref py py-obj docutils literal notranslate"><span class="pre">integrate(</span> <span class="pre">w</span>&#160; <span class="pre">*</span> <span class="pre">(u,u))</span></code></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.forwardmodels.acoustic.AcousticWaveForm.getSourceScaling">
+<code class="descname">getSourceScaling</code><span class="sig-paren">(</span><em>u</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.acoustic.AcousticWaveForm.getSourceScaling" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the scaling factor s required to rescale source F to minimize defect <code class="docutils literal notranslate"><span class="pre">|s</span> <span class="pre">*</span> <span class="pre">u-</span> <span class="pre">data|^2</span></code></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>u</strong> (<code class="docutils literal notranslate"><span class="pre">escript.Data</span></code> of shape (2,)) – value of pressure solution (real and imaginary part)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-obj docutils literal notranslate"><span class="pre">complex</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.forwardmodels.acoustic.AcousticWaveForm.getSurvey">
+<code class="descname">getSurvey</code><span class="sig-paren">(</span><em>index=None</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.acoustic.AcousticWaveForm.getSurvey" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the pair (data, weight)</p>
+<p>If argument index is ignored.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.forwardmodels.acoustic.AcousticWaveForm.rescaleWeights">
+<code class="descname">rescaleWeights</code><span class="sig-paren">(</span><em>scale=1.0</em>, <em>sigma_scale=1.0</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.acoustic.AcousticWaveForm.rescaleWeights" title="Permalink to this definition">¶</a></dt>
+<dd><p>rescales the weights such that</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Math:</th><td class="field-body"><p class="first">integrate( ( w omega**2 * sigma_scale * data * ((1/L_j)**2)**-1) +1 )/(data*omega**2 * ((1/L_j)**2)**-1) * sigma_scale )=scale</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>scale</strong> (positive <code class="docutils literal notranslate"><span class="pre">float</span></code>) – scale of data weighting factors</li>
+<li><strong>sigma_scale</strong> (<code class="docutils literal notranslate"><span class="pre">Scalar</span></code>) – scale of 1/vp**2 velocity.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.forwardmodels.acoustic.AcousticWaveForm.setUpPDE">
+<code class="descname">setUpPDE</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.acoustic.AcousticWaveForm.setUpPDE" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates and returns the underlying PDE.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-obj docutils literal notranslate"><span class="pre">lpde.LinearPDE</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="esys.downunder.forwardmodels.acoustic.ForwardModel">
+<em class="property">class </em><code class="descclassname">esys.downunder.forwardmodels.acoustic.</code><code class="descname">ForwardModel</code><a class="headerlink" href="#esys.downunder.forwardmodels.acoustic.ForwardModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>An abstract forward model that can be plugged into a cost function.
+Subclasses need to implement <a class="reference internal" href="#esys.downunder.forwardmodels.acoustic.ForwardModel.getDefect" title="esys.downunder.forwardmodels.acoustic.ForwardModel.getDefect"><code class="xref py py-obj docutils literal notranslate"><span class="pre">getDefect()</span></code></a>, <a class="reference internal" href="#esys.downunder.forwardmodels.acoustic.ForwardModel.getGradient" title="esys.downunder.forwardmodels.acoustic.ForwardModel.getGradient"><code class="xref py py-obj docutils literal notranslate"><span class="pre">getGradient()</span></code></a>, and possibly
+<a class="reference internal" href="#esys.downunder.forwardmodels.acoustic.ForwardModel.getArguments" title="esys.downunder.forwardmodels.acoustic.ForwardModel.getArguments"><code class="xref py py-obj docutils literal notranslate"><span class="pre">getArguments()</span></code></a> and ‘getCoordinateTransformation’.</p>
+<dl class="method">
+<dt id="esys.downunder.forwardmodels.acoustic.ForwardModel.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.acoustic.ForwardModel.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.forwardmodels.acoustic.ForwardModel.getArguments">
+<code class="descname">getArguments</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.acoustic.ForwardModel.getArguments" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.forwardmodels.acoustic.ForwardModel.getCoordinateTransformation">
+<code class="descname">getCoordinateTransformation</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.acoustic.ForwardModel.getCoordinateTransformation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.forwardmodels.acoustic.ForwardModel.getDefect">
+<code class="descname">getDefect</code><span class="sig-paren">(</span><em>x</em>, <em>*args</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.acoustic.ForwardModel.getDefect" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.forwardmodels.acoustic.ForwardModel.getGradient">
+<code class="descname">getGradient</code><span class="sig-paren">(</span><em>x</em>, <em>*args</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.acoustic.ForwardModel.getGradient" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="others">
+<h2>Others<a class="headerlink" href="#others" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>HAVE_DIRECT</li>
+</ul>
+</div>
+<div class="section" id="packages">
+<h2>Packages<a class="headerlink" href="#packages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">esys.downunder.forwardmodels.acoustic Package</a><ul>
+<li><a class="reference internal" href="#classes">Classes</a></li>
+<li><a class="reference internal" href="#functions">Functions</a></li>
+<li><a class="reference internal" href="#others">Others</a></li>
+<li><a class="reference internal" href="#packages">Packages</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">esys.escript 5.5 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2012-2014, Author.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.4.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,1409 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>esys.pycad.design Package &#8212; esys.escript 5.5 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="esys.pycad.gmsh Package" href="esys.pycad.gmsh.html" />
+    <link rel="prev" title="esys.pycad Package" href="esys.pycad.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="esys.pycad.gmsh.html" title="esys.pycad.gmsh Package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="esys.pycad.html" title="esys.pycad Package"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">esys.escript 5.5 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="esys.pycad.html" accesskey="U">esys.pycad Package</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-esys.pycad.design">
+<span id="esys-pycad-design-package"></span><h1>esys.pycad.design Package<a class="headerlink" href="#module-esys.pycad.design" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li></li>
+</ul>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><a class="reference internal" href="#esys.pycad.design.AbstractDesign" title="esys.pycad.design.AbstractDesign"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AbstractDesign</span></code></a></li>
+<li><a class="reference internal" href="#esys.pycad.design.Manifold1D" title="esys.pycad.design.Manifold1D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Manifold1D</span></code></a></li>
+<li><a class="reference internal" href="#esys.pycad.design.Manifold2D" title="esys.pycad.design.Manifold2D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Manifold2D</span></code></a></li>
+<li><a class="reference internal" href="#esys.pycad.design.Manifold3D" title="esys.pycad.design.Manifold3D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Manifold3D</span></code></a></li>
+<li><a class="reference internal" href="#esys.pycad.design.Point" title="esys.pycad.design.Point"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Point</span></code></a></li>
+<li><a class="reference internal" href="#esys.pycad.design.Primitive" title="esys.pycad.design.Primitive"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Primitive</span></code></a></li>
+<li><a class="reference internal" href="#esys.pycad.design.PropertySet" title="esys.pycad.design.PropertySet"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PropertySet</span></code></a></li>
+<li><a class="reference internal" href="#esys.pycad.design.ReversePrimitive" title="esys.pycad.design.ReversePrimitive"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ReversePrimitive</span></code></a></li>
+<li><a class="reference internal" href="#esys.pycad.design.TagMap" title="esys.pycad.design.TagMap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TagMap</span></code></a></li>
+</ul>
+<dl class="class">
+<dt id="esys.pycad.design.AbstractDesign">
+<em class="property">class </em><code class="descclassname">esys.pycad.design.</code><code class="descname">AbstractDesign</code><span class="sig-paren">(</span><em>dim=3</em>, <em>element_size=1.0</em>, <em>order=1</em>, <em>keep_files=False</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.AbstractDesign" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Template for a design which defines the input for a mesh generator.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Note:</th><td class="field-body">class variable GMSH - <a class="reference external" href="http://www.geuz.org/gmsh/">gmsh</a> file format</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Note:</th><td class="field-body">class variable IDEAS - <a class="reference external" href="http://www.plm.automation.siemens.com/en_us/products/nx/">I_DEAS</a> universal file format</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Note:</th><td class="field-body">class variable VRML - <a class="reference external" href="http://www.w3.org/MarkUp/VRML/">VRML</a> file format</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Note:</th><td class="field-body">class variable STL - <a class="reference external" href="http://en.wikipedia.org/wiki/STL_(file_format)">STL</a> file format</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Note:</th><td class="field-body">class variable NASTRAN - <a class="reference external" href="http://simcompanion.mscsoftware.com/infocenter/index?page=content&amp;channel=DOCUMENTATION">Nastran</a> bulk data format</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Note:</th><td class="field-body">class variable MEDIT - <a class="reference external" href="http://www-rocq.inria.fr/OpenFEM/Doc/">Medit</a> file format</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Note:</th><td class="field-body">class variable CGNS - <a class="reference external" href="http://cgns.sourceforge.net/">CGNS</a> file format</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Note:</th><td class="field-body">class variable PLOT3D -  <a class="reference external" href="http://www.plot3d.net/">Plot3D</a> file format</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Note:</th><td class="field-body">class variable DIFFPACK- <a class="reference external" href="http://www.diffpack.com/">Diffpack</a> file format</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="esys.pycad.design.AbstractDesign.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>dim=3</em>, <em>element_size=1.0</em>, <em>order=1</em>, <em>keep_files=False</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.AbstractDesign.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes a design.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>dim</strong> – spatial dimension</li>
+<li><strong>element_size</strong> – global element size</li>
+<li><strong>order</strong> – element order</li>
+<li><strong>keep_files</strong> – flag to keep work files</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="esys.pycad.design.AbstractDesign.CGNS">
+<code class="descname">CGNS</code><em class="property"> = 'cgns'</em><a class="headerlink" href="#esys.pycad.design.AbstractDesign.CGNS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="esys.pycad.design.AbstractDesign.DIFFPACK">
+<code class="descname">DIFFPACK</code><em class="property"> = 'diff'</em><a class="headerlink" href="#esys.pycad.design.AbstractDesign.DIFFPACK" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="esys.pycad.design.AbstractDesign.GMSH">
+<code class="descname">GMSH</code><em class="property"> = 'msh'</em><a class="headerlink" href="#esys.pycad.design.AbstractDesign.GMSH" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="esys.pycad.design.AbstractDesign.IDEAS">
+<code class="descname">IDEAS</code><em class="property"> = 'unv'</em><a class="headerlink" href="#esys.pycad.design.AbstractDesign.IDEAS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="esys.pycad.design.AbstractDesign.MEDIT">
+<code class="descname">MEDIT</code><em class="property"> = 'mesh'</em><a class="headerlink" href="#esys.pycad.design.AbstractDesign.MEDIT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="esys.pycad.design.AbstractDesign.NASTRAN">
+<code class="descname">NASTRAN</code><em class="property"> = 'bdf'</em><a class="headerlink" href="#esys.pycad.design.AbstractDesign.NASTRAN" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="esys.pycad.design.AbstractDesign.PLOT3D">
+<code class="descname">PLOT3D</code><em class="property"> = 'p3d'</em><a class="headerlink" href="#esys.pycad.design.AbstractDesign.PLOT3D" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="esys.pycad.design.AbstractDesign.STL">
+<code class="descname">STL</code><em class="property"> = 'stl'</em><a class="headerlink" href="#esys.pycad.design.AbstractDesign.STL" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="esys.pycad.design.AbstractDesign.VRML">
+<code class="descname">VRML</code><em class="property"> = 'vrml'</em><a class="headerlink" href="#esys.pycad.design.AbstractDesign.VRML" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.AbstractDesign.addItems">
+<code class="descname">addItems</code><span class="sig-paren">(</span><em>*items</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.AbstractDesign.addItems" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds items to the design.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.AbstractDesign.clearItems">
+<code class="descname">clearItems</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.AbstractDesign.clearItems" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes all items from the design.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.AbstractDesign.generate">
+<code class="descname">generate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.AbstractDesign.generate" title="Permalink to this definition">¶</a></dt>
+<dd><p>generate output file</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Note:</th><td class="field-body">this method may be overwritten by a particular design
+implementation.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.AbstractDesign.getAllPrimitives">
+<code class="descname">getAllPrimitives</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.AbstractDesign.getAllPrimitives" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of all primitives used to create the design.
+Each primitive appears once. The primitives are ordered by their
+order of generation.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.AbstractDesign.getDim">
+<code class="descname">getDim</code><span class="sig-paren">(</span><em>dim=3</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.AbstractDesign.getDim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the spatial dimension.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.AbstractDesign.getElementOrder">
+<code class="descname">getElementOrder</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.AbstractDesign.getElementOrder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the element order.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.AbstractDesign.getElementSize">
+<code class="descname">getElementSize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.AbstractDesign.getElementSize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the global element size.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.AbstractDesign.getFileFormat">
+<code class="descname">getFileFormat</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.AbstractDesign.getFileFormat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the file format</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.AbstractDesign.getItems">
+<code class="descname">getItems</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.AbstractDesign.getItems" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of the items used in the design.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.AbstractDesign.getMeshFileName">
+<code class="descname">getMeshFileName</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.AbstractDesign.getMeshFileName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the name of the mesh file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.AbstractDesign.getMeshHandler">
+<code class="descname">getMeshHandler</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.AbstractDesign.getMeshHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a handle to a mesh meshing the design.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Note:</th><td class="field-body">this method has to be overwritten by a particular design
+implementation.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.AbstractDesign.getTagMap">
+<code class="descname">getTagMap</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.AbstractDesign.getTagMap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a <a class="reference internal" href="#esys.pycad.design.TagMap" title="esys.pycad.design.TagMap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TagMap</span></code></a> to map the names of <a class="reference internal" href="#esys.pycad.design.PropertySet" title="esys.pycad.design.PropertySet"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PropertySet</span></code></a> s to tags.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.AbstractDesign.keepFiles">
+<code class="descname">keepFiles</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.AbstractDesign.keepFiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if work files are kept, False otherwise.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.AbstractDesign.setDim">
+<code class="descname">setDim</code><span class="sig-paren">(</span><em>dim=3</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.AbstractDesign.setDim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the spatial dimension.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.AbstractDesign.setElementOrder">
+<code class="descname">setElementOrder</code><span class="sig-paren">(</span><em>order=1</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.AbstractDesign.setElementOrder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the element order.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.AbstractDesign.setElementSize">
+<code class="descname">setElementSize</code><span class="sig-paren">(</span><em>element_size=1.0</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.AbstractDesign.setElementSize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the global element size.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.AbstractDesign.setFileFormat">
+<code class="descname">setFileFormat</code><span class="sig-paren">(</span><em>format='msh'</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.AbstractDesign.setFileFormat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the file format to be used.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>format</strong> – format to be used. needs to be one of</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.AbstractDesign.setKeepFilesOff">
+<code class="descname">setKeepFilesOff</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.AbstractDesign.setKeepFilesOff" title="Permalink to this definition">¶</a></dt>
+<dd><p>Work files are deleted at the end of the generation</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.AbstractDesign.setKeepFilesOn">
+<code class="descname">setKeepFilesOn</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.AbstractDesign.setKeepFilesOn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Work files are kept at the end of the generation.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.AbstractDesign.setMeshFileName">
+<code class="descname">setMeshFileName</code><span class="sig-paren">(</span><em>name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.AbstractDesign.setMeshFileName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the name for the mesh file. If no name is given a name is generated.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.AbstractDesign.setOptions">
+<code class="descname">setOptions</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.AbstractDesign.setOptions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets options of the mesh generator.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Note:</th><td class="field-body">this method is typically overwritten by a particular design
+implementation.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="esys.pycad.design.Manifold1D">
+<em class="property">class </em><code class="descclassname">esys.pycad.design.</code><code class="descname">Manifold1D</code><a class="headerlink" href="#esys.pycad.design.Manifold1D" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">esys.pycad.primitives.PrimitiveBase</span></code></p>
+<p>General one-dimensional manifold in 1D defined by a start and end point.</p>
+<dl class="method">
+<dt id="esys.pycad.design.Manifold1D.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Manifold1D.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the one-dimensional manifold.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Manifold1D.apply">
+<code class="descname">apply</code><span class="sig-paren">(</span><em>transformation</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Manifold1D.apply" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a new object by applying the transformation.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Manifold1D.copy">
+<code class="descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Manifold1D.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a deep copy of the object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Manifold1D.getBoundary">
+<code class="descname">getBoundary</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Manifold1D.getBoundary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of the zero-dimensional manifolds forming the boundary
+of the curve.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Manifold1D.getConstructionPoints">
+<code class="descname">getConstructionPoints</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Manifold1D.getConstructionPoints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the points used to construct the primitive.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Manifold1D.getElementDistribution">
+<code class="descname">getElementDistribution</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Manifold1D.getElementDistribution" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the element distribution.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the tuple of the number of elements, the progression factor and the bump flag. If no element distribution is set <code class="docutils literal notranslate"><span class="pre">None</span></code> is returned</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">tuple</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Manifold1D.getEndPoint">
+<code class="descname">getEndPoint</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Manifold1D.getEndPoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the end point.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Manifold1D.getPrimitives">
+<code class="descname">getPrimitives</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Manifold1D.getPrimitives" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of primitives used to construct the primitive with no
+double entries.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Manifold1D.getStartPoint">
+<code class="descname">getStartPoint</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Manifold1D.getStartPoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the start point.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Manifold1D.modifyBy">
+<code class="descname">modifyBy</code><span class="sig-paren">(</span><em>transformation</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Manifold1D.modifyBy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Modifies the coordinates by applying a transformation.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Manifold1D.resetElementDistribution">
+<code class="descname">resetElementDistribution</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Manifold1D.resetElementDistribution" title="Permalink to this definition">¶</a></dt>
+<dd><p>removes the a previously set element distribution from the line.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Manifold1D.setElementDistribution">
+<code class="descname">setElementDistribution</code><span class="sig-paren">(</span><em>n</em>, <em>progression=1</em>, <em>createBump=False</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Manifold1D.setElementDistribution" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the number of elements on the line. If set it overwrites the local length setting which would be applied.
+The progression factor <code class="docutils literal notranslate"><span class="pre">progression</span></code> defines the change of element size between neighboured elements. If <code class="docutils literal notranslate"><span class="pre">createBump</span></code> is set
+progression is applied towards the center of the line.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>n</strong> (<code class="docutils literal notranslate"><span class="pre">int</span></code>) – number of elements on the line</li>
+<li><strong>progression</strong> (positive <code class="docutils literal notranslate"><span class="pre">float</span></code>) – a positive progression factor</li>
+<li><strong>createBump</strong> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>) – of elements on the line</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Manifold1D.setLocalScale">
+<code class="descname">setLocalScale</code><span class="sig-paren">(</span><em>factor=1.0</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Manifold1D.setLocalScale" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the local refinement factor.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="esys.pycad.design.Manifold2D">
+<em class="property">class </em><code class="descclassname">esys.pycad.design.</code><code class="descname">Manifold2D</code><a class="headerlink" href="#esys.pycad.design.Manifold2D" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">esys.pycad.primitives.PrimitiveBase</span></code></p>
+<p>General two-dimensional manifold.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Note:</th><td class="field-body">Instance variable LEFT - left element orientation when meshing with transfinite meshing</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Note:</th><td class="field-body">Instance variable RIGHT - right element orientation when meshing with transfinite meshing</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Note:</th><td class="field-body">Instance variable ALTERNATE - alternate element orientation when meshing with transfinite meshing</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="esys.pycad.design.Manifold2D.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Manifold2D.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a two-dimensional manifold.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="esys.pycad.design.Manifold2D.ALTERNATE">
+<code class="descname">ALTERNATE</code><em class="property"> = 'Alternate'</em><a class="headerlink" href="#esys.pycad.design.Manifold2D.ALTERNATE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="esys.pycad.design.Manifold2D.LEFT">
+<code class="descname">LEFT</code><em class="property"> = 'Left'</em><a class="headerlink" href="#esys.pycad.design.Manifold2D.LEFT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="esys.pycad.design.Manifold2D.RIGHT">
+<code class="descname">RIGHT</code><em class="property"> = 'Right'</em><a class="headerlink" href="#esys.pycad.design.Manifold2D.RIGHT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Manifold2D.apply">
+<code class="descname">apply</code><span class="sig-paren">(</span><em>transformation</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Manifold2D.apply" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a new object by applying the transformation.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Manifold2D.copy">
+<code class="descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Manifold2D.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a deep copy of the object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Manifold2D.getBoundary">
+<code class="descname">getBoundary</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Manifold2D.getBoundary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of the one-dimensional manifolds forming the boundary
+of the surface (including holes).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Manifold2D.getConstructionPoints">
+<code class="descname">getConstructionPoints</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Manifold2D.getConstructionPoints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the points used to construct the primitive.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Manifold2D.getPoints">
+<code class="descname">getPoints</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Manifold2D.getPoints" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns a list of points used to define the boundary</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of points used to define the boundary</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">list</span></code> of  <a class="reference internal" href="#esys.pycad.design.Point" title="esys.pycad.design.Point"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Point</span></code></a> s</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Manifold2D.getPrimitives">
+<code class="descname">getPrimitives</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Manifold2D.getPrimitives" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of primitives used to construct the primitive with no
+double entries.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Manifold2D.getRecombination">
+<code class="descname">getRecombination</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Manifold2D.getRecombination" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns max deviation from right angle in the recombination algorithm</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">max deviation from right angle in the recombination algorithm. If recombination is switched off, <code class="docutils literal notranslate"><span class="pre">None</span></code> is returned.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">float</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Manifold2D.getTransfiniteMeshing">
+<code class="descname">getTransfiniteMeshing</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Manifold2D.getTransfiniteMeshing" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the transfinite meshing settings. If transfinite meshing is not set, <code class="docutils literal notranslate"><span class="pre">None</span></code> is returned.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a tuple of the tuple of points used to define the transfinite meshing and the orientation. If no points are set the points tuple is returned as <code class="docutils literal notranslate"><span class="pre">None</span></code>. If no transfinite meshing is not set, <code class="docutils literal notranslate"><span class="pre">None</span></code> is returned.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">tuple</span></code> of a <code class="docutils literal notranslate"><span class="pre">tuple</span></code> of <a class="reference internal" href="#esys.pycad.design.Point" title="esys.pycad.design.Point"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Point</span></code></a> s (or <code class="docutils literal notranslate"><span class="pre">None</span></code>) and the orientation which is one of the values  <a class="reference internal" href="#esys.pycad.design.Manifold2D.LEFT" title="esys.pycad.design.Manifold2D.LEFT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Manifold2D.LEFT</span></code></a> , <a class="reference internal" href="#esys.pycad.design.Manifold2D.RIGHT" title="esys.pycad.design.Manifold2D.RIGHT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Manifold2D.RIGHT</span></code></a> , <a class="reference internal" href="#esys.pycad.design.Manifold2D.ALTERNATE" title="esys.pycad.design.Manifold2D.ALTERNATE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Manifold2D.ALTERNATE</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Manifold2D.hasHole">
+<code class="descname">hasHole</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Manifold2D.hasHole" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if a hole is present.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Manifold2D.modifyBy">
+<code class="descname">modifyBy</code><span class="sig-paren">(</span><em>transformation</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Manifold2D.modifyBy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Modifies the coordinates by applying a transformation.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Manifold2D.resetTransfiniteMeshing">
+<code class="descname">resetTransfiniteMeshing</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Manifold2D.resetTransfiniteMeshing" title="Permalink to this definition">¶</a></dt>
+<dd><p>removes the transfinite meshing from the surface</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Manifold2D.setElementDistribution">
+<code class="descname">setElementDistribution</code><span class="sig-paren">(</span><em>n</em>, <em>progression=1</em>, <em>createBump=False</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Manifold2D.setElementDistribution" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the number of elements on the lines</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>n</strong> (<code class="docutils literal notranslate"><span class="pre">int</span></code>) – number of elements on the line</li>
+<li><strong>progression</strong> (positive <code class="docutils literal notranslate"><span class="pre">float</span></code>) – a positive progression factor</li>
+<li><strong>createBump</strong> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>) – of elements on the line</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Manifold2D.setLocalScale">
+<code class="descname">setLocalScale</code><span class="sig-paren">(</span><em>factor=1.0</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Manifold2D.setLocalScale" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the local refinement factor.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Manifold2D.setRecombination">
+<code class="descname">setRecombination</code><span class="sig-paren">(</span><em>max_deviation=0.7853981633974483</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Manifold2D.setRecombination" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recombines triangular meshes on the surface into mixed triangular/quadrangular meshes.
+<code class="docutils literal notranslate"><span class="pre">max_deviation</span></code> specifies the maximum derivation of the largest angle in the quadrangle 
+from the right angle. Use <code class="docutils literal notranslate"><span class="pre">max_deviation``==``None</span></code> to switch off recombination.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>max_deviation</strong> (<code class="docutils literal notranslate"><span class="pre">float</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code>.) – maximum derivation of the largest angle in the quadrangle from the right angle.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Manifold2D.setTransfiniteMeshing">
+<code class="descname">setTransfiniteMeshing</code><span class="sig-paren">(</span><em>orientation='Left'</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Manifold2D.setTransfiniteMeshing" title="Permalink to this definition">¶</a></dt>
+<dd><p>applies 2D transfinite meshing to the surface.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>orientation</strong> (<a class="reference internal" href="#esys.pycad.design.Manifold2D.LEFT" title="esys.pycad.design.Manifold2D.LEFT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Manifold2D.LEFT</span></code></a>, <a class="reference internal" href="#esys.pycad.design.Manifold2D.RIGHT" title="esys.pycad.design.Manifold2D.RIGHT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Manifold2D.RIGHT</span></code></a>, <a class="reference internal" href="#esys.pycad.design.Manifold2D.ALTERNATE" title="esys.pycad.design.Manifold2D.ALTERNATE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Manifold2D.ALTERNATE</span></code></a>) – sets the orientation of the triangles. It is only relevant if recombination is not used.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Note:</th><td class="field-body">Transfinite meshing can not be applied if holes are present.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="esys.pycad.design.Manifold3D">
+<em class="property">class </em><code class="descclassname">esys.pycad.design.</code><code class="descname">Manifold3D</code><a class="headerlink" href="#esys.pycad.design.Manifold3D" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">esys.pycad.primitives.PrimitiveBase</span></code></p>
+<p>General three-dimensional manifold.</p>
+<dl class="method">
+<dt id="esys.pycad.design.Manifold3D.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Manifold3D.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a three-dimensional manifold.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Manifold3D.apply">
+<code class="descname">apply</code><span class="sig-paren">(</span><em>transformation</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Manifold3D.apply" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a new object by applying the transformation.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Manifold3D.copy">
+<code class="descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Manifold3D.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a deep copy of the object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Manifold3D.getBoundary">
+<code class="descname">getBoundary</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Manifold3D.getBoundary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of the 2-dimensional manifolds forming the boundary
+of the volume (including holes).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Manifold3D.getConstructionPoints">
+<code class="descname">getConstructionPoints</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Manifold3D.getConstructionPoints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the points used to construct the primitive.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Manifold3D.getPrimitives">
+<code class="descname">getPrimitives</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Manifold3D.getPrimitives" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of primitives used to construct the primitive with no
+double entries.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Manifold3D.getTransfiniteMeshing">
+<code class="descname">getTransfiniteMeshing</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Manifold3D.getTransfiniteMeshing" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the transfinite meshing settings. If transfinite meshing is not set, <code class="docutils literal notranslate"><span class="pre">None</span></code> is returned.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a tuple of the tuple of points used to define the transfinite meshing and the orientation. If no points are set the points tuple is returned as <code class="docutils literal notranslate"><span class="pre">None</span></code>. If no transfinite meshing is not set, <code class="docutils literal notranslate"><span class="pre">None</span></code> is returned.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">tuple</span></code> of a <code class="docutils literal notranslate"><span class="pre">tuple</span></code> of <a class="reference internal" href="#esys.pycad.design.Point" title="esys.pycad.design.Point"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Point</span></code></a> s (or <code class="docutils literal notranslate"><span class="pre">None</span></code>) and the orientation which is one of the values  <a class="reference internal" href="#esys.pycad.design.Manifold2D.LEFT" title="esys.pycad.design.Manifold2D.LEFT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Manifold2D.LEFT</span></code></a> , <a class="reference internal" href="#esys.pycad.design.Manifold2D.RIGHT" title="esys.pycad.design.Manifold2D.RIGHT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Manifold2D.RIGHT</span></code></a> , <a class="reference internal" href="#esys.pycad.design.Manifold2D.ALTERNATE" title="esys.pycad.design.Manifold2D.ALTERNATE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Manifold2D.ALTERNATE</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Manifold3D.modifyBy">
+<code class="descname">modifyBy</code><span class="sig-paren">(</span><em>transformation</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Manifold3D.modifyBy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Modifies the coordinates by applying a transformation.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Manifold3D.resetTransfiniteMeshing">
+<code class="descname">resetTransfiniteMeshing</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Manifold3D.resetTransfiniteMeshing" title="Permalink to this definition">¶</a></dt>
+<dd><p>removes the transfinite meshing from the volume but not from the surfaces</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Manifold3D.setElementDistribution">
+<code class="descname">setElementDistribution</code><span class="sig-paren">(</span><em>n</em>, <em>progression=1</em>, <em>createBump=False</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Manifold3D.setElementDistribution" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the number of elements on the lines and surfaces</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>n</strong> (<code class="docutils literal notranslate"><span class="pre">int</span></code>) – number of elements on the line</li>
+<li><strong>progression</strong> (positive <code class="docutils literal notranslate"><span class="pre">float</span></code>) – a positive progression factor</li>
+<li><strong>createBump</strong> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>) – of elements on the line</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Manifold3D.setLocalScale">
+<code class="descname">setLocalScale</code><span class="sig-paren">(</span><em>factor=1.0</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Manifold3D.setLocalScale" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the local refinement factor.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Manifold3D.setRecombination">
+<code class="descname">setRecombination</code><span class="sig-paren">(</span><em>max_deviation=0.7853981633974483</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Manifold3D.setRecombination" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recombines triangular meshes on all surface into mixed triangular/quadrangular meshes. These meshes
+are then used to generate the volume mesh if possible. Recombination requires 3D transfinite meshing.</p>
+<p><code class="docutils literal notranslate"><span class="pre">max_deviation</span></code> specifies the maximum derivation of the largest angle in the quadrangle 
+from the right angle. Use <code class="docutils literal notranslate"><span class="pre">max_deviation``==``None</span></code> to switch off recombination.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>max_deviation</strong> (<code class="docutils literal notranslate"><span class="pre">float</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code>.) – maximum derivation of the largest angle in the quadrangle from the right angle.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Manifold3D.setTransfiniteMeshing">
+<code class="descname">setTransfiniteMeshing</code><span class="sig-paren">(</span><em>orientation='Left'</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Manifold3D.setTransfiniteMeshing" title="Permalink to this definition">¶</a></dt>
+<dd><p>applies 3D transfinite meshing to the volume and all surface. It requires transfinite meshing
+on all faces which will be enforced (except if <code class="docutils literal notranslate"><span class="pre">orientation</span></code> is equal to <code class="docutils literal notranslate"><span class="pre">None</span></code>).
+:param orientation: sets the orientation of the triangles on the surfaces. It is only relevant if recombination is not used.
+If orientation is equal to <code class="docutils literal notranslate"><span class="pre">None</span></code>, the transfinite meshing is not applied to the surfaces but must be set by the user.
+:type orientation: <a class="reference internal" href="#esys.pycad.design.Manifold2D.LEFT" title="esys.pycad.design.Manifold2D.LEFT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Manifold2D.LEFT</span></code></a>, <a class="reference internal" href="#esys.pycad.design.Manifold2D.RIGHT" title="esys.pycad.design.Manifold2D.RIGHT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Manifold2D.RIGHT</span></code></a>, <a class="reference internal" href="#esys.pycad.design.Manifold2D.ALTERNATE" title="esys.pycad.design.Manifold2D.ALTERNATE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Manifold2D.ALTERNATE</span></code></a>
+:note: Transfinite meshing can not be applied if holes are present.
+:note: only five or six surfaces may be used.
+:warning: The functionality of transfinite meshing without recombination is not entirely clear in <code class="xref py py-obj docutils literal notranslate"><span class="pre">gmsh</span></code>. So please apply this method with care.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="esys.pycad.design.Point">
+<em class="property">class </em><code class="descclassname">esys.pycad.design.</code><code class="descname">Point</code><span class="sig-paren">(</span><em>x=0.0</em>, <em>y=0.0</em>, <em>z=0.0</em>, <em>local_scale=1.0</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Point" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">esys.pycad.primitives.Primitive</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">esys.pycad.primitives.PrimitiveBase</span></code></p>
+<p>A three-dimensional point.</p>
+<dl class="method">
+<dt id="esys.pycad.design.Point.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>x=0.0</em>, <em>y=0.0</em>, <em>z=0.0</em>, <em>local_scale=1.0</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Point.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a point with coordinates <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, <code class="docutils literal notranslate"><span class="pre">z</span></code> with the local
+refinement factor <code class="docutils literal notranslate"><span class="pre">local_scale</span></code>. If <code class="docutils literal notranslate"><span class="pre">x</span></code> is a list or similar it needs to have
+length less or equal 3. In this case <code class="docutils literal notranslate"><span class="pre">y</span></code> and <code class="docutils literal notranslate"><span class="pre">z</span></code> are overwritten by 
+<code class="docutils literal notranslate"><span class="pre">x[1]</span></code> and <code class="docutils literal notranslate"><span class="pre">x[2]</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Point.apply">
+<code class="descname">apply</code><span class="sig-paren">(</span><em>transformation</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Point.apply" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a new object by applying the transformation.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Point.collectPrimitiveBases">
+<code class="descname">collectPrimitiveBases</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Point.collectPrimitiveBases" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns primitives used to construct the primitive.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Point.copy">
+<code class="descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Point.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a deep copy of the object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Point.getConstructionPoints">
+<code class="descname">getConstructionPoints</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Point.getConstructionPoints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the points used to construct the primitive.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Point.getCoordinates">
+<code class="descname">getCoordinates</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Point.getCoordinates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the coordinates of the point as a <code class="docutils literal notranslate"><span class="pre">numpy.ndarray</span></code> object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Point.getCoordinatesAsList">
+<code class="descname">getCoordinatesAsList</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Point.getCoordinatesAsList" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the coordinates of the point as a <code class="docutils literal notranslate"><span class="pre">list</span></code> object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Point.getDirectedID">
+<code class="descname">getDirectedID</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Point.getDirectedID" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the primitive ID where a negative sign means that reversed
+ordering is used.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Point.getID">
+<code class="descname">getID</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Point.getID" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the primitive ID.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Point.getLocalScale">
+<code class="descname">getLocalScale</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Point.getLocalScale" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the local refinement factor.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Point.getPrimitives">
+<code class="descname">getPrimitives</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Point.getPrimitives" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of primitives used to construct the primitive with no
+double entries.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Point.getUnderlyingPrimitive">
+<code class="descname">getUnderlyingPrimitive</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Point.getUnderlyingPrimitive" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the underlying primitive.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Point.hasSameOrientation">
+<code class="descname">hasSameOrientation</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Point.hasSameOrientation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if <code class="docutils literal notranslate"><span class="pre">other</span></code> is the same primitive and has the same
+orientation, False otherwise.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Point.isColocated">
+<code class="descname">isColocated</code><span class="sig-paren">(</span><em>primitive</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Point.isColocated" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if the <a class="reference internal" href="#esys.pycad.design.Point" title="esys.pycad.design.Point"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Point</span></code></a> <code class="docutils literal notranslate"><span class="pre">primitive</span></code> is collocated (has the same
+coordinates) with self. That is, if
+<em>|self - primitive| &lt;= tol * max(|self|,|primitive|)</em>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Point.isReversed">
+<code class="descname">isReversed</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Point.isReversed" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns True is the primitive is a reversed primitive.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Point.modifyBy">
+<code class="descname">modifyBy</code><span class="sig-paren">(</span><em>transformation</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Point.modifyBy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Modifies the coordinates by applying the given transformation.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Point.setCoordinates">
+<code class="descname">setCoordinates</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Point.setCoordinates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the coordinates of the point from a <code class="docutils literal notranslate"><span class="pre">numpy.ndarray</span></code> object <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Point.setLocalScale">
+<code class="descname">setLocalScale</code><span class="sig-paren">(</span><em>factor=1.0</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Point.setLocalScale" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the local refinement factor.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Point.substitute">
+<code class="descname">substitute</code><span class="sig-paren">(</span><em>sub_dict</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Point.substitute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a copy of self with substitutes for the primitives used to
+construct it given by the dictionary <code class="docutils literal notranslate"><span class="pre">sub_dict</span></code>. If a substitute for
+the object is given by <code class="docutils literal notranslate"><span class="pre">sub_dict</span></code> the value is returned, otherwise a
+new instance with substituted arguments is returned.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="esys.pycad.design.Primitive">
+<em class="property">class </em><code class="descclassname">esys.pycad.design.</code><code class="descname">Primitive</code><a class="headerlink" href="#esys.pycad.design.Primitive" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Class that represents a general primitive.</p>
+<dl class="method">
+<dt id="esys.pycad.design.Primitive.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Primitive.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the Primitive instance object with a unique ID.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Primitive.collectPrimitiveBases">
+<code class="descname">collectPrimitiveBases</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Primitive.collectPrimitiveBases" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of primitives used to construct the primitive. It may
+contain primitives twice.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Note:</th><td class="field-body">This method is overwritten by subclasses.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Primitive.getDirectedID">
+<code class="descname">getDirectedID</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Primitive.getDirectedID" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the primitive ID where a negative sign means that reversed
+ordering is used.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Primitive.getID">
+<code class="descname">getID</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Primitive.getID" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the primitive ID.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Primitive.getUnderlyingPrimitive">
+<code class="descname">getUnderlyingPrimitive</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Primitive.getUnderlyingPrimitive" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the underlying primitive.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Primitive.hasSameOrientation">
+<code class="descname">hasSameOrientation</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Primitive.hasSameOrientation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if <code class="docutils literal notranslate"><span class="pre">other</span></code> is the same primitive and has the same
+orientation, False otherwise.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Primitive.isColocated">
+<code class="descname">isColocated</code><span class="sig-paren">(</span><em>primitive</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Primitive.isColocated" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if the two primitives are located at the same position.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Note:</th><td class="field-body">This method is overwritten by subclasses.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Primitive.isReversed">
+<code class="descname">isReversed</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Primitive.isReversed" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns True is the primitive is a reversed primitive.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.Primitive.substitute">
+<code class="descname">substitute</code><span class="sig-paren">(</span><em>sub_dict</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.Primitive.substitute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a copy of self with substitutes for the primitives used to
+construct it given by the dictionary <code class="docutils literal notranslate"><span class="pre">sub_dict</span></code>. If a substitute for
+the object is given by <code class="docutils literal notranslate"><span class="pre">sub_dict</span></code> the value is returned, otherwise a
+new instance with substituted arguments is returned.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Note:</th><td class="field-body">This method is overwritten by subclasses.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="esys.pycad.design.PropertySet">
+<em class="property">class </em><code class="descclassname">esys.pycad.design.</code><code class="descname">PropertySet</code><span class="sig-paren">(</span><em>name</em>, <em>*items</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.PropertySet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">esys.pycad.primitives.Primitive</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">esys.pycad.primitives.PrimitiveBase</span></code></p>
+<p>Defines a group of <a class="reference internal" href="#esys.pycad.design.Primitive" title="esys.pycad.design.Primitive"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Primitive</span></code></a> s which can be accessed through a name.</p>
+<dl class="method">
+<dt id="esys.pycad.design.PropertySet.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>name</em>, <em>*items</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.PropertySet.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the Primitive instance object with a unique ID.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.PropertySet.addItem">
+<code class="descname">addItem</code><span class="sig-paren">(</span><em>*items</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.PropertySet.addItem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds items. An item my be any <a class="reference internal" href="#esys.pycad.design.Primitive" title="esys.pycad.design.Primitive"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Primitive</span></code></a> but no <a class="reference internal" href="#esys.pycad.design.PropertySet" title="esys.pycad.design.PropertySet"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PropertySet</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.PropertySet.addItems">
+<code class="descname">addItems</code><span class="sig-paren">(</span><em>*items</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.PropertySet.addItems" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds items. An item my be any <a class="reference internal" href="#esys.pycad.design.Primitive" title="esys.pycad.design.Primitive"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Primitive</span></code></a> but no <a class="reference internal" href="#esys.pycad.design.PropertySet" title="esys.pycad.design.PropertySet"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PropertySet</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.PropertySet.apply">
+<code class="descname">apply</code><span class="sig-paren">(</span><em>transformation</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.PropertySet.apply" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a new object by applying the transformation.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.PropertySet.clearItems">
+<code class="descname">clearItems</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.PropertySet.clearItems" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clears the list of items.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.PropertySet.collectPrimitiveBases">
+<code class="descname">collectPrimitiveBases</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.PropertySet.collectPrimitiveBases" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns primitives used to construct the PropertySet.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.PropertySet.copy">
+<code class="descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.PropertySet.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a deep copy of the object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.PropertySet.getConstructionPoints">
+<code class="descname">getConstructionPoints</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.PropertySet.getConstructionPoints" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the points used to construct the primitive.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.PropertySet.getDim">
+<code class="descname">getDim</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.PropertySet.getDim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the dimensionality of the items.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.PropertySet.getDirectedID">
+<code class="descname">getDirectedID</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.PropertySet.getDirectedID" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the primitive ID where a negative sign means that reversed
+ordering is used.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.PropertySet.getID">
+<code class="descname">getID</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.PropertySet.getID" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the primitive ID.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.PropertySet.getItems">
+<code class="descname">getItems</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.PropertySet.getItems" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the list of items.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.PropertySet.getManifoldClass">
+<code class="descname">getManifoldClass</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.PropertySet.getManifoldClass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the manifold class expected from items.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.PropertySet.getName">
+<code class="descname">getName</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.PropertySet.getName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the name of the set.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.PropertySet.getNumItems">
+<code class="descname">getNumItems</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.PropertySet.getNumItems" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the number of items in the property set.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.PropertySet.getPrimitives">
+<code class="descname">getPrimitives</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.PropertySet.getPrimitives" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of primitives used to construct the primitive with no
+double entries.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.PropertySet.getTag">
+<code class="descname">getTag</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.PropertySet.getTag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the tag used for this property set.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.PropertySet.getUnderlyingPrimitive">
+<code class="descname">getUnderlyingPrimitive</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.PropertySet.getUnderlyingPrimitive" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the underlying primitive.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.PropertySet.hasSameOrientation">
+<code class="descname">hasSameOrientation</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.PropertySet.hasSameOrientation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if <code class="docutils literal notranslate"><span class="pre">other</span></code> is the same primitive and has the same
+orientation, False otherwise.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.PropertySet.isColocated">
+<code class="descname">isColocated</code><span class="sig-paren">(</span><em>primitive</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.PropertySet.isColocated" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if the two primitives are located at the same position.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Note:</th><td class="field-body">This method is overwritten by subclasses.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.PropertySet.isReversed">
+<code class="descname">isReversed</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.PropertySet.isReversed" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns True is the primitive is a reversed primitive.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.PropertySet.modifyBy">
+<code class="descname">modifyBy</code><span class="sig-paren">(</span><em>transformation</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.PropertySet.modifyBy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Modifies the coordinates by applying a transformation.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.PropertySet.setLocalScale">
+<code class="descname">setLocalScale</code><span class="sig-paren">(</span><em>factor=1.0</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.PropertySet.setLocalScale" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the local refinement factor.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.PropertySet.setName">
+<code class="descname">setName</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.PropertySet.setName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the name.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.PropertySet.substitute">
+<code class="descname">substitute</code><span class="sig-paren">(</span><em>sub_dict</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.PropertySet.substitute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a copy of self with substitutes for the primitives used to
+construct it given by the dictionary <code class="docutils literal notranslate"><span class="pre">sub_dict</span></code>. If a substitute for
+the object is given by <code class="docutils literal notranslate"><span class="pre">sub_dict</span></code> the value is returned, otherwise a
+new instance with substituted arguments is returned.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Note:</th><td class="field-body">This method is overwritten by subclasses.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="esys.pycad.design.ReversePrimitive">
+<em class="property">class </em><code class="descclassname">esys.pycad.design.</code><code class="descname">ReversePrimitive</code><span class="sig-paren">(</span><em>primitive</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.ReversePrimitive" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A view onto a primitive creating a reverse orientation.</p>
+<dl class="method">
+<dt id="esys.pycad.design.ReversePrimitive.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>primitive</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.ReversePrimitive.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Instantiates a view onto <code class="docutils literal notranslate"><span class="pre">primitive</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.ReversePrimitive.collectPrimitiveBases">
+<code class="descname">collectPrimitiveBases</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.ReversePrimitive.collectPrimitiveBases" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of primitives used to construct the primitive. It may
+contain primitives twice.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.ReversePrimitive.getDirectedID">
+<code class="descname">getDirectedID</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.ReversePrimitive.getDirectedID" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the primitive ID where a negative signs means that reversed
+ordering is used.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.ReversePrimitive.getID">
+<code class="descname">getID</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.ReversePrimitive.getID" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the primitive ID.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.ReversePrimitive.getUnderlyingPrimitive">
+<code class="descname">getUnderlyingPrimitive</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.ReversePrimitive.getUnderlyingPrimitive" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the underlying primitive.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.ReversePrimitive.hasSameOrientation">
+<code class="descname">hasSameOrientation</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.ReversePrimitive.hasSameOrientation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if <code class="docutils literal notranslate"><span class="pre">other</span></code> is the same primitive and has the same
+orientation as self.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.ReversePrimitive.isColocated">
+<code class="descname">isColocated</code><span class="sig-paren">(</span><em>primitive</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.ReversePrimitive.isColocated" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if the two primitives are located at the same position.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Note:</th><td class="field-body">This method is overwritten by subclasses.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.ReversePrimitive.isReversed">
+<code class="descname">isReversed</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.ReversePrimitive.isReversed" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns True is the primitive is a reversed primitive.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.ReversePrimitive.substitute">
+<code class="descname">substitute</code><span class="sig-paren">(</span><em>sub_dict</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.ReversePrimitive.substitute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a copy of self with substitutes for the primitives used to
+construct it given by the dictionary <code class="docutils literal notranslate"><span class="pre">sub_dict</span></code>. If a substitute for
+the object is given by <code class="docutils literal notranslate"><span class="pre">sub_dict</span></code> the value is returned, otherwise a
+new instance with substituted arguments is returned.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="esys.pycad.design.TagMap">
+<em class="property">class </em><code class="descclassname">esys.pycad.design.</code><code class="descname">TagMap</code><span class="sig-paren">(</span><em>mapping={}</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.TagMap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A class that allows to map tags to names.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tm</span><span class="o">=</span><span class="n">TagMap</span><span class="p">({</span><span class="mi">5</span> <span class="p">:</span> <span class="n">x</span> <span class="p">})</span>
+<span class="n">tm</span><span class="o">.</span><span class="n">setMap</span><span class="p">(</span><span class="n">a</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">x</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">tm</span><span class="o">.</span><span class="n">getTags</span><span class="p">(</span><span class="s2">&quot;a&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="p">[</span> <span class="mi">1</span> <span class="p">]</span>
+<span class="k">assert</span> <span class="n">tm</span><span class="o">.</span><span class="n">getTags</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="p">[</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">4</span> <span class="p">]</span>
+<span class="k">assert</span> <span class="n">tm</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mf">10.</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="mf">20.</span><span class="p">)</span> <span class="o">==</span> <span class="p">{</span> <span class="mi">5</span> <span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">4</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">1</span> <span class="p">:</span> <span class="mi">20</span> <span class="p">}</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="esys.pycad.design.TagMap.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>mapping={}</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.TagMap.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the mapping. <code class="docutils literal notranslate"><span class="pre">mapping</span></code> defines an initial mapping from tag
+to a name.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.TagMap.fillFromXML">
+<code class="descname">fillFromXML</code><span class="sig-paren">(</span><em>iostream</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.TagMap.fillFromXML" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uses the XML file or string to set the mapping.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.TagMap.fromDom">
+<code class="descname">fromDom</code><span class="sig-paren">(</span><em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.TagMap.fromDom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fills names and tags from dom <code class="docutils literal notranslate"><span class="pre">node</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.TagMap.getMapping">
+<code class="descname">getMapping</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.TagMap.getMapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dictionary where the tags define the keys and the values the
+corresponding names.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.TagMap.getName">
+<code class="descname">getName</code><span class="sig-paren">(</span><em>tag=None</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.TagMap.getName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the name of a tag. If <code class="docutils literal notranslate"><span class="pre">tag</span></code> is not present a list of all names
+is returned.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.TagMap.getTags">
+<code class="descname">getTags</code><span class="sig-paren">(</span><em>name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.TagMap.getTags" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of the tags assigned to <code class="docutils literal notranslate"><span class="pre">name</span></code>. If name is not present
+a list of all tags is returned.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.TagMap.insert">
+<code class="descname">insert</code><span class="sig-paren">(</span><em>data</em>, <em>default=0</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.TagMap.insert" title="Permalink to this definition">¶</a></dt>
+<dd><p>Inserts values into the <a class="reference internal" href="esys.escript.html#esys.escript.Data" title="esys.escript.Data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">esys.escript.Data</span></code></a> object according to the
+given values assigned to the keywords. The default is used for tags
+which map onto name with unspecified values.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.TagMap.map">
+<code class="descname">map</code><span class="sig-paren">(</span><em>default=0</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.TagMap.map" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dictionary where the tags define the keys and the values give
+the values assigned to the tag via name and kwargs:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tm</span><span class="o">=</span><span class="n">TagMap</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">tm</span><span class="o">.</span><span class="n">setMap</span><span class="p">(</span><span class="n">a</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">x</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="nb">print</span> <span class="n">tm</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mf">10.</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="mf">20.</span><span class="p">)</span>
+<span class="p">{</span> <span class="mi">5</span> <span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">4</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">1</span> <span class="p">:</span> <span class="mi">20</span> <span class="p">}</span>
+</pre></div>
+</div>
+<p>The default is used for tags which map onto name with unspecified
+values.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.TagMap.passToDomain">
+<code class="descname">passToDomain</code><span class="sig-paren">(</span><em>domain</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.TagMap.passToDomain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Passes the tag map to the <a class="reference internal" href="esys.escript.html#esys.escript.Domain" title="esys.escript.Domain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">esys.escript.Domain</span></code></a> <code class="docutils literal notranslate"><span class="pre">domain</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.TagMap.setMap">
+<code class="descname">setMap</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.TagMap.setMap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets a new map where &lt;name&gt;=&lt;tag&gt; assigns the tag &lt;tag&gt; to name &lt;name&gt;.
+&lt;tag&gt; has to be an integer. If &lt;tag&gt; has been assigned to a name before
+the mapping will be overwritten. Otherwise a new mapping &lt;tag&gt; -&gt; &lt;name&gt;
+is set. Notice that a single name can be assigned to different tags.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.TagMap.toDOM">
+<code class="descname">toDOM</code><span class="sig-paren">(</span><em>dom</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.TagMap.toDOM" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds object to <code class="docutils literal notranslate"><span class="pre">dom</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.pycad.design.TagMap.writeXML">
+<code class="descname">writeXML</code><span class="sig-paren">(</span><em>iostream=None</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.pycad.design.TagMap.writeXML" title="Permalink to this definition">¶</a></dt>
+<dd><p>Serializes self as XML into <code class="docutils literal notranslate"><span class="pre">iostream</span></code> or if not present returns the
+XML as string.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="others">
+<h2>Others<a class="headerlink" href="#others" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="packages">
+<h2>Packages<a class="headerlink" href="#packages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">esys.pycad.design Package</a><ul>
+<li><a class="reference internal" href="#classes">Classes</a></li>
+<li><a class="reference internal" href="#functions">Functions</a></li>
+<li><a class="reference internal" href="#others">Others</a></li>
+<li><a class="reference internal" href="#packages">Packages</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="esys.pycad.html"
+                        title="previous chapter">esys.pycad Package</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="esys.pycad.gmsh.html"
+                        title="next chapter">esys.pycad.gmsh Package</a></p>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="esys.pycad.gmsh.html" title="esys.pycad.gmsh Package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="esys.pycad.html" title="esys.pycad Package"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">esys.escript 5.5 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="esys.pycad.html" >esys.pycad Package</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2012-2014, Author.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.4.
+    </div>
+  </body>
+</html>
