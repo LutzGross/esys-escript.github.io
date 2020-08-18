@@ -1,4 +1,4 @@
-  name: esys_clone
+name: esys_clone
 channels:
   - conda-forge
   - defaults
