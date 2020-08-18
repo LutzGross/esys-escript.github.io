@@ -1,0 +1,675 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>esys.downunder.splitregularizations Package &#8212; esys.escript 5.6 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="esys.dudley Package" href="esys.dudley.html" />
+    <link rel="prev" title="esys.downunder.splitminimizers Package" href="esys.downunder.splitminimizers.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="esys.dudley.html" title="esys.dudley Package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="esys.downunder.splitminimizers.html" title="esys.downunder.splitminimizers Package"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">esys.escript 5.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="esys.downunder.html" accesskey="U">esys.downunder Package</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-esys.downunder.splitregularizations">
+<span id="esys-downunder-splitregularizations-package"></span><h1>esys.downunder.splitregularizations Package<a class="headerlink" href="#module-esys.downunder.splitregularizations" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li></li>
+</ul>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><a class="reference internal" href="#esys.downunder.splitregularizations.CostFunction" title="esys.downunder.splitregularizations.CostFunction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CostFunction</span></code></a></li>
+<li><a class="reference internal" href="#esys.downunder.splitregularizations.SplitRegularization" title="esys.downunder.splitregularizations.SplitRegularization"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SplitRegularization</span></code></a></li>
+</ul>
+<dl class="class">
+<dt id="esys.downunder.splitregularizations.CostFunction">
+<em class="property">class </em><code class="descclassname">esys.downunder.splitregularizations.</code><code class="descname">CostFunction</code><a class="headerlink" href="#esys.downunder.splitregularizations.CostFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A function <em>f(x)</em> that can be minimized (base class).</p>
+<p>Example of usage:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cf</span><span class="o">=</span><span class="n">DerivedCostFunction</span><span class="p">()</span>
+<span class="c1"># ... calculate x ...</span>
+<span class="n">args</span><span class="o">=</span><span class="n">cf</span><span class="o">.</span><span class="n">getArguments</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="c1"># this could be potentially expensive!</span>
+<span class="n">f</span><span class="o">=</span><span class="n">cf</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+<span class="c1"># ... it could be required to update x without using the gradient...</span>
+<span class="c1"># ... but then ...</span>
+<span class="n">gf</span><span class="o">=</span><span class="n">cf</span><span class="o">.</span><span class="n">getGradient</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The class distinguishes between the representation of the solution
+x (x-type) and the gradients (r-type).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Note:</th><td class="field-body">The provides_inverse_Hessian_approximation class member should be set to <code class="docutils literal notranslate"><span class="pre">True</span></code> in subclasses that provide a valid implementation of
+<a class="reference internal" href="#esys.downunder.splitregularizations.CostFunction.getInverseHessianApproximation" title="esys.downunder.splitregularizations.CostFunction.getInverseHessianApproximation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">getInverseHessianApproximation()</span></code></a></td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="esys.downunder.splitregularizations.CostFunction.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.splitregularizations.CostFunction.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constructor. Initializes logger.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.splitregularizations.CostFunction.getArguments">
+<code class="descname">getArguments</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.splitregularizations.CostFunction.getArguments" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns precalculated values that are shared in the calculation of
+<em>f(x)</em> and <em>grad f(x)</em> and the Hessian operator. The default
+implementation returns an empty tuple.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The tuple returned by this call will be passed back to this <a class="reference internal" href="#esys.downunder.splitregularizations.CostFunction" title="esys.downunder.splitregularizations.CostFunction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CostFunction</span></code></a> in other
+calls(eg: <a class="reference internal" href="#esys.downunder.splitregularizations.CostFunction.getGradient" title="esys.downunder.splitregularizations.CostFunction.getGradient"><code class="xref py py-obj docutils literal notranslate"><span class="pre">getGradient</span></code></a>). Its contents are not specified at this level because no code, 
+other than the <a class="reference internal" href="#esys.downunder.splitregularizations.CostFunction" title="esys.downunder.splitregularizations.CostFunction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CostFunction</span></code></a>
+which created it, will be interacting with it.
+That is, the implementor can put whatever information they find useful in it.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>x</strong> (<em>x-type</em>) – location of derivative</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">tuple</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.splitregularizations.CostFunction.getDualProduct">
+<code class="descname">getDualProduct</code><span class="sig-paren">(</span><em>x</em>, <em>r</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.splitregularizations.CostFunction.getDualProduct" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the dual product of <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">r</span></code></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">float</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.splitregularizations.CostFunction.getGradient">
+<code class="descname">getGradient</code><span class="sig-paren">(</span><em>x</em>, <em>*args</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.splitregularizations.CostFunction.getGradient" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the gradient of <em>f</em> at <em>x</em> using the precalculated values for
+<em>x</em>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<em>x-type</em>) – location of derivative</li>
+<li><strong>args</strong> – pre-calculated values for <code class="docutils literal notranslate"><span class="pre">x</span></code> from <a class="reference internal" href="#esys.downunder.splitregularizations.CostFunction.getArguments" title="esys.downunder.splitregularizations.CostFunction.getArguments"><code class="xref py py-obj docutils literal notranslate"><span class="pre">getArguments()</span></code></a></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">r-type</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.splitregularizations.CostFunction.getInverseHessianApproximation">
+<code class="descname">getInverseHessianApproximation</code><span class="sig-paren">(</span><em>x</em>, <em>r</em>, <em>*args</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.splitregularizations.CostFunction.getInverseHessianApproximation" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns an approximative evaluation <em>p</em> of the inverse of the Hessian
+operator of the cost function for a given gradient <em>r</em> at a given
+location <em>x</em>: <em>H(x) p = r</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<em>x-type</em>) – location of Hessian operator to be evaluated</li>
+<li><strong>r</strong> (<em>r-type</em>) – a given gradient</li>
+<li><strong>args</strong> – pre-calculated values for <code class="docutils literal notranslate"><span class="pre">x</span></code> from <a class="reference internal" href="#esys.downunder.splitregularizations.CostFunction.getArguments" title="esys.downunder.splitregularizations.CostFunction.getArguments"><code class="xref py py-obj docutils literal notranslate"><span class="pre">getArguments()</span></code></a></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">x-type</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Note:</th><td class="field-body"><p class="first">In general it is assumed that the Hessian <em>H(x)</em> needs to be
+calculated in each call for a new location <em>x</em>. However, the
+solver may suggest that this is not required, typically when
+the iteration is close to completeness.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Note:</th><td class="field-body"><p class="first last">Subclasses that implement this method should set the class
+variable <a class="reference internal" href="#esys.downunder.splitregularizations.CostFunction.provides_inverse_Hessian_approximation" title="esys.downunder.splitregularizations.CostFunction.provides_inverse_Hessian_approximation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">provides_inverse_Hessian_approximation</span></code></a> to <code class="docutils literal notranslate"><span class="pre">True</span></code> to
+enable the solver to call this method.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.splitregularizations.CostFunction.getNorm">
+<code class="descname">getNorm</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.splitregularizations.CostFunction.getNorm" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the norm of <code class="docutils literal notranslate"><span class="pre">x</span></code></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">float</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.splitregularizations.CostFunction.getValue">
+<code class="descname">getValue</code><span class="sig-paren">(</span><em>x</em>, <em>*args</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.splitregularizations.CostFunction.getValue" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the value <em>f(x)</em> using the precalculated values for <em>x</em>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>x</strong> (<em>x-type</em>) – a solution approximation</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">float</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="esys.downunder.splitregularizations.CostFunction.provides_inverse_Hessian_approximation">
+<code class="descname">provides_inverse_Hessian_approximation</code><em class="property"> = False</em><a class="headerlink" href="#esys.downunder.splitregularizations.CostFunction.provides_inverse_Hessian_approximation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.splitregularizations.CostFunction.updateHessian">
+<code class="descname">updateHessian</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.splitregularizations.CostFunction.updateHessian" title="Permalink to this definition">¶</a></dt>
+<dd><p>notifies the class that the Hessian operator needs to be updated.
+This method is called by the solver class.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="esys.downunder.splitregularizations.SplitRegularization">
+<em class="property">class </em><code class="descclassname">esys.downunder.splitregularizations.</code><code class="descname">SplitRegularization</code><span class="sig-paren">(</span><em>domain</em>, <em>numLevelSets=1</em>, <em>w0=None</em>, <em>w1=None</em>, <em>wc=None</em>, <em>location_of_set_m=&lt;esys.escriptcore.escriptcpp.Data object&gt;</em>, <em>useDiagonalHessianApproximation=False</em>, <em>tol=1e-08</em>, <em>coordinates=None</em>, <em>scale=None</em>, <em>scale_c=None</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.splitregularizations.SplitRegularization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">esys.downunder.costfunctions.CostFunction</span></code></p>
+<p>The regularization term for the level set function <code class="docutils literal notranslate"><span class="pre">m</span></code> within the cost
+function J for an inversion:</p>
+<p><em>J(m)=1/2 * sum_k integrate( mu[k] * ( w0[k] * m_k**2 * w1[k,i] * m_{k,i}**2) + sum_l&lt;k mu_c[l,k] wc[l,k] * | curl(m_k) x curl(m_l) |^2</em></p>
+<p>where w0[k], w1[k,i] and  wc[k,l] are non-negative weighting factors and
+mu[k] and mu_c[l,k] are trade-off factors which may be altered
+during the inversion. The weighting factors are normalized such that their
+integrals over the domain are constant:</p>
+<p><em>integrate(w0[k] + inner(w1[k,:],1/L[:]**2))=scale[k]</em> volume(domain)*
+<em>integrate(wc[l,k]*1/L**4)=scale_c[k]</em> volume(domain) *</p>
+<dl class="method">
+<dt id="esys.downunder.splitregularizations.SplitRegularization.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>domain</em>, <em>numLevelSets=1</em>, <em>w0=None</em>, <em>w1=None</em>, <em>wc=None</em>, <em>location_of_set_m=&lt;esys.escriptcore.escriptcpp.Data object&gt;</em>, <em>useDiagonalHessianApproximation=False</em>, <em>tol=1e-08</em>, <em>coordinates=None</em>, <em>scale=None</em>, <em>scale_c=None</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.splitregularizations.SplitRegularization.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>initialization.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>domain</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Domain</span></code>) – domain</li>
+<li><strong>numLevelSets</strong> (<code class="docutils literal notranslate"><span class="pre">int</span></code>) – number of level sets</li>
+<li><strong>w0</strong> (<code class="docutils literal notranslate"><span class="pre">Scalar</span></code> if <code class="docutils literal notranslate"><span class="pre">numLevelSets</span></code> == 1 or <code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code> object of shape
+(<code class="docutils literal notranslate"><span class="pre">numLevelSets</span></code> ,) if <code class="docutils literal notranslate"><span class="pre">numLevelSets</span></code> &gt; 1) – weighting factor for the m**2 term. If not set zero is assumed.</li>
+<li><strong>w1</strong> (<code class="docutils literal notranslate"><span class="pre">Vector</span></code> if <code class="docutils literal notranslate"><span class="pre">numLevelSets</span></code> == 1 or <code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code> object of shape
+(<code class="docutils literal notranslate"><span class="pre">numLevelSets</span></code> , DIM) if <code class="docutils literal notranslate"><span class="pre">numLevelSets</span></code> &gt; 1) – weighting factor for the grad(m_i) terms. If not set zero is assumed</li>
+<li><strong>wc</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code> object of shape (<code class="docutils literal notranslate"><span class="pre">numLevelSets</span></code> , <code class="docutils literal notranslate"><span class="pre">numLevelSets</span></code>)) – weighting factor for the cross gradient terms. If not set
+zero is assumed. Used for the case if <code class="docutils literal notranslate"><span class="pre">numLevelSets</span></code> &gt; 1
+only. Only values <code class="docutils literal notranslate"><span class="pre">wc[l,k]</span></code> in the lower triangle (l&lt;k)
+are used.</li>
+<li><strong>location_of_set_m</strong> (<code class="docutils literal notranslate"><span class="pre">Scalar</span></code> if <code class="docutils literal notranslate"><span class="pre">numLevelSets</span></code> == 1 or <code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code>
+object of shape (<code class="docutils literal notranslate"><span class="pre">numLevelSets</span></code> ,) if <code class="docutils literal notranslate"><span class="pre">numLevelSets</span></code> &gt; 1) – marks location of zero values of the level
+set function <code class="docutils literal notranslate"><span class="pre">m</span></code> by a positive entry.</li>
+<li><strong>useDiagonalHessianApproximation</strong> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>) – if True cross gradient terms
+between level set components are ignored when calculating
+approximations of the inverse of the Hessian Operator.
+This can speed-up the calculation of the inverse but may
+lead to an increase of the number of iteration steps in the
+inversion.</li>
+<li><strong>tol</strong> (positive <code class="docutils literal notranslate"><span class="pre">float</span></code>) – tolerance when solving the PDE for the inverse of the
+Hessian Operator</li>
+<li><strong>coordinates</strong> (ReferenceSystem` or <code class="xref py py-obj docutils literal notranslate"><span class="pre">SpatialCoordinateTransformation</span></code>) – defines coordinate system to be used</li>
+<li><strong>scale</strong> (<code class="docutils literal notranslate"><span class="pre">Scalar</span></code> if <code class="docutils literal notranslate"><span class="pre">numLevelSets</span></code> == 1 or <code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code> object of
+shape (<code class="docutils literal notranslate"><span class="pre">numLevelSets</span></code> ,) if <code class="docutils literal notranslate"><span class="pre">numLevelSets</span></code> &gt; 1) – weighting factor for level set function variation terms.
+If not set one is used.</li>
+<li><strong>scale_c</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code> object of shape (<code class="docutils literal notranslate"><span class="pre">numLevelSets</span></code>,``numLevelSets``)) – scale for the cross gradient terms. If not set
+one is assumed. Used for the case if <code class="docutils literal notranslate"><span class="pre">numLevelSets</span></code> &gt; 1
+only. Only values <code class="docutils literal notranslate"><span class="pre">scale_c[l,k]</span></code> in the lower triangle
+(l&lt;k) are used.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.splitregularizations.SplitRegularization.getArguments">
+<code class="descname">getArguments</code><span class="sig-paren">(</span><em>m</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.splitregularizations.SplitRegularization.getArguments" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.splitregularizations.SplitRegularization.getCoordinateTransformation">
+<code class="descname">getCoordinateTransformation</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.splitregularizations.SplitRegularization.getCoordinateTransformation" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the coordinate transformation being used</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CoordinateTransformation</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.splitregularizations.SplitRegularization.getDomain">
+<code class="descname">getDomain</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.splitregularizations.SplitRegularization.getDomain" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the domain of the regularization term</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">Domain</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.splitregularizations.SplitRegularization.getDualProduct">
+<code class="descname">getDualProduct</code><span class="sig-paren">(</span><em>m</em>, <em>r</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.splitregularizations.SplitRegularization.getDualProduct" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the dual product of a gradient represented by X=r[1] and Y=r[0]
+with a level set function m:</p>
+<blockquote>
+<div><em>Y_i*m_i + X_ij*m_{i,j}</em></div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">float</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.splitregularizations.SplitRegularization.getGradient">
+<code class="descname">getGradient</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.splitregularizations.SplitRegularization.getGradient" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the gradient of <em>f</em> at <em>x</em> using the precalculated values for
+<em>x</em>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<em>x-type</em>) – location of derivative</li>
+<li><strong>args</strong> – pre-calculated values for <code class="docutils literal notranslate"><span class="pre">x</span></code> from <a class="reference internal" href="#esys.downunder.splitregularizations.SplitRegularization.getArguments" title="esys.downunder.splitregularizations.SplitRegularization.getArguments"><code class="xref py py-obj docutils literal notranslate"><span class="pre">getArguments()</span></code></a></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">r-type</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.splitregularizations.SplitRegularization.getGradientAtPoint">
+<code class="descname">getGradientAtPoint</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.splitregularizations.SplitRegularization.getGradientAtPoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the gradient of the cost function J with respect to m.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Note:</th><td class="field-body">This implementation returns Y_k=dPsi/dm_k and X_kj=dPsi/dm_kj</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.splitregularizations.SplitRegularization.getInverseHessianApproximation">
+<code class="descname">getInverseHessianApproximation</code><span class="sig-paren">(</span><em>x</em>, <em>r</em>, <em>*args</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.splitregularizations.SplitRegularization.getInverseHessianApproximation" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns an approximative evaluation <em>p</em> of the inverse of the Hessian
+operator of the cost function for a given gradient <em>r</em> at a given
+location <em>x</em>: <em>H(x) p = r</em></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<em>x-type</em>) – location of Hessian operator to be evaluated</li>
+<li><strong>r</strong> (<em>r-type</em>) – a given gradient</li>
+<li><strong>args</strong> – pre-calculated values for <code class="docutils literal notranslate"><span class="pre">x</span></code> from <a class="reference internal" href="#esys.downunder.splitregularizations.SplitRegularization.getArguments" title="esys.downunder.splitregularizations.SplitRegularization.getArguments"><code class="xref py py-obj docutils literal notranslate"><span class="pre">getArguments()</span></code></a></li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">x-type</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Note:</th><td class="field-body"><p class="first">In general it is assumed that the Hessian <em>H(x)</em> needs to be
+calculated in each call for a new location <em>x</em>. However, the
+solver may suggest that this is not required, typically when
+the iteration is close to completeness.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Note:</th><td class="field-body"><p class="first last">Subclasses that implement this method should set the class
+variable <a class="reference internal" href="#esys.downunder.splitregularizations.SplitRegularization.provides_inverse_Hessian_approximation" title="esys.downunder.splitregularizations.SplitRegularization.provides_inverse_Hessian_approximation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">provides_inverse_Hessian_approximation</span></code></a> to <code class="docutils literal notranslate"><span class="pre">True</span></code> to
+enable the solver to call this method.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.splitregularizations.SplitRegularization.getInverseHessianApproximationAtPoint">
+<code class="descname">getInverseHessianApproximationAtPoint</code><span class="sig-paren">(</span><em>r</em>, <em>solve=True</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.splitregularizations.SplitRegularization.getInverseHessianApproximationAtPoint" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.splitregularizations.SplitRegularization.getNorm">
+<code class="descname">getNorm</code><span class="sig-paren">(</span><em>m</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.splitregularizations.SplitRegularization.getNorm" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the norm of <code class="docutils literal notranslate"><span class="pre">m</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>m</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code>) – level set function</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">float</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.splitregularizations.SplitRegularization.getNumLevelSets">
+<code class="descname">getNumLevelSets</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.splitregularizations.SplitRegularization.getNumLevelSets" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the number of level set functions</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">int</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.splitregularizations.SplitRegularization.getNumTradeOffFactors">
+<code class="descname">getNumTradeOffFactors</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.splitregularizations.SplitRegularization.getNumTradeOffFactors" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the number of trade-off factors being used.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">int</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.splitregularizations.SplitRegularization.getPDE">
+<code class="descname">getPDE</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.splitregularizations.SplitRegularization.getPDE" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the linear PDE to be solved for the Hessian Operator inverse</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-obj docutils literal notranslate"><span class="pre">linearPDEs.LinearPDE</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.splitregularizations.SplitRegularization.getValue">
+<code class="descname">getValue</code><span class="sig-paren">(</span><em>m</em>, <em>grad_m</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.splitregularizations.SplitRegularization.getValue" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the value of the cost function J with respect to m.
+This equation is specified in the inversion cookbook.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">float</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.splitregularizations.SplitRegularization.getValueAtPoint">
+<code class="descname">getValueAtPoint</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.splitregularizations.SplitRegularization.getValueAtPoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the value of the cost function J with respect to m.
+This equation is specified in the inversion cookbook.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">float</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="esys.downunder.splitregularizations.SplitRegularization.provides_inverse_Hessian_approximation">
+<code class="descname">provides_inverse_Hessian_approximation</code><em class="property"> = False</em><a class="headerlink" href="#esys.downunder.splitregularizations.SplitRegularization.provides_inverse_Hessian_approximation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.splitregularizations.SplitRegularization.setPoint">
+<code class="descname">setPoint</code><span class="sig-paren">(</span><em>m</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.splitregularizations.SplitRegularization.setPoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>sets the point which this function will work with</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>m</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code>) – level set function</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.splitregularizations.SplitRegularization.setTradeOffFactors">
+<code class="descname">setTradeOffFactors</code><span class="sig-paren">(</span><em>mu=None</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.splitregularizations.SplitRegularization.setTradeOffFactors" title="Permalink to this definition">¶</a></dt>
+<dd><p>sets the trade-off factors for the level-set variation and the
+cross-gradient.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>mu</strong> (<code class="docutils literal notranslate"><span class="pre">list</span></code> of <code class="docutils literal notranslate"><span class="pre">float</span></code> or <code class="docutils literal notranslate"><span class="pre">`numpy.array`</span></code>) – new values for the trade-off factors where values
+mu[:numLevelSets] are the trade-off factors for the
+level-set variation and the remaining values for
+the cross-gradient part with
+mu_c[l,k]=mu[numLevelSets+l+((k-1)*k)/2] (l&lt;k).
+If no values for mu are given ones are used.
+Values must be positive.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.splitregularizations.SplitRegularization.setTradeOffFactorsForCrossGradient">
+<code class="descname">setTradeOffFactorsForCrossGradient</code><span class="sig-paren">(</span><em>mu_c=None</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.splitregularizations.SplitRegularization.setTradeOffFactorsForCrossGradient" title="Permalink to this definition">¶</a></dt>
+<dd><p>sets the trade-off factors for the cross-gradient terms.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>mu_c</strong> (<code class="docutils literal notranslate"><span class="pre">float</span></code>, <code class="docutils literal notranslate"><span class="pre">list</span></code> of <code class="docutils literal notranslate"><span class="pre">float</span></code> or <code class="docutils literal notranslate"><span class="pre">numpy.array</span></code>) – new values for the trade-off factors for the cross-gradient
+terms. Values must be positive. If no value is given ones
+are used. Only value mu_c[l,k] for l&lt;k are used.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.splitregularizations.SplitRegularization.setTradeOffFactorsForVariation">
+<code class="descname">setTradeOffFactorsForVariation</code><span class="sig-paren">(</span><em>mu=None</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.splitregularizations.SplitRegularization.setTradeOffFactorsForVariation" title="Permalink to this definition">¶</a></dt>
+<dd><p>sets the trade-off factors for the level-set variation part.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>mu</strong> (<code class="docutils literal notranslate"><span class="pre">float</span></code>, <code class="docutils literal notranslate"><span class="pre">list</span></code> of <code class="docutils literal notranslate"><span class="pre">float</span></code> or <code class="docutils literal notranslate"><span class="pre">`numpy.array`</span></code>) – new values for the trade-off factors. Values must be positive.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.splitregularizations.SplitRegularization.updateHessian">
+<code class="descname">updateHessian</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.splitregularizations.SplitRegularization.updateHessian" title="Permalink to this definition">¶</a></dt>
+<dd><p>notifies the class to recalculate the Hessian operator.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="esys.downunder.splitregularizations.makeTransformation">
+<code class="descclassname">esys.downunder.splitregularizations.</code><code class="descname">makeTransformation</code><span class="sig-paren">(</span><em>domain</em>, <em>coordinates=None</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.splitregularizations.makeTransformation" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns a <code class="xref py py-obj docutils literal notranslate"><span class="pre">SpatialCoordinateTransformation</span></code> for the given domain</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>domain</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">esys.escript.AbstractDomain</span></code>) – domain in the domain of the coordinate transformation</li>
+<li><strong>coordinates</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">ReferenceSystem</span></code> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">SpatialCoordinateTransformation</span></code>) – the reference system or spatial coordinate system.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">the spatial coordinate system for the given domain of the specified 
+reference system <code class="docutils literal notranslate"><span class="pre">coordinates</span></code>. If <code class="docutils literal notranslate"><span class="pre">coordinates</span></code> is already spatial coordinate system based on the 
+riven domain <code class="docutils literal notranslate"><span class="pre">coordinates</span></code> is returned. Otherwise an appropriate spatial coordinate system 
+is created.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SpatialCoordinateTransformation</span></code></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="others">
+<h2>Others<a class="headerlink" href="#others" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="packages">
+<h2>Packages<a class="headerlink" href="#packages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">esys.downunder.splitregularizations Package</a><ul>
+<li><a class="reference internal" href="#classes">Classes</a></li>
+<li><a class="reference internal" href="#functions">Functions</a></li>
+<li><a class="reference internal" href="#others">Others</a></li>
+<li><a class="reference internal" href="#packages">Packages</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="esys.downunder.splitminimizers.html"
+                        title="previous chapter">esys.downunder.splitminimizers Package</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="esys.dudley.html"
+                        title="next chapter">esys.dudley Package</a></p>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="esys.dudley.html" title="esys.dudley Package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="esys.downunder.splitminimizers.html" title="esys.downunder.splitminimizers Package"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">esys.escript 5.6 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="esys.downunder.html" >esys.downunder Package</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2012-2014, Author.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.4.
+    </div>
+  </body>
+</html>
