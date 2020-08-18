@@ -15,9 +15,9 @@ formats:
     - pdf 
     - epub
 
-# # Required version of python
-# python:
-#     version: 3.5
+# Required version of python
+python:
+    version: 3.8
   
 # This sets up the environment using the anaconda python docs
 conda:
