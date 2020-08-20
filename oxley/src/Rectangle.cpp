@@ -880,21 +880,18 @@ void Rectangle::interpolateNodesOnElements(escript::Data& out,
                                            const escript::Data& in,
                                            bool reduced) const
 {
-    //todo:
-    throw OxleyException("interpolateNodesOnElements");
-
-    // if (in.isComplex()!=out.isComplex())
-    // {
-    //     throw OxleyException("Programmer Error: in and out parameters do not have the same complexity.");
-    // }
-    // if (in.isComplex())
-    // {
-    //     interpolateNodesOnElementsWorker(out, in, reduced, escript::DataTypes::cplx_t(0));
-    // }
-    // else
-    // {
-    //     interpolateNodesOnElementsWorker(out, in, reduced, escript::DataTypes::real_t(0));      
-    // }
+    if (in.isComplex()!=out.isComplex())
+    {
+        throw OxleyException("Programmer Error: in and out parameters do not have the same complexity.");
+    }
+    if (in.isComplex())
+    {
+        interpolateNodesOnElementsWorker(out, in, reduced, escript::DataTypes::cplx_t(0));
+    }
+    else
+    {
+        interpolateNodesOnElementsWorker(out, in, reduced, escript::DataTypes::real_t(0));      
+    }
 }
 
 //protected
@@ -926,77 +923,74 @@ void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
                                            const escript::Data& in,
                                            bool reduced, S sentinel) const
 {
-    //todo:
-    throw OxleyException("interpolateNodesOnElementsWorker");
+    const dim_t numComp = in.getDataPointSize();
+    const long  numNodes = getNumNodes();
+    if (reduced) {
+        out.requireWrite();
+        const S c0 = 0.25;
+        double * fxx = new double[4*numComp*numNodes];
 
-//     const dim_t numComp = in.getDataPointSize();
-//     const long  numNodes = getNumNodes();
-//     if (reduced) {
-//         out.requireWrite();
-//         const S c0 = 0.25;
-//         double * fxx = new double[4*numComp*numNodes];
+        // This structure is used to store info needed by p4est
+        interpolateNodesOnElementsWorker_Data<S> interpolateData;
+        interpolateData.fxx = fxx;
+        interpolateData.sentinel = sentinel;
+        interpolateData.offset = numComp*sizeof(S);
 
-//         // This structure is used to store info needed by p4est
-//         interpolateNodesOnElementsWorker_Data<S> interpolateData;
-//         interpolateData.fxx = fxx;
-//         interpolateData.sentinel = sentinel;
-//         interpolateData.offset = numComp*sizeof(S);
-
-//         p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnElementWorker_data, NULL, NULL);
-//         for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; treeid++)
-//         {
-//             p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, treeid);
-//             sc_array_t * tquadrants = &currenttree->quadrants;
-//             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-// #pragma omp parallel for
-//             for (p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
-//             {
-//                 S* o = out.getSampleDataRW(e, sentinel);
-//                 for (index_t i=0; i < numComp; ++i) 
-//                 {
-//                     o[i] = c0*(fxx[INDEX3(0,i,e,numComp,numNodes)] + 
-//                                fxx[INDEX3(1,i,e,numComp,numNodes)] + 
-//                                fxx[INDEX3(2,i,e,numComp,numNodes)] + 
-//                                fxx[INDEX3(3,i,e,numComp,numNodes)]);
-//                 }
-//             }
-//         }
-//         delete[] fxx;
-//     } else {
-//         out.requireWrite();
-//         const S c0 = 0.16666666666666666667;
-//         const S c1 = 0.044658198738520451079;
-//         const S c2 = 0.62200846792814621559;
-//         double * fxx = new double[4*numComp*numNodes];
-//         // This structure is used to store info needed by p4est
-//         interpolateNodesOnElementsWorker_Data<S> interpolateData;
-//         interpolateData.fxx = fxx;
-//         interpolateData.sentinel = sentinel;
-//         interpolateData.offset = numComp*sizeof(S);
-//         p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnElementWorker_data, NULL, NULL);
-//         for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; treeid++)
-//         {
-//             p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, treeid);
-//             sc_array_t * tquadrants = &currenttree->quadrants;
-//             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-// #pragma omp parallel for
-//             for (p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
-//             {
-//                 S* o = out.getSampleDataRW(e, sentinel);
-//                 for (index_t i=0; i < numComp; ++i) {
-//                     o[INDEX2(i,numComp,0)] = c0*(fxx[INDEX3(1,i,e,numComp,numNodes)] +    fxx[INDEX3(2,i,e,numComp,numNodes)]) + 
-//                                              c1* fxx[INDEX3(3,i,e,numComp,numNodes)] + c2*fxx[INDEX3(0,i,e,numComp,numNodes)];
-//                     o[INDEX2(i,numComp,1)] = c0*(fxx[INDEX3(2,i,e,numComp,numNodes)] +    fxx[INDEX3(3,i,e,numComp,numNodes)]) + 
-//                                              c1* fxx[INDEX3(1,i,e,numComp,numNodes)] + c2*fxx[INDEX3(2,i,e,numComp,numNodes)];
-//                     o[INDEX2(i,numComp,2)] = c0*(fxx[INDEX3(0,i,e,numComp,numNodes)] +    fxx[INDEX3(3,i,e,numComp,numNodes)]) + 
-//                                              c1* fxx[INDEX3(2,i,e,numComp,numNodes)] + c2*fxx[INDEX3(1,i,e,numComp,numNodes)];
-//                     o[INDEX2(i,numComp,3)] = c0*(fxx[INDEX3(1,i,e,numComp,numNodes)] +    fxx[INDEX3(2,i,e,numComp,numNodes)]) + 
-//                                              c1* fxx[INDEX3(0,i,e,numComp,numNodes)] + c2*fxx[INDEX3(3,i,e,numComp,numNodes)];
-//                 }
-//             }
-//         }
-//         delete[] fxx;
-//     }
+        p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnElementWorker_data, NULL, NULL);
+        for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; treeid++)
+        {
+            p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, treeid);
+            sc_array_t * tquadrants = &currenttree->quadrants;
+            p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+#pragma omp parallel for
+            for (p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
+            {
+                S* o = out.getSampleDataRW(e, sentinel);
+                for (index_t i=0; i < numComp; ++i) 
+                {
+                    o[i] = c0*(fxx[INDEX3(0,i,e,numComp,numNodes)] + 
+                               fxx[INDEX3(1,i,e,numComp,numNodes)] + 
+                               fxx[INDEX3(2,i,e,numComp,numNodes)] + 
+                               fxx[INDEX3(3,i,e,numComp,numNodes)]);
+                }
+            }
+        }
+        delete[] fxx;
+    } else {
+        out.requireWrite();
+        const S c0 = 0.16666666666666666667;
+        const S c1 = 0.044658198738520451079;
+        const S c2 = 0.62200846792814621559;
+        double * fxx = new double[4*numComp*numNodes];
+        // This structure is used to store info needed by p4est
+        interpolateNodesOnElementsWorker_Data<S> interpolateData;
+        interpolateData.fxx = fxx;
+        interpolateData.sentinel = sentinel;
+        interpolateData.offset = numComp*sizeof(S);
+        p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnElementWorker_data, NULL, NULL);
+        for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; treeid++)
+        {
+            p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, treeid);
+            sc_array_t * tquadrants = &currenttree->quadrants;
+            p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+#pragma omp parallel for
+            for (p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
+            {
+                S* o = out.getSampleDataRW(e, sentinel);
+                for (index_t i=0; i < numComp; ++i) {
+                    o[INDEX2(i,numComp,0)] = c0*(fxx[INDEX3(1,i,e,numComp,numNodes)] +    fxx[INDEX3(2,i,e,numComp,numNodes)]) + 
+                                             c1* fxx[INDEX3(3,i,e,numComp,numNodes)] + c2*fxx[INDEX3(0,i,e,numComp,numNodes)];
+                    o[INDEX2(i,numComp,1)] = c0*(fxx[INDEX3(2,i,e,numComp,numNodes)] +    fxx[INDEX3(3,i,e,numComp,numNodes)]) + 
+                                             c1* fxx[INDEX3(1,i,e,numComp,numNodes)] + c2*fxx[INDEX3(2,i,e,numComp,numNodes)];
+                    o[INDEX2(i,numComp,2)] = c0*(fxx[INDEX3(0,i,e,numComp,numNodes)] +    fxx[INDEX3(3,i,e,numComp,numNodes)]) + 
+                                             c1* fxx[INDEX3(2,i,e,numComp,numNodes)] + c2*fxx[INDEX3(1,i,e,numComp,numNodes)];
+                    o[INDEX2(i,numComp,3)] = c0*(fxx[INDEX3(1,i,e,numComp,numNodes)] +    fxx[INDEX3(2,i,e,numComp,numNodes)]) + 
+                                             c1* fxx[INDEX3(0,i,e,numComp,numNodes)] + c2*fxx[INDEX3(3,i,e,numComp,numNodes)];
+                }
+            }
+        }
+        delete[] fxx;
+    }
 }
 
 //private
@@ -1371,53 +1365,51 @@ paso::SystemMatrixPattern_ptr Rectangle::getPasoMatrixPattern(
                                                     bool reducedRowOrder,
                                                     bool reducedColOrder) const
 {
-    throw OxleyException("getPasoMatrixPattern");
+    if (m_pattern.get())
+        return m_pattern;
 
-//     if (m_pattern.get())
-//         return m_pattern;
+    // first call - create pattern, then return
+    paso::Connector_ptr conn(getPasoConnector());
+    const dim_t numDOF = getNumDOF();
+    const dim_t numShared = conn->send->numSharedComponents;
+    const dim_t numNeighbours = conn->send->neighbour.size();
+    const std::vector<index_t>& offsetInShared(conn->send->offsetInShared);
+    const index_t* sendShared = conn->send->shared;
 
-//     // first call - create pattern, then return
-//     paso::Connector_ptr conn(getPasoConnector());
-//     const dim_t numDOF = getNumDOF();
-//     const dim_t numShared = conn->send->numSharedComponents;
-//     const dim_t numNeighbours = conn->send->neighbour.size();
-//     const std::vector<index_t>& offsetInShared(conn->send->offsetInShared);
-//     const index_t* sendShared = conn->send->shared;
+    // these are for the couple blocks
+    std::vector<IndexVector> colIndices(numDOF);
+    std::vector<IndexVector> rowIndices(numShared);
 
-//     // these are for the couple blocks
-//     std::vector<IndexVector> colIndices(numDOF);
-//     std::vector<IndexVector> rowIndices(numShared);
+    for (dim_t i=0; i<numNeighbours; i++) {
+        const dim_t start = offsetInShared[i];
+        const dim_t end = offsetInShared[i+1];
+        for (dim_t j = start; j < end; j++) {
+            if (j > start)
+                doublyLink(colIndices, rowIndices, sendShared[j-1], j);
+            doublyLink(colIndices, rowIndices, sendShared[j], j);
+            if (j < end-1)
+                doublyLink(colIndices, rowIndices, sendShared[j+1], j);
+        }
+    }
+#pragma omp parallel for
+    for (dim_t i = 0; i < numShared; i++) {
+        sort(rowIndices[i].begin(), rowIndices[i].end());
+    }
 
-//     for (dim_t i=0; i<numNeighbours; i++) {
-//         const dim_t start = offsetInShared[i];
-//         const dim_t end = offsetInShared[i+1];
-//         for (dim_t j = start; j < end; j++) {
-//             if (j > start)
-//                 doublyLink(colIndices, rowIndices, sendShared[j-1], j);
-//             doublyLink(colIndices, rowIndices, sendShared[j], j);
-//             if (j < end-1)
-//                 doublyLink(colIndices, rowIndices, sendShared[j+1], j);
-//         }
-//     }
-// #pragma omp parallel for
-//     for (dim_t i = 0; i < numShared; i++) {
-//         sort(rowIndices[i].begin(), rowIndices[i].end());
-//     }
+    // create main and couple blocks
+    paso::Pattern_ptr mainPattern = createPasoPattern(getConnections(), numDOF);
+    paso::Pattern_ptr colPattern = createPasoPattern(colIndices, numShared);
+    paso::Pattern_ptr rowPattern = createPasoPattern(rowIndices, numDOF);
 
-//     // create main and couple blocks
-//     paso::Pattern_ptr mainPattern = createPasoPattern(getConnections(), numDOF);
-//     paso::Pattern_ptr colPattern = createPasoPattern(colIndices, numShared);
-//     paso::Pattern_ptr rowPattern = createPasoPattern(rowIndices, numDOF);
+    // allocate paso distribution
+    IndexVector m_nodeDistribution = getNodeDistribution();
+    escript::Distribution_ptr distribution(new escript::Distribution(m_mpiInfo, m_nodeDistribution));
 
-//     // allocate paso distribution
-//     IndexVector m_nodeDistribution = getNodeDistribution();
-//     escript::Distribution_ptr distribution(new escript::Distribution(m_mpiInfo, m_nodeDistribution));
-
-//     // finally create the system matrix pattern
-//     m_pattern.reset(new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
-//             distribution, distribution, mainPattern, colPattern, rowPattern,
-//             conn, conn));
-//     return m_pattern;
+    // finally create the system matrix pattern
+    m_pattern.reset(new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
+            distribution, distribution, mainPattern, colPattern, rowPattern,
+            conn, conn));
+    return m_pattern;
 }
 #endif // ESYS_HAVE_PASO
 

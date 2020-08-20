@@ -30,13 +30,13 @@
 
 namespace oxley {
 
-escript::Domain_ptr _rectangle(int order, double _n0, double _n1,
+escript::Domain_ptr _rectangle(double _n0, double _n1,
                         const object& l0, const object& l1, int d0, int d1,
                         int periodic0, int periodic1)
 {
-	// Integration Order
-    if (order < 2 || order > 10)
-        throw OxleyException("Order must be in the range 2 to 10");
+	// // Integration Order
+ //    if (order < 2 || order > 10)
+ //        throw OxleyException("Order must be in the range 2 to 10");
 
     // Number of nodes in each direction
     dim_t n0=static_cast<dim_t>(_n0), n1=static_cast<dim_t>(_n1);
@@ -66,6 +66,8 @@ escript::Domain_ptr _rectangle(int order, double _n0, double _n1,
         y1=extract<double>(l1);
     } else
         throw OxleyException("Argument l1 must be a float or 2-tuple");
+
+    int order = 1;
 
     return escript::Domain_ptr(new Rectangle(order, n0,n1, x0,y0, x1,y1, d0,d1, periodic0, periodic1));
 }
@@ -251,13 +253,12 @@ void _addSurface(OxleyDomainBrick_ptr domain,
 BOOST_PYTHON_MODULE(oxleycpp)
 {
 
-    def("Rectangle", oxley::_rectangle, (arg("order"),
+    def("Rectangle", oxley::_rectangle, (
     arg("n0"),arg("n1"),
     arg("l0")=1.0,arg("l1")=1.0,
     arg("d0")=-1,arg("d1")=-1,
     arg("periodic0")=0,arg("periodic1")=0),
     "Creates a rectangular p4est mesh with n0 x n1 elements over the rectangle [0,l0] x [0,l1].\n\n"
-    ":param order: order of the elements: ``int``\n"
     ":param n0: number of elements in direction 0\n:type n0: ``int``\n"
     ":param n1: number of elements in direction 1\n:type n1: ``int``\n"
     ":param l0: length of side 0 or coordinate range of side 0\n:type l0: ``float`` or ``tuple``\n"
