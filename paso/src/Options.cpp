@@ -36,6 +36,7 @@ Options::Options(const bp::object& options)
     method = mapEscriptOption(sb.getSolverMethod());
     package = mapEscriptOption(sb.getPackage());
     verbose = sb.isVerbose();
+    is_complex = sb.isComplex();
     symmetric = sb.isSymmetric();
     hermitian = sb.isHermitian();
     tolerance = sb.getTolerance();
@@ -63,6 +64,7 @@ void Options::setDefaults()
     verbose = false;
     method = PASO_DEFAULT;
     package = PASO_DEFAULT;
+    is_complex = false;
     symmetric = false;
     hermitian = false;
     reordering = PASO_NO_REORDERING;
@@ -124,6 +126,7 @@ void Options::show() const
         << "\tverbose = " << verbose << std::endl
         << "\tmethod = " << name(method) << " (" << method << ")" << std::endl
         << "\tpackage = " << name(package) << " (" << package << ")" << std::endl
+        << "\tis_complex = " << is_complex << std::endl
         << "\tsymmetric = " << symmetric << std::endl
         << "\thermitian = " << hermitian << std::endl
         << "\treordering = " << name(reordering) << " (" << reordering << ")" << std::endl

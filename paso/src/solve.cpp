@@ -97,6 +97,9 @@ void SystemMatrix::solve(double* out, double* in, Options* options) const
             if (mpi_info->size > 1) {
                 throw PasoException("solve: MUMPS package does not support MPI.");
             }
+            if (options->method != PASO_DIRECT) {
+                throw PasoException("solve: MUMPS package only supports the DIRECT solver method.");
+            }
             options->converged = false;
             options->time = escript::gettime();
             Performance_startMonitor(&pp, PERFORMANCE_ALL);
@@ -160,6 +163,9 @@ void SystemMatrix::solve(cplx_t* out, cplx_t* in, Options* options) const
         case PASO_MUMPS:
             if (mpi_info->size > 1) {
                 throw PasoException("solve: MUMPS package does not support MPI.");
+            }
+            if (options->method != PASO_DIRECT) {
+                throw PasoException("solve: MUMPS package only supports the DIRECT solver method.");
             }
             options->converged = false;
             options->time = escript::gettime();

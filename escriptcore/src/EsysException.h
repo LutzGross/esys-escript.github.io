@@ -37,7 +37,7 @@ public:
     */
     EsysException(const std::string& message) : msg(message)
     {
-/*
+/* remove comment for debug on windows
 #ifdef _WIN32
         std::cerr << std::endl << "EsysException:" << std::endl
                   << message << std::endl << std::endl

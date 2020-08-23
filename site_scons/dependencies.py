@@ -145,10 +145,10 @@ def call_python_config(bin=None):
     cmd+="print(str(sys.version_info[0])+'.'+str(sys.version_info[1])+'.'+str(sys.version_info[2]))\n"
     cmd+="print(sysconfig.get_python_inc())\n"
     sp=subprocess.Popen([bin, '-c', cmd], stdin=None, stderr=None, stdout=subprocess.PIPE)
-    target=sp.stdout.readline().strip()
-    libname=sp.stdout.readline().strip()
-    ver=sp.stdout.readline().strip()
-    pinc=sp.stdout.readline().strip()
+    target=sp.stdout.readline().strip().decode('utf-8')
+    libname=sp.stdout.readline().strip().decode('utf-8')
+    ver=sp.stdout.readline().strip().decode('utf-8')
+    pinc=sp.stdout.readline().strip().decode('utf-8')
     return (target, libname, ver, pinc)
 
 def checkPython(env):
@@ -744,7 +744,7 @@ def checkOptionalLibraries(env):
                     p=Popen(cmd, stdout=PIPE)
                     gmshlibs,_ = p.communicate()
                     env.Append(CPPDEFINES=['ESYS_HAVE_GMSH'])
-                    if p.returncode == 0 and 'libmpi' in gmshlibs:
+                    if p.returncode == 0 and 'libmpi' in gmshlibs.decode('utf-8'):
                         env['gmsh'] = 'm'
                         env.Append(CPPDEFINES=['ESYS_GMSH_MPI'])
                     else:

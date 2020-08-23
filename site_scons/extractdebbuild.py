@@ -35,7 +35,7 @@ def getdebbuildflags():
   mycflags=None
   mycxxflags=None
   try:
-    deps=subprocess.check_output("dpkg-buildflags")
+    deps=subprocess.check_output("dpkg-buildflags").decode('utf-8')
   except OSError:
     return []
   res=[]

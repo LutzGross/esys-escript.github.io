@@ -108,6 +108,7 @@ struct Options
 
     int method;
     int package;
+    bool is_complex;
     bool symmetric;
     bool hermitian;
     double tolerance;

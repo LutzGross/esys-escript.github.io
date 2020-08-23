@@ -41,7 +41,7 @@ import subprocess
 import os
 p = subprocess.Popen(["ld","--verbose"], stdout=subprocess.PIPE)
 out,err = p.communicate()
-spath = [x[13:-3] for x in out.split() if 'SEARCH_DIR' in x]
+spath = [x[13:-3].decode('utf-8') for x in out.split() if b'SEARCH_DIR' in x]
 p2name = ''
 p3name = ''
 for name in spath:
