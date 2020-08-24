@@ -1078,10 +1078,8 @@ esys_trilinos::const_TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
     {
         const index_t* sendPtr = neighbour.empty() ? NULL : &sendShared[0];
         const index_t* recvPtr = neighbour.empty() ? NULL : &recvShared[0];
-        paso::SharedComponents_ptr snd_shcomp(new paso::SharedComponents(
-                getNumDOF(), neighbour, sendPtr, offsetInSharedSend));
-        paso::SharedComponents_ptr rcv_shcomp(new paso::SharedComponents(
-                getNumDOF(), neighbour, recvPtr, offsetInSharedRecv));
+        paso::SharedComponents_ptr snd_shcomp(new paso::SharedComponents(getNumDOF(), neighbour, sendPtr, offsetInSharedSend));
+        paso::SharedComponents_ptr rcv_shcomp(new paso::SharedComponents(getNumDOF(), neighbour, recvPtr, offsetInSharedRecv));
         m_connector.reset(new paso::Connector(snd_shcomp, rcv_shcomp));
     }
 #endif

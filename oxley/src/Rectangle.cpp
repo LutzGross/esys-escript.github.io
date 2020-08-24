@@ -173,6 +173,32 @@ Rectangle::Rectangle(int order,
     Py_Initialize();
     boost::python::numpy::initialize();
 #endif
+
+#ifdef ESYS_HAVE_PASO
+
+    /// local array length shared
+    // dim_t local_length = p4est->local_num_quadrants;
+    dim_t local_length = 0;
+
+    /// list of the processors sharing values with this processor
+    std::vector<int> neighbour = {};
+
+    /// offsetInShared[i] points to the first input value in array shared
+    /// for processor i. Has length numNeighbors+1
+    std::vector<index_t> offsetInShared = {0};
+
+    /// list of the (local) components which are shared with other processors.
+    /// Has length numSharedComponents
+    index_t* shared = {};
+
+    /// = offsetInShared[numNeighbours]
+    dim_t numSharedComponents = 0;
+
+    IndexVector sendShared, recvShared;
+
+    createPasoConnector(neighbour, offsetInShared, offsetInShared, sendShared, recvShared);
+
+#endif
     
 }
 
@@ -227,8 +253,6 @@ void Rectangle::interpolateAcross(escript::Data& target, const escript::Data& so
 
 void Rectangle::setToNormal(escript::Data& out) const
 {
-    throw OxleyException("setToNormal"); //AE this is temporary
-
     if (out.getFunctionSpace().getTypeCode() == FaceElements) {
         out.requireWrite();
         for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
@@ -329,8 +353,6 @@ void Rectangle::setToNormal(escript::Data& out) const
 
 void Rectangle::setToSize(escript::Data& out) const
 {
-    throw OxleyException("setToSize"); //AE this is temporary
-
     if (out.getFunctionSpace().getTypeCode() == Elements
         || out.getFunctionSpace().getTypeCode() == ReducedElements)
     {
@@ -823,11 +845,124 @@ void Rectangle::populateDofMap()
     // populate node->DOF mapping with own degrees of freedom.
     // The rest is assigned in the loop further down
     
-    m_dofMap.assign(getNumNodes(), 0);
-#pragma omp parallel for                                // AE this is temporary
-    for (index_t i=-0; i<getNumNodes(); i++) {
-        m_dofMap[i]=i;
-    }
+//     m_dofMap.assign(getNumNodes(), 0);
+// #pragma omp parallel for                                // AE this is temporary
+//     for (index_t i=-0; i<getNumNodes(); i++) {
+//         m_dofMap[i]=i;
+//     }
+
+//     const dim_t nDOF0 = getNumDOFInAxis(0);
+//     const dim_t nDOF1 = getNumDOFInAxis(1);
+//     const index_t left = getFirstInDim(0);
+//     const index_t bottom = getFirstInDim(1);
+
+//     // populate node->DOF mapping with own degrees of freedom.
+//     // The rest is assigned in the loop further down
+//     m_dofMap.assign(getNumNodes(), 0);
+// #pragma omp parallel for
+//     for (index_t i=bottom; i<bottom+nDOF1; i++) {
+//         for (index_t j=left; j<left+nDOF0; j++) {
+//             m_dofMap[i*m_NN[0]+j]=(i-bottom)*nDOF0+j-left;
+//         }
+//     }
+
+//     // build list of shared components and neighbours by looping through
+//     // all potential neighbouring ranks and checking if positions are
+//     // within bounds
+//     const dim_t numDOF=nDOF0*nDOF1;
+//     RankVector neighbour;
+//     IndexVector offsetInShared(1,0);
+//     IndexVector sendShared, recvShared;
+//     const int x=m_mpiInfo->rank%m_NX[0];
+//     const int y=m_mpiInfo->rank/m_NX[0];
+//     // numShared will contain the number of shared DOFs after the following
+//     // blocks
+//     dim_t numShared=0;
+//     // sharing bottom edge
+//     if (y > 0) {
+//         neighbour.push_back((y-1)*m_NX[0] + x);
+//         const dim_t num = nDOF0;
+//         offsetInShared.push_back(offsetInShared.back()+num);
+//         for (dim_t i=0; i<num; i++, numShared++) {
+//             sendShared.push_back(i);
+//             recvShared.push_back(numDOF+numShared);
+//             m_dofMap[left+i]=numDOF+numShared;
+//         }
+//     }
+//     // sharing top edge
+//     if (y < m_NX[1] - 1) {
+//         neighbour.push_back((y+1)*m_NX[0] + x);
+//         const dim_t num = nDOF0;
+//         offsetInShared.push_back(offsetInShared.back()+num);
+//         for (dim_t i=0; i<num; i++, numShared++) {
+//             sendShared.push_back(numDOF-num+i);
+//             recvShared.push_back(numDOF+numShared);
+//             m_dofMap[m_NN[0]*(m_NN[1]-1)+left+i]=numDOF+numShared;
+//         }
+//     }
+//     // sharing left edge
+//     if (x > 0) {
+//         neighbour.push_back(y*m_NX[0] + x-1);
+//         const dim_t num = nDOF1;
+//         offsetInShared.push_back(offsetInShared.back()+num);
+//         for (dim_t i=0; i<num; i++, numShared++) {
+//             sendShared.push_back(i*nDOF0);
+//             recvShared.push_back(numDOF+numShared);
+//             m_dofMap[(bottom+i)*m_NN[0]]=numDOF+numShared;
+//         }
+//     }
+//     // sharing right edge
+//     if (x < m_NX[0] - 1) {
+//         neighbour.push_back(y*m_NX[0] + x+1);
+//         const dim_t num = nDOF1;
+//         offsetInShared.push_back(offsetInShared.back()+num);
+//         for (dim_t i=0; i<num; i++, numShared++) {
+//             sendShared.push_back((i+1)*nDOF0-1);
+//             recvShared.push_back(numDOF+numShared);
+//             m_dofMap[(bottom+1+i)*m_NN[0]-1]=numDOF+numShared;
+//         }
+//     }
+//     // sharing bottom-left node
+//     if (x > 0 && y > 0) {
+//         neighbour.push_back((y-1)*m_NX[0] + x-1);
+//         // sharing a node
+//         offsetInShared.push_back(offsetInShared.back()+1);
+//         sendShared.push_back(0);
+//         recvShared.push_back(numDOF+numShared);
+//         m_dofMap[0]=numDOF+numShared;
+//         ++numShared;
+//     }
+//     // sharing top-left node
+//     if (x > 0 && y < m_NX[1]-1) {
+//         neighbour.push_back((y+1)*m_NX[0] + x-1);
+//         offsetInShared.push_back(offsetInShared.back()+1);
+//         sendShared.push_back(numDOF-nDOF0);
+//         recvShared.push_back(numDOF+numShared);
+//         m_dofMap[m_NN[0]*(m_NN[1]-1)]=numDOF+numShared;
+//         ++numShared;
+//     }
+//     // sharing bottom-right node
+//     if (x < m_NX[0]-1 && y > 0) {
+//         neighbour.push_back((y-1)*m_NX[0] + x+1);
+//         offsetInShared.push_back(offsetInShared.back()+1);
+//         sendShared.push_back(nDOF0-1);
+//         recvShared.push_back(numDOF+numShared);
+//         m_dofMap[m_NN[0]-1]=numDOF+numShared;
+//         ++numShared;
+//     }
+//     // sharing top-right node
+//     if (x < m_NX[0]-1 && y < m_NX[1]-1) {
+//         neighbour.push_back((y+1)*m_NX[0] + x+1);
+//         offsetInShared.push_back(offsetInShared.back()+1);
+//         sendShared.push_back(numDOF-1);
+//         recvShared.push_back(numDOF+numShared);
+//         m_dofMap[m_NN[0]*m_NN[1]-1]=numDOF+numShared;
+//         ++numShared;
+//     }
+
+// #ifdef ESYS_HAVE_PASO
+//     createPasoConnector(neighbour, offsetInShared, offsetInShared, sendShared, recvShared);
+// #endif
 }
 
 
@@ -1371,7 +1506,7 @@ paso::SystemMatrixPattern_ptr Rectangle::getPasoMatrixPattern(
     // first call - create pattern, then return
     paso::Connector_ptr conn(getPasoConnector());
     const dim_t numDOF = getNumDOF();
-    const dim_t numShared = conn->send->numSharedComponents;
+    const dim_t numShared = conn->send->numSharedComponents; //todo
     const dim_t numNeighbours = conn->send->neighbour.size();
     const std::vector<index_t>& offsetInShared(conn->send->offsetInShared);
     const index_t* sendShared = conn->send->shared;
