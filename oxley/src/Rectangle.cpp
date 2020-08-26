@@ -162,7 +162,7 @@ Rectangle::Rectangle(int order,
     updateNodeIncrements();
     renumberNodes();
     // renumberHangingNodes();
-    updateTreeIDs();
+    // updateTreeIDs();
     updateRowsColumns();
 
     populateDofMap();
@@ -554,8 +554,10 @@ void Rectangle::refineMesh(int maxRecursion, std::string algorithmname)
     } 
     else if(!algorithmname.compare("random"))
     {
+        if(maxRecursion <= 0)
+            throw OxleyException("Invalid value for maxRecursion");
+
         // srand(time(NULL));
-        // int temp = (maxRecursion == -1) ? 1 : maxRecursion;
         p4est_refine_ext(p4est, true, maxRecursion, random_refine, init_rectangle_data, refine_copy_parent_quadrant);
         if(maxRecursion > 1)
             p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);
@@ -569,7 +571,7 @@ void Rectangle::refineMesh(int maxRecursion, std::string algorithmname)
     nodes=p4est_lnodes_new(p4est, ghost, 1);
     p4est_ghost_destroy(ghost);
     updateNodeIncrements();
-    updateTreeIDs();
+    // updateTreeIDs();
     renumberNodes();
     // renumberHangingNodes();
     updateRowsColumns();
@@ -1354,9 +1356,6 @@ dim_t Rectangle::getNumDOF() const
 void Rectangle::updateTreeIDs()
 {
     treeIDs.clear();
-
-    // p4est_iterate(p4est, NULL, NULL, updateTreeIDs, NULL, NULL);
-
     for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) {
         p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
         sc_array_t * tquadrants = &tree->quadrants;
