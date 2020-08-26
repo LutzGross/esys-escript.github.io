@@ -354,38 +354,32 @@ void refine_copy_parent_quadrant(p4est_t * p4est, p4est_topidx_t tree,
 {
     if(num_incoming == 4 && num_outgoing == 1)
     {
-        // Get the parent quadrant
-        p4est_quadrant_t * child[4];
-        p4est_quadrant_childrenpv(outgoing[0], child);
-
         // parent user data
-        quadrantData *childData = (quadrantData *) child[0]->p.user_data;
+        quadrantData *childData = (quadrantData *) incoming[0]->p.user_data;
         quadrantData *parentData = (quadrantData *) outgoing[0]->p.user_data;
 
-        parentData->u=childData->u;
+        // Averaging
+        parentData->u = 0.0;
+        for(int i = 0; i < 4; i++)
+            parentData->u+=childData->u;
+        parentData->u+=0.25;
         parentData->quadTag=childData->quadTag;
 
         // Update the spatial coordinates
-        p4est_qcoord_to_vertex(p4est->connectivity, tree,
-        outgoing[0]->x, outgoing[0]->y, &parentData->xy[0]);
+        p4est_qcoord_to_vertex(p4est->connectivity, tree, outgoing[0]->x, outgoing[0]->y, &parentData->xy[0]);
     }
     else if(num_incoming == 1 && num_outgoing == 4)
     {
-        // Get the parent quadrant
-        p4est_quadrant_t parent;
-        p4est_quadrant_parent(incoming[0], &parent);
+        quadrantData *parentData = (quadrantData *) incoming[0]->p.user_data;
 
-        // parent user data
-        quadrantData *parentData = (quadrantData *) parent.p.user_data;
-
+        // Loop over the four children
         for(int i = 0; i < 4; i++){
-            quadrantData *childData = (quadrantData *) incoming[i]->p.user_data;
+            quadrantData *childData = (quadrantData *) outgoing[i]->p.user_data;
             childData->u=parentData->u;
           	childData->quadTag=parentData->quadTag;
 
             // Update the spatial coordinates
-            p4est_qcoord_to_vertex(p4est->connectivity, tree,
-                incoming[i]->x, incoming[i]->y, &childData->xy[0]);
+            p4est_qcoord_to_vertex(p4est->connectivity, tree, outgoing[i]->x, outgoing[i]->y, &childData->xy[0]);
         }
     }
     else

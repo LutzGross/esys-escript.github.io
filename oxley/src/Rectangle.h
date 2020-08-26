@@ -241,7 +241,7 @@ private:
     void * temp_data;
 
     std::unordered_map<DoublePair,long,boost::hash<DoublePair>> NodeIDs; //global ids of the nodes
-    std::unordered_map<DoublePair,long,boost::hash<DoublePair>> hangingNodeIDs; //global ids of the hanging nodes
+    std::unordered_map<long,bool> hangingNodeIDs; //global ids of the hanging nodes
     std::unordered_map<DoublePair,long,boost::hash<DoublePair>> treeIDs; //global ids of the hanging nodes
     
     // Row and column indices in CRS format
@@ -270,7 +270,7 @@ protected:
     bool isHangingNode(p4est_lnodes_code_t face_code, int n) const;
     void updateNodeIncrements();
     void renumberNodes();
-    void renumberHangingNodes();
+    // void renumberHangingNodes();
     virtual void assembleCoordinates(escript::Data& arg) const;
     virtual void assembleGradient(escript::Data& out, const escript::Data& in) const;
     // virtual void assembleIntegrate(std::vector<real_t>& integrals, const escript::Data& arg) const;

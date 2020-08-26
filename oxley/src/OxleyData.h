@@ -169,7 +169,7 @@ struct addSurfaceData {
 struct update_RC_data {
 
 	std::unordered_map<DoublePair,long,boost::hash<DoublePair>> * pNodeIDs; 
-	std::unordered_map<DoublePair,long,boost::hash<DoublePair>> * phangingNodeIDs; 
+	std::unordered_map<long,bool> * phangingNodeIDs; 
 	p4est_t * p4est;
 	std::vector< std::vector<long> > * indices;
 
