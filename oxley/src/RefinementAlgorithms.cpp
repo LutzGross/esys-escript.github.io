@@ -47,7 +47,6 @@ int random_refine(p8est_t * p4est, p4est_topidx_t tree, p8est_quadrant_t * quadr
     return ((int) rand() % 2) == 0;
 }
 
-// AEAE
 void print_quad_debug_info(p4est_iter_volume_info_t * info, p4est_quadrant_t * quadrant)
 {
     double xy[2] = {0.0,0.0};
@@ -65,7 +64,6 @@ void print_quad_debug_info(p4est_iter_volume_info_t * info, p4est_quadrant_t * q
         << std::endl;
 }
 
-// AEAE
 void print_quad_debug_info(p8est_iter_volume_info_t * info, p8est_quadrant_t * quadrant)
 {
     double xyz[3] = {0.0,0.0,0.0};
@@ -545,6 +543,7 @@ void update_RC(p4est_iter_face_info_t *info, void *user_data)
     else
         quad = side->is.full.quad;
 
+    // First Node
     double xy[3];
     p4est_qcoord_to_vertex(data->p4est->connectivity, side->treeid, quad->x, quad->y, xy);
     long lni0 = data->pNodeIDs->find(std::make_pair(xy[0],xy[1]))->second;

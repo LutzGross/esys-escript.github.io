@@ -543,18 +543,22 @@ void Rectangle::refineMesh(int maxRecursion, std::string algorithmname)
             throw OxleyException("Invalid value for maxRecursion");
 
         if(maxRecursion == 0){
+            // This may be unwise as it consumes very large amounts of memory
+            // This will perform P4EST_QMAXLEVEL levels of refinement which is defined in p4est.h
+            // by default P4EST_QMAXLEVEL = 29
             p4est_refine_ext(p4est, true, -1, refine_uniform, init_rectangle_data, refine_copy_parent_quadrant);
         } else {
-            p4est_refine_ext(p4est, true, maxRecursion+2, refine_uniform, init_rectangle_data, refine_copy_parent_quadrant);
+            p4est_refine_ext(p4est, true, maxRecursion, refine_uniform, init_rectangle_data, refine_copy_parent_quadrant);
         }
-        p4est_balance_ext(p4est, P4EST_CONNECT_FULL, NULL, refine_copy_parent_quadrant);
+        p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);
     } 
     else if(!algorithmname.compare("random"))
     {
         // srand(time(NULL));
-        int temp = (maxRecursion == -1) ? 1 : maxRecursion;
-        p4est_refine_ext(p4est, true, temp, random_refine, NULL, NULL);
-        p4est_balance_ext(p4est, P4EST_CONNECT_FULL, NULL, NULL);
+        // int temp = (maxRecursion == -1) ? 1 : maxRecursion;
+        p4est_refine_ext(p4est, true, maxRecursion, random_refine, init_rectangle_data, refine_copy_parent_quadrant);
+        if(maxRecursion > 1)
+            p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);
     }
     else {
         throw OxleyException("Unknown refinement algorithm name.");
