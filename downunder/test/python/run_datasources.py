@@ -28,7 +28,7 @@ import os
 import sys
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
-from esys.escript import inf, sup, saveDataCSV, getMPISizeWorld
+from esys.escript import inf, sup, saveDataCSV, getMPISizeWorld, hasFeature
 from esys.downunder.datasources import *
 from esys.downunder.domainbuilder import DomainBuilder
 from esys.downunder.coordinates import WGS84ReferenceSystem
@@ -39,6 +39,10 @@ try:
 except ImportError as e:
     HAVE_RIPLEY = False
 
+if hasFeature('netcdf'):
+    HAVE_NETCDF = True
+else:
+    HAVE_NETCDF = False
 
 try:
     import pyproj
@@ -256,6 +260,7 @@ class TestErMapperData(unittest.TestCase):
         self.assertAlmostEqual(np.abs(g_out-ERS_NULL).max(), 0.,
                 msg="Wrong values in padding area")
 
+@unittest.skipIf(HAVE_NETCDF is False, "netCDF not available")
 @unittest.skipIf(not HAVE_RIPLEY, "Ripley module not available")
 @unittest.skipIf('NetCdfData' not in dir(), 'netCDF not available')
 class TestNetCdfData(unittest.TestCase):

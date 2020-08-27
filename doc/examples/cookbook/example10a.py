@@ -43,7 +43,11 @@ from math import pi, sqrt, sin, cos
 
 from esys.escript.pdetools import Projector
 
-from cblib import toRegGrid
+try:
+    from cblib import toRegGrid
+    HAVE_CBLIB = True
+except:
+    HAVE_CBLIB = False
 import pylab as pl #Plotting package
 import numpy as np
 
@@ -58,7 +62,7 @@ if getMPISizeWorld() > 1:
     print("This example will not run in an MPI world.")
     sys.exit(0)
 
-if HAVE_FINLEY:
+if HAVE_FINLEY and HAVE_CBLIB:
     #################################################ESTABLISHING VARIABLES
     #Domain related.
     mx = 5000*m #meters - model length

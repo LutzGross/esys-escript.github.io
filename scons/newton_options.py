@@ -18,4 +18,3 @@ from templates.sid_py3_options import *
 
 umfpack = True
 silo = True
-

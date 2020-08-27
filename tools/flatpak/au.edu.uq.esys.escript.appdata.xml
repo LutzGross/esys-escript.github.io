@@ -16,19 +16,16 @@
   <launchable type="desktop-id">au.edu.uq.esys.escript.desktop</launchable>
   <url type="homepage">https://launchpad.net/escript-finley/</url>
   <releases>
-    <release date="2019-01-01" version="5.3">
+    <release date="2019-01-01" version="5.5">
       <description>
         <p>
-          This release contains eScript version 5.3.1, which is based on svn revision 6823.
+          This release contains eScript version 5.5.
         </p>
       </description>
     </release>
   </releases>
   <developer_name>University of Queensland</developer_name>
   <screenshots>
-    <screenshot type="default">
-      <image type="source">https://i.imgur.com/HwbUkV9.png</image>
-    </screenshot>
     <screenshot>
       <image type="source">https://i.imgur.com/loEOeYp.png</image>
     </screenshot>

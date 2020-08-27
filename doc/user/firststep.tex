@@ -14,7 +14,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{The First Steps}\label{FirstSteps} 
-In this chapter we give an introduction how to use \escript to solve 
+This chapter is an introduction on how to use \escript to solve 
 a partial differential equation\index{partial differential equation} (PDE\index{partial differential equation!PDE}).
 We assume you are at least a little familiar with \PYTHON.
 The knowledge presented in the \PYTHON tutorial at \url{https://docs.python.org/2/tutorial/} is more than sufficient.
@@ -67,7 +67,7 @@ We often find that use
 of nested $\sum$ symbols makes formulas cumbersome, and we use the more
 compact Einstein summation convention\index{summation convention}. This 
 drops the $\sum$ sign and assumes that a summation is performed over any repeated index.
-For instance we write
+For instance, 
 \begin{eqnarray}
 x_{i}y_{i}=\sum_{i=0}^2 x_{i}y_{i}   \\
 x_{i}u_{,i}=\sum_{i=0}^2 x_{i}u_{,i}   \\
@@ -92,17 +92,16 @@ n_{i} u_{,i}= 0 \;.
 \end{equation}
 $n=(n_{i})$ denotes the outer normal field
 of the domain, see \fig{fig:FirstSteps.1}. Remember that we 
-are applying the Einstein summation convention \index{summation convention}, i.e. $n_{i} u_{,i}= n_{0} u_{,0} +%
-n_{1} u_{,1}$.\footnote{Some readers may familiar with the
-notation $\frac{\partial u}{\partial n} = n_{i} u_{,i}$
-for the normal derivative.}
+apply the Einstein summation convention \index{summation convention}, i.e. $n_{i} u_{,i}= n_{0} u_{,0} +%
+n_{1} u_{,1}$.\footnote{Some readers may be more familiar with the
+notation $\frac{\partial u}{\partial n} = n_{i} u_{,i}=\mathbf{n}\cdot \nabla u$.}
 The Neumann boundary condition of \eqn{eq:FirstSteps.2} should be fulfilled on the
-set $\Gamma^N$ which is the top and right edge of the domain:
+set $\Gamma^N$, the top and right edge of the domain:
 \begin{equation}
     \Gamma^N=\{(x_0;x_1) \in \Omega | x_{0}=1 \mbox{ or } x_{1}=1  \}
     \label{eq:FirstSteps.2b}
 \end{equation}
-On the bottom and the left edge of the domain which is defined
+On the bottom and the left edge of the domain, defined
 as 
 \begin{equation}
     \Gamma^D=\{(x_0;x_1) \in \Omega | x_{0}=0 \mbox{ or } x_{1}=0  \}
@@ -113,11 +112,11 @@ the solution shall be identical to zero:
     u=0 \; .
     \label{eq:FirstSteps.2d}
 \end{equation}
-This kind of boundary condition is called a homogeneous Dirichlet boundary
+A homogeneous Dirichlet boundary
 condition\index{Dirichlet boundary condition!homogeneous}.
 The partial differential equation in \eqn{eq:FirstSteps.1.sum} together
-with the Neumann boundary condition \eqn{eq:FirstSteps.2} and 
-Dirichlet boundary condition in \eqn{eq:FirstSteps.2d} form a so-called
+with Neumann  \eqn{eq:FirstSteps.2} and 
+Dirichlet boundary conditions in \eqn{eq:FirstSteps.2d} form a so-called
 boundary value
 problem\index{boundary value problem} (BVP\index{boundary value problem!BVP})
 for the unknown function~$u$. 
@@ -132,7 +131,7 @@ for the unknown function~$u$.
 \end{figure}
 
 In general the BVP\index{boundary value problem!BVP} cannot be solved
-analytically and numerical methods have to be used to construct an
+analytically and numerical methods are used to construct an
 approximation of the solution $u$.
 Here we will use the finite element method\index{finite element method}
 (FEM\index{finite element method!FEM}).
@@ -146,11 +145,11 @@ The nodes and their connection through elements is called a
 mesh\index{finite element method!mesh}. \fig{fig:FirstSteps.2} shows an
 example of a FEM mesh with four elements in the $x_0$ and four elements
 in the $x_1$ direction over the unit square.
-For more details we refer the reader to the literature, for instance \Ref{Zienc,NumHand}.
+For more details we refer the reader to the literature, for instance \Refe{Zienc,NumHand}.
 
 The \escript solver we want to use to solve this problem is embedded into the \PYTHON interpreter language.
 So you can solve the problem interactively but you will learn quickly that it
-is more efficient to use scripts which you can edit with your favorite editor.
+is more efficient to use scripts which can be edited with your favorite editor.
 To enter the escript environment, use the \program{run-escript}
 command\footnote{\program{run-escript} is not available under Windows.
 If you run under Windows you can just use the \program{python} command and the
@@ -178,10 +177,10 @@ We refer to the \PYTHON user's guide if you are not familiar with \PYTHON.
 (We will discuss a more general form of a PDE\index{partial differential equation!PDE} 
 that can be defined through the \LinearPDE class later.)
 The instantiation of a \Poisson class object requires the specification of the domain $\Omega$.
-In \escript the \Domain class objects are used to describe the geometry of a
+In \escript \Domain class objects are used to describe the geometry of a
 domain but it also contains information about the discretization methods and
-the actual solver which is used to solve the PDE.
-Here we are using the FEM\index{finite element method} library \finley.
+the solver used to solve the PDE.
+Here we use the FEM\index{finite element method} library \finley.
 The following statements create the \Domain object \var{mydomain} from the 
 \finley function \method{Rectangle}:
 \begin{python}
@@ -266,7 +265,7 @@ bottom and left edges of the domain with
 Similarly, \code{whereZero(x[1])} creates a function which equals $1$ where \code{x[1]} is equal to zero and $0$ elsewhere.
 The sum of the results of \code{whereZero(x[0])} and \code{whereZero(x[1])}
 gives a function on the domain \var{mydomain} which is strictly positive where $x_{0}$ or $x_{1}$ is equal to zero.
-Note that \var{gammaD} has the same \Rank, \Shape and \FunctionSpace like \var{x0} used to define it.
+Note that \var{gammaD} has the same \Rank, \Shape and \FunctionSpace as \var{x0} used to define it.
 So from 
 \begin{python}
   print(gammaD.getRank(), gammaD.getShape(), gammaD.getFunctionSpace())
@@ -309,7 +308,7 @@ Besides postprocessing, e.g. calculating the gradient or the average value,
 which will be discussed later, plotting the solution is one of the things you
 might want to do.
 \escript offers two ways to do this, both based on external modules or packages.
-The first option is using the \MATPLOTLIB module which allows plotting 2D
+The first option uses the \MATPLOTLIB module which allows plotting of 2D
 results relatively quickly from within the \PYTHON script, see~\cite{matplotlib}.
 However, there are limitations when using this tool, especially for large
 problems and when solving three-dimensional problems.

@@ -192,6 +192,16 @@ umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
 umfpack_libs = ['umfpack', 'blas', 'amd']
   UMFPACK library/libraries to link against
 
+mumps = True
+  Whether to add support for the MUMPS direct solver
+  DEFAULT: False
+
+mumps_prefix = ['/usr/lib']
+  Prefix or paths to MUMPS headers and libraries. See note above.
+
+mumps_libs = ['mumps_common', 'dmumps', 'zmumps']
+  MUMPS library/libraries to link against
+
 use_gmsh = True
   Whether to build escript with gmsh, if it is available
   DEFAULT: True
@@ -316,6 +326,10 @@ compressed_files = False
 
 compression_libs = 'boost_iostreams-mt'
   Compression libraries to link with. DEFAULT: 'boost_iostreams'
+
+disable_boost_numpy = False
+  Do not build escript with the boost numpy libraries, even if they are available.
+  DEFAULT: False
 
 osx_dependency_fix = True
   Whether to apply a dependency fix to libraries (only relevant on OS X).

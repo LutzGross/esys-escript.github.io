@@ -1,0 +1,6 @@
+name: esys_clone
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - esys-escript

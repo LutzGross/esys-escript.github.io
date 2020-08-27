@@ -27,7 +27,7 @@ __url__="https://launchpad.net/escript-finley"
 from esys.downunder import *
 from esys.weipa import *
 from esys.escript import unitsSI as U
-from esys.escript import saveDataCSV
+from esys.escript import saveDataCSV, hasFeature
 
 # Set parameters
 DATASET = 'data/GravitySmall.nc'
@@ -53,7 +53,7 @@ def work():
 
   inv=GravityInversion()
   inv.setSolverTolerance(1e-4)
-  inv.setSolverMaxIterations(50)
+  inv.setSolverMaxIterations(100)
   inv.setup(db)
   inv.getCostFunction().setTradeOffFactorsModels(MU)
 
@@ -86,7 +86,7 @@ try:
 except ImportError:
     HAVE_RIPLEY = False
 
-if 'NetCdfData' not in dir():
+if not hasFeature('netcdf'):
     print("This example requires scipy's netcdf support which does not appear to be installed.")
 elif not HAVE_RIPLEY:
     print("Ripley module not available")

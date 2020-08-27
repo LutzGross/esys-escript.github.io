@@ -147,7 +147,7 @@ try:
 except ImportError:
   HAVE_RIPLEY = False
 
-if 'NetCdfData' not in dir():
+if not hasFeature('netcdf'):
     print("This example requires scipy's netcdf support which does not appear to be installed.")
 elif not HAVE_RIPLEY:
     print("Ripley module not available")

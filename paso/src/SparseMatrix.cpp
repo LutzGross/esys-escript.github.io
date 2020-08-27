@@ -205,6 +205,7 @@ SparseMatrix::~SparseMatrix()
             break;
     }
     delete[] val;
+    delete[] cval;
 }
 
 SparseMatrix_ptr SparseMatrix::loadMM_toCSR(const char* filename)

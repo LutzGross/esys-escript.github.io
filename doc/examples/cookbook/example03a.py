@@ -27,26 +27,38 @@ Author: Antony Hallam antony.hallam@uqconnect.edu.au
 
 ############################################################FILE HEADER
 # example03a.py
-# Model temperature diffusion between a granite intrusion and sandstone 
+# Model temperature diffusion between a granite intrusion and sandstone
 # country rock. This is a two dimensional problem with the granite as a
 # heat source.
 
 #######################################################EXTERNAL MODULES
 #To solve the problem it is necessary to import the modules we require.
 #For interactive use, you can comment out the next two lines
-import matplotlib
-matplotlib.use('agg') #It's just here for automated testing
+try:
+    import matplotlib
+    matplotlib.use('agg') #It's just here for automated testing
+    HAVE_MATPLOTLIB = True
+except:
+    HAVE_MATPLOTLIB = False
 #This imports everything from the escript library
 from esys.escript import *
 # This defines the LinearPDE module as LinearPDE
-from esys.escript.linearPDEs import LinearPDE 
+from esys.escript.linearPDEs import LinearPDE
 # A useful unit handling package which will make sure all our units
 # match up in the equations under SI.
 from esys.escript.unitsSI import *
-import pylab as pl #Plotting package.
+try:
+    import pylab as pl #Plotting package.
+    HAVE_PYLAB = True
+except:
+    HAVE_PYLAB = False
 import numpy as np #Array package.
 import os #This package is necessary to handle saving our data.
-import scipy.interpolate
+try:
+    import scipy.interpolate
+    HAVE_SCIPY=True
+except:
+    HAVE_SCIPY=False
 from cblib import toXYTuple
 try:
     from esys.finley import Rectangle
@@ -60,12 +72,12 @@ if getMPISizeWorld() > 1:
         print("This example will not run in an MPI world.")
         sys.exit(0)
 
-if HAVE_FINLEY:
+if HAVE_FINLEY and HAVE_SCIPY:
     #################################################ESTABLISHING VARIABLES
     #PDE related
     mx = 600*m #meters - model length
     my = 600*m #meters - model width
-    ndx = 150 #mesh steps in x direction 
+    ndx = 150 #mesh steps in x direction
     ndy = 150 #mesh steps in y direction
     r = 200*m #meters - radius of intrusion
     ic = [300*m, 0] #centre of intrusion (meters)
@@ -92,8 +104,8 @@ if HAVE_FINLEY:
     #user warning
     print("Expected Number of Output Files is: ", outputs)
     print("Step size is: ", h/day, "days")
-    i=0 #loop counter 
-    #the folder to put our outputs in, leave blank "" for script path 
+    i=0 #loop counter
+    #the folder to put our outputs in, leave blank "" for script path
     save_path= os.path.join("data","example03")
     mkDir(save_path)
     ########## note this folder path must exist to work ###################
@@ -117,7 +129,7 @@ if HAVE_FINLEY:
     bound = length(x-ic)-r #where the boundary will be located
     T= Ti*whereNegative(bound)+Tc*(1-whereNegative(bound))
 
-    # rearrage mymesh to suit solution function space for contouring      
+    # rearrage mymesh to suit solution function space for contouring
     coordX, coordY = toXYTuple(T.getFunctionSpace().getX())
     # create regular grid
     xi = np.linspace(0.0,mx,75)
@@ -132,18 +144,19 @@ if HAVE_FINLEY:
           tempT = T.toListOfTuples()
           # grid the data.
           zi = scipy.interpolate.griddata((coordX,coordY),tempT,(xi[None,:],yi[:,None]),method='cubic')
-          # contour the gridded data, plotting dots at the 
+          # contour the gridded data, plotting dots at the
           # randomly spaced data points.
-          pl.matplotlib.pyplot.autumn()
-          pl.contourf(xi,yi,zi,10)
-          CS = pl.contour(xi,yi,zi,5,linewidths=0.5,colors='k')
-          pl.clabel(CS, inline=1, fontsize=8)
-          pl.axis([0,600,0,600])
-          pl.title("Heat diffusion from an intrusion.")
-          pl.xlabel("Horizontal Displacement (m)")
-          pl.ylabel("Depth (m)")
-          pl.savefig(os.path.join(save_path,"temp%03d.png"%i))
-          pl.clf()            
+          if HAVE_MATPLOTLIB and HAVE_PYLAB:
+              pl.matplotlib.pyplot.autumn()
+              pl.contourf(xi,yi,zi,10)
+              CS = pl.contour(xi,yi,zi,5,linewidths=0.5,colors='k')
+              pl.clabel(CS, inline=1, fontsize=8)
+              pl.axis([0,600,0,600])
+              pl.title("Heat diffusion from an intrusion.")
+              pl.xlabel("Horizontal Displacement (m)")
+              pl.ylabel("Depth (m)")
+              pl.savefig(os.path.join(save_path,"temp%03d.png"%i))
+              pl.clf()
           print("time step %s at t=%e days completed."%(i,t/day))
 
     #########################################################CREATE A MOVIE

@@ -1,0 +1,170 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>esys.downunder.magtel2d Package &#8212; esys.escript 5.6 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">esys.escript 5.6 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-esys.downunder.magtel2d">
+<span id="esys-downunder-magtel2d-package"></span><h1>esys.downunder.magtel2d Package<a class="headerlink" href="#module-esys.downunder.magtel2d" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li></li>
+</ul>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><a class="reference internal" href="#esys.downunder.magtel2d.MT_2D" title="esys.downunder.magtel2d.MT_2D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MT_2D</span></code></a></li>
+</ul>
+<dl class="class">
+<dt id="esys.downunder.magtel2d.MT_2D">
+<em class="property">class </em><code class="descclassname">esys.downunder.magtel2d.</code><code class="descname">MT_2D</code><span class="sig-paren">(</span><em>domain</em>, <em>mode</em>, <em>freq_def</em>, <em>tags</em>, <em>rho</em>, <em>rho_1d</em>, <em>ifc_1d</em>, <em>xstep=100</em>, <em>zstep=100</em>, <em>maps=None</em>, <em>plot=False</em>, <em>limits=None</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.magtel2d.MT_2D" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="esys.downunder.magtel2d.MT_2D.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>domain</em>, <em>mode</em>, <em>freq_def</em>, <em>tags</em>, <em>rho</em>, <em>rho_1d</em>, <em>ifc_1d</em>, <em>xstep=100</em>, <em>zstep=100</em>, <em>maps=None</em>, <em>plot=False</em>, <em>limits=None</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.magtel2d.MT_2D.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constructor which initialises the 2D magnetotelluric class:
+(*) check for argument type
+(*) check for valid argument values
+(*) initialises required values</p>
+<p>param  domain       :: the 2d mesh domain
+type   domain       :: <code class="docutils literal notranslate"><span class="pre">escript</span> <span class="pre">data</span> <span class="pre">object</span></code></p>
+<p>param  mode         :: TE or TM mode
+type   mode         :: <code class="docutils literal notranslate"><span class="pre">string</span></code></p>
+<p>param  freq_def     :: highest/lowest frequency &amp; points per decade
+type   freq_def     :: <code class="docutils literal notranslate"><span class="pre">dictionary</span></code></p>
+<p>param  tags         :: the tag names of the regions defined in the mesh
+type   tags         :: <code class="docutils literal notranslate"><span class="pre">list</span></code></p>
+<p>param  rho          :: the resistivity values of the regions in the mesh
+type   rho          :: <code class="docutils literal notranslate"><span class="pre">list</span></code></p>
+<p>param  rho_1d       :: the resistivity values at the left &amp; right boundary
+type   rho_1d       :: <code class="docutils literal notranslate"><span class="pre">dictionary</span></code></p>
+<p>param  ifc_1d       :: the layer interface depths of the left &amp; right boundary
+type   ifc_1d       :: <code class="docutils literal notranslate"><span class="pre">dictionary</span></code></p>
+<p>param  xstep        :: user-defined step size for horizontal sample list
+type   xstep        :: <code class="docutils literal notranslate"><span class="pre">number</span></code>  (optional)</p>
+<p>param  zstep        :: user-defined step size for vertical sample list
+type   zstep        :: <code class="docutils literal notranslate"><span class="pre">number</span></code>  (optional)</p>
+<p>param  maps         :: list with user-defined  functions which map the resistivity for each region
+type   maps         :: <code class="docutils literal notranslate"><span class="pre">list</span></code>    (optional)</p>
+<p>param  plot         :: user-defined flag to show a plot of apparent resistivity and phase at each frequency
+type   plot         :: <code class="docutils literal notranslate"><span class="pre">boolean</span></code> (optional)</p>
+<p>self.domain         :: escript data object of mesh
+self.X              :: escript data object with all mesh coordinates
+self.mode           :: string with TE or TM mode
+self.xmin           :: float with x-coordinate minimum
+self.xmax           :: float with x-coordinate maximum
+self.zmin           :: float with z-coordinate minimum
+self.zmax           :: float with z-coordinate maximum
+self.zstep          :: number with sample step in vertical direction
+self.xstep          :: number with sample step in horizontal direction
+self.rho            :: list with resistivity values of all regions
+self.rho_1d         :: dictionary with resistivity values at boundaries left/right
+self.ifc_1d         :: dictionary with interface depths at boundaries left/right
+self.plot           :: boolean flag to show plots of apparent resistivity and phase
+self.sigma          :: escript data object with the conductivity model (based on ‘rho’ and ‘maps’)
+self.frequencies    :: list of sounding frequencies
+self.boundary_mask  :: Dirichlet mask at boundaries</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.magtel2d.MT_2D.pdeSolve">
+<code class="descname">pdeSolve</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.magtel2d.MT_2D.pdeSolve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solves the PDE for either the TE or the TM mode.
+(TE mode is the transverse Electric field).
+(TM mode is the transverse Magnetic field).</p>
+<p>(uses <code class="xref py py-obj docutils literal notranslate"><span class="pre">self</span></code>)</p>
+<p>mt2d  :: list with real/imag fields for each sounding frequency
+arho  :: list with apparent resistivities for each sounding frequency
+aphi  :: list with phase values for each sounding frequency</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="others">
+<h2>Others<a class="headerlink" href="#others" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>HAVE_FINLEY</li>
+</ul>
+</div>
+<div class="section" id="packages">
+<h2>Packages<a class="headerlink" href="#packages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">esys.downunder.magtel2d Package</a><ul>
+<li><a class="reference internal" href="#classes">Classes</a></li>
+<li><a class="reference internal" href="#functions">Functions</a></li>
+<li><a class="reference internal" href="#others">Others</a></li>
+<li><a class="reference internal" href="#packages">Packages</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">esys.escript 5.6 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2012-2014, Author.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.4.
+    </div>
+  </body>
+</html>

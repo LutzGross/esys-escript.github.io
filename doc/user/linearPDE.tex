@@ -26,7 +26,10 @@ denotes the outer normal field on $\Gamma$.
 For a single PDE with a solution that has a single component the linear PDE is
 defined in the following form \footnote{This PDE system can be written in the equivalent form, \begin{align*} \centering \, -\nabla \cdot \left( \textbf{A} \nabla u \right) - \nabla \cdot \left( \textbf{B} \, u \right) + \textbf{C} \cdot \nabla u + \textbf{D} \, u + \sum_p \delta(p) u(p) &= - \nabla \cdot \textbf{X} + \textbf{Y} + \sum_p \delta(p), \\
 	\hat{\textbf{n}} \cdot \left( \textbf{A} \nabla u + \textbf{B} \, u \right) + \textbf{d} \, u &= \hat{\textbf{n}} \cdot \textbf{X} + \textbf{y}, 
-\end{align*} where bold font denotes a data object and $\hat{\textbf{n}}$ denotes a unit vector normal.} 
+\end{align*} where bold font denotes a data object and $\hat{\textbf{n}}$ denotes a unit vector normal.  The weak form for this is
+\begin{equation*}\int_{\Omega} (\nabla v)\cdot \left( \textbf{A} \nabla u \right) +( \nabla v) \cdot \left( \textbf{B} \, u \right) + v\textbf{C} \cdot \nabla u + \textbf{D} \,v u + \sum_p \delta(p) u(p)v \;d\Omega = \int_{\Omega}(\nabla v) \cdot \textbf{X} + \textbf{Y}v + \sum_p \delta(p)v\; d\Omega.
+\end{equation*}
+}
 \begin{equation}\label{LINEARPDE.SINGLE.1}
 -(A_{jl} u_{,l})_{,j}-(B_{j} u)_{,j}+C_{l} u_{,l}+D u + \sum_p d^{dirac}(p) \; u(p) =-X_{j,j}+Y + \sum_p y^{dirac}(p)  \; .
 \end{equation}
@@ -73,7 +76,7 @@ The coefficient $d$ is a \RankTwo and $y$ is a \RankOne both in the
 u_{i}=r_{i} \mbox{ where } q_{i}>0
 \end{equation}
 $r$ and $q$ are each a \RankOne. Notice that not necessarily all components
-must have a constraint at all locations.
+must have a constraint at all locations.  An example for a system of PDEs is shown in the elastic deformation example in section \Refe{ELASTIC CHAP}
 
 \LinearPDE also supports solution discontinuities\index{discontinuity} over a
 contact region $\Gamma^{contact}$ in the domain $\Omega$.
@@ -175,7 +178,7 @@ object gives access to diagnostic information:
       mypde.getDiagnostics('residual_norm'))
 \end{python}
 Typically, a negative value for a diagnostic variable indicates that it is
-undefined.
+undefined.  For more details on \SolverOptions and Trilinos see chapter \Refe{TRILINOS}.
 
 \subsection{Classes}
 %\declaremodule{extension}{esys.escript.linearPDEs} 
@@ -416,7 +419,7 @@ as discussed in \Chap{ESCRIPT CHAP}. If you consider the stripped-down version
 \begin{equation}\label{PROJ.1}
 u = Y
 \end{equation}
-of the general scalar PDE~\ref{LINEARPDE.SINGLE.1} (boundary conditions are
+of the general scalar PDE~\Refe{LINEARPDE.SINGLE.1} (boundary conditions are
 irrelevant), you can see the solution $u$ of this PDE as a projection of the
 input function $Y$ which has the \Function attribute to a function with the
 \SolutionFS or \ReducedSolutionFS attribute.
@@ -447,7 +450,7 @@ to a function with the \ReducedSolutionFS attribute (default target):
   # alternative call:
   u=proj(jmp)
 \end{python}
-By default the class uses lumping to solve the PDE~\ref{PROJ.1}.
+By default the class uses lumping to solve the PDE~\Refe{PROJ.1}.
 This technique is faster than using the standard solver techniques of PDEs.
 In essence it leads to using the average of neighbour element values to
 calculate the value at each FEM node. 
@@ -487,7 +490,9 @@ of the class with argument \var{input_data}
 
 % \section{Transport Problems}
 % \label{SEC Transport}
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Solver Options}
 \label{SEC Solver Options}
 
@@ -513,25 +518,30 @@ rather than a direct solver should be used. Note that SolverOptions needs to be
 imported from linearPDEs and is not the same as the object returned by pde.getSolverOptions().
 The value of \var{method} must be one of the constants:\\
  \member{SolverOptions.DEFAULT} -- use default solver depending on other options\\
- \member{SolverOptions.DIRECT} -- use a direct solver if available\\
- \member{SolverOptions.ITERATIVE} -- use a suitable iterative solver\\
  \member{SolverOptions.BICGSTAB} -- Biconjugate Gradient Stabilized iterative method\\
  \member{SolverOptions.CGLS} -- Conjugate Gradient with Least Squares method\\
  \member{SolverOptions.CGS} -- Conjugate Gradient Square method\\
  \member{SolverOptions.CHOLEVSKY} -- Direct solver based on LDLT factorization\\
  \member{SolverOptions.CR} -- Conjugate Residual method\\
+ \member{SolverOptions.DIRECT} -- use a direct solver if available\\
+%\member{Solver.Options.DIRECT_MUMPS}--runtime error\\
+%\member{SolverOptions.DIRECT_PARDISO}--runtime error\\
+ \member{SolverOptions.DIRECT_SUPERLU} -- use a direct SUPERLU solver\\
+ \member{SolverOptions.DIRECT_TRILINOS} -- use default TRILINOS default solver (KLU2) (chapter \Refe{TRILINOS})\\  
  \member{SolverOptions.GMRES} -- Gram-Schmidt minimum residual method\\
- \member{SolverOptions.HRZ_LUMPING} -- Matrix lumping using the HRZ approach\\
+ \member{SolverOptions.HRZ_LUMPING} -- Matrix lumping using the HRZ approach (section \Refe{WAVE CHAP})\\
+ \member{SolverOptions.ITERATIVE} -- use a suitable iterative solver\\
  \member{SolverOptions.LSQR} -- Least squares based LSQR solver\\
+ \member{SolverOptions.LUMPING} -- Matrix lumping\\
  \member{SolverOptions.MINRES} -- Minimum Residual method\\
  \member{SolverOptions.NONLINEAR_GMRES} -- restarted GMRES for nonlinear systems\\
  \member{SolverOptions.PCG} -- Preconditioned Conjugate Gradient method\\
  \member{SolverOptions.PRES20} -- GMRES with restart after 20 steps and truncations after 5 residuals\\
- \member{SolverOptions.ROWSUM_LUMPING} -- Matrix lumping using row sum\\
+\member{SolverOptions.ROWSUM_LUMPING} -- Matrix lumping using row sum\\
  \member{SolverOptions.TFQMR} -- Transpose Free Quasi Minimum Residual method.\\
 Not all packages support all solvers. It can be assumed that a package makes a
 reasonable choice if it encounters an unknown solver.
-See Table~\ref{TAB FINLEY SOLVER OPTIONS 1} for the solvers supported by
+See Table~\Refe{TAB FINLEY SOLVER OPTIONS 1} for the solvers supported by
 \finley.
 \end{methoddesc}
 
@@ -543,17 +553,17 @@ returns the key of the solver method to be used.
 sets the preconditioner to be used.
 The value of \var{preconditioner} must be one of the constants:\\
  \member{SolverOptions.AMG} -- Algebraic Multi Grid\\
- \member{SolverOptions.AMLI} -- Algebraic Multi Level Iteration\\
+ %\member{SolverOptions.AMLI} -- Algebraic Multi Level Iteration\\
  \member{SolverOptions.GAUSS_SEIDEL} -- Gauss-Seidel\\
  \member{SolverOptions.ILU0} -- Incomplete LU-factorization with no fill-in\\
  \member{SolverOptions.ILUT} -- Incomplete LU-factorization with fill-in\\
  \member{SolverOptions.JACOBI} -- Jacobi preconditioner\\
  \member{SolverOptions.NO_PRECONDITIONER} -- do not apply a preconditioner\\
- \member{SolverOptions.REC_ILU} -- recursive ILU0\\
+ %\member{SolverOptions.REC_ILU} -- recursive ILU0\\
  \member{SolverOptions.RILU} -- relaxed ILU0.\\
 Not all packages support all preconditioners. It can be assumed that a package
 makes a reasonable choice if it encounters an unknown preconditioner.
-See Table~\ref{TAB FINLEY SOLVER OPTIONS 2} for the preconditioners supported
+See Table~\Refe{TAB FINLEY SOLVER OPTIONS 2} for the preconditioners supported
 by \finley.
 \end{methoddesc}
    
@@ -568,7 +578,7 @@ The value of \var{package} must be one of the constants:\\
  \member{SolverOptions.CUSP} -- CUDA sparse linear algebra package\\
  \member{SolverOptions.MKL} -- Intel MKL direct solver\\
  \member{SolverOptions.PASO} -- built-in PASO solver library\\
- \member{SolverOptions.TRILINOS} -- Trilinos solver package\\
+ \member{SolverOptions.TRILINOS} -- Trilinos solver package (chapter \Refe{TRILINOS})\\
  \member{SolverOptions.UMFPACK} -- direct solver from the UMFPACK library.\\
 Not all packages are supported on all implementations. An exception may be
 thrown on some platforms if a particular package is requested.
@@ -583,16 +593,59 @@ non-invertible operator.} and \member{SolverOptions.UMFPACK}.
 returns the solver package key.
 \end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{setSolverTarget}{target}
-sets the solver target, i.e. where the solver runs.
-The value of \var{target} must be one of the constants:\\
- \member{SolverOptions.TARGET_CPU} -- run the solver on the CPU\\
- \member{SolverOptions.TARGET_GPU} -- run the solver on the GPU.\\
-Currently only \ripley supports certain solvers on GPUs.
-\end{methoddesc}
-
-\begin{methoddesc}[SolverOptions]{getSolverTarget}{}
-returns the solver target key.
+\begin{methoddesc}[SolverOptions]{setTrilinosParameter}{\optional{ name , value}}
+sets Trilinos parameters for use by MueLu and Trilinos iterative and direct solvers.  It is important that the exact space between words is included in the names.
+The following keywords are supported:\\
+\var{"verbosity"}:  controls level of AMG output,  
+                            \var{"none"}, \var{"low"}, \var{"medium"}, \var{"high"}, and \var{"extreme"}\\
+%\var{"print initial parameters"}: \var{True}
+\var{"problem:type"}:  \var{"unknown"}, \var{"Poisson-2D"}, \var{"Poisson-3D"}, \var{"Elasticity-2D"},\\ \hspace{3.2cm}\var{"Elasticity-3D"}, \var{"Poisson-2D-complex"}, \var{"Poisson-3D-complex"},\\ \hspace{3.2cm}\var{"Elasticity-2D-complex"}, \var{"Elasticity-3D-complex"},\\
+\hspace{3.2cm}\var{"ConvectionDiffusion"} and \var{"MHD"}.
+\\
+\var{"number~of~equations"}: number of equations\\
+\var{"multigrid~algorithm"}:  \var{ "sa"},  \var{"unsmoothed"},  \var{ "pg"},  \var{"interp"},  \var{"emin"},\\ \hspace{4.2cm}\var{"semicoarsen"}\\
+\var{"sa:~damping factor"}:  for smoothed aggregation AMG alorithm, default =1.3\\
+\var{"sa:~use~filtered~matrix"}: Booleon\\
+\var{"filtered~matrix:~use~lumping"}:  Boolean\\
+\var{"filtered~matrix:~reuse~eigenvalue"}: Boolean\\
+\var{"interp:~interpolation~order"}: 0,~1\\    
+\var{"interp:~build~coarse~coordinates}: Boolean\\
+\var{"emin:~iterative~method"}: \var{"cg"}, \var{"gmres"} or \var{"sd"}\\
+\var{"emin:~num~iterations"}: integer\\
+\var{"emin:~num~reuse~iterations"}: integer\\
+%options.setTrilinosParameter("emin: pattern", "AkPtent")
+%options.setTrilinosParameter("emin: pattern order", 1)
+%# semicoarsen
+%options.setTrilinosParameter("semicoarsen: coarsen rate", 3)
+%#
+%options.setTrilinosParameter("transpose: use implicit", False) 
+%options.setTrilinosParameter("max levels", 10)         
+%options.setTrilinosParameter("coarse: max size", 2000)
+%options.setTrilinosParameter("coarse: type", "SuperLU")
+%options.setTrilinosParameter("aggregation: type", "structured")
+%options.setTrilinosParameter("aggregation: ordering", "natural")
+%                                                 # "natural", "graph", "random"
+%options.setTrilinosParameter("aggregation: drop scheme", "classical")
+%                                                 # "classical", "distance laplacian" 
+%options.setTrilinosParameter("aggregation: drop tol", 0.0)
+%options.setTrilinosParameter("aggregation: min agg size", 2)
+%options.setTrilinosParameter("aggregation: max agg size", -1) 
+%                                                # -1 means unlimited    
+%options.setTrilinosParameter("aggregation: Dirichlet threshold", 1e-5)
+%options.setTrilinosParameter("problem: symmetric", True)
+%options.setTrilinosParameter("smoother: pre or post", "both")
+%options.setTrilinosParameter("smoother: type", "RELAXATION")
+%options.setTrilinosParameter("smoother: pre type", "CHEBYSHEV")
+%options.setTrilinosParameter("smoother: post type", "RELAXATION")
+\var{"cycle~type"}:  \var{"V"} or \var{"W"}\\
+%options.setTrilinosParameter("reuse: type", "full")
+%options.setTrilinosParameter("repartition: enable", False)
+%options.setTrilinosParameter("repartition: start level", 2)
+%options.setTrilinosParameter("repartition: min rows per proc", 800)
+%options.setTrilinosParameter("repartition: max imbalance", 1.2)
+%options.setTrilinosParameter("repartition: remap parts", True)
+%options.setTrilinosParameter("repartition: rebalance P and R", False)
+\var{"xml~parameter~file"}:  name of XML file containing chosen XML parameters\\
 \end{methoddesc}
 
 \begin{methoddesc}[SolverOptions]{resetDiagnostics}{\optional{all=False}}
@@ -674,82 +727,82 @@ sets the maximum number of iteration steps.
 returns maximum number of iteration steps.
 \end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{setLevelMax}{\optional{level_max=10}}
-sets the maximum number of coarsening levels to be used in the \AMG solver or
-preconditioner.
-\end{methoddesc}
+%\begin{methoddesc}[SolverOptions]{setLevelMax}{\optional{level_max=10}}
+%sets the maximum number of coarsening levels to be used in the \AMG solver or
+%preconditioner.
+%\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{getLevelMax}{}
-returns the maximum number of coarsening levels to be used in an algebraic
-multi level solver or preconditioner.
-\end{methoddesc}
+%\begin{methoddesc}[SolverOptions]{getLevelMax}{}
+%returns the maximum number of coarsening levels to be used in an algebraic
+%multi level solver or preconditioner.
+%\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{setCoarseningThreshold}{\optional{theta=0.25}}
-sets the threshold for coarsening in the \AMG solver or preconditioner.
-\end{methoddesc}
+%\begin{methoddesc}[SolverOptions]{setCoarseningThreshold}{\optional{theta=0.25}}
+%sets the threshold for coarsening in the \AMG solver or preconditioner.
+%\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{getCoarseningThreshold}{}
-returns the threshold for coarsening in the \AMG solver or preconditioner.
-\end{methoddesc}
+%\begin{methoddesc}[SolverOptions]{getCoarseningThreshold}{}
+%returns the threshold for coarsening in the \AMG solver or preconditioner.
+%\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{setDiagonalDominanceThreshold}{\optional{value=0.5}}
-sets the threshold for diagonal dominant rows which are eliminated during \AMG  coarsening.
-\end{methoddesc}
+%\begin{methoddesc}[SolverOptions]{setDiagonalDominanceThreshold}{\optional{value=0.5}}
+%sets the threshold for diagonal dominant rows which are eliminated during \AMG  coarsening.
+%\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{getDiagonalDominanceThreshold}{}
-returns the threshold for diagonal dominant rows which are eliminated during \AMG  coarsening.
-\end{methoddesc}
+%\begin{methoddesc}[SolverOptions]{getDiagonalDominanceThreshold}{}
+%returns the threshold for diagonal dominant rows which are eliminated during \AMG  coarsening.
+%\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{setMinCoarseMatrixSize}{\optional{size=500}}
-sets the minimum size of the coarsest level matrix in \AMG.
-\end{methoddesc}
+%\begin{methoddesc}[SolverOptions]{setMinCoarseMatrixSize}{\optional{size=500}}
+%sets the minimum size of the coarsest level matrix in \AMG.
+%\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{getMinCoarseMatrixSize}{}
-returns the minimum size of the coarsest level matrix in \AMG.
-\end{methoddesc}
+%\begin{methoddesc}[SolverOptions]{getMinCoarseMatrixSize}{}
+%returns the minimum size of the coarsest level matrix in \AMG.
+%\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{setSmoother}{\optional{smoother=\GAUSSSEIDEL}}
-sets the \JACOBI or \GAUSSSEIDEL smoother to be used with \AMG.
-\end{methoddesc}
+%\begin{methoddesc}[SolverOptions]{setSmoother}{\optional{smoother=\GAUSSSEIDEL}}
+%sets the \JACOBI or \GAUSSSEIDEL smoother to be used with \AMG.
+%\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{getSmoother}{}
-returns the key of the smoother used in \AMG.
-\end{methoddesc}
+%\begin{methoddesc}[SolverOptions]{getSmoother}{}
+%returns the key of the smoother used in \AMG.
+%\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{setAMGInterpolation}{\optional{method=\var{None}}}
-sets interpolation method for \AMG to
-\member{CLASSIC_INTERPOLATION_WITH_FF_COUPLING},
-\member{CLASSIC_INTERPOLATION}, or
-\member{DIRECT_INTERPOLATION}.
-\end{methoddesc}
+%\begin{methoddesc}[SolverOptions]{setAMGInterpolation}{\optional{method=\var{None}}}
+%sets interpolation method for \AMG to
+%\member{CLASSIC_INTERPOLATION_WITH_FF_COUPLING},
+%\member{CLASSIC_INTERPOLATION}, or
+%\member{DIRECT_INTERPOLATION}.
+%\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{getAMGInterpolation}{}
-returns the key of the interpolation method for \AMG.
-\end{methoddesc}
+%\begin{methoddesc}[SolverOptions]{getAMGInterpolation}{}
+%returns the key of the interpolation method for \AMG.
+%\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{setNumSweeps}{\optional{sweeps=2}}
-sets the number of sweeps in a \JACOBI or \GAUSSSEIDEL preconditioner.
-\end{methoddesc}
+%\begin{methoddesc}[SolverOptions]{setNumSweeps}{\optional{sweeps=2}}
+%sets the number of sweeps in a \JACOBI or \GAUSSSEIDEL preconditioner.
+%\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{getNumSweeps}{}
-returns the number of sweeps in a \JACOBI or \GAUSSSEIDEL preconditioner.
-\end{methoddesc}
+%\begin{methoddesc}[SolverOptions]{getNumSweeps}{}
+%returns the number of sweeps in a \JACOBI or \GAUSSSEIDEL preconditioner.
+%\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{setNumPreSweeps}{\optional{sweeps=2}}
-sets the number of sweeps in the pre-smoothing step of \AMG.
-\end{methoddesc}
+%\begin{methoddesc}[SolverOptions]{setNumPreSweeps}{\optional{sweeps=2}}
+%sets the number of sweeps in the pre-smoothing step of \AMG.
+%\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{getNumPreSweeps}{}
-returns the number of sweeps in the pre-smoothing step of \AMG.
-\end{methoddesc}
+%\begin{methoddesc}[SolverOptions]{getNumPreSweeps}{}
+%returns the number of sweeps in the pre-smoothing step of \AMG.
+%\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{setNumPostSweeps}{\optional{sweeps=2}}
-sets the number of sweeps in the post-smoothing step of \AMG.
-\end{methoddesc}
+%\begin{methoddesc}[SolverOptions]{setNumPostSweeps}{\optional{sweeps=2}}
+%sets the number of sweeps in the post-smoothing step of \AMG.
+%\end{methoddesc}
 
-\begin{methoddesc}[SolverOptions]{getNumPostSweeps}{}
-returns he number of sweeps in the post-smoothing step of \AMG.
-\end{methoddesc}
+%\begin{methoddesc}[SolverOptions]{getNumPostSweeps}{}
+%returns he number of sweeps in the post-smoothing step of \AMG.
+%\end{methoddesc}
 
 \begin{methoddesc}[SolverOptions]{setTolerance}{\optional{rtol=1.e-8}}
 sets the relative tolerance for the solver. The actual meaning of tolerance
@@ -858,12 +911,12 @@ An appropriate method should be chosen by the used PDE solver library.
 \end{memberdesc}
 
 \begin{memberdesc}[SolverOptions]{MKL}
-the \MKL library by Intel, \Ref{MKL}\footnote{The \MKL library will only be
+the \MKL library by Intel, \Refe{MKL}\footnote{The \MKL library will only be
 available when the Intel compilation environment was used to build \escript.}.
 \end{memberdesc}
 
 \begin{memberdesc}[SolverOptions]{UMFPACK}
-the \UMFPACK library, \Ref{UMFPACK}. Note that \UMFPACK is not parallelized.
+the \UMFPACK library, \Refe{UMFPACK}. Note that \UMFPACK is not parallelized.
 \end{memberdesc}
 
 \begin{memberdesc}[SolverOptions]{PASO}
@@ -882,21 +935,21 @@ the default direct linear solver.
 \end{memberdesc}
 
 \begin{memberdesc}[SolverOptions]{CHOLEVSKY}
-direct solver based on Cholevsky factorization (or similar), see \Ref{Saad}.
+direct solver based on Cholevsky factorization (or similar), see \Refe{Saad}.
 The solver requires a symmetric PDE.
 \end{memberdesc}
 
 \begin{memberdesc}[SolverOptions]{PCG}
-preconditioned conjugate gradient method, see \Ref{WEISS}\index{linear solver!PCG}\index{PCG}.
+preconditioned conjugate gradient method, see \Refe{WEISS}\index{linear solver!PCG}\index{PCG}.
 The solver requires a symmetric PDE.
 \end{memberdesc}
 
 \begin{memberdesc}[SolverOptions]{TFQMR}
-transpose-free quasi-minimal residual method, see \Ref{WEISS}\index{linear solver!TFQMR}\index{TFQMR}.
+transpose-free quasi-minimal residual method, see \Refe{WEISS}\index{linear solver!TFQMR}\index{TFQMR}.
 \end{memberdesc}
 
 \begin{memberdesc}[SolverOptions]{GMRES}
-the GMRES method, see \Ref{WEISS}\index{linear solver!GMRES}\index{GMRES}.
+the GMRES method, see \Refe{WEISS}\index{linear solver!GMRES}\index{GMRES}.
 Truncation and restart are controlled by the \var{truncation} and \var{restart}
 parameters of \method{getSolution}.
 \end{memberdesc}
@@ -906,60 +959,60 @@ minimal residual method\index{linear solver!MINRES}\index{MINRES}
 \end{memberdesc}
 
 \begin{memberdesc}[SolverOptions]{ROWSUM_LUMPING}
-row sum lumping of the stiffness matrix, see Section~\ref{LUMPING} for details\index{linear solver!row sum lumping}\index{row sum lumping}.
+row sum lumping of the stiffness matrix, see Section~\Refe{LUMPING} for details\index{linear solver!row sum lumping}\index{row sum lumping}.
 Lumping does not use the linear system solver library.
 \end{memberdesc}
 
 \begin{memberdesc}[SolverOptions]{HRZ_LUMPING}
-HRZ lumping of the stiffness matrix, see Section~\ref{LUMPING} for details\index{linear solver!HRZ lumping}\index{HRZ lumping}.
+HRZ lumping of the stiffness matrix, see Section~\Refe{LUMPING} for details\index{linear solver!HRZ lumping}\index{HRZ lumping}.
 Lumping does not use the linear system solver library.
 \end{memberdesc}
 
 \begin{memberdesc}[SolverOptions]{PRES20}
 the GMRES method with truncation after five residuals and restart after
-20 steps, see \Ref{WEISS}.
+20 steps, see \Refe{WEISS}.
 \end{memberdesc}
 
 \begin{memberdesc}[SolverOptions]{CGS}
-conjugate gradient squared method, see \Ref{WEISS}.
+conjugate gradient squared method, see \Refe{WEISS}.
 \end{memberdesc}
 
 \begin{memberdesc}[SolverOptions]{BICGSTAB}
-stabilized bi-conjugate gradients methods, see \Ref{WEISS}.
+stabilized bi-conjugate gradients methods, see \Refe{WEISS}.
 \end{memberdesc}
 
 \begin{memberdesc}[SolverOptions]{SSOR}
-symmetric successive over-relaxation method, see \Ref{WEISS}.
+symmetric successive over-relaxation method, see \Refe{WEISS}.
 Typically used as preconditioner but some linear solver libraries support
 this as a solver.
 \end{memberdesc}
 
 \begin{memberdesc}[SolverOptions]{ILU0}
-the incomplete LU factorization preconditioner with no fill-in, see \Ref{Saad}.
+the incomplete LU factorization preconditioner with no fill-in, see \Refe{Saad}.
 \end{memberdesc}
 
 \begin{memberdesc}[SolverOptions]{JACOBI}
-the Jacobi preconditioner, see \Ref{Saad}.
+the Jacobi preconditioner, see \Refe{Saad}.
 \end{memberdesc}
 
 \begin{memberdesc}[SolverOptions]{AMG}
-the algebraic multi grid method, see \Ref{AMG}. This method can be used as
+the algebraic multi grid method, see \Refe{AMG}. This method can be used as
 linear solver method but is more robust when used as a preconditioner.
 \end{memberdesc}
 
 \begin{memberdesc}[SolverOptions]{GAUSS_SEIDEL}
-the symmetric Gauss-Seidel preconditioner, see \Ref{Saad}.
+the symmetric Gauss-Seidel preconditioner, see \Refe{Saad}.
 \member{getNumSweeps()} is the number of sweeps used.
 \end{memberdesc}
 
 %\begin{memberdesc}[SolverOptions]{RILU}
-%relaxed incomplete LU factorization preconditioner, see \Ref{RELAXILU}.
+%relaxed incomplete LU factorization preconditioner, see \Refe{RELAXILU}.
 %This method is similar to the one used for \ILU but dropped elements are added
 %to the main diagonal with the relaxation factor \member{getRelaxationFactor}.
 %\end{memberdesc}
 
 \begin{memberdesc}[SolverOptions]{REC_ILU}
-recursive incomplete LU factorization preconditioner, see \Ref{RILU}.
+recursive incomplete LU factorization preconditioner, see \Refe{RILU}.
 This method is similar to the one used for \ILU but applies reordering during
 the factorization.
 \end{memberdesc}

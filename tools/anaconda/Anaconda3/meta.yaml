@@ -1,0 +1,78 @@
+{% set version = "5.6" %}
+
+package:
+    name: esys-escript
+    version: {{ version }}
+source:
+    - url: https://launchpad.net/escript-finley/3.0+/{{ version }}/+download/python_escript_{{ version }}.tar.gz
+      sha256: 99c5bc9e7262fb0baef5d9aa3a99bcbf3965b9d718835c6b56c516e39bb6c992
+      folder: escript
+build:
+    skip: True  # [win and (py!=37 or vc<14)]
+    skip: True  # [linux and py!=38]
+    skip: True  # [osx]
+    number: 0
+requirements:
+    build:
+        - {{ compiler('cxx') }}
+        - scons >3.0.5 
+        - cmake
+        - make
+        - python
+    host:
+        - boost-cpp
+        - boost
+        - cppunit  # [linux]
+        - numpy ==1.15.4  # [win]
+        - python 
+        - matplotlib  # [linux]
+        - matplotlib ==2.2.2  # [win]
+        - gdal
+        - libopenblas  # [linux]
+        - libgomp  # [linux]
+        - pyproj 
+        - scipy 
+        - suitesparse  # [linux]
+        - sympy ==1.1.1  # [win]
+        - gmsh  # [win]
+        - mumps  # [win]
+    run:
+        - boost-cpp
+        - boost
+        - numpy  # [linux]
+        - numpy ==1.15.4  # [win]
+        - python
+        - matplotlib  # [linux]
+        - matplotlib ==2.2.2  # [win]
+        - gdal 
+        - pyproj
+        - scipy
+        - sympy ==1.1.1  # [win]
+        - gmsh  # [win]
+        - mumps  # [win]
+test:
+    commands:
+        - run-escript -c
+        - run-escript /tmp/release_sanity.py  # [linux]
+        - run-escript %TEMP%/release_sanity.py  # [win]
+about:
+    home: https://launchpad.net/escript-finley
+    summary: esys-escript is a programming tool for implementing mathematical 
+        models in python using the finite element method (FEM).
+    license: Apache-2.0
+    license_file: LICENSE
+    description: esys-escript is a programming tool for implementing 
+        mathematical models in python using the finite element method (FEM). 
+        As users do not access the data structures it is very easy to use and 
+        scripts can run on desktop computers as well as highly parallel
+        supercomputer without changes. Application areas for escript include 
+        earth mantle convection, geophysical inversion, earthquakes, 
+        porous media flow, reactive transport, plate subduction, erosion, 
+        and tsunamis.
+    dev_url: https://launchpad.net/escript-finley
+    doc_url: https://launchpad.net/escript-finley
+    doc_source_url: https://launchpad.net/escript-finley
+
+extra:
+    recipe-maintainers:
+        - esys-escript

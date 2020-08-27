@@ -13,7 +13,7 @@
         "cxxflags": "-O3 -fPIC"
     },
     "modules": [
-        {
+                {
             "name": "python",
             "builddir": true,
             "buildsystem": "simple",
@@ -40,13 +40,13 @@
                 "python3 v.py > VERSION",
                 "sed -i 's+include/python$(version)+include/python$(version)m+g' ./tools/build/src/tools/python.jam",
                 "./bootstrap.sh --with-python-version=`cat VERSION` --prefix=/app",
-                "./bjam cxxflags=\"-fPIC\" -j`nproc --all` --with-iostreams --with-python --with-random -d0 install"
+                "./b2 cxxflags=\"-fPIC\" --with-python --with-iostreams --with-random -j`nproc --all` install"
             ],
             "sources": [
                 {
                     "type": "archive",
-                    "url": "https://dl.bintray.com/boostorg/release/1.69.0/source/boost_1_69_0.tar.gz",
-                    "sha256": "9a2c2819310839ea373f42d69e733c339b4e9a19deab6bfec448281554aa4dbb"
+                    "url": "https://dl.bintray.com/boostorg/release/1.72.0/source/boost_1_72_0.tar.gz",
+                    "sha256": "c66e88d5786f2ca4dbebb14e06b566fb642a1a6947ad8cc9091f9f445134143f"
                 }
             ]
         },
@@ -66,8 +66,8 @@
             "sources": [
                 {
                     "type": "archive",
-                    "url": "ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-c-4.6.2.tar.gz",
-                    "sha256": "c37525981167b3cd82d32e1afa3022afb94e59287db5f116c57f5ed4d9c6a638"
+                    "url": "https://mirror.sobukus.de/files/src/netcdf/netcdf-c-4.7.3.tar.gz",
+                    "sha256": "8e8c9f4ee15531debcf83788594744bd6553b8489c06a43485a15c93b4e0448b"
                 }
             ]
         },
@@ -76,7 +76,7 @@
             "sources": [
                 {
                     "type": "archive",
-                    "url": "ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf-cxx4-4.3.0.tar.gz",
+                    "url":  "https://mirror.sobukus.de/files/src/netcdf/netcdf-cxx4-4.3.0.tar.gz",
                     "sha256": "e34fbc6aba243ec82c23e9ee99db2430555ada849c54c1f3ab081b0ddd0f5f30"
                 }
             ]
@@ -233,9 +233,8 @@
             ],
             "sources": [
                 {
-                    "type": "svn",
-                    "url": "https://svn.geocomp.uq.edu.au/svn/esys13/trunk",
-                    "revision": "6838"
+                    "type": "git",
+                    "url": "https://github.com/esys-escript/esys-escript.github.io"
                 }
             ]
         }

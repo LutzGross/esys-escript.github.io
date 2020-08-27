@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2018 by The University of Queensland
+* Copyright (c) 2003-2020 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -10,13 +10,16 @@
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
-* Development from 2014 by Centre for Geoscience Computing (GeoComp)
-*
+* Development from 2014-2017 by Centre for Geoscience Computing (GeoComp)
+* Development from 2019 by School of Earth and Environmental Sciences
+**
 *****************************************************************************/
 
 #include <speckley/SpeckleyDomain.h>
 #include <speckley/domainhelpers.h>
 
+#include <escript/Data.h>
+#include <escript/DataTypes.h>
 #include <escript/DataFactory.h>
 #include <escript/FunctionSpaceFactory.h>
 #include <escript/index.h>
@@ -408,7 +411,7 @@ void SpeckleyDomain::interpolateOnDomain(escript::Data& target,
                                 copy(src, src+numComp, target.getSampleDataRW(m_diracPoints[i].node));
                             }
                         }
-                
+
                 }
                 break;
             default:
@@ -421,6 +424,18 @@ escript::Data SpeckleyDomain::getX() const
 {
     return escript::continuousFunction(*this).getX();
 }
+
+#ifdef ESYS_HAVE_BOOST_NUMPY
+boost::python::numpy::ndarray SpeckleyDomain::getNumpyX() const
+{
+    return continuousFunction(*this).getNumpyX();
+}
+
+boost::python::numpy::ndarray SpeckleyDomain::getConnectivityInfo() const
+{
+    throw SpeckleyException("This feature is currently not supported by Speckley.");
+}
+#endif
 
 escript::Data SpeckleyDomain::getNormal() const
 {
@@ -529,6 +544,7 @@ void SpeckleyDomain::setToIntegralsWorker(vector<Scalar>& integrals,
                 assembleIntegrate(integrals, funcArg);
             }
             break;
+        case Points:
         case Elements:
         case ReducedElements:
             assembleIntegrate(integrals, arg);
@@ -760,7 +776,7 @@ void SpeckleyDomain::addToRHS(escript::Data& rhs, const DataMap& coefs,
 
     assemblePDE(NULL, rhs, coefs, assembler);
     assemblePDEBoundary(NULL, rhs, coefs, assembler);
-    assemblePDEDirac(NULL, rhs, coefs, assembler);
+    assemblePDEDiracWrap(NULL, rhs, coefs, assembler);
 }
 
 escript::ATP_ptr SpeckleyDomain::newTransportProblem(int blocksize,
@@ -896,7 +912,7 @@ void SpeckleyDomain::assemblePDE(escript::AbstractSystemMatrix* mat,
                                escript::Data& rhs, const DataMap& coefs,
                                Assembler_ptr assembler) const
 {
-    if (rhs.isEmpty() && (isNotEmpty("X", coefs) || isNotEmpty("du", coefs)) 
+    if (rhs.isEmpty() && (isNotEmpty("X", coefs) || isNotEmpty("du", coefs))
             && isNotEmpty("Y", coefs))
         throw SpeckleyException("assemblePDE: right hand side coefficients are "
                     "provided but no right hand side vector given");
@@ -938,7 +954,6 @@ void SpeckleyDomain::assemblePDE(escript::AbstractSystemMatrix* mat,
         throw SpeckleyException("assemblePDE: number of equations and number of solutions don't match");
 
     //TODO: check shape and num samples of coeffs
-
     if (numEq==1) {
         assembler->assemblePDESingle(mat, temp, coefs);
     } else {
@@ -995,6 +1010,18 @@ void SpeckleyDomain::assemblePDEBoundary(escript::AbstractSystemMatrix* mat,
     }
 }
 
+void SpeckleyDomain::assemblePDEDiracWrap(escript::AbstractSystemMatrix* mat,
+                                    escript::Data& rhs, const DataMap& coefs,
+                                    Assembler_ptr assembler) const
+{
+    bool complexpde = isComplexCoef("d_dirac", coefs) || isComplexCoef("D",coefs)
+                    || isComplexCoef("y_dirac", coefs) || isComplexCoef("Y",coefs);
+    if(complexpde)
+        assembleComplexPDEDirac(mat,rhs,coefs,assembler);
+    else
+        assemblePDEDirac(mat,rhs,coefs,assembler);
+}
+
 void SpeckleyDomain::assemblePDEDirac(escript::AbstractSystemMatrix* mat,
                                     escript::Data& rhs, const DataMap& coefs,
                                     Assembler_ptr assembler) const
@@ -1039,6 +1066,60 @@ void SpeckleyDomain::assemblePDEDirac(escript::AbstractSystemMatrix* mat,
     }
 }
 
+void SpeckleyDomain::assembleComplexPDEDirac(escript::AbstractSystemMatrix* mat,
+                                    escript::Data& rhs, const DataMap& coefs,
+                                    Assembler_ptr assembler) const
+{
+    bool yNotEmpty = isNotEmpty("y_dirac", coefs);
+    bool dNotEmpty = isNotEmpty("d_dirac", coefs);
+    if (!(yNotEmpty || dNotEmpty)) {
+        return;
+    }
+    escript::Data d = unpackData("d_dirac", coefs);
+    escript::Data yy = unpackData("y_dirac", coefs);
+
+    // shallow copy
+    // escript::Data d = Data(dd);
+    escript::Data y = escript::Data(yy);
+
+    // complicate things
+    // if(!d.isEmpty())
+    //     d.complicate();
+    if(!y.isEmpty())
+        y.complicate();
+    if(!rhs.isEmpty())
+        rhs.complicate();
+
+    escript::DataTypes::cplx_t cdummy;
+
+    int nEq = 1, nComp = 1;
+    if (!mat) {
+        if (!rhs.isEmpty()) {
+            nEq = nComp = rhs.getDataPointSize();
+        }
+    } else {
+        if (!rhs.isEmpty() && rhs.getDataPointSize()!=mat->getRowBlockSize())
+            throw SpeckleyException("assemblePDEDirac: matrix row block size "
+                    "and number of components of right hand side don't match");
+        nEq = mat->getRowBlockSize();
+        nComp = mat->getColumnBlockSize();
+    }
+
+    rhs.requireWrite();
+    for (int i = 0; i < m_diracPoints.size(); i++) { //only for this rank
+        const IndexVector rowIndex(1, m_diracPoints[i].node);
+        if (yNotEmpty) {
+            const std::complex<double> *EM_F = y.getSampleDataRO(i, cdummy);
+            std::complex<double> *F_p = rhs.getSampleDataRW(0, cdummy);
+            for (index_t eq = 0; eq < nEq; eq++) {
+                F_p[INDEX2(eq, rowIndex[0], nEq)] += EM_F[INDEX2(eq,i,nEq)];
+            }
+        }
+        if (dNotEmpty) {
+            throw SpeckleyException("Rectangle::assemblePDEDirac currently doesn't support d");
+        }
+    }
+}
 
 
 // Expecting ("gaussian", radius, sigma)
@@ -1068,4 +1149,3 @@ void SpeckleyDomain::addPoints(const vector<double>& coords,
 }
 
 } // end of namespace speckley
-

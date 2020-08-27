@@ -1,73 +1,67 @@
+{% set version = "5.6" %}
 
 package:
     name: esys-escript
-    version: 5.4
+    version: {{ version }}
 source:
-    - svn_url: https://svn.geocomp.uq.edu.au/svn/esys13/trunk
-      svn_rev: 6850
+    - url: https://launchpad.net/escript-finley/3.0+/{{ version }}/+download/python-escript_{{ version }}.tar.gz
+      sha256: 78cb3c43a04426c4909c6f1ca1aa23cbec574d783fd438fcfd419931b7c63be8
       folder: escript
 build:
-    skip: True  # [osx]
-    skip: True  # [win]
-    number: '0'
-    rpaths:
-        - ${PREFIX}/bin
-        - ${PREFIX}/include
-        - ${PREFIX}/lib
-        - ${SP_DIR}
+    skip: True  # [not linux]
+    skip: True  # [py!=27]
+    number: 0
 requirements:
     build:
         - {{ compiler('cxx') }}
         - svn
-        - scons 3.0.5 py27_0
+        - scons >3.0.5
         - cmake
         - make
-        - openmp
+        - python
     host:
-        - boost-cpp >1.68
+        - boost-cpp 
         - boost
-        - python 2.7.15 
-        - suitesparse
-        - matplotlib
-        - gdal 
+        - python 
+        - matplotlib-base
+        - gdal
+        - libopenblas
+        - libgomp
         - pyproj 
         - scipy 
-        - openmp
         - sympy
     run:
-        - boost-cpp >1.68
+        - boost-cpp 
         - boost
         - numpy 
-        - python 2.7.15 
-        - suitesparse
-        - matplotlib 
+        - python
+        - matplotlib-base
         - gdal 
         - pyproj
         - scipy
-        - openmp
         - sympy
 test:
     commands:
         - run-escript -c
         - run-escript /tmp/release_sanity.py
 about:
-  home: https://launchpad.net/escript-finley
-  summary: esys-escript is a programming tool for implementing mathematical 
-    models in python using the finite element method (FEM).
-  license: Apache-2.0
-  license_file: LICENSE-2.0.txt
-  description: esys-escript is a programming tool for implementing 
-    mathematical models in python using the finite element method (FEM). 
-    As users do not access the data structures it is very easy to use and 
-    scripts can run on desktop computers as well as highly parallel
-    supercomputer without changes. Application areas for escript include 
-    earth mantle convection, geophysical inversion, earthquakes, 
-    porous media flow, reactive transport, plate subduction, erosion, 
-    and tsunamis.
-  dev_url: https://launchpad.net/escript-finley
-  doc_url: https://launchpad.net/escript-finley
-  doc_source_url: https://launchpad.net/escript-finley
+    home: https://launchpad.net/escript-finley
+    summary: esys-escript is a programming tool for implementing mathematical 
+        models in python using the finite element method (FEM).
+    license: Apache-2.0
+    license_file: LICENSE
+    description: esys-escript is a programming tool for implementing 
+        mathematical models in python using the finite element method (FEM). 
+        As users do not access the data structures it is very easy to use and 
+        scripts can run on desktop computers as well as highly parallel
+        supercomputer without changes. Application areas for escript include 
+        earth mantle convection, geophysical inversion, earthquakes, 
+        porous media flow, reactive transport, plate subduction, erosion, 
+        and tsunamis.
+    dev_url: https://launchpad.net/escript-finley
+    doc_url: https://launchpad.net/escript-finley
+    doc_source_url: https://launchpad.net/escript-finley
 
 extra:
-  recipe-maintainers:
-    - aellery
+    recipe-maintainers:
+        - aellery

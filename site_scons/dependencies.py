@@ -686,7 +686,7 @@ def checkOptionalLibraries(env):
         env['buildvars']['visit_inc_path']=visit_inc_path
         env['buildvars']['visit_lib_path']=visit_lib_path
     env['buildvars']['visit']=int(env['visit'])
-    
+
     ######## MPI
     if env['mpi']=='no':
         env['mpi']='none'
@@ -809,7 +809,7 @@ def checkOptionalLibraries(env):
                         env['gmsh'] = 's'
                 except OSError:
                     pass
-    
+
     ######## boost::iostreams
     if env['compressed_files']:
         try:
