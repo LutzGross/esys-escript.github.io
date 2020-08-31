@@ -789,7 +789,7 @@ void Rectangle::renumberNodes()
                         p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
                         if(NodeIDs.count(std::make_pair(xy[0],xy[1]))==0)
                         {
-                            std::cout << NodeIDs.size() << ": " << xy[0] << ", " << xy[1] << std::endl;
+                            // std::cout << NodeIDs.size() << ": " << xy[0] << ", " << xy[1] << std::endl;
                             NodeIDs[std::make_pair(xy[0],xy[1])]=NodeIDs.size();
                         }
                     }
@@ -800,7 +800,7 @@ void Rectangle::renumberNodes()
                         p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
                         if(NodeIDs.count(std::make_pair(xy[0],xy[1]))==0)
                         {
-                            std::cout << NodeIDs.size() << ": " << xy[0] << ", " << xy[1] << std::endl;
+                            // std::cout << NodeIDs.size() << ": " << xy[0] << ", " << xy[1] << std::endl;
                             NodeIDs[std::make_pair(xy[0],xy[1])]=NodeIDs.size();
                         }
                     }
@@ -821,7 +821,7 @@ void Rectangle::renumberNodes()
                 {
                     if(NodeIDs.count(std::make_pair(xy[0],xy[1]))==0)
                     {
-                        std::cout << NodeIDs.size() << ": " << xy[0] << ", " << xy[1] << std::endl;
+                        // std::cout << NodeIDs.size() << ": " << xy[0] << ", " << xy[1] << std::endl;
                         NodeIDs[std::make_pair(xy[0],xy[1])]=NodeIDs.size();
                     }
                 }
