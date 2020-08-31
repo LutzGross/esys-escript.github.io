@@ -158,15 +158,14 @@ Rectangle::Rectangle(int order,
     int allow_coarsening = 0;
     p4est_partition(p4est, allow_coarsening, NULL);
 
-    // Renumber the nodes
+    // Number the nodes
     updateNodeIncrements();
     renumberNodes();
-    // renumberHangingNodes();
-    // updateTreeIDs();
     updateRowsColumns();
 
     populateDofMap();
 
+    // srand(time(NULL));
 
     // To prevent segmentation faults when using numpy ndarray
 #ifdef ESYS_HAVE_BOOST_NUMPY
@@ -554,26 +553,27 @@ void Rectangle::refineMesh(int maxRecursion, std::string algorithmname)
     } 
     else if(!algorithmname.compare("random"))
     {
-        if(maxRecursion < 0)
+        if(maxRecursion <= 0)
             throw OxleyException("Invalid value for maxRecursion");
-
-        // srand(time(NULL));
         p4est_refine_ext(p4est, true, maxRecursion, random_refine, init_rectangle_data, refine_copy_parent_quadrant);
-        if(maxRecursion > 1)
-            p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);
+        p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);
     }
     else {
         throw OxleyException("Unknown refinement algorithm name.");
     }
-    p4est_partition(p4est, 1, NULL);
-    p4est_lnodes_destroy(nodes);
-    p4est_ghost_t * ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
-    nodes=p4est_lnodes_new(p4est, ghost, 1);
-    p4est_ghost_destroy(ghost);
+
+    // Make sure that nothing went wrong
+#ifdef P4EST_ENABLE_DEBUG
+    if(!p4est_is_valid(p4est))
+        throw OxleyException("p4est broke during refinement");
+    if(!p4est_connectivity_is_valid(connectivity))
+        throw OxleyException("connectivity broke during refinement");
+#endif
+
+    bool partition_for_coarsening = true;
+    p4est_partition_ext(p4est, partition_for_coarsening, NULL);
     updateNodeIncrements();
-    // updateTreeIDs();
     renumberNodes();
-    // renumberHangingNodes();
     updateRowsColumns();
 }
 
