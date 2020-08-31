@@ -163,6 +163,7 @@ Rectangle::Rectangle(int order,
     updateNodeIncrements();
     renumberNodes();
     updateRowsColumns();
+    updateNodeDistribution();
 
     populateDofMap();
 
