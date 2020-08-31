@@ -554,7 +554,7 @@ void Rectangle::refineMesh(int maxRecursion, std::string algorithmname)
     } 
     else if(!algorithmname.compare("random"))
     {
-        if(maxRecursion <= 0)
+        if(maxRecursion < 0)
             throw OxleyException("Invalid value for maxRecursion");
 
         // srand(time(NULL));
@@ -756,6 +756,57 @@ void Rectangle::renumberNodes()
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
             p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
             int k = q - Q + nodeIncrements[treeid - p4est->first_local_tree];
+
+            // If there are no hanging nodes here, skip to the next quadrant
+            if(nodes->face_code[k] != 0)
+            {
+                // Decode the info
+                int8_t face_code = nodes->face_code[k];
+                int8_t c = face_code & 0x03;
+                int8_t ishanging0 = (face_code >> 2) & 0x01;
+                int8_t ishanging1 = face_code >> 3;
+
+                int8_t f0 = p4est_corner_faces[c][0];
+                int8_t f1 = p4est_corner_faces[c][1];
+
+                int d0 = c / 2 == 0;
+                int d1 = c % 2 == 0;
+
+                int tmp0 = p4est_face_corners[f0][d0];
+                int tmp1 = p4est_face_corners[f1][d1];
+                
+                // Record which nodes are hanging
+                if(ishanging0 || ishanging1)
+                {
+                    p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+                    p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
+                    double xy[3];
+
+                    if(ishanging0)
+                    {                   
+                        double lx = length * ((int) (tmp0 % 2) == 1);
+                        double ly = length * ((int) (tmp0 / 2) == 1);
+                        p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
+                        if(NodeIDs.count(std::make_pair(xy[0],xy[1]))==0)
+                        {
+                            std::cout << NodeIDs.size() << ": " << xy[0] << ", " << xy[1] << std::endl;
+                            NodeIDs[std::make_pair(xy[0],xy[1])]=NodeIDs.size();
+                        }
+                    }
+                    if(ishanging1)
+                    {
+                        double lx = length * ((int) (tmp1 % 2) == 1);
+                        double ly = length * ((int) (tmp1 / 2) == 1);
+                        p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
+                        if(NodeIDs.count(std::make_pair(xy[0],xy[1]))==0)
+                        {
+                            std::cout << NodeIDs.size() << ": " << xy[0] << ", " << xy[1] << std::endl;
+                            NodeIDs[std::make_pair(xy[0],xy[1])]=NodeIDs.size();
+                        }
+                    }
+                }
+            }
+
             for(int n = 0; n < 4; n++)
             {
                 double lx = length * ((int) (n % 2) == 1);
@@ -770,10 +821,7 @@ void Rectangle::renumberNodes()
                 {
                     if(NodeIDs.count(std::make_pair(xy[0],xy[1]))==0)
                     {
-                        if(isHangingNode(nodes->face_code[k], n))
-                            hangingNodeIDs[NodeIDs.size()]=true;
-                        else
-                            hangingNodeIDs[NodeIDs.size()]=false;
+                        std::cout << NodeIDs.size() << ": " << xy[0] << ", " << xy[1] << std::endl;
                         NodeIDs[std::make_pair(xy[0],xy[1])]=NodeIDs.size();
                     }
                 }
@@ -1382,7 +1430,8 @@ void Rectangle::updateRowsColumns()
     data->phangingNodeIDs = &hangingNodeIDs;
     data->p4est = p4est;
 
-    // This only covers the interior nodes and does not loop over nodes on the boundaries
+    // This function loops over all interior faces
+    // Note that it does not loop over the nodes on the boundaries
     // x = Lx and y = Ly
     p4est_iterate_ext(p4est, NULL, data, NULL, update_RC, NULL, true);
 
