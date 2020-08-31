@@ -13,8 +13,9 @@
 *
 *****************************************************************************/
 
-#include <random>
 #include <ctime>
+#include <random>
+#include <vector>
 
 #include <escript/Data.h>
 #include <escript/DataFactory.h>
@@ -1775,15 +1776,36 @@ void Rectangle::populateSampleIds()
 // This is a wrapper that converts the p4est node information into an IndexVector
 IndexVector Rectangle::getNodeDistribution() const
 {
-    throw OxleyException("getNodeDistribution");
-
-    IndexVector m_nodeDistribution;
-
-#pragma omp parallel for
-    for(int n = 0; n < connectivity->num_vertices; n++)
-        m_nodeDistribution[n] = connectivity->corner_to_corner[n];
-
     return m_nodeDistribution;
+}
+
+// This is a wrapper that converts the p4est node information into an IndexVector
+void Rectangle::updateNodeDistribution() 
+{
+    m_nodeDistribution.clear();
+    m_nodeDistribution.assign(m_mpiInfo->size+1, 0);
+
+    int counter =0;
+    for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) 
+    {
+        p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
+        sc_array_t * tquadrants = &tree->quadrants;
+        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+        for(int q = 0; q < Q; ++q) 
+        { 
+            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+            p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
+            for(int n = 0; n < 4; n++)
+                if(p4est->mpirank)
+                {
+                    double lx = length * ((int) (n % 2) == 1);
+                    double ly = length * ((int) (n / 2) == 1);
+                    double xy[3];
+                    p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
+                    m_nodeDistribution[counter++]=NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+                }
+        }
+    }
 }
 
 //private

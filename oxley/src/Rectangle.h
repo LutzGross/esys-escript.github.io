@@ -313,6 +313,10 @@ protected:
     // Updates m_faceOffset for each quadrant
     void updateFaceOffset();
 
+    // vector with first node id on each rank
+    IndexVector m_nodeDistribution;
+    void updateNodeDistribution();
+
 #ifdef ESYS_HAVE_PASO
     // the Paso System Matrix pattern
     mutable paso::SystemMatrixPattern_ptr m_pattern;
