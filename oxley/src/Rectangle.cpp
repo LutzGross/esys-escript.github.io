@@ -748,6 +748,10 @@ void Rectangle::updateNodeIncrements()
 
 void Rectangle::renumberNodes()
 {
+#ifdef P4EST_ENABLE_DEBUG
+    std::cout << "Renumbering nodes... " << std::endl;
+#endif
+
     NodeIDs.clear();
 #pragma omp for
     for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) {
@@ -791,7 +795,9 @@ void Rectangle::renumberNodes()
                         p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
                         if(NodeIDs.count(std::make_pair(xy[0],xy[1]))==0)
                         {
-                            // std::cout << NodeIDs.size() << ": " << xy[0] << ", " << xy[1] << std::endl;
+#ifdef P4EST_ENABLE_DEBUG
+                            std::cout << NodeIDs.size() << ": " << xy[0] << ", " << xy[1] << std::endl;
+#endif
                             NodeIDs[std::make_pair(xy[0],xy[1])]=NodeIDs.size();
                         }
                     }
@@ -802,7 +808,9 @@ void Rectangle::renumberNodes()
                         p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
                         if(NodeIDs.count(std::make_pair(xy[0],xy[1]))==0)
                         {
-                            // std::cout << NodeIDs.size() << ": " << xy[0] << ", " << xy[1] << std::endl;
+#ifdef P4EST_ENABLE_DEBUG
+                            std::cout << NodeIDs.size() << ": " << xy[0] << ", " << xy[1] << std::endl;
+#endif
                             NodeIDs[std::make_pair(xy[0],xy[1])]=NodeIDs.size();
                         }
                     }
@@ -823,13 +831,16 @@ void Rectangle::renumberNodes()
                 {
                     if(NodeIDs.count(std::make_pair(xy[0],xy[1]))==0)
                     {
-                        // std::cout << NodeIDs.size() << ": " << xy[0] << ", " << xy[1] << std::endl;
+#ifdef P4EST_ENABLE_DEBUG
+                        std::cout << NodeIDs.size() << ": " << xy[0] << ", " << xy[1] << std::endl;
+#endif
                         NodeIDs[std::make_pair(xy[0],xy[1])]=NodeIDs.size();
                     }
                 }
             }
         }
     }
+    std::cout << "---------------------------------------------" << std::endl;
 }
 
 //protected
@@ -1514,13 +1525,17 @@ void Rectangle::updateRowsColumns()
         }
     }
 
-    // // Output for debugging
-    // for(int i = 0; i < getNumNodes(); i++){
-    //     std::vector<long> * idx0 = &indices[0][i];
-    //     for(int j = 1; j < idx0[0][0]+1; j++)
-    //         std::cout << idx0[0][j] << ", ";
-    //     std::cout << std::endl;
-    // }
+#ifdef P4EST_ENABLE_DEBUG
+    std::cout << "Node connections: " << std::endl;
+    // Output for debugging
+    for(int i = 0; i < getNumNodes(); i++){
+        std::vector<long> * idx0 = &indices[0][i];
+        std::cout << i << ": ";
+        for(int j = 1; j < idx0[0][0]+1; j++)
+            std::cout << idx0[0][j] << ", ";
+        std::cout << std::endl;
+    }
+#endif
 
     // Convert to CRS format
     myRows.clear();
