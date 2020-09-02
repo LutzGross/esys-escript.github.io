@@ -554,6 +554,9 @@ void update_RC(p4est_iter_face_info_t *info, void *user_data)
     long lx = ((fn < 2) == 0) * length;
     long ly = ((fn >= 2) == 0) * length;
     p4est_qcoord_to_vertex(data->p4est->connectivity, side->treeid, quad->x+lx, quad->y+ly, xy);
+
+    // std::cout << "xy = " << xy[0] << ", " << xy[1] << std::endl; // coordinates
+
     long lni1 = data->pNodeIDs->find(std::make_pair(xy[0],xy[1]))->second;
     
     std::vector<long> * idx0 = &data->indices[0][lni0];

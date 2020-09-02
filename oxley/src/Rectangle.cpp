@@ -913,123 +913,12 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
 //private
 void Rectangle::populateDofMap()
 {
-    // populate node->DOF mapping with own degrees of freedom.
-    // The rest is assigned in the loop further down
-    
-//     m_dofMap.assign(getNumNodes(), 0);
-// #pragma omp parallel for                                // AE this is temporary
-//     for (index_t i=-0; i<getNumNodes(); i++) {
-//         m_dofMap[i]=i;
-//     }
-
-//     const dim_t nDOF0 = getNumDOFInAxis(0);
-//     const dim_t nDOF1 = getNumDOFInAxis(1);
-//     const index_t left = getFirstInDim(0);
-//     const index_t bottom = getFirstInDim(1);
-
-//     // populate node->DOF mapping with own degrees of freedom.
-//     // The rest is assigned in the loop further down
-//     m_dofMap.assign(getNumNodes(), 0);
-// #pragma omp parallel for
-//     for (index_t i=bottom; i<bottom+nDOF1; i++) {
-//         for (index_t j=left; j<left+nDOF0; j++) {
-//             m_dofMap[i*m_NN[0]+j]=(i-bottom)*nDOF0+j-left;
-//         }
-//     }
-
-//     // build list of shared components and neighbours by looping through
-//     // all potential neighbouring ranks and checking if positions are
-//     // within bounds
-//     const dim_t numDOF=nDOF0*nDOF1;
-//     RankVector neighbour;
-//     IndexVector offsetInShared(1,0);
-//     IndexVector sendShared, recvShared;
-//     const int x=m_mpiInfo->rank%m_NX[0];
-//     const int y=m_mpiInfo->rank/m_NX[0];
-//     // numShared will contain the number of shared DOFs after the following
-//     // blocks
-//     dim_t numShared=0;
-//     // sharing bottom edge
-//     if (y > 0) {
-//         neighbour.push_back((y-1)*m_NX[0] + x);
-//         const dim_t num = nDOF0;
-//         offsetInShared.push_back(offsetInShared.back()+num);
-//         for (dim_t i=0; i<num; i++, numShared++) {
-//             sendShared.push_back(i);
-//             recvShared.push_back(numDOF+numShared);
-//             m_dofMap[left+i]=numDOF+numShared;
-//         }
-//     }
-//     // sharing top edge
-//     if (y < m_NX[1] - 1) {
-//         neighbour.push_back((y+1)*m_NX[0] + x);
-//         const dim_t num = nDOF0;
-//         offsetInShared.push_back(offsetInShared.back()+num);
-//         for (dim_t i=0; i<num; i++, numShared++) {
-//             sendShared.push_back(numDOF-num+i);
-//             recvShared.push_back(numDOF+numShared);
-//             m_dofMap[m_NN[0]*(m_NN[1]-1)+left+i]=numDOF+numShared;
-//         }
-//     }
-//     // sharing left edge
-//     if (x > 0) {
-//         neighbour.push_back(y*m_NX[0] + x-1);
-//         const dim_t num = nDOF1;
-//         offsetInShared.push_back(offsetInShared.back()+num);
-//         for (dim_t i=0; i<num; i++, numShared++) {
-//             sendShared.push_back(i*nDOF0);
-//             recvShared.push_back(numDOF+numShared);
-//             m_dofMap[(bottom+i)*m_NN[0]]=numDOF+numShared;
-//         }
-//     }
-//     // sharing right edge
-//     if (x < m_NX[0] - 1) {
-//         neighbour.push_back(y*m_NX[0] + x+1);
-//         const dim_t num = nDOF1;
-//         offsetInShared.push_back(offsetInShared.back()+num);
-//         for (dim_t i=0; i<num; i++, numShared++) {
-//             sendShared.push_back((i+1)*nDOF0-1);
-//             recvShared.push_back(numDOF+numShared);
-//             m_dofMap[(bottom+1+i)*m_NN[0]-1]=numDOF+numShared;
-//         }
-//     }
-//     // sharing bottom-left node
-//     if (x > 0 && y > 0) {
-//         neighbour.push_back((y-1)*m_NX[0] + x-1);
-//         // sharing a node
-//         offsetInShared.push_back(offsetInShared.back()+1);
-//         sendShared.push_back(0);
-//         recvShared.push_back(numDOF+numShared);
-//         m_dofMap[0]=numDOF+numShared;
-//         ++numShared;
-//     }
-//     // sharing top-left node
-//     if (x > 0 && y < m_NX[1]-1) {
-//         neighbour.push_back((y+1)*m_NX[0] + x-1);
-//         offsetInShared.push_back(offsetInShared.back()+1);
-//         sendShared.push_back(numDOF-nDOF0);
-//         recvShared.push_back(numDOF+numShared);
-//         m_dofMap[m_NN[0]*(m_NN[1]-1)]=numDOF+numShared;
-//         ++numShared;
-//     }
-//     // sharing bottom-right node
-//     if (x < m_NX[0]-1 && y > 0) {
-//         neighbour.push_back((y-1)*m_NX[0] + x+1);
-//         offsetInShared.push_back(offsetInShared.back()+1);
-//         sendShared.push_back(nDOF0-1);
-//         recvShared.push_back(numDOF+numShared);
-//         m_dofMap[m_NN[0]-1]=numDOF+numShared;
-//         ++numShared;
-//     }
-//     // sharing top-right node
-//     if (x < m_NX[0]-1 && y < m_NX[1]-1) {
-//         neighbour.push_back((y+1)*m_NX[0] + x+1);
-//         offsetInShared.push_back(offsetInShared.back()+1);
-//         sendShared.push_back(numDOF-1);
-//         recvShared.push_back(numDOF+numShared);
-//         m_dofMap[m_NN[0]*m_NN[1]-1]=numDOF+numShared;
-//         ++numShared;
-//     }
+    m_dofMap.assign(getNumNodes(), 0);
+#pragma omp parallel for
+    for(index_t i = 0; i < getNumNodes(); i++)
+    {
+        m_dofMap[i] = myRows[i+1]-myRows[i];
+    }
 
 // #ifdef ESYS_HAVE_PASO
 //     createPasoConnector(neighbour, offsetInShared, offsetInShared, sendShared, recvShared);
@@ -1537,6 +1426,9 @@ void Rectangle::updateRowsColumns()
     }
 #endif
 
+    // Update the dof map
+    populateDofMap();
+
     // Convert to CRS format
     myRows.clear();
     myRows.push_back(0);
@@ -1550,6 +1442,7 @@ void Rectangle::updateRowsColumns()
             myColumns.push_back(idx0[0][j]);
             counter++;
         }
+        std::sort(myColumns.begin(), myColumns.end());
         myRows.push_back(counter);
     }
 
