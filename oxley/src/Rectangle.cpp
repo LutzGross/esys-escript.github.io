@@ -164,8 +164,7 @@ Rectangle::Rectangle(int order,
     renumberNodes();
     updateRowsColumns();
     updateNodeDistribution();
-
-    populateDofMap();
+    // populateDofMap();
 
     // srand(time(NULL));
 
@@ -915,7 +914,7 @@ void Rectangle::populateDofMap()
 {
     m_dofMap.assign(getNumNodes(), 0);
 #pragma omp parallel for
-    for(index_t i = 0; i < getNumNodes(); i++)
+    for(index_t i = 0; i < getNumNodes()-1; i++)
     {
         m_dofMap[i] = myRows[i+1]-myRows[i];
     }
@@ -1426,9 +1425,6 @@ void Rectangle::updateRowsColumns()
     }
 #endif
 
-    // Update the dof map
-    populateDofMap();
-
     // Convert to CRS format
     myRows.clear();
     myRows.push_back(0);
@@ -1445,6 +1441,9 @@ void Rectangle::updateRowsColumns()
         std::sort(myColumns.begin(), myColumns.end());
         myRows.push_back(counter);
     }
+
+    // Update the dof map
+    populateDofMap();
 
     delete data;
     delete indices;
