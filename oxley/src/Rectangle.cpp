@@ -839,7 +839,6 @@ void Rectangle::renumberNodes()
             }
         }
     }
-    std::cout << "---------------------------------------------" << std::endl;
 }
 
 //protected
@@ -1433,14 +1432,28 @@ void Rectangle::updateRowsColumns()
     for(int i = 0; i < getNumNodes(); i++)
     {
         std::vector<long> * idx0 = &indices[0][i];
+        std::vector<long> temp; 
         for(int j = 1; j < idx0[0][0]+1; j++)
         {
-            myColumns.push_back(idx0[0][j]);
+            temp.push_back(idx0[0][j]);
             counter++;
         }
-        std::sort(myColumns.begin(), myColumns.end());
+        std::sort(temp.begin(),temp.end());
+        for(int i = 0; i < temp.size(); i++)
+            myColumns.push_back(temp[i]);
         myRows.push_back(counter);
     }
+#ifdef P4EST_ENABLE_DEBUG
+    std::cout << "Converted to Yale format... "<< std::endl;
+    std::cout << "COL_INDEX [";
+    for(auto i = myColumns.begin(); i < myColumns.end(); i++)
+        std::cout << *i << " ";
+    std::cout << "]" << std::endl;
+    std::cout << "ROW_INDEX [";
+    for(auto i = myRows.begin(); i < myRows.end(); i++)
+        std::cout << *i << " ";
+    std::cout << "]" << std::endl;
+#endif
 
     // Update the dof map
     populateDofMap();
