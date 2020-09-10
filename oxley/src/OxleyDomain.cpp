@@ -877,32 +877,40 @@ namespace oxley {
 
 #ifdef ESYS_HAVE_TRILINOS
 //protected
+// esys_trilinos::const_TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
+//                                             const IndexVector& myRows,
+//                                             const IndexVector& myColumns) const
 esys_trilinos::const_TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
-                                            const IndexVector& myRows,
-                                            const IndexVector& myColumns) const
+                                            const IndexVector& m_dofId,
+                                            const IndexVector& m_nodeId,
+                                            const IndexVector& YaleRows,
+                                            const IndexVector& YaleColumns) const
 {
     using namespace esys_trilinos;
 
     const dim_t numMatrixRows = getNumDOF();
 
-    TrilinosMap_ptr rowMap(new MapType(getNumDataPointsGlobal(), myRows, 0, TeuchosCommFromEsysComm(m_mpiInfo->comm)));
+    TrilinosMap_ptr rowMap(new MapType(getNumDataPointsGlobal(), m_dofId, 0, TeuchosCommFromEsysComm(m_mpiInfo->comm)));
 
     IndexVector columns(getNumNodes());
     // order is important - our columns (=myRows) come first, followed by
     // shared ones (=node Id for non-DOF)
 #pragma omp parallel for
     for (size_t i=0; i<columns.size(); i++)
-        columns[getDofOfNode(i)] = myColumns[i];
+        columns[getDofOfNode(i)] = m_nodeId[i];
 
     TrilinosMap_ptr colMap(new MapType(getNumDataPointsGlobal(), columns, 0, TeuchosCommFromEsysComm(m_mpiInfo->comm)));
 
     // now build CSR arrays (rowPtr and colInd)
     const vector<IndexVector>& conns(getConnections(true));
     Teuchos::ArrayRCP<size_t> rowPtr(numMatrixRows+1);
-    for (size_t i=0; i < numMatrixRows; i++)
-        rowPtr[i+1] = rowPtr[i] + conns[i].size();
-
+#pragma omp parallel for
+    for(long i = 0; i < YaleRows.size(); i++)
+        rowPtr[i]=YaleRows[i];
     Teuchos::ArrayRCP<LO> colInd(rowPtr[numMatrixRows]);
+#pragma omp parallel for
+    for(long i = 0; i < YaleColumns.size(); i++)
+        colInd[i]=YaleColumns[i];
 
 #pragma omp parallel for
     for (index_t i=0; i < numMatrixRows; i++)

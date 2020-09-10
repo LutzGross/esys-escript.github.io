@@ -1472,7 +1472,7 @@ void Rectangle::updateRowsColumns()
 esys_trilinos::const_TrilinosGraph_ptr Rectangle::getTrilinosGraph() const
 {   
     if (m_graph.is_null()) {
-        m_graph = createTrilinosGraph(myRows, myColumns);
+        m_graph = createTrilinosGraph(m_dofMap, m_nodeDistribution, myRows, myColumns);
     }
     return m_graph;
 }

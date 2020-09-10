@@ -631,7 +631,8 @@ protected:
     /// creates and returns a Trilinos CRS graph suitable to build a sparse
     /// matrix
     esys_trilinos::const_TrilinosGraph_ptr createTrilinosGraph(
-            const IndexVector& myRows, const IndexVector& myColumns) const;
+            const IndexVector& m_dofId, const IndexVector& m_nodeId,
+            const IndexVector& myRows,  const IndexVector& myColumns) const;
 #endif
 
     /// returns occupied matrix column indices for all matrix rows
