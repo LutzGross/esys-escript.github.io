@@ -1338,7 +1338,8 @@ class LinearProblem(object):
        """
        Returns the solution in its current state.
        """
-       if self.__solution.isEmpty(): self.__solution=self.createSolution()
+       if self.__solution.isEmpty(): 
+          self.__solution=self.createSolution()
        return self.__solution
 
    def resetRightHandSide(self):
