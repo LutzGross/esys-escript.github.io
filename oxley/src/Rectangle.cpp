@@ -908,20 +908,20 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
     }
 }
 
-//private
-void Rectangle::populateDofMap()
-{
-    m_dofMap.assign(getNumNodes(), 0);
-#pragma omp parallel for
-    for(index_t i = 0; i < getNumNodes(); i++)
-    {
-        m_dofMap[i] = myRows[i+1]-myRows[i];
-    }
+// //private
+// void Rectangle::populateDofMap()
+// {
+//     m_dofMap.assign(getNumNodes(), 0);
+// #pragma omp parallel for
+//     for(index_t i = 0; i < getNumNodes()-1; i++)
+//     {
+//         m_dofMap[i] = myRows[i+1]-myRows[i];
+//     }
 
-// #ifdef ESYS_HAVE_PASO
-//     createPasoConnector(neighbour, offsetInShared, offsetInShared, sendShared, recvShared);
-// #endif
-}
+// // #ifdef ESYS_HAVE_PASO
+// //     createPasoConnector(neighbour, offsetInShared, offsetInShared, sendShared, recvShared);
+// // #endif
+// }
 
 
 //private
@@ -1428,6 +1428,7 @@ void Rectangle::updateRowsColumns()
     myRows.clear();
     myRows.push_back(0);
     myColumns.clear();
+    m_dofMap.assign(getNumNodes(), 0);
     long counter = 0;
     for(int i = 0; i < getNumNodes(); i++)
     {
@@ -1441,7 +1442,10 @@ void Rectangle::updateRowsColumns()
         std::sort(temp.begin(),temp.end());
         for(int i = 0; i < temp.size(); i++)
             myColumns.push_back(temp[i]);
-        myRows.push_back(counter);
+        m_dofMap[i] = counter-myRows[i];
+        if(i != getNumNodes()-1)
+            myRows.push_back(counter);
+        
     }
 #ifdef P4EST_ENABLE_DEBUG
     std::cout << "Converted to Yale format... "<< std::endl;
@@ -1453,10 +1457,11 @@ void Rectangle::updateRowsColumns()
     for(auto i = myRows.begin(); i < myRows.end(); i++)
         std::cout << *i << " ";
     std::cout << "]" << std::endl;
+    std::cout << "m_dofMap [";
+    for(auto i = m_dofMap.begin(); i < m_dofMap.end(); i++)
+        std::cout << *i << " ";
+    std::cout << "]" << std::endl;
 #endif
-
-    // Update the dof map
-    populateDofMap();
 
     delete data;
     delete indices;

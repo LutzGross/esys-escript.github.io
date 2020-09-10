@@ -287,7 +287,7 @@ protected:
     virtual void nodesToDOF(escript::Data& out, const escript::Data& in) const;
     virtual dim_t getDofOfNode(dim_t node) const;
     virtual void populateSampleIds();
-    virtual void populateDofMap();
+    // virtual void populateDofMap();
     void updateHangingNodeIDs();
 
     // Updates myRows and myColumns
