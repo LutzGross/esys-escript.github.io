@@ -913,7 +913,7 @@ void Rectangle::populateDofMap()
 {
     m_dofMap.assign(getNumNodes(), 0);
 #pragma omp parallel for
-    for(index_t i = 0; i < getNumNodes()-1; i++)
+    for(index_t i = 0; i < getNumNodes(); i++)
     {
         m_dofMap[i] = myRows[i+1]-myRows[i];
     }
