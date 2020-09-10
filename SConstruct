@@ -239,7 +239,10 @@ prefix = Dir(env['prefix']).abspath
 env['buildvars']['prefix'] = prefix
 env['incinstall'] = os.path.join(prefix, 'include')
 env['bininstall'] = os.path.join(prefix, 'bin')
-env['libinstall'] = os.path.join(prefix, 'lib')
+if IS_WINDOWS:
+    env['libinstall'] = env['bininstall']
+else:
+    env['libinstall'] = os.path.join(prefix, 'lib')
 env['pyinstall']  = os.path.join(prefix, 'esys')
 if not os.path.isdir(env['bininstall']):
     os.makedirs(env['bininstall'])

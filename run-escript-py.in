@@ -92,7 +92,31 @@ EXTRA_PYTHONPATH = ESCRIPT_ROOT
 #     EXTRA_LD_LIBRARY_PATH = os.path.join(ESCRIPT_ROOT, 'lib')
 # else:
 #     EXTRA_LD_LIBRARY_PATH = os.path.join(ESCRIPT_ROOT, 'lib')
-EXTRA_LD_LIBRARY_PATH = os.path.join(ESCRIPT_ROOT, 'lib')
+if IS_WINDOWS:
+    EXTRA_LD_LIBRARY_PATH = ''
+else:
+    EXTRA_LD_LIBRARY_PATH = os.path.join(ESCRIPT_ROOT, 'lib')
+
+def printExports():
+    if IS_WINDOWS:
+        cmd, env1, env2 = 'set', '%%', '%%'
+        print(cmd+' PATH='+os.pathsep.join(filter(None, [EXTRA_PATH, EXTRA_LD_LIBRARY_PATH, env1+'PATH'+env2])))
+    else:
+        cmd, env1, env2 = 'export', '$', ''
+        print(cmd+' LD_LIBRARY_PATH='+os.pathsep.join(filter(None, [EXTRA_LD_LIBRARY_PATH,
+            env1+'LD_LIBRARY_PATH'+env2])))
+        print(cmd+' PATH='+os.pathsep.join(filter(None, [EXTRA_PATH, env1+'PATH'+env2])))
+    print(cmd+' PYTHONPATH='+os.pathsep.join(filter(None, [EXTRA_PYTHONPATH, env1+'PYTHONPATH'+env2])))
+    if IS_DARWIN:
+        print('export DYLD_LIBRARY_PATH = '+os.pathsep.join(filter(None, [EXTRA_DYLD_LIBRARY_PATH,
+            EXTRA_LD_LIBRARY_PATH, '$DYLD_LIBRARY_PATH'])))
+    exit(0)
+
+def get_buildvar(bldvar):
+    with open(buildinfo_file, 'r') as f:
+        m = re.search(bldvar+'[ ]*=(?P<bldvar>.*)$', f.read(), re.MULTILINE)
+        if m:
+            return m.group('bldvar').strip()
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-n', metavar='nn', help='number of nodes to use')
@@ -111,31 +135,15 @@ parser.add_argument('-m', metavar='tool', help='run with valgrind {tool=m[emchec
 parser.add_argument('script.py [args...]', nargs=argparse.REMAINDER, help='Your python script and optional command-line arguments')
 args = parser.parse_args()
 
-buildinfo_file = os.path.join(ESCRIPT_ROOT, 'lib', 'buildvars')
+if IS_WINDOWS:
+    buildinfo_dir = 'bin'
+else:
+    buildinfo_dir = 'lib'
+buildinfo_file = os.path.join(ESCRIPT_ROOT, buildinfo_dir, 'buildvars')
 if not os.access(buildinfo_file, os.R_OK):
     if args.e:
         printExports()
     die('Unable to read escript build information!')
-
-def printExports():
-    if IS_WINDOWS:
-        cmd, env1, env2 = 'set', '%%', '%%'
-        print(cmd+' PATH='+EXTRA_PATH+os.pathsep+EXTRA_LD_LIBRARY_PATH+os.pathsep+env1+'PATH'+env2)
-    else:
-        cmd, env1, env2 = 'export', '$', ''
-        print(cmd+' LD_LIBRARY_PATH='+EXTRA_LD_LIBRARY_PATH+os.pathsep+env1+'LD_LIBRARY_PATH'+env2)
-        print(cmd+' PATH='+EXTRA_PATH+os.pathsep+env1+'PATH'+env2)
-    print(cmd+' PYTHONPATH='+EXTRA_PYTHONPATH+os.pathsep+env1+'PYTHONPATH'+env2)
-    if IS_DARWIN:
-        print('export DYLD_LIBRARY_PATH = '+EXTRA_DYLD_LIBRARY_PATH+os.pathsep+
-            EXTRA_LD_LIBRARY_PATH+os.pathsep+'$DYLD_LIBRARY_PATH')
-    exit(0)
-
-def get_buildvar(bldvar):
-    with open(buildinfo_file, 'r') as f:
-        m = re.search(bldvar+'[ ]*=(?P<bldvar>.*)$', f.read(), re.MULTILINE)
-        if m:
-            return m.group('bldvar').strip()
 
 PYTHON_MPI_NULL = os.path.join(ESCRIPT_ROOT, 'lib', 'pythonMPI')
 PYTHON_MPI_REDIRECT = os.path.join(ESCRIPT_ROOT, 'lib', 'pythonMPIredirect')
@@ -197,8 +205,8 @@ if WITH_VISIT == '1':
         m = re.search('LIBPATH[ ]*=(?P<libpath>.*)$', subprocess.Popen(visit_bin+' -env', shell=True,
             stdout=subprocess.PIPE).stdout.read().decode(sys.stdout.encoding), re.MULTILINE)
         VISIT_PY_PATH = m.group('libpath').strip()
-        EXTRA_PYTHONPATH = EXTRA_PYTHONPATH+os.pathsep+VISIT_PY_PATH
-        EXTRA_LD_LIBRARY_PATH = EXTRA_LD_LIBRARY_PATH+os.pathsep+VISIT_PY_PATH
+        EXTRA_PYTHONPATH = os.pathsep.join(filter(None, [EXTRA_PYTHONPATH, VISIT_PY_PATH]))
+        EXTRA_LD_LIBRARY_PATH = os.pathsep.join(filter(None, [EXTRA_LD_LIBRARY_PATH, VISIT_PY_PATH]))
     else:
         vlog('Warning: VisIt module enabled but VisIt not in path!')
 
@@ -207,14 +215,15 @@ if WITH_VISIT == '1':
 #
 export_env = env
 if IS_WINDOWS:
-    export_env['PATH'] = EXTRA_PATH+os.pathsep+EXTRA_LD_LIBRARY_PATH+os.pathsep+export_env.get('PATH', '')
+    export_env['PATH'] = os.pathsep.join(filter(None, [EXTRA_PATH, EXTRA_LD_LIBRARY_PATH, export_env.get('PATH', '')]))
 else:
-    export_env['PATH'] = EXTRA_PATH+os.pathsep+export_env.get('PATH', '')
-    export_env['LD_LIBRARY_PATH'] = EXTRA_LD_LIBRARY_PATH+os.pathsep+export_env.get('LD_LIBRARY_PATH', '')
-export_env['PYTHONPATH'] = EXTRA_PYTHONPATH+os.pathsep+export_env.get('PYTHONPATH', '')
+    export_env['PATH'] = os.pathsep.join(filter(None, [EXTRA_PATH, export_env.get('PATH', '')]))
+    export_env['LD_LIBRARY_PATH'] = os.pathsep.join(filter(None, [EXTRA_LD_LIBRARY_PATH,
+        export_env.get('LD_LIBRARY_PATH', '')]))
+export_env['PYTHONPATH'] = os.pathsep.join(filter(None, [EXTRA_PYTHONPATH, export_env.get('PYTHONPATH', '')]))
 if IS_DARWIN:
-    export_env['DYLD_LIBRARY_PATH'] = EXTRA_DYLD_LIBRARY_PATH+os.pathsep+EXTRA_LD_LIBRARY_PATH+ \
-        os.pathsep+export_env.get('DYLD_LIBRARY_PATH', '')
+    export_env['DYLD_LIBRARY_PATH'] = os.pathsep.join(filter(None, [EXTRA_DYLD_LIBRARY_PATH, EXTRA_LD_LIBRARY_PATH,
+        export_env.get('DYLD_LIBRARY_PATH', '')]))
 vlog('PATH='+export_env['PATH']+'\nLD_LIBRARY_PATH='+export_env.get('LD_LIBRARY_PATH','None')+
     '\nPYTHONPATH='+export_env['PYTHONPATH'])
 if IS_DARWIN:
