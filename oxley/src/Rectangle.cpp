@@ -1266,34 +1266,33 @@ inline dim_t Rectangle::getNumElements() const
 //protected
 inline dim_t Rectangle::getNumFaceElements() const
 {
-    throw OxleyException("getNumFaceElements");
-    // double xy[2];
-    // double x0 = forestData->m_origin[0];
-    // double y0 = forestData->m_origin[1];
-    // double x1 = forestData->m_length[0]+forestData->m_origin[0];
-    // double y1 = forestData->m_length[1]+forestData->m_origin[1];
-    // p4est_locidx_t numFaceElements = 0;
-    // for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
-    // {
-    //     p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
-    //     sc_array_t * tquadrants = &currenttree->quadrants;
-    //     for (p4est_locidx_t e = 0; e < tquadrants->elem_count; e++)
-    //     {
-    //         p4est_quadrant_t * q = p4est_quadrant_array_index(tquadrants, e);
-    //         p4est_qcoord_t length = P4EST_QUADRANT_LEN(q->level);
-    //         p4est_qcoord_to_vertex(p4est->connectivity, t, q->x,q->y,xy);
-    //         if(xy[0] == x0 || xy[1] == y0){
-    //             numFaceElements++;
-    //             break;
-    //         }
-    //         p4est_qcoord_to_vertex(p4est->connectivity, t, q->x+length,q->y+length,xy);
-    //         if(xy[0] == x1 || xy[1] == y1){
-    //             numFaceElements++;
-    //             break;
-    //         }
-    //     }
-    // }
-    // return numFaceElements;
+    double xy[2];
+    double x0 = forestData->m_origin[0];
+    double y0 = forestData->m_origin[1];
+    double x1 = forestData->m_length[0]+forestData->m_origin[0];
+    double y1 = forestData->m_length[1]+forestData->m_origin[1];
+    p4est_locidx_t numFaceElements = 0;
+    for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
+    {
+        p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
+        sc_array_t * tquadrants = &currenttree->quadrants;
+        for (p4est_locidx_t e = 0; e < tquadrants->elem_count; e++)
+        {
+            p4est_quadrant_t * q = p4est_quadrant_array_index(tquadrants, e);
+            p4est_qcoord_t length = P4EST_QUADRANT_LEN(q->level);
+            p4est_qcoord_to_vertex(p4est->connectivity, t, q->x,q->y,xy);
+            if(xy[0] == x0 || xy[1] == y0){
+                numFaceElements++;
+                break;
+            }
+            p4est_qcoord_to_vertex(p4est->connectivity, t, q->x+length,q->y+length,xy);
+            if(xy[0] == x1 || xy[1] == y1){
+                numFaceElements++;
+                break;
+            }
+        }
+    }
+    return numFaceElements;
 }
 
 dim_t Rectangle::getNumDOF() const
