@@ -64,7 +64,7 @@ class SimpleSolveOnTrilinos(SimpleSolveTestCase):
 
 class Test_SimpleSolveOxley2D_Trilinos_BICGSTAB_Jacobi(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Rectangle(order=2,n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.BICGSTAB
         self.preconditioner = SolverOptions.JACOBI
@@ -75,7 +75,7 @@ class Test_SimpleSolveOxley2D_Trilinos_BICGSTAB_Jacobi(SimpleSolveOnTrilinos):
 # class Test_SimpleSolveOxley3D_Trilinos_BICGSTAB_Jacobi(SimpleSolveOnTrilinos):
 #     SOLVER_TOL = 1.e-9
 #     def setUp(self):
-#         self.domain = Brick(order=2,n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
+#         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
 #         self.package = SolverOptions.TRILINOS
 #         self.method = SolverOptions.BICGSTAB
 #         self.preconditioner = SolverOptions.JACOBI
@@ -87,7 +87,7 @@ class Test_SimpleSolveOxley2D_Trilinos_BICGSTAB_Jacobi(SimpleSolveOnTrilinos):
 
 class Test_SimpleSolveOxley2D_Trilinos_GMRES_Jacobi(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Rectangle(order=2,n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.GMRES
         self.preconditioner = SolverOptions.JACOBI
@@ -97,7 +97,7 @@ class Test_SimpleSolveOxley2D_Trilinos_GMRES_Jacobi(SimpleSolveOnTrilinos):
 
 # class Test_SimpleSolveOxley3D_Trilinos_GMRES_Jacobi(SimpleSolveOnTrilinos):
 #     def setUp(self):
-#         self.domain = Brick(order=2,n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
+#         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
 #         self.package = SolverOptions.TRILINOS
 #         self.method = SolverOptions.GMRES
 #         self.preconditioner = SolverOptions.JACOBI
@@ -109,7 +109,7 @@ class Test_SimpleSolveOxley2D_Trilinos_GMRES_Jacobi(SimpleSolveOnTrilinos):
 
 class Test_SimpleSolveOxley2D_Trilinos_PCG_Jacobi(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Rectangle(order=2,n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.JACOBI
@@ -119,7 +119,7 @@ class Test_SimpleSolveOxley2D_Trilinos_PCG_Jacobi(SimpleSolveOnTrilinos):
 
 # class Test_SimpleSolveOxley3D_Trilinos_PCG_Jacobi(SimpleSolveOnTrilinos):
 #     def setUp(self):
-#         self.domain = Brick(order=2,n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
+#         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
 #         self.package = SolverOptions.TRILINOS
 #         self.method = SolverOptions.PCG
 #         self.preconditioner = SolverOptions.JACOBI
@@ -131,7 +131,7 @@ class Test_SimpleSolveOxley2D_Trilinos_PCG_Jacobi(SimpleSolveOnTrilinos):
 
 class Test_SimpleSolveOxley2D_Trilinos_MINRES_Jacobi(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Rectangle(order=2,n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.MINRES
         self.preconditioner = SolverOptions.JACOBI
@@ -141,7 +141,7 @@ class Test_SimpleSolveOxley2D_Trilinos_MINRES_Jacobi(SimpleSolveOnTrilinos):
 
 # class Test_SimpleSolveOxley3D_Trilinos_MINRES_Jacobi(SimpleSolveOnTrilinos):
 #     def setUp(self):
-#         self.domain = Brick(order=2,n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
+#         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
 #         self.package = SolverOptions.TRILINOS
 #         self.method = SolverOptions.MINRES
 #         self.preconditioner = SolverOptions.JACOBI
@@ -153,7 +153,7 @@ class Test_SimpleSolveOxley2D_Trilinos_MINRES_Jacobi(SimpleSolveOnTrilinos):
 
 class Test_SimpleSolveOxley2D_Trilinos_TFQMR_RILU(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Rectangle(order=2,n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.TFQMR
         self.preconditioner = SolverOptions.RILU
@@ -163,7 +163,7 @@ class Test_SimpleSolveOxley2D_Trilinos_TFQMR_RILU(SimpleSolveOnTrilinos):
 
 # class Test_SimpleSolveOxley3D_Trilinos_TFQMR_RILU(SimpleSolveOnTrilinos):
 #     def setUp(self):
-#         self.domain = Brick(order=2,n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
+#         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
 #         self.package = SolverOptions.TRILINOS
 #         self.method = SolverOptions.TFQMR
 #         self.preconditioner = SolverOptions.RILU
@@ -177,7 +177,7 @@ class Test_SimpleSolveOxley2D_Trilinos_TFQMR_RILU(SimpleSolveOnTrilinos):
 class Test_SimpleSolveOxley2D_Trilinos_LSQR_AMG(SimpleSolveOnTrilinos):
     SOLVER_TOL = 1.e-9
     def setUp(self):
-        self.domain = Rectangle(order=2,n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.LSQR
         self.preconditioner = SolverOptions.AMG
@@ -193,7 +193,7 @@ class Test_SimpleSolveOxley2D_Trilinos_LSQR_AMG(SimpleSolveOnTrilinos):
 @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
 class Test_SimpleSolveOxley2D_Trilinos_PCG_AMG(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Rectangle(order=2,n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.AMG
@@ -207,7 +207,7 @@ class Test_SimpleSolveOxley2D_Trilinos_PCG_AMG(SimpleSolveOnTrilinos):
 # @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
 # class Test_SimpleSolveOxley3D_Trilinos_PCG_AMG(SimpleSolveOnTrilinos):
 #     def setUp(self):
-#         self.domain = Brick(order=2,n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
+#         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
 #         self.package = SolverOptions.TRILINOS
 #         self.method = SolverOptions.PCG
 #         self.preconditioner = SolverOptions.AMG
@@ -222,7 +222,7 @@ class Test_SimpleSolveOxley2D_Trilinos_PCG_AMG(SimpleSolveOnTrilinos):
 
 class Test_SimpleSolveOxley2D_Trilinos_PCG_ILUT(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = Rectangle(order=2,n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.ILUT
@@ -233,7 +233,7 @@ class Test_SimpleSolveOxley2D_Trilinos_PCG_ILUT(SimpleSolveOnTrilinos):
 # class Test_SimpleSolveOxley3D_Trilinos_PCG_ILUT(SimpleSolveOnTrilinos):
 #     SOLVER_TOL = 1.e-9
 #     def setUp(self):
-#         self.domain = Brick(order=2,n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
+#         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
 #         self.package = SolverOptions.TRILINOS
 #         self.method = SolverOptions.PCG
 #         self.preconditioner = SolverOptions.ILUT
