@@ -1784,8 +1784,6 @@ template<typename Scalar>
 void Rectangle::assembleGradientImpl(escript::Data& out,
                                      const escript::Data& in) const
 {
-    throw OxleyException("assembleGradientImpl");
-
     const dim_t numComp = in.getDataPointSize();
     
     // Find the maximum level of refinement in the mesh
@@ -1812,192 +1810,212 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
     if (out.getFunctionSpace().getTypeCode() == Elements) {
         out.requireWrite();
 
-//         for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
-//         {
-//             p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
-//             sc_array_t * tquadrants = &currenttree->quadrants;
-//             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-// #pragma omp parallel for
-//             for (p4est_locidx_t e = domain->nodes->global_offset; e < Q+domain->nodes->global_offset; e++) // Loop over every quadrant within the tree
-//             {
-//                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
-//                 quadrantData * quaddata = (quadrantData *) quad->p.user_data;
+        std::vector<Scalar> f_00(numComp, zero);
+        std::vector<Scalar> f_01(numComp, zero);
+        std::vector<Scalar> f_10(numComp, zero);
+        std::vector<Scalar> f_11(numComp, zero);
 
-//                 Scalar* o = out.getSampleDataRW(INDEX2(k0,k1,m_NE[0]), zero);
-                // for (index_t i = 0; i < numComp; ++i) {
-                //     o[INDEX3(i,0,0,numComp,2)] = (f_10[i]-f_00[i])*cx1 + (f_11[i]-f_01[i])*cx0;
-                //     o[INDEX3(i,1,0,numComp,2)] = (f_01[i]-f_00[i])*cy1 + (f_11[i]-f_10[i])*cy0;
-                //     o[INDEX3(i,0,1,numComp,2)] = (f_10[i]-f_00[i])*cx1 + (f_11[i]-f_01[i])*cx0;
-                //     o[INDEX3(i,1,1,numComp,2)] = (f_01[i]-f_00[i])*cy0 + (f_11[i]-f_10[i])*cy1;
-                //     o[INDEX3(i,0,2,numComp,2)] = (f_10[i]-f_00[i])*cx0 + (f_11[i]-f_01[i])*cx1;
-                //     o[INDEX3(i,1,2,numComp,2)] = (f_01[i]-f_00[i])*cy1 + (f_11[i]-f_10[i])*cy0;
-                //     o[INDEX3(i,0,3,numComp,2)] = (f_10[i]-f_00[i])*cx0 + (f_11[i]-f_01[i])*cx1;
-                //     o[INDEX3(i,1,3,numComp,2)] = (f_01[i]-f_00[i])*cy0 + (f_11[i]-f_10[i])*cy1;
-                // } 
-    //         }
-    //     }
-    // } else if (out.getFunctionSpace().getTypeCode() == ReducedElements) {
-    //     out.requireWrite();
-// #pragma omp parallel
-//         {
-//             vector<Scalar> f_00(numComp, zero);
-//             vector<Scalar> f_01(numComp, zero);
-//             vector<Scalar> f_10(numComp, zero);
-//             vector<Scalar> f_11(numComp, zero);
-// #pragma omp for
-//             for (index_t k1 = 0; k1 < NE1; ++k1) {
-//                 for (index_t k0 = 0; k0 < NE0; ++k0) {
-//                     memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,k1, m_NN[0]), zero), numComp*sizeof(Scalar));
-//                     memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,k1+1, m_NN[0]), zero), numComp*sizeof(Scalar));
-//                     memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,k1, m_NN[0]), zero), numComp*sizeof(Scalar));
-//                     memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,k1+1, m_NN[0]), zero), numComp*sizeof(Scalar));
-//                     Scalar* o = out.getSampleDataRW(INDEX2(k0,k1,m_NE[0]), zero);
-//                     for (index_t i = 0; i < numComp; ++i) {
-//                         o[INDEX3(i,0,0,numComp,2)] = (f_10[i] + f_11[i] - f_00[i] - f_01[i])*cx2 * 0.5;
-//                         o[INDEX3(i,1,0,numComp,2)] = (f_01[i] + f_11[i] - f_00[i] - f_10[i])*cy2 * 0.5;
-//                     } // end of component loop i
-//                 } // end of k0 loop
-//             } // end of k1 loop
-//         } // end of parallel section
-//     } else if (out.getFunctionSpace().getTypeCode() == FaceElements) {
-//         out.requireWrite();
-// #pragma omp parallel
-//         {
-//             vector<Scalar> f_00(numComp, zero);
-//             vector<Scalar> f_01(numComp, zero);
-//             vector<Scalar> f_10(numComp, zero);
-//             vector<Scalar> f_11(numComp, zero);
-//             if (m_faceOffset[0] > -1) {
-// #pragma omp for nowait
-//                 for (index_t k1 = 0; k1 < NE1; ++k1) {
-//                     memcpy(&f_00[0], in.getSampleDataRO(INDEX2(0,k1, m_NN[0]), zero), numComp*sizeof(Scalar));
-//                     memcpy(&f_01[0], in.getSampleDataRO(INDEX2(0,k1+1, m_NN[0]), zero), numComp*sizeof(Scalar));
-//                     memcpy(&f_10[0], in.getSampleDataRO(INDEX2(1,k1, m_NN[0]), zero), numComp*sizeof(Scalar));
-//                     memcpy(&f_11[0], in.getSampleDataRO(INDEX2(1,k1+1, m_NN[0]), zero), numComp*sizeof(Scalar));
-//                     Scalar* o = out.getSampleDataRW(m_faceOffset[0]+k1, zero);
-//                     for (index_t i = 0; i < numComp; ++i) {
-//                         o[INDEX3(i,0,0,numComp,2)] = (f_10[i]-f_00[i])*cx1 + (f_11[i]-f_01[i])*cx0;
-//                         o[INDEX3(i,1,0,numComp,2)] = (f_01[i]-f_00[i])*cy2;
-//                         o[INDEX3(i,0,1,numComp,2)] = (f_10[i]-f_00[i])*cx0 + (f_11[i]-f_01[i])*cx1;
-//                         o[INDEX3(i,1,1,numComp,2)] = (f_01[i]-f_00[i])*cy2;
-//                     } // end of component loop i
-//                 } // end of k1 loop
-//             } // end of face 0
-//             if (m_faceOffset[1] > -1) {
-// #pragma omp for nowait
-//                 for (index_t k1 = 0; k1 < NE1; ++k1) {
-//                     memcpy(&f_00[0], in.getSampleDataRO(INDEX2(m_NN[0]-2,k1, m_NN[0]), zero), numComp*sizeof(Scalar));
-//                     memcpy(&f_01[0], in.getSampleDataRO(INDEX2(m_NN[0]-2,k1+1, m_NN[0]), zero), numComp*sizeof(Scalar));
-//                     memcpy(&f_10[0], in.getSampleDataRO(INDEX2(m_NN[0]-1,k1, m_NN[0]), zero), numComp*sizeof(Scalar));
-//                     memcpy(&f_11[0], in.getSampleDataRO(INDEX2(m_NN[0]-1,k1+1, m_NN[0]), zero), numComp*sizeof(Scalar));
-//                     Scalar* o = out.getSampleDataRW(m_faceOffset[1]+k1, zero);
-//                     for (index_t i = 0; i < numComp; ++i) {
-//                         o[INDEX3(i,0,0,numComp,2)] = (f_10[i]-f_00[i])*cx1 + (f_11[i]-f_01[i])*cx0;
-//                         o[INDEX3(i,1,0,numComp,2)] = (f_11[i]-f_10[i])*cy2;
-//                         o[INDEX3(i,0,1,numComp,2)] = (f_10[i]-f_00[i])*cx0 + (f_11[i]-f_01[i])*cx1;
-//                         o[INDEX3(i,1,1,numComp,2)] = (f_11[i]-f_10[i])*cy2;
-//                     } // end of component loop i
-//                 } // end of k1 loop
-//             } // end of face 1
-//             if (m_faceOffset[2] > -1) {
-// #pragma omp for nowait
-//                 for (index_t k0 = 0; k0 < NE0; ++k0) {
-//                     memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,0, m_NN[0]), zero), numComp*sizeof(Scalar));
-//                     memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,1, m_NN[0]), zero), numComp*sizeof(Scalar));
-//                     memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,0, m_NN[0]), zero), numComp*sizeof(Scalar));
-//                     memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,1, m_NN[0]), zero), numComp*sizeof(Scalar));
-//                     Scalar* o = out.getSampleDataRW(m_faceOffset[2]+k0, zero);
-//                     for (index_t i = 0; i < numComp; ++i) {
-//                         o[INDEX3(i,0,0,numComp,2)] = (f_10[i]-f_00[i])*cx2;
-//                         o[INDEX3(i,1,0,numComp,2)] = (f_01[i]-f_00[i])*cy1 + (f_11[i]-f_10[i])*cy0;
-//                         o[INDEX3(i,0,1,numComp,2)] = (f_10[i]-f_00[i])*cx2;
-//                         o[INDEX3(i,1,1,numComp,2)] = (f_01[i]-f_00[i])*cy0 + (f_11[i]-f_10[i])*cy1;
-//                     } // end of component loop i
-//                 } // end of k0 loop
-//             } // end of face 2
-//             if (m_faceOffset[3] > -1) {
-// #pragma omp for nowait
-//                 for (index_t k0 = 0; k0 < NE0; ++k0) {
-//                     memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,m_NN[1]-2, m_NN[0]), zero), numComp*sizeof(Scalar));
-//                     memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,m_NN[1]-1, m_NN[0]), zero), numComp*sizeof(Scalar));
-//                     memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,m_NN[1]-2, m_NN[0]), zero), numComp*sizeof(Scalar));
-//                     memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,m_NN[1]-1, m_NN[0]), zero), numComp*sizeof(Scalar));
-//                     Scalar* o = out.getSampleDataRW(m_faceOffset[3]+k0, zero);
-//                     for (index_t i = 0; i < numComp; ++i) {
-//                         o[INDEX3(i,0,0,numComp,2)] = (f_11[i]-f_01[i])*cx2;
-//                         o[INDEX3(i,1,0,numComp,2)] = (f_01[i]-f_00[i])*cy1 + (f_11[i]-f_10[i])*cy0;
-//                         o[INDEX3(i,0,1,numComp,2)] = (f_11[i]-f_01[i])*cx2;
-//                         o[INDEX3(i,1,1,numComp,2)] = (f_01[i]-f_00[i])*cy0 + (f_11[i]-f_10[i])*cy1;
-//                     } // end of component loop i
-//                 } // end of k0 loop
-//             } // end of face 3
-//         } // end of parallel section
+        for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) // Loop over every tree
+        {
+            p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
+            sc_array_t * tquadrants = &currenttree->quadrants;
+            p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+#pragma omp parallel for
+            for (p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++) // Loop over every quadrant within the tree
+            {
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
+                quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
+                memcpy(&f_00[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
+                memcpy(&f_01[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
+                memcpy(&f_10[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
+                memcpy(&f_11[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
+
+                Scalar* o = out.getSampleDataRW(e, zero);
+                for (index_t i = 0; i < numComp; ++i) {
+                    o[INDEX3(i,0,0,numComp,2)] = (f_10[i]-f_00[i])*cx[1][i] + (f_11[i]-f_01[i])*cx[0][i];
+                    o[INDEX3(i,1,0,numComp,2)] = (f_01[i]-f_00[i])*cy[1][i] + (f_11[i]-f_10[i])*cy[0][i];
+                    o[INDEX3(i,0,1,numComp,2)] = (f_10[i]-f_00[i])*cx[1][i] + (f_11[i]-f_01[i])*cx[0][i];
+                    o[INDEX3(i,1,1,numComp,2)] = (f_01[i]-f_00[i])*cy[0][i] + (f_11[i]-f_10[i])*cy[1][i];
+                    o[INDEX3(i,0,2,numComp,2)] = (f_10[i]-f_00[i])*cx[0][i] + (f_11[i]-f_01[i])*cx[1][i];
+                    o[INDEX3(i,1,2,numComp,2)] = (f_01[i]-f_00[i])*cy[1][i] + (f_11[i]-f_10[i])*cy[0][i];
+                    o[INDEX3(i,0,3,numComp,2)] = (f_10[i]-f_00[i])*cx[0][i] + (f_11[i]-f_01[i])*cx[1][i];
+                    o[INDEX3(i,1,3,numComp,2)] = (f_01[i]-f_00[i])*cy[0][i] + (f_11[i]-f_10[i])*cy[1][i];
+                } 
+            }
+        }
+    } else if (out.getFunctionSpace().getTypeCode() == ReducedElements) {
+        out.requireWrite();
+
+        std::vector<Scalar> f_00(numComp, zero);
+        std::vector<Scalar> f_01(numComp, zero);
+        std::vector<Scalar> f_10(numComp, zero);
+        std::vector<Scalar> f_11(numComp, zero);
+
+        for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) // Loop over every tree
+        {
+            p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
+            sc_array_t * tquadrants = &currenttree->quadrants;
+            p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+#pragma omp parallel for
+            for (p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++) // Loop over every quadrant within the tree
+            {
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
+                quadrantData * quaddata = (quadrantData *) quad->p.user_data;
+
+                memcpy(&f_00[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
+                memcpy(&f_01[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
+                memcpy(&f_10[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
+                memcpy(&f_11[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
+
+                Scalar* o = out.getSampleDataRW(e, zero);
+
+             for (index_t i = 0; i < numComp; ++i) {
+                    o[INDEX3(i,0,0,numComp,2)] = (f_10[i] + f_11[i] - f_00[i] - f_01[i])*cx[2][i] * 0.5;
+                    o[INDEX3(i,1,0,numComp,2)] = (f_01[i] + f_11[i] - f_00[i] - f_10[i])*cy[2][i] * 0.5;
+                } 
+            }
+        }
+    } else if (out.getFunctionSpace().getTypeCode() == FaceElements) {
+        out.requireWrite();
+
+        for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
+        {
+            p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
+            sc_array_t * tquadrants = &currenttree->quadrants;
+            p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+#pragma omp parallel for
+            for (p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
+            {
+                // Work out what level this element is on 
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
+                quadrantData * quaddata = (quadrantData *) quad->p.user_data;
+
+                std::vector<Scalar> f_00(numComp, zero);
+                std::vector<Scalar> f_01(numComp, zero);
+                std::vector<Scalar> f_10(numComp, zero);
+                std::vector<Scalar> f_11(numComp, zero);
+
+                if (quaddata->m_faceOffset == 0) {
+                    memcpy(&f_00[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
+                    memcpy(&f_01[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
+                    memcpy(&f_10[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
+                    memcpy(&f_11[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
+                    Scalar* o = out.getSampleDataRW(e, zero);
+                    for (index_t i = 0; i < numComp; ++i) {
+                        o[INDEX3(i,0,0,numComp,2)] = (f_10[i]-f_00[i])*cx[1][i] + (f_11[i]-f_01[i])*cx[0][i];
+                        o[INDEX3(i,1,0,numComp,2)] = (f_01[i]-f_00[i])*cy[2][i];
+                        o[INDEX3(i,0,1,numComp,2)] = (f_10[i]-f_00[i])*cx[0][i] + (f_11[i]-f_01[i])*cx[1][i];
+                        o[INDEX3(i,1,1,numComp,2)] = (f_01[i]-f_00[i])*cy[2][i];
+                    } // end of component loop i
+                } // end of face 0
+                if (quaddata->m_faceOffset == 1) {
+                    memcpy(&f_00[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
+                    memcpy(&f_01[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
+                    memcpy(&f_10[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
+                    memcpy(&f_11[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
+                    Scalar* o = out.getSampleDataRW(e, zero);
+                    for (index_t i = 0; i < numComp; ++i) {
+                        o[INDEX3(i,0,0,numComp,2)] = (f_10[i]-f_00[i])*cx[1][i] + (f_11[i]-f_01[i])*cx[0][i];
+                        o[INDEX3(i,1,0,numComp,2)] = (f_11[i]-f_10[i])*cy[2][i];
+                        o[INDEX3(i,0,1,numComp,2)] = (f_10[i]-f_00[i])*cx[0][i] + (f_11[i]-f_01[i])*cx[1][i];
+                        o[INDEX3(i,1,1,numComp,2)] = (f_11[i]-f_10[i])*cy[2][i];
+                    } // end of component loop i
+                } // end of face 1
+                if (quaddata->m_faceOffset == 2) {
+                    memcpy(&f_00[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
+                    memcpy(&f_01[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
+                    memcpy(&f_10[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
+                    memcpy(&f_11[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
+                    Scalar* o = out.getSampleDataRW(e, zero);
+                    for (index_t i = 0; i < numComp; ++i) {
+                        o[INDEX3(i,0,0,numComp,2)] = (f_10[i]-f_00[i])*cx[2][i];
+                        o[INDEX3(i,1,0,numComp,2)] = (f_01[i]-f_00[i])*cy[1][i] + (f_11[i]-f_10[i])*cy[0][i];
+                        o[INDEX3(i,0,1,numComp,2)] = (f_10[i]-f_00[i])*cx[2][i];
+                        o[INDEX3(i,1,1,numComp,2)] = (f_01[i]-f_00[i])*cy[0][i] + (f_11[i]-f_10[i])*cy[1][i];
+                    } // end of component loop i
+                } // end of face 2
+                if (quaddata->m_faceOffset == 3) {
+                    memcpy(&f_00[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
+                    memcpy(&f_01[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
+                    memcpy(&f_10[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
+                    memcpy(&f_11[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
+                    Scalar* o = out.getSampleDataRW(e, zero);
+                    for (index_t i = 0; i < numComp; ++i) {
+                        o[INDEX3(i,0,0,numComp,2)] = (f_11[i]-f_01[i])*cx[2][i];
+                        o[INDEX3(i,1,0,numComp,2)] = (f_01[i]-f_00[i])*cy[1][i] + (f_11[i]-f_10[i])*cy[0][i];
+                        o[INDEX3(i,0,1,numComp,2)] = (f_11[i]-f_01[i])*cx[2][i];
+                        o[INDEX3(i,1,1,numComp,2)] = (f_01[i]-f_00[i])*cy[0][i] + (f_11[i]-f_10[i])*cy[1][i];
+                    } // end of component loop i
+                } // end of face 3
+            }
+        }
     } else if (out.getFunctionSpace().getTypeCode() == ReducedFaceElements) {
         out.requireWrite();
-// #pragma omp parallel
-//         {
-//             vector<Scalar> f_00(numComp, zero);
-//             vector<Scalar> f_01(numComp, zero);
-//             vector<Scalar> f_10(numComp, zero);
-//             vector<Scalar> f_11(numComp, zero);
-//             if (m_faceOffset[0] > -1) {
-// #pragma omp for nowait
-//                 for (index_t k1 = 0; k1 < NE1; ++k1) {
-//                     memcpy(&f_00[0], in.getSampleDataRO(INDEX2(0,k1, m_NN[0]), zero), numComp*sizeof(Scalar));
-//                     memcpy(&f_01[0], in.getSampleDataRO(INDEX2(0,k1+1, m_NN[0]), zero), numComp*sizeof(Scalar));
-//                     memcpy(&f_10[0], in.getSampleDataRO(INDEX2(1,k1, m_NN[0]), zero), numComp*sizeof(Scalar));
-//                     memcpy(&f_11[0], in.getSampleDataRO(INDEX2(1,k1+1, m_NN[0]), zero), numComp*sizeof(Scalar));
-//                     Scalar* o = out.getSampleDataRW(m_faceOffset[0]+k1, zero);
-//                     for (index_t i = 0; i < numComp; ++i) {
-//                         o[INDEX3(i,0,0,numComp,2)] = (f_10[i] + f_11[i] - f_00[i] - f_01[i])*cx2 * 0.5;
-//                         o[INDEX3(i,1,0,numComp,2)] = (f_01[i]-f_00[i])*cy2;
-//                     } // end of component loop i
-//                 } // end of k1 loop
-//             } // end of face 0
-//             if (m_faceOffset[1] > -1) {
-// #pragma omp for nowait
-//                 for (index_t k1 = 0; k1 < NE1; ++k1) {
-//                     memcpy(&f_00[0], in.getSampleDataRO(INDEX2(m_NN[0]-2,k1, m_NN[0]), zero), numComp*sizeof(Scalar));
-//                     memcpy(&f_01[0], in.getSampleDataRO(INDEX2(m_NN[0]-2,k1+1, m_NN[0]), zero), numComp*sizeof(Scalar));
-//                     memcpy(&f_10[0], in.getSampleDataRO(INDEX2(m_NN[0]-1,k1, m_NN[0]), zero), numComp*sizeof(Scalar));
-//                     memcpy(&f_11[0], in.getSampleDataRO(INDEX2(m_NN[0]-1,k1+1, m_NN[0]), zero), numComp*sizeof(Scalar));
-//                     Scalar* o = out.getSampleDataRW(m_faceOffset[1]+k1, zero);
-//                     for (index_t i = 0; i < numComp; ++i) {
-//                         o[INDEX3(i,0,0,numComp,2)] = (f_10[i] + f_11[i] - f_00[i] - f_01[i])*cx2 * 0.5;
-//                         o[INDEX3(i,1,0,numComp,2)] = (f_11[i]-f_10[i])*cy2;
-//                     } // end of component loop i
-//                 } // end of k1 loop
-//             } // end of face 1
-//             if (m_faceOffset[2] > -1) {
-// #pragma omp for nowait
-//                 for (index_t k0 = 0; k0 < NE0; ++k0) {
-//                     memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,0, m_NN[0]), zero), numComp*sizeof(Scalar));
-//                     memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,1, m_NN[0]), zero), numComp*sizeof(Scalar));
-//                     memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,0, m_NN[0]), zero), numComp*sizeof(Scalar));
-//                     memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,1, m_NN[0]), zero), numComp*sizeof(Scalar));
-//                     Scalar* o = out.getSampleDataRW(m_faceOffset[2]+k0, zero);
-//                     for (index_t i = 0; i < numComp; ++i) {
-//                         o[INDEX3(i,0,0,numComp,2)] = (f_10[i]-f_00[i])*cx2;
-//                         o[INDEX3(i,1,0,numComp,2)] = (f_01[i] + f_11[i] - f_00[i] - f_10[i])*cy2 * 0.5;
-//                     } // end of component loop i
-//                 } // end of k0 loop
-//             } // end of face 2
-//             if (m_faceOffset[3] > -1) {
-// #pragma omp for nowait
-//                 for (index_t k0 = 0; k0 < NE0; ++k0) {
-//                     memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,m_NN[1]-2, m_NN[0]), zero), numComp*sizeof(Scalar));
-//                     memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,m_NN[1]-1, m_NN[0]), zero), numComp*sizeof(Scalar));
-//                     memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,m_NN[1]-2, m_NN[0]), zero), numComp*sizeof(Scalar));
-//                     memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,m_NN[1]-1, m_NN[0]), zero), numComp*sizeof(Scalar));
-//                     Scalar* o = out.getSampleDataRW(m_faceOffset[3]+k0, zero);
-//                     for (index_t i = 0; i < numComp; ++i) {
-//                         o[INDEX3(i,0,0,numComp,2)] = (f_11[i]-f_01[i])*cx2;
-//                         o[INDEX3(i,1,0,numComp,2)] = (f_01[i] + f_11[i] - f_00[i] - f_10[i])*cy2 * 0.5;
-//                     } // end of component loop i
-//                 } // end of k0 loop
-//             } // end of face 3
-//         } // end of parallel section
+
+        for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
+        {
+            p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
+            sc_array_t * tquadrants = &currenttree->quadrants;
+            p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+#pragma omp parallel for
+            for (p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
+            {
+                // Work out what level this element is on 
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
+                quadrantData * quaddata = (quadrantData *) quad->p.user_data;
+
+                std::vector<Scalar> f_00(numComp, zero);
+                std::vector<Scalar> f_01(numComp, zero);
+                std::vector<Scalar> f_10(numComp, zero);
+                std::vector<Scalar> f_11(numComp, zero);
+
+                if (quaddata->m_faceOffset == 0) {
+                    memcpy(&f_00[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
+                    memcpy(&f_01[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
+                    memcpy(&f_10[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
+                    memcpy(&f_11[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
+                    Scalar* o = out.getSampleDataRW(e, zero);
+                    for (index_t i = 0; i < numComp; ++i) {
+                        o[INDEX3(i,0,0,numComp,2)] = (f_10[i] + f_11[i] - f_00[i] - f_01[i])*cx[2][i] * 0.5;
+                        o[INDEX3(i,1,0,numComp,2)] = (f_01[i]-f_00[i])*cy[2][i];
+                    } // end of component loop i
+                } // end of face 0
+                if (quaddata->m_faceOffset == 1) {
+                    memcpy(&f_00[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
+                    memcpy(&f_01[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
+                    memcpy(&f_10[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
+                    memcpy(&f_11[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
+                    Scalar* o = out.getSampleDataRW(e, zero);
+                    for (index_t i = 0; i < numComp; ++i) {
+                        o[INDEX3(i,0,0,numComp,2)] = (f_10[i] + f_11[i] - f_00[i] - f_01[i])*cx[2][i] * 0.5;
+                        o[INDEX3(i,1,0,numComp,2)] = (f_11[i]-f_10[i])*cy[2][i];
+                    } // end of component loop i
+                } // end of face 1
+                if (quaddata->m_faceOffset == 2) {
+                    memcpy(&f_00[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
+                    memcpy(&f_01[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
+                    memcpy(&f_10[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
+                    memcpy(&f_11[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
+                    Scalar* o = out.getSampleDataRW(e, zero);
+                    for (index_t i = 0; i < numComp; ++i) {
+                        o[INDEX3(i,0,0,numComp,2)] = (f_10[i]-f_00[i])*cx[2][i];
+                        o[INDEX3(i,1,0,numComp,2)] = (f_01[i] + f_11[i] - f_00[i] - f_10[i])*cy[2][i] * 0.5;
+                    } // end of component loop i
+                } // end of face 2
+                if (quaddata->m_faceOffset == 3) {
+                    memcpy(&f_00[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
+                    memcpy(&f_01[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
+                    memcpy(&f_10[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
+                    memcpy(&f_11[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
+                    Scalar* o = out.getSampleDataRW(e, zero);
+                    for (index_t i = 0; i < numComp; ++i) {
+                        o[INDEX3(i,0,0,numComp,2)] = (f_11[i]-f_01[i])*cx[2][i];
+                        o[INDEX3(i,1,0,numComp,2)] = (f_01[i] + f_11[i] - f_00[i] - f_10[i])*cy[2][i] * 0.5;
+                    } // end of component loop i
+                }
+            }
+        }
     }
 }
 
