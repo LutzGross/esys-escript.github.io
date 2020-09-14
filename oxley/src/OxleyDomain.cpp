@@ -877,9 +877,6 @@ namespace oxley {
 
 #ifdef ESYS_HAVE_TRILINOS
 //protected
-// esys_trilinos::const_TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
-//                                             const IndexVector& myRows,
-//                                             const IndexVector& myColumns) const
 esys_trilinos::const_TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
                                             const IndexVector& m_dofId,
                                             const IndexVector& m_nodeId,
@@ -907,7 +904,7 @@ esys_trilinos::const_TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
 #pragma omp parallel for
     for(long i = 0; i < YaleRows.size(); i++)
         rowPtr[i]=YaleRows[i];
-    Teuchos::ArrayRCP<LO> colInd(rowPtr[numMatrixRows]);
+    Teuchos::ArrayRCP<LO> colInd(YaleColumns.size());
 #pragma omp parallel for
     for(long i = 0; i < YaleColumns.size(); i++)
         colInd[i]=YaleColumns[i];
