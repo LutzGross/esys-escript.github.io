@@ -602,8 +602,6 @@ void Rectangle::print_debug_report(std::string locat)
 
 Assembler_ptr Rectangle::createAssembler(std::string type, const DataMap& constants) const
 {
-    throw OxleyException("createAssembler");
-
     bool isComplex = false;
     DataMap::const_iterator it;
     for(it = constants.begin(); it != constants.end(); it++) {
