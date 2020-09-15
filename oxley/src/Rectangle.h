@@ -254,9 +254,7 @@ new_rectangle_connectivity(int mi, int ni, int periodic_a, int periodic_b,
        \brief
        creates and returns an assembler of the requested type.
     */
-    virtual Assembler_ptr createAssembler(std::string type,
-                                          const DataMap& options) const;
-
+    virtual Assembler_ptr createAssembler(std::string type, const DataMap& options) const;
 
 protected:
     virtual dim_t getNumNodes() const;

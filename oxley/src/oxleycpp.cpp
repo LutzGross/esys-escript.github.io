@@ -291,6 +291,12 @@ BOOST_PYTHON_MODULE(oxleycpp)
 
     class_<oxley::OxleyDomain, bases<escript::AbstractContinuousDomain>, boost::noncopyable >
         ("OxleyDomain", "", no_init)
+        .def("addToSystem",&oxley::OxleyDomain::addToSystemFromPython,
+            args("mat", "rhs", "data"),
+            "adds a PDE to the system, results depend on domain\n\n"
+            ":param mat:\n:type mat: `OperatorAdapter`\n"
+            ":param rhs:\n:type rhs: `Data`\n"
+            ":param data:\n:type data: `list`\n")
         .def("createAssembler", &oxley::OxleyDomain::createAssemblerFromPython,
             args("typename", "options"),
             "request from the domain an assembler of the specified type, if "
@@ -348,6 +354,13 @@ BOOST_PYTHON_MODULE(oxleycpp)
 
     class_<oxley::Rectangle, bases<oxley::OxleyDomain> > ("OxleyRectangle", "", no_init);
     class_<oxley::Brick, bases<oxley::OxleyDomain> > ("OxleyBrick", "", no_init);
+
+
+    // These two class exports are necessary to ensure that the extra methods
+    // added by oxley make it to python. 
+    class_<oxley::Brick, bases<oxley::OxleyDomain> >("OxleyBrick", "", no_init);
+    class_<oxley::Rectangle, bases<oxley::OxleyDomain> >("OxleyRectangle", "", no_init);
+    class_<oxley::AbstractAssembler, oxley::Assembler_ptr, boost::noncopyable >  ("AbstractAssembler", "", no_init);
 }
 
 } //namespace oxley
