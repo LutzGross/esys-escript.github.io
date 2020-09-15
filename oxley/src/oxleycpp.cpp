@@ -291,41 +291,28 @@ BOOST_PYTHON_MODULE(oxleycpp)
 
     class_<oxley::OxleyDomain, bases<escript::AbstractContinuousDomain>, boost::noncopyable >
         ("OxleyDomain", "", no_init)
-        .def("getDescription", &oxley::OxleyDomain::getDescription,
-                "Prints out a description of the mesh.")
-        .def("writeToVTK", &oxley::OxleyDomain::writeToVTK, (arg("filename"), arg("writeMesh")=false),
-                "Writes the mesh to a VTK file.\n"
-                ":param filename: The name of the output file\n"
-                ":param writeMesh: Boolean: Only writes the mesh to file")
-        .def("setRefinementLevels", &oxley::OxleyDomain::setRefinementLevels, (arg("refinementlevels")),
-                "Sets the number of levels of refinement\n"
-                ":param refinementLevels:\ntype int: `Maximum number of levels of refinement,`\n")
-        .def("refine", &oxley::OxleyDomain::refineMesh, (args("maxRecursion","RefinementAlgorithm")),
-                "Refines the mesh.\n"
-                ":param maxRecursion:\n:type int: `Maximum number of levels of refinement,`\n"
-                ":param RefinementAlgorithm:\n:type string: `The refinement algorithm \n"
-                "       accepted values are \"uniform\"")
-        .def("getNumVertices", &oxley::OxleyDomain::getNumVertices,
-                "Returns the number of corners in the mesh.")
-        .def("getDim", &oxley::OxleyDomain::getDim, ":rtype: ``int``")
+        .def("createAssembler", &oxley::OxleyDomain::createAssemblerFromPython,
+            args("typename", "options"),
+            "request from the domain an assembler of the specified type, if "
+            "supported, using the supplied options (if provided)"
+            ":param typename:\n:type typename: `string`\n"
+            ":param options:\n:type options: `list`\n")
         .def("getDataShape", &oxley::OxleyDomain::getDataShape, args("functionSpaceCode"),
                 ":return: a pair (dps, ns) where dps is the number of data points per sample, and ns is the number of samples\n"
-                ":rtype: ``tuple``")
-        .def("newOperator",&oxley::OxleyDomain::newSystemMatrix,
-            args("row_blocksize", "row_functionspace", "column_blocksize", "column_functionspace", "type"),
-            "creates a SystemMatrixAdapter stiffness matrix and initializes it with zeros\n\n"
-            ":param row_blocksize:\n:type row_blocksize: ``int``\n"
-            ":param row_functionspace:\n:type row_functionspace: `FunctionSpace`\n"
-            ":param column_blocksize:\n:type column_blocksize: ``int``\n"
-            ":param column_functionspace:\n:type column_functionspace: `FunctionSpace`\n"
-            ":param type:\n:type type: ``int``"
-            )
+                ":rtype: ``tuple``")        
+        .def("getDescription", &oxley::OxleyDomain::getDescription,
+                "Prints out a description of the mesh.")
+        .def("getDim", &oxley::OxleyDomain::getDim, ":rtype: ``int``")
+        .def("getNormal",&oxley::OxleyDomain::getNormal,
+            ":return: boundary normals at the quadrature point on the face elements\n"
+            ":rtype: `Data`")
+        .def("getNumVertices", &oxley::OxleyDomain::getNumVertices,
+                "Returns the number of corners in the mesh.")
         .def("getSystemMatrixTypeId",&oxley::OxleyDomain::getSystemMatrixTypeId,
             args("options"),
             ":return: the identifier of the matrix type to be used for the global stiffness matrix when particular solver options are used.\n"
             ":rtype: ``int``\n"
-            ":param options:\n:type options: `SolverBuddy`\n"
-            )
+            ":param options:\n:type options: `SolverBuddy`\n")
         .def("getTransportTypeId",&oxley::OxleyDomain::getTransportTypeId,
             args("solver", "preconditioner", "package", "symmetry"),
             ":return: the identifier of the transport problem type to be used when a particular solver, preconditioner, package and symmetric matrix is used.\n"
@@ -337,9 +324,27 @@ BOOST_PYTHON_MODULE(oxleycpp)
             )
         .def("getX",&oxley::OxleyDomain::getX, ":return: locations in the FEM nodes\n\n"
             ":rtype: `Data`")
-        .def("getNormal",&oxley::OxleyDomain::getNormal,
-            ":return: boundary normals at the quadrature point on the face elements\n"
-            ":rtype: `Data`");
+        .def("newOperator",&oxley::OxleyDomain::newSystemMatrix,
+            args("row_blocksize", "row_functionspace", "column_blocksize", "column_functionspace", "type"),
+            "creates a SystemMatrixAdapter stiffness matrix and initializes it with zeros\n\n"
+            ":param row_blocksize:\n:type row_blocksize: ``int``\n"
+            ":param row_functionspace:\n:type row_functionspace: `FunctionSpace`\n"
+            ":param column_blocksize:\n:type column_blocksize: ``int``\n"
+            ":param column_functionspace:\n:type column_functionspace: `FunctionSpace`\n"
+            ":param type:\n:type type: ``int``")
+        .def("refine", &oxley::OxleyDomain::refineMesh, (args("maxRecursion","RefinementAlgorithm")),
+                "Refines the mesh.\n"
+                ":param maxRecursion:\n:type int: `Maximum number of levels of refinement,`\n"
+                ":param RefinementAlgorithm:\n:type string: `The refinement algorithm \n"
+                "       accepted values are \"uniform\"")
+        .def("setRefinementLevels", &oxley::OxleyDomain::setRefinementLevels, (arg("refinementlevels")),
+                "Sets the number of levels of refinement\n"
+                ":param refinementLevels:\ntype int: `Maximum number of levels of refinement,`\n")
+        .def("writeToVTK", &oxley::OxleyDomain::writeToVTK, (arg("filename"), arg("writeMesh")=false),
+                "Writes the mesh to a VTK file.\n"
+                ":param filename: The name of the output file\n"
+                ":param writeMesh: Boolean: Only writes the mesh to file")
+        ;
 
     class_<oxley::Rectangle, bases<oxley::OxleyDomain> > ("OxleyRectangle", "", no_init);
     class_<oxley::Brick, bases<oxley::OxleyDomain> > ("OxleyBrick", "", no_init);

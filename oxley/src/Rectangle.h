@@ -197,13 +197,6 @@ public:
     */
     int getNumVertices() const { return connectivity->num_vertices;};
 
-    /**
-       \brief
-       creates and returns an assembler of the requested type.
-    */
-    virtual Assembler_ptr createAssembler(std::string type, const DataMap& options) const;
-
-
     virtual dim_t findNode(const double *coords) const;
 
     /**
@@ -255,6 +248,15 @@ private:
 p4est_connectivity_t *
 new_rectangle_connectivity(int mi, int ni, int periodic_a, int periodic_b, 
     double x0, double x1, double y0, double y1);
+
+  
+    /**
+       \brief
+       creates and returns an assembler of the requested type.
+    */
+    virtual Assembler_ptr createAssembler(std::string type,
+                                          const DataMap& options) const;
+
 
 protected:
     virtual dim_t getNumNodes() const;

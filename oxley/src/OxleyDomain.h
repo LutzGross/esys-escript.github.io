@@ -573,6 +573,19 @@ public:
     */
     virtual int getSystemMatrixTypeId(const boost::python::object& options) const;
 
+    /**
+       \brief
+    */
+    virtual Assembler_ptr createAssembler(std::string type,
+                                      const DataMap& options) const {
+        throw escript::NotImplementedError("Domain does not support custom assemblers");
+    }
+
+    /**
+       \brief
+    */
+    Assembler_ptr createAssemblerFromPython(std::string type,
+                                     const boost::python::list& options) const;
 
     //List of tags currently in use
     int tags[MAXTAGS] = {-1};

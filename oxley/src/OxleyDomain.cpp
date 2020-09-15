@@ -1134,6 +1134,14 @@ void OxleyDomain::addToSystemFromPython(escript::AbstractSystemMatrix& mat,
     }
 
 
+Assembler_ptr OxleyDomain::createAssemblerFromPython(const string type,
+                                                const bp::list& options) const
+{
+    DataMap mapping;
+    tupleListToMap(mapping, options);
+    return createAssembler(type, mapping);
+}
+
 void OxleyDomain::addToRHS(escript::Data& rhs, const DataMap& coefs,
                             Assembler_ptr assembler) const
     {

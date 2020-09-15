@@ -1611,4 +1611,31 @@ std::vector<IndexVector> Brick::getConnections(bool includeShared) const
 //     return indices;
 }
 
+Assembler_ptr Brick::createAssembler(std::string type, const DataMap& constants) const
+{
+    // bool isComplex = false;
+    // DataMap::const_iterator it;
+    // for (it = constants.begin(); it != constants.end(); it++) {
+    //     if (!it->second.isEmpty() && it->second.isComplex()) {
+    //         isComplex = true;
+    //         break;
+    //     }
+    // }
+
+    // if (type.compare("DefaultAssembler") == 0) {
+    //     if (isComplex) {
+    //         return Assembler_ptr(new DefaultAssembler3D<cplx_t>(shared_from_this(), m_dx, m_NE, m_NN));
+    //     } else {
+    //         return Assembler_ptr(new DefaultAssembler3D<real_t>(shared_from_this(), m_dx, m_NE, m_NN));
+    //     }
+    // } else if (type.compare("WaveAssembler") == 0) {
+    //     return Assembler_ptr(new WaveAssembler3D(shared_from_this(), m_dx, m_NE, m_NN, constants));
+    // } else if (type.compare("LameAssembler") == 0) {
+    //     return Assembler_ptr(new LameAssembler3D(shared_from_this(), m_dx, m_NE, m_NN));
+    // } else { //else ifs would go before this for other types
+    //     throw RipleyException("Oxley::Brick does not support the requested "
+    //                           "assembler");
+    // }
+}
+
 } // end of namespace oxley

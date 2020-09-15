@@ -202,6 +202,9 @@ public:
 
     void print_debug_report(std::string);
 
+    virtual Assembler_ptr createAssembler(std::string type,
+                                          const DataMap& options) const;
+
 ////////////////////////////////
 protected:
 
