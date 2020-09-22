@@ -887,20 +887,31 @@ esys_trilinos::const_TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
 
     const dim_t numMatrixRows = getNumDOF();
 
+    // This is temporary
+    auto ndpg = getNumDataPointsGlobal();
+    IndexVector rowTemp(ndpg), colTemp(ndpg);
+    for(int i = 0; i < ndpg; i++)
+    {
+        rowTemp[i]=i;
+        colTemp[i]=i;
+    }
+
+
     // rowMap
     // This is using the constructor on line 868 of file Tpetra_Map_def.hpp.
-    TrilinosMap_ptr rowMap(new MapType(getNumDataPointsGlobal(), rowIndexList,
+    TrilinosMap_ptr rowMap(new MapType(getNumDataPointsGlobal(), rowTemp,
                 0, TeuchosCommFromEsysComm(m_mpiInfo->comm)));
 
     // colMap
-    TrilinosMap_ptr colMap(new MapType(getNumDataPointsGlobal(), colIndexList,
+    TrilinosMap_ptr colMap(new MapType(getNumDataPointsGlobal(), colTemp,
                 0, TeuchosCommFromEsysComm(m_mpiInfo->comm)));
     
     // rowPtr
     Teuchos::ArrayRCP<size_t> rowPtr(numMatrixRows+1);
     for (size_t i=0; i < numMatrixRows; i++) {
-        rowPtr[i] = YaleRows[i];
+        rowPtr[i+1] = rowPtr[i] + YaleRows[i+1] - YaleRows[i];
     }
+    rowPtr[numMatrixRows]=numMatrixRows;
 
     // colInd
     Teuchos::ArrayRCP<LO> colInd(rowPtr[numMatrixRows]);
