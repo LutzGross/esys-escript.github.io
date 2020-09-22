@@ -878,66 +878,31 @@ namespace oxley {
 #ifdef ESYS_HAVE_TRILINOS
 //protected
 esys_trilinos::const_TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
-                                            const IndexVector& m_dofId,
-                                            const IndexVector& m_nodeId,
+                                            const IndexVector& rowIndexList,
+                                            const IndexVector& colIndexList,
                                             const IndexVector& YaleRows,
                                             const IndexVector& YaleColumns) const
 {
     using namespace esys_trilinos;
 
-    const dim_t numMatrixRows = getNumDOF();
+    // rowMap
+    // This is using the constructor on line 868 of file Tpetra_Map_def.hpp.
+    TrilinosMap_ptr rowMap(new MapType(getNumDataPointsGlobal(), rowIndexList,
+                0, TeuchosCommFromEsysComm(m_mpiInfo->comm)));
 
-    TrilinosMap_ptr rowMap(new MapType(getNumDataPointsGlobal(), m_dofId, 0, TeuchosCommFromEsysComm(m_mpiInfo->comm)));
-
-    IndexVector columns(getNumNodes());
-    // order is important - our columns (=myRows) come first, followed by
-    // shared ones (=node Id for non-DOF)
-#pragma omp parallel for
-    for (size_t i=0; i<columns.size(); i++)
-        columns[getDofOfNode(i)] = m_nodeId[i];
-
-    TrilinosMap_ptr colMap(new MapType(getNumDataPointsGlobal(), columns, 0, TeuchosCommFromEsysComm(m_mpiInfo->comm)));
-
-    // now build CSR arrays (rowPtr and colInd)
-    const vector<IndexVector>& conns(getConnections(true));
-    Teuchos::ArrayRCP<size_t> rowPtr(numMatrixRows+1);
-#pragma omp parallel for
-    for(long i = 0; i < YaleRows.size(); i++)
-        rowPtr[i]=YaleRows[i];
-    Teuchos::ArrayRCP<LO> colInd(YaleColumns.size());
-#pragma omp parallel for
-    for(long i = 0; i < YaleColumns.size(); i++)
-        colInd[i]=YaleColumns[i];
-
-#pragma omp parallel for
-    for (index_t i=0; i < numMatrixRows; i++)
-        copy(conns[i].begin(), conns[i].end(), &colInd[rowPtr[i]]);
-
-    TrilinosGraph_ptr graph(new GraphType(rowMap, colMap, rowPtr, colInd));
+    // colMap
+    TrilinosMap_ptr colMap(new MapType(getNumDataPointsGlobal(), colIndexList,
+                0, TeuchosCommFromEsysComm(m_mpiInfo->comm)));
+    
+    // params
     Teuchos::RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
+    
+    TrilinosGraph_ptr graph(new GraphType(rowMap, colMap, YaleRows, YaleColumns, params));
     params->set("Optimize Storage", true);
     graph->fillComplete(rowMap, rowMap, params);
-
     return graph;
 }
-#endif // ESYS_HAVE_TRILINOS
-
-    //protected
-    template<>
-    void OxleyDomain::addToSystemMatrix<cplx_t>(escript::AbstractSystemMatrix* mat,
-                                             const IndexVector& nodes, dim_t numEq,
-                                             const vector<cplx_t>& array) const
-    {
-#ifdef ESYS_HAVE_TRILINOS
-        esys_trilinos::TrilinosMatrixAdapter* tm = dynamic_cast<esys_trilinos::TrilinosMatrixAdapter*>(mat);
-        if (tm) {
-            tm->add(nodes, array);
-            return;
-        }
 #endif
-        throw OxleyException("addToSystemMatrix: only Trilinos matrices support "
-                              "complex-valued assembly!");
-    }
 
 #ifdef ESYS_HAVE_PASO
     void OxleyDomain::addToPasoMatrix(paso::SystemMatrix* mat,
