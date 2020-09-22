@@ -885,6 +885,8 @@ esys_trilinos::const_TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
 {
     using namespace esys_trilinos;
 
+    const dim_t numMatrixRows = getNumDOF();
+
     // rowMap
     // This is using the constructor on line 868 of file Tpetra_Map_def.hpp.
     TrilinosMap_ptr rowMap(new MapType(getNumDataPointsGlobal(), rowIndexList,
@@ -894,10 +896,21 @@ esys_trilinos::const_TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
     TrilinosMap_ptr colMap(new MapType(getNumDataPointsGlobal(), colIndexList,
                 0, TeuchosCommFromEsysComm(m_mpiInfo->comm)));
     
+    // rowPtr
+    Teuchos::ArrayRCP<size_t> rowPtr(numMatrixRows+1);
+    for (size_t i=0; i < numMatrixRows; i++) {
+        rowPtr[i] = YaleRows[i];
+    }
+
+    // colInd
+    Teuchos::ArrayRCP<LO> colInd(rowPtr[numMatrixRows]);
+    for (size_t i=0; i < numMatrixRows; i++) {
+        colInd[i] = YaleColumns[i];
+    }
+
     // params
+    TrilinosGraph_ptr graph(new GraphType(rowMap, colMap, rowPtr, colInd));
     Teuchos::RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
-    
-    TrilinosGraph_ptr graph(new GraphType(rowMap, colMap, YaleRows, YaleColumns, params));
     params->set("Optimize Storage", true);
     graph->fillComplete(rowMap, rowMap, params);
     return graph;
