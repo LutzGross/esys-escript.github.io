@@ -1440,8 +1440,10 @@ void Rectangle::updateRowsColumns()
         for(int i = 0; i < temp.size(); i++)
             myColumns.push_back(temp[i]);
         m_dofMap[i] = counter-myRows[i];
-        myRows.push_back(counter);
+        if(i < getNumNodes()-1)
+            myRows.push_back(counter);
     }
+    myRows.push_back(myColumns.size());
 #ifdef P4EST_ENABLE_DEBUG
     std::cout << "Converted to Yale format... "<< std::endl;
     std::cout << "COL_INDEX [";

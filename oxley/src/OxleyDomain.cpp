@@ -907,19 +907,19 @@ esys_trilinos::const_TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
     rowPtr[numMatrixRows]=YaleRows[numMatrixRows];
 
     // colInd
-    Teuchos::ArrayRCP<LO> colInd(YaleRows[numMatrixRows]);
-    for (size_t i=0; i < YaleRows[numMatrixRows]; i++) {
+    Teuchos::ArrayRCP<LO> colInd(rowPtr[numMatrixRows]);
+    for (size_t i=0; i < rowPtr[numMatrixRows]; i++) {
         colInd[i] = YaleColumns[i];
     }
 
-    // for(int i = 0; i < getNumDataPointsGlobal(); i++)
-    //     std::cout << "myRows["<<i<<"]: " << rowTemp[i]<<std::endl;
-    // for(int i = 0; i < getNumDataPointsGlobal(); i++)
-    //     std::cout << "columns["<<i<<"]: " << rowTemp[i]<<std::endl;
-    // for(int i = 0; i < numMatrixRows+1; i++)
-    //     std::cout << "rowPtr["<<i<<"]: " << rowPtr[i]<<std::endl;
-    // for(int i = 0; i < rowPtr[numMatrixRows]; i++)
-    //     std::cout << "colInd["<<i<<"]: " << colInd[i]<<std::endl;
+    for(int i = 0; i < getNumDataPointsGlobal(); i++)
+        std::cout << "myRows["<<i<<"]: " << rowTemp[i]<<std::endl;
+    for(int i = 0; i < getNumDataPointsGlobal(); i++)
+        std::cout << "columns["<<i<<"]: " << rowTemp[i]<<std::endl;
+    for(int i = 0; i < numMatrixRows+1; i++)
+        std::cout << "rowPtr["<<i<<"]: " << rowPtr[i]<<std::endl;
+    for(int i = 0; i < rowPtr[numMatrixRows]; i++)
+        std::cout << "colInd["<<i<<"]: " << colInd[i]<<std::endl;
 
     // params
     TrilinosGraph_ptr graph(new GraphType(rowMap, colMap, rowPtr, colInd));
