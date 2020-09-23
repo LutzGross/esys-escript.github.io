@@ -1440,9 +1440,7 @@ void Rectangle::updateRowsColumns()
         for(int i = 0; i < temp.size(); i++)
             myColumns.push_back(temp[i]);
         m_dofMap[i] = counter-myRows[i];
-        if(i != getNumNodes()-1)
-            myRows.push_back(counter);
-        
+        myRows.push_back(counter);
     }
 #ifdef P4EST_ENABLE_DEBUG
     std::cout << "Converted to Yale format... "<< std::endl;
@@ -1469,7 +1467,7 @@ void Rectangle::updateRowsColumns()
 esys_trilinos::const_TrilinosGraph_ptr Rectangle::getTrilinosGraph() const
 {   
     if (m_graph.is_null()) {
-        m_graph = createTrilinosGraph(m_dofMap, m_nodeDistribution, myRows, myColumns);
+        m_graph = createTrilinosGraph(myRows, myColumns);
     }
     return m_graph;
 }
