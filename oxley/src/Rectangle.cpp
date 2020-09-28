@@ -927,33 +927,30 @@ template<typename Scalar>
 void Rectangle::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F,
          const std::vector<Scalar>& EM_S, const std::vector<Scalar>& EM_F, 
          bool addS, bool addF, index_t firstNode, int nEq, int nComp) const
-{
-    //todo:
-    throw OxleyException("addToMatrixAndRHS");
-    
-//     IndexVector rowIndex(4);
-//     // rowIndex[0] = m_dofMap[firstNode];
-//     // rowIndex[1] = m_dofMap[firstNode+1];
-//     // rowIndex[2] = m_dofMap[firstNode+m_NN[0]];
-//     // rowIndex[3] = m_dofMap[firstNode+m_NN[0]+1];
+{    
+    IndexVector rowIndex(4);
+    // rowIndex[0] = m_dofMap[firstNode];
+    // rowIndex[1] = m_dofMap[firstNode+1];
+    // rowIndex[2] = m_dofMap[firstNode+m_NN[0]];
+    // rowIndex[3] = m_dofMap[firstNode+m_NN[0]+1];
 
-//     if(addF)
-//     {
-//         Scalar* F_p = F.getSampleDataRW(0, static_cast<Scalar>(0));
-//         for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; treeid++)
-//         {
-//             p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, treeid);
-//             sc_array_t * tquadrants = &currenttree->quadrants;
-//             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-// #pragma omp parallel for
-//             for (p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
-//                 F_p[e]+=EM_F[e];
-//         }
-//     }
-//     if(addS)
-//     {
-//         addToSystemMatrix<Scalar>(S, rowIndex, nEq, EM_S);
-//     }
+    if(addF)
+    {
+        Scalar* F_p = F.getSampleDataRW(0, static_cast<Scalar>(0));
+        for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; treeid++)
+        {
+            p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, treeid);
+            sc_array_t * tquadrants = &currenttree->quadrants;
+            p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+#pragma omp parallel for
+            for (p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
+                F_p[e]+=EM_F[e];
+        }
+    }
+    if(addS)
+    {
+        addToSystemMatrix<Scalar>(S, rowIndex, nEq, EM_S);
+    }
 }
 
 template

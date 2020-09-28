@@ -730,21 +730,45 @@ namespace oxley {
                                              const IndexVector& nodes, dim_t numEq,
                                              const DoubleVector& array) const
     {
-#ifdef ESYS_HAVE_PASO
+    #ifdef ESYS_HAVE_PASO
         paso::SystemMatrix* psm = dynamic_cast<paso::SystemMatrix*>(mat);
-        if(psm) {
+        if (psm) {
             addToPasoMatrix(psm, nodes, numEq, array);
             return;
         }
-#endif
-#ifdef ESYS_HAVE_TRILINOS
+    #endif
+    #ifdef ESYS_HAVE_TRILINOS
         esys_trilinos::TrilinosMatrixAdapter* tm = dynamic_cast<esys_trilinos::TrilinosMatrixAdapter*>(mat);
         if (tm) {
             tm->add(nodes, array);
             return;
         }
-#endif
+    #endif
         throw OxleyException("addToSystemMatrix: unknown system matrix type");
+    }
+
+    //protected
+    template<>
+    void OxleyDomain::addToSystemMatrix<cplx_t>(escript::AbstractSystemMatrix* mat,
+                                             const IndexVector& nodes, dim_t numEq,
+                                             const vector<cplx_t>& array) const
+    {
+    #ifdef ESYS_HAVE_MUMPS
+        paso::SystemMatrix* psm = dynamic_cast<paso::SystemMatrix*>(mat);
+        if (psm) {
+            addToPasoMatrix(psm, nodes, numEq, array);
+            return;
+        }
+    #endif
+    #ifdef ESYS_HAVE_TRILINOS
+        esys_trilinos::TrilinosMatrixAdapter* tm = dynamic_cast<esys_trilinos::TrilinosMatrixAdapter*>(mat);
+        if (tm) {
+            tm->add(nodes, array);
+            return;
+        }
+    #endif
+        throw OxleyException("addToSystemMatrix: require Trilinos or MUMPS matrices for "
+                              "complex-valued assembly!");
     }
 
     int OxleyDomain::getSystemMatrixTypeId(const bp::object& options) const
@@ -912,14 +936,14 @@ esys_trilinos::const_TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
         colInd[i] = YaleColumns[i];
     }
 
-    for(int i = 0; i < getNumDataPointsGlobal(); i++)
-        std::cout << "myRows["<<i<<"]: " << rowTemp[i]<<std::endl;
-    for(int i = 0; i < getNumDataPointsGlobal(); i++)
-        std::cout << "columns["<<i<<"]: " << rowTemp[i]<<std::endl;
-    for(int i = 0; i < numMatrixRows+1; i++)
-        std::cout << "rowPtr["<<i<<"]: " << rowPtr[i]<<std::endl;
-    for(int i = 0; i < rowPtr[numMatrixRows]; i++)
-        std::cout << "colInd["<<i<<"]: " << colInd[i]<<std::endl;
+    // for(int i = 0; i < getNumDataPointsGlobal(); i++)
+    //     std::cout << "myRows["<<i<<"]: " << rowTemp[i]<<std::endl;
+    // for(int i = 0; i < getNumDataPointsGlobal(); i++)
+    //     std::cout << "columns["<<i<<"]: " << rowTemp[i]<<std::endl;
+    // for(int i = 0; i < numMatrixRows+1; i++)
+    //     std::cout << "rowPtr["<<i<<"]: " << rowPtr[i]<<std::endl;
+    // for(int i = 0; i < rowPtr[numMatrixRows]; i++)
+    //     std::cout << "colInd["<<i<<"]: " << colInd[i]<<std::endl;
 
     // params
     TrilinosGraph_ptr graph(new GraphType(rowMap, colMap, rowPtr, colInd));

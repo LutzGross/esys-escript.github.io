@@ -291,6 +291,12 @@ BOOST_PYTHON_MODULE(oxleycpp)
 
     class_<oxley::OxleyDomain, bases<escript::AbstractContinuousDomain>, boost::noncopyable >
         ("OxleyDomain", "", no_init)
+        .def("addToRHS",&oxley::OxleyDomain::addToRHSFromPython,
+            args("rhs", "data"),
+            "adds a PDE onto the stiffness matrix mat and a rhs, "
+            "results depends on domain\n\n"
+            ":param rhs:\n:type rhs: `Data`\n"
+            ":param data:\n:type data: `list`\n")
         .def("addToSystem",&oxley::OxleyDomain::addToSystemFromPython,
             args("mat", "rhs", "data"),
             "adds a PDE to the system, results depend on domain\n\n"
