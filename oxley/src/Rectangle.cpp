@@ -1406,6 +1406,13 @@ void Rectangle::updateRowsColumns()
         }
     }
 
+    // Sorting
+#pragma omp for
+    for(int i = 0; i < getNumNodes(); i++){
+        std::vector<long> * idx0 = &indices[0][i];
+        std::sort(indices[0][i].begin()+1, indices[0][i].begin()+idx0[0][0]+1);
+    }
+
 #ifdef P4EST_ENABLE_DEBUG
     std::cout << "Node connections: " << std::endl;
     // Output for debugging
