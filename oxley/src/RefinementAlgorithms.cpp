@@ -13,8 +13,9 @@
 *
 *****************************************************************************/
 
-#include <random>
 #include <iostream>
+#include <random>
+#include <vector>
 
 #include <oxley/RefinementAlgorithms.h>
 #include <oxley/OtherAlgorithms.h>
@@ -574,6 +575,39 @@ void update_RC(p4est_iter_face_info_t *info, void *user_data)
         idx0[0][idx0[0][0]]=lni1;
         idx1[0][idx1[0][0]]=lni0;
     }
+}
+
+void update_connections(p4est_iter_volume_info_t *info, void *user_data)
+{
+    //Get some pointers
+    getConnections_data * data = (getConnections_data *) user_data;
+    p4est_quadrant_t * quad = info->quad;
+    
+    // Coordinates
+    p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
+    double xy[3];
+    long lx[4] = {0,length,0,length};
+    long ly[4] = {0,0,length,length};
+    long lni[4] = {-1};
+#pragma omp parallel for
+    for(int i = 0; i < 4; i++)
+    {
+        p4est_qcoord_to_vertex(data->p4est->connectivity, info->treeid, quad->x+lx[i], quad->y+ly[i], xy);
+        lni[i] = data->pNodeIDs->find(std::make_pair(xy[0],xy[1]))->second;
+    }
+
+
+#pragma omp parallel for
+    for(int i = 0; i < 4; i++)
+    {
+        std::vector<escript::DataTypes::index_t> * temp = &data->indices[0][i];
+        for(int j = 0; j < 4; j++)
+            temp->push_back(lni[j]);
+    }
+
+    // std::cout << "xy = " << xy[0] << ", " << xy[1] << std::endl; // coordinates
+
+
 }
 
 } // namespace oxley

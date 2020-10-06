@@ -178,6 +178,14 @@ struct update_RC_data {
 
 };
 
+struct getConnections_data {
+
+	const std::unordered_map<DoublePair,long,boost::hash<DoublePair>> * pNodeIDs; 
+	p4est_t * p4est;
+	std::vector< std::vector<escript::DataTypes::index_t> > * indices;
+
+};
+
 // Tracks information used by the assembler
 template<class Scalar>
 struct assembly_data_d {

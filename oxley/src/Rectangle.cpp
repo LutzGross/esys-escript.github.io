@@ -907,19 +907,143 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
 }
 
 // //private
-// void Rectangle::populateDofMap()
-// {
+//void Rectangle::populateDofMap()
+//{
+//     // const dim_t nDOF0 = getNumDOFInAxis(0);
+//     // const dim_t nDOF1 = getNumDOFInAxis(1);
+//     // const index_t left = getFirstInDim(0);
+//     // const index_t bottom = getFirstInDim(1);
+
+//     // populate node->DOF mapping with own degrees of freedom.
+//     // The rest is assigned in the loop further down
 //     m_dofMap.assign(getNumNodes(), 0);
 // #pragma omp parallel for
-//     for(index_t i = 0; i < getNumNodes()-1; i++)
-//     {
-//         m_dofMap[i] = myRows[i+1]-myRows[i];
+//     for (index_t i=bottom; i<bottom+nDOF1; i++) {
+//         for (index_t j=left; j<left+nDOF0; j++) {
+//             m_dofMap[i*m_NN[0]+j]=(i-bottom)*nDOF0+j-left;
+//         }
 //     }
 
-// // #ifdef ESYS_HAVE_PASO
-// //     createPasoConnector(neighbour, offsetInShared, offsetInShared, sendShared, recvShared);
-// // #endif
-// }
+//     // build list of shared components and neighbours by looping through
+//     // all potential neighbouring ranks and checking if positions are
+//     // within bounds
+//     const dim_t numDOF=nDOF0*nDOF1;
+//     RankVector neighbour;
+//     IndexVector offsetInShared(1,0);
+//     IndexVector sendShared, recvShared;
+//     const int x=m_mpiInfo->rank%m_NX[0];
+//     const int y=m_mpiInfo->rank/m_NX[0];
+//     // numShared will contain the number of shared DOFs after the following
+//     // blocks
+//     dim_t numShared=0;
+//     // sharing bottom edge
+//     if (y > 0) {
+//         neighbour.push_back((y-1)*m_NX[0] + x);
+//         const dim_t num = nDOF0;
+//         offsetInShared.push_back(offsetInShared.back()+num);
+//         for (dim_t i=0; i<num; i++, numShared++) {
+//             sendShared.push_back(i);
+//             recvShared.push_back(numDOF+numShared);
+//             m_dofMap[left+i]=numDOF+numShared;
+//         }
+//     }
+//     // sharing top edge
+//     if (y < m_NX[1] - 1) {
+//         neighbour.push_back((y+1)*m_NX[0] + x);
+//         const dim_t num = nDOF0;
+//         offsetInShared.push_back(offsetInShared.back()+num);
+//         for (dim_t i=0; i<num; i++, numShared++) {
+//             sendShared.push_back(numDOF-num+i);
+//             recvShared.push_back(numDOF+numShared);
+//             m_dofMap[m_NN[0]*(m_NN[1]-1)+left+i]=numDOF+numShared;
+//         }
+//     }
+//     // sharing left edge
+//     if (x > 0) {
+//         neighbour.push_back(y*m_NX[0] + x-1);
+//         const dim_t num = nDOF1;
+//         offsetInShared.push_back(offsetInShared.back()+num);
+//         for (dim_t i=0; i<num; i++, numShared++) {
+//             sendShared.push_back(i*nDOF0);
+//             recvShared.push_back(numDOF+numShared);
+//             m_dofMap[(bottom+i)*m_NN[0]]=numDOF+numShared;
+//         }
+//     }
+//     // sharing right edge
+//     if (x < m_NX[0] - 1) {
+//         neighbour.push_back(y*m_NX[0] + x+1);
+//         const dim_t num = nDOF1;
+//         offsetInShared.push_back(offsetInShared.back()+num);
+//         for (dim_t i=0; i<num; i++, numShared++) {
+//             sendShared.push_back((i+1)*nDOF0-1);
+//             recvShared.push_back(numDOF+numShared);
+//             m_dofMap[(bottom+1+i)*m_NN[0]-1]=numDOF+numShared;
+//         }
+//     }
+//     // sharing bottom-left node
+//     if (x > 0 && y > 0) {
+//         neighbour.push_back((y-1)*m_NX[0] + x-1);
+//         // sharing a node
+//         offsetInShared.push_back(offsetInShared.back()+1);
+//         sendShared.push_back(0);
+//         recvShared.push_back(numDOF+numShared);
+//         m_dofMap[0]=numDOF+numShared;
+//         ++numShared;
+//     }
+//     // sharing top-left node
+//     if (x > 0 && y < m_NX[1]-1) {
+//         neighbour.push_back((y+1)*m_NX[0] + x-1);
+//         offsetInShared.push_back(offsetInShared.back()+1);
+//         sendShared.push_back(numDOF-nDOF0);
+//         recvShared.push_back(numDOF+numShared);
+//         m_dofMap[m_NN[0]*(m_NN[1]-1)]=numDOF+numShared;
+//         ++numShared;
+//     }
+//     // sharing bottom-right node
+//     if (x < m_NX[0]-1 && y > 0) {
+//         neighbour.push_back((y-1)*m_NX[0] + x+1);
+//         offsetInShared.push_back(offsetInShared.back()+1);
+//         sendShared.push_back(nDOF0-1);
+//         recvShared.push_back(numDOF+numShared);
+//         m_dofMap[m_NN[0]-1]=numDOF+numShared;
+//         ++numShared;
+//     }
+//     // sharing top-right node
+//     if (x < m_NX[0]-1 && y < m_NX[1]-1) {
+//         neighbour.push_back((y+1)*m_NX[0] + x+1);
+//         offsetInShared.push_back(offsetInShared.back()+1);
+//         sendShared.push_back(numDOF-1);
+//         recvShared.push_back(numDOF+numShared);
+//         m_dofMap[m_NN[0]*m_NN[1]-1]=numDOF+numShared;
+//         ++numShared;
+//     }
+
+// #ifdef ESYS_HAVE_PASO
+//     createPasoConnector(neighbour, offsetInShared, offsetInShared, sendShared,
+//                         recvShared);
+// #endif
+
+    // useful debug output
+    /*
+    std::cout << "--- rcv_shcomp ---" << std::endl;
+    std::cout << "numDOF=" << numDOF << ", numNeighbors=" << neighbour.size() << std::endl;
+    for (size_t i=0; i<neighbour.size(); i++) {
+        std::cout << "neighbor[" << i << "]=" << neighbour[i]
+            << " offsetInShared[" << i+1 << "]=" << offsetInShared[i+1] << std::endl;
+    }
+    for (size_t i=0; i<recvShared.size(); i++) {
+        std::cout << "shared[" << i << "]=" << recvShared[i] << std::endl;
+    }
+    std::cout << "--- snd_shcomp ---" << std::endl;
+    for (size_t i=0; i<sendShared.size(); i++) {
+        std::cout << "shared[" << i << "]=" << sendShared[i] << std::endl;
+    }
+    std::cout << "--- dofMap ---" << std::endl;
+    for (size_t i=0; i<m_dofMap.size(); i++) {
+        std::cout << "m_dofMap[" << i << "]=" << m_dofMap[i] << std::endl;
+    }
+    */
+//}
 
 
 //private
@@ -1746,15 +1870,22 @@ std::vector<IndexVector> Rectangle::getConnections(bool includeShared) const
     // returned (i.e. indices of the column couplings)
 
     long numNodes = getNumNodes();
-    std::vector<IndexVector> indices(numNodes);
+    std::vector< std::vector<escript::DataTypes::index_t> > indices(numNodes);
 
-#pragma omp parallel for
-    for(long r = 0; r <= numNodes; r++)
-    {
-        for(int c = myRows[r]; c < myRows[r+1]; c++)
-            indices[r].push_back(myColumns[c]);
-        // sort(indices[r].begin(), indices[r].end());
-    }
+    // Loop over quadrants
+    getConnections_data * data;
+    data = new getConnections_data;
+    data->pNodeIDs = &NodeIDs;
+    data->indices = &indices;
+    data->p4est = p4est;
+    p4est_iterate(p4est, NULL, data, update_connections, NULL, NULL);
+
+    // Sorting
+// #pragma omp parallel for
+//     for(int i = 0; i < numNodes; i++){
+//         auto idx = &indices[0][i];
+//         std::sort(indices[0][i].begin()+1, indices[0][i].begin()+idx[0][0]+1);
+//     }
 
     return indices;
 }

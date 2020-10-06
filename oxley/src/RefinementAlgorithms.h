@@ -100,5 +100,7 @@ void update_node_faceoffset(p8est_iter_volume_info_t * info, void *fxx);
 // Used when updating myRows and myColumns
 void update_RC(p4est_iter_face_info_t *info, void *user_data);
 
+// Used by getConnections
+void update_connections(p4est_iter_volume_info_t *info, void *user_data);
 
 } //namespace oxley

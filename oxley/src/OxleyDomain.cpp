@@ -910,9 +910,16 @@ esys_trilinos::const_TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
     const dim_t numMatrixRows = getNumDOF();
 
     IndexVector rowTemp(getNumDataPointsGlobal());
-#pragma omp for
-    for(long i = 0; i < getNumDataPointsGlobal(); i++)
-        rowTemp[i] = i;
+    if(getMPISize() == 0)
+    {
+    #pragma omp for
+        for(long i = 0; i < getNumDataPointsGlobal(); i++)
+            rowTemp[i] = i;
+    }
+    else
+    {
+        OxleyException("Not yet implemented"); //TODO
+    }
 
     // rowMap
     // This is using the constructor on line 868 of file Tpetra_Map_def.hpp.
@@ -924,6 +931,7 @@ esys_trilinos::const_TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
                 0, TeuchosCommFromEsysComm(m_mpiInfo->comm)));
     
     // rowPtr
+    auto conn = getConnections(0);
     Teuchos::ArrayRCP<size_t> rowPtr(numMatrixRows+1);
     for (size_t i=0; i < numMatrixRows; i++) {
         rowPtr[i+1] = rowPtr[i] + YaleRows[i+1] - YaleRows[i];
@@ -936,22 +944,22 @@ esys_trilinos::const_TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
         colInd[i] = YaleColumns[i];
     }
 
-    // std::cout << "myRows ";
-    // for(int i = 0; i < getNumDataPointsGlobal(); i++)
-    //     std::cout<<rowTemp[i]<< " ";
-    // std::cout << std::endl;
-    // std::cout << "columns ";
-    // for(int i = 0; i < getNumDataPointsGlobal(); i++)
-    //     std::cout<< rowTemp[i]<<" ";
-    // std::cout << std::endl;
-    // std::cout << "rowPtr ";
-    // for(int i = 0; i < numMatrixRows+1; i++)
-    //     std::cout << rowPtr[i]<<" ";
-    // std::cout << std::endl;
-    // std::cout << "colInd ";
-    // for(int i = 0; i < rowPtr[numMatrixRows]; i++)
-    //     std::cout << colInd[i]<<" ";
-    // std::cout << std::endl;
+    std::cout << "myRows ";
+    for(int i = 0; i < getNumDataPointsGlobal(); i++)
+        std::cout<<rowTemp[i]<< " ";
+    std::cout << std::endl;
+    std::cout << "columns ";
+    for(int i = 0; i < getNumDataPointsGlobal(); i++)
+        std::cout<< rowTemp[i]<<" ";
+    std::cout << std::endl;
+    std::cout << "rowPtr ";
+    for(int i = 0; i < numMatrixRows+1; i++)
+        std::cout << rowPtr[i]<<" ";
+    std::cout << std::endl;
+    std::cout << "colInd ";
+    for(int i = 0; i < rowPtr[numMatrixRows]; i++)
+        std::cout << colInd[i]<<" ";
+    std::cout << std::endl;
 
     // params
     TrilinosGraph_ptr graph(new GraphType(rowMap, colMap, rowPtr, colInd));
