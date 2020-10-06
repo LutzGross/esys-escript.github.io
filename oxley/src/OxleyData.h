@@ -61,6 +61,9 @@ struct quadrantData
 	// treeid index
 	long treeid = -1;
 
+	// Number of the MPI process that owns this quadrant
+	int owner = -1;
+
 	// faceOffset[i]=-1 if face i is not an external face, otherwise it is
     // the index of that face (where i: 0=left, 1=right, 2=bottom, 3=top)
     // escript::DataTypes::IndexVector m_faceOffset;

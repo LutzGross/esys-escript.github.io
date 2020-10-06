@@ -936,14 +936,22 @@ esys_trilinos::const_TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
         colInd[i] = YaleColumns[i];
     }
 
+    // std::cout << "myRows ";
     // for(int i = 0; i < getNumDataPointsGlobal(); i++)
-    //     std::cout << "myRows["<<i<<"]: " << rowTemp[i]<<std::endl;
+    //     std::cout<<rowTemp[i]<< " ";
+    // std::cout << std::endl;
+    // std::cout << "columns ";
     // for(int i = 0; i < getNumDataPointsGlobal(); i++)
-    //     std::cout << "columns["<<i<<"]: " << rowTemp[i]<<std::endl;
+    //     std::cout<< rowTemp[i]<<" ";
+    // std::cout << std::endl;
+    // std::cout << "rowPtr ";
     // for(int i = 0; i < numMatrixRows+1; i++)
-    //     std::cout << "rowPtr["<<i<<"]: " << rowPtr[i]<<std::endl;
+    //     std::cout << rowPtr[i]<<" ";
+    // std::cout << std::endl;
+    // std::cout << "colInd ";
     // for(int i = 0; i < rowPtr[numMatrixRows]; i++)
-    //     std::cout << "colInd["<<i<<"]: " << colInd[i]<<std::endl;
+    //     std::cout << colInd[i]<<" ";
+    // std::cout << std::endl;
 
     // params
     TrilinosGraph_ptr graph(new GraphType(rowMap, colMap, rowPtr, colInd));

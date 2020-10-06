@@ -34,8 +34,15 @@ void init_rectangle_data(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t 
     data->u=0.0;
     data->quadTag=0;
 
+    data->owner=p4est->mpirank;
+
     // Save the spatial coordinates
     p4est_qcoord_to_vertex(p4est->connectivity, tree, q->x, q->y, &data->xy[0]);
+
+#ifdef P4EST_ENABLE_DEBUG
+    std::cout << "Ownership of quad (" << data->xy[0] << ", " << data->xy[1] << ") is " << data->owner << std::endl;
+#endif
+
 }
 
 void init_brick_data(p8est_t * p8est, p4est_topidx_t tree, p8est_quadrant_t * q)
