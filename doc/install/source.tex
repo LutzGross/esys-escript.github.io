@@ -17,7 +17,8 @@
 
 \chapter{Installing from Source}\label{chap:source}
 
-This chapter assumes you are using a unix/posix like system (including MacOSX).
+This chapter describes installing \escript from source on unix/posix like
+systems (including MacOSX) and Windows 10.
 
 \section{Parallel Technologies}\label{sec:par}
 It is likely that the computer you run \escript on, will have more than one processor core.
@@ -28,13 +29,15 @@ Section~\ref{sec:needpar} gives some rough guidelines to help you determine what
 There are two technologies which \escript can employ here.
 \begin{itemize}
  \item OpenMP -- the more efficient of the two [thread level parallelism].
- \item MPI -- Uses multiple processes (less efficient), needs less help from the compiler.
+ \item MPI -- Uses multiple processes (less efficient), needs less help from
+   the compiler (not supported on Windows).
 \end{itemize}
 
-Escript is primarily tested on recent versions of the GNU and Intel suites (``g++'' / ``icpc'').
-However, it also passes our tests when compiled using ``clang++''.
-Escript now requires compiler support for some features of the C++11 standard.
-See Appendix~\ref{app:cxxfeatures} for a list.
+Escript is primarily tested on recent versions of the GNU and Intel suites
+(``g++'' / ``icpc''), and Microsoft Visual C++ (MSVC).  However, it also passes
+our tests when compiled using ``clang++''.  Escript now requires compiler
+support for some features of the C++11 standard.  See
+Appendix~\ref{app:cxxfeatures} for a list.
 
 
 Our current test compilers include:
@@ -42,6 +45,7 @@ Our current test compilers include:
  \item g++ 8
  \item clang++ 7
  \item intel icpc v17
+ \item MSVC 2017 or 2019
 \end{itemize}
 
 Note that:
@@ -50,10 +54,12 @@ Note that:
  \item icpc v11 has a subtle bug involving OpenMP and C++ exception handling, so this combination should not be used.
 \end{itemize}
 
-\subsection{What parallel technology do I need?}\label{sec:needpar}
-If you are using any version of Linux released in the past few years, then your system compiler will support
-\openmp with no extra work (and give better performance); so you should use it.
-You will not need MPI unless your computer is some form of cluster.
+\subsection{What parallel technology do I need?}\label{sec:needpar} If you are
+using any version of Linux released in the past few years, then your system
+compiler will support \openmp with no extra work (and give better performance);
+so you should use it. MSVC 2017 and 2019 also have \openmp support on Windows
+(\openmp 2.0). You will not need MPI unless your computer is some form of
+cluster. MPI is not recommended on Windows as it will interfer with Jupyter.
 
 If you are using BSD or MacOSX and you are just experimenting with \escript, then performance is
 probably not a major issue for you at the moment so you don't need to use either \openmp or MPI.
@@ -103,6 +109,7 @@ see Section~\ref{sec:othersrc} for instructions.
  \item MacOS (macports) - \ref{sec:macportsrc}
  \item MacOS (homebrew) - \ref{sec:homebrewsrc}
  \item FreeBSD - \ref{sec:freebsdsrc}
+ \item Windows - \ref{sec:windowssrc}
 \end{itemize}
 
 Once these are done proceed to Section~\ref{sec:cleanup} for cleanup steps.
@@ -396,6 +403,131 @@ libgcc_s.so.1 gcc47/libgcc_s.so.1
 \end{shellCode}
 
 \end{comment}
+\subsection{Windows}\label{sec:windowssrc}
+
+\noindent These instructions were prepared for Microsoft Windows 10.
+
+\noindent Start by installing \escript dependencies.
+
+\begin{itemize}
+\item Microsoft Visual Studio
+\begin{enumerate}
+\item Download the Microsoft Visual Studio Community 2017 (or VS 2019 if
+preferred) installer from
+\begin{itemize}
+\item[] \url{https://visualstudio.microsoft.com}.
+\end{itemize}
+\item Launch the Visual Studio installer, selecting Individual components:
+\begin{itemize}
+\item VS 2017: \textbf{VC++ 2017 latest v141 tools} \\
+VS 2019: \textbf{MSVC v142 - VS 2019 C++ build tools}
+\item \textbf{Windows 10 SDK}
+\end{itemize}
+\end{enumerate}
+\item Anaconda
+\begin{enumerate}
+\item Download the Python 3.7 64-Bit Graphical Installer for Windows from
+\begin{itemize}
+\item[] \url{https://anaconda.org/}.
+\end{itemize}
+\item Launch the Anaconda installer, selecting installation type: \textbf{Just
+Me} and destination folder: \newline \verb!C:\Users\%USERNAME%\Anaconda3!.
+\end{enumerate}
+\end{itemize}
+
+\noindent Next, open Windows Command Prompt (\file{cmd.exe}) and set-up the
+\escript dependencies.
+
+\begin{itemize}
+\item Conda environment
+\begin{enumerate}
+\item Create and activate a new environment
+\begin{shellCode}
+C:\Users\%USERNAME%\Anaconda3\Scripts\activate
+conda create --name escript python=3.7
+conda deactivate
+C:\Users\%USERNAME%\Anaconda3\Scripts\activate escript
+\end{shellCode}
+\item Install required conda modules
+\begin{shellCode}
+conda install numpy==1.15.4 matplotlib==2.2.2 sympy==1.1.1
+    boost gdal git pyproj scons scipy m2-patch mumps gmsh
+    -c defaults -c conda-forge
+\end{shellCode}
+\end{enumerate}
+\item Vcpkg
+\begin{enumerate}
+\item Build vcpkg package manager
+\begin{shellCode}
+cd C:\Users\%USERNAME%
+git clone https://github.com/Microsoft/vcpkg.git
+cd vcpkg
+bootstrap-vcpkg
+\end{shellCode}
+\item Install the CppUnit vcpkg package
+\begin{shellCode}
+vcpkg install cppunit:x64-windows
+\end{shellCode}
+\end{enumerate}
+\end{itemize}
+
+\noindent Once the dependencies are installed and set-up, you can download and
+build \escript from source.
+
+\begin{enumerate}
+\item Activate the conda environment (if not active).
+\begin{shellCode}
+C:\Users\%USERNAME%\Anaconda3\Scripts\activate escript
+\end{shellCode}
+\item Set-up the Command Prompt for the 64-bit MSVC command line build environment.
+\begin{shellCode}
+"C:\Program Files (x86)\Microsoft Visual Studio\2017\
+    Community\VC\Auxiliary\Build\vcvars64.bat"
+\end{shellCode}
+\item Add CppUnit to the Windows System Path.
+\begin{shellCode}
+set PATH=%PATH%;C:\Users\%USERNAME%\vcpkg\packages\cppunit_x64-windows\bin
+\end{shellCode}
+\item Download the \escript source code tarball from
+\begin{itemize}
+\item[] \url{https://launchpad.net/escript-finley}
+\end{itemize}
+Extract the tarball to \verb!C:\Users\%USERNAME%\escript!
+\item Build and install the netCDF-4 C++ library before starting the \escript
+build.  Download the netCDF-4 C++ v4.3.1 source code tarball from
+\begin{itemize}
+\item[] \url{https://github.com/Unidata/netcdf-cxx4/archive/v4.3.1.tar.gz}
+\end{itemize}
+Extract the tarball to \verb!C:\Users\%USERNAME%\escript!
+\item Apply the provided patch.
+\begin{shellCode}
+cd C:\Users\%USERNAME%\escript\netcdf-cxx4-4.3.1
+patch -p1 < ..\src\tools\anaconda\Anaconda3\netcdf-cxx4.patch
+\end{shellCode}
+\item Configure, build, and install netcdf-cxx4.
+\begin{shellCode}
+mkdir build
+cd build
+cmake -G "Visual Studio 15 2017 Win64" -DBUILD_SHARED_LIBS=OFF
+    -DCMAKE_INSTALL_PREFIX="%CONDA_PREFIX%\Library"
+    -DCMAKE_LIBRARY_PATH="%CONDA_PREFIX%\Library\lib"
+    -DCMAKE_PREFIX_PATH="%CONDA_PREFIX%\Library"
+    -DNETCDF_LIB_NAME="netcdf" -DHDF5_LIB_NAME="hdf5" ..
+cmake --build . --config Release
+cmake --build . --config Release --target install
+\end{shellCode}
+\item Kick-off the \escript build when the netCDF-4 C++ install is complete.
+\begin{shellCode}
+cd C:\Users\%USERNAME%\escript\src
+scons -j1 build_full options_file=scons/templates/windows_msvc141_options.py
+\end{shellCode}
+\item Once the build completes successfully, you can validate \escript using
+the provided test script.
+\begin{shellCode}
+python utest.py C:\Users\%USERNAME%\escript\src\build -t8
+\end{shellCode}
+\end{enumerate}
+
 \subsection{Other Systems / Custom Builds}\label{sec:othersrc}
 
 \escript has support for a number of optional packages.

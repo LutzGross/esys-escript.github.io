@@ -1176,7 +1176,11 @@ FinleyDomain* readGmshMaster(escript::JMPI& mpiInfo,
     FinleyDomain* dom = new FinleyDomain(filename, numDim, mpiInfo);
 
     // get file handle
+#ifdef _WIN32
+    FILE* fileHandle = fopen(filename.c_str(), "rb"); // open in binary mode to allow seek
+#else
     FILE* fileHandle = fopen(filename.c_str(), "r");
+#endif
     if (!fileHandle) {
         std::stringstream ss;
         ss << "readGmsh: opening file " << filename << " for reading failed.";

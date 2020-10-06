@@ -42,11 +42,11 @@ struct PASO_DLL_API FCT_Solver
 
     static void setLowOrderOperator(TransportProblem_ptr tp);
 
-    void setAntiDiffusionFlux_linearCN(SystemMatrix_ptr flux_matrix);
+    void setAntiDiffusionFlux_linearCN(SystemMatrix_ptr<double> flux_matrix);
 
-    void setAntiDiffusionFlux_BE(SystemMatrix_ptr flux_matrix);
+    void setAntiDiffusionFlux_BE(SystemMatrix_ptr<double> flux_matrix);
 
-    void setAntiDiffusionFlux_CN(SystemMatrix_ptr flux_matrix);
+    void setAntiDiffusionFlux_CN(SystemMatrix_ptr<double> flux_matrix);
 
     void setMuPaLu(double* out, const_Coupler_ptr<real_t> coupler, double a);
 

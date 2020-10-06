@@ -43,8 +43,12 @@ struct UMFPACK_Handler {
     void *numeric;
 };
 
-void UMFPACK_free(SparseMatrix* A);
-void UMFPACK_solve(SparseMatrix_ptr A, double* out, double* in,
+void PASO_DLL_API UMFPACK_free(SparseMatrix<double>* A);
+void PASO_DLL_API UMFPACK_free(SparseMatrix<cplx_t>* A);
+
+void PASO_DLL_API UMFPACK_solve(SparseMatrix_ptr<double> A, double* out, double* in,
+                   dim_t numRefinements, bool verbose);
+void PASO_DLL_API UMFPACK_solve(SparseMatrix_ptr<cplx_t> A, cplx_t* out, cplx_t* in,
                    dim_t numRefinements, bool verbose);
 
 } // namespace paso

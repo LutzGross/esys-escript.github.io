@@ -68,7 +68,7 @@ to
 
    then RILU is applied to S again until S becomes empty
 */
-Solver_RILU* Solver_getRILU(SparseMatrix_ptr A_p, bool verbose)
+Solver_RILU* Solver_getRILU(SparseMatrix_ptr<double> A_p, bool verbose)
 {
     Solver_RILU* out=NULL;
     dim_t n=A_p->numRows;
@@ -77,7 +77,7 @@ Solver_RILU* Solver_getRILU(SparseMatrix_ptr A_p, bool verbose)
     index_t* counter=NULL;
     index_t iPtr,*index, *where_p;
     dim_t i,k;
-    SparseMatrix_ptr schur;
+    SparseMatrix_ptr<double> schur;
     double A11,A12,A13,A21,A22,A23,A31,A32,A33,D,time0=0,time1=0;/*,time2=0;*/
 
     mis_marker=new index_t[n];

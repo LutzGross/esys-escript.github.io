@@ -76,7 +76,7 @@
 
 namespace paso {
 
-struct Options
+struct PASO_DLL_API Options
 {
     Options() { setDefaults(); }
 

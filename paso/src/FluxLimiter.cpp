@@ -41,7 +41,7 @@ FCT_FluxLimiter::FCT_FluxLimiter(const_TransportProblem_ptr tp)
 
     R_coupler.reset(new Coupler<real_t>(tp->borrowConnector(), 2*blockSize, mpi_info));
     u_tilde_coupler.reset(new Coupler<real_t>(tp->borrowConnector(), blockSize, mpi_info));
-    antidiffusive_fluxes.reset(new SystemMatrix(
+    antidiffusive_fluxes.reset(new SystemMatrix<double>(
                 tp->transport_matrix->type, tp->transport_matrix->pattern,
                 tp->transport_matrix->row_block_size,
                 tp->transport_matrix->col_block_size, true,
@@ -139,7 +139,7 @@ void FCT_FluxLimiter::addLimitedFluxes_Start()
     const dim_t n = getTotalNumRows();
     const_SystemMatrixPattern_ptr pattern(getFluxPattern());
     const double* remote_u_tilde = u_tilde_coupler->borrowRemoteData();
-    SystemMatrix_ptr adf(antidiffusive_fluxes);
+    SystemMatrix_ptr<double> adf(antidiffusive_fluxes);
 
 #pragma omp parallel for
     for (dim_t i = 0; i < n; ++i) {
@@ -208,7 +208,7 @@ void FCT_FluxLimiter::addLimitedFluxes_Complete(double* b)
 {
     const dim_t n = getTotalNumRows();
     const_SystemMatrixPattern_ptr pattern(getFluxPattern());
-    const_SystemMatrix_ptr adf(antidiffusive_fluxes);
+    const_SystemMatrix_ptr<double> adf(antidiffusive_fluxes);
     const double* remote_R = R_coupler->finishCollect();
 
 #pragma omp parallel for

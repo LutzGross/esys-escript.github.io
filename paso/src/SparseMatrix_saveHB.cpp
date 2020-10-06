@@ -176,7 +176,8 @@ void generate_HB(std::ofstream& fp, dim_t *col_ptr, dim_t *row_ind,
     print_data(fp, val_perline, val_width, nz, val_fmt, val, 0, 0);
 }
 
-void SparseMatrix::saveHB_CSC(const char* filename) const
+template <>
+void SparseMatrix<double>::saveHB_CSC(const char* filename) const
 {
     std::ofstream f(filename);
     if (f.fail()) {
@@ -227,6 +228,12 @@ void SparseMatrix::saveHB_CSC(const char* filename) const
         delete[] row_ind;
     }
     f.close();
+}
+
+template <>
+void SparseMatrix<cplx_t>::saveHB_CSC(const char* filename) const
+{
+    throw PasoException("SparseMatrix::saveHB_CSC(): complex not implemented.");
 }
 
 } // namespace paso

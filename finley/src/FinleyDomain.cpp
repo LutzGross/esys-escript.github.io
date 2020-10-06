@@ -1941,10 +1941,17 @@ escript::ASM_ptr FinleyDomain::newSystemMatrix(int row_blocksize,
 #ifdef ESYS_HAVE_PASO
         paso::SystemMatrixPattern_ptr pattern(getPasoPattern(
                                             reduceRowOrder, reduceColOrder));
-        paso::SystemMatrix_ptr sm(new paso::SystemMatrix(type, pattern,
-                  row_blocksize, column_blocksize, false, row_functionspace,
-                  column_functionspace));
-        return sm;
+        if (type & (int)MATRIX_FORMAT_COMPLEX) {
+            paso::SystemMatrix_ptr<cplx_t> sm(new paso::SystemMatrix<cplx_t>(type, pattern,
+                      row_blocksize, column_blocksize, false, row_functionspace,
+                      column_functionspace));
+            return sm;
+        } else {
+            paso::SystemMatrix_ptr<double> sm(new paso::SystemMatrix<double>(type, pattern,
+                      row_blocksize, column_blocksize, false, row_functionspace,
+                      column_functionspace));
+            return sm;
+        }
 #else
         throw FinleyException("newSystemMatrix: finley was not compiled "
                 "with Paso support so the Paso solver stack cannot be used.");
@@ -2346,14 +2353,19 @@ int FinleyDomain::getSystemMatrixTypeId(const bp::object& options) const
 #endif
     }
 #ifdef ESYS_HAVE_PASO
-#ifndef ESYS_HAVE_MUMPS
     if (sb.isComplex()) {
+#ifdef ESYS_HAVE_MUMPS
+        return (int)SMT_PASO | paso::SystemMatrix<cplx_t>::getSystemMatrixTypeId(
+                    method, sb.getPreconditioner(), sb.getPackage(),
+                    sb.isComplex(), sb.isSymmetric(), m_mpiInfo);
+#else
         throw NotImplementedError("Paso requires MUMPS for complex-valued matrices.");
-    }
 #endif
-    return (int)SMT_PASO | paso::SystemMatrix::getSystemMatrixTypeId(
-                method, sb.getPreconditioner(), sb.getPackage(),
-                sb.isSymmetric(), m_mpiInfo);
+    } else {
+        return (int)SMT_PASO | paso::SystemMatrix<double>::getSystemMatrixTypeId(
+                    method, sb.getPreconditioner(), sb.getPackage(),
+                    sb.isComplex(), sb.isSymmetric(), m_mpiInfo);
+    }
 #else
     throw FinleyException("Unable to find a working solver library!");
 #endif

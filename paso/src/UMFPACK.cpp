@@ -32,7 +32,7 @@
 namespace paso {
 
 /// frees any UMFPACK related data from the matrix
-void UMFPACK_free(SparseMatrix* A)
+void UMFPACK_free(SparseMatrix<double>* A)
 {
     if (A && A->solver_p) {
         UMFPACK_Handler* pt = reinterpret_cast<UMFPACK_Handler*>(A->solver_p);
@@ -52,7 +52,7 @@ void UMFPACK_free(SparseMatrix* A)
 
 
 /// calls the solver
-void UMFPACK_solve(SparseMatrix_ptr A, double* out, double* in,
+void UMFPACK_solve(SparseMatrix_ptr<double> A, double* out, double* in,
                    dim_t numRefinements, bool verbose)
 {
 #ifdef ESYS_HAVE_UMFPACK
@@ -198,6 +198,27 @@ void UMFPACK_solve(SparseMatrix_ptr A, double* out, double* in,
         throw PasoException("UMFPACK: forward/backward substitution failed.");
     }
 #else // ESYS_HAVE_UMFPACK
+    throw PasoException("Paso: Not compiled with UMFPACK.");
+#endif
+}
+
+/// frees any UMFPACK related data from the matrix
+void UMFPACK_free(SparseMatrix<cplx_t>* A)
+{
+#ifdef ESYS_HAVE_UMFPACK
+    throw PasoException("Paso UMFPACK_free(): complex not implemented.");
+#else
+    throw PasoException("Paso: Not compiled with UMFPACK.");
+#endif
+}
+
+/// calls the solver
+void UMFPACK_solve(SparseMatrix_ptr<cplx_t> A, cplx_t* out, cplx_t* in,
+                   dim_t numRefinements, bool verbose)
+{
+#ifdef ESYS_HAVE_UMFPACK
+    throw PasoException("Paso UMFPACK_solve(): complex not implemented.");
+#else
     throw PasoException("Paso: Not compiled with UMFPACK.");
 #endif
 }

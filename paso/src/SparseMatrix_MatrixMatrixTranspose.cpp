@@ -32,29 +32,29 @@
 namespace paso {
 
 // forward declarations
-void SparseMatrix_MatrixMatrixTranspose_DD(SparseMatrix_ptr C,
-                                           const_SparseMatrix_ptr A,
-                                           const_SparseMatrix_ptr B,
-                                           const_SparseMatrix_ptr T);
-void SparseMatrix_MatrixMatrixTranspose_DB(SparseMatrix_ptr C,
-                                           const_SparseMatrix_ptr A,
-                                           const_SparseMatrix_ptr B,
-                                           const_SparseMatrix_ptr T);
-void SparseMatrix_MatrixMatrixTranspose_BD(SparseMatrix_ptr C,
-                                           const_SparseMatrix_ptr A,
-                                           const_SparseMatrix_ptr B,
-                                           const_SparseMatrix_ptr T);
-void SparseMatrix_MatrixMatrixTranspose_BB(SparseMatrix_ptr C,
-                                           const_SparseMatrix_ptr A,
-                                           const_SparseMatrix_ptr B,
-                                           const_SparseMatrix_ptr T);
+void SparseMatrix_MatrixMatrixTranspose_DD(SparseMatrix_ptr<double> C,
+                                           const_SparseMatrix_ptr<double> A,
+                                           const_SparseMatrix_ptr<double> B,
+                                           const_SparseMatrix_ptr<double> T);
+void SparseMatrix_MatrixMatrixTranspose_DB(SparseMatrix_ptr<double> C,
+                                           const_SparseMatrix_ptr<double> A,
+                                           const_SparseMatrix_ptr<double> B,
+                                           const_SparseMatrix_ptr<double> T);
+void SparseMatrix_MatrixMatrixTranspose_BD(SparseMatrix_ptr<double> C,
+                                           const_SparseMatrix_ptr<double> A,
+                                           const_SparseMatrix_ptr<double> B,
+                                           const_SparseMatrix_ptr<double> T);
+void SparseMatrix_MatrixMatrixTranspose_BB(SparseMatrix_ptr<double> C,
+                                           const_SparseMatrix_ptr<double> A,
+                                           const_SparseMatrix_ptr<double> B,
+                                           const_SparseMatrix_ptr<double> T);
 
-SparseMatrix_ptr SparseMatrix_MatrixMatrixTranspose(const_SparseMatrix_ptr A,
-                                                    const_SparseMatrix_ptr B,
-                                                    const_SparseMatrix_ptr T)
+SparseMatrix_ptr<double> SparseMatrix_MatrixMatrixTranspose(const_SparseMatrix_ptr<double> A,
+                                                    const_SparseMatrix_ptr<double> B,
+                                                    const_SparseMatrix_ptr<double> T)
 {
     SparseMatrixType C_type;
-    SparseMatrix_ptr out;
+    SparseMatrix_ptr<double> out;
 
     if ( !  ( (A->type & MATRIX_FORMAT_DIAGONAL_BLOCK) || (A->type & MATRIX_FORMAT_DEFAULT) || (MATRIX_FORMAT_BLK1 & A->type ) )  ) {
         throw PasoException("SparseMatrix_MatrixMatrix: Unsupported matrix format of A.");
@@ -78,7 +78,7 @@ SparseMatrix_ptr SparseMatrix_MatrixMatrixTranspose(const_SparseMatrix_ptr A,
 
     Pattern_ptr outpattern(A->pattern->multiply(MATRIX_FORMAT_DEFAULT, B->pattern));
 
-    out.reset(new SparseMatrix(C_type, outpattern, A->row_block_size, B->col_block_size, false));
+    out.reset(new SparseMatrix<double>(C_type, outpattern, A->row_block_size, B->col_block_size, false));
 
     if (A->row_block_size == 1 && B->col_block_size == 1 && A->col_block_size ==1) {
         SparseMatrix_MatrixMatrixTranspose_DD(out, A, B, T);
@@ -101,7 +101,7 @@ SparseMatrix_ptr SparseMatrix_MatrixMatrixTranspose(const_SparseMatrix_ptr A,
 }
 
 /* not good for block size 1 */
-void SparseMatrix_MatrixMatrixTranspose_BB(SparseMatrix_ptr C, const_SparseMatrix_ptr A, const_SparseMatrix_ptr B, const_SparseMatrix_ptr T)
+void SparseMatrix_MatrixMatrixTranspose_BB(SparseMatrix_ptr<double> C, const_SparseMatrix_ptr<double> A, const_SparseMatrix_ptr<double> B, const_SparseMatrix_ptr<double> T)
 {
    const dim_t n = C->numRows;
    const dim_t row_block_size = C->row_block_size;
@@ -445,7 +445,7 @@ void SparseMatrix_MatrixMatrixTranspose_BB(SparseMatrix_ptr C, const_SparseMatri
 }
 
 /* not good for block size 1 */
-void SparseMatrix_MatrixMatrixTranspose_DB(SparseMatrix_ptr C, const_SparseMatrix_ptr A, const_SparseMatrix_ptr B, const_SparseMatrix_ptr T)
+void SparseMatrix_MatrixMatrixTranspose_DB(SparseMatrix_ptr<double> C, const_SparseMatrix_ptr<double> A, const_SparseMatrix_ptr<double> B, const_SparseMatrix_ptr<double> T)
 {
    const dim_t n = C->numRows;
    const dim_t row_block_size = C->row_block_size;
@@ -726,7 +726,7 @@ void SparseMatrix_MatrixMatrixTranspose_DB(SparseMatrix_ptr C, const_SparseMatri
 }
 
 /* not good for block size 1 */
-void SparseMatrix_MatrixMatrixTranspose_BD(SparseMatrix_ptr C, const_SparseMatrix_ptr A, const_SparseMatrix_ptr B, const_SparseMatrix_ptr T)
+void SparseMatrix_MatrixMatrixTranspose_BD(SparseMatrix_ptr<double> C, const_SparseMatrix_ptr<double> A, const_SparseMatrix_ptr<double> B, const_SparseMatrix_ptr<double> T)
 {
    const dim_t n = C->numRows;
    const dim_t row_block_size = C->row_block_size;
@@ -1007,7 +1007,7 @@ void SparseMatrix_MatrixMatrixTranspose_BD(SparseMatrix_ptr C, const_SparseMatri
 }
 
 /* not good for block size 1 */
-void SparseMatrix_MatrixMatrixTranspose_DD(SparseMatrix_ptr C, const_SparseMatrix_ptr A, const_SparseMatrix_ptr B, const_SparseMatrix_ptr T)
+void SparseMatrix_MatrixMatrixTranspose_DD(SparseMatrix_ptr<double> C, const_SparseMatrix_ptr<double> A, const_SparseMatrix_ptr<double> B, const_SparseMatrix_ptr<double> T)
 {
    const dim_t n = C->numRows;
    const dim_t C_block_size =C->block_size;

@@ -30,55 +30,8 @@
 
 namespace paso {
 
-/*  raw scaled vector update operation: out = alpha * A * in + beta * out */
-void SystemMatrix::MatrixVector(double alpha, const double* in, double beta,
-                                double* out) const
-{
-    if (is_balanced) {
-        throw PasoException("MatrixVector: balanced matrix is not supported.");
-    }
-    if (type & MATRIX_FORMAT_CSC) {
-        if (mpi_info->size > 1) {
-            throw PasoException("MatrixVector: CSC is not supported by MPI.");
-        } else {
-            if (type & MATRIX_FORMAT_OFFSET1) {
-                SparseMatrix_MatrixVector_CSC_OFFSET1(alpha, mainBlock, in, beta, out);
-            } else {
-                SparseMatrix_MatrixVector_CSC_OFFSET0(alpha, mainBlock, in, beta, out);
-            }
-        }
-    } else {
-        if (type & MATRIX_FORMAT_OFFSET1) {
-            if (mpi_info->size > 1) {
-                throw PasoException("MatrixVector: CSR with offset 1 is not supported in MPI.");
-            } else {
-                SparseMatrix_MatrixVector_CSR_OFFSET1(alpha, mainBlock, in, beta, out);
-            }
-        } else {
-            MatrixVector_CSR_OFFSET0(alpha, in, beta, out);
-        }
-    }
-}
-
-void SystemMatrix::MatrixVector(double alpha, const cplx_t* in, double beta,
-                                cplx_t* out) const
-{
-#if defined(ESYS_HAVE_MUMPS)
-    if (is_balanced) {
-        throw PasoException("MatrixVector: balanced matrix is not supported.");
-    }
-    if (type & (MATRIX_FORMAT_OFFSET1 + MATRIX_FORMAT_BLK1)) {
-        SparseMatrix_MatrixVector_CSR_OFFSET1(alpha, mainBlock, in, beta, out);
-        return;
-    } else {
-        throw PasoException("MatrixVector: MUMPS requires CSR format with "
-                            "index offset 1 and block size 1.");
-    }
-#endif
-    throw PasoException("MatrixVector: require MUMPS for complex matrices.");
-}
-
-void SystemMatrix::MatrixVector_CSR_OFFSET0(double alpha, const double* in,
+template <>
+void SystemMatrix<double>::MatrixVector_CSR_OFFSET0(double alpha, const double* in,
                                             double beta, double* out) const
 {
     // start exchange
@@ -99,6 +52,56 @@ void SystemMatrix::MatrixVector_CSR_OFFSET0(double alpha, const double* in,
             SparseMatrix_MatrixVector_CSR_OFFSET0(alpha, col_coupleBlock, remote_values, 1., out);
         }
     }
+}
+
+/*  raw scaled vector update operation: out = alpha * A * in + beta * out */
+template <>
+void SystemMatrix<double>::MatrixVector(double alpha, const double* in, double beta,
+                                double* out) const
+{
+    if (is_balanced) {
+        throw PasoException("MatrixVector: balanced matrix is not supported.");
+    }
+    if (type & MATRIX_FORMAT_CSC) {
+        if (mpi_info->size > 1) {
+            throw PasoException("MatrixVector: CSC is not supported by MPI.");
+        } else {
+            if (type & MATRIX_FORMAT_OFFSET1) {
+                SparseMatrix_MatrixVector_CSC_OFFSET1(alpha, mainBlock, in, beta, out);
+            } else {
+                SparseMatrix_MatrixVector_CSC_OFFSET0(alpha, mainBlock, in, beta, out);
+            }
+        }
+    } else {
+        if (type & MATRIX_FORMAT_OFFSET1) {
+            if (mpi_info->size > 1) {
+                throw PasoException("MatrixVector: CSR with offset 1 is not supported in MPI.");
+            } else {
+                SparseMatrix_MatrixVector_CSR_OFFSET1<double>(alpha, mainBlock, in, beta, out);
+            }
+        } else {
+            MatrixVector_CSR_OFFSET0(alpha, in, beta, out);
+        }
+    }
+}
+
+template <>
+void SystemMatrix<cplx_t>::MatrixVector(double alpha, const cplx_t* in, double beta,
+                                cplx_t* out) const
+{
+#if defined(ESYS_HAVE_MUMPS)
+    if (is_balanced) {
+        throw PasoException("MatrixVector: balanced matrix is not supported.");
+    }
+    if (type & (MATRIX_FORMAT_OFFSET1 + MATRIX_FORMAT_BLK1)) {
+        SparseMatrix_MatrixVector_CSR_OFFSET1<cplx_t>(alpha, mainBlock, in, beta, out);
+        return;
+    } else {
+        throw PasoException("MatrixVector: MUMPS requires CSR format with "
+                            "index offset 1 and block size 1.");
+    }
+#endif
+    throw PasoException("MatrixVector: require MUMPS for complex matrices.");
 }
 
 } // namespace paso

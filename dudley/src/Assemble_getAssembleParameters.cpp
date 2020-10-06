@@ -51,8 +51,8 @@ AssembleParameters::AssembleParameters(const NodeFile* nodes,
     }
 
 #ifdef ESYS_HAVE_PASO
-    paso::SystemMatrix* pasoMat = sm ?
-        dynamic_cast<paso::SystemMatrix*>(sm.get()) : NULL;
+    paso::SystemMatrix<double>* pasoMat = sm ?
+        dynamic_cast<paso::SystemMatrix<double>*>(sm.get()) : NULL;
 
     // check the dimensions of matrix and rhs
     if (pasoMat != NULL && !rhs.isEmpty()) {

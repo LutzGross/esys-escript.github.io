@@ -56,7 +56,7 @@ namespace paso {
 *  ==============================================================
 */
 
-SolverResult Solver_MINRES(SystemMatrix_ptr A, double* R, double* X,
+SolverResult Solver_MINRES(SystemMatrix_ptr<double> A, double* R, double* X,
                            dim_t* iter, double* tolerance, Performance* pp)
 {
     const dim_t maxit = *iter;

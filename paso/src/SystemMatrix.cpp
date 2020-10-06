@@ -38,137 +38,33 @@
 
 namespace paso {
 
-SystemMatrix::SystemMatrix()
-{
-    throw PasoException("SystemMatrix: Illegal to generate default SystemMatrix.");
-}
-
-/// Allocates a SystemMatrix of given type using the given matrix pattern.
-/// Values are initialized with zero.
-/// If patternIsUnrolled and type & MATRIX_FORMAT_BLK1, it is assumed
-/// that the pattern is already unrolled to match the requested block size
-/// and offsets. Otherwise unrolling and offset adjustment will be performed.
-SystemMatrix::SystemMatrix(SystemMatrixType ntype,
-                           SystemMatrixPattern_ptr npattern, dim_t rowBlockSize,
-                           dim_t colBlockSize, bool patternIsUnrolled,
-                           const escript::FunctionSpace& rowFS,
-                           const escript::FunctionSpace& colFS) :
-    escript::AbstractSystemMatrix(rowBlockSize, rowFS, colBlockSize, colFS),
-    type(ntype),
-    logical_row_block_size(rowBlockSize),
-    logical_col_block_size(colBlockSize),
-    is_balanced(false),
-    balance_vector(NULL),
-    global_id(NULL),
-    solver_package(PASO_PASO),
-    solver_p(NULL)
-{
-    if (patternIsUnrolled) {
-        if ((ntype & MATRIX_FORMAT_OFFSET1) != (npattern->type & MATRIX_FORMAT_OFFSET1)) {
-            throw PasoException("SystemMatrix: requested offset and pattern offset do not match.");
-        }
-    }
-    // do we need to apply unrolling?
-    bool unroll
-          // we don't like non-square blocks
-        = (rowBlockSize != colBlockSize)
-#ifndef ESYS_HAVE_LAPACK
-          // or any block size bigger than 3
-          || (colBlockSize > 3)
-#endif
-          // or if block size one requested and the block size is not 1
-          || ((ntype & MATRIX_FORMAT_BLK1) && colBlockSize > 1)
-          // or the offsets don't match
-          || ((ntype & MATRIX_FORMAT_OFFSET1) != (npattern->type & MATRIX_FORMAT_OFFSET1));
-
-    SystemMatrixType pattern_format_out = (ntype & MATRIX_FORMAT_OFFSET1)
-                             ? MATRIX_FORMAT_OFFSET1 : MATRIX_FORMAT_DEFAULT;
-
-    mpi_info = npattern->mpi_info;
-
-    if (ntype & MATRIX_FORMAT_CSC) {
-        if (unroll) {
-            if (patternIsUnrolled) {
-                pattern=npattern;
-            } else {
-                pattern = npattern->unrollBlocks(pattern_format_out,
-                                                 colBlockSize, rowBlockSize);
-            }
-            row_block_size = 1;
-            col_block_size = 1;
-        } else {
-            pattern = npattern->unrollBlocks(pattern_format_out, 1, 1);
-            row_block_size = rowBlockSize;
-            col_block_size = colBlockSize;
-        }
-        row_distribution = pattern->input_distribution;
-        col_distribution = pattern->output_distribution;
-    } else {
-        if (unroll) {
-            if (patternIsUnrolled) {
-                pattern = npattern;
-            } else {
-                pattern = npattern->unrollBlocks(pattern_format_out,
-                                                 rowBlockSize, colBlockSize);
-            }
-            row_block_size = 1;
-            col_block_size = 1;
-        } else {
-            pattern = npattern->unrollBlocks(pattern_format_out, 1, 1);
-            row_block_size = rowBlockSize;
-            col_block_size = colBlockSize;
-        }
-        row_distribution = pattern->output_distribution;
-        col_distribution = pattern->input_distribution;
-    }
-    if (ntype & MATRIX_FORMAT_DIAGONAL_BLOCK) {
-        block_size = std::min(row_block_size, col_block_size);
-    } else {
-        block_size = row_block_size*col_block_size;
-    }
-    col_coupler.reset(new Coupler<real_t>(pattern->col_connector, col_block_size, mpi_info));
-    row_coupler.reset(new Coupler<real_t>(pattern->row_connector, row_block_size, mpi_info));
-    mainBlock.reset(new SparseMatrix(type, pattern->mainPattern, row_block_size, col_block_size, true));
-    col_coupleBlock.reset(new SparseMatrix(type, pattern->col_couplePattern, row_block_size, col_block_size, true));
-    row_coupleBlock.reset(new SparseMatrix(type, pattern->row_couplePattern, row_block_size, col_block_size, true));
-    const dim_t n_norm = std::max(mainBlock->numCols*col_block_size, mainBlock->numRows*row_block_size);
-    balance_vector = new double[n_norm];
-#pragma omp parallel for
-    for (dim_t i=0; i<n_norm; ++i)
-        balance_vector[i] = 1.;
-}
-
-// deallocates a SystemMatrix
-SystemMatrix::~SystemMatrix()
-{
-    solve_free(this);
-    delete[] balance_vector;
-    delete[] global_id;
-}
-
-void SystemMatrix::setPreconditioner(Options* options)
+template <>
+void SystemMatrix<double>::setPreconditioner(Options* options)
 {
     if (!solver_p) {
-        SystemMatrix_ptr mat(boost::dynamic_pointer_cast<SystemMatrix>(getPtr()));
+        SystemMatrix_ptr<double> mat(boost::dynamic_pointer_cast<SystemMatrix>(getPtr()));
         solver_p = Preconditioner_alloc(mat, options);
     }
 }
 
-void SystemMatrix::solvePreconditioner(double* x, double* b)
+template <>
+void SystemMatrix<double>::solvePreconditioner(double* x, double* b)
 {
     Preconditioner* prec=(Preconditioner*)solver_p;
-    SystemMatrix_ptr mat(boost::dynamic_pointer_cast<SystemMatrix>(getPtr()));
+    SystemMatrix_ptr<double> mat(boost::dynamic_pointer_cast<SystemMatrix>(getPtr()));
     Preconditioner_solve(prec, mat, x, b);
 }
 
-void SystemMatrix::freePreconditioner()
+template <>
+void SystemMatrix<double>::freePreconditioner()
 {
     Preconditioner* prec = (Preconditioner*) solver_p;
     Preconditioner_free(prec);
     solver_p = NULL;
 }
 
-double SystemMatrix::getGlobalSize() const
+template <>
+double SystemMatrix<double>::getGlobalSize() const
 {
     double global_size=0;
     double my_size = mainBlock->getSize() + col_coupleBlock->getSize();
@@ -184,7 +80,8 @@ double SystemMatrix::getGlobalSize() const
     return global_size;
 }
 
-index_t* SystemMatrix::borrowMainDiagonalPointer() const
+template <>
+index_t* SystemMatrix<double>::borrowMainDiagonalPointer() const
 {
     int fail=0;
     index_t* out = mainBlock->borrowMainDiagonalPointer();
@@ -198,7 +95,8 @@ index_t* SystemMatrix::borrowMainDiagonalPointer() const
     return out;
 }
 
-void SystemMatrix::makeZeroRowSums(double* left_over)
+template <>
+void SystemMatrix<double>::makeZeroRowSums(double* left_over)
 {
     const dim_t n = pattern->getNumOutput();
     const dim_t nblk = block_size;
@@ -220,7 +118,8 @@ void SystemMatrix::makeZeroRowSums(double* left_over)
     }
 }
 
-void SystemMatrix::nullifyRows(double* mask_row, double main_diagonal_value)
+template <>
+void SystemMatrix<double>::nullifyRows(double* mask_row, double main_diagonal_value)
 {
     if (type & MATRIX_FORMAT_CSC) {
         throw PasoException("SystemMatrix::nullifyRows: Only CSR format is supported.");
@@ -241,146 +140,8 @@ void SystemMatrix::nullifyRows(double* mask_row, double main_diagonal_value)
     }
 }
 
-void SystemMatrix::nullifyRowsAndCols(escript::Data& row_q,
-                                      escript::Data& col_q,
-                                      double main_diagonal_value)
-{
-    if (row_q.isComplex() || col_q.isComplex())
-    {
-        throw PasoException("SystemMatrix::nullifyRowsAndCols: complex arguments not supported");      
-    }
-    if (col_q.getDataPointSize() != getColumnBlockSize()) {
-        throw PasoException("nullifyRowsAndCols: column block size does not match the number of components of column mask.");
-    } else if (row_q.getDataPointSize() != getRowBlockSize()) {
-        throw PasoException("nullifyRowsAndCols: row block size does not match the number of components of row mask.");
-    } else if (col_q.getFunctionSpace() != getColumnFunctionSpace()) {
-        throw PasoException("nullifyRowsAndCols: column function space and function space of column mask don't match.");
-    } else if (row_q.getFunctionSpace() != getRowFunctionSpace()) {
-        throw PasoException("nullifyRowsAndCols: row function space and function space of row mask don't match.");
-    }
-    row_q.expand();
-    col_q.expand();
-    row_q.requireWrite();
-    col_q.requireWrite();
-    double* mask_row = row_q.getExpandedVectorReference(static_cast<escript::DataTypes::real_t>(0)).data();
-    double* mask_col = col_q.getExpandedVectorReference(static_cast<escript::DataTypes::real_t>(0)).data();
-
-    if (mpi_info->size > 1) {
-        if (type & MATRIX_FORMAT_CSC) {
-            throw PasoException("SystemMatrix::nullifyRowsAndCols: "
-                                "CSC is not supported with MPI.");
-        }
-
-        startColCollect(mask_col);
-        startRowCollect(mask_row);
-        if (col_block_size==1 && row_block_size==1) {
-            mainBlock->nullifyRowsAndCols_CSR_BLK1(mask_row, mask_col, main_diagonal_value);
-            double* remote_values = finishColCollect();
-            col_coupleBlock->nullifyRowsAndCols_CSR_BLK1(mask_row, remote_values, 0.);
-            remote_values = finishRowCollect();
-            row_coupleBlock->nullifyRowsAndCols_CSR_BLK1(remote_values, mask_col, 0.);
-        } else {
-            mainBlock->nullifyRowsAndCols_CSR(mask_row, mask_col, main_diagonal_value);
-            double* remote_values = finishColCollect();
-            col_coupleBlock->nullifyRowsAndCols_CSR(mask_row, remote_values, 0.);
-            remote_values = finishRowCollect();
-            row_coupleBlock->nullifyRowsAndCols_CSR(remote_values, mask_col, 0.);
-        }
-    } else {
-        if (col_block_size==1 && row_block_size==1) {
-            if (type & MATRIX_FORMAT_CSC) {
-                mainBlock->nullifyRowsAndCols_CSC_BLK1(mask_row, mask_col, main_diagonal_value);
-            } else {
-                mainBlock->nullifyRowsAndCols_CSR_BLK1(mask_row, mask_col, main_diagonal_value);
-            }
-        } else {
-            if (type & MATRIX_FORMAT_CSC) {
-                mainBlock->nullifyRowsAndCols_CSC(mask_row, mask_col, main_diagonal_value);
-            } else {
-                mainBlock->nullifyRowsAndCols_CSR(mask_row, mask_col, main_diagonal_value);
-            }
-        }
-    }
-}
-
-void SystemMatrix::resetValues(bool preserveSolverData)
-{
-    setValues(0.);
-    if (!preserveSolverData)
-        solve_free(this);
-}
-
-void SystemMatrix::setToSolution(escript::Data& out, escript::Data& in,
-                                 boost::python::object& options) const
-{
-#if !defined(ESYS_HAVE_MUMPS)
-    if (in.isComplex() || out.isComplex())
-    {
-        throw PasoException("SystemMatrix::setToSolution: complex arguments not supported.");
-    }
-#endif
-    options.attr("resetDiagnostics")();
-    Options paso_options(options);
-    if (out.getDataPointSize() != getColumnBlockSize()) {
-        throw PasoException("solve: column block size does not match the number of components of solution.");
-    } else if (in.getDataPointSize() != getRowBlockSize()) {
-        throw PasoException("solve: row block size does not match the number of components of  right hand side.");
-    } else if (out.getFunctionSpace() != getColumnFunctionSpace()) {
-        throw PasoException("solve: column function space and function space of solution don't match.");
-    } else if (in.getFunctionSpace() != getRowFunctionSpace()) {
-        throw PasoException("solve: row function space and function space of right hand side don't match.");
-    }
-    out.expand();
-    in.expand();
-    out.requireWrite();
-    in.requireWrite();
-    if ( !(in.isComplex() && out.isComplex()) )
-    {
-        double* out_dp = out.getExpandedVectorReference(static_cast<escript::DataTypes::real_t>(0)).data();
-        double* in_dp = in.getExpandedVectorReference(static_cast<escript::DataTypes::real_t>(0)).data();
-        solve(out_dp, in_dp, &paso_options);
-    } else {
-        cplx_t* out_dp = out.getExpandedVectorReference(static_cast<escript::DataTypes::cplx_t>(0)).data();
-        cplx_t* in_dp = in.getExpandedVectorReference(static_cast<escript::DataTypes::cplx_t>(0)).data();
-        solve(out_dp, in_dp, &paso_options);
-    }
-    paso_options.updateEscriptDiagnostics(options);
-}
-
-void SystemMatrix::ypAx(escript::Data& y, escript::Data& x) const 
-{
-#if !defined(ESYS_HAVE_MUMPS)
-    if (x.isComplex() || y.isComplex())
-    {
-        throw PasoException("SystemMatrix::ypAx: complex arguments not supported.");
-    }  
-#endif
-    if (x.getDataPointSize() != getColumnBlockSize()) {
-        throw PasoException("matrix vector product: column block size does not match the number of components in input.");
-    } else if (y.getDataPointSize() != getRowBlockSize()) {
-        throw PasoException("matrix vector product: row block size does not match the number of components in output.");
-    } else if (x.getFunctionSpace() != getColumnFunctionSpace()) {
-        throw PasoException("matrix vector product: column function space and function space of input don't match.");
-    } else if (y.getFunctionSpace() != getRowFunctionSpace()) {
-        throw PasoException("matrix vector product: row function space and function space of output don't match.");
-    }
-    x.expand();
-    y.expand();
-    x.requireWrite();
-    y.requireWrite();
-    if ( !(x.isComplex() && y.isComplex()) )
-    {
-        double* x_dp = x.getExpandedVectorReference(static_cast<escript::DataTypes::real_t>(0)).data();
-        double* y_dp = y.getExpandedVectorReference(static_cast<escript::DataTypes::real_t>(0)).data();
-        MatrixVector(1., x_dp, 1., y_dp);
-    } else {
-        cplx_t* x_dp = x.getExpandedVectorReference(static_cast<escript::DataTypes::cplx_t>(0)).data();
-        cplx_t* y_dp = y.getExpandedVectorReference(static_cast<escript::DataTypes::cplx_t>(0)).data();
-        MatrixVector(1., x_dp, 1., y_dp);
-    }
-}
-
-void SystemMatrix::copyColCoupleBlock()
+template <>
+void SystemMatrix<double>::copyColCoupleBlock()
 {
     if (mpi_info->size == 1) {
         // nothing to do
@@ -458,7 +219,8 @@ void SystemMatrix::copyColCoupleBlock()
     delete[] send_buffer;
 }
 
-void SystemMatrix::applyBalanceInPlace(double* x, const bool RHS) const
+template <>
+void SystemMatrix<double>::applyBalanceInPlace(double* x, const bool RHS) const
 {
     if (is_balanced) {
         if (RHS) {
@@ -477,7 +239,8 @@ void SystemMatrix::applyBalanceInPlace(double* x, const bool RHS) const
     }
 }
 
-void SystemMatrix::applyBalance(double* x_out, const double* x, bool RHS) const
+template <>
+void SystemMatrix<double>::applyBalance(double* x_out, const double* x, bool RHS) const
 {
     if (is_balanced) {
         if (RHS) {
@@ -496,7 +259,8 @@ void SystemMatrix::applyBalance(double* x_out, const double* x, bool RHS) const
     }
 }
 
-void SystemMatrix::balance()
+template <>
+void SystemMatrix<double>::balance()
 {
     const dim_t nrow = getTotalNumRows();
 
@@ -547,45 +311,8 @@ void SystemMatrix::balance()
     }
 }
 
-int SystemMatrix::getSystemMatrixTypeId(int solver, int preconditioner,
-                                        int package, bool symmetry,
-                                        const escript::JMPI& mpi_info)
-{
-    int out = -1;
-    int true_package = Options::getPackage(Options::mapEscriptOption(solver),
-                                           Options::mapEscriptOption(package),
-                                           symmetry, mpi_info);
-
-    switch(true_package) {
-        case PASO_PASO:
-            out = MATRIX_FORMAT_DEFAULT;
-        break;
-
-        case PASO_MKL:
-            out = MATRIX_FORMAT_BLK1 | MATRIX_FORMAT_OFFSET1;
-        break;
-
-        case PASO_UMFPACK:
-            if (mpi_info->size > 1) {
-                throw PasoException("The selected solver UMFPACK "
-                        "requires CSC format which is not supported with "
-                        "more than one rank.");
-            } else {
-                out = MATRIX_FORMAT_CSC | MATRIX_FORMAT_BLK1;
-            }
-        break;
-
-        case PASO_MUMPS:
-            out = MATRIX_FORMAT_BLK1 | MATRIX_FORMAT_OFFSET1;
-        break;
-
-        default:
-            throw PasoException("unknown package code");
-    }
-    return out;
-}
-
-SparseMatrix_ptr SystemMatrix::mergeSystemMatrix() const
+template <>
+SparseMatrix_ptr<double> SystemMatrix<double>::mergeSystemMatrix() const
 {
     const index_t n = mainBlock->numRows;
 
@@ -594,7 +321,7 @@ SparseMatrix_ptr SystemMatrix::mergeSystemMatrix() const
 #pragma omp parallel for
         for (index_t i=0; i<n; i++)
             ptr[i] = i;
-        SparseMatrix_ptr out(mainBlock->getSubmatrix(n, n, ptr, ptr));
+        SparseMatrix_ptr<double> out(mainBlock->getSubmatrix(n, n, ptr, ptr));
         delete[] ptr;
         return out;
     }
@@ -676,7 +403,7 @@ SparseMatrix_ptr SystemMatrix::mergeSystemMatrix() const
         const index_t colBlockSize = mainBlock->col_block_size;
         Pattern_ptr pat(new Pattern(mainBlock->pattern->type,
                         global_n, global_n, ptr_global, idx_global));
-        SparseMatrix_ptr out(new SparseMatrix(mainBlock->type, pat,
+        SparseMatrix_ptr<double> out(new SparseMatrix<double>(mainBlock->type, pat,
                                    rowBlockSize, colBlockSize, false));
 
         // Finally, receive and copy the values
@@ -722,7 +449,13 @@ SparseMatrix_ptr SystemMatrix::mergeSystemMatrix() const
     } // rank
 #endif
 
-    return SparseMatrix_ptr();
+    return SparseMatrix_ptr<double>();
+}
+
+template <>
+SparseMatrix_ptr<cplx_t> SystemMatrix<cplx_t>::mergeSystemMatrix() const
+{
+    throw PasoException("SystemMatrix::mergeSystemMatrix(): complex not implemented.");
 }
 
 } // namespace paso

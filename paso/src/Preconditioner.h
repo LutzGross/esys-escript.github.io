@@ -48,8 +48,8 @@ struct Preconditioner
 };
 
 void Preconditioner_free(Preconditioner*);
-Preconditioner* Preconditioner_alloc(SystemMatrix_ptr A, Options* options);
-void Preconditioner_solve(Preconditioner* prec, SystemMatrix_ptr A, double*, double*);
+Preconditioner* Preconditioner_alloc(SystemMatrix_ptr<double> A, Options* options);
+void Preconditioner_solve(Preconditioner* prec, SystemMatrix_ptr<double> A, double*, double*);
 
 
 // GAUSS SEIDEL & Jacobi
@@ -67,38 +67,38 @@ struct Preconditioner_Smoother
     bool is_local;
 };
 
-void Preconditioner_Smoother_free(Preconditioner_Smoother * in);
-void Preconditioner_LocalSmoother_free(Preconditioner_LocalSmoother * in);
+void PASO_DLL_API Preconditioner_Smoother_free(Preconditioner_Smoother * in);
+void PASO_DLL_API Preconditioner_LocalSmoother_free(Preconditioner_LocalSmoother * in);
 
 Preconditioner_Smoother* Preconditioner_Smoother_alloc(
-        SystemMatrix_ptr A, bool jacobi, bool is_local, bool verbose);
+        SystemMatrix_ptr<double> A, bool jacobi, bool is_local, bool verbose);
 
 Preconditioner_LocalSmoother* Preconditioner_LocalSmoother_alloc(
-        SparseMatrix_ptr A, bool jacobi, bool verbose);
+        SparseMatrix_ptr<double> A, bool jacobi, bool verbose);
 
-void Preconditioner_Smoother_solve(SystemMatrix_ptr A,
+void Preconditioner_Smoother_solve(SystemMatrix_ptr<double> A,
         Preconditioner_Smoother* gs, double* x, const double* b,
         dim_t sweeps, bool x_is_initial);
 
-void Preconditioner_LocalSmoother_solve(SparseMatrix_ptr A,
+void Preconditioner_LocalSmoother_solve(SparseMatrix_ptr<double> A,
         Preconditioner_LocalSmoother* gs, double* x, const double* b,
         dim_t sweeps, bool x_is_initial);
 
-SolverResult Preconditioner_Smoother_solve_byTolerance(SystemMatrix_ptr A,
+SolverResult Preconditioner_Smoother_solve_byTolerance(SystemMatrix_ptr<double> A,
                     Preconditioner_Smoother* gs, double* x, const double* b,
                     double atol, dim_t* sweeps, bool x_is_initial);
 
-void Preconditioner_LocalSmoother_Sweep(SparseMatrix_ptr A,
+void Preconditioner_LocalSmoother_Sweep(SparseMatrix_ptr<double> A,
         Preconditioner_LocalSmoother* gs, double* x);
 
 void Preconditioner_LocalSmoother_Sweep_sequential(
-        SparseMatrix_ptr A, Preconditioner_LocalSmoother* gs,
+        SparseMatrix_ptr<double> A, Preconditioner_LocalSmoother* gs,
         double* x);
 
-void Preconditioner_LocalSmoother_Sweep_tiled(SparseMatrix_ptr A,
+void Preconditioner_LocalSmoother_Sweep_tiled(SparseMatrix_ptr<double> A,
         Preconditioner_LocalSmoother* gs, double* x);
 
-void Preconditioner_LocalSmoother_Sweep_colored(SparseMatrix_ptr A,
+void Preconditioner_LocalSmoother_Sweep_colored(SparseMatrix_ptr<double> A,
         Preconditioner_LocalSmoother* gs, double* x);
 
 /// ILU preconditioner
@@ -116,8 +116,8 @@ struct Solver_RILU
     dim_t n_C;
     double* inv_A_FF;
     index_t* A_FF_pivot;
-    SparseMatrix_ptr A_FC;
-    SparseMatrix_ptr A_CF;
+    SparseMatrix_ptr<double> A_FC;
+    SparseMatrix_ptr<double> A_CF;
     index_t* rows_in_F;
     index_t* rows_in_C;
     index_t* mask_F;
@@ -130,16 +130,16 @@ struct Solver_RILU
 };
 
 void Solver_ILU_free(Solver_ILU * in);
-Solver_ILU* Solver_getILU(SparseMatrix_ptr A, bool verbose);
-void Solver_solveILU(SparseMatrix_ptr A, Solver_ILU* ilu, double* x, const double* b);
+Solver_ILU* Solver_getILU(SparseMatrix_ptr<double> A, bool verbose);
+void Solver_solveILU(SparseMatrix_ptr<double> A, Solver_ILU* ilu, double* x, const double* b);
 
 void Solver_RILU_free(Solver_RILU* in);
-Solver_RILU* Solver_getRILU(SparseMatrix_ptr A, bool verbose);
+Solver_RILU* Solver_getRILU(SparseMatrix_ptr<double> A, bool verbose);
 void Solver_solveRILU(Solver_RILU* rilu, double* x, double* b);
 
-void Solver_updateIncompleteSchurComplement(SparseMatrix_ptr A_CC,
-        SparseMatrix_ptr A_CF, double* invA_FF, index_t* A_FF_pivot,
-        SparseMatrix_ptr A_FC);
+void Solver_updateIncompleteSchurComplement(SparseMatrix_ptr<double> A_CC,
+        SparseMatrix_ptr<double> A_CF, double* invA_FF, index_t* A_FF_pivot,
+        SparseMatrix_ptr<double> A_FC);
 
 } // namespace paso
 

@@ -40,11 +40,12 @@ namespace paso {
 */
 
 
-SparseMatrix_ptr SparseMatrix::getSubmatrix(dim_t n_row_sub, dim_t n_col_sub,
+template <>
+SparseMatrix_ptr<double> SparseMatrix<double>::getSubmatrix(dim_t n_row_sub, dim_t n_col_sub,
                                             const index_t* row_list,
                                             const index_t* new_col_index) const
 {
-    SparseMatrix_ptr out;
+    SparseMatrix_ptr<double> out;
     if (type & MATRIX_FORMAT_CSC) {
         throw PasoException("SparseMatrix::getSubmatrix: gathering submatrices supports CSR matrix format only.");
     }
@@ -53,7 +54,7 @@ SparseMatrix_ptr SparseMatrix::getSubmatrix(dim_t n_row_sub, dim_t n_col_sub,
     Pattern_ptr sub_pattern(pattern->getSubpattern(n_row_sub, n_col_sub,
                                                    row_list, new_col_index));
     // create the return object
-    out.reset(new SparseMatrix(type, sub_pattern, row_block_size,
+    out.reset(new SparseMatrix<double>(type, sub_pattern, row_block_size,
                                col_block_size, true));
 #pragma omp parallel for
     for (int i=0; i<n_row_sub; ++i) {
@@ -76,11 +77,12 @@ SparseMatrix_ptr SparseMatrix::getSubmatrix(dim_t n_row_sub, dim_t n_col_sub,
     return out;
 }
 
-SparseMatrix_ptr SparseMatrix::getBlock(int blockid) const
+template <>
+SparseMatrix_ptr<double> SparseMatrix<double>::getBlock(int blockid) const
 {
     const dim_t blocksize = row_block_size;
     const dim_t n = numRows;
-    SparseMatrix_ptr out(new SparseMatrix(type, pattern, 1, 1, 0));
+    SparseMatrix_ptr<double> out(new SparseMatrix<double>(type, pattern, 1, 1, 0));
 
     if (blocksize==1) {
         if (blockid==1) {

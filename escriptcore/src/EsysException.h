@@ -38,10 +38,12 @@ public:
     */
     EsysException(const std::string& message) : msg(message)
     {
+#if 1 // for debug on windows
 #ifdef _WIN32
         std::cerr << std::endl << "EsysException:" << std::endl
                   << message << std::endl << std::endl
                   << std::flush;
+#endif
 #endif
     }
 

@@ -97,13 +97,14 @@ void q_sort(index_t *row, index_t *col, double *val, int begin, int end)
     }
 }
 
-SystemMatrix_ptr SystemMatrix::loadMM_toCSR(const char *filename)
+template <>
+SystemMatrix_ptr<double> SystemMatrix<double>::loadMM_toCSR(const char *filename)
 {
     index_t *col_ind = NULL;
     index_t *row_ind = NULL;
     index_t *row_ptr = NULL;
     double *val = NULL;
-    SystemMatrix_ptr out;
+    SystemMatrix_ptr<double> out;
     int curr_row;
     MM_typecode matrixCode;
     escript::JMPI mpi_info = escript::makeInfo(MPI_COMM_WORLD);
@@ -184,7 +185,7 @@ SystemMatrix_ptr SystemMatrix::loadMM_toCSR(const char *filename)
     SystemMatrixPattern_ptr pattern(new SystemMatrixPattern(
                 MATRIX_FORMAT_DEFAULT, output_dist, input_dist, mainPattern,
                 couplePattern, couplePattern, connector, connector));
-    out.reset(new SystemMatrix(MATRIX_FORMAT_DEFAULT, pattern, 1, 1, true,
+    out.reset(new SystemMatrix<double>(MATRIX_FORMAT_DEFAULT, pattern, 1, 1, true,
                 escript::FunctionSpace(), escript::FunctionSpace()));
 
     // copy values
@@ -197,11 +198,12 @@ SystemMatrix_ptr SystemMatrix::loadMM_toCSR(const char *filename)
     return out;
 }
 
-SystemMatrix_ptr SystemMatrix::loadMM_toCSC(const char* filename)
+template <>
+SystemMatrix_ptr<double> SystemMatrix<double>::loadMM_toCSC(const char* filename)
 {
     Pattern_ptr mainPattern, couplePattern;
     SystemMatrixPattern_ptr pattern;
-    SystemMatrix_ptr out;
+    SystemMatrix_ptr<double> out;
     Connector_ptr connector;
     index_t *col_ind = NULL;
     index_t *row_ind = NULL;
@@ -282,7 +284,7 @@ SystemMatrix_ptr SystemMatrix::loadMM_toCSC(const char* filename)
     pattern.reset(new SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
                 output_dist, input_dist, mainPattern, couplePattern,
                 couplePattern, connector, connector));
-    out.reset(new SystemMatrix(MATRIX_FORMAT_CSC, pattern, 1, 1, true,
+    out.reset(new SystemMatrix<double>(MATRIX_FORMAT_CSC, pattern, 1, 1, true,
                                escript::FunctionSpace(),
                                escript::FunctionSpace()));
 

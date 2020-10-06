@@ -896,13 +896,9 @@ private:
     paso::Connector_ptr m_connector;
 
     /// paso version of adding element matrices to System Matrix
-    void addToPasoMatrix(paso::SystemMatrix* in, const IndexVector& nodes,
-                         dim_t numEq, const DoubleVector& array) const;
-#ifdef ESYS_HAVE_MUMPS
-    /// paso version of adding element matrices to System Matrix
-    void addToPasoMatrix(paso::SystemMatrix* in, const IndexVector& nodes,
-                         dim_t numEq, const std::vector<cplx_t>& array) const;
-#endif
+    template <typename T>
+    void addToPasoMatrix(paso::SystemMatrix<T>* in, const IndexVector& nodes,
+                         dim_t numEq, const std::vector<T>& array) const;
 #endif
 
     /// calls the right PDE assembly routines after performing input checks

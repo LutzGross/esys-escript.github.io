@@ -43,7 +43,7 @@ void Preconditioner_free(Preconditioner* in)
     }
 }
 
-Preconditioner* Preconditioner_alloc(SystemMatrix_ptr A, Options* options)
+Preconditioner* Preconditioner_alloc(SystemMatrix_ptr<double> A, Options* options)
 {
     Preconditioner* prec = new Preconditioner;
     prec->jacobi=NULL;
@@ -108,7 +108,7 @@ Preconditioner* Preconditioner_alloc(SystemMatrix_ptr A, Options* options)
 /* Applies the preconditioner. */
 /* Has to be called within a parallel region. */
 /* Barrier synchronization is performed before the evaluation to make sure that the input vector is available */
-void Preconditioner_solve(Preconditioner* prec, SystemMatrix_ptr A,
+void Preconditioner_solve(Preconditioner* prec, SystemMatrix_ptr<double> A,
                           double* x, double* b)
 {
     dim_t n=0;

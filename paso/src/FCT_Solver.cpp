@@ -146,7 +146,7 @@ SolverResult FCT_Solver::updateLCN(double* u, double* u_old, Options* options,
     dim_t sweep_max, i;
     double const RTOL = options->tolerance;
     const dim_t n = transportproblem->getTotalNumRows();
-    SystemMatrix_ptr iteration_matrix(transportproblem->iteration_matrix);
+    SystemMatrix_ptr<double> iteration_matrix(transportproblem->iteration_matrix);
     const index_t* main_iptr = transportproblem->borrowMainDiagonalPointer();
     SolverResult errorCode = NoError;
     double norm_u_tilde;
@@ -382,7 +382,7 @@ SolverResult FCT_Solver::updateNL(double* u, double* u_old, Options* options,
  *   for BE : theta = 1.
  */
 
-void FCT_Solver::setAntiDiffusionFlux_CN(SystemMatrix_ptr flux_matrix)
+void FCT_Solver::setAntiDiffusionFlux_CN(SystemMatrix_ptr<double> flux_matrix)
 {
     const double* u = u_coupler->borrowLocalData();
     const double* u_old = u_old_coupler->borrowLocalData();
@@ -433,7 +433,7 @@ void FCT_Solver::setAntiDiffusionFlux_CN(SystemMatrix_ptr flux_matrix)
     }
 }
 
-void FCT_Solver::setAntiDiffusionFlux_BE(SystemMatrix_ptr flux_matrix)
+void FCT_Solver::setAntiDiffusionFlux_BE(SystemMatrix_ptr<double> flux_matrix)
 {
     const double* u = u_coupler->borrowLocalData();
     const double* u_old = u_old_coupler->borrowLocalData();
@@ -489,7 +489,7 @@ void FCT_Solver::setAntiDiffusionFlux_BE(SystemMatrix_ptr flux_matrix)
  *    =  2*  m_{ij} * ( (u_old[j]-u_tilde[j] - (u_old[i]) - u_tilde[i]) ) - dt d_{ij} * (u_tilde[j]-u_tilde[i])
  *
  */
-void FCT_Solver::setAntiDiffusionFlux_linearCN(SystemMatrix_ptr flux_matrix)
+void FCT_Solver::setAntiDiffusionFlux_linearCN(SystemMatrix_ptr<double> flux_matrix)
 {
     const_Coupler_ptr<real_t> u_tilde_coupler(flux_limiter->u_tilde_coupler);
     const double* u_tilde = u_tilde_coupler->borrowLocalData();
@@ -599,7 +599,7 @@ void FCT_Solver::setLowOrderOperator(TransportProblem_ptr fc)
     const index_t* main_iptr = fc->borrowMainDiagonalPointer();
 
     if (!fc->iteration_matrix.get()) {
-        fc->iteration_matrix.reset(new SystemMatrix(
+        fc->iteration_matrix.reset(new SystemMatrix<double>(
                   fc->transport_matrix->type, fc->transport_matrix->pattern,
                   fc->transport_matrix->row_block_size,
                   fc->transport_matrix->col_block_size, true,
@@ -665,7 +665,7 @@ void FCT_Solver::setLowOrderOperator(TransportProblem_ptr fc)
  */
 void FCT_Solver::setMuPaLu(double* out, const_Coupler_ptr<real_t> coupler, double a)
 {
-    const_SystemMatrix_ptr L(transportproblem->iteration_matrix);
+    const_SystemMatrix_ptr<double> L(transportproblem->iteration_matrix);
     const double* M = transportproblem->lumped_mass_matrix;
     const_SystemMatrixPattern_ptr pattern(L->pattern);
     const double* u = coupler->borrowLocalData();

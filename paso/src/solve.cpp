@@ -37,7 +37,8 @@
 
 namespace paso {
 
-void SystemMatrix::solve(double* out, double* in, Options* options) const
+template <>
+void SystemMatrix<double>::solve(double* out, double* in, Options* options) const
 {
     Performance pp;
     index_t package;
@@ -143,7 +144,8 @@ void SystemMatrix::solve(double* out, double* in, Options* options) const
     Performance_close(&pp, options->verbose);
 }
 
-void SystemMatrix::solve(cplx_t* out, cplx_t* in, Options* options) const
+template <>
+void SystemMatrix<cplx_t>::solve(cplx_t* out, cplx_t* in, Options* options) const
 {
     Performance pp;
     index_t package;
@@ -205,33 +207,6 @@ void SystemMatrix::solve(cplx_t* out, cplx_t* in, Options* options) const
         throw PasoException("Solver: Generic error in solver.");
     }
     Performance_close(&pp, options->verbose);
-}
-
-void solve_free(SystemMatrix* in)
-{
-    if (!in) return;
-
-    switch(in->solver_package) {
-        case PASO_PASO:
-            Solver_free(in);
-            break;
-
-        case PASO_SMOOTHER:
-            Preconditioner_Smoother_free((Preconditioner_Smoother*) in->solver_p);
-            break;
-
-        case PASO_MKL:
-            MKL_free(in->mainBlock.get());
-            break;
-
-        case PASO_UMFPACK:
-            UMFPACK_free(in->mainBlock.get());
-            break;
-
-        case PASO_MUMPS:
-            MUMPS_free(in->mainBlock.get());
-            break;
-   }
 }
 
 } // namespace paso

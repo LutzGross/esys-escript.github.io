@@ -99,118 +99,10 @@ void q_sort(index_t *row, index_t *col, double *val, int begin, int end, int N)
 }
 
 
-/* Allocates a SparseMatrix of given type using the given matrix pattern.
-   Values are initialized with zero.
-   If patternIsUnrolled and type & MATRIX_FORMAT_BLK1, it is assumed that the
-   pattern is already unrolled to match the requested block size
-   and offsets. Otherwise unrolling and offset adjustment will be performed.
-*/
-SparseMatrix::SparseMatrix(SparseMatrixType ntype, Pattern_ptr npattern,
-                           dim_t rowBlockSize, dim_t colBlockSize,
-                           bool patternIsUnrolled) :
-    type(ntype),
-    val(NULL),
-    cval(NULL),
-    solver_package(PASO_PASO),
-    solver_p(NULL)
+template <>
+SparseMatrix_ptr<double> SparseMatrix<double>::loadMM_toCSR(const char* filename)
 {
-    if (patternIsUnrolled) {
-        if ((ntype & MATRIX_FORMAT_OFFSET1) != (npattern->type & MATRIX_FORMAT_OFFSET1)) {
-            throw PasoException("SparseMatrix: requested offset and pattern offset do not match.");
-        }
-    }
-    // do we need to apply unrolling?
-    bool unroll
-          // we don't like non-square blocks
-        = (rowBlockSize != colBlockSize)
-#ifndef ESYS_HAVE_LAPACK
-          // or any block size bigger than 3
-          || (colBlockSize > 3)
-#endif
-          // or if block size one requested and the block size is not 1
-          || ((ntype & MATRIX_FORMAT_BLK1) && (colBlockSize > 1))
-          // or if offsets don't match
-          || ((ntype & MATRIX_FORMAT_OFFSET1) != (npattern->type & MATRIX_FORMAT_OFFSET1));
-
-    SparseMatrixType pattern_format_out = (ntype & MATRIX_FORMAT_OFFSET1)
-                             ? MATRIX_FORMAT_OFFSET1 : MATRIX_FORMAT_DEFAULT;
-
-    // === compressed sparse columns ===
-    if (ntype & MATRIX_FORMAT_CSC) {
-        if (unroll) {
-            if (patternIsUnrolled) {
-                pattern = npattern;
-            } else {
-                pattern = npattern->unrollBlocks(pattern_format_out,
-                                                 colBlockSize, rowBlockSize);
-            }
-            row_block_size = 1;
-            col_block_size = 1;
-        } else {
-            pattern = npattern->unrollBlocks(pattern_format_out, 1, 1);
-            row_block_size = rowBlockSize;
-            col_block_size = colBlockSize;
-        }
-        numRows = pattern->numInput;
-        numCols = pattern->numOutput;
-    } else {
-    // === compressed sparse row ===
-        if (unroll) {
-            if (patternIsUnrolled) {
-                pattern = npattern;
-            } else {
-                pattern = npattern->unrollBlocks(pattern_format_out,
-                                                 rowBlockSize, colBlockSize);
-            }
-            row_block_size = 1;
-            col_block_size = 1;
-        } else {
-            pattern = npattern->unrollBlocks(pattern_format_out, 1, 1);
-            row_block_size = rowBlockSize;
-            col_block_size = colBlockSize;
-        }
-        numRows = pattern->numOutput;
-        numCols = pattern->numInput;
-    }
-    if (ntype & MATRIX_FORMAT_DIAGONAL_BLOCK) {
-        block_size = std::min(row_block_size, col_block_size);
-    } else {
-        block_size = row_block_size*col_block_size;
-    }
-    len = (size_t)(pattern->len)*(size_t)(block_size);
-
-    val=new double[len];
-    setValues(0.);
-    cval=new cplx_t[len];
-    setValues(cplx_t(0.,0.));
-}
-
-SparseMatrix::~SparseMatrix()
-{
-    switch (solver_package) {
-        case PASO_SMOOTHER:
-            Preconditioner_LocalSmoother_free((Preconditioner_LocalSmoother*) solver_p);
-            break;
-
-        case PASO_MKL:
-            MKL_free(this);
-            break;
-
-        case PASO_UMFPACK:
-            UMFPACK_free(this);
-            break;
-
-        case PASO_MUMPS:
-            MUMPS_free(this);
-            break;
-    }
-    delete[] val;
-    delete[] cval;
-}
-
-SparseMatrix_ptr SparseMatrix::loadMM_toCSR(const char* filename)
-{
-    SparseMatrix_ptr out;
+    SparseMatrix_ptr<double> out;
     int i;
     MM_typecode matrixCode;
 
@@ -286,7 +178,8 @@ SparseMatrix_ptr SparseMatrix::loadMM_toCSR(const char* filename)
     return out;
 }
 
-void SparseMatrix::saveMM(const char* filename) const
+template <>
+void SparseMatrix<double>::saveMM(const char* filename) const
 {
     if (col_block_size != row_block_size) {
         throw PasoException("SparseMatrix::saveMM: currently only square blocks are supported.");
@@ -349,7 +242,8 @@ void SparseMatrix::saveMM(const char* filename) const
     f.close();
 }
 
-void SparseMatrix::addAbsRow_CSR_OFFSET0(double* array) const
+template <>
+void SparseMatrix<double>::addAbsRow_CSR_OFFSET0(double* array) const
 {
     const dim_t nOut = pattern->numOutput;
 #pragma omp parallel for
@@ -368,7 +262,8 @@ void SparseMatrix::addAbsRow_CSR_OFFSET0(double* array) const
     }
 }
 
-void SparseMatrix::maxAbsRow_CSR_OFFSET0(double* array) const
+template <>
+void SparseMatrix<double>::maxAbsRow_CSR_OFFSET0(double* array) const
 {
     const dim_t nOut = pattern->numOutput;
 #pragma omp parallel for
@@ -387,7 +282,8 @@ void SparseMatrix::maxAbsRow_CSR_OFFSET0(double* array) const
     }
 }
 
-void SparseMatrix::addRow_CSR_OFFSET0(double* array) const
+template <>
+void SparseMatrix<double>::addRow_CSR_OFFSET0(double* array) const
 {
     const dim_t nOut = pattern->numOutput;
 #pragma omp parallel for
@@ -405,7 +301,8 @@ void SparseMatrix::addRow_CSR_OFFSET0(double* array) const
     }
 }
 
-void SparseMatrix::copyBlockToMainDiagonal(const double* in)
+template <>
+void SparseMatrix<double>::copyBlockToMainDiagonal(const double* in)
 {
     const dim_t n = pattern->numOutput;
     const dim_t nblk = block_size;
@@ -417,7 +314,8 @@ void SparseMatrix::copyBlockToMainDiagonal(const double* in)
     }
 }
 
-void SparseMatrix::copyBlockFromMainDiagonal(double* out) const
+template <>
+void SparseMatrix<double>::copyBlockFromMainDiagonal(double* out) const
 {
     const dim_t n = pattern->numOutput;
     const dim_t nblk = block_size;
@@ -429,7 +327,8 @@ void SparseMatrix::copyBlockFromMainDiagonal(double* out) const
     }
 }
 
-void SparseMatrix::copyFromMainDiagonal(double* out) const
+template <>
+void SparseMatrix<double>::copyFromMainDiagonal(double* out) const
 {
     const dim_t n = pattern->numOutput;
     const dim_t nblk = block_size;
@@ -443,7 +342,8 @@ void SparseMatrix::copyFromMainDiagonal(double* out) const
     }
 }
 
-void SparseMatrix::copyToMainDiagonal(const double* in)
+template <>
+void SparseMatrix<double>::copyToMainDiagonal(const double* in)
 {
     const dim_t n = pattern->numOutput;
     const dim_t nblk = block_size;
@@ -457,7 +357,8 @@ void SparseMatrix::copyToMainDiagonal(const double* in)
     }
 }
 
-void SparseMatrix::applyDiagonal_CSR_OFFSET0(const double* left,
+template <>
+void SparseMatrix<double>::applyDiagonal_CSR_OFFSET0(const double* left,
                                              const double* right)
 {
     const dim_t row_block = row_block_size;
@@ -482,37 +383,8 @@ void SparseMatrix::applyDiagonal_CSR_OFFSET0(const double* left,
     }
 }
 
-void SparseMatrix::setValues(double value)
-{
-    const index_t index_offset=(type & MATRIX_FORMAT_OFFSET1 ? 1:0);
-    if (!pattern->isEmpty()) {
-        const dim_t nOut = pattern->numOutput;
-#pragma omp parallel for
-        for (dim_t i=0; i < nOut; ++i) {
-            for (index_t iptr=pattern->ptr[i]-index_offset; iptr < pattern->ptr[i+1]-index_offset; ++iptr) {
-                for (dim_t j=0; j<block_size; ++j)
-                    val[iptr*block_size+j] = value;
-            }
-        }
-    }
-}
-
-void SparseMatrix::setValues(cplx_t value)
-{
-    const index_t index_offset=(type & MATRIX_FORMAT_OFFSET1 ? 1:0);
-    if (!pattern->isEmpty()) {
-        const dim_t nOut = pattern->numOutput;
-#pragma omp parallel for
-        for (dim_t i=0; i < nOut; ++i) {
-            for (index_t iptr=pattern->ptr[i]-index_offset; iptr < pattern->ptr[i+1]-index_offset; ++iptr) {
-                for (dim_t j=0; j<block_size; ++j)
-                    cval[iptr*block_size+j] = value;
-            }
-        }
-    }
-}
-
-void SparseMatrix::invMain(double* inv_diag, index_t* pivot) const
+template <>
+void SparseMatrix<double>::invMain(double* inv_diag, index_t* pivot) const
 {
     int failed = 0;
     double A11;
@@ -562,7 +434,8 @@ void SparseMatrix::invMain(double* inv_diag, index_t* pivot) const
     }
 }
 
-void SparseMatrix::applyBlockMatrix(double* block_diag, index_t* pivot,
+template <>
+void SparseMatrix<double>::applyBlockMatrix(double* block_diag, index_t* pivot,
                                     double* x, const double *b) const
 {
     const dim_t n = numRows;
@@ -571,7 +444,8 @@ void SparseMatrix::applyBlockMatrix(double* block_diag, index_t* pivot,
     BlockOps_solveAll(n_block, n, block_diag, pivot, x);
 }
 
-SparseMatrix_ptr SparseMatrix::getTranspose() const
+template <>
+SparseMatrix_ptr<double> SparseMatrix<double>::getTranspose() const
 {
     const dim_t m = numCols;
     const dim_t n = numRows;
@@ -585,7 +459,7 @@ SparseMatrix_ptr SparseMatrix::getTranspose() const
     }
 
     Pattern_ptr ATpattern(Pattern::fromIndexListArray(0,m,index_list.get(),0,n,0));
-    SparseMatrix_ptr AT(new SparseMatrix(type, ATpattern, col_block_size, row_block_size, false));
+    SparseMatrix_ptr<double> AT(new SparseMatrix(type, ATpattern, col_block_size, row_block_size, false));
 
     if ( ((type & MATRIX_FORMAT_DIAGONAL_BLOCK) && (block_size == 1)) ||
          (row_block_size == 1 && col_block_size == 1)) {
@@ -647,10 +521,11 @@ SparseMatrix_ptr SparseMatrix::getTranspose() const
     return AT;
 }
 
-SparseMatrix_ptr SparseMatrix::unroll(SparseMatrixType newType) const
+template <>
+SparseMatrix_ptr<double> SparseMatrix<double>::unroll(SparseMatrixType newType) const
 {
     const index_t out_type = (newType & MATRIX_FORMAT_BLK1) ? newType : newType + MATRIX_FORMAT_BLK1;
-    SparseMatrix_ptr out(new SparseMatrix(out_type, pattern, row_block_size, col_block_size, false));
+    SparseMatrix_ptr<double> out(new SparseMatrix(out_type, pattern, row_block_size, col_block_size, false));
 
     const dim_t n = numRows;
     const index_t A_offset = (type & MATRIX_FORMAT_OFFSET1 ? 1 : 0);
@@ -700,6 +575,12 @@ SparseMatrix_ptr SparseMatrix::unroll(SparseMatrixType newType) const
         }
     }
     return out;
+}
+
+template <>
+void SparseMatrix<cplx_t>::saveMM(const char* filename) const
+{
+    throw PasoException("SparseMatrix::saveMM(): complex not implemented.");
 }
 
 } // namespace paso
