@@ -1873,12 +1873,12 @@ std::vector<IndexVector> Rectangle::getConnections(bool includeShared) const
     std::vector< std::vector<escript::DataTypes::index_t> > indices(numNodes);
 
     // Loop over interior quadrants
-    getConnections_data * data;
-    data = new getConnections_data;
-    data->pNodeIDs = &NodeIDs;
-    data->indices = &indices;
-    data->p4est = p4est;
-    p4est_iterate(p4est, NULL, data, update_connections, NULL, NULL);
+    // getConnections_data * data;
+    // data = new getConnections_data;
+    // data->pNodeIDs = &NodeIDs;
+    // data->indices = &indices;
+    // data->p4est = p4est;
+    // p4est_iterate(p4est, NULL, data, update_connections, NULL, NULL);
 
     // Loop over the quadrants skipped by p4est_iterate
 #pragma omp parallel for    
@@ -1894,8 +1894,8 @@ std::vector<IndexVector> Rectangle::getConnections(bool includeShared) const
 
             for(int n = 0; n < 4; n++)
             {
-                if(!isUpperBoundaryNode(quad, n, treeid, length))
-                    continue;
+                // if(!isUpperBoundaryNode(quad, n, treeid, length))
+                //     continue;
 
                 double xy[3];
                 long lx[4] = {0,length,0,length};
