@@ -13,6 +13,7 @@
 *
 *****************************************************************************/
 
+#include <algorithm>
 #include <ctime>
 #include <random>
 #include <vector>
@@ -1847,14 +1848,13 @@ void Rectangle::updateNodeDistribution()
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
             p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
             for(int n = 0; n < 4; n++)
-                if(p4est->mpirank)
-                {
-                    double lx = length * ((int) (n % 2) == 1);
-                    double ly = length * ((int) (n / 2) == 1);
-                    double xy[3];
-                    p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
-                    m_nodeDistribution[counter++]=NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-                }
+            {
+                double lx = length * ((int) (n % 2) == 1);
+                double ly = length * ((int) (n / 2) == 1);
+                double xy[3];
+                p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
+                m_nodeDistribution[counter++]=NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+            }
         }
     }
 }
@@ -1872,7 +1872,7 @@ std::vector<IndexVector> Rectangle::getConnections(bool includeShared) const
     long numNodes = getNumNodes();
     std::vector< std::vector<escript::DataTypes::index_t> > indices(numNodes);
 
-    // Loop over quadrants
+    // Loop over interior quadrants
     getConnections_data * data;
     data = new getConnections_data;
     data->pNodeIDs = &NodeIDs;
@@ -1880,12 +1880,67 @@ std::vector<IndexVector> Rectangle::getConnections(bool includeShared) const
     data->p4est = p4est;
     p4est_iterate(p4est, NULL, data, update_connections, NULL, NULL);
 
+    // Loop over the quadrants skipped by p4est_iterate
+#pragma omp parallel for    
+    for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) 
+    {
+        p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
+        sc_array_t * tquadrants = &tree->quadrants;
+        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+        for(int q = 0; q < Q; ++q) 
+        { 
+            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+            p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
+
+            for(int n = 0; n < 4; n++)
+            {
+                if(!isUpperBoundaryNode(quad, n, treeid, length))
+                    continue;
+
+                double xy[3];
+                long lx[4] = {0,length,0,length};
+                long ly[4] = {0,0,length,length};
+                long lni[4] = {-1};
+                for(int i = 0; i < 4; i++)
+                {
+                    p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx[i], quad->y+ly[i], xy);
+                    lni[i] = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+                }
+
+                for(int i = 0; i < 4; i++)
+                {
+                    for(int j = 0; j < 4; j++)
+                    {
+                        bool dup = false;
+                        for(int k = 0; k < indices[i].size(); k++)
+                            if(indices[i][k] == lni[j])
+                            {
+                                dup = true;
+                                break;
+                            }
+                        if(dup == false)
+                            indices[i].push_back(lni[j]);
+                    }
+                }
+            }
+        }
+    }
+
     // Sorting
-// #pragma omp parallel for
-//     for(int i = 0; i < numNodes; i++){
-//         auto idx = &indices[0][i];
-//         std::sort(indices[0][i].begin()+1, indices[0][i].begin()+idx[0][0]+1);
-//     }
+#pragma omp parallel for
+    for(int i = 0; i < numNodes; i++){
+        std::sort(indices[0].begin(), indices[0].begin()+indices[0].size());
+    }
+
+#ifdef P4EST_ENABLE_DEBUG
+    // std::cout << "Rectangle::getConnections" << std::endl;
+    // for(int i = 0; i < numNodes; i++) {
+    //     std::cout << "i:" << i << " ";
+    //     for(auto j = indices[0].begin(); j < indices[0].begin()+indices[0].end(); j++)
+    //         std::cout << indices[i][j] << ", ";
+    //     std::cout << std::endl;
+    // }
+#endif
 
     return indices;
 }

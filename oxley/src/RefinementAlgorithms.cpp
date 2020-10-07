@@ -602,7 +602,17 @@ void update_connections(p4est_iter_volume_info_t *info, void *user_data)
     {
         std::vector<escript::DataTypes::index_t> * temp = &data->indices[0][i];
         for(int j = 0; j < 4; j++)
-            temp->push_back(lni[j]);
+        {
+            bool dup = false;
+            for(int k = 0; k < data->indices[0][i].size(); k++)
+                if(temp[0][k] == lni[j])
+                {
+                    dup = true;
+                    break;
+                }
+            if(dup == false)
+                temp->push_back(lni[j]);
+        }
     }
 
     // std::cout << "xy = " << xy[0] << ", " << xy[1] << std::endl; // coordinates
