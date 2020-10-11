@@ -306,11 +306,8 @@ def checkBoost(env):
 
             # Locate the boost numpy files
             if env['IS_WINDOWS']:
-                raise Exception # TODO: fix boost numpy dll ex/import compile errors
-                import sys
-                for l in os.listdir(env['boost_prefix'] + '\\lib'):
-                    if l.startswith('boost_numpy{}{}'.format(sys.version_info.major,sys.version_info.minor)):
-                        libname = os.path.splitext(l)[0]
+                # windows scons template adds boost_numpy to boost_libs
+                env.Append(CPPDEFINES=['ESYS_HAVE_BOOST_NUMPY'])
             else:
                 p = subprocess.Popen(["ld","--verbose"], stdout=subprocess.PIPE)
                 out,err = p.communicate()
@@ -355,16 +352,16 @@ def checkBoost(env):
                 else:
                     libname = p3name[3:-3]
 
-            # If found, add the necessary information to env
-            if len(libname) > 0:
-                env.AppendUnique(LIBS = libname)
-                tmp=env['boost_libs']
-                env['boost_libs']=[tmp,libname]
-                env.AppendUnique(CPPPATH = [boost_numpy_inc_path])
-                env.AppendUnique(LIBPATH = [boost_numpy_lib_path])
-                env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], boost_numpy_lib_path)
-                env.Append(CPPDEFINES=['ESYS_HAVE_BOOST_NUMPY'])
-                env['have_boost_numpy']=True
+                # If found, add the necessary information to env
+                if len(libname) > 0:
+                    env.AppendUnique(LIBS = libname)
+                    tmp=env['boost_libs']
+                    env['boost_libs']=[tmp,libname]
+                    env.AppendUnique(CPPPATH = [boost_numpy_inc_path])
+                    env.AppendUnique(LIBPATH = [boost_numpy_lib_path])
+                    env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], boost_numpy_lib_path)
+                    env.Append(CPPDEFINES=['ESYS_HAVE_BOOST_NUMPY'])
+                    env['have_boost_numpy']=True
 
             print("Found boost/python/numpy.hpp. Building with boost numpy support.")
         except:
@@ -385,11 +382,23 @@ def checkNumpy(env):
 
     ## check for numpy header (optional)
     conf = Configure(env.Clone())
+    numpy_h = False
     if conf.CheckCXXHeader(['Python.h','numpy/ndarrayobject.h']):
-        conf.env.Append(CPPDEFINES = ['ESYS_HAVE_NUMPY_H'])
-        conf.env['numpy_h']=True
+        numpy_h = True
     else:
-        conf.env['numpy_h']=False
+        conda_prefix = os.environ.get('CONDA_PREFIX')
+        if conda_prefix:
+            # make a copy of CPPPATH so it can be restored if header check fails
+            cpp_path_old = conf.env.get('CPPPATH', []).copy()
+            conf.env.Append(CPPPATH = [conda_prefix+'/Lib/site-packages/numpy/core/include'])
+            if conf.CheckCXXHeader(['Python.h','numpy/ndarrayobject.h']):
+                numpy_h = True
+            else:
+                conf.env['CPPPATH'] = cpp_path_old
+
+    conf.env['numpy_h'] = numpy_h
+    if numpy_h:
+        conf.env.Append(CPPDEFINES = ['ESYS_HAVE_NUMPY_H'])
 
     return conf.Finish()
 

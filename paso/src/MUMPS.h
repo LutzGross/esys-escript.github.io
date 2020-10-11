@@ -134,7 +134,8 @@ void MUMPS_free(SparseMatrix<T>* A)
                 throw PasoException(message);
             }
         }
-        MUMPS_INT ierr = MPI_Finalize();
+        /* avoid "unused variable warning" */
+        /* MUMPS_INT ierr = */ MPI_Finalize();
         if (pt->verbose) {
             std::cout << "MUMPS: instance terminated." << std::endl;
         }
@@ -193,9 +194,10 @@ void MUMPS_solve(SparseMatrix_ptr<T> A, T* out, T* in, dim_t numRefinements, boo
         }
         pt->rhs = new T[n];
         std::memcpy(pt->rhs, in, n*sizeof(T));
-        MUMPS_INT ierr;
-        ierr = MPI_Init(NULL, NULL);
-        ierr = MPI_Comm_rank(MPI_COMM_WORLD, &pt->myid);
+        /* avoid "unused variable warning" */
+        /* MUMPS_INT ierr; */
+        /* ierr = */ MPI_Init(NULL, NULL);
+        /* ierr = */ MPI_Comm_rank(MPI_COMM_WORLD, &pt->myid);
 
         // Initialize a MUMPS instance. Use MPI_COMM_WORLD
         pt->id.comm_fortran = MUMPS_USE_COMM_WORLD;
