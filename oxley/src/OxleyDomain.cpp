@@ -1146,7 +1146,7 @@ void OxleyDomain::addToSystem(escript::AbstractSystemMatrix& mat,
     {
         if (isNotEmpty("d_contact", coefs) || isNotEmpty("y_contact", coefs))
             throw ValueError(
-                        "addToSystem: Ripley does not support contact elements");
+                        "addToSystem: Oxley does not support contact elements");
 
         assemblePDE(&mat, rhs, coefs, assembler);
         assemblePDEBoundary(&mat, rhs, coefs, assembler);
@@ -1275,8 +1275,8 @@ void OxleyDomain::assemblePDE(escript::AbstractSystemMatrix* mat,
                                escript::Data& rhs, const DataMap& coefs,
                                Assembler_ptr assembler) const
 {
-    if (rhs.isEmpty() && (isNotEmpty("X", coefs) || isNotEmpty("du", coefs))
-                && isNotEmpty("Y", coefs))
+    if (rhs.isEmpty() && (isNotEmpty("X", coefs) 
+        || isNotEmpty("du", coefs)) && isNotEmpty("Y", coefs))
         throw ValueError("assemblePDE: right hand side coefficients are "
                          "provided but no right hand side vector given");
 
