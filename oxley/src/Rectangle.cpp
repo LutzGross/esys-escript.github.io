@@ -1051,25 +1051,32 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
 template<typename Scalar>
 void Rectangle::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F,
          const std::vector<Scalar>& EM_S, const std::vector<Scalar>& EM_F, 
-         bool addS, bool addF, index_t firstNode, int nEq, int nComp) const
+         bool addS, bool addF, index_t e, index_t t, int nEq, int nComp) const
 {    
     IndexVector rowIndex(4);
-    // rowIndex[0] = m_dofMap[firstNode];
-    // rowIndex[1] = m_dofMap[firstNode+1];
-    // rowIndex[2] = m_dofMap[firstNode+m_NN[0]];
-    // rowIndex[3] = m_dofMap[firstNode+m_NN[0]+1];
+    p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
+    sc_array_t * tquadrants = &currenttree->quadrants;
+    p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+    p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
+    p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
+    for(int i = 0; i < 4; i++)
+    {
+        double lx = length * ((int) (i % 2) == 1);
+        double ly = length * ((int) (i / 2) == 1);
+        double xy[3];
+        p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x+lx, quad->y+ly, xy);
+        rowIndex[i] = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+    }
 
     if(addF)
     {
         Scalar* F_p = F.getSampleDataRW(0, static_cast<Scalar>(0));
-        for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; treeid++)
-        {
-            p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, treeid);
-            sc_array_t * tquadrants = &currenttree->quadrants;
-            p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-#pragma omp parallel for
-            for (p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
-                F_p[e]+=EM_F[e];
+        for (index_t i=0; i<rowIndex.size(); i++) {
+            if (rowIndex[i]<getNumDOF()) {
+                for (int eq=0; eq<nEq; eq++) {
+                    F_p[INDEX2(eq, rowIndex[i], nEq)]+=EM_F[INDEX2(eq,i,nEq)];
+                }
+            }
         }
     }
     if(addS)
@@ -1081,12 +1088,12 @@ void Rectangle::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Dat
 template
 void Rectangle::addToMatrixAndRHS<real_t>(escript::AbstractSystemMatrix* S, escript::Data& F,
          const std::vector<real_t>& EM_S, const std::vector<real_t>& EM_F, 
-         bool addS, bool addF, index_t firstNode, int nEq, int nComp) const;
+         bool addS, bool addF, index_t e, index_t t, int nEq, int nComp) const;
 
 template
 void Rectangle::addToMatrixAndRHS<cplx_t>(escript::AbstractSystemMatrix* S, escript::Data& F,
          const std::vector<cplx_t>& EM_S, const std::vector<cplx_t>& EM_F, 
-         bool addS, bool addF, index_t firstNode, int nEq, int nComp) const;
+         bool addS, bool addF, index_t e, index_t t, int nEq, int nComp) const;
 
 //protected
 void Rectangle::interpolateNodesOnElements(escript::Data& out,
@@ -1476,7 +1483,6 @@ void Rectangle::updateRowsColumns()
 
                     // If the node is on the boundary x=Lx or y=Ly
                     if( (n == 1) && (xy[0] == forestData->m_lxy[0]) )
-                      
                     {
                         // Get the node IDs
                         long lni0 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;

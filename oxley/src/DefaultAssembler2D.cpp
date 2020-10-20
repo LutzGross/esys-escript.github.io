@@ -215,409 +215,425 @@ void DefaultAssembler2D<Scalar>::assemblePDESingle(AbstractSystemMatrix* mat, Da
         fill(EM_F.begin(), EM_F.end(), zero);
     rhs.requireWrite();
 
-#pragma omp parallel
-    {
-        // for (index_t k1_0 = 0; k1_0 < 2; k1_0++) { // colouring
-            for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
-            {
-                p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
-                sc_array_t * tquadrants = &currenttree->quadrants;
-                p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+    // for (index_t k1_0 = 0; k1_0 < 2; k1_0++) { // colouring
+        for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
+        {
+            p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
+            sc_array_t * tquadrants = &currenttree->quadrants;
+            p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
 #pragma omp parallel for
-                for (p4est_locidx_t e = domain->nodes->global_offset; e < Q+domain->nodes->global_offset; e++) // Loop over every quadrant within the tree
-                {
-                    // Work out what level this element is on 
+            for (p4est_locidx_t e = domain->nodes->global_offset; e < Q+domain->nodes->global_offset; e++) // Loop over every quadrant within the tree
+            {
+                for(int n = 0; n < 4; ++n){
+
+                    // Get the node ID
                     p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
+                    p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
                     int l = quad->level;
+                    double lx = length * ((int) (n % 2) == 1);
+                    double ly = length * ((int) (n / 2) == 1);
+                    double xy[3];
+                    p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x+lx, quad->y+ly, xy);
+                    p4est_locidx_t id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
 
-                    ///////////////
-                    // process A //
-                    ///////////////
-                    if (!A.isEmpty()) {
-                        const Scalar* A_p = A.getSampleDataRO(e, zero);
-                        if (A.actsExpanded()) {
-                            const Scalar A_00_0 = A_p[INDEX3(0,0,0,2,2)];
-                            const Scalar A_01_0 = A_p[INDEX3(0,1,0,2,2)];
-                            const Scalar A_10_0 = A_p[INDEX3(1,0,0,2,2)];
-                            const Scalar A_11_0 = A_p[INDEX3(1,1,0,2,2)];
-                            const Scalar A_00_1 = A_p[INDEX3(0,0,1,2,2)];
-                            const Scalar A_01_1 = A_p[INDEX3(0,1,1,2,2)];
-                            const Scalar A_10_1 = A_p[INDEX3(1,0,1,2,2)];
-                            const Scalar A_11_1 = A_p[INDEX3(1,1,1,2,2)];
-                            const Scalar A_00_2 = A_p[INDEX3(0,0,2,2,2)];
-                            const Scalar A_01_2 = A_p[INDEX3(0,1,2,2,2)];
-                            const Scalar A_10_2 = A_p[INDEX3(1,0,2,2,2)];
-                            const Scalar A_11_2 = A_p[INDEX3(1,1,2,2,2)];
-                            const Scalar A_00_3 = A_p[INDEX3(0,0,3,2,2)];
-                            const Scalar A_01_3 = A_p[INDEX3(0,1,3,2,2)];
-                            const Scalar A_10_3 = A_p[INDEX3(1,0,3,2,2)];
-                            const Scalar A_11_3 = A_p[INDEX3(1,1,3,2,2)];
-                            const Scalar tmp0  = w[3][l]*(A_11_0 + A_11_1 + A_11_2 + A_11_3);
-                            const Scalar tmp1  = w[1][l]*(A_01_0 + A_01_3 - A_10_1 - A_10_2);
-                            const Scalar tmp2  = w[4][l]*(A_00_2 + A_00_3);
-                            const Scalar tmp3  = w[0][l]*(A_00_0 + A_00_1);
-                            const Scalar tmp4  = w[5][l]*(A_01_2 - A_10_3);
-                            const Scalar tmp5  = w[2][l]*(-A_01_1 + A_10_0);
-                            const Scalar tmp6  = w[5][l]*(A_01_3 + A_10_0);
-                            const Scalar tmp7  = w[3][l]*(-A_11_0 - A_11_1 - A_11_2 - A_11_3);
-                            const Scalar tmp8  = w[6][l]*(A_00_0 + A_00_1 + A_00_2 + A_00_3);
-                            const Scalar tmp9  = w[1][l]*(A_01_1 + A_01_2 + A_10_1 + A_10_2);
-                            const Scalar tmp10 = w[2][l]*(-A_01_0 - A_10_3);
-                            const Scalar tmp11 = w[4][l]*(A_00_0 + A_00_1);
-                            const Scalar tmp12 = w[0][l]*(A_00_2 + A_00_3);
-                            const Scalar tmp13 = w[5][l]*(A_01_1 - A_10_0);
-                            const Scalar tmp14 = w[2][l]*(-A_01_2 + A_10_3);
-                            const Scalar tmp15 = w[7][l]*(A_11_0 + A_11_2);
-                            const Scalar tmp16 = w[4][l]*(-A_00_2 - A_00_3);
-                            const Scalar tmp17 = w[0][l]*(-A_00_0 - A_00_1);
-                            const Scalar tmp18 = w[5][l]*(A_01_3 + A_10_3);
-                            const Scalar tmp19 = w[8][l]*(A_11_1 + A_11_3);
-                            const Scalar tmp20 = w[2][l]*(-A_01_0 - A_10_0);
-                            const Scalar tmp21 = w[7][l]*(A_11_1 + A_11_3);
-                            const Scalar tmp22 = w[4][l]*(-A_00_0 - A_00_1);
-                            const Scalar tmp23 = w[0][l]*(-A_00_2 - A_00_3);
-                            const Scalar tmp24 = w[5][l]*(A_01_0 + A_10_0);
-                            const Scalar tmp25 = w[8][l]*(A_11_0 + A_11_2);
-                            const Scalar tmp26 = w[2][l]*(-A_01_3 - A_10_3);
-                            const Scalar tmp27 = w[5][l]*(-A_01_1 - A_10_2);
-                            const Scalar tmp28 = w[1][l]*(-A_01_0 - A_01_3 - A_10_0 - A_10_3);
-                            const Scalar tmp29 = w[2][l]*(A_01_2 + A_10_1);
-                            const Scalar tmp30 = w[7][l]*(-A_11_1 - A_11_3);
-                            const Scalar tmp31 = w[1][l]*(-A_01_1 - A_01_2 + A_10_0 + A_10_3);
-                            const Scalar tmp32 = w[5][l]*(-A_01_0 + A_10_2);
-                            const Scalar tmp33 = w[8][l]*(-A_11_0 - A_11_2);
-                            const Scalar tmp34 = w[6][l]*(-A_00_0 - A_00_1 - A_00_2 - A_00_3);
-                            const Scalar tmp35 = w[2][l]*(A_01_3 - A_10_1);
-                            const Scalar tmp36 = w[5][l]*(A_01_0 + A_10_3);
-                            const Scalar tmp37 = w[2][l]*(-A_01_3 - A_10_0);
-                            const Scalar tmp38 = w[7][l]*(-A_11_0 - A_11_2);
-                            const Scalar tmp39 = w[5][l]*(-A_01_3 + A_10_1);
-                            const Scalar tmp40 = w[8][l]*(-A_11_1 - A_11_3);
-                            const Scalar tmp41 = w[2][l]*(A_01_0 - A_10_2);
-                            const Scalar tmp42 = w[5][l]*(A_01_1 - A_10_3);
-                            const Scalar tmp43 = w[2][l]*(-A_01_2 + A_10_0);
-                            const Scalar tmp44 = w[5][l]*(A_01_2 - A_10_0);
-                            const Scalar tmp45 = w[2][l]*(-A_01_1 + A_10_3);
-                            const Scalar tmp46 = w[5][l]*(-A_01_0 + A_10_1);
-                            const Scalar tmp47 = w[2][l]*(A_01_3 - A_10_2);
-                            const Scalar tmp48 = w[5][l]*(-A_01_1 - A_10_1);
-                            const Scalar tmp49 = w[2][l]*(A_01_2 + A_10_2);
-                            const Scalar tmp50 = w[5][l]*(-A_01_3 + A_10_2);
-                            const Scalar tmp51 = w[2][l]*(A_01_0 - A_10_1);
-                            const Scalar tmp52 = w[5][l]*(-A_01_2 - A_10_1);
-                            const Scalar tmp53 = w[2][l]*(A_01_1 + A_10_2);
-                            const Scalar tmp54 = w[5][l]*(-A_01_2 - A_10_2);
-                            const Scalar tmp55 = w[2][l]*(A_01_1 + A_10_1);
-                            EM_S[INDEX2(0,0,4)]+=tmp15 + tmp16 + tmp17 + tmp18 + tmp19 + tmp20 + tmp9;
-                            EM_S[INDEX2(0,1,4)]+=tmp0 + tmp1 + tmp2 + tmp3 + tmp4 + tmp5;
-                            EM_S[INDEX2(0,2,4)]+=tmp31 + tmp34 + tmp38 + tmp39 + tmp40 + tmp41;
-                            EM_S[INDEX2(0,3,4)]+=tmp28 + tmp52 + tmp53 + tmp7 + tmp8;
-                            EM_S[INDEX2(1,0,4)]+=tmp0 + tmp2 + tmp3 + tmp31 + tmp50 + tmp51;
-                            EM_S[INDEX2(1,1,4)]+=tmp16 + tmp17 + tmp21 + tmp25 + tmp28 + tmp54 + tmp55;
-                            EM_S[INDEX2(1,2,4)]+=tmp10 + tmp6 + tmp7 + tmp8 + tmp9;
-                            EM_S[INDEX2(1,3,4)]+=tmp1 + tmp30 + tmp33 + tmp34 + tmp44 + tmp45;
-                            EM_S[INDEX2(2,0,4)]+=tmp1 + tmp34 + tmp38 + tmp40 + tmp42 + tmp43;
-                            EM_S[INDEX2(2,1,4)]+=tmp36 + tmp37 + tmp7 + tmp8 + tmp9;
-                            EM_S[INDEX2(2,2,4)]+=tmp15 + tmp19 + tmp22 + tmp23 + tmp28 + tmp48 + tmp49;
-                            EM_S[INDEX2(2,3,4)]+=tmp0 + tmp11 + tmp12 + tmp31 + tmp46 + tmp47;
-                            EM_S[INDEX2(3,0,4)]+=tmp27 + tmp28 + tmp29 + tmp7 + tmp8;
-                            EM_S[INDEX2(3,1,4)]+=tmp30 + tmp31 + tmp32 + tmp33 + tmp34 + tmp35;
-                            EM_S[INDEX2(3,2,4)]+=tmp0 + tmp1 + tmp11 + tmp12 + tmp13 + tmp14;
-                            EM_S[INDEX2(3,3,4)]+=tmp21 + tmp22 + tmp23 + tmp24 + tmp25 + tmp26 + tmp9;
-                        } else { // constant data
-                            const Scalar A_00 = A_p[INDEX2(0,0,2)];
-                            const Scalar A_01 = A_p[INDEX2(0,1,2)];
-                            const Scalar A_10 = A_p[INDEX2(1,0,2)];
-                            const Scalar A_11 = A_p[INDEX2(1,1,2)];
-                            const Scalar tmp0 = 6.*w[1][l]*(A_01 - A_10);
-                            const Scalar tmp1 = 6.*w[1][l]*(A_01 + A_10);
-                            const Scalar tmp2 = 6.*w[1][l]*(-A_01 - A_10);
-                            const Scalar tmp3 = 6.*w[1][l]*(-A_01 + A_10);
-                            EM_S[INDEX2(0,0,4)]+=-8.*A_00*w[6][l] + 8.*A_11*w[3][l] + tmp1;
-                            EM_S[INDEX2(0,1,4)]+= 8.*A_00*w[6][l] + 4.*A_11*w[3][l] + tmp0;
-                            EM_S[INDEX2(0,2,4)]+=-4.*A_00*w[6][l] - 8.*A_11*w[3][l] + tmp3;
-                            EM_S[INDEX2(0,3,4)]+= 4.*A_00*w[6][l] - 4.*A_11*w[3][l] + tmp2;
-                            EM_S[INDEX2(1,0,4)]+= 8.*A_00*w[6][l] + 4.*A_11*w[3][l] + tmp3;
-                            EM_S[INDEX2(1,1,4)]+=-8.*A_00*w[6][l] + 8.*A_11*w[3][l] + tmp2;
-                            EM_S[INDEX2(1,2,4)]+= 4.*A_00*w[6][l] - 4.*A_11*w[3][l] + tmp1;
-                            EM_S[INDEX2(1,3,4)]+=-4.*A_00*w[6][l] - 8.*A_11*w[3][l] + tmp0;
-                            EM_S[INDEX2(2,0,4)]+=-4.*A_00*w[6][l] - 8.*A_11*w[3][l] + tmp0;
-                            EM_S[INDEX2(2,1,4)]+= 4.*A_00*w[6][l] - 4.*A_11*w[3][l] + tmp1;
-                            EM_S[INDEX2(2,2,4)]+=-8.*A_00*w[6][l] + 8.*A_11*w[3][l] + tmp2;
-                            EM_S[INDEX2(2,3,4)]+= 8.*A_00*w[6][l] + 4.*A_11*w[3][l] + tmp3;
-                            EM_S[INDEX2(3,0,4)]+= 4.*A_00*w[6][l] - 4.*A_11*w[3][l] + tmp2;
-                            EM_S[INDEX2(3,1,4)]+=-4.*A_00*w[6][l] - 8.*A_11*w[3][l] + tmp3;
-                            EM_S[INDEX2(3,2,4)]+= 8.*A_00*w[6][l] + 4.*A_11*w[3][l] + tmp0;
-                            EM_S[INDEX2(3,3,4)]+=-8.*A_00*w[6][l] + 8.*A_11*w[3][l] + tmp1;
+                    // Check to see whether or not to include this node
+                    if(     (n == 0) 
+                    || ((n == 1) && (xy[0] == domain->forestData->m_lxy[0]))
+                    || ((n == 2) && (xy[1] == domain->forestData->m_lxy[1]))
+                    || ((n == 3) && (xy[0] == domain->forestData->m_lxy[0]) && (xy[1] == domain->forestData->m_lxy[1]))
+                  )
+                    {
+                        ///////////////
+                        // process A //
+                        ///////////////
+                        if (!A.isEmpty()) {
+                            const Scalar* A_p = A.getSampleDataRO(id, zero);
+                            if (A.actsExpanded()) {
+                                const Scalar A_00_0 = A_p[INDEX3(0,0,0,2,2)];
+                                const Scalar A_01_0 = A_p[INDEX3(0,1,0,2,2)];
+                                const Scalar A_10_0 = A_p[INDEX3(1,0,0,2,2)];
+                                const Scalar A_11_0 = A_p[INDEX3(1,1,0,2,2)];
+                                const Scalar A_00_1 = A_p[INDEX3(0,0,1,2,2)];
+                                const Scalar A_01_1 = A_p[INDEX3(0,1,1,2,2)];
+                                const Scalar A_10_1 = A_p[INDEX3(1,0,1,2,2)];
+                                const Scalar A_11_1 = A_p[INDEX3(1,1,1,2,2)];
+                                const Scalar A_00_2 = A_p[INDEX3(0,0,2,2,2)];
+                                const Scalar A_01_2 = A_p[INDEX3(0,1,2,2,2)];
+                                const Scalar A_10_2 = A_p[INDEX3(1,0,2,2,2)];
+                                const Scalar A_11_2 = A_p[INDEX3(1,1,2,2,2)];
+                                const Scalar A_00_3 = A_p[INDEX3(0,0,3,2,2)];
+                                const Scalar A_01_3 = A_p[INDEX3(0,1,3,2,2)];
+                                const Scalar A_10_3 = A_p[INDEX3(1,0,3,2,2)];
+                                const Scalar A_11_3 = A_p[INDEX3(1,1,3,2,2)];
+                                const Scalar tmp0  = w[3][l]*(A_11_0 + A_11_1 + A_11_2 + A_11_3);
+                                const Scalar tmp1  = w[1][l]*(A_01_0 + A_01_3 - A_10_1 - A_10_2);
+                                const Scalar tmp2  = w[4][l]*(A_00_2 + A_00_3);
+                                const Scalar tmp3  = w[0][l]*(A_00_0 + A_00_1);
+                                const Scalar tmp4  = w[5][l]*(A_01_2 - A_10_3);
+                                const Scalar tmp5  = w[2][l]*(-A_01_1 + A_10_0);
+                                const Scalar tmp6  = w[5][l]*(A_01_3 + A_10_0);
+                                const Scalar tmp7  = w[3][l]*(-A_11_0 - A_11_1 - A_11_2 - A_11_3);
+                                const Scalar tmp8  = w[6][l]*(A_00_0 + A_00_1 + A_00_2 + A_00_3);
+                                const Scalar tmp9  = w[1][l]*(A_01_1 + A_01_2 + A_10_1 + A_10_2);
+                                const Scalar tmp10 = w[2][l]*(-A_01_0 - A_10_3);
+                                const Scalar tmp11 = w[4][l]*(A_00_0 + A_00_1);
+                                const Scalar tmp12 = w[0][l]*(A_00_2 + A_00_3);
+                                const Scalar tmp13 = w[5][l]*(A_01_1 - A_10_0);
+                                const Scalar tmp14 = w[2][l]*(-A_01_2 + A_10_3);
+                                const Scalar tmp15 = w[7][l]*(A_11_0 + A_11_2);
+                                const Scalar tmp16 = w[4][l]*(-A_00_2 - A_00_3);
+                                const Scalar tmp17 = w[0][l]*(-A_00_0 - A_00_1);
+                                const Scalar tmp18 = w[5][l]*(A_01_3 + A_10_3);
+                                const Scalar tmp19 = w[8][l]*(A_11_1 + A_11_3);
+                                const Scalar tmp20 = w[2][l]*(-A_01_0 - A_10_0);
+                                const Scalar tmp21 = w[7][l]*(A_11_1 + A_11_3);
+                                const Scalar tmp22 = w[4][l]*(-A_00_0 - A_00_1);
+                                const Scalar tmp23 = w[0][l]*(-A_00_2 - A_00_3);
+                                const Scalar tmp24 = w[5][l]*(A_01_0 + A_10_0);
+                                const Scalar tmp25 = w[8][l]*(A_11_0 + A_11_2);
+                                const Scalar tmp26 = w[2][l]*(-A_01_3 - A_10_3);
+                                const Scalar tmp27 = w[5][l]*(-A_01_1 - A_10_2);
+                                const Scalar tmp28 = w[1][l]*(-A_01_0 - A_01_3 - A_10_0 - A_10_3);
+                                const Scalar tmp29 = w[2][l]*(A_01_2 + A_10_1);
+                                const Scalar tmp30 = w[7][l]*(-A_11_1 - A_11_3);
+                                const Scalar tmp31 = w[1][l]*(-A_01_1 - A_01_2 + A_10_0 + A_10_3);
+                                const Scalar tmp32 = w[5][l]*(-A_01_0 + A_10_2);
+                                const Scalar tmp33 = w[8][l]*(-A_11_0 - A_11_2);
+                                const Scalar tmp34 = w[6][l]*(-A_00_0 - A_00_1 - A_00_2 - A_00_3);
+                                const Scalar tmp35 = w[2][l]*(A_01_3 - A_10_1);
+                                const Scalar tmp36 = w[5][l]*(A_01_0 + A_10_3);
+                                const Scalar tmp37 = w[2][l]*(-A_01_3 - A_10_0);
+                                const Scalar tmp38 = w[7][l]*(-A_11_0 - A_11_2);
+                                const Scalar tmp39 = w[5][l]*(-A_01_3 + A_10_1);
+                                const Scalar tmp40 = w[8][l]*(-A_11_1 - A_11_3);
+                                const Scalar tmp41 = w[2][l]*(A_01_0 - A_10_2);
+                                const Scalar tmp42 = w[5][l]*(A_01_1 - A_10_3);
+                                const Scalar tmp43 = w[2][l]*(-A_01_2 + A_10_0);
+                                const Scalar tmp44 = w[5][l]*(A_01_2 - A_10_0);
+                                const Scalar tmp45 = w[2][l]*(-A_01_1 + A_10_3);
+                                const Scalar tmp46 = w[5][l]*(-A_01_0 + A_10_1);
+                                const Scalar tmp47 = w[2][l]*(A_01_3 - A_10_2);
+                                const Scalar tmp48 = w[5][l]*(-A_01_1 - A_10_1);
+                                const Scalar tmp49 = w[2][l]*(A_01_2 + A_10_2);
+                                const Scalar tmp50 = w[5][l]*(-A_01_3 + A_10_2);
+                                const Scalar tmp51 = w[2][l]*(A_01_0 - A_10_1);
+                                const Scalar tmp52 = w[5][l]*(-A_01_2 - A_10_1);
+                                const Scalar tmp53 = w[2][l]*(A_01_1 + A_10_2);
+                                const Scalar tmp54 = w[5][l]*(-A_01_2 - A_10_2);
+                                const Scalar tmp55 = w[2][l]*(A_01_1 + A_10_1);
+                                EM_S[INDEX2(0,0,4)]+=tmp15 + tmp16 + tmp17 + tmp18 + tmp19 + tmp20 + tmp9;
+                                EM_S[INDEX2(0,1,4)]+=tmp0 + tmp1 + tmp2 + tmp3 + tmp4 + tmp5;
+                                EM_S[INDEX2(0,2,4)]+=tmp31 + tmp34 + tmp38 + tmp39 + tmp40 + tmp41;
+                                EM_S[INDEX2(0,3,4)]+=tmp28 + tmp52 + tmp53 + tmp7 + tmp8;
+                                EM_S[INDEX2(1,0,4)]+=tmp0 + tmp2 + tmp3 + tmp31 + tmp50 + tmp51;
+                                EM_S[INDEX2(1,1,4)]+=tmp16 + tmp17 + tmp21 + tmp25 + tmp28 + tmp54 + tmp55;
+                                EM_S[INDEX2(1,2,4)]+=tmp10 + tmp6 + tmp7 + tmp8 + tmp9;
+                                EM_S[INDEX2(1,3,4)]+=tmp1 + tmp30 + tmp33 + tmp34 + tmp44 + tmp45;
+                                EM_S[INDEX2(2,0,4)]+=tmp1 + tmp34 + tmp38 + tmp40 + tmp42 + tmp43;
+                                EM_S[INDEX2(2,1,4)]+=tmp36 + tmp37 + tmp7 + tmp8 + tmp9;
+                                EM_S[INDEX2(2,2,4)]+=tmp15 + tmp19 + tmp22 + tmp23 + tmp28 + tmp48 + tmp49;
+                                EM_S[INDEX2(2,3,4)]+=tmp0 + tmp11 + tmp12 + tmp31 + tmp46 + tmp47;
+                                EM_S[INDEX2(3,0,4)]+=tmp27 + tmp28 + tmp29 + tmp7 + tmp8;
+                                EM_S[INDEX2(3,1,4)]+=tmp30 + tmp31 + tmp32 + tmp33 + tmp34 + tmp35;
+                                EM_S[INDEX2(3,2,4)]+=tmp0 + tmp1 + tmp11 + tmp12 + tmp13 + tmp14;
+                                EM_S[INDEX2(3,3,4)]+=tmp21 + tmp22 + tmp23 + tmp24 + tmp25 + tmp26 + tmp9;
+                            } else { // constant data
+                                const Scalar A_00 = A_p[INDEX2(0,0,2)];
+                                const Scalar A_01 = A_p[INDEX2(0,1,2)];
+                                const Scalar A_10 = A_p[INDEX2(1,0,2)];
+                                const Scalar A_11 = A_p[INDEX2(1,1,2)];
+                                const Scalar tmp0 = 6.*w[1][l]*(A_01 - A_10);
+                                const Scalar tmp1 = 6.*w[1][l]*(A_01 + A_10);
+                                const Scalar tmp2 = 6.*w[1][l]*(-A_01 - A_10);
+                                const Scalar tmp3 = 6.*w[1][l]*(-A_01 + A_10);
+                                EM_S[INDEX2(0,0,4)]+=-8.*A_00*w[6][l] + 8.*A_11*w[3][l] + tmp1;
+                                EM_S[INDEX2(0,1,4)]+= 8.*A_00*w[6][l] + 4.*A_11*w[3][l] + tmp0;
+                                EM_S[INDEX2(0,2,4)]+=-4.*A_00*w[6][l] - 8.*A_11*w[3][l] + tmp3;
+                                EM_S[INDEX2(0,3,4)]+= 4.*A_00*w[6][l] - 4.*A_11*w[3][l] + tmp2;
+                                EM_S[INDEX2(1,0,4)]+= 8.*A_00*w[6][l] + 4.*A_11*w[3][l] + tmp3;
+                                EM_S[INDEX2(1,1,4)]+=-8.*A_00*w[6][l] + 8.*A_11*w[3][l] + tmp2;
+                                EM_S[INDEX2(1,2,4)]+= 4.*A_00*w[6][l] - 4.*A_11*w[3][l] + tmp1;
+                                EM_S[INDEX2(1,3,4)]+=-4.*A_00*w[6][l] - 8.*A_11*w[3][l] + tmp0;
+                                EM_S[INDEX2(2,0,4)]+=-4.*A_00*w[6][l] - 8.*A_11*w[3][l] + tmp0;
+                                EM_S[INDEX2(2,1,4)]+= 4.*A_00*w[6][l] - 4.*A_11*w[3][l] + tmp1;
+                                EM_S[INDEX2(2,2,4)]+=-8.*A_00*w[6][l] + 8.*A_11*w[3][l] + tmp2;
+                                EM_S[INDEX2(2,3,4)]+= 8.*A_00*w[6][l] + 4.*A_11*w[3][l] + tmp3;
+                                EM_S[INDEX2(3,0,4)]+= 4.*A_00*w[6][l] - 4.*A_11*w[3][l] + tmp2;
+                                EM_S[INDEX2(3,1,4)]+=-4.*A_00*w[6][l] - 8.*A_11*w[3][l] + tmp3;
+                                EM_S[INDEX2(3,2,4)]+= 8.*A_00*w[6][l] + 4.*A_11*w[3][l] + tmp0;
+                                EM_S[INDEX2(3,3,4)]+=-8.*A_00*w[6][l] + 8.*A_11*w[3][l] + tmp1;
+                            }
                         }
-                    }
 
-                    ///////////////
-                    // process B //
-                    ///////////////
-                    if (!B.isEmpty()) {
-                        const Scalar* B_p = B.getSampleDataRO(e, zero);
-                        if (B.actsExpanded()) {
-                            const Scalar B_0_0 = B_p[INDEX2(0,0,2)];
-                            const Scalar B_1_0 = B_p[INDEX2(1,0,2)];
-                            const Scalar B_0_1 = B_p[INDEX2(0,1,2)];
-                            const Scalar B_1_1 = B_p[INDEX2(1,1,2)];
-                            const Scalar B_0_2 = B_p[INDEX2(0,2,2)];
-                            const Scalar B_1_2 = B_p[INDEX2(1,2,2)];
-                            const Scalar B_0_3 = B_p[INDEX2(0,3,2)];
-                            const Scalar B_1_3 = B_p[INDEX2(1,3,2)];
-                            const Scalar tmp0  = w[11][l]*(B_1_0 + B_1_1);
-                            const Scalar tmp1  = w[14][l]*(B_1_2 + B_1_3);
-                            const Scalar tmp2  = w[15][l]*(-B_0_1 - B_0_3);
-                            const Scalar tmp3  = w[10][l]*(-B_0_0 - B_0_2);
-                            const Scalar tmp4  = w[11][l]*(B_1_2 + B_1_3);
-                            const Scalar tmp5  = w[14][l]*(B_1_0 + B_1_1);
-                            const Scalar tmp6  = w[11][l]*(-B_1_2 - B_1_3);
-                            const Scalar tmp7  = w[14][l]*(-B_1_0 - B_1_1);
-                            const Scalar tmp8  = w[11][l]*(-B_1_0 - B_1_1);
-                            const Scalar tmp9  = w[14][l]*(-B_1_2 - B_1_3);
-                            const Scalar tmp10 = w[10][l]*(-B_0_1 - B_0_3);
-                            const Scalar tmp11 = w[15][l]*(-B_0_0 - B_0_2);
-                            const Scalar tmp12 = w[15][l]*(B_0_0 + B_0_2);
-                            const Scalar tmp13 = w[10][l]*(B_0_1 + B_0_3);
-                            const Scalar tmp14 = w[10][l]*(B_0_0 + B_0_2);
-                            const Scalar tmp15 = w[15][l]*(B_0_1 + B_0_3);
-                            EM_S[INDEX2(0,0,4)]+=B_0_0*w[12][l] + B_0_1*w[10][l] + B_0_2*w[15][l] + B_0_3*w[13][l] + B_1_0*w[16][l] + B_1_1*w[14][l] + B_1_2*w[11][l] + B_1_3*w[17][l];
-                            EM_S[INDEX2(0,1,4)]+=B_0_0*w[10][l] + B_0_1*w[12][l] + B_0_2*w[13][l] + B_0_3*w[15][l] + tmp0 + tmp1;
-                            EM_S[INDEX2(0,2,4)]+=B_1_0*w[11][l] + B_1_1*w[17][l] + B_1_2*w[16][l] + B_1_3*w[14][l] + tmp14 + tmp15;
-                            EM_S[INDEX2(0,3,4)]+=tmp12 + tmp13 + tmp4 + tmp5;
-                            EM_S[INDEX2(1,0,4)]+=-B_0_0*w[12][l] - B_0_1*w[10][l] - B_0_2*w[15][l] - B_0_3*w[13][l] + tmp0 + tmp1;
-                            EM_S[INDEX2(1,1,4)]+=-B_0_0*w[10][l] - B_0_1*w[12][l] - B_0_2*w[13][l] - B_0_3*w[15][l] + B_1_0*w[14][l] + B_1_1*w[16][l] + B_1_2*w[17][l] + B_1_3*w[11][l];
-                            EM_S[INDEX2(1,2,4)]+=tmp2 + tmp3 + tmp4 + tmp5;
-                            EM_S[INDEX2(1,3,4)]+= B_1_0*w[17][l] + B_1_1*w[11][l] + B_1_2*w[14][l] + B_1_3*w[16][l] + tmp10 + tmp11;
-                            EM_S[INDEX2(2,0,4)]+=-B_1_0*w[16][l] - B_1_1*w[14][l] - B_1_2*w[11][l] - B_1_3*w[17][l] + tmp14 + tmp15;
-                            EM_S[INDEX2(2,1,4)]+=tmp12 + tmp13 + tmp8 + tmp9;
-                            EM_S[INDEX2(2,2,4)]+=B_0_0*w[15][l] + B_0_1*w[13][l] + B_0_2*w[12][l] + B_0_3*w[10][l] - B_1_0*w[11][l] - B_1_1*w[17][l] - B_1_2*w[16][l] - B_1_3*w[14][l];
-                            EM_S[INDEX2(2,3,4)]+=B_0_0*w[13][l] + B_0_1*w[15][l] + B_0_2*w[10][l] + B_0_3*w[12][l] + tmp6 + tmp7;
-                            EM_S[INDEX2(3,0,4)]+=tmp2 + tmp3 + tmp8 + tmp9;
-                            EM_S[INDEX2(3,1,4)]+=-B_1_0*w[14][l] - B_1_1*w[16][l] - B_1_2*w[17][l] - B_1_3*w[11][l] + tmp10 + tmp11;
-                            EM_S[INDEX2(3,2,4)]+=-B_0_0*w[15][l] - B_0_1*w[13][l] - B_0_2*w[12][l] - B_0_3*w[10][l] + tmp6 + tmp7;
-                            EM_S[INDEX2(3,3,4)]+=-B_0_0*w[13][l] - B_0_1*w[15][l] - B_0_2*w[10][l] - B_0_3*w[12][l] - B_1_0*w[17][l] - B_1_1*w[11][l] - B_1_2*w[14][l] - B_1_3*w[16][l];
-                        } else { // constant data
-                            const Scalar B_0 = B_p[0];
-                            const Scalar B_1 = B_p[1];
-                            EM_S[INDEX2(0,0,4)]+= 2.*B_0*w[18][l] + 2.*B_1*w[19][l];
-                            EM_S[INDEX2(0,1,4)]+= 2.*B_0*w[18][l] +    B_1*w[19][l];
-                            EM_S[INDEX2(0,2,4)]+=    B_0*w[18][l] + 2.*B_1*w[19][l];
-                            EM_S[INDEX2(0,3,4)]+=    B_0*w[18][l] +    B_1*w[19][l];
-                            EM_S[INDEX2(1,0,4)]+=-2.*B_0*w[18][l] +    B_1*w[19][l];
-                            EM_S[INDEX2(1,1,4)]+=-2.*B_0*w[18][l] + 2.*B_1*w[19][l];
-                            EM_S[INDEX2(1,2,4)]+=   -B_0*w[18][l] +    B_1*w[19][l];
-                            EM_S[INDEX2(1,3,4)]+=   -B_0*w[18][l] + 2.*B_1*w[19][l];
-                            EM_S[INDEX2(2,0,4)]+=    B_0*w[18][l] - 2.*B_1*w[19][l];
-                            EM_S[INDEX2(2,1,4)]+=    B_0*w[18][l] -    B_1*w[19][l];
-                            EM_S[INDEX2(2,2,4)]+= 2.*B_0*w[18][l] - 2.*B_1*w[19][l];
-                            EM_S[INDEX2(2,3,4)]+= 2.*B_0*w[18][l] -    B_1*w[19][l];
-                            EM_S[INDEX2(3,0,4)]+=   -B_0*w[18][l] -    B_1*w[19][l];
-                            EM_S[INDEX2(3,1,4)]+=   -B_0*w[18][l] - 2.*B_1*w[19][l];
-                            EM_S[INDEX2(3,2,4)]+=-2.*B_0*w[18][l] -    B_1*w[19][l];
-                            EM_S[INDEX2(3,3,4)]+=-2.*B_0*w[18][l] - 2.*B_1*w[19][l];
+                        ///////////////
+                        // process B //
+                        ///////////////
+                        if (!B.isEmpty()) {
+                            const Scalar* B_p = B.getSampleDataRO(id, zero);
+                            if (B.actsExpanded()) {
+                                const Scalar B_0_0 = B_p[INDEX2(0,0,2)];
+                                const Scalar B_1_0 = B_p[INDEX2(1,0,2)];
+                                const Scalar B_0_1 = B_p[INDEX2(0,1,2)];
+                                const Scalar B_1_1 = B_p[INDEX2(1,1,2)];
+                                const Scalar B_0_2 = B_p[INDEX2(0,2,2)];
+                                const Scalar B_1_2 = B_p[INDEX2(1,2,2)];
+                                const Scalar B_0_3 = B_p[INDEX2(0,3,2)];
+                                const Scalar B_1_3 = B_p[INDEX2(1,3,2)];
+                                const Scalar tmp0  = w[11][l]*(B_1_0 + B_1_1);
+                                const Scalar tmp1  = w[14][l]*(B_1_2 + B_1_3);
+                                const Scalar tmp2  = w[15][l]*(-B_0_1 - B_0_3);
+                                const Scalar tmp3  = w[10][l]*(-B_0_0 - B_0_2);
+                                const Scalar tmp4  = w[11][l]*(B_1_2 + B_1_3);
+                                const Scalar tmp5  = w[14][l]*(B_1_0 + B_1_1);
+                                const Scalar tmp6  = w[11][l]*(-B_1_2 - B_1_3);
+                                const Scalar tmp7  = w[14][l]*(-B_1_0 - B_1_1);
+                                const Scalar tmp8  = w[11][l]*(-B_1_0 - B_1_1);
+                                const Scalar tmp9  = w[14][l]*(-B_1_2 - B_1_3);
+                                const Scalar tmp10 = w[10][l]*(-B_0_1 - B_0_3);
+                                const Scalar tmp11 = w[15][l]*(-B_0_0 - B_0_2);
+                                const Scalar tmp12 = w[15][l]*(B_0_0 + B_0_2);
+                                const Scalar tmp13 = w[10][l]*(B_0_1 + B_0_3);
+                                const Scalar tmp14 = w[10][l]*(B_0_0 + B_0_2);
+                                const Scalar tmp15 = w[15][l]*(B_0_1 + B_0_3);
+                                EM_S[INDEX2(0,0,4)]+=B_0_0*w[12][l] + B_0_1*w[10][l] + B_0_2*w[15][l] + B_0_3*w[13][l] + B_1_0*w[16][l] + B_1_1*w[14][l] + B_1_2*w[11][l] + B_1_3*w[17][l];
+                                EM_S[INDEX2(0,1,4)]+=B_0_0*w[10][l] + B_0_1*w[12][l] + B_0_2*w[13][l] + B_0_3*w[15][l] + tmp0 + tmp1;
+                                EM_S[INDEX2(0,2,4)]+=B_1_0*w[11][l] + B_1_1*w[17][l] + B_1_2*w[16][l] + B_1_3*w[14][l] + tmp14 + tmp15;
+                                EM_S[INDEX2(0,3,4)]+=tmp12 + tmp13 + tmp4 + tmp5;
+                                EM_S[INDEX2(1,0,4)]+=-B_0_0*w[12][l] - B_0_1*w[10][l] - B_0_2*w[15][l] - B_0_3*w[13][l] + tmp0 + tmp1;
+                                EM_S[INDEX2(1,1,4)]+=-B_0_0*w[10][l] - B_0_1*w[12][l] - B_0_2*w[13][l] - B_0_3*w[15][l] + B_1_0*w[14][l] + B_1_1*w[16][l] + B_1_2*w[17][l] + B_1_3*w[11][l];
+                                EM_S[INDEX2(1,2,4)]+=tmp2 + tmp3 + tmp4 + tmp5;
+                                EM_S[INDEX2(1,3,4)]+= B_1_0*w[17][l] + B_1_1*w[11][l] + B_1_2*w[14][l] + B_1_3*w[16][l] + tmp10 + tmp11;
+                                EM_S[INDEX2(2,0,4)]+=-B_1_0*w[16][l] - B_1_1*w[14][l] - B_1_2*w[11][l] - B_1_3*w[17][l] + tmp14 + tmp15;
+                                EM_S[INDEX2(2,1,4)]+=tmp12 + tmp13 + tmp8 + tmp9;
+                                EM_S[INDEX2(2,2,4)]+=B_0_0*w[15][l] + B_0_1*w[13][l] + B_0_2*w[12][l] + B_0_3*w[10][l] - B_1_0*w[11][l] - B_1_1*w[17][l] - B_1_2*w[16][l] - B_1_3*w[14][l];
+                                EM_S[INDEX2(2,3,4)]+=B_0_0*w[13][l] + B_0_1*w[15][l] + B_0_2*w[10][l] + B_0_3*w[12][l] + tmp6 + tmp7;
+                                EM_S[INDEX2(3,0,4)]+=tmp2 + tmp3 + tmp8 + tmp9;
+                                EM_S[INDEX2(3,1,4)]+=-B_1_0*w[14][l] - B_1_1*w[16][l] - B_1_2*w[17][l] - B_1_3*w[11][l] + tmp10 + tmp11;
+                                EM_S[INDEX2(3,2,4)]+=-B_0_0*w[15][l] - B_0_1*w[13][l] - B_0_2*w[12][l] - B_0_3*w[10][l] + tmp6 + tmp7;
+                                EM_S[INDEX2(3,3,4)]+=-B_0_0*w[13][l] - B_0_1*w[15][l] - B_0_2*w[10][l] - B_0_3*w[12][l] - B_1_0*w[17][l] - B_1_1*w[11][l] - B_1_2*w[14][l] - B_1_3*w[16][l];
+                            } else { // constant data
+                                const Scalar B_0 = B_p[0];
+                                const Scalar B_1 = B_p[1];
+                                EM_S[INDEX2(0,0,4)]+= 2.*B_0*w[18][l] + 2.*B_1*w[19][l];
+                                EM_S[INDEX2(0,1,4)]+= 2.*B_0*w[18][l] +    B_1*w[19][l];
+                                EM_S[INDEX2(0,2,4)]+=    B_0*w[18][l] + 2.*B_1*w[19][l];
+                                EM_S[INDEX2(0,3,4)]+=    B_0*w[18][l] +    B_1*w[19][l];
+                                EM_S[INDEX2(1,0,4)]+=-2.*B_0*w[18][l] +    B_1*w[19][l];
+                                EM_S[INDEX2(1,1,4)]+=-2.*B_0*w[18][l] + 2.*B_1*w[19][l];
+                                EM_S[INDEX2(1,2,4)]+=   -B_0*w[18][l] +    B_1*w[19][l];
+                                EM_S[INDEX2(1,3,4)]+=   -B_0*w[18][l] + 2.*B_1*w[19][l];
+                                EM_S[INDEX2(2,0,4)]+=    B_0*w[18][l] - 2.*B_1*w[19][l];
+                                EM_S[INDEX2(2,1,4)]+=    B_0*w[18][l] -    B_1*w[19][l];
+                                EM_S[INDEX2(2,2,4)]+= 2.*B_0*w[18][l] - 2.*B_1*w[19][l];
+                                EM_S[INDEX2(2,3,4)]+= 2.*B_0*w[18][l] -    B_1*w[19][l];
+                                EM_S[INDEX2(3,0,4)]+=   -B_0*w[18][l] -    B_1*w[19][l];
+                                EM_S[INDEX2(3,1,4)]+=   -B_0*w[18][l] - 2.*B_1*w[19][l];
+                                EM_S[INDEX2(3,2,4)]+=-2.*B_0*w[18][l] -    B_1*w[19][l];
+                                EM_S[INDEX2(3,3,4)]+=-2.*B_0*w[18][l] - 2.*B_1*w[19][l];
+                            }
                         }
-                    }
 
-                    ///////////////
-                    // process C //
-                    ///////////////
-                    if (!C.isEmpty()) {
-                        const Scalar* C_p = C.getSampleDataRO(e, zero);
-                        if (C.actsExpanded()) {
-                            const Scalar C_0_0 = C_p[INDEX2(0,0,2)];
-                            const Scalar C_1_0 = C_p[INDEX2(1,0,2)];
-                            const Scalar C_0_1 = C_p[INDEX2(0,1,2)];
-                            const Scalar C_1_1 = C_p[INDEX2(1,1,2)];
-                            const Scalar C_0_2 = C_p[INDEX2(0,2,2)];
-                            const Scalar C_1_2 = C_p[INDEX2(1,2,2)];
-                            const Scalar C_0_3 = C_p[INDEX2(0,3,2)];
-                            const Scalar C_1_3 = C_p[INDEX2(1,3,2)];
-                            const Scalar tmp0 = w[11][l]*(C_1_0 + C_1_1);
-                            const Scalar tmp1 = w[14][l]*(C_1_2 + C_1_3);
-                            const Scalar tmp2 = w[15][l]*(C_0_0 + C_0_2);
-                            const Scalar tmp3 = w[10][l]*(C_0_1 + C_0_3);
-                            const Scalar tmp4 = w[11][l]*(-C_1_0 - C_1_1);
-                            const Scalar tmp5 = w[14][l]*(-C_1_2 - C_1_3);
-                            const Scalar tmp6 = w[11][l]*(-C_1_2 - C_1_3);
-                            const Scalar tmp7 = w[14][l]*(-C_1_0 - C_1_1);
-                            const Scalar tmp8 = w[11][l]*(C_1_2 + C_1_3);
-                            const Scalar tmp9 = w[14][l]*(C_1_0 + C_1_1);
-                            const Scalar tmp10 = w[10][l]*(-C_0_1 - C_0_3);
-                            const Scalar tmp11 = w[15][l]*(-C_0_0 - C_0_2);
-                            const Scalar tmp12 = w[15][l]*(-C_0_1 - C_0_3);
-                            const Scalar tmp13 = w[10][l]*(-C_0_0 - C_0_2);
-                            const Scalar tmp14 = w[10][l]*(C_0_0 + C_0_2);
-                            const Scalar tmp15 = w[15][l]*(C_0_1 + C_0_3);
-                            EM_S[INDEX2(0,0,4)]+= C_0_0*w[12][l] + C_0_1*w[10][l] + C_0_2*w[15][l] + C_0_3*w[13][l] + C_1_0*w[16][l] + C_1_1*w[14][l] + C_1_2*w[11][l] + C_1_3*w[17][l];
-                            EM_S[INDEX2(0,1,4)]+=-C_0_0*w[12][l] - C_0_1*w[10][l] - C_0_2*w[15][l] - C_0_3*w[13][l] + tmp0 + tmp1;
-                            EM_S[INDEX2(0,2,4)]+=-C_1_0*w[16][l] - C_1_1*w[14][l] - C_1_2*w[11][l] - C_1_3*w[17][l] + tmp14 + tmp15;
-                            EM_S[INDEX2(0,3,4)]+=tmp12 + tmp13 + tmp4 + tmp5;
-                            EM_S[INDEX2(1,0,4)]+= C_0_0*w[10][l] + C_0_1*w[12][l] + C_0_2*w[13][l] + C_0_3*w[15][l] + tmp0 + tmp1;
-                            EM_S[INDEX2(1,1,4)]+=-C_0_0*w[10][l] - C_0_1*w[12][l] - C_0_2*w[13][l] - C_0_3*w[15][l] + C_1_0*w[14][l] + C_1_1*w[16][l] + C_1_2*w[17][l] + C_1_3*w[11][l];
-                            EM_S[INDEX2(1,2,4)]+=tmp2 + tmp3 + tmp4 + tmp5;
-                            EM_S[INDEX2(1,3,4)]+=-C_1_0*w[14][l] - C_1_1*w[16][l] - C_1_2*w[17][l] - C_1_3*w[11][l] + tmp10 + tmp11;
-                            EM_S[INDEX2(2,0,4)]+= C_1_0*w[11][l] + C_1_1*w[17][l] + C_1_2*w[16][l] + C_1_3*w[14][l] + tmp14 + tmp15;
-                            EM_S[INDEX2(2,1,4)]+=tmp12 + tmp13 + tmp8 + tmp9;
-                            EM_S[INDEX2(2,2,4)]+= C_0_0*w[15][l] + C_0_1*w[13][l] + C_0_2*w[12][l] + C_0_3*w[10][l] - C_1_0*w[11][l] - C_1_1*w[17][l] - C_1_2*w[16][l] - C_1_3*w[14][l];
-                            EM_S[INDEX2(2,3,4)]+=-C_0_0*w[15][l] - C_0_1*w[13][l] - C_0_2*w[12][l] - C_0_3*w[10][l] + tmp6 + tmp7;
-                            EM_S[INDEX2(3,0,4)]+=tmp2 + tmp3 + tmp8 + tmp9;
-                            EM_S[INDEX2(3,1,4)]+= C_1_0*w[17][l] + C_1_1*w[11][l] + C_1_2*w[14][l] + C_1_3*w[16][l] + tmp10 + tmp11;
-                            EM_S[INDEX2(3,2,4)]+= C_0_0*w[13][l] + C_0_1*w[15][l] + C_0_2*w[10][l] + C_0_3*w[12][l] + tmp6 + tmp7;
-                            EM_S[INDEX2(3,3,4)]+=-C_0_0*w[13][l] - C_0_1*w[15][l] - C_0_2*w[10][l] - C_0_3*w[12][l] - C_1_0*w[17][l] - C_1_1*w[11][l] - C_1_2*w[14][l] - C_1_3*w[16][l];
-                        } else { // constant data
-                            const Scalar C_0 = C_p[0];
-                            const Scalar C_1 = C_p[1];
-                            EM_S[INDEX2(0,0,4)]+= 2.*C_0*w[18][l] + 2.*C_1*w[19][l];
-                            EM_S[INDEX2(0,1,4)]+=-2.*C_0*w[18][l] +    C_1*w[19][l];
-                            EM_S[INDEX2(0,2,4)]+=    C_0*w[18][l] - 2.*C_1*w[19][l];
-                            EM_S[INDEX2(0,3,4)]+=   -C_0*w[18][l] -    C_1*w[19][l];
-                            EM_S[INDEX2(1,0,4)]+= 2.*C_0*w[18][l] +    C_1*w[19][l];
-                            EM_S[INDEX2(1,1,4)]+=-2.*C_0*w[18][l] + 2.*C_1*w[19][l];
-                            EM_S[INDEX2(1,2,4)]+=    C_0*w[18][l] -    C_1*w[19][l];
-                            EM_S[INDEX2(1,3,4)]+=   -C_0*w[18][l] - 2.*C_1*w[19][l];
-                            EM_S[INDEX2(2,0,4)]+=    C_0*w[18][l] + 2.*C_1*w[19][l];
-                            EM_S[INDEX2(2,1,4)]+=   -C_0*w[18][l] +    C_1*w[19][l];
-                            EM_S[INDEX2(2,2,4)]+= 2.*C_0*w[18][l] - 2.*C_1*w[19][l];
-                            EM_S[INDEX2(2,3,4)]+=-2.*C_0*w[18][l] -    C_1*w[19][l];
-                            EM_S[INDEX2(3,0,4)]+=    C_0*w[18][l] +    C_1*w[19][l];
-                            EM_S[INDEX2(3,1,4)]+=   -C_0*w[18][l] + 2.*C_1*w[19][l];
-                            EM_S[INDEX2(3,2,4)]+= 2.*C_0*w[18][l] -    C_1*w[19][l];
-                            EM_S[INDEX2(3,3,4)]+=-2.*C_0*w[18][l] - 2.*C_1*w[19][l];
+                        ///////////////
+                        // process C //
+                        ///////////////
+                        if (!C.isEmpty()) {
+                            const Scalar* C_p = C.getSampleDataRO(id, zero);
+                            if (C.actsExpanded()) {
+                                const Scalar C_0_0 = C_p[INDEX2(0,0,2)];
+                                const Scalar C_1_0 = C_p[INDEX2(1,0,2)];
+                                const Scalar C_0_1 = C_p[INDEX2(0,1,2)];
+                                const Scalar C_1_1 = C_p[INDEX2(1,1,2)];
+                                const Scalar C_0_2 = C_p[INDEX2(0,2,2)];
+                                const Scalar C_1_2 = C_p[INDEX2(1,2,2)];
+                                const Scalar C_0_3 = C_p[INDEX2(0,3,2)];
+                                const Scalar C_1_3 = C_p[INDEX2(1,3,2)];
+                                const Scalar tmp0 = w[11][l]*(C_1_0 + C_1_1);
+                                const Scalar tmp1 = w[14][l]*(C_1_2 + C_1_3);
+                                const Scalar tmp2 = w[15][l]*(C_0_0 + C_0_2);
+                                const Scalar tmp3 = w[10][l]*(C_0_1 + C_0_3);
+                                const Scalar tmp4 = w[11][l]*(-C_1_0 - C_1_1);
+                                const Scalar tmp5 = w[14][l]*(-C_1_2 - C_1_3);
+                                const Scalar tmp6 = w[11][l]*(-C_1_2 - C_1_3);
+                                const Scalar tmp7 = w[14][l]*(-C_1_0 - C_1_1);
+                                const Scalar tmp8 = w[11][l]*(C_1_2 + C_1_3);
+                                const Scalar tmp9 = w[14][l]*(C_1_0 + C_1_1);
+                                const Scalar tmp10 = w[10][l]*(-C_0_1 - C_0_3);
+                                const Scalar tmp11 = w[15][l]*(-C_0_0 - C_0_2);
+                                const Scalar tmp12 = w[15][l]*(-C_0_1 - C_0_3);
+                                const Scalar tmp13 = w[10][l]*(-C_0_0 - C_0_2);
+                                const Scalar tmp14 = w[10][l]*(C_0_0 + C_0_2);
+                                const Scalar tmp15 = w[15][l]*(C_0_1 + C_0_3);
+                                EM_S[INDEX2(0,0,4)]+= C_0_0*w[12][l] + C_0_1*w[10][l] + C_0_2*w[15][l] + C_0_3*w[13][l] + C_1_0*w[16][l] + C_1_1*w[14][l] + C_1_2*w[11][l] + C_1_3*w[17][l];
+                                EM_S[INDEX2(0,1,4)]+=-C_0_0*w[12][l] - C_0_1*w[10][l] - C_0_2*w[15][l] - C_0_3*w[13][l] + tmp0 + tmp1;
+                                EM_S[INDEX2(0,2,4)]+=-C_1_0*w[16][l] - C_1_1*w[14][l] - C_1_2*w[11][l] - C_1_3*w[17][l] + tmp14 + tmp15;
+                                EM_S[INDEX2(0,3,4)]+=tmp12 + tmp13 + tmp4 + tmp5;
+                                EM_S[INDEX2(1,0,4)]+= C_0_0*w[10][l] + C_0_1*w[12][l] + C_0_2*w[13][l] + C_0_3*w[15][l] + tmp0 + tmp1;
+                                EM_S[INDEX2(1,1,4)]+=-C_0_0*w[10][l] - C_0_1*w[12][l] - C_0_2*w[13][l] - C_0_3*w[15][l] + C_1_0*w[14][l] + C_1_1*w[16][l] + C_1_2*w[17][l] + C_1_3*w[11][l];
+                                EM_S[INDEX2(1,2,4)]+=tmp2 + tmp3 + tmp4 + tmp5;
+                                EM_S[INDEX2(1,3,4)]+=-C_1_0*w[14][l] - C_1_1*w[16][l] - C_1_2*w[17][l] - C_1_3*w[11][l] + tmp10 + tmp11;
+                                EM_S[INDEX2(2,0,4)]+= C_1_0*w[11][l] + C_1_1*w[17][l] + C_1_2*w[16][l] + C_1_3*w[14][l] + tmp14 + tmp15;
+                                EM_S[INDEX2(2,1,4)]+=tmp12 + tmp13 + tmp8 + tmp9;
+                                EM_S[INDEX2(2,2,4)]+= C_0_0*w[15][l] + C_0_1*w[13][l] + C_0_2*w[12][l] + C_0_3*w[10][l] - C_1_0*w[11][l] - C_1_1*w[17][l] - C_1_2*w[16][l] - C_1_3*w[14][l];
+                                EM_S[INDEX2(2,3,4)]+=-C_0_0*w[15][l] - C_0_1*w[13][l] - C_0_2*w[12][l] - C_0_3*w[10][l] + tmp6 + tmp7;
+                                EM_S[INDEX2(3,0,4)]+=tmp2 + tmp3 + tmp8 + tmp9;
+                                EM_S[INDEX2(3,1,4)]+= C_1_0*w[17][l] + C_1_1*w[11][l] + C_1_2*w[14][l] + C_1_3*w[16][l] + tmp10 + tmp11;
+                                EM_S[INDEX2(3,2,4)]+= C_0_0*w[13][l] + C_0_1*w[15][l] + C_0_2*w[10][l] + C_0_3*w[12][l] + tmp6 + tmp7;
+                                EM_S[INDEX2(3,3,4)]+=-C_0_0*w[13][l] - C_0_1*w[15][l] - C_0_2*w[10][l] - C_0_3*w[12][l] - C_1_0*w[17][l] - C_1_1*w[11][l] - C_1_2*w[14][l] - C_1_3*w[16][l];
+                            } else { // constant data
+                                const Scalar C_0 = C_p[0];
+                                const Scalar C_1 = C_p[1];
+                                EM_S[INDEX2(0,0,4)]+= 2.*C_0*w[18][l] + 2.*C_1*w[19][l];
+                                EM_S[INDEX2(0,1,4)]+=-2.*C_0*w[18][l] +    C_1*w[19][l];
+                                EM_S[INDEX2(0,2,4)]+=    C_0*w[18][l] - 2.*C_1*w[19][l];
+                                EM_S[INDEX2(0,3,4)]+=   -C_0*w[18][l] -    C_1*w[19][l];
+                                EM_S[INDEX2(1,0,4)]+= 2.*C_0*w[18][l] +    C_1*w[19][l];
+                                EM_S[INDEX2(1,1,4)]+=-2.*C_0*w[18][l] + 2.*C_1*w[19][l];
+                                EM_S[INDEX2(1,2,4)]+=    C_0*w[18][l] -    C_1*w[19][l];
+                                EM_S[INDEX2(1,3,4)]+=   -C_0*w[18][l] - 2.*C_1*w[19][l];
+                                EM_S[INDEX2(2,0,4)]+=    C_0*w[18][l] + 2.*C_1*w[19][l];
+                                EM_S[INDEX2(2,1,4)]+=   -C_0*w[18][l] +    C_1*w[19][l];
+                                EM_S[INDEX2(2,2,4)]+= 2.*C_0*w[18][l] - 2.*C_1*w[19][l];
+                                EM_S[INDEX2(2,3,4)]+=-2.*C_0*w[18][l] -    C_1*w[19][l];
+                                EM_S[INDEX2(3,0,4)]+=    C_0*w[18][l] +    C_1*w[19][l];
+                                EM_S[INDEX2(3,1,4)]+=   -C_0*w[18][l] + 2.*C_1*w[19][l];
+                                EM_S[INDEX2(3,2,4)]+= 2.*C_0*w[18][l] -    C_1*w[19][l];
+                                EM_S[INDEX2(3,3,4)]+=-2.*C_0*w[18][l] - 2.*C_1*w[19][l];
+                            }
                         }
-                    }
 
-                    ///////////////
-                    // process D //
-                    ///////////////
-                    if (!D.isEmpty()) {
-                        const Scalar* D_p = D.getSampleDataRO(e, zero);
-                        if (D.actsExpanded()) {
-                            const Scalar D_0 = D_p[0];
-                            const Scalar D_1 = D_p[1];
-                            const Scalar D_2 = D_p[2];
-                            const Scalar D_3 = D_p[3];
-                            const Scalar tmp0 =  w[21][l]*(D_2 + D_3);
-                            const Scalar tmp1 =  w[20][l]*(D_0 + D_1);
-                            const Scalar tmp2 =  w[22][l]*(D_0 + D_1 + D_2 + D_3);
-                            const Scalar tmp3 =  w[21][l]*(D_0 + D_1);
-                            const Scalar tmp4 =  w[20][l]*(D_2 + D_3);
-                            const Scalar tmp5 =  w[22][l]*(D_1 + D_2);
-                            const Scalar tmp6 =  w[21][l]*(D_0 + D_2);
-                            const Scalar tmp7 =  w[20][l]*(D_1 + D_3);
-                            const Scalar tmp8 =  w[21][l]*(D_1 + D_3);
-                            const Scalar tmp9 =  w[20][l]*(D_0 + D_2);
-                            const Scalar tmp10 = w[22][l]*(D_0 + D_3);
-                            EM_S[INDEX2(0,0,4)]+=D_0*w[23][l] + D_3*w[24][l] + tmp5;
-                            EM_S[INDEX2(0,1,4)]+=tmp0 + tmp1;
-                            EM_S[INDEX2(0,2,4)]+=tmp8 + tmp9;
-                            EM_S[INDEX2(0,3,4)]+=tmp2;
-                            EM_S[INDEX2(1,0,4)]+=tmp0 + tmp1;
-                            EM_S[INDEX2(1,1,4)]+=D_1*w[23][l] + D_2*w[24][l] + tmp10;
-                            EM_S[INDEX2(1,2,4)]+=tmp2;
-                            EM_S[INDEX2(1,3,4)]+=tmp6 + tmp7;
-                            EM_S[INDEX2(2,0,4)]+=tmp8 + tmp9;
-                            EM_S[INDEX2(2,1,4)]+=tmp2;
-                            EM_S[INDEX2(2,2,4)]+=D_1*w[24][l] + D_2*w[23][l] + tmp10;
-                            EM_S[INDEX2(2,3,4)]+=tmp3 + tmp4;
-                            EM_S[INDEX2(3,0,4)]+=tmp2;
-                            EM_S[INDEX2(3,1,4)]+=tmp6 + tmp7;
-                            EM_S[INDEX2(3,2,4)]+=tmp3 + tmp4;
-                            EM_S[INDEX2(3,3,4)]+=D_0*w[24][l] + D_3*w[23][l] + tmp5;
-                        } else { // constant data
-                            const Scalar D_0 = D_p[0];
-                            EM_S[INDEX2(0,0,4)]+=16.*D_0*w[22][l];
-                            EM_S[INDEX2(0,1,4)]+= 8.*D_0*w[22][l];
-                            EM_S[INDEX2(0,2,4)]+= 8.*D_0*w[22][l];
-                            EM_S[INDEX2(0,3,4)]+= 4.*D_0*w[22][l];
-                            EM_S[INDEX2(1,0,4)]+= 8.*D_0*w[22][l];
-                            EM_S[INDEX2(1,1,4)]+=16.*D_0*w[22][l];
-                            EM_S[INDEX2(1,2,4)]+= 4.*D_0*w[22][l];
-                            EM_S[INDEX2(1,3,4)]+= 8.*D_0*w[22][l];
-                            EM_S[INDEX2(2,0,4)]+= 8.*D_0*w[22][l];
-                            EM_S[INDEX2(2,1,4)]+= 4.*D_0*w[22][l];
-                            EM_S[INDEX2(2,2,4)]+=16.*D_0*w[22][l];
-                            EM_S[INDEX2(2,3,4)]+= 8.*D_0*w[22][l];
-                            EM_S[INDEX2(3,0,4)]+= 4.*D_0*w[22][l];
-                            EM_S[INDEX2(3,1,4)]+= 8.*D_0*w[22][l];
-                            EM_S[INDEX2(3,2,4)]+= 8.*D_0*w[22][l];
-                            EM_S[INDEX2(3,3,4)]+=16.*D_0*w[22][l];
+                        ///////////////
+                        // process D //
+                        ///////////////
+                        if (!D.isEmpty()) {
+                            const Scalar* D_p = D.getSampleDataRO(id, zero);
+                            if (D.actsExpanded()) {
+                                const Scalar D_0 = D_p[0];
+                                const Scalar D_1 = D_p[1];
+                                const Scalar D_2 = D_p[2];
+                                const Scalar D_3 = D_p[3];
+                                const Scalar tmp0 =  w[21][l]*(D_2 + D_3);
+                                const Scalar tmp1 =  w[20][l]*(D_0 + D_1);
+                                const Scalar tmp2 =  w[22][l]*(D_0 + D_1 + D_2 + D_3);
+                                const Scalar tmp3 =  w[21][l]*(D_0 + D_1);
+                                const Scalar tmp4 =  w[20][l]*(D_2 + D_3);
+                                const Scalar tmp5 =  w[22][l]*(D_1 + D_2);
+                                const Scalar tmp6 =  w[21][l]*(D_0 + D_2);
+                                const Scalar tmp7 =  w[20][l]*(D_1 + D_3);
+                                const Scalar tmp8 =  w[21][l]*(D_1 + D_3);
+                                const Scalar tmp9 =  w[20][l]*(D_0 + D_2);
+                                const Scalar tmp10 = w[22][l]*(D_0 + D_3);
+                                EM_S[INDEX2(0,0,4)]+=D_0*w[23][l] + D_3*w[24][l] + tmp5;
+                                EM_S[INDEX2(0,1,4)]+=tmp0 + tmp1;
+                                EM_S[INDEX2(0,2,4)]+=tmp8 + tmp9;
+                                EM_S[INDEX2(0,3,4)]+=tmp2;
+                                EM_S[INDEX2(1,0,4)]+=tmp0 + tmp1;
+                                EM_S[INDEX2(1,1,4)]+=D_1*w[23][l] + D_2*w[24][l] + tmp10;
+                                EM_S[INDEX2(1,2,4)]+=tmp2;
+                                EM_S[INDEX2(1,3,4)]+=tmp6 + tmp7;
+                                EM_S[INDEX2(2,0,4)]+=tmp8 + tmp9;
+                                EM_S[INDEX2(2,1,4)]+=tmp2;
+                                EM_S[INDEX2(2,2,4)]+=D_1*w[24][l] + D_2*w[23][l] + tmp10;
+                                EM_S[INDEX2(2,3,4)]+=tmp3 + tmp4;
+                                EM_S[INDEX2(3,0,4)]+=tmp2;
+                                EM_S[INDEX2(3,1,4)]+=tmp6 + tmp7;
+                                EM_S[INDEX2(3,2,4)]+=tmp3 + tmp4;
+                                EM_S[INDEX2(3,3,4)]+=D_0*w[24][l] + D_3*w[23][l] + tmp5;
+                            } else { // constant data
+                                const Scalar D_0 = D_p[0];
+                                EM_S[INDEX2(0,0,4)]+=16.*D_0*w[22][l];
+                                EM_S[INDEX2(0,1,4)]+= 8.*D_0*w[22][l];
+                                EM_S[INDEX2(0,2,4)]+= 8.*D_0*w[22][l];
+                                EM_S[INDEX2(0,3,4)]+= 4.*D_0*w[22][l];
+                                EM_S[INDEX2(1,0,4)]+= 8.*D_0*w[22][l];
+                                EM_S[INDEX2(1,1,4)]+=16.*D_0*w[22][l];
+                                EM_S[INDEX2(1,2,4)]+= 4.*D_0*w[22][l];
+                                EM_S[INDEX2(1,3,4)]+= 8.*D_0*w[22][l];
+                                EM_S[INDEX2(2,0,4)]+= 8.*D_0*w[22][l];
+                                EM_S[INDEX2(2,1,4)]+= 4.*D_0*w[22][l];
+                                EM_S[INDEX2(2,2,4)]+=16.*D_0*w[22][l];
+                                EM_S[INDEX2(2,3,4)]+= 8.*D_0*w[22][l];
+                                EM_S[INDEX2(3,0,4)]+= 4.*D_0*w[22][l];
+                                EM_S[INDEX2(3,1,4)]+= 8.*D_0*w[22][l];
+                                EM_S[INDEX2(3,2,4)]+= 8.*D_0*w[22][l];
+                                EM_S[INDEX2(3,3,4)]+=16.*D_0*w[22][l];
+                            }
                         }
-                    }
 
-                    ///////////////
-                    // process X //
-                    ///////////////
-                    if (!X.isEmpty()) {
-                        const Scalar* X_p = X.getSampleDataRO(e, zero);
-                        if (X.actsExpanded()) {
-                            const Scalar X_0_0 = X_p[INDEX2(0,0,2)];
-                            const Scalar X_1_0 = X_p[INDEX2(1,0,2)];
-                            const Scalar X_0_1 = X_p[INDEX2(0,1,2)];
-                            const Scalar X_1_1 = X_p[INDEX2(1,1,2)];
-                            const Scalar X_0_2 = X_p[INDEX2(0,2,2)];
-                            const Scalar X_1_2 = X_p[INDEX2(1,2,2)];
-                            const Scalar X_0_3 = X_p[INDEX2(0,3,2)];
-                            const Scalar X_1_3 = X_p[INDEX2(1,3,2)];
-                            const Scalar tmp0 = 6.*w[15][l]*(X_0_2 + X_0_3);
-                            const Scalar tmp1 = 6.*w[10][l]*(X_0_0 + X_0_1);
-                            const Scalar tmp2 = 6.*w[11][l]*(X_1_0 + X_1_2);
-                            const Scalar tmp3 = 6.*w[14][l]*(X_1_1 + X_1_3);
-                            const Scalar tmp4 = 6.*w[11][l]*(X_1_1 + X_1_3);
-                            const Scalar tmp5 = w[25][l]*(X_0_0 + X_0_1);
-                            const Scalar tmp6 = w[26][l]*(X_0_2 + X_0_3);
-                            const Scalar tmp7 = 6.*w[14][l]*(X_1_0 + X_1_2);
-                            const Scalar tmp8 =  w[27][l]*(X_1_0 + X_1_2);
-                            const Scalar tmp9 =  w[28][l]*(X_1_1 + X_1_3);
-                            const Scalar tmp10 = w[25][l]*(-X_0_2 - X_0_3);
-                            const Scalar tmp11 = w[26][l]*(-X_0_0 - X_0_1);
-                            const Scalar tmp12 = w[27][l]*(X_1_1 + X_1_3);
-                            const Scalar tmp13 = w[28][l]*(X_1_0 + X_1_2);
-                            const Scalar tmp14 = w[25][l]*(X_0_2 + X_0_3);
-                            const Scalar tmp15 = w[26][l]*(X_0_0 + X_0_1);
-                            EM_F[0]+=tmp0 + tmp1 + tmp2 + tmp3;
-                            EM_F[1]+=tmp4 + tmp5 + tmp6 + tmp7;
-                            EM_F[2]+=tmp10 + tmp11 + tmp8 + tmp9;
-                            EM_F[3]+=tmp12 + tmp13 + tmp14 + tmp15;
-                        } else { // constant data
-                            const Scalar X_0 = X_p[0];
-                            const Scalar X_1 = X_p[1];
-                            EM_F[0]+= 6.*X_0*w[18][l] + 6.*X_1*w[19][l];
-                            EM_F[1]+=-6.*X_0*w[18][l] + 6.*X_1*w[19][l];
-                            EM_F[2]+= 6.*X_0*w[18][l] - 6.*X_1*w[19][l];
-                            EM_F[3]+=-6.*X_0*w[18][l] - 6.*X_1*w[19][l];
+                        ///////////////
+                        // process X //
+                        ///////////////
+                        if (!X.isEmpty()) {
+                            const Scalar* X_p = X.getSampleDataRO(id, zero);
+                            if (X.actsExpanded()) {
+                                const Scalar X_0_0 = X_p[INDEX2(0,0,2)];
+                                const Scalar X_1_0 = X_p[INDEX2(1,0,2)];
+                                const Scalar X_0_1 = X_p[INDEX2(0,1,2)];
+                                const Scalar X_1_1 = X_p[INDEX2(1,1,2)];
+                                const Scalar X_0_2 = X_p[INDEX2(0,2,2)];
+                                const Scalar X_1_2 = X_p[INDEX2(1,2,2)];
+                                const Scalar X_0_3 = X_p[INDEX2(0,3,2)];
+                                const Scalar X_1_3 = X_p[INDEX2(1,3,2)];
+                                const Scalar tmp0 = 6.*w[15][l]*(X_0_2 + X_0_3);
+                                const Scalar tmp1 = 6.*w[10][l]*(X_0_0 + X_0_1);
+                                const Scalar tmp2 = 6.*w[11][l]*(X_1_0 + X_1_2);
+                                const Scalar tmp3 = 6.*w[14][l]*(X_1_1 + X_1_3);
+                                const Scalar tmp4 = 6.*w[11][l]*(X_1_1 + X_1_3);
+                                const Scalar tmp5 = w[25][l]*(X_0_0 + X_0_1);
+                                const Scalar tmp6 = w[26][l]*(X_0_2 + X_0_3);
+                                const Scalar tmp7 = 6.*w[14][l]*(X_1_0 + X_1_2);
+                                const Scalar tmp8 =  w[27][l]*(X_1_0 + X_1_2);
+                                const Scalar tmp9 =  w[28][l]*(X_1_1 + X_1_3);
+                                const Scalar tmp10 = w[25][l]*(-X_0_2 - X_0_3);
+                                const Scalar tmp11 = w[26][l]*(-X_0_0 - X_0_1);
+                                const Scalar tmp12 = w[27][l]*(X_1_1 + X_1_3);
+                                const Scalar tmp13 = w[28][l]*(X_1_0 + X_1_2);
+                                const Scalar tmp14 = w[25][l]*(X_0_2 + X_0_3);
+                                const Scalar tmp15 = w[26][l]*(X_0_0 + X_0_1);
+                                EM_F[0]+=tmp0 + tmp1 + tmp2 + tmp3;
+                                EM_F[1]+=tmp4 + tmp5 + tmp6 + tmp7;
+                                EM_F[2]+=tmp10 + tmp11 + tmp8 + tmp9;
+                                EM_F[3]+=tmp12 + tmp13 + tmp14 + tmp15;
+                            } else { // constant data
+                                const Scalar X_0 = X_p[0];
+                                const Scalar X_1 = X_p[1];
+                                EM_F[0]+= 6.*X_0*w[18][l] + 6.*X_1*w[19][l];
+                                EM_F[1]+=-6.*X_0*w[18][l] + 6.*X_1*w[19][l];
+                                EM_F[2]+= 6.*X_0*w[18][l] - 6.*X_1*w[19][l];
+                                EM_F[3]+=-6.*X_0*w[18][l] - 6.*X_1*w[19][l];
+                            }
                         }
-                    }
 
-                    ///////////////
-                    // process Y //
-                    ///////////////
-                    if (!Y.isEmpty()) {
-                        const Scalar* Y_p = Y.getSampleDataRO(e, zero);
-                        if (Y.actsExpanded()) {
-                            const Scalar Y_0 = Y_p[0];
-                            const Scalar Y_1 = Y_p[1];
-                            const Scalar Y_2 = Y_p[2];
-                            const Scalar Y_3 = Y_p[3];
-                            const Scalar tmp0 = 6.*w[22][l]*(Y_1 + Y_2);
-                            const Scalar tmp1 = 6.*w[22][l]*(Y_0 + Y_3);
-                            EM_F[0]+=6.*Y_0*w[20][l] + 6.*Y_3*w[21][l] + tmp0;
-                            EM_F[1]+=6.*Y_1*w[20][l] + 6.*Y_2*w[21][l] + tmp1;
-                            EM_F[2]+=6.*Y_1*w[21][l] + 6.*Y_2*w[20][l] + tmp1;
-                            EM_F[3]+=6.*Y_0*w[21][l] + 6.*Y_3*w[20][l] + tmp0;
-                        } else { // constant data
-                            EM_F[0]+=36.*Y_p[0]*w[22][l];
-                            EM_F[1]+=36.*Y_p[0]*w[22][l];
-                            EM_F[2]+=36.*Y_p[0]*w[22][l];
-                            EM_F[3]+=36.*Y_p[0]*w[22][l];
+                        ///////////////
+                        // process Y //
+                        ///////////////
+                        if (!Y.isEmpty()) {
+                            const Scalar* Y_p = Y.getSampleDataRO(id, zero);
+                            if (Y.actsExpanded()) {
+                                const Scalar Y_0 = Y_p[0];
+                                const Scalar Y_1 = Y_p[1];
+                                const Scalar Y_2 = Y_p[2];
+                                const Scalar Y_3 = Y_p[3];
+                                const Scalar tmp0 = 6.*w[22][l]*(Y_1 + Y_2);
+                                const Scalar tmp1 = 6.*w[22][l]*(Y_0 + Y_3);
+                                EM_F[0]+=6.*Y_0*w[20][l] + 6.*Y_3*w[21][l] + tmp0;
+                                EM_F[1]+=6.*Y_1*w[20][l] + 6.*Y_2*w[21][l] + tmp1;
+                                EM_F[2]+=6.*Y_1*w[21][l] + 6.*Y_2*w[20][l] + tmp1;
+                                EM_F[3]+=6.*Y_0*w[21][l] + 6.*Y_3*w[20][l] + tmp0;
+                            } else { // constant data
+                                EM_F[0]+=36.*Y_p[0]*w[22][l];
+                                EM_F[1]+=36.*Y_p[0]*w[22][l];
+                                EM_F[2]+=36.*Y_p[0]*w[22][l];
+                                EM_F[3]+=36.*Y_p[0]*w[22][l];
+                            }
                         }
                     }
                 }
+                // add to matrix (if addEM_S) and RHS (if addEM_F)
+                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, e, t);
             }
-        // } // end of colouring
-    } // end of parallel region
-}
+        }
+    // } // end of colouring
+} // end of parallel region
 
 /****************************************************************************/
 // PDE SINGLE BOUNDARY
@@ -723,7 +739,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
                             EM_F[2] = 6.*w[2][l]*y_p[0];
                         }
                     }
-                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, e);
+                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, e, e);
                 }
             }
         }
@@ -785,7 +801,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
                             EM_F[3] = 6.*w[2][l]*y_p[0];
                         }
                     }
-                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, e);
+                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, e, e);
                 }
             }
         }
@@ -846,7 +862,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
                             EM_F[1] = 6.*w[5][l]*y_p[0];
                         }
                     }
-                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, e);
+                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, e, e);
                 }
             } // end colouring
         }
@@ -908,7 +924,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
                             EM_F[3] = 6.*w[5][l]*y_p[0];
                         }
                     }
-                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, e);
+                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, e, e);
                 }
             }
         }
@@ -1104,7 +1120,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESingleReduced(
                 }
 
                 // add to matrix (if addEM_S) and RHS (if addEM_F)
-                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, e);
+                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, e, e);
             } 
         }
     } // end of parallel region
@@ -1187,7 +1203,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingleReduced(
                         EM_F[0] = 2.*w[1][l]*y_p[0];
                         EM_F[2] = 2.*w[1][l]*y_p[0];
                     }
-                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, e);
+                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, e, e);
                 }
             } 
         }
@@ -1233,7 +1249,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingleReduced(
                         EM_F[1] = 2.*w[1][l]*y_p[0];
                         EM_F[3] = 2.*w[1][l]*y_p[0];
                     }
-                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, e);
+                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, e, e);
                 }
             } 
         }
@@ -1279,7 +1295,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingleReduced(
                         EM_F[0] = 2.*w[0][l]*y_p[0];
                         EM_F[1] = 2.*w[0][l]*y_p[0];
                     }
-                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, e);
+                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, e, e);
                 }
             }
         }
@@ -1325,7 +1341,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingleReduced(
                         EM_F[2] = 2.*w[0][l]*y_p[0];
                         EM_F[3] = 2.*w[0][l]*y_p[0];
                     }
-                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, e);
+                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, e, e);
                 }
             } 
         }
