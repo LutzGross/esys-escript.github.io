@@ -1847,7 +1847,7 @@ IndexVector Rectangle::getNodeDistribution() const
 void Rectangle::updateNodeDistribution() 
 {
     m_nodeDistribution.clear();
-    m_nodeDistribution.assign(m_mpiInfo->size+1, 0);
+    m_nodeDistribution.assign(MAXP4ESTNODES,0);
 
     int counter =0;
     for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) 
@@ -1869,6 +1869,7 @@ void Rectangle::updateNodeDistribution()
             }
         }
     }
+    m_nodeDistribution.shrink_to_fit();
 }
 
 //private
