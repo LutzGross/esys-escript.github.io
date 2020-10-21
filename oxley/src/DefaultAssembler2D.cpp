@@ -167,32 +167,34 @@ void DefaultAssembler2D<Scalar>::assemblePDESingle(AbstractSystemMatrix* mat, Da
 #pragma omp parallel for
     for(int i = 0; i <= max_level; i++)
     {
+        double m_dx[2] = {domain->m_NX[0]*domain->forestData->m_dx[0][P4EST_MAXLEVEL-i], 
+                          domain->m_NX[1]*domain->forestData->m_dx[1][P4EST_MAXLEVEL-i]};
         w[1][i]  = 1.0/24.0;
         w[5][i]  = -SQRT3/24 + 1.0/12;
         w[2][i]  = -SQRT3/24 - 1.0/12;
-        w[19][i] = -domain->forestData->m_dx[0][P4EST_MAXLEVEL-1-i]/12;
+        w[19][i] = -m_dx[0]/12;
         w[11][i] = w[19][i]*(SQRT3 + 3)/12;
         w[14][i] = w[19][i]*(-SQRT3 + 3)/12;
         w[16][i] = w[19][i]*(5*SQRT3 + 9)/12;
         w[17][i] = w[19][i]*(-5*SQRT3 + 9)/12;
         w[27][i] = w[19][i]*(-SQRT3 - 3)/2;
         w[28][i] = w[19][i]*(SQRT3 - 3)/2;
-        w[18][i] = -domain->forestData->m_dx[1][P4EST_MAXLEVEL-1-i]/12;
+        w[18][i] = -m_dx[1]/12;
         w[12][i] = w[18][i]*(5*SQRT3 + 9)/12;
         w[13][i] = w[18][i]*(-5*SQRT3 + 9)/12;
         w[10][i] = w[18][i]*(SQRT3 + 3)/12;
         w[15][i] = w[18][i]*(-SQRT3 + 3)/12;
         w[25][i] = w[18][i]*(-SQRT3 - 3)/2;
         w[26][i] = w[18][i]*(SQRT3 - 3)/2;
-        w[22][i] = domain->forestData->m_dx[0][P4EST_MAXLEVEL-1-i]*domain->forestData->m_dx[1][P4EST_MAXLEVEL-1-i]/144;
+        w[22][i] = m_dx[0]*m_dx[1]/144;
         w[20][i] = w[22][i]*(SQRT3 + 2);
         w[21][i] = w[22][i]*(-SQRT3 + 2);
         w[23][i] = w[22][i]*(4*SQRT3 + 7);
         w[24][i] = w[22][i]*(-4*SQRT3 + 7);
-        w[3][i]  = domain->forestData->m_dx[0][P4EST_MAXLEVEL-1-i]/(24*domain->forestData->m_dx[1][P4EST_MAXLEVEL-1-i]);
+        w[3][i]  = m_dx[0]/(24*m_dx[1]);
         w[7][i]  = w[3][i]*(SQRT3 + 2);
         w[8][i]  = w[3][i]*(-SQRT3 + 2);
-        w[6][i]  = -domain->forestData->m_dx[1][P4EST_MAXLEVEL-1-i]/(24*domain->forestData->m_dx[0][P4EST_MAXLEVEL-1-i]);
+        w[6][i]  = -m_dx[1]/(24*m_dx[0]);
         w[0][i]  = w[6][i]*(SQRT3 + 2);
         w[4][i]  = w[6][i]*(-SQRT3 + 2);
     }

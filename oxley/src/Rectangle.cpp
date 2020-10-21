@@ -123,6 +123,12 @@ Rectangle::Rectangle(int order,
     nodes = p4est_lnodes_new(p4est, ghost, 1);
     p4est_ghost_destroy(ghost);
 
+    // This information is needed by the assembler
+    m_NE[0] = n0;
+    m_NE[1] = n1;
+    m_NX[0] = (x1-x0)/n0;
+    m_NX[1] = (y1-y0)/n1;
+
     // Record the physical dimensions of the domain and the location of the origin
     forestData->m_origin[0] = x0;
     forestData->m_origin[1] = y0;

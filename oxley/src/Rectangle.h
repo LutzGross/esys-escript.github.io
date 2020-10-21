@@ -328,6 +328,12 @@ protected:
 #endif
 
     IndexVector getNodeDistribution() const;
+
+
+    // Initial number of divisions
+    long m_NE[2] = {0};
+    // Initial spacing
+    double m_NX[2] = {0};
 };
 
 
