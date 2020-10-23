@@ -232,7 +232,6 @@ void DefaultAssembler2D<Scalar>::assemblePDESingle(AbstractSystemMatrix* mat, Da
                     fill(EM_F.begin(), EM_F.end(), zero);
                 
                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-                p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
                 int l = quad->level;
                 double xy[3];
                 p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
@@ -622,7 +621,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESingle(AbstractSystemMatrix* mat, Da
                     }
                 }
                 // add to matrix (if addEM_S) and RHS (if addEM_F)
-                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, e, t);
+                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t);
             }
         }
     // } // end of colouring
@@ -641,7 +640,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
     int max_level = 0;
     for(p4est_topidx_t tree = domain->p4est->first_local_tree; tree < domain->p4est->last_local_tree; tree++) {
         p4est_tree_t * tree_t = p4est_tree_array_index(domain->p4est->trees, tree);
-        max_level = SC_MAX(max_level, tree_t->maxlevel);
+        max_level = tree_t->maxlevel > max_level ? tree_t->maxlevel : max_level;
     }
 
     // This is similar to Ripley, except that in Oxley the quads vary in size so that the 
@@ -649,20 +648,22 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
     const double SQRT3 = 1.73205080756887719318;
     double w[16][P4EST_MAXLEVEL] = {{0}};
 #pragma omp parallel for
-    for(int i = 0; i < max_level; i++)
+    for(int i = 0; i <= max_level; i++)
     {
-        w[5][i] = domain->forestData->m_dx[0][i]/12;
+        double m_dx[2] = {domain->m_NX[0]*domain->forestData->m_dx[0][P4EST_MAXLEVEL-i], 
+                          domain->m_NX[1]*domain->forestData->m_dx[1][P4EST_MAXLEVEL-i]};
+
+        w[5][i] = m_dx[0]/12;
         w[6][i] = w[5][i]*(SQRT3 + 2);
         w[7][i] = w[5][i]*(-SQRT3 + 2);
         w[8][i] = w[5][i]*(SQRT3 + 3);
         w[9][i] = w[5][i]*(-SQRT3 + 3);
-        w[2][i] = domain->forestData->m_dx[1][i]/12;
+        w[2][i] = m_dx[1]/12;
         w[0][i] = w[2][i]*(SQRT3 + 2);
         w[1][i] = w[2][i]*(-SQRT3 + 2);
         w[3][i] = w[2][i]*(SQRT3 + 3);
         w[4][i] = w[2][i]*(-SQRT3 + 3);
     }
-
     
     const bool addEM_S = !d.isEmpty();
     const bool addEM_F = !y.isEmpty();
@@ -674,18 +675,21 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
         vector<Scalar> EM_S(4*4);
         vector<Scalar> EM_F(4);
 
-
         for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
         {
             p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
             sc_array_t * tquadrants = &currenttree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
 #pragma omp parallel for
-            for (p4est_locidx_t e = domain->nodes->global_offset; e < Q+domain->nodes->global_offset; e++) // Loop over every quadrant within the tree
+            for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
             {
-
-                // Work out what level this element is on 
-                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
+                
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+                int l = quad->level;
+                double xy[3];
+                p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
+                long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+                
                 quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
                 if (quaddata->m_faceOffset == 0) {
@@ -696,13 +700,11 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
                         EM_F[3] = zero;
                     }
 
-                    int l = quad->level;
-
                     ///////////////
                     // process d //
                     ///////////////
                     if (addEM_S) {
-                        const Scalar* d_p = d.getSampleDataRO(e, zero);
+                        const Scalar* d_p = d.getSampleDataRO(id, zero);
                         if (d.actsExpanded()) {
                             const Scalar d_0 = d_p[0];
                             const Scalar d_1 = d_p[1];
@@ -723,7 +725,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
                     // process y //
                     ///////////////
                     if (addEM_F) {
-                        const Scalar* y_p = y.getSampleDataRO(e, zero);
+                        const Scalar* y_p = y.getSampleDataRO(id, zero);
                         if (y.actsExpanded()) {
                             EM_F[0] = w[3][l]*y_p[0] + w[4][l]*y_p[1];
                             EM_F[2] = w[3][l]*y_p[1] + w[4][l]*y_p[0];
@@ -732,7 +734,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
                             EM_F[2] = 6.*w[2][l]*y_p[0];
                         }
                     }
-                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, e, e);
+                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t);
                 }
             }
         }
@@ -744,10 +746,13 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
             sc_array_t * tquadrants = &currenttree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
 #pragma omp parallel for
-            for (p4est_locidx_t e = domain->nodes->global_offset; e < Q+domain->nodes->global_offset; e++) // Loop over every quadrant within the tree
-            {
-                // Work out what level this element is on 
-                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
+            for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
+            {                
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+                double xy[3];
+                p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
+                long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+
                 quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
                 if (quaddata->m_faceOffset == 1) {
@@ -764,7 +769,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
                     // process d //
                     ///////////////
                     if (addEM_S) {
-                        const Scalar* d_p = d.getSampleDataRO(e, zero);
+                        const Scalar* d_p = d.getSampleDataRO(id, zero);
                         if (d.actsExpanded()) {
                             const Scalar d_0 = d_p[0];
                             const Scalar d_1 = d_p[1];
@@ -785,7 +790,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
                     // process y //
                     ///////////////
                     if (addEM_F) {
-                        const Scalar* y_p = y.getSampleDataRO(e, zero);
+                        const Scalar* y_p = y.getSampleDataRO(id, zero);
                         if (y.actsExpanded()) {
                             EM_F[1] = w[3][l]*y_p[0] + w[4][l]*y_p[1];
                             EM_F[3] = w[3][l]*y_p[1] + w[4][l]*y_p[0];
@@ -794,7 +799,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
                             EM_F[3] = 6.*w[2][l]*y_p[0];
                         }
                     }
-                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, e, e);
+                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t);
                 }
             }
         }
@@ -805,10 +810,13 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
             sc_array_t * tquadrants = &currenttree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
 #pragma omp parallel for
-            for (p4est_locidx_t e = domain->nodes->global_offset; e < Q+domain->nodes->global_offset; e++) // Loop over every quadrant within the tree
-            {
-                // Work out what level this element is on 
-                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
+            for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
+            {                
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+                double xy[3];
+                p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
+                long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+
                 quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
                 if (quaddata->m_faceOffset == 2) {
@@ -825,7 +833,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
                     // process d //
                     ///////////////
                     if (addEM_S) {
-                        const Scalar* d_p = d.getSampleDataRO(e, zero);
+                        const Scalar* d_p = d.getSampleDataRO(id, zero);
                         if (d.actsExpanded()) {
                             const Scalar d_0 = d_p[0];
                             const Scalar d_1 = d_p[1];
@@ -846,7 +854,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
                     // process y //
                     ///////////////
                     if (addEM_F) {
-                        const Scalar* y_p = y.getSampleDataRO(e, zero);
+                        const Scalar* y_p = y.getSampleDataRO(id, zero);
                         if (y.actsExpanded()) {
                             EM_F[0] = w[8][l]*y_p[0] + w[9][l]*y_p[1];
                             EM_F[1] = w[8][l]*y_p[1] + w[9][l]*y_p[0];
@@ -855,7 +863,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
                             EM_F[1] = 6.*w[5][l]*y_p[0];
                         }
                     }
-                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, e, e);
+                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t);
                 }
             } // end colouring
         }
@@ -867,10 +875,13 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
             sc_array_t * tquadrants = &currenttree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
 #pragma omp parallel for
-            for (p4est_locidx_t e = domain->nodes->global_offset; e < Q+domain->nodes->global_offset; e++) // Loop over every quadrant within the tree
-            {
-                // Work out what level this element is on 
-                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
+            for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
+            {                
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+                double xy[3];
+                p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
+                long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+
                 quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
                 if(quaddata->m_faceOffset == 3) {
@@ -887,7 +898,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
                     // process d //
                     ///////////////
                     if (addEM_S) {
-                        const Scalar* d_p = d.getSampleDataRO(e, zero);
+                        const Scalar* d_p = d.getSampleDataRO(id, zero);
                         if (d.actsExpanded()) {
                             const Scalar d_0 = d_p[0];
                             const Scalar d_1 = d_p[1];
@@ -908,7 +919,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
                     // process y //
                     ///////////////
                     if (addEM_F) {
-                        const Scalar* y_p = y.getSampleDataRO(e, zero);
+                        const Scalar* y_p = y.getSampleDataRO(id, zero);
                         if (y.actsExpanded()) {
                             EM_F[2] = w[8][l]*y_p[0] + w[9][l]*y_p[1];
                             EM_F[3] = w[8][l]*y_p[1] + w[9][l]*y_p[0];
@@ -917,7 +928,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
                             EM_F[3] = 6.*w[5][l]*y_p[0];
                         }
                     }
-                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, e, e);
+                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t);
                 }
             }
         }
@@ -939,21 +950,24 @@ void DefaultAssembler2D<Scalar>::assemblePDESingleReduced(
     int max_level = 0;
     for(p4est_topidx_t tree = domain->p4est->first_local_tree; tree < domain->p4est->last_local_tree; tree++) {
         p4est_tree_t * tree_t = p4est_tree_array_index(domain->p4est->trees, tree);
-        max_level = SC_MAX(max_level, tree_t->maxlevel);
+        max_level = tree_t->maxlevel > max_level ? tree_t->maxlevel : max_level;
     }
 
     // This is similar to Ripley, except that in Oxley the quads vary in size so that the 
     // weightings need to be calcuated for each level of refinement
     double w[8][P4EST_MAXLEVEL] = {{0}};
 #pragma omp parallel for
-    for(int i = 0; i < max_level; i++)
+    for(int i = 0; i <= max_level; i++)
     {
+        double m_dx[2] = {domain->m_NX[0]*domain->forestData->m_dx[0][P4EST_MAXLEVEL-i], 
+                          domain->m_NX[1]*domain->forestData->m_dx[1][P4EST_MAXLEVEL-i]};
+
         w[0][i] = 1./4;
-        w[1][i] = domain->forestData->m_dx[0][i]/8;
-        w[2][i] = domain->forestData->m_dx[1][i]/8;
-        w[3][i] = domain->forestData->m_dx[0][i]*domain->forestData->m_dx[1][i]/16;
-        w[4][i] = domain->forestData->m_dx[0][i]/(4*domain->forestData->m_dx[1][i]);
-        w[5][i] = domain->forestData->m_dx[1][i]/(4*domain->forestData->m_dx[0][i]);
+        w[1][i] = m_dx[0]/8;
+        w[2][i] = m_dx[1]/8;
+        w[3][i] = m_dx[0]*m_dx[1]/16;
+        w[4][i] = m_dx[0]/(4*m_dx[1]);
+        w[5][i] = m_dx[1]/(4*m_dx[0]);
     }
 
     const bool addEM_S = (!A.isEmpty() || !B.isEmpty() || !C.isEmpty() || !D.isEmpty());
@@ -972,11 +986,13 @@ void DefaultAssembler2D<Scalar>::assemblePDESingleReduced(
             sc_array_t * tquadrants = &currenttree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
 #pragma omp parallel for
-            for (p4est_locidx_t e = domain->nodes->global_offset; e < Q+domain->nodes->global_offset; e++) // Loop over every quadrant within the tree
-            {
-                // Work out what level this element is on 
-                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
+            for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
+            {                
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
                 int l = quad->level;
+                double xy[3];
+                p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
+                long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
 
                 if (addEM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
@@ -987,7 +1003,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESingleReduced(
                 // process A //
                 ///////////////
                 if (!A.isEmpty()) {
-                    const Scalar* A_p = A.getSampleDataRO(e, zero);
+                    const Scalar* A_p = A.getSampleDataRO(id, zero);
                     const Scalar A_00 = A_p[INDEX2(0,0,2)];
                     const Scalar A_10 = A_p[INDEX2(1,0,2)];
                     const Scalar A_01 = A_p[INDEX2(0,1,2)];
@@ -1019,7 +1035,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESingleReduced(
                 // process B //
                 ///////////////
                 if (!B.isEmpty()) {
-                    const Scalar* B_p = B.getSampleDataRO(e, zero);
+                    const Scalar* B_p = B.getSampleDataRO(id, zero);
                     const Scalar tmp0 = B_p[0]*w[2][l];
                     const Scalar tmp1 = B_p[1]*w[1][l];
                     EM_S[INDEX2(0,0,4)]+=-tmp0 - tmp1;
@@ -1044,7 +1060,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESingleReduced(
                 // process C //
                 ///////////////
                 if (!C.isEmpty()) {
-                    const Scalar* C_p = C.getSampleDataRO(e, zero);
+                    const Scalar* C_p = C.getSampleDataRO(id, zero);
                     const Scalar tmp0 = C_p[0]*w[2][l];
                     const Scalar tmp1 = C_p[1]*w[1][l];
                     EM_S[INDEX2(0,0,4)]+=-tmp1 - tmp0;
@@ -1069,7 +1085,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESingleReduced(
                 // process D //
                 ///////////////
                 if (!D.isEmpty()) {
-                    const Scalar* D_p = D.getSampleDataRO(e, zero);
+                    const Scalar* D_p = D.getSampleDataRO(id, zero);
                     EM_S[INDEX2(0,0,4)]+=D_p[0]*w[3][l];
                     EM_S[INDEX2(1,0,4)]+=D_p[0]*w[3][l];
                     EM_S[INDEX2(2,0,4)]+=D_p[0]*w[3][l];
@@ -1092,7 +1108,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESingleReduced(
                 // process X //
                 ///////////////
                 if (!X.isEmpty()) {
-                    const Scalar* X_p = X.getSampleDataRO(e, zero);
+                    const Scalar* X_p = X.getSampleDataRO(id, zero);
                     const Scalar wX0 = 4.*X_p[0]*w[2][l];
                     const Scalar wX1 = 4.*X_p[1]*w[1][l];
                     EM_F[0]+=-wX0 - wX1;
@@ -1105,7 +1121,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESingleReduced(
                 // process Y //
                 ///////////////
                 if (!Y.isEmpty()) {
-                    const Scalar* Y_p = Y.getSampleDataRO(e, zero);
+                    const Scalar* Y_p = Y.getSampleDataRO(id, zero);
                     EM_F[0]+=4.*Y_p[0]*w[3][l];
                     EM_F[1]+=4.*Y_p[0]*w[3][l];
                     EM_F[2]+=4.*Y_p[0]*w[3][l];
@@ -1113,7 +1129,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESingleReduced(
                 }
 
                 // add to matrix (if addEM_S) and RHS (if addEM_F)
-                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, e, e);
+                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t);
             } 
         }
     } // end of parallel region
@@ -1132,7 +1148,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingleReduced(
     int max_level = 0;
     for(p4est_topidx_t tree = domain->p4est->first_local_tree; tree < domain->p4est->last_local_tree; tree++) {
         p4est_tree_t * tree_t = p4est_tree_array_index(domain->p4est->trees, tree);
-        max_level = SC_MAX(max_level, tree_t->maxlevel);
+        max_level = tree_t->maxlevel > max_level ? tree_t->maxlevel : max_level;
     }
 
     // This is similar to Ripley, except that in Oxley the quads vary in size so that the 
@@ -1141,8 +1157,11 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingleReduced(
 #pragma omp parallel for
     for(int i = 0; i < max_level; i++)
     {
-        w[0][i] = domain->forestData->m_dx[0][i]/4;
-        w[1][i] = domain->forestData->m_dx[1][i]/4;
+        double m_dx[2] = {domain->m_NX[0]*domain->forestData->m_dx[0][P4EST_MAXLEVEL-i], 
+                          domain->m_NX[1]*domain->forestData->m_dx[1][P4EST_MAXLEVEL-i]};
+
+        w[0][i] = m_dx[0]/4;
+        w[1][i] = m_dx[1]/4;
     }
 
     const bool addEM_S = !d.isEmpty();
@@ -1155,16 +1174,19 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingleReduced(
         vector<Scalar> EM_S(4*4, zero);
         vector<Scalar> EM_F(4, zero);
 
-        for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
+                for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
         {
             p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
             sc_array_t * tquadrants = &currenttree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
 #pragma omp parallel for
-            for (p4est_locidx_t e = domain->nodes->global_offset; e < Q+domain->nodes->global_offset; e++) // Loop over every quadrant within the tree
-            {
-                // Work out what level this element is on 
-                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
+            for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
+            {                
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+                double xy[3];
+                p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
+                long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+
                 quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
                 if(quaddata->m_faceOffset == 0) {
@@ -1181,7 +1203,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingleReduced(
                     // process d //
                     ///////////////
                     if (addEM_S) {
-                        const Scalar* d_p = d.getSampleDataRO(e, zero);
+                        const Scalar* d_p = d.getSampleDataRO(id, zero);
                         EM_S[INDEX2(0,0,4)] = d_p[0]*w[1][l];
                         EM_S[INDEX2(2,0,4)] = d_p[0]*w[1][l];
                         EM_S[INDEX2(0,2,4)] = d_p[0]*w[1][l];
@@ -1192,11 +1214,11 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingleReduced(
                     // process y //
                     ///////////////
                     if (addEM_F) {
-                        const Scalar* y_p = y.getSampleDataRO(e, zero);
+                        const Scalar* y_p = y.getSampleDataRO(id, zero);
                         EM_F[0] = 2.*w[1][l]*y_p[0];
                         EM_F[2] = 2.*w[1][l]*y_p[0];
                     }
-                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, e, e);
+                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t);
                 }
             } 
         }
@@ -1207,10 +1229,13 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingleReduced(
             sc_array_t * tquadrants = &currenttree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
 #pragma omp parallel for
-            for (p4est_locidx_t e = domain->nodes->global_offset; e < Q+domain->nodes->global_offset; e++) // Loop over every quadrant within the tree
-            {
-                // Work out what level this element is on 
-                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
+            for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
+            {                
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+                double xy[3];
+                p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
+                long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+
                 quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
                 if (quaddata->m_faceOffset == 1) {
@@ -1227,7 +1252,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingleReduced(
                     // process d //
                     ///////////////
                     if (addEM_S) {
-                        const Scalar* d_p = d.getSampleDataRO(e, zero);
+                        const Scalar* d_p = d.getSampleDataRO(id, zero);
                         EM_S[INDEX2(1,1,4)] = d_p[0]*w[1][l];
                         EM_S[INDEX2(3,1,4)] = d_p[0]*w[1][l];
                         EM_S[INDEX2(1,3,4)] = d_p[0]*w[1][l];
@@ -1238,11 +1263,11 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingleReduced(
                     // process y //
                     ///////////////
                     if (addEM_F) {
-                        const Scalar* y_p = y.getSampleDataRO(e, zero);
+                        const Scalar* y_p = y.getSampleDataRO(id, zero);
                         EM_F[1] = 2.*w[1][l]*y_p[0];
                         EM_F[3] = 2.*w[1][l]*y_p[0];
                     }
-                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, e, e);
+                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t);
                 }
             } 
         }
@@ -1253,10 +1278,13 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingleReduced(
             sc_array_t * tquadrants = &currenttree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
 #pragma omp parallel for
-            for (p4est_locidx_t e = domain->nodes->global_offset; e < Q+domain->nodes->global_offset; e++) // Loop over every quadrant within the tree
-            {
-                // Work out what level this element is on 
-                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
+            for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
+            {                
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+                double xy[3];
+                p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
+                long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+
                 quadrantData * quaddata = (quadrantData *) quad->p.user_data;                
 
                 if (quaddata->m_faceOffset == 2) {
@@ -1273,7 +1301,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingleReduced(
                     // process d //
                     ///////////////
                     if (addEM_S) {
-                        const Scalar* d_p = d.getSampleDataRO(e, zero);
+                        const Scalar* d_p = d.getSampleDataRO(id, zero);
                         EM_S[INDEX2(0,0,4)] = d_p[0]*w[0][l];
                         EM_S[INDEX2(1,0,4)] = d_p[0]*w[0][l];
                         EM_S[INDEX2(0,1,4)] = d_p[0]*w[0][l];
@@ -1284,11 +1312,11 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingleReduced(
                     // process y //
                     ///////////////
                     if (addEM_F) {
-                        const Scalar* y_p = y.getSampleDataRO(e, zero);
+                        const Scalar* y_p = y.getSampleDataRO(id, zero);
                         EM_F[0] = 2.*w[0][l]*y_p[0];
                         EM_F[1] = 2.*w[0][l]*y_p[0];
                     }
-                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, e, e);
+                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t);
                 }
             }
         }
@@ -1299,10 +1327,13 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingleReduced(
             sc_array_t * tquadrants = &currenttree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
 #pragma omp parallel for
-            for (p4est_locidx_t e = domain->nodes->global_offset; e < Q+domain->nodes->global_offset; e++) // Loop over every quadrant within the tree
-            {
-                // Work out what level this element is on 
-                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
+            for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
+            {                
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+                double xy[3];
+                p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
+                long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+
                 quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
                 if (quaddata->m_faceOffset == 3) {
@@ -1319,7 +1350,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingleReduced(
                     // process d //
                     ///////////////
                     if (addEM_S) {
-                        const Scalar* d_p = d.getSampleDataRO(e, zero);
+                        const Scalar* d_p = d.getSampleDataRO(id, zero);
                         EM_S[INDEX2(2,2,4)] = d_p[0]*w[0][l];
                         EM_S[INDEX2(3,2,4)] = d_p[0]*w[0][l];
                         EM_S[INDEX2(2,3,4)] = d_p[0]*w[0][l];
@@ -1330,11 +1361,11 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingleReduced(
                     // process y //
                     ///////////////
                     if (addEM_F) {
-                        const Scalar* y_p = y.getSampleDataRO(e, zero);
+                        const Scalar* y_p = y.getSampleDataRO(id, zero);
                         EM_F[2] = 2.*w[0][l]*y_p[0];
                         EM_F[3] = 2.*w[0][l]*y_p[0];
                     }
-                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, e, e);
+                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t);
                 }
             } 
         }
@@ -1363,7 +1394,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESystem(AbstractSystemMatrix* mat,
     int max_level = 0;
     for(p4est_topidx_t tree = domain->p4est->first_local_tree; tree < domain->p4est->last_local_tree; tree++) {
         p4est_tree_t * tree_t = p4est_tree_array_index(domain->p4est->trees, tree);
-        max_level = SC_MAX(max_level, tree_t->maxlevel);
+        max_level = tree_t->maxlevel > max_level ? tree_t->maxlevel : max_level;
     }
 
     // This is similar to Ripley, except that in Oxley the quads vary in size so that the 
@@ -1371,34 +1402,37 @@ void DefaultAssembler2D<Scalar>::assemblePDESystem(AbstractSystemMatrix* mat,
     const double SQRT3 = 1.73205080756887719318;
     double w[32][P4EST_MAXLEVEL] = {{0}};
 #pragma omp parallel for
-    for(int i = 0; i < max_level; i++)
+    for(int i = 0; i <= max_level; i++)
     {
+        double m_dx[2] = {domain->m_NX[0]*domain->forestData->m_dx[0][P4EST_MAXLEVEL-i], 
+                          domain->m_NX[1]*domain->forestData->m_dx[1][P4EST_MAXLEVEL-i]};
+
         w[1][i]  = 1.0/24;
         w[5][i]  = -SQRT3/24 + 1.0/12;
         w[2][i]  = -SQRT3/24 - 1.0/12;
-        w[19][i] = -domain->forestData->m_dx[0][i]/12;
+        w[19][i] = -m_dx[0]/12;
         w[11][i] = w[19][i]*(SQRT3 + 3)/12;
         w[14][i] = w[19][i]*(-SQRT3 + 3)/12;
         w[16][i] = w[19][i]*(5*SQRT3 + 9)/12;
         w[17][i] = w[19][i]*(-5*SQRT3 + 9)/12;
         w[27][i] = w[19][i]*(-SQRT3 - 3)/2;
         w[28][i] = w[19][i]*(SQRT3 - 3)/2;
-        w[18][i] = -domain->forestData->m_dx[1][i]/12;
+        w[18][i] = -m_dx[1]/12;
         w[10][i] = w[18][i]*(SQRT3 + 3)/12;
         w[15][i] = w[18][i]*(-SQRT3 + 3)/12;
         w[12][i] = w[18][i]*(5*SQRT3 + 9)/12;
         w[13][i] = w[18][i]*(-5*SQRT3 + 9)/12;
         w[25][i] = w[18][i]*(-SQRT3 - 3)/2;
         w[26][i] = w[18][i]*(SQRT3 - 3)/2;
-        w[22][i] = domain->forestData->m_dx[0][i]*domain->forestData->m_dx[1][i]/144;
+        w[22][i] = m_dx[0]*m_dx[1]/144;
         w[20][i] = w[22][i]*(SQRT3 + 2);
         w[21][i] = w[22][i]*(-SQRT3 + 2);
         w[23][i] = w[22][i]*(4*SQRT3 + 7);
         w[24][i] = w[22][i]*(-4*SQRT3 + 7);
-        w[3][i]  = domain->forestData->m_dx[0][i]/(24*domain->forestData->m_dx[1][i]);
+        w[3][i]  = m_dx[0]/(24*m_dx[1]);
         w[7][i]  = w[3][i]*(SQRT3 + 2);
         w[8][i]  = w[3][i]*(-SQRT3 + 2);
-        w[6][i]  = -domain->forestData->m_dx[1][i]/(24*domain->forestData->m_dx[0][i]);
+        w[6][i]  = -m_dx[1]/(24*m_dx[0]);
         w[0][i]  = w[6][i]*(SQRT3 + 2);
         w[4][i]  = w[6][i]*(-SQRT3 + 2);
     }
@@ -1419,11 +1453,13 @@ void DefaultAssembler2D<Scalar>::assemblePDESystem(AbstractSystemMatrix* mat,
             sc_array_t * tquadrants = &currenttree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
 #pragma omp parallel for
-            for (p4est_locidx_t e = domain->nodes->global_offset; e < Q+domain->nodes->global_offset; e++) // Loop over every quadrant within the tree
-            {
-                // Work out what level this element is on 
-                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
+            for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
+            {                
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
                 int l = quad->level;
+                double xy[3];
+                p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
+                long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
 
                 if (addEM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
@@ -1434,7 +1470,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESystem(AbstractSystemMatrix* mat,
                 // process A //
                 ///////////////
                 if (!A.isEmpty()) {
-                    const Scalar* A_p = A.getSampleDataRO(e, zero);
+                    const Scalar* A_p = A.getSampleDataRO(id, zero);
                     if (A.actsExpanded()) {
                         for (index_t k=0; k<numEq; k++) {
                             for (index_t m=0; m<numComp; m++) {
@@ -1564,7 +1600,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESystem(AbstractSystemMatrix* mat,
                 // process B //
                 ///////////////
                 if (!B.isEmpty()) {
-                    const Scalar* B_p = B.getSampleDataRO(e, zero);
+                    const Scalar* B_p = B.getSampleDataRO(id, zero);
                     if (B.actsExpanded()) {
                         for (index_t k=0; k<numEq; k++) {
                             for (index_t m=0; m<numComp; m++) {
@@ -1640,7 +1676,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESystem(AbstractSystemMatrix* mat,
                 // process C //
                 ///////////////
                 if (!C.isEmpty()) {
-                    const Scalar* C_p = C.getSampleDataRO(e, zero);
+                    const Scalar* C_p = C.getSampleDataRO(id, zero);
                     if (C.actsExpanded()) {
                         for (index_t k=0; k<numEq; k++) {
                             for (index_t m=0; m<numComp; m++) {
@@ -1716,7 +1752,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESystem(AbstractSystemMatrix* mat,
                 // process D //
                 ///////////////
                 if (!D.isEmpty()) {
-                    const Scalar* D_p = D.getSampleDataRO(e, zero);
+                    const Scalar* D_p = D.getSampleDataRO(id, zero);
                     if (D.actsExpanded()) {
                         for (index_t k=0; k<numEq; k++) {
                             for (index_t m=0; m<numComp; m++) {
@@ -1782,7 +1818,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESystem(AbstractSystemMatrix* mat,
                 // process X //
                 ///////////////
                 if (!X.isEmpty()) {
-                    const Scalar* X_p = X.getSampleDataRO(e, zero);
+                    const Scalar* X_p = X.getSampleDataRO(id, zero);
                     if (X.actsExpanded()) {
                         for (index_t k=0; k<numEq; k++) {
                             const Scalar X_0_0 = X_p[INDEX3(k,0,0,numEq,2)];
@@ -1830,7 +1866,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESystem(AbstractSystemMatrix* mat,
                 // process Y //
                 ///////////////
                 if (!Y.isEmpty()) {
-                    const Scalar* Y_p = Y.getSampleDataRO(e, zero);
+                    const Scalar* Y_p = Y.getSampleDataRO(id, zero);
                     if (Y.actsExpanded()) {
                         for (index_t k=0; k<numEq; k++) {
                             const Scalar Y_0 = Y_p[INDEX2(k, 0, numEq)];
@@ -1856,7 +1892,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESystem(AbstractSystemMatrix* mat,
 
                 // add to matrix (if addEM_S) and RHS (if addEM_F)
                 // const index_t firstNode=m_NN[0]*k1+k0;
-                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, e, numEq, numComp);
+                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, id, numEq, numComp);
             }
         }
     } // end of parallel region
@@ -1883,7 +1919,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
     int max_level = 0;
     for(p4est_topidx_t tree = domain->p4est->first_local_tree; tree < domain->p4est->last_local_tree; tree++) {
         p4est_tree_t * tree_t = p4est_tree_array_index(domain->p4est->trees, tree);
-        max_level = SC_MAX(max_level, tree_t->maxlevel);
+        max_level = tree_t->maxlevel > max_level ? tree_t->maxlevel : max_level;
     }
 
     // This is similar to Ripley, except that in Oxley the quads vary in size so that the 
@@ -1893,16 +1929,19 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
 #pragma omp parallel for
     for(int i = 0; i < max_level; i++)
     {
-    w[5][i] = domain->forestData->m_dx[0][i]/12;
-    w[6][i] = w[5][i]*( SQRT3 + 2);
-    w[7][i] = w[5][i]*(-SQRT3 + 2);
-    w[8][i] = w[5][i]*( SQRT3 + 3);
-    w[9][i] = w[5][i]*(-SQRT3 + 3);
-    w[2][i] = domain->forestData->m_dx[1][i]/12;
-    w[0][i] = w[2][i]*( SQRT3 + 2);
-    w[1][i] = w[2][i]*(-SQRT3 + 2);
-    w[3][i] = w[2][i]*( SQRT3 + 3);
-    w[4][i] = w[2][i]*(-SQRT3 + 3);
+        double m_dx[2] = {domain->m_NX[0]*domain->forestData->m_dx[0][P4EST_MAXLEVEL-i], 
+                          domain->m_NX[1]*domain->forestData->m_dx[1][P4EST_MAXLEVEL-i]};
+
+        w[5][i] = m_dx[0]/12;
+        w[6][i] = w[5][i]*( SQRT3 + 2);
+        w[7][i] = w[5][i]*(-SQRT3 + 2);
+        w[8][i] = w[5][i]*( SQRT3 + 3);
+        w[9][i] = w[5][i]*(-SQRT3 + 3);
+        w[2][i] = m_dx[1]/12;
+        w[0][i] = w[2][i]*( SQRT3 + 2);
+        w[1][i] = w[2][i]*(-SQRT3 + 2);
+        w[3][i] = w[2][i]*( SQRT3 + 3);
+        w[4][i] = w[2][i]*(-SQRT3 + 3);
     }
 
     const bool addEM_S = !d.isEmpty();
@@ -1921,10 +1960,13 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
             sc_array_t * tquadrants = &currenttree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
 #pragma omp parallel for
-            for (p4est_locidx_t e = domain->nodes->global_offset; e < Q+domain->nodes->global_offset; e++) // Loop over every quadrant within the tree
-            {
-                // Work out what level this element is on 
-                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
+            for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
+            {                
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+                int l = quad->level;
+                double xy[3];
+                p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
+                long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
                 quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
                 if (quaddata->m_faceOffset == 0) {
@@ -1933,13 +1975,11 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
                     if (addEM_F)
                         fill(EM_F.begin(), EM_F.end(), zero);
 
-                            int l = quad->level;
-
                     ///////////////
                     // process d //
                     ///////////////
                     if (addEM_S) {
-                        const Scalar* d_p = d.getSampleDataRO(e, zero);
+                        const Scalar* d_p = d.getSampleDataRO(id, zero);
                         if (d.actsExpanded()) {
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
@@ -1969,7 +2009,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
                     // process y //
                     ///////////////
                     if (addEM_F) {
-                        const Scalar* y_p = y.getSampleDataRO(e, zero);
+                        const Scalar* y_p = y.getSampleDataRO(id, zero);
                         if (y.actsExpanded()) {
                             for (index_t k=0; k<numEq; k++) {
                                 const Scalar y_0 = y_p[INDEX2(k, 0, numEq)];
@@ -1984,7 +2024,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
                             }
                         }
                     }
-                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, e, numEq, numComp);
+                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, id, numEq, numComp);
                 }
             } 
         }
@@ -1995,10 +2035,13 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
             sc_array_t * tquadrants = &currenttree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
 #pragma omp parallel for
-            for (p4est_locidx_t e = domain->nodes->global_offset; e < Q+domain->nodes->global_offset; e++) // Loop over every quadrant within the tree
-            {
-                // Work out what level this element is on 
-                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
+            for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
+            {                
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+                int l = quad->level;
+                double xy[3];
+                p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
+                long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
                 quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
                 if (quaddata->m_faceOffset == 1) {
@@ -2007,13 +2050,11 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
                     if (addEM_F)
                         fill(EM_F.begin(), EM_F.end(), zero);
 
-                    int l = quad->level;
-
                     ///////////////
                     // process d //
                     ///////////////
                     if (addEM_S) {
-                        const Scalar* d_p = d.getSampleDataRO(e, zero);
+                        const Scalar* d_p = d.getSampleDataRO(id, zero);
                         if (d.actsExpanded()) {
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
@@ -2043,7 +2084,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
                     // process y //
                     ///////////////
                     if (addEM_F) {
-                        const Scalar* y_p = y.getSampleDataRO(e, zero);
+                        const Scalar* y_p = y.getSampleDataRO(id, zero);
                         if (y.actsExpanded()) {
                             for (index_t k=0; k<numEq; k++) {
                                 const Scalar y_0 = y_p[INDEX2(k, 0, numEq)];
@@ -2058,7 +2099,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
                             }
                         }
                     }
-                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, e, numEq, numComp);
+                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, id, numEq, numComp);
                 }
             }
         }
@@ -2069,10 +2110,13 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
             sc_array_t * tquadrants = &currenttree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
 #pragma omp parallel for
-            for (p4est_locidx_t e = domain->nodes->global_offset; e < Q+domain->nodes->global_offset; e++) // Loop over every quadrant within the tree
-            {
-                // Work out what level this element is on 
-                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
+            for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
+            {                
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+                int l = quad->level;
+                double xy[3];
+                p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
+                long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
                 quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
                 if (quaddata->m_faceOffset == 2) {
@@ -2081,13 +2125,11 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
                     if (addEM_F)
                         fill(EM_F.begin(), EM_F.end(), zero);
 
-                    int l = quad->level;
-
                     ///////////////
                     // process d //
                     ///////////////
                     if (addEM_S) {
-                        const Scalar* d_p = d.getSampleDataRO(e, zero);
+                        const Scalar* d_p = d.getSampleDataRO(id, zero);
                         if (d.actsExpanded()) {
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
@@ -2117,7 +2159,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
                     // process y //
                     ///////////////
                     if (addEM_F) {
-                        const Scalar* y_p = y.getSampleDataRO(e, zero);
+                        const Scalar* y_p = y.getSampleDataRO(id, zero);
                         if (y.actsExpanded()) {
                             for (index_t k=0; k<numEq; k++) {
                                 const Scalar y_0 = y_p[INDEX2(k, 0, numEq)];
@@ -2132,7 +2174,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
                             }
                         }
                     }
-                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, e, numEq, numComp);
+                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, id, numEq, numComp);
                 }
             } 
         }
@@ -2143,10 +2185,12 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
             sc_array_t * tquadrants = &currenttree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
 #pragma omp parallel for
-            for (p4est_locidx_t e = domain->nodes->global_offset; e < Q+domain->nodes->global_offset; e++) // Loop over every quadrant within the tree
-            {
-                // Work out what level this element is on 
-                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
+            for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
+            {                
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+                double xy[3];
+                p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
+                long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
                 quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
                 if (quaddata->m_faceOffset == 3) {
@@ -2161,7 +2205,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
                     // process d //
                     ///////////////
                     if (addEM_S) {
-                        const Scalar* d_p = d.getSampleDataRO(e, zero);
+                        const Scalar* d_p = d.getSampleDataRO(id, zero);
                         if (d.actsExpanded()) {
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
@@ -2191,7 +2235,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
                     // process y //
                     ///////////////
                     if (addEM_F) {
-                        const Scalar* y_p = y.getSampleDataRO(e, zero);
+                        const Scalar* y_p = y.getSampleDataRO(id, zero);
                         if (y.actsExpanded()) {
                             for (index_t k=0; k<numEq; k++) {
                                 const Scalar y_0 = y_p[INDEX2(k, 0, numEq)];
@@ -2206,7 +2250,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
                             }
                         }
                     }
-                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, e, numEq, numComp);
+                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, id, numEq, numComp);
                 }
             }
         }
@@ -2236,7 +2280,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESystemReduced(
     int max_level = 0;
     for(p4est_topidx_t tree = domain->p4est->first_local_tree; tree < domain->p4est->last_local_tree; tree++) {
         p4est_tree_t * tree_t = p4est_tree_array_index(domain->p4est->trees, tree);
-        max_level = SC_MAX(max_level, tree_t->maxlevel);
+        max_level = tree_t->maxlevel > max_level ? tree_t->maxlevel : max_level;
     }
 
     // This is similar to Ripley, except that in Oxley the quads vary in size so that the 
@@ -2245,12 +2289,15 @@ void DefaultAssembler2D<Scalar>::assemblePDESystemReduced(
 #pragma omp parallel for
     for(int i = 0; i < max_level; i++)
     {
+        double m_dx[2] = {domain->m_NX[0]*domain->forestData->m_dx[0][P4EST_MAXLEVEL-i], 
+                          domain->m_NX[1]*domain->forestData->m_dx[1][P4EST_MAXLEVEL-i]};
+
         w[0][i] = 1./4;
-        w[1][i] = domain->forestData->m_dx[0][i]/8;
-        w[2][i] = domain->forestData->m_dx[1][i]/8;
-        w[3][i] = domain->forestData->m_dx[0][i] *  domain->forestData->m_dx[1][i]/16;
-        w[4][i] = domain->forestData->m_dx[0][i]/(4*domain->forestData->m_dx[1][i]);
-        w[5][i] = domain->forestData->m_dx[1][i]/(4*domain->forestData->m_dx[0][i]);
+        w[1][i] = m_dx[0]/8;
+        w[2][i] = m_dx[1]/8;
+        w[3][i] = m_dx[0] *  m_dx[1]/16;
+        w[4][i] = m_dx[0]/(4*m_dx[1]);
+        w[5][i] = m_dx[1]/(4*m_dx[0]);
     }
 
     const bool addEM_S = (!A.isEmpty() || !B.isEmpty() || !C.isEmpty() || !D.isEmpty());
@@ -2264,16 +2311,18 @@ void DefaultAssembler2D<Scalar>::assemblePDESystemReduced(
         vector<Scalar> EM_F(4*numEq, zero);
 
         for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
-            {
-                p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
-                sc_array_t * tquadrants = &currenttree->quadrants;
-                p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+        {
+            p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
+            sc_array_t * tquadrants = &currenttree->quadrants;
+            p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
 #pragma omp parallel for
-                for (p4est_locidx_t e = domain->nodes->global_offset; e < Q+domain->nodes->global_offset; e++) // Loop over every quadrant within the tree
-                {
-                    // Work out what level this element is on 
-                    p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
-                    int l = quad->level;
+            for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
+            {                
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+                int l = quad->level;
+                double xy[3];
+                p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
+                long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
 
                     if (addEM_S)
                         fill(EM_S.begin(), EM_S.end(), zero);
@@ -2284,7 +2333,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESystemReduced(
                     // process A //
                     ///////////////
                     if (!A.isEmpty()) {
-                        const Scalar* A_p = A.getSampleDataRO(e, zero);
+                        const Scalar* A_p = A.getSampleDataRO(id, zero);
                         for (index_t k=0; k<numEq; k++) {
                             for (index_t m=0; m<numComp; m++) {
                                 const Scalar Aw00 = A_p[INDEX4(k,0,m,0, numEq,2, numComp)]*w[5][l];
@@ -2315,7 +2364,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESystemReduced(
                     // process B //
                     ///////////////
                     if (!B.isEmpty()) {
-                        const Scalar* B_p = B.getSampleDataRO(e, zero);
+                        const Scalar* B_p = B.getSampleDataRO(id, zero);
                         for (index_t k=0; k<numEq; k++) {
                             for (index_t m=0; m<numComp; m++) {
                                 const Scalar wB0 = B_p[INDEX3(k,0,m, numEq, 2)]*w[2][l];
@@ -2344,7 +2393,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESystemReduced(
                     // process C //
                     ///////////////
                     if (!C.isEmpty()) {
-                        const Scalar* C_p = C.getSampleDataRO(e, zero);
+                        const Scalar* C_p = C.getSampleDataRO(id, zero);
                         for (index_t k=0; k<numEq; k++) {
                             for (index_t m=0; m<numComp; m++) {
                                 const Scalar wC0 = C_p[INDEX3(k, m, 0, numEq, numComp)]*w[2][l];
@@ -2373,7 +2422,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESystemReduced(
                     // process D //
                     ///////////////
                     if (!D.isEmpty()) {
-                        const Scalar* D_p = D.getSampleDataRO(e, zero);
+                        const Scalar* D_p = D.getSampleDataRO(id, zero);
                         for (index_t k=0; k<numEq; k++) {
                             for (index_t m=0; m<numComp; m++) {
                                 const Scalar wD0 = D_p[INDEX2(k, m, numEq)]*w[3][l];
@@ -2401,7 +2450,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESystemReduced(
                     // process X //
                     ///////////////
                     if (!X.isEmpty()) {
-                        const Scalar* X_p = X.getSampleDataRO(e, zero);
+                        const Scalar* X_p = X.getSampleDataRO(id, zero);
                         for (index_t k=0; k<numEq; k++) {
                             const Scalar wX0 = 4.*X_p[INDEX2(k, 0, numEq)]*w[2][l];
                             const Scalar wX1 = 4.*X_p[INDEX2(k, 1, numEq)]*w[1][l];
@@ -2416,7 +2465,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESystemReduced(
                     // process Y //
                     ///////////////
                     if (!Y.isEmpty()) {
-                        const Scalar* Y_p = Y.getSampleDataRO(e, zero);
+                        const Scalar* Y_p = Y.getSampleDataRO(id, zero);
                         for (index_t k=0; k<numEq; k++) {
                             EM_F[INDEX2(k,0,numEq)]+=4.*Y_p[k]*w[3][l];
                             EM_F[INDEX2(k,1,numEq)]+=4.*Y_p[k]*w[3][l];
@@ -2426,7 +2475,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESystemReduced(
                     }
 
                     // add to matrix (if addEM_S) and RHS (if addEM_F)
-                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, e, numEq, numComp);
+                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, id, numEq, numComp);
             } 
         } 
     } // end of parallel region
@@ -2453,7 +2502,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
     int max_level = 0;
     for(p4est_topidx_t tree = domain->p4est->first_local_tree; tree < domain->p4est->last_local_tree; tree++) {
         p4est_tree_t * tree_t = p4est_tree_array_index(domain->p4est->trees, tree);
-        max_level = SC_MAX(max_level, tree_t->maxlevel);
+        max_level = tree_t->maxlevel > max_level ? tree_t->maxlevel : max_level;
     }
 
     // This is similar to Ripley, except that in Oxley the quads vary in size so that the 
@@ -2462,8 +2511,11 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
 #pragma omp parallel for
     for(int i = 0; i < max_level; i++)
     {
-        w[0][i] = domain->forestData->m_dx[0][i]/4;
-        w[1][i] = domain->forestData->m_dx[1][i]/4;
+        double m_dx[2] = {domain->m_NX[0]*domain->forestData->m_dx[0][P4EST_MAXLEVEL-i], 
+                          domain->m_NX[1]*domain->forestData->m_dx[1][P4EST_MAXLEVEL-i]};
+
+        w[0][i] = m_dx[0]/4;
+        w[1][i] = m_dx[1]/4;
     }
 
     const bool addEM_S = !d.isEmpty();
@@ -2476,16 +2528,18 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
         vector<Scalar> EM_S(4*4*numEq*numComp, zero);
         vector<Scalar> EM_F(4*numEq, zero);
 
-        for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++)
+        for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
         {
             p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
             sc_array_t * tquadrants = &currenttree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
 #pragma omp parallel for
-            for (p4est_locidx_t e = domain->nodes->global_offset; e < Q+domain->nodes->global_offset; e++)
-            {
-                // Work out what level this element is on 
-                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
+            for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
+            {                
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+                double xy[3];
+                p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
+                long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
                 quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
                 if (quaddata->m_faceOffset == 0) {
@@ -2500,7 +2554,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
                     // process d //
                     ///////////////
                     if (addEM_S) {
-                        const Scalar* d_p = d.getSampleDataRO(e, zero);
+                        const Scalar* d_p = d.getSampleDataRO(id, zero);
                         for (index_t k=0; k<numEq; k++) {
                             for (index_t m=0; m<numComp; m++) {
                                 const Scalar tmp0 = d_p[INDEX2(k, m, numEq)]*w[1][l];
@@ -2516,13 +2570,13 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
                     // process y //
                     ///////////////
                     if (addEM_F) {
-                        const Scalar* y_p = y.getSampleDataRO(e, zero);
+                        const Scalar* y_p = y.getSampleDataRO(id, zero);
                         for (index_t k=0; k<numEq; k++) {
                             EM_F[INDEX2(k,0,numEq)] = 2*w[1][l]*y_p[k];
                             EM_F[INDEX2(k,2,numEq)] = 2*w[1][l]*y_p[k];
                         }
                     }
-                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, e, numEq, numComp);
+                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, id, numEq, numComp);
                 }
             }
         }
@@ -2533,10 +2587,12 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
             sc_array_t * tquadrants = &currenttree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
 #pragma omp parallel for
-            for (p4est_locidx_t e = domain->nodes->global_offset; e < Q+domain->nodes->global_offset; e++) // Loop over every quadrant within the tree
-            {
-                // Work out what level this element is on 
-                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
+            for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
+            {                
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+                double xy[3];
+                p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
+                long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
                 quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
                 if (quaddata->m_faceOffset == 1) {
@@ -2551,7 +2607,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
                     // process d //
                     ///////////////
                     if (addEM_S) {
-                        const Scalar* d_p = d.getSampleDataRO(e, zero);
+                        const Scalar* d_p = d.getSampleDataRO(id, zero);
                         for (index_t k=0; k<numEq; k++) {
                             for (index_t m=0; m<numComp; m++) {
                                 const Scalar tmp0 = d_p[INDEX2(k, m, numEq)]*w[1][l];
@@ -2567,13 +2623,13 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
                     // process y //
                     ///////////////
                     if (addEM_F) {
-                        const Scalar* y_p = y.getSampleDataRO(e, zero);
+                        const Scalar* y_p = y.getSampleDataRO(id, zero);
                         for (index_t k=0; k<numEq; k++) {
                             EM_F[INDEX2(k,1,numEq)] = 2.*w[1][l]*y_p[k];
                             EM_F[INDEX2(k,3,numEq)] = 2.*w[1][l]*y_p[k];
                         }
                     }
-                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, e, numEq, numComp);
+                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, id, numEq, numComp);
                 }
             }
         }
@@ -2584,10 +2640,12 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
             sc_array_t * tquadrants = &currenttree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
 #pragma omp parallel for
-            for (p4est_locidx_t e = domain->nodes->global_offset; e < Q+domain->nodes->global_offset; e++) // Loop over every quadrant within the tree
-            {
-                // Work out what level this element is on 
-                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
+            for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
+            {                
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+                double xy[3];
+                p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
+                long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
                 quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
                 if (quaddata->m_faceOffset == 2) {
@@ -2602,7 +2660,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
                     // process d //
                     ///////////////
                     if (addEM_S) {
-                        const Scalar* d_p = d.getSampleDataRO(e, zero);
+                        const Scalar* d_p = d.getSampleDataRO(id, zero);
                         for (index_t k=0; k<numEq; k++) {
                             for (index_t m=0; m<numComp; m++) {
                                 const Scalar tmp0 = d_p[INDEX2(k, m, numEq)]*w[0][l];
@@ -2618,14 +2676,14 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
                     // process y //
                     ///////////////
                     if (addEM_F) {
-                        const Scalar* y_p = y.getSampleDataRO(e, zero);
+                        const Scalar* y_p = y.getSampleDataRO(id, zero);
                         for (index_t k=0; k<numEq; k++) {
                             EM_F[INDEX2(k,0,numEq)] = 2.*w[0][l]*y_p[k];
                             EM_F[INDEX2(k,1,numEq)] = 2.*w[0][l]*y_p[k];
                         }
                     }
 
-                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, e, numEq, numComp);
+                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, id, numEq, numComp);
                 }
             }
         }
@@ -2636,10 +2694,12 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
             sc_array_t * tquadrants = &currenttree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
 #pragma omp parallel for
-            for (p4est_locidx_t e = domain->nodes->global_offset; e < Q+domain->nodes->global_offset; e++) // Loop over every quadrant within the tree
-            {
-                // Work out what level this element is on 
-                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
+            for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
+            {                
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+                double xy[3];
+                p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
+                long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
                 quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
                 if (quaddata->m_faceOffset == 3) {
@@ -2654,7 +2714,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
                     // process d //
                     ///////////////
                     if (addEM_S) {
-                        const Scalar* d_p = d.getSampleDataRO(e, zero);
+                        const Scalar* d_p = d.getSampleDataRO(id, zero);
                         for (index_t k=0; k<numEq; k++) {
                             for (index_t m=0; m<numComp; m++) {
                                 const Scalar tmp0 = d_p[INDEX2(k, m, numEq)]*w[0][l];
@@ -2670,14 +2730,14 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
                     // process y //
                     ///////////////
                     if (addEM_F) {
-                        const Scalar* y_p = y.getSampleDataRO(e, zero);
+                        const Scalar* y_p = y.getSampleDataRO(id, zero);
                         for (index_t k=0; k<numEq; k++) {
                             EM_F[INDEX2(k,2,numEq)] = 2*w[0][l]*y_p[k];
                             EM_F[INDEX2(k,3,numEq)] = 2*w[0][l]*y_p[k];
                         }
                     }
                     
-                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, e, numEq, numComp);
+                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, id, numEq, numComp);
                 }
             }
         }
