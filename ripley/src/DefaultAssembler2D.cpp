@@ -585,8 +585,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESingle(AbstractSystemMatrix* mat,
 
                     // add to matrix (if addEM_S) and RHS (if addEM_F)
                     const index_t firstNode = m_NN[0]*k1+k0;
-                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S,
-                                              addEM_F, firstNode);
+                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, firstNode);
                 } // end k0 loop
             } // end k1 loop
         } // end of colouring
