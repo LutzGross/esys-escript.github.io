@@ -1900,7 +1900,7 @@ std::vector<IndexVector> Rectangle::getConnections(bool includeShared) const
         p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
         sc_array_t * tquadrants = &tree->quadrants;
         p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-        for(int q = 0; q < Q; ++q) 
+        for(int q = 0; q < Q; ++q) // Loop over all quadrants
         { 
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
             p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
@@ -1925,35 +1925,35 @@ std::vector<IndexVector> Rectangle::getConnections(bool includeShared) const
                     for(int j = 0; j < 4; j++)
                     {
                         bool dup = false;
-                        for(int k = 0; k < indices[i].size(); k++)
-                            if(indices[i][k] == lni[j])
+                        for(int k = 0; k < indices[lni[i]].size(); k++)
+                            if(indices[lni[i]][k] == lni[j])
                             {
                                 dup = true;
                                 break;
                             }
                         if(dup == false)
-                            indices[i].push_back(lni[j]);
+                            indices[lni[i]].push_back(lni[j]);
                     }
                 }
             }
         }
     }
 
-    // Sorting
+// Sorting
 #pragma omp parallel for
     for(int i = 0; i < numNodes; i++){
-        std::sort(indices[0].begin(), indices[0].begin()+indices[0].size());
+        std::sort(indices[i].begin(), indices[i].begin()+indices[i].size());
     }
 
-#ifdef P4EST_ENABLE_DEBUG
-    // std::cout << "Rectangle::getConnections" << std::endl;
-    // for(int i = 0; i < numNodes; i++) {
-    //     std::cout << "i:" << i << " ";
-    //     for(auto j = indices[0].begin(); j < indices[0].begin()+indices[0].end(); j++)
-    //         std::cout << indices[i][j] << ", ";
-    //     std::cout << std::endl;
-    // }
-#endif
+// #ifdef P4EST_ENABLE_DEBUG
+//     std::cout << "Rectangle::getConnections" << std::endl;
+//     for(int i = 0; i < numNodes; i++) {
+//         std::cout << "i:" << i << " ";
+//         for(auto j = 0; j < indices[i].size(); j++)
+//             std::cout << indices[i][j] << ", ";
+//         std::cout << std::endl;
+//     }
+// #endif
 
     return indices;
 }
