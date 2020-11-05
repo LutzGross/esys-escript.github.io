@@ -314,7 +314,7 @@ void Brick::writeToVTK(std::string filename, bool writeMesh) const
         p8est_iterate(p8est, NULL, (void *) zCoords, getZCoordVector, NULL, NULL, NULL);
 
         // Cell Data
-#ifdef P4EST_ENABLE_DEBUG
+#ifdef OXLEY_ENABLE_DEBUG
         // context = p8est_vtk_write_cell_dataf(context,1,1,0,0,1,0,"tag",quadTag,context);
         context = p8est_vtk_write_cell_dataf(context,1,1,0,0,4,0,
             "tag",quadTag,"x",xCoords,"y",yCoords,"z",zCoords,context);
