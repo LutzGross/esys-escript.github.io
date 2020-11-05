@@ -1437,6 +1437,14 @@ void DefaultAssembler2D<Scalar>::assemblePDESystem(AbstractSystemMatrix* mat,
         w[4][i]  = w[6][i]*(-SQRT3 + 2);
     }
 
+#ifdef OXLEY_ENABLE_DEBUG
+    std::cout << "w" << std::endl;
+    for(int i = 0; i < 29; i++)
+        std::cout << i << ": " << w[i][0] << std::endl;
+    std::cout << std::endl;
+#endif
+
+
     const bool addEM_S = (!A.isEmpty() || !B.isEmpty() || !C.isEmpty() || !D.isEmpty());
     const bool addEM_F = (!X.isEmpty() || !Y.isEmpty());
     const Scalar zero = static_cast<Scalar>(0);
@@ -1892,7 +1900,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESystem(AbstractSystemMatrix* mat,
 
                 // add to matrix (if addEM_S) and RHS (if addEM_F)
                 // const index_t firstNode=m_NN[0]*k1+k0;
-                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, id, numEq, numComp);
+                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t);
             }
         }
     } // end of parallel region
