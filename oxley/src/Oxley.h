@@ -34,7 +34,7 @@
 #define MAXREFINEMENTLEVELS 16 // Default levels of refinement
 #define MAXTAGS 100 // Maximum allowed number of tags in a domain
 
-#ifdef P4EST_ENABLE_DEBUG
+#ifdef OXLEY_ENABLE_DEBUG
 // #define LOG_BACKTRACE 1  // Print a backtrace if p4est aborts prematurely
 // #define LOG_LEVEL 0  // Everything
 // #define LOG_LEVEL 4 // Main things that each function does

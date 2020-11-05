@@ -74,7 +74,7 @@ void addSurface(OxleyDomainRect_ptr domain)
     p4est_balance(p4est, P4EST_CONNECT_FACE, gce_init_new_rectangle);
     int partition_for_coarsening = 0;
     p4est_partition_ext(p4est, partition_for_coarsening, NULL);
-#ifdef P4EST_ENABLE_DEBUG
+#ifdef OXLEY_ENABLE_DEBUG
     p4est_iterate(p4est, NULL, (void *) surfacedata, gce_first_pass, NULL, NULL);
 #endif
     forestData->assign_info(surfacedata);
@@ -129,7 +129,7 @@ void addSurface(OxleyDomainBrick_ptr domain)
     p8est_balance(p8est, P8EST_CONNECT_FACE, gce_init_new_brick);
     int partition_for_coarsening = 0;
     p8est_partition_ext(p8est, partition_for_coarsening, NULL);
-#ifdef P4EST_ENABLE_DEBUG
+#ifdef OXLEY_ENABLE_DEBUG
     p8est_iterate(p8est, NULL, (void *) surfacedata, gce_first_pass, NULL, NULL, NULL);
 #endif
     forestData->assign_info(surfacedata);
