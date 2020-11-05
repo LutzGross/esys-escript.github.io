@@ -155,7 +155,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESingle(AbstractSystemMatrix* mat, Da
 {
     // Find the maximum level of refinement in the mesh
     int max_level = 0;
-    for(p4est_topidx_t tree = domain->p4est->first_local_tree; tree < domain->p4est->last_local_tree; tree++) {
+    for(p4est_topidx_t tree = domain->p4est->first_local_tree; tree <= domain->p4est->last_local_tree; tree++) {
         p4est_tree_t * tree_t = p4est_tree_array_index(domain->p4est->trees, tree);
         max_level = tree_t->maxlevel > max_level ? tree_t->maxlevel : max_level;
     }
@@ -638,7 +638,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
 {
     // Find the maximum level of refinement in the mesh
     int max_level = 0;
-    for(p4est_topidx_t tree = domain->p4est->first_local_tree; tree < domain->p4est->last_local_tree; tree++) {
+    for(p4est_topidx_t tree = domain->p4est->first_local_tree; tree <= domain->p4est->last_local_tree; tree++) {
         p4est_tree_t * tree_t = p4est_tree_array_index(domain->p4est->trees, tree);
         max_level = tree_t->maxlevel > max_level ? tree_t->maxlevel : max_level;
     }
@@ -948,7 +948,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESingleReduced(
 {
     // Find the maximum level of refinement in the mesh
     int max_level = 0;
-    for(p4est_topidx_t tree = domain->p4est->first_local_tree; tree < domain->p4est->last_local_tree; tree++) {
+    for(p4est_topidx_t tree = domain->p4est->first_local_tree; tree <= domain->p4est->last_local_tree; tree++) {
         p4est_tree_t * tree_t = p4est_tree_array_index(domain->p4est->trees, tree);
         max_level = tree_t->maxlevel > max_level ? tree_t->maxlevel : max_level;
     }
@@ -1146,7 +1146,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingleReduced(
 {
     // Find the maximum level of refinement in the mesh
     int max_level = 0;
-    for(p4est_topidx_t tree = domain->p4est->first_local_tree; tree < domain->p4est->last_local_tree; tree++) {
+    for(p4est_topidx_t tree = domain->p4est->first_local_tree; tree <= domain->p4est->last_local_tree; tree++) {
         p4est_tree_t * tree_t = p4est_tree_array_index(domain->p4est->trees, tree);
         max_level = tree_t->maxlevel > max_level ? tree_t->maxlevel : max_level;
     }
@@ -1392,7 +1392,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESystem(AbstractSystemMatrix* mat,
 
     // Find the maximum level of refinement in the mesh
     int max_level = 0;
-    for(p4est_topidx_t tree = domain->p4est->first_local_tree; tree < domain->p4est->last_local_tree; tree++) {
+    for(p4est_topidx_t tree = domain->p4est->first_local_tree; tree <= domain->p4est->last_local_tree; tree++) {
         p4est_tree_t * tree_t = p4est_tree_array_index(domain->p4est->trees, tree);
         max_level = tree_t->maxlevel > max_level ? tree_t->maxlevel : max_level;
     }
@@ -1925,7 +1925,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
 
     // Find the maximum level of refinement in the mesh
     int max_level = 0;
-    for(p4est_topidx_t tree = domain->p4est->first_local_tree; tree < domain->p4est->last_local_tree; tree++) {
+    for(p4est_topidx_t tree = domain->p4est->first_local_tree; tree <= domain->p4est->last_local_tree; tree++) {
         p4est_tree_t * tree_t = p4est_tree_array_index(domain->p4est->trees, tree);
         max_level = tree_t->maxlevel > max_level ? tree_t->maxlevel : max_level;
     }
@@ -2286,7 +2286,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESystemReduced(
 
     // Find the maximum level of refinement in the mesh
     int max_level = 0;
-    for(p4est_topidx_t tree = domain->p4est->first_local_tree; tree < domain->p4est->last_local_tree; tree++) {
+    for(p4est_topidx_t tree = domain->p4est->first_local_tree; tree <= domain->p4est->last_local_tree; tree++) {
         p4est_tree_t * tree_t = p4est_tree_array_index(domain->p4est->trees, tree);
         max_level = tree_t->maxlevel > max_level ? tree_t->maxlevel : max_level;
     }
@@ -2508,7 +2508,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
 
     // Find the maximum level of refinement in the mesh
     int max_level = 0;
-    for(p4est_topidx_t tree = domain->p4est->first_local_tree; tree < domain->p4est->last_local_tree; tree++) {
+    for(p4est_topidx_t tree = domain->p4est->first_local_tree; tree <= domain->p4est->last_local_tree; tree++) {
         p4est_tree_t * tree_t = p4est_tree_array_index(domain->p4est->trees, tree);
         max_level = tree_t->maxlevel > max_level ? tree_t->maxlevel : max_level;
     }
