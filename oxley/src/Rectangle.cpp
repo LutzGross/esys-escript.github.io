@@ -515,7 +515,7 @@ void Rectangle::writeToVTK(std::string filename, bool writeMesh) const
         // p4est_iterate(p4est, NULL, (void *) NodeNumber, getNodeNumber, NULL, NULL);
 
         // Write the cell Data
-#ifdef P4EST_ENABLE_DEBUG
+#ifdef OXLEY_ENABLE_DEBUG
         context = p4est_vtk_write_cell_dataf(context,1,1,0,0,3,0,"tag",quadTag,"x",xcoord,"y",ycoord,context);
 #else
         context = p4est_vtk_write_cell_dataf(context,0,0,0,0,3,0,"tag",quadTag,"x",xcoord,"y",ycoord,context);
@@ -571,7 +571,7 @@ void Rectangle::refineMesh(int maxRecursion, std::string algorithmname)
     }
 
     // Make sure that nothing went wrong
-#ifdef P4EST_ENABLE_DEBUG
+#ifdef OXLEY_ENABLE_DEBUG
     if(!p4est_is_valid(p4est))
         throw OxleyException("p4est broke during refinement");
     if(!p4est_connectivity_is_valid(connectivity))
@@ -752,7 +752,7 @@ void Rectangle::updateNodeIncrements()
 
 void Rectangle::renumberNodes()
 {
-#ifdef P4EST_ENABLE_DEBUG
+#ifdef OXLEY_ENABLE_DEBUG
     std::cout << "Renumbering nodes... " << std::endl;
 #endif
 
@@ -799,7 +799,7 @@ void Rectangle::renumberNodes()
                         p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
                         if(NodeIDs.count(std::make_pair(xy[0],xy[1]))==0)
                         {
-#ifdef P4EST_ENABLE_DEBUG
+#ifdef OXLEY_ENABLE_DEBUG
                             std::cout << NodeIDs.size() << ": " << xy[0] << ", " << xy[1] << std::endl;
 #endif
                             NodeIDs[std::make_pair(xy[0],xy[1])]=NodeIDs.size();
@@ -812,7 +812,7 @@ void Rectangle::renumberNodes()
                         p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
                         if(NodeIDs.count(std::make_pair(xy[0],xy[1]))==0)
                         {
-#ifdef P4EST_ENABLE_DEBUG
+#ifdef OXLEY_ENABLE_DEBUG
                             std::cout << NodeIDs.size() << ": " << xy[0] << ", " << xy[1] << std::endl;
 #endif
                             NodeIDs[std::make_pair(xy[0],xy[1])]=NodeIDs.size();
@@ -835,7 +835,7 @@ void Rectangle::renumberNodes()
                 {
                     if(NodeIDs.count(std::make_pair(xy[0],xy[1]))==0)
                     {
-#ifdef P4EST_ENABLE_DEBUG
+#ifdef OXLEY_ENABLE_DEBUG
                         std::cout << NodeIDs.size() << ": " << xy[0] << ", " << xy[1] << std::endl;
 #endif
                         NodeIDs[std::make_pair(xy[0],xy[1])]=NodeIDs.size();
@@ -1459,7 +1459,7 @@ void Rectangle::updateRowsColumns()
     data = new update_RC_data;
     data->indices = indices;
     data->pNodeIDs = &NodeIDs;
-    data->phangingNodeIDs = &hangingNodeIDs;
+    // data->phangingNodeIDs = &hangingNodeIDs;
     data->p4est = p4est;
 
     // This function loops over all interior faces
@@ -1550,7 +1550,7 @@ void Rectangle::updateRowsColumns()
         std::sort(indices[0][i].begin()+1, indices[0][i].begin()+idx0[0][0]+1);
     }
 
-#ifdef P4EST_ENABLE_DEBUG
+#ifdef OXLEY_ENABLE_DEBUG
     std::cout << "Node connections: " << std::endl;
     // Output for debugging
     for(int i = 0; i < getNumNodes(); i++){
@@ -1585,7 +1585,7 @@ void Rectangle::updateRowsColumns()
             myRows.push_back(counter);
     }
     myRows.push_back(myColumns.size());
-#ifdef P4EST_ENABLE_DEBUG
+#ifdef OXLEY_ENABLE_DEBUG
     std::cout << "Converted to Yale format... "<< std::endl;
     std::cout << "COL_INDEX [";
     for(auto i = myColumns.begin(); i < myColumns.end(); i++)
@@ -1945,7 +1945,7 @@ std::vector<IndexVector> Rectangle::getConnections(bool includeShared) const
         std::sort(indices[i].begin(), indices[i].begin()+indices[i].size());
     }
 
-// #ifdef P4EST_ENABLE_DEBUG
+// #ifdef OXLEY_ENABLE_DEBUG
 //     std::cout << "Rectangle::getConnections" << std::endl;
 //     for(int i = 0; i < numNodes; i++) {
 //         std::cout << "i:" << i << " ";
