@@ -354,14 +354,20 @@ void refine_copy_parent_quadrant(p4est_t * p4est, p4est_topidx_t tree,
     if(num_incoming == 4 && num_outgoing == 1)
     {
         // parent user data
-        quadrantData *childData = (quadrantData *) incoming[0]->p.user_data;
+        // quadrantData *childData = (quadrantData *) incoming[0]->p.user_data;
         quadrantData *parentData = (quadrantData *) outgoing[0]->p.user_data;
 
         // Averaging
         parentData->u = 0.0;
         for(int i = 0; i < 4; i++)
+        {
+            quadrantData *childData = (quadrantData *) incoming[i]->p.user_data;
             parentData->u+=childData->u;
-        parentData->u+=0.25;
+        }
+        parentData->u=0.25*parentData->u;
+
+        // Tags
+        quadrantData *childData = (quadrantData *) incoming[0]->p.user_data;
         parentData->quadTag=childData->quadTag;
 
         // Update the spatial coordinates
@@ -555,21 +561,24 @@ void update_RC(p4est_iter_face_info_t *info, void *user_data)
     long lx = ((fn < 2) == 0) * length;
     long ly = ((fn >= 2) == 0) * length;
     p4est_qcoord_to_vertex(data->p4est->connectivity, side->treeid, quad->x+lx, quad->y+ly, xy);
-
-    // std::cout << "xy = " << xy[0] << ", " << xy[1] << std::endl; // coordinates
-
     long lni1 = data->pNodeIDs->find(std::make_pair(xy[0],xy[1]))->second;
-    
+
     std::vector<long> * idx0 = &data->indices[0][lni0];
     std::vector<long> * idx1 = &data->indices[0][lni1];
 
     bool dup = false;
     for(int i = 1; i < idx0[0][0] + 1; i++)
         if(idx0[0][i] == lni1)
+        {
             dup = true;
+            break;
+        }
 
     if(dup == false)
     {
+#ifdef DOXLEY_ENABLE_DEBUG
+        std::cout << "update_RC " << lni1 << ": (" << xy[0] << ", " << xy[1] << ")" << std::endl; // coordinates
+#endif
         idx0[0][0]++;
         idx1[0][0]++;
         idx0[0][idx0[0][0]]=lni1;
