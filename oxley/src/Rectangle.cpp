@@ -1476,67 +1476,63 @@ void Rectangle::updateRowsColumns()
         for (int q = 0; q < Q; ++q) { // Loop over the elements attached to the tree
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
             p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
-            // Loop over the four corners of the quadrant
             for(int n = 1; n < 3; ++n){
                 int k = q - Q + nodeIncrements[treeid - p4est->first_local_tree];
                 long lidx = nodes->element_nodes[4*k+n];
-                if(lidx < nodes->owned_count) // if this process owns the node
+                double lx = length * ((int) (n % 2) == 1);
+                double ly = length * ((int) (n / 2) == 1);
+                double xy[3];
+                p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
+
+                // If the node is on the boundary x=Lx or y=Ly
+                if( (n == 1) && (xy[0] == forestData->m_lxy[0]) )
                 {
-                    double lx = length * ((int) (n % 2) == 1);
-                    double ly = length * ((int) (n / 2) == 1);
-                    double xy[3];
-                    p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
+                    // Get the node IDs
+                    long lni0 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+                    p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+length, xy);
+                    long lni1 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
 
-                    // If the node is on the boundary x=Lx or y=Ly
-                    if( (n == 1) && (xy[0] == forestData->m_lxy[0]) )
+                    std::vector<long> * idx0 = &indices[0][lni0];
+                    std::vector<long> * idx1 = &indices[0][lni1];
+
+                    // Check for duplicates
+                    bool dup = false;
+                    for(int i = 1; i < idx0[0][0] + 1; i++)
+                        if(idx0[0][i] == lni1)
+                            dup = true;
+
+                    // Add the new indices
+                    if(dup == false)
                     {
-                        // Get the node IDs
-                        long lni0 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-                        p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+length, xy);
-                        long lni1 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-
-                        std::vector<long> * idx0 = &indices[0][lni0];
-                        std::vector<long> * idx1 = &indices[0][lni1];
-
-                        // Check for duplicates
-                        bool dup = false;
-                        for(int i = 1; i < idx0[0][0] + 1; i++)
-                            if(idx0[0][i] == lni1)
-                                dup = true;
-
-                        // Add the new indices
-                        if(dup == false)
-                        {
-                            idx0[0][0]++;
-                            idx1[0][0]++;
-                            idx0[0][idx0[0][0]]=lni1;
-                            idx1[0][idx1[0][0]]=lni0;
-                        }
+                        idx0[0][0]++;
+                        idx1[0][0]++;
+                        idx0[0][idx0[0][0]]=lni1;
+                        idx1[0][idx1[0][0]]=lni0;
                     }
-                    else if((n == 2) && (xy[1] == forestData->m_lxy[1]))
+                }
+                else if((n == 2) && (xy[1] == forestData->m_lxy[1]))
+                {
+                    // Get the node IDs
+                    long lni0 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+                    p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+length, quad->y+ly, xy);
+                    long lni1 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+
+                    std::vector<long> * idx0 = &indices[0][lni0];
+                    std::vector<long> * idx1 = &indices[0][lni1];
+
+                    // Check for duplicates
+                    bool dup = false;
+                    for(int i = 1; i < idx0[0][0] + 1; i++)
+                        if(idx0[0][i] == lni1)
+                            dup = true;
+
+                    // Add the new indices
+                    if(dup == false)
                     {
-                        // Get the node IDs
-                        long lni0 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-                        p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+length, quad->y+ly, xy);
-                        long lni1 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-
-                        std::vector<long> * idx0 = &indices[0][lni0];
-                        std::vector<long> * idx1 = &indices[0][lni1];
-
-                        // Check for duplicates
-                        bool dup = false;
-                        for(int i = 1; i < idx0[0][0] + 1; i++)
-                            if(idx0[0][i] == lni1)
-                                dup = true;
-
-                        // Add the new indices
-                        if(dup == false)
-                        {
-                            idx0[0][0]++;
-                            idx1[0][0]++;
-                            idx0[0][idx0[0][0]]=lni1;
-                            idx1[0][idx1[0][0]]=lni0;
-                        }
+                        idx0[0][0]++;
+                        idx1[0][0]++;
+                        idx0[0][idx0[0][0]]=lni1;
+                        idx1[0][idx1[0][0]]=lni0;
                     }
                 }
             }
