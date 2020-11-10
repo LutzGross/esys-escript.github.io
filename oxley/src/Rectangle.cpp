@@ -104,8 +104,10 @@ Rectangle::Rectangle(int order,
     // connectivity = p4est_connectivity_new_brick(n0, n1, false, false); 
     connectivity = new_rectangle_connectivity(n0, n1, false, false, x0, x1, y0, y1);
 
+#ifdef OXLEY_ENABLE_DEBUG
     if(!p4est_connectivity_is_valid(connectivity))
         throw OxleyException("Could not create a valid connectivity.");
+#endif
 
     // Allocate some memory
     forestData = new p4estData;
@@ -752,7 +754,7 @@ void Rectangle::updateNodeIncrements()
 
 void Rectangle::renumberNodes()
 {
-#ifdef OXLEY_ENABLE_DEBUG
+#ifdef OXLEY_ENABLE_DEBUG_NODES
     std::cout << "Renumbering nodes... " << std::endl;
 #endif
 
@@ -799,7 +801,7 @@ void Rectangle::renumberNodes()
                         p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
                         if(NodeIDs.count(std::make_pair(xy[0],xy[1]))==0)
                         {
-#ifdef OXLEY_ENABLE_DEBUG
+#ifdef OXLEY_ENABLE_DEBUG_NODES
                             std::cout << NodeIDs.size() << ": " << xy[0] << ", " << xy[1] << std::endl;
 #endif
                             NodeIDs[std::make_pair(xy[0],xy[1])]=NodeIDs.size();
@@ -812,7 +814,7 @@ void Rectangle::renumberNodes()
                         p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
                         if(NodeIDs.count(std::make_pair(xy[0],xy[1]))==0)
                         {
-#ifdef OXLEY_ENABLE_DEBUG
+#ifdef OXLEY_ENABLE_DEBUG_NODES
                             std::cout << NodeIDs.size() << ": " << xy[0] << ", " << xy[1] << std::endl;
 #endif
                             NodeIDs[std::make_pair(xy[0],xy[1])]=NodeIDs.size();
@@ -835,7 +837,7 @@ void Rectangle::renumberNodes()
                 {
                     if(NodeIDs.count(std::make_pair(xy[0],xy[1]))==0)
                     {
-#ifdef OXLEY_ENABLE_DEBUG
+#ifdef OXLEY_ENABLE_DEBUG_NODES
                         std::cout << NodeIDs.size() << ": " << xy[0] << ", " << xy[1] << std::endl;
 #endif
                         NodeIDs[std::make_pair(xy[0],xy[1])]=NodeIDs.size();
@@ -1551,7 +1553,7 @@ void Rectangle::updateRowsColumns()
         std::sort(indices[0][i].begin()+1, indices[0][i].begin()+idx0[0][0]+1);
     }
 
-#ifdef OXLEY_ENABLE_DEBUG
+#ifdef OXLEY_ENABLE_DEBUG_NODES
     std::cout << "Node connections: " << std::endl;
     // Output for debugging
     for(int i = 0; i < getNumNodes(); i++){
@@ -1586,7 +1588,7 @@ void Rectangle::updateRowsColumns()
             myRows.push_back(counter);
     }
     myRows.push_back(myColumns.size());
-#ifdef OXLEY_ENABLE_DEBUG
+#ifdef OXLEY_ENABLE_DEBUG_NODES
     std::cout << "Converted to Yale format... "<< std::endl;
     std::cout << "COL_INDEX [";
     for(auto i = myColumns.begin(); i < myColumns.end(); i++)
@@ -2443,11 +2445,11 @@ p4est_connectivity_t * Rectangle::new_rectangle_connectivity(
 
 #pragma omp parallel for
     for (ti = 0; ti < num_corners + 1; ti++) {
-        ctt_offset[ti] = P4EST_CHILDREN * ti;
+        ctt_offset[ti] = 4 * ti;
     }
 
 #pragma omp parallel for
-    for (ti = 0; ti < P4EST_CHILDREN * num_trees; ti++) {
+    for (ti = 0; ti < 4 * num_trees; ti++) {
         tree_to_vertex[ti] = -1;
     }
 
@@ -2457,85 +2459,91 @@ p4est_connectivity_t * Rectangle::new_rectangle_connectivity(
     if (logx[0] <= logx[1]) {
         rankx[0] = 0;
         rankx[1] = 1;
-    }
-    else {
+    } else {
         rankx[0] = 1;
         rankx[1] = 0;
     }
 
-    linear_to_tree = P4EST_ALLOC (p4est_topidx_t, n_iter);
-    tree_to_corner2 = P4EST_ALLOC (p4est_topidx_t, num_trees);
+    linear_to_tree =  P4EST_ALLOC(p4est_topidx_t, n_iter);
+    tree_to_corner2 = P4EST_ALLOC(p4est_topidx_t, num_trees);
 
     tj = 0;
     tk = 0;
     for (ti = 0; ti < n_iter; ti++) {
-    brick_linear_to_xyz (ti, logx, rankx, coord);
-    tx = coord[0];
-    ty = coord[1];
-    if (tx < m && ty < n &&
-        1) {
-      linear_to_tree[ti] = tj;
-      if ((tx < m - 1 || periodic_a) && (ty < n - 1 || periodic_b) &&
-          1) {
-        tree_to_corner2[tj] = tk++;
-      }
-      else {
-        tree_to_corner2[tj] = -1;
-      }
-      tj++;
+        brick_linear_to_xyz(ti, logx, rankx, coord);
+        tx = coord[0];
+        ty = coord[1];
+        if (tx < m && ty < n ) {
+            linear_to_tree[ti] = tj;
+            if ((tx < m - 1 || periodic_a) && (ty < n - 1 || periodic_b)) {
+                tree_to_corner2[tj] = tk++;
+            } else  {
+                tree_to_corner2[tj] = -1;
+            }
+            tj++;
+        } else {
+            linear_to_tree[ti] = -1;
+        }
     }
-    else {
-      linear_to_tree[ti] = -1;
-    }
-    }
-    P4EST_ASSERT (tj == num_trees);
-    P4EST_ASSERT (tk == num_corners);
+#ifdef OXLEY_ENABLE_DEBUG
+    P4EST_ASSERT(tj == num_trees);
+    P4EST_ASSERT(tk == num_corners);
+#endif
 
-// #pragma omp parallel for
-    for (ti = 0; ti < n_iter; ti++) {
-        brick_linear_to_xyz (ti, logx, rankx, coord);
+    for(ti = 0; ti < n_iter; ti++) {
+        brick_linear_to_xyz(ti, logx, rankx, coord);
         tx = coord[0];
         ty = coord[1];
         if (tx < m && ty < n ) {
             tj = linear_to_tree[ti];
-            P4EST_ASSERT (tj >= 0);
-            for (i = 0; i < P4EST_DIM; i++) {
-                for (j = 0; j < 2; j++) {
+            #ifdef OXLEY_ENABLE_DEBUG
+                P4EST_ASSERT(tj >= 0);
+            #endif
+            for(i = 0; i < 2; i++) {
+                for(j = 0; j < 2; j++) {
                     l = 2 * i + j;
                     coord2[0] = ((tx + ((i == 0) ? (2 * j - 1) : 0)) + m) % m;
                     coord2[1] = ((ty + ((i == 1) ? (2 * j - 1) : 0)) + n) % n;
                     tf[l] = brick_xyz_to_linear (coord2, logx, rankx);
-                    P4EST_ASSERT (tf[l] < n_iter);
-                    tf[l] = linear_to_tree[tf[l]];
-                    P4EST_ASSERT (tf[l] >= 0);
+                    #ifdef OXLEY_ENABLE_DEBUG
+                        P4EST_ASSERT(tf[l] < n_iter);
+                    #endif
+                        tf[l] = linear_to_tree[tf[l]];
+                    #ifdef OXLEY_ENABLE_DEBUG
+                        P4EST_ASSERT(tf[l] >= 0);
+                    #endif
                 }
             }
         
-            for (i = 0; i < P4EST_CHILDREN; i++) {
+            for (i = 0; i < 4; i++) {
                 coord2[0] = ((tx + (((i & 1) == 0) ? -1 : 1)) + m) % m;
                 coord2[1] = ((ty + ((((i >> 1) & 1) == 0) ? -1 : 1)) + n) % n;
                 tc[i] = brick_xyz_to_linear (coord2, logx, rankx);
-                P4EST_ASSERT (tc[i] < n_iter);
+                #ifdef OXLEY_ENABLE_DEBUG
+                    P4EST_ASSERT(tc[i] < n_iter);
+                #endif
                 tc[i] = linear_to_tree[tc[i]];
-                P4EST_ASSERT (tc[i] >= 0);
+                #ifdef OXLEY_ENABLE_DEBUG
+                    P4EST_ASSERT(tc[i] >= 0);
+                #endif
             }
 
-            for (i = 0; i < P4EST_DIM; i++) {
+            for (i = 0; i < 2; i++) {
                 for (j = 0; j < 2; j++) {
                     l = i * 2 + j;
                     if (!periodic[i] &&
                         ((coord[i] == 0 && j == 0) || (coord[i] == max[i] && j == 1))) {
-                        tree_to_tree[tj * P4EST_FACES + l] = tj;
-                        tree_to_face[tj * P4EST_FACES + l] = (int8_t) l;
+                        tree_to_tree[tj * 4 + l] = tj;
+                        tree_to_face[tj * 4 + l] = (int8_t) l;
                     }
                     else {
-                        tree_to_tree[tj * P4EST_FACES + l] = tf[l];
-                        tree_to_face[tj * P4EST_FACES + l] = (int8_t) (i * 2 + (j ^ 1));
+                        tree_to_tree[tj * 4 + l] = tf[l];
+                        tree_to_face[tj * 4 + l] = (int8_t) (i * 2 + (j ^ 1));
                     }
                 }
             }
 
-            for (i = 0; i < P4EST_CHILDREN; i++) {
+            for (i = 0; i < 4; i++) {
                 if (tree_to_corner != NULL) {
                     c[0] = i & 1;
                     c[1] = (i >> 1) & 1;
@@ -2546,7 +2554,7 @@ p4est_connectivity_t * Rectangle::new_rectangle_connectivity(
                          ((coord[1] == 0 && c[1] == 0) ||
                           (coord[1] == max[1] && c[1] == 1))) ||
                         0) {
-                      tree_to_corner[tj * P4EST_CHILDREN + i] = -1;
+                      tree_to_corner[tj * 4 + i] = -1;
                     }
                     else {
                         switch (i) {
@@ -2566,23 +2574,25 @@ p4est_connectivity_t * Rectangle::new_rectangle_connectivity(
                             SC_ABORT_NOT_REACHED ();
                         }
                         ttemp = tree_to_corner2[ttemp];
-                        P4EST_ASSERT (ttemp >= 0);
-                        tree_to_corner[tj * P4EST_CHILDREN + i] = ttemp;
-                        corner_to_tree[ttemp * P4EST_CHILDREN + (P4EST_CHILDREN - 1 - i)] = tj;
-                        corner_to_corner[ttemp * P4EST_CHILDREN + (P4EST_CHILDREN - 1 - i)] = (int8_t) i;
+                        #ifdef OXLEY_ENABLE_DEBUG
+                            P4EST_ASSERT(ttemp >= 0);
+                        #endif
+                        tree_to_corner[tj * 4 + i] = ttemp;
+                        corner_to_tree[ttemp * 4 + (4 - 1 - i)] = tj;
+                        corner_to_corner[ttemp * 4 + (4 - 1 - i)] = (int8_t) i;
                     }
                 }
 
                 if (ty > 0 && ((i >> 1) & 1) == 0) {
-                    tree_to_vertex[tj * P4EST_CHILDREN + i] =
-                    tree_to_vertex[tf[2] * P4EST_CHILDREN + i + 2];
+                    tree_to_vertex[tj * 4 + i] =
+                    tree_to_vertex[tf[2] * 4 + i + 2];
                 }
                 else if (tx > 0 && (i & 1) == 0) {
-                    tree_to_vertex[tj * P4EST_CHILDREN + i] =
-                    tree_to_vertex[tf[0] * P4EST_CHILDREN + i + 1];
+                    tree_to_vertex[tj * 4 + i] =
+                    tree_to_vertex[tf[0] * 4 + i + 1];
                 }
                 else {
-                    tree_to_vertex[tj * P4EST_CHILDREN + i] = vcount++;
+                    tree_to_vertex[tj * 4 + i] = vcount++;
                     vertices[vicount++] = (double) dx * (tx + (i & 1));
                     vertices[vicount++] = (double) dy * (ty + ((i >> 1) & 1));
                     vertices[vicount++] = 0.;
@@ -2591,10 +2601,12 @@ p4est_connectivity_t * Rectangle::new_rectangle_connectivity(
         }
     }
 
-    P4EST_ASSERT (vcount == num_vertices);
-    P4EST_FREE (linear_to_tree);
-    P4EST_FREE (tree_to_corner2);
-    P4EST_ASSERT (p4est_connectivity_is_valid (conn));
+#ifdef OXLEY_ENABLE_DEBUG
+    P4EST_ASSERT(vcount == num_vertices);
+#endif
+    P4EST_FREE(linear_to_tree);
+    P4EST_FREE(tree_to_corner2);
+    P4EST_ASSERT(p4est_connectivity_is_valid (conn));
 
     return conn;
 }
