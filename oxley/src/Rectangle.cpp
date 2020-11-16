@@ -582,6 +582,14 @@ void Rectangle::refineMesh(int maxRecursion, std::string algorithmname)
 
     bool partition_for_coarsening = true;
     p4est_partition_ext(p4est, partition_for_coarsening, NULL);
+
+    // Update the nodes
+    p4est_lnodes_destroy(nodes);
+    p4est_ghost_t * ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
+    nodes = p4est_lnodes_new(p4est, ghost, 1);
+    p4est_ghost_destroy(ghost);
+
+    // Update
     updateNodeIncrements();
     renumberNodes();
     updateRowsColumns();
@@ -759,7 +767,7 @@ void Rectangle::renumberNodes()
 #endif
 
     NodeIDs.clear();
-#pragma omp for
+// #pragma omp for
     for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) {
         p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
         sc_array_t * tquadrants = &tree->quadrants;
@@ -768,11 +776,10 @@ void Rectangle::renumberNodes()
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
             p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
             int k = q - Q + nodeIncrements[treeid - p4est->first_local_tree];
-
             for(int n = 0; n < 4; n++)
             {
-                if( isHangingNode(nodes->face_code[k], n)
-                    || (n == 0) 
+                if( (n == 0) 
+                    || isHangingNode(nodes->face_code[k], n)
                     || isUpperBoundaryNode(quad, n, treeid, length) 
                   )
                 {
