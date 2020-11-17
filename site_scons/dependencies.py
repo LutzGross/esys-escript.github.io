@@ -329,28 +329,23 @@ def checkBoost(env):
                         p3res = ''
                         for x in l:
                             if isinstance(x,string_type):
-                                if x.startswith('libboost_numpy-py') and x.endswith('.so'):
+                                if x.startswith('libboost_numpy') and x.endswith('.so'):
                                     p2res = x
-                                if x.startswith('libboost_numpy-py3') and x.endswith('.so'):
+                                if x.startswith('libboost_numpy3') and x.endswith('.so'):
                                     p3res = x
                             else:
-                                if x.startswith(b'libboost_numpy-py') and x.endswith(b'.so'):
+                                if x.startswith(b'libboost_numpy') and x.endswith(b'.so'):
                                     p2res = x
-                                if x.startswith(b'libboost_numpy-py3') and x.endswith(b'.so'):
+                                if x.startswith(b'libboost_numpy3') and x.endswith(b'.so'):
                                     p3res = x
-
-                        if len(p2name)==0 and len(p2res)>0:
-                            p2name=p2res[-1]
-                        if len(p3name)==0 and len(p3res)>0:
-                            p3name=p3res[-1]
                     except OSError:
                         pass
 
                 # Pick the right one
                 if int(env['python_version'][0]) == 2:
-                    libname = p2name[3:-3]
+                    libname = p2res[3:-3]
                 else:
-                    libname = p3name[3:-3]
+                    libname = p3res[3:-3]
 
                 # If found, add the necessary information to env
                 if len(libname) > 0:
