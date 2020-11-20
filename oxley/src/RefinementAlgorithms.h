@@ -39,6 +39,12 @@ int random_refine(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadr
 
 int random_refine(p8est_t * p8est, p4est_topidx_t tree, p8est_quadrant_t * quadrant);
 
+// Boundaries
+int north_refine(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant);
+int south_refine(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant);
+int west_refine(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant);
+int east_refine(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant);
+
 /*
  *  \brief
  * Checks that the quadrant is valid (used when debugging)
