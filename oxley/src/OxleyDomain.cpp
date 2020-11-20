@@ -675,6 +675,11 @@ namespace oxley {
         throw OxleyException("unknown error");
     }
 
+    void OxleyDomain::refineBoundary(std::string boundary, double dx)
+    {
+        throw OxleyException("unknown error");
+    }
+
     void OxleyDomain::setTagMap(const std::string& name, int tag)
     {
         throw OxleyException("18currently not implemented"); // ae: This is temporary

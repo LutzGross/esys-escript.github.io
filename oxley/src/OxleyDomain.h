@@ -408,6 +408,14 @@ public:
 
     /**
        \brief
+       refines the mesh near a boundary
+       \param maxRecursion Max levels of recursion
+       \param algorithmname The algorithm to use
+    */
+    virtual void refineBoundary(std::string boundary, double dx);
+
+    /**
+       \brief
        returns a Data object containing the coordinate information
     */
     virtual int getNumVertices() const = 0;

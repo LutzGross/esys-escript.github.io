@@ -110,7 +110,7 @@ Rectangle::Rectangle(int order,
 #endif
 
     // Allocate some memory
-    forestData = new p4estData;    
+    // forestData = new p4estData;    
     // forestData = (p4estData *) malloc(sizeof(p4estData));
 
     // Create a p4est
@@ -132,27 +132,27 @@ Rectangle::Rectangle(int order,
     m_NX[1] = (y1-y0)/n1;
 
     // Record the physical dimensions of the domain and the location of the origin
-    forestData->m_origin[0] = x0;
-    forestData->m_origin[1] = y0;
-    forestData->m_lxy[0] = x1;
-    forestData->m_lxy[1] = y1;
-    forestData->m_length[0] = x1-x0;
-    forestData->m_length[1] = y1-y0;
+    forestData.m_origin[0] = x0;
+    forestData.m_origin[1] = y0;
+    forestData.m_lxy[0] = x1;
+    forestData.m_lxy[1] = y1;
+    forestData.m_length[0] = x1-x0;
+    forestData.m_length[1] = y1-y0;
 
     // Whether or not we have periodic boundaries
-    forestData->periodic[0] = periodic0;
-    forestData->periodic[1] = periodic1;
+    forestData.periodic[0] = periodic0;
+    forestData.periodic[1] = periodic1;
 
     // Find the grid spacing for each level of refinement in the mesh
 #pragma omp parallel for
     for(int i = 0; i<=P4EST_MAXLEVEL; i++){
         double numberOfSubDivisions = (p4est_qcoord_t) (1 << (P4EST_MAXLEVEL - i));
-        forestData->m_dx[0][i] = forestData->m_length[0] / numberOfSubDivisions;
-        forestData->m_dx[1][i] = forestData->m_length[1] / numberOfSubDivisions;
+        forestData.m_dx[0][i] = forestData.m_length[0] / numberOfSubDivisions;
+        forestData.m_dx[1][i] = forestData.m_length[1] / numberOfSubDivisions;
     }
 
     // max levels of refinement
-    forestData->max_levels_refinement = MAXREFINEMENTLEVELS;
+    forestData.max_levels_refinement = MAXREFINEMENTLEVELS;
     
     // element order
     m_order = order;
@@ -379,8 +379,8 @@ void Rectangle::setToSize(escript::Data& out) const
             {
                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
                 // int l = quad->level;
-                const double size = sqrt(forestData->m_dx[0][quad->level]*forestData->m_dx[0][quad->level]
-                                        +forestData->m_dx[1][quad->level]*forestData->m_dx[1][quad->level]);
+                const double size = sqrt(forestData.m_dx[0][quad->level]*forestData.m_dx[0][quad->level]
+                                        +forestData.m_dx[1][quad->level]*forestData.m_dx[1][quad->level]);
                 double* o = out.getSampleDataRW(e);
                 std::fill(o, o+numQuad, size);
             }
@@ -406,19 +406,19 @@ void Rectangle::setToSize(escript::Data& out) const
 
                 if (quaddata->m_faceOffset == 0) {
                     double* o = out.getSampleDataRW(e);
-                    std::fill(o, o+numQuad, forestData->m_dx[1][quad->level]);
+                    std::fill(o, o+numQuad, forestData.m_dx[1][quad->level]);
                 }
                 else if (quaddata->m_faceOffset == 1) {
                     double* o = out.getSampleDataRW(e);
-                    std::fill(o, o+numQuad, forestData->m_dx[1][quad->level]);
+                    std::fill(o, o+numQuad, forestData.m_dx[1][quad->level]);
                 }
                 else if (quaddata->m_faceOffset == 2) {
                     double* o = out.getSampleDataRW(e);
-                    std::fill(o, o+numQuad, forestData->m_dx[0][quad->level]);
+                    std::fill(o, o+numQuad, forestData.m_dx[0][quad->level]);
                 }
                 else if (quaddata->m_faceOffset == 3) {
                     double* o = out.getSampleDataRW(e);
-                    std::fill(o, o+numQuad, forestData->m_dx[0][quad->level]);
+                    std::fill(o, o+numQuad, forestData.m_dx[0][quad->level]);
                 }
             }
         }
@@ -595,6 +595,39 @@ void Rectangle::refineMesh(int maxRecursion, std::string algorithmname)
     updateRowsColumns();
 }
 
+void Rectangle::refineBoundary(std::string boundaryname, double dx)
+{
+    if(!boundaryname.compare("north"))
+    {
+
+    } 
+    else {
+        throw OxleyException("Unknown boundary name.");
+    }
+
+    // Make sure that nothing went wrong
+#ifdef OXLEY_ENABLE_DEBUG
+    if(!p4est_is_valid(p4est))
+        throw OxleyException("p4est broke during refinement");
+    if(!p4est_connectivity_is_valid(connectivity))
+        throw OxleyException("connectivity broke during refinement");
+#endif
+
+    bool partition_for_coarsening = true;
+    p4est_partition_ext(p4est, partition_for_coarsening, NULL);
+
+    // Update the nodes
+    p4est_lnodes_destroy(nodes);
+    p4est_ghost_t * ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
+    nodes = p4est_lnodes_new(p4est, ghost, 1);
+    p4est_ghost_destroy(ghost);
+
+    // Update
+    updateNodeIncrements();
+    renumberNodes();
+    updateRowsColumns();
+}
+
 escript::Data Rectangle::getX() const
 {
     escript::Data out=escript::Vector(0,escript::continuousFunction(*this),true);
@@ -645,7 +678,7 @@ bool Rectangle::isBoundaryNode(p4est_quadrant_t * quad, int n, p4est_topidx_t tr
     double ly = length * ((int) (n / 2) == 1);
     double xy[3];
     p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
-    return (xy[0] == 0) || (xy[0] == forestData->m_lxy[0]) || (xy[1] == 0) || (xy[1] == forestData->m_lxy[1]);
+    return (xy[0] == 0) || (xy[0] == forestData.m_lxy[0]) || (xy[1] == 0) || (xy[1] == forestData.m_lxy[1]);
 }
 
 // returns True for a boundary node on the north or east of the domain
@@ -655,7 +688,7 @@ bool Rectangle::isUpperBoundaryNode(p4est_quadrant_t * quad, int n, p4est_topidx
     double ly = length * ((int) (n / 2) == 1);
     double xy[3];
     p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
-    return (xy[0] == forestData->m_lxy[0]) || (xy[1] == forestData->m_lxy[1]);
+    return (xy[0] == forestData.m_lxy[0]) || (xy[1] == forestData.m_lxy[1]);
 }
 
 // return True for a hanging node and False for an non-hanging node
@@ -850,9 +883,9 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
                     p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
 
                     if(     (n == 0) 
-                        || ((n == 1) && (xy[0] == forestData->m_lxy[0]))
-                        || ((n == 2) && (xy[1] == forestData->m_lxy[1]))
-                        || ((n == 3) && (xy[0] == forestData->m_lxy[0]) && (xy[1] == forestData->m_lxy[1]))
+                        || ((n == 1) && (xy[0] == forestData.m_lxy[0]))
+                        || ((n == 2) && (xy[1] == forestData.m_lxy[1]))
+                        || ((n == 3) && (xy[0] == forestData.m_lxy[0]) && (xy[1] == forestData.m_lxy[1]))
                       )
                     {
                         long lni = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
@@ -1354,10 +1387,10 @@ inline dim_t Rectangle::getNumElements() const
 inline dim_t Rectangle::getNumFaceElements() const
 {
     double xy[2];
-    double x0 = forestData->m_origin[0];
-    double y0 = forestData->m_origin[1];
-    double x1 = forestData->m_length[0]+forestData->m_origin[0];
-    double y1 = forestData->m_length[1]+forestData->m_origin[1];
+    double x0 = forestData.m_origin[0];
+    double y0 = forestData.m_origin[1];
+    double x1 = forestData.m_length[0]+forestData.m_origin[0];
+    double y1 = forestData.m_length[1]+forestData.m_origin[1];
     p4est_locidx_t numFaceElements = 0;
     for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
     {
@@ -1439,7 +1472,7 @@ void Rectangle::updateRowsColumns()
             p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
 
             // If the node is on the boundary x=Lx or y=Ly
-            if( (xy[0] == forestData->m_lxy[0]) )
+            if( (xy[0] == forestData.m_lxy[0]) )
             {
                 // Get the node IDs
                 long lni0 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
@@ -1470,7 +1503,7 @@ void Rectangle::updateRowsColumns()
             lx = length * ((int) (n % 2) == 1);
             ly = length * ((int) (n / 2) == 1);
             p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
-            if((xy[1] == forestData->m_lxy[1]))
+            if((xy[1] == forestData.m_lxy[1]))
             {
                 // Get the node IDs
                 long lni0 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
@@ -1657,25 +1690,25 @@ void Rectangle::populateSampleIds()
 
 //     // populate face element counts
 //     //left
-//     if (forestData->m_offset[0]==0)
-//         forestData->m_faceCount[0]=forestData->m_NE[1];
+//     if (forestData.m_offset[0]==0)
+//         forestData.m_faceCount[0]=forestData.m_NE[1];
 //     else
-//         forestData->m_faceCount[0]=0;
+//         forestData.m_faceCount[0]=0;
 //     //right
-//     if (m_mpiInfo->rank%forestData->m_NX[0]==forestData->m_NX[0]-1)
-//         forestData->m_faceCount[1]=forestData->m_NE[1];
+//     if (m_mpiInfo->rank%forestData.m_NX[0]==forestData.m_NX[0]-1)
+//         forestData.m_faceCount[1]=forestData.m_NE[1];
 //     else
-//         forestData->m_faceCount[1]=0;
+//         forestData.m_faceCount[1]=0;
 //     //bottom
-//     if (forestData->m_offset[1]==0)
-//         forestData->m_faceCount[2]=forestData->m_NE[0];
+//     if (forestData.m_offset[1]==0)
+//         forestData.m_faceCount[2]=forestData.m_NE[0];
 //     else
-//         forestData->m_faceCount[2]=0;
+//         forestData.m_faceCount[2]=0;
 //     //top
-//     if (m_mpiInfo->rank/forestData->m_NX[0]==forestData->m_NX[1]-1)
-//         forestData->m_faceCount[3]=m_NE[0];
+//     if (m_mpiInfo->rank/forestData.m_NX[0]==forestData.m_NX[1]-1)
+//         forestData.m_faceCount[3]=m_NE[0];
 //     else
-//         forestData->m_faceCount[3]=0;
+//         forestData.m_faceCount[3]=0;
 
 //     const dim_t NFE = getNumFaceElements();
 //     m_faceId.resize(NFE);
@@ -1916,8 +1949,8 @@ bool Rectangle::operator==(const AbstractDomain& other) const
 {
     const Rectangle* o=dynamic_cast<const Rectangle*>(&other);
     if (o) {
-        return ((p4est_checksum(p4est) == p4est_checksum(o->p4est))
-            && (forestData == o->forestData));
+        return ((p4est_checksum(p4est) == p4est_checksum(o->p4est)));
+            // && (forestData == o->forestData)); //TODO
     }
     return false;
 }
@@ -1953,12 +1986,12 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
 #pragma omp parallel for
     for(int i = 0; i < max_level; i++)
     {
-        cx[0][i] = 0.21132486540518711775/forestData->m_dx[0][i];
-        cx[1][i] = 0.78867513459481288225/forestData->m_dx[0][i];
-        cx[2][i] = 1./forestData->m_dx[0][i];
-        cy[0][i] = 0.21132486540518711775/forestData->m_dx[1][i];
-        cy[1][i] = 0.78867513459481288225/forestData->m_dx[1][i];
-        cy[2][i] = 1./forestData->m_dx[1][i];
+        cx[0][i] = 0.21132486540518711775/forestData.m_dx[0][i];
+        cx[1][i] = 0.78867513459481288225/forestData.m_dx[0][i];
+        cx[2][i] = 1./forestData.m_dx[0][i];
+        cy[0][i] = 0.21132486540518711775/forestData.m_dx[1][i];
+        cy[1][i] = 0.78867513459481288225/forestData.m_dx[1][i];
+        cy[2][i] = 1./forestData.m_dx[1][i];
     }
     const Scalar zero = static_cast<Scalar>(0);
 

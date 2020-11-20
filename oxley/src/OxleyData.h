@@ -111,7 +111,7 @@ public:
 
 	// maximum levels of recursion to use during refinement
 	int max_levels_refinement = 0;
-
+	double refinement_depth=0.0;
 
 	void assign_info(addSurfaceData * tmp) {info=tmp;};
 

@@ -190,7 +190,7 @@ public:
     */
     virtual void setRefinementLevels(int refinementlevels)
     {
-        forestData->max_levels_refinement = refinementlevels;
+        forestData.max_levels_refinement = refinementlevels;
     };
 
     /**
