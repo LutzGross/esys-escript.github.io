@@ -178,11 +178,19 @@ public:
 
     /**
        \brief
+       refines the mesh near a boundary
+       \param maxRecursion Max levels of recursion
+       \param algorithmname The algorithm to use
+    */
+    virtual void refineBoundary(std::string boundary, double dx);
+
+    /**
+       \brief
        sets the number of levels of refinement
     */
     virtual void setRefinementLevels(int refinementlevels)
     {
-        forestData->max_levels_refinement = refinementlevels;
+        forestData.max_levels_refinement = refinementlevels;
     };
 
     /**
@@ -208,7 +216,7 @@ public:
 
     // These functions are used internally and are not exposed to python
     p4est_t * borrow_p4est() const { return p4est;};
-    p4estData * borrow_forestData() { return forestData;};
+    // p4estData * borrow_forestData() { return forestData;};
     p4est_connectivity_t * borrow_connectivity() const { return connectivity; };
     void * borrow_temp_data() { return temp_data; };
     void set_temp_data(addSurfaceData * x) { temp_data = x; };
@@ -221,7 +229,7 @@ private:
     p4est_t * p4est;
 
     // The data structure in p4est
-    p4estData * forestData;
+    p4estData forestData;
 
     // Connectivity information
     p4est_connectivity_t * connectivity;

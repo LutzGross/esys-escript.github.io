@@ -156,6 +156,14 @@ public:
 
     /**
        \brief
+       refines the mesh near a boundary
+       \param maxRecursion Max levels of recursion
+       \param algorithmname The algorithm to use
+    */
+    virtual void refineBoundary(std::string boundary, double dx);
+
+    /**
+       \brief
        sets the number of levels of refinement
     */
     virtual void setRefinementLevels(int refinementlevels)

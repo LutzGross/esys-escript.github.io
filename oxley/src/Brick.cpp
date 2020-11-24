@@ -354,6 +354,11 @@ void Brick::refineMesh(int maxRecursion, std::string algorithmname)
     }
 }
 
+void Brick::refineBoundary(std::string boundary, double dx)
+{
+
+}
+
 // protected
 inline index_t Brick::getFirstInDim(unsigned axis) const
 {

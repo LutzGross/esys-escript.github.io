@@ -26,7 +26,7 @@
 #include <p8est_bits.h>
 
 // This file contains various callback functions to decide on refinement.
- namespace oxley {
+namespace oxley {
 
 int refine_uniform(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
 {
@@ -46,6 +46,43 @@ int random_refine(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadr
 int random_refine(p8est_t * p4est, p4est_topidx_t tree, p8est_quadrant_t * quadrant)
 {
     return ((int) rand() % 2) == 0;
+}
+
+// Boundaries
+int north_refine(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
+{
+    p4estData * forestData = (p4estData *) p4est->user_pointer;
+    double dx = forestData->refinement_depth;
+    double domain_length = forestData->m_length[0];
+    const p4est_qcoord_t length = ( (double) dx / domain_length) * P4EST_ROOT_LEN;
+    return quadrant->x >= P4EST_ROOT_LEN - dx;
+}
+
+int south_refine(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
+{
+    p4estData * forestData = (p4estData *) p4est->user_pointer;
+    double dx = forestData->refinement_depth;
+    double domain_length = forestData->m_length[0];
+    const p4est_qcoord_t length = ( (double) dx / domain_length) * P4EST_ROOT_LEN;
+    return quadrant->x <= P4EST_ROOT_LEN - dx;
+}
+
+int west_refine(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
+{
+    p4estData * forestData = (p4estData *) p4est->user_pointer;
+    double dx = forestData->refinement_depth;
+    double domain_length = forestData->m_length[1];
+    const p4est_qcoord_t length = ( (double) dx / domain_length) * P4EST_ROOT_LEN;
+    return quadrant->x <= P4EST_ROOT_LEN - dx;
+}
+
+int east_refine(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
+{
+    p4estData * forestData = (p4estData *) p4est->user_pointer;
+    double dx = forestData->refinement_depth;
+    double domain_length = forestData->m_length[1];
+    const p4est_qcoord_t length = ( (double) dx / domain_length) * P4EST_ROOT_LEN;
+    return quadrant->x >= P4EST_ROOT_LEN - dx;
 }
 
 void print_quad_debug_info(p4est_iter_volume_info_t * info, p4est_quadrant_t * quadrant)
