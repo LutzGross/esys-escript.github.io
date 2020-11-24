@@ -19,40 +19,55 @@
 
 escript_opts_version = 203
 
-boost_prefix='/usr/local/boost.1.74.0'
-boost_libs='boost_python38'
-# cxx="/usr/bin/clang++"
-# cxx_extra="-O3 -funroll-loops -fopenmp -fdiagnostics-color"
-cxx_extra="-O0 -g -pg -fdiagnostics-color -Wno-implicit-int-float-conversion"
-debug=True
-# debug=False
-# # lapack=True
-# lapack_prefix=['/usr/include/x86_64-linux-gnu/','/usr/lib']
-ld_extra='-L/usr/lib/openmpi/'
-# mpi = 'OPENMPI'
-# mpi_prefix=['/usr/include/','/usr/lib/openmpi/']
-# mpi_libs=['mpi','mpi_cxx']
-# netcdf="no"
-# # netcdf=4
-# openmp=True
+build_debug=False
+build_debug=True
+
 openmp=False
-# paso=True
-paso=False
-pythoncmd="/usr/bin/python3"
-pythonlibname="python3.8"
-pythonlibpath="/usr/lib"
-pythonincpath="/usr/include/python3.8"
-umfpack=True
-umfpack_prefix=['/usr/include/','/usr/lib']
-# # silo=True
-# silo_libs=['siloh5']
-# silo_prefix=['/usr/include','/usr/lib/x86_64-linux-gnu/']
-trilinos=True
-trilinos_prefix='/usr/local/trilinos_noomp'
-# trilinos_prefix='/usr/local/trilinos_nompi'
-# trilinos_prefix='/usr/local/trilinos_mpi'
-verbose=True
-# visit=True
-# visit_libs='simV2runtime_par'
-# visit_prefix='/usr/local/visit/3.1.2/linux-x86_64/libsim/V2/'
-werror=False
+# openmp=True
+
+if build_debug == True:
+	boost_prefix='/usr/local/boost.1.74.0'
+	boost_libs='boost_python38'
+	cxx_extra="-O0 -g -pg -fdiagnostics-color -Wno-implicit-int-float-conversion"
+	cxx_extra+=" -DOXLEY_ENABLE_DEBUG"
+	debug=True
+	ld_extra='-L/usr/lib/openmpi/'
+	if openmp is True:
+		cxx_extra+=" -fopenmp"
+		trilinos_prefix='/usr/local/trilinos_nompi'
+	else:
+		trilinos_prefix='/usr/local/trilinos_noomp'
+	paso=False
+	pythoncmd="/usr/bin/python3"
+	pythonlibname="python3.8"
+	pythonlibpath="/usr/lib"
+	pythonincpath="/usr/include/python3.8"
+	umfpack=True
+	umfpack_prefix=['/usr/include/','/usr/lib']
+	trilinos=True
+	
+	verbose=True
+	werror=False
+else:
+	boost_prefix='/usr/local/boost.1.74.0'
+	boost_libs='boost_python38'
+	cxx_extra="-O3 -funroll-loops -fdiagnostics-color"
+	debug=False
+	ld_extra='-L/usr/lib/openmpi/'
+	if openmp is True:
+		cxx_extra+=" -fopenmp"
+		trilinos_prefix='/usr/local/trilinos_nompi'
+	else:
+		trilinos_prefix='/usr/local/trilinos_noomp'
+	paso=True
+	pythoncmd="/usr/bin/python3"
+	pythonlibname="python3.8"
+	pythonlibpath="/usr/lib"
+	pythonincpath="/usr/include/python3.8"
+	umfpack=True
+	umfpack_prefix=['/usr/include/','/usr/lib']
+	trilinos=True
+	verbose=True
+	werror=False
+
+
