@@ -120,7 +120,7 @@ Brick::Brick(int order,
     int min_level = 0;
     int fill_uniform = 1;
     p8est = p8est_new_ext(m_mpiInfo->comm, connectivity, min_quadrants,
-            min_level, fill_uniform, sizeof(p8estData), &init_brick_data, (void *) &forestData);
+            min_level, fill_uniform, sizeof(octantData), &init_brick_data, (void *) &forestData);
 
     // Record the physical dimensions of the domain and the location of the origin
     forestData->m_origin[0] = x0;

@@ -118,7 +118,7 @@ Rectangle::Rectangle(int order,
     int min_level = 0;
     int fill_uniform = 1;
     p4est = p4est_new_ext(m_mpiInfo->comm, connectivity, min_quadrants,
-            min_level, fill_uniform, sizeof(p4estData), init_rectangle_data, (void *) &forestData);
+            min_level, fill_uniform, sizeof(quadrantData), init_rectangle_data, (void *) &forestData);
 
     // Nodes numbering
     p4est_ghost_t * ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
