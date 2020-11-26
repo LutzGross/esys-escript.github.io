@@ -553,22 +553,21 @@ void Rectangle::writeToVTK(std::string filename, bool writeMesh) const
     }
 }
 
-void Rectangle::refineMesh(int maxRecursion, std::string algorithmname)
+void Rectangle::refineMesh(int RefineLevel, std::string algorithmname)
 {
     if(!algorithmname.compare("uniform"))
     {
-        if(maxRecursion <= 0)
-            throw OxleyException("Invalid value for maxRecursion");
+        if(RefineLevel <= 0)
+            throw OxleyException("Invalid value for RefineLevel");
 
-        p4est_refine_ext(p4est, true, maxRecursion, refine_uniform, init_rectangle_data, refine_copy_parent_quadrant);
+        forestData.refinement_depth = RefineLevel;
+        p4est_refine_ext(p4est, true, -1, refine_uniform, init_rectangle_data, refine_copy_parent_quadrant);
         p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);
     }
 #ifdef OXLEY_ENABLE_DEBUG
     else if(!algorithmname.compare("random"))
     {
-        if(maxRecursion <= 0)
-            throw OxleyException("Invalid value for maxRecursion");
-        p4est_refine_ext(p4est, true, maxRecursion, random_refine, init_rectangle_data, refine_copy_parent_quadrant);
+        p4est_refine_ext(p4est, true, -1, random_refine, init_rectangle_data, refine_copy_parent_quadrant);
         p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);
     }
 #endif
@@ -605,22 +604,22 @@ void Rectangle::refineBoundary(std::string boundaryname, double dx)
 
     if(!boundaryname.compare("north"))
     {
-        p4est_refine_ext(p4est, true, 0, north_refine, init_rectangle_data, refine_copy_parent_quadrant);
+        p4est_refine_ext(p4est, true, -1, north_refine, init_rectangle_data, refine_copy_parent_quadrant);
         p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);
     } 
     else if(!boundaryname.compare("south"))
     {
-        p4est_refine_ext(p4est, true, 0, south_refine, init_rectangle_data, refine_copy_parent_quadrant);
+        p4est_refine_ext(p4est, true, -1, south_refine, init_rectangle_data, refine_copy_parent_quadrant);
         p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);
     }
     else if(!boundaryname.compare("west"))
     {
-        p4est_refine_ext(p4est, true, 0, west_refine, init_rectangle_data, refine_copy_parent_quadrant);
+        p4est_refine_ext(p4est, true, -1, west_refine, init_rectangle_data, refine_copy_parent_quadrant);
         p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);
     }
     else if(!boundaryname.compare("east"))
     {
-        p4est_refine_ext(p4est, true, 0, east_refine, init_rectangle_data, refine_copy_parent_quadrant);
+        p4est_refine_ext(p4est, true, -1, east_refine, init_rectangle_data, refine_copy_parent_quadrant);
         p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);  
     }
     else {

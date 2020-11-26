@@ -344,9 +344,9 @@ BOOST_PYTHON_MODULE(oxleycpp)
             ":param column_blocksize:\n:type column_blocksize: ``int``\n"
             ":param column_functionspace:\n:type column_functionspace: `FunctionSpace`\n"
             ":param type:\n:type type: ``int``")
-        .def("refineMesh", &oxley::OxleyDomain::refineMesh, (args("maxRecursion","RefinementAlgorithm")),
+        .def("refineMesh", &oxley::OxleyDomain::refineMesh, (args("RefineLevel","RefinementAlgorithm")),
                 "Refines the mesh.\n"
-                ":param maxRecursion:\n:type int: `Maximum number of levels of refinement,`\n"
+                ":param RefineLevel:\n:type int: `Maximum levels of refinement,`\n"
                 ":param RefinementAlgorithm:\n:type string: `The refinement algorithm \n"
                 "       accepted values are \"uniform\"")
         .def("refineBoundary", &oxley::OxleyDomain::refineBoundary, (args("boundary","dx")),
