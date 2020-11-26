@@ -602,28 +602,36 @@ void Rectangle::refineBoundary(std::string boundaryname, double dx)
 {
     forestData.refinement_depth = dx;
 
-    if(!boundaryname.compare("north"))
+    if(!boundaryname.compare("north") || !boundaryname.compare("North")
+        || !boundaryname.compare("n") || !boundaryname.compare("N")
+        || !boundaryname.compare("NORTH"))
     {
         p4est_refine_ext(p4est, true, -1, north_refine, init_rectangle_data, refine_copy_parent_quadrant);
         p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);
     } 
-    else if(!boundaryname.compare("south"))
+    else if(!boundaryname.compare("south") || !boundaryname.compare("South")
+        || !boundaryname.compare("s") || !boundaryname.compare("S")
+        || !boundaryname.compare("SOUTH"))
     {
         p4est_refine_ext(p4est, true, -1, south_refine, init_rectangle_data, refine_copy_parent_quadrant);
         p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);
     }
-    else if(!boundaryname.compare("west"))
+    else if(!boundaryname.compare("west") || !boundaryname.compare("West")
+        || !boundaryname.compare("w") || !boundaryname.compare("W")
+        || !boundaryname.compare("WEST"))
     {
         p4est_refine_ext(p4est, true, -1, west_refine, init_rectangle_data, refine_copy_parent_quadrant);
         p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);
     }
-    else if(!boundaryname.compare("east"))
+    else if(!boundaryname.compare("east") || !boundaryname.compare("East")
+        || !boundaryname.compare("e") || !boundaryname.compare("E")
+        || !boundaryname.compare("EAST"))
     {
         p4est_refine_ext(p4est, true, -1, east_refine, init_rectangle_data, refine_copy_parent_quadrant);
         p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);  
     }
     else {
-        throw OxleyException("Unknown boundary name.");
+        throw OxleyException("Unknown boundary name. Please try 'north', 'east', 'south' or 'west'.");
     }
 
     // Make sure that nothing went wrong

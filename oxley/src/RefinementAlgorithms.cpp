@@ -59,7 +59,11 @@ int north_refine(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadra
     double domain_length = forestData->m_length[1];
     quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
     double * xy = quadData->xy;
-    return xy[1] >= domain_length - dx;
+
+    double current_quadlevel = quadrant->level;
+    double distance = (domain_length - dx) * (1 - current_quadlevel);
+
+    return distance > 0 ? xy[1] >= distance : 0;
 }
 
 int south_refine(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
@@ -69,8 +73,11 @@ int south_refine(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadra
     double domain_length = forestData->m_length[1];
     quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
     double * xy = quadData->xy;
+    
     double current_quadlevel = quadrant->level;
-    return xy[1] <= dx;
+    double distance = (dx) * (1 - current_quadlevel);
+
+    return distance > 0 ? xy[1] <= distance : 0;
 }
 
 int west_refine(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
@@ -80,7 +87,11 @@ int west_refine(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadran
     double domain_length = forestData->m_length[0];
     quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
     double * xy = quadData->xy;
-    return xy[0] >= domain_length - dx;
+
+    double current_quadlevel = quadrant->level;
+    double distance = (domain_length - dx) * (1 - current_quadlevel);
+
+    return distance > 0 ? xy[0] >= distance : 0;
 }
 
 int east_refine(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
@@ -90,7 +101,11 @@ int east_refine(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadran
     double domain_length = forestData->m_length[0];
     quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
     double * xy = quadData->xy;
-    return xy[0] <= dx;
+
+    double current_quadlevel = quadrant->level;
+    double distance = (dx) * (1 - current_quadlevel);
+
+    return distance > 0 ? xy[0] <= distance : 0;
 }
 
 void print_quad_debug_info(p4est_iter_volume_info_t * info, p4est_quadrant_t * quadrant)
