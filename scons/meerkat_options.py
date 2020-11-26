@@ -28,6 +28,7 @@ openmp=True
 if build_debug == True:
 	boost_prefix='/usr/local/boost.1.74.0'
 	boost_libs='boost_python38'
+	build_dir='build_debug'
 	cxx_extra="-O0 -g -pg -fdiagnostics-color -Wno-implicit-int-float-conversion"
 	cxx_extra+=" -DOXLEY_ENABLE_DEBUG"
 	debug=True
@@ -50,6 +51,7 @@ if build_debug == True:
 else:
 	boost_prefix='/usr/local/boost.1.74.0'
 	boost_libs='boost_python38'
+	build_dir='build_normal'
 	cxx_extra="-O3 -funroll-loops -fdiagnostics-color"
 	debug=False
 	ld_extra='-L/usr/lib/openmpi/'
