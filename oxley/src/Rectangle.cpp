@@ -376,7 +376,7 @@ void Rectangle::setToSize(escript::Data& out) const
     {
         out.requireWrite();
         const dim_t numQuad = out.getNumDataPointsPerSample();
-        const dim_t numElements = getNumElements();
+        // const dim_t numElements = getNumElements();
 
         for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
         {
@@ -601,10 +601,28 @@ void Rectangle::refineMesh(int maxRecursion, std::string algorithmname)
 
 void Rectangle::refineBoundary(std::string boundaryname, double dx)
 {
+    forestData.refinement_depth = dx;
+
     if(!boundaryname.compare("north"))
     {
-
+        p4est_refine_ext(p4est, true, 0, north_refine, init_rectangle_data, refine_copy_parent_quadrant);
+        p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);
     } 
+    else if(!boundaryname.compare("south"))
+    {
+        p4est_refine_ext(p4est, true, 0, south_refine, init_rectangle_data, refine_copy_parent_quadrant);
+        p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);
+    }
+    else if(!boundaryname.compare("west"))
+    {
+        p4est_refine_ext(p4est, true, 0, west_refine, init_rectangle_data, refine_copy_parent_quadrant);
+        p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);
+    }
+    else if(!boundaryname.compare("east"))
+    {
+        p4est_refine_ext(p4est, true, 0, east_refine, init_rectangle_data, refine_copy_parent_quadrant);
+        p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);  
+    }
     else {
         throw OxleyException("Unknown boundary name.");
     }
@@ -708,11 +726,11 @@ bool Rectangle::isHangingNode(p4est_lnodes_code_t face_code, int n) const
         int8_t ishanging0 = (face_code >> 2) & 0x01;
         int8_t ishanging1 = (face_code >> 3) & 0x01;
 
-        int8_t f0 = p4est_corner_faces[c][0];
-        int8_t f1 = p4est_corner_faces[c][1];
+        // int8_t f0 = p4est_corner_faces[c][0];
+        // int8_t f1 = p4est_corner_faces[c][1];
 
-        int d0 = c / 2 == 0;
-        int d1 = c % 2 == 0;
+        // int d0 = c / 2 == 0;
+        // int d1 = c % 2 == 0;
         
         return ((ishanging0 == 1) && (p4est_corner_face_corners[c][p4est_corner_faces[c][0]] == 1)) 
             || ((ishanging1 == 1) && (p4est_corner_face_corners[c][p4est_corner_faces[c][1]] == 1));
@@ -1053,7 +1071,7 @@ void Rectangle::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Dat
     IndexVector rowIndex(4);
     p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
     sc_array_t * tquadrants = &currenttree->quadrants;
-    p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+    // p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
     p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
     p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
     for(int i = 0; i < 4; i++)
@@ -1467,9 +1485,9 @@ void Rectangle::updateRowsColumns()
         for (int q = 0; q < Q; ++q) { // Loop over the elements attached to the tree
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
             p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
-            int k = q - Q + nodeIncrements[treeid - p4est->first_local_tree];
+            // int k = q - Q + nodeIncrements[treeid - p4est->first_local_tree];
             int n = 1;
-            long lidx = nodes->element_nodes[4*k+n];
+            // long lidx = nodes->element_nodes[4*k+n];
             double lx = length * ((int) (n % 2) == 1);
             double ly = length * ((int) (n / 2) == 1);
             double xy[3];
@@ -1503,7 +1521,7 @@ void Rectangle::updateRowsColumns()
             }
 
             n = 2;
-            lidx = nodes->element_nodes[4*k+n];
+            // long lidx = nodes->element_nodes[4*k+n];
             lx = length * ((int) (n % 2) == 1);
             ly = length * ((int) (n / 2) == 1);
             p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
@@ -2015,8 +2033,8 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
 #pragma omp parallel for
             for (p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++) // Loop over every quadrant within the tree
             {
-                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
-                quadrantData * quaddata = (quadrantData *) quad->p.user_data;
+                // p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
+                // quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
                 memcpy(&f_00[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                 memcpy(&f_01[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
@@ -2052,8 +2070,8 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
 #pragma omp parallel for
             for (p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++) // Loop over every quadrant within the tree
             {
-                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
-                quadrantData * quaddata = (quadrantData *) quad->p.user_data;
+                // p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
+                // quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
                 memcpy(&f_00[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                 memcpy(&f_01[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
@@ -2337,7 +2355,7 @@ static inline       p4est_topidx_t
 brick_xyz_to_linear (const p4est_topidx_t tx[2],
                      const int logx[2], const int rankx[2])
 {
-    int i, j, k;
+    int j, k;
     int lastlog = logx[rankx[0]];
     p4est_topidx_t ti = tx[rankx[1]] >> lastlog;
 
