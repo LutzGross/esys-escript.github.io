@@ -557,17 +557,10 @@ void Rectangle::refineMesh(int maxRecursion, std::string algorithmname)
 {
     if(!algorithmname.compare("uniform"))
     {
-        if(maxRecursion < 0)
+        if(maxRecursion <= 0)
             throw OxleyException("Invalid value for maxRecursion");
 
-        if(maxRecursion == 0){
-            // This may be unwise as it consumes very large amounts of memory
-            // This will perform P4EST_QMAXLEVEL levels of refinement which is defined in p4est.h
-            // by default P4EST_QMAXLEVEL = 29
-            p4est_refine_ext(p4est, true, -1, refine_uniform, init_rectangle_data, refine_copy_parent_quadrant);
-        } else {
-            p4est_refine_ext(p4est, true, maxRecursion, refine_uniform, init_rectangle_data, refine_copy_parent_quadrant);
-        }
+        p4est_refine_ext(p4est, true, maxRecursion, refine_uniform, init_rectangle_data, refine_copy_parent_quadrant);
         p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);
     }
 #ifdef OXLEY_ENABLE_DEBUG
