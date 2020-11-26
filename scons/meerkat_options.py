@@ -23,7 +23,7 @@ build_debug=False
 build_debug=True
 
 openmp=False
-# openmp=True
+openmp=True
 
 if build_debug == True:
 	boost_prefix='/usr/local/boost.1.74.0'
@@ -45,7 +45,6 @@ if build_debug == True:
 	umfpack=True
 	umfpack_prefix=['/usr/include/','/usr/lib']
 	trilinos=True
-	
 	verbose=True
 	werror=False
 else:
@@ -59,7 +58,7 @@ else:
 		trilinos_prefix='/usr/local/trilinos_nompi'
 	else:
 		trilinos_prefix='/usr/local/trilinos_noomp'
-	paso=True
+	paso=False
 	pythoncmd="/usr/bin/python3"
 	pythonlibname="python3.8"
 	pythonlibpath="/usr/lib"
