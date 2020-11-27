@@ -145,6 +145,8 @@ Rectangle::Rectangle(int order,
     forestData.m_lxy[1] = y1;
     forestData.m_length[0] = x1-x0;
     forestData.m_length[1] = y1-y0;
+    forestData.m_NX[0] = (x1-x0)/n0;
+    forestData.m_NX[1] = (y1-y0)/n1;
 
     // Whether or not we have periodic boundaries
     forestData.periodic[0] = periodic0;
@@ -1477,7 +1479,6 @@ void Rectangle::updateRowsColumns()
     data = new update_RC_data;
     data->indices = indices;
     data->pNodeIDs = &NodeIDs;
-    // data->phangingNodeIDs = &hangingNodeIDs;
     data->p4est = p4est;
 
     // This function loops over all interior faces
@@ -1490,7 +1491,7 @@ void Rectangle::updateRowsColumns()
         p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
         sc_array_t * tquadrants = &tree->quadrants;
         p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-#pragma omp parallel for
+// #pragma omp parallel for
         for (int q = 0; q < Q; ++q) { // Loop over the elements attached to the tree
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
             p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);

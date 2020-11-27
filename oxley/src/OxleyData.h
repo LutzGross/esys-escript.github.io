@@ -100,6 +100,9 @@ public:
     // grid spacings / cell sizes of domain for each level of refinement
     double m_dx[2][P4EST_MAXLEVEL+1] = {{0}};
 
+    // initial grid spacing
+    double m_NX[2] = {0};
+
     // number of face elements per edge (left, right, bottom, top)
     escript::DataTypes::dim_t m_faceCount[4] = {-1};
 
