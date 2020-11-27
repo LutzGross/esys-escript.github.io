@@ -31,28 +31,27 @@ namespace oxley {
 int refine_uniform(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
 {
     p4estData * forestData = (p4estData *) p4est->user_pointer;
-    double max_level = forestData->refinement_depth;
-    double current_level = quadrant->level;
-    return current_level >= max_level;
+    return quadrant->level < forestData->refinement_depth;
 }
 
 int refine_uniform(p8est_t * p4est, p4est_topidx_t tree, p8est_quadrant_t * quadrant)
 {
-    return 1;
+    p8estData * octantData = (p8estData *) p4est->user_pointer;
+    return quadrant->level < octantData->refinement_depth;
 }
 
-int random_refine(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
+int refine_random(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
 {
     return ((int) rand() % 2) == 0;
 }
 
-int random_refine(p8est_t * p4est, p4est_topidx_t tree, p8est_quadrant_t * quadrant)
+int refine_random(p8est_t * p4est, p4est_topidx_t tree, p8est_quadrant_t * quadrant)
 {
     return ((int) rand() % 2) == 0;
 }
 
 // Boundaries
-int north_refine(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
+int refine_north(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
 {
     p4estData * forestData = (p4estData *) p4est->user_pointer;
     double dx = forestData->refinement_depth;
@@ -66,21 +65,22 @@ int north_refine(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadra
     return distance > 0 ? xy[1] >= distance : 0;
 }
 
-int south_refine(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
+int refine_south(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
 {
     p4estData * forestData = (p4estData *) p4est->user_pointer;
     double dx = forestData->refinement_depth;
     double domain_length = forestData->m_length[1];
     quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
     double * xy = quadData->xy;
-    
-    double current_quadlevel = quadrant->level;
-    double distance = (dx) * (1 - current_quadlevel);
 
-    return distance > 0 ? xy[1] <= distance : 0;
+    double current_quadlevel = quadrant->level;
+    double distance = dx * (1 - current_quadlevel);
+
+    // return distance > 0 ? xy[1] <= distance : 0;
+    return xy[1] <= dx && (current_quadlevel == 0);
 }
 
-int west_refine(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
+int refine_west(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
 {
     p4estData * forestData = (p4estData *) p4est->user_pointer;
     double dx = forestData->refinement_depth;
@@ -94,7 +94,7 @@ int west_refine(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadran
     return distance > 0 ? xy[0] >= distance : 0;
 }
 
-int east_refine(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
+int refine_east(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
 {
     p4estData * forestData = (p4estData *) p4est->user_pointer;
     double dx = forestData->refinement_depth;
@@ -103,9 +103,9 @@ int east_refine(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadran
     double * xy = quadData->xy;
 
     double current_quadlevel = quadrant->level;
-    double distance = (dx) * (1 - current_quadlevel);
+    double distance = (domain_length - dx) * (1 - current_quadlevel);
 
-    return distance > 0 ? xy[0] <= distance : 0;
+    return distance > 0 ? xy[0] >= distance : 0;
 }
 
 void print_quad_debug_info(p4est_iter_volume_info_t * info, p4est_quadrant_t * quadrant)

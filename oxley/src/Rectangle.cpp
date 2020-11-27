@@ -555,6 +555,8 @@ void Rectangle::writeToVTK(std::string filename, bool writeMesh) const
 
 void Rectangle::refineMesh(int RefineLevel, std::string algorithmname)
 {
+    forestData.refinement_depth = RefineLevel;
+
     if(!algorithmname.compare("uniform"))
     {
         if(RefineLevel <= 0)
@@ -567,7 +569,7 @@ void Rectangle::refineMesh(int RefineLevel, std::string algorithmname)
 #ifdef OXLEY_ENABLE_DEBUG
     else if(!algorithmname.compare("random"))
     {
-        p4est_refine_ext(p4est, true, -1, random_refine, init_rectangle_data, refine_copy_parent_quadrant);
+        p4est_refine_ext(p4est, true, -1, refine_random, init_rectangle_data, refine_copy_parent_quadrant);
         p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);
     }
 #endif
@@ -606,28 +608,28 @@ void Rectangle::refineBoundary(std::string boundaryname, double dx)
         || !boundaryname.compare("n") || !boundaryname.compare("N")
         || !boundaryname.compare("NORTH"))
     {
-        p4est_refine_ext(p4est, true, -1, north_refine, init_rectangle_data, refine_copy_parent_quadrant);
+        p4est_refine_ext(p4est, true, -1, refine_north, init_rectangle_data, refine_copy_parent_quadrant);
         p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);
     } 
     else if(!boundaryname.compare("south") || !boundaryname.compare("South")
         || !boundaryname.compare("s") || !boundaryname.compare("S")
         || !boundaryname.compare("SOUTH"))
     {
-        p4est_refine_ext(p4est, true, -1, south_refine, init_rectangle_data, refine_copy_parent_quadrant);
+        p4est_refine_ext(p4est, true, -1, refine_south, init_rectangle_data, refine_copy_parent_quadrant);
         p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);
     }
     else if(!boundaryname.compare("west") || !boundaryname.compare("West")
         || !boundaryname.compare("w") || !boundaryname.compare("W")
         || !boundaryname.compare("WEST"))
     {
-        p4est_refine_ext(p4est, true, -1, west_refine, init_rectangle_data, refine_copy_parent_quadrant);
+        p4est_refine_ext(p4est, true, -1, refine_west, init_rectangle_data, refine_copy_parent_quadrant);
         p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);
     }
     else if(!boundaryname.compare("east") || !boundaryname.compare("East")
         || !boundaryname.compare("e") || !boundaryname.compare("E")
         || !boundaryname.compare("EAST"))
     {
-        p4est_refine_ext(p4est, true, -1, east_refine, init_rectangle_data, refine_copy_parent_quadrant);
+        p4est_refine_ext(p4est, true, -1, refine_east, init_rectangle_data, refine_copy_parent_quadrant);
         p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);  
     }
     else {

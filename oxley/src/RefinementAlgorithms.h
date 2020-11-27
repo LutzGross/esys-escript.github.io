@@ -35,15 +35,15 @@ int refine_uniform(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quad
 int refine_uniform(p8est_t * p8est, p4est_topidx_t tree, p8est_quadrant_t * quadrant);
 
 // Random refinement
-int random_refine(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant);
+int refine_random(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant);
 
-int random_refine(p8est_t * p8est, p4est_topidx_t tree, p8est_quadrant_t * quadrant);
+int refine_random(p8est_t * p8est, p4est_topidx_t tree, p8est_quadrant_t * quadrant);
 
 // Boundaries
-int north_refine(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant);
-int south_refine(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant);
-int west_refine(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant);
-int east_refine(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant);
+int refine_north(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant);
+int refine_south(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant);
+int refine_west(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant);
+int refine_east(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant);
 
 /*
  *  \brief
