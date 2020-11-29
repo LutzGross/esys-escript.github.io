@@ -737,14 +737,14 @@ bool Rectangle::isHangingNode(p4est_lnodes_code_t face_code, int n) const
         int8_t ishanging0 = (face_code >> 2) & 0x01;
         int8_t ishanging1 = (face_code >> 3) & 0x01;
 
-        // int8_t f0 = p4est_corner_faces[c][0];
-        // int8_t f1 = p4est_corner_faces[c][1];
+        int8_t f0 = p4est_corner_faces[c][0];
+        int8_t f1 = p4est_corner_faces[c][1];
 
         // int d0 = c / 2 == 0;
         // int d1 = c % 2 == 0;
         
-        return ((ishanging0 == 1) && (p4est_corner_face_corners[c][p4est_corner_faces[c][0]] == 1)) 
-            || ((ishanging1 == 1) && (p4est_corner_face_corners[c][p4est_corner_faces[c][1]] == 1));
+        return ((ishanging0 == 1) && (p4est_corner_face_corners[c][f0] == 1)) 
+            || ((ishanging1 == 1) && (p4est_corner_face_corners[c][f1] == 1));
     }
 }
 
@@ -833,7 +833,7 @@ void Rectangle::renumberNodes()
 #endif
 
     NodeIDs.clear();
-// #pragma omp for
+#pragma omp for
     for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) {
         p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
         sc_array_t * tquadrants = &tree->quadrants;
@@ -844,11 +844,10 @@ void Rectangle::renumberNodes()
             int k = q - Q + nodeIncrements[treeid - p4est->first_local_tree];
             for(int n = 0; n < 4; n++)
             {
-                if( (n == 0) 
-                    || isHangingNode(nodes->face_code[k], n)
-                    || isUpperBoundaryNode(quad, n, treeid, length) 
-                  )
-                {
+                // if( (n == 0) 
+                //     || isHangingNode(nodes->face_code[k], n)
+                //     || isUpperBoundaryNode(quad, n, treeid, length) 
+                  // )
                     double lx = length * ((int) (n % 2) == 1);
                     double ly = length * ((int) (n / 2) == 1);
                     double xy[3];
@@ -860,7 +859,7 @@ void Rectangle::renumberNodes()
 #endif
                         NodeIDs[std::make_pair(xy[0],xy[1])]=NodeIDs.size();
                     }
-                }
+                // }
             }
         }
     }
