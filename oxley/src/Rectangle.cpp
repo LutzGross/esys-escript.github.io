@@ -105,7 +105,7 @@ Rectangle::Rectangle(int order,
     // connectivity = p4est_connectivity_new_brick(n0, n1, false, false); 
 
     // signed int refinex = n0, refiney = n1, num_refine = 0;
-    long div=1;
+    // long div=1;
     // while(refinex % 2 == 0 && refiney % 2 == 0)
     // {
     //     refinex /= 2;
@@ -113,7 +113,7 @@ Rectangle::Rectangle(int order,
     //     num_refine++;
     //     div*=2;
     // }
-    connectivity = new_rectangle_connectivity(n0 / div, n1 / div, false, false, x0, x1, y0, y1);
+    connectivity = new_rectangle_connectivity(n0, n1, false, false, x0, x1, y0, y1);
 
 // #ifdef OXLEY_ENABLE_DEBUG
 //     if(!p4est_connectivity_is_valid(connectivity))
@@ -275,13 +275,13 @@ void Rectangle::setToNormal(escript::Data& out) const
 {
     if (out.getFunctionSpace().getTypeCode() == FaceElements) {
         out.requireWrite();
-        for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
+        for(p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
         {
             p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
             sc_array_t * tquadrants = &currenttree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
 #pragma omp parallel for
-            for (p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
+            for(p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
             {
                 // Work out what level this element is on 
                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
@@ -326,13 +326,13 @@ void Rectangle::setToNormal(escript::Data& out) const
         }
     } else if (out.getFunctionSpace().getTypeCode() == ReducedFaceElements) {
         out.requireWrite();
-        for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
+        for(p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
         {
             p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
             sc_array_t * tquadrants = &currenttree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
 #pragma omp parallel for
-            for (p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
+            for(p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
             {
                 // Work out what level this element is on 
                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
@@ -380,13 +380,13 @@ void Rectangle::setToSize(escript::Data& out) const
         const dim_t numQuad = out.getNumDataPointsPerSample();
         // const dim_t numElements = getNumElements();
 
-        for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
+        for(p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
         {
             p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
             sc_array_t * tquadrants = &currenttree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
         #pragma omp parallel for
-            for (p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
+            for(p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
             {
                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
                 // int l = quad->level;
@@ -403,13 +403,13 @@ void Rectangle::setToSize(escript::Data& out) const
         out.requireWrite();
         const dim_t numQuad=out.getNumDataPointsPerSample();
 
-        for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
+        for(p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
         {
             p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
             sc_array_t * tquadrants = &currenttree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
         #pragma omp parallel for
-            for (p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
+            for(p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
             {
                 // Work out what level this element is on 
                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
@@ -881,7 +881,7 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
         p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
 
 #pragma omp parallel for
-        for (int q = 0; q < Q; ++q) { // Loop over the elements attached to the tree
+        for(int q = 0; q < Q; ++q) { // Loop over the elements attached to the tree
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
             p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
 
@@ -944,8 +944,8 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
 //     // The rest is assigned in the loop further down
 //     m_dofMap.assign(getNumNodes(), 0);
 // #pragma omp parallel for
-//     for (index_t i=bottom; i<bottom+nDOF1; i++) {
-//         for (index_t j=left; j<left+nDOF0; j++) {
+//     for(index_t i=bottom; i<bottom+nDOF1; i++) {
+//         for(index_t j=left; j<left+nDOF0; j++) {
 //             m_dofMap[i*m_NN[0]+j]=(i-bottom)*nDOF0+j-left;
 //         }
 //     }
@@ -967,7 +967,7 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
 //         neighbour.push_back((y-1)*m_NX[0] + x);
 //         const dim_t num = nDOF0;
 //         offsetInShared.push_back(offsetInShared.back()+num);
-//         for (dim_t i=0; i<num; i++, numShared++) {
+//         for(dim_t i=0; i<num; i++, numShared++) {
 //             sendShared.push_back(i);
 //             recvShared.push_back(numDOF+numShared);
 //             m_dofMap[left+i]=numDOF+numShared;
@@ -978,7 +978,7 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
 //         neighbour.push_back((y+1)*m_NX[0] + x);
 //         const dim_t num = nDOF0;
 //         offsetInShared.push_back(offsetInShared.back()+num);
-//         for (dim_t i=0; i<num; i++, numShared++) {
+//         for(dim_t i=0; i<num; i++, numShared++) {
 //             sendShared.push_back(numDOF-num+i);
 //             recvShared.push_back(numDOF+numShared);
 //             m_dofMap[m_NN[0]*(m_NN[1]-1)+left+i]=numDOF+numShared;
@@ -989,7 +989,7 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
 //         neighbour.push_back(y*m_NX[0] + x-1);
 //         const dim_t num = nDOF1;
 //         offsetInShared.push_back(offsetInShared.back()+num);
-//         for (dim_t i=0; i<num; i++, numShared++) {
+//         for(dim_t i=0; i<num; i++, numShared++) {
 //             sendShared.push_back(i*nDOF0);
 //             recvShared.push_back(numDOF+numShared);
 //             m_dofMap[(bottom+i)*m_NN[0]]=numDOF+numShared;
@@ -1000,7 +1000,7 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
 //         neighbour.push_back(y*m_NX[0] + x+1);
 //         const dim_t num = nDOF1;
 //         offsetInShared.push_back(offsetInShared.back()+num);
-//         for (dim_t i=0; i<num; i++, numShared++) {
+//         for(dim_t i=0; i<num; i++, numShared++) {
 //             sendShared.push_back((i+1)*nDOF0-1);
 //             recvShared.push_back(numDOF+numShared);
 //             m_dofMap[(bottom+1+i)*m_NN[0]-1]=numDOF+numShared;
@@ -1053,19 +1053,19 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
     /*
     std::cout << "--- rcv_shcomp ---" << std::endl;
     std::cout << "numDOF=" << numDOF << ", numNeighbors=" << neighbour.size() << std::endl;
-    for (size_t i=0; i<neighbour.size(); i++) {
+    for(size_t i=0; i<neighbour.size(); i++) {
         std::cout << "neighbor[" << i << "]=" << neighbour[i]
             << " offsetInShared[" << i+1 << "]=" << offsetInShared[i+1] << std::endl;
     }
-    for (size_t i=0; i<recvShared.size(); i++) {
+    for(size_t i=0; i<recvShared.size(); i++) {
         std::cout << "shared[" << i << "]=" << recvShared[i] << std::endl;
     }
     std::cout << "--- snd_shcomp ---" << std::endl;
-    for (size_t i=0; i<sendShared.size(); i++) {
+    for(size_t i=0; i<sendShared.size(); i++) {
         std::cout << "shared[" << i << "]=" << sendShared[i] << std::endl;
     }
     std::cout << "--- dofMap ---" << std::endl;
-    for (size_t i=0; i<m_dofMap.size(); i++) {
+    for(size_t i=0; i<m_dofMap.size(); i++) {
         std::cout << "m_dofMap[" << i << "]=" << m_dofMap[i] << std::endl;
     }
     */
@@ -1096,9 +1096,9 @@ void Rectangle::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Dat
     if(addF)
     {
         Scalar* F_p = F.getSampleDataRW(0, static_cast<Scalar>(0));
-        for (index_t i=0; i<rowIndex.size(); i++) {
+        for(index_t i=0; i<rowIndex.size(); i++) {
             if (rowIndex[i]<getNumDOF()) {
-                for (int eq=0; eq<nEq; eq++) {
+                for(int eq=0; eq<nEq; eq++) {
                     F_p[INDEX2(eq, rowIndex[i], nEq)]+=EM_F[INDEX2(eq,i,nEq)];
                 }
             }
@@ -1188,10 +1188,10 @@ void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
             sc_array_t * tquadrants = &currenttree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
 #pragma omp parallel for
-            for (p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
+            for(p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
             {
                 S* o = out.getSampleDataRW(e, sentinel);
-                for (index_t i=0; i < numComp; ++i) 
+                for(index_t i=0; i < numComp; ++i) 
                 {
                     o[i] = c0*(fxx[INDEX3(0,i,e,numComp,numNodes)] + 
                                fxx[INDEX3(1,i,e,numComp,numNodes)] + 
@@ -1219,10 +1219,10 @@ void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
             sc_array_t * tquadrants = &currenttree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
 #pragma omp parallel for
-            for (p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
+            for(p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
             {
                 S* o = out.getSampleDataRW(e, sentinel);
-                for (index_t i=0; i < numComp; ++i) {
+                for(index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = c0*(fxx[INDEX3(1,i,e,numComp,numNodes)] +    fxx[INDEX3(2,i,e,numComp,numNodes)]) + 
                                              c1* fxx[INDEX3(3,i,e,numComp,numNodes)] + c2*fxx[INDEX3(0,i,e,numComp,numNodes)];
                     o[INDEX2(i,numComp,1)] = c0*(fxx[INDEX3(2,i,e,numComp,numNodes)] +    fxx[INDEX3(3,i,e,numComp,numNodes)]) + 
@@ -1263,7 +1263,7 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
 //             sc_array_t * tquadrants = &currenttree->quadrants;
 //             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
 // #pragma omp parallel for
-//             for (p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
+//             for(p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
 //             {
 //                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
 
@@ -1273,7 +1273,7 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
 //                     p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
 
 //                     S* o = out.getSampleDataRW(e, sentinel);
-//                     for (index_t i=0; i < numComp; ++i) {
+//                     for(index_t i=0; i < numComp; ++i) {
 //                         o[e] = (fxx[INDEX3(0,i,e,numComp,numNodes)] + fxx[INDEX3(1,i,e,numComp,numNodes)])/static_cast<S>(2);
 //                     }
 //                 }
@@ -1284,7 +1284,7 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
 //                     p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
 
 //                     S* o = out.getSampleDataRW(e, sentinel);
-//                     for (index_t i=0; i < numComp; ++i) {
+//                     for(index_t i=0; i < numComp; ++i) {
 //                         o[e] = (fxx[INDEX3(2,i,e,numComp,numNodes)] + fxx[INDEX3(3,i,e,numComp,numNodes)])/static_cast<S>(2);
 //                     }
 //                 }
@@ -1295,7 +1295,7 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
 //                     p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
 
 //                     S* o = out.getSampleDataRW(e, sentinel);
-//                     for (index_t i=0; i < numComp; ++i) {
+//                     for(index_t i=0; i < numComp; ++i) {
 //                         o[e] = (fxx[INDEX3(0,i,e,numComp,numNodes)] + fxx[INDEX3(2,i,e,numComp,numNodes)])/static_cast<S>(2);
 //                     }
 //                 }
@@ -1306,7 +1306,7 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
 //                     p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
 
 //                     S* o = out.getSampleDataRW(e, sentinel);
-//                     for (index_t i=0; i < numComp; ++i) {
+//                     for(index_t i=0; i < numComp; ++i) {
 //                         o[e] = (fxx[INDEX3(1,i,e,numComp,numNodes)] + fxx[INDEX3(3,i,e,numComp,numNodes)])/static_cast<S>(2);
 //                     }
 //                 }
@@ -1329,7 +1329,7 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
 //             sc_array_t * tquadrants = &currenttree->quadrants;
 //             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
 // #pragma omp parallel for
-//             for (p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
+//             for(p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
 //             {
 //                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
 
@@ -1338,7 +1338,7 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
 //                     interpolateData.direction=0;
 //                     p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
 //                     S* o = out.getSampleDataRW(e, sentinel);
-//                     for (index_t i=0; i < numComp; ++i) {
+//                     for(index_t i=0; i < numComp; ++i) {
 //                         o[INDEX2(i,numComp,0)] = c0*fxx[INDEX3(1,i,e,numComp,numNodes)] + c1*fxx[INDEX3(0,i,e,numComp,numNodes)];
 //                         o[INDEX2(i,numComp,1)] = c0*fxx[INDEX3(0,i,e,numComp,numNodes)] + c1*fxx[INDEX3(1,i,e,numComp,numNodes)];
 //                     }
@@ -1349,7 +1349,7 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
 //                     interpolateData.direction=1;
 //                     p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
 //                     S* o = out.getSampleDataRW(e, sentinel);
-//                     for (index_t i=0; i < numComp; ++i) {
+//                     for(index_t i=0; i < numComp; ++i) {
 //                         o[INDEX2(i,numComp,0)] = c1*fxx[INDEX3(2,i,e,numComp,numNodes)] + c0*fxx[INDEX3(3,i,e,numComp,numNodes)];
 //                         o[INDEX2(i,numComp,1)] = c1*fxx[INDEX3(3,i,e,numComp,numNodes)] + c0*fxx[INDEX3(2,i,e,numComp,numNodes)];
 //                     }
@@ -1360,7 +1360,7 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
 //                     interpolateData.direction=2;
 //                     p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
 //                     S* o = out.getSampleDataRW(e, sentinel);
-//                     for (index_t i=0; i < numComp; ++i) {
+//                     for(index_t i=0; i < numComp; ++i) {
 //                         o[INDEX2(i,numComp,0)] = c0*fxx[INDEX3(2,i,e,numComp,numNodes)] + c1*fxx[INDEX3(0,i,e,numComp,numNodes)];
 //                         o[INDEX2(i,numComp,1)] = c0*fxx[INDEX3(0,i,e,numComp,numNodes)] + c1*fxx[INDEX3(2,i,e,numComp,numNodes)];
 //                     }
@@ -1371,7 +1371,7 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
 //                     interpolateData.direction=3;
 //                     p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
 //                     S* o = out.getSampleDataRW(e, sentinel);
-//                     for (index_t i=0; i < numComp; ++i) {
+//                     for(index_t i=0; i < numComp; ++i) {
 //                         o[INDEX2(i,numComp,0)] = c0*fxx[INDEX3(3,i,e,numComp,numNodes)] + c1*fxx[INDEX3(1,i,e,numComp,numNodes)];
 //                         o[INDEX2(i,numComp,1)] = c0*fxx[INDEX3(1,i,e,numComp,numNodes)] + c1*fxx[INDEX3(3,i,e,numComp,numNodes)];
 //                     }
@@ -1424,11 +1424,11 @@ inline dim_t Rectangle::getNumFaceElements() const
     double x1 = forestData.m_length[0]+forestData.m_origin[0];
     double y1 = forestData.m_length[1]+forestData.m_origin[1];
     p4est_locidx_t numFaceElements = 0;
-    for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
+    for(p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
     {
         p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
         sc_array_t * tquadrants = &currenttree->quadrants;
-        for (p4est_locidx_t e = 0; e < tquadrants->elem_count; e++)
+        for(p4est_locidx_t e = 0; e < tquadrants->elem_count; e++)
         {
             p4est_quadrant_t * q = p4est_quadrant_array_index(tquadrants, e);
             p4est_qcoord_t length = P4EST_QUADRANT_LEN(q->level);
@@ -1460,7 +1460,7 @@ void Rectangle::updateTreeIDs()
         sc_array_t * tquadrants = &tree->quadrants;
         p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
 #pragma omp parallel for
-        for (int q = 0; q < Q; ++q) { // Loop over the elements attached to the tree
+        for(int q = 0; q < Q; ++q) { // Loop over the elements attached to the tree
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
             treeIDs[std::make_pair(quad->x,quad->y)]=treeid;
         }
@@ -1491,7 +1491,7 @@ void Rectangle::updateRowsColumns()
         sc_array_t * tquadrants = &tree->quadrants;
         p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
 // #pragma omp parallel for
-        for (int q = 0; q < Q; ++q) { // Loop over the elements attached to the tree
+        for(int q = 0; q < Q; ++q) { // Loop over the elements attached to the tree
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
             p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
             // int k = q - Q + nodeIncrements[treeid - p4est->first_local_tree];
@@ -1656,10 +1656,10 @@ paso::SystemMatrixPattern_ptr Rectangle::getPasoMatrixPattern(
     std::vector<IndexVector> colIndices(numDOF);
     std::vector<IndexVector> rowIndices(numShared);
 
-    for (dim_t i=0; i<numNeighbours; i++) {
+    for(dim_t i=0; i<numNeighbours; i++) {
         const dim_t start = offsetInShared[i];
         const dim_t end = offsetInShared[i+1];
-        for (dim_t j = start; j < end; j++) {
+        for(dim_t j = start; j < end; j++) {
             if (j > start)
                 doublyLink(colIndices, rowIndices, sendShared[j-1], j);
             doublyLink(colIndices, rowIndices, sendShared[j], j);
@@ -1668,7 +1668,7 @@ paso::SystemMatrixPattern_ptr Rectangle::getPasoMatrixPattern(
         }
     }
 #pragma omp parallel for
-    for (dim_t i = 0; i < numShared; i++) {
+    for(dim_t i = 0; i < numShared; i++) {
         sort(rowIndices[i].begin(), rowIndices[i].end());
     }
 
@@ -1707,7 +1707,7 @@ void Rectangle::populateSampleIds()
 
 //     m_nodeDistribution.assign(m_mpiInfo->size+1, 0);
 //     const dim_t numDOF=getNumDOF();
-//     for (dim_t k=1; k<m_mpiInfo->size; k++) {
+//     for(dim_t k=1; k<m_mpiInfo->size; k++) {
 //         m_nodeDistribution[k]=k*numDOF;
 //     }
 //     m_nodeDistribution[m_mpiInfo->size]=getNumDataPointsGlobal();
@@ -1766,8 +1766,8 @@ void Rectangle::populateSampleIds()
 //     {
 //         // populate degrees of freedom and own nodes (identical id)
 // #pragma omp for nowait
-//         for (dim_t i=0; i<nDOF1; i++) {
-//             for (dim_t j=0; j<nDOF0; j++) {
+//         for(dim_t i=0; i<nDOF1; i++) {
+//             for(dim_t j=0; j<nDOF0; j++) {
 //                 const index_t nodeIdx=j+left+(i+bottom)*m_NN[0];
 //                 const index_t dofIdx=j+i*nDOF0;
 //                 m_dofId[dofIdx] = m_nodeId[nodeIdx]
@@ -1778,7 +1778,7 @@ void Rectangle::populateSampleIds()
 //         // populate the rest of the nodes (shared with other ranks)
 //         if (m_faceCount[0]==0) { // left column
 // #pragma omp for nowait
-//             for (dim_t i=0; i<nDOF1; i++) {
+//             for(dim_t i=0; i<nDOF1; i++) {
 //                 const index_t nodeIdx=(i+bottom)*m_NN[0];
 //                 const index_t dofId=(i+1)*nDOF0-1;
 //                 m_nodeId[nodeIdx]
@@ -1787,7 +1787,7 @@ void Rectangle::populateSampleIds()
 //         }
 //         if (m_faceCount[1]==0) { // right column
 // #pragma omp for nowait
-//             for (dim_t i=0; i<nDOF1; i++) {
+//             for(dim_t i=0; i<nDOF1; i++) {
 //                 const index_t nodeIdx=(i+bottom+1)*m_NN[0]-1;
 //                 const index_t dofId=i*nDOF0;
 //                 m_nodeId[nodeIdx]
@@ -1796,7 +1796,7 @@ void Rectangle::populateSampleIds()
 //         }
 //         if (m_faceCount[2]==0) { // bottom row
 // #pragma omp for nowait
-//             for (dim_t i=0; i<nDOF0; i++) {
+//             for(dim_t i=0; i<nDOF0; i++) {
 //                 const index_t nodeIdx=i+left;
 //                 const index_t dofId=nDOF0*(nDOF1-1)+i;
 //                 m_nodeId[nodeIdx]
@@ -1805,7 +1805,7 @@ void Rectangle::populateSampleIds()
 //         }
 //         if (m_faceCount[3]==0) { // top row
 // #pragma omp for nowait
-//             for (dim_t i=0; i<nDOF0; i++) {
+//             for(dim_t i=0; i<nDOF0; i++) {
 //                 const index_t nodeIdx=m_NN[0]*(m_NN[1]-1)+i+left;
 //                 const index_t dofId=i;
 //                 m_nodeId[nodeIdx]
@@ -1815,15 +1815,15 @@ void Rectangle::populateSampleIds()
 
 //         // populate element id's
 // #pragma omp for nowait
-//         for (dim_t i1=0; i1<NE1; i1++) {
-//             for (dim_t i0=0; i0<NE0; i0++) {
+//         for(dim_t i1=0; i1<NE1; i1++) {
+//             for(dim_t i0=0; i0<NE0; i0++) {
 //                 m_elementId[i0+i1*NE0]=(m_offset[1]+i1)*m_gNE[0]+m_offset[0]+i0;
 //             }
 //         }
 
 //         // face elements
 // #pragma omp for
-//         for (dim_t k=0; k<NFE; k++)
+//         for(dim_t k=0; k<NFE; k++)
 //             m_faceId[k]=k;
 //     } // end parallel section
 
@@ -1839,7 +1839,7 @@ void Rectangle::populateSampleIds()
 //     m_faceOffset.assign(4, -1);
 //     m_faceTags.clear();
 //     index_t offset=0;
-//     for (size_t i=0; i<4; i++) {
+//     for(size_t i=0; i<4; i++) {
 //         if (m_faceCount[i]>0) {
 //             m_faceOffset[i]=offset;
 //             offset+=m_faceCount[i];
@@ -2034,13 +2034,13 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
         std::vector<Scalar> f_10(numComp, zero);
         std::vector<Scalar> f_11(numComp, zero);
 
-        for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) // Loop over every tree
+        for(p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) // Loop over every tree
         {
             p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
             sc_array_t * tquadrants = &currenttree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
 #pragma omp parallel for
-            for (p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++) // Loop over every quadrant within the tree
+            for(p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++) // Loop over every quadrant within the tree
             {
                 // p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
                 // quadrantData * quaddata = (quadrantData *) quad->p.user_data;
@@ -2051,7 +2051,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                 memcpy(&f_11[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
 
                 Scalar* o = out.getSampleDataRW(e, zero);
-                for (index_t i = 0; i < numComp; ++i) {
+                for(index_t i = 0; i < numComp; ++i) {
                     o[INDEX3(i,0,0,numComp,2)] = (f_10[i]-f_00[i])*cx[1][i] + (f_11[i]-f_01[i])*cx[0][i];
                     o[INDEX3(i,1,0,numComp,2)] = (f_01[i]-f_00[i])*cy[1][i] + (f_11[i]-f_10[i])*cy[0][i];
                     o[INDEX3(i,0,1,numComp,2)] = (f_10[i]-f_00[i])*cx[1][i] + (f_11[i]-f_01[i])*cx[0][i];
@@ -2071,13 +2071,13 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
         std::vector<Scalar> f_10(numComp, zero);
         std::vector<Scalar> f_11(numComp, zero);
 
-        for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) // Loop over every tree
+        for(p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) // Loop over every tree
         {
             p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
             sc_array_t * tquadrants = &currenttree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
 #pragma omp parallel for
-            for (p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++) // Loop over every quadrant within the tree
+            for(p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++) // Loop over every quadrant within the tree
             {
                 // p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
                 // quadrantData * quaddata = (quadrantData *) quad->p.user_data;
@@ -2089,7 +2089,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
 
                 Scalar* o = out.getSampleDataRW(e, zero);
 
-             for (index_t i = 0; i < numComp; ++i) {
+             for(index_t i = 0; i < numComp; ++i) {
                     o[INDEX3(i,0,0,numComp,2)] = (f_10[i] + f_11[i] - f_00[i] - f_01[i])*cx[2][i] * 0.5;
                     o[INDEX3(i,1,0,numComp,2)] = (f_01[i] + f_11[i] - f_00[i] - f_10[i])*cy[2][i] * 0.5;
                 } 
@@ -2098,13 +2098,13 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
     } else if (out.getFunctionSpace().getTypeCode() == FaceElements) {
         out.requireWrite();
 
-        for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
+        for(p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
         {
             p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
             sc_array_t * tquadrants = &currenttree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
 #pragma omp parallel for
-            for (p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
+            for(p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
             {
                 // Work out what level this element is on 
                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
@@ -2121,7 +2121,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                     memcpy(&f_10[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     memcpy(&f_11[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     Scalar* o = out.getSampleDataRW(e, zero);
-                    for (index_t i = 0; i < numComp; ++i) {
+                    for(index_t i = 0; i < numComp; ++i) {
                         o[INDEX3(i,0,0,numComp,2)] = (f_10[i]-f_00[i])*cx[1][i] + (f_11[i]-f_01[i])*cx[0][i];
                         o[INDEX3(i,1,0,numComp,2)] = (f_01[i]-f_00[i])*cy[2][i];
                         o[INDEX3(i,0,1,numComp,2)] = (f_10[i]-f_00[i])*cx[0][i] + (f_11[i]-f_01[i])*cx[1][i];
@@ -2134,7 +2134,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                     memcpy(&f_10[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     memcpy(&f_11[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     Scalar* o = out.getSampleDataRW(e, zero);
-                    for (index_t i = 0; i < numComp; ++i) {
+                    for(index_t i = 0; i < numComp; ++i) {
                         o[INDEX3(i,0,0,numComp,2)] = (f_10[i]-f_00[i])*cx[1][i] + (f_11[i]-f_01[i])*cx[0][i];
                         o[INDEX3(i,1,0,numComp,2)] = (f_11[i]-f_10[i])*cy[2][i];
                         o[INDEX3(i,0,1,numComp,2)] = (f_10[i]-f_00[i])*cx[0][i] + (f_11[i]-f_01[i])*cx[1][i];
@@ -2147,7 +2147,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                     memcpy(&f_10[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     memcpy(&f_11[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     Scalar* o = out.getSampleDataRW(e, zero);
-                    for (index_t i = 0; i < numComp; ++i) {
+                    for(index_t i = 0; i < numComp; ++i) {
                         o[INDEX3(i,0,0,numComp,2)] = (f_10[i]-f_00[i])*cx[2][i];
                         o[INDEX3(i,1,0,numComp,2)] = (f_01[i]-f_00[i])*cy[1][i] + (f_11[i]-f_10[i])*cy[0][i];
                         o[INDEX3(i,0,1,numComp,2)] = (f_10[i]-f_00[i])*cx[2][i];
@@ -2160,7 +2160,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                     memcpy(&f_10[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     memcpy(&f_11[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     Scalar* o = out.getSampleDataRW(e, zero);
-                    for (index_t i = 0; i < numComp; ++i) {
+                    for(index_t i = 0; i < numComp; ++i) {
                         o[INDEX3(i,0,0,numComp,2)] = (f_11[i]-f_01[i])*cx[2][i];
                         o[INDEX3(i,1,0,numComp,2)] = (f_01[i]-f_00[i])*cy[1][i] + (f_11[i]-f_10[i])*cy[0][i];
                         o[INDEX3(i,0,1,numComp,2)] = (f_11[i]-f_01[i])*cx[2][i];
@@ -2172,13 +2172,13 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
     } else if (out.getFunctionSpace().getTypeCode() == ReducedFaceElements) {
         out.requireWrite();
 
-        for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
+        for(p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
         {
             p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
             sc_array_t * tquadrants = &currenttree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
 #pragma omp parallel for
-            for (p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
+            for(p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
             {
                 // Work out what level this element is on 
                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
@@ -2195,7 +2195,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                     memcpy(&f_10[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     memcpy(&f_11[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     Scalar* o = out.getSampleDataRW(e, zero);
-                    for (index_t i = 0; i < numComp; ++i) {
+                    for(index_t i = 0; i < numComp; ++i) {
                         o[INDEX3(i,0,0,numComp,2)] = (f_10[i] + f_11[i] - f_00[i] - f_01[i])*cx[2][i] * 0.5;
                         o[INDEX3(i,1,0,numComp,2)] = (f_01[i]-f_00[i])*cy[2][i];
                     } // end of component loop i
@@ -2206,7 +2206,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                     memcpy(&f_10[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     memcpy(&f_11[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     Scalar* o = out.getSampleDataRW(e, zero);
-                    for (index_t i = 0; i < numComp; ++i) {
+                    for(index_t i = 0; i < numComp; ++i) {
                         o[INDEX3(i,0,0,numComp,2)] = (f_10[i] + f_11[i] - f_00[i] - f_01[i])*cx[2][i] * 0.5;
                         o[INDEX3(i,1,0,numComp,2)] = (f_11[i]-f_10[i])*cy[2][i];
                     } // end of component loop i
@@ -2217,7 +2217,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                     memcpy(&f_10[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     memcpy(&f_11[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     Scalar* o = out.getSampleDataRW(e, zero);
-                    for (index_t i = 0; i < numComp; ++i) {
+                    for(index_t i = 0; i < numComp; ++i) {
                         o[INDEX3(i,0,0,numComp,2)] = (f_10[i]-f_00[i])*cx[2][i];
                         o[INDEX3(i,1,0,numComp,2)] = (f_01[i] + f_11[i] - f_00[i] - f_10[i])*cy[2][i] * 0.5;
                     } // end of component loop i
@@ -2228,7 +2228,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                     memcpy(&f_10[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     memcpy(&f_11[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     Scalar* o = out.getSampleDataRW(e, zero);
-                    for (index_t i = 0; i < numComp; ++i) {
+                    for(index_t i = 0; i < numComp; ++i) {
                         o[INDEX3(i,0,0,numComp,2)] = (f_11[i]-f_01[i])*cx[2][i];
                         o[INDEX3(i,1,0,numComp,2)] = (f_01[i] + f_11[i] - f_00[i] - f_10[i])*cy[2][i] * 0.5;
                     } // end of component loop i
@@ -2246,7 +2246,7 @@ dim_t Rectangle::findNode(const double *coords) const
     // const dim_t NOT_MINE = -1;
     // //is the found element even owned by this rank
     // // (inside owned or shared elements but will map to an owned element)
-    // for (int dim = 0; dim < m_numDim; dim++) {
+    // for(int dim = 0; dim < m_numDim; dim++) {
     //     //allows for point outside mapping onto node
     //     double min = m_origin[dim] + m_offset[dim]* m_dx[dim]
     //             - m_dx[dim]/2. + escript::DataTypes::real_t_eps();
@@ -2270,13 +2270,13 @@ dim_t Rectangle::findNode(const double *coords) const
     // // set the min distance high enough to be outside the element plus a bit
     // dim_t closest = NOT_MINE;
     // double minDist = 1;
-    // for (int dim = 0; dim < m_numDim; dim++) {
+    // for(int dim = 0; dim < m_numDim; dim++) {
     //     minDist += m_dx[dim]*m_dx[dim];
     // }
     // //find the closest node
-    // for (int dx = 0; dx < 1; dx++) {
+    // for(int dx = 0; dx < 1; dx++) {
     //     double xdist = (x - (ex + dx)*m_dx[0]);
-    //     for (int dy = 0; dy < 1; dy++) {
+    //     for(int dy = 0; dy < 1; dy++) {
     //         double ydist = (y - (ey + dy)*m_dx[1]);
     //         double total = xdist*xdist + ydist*ydist;
     //         if (total < minDist) {
@@ -2307,8 +2307,8 @@ void Rectangle::nodesToDOF(escript::Data& out, const escript::Data& in) const
 //     const dim_t nDOF0 = getNumDOFInAxis(0);
 //     const dim_t nDOF1 = getNumDOFInAxis(1);
 // #pragma omp parallel for
-//     for (index_t i=0; i<nDOF1; i++) {
-//         for (index_t j=0; j<nDOF0; j++) {
+//     for(index_t i=0; i<nDOF1; i++) {
+//         for(index_t j=0; j<nDOF0; j++) {
 //             const index_t n=j+left+(i+bottom)*m_NN[0];
 //             const double* src=in.getSampleDataRO(n);
 //             copy(src, src+numComp, out.getSampleDataRW(j+i*nDOF0));
@@ -2323,82 +2323,93 @@ void Rectangle::updateFaceOffset()
 }
 
 static inline void
-brick_linear_to_xyz (p4est_topidx_t ti, const int logx[2],
-                     const int rankx[2], p4est_topidx_t tx[2])
+brick_linear_to_xyz (p4est_topidx_t ti, const int logx[P4EST_DIM],
+                     const int rankx[P4EST_DIM], p4est_topidx_t tx[P4EST_DIM])
 {
-    int j, k, c;
-    tx[0] = 0;
-    tx[1] = 0;
+    int lastlog = 0;
 
-    p4est_topidx_t tempx[3] = { 0, 0, 0 };
-    int idx[3] = { -1, -1, -1 };
-
-    for (k = 0; k < 2; k++) {
-        idx[rankx[k]] = 0;
+    for(int i = 0; i < P4EST_DIM; i++) {
+        tx[i] = 0;
     }
 
-    for (k = 0, c = 0; k < 2; k++) {
-        if (idx[k] == 0) {
-            idx[k] = c++;
+    for(int i = 0; i < P4EST_DIM - 1; i++) {
+        p4est_topidx_t tempx[3] = { 0, 0, 0 };
+        int logi = logx[rankx[i]] - lastlog;
+        int idx[3] = { -1, -1, -1 };
+        int c = 0;
+
+        for(int k = 0; k < P4EST_DIM - i; k++) {
+            int d = rankx[i + k];
+            idx[d] = 0;
         }
-    }
-    
-    for (j = 0; j < logx[rankx[0]]; j++) {
-        for (k = 0; k < 2; k++) {  
-            if (idx[k] >= 0) {
-                tempx[k] |= (ti & (1 << ( 2 * j + idx[k]))) >> ( j + idx[k]);
+        for(int k = 0; k < P4EST_DIM; k++) {
+            if (idx[k] == 0) {
+                idx[k] = c++;
             }
         }
+
+        for(int j = 0; j < logi; j++) {
+            int base = (P4EST_DIM - i) * j;
+            int shift = (P4EST_DIM - i - 1) * j;
+
+            for(int k = 0; k < P4EST_DIM; k++) {
+                int id = idx[k];
+
+                if (id >= 0) {
+                    tempx[k] |= (ti & (1 << (base + id))) >> (shift + id);
+                }
+            }
+        }
+        for(int k = 0; k < P4EST_DIM; k++) {
+            tx[k] += (tempx[k] << lastlog);
+        }
+        lastlog += logi;
+        ti >>= (P4EST_DIM - i) * logi;
     }
-
-    for (k = 0; k < 2; k++) {
-        tx[k] += tempx[k];
-    }
-
-    ti >>= 2 * logx[rankx[0]];
-
-    tx[rankx[1]] += (ti << logx[rankx[1]]);
+    tx[rankx[P4EST_DIM - 1]] += (ti << lastlog);
 }
 
-static inline       p4est_topidx_t
-brick_xyz_to_linear (const p4est_topidx_t tx[2],
-                     const int logx[2], const int rankx[2])
+static inline p4est_topidx_t
+brick_xyz_to_linear (const p4est_topidx_t tx[P4EST_DIM],
+                     const int logx[P4EST_DIM], const int rankx[P4EST_DIM])
 {
-    int j, k;
-    int lastlog = logx[rankx[0]];
-    p4est_topidx_t ti = tx[rankx[1]] >> lastlog;
+    int lastlog = logx[rankx[P4EST_DIM - 2]];
+    p4est_topidx_t ti = tx[rankx[P4EST_DIM - 1]] >> lastlog;
 
-    
-    p4est_topidx_t tempx[3] = { 0, 0, 0 };
-    int logi = lastlog;
-    int idx[3] = { -1, -1, -1 };
-    int c = 0;
+    for(int i = P4EST_DIM - 2; i >= 0; i--) {
+        p4est_topidx_t tempx[3] = { 0, 0, 0 };
+        int logi = (i == 0) ? lastlog : lastlog - logx[rankx[i - 1]];
+        int idx[3] = { -1, -1, -1 };
+        int c = 0;
 
-    for (k = 0; k < 2; k++) {
-        idx[rankx[k]] = 0;
-    }
+        for(int k = 0; k < P4EST_DIM - i; k++) {
+            int d = rankx[i + k];
 
-    for (k = 0; k < 2; k++) {
-        if (idx[k] == 0) {
-            idx[k] = c++;
+            idx[d] = 0;
         }
-    }
-
-    ti <<= 2 * logi;
-    lastlog -= logi;
-
-    for (k = 0; k < 2; k++) {
-        tempx[k] = tx[k] >> lastlog;
-    }
-
-    for (j = 0; j < logi; j++) {
-        for (k = 0; k < 2; k++) {
-            if (idx[k] >= 0) {
-                ti |= (tempx[k] & (1 << j)) << (j + idx[k]);
+        for(int k = 0; k < P4EST_DIM; k++) {
+            if (idx[k] == 0) {
+                idx[k] = c++;
             }
         }
-    }    
 
+        ti <<= (P4EST_DIM - i) * logi;
+        lastlog -= logi;
+        for(int k = 0; k < P4EST_DIM; k++) {
+            tempx[k] = tx[k] >> lastlog;
+        }
+        for(int j = 0; j < logi; j++) {
+            int shift = (P4EST_DIM - i - 1) * j;
+
+            for(int k = 0; k < P4EST_DIM; k++) {
+                int id = idx[k];
+
+                if (id >= 0) {
+                    ti |= (tempx[k] & (1 << j)) << (shift + id);
+                }
+            }
+        }
+    }
     return ti;
 }
 
@@ -2451,14 +2462,14 @@ p4est_connectivity_t * Rectangle::new_rectangle_connectivity(
     //Corner to Tree offsets
     p4est_topidx_t * ctt_offset = conn->ctt_offset;
 #pragma omp parallel for
-    for (p4est_topidx_t ti = 0; ti < num_corners + 1; ti++) {
+    for(p4est_topidx_t ti = 0; ti < num_corners + 1; ti++) {
         ctt_offset[ti] = 4 * ti;
     }
 
     // Tree to Vertices
     p4est_topidx_t * tree_to_vertex = conn->tree_to_vertex;
 #pragma omp parallel for
-    for (p4est_topidx_t ti = 0; ti < 4 * num_trees; ti++) {
+    for(p4est_topidx_t ti = 0; ti < 4 * num_trees; ti++) {
         tree_to_vertex[ti] = -1;
     }
 
@@ -2481,7 +2492,7 @@ p4est_connectivity_t * Rectangle::new_rectangle_connectivity(
 
     p4est_topidx_t tj = 0;
     p4est_topidx_t tk = 0;
-    for (p4est_topidx_t ti = 0; ti < n_iter; ti++) {
+    for(p4est_topidx_t ti = 0; ti < n_iter; ti++) {
         brick_linear_to_xyz(ti, logx, rankx, coord);
         p4est_topidx_t tx = coord[0];
         p4est_topidx_t ty = coord[1];
@@ -2610,9 +2621,9 @@ p4est_connectivity_t * Rectangle::new_rectangle_connectivity(
     P4EST_ASSERT(vcount == num_vertices);
     P4EST_FREE(linear_to_tree);
     P4EST_FREE(tree_to_corner2);
-// #ifdef OXLEY_ENABLE_DEBUG
-//     P4EST_ASSERT(p4est_connectivity_is_valid(conn)); //This is very time consuming
-// #endif
+#ifdef OXLEY_ENABLE_DEBUG
+    P4EST_ASSERT(p4est_connectivity_is_valid(conn)); //This is very time consuming
+#endif
     return conn;
 }
 
