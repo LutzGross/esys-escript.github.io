@@ -15,7 +15,7 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Building escript...
-      run: scons -j8 lapack=1 options_file=scons/meerkat_options.py build_full || cat config.log
+      run: scons -j8 options_file=scons/meerkat_options.py build_full || cat config.log
 
     - name: Running unit tests...
       run: |
