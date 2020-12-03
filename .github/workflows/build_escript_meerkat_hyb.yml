@@ -17,6 +17,6 @@ jobs:
 
     - name: Running unit tests...
       run: |
-          export LD_LIBRARY_PATH=/usr/local/trilinos_mpi/lib:/usr/local/boost.1.73.0/lib:$LD_LIBRARY_PATH
+          export LD_LIBRARY_PATH=/usr/local/trilinos_mpi/lib:/usr/local/boost.1.74.0/lib:$LD_LIBRARY_PATH
           sh utest.sh `pwd`/build_normal '-n2 -t4'
         
