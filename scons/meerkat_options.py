@@ -20,17 +20,18 @@
 escript_opts_version = 203
 
 build_debug=False
-build_debug=True
+# build_debug=True
 
 openmp=False
 openmp=True
 
 if build_debug == True:
 	boost_prefix='/usr/local/boost.1.74.0'
-	boost_libs='boost_python38'
+	boost_libs='boost_python39'
 	build_dir='build_debug'
 	cxx_extra="-O0 -g -pg -fdiagnostics-color -Wno-implicit-int-float-conversion"
 	cxx_extra+=" -DOXLEY_ENABLE_DEBUG"
+	cxx_extra+=" -DOXLEY_ENABLE_DEBUG_NODES"
 	debug=True
 	ld_extra='-L/usr/lib/openmpi/'
 	if openmp is True:
@@ -40,9 +41,9 @@ if build_debug == True:
 		trilinos_prefix='/usr/local/trilinos_noomp'
 	paso=False
 	pythoncmd="/usr/bin/python3"
-	pythonlibname="python3.8"
+	pythonlibname="python3.9"
 	pythonlibpath="/usr/lib"
-	pythonincpath="/usr/include/python3.8"
+	pythonincpath="/usr/include/python3.9"
 	umfpack=True
 	umfpack_prefix=['/usr/include/','/usr/lib']
 	trilinos=True
@@ -50,7 +51,7 @@ if build_debug == True:
 	werror=False
 else:
 	boost_prefix='/usr/local/boost.1.74.0'
-	boost_libs='boost_python38'
+	boost_libs='boost_python39'
 	build_dir='build_normal'
 	cxx_extra="-O3 -funroll-loops -fdiagnostics-color"
 	debug=False
@@ -62,9 +63,9 @@ else:
 		trilinos_prefix='/usr/local/trilinos_noomp'
 	paso=False
 	pythoncmd="/usr/bin/python3"
-	pythonlibname="python3.8"
+	pythonlibname="python3.9"
 	pythonlibpath="/usr/lib"
-	pythonincpath="/usr/include/python3.8"
+	pythonincpath="/usr/include/python3.9"
 	umfpack=True
 	umfpack_prefix=['/usr/include/','/usr/lib']
 	trilinos=True
