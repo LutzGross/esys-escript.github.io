@@ -24,7 +24,7 @@
 #include <boost/python/numpy/dtype.hpp>
 #endif
 
-// #include <p4est_algorithms.h> //aeae
+// #include <p4est_algorithms.h> 
 
 // using namespace boost::python::numpy;
 

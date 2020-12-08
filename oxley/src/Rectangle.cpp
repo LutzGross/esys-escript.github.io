@@ -89,7 +89,7 @@ Rectangle::Rectangle(int order,
     //                                             };
     // const p4est_topidx_t tree_to_vertex[P4EST_CHILDREN] = {0, 1, 2, 3,};
     // const p4est_topidx_t tree_to_tree[P4EST_FACES] = {0, 0, 0, 0,};
-    // // const int8_t tree_to_face[P4EST_FACES] = {1, 0, 3, 2,}; //aeae todo: add in periodic boundary conditions
+    // // const int8_t tree_to_face[P4EST_FACES] = {1, 0, 3, 2,}; //TODO: add in periodic boundary conditions
     // const int8_t tree_to_face[P4EST_FACES] = {0, 1, 2, 3,};
     // const p4est_topidx_t tree_to_corner[P4EST_CHILDREN] = {0, 0, 0, 0,};
     // const p4est_topidx_t ctt_offset[2] = {0, P4EST_CHILDREN,};
@@ -263,12 +263,12 @@ void Rectangle::write(const std::string& filename) const
 bool Rectangle::probeInterpolationAcross(int fsType_source,
         const escript::AbstractDomain& domain, int fsType_target) const
 {
-    throw OxleyException("probeInterpolationAcross"); //AE this is temporary
+    throw OxleyException("probeInterpolationAcross"); //TODO this is temporary
 }
 
 void Rectangle::interpolateAcross(escript::Data& target, const escript::Data& source) const
 {
-    throw OxleyException("interpolateAcross"); //AE this is temporary
+    throw OxleyException("interpolateAcross"); //TODO this is temporary
 }
 
 void Rectangle::setToNormal(escript::Data& out) const
@@ -443,7 +443,7 @@ void Rectangle::setToSize(escript::Data& out) const
 
 bool Rectangle::ownSample(int fsType, index_t id) const
 {
-    throw OxleyException("ownSample"); //AE this is temporary
+    throw OxleyException("ownSample"); //TODO this is temporary
 }
 
 
@@ -459,7 +459,7 @@ escript::Data Rectangle::randomFill(const escript::DataTypes::ShapeType& shape,
                                     const escript::FunctionSpace& fs,
                                     long seed, const bp::tuple& filter) const
 {
-    throw OxleyException("randomFill"); //AE this is temporary
+    throw OxleyException("randomFill"); //TODO this is temporary
 }
 
 
@@ -2296,7 +2296,7 @@ dim_t Rectangle::findNode(const double *coords) const
 //protected
 void Rectangle::nodesToDOF(escript::Data& out, const escript::Data& in) const
 {
-    //AEAE todo
+    //TODO
     throw OxleyException("nodesToDOF");
 
 //     const dim_t numComp = in.getDataPointSize();

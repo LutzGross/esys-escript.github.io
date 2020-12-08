@@ -501,7 +501,7 @@ void refine_copy_parent_octant(p8est_t * p8est, p4est_topidx_t tree,
 
 void get_interpolateNodesOnElementWorker_data(p4est_iter_volume_info_t * info, void *fxx)
 {
-    //AEAE todo
+    //TODO
 
     // memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,k1, m_NN[0]), sentinel), numComp*sizeof(S));
     // memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,k1+1, m_NN[0]), sentinel), numComp*sizeof(S));
@@ -512,13 +512,13 @@ void get_interpolateNodesOnElementWorker_data(p4est_iter_volume_info_t * info, v
 
 void get_interpolateNodesOnElementWorker_data(p8est_iter_volume_info_t * info, void *fxx)
 {
-    //AEAE todo
+    //TODO
 }
 
 
 void get_interpolateNodesOnFacesWorker_data(p4est_iter_volume_info_t * info, void *fxx)
 {
-    //AEAE todo
+    //TODO
 
 //     node->x == 0 || node->x == P4EST_ROOT_LEN ||
 //           node->y == 0 || node->y == P4EST_ROOT_LEN 
@@ -568,7 +568,7 @@ void get_interpolateNodesOnFacesWorker_data(p4est_iter_volume_info_t * info, voi
 
 // void get_interpolateNodesOnFacesWorker_data(p8est_iter_volume_info_t * info, void *fxx);
 // {
-//     //AEAE todo
+//     //TODO
 // }
 
 

@@ -26,7 +26,7 @@
 
 namespace oxley {
 
-// AEAE
+// Debugging info
 void print_quad_debug_info(p4est_quadrant_t * quadrant);
 
 // Uniform refinement

@@ -389,7 +389,7 @@ inline dim_t Brick::getNumFaceElements() const
 inline dim_t Brick::getNumDOF() const
 {
     // return (m_gNE[0]+1)/m_NX[0]*(m_gNE[1]+1)/m_NX[1];
-    return getNumNodes()+1; //AEAE todo
+    return getNumNodes()+1; //TODO
 }
 
 //protected
@@ -420,7 +420,7 @@ void Brick::assembleCoordinates(escript::Data& arg) const
 //protected
 esys_trilinos::const_TrilinosGraph_ptr Brick::getTrilinosGraph() const
 {
-    //AEAE todo
+    //TODO
 
     // if (m_graph.is_null()) {
     //     m_graph = createTrilinosGraph(m_dofId, m_nodeId);
@@ -435,7 +435,7 @@ paso::SystemMatrixPattern_ptr Brick::getPasoMatrixPattern(
                                                     bool reducedRowOrder,
                                                     bool reducedColOrder) const
 {
-    // AEAE todo
+    // TODO
 
 //     if (m_pattern.get())
 //         return m_pattern;
@@ -689,7 +689,7 @@ template <typename S>
 void Brick::interpolateNodesOnFacesWorker(escript::Data& out, const escript::Data& in,
                                     bool reduced, S sentinel) const
 {
-    //AEAE todo
+    //TODO
 
 
 //     const dim_t numComp = in.getDataPointSize();
@@ -1026,7 +1026,7 @@ template<typename Scalar>
 void Brick::assembleGradientImpl(escript::Data& out,
                                  const escript::Data& in) const
 {
-    //AEAE todo
+    //TODO
 
 //     const dim_t numComp = in.getDataPointSize();
 //     const double C0 = .044658198738520451079;
@@ -1503,7 +1503,7 @@ void Brick::assembleGradientImpl(escript::Data& out,
 //protected
 void Brick::nodesToDOF(escript::Data& out, const escript::Data& in) const
 {
-    //AEAE todo
+    //TODO
 
 //     const dim_t numComp = in.getDataPointSize();
 //     out.requireWrite();
@@ -1529,7 +1529,7 @@ void Brick::nodesToDOF(escript::Data& out, const escript::Data& in) const
 ////////////////////////////// inline methods ////////////////////////////////
 inline dim_t Brick::getDofOfNode(dim_t node) const
 {
-    //AEAE todo
+    //TODO
     return -1;
     // return m_dofMap[node];
 }
@@ -1545,7 +1545,7 @@ void Brick::assembleGradientImpl<cplx_t>(escript::Data& out,
 
 dim_t Brick::findNode(const double *coords) const
 {
-    //AEAE todo
+    //TODO
     return -1;
 
     
@@ -1553,7 +1553,7 @@ dim_t Brick::findNode(const double *coords) const
 
 std::vector<IndexVector> Brick::getConnections(bool includeShared) const
 {
-    //AEAE todo
+    //TODO
 
 //     // returns a vector v of size numDOF where v[i] is a vector with indices
 //     // of DOFs connected to i (up to 27 in 3D).
