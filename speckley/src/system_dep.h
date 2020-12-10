@@ -36,11 +36,13 @@
 
 // byte swapping / endianness:
 
-#include <boost/detail/endian.hpp>
-#ifdef ESYS_DEPRECATED_BOOST_ENDIAN
+#if defined(ESYS_DEPRECATED_BOOST_ENDIAN)
 #include <boost/predef/other/endian.h>
+#elif defined(ESYS_MOVED_BOOST_ENDIAN)
+#include <boost/endian.h>
+#else
+#include <boost/detail/endian.hpp>
 #endif
-
 namespace speckley {
 
 enum {
@@ -53,8 +55,8 @@ enum {
 #elif defined(ESYS_DEPRECATED_BOOST_ENDIAN) && defined(BOOST_ENDIAN_LITTLE_WORD)
     BYTEORDER_NATIVE = 2134,
 #endif
-    BYTEORDER_LITTLE_ENDIAN = 4321,
-    BYTEORDER_BIG_ENDIAN = 1234
+    BYTEORDER_LITTLE_ENDIAN = 1234,
+    BYTEORDER_BIG_ENDIAN = 4321
 };
 
 enum {
