@@ -543,7 +543,97 @@ namespace oxley {
 
     bool OxleyDomain::commonFunctionSpace(const vector<int>& fs, int& resultcode) const
     {
-        throw OxleyException("currently not implemented"); // This is temporary
+            /*
+        The idea is to use equivalence classes (i.e. types which can be
+        interpolated back and forth):
+        class 0: DOF <-> Nodes
+        class 1: ReducedDOF <-> ReducedNodes
+        class 2: Points
+        class 3: Elements
+        class 4: ReducedElements
+        class 5: FaceElements
+        class 6: ReducedFaceElements
+
+        There is also a set of lines. Interpolation is possible down a line but not
+        between lines.
+        class 0 and 1 belong to all lines so aren't considered.
+        line 0: class 2
+        line 1: class 3,4
+        line 2: class 5,6
+
+        For classes with multiple members (eg class 1) we have vars to record if
+        there is at least one instance. e.g. hasnodes is true if we have at least
+        one instance of Nodes.
+        */
+        if (fs.empty())
+            return false;
+        vector<bool> hasclass(7, false);
+        vector<int> hasline(3, 0);
+        bool hasnodes=false;
+        bool hasrednodes=false;
+        for (size_t i=0; i<fs.size(); ++i) {
+            switch (fs[i]) {
+                case Nodes: hasnodes=true; // fall through
+                case DegreesOfFreedom:
+                    hasclass[0]=true;
+                    break;
+                case ReducedNodes: hasrednodes=true; // fall through
+                case ReducedDegreesOfFreedom:
+                    hasclass[1]=true;
+                    break;
+                case Points:
+                    hasline[0]=1;
+                    hasclass[2]=true;
+                    break;
+                case Elements:
+                    hasclass[3]=true;
+                    hasline[1]=1;
+                    break;
+                case ReducedElements:
+                    hasclass[4]=true;
+                    hasline[1]=1;
+                    break;
+                case FaceElements:
+                    hasclass[5]=true;
+                    hasline[2]=1;
+                    break;
+                case ReducedFaceElements:
+                    hasclass[6]=true;
+                    hasline[2]=1;
+                    break;
+                default:
+                    return false;
+            }
+        }
+        int numLines=hasline[0]+hasline[1]+hasline[2];
+
+        // fail if we have more than one leaf group
+        // = there are at least two branches we can't interpolate between
+        if (numLines > 1)
+            return false;
+        else if (numLines==1) {
+            // we have points
+            if (hasline[0]==1)
+                resultcode=Points;
+            else if (hasline[1]==1) {
+                if (hasclass[4])
+                    resultcode=ReducedElements;
+                else
+                    resultcode=Elements;
+            } else { // hasline[2]==1
+                if (hasclass[6])
+                    resultcode=ReducedFaceElements;
+                else
+                    resultcode=FaceElements;
+            }
+        } else { // numLines==0
+            if (hasclass[1])
+                // something from class 1
+                resultcode=(hasrednodes ? ReducedNodes : ReducedDegreesOfFreedom);
+            else // something from class 0
+                resultcode=(hasnodes ? Nodes : DegreesOfFreedom);
+        }
+        return true;
     }
 
     escript::Data OxleyDomain::getX() const

@@ -443,7 +443,53 @@ void Rectangle::setToSize(escript::Data& out) const
 
 bool Rectangle::ownSample(int fsType, index_t id) const
 {
-    throw OxleyException("ownSample"); //TODO this is temporary
+    if (getMPISize()==1)
+        return true;
+
+    switch (fsType) {
+        case Nodes:
+        case ReducedNodes: // FIXME: reduced
+            return (m_dofMap[id] < getNumDOF());
+        case DegreesOfFreedom:
+        case ReducedDegreesOfFreedom:
+            return true;
+        case Elements:
+        case ReducedElements:
+            // check ownership of element's bottom left node
+            // return (m_dofMap[id%m_NE[0]+m_NN[0]*(id/m_NE[0])] < getNumDOF());
+            throw OxleyException("Rectangle::ownSample Currently not implemented.");
+            return false;
+        case FaceElements:
+        case ReducedFaceElements:
+            {
+                // // determine which face the sample belongs to before
+                // // checking ownership of corresponding element's first node
+                // dim_t n=0;
+                // for (size_t i=0; i<4; i++) {
+                //     n+=m_faceCount[i];
+                //     if (id<n) {
+                //         index_t k;
+                //         if (i==1)
+                //             k=m_NN[0]-2;
+                //         else if (i==3)
+                //             k=m_NN[0]*(m_NN[1]-2);
+                //         else
+                //             k=0;
+                //         // determine whether to move right or up
+                //         const index_t delta=(i/2==0 ? m_NN[0] : 1);
+                //         return (m_dofMap[k+(id-n+m_faceCount[i])*delta] < getNumDOF());
+                //     }
+                // }
+                throw OxleyException("Rectangle::ownSample Currently not implemented.");
+                return false;
+            }
+        default:
+            break;
+    }
+
+    std::stringstream msg;
+    msg << "ownSample: invalid function space type " << fsType;
+    throw ValueError(msg.str());
 }
 
 
