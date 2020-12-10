@@ -936,42 +936,20 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
                 int k = q - Q + nodeIncrements[treeid - p4est->first_local_tree];
                 long lidx = nodes->element_nodes[4*k+n];
 
-                if(lidx < nodes->owned_count) // if this process owns the node
+                double lx = length * ((int) (n % 2) == 1);
+                double ly = length * ((int) (n / 2) == 1);
+                double xy[3];
+                p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
+
+                if( (n == 0) 
+                  || isHangingNode(nodes->face_code[k], n)
+                  || isUpperBoundaryNode(quad, n, treeid, length) 
+                )
                 {
-
-                    // if(isHangingNode(nodes->face_code[k], n))
-                    // {
-                    //     double lx = length * ((int) (n % 2) == 1);
-                    //     double ly = length * ((int) (n / 2) == 1);
-                    //     double xy[3];
-                    //     p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
-
-                    //     std::pair<double,double> coords = std::make_pair(xy[0],xy[1]);
-                    //     long lni = hangingNodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-                    //     double * point = arg.getSampleDataRW(lni);
-                    //     point[0] = xy[0];
-                    //     point[1] = xy[1];
-
-                    //     continue;
-                    // }
-
-                    double lx = length * ((int) (n % 2) == 1);
-                    double ly = length * ((int) (n / 2) == 1);
-                    double xy[3];
-                    p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
-
-                    if(     (n == 0) 
-                        || ((n == 1) && (xy[0] == forestData.m_lxy[0]))
-                        || ((n == 2) && (xy[1] == forestData.m_lxy[1]))
-                        || ((n == 3) && (xy[0] == forestData.m_lxy[0]) && (xy[1] == forestData.m_lxy[1]))
-                      )
-                    {
-                        long lni = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-                        double * point = arg.getSampleDataRW(lni);
-                        point[0] = xy[0];
-                        point[1] = xy[1];
-                        // std::cout << lni << ": (" << xy[0] << ", " << xy[1] << ")" << std::endl;
-                    }
+                    long lni = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+                    double * point = arg.getSampleDataRW(lni);
+                    point[0] = xy[0];
+                    point[1] = xy[1];
                 }
             }
         }
