@@ -344,9 +344,8 @@ BOOST_PYTHON_MODULE(oxleycpp)
             ":param column_blocksize:\n:type column_blocksize: ``int``\n"
             ":param column_functionspace:\n:type column_functionspace: `FunctionSpace`\n"
             ":param type:\n:type type: ``int``")
-        .def("refineMesh", &oxley::OxleyDomain::refineMesh, (args("RefineLevel","RefinementAlgorithm")),
+        .def("refineMesh", &oxley::OxleyDomain::refineMesh, (args("RefinementAlgorithm")),
                 "Refines the mesh.\n"
-                ":param RefineLevel:\n:type int: `Maximum levels of refinement,`\n"
                 ":param RefinementAlgorithm:\n:type string: `The refinement algorithm \n"
                 "       accepted values are \"uniform\"")
         .def("refineBoundary", &oxley::OxleyDomain::refineBoundary, (args("boundary","dx")),
@@ -359,7 +358,7 @@ BOOST_PYTHON_MODULE(oxleycpp)
                 ":param x1:\n:type double: boundary of the region.\n"
                 ":param y0:\n:type double: boundary of the region.\n"
                 ":param y1:\n:type double: boundary of the region.\n")
-        .def("setRefinementLevels", &oxley::OxleyDomain::setRefinementLevels, (arg("refinementlevels")),
+        .def("setRefinementLevel", &oxley::OxleyDomain::setRefinementLevels, (arg("refinementlevels")),
                 "Sets the number of levels of refinement\n"
                 ":param refinementLevels:\ntype int: `Maximum number of levels of refinement,`\n")
         .def("writeToVTK", &oxley::OxleyDomain::writeToVTK, (arg("filename"), arg("writeMesh")=false),

@@ -760,7 +760,7 @@ namespace oxley {
         throw OxleyException("unknown error");
     }
 
-    void OxleyDomain::refineMesh(int maxRecursion, std::string algorithm)
+    void OxleyDomain::refineMesh(std::string algorithm)
     {
         throw OxleyException("unknown error");
     }

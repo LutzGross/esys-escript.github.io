@@ -601,16 +601,11 @@ void Rectangle::writeToVTK(std::string filename, bool writeMesh) const
     }
 }
 
-void Rectangle::refineMesh(int RefineLevel, std::string algorithmname)
+void Rectangle::refineMesh(std::string algorithmname)
 {
-    forestData.refinement_depth = RefineLevel;
 
     if(!algorithmname.compare("uniform"))
     {
-        if(RefineLevel <= 0)
-            throw OxleyException("Invalid value for RefineLevel");
-
-        forestData.refinement_depth = RefineLevel;
         p4est_refine_ext(p4est, true, -1, refine_uniform, init_rectangle_data, refine_copy_parent_quadrant);
         p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);
     }

@@ -171,10 +171,9 @@ public:
     /**
        \brief
        refines the mesh
-       \param maxRecursion Max levels of recursion
        \param algorithmname The algorithm to use
     */
-    virtual void refineMesh(int maxRecursion, std::string algorithmname);
+    virtual void refineMesh(std::string algorithmname);
 
     /**
        \brief

@@ -404,7 +404,7 @@ public:
        \brief
        refines the mesh using enum RefinementAlgorithm
     */
-    virtual void refineMesh(int maxRecursion, std::string algorithm);
+    virtual void refineMesh(std::string algorithm);
 
     /**
        \brief

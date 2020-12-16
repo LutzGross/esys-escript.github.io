@@ -342,10 +342,12 @@ void Brick::writeToVTK(std::string filename, bool writeMesh) const
 
 }
 
-void Brick::refineMesh(int maxRecursion, std::string algorithmname)
+void Brick::refineMesh(std::string algorithmname)
 {
+    double max_levels_refinement = 8; //TODO
+
     if(!algorithmname.compare("uniform")){
-        p8est_refine_ext(p8est, true, maxRecursion, refine_uniform, NULL, refine_copy_parent_octant);
+        p8est_refine_ext(p8est, true, max_levels_refinement, refine_uniform, NULL, refine_copy_parent_octant);
         p8est_balance_ext(p8est, P8EST_CONNECT_FULL, NULL, refine_copy_parent_octant);
         int partforcoarsen = 1;
         p8est_partition(p8est, partforcoarsen, NULL);
