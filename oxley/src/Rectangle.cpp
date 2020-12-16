@@ -709,10 +709,11 @@ void Rectangle::refineBoundary(std::string boundaryname, double dx)
 
 void Rectangle::refineRegion(double x0, double x1, double y0, double y1)
 {
-    forestData.refinement_boundaries[0] = x0;
-    forestData.refinement_boundaries[1] = x1;
-    forestData.refinement_boundaries[2] = y0;
-    forestData.refinement_boundaries[3] = y1;
+    // If the boundaries were not specified by the user, default to the border of the domain
+    forestData.refinement_boundaries[0] = x0 == -1 ? forestData.m_origin[0] : x0; 
+    forestData.refinement_boundaries[1] = x1 == -1 ? forestData.m_origin[1] : x1;
+    forestData.refinement_boundaries[2] = y0 == -1 ? forestData.m_lxy[0] : y0;
+    forestData.refinement_boundaries[3] = y1 == -1 ? forestData.m_lxy[1] : y1;
 
     p4est_refine_ext(p4est, true, -1, refine_region, init_rectangle_data, refine_copy_parent_quadrant);
     p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);
