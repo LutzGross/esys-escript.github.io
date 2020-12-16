@@ -416,6 +416,17 @@ public:
 
     /**
        \brief
+       refines the mesh within the interior of a region bound by 
+       x0, x1, y0, y1
+       \param x0 boundary of the region
+       \param x1 boundary of the region
+       \param y0 boundary of the region
+       \param y1 boundary of the region
+    */
+    virtual void refineRegion(double x0, double x1, double y0, double y1);
+
+    /**
+       \brief
        returns a Data object containing the coordinate information
     */
     virtual int getNumVertices() const = 0;

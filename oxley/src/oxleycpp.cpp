@@ -353,6 +353,12 @@ BOOST_PYTHON_MODULE(oxleycpp)
                 "Refines the mesh near a boundary.\n"
                 ":param boundary:\n:type string: `The boundary (n,s,e,w) \n"
                 ":param dx:\n:type double: all quadrants closer to the boundary than dx will be refined. ")
+        .def("refineRegion", &oxley::OxleyDomain::refineRegion, (args("x0","x1","y0","y1")),
+                "Refines the mesh within the interior of a region.\n"
+                ":param x0:\n:type double: boundary of the region.\n"
+                ":param x1:\n:type double: boundary of the region.\n"
+                ":param y0:\n:type double: boundary of the region.\n"
+                ":param y1:\n:type double: boundary of the region.\n")
         .def("setRefinementLevels", &oxley::OxleyDomain::setRefinementLevels, (arg("refinementlevels")),
                 "Sets the number of levels of refinement\n"
                 ":param refinementLevels:\ntype int: `Maximum number of levels of refinement,`\n")

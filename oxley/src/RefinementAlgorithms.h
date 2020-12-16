@@ -45,6 +45,8 @@ int refine_south(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadra
 int refine_west(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant);
 int refine_east(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant);
 
+int refine_region(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant);
+
 /*
  *  \brief
  * Checks that the quadrant is valid (used when debugging)

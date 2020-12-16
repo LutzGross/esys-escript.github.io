@@ -359,6 +359,11 @@ void Brick::refineBoundary(std::string boundary, double dx)
 
 }
 
+void Brick::refineRegion(double x0, double x1, double y0, double y1)
+{
+    
+}
+
 // protected
 inline index_t Brick::getFirstInDim(unsigned axis) const
 {

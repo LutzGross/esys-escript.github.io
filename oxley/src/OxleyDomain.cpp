@@ -770,6 +770,11 @@ namespace oxley {
         throw OxleyException("unknown error");
     }
 
+    void OxleyDomain::refineRegion(double x0, double x1, double y0, double y1)
+    {
+        throw OxleyException("unknown error");   
+    }
+
     void OxleyDomain::setTagMap(const std::string& name, int tag)
     {
         throw OxleyException("currently not implemented"); // This is temporary

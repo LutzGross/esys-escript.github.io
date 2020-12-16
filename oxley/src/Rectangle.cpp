@@ -707,6 +707,39 @@ void Rectangle::refineBoundary(std::string boundaryname, double dx)
     updateRowsColumns();
 }
 
+void Rectangle::refineRegion(double x0, double x1, double y0, double y1)
+{
+    forestData.refinement_boundaries[0] = x0;
+    forestData.refinement_boundaries[1] = x1;
+    forestData.refinement_boundaries[2] = y0;
+    forestData.refinement_boundaries[3] = y1;
+
+    p4est_refine_ext(p4est, true, -1, refine_region, init_rectangle_data, refine_copy_parent_quadrant);
+    p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);
+
+    // Make sure that nothing went wrong
+#ifdef OXLEY_ENABLE_DEBUG
+    if(!p4est_is_valid(p4est))
+        throw OxleyException("p4est broke during refinement");
+    if(!p4est_connectivity_is_valid(connectivity))
+        throw OxleyException("connectivity broke during refinement");
+#endif
+
+    bool partition_for_coarsening = true;
+    p4est_partition_ext(p4est, partition_for_coarsening, NULL);
+
+    // Update the nodes
+    p4est_lnodes_destroy(nodes);
+    p4est_ghost_t * ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
+    nodes = p4est_lnodes_new(p4est, ghost, 1);
+    p4est_ghost_destroy(ghost);
+
+    // Update
+    updateNodeIncrements();
+    renumberNodes();
+    updateRowsColumns();
+}
+
 escript::Data Rectangle::getX() const
 {
     escript::Data out=escript::Vector(0,escript::continuousFunction(*this),true);
