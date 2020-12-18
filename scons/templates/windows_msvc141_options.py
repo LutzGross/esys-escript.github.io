@@ -77,5 +77,7 @@ if conda_prefix:
     ld_extra = ' '.join(filter(None, ('libmumps_common.a libdmumps.dll.a libzmumps.dll.a', ld_extra)))
 #    mumps_libs = ['libmumps_common.a', 'libdmumps.dll.a', 'libzmumps.dll.a']
     mumps_libs = []
+    silo_prefix = lib_prefix
+    silo_libs = ['silohdf5']
 
 tools_names = ['msvc']
