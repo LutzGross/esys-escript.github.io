@@ -27,7 +27,7 @@ $ ldd libescript.so
         libstdc++.so.6
 ...
 ```
-`
+
 On Windows systems use (`dumpbin` is installed with MSVC):
 
 ```
