@@ -6,11 +6,11 @@ conda-forge installation for the required system. The Python packaging build
 process expects to download the required package of libraries from
 [GitHub](https://github.com/esys-escript/esys-escript.github.io/releases)
 
-## Creating the Python source and dependent libraries
+## Collecting the Python source and dependent libraries
 
-The Python sources files listed in `py_src.lst` and the escript README.md and
-LICENSE files need to be collected and placed in the same folder as the
-`setup.py` script.
+The Python sources files listed in `py_src.lst`, along with the escript
+README.md and LICENSE files, need to be collected and placed in the same folder
+as the `setup.py` script.
 
 Collecting the required libraries from the conda-forge installation involves
 manually following the dependency trail of the required libraries.
@@ -52,9 +52,9 @@ available can be ignored (e.g. `MSVCP140.dll` on Windows systems).
 
 The escript `buildvars` file from the conda-forge installation should also be
 included with the libraries. Libraries are packaged in the `lib` folder in a
-`zip` file on Windows system or a `tgz` file on Linux systems.
+`zip` file on Windows systems or a `tgz` file on Linux systems.
 
-Python specific escript libraries, such as `esys\escriptcore\escriptcpp.pyd`
+Python-specific escript libraries, such as `esys\escriptcore\escriptcpp.pyd`
 are packaged under the `esys` folder.
 
 ## Build process
@@ -80,8 +80,8 @@ libraries must be in the system library path, so `esys.escript.__init__.py` on
 the end-user's system will issue a warning if not set and restart Python with
 the library path set.
 
-- Set up `run-escript` and `runmodel` script entry points on the end-user's
-command line path.
+- Set up `run-escript` and `runmodel` script entry points, runable from the
+end-user's command line path.
 
 The pip module build script dependencies need to be installed before launching
 the build:
@@ -90,7 +90,7 @@ the build:
 pip install requests
 ```
 
-The pip build can then be launched as follows:
+The module build can then be launched as follows:
 
 ```
 python setup.py bdist_wheel
@@ -102,7 +102,7 @@ on each required target platform.
 ## Installation from wheel file
 
 The pip build generates a wheel file in the `dist` folder. You can install the
-pip module from the local wheel file as follows:
+pip module from the local wheel file, for example:
 
 ```
 pip install dist\esys_escript-5.6.2-cp38-cp38-win_amd64.whl
@@ -121,7 +121,7 @@ API token and setup your `$HOME/.pypirc` as follows:
 
 See [PyPI Help](https://pypi.org/help) for further details.
 
-Twine needs to be installed first:
+Twine needs to be installed next:
 
 ```
 pip install twine
