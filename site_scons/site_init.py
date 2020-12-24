@@ -124,31 +124,33 @@ def write_launcher(env):
             cmd = cmd.replace(k, v)
             post = post.replace(k, v)
     try:
-        launchscript = os.path.join(env['bininstall'], 'run-escript')
-        if IS_WINDOWS:
-            launcher=open(launchscript+'.py', 'w')
-        else:
-            launcher=open(launchscript, 'w')
         if not env['stdlocationisprefix']:
             usestdlocation='0'
             stdlocation='/usr/lib/python-escript'
         else:
             usestdlocation='1'
             stdlocation=env['prefix']     
+        pylaunchscript = os.path.join('escript', 'py_src', 'run_escript.py')
+        pylauncher=open(pylaunchscript, 'w')
+        with open('run_escript_py.in','r') as f:
+            pylauncher.write(f.read() % {'PRELAUNCH': pre, 'LAUNCH': cmd, 'POSTLAUNCH': post,
+                'STDLOCATION': usestdlocation, 'ESROOT': stdlocation})
+        pylauncher.close()
+        launchscript = os.path.join(env['bininstall'], 'run-escript')
         if IS_WINDOWS:
-            with open('run-escript-py.in','r') as f:
-                launcher.write(f.read() % {'PRELAUNCH': pre, 'LAUNCH': cmd, 'POSTLAUNCH': post,
-                    'STDLOCATION': usestdlocation, 'ESROOT': stdlocation})
+            with open(launchscript+'.cmd', 'w') as cmdfile:
+                cmdfile.write('@echo off\n')
+                cmdfile.write('python %~dp0\\'+launchscript+' %*')
+            with open(launchscript+'.py', 'w') as cmdfile:
+                cmdfile.write('import esys.escript.run_escript\n')
+                cmdfile.write('esys.escript.run_escript.main()')
         else:
+            launcher=open(launchscript, 'w')
             for line in open('run-escript.in','r').readlines():
                 s=line.replace('@@PRELAUNCH', pre).replace('@@LAUNCH', cmd).replace('@@POSTLAUNCH', post)
                 s=s.replace('@@STDLOCATION', usestdlocation).replace('@@ESROOT',stdlocation)
                 launcher.write(s)
-        launcher.close()
-        if IS_WINDOWS:
-            with open(launchscript+'.cmd', 'w') as cmdfile:
-                cmdfile.write('python '+launchscript+'.py %*')
-        else:
+            launcher.close()
             env.Execute(Chmod(launchscript, 0o755))
     except IOError:
         env['warnings'].append("Error attempting to write launcher script.")
