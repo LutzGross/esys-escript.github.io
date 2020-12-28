@@ -63,9 +63,13 @@ if esys_paths[-(len(esys_packages)+1)] == 'site-packages':
         print('{} {}={}{}{}{}{}'.format(cmd, lib_env_name, esys_lib_path, os.pathsep, env1, lib_env_name, env2))
         env = os.environ
         env[lib_env_name] = os.pathsep.join(lib_env_paths+[esys_lib_path])
-        print('re-starting python with new library path...\n')
-        os.execve(sys.executable, [sys.executable]+sys.argv, env)
-        sys.exit(0)
+        if len(''.join(sys.argv)) > 0:
+            print('re-starting python with new library path...\n')
+            os.execve(sys.executable, [sys.executable]+sys.argv, env)
+            sys.exit(0)
+        else:
+            # no args, don't restart an interactive session
+            raise Exception('please exit python shell, set escript library path, then re-start')
 
 from esys.escriptcore.escriptcpp import *
 from esys.escriptcore.util import *

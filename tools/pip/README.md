@@ -2,7 +2,7 @@
 
 The `esys-escript` pip module includes Python source files, as listed in
 `py_src.lst`, and dependent libraries, as collected from an `esys-escript`
-conda-forge installation for the required system. The Python packaging build
+conda-forge installation for the required system. The Python packaging install
 process expects to download the required package of libraries from
 [GitHub](https://github.com/esys-escript/esys-escript.github.io/releases)
 
@@ -50,67 +50,69 @@ checked for their sub-dependencies. The process should continue until all
 dependencies are identified. Any libraries that can be safely assummed to be
 available can be ignored (e.g. `MSVCP140.dll` on Windows systems).
 
+The `find_libs.py` Python script provides a *beta* implementation of the
+described library collection process. To try:
+
+- Install `esys-escript` from conda-forge
+
+- Change to the directory in the conda environment containing the escript
+  libraries
+
+- Launch the script using `python find_libs.py`
+
 The escript `buildvars` file from the conda-forge installation should also be
-included with the libraries. Libraries are packaged in the `lib` folder in a
+included with the libraries. Libraries are packaged in the `lib` folder, in a
 `zip` file on Windows systems or a `tgz` file on Linux systems.
 
-Python-specific escript libraries, such as `esys\escriptcore\escriptcpp.pyd`
-are packaged under the `esys` folder.
+Python-specific escript libraries, such as `esys/escriptcore/escriptcpp.pyd`
+are packaged under the `esys` folder. Search for `.pyd`/`.so` files in the
+conda-forge `$CONDA_PREFIX/esys` folder and collect the required files.
 
 ## Build process
 
 The pip module build script `setup.py` uses the Python setuptools API. The
-highlevel steps in `setup.py` are:
+high-level steps in `setup.py` are:
 
-- Check the platform is supported. Currently supported platforms are Windows 10
-and Debian 10.
+- Check the platform is supported. Currently supported platforms are 64 bit
+  Linux and Windows.
 
-- Download and extract the dependent libraries from
-[GitHub](https://github.com/esys-escript/esys-escript.github.io/releases). If
-the required `zip`/`tgz` file is already in the working directory it will be
-used rather than downloading, which is useful when you are working on a new
-release.
+- Download and extract the dependent libraries (at installation time), from
+  [GitHub](https://github.com/esys-escript/esys-escript.github.io/releases).
 
 - Convert the `buildvars` file to a template that can be populated by
-`esys.escript.__init__.py` on the end-user's system.
+  `esys.escript.__init__.py` on the end-user's system.
 
 - Configure the dependent libraries and `buildvars` template to be installed in
-the end-user's `site-packages` folder, under `esys_escript_lib`. The escript
-libraries must be in the system library path, so `esys.escript.__init__.py` on
-the end-user's system will issue a warning if not set and restart Python with
-the library path set.
+  the end-user's `site-packages` folder, under `esys_escript_lib`. The escript
+  libraries must be in the system library path, so `esys.escript.__init__.py`
+  on the end-user's system will issue a warning if not set and restart Python
+  with the library path set.
 
 - Set up `run-escript` and `runmodel` script entry points, runable from the
-end-user's command line path.
+  end-user's command line path.
 
-The pip module build script dependencies need to be installed before launching
-the build:
-
-```
-pip install requests
-```
-
-The module build can then be launched as follows:
+The pip module build can be launched as follows:
 
 ```
-python setup.py bdist_wheel
+python setup.py sdist
 ```
 
-The generated wheel is specific to the current platform, so repeat the process
-on each required target platform.
+The generated package is not platform specific, platform specific libraries are
+downloaded and installed when the end-user installs the package. The
+installation will fail if the end-user's platform is not supported.
 
-## Installation from wheel file
+## Installation from package file
 
-The pip build generates a wheel file in the `dist` folder. You can install the
-pip module from the local wheel file, for example:
+The pip build generates a package file in the `dist` folder. You can install the
+pip module from the local package file, for example:
 
 ```
-pip install dist\esys_escript-5.6.2-cp38-cp38-win_amd64.whl
+pip install dist\esys_escript-5.6.2.tar.gz
 ```
 
-## Uploading wheels to Test PyPI
+## Uploading packages to Test PyPI
 
-To upload the generated wheel files to Test PyPI, you need to get a Test PyPI
+To upload the generated package file to Test PyPI, you need to get a Test PyPI
 API token and setup your `$HOME/.pypirc` as follows:
 
 ```
@@ -127,7 +129,7 @@ Twine needs to be installed next:
 pip install twine
 ```
 
-You can then upload your wheels to Test PyPI using Twine:
+You can then upload your package to Test PyPI using Twine:
 
 ```
 python -m twine upload --repository testpypi dist/*
@@ -139,7 +141,7 @@ Avoid installing the `esys-escript` Python dependencies from Test PyPI by
 installing them manually as the first step:
 
 ```
-pip install netCDF4 pyproj scipy sympy
+pip install requests netCDF4 pyproj scipy sympy
 ```
 
 Then install `esys-escript` from Test PyPI as follows:
