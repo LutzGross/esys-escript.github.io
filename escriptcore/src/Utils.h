@@ -25,6 +25,8 @@
 #include <boost/python/numpy.hpp>
 #endif
 
+#include <string>
+
 namespace escript {
 
 /**
@@ -38,6 +40,12 @@ namespace escript {
     \warning Only gives accurate answers for clean checkouts
 */
 ESCRIPT_DLL_API int getSvnVersion();
+
+/**
+    \brief
+    return the GIT hash used to build this version.
+*/
+ESCRIPT_DLL_API std::string getGitVersion();
 
 /**
     \brief

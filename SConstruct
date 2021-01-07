@@ -391,38 +391,48 @@ env.Append(CCFLAGS = env['cc_flags'])
 env.AppendUnique(LIBS = env['sys_libs'])
 
 # determine svn revision
-global_revision=ARGUMENTS.get('SVN_VERSION', None)
-if global_revision:
-    global_revision = re.sub(':.*', '', global_revision)
-    global_revision = re.sub('[^0-9]', '', global_revision)
-    if global_revision == '': global_revision='-2'
-else:
-  # Get the global Subversion revision number for the getVersion() method
-  try:
-    global_revision = os.popen('svnversion -n .').read()
-    global_revision = re.sub(':.*', '', global_revision)
-    global_revision = re.sub('[^0-9]', '', global_revision)
-    if global_revision == '': global_revision='-2'
-  except:
-    global_revision = '-1'
+# global_revision=ARGUMENTS.get('SVN_VERSION', None)
+# if global_revision:
+#     global_revision = re.sub(':.*', '', global_revision)
+#     global_revision = re.sub('[^0-9]', '', global_revision)
+#     if global_revision == '': global_revision='-2'
+# else:
+#   # Get the global Subversion revision number for the getVersion() method
+#   try:
+#     global_revision = os.popen('svnversion -n .').read()
+#     global_revision = re.sub(':.*', '', global_revision)
+#     global_revision = re.sub('[^0-9]', '', global_revision)
+#     if global_revision == '': global_revision='-2'
+#   except:
+#     global_revision = '-1'
+# env['svn_revision']=global_revision
+# env['buildvars']['svn_revision']=global_revision
+# env.Append(CPPDEFINES=['SVN_VERSION='+global_revision])
+
+# # If that failed, try to get the version number from the file svn_version
+# if global_revision=='-2' or global_revision=='-1':
+#     try:
+#         global_revision=str(os.popen('cat svn_version 2>/dev/null').read())
+#         if global_revision[global_revision.__len__()-1] == '\n':
+#             temp=global_revision[0:(global_revision.__len__()-1)]
+#         else:
+#             temp=global_revision
+#         print("Using svn revision information from file. Got revision = %s" % temp)
+#     except:
+#         global_revision='-2'
+
+# if global_revision=='-2' or global_revision=='-1':
+    # env['warnings'].append("Could not detect the svn revision number!")
+
+global_revision=''
+try:
+    global_revision = os.popen('git rev-parse HEAD').read()
+    print("Got git revision ", global_revision)
+except:
+    env['warnings'].append("Could not detect the git commit information!")
 env['svn_revision']=global_revision
 env['buildvars']['svn_revision']=global_revision
-env.Append(CPPDEFINES=['SVN_VERSION='+global_revision])
-
-# If that failed, try to get the version number from the file svn_version
-if global_revision=='-2' or global_revision=='-1':
-    try:
-        global_revision=str(os.popen('cat svn_version 2>/dev/null').read())
-        if global_revision[global_revision.__len__()-1] == '\n':
-            temp=global_revision[0:(global_revision.__len__()-1)]
-        else:
-            temp=global_revision
-        print("Using svn revision information from file. Got revision = %s" % temp)
-    except:
-        global_revision='-2'
-
-if global_revision=='-2' or global_revision=='-1':
-    env['warnings'].append("Could not detect the svn revision number!")
+env.Append(CPPDEFINES=['GIT_BUILD'])
 
 env['IS_WINDOWS']=IS_WINDOWS
 env['IS_OSX']=IS_OSX

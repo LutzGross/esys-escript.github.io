@@ -25,6 +25,8 @@
 #ifndef _WIN32
 # include <unistd.h>
 #endif // _WIN32
+#include <string>
+#include <cstdlib>
 
 #include <boost/python.hpp>
 #include <boost/scoped_array.hpp>
@@ -50,6 +52,21 @@ int getSvnVersion()
     return 0;
 #endif
 }
+
+std::string getGitVersion()
+{
+    char githash[100];
+    FILE *p = popen("git rev-parse HEAD","r");
+    if(p != NULL) 
+    {
+        while(fgets(githash, sizeof(githash), p) != NULL)
+        {}
+    }
+    githash[sizeof(githash)]=NULL;
+
+    return githash;
+}
+
 
 // This is probably not very robust, but it works on Savanna today and is
 // useful for performance analysis
