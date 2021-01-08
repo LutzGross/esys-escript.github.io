@@ -49,7 +49,9 @@ except ImportError as e:
 try:
     from scipy.io.netcdf import netcdf_file
     __all__ += ['NetCdfData']
+    HAVE_SCIPY_NETCDF = True
 except:
+    HAVE_SCIPY_NETCDF = False
     pass
 
 try:
@@ -594,8 +596,16 @@ class NetCdfData(DataSource):
         if nct=='u':
             raise RuntimeError('Unsupported filetype for '+str(self.__filename))            
         elif nct=='C' or nct=='c':
-            nct=3
-            f=netcdf_file(self.__filename, 'r')
+            try:
+                import netCDF4 as nc4
+                nct=4
+                f=nc4.Dataset(self.__filename, 'r')
+            except:
+                if HAVE_SCIPY_NETCDF:
+                    nct=3
+                    f=netcdf_file(self.__filename, 'r')
+                else:
+                    raise RuntimeError('Unable to load file '+str(self.__filename))
         elif nct=='4':
             nct=4
             import netCDF4 as nc4
