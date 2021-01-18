@@ -55,16 +55,25 @@ int getSvnVersion()
 
 std::string getGitVersion()
 {
-    char githash[100];
-    FILE *p = popen("git rev-parse HEAD","r");
+    char chardate[100]={-1};
+    // FILE *p = popen("git rev-parse HEAD","r");
+    FILE *p = popen("git show -s --format=%ct","r");
     if(p != NULL) 
     {
-        while(fgets(githash, sizeof(githash), p) != NULL)
+        while(fgets(chardate, sizeof(chardate), p) != NULL)
         {}
     }
-    githash[sizeof(githash)]=NULL;
-
-    return githash;
+    pclose(p);
+    std::string answer = "";
+    int counter=0;
+    while(1)
+    {
+        if(chardate[counter] == '\000')
+            break;
+        answer+=chardate[counter];
+        counter++;
+    }
+    return answer;
 }
 
 
