@@ -20,9 +20,9 @@
 escript_opts_version = 203
 
 build_debug=False
-# build_debug=True
+build_debug=True
 
-# openmp=False
+openmp=False
 openmp=True
 
 if build_debug == True:
@@ -30,8 +30,8 @@ if build_debug == True:
 	boost_libs='boost_python39'
 	build_dir='build_debug'
 	cxx_extra="-O0 -g -pg -fdiagnostics-color -Wno-implicit-int-float-conversion"
-	cxx_extra+=" -DOXLEY_ENABLE_DEBUG"
-	cxx_extra+=" -DOXLEY_ENABLE_DEBUG_NODES"
+	# cxx_extra+=" -DOXLEY_ENABLE_DEBUG"
+	# cxx_extra+=" -DOXLEY_ENABLE_DEBUG_NODES"
 	debug=True
 	ld_extra='-L/usr/lib/openmpi/'
 	if openmp is True:

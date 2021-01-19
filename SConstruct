@@ -426,7 +426,9 @@ env.AppendUnique(LIBS = env['sys_libs'])
 
 global_revision=''
 try:
-    global_revision = os.popen('git rev-parse HEAD').read()
+    global_revision = os.popen('git show -s --format=%ct').read()
+    global_revision = re.sub(':.*', '', global_revision)
+    global_revision = re.sub('[^0-9]', '', global_revision)
     print("Got git revision ", global_revision)
 except:
     env['warnings'].append("Could not detect the git commit information!")

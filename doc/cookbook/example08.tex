@@ -160,7 +160,7 @@ y=source[0]*(cos(length(x-xc)*3.1415/src_length)+1)*\
 src_dir=numpy.array([0.,1.]) # defines direction of point source as down
 y=y*src_dir
 \end{python}
-where \verb xc  is the source point on the boundary of the model. Note that
+where \verb|xc|  is the source point on the boundary of the model. Note that
 because the source is specifically located on the boundary, we have used the
 \verb!FunctionOnBoundary! call to ensure the nodes used to define the source
 are also located upon the boundary. These boundary nodes are passed to

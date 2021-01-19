@@ -312,7 +312,7 @@ coefficients are interpreted in \esc can be helpful.
 
 There are various ways to construct domain objects. The simplest form is a
 rectangular shaped region with a length and height. There is
-a ready to use function for this named \verb rectangle(). Besides the spatial
+a ready to use function for this named \verb|rectangle()|. Besides the spatial
 dimensions this function requires to specify the number of
 elements or cells to be used along the length and height, see \reffig{fig:fs}.
 Any spatially distributed value 
@@ -566,9 +566,9 @@ it is advisable to make a careful choice on the function space used.
 
 Finally we initialise an iteration loop to solve our PDE for all the time steps
 we specified in the variable section. As the right hand side of the general form
-is dependent on the previous values for temperature \verb T  across the bar this
-must be updated in the loop. Our output at each time step is \verb T  the heat
-distribution and \verb totT  the total heat in the system.
+is dependent on the previous values for temperature \verb|T|  across the bar this
+must be updated in the loop. Our output at each time step is \verb|T|  the heat
+distribution and \verb|totT|  the total heat in the system.
 \begin{python}
 while t < tend:
 	i+=1 #increment the counter
@@ -720,10 +720,10 @@ name or subdirectory name. We can use the operator \verb|%| to use the value of
 \verb|i| as part of our filename. The sub-string \verb|%03d| indicates that we
 want to substitute a value into the name; 
 \begin{itemize}
- \item \verb 0  means that small numbers should have leading zeroes;
- \item \verb 3  means that numbers should be written using at least 3 digits;
+ \item \verb|0|  means that small numbers should have leading zeroes;
+ \item \verb|3|  means that numbers should be written using at least 3 digits;
 and
- \item \verb d  means that the value to substitute will be a decimal integer.
+ \item \verb|d|  means that the value to substitute will be a decimal integer.
 \end{itemize}
 
 To actually substitute the value of \verb|i| into the name write \verb|%i| after
