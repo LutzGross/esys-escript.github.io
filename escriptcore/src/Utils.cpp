@@ -788,7 +788,6 @@ boost::python::list getNumpy(boost::python::dict arg)
     int numsamples = data[0].getNumSamples();
     int dpps = data[0].getNumDataPointsPerSample();
     if(hasmask){
-        #pragma omp parallel for
         for(int i = 0; i < numsamples * dpps; i++){
             arraylength += (bool) *mask.getSampleDataRO(i, onlyreal);
         }
