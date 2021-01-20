@@ -86,8 +86,8 @@ For information on a specific Linux distrobution, please consult the install gui
 
 # Using escript
 
-To get started using escript see the user guide and the cookbook. 
-All of these documents are available at https://esys-escript.github.io/
+To get started using escript please consult the user guide (user.pdf) and the (cookbook.pdf) cookbook. 
+All of these documents are available here and at https://esys-escript.github.io/
 
 # Bugs
 
