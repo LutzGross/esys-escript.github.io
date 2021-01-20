@@ -1,0 +1,90 @@
+
+Point(1) = {0, 0, 0};
+Point(2) = {0, 3, 0};
+Point(3) = {3, 0, 0};
+Point(4) = {3, 3, 0};
+Point(5) = {0, 0, 2};
+Point(6) = {0, 3, 2};
+Point(7) = {3, 0, 2};
+Point(8) = {3, 3, 2};
+Point(9) = {0, 0, 5};
+Point(10) = {0, 3, 5};
+Point(11) = {3, 0, 5};
+Point(12) = {3, 3, 5};
+
+Line(1) = {1,2};
+Line(2) = {2,4};
+Line(3) = {4,3};
+Line(4) = {3,1};
+Line(5) = {7,8};
+Line(6) = {8,6};
+Line(7) = {6,5};
+Line(8) = {5,7};
+Line(9) = {9,11};
+Line(10) = {11,12};
+Line(11) = {12,10};
+Line(12) = {10,9};
+Line(13) = {3,7};
+Line(14) = {7,11};
+Line(15) = {1,5};
+Line(16) = {5,9};
+Line(17) = {2,6};
+Line(18) = {6,10};
+Line(19) = {4,8};
+Line(20) = {8,12};
+
+Line Loop(1)={1,4,3,2};
+Line Loop(2)={3,13,5,-19};
+Line Loop(3)={4,15,8,-13};
+Line Loop(4)={1,17,7,-15};
+Line Loop(5)={2,19,6,-17};
+Line Loop(6)={-6,20,11,-18};
+Line Loop(7)={-5,14,10,-20};
+Line Loop(8)={-8,16,9,-14};
+Line Loop(9)={-7,18,12,-16};
+Line Loop(10)={9,10,11,12};
+Line Loop(11)={5,6,7,8};
+
+Surface(1) = {1};
+Surface(2) = {2};
+Surface(3) = {3};
+Surface(4) = {4};
+Surface(5) = {5};
+Surface(6) = {6};
+Surface(7) = {7};
+Surface(8) = {8};
+Surface(9) = {9};
+Surface(10) = {10};
+Surface(11) = {11};
+
+Surface Loop(1)  = {1};
+Surface Loop(2)  = {2};
+Surface Loop(3)  = {3};
+Surface Loop(4)  = {4};
+Surface Loop(5)  = {5};
+Surface Loop(6)  = {6};
+Surface Loop(7)  = {7};
+Surface Loop(8)  = {8};
+Surface Loop(9)  = {9};
+Surface Loop(10) = {10};
+Surface Loop(11) = {11};
+Surface Loop(12) = {12};
+
+Physical Surface("A") = {1};
+Physical Surface("B") = {2};
+Physical Surface("C") = {3};
+Physical Surface("D") = {4};
+Physical Surface("E") = {5};
+Physical Surface("F") = {6};
+Physical Surface("G") = {7};
+Physical Surface("H") = {8};
+Physical Surface("I") = {9};
+Physical Surface("J") = {10};
+Physical Surface("K") = {11};
+Physical Surface("L") = {12};
+
+Volume(1) = {1,2,3,4,5,11};
+Volume(2) = {11,6,7,8,9,10};
+
+Physical Volume("Upper") = {1};
+Physical Volume("Inner") = {2};
