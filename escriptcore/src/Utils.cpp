@@ -753,6 +753,7 @@ boost::python::list getNumpy(boost::python::dict arg)
     for (int i = 0; i < numdata; ++i){
         if(data[i].isComplex()){
             have_complex = true;
+            break;
         }
     }
 
@@ -773,7 +774,7 @@ boost::python::list getNumpy(boost::python::dict arg)
 
     // Interpolate the data onto the same function space
     FunctionSpace best(data[0].getDomain(), bestfnspace);
-    for (int i=0; i<numdata; ++i) {
+    for (int i = 0; i < numdata; ++i) {
         data[i] = data[i].interpolate(best);
     }
     if (hasmask)
