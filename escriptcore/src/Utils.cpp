@@ -895,6 +895,9 @@ boost::python::list getNumpy(boost::python::dict arg)
                 }
             }
 
+            // Debug output
+            // std::cout << "Current array:\n" << bp::extract<char const *>(bp::str(dataArray)) << std::endl;
+
             // Reset
             for (int d = 0; d < numdata; d++) {
                 offset[d] = 0;

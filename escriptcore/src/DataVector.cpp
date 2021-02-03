@@ -321,7 +321,7 @@ namespace escript {
 
       switch (getRank(shape)) {
       case 0:
-         dataArray[d] = data[offset];
+         dataArray[0][index] = data[offset];
          break;
       case 1:
          for (int i = 0; i < shape[0]; i++) {
