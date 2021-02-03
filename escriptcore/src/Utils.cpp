@@ -946,8 +946,9 @@ boost::python::list getNumpy(boost::python::dict arg)
         for(int j = 0; j < data[i].getShapeProduct(); j++){
             temp[j] = dataArray[spaces[i]+j];
         }
-        answer.append(names[i]);
-        answer.append(temp);
+        // std::cout << "Temp array:\n" << bp::extract<char const *>(bp::str(temp)) << std::endl;
+        answer.extend(names[i]);
+        answer.extend(temp);
     }
 
     // Print out the ndarray to the console - used during debugging
