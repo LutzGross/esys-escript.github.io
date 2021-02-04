@@ -831,7 +831,8 @@ boost::python::list getNumpy(boost::python::dict arg)
     }
 
     int error = 0;
-    int maskcounter[numdata] = {0};
+    int maskcounter[numdata];
+    for(int i = 0; i < numdata; i++) maskcounter[i]=0;
     std::string localmsg;
     try {
         std::vector<int> offset(numdata);
