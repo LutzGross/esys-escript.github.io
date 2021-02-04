@@ -19,6 +19,8 @@
 
 escript_opts_version = 203
 
+cxx='/usr/bin/clang++'
+
 build_debug=False
 build_debug=True
 
@@ -39,7 +41,7 @@ if build_debug == True:
 		trilinos_prefix='/usr/local/trilinos_nompi'
 	else:
 		trilinos_prefix='/usr/local/trilinos_noomp'
-	paso=False
+	paso=True
 	pythoncmd="/usr/bin/python3"
 	pythonlibname="python3.9"
 	pythonlibpath="/usr/lib"
@@ -61,7 +63,7 @@ else:
 		trilinos_prefix='/usr/local/trilinos_nompi'
 	else:
 		trilinos_prefix='/usr/local/trilinos_noomp'
-	paso=False
+	paso=True
 	pythoncmd="/usr/bin/python3"
 	pythonlibname="python3.9"
 	pythonlibpath="/usr/lib"
