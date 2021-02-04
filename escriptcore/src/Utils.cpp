@@ -831,7 +831,7 @@ boost::python::list getNumpy(boost::python::dict arg)
     }
 
     int error = 0;
-    int maskcounter = 0;
+    int maskcounter[numdata] = {0};
     std::string localmsg;
     try {
         std::vector<int> offset(numdata);
@@ -847,7 +847,6 @@ boost::python::list getNumpy(boost::python::dict arg)
 
             // Get the sample data
             for (int d = 0; d < numdata; ++d) {
-                // if(have_complex){
                 if(data[d].isComplex()){
                     samplesC[d] = data[d].getSampleDataRO(i, gotcomplex);
                 } else {
@@ -879,18 +878,17 @@ boost::python::list getNumpy(boost::python::dict arg)
                 // If we want the row then add it to the array
                 if (wantrow) {
                     for (int d = 0; d < numdata; ++d) {
-
                         if(have_complex){
                             DataTypes::pointToNumpyArray(dataArray, samplesC[d],
-                                data[d].getDataPointShape(), offset[d], spaces[d], hasmask ? maskcounter : i+j*numsamples);
+                                data[d].getDataPointShape(), offset[d], spaces[d], hasmask ? maskcounter[d] : i+j*numsamples);
                         } else {
 
                             DataTypes::pointToNumpyArray(dataArray, samplesR[d],
-                                data[d].getDataPointShape(), offset[d], spaces[d], hasmask ? maskcounter : i+j*numsamples);
+                                data[d].getDataPointShape(), offset[d], spaces[d], hasmask ? maskcounter[d] : i+j*numsamples);
                         }
 
                         offset[d] += step[d];
-                        maskcounter++;
+                        maskcounter[d]++;
                     }
                 }
             }
