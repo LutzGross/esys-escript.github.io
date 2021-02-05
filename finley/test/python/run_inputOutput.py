@@ -226,7 +226,7 @@ class Test_InputOutputOnFinley(unittest.TestCase):
 
      def test_readgmsh_format_2(self):
         mydomain1 = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,"Kalgoorlie.22.msh"), numDim=3)
-        mydomain2 = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,"testbrick2.msh"),  numDim=3)
+        mydomain2 = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,"Kalgoorlie.2.msh"),  numDim=3)
         self.domainsEqual(mydomain1, mydomain2)
 
      # def test_readgmsh_format_3(self):
