@@ -225,28 +225,28 @@ class Test_InputOutputOnFinley(unittest.TestCase):
 
 
      def test_readgmsh_format_2(self):
-        mydomain1 = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,"testbrick22.msh"), numDim=3)
+        mydomain1 = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,"Kalgoorlie.22.msh"), numDim=3)
         mydomain2 = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,"testbrick2.msh"),  numDim=3)
         self.domainsEqual(mydomain1, mydomain2)
 
      # def test_readgmsh_format_3(self):
-     #    mydomain1 = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,"testbrick22.msh"), numDim=3)
-     #    mydomain2 = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,"testbrick3.msh"),  numDim=3)
+     #    mydomain1 = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,"Kalgoorlie.22.msh"), numDim=3)
+     #    mydomain2 = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,"Kalgoorlie.3.msh"),  numDim=3)
      #    self.domainsEqual(mydomain1, mydomain2)
 
      def test_readgmsh_format_4(self):
-        mydomain1 = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,"testbrick22.msh"), numDim=3)
-        mydomain2 = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,"testbrick4.msh"),  numDim=3)
+        mydomain1 = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,"Kalgoorlie.22.msh"), numDim=3)
+        mydomain2 = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,"Kalgoorlie.4.msh"),  numDim=3)
         self.domainsEqual(mydomain1, mydomain2)
 
      def test_readgmsh_format_4_0(self):
-        mydomain1 = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,"testbrick22.msh"), numDim=3)
-        mydomain2 = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,"testbrick40.msh"), numDim=3)
+        mydomain1 = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,"Kalgoorlie.22.msh"), numDim=3)
+        mydomain2 = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,"Kalgoorlie.40.msh"), numDim=3)
         self.domainsEqual(mydomain1, mydomain2)
 
      def test_readgmsh_format_4_1(self):
-        mydomain1 = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,"testbrick22.msh"), numDim=3)
-        mydomain2 = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,"testbrick41.msh"), numDim=3)
+        mydomain1 = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,"Kalgoorlie.22.msh"), numDim=3)
+        mydomain2 = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,"Kalgoorlie.41.msh"), numDim=3)
         self.domainsEqual(mydomain1, mydomain2)
 
 if __name__ == '__main__':
