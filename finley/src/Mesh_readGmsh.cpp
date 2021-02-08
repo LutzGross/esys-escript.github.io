@@ -407,7 +407,11 @@ int getElementsMaster(escript::JMPI& mpiInfo, FinleyDomain* dom,
                 errorFlag = EARLY_EOF;
 
             int entityTag, entityDim, numElements, gmsh_type;
-            scan_ret = sscanf(&line[0], "%d %d %d %d", &entityDim, &entityTag, &gmsh_type, &numElements);
+
+            if(version == 4.0)
+                scan_ret = sscanf(&line[0], "%d %d %d %d", &entityTag, &entityDim, &gmsh_type, &numElements);
+            else
+                scan_ret = sscanf(&line[0], "%d %d %d %d", &entityDim, &entityTag, &gmsh_type, &numElements);            
 
             // Loop over elements in each entity block
             for (index_t e = 0; e < numElements; e++, count++) {
