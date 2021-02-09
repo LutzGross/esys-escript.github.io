@@ -57,6 +57,13 @@ struct ElementInfo {
     int tag;
 };
 
+struct Msh4Entities {
+    std::map<int,int> pointTags;
+    std::map<int,int> curveTags;
+    std::map<int,int> surfaceTags;
+    std::map<int,int> volumeTags;
+};
+
 inline bool get_line(std::vector<char>& line, FILE* file)
 {
     int capacity = 1024;
@@ -1113,6 +1120,8 @@ int get_next_state(FILE *f, bool nodesRead, bool elementsRead, int *logicFlag) {
         *logicFlag = 3;
     } else if (!strncmp(&line[1], "PhysicalNames", 13)) {
         *logicFlag = 4;
+    } else if (!strncmp(&line[1], "Entities", 8)) {
+        *logicFlag = 5;
     } else {
         *logicFlag = 0;
     }
@@ -1164,6 +1173,8 @@ FinleyDomain* readGmshMaster(escript::JMPI& mpiInfo,
 {
     double version = 1.0;
     bool nodesRead = false, elementsRead = false;
+    int numPhysicalNames = 0;
+    Msh4Entities TagMap;
     int format = 0, size = sizeof(double), scan_ret, errorFlag = 0, logicFlag = 0;
     std::vector<char> line;
     std::map<int,int> nodeTags;
@@ -1257,15 +1268,14 @@ FinleyDomain* readGmshMaster(escript::JMPI& mpiInfo,
             std::vector<char> names;
             if (!get_line(names, fileHandle))
                 errorFlag = EARLY_EOF;
-            int numNames = 0;
-            scan_ret = sscanf(&names[0], "%d", &numNames);
+            scan_ret = sscanf(&names[0], "%d", &numPhysicalNames);
             SSCANF_CHECK(scan_ret);
 #ifdef ESYS_MPI
             // Broadcast numNames if there are multiple mpi procs
             if (mpiInfo->size > 1)
-                MPI_Bcast(&numNames, 1, MPI_INT,  0, mpiInfo->comm);
+                MPI_Bcast(&numPhysicalNames, 1, MPI_INT,  0, mpiInfo->comm);
 #endif
-            for (int i = 0; i < numNames; i++) {
+            for (int i = 0; i < numPhysicalNames; i++) {
                 std::vector<char> line;
                 char name[1024] = {0};
                 if (!get_line(line, fileHandle))
@@ -1290,6 +1300,56 @@ FinleyDomain* readGmshMaster(escript::JMPI& mpiInfo,
                 }
 #endif
                 dom->setTagMap(name+1, tag_info[0]); //skip leading "
+            }
+        } else if (logicFlag == 5 && !errorFlag) {
+            // If necessary, read in physical tag information from the Entities section
+            if(version >= 4.0)
+            {
+                int numPoints, numCurves, numSurfaces, numVolumes;
+                if (!get_line(line, fileHandle))
+                        errorFlag = EARLY_EOF;
+                scan_ret = sscanf(&line[0], "%d %d %d %d\n", &numPoints, &numCurves, &numSurfaces, &numVolumes);
+
+                // Skip over the curve and surface information
+                for(int i = 0; i < numPoints; i++)
+                {
+                    if (!get_line(line, fileHandle))
+                        errorFlag = EARLY_EOF;
+                    int tmp, pointTag, numPhysicalTags, physicalTag;
+                    scan_ret = sscanf(&line[0], "%d %d %d %d %d %d", &pointTag, &tmp, &tmp, &tmp, &numPhysicalTags, &physicalTag);
+                    if(numPhysicalTags != 0)
+                        TagMap.pointTags.insert(std::pair<int,int>(pointTag,physicalTag));
+                }
+
+                for(int i = 0; i < numCurves; i++)
+                {
+                    if (!get_line(line, fileHandle))
+                        errorFlag = EARLY_EOF;
+                    int tmp, pointTag, numPhysicalTags, physicalTag;
+                    scan_ret = sscanf(&line[0], "%d %d %d %d %d %d %d %d %d", &pointTag, &tmp, &tmp, &tmp, &tmp, &tmp, &tmp, &numPhysicalTags, &physicalTag);
+                    if(numPhysicalTags != 0)
+                        TagMap.curveTags.insert(std::pair<int,int>(pointTag,physicalTag));
+                }
+
+                for(int i = 0; i < numSurfaces; i++)
+                {
+                    if (!get_line(line, fileHandle))
+                        errorFlag = EARLY_EOF;
+                    int tmp, pointTag, numPhysicalTags, physicalTag;
+                    scan_ret = sscanf(&line[0], "%d %d %d %d %d %d %d %d %d", &pointTag, &tmp, &tmp, &tmp, &tmp, &tmp, &tmp, &numPhysicalTags, &physicalTag);
+                    if(numPhysicalTags != 0)
+                        TagMap.surfaceTags.insert(std::pair<int,int>(pointTag,physicalTag));
+                }
+
+                for(int i = 0; i < numVolumes; i++)
+                {
+                    if (!get_line(line, fileHandle))
+                        errorFlag = EARLY_EOF;
+                    int tmp, pointTag, numPhysicalTags, physicalTag;
+                    scan_ret = sscanf(&line[0], "%d %d %d %d %d %d %d %d %d", &pointTag, &tmp, &tmp, &tmp, &tmp, &tmp, &tmp, &numPhysicalTags, &physicalTag);
+                    if(numPhysicalTags != 0)
+                        TagMap.volumeTags.insert(std::pair<int,int>(pointTag,physicalTag));
+                }
             }
         }
 
