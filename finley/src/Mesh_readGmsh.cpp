@@ -1342,7 +1342,10 @@ FinleyDomain* readGmshMaster(escript::JMPI& mpiInfo,
                     if (!get_line(line, fileHandle))
                         errorFlag = EARLY_EOF;
                     int tmp, pointTag, numPhysicalTags, physicalTag;
-                    scan_ret = sscanf(&line[0], "%d %d %d %d %d %d", &pointTag, &tmp, &tmp, &tmp, &numPhysicalTags, &physicalTag);
+                    if(version == 4.0)
+                        sscanf(&line[0], "%d %d %d %d %d %d %d %d %d", &pointTag, &tmp, &tmp, &tmp, &tmp, &tmp, &tmp, &numPhysicalTags, &physicalTag);
+                    else
+                        sscanf(&line[0], "%d %d %d %d %d %d", &pointTag, &tmp, &tmp, &tmp, &numPhysicalTags, &physicalTag);
                     if(numPhysicalTags != 0)
                         TagMap.pointTags.insert(std::pair<int,int>(pointTag,physicalTag));
                 }

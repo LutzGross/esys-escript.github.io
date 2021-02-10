@@ -81,7 +81,6 @@ escript::Domain_ptr DudleyDomain::readGmsh(escript::JMPI mpiInfo,
                 throw IOError("readGmsh: early EOF while reading file");
             std::stringstream ss(line);
             ss >> version >> format >> size;
-
         } else if (line.substr(1,3) == "NOD" || line.substr(1,3) == "NOE" ||
                    line.substr(1,5) == "Nodes") {
             // nodes
@@ -575,7 +574,10 @@ escript::Domain_ptr DudleyDomain::readGmsh(escript::JMPI mpiInfo,
                     if (fileHandle.eof())
                         throw IOError("readGmsh: early EOF while reading file");
                     int tmp, pointTag, numPhysicalTags, physicalTag;
-                    sscanf(&line[0], "%d %d %d %d %d %d", &pointTag, &tmp, &tmp, &tmp, &numPhysicalTags, &physicalTag);
+                    if(version == 4.0)
+                        sscanf(&line[0], "%d %d %d %d %d %d %d %d %d", &pointTag, &tmp, &tmp, &tmp, &tmp, &tmp, &tmp, &numPhysicalTags, &physicalTag);
+                    else
+                        sscanf(&line[0], "%d %d %d %d %d %d", &pointTag, &tmp, &tmp, &tmp, &numPhysicalTags, &physicalTag);
                     if(numPhysicalTags != 0)
                         TagMap.pointTags.insert(std::pair<int,int>(pointTag,physicalTag));
                 }
