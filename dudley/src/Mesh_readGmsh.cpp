@@ -25,6 +25,13 @@ namespace dudley {
 
 #define MAX_numNodes_gmsh 20
 
+struct Msh4Entities {
+    std::map<int,int> pointTags;
+    std::map<int,int> curveTags;
+    std::map<int,int> surfaceTags;
+    std::map<int,int> volumeTags;
+};
+
 /// reads a mesh from a gmsh file of name filename
 escript::Domain_ptr DudleyDomain::readGmsh(escript::JMPI mpiInfo,
                                            const std::string& filename,
@@ -39,6 +46,7 @@ escript::Domain_ptr DudleyDomain::readGmsh(escript::JMPI mpiInfo,
     index_t numElements = 0, numFaceElements = 0, *id = NULL, *vertices = NULL;
     int* tag = NULL;
     std::string line;
+    Msh4Entities TagMap;
 
     if (mpiInfo->size > 1)
         throw DudleyException("reading gmsh with MPI is not supported yet.");
@@ -280,7 +288,16 @@ escript::Domain_ptr DudleyDomain::readGmsh(escript::JMPI mpiInfo,
                         for (index_t k0 = 0; k0 < element_dim + 1; k0++) {
                             ss >> vertices[INDEX2(k0, e, MAX_numNodes_gmsh)];
                         }
-                        tag[e] = elementTag;
+                        
+                        if(element_dim == 0)
+                            tag[e] = TagMap.pointTags.find(elementTag)->second;
+                        else if (element_dim == 1)
+                            tag[e] = TagMap.curveTags.find(elementTag)->second;
+                        else if (element_dim == 2)
+                            tag[e] = TagMap.surfaceTags.find(elementTag)->second;
+                        else if (element_dim == 3)
+                            tag[e] = TagMap.volumeTags.find(elementTag)->second;
+
                     }
                 }
 
@@ -533,12 +550,68 @@ escript::Domain_ptr DudleyDomain::readGmsh(escript::JMPI mpiInfo,
                 int tag_key;
                 ss >> itmp >> tag_key;
                 std::string name = line.substr((int)ss.tellg()+1);
-                if (itmp != 2)
-                    throw IOError("readGmsh: expecting two entries per physical name.");
+                // if (itmp != 2)
+                //     throw IOError("readGmsh: expecting two entries per physical name.");
                 if (name.length() < 3)
                     throw IOError("readGmsh: illegal tagname (\" missing?)");
                 name = name.substr(1, name.length()-2);
                 domain->setTagMap(name, tag_key);
+            }
+        } else if (line.substr(1,8) == "Entities") {
+            // this section contains the main tag information
+            if(version >= 4.0)
+            {
+                std::getline(fileHandle, line);
+                if (fileHandle.eof())
+                    throw IOError("readGmsh: early EOF while reading file");
+
+                int numPoints, numCurves, numSurfaces, numVolumes;
+                sscanf(&line[0], "%d %d %d %d\n", &numPoints, &numCurves, &numSurfaces, &numVolumes);
+
+                // Skip over the curve and surface information
+                for(int i = 0; i < numPoints; i++)
+                {
+                    std::getline(fileHandle, line);
+                    if (fileHandle.eof())
+                        throw IOError("readGmsh: early EOF while reading file");
+                    int tmp, pointTag, numPhysicalTags, physicalTag;
+                    sscanf(&line[0], "%d %d %d %d %d %d", &pointTag, &tmp, &tmp, &tmp, &numPhysicalTags, &physicalTag);
+                    if(numPhysicalTags != 0)
+                        TagMap.pointTags.insert(std::pair<int,int>(pointTag,physicalTag));
+                }
+
+                for(int i = 0; i < numCurves; i++)
+                {
+                    std::getline(fileHandle, line);
+                    if (fileHandle.eof())
+                        throw IOError("readGmsh: early EOF while reading file");
+                    int tmp, pointTag, numPhysicalTags, physicalTag;
+                    sscanf(&line[0], "%d %d %d %d %d %d %d %d %d", &pointTag, &tmp, &tmp, &tmp, &tmp, &tmp, &tmp, &numPhysicalTags, &physicalTag);
+                    if(numPhysicalTags != 0)
+                        TagMap.curveTags.insert(std::pair<int,int>(pointTag,physicalTag));
+                }
+
+                for(int i = 0; i < numSurfaces; i++)
+                {
+                    std::getline(fileHandle, line);
+                    if (fileHandle.eof())
+                        throw IOError("readGmsh: early EOF while reading file");
+                    int tmp, pointTag, numPhysicalTags, physicalTag;
+                    sscanf(&line[0], "%d %d %d %d %d %d %d %d %d", &pointTag, &tmp, &tmp, &tmp, &tmp, &tmp, &tmp, &numPhysicalTags, &physicalTag);
+                    if(numPhysicalTags != 0)
+                        TagMap.surfaceTags.insert(std::pair<int,int>(pointTag,physicalTag));
+                }
+
+                for(int i = 0; i < numVolumes; i++)
+                {
+                    std::getline(fileHandle, line);
+                    if (fileHandle.eof())
+                        throw IOError("readGmsh: early EOF while reading file");
+                    int tmp, pointTag, numPhysicalTags, physicalTag;
+                    sscanf(&line[0], "%d %d %d %d %d %d %d %d %d", &pointTag, &tmp, &tmp, &tmp, &tmp, &tmp, &tmp, &numPhysicalTags, &physicalTag);
+                    if(numPhysicalTags != 0)
+                        TagMap.volumeTags.insert(std::pair<int,int>(pointTag,physicalTag));
+                }
             }
         }
         // search for end of data block
