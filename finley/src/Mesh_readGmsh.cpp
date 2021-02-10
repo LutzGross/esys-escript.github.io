@@ -345,7 +345,7 @@ int getSingleElementMSH4(FILE* f, int dim, double version, struct ElementInfo& e
 int getElementsMaster(escript::JMPI& mpiInfo, FinleyDomain* dom,
                       FILE* fileHandle, std::string& errorMsg,
                       bool useMacroElements, const std::string& filename,
-                      int numDim, double version, int order, int reducedOrder)
+                      int numDim, double version, int order, int reducedOrder, Msh4Entities TagMap)
 {
     /*
      *  This function should read in the elements and distribute
@@ -432,7 +432,15 @@ int getElementsMaster(escript::JMPI& mpiInfo, FinleyDomain* dom,
                 get_line(line, fileHandle);
                 getSingleElementMSH4(fileHandle, numDim, version, element,
                                         errorMsg, filename, useMacroElements, gmsh_type, &line[0]);
-                element.tag = entityTag;
+                if(element.dim == 0)
+                    element.tag = TagMap.pointTags.find(entityTag)->second;
+                else if (element.dim == 1)
+                    element.tag = TagMap.curveTags.find(entityTag)->second;
+                else if (element.dim == 2)
+                    element.tag = TagMap.surfaceTags.find(entityTag)->second;
+                else if (element.dim == 3)
+                    element.tag = TagMap.volumeTags.find(entityTag)->second;
+
                 elementType[count] = element.type;
                 id[count] = element.id;
                 tag[count] = element.tag;
@@ -703,7 +711,7 @@ int getElementsMaster(escript::JMPI& mpiInfo, FinleyDomain* dom,
 }
 
 int gather_nodes(FILE* f, std::map<int,int>& tags, std::string& errorMsg,
-                 int dim, double version, const std::string& filename)
+                 int dim, double version, const std::string& filename, Msh4Entities TagMap)
 {
     int numNodes=0;
     int numEntityBlocks;
@@ -824,6 +832,15 @@ int gather_nodes(FILE* f, std::map<int,int>& tags, std::string& errorMsg,
                 if (!get_line(line, f))
                     return EARLY_EOF;
                 getSingleElementMSH4(f, dim, version, e, errorMsg, filename, false, gmsh_type, &line[0]);
+                
+                // if(e.dim == 0)
+                //     e.tag = TagMap.pointTags.find(entityTag)->second;
+                // else if (e.dim == 1)
+                //     e.tag = TagMap.curveTags.find(entityTag)->second;
+                // else if (e.dim == 2)
+                //     e.tag = TagMap.surfaceTags.find(entityTag)->second;
+                // else if (e.dim == 3)
+                //     e.tag = TagMap.volumeTags.find(entityTag)->second;
             }
         }
     } else if (version == 4.0){
@@ -836,6 +853,15 @@ int gather_nodes(FILE* f, std::map<int,int>& tags, std::string& errorMsg,
                 if (!get_line(line, f))
                     return EARLY_EOF;
                 getSingleElementMSH4(f, dim, version, e, errorMsg, filename, false, gmsh_type, &line[0]);
+
+                // if(e.dim == 0)
+                //     e.tag = TagMap.pointTags.find(entityTag)->second;
+                // else if (e.dim == 1)
+                //     e.tag = TagMap.curveTags.find(entityTag)->second;
+                // else if (e.dim == 2)
+                //     e.tag = TagMap.surfaceTags.find(entityTag)->second;
+                // else if (e.dim == 3)
+                //     e.tag = TagMap.volumeTags.find(entityTag)->second;
             }
         }
     } else {
@@ -1229,7 +1255,7 @@ FinleyDomain* readGmshMaster(escript::JMPI& mpiInfo,
             std::vector<int> sendable_map;
             long current = ftell(fileHandle);
             errorFlag = gather_nodes(fileHandle, nodeTags, errorMsg,
-                    numDim, version, filename.c_str());
+                    numDim, version, filename.c_str(), TagMap);
             if (!errorFlag && fseek(fileHandle, current, SEEK_SET) < 0) {
                 errorMsg = "Error in file operation";
                 errorFlag = THROW_ERROR;
@@ -1260,7 +1286,7 @@ FinleyDomain* readGmshMaster(escript::JMPI& mpiInfo,
             elementsRead = true;
             errorFlag = getElementsMaster(mpiInfo, dom, fileHandle, errorMsg,
                             useMacroElements, filename, numDim, version, order,
-                            reducedOrder);
+                            reducedOrder, TagMap);
         }
         // name tags
         // (thanks to Antoine Lefebvre, antoine.lefebvre2@mail.mcgill.ca)
