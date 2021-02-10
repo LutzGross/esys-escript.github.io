@@ -223,31 +223,19 @@ class Test_InputOutputOnFinley(unittest.TestCase):
                 for j in range(0,4):
                     self.assertEqual(testvalues[i][j],correctvalues[i][j])
 
-
-     def test_readgmsh_format_2(self):
-        mydomain1 = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,"Kalgoorlie.22.msh"), numDim=3)
-        mydomain2 = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,"Kalgoorlie.2.msh"),  numDim=3)
-        self.domainsEqual(mydomain1, mydomain2)
-
-     # def test_readgmsh_format_3(self):
-     #    mydomain1 = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,"Kalgoorlie.22.msh"), numDim=3)
-     #    mydomain2 = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,"Kalgoorlie.3.msh"),  numDim=3)
-     #    self.domainsEqual(mydomain1, mydomain2)
-
-     def test_readgmsh_format_4(self):
-        mydomain1 = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,"Kalgoorlie.22.msh"), numDim=3)
-        mydomain2 = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,"Kalgoorlie.4.msh"),  numDim=3)
-        self.domainsEqual(mydomain1, mydomain2)
-
-     def test_readgmsh_format_4_0(self):
-        mydomain1 = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,"Kalgoorlie.22.msh"), numDim=3)
-        mydomain2 = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,"Kalgoorlie.40.msh"), numDim=3)
-        self.domainsEqual(mydomain1, mydomain2)
-
-     def test_readgmsh_format_4_1(self):
-        mydomain1 = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,"Kalgoorlie.22.msh"), numDim=3)
-        mydomain2 = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,"Kalgoorlie.41.msh"), numDim=3)
-        self.domainsEqual(mydomain1, mydomain2)
+     def test_readgmsh_format(self):
+        print("\n reading format 2..... ")
+        mydomain1 = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,"Kalgoorlie.2.msh"),  numDim=3)
+        print(" reading format 2.2..... ")
+        mydomain2 = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,"Kalgoorlie.22.msh"), numDim=3)
+        print(" reading format 4.0..... ")
+        mydomain3 = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,"Kalgoorlie.40.msh"),  numDim=3)
+        print(" reading format 4.1..... ")
+        mydomain4 = ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH,"Kalgoorlie.41.msh"),  numDim=3)
+        print(" comparing ..... ")
+        self.assertTrue(self.domainsEqual(mydomain1, mydomain2), "Failed to read MSH format 2 or 22")
+        self.assertTrue(self.domainsEqual(mydomain1, mydomain3), "Failed to read MSH format 4.0")
+        self.assertTrue(self.domainsEqual(mydomain1, mydomain4), "Failed to read MSH format 4.1")
 
 if __name__ == '__main__':
     run_tests(__name__, exit_on_failure=True)
