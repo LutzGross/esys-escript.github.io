@@ -1006,7 +1006,7 @@ int getNodesMaster(escript::JMPI& mpiInfo, FinleyDomain* dom, FILE* fileHandle,
                     scan_ret = sscanf(&line[0], "%d %d %d %d\n", &entityTag, &entityDim, &parametric, &numNodes);
                     
                     if (parametric == 1){
-                        errorMsg = "eScript does not supprot nodefiles with parametric coordinates.";
+                        errorMsg = "eScript does not support nodefiles with parametric coordinates.";
                         return THROW_ERROR;
                     }
 
