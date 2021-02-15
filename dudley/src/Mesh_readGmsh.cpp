@@ -147,15 +147,17 @@ escript::Domain_ptr DudleyDomain::readGmsh(escript::JMPI mpiInfo,
                             if (!fileHandle.good())
                                 throw IOError("readGmsh: early EOF while reading file");
                             std::stringstream ss(line);
-                            ss >> nodes->Id[i0] >> nodes->Coordinates[INDEX2(0, idCounter, numDim)] 
-                                                >> nodes->Coordinates[INDEX2(1, idCounter, numDim)]
-                                                >> nodes->Coordinates[INDEX2(2, idCounter, numDim)];
+                            ss >> nodes->Id[idCounter+j0] >> nodes->Coordinates[INDEX2(0, idCounter, numDim)] 
+                                                          >> nodes->Coordinates[INDEX2(1, idCounter, numDim)]
+                                                          >> nodes->Coordinates[INDEX2(2, idCounter, numDim)];
+                            nodes->globalDegreesOfFreedom[idCounter+j0] = nodes->Id[idCounter+j0];
+                            nodes->Tag[idCounter+j0] = 0;
                             idCounter++;
-                            nodes->globalDegreesOfFreedom[i0] = nodes->Id[i0];
-                            nodes->Tag[i0] = 0;
                         }
                     }
                 }
+                if (idCounter != numNodes)
+                        throw IOError("readGmsh: malformed $Nodes section");
             } else { //version not >= 4.0
                 std::getline(fileHandle, line);
                 if (fileHandle.eof())
