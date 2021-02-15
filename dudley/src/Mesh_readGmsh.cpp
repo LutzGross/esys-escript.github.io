@@ -147,11 +147,11 @@ escript::Domain_ptr DudleyDomain::readGmsh(escript::JMPI mpiInfo,
                             if (!fileHandle.good())
                                 throw IOError("readGmsh: early EOF while reading file");
                             std::stringstream ss(line);
-                            ss >> nodes->Id[idCounter+j0] >> nodes->Coordinates[INDEX2(0, idCounter, numDim)] 
-                                                          >> nodes->Coordinates[INDEX2(1, idCounter, numDim)]
-                                                          >> nodes->Coordinates[INDEX2(2, idCounter, numDim)];
-                            nodes->globalDegreesOfFreedom[idCounter+j0] = nodes->Id[idCounter+j0];
-                            nodes->Tag[idCounter+j0] = 0;
+                            ss >> nodes->Id[idCounter] >> nodes->Coordinates[INDEX2(0, idCounter, numDim)] 
+                                                       >> nodes->Coordinates[INDEX2(1, idCounter, numDim)]
+                                                       >> nodes->Coordinates[INDEX2(2, idCounter, numDim)];
+                            nodes->globalDegreesOfFreedom[idCounter] = nodes->Id[idCounter];
+                            nodes->Tag[idCounter] = 0;
                             idCounter++;
                         }
                     }
