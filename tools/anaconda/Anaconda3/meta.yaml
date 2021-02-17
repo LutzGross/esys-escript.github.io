@@ -4,14 +4,25 @@ package:
     name: esys-escript
     version: {{ version }}
 source:
-    - url: https://launchpad.net/escript-finley/3.0+/{{ version }}/+download/python_escript_{{ version }}.tar.gz
-      sha256: 99c5bc9e7262fb0baef5d9aa3a99bcbf3965b9d718835c6b56c516e39bb6c992
+    - url: https://github.com/trilinos/Trilinos/archive/trilinos-release-13-0-0.tar.gz
+      # sha256: ab81d917196ffbc21c4927d42df079dd94c83c1a08bda43fef2dd34d0c1a5512
+      folder: trilinos_source
+    - url: https://github.com/Unidata/netcdf-cxx4/archive/v4.3.1.tar.gz
+      sha256: e3fe3d2ec06c1c2772555bf1208d220aab5fee186d04bd265219b0bc7a978edc
+      folder: netcdf-cxx4
+      patches: netcdf-cxx4.patch  # [win]
+    - url: https://bitbucket.org/AdvancedMultiPhysics/tpl-builder/downloads/silo-4.10.2.tar.gz
+      sha256: 3af87e5f0608a69849c00eb7c73b11f8422fa36903dd14610584506e7f68e638
+      folder: silo
+      patches: silo.patch  # [win]
+    # - url: https://github.com/esys-escript/esys-escript.github.io/archive/5.6.2.tar.gz
+    #   sha256: 253f94fdd95c00754d7f3964b590680bbb9b0cfff0996f5120306d7791c325f1
+    - git_url: https://github.com/esys-escript/esys-escript.github.io
       folder: escript
 build:
-    skip: True  # [win and (py!=37 or vc<14)]
-    skip: True  # [linux and py!=38]
+    skip: True  # [win and (py<37 or vc<14)]
     skip: True  # [osx]
-    number: 0
+    number: 4
 requirements:
     build:
         - {{ compiler('cxx') }}
@@ -22,34 +33,26 @@ requirements:
     host:
         - boost-cpp
         - boost
-        - cppunit  # [linux]
-        - numpy ==1.15.4  # [win]
-        - python 
-        - matplotlib  # [linux]
-        - matplotlib ==2.2.2  # [win]
-        - gdal
+        - numpy  # [win and py>=38]
+        - numpy >=1.15.4  # [win and py<=37]
+        - python
+        - hdf5
         - libopenblas  # [linux]
         - libgomp  # [linux]
-        - pyproj 
         - scipy 
         - suitesparse  # [linux]
-        - sympy ==1.1.1  # [win]
-        - gmsh  # [win]
         - mumps  # [win]
+        - zlib
     run:
         - boost-cpp
         - boost
-        - numpy  # [linux]
-        - numpy ==1.15.4  # [win]
+        - numpy  # [win and py>=38]
+        - numpy >=1.15.4  # [win and py<=37]
         - python
-        - matplotlib  # [linux]
-        - matplotlib ==2.2.2  # [win]
-        - gdal 
-        - pyproj
+        - hdf5
         - scipy
-        - sympy ==1.1.1  # [win]
-        - gmsh  # [win]
         - mumps  # [win]
+        - zlib
 test:
     commands:
         - run-escript -c
