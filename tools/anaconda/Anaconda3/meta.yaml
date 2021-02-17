@@ -5,7 +5,7 @@ package:
     version: {{ version }}
 source:
     - url: https://github.com/trilinos/Trilinos/archive/trilinos-release-13-0-0.tar.gz
-      # sha256: ab81d917196ffbc21c4927d42df079dd94c83c1a08bda43fef2dd34d0c1a5512
+      sha256: d44e8181b3ef5eae4e90aad40a33486f0b2ae6ba1c34b419ce8cbc70fd5dd6bd
       folder: trilinos_source
     - url: https://github.com/Unidata/netcdf-cxx4/archive/v4.3.1.tar.gz
       sha256: e3fe3d2ec06c1c2772555bf1208d220aab5fee186d04bd265219b0bc7a978edc
