@@ -74,7 +74,7 @@ std::string getGitVersion()
         counter++;
     }
     return answer;
-#elif
+#else
     char chardate[100]={-1};
     FILE *p = popen("git show -s --format=%ct","r");
     if(p != NULL) 
