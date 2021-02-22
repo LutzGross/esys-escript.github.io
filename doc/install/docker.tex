@@ -21,3 +21,20 @@ To install an \escript Docker container on your machine, first install Docker an
 \begin{shellCode}
 docker pull esysescript/esys-escript
 \end{shellCode}
+
+\vspace{1cm}\
+Once installed, you can launch an escript session using the command:
+\begin{shellCode}
+docker run -ti esysescript/esys-escript run-escript
+\end{shellCode}
+
+If you would also like to mount a folder, you can use the command:
+\begin{shellCode}
+docker run -ti -v $(pwd):/app/ esysescript/esys-escript run-escript
+\end{shellCode}
+
+Additionally, if you wish to run an escript named test_program.py, you can use the command:
+\begin{shellCode}
+docker run -ti -v $(pwd):/app/ esysescript/esys-escript \
+					run-escript [path to test_program.py]
+\end{shellCode}
