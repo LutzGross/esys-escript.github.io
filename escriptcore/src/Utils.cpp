@@ -55,8 +55,27 @@ int getSvnVersion()
 
 std::string getGitVersion()
 {
+#ifdef IS_WINDOWS
     char chardate[100]={-1};
-    // FILE *p = popen("git rev-parse HEAD","r");
+    FILE *p = _popen("git show -s --format=%ct","r");
+    if(p != NULL) 
+    {
+        while(fgets(chardate, sizeof(chardate), p) != NULL)
+        {}
+    }
+    _pclose(p);
+    std::string answer = "";
+    int counter=0;
+    while(1)
+    {
+        if(chardate[counter] == '\000')
+            break;
+        answer+=chardate[counter];
+        counter++;
+    }
+    return answer;
+#elif
+    char chardate[100]={-1};
     FILE *p = popen("git show -s --format=%ct","r");
     if(p != NULL) 
     {
@@ -74,6 +93,7 @@ std::string getGitVersion()
         counter++;
     }
     return answer;
+#endif
 }
 
 
