@@ -24,28 +24,3 @@ RUN run-escript /app/escript/scripts/release_sanity.py
 RUN rm -rf *
 
 CMD ["/bin/bash"]
-
-
-# libnetcdf-cxx4-gnu-hpc libnetcdf-cxx4-gnu-hpc-devel libnetcdf-cxx4_4_3_1-gnu-hpc 
-# libnetcdf-cxx4_4_3_1-gnu-hpc-devel 
-# libnetcdf-cxx4_4_3_1-gnu-hpc-devel-static 
-# libnetcdf-fortran-gnu-hpc 
-# libnetcdf-fortran-gnu-mpich-hpc 
-# libnetcdf-fortran-gnu-mvapich2-hpc 
-# libnetcdf-fortran-gnu-openmpi2-hpc 
-# libnetcdf-fortran-gnu-openmpi3-hpc 
-# libnetcdf-fortran_4_5_2-gnu-hpc 
-# libnetcdf-fortran_4_5_2-gnu-mpich-hpc 
-# libnetcdf-fortran_4_5_2-gnu-mvapich2-hpc 
-# libnetcdf-fortran_4_5_2-gnu-openmpi2-hpc 
-# libnetcdf-fortran_4_5_2-gnu-openmpi3-hpc 
-# libnetcdf-gnu-hpc 
-# libnetcdf-gnu-mpich-hpc 
-# libnetcdf-gnu-mvapich2-hpc 
-# libnetcdf-gnu-openmpi2-hpc libnetcdf-gnu-openmpi3-hpc libnetcdf15 
-# libnetcdf15-openmpi2 libnetcdf15-openmpi3 libnetcdf_4_7_3-gnu-hpc 
-# libnetcdf_4_7_3-gnu-mpich-hpc libnetcdf_4_7_3-gnu-mvapich2-hpc 
-# libnetcdf_4_7_3-gnu-openmpi2-hpc libnetcdf_4_7_3-gnu-openmpi3-hpc 
-# libnetcdf_c++-devel libnetcdf_c++4 libnetcdf_c++4-1 libnetcdf_c++4-devel
-#   netcdf-devel netcdf-devel-data netcdf-gnu-hpc-devel netcdf_4_7_3-gnu-hpc-devel 
-
