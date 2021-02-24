@@ -1,0 +1,51 @@
+FROM opensuse/leap
+
+LABEL maintainer="a.ellery@uq.edu.au"
+
+WORKDIR /app
+COPY . /app
+
+RUN zypper update 
+RUN zypper install -y python3-devel python3-numpy python3-GDAL
+RUN zypper install -y python3-sympy python3-matplotlib python3-scipy
+RUN zypper install -y libboost_iostreams1_66_0-devel libboost_numpy-py3-1_66_0-devel 
+RUN zypper install -y libboost_python-py3-1_66_0-devel libboost_random1_66_0-devel
+RUN zypper install -y libnetcdf_c++-devel libnetcdf_c++4-devel libnetcdf_c++-devel 
+RUN zypper install -y suitesparse-devel
+RUN zypper install -y git gcc gcc-c++ scons
+RUN git clone https://github.com/esys-escript/esys-escript.github.io --depth 1 /app/escript
+RUN cd /app/escript && scons options_file=scons/templates/opensuse_py3_options.py -j`nproc` build_full
+ENV LD_LIBRARY_PATH=/app/escript/lib:$LD_LIBRARY_PATH
+ENV PYTHONPATH=/app/escript:$PYTHONPATH
+ENV PATH=/app/escript/bin:$PATH
+RUN cd /app/escript && ./utest.sh /app/escript/build '-t15'
+RUN useradd -ms /bin/bash appuser
+RUN run-escript /app/escript/scripts/release_sanity.py
+RUN rm -rf *
+
+CMD ["/bin/bash"]
+
+
+# libnetcdf-cxx4-gnu-hpc libnetcdf-cxx4-gnu-hpc-devel libnetcdf-cxx4_4_3_1-gnu-hpc 
+# libnetcdf-cxx4_4_3_1-gnu-hpc-devel 
+# libnetcdf-cxx4_4_3_1-gnu-hpc-devel-static 
+# libnetcdf-fortran-gnu-hpc 
+# libnetcdf-fortran-gnu-mpich-hpc 
+# libnetcdf-fortran-gnu-mvapich2-hpc 
+# libnetcdf-fortran-gnu-openmpi2-hpc 
+# libnetcdf-fortran-gnu-openmpi3-hpc 
+# libnetcdf-fortran_4_5_2-gnu-hpc 
+# libnetcdf-fortran_4_5_2-gnu-mpich-hpc 
+# libnetcdf-fortran_4_5_2-gnu-mvapich2-hpc 
+# libnetcdf-fortran_4_5_2-gnu-openmpi2-hpc 
+# libnetcdf-fortran_4_5_2-gnu-openmpi3-hpc 
+# libnetcdf-gnu-hpc 
+# libnetcdf-gnu-mpich-hpc 
+# libnetcdf-gnu-mvapich2-hpc 
+# libnetcdf-gnu-openmpi2-hpc libnetcdf-gnu-openmpi3-hpc libnetcdf15 
+# libnetcdf15-openmpi2 libnetcdf15-openmpi3 libnetcdf_4_7_3-gnu-hpc 
+# libnetcdf_4_7_3-gnu-mpich-hpc libnetcdf_4_7_3-gnu-mvapich2-hpc 
+# libnetcdf_4_7_3-gnu-openmpi2-hpc libnetcdf_4_7_3-gnu-openmpi3-hpc 
+# libnetcdf_c++-devel libnetcdf_c++4 libnetcdf_c++4-1 libnetcdf_c++4-devel
+#   netcdf-devel netcdf-devel-data netcdf-gnu-hpc-devel netcdf_4_7_3-gnu-hpc-devel 
+
