@@ -29,3 +29,4 @@ netcdf = True
 umfpack = True
 umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib64']
 umfpack_libs = ['umfpack', 'amd']
+use_gmsh=0
