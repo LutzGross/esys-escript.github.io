@@ -27,8 +27,8 @@ umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
 umfpack_libs = ['umfpack', 'blas', 'amd']
 
 pythoncmd="/usr/bin/python3"
-pythonlibname = 'python3.8'
+pythonlibname = 'python3.9'
 pythonlibpath = '/usr/lib/x86_64-linux-gnu/'
-pythonincpath = '/usr/include/python3.8'
+pythonincpath = '/usr/include/python3.9'
 
-boost_python='boost_python38'
+boost_python='boost_python39'
