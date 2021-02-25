@@ -26,6 +26,7 @@ pythonlibname = ['python3.9']
 pythonincpath = ['/usr/include/python3.9']
 boost_libs = ['boost_python39']
 boost_prefix=['/usr/include','/usr/lib64']
+netcdf_prefix=['/usr/include', '/usr/lib64']
 disable_boost_numpy=True
 umfpack=True
 umfpack_prefix=['/usr/include/suitesparse','/usr/lib64']
