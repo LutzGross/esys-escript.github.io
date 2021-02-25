@@ -1,0 +1,25 @@
+FROM archlinux
+
+LABEL maintainer="a.ellery@uq.edu.au"
+
+WORKDIR /app
+COPY . /app
+
+RUN pacman -Syu --noconfirm 
+RUN pacman -Sy --noconfirm python python-numpy python-scipy python-pyproj
+RUN pacman -Sy --noconfirm community/netcdf community/netcdf-cxx
+RUN pacman -Sy --noconfirm extra/boost extra/boost-libs
+RUN pacman -Sy --noconfirm suitesparse
+RUN pacman -Sy --noconfirm git scons gcc
+RUN git clone https://github.com/esys-escript/esys-escript.github.io --depth 1 /app/escript
+RUN cd /app/escript && scons options_file=scons/templates/arch_py3_options.py -j`nproc` build_full netcdf='no' use_gmsh=0
+ENV LD_LIBRARY_PATH=/app/escript/lib:$LD_LIBRARY_PATH
+ENV PYTHONPATH=/app/escript:$PYTHONPATH
+ENV PATH=/app/escript/bin:$PATH
+RUN cd /app/escript && ./utest.sh /app/escript/build '-t15'
+RUN useradd -ms /bin/bash appuser
+RUN run-escript /app/escript/scripts/release_sanity.py
+RUN rm -rf *
+
+CMD ["/bin/bash"]
+
