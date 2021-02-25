@@ -30,4 +30,6 @@ netcdf_prefix=['/usr/include', '/usr/lib64']
 disable_boost_numpy=False
 umfpack=True
 umfpack_prefix=['/usr/include/','/usr/lib64']
-netcdf=4
+# netcdf=4
+netcdf='no'
+use_gmsh=0
