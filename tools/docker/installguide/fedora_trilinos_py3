@@ -1,0 +1,82 @@
+FROM fedora
+
+LABEL maintainer="a.ellery@uq.edu.au"
+
+WORKDIR /app
+COPY . /app
+
+RUN yum update -y
+RUN yum install -y python3
+RUN yum install -y python3-devel python3-scipy python3-pyproj python3-matplotlib
+RUN yum install -y boost-devel boost-python3 boost-numpy3 boost-iostreams boost-random
+RUN yum install -y netcdf-devel netcdf-cxx netcdf-cxx-devel netcdf-cxx4 netcdf-cxx4-devel
+RUN yum install -y suitesparse-devel
+RUN yum install -y lapack-devel blas-devel metis-devel
+RUN yum install -y gcc-c++ gcc-fortran make cmake scons git wget
+RUN wget https://github.com/trilinos/Trilinos/archive/trilinos-release-13-0-1.tar.gz
+RUN tar zxvf trilinos-release-13-0-1.tar.gz 
+RUN mkdir trilinos_build
+RUN cd trilinos_build && \
+	cmake \
+      -D CMAKE_C_COMPILER=/usr/bin/gcc \
+      -D CMAKE_CXX_COMPILER=/usr/bin/g++ \
+      -D CMAKE_Fortran_COMPILER=/usr/bin/gfortran \
+      -D PYTHON_EXECUTABLE=/usr/bin/python3 \
+      -D CMAKE_INSTALL_PREFIX=/app/trilinos \
+      -D Trilinos_ENABLE_CXX11=ON \
+      -D CMAKE_C_FLAGS=' -w -fopenmp' \
+      -D CMAKE_CXX_FLAGS=' -w -fopenmp'\
+      -D Trilinos_ENABLE_Fortran=ON \
+      -D BUILD_SHARED_LIBS=ON \
+      -D TPL_ENABLE_BLAS=ON \
+      -D TPL_ENABLE_Boost=ON \
+      -D TPL_ENABLE_Cholmod=ON \
+      -D TPL_ENABLE_LAPACK=ON \
+      -D TPL_ENABLE_METIS=ON \
+      -D TPL_ENABLE_SuperLU=OFF \
+      -D TPL_ENABLE_UMFPACK=ON \
+      -D TPL_BLAS_INCLUDE_DIRS=/usr/include/suitesparse \
+      -D TPL_Cholmod_INCLUDE_DIRS=/usr/include/suitesparse \
+      -D TPL_Cholmod_LIBRARIES='libcholmod.so;libamd.so;libcolamd.so' \
+      -D TPL_UMFPACK_INCLUDE_DIRS=/usr/include/suitesparse \
+      -D TPL_Boost_INCLUDE_DIRS=/usr/local/boost/include \
+      -D TPL_Boost_LIBRARY_DIRS=lib \
+      -D Trilinos_ENABLE_Amesos=ON \
+      -D Trilinos_ENABLE_Amesos2=ON \
+      -D Trilinos_ENABLE_AztecOO=ON \
+      -D Trilinos_ENABLE_Belos=ON \
+      -D Trilinos_ENABLE_Ifpack=ON \
+      -D Trilinos_ENABLE_Ifpack2=ON \
+      -D Trilinos_ENABLE_Kokkos=ON \
+      -D Trilinos_ENABLE_Komplex=ON \
+      -D Trilinos_ENABLE_ML=ON \
+      -D Trilinos_ENABLE_MueLu=ON \
+      -D Trilinos_ENABLE_Teuchos=ON \
+      -D Trilinos_ENABLE_Tpetra=ON \
+      -D Trilinos_ENABLE_ALL_OPTIONAL_PACKAGES=ON \
+      -D Kokkos_ENABLE_AGGRESSIVE_VECTORIZATION=ON \
+      -D Tpetra_INST_COMPLEX_DOUBLE=ON \
+      -D Trilinos_ENABLE_COMPLEX_DOUBLE=ON \
+      -D Teuchos_ENABLE_COMPLEX=ON \
+      -D Tpetra_INST_INT_INT=ON \
+      -D Tpetra_ENABLE_DEPRECATED_CODE=ON \
+      -D Trilinos_ENABLE_OpenMP=ON \
+      -D Trilinos_ENABLE_MPI=OFF \
+      -D Trilinos_ENABLE_EXPLICIT_INSTANTIATION=ON \
+      -D Kokkos_ENABLE_COMPILER_WARNINGS=ON \
+      -D Amesos2_ENABLE_Basker=ON \
+      -D Tpetra_INST_SERIAL:BOOL=ON \
+      -D Trilinos_ENABLE_TESTS=OFF \
+      /app/Trilinos-trilinos-release-13-0-1 && make -j`nproc` install
+RUN git clone https://github.com/esys-escript/esys-escript.github.io --depth 1 /app/escript
+RUN cd /app/escript && scons options_file=scons/templates/fedora_py3_options.py -j`nproc` build_full \
+	trilinos=1 trilinos_prefix=/app/trilinos netcdf="no" use_gmsh=0
+ENV LD_LIBRARY_PATH=/app/escript/lib:/app/trilinos/lib:$LD_LIBRARY_PATH
+ENV PYTHONPATH=/app/escript:$PYTHONPATH
+ENV PATH=/app/escript/bin:$PATH
+RUN cd /app/escript && ./utest.sh /app/escript/build '-t15'
+RUN useradd -ms /bin/bash appuser
+RUN run-escript /app/escript/scripts/release_sanity.py
+RUN rm -rf *
+
+CMD ["/bin/bash"]
