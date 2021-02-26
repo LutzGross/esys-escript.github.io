@@ -1,0 +1,3 @@
+To do a fresh install of escript inside a docker container and then run unittesting, run the command:
+
+docker build -f opensuse_trilinos_py3 .
