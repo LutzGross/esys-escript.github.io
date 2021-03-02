@@ -36,7 +36,7 @@
 #include "DataTypes.h"
 #endif
 
-#define RELEASE "5.7"
+// #define RELEASE "5.7"
 
 namespace bp = boost::python;
 
