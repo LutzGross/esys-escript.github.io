@@ -59,6 +59,9 @@ for name in spath:
   except OSError:
     pass
 
+
+mumps_prefix=['/usr/include','/usr/lib/x86_64-linux-gnu/']
+
 # boost-python library/libraries to link against
 boost_libs = [p3name[3:-3]]
 
