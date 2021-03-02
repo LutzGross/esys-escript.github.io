@@ -30,12 +30,15 @@
 
 #ifdef ESYS_HAVE_MUMPS
 // TODO: is this needed? #pragma push_macro("MPI_COMM_WORLD")
-#if defined(MPI_COMM_WORLD)
-#undef MPI_COMM_WORLD    // breaks mumps_mpi.h, defined in escriptcore/src/EsysMPI.h
+#ifdef ESYS_MPI
+    #if defined(MPI_COMM_WORLD)
+    #undef MPI_COMM_WORLD    // breaks mumps_mpi.h, defined in escriptcore/src/EsysMPI.h
+    #endif
 #endif
+#ifdef _WIN32
 #include <mumps_mpi.h>
+#endif
 // TODO: is this needed? #pragma pop_macro("MPI_COMM_WORLD")
-// #include <zmumps_c.h>
 #include <dmumps_c.h>
 #include <zmumps_c.h>
 #define MUMPS_JOB_INIT -1
@@ -135,7 +138,9 @@ void MUMPS_free(SparseMatrix<T>* A)
             }
         }
         /* avoid "unused variable warning" */
+#ifdef ESYS_MPI
         /* MUMPS_INT ierr = */ MPI_Finalize();
+#endif
         if (pt->verbose) {
             std::cout << "MUMPS: instance terminated." << std::endl;
         }
@@ -195,9 +200,11 @@ void MUMPS_solve(SparseMatrix_ptr<T> A, T* out, T* in, dim_t numRefinements, boo
         pt->rhs = new T[n];
         std::memcpy(pt->rhs, in, n*sizeof(T));
         /* avoid "unused variable warning" */
+#ifdef ESYS_MPI
         /* MUMPS_INT ierr; */
         /* ierr = */ MPI_Init(NULL, NULL);
         /* ierr = */ MPI_Comm_rank(MPI_COMM_WORLD, &pt->myid);
+#endif
 
         // Initialize a MUMPS instance. Use MPI_COMM_WORLD
         pt->id.comm_fortran = MUMPS_USE_COMM_WORLD;

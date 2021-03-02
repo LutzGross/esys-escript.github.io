@@ -607,7 +607,7 @@ def checkOptionalLibraries(env):
     mumps_inc_path=''
     mumps_lib_path=''
     if env['mumps']:
-        mumps_inc_path,mumps_lib_path=findLibWithHeader(env, env['mumps_libs'], 'mumps_mpi.h', env['mumps_prefix'], lang='c++')
+        mumps_inc_path,mumps_lib_path=findLibWithHeader(env, env['mumps_libs'], 'dmumps_c.h', env['mumps_prefix'], lang='c++')
         env.AppendUnique(CPPPATH = [mumps_inc_path])
         env.AppendUnique(LIBPATH = [mumps_lib_path])
         env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], mumps_lib_path)
