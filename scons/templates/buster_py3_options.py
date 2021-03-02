@@ -60,9 +60,6 @@ for name in spath:
     pass
 
 
-mumps_libs=['mumps_common_64','pord_64','dmumps_64','zmumps_64','lapack','metis','scotch','esmumps_64','gfortran']
-mumps_prefix=['/usr/include','/usr/lib/x86_64-linux-gnu/']
-
 # boost-python library/libraries to link against
 boost_libs = [p3name[3:-3]]
 
@@ -84,3 +81,6 @@ for i in debstuff:
     exec(k+"='"+v+"'")
 
 mathjax_path='/usr/share/javascript/mathjax/MathJax.js'
+
+# mumps_libs=['mumps_common_64','pord_64','dmumps_64','zmumps_64','lapack','metis','scotch','esmumps_64','gfortran']
+mumps_prefix=['/usr/include','/usr/lib/x86_64-linux-gnu/']
