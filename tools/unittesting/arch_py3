@@ -6,7 +6,7 @@ WORKDIR /app
 COPY . /app
 
 RUN pacman -Syu --noconfirm 
-RUN pacman -Sy --noconfirm python python-numpy python-scipy python-pyproj
+RUN pacman -Sy --noconfirm python python-numpy python-scipy python-pyproj python-matplotlib
 RUN pacman -Sy --noconfirm community/netcdf community/netcdf-cxx
 RUN pacman -Sy --noconfirm extra/boost extra/boost-libs
 RUN pacman -Sy --noconfirm suitesparse
