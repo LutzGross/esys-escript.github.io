@@ -292,7 +292,7 @@ elif cc_name[:3] == 'g++':
     # see mantis #691
     cc_flags     = "-std=c++11 -pedantic -Wall -fPIC -finline-functions"
     cc_flags += " -Wno-unknown-pragmas -Wno-sign-compare -Wno-system-headers -Wno-long-long -Wno-strict-aliasing "
-    cc_flags += " -Wno-unused-function"
+    cc_flags += " -Wno-unused-function  -Wno-narrowing"
     cc_flags += " -Wno-stringop-truncation -Wno-deprecated-declarations --param=max-vartrack-size=100000000"
     cc_optim     = "-O3"
     #max-vartrack-size: avoid vartrack limit being exceeded with escriptcpp.cpp
