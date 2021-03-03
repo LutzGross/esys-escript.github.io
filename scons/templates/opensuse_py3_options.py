@@ -26,6 +26,7 @@ pythonlibpath = ['/usr/lib64']
 pythonlibname = ['python3.6m']
 pythonincpath = ['/usr/include/python3.6m']
 netcdf = True
+mumps_libs=['mumps_common','cmumps_seq','dmumps_seq','zmumps_seq','zmumps_seq','pord']
 umfpack = True
 umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib64']
 umfpack_libs = ['umfpack', 'amd']
