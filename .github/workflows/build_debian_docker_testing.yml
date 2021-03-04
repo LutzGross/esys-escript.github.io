@@ -1,4 +1,4 @@
-name: Build Docker Image
+name: Debian unit testing
 
 on:
   push:
