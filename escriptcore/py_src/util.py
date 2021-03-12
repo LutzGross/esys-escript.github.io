@@ -1273,9 +1273,9 @@ def atan2(arg0, arg1):
    """
    m=whereZero(arg1, rtol=EPSILON)
    m2=whereNegative(arg1*arg0)
-   # return atan(arg0/(arg1+m))*(1-m)+(numpy.pi/2)*(1-2*m2)* m
-   z1=whereZero(arg1, rtol=EPSILON)
-   return (atan(arg0/(arg1+z1))+sign(arg0)*whereNegative(arg1)*numpy.pi)(1-z1)+sign(arg0)*whereNegative(arg1)*numpy.pi/(2*z1)
+   return atan(arg0/(arg1+m))*(1-m)+(numpy.pi/2)*(1-2*m2)* m
+   # z1=whereZero(arg1, rtol=EPSILON)
+   # return (atan(arg0/(arg1+z1))+sign(arg0)*whereNegative(arg1)*numpy.pi)(1-z1)+sign(arg0)*whereNegative(arg1)*numpy.pi/(2*z1)
 
       
 def sinh(arg):
