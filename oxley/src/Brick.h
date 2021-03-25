@@ -38,6 +38,9 @@ namespace oxley {
 */
 class Brick: public OxleyDomain
 {
+
+    template<class Scalar> friend class DefaultAssembler3D;
+
 public:
 
     /**
@@ -178,7 +181,7 @@ public:
     */
     virtual void setRefinementLevels(int refinementlevels)
     {
-        forestData->max_levels_refinement = refinementlevels;
+        forestData.max_levels_refinement = refinementlevels;
     };
 
     /**
@@ -208,7 +211,7 @@ public:
     // These functions are used internally
     p8est_t * borrow_p4est() const { return p8est;};
 
-    p8estData * borrow_forestData() { return forestData;};
+    // p8estData * borrow_forestData() { return forestData;};
 
     p8est_connectivity_t * borrow_connectivity() const { return connectivity; };
 
@@ -220,11 +223,23 @@ public:
 
     void print_debug_report(std::string);
 
-    virtual Assembler_ptr createAssembler(std::string type,
-                                          const DataMap& options) const;
-
 ////////////////////////////////
 protected:
+    virtual dim_t getNumNodes() const;
+    virtual dim_t getNumElements() const;
+    virtual dim_t getNumFaceElements() const;
+    virtual dim_t getNumDOF() const;
+    // virtual index_t getFirstInDim(unsigned axis) const;
+    bool isBoundaryNode(p8est_quadrant_t * quad, int n, p4est_topidx_t treeid, p4est_qcoord_t length) const;
+    bool isUpperBoundaryNode(p8est_quadrant_t * quad, int n, p4est_topidx_t treeid, p4est_qcoord_t length) const;
+    bool isHangingFace(p8est_lnodes_code_t face_code, int n) const;
+    bool isHangingNode(p8est_lnodes_code_t face_code, int n) const;
+    void updateNodeIncrements();
+    void renumberNodes();
+
+    virtual void assembleCoordinates(escript::Data& arg) const;
+    virtual void assembleGradient(escript::Data& out, const escript::Data& in) const;
+    virtual std::vector<IndexVector> getConnections(bool includeShared=false) const;
 
 #ifdef ESYS_HAVE_TRILINOS
     virtual esys_trilinos::const_TrilinosGraph_ptr getTrilinosGraph() const;
@@ -232,15 +247,6 @@ protected:
 #ifdef ESYS_HAVE_PASO
     virtual paso::SystemMatrixPattern_ptr getPasoMatrixPattern(bool reducedRowOrder, bool reducedColOrder) const;
 #endif
-
-    virtual dim_t getNumNodes() const;
-    virtual dim_t getNumElements() const;
-    virtual dim_t getNumFaceElements() const;
-    virtual dim_t getNumDOF() const;
-    virtual index_t getFirstInDim(unsigned axis) const;
-
-    virtual void assembleCoordinates(escript::Data& arg) const;
-    virtual std::vector<IndexVector> getConnections(bool includeShared=false) const;
 
 #ifdef ESYS_HAVE_PASO
     // the Paso System Matrix pattern
@@ -266,12 +272,33 @@ protected:
                                          const escript::Data& in,
                                          bool reduced, S sentinel) const;
 
-    virtual void assembleGradient(escript::Data& out,
-                                  const escript::Data& in) const;
-
     template<typename Scalar>
     void assembleGradientImpl(escript::Data& out,
                               const escript::Data& in) const;
+
+    template<typename Scalar> void addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F,
+       const std::vector<Scalar>& EM_S, const std::vector<Scalar>& EM_F,
+       bool addS, bool addF, index_t e, index_t t, int nEq=1, int nComp=1) const;
+
+    // Updates m_faceOffset for each quadrant
+    void updateFaceOffset();
+
+    // vector with first node id on each rank
+    IndexVector m_nodeDistribution;
+    void updateNodeDistribution();
+
+        // virtual void populateDofMap();
+    void updateHangingNodeIDs();
+
+    // Updates myRows and myColumns
+    void updateRowsColumns();
+    void updateTreeIDs();
+
+
+    // Initial number of divisions
+    long m_NE[3] = {0};
+    // Initial spacing
+    double m_NX[3] = {0};
 
 ////////////////////////////////
 private:
@@ -280,7 +307,7 @@ private:
     p8est_t * p8est;
 
     // The data structure in p8est
-    p8estData * forestData;
+    p8estData forestData;
 
     // This object records the connectivity of the p8est quadrants
     p8est_connectivity_t * connectivity;
@@ -293,6 +320,24 @@ private:
 
     // Pointer that records the location of a temporary data structure
     void * temp_data;
+
+    std::unordered_map<DoublePair,long,boost::hash<DoublePair>> NodeIDs; //global ids of the nodes
+    std::unordered_map<long,bool> hangingNodeIDs; //global ids of the hanging nodes
+    std::unordered_map<DoublePair,long,boost::hash<DoublePair>> treeIDs; //global ids of the hanging nodes
+    
+    // Row and column indices in CRS format
+    IndexVector myRows;
+    IndexVector myColumns;
+
+    // vector that maps each node to a DOF index (used for the coupler)
+    IndexVector m_dofMap;
+
+    p8est_connectivity_t *
+    new_brick_connectivity (int n0, int n1, int n2, int periodic_a, int periodic_b, int periodic_c,
+                               double x0, double x1, double y0, double y1, double z0, double z1);
+
+    virtual Assembler_ptr createAssembler(std::string type,
+                                          const DataMap& options) const;
 
 };
 

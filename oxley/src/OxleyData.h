@@ -82,6 +82,17 @@ struct octantData
 
 	// Spatial coordinates of the corner node that defines the octant
 	double xyz[3] = {0.0,0.0,0.0};
+
+	// treeid index
+	long treeid = -1;
+
+	// Number of the MPI process that owns this quadrant
+	int owner = -1;
+
+	// faceOffset[i]=-1 if face i is not an external face, otherwise it is
+    // the index of that face (where i: 0=left, 1=right, 2=bottom, 3=top)
+    // escript::DataTypes::IndexVector m_faceOffset;
+    signed int m_faceOffset = {-1};
 };
 
 //This structure describes the information that is stored with the p4est
@@ -132,8 +143,14 @@ public:
 	// origin of domain
     double m_origin[3] = {0.0,0.0,0.0};
 
+    // extent of the domain
+    double m_lxyz[3] = {0.0};
+
     // side lengths of domain
     double m_length[3] = {0.0,0.0,0.0};
+
+    // grid spacings / cell sizes of domain for each level of refinement
+    double m_dx[3][P4EST_MAXLEVEL+1] = {{0}};
 
     // number of spatial subdivisions
     int m_NX[3] = {0,0,0};

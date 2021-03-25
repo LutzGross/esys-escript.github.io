@@ -20,6 +20,7 @@ module_name = 'oxley'
 sources = """
     Brick.cpp
     DefaultAssembler2D.cpp
+    DefaultAssembler3D.cpp
     domainhelpers.cpp
     InitAlgorithms.cpp
     Rectangle.cpp
@@ -33,6 +34,7 @@ headers = """
     AbstractAssembler.h
     Brick.h
     DefaultAssembler2D.h
+    DefaultAssembler3D.h
     domainhelpers.h
     InitAlgorithms.h
     Rectangle.h

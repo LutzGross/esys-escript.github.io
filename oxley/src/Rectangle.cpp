@@ -2098,7 +2098,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                 // p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
                 // quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
-                memcpy(&f_00[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
+                memcpy(&f_00[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar)); // TODO BUG? 
                 memcpy(&f_01[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                 memcpy(&f_10[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                 memcpy(&f_11[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
@@ -2142,7 +2142,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
 
                 Scalar* o = out.getSampleDataRW(e, zero);
 
-             for(index_t i = 0; i < numComp; ++i) {
+                for(index_t i = 0; i < numComp; ++i) {
                     o[INDEX3(i,0,0,numComp,2)] = (f_10[i] + f_11[i] - f_00[i] - f_01[i])*cx[2][i] * 0.5;
                     o[INDEX3(i,1,0,numComp,2)] = (f_01[i] + f_11[i] - f_00[i] - f_10[i])*cy[2][i] * 0.5;
                 } 
