@@ -54,7 +54,8 @@ Brick::Brick(int order,
     double x1, double y1, double z1,
     int d0, int d1, int d2,
     int periodic0, int periodic1, int periodic2): 
-    OxleyDomain(3, order){
+    OxleyDomain(3, order)
+{
 
     // Possible error: User passes invalid values for the dimensions
     if(n0 <= 0 || n1 <= 0 || n2 <= 0)
@@ -245,7 +246,8 @@ Brick::~Brick(){
    \brief
    returns a description for this domain
 */
-std::string Brick::getDescription() const{
+std::string Brick::getDescription() const
+{
     return "oxley::brick";
 }
 
@@ -445,7 +447,8 @@ void Brick::setToSize(escript::Data& out) const
                 std::fill(o, o+numQuad, size);
             }
         }
-    } else if (out.getFunctionSpace().getTypeCode() == FaceElements
+    } 
+    else if (out.getFunctionSpace().getTypeCode() == FaceElements
             || out.getFunctionSpace().getTypeCode() == ReducedFaceElements) 
     {
         out.requireWrite();
@@ -494,7 +497,9 @@ void Brick::setToSize(escript::Data& out) const
                 }
             }
         }
-    } else {
+    } 
+    else 
+    {
         std::stringstream msg;
         msg << "setToSize: invalid function space type "
             << out.getFunctionSpace().getTypeCode();
@@ -519,7 +524,7 @@ bool Brick::ownSample(int fsType, index_t id) const
             {
             // check ownership of element's bottom left node
             // return (m_dofMap[id%m_NE[0]+m_NN[0]*(id/m_NE[0])] < getNumDOF());
-            throw OxleyException("Rectangle::ownSample Currently not implemented.");
+            throw OxleyException("Brick::ownSample Currently not implemented.");
             return false;
             }
         case FaceElements:
@@ -713,46 +718,46 @@ void Brick::refineBoundary(std::string boundaryname, double dx)
         || !boundaryname.compare("n") || !boundaryname.compare("N")
         || !boundaryname.compare("NORTH"))
     {
-        p8est_refine_ext(p8est, true, -1, refine_north, init_rectangle_data, refine_copy_parent_quadrant);
-        p8est_balance_ext(p8est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);
+        p8est_refine_ext(p8est, true, -1, refine_north, init_brick_data, refine_copy_parent_octant);
+        p8est_balance_ext(p8est, P8EST_CONNECT_FULL, init_brick_data, refine_copy_parent_octant);
     } 
     else if(!boundaryname.compare("south") || !boundaryname.compare("South")
         || !boundaryname.compare("s") || !boundaryname.compare("S")
         || !boundaryname.compare("SOUTH"))
     {
-        p8est_refine_ext(p8est, true, -1, refine_south, init_rectangle_data, refine_copy_parent_quadrant);
-        p8est_balance_ext(p8est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);
+        p8est_refine_ext(p8est, true, -1, refine_south, init_brick_data, refine_copy_parent_octant);
+        p8est_balance_ext(p8est, P8EST_CONNECT_FULL, init_brick_data, refine_copy_parent_octant);
     }
     else if(!boundaryname.compare("west") || !boundaryname.compare("West")
         || !boundaryname.compare("w") || !boundaryname.compare("W")
         || !boundaryname.compare("WEST"))
     {
-        p8est_refine_ext(p8est, true, -1, refine_west, init_rectangle_data, refine_copy_parent_quadrant);
-        p8est_balance_ext(p8est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);
+        p8est_refine_ext(p8est, true, -1, refine_west, init_brick_data, refine_copy_parent_octant);
+        p8est_balance_ext(p8est, P8EST_CONNECT_FULL, init_brick_data, refine_copy_parent_octant);
     }
     else if(!boundaryname.compare("east") || !boundaryname.compare("East")
         || !boundaryname.compare("e") || !boundaryname.compare("E")
         || !boundaryname.compare("EAST"))
     {
-        p8est_refine_ext(p8est, true, -1, refine_east, init_rectangle_data, refine_copy_parent_quadrant);
-        p8est_balance_ext(p8est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);  
+        p8est_refine_ext(p8est, true, -1, refine_east, init_brick_data, refine_copy_parent_octant);
+        p8est_balance_ext(p8est, P8EST_CONNECT_FULL, init_brick_data, refine_copy_parent_octant);  
     }
     else if(!boundaryname.compare("top") || !boundaryname.compare("Top")
         || !boundaryname.compare("t") || !boundaryname.compare("T")
         || !boundaryname.compare("EAST"))
     {
-        p8est_refine_ext(p8est, true, -1, refine_top, init_rectangle_data, refine_copy_parent_quadrant);
-        p8est_balance_ext(p8est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);  
+        p8est_refine_ext(p8est, true, -1, refine_top, init_brick_data, refine_copy_parent_octant);
+        p8est_balance_ext(p8est, P8EST_CONNECT_FULL, init_brick_data, refine_copy_parent_octant);  
     }
     else if(!boundaryname.compare("bottom") || !boundaryname.compare("Bottom")
         || !boundaryname.compare("b") || !boundaryname.compare("B")
         || !boundaryname.compare("EAST"))
     {
-        p8est_refine_ext(p8est, true, -1, refine_bottom, init_rectangle_data, refine_copy_parent_quadrant);
-        p8est_balance_ext(p8est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);  
+        p8est_refine_ext(p8est, true, -1, refine_bottom, init_brick_data, refine_copy_parent_octant);
+        p8est_balance_ext(p8est, P8EST_CONNECT_FULL, init_brick_data, refine_copy_parent_octant);  
     }
     else {
-        throw OxleyException("Unknown boundary name. Please try 'north', 'east', 'south' or 'west'.");
+        throw OxleyException("Unknown boundary name. Please try 'north', 'east', 'south', 'west', 'top' or 'bottom'.");
     }
 
     // Make sure that nothing went wrong
@@ -795,11 +800,11 @@ void Brick::print_debug_report(std::string locat)
 {
     std::cout << "report for " <<  locat << std::endl;
     std::cout << "p8est = " << &p8est << std::endl;
-    if(!p4est_is_valid(p4est))
+    if(!p8est_is_valid(p8est))
         std::cout << "WARNING: p8est is invalid" << std::endl;
     std::cout << "forestData = " << &forestData << std::endl;
     std::cout << "connectivity = " << &connectivity << std::endl;
-    if(!p4est_connectivity_is_valid(connectivity))
+    if(!p8est_connectivity_is_valid(connectivity))
         std::cout << "WARNING: connectivity is invalid" << std::endl;
     std::cout << "temp_data = " << &temp_data << std::endl;
 }
@@ -826,7 +831,7 @@ Assembler_ptr Brick::createAssembler(std::string type, const DataMap& constants)
 }
 
 // return True for a boundary node and False for an internal node
-bool Rectangle::isBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t treeid, p4est_qcoord_t length) const
+bool Brick::isBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t treeid, p4est_qcoord_t length) const
 {
     // AEAE TODO
     return false;
@@ -838,7 +843,7 @@ bool Rectangle::isBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t tr
 }
 
 // returns True for a boundary node on the north or east of the domain
-bool Rectangle::isUpperBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t treeid, p4est_qcoord_t length) const
+bool Brick::isUpperBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t treeid, p4est_qcoord_t length) const
 {
     // AEAE TODO
     return false;
@@ -881,7 +886,7 @@ void Brick::updateNodeIncrements()
     nodeIncrements[0] = 1;
     for(p8est_topidx_t treeid = p8est->first_local_tree+1, k=1; treeid <= p8est->last_local_tree; ++treeid, ++k) 
     {
-        p4est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
+        p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
         sc_array_t * tquadrants = &tree->quadrants;
         p4est_qcoord_t Q = (p4est_qcoord_t) tquadrants->elem_count;
         nodeIncrements[k] = nodeIncrements[k-1] + Q;
@@ -891,7 +896,6 @@ void Brick::updateNodeIncrements()
 void Brick::renumberNodes()
 {
     // AEAE TODO
-    return false;
 
 // #ifdef OXLEY_ENABLE_DEBUG_NODES
 //     std::cout << "Renumbering nodes... " << std::endl;
@@ -962,19 +966,19 @@ inline dim_t Brick::getNumFaceElements() const
     p4est_qcoord_t numFaceElements = 0;
     for(p8est_topidx_t t = p8est->first_local_tree; t <= p8est->last_local_tree; t++) 
     {
-        p4est_tree_t * currenttree = p8est_tree_array_index(p8est->trees, t);
+        p8est_tree_t * currenttree = p8est_tree_array_index(p8est->trees, t);
         sc_array_t * tquadrants = &currenttree->quadrants;
         for(p4est_qcoord_t e = 0; e < tquadrants->elem_count; e++)
         {
             p8est_quadrant_t * q  = p8est_quadrant_array_index(tquadrants, e);
             p4est_qcoord_t length = P8EST_QUADRANT_LEN(q->level);
-            p4est_qcoord_to_vertex(p8est->connectivity, t, q->x,q->y,q->z,xyz);
+            p8est_qcoord_to_vertex(p8est->connectivity, t, q->x,q->y,q->z,xyz);
             if(xyz[0] == x0 || xyz[1] == y0 || xyz[2] == z0){
                 numFaceElements++;
                 break;
             }
-            p4est_qcoord_to_vertex(p8est->connectivity, t, q->x+length,q->y+length,q->z+length,xyz);
-            if(xyz[0] == x1 || xyz[1] == y1 || xyz == z1){
+            p8est_qcoord_to_vertex(p8est->connectivity, t, q->x+length,q->y+length,q->z+length,xyz);
+            if(xyz[0] == x1 || xyz[1] == y1 || xyz[2] == z1){
                 numFaceElements++;
                 break;
             }
@@ -993,13 +997,13 @@ void Brick::updateTreeIDs()
 {
     treeIDs.clear();
     for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
-        p4est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
+        p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
         sc_array_t * tquadrants = &tree->quadrants;
         p4est_qcoord_t Q = (p4est_qcoord_t) tquadrants->elem_count;
 #pragma omp parallel for
         for(int q = 0; q < Q; ++q) { // Loop over the elements attached to the tree
             p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
-            treeIDs[std::make_pair(quad->x,quad->y,quad->z)]=treeid;
+            treeIDs[std::make_tuple(quad->x,quad->y,quad->z)]=treeid;
         }
     }
 }
@@ -1008,7 +1012,6 @@ void Brick::updateRowsColumns()
 {
 
     // AEAE TODO
-    return false;
 
 //     std::vector<std::vector<long>> * indices;
 //     indices = new std::vector<std::vector<long>>;
@@ -1170,7 +1173,6 @@ void Brick::assembleCoordinates(escript::Data& arg) const
 {
 
     // AEAE TODO
-    return false;
 
     // int numDim = m_numDim;
     // if (!arg.isDataPointShapeEqual(1, &numDim))
@@ -1233,203 +1235,51 @@ paso::SystemMatrixPattern_ptr Brick::getPasoMatrixPattern(
 {
     // TODO
 
-//     if (m_pattern.get())
-//         return m_pattern;
+    if (m_pattern.get())
+        return m_pattern;
 
-//     // first call to this method -> create the pattern, then return it
-//     paso::Connector_ptr conn(getPasoConnector());
-//     const dim_t nDOF0 = (m_gNE[0]+1)/m_NX[0];
-//     const dim_t nDOF1 = (m_gNE[1]+1)/m_NX[1];
-//     const dim_t nDOF2 = (m_gNE[2]+1)/m_NX[2];
-//     const dim_t numDOF = nDOF0*nDOF1*nDOF2;
-//     const dim_t numShared = conn->send->numSharedComponents;
-//     const index_t* sendShared = conn->send->shared;
-//     const int x = m_mpiInfo->rank%m_NX[0];
-//     const int y = m_mpiInfo->rank%(m_NX[0]*m_NX[1])/m_NX[0];
-//     const int z = m_mpiInfo->rank/(m_NX[0]*m_NX[1]);
+    // first call - create pattern, then return
+    paso::Connector_ptr conn(getPasoConnector());
+    const dim_t numDOF = getNumDOF();
+    const dim_t numShared = conn->send->numSharedComponents; //todo
+    const dim_t numNeighbours = conn->send->neighbour.size();
+    const std::vector<index_t>& offsetInShared(conn->send->offsetInShared);
+    const index_t* sendShared = conn->send->shared;
 
-//     // these are for the couple blocks
-//     std::vector<IndexVector> colIndices(numDOF);
-//     std::vector<IndexVector> rowIndices(numShared);
+    // these are for the couple blocks
+    std::vector<IndexVector> colIndices(numDOF);
+    std::vector<IndexVector> rowIndices(numShared);
 
-//     for (dim_t i=0; i < conn->send->neighbour.size(); i++) {
-//         const dim_t start = conn->send->offsetInShared[i];
-//         const dim_t end = conn->send->offsetInShared[i+1];
-//         // location of neighbour rank relative to this rank
-//         const int xDiff = conn->send->neighbour[i]%m_NX[0] - x;
-//         const int yDiff = conn->send->neighbour[i]%(m_NX[0]*m_NX[1])/m_NX[0] - y;
-//         const int zDiff = conn->send->neighbour[i]/(m_NX[0]*m_NX[1]) - z;
-        
-//         if (xDiff==0 && yDiff==0) {
-//             // sharing front or back plane
-//             for (dim_t j = start; j < end; j++) {
-//                 const dim_t i0 = (j-start)%nDOF0;
-//                 const dim_t i1 = (j-start)/nDOF0;
-//                 if (i0 > 0) {
-//                     if (i1 > 0)
-//                         doublyLink(colIndices, rowIndices, sendShared[j-1-nDOF0], j);
-//                     doublyLink(colIndices, rowIndices, sendShared[j-1], j);
-//                     if (i1 < nDOF1-1)
-//                         doublyLink(colIndices, rowIndices, sendShared[j-1+nDOF0], j);
-//                 }
-//                 if (i1 > 0)
-//                     doublyLink(colIndices, rowIndices, sendShared[j-nDOF0], j);
-//                 doublyLink(colIndices, rowIndices, sendShared[j], j);
-//                 if (i1 < nDOF1-1)
-//                     doublyLink(colIndices, rowIndices, sendShared[j+nDOF0], j);
-//                 if (i0 < nDOF0-1) {
-//                     if (i1 > 0)
-//                         doublyLink(colIndices, rowIndices, sendShared[j+1-nDOF0], j);
-//                     doublyLink(colIndices, rowIndices, sendShared[j+1], j);
-//                     if (i1 < nDOF1-1)
-//                         doublyLink(colIndices, rowIndices, sendShared[j+1+nDOF0], j);
-//                 }
-//             }
-//         } else if (xDiff==0 && zDiff==0) {
-//             // sharing top or bottom plane
-//             for (dim_t j = start; j < end; j++) {
-//                 const dim_t i0 = (j-start)%nDOF0;
-//                 const dim_t i1 = (j-start)/nDOF0;
-//                 if (i0 > 0) {
-//                     if (i1 > 0)
-//                         doublyLink(colIndices, rowIndices, sendShared[j]-1-nDOF0*nDOF1, j);
-//                     doublyLink(colIndices, rowIndices, sendShared[j]-1, j);
-//                     if (i1 < nDOF2-1)
-//                         doublyLink(colIndices, rowIndices, sendShared[j]-1+nDOF0*nDOF1, j);
-//                 }
-//                 if (i1 > 0)
-//                     doublyLink(colIndices, rowIndices, sendShared[j]-nDOF0*nDOF1, j);
-//                 doublyLink(colIndices, rowIndices, sendShared[j], j);
-//                 if (i1 < nDOF2-1)
-//                     doublyLink(colIndices, rowIndices, sendShared[j]+nDOF0*nDOF1, j);
-//                 if (i0 < nDOF0-1) {
-//                     if (i1 > 0)
-//                         doublyLink(colIndices, rowIndices, sendShared[j]+1-nDOF0*nDOF1, j);
-//                     doublyLink(colIndices, rowIndices, sendShared[j]+1, j);
-//                     if (i1 < nDOF2-1)
-//                         doublyLink(colIndices, rowIndices, sendShared[j]+1+nDOF0*nDOF1, j);
-//                 }
-//             }
-//         } else if (yDiff==0 && zDiff==0) {
-//             // sharing left or right plane
-//             for (dim_t j = start; j < end; j++) {
-//                 const dim_t i0 = (j-start)%nDOF1;
-//                 const dim_t i1 = (j-start)/nDOF1;
-//                 if (i0 > 0) {
-//                     if (i1 > 0)
-//                         doublyLink(colIndices, rowIndices, sendShared[j]-nDOF0-nDOF0*nDOF1, j);
-//                     doublyLink(colIndices, rowIndices, sendShared[j]-nDOF0, j);
-//                     if (i1 < nDOF2-1)
-//                         doublyLink(colIndices, rowIndices, sendShared[j]-nDOF0+nDOF0*nDOF1, j);
-//                 }
-//                 if (i1 > 0)
-//                     doublyLink(colIndices, rowIndices, sendShared[j]-nDOF0*nDOF1, j);
-//                 doublyLink(colIndices, rowIndices, sendShared[j], j);
-//                 if (i1 < nDOF2-1)
-//                     doublyLink(colIndices, rowIndices, sendShared[j]+nDOF0*nDOF1, j);
-//                 if (i0 < nDOF1-1) {
-//                     if (i1 > 0)
-//                         doublyLink(colIndices, rowIndices, sendShared[j]+nDOF0-nDOF0*nDOF1, j);
-//                     doublyLink(colIndices, rowIndices, sendShared[j]+nDOF0, j);
-//                     if (i1 < nDOF2-1)
-//                         doublyLink(colIndices, rowIndices, sendShared[j]+nDOF0+nDOF0*nDOF1, j);
-//                 }
-//             }
-//         } else if (xDiff == 0) {
-//             // sharing an edge in x direction
-//             for (dim_t j = start; j < end; j++) {
-//                 if (j > start)
-//                     doublyLink(colIndices, rowIndices, sendShared[j]-1, j);
-//                 doublyLink(colIndices, rowIndices, sendShared[j], j);
-//                 if (j < end-1)
-//                     doublyLink(colIndices, rowIndices, sendShared[j]+1, j);
-//             }
-//         } else if (yDiff == 0) {
-//             // sharing an edge in y direction
-//             for (dim_t j = start; j < end; j++) {
-//                 if (j > start)
-//                     doublyLink(colIndices, rowIndices, sendShared[j]-nDOF0, j);
-//                 doublyLink(colIndices, rowIndices, sendShared[j], j);
-//                 if (j < end-1)
-//                     doublyLink(colIndices, rowIndices, sendShared[j]+nDOF0, j);
-//             }
-//         } else if (zDiff == 0) {
-//             // sharing an edge in z direction
-//             for (dim_t j = start; j < end; j++) {
-//                 if (j > start)
-//                     doublyLink(colIndices, rowIndices, sendShared[j]-nDOF0*nDOF1, j);
-//                 doublyLink(colIndices, rowIndices, sendShared[j], j);
-//                 if (j < end-1)
-//                     doublyLink(colIndices, rowIndices, sendShared[j]+nDOF0*nDOF1, j);
-//             }
-//         } else {
-//             // sharing a node
-//             doublyLink(colIndices, rowIndices, sendShared[start], start);
-//         }
-//     }
+    for(dim_t i=0; i<numNeighbours; i++) {
+        const dim_t start = offsetInShared[i];
+        const dim_t end = offsetInShared[i+1];
+        for(dim_t j = start; j < end; j++) {
+            if (j > start)
+                doublyLink(colIndices, rowIndices, sendShared[j-1], j);
+            doublyLink(colIndices, rowIndices, sendShared[j], j);
+            if (j < end-1)
+                doublyLink(colIndices, rowIndices, sendShared[j+1], j);
+        }
+    }
+#pragma omp parallel for
+    for(dim_t i = 0; i < numShared; i++) {
+        sort(rowIndices[i].begin(), rowIndices[i].end());
+    }
 
-// #pragma omp parallel for
-//     for (dim_t i = 0; i < numShared; i++) {
-//         sort(rowIndices[i].begin(), rowIndices[i].end());
-//     }
+    // create main and couple blocks
+    paso::Pattern_ptr mainPattern = createPasoPattern(getConnections(), numDOF);
+    paso::Pattern_ptr colPattern = createPasoPattern(colIndices, numShared);
+    paso::Pattern_ptr rowPattern = createPasoPattern(rowIndices, numDOF);
 
-//     // create main and couple blocks
-//     paso::Pattern_ptr mainPattern = createPasoPattern(getConnections(), numDOF);
-//     paso::Pattern_ptr colPattern = createPasoPattern(colIndices, numShared);
-//     paso::Pattern_ptr rowPattern = createPasoPattern(rowIndices, numDOF);
+    // allocate paso distribution
+    IndexVector m_nodeDistribution = getNodeDistribution();
+    escript::Distribution_ptr distribution(new escript::Distribution(m_mpiInfo, m_nodeDistribution));
 
-//     // allocate paso distribution
-//     escript::Distribution_ptr distribution(new escript::Distribution(
-//                                                m_mpiInfo, m_nodeDistribution));
-
-//     // finally create the system matrix pattern
-//     m_pattern.reset(new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
-//             distribution, distribution, mainPattern, colPattern, rowPattern,
-//             conn, conn));
-
-//     // useful debug output
-//     /*
-//     std::cout << "--- colIndices ---" << std::endl;
-//     for (size_t i=0; i<colIndices.size(); i++) {
-//         std::cout << "colIndices[" << i << "].size()=" << colIndices[i].size() << std::endl;
-//     }
-//     std::cout << "--- rowIndices ---" << std::endl;
-//     for (size_t i=0; i<rowIndices.size(); i++) {
-//         std::cout << "rowIndices[" << i << "].size()=" << rowIndices[i].size() << std::endl;
-//     }
-//     */
-//     /*
-//     std::cout << "--- main_pattern ---" << std::endl;
-//     std::cout << "M=" << mainPattern->numOutput << ", N=" << mainPattern->numInput << std::endl;
-//     for (size_t i=0; i<mainPattern->numOutput+1; i++) {
-//         std::cout << "ptr[" << i << "]=" << mainPattern->ptr[i] << std::endl;
-//     }
-//     for (size_t i=0; i<mainPattern->ptr[mainPattern->numOutput]; i++) {
-//         std::cout << "index[" << i << "]=" << mainPattern->index[i] << std::endl;
-//     }
-//     */
-//     /*
-//     std::cout << "--- colCouple_pattern ---" << std::endl;
-//     std::cout << "M=" << colPattern->numOutput << ", N=" << colPattern->numInput << std::endl;
-//     for (size_t i=0; i<colPattern->numOutput+1; i++) {
-//         std::cout << "ptr[" << i << "]=" << colPattern->ptr[i] << std::endl;
-//     }
-//     for (size_t i=0; i<colPattern->ptr[colPattern->numOutput]; i++) {
-//         std::cout << "index[" << i << "]=" << colPattern->index[i] << std::endl;
-//     }
-//     */
-//     /*
-//     std::cout << "--- rowCouple_pattern ---" << std::endl;
-//     std::cout << "M=" << rowPattern->numOutput << ", N=" << rowPattern->numInput << std::endl;
-//     for (size_t i=0; i<rowPattern->numOutput+1; i++) {
-//         std::cout << "ptr[" << i << "]=" << rowPattern->ptr[i] << std::endl;
-//     }
-//     for (size_t i=0; i<rowPattern->ptr[rowPattern->numOutput]; i++) {
-//         std::cout << "index[" << i << "]=" << rowPattern->index[i] << std::endl;
-//     }
-//     */
-
-//     return m_pattern;
+    // finally create the system matrix pattern
+    m_pattern.reset(new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
+            distribution, distribution, mainPattern, colPattern, rowPattern,
+            conn, conn));
+    return m_pattern;
 }
 #endif // ESYS_HAVE_PASO
 
@@ -1450,7 +1300,7 @@ void Brick::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F
          bool addS, bool addF, index_t e, index_t t, int nEq, int nComp) const
 {    
     IndexVector rowIndex(4);
-    p4est_tree_t * currenttree = p8est_tree_array_index(p8est->trees, t);
+    p8est_tree_t * currenttree = p8est_tree_array_index(p8est->trees, t);
     sc_array_t * tquadrants = &currenttree->quadrants;
     // p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
     p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, e);
@@ -1461,8 +1311,8 @@ void Brick::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F
         double ly = length * ((int) (i / 2) == 1);
         double lz = length * ((int) (i / 2) == 1);
         double xyz[3];
-        p4est_qcoord_to_vertex(p8est->connectivity, t, quad->x+lx, quad->y+ly, quad->z+lz, xyz);
-        rowIndex[i] = NodeIDs.find(std::make_pair(xyz[0],xyz[1],xyz[2]))->second;
+        p8est_qcoord_to_vertex(p8est->connectivity, t, quad->x+lx, quad->y+ly, quad->z+lz, xyz);
+        rowIndex[i] = NodeIDs.find(std::make_tuple(xyz[0],xyz[1],xyz[2]))->second;
     }
 
     if(addF)
@@ -1484,12 +1334,12 @@ void Brick::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F
 
 
 template
-void Rectangle::addToMatrixAndRHS<real_t>(escript::AbstractSystemMatrix* S, escript::Data& F,
+void Brick::addToMatrixAndRHS<real_t>(escript::AbstractSystemMatrix* S, escript::Data& F,
          const std::vector<real_t>& EM_S, const std::vector<real_t>& EM_F, 
          bool addS, bool addF, index_t e, index_t t, int nEq, int nComp) const;
 
 template
-void Rectangle::addToMatrixAndRHS<cplx_t>(escript::AbstractSystemMatrix* S, escript::Data& F,
+void Brick::addToMatrixAndRHS<cplx_t>(escript::AbstractSystemMatrix* S, escript::Data& F,
          const std::vector<cplx_t>& EM_S, const std::vector<cplx_t>& EM_F, 
          bool addS, bool addF, index_t e, index_t t, int nEq, int nComp) const;
 
@@ -1791,14 +1641,14 @@ void Brick::interpolateNodesOnElementsWorker(escript::Data& out,
 
         // This structure is used to store info needed by p4est
         interpolateNodesOnElementsWorker_Data<S> interpolateData;
-        interpolateData.fxx = fxx;
+        interpolateData.fxx = fxxx;
         interpolateData.sentinel = sentinel;
         interpolateData.offset = numComp*sizeof(S);
 
-        p8est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnElementWorker_data, NULL, NULL);
+        p8est_iterate(p8est, NULL, &interpolateData, get_interpolateNodesOnElementWorker_data, NULL, NULL, NULL);
         for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; treeid++)
         {
-            p4est_tree_t * currenttree = p8est_tree_array_index(p8est->trees, treeid);
+            p8est_tree_t * currenttree = p8est_tree_array_index(p8est->trees, treeid);
             sc_array_t * tquadrants = &currenttree->quadrants;
             p4est_qcoord_t Q = (p4est_locidx_t) tquadrants->elem_count;
 #pragma omp parallel for
@@ -1828,14 +1678,14 @@ void Brick::interpolateNodesOnElementsWorker(escript::Data& out,
         double * fxxx = new double[8*numComp*numNodes];
         // This structure is used to store info needed by p4est
         interpolateNodesOnElementsWorker_Data<S> interpolateData;
-        interpolateData.fxx = fxx;
+        interpolateData.fxx = fxxx;
         interpolateData.sentinel = sentinel;
         interpolateData.offset = numComp*sizeof(S);
 
-        p8est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnElementWorker_data, NULL, NULL);
+        p8est_iterate(p8est, NULL, &interpolateData, get_interpolateNodesOnElementWorker_data, NULL, NULL, NULL);
         for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; treeid++)
         {
-            p4est_tree_t * currenttree = p8est_tree_array_index(p8est->trees, treeid);
+            p8est_tree_t * currenttree = p8est_tree_array_index(p8est->trees, treeid);
             sc_array_t * tquadrants = &currenttree->quadrants;
             p4est_qcoord_t Q = (p4est_locidx_t) tquadrants->elem_count;
 #pragma omp parallel for
@@ -1936,7 +1786,7 @@ void Brick::assembleGradientImpl(escript::Data& out,
     // Find the maximum level of refinement on the mesh
     int max_level = 0;
     for(p8est_topidx_t tree = p8est->first_local_tree; tree < p8est->last_local_tree; tree++) {
-        p4est_tree_t * tree_t = p8est_tree_array_index(p8est->trees, tree);
+        p8est_tree_t * tree_t = p8est_tree_array_index(p8est->trees, tree);
         max_level = SC_MAX(max_level, tree_t->maxlevel);
     }
 
@@ -1976,7 +1826,10 @@ void Brick::assembleGradientImpl(escript::Data& out,
 #pragma omp parallel for
             for(p4est_qcoord_t e = nodes->global_offset; e < Q+nodes->global_offset; e++) // Loop over every quadrant within the tree
             {
-                int l = t->maxlevel;
+                // Work out what level this element is on 
+                p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, e);
+                quadrantData * quaddata = (quadrantData *) quad->p.user_data;
+                int l = quad->level;
 
                 memcpy(&f_000[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                 memcpy(&f_001[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
@@ -1987,7 +1840,7 @@ void Brick::assembleGradientImpl(escript::Data& out,
                 memcpy(&f_110[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                 memcpy(&f_111[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
 
-                Scalar* o = out.getSampleDataRW(INDEX3(k0,k1,k2,NE0,NE1), zero);
+                Scalar* o = out.getSampleDataRW(e, zero);
 
                 for (index_t i=0; i < numComp; ++i) {
                     const Scalar V0 =((f_100[i]-f_000[i])*C5 + (f_111[i]-f_011[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / forestData.m_dx[0][l];
@@ -2052,7 +1905,11 @@ void Brick::assembleGradientImpl(escript::Data& out,
 #pragma omp parallel for
             for(p4est_qcoord_t e = nodes->global_offset; e < Q+nodes->global_offset; e++) // Loop over every quadrant within the tree
             {
-                int l = t->maxlevel;
+                // Work out what level this element is on 
+                p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, e);
+                quadrantData * quaddata = (quadrantData *) quad->p.user_data;
+
+                int l = quad->level;
 
                 memcpy(&f_000[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                 memcpy(&f_001[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
@@ -2087,17 +1944,17 @@ void Brick::assembleGradientImpl(escript::Data& out,
 
         for(p8est_topidx_t t = p8est->first_local_tree; t <= p8est->last_local_tree; t++) 
         {
-            p4est_tree_t * currenttree = p8est_tree_array_index(p8est->trees, t);
+            p8est_tree_t * currenttree = p8est_tree_array_index(p8est->trees, t);
             sc_array_t * tquadrants = &currenttree->quadrants;
             p4est_qcoord_t Q = (p4est_locidx_t) tquadrants->elem_count;
 #pragma omp parallel for
             for(p4est_qcoord_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
             {
                 // Work out what level this element is on 
-                p8est_quadrant_t * quad = p84est_quadrant_array_index(tquadrants, e);
+                p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, e);
                 quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
-                int l = t->maxlevel;
+                int l = quad->level;
 
                 if(quaddata->m_faceOffset == 0) 
                 {
@@ -2205,7 +2062,7 @@ void Brick::assembleGradientImpl(escript::Data& out,
                     memcpy(&f_101[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     memcpy(&f_110[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     memcpy(&f_111[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    Scalar* o = out.getSampleDataRW(m_faceOffset[3]+INDEX2(k0,k2,NE0), zero);
+                    Scalar* o = out.getSampleDataRW(e, zero);
 
                     for (index_t i=0; i < numComp; ++i) {
                         const Scalar V0=((f_110[i]-f_010[i])*C6 + (f_111[i]-f_011[i])*C2) / forestData.m_dx[0][l];
@@ -2237,7 +2094,7 @@ void Brick::assembleGradientImpl(escript::Data& out,
                     memcpy(&f_101[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     memcpy(&f_110[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     memcpy(&f_111[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    Scalar* o = out.getSampleDataRW(m_faceOffset[4]+INDEX2(k0,k1,NE0), zero);
+                    Scalar* o = out.getSampleDataRW(e, zero);
                     for (index_t i=0; i < numComp; ++i) {
                         const Scalar V0=((f_100[i]-f_000[i])*C6 + (f_110[i]-f_010[i])*C2) / forestData.m_dx[0][l];
                         const Scalar V1=((f_100[i]-f_000[i])*C2 + (f_110[i]-f_010[i])*C6) / forestData.m_dx[0][l];
@@ -2268,7 +2125,7 @@ void Brick::assembleGradientImpl(escript::Data& out,
                     memcpy(&f_101[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     memcpy(&f_110[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     memcpy(&f_111[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    Scalar* o = out.getSampleDataRW(m_faceOffset[5]+INDEX2(k0,k1,NE0), zero);
+                    Scalar* o = out.getSampleDataRW(e, zero);
                     for (index_t i=0; i < numComp; ++i) {
                         const Scalar V0=((f_101[i]-f_001[i])*C6 + (f_111[i]-f_011[i])*C2) / forestData.m_dx[0][l];
                         const Scalar V1=((f_101[i]-f_001[i])*C2 + (f_111[i]-f_011[i])*C6) / forestData.m_dx[0][l];
@@ -2296,17 +2153,17 @@ void Brick::assembleGradientImpl(escript::Data& out,
 
         for(p8est_topidx_t t = p8est->first_local_tree; t <= p8est->last_local_tree; t++) 
         {
-            p4est_tree_t * currenttree = p8est_tree_array_index(p8est->trees, t);
+            p8est_tree_t * currenttree = p8est_tree_array_index(p8est->trees, t);
             sc_array_t * tquadrants = &currenttree->quadrants;
             p4est_qcoord_t Q = (p4est_locidx_t) tquadrants->elem_count;
 #pragma omp parallel for
             for(p4est_qcoord_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
             {
                 // Work out what level this element is on 
-                p8est_quadrant_t * quad = p84est_quadrant_array_index(tquadrants, e);
+                p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, e);
                 quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
-                int l = t->maxlevel;
+                int l = quad->level;
 
                 std::vector<Scalar> f_000(numComp, zero);
                 std::vector<Scalar> f_001(numComp, zero);
@@ -2510,14 +2367,14 @@ std::vector<IndexVector> Brick::getConnections(bool includeShared) const
     // Loop over the quadrants skipped by p4est_iterate  
     for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) 
     {
-        p4est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
+        p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
         sc_array_t * tquadrants = &tree->quadrants;
-        p4est_qcoord_t Q = (p4est_qcoord_t) tquadrants->elem_count;
+        long Q = (p4est_qcoord_t) tquadrants->elem_count;
 // #pragma omp parallel for
-        for(int q = 0; q < Q; ++q) // Loop over all quadrants
+        for(long q = 0; q < Q; ++q) // Loop over all quadrants
         { 
             p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
-            p4est_qcoord_t length = P8EST_QUADRANT_LEN(quad->level);
+            long length = P8EST_QUADRANT_LEN(quad->level);
             for(int n = 0; n < 8; n++)
             {
                 double xyz[3];
@@ -2527,8 +2384,8 @@ std::vector<IndexVector> Brick::getConnections(bool includeShared) const
                 long lni[4] = {-1};
                 for(int i = 0; i < 8; i++)
                 {
-                    p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx[i], quad->y+ly[i], quad->z+lz[i], xyz);
-                    lni[i] = NodeIDs.find(std::make_pair(xyz[0],xyz[1],xyz[2]))->second;
+                    p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+lx[i], quad->y+ly[i], quad->z+lz[i], xyz);
+                    lni[i] = NodeIDs.find(std::make_tuple(xyz[0],xyz[1],xyz[2]))->second;
                 }
 
                 for(int i = 0; i < 4; i++)
@@ -2570,38 +2427,38 @@ std::vector<IndexVector> Brick::getConnections(bool includeShared) const
 }
 
 static inline void
-brick_linear_to_xyz (p4est_topidx_t ti, const int logx[P4EST_DIM],
-                     const int rankx[P4EST_DIM], p4est_topidx_t tx[P4EST_DIM])
+brick_linear_to_xyz (p4est_topidx_t ti, const int logx[P8EST_DIM],
+                     const int rankx[P8EST_DIM], p4est_topidx_t tx[P8EST_DIM])
 {
     int i, j, k;
     int lastlog = 0;
 
-    for (i = 0; i < P4EST_DIM; i++) {
+    for (i = 0; i < P8EST_DIM; i++) {
         tx[i] = 0;
     }
 
-    for (i = 0; i < P4EST_DIM - 1; i++) {
+    for (i = 0; i < P8EST_DIM - 1; i++) {
         p4est_topidx_t tempx[3] = { 0, 0, 0 };
         int logi = logx[rankx[i]] - lastlog;
         int idx[3] = { -1, -1, -1 };
         int c = 0;
 
-        for (k = 0; k < P4EST_DIM - i; k++) {
+        for (k = 0; k < P8EST_DIM - i; k++) {
             int d = rankx[i + k];
             idx[d] = 0;
         }
     
-        for (k = 0; k < P4EST_DIM; k++) {
+        for (k = 0; k < P8EST_DIM; k++) {
             if (idx[k] == 0) {
                 idx[k] = c++;
             }
         }
 
         for (j = 0; j < logi; j++) {
-            int base = (P4EST_DIM - i) * j;
-            int shift = (P4EST_DIM - i - 1) * j;
+            int base = (P8EST_DIM - i) * j;
+            int shift = (P8EST_DIM - i - 1) * j;
 
-            for (k = 0; k < P4EST_DIM; k++) {
+            for (k = 0; k < P8EST_DIM; k++) {
                 int id = idx[k];
 
                 if (id >= 0) {
@@ -2610,49 +2467,49 @@ brick_linear_to_xyz (p4est_topidx_t ti, const int logx[P4EST_DIM],
             }
         }
 
-        for (k = 0; k < P4EST_DIM; k++) {
+        for (k = 0; k < P8EST_DIM; k++) {
             tx[k] += (tempx[k] << lastlog);
         }
         lastlog += logi;
-        ti >>= (P4EST_DIM - i) * logi;
+        ti >>= (P8EST_DIM - i) * logi;
     }
-    tx[rankx[P4EST_DIM - 1]] += (ti << lastlog);
+    tx[rankx[P8EST_DIM - 1]] += (ti << lastlog);
 }
 
 static inline p4est_topidx_t
-brick_xyz_to_linear (const p4est_topidx_t tx[P4EST_DIM],
-                     const int logx[P4EST_DIM], const int rankx[P4EST_DIM])
+brick_xyz_to_linear (const p4est_topidx_t tx[P8EST_DIM],
+                     const int logx[P8EST_DIM], const int rankx[P8EST_DIM])
 {
     int i, j, k;
-    int lastlog = logx[rankx[P4EST_DIM - 2]];
-    p4est_topidx_t ti = tx[rankx[P4EST_DIM - 1]] >> lastlog;
+    int lastlog = logx[rankx[P8EST_DIM - 2]];
+    p4est_topidx_t ti = tx[rankx[P8EST_DIM - 1]] >> lastlog;
 
-    for (i = P4EST_DIM - 2; i >= 0; i--) {
+    for (i = P8EST_DIM - 2; i >= 0; i--) {
         p4est_topidx_t tempx[3] = { 0, 0, 0 };
         int logi =  (i == 0) ? lastlog : lastlog - logx[rankx[i - 1]];
         int idx[3] = { -1, -1, -1 };
         int c = 0;
 
-        for (k = 0; k < P4EST_DIM - i; k++) {
+        for (k = 0; k < P8EST_DIM - i; k++) {
             int d = rankx[i + k];
             idx[d] = 0;
         }
 
-        for (k = 0; k < P4EST_DIM; k++) {
+        for (k = 0; k < P8EST_DIM; k++) {
             if (idx[k] == 0) {
                 idx[k] = c++;
             }
         }
 
-        ti <<= (P4EST_DIM - i) * logi;
+        ti <<= (P8EST_DIM - i) * logi;
         lastlog -= logi;
-        for (k = 0; k < P4EST_DIM; k++) {
+        for (k = 0; k < P8EST_DIM; k++) {
             tempx[k] = tx[k] >> lastlog;
         }
         for (j = 0; j < logi; j++) {
-            int shift = (P4EST_DIM - i - 1) * j;
+            int shift = (P8EST_DIM - i - 1) * j;
 
-            for (k = 0; k < P4EST_DIM; k++) {
+            for (k = 0; k < P8EST_DIM; k++) {
                 int id = idx[k];
 
                 if (id >= 0) {
@@ -2668,56 +2525,56 @@ p8est_connectivity_t *
 Brick::new_brick_connectivity (int n0, int n1, int n2, int periodic_a, int periodic_b, int periodic_c,
                                double x0, double x1, double y0, double y1, double z0, double z1)
 {
-    const p4est_topidx_t m = (p4est_topidx_t) n0;
-    const p4est_topidx_t n = (p4est_topidx_t) n1;
-    const p4est_topidx_t p = (p4est_topidx_t) n2;
-    const p4est_topidx_t mc = periodic_a ? m : (m - 1);
-    const p4est_topidx_t nc = periodic_b ? n : (n - 1);
-    const p4est_topidx_t pc = periodic_c ? p : (p - 1);
-    const p4est_topidx_t num_trees = m * n * p;
-    const p4est_topidx_t num_corners = mc * nc * pc;
-    const p4est_topidx_t num_ctt = P4EST_CHILDREN * num_corners;
-    const p4est_topidx_t num_edges = m * nc * pc + mc * n * pc + mc * nc * p;
-    const p4est_topidx_t num_ett = 4 * num_edges;
-    const p4est_topidx_t num_vertices = (m + 1) * (n + 1) * (p + 1);
-    const int periodic[P4EST_DIM] = { periodic_a, periodic_b, periodic_c };
+    const p8est_topidx_t m = (p4est_topidx_t) n0;
+    const p8est_topidx_t n = (p4est_topidx_t) n1;
+    const p8est_topidx_t p = (p4est_topidx_t) n2;
+    const p8est_topidx_t mc = periodic_a ? m : (m - 1);
+    const p8est_topidx_t nc = periodic_b ? n : (n - 1);
+    const p8est_topidx_t pc = periodic_c ? p : (p - 1);
+    const p8est_topidx_t num_trees = m * n * p;
+    const p8est_topidx_t num_corners = mc * nc * pc;
+    const p8est_topidx_t num_ctt = P8EST_CHILDREN * num_corners;
+    const p8est_topidx_t num_edges = m * nc * pc + mc * n * pc + mc * nc * p;
+    const p8est_topidx_t num_ett = 4 * num_edges;
+    const p8est_topidx_t num_vertices = (m + 1) * (n + 1) * (p + 1);
+    const int periodic[P8EST_DIM] = { periodic_a, periodic_b, periodic_c };
 
-    const p4est_topidx_t max[P4EST_DIM] = { m - 1, n - 1, p - 1 };
+    const p8est_topidx_t max[P8EST_DIM] = { m - 1, n - 1, p - 1 };
     double *vertices;
-    p4est_topidx_t *tree_to_vertex;
-    p4est_topidx_t *tree_to_tree;
+    p8est_topidx_t *tree_to_vertex;
+    p8est_topidx_t *tree_to_tree;
     int8_t *tree_to_face;
-    p4est_topidx_t *tree_to_corner;
-    p4est_topidx_t *ctt_offset;
-    p4est_topidx_t *corner_to_tree;
+    p8est_topidx_t *tree_to_corner;
+    p8est_topidx_t *ctt_offset;
+    p8est_topidx_t *corner_to_tree;
     int8_t *corner_to_corner;
-    p4est_topidx_t  n_iter;
-    int logx[P4EST_DIM];
-    int rankx[P4EST_DIM];
+    p8est_topidx_t  n_iter;
+    int logx[P8EST_DIM];
+    int rankx[P8EST_DIM];
     int i, j, l;
-    p4est_topidx_t  ti, tj, tk;
-    p4est_topidx_t  tx, ty;
-    p4est_topidx_t  tf[P4EST_FACES], tc[P4EST_CHILDREN];
-    p4est_topidx_t  coord[P4EST_DIM], coord2[P4EST_DIM], ttemp;
-    p4est_topidx_t *linear_to_tree;
-    p4est_topidx_t *tree_to_corner2;
-    p4est_topidx_t  vcount = 0, vicount = 0;
-    int c[P4EST_DIM];
-    p4est_connectivity_t *conn;
-    p4est_topidx_t tl;
-    p4est_topidx_t tz;
-    p4est_topidx_t te[P8EST_EDGES];
-    p4est_topidx_t *tree_to_edge;
-    p4est_topidx_t *ett_offset;
-    p4est_topidx_t *edge_to_tree;
+    p8est_topidx_t  ti, tj, tk;
+    p8est_topidx_t  tx, ty;
+    p8est_topidx_t  tf[P8EST_FACES], tc[P8EST_CHILDREN];
+    p8est_topidx_t  coord[P8EST_DIM], coord2[P8EST_DIM], ttemp;
+    p8est_topidx_t *linear_to_tree;
+    p8est_topidx_t *tree_to_corner2;
+    p8est_topidx_t  vcount = 0, vicount = 0;
+    int c[P8EST_DIM];
+    p8est_connectivity_t *conn;
+    p8est_topidx_t tl;
+    p8est_topidx_t tz;
+    p8est_topidx_t te[P8EST_EDGES];
+    p8est_topidx_t *tree_to_edge;
+    p8est_topidx_t *ett_offset;
+    p8est_topidx_t *edge_to_tree;
     int8_t *edge_to_edge;
-    p4est_topidx_t *tree_to_edge2;
+    p8est_topidx_t *tree_to_edge2;
     int dir1, dir2;
 
     ESYS_ASSERT(m > 0 && n > 0 && p > 0, "n0, n1 and n2 must be greater than zero.");
 
 
-    conn = p4est_connectivity_new (num_vertices, num_trees, 
+    conn = p8est_connectivity_new (num_vertices, num_trees, 
                                  num_edges, num_ett,
                                  num_corners, num_ctt);
 
@@ -2741,11 +2598,11 @@ Brick::new_brick_connectivity (int n0, int n1, int n2, int periodic_a, int perio
 
 #pragma omp parallel for
     for (ti = 0; ti < num_corners + 1; ti++) {
-        ctt_offset[ti] = P4EST_CHILDREN * ti;
+        ctt_offset[ti] = P8EST_CHILDREN * ti;
     }
 
 #pragma omp parallel for
-    for (ti = 0; ti < P4EST_CHILDREN * num_trees; ti++) {
+    for (ti = 0; ti < P8EST_CHILDREN * num_trees; ti++) {
         tree_to_vertex[ti] = -1;
     }
 
@@ -2840,7 +2697,7 @@ Brick::new_brick_connectivity (int n0, int n1, int n2, int periodic_a, int perio
         if (tx < m && ty < n && tz < p && 1) {
             tj = linear_to_tree[ti];
             P4EST_ASSERT(tj >= 0);
-            for (i = 0; i < P4EST_DIM; i++) {
+            for (i = 0; i < P8EST_DIM; i++) {
                 for (j = 0; j < 2; j++) {
                     l = 2 * i + j;
                     coord2[0] = ((tx + ((i == 0) ? (2 * j - 1) : 0)) + m) % m;
@@ -2865,7 +2722,7 @@ Brick::new_brick_connectivity (int n0, int n1, int n2, int periodic_a, int perio
                     P4EST_ASSERT(te[l] >= 0);
                 }
             }
-            for (i = 0; i < P4EST_CHILDREN; i++) {
+            for (i = 0; i < P8EST_CHILDREN; i++) {
                 coord2[0] = ((tx + (((i & 1) == 0) ? -1 : 1)) + m) % m;
                 coord2[1] = ((ty + ((((i >> 1) & 1) == 0) ? -1 : 1)) + n) % n;
                 coord2[2] = ((tz + (((i >> 2) == 0) ? -1 : 1)) + p) % p;
@@ -2874,18 +2731,18 @@ Brick::new_brick_connectivity (int n0, int n1, int n2, int periodic_a, int perio
                 tc[i] = linear_to_tree[tc[i]];
                 P4EST_ASSERT(tc[i] >= 0);
             }
-            for (i = 0; i < P4EST_DIM; i++) {
+            for (i = 0; i < P8EST_DIM; i++) {
                 for (j = 0; j < 2; j++) {
                     l = i * 2 + j;
                     if (!periodic[i] &&
                           ((coord[i] == 0 && j == 0) || (coord[i] == max[i] && j == 1))) {
-                        tree_to_tree[tj * P4EST_FACES + l] = tj;
-                        tree_to_face[tj * P4EST_FACES + l] = (int8_t) l;
+                        tree_to_tree[tj * P8EST_FACES + l] = tj;
+                        tree_to_face[tj * P8EST_FACES + l] = (int8_t) l;
                     }
                     else 
                     {
-                        tree_to_tree[tj * P4EST_FACES + l] = tf[l];
-                        tree_to_face[tj * P4EST_FACES + l] = (int8_t) (i * 2 + (j ^ 1));
+                        tree_to_tree[tj * P8EST_FACES + l] = tf[l];
+                        tree_to_face[tj * P8EST_FACES + l] = (int8_t) (i * 2 + (j ^ 1));
                     }
                 }
                 if (tree_to_edge != NULL) {
@@ -2929,7 +2786,7 @@ Brick::new_brick_connectivity (int n0, int n1, int n2, int periodic_a, int perio
                     }
                 }
             }
-            for (i = 0; i < P4EST_CHILDREN; i++) {
+            for (i = 0; i < P8EST_CHILDREN; i++) {
                 if (tree_to_corner != NULL) {
                     c[0] = i & 1;
                     c[1] = (i >> 1) & 1;
@@ -2945,7 +2802,7 @@ Brick::new_brick_connectivity (int n0, int n1, int n2, int periodic_a, int perio
                           (coord[2] == max[2] && c[2] == 1))) ||
                         0) 
                     {
-                        tree_to_corner[tj * P4EST_CHILDREN + i] = -1;
+                        tree_to_corner[tj * P8EST_CHILDREN + i] = -1;
                     }
                     else 
                     {
@@ -2980,35 +2837,36 @@ Brick::new_brick_connectivity (int n0, int n1, int n2, int periodic_a, int perio
                         }
                         ttemp = tree_to_corner2[ttemp];
                         P4EST_ASSERT(ttemp >= 0);
-                        tree_to_corner[tj * P4EST_CHILDREN + i] = ttemp;
-                        corner_to_tree[ttemp * P4EST_CHILDREN +
-                                       (P4EST_CHILDREN - 1 - i)] = tj;
-                        corner_to_corner[ttemp * P4EST_CHILDREN +
-                                         (P4EST_CHILDREN - 1 - i)] = (int8_t) i;
+                        tree_to_corner[tj * P8EST_CHILDREN + i] = ttemp;
+                        corner_to_tree[ttemp * P8EST_CHILDREN +
+                                       (P8EST_CHILDREN - 1 - i)] = tj;
+                        corner_to_corner[ttemp * P8EST_CHILDREN +
+                                         (P8EST_CHILDREN - 1 - i)] = (int8_t) i;
                     }
                 }
-            if (tz > 0 && (i >> 2) == 0) {
-              tree_to_vertex[tj * P4EST_CHILDREN + i] =
-                tree_to_vertex[tf[4] * P4EST_CHILDREN + i + 4];
-            }
-            else
-            {
-                if (ty > 0 && ((i >> 1) & 1) == 0) 
-                {
-                  tree_to_vertex[tj * P4EST_CHILDREN + i] =
-                    tree_to_vertex[tf[2] * P4EST_CHILDREN + i + 2];
+                if (tz > 0 && (i >> 2) == 0) {
+                  tree_to_vertex[tj * P8EST_CHILDREN + i] =
+                    tree_to_vertex[tf[4] * P8EST_CHILDREN + i + 4];
                 }
-                else if (tx > 0 && (i & 1) == 0) 
+                else
                 {
-                    tree_to_vertex[tj * P4EST_CHILDREN + i] =
-                    tree_to_vertex[tf[0] * P4EST_CHILDREN + i + 1];
-                }
-                else 
-                {
-                    tree_to_vertex[tj * P4EST_CHILDREN + i] = vcount++;
-                    vertices[vicount++] = (double) (tx + (i & 1));
-                    vertices[vicount++] = (double) (ty + ((i >> 1) & 1));
-                    vertices[vicount++] = (double) (tz + (i >> 2));
+                    if (ty > 0 && ((i >> 1) & 1) == 0) 
+                    {
+                      tree_to_vertex[tj * P8EST_CHILDREN + i] =
+                        tree_to_vertex[tf[2] * P8EST_CHILDREN + i + 2];
+                    }
+                    else if (tx > 0 && (i & 1) == 0) 
+                    {
+                        tree_to_vertex[tj * P8EST_CHILDREN + i] =
+                        tree_to_vertex[tf[0] * P8EST_CHILDREN + i + 1];
+                    }
+                    else 
+                    {
+                        tree_to_vertex[tj * P8EST_CHILDREN + i] = vcount++;
+                        vertices[vicount++] = (double) (tx + (i & 1));
+                        vertices[vicount++] = (double) (ty + ((i >> 1) & 1));
+                        vertices[vicount++] = (double) (tz + (i >> 2));
+                    }
                 }
             }
         }
@@ -3020,7 +2878,7 @@ Brick::new_brick_connectivity (int n0, int n1, int n2, int periodic_a, int perio
     P4EST_FREE(tree_to_edge2);
 
 #ifdef OXLEY_ENABLE_DEBUG
-    P4EST_ASSERT (p4est_connectivity_is_valid (conn)); //This is very time consuming
+    P4EST_ASSERT (p8est_connectivity_is_valid (conn)); //This is very time consuming
 #endif
 
     return conn;

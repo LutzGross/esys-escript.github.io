@@ -19,6 +19,8 @@
 #include <escript/EsysMPI.h>
 #include <escript/SubWorld.h>
 
+#include <oxley/AbstractAssembler.h>
+#include <oxley/Oxley.h>
 #include <oxley/OxleyDomain.h>
 #include <oxley/OxleyData.h>
 
@@ -185,6 +187,12 @@ public:
     };
 
     /**
+       \brief
+       returns a Data object containing the coordinate information
+    */
+    virtual escript::Data getX() const;
+
+    /**
        \brief equality operator
     */
     // virtual bool operator==(const escript::AbstractDomain& other) const;
@@ -294,6 +302,7 @@ protected:
     void updateRowsColumns();
     void updateTreeIDs();
 
+    IndexVector getNodeDistribution() const;
 
     // Initial number of divisions
     long m_NE[3] = {0};
@@ -314,6 +323,7 @@ private:
 
     // This structure records the node numbering information
     p8est_lnodes * nodes;
+    long nodeIncrements[MAXTREES] = {0};
 
     // This ghost is needed to initialise the node numbering structure p4est_lnodes
     p8est_ghost_t * nodes_ghost;
@@ -321,9 +331,9 @@ private:
     // Pointer that records the location of a temporary data structure
     void * temp_data;
 
-    std::unordered_map<DoublePair,long,boost::hash<DoublePair>> NodeIDs; //global ids of the nodes
+    std::unordered_map<DoubleTriple,long,boost::hash<DoubleTriple>> NodeIDs; //global ids of the nodes
     std::unordered_map<long,bool> hangingNodeIDs; //global ids of the hanging nodes
-    std::unordered_map<DoublePair,long,boost::hash<DoublePair>> treeIDs; //global ids of the hanging nodes
+    std::unordered_map<DoubleTriple,long,boost::hash<DoubleTriple>> treeIDs; //global ids of the hanging nodes
     
     // Row and column indices in CRS format
     IndexVector myRows;

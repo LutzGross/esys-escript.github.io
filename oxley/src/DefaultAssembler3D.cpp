@@ -281,7 +281,7 @@ void DefaultAssembler3D<Scalar>::assemblePDESingle(AbstractSystemMatrix* mat,
             int l = quad->level;
             double xyz[3];
             p8est_qcoord_to_vertex(domain->p8est->connectivity, t, quad->x, quad->y, quad->z, xyz);
-            long id = domain->NodeIDs.find(std::make_pair(xyz[0],xyz[1],xyz[2]))->second;
+            long id = domain->NodeIDs.find(std::make_tuple(xyz[0],xyz[1],xyz[2]))->second;
                         
             ///////////////
             // process A //
