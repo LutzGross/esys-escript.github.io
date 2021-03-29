@@ -44,6 +44,12 @@ int refine_north(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadra
 int refine_south(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant);
 int refine_west(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant);
 int refine_east(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant);
+int refine_north(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadrant);
+int refine_south(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadrant);
+int refine_west(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadrant);
+int refine_east(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadrant);
+int refine_top(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadrant);
+int refine_bottom(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadrant);
 
 int refine_region(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant);
 

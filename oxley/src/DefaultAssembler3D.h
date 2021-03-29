@@ -25,12 +25,8 @@ template<class Scalar = double>
 class DefaultAssembler3D : public AbstractAssembler
 {
 public:
-    DefaultAssembler3D<Scalar>(escript::const_Domain_ptr dom, const double* dx,
-                               const dim_t* NE, const dim_t* NN)
-        : AbstractAssembler(),
-        m_dx(dx),
-        m_NE(NE),
-        m_NN(NN)
+    DefaultAssembler3D<Scalar>(escript::const_Domain_ptr dom)
+        : AbstractAssembler()
     {
         domain = REFCOUNTNS::static_pointer_cast<const Brick>(dom);
     }
@@ -126,7 +122,7 @@ protected:
     const dim_t *m_NN;
 };
 
-} // namespace ripley
+} // namespace oxley
 
-#endif // __RIPLEY_DEFAULTASSEMBLER3D_H__
+#endif // __OXLEY_DEFAULTASSEMBLER3D_H__
 

@@ -21,10 +21,7 @@
 #include <escript/DataTypes.h>
 #include <escript/index.h>
 
-// #include <p8est_extended.h>
-
 using namespace std;
-
 using escript::AbstractSystemMatrix;
 using escript::Data;
 
@@ -32,8 +29,7 @@ namespace oxley {
 
 template<class Scalar>
 void DefaultAssembler3D<Scalar>::collateFunctionSpaceTypes(
-                                                   vector<int>& fsTypes,
-                                                   const DataMap& coefs) const
+                             vector<int>& fsTypes, const DataMap& coefs) const
 {
     if (isNotEmpty("A", coefs))
         fsTypes.push_back(coefs.find("A")->second.getFunctionSpace().getTypeCode());

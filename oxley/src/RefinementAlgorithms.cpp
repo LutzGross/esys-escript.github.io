@@ -107,6 +107,90 @@ int refine_west(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadran
     return (xy[0] <= m_NX) && (quadrant->level < (steps+1)) && (quadrant->level < forestData->max_levels_refinement);
 }
 
+int refine_north(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadrant)
+{
+    p8estData * forestData = (p8estData *) p8est->user_pointer;
+    double dx = forestData->refinement_depth;
+    double m_NX = forestData->m_NX[1];
+    double domain_length = forestData->m_length[1];
+    int steps = dx / m_NX;
+
+    quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
+    double * xy = quadData->xy;
+
+    return (xy[1] >= domain_length - m_NX) && (quadrant->level < (steps+1)) && (quadrant->level < forestData->max_levels_refinement);
+}
+
+int refine_south(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadrant)
+{
+    p8estData * forestData = (p8estData *) p8est->user_pointer;
+    double dx = forestData->refinement_depth;
+    double m_NX = forestData->m_NX[1];
+    double domain_length = forestData->m_length[1];
+    int steps = dx / m_NX;
+
+    quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
+    double * xy = quadData->xy;
+
+    return (xy[1] <= m_NX) && (quadrant->level < (steps+1)) && (quadrant->level < forestData->max_levels_refinement);
+}
+
+int refine_east(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadrant)
+{
+    p8estData * forestData = (p8estData *) p8est->user_pointer;
+    double dx = forestData->refinement_depth;
+    double m_NX = forestData->m_NX[0];
+    double domain_length = forestData->m_length[0];
+    int steps = dx / m_NX;
+
+    quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
+    double * xy = quadData->xy;
+
+    return (xy[0] >= domain_length - m_NX) && (quadrant->level < (steps+1)) && (quadrant->level < forestData->max_levels_refinement);
+}
+
+int refine_west(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadrant)
+{
+    p8estData * forestData = (p8estData *) p8est->user_pointer;
+    double dx = forestData->refinement_depth;
+    double m_NX = forestData->m_NX[0];
+    double domain_length = forestData->m_length[0];
+    int steps = dx / m_NX;
+
+    quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
+    double * xy = quadData->xy;
+
+    return (xy[0] <= m_NX) && (quadrant->level < (steps+1)) && (quadrant->level < forestData->max_levels_refinement);
+}
+
+int refine_top(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadrant)
+{
+    p8estData * forestData = (p8estData *) p8est->user_pointer;
+    double dx = forestData->refinement_depth;
+    double m_NX = forestData->m_NX[2];
+    double domain_length = forestData->m_length[2];
+    int steps = dx / m_NX;
+
+    quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
+    double * xy = quadData->xy;
+
+    return (xy[2] >= domain_length - m_NX) && (quadrant->level < (steps+1)) && (quadrant->level < forestData->max_levels_refinement);
+}
+
+int refine_bottom(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadrant)
+{
+    p8estData * forestData = (p8estData *) p8est->user_pointer;
+    double dx = forestData->refinement_depth;
+    double m_NX = forestData->m_NX[2];
+    double domain_length = forestData->m_length[2];
+    int steps = dx / m_NX;
+
+    quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
+    double * xy = quadData->xy;
+
+    return (xy[2] <= m_NX) && (quadrant->level < (steps+1)) && (quadrant->level < forestData->max_levels_refinement);
+}
+
 int refine_region(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
 {
     p4estData * forestData = (p4estData *) p4est->user_pointer;
