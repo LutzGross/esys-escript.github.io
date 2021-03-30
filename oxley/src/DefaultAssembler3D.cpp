@@ -2259,655 +2259,631 @@ void DefaultAssembler3D<Scalar>::assemblePDEBoundarySingle(
                                         AbstractSystemMatrix* mat, Data& rhs,
                                         const Data& d, const Data& y) const
 {
-    //TODO 
 
-//     const double SQRT3 = 1.73205080756887719318;
-//     const double w12 = m_dx[0]*m_dx[1]/144;
-//     const double w10 = w12*(-SQRT3 + 2);
-//     const double w11 = w12*(SQRT3 + 2);
-//     const double w13 = w12*(-4*SQRT3 + 7);
-//     const double w14 = w12*(4*SQRT3 + 7);
-//     const double w7 = m_dx[0]*m_dx[2]/144;
-//     const double w5 = w7*(-SQRT3 + 2);
-//     const double w6 = w7*(SQRT3 + 2);
-//     const double w8 = w7*(-4*SQRT3 + 7);
-//     const double w9 = w7*(4*SQRT3 + 7);
-//     const double w2 = m_dx[1]*m_dx[2]/144;
-//     const double w0 = w2*(-SQRT3 + 2);
-//     const double w1 = w2*(SQRT3 + 2);
-//     const double w3 = w2*(-4*SQRT3 + 7);
-//     const double w4 = w2*(4*SQRT3 + 7);
+    // Find the maximum level of refinement in the mesh
+    int max_level = 0;
+    for(p8est_topidx_t tree = domain->p8est->first_local_tree; tree <= domain->p8est->last_local_tree; tree++) 
+    {
+        p8est_tree_t * tree_t = p8est_tree_array_index(domain->p8est->trees, tree);
+        max_level = tree_t->maxlevel > max_level ? tree_t->maxlevel : max_level;
+    }
+
+    const double SQRT3 = 1.73205080756887719318;
+    double w[16][P4EST_MAXLEVEL] = {{0}};
+#pragma omp parallel for
+    for(int i = 0; i < max_level; i++)
+    {
+        double m_dx[3] = {domain->m_NX[0]*domain->forestData.m_dx[0][P4EST_MAXLEVEL-i], 
+                          domain->m_NX[1]*domain->forestData.m_dx[1][P4EST_MAXLEVEL-i],
+                          domain->m_NX[2]*domain->forestData.m_dx[2][P4EST_MAXLEVEL-i]};
+        w[12][i] = m_dx[0]*m_dx[1]/144;
+        w[10][i] = w[12][i]*(-SQRT3 + 2);
+        w[11][i] = w[12][i]*(SQRT3 + 2);
+        w[13][i] = w[12][i]*(-4*SQRT3 + 7);
+        w[14][i] = w[12][i]*(4*SQRT3 + 7);
+        w[7][i] = m_dx[0]*m_dx[2]/144;
+        w[5][i] = w[7][i]*(-SQRT3 + 2);
+        w[6][i] = w[7][i]*(SQRT3 + 2);
+        w[8][i] = w[7][i]*(-4*SQRT3 + 7);
+        w[9][i] = w[7][i]*(4*SQRT3 + 7);
+        w[2][i] = m_dx[1]*m_dx[2]/144;
+        w[0][i] = w[2][i]*(-SQRT3 + 2);
+        w[1][i] = w[2][i]*(SQRT3 + 2);
+        w[3][i] = w[2][i]*(-4*SQRT3 + 7);
+        w[4][i] = w[2][i]*(4*SQRT3 + 7);
+    }
+
+
+
 //     const dim_t NE0 = m_NE[0];
 //     const dim_t NE1 = m_NE[1];
 //     const dim_t NE2 = m_NE[2];
-//     const bool add_EM_S = !d.isEmpty();
-//     const bool add_EM_F = !y.isEmpty();
-//     const Scalar zero = static_cast<Scalar>(0);
-//     rhs.requireWrite();
 
-// #pragma omp parallel
-//     {
-//         vector<Scalar> EM_S(8*8);
-//         vector<Scalar> EM_F(8);
+    const bool add_EM_S = !d.isEmpty();
+    const bool add_EM_F = !y.isEmpty();
+    const Scalar zero = static_cast<Scalar>(0);
+    rhs.requireWrite();
 
-//         if (domain->m_faceOffset[0] > -1) {
-//             if (add_EM_S)
-//                 fill(EM_S.begin(), EM_S.end(), zero);
-//             if (add_EM_F) {
-//                 EM_F[1] = zero;
-//                 EM_F[3] = zero;
-//                 EM_F[5] = zero;
-//                 EM_F[7] = zero;
-//             }
+    vector<Scalar> EM_S(8*8);
+    vector<Scalar> EM_F(8);
 
-//             for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
-// #pragma omp for
-//                 for (index_t k2=k2_0; k2<NE2; k2+=2) {
-//                     for (index_t k1=0; k1<NE1; ++k1) {
-//                         const index_t e = INDEX2(k1,k2,NE1);
-//                         ///////////////
-//                         // process d //
-//                         ///////////////
-//                         if (add_EM_S) {
-//                             const Scalar* d_p = d.getSampleDataRO(id, zero);
-//                             if (d.actsExpanded()) {
-//                                 const Scalar d_0 = d_p[0];
-//                                 const Scalar d_1 = d_p[1];
-//                                 const Scalar d_2 = d_p[2];
-//                                 const Scalar d_3 = d_p[3];
-//                                 const Scalar tmp0 = w0*(d_0 + d_1);
-//                                 const Scalar tmp1 = w1*(d_2 + d_3);
-//                                 const Scalar tmp2 = w0*(d_0 + d_2);
-//                                 const Scalar tmp3 = w1*(d_1 + d_3);
-//                                 const Scalar tmp4 = w0*(d_1 + d_3);
-//                                 const Scalar tmp5 = w1*(d_0 + d_2);
-//                                 const Scalar tmp6 = w0*(d_2 + d_3);
-//                                 const Scalar tmp7 = w1*(d_0 + d_1);
-//                                 const Scalar tmp8 = w2*(d_0 + d_3);
-//                                 const Scalar tmp9 = w2*(d_1 + d_2);
-//                                 const Scalar tmp10 = w2*(d_0 + d_1 + d_2 + d_3);
-//                                 EM_S[INDEX2(0,0,8)] = d_0*w4 + d_3*w3 + tmp9;
-//                                 EM_S[INDEX2(2,0,8)] = tmp6 + tmp7;
-//                                 EM_S[INDEX2(4,0,8)] = tmp4 + tmp5;
-//                                 EM_S[INDEX2(6,0,8)] = tmp10;
-//                                 EM_S[INDEX2(0,2,8)] = tmp6 + tmp7;
-//                                 EM_S[INDEX2(2,2,8)] = d_1*w4 + d_2*w3 + tmp8;
-//                                 EM_S[INDEX2(4,2,8)] = tmp10;
-//                                 EM_S[INDEX2(6,2,8)] = tmp2 + tmp3;
-//                                 EM_S[INDEX2(0,4,8)] = tmp4 + tmp5;
-//                                 EM_S[INDEX2(2,4,8)] = tmp10;
-//                                 EM_S[INDEX2(4,4,8)] = d_1*w3 + d_2*w4 + tmp8;
-//                                 EM_S[INDEX2(6,4,8)] = tmp0 + tmp1;
-//                                 EM_S[INDEX2(0,6,8)] = tmp10;
-//                                 EM_S[INDEX2(2,6,8)] = tmp2 + tmp3;
-//                                 EM_S[INDEX2(4,6,8)] = tmp0 + tmp1;
-//                                 EM_S[INDEX2(6,6,8)] = d_0*w3 + d_3*w4 + tmp9;
-//                             } else { // constant data
-//                                 const Scalar wd0 = 4.*d_p[0]*w2;
-//                                 EM_S[INDEX2(0,0,8)] = 4.*wd0;
-//                                 EM_S[INDEX2(2,0,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(4,0,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(6,0,8)] =    wd0;
-//                                 EM_S[INDEX2(0,2,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(2,2,8)] = 4.*wd0;
-//                                 EM_S[INDEX2(4,2,8)] =    wd0;
-//                                 EM_S[INDEX2(6,2,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(0,4,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(2,4,8)] =    wd0;
-//                                 EM_S[INDEX2(4,4,8)] = 4.*wd0;
-//                                 EM_S[INDEX2(6,4,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(0,6,8)] =    wd0;
-//                                 EM_S[INDEX2(2,6,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(4,6,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(6,6,8)] = 4.*wd0;
-//                             }
-//                         }
-//                         ///////////////
-//                         // process y //
-//                         ///////////////
-//                         if (add_EM_F) {
-//                             const Scalar* y_p = y.getSampleDataRO(id, zero);
-//                             if (y.actsExpanded()) {
-//                                 const Scalar y_0 = y_p[0];
-//                                 const Scalar y_1 = y_p[1];
-//                                 const Scalar y_2 = y_p[2];
-//                                 const Scalar y_3 = y_p[3];
-//                                 const Scalar tmp0 = 6.*w2*(y_1 + y_2);
-//                                 const Scalar tmp1 = 6.*w2*(y_0 + y_3);
-//                                 EM_F[0] = tmp0 + 6.*w0*y_3 + 6.*w1*y_0;
-//                                 EM_F[2] = tmp1 + 6.*w0*y_2 + 6.*w1*y_1;
-//                                 EM_F[4] = tmp1 + 6.*w0*y_1 + 6.*w1*y_2;
-//                                 EM_F[6] = tmp0 + 6.*w0*y_0 + 6.*w1*y_3;
-//                             } else { // constant data
-//                                 EM_F[0] = 36.*w2*y_p[0];
-//                                 EM_F[2] = 36.*w2*y_p[0];
-//                                 EM_F[4] = 36.*w2*y_p[0];
-//                                 EM_F[6] = 36.*w2*y_p[0];
-//                             }
-//                         }
-//                         const index_t firstNode=m_NN[0]*m_NN[1]*k2+m_NN[0]*k1;
-//                         domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F,
-//                                                add_EM_S, add_EM_F, firstNode);
-//                     } // k1 loop
-//                 } // k2 loop
-//             } // colouring
-//         } // face 0
+    for(p8est_topidx_t t = domain->p8est->first_local_tree; t <= domain->p8est->last_local_tree; t++) 
+    {
+        p8est_tree_t * currenttree = p8est_tree_array_index(domain->p8est->trees, t);
+        sc_array_t * tquadrants = &currenttree->quadrants;
+        p4est_qcoord_t Q = (p4est_qcoord_t) tquadrants->elem_count;
 
-//         if (domain->m_faceOffset[1] > -1) {
-//             if (add_EM_S)
-//                 fill(EM_S.begin(), EM_S.end(), zero);
-//             if (add_EM_F) {
-//                 EM_F[0] = zero;
-//                 EM_F[2] = zero;
-//                 EM_F[4] = zero;
-//                 EM_F[6] = zero;
-//             }
+#pragma omp parallel for
+        for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
+        {
+            if (add_EM_S)
+                fill(EM_S.begin(), EM_S.end(), zero);
+            if (add_EM_F)
+                fill(EM_F.begin(), EM_F.end(), zero);
+            
+            p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
+            quadrantData * quaddata = (quadrantData *) quad->p.user_data;  
 
-//             for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
-// #pragma omp for
-//                 for (index_t k2=k2_0; k2<NE2; k2+=2) {
-//                     for (index_t k1=0; k1<NE1; ++k1) {
-//                         const index_t e = domain->m_faceOffset[1]+INDEX2(k1,k2,NE1);
-//                         ///////////////
-//                         // process d //
-//                         ///////////////
-//                         if (add_EM_S) {
-//                             const Scalar* d_p = d.getSampleDataRO(id, zero);
-//                             if (d.actsExpanded()) {
-//                                 const Scalar d_0 = d_p[0];
-//                                 const Scalar d_1 = d_p[1];
-//                                 const Scalar d_2 = d_p[2];
-//                                 const Scalar d_3 = d_p[3];
-//                                 const Scalar tmp0 = w0*(d_0 + d_2);
-//                                 const Scalar tmp1 = w1*(d_1 + d_3);
-//                                 const Scalar tmp2 = w0*(d_2 + d_3);
-//                                 const Scalar tmp3 = w1*(d_0 + d_1);
-//                                 const Scalar tmp4 = w0*(d_1 + d_3);
-//                                 const Scalar tmp5 = w1*(d_0 + d_2);
-//                                 const Scalar tmp6 = w2*(d_0 + d_3);
-//                                 const Scalar tmp7 = w2*(d_1 + d_2);
-//                                 const Scalar tmp8 = w0*(d_0 + d_1);
-//                                 const Scalar tmp9 = w1*(d_2 + d_3);
-//                                 const Scalar tmp10 = w2*(d_0 + d_1 + d_2 + d_3);
-//                                 EM_S[INDEX2(1,1,8)] = d_0*w4 + d_3*w3 + tmp7;
-//                                 EM_S[INDEX2(3,1,8)] = tmp2 + tmp3;
-//                                 EM_S[INDEX2(5,1,8)] = tmp4 + tmp5;
-//                                 EM_S[INDEX2(7,1,8)] = tmp10;
-//                                 EM_S[INDEX2(1,3,8)] = tmp2 + tmp3;
-//                                 EM_S[INDEX2(3,3,8)] = d_1*w4 + d_2*w3 + tmp6;
-//                                 EM_S[INDEX2(5,3,8)] = tmp10;
-//                                 EM_S[INDEX2(7,3,8)] = tmp0 + tmp1;
-//                                 EM_S[INDEX2(1,5,8)] = tmp4 + tmp5;
-//                                 EM_S[INDEX2(3,5,8)] = tmp10;
-//                                 EM_S[INDEX2(5,5,8)] = d_1*w3 + d_2*w4 + tmp6;
-//                                 EM_S[INDEX2(7,5,8)] = tmp8 + tmp9;
-//                                 EM_S[INDEX2(1,7,8)] = tmp10;
-//                                 EM_S[INDEX2(3,7,8)] = tmp0 + tmp1;
-//                                 EM_S[INDEX2(5,7,8)] = tmp8 + tmp9;
-//                                 EM_S[INDEX2(7,7,8)] = d_0*w3 + d_3*w4 + tmp7;
-//                             } else { // constant data
-//                                 const Scalar wd0 = 4.*d_p[0]*w2;
-//                                 EM_S[INDEX2(1,1,8)] = 4.*wd0;
-//                                 EM_S[INDEX2(3,1,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(5,1,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(7,1,8)] =    wd0;
-//                                 EM_S[INDEX2(1,3,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(3,3,8)] = 4.*wd0;
-//                                 EM_S[INDEX2(5,3,8)] =    wd0;
-//                                 EM_S[INDEX2(7,3,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(1,5,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(3,5,8)] =    wd0;
-//                                 EM_S[INDEX2(5,5,8)] = 4.*wd0;
-//                                 EM_S[INDEX2(7,5,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(1,7,8)] =    wd0;
-//                                 EM_S[INDEX2(3,7,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(5,7,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(7,7,8)] = 4.*wd0;
-//                             }
-//                         }
-//                         ///////////////
-//                         // process y //
-//                         ///////////////
-//                         if (add_EM_F) {
-//                             const Scalar* y_p = y.getSampleDataRO(id, zero);
-//                             if (y.actsExpanded()) {
-//                                 const Scalar y_0 = y_p[0];
-//                                 const Scalar y_1 = y_p[1];
-//                                 const Scalar y_2 = y_p[2];
-//                                 const Scalar y_3 = y_p[3];
-//                                 const Scalar tmp0 = 6.*w2*(y_1 + y_2);
-//                                 const Scalar tmp1 = 6.*w2*(y_0 + y_3);
-//                                 EM_F[1] = tmp0 + 6.*w0*y_3 + 6.*w1*y_0;
-//                                 EM_F[3] = tmp1 + 6.*w0*y_2 + 6.*w1*y_1;
-//                                 EM_F[5] = tmp1 + 6.*w0*y_1 + 6.*w1*y_2;
-//                                 EM_F[7] = tmp0 + 6.*w0*y_0 + 6.*w1*y_3;
-//                             } else { // constant data
-//                                 EM_F[1] = 36.*w2*y_p[0];
-//                                 EM_F[3] = 36.*w2*y_p[0];
-//                                 EM_F[5] = 36.*w2*y_p[0];
-//                                 EM_F[7] = 36.*w2*y_p[0];
-//                             }
-//                         }
-//                         const index_t firstNode=m_NN[0]*m_NN[1]*k2+m_NN[0]*(k1+1)-2;
-//                         domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F,
-//                                                add_EM_S, add_EM_F, firstNode);
-//                     } // k1 loop
-//                 } // k2 loop
-//             } // colouring
-//         } // face 1
+            int l = quad->level;
+            double xyz[3];
+            p8est_qcoord_to_vertex(domain->p8est->connectivity, t, quad->x, quad->y, quad->z, xyz);
+            long e = domain->NodeIDs.find(std::make_tuple(xyz[0],xyz[1],xyz[2]))->second;
 
-//         if (domain->m_faceOffset[2] > -1) {
-//             if (add_EM_S)
-//                 fill(EM_S.begin(), EM_S.end(), zero);
-//             if (add_EM_F) {
-//                 EM_F[2] = zero;
-//                 EM_F[3] = zero;
-//                 EM_F[6] = zero;
-//                 EM_F[7] = zero;
-//             }
+            if(quaddata->m_faceOffset == 0) {
+                if (add_EM_S)
+                    fill(EM_S.begin(), EM_S.end(), zero);
+                if (add_EM_F) {
+                    EM_F[1] = zero;
+                    EM_F[3] = zero;
+                    EM_F[5] = zero;
+                    EM_F[7] = zero;
+                }
+                
+                ///////////////
+                // process d //
+                ///////////////
+                if (add_EM_S) {
+                    const Scalar* d_p = d.getSampleDataRO(e, zero);
+                    if (d.actsExpanded()) {
+                        const Scalar d_0 = d_p[0];
+                        const Scalar d_1 = d_p[1];
+                        const Scalar d_2 = d_p[2];
+                        const Scalar d_3 = d_p[3];
+                        const Scalar tmp0 = w[0][l]*(d_0 + d_1);
+                        const Scalar tmp1 = w[1][l]*(d_2 + d_3);
+                        const Scalar tmp2 = w[0][l]*(d_0 + d_2);
+                        const Scalar tmp3 = w[1][l]*(d_1 + d_3);
+                        const Scalar tmp4 = w[0][l]*(d_1 + d_3);
+                        const Scalar tmp5 = w[1][l]*(d_0 + d_2);
+                        const Scalar tmp6 = w[0][l]*(d_2 + d_3);
+                        const Scalar tmp7 = w[1][l]*(d_0 + d_1);
+                        const Scalar tmp8 = w[2][l]*(d_0 + d_3);
+                        const Scalar tmp9 = w[2][l]*(d_1 + d_2);
+                        const Scalar tmp10 = w[2][l]*(d_0 + d_1 + d_2 + d_3);
+                        EM_S[INDEX2(0,0,8)] = d_0*w[4][l] + d_3*w[3][l] + tmp9;
+                        EM_S[INDEX2(2,0,8)] = tmp6 + tmp7;
+                        EM_S[INDEX2(4,0,8)] = tmp4 + tmp5;
+                        EM_S[INDEX2(6,0,8)] = tmp10;
+                        EM_S[INDEX2(0,2,8)] = tmp6 + tmp7;
+                        EM_S[INDEX2(2,2,8)] = d_1*w[4][l] + d_2*w[3][l] + tmp8;
+                        EM_S[INDEX2(4,2,8)] = tmp10;
+                        EM_S[INDEX2(6,2,8)] = tmp2 + tmp3;
+                        EM_S[INDEX2(0,4,8)] = tmp4 + tmp5;
+                        EM_S[INDEX2(2,4,8)] = tmp10;
+                        EM_S[INDEX2(4,4,8)] = d_1*w[3][l] + d_2*w[4][l] + tmp8;
+                        EM_S[INDEX2(6,4,8)] = tmp0 + tmp1;
+                        EM_S[INDEX2(0,6,8)] = tmp10;
+                        EM_S[INDEX2(2,6,8)] = tmp2 + tmp3;
+                        EM_S[INDEX2(4,6,8)] = tmp0 + tmp1;
+                        EM_S[INDEX2(6,6,8)] = d_0*w[3][l] + d_3*w[4][l] + tmp9;
+                    } else { // constant data
+                        const Scalar wd0 = 4.*d_p[0]*w[2][l];
+                        EM_S[INDEX2(0,0,8)] = 4.*wd0;
+                        EM_S[INDEX2(2,0,8)] = 2.*wd0;
+                        EM_S[INDEX2(4,0,8)] = 2.*wd0;
+                        EM_S[INDEX2(6,0,8)] =    wd0;
+                        EM_S[INDEX2(0,2,8)] = 2.*wd0;
+                        EM_S[INDEX2(2,2,8)] = 4.*wd0;
+                        EM_S[INDEX2(4,2,8)] =    wd0;
+                        EM_S[INDEX2(6,2,8)] = 2.*wd0;
+                        EM_S[INDEX2(0,4,8)] = 2.*wd0;
+                        EM_S[INDEX2(2,4,8)] =    wd0;
+                        EM_S[INDEX2(4,4,8)] = 4.*wd0;
+                        EM_S[INDEX2(6,4,8)] = 2.*wd0;
+                        EM_S[INDEX2(0,6,8)] =    wd0;
+                        EM_S[INDEX2(2,6,8)] = 2.*wd0;
+                        EM_S[INDEX2(4,6,8)] = 2.*wd0;
+                        EM_S[INDEX2(6,6,8)] = 4.*wd0;
+                    }
+                }
+                ///////////////
+                // process y //
+                ///////////////
+                if (add_EM_F) {
+                    const Scalar* y_p = y.getSampleDataRO(e, zero);
+                    if (y.actsExpanded()) {
+                        const Scalar y_0 = y_p[0];
+                        const Scalar y_1 = y_p[1];
+                        const Scalar y_2 = y_p[2];
+                        const Scalar y_3 = y_p[3];
+                        const Scalar tmp0 = 6.*w[2][l]*(y_1 + y_2);
+                        const Scalar tmp1 = 6.*w[2][l]*(y_0 + y_3);
+                        EM_F[0] = tmp0 + 6.*w[0][l]*y_3 + 6.*w[1][l]*y_0;
+                        EM_F[2] = tmp1 + 6.*w[0][l]*y_2 + 6.*w[1][l]*y_1;
+                        EM_F[4] = tmp1 + 6.*w[0][l]*y_1 + 6.*w[1][l]*y_2;
+                        EM_F[6] = tmp0 + 6.*w[0][l]*y_0 + 6.*w[1][l]*y_3;
+                    } else { // constant data
+                        EM_F[0] = 36.*w[2][l]*y_p[0];
+                        EM_F[2] = 36.*w[2][l]*y_p[0];
+                        EM_F[4] = 36.*w[2][l]*y_p[0];
+                        EM_F[6] = 36.*w[2][l]*y_p[0];
+                    }
+                }
+                
+                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F, q, t);
+            } // face 0
 
-//             for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
-// #pragma omp for
-//                 for (index_t k2=k2_0; k2<NE2; k2+=2) {
-//                     for (index_t k0=0; k0<NE0; ++k0) {
-//                         const index_t e = domain->m_faceOffset[2]+INDEX2(k0,k2,NE0);
-//                         ///////////////
-//                         // process d //
-//                         ///////////////
-//                         if (add_EM_S) {
-//                             const Scalar* d_p = d.getSampleDataRO(id, zero);
-//                             if (d.actsExpanded()) {
-//                                 const Scalar d_0 = d_p[0];
-//                                 const Scalar d_1 = d_p[1];
-//                                 const Scalar d_2 = d_p[2];
-//                                 const Scalar d_3 = d_p[3];
-//                                 const Scalar tmp0 = w5*(d_0 + d_1);
-//                                 const Scalar tmp1 = w6*(d_2 + d_3);
-//                                 const Scalar tmp2 = w5*(d_0 + d_2);
-//                                 const Scalar tmp3 = w6*(d_1 + d_3);
-//                                 const Scalar tmp4 = w5*(d_1 + d_3);
-//                                 const Scalar tmp5 = w6*(d_0 + d_2);
-//                                 const Scalar tmp6 = w7*(d_0 + d_3);
-//                                 const Scalar tmp7 = w7*(d_0 + d_1 + d_2 + d_3);
-//                                 const Scalar tmp8 = w7*(d_1 + d_2);
-//                                 const Scalar tmp9 = w5*(d_2 + d_3);
-//                                 const Scalar tmp10 = w6*(d_0 + d_1);
-//                                 EM_S[INDEX2(0,0,8)] = d_0*w9 + d_3*w8 + tmp8;
-//                                 EM_S[INDEX2(1,0,8)] = tmp10 + tmp9;
-//                                 EM_S[INDEX2(4,0,8)] = tmp4 + tmp5;
-//                                 EM_S[INDEX2(5,0,8)] = tmp7;
-//                                 EM_S[INDEX2(0,1,8)] = tmp10 + tmp9;
-//                                 EM_S[INDEX2(1,1,8)] = d_1*w9 + d_2*w8 + tmp6;
-//                                 EM_S[INDEX2(4,1,8)] = tmp7;
-//                                 EM_S[INDEX2(5,1,8)] = tmp2 + tmp3;
-//                                 EM_S[INDEX2(0,4,8)] = tmp4 + tmp5;
-//                                 EM_S[INDEX2(1,4,8)] = tmp7;
-//                                 EM_S[INDEX2(4,4,8)] = d_1*w8 + d_2*w9 + tmp6;
-//                                 EM_S[INDEX2(5,4,8)] = tmp0 + tmp1;
-//                                 EM_S[INDEX2(0,5,8)] = tmp7;
-//                                 EM_S[INDEX2(1,5,8)] = tmp2 + tmp3;
-//                                 EM_S[INDEX2(4,5,8)] = tmp0 + tmp1;
-//                                 EM_S[INDEX2(5,5,8)] = d_0*w8 + d_3*w9 + tmp8;
-//                             } else { // constant data
-//                                 const Scalar wd0 = 4.*d_p[0]*w7;
-//                                 EM_S[INDEX2(0,0,8)] = 4.*wd0;
-//                                 EM_S[INDEX2(1,0,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(4,0,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(5,0,8)] =    wd0;
-//                                 EM_S[INDEX2(0,1,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(1,1,8)] = 4.*wd0;
-//                                 EM_S[INDEX2(4,1,8)] =    wd0;
-//                                 EM_S[INDEX2(5,1,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(0,4,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(1,4,8)] =    wd0;
-//                                 EM_S[INDEX2(4,4,8)] = 4.*wd0;
-//                                 EM_S[INDEX2(5,4,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(0,5,8)] =    wd0;
-//                                 EM_S[INDEX2(1,5,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(4,5,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(5,5,8)] = 4.*wd0;
-//                             }
-//                         }
-//                         ///////////////
-//                         // process y //
-//                         ///////////////
-//                         if (add_EM_F) {
-//                             const Scalar* y_p = y.getSampleDataRO(id, zero);
-//                             if (y.actsExpanded()) {
-//                                 const Scalar y_0 = y_p[0];
-//                                 const Scalar y_1 = y_p[1];
-//                                 const Scalar y_2 = y_p[2];
-//                                 const Scalar y_3 = y_p[3];
-//                                 const Scalar tmp0 = 6.*w7*(y_1 + y_2);
-//                                 const Scalar tmp1 = 6.*w7*(y_0 + y_3);
-//                                 EM_F[0] = tmp0 + 6.*w5*y_3 + 6.*w6*y_0;
-//                                 EM_F[1] = tmp1 + 6.*w5*y_2 + 6.*w6*y_1;
-//                                 EM_F[4] = tmp1 + 6.*w5*y_1 + 6.*w6*y_2;
-//                                 EM_F[5] = tmp0 + 6.*w5*y_0 + 6.*w6*y_3;
-//                             } else { // constant data
-//                                 EM_F[0] = 36.*w7*y_p[0];
-//                                 EM_F[1] = 36.*w7*y_p[0];
-//                                 EM_F[4] = 36.*w7*y_p[0];
-//                                 EM_F[5] = 36.*w7*y_p[0];
-//                             }
-//                         }
-//                         const index_t firstNode=m_NN[0]*m_NN[1]*k2+k0;
-//                         domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F,
-//                                                add_EM_S, add_EM_F, firstNode);
-//                     } // k0 loop
-//                 } // k2 loop
-//             } // colouring
-//         } // face 2
+            if(quaddata->m_faceOffset == 1) {
+                if (add_EM_S)
+                    fill(EM_S.begin(), EM_S.end(), zero);
+                if (add_EM_F) {
+                    EM_F[0] = zero;
+                    EM_F[2] = zero;
+                    EM_F[4] = zero;
+                    EM_F[6] = zero;
+                }
+                ///////////////
+                // process d //
+                ///////////////
+                if (add_EM_S) {
+                    const Scalar* d_p = d.getSampleDataRO(e, zero);
+                    if (d.actsExpanded()) {
+                        const Scalar d_0 = d_p[0];
+                        const Scalar d_1 = d_p[1];
+                        const Scalar d_2 = d_p[2];
+                        const Scalar d_3 = d_p[3];
+                        const Scalar tmp0  = w[0][l]*(d_0 + d_2);
+                        const Scalar tmp1  = w[1][l]*(d_1 + d_3);
+                        const Scalar tmp2  = w[0][l]*(d_2 + d_3);
+                        const Scalar tmp3  = w[1][l]*(d_0 + d_1);
+                        const Scalar tmp4  = w[0][l]*(d_1 + d_3);
+                        const Scalar tmp5  = w[1][l]*(d_0 + d_2);
+                        const Scalar tmp6  = w[2][l]*(d_0 + d_3);
+                        const Scalar tmp7  = w[2][l]*(d_1 + d_2);
+                        const Scalar tmp8  = w[0][l]*(d_0 + d_1);
+                        const Scalar tmp9  = w[1][l]*(d_2 + d_3);
+                        const Scalar tmp10 = w[2][l]*(d_0 + d_1 + d_2 + d_3);
+                        EM_S[INDEX2(1,1,8)] = d_0*w[4][l] + d_3*w[3][l] + tmp7;
+                        EM_S[INDEX2(3,1,8)] = tmp2 + tmp3;
+                        EM_S[INDEX2(5,1,8)] = tmp4 + tmp5;
+                        EM_S[INDEX2(7,1,8)] = tmp10;
+                        EM_S[INDEX2(1,3,8)] = tmp2 + tmp3;
+                        EM_S[INDEX2(3,3,8)] = d_1*w[4][l] + d_2*w[3][l] + tmp6;
+                        EM_S[INDEX2(5,3,8)] = tmp10;
+                        EM_S[INDEX2(7,3,8)] = tmp0 + tmp1;
+                        EM_S[INDEX2(1,5,8)] = tmp4 + tmp5;
+                        EM_S[INDEX2(3,5,8)] = tmp10;
+                        EM_S[INDEX2(5,5,8)] = d_1*w[3][l] + d_2*w[4][l] + tmp6;
+                        EM_S[INDEX2(7,5,8)] = tmp8 + tmp9;
+                        EM_S[INDEX2(1,7,8)] = tmp10;
+                        EM_S[INDEX2(3,7,8)] = tmp0 + tmp1;
+                        EM_S[INDEX2(5,7,8)] = tmp8 + tmp9;
+                        EM_S[INDEX2(7,7,8)] = d_0*w[3][l] + d_3*w[4][l] + tmp7;
+                    } else { // constant data
+                        const Scalar wd0 = 4.*d_p[0]*w[2][l];
+                        EM_S[INDEX2(1,1,8)] = 4.*wd0;
+                        EM_S[INDEX2(3,1,8)] = 2.*wd0;
+                        EM_S[INDEX2(5,1,8)] = 2.*wd0;
+                        EM_S[INDEX2(7,1,8)] =    wd0;
+                        EM_S[INDEX2(1,3,8)] = 2.*wd0;
+                        EM_S[INDEX2(3,3,8)] = 4.*wd0;
+                        EM_S[INDEX2(5,3,8)] =    wd0;
+                        EM_S[INDEX2(7,3,8)] = 2.*wd0;
+                        EM_S[INDEX2(1,5,8)] = 2.*wd0;
+                        EM_S[INDEX2(3,5,8)] =    wd0;
+                        EM_S[INDEX2(5,5,8)] = 4.*wd0;
+                        EM_S[INDEX2(7,5,8)] = 2.*wd0;
+                        EM_S[INDEX2(1,7,8)] =    wd0;
+                        EM_S[INDEX2(3,7,8)] = 2.*wd0;
+                        EM_S[INDEX2(5,7,8)] = 2.*wd0;
+                        EM_S[INDEX2(7,7,8)] = 4.*wd0;
+                    }
+                }
+                ///////////////
+                // process y //
+                ///////////////
+                if (add_EM_F) {
+                    const Scalar* y_p = y.getSampleDataRO(e, zero);
+                    if (y.actsExpanded()) {
+                        const Scalar y_0 = y_p[0];
+                        const Scalar y_1 = y_p[1];
+                        const Scalar y_2 = y_p[2];
+                        const Scalar y_3 = y_p[3];
+                        const Scalar tmp0 = 6.*w[2][l]*(y_1 + y_2);
+                        const Scalar tmp1 = 6.*w[2][l]*(y_0 + y_3);
+                        EM_F[1] = tmp0 + 6.*w[0][l]*y_3 + 6.*w[1][l]*y_0;
+                        EM_F[3] = tmp1 + 6.*w[0][l]*y_2 + 6.*w[1][l]*y_1;
+                        EM_F[5] = tmp1 + 6.*w[0][l]*y_1 + 6.*w[1][l]*y_2;
+                        EM_F[7] = tmp0 + 6.*w[0][l]*y_0 + 6.*w[1][l]*y_3;
+                    } else { // constant data
+                        EM_F[1] = 36.*w[2][l]*y_p[0];
+                        EM_F[3] = 36.*w[2][l]*y_p[0];
+                        EM_F[5] = 36.*w[2][l]*y_p[0];
+                        EM_F[7] = 36.*w[2][l]*y_p[0];
+                    }
+                }
+                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F, q, t);
+            } // face 1
 
-//         if (domain->m_faceOffset[3] > -1) {
-//             if (add_EM_S)
-//                 fill(EM_S.begin(), EM_S.end(), zero);
-//             if (add_EM_F) {
-//                 EM_F[0] = zero;
-//                 EM_F[1] = zero;
-//                 EM_F[4] = zero;
-//                 EM_F[5] = zero;
-//             }
+            if(quaddata->m_faceOffset == 2) {
+                if (add_EM_S)
+                    fill(EM_S.begin(), EM_S.end(), zero);
+                if (add_EM_F) {
+                    EM_F[2] = zero;
+                    EM_F[3] = zero;
+                    EM_F[6] = zero;
+                    EM_F[7] = zero;
+                }
+                ///////////////
+                // process d //
+                ///////////////
+                if (add_EM_S) {
+                    const Scalar* d_p = d.getSampleDataRO(e, zero);
+                    if (d.actsExpanded()) {
+                        const Scalar d_0 = d_p[0];
+                        const Scalar d_1 = d_p[1];
+                        const Scalar d_2 = d_p[2];
+                        const Scalar d_3 = d_p[3];
+                        const Scalar tmp0  = w[5][l]*(d_0 + d_1);
+                        const Scalar tmp1  = w[6][l]*(d_2 + d_3);
+                        const Scalar tmp2  = w[5][l]*(d_0 + d_2);
+                        const Scalar tmp3  = w[6][l]*(d_1 + d_3);
+                        const Scalar tmp4  = w[5][l]*(d_1 + d_3);
+                        const Scalar tmp5  = w[6][l]*(d_0 + d_2);
+                        const Scalar tmp6  = w[7][l]*(d_0 + d_3);
+                        const Scalar tmp7  = w[7][l]*(d_0 + d_1 + d_2 + d_3);
+                        const Scalar tmp8  = w[7][l]*(d_1 + d_2);
+                        const Scalar tmp9  = w[5][l]*(d_2 + d_3);
+                        const Scalar tmp10 = w[6][l]*(d_0 + d_1);
+                        EM_S[INDEX2(0,0,8)] = d_0*w[9][l] + d_3*w[8][l] + tmp8;
+                        EM_S[INDEX2(1,0,8)] = tmp10 + tmp9;
+                        EM_S[INDEX2(4,0,8)] = tmp4 + tmp5;
+                        EM_S[INDEX2(5,0,8)] = tmp7;
+                        EM_S[INDEX2(0,1,8)] = tmp10 + tmp9;
+                        EM_S[INDEX2(1,1,8)] = d_1*w[9][l] + d_2*w[8][l] + tmp6;
+                        EM_S[INDEX2(4,1,8)] = tmp7;
+                        EM_S[INDEX2(5,1,8)] = tmp2 + tmp3;
+                        EM_S[INDEX2(0,4,8)] = tmp4 + tmp5;
+                        EM_S[INDEX2(1,4,8)] = tmp7;
+                        EM_S[INDEX2(4,4,8)] = d_1*w[8][l] + d_2*w[9][l] + tmp6;
+                        EM_S[INDEX2(5,4,8)] = tmp0 + tmp1;
+                        EM_S[INDEX2(0,5,8)] = tmp7;
+                        EM_S[INDEX2(1,5,8)] = tmp2 + tmp3;
+                        EM_S[INDEX2(4,5,8)] = tmp0 + tmp1;
+                        EM_S[INDEX2(5,5,8)] = d_0*w[8][l] + d_3*w[9][l] + tmp8;
+                    } else { // constant data
+                        const Scalar wd0 = 4.*d_p[0]*w[7][l];
+                        EM_S[INDEX2(0,0,8)] = 4.*wd0;
+                        EM_S[INDEX2(1,0,8)] = 2.*wd0;
+                        EM_S[INDEX2(4,0,8)] = 2.*wd0;
+                        EM_S[INDEX2(5,0,8)] =    wd0;
+                        EM_S[INDEX2(0,1,8)] = 2.*wd0;
+                        EM_S[INDEX2(1,1,8)] = 4.*wd0;
+                        EM_S[INDEX2(4,1,8)] =    wd0;
+                        EM_S[INDEX2(5,1,8)] = 2.*wd0;
+                        EM_S[INDEX2(0,4,8)] = 2.*wd0;
+                        EM_S[INDEX2(1,4,8)] =    wd0;
+                        EM_S[INDEX2(4,4,8)] = 4.*wd0;
+                        EM_S[INDEX2(5,4,8)] = 2.*wd0;
+                        EM_S[INDEX2(0,5,8)] =    wd0;
+                        EM_S[INDEX2(1,5,8)] = 2.*wd0;
+                        EM_S[INDEX2(4,5,8)] = 2.*wd0;
+                        EM_S[INDEX2(5,5,8)] = 4.*wd0;
+                    }
+                }
+                ///////////////
+                // process y //
+                ///////////////
+                if (add_EM_F) {
+                    const Scalar* y_p = y.getSampleDataRO(e, zero);
+                    if (y.actsExpanded()) {
+                        const Scalar y_0 = y_p[0];
+                        const Scalar y_1 = y_p[1];
+                        const Scalar y_2 = y_p[2];
+                        const Scalar y_3 = y_p[3];
+                        const Scalar tmp0 = 6.*w[7][l]*(y_1 + y_2);
+                        const Scalar tmp1 = 6.*w[7][l]*(y_0 + y_3);
+                        EM_F[0] = tmp0 + 6.*w[5][l]*y_3 + 6.*w[6][l]*y_0;
+                        EM_F[1] = tmp1 + 6.*w[5][l]*y_2 + 6.*w[6][l]*y_1;
+                        EM_F[4] = tmp1 + 6.*w[5][l]*y_1 + 6.*w[6][l]*y_2;
+                        EM_F[5] = tmp0 + 6.*w[5][l]*y_0 + 6.*w[6][l]*y_3;
+                    } else { // constant data
+                        EM_F[0] = 36.*w[7][l]*y_p[0];
+                        EM_F[1] = 36.*w[7][l]*y_p[0];
+                        EM_F[4] = 36.*w[7][l]*y_p[0];
+                        EM_F[5] = 36.*w[7][l]*y_p[0];
+                    }
+                }
+                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F, q, t);
+            } // face 2
 
-//             for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
-// #pragma omp for
-//                 for (index_t k2=k2_0; k2<NE2; k2+=2) {
-//                     for (index_t k0=0; k0<NE0; ++k0) {
-//                         const index_t e = domain->m_faceOffset[3]+INDEX2(k0,k2,NE0);
-//                         ///////////////
-//                         // process d //
-//                         ///////////////
-//                         if (add_EM_S) {
-//                             const Scalar* d_p = d.getSampleDataRO(id, zero);
-//                             if (d.actsExpanded()) {
-//                                 const Scalar d_0 = d_p[0];
-//                                 const Scalar d_1 = d_p[1];
-//                                 const Scalar d_2 = d_p[2];
-//                                 const Scalar d_3 = d_p[3];
-//                                 const Scalar tmp0 = w5*(d_0 + d_2);
-//                                 const Scalar tmp1 = w6*(d_1 + d_3);
-//                                 const Scalar tmp2 = w5*(d_1 + d_3);
-//                                 const Scalar tmp3 = w6*(d_0 + d_2);
-//                                 const Scalar tmp4 = w7*(d_0 + d_1 + d_2 + d_3);
-//                                 const Scalar tmp5 = w5*(d_0 + d_1);
-//                                 const Scalar tmp6 = w6*(d_2 + d_3);
-//                                 const Scalar tmp7 = w7*(d_0 + d_3);
-//                                 const Scalar tmp8 = w7*(d_1 + d_2);
-//                                 const Scalar tmp9 = w5*(d_2 + d_3);
-//                                 const Scalar tmp10 = w6*(d_0 + d_1);
-//                                 EM_S[INDEX2(2,2,8)] = d_0*w9 + d_3*w8 + tmp8;
-//                                 EM_S[INDEX2(3,2,8)] = tmp10 + tmp9;
-//                                 EM_S[INDEX2(6,2,8)] = tmp2 + tmp3;
-//                                 EM_S[INDEX2(7,2,8)] = tmp4;
-//                                 EM_S[INDEX2(2,3,8)] = tmp10 + tmp9;
-//                                 EM_S[INDEX2(3,3,8)] = d_1*w9 + d_2*w8 + tmp7;
-//                                 EM_S[INDEX2(6,3,8)] = tmp4;
-//                                 EM_S[INDEX2(7,3,8)] = tmp0 + tmp1;
-//                                 EM_S[INDEX2(2,6,8)] = tmp2 + tmp3;
-//                                 EM_S[INDEX2(3,6,8)] = tmp4;
-//                                 EM_S[INDEX2(6,6,8)] = d_1*w8 + d_2*w9 + tmp7;
-//                                 EM_S[INDEX2(7,6,8)] = tmp5 + tmp6;
-//                                 EM_S[INDEX2(2,7,8)] = tmp4;
-//                                 EM_S[INDEX2(3,7,8)] = tmp0 + tmp1;
-//                                 EM_S[INDEX2(6,7,8)] = tmp5 + tmp6;
-//                                 EM_S[INDEX2(7,7,8)] = d_0*w8 + d_3*w9 + tmp8;
-//                             } else { // constant data
-//                                 const Scalar wd0 = 4.*d_p[0]*w7;
-//                                 EM_S[INDEX2(2,2,8)] = 4.*wd0;
-//                                 EM_S[INDEX2(3,2,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(6,2,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(7,2,8)] =    wd0;
-//                                 EM_S[INDEX2(2,3,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(3,3,8)] = 4.*wd0;
-//                                 EM_S[INDEX2(6,3,8)] =    wd0;
-//                                 EM_S[INDEX2(7,3,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(2,6,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(3,6,8)] =    wd0;
-//                                 EM_S[INDEX2(6,6,8)] = 4.*wd0;
-//                                 EM_S[INDEX2(7,6,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(2,7,8)] =    wd0;
-//                                 EM_S[INDEX2(3,7,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(6,7,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(7,7,8)] = 4.*wd0;
-//                             }
-//                         }
-//                         ///////////////
-//                         // process y //
-//                         ///////////////
-//                         if (add_EM_F) {
-//                             const Scalar* y_p = y.getSampleDataRO(id, zero);
-//                             if (y.actsExpanded()) {
-//                                 const Scalar y_0 = y_p[0];
-//                                 const Scalar y_1 = y_p[1];
-//                                 const Scalar y_2 = y_p[2];
-//                                 const Scalar y_3 = y_p[3];
-//                                 const Scalar tmp0 = 6.*w7*(y_1 + y_2);
-//                                 const Scalar tmp1 = 6.*w7*(y_0 + y_3);
-//                                 EM_F[2] = tmp0 + 6.*w5*y_3 + 6.*w6*y_0;
-//                                 EM_F[3] = tmp1 + 6.*w5*y_2 + 6.*w6*y_1;
-//                                 EM_F[6] = tmp1 + 6.*w5*y_1 + 6.*w6*y_2;
-//                                 EM_F[7] = tmp0 + 6.*w5*y_0 + 6.*w6*y_3;
-//                             } else { // constant data
-//                                 EM_F[2] = 36.*w7*y_p[0];
-//                                 EM_F[3] = 36.*w7*y_p[0];
-//                                 EM_F[6] = 36.*w7*y_p[0];
-//                                 EM_F[7] = 36.*w7*y_p[0];
-//                             }
-//                         }
-//                         const index_t firstNode=m_NN[0]*m_NN[1]*k2+m_NN[0]*(m_NN[1]-2)+k0;
-//                         domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F,
-//                                                add_EM_S, add_EM_F, firstNode);
-//                     } // k0 loop
-//                 } // k2 loop
-//             } // colouring
-//         } // face 3
+            if(quaddata->m_faceOffset == 3) {
+                if (add_EM_S)
+                    fill(EM_S.begin(), EM_S.end(), zero);
+                if (add_EM_F) {
+                    EM_F[0] = zero;
+                    EM_F[1] = zero;
+                    EM_F[4] = zero;
+                    EM_F[5] = zero;
+                }
+                ///////////////
+                // process d //
+                ///////////////
+                if (add_EM_S) {
+                    const Scalar* d_p = d.getSampleDataRO(e, zero);
+                    if (d.actsExpanded()) {
+                        const Scalar d_0 = d_p[0];
+                        const Scalar d_1 = d_p[1];
+                        const Scalar d_2 = d_p[2];
+                        const Scalar d_3 = d_p[3];
+                        const Scalar tmp0  = w[5][l]*(d_0 + d_2);
+                        const Scalar tmp1  = w[6][l]*(d_1 + d_3);
+                        const Scalar tmp2  = w[5][l]*(d_1 + d_3);
+                        const Scalar tmp3  = w[6][l]*(d_0 + d_2);
+                        const Scalar tmp4  = w[7][l]*(d_0 + d_1 + d_2 + d_3);
+                        const Scalar tmp5  = w[5][l]*(d_0 + d_1);
+                        const Scalar tmp6  = w[6][l]*(d_2 + d_3);
+                        const Scalar tmp7  = w[7][l]*(d_0 + d_3);
+                        const Scalar tmp8  = w[7][l]*(d_1 + d_2);
+                        const Scalar tmp9  = w[5][l]*(d_2 + d_3);
+                        const Scalar tmp10 = w[6][l]*(d_0 + d_1);
+                        EM_S[INDEX2(2,2,8)] = d_0*w[9][l] + d_3*w[8][l] + tmp8;
+                        EM_S[INDEX2(3,2,8)] = tmp10 + tmp9;
+                        EM_S[INDEX2(6,2,8)] = tmp2 + tmp3;
+                        EM_S[INDEX2(7,2,8)] = tmp4;
+                        EM_S[INDEX2(2,3,8)] = tmp10 + tmp9;
+                        EM_S[INDEX2(3,3,8)] = d_1*w[9][l] + d_2*w[8][l] + tmp7;
+                        EM_S[INDEX2(6,3,8)] = tmp4;
+                        EM_S[INDEX2(7,3,8)] = tmp0 + tmp1;
+                        EM_S[INDEX2(2,6,8)] = tmp2 + tmp3;
+                        EM_S[INDEX2(3,6,8)] = tmp4;
+                        EM_S[INDEX2(6,6,8)] = d_1*w[8][l] + d_2*w[9][l] + tmp7;
+                        EM_S[INDEX2(7,6,8)] = tmp5 + tmp6;
+                        EM_S[INDEX2(2,7,8)] = tmp4;
+                        EM_S[INDEX2(3,7,8)] = tmp0 + tmp1;
+                        EM_S[INDEX2(6,7,8)] = tmp5 + tmp6;
+                        EM_S[INDEX2(7,7,8)] = d_0*w[8][l] + d_3*w[9][l] + tmp8;
+                    } else { // constant data
+                        const Scalar wd0 = 4.*d_p[0]*w[7][l];
+                        EM_S[INDEX2(2,2,8)] = 4.*wd0;
+                        EM_S[INDEX2(3,2,8)] = 2.*wd0;
+                        EM_S[INDEX2(6,2,8)] = 2.*wd0;
+                        EM_S[INDEX2(7,2,8)] =    wd0;
+                        EM_S[INDEX2(2,3,8)] = 2.*wd0;
+                        EM_S[INDEX2(3,3,8)] = 4.*wd0;
+                        EM_S[INDEX2(6,3,8)] =    wd0;
+                        EM_S[INDEX2(7,3,8)] = 2.*wd0;
+                        EM_S[INDEX2(2,6,8)] = 2.*wd0;
+                        EM_S[INDEX2(3,6,8)] =    wd0;
+                        EM_S[INDEX2(6,6,8)] = 4.*wd0;
+                        EM_S[INDEX2(7,6,8)] = 2.*wd0;
+                        EM_S[INDEX2(2,7,8)] =    wd0;
+                        EM_S[INDEX2(3,7,8)] = 2.*wd0;
+                        EM_S[INDEX2(6,7,8)] = 2.*wd0;
+                        EM_S[INDEX2(7,7,8)] = 4.*wd0;
+                    }
+                }
+                ///////////////
+                // process y //
+                ///////////////
+                if (add_EM_F) {
+                    const Scalar* y_p = y.getSampleDataRO(e, zero);
+                    if (y.actsExpanded()) {
+                        const Scalar y_0 = y_p[0];
+                        const Scalar y_1 = y_p[1];
+                        const Scalar y_2 = y_p[2];
+                        const Scalar y_3 = y_p[3];
+                        const Scalar tmp0 = 6.*w[7][l]*(y_1 + y_2);
+                        const Scalar tmp1 = 6.*w[7][l]*(y_0 + y_3);
+                        EM_F[2] = tmp0 + 6.*w[5][l]*y_3 + 6.*w[6][l]*y_0;
+                        EM_F[3] = tmp1 + 6.*w[5][l]*y_2 + 6.*w[6][l]*y_1;
+                        EM_F[6] = tmp1 + 6.*w[5][l]*y_1 + 6.*w[6][l]*y_2;
+                        EM_F[7] = tmp0 + 6.*w[5][l]*y_0 + 6.*w[6][l]*y_3;
+                    } else { // constant data
+                        EM_F[2] = 36.*w[7][l]*y_p[0];
+                        EM_F[3] = 36.*w[7][l]*y_p[0];
+                        EM_F[6] = 36.*w[7][l]*y_p[0];
+                        EM_F[7] = 36.*w[7][l]*y_p[0];
+                    }
+                }
+                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F, q, t);
+            } // face 3
 
-//         if (domain->m_faceOffset[4] > -1) {
-//             if (add_EM_S)
-//                 fill(EM_S.begin(), EM_S.end(), zero);
-//             if (add_EM_F) {
-//                 EM_F[4] = zero;
-//                 EM_F[5] = zero;
-//                 EM_F[6] = zero;
-//                 EM_F[7] = zero;
-//             }
+            if(quaddata->m_faceOffset == 4) {
+                if (add_EM_S)
+                    fill(EM_S.begin(), EM_S.end(), zero);
+                if (add_EM_F) {
+                    EM_F[4] = zero;
+                    EM_F[5] = zero;
+                    EM_F[6] = zero;
+                    EM_F[7] = zero;
+                }
+                ///////////////
+                // process d //
+                ///////////////
+                if (add_EM_S) {
+                    const Scalar* d_p = d.getSampleDataRO(e, zero);
+                    if (d.actsExpanded()) {
+                        const Scalar d_0 = d_p[0];
+                        const Scalar d_1 = d_p[1];
+                        const Scalar d_2 = d_p[2];
+                        const Scalar d_3 = d_p[3];
+                        const Scalar tmp0  = w[10][l]*(d_0 + d_2);
+                        const Scalar tmp1  = w[11][l]*(d_1 + d_3);
+                        const Scalar tmp2  = w[12][l]*(d_0 + d_1 + d_2 + d_3);
+                        const Scalar tmp3  = w[12][l]*(d_1 + d_2);
+                        const Scalar tmp4  = w[10][l]*(d_1 + d_3);
+                        const Scalar tmp5  = w[11][l]*(d_0 + d_2);
+                        const Scalar tmp6  = w[12][l]*(d_0 + d_3);
+                        const Scalar tmp7  = w[10][l]*(d_0 + d_1);
+                        const Scalar tmp8  = w[11][l]*(d_2 + d_3);
+                        const Scalar tmp9  = w[10][l]*(d_2 + d_3);
+                        const Scalar tmp10 = w[11][l]*(d_0 + d_1);
+                        EM_S[INDEX2(0,0,8)] = d_0*w[14][l] + d_3*w[13][l] + tmp3;
+                        EM_S[INDEX2(1,0,8)] = tmp10 + tmp9;
+                        EM_S[INDEX2(2,0,8)] = tmp4 + tmp5;
+                        EM_S[INDEX2(3,0,8)] = tmp2;
+                        EM_S[INDEX2(0,1,8)] = tmp10 + tmp9;
+                        EM_S[INDEX2(1,1,8)] = d_1*w[14][l] + d_2*w[13][l] + tmp6;
+                        EM_S[INDEX2(2,1,8)] = tmp2;
+                        EM_S[INDEX2(3,1,8)] = tmp0 + tmp1;
+                        EM_S[INDEX2(0,2,8)] = tmp4 + tmp5;
+                        EM_S[INDEX2(1,2,8)] = tmp2;
+                        EM_S[INDEX2(2,2,8)] = d_1*w[13][l] + d_2*w[14][l] + tmp6;
+                        EM_S[INDEX2(3,2,8)] = tmp7 + tmp8;
+                        EM_S[INDEX2(0,3,8)] = tmp2;
+                        EM_S[INDEX2(1,3,8)] = tmp0 + tmp1;
+                        EM_S[INDEX2(2,3,8)] = tmp7 + tmp8;
+                        EM_S[INDEX2(3,3,8)] = d_0*w[13][l] + d_3*w[14][l] + tmp3;
+                    } else { // constant data
+                        const Scalar wd0 = 4.*d_p[0]*w[12][l];
+                        EM_S[INDEX2(0,0,8)] = 4.*wd0;
+                        EM_S[INDEX2(1,0,8)] = 2.*wd0;
+                        EM_S[INDEX2(2,0,8)] = 2.*wd0;
+                        EM_S[INDEX2(3,0,8)] =    wd0;
+                        EM_S[INDEX2(0,1,8)] = 2.*wd0;
+                        EM_S[INDEX2(1,1,8)] = 4.*wd0;
+                        EM_S[INDEX2(2,1,8)] =    wd0;
+                        EM_S[INDEX2(3,1,8)] = 2.*wd0;
+                        EM_S[INDEX2(0,2,8)] = 2.*wd0;
+                        EM_S[INDEX2(1,2,8)] =    wd0;
+                        EM_S[INDEX2(2,2,8)] = 4.*wd0;
+                        EM_S[INDEX2(3,2,8)] = 2.*wd0;
+                        EM_S[INDEX2(0,3,8)] =    wd0;
+                        EM_S[INDEX2(1,3,8)] = 2.*wd0;
+                        EM_S[INDEX2(2,3,8)] = 2.*wd0;
+                        EM_S[INDEX2(3,3,8)] = 4.*wd0;
+                    }
+                }
+                ///////////////
+                // process y //
+                ///////////////
+                if (add_EM_F) {
+                    const Scalar* y_p = y.getSampleDataRO(e, zero);
+                    if (y.actsExpanded()) {
+                        const Scalar y_0 = y_p[0];
+                        const Scalar y_1 = y_p[1];
+                        const Scalar y_2 = y_p[2];
+                        const Scalar y_3 = y_p[3];
+                        const Scalar tmp0 = 6.*w[12][l]*(y_1 + y_2);
+                        const Scalar tmp1 = 6.*w[12][l]*(y_0 + y_3);
+                        EM_F[0] = tmp0 + 6.*w[10][l]*y_3 + 6.*w[11][l]*y_0;
+                        EM_F[1] = tmp1 + 6.*w[10][l]*y_2 + 6.*w[11][l]*y_1;
+                        EM_F[2] = tmp1 + 6.*w[10][l]*y_1 + 6.*w[11][l]*y_2;
+                        EM_F[3] = tmp0 + 6.*w[10][l]*y_0 + 6.*w[11][l]*y_3;
+                    } else { // constant data
+                        EM_F[0] = 36.*w[12][l]*y_p[0];
+                        EM_F[1] = 36.*w[12][l]*y_p[0];
+                        EM_F[2] = 36.*w[12][l]*y_p[0];
+                        EM_F[3] = 36.*w[12][l]*y_p[0];
+                    }
+                }
+                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F, q, t);
+            } // face 4
 
-//             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
-// #pragma omp for
-//                 for (index_t k1=k1_0; k1<NE1; k1+=2) {
-//                     for (index_t k0=0; k0<NE0; ++k0) {
-//                         const index_t e = domain->m_faceOffset[4]+INDEX2(k0,k1,NE0);
-//                         ///////////////
-//                         // process d //
-//                         ///////////////
-//                         if (add_EM_S) {
-//                             const Scalar* d_p = d.getSampleDataRO(id, zero);
-//                             if (d.actsExpanded()) {
-//                                 const Scalar d_0 = d_p[0];
-//                                 const Scalar d_1 = d_p[1];
-//                                 const Scalar d_2 = d_p[2];
-//                                 const Scalar d_3 = d_p[3];
-//                                 const Scalar tmp0 = w10*(d_0 + d_2);
-//                                 const Scalar tmp1 = w11*(d_1 + d_3);
-//                                 const Scalar tmp2 = w12*(d_0 + d_1 + d_2 + d_3);
-//                                 const Scalar tmp3 = w12*(d_1 + d_2);
-//                                 const Scalar tmp4 = w10*(d_1 + d_3);
-//                                 const Scalar tmp5 = w11*(d_0 + d_2);
-//                                 const Scalar tmp6 = w12*(d_0 + d_3);
-//                                 const Scalar tmp7 = w10*(d_0 + d_1);
-//                                 const Scalar tmp8 = w11*(d_2 + d_3);
-//                                 const Scalar tmp9 = w10*(d_2 + d_3);
-//                                 const Scalar tmp10 = w11*(d_0 + d_1);
-//                                 EM_S[INDEX2(0,0,8)] = d_0*w14 + d_3*w13 + tmp3;
-//                                 EM_S[INDEX2(1,0,8)] = tmp10 + tmp9;
-//                                 EM_S[INDEX2(2,0,8)] = tmp4 + tmp5;
-//                                 EM_S[INDEX2(3,0,8)] = tmp2;
-//                                 EM_S[INDEX2(0,1,8)] = tmp10 + tmp9;
-//                                 EM_S[INDEX2(1,1,8)] = d_1*w14 + d_2*w13 + tmp6;
-//                                 EM_S[INDEX2(2,1,8)] = tmp2;
-//                                 EM_S[INDEX2(3,1,8)] = tmp0 + tmp1;
-//                                 EM_S[INDEX2(0,2,8)] = tmp4 + tmp5;
-//                                 EM_S[INDEX2(1,2,8)] = tmp2;
-//                                 EM_S[INDEX2(2,2,8)] = d_1*w13 + d_2*w14 + tmp6;
-//                                 EM_S[INDEX2(3,2,8)] = tmp7 + tmp8;
-//                                 EM_S[INDEX2(0,3,8)] = tmp2;
-//                                 EM_S[INDEX2(1,3,8)] = tmp0 + tmp1;
-//                                 EM_S[INDEX2(2,3,8)] = tmp7 + tmp8;
-//                                 EM_S[INDEX2(3,3,8)] = d_0*w13 + d_3*w14 + tmp3;
-//                             } else { // constant data
-//                                 const Scalar wd0 = 4.*d_p[0]*w12;
-//                                 EM_S[INDEX2(0,0,8)] = 4.*wd0;
-//                                 EM_S[INDEX2(1,0,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(2,0,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(3,0,8)] =    wd0;
-//                                 EM_S[INDEX2(0,1,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(1,1,8)] = 4.*wd0;
-//                                 EM_S[INDEX2(2,1,8)] =    wd0;
-//                                 EM_S[INDEX2(3,1,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(0,2,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(1,2,8)] =    wd0;
-//                                 EM_S[INDEX2(2,2,8)] = 4.*wd0;
-//                                 EM_S[INDEX2(3,2,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(0,3,8)] =    wd0;
-//                                 EM_S[INDEX2(1,3,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(2,3,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(3,3,8)] = 4.*wd0;
-//                             }
-//                         }
-//                         ///////////////
-//                         // process y //
-//                         ///////////////
-//                         if (add_EM_F) {
-//                             const Scalar* y_p = y.getSampleDataRO(id, zero);
-//                             if (y.actsExpanded()) {
-//                                 const Scalar y_0 = y_p[0];
-//                                 const Scalar y_1 = y_p[1];
-//                                 const Scalar y_2 = y_p[2];
-//                                 const Scalar y_3 = y_p[3];
-//                                 const Scalar tmp0 = 6.*w12*(y_1 + y_2);
-//                                 const Scalar tmp1 = 6.*w12*(y_0 + y_3);
-//                                 EM_F[0] = tmp0 + 6.*w10*y_3 + 6.*w11*y_0;
-//                                 EM_F[1] = tmp1 + 6.*w10*y_2 + 6.*w11*y_1;
-//                                 EM_F[2] = tmp1 + 6.*w10*y_1 + 6.*w11*y_2;
-//                                 EM_F[3] = tmp0 + 6.*w10*y_0 + 6.*w11*y_3;
-//                             } else { // constant data
-//                                 EM_F[0] = 36.*w12*y_p[0];
-//                                 EM_F[1] = 36.*w12*y_p[0];
-//                                 EM_F[2] = 36.*w12*y_p[0];
-//                                 EM_F[3] = 36.*w12*y_p[0];
-//                             }
-//                         }
-//                         const index_t firstNode=m_NN[0]*k1+k0;
-//                         domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F,
-//                                                add_EM_S, add_EM_F, firstNode);
-//                     } // k0 loop
-//                 } // k1 loop
-//             } // colouring
-//         } // face 4
-
-//         if (domain->m_faceOffset[5] > -1) {
-//             if (add_EM_S)
-//                 fill(EM_S.begin(), EM_S.end(), zero);
-//             if (add_EM_F) {
-//                 EM_F[0] = zero;
-//                 EM_F[1] = zero;
-//                 EM_F[2] = zero;
-//                 EM_F[3] = zero;
-//             }
-
-//             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
-// #pragma omp for
-//                 for (index_t k1=k1_0; k1<NE1; k1+=2) {
-//                     for (index_t k0=0; k0<NE0; ++k0) {
-//                         const index_t e = domain->m_faceOffset[5]+INDEX2(k0,k1,NE0);
-//                         ///////////////
-//                         // process d //
-//                         ///////////////
-//                         if (add_EM_S) {
-//                             const Scalar* d_p = d.getSampleDataRO(id, zero);
-//                             if (d.actsExpanded()) {
-//                                 const Scalar d_0 = d_p[0];
-//                                 const Scalar d_1 = d_p[1];
-//                                 const Scalar d_2 = d_p[2];
-//                                 const Scalar d_3 = d_p[3];
-//                                 const Scalar tmp0 = w12*(d_0 + d_1 + d_2 + d_3);
-//                                 const Scalar tmp1 = w10*(d_1 + d_3);
-//                                 const Scalar tmp2 = w11*(d_0 + d_2);
-//                                 const Scalar tmp3 = w10*(d_2 + d_3);
-//                                 const Scalar tmp4 = w11*(d_0 + d_1);
-//                                 const Scalar tmp5 = w10*(d_0 + d_1);
-//                                 const Scalar tmp6 = w11*(d_2 + d_3);
-//                                 const Scalar tmp7 = w12*(d_1 + d_2);
-//                                 const Scalar tmp8 = w10*(d_0 + d_2);
-//                                 const Scalar tmp9 = w11*(d_1 + d_3);
-//                                 const Scalar tmp10 = w12*(d_0 + d_3);
-//                                 EM_S[INDEX2(4,4,8)] = d_0*w14 + d_3*w13 + tmp7;
-//                                 EM_S[INDEX2(5,4,8)] = tmp3 + tmp4;
-//                                 EM_S[INDEX2(6,4,8)] = tmp1 + tmp2;
-//                                 EM_S[INDEX2(7,4,8)] = tmp0;
-//                                 EM_S[INDEX2(4,5,8)] = tmp3 + tmp4;
-//                                 EM_S[INDEX2(5,5,8)] = d_1*w14 + d_2*w13 + tmp10;
-//                                 EM_S[INDEX2(6,5,8)] = tmp0;
-//                                 EM_S[INDEX2(7,5,8)] = tmp8 + tmp9;
-//                                 EM_S[INDEX2(4,6,8)] = tmp1 + tmp2;
-//                                 EM_S[INDEX2(5,6,8)] = tmp0;
-//                                 EM_S[INDEX2(6,6,8)] = d_1*w13 + d_2*w14 + tmp10;
-//                                 EM_S[INDEX2(7,6,8)] = tmp5 + tmp6;
-//                                 EM_S[INDEX2(4,7,8)] = tmp0;
-//                                 EM_S[INDEX2(5,7,8)] = tmp8 + tmp9;
-//                                 EM_S[INDEX2(6,7,8)] = tmp5 + tmp6;
-//                                 EM_S[INDEX2(7,7,8)] = d_0*w13 + d_3*w14 + tmp7;
-//                             } else { // constant data
-//                                 const Scalar wd0 = 4.*d_p[0]*w12;
-//                                 EM_S[INDEX2(4,4,8)] = 4.*wd0;
-//                                 EM_S[INDEX2(5,4,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(6,4,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(7,4,8)] =    wd0;
-//                                 EM_S[INDEX2(4,5,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(5,5,8)] = 4.*wd0;
-//                                 EM_S[INDEX2(6,5,8)] =    wd0;
-//                                 EM_S[INDEX2(7,5,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(4,6,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(5,6,8)] =    wd0;
-//                                 EM_S[INDEX2(6,6,8)] = 4.*wd0;
-//                                 EM_S[INDEX2(7,6,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(4,7,8)] =    wd0;
-//                                 EM_S[INDEX2(5,7,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(6,7,8)] = 2.*wd0;
-//                                 EM_S[INDEX2(7,7,8)] = 4.*wd0;
-//                             }
-//                         }
-//                         ///////////////
-//                         // process y //
-//                         ///////////////
-//                         if (add_EM_F) {
-//                             const Scalar* y_p = y.getSampleDataRO(id, zero);
-//                             if (y.actsExpanded()) {
-//                                 const Scalar y_0 = y_p[0];
-//                                 const Scalar y_1 = y_p[1];
-//                                 const Scalar y_2 = y_p[2];
-//                                 const Scalar y_3 = y_p[3];
-//                                 const Scalar tmp0 = 6.*w12*(y_1 + y_2);
-//                                 const Scalar tmp1 = 6.*w12*(y_0 + y_3);
-//                                 EM_F[4] = tmp0 + 6.*w10*y_3 + 6.*w11*y_0;
-//                                 EM_F[5] = tmp1 + 6.*w10*y_2 + 6.*w11*y_1;
-//                                 EM_F[6] = tmp1 + 6.*w10*y_1 + 6.*w11*y_2;
-//                                 EM_F[7] = tmp0 + 6.*w10*y_0 + 6.*w11*y_3;
-//                             } else { // constant data
-//                                 EM_F[4] = 36.*w12*y_p[0];
-//                                 EM_F[5] = 36.*w12*y_p[0];
-//                                 EM_F[6] = 36.*w12*y_p[0];
-//                                 EM_F[7] = 36.*w12*y_p[0];
-//                             }
-//                         }
-//                         const index_t firstNode=m_NN[0]*m_NN[1]*(m_NN[2]-2)+m_NN[0]*k1+k0;
-//                         domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F,
-//                                                add_EM_S, add_EM_F, firstNode);
-//                     } // k0 loop
-//                 } // k1 loop
-//             } // colouring
-//         } // face 5
-//     } // end of parallel region
+            if(quaddata->m_faceOffset == 5) {
+                if (add_EM_S)
+                    fill(EM_S.begin(), EM_S.end(), zero);
+                if (add_EM_F) {
+                    EM_F[0] = zero;
+                    EM_F[1] = zero;
+                    EM_F[2] = zero;
+                    EM_F[3] = zero;
+                }
+                ///////////////
+                // process d //
+                ///////////////
+                if (add_EM_S) {
+                    const Scalar* d_p = d.getSampleDataRO(e, zero);
+                    if (d.actsExpanded()) {
+                        const Scalar d_0 = d_p[0];
+                        const Scalar d_1 = d_p[1];
+                        const Scalar d_2 = d_p[2];
+                        const Scalar d_3 = d_p[3];
+                        const Scalar tmp0  = w[12][l]*(d_0 + d_1 + d_2 + d_3);
+                        const Scalar tmp1  = w[10][l]*(d_1 + d_3);
+                        const Scalar tmp2  = w[11][l]*(d_0 + d_2);
+                        const Scalar tmp3  = w[10][l]*(d_2 + d_3);
+                        const Scalar tmp4  = w[11][l]*(d_0 + d_1);
+                        const Scalar tmp5  = w[10][l]*(d_0 + d_1);
+                        const Scalar tmp6  = w[11][l]*(d_2 + d_3);
+                        const Scalar tmp7  = w[12][l]*(d_1 + d_2);
+                        const Scalar tmp8  = w[10][l]*(d_0 + d_2);
+                        const Scalar tmp9  = w[11][l]*(d_1 + d_3);
+                        const Scalar tmp10 = w[12][l]*(d_0 + d_3);
+                        EM_S[INDEX2(4,4,8)] = d_0*w[14][l] + d_3*w[13][l] + tmp7;
+                        EM_S[INDEX2(5,4,8)] = tmp3 + tmp4;
+                        EM_S[INDEX2(6,4,8)] = tmp1 + tmp2;
+                        EM_S[INDEX2(7,4,8)] = tmp0;
+                        EM_S[INDEX2(4,5,8)] = tmp3 + tmp4;
+                        EM_S[INDEX2(5,5,8)] = d_1*w[14][l] + d_2*w[13][l] + tmp10;
+                        EM_S[INDEX2(6,5,8)] = tmp0;
+                        EM_S[INDEX2(7,5,8)] = tmp8 + tmp9;
+                        EM_S[INDEX2(4,6,8)] = tmp1 + tmp2;
+                        EM_S[INDEX2(5,6,8)] = tmp0;
+                        EM_S[INDEX2(6,6,8)] = d_1*w[13][l] + d_2*w[14][l] + tmp10;
+                        EM_S[INDEX2(7,6,8)] = tmp5 + tmp6;
+                        EM_S[INDEX2(4,7,8)] = tmp0;
+                        EM_S[INDEX2(5,7,8)] = tmp8 + tmp9;
+                        EM_S[INDEX2(6,7,8)] = tmp5 + tmp6;
+                        EM_S[INDEX2(7,7,8)] = d_0*w[13][l] + d_3*w[14][l] + tmp7;
+                    } else { // constant data
+                        const Scalar wd0 = 4.*d_p[0]*w[12][l];
+                        EM_S[INDEX2(4,4,8)] = 4.*wd0;
+                        EM_S[INDEX2(5,4,8)] = 2.*wd0;
+                        EM_S[INDEX2(6,4,8)] = 2.*wd0;
+                        EM_S[INDEX2(7,4,8)] =    wd0;
+                        EM_S[INDEX2(4,5,8)] = 2.*wd0;
+                        EM_S[INDEX2(5,5,8)] = 4.*wd0;
+                        EM_S[INDEX2(6,5,8)] =    wd0;
+                        EM_S[INDEX2(7,5,8)] = 2.*wd0;
+                        EM_S[INDEX2(4,6,8)] = 2.*wd0;
+                        EM_S[INDEX2(5,6,8)] =    wd0;
+                        EM_S[INDEX2(6,6,8)] = 4.*wd0;
+                        EM_S[INDEX2(7,6,8)] = 2.*wd0;
+                        EM_S[INDEX2(4,7,8)] =    wd0;
+                        EM_S[INDEX2(5,7,8)] = 2.*wd0;
+                        EM_S[INDEX2(6,7,8)] = 2.*wd0;
+                        EM_S[INDEX2(7,7,8)] = 4.*wd0;
+                    }
+                }
+                ///////////////
+                // process y //
+                ///////////////
+                if (add_EM_F) {
+                    const Scalar* y_p = y.getSampleDataRO(e, zero);
+                    if (y.actsExpanded()) {
+                        const Scalar y_0 = y_p[0];
+                        const Scalar y_1 = y_p[1];
+                        const Scalar y_2 = y_p[2];
+                        const Scalar y_3 = y_p[3];
+                        const Scalar tmp0 = 6.*w[12][l]*(y_1 + y_2);
+                        const Scalar tmp1 = 6.*w[12][l]*(y_0 + y_3);
+                        EM_F[4] = tmp0 + 6.*w[10][l]*y_3 + 6.*w[11][l]*y_0;
+                        EM_F[5] = tmp1 + 6.*w[10][l]*y_2 + 6.*w[11][l]*y_1;
+                        EM_F[6] = tmp1 + 6.*w[10][l]*y_1 + 6.*w[11][l]*y_2;
+                        EM_F[7] = tmp0 + 6.*w[10][l]*y_0 + 6.*w[11][l]*y_3;
+                    } else { // constant data
+                        EM_F[4] = 36.*w[12][l]*y_p[0];
+                        EM_F[5] = 36.*w[12][l]*y_p[0];
+                        EM_F[6] = 36.*w[12][l]*y_p[0];
+                        EM_F[7] = 36.*w[12][l]*y_p[0];
+                    }
+                }
+                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F, q, t);
+            } // face 5
+        }
+    }
 }
 
 /****************************************************************************/
