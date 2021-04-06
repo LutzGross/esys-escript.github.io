@@ -59,6 +59,7 @@
 /*@}*/
 
 typedef std::pair<double,double> DoublePair;
+typedef std::tuple<double,double,double> DoubleTriple;
 
 namespace oxley {
 
