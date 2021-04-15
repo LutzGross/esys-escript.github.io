@@ -46,7 +46,7 @@
 #ifndef SC_MPI_H
 #define SC_MPI_H
 
-#include <sc.h>
+#include <p4est/sc.h>
 
 SC_EXTERN_C_BEGIN;
 

@@ -36,7 +36,7 @@
 
 /* include the sc_config header first */
 
-#include <sc_config.h>
+#include <p4est/sc_config.h>
 #ifndef _sc_const
 #define _sc_const const
 #endif
@@ -118,7 +118,7 @@
 #endif
 
 /* this libsc header is always included */
-#include <sc_mpi.h>
+#include <p4est/sc_mpi.h>
 
 SC_EXTERN_C_BEGIN;
 

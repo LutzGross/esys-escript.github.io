@@ -42,9 +42,9 @@
 #define SC_MEMPOOL_MSTAMP
 
 #ifndef SC_MEMPOOL_MSTAMP
-#include <sc_obstack.h>
+#include <p4est/sc_obstack.h>
 #else
-#include <sc.h>
+#include <p4est/sc.h>
 #endif
 
 SC_EXTERN_C_BEGIN;

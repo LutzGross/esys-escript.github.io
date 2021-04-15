@@ -23,7 +23,7 @@
 
 #include <boost/shared_ptr.hpp>
 
-#include <p4est_base.h>
+#include <p4est/p4est_base.h>
 
 #include <escript/EsysMPI.h>
 

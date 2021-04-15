@@ -31,8 +31,8 @@
 #define P4EST_BASE_H
 
 /* include config headers */
-#include <p4est_config.h>
-#include <sc_config.h>
+#include <p4est/p4est_config.h>
+#include <p4est/sc_config.h>
 #if \
   (defined (P4EST_ENABLE_MPI) && !defined (SC_ENABLE_MPI)) || \
   (!defined (P4EST_ENABLE_MPI) && defined (SC_ENABLE_MPI))
@@ -45,7 +45,7 @@
 #endif
 
 /* indirectly also include sc.h */
-#include <sc_containers.h>
+#include <p4est/sc_containers.h>
 #define _p4est_const _sc_const
 
 /*--------------------------------------------------------------------*/

@@ -36,8 +36,8 @@
 #error "Including a p4est header with P4_TO_P8 defined"
 #endif
 
-#include <sc_io.h>
-#include <p4est_base.h>
+#include <p4est/sc_io.h>
+#include <p4est/p4est_base.h>
 
 SC_EXTERN_C_BEGIN;
 

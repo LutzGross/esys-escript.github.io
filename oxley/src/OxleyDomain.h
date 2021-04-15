@@ -1,6 +1,6 @@
 /*****************************************************************************
 *
-* Copyright (c) 2003-2019 by The University of Queensland
+* Copyright (c) 2003-2021 by The University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -9,15 +9,20 @@
 *
 * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
 * Development 2012-2013 by School of Earth Sciences
-* Development from 2014 by Centre for Geoscience Computing (GeoComp)
-*
+* Development from 2014-2017 by Centre for Geoscience Computing (GeoComp)
+* Development from 2019 by School of Earth and Environmental Sciences
+**
 *****************************************************************************/
+
+#ifndef __OXLEY_DOMAIN_H__
+#define __OXLEY_DOMAIN_H__
 
 #ifndef __OXLEY_EXCEPTION_H__
 
 #include <oxley/Oxley.h>
 #include <oxley/OxleyException.h>
 #include <oxley/AbstractAssembler.h>
+#include <oxley/domainhelpers.h>
 
 #include <escript/EsysMPI.h>
 #include <escript/AbstractContinuousDomain.h>
@@ -34,7 +39,7 @@
 #include <trilinoswrap/types.h>
 #endif
 
-#include <p4est.h>
+#include <p4est/p4est.h>
 
 namespace oxley {
 
@@ -51,6 +56,33 @@ enum SystemMatrixType {
     SMT_SYMMETRIC = 1<<15,
     SMT_COMPLEX = 1<<16,
     SMT_UNROLL = 1<<17
+};
+
+enum DecompositionPolicy {
+    DECOMP_ADD_ELEMENTS,
+    DECOMP_EXPAND,
+    DECOMP_STRICT
+};
+
+/**
+   \brief
+   Structure that wraps parameters for the grid reading routines.
+*/
+struct ReaderParameters
+{
+    /// the (global) offset into the data object to start writing into
+    std::vector<dim_t> first;
+    /// the number of values to read from file
+    std::vector<dim_t> numValues;
+    /// how often to write each value from the file into the data object
+    /// (e.g. to supersample)
+    std::vector<int> multiplier;
+    /// if non-zero, values are written from last index to first index
+    std::vector<int> reverse;
+    /// byte order in the file (used by binary reader only)
+    int byteOrder;
+    /// data type in the file (used by binary reader only)
+    int dataType;
 };
 
 /**
@@ -80,6 +112,9 @@ public:
        Destructor
     */
     ~OxleyDomain();
+
+    static void setDecompositionPolicy(DecompositionPolicy value);
+    static DecompositionPolicy getDecompositionPolicy();
 
     /**
        \brief
@@ -168,6 +203,25 @@ public:
 
     /**
        \brief
+       returns the tag key for the given sample number
+       \param fsType The function space type
+       \param sampleNo The sample number
+    */
+    virtual int getTagFromSampleNo(int fsType, dim_t sampleNo) const;
+
+    /**
+       \brief
+       sets a map from a clear tag name to a tag key
+       \param name tag name
+       \param tag tag key
+    */
+    virtual void setTagMap(const std::string& name, int tag);
+    // {
+    //     m_tagMap[name] = tag;
+    // }
+
+    /**
+       \brief
        writes the current mesh to a file with the given name
        \param filename The name of the file to write to
     */
@@ -192,31 +246,6 @@ public:
     */
     virtual dim_t getNumDataPointsGlobal() const = 0;
 
-    /**
-       \brief
-       returns the tag key for the given sample number
-       \param fsType The function space type
-       \param sampleNo The sample number
-    */
-    virtual int getTagFromSampleNo(int fsType, dim_t sampleNo) const;
-
-    /**
-       \brief
-       sets a map from a clear tag name to a tag key
-       \param name tag name
-       \param tag tag key
-    */
-    virtual void setTagMap(const std::string& name, int tag);
-    // {
-    //     m_tagMap[name] = tag;
-    // }
-
-    /**
-       \brief
-       returns the tag key for tag name
-       \param name tag name
-    */
-    virtual int getTag(const std::string& name) const;
 
     /**
        \brief
@@ -224,12 +253,6 @@ public:
        positive value of mask for any of its sample points
     */
     virtual void setTags(int fsType, int newTag, const escript::Data& mask) const;
-
-    /**
-       \brief
-       returns all tag names in a single string separated by commas
-    */
-    virtual std::string showTagNames() const;
 
     /**
        \brief
@@ -258,6 +281,20 @@ public:
     // {
     //     return (m_tagMap.find(name)!=m_tagMap.end());
     // }
+
+    /**
+       \brief
+       returns all tag names in a single string separated by commas
+    */
+    virtual std::string showTagNames() const;
+
+    /**
+       \brief
+       returns the tag key for tag name
+       \param name tag name
+    */
+    virtual int getTag(const std::string& name) const;
+
 
     // this is const because setTags is const
     virtual void updateTagsInUse(int fsType) const;
@@ -763,3 +800,6 @@ typedef POINTER_WRAPPER_CLASS(OxleyDomain) OxleyDomain_ptr;
 
 
 #endif //__OXLEY_EXCEPTION_H__
+
+
+#endif //__OXLEY_DOMAIN_H__

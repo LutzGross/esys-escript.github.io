@@ -25,6 +25,7 @@
 
 #include <oxley/AbstractAssembler.h>
 #include <oxley/DefaultAssembler2D.h>
+#include <oxley/domainhelpers.h>
 #include <oxley/InitAlgorithms.h>
 #include <oxley/Oxley.h>
 #include <oxley/OxleyData.h>

@@ -24,8 +24,8 @@
 #ifndef SC_IO_H
 #define SC_IO_H
 
-#include <sc.h>
-#include <sc_containers.h>
+#include <p4est/sc.h>
+#include <p4est/sc_containers.h>
 
 SC_EXTERN_C_BEGIN;
 
