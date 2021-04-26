@@ -11,7 +11,7 @@ distributed computing clusters using MPI. Hybrid mode of OpenMP and MPI is suppo
 solving problems with over 200 million unknowns on several thousand cores on a parallel computer.
 
 Esys-escript now includes the esys.downunder module for 3D inversion of geophysical data sets. 
-The current version supports gravity, magnetic and joint inversion, see also the extensions [gambit]{https://github.com/AndreaCodd/gambit} and [fingal]{https://github.com/LutzGross/fingal}.
+The current version supports gravity, magnetic and joint inversion, see also the extensions [gambit](https://github.com/AndreaCodd/gambit) and [fingal](https://github.com/LutzGross/fingal).
 
 
 Main Features:
@@ -30,9 +30,9 @@ Further documentation including examples and a user guide for the latest release
 https://esys-escript.readthedocs.io/en/latest/index.html
 
 The project is funded by the
-   - [AuScope National Collaborative Research Infrastructure Strategy (NCRIS)]{https://www.auscope.org.au/} (until mid of 2022),
+   - [AuScope National Collaborative Research Infrastructure Strategy (NCRIS)](https://www.auscope.org.au/) (until mid of 2022),
    - Australian Geophysical Observing System (AGOS) (ended 2014),
-   - [The University of Queensland]{https://www.uq.edu.au}
+   - [The University of Queensland](https://www.uq.edu.au)
 
 If you publish work which makes use of escript, we would appreciate if you would cite the following reference:
 
@@ -42,7 +42,7 @@ Interface modeling in incompressible media using level sets in Escript,
 Physics of the Earth and Planetary Interiors,
 Volume 163, Issues 1–4,
 2007,
-Pages 23-34]{doi:10.1016/j.pepi.2007.04.004}
+Pages 23-34](doi:10.1016/j.pepi.2007.04.004)
 
 
 # Windows Installation
@@ -55,10 +55,10 @@ conda install esys-escript -c conda-forge
 
 For the impatient:
 
-Install at least g++, python, scons, boost, numpy
-READ the file scons/templates/README_FIRST
-Copy a suitable template options file from scons/templates/ to scons/hostname_options.py and modify as required.
-type: scons to build escript
+- Install at least g++, python, scons, boost, numpy
+- READ the file scons/templates/README_FIRST
+- Copy a suitable template options file from scons/templates/ to scons/hostname_options.py and modify as required.
+- type `scons` to build escript
 
 For information on a specific Linux distrobution, please consult the install guide (install.pdf).
 
@@ -66,6 +66,8 @@ For information on a specific Linux distrobution, please consult the install gui
 
 To get started using escript please consult the user guide (user.pdf) and the (cookbook.pdf) cookbook. 
 All of these documents are available here and at https://esys-escript.github.io/
+
+
 
 # Bugs
 
