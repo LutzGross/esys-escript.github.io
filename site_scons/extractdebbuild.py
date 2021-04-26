@@ -39,6 +39,8 @@ def getdebbuildflags():
   except OSError:
     return []
   res=[]
+  if not isinstance(deps, str):
+      deps=deps.decode()
   deps=deps.split("\n")
   for line in deps:
     ind=line.find("=")
