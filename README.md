@@ -1,4 +1,5 @@
-# esys-escript
+
+# esys-escript 
 
 esys-escript is module for implementing mathematical models in python using the finite element method (FEM). 
 As users do not access the underlying data structures it is very easy to use and scripts can run on desktop computers as well as massive 
@@ -14,7 +15,7 @@ Esys-escript now includes the esys.downunder module for 3D inversion of geophysi
 The current version supports gravity, magnetic and joint inversion, see also the extensions [gambit](https://github.com/AndreaCodd/gambit) and [fingal](https://github.com/LutzGross/fingal).
 
 
-Main Features:
+## Main Features:
 
 - python based user interface
 - two- and three-dimensional finite and spectral element simulations
@@ -29,7 +30,7 @@ Main Features:
 Further documentation including examples and a user guide for the latest release can be found at
 https://esys-escript.readthedocs.io/en/latest/index.html
 
-The project is funded by the
+## The project is funded by the
    - [AuScope National Collaborative Research Infrastructure Strategy (NCRIS)](https://www.auscope.org.au/) (until mid of 2022),
    - Australian Geophysical Observing System (AGOS) (ended 2014),
    - [The University of Queensland](https://www.uq.edu.au)
@@ -40,18 +41,17 @@ If you publish work which makes use of escript, we would appreciate if you would
 - [L. Gross, L. Bourgouin, A.J. Hale, H.-B. Mühlhaus,
 Interface modeling in incompressible media using level sets in Escript,
 Physics of the Earth and Planetary Interiors,
-Volume 163, Issues 1–4,
-2007,
+Volume 163, Issues 1–4, 2007,
 Pages 23-34](doi:10.1016/j.pepi.2007.04.004)
 
 
-# Windows Installation
+## Windows Installation
 
 A windows build of esys-escript is available in the conda-forge repository. At present this is the recommended way to run esys-escript on Windows. To install, first run conda and then the command
 
 conda install esys-escript -c conda-forge
 
-# Linux Installation
+## Linux Installation
 
 For the impatient:
 
@@ -62,21 +62,16 @@ For the impatient:
 
 For information on a specific Linux distrobution, please consult the install guide (install.pdf).
 
-# Using escript
+## Using escript
 
 To get started using escript please consult the user guide (user.pdf) and the (cookbook.pdf) cookbook. 
 All of these documents are available here and at https://esys-escript.github.io/
 
+## Questions & Bugs 
 
+To raise a question or to report a bug please start a [github issue](https://github.com/esys-escript/esys-escript.github.io/issues).
 
-# Bugs
-
-To report a bug, please start a github issue.
-
-This project is supported by AuScope
-https://github.com/AuScope
-
-# Contributors
+### Contributors
         Lutz Gross
         Adam Ellery
         Andrea Codd
