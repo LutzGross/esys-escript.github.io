@@ -1,22 +1,30 @@
 # esys-escript
 
-esys-escript is a programming tool for implementing mathematical models in python using the finite element method (FEM). As users do not access the data structures it is very easy to use and scripts can run on desktop computers as well as highly parallel supercomputer without changes. Application areas for escript include earth mantle convection, geophysical inversion, earthquakes, porous media flow, reactive transport, plate subduction, erosion, and tsunamis.
+esys-escript is module for implementing mathematical models in python using the finite element method (FEM). 
+As users do not access the underlying data structures it is very easy to use and scripts can run on desktop computers as well as massive 
+parallel supercomputer without changes. Application areas for esys-escript include geophysical inversion, earthquakes, porous media flow, reactive transport, plate subduction, erosion, earth mantle convection, and tsunamis.
 
-esys-escript is designed as an easy-to-use environment for implementing mathematical models based on non-linear, coupled, time-dependent partial differential equations. It uses the finite element method (FEM) for spatial discretization and data representation. Escript is used through python and is suitable for rapid prototyping (e.g for a student project or thesis) as well as for large software projects. Scripts are executed in parallel using MPI, OpenMP and hybrid mode processing over 50 million unknowns on several thousand cores on a parallel computer.
+esys-escript is designed as an easy-to-use environment for implementing mathematical models based on non-linear, coupled, time-dependent partial differential equations. It uses the finite element method (FEM) for spatial discretization and data representation and is used through python.
+It is suitable for rapid prototyping (e.g for a student project or thesis) as well as for large software projects. Scripts are executed
+sequentially, on multi-core platforms via OpenMP and  
+distributed computing clusters using MPI. Hybrid mode of OpenMP and MPI is supportied and allow for 
+solving problems with over 200 million unknowns on several thousand cores on a parallel computer.
 
-esys-escript now includes the esys.downunder module for 3D inversion of geophysical data sets. The current version supports gravity, magnetic and joint inversion.
+Esys-escript now includes the esys.downunder module for 3D inversion of geophysical data sets. 
+The current version supports gravity, magnetic and joint inversion. 
+
 
 Main Features:
-        python based user interface
-        two- and three-dimensional finite and spectral element simulations
-        specialized geophysical inversion module
-        support for VTK and SILO file format
-        unstructured meshes from gmsh
-        parallelization with OpenMP and MPI support
-        Flux Controlled Transport solver (FEM-FCT)
-        visualization with VisIt
-        support for Linux and Mac
-        partial support for GPU use
+
+- python based user interface
+- two- and three-dimensional finite and spectral element simulations
+- specialized geophysical inversion module
+- support for VTK and SILO file format
+- unstructured meshes from gmsh
+- parallelization with OpenMP and MPI support
+- Flux Controlled Transport solver (FEM-FCT)
+- visualization with VisIt
+- support for Linux, Windows and OSX
 
 Further documentation including examples and a user guide for the latest release can be found at
 https://esys-escript.readthedocs.io/en/latest/index.html
@@ -28,6 +36,7 @@ The project is funded by the
 
 If you publish work which makes use of escript, we would appreciate if you would cite the following reference:
 
+[R Schaa, L Gross, J du Plessis, PDE-based geophysical modelling using finite elements: examples from 3D resistivity and 2D magnetotellurics, Journal of Geophysics and Engineering, Volume 13, Issue 2, April 2016, Pages S59–S73]{https://doi.org/10.1088/1742-2132/13/2/S59}
 @article{SchaaGrossDuPlessis2016,
     author={Schaa, R. and Gross, L. and Du Plessis, J.},
     year =2016,
