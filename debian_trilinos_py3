@@ -3,17 +3,12 @@ FROM debian:buster-slim
 LABEL maintainer="a.ellery@uq.edu.au"
 
 WORKDIR /app
-COPY . /app
+# COPY . /app
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update 
-RUN apt-get install -y python3-dev python3-numpy python3-pyproj python3-gdal
-RUN apt-get install -y python3-sympy python3-matplotlib python3-scipy
-RUN apt-get install -y libboost-python-dev libboost-random-dev
-RUN apt-get install -y libnetcdf-dev libnetcdf-cxx-legacy-dev libnetcdf-c++4-dev
-RUN apt-get install -y libsuitesparse-dev scons lsb-release gmsh
-RUN apt-get install -y libmetis-dev liblapack-dev
-RUN apt-get install -y cmake gcc git gfortran make scons wget
+RUN apt-get install -y cmake gcc g++ git gfortran make scons wget
+RUN apt-get install -y libsuitesparse-dev libmetis-dev liblapack-dev libblas-dev libboost-python-dev libboost-random-dev 
 # Trilinos
 RUN wget https://github.com/trilinos/Trilinos/archive/trilinos-release-13-0-1.tar.gz
 RUN tar zxvf trilinos-release-13-0-1.tar.gz 
@@ -41,7 +36,6 @@ RUN cd trilinos_build && \
       -D TPL_Cholmod_INCLUDE_DIRS=/usr/include/suitesparse \
       -D TPL_Cholmod_LIBRARIES='libcholmod.so;libamd.so;libcolamd.so' \
       -D TPL_UMFPACK_INCLUDE_DIRS=/usr/include/suitesparse \
-      -D TPL_Boost_INCLUDE_DIRS=/usr/local/boost/include \
       -D TPL_Boost_LIBRARY_DIRS=lib \
       -D Trilinos_ENABLE_Amesos=ON \
       -D Trilinos_ENABLE_Amesos2=ON \
@@ -70,6 +64,11 @@ RUN cd trilinos_build && \
       -D Tpetra_INST_SERIAL:BOOL=ON \
       -D Trilinos_ENABLE_TESTS=OFF \
       /app/Trilinos-trilinos-release-13-0-1 && make -j`nproc` install
+RUN rm -rf /app/Trilinos-trilinos-release-13-0-1 /app/trilinos_build
+RUN apt-get install -y python3-dev python3-numpy python3-pyproj python3-gdal
+RUN apt-get install -y python3-sympy python3-matplotlib python3-scipy
+RUN apt-get install -y scons lsb-release 
+RUN apt-get install -y libnetcdf-dev libnetcdf-cxx-legacy-dev libnetcdf-c++4-dev
 RUN git clone https://github.com/esys-escript/esys-escript.github.io --depth 1 -b oxley /app/escript
 RUN cd /app/escript && scons options_file=/app/escript_old/scons/templates/buster_py3_options.py -j`nproc` build_full \
 	trilinos=1 trilinos_prefix=/app/trilinos werror=0
