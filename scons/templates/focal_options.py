@@ -27,9 +27,13 @@ umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
 umfpack_libs = ['umfpack', 'blas', 'amd']
 
 pythoncmd="/usr/bin/python3"
-pythonlibname = 'python3.9'
-pythonlibpath = '/usr/lib/x86_64-linux-gnu/'
-pythonincpath = '/usr/include/python3.9'
 
-boost_libs=['boost_python39','boost_numpy39','boost_random']
+import subprocess
+p=subprocess.run([pythoncmd,'-V'], capture_output=True, text=True)
+subversion=p.stdout.split(' ')[1].split('.')[1]
+pythonlibname = 'python3.%s'%subversion
+pythonlibpath = '/usr/lib/x86_64-linux-gnu/'
+pythonincpath = '/usr/include/python3.%s'%subversion
+
+boost_libs=['boost_python3%s'%subversion,'boost_numpy3%s'%subversion,'boost_random']
 boost_prefix=['/usr/include','/usr/lib/x86_64-linux-gnu/']
