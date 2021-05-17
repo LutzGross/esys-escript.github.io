@@ -13,7 +13,7 @@ RUN apt-get install -y libboost-python-dev libboost-random-dev libboost-numpy-de
 RUN apt-get install -y libnetcdf-dev libnetcdf-cxx-legacy-dev libnetcdf-c++4-dev
 RUN apt-get install -y libsuitesparse-dev scons lsb-release gmsh
 RUN apt-get install -y git
-RUN git clone https://github.com/esys-escript/esys-escript.github.io --depth 1 /app/escript
+RUN git clone https://github.com/esys-escript/esys-escript.github.io /app/escript
 RUN cd /app/escript && scons options_file=scons/templates/focal_options.py -j`nproc` build_full
 ENV LD_LIBRARY_PATH=/app/escript/lib:$LD_LIBRARY_PATH
 ENV PYTHONPATH=/app/escript:$PYTHONPATH
