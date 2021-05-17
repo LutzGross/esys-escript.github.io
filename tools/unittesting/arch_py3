@@ -6,19 +6,15 @@ WORKDIR /app
 COPY . /app
 
 RUN pacman -Syu --noconfirm 
-RUN pacman -Sy --noconfirm python python-numpy python-scipy python-pyproj python-matplotlib
-RUN pacman -Sy --noconfirm community/netcdf community/netcdf-cxx
-RUN pacman -Sy --noconfirm extra/boost extra/boost-libs
-RUN pacman -Sy --noconfirm suitesparse
-RUN pacman -Sy --noconfirm git scons gcc
-RUN git clone https://github.com/esys-escript/esys-escript.github.io --depth 1 /app/escript
-RUN cd /app/escript && scons options_file=scons/templates/arch_py3_options.py -j`nproc` build_full netcdf='no' use_gmsh=0
-ENV LD_LIBRARY_PATH=/app/escript/lib:$LD_LIBRARY_PATH
-ENV PYTHONPATH=/app/escript:$PYTHONPATH
-ENV PATH=/app/escript/bin:$PATH
-RUN cd /app/escript && ./utest.sh /app/escript/build '-t15'
+RUN pacman -Sy --noconfirm python python-numpy python-scipy python-pyproj python-matplotlib community/netcdf community/netcdf-cxx extra/boost extra/boost-libs suitesparse git scons gcc
+RUN git clone https://github.com/esys-escript/esys-escript.github.io --depth 1 /app/escript_git
+RUN cd /app/escript_git && scons options_file=scons/templates/arch_py3_options.py -j`nproc` build_full netcdf='no' use_gmsh=0
+ENV LD_LIBRARY_PATH=/app/escript_git/lib:$LD_LIBRARY_PATH
+ENV PYTHONPATH=/app/escript_git:$PYTHONPATH
+ENV PATH=/app/escript_git/bin:$PATH
+RUN cd /app/escript_git && ./utest.sh /app/escript_git/build '-t15'
 RUN useradd -ms /bin/bash appuser
-RUN run-escript /app/escript/scripts/release_sanity.py
+RUN run-escript /app/escript_git/scripts/release_sanity.py
 RUN rm -rf *
 
 CMD ["/bin/bash"]
