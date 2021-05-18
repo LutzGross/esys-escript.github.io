@@ -77,7 +77,7 @@ RUN cd /app/escript && scons options_file=scons/templates/buster_py3_options.py 
 ENV LD_LIBRARY_PATH=/app/escript/lib:/app/trilinos/lib:$LD_LIBRARY_PATH
 ENV PYTHONPATH=/app/escript:$PYTHONPATH
 ENV PATH=/app/escript/bin:$PATH
-RUN cd /app/escript && ./utest.sh /app/escript/build '-t15'
+RUN cd /app/escript && ./utest.sh /app/escript/build '-t7'
 RUN useradd -ms /bin/bash appuser
 RUN run-escript /app/escript/scripts/release_sanity.py
 RUN rm -rf *

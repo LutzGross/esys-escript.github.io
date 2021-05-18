@@ -12,7 +12,7 @@ RUN cd /app/escript_git && scons options_file=scons/templates/arch_py3_options.p
 ENV LD_LIBRARY_PATH=/app/escript_git/lib:$LD_LIBRARY_PATH
 ENV PYTHONPATH=/app/escript_git:$PYTHONPATH
 ENV PATH=/app/escript_git/bin:$PATH
-RUN cd /app/escript_git && ./utest.sh /app/escript_git/build '-t15'
+RUN cd /app/escript_git && ./utest.sh /app/escript_git/build '-t7'
 RUN useradd -ms /bin/bash appuser
 RUN run-escript /app/escript_git/scripts/release_sanity.py
 RUN rm -rf *
