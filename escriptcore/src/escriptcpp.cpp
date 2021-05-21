@@ -1325,6 +1325,10 @@ args("source", "q", "r","factor"),
         ":type refinements: non-negative ``int``")
     .def("getNumRefinements", &escript::SolverBuddy::getNumRefinements,"Returns the number of refinement steps to refine the solution when a direct solver is applied.\n\n"
         ":rtype: non-negative ``int``")
+    .def("setOxleyDomain", &escript::SolverBuddy::setOxleyDomain, args("using_oxley"), "Sets the parameter Oxley_Domain.\n\n"
+        ":rtype: non-negative ``int``")
+    .def("getOxleyDomain", &escript::SolverBuddy::getOxleyDomain,"True if we are using an Oxley domain, False otherwise.\n\n"
+        ":rtype: non-negative ``int``")
     .def("setODESolver", &escript::SolverBuddy::setODESolver, args("solver"),"Set the solver method for ODEs.\n\n"
         ":param method: key of the ODE solver method to be used.\n"
         ":type method: in `CRANK_NICOLSON`, `BACKWARD_EULER`, `LINEAR_CRANK_NICOLSON`")

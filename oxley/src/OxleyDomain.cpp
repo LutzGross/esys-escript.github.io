@@ -1022,7 +1022,7 @@ esys_trilinos::const_TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
     }
 
     // rowMap
-    // This is using the constructor on line 868 of file Tpetra_Map_def.hpp.
+    // This is using the constructor on line 868 of file  Tpetra_Map_def.hpp.
     TrilinosMap_ptr rowMap(new MapType(getNumDataPointsGlobal(), rowTemp, 0, TeuchosCommFromEsysComm(m_mpiInfo->comm)));
 
     // colMap
@@ -1258,11 +1258,11 @@ void OxleyDomain::addToSystemFromPython(escript::AbstractSystemMatrix& mat,
 
 Assembler_ptr OxleyDomain::createAssemblerFromPython(const string type,
                                                 const bp::list& options) const
-{
-    DataMap mapping;
-    tupleListToMap(mapping, options);
-    return createAssembler(type, mapping);
-}
+    {
+        DataMap mapping;
+        tupleListToMap(mapping, options);
+        return createAssembler(type, mapping);
+    }
 
 void OxleyDomain::addToRHS(escript::Data& rhs, const DataMap& coefs,
                             Assembler_ptr assembler) const

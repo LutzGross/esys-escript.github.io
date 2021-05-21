@@ -64,7 +64,8 @@ SolverBuddy::SolverBuddy() :
     use_local_preconditioner(false),
     refinements(2),
     dim(2),
-    using_default_solver_method(false)
+    using_default_solver_method(false),
+    have_oxley(false)
 {
     // setPackage(SO_DEFAULT);
     // setSolverMethod(SO_DEFAULT);
@@ -883,6 +884,17 @@ int SolverBuddy::getDim()
 bool SolverBuddy::using_default_method() const
 {
     return using_default_solver_method;
+}
+
+
+void SolverBuddy::setOxleyDomain(bool using_oxley)
+{
+    have_oxley=using_oxley;
+}
+
+bool SolverBuddy::getOxleyDomain()
+{
+    return have_oxley;
 }
 
 } // namespace escript
