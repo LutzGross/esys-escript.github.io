@@ -159,12 +159,6 @@ void TrilinosMatrixAdapter::setToSolution(escript::Data& out, escript::Data& in,
                                 out.getNumDataPoints()*out.getDataPointSize());
         mat->solve(outView, bView, sb);
     }
-
-    bool have_oxley = sb.getOxleyDomain();
-    if(have_oxley)
-    {
-        // TODO
-    }
 }
 
 void TrilinosMatrixAdapter::nullifyRowsAndCols(escript::Data& row_q,

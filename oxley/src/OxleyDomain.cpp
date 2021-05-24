@@ -1483,4 +1483,9 @@ void OxleyDomain::assemblePDEDirac(escript::AbstractSystemMatrix* mat,
     // }
 }
 
+void OxleyDomain::updateMesh(escript::Data solution)
+{
+    throw OxleyException("programming error");
+}
+
 } // end of namespace oxley

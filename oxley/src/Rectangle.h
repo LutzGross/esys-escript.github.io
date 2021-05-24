@@ -255,6 +255,7 @@ private:
     std::unordered_map<DoublePair,long,boost::hash<DoublePair>> NodeIDs; //global ids of the nodes
     std::unordered_map<long,bool> hangingNodeIDs; //global ids of the hanging nodes
     std::unordered_map<DoublePair,long,boost::hash<DoublePair>> treeIDs; //global ids of the hanging nodes
+    std::unordered_map<long,double> current_solution; //solution at each node
     
     // Row and column indices in CRS format
     IndexVector myRows;
@@ -274,6 +275,8 @@ new_rectangle_connectivity(int mi, int ni, int periodic_a, int periodic_b,
        creates and returns an assembler of the requested type.
     */
     virtual Assembler_ptr createAssembler(std::string type, const DataMap& options) const;
+
+    virtual void updateMesh(escript::Data solution);
 
 protected:
     virtual dim_t getNumNodes() const;

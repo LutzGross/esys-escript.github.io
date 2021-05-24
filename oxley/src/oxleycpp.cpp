@@ -361,6 +361,8 @@ BOOST_PYTHON_MODULE(oxleycpp)
         .def("setRefinementLevel", &oxley::OxleyDomain::setRefinementLevels, (arg("refinementlevels")),
                 "Sets the number of levels of refinement\n"
                 ":param refinementLevels:\ntype int: `Maximum number of levels of refinement,`\n")
+        .def("updateMesh", &oxley::OxleyDomain::updateMesh, (arg("solution")),
+                "Internal use. Updates the mesh with the latest solution\n")
         .def("writeToVTK", &oxley::OxleyDomain::writeToVTK, (arg("filename"), arg("writeMesh")=false),
                 "Writes the mesh to a VTK file.\n"
                 ":param filename: The name of the output file\n"

@@ -643,6 +643,11 @@ public:
     Assembler_ptr createAssemblerFromPython(std::string type,
                                      const boost::python::list& options) const;
 
+    /**
+       Copies the solution information onto the mesh
+    */
+    virtual void updateMesh(escript::Data solution);
+
     //List of tags currently in use
     int tags[MAXTAGS] = {-1};
 
