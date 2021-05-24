@@ -34,6 +34,9 @@ int refine_uniform(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quad
 
 int refine_uniform(p8est_t * p8est, p4est_topidx_t tree, p8est_quadrant_t * quadrant);
 
+// mare2dem
+int refine_mare2dem(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant);
+
 // Random refinement
 int refine_random(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant);
 

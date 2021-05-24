@@ -40,6 +40,11 @@ int refine_uniform(p8est_t * p4est, p4est_topidx_t tree, p8est_quadrant_t * quad
     return quadrant->level < octantData->refinement_depth && (quadrant->level < octantData->max_levels_refinement);
 }
 
+int refine_mare2dem(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
+{
+    return 0;
+}
+
 int refine_random(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
 {
     return ((int) rand() % 2) == 0;

@@ -610,6 +610,11 @@ void Rectangle::refineMesh(std::string algorithmname)
         p4est_refine_ext(p4est, true, -1, refine_uniform, init_rectangle_data, refine_copy_parent_quadrant);
         p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);
     }
+    else if(!algorithmname.compare("MARE2DEM"))
+    {
+        p4est_refine_ext(p4est, true, -1, refine_mare2dem, init_rectangle_data, refine_copy_parent_quadrant);
+        p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);
+    }
 #ifdef OXLEY_ENABLE_DEBUG
     else if(!algorithmname.compare("random"))
     {
