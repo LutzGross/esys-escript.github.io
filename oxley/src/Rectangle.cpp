@@ -2382,7 +2382,7 @@ void Rectangle::updateFaceOffset()
 }
 
 // Copies the solution information to the mesh
-void Rectangle::updateMesh(escript::Data solution)
+void Rectangle::updateSolutionInformation(escript::Data solution)
 {
     for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) 
     {
@@ -2412,13 +2412,18 @@ void Rectangle::updateMesh(escript::Data solution)
     }
 
 #ifdef OXLEY_ENABLE_DEBUG
-    std::cout << "updateMesh:" << std::endl;
-    for(int i = 0; i < getNumNodes(); i++)
-    {
-        std::cout << "nodeid = " << i << ", x = " << current_solution.find(i)->second << std::endl;
-    }
-    std::cout << std::endl;
+    // std::cout << "updateMesh:" << std::endl;
+    // for(int i = 0; i < getNumNodes(); i++)
+    // {
+    //     std::cout << "nodeid = " << i << ", x = " << current_solution.find(i)->second << std::endl;
+    // }
+    // std::cout << std::endl;
 #endif
+}
+
+void Rectangle::updateMeshInformation()
+{
+    refineMesh("MARE2DEM");
 }
 
 static inline void

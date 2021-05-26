@@ -646,7 +646,12 @@ public:
     /**
        Copies the solution information onto the mesh
     */
-    virtual void updateMesh(escript::Data solution);
+    virtual void updateSolutionInformation(escript::Data solution);
+
+    /**
+       Refines / coarsens the mesh based on the solution information
+    */
+    virtual void updateMeshInformation();
 
     //List of tags currently in use
     int tags[MAXTAGS] = {-1};

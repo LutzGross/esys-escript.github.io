@@ -1483,7 +1483,12 @@ void OxleyDomain::assemblePDEDirac(escript::AbstractSystemMatrix* mat,
     // }
 }
 
-void OxleyDomain::updateMesh(escript::Data solution)
+void OxleyDomain::updateSolutionInformation(escript::Data solution)
+{
+    throw OxleyException("programming error");
+}
+
+void OxleyDomain::updateMeshInformation()
 {
     throw OxleyException("programming error");
 }

@@ -276,7 +276,8 @@ new_rectangle_connectivity(int mi, int ni, int periodic_a, int periodic_b,
     */
     virtual Assembler_ptr createAssembler(std::string type, const DataMap& options) const;
 
-    virtual void updateMesh(escript::Data solution);
+    virtual void updateSolutionInformation(escript::Data solution);
+    virtual void updateMeshInformation();
 
 protected:
     virtual dim_t getNumNodes() const;
