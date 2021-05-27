@@ -42,6 +42,50 @@ int refine_uniform(p8est_t * p4est, p4est_topidx_t tree, p8est_quadrant_t * quad
 
 int refine_mare2dem(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
 {
+    p4estData * forestData = (p4estData *) p4est->user_pointer;
+    quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
+    std::unordered_map<long,double> * current_solution = forestData->current_solution;
+    std::unordered_map<DoublePair,long,boost::hash<DoublePair>> * NodeIDs = forestData->NodeIDs;
+
+    // Get the solution value at the current node
+    double xy[2] = {quadrant->x,quadrant->y};
+    long lni = NodeIDs->find(std::make_pair(xy[0],xy[1]))->second;
+    double quad_solution = current_solution->find(lni)->second;
+
+#ifdef OXLEY_ENABLE_DEBUG
+    std::cout << "refine_mare2dem: " << lni << " (" << xy[0] << "," << xy[1] << ")";
+#endif
+
+    // Get the Node IDs at the neighbouring nodes
+    double xyz[3] = {0};
+    long neighbour_nodeIDs[4] = {0};
+
+    double lx = forestData->m_dx[0][quadrant->level];
+    double ly = forestData->m_dx[1][quadrant->level];
+
+    p4est_qcoord_to_vertex(p4est->connectivity, quadData->treeid, quadrant->x,    quadrant->y+ly, xyz); //N
+    neighbour_nodeIDs[0] = NodeIDs->find(std::make_pair(xyz[0],xyz[1]))->second;
+    p4est_qcoord_to_vertex(p4est->connectivity, quadData->treeid, quadrant->x,    quadrant->y-ly, xyz); //S
+    neighbour_nodeIDs[1] = NodeIDs->find(std::make_pair(xyz[0],xyz[1]))->second;
+    p4est_qcoord_to_vertex(p4est->connectivity, quadData->treeid, quadrant->x-lx, quadrant->y,    xyz); //E
+    neighbour_nodeIDs[2] = NodeIDs->find(std::make_pair(xyz[0],xyz[1]))->second;
+    p4est_qcoord_to_vertex(p4est->connectivity, quadData->treeid, quadrant->x+lx, quadrant->y,    xyz); //W
+    neighbour_nodeIDs[3] = NodeIDs->find(std::make_pair(xyz[0],xyz[1]))->second;
+    
+    // Get the solution at the neighbouring four nodes
+    double average = 0;
+    average += forestData->m_origin[1] >= forestData->m_length[1] ? 0 : current_solution->find(neighbour_nodeIDs[0])->second;
+    average += forestData->m_origin[1] <= forestData->m_length[1] ? 0 : current_solution->find(neighbour_nodeIDs[1])->second;
+    average += forestData->m_origin[0] >= forestData->m_length[0] ? 0 : current_solution->find(neighbour_nodeIDs[2])->second;
+    average += forestData->m_origin[0] <= forestData->m_length[0] ? 0 : current_solution->find(neighbour_nodeIDs[3])->second;
+    average /= 4.0;
+
+#ifdef OXLEY_ENABLE_DEBUG
+    std::cout << std::endl;
+#endif
+
+    // Make a decision
+    // return (abs(average - quad_solution) > MARE2DEM_TOL) && (quadrant->level < forestData->max_levels_refinement);
     return 0;
 }
 

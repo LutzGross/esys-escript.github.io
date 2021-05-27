@@ -128,6 +128,10 @@ public:
 	double refinement_depth=0.0;
 	double refinement_boundaries[4]={0.0};
 
+	// Pointer to the current solution and Node ID info
+	std::unordered_map<long,double> * current_solution;
+	std::unordered_map<DoublePair,long,boost::hash<DoublePair>> * NodeIDs;
+
 	void assign_info(addSurfaceData * tmp) {info=tmp;};
 
 	addSurfaceData * borrow_info(){return info;};

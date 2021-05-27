@@ -34,6 +34,8 @@
 #define MAXREFINEMENTLEVELS 8 // Default levels of refinement
 #define MAXTAGS 100 // Maximum allowed number of tags in a domain
 
+#define MARE2DEM_TOL 0.25 
+
 #ifdef OXLEY_ENABLE_DEBUG
 // #define LOG_BACKTRACE 1  // Print a backtrace if p4est aborts prematurely
 // #define LOG_LEVEL 0  // Everything

@@ -604,6 +604,8 @@ void Rectangle::writeToVTK(std::string filename, bool writeMesh) const
 
 void Rectangle::refineMesh(std::string algorithmname)
 {
+    forestData.current_solution = &current_solution;    
+    forestData.NodeIDs = &NodeIDs;
 
     if(!algorithmname.compare("uniform"))
     {
@@ -612,6 +614,7 @@ void Rectangle::refineMesh(std::string algorithmname)
     }
     else if(!algorithmname.compare("MARE2DEM"))
     {
+        // TODO
         p4est_refine_ext(p4est, true, -1, refine_mare2dem, init_rectangle_data, refine_copy_parent_quadrant);
         p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);
     }
