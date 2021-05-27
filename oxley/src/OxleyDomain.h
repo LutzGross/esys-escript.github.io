@@ -653,11 +653,19 @@ public:
     */
     virtual void updateMeshInformation();
 
+    /**
+       Sets adaptive refinement on or off
+    */
+    virtual void setAdaptiveRefinement(bool) = 0;
+
     //List of tags currently in use
     int tags[MAXTAGS] = {-1};
 
     // Current number of tags
     int numberOfTags = 0;
+
+    // Flag that determines if adaptive refinement is enabled or not
+    bool adaptive_refinement = false;
 
 protected:
 

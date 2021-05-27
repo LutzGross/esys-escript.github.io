@@ -614,9 +614,11 @@ void Rectangle::refineMesh(std::string algorithmname)
     }
     else if(!algorithmname.compare("MARE2DEM"))
     {
-        // TODO
-        p4est_refine_ext(p4est, true, -1, refine_mare2dem, init_rectangle_data, refine_copy_parent_quadrant);
-        p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);
+        if(adaptive_refinement == true)
+        {
+            p4est_refine_ext(p4est, true, -1, refine_mare2dem, init_rectangle_data, refine_copy_parent_quadrant);
+            p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);
+        }
     }
 #ifdef OXLEY_ENABLE_DEBUG
     else if(!algorithmname.compare("random"))

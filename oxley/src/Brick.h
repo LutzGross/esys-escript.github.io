@@ -193,6 +193,12 @@ public:
     virtual escript::Data getX() const;
 
     /**
+      \brief
+      sets adaptive refinement on or off
+    */
+    void setAdaptiveRefinement(bool status) { adaptive_refinement = status ; } ;
+
+    /**
        \brief equality operator
     */
     // virtual bool operator==(const escript::AbstractDomain& other) const;

@@ -361,6 +361,9 @@ BOOST_PYTHON_MODULE(oxleycpp)
         .def("setRefinementLevel", &oxley::OxleyDomain::setRefinementLevels, (arg("refinementlevels")),
                 "Sets the number of levels of refinement\n"
                 ":param refinementLevels:\ntype int: `Maximum number of levels of refinement,`\n")
+        .def("setAdaptiveRefinement", &oxley::OxleyDomain::setAdaptiveRefinement, (arg("on/off")), 
+                "Sets adaptive refinement on or off\n"
+                ":param on/off:\n:type bool: true or false")
         .def("updateSolutionInformation", &oxley::OxleyDomain::updateSolutionInformation, (arg("solution")),
                 "Internal use. Updates the mesh with the latest solution\n")
         .def("updateMeshInformation", &oxley::OxleyDomain::updateMeshInformation, 
