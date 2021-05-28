@@ -3,12 +3,11 @@ FROM debian:buster-slim
 LABEL maintainer="a.ellery@uq.edu.au"
 
 WORKDIR /app
-# COPY . /app
+COPY . /app
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update 
-RUN apt-get install -y cmake gcc g++ git gfortran make scons wget
-RUN apt-get install -y libsuitesparse-dev libmetis-dev liblapack-dev libblas-dev libboost-python-dev libboost-random-dev 
+RUN apt-get install -y cmake gcc g++ git gfortran make scons wget libsuitesparse-dev libmetis-dev liblapack-dev libblas-dev python3-dev python3-numpy python3-pyproj python3-gdal python3-sympy python3-matplotlib python3-scipy scons lsb-release libnetcdf-dev libnetcdf-cxx-legacy-dev libnetcdf-c++4-dev libopenmpi-dev libboost-all-dev
 # Trilinos
 RUN wget https://github.com/trilinos/Trilinos/archive/trilinos-release-13-0-1.tar.gz
 RUN tar zxvf trilinos-release-13-0-1.tar.gz 
@@ -19,7 +18,7 @@ RUN cd trilinos_build && \
       -D CMAKE_CXX_COMPILER=/usr/bin/g++ \
       -D CMAKE_Fortran_COMPILER=/usr/bin/gfortran \
       -D PYTHON_EXECUTABLE=/usr/bin/python3 \
-      -D CMAKE_INSTALL_PREFIX=/app/trilinos \
+      -D CMAKE_INSTALL_PREFIX=/usr/ \
       -D Trilinos_ENABLE_CXX11=ON \
       -D CMAKE_C_FLAGS=' -w -fopenmp' \
       -D CMAKE_CXX_FLAGS=' -w -fopenmp'\
@@ -65,17 +64,15 @@ RUN cd trilinos_build && \
       -D Trilinos_ENABLE_TESTS=OFF \
       /app/Trilinos-trilinos-release-13-0-1 && make -j`nproc` install
 RUN rm -rf /app/Trilinos-trilinos-release-13-0-1 /app/trilinos_build
-RUN apt-get install -y python3-dev python3-numpy python3-pyproj python3-gdal
-RUN apt-get install -y python3-sympy python3-matplotlib python3-scipy
-RUN apt-get install -y scons lsb-release 
-RUN apt-get install -y libnetcdf-dev libnetcdf-cxx-legacy-dev libnetcdf-c++4-dev
-RUN git clone https://github.com/esys-escript/esys-escript.github.io --depth 1 -b oxley /app/escript
-RUN cd /app/escript && scons options_file=/app/escript_old/scons/templates/buster_py3_options.py -j`nproc` build_full \
-	trilinos=1 trilinos_prefix=/app/trilinos werror=0
-ENV LD_LIBRARY_PATH=/app/escript/lib:/app/trilinos/lib:$LD_LIBRARY_PATH
-ENV PYTHONPATH=/app/escript:$PYTHONPATH
-ENV PATH=/app/escript/bin:$PATH
-RUN cd /app/escript && ./utest.sh /app/escript/build '-t7'
+RUN rm -rf /app/oxley
+RUN git clone https://github.com/esys-escript/esys-escript.github.io --depth 1 -b oxley /app/oxley
+# RUN find /usr -iname libboost* 2>/dev/null ; sleep 300
+RUN cd /app/oxley && scons -j`nproc` options_file=/app/oxley/scons/testing.py werror=0 trilinos=1 build_full || cat config.log
+ENV LD_LIBRARY_PATH=/app/oxley/lib:/app/trilinos/lib:/usr/lib/:/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH
+ENV PYTHONPATH=/app/oxley:$PYTHONPATH
+ENV PATH=/app/oxley/bin:$PATH
+RUN printenv
+RUN cd /app/oxley && sh utest.sh `pwd`/build '-t7'
 RUN useradd -ms /bin/bash appuser
 # RUN run-escript /app/escript/scripts/release_sanity.py
 # RUN rm -rf *
