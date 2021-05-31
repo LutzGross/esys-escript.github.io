@@ -1,5 +1,8 @@
 escript_opts_version=203
-pythoncmd='/usr/bin/python3' 
+pythoncmd='/usr/bin/python3'
+pythonlibname='python3.7m' 
+pythonlibpath = '/usr/lib/x86_64-linux-gnu'
+pythonincpath = '/usr/include/python3.7m'
 boost_libs='boost_python37' 
 boost_prefix=['/usr/include','/usr/lib/x86_64-linux-gnu/'] 
 trilinos=0 
