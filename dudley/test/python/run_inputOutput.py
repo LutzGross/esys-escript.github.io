@@ -231,9 +231,11 @@ class Test_InputOutputOnDudley(unittest.TestCase):
           mydomain3 = ReadGmsh(os.path.join(DUDLEY_TEST_MESH_PATH,"Kalgoorlie.40.msh"),  numDim=3)
           print(" reading format 4.1..... ")
           mydomain4 = ReadGmsh(os.path.join(DUDLEY_TEST_MESH_PATH,"Kalgoorlie.41.msh"),  numDim=3)
-          print(" comparing ..... ")
+          print(" comparing 2 and 2.2 ..... ")
           self.assertTrue(self.domainsEqual(mydomain1, mydomain2), "Failed to read MSH format 2 or 22")
+          print(" comparing 2 and 4.0 ..... ")
           self.assertTrue(self.domainsEqual(mydomain1, mydomain3), "Failed to read MSH format 4.0")
+          print(" comparing 2 and 4.1 ..... ")
           self.assertTrue(self.domainsEqual(mydomain1, mydomain4), "Failed to read MSH format 4.1")
 
 
