@@ -1493,4 +1493,9 @@ void OxleyDomain::updateMeshInformation()
     throw OxleyException("programming error");
 }
 
+escript::Data OxleyDomain::getUpdatedSolution()
+{
+    throw OxleyException("programming error");
+}
+
 } // end of namespace oxley

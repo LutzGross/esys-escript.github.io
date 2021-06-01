@@ -1346,8 +1346,9 @@ class LinearProblem(object):
        if self.__solution.isEmpty(): 
           self.__solution=self.createSolution()
        if self.hasOxley():
-          self.getDomain().updateSolutionInformation(self.__solution);
-          self.getDomain().updateMeshInformation();
+          self.getDomain().updateSolutionInformation(self.__solution)
+          self.getDomain().updateMeshInformation()
+          # self.__solution=self.getDomain().getUpdatedSolution() //todo
        return self.__solution
 
    def resetRightHandSide(self):

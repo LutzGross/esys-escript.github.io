@@ -612,21 +612,18 @@ void Rectangle::refineMesh(std::string algorithmname)
         p4est_refine_ext(p4est, true, -1, refine_uniform, init_rectangle_data, refine_copy_parent_quadrant);
         p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);
     }
-    else if(!algorithmname.compare("MARE2DEM"))
+    else if(!algorithmname.compare("MARE2DEM") || !algorithmname.compare("mare2dem"))
     {
         if(adaptive_refinement == true)
         {
             p4est_refine_ext(p4est, true, -1, refine_mare2dem, init_rectangle_data, refine_copy_parent_quadrant);
             p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);
         }
+        else
+        {
+            std::cout << "Warning: Adaptive mesh refinement is disabled. Skipping refinement." << std::endl;
+        }
     }
-#ifdef OXLEY_ENABLE_DEBUG
-    else if(!algorithmname.compare("random"))
-    {
-        p4est_refine_ext(p4est, true, -1, refine_random, init_rectangle_data, refine_copy_parent_quadrant);
-        p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);
-    }
-#endif
     else {
         throw OxleyException("Unknown refinement algorithm name.");
     }
@@ -927,7 +924,7 @@ void Rectangle::renumberNodes()
         for(int q = 0; q < Q; ++q) { 
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
             p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
-            int k = q - Q + nodeIncrements[treeid - p4est->first_local_tree];
+            // int k = q - Q + nodeIncrements[treeid - p4est->first_local_tree];
             for(int n = 0; n < 4; n++)
             {
                 // if( (n == 0) 
@@ -974,7 +971,7 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
             // Loop over the four corners of the quadrant
             for(int n = 0; n < 4; ++n){
                 int k = q - Q + nodeIncrements[treeid - p4est->first_local_tree];
-                long lidx = nodes->element_nodes[4*k+n];
+                // long lidx = nodes->element_nodes[4*k+n];
 
                 double lx = length * ((int) (n % 2) == 1);
                 double ly = length * ((int) (n / 2) == 1);
@@ -2415,20 +2412,18 @@ void Rectangle::updateSolutionInformation(escript::Data solution)
             }
         }
     }
-
-#ifdef OXLEY_ENABLE_DEBUG
-    // std::cout << "updateMesh:" << std::endl;
-    // for(int i = 0; i < getNumNodes(); i++)
-    // {
-    //     std::cout << "nodeid = " << i << ", x = " << current_solution.find(i)->second << std::endl;
-    // }
-    // std::cout << std::endl;
-#endif
 }
 
 void Rectangle::updateMeshInformation()
 {
     refineMesh("MARE2DEM");
+}
+
+// Returns the solution information currently stored in Oxley
+
+escript::Data Rectangle::getUpdatedSolution()
+{
+    return escript::Data(0); //TODO
 }
 
 static inline void

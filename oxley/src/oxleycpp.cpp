@@ -347,7 +347,7 @@ BOOST_PYTHON_MODULE(oxleycpp)
         .def("refineMesh", &oxley::OxleyDomain::refineMesh, (args("RefinementAlgorithm")),
                 "Refines the mesh.\n"
                 ":param RefinementAlgorithm:\n:type string: `The refinement algorithm \n"
-                "       accepted values are \"uniform\"")
+                "       accepted values are \"uniform\", \"MARE2DEM\" ")
         .def("refineBoundary", &oxley::OxleyDomain::refineBoundary, (args("boundary","dx")),
                 "Refines the mesh near a boundary.\n"
                 ":param boundary:\n:type string: `The boundary (n,s,e,w) \n"
@@ -368,6 +368,8 @@ BOOST_PYTHON_MODULE(oxleycpp)
                 "Internal use. Updates the mesh with the latest solution\n")
         .def("updateMeshInformation", &oxley::OxleyDomain::updateMeshInformation, 
                 "Internal use. Refines the mesh based on the solution information\n")
+        .def("getUpdatedSolution", &oxley::OxleyDomain::getUpdatedSolution, 
+                "Internal use. Returns the current solution information from Oxley\n")
         .def("writeToVTK", &oxley::OxleyDomain::writeToVTK, (arg("filename"), arg("writeMesh")=false),
                 "Writes the mesh to a VTK file.\n"
                 ":param filename: The name of the output file\n"

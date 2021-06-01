@@ -284,6 +284,7 @@ new_rectangle_connectivity(int mi, int ni, int periodic_a, int periodic_b,
 
     virtual void updateSolutionInformation(escript::Data solution);
     virtual void updateMeshInformation();
+    virtual escript::Data getUpdatedSolution();
 
 protected:
     virtual dim_t getNumNodes() const;
