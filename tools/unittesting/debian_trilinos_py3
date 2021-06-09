@@ -23,8 +23,8 @@ RUN cd trilinos_build && \
       -D PYTHON_EXECUTABLE=/usr/bin/python3 \
       -D CMAKE_INSTALL_PREFIX=/app/trilinos \
       -D Trilinos_ENABLE_CXX11=ON \
-      -D CMAKE_C_FLAGS=' -w -O3 -march=native -flto -fopenmp ' \
-      -D CMAKE_CXX_FLAGS=' -w -O3 -march=native -flto -fopenmp ' \
+      -D CMAKE_C_FLAGS=' -w -O3 -march=native -flto ' \
+      -D CMAKE_CXX_FLAGS=' -w -O3 -march=native -flto ' \
       -D Trilinos_ENABLE_Fortran=ON \
       -D BUILD_SHARED_LIBS=ON \
       -D TPL_ENABLE_BLAS=ON \
@@ -68,14 +68,15 @@ RUN cd trilinos_build && \
       -D Trilinos_ENABLE_TESTS=OFF \
       /app/Trilinos-trilinos-release-13-0-1 && make -j`nproc` install
 # escript
-RUN git clone https://github.com/esys-escript/esys-escript.github.io --depth 1 --branch oxley /app/escript
-RUN cd /app/escript && scons options_file=scons/templates/buster_py3_options.py -j`nproc` build_full \
-	trilinos=1 trilinos_prefix=/app/trilinos
+RUN git clone https://github.com/esys-escript/esys-escript.github.io --depth 1 /app/escript
+RUN cd /app/escript && scons options_file=scons/templates/stretch_py3_options.py \
+      boost_libs=boost_python37 -j`nproc` werror=0 \
+      trilinos=1 trilinos_prefix=/app/trilinos build_full
 ENV LD_LIBRARY_PATH=/app/escript/lib:/app/trilinos/lib:$LD_LIBRARY_PATH
 ENV PYTHONPATH=/app/escript:$PYTHONPATH
 ENV PATH=/app/escript/bin:$PATH
 # run testing
-RUN cd /app/escript && ./utest.sh /app/escript/build '-t7'
+RUN cd /app/escript && ./utest.sh /app/escript/build '-t16'
 
 RUN useradd -ms /bin/bash appuser
 RUN run-escript /app/escript/scripts/release_sanity.py
