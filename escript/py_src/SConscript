@@ -13,15 +13,21 @@
 # Development from 2019 by School of Earth and Environmental Sciences
 #
 ##############################################################################
+import os
 
 Import('*')
+local_env = env.Clone()
 
 # get the source file names
 sources = Glob('*.py')
+sym_sources = Glob(os.path.join('symbolic','*.py'))
 
 # compile
 pyc = env.PyCompile(sources)
+sym_pyc = local_env.PyCompile(sym_sources)
+env.Alias('build_escript', [pyc, sym_pyc])
 
 # install
 py_inst = env.Install(Dir('escript', env['pyinstall']), pyc)
-env.Alias('install_escript', [py_inst])
+sym_py_inst = local_env.Install(os.path.join(local_env['pyinstall'],'escriptcore','symbolic'), sym_pyc)
+env.Alias('install_escript', [ py_inst, sym_py_inst])
