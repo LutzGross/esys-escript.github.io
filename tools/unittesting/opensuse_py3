@@ -6,13 +6,13 @@ WORKDIR /app
 COPY . /app
 
 RUN zypper update 
-RUN zypper install -y python3-devel python3-numpy python3-GDAL
-RUN zypper install -y python3-sympy python3-matplotlib python3-scipy
-RUN zypper install -y libboost_iostreams1_66_0-devel libboost_numpy-py3-1_66_0-devel 
-RUN zypper install -y libboost_python-py3-1_66_0-devel libboost_random1_66_0-devel
-RUN zypper install -y libnetcdf_c++-devel libnetcdf_c++4-devel libnetcdf_c++-devel 
-RUN zypper install -y suitesparse-devel
-RUN zypper install -y git gcc gcc-c++ scons
+RUN zypper install -y python3-devel python3-numpy python3-GDAL \
+	python3-sympy python3-matplotlib python3-scipy \
+	libboost_iostreams1_66_0-devel libboost_numpy-py3-1_66_0-devel  \
+	libboost_python-py3-1_66_0-devel libboost_random1_66_0-devel \
+	libnetcdf_c++-devel libnetcdf_c++4-devel libnetcdf_c++-devel  \
+	suitesparse-devel \
+	git gcc gcc-c++ scons
 RUN git clone https://github.com/esys-escript/esys-escript.github.io --depth 1 /app/escript
 RUN cd /app/escript && scons options_file=scons/templates/opensuse_py3_options.py -j`nproc` build_full
 ENV LD_LIBRARY_PATH=/app/escript/lib:$LD_LIBRARY_PATH
