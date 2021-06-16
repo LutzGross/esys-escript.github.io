@@ -28,7 +28,8 @@ from esys.escriptcore.testing import *
 from test_util import Test_util
 from test_util import Test_Util_SpatialFunctions_noGradOnBoundary_noContact
 
-from esys.escript import FunctionOnBoundary, HAVE_SYMBOLS
+from esys.escript import FunctionOnBoundary
+from esys.escriptcore.start import HAVE_SYMBOLS
 from esys.dudley import Rectangle,Brick,ReadMesh
 import os
 
