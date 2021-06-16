@@ -31,6 +31,7 @@ from test_util_interpolation import Test_Util_Point_Data_Interpolation
 from test_symfuncs import Test_symfuncs
 from esys.escript import *
 from esys.ripley import Rectangle, Brick
+from esys.escriptcore.start import HAVE_SYMBOLS
 
 if HAVE_SYMBOLS:
     from test_symfuncs import Test_symfuncs
