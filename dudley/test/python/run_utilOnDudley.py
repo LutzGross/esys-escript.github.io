@@ -65,15 +65,15 @@ class Test_UtilOnDudley(Test_util):
        del self.functionspace
        del self.domain
 
-class Test_SymFuncsOnDudley(Test_symfuncs):
-   def setUp(self):
-       self.domain = Rectangle(NE,NE+1)
-       self.functionspace = FunctionOnBoundary(self.domain)
-       self.workdir=DUDLEY_WORKDIR
+# class Test_SymFuncsOnDudley(Test_symfuncs):
+#    def setUp(self):
+#        self.domain = Rectangle(NE,NE+1)
+#        self.functionspace = FunctionOnBoundary(self.domain)
+#        self.workdir=DUDLEY_WORKDIR
 
-   def tearDown(self):
-       del self.functionspace
-       del self.domain
+#    def tearDown(self):
+#        del self.functionspace
+#        del self.domain
 
 class Test_Util_SpatialFunctionsOnDudleyTet2D(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
