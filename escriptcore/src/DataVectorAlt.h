@@ -319,7 +319,7 @@ DataVectorAlt<T>::resize(const DataVectorAlt<T>::size_type newSize,
      free(m_array_data);
   } 
   m_array_data=reinterpret_cast<T*>(malloc(sizeof(T)*m_size));  
-  int i;
+  long i;
   #pragma omp parallel for private(i) schedule(static)
   for (i=0; i<m_size; i++) {
     m_array_data[i] = newValue;
