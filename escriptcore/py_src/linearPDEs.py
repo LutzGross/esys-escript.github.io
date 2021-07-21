@@ -489,8 +489,11 @@ class LinearProblem(object):
      self.setSolverOptions()
      self.setSymmetryOff()
      # Set on lumping if we are using Speckley
-     if domain.getDescription() == 'speckley::Rectangle' or domain.getDescription() == 'speckley::Brick':
-         self.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
+     try:
+          if domain.getDescription() == 'speckley::Rectangle' or domain.getDescription() == 'speckley::Brick':
+               self.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
+     except:
+          pass
      # set number of equations in trilinos
      self.getSolverOptions().setTrilinosParameter("number of equations", numEquations)
      # initialize things:
