@@ -59,6 +59,8 @@ if env['trilinos']:
     oxleylibs += env['trilinoswrap_libs']
 if env['compressed_files']:
     oxleylibs += env['compression_libs']
+if env['silo']:
+    oxleylibs += env['silo_libs']
 
 #p4est library
 import os
