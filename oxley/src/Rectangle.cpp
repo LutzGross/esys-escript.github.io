@@ -511,143 +511,52 @@ escript::Data Rectangle::randomFill(const escript::DataTypes::ShapeType& shape,
 void Rectangle::dump(const std::string& fileName) const
 { 
 #ifdef ESYS_HAVE_SILO
-    std::string fn(fileName);
+    
+    // Add the suffix to the filename if required
+    std::string fn = fileName;
     if (fileName.length() < 6 || fileName.compare(fileName.length()-5, 5, ".silo") != 0) {
         fn+=".silo";
     }
 
     int driver=DB_HDF5;
-    DBfile* dbfile = NULL;
+
+    // Silo file pointer
+    DBfile* dbfile = NULL; 
     const char* blockDirFmt = "/block%04d";
 
-#ifdef ESYS_MPI
-    PMPIO_baton_t* baton = NULL;
-    const int NUM_SILO_FILES = 1;
-#endif
+    // Coordinate names
+    char * coordnames[2] = {"xy"};
 
-    if (m_mpiInfo->size > 1) {
-#ifdef ESYS_MPI
-        baton = PMPIO_Init(NUM_SILO_FILES, PMPIO_WRITE, m_mpiInfo->comm,
-                    0x1337, PMPIO_DefaultCreate, PMPIO_DefaultOpen,
-                    PMPIO_DefaultClose, (void*)&driver);
-        // try the fallback driver in case of error
-        if (!baton && driver != DB_PDB) {
-            driver = DB_PDB;
-            baton = PMPIO_Init(NUM_SILO_FILES, PMPIO_WRITE, m_mpiInfo->comm,
-                        0x1338, PMPIO_DefaultCreate, PMPIO_DefaultOpen,
-                        PMPIO_DefaultClose, (void*)&driver);
-        }
-        if (baton) {
-            char siloPath[64];
-            snprintf(siloPath, 64, blockDirFmt, PMPIO_RankInGroup(baton, m_mpiInfo->rank));
-            dbfile = (DBfile*) PMPIO_WaitForBaton(baton, fn.c_str(), siloPath);
-        }
-#endif
-    } else {
-        dbfile = DBCreate(fn.c_str(), DB_CLOBBER, DB_LOCAL,
-                getDescription().c_str(), driver);
-        // try the fallback driver in case of error
-        if (!dbfile && driver != DB_PDB) {
-            driver = DB_PDB;
-            dbfile = DBCreate(fn.c_str(), DB_CLOBBER, DB_LOCAL,
-                    getDescription().c_str(), driver);
-        }
-        char siloPath[64];
-        snprintf(siloPath, 64, blockDirFmt, 0);
-        DBMkDir(dbfile, siloPath);
-        DBSetDir(dbfile, siloPath);
+    // The coordinate arrays
+    float nodex[getNumNodes()];
+    float nodey[getNumNodes()];
+
+    for(std::pair<DoublePair,long> element : NodeIDs)
+    {
+        nodex[element.second]=element.first.first;
+        nodey[element.second]=element.first.second;
     }
 
+    // Array of the coordinate arrays
+    float *coordinates[2];
+    coordinates[0]=nodex;
+    coordinates[1]=nodey;
+
+    // Number of nodes in each dimension
+    int dimensions[2]; //AEAE
+
+
+    // Create the file
+    dbfile = DBCreate(fn.c_str(), DB_CLOBBER, DB_LOCAL, getDescription().c_str(), driver);
     if (!dbfile)
         throw escript::IOError("dump: Could not create Silo file");
 
-    /*
-    if (driver==DB_HDF5) {
-        // gzip level 1 already provides good compression with minimal
-        // performance penalty. Some tests showed that gzip levels >3 performed
-        // rather badly on escript data both in terms of time and space
-        DBSetCompression("ERRMODE=FALLBACK METHOD=GZIP LEVEL=1");
-    }
-    */
+    DBPutPointmesh(dbfile, "mesh", 2, coordinates, getNumNodes(), DB_FLOAT, NULL) ;
+    // DBPutQuadmesh(dbfile, "mesh", coordnames, coordinates, dimensions, 2, DB_FLOAT, DB_COLLINEAR, NULL);
 
-//     const dim_t NN0 = m_NN[0];
-//     const dim_t NN1 = m_NN[1];
-//     boost::scoped_ptr<double> x(new double[NN0]);
-//     boost::scoped_ptr<double> y(new double[NN1]);
-//     double* coords[2] = { x.get(), y.get() };
-// #pragma omp parallel
-//     {
-// #pragma omp for nowait
-//         for (dim_t i0 = 0; i0 < NN0; i0++) {
-//             coords[0][i0]=getLocalCoordinate(i0, 0);
-//         }
-// #pragma omp for nowait
-//         for (dim_t i1 = 0; i1 < NN1; i1++) {
-//             coords[1][i1]=getLocalCoordinate(i1, 1);
-//         }
-//     }
+    DBClose(dbfile);
 
-//     // casting to int!!
-//     vector<int> dims(m_NN, m_NN+2);
-
-//     // write mesh
-//     DBPutQuadmesh(dbfile, "mesh", NULL, coords, &dims[0], 2, DB_DOUBLE,
-//             DB_COLLINEAR, NULL);
-
-//     // write node ids
-//     DBPutQuadvar1(dbfile, "nodeId", "mesh", (void*)&m_nodeId[0], &dims[0], 2,
-//             NULL, 0, DB_INT, DB_NODECENT, NULL);
-
-//     // write element ids
-//     dims.assign(m_NE, m_NE+2);
-//     DBPutQuadvar1(dbfile, "elementId", "mesh", (void*)&m_elementId[0],
-//             &dims[0], 2, NULL, 0, DB_INT, DB_ZONECENT, NULL);
-
-//     // rank 0 writes multimesh and multivar
-//     if (m_mpiInfo->rank == 0) {
-//         vector<string> tempstrings;
-//         vector<char*> names;
-//         for (dim_t i=0; i<m_mpiInfo->size; i++) {
-//             std::stringstream path;
-//             path << "/block" << std::setw(4) << std::setfill('0') << std::right << i << "/mesh";
-//             tempstrings.push_back(path.str());
-//             names.push_back((char*)tempstrings.back().c_str());
-//         }
-//         vector<int> types(m_mpiInfo->size, DB_QUAD_RECT);
-//         DBSetDir(dbfile, "/");
-//         DBPutMultimesh(dbfile, "multimesh", m_mpiInfo->size, &names[0],
-//                &types[0], NULL);
-//         tempstrings.clear();
-//         names.clear();
-//         for (dim_t i=0; i<m_mpiInfo->size; i++) {
-//             std::stringstream path;
-//             path << "/block" << std::setw(4) << std::setfill('0') << std::right << i << "/nodeId";
-//             tempstrings.push_back(path.str());
-//             names.push_back((char*)tempstrings.back().c_str());
-//         }
-//         types.assign(m_mpiInfo->size, DB_QUADVAR);
-//         DBPutMultivar(dbfile, "nodeId", m_mpiInfo->size, &names[0],
-//                &types[0], NULL);
-//         tempstrings.clear();
-//         names.clear();
-//         for (dim_t i=0; i<m_mpiInfo->size; i++) {
-//             std::stringstream path;
-//             path << "/block" << std::setw(4) << std::setfill('0') << std::right << i << "/elementId";
-//             tempstrings.push_back(path.str());
-//             names.push_back((char*)tempstrings.back().c_str());
-//         }
-//         DBPutMultivar(dbfile, "elementId", m_mpiInfo->size, &names[0],
-//                &types[0], NULL);
-//     }
-
-    if (m_mpiInfo->size > 1) {
-#ifdef ESYS_MPI
-        PMPIO_HandOffBaton(baton, dbfile);
-        PMPIO_Finish(baton);
-#endif
-    } else {
-        DBClose(dbfile);
-    }
+    // return 0;
 
 #else // ESYS_HAVE_SILO
     throw OxleyException("dump: no Silo support");
