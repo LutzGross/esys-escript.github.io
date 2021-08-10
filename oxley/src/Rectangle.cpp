@@ -530,36 +530,48 @@ void Rectangle::dump(const std::string& fileName) const
     // The coordinate arrays
     float nodex[getNumNodes()];
     float nodey[getNumNodes()];
+    long int node_ids[getNumNodes()];
+    double value[getNumNodes()];
 
     for(std::pair<DoublePair,long> element : NodeIDs)
     {
         nodex[element.second]=element.first.first;
         nodey[element.second]=element.first.second;
+        node_ids[element.second]=element.second;
     }
+
+    if(current_solution.size() != 0)
+        for(std::pair<DoublePair,long> element : NodeIDs)
+        {
+            value[element.second]=current_solution.at(element.second);
+        }
 
     // Array of the coordinate arrays
     float *coordinates[2];
     coordinates[0]=nodex;
     coordinates[1]=nodey;
 
-    // Number of nodes in each dimension
-    int dimensions[2]; //AEAE
-
-
     // Create the file
     dbfile = DBCreate(fn.c_str(), DB_CLOBBER, DB_LOCAL, getDescription().c_str(), driver);
     if (!dbfile)
         throw escript::IOError("dump: Could not create Silo file");
 
+    // Coordinates
     DBPutPointmesh(dbfile, "mesh", 2, coordinates, getNumNodes(), DB_FLOAT, NULL) ;
-    // DBPutQuadmesh(dbfile, "mesh", coordnames, coordinates, dimensions, 2, DB_FLOAT, DB_COLLINEAR, NULL);
+
+    // Node IDs
+    DBPutPointvar1(dbfile, "id", "mesh", node_ids, getNumNodes(), DB_INT, NULL);
+
+    // Node values
+    if(current_solution.size() != 0)
+        DBPutPointvar1(dbfile, "u", "mesh", value, getNumNodes(), DB_INT, NULL);    
 
     DBClose(dbfile);
 
     // return 0;
 
 #else // ESYS_HAVE_SILO
-    throw OxleyException("dump: no Silo support");
+    throw OxleyException("dump: escript was not compiled with Silo enabled");
 #endif
 }
 
