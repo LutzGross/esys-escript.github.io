@@ -2133,22 +2133,24 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
     
     // Find the maximum level of refinement in the mesh
     int max_level = 0;
-    for(p4est_topidx_t tree = p4est->first_local_tree; tree < p4est->last_local_tree; tree++) {
+    for(p4est_topidx_t tree = p4est->first_local_tree; tree <= p4est->last_local_tree; tree++) {
         p4est_tree_t * tree_t = p4est_tree_array_index(p4est->trees, tree);
-        max_level = SC_MAX(max_level, tree_t->maxlevel);
+        max_level = tree_t->maxlevel > max_level ? tree_t->maxlevel : max_level;
     }
     
     double cx[3][P4EST_MAXLEVEL] = {{0}};
     double cy[3][P4EST_MAXLEVEL] = {{0}};
 #pragma omp parallel for
-    for(int i = 0; i < max_level; i++)
+    for(int i = 0; i <= max_level; i++)
     {
-        cx[0][i] = 0.21132486540518711775/forestData.m_dx[0][i];
-        cx[1][i] = 0.78867513459481288225/forestData.m_dx[0][i];
-        cx[2][i] = 1./forestData.m_dx[0][i];
-        cy[0][i] = 0.21132486540518711775/forestData.m_dx[1][i];
-        cy[1][i] = 0.78867513459481288225/forestData.m_dx[1][i];
-        cy[2][i] = 1./forestData.m_dx[1][i];
+        double m_dx[2] = {m_NX[0]*forestData.m_dx[0][P4EST_MAXLEVEL-i], 
+                          m_NX[1]*forestData.m_dx[1][P4EST_MAXLEVEL-i]};
+        cx[0][i] = 0.21132486540518711775/m_dx[0];
+        cx[1][i] = 0.78867513459481288225/m_dx[0];
+        cx[2][i] = 1./m_dx[0];
+        cy[0][i] = 0.21132486540518711775/m_dx[1];
+        cy[1][i] = 0.78867513459481288225/m_dx[1];
+        cy[2][i] = 1./m_dx[1];
     }
     const Scalar zero = static_cast<Scalar>(0);
 
@@ -2160,14 +2162,21 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
         std::vector<Scalar> f_10(numComp, zero);
         std::vector<Scalar> f_11(numComp, zero);
 
-        for(p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) // Loop over every tree
+        for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) // Loop over every tree
         {
             p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
             sc_array_t * tquadrants = &currenttree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
 #pragma omp parallel for
-            for(p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++) // Loop over every quadrant within the tree
+            for(int q = 0; q < Q; ++q) // Loop over every quadrant within the tree
             {
+
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+                int l = quad->level;
+                double xy[3];
+                p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x, quad->y, xy);
+                long e = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+
                 // p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
                 // quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
@@ -2197,14 +2206,21 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
         std::vector<Scalar> f_10(numComp, zero);
         std::vector<Scalar> f_11(numComp, zero);
 
-        for(p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) // Loop over every tree
+        for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) // Loop over every tree
         {
             p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
             sc_array_t * tquadrants = &currenttree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
 #pragma omp parallel for
-            for(p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++) // Loop over every quadrant within the tree
+            for(int q = 0; q < Q; ++q) // Loop over every quadrant within the tree
             {
+
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+                int l = quad->level;
+                double xy[3];
+                p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x, quad->y, xy);
+                long e = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+
                 // p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
                 // quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
@@ -2224,16 +2240,20 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
     } else if (out.getFunctionSpace().getTypeCode() == FaceElements) {
         out.requireWrite();
 
-        for(p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
+        for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) // Loop over every tree
         {
             p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
             sc_array_t * tquadrants = &currenttree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
 #pragma omp parallel for
-            for(p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
+            for(int q = 0; q < Q; ++q) // Loop over every quadrant within the tree
             {
-                // Work out what level this element is on 
-                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
+
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+                int l = quad->level;
+                double xy[3];
+                p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x, quad->y, xy);
+                long e = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
                 quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
                 std::vector<Scalar> f_00(numComp, zero);
@@ -2298,16 +2318,20 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
     } else if (out.getFunctionSpace().getTypeCode() == ReducedFaceElements) {
         out.requireWrite();
 
-        for(p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
+        for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) // Loop over every tree
         {
             p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
             sc_array_t * tquadrants = &currenttree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
 #pragma omp parallel for
-            for(p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
+            for(int q = 0; q < Q; ++q) // Loop over every quadrant within the tree
             {
-                // Work out what level this element is on 
-                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
+
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+                int l = quad->level;
+                double xy[3];
+                p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x, quad->y, xy);
+                long e = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
                 quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
                 std::vector<Scalar> f_00(numComp, zero);
