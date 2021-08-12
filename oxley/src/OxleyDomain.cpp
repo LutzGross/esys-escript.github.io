@@ -638,13 +638,12 @@ namespace oxley {
 
     escript::Data OxleyDomain::getX() const
     {
-        throw OxleyException("currently not implemented"); // This is temporary
-        // return escript::continuousFunction(*this).getX();
+        throw OxleyException("programming error"); 
     }
 
     std::string OxleyDomain::getDescription() const
     {
-        throw OxleyException("currently not implemented"); // This is temporary
+        throw OxleyException("programming error");
     }
 
     escript::Data OxleyDomain::getNormal() const
@@ -654,7 +653,7 @@ namespace oxley {
 
     escript::Data OxleyDomain::getSize() const
     {
-        throw OxleyException("currently not implemented"); // This is temporary
+        return escript::function(*this).getSize();
     }
 
     void OxleyDomain::setToX(escript::Data& arg) const
