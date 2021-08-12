@@ -560,11 +560,11 @@ void Rectangle::dump(const std::string& fileName) const
     DBPutPointmesh(dbfile, "mesh", 2, coordinates, getNumNodes(), DB_FLOAT, NULL) ;
 
     // Node IDs
-    DBPutPointvar1(dbfile, "id", "mesh", node_ids, getNumNodes(), DB_INT, NULL);
+    DBPutPointvar1(dbfile, "id", "mesh", node_ids, getNumNodes(), DB_LONG, NULL);
 
     // Node values
     if(current_solution.size() != 0)
-        DBPutPointvar1(dbfile, "u", "mesh", value, getNumNodes(), DB_INT, NULL);    
+        DBPutPointvar1(dbfile, "u", "mesh", value, getNumNodes(), DB_DOUBLE, NULL);    
 
     DBClose(dbfile);
 
