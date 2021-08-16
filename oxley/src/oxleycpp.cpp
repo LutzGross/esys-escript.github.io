@@ -421,6 +421,9 @@ BOOST_PYTHON_MODULE(oxleycpp)
             ":return: the identifier of the matrix type to be used for the global stiffness matrix when particular solver options are used.\n"
             ":rtype: ``int``\n"
             ":param options:\n:type options: `SolverBuddy`\n")
+        .def("setTagMap",&oxley::OxleyDomain::setTagMap,args("name","tag"),
+            "Give a tag number a name.\n\n:param name: Name for the tag\n:type name: ``string``\n"
+            ":param tag: numeric id\n:type tag: ``int``\n:note: Tag names must be unique within a domain")
         .def("getTransportTypeId",&oxley::OxleyDomain::getTransportTypeId,
             args("solver", "preconditioner", "package", "symmetry"),
             ":return: the identifier of the transport problem type to be used when a particular solver, preconditioner, package and symmetric matrix is used.\n"
@@ -428,8 +431,7 @@ BOOST_PYTHON_MODULE(oxleycpp)
             ":param solver:\n:type solver: ``int``\n"
             ":param preconditioner:\n:type preconditioner: ``int``\n"
             ":param package:\n:type package: ``int``\n"
-            ":param symmetry:\n:type symmetry: ``int``"
-            )
+            ":param symmetry:\n:type symmetry: ``int``")
         .def("getX",&oxley::OxleyDomain::getX, ":return: locations in the FEM nodes\n\n"
             ":rtype: `Data`")
         .def("newOperator",&oxley::OxleyDomain::newSystemMatrix,

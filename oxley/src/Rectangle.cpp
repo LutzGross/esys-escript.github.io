@@ -682,7 +682,7 @@ void Rectangle::refineMesh(std::string algorithmname)
         }
         else
         {
-            std::cout << "Warning: Adaptive mesh refinement is disabled. Skipping refinement." << std::endl;
+            std::cout << "Warning: Adaptive mesh refinement is disabled." << std::endl;
         }
     }
     else {

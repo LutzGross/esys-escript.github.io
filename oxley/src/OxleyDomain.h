@@ -215,10 +215,10 @@ public:
        \param name tag name
        \param tag tag key
     */
-    virtual void setTagMap(const std::string& name, int tag);
-    // {
-    //     m_tagMap[name] = tag;
-    // }
+    virtual void setTagMap(const std::string& name, int tag)
+    {
+        m_tagMap[name] = tag;
+    }
 
     /**
        \brief
@@ -277,23 +277,29 @@ public:
        returns true if name is a defined tag name
        \param name tag name to be checked
     */
-    virtual bool isValidTagName(const std::string& name) const;
-    // {
-    //     return (m_tagMap.find(name)!=m_tagMap.end());
-    // }
-
-    /**
-       \brief
-       returns all tag names in a single string separated by commas
-    */
-    virtual std::string showTagNames() const;
+    virtual bool isValidTagName(const std::string& name) const
+    {
+        return (m_tagMap.find(name)!=m_tagMap.end());
+    }
 
     /**
        \brief
        returns the tag key for tag name
        \param name tag name
     */
-    virtual int getTag(const std::string& name) const;
+    virtual int getTag(const std::string& name) const {
+        if (m_tagMap.find(name) != m_tagMap.end()) {
+            return m_tagMap.find(name)->second;
+        } else {
+            throw escript::ValueError("getTag: invalid tag name");
+        }
+    }
+
+    /**
+       \brief
+       returns all tag names in a single string separated by commas
+    */
+    virtual std::string showTagNames() const;
 
 
     // this is const because setTags is const
@@ -706,6 +712,12 @@ protected:
 
     /// returns the number of face elements on current MPI rank
     virtual dim_t getNumFaceElements() const = 0;
+
+    // Tagmap
+    TagMap m_tagMap;
+    mutable std::vector<int> m_nodeTags, m_nodeTagsInUse;
+    mutable std::vector<int> m_elementTags, m_elementTagsInUse;
+    mutable std::vector<int> m_faceTags, m_faceTagsInUse;
 
     // Function sused by the assembler
     template<typename Scalar>

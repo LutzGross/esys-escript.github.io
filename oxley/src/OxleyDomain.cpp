@@ -744,14 +744,68 @@ namespace oxley {
         throw OxleyException("currently not implemented"); // This is temporary
     }
 
-    bool OxleyDomain::isValidTagName(const std::string& name) const
-    {
-        throw OxleyException("currently not implemented"); // This is temporary
-    }
-
     void OxleyDomain::updateTagsInUse(int fsType) const
     {
-        throw OxleyException("currently not implemented"); // This is temporary
+        vector<int>* tagsInUse=NULL;
+        const vector<int>* tags=NULL;
+        switch(fsType) {
+            case Nodes:
+                tags=&m_nodeTags;
+                tagsInUse=&m_nodeTagsInUse;
+                break;
+            case Elements:
+            case ReducedElements:
+                tags=&m_elementTags;
+                tagsInUse=&m_elementTagsInUse;
+                break;
+            case FaceElements:
+            case ReducedFaceElements:
+                tags=&m_faceTags;
+                tagsInUse=&m_faceTagsInUse;
+                break;
+            case Points:
+                throw escript::NotImplementedError("updateTagsInUse for Ripley dirac points"
+                                          " not supported");
+            default:
+                return;
+        }
+
+        // gather global unique tag values from tags into tagsInUse
+        tagsInUse->clear();
+        int lastFoundValue = numeric_limits<int>::min();
+        int minFoundValue, local_minFoundValue;
+        const int numTags = tags->size();
+
+        while (true) {
+            // find smallest value bigger than lastFoundValue
+            minFoundValue = numeric_limits<int>::max();
+    #pragma omp parallel private(local_minFoundValue)
+            {
+                local_minFoundValue = minFoundValue;
+    #pragma omp for schedule(static) nowait
+                for (int i = 0; i < numTags; i++) {
+                    const int v = (*tags)[i];
+                    if ((v > lastFoundValue) && (v < local_minFoundValue))
+                        local_minFoundValue = v;
+                }
+    #pragma omp critical
+                {
+                    if (local_minFoundValue < minFoundValue)
+                        minFoundValue = local_minFoundValue;
+                }
+            }
+    #ifdef ESYS_MPI
+            local_minFoundValue = minFoundValue;
+            MPI_Allreduce(&local_minFoundValue, &minFoundValue, 1, MPI_INT, MPI_MIN, m_mpiInfo->comm);
+    #endif
+
+            // if we found a new value add it to the tagsInUse vector
+            if (minFoundValue < numeric_limits<int>::max()) {
+                tagsInUse->push_back(minFoundValue);
+                lastFoundValue = minFoundValue;
+            } else
+                break;
+        }
     }
 
     void OxleyDomain::writeToVTK(std::string filename, bool writeTagInfo) const
@@ -774,19 +828,44 @@ namespace oxley {
         throw OxleyException("unknown error");   
     }
 
-    void OxleyDomain::setTagMap(const std::string& name, int tag)
-    {
-        throw OxleyException("currently not implemented"); // This is temporary
-    }
-
-    int OxleyDomain::getTag(const std::string& name) const
-    {
-        throw OxleyException("currently not implemented"); // This is temporary
-    }
-
     void OxleyDomain::setTags(int fsType, int newTag, const escript::Data& mask) const
     {
-        throw OxleyException("currently not implemented"); // This is temporary
+        vector<int>* target=NULL;
+        dim_t num=0;
+
+        switch(fsType) {
+            case Nodes:
+                num=getNumNodes();
+                target=&m_nodeTags;
+                break;
+            case Elements:
+            case ReducedElements:
+                num=getNumElements();
+                target=&m_elementTags;
+                break;
+            case FaceElements:
+            case ReducedFaceElements:
+                // throw OxleyException("not implemented yet"); //TODO
+                num=getNumFaceElements();
+                target=&m_faceTags;
+                break;
+            default: {
+                stringstream msg;
+                msg << "setTags: invalid function space type " << fsType;
+                throw ValueError(msg.str());
+            }
+        }
+        if (target->size() != num) {
+            target->assign(num, -1);
+        }
+
+    #pragma omp parallel for
+        for (index_t i=0; i<num; i++) {
+            if (mask.getSampleDataRO(i)[0] > 0) {
+                (*target)[i]=newTag;
+            }
+        }
+        updateTagsInUse(fsType);
     }
 
     pair<int,dim_t> OxleyDomain::getDataShape(int fsType) const
