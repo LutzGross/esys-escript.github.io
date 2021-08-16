@@ -2384,6 +2384,12 @@ void Brick::updateNodeDistribution()
     // m_nodeDistribution.shrink_to_fit();
 }
 
+// adds the dirac points and tags 
+void Brick::addPoints(const std::vector<double>& coords, const std::vector<int>& tags)
+{
+    
+}
+
 std::vector<IndexVector> Brick::getConnections(bool includeShared) const
 {
     // returns a vector v of size numDOF where v[i] is a vector with indices

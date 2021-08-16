@@ -87,25 +87,26 @@ class Test_DiracPointsOnMultiResolutionDomains(Test_OxleyDiracPoints):
                     result[y][x] = node
                     ref += 1
         return result
-            
-    def getBrickRefs(self, splitAxis, dims):
-        dims = [i+1 for i in dims]
-        results = [[[-1 for z in range(dims[2])] for y in range(dims[1])] for x in range(dims[0])]
-        ref = 0
-        rankDim = [i for i in dims]
-        rankDim[splitAxis] = dims[splitAxis]//self.numRanks
-        rc = [0, 0, 0] #rank counters
-        for rank in range(self.numRanks):
-            for z in range(rankDim[2]):
-                for y in range(rankDim[1]):
-                    for x in range(rankDim[0]):
-                        old = [ref%dims[0], (ref%(dims[0]*dims[1]))//dims[0], ref//(dims[0]*dims[1])]
-                        new = [i*brickLevel for i in old]
-                        node = new[0] + new[1]*(brickLevel*(dims[0]-1)+1) + new[2]*(brickLevel*(dims[0]-1) + 1)*(brickLevel*(dims[1]-1)+1)
-                        results[x+rc[0]][y+rc[1]][z+rc[2]] = node
-                        ref += 1
-            rc[splitAxis] += rankDim[splitAxis]
-        return results
+
+    # TODO            
+    # def getBrickRefs(self, splitAxis, dims):
+    #     dims = [i+1 for i in dims]
+    #     results = [[[-1 for z in range(dims[2])] for y in range(dims[1])] for x in range(dims[0])]
+    #     ref = 0
+    #     rankDim = [i for i in dims]
+    #     rankDim[splitAxis] = dims[splitAxis]//self.numRanks
+    #     rc = [0, 0, 0] #rank counters
+    #     for rank in range(self.numRanks):
+    #         for z in range(rankDim[2]):
+    #             for y in range(rankDim[1]):
+    #                 for x in range(rankDim[0]):
+    #                     old = [ref%dims[0], (ref%(dims[0]*dims[1]))//dims[0], ref//(dims[0]*dims[1])]
+    #                     new = [i*brickLevel for i in old]
+    #                     node = new[0] + new[1]*(brickLevel*(dims[0]-1)+1) + new[2]*(brickLevel*(dims[0]-1) + 1)*(brickLevel*(dims[1]-1)+1)
+    #                     results[x+rc[0]][y+rc[1]][z+rc[2]] = node
+    #                     ref += 1
+    #         rc[splitAxis] += rankDim[splitAxis]
+    #     return results
 
     def generateRects(self, a, b):
         diracLoc = [a,b]
@@ -120,22 +121,23 @@ class Test_DiracPointsOnMultiResolutionDomains(Test_OxleyDiracPoints):
             edges = edges[::-1]
         return rects
 
-    def generateBricks(self, a, b, c):
-        diracLoc = [a,b,c]
-        bricks = []
-        edges = [self.longEdge, self.shortEdge, self.shortEdge]
-        for i in range(3):
-            bricks.append(Brick(n0=edges[0], n1=edges[1], n2=edges[2],
-                l0=edges[0], l1=edges[1], l2=edges[2],
-                d0=self.numRanks,
-                diracPoints=[tuple(diracLoc)], diracTags=["test"]))
-            diracLoc = diracLoc[2:] + diracLoc[:2]
-            edges = edges[2:] + edges[:2]
-        tmp = [self.shortEdge]*3
-        dims = [tmp[:], tmp[:], tmp[:]]
-        for i in range(3):
-            dims[i][i] = self.longEdge
-        return bricks, dims
+    # TODO
+    # def generateBricks(self, a, b, c):
+    #     diracLoc = [a,b,c]
+    #     bricks = []
+    #     edges = [self.longEdge, self.shortEdge, self.shortEdge]
+    #     for i in range(3):
+    #         bricks.append(Brick(n0=edges[0], n1=edges[1], n2=edges[2],
+    #             l0=edges[0], l1=edges[1], l2=edges[2],
+    #             d0=self.numRanks,
+    #             diracPoints=[tuple(diracLoc)], diracTags=["test"]))
+    #         diracLoc = diracLoc[2:] + diracLoc[:2]
+    #         edges = edges[2:] + edges[:2]
+    #     tmp = [self.shortEdge]*3
+    #     dims = [tmp[:], tmp[:], tmp[:]]
+    #     for i in range(3):
+    #         dims[i][i] = self.longEdge
+    #     return bricks, dims
 
 if __name__ == '__main__':
     run_tests(__name__, exit_on_failure=True)

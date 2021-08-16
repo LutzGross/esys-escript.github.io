@@ -807,8 +807,8 @@ namespace oxley {
                 return pair<int,dim_t>(1, getNumElements());
             case ReducedFaceElements:
                 return pair<int,dim_t>(1, getNumFaceElements());
-            // case Points:
-            //     return pair<int,dim_t>(1, m_diracPoints.size());
+            case Points:
+                return pair<int,dim_t>(1, m_diracPoints.size());
             default:
                 break;
         }

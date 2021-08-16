@@ -15,6 +15,7 @@
 
 #include <algorithm>
 #include <ctime>
+#include <exception>
 #include <random>
 #include <string>
 #include <vector>
@@ -23,6 +24,7 @@
 #include <escript/Data.h>
 #include <escript/DataFactory.h>
 #include <escript/FunctionSpaceFactory.h>
+#include <escript/Random.h>
 
 #include <oxley/AbstractAssembler.h>
 #include <oxley/DefaultAssembler2D.h>
@@ -147,6 +149,8 @@ Rectangle::Rectangle(int order,
     m_NE[1] = n1;
     m_NX[0] = (x1-x0)/n0;
     m_NX[1] = (y1-y0)/n1;
+    m_NN[0] = n0;
+    m_NN[1] = n1;
 
     // Record the physical dimensions of the domain and the location of the origin
     forestData.m_origin[0] = x0;
@@ -501,17 +505,6 @@ dim_t Rectangle::getNumDataPointsGlobal() const
     return getNumNodes();
 }
 
-/* This is a wrapper for filtered (and non-filtered) randoms
- * For detailed doco see randomFillWorker
-*/
-escript::Data Rectangle::randomFill(const escript::DataTypes::ShapeType& shape,
-                                    const escript::FunctionSpace& fs,
-                                    long seed, const bp::tuple& filter) const
-{
-    throw OxleyException("randomFill"); //TODO this is temporary
-}
-
-
 void Rectangle::dump(const std::string& fileName) const
 { 
 #ifdef ESYS_HAVE_SILO
@@ -599,8 +592,7 @@ const dim_t* Rectangle::borrowSampleReferenceIDs(int fsType) const
             throw OxleyException("borrowSampleReferenceIDs: FaceIDs");
             // return &m_faceId[0];
         case Points:
-            throw OxleyException("borrowSampleReferenceIDs: m_diracPointNodeIDs");
-            // return &m_diracPointNodeIDs[0];
+            return &m_diracPointNodeIDs[0];
         default:
             std::stringstream msg;
             msg << "borrowSampleReferenceIDs: invalid function space type " << fsType;
@@ -2392,61 +2384,6 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
     }
 }
 
-dim_t Rectangle::findNode(const double *coords) const
-{
-    throw OxleyException("findNode");
-    return -1;
-
-    // const dim_t NOT_MINE = -1;
-    // //is the found element even owned by this rank
-    // // (inside owned or shared elements but will map to an owned element)
-    // for(int dim = 0; dim < m_numDim; dim++) {
-    //     //allows for point outside mapping onto node
-    //     double min = m_origin[dim] + m_offset[dim]* m_dx[dim]
-    //             - m_dx[dim]/2. + escript::DataTypes::real_t_eps();
-    //     double max = m_origin[dim] + (m_offset[dim] + m_NE[dim])*m_dx[dim]
-    //             + m_dx[dim]/2. - escript::DataTypes::real_t_eps();
-    //     if (min > coords[dim] || max < coords[dim]) {
-    //         return NOT_MINE;
-    //     }
-    // }
-    // // get distance from origin
-    // double x = coords[0] - m_origin[0];
-    // double y = coords[1] - m_origin[1];
-
-    // //check if the point is even inside the domain
-    // if (x < 0 || y < 0 || x > m_length[0] || y > m_length[1])
-    //     return NOT_MINE;
-
-    // // distance in elements
-    // dim_t ex = (dim_t) floor((x + 0.01*m_dx[0]) / m_dx[0]);
-    // dim_t ey = (dim_t) floor((y + 0.01*m_dx[1]) / m_dx[1]);
-    // // set the min distance high enough to be outside the element plus a bit
-    // dim_t closest = NOT_MINE;
-    // double minDist = 1;
-    // for(int dim = 0; dim < m_numDim; dim++) {
-    //     minDist += m_dx[dim]*m_dx[dim];
-    // }
-    // //find the closest node
-    // for(int dx = 0; dx < 1; dx++) {
-    //     double xdist = (x - (ex + dx)*m_dx[0]);
-    //     for(int dy = 0; dy < 1; dy++) {
-    //         double ydist = (y - (ey + dy)*m_dx[1]);
-    //         double total = xdist*xdist + ydist*ydist;
-    //         if (total < minDist) {
-    //             closest = INDEX2(ex+dx-m_offset[0], ey+dy-m_offset[1], m_NN[0]);
-    //             minDist = total;
-    //         }
-    //     }
-    // }
-    // //if this happens, we've let a dirac point slip through, which is awful
-    // if (closest == NOT_MINE) {
-    //     throw RipleyException("Unable to map appropriate dirac point to a node,"
-    //             " implementation problem in Rectangle::findNode()");
-    // }
-    // return closest;
-}
-
 //protected
 void Rectangle::nodesToDOF(escript::Data& out, const escript::Data& in) const
 {
@@ -2824,7 +2761,7 @@ p4est_connectivity_t * Rectangle::new_rectangle_connectivity(
     return conn;
 }
 
-void OxleyDomain::addPoints(const std::vector<double>& coords, const std::vector<int>& tags)
+void Rectangle::addPoints(const std::vector<double>& coords, const std::vector<int>& tags)
 {
     for (int i = 0; i < tags.size(); i++) {
         dim_t node = findNode(&coords[i * m_numDim]);
@@ -2836,6 +2773,285 @@ void OxleyDomain::addPoints(const std::vector<double>& coords, const std::vector
             m_diracPoints.push_back(dp);
         }
     }
+}
+
+
+// Calculates a Gaussian blur convolution matrix for 2D
+// See wiki article on the subject
+double* get2DGauss(unsigned radius, double sigma)
+{
+    double* arr = new double[(radius*2+1)*(radius*2+1)];
+    const double common = M_1_PI * 0.5 / (sigma*sigma);
+    const int r = static_cast<int>(radius);
+    double total = 0;
+    for (int y = -r; y <= r; ++y) {
+        for (int x = -r; x <= r; ++x) {
+            arr[(x+r)+(y+r)*(r*2+1)]=common*exp(-(x*x+y*y)/(2*sigma*sigma));
+            total+=arr[(x+r)+(y+r)*(r*2+1)];
+        }
+    }
+    const double invtotal = 1/total;
+    for (size_t p=0; p<(radius*2+1)*(radius*2+1); ++p) {
+        arr[p] *= invtotal;
+    }
+    return arr;
+}
+
+// applies conv to source to get a point.
+// (xp, yp) are the coords in the source matrix not the destination matrix
+double Convolve2D(double* conv, double* source, size_t xp, size_t yp,
+                  unsigned radius, size_t width)
+{
+    const size_t bx = xp-radius, by=yp-radius;
+    const size_t sbase = bx+by*width;
+    double result = 0;
+    for (int y=0; y<2*radius+1; ++y) {
+        for (int x=0; x<2*radius+1; ++x) {
+            result += conv[x+y*(2*radius+1)] * source[sbase + x+y*width];
+        }
+    }
+    return result;
+}
+
+
+/* This is a wrapper for filtered (and non-filtered) randoms
+ * For detailed doco see randomFillWorker
+ */
+escript::Data Rectangle::randomFill(const escript::DataTypes::ShapeType& shape,
+                                const escript::FunctionSpace& what, long seed,
+                                const bp::tuple& filter) const
+{
+    int numvals=escript::DataTypes::noValues(shape);
+    if (len(filter) > 0 && numvals != 1)
+        throw escript::NotImplementedError("Oxley only supports filters for scalar data.");
+
+    escript::Data res = randomFillWorker(shape, seed, filter);
+    if (res.getFunctionSpace() != what) {
+        escript::Data r(res, what);
+        return r;
+    }
+    return res;
+}
+
+
+/* This routine produces a Data object filled with smoothed random data.
+ * The dimensions of the rectangle being filled are internal[0] x internal[1]
+ * points. A parameter radius gives the size of the stencil used for the
+ * smoothing.  A point on the left hand edge for example, will still require
+ * `radius` extra points to the left in order to complete the stencil.
+ *
+ * All local calculation is done on an array called `src`, with
+ * dimensions = ext[0] * ext[1], where ext[i]= internal[i]+2*radius.
+ *
+ * Now for MPI there is overlap to deal with. We need to share both the
+ * overlapping values themselves but also the external region.
+ *
+ * In a hypothetical 1-D case:
+ *
+ * 1234567 would be split into two ranks thus:
+ * 123(4)  (4)567     [4 being a shared element]
+ *
+ * If the radius is 2. There will be padding elements on the outside:
+ * pp123(4)  (4)567pp
+ *
+ * To ensure that 4 can be correctly computed on both ranks, values from the
+ * other rank need to be known.
+ *
+ * pp123(4)56   23(4)567pp
+ *
+ * Now in our case, we set all the values 23456 on the left rank and send them
+ * to the right hand rank.
+ *
+ * So the edges _may_ need to be shared at a distance `inset` from all
+ * boundaries.
+ *
+ * inset=2*radius+1
+ * This is to ensure that values at distance `radius` from the
+ * shared/overlapped element that Oxley has.
+ */
+escript::Data Rectangle::randomFillWorker(
+                        const escript::DataTypes::ShapeType& shape, long seed,
+                        const bp::tuple& filter) const
+{
+    unsigned int radius=0;  // these are only used by gaussian
+    double sigma=0.5;
+
+    unsigned int numvals=escript::DataTypes::noValues(shape);
+
+    if (len(filter) == 0) {
+        // nothing special required here yet
+    } else if (len(filter) == 3) {
+        bp::extract<std::string> ex(filter[0]);
+        if (!ex.check() || (ex()!="gaussian")) {
+            throw ValueError("Unsupported random filter");
+        }
+        bp::extract<unsigned int> ex1(filter[1]);
+        if (!ex1.check()) {
+            throw ValueError("Radius of Gaussian filter must be a positive integer.");
+        }
+        radius = ex1();
+        sigma = 0.5;
+        bp::extract<double> ex2(filter[2]);
+        if (!ex2.check() || (sigma=ex2()) <= 0) {
+            throw ValueError("Sigma must be a positive floating point number.");
+        }
+    } else {
+        throw ValueError("Unsupported random filter for Rectangle.");
+    }
+
+    // number of points in the internal region
+    // that is, the ones we need smoothed versions of
+    const dim_t internal[2] = { m_NN[0], m_NN[1] };
+    size_t ext[2];
+    ext[0]=(size_t)internal[0]+2*radius; // includes points we need as input
+    ext[1]=(size_t)internal[1]+2*radius; // for smoothing
+
+    // now we check to see if the radius is acceptable
+    // That is, would not cross multiple ranks in MPI
+
+    if (2*radius >= internal[0]-4) {
+        throw ValueError("Radius of gaussian filter is too large for X dimension of a rank");
+    }
+    if (2*radius >= internal[1]-4) {
+        throw ValueError("Radius of gaussian filter is too large for Y dimension of a rank");
+    }
+
+    double* src = new double[ext[0]*ext[1]*numvals];
+    escript::randomFillArray(seed, src, ext[0]*ext[1]*numvals);
+
+#ifdef ESYS_MPI
+    if ((internal[0] < 5) || (internal[1] < 5)) {
+        // since the dimensions are equal for all ranks, this exception
+        // will be thrown on all ranks
+        throw OxleyException("Random Data in Oxley requires at least five elements per side per rank.");
+    }
+    dim_t X = m_mpiInfo->rank%m_NX[0];
+    dim_t Y = m_mpiInfo->rank/m_NX[0];
+#endif
+
+#ifdef ESYS_MPI
+    BlockGrid2 grid(m_NX[0]-1, m_NX[1]-1);
+    // it's +2 not +1 because a whole element is shared (and hence there is
+    // an overlap of two points both of which need to have "radius" points on
+    // either side.
+    size_t inset=2*radius+2;
+
+    // how wide is the x-dimension between the two insets
+    size_t xmidlen=ext[0]-2*inset;
+    size_t ymidlen=ext[1]-2*inset;
+
+    Block2 block(ext[0], ext[1], inset, xmidlen, ymidlen, numvals);
+
+    // a non-tight upper bound on how many we need
+    MPI_Request reqs[40];
+    MPI_Status stats[40];
+    short rused=0;
+
+    messvec incoms;
+    messvec outcoms;
+
+    grid.generateInNeighbours(X, Y, incoms);
+    grid.generateOutNeighbours(X, Y, outcoms);
+
+    block.copyAllToBuffer(src);
+
+    int comserr = 0;
+    for (size_t i=0; i < incoms.size(); ++i) {
+        message& m = incoms[i];
+        comserr |= MPI_Irecv(block.getInBuffer(m.destbuffid),
+                             block.getBuffSize(m.destbuffid), MPI_DOUBLE,
+                             m.sourceID, m.tag, m_mpiInfo->comm,
+                             reqs+(rused++));
+        block.setUsed(m.destbuffid);
+    }
+
+    for (size_t i=0; i < outcoms.size(); ++i) {
+        message& m = outcoms[i];
+        comserr |= MPI_Isend(block.getOutBuffer(m.srcbuffid),
+                             block.getBuffSize(m.srcbuffid), MPI_DOUBLE,
+                             m.destID, m.tag, m_mpiInfo->comm, reqs+(rused++));
+    }
+
+    if (!comserr) {
+        comserr = MPI_Waitall(rused, reqs, stats);
+    }
+
+    if (comserr) {
+        // Yes this is throwing an exception as a result of an MPI error
+        // and no we don't inform the other ranks that we are doing this.
+        // However, we have no reason to believe coms work at this point anyway
+        throw RipleyException("Error in coms for randomFill");
+    }
+
+    block.copyUsedFromBuffer(src);
+#endif
+
+    // the truth of either should imply the truth of the other but let's be safe
+    if (radius==0 || numvals > 1) {
+        escript::FunctionSpace fs(getPtr(), getContinuousFunctionCode());
+        escript::Data resdat(0, shape, fs, true);
+        // don't need to check for exwrite because we just made it
+        escript::DataTypes::RealVectorType& dv = resdat.getExpandedVectorReference();
+
+        // now we need to copy values over
+        for (size_t y=0; y < internal[1]; ++y) {
+            for (size_t x=0; x < internal[0]; ++x) {
+                for (unsigned int i=0; i < numvals; ++i) {
+                    dv[i+(x+y*(internal[0]))*numvals]=src[i+(x+y*ext[0])*numvals];
+                }
+            }
+        }
+        delete[] src;
+        return resdat;
+    } else { // filter enabled
+        escript::FunctionSpace fs(getPtr(), getContinuousFunctionCode());
+        escript::Data resdat(0, escript::DataTypes::scalarShape, fs, true);
+        // don't need to check for exwrite because we just made it
+        escript::DataTypes::RealVectorType& dv=resdat.getExpandedVectorReference();
+        double* convolution=get2DGauss(radius, sigma);
+        for (size_t y=0; y < internal[1]; ++y) {
+            for (size_t x=0; x < internal[0]; ++x) {
+                dv[x+y*(internal[0])] = Convolve2D(convolution, src, x+radius, y+radius, radius, ext[0]);
+            }
+        }
+        delete[] convolution;
+        delete[] src;
+        return resdat;
+    }
+}
+
+dim_t Rectangle::findNode(const double *coords) const
+{
+    // Check to see if the node is in the map
+    if(NodeIDs.count(std::make_pair(coords[0],coords[1]))==1)
+        return NodeIDs.find(std::make_pair(coords[0],coords[1]))->second;
+
+    // Otherwise find the nearest element
+#ifndef ENABLE_OPENMP
+    float sq_distance = m_NX[0]*m_NX[1];
+    long closest = 0;
+
+    for(std::pair<DoublePair,long> e : NodeIDs)
+        if(e.first.first*e.first.first+e.first.second*e.first.second < sq_distance)
+            closest = e.second;
+
+    return closest;
+#else
+    float sq_distance[get_num_omp_threads()] = {{m_NX[0]*m_NX[1]}};
+    long closest[get_num_omp_threads()] = {{0}};
+
+    #pragma omp parallel for
+    for(std::pair<DoublePair,long> e : NodeIDs)
+        if(e.first.first*e.first.first+e.first.second*e.first.second < sq_distance)
+            closest[get_omp_thread_num()] = e.second;
+
+    long answer=closest[0];
+    for(int i=1; i<get_num_omp_threads();i++)
+        if(answer > closest[i])
+            answer=closest[i];
+
+    return answer;
+#endif
 }
 
 // instantiate our two supported versions

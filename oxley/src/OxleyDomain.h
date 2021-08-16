@@ -720,7 +720,7 @@ protected:
     virtual void assembleCoordinates(escript::Data& arg) const = 0;
 
     // adds the dirac points and tags 
-    void addPoints(const std::vector<double>& coords, const std::vector<int>& tags);
+    virtual void addPoints(const std::vector<double>& coords, const std::vector<int>& tags) = 0;
 
 #ifdef ESYS_HAVE_TRILINOS
     /// returns the Trilinos matrix graph

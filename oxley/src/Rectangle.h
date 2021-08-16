@@ -154,6 +154,9 @@ public:
     virtual escript::Data randomFill(const escript::DataTypes::ShapeType& shape,
        const escript::FunctionSpace& what, long seed, const boost::python::tuple& filter) const;
 
+    escript::Data randomFillWorker(const escript::DataTypes::ShapeType& shape,
+       long seed, const boost::python::tuple& filter) const;    
+
     /**
        \brief
        returns the array of reference numbers for a function space type
@@ -360,7 +363,10 @@ protected:
 
     IndexVector getNodeDistribution() const;
 
+    void addPoints(const std::vector<double>& coords, const std::vector<int>& tags);
 
+    // Initial number of nodes
+    long m_NN[2] = {0};
     // Initial number of divisions
     long m_NE[2] = {0};
     // Initial spacing

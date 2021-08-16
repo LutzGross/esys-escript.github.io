@@ -256,6 +256,9 @@ protected:
     virtual void assembleGradient(escript::Data& out, const escript::Data& in) const;
     virtual std::vector<IndexVector> getConnections(bool includeShared=false) const;
 
+    // adds the dirac points and tags 
+    void addPoints(const std::vector<double>& coords, const std::vector<int>& tags);
+
 #ifdef ESYS_HAVE_TRILINOS
     virtual esys_trilinos::const_TrilinosGraph_ptr getTrilinosGraph() const;
 #endif
