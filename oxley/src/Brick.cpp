@@ -53,6 +53,7 @@ Brick::Brick(int order,
     double x0, double y0, double z0,
     double x1, double y1, double z1,
     int d0, int d1, int d2,
+    const std::vector<double>& points, const std::vector<int>& tags,
     int periodic0, int periodic1, int periodic2): 
     OxleyDomain(3, order)
 {
@@ -181,8 +182,8 @@ Brick::Brick(int order,
     m_order = order;
 
     // initial tag
-    tags[0] = 0;
-    numberOfTags=1;
+    // tags[0] = 0;
+    // numberOfTags=1;
 
     // Number of dimensions
     m_numDim=3;
@@ -196,6 +197,9 @@ Brick::Brick(int order,
     renumberNodes();
     updateRowsColumns();
     updateNodeDistribution();
+
+    // Dirac points and tags
+    addPoints(points, tags);
 
     // To prevent segmentation faults when using numpy ndarray
 #ifdef ESYS_HAVE_BOOST_NUMPY

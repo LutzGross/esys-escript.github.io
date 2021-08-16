@@ -62,6 +62,7 @@ Rectangle::Rectangle(int order,
     double x0, double y0,
     double x1, double y1,
     int d0, int d1,
+    const std::vector<double>& points, const std::vector<int>& tags,
     int periodic0, int periodic1):
     OxleyDomain(2, order){
 
@@ -176,8 +177,8 @@ Rectangle::Rectangle(int order,
     m_order = order;
 
     // initial tag
-    tags[0] = 0;
-    numberOfTags=1;
+    // tags[0] = 0;
+    // numberOfTags=1;
 
     // Number of dimensions
     m_numDim=2;
@@ -192,6 +193,9 @@ Rectangle::Rectangle(int order,
     updateRowsColumns();
     updateNodeDistribution();
     // populateDofMap();
+
+    // Dirac points and tags
+    addPoints(points, tags);
 
     // srand(time(NULL));
 
@@ -2818,6 +2822,20 @@ p4est_connectivity_t * Rectangle::new_rectangle_connectivity(
     P4EST_ASSERT(p4est_connectivity_is_valid(conn)); //This is very time consuming
 #endif
     return conn;
+}
+
+void OxleyDomain::addPoints(const std::vector<double>& coords, const std::vector<int>& tags)
+{
+    for (int i = 0; i < tags.size(); i++) {
+        dim_t node = findNode(&coords[i * m_numDim]);
+        if (node >= 0) {
+            m_diracPointNodeIDs.push_back(borrowSampleReferenceIDs(Nodes)[node]);
+            DiracPoint dp;
+            dp.node = node; //local
+            dp.tag = tags[i];
+            m_diracPoints.push_back(dp);
+        }
+    }
 }
 
 // instantiate our two supported versions

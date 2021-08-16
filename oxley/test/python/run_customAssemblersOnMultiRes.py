@@ -23,34 +23,29 @@ __license__="""Licensed under the Apache License, version 2.0
 http://www.apache.org/licenses/LICENSE-2.0"""
 __url__="https://launchpad.net/escript-finley"
 
-#TODO
-SKIP_TESTS=1
-
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 from esys.escript import *
-# from esys.oxley import MultiResolutionDomain
+from esys.oxley import Rectangle, Brick
 from esys.escript.linearPDEs import LameEquation
 
 from run_customAssemblersOnOxley import OxleyLameAssemblerTestBase, OxleyWaveAssemblerTestBase, Ricker
 
 mpiSize = getMPISizeWorld()
 
+# def Rectangle(**kwargs):
+#     m = Rectangle(n0=10,n1=10,l0=10,l1=10)
+#     m.refineRegion(x0=3,x1=7,y0=4,y1=8)
+#     return m
 
+# def Brick(**kwargs):
+#     m = Brick(n0=10,n1=10,n2=10,l0=10,l1=10,l2=10)
+#     m.refineRegion(x0=3,x1=7,x2=7,y0=4,y1=8,y2=6)
+#     return m
 
-def Rectangle(**kwargs):
-    m = MultiResolutionDomain(2, **kwargs)
-    return m.getLevel(1)
-
-def Brick(**kwargs):
-    m = MultiResolutionDomain(3, **kwargs)
-    return m.getLevel(1)
-
-@unittest.skipIf(SKIP_TESTS == 1, "Skipping")
 class Test_OxleyWaveAssembler2D(OxleyWaveAssemblerTestBase):
     def setUp(self):
-        self.domain = Rectangle(n0=20,n1=20,l0=100.,l1=100., diracTags=["source"],
-                diracPoints=[(0,0)])
+        self.domain = Rectangle(n0=20,n1=20,l0=100.,l1=100., diracTags=["source"], diracPoints=[(0,0)])
         self.wavelet = Ricker(100.)
 
         
@@ -58,17 +53,14 @@ class Test_OxleyWaveAssembler2D(OxleyWaveAssemblerTestBase):
         del self.domain
 
 @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
-@unittest.skipIf(SKIP_TESTS == 1, "Skipping")
 class Test_OxleyWaveAssembler3D(OxleyWaveAssemblerTestBase):
     def setUp(self):
-        self.domain = Brick(n0=10,n1=10,n2=10,l0=100.,l1=100., l2=100.,
-                diracTags=["source"], diracPoints=[(0,0,0)])
+        self.domain = Brick(n0=10,n1=10,n2=10,l0=100.,l1=100., l2=100., diracTags=["source"], diracPoints=[(0,0,0)])
         self.wavelet = Ricker(100.)
 
     def tearDown(self):
         del self.domain
 
-@unittest.skipIf(SKIP_TESTS == 1, "Skipping")
 class Test_OxleyLameAssemblers2D(OxleyLameAssemblerTestBase):
     def setUp(self):
         self.domain = Rectangle(n0=20,n1=20)
@@ -77,7 +69,6 @@ class Test_OxleyLameAssemblers2D(OxleyLameAssemblerTestBase):
         del self.domain
 
 @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
-@unittest.skipIf(SKIP_TESTS == 1, "Skipping")
 class Test_OxleyLameAssemblers3D(OxleyLameAssemblerTestBase):
     def setUp(self):
         self.domain = Brick(n0=10,n1=10,n2=10)

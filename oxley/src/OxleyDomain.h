@@ -692,6 +692,9 @@ protected:
     // Vector of the dirac points
     std::vector<DiracPoint> m_diracPoints;
 
+    // Dirac point Node IDs
+    IndexVector m_diracPointNodeIDs; //for borrowSampleID
+
     /// returns the number of nodes per MPI rank
     virtual dim_t getNumNodes() const = 0;
 
@@ -715,6 +718,9 @@ protected:
 
     /// populates the data object 'arg' with the node coordinates
     virtual void assembleCoordinates(escript::Data& arg) const = 0;
+
+    // adds the dirac points and tags 
+    void addPoints(const std::vector<double>& coords, const std::vector<int>& tags);
 
 #ifdef ESYS_HAVE_TRILINOS
     /// returns the Trilinos matrix graph

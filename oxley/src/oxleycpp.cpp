@@ -32,6 +32,7 @@ namespace oxley {
 
 escript::Domain_ptr _rectangle(double _n0, double _n1,
                         const object& l0, const object& l1, int d0, int d1,
+                        const object& objpoints, const object& objtags,
                         int periodic0, int periodic1)
 {
 	// // Integration Order
@@ -69,13 +70,60 @@ escript::Domain_ptr _rectangle(double _n0, double _n1,
 
     int order = 1;
 
-    return escript::Domain_ptr(new Rectangle(order, n0,n1, x0,y0, x1,y1, d0,d1, periodic0, periodic1));
+    // process tags and points
+    boost::python::list pypoints=extract<boost::python::list>(objpoints);
+    boost::python::list pytags=extract<boost::python::list>(objtags);
+    int numpts=extract<int>(pypoints.attr("__len__")());
+    int numtags=extract<int>(pytags.attr("__len__")());
+    std::vector<double> points;
+    std::vector<int> tags;
+    tags.resize(numtags, -1);
+    for (int i=0;i<numpts;++i) {
+        tuple temp = extract<tuple>(pypoints[i]);
+        int l=extract<int>(temp.attr("__len__")());
+        if (l != 2)
+            throw OxleyException("Number of coordinates for each dirac point must match dimensions.");
+        for (int k=0;k<l;++k) {
+            points.push_back(extract<double>(temp[k]));
+        }
+    }
+    std::map<std::string, int> tagstonames;
+    int curmax=40;
+    // but which order to assign tags to names?????
+    for (int i=0;i<numtags;++i) {
+        extract<int> ex_int(pytags[i]);
+        extract<std::string> ex_str(pytags[i]);
+        if (ex_int.check()) {
+            tags[i]=ex_int();
+            if (tags[i] >= curmax) {
+                curmax=tags[i]+1;
+            }
+        } else if (ex_str.check()) {
+            std::string s=ex_str();
+            std::map<std::string, int>::iterator it=tagstonames.find(s);
+            if (it!=tagstonames.end()) {
+                // we have the tag already so look it up
+                tags[i]=it->second;
+            } else {
+                tagstonames[s]=curmax;
+                tags[i]=curmax;
+                curmax++;
+            }
+        } else {
+            throw OxleyException("Error - Unable to extract tag value.");
+        }
+    }
+    if (numtags != numpts)
+        throw OxleyException("Number of tags does not match number of points.");
+
+    return escript::Domain_ptr(new Rectangle(order, n0,n1, x0,y0, x1,y1, d0,d1,  points, tags, periodic0, periodic1));
 }
 
 
 escript::Domain_ptr _brick(int order, double _n0, double _n1, double _n2,
                         const object& l0, const object& l1, const object& l2,
                         int d0, int d1, int d2,
+                        const object& objpoints, const object& objtags,
                         int periodic0, int periodic1, int periodic2)
 {
     // Integration Order
@@ -123,7 +171,53 @@ escript::Domain_ptr _brick(int order, double _n0, double _n1, double _n2,
     } else
         throw OxleyException("Argument l2 must be a float or 2-tuple");
 
-    return escript::Domain_ptr(new Brick(order, n0,n1,n2, x0,y0,z0, x1,y1,z1, d0,d1,d2, periodic0,periodic1,periodic2));
+    // process tags and points
+    boost::python::list pypoints=extract<boost::python::list>(objpoints);
+    boost::python::list pytags=extract<boost::python::list>(objtags);
+    int numpts=extract<int>(pypoints.attr("__len__")());
+    int numtags=extract<int>(pytags.attr("__len__")());
+    std::vector<double> points;
+    std::vector<int> tags;
+    tags.resize(numtags, -1);
+    for (int i=0;i<numpts;++i) {
+        tuple temp = extract<tuple>(pypoints[i]);
+        int l=extract<int>(temp.attr("__len__")());
+        if (l != 3)
+            throw OxleyException("Number of coordinates for each dirac point must match dimensions.");
+        for (int k=0;k<l;++k) {
+            points.push_back(extract<double>(temp[k]));
+        }
+    }
+    std::map<std::string, int> tagstonames;
+    int curmax=40;
+    // but which order to assign tags to names?????
+    for (int i=0;i<numtags;++i) {
+        extract<int> ex_int(pytags[i]);
+        extract<std::string> ex_str(pytags[i]);
+        if (ex_int.check()) {
+            tags[i]=ex_int();
+            if (tags[i]>= curmax) {
+                curmax=tags[i]+1;
+            }
+        } else if (ex_str.check()) {
+            std::string s=ex_str();
+            std::map<std::string, int>::iterator it=tagstonames.find(s);
+            if (it!=tagstonames.end()) {
+                // we have the tag already so look it up
+                tags[i]=it->second;
+            } else {
+                tagstonames[s]=curmax;
+                tags[i]=curmax;
+                curmax++;
+            }
+        } else {
+            throw OxleyException("Error - Unable to extract tag value.");
+        }
+    }
+    if (numtags != numpts)
+        throw OxleyException("Number of tags does not match number of points.");
+
+    return escript::Domain_ptr(new Brick(order, n0,n1,n2, x0,y0,z0, x1,y1,z1, d0,d1,d2,  points, tags, periodic0,periodic1,periodic2));
 }
 
 #ifdef ESYS_HAVE_BOOST_NUMPY
@@ -257,6 +351,7 @@ BOOST_PYTHON_MODULE(oxleycpp)
     arg("n0"),arg("n1"),
     arg("l0")=1.0,arg("l1")=1.0,
     arg("d0")=-1,arg("d1")=-1,
+    arg("diracPoints")=list(), arg("diracTags")=list(),
     arg("periodic0")=0,arg("periodic1")=0),
     "Creates a rectangular p4est mesh with n0 x n1 elements over the rectangle [0,l0] x [0,l1].\n\n"
     ":param n0: number of elements in direction 0\n:type n0: ``int``\n"
@@ -270,6 +365,7 @@ BOOST_PYTHON_MODULE(oxleycpp)
     arg("n0"),arg("n1"),arg("n2"),
     arg("l0")=1.0,arg("l1")=1.0,arg("l2")=1.0,
     arg("d0")=-1,arg("d1")=-1,arg("d2")=-1,
+    arg("diracPoints")=list(), arg("diracTags")=list(),
     arg("periodic0")=0,arg("periodic1")=0,arg("periodic2")=0),
     "Creates a brick p4est mesh with n0 x n1 x n2 elements over the rectangle [0,l0] x [0,l1] x [0,l2].\n\n"
     ":param order: order of the elements: ``int``\n"

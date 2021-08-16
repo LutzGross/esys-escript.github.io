@@ -30,12 +30,12 @@ from esys.oxley import Rectangle, Brick
 from esys.escript.linearPDEs import LameEquation, LinearPDESystem, WavePDE
 from esys.downunder import HTIWave, VTIWave, Ricker
 
-#TODO
-SKIP_TESTS=1
-
 EXPANDED, SCALAR, CONSTANT = range(3)
 
-@unittest.skipIf(SKIP_TESTS == 1, " TODO")
+# TODO
+SKIP_TESTS=1
+
+@unittest.skipIf(SKIP_TESTS==1, "skipping")
 class OxleyWaveAssemblerTestBase(unittest.TestCase):
     def generate_fast_HTI_PDE_solution(self):
         pde = WavePDE(self.domain, [("c11", self.c11),
@@ -247,7 +247,7 @@ class OxleyWaveAssemblerTestBase(unittest.TestCase):
             self.run_VTI_assembly()
         self.assertTrue("mismatching function spaces" in str(e.exception))
 
-@unittest.skipIf(SKIP_TESTS == 1, " TODO")
+@unittest.skipIf(SKIP_TESTS==1, "skipping")
 class Test_OxleyWaveAssembler2D(OxleyWaveAssemblerTestBase):
     def setUp(self):
         self.domain = Rectangle(20,20,l0=100.,l1=100., diracTags=["source"],
@@ -257,7 +257,7 @@ class Test_OxleyWaveAssembler2D(OxleyWaveAssemblerTestBase):
     def tearDown(self):
         del self.domain
 
-@unittest.skipIf(SKIP_TESTS == 1, " TODO")
+@unittest.skipIf(SKIP_TESTS==1, "skipping")
 class Test_OxleyWaveAssembler3D(OxleyWaveAssemblerTestBase):
     def setUp(self):
         self.domain = Brick(10,10,10,l0=100.,l1=100., l2=100.,
@@ -267,7 +267,7 @@ class Test_OxleyWaveAssembler3D(OxleyWaveAssemblerTestBase):
     def tearDown(self):
         del self.domain
 
-@unittest.skipIf(SKIP_TESTS == 1, " TODO")
+@unittest.skipIf(SKIP_TESTS==1, "skipping")
 class OxleyLameAssemblerTestBase(unittest.TestCase): #requires subclassing
     def run_lame(self, fast, test_type, mu=3, lamb=50):
         d=self.domain.getDim()
@@ -329,7 +329,7 @@ class OxleyLameAssemblerTestBase(unittest.TestCase): #requires subclassing
                 "Default and Lame %dDassembler solutions differ for "\
                 "constant data"%self.domain.getDim())
 
-@unittest.skipIf(SKIP_TESTS == 1, " TODO")
+@unittest.skipIf(SKIP_TESTS==1, "skipping")
 class Test_OxleyLameAssemblers2D(OxleyLameAssemblerTestBase):
     def setUp(self):
         self.domain = Rectangle(20,20)
@@ -337,7 +337,7 @@ class Test_OxleyLameAssemblers2D(OxleyLameAssemblerTestBase):
     def tearDown(self):
         del self.domain
 
-@unittest.skipIf(SKIP_TESTS == 1, " TODO")
+@unittest.skipIf(SKIP_TESTS==1, "skipping")
 class Test_OxleyLameAssemblers3D(OxleyLameAssemblerTestBase):
     def setUp(self):
         self.domain = Brick(10,10,10)
