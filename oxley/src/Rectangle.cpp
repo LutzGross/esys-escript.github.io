@@ -680,7 +680,9 @@ void Rectangle::refineMesh(std::string algorithmname)
         }
         else
         {
+#ifdef OXLEY_ENABLE_DEBUG
             std::cout << "Warning: Adaptive mesh refinement is disabled." << std::endl;
+#endif
         }
     }
     else {
@@ -1533,7 +1535,8 @@ inline dim_t Rectangle::getNumNodes() const
 //protected
 inline dim_t Rectangle::getNumElements() const
 {
-    return nodes->num_local_elements;
+    // return nodes->num_local_elements;
+    return NodeIDs.size();
 }
 
 //protected

@@ -38,7 +38,8 @@ __author__="Lutz Gross, l.gross@uq.edu.au"
 import os
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
-from test_linearPDEs import Test_Poisson, Test_LinearPDE, Test_TransportPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping
+# from test_linearPDEs import Test_Poisson, Test_LinearPDE, Test_TransportPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping
+from test_linearPDEs import Test_Poisson, Test_LinearPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping
 from test_assemblage import Test_assemblage_2Do1, Test_assemblage_3Do1
 from test_pdetools import Test_pdetools, Test_pdetools_noLumping
 from esys.escript import *
@@ -61,7 +62,8 @@ mpiSize=getMPISizeWorld()
 #     m = MultiResolutionDomain(3, **kwargs)
 #     return m.getLevel(1)
 
-class Test_LinearPDEOnOxleyRect(Test_LinearPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping, Test_pdetools, Test_assemblage_2Do1, Test_TransportPDE):
+# class Test_LinearPDEOnOxleyRect(Test_LinearPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping, Test_pdetools, Test_assemblage_2Do1, Test_TransportPDE):
+class Test_LinearPDEOnOxleyRect(Test_LinearPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping, Test_pdetools, Test_assemblage_2Do1):
     RES_TOL=1.e-7
     ABS_TOL=1.e-8
     def setUp(self):

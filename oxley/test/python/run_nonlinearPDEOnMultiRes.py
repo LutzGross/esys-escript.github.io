@@ -34,9 +34,6 @@ from esys.oxley import Rectangle, Brick
 
 mpiSize = getMPISizeWorld()
 
-#TODO
-SKIP_TESTS=1
-
 # def Rectangle(**kwargs):
 #     m = MultiResolutionDomain(2, **kwargs)
 #     return m.getLevel(1)
@@ -45,20 +42,20 @@ SKIP_TESTS=1
 #     m = MultiResolutionDomain(3, **kwargs)
 #     return m.getLevel(1)
 
-@unittest.skipIf(SKIP_TESTS == 1, " TODO")
 class Test_OxleyNonLinearPDE2D(Test_nlpde):
    def setUp(self):
-        self.domain = Rectangle(l0=1.,l1=1., n0=10, n1=10*getMPISizeWorld()-1, d1=getMPISizeWorld()) 
+        # self.domain = Rectangle(l0=1.,l1=1., n0=10, n1=10*getMPISizeWorld()-1, d1=getMPISizeWorld()) 
+        self.domain = Rectangle(l0=1.,l1=1., n0=10, n1=10) 
    def tearDown(self):
         del self.domain
 
-@unittest.skipIf(SKIP_TESTS == 1, " TODO")
-@unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
-class Test_OxleyNonLinearPDE3D(Test_nlpde):
-   def setUp(self):
-        self.domain = Brick(l0=1.,l1=1.,l2=1., n0=10, n1=10*getMPISizeWorld()-1, n2=10, d1=getMPISizeWorld()) 
-   def tearDown(self):
-        del self.domain
+# TODO
+# @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
+# class Test_OxleyNonLinearPDE3D(Test_nlpde):
+#    def setUp(self):
+#         self.domain = Brick(l0=1.,l1=1.,l2=1., n0=10, n1=10*getMPISizeWorld()-1, n2=10, d1=getMPISizeWorld()) 
+#    def tearDown(self):
+#         del self.domain
 
 if __name__ == '__main__':
    run_tests(__name__, exit_on_failure=True)
