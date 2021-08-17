@@ -52,14 +52,15 @@ class Test_OxleyWaveAssembler2D(OxleyWaveAssemblerTestBase):
     def tearDown(self):
         del self.domain
 
-@unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
-class Test_OxleyWaveAssembler3D(OxleyWaveAssemblerTestBase):
-    def setUp(self):
-        self.domain = Brick(n0=10,n1=10,n2=10,l0=100.,l1=100., l2=100., diracTags=["source"], diracPoints=[(0,0,0)])
-        self.wavelet = Ricker(100.)
+# TODO
+# @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
+# class Test_OxleyWaveAssembler3D(OxleyWaveAssemblerTestBase):
+#     def setUp(self):
+#         self.domain = Brick(n0=10,n1=10,n2=10,l0=100.,l1=100., l2=100., diracTags=["source"], diracPoints=[(0,0,0)])
+#         self.wavelet = Ricker(100.)
 
-    def tearDown(self):
-        del self.domain
+#     def tearDown(self):
+#         del self.domain
 
 class Test_OxleyLameAssemblers2D(OxleyLameAssemblerTestBase):
     def setUp(self):
@@ -68,13 +69,14 @@ class Test_OxleyLameAssemblers2D(OxleyLameAssemblerTestBase):
     def tearDown(self):
         del self.domain
 
-@unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
-class Test_OxleyLameAssemblers3D(OxleyLameAssemblerTestBase):
-    def setUp(self):
-        self.domain = Brick(n0=10,n1=10,n2=10)
+# TODO
+# @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
+# class Test_OxleyLameAssemblers3D(OxleyLameAssemblerTestBase):
+#     def setUp(self):
+#         self.domain = Brick(n0=10,n1=10,n2=10)
 
-    def tearDown(self):
-        del self.domain
+#     def tearDown(self):
+#         del self.domain
 
 
 if __name__ == '__main__':

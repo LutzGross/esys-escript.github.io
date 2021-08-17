@@ -67,12 +67,14 @@ class Test_LinearPDEOnOxleyRect(Test_LinearPDE, Test_LameEquation, Test_Helmholt
     RES_TOL=1.e-7
     ABS_TOL=1.e-8
     def setUp(self):
-        for x in [int(sqrt(mpiSize)),2,3,5,7,1]:
-            NX=x
-            NY=mpiSize//x
-            if NX*NY == mpiSize:
-                break
-        self.domain=Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+        # TODO
+        # for x in [int(sqrt(mpiSize)),2,3,5,7,1]:
+        #     NX=x
+        #     NY=mpiSize//x
+        #     if NX*NY == mpiSize:
+        #         break
+        # self.domain=Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+        self.domain=Rectangle(n0=10, n1=10, l0=1., l1=1.)
         self.order = 1
     def tearDown(self):
         del self.domain
@@ -100,12 +102,15 @@ class Test_PoissonOnOxley(Test_Poisson):
     RES_TOL=1.e-7
     ABS_TOL=1.e-8
     def setUp(self):
-        for x in [int(sqrt(mpiSize)),2,3,5,7,1]:
-            NX=x
-            NY=mpiSize//x
-            if NX*NY == mpiSize:
-                break
-        self.domain=Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+        # TODO
+        # for x in [int(sqrt(mpiSize)),2,3,5,7,1]:
+        #     NX=x
+        #     NY=mpiSize//x
+        #     if NX*NY == mpiSize:
+        #         break
+        # self.domain=Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+        # self.domain=Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1.)
+        self.domain=Rectangle(n0=10, n1=10, l0=1., l1=1.)
     def tearDown(self):
         del self.domain
 
