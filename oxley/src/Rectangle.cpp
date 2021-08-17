@@ -1267,21 +1267,18 @@ void Rectangle::interpolateNodesOnFaces(escript::Data& out,
                                            const escript::Data& in,
                                            bool reduced) const
 {
-    //todo:
-    throw OxleyException("interpolateNodesOnFaces");
-
-    // if (in.isComplex()!=out.isComplex())
-    // {
-    //     throw OxleyException("Programmer Error: in and out parameters do not have the same complexity.");
-    // }
-    // if (in.isComplex())
-    // {
-    //     interpolateNodesOnFacesWorker(out, in, reduced, escript::DataTypes::cplx_t(0));
-    // }
-    // else
-    // {
-    //     interpolateNodesOnFacesWorker(out, in, reduced, escript::DataTypes::real_t(0));      
-    // }
+    if (in.isComplex()!=out.isComplex())
+    {
+        throw OxleyException("Programmer Error: in and out parameters do not have the same complexity.");
+    }
+    if (in.isComplex())
+    {
+        interpolateNodesOnFacesWorker(out, in, reduced, escript::DataTypes::cplx_t(0));
+    }
+    else
+    {
+        interpolateNodesOnFacesWorker(out, in, reduced, escript::DataTypes::real_t(0));      
+    }
 }
 
 
@@ -1367,141 +1364,138 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
                                         const escript::Data& in,
                                         bool reduced, S sentinel) const
 {
-    //todo:
-    throw OxleyException("interpolateNodesOnFacesWorker");
+    const dim_t numComp = in.getDataPointSize();
+    const dim_t numNodes = getNumNodes();
+    if (reduced) {
+        out.requireWrite();
+        double * fxx = new double[4*numComp*numNodes];
+        // This structure is used to store info needed by p4est
+        interpolateNodesOnFacesWorker_Data<S> interpolateData;
+        interpolateData.fxx = fxx;
+        interpolateData.sentinel = sentinel;
+        interpolateData.offset = numComp*sizeof(S);
+        for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; treeid++)
+        {
+            p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, treeid);
+            sc_array_t * tquadrants = &currenttree->quadrants;
+            p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+#pragma omp parallel for
+            for(p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
+            {
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
 
-//     const dim_t numComp = in.getDataPointSize();
-//     const dim_t numNodes = getNumNodes();
-//     if (reduced) {
-//         out.requireWrite();
-//         double * fxx = new double[4*numComp*numNodes];
-//         // This structure is used to store info needed by p4est
-//         interpolateNodesOnFacesWorker_Data<S> interpolateData;
-//         interpolateData.fxx = fxx;
-//         interpolateData.sentinel = sentinel;
-//         interpolateData.offset = numComp*sizeof(S);
-//         for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; treeid++)
-//         {
-//             p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, treeid);
-//             sc_array_t * tquadrants = &currenttree->quadrants;
-//             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-// #pragma omp parallel for
-//             for(p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
-//             {
-//                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
+                if(quad->x == 0)
+                {
+                    interpolateData.direction=0;
+                    p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
 
-//                 if(quad->x == 0)
-//                 {
-//                     interpolateData.direction=0;
-//                     p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
+                    S* o = out.getSampleDataRW(e, sentinel);
+                    for(index_t i=0; i < numComp; ++i) {
+                        o[e] = (fxx[INDEX3(0,i,e,numComp,numNodes)] + fxx[INDEX3(1,i,e,numComp,numNodes)])/static_cast<S>(2);
+                    }
+                }
 
-//                     S* o = out.getSampleDataRW(e, sentinel);
-//                     for(index_t i=0; i < numComp; ++i) {
-//                         o[e] = (fxx[INDEX3(0,i,e,numComp,numNodes)] + fxx[INDEX3(1,i,e,numComp,numNodes)])/static_cast<S>(2);
-//                     }
-//                 }
+                if(quad->x == P4EST_ROOT_LEN)
+                {
+                    interpolateData.direction=1;
+                    p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
 
-//                 if(quad->x == P4EST_ROOT_LEN)
-//                 {
-//                     interpolateData.direction=1;
-//                     p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
+                    S* o = out.getSampleDataRW(e, sentinel);
+                    for(index_t i=0; i < numComp; ++i) {
+                        o[e] = (fxx[INDEX3(2,i,e,numComp,numNodes)] + fxx[INDEX3(3,i,e,numComp,numNodes)])/static_cast<S>(2);
+                    }
+                }
 
-//                     S* o = out.getSampleDataRW(e, sentinel);
-//                     for(index_t i=0; i < numComp; ++i) {
-//                         o[e] = (fxx[INDEX3(2,i,e,numComp,numNodes)] + fxx[INDEX3(3,i,e,numComp,numNodes)])/static_cast<S>(2);
-//                     }
-//                 }
+                if(quad->y == 0)
+                {
+                    interpolateData.direction=2;
+                    p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
 
-//                 if(quad->y == 0)
-//                 {
-//                     interpolateData.direction=2;
-//                     p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
+                    S* o = out.getSampleDataRW(e, sentinel);
+                    for(index_t i=0; i < numComp; ++i) {
+                        o[e] = (fxx[INDEX3(0,i,e,numComp,numNodes)] + fxx[INDEX3(2,i,e,numComp,numNodes)])/static_cast<S>(2);
+                    }
+                }
 
-//                     S* o = out.getSampleDataRW(e, sentinel);
-//                     for(index_t i=0; i < numComp; ++i) {
-//                         o[e] = (fxx[INDEX3(0,i,e,numComp,numNodes)] + fxx[INDEX3(2,i,e,numComp,numNodes)])/static_cast<S>(2);
-//                     }
-//                 }
+                if(quad->y == P4EST_ROOT_LEN)
+                {
+                    interpolateData.direction=3;
+                    p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
 
-//                 if(quad->y == P4EST_ROOT_LEN)
-//                 {
-//                     interpolateData.direction=3;
-//                     p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
+                    S* o = out.getSampleDataRW(e, sentinel);
+                    for(index_t i=0; i < numComp; ++i) {
+                        o[e] = (fxx[INDEX3(1,i,e,numComp,numNodes)] + fxx[INDEX3(3,i,e,numComp,numNodes)])/static_cast<S>(2);
+                    }
+                }
+            }
+        }
+    } else {
+        out.requireWrite();
+        const S c0 = 0.21132486540518711775;
+        const S c1 = 0.78867513459481288225;
 
-//                     S* o = out.getSampleDataRW(e, sentinel);
-//                     for(index_t i=0; i < numComp; ++i) {
-//                         o[e] = (fxx[INDEX3(1,i,e,numComp,numNodes)] + fxx[INDEX3(3,i,e,numComp,numNodes)])/static_cast<S>(2);
-//                     }
-//                 }
-//             }
-//         }
-//     } else {
-//         out.requireWrite();
-//         const S c0 = 0.21132486540518711775;
-//         const S c1 = 0.78867513459481288225;
+        double * fxx = new double[4*numComp*numNodes];
+        // This structure is used to store info needed by p4est
+        interpolateNodesOnFacesWorker_Data<S> interpolateData;
+        interpolateData.fxx = fxx;
+        interpolateData.sentinel = sentinel;
+        interpolateData.offset = numComp*sizeof(S);
+        for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; treeid++)
+        {
+            p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, treeid);
+            sc_array_t * tquadrants = &currenttree->quadrants;
+            p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+#pragma omp parallel for
+            for(p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
+            {
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
 
-//         double * fxx = new double[4*numComp*numNodes];
-//         // This structure is used to store info needed by p4est
-//         interpolateNodesOnFacesWorker_Data<S> interpolateData;
-//         interpolateData.fxx = fxx;
-//         interpolateData.sentinel = sentinel;
-//         interpolateData.offset = numComp*sizeof(S);
-//         for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; treeid++)
-//         {
-//             p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, treeid);
-//             sc_array_t * tquadrants = &currenttree->quadrants;
-//             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-// #pragma omp parallel for
-//             for(p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
-//             {
-//                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
+                if(quad->x == 0)
+                {
+                    interpolateData.direction=0;
+                    p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
+                    S* o = out.getSampleDataRW(e, sentinel);
+                    for(index_t i=0; i < numComp; ++i) {
+                        o[INDEX2(i,numComp,0)] = c0*fxx[INDEX3(1,i,e,numComp,numNodes)] + c1*fxx[INDEX3(0,i,e,numComp,numNodes)];
+                        o[INDEX2(i,numComp,1)] = c0*fxx[INDEX3(0,i,e,numComp,numNodes)] + c1*fxx[INDEX3(1,i,e,numComp,numNodes)];
+                    }
+                }
 
-//                 if(quad->x == 0)
-//                 {
-//                     interpolateData.direction=0;
-//                     p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
-//                     S* o = out.getSampleDataRW(e, sentinel);
-//                     for(index_t i=0; i < numComp; ++i) {
-//                         o[INDEX2(i,numComp,0)] = c0*fxx[INDEX3(1,i,e,numComp,numNodes)] + c1*fxx[INDEX3(0,i,e,numComp,numNodes)];
-//                         o[INDEX2(i,numComp,1)] = c0*fxx[INDEX3(0,i,e,numComp,numNodes)] + c1*fxx[INDEX3(1,i,e,numComp,numNodes)];
-//                     }
-//                 }
+                if(quad->x == P4EST_ROOT_LEN)
+                {
+                    interpolateData.direction=1;
+                    p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
+                    S* o = out.getSampleDataRW(e, sentinel);
+                    for(index_t i=0; i < numComp; ++i) {
+                        o[INDEX2(i,numComp,0)] = c1*fxx[INDEX3(2,i,e,numComp,numNodes)] + c0*fxx[INDEX3(3,i,e,numComp,numNodes)];
+                        o[INDEX2(i,numComp,1)] = c1*fxx[INDEX3(3,i,e,numComp,numNodes)] + c0*fxx[INDEX3(2,i,e,numComp,numNodes)];
+                    }
+                }
 
-//                 if(quad->x == P4EST_ROOT_LEN)
-//                 {
-//                     interpolateData.direction=1;
-//                     p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
-//                     S* o = out.getSampleDataRW(e, sentinel);
-//                     for(index_t i=0; i < numComp; ++i) {
-//                         o[INDEX2(i,numComp,0)] = c1*fxx[INDEX3(2,i,e,numComp,numNodes)] + c0*fxx[INDEX3(3,i,e,numComp,numNodes)];
-//                         o[INDEX2(i,numComp,1)] = c1*fxx[INDEX3(3,i,e,numComp,numNodes)] + c0*fxx[INDEX3(2,i,e,numComp,numNodes)];
-//                     }
-//                 }
+                if(quad->y == 0)
+                {
+                    interpolateData.direction=2;
+                    p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
+                    S* o = out.getSampleDataRW(e, sentinel);
+                    for(index_t i=0; i < numComp; ++i) {
+                        o[INDEX2(i,numComp,0)] = c0*fxx[INDEX3(2,i,e,numComp,numNodes)] + c1*fxx[INDEX3(0,i,e,numComp,numNodes)];
+                        o[INDEX2(i,numComp,1)] = c0*fxx[INDEX3(0,i,e,numComp,numNodes)] + c1*fxx[INDEX3(2,i,e,numComp,numNodes)];
+                    }
+                }
 
-//                 if(quad->y == 0)
-//                 {
-//                     interpolateData.direction=2;
-//                     p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
-//                     S* o = out.getSampleDataRW(e, sentinel);
-//                     for(index_t i=0; i < numComp; ++i) {
-//                         o[INDEX2(i,numComp,0)] = c0*fxx[INDEX3(2,i,e,numComp,numNodes)] + c1*fxx[INDEX3(0,i,e,numComp,numNodes)];
-//                         o[INDEX2(i,numComp,1)] = c0*fxx[INDEX3(0,i,e,numComp,numNodes)] + c1*fxx[INDEX3(2,i,e,numComp,numNodes)];
-//                     }
-//                 }
-
-//                 if(quad->y == P4EST_ROOT_LEN)
-//                 {
-//                     interpolateData.direction=3;
-//                     p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
-//                     S* o = out.getSampleDataRW(e, sentinel);
-//                     for(index_t i=0; i < numComp; ++i) {
-//                         o[INDEX2(i,numComp,0)] = c0*fxx[INDEX3(3,i,e,numComp,numNodes)] + c1*fxx[INDEX3(1,i,e,numComp,numNodes)];
-//                         o[INDEX2(i,numComp,1)] = c0*fxx[INDEX3(1,i,e,numComp,numNodes)] + c1*fxx[INDEX3(3,i,e,numComp,numNodes)];
-//                     }
-//                 }
-//             }
-//         }
-//     }
+                if(quad->y == P4EST_ROOT_LEN)
+                {
+                    interpolateData.direction=3;
+                    p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnFacesWorker_data, NULL, NULL);
+                    S* o = out.getSampleDataRW(e, sentinel);
+                    for(index_t i=0; i < numComp; ++i) {
+                        o[INDEX2(i,numComp,0)] = c0*fxx[INDEX3(3,i,e,numComp,numNodes)] + c1*fxx[INDEX3(1,i,e,numComp,numNodes)];
+                        o[INDEX2(i,numComp,1)] = c0*fxx[INDEX3(1,i,e,numComp,numNodes)] + c1*fxx[INDEX3(3,i,e,numComp,numNodes)];
+                    }
+                }
+            }
+        }
+    }
 }
 
 ////////////////////////////// inline methods ////////////////////////////////

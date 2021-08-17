@@ -741,7 +741,25 @@ namespace oxley {
 
     bool OxleyDomain::canTag(int fsType) const
     {
-        throw OxleyException("currently not implemented"); // This is temporary
+        switch(fsType) {
+            case Nodes:
+            case Elements:
+            case ReducedElements:
+            case FaceElements:
+            case Points:
+            case ReducedFaceElements:
+                return true;
+            case DegreesOfFreedom:
+            case ReducedDegreesOfFreedom:
+            case ReducedNodes:
+                return false;
+            default:
+                break;
+        }
+        stringstream msg;
+        msg << "canTag: invalid function space type " << fsType << " on "
+            << getDescription();
+        throw ValueError(msg.str());
     }
 
     void OxleyDomain::updateTagsInUse(int fsType) const
