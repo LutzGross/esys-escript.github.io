@@ -29,7 +29,8 @@ import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 from esys.escript import *
 from esys.oxley import Rectangle, Brick, oxleycpp
-from test_objects import Test_Dump, Test_SetDataPointValue, Test_saveCSV, Test_TableInterpolation
+# from test_objects import Test_Dump, Test_SetDataPointValue, Test_saveCSV, Test_TableInterpolation
+from test_objects import Test_Dump, Test_SetDataPointValue, Test_saveCSV
 from test_objects import Test_Domain, Test_Lazy, Test_tagMap
 
 from test_shared import Test_Shared
