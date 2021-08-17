@@ -350,6 +350,8 @@ protected:
     // vector with first node id on each rank
     IndexVector m_nodeDistribution;
     void updateNodeDistribution();
+    IndexVector m_elementId;
+    void updateElementIds();
 
 #ifdef ESYS_HAVE_PASO
     // the Paso System Matrix pattern
@@ -371,6 +373,9 @@ protected:
     long m_NE[2] = {0};
     // Initial spacing
     double m_NX[2] = {0};
+
+
+
 };
 
 

@@ -45,9 +45,6 @@ from esys.escript import *
 # from esys.oxley import MultiResolutionDomain
 from esys.oxley import Rectangle, Brick
 
-#TODO
-SKIP_TESTS=1
-
 try:
      OXLEY_TEST_DATA=os.environ['OXLEY_TEST_DATA']
 except KeyError:
@@ -64,7 +61,6 @@ mpiSize=getMPISizeWorld()
 #     m = MultiResolutionDomain(3, **kwargs)
 #     return m.getLevel(1)
 
-@unittest.skipIf(SKIP_TESTS == 1, " TODO")
 class Test_LinearPDEOnOxleyRect(Test_LinearPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping, Test_pdetools, Test_assemblage_2Do1, Test_TransportPDE):
     RES_TOL=1.e-7
     ABS_TOL=1.e-8
@@ -79,26 +75,25 @@ class Test_LinearPDEOnOxleyRect(Test_LinearPDE, Test_LameEquation, Test_Helmholt
     def tearDown(self):
         del self.domain
 
-@unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
-@unittest.skipIf(SKIP_TESTS == 1, " TODO")
-class Test_LinearPDEOnOxleyBrick(Test_LinearPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping, Test_pdetools, Test_assemblage_3Do1, Test_TransportPDE):
-    RES_TOL=1.e-7
-    ABS_TOL=1.e-8
-    def setUp(self):
-        for x in [(int(mpiSize**(1/3.)),int(mpiSize**(1/3.))),(2,3),(2,2),(1,2),(1,1)]:
-            NX=x[0]
-            NY=x[1]
-            NZ=mpiSize//(x[0]*x[1])
-            if NX*NY*NZ == mpiSize:
-                break
+# TODO
+# @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
+# class Test_LinearPDEOnOxleyBrick(Test_LinearPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping, Test_pdetools, Test_assemblage_3Do1, Test_TransportPDE):
+#     RES_TOL=1.e-7
+#     ABS_TOL=1.e-8
+#     def setUp(self):
+#         for x in [(int(mpiSize**(1/3.)),int(mpiSize**(1/3.))),(2,3),(2,2),(1,2),(1,1)]:
+#             NX=x[0]
+#             NY=x[1]
+#             NZ=mpiSize//(x[0]*x[1])
+#             if NX*NY*NZ == mpiSize:
+#                 break
 
-        self.domain = Brick(n0=NE*NX-1, n1=NE*NY-1, n2=NE*NZ-1, l0=1., l1=1., l2=1., d0=NX, d1=NY, d2=NZ)
-        self.order = 1
+#         self.domain = Brick(n0=NE*NX-1, n1=NE*NY-1, n2=NE*NZ-1, l0=1., l1=1., l2=1., d0=NX, d1=NY, d2=NZ)
+#         self.order = 1
 
-    def tearDown(self):
-        del self.domain
+#     def tearDown(self):
+#         del self.domain
 
-@unittest.skipIf(SKIP_TESTS == 1, " TODO")
 class Test_PoissonOnOxley(Test_Poisson):
     RES_TOL=1.e-7
     ABS_TOL=1.e-8

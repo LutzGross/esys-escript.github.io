@@ -196,6 +196,7 @@ Rectangle::Rectangle(int order,
     renumberNodes();
     updateRowsColumns();
     updateNodeDistribution();
+    updateElementIds();
     // populateDofMap();
 
     // Dirac points and tags
@@ -574,8 +575,6 @@ void Rectangle::dump(const std::string& fileName) const
 
 const dim_t* Rectangle::borrowSampleReferenceIDs(int fsType) const
 {
-    throw OxleyException("borrowSampleReferenceIDs"); 
-    
     switch (fsType) {
         case Nodes:
         case ReducedNodes:
@@ -585,8 +584,7 @@ const dim_t* Rectangle::borrowSampleReferenceIDs(int fsType) const
             throw OxleyException("Unknown Error.");
         case Elements:
         case ReducedElements:
-            throw OxleyException("borrowSampleReferenceIDs: Elements");
-            // return &m_elementId[0];
+            return &m_elementId[0];
         case FaceElements:
         case ReducedFaceElements:
             throw OxleyException("borrowSampleReferenceIDs: FaceIDs");
@@ -710,6 +708,7 @@ void Rectangle::refineMesh(std::string algorithmname)
     updateNodeIncrements();
     renumberNodes();
     updateRowsColumns();
+    updateElementIds();
 }
 
 void Rectangle::refineBoundary(std::string boundaryname, double dx)
@@ -2011,6 +2010,17 @@ void Rectangle::updateNodeDistribution()
         }
     }
     m_nodeDistribution.shrink_to_fit();
+}
+
+// updates m_elementIDs()
+void Rectangle::updateElementIds()
+{
+    m_elementId.clear();
+    m_elementId.assign(MAXP4ESTNODES,0);
+    int count=0;
+    for(std::pair<DoublePair,long> e : NodeIDs)
+        m_elementId[count++]=e.second;
+    m_elementId.shrink_to_fit();
 }
 
 //private

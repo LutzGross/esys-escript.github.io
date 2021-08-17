@@ -55,8 +55,7 @@ NE=8 # initial number of elements in each spatial direction (must be even)
 mpiSize=getMPISizeWorld()
 
 # TODO
-# class Test_LinearPDEOnOxleyRectangle(Test_LinearPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping, Test_pdetools, Test_assemblage_2Do1, Test_TransportPDE):
-class Test_LinearPDEOnOxleyRectangle(Test_LinearPDE):
+class Test_LinearPDEOnOxleyRectangle(Test_LinearPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping, Test_pdetools, Test_assemblage_2Do1, Test_TransportPDE):
     RES_TOL=1.e-7
     ABS_TOL=1.e-8
     def setUp(self):

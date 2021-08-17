@@ -91,14 +91,15 @@ class Test_Util_SpatialFunctionsOnOxley2D(Test_Util_SpatialFunctions_noGradOnBou
         del self.order
         del self.domain
 
-@unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
-class Test_Util_SpatialFunctionsOnOxley3D(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
-    def setUp(self):
-        self.order=1
-        self.domain = Brick(n0=NE*NXb-1, n1=NE*NYb-1, n2=NE*NZb-1, l0=1., l1=1., l2=1., d0=NXb, d1=NYb, d2=NZb)
-    def tearDown(self):
-        del self.order
-        del self.domain
+# TOOD
+# @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
+# class Test_Util_SpatialFunctionsOnOxley3D(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
+#     def setUp(self):
+#         self.order=1
+#         self.domain = Brick(n0=NE*NXb-1, n1=NE*NYb-1, n2=NE*NZb-1, l0=1., l1=1., l2=1., d0=NXb, d1=NYb, d2=NZb)
+#     def tearDown(self):
+#         del self.order
+#         del self.domain
 
 if __name__ == '__main__':
     run_tests(__name__, exit_on_failure=True)
