@@ -197,6 +197,7 @@ Rectangle::Rectangle(int order,
     updateRowsColumns();
     updateNodeDistribution();
     updateElementIds();
+    updateFaceOffset();
     // populateDofMap();
 
     // Dirac points and tags
@@ -295,7 +296,7 @@ void Rectangle::setToNormal(escript::Data& out) const
                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
                 quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
-                if (quaddata->m_faceOffset == 0) {
+                if (quaddata->m_faceOffset[0]) {
                     double* o = out.getSampleDataRW(e);
                     // set vector at two quadrature points
                     *o++ = -1.;
@@ -304,7 +305,7 @@ void Rectangle::setToNormal(escript::Data& out) const
                     *o = 0.;
                 }
 
-                if (quaddata->m_faceOffset == 1) {
+                if (quaddata->m_faceOffset[1]) {
                     double* o = out.getSampleDataRW(e);
                     // set vector at two quadrature points
                     *o++ = 1.;
@@ -313,7 +314,7 @@ void Rectangle::setToNormal(escript::Data& out) const
                     *o = 0.;
                 }
 
-                if (quaddata->m_faceOffset == 2) {
+                if (quaddata->m_faceOffset[2]) {
                     double* o = out.getSampleDataRW(e);
                     // set vector at two quadrature points
                     *o++ = 0.;
@@ -322,7 +323,7 @@ void Rectangle::setToNormal(escript::Data& out) const
                     *o = -1.;
                 }
 
-                if (quaddata->m_faceOffset == 3) {
+                if (quaddata->m_faceOffset[3]) {
                     double* o = out.getSampleDataRW(e);
                     // set vector at two quadrature points
                     *o++ = 0.;
@@ -346,25 +347,25 @@ void Rectangle::setToNormal(escript::Data& out) const
                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
                 quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
-                if (quaddata->m_faceOffset == 0) {
+                if (quaddata->m_faceOffset[0]) {
                     double* o = out.getSampleDataRW(e);
                     *o++ = -1.;
                     *o = 0.;
                 }
 
-                if (quaddata->m_faceOffset == 1) {
+                if (quaddata->m_faceOffset[1]) {
                     double* o = out.getSampleDataRW(e);
                     *o++ = 1.;
                     *o = 0.;
                 }
 
-                if (quaddata->m_faceOffset == 2) {
+                if (quaddata->m_faceOffset[2]) {
                     double* o = out.getSampleDataRW(e);
                     *o++ = 0.;
                     *o = -1.;
                 }
 
-                if (quaddata->m_faceOffset == 3) {
+                if (quaddata->m_faceOffset[3]) {
                     double* o = out.getSampleDataRW(e);
                     *o++ = 0.;
                     *o = 1.;
@@ -423,19 +424,19 @@ void Rectangle::setToSize(escript::Data& out) const
                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
                 quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
-                if (quaddata->m_faceOffset == 0) {
+                if (quaddata->m_faceOffset[0]) {
                     double* o = out.getSampleDataRW(e);
                     std::fill(o, o+numQuad, forestData.m_dx[1][quad->level]);
                 }
-                else if (quaddata->m_faceOffset == 1) {
+                else if (quaddata->m_faceOffset[1]) {
                     double* o = out.getSampleDataRW(e);
                     std::fill(o, o+numQuad, forestData.m_dx[1][quad->level]);
                 }
-                else if (quaddata->m_faceOffset == 2) {
+                else if (quaddata->m_faceOffset[2]) {
                     double* o = out.getSampleDataRW(e);
                     std::fill(o, o+numQuad, forestData.m_dx[0][quad->level]);
                 }
-                else if (quaddata->m_faceOffset == 3) {
+                else if (quaddata->m_faceOffset[3]) {
                     double* o = out.getSampleDataRW(e);
                     std::fill(o, o+numQuad, forestData.m_dx[0][quad->level]);
                 }
@@ -711,6 +712,7 @@ void Rectangle::refineMesh(std::string algorithmname)
     renumberNodes();
     updateRowsColumns();
     updateElementIds();
+    updateFaceOffset();
 }
 
 void Rectangle::refineBoundary(std::string boundaryname, double dx)
@@ -2264,7 +2266,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                 std::vector<Scalar> f_10(numComp, zero);
                 std::vector<Scalar> f_11(numComp, zero);
 
-                if (quaddata->m_faceOffset == 0) {
+                if (quaddata->m_faceOffset[0]) {
                     memcpy(&f_00[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     memcpy(&f_01[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     memcpy(&f_10[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
@@ -2277,7 +2279,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                         o[INDEX3(i,1,1,numComp,2)] = (f_01[i]-f_00[i])*cy[2][i];
                     } // end of component loop i
                 } // end of face 0
-                if (quaddata->m_faceOffset == 1) {
+                if (quaddata->m_faceOffset[1]) {
                     memcpy(&f_00[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     memcpy(&f_01[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     memcpy(&f_10[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
@@ -2290,7 +2292,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                         o[INDEX3(i,1,1,numComp,2)] = (f_11[i]-f_10[i])*cy[2][i];
                     } // end of component loop i
                 } // end of face 1
-                if (quaddata->m_faceOffset == 2) {
+                if (quaddata->m_faceOffset[2]) {
                     memcpy(&f_00[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     memcpy(&f_01[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     memcpy(&f_10[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
@@ -2303,7 +2305,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                         o[INDEX3(i,1,1,numComp,2)] = (f_01[i]-f_00[i])*cy[0][i] + (f_11[i]-f_10[i])*cy[1][i];
                     } // end of component loop i
                 } // end of face 2
-                if (quaddata->m_faceOffset == 3) {
+                if (quaddata->m_faceOffset[3]) {
                     memcpy(&f_00[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     memcpy(&f_01[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     memcpy(&f_10[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
@@ -2342,7 +2344,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                 std::vector<Scalar> f_10(numComp, zero);
                 std::vector<Scalar> f_11(numComp, zero);
 
-                if (quaddata->m_faceOffset == 0) {
+                if (quaddata->m_faceOffset[0]) {
                     memcpy(&f_00[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     memcpy(&f_01[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     memcpy(&f_10[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
@@ -2353,7 +2355,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                         o[INDEX3(i,1,0,numComp,2)] = (f_01[i]-f_00[i])*cy[2][i];
                     } // end of component loop i
                 } // end of face 0
-                if (quaddata->m_faceOffset == 1) {
+                if (quaddata->m_faceOffset[1]) {
                     memcpy(&f_00[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     memcpy(&f_01[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     memcpy(&f_10[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
@@ -2364,7 +2366,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                         o[INDEX3(i,1,0,numComp,2)] = (f_11[i]-f_10[i])*cy[2][i];
                     } // end of component loop i
                 } // end of face 1
-                if (quaddata->m_faceOffset == 2) {
+                if (quaddata->m_faceOffset[2]) {
                     memcpy(&f_00[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     memcpy(&f_01[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     memcpy(&f_10[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
@@ -2375,7 +2377,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                         o[INDEX3(i,1,0,numComp,2)] = (f_01[i] + f_11[i] - f_00[i] - f_10[i])*cy[2][i] * 0.5;
                     } // end of component loop i
                 } // end of face 2
-                if (quaddata->m_faceOffset == 3) {
+                if (quaddata->m_faceOffset[3]) {
                     memcpy(&f_00[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     memcpy(&f_01[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     memcpy(&f_10[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));

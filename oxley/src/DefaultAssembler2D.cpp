@@ -212,10 +212,6 @@ void DefaultAssembler2D<Scalar>::assemblePDESingle(AbstractSystemMatrix* mat, Da
     vector<Scalar> EM_S(4*4, zero);
     vector<Scalar> EM_F(4, zero);
 
-    if (addEM_S)
-        fill(EM_S.begin(), EM_S.end(), zero);
-    if (addEM_F)
-        fill(EM_F.begin(), EM_F.end(), zero);
     rhs.requireWrite();
 
     for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
@@ -677,7 +673,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
         p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
         sc_array_t * tquadrants = &currenttree->quadrants;
         p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-//#pragma omp parallel for
+#pragma omp parallel for
         for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
         {
             
@@ -689,7 +685,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
             
             quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
-            if (quaddata->m_faceOffset == 0) {
+            if (quaddata->m_faceOffset[0]) {
                 if (addEM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
                 if (addEM_F) {
@@ -742,7 +738,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
         p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
         sc_array_t * tquadrants = &currenttree->quadrants;
         p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-//#pragma omp parallel for
+#pragma omp parallel for
         for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
         {                
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
@@ -752,7 +748,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
 
             quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
-            if (quaddata->m_faceOffset == 1) {
+            if (quaddata->m_faceOffset[1]) {
                 if (addEM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
                 if (addEM_F) {
@@ -806,7 +802,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
         p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
         sc_array_t * tquadrants = &currenttree->quadrants;
         p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-//#pragma omp parallel for
+#pragma omp parallel for
         for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
         {                
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
@@ -816,7 +812,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
 
             quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
-            if (quaddata->m_faceOffset == 2) {
+            if (quaddata->m_faceOffset[2]) {
                 if (addEM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
                 if (addEM_F) {
@@ -871,7 +867,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
         p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
         sc_array_t * tquadrants = &currenttree->quadrants;
         p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-//#pragma omp parallel for
+#pragma omp parallel for
         for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
         {                
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
@@ -881,7 +877,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
 
             quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
-            if(quaddata->m_faceOffset == 3) {
+            if(quaddata->m_faceOffset[3]) {
                 if (addEM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
                 if (addEM_F) {
@@ -928,7 +924,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
                 domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t);
             }
         }
-    }
+    }    
 }
 
 /****************************************************************************/
@@ -1165,7 +1161,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingleReduced(
     vector<Scalar> EM_S(4*4, zero);
     vector<Scalar> EM_F(4, zero);
 
-            for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
+    for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
     {
         p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
         sc_array_t * tquadrants = &currenttree->quadrants;
@@ -1180,7 +1176,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingleReduced(
 
             quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
-            if(quaddata->m_faceOffset == 0) {
+            if(quaddata->m_faceOffset[0]) {
                 if (addEM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
                 if (addEM_F) {
@@ -1229,7 +1225,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingleReduced(
 
             quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
-            if (quaddata->m_faceOffset == 1) {
+            if (quaddata->m_faceOffset[1]) {
                 if (addEM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
                 if (addEM_F) {
@@ -1278,7 +1274,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingleReduced(
 
             quadrantData * quaddata = (quadrantData *) quad->p.user_data;                
 
-            if (quaddata->m_faceOffset == 2) {
+            if (quaddata->m_faceOffset[2]) {
                 if (addEM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
                 if (addEM_F) {
@@ -1327,7 +1323,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingleReduced(
 
             quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
-            if (quaddata->m_faceOffset == 3) {
+            if (quaddata->m_faceOffset[3]) {
                 if (addEM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
                 if (addEM_F) {
@@ -1888,7 +1884,8 @@ void DefaultAssembler2D<Scalar>::assemblePDESystem(AbstractSystemMatrix* mat,
 
             // add to matrix (if addEM_S) and RHS (if addEM_F)
             // const index_t firstNode=m_NN[0]*k1+k0;
-            domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t, numEq, numComp);
+            // domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t, numEq, numComp);
+            domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t);
         }
     }
 }
@@ -1962,7 +1959,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
             long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
             quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
-            if (quaddata->m_faceOffset == 0) {
+            if (quaddata->m_faceOffset[0]) {
                 if (addEM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
                 if (addEM_F)
@@ -2017,7 +2014,8 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
                         }
                     }
                 }
-                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, id, numEq, numComp);
+                // domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, id, numEq, numComp);
+                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t);
             }
         } 
     }
@@ -2037,7 +2035,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
             long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
             quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
-            if (quaddata->m_faceOffset == 1) {
+            if (quaddata->m_faceOffset[1]) {
                 if (addEM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
                 if (addEM_F)
@@ -2092,7 +2090,8 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
                         }
                     }
                 }
-                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, id, numEq, numComp);
+                // domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, id, numEq, numComp);
+                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t);
             }
         }
     }
@@ -2112,7 +2111,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
             long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
             quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
-            if (quaddata->m_faceOffset == 2) {
+            if (quaddata->m_faceOffset[2]) {
                 if (addEM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
                 if (addEM_F)
@@ -2167,7 +2166,8 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
                         }
                     }
                 }
-                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, id, numEq, numComp);
+                // domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, id, numEq, numComp);
+                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t);
             }
         } 
     }
@@ -2186,7 +2186,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
             long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
             quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
-            if (quaddata->m_faceOffset == 3) {
+            if (quaddata->m_faceOffset[3]) {
                 if (addEM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
                 if (addEM_F)
@@ -2243,7 +2243,8 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
                         }
                     }
                 }
-                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, id, numEq, numComp);
+                // domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, id, numEq, numComp);
+                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t);
             }
         }
     }
@@ -2465,7 +2466,8 @@ void DefaultAssembler2D<Scalar>::assemblePDESystemReduced(
                 }
 
                 // add to matrix (if addEM_S) and RHS (if addEM_F)
-                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, id, numEq, numComp);
+                // domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, id, numEq, numComp);
+                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t);
         } 
     } 
 }
@@ -2529,7 +2531,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
             long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
             quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
-            if (quaddata->m_faceOffset == 0) {
+            if (quaddata->m_faceOffset[0]) {
                 if (addEM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
                 if (addEM_F)
@@ -2563,7 +2565,8 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
                         EM_F[INDEX2(k,2,numEq)] = 2*w[1][l]*y_p[k];
                     }
                 }
-                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, id, numEq, numComp);
+                // domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, id, numEq, numComp);
+                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t);
             }
         }
     }
@@ -2582,7 +2585,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
             long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
             quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
-            if (quaddata->m_faceOffset == 1) {
+            if (quaddata->m_faceOffset[1]) {
                 if (addEM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
                 if (addEM_F)
@@ -2616,7 +2619,8 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
                         EM_F[INDEX2(k,3,numEq)] = 2.*w[1][l]*y_p[k];
                     }
                 }
-                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, id, numEq, numComp);
+                // domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, id, numEq, numComp);
+                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t);
             }
         }
     }
@@ -2635,7 +2639,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
             long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
             quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
-            if (quaddata->m_faceOffset == 2) {
+            if (quaddata->m_faceOffset[2]) {
                 if (addEM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
                 if (addEM_F)
@@ -2670,7 +2674,8 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
                     }
                 }
 
-                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, id, numEq, numComp);
+                // domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, id, numEq, numComp);
+                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t);
             }
         }
     }
@@ -2689,7 +2694,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
             long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
             quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
-            if (quaddata->m_faceOffset == 3) {
+            if (quaddata->m_faceOffset[3]) {
                 if (addEM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
                 if (addEM_F)
@@ -2724,7 +2729,8 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
                     }
                 }
                 
-                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, id, numEq, numComp);
+                // domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, id, numEq, numComp);
+                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t);
             }
         }
     }

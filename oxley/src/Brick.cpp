@@ -303,7 +303,7 @@ void Brick::setToNormal(escript::Data& out) const
                 p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, e);
                 quadrantData * quaddata = (quadrantData *) quad->p.user_data;               
 
-                if(quaddata->m_faceOffset == 0) {
+                if(quaddata->m_faceOffset[0]) {
                     double* o = out.getSampleDataRW(e);
                     // set vector at four quadrature points
                     *o++ = -1.; *o++ = 0.; *o++ = 0.;
@@ -312,7 +312,7 @@ void Brick::setToNormal(escript::Data& out) const
                     *o++ = -1.; *o++ = 0.; *o = 0.;
                 }
             
-                if(quaddata->m_faceOffset == 1) {
+                if(quaddata->m_faceOffset[1]) {
                     double* o = out.getSampleDataRW(e);
                     // set vector at four quadrature points
                     *o++ = 1.; *o++ = 0.; *o++ = 0.;
@@ -321,7 +321,7 @@ void Brick::setToNormal(escript::Data& out) const
                     *o++ = 1.; *o++ = 0.; *o = 0.;
                 }
 
-                if(quaddata->m_faceOffset == 2) {
+                if(quaddata->m_faceOffset[2]) {
                     double* o = out.getSampleDataRW(e);                    
                     // set vector at four quadrature points
                     *o++ = 0.; *o++ = -1.; *o++ = 0.;
@@ -330,7 +330,7 @@ void Brick::setToNormal(escript::Data& out) const
                     *o++ = 0.; *o++ = -1.; *o = 0.;
                 }
 
-                if(quaddata->m_faceOffset == 3) {
+                if(quaddata->m_faceOffset[3]) {
                     double* o = out.getSampleDataRW(e);
                     // set vector at four quadrature points
                     *o++ = 0.; *o++ = 1.; *o++ = 0.;
@@ -339,7 +339,7 @@ void Brick::setToNormal(escript::Data& out) const
                     *o++ = 0.; *o++ = 1.; *o = 0.;
                 }
 
-                if(quaddata->m_faceOffset == 4) {
+                if(quaddata->m_faceOffset[4]) {
                     double* o = out.getSampleDataRW(e);
                     // set vector at four quadrature points
                     *o++ = 0.; *o++ = 0.; *o++ = -1.;
@@ -348,7 +348,7 @@ void Brick::setToNormal(escript::Data& out) const
                     *o++ = 0.; *o++ = 0.; *o = -1.;
                 }
 
-                if(quaddata->m_faceOffset == 5) {
+                if(quaddata->m_faceOffset[5]) {
                     double* o = out.getSampleDataRW(e);
                     // set vector at four quadrature points
                     *o++ = 0.; *o++ = 0.; *o++ = 1.;
@@ -374,42 +374,42 @@ void Brick::setToNormal(escript::Data& out) const
                 p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, e);
                 quadrantData * quaddata = (quadrantData *) quad->p.user_data; 
 
-                if(quaddata->m_faceOffset == 0) {
+                if(quaddata->m_faceOffset[0]) {
                     double* o = out.getSampleDataRW(e);
                     *o++ = -1.;
                     *o++ = 0.;
                     *o = 0.;
                 }
 
-                if(quaddata->m_faceOffset == 1) {
+                if(quaddata->m_faceOffset[1]) {
                     double* o = out.getSampleDataRW(e);
                     *o++ = 1.;
                     *o++ = 0.;
                     *o = 0.;
                 }
 
-                if(quaddata->m_faceOffset == 2) {
+                if(quaddata->m_faceOffset[2]) {
                     double* o = out.getSampleDataRW(e);
                     *o++ = 0.;
                     *o++ = -1.;
                     *o = 0.;
                 }
 
-                if(quaddata->m_faceOffset == 3) {
+                if(quaddata->m_faceOffset[3]) {
                     double* o = out.getSampleDataRW(e);
                     *o++ = 0.;
                     *o++ = 1.;
                     *o = 0.;
                 }
 
-                if(quaddata->m_faceOffset == 4) {
+                if(quaddata->m_faceOffset[4]) {
                     double* o = out.getSampleDataRW(e);
                     *o++ = 0.;
                     *o++ = 0.;
                     *o = -1.;
                 }
 
-                if(quaddata->m_faceOffset == 5) {
+                if(quaddata->m_faceOffset[5]) {
                     double* o = out.getSampleDataRW(e);
                     *o++ = 0.;
                     *o++ = 0.;
@@ -470,32 +470,32 @@ void Brick::setToSize(escript::Data& out) const
                 p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, e);
                 quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
-                if (quaddata->m_faceOffset == 0) {
+                if (quaddata->m_faceOffset[0]) {
                     double* o = out.getSampleDataRW(e);
                     std::fill(o, o+numQuad, forestData.m_dx[1][quad->level]);
                 }
 
-                if (quaddata->m_faceOffset == 1) {
+                if (quaddata->m_faceOffset[1]) {
                     double* o = out.getSampleDataRW(e);
                     std::fill(o, o+numQuad, forestData.m_dx[1][quad->level]);
                 }
 
-                if (quaddata->m_faceOffset == 2) {
+                if (quaddata->m_faceOffset[2]) {
                     double* o = out.getSampleDataRW(e);
                     std::fill(o, o+numQuad, forestData.m_dx[0][quad->level]);
                 }
 
-                if (quaddata->m_faceOffset == 3) {
+                if (quaddata->m_faceOffset[3]) {
                     double* o = out.getSampleDataRW(e);
                     std::fill(o, o+numQuad, forestData.m_dx[0][quad->level]);
                 }
 
-                if (quaddata->m_faceOffset == 4) {
+                if (quaddata->m_faceOffset[4]) {
                     double* o = out.getSampleDataRW(e);
                     std::fill(o, o+numQuad, forestData.m_dx[2][quad->level]);
                 }
 
-                if (quaddata->m_faceOffset == 5) {
+                if (quaddata->m_faceOffset[5]) {
                     double* o = out.getSampleDataRW(e);
                     std::fill(o, o+numQuad, forestData.m_dx[2][quad->level]);
                 }
@@ -1960,7 +1960,7 @@ void Brick::assembleGradientImpl(escript::Data& out,
 
                 int l = quad->level;
 
-                if(quaddata->m_faceOffset == 0) 
+                if(quaddata->m_faceOffset[0]) 
                 {
                     memcpy(&f_000[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     memcpy(&f_001[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
@@ -1993,7 +1993,7 @@ void Brick::assembleGradientImpl(escript::Data& out,
                     } 
                 }
             
-                if(quaddata->m_faceOffset == 1) 
+                if(quaddata->m_faceOffset[1]) 
                 {
                     memcpy(&f_000[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     memcpy(&f_001[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
@@ -2025,7 +2025,7 @@ void Brick::assembleGradientImpl(escript::Data& out,
                     } // end of component loop i
                 }
 
-                if(quaddata->m_faceOffset == 2) 
+                if(quaddata->m_faceOffset[2]) 
                 {
                     memcpy(&f_000[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     memcpy(&f_001[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
@@ -2056,7 +2056,7 @@ void Brick::assembleGradientImpl(escript::Data& out,
                     } // end of component loop i
                 } // end of face 2
 
-                if(quaddata->m_faceOffset == 3) 
+                if(quaddata->m_faceOffset[3]) 
                 {
                     memcpy(&f_000[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     memcpy(&f_001[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
@@ -2088,7 +2088,7 @@ void Brick::assembleGradientImpl(escript::Data& out,
                     } // end of component loop i
                 } // end of face 3
 
-                if(quaddata->m_faceOffset == 4) 
+                if(quaddata->m_faceOffset[4]) 
                 {
                     memcpy(&f_000[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     memcpy(&f_001[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
@@ -2119,7 +2119,7 @@ void Brick::assembleGradientImpl(escript::Data& out,
                     } // end of component loop i
                 } // end of face 4
 
-                if(quaddata->m_faceOffset == 5) 
+                if(quaddata->m_faceOffset[5]) 
                 {
                     memcpy(&f_000[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     memcpy(&f_001[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
@@ -2180,7 +2180,7 @@ void Brick::assembleGradientImpl(escript::Data& out,
 
 
 
-                if(quaddata->m_faceOffset == 0) 
+                if(quaddata->m_faceOffset[0]) 
                 {
                     memcpy(&f_000[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     memcpy(&f_001[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
@@ -2199,7 +2199,7 @@ void Brick::assembleGradientImpl(escript::Data& out,
                 } // end of face 0
 
 
-                if(quaddata->m_faceOffset == 1) 
+                if(quaddata->m_faceOffset[1]) 
                 {
                     memcpy(&f_000[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     memcpy(&f_001[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
@@ -2217,7 +2217,7 @@ void Brick::assembleGradientImpl(escript::Data& out,
                     } // end of component loop i
                 } // end of face 1
 
-                if(quaddata->m_faceOffset == 2) 
+                if(quaddata->m_faceOffset[2]) 
                 {
                     memcpy(&f_000[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     memcpy(&f_001[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
@@ -2236,7 +2236,7 @@ void Brick::assembleGradientImpl(escript::Data& out,
                 } // end of face 2
 
 
-                if(quaddata->m_faceOffset == 3) 
+                if(quaddata->m_faceOffset[3]) 
                 {
                     memcpy(&f_000[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     memcpy(&f_001[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
@@ -2254,7 +2254,7 @@ void Brick::assembleGradientImpl(escript::Data& out,
                     } // end of component loop i
                 } // end of face 3
     
-                if(quaddata->m_faceOffset == 4) 
+                if(quaddata->m_faceOffset[4]) 
                 {
                     memcpy(&f_000[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     memcpy(&f_001[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
@@ -2272,7 +2272,7 @@ void Brick::assembleGradientImpl(escript::Data& out,
                     } // end of component loop i
                 } // end of face 4
 
-                if(quaddata->m_faceOffset == 5) 
+                if(quaddata->m_faceOffset[5]) 
                 {
                     memcpy(&f_000[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                     memcpy(&f_001[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));

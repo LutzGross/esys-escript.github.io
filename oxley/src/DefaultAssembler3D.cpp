@@ -2329,7 +2329,7 @@ void DefaultAssembler3D<Scalar>::assemblePDEBoundarySingle(
             p8est_qcoord_to_vertex(domain->p8est->connectivity, t, quad->x, quad->y, quad->z, xyz);
             long e = domain->NodeIDs.find(std::make_tuple(xyz[0],xyz[1],xyz[2]))->second;
 
-            if(quaddata->m_faceOffset == 0) {
+            if(quaddata->m_faceOffset[0]) {
                 if (add_EM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
                 if (add_EM_F) {
@@ -2423,7 +2423,7 @@ void DefaultAssembler3D<Scalar>::assemblePDEBoundarySingle(
                 domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F, q, t);
             } // face 0
 
-            if(quaddata->m_faceOffset == 1) {
+            if(quaddata->m_faceOffset[1]) {
                 if (add_EM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
                 if (add_EM_F) {
@@ -2515,7 +2515,7 @@ void DefaultAssembler3D<Scalar>::assemblePDEBoundarySingle(
                 domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F, q, t);
             } // face 1
 
-            if(quaddata->m_faceOffset == 2) {
+            if(quaddata->m_faceOffset[2]) {
                 if (add_EM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
                 if (add_EM_F) {
@@ -2607,7 +2607,7 @@ void DefaultAssembler3D<Scalar>::assemblePDEBoundarySingle(
                 domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F, q, t);
             } // face 2
 
-            if(quaddata->m_faceOffset == 3) {
+            if(quaddata->m_faceOffset[3]) {
                 if (add_EM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
                 if (add_EM_F) {
@@ -2699,7 +2699,7 @@ void DefaultAssembler3D<Scalar>::assemblePDEBoundarySingle(
                 domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F, q, t);
             } // face 3
 
-            if(quaddata->m_faceOffset == 4) {
+            if(quaddata->m_faceOffset[4]) {
                 if (add_EM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
                 if (add_EM_F) {
@@ -2791,7 +2791,7 @@ void DefaultAssembler3D<Scalar>::assemblePDEBoundarySingle(
                 domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F, q, t);
             } // face 4
 
-            if(quaddata->m_faceOffset == 5) {
+            if(quaddata->m_faceOffset[5]) {
                 if (add_EM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
                 if (add_EM_F) {

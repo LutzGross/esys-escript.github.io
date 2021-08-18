@@ -67,7 +67,7 @@ struct quadrantData
 	// faceOffset[i]=-1 if face i is not an external face, otherwise it is
     // the index of that face (where i: 0=left, 1=right, 2=bottom, 3=top)
     // escript::DataTypes::IndexVector m_faceOffset;
-    signed int m_faceOffset = {-1};
+    bool m_faceOffset[4] = {false};
 };
 
 struct octantData
@@ -92,7 +92,7 @@ struct octantData
 	// faceOffset[i]=-1 if face i is not an external face, otherwise it is
     // the index of that face (where i: 0=left, 1=right, 2=bottom, 3=top)
     // escript::DataTypes::IndexVector m_faceOffset;
-    signed int m_faceOffset = {-1};
+    bool m_faceOffset[6] = {false};
 };
 
 //This structure describes the information that is stored with the p4est
