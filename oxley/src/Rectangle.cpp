@@ -51,6 +51,10 @@
 #endif
 #endif
 
+#ifdef ENABLE_OPENMP
+#include <omp.h>
+#endif
+
 namespace bp = boost::python;
 
 namespace oxley {
@@ -1538,33 +1542,57 @@ inline dim_t Rectangle::getNumElements() const
 //protected
 inline dim_t Rectangle::getNumFaceElements() const
 {
-    double xy[2];
-    double x0 = forestData.m_origin[0];
-    double y0 = forestData.m_origin[1];
-    double x1 = forestData.m_length[0]+forestData.m_origin[0];
-    double y1 = forestData.m_length[1]+forestData.m_origin[1];
-    p4est_locidx_t numFaceElements = 0;
-    for(p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
+#ifdef ENABLE_OPENMP
+    long numFaceElements[omp_get_num_threads()] = {0};
+    for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) // Loop over every tree
     {
         p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
         sc_array_t * tquadrants = &currenttree->quadrants;
-        for(p4est_locidx_t e = 0; e < tquadrants->elem_count; e++)
+        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+    #pragma omp for
+        for(int q = 0; q < Q; q++) // Loop over every quadrant within the tree
         {
-            p4est_quadrant_t * q = p4est_quadrant_array_index(tquadrants, e);
-            p4est_qcoord_t length = P4EST_QUADRANT_LEN(q->level);
-            p4est_qcoord_to_vertex(p4est->connectivity, t, q->x,q->y,xy);
-            if(xy[0] == x0 || xy[1] == y0){
-                numFaceElements++;
-                break;
-            }
-            p4est_qcoord_to_vertex(p4est->connectivity, t, q->x+length,q->y+length,xy);
-            if(xy[0] == x1 || xy[1] == y1){
-                numFaceElements++;
-                break;
-            }
+            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+            int l = quad->level;
+            double xy[3];
+            p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x, quad->y, xy);
+            long e = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+            quadrantData * quaddata = (quadrantData *) quad->p.user_data;
+            numFaceElements[omp_get_thread_num()] += quaddata->m_faceOffset[0] ||
+                               quaddata->m_faceOffset[1] ||
+                               quaddata->m_faceOffset[2] ||
+                               quaddata->m_faceOffset[3];
+
+        }
+    }
+    long answer = 0;
+    for(int i = 0; i < omp_get_num_threads(); i++)
+        answer+=numFaceElements[i];
+    return answer;
+#else
+    long numFaceElements = 0;
+    for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) // Loop over every tree
+    {
+        p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
+        sc_array_t * tquadrants = &currenttree->quadrants;
+        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+        for(int q = 0; q < Q; q++) // Loop over every quadrant within the tree
+        {
+            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+            int l = quad->level;
+            double xy[3];
+            p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x, quad->y, xy);
+            long e = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+            quadrantData * quaddata = (quadrantData *) quad->p.user_data;
+            numFaceElements += quaddata->m_faceOffset[0] ||
+                               quaddata->m_faceOffset[1] ||
+                               quaddata->m_faceOffset[2] ||
+                               quaddata->m_faceOffset[3];
+
         }
     }
     return numFaceElements;
+#endif
 }
 
 dim_t Rectangle::getNumDOF() const
@@ -3035,9 +3063,9 @@ dim_t Rectangle::findNode(const double *coords) const
     if(NodeIDs.count(std::make_pair(coords[0],coords[1]))==1)
         return NodeIDs.find(std::make_pair(coords[0],coords[1]))->second;
 
+    // TODO speed enhancements
     // Otherwise find the nearest element
-#ifndef ENABLE_OPENMP
-    float sq_distance = m_NX[0]*m_NX[1];
+    double sq_distance = m_NX[0]*m_NX[1];
     long closest = 0;
 
     for(std::pair<DoublePair,long> e : NodeIDs)
@@ -3045,22 +3073,7 @@ dim_t Rectangle::findNode(const double *coords) const
             closest = e.second;
 
     return closest;
-#else
-    float sq_distance[get_num_omp_threads()] = {{m_NX[0]*m_NX[1]}};
-    long closest[get_num_omp_threads()] = {{0}};
 
-    #pragma omp parallel for
-    for(std::pair<DoublePair,long> e : NodeIDs)
-        if(e.first.first*e.first.first+e.first.second*e.first.second < sq_distance)
-            closest[get_omp_thread_num()] = e.second;
-
-    long answer=closest[0];
-    for(int i=1; i<get_num_omp_threads();i++)
-        if(answer > closest[i])
-            answer=closest[i];
-
-    return answer;
-#endif
 }
 
 // instantiate our two supported versions
