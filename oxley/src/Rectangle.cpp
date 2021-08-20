@@ -1535,8 +1535,16 @@ inline dim_t Rectangle::getNumNodes() const
 //protected
 inline dim_t Rectangle::getNumElements() const
 {
+    long numElements = 0;
+    for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) {
+        p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
+        sc_array_t * tquadrants = &tree->quadrants;
+        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+        numElements+=Q;
+    }
+    return numElements;
     // return nodes->num_local_elements;
-    return NodeIDs.size();
+    // return NodeIDs.size();
 }
 
 //protected
