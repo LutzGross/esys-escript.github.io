@@ -1295,72 +1295,90 @@ void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
                                            bool reduced, S sentinel) const
 {
     const dim_t numComp = in.getDataPointSize();
-    const long  numNodes = getNumNodes();
+    
     if (reduced) {
         out.requireWrite();
         const S c0 = 0.25;
-        double * fxx = new double[4*numComp*numNodes];
+        std::vector<S> f_00(numComp);
+        std::vector<S> f_01(numComp);
+        std::vector<S> f_10(numComp);
+        std::vector<S> f_11(numComp);
 
-        // This structure is used to store info needed by p4est
-        interpolateNodesOnElementsWorker_Data<S> interpolateData;
-        interpolateData.fxx = fxx;
-        interpolateData.sentinel = sentinel;
-        interpolateData.offset = numComp*sizeof(S);
-
-        p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnElementWorker_data, NULL, NULL);
-        for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; treeid++)
-        {
-            p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, treeid);
-            sc_array_t * tquadrants = &currenttree->quadrants;
+        for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) {
+            p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
+            sc_array_t * tquadrants = &tree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-#pragma omp parallel for
-            for(p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
+            // #pragma omp parallel for
+            for(int q = 0; q < Q; q++)
             {
-                S* o = out.getSampleDataRW(e, sentinel);
-                for(index_t i=0; i < numComp; ++i) 
-                {
-                    o[i] = c0*(fxx[INDEX3(0,i,e,numComp,numNodes)] + 
-                               fxx[INDEX3(1,i,e,numComp,numNodes)] + 
-                               fxx[INDEX3(2,i,e,numComp,numNodes)] + 
-                               fxx[INDEX3(3,i,e,numComp,numNodes)]);
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+               
+                long ids[4]={0};
+                getNeighouringNodeIDs(quad, treeid, ids);
+
+                memcpy(&f_00[0], in.getSampleDataRO(ids[0],sentinel), numComp*sizeof(S));
+                memcpy(&f_01[0], in.getSampleDataRO(ids[1],sentinel), numComp*sizeof(S));
+                memcpy(&f_10[0], in.getSampleDataRO(ids[2],sentinel), numComp*sizeof(S));
+                memcpy(&f_11[0], in.getSampleDataRO(ids[3],sentinel), numComp*sizeof(S));
+                S* o = out.getSampleDataRW(ids[0],sentinel);
+                for (index_t i=0; i < numComp; ++i) {
+                    o[ids[0]] = c0*(f_00[i] + f_01[i] + f_10[i] + f_11[i]);
                 }
             }
         }
-        delete[] fxx;
-    } else {
+    } 
+    else 
+    {
         out.requireWrite();
         const S c0 = 0.16666666666666666667;
         const S c1 = 0.044658198738520451079;
         const S c2 = 0.62200846792814621559;
-        double * fxx = new double[4*numComp*numNodes];
-        // This structure is used to store info needed by p4est
-        interpolateNodesOnElementsWorker_Data<S> interpolateData;
-        interpolateData.fxx = fxx;
-        interpolateData.sentinel = sentinel;
-        interpolateData.offset = numComp*sizeof(S);
-        p4est_iterate(p4est, NULL, &interpolateData, get_interpolateNodesOnElementWorker_data, NULL, NULL);
-        for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; treeid++)
-        {
-            p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, treeid);
-            sc_array_t * tquadrants = &currenttree->quadrants;
+
+        std::vector<S> f_00(numComp);
+        std::vector<S> f_01(numComp);
+        std::vector<S> f_10(numComp);
+        std::vector<S> f_11(numComp);
+
+        for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) {
+            p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
+            sc_array_t * tquadrants = &tree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-#pragma omp parallel for
-            for(p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
+            // #pragma omp parallel for
+            for(int q = 0; q < Q; q++)
             {
-                S* o = out.getSampleDataRW(e, sentinel);
-                for(index_t i=0; i < numComp; ++i) {
-                    o[INDEX2(i,numComp,0)] = c0*(fxx[INDEX3(1,i,e,numComp,numNodes)] +    fxx[INDEX3(2,i,e,numComp,numNodes)]) + 
-                                             c1* fxx[INDEX3(3,i,e,numComp,numNodes)] + c2*fxx[INDEX3(0,i,e,numComp,numNodes)];
-                    o[INDEX2(i,numComp,1)] = c0*(fxx[INDEX3(2,i,e,numComp,numNodes)] +    fxx[INDEX3(3,i,e,numComp,numNodes)]) + 
-                                             c1* fxx[INDEX3(1,i,e,numComp,numNodes)] + c2*fxx[INDEX3(2,i,e,numComp,numNodes)];
-                    o[INDEX2(i,numComp,2)] = c0*(fxx[INDEX3(0,i,e,numComp,numNodes)] +    fxx[INDEX3(3,i,e,numComp,numNodes)]) + 
-                                             c1* fxx[INDEX3(2,i,e,numComp,numNodes)] + c2*fxx[INDEX3(1,i,e,numComp,numNodes)];
-                    o[INDEX2(i,numComp,3)] = c0*(fxx[INDEX3(1,i,e,numComp,numNodes)] +    fxx[INDEX3(2,i,e,numComp,numNodes)]) + 
-                                             c1* fxx[INDEX3(0,i,e,numComp,numNodes)] + c2*fxx[INDEX3(3,i,e,numComp,numNodes)];
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+
+                long ids[4]={0};
+                getNeighouringNodeIDs(quad, treeid, ids);
+
+                memcpy(&f_00[0], in.getSampleDataRO(ids[0], sentinel), numComp*sizeof(S));
+                memcpy(&f_01[0], in.getSampleDataRO(ids[1], sentinel), numComp*sizeof(S));
+                memcpy(&f_10[0], in.getSampleDataRO(ids[2], sentinel), numComp*sizeof(S));
+                memcpy(&f_11[0], in.getSampleDataRO(ids[3], sentinel), numComp*sizeof(S));
+                S* o = out.getSampleDataRW(ids[0], sentinel);
+                for (index_t i=0; i < numComp; ++i) {
+                    o[ids[0]] = c0*(f_01[i] + f_10[i]) + c1*f_11[i] + c2*f_00[i];
+                    o[ids[0]] = c0*(f_00[i] + f_11[i]) + c1*f_01[i] + c2*f_10[i];
+                    o[ids[0]] = c0*(f_00[i] + f_11[i]) + c1*f_10[i] + c2*f_01[i];
+                    o[ids[0]] = c0*(f_01[i] + f_10[i]) + c1*f_00[i] + c2*f_11[i];
                 }
             }
         }
-        delete[] fxx;
+    }
+}
+
+//protected
+void Rectangle::getNeighouringNodeIDs(p4est_quadrant_t * quad, p4est_topidx_t treeid, long (&ids) [4]) const
+{
+    double xy[3];
+    int level = quad->level;
+    p4est_qcoord_t l = P4EST_QUADRANT_LEN(quad->level);
+    int adj[4][2]={{0,0},{l,0},{0,l},{l,l}};
+
+    for(int i=0; i<4;i++)
+    {
+        p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+adj[i][0], quad->y+adj[i][1], xy);
+        ids[i]=(long) NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
     }
 }
 

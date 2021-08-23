@@ -307,6 +307,10 @@ protected:
     // void renumberHangingNodes();
     virtual void assembleCoordinates(escript::Data& arg) const;
     virtual void assembleGradient(escript::Data& out, const escript::Data& in) const;
+
+    // Returns the ID numbers of the neighbouring four nodes
+    void getNeighouringNodeIDs(p4est_quadrant_t * quad, p4est_topidx_t treeid, long (&ids) [4]) const;
+
     // virtual void assembleIntegrate(std::vector<real_t>& integrals, const escript::Data& arg) const;
     // virtual void assembleIntegrate(std::vector<cplx_t>& integrals, const escript::Data& arg) const;
     virtual std::vector<IndexVector> getConnections(bool includeShared=false) const;
