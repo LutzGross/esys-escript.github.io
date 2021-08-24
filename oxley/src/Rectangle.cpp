@@ -902,7 +902,7 @@ bool Rectangle::isHangingNode(p4est_lnodes_code_t face_code, int n) const
 void Rectangle::updateNodeIncrements()
 {
     nodeIncrements[0] = 1;
-    for(p4est_topidx_t treeid = p4est->first_local_tree+1, k=1; treeid <= p4est->last_local_tree; ++treeid, ++k) 
+    for(p4est_topidx_t treeid = p4est->first_local_tree+1, k=1; treeid <= p4est->last_local_tree; treeid++, k++) 
     {
         p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
         sc_array_t * tquadrants = &tree->quadrants;
@@ -991,25 +991,19 @@ void Rectangle::renumberNodes()
         for(int q = 0; q < Q; ++q) { 
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
             p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
-            // int k = q - Q + nodeIncrements[treeid - p4est->first_local_tree];
             for(int n = 0; n < 4; n++)
             {
-                // if( (n == 0) 
-                //     || isHangingNode(nodes->face_code[k], n)
-                //     || isUpperBoundaryNode(quad, n, treeid, length) 
-                  // )
-                    double lx = length * ((int) (n % 2) == 1);
-                    double ly = length * ((int) (n / 2) == 1);
-                    double xy[3];
-                    p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
-                    if(NodeIDs.count(std::make_pair(xy[0],xy[1]))==0)
-                    {
-#ifdef OXLEY_ENABLE_DEBUG_NODES
-                        std::cout << NodeIDs.size() << ": " << xy[0] << ", " << xy[1] << std::endl;
-#endif
-                        NodeIDs[std::make_pair(xy[0],xy[1])]=NodeIDs.size();
-                    }
-                // }
+                double lx = length * ((int) (n % 2) == 1);
+                double ly = length * ((int) (n / 2) == 1);
+                double xy[3];
+                p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
+                if(NodeIDs.count(std::make_pair(xy[0],xy[1]))==0)
+                {
+                    #ifdef OXLEY_ENABLE_DEBUG_NODES
+                    std::cout << NodeIDs.size() << ": " << xy[0] << ", " << xy[1] << std::endl;
+                    #endif
+                    NodeIDs[std::make_pair(xy[0],xy[1])]=NodeIDs.size();
+                }
             }
         }
     }
@@ -1038,8 +1032,6 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
             // Loop over the four corners of the quadrant
             for(int n = 0; n < 4; ++n){
                 int k = q - Q + nodeIncrements[treeid - p4est->first_local_tree];
-                // long lidx = nodes->element_nodes[4*k+n];
-
                 double lx = length * ((int) (n % 2) == 1);
                 double ly = length * ((int) (n / 2) == 1);
                 double xy[3];
@@ -1363,9 +1355,9 @@ void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
                 S* o = out.getSampleDataRW(ids[0], sentinel);
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = c0*(f_01[i] + f_10[i]) + c1*f_11[i] + c2*f_00[i];
-                    o[INDEX2(i,numComp,0)] = c0*(f_00[i] + f_11[i]) + c1*f_01[i] + c2*f_10[i];
-                    o[INDEX2(i,numComp,0)] = c0*(f_00[i] + f_11[i]) + c1*f_10[i] + c2*f_01[i];
-                    o[INDEX2(i,numComp,0)] = c0*(f_01[i] + f_10[i]) + c1*f_00[i] + c2*f_11[i];
+                    o[INDEX2(i,numComp,1)] = c0*(f_00[i] + f_11[i]) + c1*f_01[i] + c2*f_10[i];
+                    o[INDEX2(i,numComp,2)] = c0*(f_00[i] + f_11[i]) + c1*f_10[i] + c2*f_01[i];
+                    o[INDEX2(i,numComp,3)] = c0*(f_01[i] + f_10[i]) + c1*f_00[i] + c2*f_11[i];
                 }
             }
         }
