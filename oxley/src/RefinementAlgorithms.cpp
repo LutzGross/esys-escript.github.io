@@ -48,7 +48,7 @@ int refine_mare2dem(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * qua
     std::unordered_map<DoublePair,long,boost::hash<DoublePair>> * NodeIDs = forestData->NodeIDs;
 
     // Get the solution value at the current node
-    double xy[2] = {quadrant->x,quadrant->y};
+    p4est_qcoord_t xy[2] = {quadrant->x,quadrant->y};
     long lni = NodeIDs->find(std::make_pair(xy[0],xy[1]))->second;
     double quad_solution = current_solution->find(lni)->second;
 
@@ -104,9 +104,7 @@ int refine_north(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadra
 {
     p4estData * forestData = (p4estData *) p4est->user_pointer;
     double dx = forestData->refinement_depth;
-    double m_NX = forestData->m_NX[1];
     double domain_length = forestData->m_length[1];
-    int steps = dx / m_NX;
 
     quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
     double * xy = quadData->xy;
@@ -120,9 +118,6 @@ int refine_south(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadra
 {
     p4estData * forestData = (p4estData *) p4est->user_pointer;
     double dx = forestData->refinement_depth;
-    double m_NX = forestData->m_NX[1];
-    double domain_length = forestData->m_length[1];
-    int steps = dx / m_NX;
 
     quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
     double * xy = quadData->xy;
@@ -136,9 +131,7 @@ int refine_east(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadran
 {
     p4estData * forestData = (p4estData *) p4est->user_pointer;
     double dx = forestData->refinement_depth;
-    double m_NX = forestData->m_NX[0];
     double domain_length = forestData->m_length[0];
-    int steps = dx / m_NX;
 
     quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
     double * xy = quadData->xy;
@@ -152,9 +145,6 @@ int refine_west(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadran
 {
     p4estData * forestData = (p4estData *) p4est->user_pointer;
     double dx = forestData->refinement_depth;
-    double m_NX = forestData->m_NX[0];
-    double domain_length = forestData->m_length[0];
-    int steps = dx / m_NX;
 
     quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
     double * xy = quadData->xy;
@@ -183,7 +173,6 @@ int refine_south(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadra
     p8estData * forestData = (p8estData *) p8est->user_pointer;
     double dx = forestData->refinement_depth;
     double m_NX = forestData->m_NX[1];
-    double domain_length = forestData->m_length[1];
     int steps = dx / m_NX;
 
     quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
@@ -211,7 +200,6 @@ int refine_west(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadran
     p8estData * forestData = (p8estData *) p8est->user_pointer;
     double dx = forestData->refinement_depth;
     double m_NX = forestData->m_NX[0];
-    double domain_length = forestData->m_length[0];
     int steps = dx / m_NX;
 
     quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
@@ -239,7 +227,6 @@ int refine_bottom(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadr
     p8estData * forestData = (p8estData *) p8est->user_pointer;
     double dx = forestData->refinement_depth;
     double m_NX = forestData->m_NX[2];
-    double domain_length = forestData->m_length[2];
     int steps = dx / m_NX;
 
     quadrantData * quadData = (quadrantData *) quadrant->p.user_data;

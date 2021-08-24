@@ -372,7 +372,7 @@ protected:
     void addPoints(const std::vector<double>& coords, const std::vector<int>& tags);
 
     // Initial number of nodes
-    long m_NN[2] = {0};
+    int m_NN[2] = {0};
     // Initial number of divisions
     long m_NE[2] = {0};
     // Initial spacing

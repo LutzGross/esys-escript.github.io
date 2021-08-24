@@ -525,16 +525,15 @@ void Rectangle::dump(const std::string& fileName) const
 
     // Silo file pointer
     DBfile* dbfile = NULL; 
-    const char* blockDirFmt = "/block%04d";
 
     // Coordinate names
-    char * coordnames[2] = {"xy"};
+    // char * coordnames[2] = {"xy"};
 
     // The coordinate arrays
-    float nodex[getNumNodes()];
-    float nodey[getNumNodes()];
-    long int node_ids[getNumNodes()];
-    double value[getNumNodes()];
+    float nodex[MAXP4ESTNODES];
+    float nodey[MAXP4ESTNODES];
+    long int node_ids[MAXP4ESTNODES];
+    double value[MAXP4ESTNODES];
 
     for(std::pair<DoublePair,long> element : NodeIDs)
     {
@@ -1322,7 +1321,7 @@ void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
                 memcpy(&f_11[0], in.getSampleDataRO(ids[3],sentinel), numComp*sizeof(S));
                 S* o = out.getSampleDataRW(ids[0],sentinel);
                 for (index_t i=0; i < numComp; ++i) {
-                    o[ids[0]] = c0*(f_00[i] + f_01[i] + f_10[i] + f_11[i]);
+                    o[INDEX2(i,numComp,0)] = c0*(f_00[i] + f_01[i] + f_10[i] + f_11[i]);
                 }
             }
         }
@@ -1355,12 +1354,18 @@ void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
                 memcpy(&f_01[0], in.getSampleDataRO(ids[1], sentinel), numComp*sizeof(S));
                 memcpy(&f_10[0], in.getSampleDataRO(ids[2], sentinel), numComp*sizeof(S));
                 memcpy(&f_11[0], in.getSampleDataRO(ids[3], sentinel), numComp*sizeof(S));
+
+                // std::cout << "Aae " << ids[0] << ", " << ids[1] << ", " << ids[2] << ", " << ids[3] << std::endl;
+                // std::cout << "Aae " << f_00[0] << ", " << f_01[0] << ", " << f_10[0] << ", " << f_11[0] << std::endl;
+
+                // std::cout << "AEAE " << ids[0] << std::endl;
+
                 S* o = out.getSampleDataRW(ids[0], sentinel);
                 for (index_t i=0; i < numComp; ++i) {
-                    o[ids[0]] = c0*(f_01[i] + f_10[i]) + c1*f_11[i] + c2*f_00[i];
-                    o[ids[0]] = c0*(f_00[i] + f_11[i]) + c1*f_01[i] + c2*f_10[i];
-                    o[ids[0]] = c0*(f_00[i] + f_11[i]) + c1*f_10[i] + c2*f_01[i];
-                    o[ids[0]] = c0*(f_01[i] + f_10[i]) + c1*f_00[i] + c2*f_11[i];
+                    o[INDEX2(i,numComp,0)] = c0*(f_01[i] + f_10[i]) + c1*f_11[i] + c2*f_00[i];
+                    o[INDEX2(i,numComp,0)] = c0*(f_00[i] + f_11[i]) + c1*f_01[i] + c2*f_10[i];
+                    o[INDEX2(i,numComp,0)] = c0*(f_00[i] + f_11[i]) + c1*f_10[i] + c2*f_01[i];
+                    o[INDEX2(i,numComp,0)] = c0*(f_01[i] + f_10[i]) + c1*f_00[i] + c2*f_11[i];
                 }
             }
         }
@@ -1371,7 +1376,6 @@ void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
 void Rectangle::getNeighouringNodeIDs(p4est_quadrant_t * quad, p4est_topidx_t treeid, long (&ids) [4]) const
 {
     double xy[3];
-    int level = quad->level;
     p4est_qcoord_t l = P4EST_QUADRANT_LEN(quad->level);
     int adj[4][2]={{0,0},{l,0},{0,l},{l,l}};
 
@@ -1605,10 +1609,6 @@ inline dim_t Rectangle::getNumFaceElements() const
         for(int q = 0; q < Q; q++) // Loop over every quadrant within the tree
         {
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-            int l = quad->level;
-            double xy[3];
-            p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x, quad->y, xy);
-            long e = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
             quadrantData * quaddata = (quadrantData *) quad->p.user_data;
             numFaceElements += quaddata->m_faceOffset[0] ||
                                quaddata->m_faceOffset[1] ||
@@ -1868,166 +1868,6 @@ void Rectangle::populateSampleIds()
 {
     throw OxleyException("populateSampleIds");
 
-//     // degrees of freedom are numbered from left to right, bottom to top in
-//     // each rank, continuing on the next rank (ranks also go left-right,
-//     // bottom-top).
-//     // This means rank 0 has id 0...n0-1, rank 1 has id n0...n1-1 etc. which
-//     // helps when writing out data rank after rank.
-
-//     // build node distribution vector first.
-//     // rank i owns m_nodeDistribution[i+1]-nodeDistribution[i] nodes which is
-//     // constant for all ranks in this implementation
-//     IndexVector m_nodeDistribution = getNodeDistribution();
-
-//     m_nodeDistribution.assign(m_mpiInfo->size+1, 0);
-//     const dim_t numDOF=getNumDOF();
-//     for(dim_t k=1; k<m_mpiInfo->size; k++) {
-//         m_nodeDistribution[k]=k*numDOF;
-//     }
-//     m_nodeDistribution[m_mpiInfo->size]=getNumDataPointsGlobal();
-//     try {
-//         m_nodeId.resize(getNumNodes());
-//         m_dofId.resize(numDOF);
-//         m_elementId.resize(getNumElements());
-//     } catch (const std::length_error& le) {
-//         throw RipleyException("The system does not have sufficient memory for a domain of this size.");
-//     }
-
-//     // populate face element counts
-//     //left
-//     if (forestData.m_offset[0]==0)
-//         forestData.m_faceCount[0]=forestData.m_NE[1];
-//     else
-//         forestData.m_faceCount[0]=0;
-//     //right
-//     if (m_mpiInfo->rank%forestData.m_NX[0]==forestData.m_NX[0]-1)
-//         forestData.m_faceCount[1]=forestData.m_NE[1];
-//     else
-//         forestData.m_faceCount[1]=0;
-//     //bottom
-//     if (forestData.m_offset[1]==0)
-//         forestData.m_faceCount[2]=forestData.m_NE[0];
-//     else
-//         forestData.m_faceCount[2]=0;
-//     //top
-//     if (m_mpiInfo->rank/forestData.m_NX[0]==forestData.m_NX[1]-1)
-//         forestData.m_faceCount[3]=m_NE[0];
-//     else
-//         forestData.m_faceCount[3]=0;
-
-//     const dim_t NFE = getNumFaceElements();
-//     m_faceId.resize(NFE);
-
-//     const index_t left = getFirstInDim(0);
-//     const index_t bottom = getFirstInDim(1);
-//     const dim_t nDOF0 = getNumDOFInAxis(0);
-//     const dim_t nDOF1 = getNumDOFInAxis(1);
-//     const dim_t NE0 = m_NE[0];
-//     const dim_t NE1 = m_NE[1];
-
-// #define globalNodeId(x,y) \
-//     ((m_offset[0]+x)/nDOF0)*nDOF0*nDOF1+(m_offset[0]+x)%nDOF0 \
-//     + ((m_offset[1]+y)/nDOF1)*nDOF0*nDOF1*m_NX[0]+((m_offset[1]+y)%nDOF1)*nDOF0
-
-//     // set corner id's outside the parallel region
-//     m_nodeId[0] = globalNodeId(0, 0);
-//     m_nodeId[m_NN[0]-1] = globalNodeId(m_NN[0]-1, 0);
-//     m_nodeId[m_NN[0]*(m_NN[1]-1)] = globalNodeId(0, m_NN[1]-1);
-//     m_nodeId[m_NN[0]*m_NN[1]-1] = globalNodeId(m_NN[0]-1,m_NN[1]-1);
-// #undef globalNodeId
-
-// #pragma omp parallel
-//     {
-//         // populate degrees of freedom and own nodes (identical id)
-// #pragma omp for nowait
-//         for(dim_t i=0; i<nDOF1; i++) {
-//             for(dim_t j=0; j<nDOF0; j++) {
-//                 const index_t nodeIdx=j+left+(i+bottom)*m_NN[0];
-//                 const index_t dofIdx=j+i*nDOF0;
-//                 m_dofId[dofIdx] = m_nodeId[nodeIdx]
-//                     = m_nodeDistribution[m_mpiInfo->rank]+dofIdx;
-//             }
-//         }
-
-//         // populate the rest of the nodes (shared with other ranks)
-//         if (m_faceCount[0]==0) { // left column
-// #pragma omp for nowait
-//             for(dim_t i=0; i<nDOF1; i++) {
-//                 const index_t nodeIdx=(i+bottom)*m_NN[0];
-//                 const index_t dofId=(i+1)*nDOF0-1;
-//                 m_nodeId[nodeIdx]
-//                     = m_nodeDistribution[m_mpiInfo->rank-1]+dofId;
-//             }
-//         }
-//         if (m_faceCount[1]==0) { // right column
-// #pragma omp for nowait
-//             for(dim_t i=0; i<nDOF1; i++) {
-//                 const index_t nodeIdx=(i+bottom+1)*m_NN[0]-1;
-//                 const index_t dofId=i*nDOF0;
-//                 m_nodeId[nodeIdx]
-//                     = m_nodeDistribution[m_mpiInfo->rank+1]+dofId;
-//             }
-//         }
-//         if (m_faceCount[2]==0) { // bottom row
-// #pragma omp for nowait
-//             for(dim_t i=0; i<nDOF0; i++) {
-//                 const index_t nodeIdx=i+left;
-//                 const index_t dofId=nDOF0*(nDOF1-1)+i;
-//                 m_nodeId[nodeIdx]
-//                     = m_nodeDistribution[m_mpiInfo->rank-m_NX[0]]+dofId;
-//             }
-//         }
-//         if (m_faceCount[3]==0) { // top row
-// #pragma omp for nowait
-//             for(dim_t i=0; i<nDOF0; i++) {
-//                 const index_t nodeIdx=m_NN[0]*(m_NN[1]-1)+i+left;
-//                 const index_t dofId=i;
-//                 m_nodeId[nodeIdx]
-//                     = m_nodeDistribution[m_mpiInfo->rank+m_NX[0]]+dofId;
-//             }
-//         }
-
-//         // populate element id's
-// #pragma omp for nowait
-//         for(dim_t i1=0; i1<NE1; i1++) {
-//             for(dim_t i0=0; i0<NE0; i0++) {
-//                 m_elementId[i0+i1*NE0]=(m_offset[1]+i1)*m_gNE[0]+m_offset[0]+i0;
-//             }
-//         }
-
-//         // face elements
-// #pragma omp for
-//         for(dim_t k=0; k<NFE; k++)
-//             m_faceId[k]=k;
-//     } // end parallel section
-
-//     m_nodeTags.assign(getNumNodes(), 0);
-//     updateTagsInUse(Nodes);
-
-//     m_elementTags.assign(getNumElements(), 0);
-//     updateTagsInUse(Elements);
-
-//     // generate face offset vector and set face tags
-//     const index_t LEFT=1, RIGHT=2, BOTTOM=10, TOP=20;
-//     const index_t faceTag[] = { LEFT, RIGHT, BOTTOM, TOP };
-//     m_faceOffset.assign(4, -1);
-//     m_faceTags.clear();
-//     index_t offset=0;
-//     for(size_t i=0; i<4; i++) {
-//         if (m_faceCount[i]>0) {
-//             m_faceOffset[i]=offset;
-//             offset+=m_faceCount[i];
-//             m_faceTags.insert(m_faceTags.end(), m_faceCount[i], faceTag[i]);
-//         }
-//     }
-
-//     setTagMap("left", LEFT);
-//     setTagMap("right", RIGHT);
-//     setTagMap("bottom", BOTTOM);
-//     setTagMap("top", TOP);
-//     updateTagsInUse(FaceElements);
-
-//     populateDofMap();
 }
 
 // This is a wrapper that converts the p4est node information into an IndexVector
@@ -2229,9 +2069,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
 #pragma omp parallel for
             for(int q = 0; q < Q; ++q) // Loop over every quadrant within the tree
             {
-
                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-                int l = quad->level;
                 double xy[3];
                 p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x, quad->y, xy);
                 long e = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
@@ -2275,7 +2113,6 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
             {
 
                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-                int l = quad->level;
                 double xy[3];
                 p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x, quad->y, xy);
                 long e = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
@@ -2309,7 +2146,6 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
             {
 
                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-                int l = quad->level;
                 double xy[3];
                 p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x, quad->y, xy);
                 long e = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
@@ -2387,7 +2223,6 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
             {
 
                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-                int l = quad->level;
                 double xy[3];
                 p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x, quad->y, xy);
                 long e = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
