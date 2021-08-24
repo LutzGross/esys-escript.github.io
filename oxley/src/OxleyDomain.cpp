@@ -167,14 +167,14 @@ namespace oxley {
         if (target.isComplex() != in.isComplex())
             throw ValueError("Complexity of input and output must match");
 
-        stringstream msg;
-        msg << "interpolateOnDomain() not implemented for function space "
-            << functionSpaceTypeAsString(in.getFunctionSpace().getTypeCode())
-            << " -> "
-            << functionSpaceTypeAsString(target.getFunctionSpace().getTypeCode());
-
         const int inFS = in.getFunctionSpace().getTypeCode();
         const int outFS = target.getFunctionSpace().getTypeCode();
+
+        stringstream msg;
+        msg << "interpolateOnDomain() not implemented for function space "
+            << functionSpaceTypeAsString(inFS) 
+            << " -> "
+            << functionSpaceTypeAsString(outFS);
 
         // simplest case: 1:1 copy
         if (inFS==outFS) {
@@ -1137,7 +1137,6 @@ esys_trilinos::const_TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
     for (index_t i=0; i < numMatrixRows; i++) {
         copy(conns[i].begin(), conns[i].end(), &colInd[rowPtr[i]]);
     }
-
 
     // for(int i = 0; i < getNumDataPointsGlobal(); i++)
     //     std::cout << "myRows["<<i<<"]: " << rowTemp[i]<<std::endl;

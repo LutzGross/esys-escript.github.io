@@ -131,10 +131,14 @@ Rectangle::Rectangle(int order,
     // }
     connectivity = new_rectangle_connectivity(n0, n1, false, false, x0, x1, y0, y1);
 
-// #ifdef OXLEY_ENABLE_DEBUG
-//     if(!p4est_connectivity_is_valid(connectivity))
-//         throw OxleyException("Could not create a valid connectivity.");
-// #endif
+#ifdef OXLEY_ENABLE_DEBUG //These checks are turned off by default as they can be very timeconsuming
+    std::cout << "In Rectangle() constructor..." << std::endl;
+    std::cout << "Checking connectivity ... ";
+    if(!p4est_connectivity_is_valid(connectivity))
+        std::cout << "broken" << std::endl;
+    else
+        std::cout << "OK" << std::endl;
+#endif
 
     // Create a p4est
     p4est_locidx_t min_quadrants = n0*n1;
@@ -142,6 +146,14 @@ Rectangle::Rectangle(int order,
     int fill_uniform = 1;
     p4est = p4est_new_ext(m_mpiInfo->comm, connectivity, min_quadrants,
             min_level, fill_uniform, sizeof(quadrantData), init_rectangle_data, (void *) &forestData);
+
+#ifdef OXLEY_ENABLE_DEBUG //These checks are turned off by default as they can be very timeconsuming
+    std::cout << "Checking p4est ... ";
+    if(!p4est_is_valid(p4est))
+        std::cout << "broken" << std::endl;
+    else
+        std::cout << "OK" << std::endl;
+#endif
 
     // Nodes numbering
     p4est_ghost_t * ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
@@ -250,6 +262,19 @@ Rectangle::Rectangle(int order,
    Destructor.
 */
 Rectangle::~Rectangle(){
+#ifdef OXLEY_ENABLE_DEBUG
+    std::cout << "In Rectangle() destructor" << std::endl;
+    std::cout << "checking p4est ... ";
+    if(!p4est_is_valid(p4est))
+        std::cout << "broken" << std::endl;
+    else
+        std::cout << "OK" << std::endl;
+    std::cout << "checking connectivity ... ";
+    if(!p4est_connectivity_is_valid(connectivity))
+        std::cout << "broken" << std::endl;
+    else
+        std::cout << "OK" << std::endl;
+#endif
     p4est_connectivity_destroy(connectivity);
     p4est_destroy(p4est);
 }
@@ -1347,11 +1372,10 @@ void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
                 memcpy(&f_10[0], in.getSampleDataRO(ids[2], sentinel), numComp*sizeof(S));
                 memcpy(&f_11[0], in.getSampleDataRO(ids[3], sentinel), numComp*sizeof(S));
 
-                // std::cout << "Aae " << ids[0] << ", " << ids[1] << ", " << ids[2] << ", " << ids[3] << std::endl;
-                // std::cout << "Aae " << f_00[0] << ", " << f_01[0] << ", " << f_10[0] << ", " << f_11[0] << std::endl;
-
-                // std::cout << "AEAE " << ids[0] << std::endl;
-
+        #ifdef OXLEY_ENABLE_DEBUG
+                std::cout << "IDs " << ids[0] << ", " << ids[1] << ", " << ids[2] << ", " << ids[3] << std::endl;
+        #endif
+                
                 S* o = out.getSampleDataRW(ids[0], sentinel);
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = c0*(f_01[i] + f_10[i]) + c1*f_11[i] + c2*f_00[i];
@@ -1542,7 +1566,6 @@ inline dim_t Rectangle::getDofOfNode(dim_t node) const
 //protected
 inline dim_t Rectangle::getNumNodes() const
 {
-    // return NodeIDs.size() + hangingNodeIDs.size();
     return NodeIDs.size();
 }
 
@@ -1557,8 +1580,6 @@ inline dim_t Rectangle::getNumElements() const
         numElements+=Q;
     }
     return numElements;
-    // return nodes->num_local_elements;
-    // return NodeIDs.size();
 }
 
 //protected
@@ -1669,7 +1690,7 @@ void Rectangle::updateRowsColumns()
             p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
 
             // If the node is on the boundary x=Lx or y=Ly
-            if( (xy[0] == forestData.m_lxy[0]) )
+            if(xy[0] == forestData.m_lxy[0]) 
             {
                 // Get the node IDs
                 long lni0 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
@@ -1700,7 +1721,7 @@ void Rectangle::updateRowsColumns()
             lx = length * ((int) (n % 2) == 1);
             ly = length * ((int) (n / 2) == 1);
             p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
-            if((xy[1] == forestData.m_lxy[1]))
+            if(xy[1] == forestData.m_lxy[1])
             {
                 // Get the node IDs
                 long lni0 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
