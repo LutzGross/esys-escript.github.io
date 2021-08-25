@@ -298,15 +298,124 @@ void Rectangle::write(const std::string& filename) const
     throw OxleyException("write: not supported");
 }
 
-bool Rectangle::probeInterpolationAcross(int fsType_source,
-        const escript::AbstractDomain& domain, int fsType_target) const
-{
-    throw OxleyException("probeInterpolationAcross"); //TODO this is temporary
-}
-
 void Rectangle::interpolateAcross(escript::Data& target, const escript::Data& source) const
 {
-    throw OxleyException("interpolateAcross"); //TODO this is temporary
+    const Rectangle *other = dynamic_cast<const Rectangle *>(target.getDomain().get());
+    if (other == NULL)
+        throw OxleyException("Invalid interpolation: Domains must both be instances of Rectangle");
+    //shouldn't ever happen, but I want to know if it does
+    if (other == this)
+        throw OxleyException("interpolateAcross: this domain is the target");
+        
+    validateInterpolationAcross(source.getFunctionSpace().getTypeCode(),
+            *(target.getDomain().get()), target.getFunctionSpace().getTypeCode());
+    int fsSource = source.getFunctionSpace().getTypeCode();
+    int fsTarget = target.getFunctionSpace().getTypeCode();
+
+    std::stringstream msg;
+    msg << "Invalid interpolation: interpolation not implemented for function space "
+        << functionSpaceTypeAsString(fsSource)
+        << " -> "
+        << functionSpaceTypeAsString(fsTarget);
+    if (other->getRefinementLevels() > getRefinementLevels()) {
+        switch (fsSource) {
+            case Nodes:
+                switch (fsTarget) {
+                    case Nodes:
+                    case ReducedNodes:
+                    case DegreesOfFreedom:
+                    case ReducedDegreesOfFreedom:
+                        interpolateNodesToNodesFiner(source, target, *other);
+                        return;
+                    case Elements:
+                        interpolateNodesToElementsFiner(source, target, *other);
+                        return;
+                }
+                break;
+            case Elements:
+                switch (fsTarget) {
+                    case Elements:
+                        interpolateElementsToElementsFiner(source, target, *other);
+                        return;
+                }
+                break;
+            case ReducedElements:
+                switch (fsTarget) {
+                    case Elements:
+                        interpolateReducedToElementsFiner(source, target, *other);
+                        return;
+                }
+                break;
+        }
+        msg << " when target is a finer mesh";
+    } else {
+        switch (fsSource) {
+            case Nodes:
+                switch (fsTarget) {
+                    case Elements:
+                        escript::Data elements=escript::Vector(0., escript::function(*this), true);
+                        interpolateNodesOnElements(elements, source, false);
+                        interpolateElementsToElementsCoarser(elements, target, *other);
+                        return;
+                }
+                break;
+            case Elements:
+                switch (fsTarget) {
+                    case Elements:
+                        interpolateElementsToElementsCoarser(source, target, *other);
+                        return;
+                }
+                break;
+        }
+        msg << " when target is a coarser mesh";
+    }
+    throw OxleyException(msg.str());
+}
+
+void Rectangle::validateInterpolationAcross(int fsType_source, const escript::AbstractDomain& domain, int fsType_target) const
+{
+    const Rectangle *other = dynamic_cast<const Rectangle *>(&domain);
+    if (other == NULL)
+        throw OxleyException("Invalid interpolation: domains must both be instances of oxley::Rectangle");
+
+    // TODO
+    // if(!p4est_is_equal(borrow_p4est, other->borrow_p4est(), 0))
+    //     throw OxleyException("Invalid interpolation: domains have different p4ests");
+
+    // if(!p4est_connectivity_is_equivalent(borrow_connectivity(),other->borrow_connectivity()))
+    //     throw OxleyException("Invalid interpolation: domains have different connectivities");
+
+
+}
+
+void Rectangle::interpolateNodesToNodesFiner(const escript::Data& source, escript::Data& target, const Rectangle& other) const
+{
+
+}
+
+void Rectangle::interpolateNodesToElementsFiner(const escript::Data& source, escript::Data& target, const Rectangle& other)  const
+{
+
+}
+
+void Rectangle::interpolateElementsToElementsCoarser(const escript::Data& source, escript::Data& target, const Rectangle& other)  const
+{
+
+}
+
+void Rectangle::interpolateElementsToElementsFiner(const escript::Data& source, escript::Data& target, const Rectangle& other)  const
+{
+
+}
+
+void Rectangle::interpolateReducedToElementsFiner(const escript::Data& source, escript::Data& target, const Rectangle& other)  const
+{
+
+}
+
+void Rectangle::interpolateReducedToReducedFiner(const escript::Data& source, escript::Data& target, const Rectangle& other)  const
+{
+
 }
 
 void Rectangle::setToNormal(escript::Data& out) const
@@ -1324,7 +1433,7 @@ void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
             p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
             sc_array_t * tquadrants = &tree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-            // #pragma omp parallel for
+            #pragma omp parallel for
             for(int q = 0; q < Q; q++)
             {
                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
@@ -1359,7 +1468,7 @@ void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
             p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
             sc_array_t * tquadrants = &tree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-            // #pragma omp parallel for
+            #pragma omp parallel for
             for(int q = 0; q < Q; q++)
             {
                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
@@ -1368,8 +1477,8 @@ void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
                 getNeighouringNodeIDs(quad, treeid, ids);
 
                 memcpy(&f_00[0], in.getSampleDataRO(ids[0], sentinel), numComp*sizeof(S));
-                memcpy(&f_01[0], in.getSampleDataRO(ids[1], sentinel), numComp*sizeof(S));
-                memcpy(&f_10[0], in.getSampleDataRO(ids[2], sentinel), numComp*sizeof(S));
+                memcpy(&f_01[0], in.getSampleDataRO(ids[2], sentinel), numComp*sizeof(S));
+                memcpy(&f_10[0], in.getSampleDataRO(ids[1], sentinel), numComp*sizeof(S));
                 memcpy(&f_11[0], in.getSampleDataRO(ids[3], sentinel), numComp*sizeof(S));
 
         #ifdef OXLEY_ENABLE_DEBUG

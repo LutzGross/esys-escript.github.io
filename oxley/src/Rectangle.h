@@ -110,15 +110,7 @@ public:
        interpolates data given on source onto target where source and target
        are given on different domains
     */
-    virtual void interpolateAcross(escript::Data& target,
-                                   const escript::Data& source) const;
-
-    /**
-       \brief
-       determines whether interpolation from source to target is possible
-    */
-    virtual bool probeInterpolationAcross(int, const escript::AbstractDomain&,
-            int) const;
+    virtual void interpolateAcross(escript::Data& target, const escript::Data& source) const;
 
     /**
        \brief
@@ -210,6 +202,15 @@ public:
 
     /**
        \brief
+       sets the number of levels of refinement
+    */
+    virtual int getRefinementLevels() const
+    {
+        return forestData.max_levels_refinement;
+    };
+
+    /**
+       \brief
        returns a Data object containing the coordinate information
     */
     virtual escript::Data getX() const;
@@ -236,9 +237,9 @@ public:
     // }
 
     // These functions are used internally and are not exposed to python
-    p4est_t * borrow_p4est() const { return p4est;};
+    p4est_t * borrow_p4est() { return p4est;};
     // p4estData * borrow_forestData() { return forestData;};
-    p4est_connectivity_t * borrow_connectivity() const { return connectivity; };
+    p4est_connectivity_t * borrow_connectivity()  { return connectivity; };
     void * borrow_temp_data() { return temp_data; };
     void set_temp_data(addSurfaceData * x) { temp_data = x; };
     void clear_temp_data() { free(temp_data); };
@@ -262,6 +263,7 @@ private:
     // Pointer that records the location of a temporary data structure
     void * temp_data;
 
+    // Rectangle needs to keep track of this information
     std::unordered_map<DoublePair,long,boost::hash<DoublePair>> NodeIDs; //global ids of the nodes
     std::unordered_map<long,bool> hangingNodeIDs; //global ids of the hanging nodes
     std::unordered_map<DoublePair,long,boost::hash<DoublePair>> treeIDs; //global ids of the hanging nodes
@@ -291,24 +293,108 @@ new_rectangle_connectivity(int mi, int ni, int periodic_a, int periodic_b,
     virtual escript::Data getUpdatedSolution();
 
 protected:
+
+    /**
+       \brief
+       Returns the number of nodes
+    */
     virtual dim_t getNumNodes() const;
+
+    /**
+       \brief
+       Returns the number of elements
+    */
     virtual dim_t getNumElements() const;
+
+    /**
+       \brief
+       Returns the number of face elements
+    */
     virtual dim_t getNumFaceElements() const;
+
+    /**
+       \brief
+       Returns the number of degrees of freedom
+    */
     inline dim_t getNumDOF() const;
+
     // virtual dim_t getNumDOFInAxis(unsigned axis) const;
     // virtual index_t getFirstInDim(unsigned axis) const;
     // virtual IndexVector getDiagonalIndices(bool upperOnly) const;
+
+    /**
+       \brief
+       Returns true if the node is on the boundary
+    */
     bool isBoundaryNode(p4est_quadrant_t * quad, int n, p4est_topidx_t treeid, p4est_qcoord_t length) const;
+
+    /**
+       \brief
+       Returns true if the node is on the upper boundary (x[0]=l0, x[1]=l1)
+    */
     bool isUpperBoundaryNode(p4est_quadrant_t * quad, int n, p4est_topidx_t treeid, p4est_qcoord_t length) const;
+
+    /**
+       \brief
+       Returns true if the face is hanging
+    */
     bool isHangingFace(p4est_lnodes_code_t face_code, int n) const;
+
+    /**
+       \brief
+       Returns true if the node is hanging
+    */
     bool isHangingNode(p4est_lnodes_code_t face_code, int n) const;
+
+    /**
+       \brief
+       Updates NodeIncrements
+    */
     void updateNodeIncrements();
+
+    /**
+       \brief
+       Renumbers the nodes (called after refinement)
+    */
     void renumberNodes();
+
+    /**
+       \brief
+       Updates the NodeIDs of the hanging Nodes
+    */
+    void updateHangingNodeIDs();
+
+    /**
+       \brief
+       Updates myRows and myColumns (used to store node connectivity information Yale Formay)
+    */
+    void updateRowsColumns();
+
+    /**
+       \brief
+       Updates TreeIDs
+    */
+    void updateTreeIDs();
+
+    /**
+       \brief
+       Renumbers the hanging nodes (called after refinement)
+       (currently not used anywhere in the code)
+    */
     // void renumberHangingNodes();
+
+    /**
+       \brief
+       Updates the NodeID information
+    */
     virtual void assembleCoordinates(escript::Data& arg) const;
+
     virtual void assembleGradient(escript::Data& out, const escript::Data& in) const;
 
-    // Returns the ID numbers of the neighbouring four nodes
+    /**
+       \brief
+       Returns the ID numbers of the neighbouring four nodes
+    */
     void getNeighouringNodeIDs(p4est_quadrant_t * quad, p4est_topidx_t treeid, long (&ids) [4]) const;
 
     // virtual void assembleIntegrate(std::vector<real_t>& integrals, const escript::Data& arg) const;
@@ -320,17 +406,30 @@ protected:
 #ifdef ESYS_HAVE_PASO
     virtual paso::SystemMatrixPattern_ptr getPasoMatrixPattern(bool reducedRowOrder, bool reducedColOrder) const;
 #endif
+
+    // INTERPOLATION
+
+
     virtual void interpolateNodesOnElements(escript::Data& out, const escript::Data& in, bool reduced) const;   
     virtual void interpolateNodesOnFaces(escript::Data& out, const escript::Data& in, bool reduced) const;
     virtual void nodesToDOF(escript::Data& out, const escript::Data& in) const;
     virtual dim_t getDofOfNode(dim_t node) const;
     virtual void populateSampleIds();
-    // virtual void populateDofMap();
-    void updateHangingNodeIDs();
+    
+    // INTERPOLATION (FROM COARSE TO FINE MESHES AND VICE VERSA)
 
-    // Updates myRows and myColumns
-    void updateRowsColumns();
-    void updateTreeIDs();
+    /**
+       \brief
+       Checks that the given interpolation is possible, throws and OxleyException if it is not.
+    */
+    void validateInterpolationAcross(int fsType_source, const escript::AbstractDomain& domain, int fsType_target) const;
+    void interpolateNodesToNodesFiner(const escript::Data& source, escript::Data& target, const Rectangle& other) const;
+    void interpolateNodesToElementsFiner(const escript::Data& source, escript::Data& target, const Rectangle& other) const;
+    void interpolateElementsToElementsCoarser(const escript::Data& source, escript::Data& target, const Rectangle& other) const;
+    void interpolateElementsToElementsFiner(const escript::Data& source, escript::Data& target, const Rectangle& other) const;
+    void interpolateReducedToElementsFiner(const escript::Data& source, escript::Data& target, const Rectangle& other) const;
+    void interpolateReducedToReducedFiner(const escript::Data& source, escript::Data& target, const Rectangle& other) const;
+
 
     template <typename S>
     void interpolateNodesOnElementsWorker(escript::Data& out,

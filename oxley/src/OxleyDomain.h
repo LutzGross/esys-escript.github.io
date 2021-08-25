@@ -372,8 +372,7 @@ public:
        \brief
        determines whether interpolation from source to target is possible
     */
-    virtual bool probeInterpolationAcross(int, const escript::AbstractDomain&,
-            int) const = 0;
+    virtual bool probeInterpolationAcross(int, const escript::AbstractDomain&, int) const;
 
     /**
        \brief
@@ -695,9 +694,6 @@ protected:
     // MPI info
     escript::JMPI m_mpiInfo;
 
-    // Vector of the dirac points
-    std::vector<DiracPoint> m_diracPoints;
-
     // Dirac point Node IDs
     IndexVector m_diracPointNodeIDs; //for borrowSampleID
 
@@ -718,6 +714,7 @@ protected:
     mutable std::vector<int> m_nodeTags, m_nodeTagsInUse;
     mutable std::vector<int> m_elementTags, m_elementTagsInUse;
     mutable std::vector<int> m_faceTags, m_faceTagsInUse;
+    std::vector<DiracPoint> m_diracPoints;
 
     // Function sused by the assembler
     template<typename Scalar>

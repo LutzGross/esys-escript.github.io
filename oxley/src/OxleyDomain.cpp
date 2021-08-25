@@ -124,35 +124,32 @@ namespace oxley {
 
     int OxleyDomain::getTagFromSampleNo(int fsType, index_t sampleNo) const
     {
-        //TODO
+        switch(fsType) {
+            case Nodes:
+                if (m_nodeTags.size() > sampleNo)
+                    return m_nodeTags[sampleNo];
+                break;
+            case Elements:
+            case ReducedElements:
+                if (m_elementTags.size() > sampleNo)
+                    return m_elementTags[sampleNo];
+                break;
+            case Points:
+                if (m_diracPoints.size() > sampleNo)
+                    return m_diracPoints[sampleNo].tag;
+                break;
+            case FaceElements:
+            case ReducedFaceElements:
+                if (m_faceTags.size() > sampleNo)
+                    return m_faceTags[sampleNo];
+                break;
+            default: {
+                stringstream msg;
+                msg << "getTagFromSampleNo: invalid function space type " << fsType;
+                throw ValueError(msg.str());
+            }
+        }
         return -1;
-
-        // switch(fsType) {
-        //     case Nodes:
-        //         if (m_nodeTags.size() > sampleNo)
-        //             return m_nodeTags[sampleNo];
-        //         break;
-        //     case Elements:
-        //     case ReducedElements:
-        //         if (m_elementTags.size() > sampleNo)
-        //             return m_elementTags[sampleNo];
-        //         break;
-        //     case Points:
-        //         if (m_diracPoints.size() > sampleNo)
-        //             return m_diracPoints[sampleNo].tag;
-        //         break;
-        //     case FaceElements:
-        //     case ReducedFaceElements:
-        //         if (m_faceTags.size() > sampleNo)
-        //             return m_faceTags[sampleNo];
-        //         break;
-        //     default: {
-        //         stringstream msg;
-        //         msg << "getTagFromSampleNo: invalid function space type " << fsType;
-        //         throw ValueError(msg.str());
-        //     }
-        // }
-        // return -1;
     }
 
     void OxleyDomain::interpolateOnDomain(escript::Data& target, const escript::Data& in) const
@@ -1576,6 +1573,12 @@ void OxleyDomain::assemblePDEDirac(escript::AbstractSystemMatrix* mat,
     //         addToSystemMatrix(mat, rowIndex, nEq, contents);
     //     }
     // }
+}
+
+bool OxleyDomain::probeInterpolationAcross(int fsType_source,
+                      const escript::AbstractDomain&, int fsType_target) const
+{
+    return false;
 }
 
 void OxleyDomain::updateSolutionInformation(escript::Data solution)

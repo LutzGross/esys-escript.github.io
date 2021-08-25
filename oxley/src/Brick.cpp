@@ -275,12 +275,6 @@ void Brick::write(const std::string& filename) const
     throw OxleyException("write: not supported");
 }
 
-bool Brick::probeInterpolationAcross(int fsType_source,
-        const escript::AbstractDomain& domain, int fsType_target) const
-{
-    throw OxleyException("currently: not supported"); //AE this is temporary
-}
-
 void Brick::interpolateAcross(escript::Data& target, const escript::Data& source) const
 {
     throw OxleyException("currently: not supported"); //AE this is temporary

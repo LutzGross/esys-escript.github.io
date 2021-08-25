@@ -93,13 +93,6 @@ public:
 
     /**
        \brief
-       determines whether interpolation from source to target is possible
-    */
-    virtual bool probeInterpolationAcross(int, const escript::AbstractDomain&,
-            int) const;
-
-    /**
-       \brief
        returns true if this rank owns the sample id.
     */
     virtual bool ownSample(int fs_code, index_t id) const;
