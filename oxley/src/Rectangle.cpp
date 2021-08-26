@@ -68,7 +68,9 @@ Rectangle::Rectangle(int order,
     double x0, double y0,
     double x1, double y1,
     int d0, int d1,
-    const std::vector<double>& points, const std::vector<int>& tags,
+    const std::vector<double>& points, 
+    const std::vector<int>& tags,
+    const TagMap& tagnamestonums,
     int periodic0, int periodic1):
     OxleyDomain(2, order){
 
@@ -214,8 +216,15 @@ Rectangle::Rectangle(int order,
     updateNodeDistribution();
     updateElementIds();
     updateFaceOffset();
-    // populateDofMap();
+    updateFaceElementCount();
+    // populateDofMap()
 
+    // Tags
+    populateSampleIds();
+    for (TagMap::const_iterator i = tagnamestonums.begin(); i != tagnamestonums.end(); i++) {
+        setTagMap(i->first, i->second);
+    }
+    
     // Dirac points and tags
     addPoints(points, tags);
 
@@ -850,6 +859,7 @@ void Rectangle::refineMesh(std::string algorithmname)
     updateRowsColumns();
     updateElementIds();
     updateFaceOffset();
+    updateFaceElementCount();
 }
 
 void Rectangle::refineBoundary(std::string boundaryname, double dx)
@@ -1692,55 +1702,58 @@ inline dim_t Rectangle::getNumElements() const
 }
 
 //protected
-inline dim_t Rectangle::getNumFaceElements() const
+dim_t Rectangle::getNumFaceElements() const
 {
-#ifdef ENABLE_OPENMP
-    long numFaceElements[omp_get_num_threads()] = {0};
-    for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) // Loop over every tree
-    {
-        p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
-        sc_array_t * tquadrants = &currenttree->quadrants;
-        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-    #pragma omp for
-        for(int q = 0; q < Q; q++) // Loop over every quadrant within the tree
-        {
-            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-            int l = quad->level;
-            double xy[3];
-            p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x, quad->y, xy);
-            long e = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-            quadrantData * quaddata = (quadrantData *) quad->p.user_data;
-            numFaceElements[omp_get_thread_num()] += quaddata->m_faceOffset[0] ||
-                               quaddata->m_faceOffset[1] ||
-                               quaddata->m_faceOffset[2] ||
-                               quaddata->m_faceOffset[3];
+    return m_faceCount[0]+m_faceCount[1]+m_faceCount[2]+m_faceCount[3];
+    
 
-        }
-    }
-    long answer = 0;
-    for(int i = 0; i < omp_get_num_threads(); i++)
-        answer+=numFaceElements[i];
-    return answer;
-#else
-    long numFaceElements = 0;
-    for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) // Loop over every tree
-    {
-        p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
-        sc_array_t * tquadrants = &currenttree->quadrants;
-        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-        for(int q = 0; q < Q; q++) // Loop over every quadrant within the tree
-        {
-            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-            quadrantData * quaddata = (quadrantData *) quad->p.user_data;
-            numFaceElements += quaddata->m_faceOffset[0] ||
-                               quaddata->m_faceOffset[1] ||
-                               quaddata->m_faceOffset[2] ||
-                               quaddata->m_faceOffset[3];
+// #ifdef ENABLE_OPENMP
+//     long numFaceElements[omp_get_num_threads()] = {0};
+//     for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) // Loop over every tree
+//     {
+//         p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
+//         sc_array_t * tquadrants = &currenttree->quadrants;
+//         p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+//     #pragma omp for
+//         for(int q = 0; q < Q; q++) // Loop over every quadrant within the tree
+//         {
+//             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+//             int l = quad->level;
+//             double xy[3];
+//             p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x, quad->y, xy);
+//             long e = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+//             quadrantData * quaddata = (quadrantData *) quad->p.user_data;
+//             numFaceElements[omp_get_thread_num()] += quaddata->m_faceOffset[0] ||
+//                                quaddata->m_faceOffset[1] ||
+//                                quaddata->m_faceOffset[2] ||
+//                                quaddata->m_faceOffset[3];
 
-        }
-    }
-    return numFaceElements;
-#endif
+//         }
+//     }
+//     long answer = 0;
+//     for(int i = 0; i < omp_get_num_threads(); i++)
+//         answer+=numFaceElements[i];
+//     return answer;
+// #else
+//     long numFaceElements = 0;
+//     for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) // Loop over every tree
+//     {
+//         p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
+//         sc_array_t * tquadrants = &currenttree->quadrants;
+//         p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+//         for(int q = 0; q < Q; q++) // Loop over every quadrant within the tree
+//         {
+//             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+//             quadrantData * quaddata = (quadrantData *) quad->p.user_data;
+//             numFaceElements += quaddata->m_faceOffset[0] ||
+//                                quaddata->m_faceOffset[1] ||
+//                                quaddata->m_faceOffset[2] ||
+//                                quaddata->m_faceOffset[3];
+
+//         }
+//     }
+//     return numFaceElements;
+// #endif
 }
 
 dim_t Rectangle::getNumDOF() const
@@ -1988,7 +2001,193 @@ paso::SystemMatrixPattern_ptr Rectangle::getPasoMatrixPattern(
 //private
 void Rectangle::populateSampleIds()
 {
-    throw OxleyException("populateSampleIds");
+    // degrees of freedom are numbered from left to right, bottom to top in
+    // each rank, continuing on the next rank (ranks also go left-right,
+    // bottom-top).
+    // This means rank 0 has id 0...n0-1, rank 1 has id n0...n1-1 etc. which
+    // helps when writing out data rank after rank.
+
+    // build node distribution vector first.
+    // rank i owns m_nodeDistribution[i+1]-nodeDistribution[i] nodes which is
+    // constant for all ranks in this implementation
+    
+    // m_nodeDistribution.assign(p4est->mpisize+1, 0);
+    // for (dim_t k=1; k<m_mpiInfo->size; k++) {
+    //     m_nodeDistribution[k]=p4est->mpirank;
+    // }
+    // m_nodeDistribution[p4est->mpisize]=getNumDataPointsGlobal();
+    // try {
+        // m_nodeId.resize(getNumNodes());
+        // m_dofId.resize(numDOF);
+    //     m_elementId.resize(getNumElements());
+    // } catch (const std::length_error& le) {
+    //     throw OxleyException("The system does not have sufficient memory for a domain of this size.");
+    // }
+
+    // // populate face element counts
+    // updateFaceElementCount();
+
+    // const dim_t NFE = getNumFaceElements();
+    // m_faceId.resize(NFE);
+
+    // const index_t left = getFirstInDim(0);
+    // const index_t bottom = getFirstInDim(1);
+    // const dim_t nDOF0 = getNumDOFInAxis(0);
+    // const dim_t nDOF1 = getNumDOFInAxis(1);
+    // const dim_t NE0 = m_NE[0];
+    // const dim_t NE1 = m_NE[1];
+
+// #define globalNodeId(x,y) \
+//     ((m_offset[0]+x)/nDOF0)*nDOF0*nDOF1+(m_offset[0]+x)%nDOF0 \
+//     + ((m_offset[1]+y)/nDOF1)*nDOF0*nDOF1*m_NX[0]+((m_offset[1]+y)%nDOF1)*nDOF0
+
+//     // set corner id's outside the parallel region
+    // m_nodeId[0] = globalNodeId(0, 0);
+//     m_nodeId[m_NN[0]-1] = globalNodeId(m_NN[0]-1, 0);
+//     m_nodeId[m_NN[0]*(m_NN[1]-1)] = globalNodeId(0, m_NN[1]-1);
+//     m_nodeId[m_NN[0]*m_NN[1]-1] = globalNodeId(m_NN[0]-1,m_NN[1]-1);
+// #undef globalNodeId
+
+
+        // populate degrees of freedom and own nodes (identical id)
+        // for (dim_t i=0; i<nDOF1; i++) {
+        //     for (dim_t j=0; j<nDOF0; j++) {
+        //         const index_t nodeIdx=j+left+(i+bottom)*m_NN[0];
+        //         const index_t dofIdx=j+i*nDOF0;
+        //         m_dofId[dofIdx] = m_nodeId[nodeIdx]
+        //             = m_nodeDistribution[m_mpiInfo->rank]+dofIdx;
+        //     }
+        // }
+
+        // populate the rest of the nodes (shared with other ranks)
+//         if (m_faceCount[0]==0) { // left column
+// #pragma omp for nowait
+//             for (dim_t i=0; i<nDOF1; i++) {
+//                 const index_t nodeIdx=(i+bottom)*m_NN[0];
+//                 const index_t dofId=(i+1)*nDOF0-1;
+//                 m_nodeId[nodeIdx]
+//                     = m_nodeDistribution[m_mpiInfo->rank-1]+dofId;
+//             }
+//         }
+//         if (m_faceCount[1]==0) { // right column
+// #pragma omp for nowait
+//             for (dim_t i=0; i<nDOF1; i++) {
+//                 const index_t nodeIdx=(i+bottom+1)*m_NN[0]-1;
+//                 const index_t dofId=i*nDOF0;
+//                 m_nodeId[nodeIdx]
+//                     = m_nodeDistribution[m_mpiInfo->rank+1]+dofId;
+//             }
+//         }
+//         if (m_faceCount[2]==0) { // bottom row
+// #pragma omp for nowait
+//             for (dim_t i=0; i<nDOF0; i++) {
+//                 const index_t nodeIdx=i+left;
+//                 const index_t dofId=nDOF0*(nDOF1-1)+i;
+//                 m_nodeId[nodeIdx]
+//                     = m_nodeDistribution[m_mpiInfo->rank-m_NX[0]]+dofId;
+//             }
+//         }
+//         if (m_faceCount[3]==0) { // top row
+// #pragma omp for nowait
+//             for (dim_t i=0; i<nDOF0; i++) {
+//                 const index_t nodeIdx=m_NN[0]*(m_NN[1]-1)+i+left;
+//                 const index_t dofId=i;
+//                 m_nodeId[nodeIdx]
+//                     = m_nodeDistribution[m_mpiInfo->rank+m_NX[0]]+dofId;
+//             }
+//         }
+
+//         // populate element id's
+// #pragma omp for nowait
+//         for (dim_t i1=0; i1<NE1; i1++) {
+//             for (dim_t i0=0; i0<NE0; i0++) {
+//                 m_elementId[i0+i1*NE0]=(m_offset[1]+i1)*m_gNE[0]+m_offset[0]+i0;
+//             }
+//         }
+
+//         // face elements
+// #pragma omp for
+//         for (dim_t k=0; k<NFE; k++)
+//             m_faceId[k]=k;
+
+//     m_nodeTags.assign(getNumNodes(), 0);
+//     updateTagsInUse(Nodes);
+
+//     m_elementTags.assign(getNumElements(), 0);
+//     updateTagsInUse(Elements);
+
+    // generate face offset vector and set face tags
+    // const index_t LEFT=1, RIGHT=2, BOTTOM=10, TOP=20;
+    // const index_t faceTag[] = { LEFT, RIGHT, BOTTOM, TOP };
+    // m_faceOffset.assign(4, -1);
+    // m_faceTags.clear();
+    // index_t offset=0;
+    // for (size_t i=0; i<4; i++) {
+    //     if (m_faceCount[i]>0) {
+    //         m_faceOffset[i]=offset;
+    //         offset+=m_faceCount[i];
+    //         m_faceTags.insert(m_faceTags.end(), m_faceCount[i], faceTag[i]);
+    //     }
+    // }
+    // setTagMap("left", LEFT);
+    // setTagMap("right", RIGHT);
+    // setTagMap("bottom", BOTTOM);
+    // setTagMap("top", TOP);
+    // updateTagsInUse(FaceElements);
+
+//     populateDofMap();
+
+}
+
+void Rectangle::updateFaceElementCount()
+{
+    for(int i = 0; i < 4; i++)
+        m_faceCount[i]=0;
+
+    for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) 
+    {
+        p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
+        sc_array_t * tquadrants = &tree->quadrants;
+        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+        for(int q = 0; q < Q; ++q) 
+        { 
+            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+            p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
+
+            double xy1[3];
+            double xy2[3];
+            p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x, quad->y, xy1);
+            p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+length, quad->y+length, xy2);
+            
+            if(xy1[0] == forestData.m_origin[0])
+                m_faceCount[0]++;
+            if(xy1[1] == forestData.m_origin[1])
+                m_faceCount[1]++;
+            if(xy2[0] == forestData.m_lxy[0])
+                m_faceCount[2]++;
+            if(xy2[1] == forestData.m_lxy[1])
+                m_faceCount[3]++;
+        }
+    }
+
+    // generate face offset vector and set face tags
+    const index_t LEFT=1, RIGHT=2, BOTTOM=10, TOP=20;
+    const index_t faceTag[] = { LEFT, RIGHT, BOTTOM, TOP };
+    m_faceOffset.assign(4, -1);
+    m_faceTags.clear();
+    index_t offset=0;
+    for (size_t i=0; i<4; i++) {
+        if (m_faceCount[i]>0) {
+            m_faceOffset[i]=offset;
+            offset+=m_faceCount[i];
+            m_faceTags.insert(m_faceTags.end(), m_faceCount[i], faceTag[i]);
+        }
+    }
+    setTagMap("left", LEFT);
+    setTagMap("right", RIGHT);
+    setTagMap("bottom", BOTTOM);
+    setTagMap("top", TOP);
+    updateTagsInUse(FaceElements);
 
 }
 

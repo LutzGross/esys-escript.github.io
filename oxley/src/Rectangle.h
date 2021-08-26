@@ -63,6 +63,7 @@ public:
         double x0, double y0, double x1, double y1,
         int d0, int d1,
         const std::vector<double>& points, const std::vector<int>& tags,
+        const TagMap& tagnamestonums,
         int periodic0, int periodic1);
 
     /**
@@ -310,7 +311,7 @@ protected:
        \brief
        Returns the number of face elements
     */
-    virtual dim_t getNumFaceElements() const;
+    dim_t getNumFaceElements() const;
 
     /**
        \brief
@@ -450,11 +451,18 @@ protected:
     // Updates m_faceOffset for each quadrant
     void updateFaceOffset();
 
+    /**
+       \brief
+       Updates m_faceCount
+    */
+    void updateFaceElementCount();
+
     // vector with first node id on each rank
     IndexVector m_nodeDistribution;
     void updateNodeDistribution();
     IndexVector m_elementId;
     void updateElementIds();
+
 
 #ifdef ESYS_HAVE_PASO
     // the Paso System Matrix pattern
@@ -476,8 +484,12 @@ protected:
     long m_NE[2] = {0};
     // Initial spacing
     double m_NX[2] = {0};
+    /// number of face elements per edge (left, right, bottom, top)
+    dim_t m_faceCount[4];
 
-
+    /// faceOffset[i]=-1 if face i is not an external face, otherwise it is
+    /// the index of that face (where i: 0=left, 1=right, 2=bottom, 3=top)
+    IndexVector m_faceOffset;
 
 };
 

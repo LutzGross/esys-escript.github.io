@@ -116,7 +116,8 @@ escript::Domain_ptr _rectangle(double _n0, double _n1,
     if (numtags != numpts)
         throw OxleyException("Number of tags does not match number of points.");
 
-    return escript::Domain_ptr(new Rectangle(order, n0,n1, x0,y0, x1,y1, d0,d1,  points, tags, periodic0, periodic1));
+    return escript::Domain_ptr(new Rectangle(order, n0,n1, x0,y0, x1,y1, d0,d1,  
+                                            points, tags, tagstonames, periodic0, periodic1));
 }
 
 

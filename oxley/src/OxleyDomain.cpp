@@ -779,7 +779,7 @@ namespace oxley {
                 tagsInUse=&m_faceTagsInUse;
                 break;
             case Points:
-                throw escript::NotImplementedError("updateTagsInUse for Ripley dirac points"
+                throw escript::NotImplementedError("updateTagsInUse for Oxley dirac points"
                                           " not supported");
             default:
                 return;
