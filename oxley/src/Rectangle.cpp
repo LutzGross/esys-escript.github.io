@@ -2144,6 +2144,12 @@ void Rectangle::updateFaceElementCount()
     for(int i = 0; i < 4; i++)
         m_faceCount[i]=0;
 
+    const index_t LEFT=1, RIGHT=2, BOTTOM=10, TOP=20;
+    // m_faceOffset.assign(4, -1);
+    m_faceTags.clear();
+
+    int face_count = 0;
+
     for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) 
     {
         p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
@@ -2160,29 +2166,33 @@ void Rectangle::updateFaceElementCount()
             p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+length, quad->y+length, xy2);
             
             if(xy1[0] == forestData.m_origin[0])
+            {
+                face_count++;
                 m_faceCount[0]++;
+                m_faceTags.insert(m_faceTags.end(), face_count, LEFT);
+            }
             if(xy1[1] == forestData.m_origin[1])
+            {
+                face_count++;
                 m_faceCount[1]++;
+                m_faceTags.insert(m_faceTags.end(), face_count, BOTTOM);
+            }
             if(xy2[0] == forestData.m_lxy[0])
+            {
+                face_count++;
                 m_faceCount[2]++;
+                m_faceTags.insert(m_faceTags.end(), face_count, TOP);
+            }
             if(xy2[1] == forestData.m_lxy[1])
+            {
+                face_count++;
                 m_faceCount[3]++;
+                m_faceTags.insert(m_faceTags.end(), face_count, RIGHT);
+            }
         }
     }
 
-    // generate face offset vector and set face tags
-    const index_t LEFT=1, RIGHT=2, BOTTOM=10, TOP=20;
-    const index_t faceTag[] = { LEFT, RIGHT, BOTTOM, TOP };
-    m_faceOffset.assign(4, -1);
-    m_faceTags.clear();
-    index_t offset=0;
-    for (size_t i=0; i<4; i++) {
-        if (m_faceCount[i]>0) {
-            m_faceOffset[i]=offset;
-            offset+=m_faceCount[i];
-            m_faceTags.insert(m_faceTags.end(), m_faceCount[i], faceTag[i]);
-        }
-    }
+    // set face tags
     setTagMap("left", LEFT);
     setTagMap("right", RIGHT);
     setTagMap("bottom", BOTTOM);

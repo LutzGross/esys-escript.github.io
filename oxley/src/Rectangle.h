@@ -489,7 +489,7 @@ protected:
 
     /// faceOffset[i]=-1 if face i is not an external face, otherwise it is
     /// the index of that face (where i: 0=left, 1=right, 2=bottom, 3=top)
-    IndexVector m_faceOffset;
+    // IndexVector m_faceOffset;
 
 };
 
