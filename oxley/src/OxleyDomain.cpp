@@ -733,7 +733,22 @@ namespace oxley {
 
     const int* OxleyDomain::borrowListOfTagsInUse(int fsType) const
     {
-        return &tags[0];
+        switch(fsType) {
+            case Nodes:
+                return &m_nodeTagsInUse[0];
+            case Elements:
+            case ReducedElements:
+                return &m_elementTagsInUse[0];
+            case FaceElements:
+            case ReducedFaceElements:
+                return &m_faceTagsInUse[0];
+            default: {
+                stringstream msg;
+                msg << "borrowListOfTagsInUse: invalid function space type "
+                    << fsType;
+                throw ValueError(msg.str());
+            }
+        }
     }
 
     bool OxleyDomain::canTag(int fsType) const
@@ -914,7 +929,13 @@ namespace oxley {
 
     std::string OxleyDomain::showTagNames() const
     {
-        throw OxleyException("currently not implemented"); // This is temporary
+        stringstream ret;
+        TagMap::const_iterator it;
+        for (it=m_tagMap.begin(); it!=m_tagMap.end(); it++) {
+            if (it!=m_tagMap.begin()) ret << ", ";
+            ret << it->first;
+        }
+        return ret.str();
     }
 
     //protected

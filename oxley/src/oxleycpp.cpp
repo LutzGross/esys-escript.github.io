@@ -463,6 +463,8 @@ BOOST_PYTHON_MODULE(oxleycpp)
         .def("setAdaptiveRefinement", &oxley::OxleyDomain::setAdaptiveRefinement, (arg("on/off")), 
                 "Sets adaptive refinement on or off\n"
                 ":param on/off:\n:type bool: true or false")
+        .def("showTagNames",&oxley::OxleyDomain::showTagNames,
+                ":return: A space separated list of tag names\n:rtype: ``string``")
         .def("updateSolutionInformation", &oxley::OxleyDomain::updateSolutionInformation, (arg("solution")),
                 "Internal use. Updates the mesh with the latest solution\n")
         .def("updateMeshInformation", &oxley::OxleyDomain::updateMeshInformation, 
