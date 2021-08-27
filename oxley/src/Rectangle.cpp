@@ -2145,7 +2145,6 @@ void Rectangle::updateFaceElementCount()
         m_faceCount[i]=0;
 
     const index_t LEFT=1, RIGHT=2, BOTTOM=10, TOP=20;
-    // m_faceOffset.assign(4, -1);
     m_faceTags.clear();
 
     int face_count = 1;
@@ -2166,25 +2165,16 @@ void Rectangle::updateFaceElementCount()
             p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+length, quad->y+length, xy2);
             
             if(xy1[0] == forestData.m_origin[0])
-            {
                 m_faceCount[0]++;
-                // m_faceTags.insert(m_faceTags.end(), m_faceTags.end()+1, LEFT);
-            }
+            
             if(xy1[1] == forestData.m_origin[1])
-            {
                 m_faceCount[1]++;
-                // m_faceTags.insert(m_faceTags.end(), m_faceTags.end()+1, BOTTOM);
-            }
+            
             if(xy2[0] == forestData.m_lxy[0])
-            {
                 m_faceCount[2]++;
-                // m_faceTags.insert(m_faceTags.end(), m_faceTags.end()+1, RIGHT);
-            }
+            
             if(xy2[1] == forestData.m_lxy[1])
-            {
                 m_faceCount[3]++;
-                // m_faceTags.insert(m_faceTags.end(), m_faceTags.end()+1, TOP);
-            }
         }
     }
 
