@@ -233,6 +233,8 @@ void DefaultAssembler2D<Scalar>::assemblePDESingle(AbstractSystemMatrix* mat, Da
             p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
             long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
 
+            std::cout << "id = " << id << std::endl;
+
             ///////////////
             // process A //
             ///////////////
@@ -617,6 +619,12 @@ void DefaultAssembler2D<Scalar>::assemblePDESingle(AbstractSystemMatrix* mat, Da
                 }
             }
             // add to matrix (if addEM_S) and RHS (if addEM_F)
+
+            std::cout << id << ": ";
+            for(int i = 0; i < 4; i++)
+                std::cout << EM_F[i] << " ";
+            std::cout << std::endl;
+
             domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t);
         }
     }
@@ -1164,22 +1172,23 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingleReduced(
     vector<Scalar> EM_S(4*4, zero);
     vector<Scalar> EM_F(4, zero);
 
-    for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
+    if(domain->m_faceOffset[0]>-1)
     {
-        p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
-        sc_array_t * tquadrants = &currenttree->quadrants;
-        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-//#pragma omp parallel for
-        for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
-        {                
-            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-            double xy[3];
-            p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
-            long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+        for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
+        {
+            p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
+            sc_array_t * tquadrants = &currenttree->quadrants;
+            p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+    //#pragma omp parallel for
+            for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
+            {                
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+                double xy[3];
+                p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
+                long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
 
-            quadrantData * quaddata = (quadrantData *) quad->p.user_data;
+                quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
-            if(quaddata->m_faceOffset[0]) {
                 if (addEM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
                 if (addEM_F) {
@@ -1213,22 +1222,23 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingleReduced(
         } 
     }
 
-    for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
+    if(domain->m_faceOffset[1]>-1)
     {
-        p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
-        sc_array_t * tquadrants = &currenttree->quadrants;
-        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-//#pragma omp parallel for
-        for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
-        {                
-            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-            double xy[3];
-            p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
-            long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+        for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
+        {
+            p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
+            sc_array_t * tquadrants = &currenttree->quadrants;
+            p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+    //#pragma omp parallel for
+            for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
+            {                
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+                double xy[3];
+                p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
+                long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
 
-            quadrantData * quaddata = (quadrantData *) quad->p.user_data;
+                quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
-            if (quaddata->m_faceOffset[1]) {
                 if (addEM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
                 if (addEM_F) {
@@ -1262,22 +1272,23 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingleReduced(
         } 
     }
 
-    for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
+    if(domain->m_faceOffset[2]>-1)
     {
-        p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
-        sc_array_t * tquadrants = &currenttree->quadrants;
-        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-//#pragma omp parallel for
-        for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
-        {                
-            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-            double xy[3];
-            p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
-            long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+        for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
+        {
+            p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
+            sc_array_t * tquadrants = &currenttree->quadrants;
+            p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+    //#pragma omp parallel for
+            for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
+            {                
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+                double xy[3];
+                p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
+                long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
 
-            quadrantData * quaddata = (quadrantData *) quad->p.user_data;                
+                quadrantData * quaddata = (quadrantData *) quad->p.user_data;                
 
-            if (quaddata->m_faceOffset[2]) {
                 if (addEM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
                 if (addEM_F) {
@@ -1311,22 +1322,23 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingleReduced(
         }
     }
 
-    for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
+    if(domain->m_faceOffset[3]>-1)
     {
-        p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
-        sc_array_t * tquadrants = &currenttree->quadrants;
-        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-//#pragma omp parallel for
-        for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
-        {                
-            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-            double xy[3];
-            p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
-            long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+        for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
+        {
+            p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
+            sc_array_t * tquadrants = &currenttree->quadrants;
+            p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+    //#pragma omp parallel for
+            for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
+            {                
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+                double xy[3];
+                p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
+                long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
 
-            quadrantData * quaddata = (quadrantData *) quad->p.user_data;
+                quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
-            if (quaddata->m_faceOffset[3]) {
                 if (addEM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
                 if (addEM_F) {
@@ -1947,22 +1959,23 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
     vector<Scalar> EM_S(4*4*numEq*numComp, zero);
     vector<Scalar> EM_F(4*numEq, zero);
 
-    for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
+    if(domain->m_faceOffset[0]>-1)
     {
-        p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
-        sc_array_t * tquadrants = &currenttree->quadrants;
-        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-//#pragma omp parallel for
-        for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
-        {                
-            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-            int l = quad->level;
-            double xy[3];
-            p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
-            long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-            quadrantData * quaddata = (quadrantData *) quad->p.user_data;
+        for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
+        {
+            p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
+            sc_array_t * tquadrants = &currenttree->quadrants;
+            p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+    //#pragma omp parallel for
+            for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
+            {                
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+                int l = quad->level;
+                double xy[3];
+                p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
+                long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+                quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
-            if (quaddata->m_faceOffset[0]) {
                 if (addEM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
                 if (addEM_F)
@@ -2023,22 +2036,23 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
         } 
     }
 
-    for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
+    if(domain->m_faceOffset[1]>-1)
     {
-        p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
-        sc_array_t * tquadrants = &currenttree->quadrants;
-        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-//#pragma omp parallel for
-        for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
-        {                
-            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-            int l = quad->level;
-            double xy[3];
-            p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
-            long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-            quadrantData * quaddata = (quadrantData *) quad->p.user_data;
+        for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
+        {
+            p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
+            sc_array_t * tquadrants = &currenttree->quadrants;
+            p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+    //#pragma omp parallel for
+            for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
+            {                
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+                int l = quad->level;
+                double xy[3];
+                p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
+                long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+                quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
-            if (quaddata->m_faceOffset[1]) {
                 if (addEM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
                 if (addEM_F)
@@ -2099,22 +2113,23 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
         }
     }
 
-    for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
+    if(domain->m_faceOffset[2]>-1)
     {
-        p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
-        sc_array_t * tquadrants = &currenttree->quadrants;
-        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-//#pragma omp parallel for
-        for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
-        {                
-            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-            int l = quad->level;
-            double xy[3];
-            p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
-            long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-            quadrantData * quaddata = (quadrantData *) quad->p.user_data;
+        for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
+        {
+            p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
+            sc_array_t * tquadrants = &currenttree->quadrants;
+            p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+    //#pragma omp parallel for
+            for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
+            {                
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+                int l = quad->level;
+                double xy[3];
+                p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
+                long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+                quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
-            if (quaddata->m_faceOffset[2]) {
                 if (addEM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
                 if (addEM_F)
@@ -2175,21 +2190,22 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
         } 
     }
 
-    for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
+    if(domain->m_faceOffset[3]>-1)
     {
-        p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
-        sc_array_t * tquadrants = &currenttree->quadrants;
-        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-//#pragma omp parallel for
-        for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
-        {                
-            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-            double xy[3];
-            p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
-            long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-            quadrantData * quaddata = (quadrantData *) quad->p.user_data;
+        for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
+        {
+            p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
+            sc_array_t * tquadrants = &currenttree->quadrants;
+            p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+    //#pragma omp parallel for
+            for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
+            {                
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+                double xy[3];
+                p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
+                long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+                quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
-            if (quaddata->m_faceOffset[3]) {
                 if (addEM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
                 if (addEM_F)
@@ -2520,21 +2536,22 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
     vector<Scalar> EM_S(4*4*numEq*numComp, zero);
     vector<Scalar> EM_F(4*numEq, zero);
 
-    for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
+    if(domain->m_faceOffset[0]>-1)
     {
-        p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
-        sc_array_t * tquadrants = &currenttree->quadrants;
-        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-//#pragma omp parallel for
-        for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
-        {                
-            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-            double xy[3];
-            p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
-            long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-            quadrantData * quaddata = (quadrantData *) quad->p.user_data;
+        for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
+        {
+            p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
+            sc_array_t * tquadrants = &currenttree->quadrants;
+            p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+    //#pragma omp parallel for
+            for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
+            {                
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+                double xy[3];
+                p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
+                long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+                quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
-            if (quaddata->m_faceOffset[0]) {
                 if (addEM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
                 if (addEM_F)
@@ -2574,21 +2591,22 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
         }
     }
 
-    for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
+    if(domain->m_faceOffset[1]>-1)
     {
-        p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
-        sc_array_t * tquadrants = &currenttree->quadrants;
-        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-//#pragma omp parallel for
-        for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
-        {                
-            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-            double xy[3];
-            p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
-            long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-            quadrantData * quaddata = (quadrantData *) quad->p.user_data;
+        for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
+        {
+            p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
+            sc_array_t * tquadrants = &currenttree->quadrants;
+            p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+    //#pragma omp parallel for
+            for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
+            {                
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+                double xy[3];
+                p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
+                long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+                quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
-            if (quaddata->m_faceOffset[1]) {
                 if (addEM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
                 if (addEM_F)
@@ -2628,21 +2646,22 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
         }
     }
 
-    for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
+    if(domain->m_faceOffset[2]>-1)
     {
-        p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
-        sc_array_t * tquadrants = &currenttree->quadrants;
-        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-//#pragma omp parallel for
-        for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
-        {                
-            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-            double xy[3];
-            p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
-            long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-            quadrantData * quaddata = (quadrantData *) quad->p.user_data;
+        for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
+        {
+            p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
+            sc_array_t * tquadrants = &currenttree->quadrants;
+            p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+    //#pragma omp parallel for
+            for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
+            {                
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+                double xy[3];
+                p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
+                long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+                quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
-            if (quaddata->m_faceOffset[2]) {
                 if (addEM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
                 if (addEM_F)
@@ -2683,21 +2702,22 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
         }
     }
 
-    for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
+    if(domain->m_faceOffset[3]>-1)
     {
-        p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
-        sc_array_t * tquadrants = &currenttree->quadrants;
-        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-//#pragma omp parallel for
-        for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
-        {                
-            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-            double xy[3];
-            p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
-            long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-            quadrantData * quaddata = (quadrantData *) quad->p.user_data;
+        for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
+        {
+            p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
+            sc_array_t * tquadrants = &currenttree->quadrants;
+            p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+    //#pragma omp parallel for
+            for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
+            {                
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+                double xy[3];
+                p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
+                long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+                quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
-            if (quaddata->m_faceOffset[3]) {
                 if (addEM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
                 if (addEM_F)
