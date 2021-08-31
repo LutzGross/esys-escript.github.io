@@ -1134,17 +1134,11 @@ void Rectangle::renumberNodes()
         p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
         for(int q = 0; q < Q; ++q) { 
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-            // p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
-
             p4est_qcoord_t l = P4EST_QUADRANT_LEN(quad->level);
             double lxy[4][2] = {{0,0},{0,l},{l,0},{l,l}};
-
             for(int n = 0; n < 4; n++)
             {
-                // double lx = length * ((int) (n % 2) == 1);
-                // double ly = length * ((int) (n / 2) == 1);
                 double xy[3];
-                // p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
                 p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy);
                 if(NodeIDs.count(std::make_pair(xy[0],xy[1]))==0)
                 {
@@ -1176,19 +1170,17 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
 #pragma omp parallel for
         for(int q = 0; q < Q; ++q) { // Loop over the elements attached to the tree
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-            p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
-
+            p4est_qcoord_t l = P4EST_QUADRANT_LEN(quad->level);
+            double lxy[4][2] = {{0,0},{0,l},{l,0},{l,l}};
             // Loop over the four corners of the quadrant
             for(int n = 0; n < 4; ++n){
                 int k = q - Q + nodeIncrements[treeid - p4est->first_local_tree];
-                double lx = length * ((int) (n % 2) == 1);
-                double ly = length * ((int) (n / 2) == 1);
                 double xy[3];
-                p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
+                p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy);
 
                 if( (n == 0) 
                   || isHangingNode(nodes->face_code[k], n)
-                  || isUpperBoundaryNode(quad, n, treeid, length) 
+                  || isUpperBoundaryNode(quad, n, treeid, l) 
                 )
                 {
                     long lni = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
