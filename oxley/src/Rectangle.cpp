@@ -1134,13 +1134,18 @@ void Rectangle::renumberNodes()
         p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
         for(int q = 0; q < Q; ++q) { 
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-            p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
+            // p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
+
+            p4est_qcoord_t l = P4EST_QUADRANT_LEN(quad->level);
+            double lxy[4][2] = {{0,0},{0,l},{l,0},{l,l}};
+
             for(int n = 0; n < 4; n++)
             {
-                double lx = length * ((int) (n % 2) == 1);
-                double ly = length * ((int) (n / 2) == 1);
+                // double lx = length * ((int) (n % 2) == 1);
+                // double ly = length * ((int) (n / 2) == 1);
                 double xy[3];
-                p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
+                // p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
+                p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy);
                 if(NodeIDs.count(std::make_pair(xy[0],xy[1]))==0)
                 {
                     #ifdef OXLEY_ENABLE_DEBUG_NODES
@@ -1345,15 +1350,15 @@ void Rectangle::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Dat
     IndexVector rowIndex(4);
     p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
     sc_array_t * tquadrants = &currenttree->quadrants;
-    // p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
     p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
-    p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
+    p4est_qcoord_t l = P4EST_QUADRANT_LEN(quad->level);
+    int lxy[4][2] = {{0,0},{l,0},{0,l},{l,l}};
+
+// #pragma omp for
     for(int i = 0; i < 4; i++)
     {
-        double lx = length * ((int) (i % 2) == 1);
-        double ly = length * ((int) (i / 2) == 1);
         double xy[3];
-        p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x+lx, quad->y+ly, xy);
+        p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x+lxy[i][0], quad->y+lxy[i][1], xy);
         rowIndex[i] = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
     }
 
@@ -1803,20 +1808,15 @@ void Rectangle::updateRowsColumns()
         for(int q = 0; q < Q; ++q) { // Loop over the elements attached to the tree
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
             p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
-            // int k = q - Q + nodeIncrements[treeid - p4est->first_local_tree];
-            int n = 1;
-            // long lidx = nodes->element_nodes[4*k+n];
-            double lx = length * ((int) (n % 2) == 1);
-            double ly = length * ((int) (n / 2) == 1);
             double xy[3];
-            p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
+            p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+length, quad->y, xy);
 
             // If the node is on the boundary x=Lx or y=Ly
             if(xy[0] == forestData.m_lxy[0]) 
             {
                 // Get the node IDs
                 long lni0 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-                p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+length, xy);
+                p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+length, quad->y+length, xy);
                 long lni1 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
 
                 std::vector<long> * idx0 = &indices[0][lni0];
@@ -1838,16 +1838,12 @@ void Rectangle::updateRowsColumns()
                 }
             }
 
-            n = 2;
-            // long lidx = nodes->element_nodes[4*k+n];
-            lx = length * ((int) (n % 2) == 1);
-            ly = length * ((int) (n / 2) == 1);
-            p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
+            p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x, quad->y+length, xy);
             if(xy[1] == forestData.m_lxy[1])
             {
                 // Get the node IDs
                 long lni0 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-                p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+length, quad->y+ly, xy);
+                p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+length, quad->y+length, xy);
                 long lni1 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
 
                 std::vector<long> * idx0 = &indices[0][lni0];
