@@ -233,8 +233,6 @@ void DefaultAssembler2D<Scalar>::assemblePDESingle(AbstractSystemMatrix* mat, Da
             p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
             long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
 
-            std::cout << "id = " << id << std::endl;
-
             ///////////////
             // process A //
             ///////////////
@@ -694,8 +692,6 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
                 p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
                 long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
                 
-                // quadrantData * quaddata = (quadrantData *) quad->p.user_data;
-
                 ///////////////
                 // process d //
                 ///////////////
@@ -756,8 +752,6 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
                 double xy[3];
                 p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
                 long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-
-                // quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
                 int l = quad->level;
 
@@ -821,8 +815,6 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
                 double xy[3];
                 p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
                 long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-
-                // quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
                 int l = quad->level;
 
@@ -888,8 +880,6 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
                 p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
                 long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
 
-                // quadrantData * quaddata = (quadrantData *) quad->p.user_data;
-        
                 int l = quad->level;
 
                 ///////////////
@@ -1181,8 +1171,6 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingleReduced(
                 p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
                 long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
 
-                quadrantData * quaddata = (quadrantData *) quad->p.user_data;
-
                 if (addEM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
                 if (addEM_F) {
@@ -1230,8 +1218,6 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingleReduced(
                 double xy[3];
                 p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
                 long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-
-                quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
                 if (addEM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
@@ -1281,8 +1267,6 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingleReduced(
                 p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
                 long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
 
-                quadrantData * quaddata = (quadrantData *) quad->p.user_data;                
-
                 if (addEM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
                 if (addEM_F) {
@@ -1330,8 +1314,6 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingleReduced(
                 double xy[3];
                 p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
                 long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-
-                quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
                 if (addEM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
@@ -1968,7 +1950,6 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
                 double xy[3];
                 p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
                 long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-                quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
                 if (addEM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
@@ -2045,7 +2026,6 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
                 double xy[3];
                 p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
                 long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-                quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
                 if (addEM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
@@ -2122,7 +2102,6 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
                 double xy[3];
                 p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
                 long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-                quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
                 if (addEM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
@@ -2198,7 +2177,6 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
                 double xy[3];
                 p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
                 long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-                quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
                 if (addEM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
@@ -2544,7 +2522,6 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
                 double xy[3];
                 p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
                 long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-                quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
                 if (addEM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
@@ -2599,7 +2576,6 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
                 double xy[3];
                 p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
                 long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-                quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
                 if (addEM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
@@ -2654,7 +2630,6 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
                 double xy[3];
                 p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
                 long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-                quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
                 if (addEM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
@@ -2710,7 +2685,6 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
                 double xy[3];
                 p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
                 long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-                quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
                 if (addEM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
