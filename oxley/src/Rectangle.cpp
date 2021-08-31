@@ -1135,7 +1135,7 @@ void Rectangle::renumberNodes()
         for(int q = 0; q < Q; ++q) { 
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
             p4est_qcoord_t l = P4EST_QUADRANT_LEN(quad->level);
-            double lxy[4][2] = {{0,0},{0,l},{l,0},{l,l}};
+            p4est_qcoord_t lxy[4][2] = {{0,0},{0,l},{l,0},{l,l}};
             for(int n = 0; n < 4; n++)
             {
                 double xy[3];
