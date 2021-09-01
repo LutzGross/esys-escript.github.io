@@ -248,6 +248,40 @@ int refine_region(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadr
             (quadrant->level < forestData->max_levels_refinement);
 }
 
+int refine_point(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
+{
+    p4estData * forestData = (p4estData *) p4est->user_pointer;
+    quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
+    double p[2] = {forestData->refinement_boundaries[0], forestData->refinement_boundaries[1]};
+    double * xy1 = quadData->xy;
+
+    // Check to see if we are on the upper boundary
+    if(xy1[0] == forestData->m_lxy[0] || xy1[1] == forestData->m_lxy[1])
+        return (p[0] == forestData->m_lxy[0]) || (p[1] == forestData->m_lxy[1]);
+
+    double xy2[3] = {0};
+    p4est_qcoord_t l = P4EST_QUADRANT_LEN(quadrant->level);
+    p4est_qcoord_to_vertex(p4est->connectivity, tree, quadrant->x+l, quadrant->y+l, xy2);
+
+
+    int do_refinement = 0;
+    
+    // Check if the point is on the corners or side of the quadrant
+    do_refinement += (p[0] == xy1[0]);
+    do_refinement += (p[0] == xy2[0]);
+    do_refinement += (p[1] == xy1[1]);
+    do_refinement += (p[1] == xy2[1]);
+
+    // Check if the point is inside the quadrant
+    do_refinement += (p[0] > xy1[0]) && (p[0] < xy2[0])
+                    && (p[1] > xy2[1]) && (p[1] < xy2[1]);
+
+
+    return  do_refinement > 0 &&
+            (quadrant->level < forestData->max_levels_refinement);
+}
+
+
 void print_quad_debug_info(p4est_iter_volume_info_t * info, p4est_quadrant_t * quadrant)
 {
     double xy[2] = {0.0,0.0};

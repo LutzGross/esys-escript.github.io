@@ -191,6 +191,14 @@ public:
     */
     virtual void refineRegion(double x0, double x1, double y0, double y1);
 
+    /**
+       \brief
+       refines the mesh around the point x0, y0
+       \param x0 spatial coordinate of point
+       \param y0 spatial coordinate of point
+    */
+    virtual void refinePoint(double x0, double y0);
+
 
     /**
        \brief

@@ -655,7 +655,7 @@ dim_t Rectangle::getNumDataPointsGlobal() const
 }
 
 void Rectangle::dump(const std::string& fileName) const
-{ 
+{
 #ifdef ESYS_HAVE_SILO
     
     // Add the suffix to the filename if required
@@ -669,51 +669,56 @@ void Rectangle::dump(const std::string& fileName) const
     // Silo file pointer
     DBfile* dbfile = NULL; 
 
-    // Coordinate names
-    // char * coordnames[2] = {"xy"};
-
     // The coordinate arrays
-    float nodex[MAXP4ESTNODES];
-    float nodey[MAXP4ESTNODES];
-    long int node_ids[MAXP4ESTNODES];
-    double value[MAXP4ESTNODES];
+    float *pNodex = nullptr;
+    float *pNodey = nullptr;
+    long int *pNode_ids = nullptr;
+    double * pValues = nullptr;
+
+    pNodex = new float[MAXP4ESTNODES];
+    pNodey = new float[MAXP4ESTNODES];
+    pNode_ids = new long int [MAXP4ESTNODES];
+    pValues = new double[MAXP4ESTNODES];
 
     for(std::pair<DoublePair,long> element : NodeIDs)
     {
-        nodex[element.second]=element.first.first;
-        nodey[element.second]=element.first.second;
-        node_ids[element.second]=element.second;
+        pNodex[element.second]=element.first.first;
+        pNodey[element.second]=element.first.second;
+        pNode_ids[element.second]=element.second;
     }
 
     if(current_solution.size() != 0)
         for(std::pair<DoublePair,long> element : NodeIDs)
         {
-            value[element.second]=current_solution.at(element.second);
+            pValues[element.second]=current_solution.at(element.second);
         }
 
     // Array of the coordinate arrays
-    float *coordinates[2];
-    coordinates[0]=nodex;
-    coordinates[1]=nodey;
+    float * pCoordinates[2];
+    pCoordinates[0]=pNodex;
+    pCoordinates[1]=pNodey;
 
-    // Create the file
+//     // Create the file
     dbfile = DBCreate(fn.c_str(), DB_CLOBBER, DB_LOCAL, getDescription().c_str(), driver);
     if (!dbfile)
         throw escript::IOError("dump: Could not create Silo file");
 
     // Coordinates
-    DBPutPointmesh(dbfile, "mesh", 2, coordinates, getNumNodes(), DB_FLOAT, NULL) ;
+    DBPutPointmesh(dbfile, "mesh", 2, pCoordinates, getNumNodes(), DB_FLOAT, NULL) ;
 
     // Node IDs
-    DBPutPointvar1(dbfile, "id", "mesh", node_ids, getNumNodes(), DB_LONG, NULL);
+    DBPutPointvar1(dbfile, "id", "mesh", pNode_ids, getNumNodes(), DB_LONG, NULL);
 
     // Node values
     if(current_solution.size() != 0)
-        DBPutPointvar1(dbfile, "u", "mesh", value, getNumNodes(), DB_DOUBLE, NULL);    
+        DBPutPointvar1(dbfile, "u", "mesh", pValues, getNumNodes(), DB_DOUBLE, NULL);    
 
     DBClose(dbfile);
 
-    // return 0;
+    delete [] pNodex;
+    delete [] pNodey;
+    delete [] pNode_ids;
+    delete [] pValues;
 
 #else // ESYS_HAVE_SILO
     throw OxleyException("dump: escript was not compiled with Silo enabled");
@@ -930,6 +935,44 @@ void Rectangle::refineRegion(double x0, double x1, double y0, double y1)
     forestData.refinement_boundaries[3] = y1 == -1 ? forestData.m_lxy[1] : y1;
 
     p4est_refine_ext(p4est, true, -1, refine_region, init_rectangle_data, refine_copy_parent_quadrant);
+    p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);
+
+    // Make sure that nothing went wrong
+#ifdef OXLEY_ENABLE_DEBUG
+    if(!p4est_is_valid(p4est))
+        throw OxleyException("p4est broke during refinement");
+    if(!p4est_connectivity_is_valid(connectivity))
+        throw OxleyException("connectivity broke during refinement");
+#endif
+
+    bool partition_for_coarsening = true;
+    p4est_partition_ext(p4est, partition_for_coarsening, NULL);
+
+    // Update the nodes
+    p4est_lnodes_destroy(nodes);
+    p4est_ghost_t * ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
+    nodes = p4est_lnodes_new(p4est, ghost, 1);
+    p4est_ghost_destroy(ghost);
+
+    // Update
+    updateNodeIncrements();
+    renumberNodes();
+    updateRowsColumns();
+}
+
+void Rectangle::refinePoint(double x0, double y0)
+{
+    // Check that the point is inside the domain
+    if(x0 < forestData.m_origin[0] || x0 > forestData.m_lxy[0] 
+        || y0 < forestData.m_origin[1] || y0 > forestData.m_lxy[1] )
+    {
+        throw OxleyException("Coordinates lie outside the domain.");
+    }
+
+    // If the boundaries were not specified by the user, default to the border of the domain
+    forestData.refinement_boundaries[0] = x0;
+    forestData.refinement_boundaries[1] = y0;
+    p4est_refine_ext(p4est, true, -1, refine_point, init_rectangle_data, refine_copy_parent_quadrant);
     p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);
 
     // Make sure that nothing went wrong

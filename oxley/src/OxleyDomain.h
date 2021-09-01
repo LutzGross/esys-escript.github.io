@@ -469,6 +469,15 @@ public:
 
     /**
        \brief
+       refines the mesh around the point
+       x0, y1
+       \param x0 
+       \param y1 
+    */
+    virtual void refinePoint(double x0, double y1);
+
+    /**
+       \brief
        returns a Data object containing the coordinate information
     */
     virtual int getNumVertices() const = 0;

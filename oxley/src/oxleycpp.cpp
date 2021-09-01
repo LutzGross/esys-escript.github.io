@@ -406,9 +406,12 @@ BOOST_PYTHON_MODULE(oxleycpp)
             "supported, using the supplied options (if provided)"
             ":param typename:\n:type typename: `string`\n"
             ":param options:\n:type options: `list`\n")
+        .def("dump", &oxley::OxleyDomain::dump, args("filename"),
+            "Dumps the mesh to a silo file with the name `filename`."
+            ":param filename:\n:type typename: `string`\n")
         .def("getDataShape", &oxley::OxleyDomain::getDataShape, args("functionSpaceCode"),
-                ":return: a pair (dps, ns) where dps is the number of data points per sample, and ns is the number of samples\n"
-                ":rtype: ``tuple``")        
+            ":return: a pair (dps, ns) where dps is the number of data points per sample, and ns is the number of samples\n"
+            ":rtype: ``tuple``")        
         .def("getDescription", &oxley::OxleyDomain::getDescription,
                 "Prints out a description of the mesh.")
         .def("getDim", &oxley::OxleyDomain::getDim, ":rtype: ``int``")
@@ -416,7 +419,8 @@ BOOST_PYTHON_MODULE(oxleycpp)
             ":return: boundary normals at the quadrature point on the face elements\n"
             ":rtype: `Data`")
         .def("getNumVertices", &oxley::OxleyDomain::getNumVertices,
-                "Returns the number of corners in the mesh.")
+            "Returns the number of corners in the mesh.\n"
+            ":rtype: ``int``")
         .def("getSystemMatrixTypeId",&oxley::OxleyDomain::getSystemMatrixTypeId,
             args("options"),
             ":return: the identifier of the matrix type to be used for the global stiffness matrix when particular solver options are used.\n"
@@ -457,6 +461,11 @@ BOOST_PYTHON_MODULE(oxleycpp)
                 ":param x1:\n:type double: boundary of the region.\n"
                 ":param y0:\n:type double: boundary of the region.\n"
                 ":param y1:\n:type double: boundary of the region.\n")
+        .def("refinePoint", &oxley::OxleyDomain::refinePoint, (arg("x0")=-1,arg("y0")=-1),
+                "Refines the mesh around the point (x0,y0) to the level of refinement.\n"
+                "set by setRefinementLevel\n"
+                ":param x0:\n:type double: boundary of the region.\n"
+                ":param x1:\n:type double: boundary of the region.\n")
         .def("setRefinementLevel", &oxley::OxleyDomain::setRefinementLevels, (arg("refinementlevels")),
                 "Sets the number of levels of refinement\n"
                 ":param refinementLevels:\ntype int: `Maximum number of levels of refinement,`\n")
