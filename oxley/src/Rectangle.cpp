@@ -698,28 +698,50 @@ void Rectangle::dump(const std::string& fileName) const
     pCoordinates[0]=pNodex;
     pCoordinates[1]=pNodey;
 
-//     // Create the file
+    // Create the file
     dbfile = DBCreate(fn.c_str(), DB_CLOBBER, DB_LOCAL, getDescription().c_str(), driver);
     if (!dbfile)
         throw escript::IOError("dump: Could not create Silo file");
 
-    // This is supposed to be the number of elements in each spatial direction
-    // vector<int> dims(getNumNodes(), getNumNodes());
-    // int dims[2] = {getNumNodes()};
+    // create the nodelist
+    std::vector<int> nodelist;
+    long ids[4]={0};
+    for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) {
+        p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
+        sc_array_t * tquadrants = &tree->quadrants;
+        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+        for(int q = 0; q < Q; q++)
+        {
+            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);          
+            getNeighouringNodeIDs(quad, treeid, ids);
+            nodelist.push_back(ids[0]);
+            nodelist.push_back(ids[2]);
+            nodelist.push_back(ids[3]);
+            nodelist.push_back(ids[1]);
+        }
+    }
+
+    int* nodelistarray = &nodelist[0];
 
     // write mesh
-    // DBPutQuadmesh(dbfile, "mesh_quads", NULL, pCoordinates, &dims[0], 2, 
-    //     DB_DOUBLE, DB_COLLINEAR, NULL);
+    int lnodelist = nodelist.size();
+    int shapesize[] = {4};
+    int shapecounts[] = {lnodelist/4};
+    int nshapetypes = 1;
+    DBPutZonelist(dbfile, "quads", getNumElements(), 2, nodelistarray, lnodelist, 0, 
+                    shapesize, shapecounts, nshapetypes);
+    DBPutUcdmesh(dbfile, "mesh", 2, NULL, pCoordinates, getNumNodes(), getNumElements(), 
+                    "quads", NULL, DB_FLOAT, NULL);
 
     // Coordinates
-    DBPutPointmesh(dbfile, "mesh", 2, pCoordinates, getNumNodes(), DB_FLOAT, NULL) ;
+    DBPutPointmesh(dbfile, "nodes", 2, pCoordinates, getNumNodes(), DB_FLOAT, NULL) ;
 
     // Node IDs
-    DBPutPointvar1(dbfile, "id", "mesh", pNode_ids, getNumNodes(), DB_LONG, NULL);
+    DBPutPointvar1(dbfile, "id", "nodes", pNode_ids, getNumNodes(), DB_LONG, NULL);
 
     // Node values
     if(current_solution.size() != 0)
-        DBPutPointvar1(dbfile, "u", "mesh", pValues, getNumNodes(), DB_DOUBLE, NULL);    
+        DBPutPointvar1(dbfile, "u", "nodes", pValues, getNumNodes(), DB_DOUBLE, NULL);    
 
     DBClose(dbfile);
 
