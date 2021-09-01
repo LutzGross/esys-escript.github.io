@@ -453,7 +453,7 @@ BOOST_PYTHON_MODULE(oxleycpp)
                 "       accepted values are \"uniform\", \"MARE2DEM\" ")
         .def("refineBoundary", &oxley::OxleyDomain::refineBoundary, (args("boundary","dx")),
                 "Refines the mesh near a boundary.\n"
-                ":param boundary:\n:type string: `The boundary (n,s,e,w) \n"
+                ":param boundary:\n:type string: `The boundary (top,bottom,right,left) \n"
                 ":param dx:\n:type double: all quadrants closer to the boundary than dx will be refined. ")
         .def("refineRegion", &oxley::OxleyDomain::refineRegion, (arg("x0")=-1,arg("x1")=-1,arg("y0")=-1,arg("y1")=-1),
                 "Refines the mesh within the interior of a region.\n"

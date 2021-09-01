@@ -901,36 +901,36 @@ void Rectangle::refineBoundary(std::string boundaryname, double dx)
 {
     forestData.refinement_depth = dx;
 
-    if(!boundaryname.compare("north") || !boundaryname.compare("North")
-        || !boundaryname.compare("n") || !boundaryname.compare("N")
-        || !boundaryname.compare("NORTH"))
+    if(!boundaryname.compare("top") || !boundaryname.compare("Top")
+        || !boundaryname.compare("t") || !boundaryname.compare("T")
+        || !boundaryname.compare("TOP"))
     {
         p4est_refine_ext(p4est, true, -1, refine_north, init_rectangle_data, refine_copy_parent_quadrant);
         p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);
     } 
-    else if(!boundaryname.compare("south") || !boundaryname.compare("South")
-        || !boundaryname.compare("s") || !boundaryname.compare("S")
-        || !boundaryname.compare("SOUTH"))
+    else if(!boundaryname.compare("bottom") || !boundaryname.compare("Bottom")
+        || !boundaryname.compare("b") || !boundaryname.compare("B")
+        || !boundaryname.compare("BOTTOM"))
     {
         p4est_refine_ext(p4est, true, -1, refine_south, init_rectangle_data, refine_copy_parent_quadrant);
         p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);
     }
-    else if(!boundaryname.compare("west") || !boundaryname.compare("West")
-        || !boundaryname.compare("w") || !boundaryname.compare("W")
-        || !boundaryname.compare("WEST"))
+    else if(!boundaryname.compare("left") || !boundaryname.compare("Left")
+        || !boundaryname.compare("l") || !boundaryname.compare("L")
+        || !boundaryname.compare("LEFT"))
     {
         p4est_refine_ext(p4est, true, -1, refine_west, init_rectangle_data, refine_copy_parent_quadrant);
         p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);
     }
-    else if(!boundaryname.compare("east") || !boundaryname.compare("East")
-        || !boundaryname.compare("e") || !boundaryname.compare("E")
-        || !boundaryname.compare("EAST"))
+    else if(!boundaryname.compare("right") || !boundaryname.compare("Right")
+        || !boundaryname.compare("r") || !boundaryname.compare("R")
+        || !boundaryname.compare("RIGHT"))
     {
         p4est_refine_ext(p4est, true, -1, refine_east, init_rectangle_data, refine_copy_parent_quadrant);
         p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);  
     }
     else {
-        throw OxleyException("Unknown boundary name. Please try 'north', 'east', 'south' or 'west'.");
+        throw OxleyException("Unknown boundary name. Please try 'top', 'bottom', 'left' or 'right'.");
     }
 
     // Make sure that nothing went wrong
