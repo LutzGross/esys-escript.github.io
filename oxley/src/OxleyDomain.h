@@ -478,6 +478,15 @@ public:
 
     /**
        \brief
+       refines a circle on the mesh centered at (x0, y0) with radius r
+       \param x0 
+       \param y1 
+       \param r
+    */
+    virtual void refineCircle(double x0, double y0, double r);
+
+    /**
+       \brief
        returns a Data object containing the coordinate information
     */
     virtual int getNumVertices() const = 0;

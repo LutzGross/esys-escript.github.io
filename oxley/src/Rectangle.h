@@ -199,6 +199,15 @@ public:
     */
     virtual void refinePoint(double x0, double y0);
 
+    /**
+       \brief
+       refines a circle on the mesh with center x0, y0 and radius r
+       \param x0 spatial coordinate of center of the circle
+       \param y0 spatial coordinate of center of the circle
+       \param r radius of the circle
+    */
+    virtual void refineCircle(double x0, double y0, double r);
+
 
     /**
        \brief

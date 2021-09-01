@@ -464,8 +464,14 @@ BOOST_PYTHON_MODULE(oxleycpp)
         .def("refinePoint", &oxley::OxleyDomain::refinePoint, (arg("x0")=-1,arg("y0")=-1),
                 "Refines the mesh around the point (x0,y0) to the level of refinement.\n"
                 "set by setRefinementLevel\n"
-                ":param x0:\n:type double: boundary of the region.\n"
-                ":param x1:\n:type double: boundary of the region.\n")
+                ":param x0:\n:type double: x coordinate of the point to be refined.\n"
+                ":param y0:\n:type double: y coordinate of the point to be refined.\n")
+        .def("refineCircle", &oxley::OxleyDomain::refineCircle, (arg("x0")=-1,arg("y0")=-1,arg("r")=-1),
+                "Refines the mesh around the point (x0,y0) to the level of refinement.\n"
+                "set by setRefinementLevel\n"
+                ":param x0:\n:type double: x coordinate of the point to be refined.\n"
+                ":param y0:\n:type double: y coordinate of the point to be refined.\n"
+                ":param r: \n:type double: radius of the circle.\n")
         .def("setRefinementLevel", &oxley::OxleyDomain::setRefinementLevels, (arg("refinementlevels")),
                 "Sets the number of levels of refinement\n"
                 ":param refinementLevels:\ntype int: `Maximum number of levels of refinement,`\n")

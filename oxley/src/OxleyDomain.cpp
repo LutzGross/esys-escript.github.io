@@ -863,6 +863,11 @@ namespace oxley {
         throw OxleyException("unknown error");   
     }
 
+    void OxleyDomain::refineCircle(double x0, double y0, double r)
+    {
+        throw OxleyException("unknown error");   
+    }
+
     void OxleyDomain::setTags(int fsType, int newTag, const escript::Data& mask) const
     {
         vector<int>* target=NULL;

@@ -57,6 +57,7 @@ int refine_bottom(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadr
 int refine_region(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant);
 
 int refine_point(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant);
+int refine_circle(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant);
 
 /*
  *  \brief
