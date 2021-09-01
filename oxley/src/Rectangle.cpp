@@ -703,6 +703,14 @@ void Rectangle::dump(const std::string& fileName) const
     if (!dbfile)
         throw escript::IOError("dump: Could not create Silo file");
 
+    // This is supposed to be the number of elements in each spatial direction
+    // vector<int> dims(getNumNodes(), getNumNodes());
+    // int dims[2] = {getNumNodes()};
+
+    // write mesh
+    // DBPutQuadmesh(dbfile, "mesh_quads", NULL, pCoordinates, &dims[0], 2, 
+    //     DB_DOUBLE, DB_COLLINEAR, NULL);
+
     // Coordinates
     DBPutPointmesh(dbfile, "mesh", 2, pCoordinates, getNumNodes(), DB_FLOAT, NULL) ;
 
