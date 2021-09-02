@@ -728,7 +728,22 @@ namespace oxley {
 
     int OxleyDomain::getNumberOfTagsInUse(int fsType) const
     {
-        return numberOfTags;
+        switch(fsType) {
+            case Nodes:
+                return m_nodeTagsInUse.size();
+            case Elements:
+            case ReducedElements:
+                return m_elementTagsInUse.size();
+            case FaceElements:
+            case ReducedFaceElements:
+                return m_faceTagsInUse.size();
+            default: {
+                stringstream msg;
+                msg << "getNumberOfTagsInUse: invalid function space type "
+                    << fsType;
+                throw ValueError(msg.str());
+            }
+        }
     }
 
     const int* OxleyDomain::borrowListOfTagsInUse(int fsType) const

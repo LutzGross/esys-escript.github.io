@@ -2212,11 +2212,11 @@ void Rectangle::populateSampleIds()
 //         for (dim_t k=0; k<NFE; k++)
 //             m_faceId[k]=k;
 
-//     m_nodeTags.assign(getNumNodes(), 0);
-//     updateTagsInUse(Nodes);
+    m_nodeTags.assign(getNumNodes(), 0);
+    updateTagsInUse(Nodes);
 
-//     m_elementTags.assign(getNumElements(), 0);
-//     updateTagsInUse(Elements);
+    m_elementTags.assign(getNumElements(), 0);
+    updateTagsInUse(Elements);
 
     // generate face offset vector and set face tags
     // const index_t LEFT=1, RIGHT=2, BOTTOM=10, TOP=20;
