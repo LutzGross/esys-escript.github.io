@@ -639,7 +639,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
     }
 
     // This is similar to Ripley, except that in Oxley the quads vary in size so that the 
-    // weightings need to be calcuated for each level of refinement
+    // weightings need to be calculated for each level of refinement
     const double SQRT3 = 1.73205080756887719318;
     double w[16][P4EST_MAXLEVEL] = {{0}};
 #pragma omp parallel for
@@ -677,57 +677,45 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
             EM_F[3] = zero;
         }
 
-        for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
-        {
-            p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
-            sc_array_t * tquadrants = &currenttree->quadrants;
-            p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-    #pragma omp parallel for
-            for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
-            {
-                
-                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-                int l = quad->level;
-                double xy[3];
-                p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
-                long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-                
-                ///////////////
-                // process d //
-                ///////////////
-                if (addEM_S) {
-                    const Scalar* d_p = d.getSampleDataRO(id, zero);
-                    if (d.actsExpanded()) {
-                        const Scalar d_0 = d_p[0];
-                        const Scalar d_1 = d_p[1];
-                        const Scalar tmp0 = w[2][l]*(d_0 + d_1);
-                        EM_S[INDEX2(0,0,4)] = d_0*w[0][l] + d_1*w[1][l];
-                        EM_S[INDEX2(2,0,4)] = tmp0;
-                        EM_S[INDEX2(0,2,4)] = tmp0;
-                        EM_S[INDEX2(2,2,4)] = d_0*w[1][l] + d_1*w[0][l];
-                    } else { // constant data
-                        EM_S[INDEX2(0,0,4)] = 4.*d_p[0]*w[2][l];
-                        EM_S[INDEX2(2,0,4)] = 2.*d_p[0]*w[2][l];
-                        EM_S[INDEX2(0,2,4)] = 2.*d_p[0]*w[2][l];
-                        EM_S[INDEX2(2,2,4)] = 4.*d_p[0]*w[2][l];
-                    }
-                }
+        for (index_t k=0; k<domain->NodeIDsLeft.size(); k++) {
+            int id = domain->NodeIDsLeft[k].nodeid;
+            int l = domain->NodeIDsLeft[k].quad->level;
 
-                ///////////////
-                // process y //
-                ///////////////
-                if (addEM_F) {
-                    const Scalar* y_p = y.getSampleDataRO(id, zero);
-                    if (y.actsExpanded()) {
-                        EM_F[0] = w[3][l]*y_p[0] + w[4][l]*y_p[1];
-                        EM_F[2] = w[3][l]*y_p[1] + w[4][l]*y_p[0];
-                    } else { // constant data
-                        EM_F[0] = 6.*w[2][l]*y_p[0];
-                        EM_F[2] = 6.*w[2][l]*y_p[0];
-                    }
+            ///////////////
+            // process d //
+            ///////////////
+            if (addEM_S) {
+                const Scalar* d_p = d.getSampleDataRO(id, zero);
+                if (d.actsExpanded()) {
+                    const Scalar d_0 = d_p[0];
+                    const Scalar d_1 = d_p[1];
+                    const Scalar tmp0 = w[2][l]*(d_0 + d_1);
+                    EM_S[INDEX2(0,0,4)] = d_0*w[0][l] + d_1*w[1][l];
+                    EM_S[INDEX2(2,0,4)] = tmp0;
+                    EM_S[INDEX2(0,2,4)] = tmp0;
+                    EM_S[INDEX2(2,2,4)] = d_0*w[1][l] + d_1*w[0][l];
+                } else { // constant data
+                    EM_S[INDEX2(0,0,4)] = 4.*d_p[0]*w[2][l];
+                    EM_S[INDEX2(2,0,4)] = 2.*d_p[0]*w[2][l];
+                    EM_S[INDEX2(0,2,4)] = 2.*d_p[0]*w[2][l];
+                    EM_S[INDEX2(2,2,4)] = 4.*d_p[0]*w[2][l];
                 }
-                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t);
             }
+
+            ///////////////
+            // process y //
+            ///////////////
+            if (addEM_F) {
+                const Scalar* y_p = y.getSampleDataRO(id, zero);
+                if (y.actsExpanded()) {
+                    EM_F[0] = w[3][l]*y_p[0] + w[4][l]*y_p[1];
+                    EM_F[2] = w[3][l]*y_p[1] + w[4][l]*y_p[0];
+                } else { // constant data
+                    EM_F[0] = 6.*w[2][l]*y_p[0];
+                    EM_F[2] = 6.*w[2][l]*y_p[0];
+                }
+            }
+            domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, domain->NodeIDsLeft[k]);            
         }
     }
 
@@ -740,57 +728,46 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
             EM_F[2] = zero;
         }
 
-        for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
-        {
-            p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
-            sc_array_t * tquadrants = &currenttree->quadrants;
-            p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-    #pragma omp parallel for
-            for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
-            {                
-                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-                double xy[3];
-                p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
-                long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+        for (index_t k=0; k<domain->NodeIDsBottom.size(); k++) {
+            int id = domain->NodeIDsBottom[k].nodeid;
+            int l = domain->NodeIDsBottom[k].quad->level;
 
-                int l = quad->level;
-
-                ///////////////
-                // process d //
-                ///////////////
-                if (addEM_S) {
-                    const Scalar* d_p = d.getSampleDataRO(id, zero);
-                    if (d.actsExpanded()) {
-                        const Scalar d_0 = d_p[0];
-                        const Scalar d_1 = d_p[1];
-                        const Scalar tmp0 = w[2][l]*(d_0 + d_1);
-                        EM_S[INDEX2(1,1,4)] = d_0*w[0][l] + d_1*w[1][l];
-                        EM_S[INDEX2(3,1,4)] = tmp0;
-                        EM_S[INDEX2(1,3,4)] = tmp0;
-                        EM_S[INDEX2(3,3,4)] = d_0*w[1][l] + d_1*w[0][l];
-                    } else { // constant data
-                        EM_S[INDEX2(1,1,4)] = 4.*d_p[0]*w[2][l];
-                        EM_S[INDEX2(3,1,4)] = 2.*d_p[0]*w[2][l];
-                        EM_S[INDEX2(1,3,4)] = 2.*d_p[0]*w[2][l];
-                        EM_S[INDEX2(3,3,4)] = 4.*d_p[0]*w[2][l];
-                    }
+            ///////////////
+            // process d //
+            ///////////////
+            if (addEM_S) {
+                const Scalar* d_p = d.getSampleDataRO(id, zero);
+                if (d.actsExpanded()) {
+                    const Scalar d_0 = d_p[0];
+                    const Scalar d_1 = d_p[1];
+                    const Scalar tmp0 = w[2][l]*(d_0 + d_1);
+                    EM_S[INDEX2(1,1,4)] = d_0*w[0][l] + d_1*w[1][l];
+                    EM_S[INDEX2(3,1,4)] = tmp0;
+                    EM_S[INDEX2(1,3,4)] = tmp0;
+                    EM_S[INDEX2(3,3,4)] = d_0*w[1][l] + d_1*w[0][l];
+                } else { // constant data
+                    EM_S[INDEX2(1,1,4)] = 4.*d_p[0]*w[2][l];
+                    EM_S[INDEX2(3,1,4)] = 2.*d_p[0]*w[2][l];
+                    EM_S[INDEX2(1,3,4)] = 2.*d_p[0]*w[2][l];
+                    EM_S[INDEX2(3,3,4)] = 4.*d_p[0]*w[2][l];
                 }
-
-                ///////////////
-                // process y //
-                ///////////////
-                if (addEM_F) {
-                    const Scalar* y_p = y.getSampleDataRO(id, zero);
-                    if (y.actsExpanded()) {
-                        EM_F[1] = w[3][l]*y_p[0] + w[4][l]*y_p[1];
-                        EM_F[3] = w[3][l]*y_p[1] + w[4][l]*y_p[0];
-                    } else { // constant data
-                        EM_F[1] = 6.*w[2][l]*y_p[0];
-                        EM_F[3] = 6.*w[2][l]*y_p[0];
-                    }
-                }
-                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t);
             }
+
+            ///////////////
+            // process y //
+            ///////////////
+            if (addEM_F) {
+                const Scalar* y_p = y.getSampleDataRO(id, zero);
+                if (y.actsExpanded()) {
+                    EM_F[1] = w[3][l]*y_p[0] + w[4][l]*y_p[1];
+                    EM_F[3] = w[3][l]*y_p[1] + w[4][l]*y_p[0];
+                } else { // constant data
+                    EM_F[1] = 6.*w[2][l]*y_p[0];
+                    EM_F[3] = 6.*w[2][l]*y_p[0];
+                }
+            }
+
+            domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, domain->NodeIDsLeft[k]);
         }
     }
 
@@ -803,57 +780,46 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
             EM_F[3] = zero;
         }
 
-        for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
-        {
-            p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
-            sc_array_t * tquadrants = &currenttree->quadrants;
-            p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-    #pragma omp parallel for
-            for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
-            {                
-                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-                double xy[3];
-                p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
-                long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+        for (index_t k=0; k<domain->NodeIDsRight.size(); k++) {
+            int id = domain->NodeIDsRight[k].nodeid;
+            int l = domain->NodeIDsRight[k].quad->level;
 
-                int l = quad->level;
-
-                ///////////////
-                // process d //
-                ///////////////
-                if (addEM_S) {
-                    const Scalar* d_p = d.getSampleDataRO(id, zero);
-                    if (d.actsExpanded()) {
-                        const Scalar d_0 = d_p[0];
-                        const Scalar d_1 = d_p[1];
-                        const Scalar tmp0 = w[5][l]*(d_0 + d_1);
-                        EM_S[INDEX2(0,0,4)] = d_0*w[6][l] + d_1*w[7][l];
-                        EM_S[INDEX2(1,0,4)] = tmp0;
-                        EM_S[INDEX2(0,1,4)] = tmp0;
-                        EM_S[INDEX2(1,1,4)] = d_0*w[7][l] + d_1*w[6][l];
-                    } else { // constant data
-                        EM_S[INDEX2(0,0,4)] = 4.*d_p[0]*w[5][l];
-                        EM_S[INDEX2(1,0,4)] = 2.*d_p[0]*w[5][l];
-                        EM_S[INDEX2(0,1,4)] = 2.*d_p[0]*w[5][l];
-                        EM_S[INDEX2(1,1,4)] = 4.*d_p[0]*w[5][l];
-                    }
+            ///////////////
+            // process d //
+            ///////////////
+            if (addEM_S) {
+                const Scalar* d_p = d.getSampleDataRO(id, zero);
+                if (d.actsExpanded()) {
+                    const Scalar d_0 = d_p[0];
+                    const Scalar d_1 = d_p[1];
+                    const Scalar tmp0 = w[5][l]*(d_0 + d_1);
+                    EM_S[INDEX2(0,0,4)] = d_0*w[6][l] + d_1*w[7][l];
+                    EM_S[INDEX2(1,0,4)] = tmp0;
+                    EM_S[INDEX2(0,1,4)] = tmp0;
+                    EM_S[INDEX2(1,1,4)] = d_0*w[7][l] + d_1*w[6][l];
+                } else { // constant data
+                    EM_S[INDEX2(0,0,4)] = 4.*d_p[0]*w[5][l];
+                    EM_S[INDEX2(1,0,4)] = 2.*d_p[0]*w[5][l];
+                    EM_S[INDEX2(0,1,4)] = 2.*d_p[0]*w[5][l];
+                    EM_S[INDEX2(1,1,4)] = 4.*d_p[0]*w[5][l];
                 }
-
-                ///////////////
-                // process y //
-                ///////////////
-                if (addEM_F) {
-                    const Scalar* y_p = y.getSampleDataRO(id, zero);
-                    if (y.actsExpanded()) {
-                        EM_F[0] = w[8][l]*y_p[0] + w[9][l]*y_p[1];
-                        EM_F[1] = w[8][l]*y_p[1] + w[9][l]*y_p[0];
-                    } else { // constant data
-                        EM_F[0] = 6.*w[5][l]*y_p[0];
-                        EM_F[1] = 6.*w[5][l]*y_p[0];
-                    }
-                }
-                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t);
             }
+
+            ///////////////
+            // process y //
+            ///////////////
+            if (addEM_F) {
+                const Scalar* y_p = y.getSampleDataRO(id, zero);
+                if (y.actsExpanded()) {
+                    EM_F[0] = w[8][l]*y_p[0] + w[9][l]*y_p[1];
+                    EM_F[1] = w[8][l]*y_p[1] + w[9][l]*y_p[0];
+                } else { // constant data
+                    EM_F[0] = 6.*w[5][l]*y_p[0];
+                    EM_F[1] = 6.*w[5][l]*y_p[0];
+                }
+            }
+            
+            domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, domain->NodeIDsLeft[k]);
         }
     }
 
@@ -867,57 +833,44 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
             EM_F[1] = zero;
         }
 
-        for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
-        {
-            p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
-            sc_array_t * tquadrants = &currenttree->quadrants;
-            p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-    #pragma omp parallel for
-            for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
-            {                
-                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-                double xy[3];
-                p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
-                long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-
-                int l = quad->level;
-
-                ///////////////
-                // process d //
-                ///////////////
-                if (addEM_S) {
-                    const Scalar* d_p = d.getSampleDataRO(id, zero);
-                    if (d.actsExpanded()) {
-                        const Scalar d_0 = d_p[0];
-                        const Scalar d_1 = d_p[1];
-                        const Scalar tmp0 = w[5][l]*(d_0 + d_1);
-                        EM_S[INDEX2(2,2,4)] = d_0*w[6][l] + d_1*w[7][l];
-                        EM_S[INDEX2(3,2,4)] = tmp0;
-                        EM_S[INDEX2(2,3,4)] = tmp0;
-                        EM_S[INDEX2(3,3,4)] = d_0*w[7][l] + d_1*w[6][l];
-                    } else { // constant data
-                        EM_S[INDEX2(2,2,4)] = 4.*d_p[0]*w[5][l];
-                        EM_S[INDEX2(3,2,4)] = 2.*d_p[0]*w[5][l];
-                        EM_S[INDEX2(2,3,4)] = 2.*d_p[0]*w[5][l];
-                        EM_S[INDEX2(3,3,4)] = 4.*d_p[0]*w[5][l];
-                    }
+        for (index_t k=0; k<domain->NodeIDsTop.size(); k++) {
+            int id = domain->NodeIDsTop[k].nodeid;
+            int l = domain->NodeIDsTop[k].quad->level;
+            ///////////////
+            // process d //
+            ///////////////
+            if (addEM_S) {
+                const Scalar* d_p = d.getSampleDataRO(id, zero);
+                if (d.actsExpanded()) {
+                    const Scalar d_0 = d_p[0];
+                    const Scalar d_1 = d_p[1];
+                    const Scalar tmp0 = w[5][l]*(d_0 + d_1);
+                    EM_S[INDEX2(2,2,4)] = d_0*w[6][l] + d_1*w[7][l];
+                    EM_S[INDEX2(3,2,4)] = tmp0;
+                    EM_S[INDEX2(2,3,4)] = tmp0;
+                    EM_S[INDEX2(3,3,4)] = d_0*w[7][l] + d_1*w[6][l];
+                } else { // constant data
+                    EM_S[INDEX2(2,2,4)] = 4.*d_p[0]*w[5][l];
+                    EM_S[INDEX2(3,2,4)] = 2.*d_p[0]*w[5][l];
+                    EM_S[INDEX2(2,3,4)] = 2.*d_p[0]*w[5][l];
+                    EM_S[INDEX2(3,3,4)] = 4.*d_p[0]*w[5][l];
                 }
-
-                ///////////////
-                // process y //
-                ///////////////
-                if (addEM_F) {
-                    const Scalar* y_p = y.getSampleDataRO(id, zero);
-                    if (y.actsExpanded()) {
-                        EM_F[2] = w[8][l]*y_p[0] + w[9][l]*y_p[1];
-                        EM_F[3] = w[8][l]*y_p[1] + w[9][l]*y_p[0];
-                    } else { // constant data
-                        EM_F[2] = 6.*w[5][l]*y_p[0];
-                        EM_F[3] = 6.*w[5][l]*y_p[0];
-                    }
-                }
-                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t);
             }
+
+            ///////////////
+            // process y //
+            ///////////////
+            if (addEM_F) {
+                const Scalar* y_p = y.getSampleDataRO(id, zero);
+                if (y.actsExpanded()) {
+                    EM_F[2] = w[8][l]*y_p[0] + w[9][l]*y_p[1];
+                    EM_F[3] = w[8][l]*y_p[1] + w[9][l]*y_p[0];
+                } else { // constant data
+                    EM_F[2] = 6.*w[5][l]*y_p[0];
+                    EM_F[3] = 6.*w[5][l]*y_p[0];
+                }
+            }
+            domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, domain->NodeIDsLeft[k]);
         }
     }    
 }
@@ -941,7 +894,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESingleReduced(
     }
 
     // This is similar to Ripley, except that in Oxley the quads vary in size so that the 
-    // weightings need to be calcuated for each level of refinement
+    // weightings need to be calculated for each level of refinement
     double w[8][P4EST_MAXLEVEL] = {{0}};
 #pragma omp parallel for
     for(int i = 0; i <= max_level; i++)

@@ -70,6 +70,13 @@ struct quadrantData
     bool m_faceOffset[4] = {false};
 };
 
+struct borderNodeInfo
+{
+	int nodeid;
+	p4est_quadrant_t * quad;
+	p4est_topidx_t treeid;
+};
+
 struct octantData
 {
 	double u = 0.0; // A Scalar variable

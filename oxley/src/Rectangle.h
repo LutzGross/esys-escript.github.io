@@ -286,6 +286,12 @@ private:
     std::unordered_map<long,bool> hangingNodeIDs; //global ids of the hanging nodes
     std::unordered_map<DoublePair,long,boost::hash<DoublePair>> treeIDs; //global ids of the hanging nodes
     std::unordered_map<long,double> current_solution; //solution at each node
+
+    std::vector<borderNodeInfo> NodeIDsTop;
+    std::vector<borderNodeInfo> NodeIDsBottom;
+    std::vector<borderNodeInfo> NodeIDsLeft;
+    std::vector<borderNodeInfo> NodeIDsRight;
+
     
     // Row and column indices in CRS format
     IndexVector myRows;
@@ -461,6 +467,9 @@ protected:
     void assembleGradientImpl(escript::Data& out,
                               const escript::Data& in) const;
 
+    template<typename Scalar> void addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F,
+           const std::vector<Scalar>& EM_S, const std::vector<Scalar>& EM_F,
+           bool addS, bool addF, borderNodeInfo quad, int nEq=1, int nComp=1) const;
     template<typename Scalar> void addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F,
            const std::vector<Scalar>& EM_S, const std::vector<Scalar>& EM_F,
            bool addS, bool addF, index_t e, index_t t, int nEq=1, int nComp=1) const;

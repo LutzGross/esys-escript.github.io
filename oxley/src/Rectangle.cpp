@@ -1492,6 +1492,45 @@ void Rectangle::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Dat
     }
 }
 
+template<typename Scalar>
+void Rectangle::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F,
+         const std::vector<Scalar>& EM_S, const std::vector<Scalar>& EM_F, 
+         bool addS, bool addF, borderNodeInfo quad, int nEq, int nComp) const
+{    
+    long rowIndex[4] = {0};
+
+    getNeighouringNodeIDs(quad.quad, quad.treeid, rowIndex);
+
+    if(addF)
+    {
+        Scalar* F_p = F.getSampleDataRW(0, static_cast<Scalar>(0));
+        for(index_t i=0; i<4; i++) {
+            if (rowIndex[i]<getNumDOF()) {
+                for(int eq=0; eq<nEq; eq++) {
+                    F_p[INDEX2(eq, rowIndex[i], nEq)]+=EM_F[INDEX2(eq,i,nEq)];
+                }
+            }
+        }
+    }
+    if(addS)
+    {
+        IndexVector rowInd(4);
+        for(int i = 0; i < 4; i++)
+            rowInd[i]=rowIndex[i];
+        addToSystemMatrix<Scalar>(S, rowInd, nEq, EM_S);
+    }
+}
+
+template
+void Rectangle::addToMatrixAndRHS<real_t>(escript::AbstractSystemMatrix* S, escript::Data& F,
+         const std::vector<real_t>& EM_S, const std::vector<real_t>& EM_F, 
+         bool addS, bool addF, borderNodeInfo firstNode, int nEq, int nComp) const;
+
+template
+void Rectangle::addToMatrixAndRHS<cplx_t>(escript::AbstractSystemMatrix* S, escript::Data& F,
+         const std::vector<cplx_t>& EM_S, const std::vector<cplx_t>& EM_F, 
+         bool addS, bool addF, borderNodeInfo firstNode, int nEq, int nComp) const;
+
 template
 void Rectangle::addToMatrixAndRHS<real_t>(escript::AbstractSystemMatrix* S, escript::Data& F,
          const std::vector<real_t>& EM_S, const std::vector<real_t>& EM_F, 
@@ -2253,6 +2292,11 @@ void Rectangle::updateFaceElementCount()
     for(int i = 0; i < 4; i++)
         m_faceCount[i]=0;
 
+    NodeIDsTop.clear();
+    NodeIDsBottom.clear();
+    NodeIDsLeft.clear();
+    NodeIDsRight.clear();
+
     const index_t LEFT=1, RIGHT=2, BOTTOM=10, TOP=20;
     m_faceTags.clear();
 
@@ -2270,24 +2314,56 @@ void Rectangle::updateFaceElementCount()
 
             double xy1[3];
             double xy2[3];
+            double xy3[3];
             p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x, quad->y, xy1);
             p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+length, quad->y+length, xy2);
             
             if(xy1[0] == forestData.m_origin[0])
+            {   
+                borderNodeInfo tmp;
+                tmp.nodeid=NodeIDs.find(std::make_pair(xy1[0],xy1[1]))->second;
+                tmp.quad=quad;
+                tmp.treeid=treeid;
+                NodeIDsLeft.push_back(tmp);
                 m_faceCount[0]++;
+            }
             
             if(xy1[1] == forestData.m_origin[1])
+            {
+                p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x, quad->y+length, xy3);
+                borderNodeInfo tmp;
+                tmp.nodeid=NodeIDs.find(std::make_pair(xy1[0],xy1[1]))->second;
+                tmp.quad=quad;
+                tmp.treeid=treeid;
+                NodeIDsBottom.push_back(tmp);
                 m_faceCount[1]++;
+            }
             
             if(xy2[0] == forestData.m_lxy[0])
+            {
+                p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+length, quad->y, xy3);
+                borderNodeInfo tmp;
+                tmp.nodeid=NodeIDs.find(std::make_pair(xy1[0],xy1[1]))->second;
+                tmp.quad=quad;
+                tmp.treeid=treeid;
+                NodeIDsRight.push_back(tmp);
                 m_faceCount[2]++;
+            }
             
             if(xy2[1] == forestData.m_lxy[1])
+            {
+                borderNodeInfo tmp;
+                tmp.nodeid=NodeIDs.find(std::make_pair(xy1[0],xy1[1]))->second;
+                tmp.quad=quad;
+                tmp.treeid=treeid;
+                NodeIDsTop.push_back(tmp);
                 m_faceCount[3]++;
+            }
         }
     }
 
     const index_t faceTag[] = { LEFT, RIGHT, BOTTOM, TOP };
+    // const index_t faceTag[] = { LEFT, BOTTOM, RIGHT, TOP };
     m_faceOffset.assign(4, -1);
     index_t offset=0;
     for (size_t i=0; i<4; i++) {
