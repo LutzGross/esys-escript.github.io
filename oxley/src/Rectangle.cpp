@@ -728,8 +728,15 @@ void Rectangle::dump(const std::string& fileName) const
     int shapesize[] = {4};
     int shapecounts[] = {lnodelist/4};
     int nshapetypes = 1;
-    DBPutZonelist(dbfile, "quads", getNumElements(), 2, nodelistarray, lnodelist, 0, 
-                    shapesize, shapecounts, nshapetypes);
+    int const shapetype[1] = {DB_ZONETYPE_QUAD};
+
+    // This is deprecated
+    // DBPutZonelist(dbfile, "quads", getNumElements(), 2, nodelistarray, lnodelist, 0, 
+    //                 shapesize, shapecounts, nshapetypes);
+    DBPutZonelist2(dbfile, "quads", getNumElements(), 2, nodelistarray, lnodelist, 0,
+                0, 0, shapetype, shapesize, shapecounts, nshapetypes, NULL);
+        
+
     DBPutUcdmesh(dbfile, "mesh", 2, NULL, pCoordinates, getNumNodes(), getNumElements(), 
                     "quads", NULL, DB_FLOAT, NULL);
 
