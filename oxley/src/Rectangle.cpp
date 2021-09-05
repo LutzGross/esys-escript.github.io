@@ -431,47 +431,52 @@ void Rectangle::setToNormal(escript::Data& out) const
 {
     if (out.getFunctionSpace().getTypeCode() == FaceElements) {
         out.requireWrite();
-        for(p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
+#pragma omp parallel
         {
-            p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
-            sc_array_t * tquadrants = &currenttree->quadrants;
-            p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-#pragma omp parallel for
-            for(p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
-            {
-                // Work out what level this element is on 
-                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
-                quadrantData * quaddata = (quadrantData *) quad->p.user_data;
-
-                if (quaddata->m_faceOffset[0]) {
-                    double* o = out.getSampleDataRW(e);
+            if (m_faceOffset[0] > -1) {
+#pragma omp for nowait
+                for (index_t k=0; k<NodeIDsLeft.size(); k++) {
+                    int id = NodeIDsLeft[k].nodeid;
+                    double* o = out.getSampleDataRW(id);
                     // set vector at two quadrature points
                     *o++ = -1.;
                     *o++ = 0.;
                     *o++ = -1.;
                     *o = 0.;
                 }
+            }
 
-                if (quaddata->m_faceOffset[1]) {
-                    double* o = out.getSampleDataRW(e);
+            if (m_faceOffset[1] > -1) {
+#pragma omp for nowait
+                for (index_t k=0; k<NodeIDsBottom.size(); k++) {
+                    int id = NodeIDsBottom[k].nodeid;
+                    double* o = out.getSampleDataRW(id);
                     // set vector at two quadrature points
                     *o++ = 1.;
                     *o++ = 0.;
                     *o++ = 1.;
                     *o = 0.;
                 }
+            }
 
-                if (quaddata->m_faceOffset[2]) {
-                    double* o = out.getSampleDataRW(e);
+            if (m_faceOffset[2] > -1) {
+#pragma omp for nowait
+                for (index_t k=0; k<NodeIDsRight.size(); k++) {
+                    int id = NodeIDsRight[k].nodeid;
+                    double* o = out.getSampleDataRW(id);
                     // set vector at two quadrature points
                     *o++ = 0.;
                     *o++ = -1.;
                     *o++ = 0.;
                     *o = -1.;
                 }
+            }
 
-                if (quaddata->m_faceOffset[3]) {
-                    double* o = out.getSampleDataRW(e);
+            if (m_faceOffset[3] > -1) {
+#pragma omp for nowait
+                for (index_t k=0; k<NodeIDsTop.size(); k++) {
+                    int id = NodeIDsTop[k].nodeid;
+                    double* o = out.getSampleDataRW(id);
                     // set vector at two quadrature points
                     *o++ = 0.;
                     *o++ = 1.;
@@ -479,46 +484,52 @@ void Rectangle::setToNormal(escript::Data& out) const
                     *o = 1.;
                 }
             }
-        }
+        } // end of parallel section
     } else if (out.getFunctionSpace().getTypeCode() == ReducedFaceElements) {
         out.requireWrite();
-        for(p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
+#pragma omp parallel
         {
-            p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
-            sc_array_t * tquadrants = &currenttree->quadrants;
-            p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-#pragma omp parallel for
-            for(p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
-            {
-                // Work out what level this element is on 
-                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
-                quadrantData * quaddata = (quadrantData *) quad->p.user_data;
-
-                if (quaddata->m_faceOffset[0]) {
-                    double* o = out.getSampleDataRW(e);
+            if (m_faceOffset[0] > -1) {
+#pragma omp for nowait
+                for (index_t k=0; k<NodeIDsLeft.size(); k++) {
+                    int id = NodeIDsLeft[k].nodeid;
+                    double* o = out.getSampleDataRW(id);
                     *o++ = -1.;
                     *o = 0.;
                 }
+            }
 
-                if (quaddata->m_faceOffset[1]) {
-                    double* o = out.getSampleDataRW(e);
+            if (m_faceOffset[1] > -1) {
+#pragma omp for nowait
+                for (index_t k=0; k<NodeIDsBottom.size(); k++) {
+                    int id = NodeIDsBottom[k].nodeid;
+                    double* o = out.getSampleDataRW(id);
                     *o++ = 1.;
                     *o = 0.;
                 }
+            }
 
-                if (quaddata->m_faceOffset[2]) {
-                    double* o = out.getSampleDataRW(e);
+            if (m_faceOffset[2] > -1) {
+#pragma omp for nowait
+                for (index_t k=0; k<NodeIDsRight.size(); k++) {
+                    int id = NodeIDsRight[k].nodeid;
+                    double* o = out.getSampleDataRW(id);
                     *o++ = 0.;
                     *o = -1.;
                 }
+            }
 
-                if (quaddata->m_faceOffset[3]) {
-                    double* o = out.getSampleDataRW(e);
+            if (m_faceOffset[3] > -1) {
+#pragma omp for nowait
+                for (index_t k=0; k<NodeIDsTop.size(); k++) {
+                    int id = NodeIDsTop[k].nodeid;
+                    double* o = out.getSampleDataRW(id);
                     *o++ = 0.;
                     *o = 1.;
                 }
             }
-        }
+        } // end of parallel section
+
     } else {
         std::stringstream msg;
         msg << "setToNormal: invalid function space type "
@@ -1481,6 +1492,7 @@ void Rectangle::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Dat
         for(index_t i=0; i<rowIndex.size(); i++) {
             if (rowIndex[i]<getNumDOF()) {
                 for(int eq=0; eq<nEq; eq++) {
+                    std::cout << "ae " << INDEX2(eq, rowIndex[i], nEq) << ", "  << INDEX2(eq,i,nEq) << ", " << EM_F[INDEX2(eq,i,nEq)] << std::endl;
                     F_p[INDEX2(eq, rowIndex[i], nEq)]+=EM_F[INDEX2(eq,i,nEq)];
                 }
             }
@@ -1498,7 +1510,7 @@ void Rectangle::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Dat
          bool addS, bool addF, borderNodeInfo quad, int nEq, int nComp) const
 {    
     long rowIndex[4] = {0};
-
+    int indices[4]={0,2,1,3};
     getNeighouringNodeIDs(quad.quad, quad.treeid, rowIndex);
 
     if(addF)
@@ -1507,7 +1519,7 @@ void Rectangle::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Dat
         for(index_t i=0; i<4; i++) {
             if (rowIndex[i]<getNumDOF()) {
                 for(int eq=0; eq<nEq; eq++) {
-                    F_p[INDEX2(eq, rowIndex[i], nEq)]+=EM_F[INDEX2(eq,i,nEq)];
+                    F_p[INDEX2(eq, rowIndex[indices[i]], nEq)]+=EM_F[INDEX2(eq,i,nEq)];
                 }
             }
         }
@@ -1644,8 +1656,8 @@ void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
                 getNeighouringNodeIDs(quad, treeid, ids);
 
                 memcpy(&f_00[0], in.getSampleDataRO(ids[0], sentinel), numComp*sizeof(S));
-                memcpy(&f_01[0], in.getSampleDataRO(ids[2], sentinel), numComp*sizeof(S));
-                memcpy(&f_10[0], in.getSampleDataRO(ids[1], sentinel), numComp*sizeof(S));
+                memcpy(&f_01[0], in.getSampleDataRO(ids[1], sentinel), numComp*sizeof(S));
+                memcpy(&f_10[0], in.getSampleDataRO(ids[2], sentinel), numComp*sizeof(S));
                 memcpy(&f_11[0], in.getSampleDataRO(ids[3], sentinel), numComp*sizeof(S));
 
         #ifdef OXLEY_ENABLE_DEBUG
