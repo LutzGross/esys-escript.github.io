@@ -766,8 +766,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
                     EM_F[3] = 6.*w[2][l]*y_p[0];
                 }
             }
-
-            domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, domain->NodeIDsLeft[k]);
+            domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, domain->NodeIDsBottom[k]);
         }
     }
 
@@ -818,8 +817,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
                     EM_F[1] = 6.*w[5][l]*y_p[0];
                 }
             }
-            
-            domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, domain->NodeIDsLeft[k]);
+            domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, domain->NodeIDsRight[k]);
         }
     }
 
@@ -870,7 +868,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
                     EM_F[3] = 6.*w[5][l]*y_p[0];
                 }
             }
-            domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, domain->NodeIDsLeft[k]);
+            domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, domain->NodeIDsTop[k]);
         }
     }    
 }

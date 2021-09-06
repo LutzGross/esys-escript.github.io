@@ -1492,7 +1492,6 @@ void Rectangle::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Dat
         for(index_t i=0; i<rowIndex.size(); i++) {
             if (rowIndex[i]<getNumDOF()) {
                 for(int eq=0; eq<nEq; eq++) {
-                    std::cout << "ae " << INDEX2(eq, rowIndex[i], nEq) << ", "  << INDEX2(eq,i,nEq) << ", " << EM_F[INDEX2(eq,i,nEq)] << std::endl;
                     F_p[INDEX2(eq, rowIndex[i], nEq)]+=EM_F[INDEX2(eq,i,nEq)];
                 }
             }
@@ -1510,7 +1509,7 @@ void Rectangle::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Dat
          bool addS, bool addF, borderNodeInfo quad, int nEq, int nComp) const
 {    
     long rowIndex[4] = {0};
-    int indices[4]={0,2,1,3};
+    int indices[4]={0,1,2,3};
     getNeighouringNodeIDs(quad.quad, quad.treeid, rowIndex);
 
     if(addF)
@@ -2344,7 +2343,7 @@ void Rectangle::updateFaceElementCount()
             {
                 p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x, quad->y+length, xy3);
                 borderNodeInfo tmp;
-                tmp.nodeid=NodeIDs.find(std::make_pair(xy1[0],xy1[1]))->second;
+                tmp.nodeid=NodeIDs.find(std::make_pair(xy3[0],xy3[1]))->second;
                 tmp.quad=quad;
                 tmp.treeid=treeid;
                 NodeIDsBottom.push_back(tmp);
@@ -2355,7 +2354,7 @@ void Rectangle::updateFaceElementCount()
             {
                 p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+length, quad->y, xy3);
                 borderNodeInfo tmp;
-                tmp.nodeid=NodeIDs.find(std::make_pair(xy1[0],xy1[1]))->second;
+                tmp.nodeid=NodeIDs.find(std::make_pair(xy3[0],xy3[1]))->second;
                 tmp.quad=quad;
                 tmp.treeid=treeid;
                 NodeIDsRight.push_back(tmp);
@@ -2365,7 +2364,7 @@ void Rectangle::updateFaceElementCount()
             if(xy2[1] == forestData.m_lxy[1])
             {
                 borderNodeInfo tmp;
-                tmp.nodeid=NodeIDs.find(std::make_pair(xy1[0],xy1[1]))->second;
+                tmp.nodeid=NodeIDs.find(std::make_pair(xy2[0],xy2[1]))->second;
                 tmp.quad=quad;
                 tmp.treeid=treeid;
                 NodeIDsTop.push_back(tmp);
