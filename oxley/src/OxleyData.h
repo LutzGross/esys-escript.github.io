@@ -72,9 +72,9 @@ struct quadrantData
 
 struct borderNodeInfo
 {
-	int nodeid;
+	int nodeid=-1;
 	p4est_quadrant_t * quad;
-	p4est_topidx_t treeid;
+	p4est_topidx_t treeid=-1;
 };
 
 struct octantData

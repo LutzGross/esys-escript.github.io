@@ -1265,7 +1265,7 @@ void Rectangle::renumberNodes()
         for(int q = 0; q < Q; ++q) { 
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
             p4est_qcoord_t l = P4EST_QUADRANT_LEN(quad->level);
-            p4est_qcoord_t lxy[4][2] = {{0,0},{0,l},{l,0},{l,l}};
+            p4est_qcoord_t lxy[4][2] = {{0,0},{l,0},{0,l},{l,l}};
             for(int n = 0; n < 4; n++)
             {
                 double xy[3];
@@ -1678,12 +1678,12 @@ void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
 //protected
 void Rectangle::getNeighouringNodeIDs(p4est_quadrant_t * quad, p4est_topidx_t treeid, long (&ids) [4]) const
 {
-    double xy[3];
     p4est_qcoord_t l = P4EST_QUADRANT_LEN(quad->level);
     int adj[4][2]={{0,0},{l,0},{0,l},{l,l}};
-
+#pragma omp parallel for
     for(int i=0; i<4;i++)
     {
+        double xy[3];
         p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+adj[i][0], quad->y+adj[i][1], xy);
         ids[i]=(long) NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
     }
@@ -2312,6 +2312,7 @@ void Rectangle::updateFaceElementCount()
     m_faceTags.clear();
 
     int face_count = 1;
+    borderNodeInfo dups[4];
 
     for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) 
     {
@@ -2319,56 +2320,73 @@ void Rectangle::updateFaceElementCount()
         sc_array_t * tquadrants = &tree->quadrants;
         p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
         for(int q = 0; q < Q; ++q) 
-        { 
+        {
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-            p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
+            p4est_qcoord_t l = P4EST_QUADRANT_LEN(quad->level);
+            int k = q - Q + nodeIncrements[treeid - p4est->first_local_tree];
+            p4est_qcoord_t lxy[4][2] = {{0,0},{l,0},{0,l},{l,l}};
+            double xy[3] = {0};
+            for(int n = 0; n < 4; n++)
+            {
+                if( (n == 0) // Skip duplicates
+                  || isHangingNode(nodes->face_code[k], n)
+                  || isUpperBoundaryNode(quad, n, treeid, l) )
+                {
+                    p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy);
 
-            double xy1[3];
-            double xy2[3];
-            double xy3[3];
-            p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x, quad->y, xy1);
-            p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+length, quad->y+length, xy2);
-            
-            if(xy1[0] == forestData.m_origin[0])
-            {   
-                borderNodeInfo tmp;
-                tmp.nodeid=NodeIDs.find(std::make_pair(xy1[0],xy1[1]))->second;
-                tmp.quad=quad;
-                tmp.treeid=treeid;
-                NodeIDsLeft.push_back(tmp);
-                m_faceCount[0]++;
-            }
-            
-            if(xy1[1] == forestData.m_origin[1])
-            {
-                p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x, quad->y+length, xy3);
-                borderNodeInfo tmp;
-                tmp.nodeid=NodeIDs.find(std::make_pair(xy3[0],xy3[1]))->second;
-                tmp.quad=quad;
-                tmp.treeid=treeid;
-                NodeIDsBottom.push_back(tmp);
-                m_faceCount[1]++;
-            }
-            
-            if(xy2[0] == forestData.m_lxy[0])
-            {
-                p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+length, quad->y, xy3);
-                borderNodeInfo tmp;
-                tmp.nodeid=NodeIDs.find(std::make_pair(xy3[0],xy3[1]))->second;
-                tmp.quad=quad;
-                tmp.treeid=treeid;
-                NodeIDsRight.push_back(tmp);
-                m_faceCount[2]++;
-            }
-            
-            if(xy2[1] == forestData.m_lxy[1])
-            {
-                borderNodeInfo tmp;
-                tmp.nodeid=NodeIDs.find(std::make_pair(xy2[0],xy2[1]))->second;
-                tmp.quad=quad;
-                tmp.treeid=treeid;
-                NodeIDsTop.push_back(tmp);
-                m_faceCount[3]++;
+                    borderNodeInfo tmp;
+                    tmp.nodeid=NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+                    tmp.quad=quad;
+                    tmp.treeid=treeid;
+
+                    if(xy[0] == forestData.m_origin[0])
+                    {   
+                        if(    dups[0].nodeid==tmp.nodeid 
+                            && dups[0].quad->x == quad->x
+                            && dups[0].quad->y == quad->y)
+                            continue;
+                        else
+                            dups[0]=tmp;
+                        NodeIDsLeft.push_back(tmp);
+                        m_faceCount[0]++;
+                    }
+                    
+                    if(xy[1] == forestData.m_origin[1])
+                    {
+                        if(    dups[1].nodeid==tmp.nodeid 
+                            && dups[1].quad->x == quad->x
+                            && dups[1].quad->y == quad->y)
+                            continue;
+                        else
+                            dups[1]=tmp;
+                        NodeIDsBottom.push_back(tmp);
+                        m_faceCount[1]++;
+                    }
+                    
+                    if(xy[0] == forestData.m_lxy[0])
+                    {
+                        if(    dups[2].nodeid==tmp.nodeid 
+                            && dups[2].quad->x == quad->x
+                            && dups[2].quad->y == quad->y)
+                            continue;
+                        else
+                            dups[2]=tmp;
+                        NodeIDsRight.push_back(tmp);
+                        m_faceCount[2]++;
+                    }
+                    
+                    if(xy[1] == forestData.m_lxy[1])
+                    {
+                        if(    dups[3].nodeid==tmp.nodeid 
+                            && dups[3].quad->x == quad->x
+                            && dups[3].quad->y == quad->y)
+                            continue;
+                        else
+                            dups[3]=tmp;
+                        NodeIDsTop.push_back(tmp);
+                        m_faceCount[3]++;
+                    }
+                }
             }
         }
     }
