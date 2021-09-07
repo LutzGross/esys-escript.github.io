@@ -2312,7 +2312,7 @@ void Rectangle::updateFaceElementCount()
     m_faceTags.clear();
 
     int face_count = 1;
-    borderNodeInfo dups[4];
+    bool dups[4]={false};
 
     for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) 
     {
@@ -2326,66 +2326,42 @@ void Rectangle::updateFaceElementCount()
             int k = q - Q + nodeIncrements[treeid - p4est->first_local_tree];
             p4est_qcoord_t lxy[4][2] = {{0,0},{l,0},{0,l},{l,l}};
             double xy[3] = {0};
+            for(int i=0;i<4;i++) dups[i]=0;
             for(int n = 0; n < 4; n++)
             {
-                if( (n == 0) // Skip duplicates
-                  || isHangingNode(nodes->face_code[k], n)
-                  || isUpperBoundaryNode(quad, n, treeid, l) )
+                p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy);
+
+                borderNodeInfo tmp;
+                tmp.nodeid=NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+                tmp.quad=quad;
+                tmp.treeid=treeid;
+
+                if(xy[0] == forestData.m_origin[0] && !dups[0])
+                {   
+                    dups[0]=true;
+                    NodeIDsLeft.push_back(tmp);
+                    m_faceCount[0]++;
+                }
+                
+                if(xy[1] == forestData.m_origin[1] && !dups[1])
                 {
-                    p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy);
-
-                    borderNodeInfo tmp;
-                    tmp.nodeid=NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-                    tmp.quad=quad;
-                    tmp.treeid=treeid;
-
-                    if(xy[0] == forestData.m_origin[0])
-                    {   
-                        if(    dups[0].nodeid==tmp.nodeid 
-                            && dups[0].quad->x == quad->x
-                            && dups[0].quad->y == quad->y)
-                            continue;
-                        else
-                            dups[0]=tmp;
-                        NodeIDsLeft.push_back(tmp);
-                        m_faceCount[0]++;
-                    }
-                    
-                    if(xy[1] == forestData.m_origin[1])
-                    {
-                        if(    dups[1].nodeid==tmp.nodeid 
-                            && dups[1].quad->x == quad->x
-                            && dups[1].quad->y == quad->y)
-                            continue;
-                        else
-                            dups[1]=tmp;
-                        NodeIDsBottom.push_back(tmp);
-                        m_faceCount[1]++;
-                    }
-                    
-                    if(xy[0] == forestData.m_lxy[0])
-                    {
-                        if(    dups[2].nodeid==tmp.nodeid 
-                            && dups[2].quad->x == quad->x
-                            && dups[2].quad->y == quad->y)
-                            continue;
-                        else
-                            dups[2]=tmp;
-                        NodeIDsRight.push_back(tmp);
-                        m_faceCount[2]++;
-                    }
-                    
-                    if(xy[1] == forestData.m_lxy[1])
-                    {
-                        if(    dups[3].nodeid==tmp.nodeid 
-                            && dups[3].quad->x == quad->x
-                            && dups[3].quad->y == quad->y)
-                            continue;
-                        else
-                            dups[3]=tmp;
-                        NodeIDsTop.push_back(tmp);
-                        m_faceCount[3]++;
-                    }
+                    dups[1]=true;
+                    NodeIDsBottom.push_back(tmp);
+                    m_faceCount[2]++;
+                }
+                
+                if(xy[0] == forestData.m_lxy[0] && !dups[2])
+                {
+                    dups[2]=true;
+                    NodeIDsRight.push_back(tmp);
+                    m_faceCount[1]++;
+                }
+                
+                if(xy[1] == forestData.m_lxy[1] && !dups[3])
+                {
+                    dups[3]=true;
+                    NodeIDsTop.push_back(tmp);
+                    m_faceCount[3]++;
                 }
             }
         }
