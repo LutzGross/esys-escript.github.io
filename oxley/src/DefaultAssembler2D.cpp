@@ -1827,7 +1827,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESystem(AbstractSystemMatrix* mat,
             // add to matrix (if addEM_S) and RHS (if addEM_F)
             // const index_t firstNode=m_NN[0]*k1+k0;
             // domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t, numEq, numComp);
-            domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t);
+            domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t, numEq, numComp);
         }
     }
 }
@@ -1957,7 +1957,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
                     }
                 }
                 // domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, id, numEq, numComp);
-                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t);
+                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t, numEq, numComp);
             }
         } 
     }
@@ -2033,7 +2033,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
                     }
                 }
                 // domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, id, numEq, numComp);
-                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t);
+                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t, numEq, numComp);
             }
         }
     }
@@ -2109,7 +2109,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
                     }
                 }
                 // domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, id, numEq, numComp);
-                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t);
+                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t, numEq, numComp);
             }
         } 
     }
@@ -2186,7 +2186,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
                     }
                 }
                 // domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, id, numEq, numComp);
-                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t);
+                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t, numEq, numComp);
             }
         }
     }
@@ -2409,7 +2409,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESystemReduced(
 
                 // add to matrix (if addEM_S) and RHS (if addEM_F)
                 // domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, id, numEq, numComp);
-                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t);
+                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t, numEq, numComp);
         } 
     } 
 }
@@ -2508,7 +2508,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
                     }
                 }
                 // domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, id, numEq, numComp);
-                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t);
+                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t, numEq, numComp);
             }
         }
     }
@@ -2562,7 +2562,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
                     }
                 }
                 // domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, id, numEq, numComp);
-                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t);
+                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t, numEq, numComp);
             }
         }
     }
@@ -2617,7 +2617,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
                 }
 
                 // domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, id, numEq, numComp);
-                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t);
+                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t, numEq, numComp);
             }
         }
     }
@@ -2672,7 +2672,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
                 }
                 
                 // domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, id, numEq, numComp);
-                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t);
+                domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, q, t, numEq, numComp);
             }
         }
     }
