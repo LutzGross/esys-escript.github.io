@@ -1709,8 +1709,8 @@ void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
                 memcpy(&f_10[0], in.getSampleDataRO(ids[2], sentinel), numComp*sizeof(S));
                 memcpy(&f_11[0], in.getSampleDataRO(ids[3], sentinel), numComp*sizeof(S));
 
-        #ifdef OXLEY_ENABLE_DEBUG
-                std::cout << "IDs " << ids[0] << ", " << ids[1] << ", " << ids[2] << ", " << ids[3] << std::endl;
+        #ifdef OXLEY_ENABLE_DEBUG_INTERPOLATE
+                std::cout << "interpolateNodesOnElementsWorker IDs " << ids[0] << ", " << ids[1] << ", " << ids[2] << ", " << ids[3] << std::endl;
         #endif
                 
                 S* o = out.getSampleDataRW(ids[0], sentinel);
@@ -3043,8 +3043,22 @@ p4est_connectivity_t * Rectangle::new_rectangle_connectivity(
                             double x0, double x1, double y0, double y1)
 {
     // Number of nodes 
-    const p4est_topidx_t m = (p4est_topidx_t) n0;
-    const p4est_topidx_t n = (p4est_topidx_t) n1;
+    // const p4est_topidx_t n = (p4est_topidx_t) n0;
+    // const p4est_topidx_t m = (p4est_topidx_t) n1;
+    
+    p4est_topidx_t n;
+    p4est_topidx_t m;
+    if(n0<=n1)
+    {
+        n = (p4est_topidx_t) n0;
+        m = (p4est_topidx_t) n1;
+    }
+    else
+    {
+        n = (p4est_topidx_t) n1;
+        m = (p4est_topidx_t) n0;   
+    }
+
     ESYS_ASSERT(m > 0 && n > 0, "n0 and n1 must be greater than zero.");
     const p4est_topidx_t num_trees = m * n;
     ESYS_ASSERT(num_trees <= MAXTREES ,"numtrees must be less than MAXTREES.");
