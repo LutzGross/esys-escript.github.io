@@ -1135,7 +1135,7 @@ bool Rectangle::isBoundaryNode(p4est_quadrant_t * quad, int n, p4est_topidx_t tr
     double ly = length * ((int) (n / 2) == 1);
     double xy[3];
     p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
-    return (xy[0] == 0) || (xy[0] == forestData.m_lxy[0]) || (xy[1] == 0) || (xy[1] == forestData.m_lxy[1]);
+    return (xy[0] == forestData.m_origin[0]) || (xy[0] == forestData.m_lxy[0]) || (xy[1] == forestData.m_origin[1]) || (xy[1] == forestData.m_lxy[1]);
 }
 
 // returns True for a boundary node on the north or east of the domain
@@ -1146,6 +1146,56 @@ bool Rectangle::isUpperBoundaryNode(p4est_quadrant_t * quad, int n, p4est_topidx
     double xy[3];
     p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
     return (xy[0] == forestData.m_lxy[0]) || (xy[1] == forestData.m_lxy[1]);
+}
+
+// returns True for a boundary node on the south or west of the domain
+bool Rectangle::isLowerBoundaryNode(p4est_quadrant_t * quad, int n, p4est_topidx_t treeid, p4est_qcoord_t length) const
+{
+    double lx = length * ((int) (n % 2) == 1);
+    double ly = length * ((int) (n / 2) == 1);
+    double xy[3];
+    p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
+    return (xy[0] == forestData.m_origin[0]) || (xy[1] == forestData.m_origin[1]);
+}
+
+// returns True for a boundary node on the left boundary
+bool Rectangle::isLeftBoundaryNode(p4est_quadrant_t * quad, int n, p4est_topidx_t treeid, p4est_qcoord_t length) const
+{
+    double lx = length * ((int) (n % 2) == 1);
+    double ly = length * ((int) (n / 2) == 1);
+    double xy[3];
+    p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
+    return (xy[0] == forestData.m_origin[0]);
+}
+
+// returns True for a boundary node on the right boundary
+bool Rectangle::isRightBoundaryNode(p4est_quadrant_t * quad, int n, p4est_topidx_t treeid, p4est_qcoord_t length) const
+{
+    double lx = length * ((int) (n % 2) == 1);
+    double ly = length * ((int) (n / 2) == 1);
+    double xy[3];
+    p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
+    return (xy[0] == forestData.m_lxy[0]);
+}
+
+// returns True for a boundary node on the bottom boundary
+bool Rectangle::isBottomBoundaryNode(p4est_quadrant_t * quad, int n, p4est_topidx_t treeid, p4est_qcoord_t length) const
+{
+    double lx = length * ((int) (n % 2) == 1);
+    double ly = length * ((int) (n / 2) == 1);
+    double xy[3];
+    p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
+    return (xy[1] == forestData.m_origin[1]);
+}
+
+// returns True for a boundary node on the top boundary
+bool Rectangle::isTopBoundaryNode(p4est_quadrant_t * quad, int n, p4est_topidx_t treeid, p4est_qcoord_t length) const
+{
+    double lx = length * ((int) (n % 2) == 1);
+    double ly = length * ((int) (n / 2) == 1);
+    double xy[3];
+    p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
+    return (xy[1] == forestData.m_lxy[1]);
 }
 
 // return True for a hanging node and False for an non-hanging node
@@ -2301,7 +2351,7 @@ void Rectangle::populateSampleIds()
 void Rectangle::updateFaceElementCount()
 {
     for(int i = 0; i < 4; i++)
-        m_faceCount[i]=0;
+        m_faceCount[i]=-1;
 
     NodeIDsTop.clear();
     NodeIDsBottom.clear();
@@ -2312,8 +2362,6 @@ void Rectangle::updateFaceElementCount()
     m_faceTags.clear();
 
     int face_count = 1;
-    bool dups[4]={false};
-
     for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) 
     {
         p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
@@ -2326,7 +2374,6 @@ void Rectangle::updateFaceElementCount()
             int k = q - Q + nodeIncrements[treeid - p4est->first_local_tree];
             p4est_qcoord_t lxy[4][2] = {{0,0},{l,0},{0,l},{l,l}};
             double xy[3] = {0};
-            for(int i=0;i<4;i++) dups[i]=0;
             for(int n = 0; n < 4; n++)
             {
                 p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy);
@@ -2336,36 +2383,63 @@ void Rectangle::updateFaceElementCount()
                 tmp.quad=quad;
                 tmp.treeid=treeid;
 
-                if(xy[0] == forestData.m_origin[0] && !dups[0])
-                {   
-                    dups[0]=true;
+                if(isLeftBoundaryNode(quad, n, treeid, l))
+                {
                     NodeIDsLeft.push_back(tmp);
                     m_faceCount[0]++;
                 }
-                
-                if(xy[1] == forestData.m_origin[1] && !dups[1])
+                    
+                if(isBottomBoundaryNode(quad, n, treeid, l))
                 {
-                    dups[1]=true;
                     NodeIDsBottom.push_back(tmp);
                     m_faceCount[2]++;
                 }
-                
-                if(xy[0] == forestData.m_lxy[0] && !dups[2])
+
+                if(isRightBoundaryNode(quad, n, treeid, l))
                 {
-                    dups[2]=true;
                     NodeIDsRight.push_back(tmp);
                     m_faceCount[1]++;
                 }
-                
-                if(xy[1] == forestData.m_lxy[1] && !dups[3])
+                    
+                if(isTopBoundaryNode(quad, n, treeid, l))
                 {
-                    dups[3]=true;
                     NodeIDsTop.push_back(tmp);
                     m_faceCount[3]++;
                 }
+            
             }
         }
     }
+
+    // Remove duplicates
+    for(int i = 1; i < NodeIDsLeft.size(); i++)
+        if(NodeIDsLeft[i].nodeid == NodeIDsLeft[i-1].nodeid)
+        {
+            NodeIDsLeft.erase(NodeIDsLeft.begin()+i);
+            i--;
+            m_faceCount[0]--;
+        }
+    for(int i = 1; i < NodeIDsBottom.size(); i++)
+        if(NodeIDsBottom[i].nodeid == NodeIDsBottom[i-1].nodeid)
+        {
+            NodeIDsBottom.erase(NodeIDsBottom.begin()+i);
+            i--;
+            m_faceCount[2]--;
+        }
+    for(int i = 1; i < NodeIDsRight.size(); i++)
+        if(NodeIDsRight[i].nodeid == NodeIDsRight[i-1].nodeid)
+        {
+            NodeIDsRight.erase(NodeIDsRight.begin()+i);
+            i--;
+            m_faceCount[1]--;
+        }
+    for(int i = 1; i < NodeIDsTop.size(); i++)
+        if(NodeIDsTop[i].nodeid == NodeIDsTop[i-1].nodeid)
+        {
+            NodeIDsTop.erase(NodeIDsTop.begin()+i);
+            i--;
+            m_faceCount[3]--;
+        }
 
     const index_t faceTag[] = { LEFT, RIGHT, BOTTOM, TOP };
     // const index_t faceTag[] = { LEFT, BOTTOM, RIGHT, TOP };

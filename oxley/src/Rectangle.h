@@ -354,9 +354,39 @@ protected:
 
     /**
        \brief
-       Returns true if the node is on the upper boundary (x[0]=l0, x[1]=l1)
+       Returns true if the node is on the top or right boundaries
     */
     bool isUpperBoundaryNode(p4est_quadrant_t * quad, int n, p4est_topidx_t treeid, p4est_qcoord_t length) const;
+
+    /**
+       \brief
+       Returns true if the node is on the bottom or left boundaries
+    */
+    bool isLowerBoundaryNode(p4est_quadrant_t * quad, int n, p4est_topidx_t treeid, p4est_qcoord_t length) const;
+
+    /**
+       \brief
+       Returns true if the node is on the left boundary
+    */
+    bool isLeftBoundaryNode(p4est_quadrant_t * quad, int n, p4est_topidx_t treeid, p4est_qcoord_t length) const;
+
+    /**
+       \brief
+       Returns true if the node is on the right boundary
+    */
+    bool isRightBoundaryNode(p4est_quadrant_t * quad, int n, p4est_topidx_t treeid, p4est_qcoord_t length) const;
+
+    /**
+       \brief
+       Returns true if the node is on the bottom boundary
+    */
+    bool isBottomBoundaryNode(p4est_quadrant_t * quad, int n, p4est_topidx_t treeid, p4est_qcoord_t length) const;
+
+    /**
+       \brief
+       Returns true if the node is on the top boundary
+    */
+    bool isTopBoundaryNode(p4est_quadrant_t * quad, int n, p4est_topidx_t treeid, p4est_qcoord_t length) const;
 
     /**
        \brief
