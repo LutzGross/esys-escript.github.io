@@ -305,6 +305,11 @@ p4est_connectivity_t *
 new_rectangle_connectivity(int mi, int ni, int periodic_a, int periodic_b, 
     double x0, double x1, double y0, double y1);
 
+   // This is a modified version of p4est_qcoord_to_vertex
+void p4est_qcoord_to_vertex2 (p4est_connectivity_t * connectivity,
+      p4est_topidx_t treeid,
+      p4est_qcoord_t x, p4est_qcoord_t y,
+      double vxyz[3]) const;
   
     /**
        \brief

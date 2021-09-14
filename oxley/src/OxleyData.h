@@ -208,6 +208,7 @@ struct update_RC_data {
 	// std::unordered_map<long,bool> * phangingNodeIDs; 
 	p4est_t * p4est;
 	std::vector< std::vector<long> > * indices;
+	double m_origin[2]={0};
 
 };
 
@@ -216,7 +217,7 @@ struct getConnections_data {
 	const std::unordered_map<DoublePair,long,boost::hash<DoublePair>> * pNodeIDs; 
 	p4est_t * p4est;
 	std::vector< std::vector<escript::DataTypes::index_t> > * indices;
-
+	double m_origin[2]={0};
 };
 
 // Tracks information used by the assembler
