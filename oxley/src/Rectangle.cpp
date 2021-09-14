@@ -1322,14 +1322,25 @@ void Rectangle::renumberNodes()
                 p4est_qcoord_to_vertex2(p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy);
                 if(NodeIDs.count(std::make_pair(xy[0],xy[1]))==0)
                 {
-                    #ifdef OXLEY_ENABLE_DEBUG_NODES
+#ifdef OXLEY_ENABLE_DEBUG_NODES
                     std::cout << NodeIDs.size() << ": " << xy[0] << ", " << xy[1] << std::endl;
-                    #endif
+#endif
                     NodeIDs[std::make_pair(xy[0],xy[1])]=NodeIDs.size();
                 }
             }
         }
     }
+#ifdef OXLEY_PRINT_NODEIDS
+    std::cout << "Printing NodeIDs " << std::endl;
+    double xyf[NodeIDs.size()][2]={{0}};
+    for(std::pair<DoublePair,long> e : NodeIDs)
+    {
+        xyf[e.second][0]=e.first.first;
+        xyf[e.second][1]=e.first.second;
+    }
+    for(int i=0; i<NodeIDs.size(); i++)
+        std::cout << i << ": " << xyf[i][0] << ", " << xyf[i][1] << std::endl;
+#endif
 }
 
 //protected
@@ -1341,6 +1352,11 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
     if (!arg.numSamplesEqual(1, getNumNodes()))
         throw ValueError("assembleCoordinates: Illegal number of samples in Data object");
     arg.requireWrite();
+
+#ifdef OXLEY_ENABLE_DEBUG_ASSEMBLE_COORDINATES
+    std::cout << "assemble coordinates " << std::endl;
+    float bounds[4]={0.0};
+#endif
 
     for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) {
         p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
@@ -1369,10 +1385,21 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
                     double * point = arg.getSampleDataRW(lni);
                     point[0] = xy[0];
                     point[1] = xy[1];
+#ifdef OXLEY_ENABLE_DEBUG_ASSEMBLE_COORDINATES
+                    // float bounds[4]={0.0};
+                    if(xy[0] < bounds[0]) bounds[0]=xy[0];
+                    if(xy[0] > bounds[1]) bounds[1]=xy[0];
+                    if(xy[1] < bounds[2]) bounds[2]=xy[1];
+                    if(xy[1] > bounds[3]) bounds[3]=xy[1];
+#endif
                 }
             }
         }
     }
+#ifdef OXLEY_ENABLE_DEBUG_ASSEMBLE_COORDINATES
+    std::cout << "bounds " << bounds[0] << ", " << bounds[1] 
+        << " and " << bounds[2] << ", " << bounds[3] << std::endl;
+#endif
 }
 
 // //private
@@ -3050,16 +3077,16 @@ p4est_connectivity_t * Rectangle::new_rectangle_connectivity(
     
     p4est_topidx_t n;
     p4est_topidx_t m;
-    if(n0<=n1)
-    {
+    // if(n0<=n1)
+    // {
         n = (p4est_topidx_t) n0;
         m = (p4est_topidx_t) n1;
-    }
-    else
-    {
-        n = (p4est_topidx_t) n1;
-        m = (p4est_topidx_t) n0;   
-    }
+    // }
+    // else
+    // {
+        // n = (p4est_topidx_t) n1;
+        // m = (p4est_topidx_t) n0;   
+    // }
 
     ESYS_ASSERT(m > 0 && n > 0, "n0 and n1 must be greater than zero.");
     const p4est_topidx_t num_trees = m * n;
@@ -3263,6 +3290,10 @@ p4est_connectivity_t * Rectangle::new_rectangle_connectivity(
     P4EST_FREE(tree_to_corner2);
 #ifdef OXLEY_ENABLE_DEBUG
     P4EST_ASSERT(p4est_connectivity_is_valid(conn)); //This is very time consuming
+#endif
+#ifdef OXLEY_PRINT_VERTICES
+    for(int i = 0; i<vicount;i+=3)
+        std::cout << vertices[i] << ", " << vertices[i+1] << std::endl;
 #endif
     return conn;
 }
@@ -3572,8 +3603,8 @@ void Rectangle::p4est_qcoord_to_vertex2 (p4est_connectivity_t * connectivity,
             vxyz[1] += xfactor * vertices[3 * vindex + 1];
         }
     }    
-    vxyz[0]+=forestData.m_origin[0];
-    vxyz[1]+=forestData.m_origin[1];
+    // vxyz[0]+=forestData.m_origin[0];
+    // vxyz[1]+=forestData.m_origin[1];
 }
 
 // instantiate our two supported versions
