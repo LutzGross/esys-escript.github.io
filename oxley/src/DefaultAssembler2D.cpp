@@ -728,9 +728,9 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
             EM_F[2] = zero;
         }
 
-        for (index_t k=0; k<domain->NodeIDsBottom.size()-1; k++) {
+        for (index_t k=0; k<domain->NodeIDsRight.size()-1; k++) {
             int id = domain->m_faceOffset[1]+k;
-            int l = domain->NodeIDsBottom[k].quad->level;
+            int l = domain->NodeIDsRight[k].quad->level;
 
             ///////////////
             // process d //
@@ -766,7 +766,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
                     EM_F[3] = 6.*w[2][l]*y_p[0];
                 }
             }
-            domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, domain->NodeIDsBottom[k]);
+            domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, domain->NodeIDsRight[k]);
         }
     }
 
@@ -779,9 +779,9 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
             EM_F[3] = zero;
         }
 
-        for (index_t k=0; k<domain->NodeIDsRight.size()-1; k++) {
+        for (index_t k=0; k<domain->NodeIDsBottom.size()-1; k++) {
             int id = domain->m_faceOffset[2]+k;
-            int l = domain->NodeIDsRight[k].quad->level;
+            int l = domain->NodeIDsBottom[k].quad->level;
 
             ///////////////
             // process d //
@@ -817,7 +817,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
                     EM_F[1] = 6.*w[5][l]*y_p[0];
                 }
             }
-            domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, domain->NodeIDsRight[k]);
+            domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, domain->NodeIDsBottom[k]);
         }
     }
 
