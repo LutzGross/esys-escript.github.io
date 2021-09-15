@@ -1588,7 +1588,6 @@ void Rectangle::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Dat
     long rowIndex[4] = {0};
     int indices[4]={0,1,2,3};
     getNeighouringNodeIDs(quad.quad, quad.treeid, rowIndex);
-
     if(addF)
     {
         Scalar* F_p = F.getSampleDataRW(0, static_cast<Scalar>(0));
@@ -2441,29 +2440,29 @@ void Rectangle::updateFaceElementCount()
     }
 
     // Remove duplicates
-    for(int i = 1; i < NodeIDsLeft.size(); i++)
-        if(NodeIDsLeft[i].nodeid == NodeIDsLeft[i-1].nodeid)
+    for(int i = 1; i < NodeIDsLeft.size()-1; i++)
+        if(NodeIDsLeft[i].treeid == NodeIDsLeft[i-1].treeid)
         {
             NodeIDsLeft.erase(NodeIDsLeft.begin()+i);
             i--;
             m_faceCount[0]--;
         }
-    for(int i = 1; i < NodeIDsBottom.size(); i++)
-        if(NodeIDsBottom[i].nodeid == NodeIDsBottom[i-1].nodeid)
+    for(int i = 1; i < NodeIDsBottom.size()-1; i++)
+        if(NodeIDsBottom[i].treeid == NodeIDsBottom[i-1].treeid)
         {
             NodeIDsBottom.erase(NodeIDsBottom.begin()+i);
             i--;
             m_faceCount[2]--;
         }
-    for(int i = 1; i < NodeIDsRight.size(); i++)
-        if(NodeIDsRight[i].nodeid == NodeIDsRight[i-1].nodeid)
+    for(int i = 1; i < NodeIDsRight.size()-1; i++)
+        if(NodeIDsRight[i].treeid == NodeIDsRight[i-1].treeid)
         {
             NodeIDsRight.erase(NodeIDsRight.begin()+i);
             i--;
             m_faceCount[1]--;
         }
-    for(int i = 1; i < NodeIDsTop.size(); i++)
-        if(NodeIDsTop[i].nodeid == NodeIDsTop[i-1].nodeid)
+    for(int i = 1; i < NodeIDsTop.size()-1; i++)
+        if(NodeIDsTop[i].treeid == NodeIDsTop[i-1].treeid)
         {
             NodeIDsTop.erase(NodeIDsTop.begin()+i);
             i--;
@@ -2481,6 +2480,25 @@ void Rectangle::updateFaceElementCount()
             m_faceTags.insert(m_faceTags.end(), m_faceCount[i], faceTag[i]);
         }
     }
+
+#ifdef OXLEY_ENABLE_DEBUG_FACEELEMENTS
+    std::cout << "NodeIDsLeft" << std::endl;
+    for(int i = 0; i < NodeIDsLeft.size()-1;i++)
+        std::cout << NodeIDsLeft[i].nodeid << " ";
+    std::cout << std::endl;
+    std::cout << "NodeIDsRight" << std::endl;
+    for(int i = 0; i < NodeIDsRight.size()-1;i++)
+        std::cout << NodeIDsRight[i].nodeid << " ";
+    std::cout << std::endl;
+    std::cout << "NodeIDsTop" << std::endl;
+    for(int i = 0; i < NodeIDsTop.size()-1;i++)
+        std::cout << NodeIDsTop[i].nodeid << " ";
+    std::cout << std::endl;
+    std::cout << "NodeIDsBottom" << std::endl;
+    for(int i = 0; i < NodeIDsBottom.size()-1;i++)
+        std::cout << NodeIDsBottom[i].nodeid << " ";
+    std::cout << std::endl;
+#endif
 
     // set face tags
     setTagMap("left", LEFT);
@@ -3077,7 +3095,7 @@ p4est_connectivity_t * Rectangle::new_rectangle_connectivity(
 
     ESYS_ASSERT(m > 0 && n > 0, "n0 and n1 must be greater than zero.");
     const p4est_topidx_t num_trees = m * n;
-    ESYS_ASSERT(num_trees <= MAXTREES ,"numtrees must be less than MAXTREES.");
+    ESYS_ASSERT(num_trees <= MAXTREES ,"n0*n1 must be less than MAXTREES.");
 
     // Number of corners in each direction
     P4EST_ASSERT(periodic_a == 0 || periodic_a == 1);
