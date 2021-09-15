@@ -131,9 +131,9 @@ Rectangle::Rectangle(int order,
     //     num_refine++;
     //     div*=2;
     // }
-    connectivity = new_rectangle_connectivity(n0, n1, false, false, x0, x1, y0, y1);
+    connectivity = new_rectangle_connectivity(n0, n1, false, false, x0, y0, x1, y1);
 
-#ifdef OXLEY_ENABLE_DEBUG //These checks are turned off by default as they can be very timeconsuming
+#ifdef OXLEY_ENABLE_DEBUG_CHECKS //These checks are turned off by default as they can be very timeconsuming
     std::cout << "In Rectangle() constructor..." << std::endl;
     std::cout << "Checking connectivity ... ";
     if(!p4est_connectivity_is_valid(connectivity))
@@ -149,7 +149,7 @@ Rectangle::Rectangle(int order,
     p4est = p4est_new_ext(m_mpiInfo->comm, connectivity, min_quadrants,
             min_level, fill_uniform, sizeof(quadrantData), init_rectangle_data, (void *) &forestData);
 
-#ifdef OXLEY_ENABLE_DEBUG //These checks are turned off by default as they can be very timeconsuming
+#ifdef OXLEY_ENABLE_DEBUG_CHECKS //These checks are turned off by default as they can be very timeconsuming
     std::cout << "Checking p4est ... ";
     if(!p4est_is_valid(p4est))
         std::cout << "broken" << std::endl;
@@ -271,7 +271,7 @@ Rectangle::Rectangle(int order,
    Destructor.
 */
 Rectangle::~Rectangle(){
-#ifdef OXLEY_ENABLE_DEBUG
+#ifdef OXLEY_ENABLE_DEBUG_CHECKS
     std::cout << "In Rectangle() destructor" << std::endl;
     std::cout << "checking p4est ... ";
     if(!p4est_is_valid(p4est))
@@ -1134,7 +1134,7 @@ bool Rectangle::isBoundaryNode(p4est_quadrant_t * quad, int n, p4est_topidx_t tr
     double lx = length * ((int) (n % 2) == 1);
     double ly = length * ((int) (n / 2) == 1);
     double xy[3];
-    p4est_qcoord_to_vertex2(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
+    p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
     return (xy[0] == forestData.m_origin[0]) || (xy[0] == forestData.m_lxy[0]) || (xy[1] == forestData.m_origin[1]) || (xy[1] == forestData.m_lxy[1]);
 }
 
@@ -1144,7 +1144,7 @@ bool Rectangle::isUpperBoundaryNode(p4est_quadrant_t * quad, int n, p4est_topidx
     double lx = length * ((int) (n % 2) == 1);
     double ly = length * ((int) (n / 2) == 1);
     double xy[3];
-    p4est_qcoord_to_vertex2(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
+    p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
     return (xy[0] == forestData.m_lxy[0]) || (xy[1] == forestData.m_lxy[1]);
 }
 
@@ -1154,7 +1154,7 @@ bool Rectangle::isLowerBoundaryNode(p4est_quadrant_t * quad, int n, p4est_topidx
     double lx = length * ((int) (n % 2) == 1);
     double ly = length * ((int) (n / 2) == 1);
     double xy[3];
-    p4est_qcoord_to_vertex2(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
+    p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
     return (xy[0] == forestData.m_origin[0]) || (xy[1] == forestData.m_origin[1]);
 }
 
@@ -1164,7 +1164,7 @@ bool Rectangle::isLeftBoundaryNode(p4est_quadrant_t * quad, int n, p4est_topidx_
     double lx = length * ((int) (n % 2) == 1);
     double ly = length * ((int) (n / 2) == 1);
     double xy[3];
-    p4est_qcoord_to_vertex2(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
+    p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
     return (xy[0] == forestData.m_origin[0]);
 }
 
@@ -1174,7 +1174,7 @@ bool Rectangle::isRightBoundaryNode(p4est_quadrant_t * quad, int n, p4est_topidx
     double lx = length * ((int) (n % 2) == 1);
     double ly = length * ((int) (n / 2) == 1);
     double xy[3];
-    p4est_qcoord_to_vertex2(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
+    p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
     return (xy[0] == forestData.m_lxy[0]);
 }
 
@@ -1184,7 +1184,7 @@ bool Rectangle::isBottomBoundaryNode(p4est_quadrant_t * quad, int n, p4est_topid
     double lx = length * ((int) (n % 2) == 1);
     double ly = length * ((int) (n / 2) == 1);
     double xy[3];
-    p4est_qcoord_to_vertex2(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
+    p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
     return (xy[1] == forestData.m_origin[1]);
 }
 
@@ -1194,7 +1194,7 @@ bool Rectangle::isTopBoundaryNode(p4est_quadrant_t * quad, int n, p4est_topidx_t
     double lx = length * ((int) (n % 2) == 1);
     double ly = length * ((int) (n / 2) == 1);
     double xy[3];
-    p4est_qcoord_to_vertex2(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
+    p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
     return (xy[1] == forestData.m_lxy[1]);
 }
 
@@ -1283,7 +1283,7 @@ void Rectangle::updateNodeIncrements()
 //                 {                   
 //                     double lx = length * ((int) (tmp0 % 2) == 1);
 //                     double ly = length * ((int) (tmp0 / 2) == 1);
-//                     p4est_qcoord_to_vertex2(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
+//                     p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
 //                     if(!hangingNodeIDs.count(std::make_pair(xy[0],xy[1])))
 //                         hangingNodeIDs[std::make_pair(xy[0],xy[1])]=hangingNodeIDs.size()+numNodes;
 //                 }
@@ -1291,7 +1291,7 @@ void Rectangle::updateNodeIncrements()
 //                 {
 //                     double lx = length * ((int) (tmp1 % 2) == 1);
 //                     double ly = length * ((int) (tmp1 / 2) == 1);
-//                     p4est_qcoord_to_vertex2(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
+//                     p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
 //                     if(!hangingNodeIDs.count(std::make_pair(xy[0],xy[1])))
 //                         hangingNodeIDs[std::make_pair(xy[0],xy[1])]=hangingNodeIDs.size()+numNodes;
 //                 }
@@ -1319,7 +1319,7 @@ void Rectangle::renumberNodes()
             for(int n = 0; n < 4; n++)
             {
                 double xy[3];
-                p4est_qcoord_to_vertex2(p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy);
+                p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy);
                 if(NodeIDs.count(std::make_pair(xy[0],xy[1]))==0)
                 {
 #ifdef OXLEY_ENABLE_DEBUG_NODES
@@ -1332,7 +1332,7 @@ void Rectangle::renumberNodes()
     }
 #ifdef OXLEY_PRINT_NODEIDS
     std::cout << "Printing NodeIDs " << std::endl;
-    double xyf[NodeIDs.size()][2]={{0}};
+    double xyf[MAXP4ESTNODES][2]={{0}};
     for(std::pair<DoublePair,long> e : NodeIDs)
     {
         xyf[e.second][0]=e.first.first;
@@ -1374,7 +1374,7 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
                 double lx = length * ((int) (n % 2) == 1);
                 double ly = length * ((int) (n / 2) == 1);
                 double xy[3];
-                p4est_qcoord_to_vertex2(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
+                p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
 
                 if( (n == 0) 
                   || isHangingNode(nodes->face_code[k], n)
@@ -1559,7 +1559,7 @@ void Rectangle::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Dat
     for(int i = 0; i < 4; i++)
     {
         double xy[3];
-        p4est_qcoord_to_vertex2(p4est->connectivity, t, quad->x+lxy[i][0], quad->y+lxy[i][1], xy);
+        p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x+lxy[i][0], quad->y+lxy[i][1], xy);
         rowIndex[i] = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
     }
 
@@ -1761,7 +1761,7 @@ void Rectangle::getNeighouringNodeIDs(p4est_quadrant_t * quad, p4est_topidx_t tr
     for(int i=0; i<4;i++)
     {
         double xy[3];
-        p4est_qcoord_to_vertex2(p4est->connectivity, treeid, quad->x+adj[i][0], quad->y+adj[i][1], xy);
+        p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+adj[i][0], quad->y+adj[i][1], xy);
         ids[i]=(long) NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
     }
 }
@@ -1965,7 +1965,7 @@ dim_t Rectangle::getNumFaceElements() const
 //             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
 //             int l = quad->level;
 //             double xy[3];
-//             p4est_qcoord_to_vertex2(p4est->connectivity, t, quad->x, quad->y, xy);
+//             p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x, quad->y, xy);
 //             long e = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
 //             quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 //             numFaceElements[omp_get_thread_num()] += quaddata->m_faceOffset[0] ||
@@ -2051,14 +2051,14 @@ void Rectangle::updateRowsColumns()
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
             p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
             double xy[3];
-            p4est_qcoord_to_vertex2(p4est->connectivity, treeid, quad->x+length, quad->y, xy);
+            p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+length, quad->y, xy);
 
             // If the node is on the boundary x=Lx or y=Ly
             if(xy[0] == forestData.m_lxy[0]) 
             {
                 // Get the node IDs
                 long lni0 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-                p4est_qcoord_to_vertex2(p4est->connectivity, treeid, quad->x+length, quad->y+length, xy);
+                p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+length, quad->y+length, xy);
                 long lni1 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
 
                 std::vector<long> * idx0 = &indices[0][lni0];
@@ -2080,12 +2080,12 @@ void Rectangle::updateRowsColumns()
                 }
             }
 
-            p4est_qcoord_to_vertex2(p4est->connectivity, treeid, quad->x, quad->y+length, xy);
+            p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x, quad->y+length, xy);
             if(xy[1] == forestData.m_lxy[1])
             {
                 // Get the node IDs
                 long lni0 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-                p4est_qcoord_to_vertex2(p4est->connectivity, treeid, quad->x+length, quad->y+length, xy);
+                p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+length, quad->y+length, xy);
                 long lni1 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
 
                 std::vector<long> * idx0 = &indices[0][lni0];
@@ -2405,7 +2405,7 @@ void Rectangle::updateFaceElementCount()
             double xy[3] = {0};
             for(int n = 0; n < 4; n++)
             {
-                p4est_qcoord_to_vertex2(p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy);
+                p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy);
 
                 borderNodeInfo tmp;
                 tmp.nodeid=NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
@@ -2518,7 +2518,7 @@ void Rectangle::updateNodeDistribution()
                 double lx = length * ((int) (n % 2) == 1);
                 double ly = length * ((int) (n / 2) == 1);
                 double xy[3];
-                p4est_qcoord_to_vertex2(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
+                p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
                 m_nodeDistribution[counter++]=NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
             }
         }
@@ -2580,7 +2580,7 @@ std::vector<IndexVector> Rectangle::getConnections(bool includeShared) const
                 long lni[4] = {-1};
                 for(int i = 0; i < 4; i++)
                 {
-                    p4est_qcoord_to_vertex2(p4est->connectivity, treeid, quad->x+lx[i], quad->y+ly[i], xy);
+                    p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx[i], quad->y+ly[i], xy);
                     lni[i] = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
                 }
 
@@ -2692,7 +2692,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
             {
                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
                 double xy[3];
-                p4est_qcoord_to_vertex2(p4est->connectivity, t, quad->x, quad->y, xy);
+                p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x, quad->y, xy);
                 long e = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
 
                 // p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
@@ -2735,7 +2735,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
 
                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
                 double xy[3];
-                p4est_qcoord_to_vertex2(p4est->connectivity, t, quad->x, quad->y, xy);
+                p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x, quad->y, xy);
                 long e = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
 
                 // p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
@@ -2768,7 +2768,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
 
                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
                 double xy[3];
-                p4est_qcoord_to_vertex2(p4est->connectivity, t, quad->x, quad->y, xy);
+                p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x, quad->y, xy);
                 long e = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
                 quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
@@ -2845,7 +2845,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
 
                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
                 double xy[3];
-                p4est_qcoord_to_vertex2(p4est->connectivity, t, quad->x, quad->y, xy);
+                p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x, quad->y, xy);
                 long e = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
                 quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
@@ -2953,7 +2953,7 @@ void Rectangle::updateSolutionInformation(escript::Data solution)
                 long lni[4] = {-1};
                 for(int i = 0; i < 4; i++)
                 {
-                    p4est_qcoord_to_vertex2(p4est->connectivity, treeid, quad->x+lx[i], quad->y+ly[i], xy);
+                    p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx[i], quad->y+ly[i], xy);
                     lni[i] = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
                     auto temp = solution.getSampleDataRO(i);
                     current_solution[lni[i]]=*temp;
@@ -3069,24 +3069,11 @@ brick_xyz_to_linear (const p4est_topidx_t tx[P4EST_DIM],
 // This is a modified version of p4est_connectivity_new_brick
 p4est_connectivity_t * Rectangle::new_rectangle_connectivity(
                             int n0, int n1, int periodic_a, int periodic_b, 
-                            double x0, double x1, double y0, double y1)
+                            double x0, double y0, double x1, double y1)
 {
     // Number of nodes 
-    // const p4est_topidx_t n = (p4est_topidx_t) n0;
-    // const p4est_topidx_t m = (p4est_topidx_t) n1;
-    
-    p4est_topidx_t n;
-    p4est_topidx_t m;
-    // if(n0<=n1)
-    // {
-        n = (p4est_topidx_t) n0;
-        m = (p4est_topidx_t) n1;
-    // }
-    // else
-    // {
-        // n = (p4est_topidx_t) n1;
-        // m = (p4est_topidx_t) n0;   
-    // }
+    const p4est_topidx_t m = (p4est_topidx_t) n0;
+    const p4est_topidx_t n = (p4est_topidx_t) n1;    
 
     ESYS_ASSERT(m > 0 && n > 0, "n0 and n1 must be greater than zero.");
     const p4est_topidx_t num_trees = m * n;
@@ -3186,6 +3173,9 @@ p4est_connectivity_t * Rectangle::new_rectangle_connectivity(
     p4est_topidx_t * tree_to_corner = conn->tree_to_corner;
     p4est_topidx_t * corner_to_tree = conn->corner_to_tree;
     int8_t * corner_to_corner = conn->corner_to_corner;
+#ifdef OXLEY_PRINT_VERTICES
+    std::cout << "using the vertices..." << std::endl;
+#endif
     for(p4est_topidx_t ti = 0; ti < n_iter; ti++) {
         brick_linear_to_xyz(ti, logx, rankx, coord);
         p4est_topidx_t tx = coord[0];
@@ -3277,9 +3267,14 @@ p4est_connectivity_t * Rectangle::new_rectangle_connectivity(
                 }
                 else {
                     tree_to_vertex[tj * 4 + i] = vcount++;
-                    vertices[vicount++] = (double) dx * (tx + (i & 1));
-                    vertices[vicount++] = (double) dy * (ty + ((i >> 1) & 1));
+                    vertices[vicount++] = (double) x0 + (dx * (tx + (i & 1)));
+                    vertices[vicount++] = (double) y0 + (dy * (ty + ((i >> 1) & 1)));
                     vertices[vicount++] = 0.;
+#ifdef OXLEY_PRINT_VERTICES
+                    std::cout << "( " << vertices[vicount-3] << ", " 
+                                      << vertices[vicount-2] << ", "
+                                      << vertices[vicount-1] << " )" << std::endl;
+#endif
                 }
             }
         }
@@ -3292,7 +3287,8 @@ p4est_connectivity_t * Rectangle::new_rectangle_connectivity(
     P4EST_ASSERT(p4est_connectivity_is_valid(conn)); //This is very time consuming
 #endif
 #ifdef OXLEY_PRINT_VERTICES
-    for(int i = 0; i<vicount;i+=3)
+    std::cout << "using vertices..." << std::endl;
+    for(int i=0;i<vicount;i+=3)
         std::cout << vertices[i] << ", " << vertices[i+1] << std::endl;
 #endif
     return conn;
@@ -3574,37 +3570,6 @@ dim_t Rectangle::findNode(const double *coords) const
 
     return closest;
 
-}
-
-void Rectangle::p4est_qcoord_to_vertex2 (p4est_connectivity_t * connectivity,
-                        p4est_topidx_t treeid,
-                        p4est_qcoord_t x, p4est_qcoord_t y,
-                        double vxyz[3]) const
-{
-    const double *vertices = connectivity->vertices;
-    const p4est_topidx_t *vindices;
-    
-    p4est_topidx_t vindex;
-    vindices = connectivity->tree_to_vertex + P4EST_CHILDREN * treeid;
-    vxyz[0] = vxyz[1] = vxyz[2] = 0.;
-
-    double wx[2], wy[2];
-    wx[1] = (double) x / (double) P4EST_ROOT_LEN;
-    wx[0] = 1. - wx[1];
-    wy[1] = (double) y / (double) P4EST_ROOT_LEN;
-    wy[0] = 1. - wy[1];
-
-    for(int yi = 0; yi < 2; ++yi) {
-        double yfactor = wy[yi];
-        for(int xi = 0; xi < 2; ++xi) {
-            double xfactor = yfactor * wx[xi];
-            vindex = *vindices++;
-            vxyz[0] += xfactor * vertices[3 * vindex + 0];
-            vxyz[1] += xfactor * vertices[3 * vindex + 1];
-        }
-    }    
-    // vxyz[0]+=forestData.m_origin[0];
-    // vxyz[1]+=forestData.m_origin[1];
 }
 
 // instantiate our two supported versions

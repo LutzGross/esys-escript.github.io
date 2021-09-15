@@ -64,20 +64,12 @@ int refine_mare2dem(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * qua
     double ly = forestData->m_dx[1][quadrant->level];
 
     p4est_qcoord_to_vertex(p4est->connectivity, quadData->treeid, quadrant->x,    quadrant->y+ly, xyz); //N    
-    xyz[0]+=forestData->m_origin[0];
-    xyz[1]+=forestData->m_origin[1];
     neighbour_nodeIDs[0] = NodeIDs->find(std::make_pair(xyz[0],xyz[1]))->second;
     p4est_qcoord_to_vertex(p4est->connectivity, quadData->treeid, quadrant->x,    quadrant->y-ly, xyz); //S
-    xyz[0]+=forestData->m_origin[0];
-    xyz[1]+=forestData->m_origin[1];    
     neighbour_nodeIDs[1] = NodeIDs->find(std::make_pair(xyz[0],xyz[1]))->second;
     p4est_qcoord_to_vertex(p4est->connectivity, quadData->treeid, quadrant->x+lx, quadrant->y,    xyz); //E
-    xyz[0]+=forestData->m_origin[0];
-    xyz[1]+=forestData->m_origin[1];    
     neighbour_nodeIDs[2] = NodeIDs->find(std::make_pair(xyz[0],xyz[1]))->second;
     p4est_qcoord_to_vertex(p4est->connectivity, quadData->treeid, quadrant->x-lx, quadrant->y,    xyz); //W
-    xyz[0]+=forestData->m_origin[0];
-    xyz[1]+=forestData->m_origin[1];
     neighbour_nodeIDs[3] = NodeIDs->find(std::make_pair(xyz[0],xyz[1]))->second;
     
     // Get the solution at the neighbouring four nodes
@@ -266,8 +258,6 @@ int refine_point(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadra
     double xy2[3] = {0};
     p4est_qcoord_t l = P4EST_QUADRANT_LEN(quadrant->level);
     p4est_qcoord_to_vertex(p4est->connectivity, tree, quadrant->x+l, quadrant->y+l, xy2);
-    xy2[0]+=forestData->m_origin[0];
-    xy2[1]+=forestData->m_origin[1];
 
     // Check if the point is inside the quadrant
     bool do_refinement = (p[0] >= xy1[0]) && (p[0] <= xy2[0])
@@ -289,8 +279,6 @@ int refine_circle(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadr
     double p[3] = {0};
     p4est_qcoord_t l = P4EST_QUADRANT_LEN(quadrant->level);
     p4est_qcoord_to_vertex(p4est->connectivity, tree, quadrant->x+l, quadrant->y+l, p);
-    p[0]+=forestData->m_origin[0];
-    p[1]+=forestData->m_origin[1];
 
     // Center of the quadrant
     p[0] = 0.5*(xy1[0]+p[0]);
@@ -808,8 +796,6 @@ void update_RC(p4est_iter_face_info_t *info, void *user_data)
     // First Node
     double xy[3];
     p4est_qcoord_to_vertex(data->p4est->connectivity, side->treeid, quad->x, quad->y, xy);
-    xy[0]+=data->m_origin[0];
-    xy[1]+=data->m_origin[1];
     long lni0 = data->pNodeIDs->find(std::make_pair(xy[0],xy[1]))->second;
 
     // Second node
@@ -818,8 +804,6 @@ void update_RC(p4est_iter_face_info_t *info, void *user_data)
     long lx = ((fn < 2) == 0) * length;
     long ly = ((fn >= 2) == 0) * length;
     p4est_qcoord_to_vertex(data->p4est->connectivity, side->treeid, quad->x+lx, quad->y+ly, xy);
-    xy[0]+=data->m_origin[0];
-    xy[1]+=data->m_origin[1];
     long lni1 = data->pNodeIDs->find(std::make_pair(xy[0],xy[1]))->second;
 
     std::vector<long> * idx0 = &data->indices[0][lni0];
