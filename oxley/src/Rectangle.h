@@ -284,6 +284,7 @@ private:
     // Rectangle needs to keep track of this information
     std::unordered_map<DoublePair,long,boost::hash<DoublePair>> NodeIDs; //global ids of the nodes
     std::unordered_map<long,bool> hangingNodeIDs; //global ids of the hanging nodes
+    std::vector<long> QuadrantIDs;
     std::unordered_map<DoublePair,long,boost::hash<DoublePair>> treeIDs; //global ids of the hanging nodes
     std::unordered_map<long,double> current_solution; //solution at each node
 
@@ -449,6 +450,13 @@ protected:
        Returns the ID numbers of the neighbouring four nodes
     */
     void getNeighouringNodeIDs(p4est_quadrant_t * quad, p4est_topidx_t treeid, long (&ids) [4]) const;
+
+    /*
+      \brief
+      Returns the ID number of a quadrant from the node id
+      id is the NodeID of the bottom left node
+    */
+    long getQuadID(long id) const;
 
     // virtual void assembleIntegrate(std::vector<real_t>& integrals, const escript::Data& arg) const;
     // virtual void assembleIntegrate(std::vector<cplx_t>& integrals, const escript::Data& arg) const;

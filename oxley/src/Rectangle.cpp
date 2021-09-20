@@ -1307,12 +1307,14 @@ void Rectangle::renumberNodes()
 #endif
 
     NodeIDs.clear();
-#pragma omp for
+    QuadrantIDs.clear();
+// #pragma omp for
     for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) {
         p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
         sc_array_t * tquadrants = &tree->quadrants;
         p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
         for(int q = 0; q < Q; ++q) { 
+            QuadrantIDs.push_back(NodeIDs.size());
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
             p4est_qcoord_t l = P4EST_QUADRANT_LEN(quad->level);
             p4est_qcoord_t lxy[4][2] = {{0,0},{l,0},{0,l},{l,l}};
@@ -1729,6 +1731,7 @@ void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
 
                 long ids[4]={0};
                 getNeighouringNodeIDs(quad, treeid, ids);
+                long quadId = getQuadID(ids[0]);
 
                 memcpy(&f_00[0], in.getSampleDataRO(ids[0], sentinel), numComp*sizeof(S));
                 memcpy(&f_01[0], in.getSampleDataRO(ids[1], sentinel), numComp*sizeof(S));
@@ -1736,10 +1739,10 @@ void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
                 memcpy(&f_11[0], in.getSampleDataRO(ids[3], sentinel), numComp*sizeof(S));
 
         #ifdef OXLEY_ENABLE_DEBUG_INTERPOLATE
-                std::cout << "interpolateNodesOnElementsWorker IDs " << ids[0] << ", " << ids[1] << ", " << ids[2] << ", " << ids[3] << std::endl;
+                std::cout << "interpolateNodesOnElementsWorker quadID: " << quadId << ", node IDs " << ids[0] << ", " << ids[1] << ", " << ids[2] << ", " << ids[3] << std::endl;
         #endif
                 
-                S* o = out.getSampleDataRW(ids[0], sentinel);
+                S* o = out.getSampleDataRW(quadId, sentinel);
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = c0*(f_01[i] + f_10[i]) + c1*f_11[i] + c2*f_00[i];
                     o[INDEX2(i,numComp,1)] = c0*(f_00[i] + f_11[i]) + c1*f_01[i] + c2*f_10[i];
@@ -1763,6 +1766,11 @@ void Rectangle::getNeighouringNodeIDs(p4est_quadrant_t * quad, p4est_topidx_t tr
         p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+adj[i][0], quad->y+adj[i][1], xy);
         ids[i]=(long) NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
     }
+}
+
+long Rectangle::getQuadID(long nodeid) const
+{
+    return QuadrantIDs[nodeid];
 }
 
 //private
@@ -2389,7 +2397,6 @@ void Rectangle::updateFaceElementCount()
     const index_t LEFT=1, RIGHT=2, BOTTOM=10, TOP=20;
     m_faceTags.clear();
 
-    int face_count = 1;
     for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) 
     {
         p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
@@ -2399,7 +2406,7 @@ void Rectangle::updateFaceElementCount()
         {
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
             p4est_qcoord_t l = P4EST_QUADRANT_LEN(quad->level);
-            int k = q - Q + nodeIncrements[treeid - p4est->first_local_tree];
+            // int k = q - Q + nodeIncrements[treeid - p4est->first_local_tree];
             p4est_qcoord_t lxy[4][2] = {{0,0},{l,0},{0,l},{l,l}};
             double xy[3] = {0};
             for(int n = 0; n < 4; n++)
