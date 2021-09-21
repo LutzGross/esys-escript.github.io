@@ -284,6 +284,7 @@ private:
     // Rectangle needs to keep track of this information
     std::unordered_map<DoublePair,long,boost::hash<DoublePair>> NodeIDs; //global ids of the nodes
     std::unordered_map<long,bool> hangingNodeIDs; //global ids of the hanging nodes
+    std::vector<long> QuadrantIDs;
     std::unordered_map<DoublePair,long,boost::hash<DoublePair>> treeIDs; //global ids of the hanging nodes
     std::unordered_map<long,double> current_solution; //solution at each node
     std::vector<long> quadrantIDs; // IDs of the quadrants
