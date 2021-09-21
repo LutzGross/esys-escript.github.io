@@ -286,6 +286,7 @@ private:
     std::unordered_map<long,bool> hangingNodeIDs; //global ids of the hanging nodes
     std::unordered_map<DoublePair,long,boost::hash<DoublePair>> treeIDs; //global ids of the hanging nodes
     std::unordered_map<long,double> current_solution; //solution at each node
+    std::vector<long> quadrantIDs; // IDs of the quadrants
 
     std::vector<borderNodeInfo> NodeIDsTop;
     std::vector<borderNodeInfo> NodeIDsBottom;
@@ -314,6 +315,12 @@ new_rectangle_connectivity(int mi, int ni, int periodic_a, int periodic_b,
     virtual void updateSolutionInformation(escript::Data solution);
     virtual void updateMeshInformation();
     virtual escript::Data getUpdatedSolution();
+
+    /**
+      \brief
+      Returns the ID of a quad from the ID of it's bottom left node
+    */
+    long getQuadID(long nodeid) const;
 
 protected:
 

@@ -1307,7 +1307,8 @@ void Rectangle::renumberNodes()
 #endif
 
     NodeIDs.clear();
-#pragma omp for
+    quadrantIDs.clear();
+// #pragma omp for
     for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) {
         p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
         sc_array_t * tquadrants = &tree->quadrants;
@@ -1326,6 +1327,15 @@ void Rectangle::renumberNodes()
                     std::cout << NodeIDs.size() << ": " << xy[0] << ", " << xy[1] << std::endl;
 #endif
                     NodeIDs[std::make_pair(xy[0],xy[1])]=NodeIDs.size();
+                }
+
+                if(n==0)
+                {
+                    p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x, quad->y, xy);
+                    quadrantIDs.push_back(NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
+#ifdef OXLEY_ENABLE_DEBUG_NODES
+                    std::cout << "New Quad. ID: " << NodeIDs.find(std::make_pair(xy[0],xy[1]))->second << std::endl;
+#endif
                 }
             }
         }
@@ -1694,12 +1704,13 @@ void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
                
                 long ids[4]={0};
                 getNeighouringNodeIDs(quad, treeid, ids);
+                int quadID=getQuadID(ids[0]);
 
                 memcpy(&f_00[0], in.getSampleDataRO(ids[0],sentinel), numComp*sizeof(S));
                 memcpy(&f_01[0], in.getSampleDataRO(ids[1],sentinel), numComp*sizeof(S));
                 memcpy(&f_10[0], in.getSampleDataRO(ids[2],sentinel), numComp*sizeof(S));
                 memcpy(&f_11[0], in.getSampleDataRO(ids[3],sentinel), numComp*sizeof(S));
-                S* o = out.getSampleDataRW(ids[0],sentinel);
+                S* o = out.getSampleDataRW(quadID,sentinel);
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = c0*(f_00[i] + f_01[i] + f_10[i] + f_11[i]);
                 }
@@ -1730,6 +1741,8 @@ void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
                 long ids[4]={0};
                 getNeighouringNodeIDs(quad, treeid, ids);
 
+                long quadId = getQuadID(ids[0]);
+
                 memcpy(&f_00[0], in.getSampleDataRO(ids[0], sentinel), numComp*sizeof(S));
                 memcpy(&f_01[0], in.getSampleDataRO(ids[1], sentinel), numComp*sizeof(S));
                 memcpy(&f_10[0], in.getSampleDataRO(ids[2], sentinel), numComp*sizeof(S));
@@ -1739,7 +1752,7 @@ void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
                 std::cout << "interpolateNodesOnElementsWorker IDs " << ids[0] << ", " << ids[1] << ", " << ids[2] << ", " << ids[3] << std::endl;
         #endif
                 
-                S* o = out.getSampleDataRW(ids[0], sentinel);
+                S* o = out.getSampleDataRW(quadId, sentinel);
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = c0*(f_01[i] + f_10[i]) + c1*f_11[i] + c2*f_00[i];
                     o[INDEX2(i,numComp,1)] = c0*(f_00[i] + f_11[i]) + c1*f_01[i] + c2*f_10[i];
@@ -1763,6 +1776,14 @@ void Rectangle::getNeighouringNodeIDs(p4est_quadrant_t * quad, p4est_topidx_t tr
         p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+adj[i][0], quad->y+adj[i][1], xy);
         ids[i]=(long) NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
     }
+}
+
+long Rectangle::getQuadID(long nodeid) const
+{
+    for(int i = 0; i < quadrantIDs.size(); i++)
+        if(quadrantIDs[i]==nodeid)
+            return i;
+    throw OxleyException("Unknown error");
 }
 
 //private

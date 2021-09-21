@@ -231,7 +231,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESingle(AbstractSystemMatrix* mat, Da
             int l = quad->level;
             double xy[3];
             p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
-            long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+            long id = domain->getQuadID(domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
 
             ///////////////
             // process A //
@@ -928,7 +928,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESingleReduced(
             int l = quad->level;
             double xy[3];
             p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
-            long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+            long id = domain->getQuadID(domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
 
             if (addEM_S)
                 fill(EM_S.begin(), EM_S.end(), zero);
@@ -1345,7 +1345,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESystem(AbstractSystemMatrix* mat,
             int l = quad->level;
             double xy[3];
             p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
-            long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+            long id = domain->getQuadID(domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
 
             if (addEM_S)
                 fill(EM_S.begin(), EM_S.end(), zero);
@@ -2161,7 +2161,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESystemReduced(
             int l = quad->level;
             double xy[3];
             p4est_qcoord_to_vertex(domain->p4est->connectivity, t, quad->x, quad->y, xy);
-            long id = domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+            long id = domain->getQuadID(domain->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
 
                 if (addEM_S)
                     fill(EM_S.begin(), EM_S.end(), zero);
