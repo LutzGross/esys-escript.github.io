@@ -188,8 +188,8 @@ Rectangle::Rectangle(int order,
 #pragma omp parallel for
     for(int i = 0; i<=P4EST_MAXLEVEL; i++){
         double numberOfSubDivisions = (p4est_qcoord_t) (1 << (P4EST_MAXLEVEL - i));
-        forestData.m_dx[0][i] = forestData.m_length[0] / numberOfSubDivisions;
-        forestData.m_dx[1][i] = forestData.m_length[1] / numberOfSubDivisions;
+        forestData.m_dx[0][i] = forestData.m_length[0] / (numberOfSubDivisions*n0);
+        forestData.m_dx[1][i] = forestData.m_length[1] / (numberOfSubDivisions*n1);
     }
 
     // max levels of refinement
@@ -1605,7 +1605,6 @@ void Rectangle::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Dat
          bool addS, bool addF, borderNodeInfo quad, int nEq, int nComp) const
 {    
     long rowIndex[4] = {0};
-    int indices[4]={0,1,2,3};
     getNeighouringNodeIDs(quad.quad, quad.treeid, rowIndex);
     if(addF)
     {
@@ -1613,7 +1612,7 @@ void Rectangle::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Dat
         for(index_t i=0; i<4; i++) {
             if (rowIndex[i]<getNumDOF()) {
                 for(int eq=0; eq<nEq; eq++) {
-                    F_p[INDEX2(eq, rowIndex[indices[i]], nEq)]+=EM_F[INDEX2(eq,i,nEq)];
+                    F_p[INDEX2(eq, rowIndex[i], nEq)]+=EM_F[INDEX2(eq,i,nEq)];
                 }
             }
         }
