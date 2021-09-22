@@ -284,7 +284,6 @@ private:
     // Rectangle needs to keep track of this information
     std::unordered_map<DoublePair,long,boost::hash<DoublePair>> NodeIDs; //global ids of the nodes
     std::unordered_map<long,bool> hangingNodeIDs; //global ids of the hanging nodes
-    std::vector<long> QuadrantIDs;
     std::unordered_map<DoublePair,long,boost::hash<DoublePair>> treeIDs; //global ids of the hanging nodes
     std::unordered_map<long,double> current_solution; //solution at each node
     std::vector<long> quadrantIDs; // IDs of the quadrants
@@ -301,6 +300,9 @@ private:
 
     // vector that maps each node to a DOF index (used for the coupler)
     IndexVector m_dofMap;
+
+    // 
+    IndexVector m_nodeId;
 
     // This is a modified version of the p4est library function new_connectivity
 p4est_connectivity_t *

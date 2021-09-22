@@ -778,7 +778,7 @@ const dim_t* Rectangle::borrowSampleReferenceIDs(int fsType) const
     switch (fsType) {
         case Nodes:
         case ReducedNodes:
-            return &myColumns[0];
+            return &m_nodeId[0];
         case DegreesOfFreedom:
         case ReducedDegreesOfFreedom:
             throw OxleyException("Unknown Error.");
@@ -1308,14 +1308,12 @@ void Rectangle::renumberNodes()
 
     NodeIDs.clear();
     quadrantIDs.clear();
-    QuadrantIDs.clear();
 // #pragma omp for
     for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) {
         p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
         sc_array_t * tquadrants = &tree->quadrants;
         p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
         for(int q = 0; q < Q; ++q) { 
-            QuadrantIDs.push_back(NodeIDs.size());
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
             p4est_qcoord_t l = P4EST_QUADRANT_LEN(quad->level);
             p4est_qcoord_t lxy[4][2] = {{0,0},{l,0},{0,l},{l,l}};
@@ -1342,6 +1340,15 @@ void Rectangle::renumberNodes()
             }
         }
     }
+
+
+    // Populate m_nodeIDs
+    m_nodeId.clear();
+    m_nodeId.resize(NodeIDs.size());
+    int count=0;
+    for(std::pair<DoublePair,long> e : NodeIDs)
+        m_nodeId[count++]=e.second;
+
 #ifdef OXLEY_PRINT_NODEIDS
     std::cout << "Printing NodeIDs " << std::endl;
     double xyf[MAXP4ESTNODES][2]={{0}};
@@ -2408,9 +2415,6 @@ void Rectangle::updateFaceElementCount()
     NodeIDsLeft.clear();
     NodeIDsRight.clear();
 
-    const index_t LEFT=1, RIGHT=2, BOTTOM=10, TOP=20;
-    m_faceTags.clear();
-
     for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) 
     {
         p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
@@ -2490,8 +2494,10 @@ void Rectangle::updateFaceElementCount()
             m_faceCount[3]--;
         }
 
+
+    const index_t LEFT=1, RIGHT=2, BOTTOM=10, TOP=20;
+    m_faceTags.clear();
     const index_t faceTag[] = { LEFT, RIGHT, BOTTOM, TOP };
-    // const index_t faceTag[] = { LEFT, BOTTOM, RIGHT, TOP };
     m_faceOffset.assign(4, -1);
     index_t offset=0;
     for (size_t i=0; i<4; i++) {
