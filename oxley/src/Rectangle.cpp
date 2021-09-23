@@ -188,8 +188,8 @@ Rectangle::Rectangle(int order,
 #pragma omp parallel for
     for(int i = 0; i<=P4EST_MAXLEVEL; i++){
         double numberOfSubDivisions = (p4est_qcoord_t) (1 << (P4EST_MAXLEVEL - i));
-        forestData.m_dx[0][i] = forestData.m_length[0] / (numberOfSubDivisions*n0);
-        forestData.m_dx[1][i] = forestData.m_length[1] / (numberOfSubDivisions*n1);
+        forestData.m_dx[0][i] = forestData.m_length[0] / (numberOfSubDivisions);
+        forestData.m_dx[1][i] = forestData.m_length[1] / (numberOfSubDivisions);
     }
 
     // max levels of refinement
@@ -2732,10 +2732,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
                 double xy[3];
                 p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x, quad->y, xy);
-                long e = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-
-                // p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
-                // quadrantData * quaddata = (quadrantData *) quad->p.user_data;
+                long e = getQuadID(NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
 
                 memcpy(&f_00[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar)); // TODO BUG? 
                 memcpy(&f_01[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
@@ -2775,11 +2772,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
                 double xy[3];
                 p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x, quad->y, xy);
-                long e = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-
-                // p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
-                // quadrantData * quaddata = (quadrantData *) quad->p.user_data;
-
+                long e = getQuadID(NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
                 memcpy(&f_00[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                 memcpy(&f_01[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
                 memcpy(&f_10[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
@@ -2808,7 +2801,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
                 double xy[3];
                 p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x, quad->y, xy);
-                long e = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+                long e = getQuadID(NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
                 quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
                 std::vector<Scalar> f_00(numComp, zero);
@@ -2885,7 +2878,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
                 double xy[3];
                 p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x, quad->y, xy);
-                long e = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+                long e = getQuadID(NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
                 quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
                 std::vector<Scalar> f_00(numComp, zero);
