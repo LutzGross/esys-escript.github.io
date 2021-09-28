@@ -1814,9 +1814,8 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
 #pragma omp for nowait
             for (index_t k=0; k<NodeIDsLeft.size()-1; k++) {
                 borderNodeInfo tmp = NodeIDsLeft[k];
-
                 memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
-                memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[1], sentinel), numComp*sizeof(S));
+                memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
                 
                 S* o = out.getSampleDataRW(m_faceOffset[0]+k, sentinel);
                 for (index_t i=0; i < numComp; ++i) {
@@ -1828,8 +1827,8 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
 #pragma omp for nowait
             for (index_t k=0; k<NodeIDsRight.size()-1; k++) {
                 borderNodeInfo tmp = NodeIDsRight[k];
-                memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
-                memcpy(&f_11[0], in.getSampleDataRO(tmp.neighbours[1], sentinel), numComp*sizeof(S));
+                memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], sentinel), numComp*sizeof(S));
+                memcpy(&f_11[0], in.getSampleDataRO(tmp.neighbours[3], sentinel), numComp*sizeof(S));
                 S* o = out.getSampleDataRW(m_faceOffset[1]+k, sentinel);
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = (f_10[i] + f_11[i])/static_cast<S>(2);
@@ -1852,8 +1851,8 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
 #pragma omp for nowait
             for (index_t k=0; k<NodeIDsTop.size()-1; k++) {
                 borderNodeInfo tmp = NodeIDsTop[k];
-                memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
-                memcpy(&f_11[0], in.getSampleDataRO(tmp.neighbours[1], sentinel), numComp*sizeof(S));
+                memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
+                memcpy(&f_11[0], in.getSampleDataRO(tmp.neighbours[3], sentinel), numComp*sizeof(S));
                 S* o = out.getSampleDataRW(m_faceOffset[3]+k, sentinel);
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = (f_01[i] + f_11[i])/static_cast<S>(2);
@@ -1874,7 +1873,7 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
             for (index_t k=0; k<NodeIDsLeft.size()-1; k++) {
                 borderNodeInfo tmp = NodeIDsLeft[k];
                 memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
-                memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[1], sentinel), numComp*sizeof(S));
+                memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
                 S* o = out.getSampleDataRW(m_faceOffset[0]+k, sentinel);
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = c0*f_01[i] + c1*f_00[i];
@@ -1886,8 +1885,8 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
     #pragma omp for nowait
             for (index_t k=0; k<NodeIDsRight.size()-1; k++) {
                 borderNodeInfo tmp = NodeIDsRight[k];
-                memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
-                memcpy(&f_11[0], in.getSampleDataRO(tmp.neighbours[1], sentinel), numComp*sizeof(S));
+                memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], sentinel), numComp*sizeof(S));
+                memcpy(&f_11[0], in.getSampleDataRO(tmp.neighbours[3], sentinel), numComp*sizeof(S));
                 S* o = out.getSampleDataRW(m_faceOffset[1]+k, sentinel);
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = c1*f_10[i] + c0*f_11[i];
@@ -1912,8 +1911,8 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
     #pragma omp for nowait
             for (index_t k=0; k<NodeIDsTop.size()-1; k++) {
                 borderNodeInfo tmp = NodeIDsTop[k];
-                memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
-                memcpy(&f_11[0], in.getSampleDataRO(tmp.neighbours[1], sentinel), numComp*sizeof(S));
+                memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
+                memcpy(&f_11[0], in.getSampleDataRO(tmp.neighbours[3], sentinel), numComp*sizeof(S));
                 S* o = out.getSampleDataRW(m_faceOffset[3]+k, sentinel);
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = c0*f_11[i] + c1*f_01[i];
@@ -2417,17 +2416,22 @@ void Rectangle::updateFaceElementCount()
             // int k = q - Q + nodeIncrements[treeid - p4est->first_local_tree];
             p4est_qcoord_t lxy[4][2] = {{0,0},{l,0},{0,l},{l,l}};
             double xy[4][3] = {0};
+            int nodeids[4]={-1};
             for(int n = 0; n < 4; n++)
+            {
                 p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy[n]);
+                nodeids[n]=NodeIDs.find(std::make_pair(xy[n][0],xy[n][1]))->second;
+            }
 
             for(int n = 0; n < 4; n++)
             {
                 borderNodeInfo tmp;
-                tmp.nodeid=NodeIDs.find(std::make_pair(xy[n][0],xy[n][1]))->second;
-                tmp.neighbours[0]=xy[n][0];
-                tmp.neighbours[1]=xy[n][1];
-                tmp.neighbours[2]=xy[n][2];
-                tmp.neighbours[3]=xy[n][3];
+                // tmp.nodeid=NodeIDs.find(std::make_pair(xy[n][0],xy[n][1]))->second;
+                tmp.nodeid=nodeids[n];
+                tmp.neighbours[0]=nodeids[0];
+                tmp.neighbours[1]=nodeids[1];
+                tmp.neighbours[2]=nodeids[2];
+                tmp.neighbours[3]=nodeids[3];
                 tmp.quad=quad;
                 tmp.treeid=treeid;
 
