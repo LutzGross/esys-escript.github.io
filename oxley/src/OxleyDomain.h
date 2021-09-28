@@ -534,6 +534,20 @@ public:
     */
     virtual int getReducedFunctionOnBoundaryCode() const { return ReducedFaceElements; }
 
+    /**
+       \brief
+       copies the integrals of the function defined by arg into integrals.
+       arg has to be defined on this domain.
+    */
+    virtual void setToIntegrals(std::vector<real_t>& integrals,
+                                const escript::Data& arg) const;
+    virtual void setToIntegrals(std::vector<cplx_t>& integrals,
+                                const escript::Data& arg) const;
+
+    /// copies the integrals of the function defined by 'arg' into 'integrals'
+    virtual void assembleIntegrate(std::vector<real_t>& integrals, const escript::Data& arg) const = 0;
+    virtual void assembleIntegrate(std::vector<cplx_t>& integrals, const escript::Data& arg) const = 0;
+
 
     /**
        \brief

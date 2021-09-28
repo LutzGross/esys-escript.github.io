@@ -231,6 +231,9 @@ public:
 
     void print_debug_report(std::string);
 
+    template<typename Scalar>
+    void assembleIntegrateImpl(std::vector<Scalar>& integrals, const escript::Data& arg) const;
+
 ////////////////////////////////
 protected:
     virtual dim_t getNumNodes() const;
@@ -247,6 +250,10 @@ protected:
 
     virtual void assembleCoordinates(escript::Data& arg) const;
     virtual void assembleGradient(escript::Data& out, const escript::Data& in) const;
+    virtual void assembleIntegrate(std::vector<real_t>& integrals,
+                                   const escript::Data& arg) const;
+    virtual void assembleIntegrate(std::vector<cplx_t>& integrals,
+                                   const escript::Data& arg) const;
     virtual std::vector<IndexVector> getConnections(bool includeShared=false) const;
 
     // adds the dirac points and tags 

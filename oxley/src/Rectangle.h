@@ -325,6 +325,9 @@ new_rectangle_connectivity(int mi, int ni, int periodic_a, int periodic_b,
     */
     long getQuadID(long nodeid) const;
 
+    template<typename Scalar>
+    void assembleIntegrateImpl(std::vector<Scalar>& integrals, const escript::Data& arg) const;
+
 protected:
 
     /**
@@ -460,8 +463,8 @@ protected:
     */
     void getNeighouringNodeIDs(p4est_quadrant_t * quad, p4est_topidx_t treeid, long (&ids) [4]) const;
 
-    // virtual void assembleIntegrate(std::vector<real_t>& integrals, const escript::Data& arg) const;
-    // virtual void assembleIntegrate(std::vector<cplx_t>& integrals, const escript::Data& arg) const;
+    virtual void assembleIntegrate(std::vector<real_t>& integrals, const escript::Data& arg) const;
+    virtual void assembleIntegrate(std::vector<cplx_t>& integrals, const escript::Data& arg) const;
     virtual std::vector<IndexVector> getConnections(bool includeShared=false) const;
 #ifdef ESYS_HAVE_TRILINOS
     virtual esys_trilinos::const_TrilinosGraph_ptr getTrilinosGraph() const;
@@ -527,6 +530,7 @@ protected:
     void updateNodeDistribution();
     IndexVector m_elementId;
     void updateElementIds();
+    IndexVector m_faceId;
 
 
 #ifdef ESYS_HAVE_PASO

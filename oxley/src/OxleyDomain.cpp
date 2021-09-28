@@ -721,6 +721,55 @@ namespace oxley {
         }
     }
 
+    void OxleyDomain::setToIntegrals(vector<real_t>& integrals, const escript::Data& arg) const
+    {
+        setToIntegralsWorker<real_t>(integrals, arg);
+    }
+
+    void OxleyDomain::setToIntegrals(vector<cplx_t>& integrals, const escript::Data& arg) const
+    {
+        setToIntegralsWorker<cplx_t>(integrals, arg);
+    }
+
+    template<typename Scalar>
+    void OxleyDomain::setToIntegralsWorker(std::vector<Scalar>& integrals,
+                                            const escript::Data& arg) const
+    {
+        const OxleyDomain& argDomain = dynamic_cast<const OxleyDomain&>(
+                *(arg.getFunctionSpace().getDomain()));
+        if (argDomain != *this)
+            throw ValueError("setToIntegrals: illegal domain of integration kernel");
+
+        switch (arg.getFunctionSpace().getTypeCode()) {
+            case Nodes:
+            case ReducedNodes:
+            case DegreesOfFreedom:
+            case ReducedDegreesOfFreedom:
+                {
+                    escript::Data funcArg(arg, escript::function(*this));
+                    assembleIntegrate(integrals, funcArg);
+                }
+                break;
+            case Points:
+                {
+                    assembleIntegrate(integrals, arg);
+                }
+                break;
+            case Elements:
+            case ReducedElements:
+            case FaceElements:
+            case ReducedFaceElements:
+                assembleIntegrate(integrals, arg);
+                break;
+            default: {
+                stringstream msg;
+                msg << "setToIntegrals: not supported for "
+                    << functionSpaceTypeAsString(arg.getFunctionSpace().getTypeCode());
+                throw ValueError(msg.str());
+            }
+        }
+    }
+
     bool OxleyDomain::isCellOriented(int fsType) const
     {
         throw OxleyException("currently not implemented"); // This is temporary
