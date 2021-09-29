@@ -1743,8 +1743,8 @@ void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
                 long quadId = getQuadID(ids[0]);
 
                 memcpy(&f_00[0], in.getSampleDataRO(ids[0], sentinel), numComp*sizeof(S));
-                memcpy(&f_01[0], in.getSampleDataRO(ids[1], sentinel), numComp*sizeof(S));
-                memcpy(&f_10[0], in.getSampleDataRO(ids[2], sentinel), numComp*sizeof(S));
+                memcpy(&f_01[0], in.getSampleDataRO(ids[2], sentinel), numComp*sizeof(S));
+                memcpy(&f_10[0], in.getSampleDataRO(ids[1], sentinel), numComp*sizeof(S));
                 memcpy(&f_11[0], in.getSampleDataRO(ids[3], sentinel), numComp*sizeof(S));
 
         #ifdef OXLEY_ENABLE_DEBUG_INTERPOLATE
