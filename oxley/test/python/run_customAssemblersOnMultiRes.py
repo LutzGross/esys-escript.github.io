@@ -33,10 +33,12 @@ from run_customAssemblersOnOxley import OxleyLameAssemblerTestBase, OxleyWaveAss
 
 mpiSize = getMPISizeWorld()
 
-# def Rectangle(**kwargs):
-#     m = Rectangle(n0=10,n1=10,l0=10,l1=10)
-#     m.refineRegion(x0=3,x1=7,y0=4,y1=8)
-#     return m
+def test_Rectangle(**kwargs):
+    m = Rectangle(**kwargs)
+    # m.refineRegion(x0=3,x1=7,y0=4,y1=8)
+    m.setRefinementLevel(1)
+    m.refineMesh("uniform")
+    return m
 
 # def Brick(**kwargs):
 #     m = Brick(n0=10,n1=10,n2=10,l0=10,l1=10,l2=10)
@@ -45,9 +47,8 @@ mpiSize = getMPISizeWorld()
 
 class Test_OxleyWaveAssembler2D(OxleyWaveAssemblerTestBase):
     def setUp(self):
-        self.domain = Rectangle(n0=20,n1=20,l0=100.,l1=100., diracTags=["source"], diracPoints=[(0,0)])
+        self.domain = test_Rectangle(n0=20,n1=20,l0=100.,l1=100., diracTags=["source"], diracPoints=[(0,0)])
         self.wavelet = Ricker(100.)
-
         
     def tearDown(self):
         del self.domain
@@ -64,7 +65,7 @@ class Test_OxleyWaveAssembler2D(OxleyWaveAssemblerTestBase):
 
 class Test_OxleyLameAssemblers2D(OxleyLameAssemblerTestBase):
     def setUp(self):
-        self.domain = Rectangle(n0=20,n1=20)
+        self.domain = test_Rectangle(n0=20,n1=20)
 
     def tearDown(self):
         del self.domain

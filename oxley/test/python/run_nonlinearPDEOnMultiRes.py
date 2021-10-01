@@ -34,9 +34,11 @@ from esys.oxley import Rectangle, Brick
 
 mpiSize = getMPISizeWorld()
 
-# def Rectangle(**kwargs):
-#     m = MultiResolutionDomain(2, **kwargs)
-#     return m.getLevel(1)
+def test_Rectangle(**kwargs):
+    m = Rectangle(2, **kwargs)
+    m.setRefinementLevel(1)
+    m.refineRegion(x0=3,x1=7,y0=5,y1=8)
+    return m
 
 # def Brick(**kwargs):
 #     m = MultiResolutionDomain(3, **kwargs)
@@ -44,8 +46,7 @@ mpiSize = getMPISizeWorld()
 
 class Test_OxleyNonLinearPDE2D(Test_nlpde):
    def setUp(self):
-        # self.domain = Rectangle(l0=1.,l1=1., n0=10, n1=10*getMPISizeWorld()-1, d1=getMPISizeWorld()) 
-        self.domain = Rectangle(l0=1.,l1=1., n0=10, n1=10) 
+        self.domain = test_Rectangle(l0=1.,l1=1., n0=10, n1=10*getMPISizeWorld()-1, d1=getMPISizeWorld()) 
    def tearDown(self):
         del self.domain
 

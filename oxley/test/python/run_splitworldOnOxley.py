@@ -32,42 +32,43 @@ from test_splitworld import Test_SplitWorld, sw_testing, sw_testmany
 mpisize=getMPISizeWorld()
 NE=4 # number elements, must be even
 
-class Test_SplitOnOxley(Test_SplitWorld):
-  def setUp(self):
-    self.domainpars=[Rectangle, NE, NE]
+#TODO
+# class Test_SplitOnOxley(Test_SplitWorld):
+#   def setUp(self):
+#     self.domainpars=[Rectangle, NE, NE]
     
-  def tearDown(self):
-    del self.domainpars
+#   def tearDown(self):
+#     del self.domainpars
     
-class Test_Oxley_sw_2D(sw_testing):
-    def setUp(self):
-        from esys.oxley import Rectangle
-        self.domain_ctr=Rectangle
-        self.domain_vec=(6,6)
-        self.domain_dict={}
+# class Test_Oxley_sw_2D(sw_testing):
+#     def setUp(self):
+#         from esys.oxley import Rectangle
+#         self.domain_ctr=Rectangle
+#         self.domain_vec=(6,6)
+#         self.domain_dict={}
 
-    def tearDown(self):
-        del self.domain_ctr
-        del self.domain_vec
+#     def tearDown(self):
+#         del self.domain_ctr
+#         del self.domain_vec
 
 
-class Test_Oxley_sw_3D(sw_testing):
-    def setUp(self):
-        from esys.oxley import Brick
-        self.domain_ctr=Brick
-        self.domain_vec=(6,6,6)
-        self.domain_dict={}
+# class Test_Oxley_sw_3D(sw_testing):
+#     def setUp(self):
+#         from esys.oxley import Brick
+#         self.domain_ctr=Brick
+#         self.domain_vec=(6,6,6)
+#         self.domain_dict={}
         
-    def tearDown(self):
-        del self.domain_ctr
-        del self.domain_vec
+#     def tearDown(self):
+#         del self.domain_ctr
+#         del self.domain_vec
     
-class Test_SplitOnMultiOxley(Test_SplitWorld):
-  def setUp(self):
-    self.domainpars=[MultiRectangle, NE, NE]
+# class Test_SplitOnMultiOxley(Test_SplitWorld):
+#   def setUp(self):
+#     self.domainpars=[MultiRectangle, NE, NE]
     
-  def tearDown(self):
-    del self.domainpars
+#   def tearDown(self):
+#     del self.domainpars
 
 #TODO  
 # class Test_multioxley_sw_2D(sw_testing):

@@ -78,13 +78,13 @@ class Test_SimpleSolveMultiRes2D_UMFPACK(SimpleSolveTestCase):
     def tearDown(self):
         del self.domain
         
-@unittest.skipIf(not HAVE_REQUESTED_SOLVER, "%s not available"%SOLVER)
-@unittest.skipIf(mpiSize > 1, "UMFPACK runs on single rank only.")
-class Test_SimpleSolveMultiRes3D_UMFPACK(SimpleSolveTestCase):
-    def setUp(self):
-        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-        self.package = SolverOptions.UMFPACK
-        self.method = SolverOptions.DIRECT
+# @unittest.skipIf(not HAVE_REQUESTED_SOLVER, "%s not available"%SOLVER)
+# @unittest.skipIf(mpiSize > 1, "UMFPACK runs on single rank only.")
+# class Test_SimpleSolveMultiRes3D_UMFPACK(SimpleSolveTestCase):
+#     def setUp(self):
+#         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
+#         self.package = SolverOptions.UMFPACK
+#         self.method = SolverOptions.DIRECT
 
     def tearDown(self):
         del self.domain

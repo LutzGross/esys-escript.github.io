@@ -55,22 +55,17 @@ except KeyError:
 NE=8 # initial number of elements in each spatial direction (must be even)
 mpiSize=getMPISizeWorld()
 
-# TODO
 # class Test_LinearPDEOnOxleyRectangle(Test_LinearPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping, Test_pdetools, Test_assemblage_2Do1, Test_TransportPDE):
 class Test_LinearPDEOnOxleyRectangle(Test_LinearPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping, Test_pdetools, Test_assemblage_2Do1):
     RES_TOL=1.e-7
     ABS_TOL=1.e-8
     def setUp(self):
-        # TODO
-        # for x in [int(sqrt(mpiSize)),2,3,5,7,1]:
-        #     NX=x
-        #     NY=mpiSize//x
-        #     if NX*NY == mpiSize:
-        #         break
-        # self.domain=Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
-        NX=1
-        NY=1
-        self.domain=Rectangle(n0=10, n1=10, l0=1., l1=1.)
+        for x in [int(sqrt(mpiSize)),2,3,5,7,1]:
+            NX=x
+            NY=mpiSize//x
+            if NX*NY == mpiSize:
+                break
+        self.domain=Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
         self.order = 1
     def tearDown(self):
         del self.domain
@@ -92,18 +87,18 @@ class Test_LinearPDEOnOxleyRectangle(Test_LinearPDE, Test_LameEquation, Test_Hel
 #     def tearDown(self):
 #         del self.domain
 
-# class Test_PoissonOnOxley(Test_Poisson):
-#     RES_TOL=1.e-7
-#     ABS_TOL=1.e-8
-#     def setUp(self):
-#         for x in [int(sqrt(mpiSize)),2,3,5,7,1]:
-#             NX=x
-#             NY=mpiSize//x
-#             if NX*NY == mpiSize:
-#                 break
-#         self.domain=Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
-#     def tearDown(self):
-#         del self.domain
+class Test_PoissonOnOxley(Test_Poisson):
+    RES_TOL=1.e-7
+    ABS_TOL=1.e-8
+    def setUp(self):
+        for x in [int(sqrt(mpiSize)),2,3,5,7,1]:
+            NX=x
+            NY=mpiSize//x
+            if NX*NY == mpiSize:
+                break
+        self.domain=Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+    def tearDown(self):
+        del self.domain
 
 
 if __name__ == '__main__':

@@ -30,9 +30,6 @@ from esys.escriptcore.testing import *
 from esys.escript import *
 from esys.oxley import *
 
-#TODO 
-SKIP_TESTS=1
-
 try:
      OXLEY_WORKDIR=os.environ['OXLEY_WORKDIR']
 except KeyError:

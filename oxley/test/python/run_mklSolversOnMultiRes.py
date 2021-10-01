@@ -39,9 +39,6 @@ from esys.escript.linearPDEs import SolverOptions
 SOLVER="mkl"
 HAVE_REQUESTED_SOLVER = hasFeature(SOLVER)
 
-#TODO
-SKIP_TESTS=1
-
 # number of elements in the spatial directions
 NE0=10
 NE1=10
@@ -60,35 +57,34 @@ for x in [(int(mpiSize**(1/3.)),int(mpiSize**(1/3.))),(2,3),(2,2),(1,2),(1,1)]:
     if NXb*NYb*NZb == mpiSize:
         break
 
-def Rectangle(**kwargs):
-    m = MultiResolutionDomain(2, **kwargs)
+def test_Rectangle(**kwargs):
+    m = Rectangle(2, **kwargs)
+    m.setRefinementLevel(1)
+    m.refineMesh()
     return m.getLevel(1)
 
-def Brick(**kwargs):
-    m = MultiResolutionDomain(3, **kwargs)
-    return m.getLevel(1)
+# def Brick(**kwargs):
+#     m = MultiResolutionDomain(3, **kwargs)
+#     return m.getLevel(1)
     
-
-@unittest.skipIf(SKIP_TESTS == 1, " TODO")
 @unittest.skipIf(not HAVE_REQUESTED_SOLVER, "%s not available"%SOLVER)
 @unittest.skipIf(mpiSize > 1, "MKL runs on single rank only.")
 class Test_SimpleSolveMultiRes2D_MKL(SimpleSolveTestCase):
     def setUp(self):
-        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         self.package = SolverOptions.MKL
         self.method = SolverOptions.DIRECT
 
     def tearDown(self):
         del self.domain
+     
+# @unittest.skipIf(not HAVE_REQUESTED_SOLVER, "%s not available"%SOLVER)
+# @unittest.skipIf(mpiSize > 1, "MKL runs on single rank only.")
+# class Test_SimpleSolveMultiRes3D_MKL(SimpleSolveTestCase):
+#     def setUp(self):
+#         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
+#         self.package = SolverOptions.MKL
+#         self.method = SolverOptions.DIRECT
 
-@unittest.skipIf(SKIP_TESTS == 1, " TODO")        
-@unittest.skipIf(not HAVE_REQUESTED_SOLVER, "%s not available"%SOLVER)
-@unittest.skipIf(mpiSize > 1, "MKL runs on single rank only.")
-class Test_SimpleSolveMultiRes3D_MKL(SimpleSolveTestCase):
-    def setUp(self):
-        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-        self.package = SolverOptions.MKL
-        self.method = SolverOptions.DIRECT
-
-    def tearDown(self):
-        del self.domain
+#     def tearDown(self):
+#         del self.domain

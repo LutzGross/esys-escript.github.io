@@ -44,9 +44,11 @@ from run_escriptOnOxley import Test_SharedOnOxley, Test_DomainOnOxley, \
                         Test_CSVOnOxley
 
 
-# def Rectangle(**kwargs):
-#     m = MultiResolutionDomain(2, **kwargs)
-#     return m.getLevel(1)
+def test_Rectangle(**kwargs):
+    m = Rectangle(2, **kwargs)
+    m.setRefinementLevel(1)
+    m.refineMesh("uniform")
+    return m
 
 # def Brick(**kwargs):
 #     m = MultiResolutionDomain(3, **kwargs)
@@ -75,7 +77,7 @@ for x in [(int(mpiSize**(1/3.)),int(mpiSize**(1/3.))),(2,3),(2,2),(1,2),(1,1)]:
 
 class Test_SharedOnMultiOxley(Test_SharedOnOxley):
     def setUp(self):
-        self.domain=Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+        self.domain=test_Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
         self.tol=0.001
 
     def tearDown(self):
@@ -85,8 +87,8 @@ class Test_SharedOnMultiOxley(Test_SharedOnOxley):
 class Test_DomainOnMultiOxley(Test_DomainOnOxley):
     def setUp(self):
         self.boundary_tag_list = [1, 2, 10, 20]
-        self.domain=Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
-        self.rdomain=Rectangle(n0=(NE+6)*NX-1, n1=(NE+6)*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+        self.domain=test_Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+        self.rdomain=test_Rectangle(n0=(NE+6)*NX-1, n1=(NE+6)*NY-1, l0=1., l1=1., d0=NX, d1=NY)
 
     def tearDown(self):
         del self.domain
@@ -94,10 +96,10 @@ class Test_DomainOnMultiOxley(Test_DomainOnOxley):
 
 class Test_DataOpsOnMultiOxley(Test_DataOpsOnOxley):
     def setUp(self):
-        self.domain=Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
-        self.domain_with_different_number_of_samples=Rectangle(n0=7*NE*NX-1, n1=3*NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
-        self.domain_with_different_number_of_data_points_per_sample=Rectangle(n0=7*NE*NX-1, n1=3*NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
-        self.domain_with_different_sample_ordering=Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+        self.domain=test_Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+        self.domain_with_different_number_of_samples=test_Rectangle(n0=7*NE*NX-1, n1=3*NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+        self.domain_with_different_number_of_data_points_per_sample=test_Rectangle(n0=7*NE*NX-1, n1=3*NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+        self.domain_with_different_sample_ordering=test_Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
         self.filename_base=OXLEY_WORKDIR
         self.mainfs=Function(self.domain)
         self.otherfs=Solution(self.domain)
@@ -129,7 +131,7 @@ class Test_DataOpsOnMultiOxley(Test_DataOpsOnOxley):
 class Test_CSVOnMultiOxley(Test_CSVOnOxley):
     def setUp(self):
         self.workdir=OXLEY_WORKDIR
-        self.domain=Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+        self.domain=test_Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
         self.functionspaces=[ContinuousFunction, Function, ReducedFunction,
                              FunctionOnBoundary, ReducedFunctionOnBoundary]
 
@@ -155,7 +157,7 @@ class Test_CSVOnMultiOxley(Test_CSVOnOxley):
 
 class Test_randomOnMultiOxley(unittest.TestCase):
     def test_FillRectangle(self):
-        fs=ContinuousFunction(Rectangle(n0=5*(int(sqrt(mpiSize)+1)),n1=5*(int(sqrt(mpiSize)+1))))
+        fs=ContinuousFunction(test_Rectangle(n0=5*(int(sqrt(mpiSize)+1)),n1=5*(int(sqrt(mpiSize)+1))))
         RandomData((), fs, 2,("gaussian",1,0.5))
         RandomData((), fs, 0,("gaussian",2,0.76))
         self.assertRaises(NotImplementedError, RandomData, (2,2), fs, 0, ("gaussian",2,0.76)) #data not scalar
