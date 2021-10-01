@@ -252,14 +252,14 @@ class Test_OxleyWaveAssembler2D(OxleyWaveAssemblerTestBase):
     def tearDown(self):
         del self.domain
 
-class Test_OxleyWaveAssembler3D(OxleyWaveAssemblerTestBase):
-    def setUp(self):
-        self.domain = Brick(10,10,10,l0=100.,l1=100., l2=100.,
-                diracTags=["source"], diracPoints=[(0,0,0)])
-        self.wavelet = Ricker(100.)
+# class Test_OxleyWaveAssembler3D(OxleyWaveAssemblerTestBase):
+#     def setUp(self):
+#         self.domain = Brick(10,10,10,l0=100.,l1=100., l2=100.,
+#                 diracTags=["source"], diracPoints=[(0,0,0)])
+#         self.wavelet = Ricker(100.)
 
-    def tearDown(self):
-        del self.domain
+#     def tearDown(self):
+#         del self.domain
 
 class OxleyLameAssemblerTestBase(unittest.TestCase): #requires subclassing
     def run_lame(self, fast, test_type, mu=3, lamb=50):

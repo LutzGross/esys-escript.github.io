@@ -45,7 +45,7 @@ from run_escriptOnOxley import Test_SharedOnOxley, Test_DomainOnOxley, \
 
 
 def test_Rectangle(**kwargs):
-    m = Rectangle(2, **kwargs)
+    m = Rectangle(**kwargs)
     m.setRefinementLevel(1)
     m.refineMesh("uniform")
     return m
