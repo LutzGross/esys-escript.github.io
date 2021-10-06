@@ -2969,48 +2969,67 @@ void Rectangle::assembleIntegrateImpl(std::vector<Scalar>& integrals,
 #endif
         integrals[0] += arg.getNumberOfTaggedValues();
     } else if (fs == Elements && arg.actsExpanded()) {
-        
-// #pragma omp parallel
-//         {
-//             std::vector<Scalar> int_local(numComp, zero);
-//             const real_t w = m_dx[0]*m_dx[1]/4.;
-// #pragma omp for nowait
-//             for (index_t k1 = bottom; k1 < bottom+m_ownNE[1]; ++k1) {
-//                 for (index_t k0 = left; k0 < left+m_ownNE[0]; ++k0) {
-//                     const Scalar* f = arg.getSampleDataRO(INDEX2(k0, k1, m_NE[0]), zero);
-//                     for (index_t i = 0; i < numComp; ++i) {
-//                         const Scalar f0 = f[INDEX2(i,0,numComp)];
-//                         const Scalar f1 = f[INDEX2(i,1,numComp)];
-//                         const Scalar f2 = f[INDEX2(i,2,numComp)];
-//                         const Scalar f3 = f[INDEX2(i,3,numComp)];
-//                         int_local[i] += (f0+f1+f2+f3)*w;
-//                     }  // end of component loop i
-//                 } // end of k0 loop
-//             } // end of k1 loop
-// #pragma omp critical
-//             for (index_t i=0; i<numComp; i++)
-//                 integrals[i] += int_local[i];
-//         } // end of parallel section
+       
+        std::vector<Scalar> int_local(numComp, zero);
+        for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) 
+        {
+            p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
+            sc_array_t * tquadrants = &tree->quadrants;
+            p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+    // #pragma omp parallel for
+            for(int q = 0; q < Q; ++q)
+            {               
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+                int l = quad->level;
+                double xy[3];
+                p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x, quad->y, xy);
+                long id = getQuadID(NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
+
+                real_t w = m_NX[0]*forestData.m_dx[0][P4EST_MAXLEVEL-quad->level]
+                         * m_NX[1]*forestData.m_dx[1][P4EST_MAXLEVEL-quad->level]
+                         / 4.;
+
+                const Scalar* f = arg.getSampleDataRO(id, zero);
+                for (index_t i = 0; i < numComp; ++i) {
+                    const Scalar f0 = f[INDEX2(i,0,numComp)];
+                    const Scalar f1 = f[INDEX2(i,1,numComp)];
+                    const Scalar f2 = f[INDEX2(i,2,numComp)];
+                    const Scalar f3 = f[INDEX2(i,3,numComp)];
+                    int_local[i] += (f0+f1+f2+f3)*w;
+                }
+            }
+        }
+        for (index_t i=0; i<numComp; i++)
+            integrals[i] += int_local[i];
 
     } else if (fs==ReducedElements || (fs==Elements && !arg.actsExpanded())) {
         
-//         const real_t w = m_dx[0]*m_dx[1];
-// #pragma omp parallel
-//         {
-//             std::vector<Scalar> int_local(numComp, 0);
-// #pragma omp for nowait
-//             for (index_t k1 = bottom; k1 < bottom+m_ownNE[1]; ++k1) {
-//                 for (index_t k0 = left; k0 < left+m_ownNE[0]; ++k0) {
-//                     const Scalar* f = arg.getSampleDataRO(INDEX2(k0, k1, m_NE[0]), zero);
-//                     for (index_t i = 0; i < numComp; ++i) {
-//                         int_local[i] += f[i]*w;
-//                     }
-//                 }
-//             }
-// #pragma omp critical
-//             for (index_t i = 0; i < numComp; i++)
-//                 integrals[i] += int_local[i];
-//         } // end of parallel section
+        // const 
+        std::vector<Scalar> int_local(numComp, 0);
+        for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) 
+        {
+            p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
+            sc_array_t * tquadrants = &tree->quadrants;
+            p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+    // #pragma omp parallel for
+            for(int q = 0; q < Q; ++q)
+            {
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+                int l = quad->level;
+                double xy[3];
+                p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x, quad->y, xy);
+                long id = getQuadID(NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
+                const Scalar* f = arg.getSampleDataRO(id, zero);
+                real_t w = m_NX[0]*forestData.m_dx[0][P4EST_MAXLEVEL-quad->level]
+                         * m_NX[1]*forestData.m_dx[1][P4EST_MAXLEVEL-quad->level];
+                for (index_t i = 0; i < numComp; ++i) {
+                    int_local[i] += f[i]*w;
+                }
+            }
+        }
+
+        for (index_t i = 0; i < numComp; i++)
+            integrals[i] += int_local[i];
 
     } else if (fs == FaceElements && arg.actsExpanded()) {
 
@@ -3077,54 +3096,54 @@ void Rectangle::assembleIntegrateImpl(std::vector<Scalar>& integrals,
                 integrals[i] += int_local[i];
         } // end of parallel section
     } else if (fs==ReducedFaceElements || (fs==FaceElements && !arg.actsExpanded())) {
-        
-// #pragma omp parallel
-//         {
-//             std::vector<Scalar> int_local(numComp, 0);
-//             if (m_faceOffset[0] > -1) {
-// #pragma omp for nowait
-//                 for (index_t k1 = bottom; k1 < bottom+m_ownNE[1]; ++k1) {
-//                     const Scalar* f = arg.getSampleDataRO(m_faceOffset[0]+k1, zero);
-//                     for (index_t i = 0; i < numComp; ++i) {
-//                         int_local[i] += f[i]*m_dx[1];
-//                     }
-//                 }
-//             }
+        std::vector<Scalar> int_local(numComp, 0);
+        if (m_faceOffset[0] > -1) {
+#pragma omp for nowait
+            for (index_t k=0; k<NodeIDsLeft.size()-1; k++) {
+                borderNodeInfo tmp = NodeIDsLeft[k];
+                const Scalar* f = arg.getSampleDataRO(m_faceOffset[0]+k, zero);
+                for (index_t i = 0; i < numComp; ++i) {
+                    int_local[i] += f[i]*m_NX[1]*forestData.m_dx[1][P4EST_MAXLEVEL-tmp.quad->level];
+                }
+            }
+        }
 
-//             if (m_faceOffset[1] > -1) {
-// #pragma omp for nowait
-//                 for (index_t k1 = bottom; k1 < bottom+m_ownNE[1]; ++k1) {
-//                     const Scalar* f = arg.getSampleDataRO(m_faceOffset[1]+k1, zero);
-//                     for (index_t i = 0; i < numComp; ++i) {
-//                         int_local[i] += f[i]*m_dx[1];
-//                     }
-//                 }
-//             }
+        if (m_faceOffset[1] > -1) {
+#pragma omp for nowait
+            for (index_t k=0; k<NodeIDsRight.size()-1; k++) {
+                borderNodeInfo tmp = NodeIDsRight[k];
+                const Scalar* f = arg.getSampleDataRO(m_faceOffset[1]+k, zero);
+                for (index_t i = 0; i < numComp; ++i) {
+                    int_local[i] += f[i]*m_NX[1]*forestData.m_dx[1][P4EST_MAXLEVEL-tmp.quad->level];
+                }
+            }
+        }
 
-//             if (m_faceOffset[2] > -1) {
-// #pragma omp for nowait
-//                 for (index_t k0 = left; k0 < left+m_ownNE[0]; ++k0) {
-//                     const Scalar* f = arg.getSampleDataRO(m_faceOffset[2]+k0, zero);
-//                     for (index_t i = 0; i < numComp; ++i) {
-//                         int_local[i] += f[i]*m_dx[0];
-//                     }
-//                 }
-//             }
+        if (m_faceOffset[2] > -1) {
+#pragma omp for nowait
+            for (index_t k=0; k<NodeIDsBottom.size()-1; k++) {
+                borderNodeInfo tmp = NodeIDsBottom[k];
+                const Scalar* f = arg.getSampleDataRO(m_faceOffset[2]+k, zero);
+                for (index_t i = 0; i < numComp; ++i) {
+                    int_local[i] += f[i]*m_NX[0]*forestData.m_dx[0][P4EST_MAXLEVEL-tmp.quad->level];
+                }
+            }
+        }
 
-//             if (m_faceOffset[3] > -1) {
-// #pragma omp for nowait
-//                 for (index_t k0 = left; k0 < left+m_ownNE[0]; ++k0) {
-//                     const Scalar* f = arg.getSampleDataRO(m_faceOffset[3]+k0, zero);
-//                     for (index_t i = 0; i < numComp; ++i) {
-//                         int_local[i] += f[i]*m_dx[0];
-//                     }
-//                 }
-//             }
+        if (m_faceOffset[3] > -1) {
+#pragma omp for nowait
+            for (index_t k=0; k<NodeIDsTop.size()-1; k++) {
+                borderNodeInfo tmp = NodeIDsTop[k];
+                const Scalar* f = arg.getSampleDataRO(m_faceOffset[3]+k, zero);
+                for (index_t i = 0; i < numComp; ++i) {
+                    int_local[i] += f[i]*m_NX[0]*forestData.m_dx[0][P4EST_MAXLEVEL-tmp.quad->level];
+                }
+            }
+        }
 
-// #pragma omp critical
-//             for (index_t i = 0; i < numComp; i++)
-//                 integrals[i] += int_local[i];
-//         } // end of parallel section
+#pragma omp critical
+        for (index_t i = 0; i < numComp; i++)
+            integrals[i] += int_local[i];
     } // function space selector
 }
 
