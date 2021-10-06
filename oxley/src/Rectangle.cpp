@@ -773,14 +773,13 @@ const dim_t* Rectangle::borrowSampleReferenceIDs(int fsType) const
             return &m_nodeId[0];
         case DegreesOfFreedom:
         case ReducedDegreesOfFreedom:
-            throw OxleyException("Unknown Error.");
+            throw OxleyException("borrowSampleReferenceIDs: DegreesOfFreedom/ReducedDegreesOfFreedom.");
         case Elements:
         case ReducedElements:
             return &m_elementId[0];
         case FaceElements:
         case ReducedFaceElements:
-            throw OxleyException("borrowSampleReferenceIDs: FaceIDs");
-            // return &m_faceId[0];
+            return &m_faceId[0];
         case Points:
             return &m_diracPointNodeIDs[0];
         default:
@@ -1888,7 +1887,7 @@ void Rectangle::interpolateNodesOnFacesWorker(escript::Data& out,
         if (m_faceOffset[2] > -1) {
     #pragma omp for nowait
              for (index_t k=0; k<NodeIDsBottom.size()-1; k++) {
-                borderNodeInfo tmp = NodeIDsTop[k];
+                borderNodeInfo tmp = NodeIDsBottom[k];
                 memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
                 memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], sentinel), numComp*sizeof(S));
                 S* o = out.getSampleDataRW(m_faceOffset[2]+k, sentinel);
@@ -2431,17 +2430,17 @@ void Rectangle::updateFaceElementCount()
                     NodeIDsLeft.push_back(tmp);
                     m_faceCount[0]++;
                 }
-                    
-                if(isBottomBoundaryNode(quad, n, treeid, l))
-                {
-                    NodeIDsBottom.push_back(tmp);
-                    m_faceCount[2]++;
-                }
 
                 if(isRightBoundaryNode(quad, n, treeid, l))
                 {
                     NodeIDsRight.push_back(tmp);
                     m_faceCount[1]++;
+                }
+                    
+                if(isBottomBoundaryNode(quad, n, treeid, l))
+                {
+                    NodeIDsBottom.push_back(tmp);
+                    m_faceCount[2]++;
                 }
                     
                 if(isTopBoundaryNode(quad, n, treeid, l))
@@ -2462,19 +2461,19 @@ void Rectangle::updateFaceElementCount()
             i--;
             m_faceCount[0]--;
         }
-    for(int i = 1; i < NodeIDsBottom.size()-1; i++)
-        if(NodeIDsBottom[i].treeid == NodeIDsBottom[i-1].treeid)
-        {
-            NodeIDsBottom.erase(NodeIDsBottom.begin()+i);
-            i--;
-            m_faceCount[2]--;
-        }
     for(int i = 1; i < NodeIDsRight.size()-1; i++)
         if(NodeIDsRight[i].treeid == NodeIDsRight[i-1].treeid)
         {
             NodeIDsRight.erase(NodeIDsRight.begin()+i);
             i--;
             m_faceCount[1]--;
+        }
+    for(int i = 1; i < NodeIDsBottom.size()-1; i++)
+        if(NodeIDsBottom[i].treeid == NodeIDsBottom[i-1].treeid)
+        {
+            NodeIDsBottom.erase(NodeIDsBottom.begin()+i);
+            i--;
+            m_faceCount[2]--;
         }
     for(int i = 1; i < NodeIDsTop.size()-1; i++)
         if(NodeIDsTop[i].treeid == NodeIDsTop[i-1].treeid)
