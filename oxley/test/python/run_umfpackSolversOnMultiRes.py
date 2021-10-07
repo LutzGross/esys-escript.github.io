@@ -57,9 +57,11 @@ for x in [(int(mpiSize**(1/3.)),int(mpiSize**(1/3.))),(2,3),(2,2),(1,2),(1,1)]:
     if NXb*NYb*NZb == mpiSize:
         break
 
-# def Rectangle(**kwargs):
-#     m = MultiResolutionDomain(2, **kwargs)
-#     return m.getLevel(1)
+def test_Rectangle(**kwargs):
+    m = Rectangle(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineMesh("uniform")
+    return m
 
 # def Brick(**kwargs):
 #     m = MultiResolutionDomain(3, **kwargs)
@@ -71,7 +73,7 @@ for x in [(int(mpiSize**(1/3.)),int(mpiSize**(1/3.))),(2,3),(2,2),(1,2),(1,1)]:
 @unittest.skipIf(mpiSize > 1, "UMFPACK runs on single rank only.")
 class Test_SimpleSolveMultiRes2D_UMFPACK(SimpleSolveTestCase):
     def setUp(self):
-        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         self.package = SolverOptions.UMFPACK
         self.method = SolverOptions.DIRECT
 

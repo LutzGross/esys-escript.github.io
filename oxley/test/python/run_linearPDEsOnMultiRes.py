@@ -54,9 +54,11 @@ except KeyError:
 NE=10 # number of element in each spatial direction (must be even)
 mpiSize=getMPISizeWorld()
 
-# def Rectangle(**kwargs):
-#     m = MultiResolutionDomain(2, **kwargs)
-#     return m.getLevel(1)
+def test_Rectangle(**kwargs):
+    m = Rectangle(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineMesh("uniform")
+    return m
 
 # def Brick(**kwargs):
 #     m = MultiResolutionDomain(3, **kwargs)
@@ -72,7 +74,7 @@ class Test_LinearPDEOnOxleyRect(Test_LinearPDE, Test_LameEquation, Test_Helmholt
             NY=mpiSize//x
             if NX*NY == mpiSize:
                 break
-        self.domain=Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+        self.domain=test_Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
         self.order = 1
     def tearDown(self):
         del self.domain
@@ -105,7 +107,7 @@ class Test_PoissonOnOxley(Test_Poisson):
             NY=mpiSize//x
             if NX*NY == mpiSize:
                 break
-        self.domain=Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+        self.domain=test_Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
     def tearDown(self):
         del self.domain
 

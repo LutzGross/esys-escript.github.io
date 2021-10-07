@@ -57,9 +57,11 @@ for x in [(int(mpiSize**(1/3.)),int(mpiSize**(1/3.))),(2,3),(2,2),(1,2),(1,1)]:
     if NXb*NYb*NZb == mpiSize:
         break
 
-# def Rectangle(**kwargs):
-#     m = MultiResolutionDomain(2, **kwargs)
-#     return m.getLevel(1)
+def test_Rectangle(**kwargs):
+    m = Rectangle(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineMesh("uniform")
+    return m
 
 # def Brick(**kwargs):
 #     m = MultiResolutionDomain(3, **kwargs)
@@ -73,7 +75,7 @@ class ComplexSolveOnTrilinos(ComplexSolveTestCase):
 ## direct
 class Test_ComplexSolveMultiRes2D_Trilinos_Direct(ComplexSolveOnTrilinos):
     def setUp(self):
-        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.DIRECT
 
@@ -94,7 +96,7 @@ class Test_ComplexSolveMultiRes2D_Trilinos_Direct(ComplexSolveOnTrilinos):
 @unittest.skip("fails with Nan during iteration.")
 class Test_ComplexSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi(ComplexSolveOnTrilinos):
     def setUp(self):
-        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.BICGSTAB
         self.preconditioner = SolverOptions.JACOBI
@@ -118,7 +120,7 @@ class Test_ComplexSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi(ComplexSolveOnTrilino
 
 class Test_ComplexSolveMultiRes2D_Trilinos_GMRES_Jacobi(ComplexSolveOnTrilinos):
     def setUp(self):
-        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.GMRES
         self.preconditioner = SolverOptions.JACOBI
@@ -141,7 +143,7 @@ class Test_ComplexSolveMultiRes2D_Trilinos_GMRES_Jacobi(ComplexSolveOnTrilinos):
 
 class Test_ComplexSolveMultiRes2D_Trilinos_PCG_Jacobi(ComplexSolveOnTrilinos):
     def setUp(self):
-        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.JACOBI
@@ -165,7 +167,7 @@ class Test_ComplexSolveMultiRes2D_Trilinos_PCG_Jacobi(ComplexSolveOnTrilinos):
 @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
 class Test_ComplexSolveMultiRes2D_Trilinos_PCG_AMG(ComplexSolveOnTrilinos):
     def setUp(self):
-        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.AMG
@@ -195,7 +197,7 @@ class Test_ComplexSolveMultiRes2D_Trilinos_PCG_AMG(ComplexSolveOnTrilinos):
 
 class Test_ComplexSolveMultiRes2D_Trilinos_PCG_ILUT(ComplexSolveOnTrilinos):
     def setUp(self):
-        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.ILUT

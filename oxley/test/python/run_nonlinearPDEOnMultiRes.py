@@ -35,9 +35,9 @@ from esys.oxley import Rectangle, Brick
 mpiSize = getMPISizeWorld()
 
 def test_Rectangle(**kwargs):
-    m = Rectangle(2, **kwargs)
+    m = Rectangle(**kwargs)
     m.setRefinementLevel(1)
-    m.refineRegion(x0=3,x1=7,y0=5,y1=8)
+    m.refineMesh("uniform")
     return m
 
 # def Brick(**kwargs):

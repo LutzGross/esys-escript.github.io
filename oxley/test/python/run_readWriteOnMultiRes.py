@@ -45,13 +45,15 @@ def adjust(NE, ftype):
         return [i+1 for i in NE]
     return NE
 
-def Rectangle(**kwargs):
-    m = MultiResolutionDomain(2, **kwargs)
-    return m.getLevel(1)
+def test_Rectangle(**kwargs):
+    m = Rectangle(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineMesh("uniform")
+    return m
 
-def Brick(**kwargs):
-    m = MultiResolutionDomain(3, **kwargs)
-    return m.getLevel(1)
+# def Brick(**kwargs):
+#     m = MultiResolutionDomain(3, **kwargs)
+#     return m.getLevel(1)
 
 @unittest.skipIf(mpiSize > 1, "Multiresolution domains don't support multiprocess yet")
 class WriteBinaryGridTestBase(unittest.TestCase): #subclassing required
@@ -88,7 +90,7 @@ class WriteBinaryGridTestBase(unittest.TestCase): #subclassing required
 
     def test_writeGrid2D(self):
         self.NE = [self.NX, self.NZ]
-        self.domain = Rectangle(n0=self.NE[0], n1=self.NE[1], d1=1)
+        self.domain = test_Rectangle(n0=self.NE[0], n1=self.NE[1], d1=1)
         for ftype,fcode in [(ReducedFunction,'RF'), (ContinuousFunction,'CF'), (Solution, 'Sol')]:
             data, ref = self.generateUniqueData(ftype)
             with self.assertRaises(RuntimeError):
@@ -96,15 +98,15 @@ class WriteBinaryGridTestBase(unittest.TestCase): #subclassing required
                 self.assertAlmostEqual(Lsup(ref-result), 0, delta=1e-9,
                         msg="Data doesn't match for "+str(ftype(self.domain)))
 
-    def test_writeGrid3D(self):
-        self.NE = [self.NX, self.NX, self.NZ]
-        self.domain = Brick(n0=self.NE[0], n1=self.NE[1], n2=self.NE[2], d2=1)
-        for ftype,fcode in [(ReducedFunction,'RF'), (ContinuousFunction,'CF'), (Solution, 'Sol')]:
-            data, ref = self.generateUniqueData(ftype)
-            with self.assertRaises(RuntimeError):
-                result = self.writeThenRead(data, ftype, fcode)
-                self.assertAlmostEqual(Lsup(ref-result), 0, delta=1e-9,
-                        msg="Data doesn't match for "+str(ftype(self.domain)))
+    # def test_writeGrid3D(self):
+    #     self.NE = [self.NX, self.NX, self.NZ]
+    #     self.domain = Brick(n0=self.NE[0], n1=self.NE[1], n2=self.NE[2], d2=1)
+    #     for ftype,fcode in [(ReducedFunction,'RF'), (ContinuousFunction,'CF'), (Solution, 'Sol')]:
+    #         data, ref = self.generateUniqueData(ftype)
+    #         with self.assertRaises(RuntimeError):
+    #             result = self.writeThenRead(data, ftype, fcode)
+    #             self.assertAlmostEqual(Lsup(ref-result), 0, delta=1e-9,
+    #                     msg="Data doesn't match for "+str(ftype(self.domain)))
 
 # class Test_writeBinaryGridOxley_LITTLE_FLOAT32(WriteBinaryGridTestBase):
 #     def setUp(self):

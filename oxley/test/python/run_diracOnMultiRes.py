@@ -42,9 +42,12 @@ except KeyError:
 brickLevel = 2
 rectLevel = 2
 
-# def Rectangle(**kwargs):
-#     m = MultiResolutionDomain(2, **kwargs)
-#     return m.getLevel(rectLevel - 1)
+def test_Rectangle(**kwargs):
+    m = Rectangle(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineMesh("uniform")
+    return m.getRefinementLevel()
+
 
 # def Brick(**kwargs):
 #     m = MultiResolutionDomain(3, **kwargs)
@@ -113,7 +116,7 @@ class Test_DiracPointsOnMultiResolutionDomains(Test_OxleyDiracPoints):
         edges = [self.longEdge, self.shortEdge]
         rects = []
         for i in range(2):
-            rects.append(Rectangle(n0=edges[0], n1=edges[1],
+            rects.append(test_Rectangle(n0=edges[0], n1=edges[1],
                       l0=edges[0], l1=edges[1],
                       d0=self.numRanks, diracPoints=[tuple(diracLoc)],
                       diracTags=["test"]))
