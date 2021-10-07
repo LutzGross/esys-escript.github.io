@@ -1090,7 +1090,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingleReduced(
     // weightings need to be calcuated for each level of refinement
     double w[2][P4EST_MAXLEVEL] = {{0}};
 #pragma omp parallel for
-    for(int i = 0; i < max_level; i++)
+    for(int i = 0; i <= max_level; i++)
     {
         double m_dx[2] = {domain->m_NX[0]*domain->forestData.m_dx[0][P4EST_MAXLEVEL-i], 
                           domain->m_NX[1]*domain->forestData.m_dx[1][P4EST_MAXLEVEL-i]};

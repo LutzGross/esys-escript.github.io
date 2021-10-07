@@ -16,6 +16,7 @@
 #include <string>
 
 #include <oxley/OxleyDomain.h>
+#include <oxley/OxleyData.h>
 
 #include <escript/Data.h>
 #include <escript/DataFactory.h>
@@ -1647,27 +1648,25 @@ void OxleyDomain::assemblePDEDirac(escript::AbstractSystemMatrix* mat,
     }
 
     rhs.requireWrite();
-
-    //TODO add in Dirac points
-    
-    // for (int i = 0; i < m_diracPoints.size(); i++) { //only for this rank
-    //     const index_t dof = getDofOfNode(m_diracPoints[i].node);
-    //     if (yNotEmpty) {
-    //         const double *EM_F = y.getSampleDataRO(i);
-    //         double *F_p = rhs.getSampleDataRW(0);
-    //         if (dof < getNumDOF()) {
-    //             for (index_t eq = 0; eq < nEq; eq++) {
-    //                 F_p[INDEX2(eq, dof, nEq)] += EM_F[eq];
-    //             }
-    //         }
-    //     }
-    //     if (dNotEmpty) {
-    //         const IndexVector rowIndex(1, dof);
-    //         const double *EM_S = d.getSampleDataRO(i);
-    //         vector<double> contents(EM_S, EM_S+nEq*nEq*nComp);
-    //         addToSystemMatrix(mat, rowIndex, nEq, contents);
-    //     }
-    // }
+   
+    for (int i = 0; i < m_diracPoints.size(); i++) { //only for this rank
+        const index_t dof = getDofOfNode(m_diracPoints[i].node);
+        if (yNotEmpty) {
+            const double *EM_F = y.getSampleDataRO(i);
+            double *F_p = rhs.getSampleDataRW(0);
+            if (dof < getNumDOF()) {
+                for (index_t eq = 0; eq < nEq; eq++) {
+                    F_p[INDEX2(eq, dof, nEq)] += EM_F[eq];
+                }
+            }
+        }
+        if (dNotEmpty) {
+            const IndexVector rowIndex(1, dof);
+            const double *EM_S = d.getSampleDataRO(i);
+            vector<double> contents(EM_S, EM_S+nEq*nEq*nComp);
+            addToSystemMatrix(mat, rowIndex, nEq, contents);
+        }
+    }
 }
 
 bool OxleyDomain::probeInterpolationAcross(int fsType_source,
