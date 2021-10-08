@@ -537,8 +537,6 @@ void Rectangle::setToSize(escript::Data& out) const
     {
         out.requireWrite();
         const dim_t numQuad = out.getNumDataPointsPerSample();
-        // const dim_t numElements = getNumElements();
-
         for(p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
         {
             p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
@@ -549,8 +547,8 @@ void Rectangle::setToSize(escript::Data& out) const
             {
                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
                 // int l = quad->level;
-                const double size = sqrt(forestData.m_dx[0][quad->level]*forestData.m_dx[0][quad->level]
-                                        +forestData.m_dx[1][quad->level]*forestData.m_dx[1][quad->level]);
+                const double size = sqrt(forestData.m_dx[0][P4EST_MAXLEVEL-quad->level]*forestData.m_dx[0][P4EST_MAXLEVEL-quad->level]
+                                        +forestData.m_dx[1][P4EST_MAXLEVEL-quad->level]*forestData.m_dx[1][P4EST_MAXLEVEL-quad->level]);
                 double* o = out.getSampleDataRW(e);
                 std::fill(o, o+numQuad, size);
             }
@@ -576,19 +574,19 @@ void Rectangle::setToSize(escript::Data& out) const
 
                 if (quaddata->m_faceOffset[0]) {
                     double* o = out.getSampleDataRW(e);
-                    std::fill(o, o+numQuad, forestData.m_dx[1][quad->level]);
+                    std::fill(o, o+numQuad, forestData.m_dx[1][P4EST_MAXLEVEL-quad->level]);
                 }
                 else if (quaddata->m_faceOffset[1]) {
                     double* o = out.getSampleDataRW(e);
-                    std::fill(o, o+numQuad, forestData.m_dx[1][quad->level]);
+                    std::fill(o, o+numQuad, forestData.m_dx[1][P4EST_MAXLEVEL-quad->level]);
                 }
                 else if (quaddata->m_faceOffset[2]) {
                     double* o = out.getSampleDataRW(e);
-                    std::fill(o, o+numQuad, forestData.m_dx[0][quad->level]);
+                    std::fill(o, o+numQuad, forestData.m_dx[0][P4EST_MAXLEVEL-quad->level]);
                 }
                 else if (quaddata->m_faceOffset[3]) {
                     double* o = out.getSampleDataRW(e);
-                    std::fill(o, o+numQuad, forestData.m_dx[0][quad->level]);
+                    std::fill(o, o+numQuad, forestData.m_dx[0][P4EST_MAXLEVEL-quad->level]);
                 }
             }
         }
