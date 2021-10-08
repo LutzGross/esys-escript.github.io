@@ -693,6 +693,11 @@ void Rectangle::dump(const std::string& fileName) const
         {
             pValues[element.second]=current_solution.at(element.second);
         }
+    else
+        for(std::pair<DoublePair,long> element : NodeIDs)
+        {
+            pValues[element.second]=0;
+        }
 
     // Array of the coordinate arrays
     float * pCoordinates[2];
@@ -2733,10 +2738,13 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                 p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x, quad->y, xy);
                 long e = getQuadID(NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
 
-                memcpy(&f_00[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar)); // TODO BUG? 
-                memcpy(&f_01[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                memcpy(&f_10[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                memcpy(&f_11[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
+                long ids[4]={0};
+                getNeighouringNodeIDs(quad, t, ids);
+
+                memcpy(&f_00[0], in.getSampleDataRO(ids[0], zero), numComp*sizeof(Scalar));
+                memcpy(&f_01[0], in.getSampleDataRO(ids[2], zero), numComp*sizeof(Scalar));
+                memcpy(&f_10[0], in.getSampleDataRO(ids[1], zero), numComp*sizeof(Scalar));
+                memcpy(&f_11[0], in.getSampleDataRO(ids[3], zero), numComp*sizeof(Scalar));
 
                 Scalar* o = out.getSampleDataRW(e, zero);
                 for(index_t i = 0; i < numComp; ++i) {
@@ -2772,10 +2780,14 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                 double xy[3];
                 p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x, quad->y, xy);
                 long e = getQuadID(NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
-                memcpy(&f_00[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                memcpy(&f_01[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                memcpy(&f_10[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                memcpy(&f_11[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
+
+                long ids[4]={0};
+                getNeighouringNodeIDs(quad, t, ids);
+
+                memcpy(&f_00[0], in.getSampleDataRO(ids[0], zero), numComp*sizeof(Scalar));
+                memcpy(&f_01[0], in.getSampleDataRO(ids[2], zero), numComp*sizeof(Scalar));
+                memcpy(&f_10[0], in.getSampleDataRO(ids[1], zero), numComp*sizeof(Scalar));
+                memcpy(&f_11[0], in.getSampleDataRO(ids[3], zero), numComp*sizeof(Scalar));
 
                 Scalar* o = out.getSampleDataRW(e, zero);
 
@@ -2808,57 +2820,69 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                 std::vector<Scalar> f_10(numComp, zero);
                 std::vector<Scalar> f_11(numComp, zero);
 
-                if (quaddata->m_faceOffset[0]) {
-                    memcpy(&f_00[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_01[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_10[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_11[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    Scalar* o = out.getSampleDataRW(e, zero);
-                    for(index_t i = 0; i < numComp; ++i) {
-                        o[INDEX3(i,0,0,numComp,2)] = (f_10[i]-f_00[i])*cx[1][i] + (f_11[i]-f_01[i])*cx[0][i];
-                        o[INDEX3(i,1,0,numComp,2)] = (f_01[i]-f_00[i])*cy[2][i];
-                        o[INDEX3(i,0,1,numComp,2)] = (f_10[i]-f_00[i])*cx[0][i] + (f_11[i]-f_01[i])*cx[1][i];
-                        o[INDEX3(i,1,1,numComp,2)] = (f_01[i]-f_00[i])*cy[2][i];
-                    } // end of component loop i
+                if (m_faceOffset[0] > -1) {
+                    for (index_t k=0; k<NodeIDsLeft.size()-1; k++) {
+                        borderNodeInfo tmp = NodeIDsLeft[k];
+                        memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], zero), numComp*sizeof(Scalar));
+                        memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], zero), numComp*sizeof(Scalar));
+                        memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], zero), numComp*sizeof(Scalar));
+                        memcpy(&f_11[0], in.getSampleDataRO(tmp.neighbours[3], zero), numComp*sizeof(Scalar));
+                        Scalar* o = out.getSampleDataRW(m_faceOffset[0]+k, zero);
+                        for(index_t i = 0; i < numComp; ++i) {
+                            o[INDEX3(i,0,0,numComp,2)] = (f_10[i]-f_00[i])*cx[1][i] + (f_11[i]-f_01[i])*cx[0][i];
+                            o[INDEX3(i,1,0,numComp,2)] = (f_01[i]-f_00[i])*cy[2][i];
+                            o[INDEX3(i,0,1,numComp,2)] = (f_10[i]-f_00[i])*cx[0][i] + (f_11[i]-f_01[i])*cx[1][i];
+                            o[INDEX3(i,1,1,numComp,2)] = (f_01[i]-f_00[i])*cy[2][i];
+                        } // end of component loop i
+                    }
                 } // end of face 0
-                if (quaddata->m_faceOffset[1]) {
-                    memcpy(&f_00[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_01[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_10[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_11[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    Scalar* o = out.getSampleDataRW(e, zero);
-                    for(index_t i = 0; i < numComp; ++i) {
-                        o[INDEX3(i,0,0,numComp,2)] = (f_10[i]-f_00[i])*cx[1][i] + (f_11[i]-f_01[i])*cx[0][i];
-                        o[INDEX3(i,1,0,numComp,2)] = (f_11[i]-f_10[i])*cy[2][i];
-                        o[INDEX3(i,0,1,numComp,2)] = (f_10[i]-f_00[i])*cx[0][i] + (f_11[i]-f_01[i])*cx[1][i];
-                        o[INDEX3(i,1,1,numComp,2)] = (f_11[i]-f_10[i])*cy[2][i];
-                    } // end of component loop i
+                if (m_faceOffset[1] > -1) {
+                    for (index_t k=0; k<NodeIDsRight.size()-1; k++) {
+                        borderNodeInfo tmp = NodeIDsRight[k];
+                        memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], zero), numComp*sizeof(Scalar));
+                        memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], zero), numComp*sizeof(Scalar));
+                        memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], zero), numComp*sizeof(Scalar));
+                        memcpy(&f_11[0], in.getSampleDataRO(tmp.neighbours[3], zero), numComp*sizeof(Scalar));
+                        Scalar* o = out.getSampleDataRW(m_faceOffset[1]+k, zero);
+                        for(index_t i = 0; i < numComp; ++i) {
+                            o[INDEX3(i,0,0,numComp,2)] = (f_10[i]-f_00[i])*cx[1][i] + (f_11[i]-f_01[i])*cx[0][i];
+                            o[INDEX3(i,1,0,numComp,2)] = (f_11[i]-f_10[i])*cy[2][i];
+                            o[INDEX3(i,0,1,numComp,2)] = (f_10[i]-f_00[i])*cx[0][i] + (f_11[i]-f_01[i])*cx[1][i];
+                            o[INDEX3(i,1,1,numComp,2)] = (f_11[i]-f_10[i])*cy[2][i];
+                        } // end of component loop i
+                    }
                 } // end of face 1
-                if (quaddata->m_faceOffset[2]) {
-                    memcpy(&f_00[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_01[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_10[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_11[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    Scalar* o = out.getSampleDataRW(e, zero);
-                    for(index_t i = 0; i < numComp; ++i) {
-                        o[INDEX3(i,0,0,numComp,2)] = (f_10[i]-f_00[i])*cx[2][i];
-                        o[INDEX3(i,1,0,numComp,2)] = (f_01[i]-f_00[i])*cy[1][i] + (f_11[i]-f_10[i])*cy[0][i];
-                        o[INDEX3(i,0,1,numComp,2)] = (f_10[i]-f_00[i])*cx[2][i];
-                        o[INDEX3(i,1,1,numComp,2)] = (f_01[i]-f_00[i])*cy[0][i] + (f_11[i]-f_10[i])*cy[1][i];
-                    } // end of component loop i
+                if (m_faceOffset[2] > -1) {
+                    for (index_t k=0; k<NodeIDsBottom.size()-1; k++) {
+                        borderNodeInfo tmp = NodeIDsBottom[k];
+                        memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], zero), numComp*sizeof(Scalar));
+                        memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], zero), numComp*sizeof(Scalar));
+                        memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], zero), numComp*sizeof(Scalar));
+                        memcpy(&f_11[0], in.getSampleDataRO(tmp.neighbours[3], zero), numComp*sizeof(Scalar));
+                        Scalar* o = out.getSampleDataRW(m_faceOffset[2]+k, zero);
+                        for(index_t i = 0; i < numComp; ++i) {
+                            o[INDEX3(i,0,0,numComp,2)] = (f_10[i]-f_00[i])*cx[2][i];
+                            o[INDEX3(i,1,0,numComp,2)] = (f_01[i]-f_00[i])*cy[1][i] + (f_11[i]-f_10[i])*cy[0][i];
+                            o[INDEX3(i,0,1,numComp,2)] = (f_10[i]-f_00[i])*cx[2][i];
+                            o[INDEX3(i,1,1,numComp,2)] = (f_01[i]-f_00[i])*cy[0][i] + (f_11[i]-f_10[i])*cy[1][i];
+                        } // end of component loop i
+                    }
                 } // end of face 2
-                if (quaddata->m_faceOffset[3]) {
-                    memcpy(&f_00[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_01[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_10[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_11[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    Scalar* o = out.getSampleDataRW(e, zero);
-                    for(index_t i = 0; i < numComp; ++i) {
-                        o[INDEX3(i,0,0,numComp,2)] = (f_11[i]-f_01[i])*cx[2][i];
-                        o[INDEX3(i,1,0,numComp,2)] = (f_01[i]-f_00[i])*cy[1][i] + (f_11[i]-f_10[i])*cy[0][i];
-                        o[INDEX3(i,0,1,numComp,2)] = (f_11[i]-f_01[i])*cx[2][i];
-                        o[INDEX3(i,1,1,numComp,2)] = (f_01[i]-f_00[i])*cy[0][i] + (f_11[i]-f_10[i])*cy[1][i];
-                    } // end of component loop i
+                if (m_faceOffset[3] > -1) {
+                    for (index_t k=0; k<NodeIDsTop.size()-1; k++) {
+                        borderNodeInfo tmp = NodeIDsTop[k];
+                        memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], zero), numComp*sizeof(Scalar));
+                        memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], zero), numComp*sizeof(Scalar));
+                        memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], zero), numComp*sizeof(Scalar));
+                        memcpy(&f_11[0], in.getSampleDataRO(tmp.neighbours[3], zero), numComp*sizeof(Scalar));
+                        Scalar* o = out.getSampleDataRW(m_faceOffset[3]+k, zero);
+                        for(index_t i = 0; i < numComp; ++i) {
+                            o[INDEX3(i,0,0,numComp,2)] = (f_11[i]-f_01[i])*cx[2][i];
+                            o[INDEX3(i,1,0,numComp,2)] = (f_01[i]-f_00[i])*cy[1][i] + (f_11[i]-f_10[i])*cy[0][i];
+                            o[INDEX3(i,0,1,numComp,2)] = (f_11[i]-f_01[i])*cx[2][i];
+                            o[INDEX3(i,1,1,numComp,2)] = (f_01[i]-f_00[i])*cy[0][i] + (f_11[i]-f_10[i])*cy[1][i];
+                        } // end of component loop i
+                    }
                 } // end of face 3
             }
         }
@@ -2885,49 +2909,61 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                 std::vector<Scalar> f_10(numComp, zero);
                 std::vector<Scalar> f_11(numComp, zero);
 
-                if (quaddata->m_faceOffset[0]) {
-                    memcpy(&f_00[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_01[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_10[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_11[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    Scalar* o = out.getSampleDataRW(e, zero);
-                    for(index_t i = 0; i < numComp; ++i) {
-                        o[INDEX3(i,0,0,numComp,2)] = (f_10[i] + f_11[i] - f_00[i] - f_01[i])*cx[2][i] * 0.5;
-                        o[INDEX3(i,1,0,numComp,2)] = (f_01[i]-f_00[i])*cy[2][i];
-                    } // end of component loop i
+                if (m_faceOffset[0] > -1) {
+                    for (index_t k=0; k<NodeIDsLeft.size()-1; k++) {
+                        borderNodeInfo tmp = NodeIDsLeft[k];
+                        memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], zero), numComp*sizeof(Scalar));
+                        memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], zero), numComp*sizeof(Scalar));
+                        memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], zero), numComp*sizeof(Scalar));
+                        memcpy(&f_11[0], in.getSampleDataRO(tmp.neighbours[3], zero), numComp*sizeof(Scalar));
+                        Scalar* o = out.getSampleDataRW(m_faceOffset[0]+k, zero);
+                        for(index_t i = 0; i < numComp; ++i) {
+                            o[INDEX3(i,0,0,numComp,2)] = (f_10[i] + f_11[i] - f_00[i] - f_01[i])*cx[2][i] * 0.5;
+                            o[INDEX3(i,1,0,numComp,2)] = (f_01[i]-f_00[i])*cy[2][i];
+                        } // end of component loop i
+                    }
                 } // end of face 0
-                if (quaddata->m_faceOffset[1]) {
-                    memcpy(&f_00[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_01[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_10[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_11[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    Scalar* o = out.getSampleDataRW(e, zero);
-                    for(index_t i = 0; i < numComp; ++i) {
-                        o[INDEX3(i,0,0,numComp,2)] = (f_10[i] + f_11[i] - f_00[i] - f_01[i])*cx[2][i] * 0.5;
-                        o[INDEX3(i,1,0,numComp,2)] = (f_11[i]-f_10[i])*cy[2][i];
-                    } // end of component loop i
+                if (m_faceOffset[1] > -1) {
+                    for (index_t k=0; k<NodeIDsRight.size()-1; k++) {
+                        borderNodeInfo tmp = NodeIDsRight[k];
+                        memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], zero), numComp*sizeof(Scalar));
+                        memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], zero), numComp*sizeof(Scalar));
+                        memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], zero), numComp*sizeof(Scalar));
+                        memcpy(&f_11[0], in.getSampleDataRO(tmp.neighbours[3], zero), numComp*sizeof(Scalar));
+                        Scalar* o = out.getSampleDataRW(m_faceOffset[1]+k, zero);
+                        for(index_t i = 0; i < numComp; ++i) {
+                            o[INDEX3(i,0,0,numComp,2)] = (f_10[i] + f_11[i] - f_00[i] - f_01[i])*cx[2][i] * 0.5;
+                            o[INDEX3(i,1,0,numComp,2)] = (f_11[i]-f_10[i])*cy[2][i];
+                        } // end of component loop i
+                    }
                 } // end of face 1
-                if (quaddata->m_faceOffset[2]) {
-                    memcpy(&f_00[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_01[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_10[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_11[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    Scalar* o = out.getSampleDataRW(e, zero);
-                    for(index_t i = 0; i < numComp; ++i) {
-                        o[INDEX3(i,0,0,numComp,2)] = (f_10[i]-f_00[i])*cx[2][i];
-                        o[INDEX3(i,1,0,numComp,2)] = (f_01[i] + f_11[i] - f_00[i] - f_10[i])*cy[2][i] * 0.5;
-                    } // end of component loop i
+                if (m_faceOffset[2] > -1) {
+                    for (index_t k=0; k<NodeIDsBottom.size()-1; k++) {
+                        borderNodeInfo tmp = NodeIDsBottom[k];
+                        memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], zero), numComp*sizeof(Scalar));
+                        memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], zero), numComp*sizeof(Scalar));
+                        memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], zero), numComp*sizeof(Scalar));
+                        memcpy(&f_11[0], in.getSampleDataRO(tmp.neighbours[3], zero), numComp*sizeof(Scalar));
+                        Scalar* o = out.getSampleDataRW(m_faceOffset[2]+k, zero);
+                        for(index_t i = 0; i < numComp; ++i) {
+                            o[INDEX3(i,0,0,numComp,2)] = (f_10[i]-f_00[i])*cx[2][i];
+                            o[INDEX3(i,1,0,numComp,2)] = (f_01[i] + f_11[i] - f_00[i] - f_10[i])*cy[2][i] * 0.5;
+                        } // end of component loop i
+                    }
                 } // end of face 2
-                if (quaddata->m_faceOffset[3]) {
-                    memcpy(&f_00[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_01[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_10[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    memcpy(&f_11[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
-                    Scalar* o = out.getSampleDataRW(e, zero);
-                    for(index_t i = 0; i < numComp; ++i) {
-                        o[INDEX3(i,0,0,numComp,2)] = (f_11[i]-f_01[i])*cx[2][i];
-                        o[INDEX3(i,1,0,numComp,2)] = (f_01[i] + f_11[i] - f_00[i] - f_10[i])*cy[2][i] * 0.5;
-                    } // end of component loop i
+                if (m_faceOffset[3] > -1) {
+                    for (index_t k=0; k<NodeIDsTop.size()-1; k++) {
+                        borderNodeInfo tmp = NodeIDsTop[k];
+                        memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], zero), numComp*sizeof(Scalar));
+                        memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], zero), numComp*sizeof(Scalar));
+                        memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], zero), numComp*sizeof(Scalar));
+                        memcpy(&f_11[0], in.getSampleDataRO(tmp.neighbours[3], zero), numComp*sizeof(Scalar));
+                        Scalar* o = out.getSampleDataRW(m_faceOffset[3]+k, zero);
+                        for(index_t i = 0; i < numComp; ++i) {
+                            o[INDEX3(i,0,0,numComp,2)] = (f_11[i]-f_01[i])*cx[2][i];
+                            o[INDEX3(i,1,0,numComp,2)] = (f_01[i] + f_11[i] - f_00[i] - f_10[i])*cy[2][i] * 0.5;
+                        } // end of component loop i
+                    }
                 }
             }
         }
