@@ -3222,31 +3222,13 @@ void Rectangle::updateFaceOffset()
 // Copies the solution information to the mesh
 void Rectangle::updateSolutionInformation(escript::Data solution)
 {
-    for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) 
+#pragma omp for
+    for(long i = 0; i < getNumNodes(); i++)
     {
-        p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
-        sc_array_t * tquadrants = &tree->quadrants;
-        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-// #pragma omp parallel for
-        for(int q = 0; q < Q; ++q) // Loop over all quadrants
-        { 
-            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-            p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
-            for(int n = 0; n < 4; n++)
-            {
-                double xy[3];
-                long lx[4] = {0,length,0,length};
-                long ly[4] = {0,0,length,length};
-                long lni[4] = {-1};
-                for(int i = 0; i < 4; i++)
-                {
-                    p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx[i], quad->y+ly[i], xy);
-                    lni[i] = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-                    auto temp = solution.getSampleDataRO(i);
-                    current_solution[lni[i]]=*temp;
-                }                
-            }
-        }
+        current_solution[i]=*solution.getSampleDataRO(i);
+#ifdef OXLEY_ENABLE_DEBUG_PRINT_SOLUTION
+        std::cout << i << ": " << current_solution[i] << std::endl;
+#endif
     }
 }
 
