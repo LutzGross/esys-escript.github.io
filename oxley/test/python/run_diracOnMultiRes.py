@@ -46,7 +46,7 @@ def test_Rectangle(**kwargs):
     m = Rectangle(**kwargs)
     m.setRefinementLevel(1)
     m.refineMesh("uniform")
-    return m.getRefinementLevel()
+    return m
 
 
 # def Brick(**kwargs):
