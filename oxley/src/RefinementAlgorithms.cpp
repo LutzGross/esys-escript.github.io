@@ -110,7 +110,7 @@ int refine_north(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadra
     double * xy = quadData->xy;
 
     return     (xy[1] < domain_length) 
-            && (xy[1] > domain_length - dx)
+            && (xy[1] > domain_length - dx - 1)
             && (quadrant->level < forestData->max_levels_refinement);
 }
 
@@ -137,7 +137,7 @@ int refine_east(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadran
     double * xy = quadData->xy;
 
     return     (xy[0] < domain_length) 
-            && (xy[0] > domain_length - dx)
+            && (xy[0] > domain_length - dx - 1)
             && (quadrant->level < forestData->max_levels_refinement);
 }
 
