@@ -31,13 +31,13 @@ namespace oxley {
 int refine_uniform(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
 {
     p4estData * forestData = (p4estData *) p4est->user_pointer;
-    return quadrant->level < forestData->refinement_depth && (quadrant->level < forestData->max_levels_refinement);
+    return quadrant->level < forestData->refinement_depth;
 }
 
 int refine_uniform(p8est_t * p4est, p4est_topidx_t tree, p8est_quadrant_t * quadrant)
 {
     p8estData * octantData = (p8estData *) p4est->user_pointer;
-    return quadrant->level < octantData->refinement_depth && (quadrant->level < octantData->max_levels_refinement);
+    return quadrant->level < octantData->refinement_depth;
 }
 
 int refine_mare2dem(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
