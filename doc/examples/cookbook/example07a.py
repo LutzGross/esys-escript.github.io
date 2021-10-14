@@ -30,7 +30,6 @@ __url__="https://launchpad.net/escript-finley"
 import matplotlib
 matplotlib.use('agg') #It's just here for automated testing
 from esys.escript import *
-from esys.finley import Rectangle
 from esys.weipa import saveVTK
 import sys
 import os

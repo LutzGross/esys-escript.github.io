@@ -59,7 +59,7 @@ for x in [(int(mpiSize**(1/3.)),int(mpiSize**(1/3.))),(2,3),(2,2),(1,2),(1,1)]:
 
 def test_Rectangle(**kwargs):
     m = Rectangle(**kwargs)
-    m.setRefinementLevel(1)
+    m.setRefinementLevel(2)
     m.refineMesh("uniform")
     return m
 
@@ -124,6 +124,7 @@ class Test_ComplexSolveMultiRes2D_Trilinos_GMRES_Jacobi(ComplexSolveOnTrilinos):
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.GMRES
         self.preconditioner = SolverOptions.JACOBI
+        self.verbosity = True
 
     def tearDown(self):
         del self.domain

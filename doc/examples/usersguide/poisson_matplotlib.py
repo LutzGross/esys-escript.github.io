@@ -35,10 +35,14 @@ except:
 
 from esys.escript import *
 from esys.escript.linearPDEs import Poisson
-from esys.finley import Rectangle
 
+try:
+    from esys.finley import Rectangle
+    HAVE_FINLEY=True
+except:
+    HAVE_FINLEY=False
 #Testing whether we have a late enough version of matplotlib
-if HAVE_SCIPY:
+if HAVE_SCIPY and HAVE_FINLEY:
     try:
         matplotlib.mlab.griddata
 

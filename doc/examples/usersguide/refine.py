@@ -35,23 +35,28 @@ __author__="Lutz Gross, l.gross@uq.edu.au"
 
 from esys.pycad import *
 from esys.pycad.gmsh import Design
-from esys.finley import MakeDomain
-p0=Point(0.,0.,0.,local_scale=0.01)
-p1=Point(1.,0.,0.)
-p2=Point(1.,1.,0.)
-p3=Point(0.,1.,0.)
-l01=Line(p0,p1)
-l12=Line(p1,p2)
-l23=Line(p2,p3)
-l23.setElementDistribution(20)
-l30=Line(p3,p0)
-c=CurveLoop(l01,l12,l23,l30)
-s=PlaneSurface(c)
+try:
+	from esys.finley import MakeDomain
+	HAVE_FINLEY=True
+except:
+	HAVE_FINLEY=False
+if HAVE_FINLEY:
+	p0=Point(0.,0.,0.,local_scale=0.01)
+	p1=Point(1.,0.,0.)
+	p2=Point(1.,1.,0.)
+	p3=Point(0.,1.,0.)
+	l01=Line(p0,p1)
+	l12=Line(p1,p2)
+	l23=Line(p2,p3)
+	l23.setElementDistribution(20)
+	l30=Line(p3,p0)
+	c=CurveLoop(l01,l12,l23,l30)
+	s=PlaneSurface(c)
 
-d=Design(dim=2,element_size=0.3)
-d.setScriptFileName("refine.geo")
-d.setMeshFileName("refine.msh")
-d.addItems(s)
+	d=Design(dim=2,element_size=0.3)
+	d.setScriptFileName("refine.geo")
+	d.setMeshFileName("refine.msh")
+	d.addItems(s)
 
-dom=MakeDomain(d)
-dom.write("refine.fly")
+	dom=MakeDomain(d)
+	dom.write("refine.fly")

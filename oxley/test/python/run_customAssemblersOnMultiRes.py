@@ -29,7 +29,8 @@ from esys.escript import *
 from esys.oxley import Rectangle, Brick
 from esys.escript.linearPDEs import LameEquation
 
-from run_customAssemblersOnOxley import OxleyLameAssemblerTestBase, OxleyWaveAssemblerTestBase, Ricker
+# from run_customAssemblersOnOxley import OxleyLameAssemblerTestBase, OxleyWaveAssemblerTestBase, Ricker
+from run_customAssemblersOnOxley import OxleyLameAssemblerTestBase, Ricker
 
 mpiSize = getMPISizeWorld()
 
@@ -45,13 +46,14 @@ def test_Rectangle(**kwargs):
 #     m.refineRegion(x0=3,x1=7,x2=7,y0=4,y1=8,y2=6)
 #     return m
 
-class Test_OxleyWaveAssembler2D(OxleyWaveAssemblerTestBase):
-    def setUp(self):
-        self.domain = test_Rectangle(n0=20,n1=20,l0=100.,l1=100., diracTags=["source"], diracPoints=[(0,0)])
-        self.wavelet = Ricker(100.)
+# TODO
+# class Test_OxleyWaveAssembler2D(OxleyWaveAssemblerTestBase):
+#     def setUp(self):
+#         self.domain = test_Rectangle(n0=20,n1=20,l0=100.,l1=100., diracTags=["source"], diracPoints=[(0,0)])
+#         self.wavelet = Ricker(100.)
         
-    def tearDown(self):
-        del self.domain
+#     def tearDown(self):
+#         del self.domain
 
 # TODO
 # @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
