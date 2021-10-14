@@ -214,12 +214,12 @@ void DefaultAssembler2D<Scalar>::assemblePDESingle(AbstractSystemMatrix* mat, Da
 
     rhs.requireWrite();
 
+#pragma omp parallel for
     for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
     {
         p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
         sc_array_t * tquadrants = &currenttree->quadrants;
         p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-#pragma omp parallel for
         for (int q = 0; q < Q; ++q)  
         {
             if (addEM_S)
@@ -916,12 +916,12 @@ void DefaultAssembler2D<Scalar>::assemblePDESingleReduced(
     vector<Scalar> EM_S(4*4, zero);
     vector<Scalar> EM_F(4, zero);
 
+#pragma omp parallel for
     for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
     {
         p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
         sc_array_t * tquadrants = &currenttree->quadrants;
         p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-//#pragma omp parallel for
         for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
         {                
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
@@ -1333,12 +1333,12 @@ void DefaultAssembler2D<Scalar>::assemblePDESystem(AbstractSystemMatrix* mat,
     vector<Scalar> EM_S(4*4*numEq*numComp, zero);
     vector<Scalar> EM_F(4*numEq, zero);
 
+#pragma omp parallel for
     for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
     {
         p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
         sc_array_t * tquadrants = &currenttree->quadrants;
         p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-#pragma omp parallel for
         for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
         {                
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
@@ -2149,12 +2149,12 @@ void DefaultAssembler2D<Scalar>::assemblePDESystemReduced(
     vector<Scalar> EM_S(4*4*numEq*numComp, zero);
     vector<Scalar> EM_F(4*numEq, zero);
 
+#pragma omp parallel for
     for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
     {
         p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
         sc_array_t * tquadrants = &currenttree->quadrants;
         p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-//#pragma omp parallel for
         for (int q = 0; q < Q; ++q)  // Loop over the elements attached to the tree
         {                
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
