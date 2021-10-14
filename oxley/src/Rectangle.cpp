@@ -734,13 +734,13 @@ void Rectangle::dump(const std::string& fileName) const
     int shapesize[] = {4};
     int shapecounts[] = {lnodelist/4};
     int nshapetypes = 1;
-    int const shapetype[1] = {DB_ZONETYPE_QUAD};
+    // int const shapetype[1] = {DB_ZONETYPE_QUAD};
 
     // This is deprecated
-    // DBPutZonelist(dbfile, "quads", getNumElements(), 2, nodelistarray, lnodelist, 0, 
-    //                 shapesize, shapecounts, nshapetypes);
-    DBPutZonelist2(dbfile, "quads", getNumElements(), 2, nodelistarray, lnodelist, 0,
-                0, 0, shapetype, shapesize, shapecounts, nshapetypes, NULL);
+    DBPutZonelist(dbfile, "quads", getNumElements(), 2, nodelistarray, lnodelist, 0, 
+                    shapesize, shapecounts, nshapetypes);
+    // DBPutZonelist2(dbfile, "quads", getNumElements(), 2, nodelistarray, lnodelist, 0,
+    //             0, 0, shapetype, shapesize, shapecounts, nshapetypes, NULL);
         
 
     DBPutUcdmesh(dbfile, "mesh", 2, NULL, pCoordinates, getNumNodes(), getNumElements(), 
@@ -2814,8 +2814,8 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
                 double xy[3];
                 p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x, quad->y, xy);
-                long e = getQuadID(NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
-                quadrantData * quaddata = (quadrantData *) quad->p.user_data;
+                // long e = getQuadID(NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
+                // quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
                 std::vector<Scalar> f_00(numComp, zero);
                 std::vector<Scalar> f_01(numComp, zero);
@@ -2907,8 +2907,8 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
                 double xy[3];
                 p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x, quad->y, xy);
-                long e = getQuadID(NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
-                quadrantData * quaddata = (quadrantData *) quad->p.user_data;
+                // long e = getQuadID(NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
+                // quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
                 std::vector<Scalar> f_00(numComp, zero);
                 std::vector<Scalar> f_01(numComp, zero);
@@ -3023,7 +3023,7 @@ void Rectangle::assembleIntegrateImpl(std::vector<Scalar>& integrals,
             for(int q = 0; q < Q; ++q)
             {               
                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-                int l = quad->level;
+                // int l = quad->level;
                 double xy[3];
                 p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x, quad->y, xy);
                 long id = getQuadID(NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
@@ -3058,7 +3058,7 @@ void Rectangle::assembleIntegrateImpl(std::vector<Scalar>& integrals,
             for(int q = 0; q < Q; ++q)
             {
                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-                int l = quad->level;
+                // int l = quad->level;
                 double xy[3];
                 p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x, quad->y, xy);
                 long id = getQuadID(NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);

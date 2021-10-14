@@ -91,20 +91,20 @@ Brick::Brick(int order,
     // }
 
     //Create a connectivity
-    const p4est_topidx_t num_vertices = 8;
-    const p4est_topidx_t num_trees = 1;
-    const p4est_topidx_t num_edges = 3;
-    const p4est_topidx_t num_corners = 1;
-    const double vertices[8 * 3] = {
-                                    x0, y0, z0,
-                                    x1, y0, z0,
-                                    x0, y1, z0,
-                                    x1, y1, z0,
-                                    x0, y0, z1,
-                                    x1, y0, z1,
-                                    x0, y1, z1,
-                                    x1, y1, z1,
-                                    };
+    // const p4est_topidx_t num_vertices = 8;
+    // const p4est_topidx_t num_trees = 1;
+    // const p4est_topidx_t num_edges = 3;
+    // const p4est_topidx_t num_corners = 1;
+    // const double vertices[8 * 3] = {
+    //                                 x0, y0, z0,
+    //                                 x1, y0, z0,
+    //                                 x0, y1, z0,
+    //                                 x1, y1, z0,
+    //                                 x0, y0, z1,
+    //                                 x1, y0, z1,
+    //                                 x0, y1, z1,
+    //                                 x1, y1, z1,
+    //                                 };
     // const p4est_topidx_t tree_to_vertex[8] = {0, 1, 2, 3, 4, 5, 6, 7,};
     // const p4est_topidx_t tree_to_tree[6] = {0, 0, 0, 0, 0, 0,};
     // // const int8_t tree_to_face[6] = {1, 0, 3, 2, 5, 4, };
@@ -1798,9 +1798,9 @@ void Brick::assembleGradientImpl(escript::Data& out,
     const double C4 = .5;
     const double C5 = .62200846792814621559;
     const double C6 = .78867513459481288225;
-    const dim_t NE0 = m_NE[0];
-    const dim_t NE1 = m_NE[1];
-    const dim_t NE2 = m_NE[2];
+    // const dim_t NE0 = m_NE[0];
+    // const dim_t NE1 = m_NE[1];
+    // const dim_t NE2 = m_NE[2];
     const Scalar zero = static_cast<Scalar>(0);
 
     if (out.getFunctionSpace().getTypeCode() == Elements) 
@@ -1826,7 +1826,7 @@ void Brick::assembleGradientImpl(escript::Data& out,
             {
                 // Work out what level this element is on 
                 p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, e);
-                quadrantData * quaddata = (quadrantData *) quad->p.user_data;
+                // quadrantData * quaddata = (quadrantData *) quad->p.user_data;
                 int l = quad->level;
 
                 memcpy(&f_000[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
@@ -1905,7 +1905,7 @@ void Brick::assembleGradientImpl(escript::Data& out,
             {
                 // Work out what level this element is on 
                 p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, e);
-                quadrantData * quaddata = (quadrantData *) quad->p.user_data;
+                // quadrantData * quaddata = (quadrantData *) quad->p.user_data;
 
                 int l = quad->level;
 
