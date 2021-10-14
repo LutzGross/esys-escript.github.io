@@ -3222,14 +3222,27 @@ void Rectangle::updateFaceOffset()
 // Copies the solution information to the mesh
 void Rectangle::updateSolutionInformation(escript::Data solution)
 {
-#pragma omp for
-    for(long i = 0; i < getNumNodes(); i++)
-    {
-        current_solution[i]=*solution.getSampleDataRO(i);
-#ifdef OXLEY_ENABLE_DEBUG_PRINT_SOLUTION
-        std::cout << i << ": " << current_solution[i] << std::endl;
-#endif
-    }
+//     long limit=0;
+//     switch (solution.getFunctionSpace().getTypeCode()) {
+//         case Nodes:
+//             limit=getNumNodes();
+//             break;
+//         case Elements:
+//             limit=getNumElements();
+//             break;
+//         default:
+//             std::string msg = "updateSolutionInformation: fs " + solution.getFunctionSpace().getTypeCode();
+//             throw OxleyException(msg);
+//     }
+
+// #pragma omp for
+//     for(long i = 0; i < limit; i++)
+//     {
+//         current_solution[i]=*solution.getSampleDataRO(i);
+// #ifdef OXLEY_ENABLE_DEBUG_PRINT_SOLUTION
+//         std::cout << i << ": " << current_solution[i] << std::endl;
+// #endif
+//     }
 }
 
 void Rectangle::updateMeshInformation()
