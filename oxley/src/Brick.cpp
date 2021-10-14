@@ -295,7 +295,7 @@ void Brick::setToNormal(escript::Data& out) const
             {
                 // Work out what level this element is on 
                 p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, e);
-                quadrantData * quaddata = (quadrantData *) quad->p.user_data;               
+                octantData * quaddata = (octantData *) quad->p.user_data;               
 
                 if(quaddata->m_faceOffset[0]) {
                     double* o = out.getSampleDataRW(e);
@@ -366,7 +366,7 @@ void Brick::setToNormal(escript::Data& out) const
             {
                 // Work out what level this element is on 
                 p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, e);
-                quadrantData * quaddata = (quadrantData *) quad->p.user_data; 
+                octantData * quaddata = (octantData *) quad->p.user_data; 
 
                 if(quaddata->m_faceOffset[0]) {
                     double* o = out.getSampleDataRW(e);
@@ -437,7 +437,7 @@ void Brick::setToSize(escript::Data& out) const
             {
                 // Work out what level this element is on 
                 p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, e);
-                // quadrantData * quaddata = (quadrantData *) quad->p.user_data; 
+                // octantData * quaddata = (octantData *) quad->p.user_data; 
                 const double size = sqrt(forestData.m_dx[0][quad->level]*forestData.m_dx[0][quad->level]
                                         +forestData.m_dx[1][quad->level]*forestData.m_dx[1][quad->level]
                                         +forestData.m_dx[2][quad->level]*forestData.m_dx[2][quad->level]);
@@ -462,7 +462,7 @@ void Brick::setToSize(escript::Data& out) const
             {
                 // Work out what level this element is on 
                 p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, e);
-                quadrantData * quaddata = (quadrantData *) quad->p.user_data;
+                octantData * quaddata = (octantData *) quad->p.user_data;
 
                 if (quaddata->m_faceOffset[0]) {
                     double* o = out.getSampleDataRW(e);
@@ -1826,7 +1826,7 @@ void Brick::assembleGradientImpl(escript::Data& out,
             {
                 // Work out what level this element is on 
                 p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, e);
-                // quadrantData * quaddata = (quadrantData *) quad->p.user_data;
+                // octantData * quaddata = (octantData *) quad->p.user_data;
                 int l = quad->level;
 
                 memcpy(&f_000[0], in.getSampleDataRO(e, zero), numComp*sizeof(Scalar));
@@ -1905,7 +1905,7 @@ void Brick::assembleGradientImpl(escript::Data& out,
             {
                 // Work out what level this element is on 
                 p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, e);
-                // quadrantData * quaddata = (quadrantData *) quad->p.user_data;
+                // octantData * quaddata = (octantData *) quad->p.user_data;
 
                 int l = quad->level;
 
@@ -1950,7 +1950,7 @@ void Brick::assembleGradientImpl(escript::Data& out,
             {
                 // Work out what level this element is on 
                 p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, e);
-                quadrantData * quaddata = (quadrantData *) quad->p.user_data;
+                octantData * quaddata = (octantData *) quad->p.user_data;
 
                 int l = quad->level;
 
@@ -2159,7 +2159,7 @@ void Brick::assembleGradientImpl(escript::Data& out,
             {
                 // Work out what level this element is on 
                 p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, e);
-                quadrantData * quaddata = (quadrantData *) quad->p.user_data;
+                octantData * quaddata = (octantData *) quad->p.user_data;
 
                 int l = quad->level;
 

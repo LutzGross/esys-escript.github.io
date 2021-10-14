@@ -2322,7 +2322,7 @@ void DefaultAssembler3D<Scalar>::assemblePDEBoundarySingle(
                 fill(EM_F.begin(), EM_F.end(), zero);
             
             p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
-            quadrantData * quaddata = (quadrantData *) quad->p.user_data;  
+            octantData * quaddata = (octantData *) quad->p.user_data;  
 
             int l = quad->level;
             double xyz[3];
