@@ -43,7 +43,7 @@
 #include <finley/FinleyDomain.h>
 #endif
 #ifdef USE_OXLEY
-// #include <oxley/OxleyDomain.h>
+#include <oxley/OxleyDomain.h>
 #endif
 #ifdef USE_RIPLEY
 #include <ripley/RipleyDomain.h>
@@ -164,6 +164,19 @@ bool EscriptDataset::setDomain(const escript::AbstractDomain* domain)
             }
         }
 #endif
+#if USE_OXLEY
+        else if (dynamic_cast<const oxley::OxleyDomain*>(domain)) {
+            DomainChunk_ptr dom(new OxleyDomain());
+            if (dom->initFromEscript(domain)) {
+                if (mpiSize > 1)
+                    dom->reorderGhostZones(mpiRank);
+                domainChunks.push_back(dom);
+            } else {
+                cerr << "Error initializing domain!" << endl;
+                myError = 2;
+            }
+        }
+#endif
 #if USE_RIPLEY
         else if (dynamic_cast<const ripley::RipleyDomain*>(domain)) {
             DomainChunk_ptr dom(new RipleyDomain());
@@ -189,19 +202,6 @@ bool EscriptDataset::setDomain(const escript::AbstractDomain* domain)
                 myError = 2;
             }
         }
-#endif
-#if USE_OXLEY
-        // else if (dynamic_cast<const oxley::OxleyDomain*>(domain)) {
-        //     DomainChunk_ptr dom(new OxleyDomain());
-        //     if (dom->initFromEscript(domain)) {
-        //         if (mpiSize > 1)
-        //             dom->reorderGhostZones(mpiRank);
-        //         domainChunks.push_back(dom);
-        //     } else {
-        //         cerr << "Error initializing domain!" << endl;
-        //         myError = 2;
-        //     }
-        // }
 #endif
         else {
             cerr << "Unsupported domain type!" << endl;

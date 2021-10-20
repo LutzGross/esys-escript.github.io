@@ -35,35 +35,35 @@ namespace weipa {
 /// and elements accessed through the respective methods.
 class OxleyDomain : public DomainChunk, public boost::enable_shared_from_this<OxleyDomain>
 {
-// public:
-//     OxleyDomain();
-//     OxleyDomain(const OxleyDomain& m);
-//     virtual ~OxleyDomain() {}
-//     virtual bool initFromEscript(const escript::AbstractDomain* domain);
-//     virtual bool initFromFile(const std::string& filename);
-//     virtual bool writeToSilo(DBfile* dbfile, const std::string& pathInSilo,
-//                              const StringVec& labels, const StringVec& units,
-//                              bool writeMeshData);
-//     virtual void reorderGhostZones(int ownIndex);
-//     virtual void removeGhostZones(int ownIndex);
-//     virtual StringVec getMeshNames() const;
-//     virtual StringVec getVarNames() const;
-//     virtual ElementData_ptr getElementsByName(const std::string& name) const;
-//     virtual NodeData_ptr getMeshByName(const std::string& name) const;
-//     virtual DataVar_ptr getDataVarByName(const std::string& name) const;
-//     virtual Centering getCenteringForFunctionSpace(int fsCode) const;
-//     virtual NodeData_ptr getMeshForFunctionSpace(int fsCode) const;
-//     virtual ElementData_ptr getElementsForFunctionSpace(int fsCode) const;
-//     virtual NodeData_ptr getNodes() const { return nodes; }
-//     virtual std::string getSiloPath() const { return siloPath; }
-//     virtual void setSiloPath(const std::string& path)  { siloPath = path; }
+public:
+    OxleyDomain();
+    OxleyDomain(const OxleyDomain& m);
+    virtual ~OxleyDomain() {};
+    virtual bool initFromEscript(const escript::AbstractDomain* domain);
+    virtual bool initFromFile(const std::string& filename);
+    virtual bool writeToSilo(DBfile* dbfile, const std::string& pathInSilo,
+                             const StringVec& labels, const StringVec& units,
+                             bool writeMeshData);
+    virtual void reorderGhostZones(int ownIndex);
+    virtual void removeGhostZones(int ownIndex);
+    virtual StringVec getMeshNames() const;
+    virtual StringVec getVarNames() const;
+    virtual ElementData_ptr getElementsByName(const std::string& name) const;
+    virtual NodeData_ptr getMeshByName(const std::string& name) const;
+    virtual DataVar_ptr getDataVarByName(const std::string& name) const;
+    virtual Centering getCenteringForFunctionSpace(int fsCode) const;
+    virtual NodeData_ptr getMeshForFunctionSpace(int fsCode) const;
+    virtual ElementData_ptr getElementsForFunctionSpace(int fsCode) const;
+    virtual NodeData_ptr getNodes() const { return nodes; }
+    virtual std::string getSiloPath() const { return siloPath; }
+    virtual void setSiloPath(const std::string& path)  { siloPath = path; }
 
-// private:
-//     bool initialized;
-//     OxleyNodes_ptr    nodes;
-//     OxleyElements_ptr cells;
-//     OxleyElements_ptr faces;
-//     std::string        siloPath;
+private:
+    bool initialized;
+    OxleyNodes_ptr    nodes;
+    OxleyElements_ptr cells;
+    OxleyElements_ptr faces;
+    std::string       siloPath;
 };
 
 } // namespace weipa
