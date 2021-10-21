@@ -58,10 +58,28 @@ for x in [(int(mpiSize**(1/3.)),int(mpiSize**(1/3.))),(2,3),(2,2),(1,2),(1,1)]:
     if NXb*NYb*NZb == mpiSize:
         break
 
-def test_Rectangle(**kwargs):
+def test_Rectangle_refine_Mesh(**kwargs):
     m = Rectangle(**kwargs)
     m.setRefinementLevel(1)
     m.refineMesh("uniform")
+    return m
+
+def test_Rectangle_refine_Point(**kwargs):
+    m = Rectangle(**kwargs)
+    m.setRefinementLevel(1)
+    m.refinePoint(x0=0.5,y0=0.5)
+    return m
+
+def test_Rectangle_refine_Boundary(**kwargs):
+    m = Rectangle(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineBoundary(boundary="top",dx=0.5)
+    return m
+
+def test_Rectangle_refine_Region(**kwargs):
+    m = Rectangle(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineRegion(x0=0.2,x1=0.2,y0=0.6,y1=0.8)
     return m
 
 # def Brick(**kwargs):
@@ -74,9 +92,9 @@ class SimpleSolveOnMumps(SimpleSolveTestCase):
 
 ## direct
 @unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
-class Test_SimpleSolveMultires2D_Mumps_Direct(SimpleSolveOnMumps):
+class Test_SimpleSolveMultires2D_Mumps_Direct_Mesh(SimpleSolveOnMumps):
     def setUp(self):
-        self.domain = test_Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_Mesh(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         self.package = SolverOptions.MUMPS
         self.method = SolverOptions.DIRECT
 
@@ -85,9 +103,9 @@ class Test_SimpleSolveMultires2D_Mumps_Direct(SimpleSolveOnMumps):
 
 ### BiCGStab + Jacobi
 @unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
-class Test_SimpleSolveMultires2D_Mumps_BICGSTAB_Jacobi(SimpleSolveOnMumps):
+class Test_SimpleSolveMultires2D_Mumps_BICGSTAB_Jacobi_Mesh(SimpleSolveOnMumps):
     def setUp(self):
-        self.domain = test_Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_Mesh(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         self.package = SolverOptions.MUMPS
         self.method = SolverOptions.BICGSTAB
         self.preconditioner = SolverOptions.JACOBI
@@ -95,6 +113,74 @@ class Test_SimpleSolveMultires2D_Mumps_BICGSTAB_Jacobi(SimpleSolveOnMumps):
     def tearDown(self):
         del self.domain
 
+## direct
+@unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
+class Test_SimpleSolveMultires2D_Mumps_Direct_Region(SimpleSolveOnMumps):
+    def setUp(self):
+        self.domain = test_Rectangle_refine_Region(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.package = SolverOptions.MUMPS
+        self.method = SolverOptions.DIRECT
+
+    def tearDown(self):
+        del self.domain
+
+### BiCGStab + Jacobi
+@unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
+class Test_SimpleSolveMultires2D_Mumps_BICGSTAB_Jacobi_Region(SimpleSolveOnMumps):
+    def setUp(self):
+        self.domain = test_Rectangle_refine_Region(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.package = SolverOptions.MUMPS
+        self.method = SolverOptions.BICGSTAB
+        self.preconditioner = SolverOptions.JACOBI
+
+    def tearDown(self):
+        del self.domain
+
+## direct
+@unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
+class Test_SimpleSolveMultires2D_Mumps_Direct_Boundary(SimpleSolveOnMumps):
+    def setUp(self):
+        self.domain = test_Rectangle_refine_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.package = SolverOptions.MUMPS
+        self.method = SolverOptions.DIRECT
+
+    def tearDown(self):
+        del self.domain
+
+### BiCGStab + Jacobi
+@unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
+class Test_SimpleSolveMultires2D_Mumps_BICGSTAB_Jacobi_Boundary(SimpleSolveOnMumps):
+    def setUp(self):
+        self.domain = test_Rectangle_refine_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.package = SolverOptions.MUMPS
+        self.method = SolverOptions.BICGSTAB
+        self.preconditioner = SolverOptions.JACOBI
+
+    def tearDown(self):
+        del self.domain
+
+## direct
+@unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
+class Test_SimpleSolveMultires2D_Mumps_Direct_Point(SimpleSolveOnMumps):
+    def setUp(self):
+        self.domain = test_Rectangle_refine_Point(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.package = SolverOptions.MUMPS
+        self.method = SolverOptions.DIRECT
+
+    def tearDown(self):
+        del self.domain
+
+### BiCGStab + Jacobi
+@unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
+class Test_SimpleSolveMultires2D_Mumps_BICGSTAB_Jacobi_Point(SimpleSolveOnMumps):
+    def setUp(self):
+        self.domain = test_Rectangle_refine_Point(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.package = SolverOptions.MUMPS
+        self.method = SolverOptions.BICGSTAB
+        self.preconditioner = SolverOptions.JACOBI
+
+    def tearDown(self):
+        del self.domain                
 ## direct
 # @unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
 # @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")

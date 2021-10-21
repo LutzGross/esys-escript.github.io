@@ -57,12 +57,37 @@ for x in [(int(mpiSize**(1/3.)),int(mpiSize**(1/3.))),(2,3),(2,2),(1,2),(1,1)]:
     if NXb*NYb*NZb == mpiSize:
         break
 
-def test_Rectangle(**kwargs):
+def test_Rectangle_refine_Mesh(**kwargs):
+    kwargs['n0'] //= 2
+    kwargs['n1'] //= 2
     m = Rectangle(**kwargs)
     m.setRefinementLevel(1)
     m.refineMesh("uniform")
     return m
 
+def test_Rectangle_refine_Point(**kwargs):
+    kwargs['n0'] //= 2
+    kwargs['n1'] //= 2
+    m = Rectangle(**kwargs)
+    m.setRefinementLevel(1)
+    m.refinePoint(x0=0.5,y0=0.5)
+    return m
+
+def test_Rectangle_refine_Boundary(**kwargs):
+    kwargs['n0'] //= 2
+    kwargs['n1'] //= 2
+    m = Rectangle(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineBoundary(boundary="top",dx=0.5)
+    return m
+
+def test_Rectangle_refine_Region(**kwargs):
+    kwargs['n0'] //= 2
+    kwargs['n1'] //= 2
+    m = Rectangle(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineRegion(x0=0.2,x1=0.2,y0=0.6,y1=0.8)
+    return m
 # def Brick(**kwargs):
 #     m = MultiResolutionDomain(3, **kwargs)
 #     return m.getLevel(1)
@@ -73,9 +98,39 @@ class SimpleSolveOnTrilinos(SimpleSolveTestCase):
 
 
 ## direct
-class Test_SimpleSolveMultiRes2D_Trilinos_Direct(SimpleSolveOnTrilinos):
+class Test_SimpleSolveMultiRes2D_Trilinos_Direct_Mesh(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_Mesh(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.package = SolverOptions.TRILINOS
+        self.method = SolverOptions.DIRECT
+
+    def tearDown(self):
+        del self.domain
+
+## direct
+class Test_SimpleSolveMultiRes2D_Trilinos_Direct_Point(SimpleSolveOnTrilinos):
+    def setUp(self):
+        self.domain = test_Rectangle_refine_Point(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.package = SolverOptions.TRILINOS
+        self.method = SolverOptions.DIRECT
+
+    def tearDown(self):
+        del self.domain
+
+## direct
+class Test_SimpleSolveMultiRes2D_Trilinos_Direct_Boundary(SimpleSolveOnTrilinos):
+    def setUp(self):
+        self.domain = test_Rectangle_refine_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.package = SolverOptions.TRILINOS
+        self.method = SolverOptions.DIRECT
+
+    def tearDown(self):
+        del self.domain
+
+## direct
+class Test_SimpleSolveMultiRes2D_Trilinos_Direct_Region(SimpleSolveOnTrilinos):
+    def setUp(self):
+        self.domain = test_Rectangle_refine_Region(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.DIRECT
 
@@ -96,9 +151,39 @@ class Test_SimpleSolveMultiRes2D_Trilinos_Direct(SimpleSolveOnTrilinos):
         
 ### BiCGStab + Jacobi
 
-class Test_SimpleSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi(SimpleSolveOnTrilinos):
+class Test_SimpleSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi_Mesh(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_Mesh(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.package = SolverOptions.TRILINOS
+        self.method = SolverOptions.BICGSTAB
+        self.preconditioner = SolverOptions.JACOBI
+
+    def tearDown(self):
+        del self.domain
+
+class Test_SimpleSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi_Point(SimpleSolveOnTrilinos):
+    def setUp(self):
+        self.domain = test_Rectangle_refine_Point(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.package = SolverOptions.TRILINOS
+        self.method = SolverOptions.BICGSTAB
+        self.preconditioner = SolverOptions.JACOBI
+
+    def tearDown(self):
+        del self.domain
+
+class Test_SimpleSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi_Boundary(SimpleSolveOnTrilinos):
+    def setUp(self):
+        self.domain = v=test_Rectangle_refine_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.package = SolverOptions.TRILINOS
+        self.method = SolverOptions.BICGSTAB
+        self.preconditioner = SolverOptions.JACOBI
+
+    def tearDown(self):
+        del self.domain
+
+class Test_SimpleSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi_Region(SimpleSolveOnTrilinos):
+    def setUp(self):
+        self.domain = test_Rectangle_refine_Region(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.BICGSTAB
         self.preconditioner = SolverOptions.JACOBI
@@ -121,9 +206,9 @@ class Test_SimpleSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi(SimpleSolveOnTrilinos)
 
 ### GMRES + Jacobi
 
-class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi(SimpleSolveOnTrilinos):
+class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi_Mesh(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_Mesh(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.GMRES
         self.preconditioner = SolverOptions.JACOBI
@@ -131,6 +216,35 @@ class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi(SimpleSolveOnTrilinos):
     def tearDown(self):
         del self.domain
 
+class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi_Point(SimpleSolveOnTrilinos):
+    def setUp(self):
+        self.domain = test_Rectangle_Point(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.package = SolverOptions.TRILINOS
+        self.method = SolverOptions.GMRES
+        self.preconditioner = SolverOptions.JACOBI
+
+    def tearDown(self):
+        del self.domain
+
+class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi_Boundary(SimpleSolveOnTrilinos):
+    def setUp(self):
+        self.domain = test_Rectangle_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.package = SolverOptions.TRILINOS
+        self.method = SolverOptions.GMRES
+        self.preconditioner = SolverOptions.JACOBI
+
+    def tearDown(self):
+        del self.domain
+
+class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi_Region(SimpleSolveOnTrilinos):
+    def setUp(self):
+        self.domain = test_Rectangle_Region(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.package = SolverOptions.TRILINOS
+        self.method = SolverOptions.GMRES
+        self.preconditioner = SolverOptions.JACOBI
+
+    def tearDown(self):
+        del self.domain
 #TODO
 # @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
 # class Test_SimpleSolveMultiRes3D_Trilinos_GMRES_Jacobi(SimpleSolveOnTrilinos):
@@ -145,9 +259,39 @@ class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi(SimpleSolveOnTrilinos):
 
 ### PCG + Jacobi
 
-class Test_SimpleSolveMultiRes2D_Trilinos_PCG_Jacobi(SimpleSolveOnTrilinos):
+class Test_SimpleSolveMultiRes2D_Trilinos_PCG_Jacobi_Mesh(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_Mesh(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.package = SolverOptions.TRILINOS
+        self.method = SolverOptions.PCG
+        self.preconditioner = SolverOptions.JACOBI
+
+    def tearDown(self):
+        del self.domain
+
+class Test_SimpleSolveMultiRes2D_Trilinos_PCG_Jacobi_Point(SimpleSolveOnTrilinos):
+    def setUp(self):
+        self.domain = test_Rectangle_Point(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.package = SolverOptions.TRILINOS
+        self.method = SolverOptions.PCG
+        self.preconditioner = SolverOptions.JACOBI
+
+    def tearDown(self):
+        del self.domain
+
+class Test_SimpleSolveMultiRes2D_Trilinos_PCG_Jacobi_Boundary(SimpleSolveOnTrilinos):
+    def setUp(self):
+        self.domain = test_Rectangle_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.package = SolverOptions.TRILINOS
+        self.method = SolverOptions.PCG
+        self.preconditioner = SolverOptions.JACOBI
+
+    def tearDown(self):
+        del self.domain
+
+class Test_SimpleSolveMultiRes2D_Trilinos_PCG_Jacobi_Region(SimpleSolveOnTrilinos):
+    def setUp(self):
+        self.domain = test_Rectangle_Region(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.JACOBI
@@ -169,9 +313,38 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_Jacobi(SimpleSolveOnTrilinos):
 
 ### MINRES + Jacobi
 
-class Test_SimpleSolveMultiRes2D_Trilinos_MINRES_Jacobi(SimpleSolveOnTrilinos):
+class Test_SimpleSolveMultiRes2D_Trilinos_MINRES_Jacobi_Mesh(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_Mesh(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.package = SolverOptions.TRILINOS
+        self.method = SolverOptions.MINRES
+        self.preconditioner = SolverOptions.JACOBI
+
+    def tearDown(self):
+        del self.domain
+class Test_SimpleSolveMultiRes2D_Trilinos_MINRES_Jacobi_Point(SimpleSolveOnTrilinos):
+    def setUp(self):
+        self.domain = test_Rectangle_Point(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.package = SolverOptions.TRILINOS
+        self.method = SolverOptions.MINRES
+        self.preconditioner = SolverOptions.JACOBI
+
+    def tearDown(self):
+        del self.domain
+
+class Test_SimpleSolveMultiRes2D_Trilinos_MINRES_Jacobi_Boundary(SimpleSolveOnTrilinos):
+    def setUp(self):
+        self.domain = test_Rectangle_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.package = SolverOptions.TRILINOS
+        self.method = SolverOptions.MINRES
+        self.preconditioner = SolverOptions.JACOBI
+
+    def tearDown(self):
+        del self.domain
+
+class Test_SimpleSolveMultiRes2D_Trilinos_MINRES_Jacobi_Region(SimpleSolveOnTrilinos):
+    def setUp(self):
+        self.domain = test_Rectangle_Region(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.MINRES
         self.preconditioner = SolverOptions.JACOBI
@@ -193,9 +366,39 @@ class Test_SimpleSolveMultiRes2D_Trilinos_MINRES_Jacobi(SimpleSolveOnTrilinos):
 
 ### TFQMR + RILU
 
-class Test_SimpleSolveMultiRes2D_Trilinos_TFQMR_RILU(SimpleSolveOnTrilinos):
+class Test_SimpleSolveMultiRes2D_Trilinos_TFQMR_RILU_Mesh(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_Mesh(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.package = SolverOptions.TRILINOS
+        self.method = SolverOptions.TFQMR
+        self.preconditioner = SolverOptions.RILU
+
+    def tearDown(self):
+        del self.domain
+
+class Test_SimpleSolveMultiRes2D_Trilinos_TFQMR_RILU_Point(SimpleSolveOnTrilinos):
+    def setUp(self):
+        self.domain = test_Rectangle_Point(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.package = SolverOptions.TRILINOS
+        self.method = SolverOptions.TFQMR
+        self.preconditioner = SolverOptions.RILU
+
+    def tearDown(self):
+        del self.domain
+
+class Test_SimpleSolveMultiRes2D_Trilinos_TFQMR_RILU_Boundary(SimpleSolveOnTrilinos):
+    def setUp(self):
+        self.domain = test_Rectangle_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.package = SolverOptions.TRILINOS
+        self.method = SolverOptions.TFQMR
+        self.preconditioner = SolverOptions.RILU
+
+    def tearDown(self):
+        del self.domain
+
+class Test_SimpleSolveMultiRes2D_Trilinos_TFQMR_RILU_Region(SimpleSolveOnTrilinos):
+    def setUp(self):
+        self.domain = test_Rectangle_Region(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.TFQMR
         self.preconditioner = SolverOptions.RILU
@@ -218,10 +421,10 @@ class Test_SimpleSolveMultiRes2D_Trilinos_TFQMR_RILU(SimpleSolveOnTrilinos):
 ### LSQR + AMG
 
 @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
-class Test_SimpleSolveMultiRes2D_Trilinos_LSQR_AMG(SimpleSolveOnTrilinos):
+class Test_SimpleSolveMultiRes2D_Trilinos_LSQR_AMG_Mesh(SimpleSolveOnTrilinos):
     SOLVER_TOL = 1.e-9
     def setUp(self):
-        self.domain = test_Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_Mesh(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.LSQR
         self.preconditioner = SolverOptions.AMG
@@ -229,12 +432,82 @@ class Test_SimpleSolveMultiRes2D_Trilinos_LSQR_AMG(SimpleSolveOnTrilinos):
     def tearDown(self):
         del self.domain
 
+@unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
+class Test_SimpleSolveMultiRes2D_Trilinos_LSQR_AMG_Point(SimpleSolveOnTrilinos):
+    SOLVER_TOL = 1.e-9
+    def setUp(self):
+        self.domain = test_Rectangle_Point(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.package = SolverOptions.TRILINOS
+        self.method = SolverOptions.LSQR
+        self.preconditioner = SolverOptions.AMG
+
+    def tearDown(self):
+        del self.domain
+
+@unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
+class Test_SimpleSolveMultiRes2D_Trilinos_LSQR_AMG_Boundary(SimpleSolveOnTrilinos):
+    SOLVER_TOL = 1.e-9
+    def setUp(self):
+        self.domain = test_Rectangle_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.package = SolverOptions.TRILINOS
+        self.method = SolverOptions.LSQR
+        self.preconditioner = SolverOptions.AMG
+
+    def tearDown(self):
+        del self.domain
+
+@unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
+class Test_SimpleSolveMultiRes2D_Trilinos_LSQR_AMG_Region(SimpleSolveOnTrilinos):
+    SOLVER_TOL = 1.e-9
+    def setUp(self):
+        self.domain = test_Rectangle_Region(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.package = SolverOptions.TRILINOS
+        self.method = SolverOptions.LSQR
+        self.preconditioner = SolverOptions.AMG
+
+    def tearDown(self):
+        del self.domain
+
+
 ### PCG + AMG
 
 @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
-class Test_SimpleSolveMultiRes2D_Trilinos_PCG_AMG(SimpleSolveOnTrilinos):
+class Test_SimpleSolveMultiRes2D_Trilinos_PCG_AMG_Mesh(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_Mesh(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.package = SolverOptions.TRILINOS
+        self.method = SolverOptions.PCG
+        self.preconditioner = SolverOptions.AMG
+
+    def tearDown(self):
+        del self.domain
+
+@unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
+class Test_SimpleSolveMultiRes2D_Trilinos_PCG_AMG_Point(SimpleSolveOnTrilinos):
+    def setUp(self):
+        self.domain = test_Rectangle_Point(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.package = SolverOptions.TRILINOS
+        self.method = SolverOptions.PCG
+        self.preconditioner = SolverOptions.AMG
+
+    def tearDown(self):
+        del self.domain
+
+@unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
+class Test_SimpleSolveMultiRes2D_Trilinos_PCG_AMG_Boundary(SimpleSolveOnTrilinos):
+    def setUp(self):
+        self.domain = test_Rectangle_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.package = SolverOptions.TRILINOS
+        self.method = SolverOptions.PCG
+        self.preconditioner = SolverOptions.AMG
+
+    def tearDown(self):
+        del self.domain
+
+@unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
+class Test_SimpleSolveMultiRes2D_Trilinos_PCG_AMG_Region(SimpleSolveOnTrilinos):
+    def setUp(self):
+        self.domain = test_Rectangle_Region(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.AMG
@@ -257,9 +530,39 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_AMG(SimpleSolveOnTrilinos):
 
 ### PCG + ILUT
 
-class Test_SimpleSolveMultiRes2D_Trilinos_PCG_ILUT(SimpleSolveOnTrilinos):
+class Test_SimpleSolveMultiRes2D_Trilinos_PCG_ILUT_Mesh(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_Mesh(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.package = SolverOptions.TRILINOS
+        self.method = SolverOptions.PCG
+        self.preconditioner = SolverOptions.ILUT
+
+    def tearDown(self):
+        del self.domain
+
+class Test_SimpleSolveMultiRes2D_Trilinos_PCG_ILUT_Point(SimpleSolveOnTrilinos):
+    def setUp(self):
+        self.domain = test_Rectangle_Point(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.package = SolverOptions.TRILINOS
+        self.method = SolverOptions.PCG
+        self.preconditioner = SolverOptions.ILUT
+
+    def tearDown(self):
+        del self.domain
+
+class Test_SimpleSolveMultiRes2D_Trilinos_PCG_ILUT_Boundary(SimpleSolveOnTrilinos):
+    def setUp(self):
+        self.domain = test_Rectangle_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.package = SolverOptions.TRILINOS
+        self.method = SolverOptions.PCG
+        self.preconditioner = SolverOptions.ILUT
+
+    def tearDown(self):
+        del self.domain
+
+class Test_SimpleSolveMultiRes2D_Trilinos_PCG_ILUT_Region(SimpleSolveOnTrilinos):
+    def setUp(self):
+        self.domain = test_Rectangle_Region(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.ILUT

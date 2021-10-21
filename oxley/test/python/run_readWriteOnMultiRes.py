@@ -45,10 +45,36 @@ def adjust(NE, ftype):
         return [i+1 for i in NE]
     return NE
 
-def test_Rectangle(**kwargs):
+def test_Rectangle_refine_Mesh(**kwargs):
+    kwargs['n0'] //= 2
+    kwargs['n1'] //= 2
     m = Rectangle(**kwargs)
     m.setRefinementLevel(1)
     m.refineMesh("uniform")
+    return m
+
+def test_Rectangle_refine_Point(**kwargs):
+    kwargs['n0'] //= 2
+    kwargs['n1'] //= 2
+    m = Rectangle(**kwargs)
+    m.setRefinementLevel(1)
+    m.refinePoint(x0=0.5,y0=0.5)
+    return m
+
+def test_Rectangle_refine_Boundary(**kwargs):
+    kwargs['n0'] //= 2
+    kwargs['n1'] //= 2
+    m = Rectangle(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineBoundary(boundary="top",dx=0.5)
+    return m
+
+def test_Rectangle_refine_Region(**kwargs):
+    kwargs['n0'] //= 2
+    kwargs['n1'] //= 2
+    m = Rectangle(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineRegion(x0=0.2,x1=0.2,y0=0.6,y1=0.8)
     return m
 
 # def Brick(**kwargs):
@@ -90,7 +116,7 @@ class WriteBinaryGridTestBase(unittest.TestCase): #subclassing required
 
     def test_writeGrid2D(self):
         self.NE = [self.NX, self.NZ]
-        self.domain = test_Rectangle(n0=self.NE[0], n1=self.NE[1], d1=1)
+        self.domain = test_Rectangle_Mesh(n0=self.NE[0], n1=self.NE[1], d1=1)
         for ftype,fcode in [(ReducedFunction,'RF'), (ContinuousFunction,'CF'), (Solution, 'Sol')]:
             data, ref = self.generateUniqueData(ftype)
             with self.assertRaises(RuntimeError):
@@ -98,6 +124,135 @@ class WriteBinaryGridTestBase(unittest.TestCase): #subclassing required
                 self.assertAlmostEqual(Lsup(ref-result), 0, delta=1e-9,
                         msg="Data doesn't match for "+str(ftype(self.domain)))
 
+@unittest.skipIf(mpiSize > 1, "Multiresolution domains don't support multiprocess yet")
+class WriteBinaryGridTestBase(unittest.TestCase): #subclassing required
+    NX = 10*mpiSize-1
+    NZ = 10
+
+    def generateUniqueData(self, ftype):
+        dim = self.domain.getDim()
+        FSx=ftype(self.domain).getX()
+        NE = adjust(self.NE, ftype)
+        # normalise and scale range of values
+        x = [FSx[i]-inf(FSx[i]) for i in range(dim)]
+        x = [(NE[i]-1)*(x[i]/sup(x[i])) for i in range(dim)]
+        xMax = [int(sup(x[i]))+1 for i in range(dim)]
+        nvals=NE[0]*NE[1]
+        data = x[0] + xMax[0]*x[1]
+        if self.datatype == DATATYPE_INT32:
+            data += 0.05
+        if dim > 2:
+            data = data + xMax[0]*xMax[1]*x[2]
+            nvals*=NE[2]
+
+        grid = np.array(range(nvals), dtype=self.dtype).reshape(tuple(reversed(NE)))
+        return data, grid
+
+    def writeThenRead(self, data, ftype, fcode):
+        filename = os.path.join(OXLEY_WORKDIR, "_wgrid%dd%s"%(self.domain.getDim(),fcode))
+        filename = filename + self.dtype.replace('<','L').replace('>','B')
+        self.domain.writeBinaryGrid(data, filename, self.byteorder, self.datatype)
+        MPIBarrierWorld()
+        result = np.fromfile(filename, dtype=self.dtype).reshape(
+                tuple(reversed(adjust(self.NE,ftype))))
+        return result
+
+    def test_writeGrid2D(self):
+        self.NE = [self.NX, self.NZ]
+        self.domain = test_Rectangle_Boundary(n0=self.NE[0], n1=self.NE[1], d1=1)
+        for ftype,fcode in [(ReducedFunction,'RF'), (ContinuousFunction,'CF'), (Solution, 'Sol')]:
+            data, ref = self.generateUniqueData(ftype)
+            with self.assertRaises(RuntimeError):
+                result = self.writeThenRead(data, ftype, fcode)
+                self.assertAlmostEqual(Lsup(ref-result), 0, delta=1e-9,
+                        msg="Data doesn't match for "+str(ftype(self.domain)))
+
+
+@unittest.skipIf(mpiSize > 1, "Multiresolution domains don't support multiprocess yet")
+class WriteBinaryGridTestBase(unittest.TestCase): #subclassing required
+    NX = 10*mpiSize-1
+    NZ = 10
+
+    def generateUniqueData(self, ftype):
+        dim = self.domain.getDim()
+        FSx=ftype(self.domain).getX()
+        NE = adjust(self.NE, ftype)
+        # normalise and scale range of values
+        x = [FSx[i]-inf(FSx[i]) for i in range(dim)]
+        x = [(NE[i]-1)*(x[i]/sup(x[i])) for i in range(dim)]
+        xMax = [int(sup(x[i]))+1 for i in range(dim)]
+        nvals=NE[0]*NE[1]
+        data = x[0] + xMax[0]*x[1]
+        if self.datatype == DATATYPE_INT32:
+            data += 0.05
+        if dim > 2:
+            data = data + xMax[0]*xMax[1]*x[2]
+            nvals*=NE[2]
+
+        grid = np.array(range(nvals), dtype=self.dtype).reshape(tuple(reversed(NE)))
+        return data, grid
+
+    def writeThenRead(self, data, ftype, fcode):
+        filename = os.path.join(OXLEY_WORKDIR, "_wgrid%dd%s"%(self.domain.getDim(),fcode))
+        filename = filename + self.dtype.replace('<','L').replace('>','B')
+        self.domain.writeBinaryGrid(data, filename, self.byteorder, self.datatype)
+        MPIBarrierWorld()
+        result = np.fromfile(filename, dtype=self.dtype).reshape(
+                tuple(reversed(adjust(self.NE,ftype))))
+        return result
+
+    def test_writeGrid2D(self):
+        self.NE = [self.NX, self.NZ]
+        self.domain = test_Rectangle_Point(n0=self.NE[0], n1=self.NE[1], d1=1)
+        for ftype,fcode in [(ReducedFunction,'RF'), (ContinuousFunction,'CF'), (Solution, 'Sol')]:
+            data, ref = self.generateUniqueData(ftype)
+            with self.assertRaises(RuntimeError):
+                result = self.writeThenRead(data, ftype, fcode)
+                self.assertAlmostEqual(Lsup(ref-result), 0, delta=1e-9,
+                        msg="Data doesn't match for "+str(ftype(self.domain)))
+
+@unittest.skipIf(mpiSize > 1, "Multiresolution domains don't support multiprocess yet")
+class WriteBinaryGridTestBase(unittest.TestCase): #subclassing required
+    NX = 10*mpiSize-1
+    NZ = 10
+
+    def generateUniqueData(self, ftype):
+        dim = self.domain.getDim()
+        FSx=ftype(self.domain).getX()
+        NE = adjust(self.NE, ftype)
+        # normalise and scale range of values
+        x = [FSx[i]-inf(FSx[i]) for i in range(dim)]
+        x = [(NE[i]-1)*(x[i]/sup(x[i])) for i in range(dim)]
+        xMax = [int(sup(x[i]))+1 for i in range(dim)]
+        nvals=NE[0]*NE[1]
+        data = x[0] + xMax[0]*x[1]
+        if self.datatype == DATATYPE_INT32:
+            data += 0.05
+        if dim > 2:
+            data = data + xMax[0]*xMax[1]*x[2]
+            nvals*=NE[2]
+
+        grid = np.array(range(nvals), dtype=self.dtype).reshape(tuple(reversed(NE)))
+        return data, grid
+
+    def writeThenRead(self, data, ftype, fcode):
+        filename = os.path.join(OXLEY_WORKDIR, "_wgrid%dd%s"%(self.domain.getDim(),fcode))
+        filename = filename + self.dtype.replace('<','L').replace('>','B')
+        self.domain.writeBinaryGrid(data, filename, self.byteorder, self.datatype)
+        MPIBarrierWorld()
+        result = np.fromfile(filename, dtype=self.dtype).reshape(
+                tuple(reversed(adjust(self.NE,ftype))))
+        return result
+
+    def test_writeGrid2D(self):
+        self.NE = [self.NX, self.NZ]
+        self.domain = test_Rectangle_Region(n0=self.NE[0], n1=self.NE[1], d1=1)
+        for ftype,fcode in [(ReducedFunction,'RF'), (ContinuousFunction,'CF'), (Solution, 'Sol')]:
+            data, ref = self.generateUniqueData(ftype)
+            with self.assertRaises(RuntimeError):
+                result = self.writeThenRead(data, ftype, fcode)
+                self.assertAlmostEqual(Lsup(ref-result), 0, delta=1e-9,
+                        msg="Data doesn't match for "+str(ftype(self.domain)))
     # def test_writeGrid3D(self):
     #     self.NE = [self.NX, self.NX, self.NZ]
     #     self.domain = Brick(n0=self.NE[0], n1=self.NE[1], n2=self.NE[2], d2=1)

@@ -34,22 +34,66 @@ from esys.oxley import Rectangle, Brick
 
 mpiSize = getMPISizeWorld()
 
-def test_Rectangle(**kwargs):
+def test_Rectangle_refine_Mesh(**kwargs):
+    kwargs['n0'] //= 2
+    kwargs['n1'] //= 2
     m = Rectangle(**kwargs)
     m.setRefinementLevel(1)
     m.refineMesh("uniform")
     return m
 
+def test_Rectangle_refine_Point(**kwargs):
+    kwargs['n0'] //= 2
+    kwargs['n1'] //= 2
+    m = Rectangle(**kwargs)
+    m.setRefinementLevel(1)
+    m.refinePoint(x0=0.5,y0=0.5)
+    return m
+
+def test_Rectangle_refine_Boundary(**kwargs):
+    kwargs['n0'] //= 2
+    kwargs['n1'] //= 2
+    m = Rectangle(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineBoundary(boundary="top",dx=0.5)
+    return m
+
+def test_Rectangle_refine_Region(**kwargs):
+    kwargs['n0'] //= 2
+    kwargs['n1'] //= 2
+    m = Rectangle(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineRegion(x0=0.2,x1=0.2,y0=0.6,y1=0.8)
+    return m
+
+
 # def Brick(**kwargs):
 #     m = MultiResolutionDomain(3, **kwargs)
 #     return m.getLevel(1)
 
-class Test_OxleyNonLinearPDE2D(Test_nlpde):
+class Test_OxleyNonLinearPDE2D_Mesh(Test_nlpde):
    def setUp(self):
-        self.domain = test_Rectangle(l0=1.,l1=1., n0=10, n1=10*getMPISizeWorld()-1, d1=getMPISizeWorld()) 
+        self.domain = test_Rectangle_Mesh(l0=1.,l1=1., n0=10, n1=10*getMPISizeWorld()-1, d1=getMPISizeWorld()) 
    def tearDown(self):
         del self.domain
 
+class Test_OxleyNonLinearPDE2D_Point(Test_nlpde):
+   def setUp(self):
+        self.domain = test_Rectangle_Point(l0=1.,l1=1., n0=10, n1=10*getMPISizeWorld()-1, d1=getMPISizeWorld()) 
+   def tearDown(self):
+        del self.domain
+
+class Test_OxleyNonLinearPDE2D_Boundary(Test_nlpde):
+   def setUp(self):
+        self.domain = test_Rectangle_Boundary(l0=1.,l1=1., n0=10, n1=10*getMPISizeWorld()-1, d1=getMPISizeWorld()) 
+   def tearDown(self):
+        del self.domain
+
+class Test_OxleyNonLinearPDE2D_Region(Test_nlpde):
+   def setUp(self):
+        self.domain = test_Rectangle_Region(l0=1.,l1=1., n0=10, n1=10*getMPISizeWorld()-1, d1=getMPISizeWorld()) 
+   def tearDown(self):
+        del self.domain                
 # TODO
 # @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
 # class Test_OxleyNonLinearPDE3D(Test_nlpde):
