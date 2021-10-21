@@ -1201,9 +1201,9 @@ bool Rectangle::isHangingNode(p4est_lnodes_code_t face_code, int n) const
     }
     else
     {
-        int8_t c = face_code & 0x03;
-        int8_t ishanging0 = (face_code >> 2) & 0x01;
-        int8_t ishanging1 = (face_code >> 3) & 0x01;
+        int8_t c = face_code & 1;
+        int8_t ishanging0 = (face_code >> 2) & 1;
+        int8_t ishanging1 = (face_code >> 3) & 1;
 
         int8_t f0 = p4est_corner_faces[c][0];
         int8_t f1 = p4est_corner_faces[c][1];
@@ -1214,6 +1214,27 @@ bool Rectangle::isHangingNode(p4est_lnodes_code_t face_code, int n) const
         return ((ishanging0 == 1) && (p4est_corner_face_corners[c][f0] == 1)) 
             || ((ishanging1 == 1) && (p4est_corner_face_corners[c][f1] == 1));
     }
+}
+
+bool Rectangle::getHangingNodes(p4est_lnodes_code_t face_code, int hanging_corner[]) const
+{
+    if (face_code) 
+    {
+        const int c = (int) (face_code & 3);
+        int i, h;
+        int work = (int) (face_code >> 4);
+
+        /* These two corners are never hanging by construction. */
+        hanging_corner[c] = hanging_corner[c ^ 3] = -1;
+        for (i = 0; i < 4; ++i) {
+            /* Process face hanging corners. */
+            h = c ^ (1 << i);
+            hanging_corner[h ^ 3] = (work & 1) ? c : -1;
+            work >>= 1;
+        }
+        return 1;
+    }
+    return 0;
 }
 
 //protected
@@ -1302,6 +1323,7 @@ void Rectangle::renumberNodes()
 
     NodeIDs.clear();
     quadrantIDs.clear();
+    is_hanging.clear();
 // #pragma omp for
     for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) {
         p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
@@ -1353,6 +1375,40 @@ void Rectangle::renumberNodes()
     }
     for(int i=0; i<NodeIDs.size(); i++)
         std::cout << i << ": " << xyf[i][0] << ", " << xyf[i][1] << std::endl;
+#endif
+
+    // Check for hanging nodes
+    is_hanging.resize(getNumNodes(),false);
+    for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) {
+        p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
+        sc_array_t * tquadrants = &tree->quadrants;
+        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+        for(int q = 0; q < Q; ++q) { 
+            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+            p4est_qcoord_t l = P4EST_QUADRANT_LEN(quad->level);
+            p4est_qcoord_t lxy[4][2] = {{0,0},{l,0},{0,l},{l,l}};
+
+            int k = q - Q + nodeIncrements[treeid - p4est->first_local_tree];
+            int hanging[4] = {0};
+            double xy[3];
+            getHangingNodes(nodes->face_code[k],  hanging);
+
+            for(int n = 0; n < 4; n++)
+            {                
+                p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy);
+                if(hanging[n])
+                {                    
+                    // p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy);
+                    int id = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+                    is_hanging[id]=true;
+                }
+
+            }
+        }
+    }
+#ifdef OXLEY_PRINT_NODEIDS_HANGING
+    for(int i = 0; i < is_hanging.size(); i++)
+        std::cout << i << ": " << is_hanging[i] << std::endl;
 #endif
 }
 

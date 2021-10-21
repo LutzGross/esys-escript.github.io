@@ -283,7 +283,8 @@ private:
 
     // Rectangle needs to keep track of this information
     std::unordered_map<DoublePair,long,boost::hash<DoublePair>> NodeIDs; //global ids of the nodes
-    std::unordered_map<long,bool> hangingNodeIDs; //global ids of the hanging nodes
+    // std::unordered_map<long,bool> hangingNodeIDs; //global ids of the hanging nodes
+    std::vector<bool> is_hanging; // element x is true if node id x is a hanging node
     std::unordered_map<DoublePair,long,boost::hash<DoublePair>> treeIDs; //global ids of the hanging nodes
     std::unordered_map<long,double> current_solution; //solution at each node
     std::vector<long> quadrantIDs; // IDs of the quadrants
@@ -411,6 +412,12 @@ protected:
        Returns true if the node is hanging
     */
     bool isHangingNode(p4est_lnodes_code_t face_code, int n) const;
+
+    /**
+       \brief
+       Returns true if the node is hanging
+    */
+    bool getHangingNodes(p4est_lnodes_code_t face_code, int hanging[]) const;
 
     /**
        \brief
