@@ -1216,25 +1216,30 @@ bool Rectangle::isHangingNode(p4est_lnodes_code_t face_code, int n) const
     }
 }
 
-bool Rectangle::getHangingNodes(p4est_lnodes_code_t face_code, int hanging_corner[]) const
+bool Rectangle::getHangingNodes(p4est_lnodes_code_t face_code, int hanging_corner[P4EST_CHILDREN]) const
 {
-    if (face_code) 
-    {
-        const int c = (int) (face_code & 3);
-        int i, h;
-        int work = (int) (face_code >> 4);
+    static const int ones = P4EST_CHILDREN - 1;
 
-        /* These two corners are never hanging by construction. */
-        hanging_corner[c] = hanging_corner[c ^ 3] = -1;
-        for (i = 0; i < 4; ++i) {
-            /* Process face hanging corners. */
-            h = c ^ (1 << i);
-            hanging_corner[h ^ 3] = (work & 1) ? c : -1;
-            work >>= 1;
-        }
-        return 1;
+  if (face_code) {
+    const int           c = (int) (face_code & ones);
+    int                 i, h;
+    int                 work = (int) (face_code >> P4EST_DIM);
+
+    /* These two corners are never hanging by construction. */
+    hanging_corner[c] = hanging_corner[c ^ ones] = -1;
+    for (i = 0; i < P4EST_DIM; ++i) {
+      /* Process face hanging corners. */
+      h = c ^ (1 << i);
+      hanging_corner[h ^ ones] = (work & 1) ? c : -1;
+#ifdef P4_TO_P8
+      /* Process edge hanging corners. */
+      hanging_corner[h] = (work & P4EST_CHILDREN) ? c : -1;
+#endif
+      work >>= 1;
     }
-    return 0;
+    return 1;
+  }
+  return 0;
 }
 
 //protected
@@ -1388,17 +1393,19 @@ void Rectangle::renumberNodes()
             p4est_qcoord_t l = P4EST_QUADRANT_LEN(quad->level);
             p4est_qcoord_t lxy[4][2] = {{0,0},{l,0},{0,l},{l,l}};
 
-            int k = q - Q + nodeIncrements[treeid - p4est->first_local_tree];
+            // int k = q - Q + nodeIncrements[treeid - p4est->first_local_tree];
             int hanging[4] = {0};
             double xy[3];
-            getHangingNodes(nodes->face_code[k],  hanging);
+
+            // if no hanging nodes skip to the next loop
+            if(!getHangingNodes(nodes->face_code[q],  hanging))
+                continue;                
 
             for(int n = 0; n < 4; n++)
             {                
-                p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy);
-                if(hanging[n])
+                if(hanging[n]>-1)
                 {                    
-                    // p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy);
+                    p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy);
                     int id = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
                     is_hanging[id]=true;
                 }
@@ -1439,14 +1446,14 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
 
             // Loop over the four corners of the quadrant
             for(int n = 0; n < 4; ++n){
-                int k = q - Q + nodeIncrements[treeid - p4est->first_local_tree];
+                // int k = q - Q + nodeIncrements[treeid - p4est->first_local_tree];
                 double lx = length * ((int) (n % 2) == 1);
                 double ly = length * ((int) (n / 2) == 1);
                 double xy[3];
                 p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
 
                 if( (n == 0) 
-                  || isHangingNode(nodes->face_code[k], n)
+                  || isHangingNode(nodes->face_code[q], n)
                   || isUpperBoundaryNode(quad, n, treeid, length) 
                 )
                 {
