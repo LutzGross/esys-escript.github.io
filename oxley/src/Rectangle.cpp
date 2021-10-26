@@ -734,13 +734,13 @@ void Rectangle::dump(const std::string& fileName) const
     int shapesize[] = {4};
     int shapecounts[] = {lnodelist/4};
     int nshapetypes = 1;
-    // int const shapetype[1] = {DB_ZONETYPE_QUAD};
+    int shapetype[1] = {DB_ZONETYPE_QUAD};
 
     // This is deprecated
-    DBPutZonelist(dbfile, "quads", getNumElements(), 2, nodelistarray, lnodelist, 0, 
-                    shapesize, shapecounts, nshapetypes);
-    // DBPutZonelist2(dbfile, "quads", getNumElements(), 2, nodelistarray, lnodelist, 0,
-    //             0, 0, shapetype, shapesize, shapecounts, nshapetypes, NULL);
+    // DBPutZonelist(dbfile, "quads", getNumElements(), 2, nodelistarray, lnodelist, 0, 
+    //                 shapesize, shapecounts, nshapetypes);
+    DBPutZonelist2(dbfile, "quads", getNumElements(), 2, nodelistarray, lnodelist, 0,
+                0, 0, shapetype, shapesize, shapecounts, nshapetypes, NULL);
         
 
     DBPutUcdmesh(dbfile, "mesh", 2, NULL, pCoordinates, getNumNodes(), getNumElements(), 
@@ -1387,25 +1387,24 @@ void Rectangle::renumberNodes()
     for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) {
         p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
         sc_array_t * tquadrants = &tree->quadrants;
-        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;        
         for(int q = 0; q < Q; ++q) { 
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
             p4est_qcoord_t l = P4EST_QUADRANT_LEN(quad->level);
             p4est_qcoord_t lxy[4][2] = {{0,0},{l,0},{0,l},{l,l}};
 
-            // int k = q - Q + nodeIncrements[treeid - p4est->first_local_tree];
             int hanging[4] = {0};
             double xy[3];
 
             // if no hanging nodes skip to the next loop
-            if(!getHangingNodes(nodes->face_code[q],  hanging))
+            if(!getHangingNodes(nodes->face_code[q-Q+nodeIncrements[treeid-p4est->first_local_tree]],  hanging))
                 continue;                
 
-            for(int n = 0; n < 4; n++)
+            for(int n = 0; n < 4; n++) //loop over the children of the parent quadrant
             {                
                 if(hanging[n]>-1)
-                {                    
-                    p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy);
+                {
+                    p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy);                   
                     int id = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
                     is_hanging[id]=true;
                 }
@@ -1415,7 +1414,9 @@ void Rectangle::renumberNodes()
     }
 #ifdef OXLEY_PRINT_NODEIDS_HANGING
     for(int i = 0; i < is_hanging.size(); i++)
-        std::cout << i << ": " << is_hanging[i] << std::endl;
+        if(is_hanging[i])
+            std::cout << i << ", "; 
+        std::cout << std::endl;
 #endif
 }
 
@@ -1439,7 +1440,7 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
         sc_array_t * tquadrants = &tree->quadrants;
         p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
 
-#pragma omp parallel for
+// #pragma omp parallel for
         for(int q = 0; q < Q; ++q) { // Loop over the elements attached to the tree
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
             p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
