@@ -543,14 +543,12 @@ void Rectangle::setToSize(escript::Data& out) const
             p4est_tree_t * tree_t = p4est_tree_array_index(p4est->trees, tree);
             max_level = tree_t->maxlevel > max_level ? tree_t->maxlevel : max_level;
         }
-
         // Work out the size at each level
         std::vector<double> size_vect(max_level+1, -1.0);
         for(int i = 0 ; i <= max_level ; i++)
         {
             size_vect[i] = sqrt((forestData.m_dx[0][P4EST_MAXLEVEL-i]*forestData.m_dx[0][P4EST_MAXLEVEL-i]
-                                                    +forestData.m_dx[1][P4EST_MAXLEVEL-i]*forestData.m_dx[1][P4EST_MAXLEVEL-i])
-                                /(m_NE[0]*m_NE[1])  );
+                                                    +forestData.m_dx[1][P4EST_MAXLEVEL-i]*forestData.m_dx[1][P4EST_MAXLEVEL-i]));
         }
 
         const dim_t numQuad = out.getNumDataPointsPerSample();
