@@ -536,20 +536,38 @@ void Rectangle::setToSize(escript::Data& out) const
         || out.getFunctionSpace().getTypeCode() == ReducedElements)
     {
         out.requireWrite();
+
+        // Find the maximum level of refinement in the mesh
+        int max_level = 0;
+        for(p4est_topidx_t tree = p4est->first_local_tree; tree <= p4est->last_local_tree; tree++) {
+            p4est_tree_t * tree_t = p4est_tree_array_index(p4est->trees, tree);
+            max_level = tree_t->maxlevel > max_level ? tree_t->maxlevel : max_level;
+        }
+
+        // Work out the size at each level
+        std::vector<double> size_vect(max_level+1, -1.0);
+        for(int i = 0 ; i <= max_level ; i++)
+        {
+            size_vect[i] = sqrt((forestData.m_dx[0][P4EST_MAXLEVEL-i]*forestData.m_dx[0][P4EST_MAXLEVEL-i]
+                                                    +forestData.m_dx[1][P4EST_MAXLEVEL-i]*forestData.m_dx[1][P4EST_MAXLEVEL-i])
+                                /(m_NE[0]*m_NE[1])  );
+        }
+
         const dim_t numQuad = out.getNumDataPointsPerSample();
-        for(p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
+        for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
         {
             p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
             sc_array_t * tquadrants = &currenttree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-        #pragma omp parallel for
-            for(p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
+            for (int q = 0; q < Q; ++q)  
             {
-                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
-                // int l = quad->level;
-                const double size = sqrt(forestData.m_dx[0][P4EST_MAXLEVEL-quad->level]*forestData.m_dx[0][P4EST_MAXLEVEL-quad->level]
-                                        +forestData.m_dx[1][P4EST_MAXLEVEL-quad->level]*forestData.m_dx[1][P4EST_MAXLEVEL-quad->level]);
-                double* o = out.getSampleDataRW(e);
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+                int l = quad->level;
+                const double size = size_vect[l];
+                double xy[3];
+                p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x, quad->y, xy);
+                long id = getQuadID(NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
+                double* o = out.getSampleDataRW(id);
                 std::fill(o, o+numQuad, size);
             }
         }
@@ -560,34 +578,36 @@ void Rectangle::setToSize(escript::Data& out) const
         out.requireWrite();
         const dim_t numQuad=out.getNumDataPointsPerSample();
 
-        for(p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
-        {
-            p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
-            sc_array_t * tquadrants = &currenttree->quadrants;
-            p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-        #pragma omp parallel for
-            for(p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
-            {
-                // Work out what level this element is on 
-                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, e);
-                quadrantData * quaddata = (quadrantData *) quad->p.user_data;
+        if (m_faceOffset[0] > -1) {
+            for (index_t k=0; k<NodeIDsLeft.size()-1; k++) {
+                borderNodeInfo tmp = NodeIDsLeft[k];
 
-                if (quaddata->m_faceOffset[0]) {
-                    double* o = out.getSampleDataRW(e);
-                    std::fill(o, o+numQuad, forestData.m_dx[1][P4EST_MAXLEVEL-quad->level]);
-                }
-                else if (quaddata->m_faceOffset[1]) {
-                    double* o = out.getSampleDataRW(e);
-                    std::fill(o, o+numQuad, forestData.m_dx[1][P4EST_MAXLEVEL-quad->level]);
-                }
-                else if (quaddata->m_faceOffset[2]) {
-                    double* o = out.getSampleDataRW(e);
-                    std::fill(o, o+numQuad, forestData.m_dx[0][P4EST_MAXLEVEL-quad->level]);
-                }
-                else if (quaddata->m_faceOffset[3]) {
-                    double* o = out.getSampleDataRW(e);
-                    std::fill(o, o+numQuad, forestData.m_dx[0][P4EST_MAXLEVEL-quad->level]);
-                }
+                double* o = out.getSampleDataRW(m_faceOffset[0]+k);
+                std::fill(o, o+numQuad, forestData.m_dx[1][P4EST_MAXLEVEL-tmp.quad->level]);
+            }
+        }
+
+        if (m_faceOffset[1] > -1) {
+            for (index_t k=0; k<NodeIDsRight.size()-1; k++) {
+                borderNodeInfo tmp = NodeIDsRight[k];
+                double* o = out.getSampleDataRW(m_faceOffset[1]+k);
+                std::fill(o, o+numQuad, forestData.m_dx[1][P4EST_MAXLEVEL-tmp.quad->level]);
+            }
+        }
+
+        if (m_faceOffset[2] > -1) {
+            for (index_t k=0; k<NodeIDsBottom.size()-1; k++) {
+                borderNodeInfo tmp = NodeIDsBottom[k];
+                double* o = out.getSampleDataRW(m_faceOffset[2]+k);
+                std::fill(o, o+numQuad, forestData.m_dx[0][P4EST_MAXLEVEL-tmp.quad->level]);
+            }
+        }
+
+        if (m_faceOffset[3] > -1) {
+            for (index_t k=0; k<NodeIDsTop.size()-1; k++) {
+                borderNodeInfo tmp = NodeIDsTop[k];
+                double* o = out.getSampleDataRW(m_faceOffset[3]+k);
+                std::fill(o, o+numQuad, forestData.m_dx[0][P4EST_MAXLEVEL-tmp.quad->level]);
             }
         }
     } else {
@@ -1834,7 +1854,7 @@ void Rectangle::getNeighouringNodeIDs(p4est_quadrant_t * quad, p4est_topidx_t tr
 {
     p4est_qcoord_t l = P4EST_QUADRANT_LEN(quad->level);
     int adj[4][2]={{0,0},{l,0},{0,l},{l,l}};
-#pragma omp parallel for
+// #pragma omp parallel for
     for(int i=0; i<4;i++)
     {
         double xy[3];
