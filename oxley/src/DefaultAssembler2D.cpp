@@ -648,8 +648,6 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
         double m_dx[2] = {domain->forestData.m_dx[0][P4EST_MAXLEVEL-i], 
                           domain->forestData.m_dx[1][P4EST_MAXLEVEL-i]};
 
-        std::cout << m_dx[0] << ", " << m_dx[1] << std::endl;
-
         w[5][i] = m_dx[0]/12;
         w[6][i] = w[5][i]*(SQRT3 + 2);
         w[7][i] = w[5][i]*(-SQRT3 + 2);
