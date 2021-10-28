@@ -168,8 +168,8 @@ void DefaultAssembler2D<Scalar>::assemblePDESingle(AbstractSystemMatrix* mat, Da
 #pragma omp parallel for
     for(int i = 0; i <= max_level; i++)
     {
-        double m_dx[2] = {domain->m_NX[0]*domain->forestData.m_dx[0][P4EST_MAXLEVEL-i], 
-                          domain->m_NX[1]*domain->forestData.m_dx[1][P4EST_MAXLEVEL-i]};
+        double m_dx[2] = {domain->forestData.m_dx[0][P4EST_MAXLEVEL-i], 
+                          domain->forestData.m_dx[1][P4EST_MAXLEVEL-i]};
         w[1][i]  = 1.0/24.0;
         w[5][i]  = -SQRT3/24 + 1.0/12;
         w[2][i]  = -SQRT3/24 - 1.0/12;
@@ -645,8 +645,10 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
 #pragma omp parallel for
     for(int i = 0; i <= max_level; i++)
     {
-        double m_dx[2] = {domain->m_NX[0]*domain->forestData.m_dx[0][P4EST_MAXLEVEL-i], 
-                          domain->m_NX[1]*domain->forestData.m_dx[1][P4EST_MAXLEVEL-i]};
+        double m_dx[2] = {domain->forestData.m_dx[0][P4EST_MAXLEVEL-i], 
+                          domain->forestData.m_dx[1][P4EST_MAXLEVEL-i]};
+
+        std::cout << m_dx[0] << ", " << m_dx[1] << std::endl;
 
         w[5][i] = m_dx[0]/12;
         w[6][i] = w[5][i]*(SQRT3 + 2);
@@ -897,8 +899,8 @@ void DefaultAssembler2D<Scalar>::assemblePDESingleReduced(
 #pragma omp parallel for
     for(int i = 0; i <= max_level; i++)
     {
-        double m_dx[2] = {domain->m_NX[0]*domain->forestData.m_dx[0][P4EST_MAXLEVEL-i], 
-                          domain->m_NX[1]*domain->forestData.m_dx[1][P4EST_MAXLEVEL-i]};
+        double m_dx[2] = {domain->forestData.m_dx[0][P4EST_MAXLEVEL-i], 
+                          domain->forestData.m_dx[1][P4EST_MAXLEVEL-i]};
 
         w[0][i] = 1./4;
         w[1][i] = m_dx[0]/8;
@@ -1092,8 +1094,8 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingleReduced(
 #pragma omp parallel for
     for(int i = 0; i <= max_level; i++)
     {
-        double m_dx[2] = {domain->m_NX[0]*domain->forestData.m_dx[0][P4EST_MAXLEVEL-i], 
-                          domain->m_NX[1]*domain->forestData.m_dx[1][P4EST_MAXLEVEL-i]};
+        double m_dx[2] = {domain->forestData.m_dx[0][P4EST_MAXLEVEL-i], 
+                          domain->forestData.m_dx[1][P4EST_MAXLEVEL-i]};
 
         w[0][i] = m_dx[0]/4;
         w[1][i] = m_dx[1]/4;
@@ -1284,8 +1286,8 @@ void DefaultAssembler2D<Scalar>::assemblePDESystem(AbstractSystemMatrix* mat,
 #pragma omp parallel for
     for(int i = 0; i <= max_level; i++)
     {
-        double m_dx[2] = {domain->m_NX[0]*domain->forestData.m_dx[0][P4EST_MAXLEVEL-i], 
-                          domain->m_NX[1]*domain->forestData.m_dx[1][P4EST_MAXLEVEL-i]};
+        double m_dx[2] = {domain->forestData.m_dx[0][P4EST_MAXLEVEL-i], 
+                          domain->forestData.m_dx[1][P4EST_MAXLEVEL-i]};
 
         w[1][i]  = 1.0/24;
         w[5][i]  = -SQRT3/24 + 1.0/12;
@@ -1815,8 +1817,8 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
 #pragma omp parallel for
     for(int i = 0; i <= max_level; i++)
     {
-        double m_dx[2] = {domain->m_NX[0]*domain->forestData.m_dx[0][P4EST_MAXLEVEL-i], 
-                          domain->m_NX[1]*domain->forestData.m_dx[1][P4EST_MAXLEVEL-i]};
+        double m_dx[2] = {domain->forestData.m_dx[0][P4EST_MAXLEVEL-i], 
+                          domain->forestData.m_dx[1][P4EST_MAXLEVEL-i]};
 
         w[5][i] = m_dx[0]/12;
         w[6][i] = w[5][i]*( SQRT3 + 2);
@@ -2130,8 +2132,8 @@ void DefaultAssembler2D<Scalar>::assemblePDESystemReduced(
 #pragma omp parallel for
     for(int i = 0; i <= max_level; i++)
     {
-        double m_dx[2] = {domain->m_NX[0]*domain->forestData.m_dx[0][P4EST_MAXLEVEL-i], 
-                          domain->m_NX[1]*domain->forestData.m_dx[1][P4EST_MAXLEVEL-i]};
+        double m_dx[2] = {domain->forestData.m_dx[0][P4EST_MAXLEVEL-i], 
+                          domain->forestData.m_dx[1][P4EST_MAXLEVEL-i]};
 
         w[0][i] = 1./4;
         w[1][i] = m_dx[0]/8;
@@ -2350,8 +2352,8 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
 #pragma omp parallel for
     for(int i = 0; i <= max_level; i++)
     {
-        double m_dx[2] = {domain->m_NX[0]*domain->forestData.m_dx[0][P4EST_MAXLEVEL-i], 
-                          domain->m_NX[1]*domain->forestData.m_dx[1][P4EST_MAXLEVEL-i]};
+        double m_dx[2] = {domain->forestData.m_dx[0][P4EST_MAXLEVEL-i], 
+                          domain->forestData.m_dx[1][P4EST_MAXLEVEL-i]};
 
         w[0][i] = m_dx[0]/4;
         w[1][i] = m_dx[1]/4;

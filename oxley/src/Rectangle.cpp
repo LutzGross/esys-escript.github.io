@@ -188,8 +188,8 @@ Rectangle::Rectangle(int order,
 #pragma omp parallel for
     for(int i = 0; i<=P4EST_MAXLEVEL; i++){
         double numberOfSubDivisions = (p4est_qcoord_t) (1 << (P4EST_MAXLEVEL - i));
-        forestData.m_dx[0][i] = forestData.m_length[0] / (numberOfSubDivisions);
-        forestData.m_dx[1][i] = forestData.m_length[1] / (numberOfSubDivisions);
+        forestData.m_dx[0][i] = forestData.m_NX[0] / (numberOfSubDivisions);
+        forestData.m_dx[1][i] = forestData.m_NX[1] / (numberOfSubDivisions);
     }
 
     // max levels of refinement
