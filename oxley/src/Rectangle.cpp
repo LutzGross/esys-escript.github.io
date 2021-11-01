@@ -1238,26 +1238,21 @@ bool Rectangle::getHangingNodes(p4est_lnodes_code_t face_code, int hanging_corne
 {
     static const int ones = P4EST_CHILDREN - 1;
 
-  if (face_code) {
-    const int           c = (int) (face_code & ones);
-    int                 i, h;
-    int                 work = (int) (face_code >> P4EST_DIM);
+    if (face_code) {
+        const int c = (int) (face_code & ones);
+        int work = (int) (face_code >> P4EST_DIM);
 
-    /* These two corners are never hanging by construction. */
-    hanging_corner[c] = hanging_corner[c ^ ones] = -1;
-    for (i = 0; i < P4EST_DIM; ++i) {
-      /* Process face hanging corners. */
-      h = c ^ (1 << i);
-      hanging_corner[h ^ ones] = (work & 1) ? c : -1;
-#ifdef P4_TO_P8
-      /* Process edge hanging corners. */
-      hanging_corner[h] = (work & P4EST_CHILDREN) ? c : -1;
-#endif
-      work >>= 1;
+        /* These two corners are never hanging by construction. */
+        hanging_corner[c] = hanging_corner[c ^ ones] = -1;
+        for (int i = 0; i < P4EST_DIM; ++i) {
+            /* Process face hanging corners. */
+           int h = c ^ (1 << i);
+            hanging_corner[h ^ ones] = (work & 1) ? c : -1;
+            work >>= 1;
+        }
+        return 1;
     }
-    return 1;
-  }
-  return 0;
+    return 0;
 }
 
 //protected
