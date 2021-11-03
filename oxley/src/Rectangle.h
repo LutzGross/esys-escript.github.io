@@ -468,7 +468,7 @@ protected:
        \brief
        Returns the ID numbers of the neighbouring four nodes
     */
-    void getNeighouringNodeIDs(p4est_quadrant_t * quad, p4est_topidx_t treeid, long (&ids) [4]) const;
+    void getNeighouringNodeIDs(int8_t level, p4est_qcoord_t x, p4est_qcoord_t y, p4est_topidx_t treeid, long (&ids) [4]) const;
 
     virtual void assembleIntegrate(std::vector<real_t>& integrals, const escript::Data& arg) const;
     virtual void assembleIntegrate(std::vector<cplx_t>& integrals, const escript::Data& arg) const;

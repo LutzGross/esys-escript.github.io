@@ -74,7 +74,10 @@ struct borderNodeInfo
 {
 	int nodeid=-1;
 	int neighbours[4]={0};
-	p4est_quadrant_t * quad;
+	int8_t level;
+	p4est_qcoord_t x;
+	p4est_qcoord_t y;
+	// p4est_quadrant_t * quad;
 	p4est_topidx_t treeid=-1;
 };
 

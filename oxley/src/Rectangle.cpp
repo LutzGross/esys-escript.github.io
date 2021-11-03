@@ -581,7 +581,7 @@ void Rectangle::setToSize(escript::Data& out) const
                 borderNodeInfo tmp = NodeIDsLeft[k];
 
                 double* o = out.getSampleDataRW(m_faceOffset[0]+k);
-                std::fill(o, o+numQuad, forestData.m_dx[1][P4EST_MAXLEVEL-tmp.quad->level]);
+                std::fill(o, o+numQuad, forestData.m_dx[1][P4EST_MAXLEVEL-tmp.level]);
             }
         }
 
@@ -589,7 +589,7 @@ void Rectangle::setToSize(escript::Data& out) const
             for (index_t k=0; k<NodeIDsRight.size()-1; k++) {
                 borderNodeInfo tmp = NodeIDsRight[k];
                 double* o = out.getSampleDataRW(m_faceOffset[1]+k);
-                std::fill(o, o+numQuad, forestData.m_dx[1][P4EST_MAXLEVEL-tmp.quad->level]);
+                std::fill(o, o+numQuad, forestData.m_dx[1][P4EST_MAXLEVEL-tmp.level]);
             }
         }
 
@@ -597,7 +597,7 @@ void Rectangle::setToSize(escript::Data& out) const
             for (index_t k=0; k<NodeIDsBottom.size()-1; k++) {
                 borderNodeInfo tmp = NodeIDsBottom[k];
                 double* o = out.getSampleDataRW(m_faceOffset[2]+k);
-                std::fill(o, o+numQuad, forestData.m_dx[0][P4EST_MAXLEVEL-tmp.quad->level]);
+                std::fill(o, o+numQuad, forestData.m_dx[0][P4EST_MAXLEVEL-tmp.level]);
             }
         }
 
@@ -605,7 +605,7 @@ void Rectangle::setToSize(escript::Data& out) const
             for (index_t k=0; k<NodeIDsTop.size()-1; k++) {
                 borderNodeInfo tmp = NodeIDsTop[k];
                 double* o = out.getSampleDataRW(m_faceOffset[3]+k);
-                std::fill(o, o+numQuad, forestData.m_dx[0][P4EST_MAXLEVEL-tmp.quad->level]);
+                std::fill(o, o+numQuad, forestData.m_dx[0][P4EST_MAXLEVEL-tmp.level]);
             }
         }
     } else {
@@ -737,7 +737,7 @@ void Rectangle::dump(const std::string& fileName) const
         for(int q = 0; q < Q; q++)
         {
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);          
-            getNeighouringNodeIDs(quad, treeid, ids);
+            getNeighouringNodeIDs(quad->level, quad->x, quad->y, treeid, ids);
             nodelist.push_back(ids[0]);
             nodelist.push_back(ids[2]);
             nodelist.push_back(ids[3]);
@@ -1676,7 +1676,7 @@ void Rectangle::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Dat
          bool addS, bool addF, borderNodeInfo quad, int nEq, int nComp) const
 {    
     long rowIndex[4] = {0};
-    getNeighouringNodeIDs(quad.quad, quad.treeid, rowIndex);
+    getNeighouringNodeIDs(quad.level, quad.x, quad.y, quad.treeid, rowIndex);
     if(addF)
     {
         Scalar* F_p = F.getSampleDataRW(0, static_cast<Scalar>(0));
@@ -1782,7 +1782,7 @@ void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
                
                 long ids[4]={0};
-                getNeighouringNodeIDs(quad, treeid, ids);
+                getNeighouringNodeIDs(quad->level, quad->x, quad->y, treeid, ids);
                 int quadID=getQuadID(ids[0]);
 
                 memcpy(&f_00[0], in.getSampleDataRO(ids[0],sentinel), numComp*sizeof(S));
@@ -1818,7 +1818,7 @@ void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
 
                 long ids[4]={0};
-                getNeighouringNodeIDs(quad, treeid, ids);
+                getNeighouringNodeIDs(quad->level, quad->x, quad->y, treeid, ids);
                 long quadId = getQuadID(ids[0]);
 
                 memcpy(&f_00[0], in.getSampleDataRO(ids[0], sentinel), numComp*sizeof(S));
@@ -1843,15 +1843,15 @@ void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
 }
 
 //protected
-void Rectangle::getNeighouringNodeIDs(p4est_quadrant_t * quad, p4est_topidx_t treeid, long (&ids) [4]) const
+void Rectangle::getNeighouringNodeIDs(int8_t level, p4est_qcoord_t x, p4est_qcoord_t y, p4est_topidx_t treeid, long (&ids) [4]) const
 {
-    p4est_qcoord_t l = P4EST_QUADRANT_LEN(quad->level);
+    p4est_qcoord_t l = P4EST_QUADRANT_LEN(level);
     int adj[4][2]={{0,0},{l,0},{0,l},{l,l}};
 // #pragma omp parallel for
     for(int i=0; i<4;i++)
     {
         double xy[3];
-        p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+adj[i][0], quad->y+adj[i][1], xy);
+        p4est_qcoord_to_vertex(p4est->connectivity, treeid, x+adj[i][0], y+adj[i][1], xy);
         ids[i]=(long) NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
     }
 }
@@ -2371,7 +2371,9 @@ void Rectangle::updateFaceElementCount()
                 tmp.neighbours[1]=nodeids[1];
                 tmp.neighbours[2]=nodeids[2];
                 tmp.neighbours[3]=nodeids[3];
-                tmp.quad=quad;
+                tmp.x=quad->x;
+                tmp.y=quad->y;
+                tmp.level=quad->level;
                 tmp.treeid=treeid;
 
                 if(isLeftBoundaryNode(quad, n, treeid, l))
@@ -2686,7 +2688,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                 long l = quad->level;
 
                 long ids[4]={0};
-                getNeighouringNodeIDs(quad, t, ids);
+                getNeighouringNodeIDs(l, quad->x, quad->y, t, ids);
                 
                 memcpy(&f_00[0], in.getSampleDataRO(ids[0], zero), numComp*sizeof(Scalar));
                 memcpy(&f_01[0], in.getSampleDataRO(ids[2], zero), numComp*sizeof(Scalar));
@@ -2730,7 +2732,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                 long l = quad->level;
 
                 long ids[4]={0};
-                getNeighouringNodeIDs(quad, t, ids);
+                getNeighouringNodeIDs(l, quad->x, quad->y, t, ids);
 
                 memcpy(&f_00[0], in.getSampleDataRO(ids[0], zero), numComp*sizeof(Scalar));
                 memcpy(&f_01[0], in.getSampleDataRO(ids[2], zero), numComp*sizeof(Scalar));
@@ -2771,7 +2773,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                 if (m_faceOffset[0] > -1) {
                     for (index_t k=0; k<NodeIDsLeft.size()-1; k++) {
                         borderNodeInfo tmp = NodeIDsLeft[k];
-                        long l = tmp.quad->level;
+                        long l = tmp.level;
                         memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], zero), numComp*sizeof(Scalar));
                         memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], zero), numComp*sizeof(Scalar));
                         memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], zero), numComp*sizeof(Scalar));
@@ -2788,7 +2790,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                 if (m_faceOffset[1] > -1) {
                     for (index_t k=0; k<NodeIDsRight.size()-1; k++) {
                         borderNodeInfo tmp = NodeIDsRight[k];
-                        long l = tmp.quad->level;
+                        long l = tmp.level;
                         memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], zero), numComp*sizeof(Scalar));
                         memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], zero), numComp*sizeof(Scalar));
                         memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], zero), numComp*sizeof(Scalar));
@@ -2805,7 +2807,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                 if (m_faceOffset[2] > -1) {
                     for (index_t k=0; k<NodeIDsBottom.size()-1; k++) {
                         borderNodeInfo tmp = NodeIDsBottom[k];
-                        long l = tmp.quad->level;
+                        long l = tmp.level;
                         memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], zero), numComp*sizeof(Scalar));
                         memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], zero), numComp*sizeof(Scalar));
                         memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], zero), numComp*sizeof(Scalar));
@@ -2822,7 +2824,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                 if (m_faceOffset[3] > -1) {
                     for (index_t k=0; k<NodeIDsTop.size()-1; k++) {
                         borderNodeInfo tmp = NodeIDsTop[k];
-                        long l = tmp.quad->level;
+                        long l = tmp.level;
                         memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], zero), numComp*sizeof(Scalar));
                         memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], zero), numComp*sizeof(Scalar));
                         memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], zero), numComp*sizeof(Scalar));
@@ -2864,7 +2866,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                 if (m_faceOffset[0] > -1) {
                     for (index_t k=0; k<NodeIDsLeft.size()-1; k++) {
                         borderNodeInfo tmp = NodeIDsLeft[k];
-                        long l = tmp.quad->level;
+                        long l = tmp.level;
                         memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], zero), numComp*sizeof(Scalar));
                         memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], zero), numComp*sizeof(Scalar));
                         memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], zero), numComp*sizeof(Scalar));
@@ -2879,7 +2881,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                 if (m_faceOffset[1] > -1) {
                     for (index_t k=0; k<NodeIDsRight.size()-1; k++) {
                         borderNodeInfo tmp = NodeIDsRight[k];
-                        long l = tmp.quad->level;
+                        long l = tmp.level;
                         memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], zero), numComp*sizeof(Scalar));
                         memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], zero), numComp*sizeof(Scalar));
                         memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], zero), numComp*sizeof(Scalar));
@@ -2894,7 +2896,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                 if (m_faceOffset[2] > -1) {
                     for (index_t k=0; k<NodeIDsBottom.size()-1; k++) {
                         borderNodeInfo tmp = NodeIDsBottom[k];
-                        long l = tmp.quad->level;
+                        long l = tmp.level;
                         memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], zero), numComp*sizeof(Scalar));
                         memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], zero), numComp*sizeof(Scalar));
                         memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], zero), numComp*sizeof(Scalar));
@@ -2909,7 +2911,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                 if (m_faceOffset[3] > -1) {
                     for (index_t k=0; k<NodeIDsTop.size()-1; k++) {
                         borderNodeInfo tmp = NodeIDsTop[k];
-                        long l = tmp.quad->level;
+                        long l = tmp.level;
                         memcpy(&f_00[0], in.getSampleDataRO(tmp.neighbours[0], zero), numComp*sizeof(Scalar));
                         memcpy(&f_01[0], in.getSampleDataRO(tmp.neighbours[2], zero), numComp*sizeof(Scalar));
                         memcpy(&f_10[0], in.getSampleDataRO(tmp.neighbours[1], zero), numComp*sizeof(Scalar));
@@ -3029,7 +3031,7 @@ void Rectangle::assembleIntegrateImpl(std::vector<Scalar>& integrals,
 #pragma omp for nowait
                 for (index_t k=0; k<NodeIDsLeft.size()-1; k++) {
                     borderNodeInfo tmp = NodeIDsLeft[k];
-                    const real_t w1 = m_NX[1]*forestData.m_dx[1][P4EST_MAXLEVEL-tmp.quad->level]/2.;
+                    const real_t w1 = m_NX[1]*forestData.m_dx[1][P4EST_MAXLEVEL-tmp.level]/2.;
                     const Scalar* f = arg.getSampleDataRO(m_faceOffset[0]+k, zero);
                     for (index_t i=0; i < numComp; ++i) {
                         const Scalar f0 = f[INDEX2(i,0,numComp)];
@@ -3043,7 +3045,7 @@ void Rectangle::assembleIntegrateImpl(std::vector<Scalar>& integrals,
 #pragma omp for nowait
                 for (index_t k=0; k<NodeIDsRight.size()-1; k++) {
                     borderNodeInfo tmp = NodeIDsRight[k];
-                    const real_t w1 = m_NX[1]*forestData.m_dx[1][P4EST_MAXLEVEL-tmp.quad->level]/2.;
+                    const real_t w1 = m_NX[1]*forestData.m_dx[1][P4EST_MAXLEVEL-tmp.level]/2.;
                     const Scalar* f = arg.getSampleDataRO(m_faceOffset[1]+k, zero);
                     for (index_t i = 0; i < numComp; ++i) {
                         const Scalar f0 = f[INDEX2(i,0,numComp)];
@@ -3057,7 +3059,7 @@ void Rectangle::assembleIntegrateImpl(std::vector<Scalar>& integrals,
 #pragma omp for nowait
                 for (index_t k=0; k<NodeIDsBottom.size()-1; k++) {
                     borderNodeInfo tmp = NodeIDsBottom[k];
-                    const real_t w0 = m_NX[0]*forestData.m_dx[0][P4EST_MAXLEVEL-tmp.quad->level]/2.;
+                    const real_t w0 = m_NX[0]*forestData.m_dx[0][P4EST_MAXLEVEL-tmp.level]/2.;
                     const Scalar* f = arg.getSampleDataRO(m_faceOffset[2]+k, zero);
                     for (index_t i = 0; i < numComp; ++i) {
                         const Scalar f0 = f[INDEX2(i,0,numComp)];
@@ -3071,7 +3073,7 @@ void Rectangle::assembleIntegrateImpl(std::vector<Scalar>& integrals,
 #pragma omp for nowait
                 for (index_t k=0; k<NodeIDsTop.size()-1; k++) {
                     borderNodeInfo tmp = NodeIDsTop[k];
-                    const real_t w0 = m_NX[0]*forestData.m_dx[0][P4EST_MAXLEVEL-tmp.quad->level]/2.;
+                    const real_t w0 = m_NX[0]*forestData.m_dx[0][P4EST_MAXLEVEL-tmp.level]/2.;
                     const Scalar* f = arg.getSampleDataRO(m_faceOffset[3]+k, zero);
                     for (index_t i = 0; i < numComp; ++i) {
                         const Scalar f0 = f[INDEX2(i,0,numComp)];
@@ -3092,7 +3094,7 @@ void Rectangle::assembleIntegrateImpl(std::vector<Scalar>& integrals,
                 borderNodeInfo tmp = NodeIDsLeft[k];
                 const Scalar* f = arg.getSampleDataRO(m_faceOffset[0]+k, zero);
                 for (index_t i = 0; i < numComp; ++i) {
-                    int_local[i] += f[i]*m_NX[1]*forestData.m_dx[1][P4EST_MAXLEVEL-tmp.quad->level];
+                    int_local[i] += f[i]*m_NX[1]*forestData.m_dx[1][P4EST_MAXLEVEL-tmp.level];
                 }
             }
         }
@@ -3103,7 +3105,7 @@ void Rectangle::assembleIntegrateImpl(std::vector<Scalar>& integrals,
                 borderNodeInfo tmp = NodeIDsRight[k];
                 const Scalar* f = arg.getSampleDataRO(m_faceOffset[1]+k, zero);
                 for (index_t i = 0; i < numComp; ++i) {
-                    int_local[i] += f[i]*m_NX[1]*forestData.m_dx[1][P4EST_MAXLEVEL-tmp.quad->level];
+                    int_local[i] += f[i]*m_NX[1]*forestData.m_dx[1][P4EST_MAXLEVEL-tmp.level];
                 }
             }
         }
@@ -3114,7 +3116,7 @@ void Rectangle::assembleIntegrateImpl(std::vector<Scalar>& integrals,
                 borderNodeInfo tmp = NodeIDsBottom[k];
                 const Scalar* f = arg.getSampleDataRO(m_faceOffset[2]+k, zero);
                 for (index_t i = 0; i < numComp; ++i) {
-                    int_local[i] += f[i]*m_NX[0]*forestData.m_dx[0][P4EST_MAXLEVEL-tmp.quad->level];
+                    int_local[i] += f[i]*m_NX[0]*forestData.m_dx[0][P4EST_MAXLEVEL-tmp.level];
                 }
             }
         }
@@ -3125,7 +3127,7 @@ void Rectangle::assembleIntegrateImpl(std::vector<Scalar>& integrals,
                 borderNodeInfo tmp = NodeIDsTop[k];
                 const Scalar* f = arg.getSampleDataRO(m_faceOffset[3]+k, zero);
                 for (index_t i = 0; i < numComp; ++i) {
-                    int_local[i] += f[i]*m_NX[0]*forestData.m_dx[0][P4EST_MAXLEVEL-tmp.quad->level];
+                    int_local[i] += f[i]*m_NX[0]*forestData.m_dx[0][P4EST_MAXLEVEL-tmp.level];
                 }
             }
         }
