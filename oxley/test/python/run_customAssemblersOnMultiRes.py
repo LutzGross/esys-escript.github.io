@@ -49,7 +49,7 @@ def test_Rectangle_refine_Point(**kwargs):
 def test_Rectangle_refine_Boundary(**kwargs):
     m = Rectangle(**kwargs)
     m.setRefinementLevel(1)
-    m.refineBoundary(boundary="top",dx=0.5)
+    m.refineBoundary(boundary="top",dx=2.0)
     return m
 
 def test_Rectangle_refine_Region(**kwargs):
@@ -97,12 +97,12 @@ class Test_OxleyLameAssemblers2D_Point(OxleyLameAssemblerTestBase):
     def tearDown(self):
         del self.domain
 
-class Test_OxleyLameAssemblers2D_Boundary(OxleyLameAssemblerTestBase):
-    def setUp(self):
-        self.domain = test_Rectangle_refine_Boundary(n0=20,n1=20)
+# class Test_OxleyLameAssemblers2D_Boundary(OxleyLameAssemblerTestBase):
+#     def setUp(self):
+#         self.domain = test_Rectangle_refine_Boundary(n0=20,n1=20,l0=10,l1=10)
 
-    def tearDown(self):
-        del self.domain
+#     def tearDown(self):
+#         del self.domain
 
 class Test_OxleyLameAssemblers2D_Region(OxleyLameAssemblerTestBase):
     def setUp(self):
