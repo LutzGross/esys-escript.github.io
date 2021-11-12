@@ -794,7 +794,7 @@ const dim_t* Rectangle::borrowSampleReferenceIDs(int fsType) const
             return &m_nodeId[0];
         case DegreesOfFreedom:
         case ReducedDegreesOfFreedom:
-            throw OxleyException("borrowSampleReferenceIDs: DegreesOfFreedom/ReducedDegreesOfFreedom.");
+            return &myRows[0];
         case Elements:
         case ReducedElements:
             return &m_elementId[0];
@@ -1335,13 +1335,13 @@ void Rectangle::updateNodeIncrements()
 
 void Rectangle::renumberNodes()
 {
-#ifdef OXLEY_ENABLE_DEBUG_NODES
-    std::cout << "Renumbering nodes... " << std::endl;
-#endif
-
+    // Clear some variables
     NodeIDs.clear();
     quadrantIDs.clear();
-    is_hanging.clear();
+    num_hanging = 0;
+    std::vector<int> tmp_h_node_ids;
+
+    // Write in NodeIDs
 // #pragma omp for
     for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) {
         p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
@@ -1351,30 +1351,34 @@ void Rectangle::renumberNodes()
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
             p4est_qcoord_t l = P4EST_QUADRANT_LEN(quad->level);
             p4est_qcoord_t lxy[4][2] = {{0,0},{l,0},{0,l},{l,l}};
+            int hanging[4] = {0};
+
+            getHangingNodes(nodes->face_code[q-Q+nodeIncrements[treeid-p4est->first_local_tree]], hanging);
+
             for(int n = 0; n < 4; n++)
             {
                 double xy[3];
                 p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy);
+                int nodeid = NodeIDs.size();
                 if(NodeIDs.count(std::make_pair(xy[0],xy[1]))==0)
                 {
-#ifdef OXLEY_ENABLE_DEBUG_NODES
-                    std::cout << NodeIDs.size() << ": " << xy[0] << ", " << xy[1] << std::endl;
-#endif
-                    NodeIDs[std::make_pair(xy[0],xy[1])]=NodeIDs.size();
+                    NodeIDs[std::make_pair(xy[0],xy[1])]=nodeid;
                 }
 
                 if(n==0)
                 {
                     p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x, quad->y, xy);
                     quadrantIDs.push_back(NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
-#ifdef OXLEY_ENABLE_DEBUG_NODES
-                    std::cout << "New Quad. ID: " << NodeIDs.find(std::make_pair(xy[0],xy[1]))->second << std::endl;
-#endif
+                }
+
+                if(hanging[n]>-1)
+                {
+                    num_hanging++;
+                    tmp_h_node_ids.push_back(nodeid);
                 }
             }
         }
     }
-
 
     // Populate m_nodeIDs
     m_nodeId.clear();
@@ -1383,9 +1387,19 @@ void Rectangle::renumberNodes()
     for(std::pair<DoublePair,long> e : NodeIDs)
         m_nodeId[count++]=e.second;
 
+    // Populate hanging_nodes
+    is_hanging.clear();
+    is_hanging.resize(NodeIDs.size(),false);
+    for(int i = 0; i < tmp_h_node_ids.size(); i++)
+    {
+        is_hanging[tmp_h_node_ids[i]]=true;
+    }
+    
+
+
 #ifdef OXLEY_PRINT_NODEIDS
     std::cout << "Printing NodeIDs " << std::endl;
-    double xyf[MAXP4ESTNODES][2]={{0}};
+    double xyf[NodeIDs.size()][2]={{0}};
     for(std::pair<DoublePair,long> e : NodeIDs)
     {
         xyf[e.second][0]=e.first.first;
@@ -1395,36 +1409,6 @@ void Rectangle::renumberNodes()
         std::cout << i << ": " << xyf[i][0] << ", " << xyf[i][1] << std::endl;
 #endif
 
-    // Check for hanging nodes
-    is_hanging.resize(getNumNodes(),false);
-    for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) {
-        p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
-        sc_array_t * tquadrants = &tree->quadrants;
-        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;        
-        for(int q = 0; q < Q; ++q) { 
-            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-            p4est_qcoord_t l = P4EST_QUADRANT_LEN(quad->level);
-            p4est_qcoord_t lxy[4][2] = {{0,0},{l,0},{0,l},{l,l}};
-
-            int hanging[4] = {0};
-            double xy[3];
-
-            // if no hanging nodes skip to the next loop
-            if(!getHangingNodes(nodes->face_code[q-Q+nodeIncrements[treeid-p4est->first_local_tree]],  hanging))
-                continue;                
-
-            for(int n = 0; n < 4; n++) //loop over the children of the parent quadrant
-            {                
-                if(hanging[n]>-1)
-                {
-                    p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy);                   
-                    int id = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-                    is_hanging[id]=true;
-                }
-
-            }
-        }
-    }
 #ifdef OXLEY_PRINT_NODEIDS_HANGING
     for(int i = 0; i < is_hanging.size(); i++)
         if(is_hanging[i])
@@ -2128,7 +2112,7 @@ void Rectangle::updateRowsColumns()
     // x = Lx and y = Ly
     p4est_iterate_ext(p4est, NULL, data, NULL, update_RC, NULL, true);
 
-    // Find the indices of the nodes on the boundaries x = Lx and y = Ly
+        // Find the indices of the nodes on the boundaries x = Lx and y = Ly
     for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) {
         p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
         sc_array_t * tquadrants = &tree->quadrants;

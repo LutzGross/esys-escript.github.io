@@ -421,6 +421,12 @@ protected:
 
     /**
        \brief
+       Returns true if the node is hanging
+    */
+    bool getNumHangingNodes() { return num_hanging; };
+
+    /**
+       \brief
        Updates NodeIncrements
     */
     void updateNodeIncrements();
@@ -566,6 +572,9 @@ protected:
     /// faceOffset[i]=-1 if face i is not an external face, otherwise it is
     /// the index of that face (where i: 0=left, 1=right, 2=bottom, 3=top)
     IndexVector m_faceOffset;
+
+    // The number of hanging nodes in the mesh
+    int num_hanging;
 
 };
 
