@@ -1252,7 +1252,13 @@ bool Rectangle::getHangingNodes(p4est_lnodes_code_t face_code, int hanging_corne
         }
         return 1;
     }
-    return 0;
+    else
+    {
+        #pragma omp parallel for
+        for(int i =0;i<P4EST_CHILDREN;i++)
+            hanging_corner[i]=-1;
+        return 0;
+    }
 }
 
 //protected
@@ -1338,8 +1344,8 @@ void Rectangle::renumberNodes()
     // Clear some variables
     NodeIDs.clear();
     quadrantIDs.clear();
-    num_hanging = 0;
-    std::vector<int> tmp_h_node_ids;
+    std::vector<DoublePair> NormalNodes;
+    std::vector<DoublePair> HangingNodes;
 
     // Write in NodeIDs
 // #pragma omp for
@@ -1359,44 +1365,55 @@ void Rectangle::renumberNodes()
             {
                 double xy[3];
                 p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy);
-                int nodeid = NodeIDs.size();
-                if(NodeIDs.count(std::make_pair(xy[0],xy[1]))==0)
+                int nodeid = NormalNodes.size();
+                
+                auto tmp = std::make_pair(xy[0],xy[1]);
+
+                if(hanging[n]>-1)
                 {
-                    NodeIDs[std::make_pair(xy[0],xy[1])]=nodeid;
+                    if(!std::count(HangingNodes.begin(), HangingNodes.end(), tmp))
+                        HangingNodes.push_back(tmp);
+                }
+                else
+                {
+                    if(!std::count(NormalNodes.begin(), NormalNodes.end(), tmp))
+                        NormalNodes.push_back(tmp);
                 }
 
                 if(n==0)
                 {
-                    p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x, quad->y, xy);
-                    quadrantIDs.push_back(NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
+                    quadrantIDs.push_back(nodeid);
                 }
 
-                if(hanging[n]>-1)
-                {
-                    num_hanging++;
-                    tmp_h_node_ids.push_back(nodeid);
-                }
+
             }
         }
+    }
+
+    // Populate NodeIDs
+    is_hanging.clear();
+    int num_norm_nodes=NormalNodes.size();
+    num_hanging=HangingNodes.size();
+    int total_nodes=num_norm_nodes+num_hanging;
+    is_hanging.resize(total_nodes,false);
+    int count = 0;
+    for(int i=0;i<num_norm_nodes;i++)
+    {
+        NodeIDs[NormalNodes[i]]=count++;
+    }
+    for(int i=0;i<num_hanging;i++)
+    {
+        NodeIDs[HangingNodes[i]]=count;
+        is_hanging[count++]=true;
     }
 
     // Populate m_nodeIDs
     m_nodeId.clear();
     m_nodeId.resize(NodeIDs.size());
-    int count=0;
+    count=0;
     for(std::pair<DoublePair,long> e : NodeIDs)
         m_nodeId[count++]=e.second;
-
-    // Populate hanging_nodes
-    is_hanging.clear();
-    is_hanging.resize(NodeIDs.size(),false);
-    for(int i = 0; i < tmp_h_node_ids.size(); i++)
-    {
-        is_hanging[tmp_h_node_ids[i]]=true;
-    }
     
-
-
 #ifdef OXLEY_PRINT_NODEIDS
     std::cout << "Printing NodeIDs " << std::endl;
     double xyf[NodeIDs.size()][2]={{0}};
