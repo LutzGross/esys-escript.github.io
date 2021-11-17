@@ -1238,6 +1238,10 @@ bool Rectangle::getHangingNodes(p4est_lnodes_code_t face_code, int hanging_corne
 {
     static const int ones = P4EST_CHILDREN - 1;
 
+#pragma omp parallel for
+    for(int i =0;i<P4EST_CHILDREN;i++)
+        hanging_corner[i]=-1;
+
     if (face_code) {
         const int c = (int) (face_code & ones);
         int work = (int) (face_code >> P4EST_DIM);
@@ -1254,9 +1258,6 @@ bool Rectangle::getHangingNodes(p4est_lnodes_code_t face_code, int hanging_corne
     }
     else
     {
-        #pragma omp parallel for
-        for(int i =0;i<P4EST_CHILDREN;i++)
-            hanging_corner[i]=-1;
         return 0;
     }
 }
@@ -1349,6 +1350,7 @@ void Rectangle::renumberNodes()
 
     // Write in NodeIDs
 // #pragma omp for
+    int k = 0;
     for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) {
         p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
         sc_array_t * tquadrants = &tree->quadrants;
@@ -1359,7 +1361,7 @@ void Rectangle::renumberNodes()
             p4est_qcoord_t lxy[4][2] = {{0,0},{l,0},{0,l},{l,l}};
             int hanging[4] = {0};
 
-            getHangingNodes(nodes->face_code[q-Q+nodeIncrements[treeid-p4est->first_local_tree]], hanging);
+            getHangingNodes(nodes->face_code[k++], hanging);
 
             for(int n = 0; n < 4; n++)
             {
@@ -1369,7 +1371,7 @@ void Rectangle::renumberNodes()
                 
                 auto tmp = std::make_pair(xy[0],xy[1]);
 
-                if(hanging[n]>-1)
+                if(hanging[n]!=-1)
                 {
                     if(!std::count(HangingNodes.begin(), HangingNodes.end(), tmp))
                         HangingNodes.push_back(tmp);
