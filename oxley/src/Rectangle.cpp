@@ -1367,8 +1367,7 @@ void Rectangle::renumberNodes()
             {
                 double xy[3];
                 p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy);
-                int nodeid = NormalNodes.size();
-                
+                int nodeid = NormalNodes.size()+HangingNodes.size();
                 auto tmp = std::make_pair(xy[0],xy[1]);
 
                 if(hanging[n]!=-1)
@@ -1381,13 +1380,6 @@ void Rectangle::renumberNodes()
                     if(!std::count(NormalNodes.begin(), NormalNodes.end(), tmp))
                         NormalNodes.push_back(tmp);
                 }
-
-                if(n==0)
-                {
-                    quadrantIDs.push_back(nodeid);
-                }
-
-
             }
         }
     }
@@ -1401,6 +1393,7 @@ void Rectangle::renumberNodes()
     int count = 0;
     for(int i=0;i<num_norm_nodes;i++)
     {
+
         NodeIDs[NormalNodes[i]]=count++;
     }
     for(int i=0;i<num_hanging;i++)
@@ -1416,6 +1409,19 @@ void Rectangle::renumberNodes()
     for(std::pair<DoublePair,long> e : NodeIDs)
         m_nodeId[count++]=e.second;
     
+    // quadrant IDs
+    for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) {
+        p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
+        sc_array_t * tquadrants = &tree->quadrants;
+        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+        for(int q = 0; q < Q; ++q) { 
+            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+            double xy[3];
+            p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x, quad->y, xy);
+            quadrantIDs.push_back(NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
+        }
+    }
+
 #ifdef OXLEY_PRINT_NODEIDS
     std::cout << "Printing NodeIDs " << std::endl;
     double xyf[NodeIDs.size()][2]={{0}};
@@ -1426,6 +1432,7 @@ void Rectangle::renumberNodes()
     }
     for(int i=0; i<NodeIDs.size(); i++)
         std::cout << i << ": " << xyf[i][0] << ", " << xyf[i][1] << std::endl;
+    std::cout << "-------------------------------" << std::endl;
 #endif
 
 #ifdef OXLEY_PRINT_NODEIDS_HANGING
@@ -1864,7 +1871,7 @@ long Rectangle::getQuadID(long nodeid) const
     for(int i = 0; i < quadrantIDs.size(); i++)
         if(quadrantIDs[i]==nodeid)
             return i;
-    throw OxleyException("Unknown error");
+    throw OxleyException("getQuadID: node id "+ std::to_string(nodeid) +" was not found.");
 }
 
 //private
