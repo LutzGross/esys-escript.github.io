@@ -53,6 +53,9 @@ public:
     virtual void assemblePDEBoundarySystemReduced(
                     escript::AbstractSystemMatrix* mat, escript::Data& rhs,
                     const DataMap& coefs) const = 0;
+    virtual void assemblePDEHanging(
+                    escript::AbstractSystemMatrix* mat, escript::Data& rhs,
+                    const DataMap& coefs) const = 0;
 
     virtual void collateFunctionSpaceTypes(std::vector<int>& fsTypes,
                                            const DataMap& coefs) const = 0;

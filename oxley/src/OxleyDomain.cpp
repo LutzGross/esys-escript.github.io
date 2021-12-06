@@ -1430,6 +1430,7 @@ void OxleyDomain::addToSystem(escript::AbstractSystemMatrix& mat,
         assemblePDE(&mat, rhs, coefs, assembler);
         assemblePDEBoundary(&mat, rhs, coefs, assembler);
         assemblePDEDirac(&mat, rhs, coefs, assembler);
+        assemblePDEHanging(&mat, rhs, coefs, assembler);
     }
 
 
@@ -1472,6 +1473,7 @@ void OxleyDomain::addToRHS(escript::Data& rhs, const DataMap& coefs,
         assemblePDE(NULL, rhs, coefs, assembler);
         assemblePDEBoundary(NULL, rhs, coefs, assembler);
         assemblePDEDirac(NULL, rhs, coefs, assembler);
+        assemblePDEHanging(NULL, rhs, coefs, assembler);
     }
 
 void OxleyDomain::addToRHSFromPython(escript::Data& rhs, const bp::list& data,
@@ -1667,6 +1669,13 @@ void OxleyDomain::assemblePDEDirac(escript::AbstractSystemMatrix* mat,
             addToSystemMatrix(mat, rowIndex, nEq, contents);
         }
     }
+}
+
+void OxleyDomain::assemblePDEHanging(escript::AbstractSystemMatrix* mat,
+                                    escript::Data& rhs, const DataMap& coefs,
+                                    Assembler_ptr assembler) const
+{
+    assembler->assemblePDEHanging(mat, rhs, coefs);
 }
 
 bool OxleyDomain::probeInterpolationAcross(int fsType_source,

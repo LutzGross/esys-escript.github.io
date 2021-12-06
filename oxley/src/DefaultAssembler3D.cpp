@@ -144,6 +144,14 @@ void DefaultAssembler3D<Scalar>::assemblePDEBoundarySystemReduced(
     assemblePDEBoundarySystemReduced(mat, rhs, d, y);
 }
 
+template<class Scalar>
+void DefaultAssembler3D<Scalar>::assemblePDEHanging(escript::AbstractSystemMatrix* mat, 
+                                            escript::Data& rhs,
+                                          const DataMap& coefs) const
+{
+
+}
+
 /****************************************************************************/
 // PDE SINGLE
 /****************************************************************************/

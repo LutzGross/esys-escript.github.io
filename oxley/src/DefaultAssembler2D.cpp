@@ -144,6 +144,17 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
     assemblePDEBoundarySystemReduced(mat, rhs, d, y);
 }
 
+
+template<class Scalar>
+void DefaultAssembler2D<Scalar>::assemblePDEHanging(
+                                        AbstractSystemMatrix* mat, 
+                                        Data& rhs,
+                                        const DataMap& coefs) const
+{
+    assemblePDEHanging(mat, rhs);
+}
+
+
 /****************************************************************************/
 // PDE SINGLE
 /****************************************************************************/
@@ -2528,6 +2539,18 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
             domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, domain->NodeIDsTop[k], numEq, numComp);
         }
     }
+}
+
+/****************************************************************************/
+// PDE HANGING NODES
+/****************************************************************************/
+
+template<class Scalar>
+void DefaultAssembler2D<Scalar>::assemblePDEHanging(
+                                    AbstractSystemMatrix* mat,
+                                    Data& rhs) const
+{
+    //TODO
 }
 
 // instantiate the supported templates
