@@ -60,6 +60,7 @@
 // #define SC_LP_SILENT      9     /**< this never logs anything */
 /*@}*/
 
+typedef std::pair<long,long> LongPair;
 typedef std::pair<double,double> DoublePair;
 typedef std::tuple<double,double,double> DoubleTriple;
 

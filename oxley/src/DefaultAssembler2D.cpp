@@ -2550,7 +2550,15 @@ void DefaultAssembler2D<Scalar>::assemblePDEHanging(
                                     AbstractSystemMatrix* mat,
                                     Data& rhs) const
 {
-    //TODO
+    // Loop over hanging nodes
+    int numHanging = domain->num_hanging;
+    for(int i = 0; i < numHanging; i++)
+    {
+        // Get neighbouring coordinates
+
+        // Add to matrix
+
+    }
 }
 
 // instantiate the supported templates

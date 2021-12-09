@@ -81,6 +81,15 @@ struct borderNodeInfo
 	p4est_topidx_t treeid=-1;
 };
 
+struct hangingNodeInfo
+{
+	p4est_qcoord_t x;
+	p4est_qcoord_t y;
+	int8_t level;
+	p4est_topidx_t treeid;
+	int face_orientation={-1}; 
+};
+
 struct octantData
 {
 	double u = 0.0; // A Scalar variable

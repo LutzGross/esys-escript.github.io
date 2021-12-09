@@ -1430,6 +1430,8 @@ void OxleyDomain::addToSystem(escript::AbstractSystemMatrix& mat,
         assemblePDE(&mat, rhs, coefs, assembler);
         assemblePDEBoundary(&mat, rhs, coefs, assembler);
         assemblePDEDirac(&mat, rhs, coefs, assembler);
+        // mat.print();
+        rhs.print();
         assemblePDEHanging(&mat, rhs, coefs, assembler);
     }
 

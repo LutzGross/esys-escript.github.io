@@ -1344,9 +1344,15 @@ void Rectangle::renumberNodes()
 {
     // Clear some variables
     NodeIDs.clear();
+    hanging_face_orientation.clear();
     quadrantIDs.clear();
     std::vector<DoublePair> NormalNodes;
     std::vector<DoublePair> HangingNodes;
+
+    int orient_lookup[4][4]={{-1,2,0,-1},
+                             {2,-1,1,-1},
+                             {0,-1,-1,3},
+                             {-1,1,3,-1}};
 
     // Write in NodeIDs
 // #pragma omp for
@@ -1362,7 +1368,6 @@ void Rectangle::renumberNodes()
             int hanging[4] = {0};
 
             getHangingNodes(nodes->face_code[k++], hanging);
-
             for(int n = 0; n < 4; n++)
             {
                 double xy[3];
@@ -1373,7 +1378,16 @@ void Rectangle::renumberNodes()
                 if(hanging[n]!=-1)
                 {
                     if(!std::count(HangingNodes.begin(), HangingNodes.end(), tmp))
+                    {
+                        hangingNodeInfo tmp2;
+                        tmp2.x=quad->x+lxy[n][0];
+                        tmp2.y=quad->y+lxy[n][1];
+                        tmp2.level=quad->level;
+                        tmp2.treeid=treeid;
+                        tmp2.face_orientation=orient_lookup[n][hanging[n]];
+                        hanging_face_orientation.push_back(tmp2);
                         HangingNodes.push_back(tmp);
+                    }
                 }
                 else
                 {
@@ -1393,7 +1407,6 @@ void Rectangle::renumberNodes()
     int count = 0;
     for(int i=0;i<num_norm_nodes;i++)
     {
-
         NodeIDs[NormalNodes[i]]=count++;
     }
     for(int i=0;i<num_hanging;i++)
@@ -2206,9 +2219,87 @@ void Rectangle::updateRowsColumns()
         }
     }
 
+    // Hanging nodes
+    for(int i = 0; i < hanging_face_orientation.size(); i++)
+    {
+        // Get coordinates
+        p4est_qcoord_t l = P4EST_QUADRANT_LEN(hanging_face_orientation[i].level);
+        p4est_qcoord_t xlookup[4][2] = {{0,0}, {0,0}, {-l,l}, {-l,l}};
+        p4est_qcoord_t ylookup[4][2] = {{-l,l}, {-l,l}, {0,0}, {0,0}};
+
+        double xy[3]={0};
+        p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, 
+                hanging_face_orientation[i].x, 
+                hanging_face_orientation[i].y, xy);
+        long nodeid = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+        p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, 
+                hanging_face_orientation[i].x+xlookup[hanging_face_orientation[i].face_orientation][0], 
+                hanging_face_orientation[i].y+ylookup[hanging_face_orientation[i].face_orientation][0], xy);
+        long lni0   = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+        p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, 
+                hanging_face_orientation[i].x+xlookup[hanging_face_orientation[i].face_orientation][1], 
+                hanging_face_orientation[i].y+ylookup[hanging_face_orientation[i].face_orientation][1], xy);
+        long lni1   = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+
+        std::vector<long> * idx0 = &indices[0][nodeid];
+        bool new_connection;
+
+        // TODO
+
+        /// first connection
+        std::vector<long> * idx1a = &indices[0][lni0];
+        new_connection=true;
+        for(int j=1; j<5; j++)
+            if(idx0[0][j]==lni0)
+            {
+                idx0[0][j]=nodeid;
+                new_connection=false;
+                break;
+            }
+        if(new_connection)
+        {
+            idx0[0][0]++;
+            idx0[0][idx0[0][0]]=lni0;
+        }        
+        for(int j=1; j<5; j++)
+            if(idx1a[0][j]==nodeid)
+            {
+                idx1a[0][j]=lni0;
+                break;
+            }
+
+        /// second connection
+        std::vector<long> * idx1b = &indices[0][lni1];
+        new_connection=true;
+        for(int j=1; j<5; j++)
+            if(idx0[0][j]==lni1)
+            {
+                idx0[0][j]=nodeid;
+                new_connection=false;
+                break;
+            }
+        if(new_connection)
+        {
+            idx0[0][0]++;
+            idx0[0][idx0[0][0]]=lni1;
+        }
+        for(int j=1; j<5; j++)
+            if(idx1b[0][j]==nodeid)
+            {
+                idx1b[0][j]=lni1;
+                break;
+            }
+
+        hanging_faces.push_back(std::make_pair(lni0,lni1));
+    }
+
+    // update num_hanging
+    num_hanging=hanging_faces.size();
+
     // Sorting
 #pragma omp for
-    for(int i = 0; i < getNumNodes(); i++){
+    for(int i = 0; i < getNumNodes(); i++)
+    {
         std::vector<long> * idx0 = &indices[0][i];
         std::sort(indices[0][i].begin()+1, indices[0][i].begin()+idx0[0][0]+1);
     }
@@ -2364,7 +2455,7 @@ void Rectangle::updateFaceElementCount()
             p4est_qcoord_t l = P4EST_QUADRANT_LEN(quad->level);
             // int k = q - Q + nodeIncrements[treeid - p4est->first_local_tree];
             p4est_qcoord_t lxy[4][2] = {{0,0},{l,0},{0,l},{l,l}};
-            double xy[4][3] = {0};
+            double xy[4][3] = {{0}};
             int nodeids[4]={-1};
             for(int n = 0; n < 4; n++)
             {
