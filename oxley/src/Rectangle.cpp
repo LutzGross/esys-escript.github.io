@@ -2241,12 +2241,12 @@ void Rectangle::updateRowsColumns()
                 hanging_face_orientation[i].y+ylookup[hanging_face_orientation[i].face_orientation][1], xy);
         long lni1   = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
 
+        // lni0 == nodeid == lni1
+
         std::vector<long> * idx0 = &indices[0][nodeid];
         bool new_connection;
 
-        // TODO
-
-        /// first connection
+        /// add first connection
         std::vector<long> * idx1a = &indices[0][lni0];
         new_connection=true;
         for(int j=1; j<5; j++)
@@ -2260,11 +2260,12 @@ void Rectangle::updateRowsColumns()
         {
             idx0[0][0]++;
             idx0[0][idx0[0][0]]=lni0;
-        }        
+        }
+        // remove spurious old connection
         for(int j=1; j<5; j++)
-            if(idx1a[0][j]==nodeid)
+            if(idx1a[0][j]==lni1)
             {
-                idx1a[0][j]=lni0;
+                idx1a[0][j]=nodeid;
                 break;
             }
 
@@ -2284,9 +2285,9 @@ void Rectangle::updateRowsColumns()
             idx0[0][idx0[0][0]]=lni1;
         }
         for(int j=1; j<5; j++)
-            if(idx1b[0][j]==nodeid)
+            if(idx1b[0][j]==lni0)
             {
-                idx1b[0][j]=lni1;
+                idx1b[0][j]=nodeid;
                 break;
             }
 
