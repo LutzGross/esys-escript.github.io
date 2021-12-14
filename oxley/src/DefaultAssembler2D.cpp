@@ -2550,14 +2550,13 @@ void DefaultAssembler2D<Scalar>::assemblePDEHanging(
                                     AbstractSystemMatrix* mat,
                                     Data& rhs) const
 {
+    Scalar* F_p = rhs.getSampleDataRW(0, static_cast<Scalar>(0));
+
     // Loop over hanging nodes
-    int numHanging = domain->num_hanging;
-    for(int i = 0; i < numHanging; i++)
+    for(int i = 0; i < domain->num_hanging; i++)
     {
-        // Get neighbouring coordinates
-
-        // Add to matrix
-
+        LongPair coords=domain->hanging_faces[i];
+        F_p[coords.first]=0.5*F_p[coords.second];
     }
 }
 
