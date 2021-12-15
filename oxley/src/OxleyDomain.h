@@ -856,7 +856,6 @@ private:
 
     /// calls the right PDE assembly routine after performing input checks
     void assemblePDEHanging(escript::AbstractSystemMatrix* mat,
-                          escript::Data& rhs, const DataMap& coefs,
                           Assembler_ptr assembler) const;
 
     template<typename Scalar>

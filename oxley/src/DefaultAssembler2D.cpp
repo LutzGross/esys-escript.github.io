@@ -21,6 +21,10 @@
 #include <escript/DataTypes.h>
 #include <escript/index.h>
 
+#ifdef ESYS_HAVE_TRILINOS
+#include <trilinoswrap/TrilinosMatrixAdapter.h>
+#endif
+
 using namespace std;
 using escript::AbstractSystemMatrix;
 using escript::Data;
@@ -143,17 +147,6 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
     const Data& y = unpackData("y", coefs);
     assemblePDEBoundarySystemReduced(mat, rhs, d, y);
 }
-
-
-template<class Scalar>
-void DefaultAssembler2D<Scalar>::assemblePDEHanging(
-                                        AbstractSystemMatrix* mat, 
-                                        Data& rhs,
-                                        const DataMap& coefs) const
-{
-    assemblePDEHanging(mat, rhs);
-}
-
 
 /****************************************************************************/
 // PDE SINGLE
@@ -2547,17 +2540,33 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
 
 template<class Scalar>
 void DefaultAssembler2D<Scalar>::assemblePDEHanging(
-                                    AbstractSystemMatrix* mat,
-                                    Data& rhs) const
+                                    AbstractSystemMatrix* mat) const
 {
-    Scalar* F_p = rhs.getSampleDataRW(0, static_cast<Scalar>(0));
+
+#ifdef ESYS_HAVE_TRILINOS
+    esys_trilinos::TrilinosMatrixAdapter* tm = dynamic_cast<esys_trilinos::TrilinosMatrixAdapter*>(mat);
+
+    // const IndexVector& nodes;
+    // const vector<cplx_t>& array;
+
+    // Create I
+    for(int i = 0; i < domain->getNumNodes() - domain->num_hanging; i++)
+    {
+
+    }
 
     // Loop over hanging nodes
-    for(int i = 0; i < domain->num_hanging; i++)
-    {
-        LongPair coords=domain->hanging_faces[i];
-        F_p[coords.first]=0.5*F_p[coords.second];
+    // for(int i = 0; i < domain->num_hanging; i++)
+    // {
+    //     LongPair coords=domain->hanging_faces[i];
+    //     F_p[coords.first]=0.5*F_p[coords.second];
+    // }
+
+    if (tm) {
+        // tm->add(nodes, array);
+        return;
     }
+#endif
 }
 
 // instantiate the supported templates

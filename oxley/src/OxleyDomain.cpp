@@ -1431,8 +1431,7 @@ void OxleyDomain::addToSystem(escript::AbstractSystemMatrix& mat,
         assemblePDEBoundary(&mat, rhs, coefs, assembler);
         assemblePDEDirac(&mat, rhs, coefs, assembler);
         // mat.print();
-        rhs.print();
-        assemblePDEHanging(&mat, rhs, coefs, assembler);
+        // rhs.print();
     }
 
 
@@ -1475,7 +1474,6 @@ void OxleyDomain::addToRHS(escript::Data& rhs, const DataMap& coefs,
         assemblePDE(NULL, rhs, coefs, assembler);
         assemblePDEBoundary(NULL, rhs, coefs, assembler);
         assemblePDEDirac(NULL, rhs, coefs, assembler);
-        assemblePDEHanging(NULL, rhs, coefs, assembler);
     }
 
 void OxleyDomain::addToRHSFromPython(escript::Data& rhs, const bp::list& data,
@@ -1618,6 +1616,17 @@ void OxleyDomain::assemblePDE(escript::AbstractSystemMatrix* mat,
         }
     }
 
+    /////// Hanging nodes
+
+    // Create IZ
+    escript::AbstractSystemMatrix* IZ;
+    esys_trilinos::TrilinosMatrixAdapter* tIZ = dynamic_cast<esys_trilinos::TrilinosMatrixAdapter*>(IZ);   
+    assemblePDEHanging(IZ, assembler);
+
+    // Multiplication
+    //TODO
+    
+
 #ifdef ESYS_HAVE_TRILINOS
     if (tm) {
         tm->fillComplete(true);
@@ -1674,10 +1683,9 @@ void OxleyDomain::assemblePDEDirac(escript::AbstractSystemMatrix* mat,
 }
 
 void OxleyDomain::assemblePDEHanging(escript::AbstractSystemMatrix* mat,
-                                    escript::Data& rhs, const DataMap& coefs,
                                     Assembler_ptr assembler) const
 {
-    assembler->assemblePDEHanging(mat, rhs, coefs);
+    assembler->assemblePDEHanging(mat);
 }
 
 bool OxleyDomain::probeInterpolationAcross(int fsType_source,

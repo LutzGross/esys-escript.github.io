@@ -145,9 +145,7 @@ void DefaultAssembler3D<Scalar>::assemblePDEBoundarySystemReduced(
 }
 
 template<class Scalar>
-void DefaultAssembler3D<Scalar>::assemblePDEHanging(escript::AbstractSystemMatrix* mat, 
-                                            escript::Data& rhs,
-                                          const DataMap& coefs) const
+void DefaultAssembler3D<Scalar>::assemblePDEHanging(escript::AbstractSystemMatrix* mat) const
 {
 
 }

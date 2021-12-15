@@ -1415,6 +1415,9 @@ void Rectangle::renumberNodes()
         is_hanging[count++]=true;
     }
 
+    // This variable currently records the number of hanging faces, not the number of hanging nodes
+    num_hanging/=2;
+
     // Populate m_nodeIDs
     m_nodeId.clear();
     m_nodeId.resize(NodeIDs.size());
@@ -2291,7 +2294,8 @@ void Rectangle::updateRowsColumns()
                 break;
             }
 
-        hanging_faces.push_back(std::make_pair(lni0,lni1));
+        hanging_faces.push_back(std::make_pair(nodeid,lni0));
+        hanging_faces.push_back(std::make_pair(nodeid,lni1));
     }
 
     // update num_hanging

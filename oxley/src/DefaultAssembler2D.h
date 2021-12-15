@@ -118,12 +118,7 @@ public:
     virtual void collateFunctionSpaceTypes(std::vector<int>& fsTypes,
                                            const DataMap& coefs) const;
 
-    virtual void assemblePDEHanging(escript::AbstractSystemMatrix* mat, 
-                                            escript::Data& rhs,
-                                          const DataMap& coefs) const;
-
-    virtual void assemblePDEHanging(escript::AbstractSystemMatrix* mat,
-                                          escript::Data& rhs) const;
+    virtual void assemblePDEHanging(escript::AbstractSystemMatrix* mat) const;
 
 protected:
     POINTER_WRAPPER_CLASS(const Rectangle) domain;
