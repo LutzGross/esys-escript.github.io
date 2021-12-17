@@ -2546,24 +2546,62 @@ void DefaultAssembler2D<Scalar>::assemblePDEHanging(
 #ifdef ESYS_HAVE_TRILINOS
     esys_trilinos::TrilinosMatrixAdapter* tm = dynamic_cast<esys_trilinos::TrilinosMatrixAdapter*>(mat);
 
-    // const IndexVector& nodes;
-    // const vector<cplx_t>& array;
-
+    std::vector<long> c, r;
+    std::vector<float> v;
+    
     // Create I
-    for(int i = 0; i < domain->getNumNodes() - domain->num_hanging; i++)
+    for(int i = 0; i < domain->getNumNodes()-0.5*domain->num_hanging; i++)
     {
-
+        c.push_back(i);
+        r.push_back(i);
+        v.push_back(1.0);
     }
 
     // Loop over hanging nodes
-    // for(int i = 0; i < domain->num_hanging; i++)
-    // {
-    //     LongPair coords=domain->hanging_faces[i];
-    //     F_p[coords.first]=0.5*F_p[coords.second];
-    // }
+    std::vector<LongPair> hanging_faces=domain->hanging_faces;
+
+    for(int i = 0; i < domain->num_hanging; i++)
+    {
+        int a, b;
+        for(int j = 0; j < hanging_faces.size(); j++)
+        {
+            if(hanging_faces[j].first > hanging_faces[i].first)
+            {
+                a=j;
+                break;
+            }
+        }
+        for(int j = 0; j < hanging_faces.size(); j++)
+        {
+            if(hanging_faces[j].first > hanging_faces[i].first)
+            {
+                b=j;
+                break;
+            }
+        }
+
+        c.insert(c.begin()+a,hanging_faces[i].first);
+        r.insert(r.begin()+a,hanging_faces[i].second);
+        v.insert(v.begin()+a,0.5);
+        c.insert(c.begin()+b,hanging_faces[i].second);
+        r.insert(r.begin()+b,hanging_faces[i].first);
+        v.insert(v.begin()+b,0.5);
+    }
+
+    //convert to Yale format
+    std::vector<long> r_ptr;
+    int col=1;
+    r_ptr.push_back(col);
+    for(int i = 1; i < r.size(); i++)
+        if(r[i]!=col)
+        {
+            col=r[i];
+            r_ptr.push_back(col);
+        }
+
 
     if (tm) {
-        // tm->add(nodes, array);
+        tm->add(nodes, array);
         return;
     }
 #endif
