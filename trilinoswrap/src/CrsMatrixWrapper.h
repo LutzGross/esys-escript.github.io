@@ -22,6 +22,9 @@
 #include <trilinoswrap/Amesos2Wrapper.h>
 #include <trilinoswrap/BelosWrapper.h>
 
+#include <Teuchos_RCPDecl.hpp>
+#include <TpetraExt_MatrixMatrix_def.hpp>
+
 #include <Tpetra_CrsMatrix.hpp>
 
 namespace esys_trilinos {
@@ -58,6 +61,12 @@ public:
 
     void ypAx(const Teuchos::ArrayView<ST>& y,
               const Teuchos::ArrayView<const ST>& x) const;
+
+    // Used by Oxley
+    void IztAIz(const Tpetra::CrsMatrix<ST>& IZ);
+
+    // Used by Oxley
+    void rhsIz(const Tpetra::CrsMatrix<ST>& IZ);
 
     void solve(const Teuchos::ArrayView<ST>& x,
                const Teuchos::ArrayView<const ST>& b,

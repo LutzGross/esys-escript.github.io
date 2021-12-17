@@ -95,6 +95,44 @@ void CrsMatrixWrapper<ST>::ypAx(const Teuchos::ArrayView<ST>& y,
     Y->get1dCopy(y, y.size());
 }
 
+// apply (const MultiVector< Scalar, LocalOrdinal, GlobalOrdinal, Node > &X, 
+//                 MultiVector< Scalar, LocalOrdinal, GlobalOrdinal, Node > &Y, 
+//                 Teuchos::ETransp mode=Teuchos::NO_TRANS, 
+//                 Scalar alpha=Teuchos::ScalarTraits< Scalar >::one(), 
+//                 Scalar beta=Teuchos::ScalarTraits< Scalar >::zero()) const override
+
+
+// void Tpetra::MatrixMatrix::Multiply ( 
+//     const CrsMatrix< Scalar, LocalOrdinal, GlobalOrdinal, Node > &  A,
+//     bool transposeA,
+//     const CrsMatrix< Scalar, LocalOrdinal, GlobalOrdinal, Node > &  B,
+//     bool transposeB,
+//     CrsMatrix< Scalar, LocalOrdinal, GlobalOrdinal, Node > &    C,
+//     bool call_FillComplete_on_result = true,
+//     const std::string &     label = std::string(),
+//     const Teuchos::RCP< Teuchos::ParameterList > &  params = Teuchos::null 
+// )   
+
+template<typename ST>
+void CrsMatrixWrapper<ST>::IztAIz(const Tpetra::CrsMatrix<ST>& iz) 
+{
+    const std::string label = mat.description();
+    const Teuchos::RCP<Teuchos::ParameterList> params;
+    const Matrix tmp_mat = mat;
+    
+    Tpetra::MatrixMatrix::Multiply(iz, true,tmp_mat, false,mat, true,label,params); 
+    Tpetra::MatrixMatrix::Multiply(mat,false,iz,false,mat,true,label,params);
+}
+
+
+template<typename ST>
+void CrsMatrixWrapper<ST>::rhsIz(const Tpetra::CrsMatrix<ST>& iz)
+{
+    const std::string label = mat.description();
+    const Teuchos::RCP<Teuchos::ParameterList> params;
+    Tpetra::MatrixMatrix::Multiply(mat,false,iz,false,mat,true,label,params); 
+}
+
 template<typename ST>
 void CrsMatrixWrapper<ST>::solve(const Teuchos::ArrayView<ST>& x,
                                  const Teuchos::ArrayView<const ST>& b,
