@@ -2599,11 +2599,6 @@ void DefaultAssembler2D<Scalar>::assemblePDEHanging(
             r_ptr.push_back(col);
         }
 
-
-    if (tm) {
-        tm->add(nodes, array);
-        return;
-    }
 #endif
 }
 
