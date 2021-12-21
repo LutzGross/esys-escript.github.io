@@ -98,6 +98,14 @@ private:
     bool m_isComplex;
     Teuchos::RCP<AbstractMatrixWrapper<real_t> > mat;
     Teuchos::RCP<AbstractMatrixWrapper<cplx_t> > cmat;
+
+    // Used by Oxley
+    template<typename ST>
+    void IztAIz(const Tpetra::CrsMatrix<ST>& IZ);
+
+    // Used by Oxley
+    template<typename ST>
+    void rhsIz(const Tpetra::CrsMatrix<ST>& IZ);
 };
 
 } // namespace esys_trilinos

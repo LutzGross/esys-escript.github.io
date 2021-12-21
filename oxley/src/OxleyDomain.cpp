@@ -1618,18 +1618,15 @@ void OxleyDomain::assemblePDE(escript::AbstractSystemMatrix* mat,
 
     /////// Hanging nodes
 
+#ifdef ESYS_HAVE_TRILINOS
     // Create IZ
     escript::AbstractSystemMatrix* IZ;
     esys_trilinos::TrilinosMatrixAdapter* tIZ = dynamic_cast<esys_trilinos::TrilinosMatrixAdapter*>(IZ);   
     assemblePDEHanging(IZ, assembler);
-
-    // Multiplication
-    //TODO
-    
-
-#ifdef ESYS_HAVE_TRILINOS
     if (tm) {
         tm->fillComplete(true);
+        // tm->IztAIz(IZ);
+        // tm->rhsIz(IZ);
     }
 #endif
 }

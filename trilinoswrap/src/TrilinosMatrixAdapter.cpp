@@ -22,6 +22,9 @@
 #include "UnrolledBlockCrsMatrixWrapper.h" 
 #include "util.h" 
 
+#include <MatrixMarket_Tpetra.hpp>
+// #include <MueLu_CreateTpetraPreconditioner.hpp>
+
 #include <escript/index.h>
 #include <escript/Data.h>
 #include <escript/FunctionSpaceFactory.h>
@@ -122,6 +125,26 @@ void TrilinosMatrixAdapter::ypAx(escript::Data& y, escript::Data& x) const
         mat->ypAx(yView, xView);
     }
 }
+
+template<typename ST>
+void TrilinosMatrixAdapter::IztAIz(const Tpetra::CrsMatrix<ST>& iz) 
+{
+    const std::string label = "";
+    const Teuchos::RCP<Teuchos::ParameterList> params;
+    const Tpetra::CrsMatrix<ST> tmp_mat = mat;
+    
+    Tpetra::MatrixMatrix::Multiply(iz, true,tmp_mat, false,(*mat), true,label,params); 
+    Tpetra::MatrixMatrix::Multiply((*mat),false,iz,false,(*mat),true,label,params);
+}
+
+template<typename ST>
+void TrilinosMatrixAdapter::rhsIz(const Tpetra::CrsMatrix<ST>& iz)
+{
+    const std::string label = "";
+    const Teuchos::RCP<Teuchos::ParameterList> params;
+    Tpetra::MatrixMatrix::Multiply((*mat),false,iz,false,(*mat),true,label,params); 
+}
+
 
 void TrilinosMatrixAdapter::setToSolution(escript::Data& out, escript::Data& in,
                                  bp::object& options) const
