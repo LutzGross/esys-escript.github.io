@@ -61,10 +61,14 @@ except:
     HAVE_PYPROJ=False
 
 try:
-    import osgeo.osr
+    import warnings
+    with warnings.catch_warnings(record=True):
+       warnings.simplefilter("ignore", category=DeprecationWarning)
+       import osgeo.osr
     HAVE_GDAL=True
 except ImportError:
     HAVE_GDAL=False
+
 
 def getUTMZone(lon, lat, wkt_string=None):
     """
