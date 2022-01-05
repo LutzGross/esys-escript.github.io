@@ -40,8 +40,6 @@ from esys.finley import Rectangle
 #Testing whether we have a late enough version of matplotlib
 if HAVE_SCIPY:
     try:
-        matplotlib.mlab.griddata
-
         interp = 'linear'
         # generate domain:
         mydomain = Rectangle(l0=1.,l1=1.,n0=40, n1=20)

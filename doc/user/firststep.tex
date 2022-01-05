@@ -333,7 +333,7 @@ First we need to create a rectangular grid which is accomplished by the followin
 In this case we use $50$ points over the interval $[0,1]$ in both directions. 
 
 Now the values created by \escript need to be interpolated to this grid.
-We will use the \MATPLOTLIB \function{mlab.griddata} function to do this.
+We will use the \SCIPY \function{interpolate.griddata} function to do this.
 Spatial coordinates are easily extracted as a \var{list} by
 \begin{python}
   x=mydomain.getX()[0].toListOfTuples()
@@ -349,11 +349,12 @@ We apply the \function{interpolation} to \var{u} before extraction to achieve th
 The values in \var{z} are the values at the points with the coordinates given by \var{x} and \var{y}.
 These values are interpolated to the grid defined by \var{x_grid} and \var{y_grid} by using
 \begin{python}
-  import matplotlib
-  z_grid = matplotlib.mlab.griddata(x, y, z, xi=x_grid, yi=y_grid)
+   import scipy.interpolate
+   z_grid = scipy.interpolate.griddata((x,y),z,(x_grid[None,:],y_grid[:,None]),'linear')
 \end{python}
 Now \var{z_grid} gives the values of the PDE solution \var{u} at the grid which can be plotted using \function{contourf}:
 \begin{python}
+  import matplotlib
   matplotlib.pyplot.contourf(x_grid, y_grid, z_grid, 5)
   matplotlib.pyplot.savefig("u.png")
 \end{python}
@@ -376,8 +377,10 @@ Now we can write the script to solve our Poisson problem
   from esys.escript import *
   from esys.escript.linearPDEs import Poisson
   from esys.finley import Rectangle
+  import scipy.interpolate
   import numpy
   import matplotlib
+
   import pylab
   # generate domain:
   mydomain = Rectangle(l0=1.,l1=1.,n0=40, n1=20)
@@ -394,7 +397,7 @@ Now we can write the script to solve our Poisson problem
   x=mydomain.getX()[0].toListOfTuples()
   y=mydomain.getX()[1].toListOfTuples()
   z=interpolate(u,mydomain.getX().getFunctionSpace()).toListOfTuples()
-  z_grid = matplotlib.mlab.griddata(x,y,z,xi=x_grid,yi=y_grid )
+  z_grid = scipy.interpolate.griddata((x,y),z,(x_grid[None,:],y_grid[:,None]),'linear')
   # interpolate u to a rectangular grid:
   matplotlib.pyplot.contourf(x_grid, y_grid, z_grid, 5)
   matplotlib.pyplot.savefig("u.png")
