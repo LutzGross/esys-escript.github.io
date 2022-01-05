@@ -345,7 +345,7 @@ Please see \Sec{FINLEY MESHES} for more details on the supported macro elements.
 \section{Linear Solvers in \SolverOptions}
 If available, Trilinos sovers are used by default, see Chapter \ref{TRILINOS}.
 Table~\ref{TAB FINLEY SOLVER OPTIONS 1} and
-%Table~\ref{TAB FINLEY SOLVER OPTIONS 2} 
+Table~\ref{TAB FINLEY SOLVER OPTIONS 2} 
 show the solvers %and preconditioners
 supported by \finley through the \PASO library.
 %Currently direct solvers are not supported under \MPI.
@@ -361,17 +361,17 @@ for non-symmetric problems.
 \begin{table}
 \centering
 {\scriptsize
-\begin{tabular}{l||c|c|c|c|c|c|c|c}
-\member{setSolverMethod} & \member{DIRECT}& \member{PCG} & \member{GMRES} & \member{TFQMR} & \member{MINRES} & \member{PRES20} & \member{BICGSTAB} & lumping \\
+\begin{tabular}{l||c|c|c|c|c|c|c}
+\member{setSolverMethod} & \member{DIRECT}& \member{PCG} & \member{GMRES} & \member{TFQMR} & \member{MINRES} & \member{PRES20} & \member{BICGSTAB} \\
 \hline
  \hline
- \member{setReordering} & $\checkmark$ & & & & & &\\
- \hline  \member{setRestart} &  & & $\checkmark$ & & & $20$ & \\
- \hline\member{setTruncation} &  & & $\checkmark$ & & & $5$ & \\
-   \hline\member{setIterMax} &  & $\checkmark$& $\checkmark$ & $\checkmark$& $\checkmark$& $\checkmark$ & $\checkmark$ \\
- \hline\member{setTolerance} &  & $\checkmark$& $\checkmark$ & $\checkmark$& $\checkmark$& $\checkmark$ & $\checkmark$ \\
- \hline\member{setAbsoluteTolerance} &  & $\checkmark$& $\checkmark$ & $\checkmark$& $\checkmark$& $\checkmark$ & $\checkmark$ \\
-\hline\member{setReordering} & $\checkmark$ & & & & & & & \\
+ \member{setReordering} & $\checkmark$ & & & & & \\
+ \hline  \member{setRestart} &  & & $\checkmark$ & & & $20$  \\
+ \hline\member{setTruncation} &  & & $\checkmark$ & & & $5$  \\
+   \hline\member{setIterMax} &  & $\checkmark$& $\checkmark$ & $\checkmark$& $\checkmark$& $\checkmark$  $\checkmark$ \\
+ \hline\member{setTolerance} &  & $\checkmark$& $\checkmark$ & $\checkmark$& $\checkmark$& $\checkmark$  $\checkmark$ \\
+ \hline\member{setAbsoluteTolerance} &  & $\checkmark$& $\checkmark$ & $\checkmark$& $\checkmark$& $\checkmark$  \\
+\hline\member{setReordering} & $\checkmark$ & & & & & & \\
 \end{tabular}
 }
 \caption{Solvers available for \finley and the \PASO package and the relevant
@@ -383,48 +383,47 @@ Currently the \UMFPACK interface does not support any reordering.
 \label{TAB FINLEY SOLVER OPTIONS 1}}
 \end{table}
 
-%\begin{table}
-%\begin{center}
-%{\scriptsize
-%\begin{tabular}{l||c|c|c|c|c|c|c}
-%\member{NO_PRECONDITIONER}&
-%\member{AMG}&
-%\member{JACOBI}&
-%\member{GAUSS_SEIDEL}&
-%\member{REC_ILU}&
-%\member{RILU}&
-%\member{ILU0}&
-%\member{DIRECT}\\
-%\hline
-%status:& $\checkmark$ &$\checkmark$&$\checkmark$&$\checkmark$&later&$\checkmark$&later\\
-%\hline
-%\hline
-%\member{setLevelMax}&$\checkmark$& & & & & &\\
-%\hline
-%\member{setCoarseningThreshold}&$\checkmark$& & & & & &\\
-%\hline
-%\member{setMinCoarseMatrixSize}&$\checkmark$& & & & & &\\
-%\hline
-%\member{setMinCoarseMatrixSparsity}&$\checkmark$& & & & & &\\
-%\hline
-%\member{setNumSweeps}& &$\checkmark$&$\checkmark$& & & &\\
-%\hline
-%\member{setNumPreSweeps}&$\checkmark$& & & & & &\\
-%\hline
-%\member{setNumPostSweeps}&$\checkmark$& & & & & &\\
-%\hline
-%\member{setDiagonalDominanceThreshold}&$\checkmark$& & & & & &\\
-%\hline
-%\member{setAMGInterpolation}&$\checkmark$& & & & & &\\
-%\hline
-%\member{setRelaxationFactor}& & & & &$\checkmark$& &\\
-%\end{tabular}
-%}
-%\caption{Preconditioners available for \finley and the \PASO package and the
-%relevant options in \class{SolverOptions}.
-%\label{TAB FINLEY SOLVER OPTIONS 2}}
-%\end{center}
-%\end{table}
+\begin{table}
+\begin{center}
+{\scriptsize
+\begin{tabular}{l||c|c|c|c|c|c|c}
+\member{NO_PRECONDITIONER}&
+\member{AMG}&
+\member{JACOBI}&
+\member{GAUSS_SEIDEL}&
+\member{REC_ILU}&
+\member{RILU}&
+\member{ILU0}\\
+\hline
+\it{status}:& $\checkmark$ &$\checkmark$&$\checkmark$&$\checkmark$& &$\checkmark$\\
+\hline
+\hline
+\member{setLevelMax}&$\checkmark$& & & & & \\
+\hline
+\member{setCoarseningThreshold}&$\checkmark$& & & & & \\
+\hline
+\member{setMinCoarseMatrixSize}&$\checkmark$& & & & &\\
+\hline
+\member{setMinCoarseMatrixSparsity}&$\checkmark$& & & & & \\
+\hline
+\member{setNumSweeps}& &$\checkmark$&$\checkmark$& & & \\
+\hline
+\member{setNumPreSweeps}&$\checkmark$& & & & & \\
+\hline
+\member{setNumPostSweeps}&$\checkmark$& & & & & \\
+\hline
+\member{setDiagonalDominanceThreshold}&$\checkmark$& & & & & \\
+\hline
+\member{setAMGInterpolation}&$\checkmark$& & & & & \\
+\hline
+\member{setRelaxationFactor}& & & & &$\checkmark$& \\
+\end{tabular}
+}
+\caption{Preconditioners available for \finley and the \PASO package and the
+relevant options in \class{SolverOptions}.
+\label{TAB FINLEY SOLVER OPTIONS 2}}
+\end{center}
+\end{table}
 
 \section{Functions}
 \begin{funcdesc}{ReadMesh}{fileName \optional{, \optional{integrationOrder=-1}, optimize=True}}

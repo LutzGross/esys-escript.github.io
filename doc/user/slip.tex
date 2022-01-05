@@ -47,7 +47,7 @@ The stress needs to fulfill the momentum equation\index{momentum equation}
 \begin{eqnarray}\label{Slip general problem}
 - \sigma_{ij,j}=0
 \end{eqnarray}
-This problem is very similar to the elastic deformation problem presented in \Sec{ELASTIC CHAP}.
+This problem is very similar to the elastic deformation problem presented in section \ref{sec:ElasticChap}.
 However, we need to address an additional challenge: the displacement
 $u_{i}$ is in fact discontinuous across the fault, but we are in the
 lucky situation that we know the jump of the displacements across the fault.
@@ -91,7 +91,7 @@ Together with the definition (\ref{Slip stress split 1}) we have a
 differential equation for the continuous function $v_i$.
 Notice that the boundary condition (\ref{Slip constraint}) and (\ref{Slip natural fault})
 transfer to $v_i$ and $\sigma^c_{ij}$ as $s$ is zero away from the fault.
-In \Sec{ELASTIC CHAP} we have discussed how this problem is solved using
+In section \ref{sec:ElasticChap} we have discussed how this problem is solved using
 the \LinearPDE class. We refer to this section for further details.
 
 To define the fault we use the \class{FaultSystem} class introduced in \Sec{Fault System}.
