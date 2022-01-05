@@ -37,11 +37,12 @@ from esys.escriptcore.start import HAVE_SYMBOLS
 import numpy
 from time import time
 import esys.escriptcore.linearPDEs as lpe
-from esys.escriptcore import util, Data
+from esys.escriptcore import util
+from esys.escriptcore.escriptcpp import Data
 
 if HAVE_SYMBOLS:
     import sympy
-    import esys.escriptcore.symbolic as symb
+    import esys.escriptcore.symboliccore as symb
 
 __author__="Cihan Altinay, Lutz Gross"
 
