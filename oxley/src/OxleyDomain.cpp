@@ -20,6 +20,7 @@
 
 #include <escript/Data.h>
 #include <escript/DataFactory.h>
+#include <escript/EsysMPI.h>
 #include <escript/FunctionSpaceFactory.h>
 // #include <escript/index.h>
 #include <escript/SolverOptions.h>
@@ -29,6 +30,9 @@
 #endif
 #ifdef ESYS_HAVE_TRILINOS
 #include <trilinoswrap/TrilinosMatrixAdapter.h>
+#include <trilinoswrap/types.h>
+#include <Teuchos_Comm.hpp>
+#include <Tpetra_CrsMatrix_decl.hpp>
 #endif
 
 namespace bp = boost::python;
@@ -1430,8 +1434,33 @@ void OxleyDomain::addToSystem(escript::AbstractSystemMatrix& mat,
         assemblePDE(&mat, rhs, coefs, assembler);
         assemblePDEBoundary(&mat, rhs, coefs, assembler);
         assemblePDEDirac(&mat, rhs, coefs, assembler);
-        // mat.print();
-        // rhs.print();
+        
+        // This is the multiplication by matrix IZ
+        using map_type = Tpetra::Map<>;
+        using vector_type = Tpetra::Vector<double>;
+        using global_ordinal_type = vector_type::global_ordinal_type;
+
+        const size_t numLocalEntries = getNumNodes();
+        const Tpetra::global_size_t numGlobalEntries = numLocalEntries;
+        const global_ordinal_type indexBase = 0; // Indices start at 0
+        const Teuchos::RCP<const map_type> map = Teuchos::rcp(new map_type (numGlobalEntries, indexBase, 
+                                                    esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm)));
+        size_t maxNumEntriesPerRow = 5;
+        const Teuchos::RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
+        Tpetra::CrsMatrix<double,int,long,esys_trilinos::NT> iz
+                            = Tpetra::createCrsMatrix(map, maxNumEntriesPerRow, params);
+        // iz.fillComplete();
+
+
+        // // // esys_trilinos::TrilinosMatrixAdapter* IZ = dynamic_cast<esys_trilinos::TrilinosMatrixAdapter*>(iz);   
+        // assemblePDEHanging(iz, assembler);
+
+        // if (tm) {
+        //     tm->resumeFill(true);
+        //     tm->IztAIz(iz);
+        
+        // }
+
     }
 
 
@@ -1615,20 +1644,6 @@ void OxleyDomain::assemblePDE(escript::AbstractSystemMatrix* mat,
             assembler->assemblePDESystem(mat, rhs, coefs);
         }
     }
-
-    /////// Hanging nodes
-
-#ifdef ESYS_HAVE_TRILINOS
-    // Create IZ
-    escript::AbstractSystemMatrix* IZ;
-    esys_trilinos::TrilinosMatrixAdapter* tIZ = dynamic_cast<esys_trilinos::TrilinosMatrixAdapter*>(IZ);   
-    assemblePDEHanging(IZ, assembler);
-    if (tm) {
-        tm->fillComplete(true);
-        // tm->IztAIz(IZ);
-        // tm->rhsIz(IZ);
-    }
-#endif
 }
 
 void OxleyDomain::assemblePDEDirac(escript::AbstractSystemMatrix* mat,
@@ -1679,7 +1694,7 @@ void OxleyDomain::assemblePDEDirac(escript::AbstractSystemMatrix* mat,
     }
 }
 
-void OxleyDomain::assemblePDEHanging(escript::AbstractSystemMatrix* mat,
+void OxleyDomain::assemblePDEHanging(Tpetra::CrsMatrix<double,int,long,esys_trilinos::NT>* mat,
                                     Assembler_ptr assembler) const
 {
     assembler->assemblePDEHanging(mat);

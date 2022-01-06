@@ -2540,11 +2540,11 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
 
 template<class Scalar>
 void DefaultAssembler2D<Scalar>::assemblePDEHanging(
-                                    AbstractSystemMatrix* mat) const
+                                    Tpetra::CrsMatrix<double,int,long,esys_trilinos::NT>* mat) const
 {
 
 #ifdef ESYS_HAVE_TRILINOS
-    esys_trilinos::TrilinosMatrixAdapter* tm = dynamic_cast<esys_trilinos::TrilinosMatrixAdapter*>(mat);
+    // esys_trilinos::TrilinosMatrixAdapter* tm = dynamic_cast<esys_trilinos::TrilinosMatrixAdapter*>(mat);
 
     std::vector<long> c, r;
     std::vector<float> v;
@@ -2598,6 +2598,8 @@ void DefaultAssembler2D<Scalar>::assemblePDEHanging(
             col=r[i];
             r_ptr.push_back(col);
         }
+
+    // TODO AEAE
 
 #endif
 }

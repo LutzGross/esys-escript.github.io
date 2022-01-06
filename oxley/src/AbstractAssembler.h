@@ -22,6 +22,10 @@
 #include <escript/Pointers.h>
 #include <oxley/domainhelpers.h>
 
+#ifdef ESYS_HAVE_TRILINOS
+#include <trilinoswrap/TrilinosMatrixAdapter.h>
+#endif
+
 namespace oxley {
 
 class AbstractAssembler;
@@ -53,8 +57,10 @@ public:
     virtual void assemblePDEBoundarySystemReduced(
                     escript::AbstractSystemMatrix* mat, escript::Data& rhs,
                     const DataMap& coefs) const = 0;
+#ifdef ESYS_HAVE_TRILINOS
     virtual void assemblePDEHanging(
-                    escript::AbstractSystemMatrix* mat) const = 0;
+                    Tpetra::CrsMatrix<double,int,long,esys_trilinos::NT>* mat) const = 0;
+#endif
 
     virtual void collateFunctionSpaceTypes(std::vector<int>& fsTypes,
                                            const DataMap& coefs) const = 0;

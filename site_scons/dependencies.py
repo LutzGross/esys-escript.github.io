@@ -474,7 +474,8 @@ def checkForTrilinos(env):
         'BelosTFQMRIter.hpp','BelosTFQMRSolMgr.hpp','BelosTpetraAdapter.hpp','BelosTypes.hpp',\
         'Ifpack2_Factory.hpp','Kokkos_DefaultNode.hpp',\
         'MatrixMarket_Tpetra.hpp','MueLu_CreateTpetraPreconditioner.hpp',\
-        'Teuchos_DefaultComm.hpp','Teuchos_ParameterList.hpp',\
+        'Teuchos_DefaultComm.hpp','Teuchos_ParameterList.hpp', \
+        'Teuchos_Comm.hpp', 'Tpetra_CrsMatrix_decl.hpp', \
         'Tpetra_CrsGraph.hpp','Tpetra_CrsMatrix.hpp', 'Tpetra_RowMatrix.hpp',\
         'Tpetra_Vector.hpp','Trilinos_version.h']
 

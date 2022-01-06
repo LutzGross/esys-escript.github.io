@@ -112,7 +112,7 @@ public:
                               escript::AbstractSystemMatrix* mat,
                               escript::Data& rhs, const DataMap& coefs) const;
 
-    virtual void assemblePDEHanging(escript::AbstractSystemMatrix* mat) const;
+    virtual void assemblePDEHanging(Tpetra::CrsMatrix<double,int,long,esys_trilinos::NT>* mat) const;
 
     void collateFunctionSpaceTypes(std::vector<int>& fsTypes,
                                    const DataMap& coefs) const;
