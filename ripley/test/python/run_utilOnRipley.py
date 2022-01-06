@@ -28,6 +28,7 @@ from esys.escriptcore.testing import *
 from test_util import Test_util
 from test_util import Test_Util_SpatialFunctions, Test_Util_SpatialFunctions_noGradOnBoundary_noContact
 from test_util_interpolation import Test_Util_Point_Data_Interpolation
+from test_util_integrals import Test_Util_Integration_Dirac
 from test_symfuncs import Test_symfuncs
 from esys.escript import *
 from esys.ripley import Rectangle, Brick
@@ -87,21 +88,25 @@ class Test_Util_SpatialFunctionsOnRipley3D(Test_Util_SpatialFunctions_noGradOnBo
         del self.order
         del self.domain
 
-class Test_2D_Point_Data_Integration(Test_Util_Point_Data_Interpolation):
+class Test_2D_Point_Data_Integration(Test_Util_Integration_Dirac):
     def setUp(self):
         Stations = [ (0.,0.), (1.,0), (0,1), (1,1) ]
         StationsTags = ["A1", "A2", "A3", "A4" ]
-        self.domain=Rectangle(n0=5,n1=5, diracPoints=Stations, diracTags=StationsTags)
+        self.taglist=StationsTags
+        self.domain=Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY, diracPoints=Stations, diracTags=StationsTags)
     def tearDown(self):
         del self.domain
 
-class Test_3D_Point_Data_Integration(Test_Util_Point_Data_Interpolation):
+class Test_3D_Point_Data_Integration(Test_Util_Integration_Dirac):
     def setUp(self):
-        Stations = [ (0.,0.,0.), (1.,0,0.), (0,1,0.), (1,1,0.) ]
-        StationsTags = ["A1", "A2", "A3", "A4" ]
-        self.domain=Brick(n0=5,n1=5,n2=5,diracPoints=Stations,diracTags=StationsTags)
+        Stations = [ (0.,0.,0.), (1.,0,0.), (0,1,0.), (1,1,0.), (0.,0.,1.), (1.,0,1.), (0,1,1.), (1,1,1.) ]
+        StationsTags = ["A1", "A2", "A3", "A4","A5", "A6", "A7", "A8"  ]
+        self.taglist=StationsTags
+        self.domain=Brick(n0=NE*NXb-1, n1=NE*NYb-1, n2=NE*NZb-1, l0=1., l1=1., l2=1., d0=NXb, d1=NYb, d2=NZb ,diracPoints=Stations,diracTags=StationsTags)
     def tearDown(self):
-        del self.domain
+        del self.domain, self.taglist
+        
+
 
 
 if __name__ == '__main__':
