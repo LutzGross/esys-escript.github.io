@@ -1505,7 +1505,11 @@ void FinleyDomain::interpolateOnDomain(escript::Data& target,
                 break;
                 case Points:
                     if (getMPISize() > 1) {
-                        //escript::Data temp(in, continuousFunction(*this));
+                        escript::Data temp(in, continuousFunction(*this));
+                        if (in.isComplex())
+                            Assemble_interpolate<cplx_t>(m_nodes, m_points, temp, target);
+                        else
+                            Assemble_interpolate<real_t>(m_nodes, m_points, temp, target);
                     } else {
                         if (in.isComplex())
                             Assemble_interpolate<cplx_t>(m_nodes, m_points, in, target);
