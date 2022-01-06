@@ -41,6 +41,7 @@ sources = """
     Assemble_getSize.cpp
     Assemble_gradient.cpp
     Assemble_integrate.cpp
+    Assemble_integrate_points.cpp
     Assemble_interpolate.cpp
     Assemble_jacobians.cpp
     DomainFactory.cpp

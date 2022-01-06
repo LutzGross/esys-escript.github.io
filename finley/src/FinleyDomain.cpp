@@ -1726,6 +1726,8 @@ void FinleyDomain::setToIntegralsWorker(vector<Scalar>& integrals,
         }
         break;
         case Points:
+            Assemble_integrate_points(m_points, arg, &integrals[0]);
+        break;
         case Elements:
         case ReducedElements:
             Assemble_integrate(m_nodes, m_elements, arg, &integrals[0]);

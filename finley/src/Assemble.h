@@ -178,6 +178,11 @@ template<typename Scalar>
 void Assemble_integrate(const NodeFile* nodes, const ElementFile* elements,
                         const escript::Data& data, Scalar* integrals);
 
+template<typename Scalar>
+void Assemble_integrate_points(const ElementFile* points,
+                        const escript::Data& data, Scalar* integrals);
+
+
 /// interpolates nodal data in a data array onto elements (=integration points)
 template<typename Scalar>
 void Assemble_interpolate(const NodeFile* nodes, const ElementFile* elements,
