@@ -2226,8 +2226,6 @@ void Brick::assembleIntegrateImpl(vector<Scalar>& integrals, const escript::Data
     const int fs = arg.getFunctionSpace().getTypeCode();
     const Scalar zero = static_cast<Scalar>(0);
 
-    bool HavePointData = arg.getFunctionSpace().getTypeCode() == Points;
-
     if(fs == Points ) {
         for (index_t k1 = 0; k1 < m_diracPoints.size(); k1++) { //only for this rank
             const Scalar* f  = arg.getSampleDataRO(k1, zero);
