@@ -1603,14 +1603,13 @@ void Rectangle::assembleIntegrateImpl(vector<Scalar>& integrals,
     const int fs = arg.getFunctionSpace().getTypeCode();
     const Scalar zero = static_cast<Scalar>(0);
 
-    bool HavePointData = arg.getFunctionSpace().getTypeCode() == Points;
-
-#ifdef ESYS_MPI
-    if(HavePointData && escript::getMPIRankWorld() == 0) {
-#else
-    if(HavePointData) {
-#endif
-        integrals[0] += arg.getNumberOfTaggedValues();
+    if(fs == Points ) {
+        for (index_t k1 = 0; k1 < m_diracPoints.size(); k1++) { //only for this rank
+            const Scalar* f  = arg.getSampleDataRO(k1, zero);
+            for (index_t i = 0; i < numComp; ++i) {
+                integrals[i]+=f[i];
+            }
+        }
     } else if (fs == Elements && arg.actsExpanded()) {
 #pragma omp parallel
         {

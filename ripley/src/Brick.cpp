@@ -2228,12 +2228,13 @@ void Brick::assembleIntegrateImpl(vector<Scalar>& integrals, const escript::Data
 
     bool HavePointData = arg.getFunctionSpace().getTypeCode() == Points;
 
-#ifdef ESYS_MPI
-    if(HavePointData && escript::getMPIRankWorld() == 0) {
-#else
-    if(HavePointData) {
-#endif
-        integrals[0] += arg.getNumberOfTaggedValues();
+    if(fs == Points ) {
+        for (index_t k1 = 0; k1 < m_diracPoints.size(); k1++) { //only for this rank
+            const Scalar* f  = arg.getSampleDataRO(k1, zero);
+            for (index_t i = 0; i < numComp; ++i) {
+                integrals[i]+=f[i];
+            }
+        }
     } else if (fs == Elements && arg.actsExpanded()) {
         const real_t w_0 = m_dx[0]*m_dx[1]*m_dx[2]/8.;
 #pragma omp parallel
