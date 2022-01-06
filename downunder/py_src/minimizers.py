@@ -567,7 +567,10 @@ class MinimizerLBFGS(AbstractMinimizer):
         #    invH_scale = None
         #else:
         #    invH_scale = self._initial_H
-        invH_scale = 1./self._initial_H
+        if self._initial_H:
+            invH_scale = 1./self._initial_H
+        else:
+            invH_scale=None
         # start the iteration:
         n_iter = 0
         n_last_break_down=-1
@@ -712,9 +715,10 @@ class MinimizerLBFGS(AbstractMinimizer):
                         if denom > 0:
                             invH_scale=self.getCostFunction().getNorm(delta_x)**2/denom
                         else:
-                            invH_scale=1./self._initial_H
-                            if getMPIRankWorld() == 0:
-                                self.logger.debug("** Break down in H update. Resetting to initial value %s."%(1./self._initial_H))
+                            if self._initial_H:
+                                invH_scale=1./self._initial_H
+                                if getMPIRankWorld() == 0:
+                                    self.logger.debug("** Break down in H update. Resetting to initial value %s."%(1./self._initial_H))
                     else:
                         # if there no inverse Hessian approximation is provided
                         #
@@ -773,10 +777,11 @@ class MinimizerLBFGS(AbstractMinimizer):
             
             norm_r=self.getCostFunction().getNorm(r)
             if norm_r > 0:
-                rescale=invH_scale*abs(self.getCostFunction().getDualProduct(r, q))/norm_r**2
-                r*=rescale
-                if getMPIRankWorld() == 0:
-                    self.logger.debug("rescale of search direction : r=%g (re-scale = %g, invH = %g)"%(norm_r*rescale, rescale, invH_scale))
+                if invH_scale is not None:
+                    rescale=invH_scale*abs(self.getCostFunction().getDualProduct(r, q))/norm_r**2
+                    r*=rescale
+                    if getMPIRankWorld() == 0:
+                        self.logger.debug("rescale of search direction : r=%g (re-scale = %g, invH = %g)"%(norm_r*rescale, rescale, invH_scale))
             else:
                 raise MinimizerException("approximate Hessian inverse returns zero.")
         else:
