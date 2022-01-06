@@ -59,7 +59,7 @@ for x in [(int(mpiSize**(1/3.)),int(mpiSize**(1/3.))),(2,3),(2,2),(1,2),(1,1)]:
     if NXb*NYb*NZb == mpiSize:
         break
 
-class Test_UtilOnRipley(Test_util, Test_symfuncs, Test_util_NaN_funcs):
+class Test_UtilOnRipley(Test_util,Test_util_NaN_funcs):
     def setUp(self):
         self.domain=Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
         self.functionspace = FunctionOnBoundary(self.domain) # due to a bug in escript python needs to hold a reference to the domain
@@ -72,6 +72,19 @@ class Test_UtilOnRipley(Test_util, Test_symfuncs, Test_util_NaN_funcs):
         del self.functionspace
         del self.domain
 
+class Test_SymFuncsOnRipley(Test_symfuncs):
+    def setUp(self):
+        self.domain=Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+        self.functionspace = FunctionOnBoundary(self.domain) # due to a bug in escript python needs to hold a reference to the domain
+        try:
+            self.workdir=os.environ['RIPLEY_WORKDIR']
+        except KeyError:
+            self.workdir='.'
+
+    def tearDown(self):
+        del self.functionspace
+        del self.domain
+        
 class Test_Util_SpatialFunctionsOnRipley2D(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
         self.order=1
