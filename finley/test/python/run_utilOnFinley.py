@@ -28,7 +28,7 @@ from esys.escriptcore.testing import *
 from test_util import Test_util, Test_Util_SpatialFunctions, \
         Test_Util_SpatialFunctions_noGradOnBoundary, \
         Test_Util_SpatialFunctions_noGradOnBoundary_noContact
-from test_util_interpolation import Test_Util_Point_Data_Interpolation
+from test_util_interpolation import Test_Util_Interpolation_Dirac
 from test_util_integrals import Test_Util_Integration_Dirac
 from test_util_NaN_funcs import Test_util_NaN_funcs
 # from test_copyWithData import Test_copyWithMask
@@ -56,7 +56,7 @@ FINLEY_MERGE_ERROR = "merge: more than 1 processor is not supported yet."
 
 NE=4 # number elements, must be even
 
-class Test_UtilOnFinley(Test_util):
+class Test_UtilOnFinley(Test_util,Test_util_NaN_funcs):
    def setUp(self):
        try:
            self.workdir=os.environ['FINLEY_WORKDIR']
@@ -68,7 +68,7 @@ class Test_UtilOnFinley(Test_util):
        del self.functionspace
        del self.domain
 
-# class Test_SymFuncsOnFinley(Test_symfuncs,Test_util_NaN_funcs):
+# class Test_SymFuncsOnFinley(Test_symfuncs):
 #    def setUp(self):
 #        try:
 #            self.workdir=os.environ['FINLEY_WORKDIR']
@@ -340,21 +340,78 @@ class Test_Util_SpatialFunctionsOnFinleyHex3DOrder2useElementsOnFacewithContact(
         del self.order
         del self.domain
 
-class Test_2D_Point_Data_Integration(Test_Util_Integration_Dirac):
+class Test_2D_Point_Order1_Interpolation(Test_Util_Interpolation_Dirac):
+    def setUp(self):
+        Stations = [ (0.,0.), (1.,0), (0,1), (1,1) ]
+        StationsTags = ["A1", "A2", "A3", "A4" ]
+        self.positions=Stations
+        self.taglist=StationsTags
+        self.domain=Rectangle(n0=5,n1=5, diracPoints=Stations, diracTags=StationsTags)
+    def tearDown(self):
+        del self.domain, self.positions, self.taglist
+
+class Test_3D_Point_Order1_Interpolation(Test_Util_Interpolation_Dirac):
+    def setUp(self):
+        Stations = [ (0.,0.,0.), (1.,0,0.), (0,1,0.), (1,1,0.), (0.,0.,1.), (1.,0,1.), (0,1,1.), (1,1,1.) ]
+        StationsTags = ["A1", "A2", "A3", "A4","A5", "A6", "A7", "A8"  ]
+        self.positions=Stations
+        self.taglist=StationsTags
+        self.domain=Brick(n0=5,n1=5,n2=5,diracPoints=Stations,diracTags=StationsTags)
+    def tearDown(self):
+        del self.domain, self.positions, self.taglist
+
+class Test_2D_Point_Order2_Interpolation(Test_Util_Interpolation_Dirac):
+    def setUp(self):
+        Stations = [ (0.,0.), (1.,0), (0,1), (1,1) ]
+        StationsTags = ["A1", "A2", "A3", "A4" ]
+        self.positions=Stations
+        self.taglist=StationsTags
+        self.domain=Rectangle(n0=5,n1=5, order=2, diracPoints=Stations, diracTags=StationsTags)
+    def tearDown(self):
+        del self.domain, self.positions, self.taglist
+
+class Test_3D_Point_Order2_Interpolation(Test_Util_Interpolation_Dirac):
+    def setUp(self):
+        Stations = [ (0.,0.,0.), (1.,0,0.), (0,1,0.), (1,1,0.), (0.,0.,1.), (1.,0,1.), (0,1,1.), (1,1,1.) ]
+        StationsTags = ["A1", "A2", "A3", "A4","A5", "A6", "A7", "A8"  ]
+        self.positions=Stations
+        self.taglist=StationsTags
+        self.domain=Brick(n0=5,n1=5,n2=5,order=2, diracPoints=Stations,diracTags=StationsTags)
+    def tearDown(self):
+        del self.domain, self.positions, self.taglist
+
+class Test_2D_Point_Order1_Integration(Test_Util_Integration_Dirac):
     def setUp(self):
         Stations = [ (0.,0.), (1.,0), (0,1), (1,1) ]
         StationsTags = ["A1", "A2", "A3", "A4" ]
         self.taglist=StationsTags
         self.domain=Rectangle(n0=5,n1=5, diracPoints=Stations, diracTags=StationsTags)
     def tearDown(self):
-        del self.domain
+        del self.domain, self.taglist
 
-class Test_3D_Point_Data_Integration(Test_Util_Integration_Dirac):
+class Test_3D_Point_Order1_Integration(Test_Util_Integration_Dirac):
     def setUp(self):
         Stations = [ (0.,0.,0.), (1.,0,0.), (0,1,0.), (1,1,0.), (0.,0.,1.), (1.,0,1.), (0,1,1.), (1,1,1.) ]
         StationsTags = ["A1", "A2", "A3", "A4","A5", "A6", "A7", "A8"  ]
         self.taglist=StationsTags
         self.domain=Brick(n0=5,n1=5,n2=5,diracPoints=Stations,diracTags=StationsTags)
+    def tearDown(self):
+        del self.domain, self.taglist
+class Test_2D_Point_Order2_Integration(Test_Util_Integration_Dirac):
+    def setUp(self):
+        Stations = [ (0.,0.), (1.,0), (0,1), (1,1) ]
+        StationsTags = ["A1", "A2", "A3", "A4" ]
+        self.taglist=StationsTags
+        self.domain=Rectangle(n0=5,n1=5, order=2, diracPoints=Stations, diracTags=StationsTags)
+    def tearDown(self):
+        del self.domain, self.taglist
+
+class Test_3D_Point_Order2_Integration(Test_Util_Integration_Dirac):
+    def setUp(self):
+        Stations = [ (0.,0.,0.), (1.,0,0.), (0,1,0.), (1,1,0.), (0.,0.,1.), (1.,0,1.), (0,1,1.), (1,1,1.) ]
+        StationsTags = ["A1", "A2", "A3", "A4","A5", "A6", "A7", "A8"  ]
+        self.taglist=StationsTags
+        self.domain=Brick(n0=5,n1=5,n2=5,order=2, diracPoints=Stations,diracTags=StationsTags)
     def tearDown(self):
         del self.domain, self.taglist
 

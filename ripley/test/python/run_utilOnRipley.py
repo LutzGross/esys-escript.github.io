@@ -27,7 +27,7 @@ import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 from test_util import Test_util
 from test_util import Test_Util_SpatialFunctions, Test_Util_SpatialFunctions_noGradOnBoundary_noContact
-from test_util_interpolation import Test_Util_Point_Data_Interpolation
+from test_util_interpolation import Test_Util_Interpolation_Dirac
 from test_util_integrals import Test_Util_Integration_Dirac
 from test_symfuncs import Test_symfuncs
 from esys.escript import *
@@ -101,6 +101,26 @@ class Test_Util_SpatialFunctionsOnRipley3D(Test_Util_SpatialFunctions_noGradOnBo
         del self.order
         del self.domain
 
+class Test_2D_Point_Data_Interpolation(Test_Util_Interpolation_Dirac):
+    def setUp(self):
+        Stations = [ (0.,0.), (1.,0), (0,1), (1,1) ]
+        StationsTags = ["A1", "A2", "A3", "A4" ]
+        self.taglist=StationsTags
+        self.positions=Stations
+        self.domain=Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY, diracPoints=Stations, diracTags=StationsTags)
+    def tearDown(self):
+        del self.domain, self.taglist, self.positions
+
+class Test_3D_Point_Data_Interpolation(Test_Util_Interpolation_Dirac):
+    def setUp(self):
+        Stations = [ (0.,0.,0.), (1.,0,0.), (0,1,0.), (1,1,0.), (0.,0.,1.), (1.,0,1.), (0,1,1.), (1,1,1.) ]
+        StationsTags = ["A1", "A2", "A3", "A4","A5", "A6", "A7", "A8"  ]
+        self.taglist=StationsTags
+        self.positions=Stations
+        self.domain=Brick(n0=NE*NXb-1, n1=NE*NYb-1, n2=NE*NZb-1, l0=1., l1=1., l2=1., d0=NXb, d1=NYb, d2=NZb ,diracPoints=Stations,diracTags=StationsTags)
+    def tearDown(self):
+        del self.domain, self.taglist, self.positions
+
 class Test_2D_Point_Data_Integration(Test_Util_Integration_Dirac):
     def setUp(self):
         Stations = [ (0.,0.), (1.,0), (0,1), (1,1) ]
@@ -108,7 +128,7 @@ class Test_2D_Point_Data_Integration(Test_Util_Integration_Dirac):
         self.taglist=StationsTags
         self.domain=Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY, diracPoints=Stations, diracTags=StationsTags)
     def tearDown(self):
-        del self.domain
+        del self.domain, self.taglist
 
 class Test_3D_Point_Data_Integration(Test_Util_Integration_Dirac):
     def setUp(self):
