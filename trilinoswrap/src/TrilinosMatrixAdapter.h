@@ -31,6 +31,8 @@ namespace esys_trilinos {
 
 class TrilinosMatrixAdapter : public escript::AbstractSystemMatrix
 {
+friend class OxleyDomain;
+
 public:
     /**
        \brief
@@ -88,6 +90,14 @@ public:
 
     inline int getBlockSize() const { return getRowBlockSize(); }
 
+    // Used by Oxley
+    template<typename ST>
+    void IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT>>& IZ);
+
+    // Used by Oxley
+    template<typename ST>
+    void rhsIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT>>& IZ);
+
 private:
     virtual void setToSolution(escript::Data& out, escript::Data& in,
                                boost::python::object& options) const;
@@ -99,13 +109,6 @@ private:
     Teuchos::RCP<AbstractMatrixWrapper<real_t> > mat;
     Teuchos::RCP<AbstractMatrixWrapper<cplx_t> > cmat;
 
-    // Used by Oxley
-    template<typename ST>
-    void IztAIz(const Tpetra::CrsMatrix<ST>& IZ);
-
-    // Used by Oxley
-    template<typename ST>
-    void rhsIz(const Tpetra::CrsMatrix<ST>& IZ);
 };
 
 } // namespace esys_trilinos

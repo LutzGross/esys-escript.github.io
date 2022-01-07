@@ -59,7 +59,7 @@ public:
                     const DataMap& coefs) const = 0;
 #ifdef ESYS_HAVE_TRILINOS
     virtual void assemblePDEHanging(
-                    Tpetra::CrsMatrix<double,int,long,esys_trilinos::NT>* mat) const = 0;
+                    Teuchos::RCP<Tpetra::CrsMatrix<double,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>>* mat) const = 0;
 #endif
 
     virtual void collateFunctionSpaceTypes(std::vector<int>& fsTypes,

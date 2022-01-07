@@ -145,7 +145,7 @@ void DefaultAssembler3D<Scalar>::assemblePDEBoundarySystemReduced(
 }
 
 template<class Scalar>
-void DefaultAssembler3D<Scalar>::assemblePDEHanging(Tpetra::CrsMatrix<double,int,long,esys_trilinos::NT>* mat) const
+void DefaultAssembler3D<Scalar>::assemblePDEHanging(Teuchos::RCP<Tpetra::CrsMatrix<double,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>>* mat) const
 {
 
 }

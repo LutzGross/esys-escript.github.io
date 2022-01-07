@@ -2540,22 +2540,14 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
 
 template<class Scalar>
 void DefaultAssembler2D<Scalar>::assemblePDEHanging(
-                                    Tpetra::CrsMatrix<double,int,long,esys_trilinos::NT>* mat) const
+                    Teuchos::RCP<Tpetra::CrsMatrix<double,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>>* IZ) const
 {
 
 #ifdef ESYS_HAVE_TRILINOS
-    // esys_trilinos::TrilinosMatrixAdapter* tm = dynamic_cast<esys_trilinos::TrilinosMatrixAdapter*>(mat);
-
-    std::vector<long> c, r;
-    std::vector<float> v;
     
     // Create I
-    for(int i = 0; i < domain->getNumNodes()-0.5*domain->num_hanging; i++)
-    {
-        c.push_back(i);
-        r.push_back(i);
-        v.push_back(1.0);
-    }
+    // for(int i = 0; i < domain->getNumNodes()-0.5*domain->num_hanging; i++)
+    //     IZ->insertGlobalValues(i,i,1.0);
 
     // Loop over hanging nodes
     std::vector<LongPair> hanging_faces=domain->hanging_faces;
@@ -2580,26 +2572,11 @@ void DefaultAssembler2D<Scalar>::assemblePDEHanging(
             }
         }
 
-        c.insert(c.begin()+a,hanging_faces[i].first);
-        r.insert(r.begin()+a,hanging_faces[i].second);
-        v.insert(v.begin()+a,0.5);
-        c.insert(c.begin()+b,hanging_faces[i].second);
-        r.insert(r.begin()+b,hanging_faces[i].first);
-        v.insert(v.begin()+b,0.5);
+        // IZ->insertGlobalValues(a,b,0.5);
+        // IZ->insertGlobalValues(b,a,0.5);
     }
 
-    //convert to Yale format
-    std::vector<long> r_ptr;
-    int col=1;
-    r_ptr.push_back(col);
-    for(int i = 1; i < r.size(); i++)
-        if(r[i]!=col)
-        {
-            col=r[i];
-            r_ptr.push_back(col);
-        }
-
-    // TODO AEAE
+    // IZ->fillComplete();
 
 #endif
 }

@@ -127,7 +127,7 @@ void TrilinosMatrixAdapter::ypAx(escript::Data& y, escript::Data& x) const
 }
 
 template<typename ST>
-void TrilinosMatrixAdapter::IztAIz(const Tpetra::CrsMatrix<ST>& iz) 
+void TrilinosMatrixAdapter::IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT>>& iz) 
 {
     const std::string label = "";
     const Teuchos::RCP<Teuchos::ParameterList> params;
@@ -138,7 +138,7 @@ void TrilinosMatrixAdapter::IztAIz(const Tpetra::CrsMatrix<ST>& iz)
 }
 
 template<typename ST>
-void TrilinosMatrixAdapter::rhsIz(const Tpetra::CrsMatrix<ST>& iz)
+void TrilinosMatrixAdapter::rhsIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT>>& iz)
 {
     const std::string label = "";
     const Teuchos::RCP<Teuchos::ParameterList> params;

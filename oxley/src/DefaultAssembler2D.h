@@ -118,7 +118,7 @@ public:
     virtual void collateFunctionSpaceTypes(std::vector<int>& fsTypes,
                                            const DataMap& coefs) const;
 
-    virtual void assemblePDEHanging(Tpetra::CrsMatrix<double,int,long,esys_trilinos::NT>* mat) const;
+    virtual void assemblePDEHanging(Teuchos::RCP<Tpetra::CrsMatrix<double,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>>* mat) const;
 
 protected:
     POINTER_WRAPPER_CLASS(const Rectangle) domain;

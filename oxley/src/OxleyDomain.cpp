@@ -1435,6 +1435,7 @@ void OxleyDomain::addToSystem(escript::AbstractSystemMatrix& mat,
         assemblePDEBoundary(&mat, rhs, coefs, assembler);
         assemblePDEDirac(&mat, rhs, coefs, assembler);
         
+        /////////////////////////////////////////////
         // This is the multiplication by matrix IZ
         using map_type = Tpetra::Map<>;
         using vector_type = Tpetra::Vector<double>;
@@ -1445,22 +1446,18 @@ void OxleyDomain::addToSystem(escript::AbstractSystemMatrix& mat,
         const global_ordinal_type indexBase = 0; // Indices start at 0
         const Teuchos::RCP<const map_type> map = Teuchos::rcp(new map_type (numGlobalEntries, indexBase, 
                                                     esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm)));
-        size_t maxNumEntriesPerRow = 5;
+        const size_t maxNumEntriesPerRow = 3;
         const Teuchos::RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
-        Tpetra::CrsMatrix<double,int,long,esys_trilinos::NT> iz
-                            = Tpetra::createCrsMatrix(map, maxNumEntriesPerRow, params);
-        // iz.fillComplete();
+        Teuchos::RCP<Tpetra::CrsMatrix<double,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> 
+            iz (new  Tpetra::CrsMatrix<double,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> (map, maxNumEntriesPerRow));
 
+        assemblePDEHanging(&iz, assembler);
 
-        // // // esys_trilinos::TrilinosMatrixAdapter* IZ = dynamic_cast<esys_trilinos::TrilinosMatrixAdapter*>(iz);   
-        // assemblePDEHanging(iz, assembler);
-
-        // if (tm) {
-        //     tm->resumeFill(true);
-        //     tm->IztAIz(iz);
-        
-        // }
-
+        escript::AbstractSystemMatrix * pMat = &mat;
+        esys_trilinos::TrilinosMatrixAdapter* tm = dynamic_cast<esys_trilinos::TrilinosMatrixAdapter*>(pMat);
+        if (tm) {
+            // tm->IztAIz(iz);    
+        }
     }
 
 
@@ -1694,7 +1691,7 @@ void OxleyDomain::assemblePDEDirac(escript::AbstractSystemMatrix* mat,
     }
 }
 
-void OxleyDomain::assemblePDEHanging(Tpetra::CrsMatrix<double,int,long,esys_trilinos::NT>* mat,
+void OxleyDomain::assemblePDEHanging(Teuchos::RCP<Tpetra::CrsMatrix<double,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>>* mat,
                                     Assembler_ptr assembler) const
 {
     assembler->assemblePDEHanging(mat);

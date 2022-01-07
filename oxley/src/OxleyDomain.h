@@ -855,7 +855,7 @@ private:
                           Assembler_ptr assembler) const;
 
     /// calls the right PDE assembly routine after performing input checks
-    void assemblePDEHanging(Tpetra::CrsMatrix<double,int,long,esys_trilinos::NT>* mat,
+    void assemblePDEHanging(Teuchos::RCP<Tpetra::CrsMatrix<double,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>>* mat,
                           Assembler_ptr assembler) const;
 
     template<typename Scalar>
