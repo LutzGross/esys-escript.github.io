@@ -301,8 +301,8 @@ bool RipleyDomain::probeInterpolationOnDomain(int fsType_source,
             return true;
         case ReducedNodes:
         case ReducedDegreesOfFreedom:
-            return (fsType_target != Nodes &&
-                    fsType_target != DegreesOfFreedom);
+            return ((fsType_target != Nodes &&
+                 fsType_target != DegreesOfFreedom) || fsType_target == Points);
         case Elements:
         case ReducedElements:
             return (fsType_target==Elements ||
@@ -422,6 +422,11 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
             multiplyData<cplx_t>(target, in);
         else
             multiplyData<real_t>(target, in);
+    } else if (inFS==Points && outFS==Points) {
+                if (in.isComplex())
+                    multiplyData<cplx_t>(target, in);
+                else
+                    multiplyData<real_t>(target, in);
     } else {
         switch (inFS) {
             case Nodes:
@@ -441,8 +446,7 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
                                 nodesToDOF(target, in);
                         }
                         break;
-
-                    case Nodes:
+                    case Nodes:     // it is not clear what this is required here!
                     case ReducedNodes:
                         if (in.isComplex())
                             copyData<cplx_t>(target, in);
@@ -465,22 +469,31 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
                         interpolateNodesOnFaces(target, in, true);
                         break;
                     case Points:
-                        {
-                            const dim_t numComp = in.getDataPointSize();
-                            const int nDirac = m_diracPoints.size();
-                            target.requireWrite();
-#pragma omp parallel for
-                            for (int i = 0; i < nDirac; i++) {
-                                const double* src = in.getSampleDataRO(m_diracPoints[i].node);
-                                copy(src, src+numComp, target.getSampleDataRW(i));
+                        if (getMPISize()==1) {
+                            if (in.isComplex()) {
+                                throw NotImplementedError("Nodes To Dirac is not implemented for complex Data");
                             }
+                            else
+                            {
+                                const dim_t numComp = in.getDataPointSize();
+                                const dim_t nDirac = m_diracPoints.size();
+                                target.requireWrite();
+                                #pragma omp parallel for
+                                for (int i = 0; i < nDirac; i++) {
+                                    const double* src = in.getSampleDataRO(m_diracPoints[i].node);
+                                    copy(src, src+numComp, target.getSampleDataRW(i));
+                                }
+                            }
+                        } 
+                        else
+                        {
+                            throw NotImplementedError("Nodes To Dirac is not implemented for for MPI");
                         }
                         break;
                     default:
                         throw NotImplementedError(msg.str());
                 }
                 break;
-
             case DegreesOfFreedom:
             case ReducedDegreesOfFreedom:
                 switch (outFS) {
@@ -498,7 +511,7 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
                                 dofToNodes<real_t>(target, in);
                         break;
 
-                    case DegreesOfFreedom:
+                    case DegreesOfFreedom: // it is not clear what this is required here!
                     case ReducedDegreesOfFreedom:
                         if (in.isComplex())
                             copyData<cplx_t>(target, in);
@@ -527,24 +540,43 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
                         }
                         break;
 
+                    case Points:
+                        if (getMPISize()==1) {
+                            if (in.isComplex()) {
+                                throw NotImplementedError("DOF To Dirac is not implemented for complex Data");
+                            }
+                            else
+                            {
+                                const dim_t numComp = in.getDataPointSize();
+                                const int nDirac = m_diracPoints.size();
+                                target.requireWrite();
+                                #pragma omp parallel for
+                                for (int i = 0; i < nDirac; i++) {
+                                    const index_t dof = getDofOfNode(m_diracPoints[i].node);
+                                    const double* src = in.getSampleDataRO(dof);
+                                    copy(src, src+numComp, target.getSampleDataRW(i));
+                                }
+                            }
+                        } 
+                        else
+                        {
+                            throw NotImplementedError("DOF To Dirac is not implemented for for MPI");
+                        }
+                        break;                    
                     default:
                         throw NotImplementedError(msg.str());
                 }
                 break;
             case Points:
                 switch(outFS) {
-                    case Nodes:
-                        {
-                            const dim_t numComp = in.getDataPointSize();
-                            const int nDirac = m_diracPoints.size();
-                            target.requireWrite();
-#pragma omp parallel for
-                            for (int i = 0; i < nDirac; i++) {
-                                const double* src = in.getSampleDataRO(i);
-                                copy(src, src+numComp, target.getSampleDataRW(m_diracPoints[i].node));
-                            }
-                        }
-
+                    case Points:
+                        if (in.isComplex())
+                            copyData<cplx_t>(target, in);
+                        else
+                            copyData<real_t>(target, in);
+                        break;
+                    default:
+                        throw NotImplementedError(msg.str());
                 }
                 break;
             default:
