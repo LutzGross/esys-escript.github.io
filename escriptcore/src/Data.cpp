@@ -287,13 +287,13 @@ Data::Data(boost::python::object value,
 {
     if (value.is_none())
     {
-	throw DataException("Data contructor from python - first argument must not be None.");
+	throw DataException("Data constructor from python - first argument must not be None.");
     }
       // now to enforce contiguous Nones
     if ((par2.is_none() && (!par3.is_none() || !par4.is_none())) ||
         (par3.is_none() && !par4.is_none()))
     {
-	throw DataException("Data contructor from python - arguments must be omitted from the right.");
+	throw DataException("Data constructor from python - arguments must be omitted from the right.");
     }
   
     // what is the first arg
@@ -323,7 +323,7 @@ Data::Data(boost::python::object value,
 	    }
 	    else
 	    {
-		throw DataException("Data contructor from python - expected a tuple or None as second argument.");
+		throw DataException("Data constructor from python - expected a tuple or None as second argument.");
 	    }
 	}
 	boost::python::extract<FunctionSpace> ex3fs(par3);	
@@ -331,7 +331,7 @@ Data::Data(boost::python::object value,
 	{
 	    if (!ex3fs.check())
 	    {
-		throw DataException("Data contructor from python - expected a FunctionSpace or None as third argument.");
+		throw DataException("Data constructor from python - expected a FunctionSpace or None as third argument.");
 	    }
 	}
 	bool expa=false;
@@ -340,7 +340,7 @@ Data::Data(boost::python::object value,
 	    boost::python::extract<bool> ex4b(par4);
 	    if (!ex4b.check())
 	    {
-		throw DataException("Data contructor from python - expected a boolean or None as fourth argument.");	      
+		throw DataException("Data constructor from python - expected a boolean or None as fourth argument.");	      
 	    }
 	    expa=ex4b();
 	}
@@ -366,7 +366,7 @@ Data::Data(boost::python::object value,
 	{
 	    if (!ex2fs.check())
 	    {
-		throw DataException("Data contructor from python - expected a FunctionSpace or None as second argument.");	      
+		throw DataException("Data constructor from python - expected a FunctionSpace or None as second argument.");	      
 	    }
 	}        
         init_from_data_and_fs(exd(), par2.is_none()?FunctionSpace():ex2fs());
@@ -376,7 +376,7 @@ Data::Data(boost::python::object value,
 	//(value, functionspace, expanded)      
         if (!par4.is_none())
 	{
-	    throw DataException("Data contructor from python - unexpected fourth argument.");
+	    throw DataException("Data constructor from python - unexpected fourth argument.");
 	}
 	bool expa=false;
 	if (!par3.is_none())
@@ -384,7 +384,7 @@ Data::Data(boost::python::object value,
 	    boost::python::extract<bool> ex3b(par3);
 	    if (!ex3b.check())
 	    {
-		throw DataException("Data contructor from python - expected a boolean or None as third argument.");	      
+		throw DataException("Data constructor from python - expected a boolean or None as third argument.");	      
 	    }
 	    expa=ex3b();
 	}
@@ -393,7 +393,7 @@ Data::Data(boost::python::object value,
 	{
 	    if (!ex2fs.check())
 	    {
-		throw DataException("Data contructor from python - expected a FunctionSpace or None as second argument.");	      
+		throw DataException("Data constructor from python - expected a FunctionSpace or None as second argument.");	      
 	    }
 	}
 	WrappedArray w(value);
