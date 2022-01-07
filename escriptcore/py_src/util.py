@@ -2230,7 +2230,7 @@ def cross(arg0,arg1):
             depending on ``arg0``
     :raise ValueError: if the shapes of the arguments are not (3,)
     """
-    if isinstance(arg0,numpy.ndarray) and isinstance(arg1,numpy.ndarray):
+    if isinstance(arg0, numpy.ndarray) and isinstance(arg1, numpy.ndarray):
         out=numpy.cross(arg0, arg1)
     else:
         sh0=getShape(arg0)
@@ -2240,10 +2240,21 @@ def cross(arg0,arg1):
         if not sh1 == (3,):
             raise ValueError("cross: arg1 needs to be of shape (3,)")
         
-        if isinstance(arg0, sym.Symbol) or isinstance(arg1, sym.Symbol):
-            out=Symbol(arg0.name+"x"+arg1.name, (3,))
-        elif isinstance(arg0, escore.Data) or isinstance(arg1, escore.Data):
-            out=escore.Data(0.,(3,), arg0.getFunctionSpace())
+        if isinstance(arg0, sym.Symbol):
+            if isinstance(arg1, sym.Symbol):
+                out=Symbol(arg0.name+"x"+arg1.name, (3,))
+            else: 
+                out=Symbol(arg0.name+"x"+str(type(arg1)), (3,))
+        elif isinstance(arg0, escore.Data):
+            if isinstance(arg1, sym.Symbol):
+                out=Symbol(str(type(arg0))+"x"+arg1.name, (3,))
+            else:
+                out=escore.Data(0.,(3,), arg0.getFunctionSpace())
+        elif isinstance(arg1, escore.Data):
+            if isinstance(arg0, sym.Symbol):
+                out=Symbol(str(type(arg0))+"x"+arg1.name, (3,))
+            else:
+                out=escore.Data(0.,(3,), arg1.getFunctionSpace())
         else:
             raise TypeError("cross: argument type not supported")
         
