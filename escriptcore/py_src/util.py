@@ -56,7 +56,7 @@ from .escriptcpp import C_GeneralTensorProduct, Data
 from .escriptcpp import getVersion, getMPIRankWorld, getMPIWorldMax
 from .escriptcpp import printParallelThreadCounts
 from .escriptcpp import listEscriptParams
-from . import symbolic as sym
+from . import symboliccore as sym
 from .gmshrunner import gmshGeo2Msh
 
 from .escriptcpp import hasFeature
@@ -2216,6 +2216,41 @@ def clip(arg,minval=None,maxval=None):
         return tmp
     else:
         return minimum(tmp,maxval)
+
+def cross(arg0,arg1):
+    """
+    Cross product of the two arguments ``arg0`` and ``arg1`` which need to be shape (3,).
+
+    :param arg0: first argument
+    :type arg0: ``numpy.ndarray``, `escript.Data`, `Symbol`
+    :param arg1: second argument
+    :type arg1: ``numpy.ndarray``, `escript.Data`, `Symbol` 
+    :return: the cross product of ``arg0`` and ``arg1`` at each data point
+    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol`
+            depending on ``arg0``
+    :raise ValueError: if the shapes of the arguments are not (3,)
+    """
+    if isinstance(arg0,numpy.ndarray) and isinstance(arg1,numpy.ndarray):
+        out=numpy.cross(arg0, arg1)
+    else:
+        sh0=getShape(arg0)
+        sh1=getShape(arg1)
+        if not sh0 == (3,):
+            raise ValueError("cross: arg0 needs to be of shape (3,)")
+        if not sh1 == (3,):
+            raise ValueError("cross: arg1 needs to be of shape (3,)")
+        
+        if isinstance(arg0, sym.Symbol) or isinstance(arg1, sym.Symbol):
+            out=Symbol(arg0.name+"x"+arg1.name, (3,))
+        elif isinstance(arg0, escore.Data) or isinstance(arg1, escore.Data):
+            out=escore.Data(0.,(3,), arg0.getFunctionSpace())
+        else:
+            raise TypeError("cross: argument type not supported")
+        
+        out[0]=arg0[1]*arg1[2]-arg0[2]*arg1[1]
+        out[1]=arg0[2]*arg1[0]-arg0[0]*arg1[2]
+        out[2]=arg0[0]*arg1[1]-arg0[1]*arg1[0]
+    return out
 
 def inner(arg0,arg1):
     """
