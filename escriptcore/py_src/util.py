@@ -2801,6 +2801,58 @@ def grad(arg,where=None):
 def grad_n(arg, n, where=None):
     return grad(arg, where)[n]
 
+def curl(arg,where=None):
+    """
+    Returns the (spatial) curl of ``arg`` at ``where``..
+
+    :param arg: function of which the curl is to be calculated. Its shape
+                has to be (), (2,) or (3,)
+    :type arg: `escript.Data` or `Symbol`
+    :param where: FunctionSpace in which the gradient is calculated.
+                  If not present or ``None`` an appropriate default is used.
+    :type where: ``None`` or `escript.FunctionSpace`
+    :return: curl of ``arg``
+    :rtype: `escript.Data` or `Symbol`
+    """
+    if not getShape(arg) in [ (), (2,) , (3,) ]:
+        raise TypeError("curl: illegal argument rank.")
+    g=grad(arg, where)
+    if isinstance(arg,sym.Symbol):
+        
+        if arg.getShape() == ():
+            out=sym.Symbol("curl("+arg.name+")", (2,), g.getFunctionSpace())
+            out[0]=g[1]
+            out[1]=-g[0]
+        elif arg.getShape() == (2,):
+            out=g[1,0]-g[0,1]
+        else:
+            out=sym.Symbol("curl("+arg.name+")", (3,), g.getFunctionSpace())
+            out[0]=g[2,1]-g[1,2]
+            out[1]=g[0,2]-g[2,0]
+            out[2]=g[1,0]-g[0,1]
+            
+    elif isinstance(arg,escore.Data):
+        if arg.getShape() == ():
+            if g.isComplex():
+                out=escore.Data(0j, (2,), g.getFunctionSpace())
+            else:
+                out=escore.Data(0, (2,), g.getFunctionSpace())
+            out[0]=g[1]
+            out[1]=-g[0]
+        elif arg.getShape() == (2,):
+            out=g[1,0]-g[0,1]
+        else:
+            if g.isComplex():
+                out=escore.Data(0j, (3,), g.getFunctionSpace())
+            else:
+                out=escore.Data(0, (3,), g.getFunctionSpace())
+            out[0]=g[2,1]-g[1,2]
+            out[1]=g[0,2]-g[2,0]
+            out[2]=g[1,0]-g[0,1]
+    else:
+       raise TypeError("curl: Unknown argument type.")
+    return out
+
 def integrate(arg,where=None):
     """
     Returns the integral of the function ``arg`` over its domain. If ``where`` is
