@@ -19,17 +19,17 @@
 
 escript_opts_version = 203
 
-cxx='/usr/bin/clang++'
+#cxx='/usr/bin/clang++'
 
 build_debug=False
-build_debug=True
+#build_debug=True
 
 openmp=False
 openmp=True
 
 if build_debug == True:
-	boost_prefix='/usr/local/boost.1.74.0'
-	boost_libs='boost_python39'
+	#boost_prefix='/usr/local/boost.1.74.0'
+	boost_libs='boost_python37'
 	build_dir='build_debug'
 	cxx_extra="-O0 -g -pg -fdiagnostics-color -Wno-implicit-int-float-conversion"
 	# cxx_extra+=" -DOXLEY_ENABLE_DEBUG"
@@ -43,17 +43,17 @@ if build_debug == True:
 		trilinos_prefix='/usr/local/trilinos_noomp'
 	paso=True
 	pythoncmd="/usr/bin/python3"
-	pythonlibname="python3.9"
-	pythonlibpath="/usr/lib"
-	pythonincpath="/usr/include/python3.9"
+	pythonlibname="python3.7m"
+	pythonlibpath="/usr/lib/x86_64-linux-gnu/"
+	pythonincpath="/usr/include/python3.7m"
 	umfpack=True
-	umfpack_prefix=['/usr/include/','/usr/lib']
+	umfpack_prefix=['/usr/include/suitesparse','/usr/lib/x86_64-linux-gnu']
 	trilinos=True
 	verbose=True
 	werror=False
 else:
-	boost_prefix='/usr/local/boost.1.74.0'
-	boost_libs='boost_python39'
+	#boost_prefix='/usr/local/boost.1.74.0'
+	boost_libs='boost_python37'
 	build_dir='build_normal'
 	cxx_extra="-O3 -funroll-loops -fdiagnostics-color"
 	debug=False
@@ -65,13 +65,13 @@ else:
 		trilinos_prefix='/usr/local/trilinos_noomp'
 	paso=True
 	pythoncmd="/usr/bin/python3"
-	pythonlibname="python3.9"
-	pythonlibpath="/usr/lib"
-	pythonincpath="/usr/include/python3.9"
+	pythonlibname="python3.7m"
+	pythonlibpath="/usr/lib/x86_64-linux-gnu/"
+	pythonincpath="/usr/include/python3.7m"
 	umfpack=True
-	umfpack_prefix=['/usr/include/','/usr/lib']
+	umfpack_prefix=['/usr/include/suitesparse','/usr/lib/x86_64-linux-gnu']
 	trilinos=True
 	verbose=True
 	werror=False
 
-
+cxx_extra+=" -Wno-maybe-unitialized"
