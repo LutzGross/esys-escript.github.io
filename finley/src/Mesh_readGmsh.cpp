@@ -1248,6 +1248,10 @@ FinleyDomain* readGmshMaster(escript::JMPI& mpiInfo,
                 errorFlag = EARLY_EOF;
             scan_ret = sscanf(&fmt[0], "%lf %d %d\n", &version, &format, &size);
             SSCANF_CHECK(scan_ret);
+
+            if(version != 2.0 && version != 2.1 && version != 2.2 && version != 4.0 && version != 4.1)
+                throw FinleyException("Cannot understand this msh format version. Please use version 2.2 or 4.1");
+            
         }
         // nodes are read
         else if (logicFlag == 2 && !errorFlag) {
