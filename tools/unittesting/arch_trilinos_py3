@@ -9,7 +9,7 @@ RUN pacman -Syu --noconfirm
 RUN pacman -Sy --noconfirm python python-numpy python-scipy python-pyproj python-matplotlib \
      community/netcdf community/netcdf-cxx \
      extra/boost extra/boost-libs suitesparse \
-     cmake gcc git gcc-fortran make scons wget 
+     cmake gcc git gcc-fortran make scons wget python-sympy
 # Trilinos
 RUN wget https://github.com/trilinos/Trilinos/archive/trilinos-release-13-0-1.tar.gz
 RUN tar zxvf trilinos-release-13-0-1.tar.gz 

@@ -7,7 +7,8 @@ COPY . /app
 
 RUN pacman -Syu --noconfirm 
 RUN pacman -Sy --noconfirm python python-numpy python-scipy python-pyproj python-matplotlib \
-	community/netcdf community/netcdf-cxx extra/boost extra/boost-libs suitesparse git scons gcc
+	community/netcdf community/netcdf-cxx extra/boost extra/boost-libs suitesparse git scons gcc \
+	python-sympy
 # build escript
 RUN git clone https://github.com/esys-escript/esys-escript.github.io --depth 1 /app/escript_git
 RUN cd /app/escript_git && scons options_file=scons/templates/arch_py3_options.py -j`nproc` build_full netcdf='no' use_gmsh=0
