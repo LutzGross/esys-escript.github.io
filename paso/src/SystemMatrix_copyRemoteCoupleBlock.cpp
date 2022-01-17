@@ -31,6 +31,7 @@
 /****************************************************************************/
 
 #include "SystemMatrix.h"
+#include "SparseMatrix.h"
 
 #include <cstring> // memcpy
 
