@@ -28,7 +28,7 @@ The current version supports gravity, magnetic and joint inversion, see also the
 - support for Linux, Windows and OSX
 
 Further documentation including examples and a user guide for the latest release can be found at
-https://esys-escript.readthedocs.io/en/latest/index.html
+https://esys-escript.github.io/
 
 ## The project is funded by the
    - [AuScope National Collaborative Research Infrastructure Strategy (NCRIS)](https://www.auscope.org.au/) (until mid of 2022),
