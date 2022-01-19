@@ -34,7 +34,13 @@ from .MTModels import *
 from .magneticModels import *
 from .gravityModels import *
 from .dcModels import *
-
-
+try:
+    from esys.escriptcore.symboliccore.utils import isSymbol, symbols
+except:
+	pass
+try:
+	from esys.escriptcore.symboliccore.pretty import pretty_print, pprint
+except:
+	pass
 
 __nodocorecursion=['seismicModels', 'MTModels', 'magneticModels', 'gravityModels', 'dcModels']

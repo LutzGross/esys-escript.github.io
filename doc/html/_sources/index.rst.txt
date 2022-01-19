@@ -6,7 +6,7 @@ Documentation for esys.escript
 Contents:
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 8
 
    esys.downunder
    esys.dudley

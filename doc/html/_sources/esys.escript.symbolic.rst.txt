@@ -1,7 +1,7 @@
-esys.escript.symbolic Package
+esys.escriptcore.symboliccore Package
 =============================
 
-.. module:: esys.escript.symbolic
+.. module:: esys.escriptcore.symboliccore
    :synopsis: -
 
 -
@@ -11,13 +11,13 @@ Classes
 * `Evaluator`
 * `Symbol`
 
-.. autoclass:: esys.escript.symbolic.Evaluator
+.. autoclass:: esys.escriptcore.symboliccore.Evaluator
    :members:
    :undoc-members:
 
    .. automethod:: __init__
 
-.. autoclass:: esys.escript.symbolic.Symbol
+.. autoclass:: esys.escriptcore.symboliccore.Symbol
    :members:
    :undoc-members:
 

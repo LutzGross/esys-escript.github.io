@@ -6,131 +6,68 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>esys.escript.symbolic Package &#8212; esys.escript 5.6 documentation</title>
-    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <title>esys.escriptcore.symboliccore Package &#8212; esys.escript 5.9 documentation</title>
+    <link rel="stylesheet" href="_static/agogo.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="_static/language_data.js"></script>
-    
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" /> 
   </head><body>
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="index.html">esys.escript 5.9 documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
           <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">esys.escript 5.6 documentation</a> &#187;</li> 
-      </ul>
-    </div>  
+             >modules</a> |
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
 
-    <div class="document">
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
       <div class="documentwrapper">
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="module-esys.escript.symbolic">
-<span id="esys-escript-symbolic-package"></span><h1>esys.escript.symbolic Package<a class="headerlink" href="#module-esys.escript.symbolic" title="Permalink to this headline">¶</a></h1>
-<ul class="simple">
+  <div class="section" id="esys-escriptcore-symboliccore-package">
+<h1>esys.escriptcore.symboliccore Package<a class="headerlink" href="#esys-escriptcore-symboliccore-package" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-esys.escriptcore.symboliccore"></span><ul class="simple">
 <li></li>
 </ul>
 <div class="section" id="classes">
 <h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li><a class="reference internal" href="#esys.escript.symbolic.Evaluator" title="esys.escript.symbolic.Evaluator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Evaluator</span></code></a></li>
-<li><a class="reference internal" href="#esys.escript.symbolic.Symbol" title="esys.escript.symbolic.Symbol"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Symbol</span></code></a></li>
+<li><code class="xref py py-obj docutils literal notranslate"><span class="pre">Evaluator</span></code></li>
+<li><a class="reference internal" href="#esys.escriptcore.symboliccore.Symbol" title="esys.escriptcore.symboliccore.Symbol"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Symbol</span></code></a></li>
 </ul>
 <dl class="class">
-<dt id="esys.escript.symbolic.Evaluator">
-<em class="property">class </em><code class="descclassname">esys.escript.symbolic.</code><code class="descname">Evaluator</code><span class="sig-paren">(</span><em>*expressions</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.symbolic.Evaluator" title="Permalink to this definition">¶</a></dt>
+<dt id="esys.escriptcore.symboliccore.Symbol">
+<em class="property">class </em><code class="descclassname">esys.escriptcore.symboliccore.</code><code class="descname">Symbol</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escriptcore.symboliccore.Symbol" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="method">
-<dt id="esys.escript.symbolic.Evaluator.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>*expressions</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.symbolic.Evaluator.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a symbolic evaluator.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>expressions</strong> – optional expressions to initialise with</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="esys.escript.symbolic.Evaluator.addExpression">
-<code class="descname">addExpression</code><span class="sig-paren">(</span><em>expression</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.symbolic.Evaluator.addExpression" title="Permalink to this definition">¶</a></dt>
-<dd><p>Adds an expression to this evaluator.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the modified Evaluator object</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="esys.escript.symbolic.Evaluator.evaluate">
-<code class="descname">evaluate</code><span class="sig-paren">(</span><em>evalf=False</em>, <em>**args</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.symbolic.Evaluator.evaluate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Evaluates all expressions in this evaluator and returns the result
-as a tuple.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the evaluated expressions in the order they were added to
-this Evaluator.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="esys.escript.symbolic.Evaluator.subs">
-<code class="descname">subs</code><span class="sig-paren">(</span><em>**args</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.symbolic.Evaluator.subs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Symbol substitution.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the modified Evaluator object</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="esys.escript.symbolic.Symbol">
-<em class="property">class </em><code class="descclassname">esys.escript.symbolic.</code><code class="descname">Symbol</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.symbolic.Symbol" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p><a class="reference internal" href="#esys.escript.symbolic.Symbol" title="esys.escript.symbolic.Symbol"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Symbol</span></code></a> objects are placeholders for a single mathematical symbol, such as
+<p><a class="reference internal" href="#esys.escriptcore.symboliccore.Symbol" title="esys.escriptcore.symboliccore.Symbol"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Symbol</span></code></a> objects are placeholders for a single mathematical symbol, such as
 ‘x’, or for arbitrarily complex mathematical expressions such as
 ‘c*x**4+alpha*exp(x)-2*sin(beta*x)’, where ‘alpha’, ‘beta’, ‘c’, and ‘x’
 are also Symbols (the symbolic ‘atoms’ of the expression).</p>
 <p>With the help of the ‘Evaluator’ class these symbols and expressions can
 be resolved by substituting numeric values and/or escript <code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code> objects
-for the atoms. To facilitate the use of <code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code> objects a <a class="reference internal" href="#esys.escript.symbolic.Symbol" title="esys.escript.symbolic.Symbol"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Symbol</span></code></a> has a
+for the atoms. To facilitate the use of <code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code> objects a <a class="reference internal" href="#esys.escriptcore.symboliccore.Symbol" title="esys.escriptcore.symboliccore.Symbol"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Symbol</span></code></a> has a
 shape (and thus a rank) as well as a dimension (see constructor).
 Symbols are useful to perform mathematical simplifications, compute
 derivatives and as coefficients for nonlinear PDEs which can be solved by
 the <code class="xref py py-obj docutils literal notranslate"><span class="pre">NonlinearPDE</span></code> class.</p>
 <dl class="method">
-<dt id="esys.escript.symbolic.Symbol.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.symbolic.Symbol.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initialises a new <a class="reference internal" href="#esys.escript.symbolic.Symbol" title="esys.escript.symbolic.Symbol"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Symbol</span></code></a> object in one of three ways:</p>
+<dt id="esys.escriptcore.symboliccore.Symbol.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escriptcore.symboliccore.Symbol.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialises a new <a class="reference internal" href="#esys.escriptcore.symboliccore.Symbol" title="esys.escriptcore.symboliccore.Symbol"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Symbol</span></code></a> object in one of three ways:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">u</span><span class="o">=</span><span class="n">Symbol</span><span class="p">(</span><span class="s1">&#39;u&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -163,15 +100,15 @@ library (currently sympy).</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="esys.escript.symbolic.Symbol.applyfunc">
-<code class="descname">applyfunc</code><span class="sig-paren">(</span><em>f</em>, <em>on_type=None</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.symbolic.Symbol.applyfunc" title="Permalink to this definition">¶</a></dt>
+<dt id="esys.escriptcore.symboliccore.Symbol.applyfunc">
+<code class="descname">applyfunc</code><span class="sig-paren">(</span><em>f</em>, <em>on_type=None</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escriptcore.symboliccore.Symbol.applyfunc" title="Permalink to this definition">¶</a></dt>
 <dd><p>Applies the function <code class="xref py py-obj docutils literal notranslate"><span class="pre">f</span></code> to all elements (if on_type is None) or to
 all elements of type <code class="xref py py-obj docutils literal notranslate"><span class="pre">on_type</span></code>.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="esys.escript.symbolic.Symbol.atoms">
-<code class="descname">atoms</code><span class="sig-paren">(</span><em>*types</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.symbolic.Symbol.atoms" title="Permalink to this definition">¶</a></dt>
+<dt id="esys.escriptcore.symboliccore.Symbol.atoms">
+<code class="descname">atoms</code><span class="sig-paren">(</span><em>*types</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escriptcore.symboliccore.Symbol.atoms" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the atoms that form the current Symbol.</p>
 <p>By default, only objects that are truly atomic and cannot be divided
 into smaller pieces are returned: symbols, numbers, and number
@@ -194,8 +131,8 @@ only their main symbol ‘x’ is returned.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="esys.escript.symbolic.Symbol.coeff">
-<code class="descname">coeff</code><span class="sig-paren">(</span><em>x</em>, <em>expand=True</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.symbolic.Symbol.coeff" title="Permalink to this definition">¶</a></dt>
+<dt id="esys.escriptcore.symboliccore.Symbol.coeff">
+<code class="descname">coeff</code><span class="sig-paren">(</span><em>x</em>, <em>expand=True</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escriptcore.symboliccore.Symbol.coeff" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the coefficient of the term “x” or 0 if there is no “x”.</p>
 <p>If “x” is a scalar symbol then “x” is searched in all components of
 this symbol. Otherwise the shapes must match and the coefficients are
@@ -230,25 +167,25 @@ checked component by component.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="esys.escript.symbolic.Symbol.diff">
-<code class="descname">diff</code><span class="sig-paren">(</span><em>*symbols</em>, <em>**assumptions</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.symbolic.Symbol.diff" title="Permalink to this definition">¶</a></dt>
+<dt id="esys.escriptcore.symboliccore.Symbol.diff">
+<code class="descname">diff</code><span class="sig-paren">(</span><em>*symbols</em>, <em>**assumptions</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escriptcore.symboliccore.Symbol.diff" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="esys.escript.symbolic.Symbol.evalf">
-<code class="descname">evalf</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.symbolic.Symbol.evalf" title="Permalink to this definition">¶</a></dt>
+<dt id="esys.escriptcore.symboliccore.Symbol.evalf">
+<code class="descname">evalf</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escriptcore.symboliccore.Symbol.evalf" title="Permalink to this definition">¶</a></dt>
 <dd><p>Applies the sympy.evalf operation on all elements in this symbol</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="esys.escript.symbolic.Symbol.expand">
-<code class="descname">expand</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.symbolic.Symbol.expand" title="Permalink to this definition">¶</a></dt>
+<dt id="esys.escriptcore.symboliccore.Symbol.expand">
+<code class="descname">expand</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escriptcore.symboliccore.Symbol.expand" title="Permalink to this definition">¶</a></dt>
 <dd><p>Applies the sympy.expand operation on all elements in this symbol</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="esys.escript.symbolic.Symbol.getDataSubstitutions">
-<code class="descname">getDataSubstitutions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.symbolic.Symbol.getDataSubstitutions" title="Permalink to this definition">¶</a></dt>
+<dt id="esys.escriptcore.symboliccore.Symbol.getDataSubstitutions">
+<code class="descname">getDataSubstitutions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escriptcore.symboliccore.Symbol.getDataSubstitutions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a dictionary of symbol names and the escript <code class="docutils literal notranslate"><span class="pre">Data</span></code> objects
 they represent within this Symbol.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -264,8 +201,8 @@ they represent within this Symbol.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="esys.escript.symbolic.Symbol.getDim">
-<code class="descname">getDim</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.symbolic.Symbol.getDim" title="Permalink to this definition">¶</a></dt>
+<dt id="esys.escriptcore.symboliccore.Symbol.getDim">
+<code class="descname">getDim</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escriptcore.symboliccore.Symbol.getDim" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the spatial dimensionality of this symbol.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -280,8 +217,8 @@ they represent within this Symbol.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="esys.escript.symbolic.Symbol.getRank">
-<code class="descname">getRank</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.symbolic.Symbol.getRank" title="Permalink to this definition">¶</a></dt>
+<dt id="esys.escriptcore.symboliccore.Symbol.getRank">
+<code class="descname">getRank</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escriptcore.symboliccore.Symbol.getRank" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the rank of this symbol.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -296,8 +233,8 @@ they represent within this Symbol.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="esys.escript.symbolic.Symbol.getShape">
-<code class="descname">getShape</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.symbolic.Symbol.getShape" title="Permalink to this definition">¶</a></dt>
+<dt id="esys.escriptcore.symboliccore.Symbol.getShape">
+<code class="descname">getShape</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escriptcore.symboliccore.Symbol.getShape" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the shape of this symbol.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -312,30 +249,30 @@ they represent within this Symbol.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="esys.escript.symbolic.Symbol.grad">
-<code class="descname">grad</code><span class="sig-paren">(</span><em>where=None</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.symbolic.Symbol.grad" title="Permalink to this definition">¶</a></dt>
+<dt id="esys.escriptcore.symboliccore.Symbol.grad">
+<code class="descname">grad</code><span class="sig-paren">(</span><em>where=None</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escriptcore.symboliccore.Symbol.grad" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a symbol which represents the gradient of this symbol.
 :type where: <code class="docutils literal notranslate"><span class="pre">Symbol</span></code>, <code class="docutils literal notranslate"><span class="pre">FunctionSpace</span></code></p>
 </dd></dl>
 
 <dl class="method">
-<dt id="esys.escript.symbolic.Symbol.inverse">
-<code class="descname">inverse</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.symbolic.Symbol.inverse" title="Permalink to this definition">¶</a></dt>
+<dt id="esys.escriptcore.symboliccore.Symbol.inverse">
+<code class="descname">inverse</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escriptcore.symboliccore.Symbol.inverse" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
-<dt id="esys.escript.symbolic.Symbol.is_Add">
-<code class="descname">is_Add</code><em class="property"> = False</em><a class="headerlink" href="#esys.escript.symbolic.Symbol.is_Add" title="Permalink to this definition">¶</a></dt>
+<dt id="esys.escriptcore.symboliccore.Symbol.is_Add">
+<code class="descname">is_Add</code><em class="property"> = False</em><a class="headerlink" href="#esys.escriptcore.symboliccore.Symbol.is_Add" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
-<dt id="esys.escript.symbolic.Symbol.is_Float">
-<code class="descname">is_Float</code><em class="property"> = False</em><a class="headerlink" href="#esys.escript.symbolic.Symbol.is_Float" title="Permalink to this definition">¶</a></dt>
+<dt id="esys.escriptcore.symboliccore.Symbol.is_Float">
+<code class="descname">is_Float</code><em class="property"> = False</em><a class="headerlink" href="#esys.escriptcore.symboliccore.Symbol.is_Float" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="esys.escript.symbolic.Symbol.item">
-<code class="descname">item</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.symbolic.Symbol.item" title="Permalink to this definition">¶</a></dt>
+<dt id="esys.escriptcore.symboliccore.Symbol.item">
+<code class="descname">item</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escriptcore.symboliccore.Symbol.item" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns an element of this symbol.
 This method behaves like the item() method of numpy.ndarray.
 If this is a scalar Symbol, no arguments are allowed and the only
@@ -357,52 +294,52 @@ that index is returned.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="esys.escript.symbolic.Symbol.lambdarepr">
-<code class="descname">lambdarepr</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.symbolic.Symbol.lambdarepr" title="Permalink to this definition">¶</a></dt>
+<dt id="esys.escriptcore.symboliccore.Symbol.lambdarepr">
+<code class="descname">lambdarepr</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escriptcore.symboliccore.Symbol.lambdarepr" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="esys.escript.symbolic.Symbol.simplify">
-<code class="descname">simplify</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.symbolic.Symbol.simplify" title="Permalink to this definition">¶</a></dt>
+<dt id="esys.escriptcore.symboliccore.Symbol.simplify">
+<code class="descname">simplify</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escriptcore.symboliccore.Symbol.simplify" title="Permalink to this definition">¶</a></dt>
 <dd><p>Applies the sympy.simplify operation on all elements in this symbol</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="esys.escript.symbolic.Symbol.subs">
-<code class="descname">subs</code><span class="sig-paren">(</span><em>old</em>, <em>new</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.symbolic.Symbol.subs" title="Permalink to this definition">¶</a></dt>
+<dt id="esys.escriptcore.symboliccore.Symbol.subs">
+<code class="descname">subs</code><span class="sig-paren">(</span><em>old</em>, <em>new</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escriptcore.symboliccore.Symbol.subs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Substitutes an expression.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="esys.escript.symbolic.Symbol.swap_axes">
-<code class="descname">swap_axes</code><span class="sig-paren">(</span><em>axis0</em>, <em>axis1</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.symbolic.Symbol.swap_axes" title="Permalink to this definition">¶</a></dt>
+<dt id="esys.escriptcore.symboliccore.Symbol.swap_axes">
+<code class="descname">swap_axes</code><span class="sig-paren">(</span><em>axis0</em>, <em>axis1</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escriptcore.symboliccore.Symbol.swap_axes" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="esys.escript.symbolic.Symbol.tensorProduct">
-<code class="descname">tensorProduct</code><span class="sig-paren">(</span><em>other</em>, <em>axis_offset</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.symbolic.Symbol.tensorProduct" title="Permalink to this definition">¶</a></dt>
+<dt id="esys.escriptcore.symboliccore.Symbol.tensorProduct">
+<code class="descname">tensorProduct</code><span class="sig-paren">(</span><em>other</em>, <em>axis_offset</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escriptcore.symboliccore.Symbol.tensorProduct" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="esys.escript.symbolic.Symbol.tensorTransposedProduct">
-<code class="descname">tensorTransposedProduct</code><span class="sig-paren">(</span><em>other</em>, <em>axis_offset</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.symbolic.Symbol.tensorTransposedProduct" title="Permalink to this definition">¶</a></dt>
+<dt id="esys.escriptcore.symboliccore.Symbol.tensorTransposedProduct">
+<code class="descname">tensorTransposedProduct</code><span class="sig-paren">(</span><em>other</em>, <em>axis_offset</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escriptcore.symboliccore.Symbol.tensorTransposedProduct" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="esys.escript.symbolic.Symbol.trace">
-<code class="descname">trace</code><span class="sig-paren">(</span><em>axis_offset</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.symbolic.Symbol.trace" title="Permalink to this definition">¶</a></dt>
+<dt id="esys.escriptcore.symboliccore.Symbol.trace">
+<code class="descname">trace</code><span class="sig-paren">(</span><em>axis_offset</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escriptcore.symboliccore.Symbol.trace" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the trace of this Symbol.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="esys.escript.symbolic.Symbol.transpose">
-<code class="descname">transpose</code><span class="sig-paren">(</span><em>axis_offset</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.symbolic.Symbol.transpose" title="Permalink to this definition">¶</a></dt>
+<dt id="esys.escriptcore.symboliccore.Symbol.transpose">
+<code class="descname">transpose</code><span class="sig-paren">(</span><em>axis_offset</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escriptcore.symboliccore.Symbol.transpose" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the transpose of this Symbol.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="esys.escript.symbolic.Symbol.transposedTensorProduct">
-<code class="descname">transposedTensorProduct</code><span class="sig-paren">(</span><em>other</em>, <em>axis_offset</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.symbolic.Symbol.transposedTensorProduct" title="Permalink to this definition">¶</a></dt>
+<dt id="esys.escriptcore.symboliccore.Symbol.transposedTensorProduct">
+<code class="descname">transposedTensorProduct</code><span class="sig-paren">(</span><em>other</em>, <em>axis_offset</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escriptcore.symboliccore.Symbol.transposedTensorProduct" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -410,56 +347,6 @@ that index is returned.</p>
 </div>
 <div class="section" id="functions">
 <h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="esys.escript.symbolic.combineData">
-<code class="descclassname">esys.escript.symbolic.</code><code class="descname">combineData</code><span class="sig-paren">(</span><em>array</em>, <em>shape</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.symbolic.combineData" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="esys.escript.symbolic.getTotalDifferential">
-<code class="descclassname">esys.escript.symbolic.</code><code class="descname">getTotalDifferential</code><span class="sig-paren">(</span><em>f</em>, <em>x</em>, <em>order=0</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.symbolic.getTotalDifferential" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function computes:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">|</span> <span class="n">Df</span><span class="o">/</span><span class="n">Dx</span> <span class="o">=</span> <span class="n">del_f</span><span class="o">/</span><span class="n">del_x</span> <span class="o">+</span> <span class="n">del_f</span><span class="o">/</span><span class="n">del_grad</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">*</span><span class="n">del_grad</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">/</span><span class="n">del_x</span> <span class="o">+</span> <span class="o">...</span>
-<span class="o">|</span>            \   <span class="o">/</span>         \   <span class="o">/</span>
-<span class="o">|</span>              <span class="n">a</span>             <span class="n">b</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="function">
-<dt id="esys.escript.symbolic.isSymbol">
-<code class="descclassname">esys.escript.symbolic.</code><code class="descname">isSymbol</code><span class="sig-paren">(</span><em>arg</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.symbolic.isSymbol" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns True if the argument <code class="docutils literal notranslate"><span class="pre">arg</span></code> is an escript <code class="docutils literal notranslate"><span class="pre">Symbol</span></code> or
-<code class="docutils literal notranslate"><span class="pre">sympy.Basic</span></code> object, False otherwise.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="esys.escript.symbolic.pprint">
-<code class="descclassname">esys.escript.symbolic.</code><code class="descname">pprint</code><span class="sig-paren">(</span><em>expr</em>, <em>use_unicode=None</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.symbolic.pprint" title="Permalink to this definition">¶</a></dt>
-<dd><p>Prints expr in pretty form.</p>
-<p>pprint is just a shortcut for this function</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="esys.escript.symbolic.pretty_print">
-<code class="descclassname">esys.escript.symbolic.</code><code class="descname">pretty_print</code><span class="sig-paren">(</span><em>expr</em>, <em>use_unicode=None</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.symbolic.pretty_print" title="Permalink to this definition">¶</a></dt>
-<dd><p>Prints expr in pretty form.</p>
-<p>pprint is just a shortcut for this function</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="esys.escript.symbolic.removeFsFromGrad">
-<code class="descclassname">esys.escript.symbolic.</code><code class="descname">removeFsFromGrad</code><span class="sig-paren">(</span><em>sym</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.symbolic.removeFsFromGrad" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns <code class="docutils literal notranslate"><span class="pre">sym</span></code> with all occurrences grad_n(a,b,c) replaced by grad_n(a,b).
-That is, all functionspace parameters are removed.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="esys.escript.symbolic.symbols">
-<code class="descclassname">esys.escript.symbolic.</code><code class="descname">symbols</code><span class="sig-paren">(</span><em>*names</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.symbolic.symbols" title="Permalink to this definition">¶</a></dt>
-<dd><p>Emulates the behaviour of sympy.symbols.</p>
-</dd></dl>
-
 </div>
 <div class="section" id="others">
 <h2>Others<a class="headerlink" href="#others" title="Permalink to this headline">¶</a></h2>
@@ -478,38 +365,58 @@ That is, all functionspace parameters are removed.</p>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-  <h3><a href="index.html">Table of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">esys.escript.symbolic Package</a><ul>
-<li><a class="reference internal" href="#classes">Classes</a></li>
-<li><a class="reference internal" href="#functions">Functions</a></li>
-<li><a class="reference internal" href="#others">Others</a></li>
-<li><a class="reference internal" href="#packages">Packages</a></li>
-</ul>
-</li>
+        </div>
+        <div class="sidebar">
+          <h3>Table of Contents</h3>
+          <ul>
+<li class="toctree-l1"><a class="reference internal" href="esys.downunder.html">esys.downunder Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.dudley.html">esys.dudley Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.escript.html">esys.escript Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.finley.html">esys.finley Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.modellib.html">esys.modellib Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.pycad.html">esys.pycad Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.ripley.html">esys.ripley Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.speckley.html">esys.speckley Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.weipa.html">esys.weipa Package</a></li>
 </ul>
 
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+            </form>
+          </div>
         </div>
+        <div class="clearer"></div>
       </div>
-      <div class="clearer"></div>
     </div>
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">esys.escript 5.6 documentation</a> &#187;</li> 
-      </ul>
-    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+          </div>
+        </div>
+
+        <div class="right">
+          
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2012-2014, Author.
+        &#169; Copyright 2012-2022, Author.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.4.
     </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
   </body>
 </html>
