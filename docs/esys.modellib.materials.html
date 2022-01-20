@@ -1,0 +1,948 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>esys.modellib.materials Package &#8212; esys.escript 5.9 documentation</title>
+    <link rel="stylesheet" href="https://raw.githubusercontent.com/esys-escript/esys-escript.github.io/master/doc/html/_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="https://raw.githubusercontent.com/esys-escript/esys-escript.github.io/master/doc/html/_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="https://raw.githubusercontent.com/esys-escript/esys-escript.github.io/master/doc/html/_static/documentation_options.js"></script>
+    <script type="text/javascript" src="https://raw.githubusercontent.com/esys-escript/esys-escript.github.io/master/doc/html/_static/jquery.js"></script>
+    <script type="text/javascript" src="https://raw.githubusercontent.com/esys-escript/esys-escript.github.io/master/doc/html/_static/underscore.js"></script>
+    <script type="text/javascript" src="https://raw.githubusercontent.com/esys-escript/esys-escript.github.io/master/doc/html/_static/doctools.js"></script>
+    <script type="text/javascript" src="https://raw.githubusercontent.com/esys-escript/esys-escript.github.io/master/doc/html/_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="index.html">esys.escript 5.9 documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-esys.modellib.materials">
+<span id="esys-modellib-materials-package"></span><h1>esys.modellib.materials Package<a class="headerlink" href="#module-esys.modellib.materials" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li></li>
+</ul>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><a class="reference internal" href="#esys.modellib.materials.GravityForce" title="esys.modellib.materials.GravityForce"><code class="xref py py-obj docutils literal notranslate"><span class="pre">GravityForce</span></code></a></li>
+<li><a class="reference internal" href="#esys.modellib.materials.MaterialTable" title="esys.modellib.materials.MaterialTable"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MaterialTable</span></code></a></li>
+<li><a class="reference internal" href="#esys.modellib.materials.Model" title="esys.modellib.materials.Model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Model</span></code></a></li>
+<li><a class="reference internal" href="#esys.modellib.materials.ParameterSet" title="esys.modellib.materials.ParameterSet"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ParameterSet</span></code></a></li>
+<li><a class="reference internal" href="#esys.modellib.materials.SimpleEarthModel" title="esys.modellib.materials.SimpleEarthModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SimpleEarthModel</span></code></a></li>
+<li><a class="reference internal" href="#esys.modellib.materials.SimpleFluidMaterial" title="esys.modellib.materials.SimpleFluidMaterial"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SimpleFluidMaterial</span></code></a></li>
+<li><a class="reference internal" href="#esys.modellib.materials.SimpleSolidMaterial" title="esys.modellib.materials.SimpleSolidMaterial"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SimpleSolidMaterial</span></code></a></li>
+</ul>
+<dl class="class">
+<dt id="esys.modellib.materials.GravityForce">
+<em class="property">class </em><code class="descclassname">esys.modellib.materials.</code><code class="descname">GravityForce</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.GravityForce" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">esys.escriptcore.modelframe.ParameterSet</span></code></p>
+<p>Sets a gravity force of given direction in given domain:</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Note:</th><td class="field-body">Instance variable domain - domain of interest (in).</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Note:</th><td class="field-body">Instance variable domain - <a class="reference internal" href="esys.escript.html#esys.escript.Domain" title="esys.escript.Domain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">esys.escript.Domain</span></code></a></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Note:</th><td class="field-body">Instance variable density - density, default 1 (in).</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Note:</th><td class="field-body">Instance variable gravity - the gravity constant, default 9.81 (in).</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Note:</th><td class="field-body">Instance variable direction - the direction of gravity, default [1.,0.,0.] (in).</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="esys.modellib.materials.GravityForce.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.GravityForce.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>initializes the set</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.GravityForce.checkLinkTargets">
+<code class="descname">checkLinkTargets</code><span class="sig-paren">(</span><em>models</em>, <em>hash</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.GravityForce.checkLinkTargets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a set of tuples (“&lt;self&gt;(&lt;name&gt;)”, &lt;target model&gt;) if the
+parameter &lt;name&gt; is linked to model &lt;target model&gt; but &lt;target model&gt;
+is not in the list of models. If a parameter is linked to another
+parameter set which is not in the hash list the parameter set is
+checked for its models. hash gives the call history.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.GravityForce.declareParameter">
+<code class="descname">declareParameter</code><span class="sig-paren">(</span><em>**parameters</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.GravityForce.declareParameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Declares one or more new parameters and their initial value.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.GravityForce.declareParameters">
+<code class="descname">declareParameters</code><span class="sig-paren">(</span><em>parameters</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.GravityForce.declareParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Declares a set of parameters. parameters can be a list, a dictionary
+or a ParameterSet.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="esys.modellib.materials.GravityForce.fromDom">
+<em class="property">classmethod </em><code class="descname">fromDom</code><span class="sig-paren">(</span><em>esysxml</em>, <em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.GravityForce.fromDom" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.GravityForce.getAttributeObject">
+<code class="descname">getAttributeObject</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.GravityForce.getAttributeObject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the object stored for attribute <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.GravityForce.gravity_force">
+<code class="descname">gravity_force</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.GravityForce.gravity_force" title="Permalink to this definition">¶</a></dt>
+<dd><p>return the gravity force as <code class="xref py py-obj docutils literal notranslate"><span class="pre">density</span></code> * <code class="xref py py-obj docutils literal notranslate"><span class="pre">gravity</span></code> * <code class="xref py py-obj docutils literal notranslate"><span class="pre">direction</span></code></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.GravityForce.hasAttribute">
+<code class="descname">hasAttribute</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.GravityForce.hasAttribute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if self has attribute <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.GravityForce.releaseParameters">
+<code class="descname">releaseParameters</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.GravityForce.releaseParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes parameter name from the parameters.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.GravityForce.showParameters">
+<code class="descname">showParameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.GravityForce.showParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a description of the parameters.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.GravityForce.toDom">
+<code class="descname">toDom</code><span class="sig-paren">(</span><em>esysxml</em>, <em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.GravityForce.toDom" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">toDom</span></code> method of Model class.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.GravityForce.trace">
+<code class="descname">trace</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.GravityForce.trace" title="Permalink to this definition">¶</a></dt>
+<dd><p>If debugging is on, prints the message, otherwise does nothing.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.GravityForce.writeXML">
+<code class="descname">writeXML</code><span class="sig-paren">(</span><em>ostream=&lt;_io.TextIOWrapper name='&lt;stdout&gt;' mode='w' encoding='UTF-8'&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.GravityForce.writeXML" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the object as an XML object into an output stream.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="esys.modellib.materials.MaterialTable">
+<em class="property">class </em><code class="descclassname">esys.modellib.materials.</code><code class="descname">MaterialTable</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.MaterialTable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">esys.escriptcore.modelframe.ParameterSet</span></code></p>
+<p>A simple matrial table which allows setting physical ivar of a model</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><a class="reference internal" href="#esys.modellib.materials.SimpleEarthModel.density" title="esys.modellib.materials.SimpleEarthModel.density"><strong>density</strong></a> – density(in/out)</li>
+<li><strong>heat_capacity</strong> – heat_capacity(in/out)</li>
+<li><strong>thermal_permabilty</strong> – permabilty(in/out)</li>
+<li><a class="reference internal" href="#esys.modellib.materials.SimpleEarthModel.viscosity" title="esys.modellib.materials.SimpleEarthModel.viscosity"><strong>viscosity</strong></a> – viscosity(in/out)</li>
+<li><strong>radiation_coefficient</strong> – (in/out)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="esys.modellib.materials.MaterialTable.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.MaterialTable.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a ParameterSet with given parameters.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.MaterialTable.checkLinkTargets">
+<code class="descname">checkLinkTargets</code><span class="sig-paren">(</span><em>models</em>, <em>hash</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.MaterialTable.checkLinkTargets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a set of tuples (“&lt;self&gt;(&lt;name&gt;)”, &lt;target model&gt;) if the
+parameter &lt;name&gt; is linked to model &lt;target model&gt; but &lt;target model&gt;
+is not in the list of models. If a parameter is linked to another
+parameter set which is not in the hash list the parameter set is
+checked for its models. hash gives the call history.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.MaterialTable.declareParameter">
+<code class="descname">declareParameter</code><span class="sig-paren">(</span><em>**parameters</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.MaterialTable.declareParameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Declares one or more new parameters and their initial value.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.MaterialTable.declareParameters">
+<code class="descname">declareParameters</code><span class="sig-paren">(</span><em>parameters</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.MaterialTable.declareParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Declares a set of parameters. parameters can be a list, a dictionary
+or a ParameterSet.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="esys.modellib.materials.MaterialTable.fromDom">
+<em class="property">classmethod </em><code class="descname">fromDom</code><span class="sig-paren">(</span><em>esysxml</em>, <em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.MaterialTable.fromDom" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.MaterialTable.getAttributeObject">
+<code class="descname">getAttributeObject</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.MaterialTable.getAttributeObject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the object stored for attribute <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.MaterialTable.hasAttribute">
+<code class="descname">hasAttribute</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.MaterialTable.hasAttribute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if self has attribute <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.MaterialTable.releaseParameters">
+<code class="descname">releaseParameters</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.MaterialTable.releaseParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes parameter name from the parameters.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.MaterialTable.showParameters">
+<code class="descname">showParameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.MaterialTable.showParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a description of the parameters.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.MaterialTable.toDom">
+<code class="descname">toDom</code><span class="sig-paren">(</span><em>esysxml</em>, <em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.MaterialTable.toDom" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">toDom</span></code> method of Model class.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.MaterialTable.trace">
+<code class="descname">trace</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.MaterialTable.trace" title="Permalink to this definition">¶</a></dt>
+<dd><p>If debugging is on, prints the message, otherwise does nothing.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.MaterialTable.writeXML">
+<code class="descname">writeXML</code><span class="sig-paren">(</span><em>ostream=&lt;_io.TextIOWrapper name='&lt;stdout&gt;' mode='w' encoding='UTF-8'&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.MaterialTable.writeXML" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the object as an XML object into an output stream.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="esys.modellib.materials.Model">
+<em class="property">class </em><code class="descclassname">esys.modellib.materials.</code><code class="descname">Model</code><span class="sig-paren">(</span><em>parameters=[]</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.Model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">esys.escriptcore.modelframe.ParameterSet</span></code></p>
+<p>A Model object represents a process marching over time until a
+finalizing condition is fulfilled. At each time step an iterative
+process can be performed and the time step size can be controlled. A
+Model has the following work flow:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">doInitialization</span><span class="p">()</span>
+<span class="k">while</span> <span class="ow">not</span> <span class="n">terminateInitialIteration</span><span class="p">():</span> <span class="n">doInitialStep</span><span class="p">()</span>
+<span class="n">doInitialPostprocessing</span><span class="p">()</span>
+<span class="k">while</span> <span class="ow">not</span> <span class="n">finalize</span><span class="p">():</span>
+    <span class="n">dt</span><span class="o">=</span><span class="n">getSafeTimeStepSize</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
+    <span class="n">doStepPreprocessing</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
+    <span class="k">while</span> <span class="ow">not</span> <span class="n">terminateIteration</span><span class="p">():</span> <span class="n">doStep</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
+    <span class="n">doStepPostprocessing</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
+<span class="n">doFinalization</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">doInitialization</span></code>, <code class="docutils literal notranslate"><span class="pre">finalize</span></code>, <code class="docutils literal notranslate"><span class="pre">getSafeTimeStepSize</span></code>,
+<code class="docutils literal notranslate"><span class="pre">doStepPreprocessing</span></code>, <code class="docutils literal notranslate"><span class="pre">terminateIteration</span></code>, <code class="docutils literal notranslate"><span class="pre">doStepPostprocessing</span></code>,
+<code class="docutils literal notranslate"><span class="pre">doFinalization</span></code> are methods of the particular instance of a Model. The
+default implementations of these methods have to be overwritten by the
+subclass implementing a Model.</p>
+<dl class="method">
+<dt id="esys.modellib.materials.Model.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>parameters=[]</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.Model.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a model.</p>
+<p>Just calls the parent constructor.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="esys.modellib.materials.Model.UNDEF_DT">
+<code class="descname">UNDEF_DT</code><em class="property"> = 1e+300</em><a class="headerlink" href="#esys.modellib.materials.Model.UNDEF_DT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.Model.checkLinkTargets">
+<code class="descname">checkLinkTargets</code><span class="sig-paren">(</span><em>models</em>, <em>hash</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.Model.checkLinkTargets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a set of tuples (“&lt;self&gt;(&lt;name&gt;)”, &lt;target model&gt;) if the
+parameter &lt;name&gt; is linked to model &lt;target model&gt; but &lt;target model&gt;
+is not in the list of models. If a parameter is linked to another
+parameter set which is not in the hash list the parameter set is
+checked for its models. hash gives the call history.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.Model.declareParameter">
+<code class="descname">declareParameter</code><span class="sig-paren">(</span><em>**parameters</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.Model.declareParameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Declares one or more new parameters and their initial value.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.Model.declareParameters">
+<code class="descname">declareParameters</code><span class="sig-paren">(</span><em>parameters</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.Model.declareParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Declares a set of parameters. parameters can be a list, a dictionary
+or a ParameterSet.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.Model.doFinalization">
+<code class="descname">doFinalization</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.Model.doFinalization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finalizes the time stepping.</p>
+<p>This function may be overwritten.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.Model.doInitialPostprocessing">
+<code class="descname">doInitialPostprocessing</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.Model.doInitialPostprocessing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finalises the initialization iteration process. This method is not
+called in case of a restart.</p>
+<p>This function may be overwritten.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.Model.doInitialStep">
+<code class="descname">doInitialStep</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.Model.doInitialStep" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs an iteration step in the initialization phase. This method
+is not called in case of a restart.</p>
+<p>This function may be overwritten.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.Model.doInitialization">
+<code class="descname">doInitialization</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.Model.doInitialization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the time stepping scheme. This method is not called in
+case of a restart.</p>
+<p>This function may be overwritten.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.Model.doStep">
+<code class="descname">doStep</code><span class="sig-paren">(</span><em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.Model.doStep" title="Permalink to this definition">¶</a></dt>
+<dd><p>Executes an iteration step at a time step.</p>
+<p><code class="docutils literal notranslate"><span class="pre">dt</span></code> is the currently used time step size.</p>
+<p>This function may be overwritten.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.Model.doStepPostprocessing">
+<code class="descname">doStepPostprocessing</code><span class="sig-paren">(</span><em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.Model.doStepPostprocessing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finalises the time step.</p>
+<p>dt is the currently used time step size.</p>
+<p>This function may be overwritten.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.Model.doStepPreprocessing">
+<code class="descname">doStepPreprocessing</code><span class="sig-paren">(</span><em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.Model.doStepPreprocessing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets up a time step of step size dt.</p>
+<p>This function may be overwritten.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.Model.finalize">
+<code class="descname">finalize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.Model.finalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns False if the time stepping is finalized.</p>
+<p>This function may be overwritten.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="esys.modellib.materials.Model.fromDom">
+<em class="property">classmethod </em><code class="descname">fromDom</code><span class="sig-paren">(</span><em>esysxml</em>, <em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.Model.fromDom" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.Model.getAttributeObject">
+<code class="descname">getAttributeObject</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.Model.getAttributeObject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the object stored for attribute <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.Model.getSafeTimeStepSize">
+<code class="descname">getSafeTimeStepSize</code><span class="sig-paren">(</span><em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.Model.getSafeTimeStepSize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a time step size which can be safely used.</p>
+<p><code class="docutils literal notranslate"><span class="pre">dt</span></code> gives the previously used step size.</p>
+<p>This function may be overwritten.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.Model.hasAttribute">
+<code class="descname">hasAttribute</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.Model.hasAttribute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if self has attribute <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.Model.releaseParameters">
+<code class="descname">releaseParameters</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.Model.releaseParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes parameter name from the parameters.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.Model.setUp">
+<code class="descname">setUp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.Model.setUp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets up the model.</p>
+<p>This function may be overwritten.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.Model.showParameters">
+<code class="descname">showParameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.Model.showParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a description of the parameters.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.Model.terminateInitialIteration">
+<code class="descname">terminateInitialIteration</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.Model.terminateInitialIteration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if iteration at the inital phase is terminated.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.Model.terminateIteration">
+<code class="descname">terminateIteration</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.Model.terminateIteration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if iteration on a time step is terminated.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.Model.toDom">
+<code class="descname">toDom</code><span class="sig-paren">(</span><em>esysxml</em>, <em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.Model.toDom" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">toDom</span></code> method of Model class.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.Model.trace">
+<code class="descname">trace</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.Model.trace" title="Permalink to this definition">¶</a></dt>
+<dd><p>If debugging is on, prints the message, otherwise does nothing.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.Model.writeXML">
+<code class="descname">writeXML</code><span class="sig-paren">(</span><em>ostream=&lt;_io.TextIOWrapper name='&lt;stdout&gt;' mode='w' encoding='UTF-8'&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.Model.writeXML" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the object as an XML object into an output stream.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="esys.modellib.materials.ParameterSet">
+<em class="property">class </em><code class="descclassname">esys.modellib.materials.</code><code class="descname">ParameterSet</code><span class="sig-paren">(</span><em>parameters=[]</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.ParameterSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">esys.escriptcore.modelframe.LinkableObject</span></code></p>
+<p>A class which allows to emphasize attributes to be written and read to XML.</p>
+<p>Leaves of an ESySParameters object can be:</p>
+<blockquote>
+<div><ul class="simple">
+<li>a real number</li>
+<li>an integer number</li>
+<li>a string</li>
+<li>a boolean value</li>
+<li>a ParameterSet object</li>
+<li>a Simulation object</li>
+<li>a Model object</li>
+<li>a numpy object</li>
+<li>a list of booleans</li>
+<li>any other object (not considered by writeESySXML and writeXML)</li>
+</ul>
+</div></blockquote>
+<p>Example for how to create an ESySParameters object:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">p11</span><span class="o">=</span><span class="n">ParameterSet</span><span class="p">(</span><span class="n">gamma1</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span><span class="n">gamma2</span><span class="o">=</span><span class="mf">2.</span><span class="p">,</span><span class="n">gamma3</span><span class="o">=</span><span class="mf">3.</span><span class="p">)</span>
+<span class="n">p1</span><span class="o">=</span><span class="n">ParameterSet</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="n">tol_v</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span><span class="n">output_file</span><span class="o">=</span><span class="s2">&quot;/tmp/u.</span><span class="si">%3.3d</span><span class="s2">.dx&quot;</span><span class="p">,</span><span class="n">runFlag</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span><span class="n">parm11</span><span class="o">=</span><span class="n">p11</span><span class="p">)</span>
+<span class="n">parm</span><span class="o">=</span><span class="n">ParameterSet</span><span class="p">(</span><span class="n">parm1</span><span class="o">=</span><span class="n">p1</span><span class="p">,</span><span class="n">parm2</span><span class="o">=</span><span class="n">ParameterSet</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="n">Link</span><span class="p">(</span><span class="n">p11</span><span class="p">,</span><span class="s2">&quot;gamma1&quot;</span><span class="p">)))</span>
+</pre></div>
+</div>
+<p>This can be accessed as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">parm</span><span class="o">.</span><span class="n">parm1</span><span class="o">.</span><span class="n">gamma</span><span class="o">=</span><span class="mf">0.</span>
+<span class="n">parm</span><span class="o">.</span><span class="n">parm1</span><span class="o">.</span><span class="n">dim</span><span class="o">=</span><span class="mi">2</span>
+<span class="n">parm</span><span class="o">.</span><span class="n">parm1</span><span class="o">.</span><span class="n">tol_v</span><span class="o">=</span><span class="mf">0.001</span>
+<span class="n">parm</span><span class="o">.</span><span class="n">parm1</span><span class="o">.</span><span class="n">output_file</span><span class="o">=</span><span class="s2">&quot;/tmp/u.</span><span class="si">%3.3d</span><span class="s2">.dx&quot;</span>
+<span class="n">parm</span><span class="o">.</span><span class="n">parm1</span><span class="o">.</span><span class="n">runFlag</span><span class="o">=</span><span class="kc">True</span>
+<span class="n">parm</span><span class="o">.</span><span class="n">parm1</span><span class="o">.</span><span class="n">parm11</span><span class="o">.</span><span class="n">gamma1</span><span class="o">=</span><span class="mf">1.</span>
+<span class="n">parm</span><span class="o">.</span><span class="n">parm1</span><span class="o">.</span><span class="n">parm11</span><span class="o">.</span><span class="n">gamma2</span><span class="o">=</span><span class="mf">2.</span>
+<span class="n">parm</span><span class="o">.</span><span class="n">parm1</span><span class="o">.</span><span class="n">parm11</span><span class="o">.</span><span class="n">gamma3</span><span class="o">=</span><span class="mf">3.</span>
+<span class="n">parm</span><span class="o">.</span><span class="n">parm2</span><span class="o">.</span><span class="n">alpha</span><span class="o">=</span><span class="mf">1.</span> <span class="p">(</span><span class="n">value</span> <span class="n">of</span> <span class="n">parm</span><span class="o">.</span><span class="n">parm1</span><span class="o">.</span><span class="n">parm11</span><span class="o">.</span><span class="n">gamma1</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="esys.modellib.materials.ParameterSet.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>parameters=[]</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.ParameterSet.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a ParameterSet with given parameters.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.ParameterSet.checkLinkTargets">
+<code class="descname">checkLinkTargets</code><span class="sig-paren">(</span><em>models</em>, <em>hash</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.ParameterSet.checkLinkTargets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a set of tuples (“&lt;self&gt;(&lt;name&gt;)”, &lt;target model&gt;) if the
+parameter &lt;name&gt; is linked to model &lt;target model&gt; but &lt;target model&gt;
+is not in the list of models. If a parameter is linked to another
+parameter set which is not in the hash list the parameter set is
+checked for its models. hash gives the call history.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.ParameterSet.declareParameter">
+<code class="descname">declareParameter</code><span class="sig-paren">(</span><em>**parameters</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.ParameterSet.declareParameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Declares one or more new parameters and their initial value.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.ParameterSet.declareParameters">
+<code class="descname">declareParameters</code><span class="sig-paren">(</span><em>parameters</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.ParameterSet.declareParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Declares a set of parameters. parameters can be a list, a dictionary
+or a ParameterSet.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="esys.modellib.materials.ParameterSet.fromDom">
+<em class="property">classmethod </em><code class="descname">fromDom</code><span class="sig-paren">(</span><em>esysxml</em>, <em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.ParameterSet.fromDom" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.ParameterSet.getAttributeObject">
+<code class="descname">getAttributeObject</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.ParameterSet.getAttributeObject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the object stored for attribute <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.ParameterSet.hasAttribute">
+<code class="descname">hasAttribute</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.ParameterSet.hasAttribute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if self has attribute <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.ParameterSet.releaseParameters">
+<code class="descname">releaseParameters</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.ParameterSet.releaseParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes parameter name from the parameters.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.ParameterSet.showParameters">
+<code class="descname">showParameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.ParameterSet.showParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a description of the parameters.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.ParameterSet.toDom">
+<code class="descname">toDom</code><span class="sig-paren">(</span><em>esysxml</em>, <em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.ParameterSet.toDom" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">toDom</span></code> method of Model class.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.ParameterSet.trace">
+<code class="descname">trace</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.ParameterSet.trace" title="Permalink to this definition">¶</a></dt>
+<dd><p>If debugging is on, prints the message, otherwise does nothing.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.ParameterSet.writeXML">
+<code class="descname">writeXML</code><span class="sig-paren">(</span><em>ostream=&lt;_io.TextIOWrapper name='&lt;stdout&gt;' mode='w' encoding='UTF-8'&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.ParameterSet.writeXML" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the object as an XML object into an output stream.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="esys.modellib.materials.SimpleEarthModel">
+<em class="property">class </em><code class="descclassname">esys.modellib.materials.</code><code class="descname">SimpleEarthModel</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.SimpleEarthModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">esys.escriptcore.modelframe.ParameterSet</span></code></p>
+<p>A simple matrial table run convection models:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">density</span><span class="o">=</span><span class="n">density0</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">expansion_coefficient</span><span class="o">*</span><span class="p">(</span><span class="n">temperature</span><span class="o">-</span><span class="n">reference_temperature</span><span class="p">))</span>
+<span class="n">viscocity</span><span class="o">=</span><span class="n">viscocity0</span><span class="o">*</span><span class="p">(</span><span class="n">exp</span><span class="p">(</span><span class="n">alpha</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">reference_temperature</span> <span class="o">-</span> <span class="mi">1</span><span class="o">/</span><span class="n">temperature</span><span class="p">))</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><a class="reference internal" href="esys.downunder.forwardmodels.gravity.html#module-esys.downunder.forwardmodels.gravity" title="esys.downunder.forwardmodels.gravity: Forward model for gravity (Bouguer) anomaly"><strong>gravity</strong></a> – gravity constants (9.81) (in)</li>
+<li><strong>reference_temperature</strong> – reference temperature (in)</li>
+<li><strong>density0</strong> – density at reference temperature  (in)</li>
+<li><strong>viscosity0</strong> – viscosity0 at reference temperature  (in)</li>
+<li><strong>alpha</strong> – viscosity contrast  (in)</li>
+<li><strong>expansion_coefficient</strong> – Raleigh number  (in)</li>
+<li><strong>heat_capacity</strong> – heat capacity  (in)</li>
+<li><strong>thermal_permabilty</strong> – permabilty  (in)</li>
+<li><a class="reference internal" href="esys.modellib.temperature.html#module-esys.modellib.temperature" title="esys.modellib.temperature: -"><strong>temperature</strong></a> – temperature  (in)</li>
+<li><a class="reference internal" href="#esys.modellib.materials.SimpleEarthModel.viscosity" title="esys.modellib.materials.SimpleEarthModel.viscosity"><strong>viscosity</strong></a> – viscosity  (out)</li>
+<li><a class="reference internal" href="#esys.modellib.materials.SimpleEarthModel.density" title="esys.modellib.materials.SimpleEarthModel.density"><strong>density</strong></a> – density  (out)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="esys.modellib.materials.SimpleEarthModel.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.SimpleEarthModel.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a ParameterSet with given parameters.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.SimpleEarthModel.checkLinkTargets">
+<code class="descname">checkLinkTargets</code><span class="sig-paren">(</span><em>models</em>, <em>hash</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.SimpleEarthModel.checkLinkTargets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a set of tuples (“&lt;self&gt;(&lt;name&gt;)”, &lt;target model&gt;) if the
+parameter &lt;name&gt; is linked to model &lt;target model&gt; but &lt;target model&gt;
+is not in the list of models. If a parameter is linked to another
+parameter set which is not in the hash list the parameter set is
+checked for its models. hash gives the call history.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.SimpleEarthModel.declareParameter">
+<code class="descname">declareParameter</code><span class="sig-paren">(</span><em>**parameters</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.SimpleEarthModel.declareParameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Declares one or more new parameters and their initial value.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.SimpleEarthModel.declareParameters">
+<code class="descname">declareParameters</code><span class="sig-paren">(</span><em>parameters</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.SimpleEarthModel.declareParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Declares a set of parameters. parameters can be a list, a dictionary
+or a ParameterSet.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.SimpleEarthModel.density">
+<code class="descname">density</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.SimpleEarthModel.density" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="esys.modellib.materials.SimpleEarthModel.fromDom">
+<em class="property">classmethod </em><code class="descname">fromDom</code><span class="sig-paren">(</span><em>esysxml</em>, <em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.SimpleEarthModel.fromDom" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.SimpleEarthModel.getAttributeObject">
+<code class="descname">getAttributeObject</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.SimpleEarthModel.getAttributeObject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the object stored for attribute <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.SimpleEarthModel.hasAttribute">
+<code class="descname">hasAttribute</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.SimpleEarthModel.hasAttribute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if self has attribute <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.SimpleEarthModel.releaseParameters">
+<code class="descname">releaseParameters</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.SimpleEarthModel.releaseParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes parameter name from the parameters.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.SimpleEarthModel.showParameters">
+<code class="descname">showParameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.SimpleEarthModel.showParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a description of the parameters.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.SimpleEarthModel.toDom">
+<code class="descname">toDom</code><span class="sig-paren">(</span><em>esysxml</em>, <em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.SimpleEarthModel.toDom" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">toDom</span></code> method of Model class.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.SimpleEarthModel.trace">
+<code class="descname">trace</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.SimpleEarthModel.trace" title="Permalink to this definition">¶</a></dt>
+<dd><p>If debugging is on, prints the message, otherwise does nothing.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.SimpleEarthModel.viscosity">
+<code class="descname">viscosity</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.SimpleEarthModel.viscosity" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.SimpleEarthModel.writeXML">
+<code class="descname">writeXML</code><span class="sig-paren">(</span><em>ostream=&lt;_io.TextIOWrapper name='&lt;stdout&gt;' mode='w' encoding='UTF-8'&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.SimpleEarthModel.writeXML" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the object as an XML object into an output stream.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="esys.modellib.materials.SimpleFluidMaterial">
+<em class="property">class </em><code class="descclassname">esys.modellib.materials.</code><code class="descname">SimpleFluidMaterial</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.SimpleFluidMaterial" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#esys.modellib.materials.MaterialTable" title="esys.modellib.materials.MaterialTable"><code class="xref py py-class docutils literal notranslate"><span class="pre">esys.modellib.materials.MaterialTable</span></code></a></p>
+<p>A simple matrial table which allows setting physical ivar of a model.</p>
+<dl class="method">
+<dt id="esys.modellib.materials.SimpleFluidMaterial.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.SimpleFluidMaterial.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a ParameterSet with given parameters.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.SimpleFluidMaterial.checkLinkTargets">
+<code class="descname">checkLinkTargets</code><span class="sig-paren">(</span><em>models</em>, <em>hash</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.SimpleFluidMaterial.checkLinkTargets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a set of tuples (“&lt;self&gt;(&lt;name&gt;)”, &lt;target model&gt;) if the
+parameter &lt;name&gt; is linked to model &lt;target model&gt; but &lt;target model&gt;
+is not in the list of models. If a parameter is linked to another
+parameter set which is not in the hash list the parameter set is
+checked for its models. hash gives the call history.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.SimpleFluidMaterial.declareParameter">
+<code class="descname">declareParameter</code><span class="sig-paren">(</span><em>**parameters</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.SimpleFluidMaterial.declareParameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Declares one or more new parameters and their initial value.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.SimpleFluidMaterial.declareParameters">
+<code class="descname">declareParameters</code><span class="sig-paren">(</span><em>parameters</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.SimpleFluidMaterial.declareParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Declares a set of parameters. parameters can be a list, a dictionary
+or a ParameterSet.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="esys.modellib.materials.SimpleFluidMaterial.fromDom">
+<em class="property">classmethod </em><code class="descname">fromDom</code><span class="sig-paren">(</span><em>esysxml</em>, <em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.SimpleFluidMaterial.fromDom" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.SimpleFluidMaterial.getAttributeObject">
+<code class="descname">getAttributeObject</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.SimpleFluidMaterial.getAttributeObject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the object stored for attribute <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.SimpleFluidMaterial.hasAttribute">
+<code class="descname">hasAttribute</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.SimpleFluidMaterial.hasAttribute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if self has attribute <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.SimpleFluidMaterial.releaseParameters">
+<code class="descname">releaseParameters</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.SimpleFluidMaterial.releaseParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes parameter name from the parameters.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.SimpleFluidMaterial.showParameters">
+<code class="descname">showParameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.SimpleFluidMaterial.showParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a description of the parameters.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.SimpleFluidMaterial.toDom">
+<code class="descname">toDom</code><span class="sig-paren">(</span><em>esysxml</em>, <em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.SimpleFluidMaterial.toDom" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">toDom</span></code> method of Model class.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.SimpleFluidMaterial.trace">
+<code class="descname">trace</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.SimpleFluidMaterial.trace" title="Permalink to this definition">¶</a></dt>
+<dd><p>If debugging is on, prints the message, otherwise does nothing.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.SimpleFluidMaterial.writeXML">
+<code class="descname">writeXML</code><span class="sig-paren">(</span><em>ostream=&lt;_io.TextIOWrapper name='&lt;stdout&gt;' mode='w' encoding='UTF-8'&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.SimpleFluidMaterial.writeXML" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the object as an XML object into an output stream.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="esys.modellib.materials.SimpleSolidMaterial">
+<em class="property">class </em><code class="descclassname">esys.modellib.materials.</code><code class="descname">SimpleSolidMaterial</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.SimpleSolidMaterial" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#esys.modellib.materials.MaterialTable" title="esys.modellib.materials.MaterialTable"><code class="xref py py-class docutils literal notranslate"><span class="pre">esys.modellib.materials.MaterialTable</span></code></a></p>
+<p>A simple matrial table which allows setting physical parameters of 
+a model.</p>
+<dl class="method">
+<dt id="esys.modellib.materials.SimpleSolidMaterial.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.SimpleSolidMaterial.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a ParameterSet with given parameters.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.SimpleSolidMaterial.checkLinkTargets">
+<code class="descname">checkLinkTargets</code><span class="sig-paren">(</span><em>models</em>, <em>hash</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.SimpleSolidMaterial.checkLinkTargets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a set of tuples (“&lt;self&gt;(&lt;name&gt;)”, &lt;target model&gt;) if the
+parameter &lt;name&gt; is linked to model &lt;target model&gt; but &lt;target model&gt;
+is not in the list of models. If a parameter is linked to another
+parameter set which is not in the hash list the parameter set is
+checked for its models. hash gives the call history.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.SimpleSolidMaterial.declareParameter">
+<code class="descname">declareParameter</code><span class="sig-paren">(</span><em>**parameters</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.SimpleSolidMaterial.declareParameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Declares one or more new parameters and their initial value.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.SimpleSolidMaterial.declareParameters">
+<code class="descname">declareParameters</code><span class="sig-paren">(</span><em>parameters</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.SimpleSolidMaterial.declareParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Declares a set of parameters. parameters can be a list, a dictionary
+or a ParameterSet.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="esys.modellib.materials.SimpleSolidMaterial.fromDom">
+<em class="property">classmethod </em><code class="descname">fromDom</code><span class="sig-paren">(</span><em>esysxml</em>, <em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.SimpleSolidMaterial.fromDom" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.SimpleSolidMaterial.getAttributeObject">
+<code class="descname">getAttributeObject</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.SimpleSolidMaterial.getAttributeObject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the object stored for attribute <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.SimpleSolidMaterial.hasAttribute">
+<code class="descname">hasAttribute</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.SimpleSolidMaterial.hasAttribute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if self has attribute <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.SimpleSolidMaterial.releaseParameters">
+<code class="descname">releaseParameters</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.SimpleSolidMaterial.releaseParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes parameter name from the parameters.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.SimpleSolidMaterial.showParameters">
+<code class="descname">showParameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.SimpleSolidMaterial.showParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a description of the parameters.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.SimpleSolidMaterial.toDom">
+<code class="descname">toDom</code><span class="sig-paren">(</span><em>esysxml</em>, <em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.SimpleSolidMaterial.toDom" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">toDom</span></code> method of Model class.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.SimpleSolidMaterial.trace">
+<code class="descname">trace</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.SimpleSolidMaterial.trace" title="Permalink to this definition">¶</a></dt>
+<dd><p>If debugging is on, prints the message, otherwise does nothing.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.materials.SimpleSolidMaterial.writeXML">
+<code class="descname">writeXML</code><span class="sig-paren">(</span><em>ostream=&lt;_io.TextIOWrapper name='&lt;stdout&gt;' mode='w' encoding='UTF-8'&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.SimpleSolidMaterial.writeXML" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the object as an XML object into an output stream.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="esys.modellib.materials.exp">
+<code class="descclassname">esys.modellib.materials.</code><code class="descname">exp</code><span class="sig-paren">(</span><em>arg</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.materials.exp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns <em>e</em> to the power of argument <code class="docutils literal notranslate"><span class="pre">arg</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>arg</strong> (<code class="docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">escript.Data</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">Symbol</span></code>, <code class="docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>.) – argument</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">escript.Data</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">Symbol</span></code>, <code class="docutils literal notranslate"><span class="pre">numpy.ndarray</span></code> depending
+on the type of arg</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><strong>TypeError</strong> – if the type of the argument is not expected</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="others">
+<h2>Others<a class="headerlink" href="#others" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="packages">
+<h2>Packages<a class="headerlink" href="#packages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          <h3>Table of Contents</h3>
+          <ul>
+<li class="toctree-l1"><a class="reference internal" href="esys.downunder.html">esys.downunder Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.dudley.html">esys.dudley Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.escript.html">esys.escript Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.finley.html">esys.finley Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.modellib.html">esys.modellib Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.pycad.html">esys.pycad Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.ripley.html">esys.ripley Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.speckley.html">esys.speckley Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.weipa.html">esys.weipa Package</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+            </form>
+          </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2012-2022, Author.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.4.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

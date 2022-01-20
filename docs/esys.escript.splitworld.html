@@ -1,0 +1,511 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>esys.escript.splitworld Package &#8212; esys.escript 5.9 documentation</title>
+    <link rel="stylesheet" href="https://raw.githubusercontent.com/esys-escript/esys-escript.github.io/master/doc/html/_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="https://raw.githubusercontent.com/esys-escript/esys-escript.github.io/master/doc/html/_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="https://raw.githubusercontent.com/esys-escript/esys-escript.github.io/master/doc/html/_static/documentation_options.js"></script>
+    <script type="text/javascript" src="https://raw.githubusercontent.com/esys-escript/esys-escript.github.io/master/doc/html/_static/jquery.js"></script>
+    <script type="text/javascript" src="https://raw.githubusercontent.com/esys-escript/esys-escript.github.io/master/doc/html/_static/underscore.js"></script>
+    <script type="text/javascript" src="https://raw.githubusercontent.com/esys-escript/esys-escript.github.io/master/doc/html/_static/doctools.js"></script>
+    <script type="text/javascript" src="https://raw.githubusercontent.com/esys-escript/esys-escript.github.io/master/doc/html/_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="index.html">esys.escript 5.9 documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-esys.escript.splitworld">
+<span id="esys-escript-splitworld-package"></span><h1>esys.escript.splitworld Package<a class="headerlink" href="#module-esys.escript.splitworld" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li></li>
+</ul>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><a class="reference internal" href="#esys.escript.splitworld.FunctionJob" title="esys.escript.splitworld.FunctionJob"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FunctionJob</span></code></a></li>
+<li><a class="reference internal" href="#esys.escript.splitworld.Job" title="esys.escript.splitworld.Job"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Job</span></code></a></li>
+<li><a class="reference internal" href="#esys.escript.splitworld.SplitWorld" title="esys.escript.splitworld.SplitWorld"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SplitWorld</span></code></a></li>
+</ul>
+<dl class="class">
+<dt id="esys.escript.splitworld.FunctionJob">
+<em class="property">class </em><code class="descclassname">esys.escript.splitworld.</code><code class="descname">FunctionJob</code><span class="sig-paren">(</span><em>fn</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.splitworld.FunctionJob" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">esys.escriptcore.splitworld.Job</span></code></p>
+<p>Takes a python function (with only self and keyword params) to be called as the work method</p>
+<dl class="method">
+<dt id="esys.escript.splitworld.FunctionJob.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>fn</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.splitworld.FunctionJob.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>It ignores all of its parameters, except that, it requires the following as keyword arguments</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><a class="reference internal" href="esys.modellib.geometry.html#esys.modellib.geometry.DomainReader.domain" title="esys.modellib.geometry.DomainReader.domain"><strong>domain</strong></a> – Domain to be used as the basis for all <code class="docutils literal notranslate"><span class="pre">Data</span></code> and PDEs in this Job.</li>
+<li><strong>jobid</strong> – sequence number of this job. The first job has id=1</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.splitworld.FunctionJob.clearExports">
+<code class="descname">clearExports</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.splitworld.FunctionJob.clearExports" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove exported values from the map</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.splitworld.FunctionJob.clearImports">
+<code class="descname">clearImports</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.splitworld.FunctionJob.clearImports" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove imported values from their map</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.splitworld.FunctionJob.declareImport">
+<code class="descname">declareImport</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.splitworld.FunctionJob.declareImport" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds name to the list of imports</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.splitworld.FunctionJob.exportValue">
+<code class="descname">exportValue</code><span class="sig-paren">(</span><em>name</em>, <em>v</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.splitworld.FunctionJob.exportValue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make value v available to other Jobs under the label name.
+name must have already been registered with the SplitWorld instance.
+For use inside the work() method.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><a class="reference internal" href="esys.downunder.apps.html#esys.downunder.apps.SolverOptions.name" title="esys.downunder.apps.SolverOptions.name"><strong>name</strong></a> – registered label for exported value</li>
+<li><strong>v</strong> – value to be imported</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.splitworld.FunctionJob.importValue">
+<code class="descname">importValue</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.splitworld.FunctionJob.importValue" title="Permalink to this definition">¶</a></dt>
+<dd><p>For use inside the work() method.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><a class="reference internal" href="esys.downunder.apps.html#esys.downunder.apps.SolverOptions.name" title="esys.downunder.apps.SolverOptions.name"><strong>name</strong></a> – label for imported value.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.splitworld.FunctionJob.setImportValue">
+<code class="descname">setImportValue</code><span class="sig-paren">(</span><em>name</em>, <em>v</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.splitworld.FunctionJob.setImportValue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use to make a value available to the job (ie called from outside the job)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><a class="reference internal" href="esys.downunder.apps.html#esys.downunder.apps.SolverOptions.name" title="esys.downunder.apps.SolverOptions.name"><strong>name</strong></a> – label used to identify this import</li>
+<li><strong>v</strong> – value to be imported</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.splitworld.FunctionJob.work">
+<code class="descname">work</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.splitworld.FunctionJob.work" title="Permalink to this definition">¶</a></dt>
+<dd><p>Need to be overloaded for the job to actually do anthing.
+A return value of True indicates this job thinks it is done.
+A return value of False indicates work still to be done</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="esys.escript.splitworld.Job">
+<em class="property">class </em><code class="descclassname">esys.escript.splitworld.</code><code class="descname">Job</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.splitworld.Job" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Describes a sequence of work to be carried out in a subworld.
+The instances of this class used in the subworlds will
+be constructed by the system.
+To do specific work, this class should be subclassed and the work() 
+(and possibly __init__ methods overloaded).
+The majority of the work done by the job will be in the <em>overloaded</em> work() method.
+The work() method should retrieve values from the outside using importValue() and pass values to
+the rest of the system using exportValue().
+The rest of the methods should be considered off limits.</p>
+<dl class="method">
+<dt id="esys.escript.splitworld.Job.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.splitworld.Job.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>It ignores all of its parameters, except that, it requires the following as keyword arguments</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><a class="reference internal" href="esys.modellib.geometry.html#esys.modellib.geometry.DomainReader.domain" title="esys.modellib.geometry.DomainReader.domain"><strong>domain</strong></a> – Domain to be used as the basis for all <code class="docutils literal notranslate"><span class="pre">Data</span></code> and PDEs in this Job.</li>
+<li><strong>jobid</strong> – sequence number of this job. The first job has id=1</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.splitworld.Job.clearExports">
+<code class="descname">clearExports</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.splitworld.Job.clearExports" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove exported values from the map</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.splitworld.Job.clearImports">
+<code class="descname">clearImports</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.splitworld.Job.clearImports" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove imported values from their map</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.splitworld.Job.declareImport">
+<code class="descname">declareImport</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.splitworld.Job.declareImport" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds name to the list of imports</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.splitworld.Job.exportValue">
+<code class="descname">exportValue</code><span class="sig-paren">(</span><em>name</em>, <em>v</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.splitworld.Job.exportValue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make value v available to other Jobs under the label name.
+name must have already been registered with the SplitWorld instance.
+For use inside the work() method.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><a class="reference internal" href="esys.downunder.apps.html#esys.downunder.apps.SolverOptions.name" title="esys.downunder.apps.SolverOptions.name"><strong>name</strong></a> – registered label for exported value</li>
+<li><strong>v</strong> – value to be imported</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.splitworld.Job.importValue">
+<code class="descname">importValue</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.splitworld.Job.importValue" title="Permalink to this definition">¶</a></dt>
+<dd><p>For use inside the work() method.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><a class="reference internal" href="esys.downunder.apps.html#esys.downunder.apps.SolverOptions.name" title="esys.downunder.apps.SolverOptions.name"><strong>name</strong></a> – label for imported value.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.splitworld.Job.setImportValue">
+<code class="descname">setImportValue</code><span class="sig-paren">(</span><em>name</em>, <em>v</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.splitworld.Job.setImportValue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use to make a value available to the job (ie called from outside the job)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><a class="reference internal" href="esys.downunder.apps.html#esys.downunder.apps.SolverOptions.name" title="esys.downunder.apps.SolverOptions.name"><strong>name</strong></a> – label used to identify this import</li>
+<li><strong>v</strong> – value to be imported</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.splitworld.Job.work">
+<code class="descname">work</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.splitworld.Job.work" title="Permalink to this definition">¶</a></dt>
+<dd><p>Need to be overloaded for the job to actually do anthing.
+A return value of True indicates this job thinks it is done.
+A return value of False indicates work still to be done</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="esys.escript.splitworld.SplitWorld">
+<em class="property">class </em><code class="descclassname">esys.escript.splitworld.</code><code class="descname">SplitWorld</code><span class="sig-paren">(</span><em>count</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.splitworld.SplitWorld" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Wrapper for the C++ class exposed as __SplitWorld.
+This is a namespace consideration, it allows us to make 
+boost::python::raw_functions into members of a class.</p>
+<dl class="method">
+<dt id="esys.escript.splitworld.SplitWorld.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>count</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.splitworld.SplitWorld.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><strong>count</strong> – How many equally sized subworlds should our compute resources be partitioned into?</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.splitworld.SplitWorld.addJob">
+<code class="descname">addJob</code><span class="sig-paren">(</span><em>jobctr</em>, <em>*vec</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.splitworld.SplitWorld.addJob" title="Permalink to this definition">¶</a></dt>
+<dd><p>Submit a job to be run later on an available subworld.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><strong>jobctr</strong> – class or function to be called to create a job</td>
+</tr>
+</tbody>
+</table>
+<p>The remaining parameters are for the arguments of the function.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.splitworld.SplitWorld.addJobPerWorld">
+<code class="descname">addJobPerWorld</code><span class="sig-paren">(</span><em>jobctr</em>, <em>*vec</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.splitworld.SplitWorld.addJobPerWorld" title="Permalink to this definition">¶</a></dt>
+<dd><p>Submit one job per subworld to run later.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><strong>jobctr</strong> – class or function to be called to create a job</td>
+</tr>
+</tbody>
+</table>
+<p>The remaining parameters are for the arguments of the function.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.splitworld.SplitWorld.addVariable">
+<code class="descname">addVariable</code><span class="sig-paren">(</span><em>vname</em>, <em>vartype</em>, <em>*vec</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.splitworld.SplitWorld.addVariable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a variable on all subworlds.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><strong>vartype</strong> – the type of variable to be created</td>
+</tr>
+</tbody>
+</table>
+<p>The remaining parameters are for optional arguments depending on the variable type.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.splitworld.SplitWorld.buildDomains">
+<code class="descname">buildDomains</code><span class="sig-paren">(</span><em>fn</em>, <em>*vec</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.splitworld.SplitWorld.buildDomains" title="Permalink to this definition">¶</a></dt>
+<dd><p>Instruct subworlds how to build the domain.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><strong>fn</strong> – The function/class to call to create a domain.</td>
+</tr>
+</tbody>
+</table>
+<p>The remaining parameters are for the arguments of the function.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.splitworld.SplitWorld.clearVariable">
+<code class="descname">clearVariable</code><span class="sig-paren">(</span><em>vname</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.splitworld.SplitWorld.clearVariable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clears the value of the named variable.  The variable itself still exists.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><strong>vname</strong> – variable to clear</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.splitworld.SplitWorld.copyVariable">
+<code class="descname">copyVariable</code><span class="sig-paren">(</span><em>src</em>, <em>dest</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.splitworld.SplitWorld.copyVariable" title="Permalink to this definition">¶</a></dt>
+<dd><p>copy the contents of one splitworld variable into another</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><strong>src</strong> – name of variable to copy from</li>
+<li><strong>dest</strong> – name of variable to copy to</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.splitworld.SplitWorld.getFloatVariable">
+<code class="descname">getFloatVariable</code><span class="sig-paren">(</span><em>vname</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.splitworld.SplitWorld.getFloatVariable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the value of a floating point variable</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.splitworld.SplitWorld.getLocalObjectVariable">
+<code class="descname">getLocalObjectVariable</code><span class="sig-paren">(</span><em>vname</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.splitworld.SplitWorld.getLocalObjectVariable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the value of a local object variable - that is, an object (eg tuple) which does not need to
+be reduced/shared between worlds</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.splitworld.SplitWorld.getSubWorldCount">
+<code class="descname">getSubWorldCount</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.splitworld.SplitWorld.getSubWorldCount" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the number of subworlds in this splitworld</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.splitworld.SplitWorld.getSubWorldID">
+<code class="descname">getSubWorldID</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.splitworld.SplitWorld.getSubWorldID" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the id of the subworld which _this_ MPI process belongs to.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.splitworld.SplitWorld.getVarInfo">
+<code class="descname">getVarInfo</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.splitworld.SplitWorld.getVarInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the names of all declared variables and a description of type.
+The details of the output are not fixed and may change without notice</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.splitworld.SplitWorld.getVarList">
+<code class="descname">getVarList</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.splitworld.SplitWorld.getVarList" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the names of all declared variables and a boolean for each indicating whether they have values.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.splitworld.SplitWorld.removeVariable">
+<code class="descname">removeVariable</code><span class="sig-paren">(</span><em>vname</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.splitworld.SplitWorld.removeVariable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes the named variable from all subworlds.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><strong>vname</strong> – What to remove</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.escript.splitworld.SplitWorld.runJobs">
+<code class="descname">runJobs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.escript.splitworld.SplitWorld.runJobs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Executes pending jobs.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="others">
+<h2>Others<a class="headerlink" href="#others" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="packages">
+<h2>Packages<a class="headerlink" href="#packages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          <h3>Table of Contents</h3>
+          <ul>
+<li class="toctree-l1"><a class="reference internal" href="esys.downunder.html">esys.downunder Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.dudley.html">esys.dudley Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.escript.html">esys.escript Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.finley.html">esys.finley Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.modellib.html">esys.modellib Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.pycad.html">esys.pycad Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.ripley.html">esys.ripley Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.speckley.html">esys.speckley Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.weipa.html">esys.weipa Package</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+            </form>
+          </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2012-2022, Author.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.4.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

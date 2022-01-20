@@ -1,0 +1,345 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>esys.weipa Package &#8212; esys.escript 5.9 documentation</title>
+    <link rel="stylesheet" href="https://raw.githubusercontent.com/esys-escript/esys-escript.github.io/master/doc/html/_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="https://raw.githubusercontent.com/esys-escript/esys-escript.github.io/master/doc/html/_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="https://raw.githubusercontent.com/esys-escript/esys-escript.github.io/master/doc/html/_static/documentation_options.js"></script>
+    <script type="text/javascript" src="https://raw.githubusercontent.com/esys-escript/esys-escript.github.io/master/doc/html/_static/jquery.js"></script>
+    <script type="text/javascript" src="https://raw.githubusercontent.com/esys-escript/esys-escript.github.io/master/doc/html/_static/underscore.js"></script>
+    <script type="text/javascript" src="https://raw.githubusercontent.com/esys-escript/esys-escript.github.io/master/doc/html/_static/doctools.js"></script>
+    <script type="text/javascript" src="https://raw.githubusercontent.com/esys-escript/esys-escript.github.io/master/doc/html/_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="esys.speckley Package" href="esys.speckley.html" /> 
+  </head><body>
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="index.html">esys.escript 5.9 documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="esys.speckley.html" title="esys.speckley Package"
+             accesskey="P">previous</a> |
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-esys.weipa">
+<span id="esys-weipa-package"></span><h1>esys.weipa Package<a class="headerlink" href="#module-esys.weipa" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li></li>
+</ul>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><a class="reference internal" href="#esys.weipa.EscriptToTVTK" title="esys.weipa.EscriptToTVTK"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EscriptToTVTK</span></code></a></li>
+</ul>
+<dl class="class">
+<dt id="esys.weipa.EscriptToTVTK">
+<em class="property">class </em><code class="descclassname">esys.weipa.</code><code class="descname">EscriptToTVTK</code><span class="sig-paren">(</span><em>domain=None</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.weipa.EscriptToTVTK" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>a simple interface from escript to TVTK for rendering with mayavi.mlab</p>
+<dl class="method">
+<dt id="esys.weipa.EscriptToTVTK.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>domain=None</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.weipa.EscriptToTVTK.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>sets up driver for translating Data objects in domain to TVTK object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.weipa.EscriptToTVTK.getDomain">
+<code class="descname">getDomain</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.weipa.EscriptToTVTK.getDomain" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.weipa.EscriptToTVTK.getTVTK">
+<code class="descname">getTVTK</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.weipa.EscriptToTVTK.getTVTK" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.weipa.EscriptToTVTK.setData">
+<code class="descname">setData</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.weipa.EscriptToTVTK.setData" title="Permalink to this definition">¶</a></dt>
+<dd><p>set the scalar data set:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.weipa.EscriptToTVTK.setDomain">
+<code class="descname">setDomain</code><span class="sig-paren">(</span><em>domain</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.weipa.EscriptToTVTK.setDomain" title="Permalink to this definition">¶</a></dt>
+<dd><p>resets the domain</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="esys.weipa.convertToNumpy">
+<code class="descclassname">esys.weipa.</code><code class="descname">convertToNumpy</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.weipa.convertToNumpy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes <code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code> objects to a numpy array.</p>
+<p>The keyword args are Data objects to save.
+If a scalar <code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code> object is passed with the name <code class="docutils literal notranslate"><span class="pre">mask</span></code>, then only
+samples which correspond to positive values in <code class="docutils literal notranslate"><span class="pre">mask</span></code> will be output.</p>
+<p>Example usage:</p>
+<p>s=Scalar(..)
+v=Vector(..)
+t=Tensor(..)
+f=float()
+array = getNumpy(a=s, b=v, c=t, d=f)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="esys.weipa.createDataset">
+<code class="descclassname">esys.weipa.</code><code class="descname">createDataset</code><span class="sig-paren">(</span><em>domain=None</em>, <em>**data</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.weipa.createDataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates and returns an esys.weipa dataset consisting of a Domain and Data
+objects. The returned object provides methods to access and export data.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="esys.weipa.hasFeature">
+<code class="descclassname">esys.weipa.</code><code class="descname">hasFeature</code><span class="sig-paren">(</span><em>(str)name</em><span class="sig-paren">)</span> &#x2192; bool :<a class="headerlink" href="#esys.weipa.hasFeature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if escript was compiled with a certain feature</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> (<code class="docutils literal notranslate"><span class="pre">string</span></code>) – feature to lookup</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="esys.weipa.interpolateEscriptData">
+<code class="descclassname">esys.weipa.</code><code class="descname">interpolateEscriptData</code><span class="sig-paren">(</span><em>domain</em>, <em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.weipa.interpolateEscriptData" title="Permalink to this definition">¶</a></dt>
+<dd><p>esys.weipa does not support the function spaces Solution and
+ReducedSolution. This function interpolates Data defined on those function
+spaces to compatible alternatives.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="esys.weipa.saveSilo">
+<code class="descclassname">esys.weipa.</code><code class="descname">saveSilo</code><span class="sig-paren">(</span><em>filename</em>, <em>domain=None</em>, <em>write_meshdata=False</em>, <em>time=0.0</em>, <em>cycle=0</em>, <em>**data</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.weipa.saveSilo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes <code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code> objects and their mesh to a file using the SILO file format.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">temp</span><span class="o">=</span><span class="n">Scalar</span><span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="n">v</span><span class="o">=</span><span class="n">Vector</span><span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="n">saveSilo</span><span class="p">(</span><span class="s2">&quot;solution.silo&quot;</span><span class="p">,</span> <span class="n">temperature</span><span class="o">=</span><span class="n">temp</span><span class="p">,</span> <span class="n">velocity</span><span class="o">=</span><span class="n">v</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">temp</span></code> and <code class="docutils literal notranslate"><span class="pre">v</span></code> are written to “solution.silo” where <code class="docutils literal notranslate"><span class="pre">temp</span></code> is named
+“temperature” and <code class="docutils literal notranslate"><span class="pre">v</span></code> is named “velocity”.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>filename</strong> (<code class="docutils literal notranslate"><span class="pre">str</span></code>) – name of the output file (‘.silo’ is added if required)</li>
+<li><strong>domain</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">escript.Domain</span></code>) – domain of the <code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code> objects. If not specified, the domain
+of the given <code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code> objects is used.</li>
+<li><strong>write_meshdata</strong> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>) – whether to save mesh-related data such as element
+identifiers, ownership etc. This is mainly useful
+for debugging.</li>
+<li><strong>time</strong> (<code class="docutils literal notranslate"><span class="pre">float</span></code>) – the timestamp to save within the file</li>
+<li><strong>cycle</strong> (<code class="docutils literal notranslate"><span class="pre">int</span></code>) – the cycle (or timestep) of the data</li>
+<li><strong>&lt;name&gt;</strong> – writes the assigned value to the Silo file using &lt;name&gt; as
+identifier</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Note:</th><td class="field-body"><p class="first last">All data objects have to be defined on the same domain but they may
+be defined on separate <code class="xref py py-obj docutils literal notranslate"><span class="pre">FunctionSpace</span></code> s.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="esys.weipa.saveVTK">
+<code class="descclassname">esys.weipa.</code><code class="descname">saveVTK</code><span class="sig-paren">(</span><em>filename</em>, <em>domain=None</em>, <em>metadata=''</em>, <em>metadata_schema=None</em>, <em>write_meshdata=False</em>, <em>time=0.0</em>, <em>cycle=0</em>, <em>**data</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.weipa.saveVTK" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes <code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code> objects and their mesh to a file using the VTK XML file
+format.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">temp</span><span class="o">=</span><span class="n">Scalar</span><span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="n">v</span><span class="o">=</span><span class="n">Vector</span><span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="n">saveVTK</span><span class="p">(</span><span class="s2">&quot;solution.vtu&quot;</span><span class="p">,</span> <span class="n">temperature</span><span class="o">=</span><span class="n">temp</span><span class="p">,</span> <span class="n">velocity</span><span class="o">=</span><span class="n">v</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">temp</span></code> and <code class="docutils literal notranslate"><span class="pre">v</span></code> are written to “solution.vtu” where <code class="docutils literal notranslate"><span class="pre">temp</span></code> is named
+“temperature” and <code class="docutils literal notranslate"><span class="pre">v</span></code> is named “velocity”.</p>
+<p>Meta tags, e.g. a timeStamp, can be added to the file, for instance:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tmp</span><span class="o">=</span><span class="n">Scalar</span><span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="n">v</span><span class="o">=</span><span class="n">Vector</span><span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="n">saveVTK</span><span class="p">(</span><span class="s2">&quot;solution.vtu&quot;</span><span class="p">,</span> <span class="n">temperature</span><span class="o">=</span><span class="n">tmp</span><span class="p">,</span> <span class="n">velocity</span><span class="o">=</span><span class="n">v</span><span class="p">,</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="s2">&quot;&lt;timeStamp&gt;1.234&lt;/timeStamp&gt;&quot;</span><span class="p">,</span>
+        <span class="n">metadata_schema</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;gml&quot;</span><span class="p">:</span><span class="s2">&quot;http://www.opengis.net/gml&quot;</span><span class="p">})</span>
+</pre></div>
+</div>
+<p>The argument <code class="docutils literal notranslate"><span class="pre">metadata_schema</span></code> allows the definition of name spaces with
+a schema used in the definition of meta tags.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>filename</strong> (<code class="docutils literal notranslate"><span class="pre">str</span></code>) – name of the output file (‘.vtu’ is added if required)</li>
+<li><strong>domain</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">escript.Domain</span></code>) – domain of the <code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code> objects. If not specified, the domain
+of the given <code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code> objects is used.</li>
+<li><strong>&lt;name&gt;</strong> – writes the assigned value to the VTK file using &lt;name&gt; as
+identifier</li>
+<li><strong>metadata</strong> (<code class="docutils literal notranslate"><span class="pre">str</span></code>) – additional XML meta data which are inserted into the VTK
+file. The meta data are marked by the tag <code class="docutils literal notranslate"><span class="pre">&lt;MetaData&gt;</span></code>.</li>
+<li><strong>metadata_schema</strong> (<code class="docutils literal notranslate"><span class="pre">dict</span></code> with <code class="docutils literal notranslate"><span class="pre">metadata_schema[&lt;namespace&gt;]=&lt;URI&gt;</span></code>
+to assign the scheme <code class="docutils literal notranslate"><span class="pre">&lt;URI&gt;</span></code> to the name space
+<code class="docutils literal notranslate"><span class="pre">&lt;namespace&gt;</span></code>.) – assigns schemas to namespaces which have been used
+to define meta data.</li>
+<li><strong>write_meshdata</strong> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>) – whether to save mesh-related data such as element
+identifiers, ownership etc. This is mainly useful
+for debugging.</li>
+<li><strong>time</strong> (<code class="docutils literal notranslate"><span class="pre">float</span></code>) – the timestamp to save within the file, seperate to metadata</li>
+<li><strong>cycle</strong> (<code class="docutils literal notranslate"><span class="pre">int</span></code>) – the cycle (or timestep) of the data</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Note:</th><td class="field-body"><p class="first last">All data objects have to be defined on the same domain. They may not
+be in the same <code class="xref py py-obj docutils literal notranslate"><span class="pre">FunctionSpace</span></code> but not all combinations of
+<code class="xref py py-obj docutils literal notranslate"><span class="pre">FunctionSpace</span></code> s can be written to a single VTK file.
+Typically, data on the boundary and on the interior cannot be mixed.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="esys.weipa.saveVoxet">
+<code class="descclassname">esys.weipa.</code><code class="descname">saveVoxet</code><span class="sig-paren">(</span><em>filename</em>, <em>**data</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.weipa.saveVoxet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes <code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code> objects to a file using the GOCAD Voxet file format as
+separate properties on the same grid.
+At the moment only Data on a <code class="xref py py-obj docutils literal notranslate"><span class="pre">ripley</span></code> domain can be saved in this format.
+Note that this function will produce one header file (ending in .vo) and
+a separate property file for each <code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code> object.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>filename</strong> (<code class="docutils literal notranslate"><span class="pre">str</span></code>) – name of the output file (‘.vo’ is added if required)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Note:</th><td class="field-body">All data objects have to be defined on the same ripley domain and
+either defined on reduced Function or on a <code class="xref py py-obj docutils literal notranslate"><span class="pre">FunctionSpace</span></code> that
+allows interpolation to reduced Function.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="esys.weipa.visitInitialize">
+<code class="descclassname">esys.weipa.</code><code class="descname">visitInitialize</code><span class="sig-paren">(</span><em>(str)simFile</em><span class="optional">[</span>, <em>(str)comment=''</em><span class="optional">]</span><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#esys.weipa.visitInitialize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="esys.weipa.visitPublishData">
+<code class="descclassname">esys.weipa.</code><code class="descname">visitPublishData</code><span class="sig-paren">(</span><em>(EscriptDataset)dataset</em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#esys.weipa.visitPublishData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="others">
+<h2>Others<a class="headerlink" href="#others" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>HAVE_TVTK</li>
+</ul>
+</div>
+<div class="section" id="packages">
+<h2>Packages<a class="headerlink" href="#packages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          <h3>Table of Contents</h3>
+          <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="esys.downunder.html">esys.downunder Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.dudley.html">esys.dudley Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.escript.html">esys.escript Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.finley.html">esys.finley Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.modellib.html">esys.modellib Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.pycad.html">esys.pycad Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.ripley.html">esys.ripley Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.speckley.html">esys.speckley Package</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">esys.weipa Package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#functions">Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#others">Others</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#packages">Packages</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+            </form>
+          </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="esys.speckley.html" title="esys.speckley Package"
+              >previous</a> |
+            <a href="py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2012-2022, Author.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.4.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

@@ -1,0 +1,565 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>esys.downunder.forwardmodels.magnetotelluric2d Package &#8212; esys.escript 5.9 documentation</title>
+    <link rel="stylesheet" href="https://raw.githubusercontent.com/esys-escript/esys-escript.github.io/master/doc/html/_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="https://raw.githubusercontent.com/esys-escript/esys-escript.github.io/master/doc/html/_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="https://raw.githubusercontent.com/esys-escript/esys-escript.github.io/master/doc/html/_static/documentation_options.js"></script>
+    <script type="text/javascript" src="https://raw.githubusercontent.com/esys-escript/esys-escript.github.io/master/doc/html/_static/jquery.js"></script>
+    <script type="text/javascript" src="https://raw.githubusercontent.com/esys-escript/esys-escript.github.io/master/doc/html/_static/underscore.js"></script>
+    <script type="text/javascript" src="https://raw.githubusercontent.com/esys-escript/esys-escript.github.io/master/doc/html/_static/doctools.js"></script>
+    <script type="text/javascript" src="https://raw.githubusercontent.com/esys-escript/esys-escript.github.io/master/doc/html/_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="index.html">esys.escript 5.9 documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-esys.downunder.forwardmodels.magnetotelluric2d">
+<span id="esys-downunder-forwardmodels-magnetotelluric2d-package"></span><h1>esys.downunder.forwardmodels.magnetotelluric2d Package<a class="headerlink" href="#module-esys.downunder.forwardmodels.magnetotelluric2d" title="Permalink to this headline">¶</a></h1>
+<p>Forward models for 2D MT (TE and TM mode)</p>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><a class="reference internal" href="#esys.downunder.forwardmodels.magnetotelluric2d.ForwardModel" title="esys.downunder.forwardmodels.magnetotelluric2d.ForwardModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ForwardModel</span></code></a></li>
+<li><a class="reference internal" href="#esys.downunder.forwardmodels.magnetotelluric2d.MT2DBase" title="esys.downunder.forwardmodels.magnetotelluric2d.MT2DBase"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MT2DBase</span></code></a></li>
+<li><a class="reference internal" href="#esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTEMode" title="esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTEMode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MT2DModelTEMode</span></code></a></li>
+<li><a class="reference internal" href="#esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTMMode" title="esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTMMode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MT2DModelTMMode</span></code></a></li>
+</ul>
+<dl class="class">
+<dt id="esys.downunder.forwardmodels.magnetotelluric2d.ForwardModel">
+<em class="property">class </em><code class="descclassname">esys.downunder.forwardmodels.magnetotelluric2d.</code><code class="descname">ForwardModel</code><a class="headerlink" href="#esys.downunder.forwardmodels.magnetotelluric2d.ForwardModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>An abstract forward model that can be plugged into a cost function.
+Subclasses need to implement <a class="reference internal" href="#esys.downunder.forwardmodels.magnetotelluric2d.ForwardModel.getDefect" title="esys.downunder.forwardmodels.magnetotelluric2d.ForwardModel.getDefect"><code class="xref py py-obj docutils literal notranslate"><span class="pre">getDefect()</span></code></a>, <a class="reference internal" href="#esys.downunder.forwardmodels.magnetotelluric2d.ForwardModel.getGradient" title="esys.downunder.forwardmodels.magnetotelluric2d.ForwardModel.getGradient"><code class="xref py py-obj docutils literal notranslate"><span class="pre">getGradient()</span></code></a>, and possibly
+<a class="reference internal" href="#esys.downunder.forwardmodels.magnetotelluric2d.ForwardModel.getArguments" title="esys.downunder.forwardmodels.magnetotelluric2d.ForwardModel.getArguments"><code class="xref py py-obj docutils literal notranslate"><span class="pre">getArguments()</span></code></a> and ‘getCoordinateTransformation’.</p>
+<dl class="method">
+<dt id="esys.downunder.forwardmodels.magnetotelluric2d.ForwardModel.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.magnetotelluric2d.ForwardModel.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize self.  See help(type(self)) for accurate signature.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.forwardmodels.magnetotelluric2d.ForwardModel.getArguments">
+<code class="descname">getArguments</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.magnetotelluric2d.ForwardModel.getArguments" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.forwardmodels.magnetotelluric2d.ForwardModel.getCoordinateTransformation">
+<code class="descname">getCoordinateTransformation</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.magnetotelluric2d.ForwardModel.getCoordinateTransformation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.forwardmodels.magnetotelluric2d.ForwardModel.getDefect">
+<code class="descname">getDefect</code><span class="sig-paren">(</span><em>x</em>, <em>*args</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.magnetotelluric2d.ForwardModel.getDefect" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.forwardmodels.magnetotelluric2d.ForwardModel.getGradient">
+<code class="descname">getGradient</code><span class="sig-paren">(</span><em>x</em>, <em>*args</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.magnetotelluric2d.ForwardModel.getGradient" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="esys.downunder.forwardmodels.magnetotelluric2d.MT2DBase">
+<em class="property">class </em><code class="descclassname">esys.downunder.forwardmodels.magnetotelluric2d.</code><code class="descname">MT2DBase</code><span class="sig-paren">(</span><em>domain</em>, <em>omega</em>, <em>x</em>, <em>Z</em>, <em>eta=None</em>, <em>w0=1.0</em>, <em>mu=1.2566370614359173e-06</em>, <em>sigma0=0.01</em>, <em>airLayerLevel=None</em>, <em>fixAirLayer=False</em>, <em>coordinates=None</em>, <em>tol=1e-08</em>, <em>saveMemory=False</em>, <em>directSolver=True</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.magnetotelluric2d.MT2DBase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="esys.downunder.forwardmodels.base.html#esys.downunder.forwardmodels.base.ForwardModel" title="esys.downunder.forwardmodels.base.ForwardModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">esys.downunder.forwardmodels.base.ForwardModel</span></code></a></p>
+<p>Base class for 2D MT forward models. See <a class="reference internal" href="#esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTEMode" title="esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTEMode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MT2DModelTEMode</span></code></a> and
+<a class="reference internal" href="#esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTMMode" title="esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTMMode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MT2DModelTMMode</span></code></a> for actual implementations.</p>
+<dl class="method">
+<dt id="esys.downunder.forwardmodels.magnetotelluric2d.MT2DBase.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>domain</em>, <em>omega</em>, <em>x</em>, <em>Z</em>, <em>eta=None</em>, <em>w0=1.0</em>, <em>mu=1.2566370614359173e-06</em>, <em>sigma0=0.01</em>, <em>airLayerLevel=None</em>, <em>fixAirLayer=False</em>, <em>coordinates=None</em>, <em>tol=1e-08</em>, <em>saveMemory=False</em>, <em>directSolver=True</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.magnetotelluric2d.MT2DBase.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>initializes a new forward model.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>domain</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">Domain</span></code>) – domain of the model</li>
+<li><strong>omega</strong> (positive <code class="docutils literal notranslate"><span class="pre">float</span></code>) – frequency</li>
+<li><strong>x</strong> (<code class="docutils literal notranslate"><span class="pre">list</span></code> of <code class="docutils literal notranslate"><span class="pre">tuple</span></code> with <code class="docutils literal notranslate"><span class="pre">float</span></code>) – coordinates of measurements</li>
+<li><strong>Z</strong> (<code class="docutils literal notranslate"><span class="pre">list</span></code> of <code class="docutils literal notranslate"><span class="pre">complex</span></code>) – measured impedance (possibly scaled)</li>
+<li><strong>eta</strong> (positive <code class="docutils literal notranslate"><span class="pre">float</span></code> or <code class="docutils literal notranslate"><span class="pre">list</span></code> of  positive <code class="docutils literal notranslate"><span class="pre">float</span></code>) – spatial confidence radius</li>
+<li><strong>w0</strong> (<code class="docutils literal notranslate"><span class="pre">None</span></code> or a list of positive <code class="docutils literal notranslate"><span class="pre">float</span></code>) – confidence factors for meassurements.</li>
+<li><strong>mu</strong> (<code class="docutils literal notranslate"><span class="pre">float</span></code>) – permeability</li>
+<li><strong>sigma0</strong> (<code class="docutils literal notranslate"><span class="pre">float</span></code>) – background conductivity</li>
+<li><strong>airLayerLevel</strong> (<code class="docutils literal notranslate"><span class="pre">float</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code>) – position of the air layer from to bottom of the domain. If
+not set the air layer starts at the top of the domain</li>
+<li><strong>fixAirLayer</strong> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>) – fix air layer (TM mode)</li>
+<li><strong>coordinates</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">ReferenceSystem</span></code> or <code class="xref py py-obj docutils literal notranslate"><span class="pre">SpatialCoordinateTransformation</span></code>) – defines coordinate system to be used (not supported yet)</li>
+<li><strong>tol</strong> (positive <code class="docutils literal notranslate"><span class="pre">float</span></code>) – tolerance of underlying PDE</li>
+<li><strong>saveMemory</strong> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>) – if true stiffness matrix is deleted after solution
+of the PDE to minimize memory use. This will
+require more compute time as the matrix needs to be
+reallocated at each iteration.</li>
+<li><strong>directSolver</strong> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>) – if true a direct solver (rather than an iterative
+solver) will be used to solve the PDE</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.forwardmodels.magnetotelluric2d.MT2DBase.getArguments">
+<code class="descname">getArguments</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.magnetotelluric2d.MT2DBase.getArguments" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns precomputed values shared by <a class="reference internal" href="#esys.downunder.forwardmodels.magnetotelluric2d.MT2DBase.getDefect" title="esys.downunder.forwardmodels.magnetotelluric2d.MT2DBase.getDefect"><code class="xref py py-obj docutils literal notranslate"><span class="pre">getDefect()</span></code></a> and <a class="reference internal" href="#esys.downunder.forwardmodels.magnetotelluric2d.MT2DBase.getGradient" title="esys.downunder.forwardmodels.magnetotelluric2d.MT2DBase.getGradient"><code class="xref py py-obj docutils literal notranslate"><span class="pre">getGradient()</span></code></a>.
+Needs to be implemented in subclasses.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.forwardmodels.magnetotelluric2d.MT2DBase.getCoordinateTransformation">
+<code class="descname">getCoordinateTransformation</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.magnetotelluric2d.MT2DBase.getCoordinateTransformation" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the coordinate transformation being used</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">CoordinateTransformation</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.forwardmodels.magnetotelluric2d.MT2DBase.getDefect">
+<code class="descname">getDefect</code><span class="sig-paren">(</span><em>x</em>, <em>Ex</em>, <em>dExdz</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.magnetotelluric2d.MT2DBase.getDefect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the defect value. Needs to be implemented in subclasses.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.forwardmodels.magnetotelluric2d.MT2DBase.getDomain">
+<code class="descname">getDomain</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.magnetotelluric2d.MT2DBase.getDomain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the domain of the forward model.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Domain</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.forwardmodels.magnetotelluric2d.MT2DBase.getGradient">
+<code class="descname">getGradient</code><span class="sig-paren">(</span><em>x</em>, <em>Ex</em>, <em>dExdz</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.magnetotelluric2d.MT2DBase.getGradient" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the gradient. Needs to be implemented in subclasses.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.forwardmodels.magnetotelluric2d.MT2DBase.getWeightingFactor">
+<code class="descname">getWeightingFactor</code><span class="sig-paren">(</span><em>x</em>, <em>wx0</em>, <em>x0</em>, <em>eta</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.magnetotelluric2d.MT2DBase.getWeightingFactor" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the weighting factor</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.forwardmodels.magnetotelluric2d.MT2DBase.setUpPDE">
+<code class="descname">setUpPDE</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.magnetotelluric2d.MT2DBase.setUpPDE" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the underlying PDE.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LinearPDE</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTEMode">
+<em class="property">class </em><code class="descclassname">esys.downunder.forwardmodels.magnetotelluric2d.</code><code class="descname">MT2DModelTEMode</code><span class="sig-paren">(</span><em>domain</em>, <em>omega</em>, <em>x</em>, <em>Z_XY</em>, <em>eta=None</em>, <em>w0=1.0</em>, <em>mu=1.2566370614359173e-06</em>, <em>sigma0=0.01</em>, <em>airLayerLevel=None</em>, <em>coordinates=None</em>, <em>Ex_top=1</em>, <em>fixAtTop=False</em>, <em>tol=1e-08</em>, <em>saveMemory=False</em>, <em>directSolver=True</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTEMode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#esys.downunder.forwardmodels.magnetotelluric2d.MT2DBase" title="esys.downunder.forwardmodels.magnetotelluric2d.MT2DBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">esys.downunder.forwardmodels.magnetotelluric2d.MT2DBase</span></code></a></p>
+<p>Forward Model for two dimensional MT model in the TE mode for a given
+frequency omega.
+It defines a cost function:</p>
+<blockquote>
+<div><ul class="simple">
+<li>defect = 1/2 integrate( sum_s w^s * ( E_x/H_y - Z_XY^s ) ) ** 2  *</li>
+</ul>
+</div></blockquote>
+<p>where E_x is the horizontal electric field perpendicular to the YZ-domain,
+horizontal magnetic field H_y=1/(i*omega*mu) * E_{x,z} with complex unit
+i and permeability mu. The weighting factor w^s is set to</p>
+<blockquote>
+<div><ul class="simple">
+<li>w^s(X) = w_0^s  *</li>
+</ul>
+</div></blockquote>
+<p>if length(X-X^s) &lt;= eta and zero otherwise. X^s is the location of 
+impedance measurement Z_XY^s, w_0^s is the level
+of confidence (eg. 1/measurement error) and eta is level of spatial
+confidence.</p>
+<p>E_x is given as solution of the PDE</p>
+<blockquote>
+<div><ul class="simple">
+<li>-E_{x,ii} - i omega * mu * sigma * E_x = 0</li>
+</ul>
+</div></blockquote>
+<p>where E_x at top and bottom is set to solution for background field. Homogeneous Neuman
+conditions are assumed elsewhere.</p>
+<dl class="method">
+<dt id="esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTEMode.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>domain</em>, <em>omega</em>, <em>x</em>, <em>Z_XY</em>, <em>eta=None</em>, <em>w0=1.0</em>, <em>mu=1.2566370614359173e-06</em>, <em>sigma0=0.01</em>, <em>airLayerLevel=None</em>, <em>coordinates=None</em>, <em>Ex_top=1</em>, <em>fixAtTop=False</em>, <em>tol=1e-08</em>, <em>saveMemory=False</em>, <em>directSolver=True</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTEMode.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>initializes a new forward model. See base class for a description of
+the arguments.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTEMode.getArguments">
+<code class="descname">getArguments</code><span class="sig-paren">(</span><em>sigma</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTEMode.getArguments" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns precomputed values shared by <a class="reference internal" href="#esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTEMode.getDefect" title="esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTEMode.getDefect"><code class="xref py py-obj docutils literal notranslate"><span class="pre">getDefect()</span></code></a> and <a class="reference internal" href="#esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTEMode.getGradient" title="esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTEMode.getGradient"><code class="xref py py-obj docutils literal notranslate"><span class="pre">getGradient()</span></code></a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sigma</strong> (<code class="docutils literal notranslate"><span class="pre">Data</span></code> of shape (2,)) – conductivity</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">E_x, E_z</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">Data</span></code> of shape (2,)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTEMode.getCoordinateTransformation">
+<code class="descname">getCoordinateTransformation</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTEMode.getCoordinateTransformation" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the coordinate transformation being used</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">CoordinateTransformation</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTEMode.getDefect">
+<code class="descname">getDefect</code><span class="sig-paren">(</span><em>sigma</em>, <em>Ex</em>, <em>dExdz</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTEMode.getDefect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the defect value.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>sigma</strong> (<code class="docutils literal notranslate"><span class="pre">Data</span></code> of shape ()) – a suggestion for conductivity</li>
+<li><strong>Ex</strong> (<code class="docutils literal notranslate"><span class="pre">Data</span></code> of shape (2,)) – electric field</li>
+<li><strong>dExdz</strong> (<code class="docutils literal notranslate"><span class="pre">Data</span></code> of shape (2,)) – vertical derivative of electric field</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="docutils literal notranslate"><span class="pre">float</span></code></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTEMode.getDomain">
+<code class="descname">getDomain</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTEMode.getDomain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the domain of the forward model.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Domain</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTEMode.getGradient">
+<code class="descname">getGradient</code><span class="sig-paren">(</span><em>sigma</em>, <em>Ex</em>, <em>dExdz</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTEMode.getGradient" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the gradient of the defect with respect to density.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>sigma</strong> (<code class="docutils literal notranslate"><span class="pre">Data</span></code> of shape ()) – a suggestion for conductivity</li>
+<li><strong>Ex</strong> (<code class="docutils literal notranslate"><span class="pre">Data</span></code> of shape (2,)) – electric field</li>
+<li><strong>dExdz</strong> (<code class="docutils literal notranslate"><span class="pre">Data</span></code> of shape (2,)) – vertical derivative of electric field</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTEMode.getWeightingFactor">
+<code class="descname">getWeightingFactor</code><span class="sig-paren">(</span><em>x</em>, <em>wx0</em>, <em>x0</em>, <em>eta</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTEMode.getWeightingFactor" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the weighting factor</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTEMode.setUpPDE">
+<code class="descname">setUpPDE</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTEMode.setUpPDE" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the underlying PDE.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LinearPDE</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTMMode">
+<em class="property">class </em><code class="descclassname">esys.downunder.forwardmodels.magnetotelluric2d.</code><code class="descname">MT2DModelTMMode</code><span class="sig-paren">(</span><em>domain</em>, <em>omega</em>, <em>x</em>, <em>Z_YX</em>, <em>eta=None</em>, <em>w0=1.0</em>, <em>mu=1.2566370614359173e-06</em>, <em>sigma0=0.01</em>, <em>airLayerLevel=None</em>, <em>coordinates=None</em>, <em>tol=1e-08</em>, <em>saveMemory=False</em>, <em>directSolver=True</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTMMode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#esys.downunder.forwardmodels.magnetotelluric2d.MT2DBase" title="esys.downunder.forwardmodels.magnetotelluric2d.MT2DBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">esys.downunder.forwardmodels.magnetotelluric2d.MT2DBase</span></code></a></p>
+<p>Forward Model for two-dimensional MT model in the TM mode for a given
+frequency omega.
+It defines a cost function:</p>
+<blockquote>
+<div><ul class="simple">
+<li>defect = 1/2 integrate( sum_s w^s * ( rho*H_x/Hy - Z_YX^s ) ) ** 2  *</li>
+</ul>
+</div></blockquote>
+<p>where H_x is the horizontal magnetic field perpendicular to the YZ-domain,
+horizontal magnetic field H_y=1/(i*omega*mu) * E_{x,z} with complex unit
+i and permeability mu. The weighting factor w^s is set to</p>
+<blockquote>
+<div><ul class="simple">
+<li>w^s(X) = w_0^s  *</li>
+</ul>
+</div></blockquote>
+<p>if length(X-X^s) &lt;= eta and zero otherwise. X^s is the location of 
+impedance measurement Z_XY^s, w_0^s is the level
+of confidence (eg. 1/measurement error) and eta is level of spatial
+confidence.</p>
+<p>H_x is given as solution of the PDE</p>
+<blockquote>
+<div><ul class="simple">
+<li>-(rho*H_{x,i})_{,i} + i omega * mu * H_x = 0</li>
+</ul>
+</div></blockquote>
+<p>where H_x at top and bottom is set to solution for background field. 
+Homogeneous Neuman conditions are assumed elsewhere.</p>
+<dl class="method">
+<dt id="esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTMMode.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>domain</em>, <em>omega</em>, <em>x</em>, <em>Z_YX</em>, <em>eta=None</em>, <em>w0=1.0</em>, <em>mu=1.2566370614359173e-06</em>, <em>sigma0=0.01</em>, <em>airLayerLevel=None</em>, <em>coordinates=None</em>, <em>tol=1e-08</em>, <em>saveMemory=False</em>, <em>directSolver=True</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTMMode.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>initializes a new forward model. See base class for a description of
+the arguments.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTMMode.getArguments">
+<code class="descname">getArguments</code><span class="sig-paren">(</span><em>rho</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTMMode.getArguments" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns precomputed values shared by <a class="reference internal" href="#esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTMMode.getDefect" title="esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTMMode.getDefect"><code class="xref py py-obj docutils literal notranslate"><span class="pre">getDefect()</span></code></a> and <a class="reference internal" href="#esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTMMode.getGradient" title="esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTMMode.getGradient"><code class="xref py py-obj docutils literal notranslate"><span class="pre">getGradient()</span></code></a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>rho</strong> (<code class="docutils literal notranslate"><span class="pre">Data</span></code> of shape (2,)) – resistivity</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Hx, grad(Hx)</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">tuple</span></code> of <code class="docutils literal notranslate"><span class="pre">Data</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTMMode.getCoordinateTransformation">
+<code class="descname">getCoordinateTransformation</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTMMode.getCoordinateTransformation" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the coordinate transformation being used</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">CoordinateTransformation</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTMMode.getDefect">
+<code class="descname">getDefect</code><span class="sig-paren">(</span><em>rho</em>, <em>Hx</em>, <em>g_Hx</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTMMode.getDefect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the defect value.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>rho</strong> (<code class="docutils literal notranslate"><span class="pre">Data</span></code> of shape ()) – a suggestion for resistivity</li>
+<li><strong>Hx</strong> (<code class="docutils literal notranslate"><span class="pre">Data</span></code> of shape (2,)) – magnetic field</li>
+<li><strong>g_Hx</strong> (<code class="docutils literal notranslate"><span class="pre">Data</span></code> of shape (2,2)) – gradient of magnetic field</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><code class="docutils literal notranslate"><span class="pre">float</span></code></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTMMode.getDomain">
+<code class="descname">getDomain</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTMMode.getDomain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the domain of the forward model.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Domain</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTMMode.getGradient">
+<code class="descname">getGradient</code><span class="sig-paren">(</span><em>rho</em>, <em>Hx</em>, <em>g_Hx</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTMMode.getGradient" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the gradient of the defect with respect to resistivity.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>rho</strong> (<code class="docutils literal notranslate"><span class="pre">Data</span></code> of shape ()) – a suggestion for resistivity</li>
+<li><strong>Hx</strong> (<code class="docutils literal notranslate"><span class="pre">Data</span></code> of shape (2,)) – magnetic field</li>
+<li><strong>g_Hx</strong> (<code class="docutils literal notranslate"><span class="pre">Data</span></code> of shape (2,2)) – gradient of magnetic field</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTMMode.getWeightingFactor">
+<code class="descname">getWeightingFactor</code><span class="sig-paren">(</span><em>x</em>, <em>wx0</em>, <em>x0</em>, <em>eta</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTMMode.getWeightingFactor" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the weighting factor</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTMMode.setUpPDE">
+<code class="descname">setUpPDE</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.downunder.forwardmodels.magnetotelluric2d.MT2DModelTMMode.setUpPDE" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the underlying PDE.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LinearPDE</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="others">
+<h2>Others<a class="headerlink" href="#others" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="packages">
+<h2>Packages<a class="headerlink" href="#packages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          <h3>Table of Contents</h3>
+          <ul>
+<li class="toctree-l1"><a class="reference internal" href="esys.downunder.html">esys.downunder Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.dudley.html">esys.dudley Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.escript.html">esys.escript Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.finley.html">esys.finley Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.modellib.html">esys.modellib Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.pycad.html">esys.pycad Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.ripley.html">esys.ripley Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.speckley.html">esys.speckley Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.weipa.html">esys.weipa Package</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+            </form>
+          </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2012-2022, Author.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.4.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>

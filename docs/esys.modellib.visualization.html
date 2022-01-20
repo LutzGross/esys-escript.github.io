@@ -1,0 +1,1495 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>esys.modellib.visualization Package &#8212; esys.escript 5.9 documentation</title>
+    <link rel="stylesheet" href="https://raw.githubusercontent.com/esys-escript/esys-escript.github.io/master/doc/html/_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="https://raw.githubusercontent.com/esys-escript/esys-escript.github.io/master/doc/html/_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="https://raw.githubusercontent.com/esys-escript/esys-escript.github.io/master/doc/html/_static/documentation_options.js"></script>
+    <script type="text/javascript" src="https://raw.githubusercontent.com/esys-escript/esys-escript.github.io/master/doc/html/_static/jquery.js"></script>
+    <script type="text/javascript" src="https://raw.githubusercontent.com/esys-escript/esys-escript.github.io/master/doc/html/_static/underscore.js"></script>
+    <script type="text/javascript" src="https://raw.githubusercontent.com/esys-escript/esys-escript.github.io/master/doc/html/_static/doctools.js"></script>
+    <script type="text/javascript" src="https://raw.githubusercontent.com/esys-escript/esys-escript.github.io/master/doc/html/_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="index.html">esys.escript 5.9 documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-esys.modellib.visualization">
+<span id="esys-modellib-visualization-package"></span><h1>esys.modellib.visualization Package<a class="headerlink" href="#module-esys.modellib.visualization" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li></li>
+</ul>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><a class="reference internal" href="#esys.modellib.visualization.Data" title="esys.modellib.visualization.Data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code></a></li>
+<li><a class="reference internal" href="#esys.modellib.visualization.Link" title="esys.modellib.visualization.Link"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Link</span></code></a></li>
+<li><a class="reference internal" href="#esys.modellib.visualization.Model" title="esys.modellib.visualization.Model"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Model</span></code></a></li>
+<li><a class="reference internal" href="#esys.modellib.visualization.Visualization" title="esys.modellib.visualization.Visualization"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Visualization</span></code></a></li>
+<li><a class="reference internal" href="#esys.modellib.visualization.WriteVTK" title="esys.modellib.visualization.WriteVTK"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WriteVTK</span></code></a></li>
+</ul>
+<dl class="class">
+<dt id="esys.modellib.visualization.Data">
+<em class="property">class </em><code class="descclassname">esys.modellib.visualization.</code><code class="descname">Data</code><a class="headerlink" href="#esys.modellib.visualization.Data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Boost.Python.instance</span></code></p>
+<p>Represents a collection of datapoints. It is used to store the values of a function. For more details please consult the c++ class documentation.</p>
+<dl class="method">
+<dt id="esys.modellib.visualization.Data.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>(object)arg1</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#esys.modellib.visualization.Data.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>__init__( (object)arg1, (object)value [, (object)p2 [, (object)p3 [, (object)p4]]]) -&gt; None</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Data.conjugate">
+<code class="descname">conjugate</code><span class="sig-paren">(</span><em>(Data)arg1</em><span class="sig-paren">)</span> &#x2192; Data<a class="headerlink" href="#esys.modellib.visualization.Data.conjugate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Data.copy">
+<code class="descname">copy</code><span class="sig-paren">(</span><em>(Data)arg1</em>, <em>(Data)other</em><span class="sig-paren">)</span> &#x2192; None :<a class="headerlink" href="#esys.modellib.visualization.Data.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make this object a copy of <code class="docutils literal notranslate"><span class="pre">other</span></code></p>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">note:</th><td class="field-body">The two objects will act independently from now on. That is, changing <code class="docutils literal notranslate"><span class="pre">other</span></code> after this call will not change this object and vice versa.</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<dl class="docutils">
+<dt>copy( (Data)arg1) -&gt; Data :</dt>
+<dd><table class="first last docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">note:</th><td class="field-body">In the no argument form, a new object will be returned which is an independent copy of this object.</td>
+</tr>
+</tbody>
+</table>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Data.copyWithMask">
+<code class="descname">copyWithMask</code><span class="sig-paren">(</span><em>(Data)arg1</em>, <em>(Data)other</em>, <em>(Data)mask</em><span class="sig-paren">)</span> &#x2192; None :<a class="headerlink" href="#esys.modellib.visualization.Data.copyWithMask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Selectively copy values from <code class="docutils literal notranslate"><span class="pre">other</span></code> <a class="reference internal" href="#esys.modellib.visualization.Data" title="esys.modellib.visualization.Data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code></a>.Datapoints which correspond to positive values in <code class="docutils literal notranslate"><span class="pre">mask</span></code> will be copied from <code class="docutils literal notranslate"><span class="pre">other</span></code></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>other</strong> (<a class="reference internal" href="#esys.modellib.visualization.Data" title="esys.modellib.visualization.Data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code></a>) – source of values</li>
+<li><strong>mask</strong> (Scalar <a class="reference internal" href="#esys.modellib.visualization.Data" title="esys.modellib.visualization.Data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code></a>) – </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Data.delay">
+<code class="descname">delay</code><span class="sig-paren">(</span><em>(Data)arg1</em><span class="sig-paren">)</span> &#x2192; Data :<a class="headerlink" href="#esys.modellib.visualization.Data.delay" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert this object into lazy representation</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Data.dump">
+<code class="descname">dump</code><span class="sig-paren">(</span><em>(Data)arg1</em>, <em>(str)fileName</em><span class="sig-paren">)</span> &#x2192; None :<a class="headerlink" href="#esys.modellib.visualization.Data.dump" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save the data as a netCDF file</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fileName</strong> (<code class="docutils literal notranslate"><span class="pre">string</span></code>) – </td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Data.expand">
+<code class="descname">expand</code><span class="sig-paren">(</span><em>(Data)arg1</em><span class="sig-paren">)</span> &#x2192; None :<a class="headerlink" href="#esys.modellib.visualization.Data.expand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert the data to expanded representation if it is not expanded already.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Data.getDomain">
+<code class="descname">getDomain</code><span class="sig-paren">(</span><em>(Data)arg1</em><span class="sig-paren">)</span> &#x2192; Domain :<a class="headerlink" href="#esys.modellib.visualization.Data.getDomain" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Domain</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Data.getFunctionSpace">
+<code class="descname">getFunctionSpace</code><span class="sig-paren">(</span><em>(Data)arg1</em><span class="sig-paren">)</span> &#x2192; FunctionSpace :<a class="headerlink" href="#esys.modellib.visualization.Data.getFunctionSpace" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FunctionSpace</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Data.getNumberOfDataPoints">
+<code class="descname">getNumberOfDataPoints</code><span class="sig-paren">(</span><em>(Data)arg1</em><span class="sig-paren">)</span> &#x2192; int :<a class="headerlink" href="#esys.modellib.visualization.Data.getNumberOfDataPoints" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">int</span></code></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Number of datapoints in the object</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Data.getRank">
+<code class="descname">getRank</code><span class="sig-paren">(</span><em>(Data)arg1</em><span class="sig-paren">)</span> &#x2192; int :<a class="headerlink" href="#esys.modellib.visualization.Data.getRank" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the number of indices required to address a component of a datapoint</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">positive <code class="docutils literal notranslate"><span class="pre">int</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Data.getShape">
+<code class="descname">getShape</code><span class="sig-paren">(</span><em>(Data)arg1</em><span class="sig-paren">)</span> &#x2192; tuple :<a class="headerlink" href="#esys.modellib.visualization.Data.getShape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the shape of the datapoints in this object as a python tuple. Scalar data has the shape <code class="docutils literal notranslate"><span class="pre">()</span></code></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">tuple</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Data.getTagNumber">
+<code class="descname">getTagNumber</code><span class="sig-paren">(</span><em>(Data)arg1</em>, <em>(int)dpno</em><span class="sig-paren">)</span> &#x2192; int :<a class="headerlink" href="#esys.modellib.visualization.Data.getTagNumber" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return tag number for the specified datapoint</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">int</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dpno</strong> (<em>int</em>) – datapoint number</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Data.getTupleForDataPoint">
+<code class="descname">getTupleForDataPoint</code><span class="sig-paren">(</span><em>(Data)arg1</em>, <em>(int)dataPointNo</em><span class="sig-paren">)</span> &#x2192; object :<a class="headerlink" href="#esys.modellib.visualization.Data.getTupleForDataPoint" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Value of the specified datapoint</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">tuple</span></code></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dataPointNo</strong> (<code class="docutils literal notranslate"><span class="pre">int</span></code>) – datapoint to access</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Data.getTupleForGlobalDataPoint">
+<code class="descname">getTupleForGlobalDataPoint</code><span class="sig-paren">(</span><em>(Data)arg1</em>, <em>(int)procNo</em>, <em>(int)dataPointNo</em><span class="sig-paren">)</span> &#x2192; object :<a class="headerlink" href="#esys.modellib.visualization.Data.getTupleForGlobalDataPoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a specific datapoint from a specific process</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first"><code class="docutils literal notranslate"><span class="pre">tuple</span></code></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>procNo</strong> (positive <code class="docutils literal notranslate"><span class="pre">int</span></code>) – MPI rank of the process</li>
+<li><strong>dataPointNo</strong> (<em>int</em>) – datapoint to access</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Data.getX">
+<code class="descname">getX</code><span class="sig-paren">(</span><em>(Data)arg1</em><span class="sig-paren">)</span> &#x2192; Data :<a class="headerlink" href="#esys.modellib.visualization.Data.getX" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the spatial coordinates of the spatial nodes.
+:rtype: <a class="reference internal" href="#esys.modellib.visualization.Data" title="esys.modellib.visualization.Data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code></a></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Data.hasInf">
+<code class="descname">hasInf</code><span class="sig-paren">(</span><em>(Data)arg1</em><span class="sig-paren">)</span> &#x2192; bool :<a class="headerlink" href="#esys.modellib.visualization.Data.hasInf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns return true if data contains +-Inf.  [Note that for complex values, hasNaN and hasInf are not mutually exclusive.]</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Data.hasNaN">
+<code class="descname">hasNaN</code><span class="sig-paren">(</span><em>(Data)arg1</em><span class="sig-paren">)</span> &#x2192; bool :<a class="headerlink" href="#esys.modellib.visualization.Data.hasNaN" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns return true if data contains NaN. [Note that for complex values, hasNaN and hasInf are not mutually exclusive.]</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Data.imag">
+<code class="descname">imag</code><span class="sig-paren">(</span><em>(Data)arg1</em><span class="sig-paren">)</span> &#x2192; Data<a class="headerlink" href="#esys.modellib.visualization.Data.imag" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Data.internal_maxGlobalDataPoint">
+<code class="descname">internal_maxGlobalDataPoint</code><span class="sig-paren">(</span><em>(Data)arg1</em><span class="sig-paren">)</span> &#x2192; tuple :<a class="headerlink" href="#esys.modellib.visualization.Data.internal_maxGlobalDataPoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Please consider using getSupLocator() from pdetools instead.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Data.internal_minGlobalDataPoint">
+<code class="descname">internal_minGlobalDataPoint</code><span class="sig-paren">(</span><em>(Data)arg1</em><span class="sig-paren">)</span> &#x2192; tuple :<a class="headerlink" href="#esys.modellib.visualization.Data.internal_minGlobalDataPoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Please consider using getInfLocator() from pdetools instead.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Data.interpolate">
+<code class="descname">interpolate</code><span class="sig-paren">(</span><em>(Data)arg1</em>, <em>(FunctionSpace)functionspace</em><span class="sig-paren">)</span> &#x2192; Data :<a class="headerlink" href="#esys.modellib.visualization.Data.interpolate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interpolate this object’s values into a new functionspace.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Data.interpolateTable">
+<code class="descname">interpolateTable</code><span class="sig-paren">(</span><em>(Data)arg1</em>, <em>(object)table</em>, <em>(float)Amin</em>, <em>(float)Astep</em>, <em>(Data)B</em>, <em>(float)Bmin</em>, <em>(float)Bstep</em><span class="optional">[</span>, <em>(float)undef=1e+50</em><span class="optional">[</span>, <em>(bool)check_boundaries=False</em><span class="optional">]</span><span class="optional">]</span><span class="sig-paren">)</span> &#x2192; Data :<a class="headerlink" href="#esys.modellib.visualization.Data.interpolateTable" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Creates a new Data object by interpolating using the source data (which are</dt>
+<dd><p class="first">looked up in <code class="docutils literal notranslate"><span class="pre">table</span></code>)
+<code class="docutils literal notranslate"><span class="pre">A</span></code> must be the outer dimension on the table</p>
+<table class="last docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">param table:</th><td class="field-body">two dimensional collection of values</td>
+</tr>
+<tr class="field-even field"><th class="field-name">param Amin:</th><td class="field-body">The base of locations in table</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">type Amin:</th><td class="field-body">float</td>
+</tr>
+<tr class="field-even field"><th class="field-name">param Astep:</th><td class="field-body">size of gap between each item in the table</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">type Astep:</th><td class="field-body">float</td>
+</tr>
+<tr class="field-even field"><th class="field-name">param undef:</th><td class="field-body">upper bound on interpolated values</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">type undef:</th><td class="field-body">float</td>
+</tr>
+<tr class="field-even field"><th class="field-name">param B:</th><td class="field-body">Scalar representing the second coordinate to be mapped into the table</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">type B:</th><td class="field-body"><a class="reference internal" href="#esys.modellib.visualization.Data" title="esys.modellib.visualization.Data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code></a></td>
+</tr>
+<tr class="field-even field"><th class="field-name">param Bmin:</th><td class="field-body">The base of locations in table for 2nd dimension</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">type Bmin:</th><td class="field-body">float</td>
+</tr>
+<tr class="field-even field"><th class="field-name">param Bstep:</th><td class="field-body">size of gap between each item in the table for 2nd dimension</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">type Bstep:</th><td class="field-body">float</td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">param check_boundaries:</th></tr>
+<tr class="field-even field"><td>&#160;</td><td class="field-body">if true, then values outside the boundaries will be rejected. If false, then boundary values will be used.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name" colspan="2">raise RuntimeError(DataException):</th></tr>
+<tr class="field-odd field"><td>&#160;</td><td class="field-body">if the coordinates do not map into the table or if the interpolated value is above <code class="docutils literal notranslate"><span class="pre">undef</span></code></td>
+</tr>
+<tr class="field-even field"><th class="field-name">rtype:</th><td class="field-body"><a class="reference internal" href="#esys.modellib.visualization.Data" title="esys.modellib.visualization.Data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd>
+</dl>
+<p>interpolateTable( (Data)arg1, (object)table, (float)Amin, (float)Astep [, (float)undef=1e+50 [, (bool)check_boundaries=False]]) -&gt; Data</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Data.isComplex">
+<code class="descname">isComplex</code><span class="sig-paren">(</span><em>(Data)arg1</em><span class="sig-paren">)</span> &#x2192; bool :<a class="headerlink" href="#esys.modellib.visualization.Data.isComplex" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">bool</span></code></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if this <code class="docutils literal notranslate"><span class="pre">Data</span></code> stores complex values.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Data.isConstant">
+<code class="descname">isConstant</code><span class="sig-paren">(</span><em>(Data)arg1</em><span class="sig-paren">)</span> &#x2192; bool :<a class="headerlink" href="#esys.modellib.visualization.Data.isConstant" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">bool</span></code></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if this <code class="docutils literal notranslate"><span class="pre">Data</span></code> is an instance of <code class="docutils literal notranslate"><span class="pre">DataConstant</span></code></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Note:</th><td class="field-body">This does not mean the data is immutable.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Data.isEmpty">
+<code class="descname">isEmpty</code><span class="sig-paren">(</span><em>(Data)arg1</em><span class="sig-paren">)</span> &#x2192; bool :<a class="headerlink" href="#esys.modellib.visualization.Data.isEmpty" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is this object an instance of <code class="docutils literal notranslate"><span class="pre">DataEmpty</span></code></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">bool</span></code></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Note:</th><td class="field-body">This is not the same thing as asking if the object contains datapoints.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Data.isExpanded">
+<code class="descname">isExpanded</code><span class="sig-paren">(</span><em>(Data)arg1</em><span class="sig-paren">)</span> &#x2192; bool :<a class="headerlink" href="#esys.modellib.visualization.Data.isExpanded" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">bool</span></code></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if this <code class="docutils literal notranslate"><span class="pre">Data</span></code> is expanded.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Data.isLazy">
+<code class="descname">isLazy</code><span class="sig-paren">(</span><em>(Data)arg1</em><span class="sig-paren">)</span> &#x2192; bool :<a class="headerlink" href="#esys.modellib.visualization.Data.isLazy" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">bool</span></code></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if this <code class="docutils literal notranslate"><span class="pre">Data</span></code> is lazy.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Data.isProtected">
+<code class="descname">isProtected</code><span class="sig-paren">(</span><em>(Data)arg1</em><span class="sig-paren">)</span> &#x2192; bool :<a class="headerlink" href="#esys.modellib.visualization.Data.isProtected" title="Permalink to this definition">¶</a></dt>
+<dd><p>Can this instance be modified.
+:rtype: <code class="docutils literal notranslate"><span class="pre">bool</span></code></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Data.isReady">
+<code class="descname">isReady</code><span class="sig-paren">(</span><em>(Data)arg1</em><span class="sig-paren">)</span> &#x2192; bool :<a class="headerlink" href="#esys.modellib.visualization.Data.isReady" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">bool</span></code></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if this <code class="docutils literal notranslate"><span class="pre">Data</span></code> is not lazy.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Data.isTagged">
+<code class="descname">isTagged</code><span class="sig-paren">(</span><em>(Data)arg1</em><span class="sig-paren">)</span> &#x2192; bool :<a class="headerlink" href="#esys.modellib.visualization.Data.isTagged" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">bool</span></code></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if this <code class="docutils literal notranslate"><span class="pre">Data</span></code> is expanded.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Data.nonuniformInterpolate">
+<code class="descname">nonuniformInterpolate</code><span class="sig-paren">(</span><em>(Data)arg1</em>, <em>(object)in</em>, <em>(object)out</em>, <em>(bool)check_boundaries</em><span class="sig-paren">)</span> &#x2192; Data :<a class="headerlink" href="#esys.modellib.visualization.Data.nonuniformInterpolate" title="Permalink to this definition">¶</a></dt>
+<dd><p>1D interpolation with non equally spaced points</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Data.nonuniformSlope">
+<code class="descname">nonuniformSlope</code><span class="sig-paren">(</span><em>(Data)arg1</em>, <em>(object)in</em>, <em>(object)out</em>, <em>(bool)check_boundaries</em><span class="sig-paren">)</span> &#x2192; Data :<a class="headerlink" href="#esys.modellib.visualization.Data.nonuniformSlope" title="Permalink to this definition">¶</a></dt>
+<dd><p>1D interpolation of slope with non equally spaced points</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Data.phase">
+<code class="descname">phase</code><span class="sig-paren">(</span><em>(Data)arg1</em><span class="sig-paren">)</span> &#x2192; Data<a class="headerlink" href="#esys.modellib.visualization.Data.phase" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Data.promote">
+<code class="descname">promote</code><span class="sig-paren">(</span><em>(Data)arg1</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#esys.modellib.visualization.Data.promote" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Data.real">
+<code class="descname">real</code><span class="sig-paren">(</span><em>(Data)arg1</em><span class="sig-paren">)</span> &#x2192; Data<a class="headerlink" href="#esys.modellib.visualization.Data.real" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Data.replaceInf">
+<code class="descname">replaceInf</code><span class="sig-paren">(</span><em>(Data)arg1</em>, <em>(object)value</em><span class="sig-paren">)</span> &#x2192; None :<a class="headerlink" href="#esys.modellib.visualization.Data.replaceInf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replaces +-Inf values with value. [Note, for complex Data, both real and imaginary components are replaced even if only one part is Inf].</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Data.replaceNaN">
+<code class="descname">replaceNaN</code><span class="sig-paren">(</span><em>(Data)arg1</em>, <em>(object)value</em><span class="sig-paren">)</span> &#x2192; None :<a class="headerlink" href="#esys.modellib.visualization.Data.replaceNaN" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replaces NaN values with value. [Note, for complex Data, both real and imaginary components are replaced even if only one part is NaN].</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Data.resolve">
+<code class="descname">resolve</code><span class="sig-paren">(</span><em>(Data)arg1</em><span class="sig-paren">)</span> &#x2192; None :<a class="headerlink" href="#esys.modellib.visualization.Data.resolve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert the data to non-lazy representation.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Data.setProtection">
+<code class="descname">setProtection</code><span class="sig-paren">(</span><em>(Data)arg1</em><span class="sig-paren">)</span> &#x2192; None :<a class="headerlink" href="#esys.modellib.visualization.Data.setProtection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Disallow modifications to this data object</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Note:</th><td class="field-body">This method does not allow you to undo protection.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Data.setTaggedValue">
+<code class="descname">setTaggedValue</code><span class="sig-paren">(</span><em>(Data)arg1</em>, <em>(int)tagKey</em>, <em>(object)value</em><span class="sig-paren">)</span> &#x2192; None :<a class="headerlink" href="#esys.modellib.visualization.Data.setTaggedValue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the value of tagged Data.</p>
+<blockquote>
+<div><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">param tagKey:</th><td class="field-body">tag to update</td>
+</tr>
+<tr class="field-even field"><th class="field-name">type tagKey:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">int</span></code></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<dl class="docutils">
+<dt>setTaggedValue( (Data)arg1, (str)name, (object)value) -&gt; None :</dt>
+<dd><table class="first last docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">param name:</th><td class="field-body">tag to update</td>
+</tr>
+<tr class="field-even field"><th class="field-name">type name:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">string</span></code></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">param value:</th><td class="field-body">value to set tagged data to</td>
+</tr>
+<tr class="field-even field"><th class="field-name">type value:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">object</span></code> which acts like an array, <code class="docutils literal notranslate"><span class="pre">tuple</span></code> or <code class="docutils literal notranslate"><span class="pre">list</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Data.setToZero">
+<code class="descname">setToZero</code><span class="sig-paren">(</span><em>(Data)arg1</em><span class="sig-paren">)</span> &#x2192; None :<a class="headerlink" href="#esys.modellib.visualization.Data.setToZero" title="Permalink to this definition">¶</a></dt>
+<dd><p>After this call the object will store values of the same shape as before but all components will be zero.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Data.setValueOfDataPoint">
+<code class="descname">setValueOfDataPoint</code><span class="sig-paren">(</span><em>(Data)arg1</em>, <em>(int)dataPointNo</em>, <em>(object)value</em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#esys.modellib.visualization.Data.setValueOfDataPoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>setValueOfDataPoint( (Data)arg1, (int)arg2, (object)arg3) -&gt; None</p>
+<p>setValueOfDataPoint( (Data)arg1, (int)arg2, (float)arg3) -&gt; None :</p>
+<blockquote>
+<div><p>Modify the value of a single datapoint.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name" colspan="2">param dataPointNo:</th></tr>
+<tr class="field-odd field"><td>&#160;</td><td class="field-body"></td>
+</tr>
+<tr class="field-even field"><th class="field-name" colspan="2">type dataPointNo:</th></tr>
+<tr class="field-even field"><td>&#160;</td><td class="field-body">int</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">param value:</th><td class="field-body"></td>
+</tr>
+<tr class="field-even field"><th class="field-name">type value:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">float</span></code> or an object which acts like an array, <code class="docutils literal notranslate"><span class="pre">tuple</span></code> or <code class="docutils literal notranslate"><span class="pre">list</span></code></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">warning:</th><td class="field-body">Use of this operation is discouraged. It prevents some optimisations from operating.</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Data.tag">
+<code class="descname">tag</code><span class="sig-paren">(</span><em>(Data)arg1</em><span class="sig-paren">)</span> &#x2192; None :<a class="headerlink" href="#esys.modellib.visualization.Data.tag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert data to tagged representation if it is not already tagged or expanded</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Data.toListOfTuples">
+<code class="descname">toListOfTuples</code><span class="sig-paren">(</span><em>(Data)arg1</em><span class="optional">[</span>, <em>(bool)scalarastuple=False</em><span class="optional">]</span><span class="sig-paren">)</span> &#x2192; object :<a class="headerlink" href="#esys.modellib.visualization.Data.toListOfTuples" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the datapoints of this object in a list. Each datapoint is stored as a tuple.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>scalarastuple</strong> – if True, scalar data will be wrapped as a tuple. True =&gt; [(0), (1), (2)]; False =&gt; [0, 1, 2]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="esys.modellib.visualization.Link">
+<em class="property">class </em><code class="descclassname">esys.modellib.visualization.</code><code class="descname">Link</code><span class="sig-paren">(</span><em>target</em>, <em>attribute=None</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Link" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A Link makes an attribute of an object callable:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">o</span><span class="o">.</span><span class="n">object</span><span class="p">()</span>
+<span class="n">o</span><span class="o">.</span><span class="n">a</span><span class="o">=</span><span class="mi">8</span>
+<span class="n">l</span><span class="o">=</span><span class="n">Link</span><span class="p">(</span><span class="n">o</span><span class="p">,</span><span class="s2">&quot;a&quot;</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">l</span><span class="p">()</span><span class="o">==</span><span class="mi">8</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="esys.modellib.visualization.Link.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>target</em>, <em>attribute=None</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Link.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a link to the object target. If attribute is given, the link is
+established to this attribute of the target. Otherwise the attribute is
+undefined.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="esys.modellib.visualization.Link.fromDom">
+<em class="property">classmethod </em><code class="descname">fromDom</code><span class="sig-paren">(</span><em>esysxml</em>, <em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Link.fromDom" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Link.getAttributeName">
+<code class="descname">getAttributeName</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Link.getAttributeName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the name of the attribute the link is pointing to.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Link.getTarget">
+<code class="descname">getTarget</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Link.getTarget" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the target.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Link.hasDefinedAttributeName">
+<code class="descname">hasDefinedAttributeName</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Link.hasDefinedAttributeName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns true if an attribute name is set.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Link.setAttributeName">
+<code class="descname">setAttributeName</code><span class="sig-paren">(</span><em>attribute</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Link.setAttributeName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets a new attribute name to be collected from the target object. The
+target object must have the attribute with name attribute.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Link.toDom">
+<code class="descname">toDom</code><span class="sig-paren">(</span><em>esysxml</em>, <em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Link.toDom" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">toDom</span></code> method of Link. Creates a Link node and appends it to the
+current XML esysxml.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="esys.modellib.visualization.Model">
+<em class="property">class </em><code class="descclassname">esys.modellib.visualization.</code><code class="descname">Model</code><span class="sig-paren">(</span><em>parameters=[]</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">esys.escriptcore.modelframe.ParameterSet</span></code></p>
+<p>A Model object represents a process marching over time until a
+finalizing condition is fulfilled. At each time step an iterative
+process can be performed and the time step size can be controlled. A
+Model has the following work flow:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">doInitialization</span><span class="p">()</span>
+<span class="k">while</span> <span class="ow">not</span> <span class="n">terminateInitialIteration</span><span class="p">():</span> <span class="n">doInitialStep</span><span class="p">()</span>
+<span class="n">doInitialPostprocessing</span><span class="p">()</span>
+<span class="k">while</span> <span class="ow">not</span> <span class="n">finalize</span><span class="p">():</span>
+    <span class="n">dt</span><span class="o">=</span><span class="n">getSafeTimeStepSize</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
+    <span class="n">doStepPreprocessing</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
+    <span class="k">while</span> <span class="ow">not</span> <span class="n">terminateIteration</span><span class="p">():</span> <span class="n">doStep</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
+    <span class="n">doStepPostprocessing</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
+<span class="n">doFinalization</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">doInitialization</span></code>, <code class="docutils literal notranslate"><span class="pre">finalize</span></code>, <code class="docutils literal notranslate"><span class="pre">getSafeTimeStepSize</span></code>,
+<code class="docutils literal notranslate"><span class="pre">doStepPreprocessing</span></code>, <code class="docutils literal notranslate"><span class="pre">terminateIteration</span></code>, <code class="docutils literal notranslate"><span class="pre">doStepPostprocessing</span></code>,
+<code class="docutils literal notranslate"><span class="pre">doFinalization</span></code> are methods of the particular instance of a Model. The
+default implementations of these methods have to be overwritten by the
+subclass implementing a Model.</p>
+<dl class="method">
+<dt id="esys.modellib.visualization.Model.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>parameters=[]</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Model.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a model.</p>
+<p>Just calls the parent constructor.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="esys.modellib.visualization.Model.UNDEF_DT">
+<code class="descname">UNDEF_DT</code><em class="property"> = 1e+300</em><a class="headerlink" href="#esys.modellib.visualization.Model.UNDEF_DT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Model.checkLinkTargets">
+<code class="descname">checkLinkTargets</code><span class="sig-paren">(</span><em>models</em>, <em>hash</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Model.checkLinkTargets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a set of tuples (“&lt;self&gt;(&lt;name&gt;)”, &lt;target model&gt;) if the
+parameter &lt;name&gt; is linked to model &lt;target model&gt; but &lt;target model&gt;
+is not in the list of models. If a parameter is linked to another
+parameter set which is not in the hash list the parameter set is
+checked for its models. hash gives the call history.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Model.declareParameter">
+<code class="descname">declareParameter</code><span class="sig-paren">(</span><em>**parameters</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Model.declareParameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Declares one or more new parameters and their initial value.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Model.declareParameters">
+<code class="descname">declareParameters</code><span class="sig-paren">(</span><em>parameters</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Model.declareParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Declares a set of parameters. parameters can be a list, a dictionary
+or a ParameterSet.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Model.doFinalization">
+<code class="descname">doFinalization</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Model.doFinalization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finalizes the time stepping.</p>
+<p>This function may be overwritten.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Model.doInitialPostprocessing">
+<code class="descname">doInitialPostprocessing</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Model.doInitialPostprocessing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finalises the initialization iteration process. This method is not
+called in case of a restart.</p>
+<p>This function may be overwritten.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Model.doInitialStep">
+<code class="descname">doInitialStep</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Model.doInitialStep" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs an iteration step in the initialization phase. This method
+is not called in case of a restart.</p>
+<p>This function may be overwritten.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Model.doInitialization">
+<code class="descname">doInitialization</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Model.doInitialization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the time stepping scheme. This method is not called in
+case of a restart.</p>
+<p>This function may be overwritten.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Model.doStep">
+<code class="descname">doStep</code><span class="sig-paren">(</span><em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Model.doStep" title="Permalink to this definition">¶</a></dt>
+<dd><p>Executes an iteration step at a time step.</p>
+<p><code class="docutils literal notranslate"><span class="pre">dt</span></code> is the currently used time step size.</p>
+<p>This function may be overwritten.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Model.doStepPostprocessing">
+<code class="descname">doStepPostprocessing</code><span class="sig-paren">(</span><em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Model.doStepPostprocessing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finalises the time step.</p>
+<p>dt is the currently used time step size.</p>
+<p>This function may be overwritten.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Model.doStepPreprocessing">
+<code class="descname">doStepPreprocessing</code><span class="sig-paren">(</span><em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Model.doStepPreprocessing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets up a time step of step size dt.</p>
+<p>This function may be overwritten.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Model.finalize">
+<code class="descname">finalize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Model.finalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns False if the time stepping is finalized.</p>
+<p>This function may be overwritten.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="esys.modellib.visualization.Model.fromDom">
+<em class="property">classmethod </em><code class="descname">fromDom</code><span class="sig-paren">(</span><em>esysxml</em>, <em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Model.fromDom" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Model.getAttributeObject">
+<code class="descname">getAttributeObject</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Model.getAttributeObject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the object stored for attribute <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Model.getSafeTimeStepSize">
+<code class="descname">getSafeTimeStepSize</code><span class="sig-paren">(</span><em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Model.getSafeTimeStepSize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a time step size which can be safely used.</p>
+<p><code class="docutils literal notranslate"><span class="pre">dt</span></code> gives the previously used step size.</p>
+<p>This function may be overwritten.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Model.hasAttribute">
+<code class="descname">hasAttribute</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Model.hasAttribute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if self has attribute <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Model.releaseParameters">
+<code class="descname">releaseParameters</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Model.releaseParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes parameter name from the parameters.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Model.setUp">
+<code class="descname">setUp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Model.setUp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets up the model.</p>
+<p>This function may be overwritten.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Model.showParameters">
+<code class="descname">showParameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Model.showParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a description of the parameters.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Model.terminateInitialIteration">
+<code class="descname">terminateInitialIteration</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Model.terminateInitialIteration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if iteration at the inital phase is terminated.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Model.terminateIteration">
+<code class="descname">terminateIteration</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Model.terminateIteration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if iteration on a time step is terminated.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Model.toDom">
+<code class="descname">toDom</code><span class="sig-paren">(</span><em>esysxml</em>, <em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Model.toDom" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">toDom</span></code> method of Model class.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Model.trace">
+<code class="descname">trace</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Model.trace" title="Permalink to this definition">¶</a></dt>
+<dd><p>If debugging is on, prints the message, otherwise does nothing.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Model.writeXML">
+<code class="descname">writeXML</code><span class="sig-paren">(</span><em>ostream=&lt;_io.TextIOWrapper name='&lt;stdout&gt;' mode='w' encoding='UTF-8'&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Model.writeXML" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the object as an XML object into an output stream.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="esys.modellib.visualization.Visualization">
+<em class="property">class </em><code class="descclassname">esys.modellib.visualization.</code><code class="descname">Visualization</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Visualization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">esys.escriptcore.modelframe.Model</span></code></p>
+<p>Generic visualization Model</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><strong>t</strong> – current time (in)</li>
+<li><strong>n</strong> – frame counter (in)</li>
+<li><strong>dt</strong> – increment for output  (in)</li>
+<li><strong>filename</strong> – name of the output file (in)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="esys.modellib.visualization.Visualization.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Visualization.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialisation of the visualisation model object</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>debug</strong> – Debugging flag</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="esys.modellib.visualization.Visualization.UNDEF_DT">
+<code class="descname">UNDEF_DT</code><em class="property"> = 1e+300</em><a class="headerlink" href="#esys.modellib.visualization.Visualization.UNDEF_DT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Visualization.checkLinkTargets">
+<code class="descname">checkLinkTargets</code><span class="sig-paren">(</span><em>models</em>, <em>hash</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Visualization.checkLinkTargets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a set of tuples (“&lt;self&gt;(&lt;name&gt;)”, &lt;target model&gt;) if the
+parameter &lt;name&gt; is linked to model &lt;target model&gt; but &lt;target model&gt;
+is not in the list of models. If a parameter is linked to another
+parameter set which is not in the hash list the parameter set is
+checked for its models. hash gives the call history.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Visualization.declareParameter">
+<code class="descname">declareParameter</code><span class="sig-paren">(</span><em>**parameters</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Visualization.declareParameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Declares one or more new parameters and their initial value.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Visualization.declareParameters">
+<code class="descname">declareParameters</code><span class="sig-paren">(</span><em>parameters</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Visualization.declareParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Declares a set of parameters. parameters can be a list, a dictionary
+or a ParameterSet.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Visualization.doFinalization">
+<code class="descname">doFinalization</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Visualization.doFinalization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finalizes the time stepping.</p>
+<p>This function may be overwritten.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Visualization.doInitialPostprocessing">
+<code class="descname">doInitialPostprocessing</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Visualization.doInitialPostprocessing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finalises the initialization iteration process. This method is not
+called in case of a restart.</p>
+<p>This function may be overwritten.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Visualization.doInitialStep">
+<code class="descname">doInitialStep</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Visualization.doInitialStep" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs an iteration step in the initialization phase. This method
+is not called in case of a restart.</p>
+<p>This function may be overwritten.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Visualization.doInitialization">
+<code class="descname">doInitialization</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Visualization.doInitialization" title="Permalink to this definition">¶</a></dt>
+<dd><p>does some kind of initialisation</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Visualization.doStep">
+<code class="descname">doStep</code><span class="sig-paren">(</span><em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Visualization.doStep" title="Permalink to this definition">¶</a></dt>
+<dd><p>Executes an iteration step at a time step.</p>
+<p><code class="docutils literal notranslate"><span class="pre">dt</span></code> is the currently used time step size.</p>
+<p>This function may be overwritten.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Visualization.doStepPostprocessing">
+<code class="descname">doStepPostprocessing</code><span class="sig-paren">(</span><em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Visualization.doStepPostprocessing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finalises the time step.</p>
+<p>dt is the currently used time step size.</p>
+<p>This function may be overwritten.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Visualization.doStepPreprocessing">
+<code class="descname">doStepPreprocessing</code><span class="sig-paren">(</span><em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Visualization.doStepPreprocessing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets up a time step of step size dt.</p>
+<p>This function may be overwritten.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Visualization.finalize">
+<code class="descname">finalize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Visualization.finalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns False if the time stepping is finalized.</p>
+<p>This function may be overwritten.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="esys.modellib.visualization.Visualization.fromDom">
+<em class="property">classmethod </em><code class="descname">fromDom</code><span class="sig-paren">(</span><em>esysxml</em>, <em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Visualization.fromDom" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Visualization.getAttributeObject">
+<code class="descname">getAttributeObject</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Visualization.getAttributeObject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the object stored for attribute <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Visualization.getFrameCounter">
+<code class="descname">getFrameCounter</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Visualization.getFrameCounter" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns a frame counter</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Visualization.getFrameFileName">
+<code class="descname">getFrameFileName</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Visualization.getFrameFileName" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Visualization.getSafeTimeStepSize">
+<code class="descname">getSafeTimeStepSize</code><span class="sig-paren">(</span><em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Visualization.getSafeTimeStepSize" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns new step size</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dt</strong> (<code class="docutils literal notranslate"><span class="pre">float</span></code>) – last time step size used</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">time step size that can savely be used</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">float</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Visualization.hasAttribute">
+<code class="descname">hasAttribute</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Visualization.hasAttribute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if self has attribute <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Visualization.releaseParameters">
+<code class="descname">releaseParameters</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Visualization.releaseParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes parameter name from the parameters.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Visualization.setUp">
+<code class="descname">setUp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Visualization.setUp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets up the model.</p>
+<p>This function may be overwritten.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Visualization.showParameters">
+<code class="descname">showParameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Visualization.showParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a description of the parameters.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Visualization.terminateInitialIteration">
+<code class="descname">terminateInitialIteration</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Visualization.terminateInitialIteration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if iteration at the inital phase is terminated.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Visualization.terminateIteration">
+<code class="descname">terminateIteration</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Visualization.terminateIteration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if iteration on a time step is terminated.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Visualization.toDom">
+<code class="descname">toDom</code><span class="sig-paren">(</span><em>esysxml</em>, <em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Visualization.toDom" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">toDom</span></code> method of Model class.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Visualization.trace">
+<code class="descname">trace</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Visualization.trace" title="Permalink to this definition">¶</a></dt>
+<dd><p>If debugging is on, prints the message, otherwise does nothing.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Visualization.writeFrame">
+<code class="descname">writeFrame</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Visualization.writeFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns True if the time stamp for writing frame is reached.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.Visualization.writeXML">
+<code class="descname">writeXML</code><span class="sig-paren">(</span><em>ostream=&lt;_io.TextIOWrapper name='&lt;stdout&gt;' mode='w' encoding='UTF-8'&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.Visualization.writeXML" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the object as an XML object into an output stream.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="esys.modellib.visualization.WriteVTK">
+<em class="property">class </em><code class="descclassname">esys.modellib.visualization.</code><code class="descname">WriteVTK</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.WriteVTK" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#esys.modellib.visualization.Visualization" title="esys.modellib.visualization.Visualization"><code class="xref py py-class docutils literal notranslate"><span class="pre">esys.modellib.visualization.Visualization</span></code></a></p>
+<p>Writes data into a VTK file.</p>
+<p>The Model can handel up to 20 data sets that are written into a single file tagged with the given name. If no name is given and 
+the data are defined by a <a class="reference internal" href="#esys.modellib.visualization.Link" title="esys.modellib.visualization.Link"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Link</span></code></a> the name of the target attribute is used as a tag.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
+<li><strong>data0</strong> – data set 0 to be written</li>
+<li><strong>name0</strong> – name tag for data set 0</li>
+<li><strong>data1</strong> – data set 1 to be written</li>
+<li><strong>name1</strong> – name tag for data set 1</li>
+<li><strong>data2</strong> – data set 2 to be written</li>
+<li><strong>name2</strong> – name tag for data set 2</li>
+<li><strong>data3</strong> – data set 3 to be written</li>
+<li><strong>name3</strong> – name tag for data set 3</li>
+<li><strong>data4</strong> – data set 4 to be written</li>
+<li><strong>name4</strong> – name tag for data set 4</li>
+<li><strong>data5</strong> – data set 5 to be written</li>
+<li><strong>name5</strong> – name tag for data set 5</li>
+<li><strong>data6</strong> – data set 6 to be written</li>
+<li><strong>name6</strong> – name tag for data set 6</li>
+<li><strong>data7</strong> – data set 7 to be written</li>
+<li><strong>name7</strong> – name tag for data set 7</li>
+<li><strong>data8</strong> – data set 8 to be written</li>
+<li><strong>name8</strong> – name tag for data set 8</li>
+<li><strong>data9</strong> – data set 9 to be written</li>
+<li><strong>name9</strong> – name tag for data set 9</li>
+<li><strong>data10</strong> – data set 10 to be written</li>
+<li><strong>name10</strong> – name tag for data set 10</li>
+<li><strong>data11</strong> – data set 11 to be written</li>
+<li><strong>name11</strong> – name tag for data set 11</li>
+<li><strong>data12</strong> – data set 12 to be written</li>
+<li><strong>name12</strong> – name tag for data set 12</li>
+<li><strong>data13</strong> – data set 13 to be written</li>
+<li><strong>name13</strong> – name tag for data set 13</li>
+<li><strong>data14</strong> – data set 14 to be written</li>
+<li><strong>name14</strong> – name tag for data set 14</li>
+<li><strong>data15</strong> – data set 15 to be written</li>
+<li><strong>name15</strong> – name tag for data set 15</li>
+<li><strong>data16</strong> – data set 16 to be written</li>
+<li><strong>name16</strong> – name tag for data set 16</li>
+<li><strong>data17</strong> – data set 17 to be written</li>
+<li><strong>name17</strong> – name tag for data set 17</li>
+<li><strong>data18</strong> – data set 18 to be written</li>
+<li><strong>name18</strong> – name tag for data set 18</li>
+<li><strong>data19</strong> – data set 19 to be written</li>
+<li><strong>name19</strong> – name tag for data set 19</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="esys.modellib.visualization.WriteVTK.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.WriteVTK.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialisation of the WriteVTK object</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>debug</strong> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>) – debugging flag</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="esys.modellib.visualization.WriteVTK.UNDEF_DT">
+<code class="descname">UNDEF_DT</code><em class="property"> = 1e+300</em><a class="headerlink" href="#esys.modellib.visualization.WriteVTK.UNDEF_DT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.WriteVTK.checkLinkTargets">
+<code class="descname">checkLinkTargets</code><span class="sig-paren">(</span><em>models</em>, <em>hash</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.WriteVTK.checkLinkTargets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a set of tuples (“&lt;self&gt;(&lt;name&gt;)”, &lt;target model&gt;) if the
+parameter &lt;name&gt; is linked to model &lt;target model&gt; but &lt;target model&gt;
+is not in the list of models. If a parameter is linked to another
+parameter set which is not in the hash list the parameter set is
+checked for its models. hash gives the call history.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.WriteVTK.collectData">
+<code class="descname">collectData</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.WriteVTK.collectData" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.WriteVTK.declareParameter">
+<code class="descname">declareParameter</code><span class="sig-paren">(</span><em>**parameters</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.WriteVTK.declareParameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Declares one or more new parameters and their initial value.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.WriteVTK.declareParameters">
+<code class="descname">declareParameters</code><span class="sig-paren">(</span><em>parameters</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.WriteVTK.declareParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Declares a set of parameters. parameters can be a list, a dictionary
+or a ParameterSet.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.WriteVTK.doFinalization">
+<code class="descname">doFinalization</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.WriteVTK.doFinalization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finalizes the time stepping.</p>
+<p>This function may be overwritten.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.WriteVTK.doInitialPostprocessing">
+<code class="descname">doInitialPostprocessing</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.WriteVTK.doInitialPostprocessing" title="Permalink to this definition">¶</a></dt>
+<dd><p>writes vtk file at the end of initial iteration</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.WriteVTK.doInitialStep">
+<code class="descname">doInitialStep</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.WriteVTK.doInitialStep" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs an iteration step in the initialization phase. This method
+is not called in case of a restart.</p>
+<p>This function may be overwritten.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.WriteVTK.doInitialization">
+<code class="descname">doInitialization</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.WriteVTK.doInitialization" title="Permalink to this definition">¶</a></dt>
+<dd><p>does some kind of initialisation</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.WriteVTK.doStep">
+<code class="descname">doStep</code><span class="sig-paren">(</span><em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.WriteVTK.doStep" title="Permalink to this definition">¶</a></dt>
+<dd><p>Executes an iteration step at a time step.</p>
+<p><code class="docutils literal notranslate"><span class="pre">dt</span></code> is the currently used time step size.</p>
+<p>This function may be overwritten.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.WriteVTK.doStepPostprocessing">
+<code class="descname">doStepPostprocessing</code><span class="sig-paren">(</span><em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.WriteVTK.doStepPostprocessing" title="Permalink to this definition">¶</a></dt>
+<dd><p>writes vtk file at the end of time iteration</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.WriteVTK.doStepPreprocessing">
+<code class="descname">doStepPreprocessing</code><span class="sig-paren">(</span><em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.WriteVTK.doStepPreprocessing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets up a time step of step size dt.</p>
+<p>This function may be overwritten.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.WriteVTK.finalize">
+<code class="descname">finalize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.WriteVTK.finalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns False if the time stepping is finalized.</p>
+<p>This function may be overwritten.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="esys.modellib.visualization.WriteVTK.fromDom">
+<em class="property">classmethod </em><code class="descname">fromDom</code><span class="sig-paren">(</span><em>esysxml</em>, <em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.WriteVTK.fromDom" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.WriteVTK.getAttributeObject">
+<code class="descname">getAttributeObject</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.WriteVTK.getAttributeObject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the object stored for attribute <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.WriteVTK.getFrameCounter">
+<code class="descname">getFrameCounter</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.WriteVTK.getFrameCounter" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns a frame counter</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.WriteVTK.getFrameFileName">
+<code class="descname">getFrameFileName</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.WriteVTK.getFrameFileName" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.WriteVTK.getSafeTimeStepSize">
+<code class="descname">getSafeTimeStepSize</code><span class="sig-paren">(</span><em>dt</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.WriteVTK.getSafeTimeStepSize" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns new step size</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dt</strong> (<code class="docutils literal notranslate"><span class="pre">float</span></code>) – last time step size used</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">time step size that can savely be used</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="docutils literal notranslate"><span class="pre">float</span></code></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.WriteVTK.hasAttribute">
+<code class="descname">hasAttribute</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.WriteVTK.hasAttribute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if self has attribute <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.WriteVTK.releaseParameters">
+<code class="descname">releaseParameters</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.WriteVTK.releaseParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes parameter name from the parameters.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.WriteVTK.setUp">
+<code class="descname">setUp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.WriteVTK.setUp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets up the model.</p>
+<p>This function may be overwritten.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.WriteVTK.showParameters">
+<code class="descname">showParameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.WriteVTK.showParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a description of the parameters.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.WriteVTK.terminateInitialIteration">
+<code class="descname">terminateInitialIteration</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.WriteVTK.terminateInitialIteration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if iteration at the inital phase is terminated.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.WriteVTK.terminateIteration">
+<code class="descname">terminateIteration</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.WriteVTK.terminateIteration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if iteration on a time step is terminated.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.WriteVTK.toDom">
+<code class="descname">toDom</code><span class="sig-paren">(</span><em>esysxml</em>, <em>node</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.WriteVTK.toDom" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">toDom</span></code> method of Model class.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.WriteVTK.trace">
+<code class="descname">trace</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.WriteVTK.trace" title="Permalink to this definition">¶</a></dt>
+<dd><p>If debugging is on, prints the message, otherwise does nothing.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.WriteVTK.writeFrame">
+<code class="descname">writeFrame</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.WriteVTK.writeFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns True if the time stamp for writing frame is reached.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="esys.modellib.visualization.WriteVTK.writeXML">
+<code class="descname">writeXML</code><span class="sig-paren">(</span><em>ostream=&lt;_io.TextIOWrapper name='&lt;stdout&gt;' mode='w' encoding='UTF-8'&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.WriteVTK.writeXML" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the object as an XML object into an output stream.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="esys.modellib.visualization.saveVTK">
+<code class="descclassname">esys.modellib.visualization.</code><code class="descname">saveVTK</code><span class="sig-paren">(</span><em>filename</em>, <em>domain=None</em>, <em>metadata=''</em>, <em>metadata_schema=None</em>, <em>write_meshdata=False</em>, <em>time=0.0</em>, <em>cycle=0</em>, <em>**data</em><span class="sig-paren">)</span><a class="headerlink" href="#esys.modellib.visualization.saveVTK" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes <a class="reference internal" href="#esys.modellib.visualization.Data" title="esys.modellib.visualization.Data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code></a> objects and their mesh to a file using the VTK XML file
+format.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">temp</span><span class="o">=</span><span class="n">Scalar</span><span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="n">v</span><span class="o">=</span><span class="n">Vector</span><span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="n">saveVTK</span><span class="p">(</span><span class="s2">&quot;solution.vtu&quot;</span><span class="p">,</span> <span class="n">temperature</span><span class="o">=</span><span class="n">temp</span><span class="p">,</span> <span class="n">velocity</span><span class="o">=</span><span class="n">v</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">temp</span></code> and <code class="docutils literal notranslate"><span class="pre">v</span></code> are written to “solution.vtu” where <code class="docutils literal notranslate"><span class="pre">temp</span></code> is named
+“temperature” and <code class="docutils literal notranslate"><span class="pre">v</span></code> is named “velocity”.</p>
+<p>Meta tags, e.g. a timeStamp, can be added to the file, for instance:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tmp</span><span class="o">=</span><span class="n">Scalar</span><span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="n">v</span><span class="o">=</span><span class="n">Vector</span><span class="p">(</span><span class="o">..</span><span class="p">)</span>
+<span class="n">saveVTK</span><span class="p">(</span><span class="s2">&quot;solution.vtu&quot;</span><span class="p">,</span> <span class="n">temperature</span><span class="o">=</span><span class="n">tmp</span><span class="p">,</span> <span class="n">velocity</span><span class="o">=</span><span class="n">v</span><span class="p">,</span>
+        <span class="n">metadata</span><span class="o">=</span><span class="s2">&quot;&lt;timeStamp&gt;1.234&lt;/timeStamp&gt;&quot;</span><span class="p">,</span>
+        <span class="n">metadata_schema</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;gml&quot;</span><span class="p">:</span><span class="s2">&quot;http://www.opengis.net/gml&quot;</span><span class="p">})</span>
+</pre></div>
+</div>
+<p>The argument <code class="docutils literal notranslate"><span class="pre">metadata_schema</span></code> allows the definition of name spaces with
+a schema used in the definition of meta tags.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>filename</strong> (<code class="docutils literal notranslate"><span class="pre">str</span></code>) – name of the output file (‘.vtu’ is added if required)</li>
+<li><strong>domain</strong> (<code class="xref py py-obj docutils literal notranslate"><span class="pre">escript.Domain</span></code>) – domain of the <a class="reference internal" href="#esys.modellib.visualization.Data" title="esys.modellib.visualization.Data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code></a> objects. If not specified, the domain
+of the given <a class="reference internal" href="#esys.modellib.visualization.Data" title="esys.modellib.visualization.Data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Data</span></code></a> objects is used.</li>
+<li><strong>&lt;name&gt;</strong> – writes the assigned value to the VTK file using &lt;name&gt; as
+identifier</li>
+<li><strong>metadata</strong> (<code class="docutils literal notranslate"><span class="pre">str</span></code>) – additional XML meta data which are inserted into the VTK
+file. The meta data are marked by the tag <code class="docutils literal notranslate"><span class="pre">&lt;MetaData&gt;</span></code>.</li>
+<li><strong>metadata_schema</strong> (<code class="docutils literal notranslate"><span class="pre">dict</span></code> with <code class="docutils literal notranslate"><span class="pre">metadata_schema[&lt;namespace&gt;]=&lt;URI&gt;</span></code>
+to assign the scheme <code class="docutils literal notranslate"><span class="pre">&lt;URI&gt;</span></code> to the name space
+<code class="docutils literal notranslate"><span class="pre">&lt;namespace&gt;</span></code>.) – assigns schemas to namespaces which have been used
+to define meta data.</li>
+<li><strong>write_meshdata</strong> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>) – whether to save mesh-related data such as element
+identifiers, ownership etc. This is mainly useful
+for debugging.</li>
+<li><strong>time</strong> (<code class="docutils literal notranslate"><span class="pre">float</span></code>) – the timestamp to save within the file, seperate to metadata</li>
+<li><strong>cycle</strong> (<code class="docutils literal notranslate"><span class="pre">int</span></code>) – the cycle (or timestep) of the data</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Note:</th><td class="field-body"><p class="first last">All data objects have to be defined on the same domain. They may not
+be in the same <code class="xref py py-obj docutils literal notranslate"><span class="pre">FunctionSpace</span></code> but not all combinations of
+<code class="xref py py-obj docutils literal notranslate"><span class="pre">FunctionSpace</span></code> s can be written to a single VTK file.
+Typically, data on the boundary and on the interior cannot be mixed.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="others">
+<h2>Others<a class="headerlink" href="#others" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="packages">
+<h2>Packages<a class="headerlink" href="#packages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          <h3>Table of Contents</h3>
+          <ul>
+<li class="toctree-l1"><a class="reference internal" href="esys.downunder.html">esys.downunder Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.dudley.html">esys.dudley Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.escript.html">esys.escript Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.finley.html">esys.finley Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.modellib.html">esys.modellib Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.pycad.html">esys.pycad Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.ripley.html">esys.ripley Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.speckley.html">esys.speckley Package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="esys.weipa.html">esys.weipa Package</a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+            </form>
+          </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2012-2022, Author.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.4.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>
