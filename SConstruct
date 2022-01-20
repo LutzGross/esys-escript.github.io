@@ -344,6 +344,9 @@ elif cc_name[:3] == 'mpic++':
     cc_debug     = "-g3 -O0  -DDOASSERT -DDOPROF -DBOUNDS_CHECK -DSLOWSHARECHECK --param=max-vartrack-size=100000000"
     #Removed because new netcdf doesn't seem to like it
     #cc_debug += ' -D_GLIBCXX_DEBUG  '
+    ld_extra += " -fPIC -lmpi "
+    if env['openmp']:
+      ld_extra += " -lgomp"
     omp_flags    = "-fopenmp"
     omp_ldflags  = "-fopenmp"
     fatalwarning = "-Werror"
