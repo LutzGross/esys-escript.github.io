@@ -11,12 +11,14 @@ RUN apt-get install -y python3-dev python3-numpy python3-pyproj python3-gdal pyt
       libnetcdf-cxx-legacy-dev libnetcdf-c++4-dev libsuitesparse-dev scons lsb-release gmsh  \
       libmumps-dev libscotchparmetis-dev cmake gcc git gfortran make scons wget \
       libopenmpi-dev
+RUN useradd -ms /bin/bash appuser
 # Trilinos
 RUN wget https://github.com/trilinos/Trilinos/archive/refs/tags/initial-trilinos-release-12-12-branch.tar.gz
 RUN tar zxvf initial-trilinos-release-12-12-branch.tar.gz
 WORKDIR trilinos_build
 RUN cmake \
-      -D CMAKE_INSTALL_PREFIX=/app/trilinos \
+      -D CMAKE_INSTALL_PREFIX=/usr/local \
+      -D CMAKE_CXXFLAGS=" -fopenmp -w -O2 -march=native" \
       -D Trilinos_ENABLE_CXX11=ON \
       -D Trilinos_ENABLE_Fortran=ON \
       -D BUILD_SHARED_LIBS=ON \
@@ -63,22 +65,23 @@ RUN cmake \
       -D Amesos2_ENABLE_Basker=ON \
       -D Tpetra_INST_SERIAL:BOOL=ON \
       -D Trilinos_ENABLE_TESTS=OFF \
-      /app/Trilinos-initial-trilinos-release-12-12-branch && make -j`nproc` install
+      /app/Trilinos-initial-trilinos-release-12-12-branch && make -j`nproc --ignore=2` install
 # escript
 WORKDIR /app/escript
 RUN git clone https://github.com/esys-escript/esys-escript.github.io --depth 1 .
 RUN scons options_file=scons/templates/stretch_py3_options.py \
-      boost_libs=boost_python37 -j`nproc` werror=0 \
-      trilinos=1 trilinos_prefix=/app/trilinos \
+      boost_libs=boost_python37 -j`nproc --ignore=2` werror=0 \
+      trilinos=1 trilinos_prefix=/usr/local \
       mpi='OPENMPI' mpi_prefix=/usr/lib/x86_64-linux-gnu/openmpi/ \
-      build_full
+      openmp=1 verbose=1 prefix=/usr/local/ \
+      build_full || cat config.log 
 ENV LD_LIBRARY_PATH=/app/escript/lib:/app/trilinos/lib:$LD_LIBRARY_PATH
 ENV PYTHONPATH=/app/escript:$PYTHONPATH
 ENV PATH=/app/escript/bin:$PATH
 # run testing
-RUN ./utest.sh /app/escript/build '-n1 -p2 -t'
-
-RUN useradd -ms /bin/bash appuser
+RUN chown -R appuser /app
+USER appuser
+RUN ./utest.sh /app/escript/build ' -n1 -p2 -t2'
 RUN run-escript /app/escript/scripts/release_sanity.py
 RUN rm -rf *
 
