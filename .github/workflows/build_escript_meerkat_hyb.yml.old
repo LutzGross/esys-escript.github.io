@@ -1,5 +1,5 @@
-#This tests the code in the master branch on meerkat every day at 11:00 pm AEST
-name: meerkat_hyb
+#This tests the code in the master branch on capybara every day at 11:00 pm AEST
+name: capybara_hyb
 
 on:
   schedule:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: [self-hosted, linux, x64, meerkat]
+    runs-on: [self-hosted, linux, x64, capybara]
 
     steps:
     - uses: actions/checkout@v2
