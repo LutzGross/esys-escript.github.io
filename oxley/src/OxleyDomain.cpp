@@ -1456,7 +1456,7 @@ void OxleyDomain::addToSystem(escript::AbstractSystemMatrix& mat,
         escript::AbstractSystemMatrix * pMat = &mat;
         esys_trilinos::TrilinosMatrixAdapter* tm = dynamic_cast<esys_trilinos::TrilinosMatrixAdapter*>(pMat);
         if (tm) {
-            // tm->IztAIz(iz);    
+            tm->IztAIz(iz);
         }
     }
 

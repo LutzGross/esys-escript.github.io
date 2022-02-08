@@ -256,6 +256,9 @@ env.Append(LIBPATH = [env['libinstall']])
 if env['cxx'] != 'default':
     env['CXX'] = env['cxx']
 
+if env['mpi'] == 'OPENMPI':
+    env['CXX'] = 'mpic++'
+
 # default compiler/linker options
 cxx_flags = '-std=c++11'
 cc_flags = ''
@@ -325,6 +328,25 @@ elif cc_name == 'clang++':
     cc_optim     = "-O3"
     cc_debug     = "-ggdb3 -O0  -pedantic "
     cc_debug    += "-DDOASSERT -DDOPROF -DBOUNDS_CHECK -DSLOWSHARECHECK "
+    omp_flags    = "-fopenmp"
+    omp_ldflags  = "-fopenmp"
+    fatalwarning = "-Werror"
+    sysheaderopt = "-isystem"
+elif cc_name[:3] == 'mpic++':
+    # MPIC++ on any system
+    # note that -ffast-math is not used because it breaks isnan(),
+    cc_flags     = " -std=c++17 -pedantic -Wall -fPIC -finline-functions"
+    cc_flags += " -Wno-unknown-pragmas -Wno-sign-compare -Wno-system-headers -Wno-long-long -Wno-strict-aliasing "
+    cc_flags += " -Wno-unused-function  -Wno-narrowing"
+    cc_flags += " -Wno-stringop-truncation -Wno-deprecated-declarations --param=max-vartrack-size=100000000"
+    cc_optim     = "-O2 -march=native"
+    #max-vartrack-size: avoid vartrack limit being exceeded with escriptcpp.cpp
+    cc_debug     = "-g3 -O0  -DDOASSERT -DDOPROF -DBOUNDS_CHECK -DSLOWSHARECHECK --param=max-vartrack-size=100000000"
+    #Removed because new netcdf doesn't seem to like it
+    #cc_debug += ' -D_GLIBCXX_DEBUG  '
+    ld_extra += " -fPIC -lmpi "
+    if env['openmp']:
+      ld_extra += " -lgomp"
     omp_flags    = "-fopenmp"
     omp_ldflags  = "-fopenmp"
     fatalwarning = "-Werror"
