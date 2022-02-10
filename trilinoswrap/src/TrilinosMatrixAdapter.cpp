@@ -131,7 +131,7 @@ void TrilinosMatrixAdapter::IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO
 {
     const std::string label = "";
     const Teuchos::RCP<Teuchos::ParameterList> params;
-    const Tpetra::CrsMatrix<ST> tmp_mat = mat;
+    auto tmp_mat = mat;
     
     Tpetra::MatrixMatrix::Multiply(iz, true,tmp_mat, false,(*mat), true,label,params); 
     Tpetra::MatrixMatrix::Multiply((*mat),false,iz,false,(*mat),true,label,params);
@@ -216,6 +216,9 @@ void TrilinosMatrixAdapter::saveHB(const std::string& filename) const
 {
     throw escript::NotImplementedError("Harwell-Boeing interface not available.");
 }
+
+//initiate templates to ensure linkage
+template void TrilinosMatrixAdapter::IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<double,LO,GO,NT>>& iz);
 
 }  // end of namespace
 

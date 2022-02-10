@@ -2546,8 +2546,8 @@ void DefaultAssembler2D<Scalar>::assemblePDEHanging(
 #ifdef ESYS_HAVE_TRILINOS
     
     // Create I
-    // for(int i = 0; i < domain->getNumNodes()-0.5*domain->num_hanging; i++)
-    //     IZ->insertGlobalValues(i,i,1.0);
+    for(int i = 0; i < domain->getNumNodes()-0.5*domain->num_hanging; i++)
+        IZ->insertGlobalValues(i,i,1.0);
 
     // Loop over hanging nodes
     std::vector<LongPair> hanging_faces=domain->hanging_faces;
@@ -2572,11 +2572,11 @@ void DefaultAssembler2D<Scalar>::assemblePDEHanging(
             }
         }
 
-        // IZ->insertGlobalValues(a,b,0.5);
-        // IZ->insertGlobalValues(b,a,0.5);
+        IZ->insertGlobalValues(a,b,0.5);
+        IZ->insertGlobalValues(b,a,0.5);
     }
 
-    // IZ->fillComplete();
+    IZ->fillComplete();
 
 #endif
 }

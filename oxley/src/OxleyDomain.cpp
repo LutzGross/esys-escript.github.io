@@ -1437,19 +1437,25 @@ void OxleyDomain::addToSystem(escript::AbstractSystemMatrix& mat,
         
         /////////////////////////////////////////////
         // This is the multiplication by matrix IZ
-        using map_type = Tpetra::Map<>;
+        typedef Tpetra::Map<> map_type ;
         using vector_type = Tpetra::Vector<double>;
         using global_ordinal_type = vector_type::global_ordinal_type;
 
         const size_t numLocalEntries = getNumNodes();
         const Tpetra::global_size_t numGlobalEntries = numLocalEntries;
         const global_ordinal_type indexBase = 0; // Indices start at 0
-        const Teuchos::RCP<const map_type> map = Teuchos::rcp(new map_type (numGlobalEntries, indexBase, 
+        Teuchos::RCP<const map_type> map = Teuchos::rcp(new map_type (numGlobalEntries, indexBase, 
                                                     esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm)));
         const size_t maxNumEntriesPerRow = 3;
         const Teuchos::RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
-        Teuchos::RCP<Tpetra::CrsMatrix<double,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> 
-            iz (new  Tpetra::CrsMatrix<double,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> (map, maxNumEntriesPerRow));
+        
+        typedef Tpetra::CrsMatrix<> crs_type;
+        // typedef typename crs_type::nonconst_global_inds_host_view_type gids_type;
+        // typedef typename crs_type::nonconst_values_host_view_type vals_type;
+
+        Teuchos::RCP<crs_type> iz (new crs_type (map, maxNumEntriesPerRow));
+
+        // iz->insertGlobalValues(1,1,1.0);
 
         assemblePDEHanging(&iz, assembler);
 
