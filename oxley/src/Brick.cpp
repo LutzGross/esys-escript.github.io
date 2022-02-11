@@ -945,6 +945,11 @@ inline dim_t Brick::getNumNodes() const
     return NodeIDs.size();
 }
 
+inline dim_t Brick::getNumHangingNodes() const
+{
+    return num_hanging;
+}
+
 //protected
 inline dim_t Brick::getNumElements() const
 {

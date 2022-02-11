@@ -295,7 +295,6 @@ private:
     std::vector<borderNodeInfo> NodeIDsRight;
 
     std::vector<hangingNodeInfo> hanging_face_orientation;
-    std::vector<LongPair> hanging_faces; 
     
     // Row and column indices in CRS format
     IndexVector myRows;
@@ -338,6 +337,12 @@ protected:
        Returns the number of nodes
     */
     virtual dim_t getNumNodes() const;
+
+    /**
+       \brief
+       Returns the number of nodes
+    */
+    virtual dim_t getNumHangingNodes() const;
 
     /**
        \brief
@@ -425,7 +430,7 @@ protected:
        \brief
        Returns true if the node is hanging
     */
-    bool getNumHangingNodes() { return num_hanging; };
+    int getNumHangingNodes() { return num_hanging; };
 
     /**
        \brief

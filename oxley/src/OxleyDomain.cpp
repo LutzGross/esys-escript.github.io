@@ -1435,30 +1435,77 @@ void OxleyDomain::addToSystem(escript::AbstractSystemMatrix& mat,
         assemblePDEBoundary(&mat, rhs, coefs, assembler);
         assemblePDEDirac(&mat, rhs, coefs, assembler);
         
-        /////////////////////////////////////////////
-        // This is the multiplication by matrix IZ
-        typedef Tpetra::Map<> map_type ;
-        using vector_type = Tpetra::Vector<double>;
-        using global_ordinal_type = vector_type::global_ordinal_type;
-
-        const size_t numLocalEntries = getNumNodes();
-        const Tpetra::global_size_t numGlobalEntries = numLocalEntries;
-        const global_ordinal_type indexBase = 0; // Indices start at 0
-        Teuchos::RCP<const map_type> map = Teuchos::rcp(new map_type (numGlobalEntries, indexBase, 
-                                                    esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm)));
-        const size_t maxNumEntriesPerRow = 3;
-        const Teuchos::RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
+        ////////////////////////////////////////////////
         
-        typedef Tpetra::CrsMatrix<> crs_type;
-        // typedef typename crs_type::nonconst_global_inds_host_view_type gids_type;
-        // typedef typename crs_type::nonconst_values_host_view_type vals_type;
+        using Teuchos::Array;
+        using Teuchos::ArrayView;
+        using Teuchos::ArrayRCP;
+        using Teuchos::arcp;
+        using Teuchos::RCP;
+        using Teuchos::rcp;
+        using Teuchos::tuple;
+        using std::cerr;
+        using std::cout;
+        using std::endl;
+        typedef Tpetra::Map<> map_type;
+        typedef Tpetra::Vector<>::scalar_type scalar_type;
+        typedef Tpetra::Vector<>::local_ordinal_type local_ordinal_type;
+        typedef Tpetra::Vector<>::global_ordinal_type global_ordinal_type;
+        typedef Tpetra::Vector<>::mag_type magnitude_type;
+        typedef Tpetra::CrsMatrix<> crs_matrix_type;
+        Teuchos::oblackholestream blackhole;
+        Teuchos::oblackholestream blackHole;
+        // const Tpetra::global_size_t numGblIndices = 50;
+        const Tpetra::global_size_t numGblIndices = getNumNodes()+0.5*(getNumHangingNodes());
+        const global_ordinal_type indexBase = 0;
+        RCP<const map_type> map = rcp (new map_type (numGblIndices, indexBase, esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm)));
+        const size_t numMyElements = map->getNodeNumElements ();
+        RCP<crs_matrix_type> iz (new crs_matrix_type (map, 0));
 
-        Teuchos::RCP<crs_type> iz (new crs_type (map, maxNumEntriesPerRow));
+        // Fill in iz
+        const scalar_type one = static_cast<scalar_type> (1.0);
+        const scalar_type half = static_cast<scalar_type> (0.5);
+        for (local_ordinal_type lclRow = 0; lclRow < static_cast<local_ordinal_type> (numMyElements); ++lclRow) {
+            const global_ordinal_type gblRow = map->getGlobalElement(lclRow);
+            iz->insertGlobalValues(gblRow,tuple<global_ordinal_type> (gblRow), tuple<scalar_type> (one));
+        }
 
-        // iz->insertGlobalValues(1,1,1.0);
 
-        assemblePDEHanging(&iz, assembler);
+        // Loop over hanging nodes
+        // std::vector<LongPair> hanging_faces = getHangingFaces();
 
+        for(int i = 0; i < getNumHangingNodes(); i++)
+        {
+            int a, b;
+            for(int j = 0; j < hanging_faces.size(); j++)
+            {
+                if(hanging_faces[j].first > hanging_faces[i].first)
+                {
+                    a=j;
+                    break;
+                }
+            }
+            for(int j = 0; j < hanging_faces.size(); j++)
+            {
+                if(hanging_faces[j].first > hanging_faces[i].first)
+                {
+                    b=j;
+                    break;
+                }
+            }
+
+            const global_ordinal_type gblRowA = a;
+            const global_ordinal_type gblRowB = b;
+            iz->insertGlobalValues(gblRowA,tuple<global_ordinal_type> (b),tuple<scalar_type> (half));
+            iz->insertGlobalValues(gblRowB,tuple<global_ordinal_type> (a),tuple<scalar_type> (half));
+        }
+
+
+        // Tell the sparse matrix that we are done adding entries to it.
+        iz->fillComplete ();
+
+
+        // Now do the multiplication
         escript::AbstractSystemMatrix * pMat = &mat;
         esys_trilinos::TrilinosMatrixAdapter* tm = dynamic_cast<esys_trilinos::TrilinosMatrixAdapter*>(pMat);
         if (tm) {

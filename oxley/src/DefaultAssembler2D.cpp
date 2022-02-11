@@ -2545,38 +2545,47 @@ void DefaultAssembler2D<Scalar>::assemblePDEHanging(
 
 #ifdef ESYS_HAVE_TRILINOS
     
+    // const Tpetra::Vector<>::scalar_type one  = static_cast<Tpetra::Vector<>::scalar_type> (1.0);
+    // const Tpetra::Vector<>::scalar_type half = static_cast<Tpetra::Vector<>::scalar_type> (0.5);
+
+     // A(0, 0:1) = [2, -1]
+        //     if (gblRow == 0) {
+        //         A->insertGlobalValues (gblRow,
+        //             tuple<global_ordinal_type> (gblRow, gblRow + 1),
+        //             tuple<scalar_type> (two, negOne));
+
     // Create I
-    for(int i = 0; i < domain->getNumNodes()-0.5*domain->num_hanging; i++)
-        IZ->insertGlobalValues(i,i,1.0);
+    // for(esys_trilinos::GO i = 0; i < domain->getNumNodes()-0.5*domain->num_hanging; i++)
+    //     IZ->insertGlobalValues(i,i,one);
 
     // Loop over hanging nodes
-    std::vector<LongPair> hanging_faces=domain->hanging_faces;
+    // std::vector<LongPair> hanging_faces=domain->hanging_faces;
 
-    for(int i = 0; i < domain->num_hanging; i++)
-    {
-        int a, b;
-        for(int j = 0; j < hanging_faces.size(); j++)
-        {
-            if(hanging_faces[j].first > hanging_faces[i].first)
-            {
-                a=j;
-                break;
-            }
-        }
-        for(int j = 0; j < hanging_faces.size(); j++)
-        {
-            if(hanging_faces[j].first > hanging_faces[i].first)
-            {
-                b=j;
-                break;
-            }
-        }
+    // for(int i = 0; i < domain->num_hanging; i++)
+    // {
+    //     int a, b;
+    //     for(int j = 0; j < hanging_faces.size(); j++)
+    //     {
+    //         if(hanging_faces[j].first > hanging_faces[i].first)
+    //         {
+    //             a=j;
+    //             break;
+    //         }
+    //     }
+    //     for(int j = 0; j < hanging_faces.size(); j++)
+    //     {
+    //         if(hanging_faces[j].first > hanging_faces[i].first)
+    //         {
+    //             b=j;
+    //             break;
+    //         }
+    //     }
 
-        IZ->insertGlobalValues(a,b,0.5);
-        IZ->insertGlobalValues(b,a,0.5);
-    }
+        // IZ->insertGlobalValues(a,b,half);
+        // IZ->insertGlobalValues(b,a,half);
+    // }
 
-    IZ->fillComplete();
+    // IZ->fillComplete();
 
 #endif
 }

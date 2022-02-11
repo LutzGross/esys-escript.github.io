@@ -709,6 +709,9 @@ public:
     // Flag that determines if adaptive refinement is enabled or not
     bool adaptive_refinement = false;
 
+    /// stores the hanging node information
+    std::vector<LongPair> hanging_faces; 
+
 protected:
 
     // element order
@@ -731,6 +734,10 @@ protected:
 
     /// returns the number of nodes per MPI rank
     virtual dim_t getNumNodes() const = 0;
+    virtual dim_t getNumHangingNodes() const = 0;
+
+    // /// returns the number of hanging nodes per MPI rank
+    // virtual int getNumHangingNodes() const = 0;
 
     /// returns the number of elements per MPI rank
     virtual dim_t getNumElements() const = 0;
@@ -864,7 +871,6 @@ private:
 
     /// finds the node that the given point coordinates belong to
     virtual dim_t findNode(const double *coords) const = 0;
-
 };
 
 #define POINTER_WRAPPER_CLASS(x) boost::shared_ptr<x>

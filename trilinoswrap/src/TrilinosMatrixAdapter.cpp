@@ -132,9 +132,21 @@ void TrilinosMatrixAdapter::IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO
     const std::string label = "";
     const Teuchos::RCP<Teuchos::ParameterList> params;
     auto tmp_mat = mat;
+
+    // taken from api
+    // void Tpetra::MatrixMatrix::Multiply (   const CrsMatrix< Scalar, LocalOrdinal, GlobalOrdinal, Node > &  A,
+    // bool    transposeA,
+    // const CrsMatrix< Scalar, LocalOrdinal, GlobalOrdinal, Node > &  B,
+    // bool    transposeB,
+    // CrsMatrix< Scalar, LocalOrdinal, GlobalOrdinal, Node > &    C,
+    // bool    call_FillComplete_on_result = true,
+    // const std::string &     label = std::string(),
+    // const Teuchos::RCP< Teuchos::ParameterList > &  params = Teuchos::null 
+    // )   
     
-    Tpetra::MatrixMatrix::Multiply(iz, true,tmp_mat, false,(*mat), true,label,params); 
-    Tpetra::MatrixMatrix::Multiply((*mat),false,iz,false,(*mat),true,label,params);
+    
+    // Tpetra::MatrixMatrix::Multiply(iz, true,tmp_mat, false,(*mat), true,label,params); 
+    // Tpetra::MatrixMatrix::Multiply((*mat),false,iz,false,(*mat),true,label,params);
 }
 
 template<typename ST>
@@ -142,7 +154,7 @@ void TrilinosMatrixAdapter::rhsIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,
 {
     const std::string label = "";
     const Teuchos::RCP<Teuchos::ParameterList> params;
-    Tpetra::MatrixMatrix::Multiply((*mat),false,iz,false,(*mat),true,label,params); 
+    // Tpetra::MatrixMatrix::Multiply((*mat),false,iz,false,(*mat),true,label,params); 
 }
 
 

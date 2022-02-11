@@ -105,6 +105,12 @@ public:
 
     /**
        \brief
+       Returns true if the node is hanging
+    */
+    // int getNumHangingNodes() { return num_hanging; };
+
+    /**
+       \brief
        copies the surface normals at data points into out. The actual function
        space to be considered is defined by out. out has to be defined on this
        domain.
@@ -237,6 +243,7 @@ public:
 ////////////////////////////////
 protected:
     virtual dim_t getNumNodes() const;
+    virtual dim_t getNumHangingNodes() const;
     virtual dim_t getNumElements() const;
     virtual dim_t getNumFaceElements() const;
     virtual dim_t getNumDOF() const;
@@ -318,6 +325,9 @@ protected:
     long m_NE[3] = {0};
     // Initial spacing
     double m_NX[3] = {0};
+
+
+    int num_hanging;
 
 ////////////////////////////////
 private:

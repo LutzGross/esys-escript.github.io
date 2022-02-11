@@ -2046,6 +2046,11 @@ inline dim_t Rectangle::getNumNodes() const
     return NodeIDs.size();
 }
 
+inline dim_t Rectangle::getNumHangingNodes() const
+{
+    return num_hanging;
+}
+
 //protected
 inline dim_t Rectangle::getNumElements() const
 {
