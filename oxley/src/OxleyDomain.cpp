@@ -1444,9 +1444,6 @@ void OxleyDomain::addToSystem(escript::AbstractSystemMatrix& mat,
         using Teuchos::RCP;
         using Teuchos::rcp;
         using Teuchos::tuple;
-        using std::cerr;
-        using std::cout;
-        using std::endl;
         typedef Tpetra::Map<> map_type;
         typedef Tpetra::Vector<>::scalar_type scalar_type;
         typedef Tpetra::Vector<>::local_ordinal_type local_ordinal_type;
@@ -1454,13 +1451,12 @@ void OxleyDomain::addToSystem(escript::AbstractSystemMatrix& mat,
         typedef Tpetra::Vector<>::mag_type magnitude_type;
         typedef Tpetra::CrsMatrix<> crs_matrix_type;
         Teuchos::oblackholestream blackhole;
-        Teuchos::oblackholestream blackHole;
         // const Tpetra::global_size_t numGblIndices = 50;
         const Tpetra::global_size_t numGblIndices = getNumNodes()+0.5*(getNumHangingNodes());
         const global_ordinal_type indexBase = 0;
         RCP<const map_type> map = rcp (new map_type (numGblIndices, indexBase, esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm)));
         const size_t numMyElements = map->getNodeNumElements ();
-        RCP<crs_matrix_type> iz (new crs_matrix_type (map, 0));
+        RCP<crs_matrix_type> iz (new crs_matrix_type (map, 3));
 
         // Fill in iz
         const scalar_type one = static_cast<scalar_type> (1.0);
@@ -1500,16 +1496,14 @@ void OxleyDomain::addToSystem(escript::AbstractSystemMatrix& mat,
             iz->insertGlobalValues(gblRowB,tuple<global_ordinal_type> (a),tuple<scalar_type> (half));
         }
 
-
         // Tell the sparse matrix that we are done adding entries to it.
         iz->fillComplete ();
-
 
         // Now do the multiplication
         escript::AbstractSystemMatrix * pMat = &mat;
         esys_trilinos::TrilinosMatrixAdapter* tm = dynamic_cast<esys_trilinos::TrilinosMatrixAdapter*>(pMat);
         if (tm) {
-            tm->IztAIz(iz);
+            tm->IztAIz(iz, numGblIndices);
         }
     }
 
