@@ -29,6 +29,7 @@
 #include <paso/SystemMatrix.h>
 #endif
 #ifdef ESYS_HAVE_TRILINOS
+#include <trilinoswrap/CrsMatrixWrapper.h>
 #include <trilinoswrap/TrilinosMatrixAdapter.h>
 #include <trilinoswrap/types.h>
 #include <Teuchos_Comm.hpp>
@@ -1448,7 +1449,6 @@ void OxleyDomain::addToSystem(escript::AbstractSystemMatrix& mat,
         typedef Tpetra::Vector<>::scalar_type scalar_type;
         typedef Tpetra::Vector<>::local_ordinal_type local_ordinal_type;
         typedef Tpetra::Vector<>::global_ordinal_type global_ordinal_type;
-        typedef Tpetra::Vector<>::mag_type magnitude_type;
         typedef Tpetra::CrsMatrix<> crs_matrix_type;
         Teuchos::oblackholestream blackhole;
         // const Tpetra::global_size_t numGblIndices = 50;
@@ -1499,12 +1499,24 @@ void OxleyDomain::addToSystem(escript::AbstractSystemMatrix& mat,
         // Tell the sparse matrix that we are done adding entries to it.
         iz->fillComplete ();
 
+        //TODO
         // Now do the multiplication
         escript::AbstractSystemMatrix * pMat = &mat;
-        esys_trilinos::TrilinosMatrixAdapter* tm = dynamic_cast<esys_trilinos::TrilinosMatrixAdapter*>(pMat);
-        if (tm) {
-            tm->IztAIz(iz, numGblIndices);
-        }
+        // if(rhs.isComplex())
+        // {
+            // esys_trilinos::CrsMatrixWrapper<cplx_t> * tm = dynamic_cast<esys_trilinos::CrsMatrixWrapper<cplx_t>*>(pMat);
+            // if (tm) {
+            //     tm->IztAIz(iz, numGblIndices, comm);
+            // }
+        // }
+        // else
+        // {
+            esys_trilinos::CrsMatrixWrapper<real_t> * tm = dynamic_cast<esys_trilinos::CrsMatrixWrapper<real_t>*>(pMat);
+            if (tm) {
+                tm->IztAIz(iz);
+            }
+        // }
+
     }
 
 

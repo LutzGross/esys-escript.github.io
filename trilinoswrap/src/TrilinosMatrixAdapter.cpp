@@ -22,9 +22,6 @@
 #include "UnrolledBlockCrsMatrixWrapper.h" 
 #include "util.h" 
 
-#include <MatrixMarket_Tpetra.hpp>
-// #include <MueLu_CreateTpetraPreconditioner.hpp>
-
 #include <escript/index.h>
 #include <escript/Data.h>
 #include <escript/FunctionSpaceFactory.h>
@@ -126,38 +123,6 @@ void TrilinosMatrixAdapter::ypAx(escript::Data& y, escript::Data& x) const
     }
 }
 
-template<typename ST>
-void TrilinosMatrixAdapter::IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT>>& iz) 
-{
-    const std::string label = "";
-    const Teuchos::RCP<Teuchos::ParameterList> params;
-    auto tmp_mat = mat;
-
-    // taken from api
-    // void Tpetra::MatrixMatrix::Multiply (   const CrsMatrix< Scalar, LocalOrdinal, GlobalOrdinal, Node > &  A,
-    // bool    transposeA,
-    // const CrsMatrix< Scalar, LocalOrdinal, GlobalOrdinal, Node > &  B,
-    // bool    transposeB,
-    // CrsMatrix< Scalar, LocalOrdinal, GlobalOrdinal, Node > &    C,
-    // bool    call_FillComplete_on_result = true,
-    // const std::string &     label = std::string(),
-    // const Teuchos::RCP< Teuchos::ParameterList > &  params = Teuchos::null 
-    // )   
-    
-    
-    // Tpetra::MatrixMatrix::Multiply(iz, true,tmp_mat, false,(*mat), true,label,params); 
-    // Tpetra::MatrixMatrix::Multiply((*mat),false,iz,false,(*mat),true,label,params);
-}
-
-template<typename ST>
-void TrilinosMatrixAdapter::rhsIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT>>& iz)
-{
-    const std::string label = "";
-    const Teuchos::RCP<Teuchos::ParameterList> params;
-    // Tpetra::MatrixMatrix::Multiply((*mat),false,iz,false,(*mat),true,label,params); 
-}
-
-
 void TrilinosMatrixAdapter::setToSolution(escript::Data& out, escript::Data& in,
                                  bp::object& options) const
 {
@@ -228,9 +193,6 @@ void TrilinosMatrixAdapter::saveHB(const std::string& filename) const
 {
     throw escript::NotImplementedError("Harwell-Boeing interface not available.");
 }
-
-//initiate templates to ensure linkage
-template void TrilinosMatrixAdapter::IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<double,LO,GO,NT>>& iz);
 
 }  // end of namespace
 

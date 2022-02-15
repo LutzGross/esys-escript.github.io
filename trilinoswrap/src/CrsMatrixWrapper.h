@@ -69,6 +69,12 @@ public:
 
     void saveMM(const std::string& filename) const;
 
+    // Used by Oxley
+    void IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT>>& IZ);
+
+    // Used by Oxley
+    void rhsIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT>>& IZ);
+
 protected:
     Matrix mat;
     mutable bool m_resetCalled;

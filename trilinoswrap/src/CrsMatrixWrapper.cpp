@@ -23,6 +23,7 @@
 #include "util.h" 
 
 #include <escript/SolverOptions.h>
+#include <escript/EsysMPI.h>
 
 #include <Kokkos_DefaultNode.hpp>
 // #include <MatrixMarket_Tpetra.hpp>
@@ -276,6 +277,26 @@ void CrsMatrixWrapper<ST>::resetValues(bool preserveSolverData)
         m_preconditioner.reset();
     }
     m_resetCalled = true;
+}
+
+template<typename ST>
+void CrsMatrixWrapper<ST>::IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT>>& iz) 
+{
+    Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT> > tmp_mat1 =  Tpetra::createCrsMatrix<ST,LO,GO,NT>(mat.getRowMap(), 5);
+    tmp_mat1->fillComplete(mat.getDomainMap(), mat.getRangeMap());
+    Tpetra::MatrixMatrix::Multiply(*iz,true,*tmp_mat1,false,mat,false);
+    
+    Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT> > tmp_mat2 =  Tpetra::createCrsMatrix<ST,LO,GO,NT>(mat.getRowMap(), 5);
+    tmp_mat2->fillComplete(mat.getDomainMap(), mat.getRangeMap());
+    Tpetra::MatrixMatrix::Multiply(*tmp_mat2,true,*iz,false,mat,false);
+}
+
+template<typename ST>
+void CrsMatrixWrapper<ST>::rhsIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT>>& iz)
+{
+    const std::string label = "";
+    const Teuchos::RCP<Teuchos::ParameterList> params;
+    // Tpetra::MatrixMatrix::Multiply((*mat),false,iz,false,(*mat),true,label,params); 
 }
 
 
