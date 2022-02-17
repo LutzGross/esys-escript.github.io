@@ -1520,7 +1520,7 @@ void OxleyDomain::addToSystem(escript::AbstractSystemMatrix& mat,
 
         // RHS
         //recast rhs as a vector
-        RCP<const map_type> rhs_map = rcp (new map_type (rhs.getNumDataPoints()*rhs.getDataPointSize(), indexBase, esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm)));
+        RCP<const map_type> rhs_map = rcp (new map_type (numGblIndices, indexBase, esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm)));
         const Tpetra::MultiVector<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> 
                                 rhs_vec(rhs_map,1,true);
         Tpetra::MultiVector<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> 
@@ -1536,8 +1536,6 @@ void OxleyDomain::addToSystem(escript::AbstractSystemMatrix& mat,
         
         // multiplication using trilinos
         iz->apply(rhs_vec, rhs_result);
-
-        // auto result_view = rhs_result.getLocalViewHost(Access::ReadOnlyStruct );
 
         auto result_view = rhs_result.getLocalViewHost();
         auto result_view_1d = Kokkos::subview(result_view, Kokkos::ALL(), 0);
