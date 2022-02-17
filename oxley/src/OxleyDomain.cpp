@@ -1451,10 +1451,11 @@ void OxleyDomain::addToSystem(escript::AbstractSystemMatrix& mat,
         typedef Tpetra::Vector<>::global_ordinal_type global_ordinal_type;
         typedef Tpetra::CrsMatrix<> crs_matrix_type;
         Teuchos::oblackholestream blackhole;
-        // const Tpetra::global_size_t numGblIndices = 50;
         const Tpetra::global_size_t numGblIndices = getNumNodes()+0.5*(getNumHangingNodes());
         const global_ordinal_type indexBase = 0;
         RCP<const map_type> map = rcp (new map_type (numGblIndices, indexBase, esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm)));
+        RCP<const map_type> izRangeMap = rcp (new map_type (getNumNodes(), indexBase, esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm)));
+        RCP<const map_type> izDomainMap = rcp (new map_type (0.5*getNumHangingNodes(), indexBase, esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm)));
         const size_t numMyElements = map->getNodeNumElements ();
         RCP<crs_matrix_type> iz (new crs_matrix_type (map, 3));
 
@@ -1497,7 +1498,7 @@ void OxleyDomain::addToSystem(escript::AbstractSystemMatrix& mat,
         }
 
         // Tell the sparse matrix that we are done adding entries to it.
-        iz->fillComplete ();
+        iz->fillComplete(izRangeMap,izDomainMap);
 
         //TODO
         // Now do the multiplication
