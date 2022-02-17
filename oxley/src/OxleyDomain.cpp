@@ -1511,11 +1511,43 @@ void OxleyDomain::addToSystem(escript::AbstractSystemMatrix& mat,
         // }
         // else
         // {
-            esys_trilinos::CrsMatrixWrapper<real_t> * tm = dynamic_cast<esys_trilinos::CrsMatrixWrapper<real_t>*>(pMat);
-            if (tm) {
-                tm->IztAIz(iz);
+            esys_trilinos::CrsMatrixWrapper<real_t> * cm = dynamic_cast<esys_trilinos::CrsMatrixWrapper<real_t>*>(pMat);
+            if(cm)
+            {
+                cm->IztAIz(iz);
             }
         // }
+
+        // RHS
+        //recast rhs as a vector
+        RCP<const map_type> rhs_map = rcp (new map_type (rhs.getNumDataPoints()*rhs.getDataPointSize(), indexBase, esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm)));
+        const Tpetra::MultiVector<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> 
+                                rhs_vec(rhs_map,1,true);
+        Tpetra::MultiVector<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> 
+                                rhs_result(rhs_map,1,true);
+        const size_t zero = 0.0;
+        for(int i = 0; i < rhs.getNumDataPoints()*rhs.getDataPointSize(); i++)
+        {
+            const global_ordinal_type gblrow = i;
+            const double *value = rhs.getSampleDataRO(i);
+            // rhs_vec.replaceLocalValue(gblrow,zero,*value);
+            rhs_vec.replaceGlobalValue(gblrow,zero,*value);
+        }
+        
+        // multiplication using trilinos
+        iz->apply(rhs_vec, rhs_result);
+
+        // auto result_view = rhs_result.getLocalViewHost(Access::ReadOnlyStruct );
+
+        auto result_view = rhs_result.getLocalViewHost();
+        auto result_view_1d = Kokkos::subview(result_view, Kokkos::ALL(), 0);
+ 
+        // write the new vector back into rhs
+        for(int i = 0; i < rhs.getNumDataPoints()*rhs.getDataPointSize(); i++)
+        {
+            escript::DataTypes::real_t* value = rhs.getSampleDataRW(i);
+            *value=result_view_1d(i);
+        }
 
     }
 

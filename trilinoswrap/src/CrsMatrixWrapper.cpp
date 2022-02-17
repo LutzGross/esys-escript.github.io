@@ -291,15 +291,6 @@ void CrsMatrixWrapper<ST>::IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,
     Tpetra::MatrixMatrix::Multiply(*tmp_mat2,true,*iz,false,mat,false);
 }
 
-template<typename ST>
-void CrsMatrixWrapper<ST>::rhsIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT>>& iz)
-{
-    const std::string label = "";
-    const Teuchos::RCP<Teuchos::ParameterList> params;
-    // Tpetra::MatrixMatrix::Multiply((*mat),false,iz,false,(*mat),true,label,params); 
-}
-
-
 // instantiate the supported variants
 template class CrsMatrixWrapper<real_t>;
 template class CrsMatrixWrapper<cplx_t>;
