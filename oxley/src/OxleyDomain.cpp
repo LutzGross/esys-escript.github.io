@@ -1438,114 +1438,117 @@ void OxleyDomain::addToSystem(escript::AbstractSystemMatrix& mat,
         
         ////////////////////////////////////////////////
         
-        using Teuchos::Array;
-        using Teuchos::ArrayView;
-        using Teuchos::ArrayRCP;
-        using Teuchos::arcp;
-        using Teuchos::RCP;
-        using Teuchos::rcp;
-        using Teuchos::tuple;
-        typedef Tpetra::Map<> map_type;
-        typedef Tpetra::Vector<>::scalar_type scalar_type;
-        typedef Tpetra::Vector<>::local_ordinal_type local_ordinal_type;
-        typedef Tpetra::Vector<>::global_ordinal_type global_ordinal_type;
-        typedef Tpetra::CrsMatrix<> crs_matrix_type;
-        Teuchos::oblackholestream blackhole;
-        const Tpetra::global_size_t numGblIndices = getNumNodes()+0.5*(getNumHangingNodes());
-        const global_ordinal_type indexBase = 0;
-        RCP<const map_type> map = rcp (new map_type (numGblIndices, indexBase, esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm)));
-        RCP<const map_type> izRangeMap = rcp (new map_type (getNumNodes(), indexBase, esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm)));
-        RCP<const map_type> izDomainMap = rcp (new map_type (0.5*getNumHangingNodes(), indexBase, esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm)));
-        const size_t numMyElements = map->getNodeNumElements ();
-        RCP<crs_matrix_type> iz (new crs_matrix_type (map, 3));
-
-        // Fill in iz
-        const scalar_type one = static_cast<scalar_type> (1.0);
-        const scalar_type half = static_cast<scalar_type> (0.5);
-        for (local_ordinal_type lclRow = 0; lclRow < static_cast<local_ordinal_type> (numMyElements); ++lclRow) {
-            const global_ordinal_type gblRow = map->getGlobalElement(lclRow);
-            iz->insertGlobalValues(gblRow,tuple<global_ordinal_type> (gblRow), tuple<scalar_type> (one));
-        }
-
-
-        // Loop over hanging nodes
-        // std::vector<LongPair> hanging_faces = getHangingFaces();
-
-        for(int i = 0; i < getNumHangingNodes(); i++)
+        if(getNumHangingNodes() != 0)
         {
-            int a, b;
-            for(int j = 0; j < hanging_faces.size(); j++)
-            {
-                if(hanging_faces[j].first > hanging_faces[i].first)
-                {
-                    a=j;
-                    break;
-                }
+            using Teuchos::Array;
+            using Teuchos::ArrayView;
+            using Teuchos::ArrayRCP;
+            using Teuchos::arcp;
+            using Teuchos::RCP;
+            using Teuchos::rcp;
+            using Teuchos::tuple;
+            typedef Tpetra::Map<> map_type;
+            typedef Tpetra::Vector<>::scalar_type scalar_type;
+            typedef Tpetra::Vector<>::local_ordinal_type local_ordinal_type;
+            typedef Tpetra::Vector<>::global_ordinal_type global_ordinal_type;
+            typedef Tpetra::CrsMatrix<> crs_matrix_type;
+            Teuchos::oblackholestream blackhole;
+            const Tpetra::global_size_t numGblIndices = getNumNodes()+0.5*(getNumHangingNodes());
+            const global_ordinal_type indexBase = 0;
+            auto comm = esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm);
+            RCP<const map_type> izRowMap = rcp (new map_type (numGblIndices, indexBase, comm));
+            RCP<const map_type> izRangeMap = rcp (new map_type (getNumNodes(), indexBase, comm));
+            RCP<const map_type> izDomainMap = rcp (new map_type (0.5*getNumHangingNodes(), indexBase, comm));
+            const size_t numMyElements = izRowMap->getNodeNumElements ();
+            RCP<crs_matrix_type> iz (new crs_matrix_type (izRowMap, 1));
+
+            // Fill in iz
+            const scalar_type one = static_cast<scalar_type> (1.0);
+            const scalar_type half = static_cast<scalar_type> (0.5);
+            for (local_ordinal_type lclRow = 0; lclRow < static_cast<local_ordinal_type> (numMyElements); ++lclRow) {
+                const global_ordinal_type gblRow = izRowMap->getGlobalElement(lclRow);
+                iz->insertGlobalValues(gblRow,tuple<global_ordinal_type> (gblRow), tuple<scalar_type> (one));
             }
-            for(int j = 0; j < hanging_faces.size(); j++)
+
+
+            // Loop over hanging nodes
+            for(int i = 0; i < getNumHangingNodes(); i++)
             {
-                if(hanging_faces[j].first > hanging_faces[i].first)
+                int a, b;
+                for(int j = 0; j < hanging_faces.size(); j++)
                 {
-                    b=j;
-                    break;
+                    if(hanging_faces[j].first > hanging_faces[i].first)
+                    {
+                        a=j;
+                        break;
+                    }
                 }
+                for(int j = 0; j < hanging_faces.size(); j++)
+                {
+                    if(hanging_faces[j].first > hanging_faces[i].first)
+                    {
+                        b=j;
+                        break;
+                    }
+                }
+
+                const global_ordinal_type gblRowA = a;
+                const global_ordinal_type gblRowB = b;
+                iz->insertGlobalValues(gblRowA,tuple<global_ordinal_type> (b),tuple<scalar_type> (half));
+                iz->insertGlobalValues(gblRowB,tuple<global_ordinal_type> (a),tuple<scalar_type> (half));
             }
 
-            const global_ordinal_type gblRowA = a;
-            const global_ordinal_type gblRowB = b;
-            iz->insertGlobalValues(gblRowA,tuple<global_ordinal_type> (b),tuple<scalar_type> (half));
-            iz->insertGlobalValues(gblRowB,tuple<global_ordinal_type> (a),tuple<scalar_type> (half));
-        }
+            // Tell the sparse matrix that we are done adding entries to it.
+            // iz->fillComplete(izDomainMap,izRangeMap);
+            iz->fillComplete();
 
-        // Tell the sparse matrix that we are done adding entries to it.
-        iz->fillComplete(izRangeMap,izDomainMap);
-
-        //TODO
-        // Now do the multiplication
-        escript::AbstractSystemMatrix * pMat = &mat;
-        // if(rhs.isComplex())
-        // {
-            // esys_trilinos::CrsMatrixWrapper<cplx_t> * tm = dynamic_cast<esys_trilinos::CrsMatrixWrapper<cplx_t>*>(pMat);
-            // if (tm) {
-            //     tm->IztAIz(iz, numGblIndices, comm);
+            //TODO
+            // Now do the multiplication
+            escript::AbstractSystemMatrix * pMat = &mat;
+            // if(rhs.isComplex())
+            // {
+                // esys_trilinos::CrsMatrixWrapper<cplx_t> * tm = dynamic_cast<esys_trilinos::CrsMatrixWrapper<cplx_t>*>(pMat);
+                // if (tm) {
+                //     tm->IztAIz(iz, numGblIndices, comm);
+                // }
             // }
-        // }
-        // else
-        // {
-            esys_trilinos::CrsMatrixWrapper<real_t> * cm = dynamic_cast<esys_trilinos::CrsMatrixWrapper<real_t>*>(pMat);
-            if(cm)
+            // else
+            // {
+                esys_trilinos::CrsMatrixWrapper<real_t> * cm = dynamic_cast<esys_trilinos::CrsMatrixWrapper<real_t>*>(pMat);
+                if(cm)
+                {
+                    cm->IztAIz(iz);
+                }
+            // }
+
+            // RHS
+            //recast rhs as a vector
+            RCP<const map_type> rhs_map = rcp (new map_type (numGblIndices, indexBase, esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm)));
+            const Tpetra::MultiVector<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> 
+                                    rhs_vec(rhs_map,1,true);
+            Tpetra::MultiVector<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> 
+                                    rhs_result(rhs_map,1,true);
+            const size_t zero = 0.0;
+            for(int i = 0; i < rhs.getNumDataPoints()*rhs.getDataPointSize(); i++)
             {
-                cm->IztAIz(iz);
+                const global_ordinal_type gblrow = i;
+                const double *value = rhs.getSampleDataRO(i);
+                // rhs_vec.replaceLocalValue(gblrow,zero,*value);
+                rhs_vec.replaceGlobalValue(gblrow,zero,*value);
             }
-        // }
+            
+            // multiplication using trilinos
+            iz->apply(rhs_vec, rhs_result);
 
-        // RHS
-        //recast rhs as a vector
-        RCP<const map_type> rhs_map = rcp (new map_type (numGblIndices, indexBase, esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm)));
-        const Tpetra::MultiVector<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> 
-                                rhs_vec(rhs_map,1,true);
-        Tpetra::MultiVector<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> 
-                                rhs_result(rhs_map,1,true);
-        const size_t zero = 0.0;
-        for(int i = 0; i < rhs.getNumDataPoints()*rhs.getDataPointSize(); i++)
-        {
-            const global_ordinal_type gblrow = i;
-            const double *value = rhs.getSampleDataRO(i);
-            // rhs_vec.replaceLocalValue(gblrow,zero,*value);
-            rhs_vec.replaceGlobalValue(gblrow,zero,*value);
-        }
-        
-        // multiplication using trilinos
-        iz->apply(rhs_vec, rhs_result);
+            auto result_view = rhs_result.getLocalViewHost();
+            auto result_view_1d = Kokkos::subview(result_view, Kokkos::ALL(), 0);
 
-        auto result_view = rhs_result.getLocalViewHost();
-        auto result_view_1d = Kokkos::subview(result_view, Kokkos::ALL(), 0);
- 
-        // write the new vector back into rhs
-        for(int i = 0; i < rhs.getNumDataPoints()*rhs.getDataPointSize(); i++)
-        {
-            escript::DataTypes::real_t* value = rhs.getSampleDataRW(i);
-            *value=result_view_1d(i);
+            // write the new vector back into rhs
+            for(int i = 0; i < rhs.getNumDataPoints()*rhs.getDataPointSize(); i++)
+            {
+                escript::DataTypes::real_t* value = rhs.getSampleDataRW(i);
+                *value=result_view_1d(i);
+            }
         }
 
     }
