@@ -1438,7 +1438,7 @@ void OxleyDomain::addToSystem(escript::AbstractSystemMatrix& mat,
         
         ////////////////////////////////////////////////
         
-        if(getNumHangingNodes() != 0)
+        if(getNumHangingNodes() > 0)
         {
             using Teuchos::Array;
             using Teuchos::ArrayView;
@@ -1457,8 +1457,8 @@ void OxleyDomain::addToSystem(escript::AbstractSystemMatrix& mat,
             const global_ordinal_type indexBase = 0;
             auto comm = esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm);
             RCP<const map_type> izRowMap = rcp (new map_type (numGblIndices, indexBase, comm));
-            RCP<const map_type> izRangeMap = rcp (new map_type (getNumNodes(), indexBase, comm));
-            RCP<const map_type> izDomainMap = rcp (new map_type (0.5*getNumHangingNodes(), indexBase, comm));
+            // RCP<const map_type> izRangeMap = rcp (new map_type (getNumNodes(), indexBase, comm));
+            // RCP<const map_type> izDomainMap = rcp (new map_type (getNumNodes()+0.5*getNumHangingNodes(), indexBase, comm));
             const size_t numMyElements = izRowMap->getNodeNumElements ();
             RCP<crs_matrix_type> iz (new crs_matrix_type (izRowMap, 1));
 
@@ -1469,7 +1469,6 @@ void OxleyDomain::addToSystem(escript::AbstractSystemMatrix& mat,
                 const global_ordinal_type gblRow = izRowMap->getGlobalElement(lclRow);
                 iz->insertGlobalValues(gblRow,tuple<global_ordinal_type> (gblRow), tuple<scalar_type> (one));
             }
-
 
             // Loop over hanging nodes
             for(int i = 0; i < getNumHangingNodes(); i++)
@@ -1523,20 +1522,22 @@ void OxleyDomain::addToSystem(escript::AbstractSystemMatrix& mat,
 
             // RHS
             //recast rhs as a vector
-            RCP<const map_type> rhs_map = rcp (new map_type (numGblIndices, indexBase, esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm)));
-            const Tpetra::MultiVector<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> 
-                                    rhs_vec(rhs_map,1,true);
-            Tpetra::MultiVector<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> 
-                                    rhs_result(rhs_map,1,true);
-            const size_t zero = 0.0;
-            for(int i = 0; i < rhs.getNumDataPoints()*rhs.getDataPointSize(); i++)
+            long ndp = rhs.getNumDataPoints();
+            RCP<const map_type> rhs_map = rcp (new map_type (ndp, indexBase, esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm)));
+            //TODO replace these two vectors with a single Tpetra::MultiVector
+            
+            const Tpetra::Vector<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> rhs_vec(rhs_map,true);
+            Tpetra::Vector<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> rhs_result(rhs_map,true);
+            
+            // Copy the data
+            #pragma omp parallel for
+            for(int i = 0; i < ndp; i++)
             {
                 const global_ordinal_type gblrow = i;
                 const double *value = rhs.getSampleDataRO(i);
-                // rhs_vec.replaceLocalValue(gblrow,zero,*value);
-                rhs_vec.replaceGlobalValue(gblrow,zero,*value);
+                rhs_vec.replaceGlobalValue(gblrow,*value);
             }
-            
+
             // multiplication using trilinos
             iz->apply(rhs_vec, rhs_result);
 
@@ -1544,7 +1545,8 @@ void OxleyDomain::addToSystem(escript::AbstractSystemMatrix& mat,
             auto result_view_1d = Kokkos::subview(result_view, Kokkos::ALL(), 0);
 
             // write the new vector back into rhs
-            for(int i = 0; i < rhs.getNumDataPoints()*rhs.getDataPointSize(); i++)
+            #pragma omp parallel for
+            for(int i = 0; i < ndp; i++)
             {
                 escript::DataTypes::real_t* value = rhs.getSampleDataRW(i);
                 *value=result_view_1d(i);
