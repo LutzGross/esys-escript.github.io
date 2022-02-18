@@ -1457,11 +1457,10 @@ void OxleyDomain::addToSystem(escript::AbstractSystemMatrix& mat,
             const Tpetra::global_size_t numNodes = getNumNodes();
             const global_ordinal_type indexBase = 0;
             auto comm = esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm);
-            RCP<const map_type> izRowMap = rcp (new map_type(numGblIndices, indexBase, comm));
+            RCP<const map_type> izRowMap = rcp (new map_type(numNodes, indexBase, comm));
             RCP<const map_type> izColMap = rcp (new map_type(numGblIndices, indexBase, comm));
-            RCP<const map_type> izRangeMap = rcp (new map_type(numGblIndices, indexBase, comm));
-            RCP<const map_type> izDomainMap = rcp (new map_type(numNodes, indexBase, comm));
-            // const size_t numMyElements = izRowMap->getNodeNumElements();
+            RCP<const map_type> izRangeMap = rcp (new map_type(numNodes, indexBase, comm));
+            RCP<const map_type> izDomainMap = rcp (new map_type(numGblIndices, indexBase, comm));
             RCP<crs_matrix_type> iz (new crs_matrix_type(izRowMap, izColMap, 4));
 
             /////////////////////////
@@ -1470,7 +1469,7 @@ void OxleyDomain::addToSystem(escript::AbstractSystemMatrix& mat,
             // This is I
             const scalar_type one = static_cast<scalar_type> (1.0);
             const scalar_type half = static_cast<scalar_type> (0.5);
-            for (local_ordinal_type lclRow = 0; lclRow < static_cast<local_ordinal_type> (numGblIndices); ++lclRow) {
+            for (local_ordinal_type lclRow = 0; lclRow < static_cast<local_ordinal_type>(getNumNodes()); ++lclRow) {
                 const global_ordinal_type gblRow = izRowMap->getGlobalElement(lclRow);
                 iz->insertGlobalValues(gblRow,tuple<global_ordinal_type>(gblRow), tuple<scalar_type>(one));
                 #ifdef OXLEY_PRINT_DEBUG_IZ
@@ -1481,14 +1480,25 @@ void OxleyDomain::addToSystem(escript::AbstractSystemMatrix& mat,
             // This is Z
             for(int i = 0; i < getNumHangingNodes(); i++)
             {
-                const global_ordinal_type gblRowA = izRowMap->getGlobalElement(hanging_faces[i].first);
-                const global_ordinal_type gblRowB = izRowMap->getGlobalElement(hanging_faces[i].second);
+                int a = hanging_faces[i].first;
+                int b = hanging_faces[i].second;
+                if(a>getNumNodes())
+                {
+                    int c = a;
+                    a=b; 
+                    b=c;
+                }
+
+                const global_ordinal_type gblRowA = izRowMap->getGlobalElement(a);
+                const global_ordinal_type gblRowB = izRowMap->getGlobalElement(b);
                 iz->insertGlobalValues(gblRowA,tuple<global_ordinal_type>(gblRowB),tuple<scalar_type> (half));
                 iz->insertGlobalValues(gblRowB,tuple<global_ordinal_type>(gblRowA),tuple<scalar_type> (half));
 
                 #ifdef OXLEY_PRINT_DEBUG_IZ
-                    std::cout << "element: " << hanging_faces[i].first << ", " << hanging_faces[i].second << "=" << 0.5 << std::endl;
-                    std::cout << "element: " << hanging_faces[i].second << ", " << hanging_faces[i].first << "=" << 0.5 << std::endl;
+                    // std::cout << "hanging node info: " << hanging_faces[i].first << ", " << hanging_faces[i].second << std::endl;
+                    // std::cout << "element: " << hanging_faces[i].first << ", " << hanging_faces[i].second << "=" << 0.5 << std::endl;
+                    // std::cout << "element: " << hanging_faces[i].second << ", " << hanging_faces[i].first << "=" << 0.5 << std::endl;
+                    std::cout << "element: " << a << ", " << b << "=" << 0.5 << std::endl;
                 #endif
 
             }
@@ -1524,11 +1534,12 @@ void OxleyDomain::addToSystem(escript::AbstractSystemMatrix& mat,
             // RHS
             //recast rhs as a vector
             long ndp = rhs.getNumDataPoints();
-            RCP<const map_type> rhs_map = rcp (new map_type (ndp, indexBase, esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm)));
+            RCP<const map_type> rhs_map = rcp(new map_type(numGblIndices, indexBase, comm));
+            RCP<const map_type> new_rhs_map = rcp(new map_type(numNodes, indexBase, comm));
             //TODO replace these two vectors with a single Tpetra::MultiVector
             
             const Tpetra::Vector<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> rhs_vec(rhs_map,true);
-            Tpetra::Vector<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> rhs_result(rhs_map,true);
+            Tpetra::Vector<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> rhs_result(new_rhs_map,true);
             
             // Copy the data
             #pragma omp parallel for
