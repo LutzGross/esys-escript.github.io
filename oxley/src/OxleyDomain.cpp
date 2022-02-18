@@ -1454,55 +1454,55 @@ void OxleyDomain::addToSystem(escript::AbstractSystemMatrix& mat,
             typedef Tpetra::CrsMatrix<> crs_matrix_type;
             Teuchos::oblackholestream blackhole;
             const Tpetra::global_size_t numGblIndices = getNumNodes()+0.5*(getNumHangingNodes());
+            const Tpetra::global_size_t numNodes = getNumNodes();
             const global_ordinal_type indexBase = 0;
             auto comm = esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm);
-            RCP<const map_type> izRowMap = rcp (new map_type (numGblIndices, indexBase, comm));
-            // RCP<const map_type> izRangeMap = rcp (new map_type (getNumNodes(), indexBase, comm));
-            // RCP<const map_type> izDomainMap = rcp (new map_type (getNumNodes()+0.5*getNumHangingNodes(), indexBase, comm));
-            const size_t numMyElements = izRowMap->getNodeNumElements ();
-            RCP<crs_matrix_type> iz (new crs_matrix_type (izRowMap, 1));
+            RCP<const map_type> izRowMap = rcp (new map_type(numGblIndices, indexBase, comm));
+            RCP<const map_type> izColMap = rcp (new map_type(numGblIndices, indexBase, comm));
+            RCP<const map_type> izRangeMap = rcp (new map_type(numGblIndices, indexBase, comm));
+            RCP<const map_type> izDomainMap = rcp (new map_type(numNodes, indexBase, comm));
+            // const size_t numMyElements = izRowMap->getNodeNumElements();
+            RCP<crs_matrix_type> iz (new crs_matrix_type(izRowMap, izColMap, 4));
 
+            /////////////////////////
             // Fill in iz
+            /////////////////////////
+            // This is I
             const scalar_type one = static_cast<scalar_type> (1.0);
             const scalar_type half = static_cast<scalar_type> (0.5);
-            for (local_ordinal_type lclRow = 0; lclRow < static_cast<local_ordinal_type> (numMyElements); ++lclRow) {
+            for (local_ordinal_type lclRow = 0; lclRow < static_cast<local_ordinal_type> (numGblIndices); ++lclRow) {
                 const global_ordinal_type gblRow = izRowMap->getGlobalElement(lclRow);
-                iz->insertGlobalValues(gblRow,tuple<global_ordinal_type> (gblRow), tuple<scalar_type> (one));
+                iz->insertGlobalValues(gblRow,tuple<global_ordinal_type>(gblRow), tuple<scalar_type>(one));
+                #ifdef OXLEY_PRINT_DEBUG_IZ
+                    std::cout << "element: " << gblRow << ", " << gblRow << "=" << 1.0 << std::endl;
+                #endif
             }
 
-            // Loop over hanging nodes
+            // This is Z
             for(int i = 0; i < getNumHangingNodes(); i++)
             {
-                int a, b;
-                for(int j = 0; j < hanging_faces.size(); j++)
-                {
-                    if(hanging_faces[j].first > hanging_faces[i].first)
-                    {
-                        a=j;
-                        break;
-                    }
-                }
-                for(int j = 0; j < hanging_faces.size(); j++)
-                {
-                    if(hanging_faces[j].first > hanging_faces[i].first)
-                    {
-                        b=j;
-                        break;
-                    }
-                }
+                const global_ordinal_type gblRowA = izRowMap->getGlobalElement(hanging_faces[i].first);
+                const global_ordinal_type gblRowB = izRowMap->getGlobalElement(hanging_faces[i].second);
+                iz->insertGlobalValues(gblRowA,tuple<global_ordinal_type>(gblRowB),tuple<scalar_type> (half));
+                iz->insertGlobalValues(gblRowB,tuple<global_ordinal_type>(gblRowA),tuple<scalar_type> (half));
 
-                const global_ordinal_type gblRowA = a;
-                const global_ordinal_type gblRowB = b;
-                iz->insertGlobalValues(gblRowA,tuple<global_ordinal_type> (b),tuple<scalar_type> (half));
-                iz->insertGlobalValues(gblRowB,tuple<global_ordinal_type> (a),tuple<scalar_type> (half));
+                #ifdef OXLEY_PRINT_DEBUG_IZ
+                    std::cout << "element: " << hanging_faces[i].first << ", " << hanging_faces[i].second << "=" << 0.5 << std::endl;
+                    std::cout << "element: " << hanging_faces[i].second << ", " << hanging_faces[i].first << "=" << 0.5 << std::endl;
+                #endif
+
             }
 
-            // Tell the sparse matrix that we are done adding entries to it.
-            // iz->fillComplete(izDomainMap,izRangeMap);
-            iz->fillComplete();
+            // Tell the matrix that we are finished adding entries to it.
+            iz->fillComplete(izDomainMap,izRangeMap);
+            // iz->fillComplete();
 
-            //TODO
+            /////////////////////////
             // Now do the multiplication
+            /////////////////////////
+
+            // LHS
+            //TODO
             escript::AbstractSystemMatrix * pMat = &mat;
             // if(rhs.isComplex())
             // {
@@ -1519,6 +1519,7 @@ void OxleyDomain::addToSystem(escript::AbstractSystemMatrix& mat,
                     cm->IztAIz(iz);
                 }
             // }
+
 
             // RHS
             //recast rhs as a vector
