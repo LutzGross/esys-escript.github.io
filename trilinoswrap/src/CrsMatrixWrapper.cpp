@@ -36,6 +36,8 @@
 #endif
 
 #include <Tpetra_Vector.hpp>
+#include "Tpetra_createDeepCopy_CrsMatrix.hpp"
+
 
 using Teuchos::RCP;
 using Teuchos::rcp;
@@ -282,13 +284,14 @@ void CrsMatrixWrapper<ST>::resetValues(bool preserveSolverData)
 template<typename ST>
 void CrsMatrixWrapper<ST>::IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT>>& iz) 
 {
-    Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT> > tmp_mat1 =  Tpetra::createCrsMatrix<ST,LO,GO,NT>(mat.getRowMap(), 5);
-    tmp_mat1->fillComplete(mat.getDomainMap(), mat.getRangeMap());
-    Tpetra::MatrixMatrix::Multiply(*iz,true,*tmp_mat1,false,mat,false);
+    mat.resumeFill();
     
-    Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT> > tmp_mat2 =  Tpetra::createCrsMatrix<ST,LO,GO,NT>(mat.getRowMap(), 5);
-    tmp_mat2->fillComplete(mat.getDomainMap(), mat.getRangeMap());
-    Tpetra::MatrixMatrix::Multiply(*tmp_mat2,true,*iz,false,mat,false);
+    auto tmp_mat1 = Tpetra::createDeepCopy(mat);
+    Tpetra::MatrixMatrix::Multiply(*iz,true,tmp_mat1,false,mat,false);
+    auto tmp_mat2 = Tpetra::createDeepCopy(mat);
+    Tpetra::MatrixMatrix::Multiply(tmp_mat2,false,*iz,false,mat,false);
+
+    mat.fillComplete();
 }
 
 // instantiate the supported variants
