@@ -1463,9 +1463,9 @@ void OxleyDomain::addToSystem(escript::AbstractSystemMatrix& mat,
             const Tpetra::global_size_t nn = tn - nh; 
             const global_ordinal_type indexBase = 0;
             auto comm = esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm);
-            RCP<const map_type> izRowMap = rcp (new map_type(tn, indexBase, comm));
+            RCP<const map_type> izRowMap = rcp (new map_type(nn, indexBase, comm));
             RCP<const map_type> izColMap = rcp (new map_type(nn, indexBase, comm));
-            RCP<const map_type> izRangeMap = rcp (new map_type(tn, indexBase, comm));
+            RCP<const map_type> izRangeMap = rcp (new map_type(nn, indexBase, comm));
             RCP<const map_type> izDomainMap = rcp (new map_type(nn, indexBase, comm));
             RCP<crs_matrix_type> iz (new crs_matrix_type(izRowMap, izColMap, 4));
             RCP<const map_type> zRowMap = rcp (new map_type(nh, indexBase, comm));
@@ -1483,7 +1483,8 @@ void OxleyDomain::addToSystem(escript::AbstractSystemMatrix& mat,
             for (local_ordinal_type lclRow = 0; lclRow < static_cast<local_ordinal_type>(nn); ++lclRow) 
             {
                 const global_ordinal_type gblRow = izRowMap->getGlobalElement(lclRow);
-                iz->insertGlobalValues(gblRow,tuple<global_ordinal_type>(gblRow), tuple<scalar_type>(one));
+                const global_ordinal_type gblCol = izColMap->getGlobalElement(lclRow);
+                iz->insertGlobalValues(gblRow,tuple<global_ordinal_type>(gblCol), tuple<scalar_type>(one));
                 #ifdef OXLEY_PRINT_DEBUG_IZ
                     std::cout << "element: " << gblRow << ", " << gblRow << "=" << 1.0 << std::endl;
                 #endif
@@ -1502,18 +1503,13 @@ void OxleyDomain::addToSystem(escript::AbstractSystemMatrix& mat,
                 }
 
                 const global_ordinal_type gblRowA = izRowMap->getGlobalElement(a);
-                const global_ordinal_type gblRowB = izRowMap->getGlobalElement(b);
-                iz->insertGlobalValues(gblRowA,tuple<global_ordinal_type>(gblRowB),tuple<scalar_type> (half));
-                iz->insertGlobalValues(gblRowB,tuple<global_ordinal_type>(gblRowA),tuple<scalar_type> (half));
-                const global_ordinal_type gblRowAz = zRowMap->getGlobalElement(a);
-                const global_ordinal_type gblRowBz = zRowMap->getGlobalElement(b);
-                z->insertGlobalValues(gblRowAz,tuple<global_ordinal_type>(gblRowBz),tuple<scalar_type> (half));
-                z->insertGlobalValues(gblRowBz,tuple<global_ordinal_type>(gblRowAz),tuple<scalar_type> (half));
+                const global_ordinal_type gblColB = izColMap->getGlobalElement(b);
+                iz->insertGlobalValues(gblRowA,tuple<global_ordinal_type>(gblColB),tuple<scalar_type> (half));
+                const global_ordinal_type gblRowAz = zRowMap->getGlobalElement(a-nn);
+                const global_ordinal_type gblColBz = zColMap->getGlobalElement(b);
+                z->insertGlobalValues(gblRowAz,tuple<global_ordinal_type>(gblColBz),tuple<scalar_type> (half));
 
                 #ifdef OXLEY_PRINT_DEBUG_IZ
-                    // std::cout << "hanging node info: " << hanging_faces[i].first << ", " << hanging_faces[i].second << std::endl;
-                    // std::cout << "element: " << hanging_faces[i].first << ", " << hanging_faces[i].second << "=" << 0.5 << std::endl;
-                    // std::cout << "element: " << hanging_faces[i].second << ", " << hanging_faces[i].first << "=" << 0.5 << std::endl;
                     std::cout << "element: " << a << ", " << b << "=" << 0.5 << std::endl;
                 #endif
             }
@@ -1568,7 +1564,7 @@ void OxleyDomain::addToSystem(escript::AbstractSystemMatrix& mat,
             }
             // vector g
             #pragma omp parallel for
-            for(int i = nn; i < nn+nh; i++)
+            for(int i = nn; i < tn; i++)
             {
                 const global_ordinal_type gblrow = i;
                 const double *value = rhs.getSampleDataRO(i);
