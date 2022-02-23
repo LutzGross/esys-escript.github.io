@@ -1343,6 +1343,8 @@ class LinearProblem(object):
        """
        Returns the solution in its current state.
        """
+       if self.hasOxley():
+          self.getDomain().finalise(self.getCurrentOperator(),self.getCurrentRightHandSide())
        if self.__solution.isEmpty(): 
           self.__solution=self.createSolution()
        if self.hasOxley():
