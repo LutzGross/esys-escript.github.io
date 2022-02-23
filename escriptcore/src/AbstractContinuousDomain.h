@@ -217,6 +217,8 @@ class ESCRIPT_DLL_API AbstractContinuousDomain : public AbstractDomain
                      const escript::Data& d_contact, const escript::Data& y_contact, 
                      const escript::Data& d_dirac, const escript::Data& y_dirac) const;
 
+  virtual void finalise(AbstractSystemMatrix& mat, escript::Data& rhs) const;
+
 // We do not require this method at this level since the python side checks to ensure it exists
 // before calling it.
 

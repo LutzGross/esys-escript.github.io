@@ -558,6 +558,13 @@ public:
                              escript::Data& rhs, const DataMap& data,
                              Assembler_ptr assembler) const;
 
+   /**
+      \brief
+      finalises the matrix system
+   */
+    virtual void finalise(escript::AbstractSystemMatrix& mat,
+                           escript::Data& rhs);
+
     /**
        \brief
        a wrapper for addToSystem that allows calling from Python

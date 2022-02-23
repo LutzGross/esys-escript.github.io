@@ -1435,165 +1435,173 @@ void OxleyDomain::addToSystem(escript::AbstractSystemMatrix& mat,
         assemblePDE(&mat, rhs, coefs, assembler);
         assemblePDEBoundary(&mat, rhs, coefs, assembler);
         assemblePDEDirac(&mat, rhs, coefs, assembler);
-        
-        ////////////////////////////////////////////////
-
-        #ifdef OXLEY_PRINT_DEBUG_ADDTOSYSTEM
-            std::cout << "Before" << std::endl;
-            rhs.print();
-        #endif
-        
-        if(getNumHangingNodes() > 0)
-        {
-            using Teuchos::Array;
-            using Teuchos::ArrayView;
-            using Teuchos::ArrayRCP;
-            using Teuchos::arcp;
-            using Teuchos::RCP;
-            using Teuchos::rcp;
-            using Teuchos::tuple;
-            typedef Tpetra::Map<> map_type;
-            typedef Tpetra::Vector<>::scalar_type scalar_type;
-            typedef Tpetra::Vector<>::local_ordinal_type local_ordinal_type;
-            typedef Tpetra::Vector<>::global_ordinal_type global_ordinal_type;
-            typedef Tpetra::CrsMatrix<> crs_matrix_type;
-            Teuchos::oblackholestream blackhole;
-            const Tpetra::global_size_t tn = getNumNodes(); //Total number of nodes
-            const Tpetra::global_size_t nh = 0.5*getNumHangingNodes(); // Number of hanging nodes
-            const Tpetra::global_size_t nn = tn - nh; 
-            const global_ordinal_type indexBase = 0;
-            auto comm = esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm);
-            RCP<const map_type> izRowMap = rcp (new map_type(tn, indexBase, comm));
-            RCP<const map_type> izColMap = rcp (new map_type(nn, indexBase, comm));
-            RCP<const map_type> izRangeMap = rcp (new map_type(tn, indexBase, comm));
-            RCP<const map_type> izDomainMap = rcp (new map_type(nn, indexBase, comm));
-            RCP<crs_matrix_type> iz (new crs_matrix_type(izRowMap, izColMap, 4));
-            RCP<const map_type> zRowMap = rcp (new map_type(nh, indexBase, comm));
-            RCP<const map_type> zColMap = rcp (new map_type(nn, indexBase, comm));
-            RCP<const map_type> zRangeMap = rcp (new map_type(nh, indexBase, comm));
-            RCP<const map_type> zDomainMap = rcp (new map_type(nn, indexBase, comm));
-            RCP<crs_matrix_type> z (new crs_matrix_type(zRowMap, zColMap, 4));
-
-            /////////////////////////
-            // Fill in iz
-            /////////////////////////
-            // This is I
-            const scalar_type one = static_cast<scalar_type> (1.0);
-            const scalar_type half = static_cast<scalar_type> (0.5);
-            for (local_ordinal_type lclRow = 0; lclRow < static_cast<local_ordinal_type>(nn); ++lclRow) 
-            {
-                const global_ordinal_type gblRow = izRowMap->getGlobalElement(lclRow);
-                const global_ordinal_type gblCol = izColMap->getGlobalElement(lclRow);
-                iz->insertGlobalValues(gblRow,tuple<global_ordinal_type>(gblCol), tuple<scalar_type>(one));
-                #ifdef OXLEY_PRINT_DEBUG_IZ
-                    std::cout << "iz element: (" << gblRow << ", " << gblRow << ") = " << 1.0 << std::endl;
-                #endif
-            }
-
-            // This is Z
-            for(int i = 0; i < getNumHangingNodes(); i++)
-            {
-                int a = hanging_faces[i].first;
-                int b = hanging_faces[i].second;
-                if(a>getNumNodes())
-                {
-                    int c = a;
-                    a=b; 
-                    b=c;
-                }
-
-                #ifdef OXLEY_PRINT_DEBUG_IZ
-                    std::cout << "iz element: (" << a << ", " << b << ") = " << 0.5 << std::endl;
-                    std::cout << "Z  element: (" << a-nn << ", " << b << ") = " << 0.5 << std::endl;
-                #endif
-
-                const global_ordinal_type gblRowA = izRowMap->getGlobalElement(a);
-                const global_ordinal_type gblColB = izColMap->getGlobalElement(b);
-                iz->insertGlobalValues(gblRowA,tuple<global_ordinal_type>(gblColB),tuple<scalar_type> (half));
-                const global_ordinal_type gblRowAz = zRowMap->getGlobalElement(a-nn);
-                const global_ordinal_type gblColBz = zColMap->getGlobalElement(b);
-                z->insertGlobalValues(gblRowAz,tuple<global_ordinal_type>(gblColBz),tuple<scalar_type> (half));
-            }
-
-            // Tell the matrix that we are finished adding entries to it.
-            iz->fillComplete(izDomainMap,izRangeMap);
-            z->fillComplete(zDomainMap,zRangeMap);
-            // iz->fillComplete();
-
-            /////////////////////////
-            // Now do the multiplication
-            /////////////////////////
-
-            // LHS
-            //TODO
-            escript::AbstractSystemMatrix * pMat = &mat;
-            // if(rhs.isComplex())
-            // {
-                // esys_trilinos::CrsMatrixWrapper<cplx_t> * tm = dynamic_cast<esys_trilinos::CrsMatrixWrapper<cplx_t>*>(pMat);
-                // if (tm) {
-                //     tm->IztAIz(iz, numGblIndices, comm);
-                // }
-            // }
-            // else
-            // {
-                esys_trilinos::CrsMatrixWrapper<real_t> * cm = dynamic_cast<esys_trilinos::CrsMatrixWrapper<real_t>*>(pMat);
-                if(cm)
-                {
-                    cm->IztAIz(iz);
-                }
-            // }
-
-
-            // RHS
-            //recast rhs as a vector
-            // long ndp = rhs.getNumDataPoints();
-            RCP<const map_type> f_map = rcp(new map_type(nn, indexBase, comm));
-            RCP<const map_type> g_map = rcp(new map_type(nh, indexBase, comm));
-            //TODO replace these two vectors with a single Tpetra::MultiVector
-            
-            Tpetra::MultiVector<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> f(f_map,true);
-            Tpetra::MultiVector<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> g(g_map,true);
-            
-            // Copy the data
-            // vector f
-            #pragma omp parallel for
-            for(int i = 0; i < nn; i++)
-            {
-                const global_ordinal_type gblrow = i;
-                const double *value = rhs.getSampleDataRO(i);
-                f.replaceGlobalValue(gblrow,0,*value);
-            }
-            // vector g
-            #pragma omp parallel for
-            for(int i = nn; i < tn; i++)
-            {
-                const global_ordinal_type gblrow = i;
-                const double *value = rhs.getSampleDataRO(i);
-                g.replaceGlobalValue(gblrow,0,*value);
-            }
-
-            // multiplication using trilinos
-            z->apply(g,f,Teuchos::TRANS,one,one);
-
-            auto result_view = f.getLocalViewHost();
-            auto result_view_1d = Kokkos::subview(result_view, Kokkos::ALL(), 0);
-
-            // write the new vector back into rhs
-            #pragma omp parallel for
-            for(int i = 0; i < nn; i++)
-            {
-                escript::DataTypes::real_t* value = rhs.getSampleDataRW(i);
-                *value=result_view_1d(i);
-            }
-        }
-
-        #ifdef OXLEY_PRINT_DEBUG_ADDTOSYSTEM
-            std::cout << "After" << std::endl;
-            rhs.print();
-        #endif
-
     }
 
+
+void OxleyDomain::finalise(escript::AbstractSystemMatrix& mat,
+                           escript::Data& rhs)
+{
+    ////////////////////////////////////////////////
+
+    #ifdef OXLEY_PRINT_DEBUG_ADDTOSYSTEM
+        std::cout << "Before" << std::endl;
+        rhs.print();
+    #endif
+
+    if(getNumHangingNodes() > 0)
+    {
+        using Teuchos::Array;
+        using Teuchos::ArrayView;
+        using Teuchos::ArrayRCP;
+        using Teuchos::arcp;
+        using Teuchos::RCP;
+        using Teuchos::rcp;
+        using Teuchos::tuple;
+        typedef Tpetra::Map<> map_type;
+        typedef Tpetra::Vector<>::scalar_type scalar_type;
+        typedef Tpetra::Vector<>::local_ordinal_type local_ordinal_type;
+        typedef Tpetra::Vector<>::global_ordinal_type global_ordinal_type;
+        typedef Tpetra::CrsMatrix<> crs_matrix_type;
+        Teuchos::oblackholestream blackhole;
+        const Tpetra::global_size_t tn = getNumNodes(); //Total number of nodes
+        const Tpetra::global_size_t nh = 0.5*getNumHangingNodes(); // Number of hanging nodes
+        const Tpetra::global_size_t nn = tn - nh; 
+        const global_ordinal_type indexBase = 0;
+        auto comm = esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm);
+        RCP<const map_type> izRowMap = rcp (new map_type(tn, indexBase, comm));
+        RCP<const map_type> izColMap = rcp (new map_type(nn, indexBase, comm));
+        RCP<const map_type> izRangeMap = rcp (new map_type(tn, indexBase, comm));
+        RCP<const map_type> izDomainMap = rcp (new map_type(nn, indexBase, comm));
+        RCP<crs_matrix_type> iz (new crs_matrix_type(izRowMap, izColMap, 4));
+        RCP<const map_type> zRowMap = rcp (new map_type(nh, indexBase, comm));
+        RCP<const map_type> zColMap = rcp (new map_type(nn, indexBase, comm));
+        RCP<const map_type> zRangeMap = rcp (new map_type(nh, indexBase, comm));
+        RCP<const map_type> zDomainMap = rcp (new map_type(nn, indexBase, comm));
+        RCP<crs_matrix_type> z (new crs_matrix_type(zRowMap, zColMap, 4));
+
+        /////////////////////////
+        // Fill in iz
+        /////////////////////////
+        // This is I
+        const scalar_type one = static_cast<scalar_type> (1.0);
+        const scalar_type half = static_cast<scalar_type> (0.5);
+        for (local_ordinal_type lclRow = 0; lclRow < static_cast<local_ordinal_type>(nn); ++lclRow) 
+        {
+            const global_ordinal_type gblRow = izRowMap->getGlobalElement(lclRow);
+            const global_ordinal_type gblCol = izColMap->getGlobalElement(lclRow);
+            iz->insertGlobalValues(gblRow,tuple<global_ordinal_type>(gblCol), tuple<scalar_type>(one));
+            #ifdef OXLEY_PRINT_DEBUG_IZ
+                std::cout << "iz element: (" << gblRow << ", " << gblRow << ") = " << 1.0 << std::endl;
+            #endif
+        }
+
+        // This is Z
+        for(int i = 0; i < getNumHangingNodes(); i++)
+        {
+            int a = hanging_faces[i].first;
+            int b = hanging_faces[i].second;
+            if(a>getNumNodes())
+            {
+                int c = a;
+                a=b; 
+                b=c;
+            }
+
+            #ifdef OXLEY_PRINT_DEBUG_IZ
+                std::cout << "iz element: (" << a << ", " << b << ") = " << 0.5 << std::endl;
+                std::cout << "Z  element: (" << a-nn << ", " << b << ") = " << 0.5 << std::endl;
+            #endif
+
+            const global_ordinal_type gblRowA = izRowMap->getGlobalElement(a);
+            const global_ordinal_type gblColB = izColMap->getGlobalElement(b);
+            iz->insertGlobalValues(gblRowA,tuple<global_ordinal_type>(gblColB),tuple<scalar_type> (half));
+            const global_ordinal_type gblRowAz = zRowMap->getGlobalElement(a-nn);
+            const global_ordinal_type gblColBz = zColMap->getGlobalElement(b);
+            z->insertGlobalValues(gblRowAz,tuple<global_ordinal_type>(gblColBz),tuple<scalar_type> (half));
+        }
+
+        // Tell the matrix that we are finished adding entries to it.
+        iz->fillComplete(izDomainMap,izRangeMap);
+        z->fillComplete(zDomainMap,zRangeMap);
+        // iz->fillComplete();
+
+        /////////////////////////
+        // Now do the multiplication
+        /////////////////////////
+
+        // LHS
+        //TODO
+        escript::AbstractSystemMatrix * pMat = &mat;
+        // if(rhs.isComplex())
+        // {
+            // esys_trilinos::CrsMatrixWrapper<cplx_t> * tm = dynamic_cast<esys_trilinos::CrsMatrixWrapper<cplx_t>*>(pMat);
+            // if (tm) {
+            //     tm->IztAIz(iz, numGblIndices, comm);
+            // }
+        // }
+        // else
+        // {
+            esys_trilinos::CrsMatrixWrapper<real_t> * cm = dynamic_cast<esys_trilinos::CrsMatrixWrapper<real_t>*>(pMat);
+            if(cm)
+            {
+                cm->IztAIz(iz);
+            }
+        // }
+
+
+        // RHS
+        //recast rhs as a vector
+        // long ndp = rhs.getNumDataPoints();
+        RCP<const map_type> f_map = rcp(new map_type(nn, indexBase, comm));
+        RCP<const map_type> g_map = rcp(new map_type(nh, indexBase, comm));
+        //TODO replace these two vectors with a single Tpetra::MultiVector
+        
+        Tpetra::MultiVector<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> f(f_map,true);
+        Tpetra::MultiVector<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> g(g_map,true);
+        
+        // Copy the data
+        // vector f
+        #pragma omp parallel for
+        for(int i = 0; i < nn; i++)
+        {
+            const global_ordinal_type gblrow = i;
+            const double *value = rhs.getSampleDataRO(i);
+            f.replaceGlobalValue(gblrow,0,*value);
+        }
+        // vector g
+        #pragma omp parallel for
+        for(int i = nn; i < tn; i++)
+        {
+            const global_ordinal_type gblrow = i;
+            const double *value = rhs.getSampleDataRO(i);
+            g.replaceGlobalValue(gblrow,0,*value);
+        }
+
+        // multiplication using trilinos
+        z->apply(g,f,Teuchos::TRANS,one,one);
+
+        auto result_view = f.getLocalViewHost();
+        auto result_view_1d = Kokkos::subview(result_view, Kokkos::ALL(), 0);
+
+        // write the new vector back into rhs
+        #pragma omp parallel for
+        for(int i = 0; i < nn; i++)
+        {
+            escript::DataTypes::real_t* value = rhs.getSampleDataRW(i);
+            *value=result_view_1d(i);
+            #ifdef OXLEY_PRINT_DEBUG_IZ
+                std::cout << "rhs element: (" << i << ") = " << result_view_1d(i) << std::endl;
+            #endif
+        }
+        // rhs=rhs_tmp;
+    }
+
+    #ifdef OXLEY_PRINT_DEBUG_ADDTOSYSTEM
+        std::cout << "After" << std::endl;
+        // rhs_tmp.print();
+        rhs.print();
+    #endif
+}
 
 void OxleyDomain::addToSystemFromPython(escript::AbstractSystemMatrix& mat,
                                          escript::Data& rhs,

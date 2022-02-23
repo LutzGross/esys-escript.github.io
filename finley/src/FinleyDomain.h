@@ -685,6 +685,9 @@ public:
                      const escript::Data& d_dirac,
                      const escript::Data& y_dirac) const;
 
+    virtual void finalise(escript::AbstractSystemMatrix& mat,
+                           escript::Data& rhs);
+
     /**
      \brief
      adds a PDE onto the lumped stiffness matrix matrix

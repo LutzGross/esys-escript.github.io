@@ -425,7 +425,14 @@ args("arg"), "assigns new location to the domain\n\n"
         ":type arg: `Data`")
       .def("getNumDataPointsGlobal",&escript::AbstractContinuousDomain::getNumDataPointsGlobal,
         ":return: the number of data points summed across all MPI processes\n"
-        ":rtype: ``int``");
+        ":rtype: ``int``")
+      .def("finalise",&escript::AbstractContinuousDomain::finalise, args("mat", "rhs"),
+        "finalises the matrix system before it is passed to the solver\n\n"
+        ":param mat:\n"
+        ":type mat: ``AbstractSystemMatrix``\n"
+        ":param rhs:\n"
+        ":type rhs: ``Data``\n"
+        ":rtype ``AbstractSystemMatrix``");
 
 
 

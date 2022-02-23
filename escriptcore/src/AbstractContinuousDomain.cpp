@@ -155,6 +155,11 @@ void AbstractContinuousDomain::addPDEToSystem(
   return;
 }
 
+void AbstractContinuousDomain::finalise(AbstractSystemMatrix& mat, escript::Data& rhs) const
+{
+  
+}
+
 void AbstractContinuousDomain::addPDEToRHS(escript::Data& rhs,
                      const escript::Data& X, const escript::Data& Y,
                      const escript::Data& y, const escript::Data& y_contact, const escript::Data& y_dirac) const

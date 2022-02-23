@@ -1169,6 +1169,12 @@ void FinleyDomain::addPDEToSystem(
 #endif
 }
 
+void FinleyDomain::finalise(escript::AbstractSystemMatrix& mat,
+                           escript::Data& rhs)
+{
+    
+}
+
 void FinleyDomain::addPDEToLumpedSystem(escript::Data& mat,
                                         const escript::Data& D,
                                         const escript::Data& d,
