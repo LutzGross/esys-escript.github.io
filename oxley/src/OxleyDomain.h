@@ -562,8 +562,14 @@ public:
       \brief
       finalises the matrix system
    */
-    virtual void finalise(escript::AbstractSystemMatrix& mat,
-                           escript::Data& rhs);
+   
+   Teuchos::RCP<Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> getZ();
+   Teuchos::RCP<Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> getIZ();
+   void finaliseA(escript::AbstractSystemMatrix& mat,
+                  Teuchos::RCP<Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> iz);
+   void finaliseRhs(escript::Data& rhs,
+                  Teuchos::RCP<Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> z);
+
 
     /**
        \brief

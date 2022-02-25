@@ -155,10 +155,39 @@ void AbstractContinuousDomain::addPDEToSystem(
   return;
 }
 
-void AbstractContinuousDomain::finalise(AbstractSystemMatrix& mat, escript::Data& rhs) const
+#ifdef ESYS_HAVE_TRILINOS
+
+Teuchos::RCP<Tpetra::CrsMatrix<DataTypes::cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> AbstractContinuousDomain::getZ() const
 {
   
 }
+
+Teuchos::RCP<Tpetra::CrsMatrix<DataTypes::cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> AbstractContinuousDomain::getIZ() const
+{
+  
+}
+
+// void AbstractContinuousDomain::finalise(AbstractSystemMatrix& mat, 
+//                            escript::Data& rhs,
+//                            Teuchos::RCP<Tpetra::CrsMatrix<DataTypes::real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> z,
+//                            Teuchos::RCP<Tpetra::CrsMatrix<DataTypes::real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> iz) const
+// {
+  
+// }
+
+void AbstractContinuousDomain::finaliseA(AbstractSystemMatrix& mat, 
+                        Teuchos::RCP<Tpetra::CrsMatrix<DataTypes::cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> iz) const
+{
+
+}
+
+void AbstractContinuousDomain::finaliseRhs(escript::Data& rhs,
+                        Teuchos::RCP<Tpetra::CrsMatrix<DataTypes::cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> z) const
+{
+
+}
+
+#endif
 
 void AbstractContinuousDomain::addPDEToRHS(escript::Data& rhs,
                      const escript::Data& X, const escript::Data& Y,

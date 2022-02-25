@@ -490,6 +490,8 @@ class LinearProblem(object):
      self.have_oxley=False
      if domain.getDescription() == 'oxley::rectangle' or domain.getDescription() == 'oxley::brick':
        self.have_oxley=True
+     self.domain_z=""
+     self.domain_iz=""
      self.setSolverOptions()
      self.setSymmetryOff()
      # Set on lumping if we are using Speckley
@@ -1344,7 +1346,9 @@ class LinearProblem(object):
        Returns the solution in its current state.
        """
        if self.hasOxley():
-          self.getDomain().finalise(self.getCurrentOperator(),self.getCurrentRightHandSide())
+          self.domain_z=self.getDomain().getZ()
+          self.domain_iz=self.getDomain().getIZ()
+          self.getDomain().finalise(self.getCurrentOperator(),self.getCurrentRightHandSide(),self.domain_z,self.domain_iz)
        if self.__solution.isEmpty(): 
           self.__solution=self.createSolution()
        if self.hasOxley():
