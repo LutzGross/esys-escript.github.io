@@ -34,6 +34,7 @@
 #include <trilinoswrap/types.h>
 #include <Teuchos_Comm.hpp>
 #include <Tpetra_CrsMatrix_decl.hpp>
+#include <PyTrilinos_Tpetra_Util.hpp>
 #endif
 
 namespace bp = boost::python;
@@ -1481,7 +1482,8 @@ Teuchos::RCP<Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_t
 
     // Tell the matrix that we are finished adding entries to it.
     z->fillComplete(zDomainMap,zRangeMap);
-    return z;
+    // boost::python::object zmat = z;
+    // return zmat;
 }
 
 Teuchos::RCP<Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> OxleyDomain::getIZ()
@@ -1543,7 +1545,8 @@ Teuchos::RCP<Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_t
 
     // Tell the matrix that we are finished adding entries to it.
     iz->fillComplete(izDomainMap,izRangeMap);
-    return iz;
+    // boost::python::object izmat = iz;
+    // return izmat;
 }   
 
 void OxleyDomain::finaliseA(escript::AbstractSystemMatrix& mat,

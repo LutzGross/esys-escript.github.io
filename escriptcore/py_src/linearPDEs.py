@@ -48,6 +48,13 @@ from . import util
 import math
 import numpy
 
+try:
+    from PyTrilinos import Teuchos
+    HAVE_PYTRILINOS=True
+except:
+    HAVE_PYTRILINOS=False
+
+
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
 SolverOptions = escore.SolverOptions

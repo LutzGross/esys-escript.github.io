@@ -306,11 +306,8 @@ def checkBoost(env):
 
             # Locate the boost numpy files
             if env['IS_WINDOWS']:
-                raise Exception # TODO: fix boost numpy dll ex/import compile errors
-                import sys
-                for l in os.listdir(env['boost_prefix'] + '\\lib'):
-                    if l.startswith('boost_numpy{}{}'.format(sys.version_info.major,sys.version_info.minor)):
-                        libname = os.path.splitext(l)[0]
+                # windows scons template adds boost_numpy to boost_libs
+                env.Append(CPPDEFINES=['ESYS_HAVE_BOOST_NUMPY'])
             else:
                 p = subprocess.Popen(["ld","--verbose"], stdout=subprocess.PIPE)
                 out,err = p.communicate()
@@ -332,39 +329,34 @@ def checkBoost(env):
                         p3res = ''
                         for x in l:
                             if isinstance(x,string_type):
-                                if x.startswith('libboost_numpy-py') and x.endswith('.so'):
+                                if x.startswith('libboost_numpy') and x.endswith('.so'):
                                     p2res = x
-                                if x.startswith('libboost_numpy-py3') and x.endswith('.so'):
+                                if x.startswith('libboost_numpy3') and x.endswith('.so'):
                                     p3res = x
                             else:
-                                if x.startswith(b'libboost_numpy-py') and x.endswith(b'.so'):
+                                if x.startswith(b'libboost_numpy') and x.endswith(b'.so'):
                                     p2res = x
-                                if x.startswith(b'libboost_numpy-py3') and x.endswith(b'.so'):
+                                if x.startswith(b'libboost_numpy3') and x.endswith(b'.so'):
                                     p3res = x
-
-                        if len(p2name)==0 and len(p2res)>0:
-                            p2name=p2res[-1]
-                        if len(p3name)==0 and len(p3res)>0:
-                            p3name=p3res[-1]
                     except OSError:
                         pass
 
                 # Pick the right one
                 if int(env['python_version'][0]) == 2:
-                    libname = p2name[3:-3]
+                    libname = p2res[3:-3]
                 else:
-                    libname = p3name[3:-3]
+                    libname = p3res[3:-3]
 
-            # If found, add the necessary information to env
-            if len(libname) > 0:
-                env.AppendUnique(LIBS = libname)
-                tmp=env['boost_libs']
-                env['boost_libs']=[tmp,libname]
-                env.AppendUnique(CPPPATH = [boost_numpy_inc_path])
-                env.AppendUnique(LIBPATH = [boost_numpy_lib_path])
-                env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], boost_numpy_lib_path)
-                env.Append(CPPDEFINES=['ESYS_HAVE_BOOST_NUMPY'])
-                env['have_boost_numpy']=True
+                # If found, add the necessary information to env
+                if len(libname) > 0:
+                    env.AppendUnique(LIBS = libname)
+                    tmp=env['boost_libs']
+                    env['boost_libs']=[tmp,libname]
+                    env.AppendUnique(CPPPATH = [boost_numpy_inc_path])
+                    env.AppendUnique(LIBPATH = [boost_numpy_lib_path])
+                    env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], boost_numpy_lib_path)
+                    env.Append(CPPDEFINES=['ESYS_HAVE_BOOST_NUMPY'])
+                    env['have_boost_numpy']=True
 
             print("Found boost/python/numpy.hpp. Building with boost numpy support.")
         except:
@@ -385,11 +377,26 @@ def checkNumpy(env):
 
     ## check for numpy header (optional)
     conf = Configure(env.Clone())
+    numpy_h = False
     if conf.CheckCXXHeader(['Python.h','numpy/ndarrayobject.h']):
-        conf.env.Append(CPPDEFINES = ['ESYS_HAVE_NUMPY_H'])
-        conf.env['numpy_h']=True
+        numpy_h = True
     else:
-        conf.env['numpy_h']=False
+        conda_prefix = os.environ.get('CONDA_PREFIX')
+        if conda_prefix:
+            # make a copy of CPPPATH so it can be restored if header check fails
+            cpp_path_old = conf.env.get('CPPPATH', []).copy()
+            conf.env.Append(CPPPATH = [conda_prefix+'/Lib/site-packages/numpy/core/include'])
+            if conf.CheckCXXHeader(['Python.h','numpy/ndarrayobject.h']):
+                numpy_h = True
+            else:
+                conf.env['CPPPATH'] = cpp_path_old
+
+    conf.env['numpy_h'] = numpy_h
+    if numpy_h:
+        conf.env.Append(CPPDEFINES = ['ESYS_HAVE_NUMPY_H'])
+
+    import numpy
+    conf.env.AppendUnique(CPPPATH=numpy.get_include())
 
     return conf.Finish()
 
@@ -478,7 +485,8 @@ def checkForTrilinos(env):
         'Teuchos_Comm.hpp', 'Tpetra_CrsMatrix_decl.hpp', \
         'Tpetra_BlockCrsMatrix_decl.hpp', \
         'Tpetra_CrsGraph.hpp','Tpetra_CrsMatrix.hpp', 'Tpetra_RowMatrix.hpp',\
-        'Tpetra_createDeepCopy_CrsMatrix.hpp', \
+        'Tpetra_createDeepCopy_CrsMatrix.hpp', 'PyTrilinos_Tpetra_Util.hpp', \
+        'numpy_include.hpp', \
         'Tpetra_Vector.hpp','Trilinos_version.h']
 
         print("Looking for the Trilinos headers...")
@@ -515,6 +523,14 @@ def checkForTrilinos(env):
             env.Append(CPPDEFINES = ['ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKV'])
         else:
             raise RuntimeError('Could not locate the Trilinos BlockVector header')
+
+        pytri_path=trilinos_lib_path+'/python'+str(sys.version_info[0])+'.'+str(sys.version_info[1])+'/site-packages/PyTrilinos'
+        pytri_test_file=os.path.join(pytri_path,'Tpetra.pyc')
+        if os.path.isfile(pytri_test_file):
+            env.Append(PYTHONPATH=pytri_path)
+        paths=sys.path
+        for i in range(0,paths.__len__()):
+            env.Append(PYTHONPATH=paths[i])
 
         # Try to extract the trilinos version from Trilinos_version.h
         versionh=open(os.path.join(trilinos_inc_path, 'Trilinos_version.h'))
