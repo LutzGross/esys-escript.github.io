@@ -35,6 +35,9 @@
 #include <boost/python/numpy.hpp>
 #endif
 
+#include <boost/python/tuple.hpp>
+#include <boost/python/to_python_converter.hpp>
+
 #ifdef ESYS_HAVE_TRILINOS
 #include <trilinoswrap/types.h>
 #endif
@@ -94,6 +97,35 @@ struct DiracPoint
     dim_t node;
     int tag;
 };
+
+/**
+  \brief
+  A struct used by boost to convert Teuchos RCP arrays to numpy arrays
+*/
+// struct convert_Teuchos_RCP_to_Python_tuple
+// {
+//     typedef Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> crs_matrix_type;
+//     static PyObject* convert(Teuchos::RCP<crs_matrix_type> A)
+//     {
+//         // Set up the view
+//         Teuchos::ArrayView<const esys_trilinos::GO> value_view;
+//         Teuchos::ArrayView<const cplx_t> column_view; 
+//         A->getGlobalRowView(0,value_view,column_view);
+//         // auto value_view_1d  = Kokkos::subview(value_view, Kokkos::ALL(), 0);
+//         // auto column_view_1d = Kokkos::subview(column_view, Kokkos::ALL(), 0);
+
+//         // Write in the values
+//         boost::python::list new_array;
+//         for(int row = 0; row < value_view.getNumRows(); row++)
+//         {
+//             boost::python::tuple data = boost::python::make_tuple(row,column_view[row],value_view[row]);
+//             new_array.append(data);
+//         }
+
+//         // return boost::python::make_tuple(true, boost::python::handle<>(new_array));
+//         return boost::python::make_tuple(true, boost::python::handle<>(new_array));
+//     }
+// };
 
 /*
 This class is the parent of Oxley Rectangle and Brick
@@ -563,8 +595,10 @@ public:
       finalises the matrix system
    */
    
-   Teuchos::RCP<Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> getZ();
-   Teuchos::RCP<Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> getIZ();
+   void makeZ();
+   void makeIZ();
+   Teuchos::RCP<Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> * getZ();
+   Teuchos::RCP<Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> * getIZ();
    void finaliseA(escript::AbstractSystemMatrix& mat,
                   Teuchos::RCP<Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> iz);
    void finaliseRhs(escript::Data& rhs,
@@ -725,6 +759,13 @@ public:
     /// stores the hanging node information
     std::vector<LongPair> hanging_faces; 
 
+    // Converter used by Boost
+    // Converts the Teuchos CRS matrix to a boost::numpy array
+    typedef Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> crs_matrix_type;
+
+    Teuchos::RCP<Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> * pZ;
+    Teuchos::RCP<Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> * pIZ;
+
 protected:
 
     // element order
@@ -760,6 +801,8 @@ protected:
 
     /// returns the number of face elements on current MPI rank
     virtual dim_t getNumFaceElements() const = 0;
+
+    virtual boost::python::numpy::ndarray getNumpyX() const;
 
     // Tagmap
     TagMap m_tagMap;

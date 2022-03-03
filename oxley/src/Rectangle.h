@@ -256,7 +256,7 @@ public:
 
     // These functions are used internally and are not exposed to python
     p4est_t * borrow_p4est() { return p4est;};
-    // p4estData * borrow_forestData() { return forestData;};
+    p4estData * borrow_forestData() { return &forestData;};
     p4est_connectivity_t * borrow_connectivity()  { return connectivity; };
     void * borrow_temp_data() { return temp_data; };
     void set_temp_data(addSurfaceData * x) { temp_data = x; };

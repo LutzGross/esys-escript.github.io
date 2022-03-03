@@ -225,7 +225,7 @@ public:
     // These functions are used internally
     p8est_t * borrow_p4est() const { return p8est;};
 
-    // p8estData * borrow_forestData() { return forestData;};
+    p8estData * borrow_forestData() { return &forestData;};
 
     p8est_connectivity_t * borrow_connectivity() const { return connectivity; };
 

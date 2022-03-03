@@ -209,7 +209,7 @@ namespace escript {
       using namespace std;
       
       ESYS_ASSERT(data != 0, "Error - data is null");
-      ESYS_ASSERT(data.size() > 0,"Error - Data object is empty.");
+      // ESYS_ASSERT(data.size() > 0,"Error - Data object is empty.");
 
       switch (getRank(shape)) {
       case 0:
@@ -264,7 +264,7 @@ namespace escript {
 
       
       ESYS_ASSERT(data != 0, "Error - data is null");
-      ESYS_ASSERT(data.size() > 0,"Error - Data object is empty.");
+      // ESYS_ASSERT(data.size() > 0,"Error - Data object is empty.");
 
       switch (getRank(shape)) {
       case 0:
@@ -317,11 +317,11 @@ namespace escript {
       using namespace std;
 
       ESYS_ASSERT(data != 0, "Error - data is null");
-      ESYS_ASSERT(data.size() > 0,"Error - Data object is empty.");
+      // ESYS_ASSERT(data.size() > 0,"Error - Data object is empty.");
 
       switch (getRank(shape)) {
       case 0:
-         dataArray[d] = data[offset];
+         dataArray[0][index] = data[offset];
          break;
       case 1:
          for (int i = 0; i < shape[0]; i++) {
@@ -371,7 +371,7 @@ namespace escript {
       using namespace std;
       
       ESYS_ASSERT(data != 0, "Error - data is null");
-      ESYS_ASSERT(data.size() > 0,"Error - Data object is empty.");
+      // ESYS_ASSERT(data.size() > 0,"Error - Data object is empty.");
 
       switch (getRank(shape)) {
       case 0:
