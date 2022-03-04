@@ -1372,7 +1372,6 @@ void Rectangle::renumberNodes()
             {
                 double xy[3];
                 p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy);
-                int nodeid = NormalNodes.size()+HangingNodes.size();
                 auto tmp = std::make_pair(xy[0],xy[1]);
 
                 if(hanging[n]!=-1)

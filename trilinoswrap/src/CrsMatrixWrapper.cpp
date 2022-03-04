@@ -282,7 +282,7 @@ void CrsMatrixWrapper<ST>::resetValues(bool preserveSolverData)
 }
 
 template<typename ST>
-void CrsMatrixWrapper<ST>::IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT>>& iz) 
+void CrsMatrixWrapper<ST>::IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT>> iz) 
 {
     mat.resumeFill();
     
@@ -299,4 +299,6 @@ template class CrsMatrixWrapper<real_t>;
 template class CrsMatrixWrapper<cplx_t>;
 
 }  // end of namespace
+
+
 

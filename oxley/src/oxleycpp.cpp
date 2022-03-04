@@ -436,8 +436,6 @@ BOOST_PYTHON_MODULE(oxleycpp)
             ":param preconditioner:\n:type preconditioner: ``int``\n"
             ":param package:\n:type package: ``int``\n"
             ":param symmetry:\n:type symmetry: ``int``")
-        // .def("getZ",&oxley::OxleyDomain::getZ, ":returns a pointer to Z\n\n")
-        // .def("getIZ",&oxley::OxleyDomain::getIZ, ":returns a pointer to Z\n\n")
         .def("getX",&oxley::OxleyDomain::getX, ":return: locations in the FEM nodes\n\n"
             ":rtype: `Data`")
         .def("newOperator",&oxley::OxleyDomain::newSystemMatrix,

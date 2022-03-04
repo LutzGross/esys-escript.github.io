@@ -70,7 +70,7 @@ public:
     void saveMM(const std::string& filename) const;
 
     // Used by Oxley
-    void IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT>>& IZ);
+    void IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT>> IZ);
 
 protected:
     Matrix mat;
@@ -84,4 +84,3 @@ protected:
 } // namespace esys_trilinos
 
 #endif // __ESYS_TRILINOS_CRSMATRIXWRAPPER_H__
-

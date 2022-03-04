@@ -1450,7 +1450,8 @@ void OxleyDomain::makeZ()
         const esys_trilinos::GO indexBase = 0;
 
         auto comm = esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm);
-        const cplx_t half = static_cast<cplx_t> (0.5,0);
+        cplx_t tmp_num(0.5,0);
+        const cplx_t half = static_cast<cplx_t> (tmp_num);
 
         Teuchos::RCP<const Tpetra::Map<>> zRowMap    = Teuchos::rcp (new Tpetra::Map<>(nh, indexBase, comm));
         Teuchos::RCP<const Tpetra::Map<>> zColMap    = Teuchos::rcp (new Tpetra::Map<>(nn, indexBase, comm));
@@ -1556,8 +1557,7 @@ Teuchos::RCP<Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_t
     return pIZ;
 }
 
-void OxleyDomain::finaliseA(escript::AbstractSystemMatrix& mat,
-                           Teuchos::RCP<Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> iz)
+void OxleyDomain::finaliseA(escript::AbstractSystemMatrix& mat)
     {
         ////////////////////////////////////////////////
         if(getNumHangingNodes() > 0)
@@ -1566,16 +1566,13 @@ void OxleyDomain::finaliseA(escript::AbstractSystemMatrix& mat,
             esys_trilinos::CrsMatrixWrapper<cplx_t> * cm = dynamic_cast<esys_trilinos::CrsMatrixWrapper<cplx_t>*>(pMat);
             if(cm)
             {
-                cm->IztAIz(iz);
+                cm->IztAIz(*pIZ);
             }
         }
     }
 
-void OxleyDomain::finaliseRhs(escript::Data& rhs,
-                           Teuchos::RCP<Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> z)
+void OxleyDomain::finaliseRhs(escript::Data& rhs)
     {
-        ////////////////////////////////////////////////
-
         #ifdef OXLEY_PRINT_DEBUG_ADDTOSYSTEM
             std::cout << "Before" << std::endl;
             rhs.print();
@@ -1635,8 +1632,12 @@ void OxleyDomain::finaliseRhs(escript::Data& rhs,
             }
 
             // multiplication using trilinos
+
+            Teuchos::RCP<Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> Z;
+            Z = *pZ;
+
             const scalar_type one = static_cast<scalar_type> (1.0);
-            z->apply(g,f,Teuchos::TRANS,one,one);
+            Z->apply(g,f,Teuchos::TRANS,one,one);
 
             auto result_view = f.getLocalViewHost();
             auto result_view_1d = Kokkos::subview(result_view, Kokkos::ALL(), 0);
