@@ -1354,9 +1354,10 @@ class LinearProblem(object):
        Returns the solution in its current state.
        """
        if self.hasOxley():
-          self.domain_z=self.getDomain().getZ()
-          self.domain_iz=self.getDomain().getIZ()
-          self.getDomain().finalise(self.getCurrentOperator(),self.getCurrentRightHandSide(),self.domain_z,self.domain_iz)
+          self.getDomain().makeZ()
+          self.getDomain().makeIZ()
+          self.getDomain().finaliseA(self.getCurrentOperator())
+          self.getDomain().finaliseRhs(self.getRightHandSide())
        if self.__solution.isEmpty(): 
           self.__solution=self.createSolution()
        if self.hasOxley():

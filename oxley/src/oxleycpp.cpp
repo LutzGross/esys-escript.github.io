@@ -438,6 +438,10 @@ BOOST_PYTHON_MODULE(oxleycpp)
             ":param symmetry:\n:type symmetry: ``int``")
         .def("getX",&oxley::OxleyDomain::getX, ":return: locations in the FEM nodes\n\n"
             ":rtype: `Data`")
+        .def("makeZ",&oxley::OxleyDomain::makeZ, "creates the matrix Z")
+        .def("makeIZ",&oxley::OxleyDomain::makeZ, "creates the matrix IZ")
+        .def("finaliseA",&oxley::OxleyDomain::finaliseA, arg("mat"), "finalisesLHS")
+        .def("finaliseRhs",&oxley::OxleyDomain::finaliseRhs, arg("rhs"), "finalisesRHS")
         .def("newOperator",&oxley::OxleyDomain::newSystemMatrix,
             args("row_blocksize", "row_functionspace", "column_blocksize", "column_functionspace", "type"),
             "creates a SystemMatrixAdapter stiffness matrix and initializes it with zeros\n\n"
