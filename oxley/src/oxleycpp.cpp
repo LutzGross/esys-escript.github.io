@@ -439,7 +439,7 @@ BOOST_PYTHON_MODULE(oxleycpp)
         .def("getX",&oxley::OxleyDomain::getX, ":return: locations in the FEM nodes\n\n"
             ":rtype: `Data`")
         .def("makeZ",&oxley::OxleyDomain::makeZ, "creates the matrix Z")
-        .def("makeIZ",&oxley::OxleyDomain::makeZ, "creates the matrix IZ")
+        .def("makeIZ",&oxley::OxleyDomain::makeIZ, "creates the matrix IZ")
         .def("finaliseA",&oxley::OxleyDomain::finaliseA, arg("mat"), "finalisesLHS")
         .def("finaliseRhs",&oxley::OxleyDomain::finaliseRhs, arg("rhs"), "finalisesRHS")
         .def("newOperator",&oxley::OxleyDomain::newSystemMatrix,

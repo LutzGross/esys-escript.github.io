@@ -2227,6 +2227,7 @@ void Rectangle::updateRowsColumns()
     }
 
     // Hanging nodes
+    hanging_faces.clear();
     for(int i = 0; i < hanging_face_orientation.size(); i++)
     {
         // Get coordinates

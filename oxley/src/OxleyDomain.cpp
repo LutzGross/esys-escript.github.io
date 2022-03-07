@@ -1447,6 +1447,10 @@ void OxleyDomain::makeZ()
         const Tpetra::global_size_t nh = 0.5*getNumHangingNodes(); // Number of hanging nodes
         const Tpetra::global_size_t nn = tn - nh;
 
+        #ifdef OXLEY_PRINT_DEBUG_IZ
+            std::cout << "total nodes=" << tn << ", number hanging nodes=" << nh << std::endl;
+        #endif
+
         const esys_trilinos::GO indexBase = 0;
 
         auto comm = esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm);
@@ -1484,8 +1488,7 @@ void OxleyDomain::makeZ()
 
         // Tell the matrix that we are finished adding entries to it.
         z->fillComplete(zDomainMap,zRangeMap);
-        pZ=&z;
-        
+        pZ=&z;        
     }
 
 void OxleyDomain::makeIZ()
@@ -1493,6 +1496,11 @@ void OxleyDomain::makeIZ()
         const Tpetra::global_size_t tn = getNumNodes(); //Total number of nodes
         const Tpetra::global_size_t nh = 0.5*getNumHangingNodes(); // Number of hanging nodes
         const Tpetra::global_size_t nn = tn - nh;
+
+        #ifdef OXLEY_PRINT_DEBUG_IZ
+            std::cout << "total nodes=" << tn << ", number hanging nodes=" << nh << std::endl;
+        #endif
+            
         const esys_trilinos::GO indexBase = 0;
         auto comm = esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm);
 
@@ -1633,8 +1641,8 @@ void OxleyDomain::finaliseRhs(escript::Data& rhs)
 
             // multiplication using trilinos
 
-            Teuchos::RCP<Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> Z;
-            Z = *pZ;
+            Teuchos::RCP<Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> Z(*pZ);
+            // Z = *pZ;
 
             const scalar_type one = static_cast<scalar_type> (1.0);
             Z->apply(g,f,Teuchos::TRANS,one,one);

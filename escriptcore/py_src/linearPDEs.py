@@ -1356,8 +1356,8 @@ class LinearProblem(object):
        if self.hasOxley():
           self.getDomain().makeZ()
           self.getDomain().makeIZ()
-          self.getDomain().finaliseA(self.getCurrentOperator())
-          self.getDomain().finaliseRhs(self.getRightHandSide())
+          # self.getDomain().finaliseA(self.getCurrentOperator())
+          # self.getDomain().finaliseRhs(self.getRightHandSide())
        if self.__solution.isEmpty(): 
           self.__solution=self.createSolution()
        if self.hasOxley():
