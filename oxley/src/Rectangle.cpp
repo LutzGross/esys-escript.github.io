@@ -875,6 +875,9 @@ void Rectangle::writeToVTK(std::string filename, bool writeMesh) const
 
 void Rectangle::refineMesh(std::string algorithmname)
 {
+    z_needs_update=true;
+    iz_needs_update=true;
+
     forestData.current_solution = &current_solution;    
     forestData.NodeIDs = &NodeIDs;
 
@@ -929,6 +932,9 @@ void Rectangle::refineMesh(std::string algorithmname)
 
 void Rectangle::refineBoundary(std::string boundaryname, double dx)
 {
+    z_needs_update=true;
+    iz_needs_update=true;
+
     forestData.refinement_depth = dx;
 
     if(!boundaryname.compare("top") || !boundaryname.compare("Top")
@@ -988,6 +994,9 @@ void Rectangle::refineBoundary(std::string boundaryname, double dx)
 
 void Rectangle::refineRegion(double x0, double x1, double y0, double y1)
 {
+    z_needs_update=true;
+    iz_needs_update=true;
+
     // If the boundaries were not specified by the user, default to the border of the domain
     forestData.refinement_boundaries[0] = x0 == -1 ? forestData.m_origin[0] : x0; 
     forestData.refinement_boundaries[1] = x1 == -1 ? forestData.m_origin[1] : x1;
@@ -1022,6 +1031,9 @@ void Rectangle::refineRegion(double x0, double x1, double y0, double y1)
 
 void Rectangle::refinePoint(double x0, double y0)
 {
+    z_needs_update=true;
+    iz_needs_update=true;
+
     // Check that the point is inside the domain
     if(x0 < forestData.m_origin[0] || x0 > forestData.m_lxy[0] 
         || y0 < forestData.m_origin[1] || y0 > forestData.m_lxy[1] )
@@ -1060,6 +1072,9 @@ void Rectangle::refinePoint(double x0, double y0)
 
 void Rectangle::refineCircle(double x0, double y0, double r)
 {
+    z_needs_update=true;
+    iz_needs_update=true;
+    
     // Check that the point is inside the domain
     if(x0 < forestData.m_origin[0] || x0 > forestData.m_lxy[0] 
         || y0 < forestData.m_origin[1] || y0 > forestData.m_lxy[1] )
