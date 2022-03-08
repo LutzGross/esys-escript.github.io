@@ -1655,11 +1655,10 @@ void OxleyDomain::finaliseRhs(escript::Data& rhs)
             }
             
 
-            // multiplication using trilinos
-
             Teuchos::RCP<Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> Z(*pZ);
             Z->fillComplete();
 
+            // multiplication using trilinos
             const scalar_type one = static_cast<scalar_type> (1.0);
             Z->apply(g,f,Teuchos::TRANS,one,one);
 
@@ -1668,6 +1667,7 @@ void OxleyDomain::finaliseRhs(escript::Data& rhs)
 
             // write the new vector back into rhs
             escript::DataTypes::cplx_t dummy;
+            rhs.requireWrite();
             #pragma omp parallel for
             for(int i = 0; i < nn; i++)
             {
