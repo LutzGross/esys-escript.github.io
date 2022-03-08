@@ -119,19 +119,19 @@ class Test_LinearPDEOnOxleyRect_Point(Test_LinearPDE, Test_LameEquation, Test_He
     def tearDown(self):
         del self.domain
 
-# class Test_LinearPDEOnOxleyRect_Boundary(Test_LinearPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping, Test_pdetools, Test_assemblage_2Do1):
-#     RES_TOL=1.e-7
-#     ABS_TOL=1.e-8
-#     def setUp(self):
-#         for x in [int(sqrt(mpiSize)),2,3,5,7,1]:
-#             NX=x
-#             NY=mpiSize//x
-#             if NX*NY == mpiSize:
-#                 break
-#         self.domain=test_Rectangle_refine_Boundary(n0=20, n1=20, l0=10., l1=10., d0=1, d1=1)
-#         self.order = 1
-#     def tearDown(self):
-#         del self.domain
+class Test_LinearPDEOnOxleyRect_Boundary(Test_LinearPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping, Test_pdetools, Test_assemblage_2Do1):
+    RES_TOL=1.e-7
+    ABS_TOL=1.e-8
+    def setUp(self):
+        for x in [int(sqrt(mpiSize)),2,3,5,7,1]:
+            NX=x
+            NY=mpiSize//x
+            if NX*NY == mpiSize:
+                break
+        self.domain=test_Rectangle_refine_Boundary(n0=NE*NX-1, n1=NE*NY-1, l0=10., l1=10., d0=NX, d1=NY)
+        self.order = 1
+    def tearDown(self):
+        del self.domain
 
 class Test_LinearPDEOnOxleyRect_Region(Test_LinearPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping, Test_pdetools, Test_assemblage_2Do1):
     RES_TOL=1.e-7
