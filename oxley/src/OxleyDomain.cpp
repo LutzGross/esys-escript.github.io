@@ -1433,8 +1433,7 @@ void OxleyDomain::addToSystem(escript::AbstractSystemMatrix& mat,
                            Assembler_ptr assembler) const
     {
         if (isNotEmpty("d_contact", coefs) || isNotEmpty("y_contact", coefs))
-            throw ValueError(
-                        "addToSystem: Oxley does not support contact elements");
+            throw ValueError("addToSystem: Oxley does not support contact elements");
 
         assemblePDE(&mat, rhs, coefs, assembler);
         assemblePDEBoundary(&mat, rhs, coefs, assembler);
@@ -1602,41 +1601,21 @@ void OxleyDomain::finaliseRhs(escript::Data& rhs)
 
         if(getNumHangingNodes() > 0)
         {
-            using Teuchos::Array;
-            using Teuchos::ArrayView;
-            using Teuchos::ArrayRCP;
-            using Teuchos::arcp;
-            using Teuchos::RCP;
-            using Teuchos::rcp;
-            using Teuchos::tuple;
             typedef Tpetra::Map<> map_type;
             typedef Tpetra::Vector<>::scalar_type scalar_type;
-            // typedef Tpetra::Vector<>::local_ordinal_type local_ordinal_type;
             typedef Tpetra::Vector<>::global_ordinal_type global_ordinal_type;
-            // typedef Tpetra::CrsMatrix<> crs_matrix_type;
+            
             const Tpetra::global_size_t tn = getNumNodes(); //Total number of nodes
             const Tpetra::global_size_t nh = 0.5*getNumHangingNodes(); // Number of hanging nodes
             const Tpetra::global_size_t nn = tn - nh;
             const global_ordinal_type indexBase = 0;
             auto comm = esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm);
             
-
-            /////////////////////////
-            // Now do the multiplication
-            /////////////////////////
-
-            // RHS
             //recast rhs as a vector
-            // long ndp = rhs.getNumDataPoints();
-            RCP<const map_type> f_map = rcp(new map_type(nn, indexBase, comm));
-            RCP<const map_type> g_map = rcp(new map_type(nh, indexBase, comm));
-            //TODO replace these two vectors with a single Tpetra::MultiVector
-            
+            Teuchos::RCP<const map_type> f_map = Teuchos::rcp(new map_type(nn, indexBase, comm));
+            Teuchos::RCP<const map_type> g_map = Teuchos::rcp(new map_type(nh, indexBase, comm));
             Tpetra::MultiVector<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> f(f_map,true);
             Tpetra::MultiVector<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> g(g_map,true);
-            
-            // Copy the data
-            // vector f
             #pragma omp parallel for
             for(int i = 0; i < nn; i++)
             {
@@ -1644,8 +1623,6 @@ void OxleyDomain::finaliseRhs(escript::Data& rhs)
                 const double *value = rhs.getSampleDataRO(i);
                 f.replaceGlobalValue(gblrow,0,*value);
             }
-            
-            // vector g
             #pragma omp parallel for
             for(int i = nn; i < tn; i++)
             {
@@ -1654,11 +1631,11 @@ void OxleyDomain::finaliseRhs(escript::Data& rhs)
                 g.replaceGlobalValue(gblrow,0,*value);
             }
             
-
+            // get Z
             Teuchos::RCP<Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> Z(*pZ);
             Z->fillComplete();
 
-            // multiplication using trilinos
+            // do the multiplication
             const scalar_type one = static_cast<scalar_type> (1.0);
             Z->apply(g,f,Teuchos::TRANS,one,one);
 

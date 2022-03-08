@@ -1685,7 +1685,7 @@ void Rectangle::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Dat
     p4est_qcoord_t l = P4EST_QUADRANT_LEN(quad->level);
     int lxy[4][2] = {{0,0},{l,0},{0,l},{l,l}};
 
-// #pragma omp for
+#pragma omp for
     for(int i = 0; i < 4; i++)
     {
         double xy[3];

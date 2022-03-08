@@ -476,6 +476,11 @@ class LinearProblem(object):
      self.__domain=domain
      self.domainSupportsAssemblers = hasattr(domain, "createAssembler")
      self.assembler = None
+     if domain.getDescription() == 'oxley::rectangle' or domain.getDescription() == 'oxley::brick':
+        self.have_oxley=True
+        # if isComplex==False:
+        #     warnings.warn("Oxley is switching to complex.", PendingDeprecationWarning, stacklevel=2)
+        #     self.__complex=True
      if self.domainSupportsAssemblers:
         options=[]
         if isComplex:
@@ -496,8 +501,6 @@ class LinearProblem(object):
      self.__solution_atol=1.e99
      # Record if we are using oxley
      self.have_oxley=False
-     if domain.getDescription() == 'oxley::rectangle' or domain.getDescription() == 'oxley::brick':
-       self.have_oxley=True
      self.domain_z=""
      self.domain_iz=""
      self.setSolverOptions()
@@ -1579,11 +1582,11 @@ class LinearProblem(object):
         :type data: `list`
         """
         self.getDomain().addToSystem(op, rhs, data, self.assembler)
-        if self.hasOxley():
-            self.getDomain().makeZ()
-            self.getDomain().makeIZ()
-            self.getDomain().finaliseA(op)
-            # self.getDomain().finaliseRhs(rhs)
+        # if self.hasOxley():
+        #     self.getDomain().makeZ()asdf
+        #     self.getDomain().makeIZ()
+        #     self.getDomain().finaliseA(op)
+        #     self.getDomain().finaliseRhs(rhs)
 
    def addPDEToLumpedSystem(self, operator, a, b, c, hrz_lumping):
         """
