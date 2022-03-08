@@ -1353,11 +1353,6 @@ class LinearProblem(object):
        """
        Returns the solution in its current state.
        """
-       if self.hasOxley():
-          self.getDomain().makeZ()
-          self.getDomain().makeIZ()
-          self.getDomain().finaliseA(self.getCurrentOperator())
-          self.getDomain().finaliseRhs(self.getRightHandSide())
        if self.__solution.isEmpty(): 
           self.__solution=self.createSolution()
        if self.hasOxley():
@@ -1584,6 +1579,11 @@ class LinearProblem(object):
         :type data: `list`
         """
         self.getDomain().addToSystem(op, rhs, data, self.assembler)
+        if self.hasOxley():
+            self.getDomain().makeZ()
+            self.getDomain().makeIZ()
+            self.getDomain().finaliseA(op)
+            # self.getDomain().finaliseRhs(rhs)
 
    def addPDEToLumpedSystem(self, operator, a, b, c, hrz_lumping):
         """
