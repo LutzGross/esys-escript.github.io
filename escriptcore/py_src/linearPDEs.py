@@ -1582,11 +1582,11 @@ class LinearProblem(object):
         :type data: `list`
         """
         self.getDomain().addToSystem(op, rhs, data, self.assembler)
-        # if self.hasOxley():
-        #     self.getDomain().makeZ()asdf
-        #     self.getDomain().makeIZ()
-        #     self.getDomain().finaliseA(op)
-        #     self.getDomain().finaliseRhs(rhs)
+        if self.hasOxley():
+            self.getDomain().makeZ()
+            self.getDomain().makeIZ()
+            self.getDomain().finaliseA(op,isComplex())
+            self.getDomain().finaliseRhs(rhs)
 
    def addPDEToLumpedSystem(self, operator, a, b, c, hrz_lumping):
         """

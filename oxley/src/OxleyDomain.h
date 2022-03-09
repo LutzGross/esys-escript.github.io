@@ -601,9 +601,15 @@ public:
    bool iz_needs_update=false;
    Teuchos::RCP<Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> * getZ();
    Teuchos::RCP<Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> * getIZ();
-   void finaliseA(escript::AbstractSystemMatrix& mat);
-   // void finaliseRhs(escript::Data& rhs);
+   
+   void finaliseA(escript::AbstractSystemMatrix& mat, bool isComplex);
+   template<typename S>
+   void finaliseAworker(escript::AbstractSystemMatrix& mat);
+   
+   
    void finaliseRhs(escript::Data& rhs);
+   template<typename S> 
+   void finaliseRhsworker(escript::Data& rhs);
 
 
     /**

@@ -440,7 +440,7 @@ BOOST_PYTHON_MODULE(oxleycpp)
             ":rtype: `Data`")
         .def("makeZ",&oxley::OxleyDomain::makeZ, "creates the matrix Z")
         .def("makeIZ",&oxley::OxleyDomain::makeIZ, "creates the matrix IZ")
-        .def("finaliseA",&oxley::OxleyDomain::finaliseA, arg("mat"), "finalisesLHS")
+        .def("finaliseA",&oxley::OxleyDomain::finaliseA, args("mat","isComplex"), "finalisesLHS")
         .def("finaliseRhs",&oxley::OxleyDomain::finaliseRhs, arg("rhs"), "finalisesRHS")
         .def("newOperator",&oxley::OxleyDomain::newSystemMatrix,
             args("row_blocksize", "row_functionspace", "column_blocksize", "column_functionspace", "type"),
