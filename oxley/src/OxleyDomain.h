@@ -595,21 +595,26 @@ public:
       finalises the matrix system
    */
    
-   void makeZ();
-   void makeIZ();
+   void makeZ(bool complex);
+   template<typename S> void makeZworker(const S half,Teuchos::RCP<Tpetra::CrsMatrix<S,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>>& Z);
+   void makeIZ(bool complex);
+   template<typename S> void makeIZworker(Teuchos::RCP<Tpetra::CrsMatrix<S,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> &Z);
+
    bool z_needs_update=false;
    bool iz_needs_update=false;
-   Teuchos::RCP<Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> * getZ();
-   Teuchos::RCP<Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> * getIZ();
+   // Teuchos::RCP<Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> * getZ(bool complex);
+   // Teuchos::RCP<Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> * getIZ(bool complex);
    
    void finaliseA(escript::AbstractSystemMatrix& mat, bool isComplex);
    template<typename S>
-   void finaliseAworker(escript::AbstractSystemMatrix& mat);
+   void finaliseAworker(escript::AbstractSystemMatrix& mat, 
+      Teuchos::RCP<Tpetra::CrsMatrix<S,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>>& Z);
    
    
    void finaliseRhs(escript::Data& rhs);
    template<typename S> 
-   void finaliseRhsworker(escript::Data& rhs);
+   void finaliseRhsworker(escript::Data& rhs, 
+      Teuchos::RCP<Tpetra::CrsMatrix<S,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>>& Z);
 
 
     /**
@@ -768,10 +773,29 @@ public:
 
     // Converter used by Boost
     // Converts the Teuchos CRS matrix to a boost::numpy array
-    typedef Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> crs_matrix_type;
+    // typedef Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> crs_matrix_type;
 
-    Teuchos::RCP<Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> * pZ;
-    Teuchos::RCP<Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> * pIZ;
+    void updateZ();
+    void updateIZ();
+
+    Teuchos::RCP<const Tpetra::Map<>> zRowMap;
+    Teuchos::RCP<const Tpetra::Map<>> zColMap;
+    Teuchos::RCP<const Tpetra::Map<>> zRangeMap;
+    Teuchos::RCP<const Tpetra::Map<>> zDomainMap;
+    Teuchos::RCP<const Tpetra::Map<>> izRowMap;
+    Teuchos::RCP<const Tpetra::Map<>> izColMap;
+    Teuchos::RCP<const Tpetra::Map<>> izRangeMap;
+    Teuchos::RCP<const Tpetra::Map<>> izDomainMap;
+    
+
+    Teuchos::RCP<Tpetra::CrsMatrix<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> rZ;
+    Teuchos::RCP<Tpetra::CrsMatrix<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> rIZ;
+    Teuchos::RCP<Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> cZ;
+    Teuchos::RCP<Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> cIZ;
+    // Teuchos::RCP<Tpetra::CrsMatrix<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> * pZ;
+    // Teuchos::RCP<Tpetra::CrsMatrix<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> * pIZ;
+    // Teuchos::RCP<Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> * cpZ;
+    // Teuchos::RCP<Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> * cpIZ;
 
 protected:
 
@@ -794,8 +818,8 @@ protected:
     IndexVector m_diracPointNodeIDs; //for borrowSampleID
 
     /// returns the number of nodes per MPI rank
-    virtual dim_t getNumNodes() const = 0;
-    virtual dim_t getNumHangingNodes() const = 0;
+    virtual dim_t getNumNodes() const;
+    virtual dim_t getNumHangingNodes() const;
 
     // /// returns the number of hanging nodes per MPI rank
     // virtual int getNumHangingNodes() const = 0;
