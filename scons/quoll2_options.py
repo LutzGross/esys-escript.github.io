@@ -9,3 +9,4 @@ debug=1
 cxx_extra+=" -O0 -p -pg "
 cxx_extra+=" -Wno-error=unused-variable -Wno-error=unused-but-set-variable"
 cxx_extra+=" -Wno-error=comment "
+werror=0
