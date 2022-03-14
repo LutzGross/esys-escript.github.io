@@ -486,8 +486,7 @@ def checkForTrilinos(env):
         'Teuchos_Comm.hpp', 'Tpetra_CrsMatrix_decl.hpp', \
         'Tpetra_BlockCrsMatrix_decl.hpp', \
         'Tpetra_CrsGraph.hpp','Tpetra_CrsMatrix.hpp', 'Tpetra_RowMatrix.hpp',\
-        'Tpetra_createDeepCopy_CrsMatrix.hpp', 'PyTrilinos_Tpetra_Util.hpp', \
-        'numpy_include.hpp', \
+        'Tpetra_createDeepCopy_CrsMatrix.hpp', 
         'Tpetra_Vector.hpp','Trilinos_version.h']
 
         print("Looking for the Trilinos headers...")
