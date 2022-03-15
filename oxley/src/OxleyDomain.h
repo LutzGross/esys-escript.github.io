@@ -833,7 +833,9 @@ protected:
     /// returns the number of face elements on current MPI rank
     virtual dim_t getNumFaceElements() const = 0;
 
-    virtual boost::python::numpy::ndarray getNumpyX() const;
+    #ifdef ESYS_HAVE_BOOST_NUMPY    
+      virtual boost::python::numpy::ndarray getNumpyX() const;
+    #endif
 
     // Tagmap
     TagMap m_tagMap;
