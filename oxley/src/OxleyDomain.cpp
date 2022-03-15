@@ -35,7 +35,7 @@
 #include <trilinoswrap/types.h>
 #include <Teuchos_Comm.hpp>
 #include <Tpetra_CrsMatrix_decl.hpp>
-#include <PyTrilinos_Tpetra_Util.hpp>
+// #include <PyTrilinos_Tpetra_Util.hpp>
 #endif
 
 namespace bp = boost::python;
@@ -100,6 +100,10 @@ namespace oxley {
         zDomainMap = Teuchos::rcp (new Tpetra::Map<>(nn, indexBase, comm));
         Teuchos::RCP<real_matrix_type> rZ (new real_matrix_type(zRowMap, zColMap, 4));
         Teuchos::RCP<cplx_matrix_type> cZ (new cplx_matrix_type(zRowMap, zColMap, 4));
+        Teuchos::RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
+        params->set("No Nonlocal Changes", true);
+        rZ->fillComplete(zDomainMap,zRangeMap,params);
+        cZ->fillComplete(zDomainMap,zRangeMap,params);
     }
 
     /**
@@ -126,6 +130,10 @@ namespace oxley {
         izDomainMap = Teuchos::rcp (new Tpetra::Map<>(nn, indexBase, comm));
         Teuchos::RCP<real_matrix_type> rIZ (new real_matrix_type(izRowMap, izColMap, 4));
         Teuchos::RCP<cplx_matrix_type> cIZ (new cplx_matrix_type(izRowMap, izColMap, 4));
+        Teuchos::RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
+        params->set("No Nonlocal Changes", true);
+        rIZ->fillComplete(izDomainMap,izRangeMap,params);
+        cIZ->fillComplete(izDomainMap,izRangeMap,params);
     }
 
     dim_t OxleyDomain::getNumNodes() const
@@ -1554,7 +1562,9 @@ void OxleyDomain::makeZworker(S half,Teuchos::RCP<Tpetra::CrsMatrix<S,esys_trili
         }
 
         // Tell the matrix that we are finished adding entries to it.
-        z->fillComplete(zDomainMap,zRangeMap);
+        Teuchos::RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
+        params->set("No Nonlocal Changes", false);
+        z->fillComplete(zDomainMap,zRangeMap,params);
         z_needs_update=false;
     }
 
@@ -1618,7 +1628,9 @@ void OxleyDomain::makeIZworker(Teuchos::RCP<Tpetra::CrsMatrix<S,esys_trilinos::L
         }
 
         // Tell the matrix that we are finished adding entries to it.
-        iz->fillComplete(izDomainMap,izRangeMap);
+        Teuchos::RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
+        params->set("No Nonlocal Changes", false);
+        iz->fillComplete(izDomainMap,izRangeMap,params);
         iz_needs_update=false;
     }
 
@@ -1726,7 +1738,9 @@ void OxleyDomain::finaliseRhsworker(escript::Data& rhs,
             
             // get Z
             // Teuchos::RCP<Tpetra::CrsMatrix<S,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> Z(*pZ);
-            Z->fillComplete();
+            Teuchos::RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
+            params->set("No Nonlocal Changes", false);
+            Z->fillComplete(zDomainMap,zRangeMap,params);
 
             // do the multiplication
             const scalar_type one = static_cast<scalar_type> (1.0);
