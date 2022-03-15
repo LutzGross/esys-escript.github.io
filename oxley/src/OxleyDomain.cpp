@@ -1951,6 +1951,12 @@ void OxleyDomain::assemblePDE(escript::AbstractSystemMatrix* mat,
             assembler->assemblePDESystem(mat, rhs, coefs);
         }
     }
+
+#ifdef ESYS_HAVE_TRILINOS
+    if (tm) {
+        tm->fillComplete(true);
+    }
+#endif
 }
 
 void OxleyDomain::assemblePDEDirac(escript::AbstractSystemMatrix* mat,
