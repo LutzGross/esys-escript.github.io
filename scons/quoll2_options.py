@@ -13,3 +13,4 @@ werror=0
 paso=0
 trilinos=1
 trilinos_prefix='/usr/local/trilinos_nompi/include'
+openmp=1
