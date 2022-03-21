@@ -86,18 +86,19 @@ namespace oxley {
         typedef Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> cplx_matrix_type;
 
         // Size information
-        const Tpetra::global_size_t tn = getNumNodes(); //Total number of nodes
-        const Tpetra::global_size_t nh = 0.5*getNumHangingNodes(); // Number of hanging nodes
-        const Tpetra::global_size_t nn = tn - nh;
+        const Tpetra::global_size_t t = getNumNodes(); //Total number of nodes
+        const Tpetra::global_size_t h = 0.5*getNumHangingNodes(); // Number of hanging nodes
+        const Tpetra::global_size_t n = t - h;
 
         // initialise other variables
         const esys_trilinos::GO indexBase = 0;
         auto comm = esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm);
         
-        zRowMap    = Teuchos::rcp (new Tpetra::Map<>(nh, indexBase, comm));
-        zColMap    = Teuchos::rcp (new Tpetra::Map<>(nn, indexBase, comm));
-        zRangeMap  = Teuchos::rcp (new Tpetra::Map<>(nh, indexBase, comm));
-        zDomainMap = Teuchos::rcp (new Tpetra::Map<>(nn, indexBase, comm));
+        zRowMap    = Teuchos::rcp (new Tpetra::Map<>(h, indexBase, comm));
+        zColMap    = Teuchos::rcp (new Tpetra::Map<>(h, indexBase, comm));
+        zRangeMap  = Teuchos::rcp (new Tpetra::Map<>(n, indexBase, comm));
+        zDomainMap = Teuchos::rcp (new Tpetra::Map<>(n, indexBase, comm));
+
         Teuchos::RCP<real_matrix_type> rZ (new real_matrix_type(zRowMap, zColMap, 4));
         Teuchos::RCP<cplx_matrix_type> cZ (new cplx_matrix_type(zRowMap, zColMap, 4));
         Teuchos::RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
@@ -116,18 +117,18 @@ namespace oxley {
         typedef Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> cplx_matrix_type;
 
         // Size information
-        const Tpetra::global_size_t tn = getNumNodes(); //Total number of nodes
-        const Tpetra::global_size_t nh = 0.5*getNumHangingNodes(); // Number of hanging nodes
-        const Tpetra::global_size_t nn = tn - nh;
+        const Tpetra::global_size_t t = getNumNodes(); //Total number of nodes
+        const Tpetra::global_size_t h = 0.5*getNumHangingNodes(); // Number of hanging nodes
+        const Tpetra::global_size_t n = t - h;
 
         // initialise other variables
         const esys_trilinos::GO indexBase = 0;
         auto comm = esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm);
         
-        izRowMap    = Teuchos::rcp (new Tpetra::Map<>(tn, indexBase, comm));
-        izColMap    = Teuchos::rcp (new Tpetra::Map<>(nn, indexBase, comm));
-        izRangeMap  = Teuchos::rcp (new Tpetra::Map<>(tn, indexBase, comm));
-        izDomainMap = Teuchos::rcp (new Tpetra::Map<>(nn, indexBase, comm));
+        izRowMap    = Teuchos::rcp (new Tpetra::Map<>(t, indexBase, comm));
+        izColMap    = Teuchos::rcp (new Tpetra::Map<>(t, indexBase, comm));
+        izRangeMap  = Teuchos::rcp (new Tpetra::Map<>(n, indexBase, comm));
+        izDomainMap = Teuchos::rcp (new Tpetra::Map<>(n, indexBase, comm));
         Teuchos::RCP<real_matrix_type> rIZ (new real_matrix_type(izRowMap, izColMap, 4));
         Teuchos::RCP<cplx_matrix_type> cIZ (new cplx_matrix_type(izRowMap, izColMap, 4));
         Teuchos::RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
