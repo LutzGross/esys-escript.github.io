@@ -775,6 +775,12 @@ public:
     // Converts the Teuchos CRS matrix to a boost::numpy array
     // typedef Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> crs_matrix_type;
 
+    typedef Tpetra::CrsMatrix<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> real_matrix_type;
+    typedef Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> cplx_matrix_type;
+    Teuchos::RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
+
+    void initZ();
+    void initIZ();
     void updateZ();
     void updateIZ();
 
@@ -787,6 +793,11 @@ public:
     Teuchos::RCP<const Tpetra::Map<>> izRangeMap;
     Teuchos::RCP<const Tpetra::Map<>> izDomainMap;
     
+    #ifdef ESYS_MPI
+    const Teuchos::RCP<const Teuchos::Comm<int>> tril_comm = esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm);
+    #else
+    const Teuchos::RCP<const Teuchos::Comm<int>> tril_comm = Teuchos::RCP<const Teuchos::SerialComm<int>>();
+    #endif
 
     Teuchos::RCP<Tpetra::CrsMatrix<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> rZ;
     Teuchos::RCP<Tpetra::CrsMatrix<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> rIZ;
@@ -867,6 +878,9 @@ protected:
     /// matrix
     esys_trilinos::const_TrilinosGraph_ptr createTrilinosGraph(
             const IndexVector& myRows,  const IndexVector& myColumns) const;
+
+    esys_trilinos::const_TrilinosGraph_ptr createTrilinosGraph(
+            const IndexVector& myRows,  const IndexVector& myColumns, dim_t dof, dim_t numRows, std::vector<IndexVector> connections) const;
 #endif
 
     /// returns occupied matrix column indices for all matrix rows

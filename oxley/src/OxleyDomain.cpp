@@ -72,69 +72,8 @@ namespace oxley {
 
         // Register the converter used by boost
         // boost::python::to_python_converter<Teuchos::RCP<crs_matrix_type>,convert_Teuchos_RCP_to_Python_tuple>();
-        // updateZ();
-        // updateIZ();
-    }
-
-    /**
-     * \brief
-     * initialises the Z structures
-     */
-    void OxleyDomain::updateZ()
-    {
-        typedef Tpetra::CrsMatrix<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> real_matrix_type;
-        typedef Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> cplx_matrix_type;
-
-        // Size information
-        const Tpetra::global_size_t t = getNumNodes(); //Total number of nodes
-        const Tpetra::global_size_t h = 0.5*getNumHangingNodes(); // Number of hanging nodes
-        const Tpetra::global_size_t n = t - h;
-
-        // initialise other variables
-        const esys_trilinos::GO indexBase = 0;
-        auto comm = esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm);
-        
-        zRowMap    = Teuchos::rcp (new Tpetra::Map<>(h, indexBase, comm));
-        zColMap    = Teuchos::rcp (new Tpetra::Map<>(h, indexBase, comm));
-        zRangeMap  = Teuchos::rcp (new Tpetra::Map<>(n, indexBase, comm));
-        zDomainMap = Teuchos::rcp (new Tpetra::Map<>(n, indexBase, comm));
-
-        Teuchos::RCP<real_matrix_type> rZ (new real_matrix_type(zRowMap, zColMap, 4));
-        Teuchos::RCP<cplx_matrix_type> cZ (new cplx_matrix_type(zRowMap, zColMap, 4));
-        Teuchos::RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
-        params->set("No Nonlocal Changes", true);
-        rZ->fillComplete(zDomainMap,zRangeMap,params);
-        cZ->fillComplete(zDomainMap,zRangeMap,params);
-    }
-
-    /**
-     * \brief
-     * initialises the IZ structures
-     */
-    void OxleyDomain::updateIZ()
-    {
-        typedef Tpetra::CrsMatrix<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> real_matrix_type;
-        typedef Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> cplx_matrix_type;
-
-        // Size information
-        const Tpetra::global_size_t t = getNumNodes(); //Total number of nodes
-        const Tpetra::global_size_t h = 0.5*getNumHangingNodes(); // Number of hanging nodes
-        const Tpetra::global_size_t n = t - h;
-
-        // initialise other variables
-        const esys_trilinos::GO indexBase = 0;
-        auto comm = esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm);
-        
-        izRowMap    = Teuchos::rcp (new Tpetra::Map<>(t, indexBase, comm));
-        izColMap    = Teuchos::rcp (new Tpetra::Map<>(t, indexBase, comm));
-        izRangeMap  = Teuchos::rcp (new Tpetra::Map<>(n, indexBase, comm));
-        izDomainMap = Teuchos::rcp (new Tpetra::Map<>(n, indexBase, comm));
-        Teuchos::RCP<real_matrix_type> rIZ (new real_matrix_type(izRowMap, izColMap, 4));
-        Teuchos::RCP<cplx_matrix_type> cIZ (new cplx_matrix_type(izRowMap, izColMap, 4));
-        Teuchos::RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
-        params->set("No Nonlocal Changes", true);
-        rIZ->fillComplete(izDomainMap,izRangeMap,params);
-        cIZ->fillComplete(izDomainMap,izRangeMap,params);
+        initZ();
+        initIZ();
     }
 
     dim_t OxleyDomain::getNumNodes() const
@@ -1534,11 +1473,238 @@ void OxleyDomain::makeZ(bool complex)
     }
 }
 
+/**
+ * \brief
+ * Used to create the graph for the Z and IZ matrices
+ */
+esys_trilinos::const_TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
+                                            const IndexVector& YaleRows,
+                                            const IndexVector& YaleColumns,
+                                            const dim_t numMatrixRows,
+                                            const dim_t NumDataPointsGlobal,
+                                            std::vector<IndexVector> connections) const
+{
+    using namespace esys_trilinos;
+
+    IndexVector rowTemp(NumDataPointsGlobal);
+    #pragma omp for
+        for(long i = 0; i < NumDataPointsGlobal; i++)
+            rowTemp[i] = i;
+
+    // rowMap
+    TrilinosMap_ptr rowMap(new MapType(NumDataPointsGlobal, rowTemp, 0, TeuchosCommFromEsysComm(m_mpiInfo->comm)));
+    TrilinosMap_ptr colMap(new MapType(NumDataPointsGlobal, rowTemp, 0, TeuchosCommFromEsysComm(m_mpiInfo->comm)));
+    
+    // rowPtr
+    const vector<IndexVector>& conns(connections);
+    Teuchos::ArrayRCP<size_t> rowPtr(numMatrixRows+1);
+    for (size_t i=0; i < numMatrixRows; i++) {
+        rowPtr[i+1] = rowPtr[i] + conns[i].size();
+    }
+    Teuchos::ArrayRCP<LO> colInd(rowPtr[numMatrixRows]);
+
+    // colInd
+#pragma omp parallel for
+    for (index_t i=0; i < numMatrixRows; i++) {
+        copy(conns[i].begin(), conns[i].end(), &colInd[rowPtr[i]]);
+    }
+
+    // for(int i = 0; i < getNumDataPointsGlobal(); i++)
+    //     std::cout << "myRows["<<i<<"]: " << rowTemp[i]<<std::endl;
+    // for(int i = 0; i < getNumDataPointsGlobal(); i++)
+    //     std::cout << "colMap["<<i<<"]: " << rowTemp[i]<<std::endl;
+    // for(int i = 0; i < numMatrixRows+1; i++)
+    //     std::cout << "rowPtr["<<i<<"]: " << rowPtr[i]<<std::endl;
+    // for(int i = 0; i < rowPtr[numMatrixRows]; i++)
+    //     std::cout << "colInd["<<i<<"]: " << colInd[i]<<std::endl;
+
+    // params
+    TrilinosGraph_ptr graph(new GraphType(rowMap, colMap, rowPtr, colInd));
+    Teuchos::RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
+    params->set("Optimize Storage", true);
+    graph->fillComplete(rowMap, rowMap, params);
+    return graph;
+}
+
+/**
+ * \brief
+ * initialises the Z structures
+ */
+void OxleyDomain::initZ()
+{
+    using namespace esys_trilinos;
+
+    const IndexVector YaleRows = {1};
+    const IndexVector YaleCols = {1};
+    std::vector<IndexVector> connections(1);
+
+    const_TrilinosGraph_ptr zgraph(createTrilinosGraph(YaleRows,YaleCols,1,1,connections));
+    Teuchos::RCP<const MapType> colMap;
+    Teuchos::RCP<const MapType> rowMap;
+    MapType colPointMap;
+    MapType rowPointMap;
+
+    auto ccolMap = zgraph->getColMap();
+    auto crowMap = zgraph->getRowMap();
+    auto rcolMap = zgraph->getColMap();
+    auto rrowMap = zgraph->getRowMap();
+    
+    const real_t r = static_cast<real_t>(0);
+    const cplx_t c = static_cast<cplx_t>(0);
+    
+    const Teuchos::ArrayView<const real_t> rlocalIn(&r, 1);
+    const Teuchos::ArrayView<const cplx_t> clocalIn(&c, 1);
+
+    Teuchos::RCP<VectorType<real_t> > rlclData = Teuchos::rcp(new VectorType<real_t>(rrowMap, rlocalIn, rlocalIn.size(), 1));
+    Teuchos::RCP<VectorType<cplx_t> > clclData = Teuchos::rcp(new VectorType<cplx_t>(crowMap, clocalIn, clocalIn.size(), 1));
+
+    Teuchos::RCP<VectorType<real_t> > rgblData = Teuchos::rcp(new VectorType<real_t>(rcolMap, 1));
+    Teuchos::RCP<VectorType<cplx_t> > cgblData = Teuchos::rcp(new VectorType<cplx_t>(ccolMap, 1));
+
+    const ImportType rimporter(rrowMap, rcolMap);
+    const ImportType cimporter(crowMap, ccolMap);
+    
+    rgblData->doImport(*rlclData, rimporter, Tpetra::INSERT);
+    cgblData->doImport(*clclData, cimporter, Tpetra::INSERT);
+
+    Teuchos::ArrayRCP<const real_t> rZ(rgblData->getData(0));
+    Teuchos::ArrayRCP<const cplx_t> cZ(cgblData->getData(0));
+}
+
+void OxleyDomain::initIZ()
+{
+    using namespace esys_trilinos;
+
+    const IndexVector YaleRows = {1};
+    const IndexVector YaleCols = {1};
+
+    const_TrilinosGraph_ptr zgraph(createTrilinosGraph(YaleRows,YaleCols));
+    Teuchos::RCP<const MapType> colMap;
+    Teuchos::RCP<const MapType> rowMap;
+    MapType colPointMap;
+    MapType rowPointMap;
+
+    auto ccolMap = zgraph->getColMap();
+    auto crowMap = zgraph->getRowMap();
+    auto rcolMap = zgraph->getColMap();
+    auto rrowMap = zgraph->getRowMap();
+    
+    const real_t r = static_cast<real_t>(0);
+    const cplx_t c = static_cast<cplx_t>(0);
+    
+    const Teuchos::ArrayView<const real_t> rlocalIn(&r, 1);
+    const Teuchos::ArrayView<const cplx_t> clocalIn(&c, 1);
+
+    Teuchos::RCP<VectorType<real_t> > rlclData = Teuchos::rcp(new VectorType<real_t>(rrowMap, rlocalIn, rlocalIn.size(), 1));
+    Teuchos::RCP<VectorType<cplx_t> > clclData = Teuchos::rcp(new VectorType<cplx_t>(crowMap, clocalIn, clocalIn.size(), 1));
+
+    Teuchos::RCP<VectorType<real_t> > rgblData = Teuchos::rcp(new VectorType<real_t>(rcolMap, 1));
+    Teuchos::RCP<VectorType<cplx_t> > cgblData = Teuchos::rcp(new VectorType<cplx_t>(ccolMap, 1));
+
+    const ImportType rimporter(rrowMap, rcolMap);
+    const ImportType cimporter(crowMap, ccolMap);
+    
+    rgblData->doImport(*rlclData, rimporter, Tpetra::INSERT);
+    cgblData->doImport(*clclData, cimporter, Tpetra::INSERT);
+
+    Teuchos::ArrayRCP<const real_t> rIZ(rgblData->getData(0));
+    Teuchos::ArrayRCP<const cplx_t> cIZ(cgblData->getData(0));
+}
+
+void OxleyDomain::updateZ()
+{
+    rZ->resumeFill();
+    cZ->resumeFill();
+
+    // typedef Tpetra::CrsMatrix<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> real_matrix_type;
+    // typedef Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> cplx_matrix_type;
+
+    // Size information
+    const Tpetra::global_size_t t = getNumNodes(); //Total number of nodes
+    const Tpetra::global_size_t h = 0.5*getNumHangingNodes(); // Number of hanging nodes
+    const Tpetra::global_size_t n = t - h;
+
+    // initialise other variables
+    const esys_trilinos::GO indexBase = 0;
+#ifdef ESYS_MPI
+    auto comm = esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm);
+#else
+    auto comm = Teuchos::RCP<const Teuchos::SerialComm<int>>();
+#endif
+    
+    zRowMap    = Teuchos::rcp (new Tpetra::Map<>(h, indexBase, comm));
+    zColMap    = Teuchos::rcp (new Tpetra::Map<>(h, indexBase, comm));
+    zRangeMap  = Teuchos::rcp (new Tpetra::Map<>(n, indexBase, comm));
+    zDomainMap = Teuchos::rcp (new Tpetra::Map<>(n, indexBase, comm));
+
+    rZ->replaceColMap(zColMap);
+    // rZ->reindexColumns();
+    // rZ->replaceDomainMap(zDomainMap);
+    // rZ->replaceRangeMap(zRangeMap);
+    cZ->replaceColMap(zColMap);
+    // cZ->reindexColumns();
+    // cZ->replaceDomainMap(zDomainMap);
+    // cZ->replaceRangeMap(zRangeMap);
+
+    Teuchos::RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
+    params->set("Enforce At Least One Owned Col Index Per Row",false);
+    params->set("No Nonlocal Changes", true);
+    rZ->fillComplete(zDomainMap,zRangeMap,params);
+    cZ->fillComplete(zDomainMap,zRangeMap,params);
+}
+
+/**
+ * \brief
+ * initialises the IZ structures
+ */
+void OxleyDomain::updateIZ()
+{
+    // typedef Tpetra::CrsMatrix<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> real_matrix_type;
+    // typedef Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> cplx_matrix_type;
+
+    // Size information
+    const Tpetra::global_size_t t = getNumNodes(); //Total number of nodes
+    const Tpetra::global_size_t h = 0.5*getNumHangingNodes(); // Number of hanging nodes
+    const Tpetra::global_size_t n = t - h;
+
+    // initialise other variables
+    const esys_trilinos::GO indexBase = 0;
+#ifdef ESYS_MPI
+    auto comm = esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm);
+#else
+    auto comm = Teuchos::RCP<const Teuchos::SerialComm<int>>();
+#endif
+    
+    izRowMap    = Teuchos::rcp (new Tpetra::Map<>(t, indexBase, comm));
+    izColMap    = Teuchos::rcp (new Tpetra::Map<>(t, indexBase, comm));
+    izRangeMap  = Teuchos::rcp (new Tpetra::Map<>(n, indexBase, comm));
+    izDomainMap = Teuchos::rcp (new Tpetra::Map<>(n, indexBase, comm));
+    
+    rIZ->replaceColMap(izColMap);
+    // rIZ->reindexColumns();
+    // rIZ->replaceDomainMap(izDomainMap);
+    // rIZ->replaceRangeMap(izRangeMap);
+    cIZ->replaceColMap(izColMap);
+    // cIZ->reindexColumns();
+    // cIZ->replaceDomainMap(izDomainMap);
+    // cIZ->replaceRangeMap(izRangeMap);
+
+    Teuchos::RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
+    params->set("No Nonlocal Changes", true);
+    params->set("Enforce At Least One Owned Col Index Per Row",false);
+    rIZ->fillComplete(izDomainMap,izRangeMap,params);
+    cIZ->fillComplete(izDomainMap,izRangeMap,params);
+}
+
 
 template<typename S>
 void OxleyDomain::makeZworker(S half,Teuchos::RCP<Tpetra::CrsMatrix<S,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>>& z)
     {
         const Tpetra::global_size_t nn = getNumNodes() - 0.5*getNumHangingNodes();
+
+        z->resumeFill();
+        z->setAllToScalar(static_cast<S>(0.));
+        
 
         for(int i = 0; i < getNumHangingNodes(); i++)
         {
@@ -1552,12 +1718,18 @@ void OxleyDomain::makeZworker(S half,Teuchos::RCP<Tpetra::CrsMatrix<S,esys_trili
             }
 
             #ifdef OXLEY_PRINT_DEBUG_IZ
-                std::cout << "Z  element: (" << a-nn << ", " << b << ") = " << 0.5 << std::endl;
+                std::cout << "Z  element: (" << a-nn << ", " << b << ") = " << 0.5;
             #endif
 
             const esys_trilinos::GO gblRowAz = zRowMap->getGlobalElement(a-nn);
             const esys_trilinos::GO gblColBz = zColMap->getGlobalElement(b);
-            z->insertGlobalValues(gblRowAz,
+
+            #ifdef OXLEY_PRINT_DEBUG_IZ
+            std::cout << " i.e. (" << gblRowAz << ", " << gblColBz << ") = " << 0.5 << std::endl;
+            #endif
+
+            if(zRowMap->isNodeGlobalElement(gblRowAz))
+                z->insertGlobalValues(gblRowAz,
                                 Teuchos::tuple<esys_trilinos::GO>(gblColBz),
                                 Teuchos::tuple<S> (half));
         }
@@ -1589,6 +1761,9 @@ template<typename S>
 void OxleyDomain::makeIZworker(Teuchos::RCP<Tpetra::CrsMatrix<S,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> &iz)
     {
         const Tpetra::global_size_t nn = getNumNodes() - 0.5*getNumHangingNodes();
+
+        iz->resumeFill();
+        iz->setAllToScalar(static_cast<S>(0.));
 
         // This is I
         const S one  = static_cast<S> (1.0);
