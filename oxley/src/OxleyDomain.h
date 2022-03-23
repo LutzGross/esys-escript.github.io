@@ -779,10 +779,10 @@ public:
     typedef Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> cplx_matrix_type;
     Teuchos::RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
 
-    void initZ();
-    void initIZ();
-    void updateZ();
-    void updateIZ();
+    void initZ(bool complex);
+    void initIZ(bool complex);
+    // void updateZ();
+    // void updateIZ();
 
     Teuchos::RCP<const Tpetra::Map<>> zRowMap;
     Teuchos::RCP<const Tpetra::Map<>> zColMap;
