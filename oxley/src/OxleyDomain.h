@@ -596,9 +596,11 @@ public:
    */
    
    void makeZ(bool complex);
-   template<typename S> void makeZworker(const S half,Teuchos::RCP<Tpetra::CrsMatrix<S,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>>& Z);
+   template<typename S> void makeZworker(const S half,Teuchos::RCP<Tpetra::CrsMatrix<S,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>>& Z,
+               Teuchos::RCP<const Tpetra::Map<>>,Teuchos::RCP<const Tpetra::Map<>>);
    void makeIZ(bool complex);
-   template<typename S> void makeIZworker(Teuchos::RCP<Tpetra::CrsMatrix<S,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> &Z);
+   template<typename S> void makeIZworker(Teuchos::RCP<Tpetra::CrsMatrix<S,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> &Z,
+               Teuchos::RCP<const Tpetra::Map<>>,Teuchos::RCP<const Tpetra::Map<>>);
 
    bool z_needs_update=false;
    bool iz_needs_update=false;
@@ -784,14 +786,31 @@ public:
     // void updateZ();
     // void updateIZ();
 
-    Teuchos::RCP<const Tpetra::Map<>> zRowMap;
-    Teuchos::RCP<const Tpetra::Map<>> zColMap;
-    Teuchos::RCP<const Tpetra::Map<>> zRangeMap;
-    Teuchos::RCP<const Tpetra::Map<>> zDomainMap;
-    Teuchos::RCP<const Tpetra::Map<>> izRowMap;
-    Teuchos::RCP<const Tpetra::Map<>> izColMap;
-    Teuchos::RCP<const Tpetra::Map<>> izRangeMap;
-    Teuchos::RCP<const Tpetra::Map<>> izDomainMap;
+    IndexVector zYaleRows;
+    IndexVector zYaleCols;
+    std::vector<IndexVector> zconnections;
+    esys_trilinos::const_TrilinosGraph_ptr zgraph;
+    IndexVector izYaleRows;
+    IndexVector izYaleCols;
+    std::vector<IndexVector> izconnections;
+    esys_trilinos::const_TrilinosGraph_ptr izgraph;
+    Teuchos::RCP<const Tpetra::Map<>> zccolMap;
+    Teuchos::RCP<const Tpetra::Map<>> zcrowMap;
+    Teuchos::RCP<const Tpetra::Map<>> zrcolMap;
+    Teuchos::RCP<const Tpetra::Map<>> zrrowMap;
+    Teuchos::RCP<const Tpetra::Map<>> izccolMap;
+    Teuchos::RCP<const Tpetra::Map<>> izcrowMap;
+    Teuchos::RCP<const Tpetra::Map<>> izrcolMap;
+    Teuchos::RCP<const Tpetra::Map<>> izrrowMap;
+    Teuchos::RCP<const Tpetra::Map<>> zdomainMap;
+    Teuchos::RCP<const Tpetra::Map<>> izdomainMap;
+    Teuchos::RCP<const Tpetra::Map<>> zrangeMap;
+    Teuchos::RCP<const Tpetra::Map<>> izrangeMap;
+    
+    Teuchos::RCP<esys_trilinos::VectorType<real_t> > rlclData;
+    Teuchos::RCP<esys_trilinos::VectorType<cplx_t> > clclData;
+    Teuchos::RCP<esys_trilinos::VectorType<real_t> > rgblData;
+    Teuchos::RCP<esys_trilinos::VectorType<cplx_t> > cgblData;
     
     #ifdef ESYS_MPI
     const Teuchos::RCP<const Teuchos::Comm<int>> tril_comm = esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm);
@@ -799,10 +818,10 @@ public:
     const Teuchos::RCP<const Teuchos::Comm<int>> tril_comm = Teuchos::RCP<const Teuchos::SerialComm<int>>();
     #endif
 
-    Teuchos::RCP<Tpetra::CrsMatrix<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> rZ;
-    Teuchos::RCP<Tpetra::CrsMatrix<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> rIZ;
-    Teuchos::RCP<Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> cZ;
-    Teuchos::RCP<Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> cIZ;
+    Teuchos::RCP<real_matrix_type> rZ;
+    Teuchos::RCP<real_matrix_type> rIZ;
+    Teuchos::RCP<cplx_matrix_type> cZ;
+    Teuchos::RCP<cplx_matrix_type> cIZ;
     // Teuchos::RCP<Tpetra::CrsMatrix<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> * pZ;
     // Teuchos::RCP<Tpetra::CrsMatrix<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> * pIZ;
     // Teuchos::RCP<Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> * cpZ;

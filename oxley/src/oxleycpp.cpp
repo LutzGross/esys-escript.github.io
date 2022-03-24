@@ -438,8 +438,8 @@ BOOST_PYTHON_MODULE(oxleycpp)
             ":param symmetry:\n:type symmetry: ``int``")
         .def("getX",&oxley::OxleyDomain::getX, ":return: locations in the FEM nodes\n\n"
             ":rtype: `Data`")
-        .def("makeZ",&oxley::OxleyDomain::initZ, arg("complex"), "creates the matrix Z")
-        .def("makeIZ",&oxley::OxleyDomain::initIZ, arg("complex"), "creates the matrix IZ")
+        .def("makeZ",&oxley::OxleyDomain::makeZ, arg("complex"), "creates the matrix Z")
+        .def("makeIZ",&oxley::OxleyDomain::makeIZ, arg("complex"), "creates the matrix IZ")
         .def("finaliseA",&oxley::OxleyDomain::finaliseA, args("mat","isComplex"), "finalisesLHS")
         .def("finaliseRhs",&oxley::OxleyDomain::finaliseRhs, arg("rhs"), "finalisesRHS")
         .def("newOperator",&oxley::OxleyDomain::newSystemMatrix,
