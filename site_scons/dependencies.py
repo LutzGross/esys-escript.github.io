@@ -486,7 +486,7 @@ def checkForTrilinos(env):
         'Teuchos_Comm.hpp', 'Tpetra_CrsMatrix_decl.hpp', \
         'Tpetra_BlockCrsMatrix_decl.hpp', \
         'Tpetra_CrsGraph.hpp','Tpetra_CrsMatrix.hpp', 'Tpetra_RowMatrix.hpp',\
-        'Tpetra_createDeepCopy_CrsMatrix.hpp', 
+        'Tpetra_createDeepCopy_CrsMatrix.hpp', \
         'Tpetra_Vector.hpp','Trilinos_version.h']
 
         print("Looking for the Trilinos headers...")
@@ -545,6 +545,7 @@ def checkForTrilinos(env):
                 minor=int(str(trilinos_version)[2:4])
                 tmp=int(str(trilinos_version)[4:6])
                 env['trilinos_version'] = str(major)+"."+str(minor)+"."+str(tmp)
+                print("Trilinos version=", env['trilinos_version'])
 
         if not havelibs:
             packages=['Tpetra','Kokkos','Belos','Amesos2','Ifpack2','MueLu']
