@@ -1992,10 +1992,6 @@ template<typename S>
 void OxleyDomain::makeIZworker(Teuchos::RCP<Tpetra::CrsMatrix<S,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> &iz,
                         Teuchos::RCP<const Tpetra::Map<>> col,Teuchos::RCP<const Tpetra::Map<>> row)
 {
-    IndexVector Rows;
-    IndexVector Cols;
-    IndexVector Vals;
-
     const Tpetra::global_size_t n = getNumNodes() - 0.5*getNumHangingNodes();
 
     iz->resumeFill();
@@ -2108,25 +2104,26 @@ void OxleyDomain::finaliseRhs(escript::Data& rhs)
                 // finaliseRhsworker<escript::DataTypes::cplx_t>(rhs,cZ);
             
                 cplx_t dummy;
-
-                typedef Tpetra::Map<> map_type;
-                typedef Tpetra::Vector<>::scalar_type scalar_type;
-                typedef Tpetra::Vector<>::global_ordinal_type global_ordinal_type;
                 
                 const Tpetra::global_size_t t = getNumNodes(); //Total number of nodes
                 const Tpetra::global_size_t h = 0.5*getNumHangingNodes(); // Number of hanging nodes
                 const Tpetra::global_size_t n = t - h;
 
-                const global_ordinal_type indexBase = 0;
+                const esys_trilinos::GO indexBase = 0;
                 auto comm = esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm);
                 
                 //recast rhs as a vector
-                Teuchos::RCP<const map_type> f_map = Teuchos::rcp(new map_type(n, indexBase, comm));
-                Teuchos::RCP<const map_type> g_map = Teuchos::rcp(new map_type(h, indexBase, comm));
+                // Teuchos::RCP<const Tpetra::Map<>> f_map = Teuchos::rcp(new Tpetra::Map<>(n, indexBase, comm));
+                // Teuchos::RCP<const Tpetra::Map<>> g_map = Teuchos::rcp(new Tpetra::Map<>(h, indexBase, comm));
+                auto f_map = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) n, indexBase, comm));
+                Teuchos::RCP<Tpetra::Map<>> g_map = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) h, indexBase, comm));
                 Tpetra::MultiVector<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> f(f_map,true);
-                const Tpetra::MultiVector<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> g(g_map,true);
+                Tpetra::MultiVector<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> g(g_map,true);
+
+                
 
                 #ifdef OXLEY_PRINT_DEBUG_IZ
+                    rhs.print();
                     std::cout << f.description() << std::endl;
                     std::cout << g.description() << std::endl;
                     std::cout << cZ->getGlobalNumCols() << "x" << cZ->getGlobalNumRows() << std::endl;
@@ -2134,30 +2131,45 @@ void OxleyDomain::finaliseRhs(escript::Data& rhs)
 
                 // f.modify();
                 #pragma omp parallel for
-                for(int i = 0; i < n; i++)
+                for(esys_trilinos::LO i = 0; i < static_cast<esys_trilinos::LO>(n); i++)
                 {
-                    const global_ordinal_type gblrow = i;
+                    const esys_trilinos::GO gblrow = f.getMap()->getGlobalElement(i);
                     cplx_t *value = rhs.getSampleDataRW(i,dummy);
-                    f.replaceGlobalValue(gblrow,1,value[0]);
+                    std::cout << "f element " << gblrow << " = " << *value << std::endl;
+                    f.replaceGlobalValue(gblrow,0,*value);
                 }
                 
                 // g.modify();
                 #pragma omp parallel for
-                for(int i = n; i < t; i++)
+                for(esys_trilinos::LO i = 0; i < static_cast<esys_trilinos::LO>(h); i++)
                 {
-                    const global_ordinal_type gblrow = i;
-                    auto *value = rhs.getSampleDataRW(i,dummy);
-                    g.replaceGlobalValue(gblrow,1,value[0]);
+                    const esys_trilinos::GO gblrow = g.getMap()->getGlobalElement(i);
+                    cplx_t *value = rhs.getSampleDataRW(i+n,dummy);
+                    std::cout << "g element " << gblrow << " = " << *value << std::endl;
+                    g.replaceGlobalValue(gblrow,0,*value);
                 }
 
-                // do the multiplication
                 // const scalar_type one = static_cast<scalar_type> (1.0);
+
                 #ifdef OXLEY_PRINT_DEBUG_IZ
+                    rhs.print();
+                    std::cout << "f: " << std::endl;
+                    auto tmpa_result_view = f.getLocalViewHost();
+                    auto tmpa_result_view_1d = Kokkos::subview(tmpa_result_view, Kokkos::ALL(), 0);
+                    for(int i = 0; i < n; i++)
+                        std::cout << "[" << i << ":" << tmpa_result_view_1d(i) << "]";
+                    std::cout << std::endl;
+                    std::cout << "g: " << std::endl;
+                    auto tmpb_result_view = g.getLocalViewHost();
+                    auto tmpb_result_view_1d = Kokkos::subview(tmpb_result_view, Kokkos::ALL(), 0);
+                    for(int i = 0; i < h; i++)
+                        std::cout << "[" << i << ":" << tmpb_result_view_1d(i) << "]";
+                    std::cout << std::endl;
                     std::cout << "Performing the multiplication" << std::endl;
                 #endif
 
-                auto one = Teuchos::ScalarTraits<cplx_t>::one();
-                cZ->apply(g,f,Teuchos::TRANS,one,one);
+                // auto one = Teuchos::ScalarTraits<cplx_t>::one();
+                cZ->apply(g,f,Teuchos::TRANS,1.0,1.0);
 
                 #ifdef OXLEY_PRINT_DEBUG_IZ
                     std::cout << f.description() << std::endl;
@@ -2168,18 +2180,17 @@ void OxleyDomain::finaliseRhs(escript::Data& rhs)
                 auto result_view = f.getLocalViewHost();
                 auto result_view_1d = Kokkos::subview(result_view, Kokkos::ALL(), 0);
 
-                // write the new vector back into rhs
-                rhs.requireWrite();
+                rhs.getReady();
                 #pragma omp parallel for
                 for(int i = 0; i < n; i++)
                 {
-                    cplx_t * value =  rhs.getSampleDataRW(i, dummy);
+                    cplx_t * value = rhs.getSampleDataRW(i, dummy);
                     *value=result_view_1d(i);
                     #ifdef OXLEY_PRINT_DEBUG_IZ
                         std::cout << "rhs element: (" << i << ") = " << result_view_1d(i) << std::endl;
                     #endif
                 }
-                rhs.expand();
+                
 
                 #ifdef OXLEY_PRINT_DEBUG_IZ
                     std::cout << "Final rhs" << std::endl;
