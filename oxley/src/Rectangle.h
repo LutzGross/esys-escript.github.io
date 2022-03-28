@@ -263,6 +263,8 @@ public:
     void clear_temp_data() { free(temp_data); };
     void print_debug_report(std::string);
 
+    // virtual void finaliseRhs(escript::Data& rhs);
+
 private:
 
     // A p4est

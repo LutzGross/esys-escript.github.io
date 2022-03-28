@@ -1302,6 +1302,9 @@ class LinearProblem(object):
      :return: the right hand side of the problem
      :rtype: `Data`
      """
+     # if self.hasOxley():
+     #    self.getDomain().resetRhs(self.__righthandside)
+     #    self.createRightHandSide()
      return self.getSystem()[1]
 
    def createRightHandSide(self):

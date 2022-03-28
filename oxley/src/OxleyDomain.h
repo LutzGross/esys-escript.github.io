@@ -618,6 +618,9 @@ public:
    void finaliseRhsworker(escript::Data& rhs, 
       Teuchos::RCP<Tpetra::CrsMatrix<S,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>>& Z);
 
+   void resetRhs(escript::Data& rhs) const;
+   int origFsTypecode;
+
 
     /**
        \brief

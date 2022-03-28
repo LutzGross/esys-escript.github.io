@@ -3869,7 +3869,7 @@ escript::Data Rectangle::randomFillWorker(
         // Yes this is throwing an exception as a result of an MPI error
         // and no we don't inform the other ranks that we are doing this.
         // However, we have no reason to believe coms work at this point anyway
-        throw RipleyException("Error in coms for randomFill");
+        throw OxleyException("Error in coms for randomFill");
     }
 
     block.copyUsedFromBuffer(src);

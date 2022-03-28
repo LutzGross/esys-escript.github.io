@@ -20,6 +20,7 @@
 #include <oxley/OxleyData.h>
 
 #include <escript/Data.h>
+#include <escript/DataExpanded.h>
 #include <escript/DataFactory.h>
 #include <escript/EsysMPI.h>
 #include <escript/FunctionSpaceFactory.h>
@@ -107,6 +108,7 @@ namespace oxley {
             case FaceElements:
             case ReducedFaceElements:
             case Points:
+            case Solution:
                 return true;
             default:
                 break;
@@ -1016,6 +1018,8 @@ namespace oxley {
                 return pair<int,dim_t>(1, getNumFaceElements());
             case Points:
                 return pair<int,dim_t>(1, m_diracPoints.size());
+            case Solution:
+                return pair<int,dim_t>(1, getNumNodes()-0.5*getNumHangingNodes());
             default:
                 break;
         }
@@ -1167,11 +1171,11 @@ namespace oxley {
         // is the function space type right?
         if (row_functionspace.getTypeCode()==ReducedDegreesOfFreedom)
             reduceRowOrder=true;
-        else if (row_functionspace.getTypeCode()!=DegreesOfFreedom)
+        else if ((row_functionspace.getTypeCode()!=DegreesOfFreedom)&&(row_functionspace.getTypeCode()!=Solution))
             throw ValueError("newSystemMatrix: illegal function space type for system matrix rows");
         if (column_functionspace.getTypeCode()==ReducedDegreesOfFreedom)
             reduceColOrder=true;
-        else if (column_functionspace.getTypeCode()!=DegreesOfFreedom)
+        else if ((column_functionspace.getTypeCode()!=DegreesOfFreedom)&&(column_functionspace.getTypeCode()!=Solution))
             throw ValueError("newSystemMatrix: illegal function space type for system matrix columns");
         // are block sizes identical?
         if (row_blocksize != column_blocksize)
@@ -1219,7 +1223,8 @@ esys_trilinos::const_TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
 {
     using namespace esys_trilinos;
 
-    const dim_t numMatrixRows = getNumDOF();
+    // const dim_t numMatrixRows = getNumDOF();
+    const dim_t numMatrixRows = getNumNodes();
 
     IndexVector rowTemp(getNumDataPointsGlobal());
     if(getMPISize() == 1)
@@ -1448,6 +1453,9 @@ void OxleyDomain::addToSystem(escript::AbstractSystemMatrix& mat,
     {
         if (isNotEmpty("d_contact", coefs) || isNotEmpty("y_contact", coefs))
             throw ValueError("addToSystem: Oxley does not support contact elements");
+
+        // Ensure that rhs has the correct number of data points
+        resetRhs(rhs);
 
         assemblePDE(&mat, rhs, coefs, assembler);
         assemblePDEBoundary(&mat, rhs, coefs, assembler);
@@ -2097,6 +2105,9 @@ void OxleyDomain::finaliseAworker(escript::AbstractSystemMatrix& mat,
 
 void OxleyDomain::finaliseRhs(escript::Data& rhs)
     {
+        #ifdef OXLEY_PRINT_DEBUG_IZ
+            std::cout << "finaliseRhs......................" << std::endl;
+        #endif
         if(getNumHangingNodes() > 0)
         {
             if(rhs.isComplex())
@@ -2123,7 +2134,7 @@ void OxleyDomain::finaliseRhs(escript::Data& rhs)
                 
 
                 #ifdef OXLEY_PRINT_DEBUG_IZ
-                    rhs.print();
+                    std::cout << "t=" << t << ", h=" << h << ", n=" << n << std::endl;
                     std::cout << f.description() << std::endl;
                     std::cout << g.description() << std::endl;
                     std::cout << cZ->getGlobalNumCols() << "x" << cZ->getGlobalNumRows() << std::endl;
@@ -2135,7 +2146,7 @@ void OxleyDomain::finaliseRhs(escript::Data& rhs)
                 {
                     const esys_trilinos::GO gblrow = f.getMap()->getGlobalElement(i);
                     cplx_t *value = rhs.getSampleDataRW(i,dummy);
-                    std::cout << "f element " << gblrow << " = " << *value << std::endl;
+                    // std::cout << "f element " << gblrow << " = " << *value << std::endl;
                     f.replaceGlobalValue(gblrow,0,*value);
                 }
                 
@@ -2145,7 +2156,7 @@ void OxleyDomain::finaliseRhs(escript::Data& rhs)
                 {
                     const esys_trilinos::GO gblrow = g.getMap()->getGlobalElement(i);
                     cplx_t *value = rhs.getSampleDataRW(i+n,dummy);
-                    std::cout << "g element " << gblrow << " = " << *value << std::endl;
+                    // std::cout << "g element " << gblrow << " = " << *value << std::endl;
                     g.replaceGlobalValue(gblrow,0,*value);
                 }
 
@@ -2180,21 +2191,28 @@ void OxleyDomain::finaliseRhs(escript::Data& rhs)
                 auto result_view = f.getLocalViewHost();
                 auto result_view_1d = Kokkos::subview(result_view, Kokkos::ALL(), 0);
 
-                rhs.getReady();
+                origFsTypecode=rhs.getFunctionSpace().getTypeCode();
+                int SolutionCode=17;
+                escript::FunctionSpace new_fs = escript::FunctionSpace(rhs.getFunctionSpace().getDomain(), SolutionCode);
+                cplx_t value(0,0);
+                bool expanded=true;
+                escript::Data rhs_new = escript::Data(value, rhs.getDataPointShape(), new_fs, expanded);
+
+                rhs_new.requireWrite();
                 #pragma omp parallel for
                 for(int i = 0; i < n; i++)
                 {
-                    cplx_t * value = rhs.getSampleDataRW(i, dummy);
+                    cplx_t * value = rhs_new.getSampleDataRW(i, dummy);
                     *value=result_view_1d(i);
                     #ifdef OXLEY_PRINT_DEBUG_IZ
                         std::cout << "rhs element: (" << i << ") = " << result_view_1d(i) << std::endl;
                     #endif
                 }
-                
+                rhs=rhs_new;
 
                 #ifdef OXLEY_PRINT_DEBUG_IZ
-                    std::cout << "Final rhs" << std::endl;
-                    rhs.print();
+                    std::cout << "New rhs" << std::endl;
+                    rhs_new.print();
                 #endif
             }
             else
@@ -2202,76 +2220,100 @@ void OxleyDomain::finaliseRhs(escript::Data& rhs)
                 // finaliseRhsworker<escript::DataTypes::real_t>(rhs,rZ);   
 
                 real_t dummy;
-
-                typedef Tpetra::Map<> map_type;
-                typedef Tpetra::Vector<>::scalar_type scalar_type;
-                typedef Tpetra::Vector<>::global_ordinal_type global_ordinal_type;
                 
                 const Tpetra::global_size_t t = getNumNodes(); //Total number of nodes
                 const Tpetra::global_size_t h = 0.5*getNumHangingNodes(); // Number of hanging nodes
                 const Tpetra::global_size_t n = t - h;
 
-                const global_ordinal_type indexBase = 0;
+                const esys_trilinos::GO indexBase = 0;
                 auto comm = esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm);
                 
                 //recast rhs as a vector
-                Teuchos::RCP<const map_type> f_map = Teuchos::rcp(new map_type(n, indexBase, comm));
-                Teuchos::RCP<const map_type> g_map = Teuchos::rcp(new map_type(h, indexBase, comm));
-                const Tpetra::MultiVector<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> f(f_map,true);
+                // Teuchos::RCP<const Tpetra::Map<>> f_map = Teuchos::rcp(new Tpetra::Map<>(n, indexBase, comm));
+                // Teuchos::RCP<const Tpetra::Map<>> g_map = Teuchos::rcp(new Tpetra::Map<>(h, indexBase, comm));
+                auto f_map = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) n, indexBase, comm));
+                Teuchos::RCP<Tpetra::Map<>> g_map = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) h, indexBase, comm));
+                Tpetra::MultiVector<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> f(f_map,true);
                 Tpetra::MultiVector<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> g(g_map,true);
 
+                
+
                 #ifdef OXLEY_PRINT_DEBUG_IZ
+                    std::cout << "t=" << t << ", h=" << h << ", n=" << n << std::endl;
                     std::cout << f.description() << std::endl;
                     std::cout << g.description() << std::endl;
+                    std::cout << rZ->getGlobalNumCols() << "x" << rZ->getGlobalNumRows() << std::endl;
                 #endif
 
                 // f.modify();
                 #pragma omp parallel for
-                for(int i = 0; i < n; i++)
+                for(esys_trilinos::LO i = 0; i < static_cast<esys_trilinos::LO>(n); i++)
                 {
-                    const global_ordinal_type gblrow = i;
+                    const esys_trilinos::GO gblrow = f.getMap()->getGlobalElement(i);
                     real_t *value = rhs.getSampleDataRW(i,dummy);
-                    f.replaceGlobalValue(gblrow,1,value[0]);
+                    // std::cout << "f element " << gblrow << " = " << *value << std::endl;
+                    f.replaceGlobalValue(gblrow,0,*value);
                 }
                 
                 // g.modify();
                 #pragma omp parallel for
-                for(int i = n; i < t; i++)
+                for(esys_trilinos::LO i = 0; i < static_cast<esys_trilinos::LO>(h); i++)
                 {
-                    const global_ordinal_type gblrow = i;
-                    auto *value = rhs.getSampleDataRW(i,dummy);
-                    g.replaceGlobalValue(gblrow,1,value[0]);
+                    const esys_trilinos::GO gblrow = g.getMap()->getGlobalElement(i);
+                    real_t *value = rhs.getSampleDataRW(i+n,dummy);
+                    // std::cout << "g element " << gblrow << " = " << *value << std::endl;
+                    g.replaceGlobalValue(gblrow,0,*value);
                 }
 
-                // do the multiplication
                 // const scalar_type one = static_cast<scalar_type> (1.0);
+
                 #ifdef OXLEY_PRINT_DEBUG_IZ
+                    rhs.print();
+                    std::cout << "f: " << std::endl;
+                    auto tmpa_result_view = f.getLocalViewHost();
+                    auto tmpa_result_view_1d = Kokkos::subview(tmpa_result_view, Kokkos::ALL(), 0);
+                    for(int i = 0; i < n; i++)
+                        std::cout << "[" << i << ":" << tmpa_result_view_1d(i) << "]";
+                    std::cout << std::endl;
+                    std::cout << "g: " << std::endl;
+                    auto tmpb_result_view = g.getLocalViewHost();
+                    auto tmpb_result_view_1d = Kokkos::subview(tmpb_result_view, Kokkos::ALL(), 0);
+                    for(int i = 0; i < h; i++)
+                        std::cout << "[" << i << ":" << tmpb_result_view_1d(i) << "]";
+                    std::cout << std::endl;
                     std::cout << "Performing the multiplication" << std::endl;
                 #endif
 
-                auto one = Teuchos::ScalarTraits<real_t>::one();
-                rZ->apply(f,g,Teuchos::TRANS,one,one);
+                // auto one = Teuchos::ScalarTraits<cplx_t>::one();
+                rZ->apply(g,f,Teuchos::TRANS,1.0,1.0);
 
                 #ifdef OXLEY_PRINT_DEBUG_IZ
                     std::cout << f.description() << std::endl;
                     std::cout << g.description() << std::endl;
+                    std::cout << rZ->getGlobalNumCols() << "x" << rZ->getGlobalNumRows() << std::endl;
                 #endif
                 
                 auto result_view = f.getLocalViewHost();
                 auto result_view_1d = Kokkos::subview(result_view, Kokkos::ALL(), 0);
 
-                // write the new vector back into rhs
+                origFsTypecode=rhs.getFunctionSpace().getTypeCode();
+                int SolutionCode=17;
+                escript::FunctionSpace new_fs = escript::FunctionSpace(rhs.getFunctionSpace().getDomain(), SolutionCode);
+                real_t value(0);
+                bool expanded=true;
+                escript::Data rhs_new = escript::Data(value, rhs.getDataPointShape(), new_fs, expanded);
+
                 rhs.requireWrite();
                 #pragma omp parallel for
                 for(int i = 0; i < n; i++)
                 {
-                    real_t * value =  rhs.getSampleDataRW(i, dummy);
+                    real_t * value = rhs_new.getSampleDataRW(i, dummy);
                     *value=result_view_1d(i);
                     #ifdef OXLEY_PRINT_DEBUG_IZ
                         std::cout << "rhs element: (" << i << ") = " << result_view_1d(i) << std::endl;
                     #endif
                 }
-                rhs.expand();
+                rhs=rhs_new;
 
                 #ifdef OXLEY_PRINT_DEBUG_IZ
                     std::cout << "Final rhs" << std::endl;
@@ -2281,6 +2323,17 @@ void OxleyDomain::finaliseRhs(escript::Data& rhs)
         }
     }
 
+
+void OxleyDomain::resetRhs(escript::Data& rhs) const
+{
+    if(origFsTypecode!=0)
+    {
+        escript::FunctionSpace new_fs = escript::FunctionSpace(rhs.getFunctionSpace().getDomain(), origFsTypecode);
+        cplx_t value(0,0);
+        bool expanded=true;
+        escript::Data rhs_new = escript::Data(value, rhs.getDataPointShape(), new_fs, expanded);
+    }
+}
 
 template<typename S>
 void OxleyDomain::finaliseRhsworker(escript::Data& rhs, 

@@ -89,7 +89,8 @@ enum {
     ReducedElements=10,
     FaceElements=5,
     ReducedFaceElements=11,
-    Points=6
+    Points=6,
+    Solution=17
 };
 
 } // namespace oxley
