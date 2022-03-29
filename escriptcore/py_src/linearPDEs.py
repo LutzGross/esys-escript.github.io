@@ -1563,6 +1563,9 @@ class LinearProblem(object):
                     ("d", d), ("y", y), ("d_contact", d_contact),
                     ("y_contact", y_contact), ("d_dirac", d_dirac),
                     ("y_dirac", y_dirac)]
+            if self.hasOxley():
+                if self.getDomain().getOrigFsType() == -1:
+                    self.getDomain().saveFsType(righthandside)
             self.addToSystem(operator,righthandside, data)
         else:
             self.getDomain().addPDEToSystem(operator,righthandside, A, B, C, D,
@@ -1584,7 +1587,7 @@ class LinearProblem(object):
             self.getDomain().makeZ(self.__complex)
             self.getDomain().makeIZ(self.__complex)
             self.getDomain().finaliseA(op,self.__complex)
-            self.getDomain().finaliseRhs(rhs)
+            rhs=self.getDomain().finaliseRhs(rhs)
 
    def addPDEToLumpedSystem(self, operator, a, b, c, hrz_lumping):
         """

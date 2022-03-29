@@ -613,13 +613,15 @@ public:
       Teuchos::RCP<Tpetra::CrsMatrix<S,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>>& Z);
    
    
-   void finaliseRhs(escript::Data& rhs);
+   escript::Data finaliseRhs(escript::Data& rhs);
    template<typename S> 
    void finaliseRhsworker(escript::Data& rhs, 
       Teuchos::RCP<Tpetra::CrsMatrix<S,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>>& Z);
 
    void resetRhs(escript::Data& rhs) const;
-   int origFsTypecode;
+   void saveFsType(escript::Data &rhs);
+   int getOrigFsType() { return origFsTypecode;};
+   int origFsTypecode=-1;
 
 
     /**

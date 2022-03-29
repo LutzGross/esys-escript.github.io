@@ -2103,7 +2103,7 @@ void OxleyDomain::finaliseAworker(escript::AbstractSystemMatrix& mat,
         }
     }
 
-void OxleyDomain::finaliseRhs(escript::Data& rhs)
+escript::Data OxleyDomain::finaliseRhs(escript::Data& rhs)
     {
         #ifdef OXLEY_PRINT_DEBUG_IZ
             std::cout << "finaliseRhs......................" << std::endl;
@@ -2191,7 +2191,6 @@ void OxleyDomain::finaliseRhs(escript::Data& rhs)
                 auto result_view = f.getLocalViewHost();
                 auto result_view_1d = Kokkos::subview(result_view, Kokkos::ALL(), 0);
 
-                origFsTypecode=rhs.getFunctionSpace().getTypeCode();
                 int SolutionCode=17;
                 escript::FunctionSpace new_fs = escript::FunctionSpace(rhs.getFunctionSpace().getDomain(), SolutionCode);
                 cplx_t value(0,0);
@@ -2208,11 +2207,12 @@ void OxleyDomain::finaliseRhs(escript::Data& rhs)
                         std::cout << "rhs element: (" << i << ") = " << result_view_1d(i) << std::endl;
                     #endif
                 }
-                rhs=rhs_new;
+                // rhs=rhs_new;
+                return rhs_new;
 
                 #ifdef OXLEY_PRINT_DEBUG_IZ
                     std::cout << "New rhs" << std::endl;
-                    rhs_new.print();
+                    rhs.print();
                 #endif
             }
             else
@@ -2303,7 +2303,7 @@ void OxleyDomain::finaliseRhs(escript::Data& rhs)
                 bool expanded=true;
                 escript::Data rhs_new = escript::Data(value, rhs.getDataPointShape(), new_fs, expanded);
 
-                rhs.requireWrite();
+                rhs_new.requireWrite();
                 #pragma omp parallel for
                 for(int i = 0; i < n; i++)
                 {
@@ -2313,7 +2313,8 @@ void OxleyDomain::finaliseRhs(escript::Data& rhs)
                         std::cout << "rhs element: (" << i << ") = " << result_view_1d(i) << std::endl;
                     #endif
                 }
-                rhs=rhs_new;
+                // rhs=rhs_new;
+                return rhs_new;
 
                 #ifdef OXLEY_PRINT_DEBUG_IZ
                     std::cout << "Final rhs" << std::endl;
@@ -2326,13 +2327,19 @@ void OxleyDomain::finaliseRhs(escript::Data& rhs)
 
 void OxleyDomain::resetRhs(escript::Data& rhs) const
 {
-    if(origFsTypecode!=0)
+    if(origFsTypecode!=-1)
     {
         escript::FunctionSpace new_fs = escript::FunctionSpace(rhs.getFunctionSpace().getDomain(), origFsTypecode);
         cplx_t value(0,0);
         bool expanded=true;
         escript::Data rhs_new = escript::Data(value, rhs.getDataPointShape(), new_fs, expanded);
     }
+}
+
+void OxleyDomain::saveFsType(escript::Data &rhs)
+{
+    if(origFsTypecode==-1)
+        origFsTypecode=rhs.getFunctionSpace().getTypeCode();
 }
 
 template<typename S>

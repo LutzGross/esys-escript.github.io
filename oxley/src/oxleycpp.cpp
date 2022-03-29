@@ -442,6 +442,8 @@ BOOST_PYTHON_MODULE(oxleycpp)
         .def("makeIZ",&oxley::OxleyDomain::makeIZ, arg("complex"), "creates the matrix IZ")
         .def("finaliseA",&oxley::OxleyDomain::finaliseA, args("mat","isComplex"), "finalisesLHS")
         .def("finaliseRhs",&oxley::OxleyDomain::finaliseRhs, arg("rhs"), "finalisesRHS")
+        .def("saveFsType",&oxley::OxleyDomain::saveFsType, arg("rhs"), "saves the fs type")
+        .def("getOrigFsType",&oxley::OxleyDomain::getOrigFsType, "returns the fs type")
         // .def("resetRhs",&oxley::OxleyDomain::resetRhs, arg("rhs"), "resets the RHS")
         .def("newOperator",&oxley::OxleyDomain::newSystemMatrix,
             args("row_blocksize", "row_functionspace", "column_blocksize", "column_functionspace", "type"),
