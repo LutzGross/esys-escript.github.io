@@ -849,6 +849,9 @@ protected:
     // MPI info
     escript::JMPI m_mpiInfo;
 
+    // A second MPI handle for p4est.
+    sc_MPI_Comm m_p4est_mpiInfo;
+
     // Dirac point Node IDs
     IndexVector m_diracPointNodeIDs; //for borrowSampleID
 

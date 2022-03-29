@@ -44,6 +44,8 @@
 #include <p4est_lnodes.h>
 #include <p4est_vtk.h>
 
+#include <sc_mpi.h>
+
 #ifdef ESYS_HAVE_SILO
 #include <silo.h>
 #ifdef ESYS_MPI
@@ -149,7 +151,22 @@ Rectangle::Rectangle(int order,
     p4est_locidx_t min_quadrants = n0*n1;
     int min_level = 0;
     int fill_uniform = 1;
-    p4est = p4est_new_ext(m_mpiInfo->comm, connectivity, min_quadrants,
+
+// #ifdef OXLEY_ENABLE_DEBUG_CHECKS
+//     bool print_backtrace = true;
+//     // if(sc_MPI_Init(NULL, NULL)!=true)
+//     //     std::cout << "ERROR sc mpi failed to initialise" << std::endl;
+// #else
+//     // sc_MPI_Init(NULL, NULL)
+//     bool print_backtrace = false;
+// #endif
+
+// #ifdef ESYS_MPI
+//     sc_init(sc_MPI_COMM_WORLD, 1, print_backtrace, NULL, LOG_LEVEL);
+// #else
+//     sc_init(NULL, 1, print_backtrace, NULL, LOG_LEVEL);
+// #endif
+    p4est = p4est_new_ext(m_p4est_mpiInfo, connectivity, min_quadrants,
             min_level, fill_uniform, sizeof(quadrantData), init_rectangle_data, (void *) &forestData);
 
 #ifdef OXLEY_ENABLE_DEBUG_CHECKS //These checks are turned off by default as they can be very timeconsuming
@@ -286,9 +303,14 @@ Rectangle::~Rectangle(){
         std::cout << "broken" << std::endl;
     else
         std::cout << "OK" << std::endl;
-#endif
+    std::cout << "destoying the connectivity..." << std::endl;
     p4est_connectivity_destroy(connectivity);
-    p4est_destroy(p4est);
+    std::cout << "destoying the p4est..." << std::endl;
+    // p4est_destroy(p4est);
+#else
+    p4est_connectivity_destroy(connectivity);
+    // p4est_destroy(p4est);
+#endif
 }
 
 /**

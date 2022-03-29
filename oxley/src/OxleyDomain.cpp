@@ -2101,7 +2101,7 @@ escript::Data OxleyDomain::finaliseRhs(escript::Data& rhs)
         #ifdef OXLEY_PRINT_DEBUG_IZ
             std::cout << "finaliseRhs......................" << std::endl;
         #endif
-        // if(getNumHangingNodes() > 0)
+        if(getNumHangingNodes() > 0)
         {
             if(rhs.isComplex())
             {
@@ -2314,6 +2314,10 @@ escript::Data OxleyDomain::finaliseRhs(escript::Data& rhs)
                     rhs.print();
                 #endif
             }
+        }
+        else
+        {
+            return rhs;
         }
     }
 
