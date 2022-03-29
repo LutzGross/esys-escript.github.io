@@ -80,6 +80,9 @@ Rectangle::Rectangle(int order,
 
     // Ignore d0 and d1 if we are running in serial
     m_mpiInfo = escript::makeInfo(MPI_COMM_WORLD);
+    initZ(true);
+    initIZ(true);
+
     if(m_mpiInfo->size == 1) {
         d0=1;
         d1=1;

@@ -69,13 +69,6 @@ namespace oxley {
         // These two statements configure the level of verbosity used by p4est
         sc_set_log_defaults(NULL, NULL, LOG_LEVEL);
         // p4est_init(NULL, LOG_LEVEL);
-
-        // Initialise the MPI process
-        m_mpiInfo = escript::makeInfo(MPI_COMM_WORLD);
-
-        //initialise Z and IZ
-        initZ(true);
-        initIZ(true);
     }
 
     dim_t OxleyDomain::getNumNodes() const
@@ -2108,7 +2101,7 @@ escript::Data OxleyDomain::finaliseRhs(escript::Data& rhs)
         #ifdef OXLEY_PRINT_DEBUG_IZ
             std::cout << "finaliseRhs......................" << std::endl;
         #endif
-        if(getNumHangingNodes() > 0)
+        // if(getNumHangingNodes() > 0)
         {
             if(rhs.isComplex())
             {
