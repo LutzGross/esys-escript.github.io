@@ -2805,8 +2805,8 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
 #pragma omp parallel for
     for(int i = 0; i <= max_level; i++)
     {
-        double m_dx[2] = {m_NX[0]*forestData.m_dx[0][P4EST_MAXLEVEL-i], 
-                          m_NX[1]*forestData.m_dx[1][P4EST_MAXLEVEL-i]};
+        double m_dx[2] = {forestData.m_dx[0][P4EST_MAXLEVEL-i], 
+                          forestData.m_dx[1][P4EST_MAXLEVEL-i]};
         cx[0][i] = 0.21132486540518711775/m_dx[0];
         cx[1][i] = 0.78867513459481288225/m_dx[0];
         cx[2][i] = 1./m_dx[0];
@@ -3127,8 +3127,8 @@ void Rectangle::assembleIntegrateImpl(std::vector<Scalar>& integrals,
                 p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x, quad->y, xy);
                 long id = getQuadID(NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
 
-                real_t w = m_NX[0]*forestData.m_dx[0][P4EST_MAXLEVEL-quad->level]
-                         * m_NX[1]*forestData.m_dx[1][P4EST_MAXLEVEL-quad->level]
+                real_t w = forestData.m_dx[0][P4EST_MAXLEVEL-quad->level]
+                         * forestData.m_dx[1][P4EST_MAXLEVEL-quad->level]
                          / 4.;
 
                 const Scalar* f = arg.getSampleDataRO(id, zero);
@@ -3162,8 +3162,8 @@ void Rectangle::assembleIntegrateImpl(std::vector<Scalar>& integrals,
                 p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x, quad->y, xy);
                 long id = getQuadID(NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
                 const Scalar* f = arg.getSampleDataRO(id, zero);
-                real_t w = m_NX[0]*forestData.m_dx[0][P4EST_MAXLEVEL-quad->level]
-                         * m_NX[1]*forestData.m_dx[1][P4EST_MAXLEVEL-quad->level];
+                real_t w = forestData.m_dx[0][P4EST_MAXLEVEL-quad->level]
+                         * forestData.m_dx[1][P4EST_MAXLEVEL-quad->level];
                 for (index_t i = 0; i < numComp; ++i) {
                     int_local[i] += f[i]*w;
                 }
@@ -3182,12 +3182,15 @@ void Rectangle::assembleIntegrateImpl(std::vector<Scalar>& integrals,
 #pragma omp for nowait
                 for (index_t k=0; k<NodeIDsLeft.size()-1; k++) {
                     borderNodeInfo tmp = NodeIDsLeft[k];
-                    const real_t w1 = m_NX[1]*forestData.m_dx[1][P4EST_MAXLEVEL-tmp.level]/2.;
+                    const real_t w1 = forestData.m_dx[1][P4EST_MAXLEVEL-tmp.level]/2.;
                     const Scalar* f = arg.getSampleDataRO(m_faceOffset[0]+k, zero);
                     for (index_t i=0; i < numComp; ++i) {
                         const Scalar f0 = f[INDEX2(i,0,numComp)];
                         const Scalar f1 = f[INDEX2(i,1,numComp)];
                         int_local[i] += (f0+f1)*w1;
+                        #ifdef OXLEY_ENABLE_DEBUG_INTEGRATE
+                            std::cout << "w1=" << w1 << ", faceoffset=0 f0=" << f0 << ", f1=" << f1 << std::endl;
+                        #endif
                     }  // end of component loop i
                 }
             }
@@ -3196,12 +3199,15 @@ void Rectangle::assembleIntegrateImpl(std::vector<Scalar>& integrals,
 #pragma omp for nowait
                 for (index_t k=0; k<NodeIDsRight.size()-1; k++) {
                     borderNodeInfo tmp = NodeIDsRight[k];
-                    const real_t w1 = m_NX[1]*forestData.m_dx[1][P4EST_MAXLEVEL-tmp.level]/2.;
+                    const real_t w1 = forestData.m_dx[1][P4EST_MAXLEVEL-tmp.level]/2.;
                     const Scalar* f = arg.getSampleDataRO(m_faceOffset[1]+k, zero);
                     for (index_t i = 0; i < numComp; ++i) {
                         const Scalar f0 = f[INDEX2(i,0,numComp)];
                         const Scalar f1 = f[INDEX2(i,1,numComp)];
                         int_local[i] += (f0+f1)*w1;
+                        #ifdef OXLEY_ENABLE_DEBUG_INTEGRATE
+                            std::cout << "w1=" << w1 << ", faceoffset=1 f0=" << f0 << ", f1=" << f1 << std::endl;
+                        #endif
                     }  // end of component loop i
                 }
             }
@@ -3210,12 +3216,15 @@ void Rectangle::assembleIntegrateImpl(std::vector<Scalar>& integrals,
 #pragma omp for nowait
                 for (index_t k=0; k<NodeIDsBottom.size()-1; k++) {
                     borderNodeInfo tmp = NodeIDsBottom[k];
-                    const real_t w0 = m_NX[0]*forestData.m_dx[0][P4EST_MAXLEVEL-tmp.level]/2.;
+                    const real_t w0 = forestData.m_dx[0][P4EST_MAXLEVEL-tmp.level]/2.;
                     const Scalar* f = arg.getSampleDataRO(m_faceOffset[2]+k, zero);
                     for (index_t i = 0; i < numComp; ++i) {
                         const Scalar f0 = f[INDEX2(i,0,numComp)];
                         const Scalar f1 = f[INDEX2(i,1,numComp)];
                         int_local[i] += (f0+f1)*w0;
+                        #ifdef OXLEY_ENABLE_DEBUG_INTEGRATE
+                            std::cout << "w0" << w0 << ", faceoffset=2 f0=" << f0 << ", f1=" << f1 << std::endl;
+                        #endif
                     }  // end of component loop i
                 }
             }
@@ -3224,12 +3233,15 @@ void Rectangle::assembleIntegrateImpl(std::vector<Scalar>& integrals,
 #pragma omp for nowait
                 for (index_t k=0; k<NodeIDsTop.size()-1; k++) {
                     borderNodeInfo tmp = NodeIDsTop[k];
-                    const real_t w0 = m_NX[0]*forestData.m_dx[0][P4EST_MAXLEVEL-tmp.level]/2.;
+                    const real_t w0 = forestData.m_dx[0][P4EST_MAXLEVEL-tmp.level]/2.;
                     const Scalar* f = arg.getSampleDataRO(m_faceOffset[3]+k, zero);
                     for (index_t i = 0; i < numComp; ++i) {
                         const Scalar f0 = f[INDEX2(i,0,numComp)];
                         const Scalar f1 = f[INDEX2(i,1,numComp)];
                         int_local[i] += (f0+f1)*w0;
+                        #ifdef OXLEY_ENABLE_DEBUG_INTEGRATE
+                            std::cout << "w0=" << w0 << ", faceoffset=3 f0=" << f0 << ", f1=" << f1 << std::endl;
+                        #endif
                     }  // end of component loop i
                 }
             }
@@ -3245,7 +3257,7 @@ void Rectangle::assembleIntegrateImpl(std::vector<Scalar>& integrals,
                 borderNodeInfo tmp = NodeIDsLeft[k];
                 const Scalar* f = arg.getSampleDataRO(m_faceOffset[0]+k, zero);
                 for (index_t i = 0; i < numComp; ++i) {
-                    int_local[i] += f[i]*m_NX[1]*forestData.m_dx[1][P4EST_MAXLEVEL-tmp.level];
+                    int_local[i] += f[i]*forestData.m_dx[1][P4EST_MAXLEVEL-tmp.level];
                 }
             }
         }
@@ -3256,7 +3268,7 @@ void Rectangle::assembleIntegrateImpl(std::vector<Scalar>& integrals,
                 borderNodeInfo tmp = NodeIDsRight[k];
                 const Scalar* f = arg.getSampleDataRO(m_faceOffset[1]+k, zero);
                 for (index_t i = 0; i < numComp; ++i) {
-                    int_local[i] += f[i]*m_NX[1]*forestData.m_dx[1][P4EST_MAXLEVEL-tmp.level];
+                    int_local[i] += f[i]*forestData.m_dx[1][P4EST_MAXLEVEL-tmp.level];
                 }
             }
         }
@@ -3267,7 +3279,7 @@ void Rectangle::assembleIntegrateImpl(std::vector<Scalar>& integrals,
                 borderNodeInfo tmp = NodeIDsBottom[k];
                 const Scalar* f = arg.getSampleDataRO(m_faceOffset[2]+k, zero);
                 for (index_t i = 0; i < numComp; ++i) {
-                    int_local[i] += f[i]*m_NX[0]*forestData.m_dx[0][P4EST_MAXLEVEL-tmp.level];
+                    int_local[i] += f[i]*forestData.m_dx[0][P4EST_MAXLEVEL-tmp.level];
                 }
             }
         }
@@ -3278,7 +3290,7 @@ void Rectangle::assembleIntegrateImpl(std::vector<Scalar>& integrals,
                 borderNodeInfo tmp = NodeIDsTop[k];
                 const Scalar* f = arg.getSampleDataRO(m_faceOffset[3]+k, zero);
                 for (index_t i = 0; i < numComp; ++i) {
-                    int_local[i] += f[i]*m_NX[0]*forestData.m_dx[0][P4EST_MAXLEVEL-tmp.level];
+                    int_local[i] += f[i]*forestData.m_dx[0][P4EST_MAXLEVEL-tmp.level];
                 }
             }
         }
