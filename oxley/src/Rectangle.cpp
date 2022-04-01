@@ -1015,6 +1015,9 @@ void Rectangle::refineBoundary(std::string boundaryname, double dx)
     updateNodeIncrements();
     renumberNodes();
     updateRowsColumns();
+    updateElementIds();
+    updateFaceOffset();
+    updateFaceElementCount();
 }
 
 void Rectangle::refineRegion(double x0, double x1, double y0, double y1)
@@ -1052,6 +1055,9 @@ void Rectangle::refineRegion(double x0, double x1, double y0, double y1)
     updateNodeIncrements();
     renumberNodes();
     updateRowsColumns();
+    updateElementIds();
+    updateFaceOffset();
+    updateFaceElementCount();
 }
 
 void Rectangle::refinePoint(double x0, double y0)
@@ -1093,6 +1099,9 @@ void Rectangle::refinePoint(double x0, double y0)
     updateNodeIncrements();
     renumberNodes();
     updateRowsColumns();
+    updateElementIds();
+    updateFaceOffset();
+    updateFaceElementCount();
 }
 
 void Rectangle::refineCircle(double x0, double y0, double r)
@@ -1135,6 +1144,9 @@ void Rectangle::refineCircle(double x0, double y0, double r)
     updateNodeIncrements();
     renumberNodes();
     updateRowsColumns();
+    updateElementIds();
+    updateFaceOffset();
+    updateFaceElementCount();
 }
 
 escript::Data Rectangle::getX() const
@@ -1541,7 +1553,7 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
                     point[0] = xy[0];
                     point[1] = xy[1];
 #ifdef OXLEY_ENABLE_DEBUG_ASSEMBLE_COORDINATES
-                    // float bounds[4]={0.0};
+                    std::cout<<"lni="<<lni<<"\tCorner=("<<xy[0]<<","<<xy[1]<<"),"<<std::endl;
                     if(xy[0] < bounds[0]) bounds[0]=xy[0];
                     if(xy[0] > bounds[1]) bounds[1]=xy[0];
                     if(xy[1] < bounds[2]) bounds[2]=xy[1];
@@ -2486,6 +2498,10 @@ void Rectangle::populateSampleIds()
 
 void Rectangle::updateFaceElementCount()
 {
+    #ifdef OXLEY_ENABLE_DEBUG_FACEELEMENTS
+        std::cout << "-------------------------------------------------------" << std::endl;
+    #endif
+
     for(int i = 0; i < 4; i++)
         m_faceCount[i]=-1;
 
@@ -2551,34 +2567,48 @@ void Rectangle::updateFaceElementCount()
                     m_faceCount[3]++;
                 }
             
+                #ifdef OXLEY_ENABLE_DEBUG_FACEELEMENTS
+                    double xyz[3];
+                    p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], &xyz[n]);
+                    std::cout << nodeids[n] << ": quad (x,y) = " << xyz[0] << ", " << xyz[1] << ") ";
+                    if(isLeftBoundaryNode(quad, n, treeid, l))
+                        std::cout << "L";
+                    if(isRightBoundaryNode(quad, n, treeid, l))
+                        std::cout << "R";
+                    if(isBottomBoundaryNode(quad, n, treeid, l))
+                        std::cout << "B";
+                    if(isTopBoundaryNode(quad, n, treeid, l))
+                        std::cout << "T";
+                    std::cout << std::endl;
+                #endif
             }
         }
     }
 
     // Remove duplicates
     for(int i = 1; i < NodeIDsLeft.size()-1; i++)
-        if(NodeIDsLeft[i].treeid == NodeIDsLeft[i-1].treeid)
+        if((NodeIDsLeft[i].nodeid == NodeIDsLeft[i-1].nodeid))
         {
             NodeIDsLeft.erase(NodeIDsLeft.begin()+i);
             i--;
             m_faceCount[0]--;
         }
     for(int i = 1; i < NodeIDsRight.size()-1; i++)
-        if(NodeIDsRight[i].treeid == NodeIDsRight[i-1].treeid)
+        if(NodeIDsRight[i].nodeid == NodeIDsRight[i-1].nodeid)
         {
             NodeIDsRight.erase(NodeIDsRight.begin()+i);
             i--;
             m_faceCount[1]--;
         }
     for(int i = 1; i < NodeIDsBottom.size()-1; i++)
-        if(NodeIDsBottom[i].treeid == NodeIDsBottom[i-1].treeid)
+        if(NodeIDsBottom[i].nodeid == NodeIDsBottom[i-1].nodeid)
         {
             NodeIDsBottom.erase(NodeIDsBottom.begin()+i);
             i--;
             m_faceCount[2]--;
         }
     for(int i = 1; i < NodeIDsTop.size()-1; i++)
-        if(NodeIDsTop[i].treeid == NodeIDsTop[i-1].treeid)
+        if(NodeIDsTop[i].nodeid == NodeIDsTop[i-1].nodeid)
         {
             NodeIDsTop.erase(NodeIDsTop.begin()+i);
             i--;
@@ -2616,6 +2646,7 @@ void Rectangle::updateFaceElementCount()
     for(int i = 0; i < NodeIDsBottom.size()-1;i++)
         std::cout << NodeIDsBottom[i].nodeid << " ";
     std::cout << std::endl;
+    std::cout << "-------------------------------------------------------" << std::endl;
 #endif
 
     // set face tags
@@ -3256,8 +3287,14 @@ void Rectangle::assembleIntegrateImpl(std::vector<Scalar>& integrals,
             for (index_t k=0; k<NodeIDsLeft.size()-1; k++) {
                 borderNodeInfo tmp = NodeIDsLeft[k];
                 const Scalar* f = arg.getSampleDataRO(m_faceOffset[0]+k, zero);
+                #ifdef OXLEY_ENABLE_DEBUG_INTEGRATE
+                    std::cout << "offset=" << m_faceOffset[0]+k << " ";
+                #endif
                 for (index_t i = 0; i < numComp; ++i) {
                     int_local[i] += f[i]*forestData.m_dx[1][P4EST_MAXLEVEL-tmp.level];
+                    #ifdef OXLEY_ENABLE_DEBUG_INTEGRATE
+                        std::cout << "faceoffset=0 f[i]=" << f[i] << ", dx=" << forestData.m_dx[1][P4EST_MAXLEVEL-tmp.level] << std::endl;
+                    #endif
                 }
             }
         }
@@ -3267,8 +3304,14 @@ void Rectangle::assembleIntegrateImpl(std::vector<Scalar>& integrals,
             for (index_t k=0; k<NodeIDsRight.size()-1; k++) {
                 borderNodeInfo tmp = NodeIDsRight[k];
                 const Scalar* f = arg.getSampleDataRO(m_faceOffset[1]+k, zero);
+                #ifdef OXLEY_ENABLE_DEBUG_INTEGRATE
+                    std::cout << "offset=" << m_faceOffset[1]+k << " ";
+                #endif
                 for (index_t i = 0; i < numComp; ++i) {
                     int_local[i] += f[i]*forestData.m_dx[1][P4EST_MAXLEVEL-tmp.level];
+                    #ifdef OXLEY_ENABLE_DEBUG_INTEGRATE
+                        std::cout << "faceoffset=1 f[i]=" << f[i] << ", dx=" << forestData.m_dx[1][P4EST_MAXLEVEL-tmp.level] << std::endl;
+                    #endif
                 }
             }
         }
@@ -3278,8 +3321,14 @@ void Rectangle::assembleIntegrateImpl(std::vector<Scalar>& integrals,
             for (index_t k=0; k<NodeIDsBottom.size()-1; k++) {
                 borderNodeInfo tmp = NodeIDsBottom[k];
                 const Scalar* f = arg.getSampleDataRO(m_faceOffset[2]+k, zero);
+                #ifdef OXLEY_ENABLE_DEBUG_INTEGRATE
+                    std::cout << "offset=" << m_faceOffset[2]+k << " ";
+                #endif
                 for (index_t i = 0; i < numComp; ++i) {
                     int_local[i] += f[i]*forestData.m_dx[0][P4EST_MAXLEVEL-tmp.level];
+                    #ifdef OXLEY_ENABLE_DEBUG_INTEGRATE
+                        std::cout << "faceoffset=2 f[i]=" << f[i] << ", dx=" << forestData.m_dx[0][P4EST_MAXLEVEL-tmp.level] << std::endl;
+                    #endif
                 }
             }
         }
@@ -3289,8 +3338,14 @@ void Rectangle::assembleIntegrateImpl(std::vector<Scalar>& integrals,
             for (index_t k=0; k<NodeIDsTop.size()-1; k++) {
                 borderNodeInfo tmp = NodeIDsTop[k];
                 const Scalar* f = arg.getSampleDataRO(m_faceOffset[3]+k, zero);
+                #ifdef OXLEY_ENABLE_DEBUG_INTEGRATE
+                    std::cout << "offset=" << m_faceOffset[3]+k << " ";
+                #endif
                 for (index_t i = 0; i < numComp; ++i) {
                     int_local[i] += f[i]*forestData.m_dx[0][P4EST_MAXLEVEL-tmp.level];
+                    #ifdef OXLEY_ENABLE_DEBUG_INTEGRATE
+                        std::cout << "faceoffset=3 f[i]=" << f[i] << ", dx=" << forestData.m_dx[0][P4EST_MAXLEVEL-tmp.level] << std::endl;
+                    #endif
                 }
             }
         }
