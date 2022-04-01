@@ -2498,10 +2498,6 @@ void Rectangle::populateSampleIds()
 
 void Rectangle::updateFaceElementCount()
 {
-    #ifdef OXLEY_ENABLE_DEBUG_FACEELEMENTS
-        std::cout << "-------------------------------------------------------" << std::endl;
-    #endif
-
     for(int i = 0; i < 4; i++)
         m_faceCount[i]=-1;
 
@@ -2523,14 +2519,29 @@ void Rectangle::updateFaceElementCount()
             p4est_qcoord_t lxy[4][2] = {{0,0},{l,0},{0,l},{l,l}};
             double xy[4][3] = {{0}};
             int nodeids[4]={-1};
+            bool do_check_yes_no[4]={false};
             for(int n = 0; n < 4; n++)
             {
                 p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy[n]);
                 nodeids[n]=NodeIDs.find(std::make_pair(xy[n][0],xy[n][1]))->second;
+
+                if(n==0)
+                    do_check_yes_no[n]=true;
+                else if(n==1 && xy[n][0]==forestData.m_lxy[0])
+                    do_check_yes_no[n]=true;
+                else if(n==2 && xy[n][1]==forestData.m_lxy[1])
+                    do_check_yes_no[n]=true;
+                else if(n==3 && xy[n][0]==forestData.m_lxy[0] && xy[n][1]==forestData.m_lxy[1])
+                    do_check_yes_no[n]=true;
+                else
+                    do_check_yes_no[n]=false;
             }
 
             for(int n = 0; n < 4; n++)
             {
+                if(do_check_yes_no[n] == false)
+                    continue;
+
                 borderNodeInfo tmp;
                 // tmp.nodeid=NodeIDs.find(std::make_pair(xy[n][0],xy[n][1]))->second;
                 tmp.nodeid=nodeids[n];
@@ -2567,7 +2578,7 @@ void Rectangle::updateFaceElementCount()
                     m_faceCount[3]++;
                 }
             
-                #ifdef OXLEY_ENABLE_DEBUG_FACEELEMENTS
+                #ifdef OXLEY_ENABLE_DEBUG_FACEELEMENTS_POINTS
                     double xyz[3];
                     p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], &xyz[n]);
                     std::cout << nodeids[n] << ": quad (x,y) = " << xyz[0] << ", " << xyz[1] << ") ";
@@ -2587,28 +2598,28 @@ void Rectangle::updateFaceElementCount()
 
     // Remove duplicates
     for(int i = 1; i < NodeIDsLeft.size()-1; i++)
-        if((NodeIDsLeft[i].nodeid == NodeIDsLeft[i-1].nodeid))
+        if((NodeIDsLeft[i].treeid == NodeIDsLeft[i-1].treeid))
         {
             NodeIDsLeft.erase(NodeIDsLeft.begin()+i);
             i--;
             m_faceCount[0]--;
         }
     for(int i = 1; i < NodeIDsRight.size()-1; i++)
-        if(NodeIDsRight[i].nodeid == NodeIDsRight[i-1].nodeid)
+        if(NodeIDsRight[i].treeid == NodeIDsRight[i-1].treeid)
         {
             NodeIDsRight.erase(NodeIDsRight.begin()+i);
             i--;
             m_faceCount[1]--;
         }
     for(int i = 1; i < NodeIDsBottom.size()-1; i++)
-        if(NodeIDsBottom[i].nodeid == NodeIDsBottom[i-1].nodeid)
+        if(NodeIDsBottom[i].treeid == NodeIDsBottom[i-1].treeid)
         {
             NodeIDsBottom.erase(NodeIDsBottom.begin()+i);
             i--;
             m_faceCount[2]--;
         }
     for(int i = 1; i < NodeIDsTop.size()-1; i++)
-        if(NodeIDsTop[i].nodeid == NodeIDsTop[i-1].nodeid)
+        if(NodeIDsTop[i].treeid == NodeIDsTop[i-1].treeid)
         {
             NodeIDsTop.erase(NodeIDsTop.begin()+i);
             i--;
