@@ -2597,34 +2597,34 @@ void Rectangle::updateFaceElementCount()
     }
 
     // Remove duplicates
-    for(int i = 1; i < NodeIDsLeft.size()-1; i++)
-        if((NodeIDsLeft[i].treeid == NodeIDsLeft[i-1].treeid))
-        {
-            NodeIDsLeft.erase(NodeIDsLeft.begin()+i);
-            i--;
-            m_faceCount[0]--;
-        }
-    for(int i = 1; i < NodeIDsRight.size()-1; i++)
-        if(NodeIDsRight[i].treeid == NodeIDsRight[i-1].treeid)
-        {
-            NodeIDsRight.erase(NodeIDsRight.begin()+i);
-            i--;
-            m_faceCount[1]--;
-        }
-    for(int i = 1; i < NodeIDsBottom.size()-1; i++)
-        if(NodeIDsBottom[i].treeid == NodeIDsBottom[i-1].treeid)
-        {
-            NodeIDsBottom.erase(NodeIDsBottom.begin()+i);
-            i--;
-            m_faceCount[2]--;
-        }
-    for(int i = 1; i < NodeIDsTop.size()-1; i++)
-        if(NodeIDsTop[i].treeid == NodeIDsTop[i-1].treeid)
-        {
-            NodeIDsTop.erase(NodeIDsTop.begin()+i);
-            i--;
-            m_faceCount[3]--;
-        }
+    // for(int i = 1; i < NodeIDsLeft.size()-1; i++)
+    //     if((NodeIDsLeft[i].treeid == NodeIDsLeft[i-1].treeid))
+    //     {
+    //         NodeIDsLeft.erase(NodeIDsLeft.begin()+i);
+    //         i--;
+    //         m_faceCount[0]--;
+    //     }
+    // for(int i = 1; i < NodeIDsRight.size()-1; i++)
+    //     if(NodeIDsRight[i].treeid == NodeIDsRight[i-1].treeid)
+    //     {
+    //         NodeIDsRight.erase(NodeIDsRight.begin()+i);
+    //         i--;
+    //         m_faceCount[1]--;
+    //     }
+    // for(int i = 1; i < NodeIDsBottom.size()-1; i++)
+    //     if(NodeIDsBottom[i].treeid == NodeIDsBottom[i-1].treeid)
+    //     {
+    //         NodeIDsBottom.erase(NodeIDsBottom.begin()+i);
+    //         i--;
+    //         m_faceCount[2]--;
+    //     }
+    // for(int i = 1; i < NodeIDsTop.size()-1; i++)
+    //     if(NodeIDsTop[i].treeid == NodeIDsTop[i-1].treeid)
+    //     {
+    //         NodeIDsTop.erase(NodeIDsTop.begin()+i);
+    //         i--;
+    //         m_faceCount[3]--;
+    //     }
 
 
     const index_t LEFT=1, RIGHT=2, BOTTOM=10, TOP=20;
@@ -3265,7 +3265,7 @@ void Rectangle::assembleIntegrateImpl(std::vector<Scalar>& integrals,
                         const Scalar f1 = f[INDEX2(i,1,numComp)];
                         int_local[i] += (f0+f1)*w0;
                         #ifdef OXLEY_ENABLE_DEBUG_INTEGRATE
-                            std::cout << "w0" << w0 << ", faceoffset=2 f0=" << f0 << ", f1=" << f1 << std::endl;
+                            std::cout << "w0=" << w0 << ", faceoffset=2 f0=" << f0 << ", f1=" << f1 << std::endl;
                         #endif
                     }  // end of component loop i
                 }
