@@ -83,27 +83,42 @@ def get_external_python_sympy(env,bin):
     cmd+='import sympy\n'
     cmd+='print(sympy.__version__)\n'
     sp=subprocess.Popen([bin, '-c', cmd], stdin=None, stderr=None, stdout=subprocess.PIPE)
-    #ver=sp.stdout.readline().strip().split('.')
-
+    # spVer=sp.stdout.readline().strip().split('.')
     import sys
     if sys.version_info[0] >= 3:
-        ver = str(sp.stdout.readline().strip(), 'utf-8')
+        spVer = str(sp.stdout.readline().strip(), 'utf-8')
     else:
-        ver = sp.stdout.readline().strip().split('.')
-
-    tmp1 = ver[0]
-    tmp2 = ver[1]
-    if tmp2 == '.':
-        tmp2 = ver[2]
-        
-    if int(tmp1) == 0 and int(tmp2) < 7:
-        env['sympy'] = False
-        env['warnings'].append("sympy version is too old.")
-        env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
-    if (int(tmp1) == 1 and int(tmp2) >= 2) or int(tmp1) >= 2:
+        spVer = sp.stdout.readline().strip().split('.')
+    quit=False
+    ver1=''
+    ver2=''
+    count=0;
+    for i in range(0,len(spVer)):
+        if spVer[i]=='.':
+            count=count+1
+            if quit is True:
+                break
+            else:
+                quit=True
+                continue
+        if count == 0:
+            ver1=ver1+spVer[i]
+        else:
+            ver2=ver2+spVer[i]
+    version1=float(ver1)
+    version2=float(ver2)
+    if version1 == 0 and version2 < 7:
         env['sympy']=False
-        env['warnings'].append("escript does not support sympy version 1.2 and higher. Found version %d.%d" % (int(tmp1),int(tmp2)))
+        env['warnings'].append("sympy version too old. Symbolic toolbox and nonlinear PDEs will not be available.")
         env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
+    elif version1 == 1 and version2 > 2:
+        env['sympy']=False
+        env['warnings'].append("escript does not support sympy version 1.2 and higher. Found %s" % spVer)
+        env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
+    else:
+        env['sympy']=True
+        env['warnings'].append("Found sympy version %s" % spVer)
+
 
     return env
 
@@ -444,15 +459,35 @@ def checkOptionalModules(env):
             import sympy as sp
             import distutils.version as duv
             spVer=sp.__version__
-            spl=spVer.split('.')
-            if duv.LooseVersion(sympy.__version__) < duv.LooseVersion('0.7'):
+            quit=False
+            ver1=''
+            ver2=''
+            count=0;
+            for i in range(0,len(spVer)):
+                if spVer[i]=='.':
+                    count=count+1
+                    if quit is True:
+                        break
+                    else:
+                        quit=True
+                        continue
+                if count == 0:
+                    ver1=ver1+spVer[i]
+                else:
+                    ver2=ver2+spVer[i]
+            version1=float(ver1)
+            version2=float(ver2)
+            if version1 == 0 and version2 < 7:
                 env['sympy']=False
                 env['warnings'].append("sympy version too old. Symbolic toolbox and nonlinear PDEs will not be available.")
                 env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
-            if duv.LooseVersion(sympy.__version__) > duv.LooseVersion('1.2'):
+            elif version1 == 1 and version2 > 2:
                 env['sympy']=False
-                env['warnings'].append("escript does not support sympy version 1.2 and higher. Found %d" % duv.LooseVersion(sympy.__version__))
+                env['warnings'].append("escript does not support sympy version 1.2 and higher. Found %s" % spVer)
                 env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
+            else:
+                env['sympy']=True
+                env['warnings'].append("Found sympy version %s" % spVer)
 
     ######## gmshpy
     env['gmshpy'] = detectModule(env, 'gmshpy')
