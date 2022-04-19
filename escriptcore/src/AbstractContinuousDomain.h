@@ -229,9 +229,9 @@ class ESCRIPT_DLL_API AbstractContinuousDomain : public AbstractDomain
   // Used by Oxley
   #ifdef ESYS_HAVE_TRILINOS
   // template<typename SC>
-  virtual Teuchos::RCP<Tpetra::CrsMatrix<DataTypes::cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> getZ() const;
+  // virtual Teuchos::RCP<Tpetra::CrsMatrix<DataTypes::cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> getZ() const;
   // template<typename SC>
-  virtual Teuchos::RCP<Tpetra::CrsMatrix<DataTypes::cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> getIZ() const;
+  // virtual Teuchos::RCP<Tpetra::CrsMatrix<DataTypes::cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> getIZ() const;
   // template<typename SC>
   // virtual void finalise(AbstractSystemMatrix& mat, 
   //                       escript::Data& rhs,

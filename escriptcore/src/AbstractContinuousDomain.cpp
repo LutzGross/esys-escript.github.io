@@ -157,15 +157,15 @@ void AbstractContinuousDomain::addPDEToSystem(
 
 #ifdef ESYS_HAVE_TRILINOS
 
-Teuchos::RCP<Tpetra::CrsMatrix<DataTypes::cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> AbstractContinuousDomain::getZ() const
-{
+// Teuchos::RCP<Tpetra::CrsMatrix<DataTypes::cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> AbstractContinuousDomain::getZ() const
+// {
   
-}
+// }
 
-Teuchos::RCP<Tpetra::CrsMatrix<DataTypes::cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> AbstractContinuousDomain::getIZ() const
-{
+// Teuchos::RCP<Tpetra::CrsMatrix<DataTypes::cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> AbstractContinuousDomain::getIZ() const
+// {
   
-}
+// }
 
 // void AbstractContinuousDomain::finalise(AbstractSystemMatrix& mat, 
 //                            escript::Data& rhs,
