@@ -455,9 +455,10 @@ def checkOptionalModules(env):
         env['warnings'].append("Cannot import sympy. Symbolic toolbox and nonlinear PDEs will not be available.")
         env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
     else:
-        if env['pythoncmd'] is not None:
-            env=get_external_python_sympy(env, env['pythoncmd'])
-        else:
+        # if env['pythoncmd'] is not None:
+        #     env=get_external_python_sympy(env, env['pythoncmd'])
+        # else:
+        try:
             import sympy as sp
             import distutils.version as duv
             spVer=sp.__version__
@@ -492,6 +493,9 @@ def checkOptionalModules(env):
             else:
                 env['sympy']=True
                 env['warnings'].append("Found sympy version %s" % spVer)
+        except:
+            env['sympy']=False
+            env['warnings'].append("Could not find sympy")
 
     ######## gmshpy
     env['gmshpy'] = detectModule(env, 'gmshpy')
