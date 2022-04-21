@@ -94,17 +94,19 @@ def get_external_python_sympy(env,bin):
     ver2=''
     count=0;
     for i in range(0,len(spVer)):
-        if spVer[i]=='.':
+        x=spVer[i]
+        if x.isdigit() is True:
+            if count == 0:
+                ver1=ver1+spVer[i]
+            else:
+                ver2=ver2+spVer[i]
+        else:
             count=count+1
             if quit is True:
                 break
             else:
                 quit=True
                 continue
-        if count == 0:
-            ver1=ver1+spVer[i]
-        else:
-            ver2=ver2+spVer[i]
     version1=float(ver1)
     version2=float(ver2)
     if version1 == 0 and version2 < 7:
