@@ -1853,7 +1853,7 @@ void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
             p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
             sc_array_t * tquadrants = &tree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-            #pragma omp parallel for
+            // #pragma omp parallel for
             for(int q = 0; q < Q; q++)
             {
                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
@@ -1889,23 +1889,24 @@ void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
             p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
             sc_array_t * tquadrants = &tree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-            #pragma omp parallel for
+            // #pragma omp parallel for
             for(int q = 0; q < Q; q++)
-            {
+            {        
                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
 
                 long ids[4]={0};
                 getNeighouringNodeIDs(quad->level, quad->x, quad->y, treeid, ids);
                 long quadId = getQuadID(ids[0]);
 
+            #ifdef OXLEY_ENABLE_DEBUG_INTERPOLATE_QUADIDS
+                std::cout << "interpolateNodesOnElementsWorker quadID: " << quadId << ", node IDs " << 
+                                    ids[0] << ", " << ids[2] << ", " << ids[1] << ", " << ids[3] << std::endl;
+            #endif
+
                 memcpy(&f_00[0], in.getSampleDataRO(ids[0], sentinel), numComp*sizeof(S));
                 memcpy(&f_01[0], in.getSampleDataRO(ids[2], sentinel), numComp*sizeof(S));
                 memcpy(&f_10[0], in.getSampleDataRO(ids[1], sentinel), numComp*sizeof(S));
                 memcpy(&f_11[0], in.getSampleDataRO(ids[3], sentinel), numComp*sizeof(S));
-
-        #ifdef OXLEY_ENABLE_DEBUG_INTERPOLATE
-                std::cout << "interpolateNodesOnElementsWorker quadID: " << quadId << ", node IDs " << ids[0] << ", " << ids[2] << ", " << ids[1] << ", " << ids[3] << std::endl;
-        #endif
                 
                 S* o = out.getSampleDataRW(quadId, sentinel);
                 for (index_t i=0; i < numComp; ++i) {
@@ -1913,6 +1914,14 @@ void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
                     o[INDEX2(i,numComp,1)] = c0*(f_00[i] + f_11[i]) + c1*f_01[i] + c2*f_10[i];
                     o[INDEX2(i,numComp,2)] = c0*(f_00[i] + f_11[i]) + c1*f_10[i] + c2*f_01[i];
                     o[INDEX2(i,numComp,3)] = c0*(f_01[i] + f_10[i]) + c1*f_00[i] + c2*f_11[i];
+
+            #ifdef OXLEY_ENABLE_DEBUG_INTERPOLATE
+                std::cout << quadId << ": ";
+                std::cout << c0*(f_01[i] + f_10[i]) + c1*f_11[i] + c2*f_00[i] << ", ";
+                std::cout << c0*(f_00[i] + f_11[i]) + c1*f_01[i] + c2*f_10[i] << ", ";
+                std::cout << c0*(f_00[i] + f_11[i]) + c1*f_10[i] + c2*f_01[i] << ", ";
+                std::cout << c0*(f_01[i] + f_10[i]) + c1*f_00[i] + c2*f_11[i] << std::endl;
+            #endif
                 }
             }
         }

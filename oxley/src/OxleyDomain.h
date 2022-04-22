@@ -973,7 +973,8 @@ private:
     paso::Connector_ptr m_connector;
 
     /// paso version of adding element matrices to System Matrix
-    void addToPasoMatrix(paso::SystemMatrix* in, const IndexVector& nodes,
+    template <typename T>
+    void addToPasoMatrix(paso::SystemMatrix<T>* in, const IndexVector& nodes,
                          dim_t numEq, const DoubleVector& array) const;
 #endif
 

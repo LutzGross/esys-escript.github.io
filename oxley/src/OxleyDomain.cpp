@@ -1040,7 +1040,7 @@ namespace oxley {
                                              const DoubleVector& array) const
     {
     #ifdef ESYS_HAVE_PASO
-        paso::SystemMatrix* psm = dynamic_cast<paso::SystemMatrix*>(mat);
+        paso::SystemMatrix<real_t>* psm = dynamic_cast<paso::SystemMatrix<real_t>*>(mat);
         if (psm) {
             addToPasoMatrix(psm, nodes, numEq, array);
             return;
@@ -1063,7 +1063,7 @@ namespace oxley {
                                              const vector<cplx_t>& array) const
     {
     #ifdef ESYS_HAVE_MUMPS
-        paso::SystemMatrix* psm = dynamic_cast<paso::SystemMatrix*>(mat);
+        paso::SystemMatrix<cplx_t>* psm = dynamic_cast<paso::SystemMatrix<cplx_t>*>(mat);
         if (psm) {
             addToPasoMatrix(psm, nodes, numEq, array);
             return;
@@ -1131,7 +1131,9 @@ namespace oxley {
             throw escript::NotImplementedError("Paso does not support complex-valued matrices");
         }
         // in all other cases we use PASO
-        return (int)SMT_PASO | paso::SystemMatrix::getSystemMatrixTypeId(method, sb.getPreconditioner(), sb.getPackage(), sb.isSymmetric(), m_mpiInfo);
+        return (int)SMT_PASO | paso::SystemMatrix<double>::getSystemMatrixTypeId(
+                                        method, sb.getPreconditioner(), sb.getPackage(),
+                                        sb.isComplex(), sb.isSymmetric(), m_mpiInfo);
 #else
         throw OxleyException("Unable to find a working solver library!");
 #endif
@@ -1195,10 +1197,20 @@ namespace oxley {
     #endif
         } else if (type & (int)SMT_PASO) {
     #ifdef ESYS_HAVE_PASO
-            paso::SystemMatrixPattern_ptr pattern(getPasoMatrixPattern(reduceRowOrder, reduceColOrder));
+            paso::SystemMatrixPattern_ptr pattern(getPasoMatrixPattern(
+                                            reduceRowOrder, reduceColOrder));
             type -= (int)SMT_PASO;
-            escript::ASM_ptr sm(new paso::SystemMatrix(type, pattern, row_blocksize, column_blocksize, false, row_functionspace, column_functionspace));
-            return sm;
+            if (type & (int)MATRIX_FORMAT_COMPLEX) {
+                escript::ASM_ptr sm(new paso::SystemMatrix<cplx_t>(type, pattern,
+                        row_blocksize, column_blocksize, false, row_functionspace,
+                        column_functionspace));
+                return sm;
+            } else {
+                escript::ASM_ptr sm(new paso::SystemMatrix<double>(type, pattern,
+                        row_blocksize, column_blocksize, false, row_functionspace,
+                        column_functionspace));
+                return sm;
+            }
     #else
             throw OxleyException("newSystemMatrix: oxley was not compiled with Paso support so the Paso solver stack cannot be used.");
     #endif
@@ -1271,7 +1283,8 @@ esys_trilinos::const_TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
 #endif
 
 #ifdef ESYS_HAVE_PASO
-    void OxleyDomain::addToPasoMatrix(paso::SystemMatrix* mat,
+    template <typename T>
+    void OxleyDomain::addToPasoMatrix(paso::SystemMatrix<T>* mat,
                                    const IndexVector& nodes, dim_t numEq,
                                    const vector<double>& array) const
     {
