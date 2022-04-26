@@ -3164,36 +3164,59 @@ void Rectangle::assembleIntegrateImpl(std::vector<Scalar>& integrals,
     } else if (fs == Elements && arg.actsExpanded()) {
        
         std::vector<Scalar> int_local(numComp, zero);
+        bool duplicates[quadrantIDs.size()]={false};
         for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) 
         {
             p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
             sc_array_t * tquadrants = &tree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+        
     // #pragma omp parallel for
             for(int q = 0; q < Q; ++q)
-            {               
+            {
                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-                // int l = quad->level;
-                double xy[3];
-                p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x, quad->y, xy);
-                long id = getQuadID(NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
+                p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);      
 
-                real_t w = forestData.m_dx[0][P4EST_MAXLEVEL-quad->level]
-                         * forestData.m_dx[1][P4EST_MAXLEVEL-quad->level]
-                         / 4.;
+                for (int n = 0; n < 4; ++n) 
+                {
+                    if( (n == 0) 
+                        || isHangingNode(nodes->face_code[q], n)
+                        || isUpperBoundaryNode(quad, n, treeid, length) )
+                    {
+                        // p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+                        double xy[3];
+                        p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x, quad->y, xy);
+                        long id = getQuadID(NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
 
-                const Scalar* f = arg.getSampleDataRO(id, zero);
-                for (index_t i = 0; i < numComp; ++i) {
-                    const Scalar f0 = f[INDEX2(i,0,numComp)];
-                    const Scalar f1 = f[INDEX2(i,1,numComp)];
-                    const Scalar f2 = f[INDEX2(i,2,numComp)];
-                    const Scalar f3 = f[INDEX2(i,3,numComp)];
-                    int_local[i] += (f0+f1+f2+f3)*w;
+                        if(duplicates[id] == true)
+                            continue;
+                        else
+                            duplicates[id] = true;
+
+                        #ifdef OXLEY_ENABLE_DEBUG_ASSEMBLE_INTEGRATE
+                            std::cout << "quad id: " << id << std::endl;
+                        #endif
+
+                        real_t w = forestData.m_dx[0][P4EST_MAXLEVEL-quad->level]
+                                 * forestData.m_dx[1][P4EST_MAXLEVEL-quad->level]
+                                 / 4.;
+
+                        const Scalar* f = arg.getSampleDataRO(id, zero);
+                        for (index_t i = 0; i < numComp; ++i) {
+                            const Scalar f0 = f[INDEX2(i,0,numComp)];
+                            const Scalar f1 = f[INDEX2(i,1,numComp)];
+                            const Scalar f2 = f[INDEX2(i,2,numComp)];
+                            const Scalar f3 = f[INDEX2(i,3,numComp)];
+                            int_local[i] += (f0+f1+f2+f3)*w;
+                        }
+                    }
                 }
             }
         }
         for (index_t i=0; i<numComp; i++)
+        {
             integrals[i] += int_local[i];
+        }
 
     } else if (fs==ReducedElements || (fs==Elements && !arg.actsExpanded())) {
         
@@ -3208,7 +3231,6 @@ void Rectangle::assembleIntegrateImpl(std::vector<Scalar>& integrals,
             for(int q = 0; q < Q; ++q)
             {
                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-                // int l = quad->level;
                 double xy[3];
                 p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x, quad->y, xy);
                 long id = getQuadID(NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
