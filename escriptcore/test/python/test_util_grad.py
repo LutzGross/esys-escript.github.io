@@ -18962,3 +18962,2438 @@ class Test_Util_Gradient(Test_Util_Gradient_noBoundary):
         self.assertEqual(res.getShape(),(3, 2, 2)+(dim,),'wrong shape of result.')
         self.assertLess(Lsup(res-ref),self.RES_TOL*Lsup(ref),'wrong result')
     #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_curlR_onDefault_fromData_Solution_shape0(self):
+        x=Solution(self.domain).getX()
+        u=0.567980864968689*x[0] + 2.37883388651275*x[1] - 2.27275425883614
+        res=curl(u)
+        c0= 2.37883388651275
+        c1= -0.567980864968689
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlR_onDefault_fromData_Solution_shape2(self):
+        x=Solution(self.domain).getX()
+        u= (-2.587267677704*x[0] + 0.830505852499818*x[1] - 0.0133268161007329)*[1,0]+(-2.17501190497324*x[0] - 4.67980450739307*x[1] - 2.40698088726486)*[0,1]
+        res=curl(u)
+        c= -3.00551775747306
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlR_onDefault_fromData_Solution_shape3(self):
+        x=Solution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (1.96390541598301*x[0] - 0.272581497792798*x[1] - 0.457708442797436)*[1,0,0]+(-0.950718183636158*x[0] - 3.66450506440359*x[1] - 4.17100612216111)*[0,1,0]+(3.53332418757341*x[0] + 3.18835158130554*x[1] - 4.36218305871771)*[0,0,1]
+        res=curl(u)
+        c0= 3.18835158130554
+        c1= -3.53332418757341
+        c2= -0.678136685843360
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_curlR_onFunction_fromData_Solution_shape0(self):
+        x=Solution(self.domain).getX()
+        u=2.57823999242566*x[0] + 1.02742760263224*x[1] + 1.32852709390402
+        res=curl(u, where=Function(self.domain))
+        c0= 1.02742760263224
+        c1= -2.57823999242566
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlR_onFunction_fromData_Solution_shape2(self):
+        x=Solution(self.domain).getX()
+        u= (1.20188851599556*x[0] - 0.70852780042526*x[1] + 0.820059867071391)*[1,0]+(1.3699461630651*x[0] + 0.992416202089559*x[1] - 0.662405572704604)*[0,1]
+        res=curl(u, where=Function(self.domain))
+        c= 2.07847396349036
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlR_onFunction_fromData_Solution_shape3(self):
+        x=Solution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (-1.98897249804955*x[0] + 3.33088775687147*x[1] + 4.3484420205386)*[1,0,0]+(-4.64171222871551*x[0] - 2.09673586061016*x[1] - 0.503270029986965)*[0,1,0]+(4.03705974854093*x[0] + 1.58670917448951*x[1] + 0.102744092238229)*[0,0,1]
+        res=curl(u, where=Function(self.domain))
+        c0= 1.58670917448951
+        c1= -4.03705974854093
+        c2= -7.97259998558698
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_curlR_onReducedFunction_fromData_Solution_shape0(self):
+        x=Solution(self.domain).getX()
+        u=-3.71073593585879*x[0] - 2.62706658909531*x[1] - 1.44012206999594
+        res=curl(u, where=ReducedFunction(self.domain))
+        c0= -2.62706658909531
+        c1= 3.71073593585879
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlR_onReducedFunction_fromData_Solution_shape2(self):
+        x=Solution(self.domain).getX()
+        u= (3.11658077638855*x[0] + 3.0452643417506*x[1] - 3.60065996511075)*[1,0]+(3.45867449576129*x[0] + 2.23487947541496*x[1] + 1.94305332631836)*[0,1]
+        res=curl(u, where=ReducedFunction(self.domain))
+        c= 0.413410154010689
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlR_onReducedFunction_fromData_Solution_shape3(self):
+        x=Solution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (-4.25995397920677*x[0] - 0.778252367893851*x[1] - 3.03749913636286)*[1,0,0]+(-4.8550850520637*x[0] - 3.54720955198691*x[1] - 4.36041625908558)*[0,1,0]+(-1.54225216861274*x[0] - 2.17995719314927*x[1] + 4.37032604968914)*[0,0,1]
+        res=curl(u, where=ReducedFunction(self.domain))
+        c0= -2.17995719314927
+        c1= 1.54225216861274
+        c2= -4.07683268416985
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_curlR_onDefault_fromData_ReducedSolution_shape0(self):
+        x=ReducedSolution(self.domain).getX()
+        u=1.98316929498713*x[0] - 4.22010312862068*x[1] - 1.47271903171272
+        res=curl(u)
+        c0= -4.22010312862068
+        c1= -1.98316929498713
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlR_onDefault_fromData_ReducedSolution_shape2(self):
+        x=ReducedSolution(self.domain).getX()
+        u= (-1.56742480505574*x[0] - 3.71757409949326*x[1] + 3.83424580036694)*[1,0]+(-1.29160244277296*x[0] - 1.17613306906294*x[1] - 4.71475915155573)*[0,1]
+        res=curl(u)
+        c= 2.42597165672029
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlR_onDefault_fromData_ReducedSolution_shape3(self):
+        x=ReducedSolution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (-0.559430845348535*x[0] - 0.779313033986808*x[1] - 2.33181447880043)*[1,0,0]+(-0.715361783635685*x[0] + 1.84488146476625*x[1] + 1.14786397264379)*[0,1,0]+(0.402545295458817*x[0] - 1.27115264535442*x[1] - 3.99441518597857)*[0,0,1]
+        res=curl(u)
+        c0= -1.27115264535442
+        c1= -0.402545295458817
+        c2= 0.0639512503511233
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_curlR_onFunction_fromData_ReducedSolution_shape0(self):
+        x=ReducedSolution(self.domain).getX()
+        u=3.53468863336223*x[0] - 0.524430164449393*x[1] + 4.92923504855788
+        res=curl(u, where=Function(self.domain))
+        c0= -0.524430164449393
+        c1= -3.53468863336223
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlR_onFunction_fromData_ReducedSolution_shape2(self):
+        x=ReducedSolution(self.domain).getX()
+        u= (-2.79158794350483*x[0] + 3.23069056078442*x[1] - 1.87611950643822)*[1,0]+(-2.41833067739433*x[0] + 1.9646696971169*x[1] - 2.87161236811213)*[0,1]
+        res=curl(u, where=Function(self.domain))
+        c= -5.64902123817874
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlR_onFunction_fromData_ReducedSolution_shape3(self):
+        x=ReducedSolution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (-4.39074186451839*x[0] - 2.7325916817595*x[1] + 0.609719117851713)*[1,0,0]+(-1.6762594429464*x[0] + 1.83187200716541*x[1] + 3.55524274401182)*[0,1,0]+(-2.95814910587912*x[0] + 2.06946233576379*x[1] + 0.359765505340965)*[0,0,1]
+        res=curl(u, where=Function(self.domain))
+        c0= 2.06946233576379
+        c1= 2.95814910587912
+        c2= 1.05633223881310
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_curlR_onReducedFunction_fromData_ReducedSolution_shape0(self):
+        x=ReducedSolution(self.domain).getX()
+        u=-4.508519293805*x[0] - 0.717120659913424*x[1] + 3.78552010556357
+        res=curl(u, where=ReducedFunction(self.domain))
+        c0= -0.717120659913424
+        c1= 4.50851929380500
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlR_onReducedFunction_fromData_ReducedSolution_shape2(self):
+        x=ReducedSolution(self.domain).getX()
+        u= (4.65919539092129*x[0] + 0.326714229871667*x[1] + 1.29166779007479)*[1,0]+(4.02462978239217*x[0] - 0.0935626334012838*x[1] - 3.05863550030539)*[0,1]
+        res=curl(u, where=ReducedFunction(self.domain))
+        c= 3.69791555252050
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlR_onReducedFunction_fromData_ReducedSolution_shape3(self):
+        x=ReducedSolution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (2.01007914334696*x[0] + 4.84142878447324*x[1] + 4.32342448256488)*[1,0,0]+(-1.24420344443126*x[0] + 1.1160881361968*x[1] + 3.55522803887453)*[0,1,0]+(-3.54113363001142*x[0] + 1.08755245734506*x[1] - 1.48824532566066)*[0,0,1]
+        res=curl(u, where=ReducedFunction(self.domain))
+        c0= 1.08755245734506
+        c1= 3.54113363001142
+        c2= -6.08563222890450
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_curlR_onDefault_fromData_ContinuousFunction_shape0(self):
+        x=ContinuousFunction(self.domain).getX()
+        u=4.81914869806854*x[0] - 1.89324915896119*x[1] + 4.17202630073358
+        res=curl(u)
+        c0= -1.89324915896119
+        c1= -4.81914869806854
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlR_onDefault_fromData_ContinuousFunction_shape2(self):
+        x=ContinuousFunction(self.domain).getX()
+        u= (3.69707948586884*x[0] - 3.09361367598148*x[1] + 4.40770472392948)*[1,0]+(2.00607005874741*x[0] + 3.31170700524565*x[1] + 0.608453184675168)*[0,1]
+        res=curl(u)
+        c= 5.09968373472889
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlR_onDefault_fromData_ContinuousFunction_shape3(self):
+        x=ContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (1.64432124269547*x[0] - 4.54646888150707*x[1] + 2.65116807813914)*[1,0,0]+(-4.41302481971234*x[0] - 1.40511337337426*x[1] + 3.23890122682861)*[0,1,0]+(2.99572903914019*x[0] - 1.43461058457363*x[1] - 3.85559202288358)*[0,0,1]
+        res=curl(u)
+        c0= -1.43461058457363
+        c1= -2.99572903914019
+        c2= 0.133444061794723
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_curlR_onFunction_fromData_ContinuousFunction_shape0(self):
+        x=ContinuousFunction(self.domain).getX()
+        u=-4.84549262237586*x[0] - 2.38819425821728*x[1] + 4.88734366962477
+        res=curl(u, where=Function(self.domain))
+        c0= -2.38819425821728
+        c1= 4.84549262237586
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlR_onFunction_fromData_ContinuousFunction_shape2(self):
+        x=ContinuousFunction(self.domain).getX()
+        u= (-0.217718349124672*x[0] + 2.79718244512468*x[1] - 1.50564855508534)*[1,0]+(0.383860870395258*x[0] + 1.91590993667503*x[1] + 2.6334688953769)*[0,1]
+        res=curl(u, where=Function(self.domain))
+        c= -2.41332157472942
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlR_onFunction_fromData_ContinuousFunction_shape3(self):
+        x=ContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (4.94117772103609*x[0] + 1.39950148197616*x[1] + 2.66343265515331)*[1,0,0]+(3.90192147163308*x[0] - 2.4891414473892*x[1] + 3.93619974773451)*[0,1,0]+(2.61489208721871*x[0] - 0.121627272264103*x[1] + 4.70226117167669)*[0,0,1]
+        res=curl(u, where=Function(self.domain))
+        c0= -0.121627272264103
+        c1= -2.61489208721871
+        c2= 2.50241998965692
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_curlR_onReducedFunction_fromData_ContinuousFunction_shape0(self):
+        x=ContinuousFunction(self.domain).getX()
+        u=2.50919091650953*x[0] + 2.8456167524236*x[1] + 2.44736423467527
+        res=curl(u, where=ReducedFunction(self.domain))
+        c0= 2.84561675242360
+        c1= -2.50919091650953
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlR_onReducedFunction_fromData_ContinuousFunction_shape2(self):
+        x=ContinuousFunction(self.domain).getX()
+        u= (-1.13317314511243*x[0] - 4.15821047094508*x[1] - 1.22710050880474)*[1,0]+(3.00338075220876*x[0] + 4.4208570667226*x[1] + 2.97529089157916)*[0,1]
+        res=curl(u, where=ReducedFunction(self.domain))
+        c= 7.16159122315384
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlR_onReducedFunction_fromData_ContinuousFunction_shape3(self):
+        x=ContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (-1.35701312658205*x[0] + 3.99950565290666*x[1] + 1.57302607746771)*[1,0,0]+(4.27527622356514*x[0] + 3.02252866971319*x[1] + 2.61874465843184)*[0,1,0]+(0.532144299016663*x[0] + 3.89322050077782*x[1] - 0.81159754178509)*[0,0,1]
+        res=curl(u, where=ReducedFunction(self.domain))
+        c0= 3.89322050077782
+        c1= -0.532144299016663
+        c2= 0.275770570658484
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_curlR_onDefault_fromData_ReducedContinuousFunction_shape0(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        u=-4.16893118158528*x[0] + 0.941221266417353*x[1] - 4.51716589631134
+        res=curl(u)
+        c0= 0.941221266417353
+        c1= 4.16893118158528
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlR_onDefault_fromData_ReducedContinuousFunction_shape2(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        u= (4.7840847897986*x[0] + 3.62079993195484*x[1] + 2.75087716188482)*[1,0]+(-0.870899372955839*x[0] + 3.27783916113767*x[1] + 0.453145190013197)*[0,1]
+        res=curl(u)
+        c= -4.49169930491068
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlR_onDefault_fromData_ReducedContinuousFunction_shape3(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (3.23413817825225*x[0] + 2.07442067834594*x[1] - 0.183423722845303)*[1,0,0]+(0.695757842313713*x[0] - 2.98631571342733*x[1] - 0.831912704289371)*[0,1,0]+(4.74259160992552*x[0] + 1.38406068865327*x[1] + 3.34234269085438)*[0,0,1]
+        res=curl(u)
+        c0= 1.38406068865327
+        c1= -4.74259160992552
+        c2= -1.37866283603223
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_curlR_onFunction_fromData_ReducedContinuousFunction_shape0(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        u=2.21765985314734*x[0] - 4.80371697153784*x[1] + 2.06117724339541
+        res=curl(u, where=Function(self.domain))
+        c0= -4.80371697153784
+        c1= -2.21765985314734
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlR_onFunction_fromData_ReducedContinuousFunction_shape2(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        u= (0.150592482194623*x[0] + 0.897171792700342*x[1] - 1.4333245707615)*[1,0]+(3.14073404148708*x[0] - 3.1469244722079*x[1] - 3.80796085404112)*[0,1]
+        res=curl(u, where=Function(self.domain))
+        c= 2.24356224878674
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlR_onFunction_fromData_ReducedContinuousFunction_shape3(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (-2.06557036058812*x[0] + 3.48528647132364*x[1] - 2.10881237265809)*[1,0,0]+(3.39080414688747*x[0] - 2.34960575308406*x[1] - 1.18679822422128)*[0,1,0]+(2.07070836595861*x[0] + 2.36323563426661*x[1] - 0.103306463290749)*[0,0,1]
+        res=curl(u, where=Function(self.domain))
+        c0= 2.36323563426661
+        c1= -2.07070836595861
+        c2= -0.0944823244361714
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_curlR_onReducedFunction_fromData_ReducedContinuousFunction_shape0(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        u=-4.66317427236695*x[0] + 2.38560609774335*x[1] - 3.05311621592354
+        res=curl(u, where=ReducedFunction(self.domain))
+        c0= 2.38560609774335
+        c1= 4.66317427236695
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlR_onReducedFunction_fromData_ReducedContinuousFunction_shape2(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        u= (-1.46540907885515*x[0] - 0.410221805966831*x[1] + 0.783658041420704)*[1,0]+(2.26654665500557*x[0] + 1.56273688267979*x[1] + 0.853013244757141)*[0,1]
+        res=curl(u, where=ReducedFunction(self.domain))
+        c= 2.67676846097240
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlR_onReducedFunction_fromData_ReducedContinuousFunction_shape3(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (3.90907702860774*x[0] + 0.119050001108755*x[1] + 4.23135203993845)*[1,0,0]+(3.79638824992373*x[0] + 1.79978811240869*x[1] + 2.31870405319122)*[0,1,0]+(3.68131081741065*x[0] - 1.11132695704881*x[1] + 3.05859250917571)*[0,0,1]
+        res=curl(u, where=ReducedFunction(self.domain))
+        c0= -1.11132695704881
+        c1= -3.68131081741065
+        c2= 3.67733824881498
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_curlC_onDefault_fromData_Solution_shape0(self):
+        x=Solution(self.domain).getX()
+        u=x[0]*(0.0559799040405107 + 4.26431936006544*1j) + x[1]*(0.126326652630845 + 4.62110545162053*1j) + 1.15580373296676 - 0.256195080969794*1j
+        res=curl(u)
+        c0= 0.126326652630845 + 4.62110545162053*1j
+        c1= -0.0559799040405107 - 4.26431936006544*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlC_onDefault_fromData_Solution_shape2(self):
+        x=Solution(self.domain).getX()
+        u= (x[0]*(2.24034781188351 - 4.90455621612495*1j) + x[1]*(4.07697743995061 + 1.64291626700752*1j) - 1.17127425230676 + 3.63152476940066*1j)*[1,0]+(x[0]*(4.92067183282207 + 4.35401570438174*1j) + x[1]*(-4.28106672239646 + 3.08721880250475*1j) - 3.44590686556494 - 0.576259988711606*1j)*[0,1]
+        res=curl(u)
+        c= 0.843694392871452 + 2.71109943737422*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlC_onDefault_fromData_Solution_shape3(self):
+        x=Solution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (x[0]*(-0.79046496795332 + 3.11478119452089*1j) + x[1]*(3.95327921844674 - 2.65468800972627*1j) + 0.957602737821535 - 2.59561946700081*1j)*[1,0,0]+(x[0]*(4.09850300399433 + 4.5493666668996*1j) + x[1]*(-0.0540494408266792 - 0.0329847304817772*1j) - 3.79907981994422 - 4.94823826541168*1j)*[0,1,0]+(x[0]*(0.776580900945136 + 1.86636049049989*1j) + x[1]*(-2.5178498885604 - 2.55888857827202*1j) + 4.39048179159431 - 2.18989209542166*1j)*[0,0,1]
+        res=curl(u)
+        c0= -2.5178498885604 - 2.55888857827202*1j
+        c1= -0.776580900945136 - 1.86636049049989*1j
+        c2= 0.145223785547582 + 7.20405467662587*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_curlC_onFunction_fromData_Solution_shape0(self):
+        x=Solution(self.domain).getX()
+        u=x[0]*(3.07779295068129 - 4.98304874747994*1j) + x[1]*(-1.17887919467294 - 2.91709414180013*1j) - 4.33050287483196 - 0.624676592331939*1j
+        res=curl(u, where=Function(self.domain))
+        c0= -1.17887919467294 - 2.91709414180013*1j
+        c1= -3.07779295068129 + 4.98304874747994*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlC_onFunction_fromData_Solution_shape2(self):
+        x=Solution(self.domain).getX()
+        u= (x[0]*(-0.640809708902633 + 1.48056391256198*1j) + x[1]*(-0.0252799991191921 - 4.89879299981215*1j) - 3.4759348562279 - 0.756301126731521*1j)*[1,0]+(x[0]*(4.28046574649857 + 4.79232424087804*1j) + x[1]*(1.21581676644747 - 4.56355938999134*1j) - 4.20406357636091 + 0.251588657376366*1j)*[0,1]
+        res=curl(u, where=Function(self.domain))
+        c= 4.30574574561776 + 9.69111724069019*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlC_onFunction_fromData_Solution_shape3(self):
+        x=Solution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (x[0]*(-4.02924115240422 - 4.78588109104724*1j) + x[1]*(2.53677948810534 + 0.92987272724517*1j) - 3.76571800331474 + 2.97415495745982*1j)*[1,0,0]+(x[0]*(-1.7781583547497 + 0.845507705781705*1j) + x[1]*(4.18853905239805 + 4.31139312668899*1j) - 1.35792338130071 - 4.46581208732159*1j)*[0,1,0]+(x[0]*(-1.49124332116725 - 0.869217622626755*1j) + x[1]*(-4.48988475918522 + 2.59821436413395*1j) + 1.64240788182454 - 2.61632506520521*1j)*[0,0,1]
+        res=curl(u, where=Function(self.domain))
+        c0= -4.48988475918522 + 2.59821436413395*1j
+        c1= 1.49124332116725 + 0.869217622626755*1j
+        c2= -4.31493784285505 - 0.0843650214634657*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_curlC_onReducedFunction_fromData_Solution_shape0(self):
+        x=Solution(self.domain).getX()
+        u=x[0]*(3.4685836745432 + 1.75582759432461*1j) + x[1]*(-1.29067567205826 - 1.1347494426279*1j) - 3.16178623999482 + 0.327592579940267*1j
+        res=curl(u, where=ReducedFunction(self.domain))
+        c0= -1.29067567205826 - 1.1347494426279*1j
+        c1= -3.4685836745432 - 1.75582759432461*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlC_onReducedFunction_fromData_Solution_shape2(self):
+        x=Solution(self.domain).getX()
+        u= (x[0]*(-4.08551870872734 - 3.74938166723161*1j) + x[1]*(-4.30929671140391 + 3.6283287811824*1j) - 1.35544129620944 + 2.35969609757126*1j)*[1,0]+(x[0]*(4.71290671335985 + 0.884877884398236*1j) + x[1]*(-1.46568678595841 + 0.0901470893670488*1j) + 1.95243154936756 - 0.262630287521587*1j)*[0,1]
+        res=curl(u, where=ReducedFunction(self.domain))
+        c= 9.02220342476376 - 2.74345089678416*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlC_onReducedFunction_fromData_Solution_shape3(self):
+        x=Solution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (x[0]*(0.219829447285374 - 2.46418900747021*1j) + x[1]*(-2.90430867398513 + 1.90698524055888*1j) - 2.00332956236533 + 4.7616302101654*1j)*[1,0,0]+(x[0]*(3.3390103422729 + 1.27916145177855*1j) + x[1]*(-4.38641623891026 + 4.99176440379021*1j) + 2.24636578053001 + 4.04663425670699*1j)*[0,1,0]+(x[0]*(-1.64462177916912 - 0.239013662831249*1j) + x[1]*(-1.10009275081981 + 4.51659072906286*1j) + 1.13293183309399 - 4.72792427477944*1j)*[0,0,1]
+        res=curl(u, where=ReducedFunction(self.domain))
+        c0= -1.10009275081981 + 4.51659072906286*1j
+        c1= 1.64462177916912 + 0.239013662831249*1j
+        c2= 6.24331901625803 - 0.627823788780328*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_curlC_onDefault_fromData_ReducedSolution_shape0(self):
+        x=ReducedSolution(self.domain).getX()
+        u=x[0]*(0.0195897816917237 + 0.423499333652231*1j) + x[1]*(-1.23425889451331 - 0.345124691264288*1j) - 2.62506683968517 + 2.75698467545587*1j
+        res=curl(u)
+        c0= -1.23425889451331 - 0.345124691264288*1j
+        c1= -0.0195897816917237 - 0.423499333652231*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlC_onDefault_fromData_ReducedSolution_shape2(self):
+        x=ReducedSolution(self.domain).getX()
+        u= (x[0]*(-0.140288804682564 - 4.15303542379433*1j) + x[1]*(-2.7505242423176 + 2.90233794394282*1j) + 1.54613008301836 + 1.83964552342683*1j)*[1,0]+(x[0]*(-0.82899330808859 - 1.97773191241543*1j) + x[1]*(3.65603292832952 - 4.97065208604508*1j) + 2.20059182983466 - 2.22696183233519*1j)*[0,1]
+        res=curl(u)
+        c= 1.92153093422901 - 4.88006985635824*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlC_onDefault_fromData_ReducedSolution_shape3(self):
+        x=ReducedSolution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (x[0]*(-3.70952092934158 + 0.917159478266987*1j) + x[1]*(-2.2596190194227 - 4.96594613892337*1j) + 4.93923288832204 + 0.786405982202696*1j)*[1,0,0]+(x[0]*(2.43397954810254 + 0.153215652022936*1j) + x[1]*(1.29695721257203 + 0.829396978439942*1j) + 4.97447906456273 - 1.87379598182252*1j)*[0,1,0]+(x[0]*(1.92870083410867 + 1.68413136581127*1j) + x[1]*(0.119372362701034 - 0.214341152695681*1j) - 0.52850270089884 + 2.0154807165545*1j)*[0,0,1]
+        res=curl(u)
+        c0= 0.119372362701034 - 0.214341152695681*1j
+        c1= -1.92870083410867 - 1.68413136581127*1j
+        c2= 4.69359856752524 + 5.1191617909463*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_curlC_onFunction_fromData_ReducedSolution_shape0(self):
+        x=ReducedSolution(self.domain).getX()
+        u=x[0]*(2.98088540282299 - 0.211267593949396*1j) + x[1]*(-2.22831934129596 + 0.97130788756763*1j) + 3.30547168575926 - 1.38220406484955*1j
+        res=curl(u, where=Function(self.domain))
+        c0= -2.22831934129596 + 0.97130788756763*1j
+        c1= -2.98088540282299 + 0.211267593949396*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlC_onFunction_fromData_ReducedSolution_shape2(self):
+        x=ReducedSolution(self.domain).getX()
+        u= (x[0]*(-0.92141868081301 + 1.55618273691312*1j) + x[1]*(3.99865025530344 + 1.08418213514818*1j) + 1.2478411029929 + 0.349703803040491*1j)*[1,0]+(x[0]*(0.27243589583498 - 3.31445553409649*1j) + x[1]*(1.48814953325428 + 3.74970988280774*1j) + 0.389922457473305 - 0.923453567526977*1j)*[0,1]
+        res=curl(u, where=Function(self.domain))
+        c= -3.72621435946846 - 4.39863766924467*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlC_onFunction_fromData_ReducedSolution_shape3(self):
+        x=ReducedSolution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (x[0]*(3.121646838321 + 1.31384793959565*1j) + x[1]*(3.84103986006621 - 2.06506791942886*1j) - 2.03242381617394 - 4.05921523299069*1j)*[1,0,0]+(x[0]*(4.44405462656021 + 4.84768688223935*1j) + x[1]*(0.314642900149323 + 4.51317637336287*1j) - 4.46877387192043 - 2.48118877812397*1j)*[0,1,0]+(x[0]*(-2.09572653750403 - 3.3313168435333*1j) + x[1]*(0.868328859269579 - 1.39879378040951*1j) - 1.87779852891401 + 4.66678122753634*1j)*[0,0,1]
+        res=curl(u, where=Function(self.domain))
+        c0= 0.868328859269579 - 1.39879378040951*1j
+        c1= 2.09572653750403 + 3.3313168435333*1j
+        c2= 0.603014766494001 + 6.91275480166821*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_curlC_onReducedFunction_fromData_ReducedSolution_shape0(self):
+        x=ReducedSolution(self.domain).getX()
+        u=x[0]*(-3.88812827234604 + 0.30152102252858*1j) + x[1]*(-2.18074366840786 + 1.99448616818284*1j) + 4.12292579432183 + 2.51605331374633*1j
+        res=curl(u, where=ReducedFunction(self.domain))
+        c0= -2.18074366840786 + 1.99448616818284*1j
+        c1= 3.88812827234604 - 0.30152102252858*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlC_onReducedFunction_fromData_ReducedSolution_shape2(self):
+        x=ReducedSolution(self.domain).getX()
+        u= (x[0]*(2.79756153811775 - 2.16046906310852*1j) + x[1]*(-2.77638260415828 - 0.0984292245605376*1j) + 4.44686604313967 + 0.474690464202801*1j)*[1,0]+(x[0]*(4.04064797867098 - 4.21600718251011*1j) + x[1]*(3.03645689046621 + 0.78520416640391*1j) - 2.52041867806359 - 4.15854241184921*1j)*[0,1]
+        res=curl(u, where=ReducedFunction(self.domain))
+        c= 6.81703058282926 - 4.11757795794957*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlC_onReducedFunction_fromData_ReducedSolution_shape3(self):
+        x=ReducedSolution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (x[0]*(-2.00755547527169 - 1.61534837147551*1j) + x[1]*(0.891567146034761 - 1.80811034247773*1j) - 0.073089734599483 - 0.587750347272605*1j)*[1,0,0]+(x[0]*(2.06988872250374 + 0.9771480901811*1j) + x[1]*(4.25910305280923 + 3.11119656386619*1j) + 3.71218589395649 - 4.66156809423973*1j)*[0,1,0]+(x[0]*(-1.33724897651984 + 1.6161648113681*1j) + x[1]*(-1.4207146560907 + 0.396359111680175*1j) - 0.450089702515929 + 0.599459666537809*1j)*[0,0,1]
+        res=curl(u, where=ReducedFunction(self.domain))
+        c0= -1.4207146560907 + 0.396359111680175*1j
+        c1= 1.33724897651984 - 1.6161648113681*1j
+        c2= 1.17832157646898 + 2.78525843265883*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_curlC_onDefault_fromData_ContinuousFunction_shape0(self):
+        x=ContinuousFunction(self.domain).getX()
+        u=x[0]*(3.24702325622118 - 2.27748320760381*1j) + x[1]*(-4.77664213798334 - 3.17118798114962*1j) - 1.64415325581014 - 0.738395110139337*1j
+        res=curl(u)
+        c0= -4.77664213798334 - 3.17118798114962*1j
+        c1= -3.24702325622118 + 2.27748320760381*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlC_onDefault_fromData_ContinuousFunction_shape2(self):
+        x=ContinuousFunction(self.domain).getX()
+        u= (x[0]*(-1.01441945007545 + 2.34176596995669*1j) + x[1]*(-3.93214138669121 + 2.11608251618077*1j) - 2.15505497537762 - 3.00618855609167*1j)*[1,0]+(x[0]*(2.31661627694446 + 1.28487584910439*1j) + x[1]*(0.960918593875389 + 4.08578367457635*1j) - 4.42309282596401 - 3.81818926422831*1j)*[0,1]
+        res=curl(u)
+        c= 6.24875766363567 - 0.831206667076383*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlC_onDefault_fromData_ContinuousFunction_shape3(self):
+        x=ContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (x[0]*(3.84480683142522 - 4.56010060719518*1j) + x[1]*(-0.0540791430003598 + 1.18942794256513*1j) + 2.92949414082135 - 1.48807129763571*1j)*[1,0,0]+(x[0]*(2.03580768772062 - 0.758771812181123*1j) + x[1]*(-3.81094694299781 + 1.47508547730041*1j) - 2.70168652997381 + 2.49178627114037*1j)*[0,1,0]+(x[0]*(1.86360905587409 - 2.76282839438774*1j) + x[1]*(-2.81890659667403 + 0.196775124373333*1j) + 1.41591402199423 + 1.82852215414125*1j)*[0,0,1]
+        res=curl(u)
+        c0= -2.81890659667403 + 0.196775124373333*1j
+        c1= -1.86360905587409 + 2.76282839438774*1j
+        c2= 2.08988683072098 - 1.94819975474625*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_curlC_onFunction_fromData_ContinuousFunction_shape0(self):
+        x=ContinuousFunction(self.domain).getX()
+        u=x[0]*(4.86400707876987 + 2.18743261108327*1j) + x[1]*(-3.6941050638212 + 0.396527268791723*1j) - 4.89226283447963 + 2.18002611423361*1j
+        res=curl(u, where=Function(self.domain))
+        c0= -3.6941050638212 + 0.396527268791723*1j
+        c1= -4.86400707876987 - 2.18743261108327*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlC_onFunction_fromData_ContinuousFunction_shape2(self):
+        x=ContinuousFunction(self.domain).getX()
+        u= (x[0]*(2.01060147944766 - 2.15157632766612*1j) + x[1]*(2.28050932312763 - 0.39879677267241*1j) + 4.9672749419969 + 1.59766125997948*1j)*[1,0]+(x[0]*(3.83061850885657 - 4.50840123846505*1j) + x[1]*(-4.39219871151235 - 3.03761361588873*1j) - 4.71862846775169 - 2.6335267514808*1j)*[0,1]
+        res=curl(u, where=Function(self.domain))
+        c= 1.55010918572894 - 4.10960446579264*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlC_onFunction_fromData_ContinuousFunction_shape3(self):
+        x=ContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (x[0]*(-2.98939547157365 + 0.493874065063901*1j) + x[1]*(3.62231868135433 - 3.55767164976473*1j) - 1.95401892104489 - 4.36885223401364*1j)*[1,0,0]+(x[0]*(-2.25217675482642 - 3.75696723912703*1j) + x[1]*(-1.842899253601 + 0.359470920396325*1j) - 1.124616830142 + 4.73772423274391*1j)*[0,1,0]+(x[0]*(3.43672933265758 + 3.34299767630108*1j) + x[1]*(1.08265147618216 + 2.41956685505825*1j) + 4.42382109411063 + 1.11205686042012*1j)*[0,0,1]
+        res=curl(u, where=Function(self.domain))
+        c0= 1.08265147618216 + 2.41956685505825*1j
+        c1= -3.43672933265758 - 3.34299767630108*1j
+        c2= -5.87449543618074 - 0.199295589362296*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_curlC_onReducedFunction_fromData_ContinuousFunction_shape0(self):
+        x=ContinuousFunction(self.domain).getX()
+        u=x[0]*(-3.02984806568046 + 3.98064044685684*1j) + x[1]*(-1.68267183729448 - 2.64500258188895*1j) + 4.6465792872358 - 1.49397278784343*1j
+        res=curl(u, where=ReducedFunction(self.domain))
+        c0= -1.68267183729448 - 2.64500258188895*1j
+        c1= 3.02984806568046 - 3.98064044685684*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlC_onReducedFunction_fromData_ContinuousFunction_shape2(self):
+        x=ContinuousFunction(self.domain).getX()
+        u= (x[0]*(0.725056394322445 - 1.50818020205866*1j) + x[1]*(2.16545143662146 + 4.17587281678761*1j) + 3.67957542454654 + 2.16214384223196*1j)*[1,0]+(x[0]*(0.354632617910232 - 4.89875146894934*1j) + x[1]*(-1.97578074201005 - 1.74937753327838*1j) + 4.4400508138042 + 1.34697236513184*1j)*[0,1]
+        res=curl(u, where=ReducedFunction(self.domain))
+        c= -1.81081881871123 - 9.07462428573694*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlC_onReducedFunction_fromData_ContinuousFunction_shape3(self):
+        x=ContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (x[0]*(3.90748943341137 - 3.79954379857296*1j) + x[1]*(-1.4647239676793 - 4.72553726439607*1j) + 4.13083044562153 - 1.47516437702688*1j)*[1,0,0]+(x[0]*(-2.43095268585581 - 2.9775030890696*1j) + x[1]*(-0.873185608069745 + 2.18416715854081*1j) - 1.93229151604671 - 2.82804475195116*1j)*[0,1,0]+(x[0]*(-4.173822524491 - 2.28165622760719*1j) + x[1]*(1.84445926849883 + 1.81779042982295*1j) - 1.75420338983254 + 1.75917078418849*1j)*[0,0,1]
+        res=curl(u, where=ReducedFunction(self.domain))
+        c0= 1.84445926849883 + 1.81779042982295*1j
+        c1= 4.173822524491 + 2.28165622760719*1j
+        c2= -0.966228718176514 + 1.74803417532648*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_curlC_onDefault_fromData_ReducedContinuousFunction_shape0(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        u=x[0]*(-4.73325504913443 - 3.18578604035522*1j) + x[1]*(-0.265642816965965 + 1.30708491611495*1j) - 2.38401317128949 + 2.17513924636003*1j
+        res=curl(u)
+        c0= -0.265642816965965 + 1.30708491611495*1j
+        c1= 4.73325504913443 + 3.18578604035522*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlC_onDefault_fromData_ReducedContinuousFunction_shape2(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        u= (x[0]*(-1.49665382679722 - 4.57711876156751*1j) + x[1]*(-2.5676506908483 + 0.958623296474706*1j) + 0.980442322122093 + 3.27215598424326*1j)*[1,0]+(x[0]*(-2.35490725532687 + 2.20637766761428*1j) + x[1]*(1.69610414539791 + 1.16216576087906*1j) + 4.53865603624597 - 4.59037055754869*1j)*[0,1]
+        res=curl(u)
+        c= 0.212743435521429 + 1.24775437113957*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlC_onDefault_fromData_ReducedContinuousFunction_shape3(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (x[0]*(-4.31265917528425 - 4.83565193804529*1j) + x[1]*(4.84886111772462 + 0.598554410530322*1j) + 1.06343796998942 + 1.8504911287829*1j)*[1,0,0]+(x[0]*(-4.43904075359251 + 2.65474610489681*1j) + x[1]*(-1.73695122657825 + 0.821209590853833*1j) + 3.33876384880578 - 0.982996009936477*1j)*[0,1,0]+(x[0]*(4.01785156133396 - 0.248071159102996*1j) + x[1]*(-1.01876145237136 - 1.52173108351647*1j) + 0.958504246935994 + 4.29763409719394*1j)*[0,0,1]
+        res=curl(u)
+        c0= -1.01876145237136 - 1.52173108351647*1j
+        c1= -4.01785156133396 + 0.248071159102996*1j
+        c2= -9.28790187131713 + 2.05619169436649*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_curlC_onFunction_fromData_ReducedContinuousFunction_shape0(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        u=x[0]*(-4.2575047369808 - 3.43911516150308*1j) + x[1]*(-4.05773872843953 - 1.99050327024307*1j) - 3.61995457504207 + 0.978149891698619*1j
+        res=curl(u, where=Function(self.domain))
+        c0= -4.05773872843953 - 1.99050327024307*1j
+        c1= 4.2575047369808 + 3.43911516150308*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlC_onFunction_fromData_ReducedContinuousFunction_shape2(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        u= (x[0]*(1.39991423323745 + 0.720851824217567*1j) + x[1]*(-4.72583329927221 - 3.79617690306956*1j) - 0.365376406888512 - 3.26808164651684*1j)*[1,0]+(x[0]*(-4.95740165503608 - 3.10187455949122*1j) + x[1]*(4.87733699826884 - 3.71999782278246*1j) + 4.04052205323822 + 0.272082293389122*1j)*[0,1]
+        res=curl(u, where=Function(self.domain))
+        c= -0.231568355763872 + 0.694302343578343*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlC_onFunction_fromData_ReducedContinuousFunction_shape3(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (x[0]*(3.42261033524767 - 4.52170176772343*1j) + x[1]*(4.30217108126554 + 0.0994644395677655*1j) + 1.74550735523398 - 4.97919565601261*1j)*[1,0,0]+(x[0]*(-4.25677737254529 + 2.03363651593617*1j) + x[1]*(4.09117414106033 + 3.70229486639722*1j) - 4.93253162518791 + 4.383700896433*1j)*[0,1,0]+(x[0]*(-0.692462242695942 + 4.55110225346793*1j) + x[1]*(-3.74097962527605 + 3.05104688070803*1j) - 4.78135166882651 + 2.12757394004436*1j)*[0,0,1]
+        res=curl(u, where=Function(self.domain))
+        c0= -3.74097962527605 + 3.05104688070803*1j
+        c1= 0.692462242695942 - 4.55110225346793*1j
+        c2= -8.55894845381083 + 1.9341720763684*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_curlC_onReducedFunction_fromData_ReducedContinuousFunction_shape0(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        u=x[0]*(-4.47659002753602 - 1.96011503428051*1j) + x[1]*(-4.61951312975445 + 2.17482039811799*1j) + 2.78476595919978 + 1.45696804345668*1j
+        res=curl(u, where=ReducedFunction(self.domain))
+        c0= -4.61951312975445 + 2.17482039811799*1j
+        c1= 4.47659002753602 + 1.96011503428051*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlC_onReducedFunction_fromData_ReducedContinuousFunction_shape2(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        u= (x[0]*(0.10053820698554 - 1.43896751990717*1j) + x[1]*(-4.67509662453753 + 2.63660692458269*1j) - 2.26879104152807 + 3.77568768079794*1j)*[1,0]+(x[0]*(1.6431420581904 + 2.28338658326893*1j) + x[1]*(1.16137485421119 - 4.39705617994188*1j) - 2.84445915544867 - 4.05225483366945*1j)*[0,1]
+        res=curl(u, where=ReducedFunction(self.domain))
+        c= 6.31823868272793 - 0.353220341313759*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlC_onReducedFunction_fromData_ReducedContinuousFunction_shape3(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (x[0]*(-4.79173398911574 - 2.98133494418299*1j) + x[1]*(1.99133309332057 + 2.89382843408197*1j) - 0.0821873779339093 - 0.431956602859981*1j)*[1,0,0]+(x[0]*(0.165433246316451 - 4.61072772213564*1j) + x[1]*(-4.07893375034858 - 1.48593732346649*1j) + 0.939083965981778 - 1.95328603968981*1j)*[0,1,0]+(x[0]*(-2.61793080490098 + 1.45496914523453*1j) + x[1]*(-3.02544494442489 + 3.18859461427971*1j) - 4.36090261459957 - 1.23851273076462*1j)*[0,0,1]
+        res=curl(u, where=ReducedFunction(self.domain))
+        c0= -3.02544494442489 + 3.18859461427971*1j
+        c1= 2.61793080490098 - 1.45496914523453*1j
+        c2= -1.82589984700412 - 7.50455615621761*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_divR_onDefault_fromData_Solution(self):
+        x=Solution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (0.563602048994095*x[0] + 2.93940051461073*x[1] - 2.8949894526602)*[1,0]+(-3.84583684834032*x[0] - 4.87095136552072*x[1] + 1.91259613119544)*[0,1]
+            ref= -4.30734931652662
+        else:
+            u= (0.563602048994095*x[0] + 2.93940051461073*x[1] - 2.8949894526602)*[1,0,0]+(-3.84583684834032*x[0] - 4.87095136552072*x[1] + 1.91259613119544)*[0,1,0]+(4.42363248342465*x[0] - 2.15396111624433*x[1] - 1.33511169280306)*[0,0,1]
+            ref= -4.30734931652662
+        res=div(u)
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_divR_onFunction_fromData_Solution(self):
+        x=Solution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (2.80029119049544*x[0] - 2.90448584978965*x[1] - 4.53831610764468)*[1,0]+(2.38200532162228*x[0] - 4.95401169529374*x[1] + 4.82584304146304)*[0,1]
+            ref= -2.15372050479830
+        else:
+            u= (2.80029119049544*x[0] - 2.90448584978965*x[1] - 4.53831610764468)*[1,0,0]+(2.38200532162228*x[0] - 4.95401169529374*x[1] + 4.82584304146304)*[0,1,0]+(2.95263564851847*x[0] + 4.18952873757126*x[1] - 0.57647747905187)*[0,0,1]
+            ref= -2.15372050479830
+        res=div(u, where=Function(self.domain))
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_divR_onReducedFunction_fromData_Solution(self):
+        x=Solution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (1.38458144246182*x[0] - 0.271901876274802*x[1] - 1.78668034989491)*[1,0]+(1.2773238699363*x[0] - 2.55280146672567*x[1] - 2.01301856702324)*[0,1]
+            ref= -1.16822002426385
+        else:
+            u= (1.38458144246182*x[0] - 0.271901876274802*x[1] - 1.78668034989491)*[1,0,0]+(1.2773238699363*x[0] - 2.55280146672567*x[1] - 2.01301856702324)*[0,1,0]+(3.49482864458602*x[0] - 2.49078679454235*x[1] + 1.54225358258466)*[0,0,1]
+            ref= -1.16822002426385
+        res=div(u, where=ReducedFunction(self.domain))
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_divR_onDefault_fromData_ReducedSolution(self):
+        x=ReducedSolution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (3.16055699382984*x[0] - 2.98819546224672*x[1] - 2.07082480591791)*[1,0]+(-2.18392277431865*x[0] + 0.708823901300639*x[1] - 4.64952250116619)*[0,1]
+            ref= 3.86938089513048
+        else:
+            u= (3.16055699382984*x[0] - 2.98819546224672*x[1] - 2.07082480591791)*[1,0,0]+(-2.18392277431865*x[0] + 0.708823901300639*x[1] - 4.64952250116619)*[0,1,0]+(-0.18499588944199*x[0] - 0.239385721000342*x[1] - 3.73475006152798)*[0,0,1]
+            ref= 3.86938089513048
+        res=div(u)
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_divR_onFunction_fromData_ReducedSolution(self):
+        x=ReducedSolution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (4.17772076018901*x[0] + 0.201740890587621*x[1] + 2.56651190749516)*[1,0]+(2.36349487483855*x[0] + 0.682977266398765*x[1] + 3.10276926815913)*[0,1]
+            ref= 4.86069802658778
+        else:
+            u= (4.17772076018901*x[0] + 0.201740890587621*x[1] + 2.56651190749516)*[1,0,0]+(2.36349487483855*x[0] + 0.682977266398765*x[1] + 3.10276926815913)*[0,1,0]+(-3.8033139778989*x[0] - 1.50660775290803*x[1] - 3.75996928988633)*[0,0,1]
+            ref= 4.86069802658778
+        res=div(u, where=Function(self.domain))
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_divR_onReducedFunction_fromData_ReducedSolution(self):
+        x=ReducedSolution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (3.86879976673418*x[0] + 3.49253803888041*x[1] - 0.963355924516348)*[1,0]+(3.95581279160985*x[0] + 0.434983128182528*x[1] - 3.6422269649306)*[0,1]
+            ref= 4.30378289491671
+        else:
+            u= (3.86879976673418*x[0] + 3.49253803888041*x[1] - 0.963355924516348)*[1,0,0]+(3.95581279160985*x[0] + 0.434983128182528*x[1] - 3.6422269649306)*[0,1,0]+(-0.00368016885447631*x[0] - 2.9768646315077*x[1] + 0.932487106281647)*[0,0,1]
+            ref= 4.30378289491671
+        res=div(u, where=ReducedFunction(self.domain))
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_divR_onDefault_fromData_ContinuousFunction(self):
+        x=ContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (-2.39186119038382*x[0] - 1.13356137119896*x[1] - 0.902161031032215)*[1,0]+(-3.78252436014449*x[0] - 1.9378475217424*x[1] - 1.43523752598639)*[0,1]
+            ref= -4.32970871212622
+        else:
+            u= (-2.39186119038382*x[0] - 1.13356137119896*x[1] - 0.902161031032215)*[1,0,0]+(-3.78252436014449*x[0] - 1.9378475217424*x[1] - 1.43523752598639)*[0,1,0]+(0.0852381149902808*x[0] + 3.50558431436284*x[1] + 4.38539008290608)*[0,0,1]
+            ref= -4.32970871212622
+        res=div(u)
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_divR_onFunction_fromData_ContinuousFunction(self):
+        x=ContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (-0.502853402252162*x[0] + 1.83115918828676*x[1] - 4.44926449856306)*[1,0]+(-2.34680702278058*x[0] + 3.1899936990713*x[1] - 2.21081763853941)*[0,1]
+            ref= 2.68714029681914
+        else:
+            u= (-0.502853402252162*x[0] + 1.83115918828676*x[1] - 4.44926449856306)*[1,0,0]+(-2.34680702278058*x[0] + 3.1899936990713*x[1] - 2.21081763853941)*[0,1,0]+(-0.640956545067767*x[0] - 1.16130734580325*x[1] - 0.358480907013115)*[0,0,1]
+            ref= 2.68714029681914
+        res=div(u, where=Function(self.domain))
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_divR_onReducedFunction_fromData_ContinuousFunction(self):
+        x=ContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (-2.8904589933585*x[0] + 0.839695393528013*x[1] + 4.66824163893088)*[1,0]+(-0.351981870738128*x[0] - 2.85298273456724*x[1] + 1.8583724480013)*[0,1]
+            ref= -5.74344172792574
+        else:
+            u= (-2.8904589933585*x[0] + 0.839695393528013*x[1] + 4.66824163893088)*[1,0,0]+(-0.351981870738128*x[0] - 2.85298273456724*x[1] + 1.8583724480013)*[0,1,0]+(-0.954581742972547*x[0] - 4.76190062340625*x[1] - 4.83605946362247)*[0,0,1]
+            ref= -5.74344172792574
+        res=div(u, where=ReducedFunction(self.domain))
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_divR_onDefault_fromData_ReducedContinuousFunction(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (-1.987660338649*x[0] - 3.58234216267777*x[1] - 2.27106505130592)*[1,0]+(-0.064874473030998*x[0] + 0.322614799679646*x[1] + 0.369541305023564)*[0,1]
+            ref= -1.66504553896935
+        else:
+            u= (-1.987660338649*x[0] - 3.58234216267777*x[1] - 2.27106505130592)*[1,0,0]+(-0.064874473030998*x[0] + 0.322614799679646*x[1] + 0.369541305023564)*[0,1,0]+(0.0641186422766982*x[0] + 2.9958050925748*x[1] + 2.06082829319979)*[0,0,1]
+            ref= -1.66504553896935
+        res=div(u)
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_divR_onFunction_fromData_ReducedContinuousFunction(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (1.07842120263498*x[0] + 0.508292067998735*x[1] + 3.86259420291361)*[1,0]+(2.66877169327667*x[0] + 2.62700642396636*x[1] + 3.50723954602637)*[0,1]
+            ref= 3.70542762660134
+        else:
+            u= (1.07842120263498*x[0] + 0.508292067998735*x[1] + 3.86259420291361)*[1,0,0]+(2.66877169327667*x[0] + 2.62700642396636*x[1] + 3.50723954602637)*[0,1,0]+(-4.92139500170583*x[0] + 3.30074488686519*x[1] - 2.54182818785142)*[0,0,1]
+            ref= 3.70542762660134
+        res=div(u, where=Function(self.domain))
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_divR_onReducedFunction_fromData_ReducedContinuousFunction(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (-2.01010311208108*x[0] + 4.38238823109657*x[1] + 3.44766594354617)*[1,0]+(1.47135958506805*x[0] + 4.9355024383274*x[1] - 2.40555557188788)*[0,1]
+            ref= 2.92539932624632
+        else:
+            u= (-2.01010311208108*x[0] + 4.38238823109657*x[1] + 3.44766594354617)*[1,0,0]+(1.47135958506805*x[0] + 4.9355024383274*x[1] - 2.40555557188788)*[0,1,0]+(2.62343208964114*x[0] - 0.936443755102846*x[1] - 3.30206456315506)*[0,0,1]
+            ref= 2.92539932624632
+        res=div(u, where=ReducedFunction(self.domain))
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_divC_onDefault_fromData_Solution(self):
+        x=Solution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (x[0]*(-3.20934545783569 + 1.00993000485646*1j) + x[1]*(2.45733260364545 + 2.01364188636415*1j) + 3.59957686465692 + 2.74759323836255*1j)*[1,0]+(x[0]*(-1.62485658885562 + 3.18419915684622*1j) + x[1]*(1.13544009807529 + 1.14674015321404*1j) - 4.49433626443619 + 0.669288949204111*1j)*[0,1]
+            ref= -2.0739053597604 + 2.15667015807049*1j
+        else:
+            u= (x[0]*(-3.20934545783569 + 1.00993000485646*1j) + x[1]*(2.45733260364545 + 2.01364188636415*1j) + 3.59957686465692 + 2.74759323836255*1j)*[1,0,0]+(x[0]*(-1.62485658885562 + 3.18419915684622*1j) + x[1]*(1.13544009807529 + 1.14674015321404*1j) - 4.49433626443619 + 0.669288949204111*1j)*[0,1,0]+(x[0]*(2.96956769847924 - 0.606356361411848*1j) + x[1]*(-0.8151572615472 + 4.45954675573931*1j) - 2.21011383065917 + 1.38524947746947*1j)*[0,0,1]
+            ref= -2.0739053597604 + 2.15667015807049*1j
+        res=div(u)
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_divC_onFunction_fromData_Solution(self):
+        x=Solution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (x[0]*(0.200182037656637 + 1.00805436848597*1j) + x[1]*(-3.92154253603804 + 1.59803357404459*1j) + 4.59054753160449 + 2.54956142373909*1j)*[1,0]+(x[0]*(0.0876506484179984 - 4.10290874443832*1j) + x[1]*(-2.0287560040989 + 0.908748834534605*1j) + 3.95312413569491 + 4.29929166617582*1j)*[0,1]
+            ref= -1.82857396644227 + 1.91680320302057*1j
+        else:
+            u= (x[0]*(0.200182037656637 + 1.00805436848597*1j) + x[1]*(-3.92154253603804 + 1.59803357404459*1j) + 4.59054753160449 + 2.54956142373909*1j)*[1,0,0]+(x[0]*(0.0876506484179984 - 4.10290874443832*1j) + x[1]*(-2.0287560040989 + 0.908748834534605*1j) + 3.95312413569491 + 4.29929166617582*1j)*[0,1,0]+(x[0]*(2.50295975477641 + 4.39652726211804*1j) + x[1]*(2.72033102226808 - 4.24831907733388*1j) + 0.351316095512473 + 0.204732351839652*1j)*[0,0,1]
+            ref= -1.82857396644227 + 1.91680320302057*1j
+        res=div(u, where=Function(self.domain))
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_divC_onReducedFunction_fromData_Solution(self):
+        x=Solution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (x[0]*(-1.977580558172 - 1.52421941961059*1j) + x[1]*(1.04504251666557 - 1.75728088736233*1j) + 2.50022079669507 - 1.16093948394994*1j)*[1,0]+(x[0]*(0.300420202424792 + 1.75430329627186*1j) + x[1]*(-4.52871816296335 - 1.3055797660573*1j) - 1.28674810368943 + 1.27145525321837*1j)*[0,1]
+            ref= -6.50629872113534 - 2.82979918566789*1j
+        else:
+            u= (x[0]*(-1.977580558172 - 1.52421941961059*1j) + x[1]*(1.04504251666557 - 1.75728088736233*1j) + 2.50022079669507 - 1.16093948394994*1j)*[1,0,0]+(x[0]*(0.300420202424792 + 1.75430329627186*1j) + x[1]*(-4.52871816296335 - 1.3055797660573*1j) - 1.28674810368943 + 1.27145525321837*1j)*[0,1,0]+(x[0]*(3.5321632983639 - 1.19047706774077*1j) + x[1]*(0.222898550136676 - 3.75591305907786*1j) - 1.10760045913258 - 0.0797081853829251*1j)*[0,0,1]
+            ref= -6.50629872113534 - 2.82979918566789*1j
+        res=div(u, where=ReducedFunction(self.domain))
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_divC_onDefault_fromData_ReducedSolution(self):
+        x=ReducedSolution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (x[0]*(0.0628071649128259 - 0.260916981023755*1j) + x[1]*(3.19368058923428 - 3.9501117092552*1j) + 2.31356429355735 + 3.21929030167353*1j)*[1,0]+(x[0]*(-3.39970357044473 - 2.03395282904943*1j) + x[1]*(-3.19225941517909 + 1.59466910238158*1j) - 2.1270644310271 + 3.18824194001069*1j)*[0,1]
+            ref= -3.12945225026626 + 1.33375212135782*1j
+        else:
+            u= (x[0]*(0.0628071649128259 - 0.260916981023755*1j) + x[1]*(3.19368058923428 - 3.9501117092552*1j) + 2.31356429355735 + 3.21929030167353*1j)*[1,0,0]+(x[0]*(-3.39970357044473 - 2.03395282904943*1j) + x[1]*(-3.19225941517909 + 1.59466910238158*1j) - 2.1270644310271 + 3.18824194001069*1j)*[0,1,0]+(x[0]*(-4.11598572839445 + 4.86052156592232*1j) + x[1]*(1.8079221487824 - 4.70387837304031*1j) - 0.379774161820449 - 4.90645921715322*1j)*[0,0,1]
+            ref= -3.12945225026626 + 1.33375212135782*1j
+        res=div(u)
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_divC_onFunction_fromData_ReducedSolution(self):
+        x=ReducedSolution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (x[0]*(1.76763007553025 - 1.02715842798563*1j) + x[1]*(-2.44290267800777 - 1.46540995872404*1j) + 4.65939979707834 - 1.49754818918712*1j)*[1,0]+(x[0]*(3.35012440246646 - 0.445530956111667*1j) + x[1]*(-4.63229879593702 - 1.41702588922757*1j) + 1.44131647418698 - 0.608940840394091*1j)*[0,1]
+            ref= -2.86466872040678 - 2.4441843172132*1j
+        else:
+            u= (x[0]*(1.76763007553025 - 1.02715842798563*1j) + x[1]*(-2.44290267800777 - 1.46540995872404*1j) + 4.65939979707834 - 1.49754818918712*1j)*[1,0,0]+(x[0]*(3.35012440246646 - 0.445530956111667*1j) + x[1]*(-4.63229879593702 - 1.41702588922757*1j) + 1.44131647418698 - 0.608940840394091*1j)*[0,1,0]+(x[0]*(4.8204004572742 - 1.20854352499838*1j) + x[1]*(3.07183678116727 + 4.90765726665163*1j) + 2.6006780902851 + 4.05272027259712*1j)*[0,0,1]
+            ref= -2.86466872040678 - 2.4441843172132*1j
+        res=div(u, where=Function(self.domain))
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_divC_onReducedFunction_fromData_ReducedSolution(self):
+        x=ReducedSolution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (x[0]*(0.862437013051885 - 0.125697670041384*1j) + x[1]*(-2.53074862592412 - 0.339218394935402*1j) + 4.56767192447045 - 4.92533935671699*1j)*[1,0]+(x[0]*(3.40182111776477 - 0.575002384186943*1j) + x[1]*(-4.88354600375455 + 0.319431124272401*1j) - 0.152180163248076 + 3.16717446890814*1j)*[0,1]
+            ref= -4.02110899070267 + 0.193733454231017*1j
+        else:
+            u= (x[0]*(0.862437013051885 - 0.125697670041384*1j) + x[1]*(-2.53074862592412 - 0.339218394935402*1j) + 4.56767192447045 - 4.92533935671699*1j)*[1,0,0]+(x[0]*(3.40182111776477 - 0.575002384186943*1j) + x[1]*(-4.88354600375455 + 0.319431124272401*1j) - 0.152180163248076 + 3.16717446890814*1j)*[0,1,0]+(x[0]*(4.52880616289715 - 4.97462556593893*1j) + x[1]*(4.06065732669403 - 0.891220813179496*1j) + 4.58119896529415 + 0.254020223996713*1j)*[0,0,1]
+            ref= -4.02110899070267 + 0.193733454231017*1j
+        res=div(u, where=ReducedFunction(self.domain))
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_divC_onDefault_fromData_ContinuousFunction(self):
+        x=ContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (x[0]*(-4.28869409889564 - 2.81605573378693*1j) + x[1]*(-4.0552591652276 + 3.92636543575996*1j) - 2.57526774872554 + 1.10284283702457*1j)*[1,0]+(x[0]*(3.57208681978191 - 3.48377655562108*1j) + x[1]*(-4.73331877429225 - 4.75387476050417*1j) - 4.80395045593198 - 1.0281150802479*1j)*[0,1]
+            ref= -9.02201287318789 - 7.56993049429109*1j
+        else:
+            u= (x[0]*(-4.28869409889564 - 2.81605573378693*1j) + x[1]*(-4.0552591652276 + 3.92636543575996*1j) - 2.57526774872554 + 1.10284283702457*1j)*[1,0,0]+(x[0]*(3.57208681978191 - 3.48377655562108*1j) + x[1]*(-4.73331877429225 - 4.75387476050417*1j) - 4.80395045593198 - 1.0281150802479*1j)*[0,1,0]+(x[0]*(0.774174581790752 - 0.860382879882434*1j) + x[1]*(-2.4576463953696 + 2.63509481062614*1j) + 2.5393316796168 - 3.07988587469668*1j)*[0,0,1]
+            ref= -9.02201287318789 - 7.56993049429109*1j
+        res=div(u)
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_divC_onFunction_fromData_ContinuousFunction(self):
+        x=ContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (x[0]*(-0.616425610565285 + 1.47876266270661*1j) + x[1]*(0.0147026583980079 - 4.96616302288476*1j) - 3.07377876596871 - 3.68842102810809*1j)*[1,0]+(x[0]*(-3.79148995638781 - 2.58863395819432*1j) + x[1]*(2.77270509565648 + 1.96873335593319*1j) + 1.10196125049053 - 4.78196018238577*1j)*[0,1]
+            ref= 2.1562794850912 + 3.4474960186398*1j
+        else:
+            u= (x[0]*(-0.616425610565285 + 1.47876266270661*1j) + x[1]*(0.0147026583980079 - 4.96616302288476*1j) - 3.07377876596871 - 3.68842102810809*1j)*[1,0,0]+(x[0]*(-3.79148995638781 - 2.58863395819432*1j) + x[1]*(2.77270509565648 + 1.96873335593319*1j) + 1.10196125049053 - 4.78196018238577*1j)*[0,1,0]+(x[0]*(-1.89686907003966 + 1.75865873266267*1j) + x[1]*(2.76235141667781 - 0.0233711384151549*1j) - 3.52763447749041 - 4.78253614035406*1j)*[0,0,1]
+            ref= 2.1562794850912 + 3.4474960186398*1j
+        res=div(u, where=Function(self.domain))
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_divC_onReducedFunction_fromData_ContinuousFunction(self):
+        x=ContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (x[0]*(3.87235176338571 + 2.67869314534347*1j) + x[1]*(-0.460502004316181 - 0.450128614462606*1j) - 1.17035568891467 + 0.507952234926357*1j)*[1,0]+(x[0]*(2.27729990599914 - 2.25267668902066*1j) + x[1]*(-3.58396877187612 + 4.18885071027779*1j) + 2.08857126977227 + 2.60313943863519*1j)*[0,1]
+            ref= 0.288382991509592 + 6.86754385562126*1j
+        else:
+            u= (x[0]*(3.87235176338571 + 2.67869314534347*1j) + x[1]*(-0.460502004316181 - 0.450128614462606*1j) - 1.17035568891467 + 0.507952234926357*1j)*[1,0,0]+(x[0]*(2.27729990599914 - 2.25267668902066*1j) + x[1]*(-3.58396877187612 + 4.18885071027779*1j) + 2.08857126977227 + 2.60313943863519*1j)*[0,1,0]+(x[0]*(2.24440135752858 + 3.17157408679241*1j) + x[1]*(-1.47639164292389 - 0.880762056474753*1j) + 3.76177620961764 + 0.940943291231707*1j)*[0,0,1]
+            ref= 0.288382991509592 + 6.86754385562126*1j
+        res=div(u, where=ReducedFunction(self.domain))
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_divC_onDefault_fromData_ReducedContinuousFunction(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (x[0]*(-1.47962977239593 + 4.97401426692273*1j) + x[1]*(4.57390144573699 - 4.008360452371*1j) + 0.516485870498844 - 1.3356395770571*1j)*[1,0]+(x[0]*(4.62806487500142 - 4.47144290594838*1j) + x[1]*(-2.54002815434074 + 3.51783791127018*1j) - 4.11169275934117 - 3.7238010730925*1j)*[0,1]
+            ref= -4.01965792673667 + 8.49185217819291*1j
+        else:
+            u= (x[0]*(-1.47962977239593 + 4.97401426692273*1j) + x[1]*(4.57390144573699 - 4.008360452371*1j) + 0.516485870498844 - 1.3356395770571*1j)*[1,0,0]+(x[0]*(4.62806487500142 - 4.47144290594838*1j) + x[1]*(-2.54002815434074 + 3.51783791127018*1j) - 4.11169275934117 - 3.7238010730925*1j)*[0,1,0]+(x[0]*(-4.34174337308374 + 1.09221279525406*1j) + x[1]*(-4.67338820322598 - 2.47561018714849*1j) - 4.22019296377055 + 3.72215470623773*1j)*[0,0,1]
+            ref= -4.01965792673667 + 8.49185217819291*1j
+        res=div(u)
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_divC_onFunction_fromData_ReducedContinuousFunction(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (x[0]*(1.13036974777609 - 4.22325642913297*1j) + x[1]*(3.50540030351777 + 0.230712266471487*1j) + 4.61711965580175 - 1.17920159480345*1j)*[1,0]+(x[0]*(-4.90608137928206 - 3.43160445617421*1j) + x[1]*(0.87850423135028 - 1.56162747459726*1j) - 4.5607424518393 + 4.6007994371095*1j)*[0,1]
+            ref= 2.00887397912637 - 5.78488390373023*1j
+        else:
+            u= (x[0]*(1.13036974777609 - 4.22325642913297*1j) + x[1]*(3.50540030351777 + 0.230712266471487*1j) + 4.61711965580175 - 1.17920159480345*1j)*[1,0,0]+(x[0]*(-4.90608137928206 - 3.43160445617421*1j) + x[1]*(0.87850423135028 - 1.56162747459726*1j) - 4.5607424518393 + 4.6007994371095*1j)*[0,1,0]+(x[0]*(4.00001711819602 + 2.85136688542397*1j) + x[1]*(-3.69450441713496 + 1.91485951399878*1j) + 1.05338410985668 + 0.174717916787732*1j)*[0,0,1]
+            ref= 2.00887397912637 - 5.78488390373023*1j
+        res=div(u, where=Function(self.domain))
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_divC_onReducedFunction_fromData_ReducedContinuousFunction(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (x[0]*(-1.34666984185982 - 0.85714098716961*1j) + x[1]*(-0.767764000843783 + 2.75245163586671*1j) - 2.80878561568058 + 0.399892498890116*1j)*[1,0]+(x[0]*(-4.29560371877822 - 1.17445928566559*1j) + x[1]*(-3.24346331955949 - 2.6452280531791*1j) - 1.78645145312724 + 1.11619538486432*1j)*[0,1]
+            ref= -4.59013316141932 - 3.50236904034871*1j
+        else:
+            u= (x[0]*(-1.34666984185982 - 0.85714098716961*1j) + x[1]*(-0.767764000843783 + 2.75245163586671*1j) - 2.80878561568058 + 0.399892498890116*1j)*[1,0,0]+(x[0]*(-4.29560371877822 - 1.17445928566559*1j) + x[1]*(-3.24346331955949 - 2.6452280531791*1j) - 1.78645145312724 + 1.11619538486432*1j)*[0,1,0]+(x[0]*(0.0660605596785357 + 4.29356528945865*1j) + x[1]*(4.54107147705149 - 1.80619179916033*1j) - 4.93498300424403 + 2.8851684251027*1j)*[0,0,1]
+            ref= -4.59013316141932 - 3.50236904034871*1j
+        res=div(u, where=ReducedFunction(self.domain))
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    def test_curlR_onDefault_fromData_Solution_shape0(self):
+        x=Solution(self.domain).getX()
+        u=0.567980864968689*x[0] + 2.37883388651275*x[1] - 2.27275425883614
+        res=curl(u)
+        c0= 2.37883388651275
+        c1= -0.567980864968689
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlR_onDefault_fromData_Solution_shape2(self):
+        x=Solution(self.domain).getX()
+        u= (-2.587267677704*x[0] + 0.830505852499818*x[1] - 0.0133268161007329)*[1,0]+(-2.17501190497324*x[0] - 4.67980450739307*x[1] - 2.40698088726486)*[0,1]
+        res=curl(u)
+        c= -3.00551775747306
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlR_onDefault_fromData_Solution_shape3(self):
+        x=Solution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (1.96390541598301*x[0] - 0.272581497792798*x[1] - 0.457708442797436)*[1,0,0]+(-0.950718183636158*x[0] - 3.66450506440359*x[1] - 4.17100612216111)*[0,1,0]+(3.53332418757341*x[0] + 3.18835158130554*x[1] - 4.36218305871771)*[0,0,1]
+        res=curl(u)
+        c0= 3.18835158130554
+        c1= -3.53332418757341
+        c2= -0.678136685843360
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_curlR_onFunction_fromData_Solution_shape0(self):
+        x=Solution(self.domain).getX()
+        u=2.57823999242566*x[0] + 1.02742760263224*x[1] + 1.32852709390402
+        res=curl(u, where=Function(self.domain))
+        c0= 1.02742760263224
+        c1= -2.57823999242566
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlR_onFunction_fromData_Solution_shape2(self):
+        x=Solution(self.domain).getX()
+        u= (1.20188851599556*x[0] - 0.70852780042526*x[1] + 0.820059867071391)*[1,0]+(1.3699461630651*x[0] + 0.992416202089559*x[1] - 0.662405572704604)*[0,1]
+        res=curl(u, where=Function(self.domain))
+        c= 2.07847396349036
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlR_onFunction_fromData_Solution_shape3(self):
+        x=Solution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (-1.98897249804955*x[0] + 3.33088775687147*x[1] + 4.3484420205386)*[1,0,0]+(-4.64171222871551*x[0] - 2.09673586061016*x[1] - 0.503270029986965)*[0,1,0]+(4.03705974854093*x[0] + 1.58670917448951*x[1] + 0.102744092238229)*[0,0,1]
+        res=curl(u, where=Function(self.domain))
+        c0= 1.58670917448951
+        c1= -4.03705974854093
+        c2= -7.97259998558698
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_curlR_onReducedFunction_fromData_Solution_shape0(self):
+        x=Solution(self.domain).getX()
+        u=-3.71073593585879*x[0] - 2.62706658909531*x[1] - 1.44012206999594
+        res=curl(u, where=ReducedFunction(self.domain))
+        c0= -2.62706658909531
+        c1= 3.71073593585879
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlR_onReducedFunction_fromData_Solution_shape2(self):
+        x=Solution(self.domain).getX()
+        u= (3.11658077638855*x[0] + 3.0452643417506*x[1] - 3.60065996511075)*[1,0]+(3.45867449576129*x[0] + 2.23487947541496*x[1] + 1.94305332631836)*[0,1]
+        res=curl(u, where=ReducedFunction(self.domain))
+        c= 0.413410154010689
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlR_onReducedFunction_fromData_Solution_shape3(self):
+        x=Solution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (-4.25995397920677*x[0] - 0.778252367893851*x[1] - 3.03749913636286)*[1,0,0]+(-4.8550850520637*x[0] - 3.54720955198691*x[1] - 4.36041625908558)*[0,1,0]+(-1.54225216861274*x[0] - 2.17995719314927*x[1] + 4.37032604968914)*[0,0,1]
+        res=curl(u, where=ReducedFunction(self.domain))
+        c0= -2.17995719314927
+        c1= 1.54225216861274
+        c2= -4.07683268416985
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_curlR_onDefault_fromData_ReducedSolution_shape0(self):
+        x=ReducedSolution(self.domain).getX()
+        u=1.98316929498713*x[0] - 4.22010312862068*x[1] - 1.47271903171272
+        res=curl(u)
+        c0= -4.22010312862068
+        c1= -1.98316929498713
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlR_onDefault_fromData_ReducedSolution_shape2(self):
+        x=ReducedSolution(self.domain).getX()
+        u= (-1.56742480505574*x[0] - 3.71757409949326*x[1] + 3.83424580036694)*[1,0]+(-1.29160244277296*x[0] - 1.17613306906294*x[1] - 4.71475915155573)*[0,1]
+        res=curl(u)
+        c= 2.42597165672029
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlR_onDefault_fromData_ReducedSolution_shape3(self):
+        x=ReducedSolution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (-0.559430845348535*x[0] - 0.779313033986808*x[1] - 2.33181447880043)*[1,0,0]+(-0.715361783635685*x[0] + 1.84488146476625*x[1] + 1.14786397264379)*[0,1,0]+(0.402545295458817*x[0] - 1.27115264535442*x[1] - 3.99441518597857)*[0,0,1]
+        res=curl(u)
+        c0= -1.27115264535442
+        c1= -0.402545295458817
+        c2= 0.0639512503511233
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_curlR_onFunction_fromData_ReducedSolution_shape0(self):
+        x=ReducedSolution(self.domain).getX()
+        u=3.53468863336223*x[0] - 0.524430164449393*x[1] + 4.92923504855788
+        res=curl(u, where=Function(self.domain))
+        c0= -0.524430164449393
+        c1= -3.53468863336223
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlR_onFunction_fromData_ReducedSolution_shape2(self):
+        x=ReducedSolution(self.domain).getX()
+        u= (-2.79158794350483*x[0] + 3.23069056078442*x[1] - 1.87611950643822)*[1,0]+(-2.41833067739433*x[0] + 1.9646696971169*x[1] - 2.87161236811213)*[0,1]
+        res=curl(u, where=Function(self.domain))
+        c= -5.64902123817874
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlR_onFunction_fromData_ReducedSolution_shape3(self):
+        x=ReducedSolution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (-4.39074186451839*x[0] - 2.7325916817595*x[1] + 0.609719117851713)*[1,0,0]+(-1.6762594429464*x[0] + 1.83187200716541*x[1] + 3.55524274401182)*[0,1,0]+(-2.95814910587912*x[0] + 2.06946233576379*x[1] + 0.359765505340965)*[0,0,1]
+        res=curl(u, where=Function(self.domain))
+        c0= 2.06946233576379
+        c1= 2.95814910587912
+        c2= 1.05633223881310
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_curlR_onReducedFunction_fromData_ReducedSolution_shape0(self):
+        x=ReducedSolution(self.domain).getX()
+        u=-4.508519293805*x[0] - 0.717120659913424*x[1] + 3.78552010556357
+        res=curl(u, where=ReducedFunction(self.domain))
+        c0= -0.717120659913424
+        c1= 4.50851929380500
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlR_onReducedFunction_fromData_ReducedSolution_shape2(self):
+        x=ReducedSolution(self.domain).getX()
+        u= (4.65919539092129*x[0] + 0.326714229871667*x[1] + 1.29166779007479)*[1,0]+(4.02462978239217*x[0] - 0.0935626334012838*x[1] - 3.05863550030539)*[0,1]
+        res=curl(u, where=ReducedFunction(self.domain))
+        c= 3.69791555252050
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlR_onReducedFunction_fromData_ReducedSolution_shape3(self):
+        x=ReducedSolution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (2.01007914334696*x[0] + 4.84142878447324*x[1] + 4.32342448256488)*[1,0,0]+(-1.24420344443126*x[0] + 1.1160881361968*x[1] + 3.55522803887453)*[0,1,0]+(-3.54113363001142*x[0] + 1.08755245734506*x[1] - 1.48824532566066)*[0,0,1]
+        res=curl(u, where=ReducedFunction(self.domain))
+        c0= 1.08755245734506
+        c1= 3.54113363001142
+        c2= -6.08563222890450
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_curlR_onDefault_fromData_ContinuousFunction_shape0(self):
+        x=ContinuousFunction(self.domain).getX()
+        u=4.81914869806854*x[0] - 1.89324915896119*x[1] + 4.17202630073358
+        res=curl(u)
+        c0= -1.89324915896119
+        c1= -4.81914869806854
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlR_onDefault_fromData_ContinuousFunction_shape2(self):
+        x=ContinuousFunction(self.domain).getX()
+        u= (3.69707948586884*x[0] - 3.09361367598148*x[1] + 4.40770472392948)*[1,0]+(2.00607005874741*x[0] + 3.31170700524565*x[1] + 0.608453184675168)*[0,1]
+        res=curl(u)
+        c= 5.09968373472889
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlR_onDefault_fromData_ContinuousFunction_shape3(self):
+        x=ContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (1.64432124269547*x[0] - 4.54646888150707*x[1] + 2.65116807813914)*[1,0,0]+(-4.41302481971234*x[0] - 1.40511337337426*x[1] + 3.23890122682861)*[0,1,0]+(2.99572903914019*x[0] - 1.43461058457363*x[1] - 3.85559202288358)*[0,0,1]
+        res=curl(u)
+        c0= -1.43461058457363
+        c1= -2.99572903914019
+        c2= 0.133444061794723
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_curlR_onFunction_fromData_ContinuousFunction_shape0(self):
+        x=ContinuousFunction(self.domain).getX()
+        u=-4.84549262237586*x[0] - 2.38819425821728*x[1] + 4.88734366962477
+        res=curl(u, where=Function(self.domain))
+        c0= -2.38819425821728
+        c1= 4.84549262237586
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlR_onFunction_fromData_ContinuousFunction_shape2(self):
+        x=ContinuousFunction(self.domain).getX()
+        u= (-0.217718349124672*x[0] + 2.79718244512468*x[1] - 1.50564855508534)*[1,0]+(0.383860870395258*x[0] + 1.91590993667503*x[1] + 2.6334688953769)*[0,1]
+        res=curl(u, where=Function(self.domain))
+        c= -2.41332157472942
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlR_onFunction_fromData_ContinuousFunction_shape3(self):
+        x=ContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (4.94117772103609*x[0] + 1.39950148197616*x[1] + 2.66343265515331)*[1,0,0]+(3.90192147163308*x[0] - 2.4891414473892*x[1] + 3.93619974773451)*[0,1,0]+(2.61489208721871*x[0] - 0.121627272264103*x[1] + 4.70226117167669)*[0,0,1]
+        res=curl(u, where=Function(self.domain))
+        c0= -0.121627272264103
+        c1= -2.61489208721871
+        c2= 2.50241998965692
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_curlR_onReducedFunction_fromData_ContinuousFunction_shape0(self):
+        x=ContinuousFunction(self.domain).getX()
+        u=2.50919091650953*x[0] + 2.8456167524236*x[1] + 2.44736423467527
+        res=curl(u, where=ReducedFunction(self.domain))
+        c0= 2.84561675242360
+        c1= -2.50919091650953
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlR_onReducedFunction_fromData_ContinuousFunction_shape2(self):
+        x=ContinuousFunction(self.domain).getX()
+        u= (-1.13317314511243*x[0] - 4.15821047094508*x[1] - 1.22710050880474)*[1,0]+(3.00338075220876*x[0] + 4.4208570667226*x[1] + 2.97529089157916)*[0,1]
+        res=curl(u, where=ReducedFunction(self.domain))
+        c= 7.16159122315384
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlR_onReducedFunction_fromData_ContinuousFunction_shape3(self):
+        x=ContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (-1.35701312658205*x[0] + 3.99950565290666*x[1] + 1.57302607746771)*[1,0,0]+(4.27527622356514*x[0] + 3.02252866971319*x[1] + 2.61874465843184)*[0,1,0]+(0.532144299016663*x[0] + 3.89322050077782*x[1] - 0.81159754178509)*[0,0,1]
+        res=curl(u, where=ReducedFunction(self.domain))
+        c0= 3.89322050077782
+        c1= -0.532144299016663
+        c2= 0.275770570658484
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_curlR_onDefault_fromData_ReducedContinuousFunction_shape0(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        u=-4.16893118158528*x[0] + 0.941221266417353*x[1] - 4.51716589631134
+        res=curl(u)
+        c0= 0.941221266417353
+        c1= 4.16893118158528
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlR_onDefault_fromData_ReducedContinuousFunction_shape2(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        u= (4.7840847897986*x[0] + 3.62079993195484*x[1] + 2.75087716188482)*[1,0]+(-0.870899372955839*x[0] + 3.27783916113767*x[1] + 0.453145190013197)*[0,1]
+        res=curl(u)
+        c= -4.49169930491068
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlR_onDefault_fromData_ReducedContinuousFunction_shape3(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (3.23413817825225*x[0] + 2.07442067834594*x[1] - 0.183423722845303)*[1,0,0]+(0.695757842313713*x[0] - 2.98631571342733*x[1] - 0.831912704289371)*[0,1,0]+(4.74259160992552*x[0] + 1.38406068865327*x[1] + 3.34234269085438)*[0,0,1]
+        res=curl(u)
+        c0= 1.38406068865327
+        c1= -4.74259160992552
+        c2= -1.37866283603223
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_curlR_onFunction_fromData_ReducedContinuousFunction_shape0(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        u=2.21765985314734*x[0] - 4.80371697153784*x[1] + 2.06117724339541
+        res=curl(u, where=Function(self.domain))
+        c0= -4.80371697153784
+        c1= -2.21765985314734
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlR_onFunction_fromData_ReducedContinuousFunction_shape2(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        u= (0.150592482194623*x[0] + 0.897171792700342*x[1] - 1.4333245707615)*[1,0]+(3.14073404148708*x[0] - 3.1469244722079*x[1] - 3.80796085404112)*[0,1]
+        res=curl(u, where=Function(self.domain))
+        c= 2.24356224878674
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlR_onFunction_fromData_ReducedContinuousFunction_shape3(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (-2.06557036058812*x[0] + 3.48528647132364*x[1] - 2.10881237265809)*[1,0,0]+(3.39080414688747*x[0] - 2.34960575308406*x[1] - 1.18679822422128)*[0,1,0]+(2.07070836595861*x[0] + 2.36323563426661*x[1] - 0.103306463290749)*[0,0,1]
+        res=curl(u, where=Function(self.domain))
+        c0= 2.36323563426661
+        c1= -2.07070836595861
+        c2= -0.0944823244361714
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_curlR_onReducedFunction_fromData_ReducedContinuousFunction_shape0(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        u=-4.66317427236695*x[0] + 2.38560609774335*x[1] - 3.05311621592354
+        res=curl(u, where=ReducedFunction(self.domain))
+        c0= 2.38560609774335
+        c1= 4.66317427236695
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlR_onReducedFunction_fromData_ReducedContinuousFunction_shape2(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        u= (-1.46540907885515*x[0] - 0.410221805966831*x[1] + 0.783658041420704)*[1,0]+(2.26654665500557*x[0] + 1.56273688267979*x[1] + 0.853013244757141)*[0,1]
+        res=curl(u, where=ReducedFunction(self.domain))
+        c= 2.67676846097240
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlR_onReducedFunction_fromData_ReducedContinuousFunction_shape3(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (3.90907702860774*x[0] + 0.119050001108755*x[1] + 4.23135203993845)*[1,0,0]+(3.79638824992373*x[0] + 1.79978811240869*x[1] + 2.31870405319122)*[0,1,0]+(3.68131081741065*x[0] - 1.11132695704881*x[1] + 3.05859250917571)*[0,0,1]
+        res=curl(u, where=ReducedFunction(self.domain))
+        c0= -1.11132695704881
+        c1= -3.68131081741065
+        c2= 3.67733824881498
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_curlC_onDefault_fromData_Solution_shape0(self):
+        x=Solution(self.domain).getX()
+        u=x[0]*(0.0559799040405107 + 4.26431936006544*1j) + x[1]*(0.126326652630845 + 4.62110545162053*1j) + 1.15580373296676 - 0.256195080969794*1j
+        res=curl(u)
+        c0= 0.126326652630845 + 4.62110545162053*1j
+        c1= -0.0559799040405107 - 4.26431936006544*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlC_onDefault_fromData_Solution_shape2(self):
+        x=Solution(self.domain).getX()
+        u= (x[0]*(2.24034781188351 - 4.90455621612495*1j) + x[1]*(4.07697743995061 + 1.64291626700752*1j) - 1.17127425230676 + 3.63152476940066*1j)*[1,0]+(x[0]*(4.92067183282207 + 4.35401570438174*1j) + x[1]*(-4.28106672239646 + 3.08721880250475*1j) - 3.44590686556494 - 0.576259988711606*1j)*[0,1]
+        res=curl(u)
+        c= 0.843694392871452 + 2.71109943737422*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlC_onDefault_fromData_Solution_shape3(self):
+        x=Solution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (x[0]*(-0.79046496795332 + 3.11478119452089*1j) + x[1]*(3.95327921844674 - 2.65468800972627*1j) + 0.957602737821535 - 2.59561946700081*1j)*[1,0,0]+(x[0]*(4.09850300399433 + 4.5493666668996*1j) + x[1]*(-0.0540494408266792 - 0.0329847304817772*1j) - 3.79907981994422 - 4.94823826541168*1j)*[0,1,0]+(x[0]*(0.776580900945136 + 1.86636049049989*1j) + x[1]*(-2.5178498885604 - 2.55888857827202*1j) + 4.39048179159431 - 2.18989209542166*1j)*[0,0,1]
+        res=curl(u)
+        c0= -2.5178498885604 - 2.55888857827202*1j
+        c1= -0.776580900945136 - 1.86636049049989*1j
+        c2= 0.145223785547582 + 7.20405467662587*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_curlC_onFunction_fromData_Solution_shape0(self):
+        x=Solution(self.domain).getX()
+        u=x[0]*(3.07779295068129 - 4.98304874747994*1j) + x[1]*(-1.17887919467294 - 2.91709414180013*1j) - 4.33050287483196 - 0.624676592331939*1j
+        res=curl(u, where=Function(self.domain))
+        c0= -1.17887919467294 - 2.91709414180013*1j
+        c1= -3.07779295068129 + 4.98304874747994*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlC_onFunction_fromData_Solution_shape2(self):
+        x=Solution(self.domain).getX()
+        u= (x[0]*(-0.640809708902633 + 1.48056391256198*1j) + x[1]*(-0.0252799991191921 - 4.89879299981215*1j) - 3.4759348562279 - 0.756301126731521*1j)*[1,0]+(x[0]*(4.28046574649857 + 4.79232424087804*1j) + x[1]*(1.21581676644747 - 4.56355938999134*1j) - 4.20406357636091 + 0.251588657376366*1j)*[0,1]
+        res=curl(u, where=Function(self.domain))
+        c= 4.30574574561776 + 9.69111724069019*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlC_onFunction_fromData_Solution_shape3(self):
+        x=Solution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (x[0]*(-4.02924115240422 - 4.78588109104724*1j) + x[1]*(2.53677948810534 + 0.92987272724517*1j) - 3.76571800331474 + 2.97415495745982*1j)*[1,0,0]+(x[0]*(-1.7781583547497 + 0.845507705781705*1j) + x[1]*(4.18853905239805 + 4.31139312668899*1j) - 1.35792338130071 - 4.46581208732159*1j)*[0,1,0]+(x[0]*(-1.49124332116725 - 0.869217622626755*1j) + x[1]*(-4.48988475918522 + 2.59821436413395*1j) + 1.64240788182454 - 2.61632506520521*1j)*[0,0,1]
+        res=curl(u, where=Function(self.domain))
+        c0= -4.48988475918522 + 2.59821436413395*1j
+        c1= 1.49124332116725 + 0.869217622626755*1j
+        c2= -4.31493784285505 - 0.0843650214634657*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_curlC_onReducedFunction_fromData_Solution_shape0(self):
+        x=Solution(self.domain).getX()
+        u=x[0]*(3.4685836745432 + 1.75582759432461*1j) + x[1]*(-1.29067567205826 - 1.1347494426279*1j) - 3.16178623999482 + 0.327592579940267*1j
+        res=curl(u, where=ReducedFunction(self.domain))
+        c0= -1.29067567205826 - 1.1347494426279*1j
+        c1= -3.4685836745432 - 1.75582759432461*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlC_onReducedFunction_fromData_Solution_shape2(self):
+        x=Solution(self.domain).getX()
+        u= (x[0]*(-4.08551870872734 - 3.74938166723161*1j) + x[1]*(-4.30929671140391 + 3.6283287811824*1j) - 1.35544129620944 + 2.35969609757126*1j)*[1,0]+(x[0]*(4.71290671335985 + 0.884877884398236*1j) + x[1]*(-1.46568678595841 + 0.0901470893670488*1j) + 1.95243154936756 - 0.262630287521587*1j)*[0,1]
+        res=curl(u, where=ReducedFunction(self.domain))
+        c= 9.02220342476376 - 2.74345089678416*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlC_onReducedFunction_fromData_Solution_shape3(self):
+        x=Solution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (x[0]*(0.219829447285374 - 2.46418900747021*1j) + x[1]*(-2.90430867398513 + 1.90698524055888*1j) - 2.00332956236533 + 4.7616302101654*1j)*[1,0,0]+(x[0]*(3.3390103422729 + 1.27916145177855*1j) + x[1]*(-4.38641623891026 + 4.99176440379021*1j) + 2.24636578053001 + 4.04663425670699*1j)*[0,1,0]+(x[0]*(-1.64462177916912 - 0.239013662831249*1j) + x[1]*(-1.10009275081981 + 4.51659072906286*1j) + 1.13293183309399 - 4.72792427477944*1j)*[0,0,1]
+        res=curl(u, where=ReducedFunction(self.domain))
+        c0= -1.10009275081981 + 4.51659072906286*1j
+        c1= 1.64462177916912 + 0.239013662831249*1j
+        c2= 6.24331901625803 - 0.627823788780328*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_curlC_onDefault_fromData_ReducedSolution_shape0(self):
+        x=ReducedSolution(self.domain).getX()
+        u=x[0]*(0.0195897816917237 + 0.423499333652231*1j) + x[1]*(-1.23425889451331 - 0.345124691264288*1j) - 2.62506683968517 + 2.75698467545587*1j
+        res=curl(u)
+        c0= -1.23425889451331 - 0.345124691264288*1j
+        c1= -0.0195897816917237 - 0.423499333652231*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlC_onDefault_fromData_ReducedSolution_shape2(self):
+        x=ReducedSolution(self.domain).getX()
+        u= (x[0]*(-0.140288804682564 - 4.15303542379433*1j) + x[1]*(-2.7505242423176 + 2.90233794394282*1j) + 1.54613008301836 + 1.83964552342683*1j)*[1,0]+(x[0]*(-0.82899330808859 - 1.97773191241543*1j) + x[1]*(3.65603292832952 - 4.97065208604508*1j) + 2.20059182983466 - 2.22696183233519*1j)*[0,1]
+        res=curl(u)
+        c= 1.92153093422901 - 4.88006985635824*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlC_onDefault_fromData_ReducedSolution_shape3(self):
+        x=ReducedSolution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (x[0]*(-3.70952092934158 + 0.917159478266987*1j) + x[1]*(-2.2596190194227 - 4.96594613892337*1j) + 4.93923288832204 + 0.786405982202696*1j)*[1,0,0]+(x[0]*(2.43397954810254 + 0.153215652022936*1j) + x[1]*(1.29695721257203 + 0.829396978439942*1j) + 4.97447906456273 - 1.87379598182252*1j)*[0,1,0]+(x[0]*(1.92870083410867 + 1.68413136581127*1j) + x[1]*(0.119372362701034 - 0.214341152695681*1j) - 0.52850270089884 + 2.0154807165545*1j)*[0,0,1]
+        res=curl(u)
+        c0= 0.119372362701034 - 0.214341152695681*1j
+        c1= -1.92870083410867 - 1.68413136581127*1j
+        c2= 4.69359856752524 + 5.1191617909463*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_curlC_onFunction_fromData_ReducedSolution_shape0(self):
+        x=ReducedSolution(self.domain).getX()
+        u=x[0]*(2.98088540282299 - 0.211267593949396*1j) + x[1]*(-2.22831934129596 + 0.97130788756763*1j) + 3.30547168575926 - 1.38220406484955*1j
+        res=curl(u, where=Function(self.domain))
+        c0= -2.22831934129596 + 0.97130788756763*1j
+        c1= -2.98088540282299 + 0.211267593949396*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlC_onFunction_fromData_ReducedSolution_shape2(self):
+        x=ReducedSolution(self.domain).getX()
+        u= (x[0]*(-0.92141868081301 + 1.55618273691312*1j) + x[1]*(3.99865025530344 + 1.08418213514818*1j) + 1.2478411029929 + 0.349703803040491*1j)*[1,0]+(x[0]*(0.27243589583498 - 3.31445553409649*1j) + x[1]*(1.48814953325428 + 3.74970988280774*1j) + 0.389922457473305 - 0.923453567526977*1j)*[0,1]
+        res=curl(u, where=Function(self.domain))
+        c= -3.72621435946846 - 4.39863766924467*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlC_onFunction_fromData_ReducedSolution_shape3(self):
+        x=ReducedSolution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (x[0]*(3.121646838321 + 1.31384793959565*1j) + x[1]*(3.84103986006621 - 2.06506791942886*1j) - 2.03242381617394 - 4.05921523299069*1j)*[1,0,0]+(x[0]*(4.44405462656021 + 4.84768688223935*1j) + x[1]*(0.314642900149323 + 4.51317637336287*1j) - 4.46877387192043 - 2.48118877812397*1j)*[0,1,0]+(x[0]*(-2.09572653750403 - 3.3313168435333*1j) + x[1]*(0.868328859269579 - 1.39879378040951*1j) - 1.87779852891401 + 4.66678122753634*1j)*[0,0,1]
+        res=curl(u, where=Function(self.domain))
+        c0= 0.868328859269579 - 1.39879378040951*1j
+        c1= 2.09572653750403 + 3.3313168435333*1j
+        c2= 0.603014766494001 + 6.91275480166821*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_curlC_onReducedFunction_fromData_ReducedSolution_shape0(self):
+        x=ReducedSolution(self.domain).getX()
+        u=x[0]*(-3.88812827234604 + 0.30152102252858*1j) + x[1]*(-2.18074366840786 + 1.99448616818284*1j) + 4.12292579432183 + 2.51605331374633*1j
+        res=curl(u, where=ReducedFunction(self.domain))
+        c0= -2.18074366840786 + 1.99448616818284*1j
+        c1= 3.88812827234604 - 0.30152102252858*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlC_onReducedFunction_fromData_ReducedSolution_shape2(self):
+        x=ReducedSolution(self.domain).getX()
+        u= (x[0]*(2.79756153811775 - 2.16046906310852*1j) + x[1]*(-2.77638260415828 - 0.0984292245605376*1j) + 4.44686604313967 + 0.474690464202801*1j)*[1,0]+(x[0]*(4.04064797867098 - 4.21600718251011*1j) + x[1]*(3.03645689046621 + 0.78520416640391*1j) - 2.52041867806359 - 4.15854241184921*1j)*[0,1]
+        res=curl(u, where=ReducedFunction(self.domain))
+        c= 6.81703058282926 - 4.11757795794957*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlC_onReducedFunction_fromData_ReducedSolution_shape3(self):
+        x=ReducedSolution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (x[0]*(-2.00755547527169 - 1.61534837147551*1j) + x[1]*(0.891567146034761 - 1.80811034247773*1j) - 0.073089734599483 - 0.587750347272605*1j)*[1,0,0]+(x[0]*(2.06988872250374 + 0.9771480901811*1j) + x[1]*(4.25910305280923 + 3.11119656386619*1j) + 3.71218589395649 - 4.66156809423973*1j)*[0,1,0]+(x[0]*(-1.33724897651984 + 1.6161648113681*1j) + x[1]*(-1.4207146560907 + 0.396359111680175*1j) - 0.450089702515929 + 0.599459666537809*1j)*[0,0,1]
+        res=curl(u, where=ReducedFunction(self.domain))
+        c0= -1.4207146560907 + 0.396359111680175*1j
+        c1= 1.33724897651984 - 1.6161648113681*1j
+        c2= 1.17832157646898 + 2.78525843265883*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_curlC_onDefault_fromData_ContinuousFunction_shape0(self):
+        x=ContinuousFunction(self.domain).getX()
+        u=x[0]*(3.24702325622118 - 2.27748320760381*1j) + x[1]*(-4.77664213798334 - 3.17118798114962*1j) - 1.64415325581014 - 0.738395110139337*1j
+        res=curl(u)
+        c0= -4.77664213798334 - 3.17118798114962*1j
+        c1= -3.24702325622118 + 2.27748320760381*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlC_onDefault_fromData_ContinuousFunction_shape2(self):
+        x=ContinuousFunction(self.domain).getX()
+        u= (x[0]*(-1.01441945007545 + 2.34176596995669*1j) + x[1]*(-3.93214138669121 + 2.11608251618077*1j) - 2.15505497537762 - 3.00618855609167*1j)*[1,0]+(x[0]*(2.31661627694446 + 1.28487584910439*1j) + x[1]*(0.960918593875389 + 4.08578367457635*1j) - 4.42309282596401 - 3.81818926422831*1j)*[0,1]
+        res=curl(u)
+        c= 6.24875766363567 - 0.831206667076383*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlC_onDefault_fromData_ContinuousFunction_shape3(self):
+        x=ContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (x[0]*(3.84480683142522 - 4.56010060719518*1j) + x[1]*(-0.0540791430003598 + 1.18942794256513*1j) + 2.92949414082135 - 1.48807129763571*1j)*[1,0,0]+(x[0]*(2.03580768772062 - 0.758771812181123*1j) + x[1]*(-3.81094694299781 + 1.47508547730041*1j) - 2.70168652997381 + 2.49178627114037*1j)*[0,1,0]+(x[0]*(1.86360905587409 - 2.76282839438774*1j) + x[1]*(-2.81890659667403 + 0.196775124373333*1j) + 1.41591402199423 + 1.82852215414125*1j)*[0,0,1]
+        res=curl(u)
+        c0= -2.81890659667403 + 0.196775124373333*1j
+        c1= -1.86360905587409 + 2.76282839438774*1j
+        c2= 2.08988683072098 - 1.94819975474625*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_curlC_onFunction_fromData_ContinuousFunction_shape0(self):
+        x=ContinuousFunction(self.domain).getX()
+        u=x[0]*(4.86400707876987 + 2.18743261108327*1j) + x[1]*(-3.6941050638212 + 0.396527268791723*1j) - 4.89226283447963 + 2.18002611423361*1j
+        res=curl(u, where=Function(self.domain))
+        c0= -3.6941050638212 + 0.396527268791723*1j
+        c1= -4.86400707876987 - 2.18743261108327*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlC_onFunction_fromData_ContinuousFunction_shape2(self):
+        x=ContinuousFunction(self.domain).getX()
+        u= (x[0]*(2.01060147944766 - 2.15157632766612*1j) + x[1]*(2.28050932312763 - 0.39879677267241*1j) + 4.9672749419969 + 1.59766125997948*1j)*[1,0]+(x[0]*(3.83061850885657 - 4.50840123846505*1j) + x[1]*(-4.39219871151235 - 3.03761361588873*1j) - 4.71862846775169 - 2.6335267514808*1j)*[0,1]
+        res=curl(u, where=Function(self.domain))
+        c= 1.55010918572894 - 4.10960446579264*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlC_onFunction_fromData_ContinuousFunction_shape3(self):
+        x=ContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (x[0]*(-2.98939547157365 + 0.493874065063901*1j) + x[1]*(3.62231868135433 - 3.55767164976473*1j) - 1.95401892104489 - 4.36885223401364*1j)*[1,0,0]+(x[0]*(-2.25217675482642 - 3.75696723912703*1j) + x[1]*(-1.842899253601 + 0.359470920396325*1j) - 1.124616830142 + 4.73772423274391*1j)*[0,1,0]+(x[0]*(3.43672933265758 + 3.34299767630108*1j) + x[1]*(1.08265147618216 + 2.41956685505825*1j) + 4.42382109411063 + 1.11205686042012*1j)*[0,0,1]
+        res=curl(u, where=Function(self.domain))
+        c0= 1.08265147618216 + 2.41956685505825*1j
+        c1= -3.43672933265758 - 3.34299767630108*1j
+        c2= -5.87449543618074 - 0.199295589362296*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_curlC_onReducedFunction_fromData_ContinuousFunction_shape0(self):
+        x=ContinuousFunction(self.domain).getX()
+        u=x[0]*(-3.02984806568046 + 3.98064044685684*1j) + x[1]*(-1.68267183729448 - 2.64500258188895*1j) + 4.6465792872358 - 1.49397278784343*1j
+        res=curl(u, where=ReducedFunction(self.domain))
+        c0= -1.68267183729448 - 2.64500258188895*1j
+        c1= 3.02984806568046 - 3.98064044685684*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlC_onReducedFunction_fromData_ContinuousFunction_shape2(self):
+        x=ContinuousFunction(self.domain).getX()
+        u= (x[0]*(0.725056394322445 - 1.50818020205866*1j) + x[1]*(2.16545143662146 + 4.17587281678761*1j) + 3.67957542454654 + 2.16214384223196*1j)*[1,0]+(x[0]*(0.354632617910232 - 4.89875146894934*1j) + x[1]*(-1.97578074201005 - 1.74937753327838*1j) + 4.4400508138042 + 1.34697236513184*1j)*[0,1]
+        res=curl(u, where=ReducedFunction(self.domain))
+        c= -1.81081881871123 - 9.07462428573694*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlC_onReducedFunction_fromData_ContinuousFunction_shape3(self):
+        x=ContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (x[0]*(3.90748943341137 - 3.79954379857296*1j) + x[1]*(-1.4647239676793 - 4.72553726439607*1j) + 4.13083044562153 - 1.47516437702688*1j)*[1,0,0]+(x[0]*(-2.43095268585581 - 2.9775030890696*1j) + x[1]*(-0.873185608069745 + 2.18416715854081*1j) - 1.93229151604671 - 2.82804475195116*1j)*[0,1,0]+(x[0]*(-4.173822524491 - 2.28165622760719*1j) + x[1]*(1.84445926849883 + 1.81779042982295*1j) - 1.75420338983254 + 1.75917078418849*1j)*[0,0,1]
+        res=curl(u, where=ReducedFunction(self.domain))
+        c0= 1.84445926849883 + 1.81779042982295*1j
+        c1= 4.173822524491 + 2.28165622760719*1j
+        c2= -0.966228718176514 + 1.74803417532648*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_curlC_onDefault_fromData_ReducedContinuousFunction_shape0(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        u=x[0]*(-4.73325504913443 - 3.18578604035522*1j) + x[1]*(-0.265642816965965 + 1.30708491611495*1j) - 2.38401317128949 + 2.17513924636003*1j
+        res=curl(u)
+        c0= -0.265642816965965 + 1.30708491611495*1j
+        c1= 4.73325504913443 + 3.18578604035522*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlC_onDefault_fromData_ReducedContinuousFunction_shape2(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        u= (x[0]*(-1.49665382679722 - 4.57711876156751*1j) + x[1]*(-2.5676506908483 + 0.958623296474706*1j) + 0.980442322122093 + 3.27215598424326*1j)*[1,0]+(x[0]*(-2.35490725532687 + 2.20637766761428*1j) + x[1]*(1.69610414539791 + 1.16216576087906*1j) + 4.53865603624597 - 4.59037055754869*1j)*[0,1]
+        res=curl(u)
+        c= 0.212743435521429 + 1.24775437113957*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlC_onDefault_fromData_ReducedContinuousFunction_shape3(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (x[0]*(-4.31265917528425 - 4.83565193804529*1j) + x[1]*(4.84886111772462 + 0.598554410530322*1j) + 1.06343796998942 + 1.8504911287829*1j)*[1,0,0]+(x[0]*(-4.43904075359251 + 2.65474610489681*1j) + x[1]*(-1.73695122657825 + 0.821209590853833*1j) + 3.33876384880578 - 0.982996009936477*1j)*[0,1,0]+(x[0]*(4.01785156133396 - 0.248071159102996*1j) + x[1]*(-1.01876145237136 - 1.52173108351647*1j) + 0.958504246935994 + 4.29763409719394*1j)*[0,0,1]
+        res=curl(u)
+        c0= -1.01876145237136 - 1.52173108351647*1j
+        c1= -4.01785156133396 + 0.248071159102996*1j
+        c2= -9.28790187131713 + 2.05619169436649*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_curlC_onFunction_fromData_ReducedContinuousFunction_shape0(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        u=x[0]*(-4.2575047369808 - 3.43911516150308*1j) + x[1]*(-4.05773872843953 - 1.99050327024307*1j) - 3.61995457504207 + 0.978149891698619*1j
+        res=curl(u, where=Function(self.domain))
+        c0= -4.05773872843953 - 1.99050327024307*1j
+        c1= 4.2575047369808 + 3.43911516150308*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlC_onFunction_fromData_ReducedContinuousFunction_shape2(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        u= (x[0]*(1.39991423323745 + 0.720851824217567*1j) + x[1]*(-4.72583329927221 - 3.79617690306956*1j) - 0.365376406888512 - 3.26808164651684*1j)*[1,0]+(x[0]*(-4.95740165503608 - 3.10187455949122*1j) + x[1]*(4.87733699826884 - 3.71999782278246*1j) + 4.04052205323822 + 0.272082293389122*1j)*[0,1]
+        res=curl(u, where=Function(self.domain))
+        c= -0.231568355763872 + 0.694302343578343*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlC_onFunction_fromData_ReducedContinuousFunction_shape3(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (x[0]*(3.42261033524767 - 4.52170176772343*1j) + x[1]*(4.30217108126554 + 0.0994644395677655*1j) + 1.74550735523398 - 4.97919565601261*1j)*[1,0,0]+(x[0]*(-4.25677737254529 + 2.03363651593617*1j) + x[1]*(4.09117414106033 + 3.70229486639722*1j) - 4.93253162518791 + 4.383700896433*1j)*[0,1,0]+(x[0]*(-0.692462242695942 + 4.55110225346793*1j) + x[1]*(-3.74097962527605 + 3.05104688070803*1j) - 4.78135166882651 + 2.12757394004436*1j)*[0,0,1]
+        res=curl(u, where=Function(self.domain))
+        c0= -3.74097962527605 + 3.05104688070803*1j
+        c1= 0.692462242695942 - 4.55110225346793*1j
+        c2= -8.55894845381083 + 1.9341720763684*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_curlC_onReducedFunction_fromData_ReducedContinuousFunction_shape0(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        u=x[0]*(-4.47659002753602 - 1.96011503428051*1j) + x[1]*(-4.61951312975445 + 2.17482039811799*1j) + 2.78476595919978 + 1.45696804345668*1j
+        res=curl(u, where=ReducedFunction(self.domain))
+        c0= -4.61951312975445 + 2.17482039811799*1j
+        c1= 4.47659002753602 + 1.96011503428051*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (2,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+
+    def test_curlC_onReducedFunction_fromData_ReducedContinuousFunction_shape2(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        u= (x[0]*(0.10053820698554 - 1.43896751990717*1j) + x[1]*(-4.67509662453753 + 2.63660692458269*1j) - 2.26879104152807 + 3.77568768079794*1j)*[1,0]+(x[0]*(1.6431420581904 + 2.28338658326893*1j) + x[1]*(1.16137485421119 - 4.39705617994188*1j) - 2.84445915544867 - 4.05225483366945*1j)*[0,1]
+        res=curl(u, where=ReducedFunction(self.domain))
+        c= 6.31823868272793 - 0.353220341313759*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c-res)<=self.RES_TOL*Lsup(c), 'wrong result')
+
+    def test_curlC_onReducedFunction_fromData_ReducedContinuousFunction_shape3(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            raise unittest.SkipTest("Dimension must be 3.")
+        u= (x[0]*(-4.79173398911574 - 2.98133494418299*1j) + x[1]*(1.99133309332057 + 2.89382843408197*1j) - 0.0821873779339093 - 0.431956602859981*1j)*[1,0,0]+(x[0]*(0.165433246316451 - 4.61072772213564*1j) + x[1]*(-4.07893375034858 - 1.48593732346649*1j) + 0.939083965981778 - 1.95328603968981*1j)*[0,1,0]+(x[0]*(-2.61793080490098 + 1.45496914523453*1j) + x[1]*(-3.02544494442489 + 3.18859461427971*1j) - 4.36090261459957 - 1.23851273076462*1j)*[0,0,1]
+        res=curl(u, where=ReducedFunction(self.domain))
+        c0= -3.02544494442489 + 3.18859461427971*1j
+        c1= 2.61793080490098 - 1.45496914523453*1j
+        c2= -1.82589984700412 - 7.50455615621761*1j
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (3,), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(c0-res[0])<=self.RES_TOL*Lsup(c0), 'wrong result')
+        self.assertTrue(Lsup(c1-res[1])<=self.RES_TOL*Lsup(c1), 'wrong result')
+        self.assertTrue(Lsup(c2-res[2])<=self.RES_TOL*Lsup(c2), 'wrong result')
+
+    def test_divR_onDefault_fromData_Solution(self):
+        x=Solution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (0.563602048994095*x[0] + 2.93940051461073*x[1] - 2.8949894526602)*[1,0]+(-3.84583684834032*x[0] - 4.87095136552072*x[1] + 1.91259613119544)*[0,1]
+            ref= -4.30734931652662
+        else:
+            u= (0.563602048994095*x[0] + 2.93940051461073*x[1] - 2.8949894526602)*[1,0,0]+(-3.84583684834032*x[0] - 4.87095136552072*x[1] + 1.91259613119544)*[0,1,0]+(4.42363248342465*x[0] - 2.15396111624433*x[1] - 1.33511169280306)*[0,0,1]
+            ref= -4.30734931652662
+        res=div(u)
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_divR_onFunction_fromData_Solution(self):
+        x=Solution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (2.80029119049544*x[0] - 2.90448584978965*x[1] - 4.53831610764468)*[1,0]+(2.38200532162228*x[0] - 4.95401169529374*x[1] + 4.82584304146304)*[0,1]
+            ref= -2.15372050479830
+        else:
+            u= (2.80029119049544*x[0] - 2.90448584978965*x[1] - 4.53831610764468)*[1,0,0]+(2.38200532162228*x[0] - 4.95401169529374*x[1] + 4.82584304146304)*[0,1,0]+(2.95263564851847*x[0] + 4.18952873757126*x[1] - 0.57647747905187)*[0,0,1]
+            ref= -2.15372050479830
+        res=div(u, where=Function(self.domain))
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_divR_onReducedFunction_fromData_Solution(self):
+        x=Solution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (1.38458144246182*x[0] - 0.271901876274802*x[1] - 1.78668034989491)*[1,0]+(1.2773238699363*x[0] - 2.55280146672567*x[1] - 2.01301856702324)*[0,1]
+            ref= -1.16822002426385
+        else:
+            u= (1.38458144246182*x[0] - 0.271901876274802*x[1] - 1.78668034989491)*[1,0,0]+(1.2773238699363*x[0] - 2.55280146672567*x[1] - 2.01301856702324)*[0,1,0]+(3.49482864458602*x[0] - 2.49078679454235*x[1] + 1.54225358258466)*[0,0,1]
+            ref= -1.16822002426385
+        res=div(u, where=ReducedFunction(self.domain))
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_divR_onDefault_fromData_ReducedSolution(self):
+        x=ReducedSolution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (3.16055699382984*x[0] - 2.98819546224672*x[1] - 2.07082480591791)*[1,0]+(-2.18392277431865*x[0] + 0.708823901300639*x[1] - 4.64952250116619)*[0,1]
+            ref= 3.86938089513048
+        else:
+            u= (3.16055699382984*x[0] - 2.98819546224672*x[1] - 2.07082480591791)*[1,0,0]+(-2.18392277431865*x[0] + 0.708823901300639*x[1] - 4.64952250116619)*[0,1,0]+(-0.18499588944199*x[0] - 0.239385721000342*x[1] - 3.73475006152798)*[0,0,1]
+            ref= 3.86938089513048
+        res=div(u)
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_divR_onFunction_fromData_ReducedSolution(self):
+        x=ReducedSolution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (4.17772076018901*x[0] + 0.201740890587621*x[1] + 2.56651190749516)*[1,0]+(2.36349487483855*x[0] + 0.682977266398765*x[1] + 3.10276926815913)*[0,1]
+            ref= 4.86069802658778
+        else:
+            u= (4.17772076018901*x[0] + 0.201740890587621*x[1] + 2.56651190749516)*[1,0,0]+(2.36349487483855*x[0] + 0.682977266398765*x[1] + 3.10276926815913)*[0,1,0]+(-3.8033139778989*x[0] - 1.50660775290803*x[1] - 3.75996928988633)*[0,0,1]
+            ref= 4.86069802658778
+        res=div(u, where=Function(self.domain))
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_divR_onReducedFunction_fromData_ReducedSolution(self):
+        x=ReducedSolution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (3.86879976673418*x[0] + 3.49253803888041*x[1] - 0.963355924516348)*[1,0]+(3.95581279160985*x[0] + 0.434983128182528*x[1] - 3.6422269649306)*[0,1]
+            ref= 4.30378289491671
+        else:
+            u= (3.86879976673418*x[0] + 3.49253803888041*x[1] - 0.963355924516348)*[1,0,0]+(3.95581279160985*x[0] + 0.434983128182528*x[1] - 3.6422269649306)*[0,1,0]+(-0.00368016885447631*x[0] - 2.9768646315077*x[1] + 0.932487106281647)*[0,0,1]
+            ref= 4.30378289491671
+        res=div(u, where=ReducedFunction(self.domain))
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_divR_onDefault_fromData_ContinuousFunction(self):
+        x=ContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (-2.39186119038382*x[0] - 1.13356137119896*x[1] - 0.902161031032215)*[1,0]+(-3.78252436014449*x[0] - 1.9378475217424*x[1] - 1.43523752598639)*[0,1]
+            ref= -4.32970871212622
+        else:
+            u= (-2.39186119038382*x[0] - 1.13356137119896*x[1] - 0.902161031032215)*[1,0,0]+(-3.78252436014449*x[0] - 1.9378475217424*x[1] - 1.43523752598639)*[0,1,0]+(0.0852381149902808*x[0] + 3.50558431436284*x[1] + 4.38539008290608)*[0,0,1]
+            ref= -4.32970871212622
+        res=div(u)
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_divR_onFunction_fromData_ContinuousFunction(self):
+        x=ContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (-0.502853402252162*x[0] + 1.83115918828676*x[1] - 4.44926449856306)*[1,0]+(-2.34680702278058*x[0] + 3.1899936990713*x[1] - 2.21081763853941)*[0,1]
+            ref= 2.68714029681914
+        else:
+            u= (-0.502853402252162*x[0] + 1.83115918828676*x[1] - 4.44926449856306)*[1,0,0]+(-2.34680702278058*x[0] + 3.1899936990713*x[1] - 2.21081763853941)*[0,1,0]+(-0.640956545067767*x[0] - 1.16130734580325*x[1] - 0.358480907013115)*[0,0,1]
+            ref= 2.68714029681914
+        res=div(u, where=Function(self.domain))
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_divR_onReducedFunction_fromData_ContinuousFunction(self):
+        x=ContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (-2.8904589933585*x[0] + 0.839695393528013*x[1] + 4.66824163893088)*[1,0]+(-0.351981870738128*x[0] - 2.85298273456724*x[1] + 1.8583724480013)*[0,1]
+            ref= -5.74344172792574
+        else:
+            u= (-2.8904589933585*x[0] + 0.839695393528013*x[1] + 4.66824163893088)*[1,0,0]+(-0.351981870738128*x[0] - 2.85298273456724*x[1] + 1.8583724480013)*[0,1,0]+(-0.954581742972547*x[0] - 4.76190062340625*x[1] - 4.83605946362247)*[0,0,1]
+            ref= -5.74344172792574
+        res=div(u, where=ReducedFunction(self.domain))
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_divR_onDefault_fromData_ReducedContinuousFunction(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (-1.987660338649*x[0] - 3.58234216267777*x[1] - 2.27106505130592)*[1,0]+(-0.064874473030998*x[0] + 0.322614799679646*x[1] + 0.369541305023564)*[0,1]
+            ref= -1.66504553896935
+        else:
+            u= (-1.987660338649*x[0] - 3.58234216267777*x[1] - 2.27106505130592)*[1,0,0]+(-0.064874473030998*x[0] + 0.322614799679646*x[1] + 0.369541305023564)*[0,1,0]+(0.0641186422766982*x[0] + 2.9958050925748*x[1] + 2.06082829319979)*[0,0,1]
+            ref= -1.66504553896935
+        res=div(u)
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_divR_onFunction_fromData_ReducedContinuousFunction(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (1.07842120263498*x[0] + 0.508292067998735*x[1] + 3.86259420291361)*[1,0]+(2.66877169327667*x[0] + 2.62700642396636*x[1] + 3.50723954602637)*[0,1]
+            ref= 3.70542762660134
+        else:
+            u= (1.07842120263498*x[0] + 0.508292067998735*x[1] + 3.86259420291361)*[1,0,0]+(2.66877169327667*x[0] + 2.62700642396636*x[1] + 3.50723954602637)*[0,1,0]+(-4.92139500170583*x[0] + 3.30074488686519*x[1] - 2.54182818785142)*[0,0,1]
+            ref= 3.70542762660134
+        res=div(u, where=Function(self.domain))
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_divR_onReducedFunction_fromData_ReducedContinuousFunction(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (-2.01010311208108*x[0] + 4.38238823109657*x[1] + 3.44766594354617)*[1,0]+(1.47135958506805*x[0] + 4.9355024383274*x[1] - 2.40555557188788)*[0,1]
+            ref= 2.92539932624632
+        else:
+            u= (-2.01010311208108*x[0] + 4.38238823109657*x[1] + 3.44766594354617)*[1,0,0]+(1.47135958506805*x[0] + 4.9355024383274*x[1] - 2.40555557188788)*[0,1,0]+(2.62343208964114*x[0] - 0.936443755102846*x[1] - 3.30206456315506)*[0,0,1]
+            ref= 2.92539932624632
+        res=div(u, where=ReducedFunction(self.domain))
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_divC_onDefault_fromData_Solution(self):
+        x=Solution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (x[0]*(-3.20934545783569 + 1.00993000485646*1j) + x[1]*(2.45733260364545 + 2.01364188636415*1j) + 3.59957686465692 + 2.74759323836255*1j)*[1,0]+(x[0]*(-1.62485658885562 + 3.18419915684622*1j) + x[1]*(1.13544009807529 + 1.14674015321404*1j) - 4.49433626443619 + 0.669288949204111*1j)*[0,1]
+            ref= -2.0739053597604 + 2.15667015807049*1j
+        else:
+            u= (x[0]*(-3.20934545783569 + 1.00993000485646*1j) + x[1]*(2.45733260364545 + 2.01364188636415*1j) + 3.59957686465692 + 2.74759323836255*1j)*[1,0,0]+(x[0]*(-1.62485658885562 + 3.18419915684622*1j) + x[1]*(1.13544009807529 + 1.14674015321404*1j) - 4.49433626443619 + 0.669288949204111*1j)*[0,1,0]+(x[0]*(2.96956769847924 - 0.606356361411848*1j) + x[1]*(-0.8151572615472 + 4.45954675573931*1j) - 2.21011383065917 + 1.38524947746947*1j)*[0,0,1]
+            ref= -2.0739053597604 + 2.15667015807049*1j
+        res=div(u)
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_divC_onFunction_fromData_Solution(self):
+        x=Solution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (x[0]*(0.200182037656637 + 1.00805436848597*1j) + x[1]*(-3.92154253603804 + 1.59803357404459*1j) + 4.59054753160449 + 2.54956142373909*1j)*[1,0]+(x[0]*(0.0876506484179984 - 4.10290874443832*1j) + x[1]*(-2.0287560040989 + 0.908748834534605*1j) + 3.95312413569491 + 4.29929166617582*1j)*[0,1]
+            ref= -1.82857396644227 + 1.91680320302057*1j
+        else:
+            u= (x[0]*(0.200182037656637 + 1.00805436848597*1j) + x[1]*(-3.92154253603804 + 1.59803357404459*1j) + 4.59054753160449 + 2.54956142373909*1j)*[1,0,0]+(x[0]*(0.0876506484179984 - 4.10290874443832*1j) + x[1]*(-2.0287560040989 + 0.908748834534605*1j) + 3.95312413569491 + 4.29929166617582*1j)*[0,1,0]+(x[0]*(2.50295975477641 + 4.39652726211804*1j) + x[1]*(2.72033102226808 - 4.24831907733388*1j) + 0.351316095512473 + 0.204732351839652*1j)*[0,0,1]
+            ref= -1.82857396644227 + 1.91680320302057*1j
+        res=div(u, where=Function(self.domain))
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_divC_onReducedFunction_fromData_Solution(self):
+        x=Solution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (x[0]*(-1.977580558172 - 1.52421941961059*1j) + x[1]*(1.04504251666557 - 1.75728088736233*1j) + 2.50022079669507 - 1.16093948394994*1j)*[1,0]+(x[0]*(0.300420202424792 + 1.75430329627186*1j) + x[1]*(-4.52871816296335 - 1.3055797660573*1j) - 1.28674810368943 + 1.27145525321837*1j)*[0,1]
+            ref= -6.50629872113534 - 2.82979918566789*1j
+        else:
+            u= (x[0]*(-1.977580558172 - 1.52421941961059*1j) + x[1]*(1.04504251666557 - 1.75728088736233*1j) + 2.50022079669507 - 1.16093948394994*1j)*[1,0,0]+(x[0]*(0.300420202424792 + 1.75430329627186*1j) + x[1]*(-4.52871816296335 - 1.3055797660573*1j) - 1.28674810368943 + 1.27145525321837*1j)*[0,1,0]+(x[0]*(3.5321632983639 - 1.19047706774077*1j) + x[1]*(0.222898550136676 - 3.75591305907786*1j) - 1.10760045913258 - 0.0797081853829251*1j)*[0,0,1]
+            ref= -6.50629872113534 - 2.82979918566789*1j
+        res=div(u, where=ReducedFunction(self.domain))
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_divC_onDefault_fromData_ReducedSolution(self):
+        x=ReducedSolution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (x[0]*(0.0628071649128259 - 0.260916981023755*1j) + x[1]*(3.19368058923428 - 3.9501117092552*1j) + 2.31356429355735 + 3.21929030167353*1j)*[1,0]+(x[0]*(-3.39970357044473 - 2.03395282904943*1j) + x[1]*(-3.19225941517909 + 1.59466910238158*1j) - 2.1270644310271 + 3.18824194001069*1j)*[0,1]
+            ref= -3.12945225026626 + 1.33375212135782*1j
+        else:
+            u= (x[0]*(0.0628071649128259 - 0.260916981023755*1j) + x[1]*(3.19368058923428 - 3.9501117092552*1j) + 2.31356429355735 + 3.21929030167353*1j)*[1,0,0]+(x[0]*(-3.39970357044473 - 2.03395282904943*1j) + x[1]*(-3.19225941517909 + 1.59466910238158*1j) - 2.1270644310271 + 3.18824194001069*1j)*[0,1,0]+(x[0]*(-4.11598572839445 + 4.86052156592232*1j) + x[1]*(1.8079221487824 - 4.70387837304031*1j) - 0.379774161820449 - 4.90645921715322*1j)*[0,0,1]
+            ref= -3.12945225026626 + 1.33375212135782*1j
+        res=div(u)
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_divC_onFunction_fromData_ReducedSolution(self):
+        x=ReducedSolution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (x[0]*(1.76763007553025 - 1.02715842798563*1j) + x[1]*(-2.44290267800777 - 1.46540995872404*1j) + 4.65939979707834 - 1.49754818918712*1j)*[1,0]+(x[0]*(3.35012440246646 - 0.445530956111667*1j) + x[1]*(-4.63229879593702 - 1.41702588922757*1j) + 1.44131647418698 - 0.608940840394091*1j)*[0,1]
+            ref= -2.86466872040678 - 2.4441843172132*1j
+        else:
+            u= (x[0]*(1.76763007553025 - 1.02715842798563*1j) + x[1]*(-2.44290267800777 - 1.46540995872404*1j) + 4.65939979707834 - 1.49754818918712*1j)*[1,0,0]+(x[0]*(3.35012440246646 - 0.445530956111667*1j) + x[1]*(-4.63229879593702 - 1.41702588922757*1j) + 1.44131647418698 - 0.608940840394091*1j)*[0,1,0]+(x[0]*(4.8204004572742 - 1.20854352499838*1j) + x[1]*(3.07183678116727 + 4.90765726665163*1j) + 2.6006780902851 + 4.05272027259712*1j)*[0,0,1]
+            ref= -2.86466872040678 - 2.4441843172132*1j
+        res=div(u, where=Function(self.domain))
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_divC_onReducedFunction_fromData_ReducedSolution(self):
+        x=ReducedSolution(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (x[0]*(0.862437013051885 - 0.125697670041384*1j) + x[1]*(-2.53074862592412 - 0.339218394935402*1j) + 4.56767192447045 - 4.92533935671699*1j)*[1,0]+(x[0]*(3.40182111776477 - 0.575002384186943*1j) + x[1]*(-4.88354600375455 + 0.319431124272401*1j) - 0.152180163248076 + 3.16717446890814*1j)*[0,1]
+            ref= -4.02110899070267 + 0.193733454231017*1j
+        else:
+            u= (x[0]*(0.862437013051885 - 0.125697670041384*1j) + x[1]*(-2.53074862592412 - 0.339218394935402*1j) + 4.56767192447045 - 4.92533935671699*1j)*[1,0,0]+(x[0]*(3.40182111776477 - 0.575002384186943*1j) + x[1]*(-4.88354600375455 + 0.319431124272401*1j) - 0.152180163248076 + 3.16717446890814*1j)*[0,1,0]+(x[0]*(4.52880616289715 - 4.97462556593893*1j) + x[1]*(4.06065732669403 - 0.891220813179496*1j) + 4.58119896529415 + 0.254020223996713*1j)*[0,0,1]
+            ref= -4.02110899070267 + 0.193733454231017*1j
+        res=div(u, where=ReducedFunction(self.domain))
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_divC_onDefault_fromData_ContinuousFunction(self):
+        x=ContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (x[0]*(-4.28869409889564 - 2.81605573378693*1j) + x[1]*(-4.0552591652276 + 3.92636543575996*1j) - 2.57526774872554 + 1.10284283702457*1j)*[1,0]+(x[0]*(3.57208681978191 - 3.48377655562108*1j) + x[1]*(-4.73331877429225 - 4.75387476050417*1j) - 4.80395045593198 - 1.0281150802479*1j)*[0,1]
+            ref= -9.02201287318789 - 7.56993049429109*1j
+        else:
+            u= (x[0]*(-4.28869409889564 - 2.81605573378693*1j) + x[1]*(-4.0552591652276 + 3.92636543575996*1j) - 2.57526774872554 + 1.10284283702457*1j)*[1,0,0]+(x[0]*(3.57208681978191 - 3.48377655562108*1j) + x[1]*(-4.73331877429225 - 4.75387476050417*1j) - 4.80395045593198 - 1.0281150802479*1j)*[0,1,0]+(x[0]*(0.774174581790752 - 0.860382879882434*1j) + x[1]*(-2.4576463953696 + 2.63509481062614*1j) + 2.5393316796168 - 3.07988587469668*1j)*[0,0,1]
+            ref= -9.02201287318789 - 7.56993049429109*1j
+        res=div(u)
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_divC_onFunction_fromData_ContinuousFunction(self):
+        x=ContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (x[0]*(-0.616425610565285 + 1.47876266270661*1j) + x[1]*(0.0147026583980079 - 4.96616302288476*1j) - 3.07377876596871 - 3.68842102810809*1j)*[1,0]+(x[0]*(-3.79148995638781 - 2.58863395819432*1j) + x[1]*(2.77270509565648 + 1.96873335593319*1j) + 1.10196125049053 - 4.78196018238577*1j)*[0,1]
+            ref= 2.1562794850912 + 3.4474960186398*1j
+        else:
+            u= (x[0]*(-0.616425610565285 + 1.47876266270661*1j) + x[1]*(0.0147026583980079 - 4.96616302288476*1j) - 3.07377876596871 - 3.68842102810809*1j)*[1,0,0]+(x[0]*(-3.79148995638781 - 2.58863395819432*1j) + x[1]*(2.77270509565648 + 1.96873335593319*1j) + 1.10196125049053 - 4.78196018238577*1j)*[0,1,0]+(x[0]*(-1.89686907003966 + 1.75865873266267*1j) + x[1]*(2.76235141667781 - 0.0233711384151549*1j) - 3.52763447749041 - 4.78253614035406*1j)*[0,0,1]
+            ref= 2.1562794850912 + 3.4474960186398*1j
+        res=div(u, where=Function(self.domain))
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_divC_onReducedFunction_fromData_ContinuousFunction(self):
+        x=ContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (x[0]*(3.87235176338571 + 2.67869314534347*1j) + x[1]*(-0.460502004316181 - 0.450128614462606*1j) - 1.17035568891467 + 0.507952234926357*1j)*[1,0]+(x[0]*(2.27729990599914 - 2.25267668902066*1j) + x[1]*(-3.58396877187612 + 4.18885071027779*1j) + 2.08857126977227 + 2.60313943863519*1j)*[0,1]
+            ref= 0.288382991509592 + 6.86754385562126*1j
+        else:
+            u= (x[0]*(3.87235176338571 + 2.67869314534347*1j) + x[1]*(-0.460502004316181 - 0.450128614462606*1j) - 1.17035568891467 + 0.507952234926357*1j)*[1,0,0]+(x[0]*(2.27729990599914 - 2.25267668902066*1j) + x[1]*(-3.58396877187612 + 4.18885071027779*1j) + 2.08857126977227 + 2.60313943863519*1j)*[0,1,0]+(x[0]*(2.24440135752858 + 3.17157408679241*1j) + x[1]*(-1.47639164292389 - 0.880762056474753*1j) + 3.76177620961764 + 0.940943291231707*1j)*[0,0,1]
+            ref= 0.288382991509592 + 6.86754385562126*1j
+        res=div(u, where=ReducedFunction(self.domain))
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_divC_onDefault_fromData_ReducedContinuousFunction(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (x[0]*(-1.47962977239593 + 4.97401426692273*1j) + x[1]*(4.57390144573699 - 4.008360452371*1j) + 0.516485870498844 - 1.3356395770571*1j)*[1,0]+(x[0]*(4.62806487500142 - 4.47144290594838*1j) + x[1]*(-2.54002815434074 + 3.51783791127018*1j) - 4.11169275934117 - 3.7238010730925*1j)*[0,1]
+            ref= -4.01965792673667 + 8.49185217819291*1j
+        else:
+            u= (x[0]*(-1.47962977239593 + 4.97401426692273*1j) + x[1]*(4.57390144573699 - 4.008360452371*1j) + 0.516485870498844 - 1.3356395770571*1j)*[1,0,0]+(x[0]*(4.62806487500142 - 4.47144290594838*1j) + x[1]*(-2.54002815434074 + 3.51783791127018*1j) - 4.11169275934117 - 3.7238010730925*1j)*[0,1,0]+(x[0]*(-4.34174337308374 + 1.09221279525406*1j) + x[1]*(-4.67338820322598 - 2.47561018714849*1j) - 4.22019296377055 + 3.72215470623773*1j)*[0,0,1]
+            ref= -4.01965792673667 + 8.49185217819291*1j
+        res=div(u)
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_divC_onFunction_fromData_ReducedContinuousFunction(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (x[0]*(1.13036974777609 - 4.22325642913297*1j) + x[1]*(3.50540030351777 + 0.230712266471487*1j) + 4.61711965580175 - 1.17920159480345*1j)*[1,0]+(x[0]*(-4.90608137928206 - 3.43160445617421*1j) + x[1]*(0.87850423135028 - 1.56162747459726*1j) - 4.5607424518393 + 4.6007994371095*1j)*[0,1]
+            ref= 2.00887397912637 - 5.78488390373023*1j
+        else:
+            u= (x[0]*(1.13036974777609 - 4.22325642913297*1j) + x[1]*(3.50540030351777 + 0.230712266471487*1j) + 4.61711965580175 - 1.17920159480345*1j)*[1,0,0]+(x[0]*(-4.90608137928206 - 3.43160445617421*1j) + x[1]*(0.87850423135028 - 1.56162747459726*1j) - 4.5607424518393 + 4.6007994371095*1j)*[0,1,0]+(x[0]*(4.00001711819602 + 2.85136688542397*1j) + x[1]*(-3.69450441713496 + 1.91485951399878*1j) + 1.05338410985668 + 0.174717916787732*1j)*[0,0,1]
+            ref= 2.00887397912637 - 5.78488390373023*1j
+        res=div(u, where=Function(self.domain))
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), Function(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def test_divC_onReducedFunction_fromData_ReducedContinuousFunction(self):
+        x=ReducedContinuousFunction(self.domain).getX()
+        if self.domain.getDim() == 2:
+            u= (x[0]*(-1.34666984185982 - 0.85714098716961*1j) + x[1]*(-0.767764000843783 + 2.75245163586671*1j) - 2.80878561568058 + 0.399892498890116*1j)*[1,0]+(x[0]*(-4.29560371877822 - 1.17445928566559*1j) + x[1]*(-3.24346331955949 - 2.6452280531791*1j) - 1.78645145312724 + 1.11619538486432*1j)*[0,1]
+            ref= -4.59013316141932 - 3.50236904034871*1j
+        else:
+            u= (x[0]*(-1.34666984185982 - 0.85714098716961*1j) + x[1]*(-0.767764000843783 + 2.75245163586671*1j) - 2.80878561568058 + 0.399892498890116*1j)*[1,0,0]+(x[0]*(-4.29560371877822 - 1.17445928566559*1j) + x[1]*(-3.24346331955949 - 2.6452280531791*1j) - 1.78645145312724 + 1.11619538486432*1j)*[0,1,0]+(x[0]*(0.0660605596785357 + 4.29356528945865*1j) + x[1]*(4.54107147705149 - 1.80619179916033*1j) - 4.93498300424403 + 2.8851684251027*1j)*[0,0,1]
+            ref= -4.59013316141932 - 3.50236904034871*1j
+        res=div(u, where=ReducedFunction(self.domain))
+        self.assertTrue(isinstance(res,Data), 'wrong type of result.')
+        self.assertEqual(res.getShape(), (), 'wrong shape of result.')
+        self.assertEqual(res.getFunctionSpace(), ReducedFunction(self.domain), 'wrong function space.')
+        self.assertTrue(Lsup(ref-res)<=self.RES_TOL*Lsup(ref), 'wrong result')
+    #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    

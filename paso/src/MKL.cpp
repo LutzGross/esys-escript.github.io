@@ -32,7 +32,7 @@
 
 namespace paso {
 
-void MKL_free(SparseMatrix* A)
+void MKL_free(SparseMatrix<double>* A)
 {
 #ifdef ESYS_HAVE_MKL
     if (A && A->solver_p && A->solver_package==PASO_MKL) {
@@ -63,7 +63,7 @@ void MKL_free(SparseMatrix* A)
 #endif
 }
 
-void MKL_solve(SparseMatrix_ptr A, double* out, double* in, index_t reordering,
+void MKL_solve(SparseMatrix_ptr<double> A, double* out, double* in, index_t reordering,
                dim_t numRefinements, bool verbose)
 {
 #ifdef ESYS_HAVE_MKL
@@ -167,6 +167,25 @@ void MKL_solve(SparseMatrix_ptr A, double* out, double* in, index_t reordering,
         if (verbose)
             printf("MKL: forward/backward substitution completed (time = %e).\n", escript::gettime()-time0);
     }
+#else
+    throw PasoException("Paso: MKL is not available.");
+#endif
+}
+
+void MKL_free(SparseMatrix<cplx_t>* A)
+{
+#ifdef ESYS_HAVE_MKL
+    throw PasoException("Paso MKL_free(): complex not implemented.");
+#else
+    throw PasoException("Paso: MKL is not available.");
+#endif
+}
+
+void MKL_solve(SparseMatrix_ptr<cplx_t> A, cplx_t* out, cplx_t* in, index_t reordering,
+               dim_t numRefinements, bool verbose)
+{
+#ifdef ESYS_HAVE_MKL
+    throw PasoException("Paso MKL_solve(): complex not implemented.");
 #else
     throw PasoException("Paso: MKL is not available.");
 #endif

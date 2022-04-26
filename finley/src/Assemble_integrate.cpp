@@ -41,11 +41,9 @@ void Assemble_integrate(const NodeFile* nodes, const ElementFile* elements,
     ElementFile_Jacobians* jac = elements->borrowJacobians(nodes, false,
                                     util::hasReducedIntegrationOrder(data));
 
-    bool HavePointData = data.getFunctionSpace().getTypeCode() == Points;
-
     const int numQuadTotal = jac->numQuadTotal;
     // check the shape of the data
-    if (!data.numSamplesEqual(numQuadTotal, elements->numElements) && !HavePointData) {
+    if (!data.numSamplesEqual(numQuadTotal, elements->numElements)) {
         throw escript::ValueError("Assemble_integrate: illegal number of samples of integrant kernel Data object");
     }
 
@@ -55,13 +53,6 @@ void Assemble_integrate(const NodeFile* nodes, const ElementFile* elements,
     for (int q = 0; q < numComps; q++)
         out[q] = zero;
 
-#ifdef ESYS_MPI
-    if(HavePointData && escript::getMPIRankWorld() == 0)
-#else
-    if(HavePointData)
-#endif
-        out[0] += data.getNumberOfTaggedValues();
-    else
 #pragma omp parallel
     {
         std::vector<Scalar> out_local(numComps);
@@ -95,9 +86,8 @@ void Assemble_integrate(const NodeFile* nodes, const ElementFile* elements,
 #pragma omp critical
         for (int i = 0; i < numComps; i++)
             out[i] += out_local[i];
-    } // parallel section
+} // parallel section
 }
-
 // instantiate our two supported versions
 template void Assemble_integrate<escript::DataTypes::real_t>(
                     const NodeFile* nodes, const ElementFile* elements,

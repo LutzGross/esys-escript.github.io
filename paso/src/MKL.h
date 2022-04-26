@@ -60,8 +60,12 @@ namespace paso {
 #define MKL_PHASE_RELEASE_MEMORY -1
 
 
-void MKL_free(SparseMatrix* A);
-void MKL_solve(SparseMatrix_ptr A, double* out, double* in, index_t reordering,
+void PASO_DLL_API MKL_free(SparseMatrix<double>* A);
+void PASO_DLL_API MKL_free(SparseMatrix<cplx_t>* A);
+
+void PASO_DLL_API MKL_solve(SparseMatrix_ptr<double> A, double* out, double* in, index_t reordering,
+               dim_t numRefinements, bool verbose);
+void PASO_DLL_API MKL_solve(SparseMatrix_ptr<cplx_t> A, cplx_t* out, cplx_t* in, index_t reordering,
                dim_t numRefinements, bool verbose);
 
 } // namespace paso

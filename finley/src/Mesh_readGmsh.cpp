@@ -57,6 +57,13 @@ struct ElementInfo {
     int tag;
 };
 
+struct Msh4Entities {
+    std::map<int,int> pointTags;
+    std::map<int,int> curveTags;
+    std::map<int,int> surfaceTags;
+    std::map<int,int> volumeTags;
+};
+
 inline bool get_line(std::vector<char>& line, FILE* file)
 {
     int capacity = 1024;
@@ -338,7 +345,7 @@ int getSingleElementMSH4(FILE* f, int dim, double version, struct ElementInfo& e
 int getElementsMaster(escript::JMPI& mpiInfo, FinleyDomain* dom,
                       FILE* fileHandle, std::string& errorMsg,
                       bool useMacroElements, const std::string& filename,
-                      int numDim, double version, int order, int reducedOrder)
+                      int numDim, double version, int order, int reducedOrder, Msh4Entities TagMap)
 {
     /*
      *  This function should read in the elements and distribute
@@ -407,7 +414,11 @@ int getElementsMaster(escript::JMPI& mpiInfo, FinleyDomain* dom,
                 errorFlag = EARLY_EOF;
 
             int entityTag, entityDim, numElements, gmsh_type;
-            scan_ret = sscanf(&line[0], "%d %d %d %d", &entityDim, &entityTag, &gmsh_type, &numElements);
+
+            if(version == 4.0)
+                scan_ret = sscanf(&line[0], "%d %d %d %d", &entityTag, &entityDim, &gmsh_type, &numElements);
+            else
+                scan_ret = sscanf(&line[0], "%d %d %d %d", &entityDim, &entityTag, &gmsh_type, &numElements);            
 
             // Loop over elements in each entity block
             for (index_t e = 0; e < numElements; e++, count++) {
@@ -421,7 +432,15 @@ int getElementsMaster(escript::JMPI& mpiInfo, FinleyDomain* dom,
                 get_line(line, fileHandle);
                 getSingleElementMSH4(fileHandle, numDim, version, element,
                                         errorMsg, filename, useMacroElements, gmsh_type, &line[0]);
-                element.tag = entityTag;
+                if(element.dim == 0)
+                    element.tag = TagMap.pointTags.find(entityTag)->second;
+                else if (element.dim == 1)
+                    element.tag = TagMap.curveTags.find(entityTag)->second;
+                else if (element.dim == 2)
+                    element.tag = TagMap.surfaceTags.find(entityTag)->second;
+                else if (element.dim == 3)
+                    element.tag = TagMap.volumeTags.find(entityTag)->second;
+
                 elementType[count] = element.type;
                 id[count] = element.id;
                 tag[count] = element.tag;
@@ -692,7 +711,7 @@ int getElementsMaster(escript::JMPI& mpiInfo, FinleyDomain* dom,
 }
 
 int gather_nodes(FILE* f, std::map<int,int>& tags, std::string& errorMsg,
-                 int dim, double version, const std::string& filename)
+                 int dim, double version, const std::string& filename, Msh4Entities TagMap)
 {
     int numNodes=0;
     int numEntityBlocks;
@@ -813,6 +832,15 @@ int gather_nodes(FILE* f, std::map<int,int>& tags, std::string& errorMsg,
                 if (!get_line(line, f))
                     return EARLY_EOF;
                 getSingleElementMSH4(f, dim, version, e, errorMsg, filename, false, gmsh_type, &line[0]);
+                
+                // if(e.dim == 0)
+                //     e.tag = TagMap.pointTags.find(entityTag)->second;
+                // else if (e.dim == 1)
+                //     e.tag = TagMap.curveTags.find(entityTag)->second;
+                // else if (e.dim == 2)
+                //     e.tag = TagMap.surfaceTags.find(entityTag)->second;
+                // else if (e.dim == 3)
+                //     e.tag = TagMap.volumeTags.find(entityTag)->second;
             }
         }
     } else if (version == 4.0){
@@ -825,6 +853,15 @@ int gather_nodes(FILE* f, std::map<int,int>& tags, std::string& errorMsg,
                 if (!get_line(line, f))
                     return EARLY_EOF;
                 getSingleElementMSH4(f, dim, version, e, errorMsg, filename, false, gmsh_type, &line[0]);
+
+                // if(e.dim == 0)
+                //     e.tag = TagMap.pointTags.find(entityTag)->second;
+                // else if (e.dim == 1)
+                //     e.tag = TagMap.curveTags.find(entityTag)->second;
+                // else if (e.dim == 2)
+                //     e.tag = TagMap.surfaceTags.find(entityTag)->second;
+                // else if (e.dim == 3)
+                //     e.tag = TagMap.volumeTags.find(entityTag)->second;
             }
         }
     } else {
@@ -904,7 +941,7 @@ int getNodesMaster(escript::JMPI& mpiInfo, FinleyDomain* dom, FILE* fileHandle,
                     scan_ret = sscanf(&line[0], "%d %d %d %d\n", &entityDim, &entityTag, &parametric, &numDataPoints);
 
                     if (parametric == 1){
-                        errorMsg = "eScript does not supprot nodefiles with parametric coordinates.";
+                        errorMsg = "eScript does not support MSH files with parametric coordinates.";
                         return THROW_ERROR;
                     }
 
@@ -969,7 +1006,7 @@ int getNodesMaster(escript::JMPI& mpiInfo, FinleyDomain* dom, FILE* fileHandle,
                     scan_ret = sscanf(&line[0], "%d %d %d %d\n", &entityTag, &entityDim, &parametric, &numNodes);
                     
                     if (parametric == 1){
-                        errorMsg = "eScript does not supprot nodefiles with parametric coordinates.";
+                        errorMsg = "eScript does not support nodefiles with parametric coordinates.";
                         return THROW_ERROR;
                     }
 
@@ -1109,6 +1146,8 @@ int get_next_state(FILE *f, bool nodesRead, bool elementsRead, int *logicFlag) {
         *logicFlag = 3;
     } else if (!strncmp(&line[1], "PhysicalNames", 13)) {
         *logicFlag = 4;
+    } else if (!strncmp(&line[1], "Entities", 8)) {
+        *logicFlag = 5;
     } else {
         *logicFlag = 0;
     }
@@ -1160,6 +1199,8 @@ FinleyDomain* readGmshMaster(escript::JMPI& mpiInfo,
 {
     double version = 1.0;
     bool nodesRead = false, elementsRead = false;
+    int numPhysicalNames = 0;
+    Msh4Entities TagMap;
     int format = 0, size = sizeof(double), scan_ret, errorFlag = 0, logicFlag = 0;
     std::vector<char> line;
     std::map<int,int> nodeTags;
@@ -1176,7 +1217,11 @@ FinleyDomain* readGmshMaster(escript::JMPI& mpiInfo,
     FinleyDomain* dom = new FinleyDomain(filename, numDim, mpiInfo);
 
     // get file handle
+#ifdef _WIN32
+    FILE* fileHandle = fopen(filename.c_str(), "rb"); // open in binary mode to allow seek
+#else
     FILE* fileHandle = fopen(filename.c_str(), "r");
+#endif
     if (!fileHandle) {
         std::stringstream ss;
         ss << "readGmsh: opening file " << filename << " for reading failed.";
@@ -1203,6 +1248,10 @@ FinleyDomain* readGmshMaster(escript::JMPI& mpiInfo,
                 errorFlag = EARLY_EOF;
             scan_ret = sscanf(&fmt[0], "%lf %d %d\n", &version, &format, &size);
             SSCANF_CHECK(scan_ret);
+
+            if(version != 2.0 && version != 2.1 && version != 2.2 && version != 4.0 && version != 4.1)
+                throw FinleyException("Cannot understand this msh format version. Please use version 2.2 or 4.1");
+            
         }
         // nodes are read
         else if (logicFlag == 2 && !errorFlag) {
@@ -1210,7 +1259,7 @@ FinleyDomain* readGmshMaster(escript::JMPI& mpiInfo,
             std::vector<int> sendable_map;
             long current = ftell(fileHandle);
             errorFlag = gather_nodes(fileHandle, nodeTags, errorMsg,
-                    numDim, version, filename.c_str());
+                    numDim, version, filename.c_str(), TagMap);
             if (!errorFlag && fseek(fileHandle, current, SEEK_SET) < 0) {
                 errorMsg = "Error in file operation";
                 errorFlag = THROW_ERROR;
@@ -1241,7 +1290,7 @@ FinleyDomain* readGmshMaster(escript::JMPI& mpiInfo,
             elementsRead = true;
             errorFlag = getElementsMaster(mpiInfo, dom, fileHandle, errorMsg,
                             useMacroElements, filename, numDim, version, order,
-                            reducedOrder);
+                            reducedOrder, TagMap);
         }
         // name tags
         // (thanks to Antoine Lefebvre, antoine.lefebvre2@mail.mcgill.ca)
@@ -1249,15 +1298,14 @@ FinleyDomain* readGmshMaster(escript::JMPI& mpiInfo,
             std::vector<char> names;
             if (!get_line(names, fileHandle))
                 errorFlag = EARLY_EOF;
-            int numNames = 0;
-            scan_ret = sscanf(&names[0], "%d", &numNames);
+            scan_ret = sscanf(&names[0], "%d", &numPhysicalNames);
             SSCANF_CHECK(scan_ret);
 #ifdef ESYS_MPI
             // Broadcast numNames if there are multiple mpi procs
             if (mpiInfo->size > 1)
-                MPI_Bcast(&numNames, 1, MPI_INT,  0, mpiInfo->comm);
+                MPI_Bcast(&numPhysicalNames, 1, MPI_INT,  0, mpiInfo->comm);
 #endif
-            for (int i = 0; i < numNames; i++) {
+            for (int i = 0; i < numPhysicalNames; i++) {
                 std::vector<char> line;
                 char name[1024] = {0};
                 if (!get_line(line, fileHandle))
@@ -1282,6 +1330,59 @@ FinleyDomain* readGmshMaster(escript::JMPI& mpiInfo,
                 }
 #endif
                 dom->setTagMap(name+1, tag_info[0]); //skip leading "
+            }
+        } else if (logicFlag == 5 && !errorFlag) {
+            // If necessary, read in physical tag information from the Entities section
+            if(version >= 4.0)
+            {
+                int numPoints, numCurves, numSurfaces, numVolumes;
+                if (!get_line(line, fileHandle))
+                        errorFlag = EARLY_EOF;
+                scan_ret = sscanf(&line[0], "%d %d %d %d\n", &numPoints, &numCurves, &numSurfaces, &numVolumes);
+
+                // Skip over the curve and surface information
+                for(int i = 0; i < numPoints; i++)
+                {
+                    if (!get_line(line, fileHandle))
+                        errorFlag = EARLY_EOF;
+                    int tmp, pointTag, numPhysicalTags, physicalTag;
+                    if(version == 4.0)
+                        sscanf(&line[0], "%d %d %d %d %d %d %d %d %d", &pointTag, &tmp, &tmp, &tmp, &tmp, &tmp, &tmp, &numPhysicalTags, &physicalTag);
+                    else
+                        sscanf(&line[0], "%d %d %d %d %d %d", &pointTag, &tmp, &tmp, &tmp, &numPhysicalTags, &physicalTag);
+                    if(numPhysicalTags != 0)
+                        TagMap.pointTags.insert(std::pair<int,int>(pointTag,physicalTag));
+                }
+
+                for(int i = 0; i < numCurves; i++)
+                {
+                    if (!get_line(line, fileHandle))
+                        errorFlag = EARLY_EOF;
+                    int tmp, pointTag, numPhysicalTags, physicalTag;
+                    scan_ret = sscanf(&line[0], "%d %d %d %d %d %d %d %d %d", &pointTag, &tmp, &tmp, &tmp, &tmp, &tmp, &tmp, &numPhysicalTags, &physicalTag);
+                    if(numPhysicalTags != 0)
+                        TagMap.curveTags.insert(std::pair<int,int>(pointTag,physicalTag));
+                }
+
+                for(int i = 0; i < numSurfaces; i++)
+                {
+                    if (!get_line(line, fileHandle))
+                        errorFlag = EARLY_EOF;
+                    int tmp, pointTag, numPhysicalTags, physicalTag;
+                    scan_ret = sscanf(&line[0], "%d %d %d %d %d %d %d %d %d", &pointTag, &tmp, &tmp, &tmp, &tmp, &tmp, &tmp, &numPhysicalTags, &physicalTag);
+                    if(numPhysicalTags != 0)
+                        TagMap.surfaceTags.insert(std::pair<int,int>(pointTag,physicalTag));
+                }
+
+                for(int i = 0; i < numVolumes; i++)
+                {
+                    if (!get_line(line, fileHandle))
+                        errorFlag = EARLY_EOF;
+                    int tmp, pointTag, numPhysicalTags, physicalTag;
+                    scan_ret = sscanf(&line[0], "%d %d %d %d %d %d %d %d %d", &pointTag, &tmp, &tmp, &tmp, &tmp, &tmp, &tmp, &numPhysicalTags, &physicalTag);
+                    if(numPhysicalTags != 0)
+                        TagMap.volumeTags.insert(std::pair<int,int>(pointTag,physicalTag));
+                }
             }
         }
 

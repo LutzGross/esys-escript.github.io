@@ -23,7 +23,7 @@ namespace paso {
 /*
  * generate Linear System (mainly for test purposes)
  */
-LinearSystem::LinearSystem(SystemMatrix_ptr A, double* _b, Options* options) :
+LinearSystem::LinearSystem(SystemMatrix_ptr<double> A, double* _b, Options* options) :
     Function(A->mpi_info)
 {
     A->setPreconditioner(options);

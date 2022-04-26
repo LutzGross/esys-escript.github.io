@@ -63,6 +63,7 @@ using escript::DataTypes::cplx_t;
 #define MATRIX_FORMAT_BLK1 4
 #define MATRIX_FORMAT_OFFSET1 8
 #define MATRIX_FORMAT_DIAGONAL_BLOCK 32
+#define MATRIX_FORMAT_COMPLEX 64
 
 #define PASO_ONE (double)(1.0)
 #define PASO_ZERO (double)(0.0)

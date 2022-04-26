@@ -1337,7 +1337,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESystem(AbstractSystemMatrix* mat,
     vector<Scalar> EM_S(4*4*numEq*numComp, zero);
     vector<Scalar> EM_F(4*numEq, zero);
 
-#pragma omp parallel for
+// #pragma omp parallel for
     for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
     {
         p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);

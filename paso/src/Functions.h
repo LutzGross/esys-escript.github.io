@@ -46,14 +46,14 @@ struct Function
 
 struct LinearSystem : public Function
 {
-    LinearSystem(SystemMatrix_ptr A, double* b, Options* options);
+    LinearSystem(SystemMatrix_ptr<double> A, double* b, Options* options);
     virtual ~LinearSystem();
 
     virtual SolverResult call(double* value, const double* arg, Performance* pp);
 
     virtual dim_t getLen() { return n; }
 
-    SystemMatrix_ptr mat;
+    SystemMatrix_ptr<double> mat;
     double* tmp;
     double* b;
     dim_t n;

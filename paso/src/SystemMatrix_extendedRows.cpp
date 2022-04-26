@@ -38,7 +38,8 @@
 
 namespace paso {
 
-void SystemMatrix::extendedRowsForST(dim_t* degree_ST, index_t* offset_ST,
+template <>
+void SystemMatrix<double>::extendedRowsForST(dim_t* degree_ST, index_t* offset_ST,
                                      index_t* ST)
 {
     if (mpi_info->size == 1) return;

@@ -41,7 +41,7 @@ void Solver_ILU_free(Solver_ILU * in)
 }
 
 /// constructs the incomplete block factorization
-Solver_ILU* Solver_getILU(SparseMatrix_ptr A, bool verbose)
+Solver_ILU* Solver_getILU(SparseMatrix_ptr<double> A, bool verbose)
 {
     const dim_t n=A->numRows;
     const dim_t n_block=A->row_block_size;
@@ -313,7 +313,7 @@ Solver_ILU* Solver_getILU(SparseMatrix_ptr A, bool verbose)
    vector is available.
 */
 
-void Solver_solveILU(SparseMatrix_ptr A, Solver_ILU* ilu, double* x,
+void Solver_solveILU(SparseMatrix_ptr<double> A, Solver_ILU* ilu, double* x,
                      const double* b)
 {
     dim_t i,k;

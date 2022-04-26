@@ -300,5 +300,3 @@ template class CrsMatrixWrapper<cplx_t>;
 
 }  // end of namespace
 
-
-

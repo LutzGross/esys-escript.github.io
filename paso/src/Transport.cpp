@@ -58,10 +58,10 @@ TransportProblem::TransportProblem(SystemMatrixPattern_ptr pattern,
     // at the moment only block size 1 is supported
     SystemMatrixType matrix_type = MATRIX_FORMAT_DEFAULT+MATRIX_FORMAT_BLK1;
 
-    transport_matrix.reset(new SystemMatrix(matrix_type, pattern, block_size,
+    transport_matrix.reset(new SystemMatrix<double>(matrix_type, pattern, block_size,
                                             block_size, false,
                                             functionspace, functionspace));
-    mass_matrix.reset(new SystemMatrix(matrix_type, pattern, block_size,
+    mass_matrix.reset(new SystemMatrix<double>(matrix_type, pattern, block_size,
                                        block_size, false, functionspace,
                                        functionspace));
 

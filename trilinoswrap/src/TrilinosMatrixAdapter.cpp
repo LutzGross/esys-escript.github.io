@@ -194,13 +194,5 @@ void TrilinosMatrixAdapter::saveHB(const std::string& filename) const
     throw escript::NotImplementedError("Harwell-Boeing interface not available.");
 }
 
-// template<typename ST>
-// void TrilinosMatrixAdapter::rhsIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT>>& iz)
-// {
-
-//     Tpetra::MatrixMatrix::Multiply(*mat,false,iz,false,*mat,true); 
-// }
-
-
 }  // end of namespace
 

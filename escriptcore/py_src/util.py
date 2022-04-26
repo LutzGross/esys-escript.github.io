@@ -56,7 +56,7 @@ from .escriptcpp import C_GeneralTensorProduct, Data
 from .escriptcpp import getVersion, getMPIRankWorld, getMPIWorldMax
 from .escriptcpp import printParallelThreadCounts
 from .escriptcpp import listEscriptParams
-from . import symbolic as sym
+from . import symboliccore as sym
 from .gmshrunner import gmshGeo2Msh
 
 from .escriptcpp import hasFeature
@@ -240,37 +240,37 @@ def getNumpy(**data):
             except:
                 raise ValueError("getNumpy: unknown non-data argument type for %s"%(str(n)))
 
-    answer = escore._getNumpy(new_data)
-    numberofarguments = len(answer)
+    numpy_arrays = escore._getNumpy(new_data)
 
-    if numberofarguments == 2:
-      temp1 = numpy.rec.fromarrays([answer[1]],names=answer[0]) 
-      return temp1
-    elif numberofarguments == 4:
-      temp1 = numpy.rec.fromarrays([answer[1]],names=answer[0])
-      temp2 = numpy.rec.fromarrays([answer[3]],names=answer[2])
-      return temp1, temp2
-    elif numberofarguments == 6:
-      temp1 = numpy.rec.fromarrays([answer[1]],names=answer[0])
-      temp2 = numpy.rec.fromarrays([answer[3]],names=answer[2])
-      temp3 = numpy.rec.fromarrays([answer[5]],names=answer[4])
-      return temp1, temp2, temp3
-    elif numberofarguments == 8:
-      temp1 = numpy.rec.fromarrays([answer[1]],names=answer[0])
-      temp2 = numpy.rec.fromarrays([answer[3]],names=answer[2])
-      temp3 = numpy.rec.fromarrays([answer[5]],names=answer[4])
-      temp4 = numpy.rec.fromarrays([answer[7]],names=answer[6])
-      return temp1, temp2, temp3, temp4
-    elif numberofarguments == 10:
-      temp1 = numpy.rec.fromarrays([answer[1]],names=answer[0])
-      temp2 = numpy.rec.fromarrays([answer[3]],names=answer[2])
-      temp3 = numpy.rec.fromarrays([answer[5]],names=answer[4])
-      temp4 = numpy.rec.fromarrays([answer[7]],names=answer[6])
-      temp5 = numpy.rec.fromarrays([answer[9]],names=answer[8])
-      return temp1, temp2, temp3, temp4, temp5
-    else:
-      raise ValueError("getNumpy: Please pass five or fewer data objects at a time.")
+    # Get some information about the shape of the data
+    counter = -1
+    shape=[]
+    names=[]
+    index=[]
+    for i in range(0, len(numpy_arrays)):
+        tmp = numpy_arrays[i]
+        # New variable?
+        if isinstance(tmp, str) is True:
+            name = tmp
+            counter+=1
+            shape.append(0)
+            names.append(name)
+            index.append(i+1)
+        else:
+            shape[counter]+=1
 
+    # Dictionary to store the information in
+    answer = {}
+    for i in range(0, len(names)):
+        if(shape[i] == 1):
+            answer.update({names[i] : numpy.rec.fromarrays(numpy_arrays[index[i]],names=names[i])})
+        else:
+            tmp=numpy.asarray(numpy.rec.fromarrays(numpy_arrays[index[i]],names=names[i]))
+            for j in range(1, shape[i]):
+                tmp=numpy.hstack([tmp,numpy.rec.fromarrays(numpy_arrays[index[i]]+j,names=names[i])])                
+            answer.update({names[i] : tmp})
+
+    return answer
 
 def convertToNumpy(data):
     """
@@ -1273,7 +1273,11 @@ def atan2(arg0, arg1):
    """
    m=whereZero(arg1, rtol=EPSILON)
    m2=whereNegative(arg1*arg0)
-   return atan(arg0/(arg1+m))*(1-m)+(numpy.pi/2)*(1-2*m2)* m
+   # return atan(arg0/(arg1+m))*(1-m)+(numpy.pi/2)*(1-2*m2)*m
+   s=atan(arg0/(arg1+m))(1-m)+(np.pi/2)(1-2*m2)*m
+   s+=(wherePositive(arg0)*whereNegative(arg1)-whereNegative(arg0)*whereNegative(arg1))*numpy.pi
+   return s
+
       
 def sinh(arg):
    """
@@ -2213,6 +2217,52 @@ def clip(arg,minval=None,maxval=None):
     else:
         return minimum(tmp,maxval)
 
+def cross(arg0,arg1):
+    """
+    Cross product of the two arguments ``arg0`` and ``arg1`` which need to be shape (3,).
+
+    :param arg0: first argument
+    :type arg0: ``numpy.ndarray``, `escript.Data`, `Symbol`
+    :param arg1: second argument
+    :type arg1: ``numpy.ndarray``, `escript.Data`, `Symbol` 
+    :return: the cross product of ``arg0`` and ``arg1`` at each data point
+    :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol`
+            depending on ``arg0``
+    :raise ValueError: if the shapes of the arguments are not (3,)
+    """
+    if isinstance(arg0, numpy.ndarray) and isinstance(arg1, numpy.ndarray):
+        out=numpy.cross(arg0, arg1)
+    else:
+        sh0=getShape(arg0)
+        sh1=getShape(arg1)
+        if not sh0 == (3,):
+            raise ValueError("cross: arg0 needs to be of shape (3,)")
+        if not sh1 == (3,):
+            raise ValueError("cross: arg1 needs to be of shape (3,)")
+        
+        if isinstance(arg0, sym.Symbol):
+            if isinstance(arg1, sym.Symbol):
+                out=Symbol(arg0.name+"x"+arg1.name, (3,))
+            else: 
+                out=Symbol(arg0.name+"x"+str(type(arg1)), (3,))
+        elif isinstance(arg0, escore.Data):
+            if isinstance(arg1, sym.Symbol):
+                out=Symbol(str(type(arg0))+"x"+arg1.name, (3,))
+            else:
+                out=escore.Data(0.,(3,), arg0.getFunctionSpace())
+        elif isinstance(arg1, escore.Data):
+            if isinstance(arg0, sym.Symbol):
+                out=Symbol(str(type(arg0))+"x"+arg1.name, (3,))
+            else:
+                out=escore.Data(0.,(3,), arg1.getFunctionSpace())
+        else:
+            raise TypeError("cross: argument type not supported")
+        
+        out[0]=arg0[1]*arg1[2]-arg0[2]*arg1[1]
+        out[1]=arg0[2]*arg1[0]-arg0[0]*arg1[2]
+        out[2]=arg0[0]*arg1[1]-arg0[1]*arg1[0]
+    return out
+
 def inner(arg0,arg1):
     """
     Inner product of the two arguments. The inner product is defined as:
@@ -2750,6 +2800,58 @@ def grad(arg,where=None):
 
 def grad_n(arg, n, where=None):
     return grad(arg, where)[n]
+
+def curl(arg,where=None):
+    """
+    Returns the (spatial) curl of ``arg`` at ``where``..
+
+    :param arg: function of which the curl is to be calculated. Its shape
+                has to be (), (2,) or (3,)
+    :type arg: `escript.Data` or `Symbol`
+    :param where: FunctionSpace in which the gradient is calculated.
+                  If not present or ``None`` an appropriate default is used.
+    :type where: ``None`` or `escript.FunctionSpace`
+    :return: curl of ``arg``
+    :rtype: `escript.Data` or `Symbol`
+    """
+    if not getShape(arg) in [ (), (2,) , (3,) ]:
+        raise TypeError("curl: illegal argument rank.")
+    g=grad(arg, where)
+    if isinstance(arg,sym.Symbol):
+        
+        if arg.getShape() == ():
+            out=sym.Symbol("curl("+arg.name+")", (2,), g.getFunctionSpace())
+            out[0]=g[1]
+            out[1]=-g[0]
+        elif arg.getShape() == (2,):
+            out=g[1,0]-g[0,1]
+        else:
+            out=sym.Symbol("curl("+arg.name+")", (3,), g.getFunctionSpace())
+            out[0]=g[2,1]-g[1,2]
+            out[1]=g[0,2]-g[2,0]
+            out[2]=g[1,0]-g[0,1]
+            
+    elif isinstance(arg,escore.Data):
+        if arg.getShape() == ():
+            if g.isComplex():
+                out=escore.Data(0j, (2,), g.getFunctionSpace())
+            else:
+                out=escore.Data(0, (2,), g.getFunctionSpace())
+            out[0]=g[1]
+            out[1]=-g[0]
+        elif arg.getShape() == (2,):
+            out=g[1,0]-g[0,1]
+        else:
+            if g.isComplex():
+                out=escore.Data(0j, (3,), g.getFunctionSpace())
+            else:
+                out=escore.Data(0, (3,), g.getFunctionSpace())
+            out[0]=g[2,1]-g[1,2]
+            out[1]=g[0,2]-g[2,0]
+            out[2]=g[1,0]-g[0,1]
+    else:
+       raise TypeError("curl: Unknown argument type.")
+    return out
 
 def integrate(arg,where=None):
     """

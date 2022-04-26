@@ -32,20 +32,20 @@
 namespace paso {
 
 // forward declarations
-void SparseMatrix_MatrixMatrix_DD(SparseMatrix_ptr C, const_SparseMatrix_ptr A,
-                                  const_SparseMatrix_ptr B);
-void SparseMatrix_MatrixMatrix_DB(SparseMatrix_ptr C, const_SparseMatrix_ptr A,
-                                  const_SparseMatrix_ptr B);
-void SparseMatrix_MatrixMatrix_BD(SparseMatrix_ptr C, const_SparseMatrix_ptr A,
-                                  const_SparseMatrix_ptr B);
-void SparseMatrix_MatrixMatrix_BB(SparseMatrix_ptr C, const_SparseMatrix_ptr A,
-                                  const_SparseMatrix_ptr B);
+void SparseMatrix_MatrixMatrix_DD(SparseMatrix_ptr<double> C, const_SparseMatrix_ptr<double> A,
+                                  const_SparseMatrix_ptr<double> B);
+void SparseMatrix_MatrixMatrix_DB(SparseMatrix_ptr<double> C, const_SparseMatrix_ptr<double> A,
+                                  const_SparseMatrix_ptr<double> B);
+void SparseMatrix_MatrixMatrix_BD(SparseMatrix_ptr<double> C, const_SparseMatrix_ptr<double> A,
+                                  const_SparseMatrix_ptr<double> B);
+void SparseMatrix_MatrixMatrix_BB(SparseMatrix_ptr<double> C, const_SparseMatrix_ptr<double> A,
+                                  const_SparseMatrix_ptr<double> B);
 
-SparseMatrix_ptr SparseMatrix_MatrixMatrix(const_SparseMatrix_ptr A,
-                                           const_SparseMatrix_ptr B)
+SparseMatrix_ptr<double> SparseMatrix_MatrixMatrix(const_SparseMatrix_ptr<double> A,
+                                           const_SparseMatrix_ptr<double> B)
 {
     SparseMatrixType C_type;
-    SparseMatrix_ptr out;
+    SparseMatrix_ptr<double> out;
     if (!( (A->type & MATRIX_FORMAT_DIAGONAL_BLOCK) ||
            (A->type & MATRIX_FORMAT_DEFAULT) ||
            (A->type & MATRIX_FORMAT_BLK1) )) {
@@ -72,7 +72,7 @@ SparseMatrix_ptr SparseMatrix_MatrixMatrix(const_SparseMatrix_ptr A,
 
     Pattern_ptr outpattern(A->pattern->multiply(MATRIX_FORMAT_DEFAULT, B->pattern));
 
-    out.reset(new SparseMatrix(C_type, outpattern, A->row_block_size, B->col_block_size, false));
+    out.reset(new SparseMatrix<double>(C_type, outpattern, A->row_block_size, B->col_block_size, false));
 
     if ( (A->row_block_size == 1) && (B->col_block_size ==1 ) && (A->col_block_size ==1) ) {
         SparseMatrix_MatrixMatrix_DD(out, A, B);
@@ -95,8 +95,8 @@ SparseMatrix_ptr SparseMatrix_MatrixMatrix(const_SparseMatrix_ptr A,
 }
 
 // not good for block size 1
-void SparseMatrix_MatrixMatrix_BB(SparseMatrix_ptr C, const_SparseMatrix_ptr A,
-                                  const_SparseMatrix_ptr B)
+void SparseMatrix_MatrixMatrix_BB(SparseMatrix_ptr<double> C, const_SparseMatrix_ptr<double> A,
+                                  const_SparseMatrix_ptr<double> B)
 {
     const dim_t n = C->numRows;
     const dim_t row_block_size = C->row_block_size;
@@ -401,8 +401,8 @@ void SparseMatrix_MatrixMatrix_BB(SparseMatrix_ptr C, const_SparseMatrix_ptr A,
 }
 
 // not good for block size 1
-void SparseMatrix_MatrixMatrix_DB(SparseMatrix_ptr C, const_SparseMatrix_ptr A,
-                                  const_SparseMatrix_ptr B)
+void SparseMatrix_MatrixMatrix_DB(SparseMatrix_ptr<double> C, const_SparseMatrix_ptr<double> A,
+                                  const_SparseMatrix_ptr<double> B)
 {
     const dim_t n = C->numRows;
     const dim_t row_block_size = C->row_block_size;
@@ -637,8 +637,8 @@ void SparseMatrix_MatrixMatrix_DB(SparseMatrix_ptr C, const_SparseMatrix_ptr A,
 }
 
 // not good for block size 1
-void SparseMatrix_MatrixMatrix_BD(SparseMatrix_ptr C, const_SparseMatrix_ptr A,
-                                  const_SparseMatrix_ptr B)
+void SparseMatrix_MatrixMatrix_BD(SparseMatrix_ptr<double> C, const_SparseMatrix_ptr<double> A,
+                                  const_SparseMatrix_ptr<double> B)
 {
     const dim_t n = C->numRows;
     const dim_t row_block_size = C->row_block_size;
@@ -870,8 +870,8 @@ void SparseMatrix_MatrixMatrix_BD(SparseMatrix_ptr C, const_SparseMatrix_ptr A,
 }
 
 // not good for block size 1
-void SparseMatrix_MatrixMatrix_DD(SparseMatrix_ptr C, const_SparseMatrix_ptr A,
-                                  const_SparseMatrix_ptr B)
+void SparseMatrix_MatrixMatrix_DD(SparseMatrix_ptr<double> C, const_SparseMatrix_ptr<double> A,
+                                  const_SparseMatrix_ptr<double> B)
 {
     const dim_t n = C->numRows;
     const dim_t C_block_size =C->block_size;

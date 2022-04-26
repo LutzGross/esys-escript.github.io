@@ -51,7 +51,7 @@ void Preconditioner_LocalSmoother_free(Preconditioner_LocalSmoother* in)
 
 
 /// constructs the symmetric Gauss-Seidel preconditioner
-Preconditioner_Smoother* Preconditioner_Smoother_alloc(SystemMatrix_ptr A,
+Preconditioner_Smoother* Preconditioner_Smoother_alloc(SystemMatrix_ptr<double> A,
         bool jacobi, bool is_local, bool verbose)
 {
     Preconditioner_Smoother* out=new Preconditioner_Smoother;
@@ -62,7 +62,7 @@ Preconditioner_Smoother* Preconditioner_Smoother_alloc(SystemMatrix_ptr A,
 }
 
 Preconditioner_LocalSmoother* Preconditioner_LocalSmoother_alloc(
-        SparseMatrix_ptr A, bool jacobi, bool verbose)
+        SparseMatrix_ptr<double> A, bool jacobi, bool verbose)
 {
     const dim_t n=A->numRows;
     const dim_t n_block=A->row_block_size;
@@ -97,7 +97,7 @@ The MPI-versioned smoother works in the following way:
  (5) recover x_{n+1} by /delta x_{n+1} + x_n
  (6) repeat steps 2-5 for until sweeps number reduce to 0
 */
-void Preconditioner_Smoother_solve(SystemMatrix_ptr A,
+void Preconditioner_Smoother_solve(SystemMatrix_ptr<double> A,
         Preconditioner_Smoother* smoother, double* x, const double* b,
         dim_t sweeps, bool x_is_initial)
 {
@@ -124,7 +124,7 @@ void Preconditioner_Smoother_solve(SystemMatrix_ptr A,
     }
 }
 
-SolverResult Preconditioner_Smoother_solve_byTolerance(SystemMatrix_ptr A,
+SolverResult Preconditioner_Smoother_solve_byTolerance(SystemMatrix_ptr<double> A,
             Preconditioner_Smoother* smoother, double* x, const double* b,
             double atol, dim_t* sweeps, bool x_is_initial)
 {
@@ -158,7 +158,7 @@ SolverResult Preconditioner_Smoother_solve_byTolerance(SystemMatrix_ptr A,
    return errorCode;
 }
 
-void Preconditioner_LocalSmoother_solve(SparseMatrix_ptr A,
+void Preconditioner_LocalSmoother_solve(SparseMatrix_ptr<double> A,
                                         Preconditioner_LocalSmoother* smoother,
                                         double* x, const double* b,
                                         dim_t sweeps, bool x_is_initial)
@@ -198,7 +198,7 @@ void Preconditioner_LocalSmoother_solve(SparseMatrix_ptr A,
          residual r_n (in x)
   Output: /delta x_{n+1} (in x)
 */
-void Preconditioner_LocalSmoother_Sweep(SparseMatrix_ptr A,
+void Preconditioner_LocalSmoother_Sweep(SparseMatrix_ptr<double> A,
         Preconditioner_LocalSmoother* smoother, double* x)
 {
 #ifdef _OPENMP
@@ -218,7 +218,7 @@ void Preconditioner_LocalSmoother_Sweep(SparseMatrix_ptr A,
 }
 
 /// inplace Gauss-Seidel sweep in sequential mode
-void Preconditioner_LocalSmoother_Sweep_sequential(SparseMatrix_ptr A,
+void Preconditioner_LocalSmoother_Sweep_sequential(SparseMatrix_ptr<double> A,
         Preconditioner_LocalSmoother* smoother, double* x)
 {
     const dim_t n=A->numRows;
@@ -335,7 +335,7 @@ void Preconditioner_LocalSmoother_Sweep_sequential(SparseMatrix_ptr A,
     }
 }
 
-void Preconditioner_LocalSmoother_Sweep_colored(SparseMatrix_ptr A,
+void Preconditioner_LocalSmoother_Sweep_colored(SparseMatrix_ptr<double> A,
         Preconditioner_LocalSmoother* smoother, double* x)
 {
     const dim_t n=A->numRows;

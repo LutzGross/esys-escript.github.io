@@ -173,7 +173,11 @@ BOOST_PYTHON_MODULE(escriptcpp)
   def("getNumberOfThreads",escript::getNumberOfThreads,"Return the maximum number of threads"
         " available to OpenMP.");
   def("releaseUnusedMemory",escript::DataTypes::releaseUnusedMemory);
+#ifdef GIT_BUILD
+  def("getVersion",escript::getGitVersion,"This method will only report accurate version numbers for clean checkouts.");
+#else
   def("getVersion",escript::getSvnVersion,"This method will only report accurate version numbers for clean checkouts.");
+#endif
   def("printParallelThreadCounts",escript::printParallelThreadCnt);
   def("getMPISizeWorld",escript::getMPISizeWorld,"Return number of MPI processes in the job.");
   def("getMPIRankWorld",escript::getMPIRankWorld,"Return the rank of this process in the MPI World.");

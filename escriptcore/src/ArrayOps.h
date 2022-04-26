@@ -661,8 +661,8 @@ inline DataTypes::cplx_t calc_ltzero(const DataTypes::cplx_t& x) {return makeNaN
 inline DataTypes::real_t calc_lezero(const DataTypes::real_t& x) {return x<=0;}
 inline DataTypes::cplx_t calc_lezero(const DataTypes::cplx_t& x) {return makeNaN();}
 
-template <typename IN>
-inline DataTypes::real_t abs_f(IN i)
+template <typename T>
+inline DataTypes::real_t abs_f(T i)
 {
     return fabs(i);
 }
@@ -678,9 +678,9 @@ inline DataTypes::real_t abs_f(DataTypes::cplx_t i)
 
 // deals with unary operations which return real, regardless of
 // their input type
-template <class IN>
+template <class T>
 inline void tensor_unary_array_operation_real(const size_t size,
-                             const IN *arg1,
+                             const T *arg1,
                              DataTypes::real_t * argRes,
                              escript::ES_optype operation,
                              DataTypes::real_t tol=0)
@@ -730,8 +730,8 @@ inline void tensor_unary_array_operation_real(const size_t size,
 
 
 
-template <typename OUT, typename IN>
-inline OUT conjugate(const IN i)
+template <typename T1, typename T2>
+inline T1 conjugate(const T2 i)
 {
     return conj(i);
 }
@@ -753,13 +753,13 @@ inline void tensor_unary_promote(const size_t size,
 }
 
 // No openmp because it's called by Lazy
-// In most cases, IN and OUT will be the same
+// In most cases, T1 and T2 will be the same
 // but not ruling out putting Re() and Im()
 // through this
-template <class IN, typename OUT>
+template <class T1, typename T2>
 inline void tensor_unary_array_operation(const size_t size,
-                             const IN *arg1,
-                             OUT * argRes,
+                             const T1 *arg1,
+                             T2 * argRes,
                              escript::ES_optype operation,
                              DataTypes::real_t tol=0)
 {
@@ -887,7 +887,7 @@ inline void tensor_unary_array_operation(const size_t size,
           break;            
     case CONJ: 
           for (size_t i = 0; i < size; ++i) {
-              argRes[i] = conjugate<OUT,IN>(arg1[i]);
+              argRes[i] = conjugate<T2,T1>(arg1[i]);
           }
           break; 
     case RECIP: 

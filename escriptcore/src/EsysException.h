@@ -39,9 +39,11 @@ public:
     EsysException(const std::string& message) : msg(message)
     {
 #ifdef _WIN32
+#if 0 // for debug on windows
         std::cerr << std::endl << "EsysException:" << std::endl
                   << message << std::endl << std::endl
                   << std::flush;
+#endif
 #endif
     }
 

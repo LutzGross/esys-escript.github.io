@@ -1782,7 +1782,7 @@ void OxleyDomain::makeZ(bool complex)
                 const esys_trilinos::GO gblColBz = zrcolMap->getGlobalElement(y);
 
                 #ifdef OXLEY_PRINT_DEBUG_IZ
-                    std::cout << "   i.e (" << gblRowAz << ", " << gblColBz << ") = " << 0.5;
+                    std::cout << "   i.e (" << gblRowAz << ", " << gblColBz << ") = " << 0.5 << std::endl;
                 #endif
 
                 rZ->insertGlobalValues(gblRowAz,
@@ -2019,7 +2019,7 @@ void OxleyDomain::makeIZworker(Teuchos::RCP<Tpetra::CrsMatrix<S,esys_trilinos::L
                             Teuchos::tuple<esys_trilinos::GO>(gblCol),
                             Teuchos::tuple<S> (one));
         #ifdef OXLEY_PRINT_DEBUG_IZ
-            std::cout << "iz element: (" << gblRow << ", " << gblRow << ") = " << 1.0 << std::endl;
+            std::cout << "IZ element: (" << gblRow << ", " << gblRow << ") = " << 1.0 << std::endl;
         #endif
     }
 
@@ -2036,7 +2036,7 @@ void OxleyDomain::makeIZworker(Teuchos::RCP<Tpetra::CrsMatrix<S,esys_trilinos::L
         }
 
         #ifdef OXLEY_PRINT_DEBUG_IZ
-            std::cout << "iz element: (" << a << ", " << b << ") = " << 0.5 << std::endl;
+            std::cout << "IZ element: (" << a << ", " << b << ") = " << 0.5 << std::endl;
         #endif
 
         const esys_trilinos::GO gblRowA = iz->getRowMap()->getGlobalElement(a);
@@ -2112,8 +2112,6 @@ escript::Data OxleyDomain::finaliseRhs(escript::Data& rhs)
         {
             if(rhs.isComplex())
             {
-                // finaliseRhsworker<escript::DataTypes::cplx_t>(rhs,cZ);
-            
                 cplx_t dummy;
                 
                 const Tpetra::global_size_t t = getNumNodes(); //Total number of nodes
@@ -2217,8 +2215,6 @@ escript::Data OxleyDomain::finaliseRhs(escript::Data& rhs)
             }
             else
             {
-                // finaliseRhsworker<escript::DataTypes::real_t>(rhs,rZ);   
-
                 real_t dummy;
                 
                 const Tpetra::global_size_t t = getNumNodes(); //Total number of nodes
@@ -2229,14 +2225,10 @@ escript::Data OxleyDomain::finaliseRhs(escript::Data& rhs)
                 auto comm = esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm);
                 
                 //recast rhs as a vector
-                // Teuchos::RCP<const Tpetra::Map<>> f_map = Teuchos::rcp(new Tpetra::Map<>(n, indexBase, comm));
-                // Teuchos::RCP<const Tpetra::Map<>> g_map = Teuchos::rcp(new Tpetra::Map<>(h, indexBase, comm));
                 auto f_map = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) n, indexBase, comm));
                 Teuchos::RCP<Tpetra::Map<>> g_map = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) h, indexBase, comm));
                 Tpetra::MultiVector<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> f(f_map,true);
                 Tpetra::MultiVector<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> g(g_map,true);
-
-                
 
                 #ifdef OXLEY_PRINT_DEBUG_IZ
                     std::cout << "t=" << t << ", h=" << h << ", n=" << n << std::endl;
@@ -2245,27 +2237,21 @@ escript::Data OxleyDomain::finaliseRhs(escript::Data& rhs)
                     std::cout << rZ->getGlobalNumCols() << "x" << rZ->getGlobalNumRows() << std::endl;
                 #endif
 
-                // f.modify();
                 #pragma omp parallel for
                 for(esys_trilinos::LO i = 0; i < static_cast<esys_trilinos::LO>(n); i++)
                 {
                     const esys_trilinos::GO gblrow = f.getMap()->getGlobalElement(i);
                     real_t *value = rhs.getSampleDataRW(i,dummy);
-                    // std::cout << "f element " << gblrow << " = " << *value << std::endl;
                     f.replaceGlobalValue(gblrow,0,*value);
                 }
                 
-                // g.modify();
                 #pragma omp parallel for
                 for(esys_trilinos::LO i = 0; i < static_cast<esys_trilinos::LO>(h); i++)
                 {
                     const esys_trilinos::GO gblrow = g.getMap()->getGlobalElement(i);
                     real_t *value = rhs.getSampleDataRW(i+n,dummy);
-                    // std::cout << "g element " << gblrow << " = " << *value << std::endl;
                     g.replaceGlobalValue(gblrow,0,*value);
                 }
-
-                // const scalar_type one = static_cast<scalar_type> (1.0);
 
                 #ifdef OXLEY_PRINT_DEBUG_IZ
                     rhs.print();
@@ -2281,16 +2267,17 @@ escript::Data OxleyDomain::finaliseRhs(escript::Data& rhs)
                     for(int i = 0; i < h; i++)
                         std::cout << "[" << i << ":" << tmpb_result_view_1d(i) << "]";
                     std::cout << std::endl;
+                    std::cout << "rZ has dimensions " << rZ->getGlobalNumRows() << "x" << rZ->getGlobalNumCols() << std::endl;
                     std::cout << "Performing the multiplication" << std::endl;
                 #endif
 
                 // auto one = Teuchos::ScalarTraits<cplx_t>::one();
+                // f = 1.0*f + 1.0*A^T*g
                 rZ->apply(g,f,Teuchos::TRANS,1.0,1.0);
 
                 #ifdef OXLEY_PRINT_DEBUG_IZ
                     std::cout << f.description() << std::endl;
                     std::cout << g.description() << std::endl;
-                    std::cout << rZ->getGlobalNumCols() << "x" << rZ->getGlobalNumRows() << std::endl;
                 #endif
                 
                 auto result_view = f.getLocalViewHost();

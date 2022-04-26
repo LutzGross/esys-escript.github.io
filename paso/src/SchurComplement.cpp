@@ -25,9 +25,9 @@
 
 namespace paso {
 
-void Solver_updateIncompleteSchurComplement(SparseMatrix_ptr A_CC,
-        SparseMatrix_ptr A_CF, double* invA_FF, index_t* A_FF_pivot,
-        SparseMatrix_ptr A_FC)
+void Solver_updateIncompleteSchurComplement(SparseMatrix_ptr<double> A_CC,
+        SparseMatrix_ptr<double> A_CF, double* invA_FF, index_t* A_FF_pivot,
+        SparseMatrix_ptr<double> A_FC)
 {
   index_t iPtr_CC,*index_CC,col_CF,col_FC, *where_p,iPtr_CC_2,i,iPtr_CF,iPtr_FC;
   dim_t index_CC_len;

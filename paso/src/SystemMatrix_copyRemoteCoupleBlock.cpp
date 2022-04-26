@@ -31,12 +31,14 @@
 /****************************************************************************/
 
 #include "SystemMatrix.h"
+#include "SparseMatrix.h"
 
 #include <cstring> // memcpy
 
 namespace paso {
 
-void SystemMatrix::copyRemoteCoupleBlock(bool recreatePattern)
+template <>
+void SystemMatrix<double>::copyRemoteCoupleBlock(bool recreatePattern)
 {
     if (mpi_info->size == 1)
         return;

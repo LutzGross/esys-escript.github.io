@@ -42,7 +42,7 @@ struct PASO_DLL_API FCT_FluxLimiter
     void addLimitedFluxes_Start();
     void addLimitedFluxes_Complete(double* b);
 
-    SystemMatrix_ptr antidiffusive_fluxes;
+    SystemMatrix_ptr<double> antidiffusive_fluxes;
     escript::JMPI mpi_info;
     double dt;
     double* u_tilde;

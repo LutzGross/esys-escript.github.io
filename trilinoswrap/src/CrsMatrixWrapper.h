@@ -62,7 +62,6 @@ public:
     void ypAx(const Teuchos::ArrayView<ST>& y,
               const Teuchos::ArrayView<const ST>& x) const;
 
-
     void solve(const Teuchos::ArrayView<ST>& x,
                const Teuchos::ArrayView<const ST>& b,
                escript::SolverBuddy& sb) const;
@@ -84,3 +83,4 @@ protected:
 } // namespace esys_trilinos
 
 #endif // __ESYS_TRILINOS_CRSMATRIXWRAPPER_H__
+

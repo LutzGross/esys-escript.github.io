@@ -37,13 +37,13 @@ namespace bm = boost::math;
 
 namespace paso {
 
-void Solver_free(SystemMatrix* A)
+void Solver_free(SystemMatrix<double>* A)
 {
     A->freePreconditioner();
 }
 
 ///  calls the iterative solver
-SolverResult Solver(SystemMatrix_ptr A, double* x, double* b, Options* options,
+SolverResult Solver(SystemMatrix_ptr<double> A, double* x, double* b, Options* options,
                     Performance* pp)
 {
     const real_t EPSILON = escript::DataTypes::real_t_eps();
@@ -330,6 +330,17 @@ SolverResult Solver(SystemMatrix_ptr A, double* x, double* b, Options* options,
     options->time = escript::gettime()-time_iter;
     Performance_stopMonitor(pp, PERFORMANCE_ALL);
     return errorCode;
+}
+
+SolverResult Solver(SystemMatrix_ptr<cplx_t> A, cplx_t* x, cplx_t* b, Options* options,
+                    Performance* pp)
+{
+    throw PasoException("Solver(): complex not implemented.");
+}
+
+void Solver_free(SystemMatrix<cplx_t>* A)
+{
+    throw PasoException("Solver_free(): complex not implemented.");
 }
 
 } // namespace paso

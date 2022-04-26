@@ -92,16 +92,22 @@ bool checkForComplex(const boost::python::object& obj)
 	    }
 	    else
 	    {
-		extract<DataTypes::real_t> er(t);
-		if (!er.check())
+        extract<DataTypes::real_t> er(t);
+        if (!er.check())
 		{
 		    // unfortunately, if this was a numpy object, that check my fail
 		    // even if it should succeed (eg numpy.int64 on python3)
-		    // instead, we will try to call __float__ and see what happens
+		    // now we will check the dtype.kind! 
 		    try
 		    {
-			t.attr("__float__")();
-			return false;			// if this check succeeds it isn't complex
+                 if ( extract<char>(t.attr("dtype").attr("kind")) == 'c' )
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
 		    }
 		    catch (...)
 		    {
@@ -159,8 +165,9 @@ WrappedArray::WrappedArray(const boost::python::object& obj_in)
 	try
 	{
 	   extract<DataTypes::cplx_t> ec(obj_in);
-	   extract<real_t> er(obj_in);
-	   if (er.check())		// check for real_t first because complex will fail this
+       extract<real_t> er(obj_in);
+
+       if (er.check())		// check for real_t first because complex will fail this
 	   {
 	      scalar_r=er();
 	   }
@@ -182,6 +189,7 @@ WrappedArray::WrappedArray(const boost::python::object& obj_in)
 	   const boost::python::object obj_in_t=obj_in[make_tuple()];
 	   extract<DataTypes::cplx_t> ec(obj_in_t);
 	   extract<real_t> er(obj_in_t);
+
 	   if (er.check())
 	   {	     
 	      scalar_r=er();
@@ -206,7 +214,7 @@ WrappedArray::WrappedArray(const boost::python::object& obj_in)
 	checkFeatures(obj_in);
 	getObjShape(obj,shape);
 	rank=shape.size();
-	iscomplex=checkForComplex(obj_in);
+    iscomplex=checkForComplex(obj_in);
 
 #if ESYS_HAVE_NUMPY_H
 	// if obj is a numpy array it is much faster to copy the array through the
@@ -281,8 +289,9 @@ WrappedArray::WrappedArray(const boost::python::object& obj_in)
 				{
 					if (arr->itemsize==sizeof(cplx_t))
 				   	{
+
 						convertNumpyArrayC<DataTypes::cplx_t>((const cplx_t*)arr->data, strides);
-						iscomplex=true;
+                        iscomplex=true;
 					}
 					// not accomodating other types of complex values
 				}				

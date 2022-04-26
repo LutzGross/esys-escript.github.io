@@ -25,6 +25,8 @@
 #ifndef _WIN32
 # include <unistd.h>
 #endif // _WIN32
+#include <string>
+#include <cstdlib>
 
 #include <boost/python.hpp>
 #include <boost/scoped_array.hpp>
@@ -33,6 +35,8 @@
 #include <boost/python/numpy.hpp>
 #include "DataTypes.h"
 #endif
+
+// #define RELEASE "5.7"
 
 namespace bp = boost::python;
 
@@ -50,6 +54,33 @@ int getSvnVersion()
     return 0;
 #endif
 }
+
+std::string getGitVersion()
+{
+#ifdef RELEASE
+    return RELEASE;
+#else
+    char chardate[100]={-1};
+    FILE *p = popen("git show -s --format=%ct","r");
+    if(p != NULL) 
+    {
+        while(fgets(chardate, sizeof(chardate), p) != NULL)
+        {}
+    }
+    pclose(p);
+    std::string answer = "";
+    int counter=0;
+    while(1)
+    {
+        if(chardate[counter] == '\000')
+            break;
+        answer+=chardate[counter];
+        counter++;
+    }
+    return answer;
+#endif
+}
+
 
 // This is probably not very robust, but it works on Savanna today and is
 // useful for performance analysis
@@ -727,6 +758,7 @@ boost::python::list getNumpy(boost::python::dict arg)
     for (int i = 0; i < numdata; ++i){
         if(data[i].isComplex()){
             have_complex = true;
+            break;
         }
     }
 
@@ -747,7 +779,7 @@ boost::python::list getNumpy(boost::python::dict arg)
 
     // Interpolate the data onto the same function space
     FunctionSpace best(data[0].getDomain(), bestfnspace);
-    for (int i=0; i<numdata; ++i) {
+    for (int i = 0; i < numdata; ++i) {
         data[i] = data[i].interpolate(best);
     }
     if (hasmask)
@@ -762,7 +794,6 @@ boost::python::list getNumpy(boost::python::dict arg)
     int numsamples = data[0].getNumSamples();
     int dpps = data[0].getNumDataPointsPerSample();
     if(hasmask){
-        #pragma omp parallel for
         for(int i = 0; i < numsamples * dpps; i++){
             arraylength += (bool) *mask.getSampleDataRO(i, onlyreal);
         }
@@ -805,7 +836,9 @@ boost::python::list getNumpy(boost::python::dict arg)
     }
 
     int error = 0;
-    int maskcounter = 0;
+    // int maskcounter[numdata];
+    std::vector<int> maskcounter(numdata);
+    for(int i = 0; i < numdata; i++) maskcounter[i]=0;
     std::string localmsg;
     try {
         std::vector<int> offset(numdata);
@@ -821,7 +854,6 @@ boost::python::list getNumpy(boost::python::dict arg)
 
             // Get the sample data
             for (int d = 0; d < numdata; ++d) {
-                // if(have_complex){
                 if(data[d].isComplex()){
                     samplesC[d] = data[d].getSampleDataRO(i, gotcomplex);
                 } else {
@@ -853,21 +885,23 @@ boost::python::list getNumpy(boost::python::dict arg)
                 // If we want the row then add it to the array
                 if (wantrow) {
                     for (int d = 0; d < numdata; ++d) {
-
                         if(have_complex){
                             DataTypes::pointToNumpyArray(dataArray, samplesC[d],
-                                data[d].getDataPointShape(), offset[d], spaces[d], hasmask ? maskcounter : i+j*numsamples);
+                                data[d].getDataPointShape(), offset[d], spaces[d], hasmask ? maskcounter[d] : i+j*numsamples);
                         } else {
 
                             DataTypes::pointToNumpyArray(dataArray, samplesR[d],
-                                data[d].getDataPointShape(), offset[d], spaces[d], hasmask ? maskcounter : i+j*numsamples);
+                                data[d].getDataPointShape(), offset[d], spaces[d], hasmask ? maskcounter[d] : i+j*numsamples);
                         }
 
                         offset[d] += step[d];
-                        maskcounter++;
+                        maskcounter[d]++;
                     }
                 }
             }
+
+            // Debug output
+            // std::cout << "Current array:\n" << bp::extract<char const *>(bp::str(dataArray)) << std::endl;
 
             // Reset
             for (int d = 0; d < numdata; d++) {
@@ -917,8 +951,9 @@ boost::python::list getNumpy(boost::python::dict arg)
         for(int j = 0; j < data[i].getShapeProduct(); j++){
             temp[j] = dataArray[spaces[i]+j];
         }
-        answer.append(names[i]);
-        answer.append(temp);
+        // std::cout << "Temp array:\n" << bp::extract<char const *>(bp::str(temp)) << std::endl;
+        answer.extend(names[i]);
+        answer.extend(temp);
     }
 
     // Print out the ndarray to the console - used during debugging

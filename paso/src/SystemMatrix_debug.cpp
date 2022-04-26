@@ -34,7 +34,8 @@ namespace paso {
 
 // fills the matrix with values i+f1*j where i and j are the global row
 // and column indices of the matrix entry
-void SystemMatrix::fillWithGlobalCoordinates(double f1)
+template <>
+void SystemMatrix<double>::fillWithGlobalCoordinates(double f1)
 {
     const dim_t n = getNumRows();
     const dim_t m = getNumCols();
@@ -97,7 +98,8 @@ void SystemMatrix::fillWithGlobalCoordinates(double f1)
     delete[] rows;
 }
 
-void SystemMatrix::print() const
+template <>
+void SystemMatrix<double>::print() const
 {
     const dim_t n = getNumRows();
     const int rank = mpi_info->rank;

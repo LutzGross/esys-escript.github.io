@@ -62,12 +62,12 @@ public:
         return transport_matrix->row_block_size;
     }
 
-    inline SystemMatrix_ptr borrowTransportMatrix() const
+    inline SystemMatrix_ptr<double> borrowTransportMatrix() const
     {
         return transport_matrix;
     }
 
-    inline SystemMatrix_ptr borrowMassMatrix() const
+    inline SystemMatrix_ptr<double> borrowMassMatrix() const
     {
         return mass_matrix;
     }
@@ -99,9 +99,9 @@ public:
         return MATRIX_FORMAT_DEFAULT + MATRIX_FORMAT_BLK1;
     }
 
-    SystemMatrix_ptr transport_matrix;
-    SystemMatrix_ptr mass_matrix;
-    SystemMatrix_ptr iteration_matrix;
+    SystemMatrix_ptr<double> transport_matrix;
+    SystemMatrix_ptr<double> mass_matrix;
+    SystemMatrix_ptr<double> iteration_matrix;
 
     mutable bool valid_matrices;
     /// safe time step size for reactive part
