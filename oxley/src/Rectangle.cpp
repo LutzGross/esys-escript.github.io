@@ -1525,6 +1525,8 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
     float bounds[4]={0.0};
 #endif
 
+    bool duplicates[getNumNodes()]={false};
+
     for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) {
         p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
         sc_array_t * tquadrants = &tree->quadrants;
@@ -1543,26 +1545,40 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
                 double xy[3];
                 p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
 
-                if( (n == 0) 
-                  || isHangingNode(nodes->face_code[q], n)
-                  || isUpperBoundaryNode(quad, n, treeid, length) 
-                )
-                {
-                    long lni = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-                    double * point = arg.getSampleDataRW(lni);
-                    point[0] = xy[0];
-                    point[1] = xy[1];
+                // if( (n == 0) 
+                //   || isHangingNode(nodes->face_code[q], n)
+                //   || isUpperBoundaryNode(quad, n, treeid, length) 
+                // )
+                // {
+                long lni = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+
+                if(duplicates[lni] == true)
+                    continue;
+                else
+                    duplicates[lni] = true;
+
+                double * point = arg.getSampleDataRW(lni);
+                point[0] = xy[0];
+                point[1] = xy[1];
 #ifdef OXLEY_ENABLE_DEBUG_ASSEMBLE_COORDINATES
-                    std::cout<<"lni="<<lni<<"\tCorner=("<<xy[0]<<","<<xy[1]<<"),"<<std::endl;
-                    if(xy[0] < bounds[0]) bounds[0]=xy[0];
-                    if(xy[0] > bounds[1]) bounds[1]=xy[0];
-                    if(xy[1] < bounds[2]) bounds[2]=xy[1];
-                    if(xy[1] > bounds[3]) bounds[3]=xy[1];
+                std::cout<<"lni="<<lni<<"\tCorner=("<<xy[0]<<","<<xy[1]<<"),"<<std::endl;
+                if(xy[0] < bounds[0]) bounds[0]=xy[0];
+                if(xy[0] > bounds[1]) bounds[1]=xy[0];
+                if(xy[1] < bounds[2]) bounds[2]=xy[1];
+                if(xy[1] > bounds[3]) bounds[3]=xy[1];
 #endif
-                }
+                // }
             }
         }
     }
+#ifdef OXLEY_ENABLE_DEBUG_ASSEMBLE_COORDINATES_POINTS
+    std::cout << "assembleCoordinates new points are..." << std::endl;
+    for(int i = 0; i < getNumNodes() ; i++)
+    {
+        double * point = arg.getSampleDataRW(i);
+        std::cout << i << ": " << point[0] << ", " << point[1] << std::endl;
+    }
+#endif
 #ifdef OXLEY_ENABLE_DEBUG_ASSEMBLE_COORDINATES
     std::cout << "bounds " << bounds[0] << ", " << bounds[1] 
         << " and " << bounds[2] << ", " << bounds[3] << std::endl;
