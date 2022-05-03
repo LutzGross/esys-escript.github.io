@@ -2273,7 +2273,12 @@ escript::Data OxleyDomain::finaliseRhs(escript::Data& rhs)
 
                 // auto one = Teuchos::ScalarTraits<cplx_t>::one();
                 // f = 1.0*f + 1.0*A^T*g
+                #ifdef _OPENMP
+                if(omp_get_thread_num() == 0)
+                    rZ->apply(g,f,Teuchos::TRANS,1.0,1.0);
+                #else
                 rZ->apply(g,f,Teuchos::TRANS,1.0,1.0);
+                #endif
 
                 #ifdef OXLEY_PRINT_DEBUG_IZ
                     std::cout << f.description() << std::endl;
