@@ -1525,7 +1525,7 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
     float bounds[4]={0.0};
 #endif
 
-    bool duplicates[getNumNodes()]={false};
+    std::vector<bool> duplicates(getNumNodes(),false);
 
     for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) {
         p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
@@ -3180,7 +3180,7 @@ void Rectangle::assembleIntegrateImpl(std::vector<Scalar>& integrals,
     } else if (fs == Elements && arg.actsExpanded()) {
        
         std::vector<Scalar> int_local(numComp, zero);
-        bool duplicates[quadrantIDs.size()]={false};
+        std::vector<bool> duplicates(quadrantIDs.size(),false);
         for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) 
         {
             p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
