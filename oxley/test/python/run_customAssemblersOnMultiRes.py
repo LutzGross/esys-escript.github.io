@@ -46,10 +46,36 @@ def test_Rectangle_refine_Point(**kwargs):
     m.refinePoint(x0=0.5,y0=0.5)
     return m
 
-def test_Rectangle_refine_Boundary(**kwargs):
+def test_Rectangle_refine_top_Boundary(**kwargs):
+    kwargs['n0'] //= 2
+    kwargs['n1'] //= 2
     m = Rectangle(**kwargs)
     m.setRefinementLevel(1)
-    m.refineBoundary(boundary="top",dx=2.0)
+    m.refineBoundary(boundary="top",dx=0.5)
+    return m
+
+def test_Rectangle_refine_east_Boundary(**kwargs):
+    kwargs['n0'] //= 2
+    kwargs['n1'] //= 2
+    m = Rectangle(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineBoundary(boundary="right",dx=0.5)
+    return m
+
+def test_Rectangle_refine_west_Boundary(**kwargs):
+    kwargs['n0'] //= 2
+    kwargs['n1'] //= 2
+    m = Rectangle(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineBoundary(boundary="left",dx=0.5)
+    return m
+
+def test_Rectangle_refine_bottom_Boundary(**kwargs):
+    kwargs['n0'] //= 2
+    kwargs['n1'] //= 2
+    m = Rectangle(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineBoundary(boundary="bottom",dx=0.5)
     return m
 
 def test_Rectangle_refine_Region(**kwargs):
@@ -97,12 +123,33 @@ class Test_OxleyLameAssemblers2D_Point(OxleyLameAssemblerTestBase):
     def tearDown(self):
         del self.domain
 
-# class Test_OxleyLameAssemblers2D_Boundary(OxleyLameAssemblerTestBase):
-#     def setUp(self):
-#         self.domain = test_Rectangle_refine_Boundary(n0=20,n1=20,l0=10,l1=10)
+class Test_OxleyLameAssemblers2D_top_Boundary(OxleyLameAssemblerTestBase):
+    def setUp(self):
+        self.domain = test_Rectangle_refine_top_Boundary(n0=20,n1=20,l0=10,l1=10)
 
-#     def tearDown(self):
-#         del self.domain
+    def tearDown(self):
+        del self.domain
+
+class Test_OxleyLameAssemblers2D_east_Boundary(OxleyLameAssemblerTestBase):
+    def setUp(self):
+        self.domain = test_Rectangle_refine_east_Boundary(n0=20,n1=20,l0=10,l1=10)
+
+    def tearDown(self):
+        del self.domain
+
+class Test_OxleyLameAssemblers2D_west_Boundary(OxleyLameAssemblerTestBase):
+    def setUp(self):
+        self.domain = test_Rectangle_refine_west_Boundary(n0=20,n1=20,l0=10,l1=10)
+
+    def tearDown(self):
+        del self.domain
+
+class Test_OxleyLameAssemblers2D_bottom_Boundary(OxleyLameAssemblerTestBase):
+    def setUp(self):
+        self.domain = test_Rectangle_refine_bottom_Boundary(n0=20,n1=20,l0=10,l1=10)
+
+    def tearDown(self):
+        del self.domain
 
 class Test_OxleyLameAssemblers2D_Region(OxleyLameAssemblerTestBase):
     def setUp(self):

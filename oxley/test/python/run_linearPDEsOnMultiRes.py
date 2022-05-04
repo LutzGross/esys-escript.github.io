@@ -70,12 +70,36 @@ def test_Rectangle_refine_Point(**kwargs):
     m.refinePoint(x0=0.5,y0=0.5)
     return m
 
-def test_Rectangle_refine_Boundary(**kwargs):
+def test_Rectangle_refine_top_Boundary(**kwargs):
     kwargs['n0'] //= 2
     kwargs['n1'] //= 2
     m = Rectangle(**kwargs)
     m.setRefinementLevel(1)
-    m.refineBoundary(boundary="top",dx=2.0)
+    m.refineBoundary(boundary="top",dx=0.5)
+    return m
+
+def test_Rectangle_refine_east_Boundary(**kwargs):
+    kwargs['n0'] //= 2
+    kwargs['n1'] //= 2
+    m = Rectangle(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineBoundary(boundary="right",dx=0.5)
+    return m
+
+def test_Rectangle_refine_west_Boundary(**kwargs):
+    kwargs['n0'] //= 2
+    kwargs['n1'] //= 2
+    m = Rectangle(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineBoundary(boundary="left",dx=0.5)
+    return m
+
+def test_Rectangle_refine_bottom_Boundary(**kwargs):
+    kwargs['n0'] //= 2
+    kwargs['n1'] //= 2
+    m = Rectangle(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineBoundary(boundary="bottom",dx=0.5)
     return m
 
 def test_Rectangle_refine_Region(**kwargs):
@@ -119,7 +143,7 @@ class Test_LinearPDEOnOxleyRect_Point(Test_LinearPDE, Test_LameEquation, Test_He
     def tearDown(self):
         del self.domain
 
-class Test_LinearPDEOnOxleyRect_Boundary(Test_LinearPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping, Test_pdetools, Test_assemblage_2Do1):
+class Test_LinearPDEOnOxleyRect_top_Boundary(Test_LinearPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping, Test_pdetools, Test_assemblage_2Do1):
     RES_TOL=1.e-7
     ABS_TOL=1.e-8
     def setUp(self):
@@ -128,7 +152,49 @@ class Test_LinearPDEOnOxleyRect_Boundary(Test_LinearPDE, Test_LameEquation, Test
             NY=mpiSize//x
             if NX*NY == mpiSize:
                 break
-        self.domain=test_Rectangle_refine_Boundary(n0=NE*NX-1, n1=NE*NY-1, l0=10., l1=10., d0=NX, d1=NY)
+        self.domain=test_Rectangle_refine_top_Boundary(n0=NE*NX-1, n1=NE*NY-1, l0=10., l1=10., d0=NX, d1=NY)
+        self.order = 1
+    def tearDown(self):
+        del self.domain
+
+class Test_LinearPDEOnOxleyRect_east_Boundary(Test_LinearPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping, Test_pdetools, Test_assemblage_2Do1):
+    RES_TOL=1.e-7
+    ABS_TOL=1.e-8
+    def setUp(self):
+        for x in [int(sqrt(mpiSize)),2,3,5,7,1]:
+            NX=x
+            NY=mpiSize//x
+            if NX*NY == mpiSize:
+                break
+        self.domain=test_Rectangle_refine_east_Boundary(n0=NE*NX-1, n1=NE*NY-1, l0=10., l1=10., d0=NX, d1=NY)
+        self.order = 1
+    def tearDown(self):
+        del self.domain
+
+class Test_LinearPDEOnOxleyRect_west_Boundary(Test_LinearPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping, Test_pdetools, Test_assemblage_2Do1):
+    RES_TOL=1.e-7
+    ABS_TOL=1.e-8
+    def setUp(self):
+        for x in [int(sqrt(mpiSize)),2,3,5,7,1]:
+            NX=x
+            NY=mpiSize//x
+            if NX*NY == mpiSize:
+                break
+        self.domain=test_Rectangle_refine_west_Boundary(n0=NE*NX-1, n1=NE*NY-1, l0=10., l1=10., d0=NX, d1=NY)
+        self.order = 1
+    def tearDown(self):
+        del self.domain
+
+class Test_LinearPDEOnOxleyRect_bottom_Boundary(Test_LinearPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping, Test_pdetools, Test_assemblage_2Do1):
+    RES_TOL=1.e-7
+    ABS_TOL=1.e-8
+    def setUp(self):
+        for x in [int(sqrt(mpiSize)),2,3,5,7,1]:
+            NX=x
+            NY=mpiSize//x
+            if NX*NY == mpiSize:
+                break
+        self.domain=test_Rectangle_refine_bottom_Boundary(n0=NE*NX-1, n1=NE*NY-1, l0=10., l1=10., d0=NX, d1=NY)
         self.order = 1
     def tearDown(self):
         del self.domain
@@ -191,7 +257,7 @@ class Test_PoissonOnOxley_Point(Test_Poisson):
     def tearDown(self):
         del self.domain
 
-class Test_PoissonOnOxley_Boundary(Test_Poisson):
+class Test_PoissonOnOxley_top_Boundary(Test_Poisson):
     RES_TOL=1.e-7
     ABS_TOL=1.e-8
     def setUp(self):
@@ -200,7 +266,46 @@ class Test_PoissonOnOxley_Boundary(Test_Poisson):
             NY=mpiSize//x
             if NX*NY == mpiSize:
                 break
-        self.domain=test_Rectangle_refine_Boundary(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+        self.domain=test_Rectangle_refine_top_Boundary(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+    def tearDown(self):
+        del self.domain
+
+class Test_PoissonOnOxley_east_Boundary(Test_Poisson):
+    RES_TOL=1.e-7
+    ABS_TOL=1.e-8
+    def setUp(self):
+        for x in [int(sqrt(mpiSize)),2,3,5,7,1]:
+            NX=x
+            NY=mpiSize//x
+            if NX*NY == mpiSize:
+                break
+        self.domain=test_Rectangle_refine_east_Boundary(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+    def tearDown(self):
+        del self.domain
+
+class Test_PoissonOnOxley_west_Boundary(Test_Poisson):
+    RES_TOL=1.e-7
+    ABS_TOL=1.e-8
+    def setUp(self):
+        for x in [int(sqrt(mpiSize)),2,3,5,7,1]:
+            NX=x
+            NY=mpiSize//x
+            if NX*NY == mpiSize:
+                break
+        self.domain=test_Rectangle_refine_west_Boundary(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+    def tearDown(self):
+        del self.domain
+
+class Test_PoissonOnOxley_bottom_Boundary(Test_Poisson):
+    RES_TOL=1.e-7
+    ABS_TOL=1.e-8
+    def setUp(self):
+        for x in [int(sqrt(mpiSize)),2,3,5,7,1]:
+            NX=x
+            NY=mpiSize//x
+            if NX*NY == mpiSize:
+                break
+        self.domain=test_Rectangle_refine_bottom_Boundary(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
     def tearDown(self):
         del self.domain
 

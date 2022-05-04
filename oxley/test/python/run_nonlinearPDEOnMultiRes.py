@@ -50,12 +50,36 @@ def test_Rectangle_refine_Point(**kwargs):
     m.refinePoint(x0=0.5,y0=0.5)
     return m
 
-def test_Rectangle_refine_Boundary(**kwargs):
+def test_Rectangle_refine_top_Boundary(**kwargs):
     kwargs['n0'] //= 2
     kwargs['n1'] //= 2
     m = Rectangle(**kwargs)
     m.setRefinementLevel(1)
     m.refineBoundary(boundary="top",dx=0.5)
+    return m
+
+def test_Rectangle_refine_east_Boundary(**kwargs):
+    kwargs['n0'] //= 2
+    kwargs['n1'] //= 2
+    m = Rectangle(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineBoundary(boundary="right",dx=0.5)
+    return m
+
+def test_Rectangle_refine_west_Boundary(**kwargs):
+    kwargs['n0'] //= 2
+    kwargs['n1'] //= 2
+    m = Rectangle(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineBoundary(boundary="left",dx=0.5)
+    return m
+
+def test_Rectangle_refine_bottom_Boundary(**kwargs):
+    kwargs['n0'] //= 2
+    kwargs['n1'] //= 2
+    m = Rectangle(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineBoundary(boundary="bottom",dx=0.5)
     return m
 
 def test_Rectangle_refine_Region(**kwargs):
@@ -83,11 +107,30 @@ class Test_OxleyNonLinearPDE2D_Point(Test_nlpde):
    def tearDown(self):
         del self.domain
 
-class Test_OxleyNonLinearPDE2D_Boundary(Test_nlpde):
+class Test_OxleyNonLinearPDE2D_top_Boundary(Test_nlpde):
    def setUp(self):
-        self.domain = test_Rectangle_Boundary(l0=1.,l1=1., n0=10, n1=10*getMPISizeWorld()-1, d1=getMPISizeWorld()) 
+        self.domain = test_Rectangle_top_Boundary(l0=1.,l1=1., n0=10, n1=10*getMPISizeWorld()-1, d1=getMPISizeWorld()) 
    def tearDown(self):
         del self.domain
+
+class Test_OxleyNonLinearPDE2D_east_Boundary(Test_nlpde):
+   def setUp(self):
+        self.domain = test_Rectangle_east_Boundary(l0=1.,l1=1., n0=10, n1=10*getMPISizeWorld()-1, d1=getMPISizeWorld()) 
+   def tearDown(self):
+        del self.domain
+
+class Test_OxleyNonLinearPDE2D_west_Boundary(Test_nlpde):
+   def setUp(self):
+        self.domain = test_Rectangle_west_Boundary(l0=1.,l1=1., n0=10, n1=10*getMPISizeWorld()-1, d1=getMPISizeWorld()) 
+   def tearDown(self):
+        del self.domain
+
+class Test_OxleyNonLinearPDE2D_bottom_Boundary(Test_nlpde):
+   def setUp(self):
+        self.domain = test_Rectangle_bottom_Boundary(l0=1.,l1=1., n0=10, n1=10*getMPISizeWorld()-1, d1=getMPISizeWorld()) 
+   def tearDown(self):
+        del self.domain
+
 
 class Test_OxleyNonLinearPDE2D_Region(Test_nlpde):
    def setUp(self):

@@ -69,10 +69,36 @@ def test_Rectangle_refine_Point(**kwargs):
     m.refinePoint(x0=0.5,y0=0.5)
     return m
 
-def test_Rectangle_refine_Boundary(**kwargs):
+def test_Rectangle_refine_top_Boundary(**kwargs):
+    kwargs['n0'] //= 2
+    kwargs['n1'] //= 2
     m = Rectangle(**kwargs)
     m.setRefinementLevel(1)
     m.refineBoundary(boundary="top",dx=0.5)
+    return m
+
+def test_Rectangle_refine_east_Boundary(**kwargs):
+    kwargs['n0'] //= 2
+    kwargs['n1'] //= 2
+    m = Rectangle(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineBoundary(boundary="right",dx=0.5)
+    return m
+
+def test_Rectangle_refine_west_Boundary(**kwargs):
+    kwargs['n0'] //= 2
+    kwargs['n1'] //= 2
+    m = Rectangle(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineBoundary(boundary="left",dx=0.5)
+    return m
+
+def test_Rectangle_refine_bottom_Boundary(**kwargs):
+    kwargs['n0'] //= 2
+    kwargs['n1'] //= 2
+    m = Rectangle(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineBoundary(boundary="bottom",dx=0.5)
     return m
 
 def test_Rectangle_refine_Region(**kwargs):
@@ -131,9 +157,9 @@ class Test_Util_SpatialFunctionsOnOxley2D_refine_Point(Test_Util_SpatialFunction
         del self.order
         del self.domain
 
-class Test_UtilOnOxley_refine_Boundary(Test_util, Test_symfuncs, Test_util_NaN_funcs):
+class Test_UtilOnOxley_refine_top_Boundary(Test_util, Test_symfuncs, Test_util_NaN_funcs):
     def setUp(self):
-        self.domain=test_Rectangle_refine_Boundary(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+        self.domain=test_Rectangle_refine_top_Boundary(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
         self.functionspace = FunctionOnBoundary(self.domain) # due to a bug in escript python needs to hold a reference to the domain
         try:
             self.workdir=os.environ['OXLEY_WORKDIR']
@@ -144,13 +170,77 @@ class Test_UtilOnOxley_refine_Boundary(Test_util, Test_symfuncs, Test_util_NaN_f
         del self.functionspace
         del self.domain
 
-class Test_Util_SpatialFunctionsOnOxley2D_refine_Boundary(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
+class Test_UtilOnOxley_refine_east_Boundary(Test_util, Test_symfuncs, Test_util_NaN_funcs):
+    def setUp(self):
+        self.domain=test_Rectangle_refine_east_Boundary(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+        self.functionspace = FunctionOnBoundary(self.domain) # due to a bug in escript python needs to hold a reference to the domain
+        try:
+            self.workdir=os.environ['OXLEY_WORKDIR']
+        except KeyError:
+            self.workdir='.'
+
+    def tearDown(self):
+        del self.functionspace
+        del self.domain
+
+class Test_UtilOnOxley_refine_west_Boundary(Test_util, Test_symfuncs, Test_util_NaN_funcs):
+    def setUp(self):
+        self.domain=test_Rectangle_refine_west_Boundary(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+        self.functionspace = FunctionOnBoundary(self.domain) # due to a bug in escript python needs to hold a reference to the domain
+        try:
+            self.workdir=os.environ['OXLEY_WORKDIR']
+        except KeyError:
+            self.workdir='.'
+
+    def tearDown(self):
+        del self.functionspace
+        del self.domain
+
+class Test_UtilOnOxley_refine_bottom_Boundary(Test_util, Test_symfuncs, Test_util_NaN_funcs):
+    def setUp(self):
+        self.domain=test_Rectangle_refine_bottom_Boundary(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+        self.functionspace = FunctionOnBoundary(self.domain) # due to a bug in escript python needs to hold a reference to the domain
+        try:
+            self.workdir=os.environ['OXLEY_WORKDIR']
+        except KeyError:
+            self.workdir='.'
+
+    def tearDown(self):
+        del self.functionspace
+        del self.domain
+
+class Test_Util_SpatialFunctionsOnOxley2D_refine_top_Boundary(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
         self.order=1
-        self.domain = test_Rectangle_refine_Boundary(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_top_Boundary(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
     def tearDown(self):
         del self.order
         del self.domain
+
+class Test_Util_SpatialFunctionsOnOxley2D_refine_east_Boundary(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
+    def setUp(self):
+        self.order=1
+        self.domain = test_Rectangle_refine_east_Boundary(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+    def tearDown(self):
+        del self.order
+        del self.domain
+
+class Test_Util_SpatialFunctionsOnOxley2D_refine_west_Boundary(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
+    def setUp(self):
+        self.order=1
+        self.domain = test_Rectangle_refine_west_Boundary(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+    def tearDown(self):
+        del self.order
+        del self.domain
+
+class Test_Util_SpatialFunctionsOnOxley2D_refine_bottom_Boundary(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
+    def setUp(self):
+        self.order=1
+        self.domain = test_Rectangle_refine_bottom_Boundary(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+    def tearDown(self):
+        del self.order
+        del self.domain
+
 
 class Test_UtilOnOxley_refine_Region(Test_util, Test_symfuncs, Test_util_NaN_funcs):
     def setUp(self):
