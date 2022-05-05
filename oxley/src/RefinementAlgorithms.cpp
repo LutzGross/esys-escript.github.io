@@ -109,8 +109,8 @@ int refine_north(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadra
     quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
     double * xy = quadData->xy;
 
-    return     (xy[1] < domain_length) 
-            && (xy[1] > domain_length - dx - 1)
+    return     (xy[1] <= domain_length) 
+            && (xy[1] >= domain_length - dx)
             && (quadrant->level < forestData->max_levels_refinement);
 }
 
@@ -123,7 +123,7 @@ int refine_south(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadra
     double * xy = quadData->xy;
 
     return     (xy[1] >= 0) 
-            && (xy[1] < dx) 
+            && (xy[1] <= dx) 
             && (quadrant->level < forestData->max_levels_refinement);
 }
 
@@ -136,8 +136,8 @@ int refine_east(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadran
     quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
     double * xy = quadData->xy;
 
-    return     (xy[0] < domain_length) 
-            && (xy[0] > domain_length - dx - 1)
+    return     (xy[0] <= domain_length) 
+            && (xy[0] >= domain_length - dx)
             && (quadrant->level < forestData->max_levels_refinement);
 }
 
@@ -150,7 +150,7 @@ int refine_west(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadran
     double * xy = quadData->xy;
 
     return     (xy[0] >= 0) 
-            && (xy[0] < dx) 
+            && (xy[0] <= dx) 
             && (quadrant->level < forestData->max_levels_refinement);
 }
 
