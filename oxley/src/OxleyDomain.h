@@ -811,6 +811,13 @@ public:
     Teuchos::RCP<const Tpetra::Map<>> izdomainMap;
     Teuchos::RCP<const Tpetra::Map<>> zrangeMap;
     Teuchos::RCP<const Tpetra::Map<>> izrangeMap;
+
+    Teuchos::RCP<Tpetra::Map<>> f_map;
+    Teuchos::RCP<Tpetra::Map<>> g_map;
+    Tpetra::MultiVector<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> fc;
+    Tpetra::MultiVector<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> gc;
+    Tpetra::MultiVector<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> fr;
+    Tpetra::MultiVector<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> gr;
     
     Teuchos::RCP<esys_trilinos::VectorType<real_t> > rlclData;
     Teuchos::RCP<esys_trilinos::VectorType<cplx_t> > clclData;
