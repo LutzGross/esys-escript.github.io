@@ -378,7 +378,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi_west_Boundary(SimpleSolve
 
 class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi_bottom_Region(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_bottom_Region(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_bottom_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.GMRES
         self.preconditioner = SolverOptions.JACOBI
