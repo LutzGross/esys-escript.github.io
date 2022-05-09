@@ -51,63 +51,75 @@ try:
 except KeyError:
      OXLEY_TEST_DATA='.'
 
-NE=10 # number of element in each spatial direction (must be even)
+NE0=20
+NE1=20
+NE2=9
+
 mpiSize=getMPISizeWorld()
+# for x in [int(sqrt(mpiSize)),2,3,5,7,1]:
+#     NX=x
+#     NY=mpiSize//x
+#     if NX*NY == mpiSize:
+#         break
+
+# for x in [(int(mpiSize**(1/3.)),int(mpiSize**(1/3.))),(2,3),(2,2),(1,2),(1,1)]:
+#     NXb=x[0]
+#     NYb=x[1]
+#     NZb=mpiSize//(x[0]*x[1])
+#     if NXb*NYb*NZb == mpiSize:
+#         break
+
+NX=1
+NY=1
+DX=0.2
 
 def test_Rectangle_refine_Mesh(**kwargs):
-    kwargs['n0'] //= 2
-    kwargs['n1'] //= 2
     m = Rectangle(**kwargs)
     m.setRefinementLevel(1)
     m.refineMesh("uniform")
+    m.dump("uniform_mesh_ae.silo")
     return m
 
 def test_Rectangle_refine_Point(**kwargs):
-    kwargs['n0'] //= 2
-    kwargs['n1'] //= 2
     m = Rectangle(**kwargs)
     m.setRefinementLevel(1)
-    m.refinePoint(x0=0.5,y0=0.5)
+    m.refinePoint(x0=0.55,y0=0.55)
+    m.dump("point_mesh_ae.silo")
     return m
 
 def test_Rectangle_refine_top_Boundary(**kwargs):
-    kwargs['n0'] //= 2
-    kwargs['n1'] //= 2
     m = Rectangle(**kwargs)
     m.setRefinementLevel(1)
-    m.refineBoundary(boundary="top",dx=0.5)
+    m.refineBoundary(boundary="top",dx=DX)
+    m.dump("top_boundary_mesh_ae.silo")
     return m
 
 def test_Rectangle_refine_east_Boundary(**kwargs):
-    kwargs['n0'] //= 2
-    kwargs['n1'] //= 2
     m = Rectangle(**kwargs)
     m.setRefinementLevel(1)
-    m.refineBoundary(boundary="right",dx=0.5)
+    m.refineBoundary(boundary="right",dx=DX)
+    m.dump("east_boundary_mesh_ae.silo")
     return m
 
 def test_Rectangle_refine_west_Boundary(**kwargs):
-    kwargs['n0'] //= 2
-    kwargs['n1'] //= 2
     m = Rectangle(**kwargs)
     m.setRefinementLevel(1)
-    m.refineBoundary(boundary="left",dx=0.5)
+    m.refineBoundary(boundary="left",dx=DX)
+    m.dump("west_boundary_mesh_ae.silo")
     return m
 
 def test_Rectangle_refine_bottom_Boundary(**kwargs):
-    kwargs['n0'] //= 2
-    kwargs['n1'] //= 2
     m = Rectangle(**kwargs)
     m.setRefinementLevel(1)
-    m.refineBoundary(boundary="bottom",dx=0.5)
+    m.refineBoundary(boundary="bottom",dx=DX)
+    m.dump("bottom_boundary_mesh_ae.silo")
     return m
 
 def test_Rectangle_refine_Region(**kwargs):
-    kwargs['n0'] //= 2
-    kwargs['n1'] //= 2
     m = Rectangle(**kwargs)
     m.setRefinementLevel(1)
-    m.refineRegion(x0=0.2,x1=0.2,y0=0.6,y1=0.8)
+    m.refineRegion(x0=0.2,x1=0.6,y0=0.6,y1=0.8)
+    m.dump("region_boundary_mesh_ae.silo")
     return m
 
 # def Brick(**kwargs):
@@ -124,7 +136,7 @@ class Test_LinearPDEOnOxleyRect_Mesh(Test_LinearPDE, Test_LameEquation, Test_Hel
             NY=mpiSize//x
             if NX*NY == mpiSize:
                 break
-        self.domain=test_Rectangle_refine_Mesh(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+        self.domain=test_Rectangle_refine_Mesh(n0=NE0, n1=NE1, l0=1., l1=1., d0=NX, d1=NY)
         self.order = 1
     def tearDown(self):
         del self.domain
@@ -138,7 +150,7 @@ class Test_LinearPDEOnOxleyRect_Point(Test_LinearPDE, Test_LameEquation, Test_He
             NY=mpiSize//x
             if NX*NY == mpiSize:
                 break
-        self.domain=test_Rectangle_refine_Point(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+        self.domain=test_Rectangle_refine_Point(n0=NE0, n1=NE1, l0=1., l1=1., d0=NX, d1=NY)
         self.order = 1
     def tearDown(self):
         del self.domain
@@ -152,7 +164,7 @@ class Test_LinearPDEOnOxleyRect_top_Boundary(Test_LinearPDE, Test_LameEquation, 
             NY=mpiSize//x
             if NX*NY == mpiSize:
                 break
-        self.domain=test_Rectangle_refine_top_Boundary(n0=NE*NX-1, n1=NE*NY-1, l0=10., l1=10., d0=NX, d1=NY)
+        self.domain=test_Rectangle_refine_top_Boundary(n0=NE0, n1=NE1, l0=10., l1=10., d0=NX, d1=NY)
         self.order = 1
     def tearDown(self):
         del self.domain
@@ -166,7 +178,7 @@ class Test_LinearPDEOnOxleyRect_east_Boundary(Test_LinearPDE, Test_LameEquation,
             NY=mpiSize//x
             if NX*NY == mpiSize:
                 break
-        self.domain=test_Rectangle_refine_east_Boundary(n0=NE*NX-1, n1=NE*NY-1, l0=10., l1=10., d0=NX, d1=NY)
+        self.domain=test_Rectangle_refine_east_Boundary(n0=NE0, n1=NE1, l0=10., l1=10., d0=NX, d1=NY)
         self.order = 1
     def tearDown(self):
         del self.domain
@@ -180,7 +192,7 @@ class Test_LinearPDEOnOxleyRect_west_Boundary(Test_LinearPDE, Test_LameEquation,
             NY=mpiSize//x
             if NX*NY == mpiSize:
                 break
-        self.domain=test_Rectangle_refine_west_Boundary(n0=NE*NX-1, n1=NE*NY-1, l0=10., l1=10., d0=NX, d1=NY)
+        self.domain=test_Rectangle_refine_west_Boundary(n0=NE0, n1=NE1, l0=10., l1=10., d0=NX, d1=NY)
         self.order = 1
     def tearDown(self):
         del self.domain
@@ -194,7 +206,7 @@ class Test_LinearPDEOnOxleyRect_bottom_Boundary(Test_LinearPDE, Test_LameEquatio
             NY=mpiSize//x
             if NX*NY == mpiSize:
                 break
-        self.domain=test_Rectangle_refine_bottom_Boundary(n0=NE*NX-1, n1=NE*NY-1, l0=10., l1=10., d0=NX, d1=NY)
+        self.domain=test_Rectangle_refine_bottom_Boundary(n0=NE0, n1=NE1, l0=10., l1=10., d0=NX, d1=NY)
         self.order = 1
     def tearDown(self):
         del self.domain
@@ -208,7 +220,7 @@ class Test_LinearPDEOnOxleyRect_Region(Test_LinearPDE, Test_LameEquation, Test_H
             NY=mpiSize//x
             if NX*NY == mpiSize:
                 break
-        self.domain=test_Rectangle_refine_Region(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+        self.domain=test_Rectangle_refine_Region(n0=NE0, n1=NE1, l0=1., l1=1., d0=NX, d1=NY)
         self.order = 1
     def tearDown(self):
         del self.domain
@@ -225,7 +237,7 @@ class Test_LinearPDEOnOxleyRect_Region(Test_LinearPDE, Test_LameEquation, Test_H
 #             if NX*NY*NZ == mpiSize:
 #                 break
 
-#         self.domain = Brick(n0=NE*NX-1, n1=NE*NY-1, n2=NE*NZ-1, l0=1., l1=1., l2=1., d0=NX, d1=NY, d2=NZ)
+#         self.domain = Brick(n0=NE0, n1=NE1, n2=NE*NZ-1, l0=1., l1=1., l2=1., d0=NX, d1=NY, d2=NZ)
 #         self.order = 1
 
 #     def tearDown(self):
@@ -240,7 +252,7 @@ class Test_PoissonOnOxley_Mesh(Test_Poisson):
             NY=mpiSize//x
             if NX*NY == mpiSize:
                 break
-        self.domain=test_Rectangle_refine_Mesh(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+        self.domain=test_Rectangle_refine_Mesh(n0=NE0, n1=NE1, l0=1., l1=1., d0=NX, d1=NY)
     def tearDown(self):
         del self.domain
 
@@ -253,7 +265,7 @@ class Test_PoissonOnOxley_Point(Test_Poisson):
             NY=mpiSize//x
             if NX*NY == mpiSize:
                 break
-        self.domain=test_Rectangle_refine_Point(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+        self.domain=test_Rectangle_refine_Point(n0=NE0, n1=NE1, l0=1., l1=1., d0=NX, d1=NY)
     def tearDown(self):
         del self.domain
 
@@ -266,7 +278,7 @@ class Test_PoissonOnOxley_top_Boundary(Test_Poisson):
             NY=mpiSize//x
             if NX*NY == mpiSize:
                 break
-        self.domain=test_Rectangle_refine_top_Boundary(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+        self.domain=test_Rectangle_refine_top_Boundary(n0=NE0, n1=NE1, l0=1., l1=1., d0=NX, d1=NY)
     def tearDown(self):
         del self.domain
 
@@ -279,7 +291,7 @@ class Test_PoissonOnOxley_east_Boundary(Test_Poisson):
             NY=mpiSize//x
             if NX*NY == mpiSize:
                 break
-        self.domain=test_Rectangle_refine_east_Boundary(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+        self.domain=test_Rectangle_refine_east_Boundary(n0=NE0, n1=NE1, l0=1., l1=1., d0=NX, d1=NY)
     def tearDown(self):
         del self.domain
 
@@ -292,7 +304,7 @@ class Test_PoissonOnOxley_west_Boundary(Test_Poisson):
             NY=mpiSize//x
             if NX*NY == mpiSize:
                 break
-        self.domain=test_Rectangle_refine_west_Boundary(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+        self.domain=test_Rectangle_refine_west_Boundary(n0=NE0, n1=NE1, l0=1., l1=1., d0=NX, d1=NY)
     def tearDown(self):
         del self.domain
 
@@ -305,7 +317,7 @@ class Test_PoissonOnOxley_bottom_Boundary(Test_Poisson):
             NY=mpiSize//x
             if NX*NY == mpiSize:
                 break
-        self.domain=test_Rectangle_refine_bottom_Boundary(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+        self.domain=test_Rectangle_refine_bottom_Boundary(n0=NE0, n1=NE1, l0=1., l1=1., d0=NX, d1=NY)
     def tearDown(self):
         del self.domain
 
@@ -318,7 +330,7 @@ class Test_PoissonOnOxley_Region(Test_Poisson):
             NY=mpiSize//x
             if NX*NY == mpiSize:
                 break
-        self.domain=test_Rectangle_refine_Region(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+        self.domain=test_Rectangle_refine_Region(n0=NE0, n1=NE1, l0=1., l1=1., d0=NX, d1=NY)
     def tearDown(self):
         del self.domain
 

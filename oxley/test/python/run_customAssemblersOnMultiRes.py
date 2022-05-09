@@ -32,56 +32,75 @@ from esys.escript.linearPDEs import LameEquation
 # from run_customAssemblersOnOxley import OxleyLameAssemblerTestBase, OxleyWaveAssemblerTestBase, Ricker
 from run_customAssemblersOnOxley import OxleyLameAssemblerTestBase, Ricker
 
-mpiSize = getMPISizeWorld()
+NE0=20
+NE1=20
+NE2=9
+
+mpiSize=getMPISizeWorld()
+# for x in [int(sqrt(mpiSize)),2,3,5,7,1]:
+#     NX=x
+#     NY=mpiSize//x
+#     if NX*NY == mpiSize:
+#         break
+
+# for x in [(int(mpiSize**(1/3.)),int(mpiSize**(1/3.))),(2,3),(2,2),(1,2),(1,1)]:
+#     NXb=x[0]
+#     NYb=x[1]
+#     NZb=mpiSize//(x[0]*x[1])
+#     if NXb*NYb*NZb == mpiSize:
+#         break
+
+NX=1
+NY=1
+DX=0.2
 
 def test_Rectangle_refine_Mesh(**kwargs):
     m = Rectangle(**kwargs)
     m.setRefinementLevel(1)
     m.refineMesh("uniform")
+    m.dump("uniform_mesh_ae.silo")
     return m
 
 def test_Rectangle_refine_Point(**kwargs):
     m = Rectangle(**kwargs)
     m.setRefinementLevel(1)
-    m.refinePoint(x0=0.5,y0=0.5)
+    m.refinePoint(x0=0.55,y0=0.55)
+    m.dump("point_mesh_ae.silo")
     return m
 
 def test_Rectangle_refine_top_Boundary(**kwargs):
-    kwargs['n0'] //= 2
-    kwargs['n1'] //= 2
     m = Rectangle(**kwargs)
     m.setRefinementLevel(1)
-    m.refineBoundary(boundary="top",dx=0.5)
+    m.refineBoundary(boundary="top",dx=DX)
+    m.dump("top_boundary_mesh_ae.silo")
     return m
 
 def test_Rectangle_refine_east_Boundary(**kwargs):
-    kwargs['n0'] //= 2
-    kwargs['n1'] //= 2
     m = Rectangle(**kwargs)
     m.setRefinementLevel(1)
-    m.refineBoundary(boundary="right",dx=0.5)
+    m.refineBoundary(boundary="right",dx=DX)
+    m.dump("east_boundary_mesh_ae.silo")
     return m
 
 def test_Rectangle_refine_west_Boundary(**kwargs):
-    kwargs['n0'] //= 2
-    kwargs['n1'] //= 2
     m = Rectangle(**kwargs)
     m.setRefinementLevel(1)
-    m.refineBoundary(boundary="left",dx=0.5)
+    m.refineBoundary(boundary="left",dx=DX)
+    m.dump("west_boundary_mesh_ae.silo")
     return m
 
 def test_Rectangle_refine_bottom_Boundary(**kwargs):
-    kwargs['n0'] //= 2
-    kwargs['n1'] //= 2
     m = Rectangle(**kwargs)
     m.setRefinementLevel(1)
-    m.refineBoundary(boundary="bottom",dx=0.5)
+    m.refineBoundary(boundary="bottom",dx=DX)
+    m.dump("bottom_boundary_mesh_ae.silo")
     return m
 
 def test_Rectangle_refine_Region(**kwargs):
     m = Rectangle(**kwargs)
     m.setRefinementLevel(1)
-    m.refineRegion(x0=0.2,x1=0.2,y0=0.6,y1=0.8)
+    m.refineRegion(x0=0.2,x1=0.6,y0=0.6,y1=0.8)
+    m.dump("region_boundary_mesh_ae.silo")
     return m
 
 
@@ -93,7 +112,7 @@ def test_Rectangle_refine_Region(**kwargs):
 # TODO
 # class Test_OxleyWaveAssembler2D(OxleyWaveAssemblerTestBase):
 #     def setUp(self):
-#         self.domain = test_Rectangle(n0=20,n1=20,l0=100.,l1=100., diracTags=["source"], diracPoints=[(0,0)])
+#         self.domain = test_Rectangle(n0=NE0, n1=NE1,l0=100.,l1=100., diracTags=["source"], diracPoints=[(0,0)])
 #         self.wavelet = Ricker(100.)
         
 #     def tearDown(self):
@@ -111,49 +130,49 @@ def test_Rectangle_refine_Region(**kwargs):
 
 class Test_OxleyLameAssemblers2D_Mesh(OxleyLameAssemblerTestBase):
     def setUp(self):
-        self.domain = test_Rectangle_refine_Mesh(n0=20,n1=20)
+        self.domain = test_Rectangle_refine_Mesh(n0=NE0, n1=NE1)
 
     def tearDown(self):
         del self.domain
 
 class Test_OxleyLameAssemblers2D_Point(OxleyLameAssemblerTestBase):
     def setUp(self):
-        self.domain = test_Rectangle_refine_Point(n0=20,n1=20)
+        self.domain = test_Rectangle_refine_Point(n0=NE0, n1=NE1)
 
     def tearDown(self):
         del self.domain
 
 class Test_OxleyLameAssemblers2D_top_Boundary(OxleyLameAssemblerTestBase):
     def setUp(self):
-        self.domain = test_Rectangle_refine_top_Boundary(n0=20,n1=20,l0=10,l1=10)
+        self.domain = test_Rectangle_refine_top_Boundary(n0=NE0, n1=NE1,l0=10,l1=10)
 
     def tearDown(self):
         del self.domain
 
 class Test_OxleyLameAssemblers2D_east_Boundary(OxleyLameAssemblerTestBase):
     def setUp(self):
-        self.domain = test_Rectangle_refine_east_Boundary(n0=20,n1=20,l0=10,l1=10)
+        self.domain = test_Rectangle_refine_east_Boundary(n0=NE0, n1=NE1,l0=10,l1=10)
 
     def tearDown(self):
         del self.domain
 
 class Test_OxleyLameAssemblers2D_west_Boundary(OxleyLameAssemblerTestBase):
     def setUp(self):
-        self.domain = test_Rectangle_refine_west_Boundary(n0=20,n1=20,l0=10,l1=10)
+        self.domain = test_Rectangle_refine_west_Boundary(n0=NE0, n1=NE1,l0=10,l1=10)
 
     def tearDown(self):
         del self.domain
 
 class Test_OxleyLameAssemblers2D_bottom_Boundary(OxleyLameAssemblerTestBase):
     def setUp(self):
-        self.domain = test_Rectangle_refine_bottom_Boundary(n0=20,n1=20,l0=10,l1=10)
+        self.domain = test_Rectangle_refine_bottom_Boundary(n0=NE0, n1=NE1,l0=10,l1=10)
 
     def tearDown(self):
         del self.domain
 
 class Test_OxleyLameAssemblers2D_Region(OxleyLameAssemblerTestBase):
     def setUp(self):
-        self.domain = test_Rectangle_refine_Region(n0=20,n1=20)
+        self.domain = test_Rectangle_refine_Region(n0=NE0, n1=NE1)
 
     def tearDown(self):
         del self.domain
