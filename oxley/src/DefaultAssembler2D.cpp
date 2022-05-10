@@ -169,7 +169,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESingle(AbstractSystemMatrix* mat, Da
     // weightings need to be calcuated for each level of refinement
     const double SQRT3 = 1.73205080756887719318;
     double w[32][P4EST_MAXLEVEL] = {{0}};
-#pragma omp parallel for
+// #pragma omp parallel for
     for(int i = 0; i <= max_level; i++)
     {
         double m_dx[2] = {domain->forestData.m_dx[0][P4EST_MAXLEVEL-i], 
@@ -218,7 +218,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESingle(AbstractSystemMatrix* mat, Da
 
     rhs.requireWrite();
 
-#pragma omp parallel for
+// #pragma omp parallel for
     for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
     {
         p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
@@ -646,7 +646,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
     // weightings need to be calculated for each level of refinement
     const double SQRT3 = 1.73205080756887719318;
     double w[16][P4EST_MAXLEVEL] = {{0}};
-#pragma omp parallel for
+// #pragma omp parallel for
     for(int i = 0; i <= max_level; i++)
     {
         double m_dx[2] = {domain->forestData.m_dx[0][P4EST_MAXLEVEL-i], 
@@ -898,7 +898,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESingleReduced(
     // This is similar to Ripley, except that in Oxley the quads vary in size so that the 
     // weightings need to be calculated for each level of refinement
     double w[8][P4EST_MAXLEVEL] = {{0}};
-#pragma omp parallel for
+// #pragma omp parallel for
     for(int i = 0; i <= max_level; i++)
     {
         double m_dx[2] = {domain->forestData.m_dx[0][P4EST_MAXLEVEL-i], 
@@ -920,7 +920,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESingleReduced(
     vector<Scalar> EM_S(4*4, zero);
     vector<Scalar> EM_F(4, zero);
 
-#pragma omp parallel for
+// #pragma omp parallel for
     for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
     {
         p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
@@ -1093,7 +1093,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingleReduced(
     // This is similar to Ripley, except that in Oxley the quads vary in size so that the 
     // weightings need to be calcuated for each level of refinement
     double w[2][P4EST_MAXLEVEL] = {{0}};
-#pragma omp parallel for
+// #pragma omp parallel for
     for(int i = 0; i <= max_level; i++)
     {
         double m_dx[2] = {domain->forestData.m_dx[0][P4EST_MAXLEVEL-i], 
@@ -1285,7 +1285,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESystem(AbstractSystemMatrix* mat,
     // weightings need to be calcuated for each level of refinement
     const double SQRT3 = 1.73205080756887719318;
     double w[32][P4EST_MAXLEVEL] = {{0}};
-#pragma omp parallel for
+// #pragma omp parallel for
     for(int i = 0; i <= max_level; i++)
     {
         double m_dx[2] = {domain->forestData.m_dx[0][P4EST_MAXLEVEL-i], 
@@ -1337,7 +1337,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESystem(AbstractSystemMatrix* mat,
     vector<Scalar> EM_S(4*4*numEq*numComp, zero);
     vector<Scalar> EM_F(4*numEq, zero);
 
-// #pragma omp parallel for
+// // #pragma omp parallel for
     for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
     {
         p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
@@ -1816,7 +1816,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystem(
     // weightings need to be calcuated for each level of refinement
     const double SQRT3 = 1.73205080756887719318;
     double w[16][P4EST_MAXLEVEL] = {{0}};
-#pragma omp parallel for
+// #pragma omp parallel for
     for(int i = 0; i <= max_level; i++)
     {
         double m_dx[2] = {domain->forestData.m_dx[0][P4EST_MAXLEVEL-i], 
@@ -2131,7 +2131,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESystemReduced(
     // This is similar to Ripley, except that in Oxley the quads vary in size so that the 
     // weightings need to be calcuated for each level of refinement
     double w[12][P4EST_MAXLEVEL] = {{0}};
-#pragma omp parallel for
+// #pragma omp parallel for
     for(int i = 0; i <= max_level; i++)
     {
         double m_dx[2] = {domain->forestData.m_dx[0][P4EST_MAXLEVEL-i], 
@@ -2153,7 +2153,7 @@ void DefaultAssembler2D<Scalar>::assemblePDESystemReduced(
     vector<Scalar> EM_S(4*4*numEq*numComp, zero);
     vector<Scalar> EM_F(4*numEq, zero);
 
-#pragma omp parallel for
+// #pragma omp parallel for
     for (p4est_topidx_t t = domain->p4est->first_local_tree; t <= domain->p4est->last_local_tree; t++) // Loop over every tree
     {
         p4est_tree_t * currenttree = p4est_tree_array_index(domain->p4est->trees, t);
@@ -2351,7 +2351,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
     // This is similar to Ripley, except that in Oxley the quads vary in size so that the 
     // weightings need to be calcuated for each level of refinement
     double w[2][P4EST_MAXLEVEL] = {{0}};
-#pragma omp parallel for
+// #pragma omp parallel for
     for(int i = 0; i <= max_level; i++)
     {
         double m_dx[2] = {domain->forestData.m_dx[0][P4EST_MAXLEVEL-i], 

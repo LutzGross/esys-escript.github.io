@@ -2896,7 +2896,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
             p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
             sc_array_t * tquadrants = &currenttree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-#pragma omp parallel for
+// #pragma omp parallel for
             for(int q = 0; q < Q; ++q) // Loop over every quadrant within the tree
             {
                 p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
@@ -2908,6 +2908,10 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
                 long ids[4]={0};
                 getNeighouringNodeIDs(l, quad->x, quad->y, t, ids);
                 
+                #ifdef OXLEY_ENABLE_DEBUG_ASSEMBLE_GRADIENT
+                    std::cout << "quad id: " << e << std::endl;
+                #endif
+
                 memcpy(&f_00[0], in.getSampleDataRO(ids[0], zero), numComp*sizeof(Scalar));
                 memcpy(&f_01[0], in.getSampleDataRO(ids[2], zero), numComp*sizeof(Scalar));
                 memcpy(&f_10[0], in.getSampleDataRO(ids[1], zero), numComp*sizeof(Scalar));
@@ -2939,7 +2943,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
             p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
             sc_array_t * tquadrants = &currenttree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-#pragma omp parallel for
+// #pragma omp parallel for
             for(int q = 0; q < Q; ++q) // Loop over every quadrant within the tree
             {
 
@@ -2973,7 +2977,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
             p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
             sc_array_t * tquadrants = &currenttree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-#pragma omp parallel for
+// #pragma omp parallel for
             for(int q = 0; q < Q; ++q) // Loop over every quadrant within the tree
             {
 
@@ -3066,7 +3070,7 @@ void Rectangle::assembleGradientImpl(escript::Data& out,
             p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
             sc_array_t * tquadrants = &currenttree->quadrants;
             p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-#pragma omp parallel for
+// #pragma omp parallel for
             for(int q = 0; q < Q; ++q) // Loop over every quadrant within the tree
             {
 

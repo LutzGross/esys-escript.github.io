@@ -101,7 +101,6 @@ namespace oxley {
             case FaceElements:
             case ReducedFaceElements:
             case Points:
-            case Solution:
                 return true;
             default:
                 break;
@@ -1011,8 +1010,6 @@ namespace oxley {
                 return pair<int,dim_t>(1, getNumFaceElements());
             case Points:
                 return pair<int,dim_t>(1, m_diracPoints.size());
-            case Solution:
-                return pair<int,dim_t>(1, getNumNodes()-0.5*getNumHangingNodes());
             default:
                 break;
         }
@@ -1168,11 +1165,11 @@ namespace oxley {
         // is the function space type right?
         if (row_functionspace.getTypeCode()==ReducedDegreesOfFreedom)
             reduceRowOrder=true;
-        else if ((row_functionspace.getTypeCode()!=DegreesOfFreedom)&&(row_functionspace.getTypeCode()!=Solution))
+        else if (row_functionspace.getTypeCode()!=DegreesOfFreedom)
             throw ValueError("newSystemMatrix: illegal function space type for system matrix rows");
         if (column_functionspace.getTypeCode()==ReducedDegreesOfFreedom)
             reduceColOrder=true;
-        else if ((column_functionspace.getTypeCode()!=DegreesOfFreedom)&&(column_functionspace.getTypeCode()!=Solution))
+        else if (column_functionspace.getTypeCode()!=DegreesOfFreedom)
             throw ValueError("newSystemMatrix: illegal function space type for system matrix columns");
         // are block sizes identical?
         if (row_blocksize != column_blocksize)
@@ -2192,8 +2189,7 @@ escript::Data OxleyDomain::finaliseRhs(escript::Data& rhs)
                 auto result_view = fc.getLocalViewHost();
                 auto result_view_1d = Kokkos::subview(result_view, Kokkos::ALL(), 0);
 
-                int SolutionCode=17;
-                escript::FunctionSpace new_fs = escript::FunctionSpace(rhs.getFunctionSpace().getDomain(), SolutionCode);
+                escript::FunctionSpace new_fs = escript::FunctionSpace(rhs.getFunctionSpace().getDomain(), DegreesOfFreedom);
                 cplx_t value(0,0);
                 bool expanded=true;
                 escript::Data rhs_new = escript::Data(value, rhs.getDataPointShape(), new_fs, expanded);
@@ -2295,8 +2291,7 @@ escript::Data OxleyDomain::finaliseRhs(escript::Data& rhs)
                 auto result_view_1d = Kokkos::subview(result_view, Kokkos::ALL(), 0);
 
                 origFsTypecode=rhs.getFunctionSpace().getTypeCode();
-                int SolutionCode=17;
-                escript::FunctionSpace new_fs = escript::FunctionSpace(rhs.getFunctionSpace().getDomain(), SolutionCode);
+                escript::FunctionSpace new_fs = escript::FunctionSpace(rhs.getFunctionSpace().getDomain(), DegreesOfFreedom);
                 real_t value(0);
                 bool expanded=true;
                 escript::Data rhs_new = escript::Data(value, rhs.getDataPointShape(), new_fs, expanded);
