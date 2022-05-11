@@ -456,10 +456,10 @@ void Rectangle::setToNormal(escript::Data& out) const
 {
     if (out.getFunctionSpace().getTypeCode() == FaceElements) {
         out.requireWrite();
-#pragma omp parallel
-        {
+// #pragma omp parallel
+        // {
             if (m_faceOffset[0] > -1) {
-#pragma omp for nowait
+// #pragma omp for nowait
                 for (index_t k=0; k<NodeIDsLeft.size()-1; k++) {
                     double* o = out.getSampleDataRW(m_faceOffset[0]+k);
                     // set vector at two quadrature points
@@ -471,8 +471,8 @@ void Rectangle::setToNormal(escript::Data& out) const
             }
 
             if (m_faceOffset[1] > -1) {
-#pragma omp for nowait
-                for (index_t k=0; k<NodeIDsBottom.size()-1; k++) {
+// #pragma omp for nowait
+                for (index_t k=0; k<NodeIDsRight.size()-1; k++) {
                     double* o = out.getSampleDataRW(m_faceOffset[1]+k);
                     // set vector at two quadrature points
                     *o++ = 1.;
@@ -483,8 +483,8 @@ void Rectangle::setToNormal(escript::Data& out) const
             }
 
             if (m_faceOffset[2] > -1) {
-#pragma omp for nowait
-                for (index_t k=0; k<NodeIDsRight.size()-1; k++) {
+// #pragma omp for nowait
+                for (index_t k=0; k<NodeIDsBottom.size()-1; k++) {
                     double* o = out.getSampleDataRW(m_faceOffset[2]+k);
                     // set vector at two quadrature points
                     *o++ = 0.;
@@ -495,7 +495,7 @@ void Rectangle::setToNormal(escript::Data& out) const
             }
 
             if (m_faceOffset[3] > -1) {
-#pragma omp for nowait
+// #pragma omp for nowait
                 for (index_t k=0; k<NodeIDsTop.size()-1; k++) {
                     double* o = out.getSampleDataRW(m_faceOffset[3]+k);
                     // set vector at two quadrature points
@@ -505,13 +505,13 @@ void Rectangle::setToNormal(escript::Data& out) const
                     *o = 1.;
                 }
             }
-        } // end of parallel section
+        // } // end of parallel section
     } else if (out.getFunctionSpace().getTypeCode() == ReducedFaceElements) {
         out.requireWrite();
-#pragma omp parallel
-        {
+// #pragma omp parallel
+        // {
             if (m_faceOffset[0] > -1) {
-#pragma omp for nowait
+// #pragma omp for nowait
                 for (index_t k=0; k<NodeIDsLeft.size()-1; k++) {
                     double* o = out.getSampleDataRW(m_faceOffset[0]+k);
                     *o++ = -1.;
@@ -520,7 +520,7 @@ void Rectangle::setToNormal(escript::Data& out) const
             }
 
             if (m_faceOffset[1] > -1) {
-#pragma omp for nowait
+// #pragma omp for nowait
                 for (index_t k=0; k<NodeIDsBottom.size()-1; k++) {
                     double* o = out.getSampleDataRW(m_faceOffset[1]+k);
                     *o++ = 1.;
@@ -529,7 +529,7 @@ void Rectangle::setToNormal(escript::Data& out) const
             }
 
             if (m_faceOffset[2] > -1) {
-#pragma omp for nowait
+// #pragma omp for nowait
                 for (index_t k=0; k<NodeIDsRight.size()-1; k++) {
                     double* o = out.getSampleDataRW(m_faceOffset[2]+k);
                     *o++ = 0.;
@@ -538,14 +538,14 @@ void Rectangle::setToNormal(escript::Data& out) const
             }
 
             if (m_faceOffset[3] > -1) {
-#pragma omp for nowait
+// #pragma omp for nowait
                 for (index_t k=0; k<NodeIDsTop.size()-1; k++) {
                     double* o = out.getSampleDataRW(m_faceOffset[3]+k);
                     *o++ = 0.;
                     *o = 1.;
                 }
             }
-        } // end of parallel section
+        // } // end of parallel section
 
     } else {
         std::stringstream msg;
@@ -553,6 +553,11 @@ void Rectangle::setToNormal(escript::Data& out) const
             << out.getFunctionSpace().getTypeCode();
         throw ValueError(msg.str());
     }
+
+    #ifdef OXLEY_ENABLE_DEBUG_SETTONORMAL
+        std::cout << "setToNormal:" << std::endl;
+        out.print();
+    #endif
 }
 
 void Rectangle::setToSize(escript::Data& out) const
