@@ -2224,8 +2224,13 @@ void Rectangle::updateRowsColumns()
 {
     std::vector<std::vector<long>> * indices;
     indices = new std::vector<std::vector<long>>;
-    int initial[] = {0, -1, -1, -1, -1};
+    long initial[] = {0, -1, -1, -1, -1};
     indices->resize(getNumNodes(), std::vector<long>(initial, initial+5));
+
+    #ifdef OXLEY_ENABLE_DEBUG_NODES_EXTRA_DETAILS
+        std::cout << "updateRowsColumns" << std::endl;
+        std::cout << "Allocated memory for " << getNumNodes() << " nodes. " << std::endl;
+    #endif
 
     update_RC_data * data;
     data = new update_RC_data;
@@ -2240,7 +2245,7 @@ void Rectangle::updateRowsColumns()
     // x = Lx and y = Ly
     p4est_iterate_ext(p4est, NULL, data, NULL, update_RC, NULL, true);
 
-        // Find the indices of the nodes on the boundaries x = Lx and y = Ly
+    // Find the indices of the nodes on the boundaries x = Lx and y = Ly
     for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) {
         p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
         sc_array_t * tquadrants = &tree->quadrants;
@@ -2274,6 +2279,8 @@ void Rectangle::updateRowsColumns()
                 {
                     idx0[0][0]++;
                     idx1[0][0]++;
+                    ESYS_ASSERT(idx0[0][0]<=4, "updateRowsColumns index out of bound 1");
+                    ESYS_ASSERT(idx1[0][0]<=4, "updateRowsColumns index out of bound 2");
                     idx0[0][idx0[0][0]]=lni1;
                     idx1[0][idx1[0][0]]=lni0;
                 }
@@ -2301,6 +2308,8 @@ void Rectangle::updateRowsColumns()
                 {
                     idx0[0][0]++;
                     idx1[0][0]++;
+                    ESYS_ASSERT(idx0[0][0]<=4, "updateRowsColumns index out of bound 3");
+                    ESYS_ASSERT(idx1[0][0]<=4, "updateRowsColumns index out of bound 4");
                     idx0[0][idx0[0][0]]=lni1;
                     idx1[0][idx1[0][0]]=lni0;
                 }
@@ -2316,6 +2325,8 @@ void Rectangle::updateRowsColumns()
         p4est_qcoord_t l = P4EST_QUADRANT_LEN(hanging_face_orientation[i].level);
         p4est_qcoord_t xlookup[4][2] = {{0,0}, {0,0}, {-l,l}, {-l,l}};
         p4est_qcoord_t ylookup[4][2] = {{-l,l}, {-l,l}, {0,0}, {0,0}};
+        p4est_qcoord_t zlookup[4][2] = {{l,0}, {-l,0}, {0,l}, {0,-l}};
+        // p4est_qcoord_t zlookup[4][2] = {{0,0}, {0,0}, {0,0}, {0,0}};
 
         double xy[3]={0};
         p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, 
@@ -2330,27 +2341,33 @@ void Rectangle::updateRowsColumns()
                 hanging_face_orientation[i].x+xlookup[hanging_face_orientation[i].face_orientation][1], 
                 hanging_face_orientation[i].y+ylookup[hanging_face_orientation[i].face_orientation][1], xy);
         long lni1   = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+        auto ae1=hanging_face_orientation[i].x+zlookup[hanging_face_orientation[i].face_orientation][0];
+        auto ae2=hanging_face_orientation[i].y+zlookup[hanging_face_orientation[i].face_orientation][1];
+        p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, 
+                hanging_face_orientation[i].x+zlookup[hanging_face_orientation[i].face_orientation][0], 
+                hanging_face_orientation[i].y+zlookup[hanging_face_orientation[i].face_orientation][1], xy);
+        long lni2   = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
 
-        // lni0 == nodeid == lni1
+        #ifdef OXLEY_ENABLE_DEBUG_NODES_EXTRA_DETAILS
+            std::cout << "orientation: " << hanging_face_orientation[i].face_orientation << std::endl;
+            std::cout << "numNodes: " << getNumNodes() << std::endl;
+            // std::cout << "nodeid= " << nodeid << " to " << lni0 << " & " << lni1 << std::endl;
+            std::cout << "nodeid= " << nodeid << " to " << lni0 << " & " << lni1 << " & " << lni2 << std::endl;
+        #endif
 
         std::vector<long> * idx0 = &indices[0][nodeid];
-        bool new_connection;
-
-        /// add first connection
         std::vector<long> * idx1a = &indices[0][lni0];
-        new_connection=true;
+        std::vector<long> * idx1b = &indices[0][lni1];
+        std::vector<long> * idx1c = &indices[0][lni2];
+
+        // add first connection
         for(int j=1; j<5; j++)
             if(idx0[0][j]==lni0)
             {
                 idx0[0][j]=nodeid;
-                new_connection=false;
                 break;
             }
-        if(new_connection)
-        {
-            idx0[0][0]++;
-            idx0[0][idx0[0][0]]=lni0;
-        }
+
         // remove spurious old connection
         for(int j=1; j<5; j++)
             if(idx1a[0][j]==lni1)
@@ -2360,26 +2377,39 @@ void Rectangle::updateRowsColumns()
             }
 
         /// second connection
-        std::vector<long> * idx1b = &indices[0][lni1];
-        new_connection=true;
         for(int j=1; j<5; j++)
             if(idx0[0][j]==lni1)
             {
                 idx0[0][j]=nodeid;
-                new_connection=false;
                 break;
             }
-        if(new_connection)
-        {
-            idx0[0][0]++;
-            idx0[0][idx0[0][0]]=lni1;
-        }
+
+        // remove spurious old connection
         for(int j=1; j<5; j++)
             if(idx1b[0][j]==lni0)
             {
                 idx1b[0][j]=nodeid;
                 break;
             }
+
+        // third connection
+        bool new_connection=true;
+        for(int i=0;i<5;i++)
+            if(idx1c[0][i]==nodeid)
+                new_connection=false;
+        if(new_connection)
+        {
+            idx1c[0][0]++;    
+            ESYS_ASSERT(idx1c[0][0]<=4, "updateRowsColumns index out of bound 5");
+            idx1c[0][idx1c[0][0]]=nodeid;
+        }
+        
+        // the node itself
+        idx0[0][0]=3;
+        idx0[0][1]=lni0;
+        idx0[0][2]=lni1;
+        idx0[0][3]=lni2;
+        idx0[0][4]=-1;
 
         hanging_faces.push_back(std::make_pair(nodeid,lni0));
         hanging_faces.push_back(std::make_pair(nodeid,lni1));
@@ -2400,6 +2430,18 @@ void Rectangle::updateRowsColumns()
     std::cout << "Node connections: " << std::endl;
     // Output for debugging
     for(int i = 0; i < getNumNodes(); i++){
+        std::vector<long> * idx0 = &indices[0][i];
+        std::cout << i << ": ";
+        for(int j = 1; j < idx0[0][0]+1; j++)
+            std::cout << idx0[0][j] << ", ";
+        std::cout << std::endl;
+    }
+#endif
+
+#ifdef OXLEY_ENABLE_DEBUG_NODES_DETAILS
+    std::cout << "Node connections: " << std::endl;
+    // Output for debugging
+    for(int i = getNumNodes()-0.5*num_hanging; i < getNumNodes(); i++){
         std::vector<long> * idx0 = &indices[0][i];
         std::cout << i << ": ";
         for(int j = 1; j < idx0[0][0]+1; j++)
@@ -2431,6 +2473,7 @@ void Rectangle::updateRowsColumns()
             myRows.push_back(counter);
     }
     myRows.push_back(myColumns.size());
+
 #ifdef OXLEY_ENABLE_DEBUG_NODES
     std::cout << "Converted to Yale format... "<< std::endl;
     std::cout << "COL_INDEX [";
@@ -2447,8 +2490,8 @@ void Rectangle::updateRowsColumns()
     std::cout << "]" << std::endl;
 #endif
 
-    delete data;
     delete indices;
+    delete data;
 }
 
 #ifdef ESYS_HAVE_TRILINOS

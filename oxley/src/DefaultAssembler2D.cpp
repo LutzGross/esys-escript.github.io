@@ -646,7 +646,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
     // weightings need to be calculated for each level of refinement
     const double SQRT3 = 1.73205080756887719318;
     double w[16][P4EST_MAXLEVEL] = {{0}};
-// #pragma omp parallel for
+#pragma omp parallel for
     for(int i = 0; i <= max_level; i++)
     {
         double m_dx[2] = {domain->forestData.m_dx[0][P4EST_MAXLEVEL-i], 
@@ -682,7 +682,7 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
         }
 
         for (index_t k=0; k<domain->NodeIDsLeft.size()-1; k++) {
-            int id = k;
+            int id = domain->m_faceOffset[0]+k;
             int l = domain->NodeIDsLeft[k].level;
 
             ///////////////

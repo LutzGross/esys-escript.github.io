@@ -2207,7 +2207,7 @@ escript::Data OxleyDomain::finaliseRhs(escript::Data& rhs)
                 // rhs=rhs_new;
                 return rhs_new;
 
-                #ifdef OXLEY_PRINT_DEBUG_IZ
+                #ifdef OXLEY_PRINT_DEBUG_IZ_RESULT
                     std::cout << "New rhs" << std::endl;
                     rhs.print();
                 #endif
@@ -2309,7 +2309,7 @@ escript::Data OxleyDomain::finaliseRhs(escript::Data& rhs)
                 // rhs=rhs_new;
                 return rhs_new;
 
-                #ifdef OXLEY_PRINT_DEBUG_IZ
+                #ifdef OXLEY_PRINT_DEBUG_IZ_RESULT
                     std::cout << "Final rhs" << std::endl;
                     rhs.print();
                 #endif
@@ -2317,7 +2317,7 @@ escript::Data OxleyDomain::finaliseRhs(escript::Data& rhs)
         }
         else
         {
-            #ifdef OXLEY_PRINT_DEBUG_IZ
+            #ifdef OXLEY_PRINT_DEBUG_IZ_RESULT
                 std::cout << "finaliseRhs...................... no hanging nodes" << std::endl;
             #endif
             return rhs;
