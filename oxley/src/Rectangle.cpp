@@ -2234,16 +2234,18 @@ void Rectangle::updateRowsColumns()
 
     update_RC_data * data;
     data = new update_RC_data;
-
-    p4est_ghost_t * ghost;
-    ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
-    // update_RC_data * ghost_data;
-    update_RC_data * ghost_data = P4EST_ALLOC(data, ghost->ghosts.elem_count);
     data->indices = indices;
     data->pNodeIDs = &NodeIDs;
     data->p4est = p4est;
     data->m_origin[0]=forestData.m_origin[0];
     data->m_origin[1]=forestData.m_origin[1];
+
+    p4est_ghost_t * ghost;
+    ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
+    update_RC_data * ghost_data;
+    ghost_data = (update_RC_data *) malloc(ghost->ghosts.elem_count);
+    // update_RC_data * ghost_data = P4EST_ALLOC(data, ghost->ghosts.elem_count);
+    
 
     p4est_ghost_exchange_data(p4est, ghost, ghost_data);
     // This function loops over all interior faces
@@ -2251,7 +2253,7 @@ void Rectangle::updateRowsColumns()
     // x = Lx and y = Ly
     p4est_iterate_ext(p4est, ghost, data, NULL, update_RC, NULL, true);
     p4est_ghost_destroy(ghost);
-    P4EST_FREE (ghost_data);
+    
 
     #ifdef OXLEY_ENABLE_DEBUG_NODES_DETAILS_A
         std::cout << "Node connections: " << std::endl;
