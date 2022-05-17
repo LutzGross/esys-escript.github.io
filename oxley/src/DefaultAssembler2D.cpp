@@ -685,6 +685,10 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
             int id = domain->m_faceOffset[0]+k;
             int l = domain->NodeIDsLeft[k].level;
 
+            #ifdef OXLEY_ENABLE_DEBUG_ASSEMBLE_PDE_BOUNDARY
+            std::cout << "Left\tid: " << id << " , level: " << l << std::endl;
+            #endif
+
             ///////////////
             // process d //
             ///////////////
@@ -717,6 +721,10 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
                 } else { // constant data
                     EM_F[0] = 6.*w[2][l]*y_p[0];
                     EM_F[2] = 6.*w[2][l]*y_p[0];
+
+                    #ifdef OXLEY_ENABLE_DEBUG_ASSEMBLE_PDE_BOUNDARY
+                        std::cout << "w= " << w[2][l] << ", y= " << y_p[0] << std::endl;
+                    #endif
                 }
             }
             domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, domain->NodeIDsLeft[k]);
@@ -735,6 +743,10 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
         for (index_t k=0; k<domain->NodeIDsRight.size()-1; k++) {
             int id = domain->m_faceOffset[1]+k;
             int l = domain->NodeIDsRight[k].level;
+
+            #ifdef OXLEY_ENABLE_DEBUG_ASSEMBLE_PDE_BOUNDARY
+            std::cout << "Right\tid: " << id << " , level: " << l << std::endl;
+            #endif
 
             ///////////////
             // process d //
@@ -768,6 +780,10 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
                 } else { // constant data
                     EM_F[1] = 6.*w[2][l]*y_p[0];
                     EM_F[3] = 6.*w[2][l]*y_p[0];
+
+                    #ifdef OXLEY_ENABLE_DEBUG_ASSEMBLE_PDE_BOUNDARY
+                        std::cout << "w= " << w[2][l] << ", y= " << y_p[0] << std::endl;
+                    #endif
                 }
             }
             domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, domain->NodeIDsRight[k]);
@@ -786,6 +802,10 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
         for (index_t k=0; k<domain->NodeIDsBottom.size()-1; k++) {
             int id = domain->m_faceOffset[2]+k;
             int l = domain->NodeIDsBottom[k].level;
+
+            #ifdef OXLEY_ENABLE_DEBUG_ASSEMBLE_PDE_BOUNDARY
+            std::cout << "Bottom\tid: " << id << " , level: " << l << std::endl;
+            #endif
 
             ///////////////
             // process d //
@@ -819,6 +839,10 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
                 } else { // constant data
                     EM_F[0] = 6.*w[5][l]*y_p[0];
                     EM_F[1] = 6.*w[5][l]*y_p[0];
+
+                    #ifdef OXLEY_ENABLE_DEBUG_ASSEMBLE_PDE_BOUNDARY
+                        std::cout << "w= " << w[5][l] << ", y= " << y_p[0] << std::endl;
+                    #endif
                 }
             }
             domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, domain->NodeIDsBottom[k]);
@@ -838,6 +862,11 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
         for (index_t k=0; k<domain->NodeIDsTop.size()-1; k++) {
             int id = domain->m_faceOffset[3]+k;
             int l = domain->NodeIDsTop[k].level;
+
+            #ifdef OXLEY_ENABLE_DEBUG_ASSEMBLE_PDE_BOUNDARY
+            std::cout << "Top\tid: " << id << " , level: " << l << std::endl;
+            #endif
+
             ///////////////
             // process d //
             ///////////////
@@ -870,6 +899,10 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySingle(
                 } else { // constant data
                     EM_F[2] = 6.*w[5][l]*y_p[0];
                     EM_F[3] = 6.*w[5][l]*y_p[0];
+
+                    #ifdef OXLEY_ENABLE_DEBUG_ASSEMBLE_PDE_BOUNDARY
+                        std::cout << "w= " << w[5][l] << ", y= " << y_p[0] << std::endl;
+                    #endif
                 }
             }
             domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S, addEM_F, domain->NodeIDsTop[k]);
