@@ -290,6 +290,8 @@ private:
     std::unordered_map<DoublePair,long,boost::hash<DoublePair>> treeIDs; //global ids of the hanging nodes
     std::unordered_map<long,double> current_solution; //solution at each node
     std::vector<long> quadrantIDs; // IDs of the quadrants
+    std::vector<quad_info> quadrantInfo;
+
 
     std::vector<borderNodeInfo> NodeIDsTop;
     std::vector<borderNodeInfo> NodeIDsBottom;

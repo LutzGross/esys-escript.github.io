@@ -215,6 +215,13 @@ struct addSurfaceData {
 
 };
 
+struct quad_info {
+	int level;
+	//bottom left coordinate
+	double x;
+	double y;
+};
+
 struct update_RC_data {
 
 	std::unordered_map<DoublePair,long,boost::hash<DoublePair>> * pNodeIDs; 
@@ -223,6 +230,7 @@ struct update_RC_data {
 	std::vector< std::vector<long> > * indices;
 	double m_origin[2]={0};
 
+	std::vector<quad_info> * pQuadInfo;
 };
 
 struct getConnections_data {

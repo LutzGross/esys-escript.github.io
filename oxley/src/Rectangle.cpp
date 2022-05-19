@@ -1403,6 +1403,7 @@ void Rectangle::renumberNodes()
     NodeIDs.clear();
     hanging_face_orientation.clear();
     quadrantIDs.clear();
+    quadrantInfo.clear();
     std::vector<DoublePair> NormalNodes;
     std::vector<DoublePair> HangingNodes;
 
@@ -1491,8 +1492,22 @@ void Rectangle::renumberNodes()
             double xy[3];
             p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x, quad->y, xy);
             quadrantIDs.push_back(NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
+            quad_info tmp;
+            tmp.x=xy[0];
+            tmp.y=xy[1];
+            tmp.level=quad->level;
+            quadrantInfo.push_back(tmp);
         }
     }
+
+#ifdef OXLEY_PRINT_QUAD_INFO
+    std::cout << "There are " << quadrantIDs.size() << " quadrants" << std::endl;
+    for(int i = 0; i < quadrantInfo.size(); i++)
+    {
+        std::cout << i << ": (" << quadrantInfo[i].x << ", " << quadrantInfo[i].y << "), l =" 
+                << quadrantInfo[i].level << std::endl;
+    }
+#endif
 
 #ifdef OXLEY_PRINT_NODEIDS
     std::cout << "Printing NodeIDs " << std::endl;
@@ -2150,7 +2165,6 @@ dim_t Rectangle::getNumFaceElements() const
 {
     return m_faceCount[0]+m_faceCount[1]+m_faceCount[2]+m_faceCount[3];
     
-
 // #ifdef ENABLE_OPENMP
 //     long numFaceElements[omp_get_num_threads()] = {0};
 //     for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) // Loop over every tree
@@ -2239,6 +2253,7 @@ void Rectangle::updateRowsColumns()
     data->p4est = p4est;
     data->m_origin[0]=forestData.m_origin[0];
     data->m_origin[1]=forestData.m_origin[1];
+    data->pQuadInfo = &quadrantInfo;
 
     p4est_ghost_t * ghost;
     ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
@@ -2459,7 +2474,7 @@ void Rectangle::updateRowsColumns()
     }
 #endif
 
-#ifdef OXLEY_ENABLE_DEBUG_NODES_DETAILS
+#ifdef OXLEY_ENABLE_DEBUG_NODES_CONNNECTIONS
     std::cout << "Node connections: " << std::endl;
     // Output for debugging
     for(int i = getNumNodes()-0.5*num_hanging; i < getNumNodes(); i++){

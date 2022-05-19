@@ -789,22 +789,48 @@ void update_RC(p4est_iter_face_info_t *info, void *user_data)
     
     p4est_quadrant_t * quad;
     if(side->is_hanging)
-        quad = side->is.hanging.quad[0];
-    else
-        quad = side->is.full.quad;
+        return;
+    quad = side->is.full.quad;
 
-    // First Node
-    double xy[3];
-    p4est_qcoord_to_vertex(data->p4est->connectivity, side->treeid, quad->x, quad->y, xy);
-    long lni0 = data->pNodeIDs->find(std::make_pair(xy[0],xy[1]))->second;
-
-    // Second node
-    p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
+    double xy0[3], xyA[3], xyB[3];
+    
+    // Do nothing if this isn't a lower quadrant
+    p4est_qcoord_to_vertex(data->p4est->connectivity, side->treeid, quad->x, quad->y, xy0);
+    quad_info tmp;
+    tmp.x=xy0[0];
+    tmp.y=xy0[1];
+    tmp.level=quad->level;
+    bool lower_quadrant=false;
+    for(int i=0;i<data->pQuadInfo->size();i++)
+    {
+        if((tmp.x     == data->pQuadInfo[0][i].x)
+        && (tmp.y     == data->pQuadInfo[0][i].y)
+        && (tmp.level == data->pQuadInfo[0][i].level))
+        {
+            lower_quadrant=true;
+            break;
+        }
+    }
+    if(!lower_quadrant)
+        return;
+    
+    // Calculate the length of the side
+    p4est_qcoord_t l = P4EST_QUADRANT_LEN(quad->level);
     int fn = (int) side->face;
-    long lx = ((fn < 2) == 0) * length;
-    long ly = ((fn >= 2) == 0) * length;
-    p4est_qcoord_to_vertex(data->p4est->connectivity, side->treeid, quad->x+lx, quad->y+ly, xy);
-    long lni1 = data->pNodeIDs->find(std::make_pair(xy[0],xy[1]))->second;
+    long lx[4][2] = {{0,0},{l,l},{0,l},{0,l}};
+    long ly[4][2] = {{0,l},{0,l},{0,0},{l,l}};
+
+    p4est_qcoord_to_vertex(data->p4est->connectivity, side->treeid, quad->x+lx[fn][0], quad->y+ly[fn][0], xyA);
+    long lni0 = data->pNodeIDs->find(std::make_pair(xyA[0],xyA[1]))->second;
+    #ifdef OXLEY_ENABLE_DEBUG_UPDATE_RC_EXTRA
+        std::cout << "(" << xyA[0] << ", " << xyA[1] << ")\t";
+    #endif
+    p4est_qcoord_to_vertex(data->p4est->connectivity, side->treeid, quad->x+lx[fn][1], quad->y+ly[fn][1], xyB);
+    long lni1 = data->pNodeIDs->find(std::make_pair(xyB[0],xyB[1]))->second;
+    #ifdef OXLEY_ENABLE_DEBUG_UPDATE_RC_EXTRA
+        std::cout << "(" << xyB[0] << ", " << xyB[1] << ")";
+        std::cout << std::endl;
+    #endif
 
     std::vector<long> * idx0 = &data->indices[0][lni0];
     std::vector<long> * idx1 = &data->indices[0][lni1];
@@ -816,6 +842,23 @@ void update_RC(p4est_iter_face_info_t *info, void *user_data)
             dup = true;
             break;
         }
+
+    #ifdef OXLEY_ENABLE_DEBUG_UPDATE_RC_EXTRA
+        std::cout << "level= " << (int) quad->level ;
+        std::cout << "; hanging side " << (int) side->is_hanging;
+        std::cout << "; face= " << fn;
+        std::cout << "; (x,y)=(" << xy0[0] << ", " << xy0[1] << ")      \t";
+        if(dup)
+        {
+            std::cout << " connection " << lni0 << "---" << lni1;
+            std::cout << "\t(dupliate)" << std::endl;
+        }
+        else
+        {
+            std::cout << " connection " << lni0 << "---" << lni1;
+            std::cout << "\t(not dupliate)" << std::endl;    
+        }        
+    #endif
 
     if(dup == false)
     {
