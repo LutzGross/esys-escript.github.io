@@ -2303,8 +2303,8 @@ void Rectangle::updateRowsColumns()
                 {
                     idx0[0][0]++;
                     idx1[0][0]++;
-                    ESYS_ASSERT(idx0[0][0]<=4, "updateRowsColumns index out of bound 1");
-                    ESYS_ASSERT(idx1[0][0]<=4, "updateRowsColumns index out of bound 2");
+                    ESYS_ASSERT(idx0[0][0]<=4, "updateRowsColumns index out of bound ");
+                    ESYS_ASSERT(idx1[0][0]<=4, "updateRowsColumns index out of bound ");
                     idx0[0][idx0[0][0]]=lni1;
                     idx1[0][idx1[0][0]]=lni0;
                 }
@@ -2332,8 +2332,8 @@ void Rectangle::updateRowsColumns()
                 {
                     idx0[0][0]++;
                     idx1[0][0]++;
-                    ESYS_ASSERT(idx0[0][0]<=4, "updateRowsColumns index out of bound 3");
-                    ESYS_ASSERT(idx1[0][0]<=4, "updateRowsColumns index out of bound 4");
+                    ESYS_ASSERT(idx0[0][0]<=4, "updateRowsColumns index out of bound ");
+                    ESYS_ASSERT(idx1[0][0]<=4, "updateRowsColumns index out of bound ");
                     idx0[0][idx0[0][0]]=lni1;
                     idx1[0][idx1[0][0]]=lni0;
                 }
@@ -2368,8 +2368,24 @@ void Rectangle::updateRowsColumns()
         std::vector<long> * idx1b = &indices[0][lni1];
         std::vector<long> * idx1c = &indices[0][lni2];
 
+        #ifdef OXLEY_ENABLE_DEBUG_NODES_EXTRA_DETAILS
+            std::cout << "nodeid = " << nodeid << ": " << idx0[0][0] << ", " << idx0[0][1] << ", " << idx0[0][2] << ", " << idx0[0][3] << ", " << idx0[0][4] << std::endl;
+            std::cout << lni0 << ": " << idx1a[0][0] << ", " << idx1a[0][1] << ", " << idx1a[0][2] << ", " << idx1a[0][3] << ", " << idx1a[0][4] << std::endl;
+            std::cout << lni1 << ": " << idx1b[0][0] << ", " << idx1b[0][1] << ", " << idx1b[0][2] << ", " << idx1b[0][3] << ", " << idx1b[0][4] << std::endl;
+            std::cout << lni2 << ": " << idx1c[0][0] << ", " << idx1c[0][1] << ", " << idx1c[0][2] << ", " << idx1c[0][3] << ", " << idx1c[0][4] << std::endl;
+        #endif
+
+        // Remove spurious connections, if they exist
+        for(int i = 1; i < 5; i++)
+        {
+            if(idx1a[0][i]==lni1)
+                idx1a[0][i]=nodeid;
+            if(idx1b[0][i]==lni0)
+                idx1b[0][i]=nodeid;
+        }
+
         // Check to see if these are new connections
-        bool new_connections[3]={{true}};
+        bool new_connections[3]={true,true,true};
         for(int i=1;i<5;i++)
         {
             if(idx1a[0][i]==nodeid)
@@ -2384,16 +2400,21 @@ void Rectangle::updateRowsColumns()
         if(new_connections[0]==true)
         {
             idx1a[0][0]++;
+            if(idx1a[0][0]>4)
+                std::cout << "ae " << std::endl;
+            ESYS_ASSERT(idx1a[0][0]<=4, "updateRowsColumns index out of bound ");
             idx1a[0][idx1a[0][0]]=nodeid;
         }
         if(new_connections[1]==true)
         {
             idx1b[0][0]++;
+            ESYS_ASSERT(idx1b[0][0]<=4, "updateRowsColumns index out of bound ");
             idx1b[0][idx1b[0][0]]=nodeid;
         }
         if(new_connections[2]==true)
         {
             idx1c[0][0]++;
+            ESYS_ASSERT(idx1c[0][0]<=4, "updateRowsColumns index out of bound ");
             idx1c[0][idx1c[0][0]]=nodeid;
         }
         
@@ -2411,7 +2432,7 @@ void Rectangle::updateRowsColumns()
     num_hanging=hanging_faces.size();
 
     // Sorting
-#pragma omp for
+// #pragma omp for
     for(int i = 0; i < getNumNodes(); i++)
     {
         std::vector<long> * idx0 = &indices[0][i];
