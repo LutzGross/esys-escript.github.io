@@ -88,6 +88,11 @@ struct hangingNodeInfo
 	int8_t level;
 	p4est_topidx_t treeid;
 	int face_orientation={-1}; 
+	
+	p4est_qcoord_t neighbour_x;
+	p4est_qcoord_t neighbour_y;
+	p4est_qcoord_t neighbour_l;
+	p4est_topidx_t neighbour_tree;
 };
 
 struct octantData

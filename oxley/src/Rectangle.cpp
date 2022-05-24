@@ -1442,6 +1442,23 @@ void Rectangle::renumberNodes()
                         tmp2.level=quad->level;
                         tmp2.treeid=treeid;
                         tmp2.face_orientation=orient_lookup[n][hanging[n]];
+                        ESYS_ASSERT(tmp2.face_orientation!=-1, "renumberNodes: Unknown programming error");
+                        p4est_quadrant_t * parent;
+                        p4est_quadrant_t parent_quad;
+                        parent = &parent_quad;
+                        p4est_quadrant_parent(quad, parent);
+                        ESYS_ASSERT(p4est_quadrant_is_parent(parent, quad), "renumberNodes: Unknown programming error");
+                        ESYS_ASSERT(p4est_quadrant_is_valid(parent),"renumberNodes: Unknown programming error");
+                        p4est_quadrant_t * neighbour;
+                        int * nface = NULL;
+                        int tree = p4est_quadrant_face_neighbor_extra(parent, tree, tmp2.face_orientation, neighbour, nface, connectivity);
+                        if(tree==-1)
+                            tree = treeid; // This should never happen
+                        ESYS_ASSERT(p4est_quadrant_is_valid(neighbour),"renumberNodes: Unknown programming error");
+                        tmp2.neighbour_x=neighbour->x;
+                        tmp2.neighbour_y=neighbour->y;
+                        tmp2.neighbour_l=neighbour->level;
+                        tmp2.neighbour_tree=tree;
                         hanging_face_orientation.push_back(tmp2);
                         HangingNodes.push_back(tmp);
                     }
@@ -2819,7 +2836,7 @@ std::vector<IndexVector> Rectangle::getConnections(bool includeShared) const
     // data->p4est = p4est;
     // p4est_iterate(p4est, NULL, data, update_connections, NULL, NULL);
 
-    // Loop over the quadrants skipped by p4est_iterate  
+    // Loop over the quadrants skipped by p4est_iterate 
     for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) 
     {
         p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
@@ -2832,9 +2849,6 @@ std::vector<IndexVector> Rectangle::getConnections(bool includeShared) const
             p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
             for(int n = 0; n < 4; n++)
             {
-                // if(!isUpperBoundaryNode(quad, n, treeid, length))
-                //     continue;
-
                 double xy[3];
                 long lx[4] = {0,length,0,length};
                 long ly[4] = {0,0,length,length};
@@ -2864,21 +2878,92 @@ std::vector<IndexVector> Rectangle::getConnections(bool includeShared) const
         }
     }
 
+    // Hanging Nodes
+    for(int i = 0; i < hanging_face_orientation.size(); i++)
+    {       
+        // Calculate the node ids
+        double xy[3]={0};
+        p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, 
+                                                    hanging_face_orientation[i].x, 
+                                                    hanging_face_orientation[i].y, xy);
+        long nodeid = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+ 
+        p4est_qcoord_t l = P4EST_QUADRANT_LEN(hanging_face_orientation[i].neighbour_l);
+        p4est_qcoord_t x_inc[4][2]={{0,0},{l,0},{0,l},{0,l}};
+        p4est_qcoord_t y_inc[4][2]={{0,l},{l,l},{0,0},{l,l}};
+
+        p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].neighbour_tree, 
+                hanging_face_orientation[i].neighbour_x+x_inc[hanging_face_orientation[i].face_orientation][0], 
+                hanging_face_orientation[i].neighbour_y+y_inc[hanging_face_orientation[i].face_orientation][0], xy);
+        long lni0 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+        p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].neighbour_tree, 
+                hanging_face_orientation[i].neighbour_x+x_inc[hanging_face_orientation[i].face_orientation][1], 
+                hanging_face_orientation[i].neighbour_y+y_inc[hanging_face_orientation[i].face_orientation][1], xy);
+        long lni1 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+
+        // switch(hanging_face_orientation[i].face_orientation)
+        // {
+        //     case 0:
+        //     {
+        //         p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].neighbour_tree, hanging_face_orientation[i].neighbour_x, hanging_face_orientation[i].neighbour_y, xy);
+        //         lni0 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+        //         p4est_qcoord_t l = P4EST_QUADRANT_LEN(hanging_face_orientation[i].neighbour_l);
+        //         p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].neighbour_tree, hanging_face_orientation[i].neighbour_x, hanging_face_orientation[i].neighbour_y+l, xy);
+        //         lni1 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+        //         break;
+        //     }
+        //     case 1:
+        //     {
+        //         p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].neighbour_tree, hanging_face_orientation[i].neighbour_x+l, hanging_face_orientation[i].neighbour_y, xy);
+        //         lni0 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+        //         p4est_qcoord_t l = P4EST_QUADRANT_LEN(hanging_face_orientation[i].neighbour_l);
+        //         p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].neighbour_tree, hanging_face_orientation[i].neighbour_x+l, hanging_face_orientation[i].neighbour_y+l, xy);
+        //         lni1 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+        //         break;
+        //     }
+        //     case 2:
+        //     {
+        //         p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].neighbour_tree, hanging_face_orientation[i].neighbour_x, hanging_face_orientation[i].neighbour_y, xy);
+        //         lni0 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+        //         p4est_qcoord_t l = P4EST_QUADRANT_LEN(hanging_face_orientation[i].neighbour_l);
+        //         p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].neighbour_tree, hanging_face_orientation[i].neighbour_x+l, hanging_face_orientation[i].neighbour_y, xy);
+        //         lni1 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+        //         break;
+        //     }
+        //     case 3:
+        //     {
+        //         p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].neighbour_tree, hanging_face_orientation[i].neighbour_x, hanging_face_orientation[i].neighbour_y+l, xy);
+        //         lni0 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+        //         p4est_qcoord_t l = P4EST_QUADRANT_LEN(hanging_face_orientation[i].neighbour_l);
+        //         p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].neighbour_tree, hanging_face_orientation[i].neighbour_x+l, hanging_face_orientation[i].neighbour_y+l, xy);
+        //         lni1 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+        //         break;
+        //     }
+        // }
+
+        // add info 
+        std::cout << nodeid << ": " << lni0 << ", " << lni1 << std::endl;
+        indices[nodeid].push_back(lni0);
+        indices[nodeid].push_back(lni1);
+        // indices[lni0].push_back(nodeid);
+        // indices[lni1].push_back(nodeid);
+    }    
+
 // Sorting
 // #pragma omp parallel for
     for(int i = 0; i < numNodes; i++){
         std::sort(indices[i].begin(), indices[i].begin()+indices[i].size());
     }
 
-// #ifdef OXLEY_ENABLE_DEBUG
-//     std::cout << "Rectangle::getConnections" << std::endl;
-//     for(int i = 0; i < numNodes; i++) {
-//         std::cout << "i:" << i << " ";
-//         for(auto j = 0; j < indices[i].size(); j++)
-//             std::cout << indices[i][j] << ", ";
-//         std::cout << std::endl;
-//     }
-// #endif
+#ifdef OXLEY_ENABLE_DEBUG_GETCONNECTIONS
+    std::cout << "Rectangle::getConnections" << std::endl;
+    for(int i = 0; i < numNodes; i++) {
+        std::cout << i << ": ";
+        for(auto j = 0; j < indices[i].size(); j++)
+            std::cout << indices[i][j] << ", ";
+        std::cout << std::endl;
+    }
+#endif
 
     return indices;
 }

@@ -1256,14 +1256,16 @@ esys_trilinos::const_TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
         copy(conns[i].begin(), conns[i].end(), &colInd[rowPtr[i]]);
     }
 
-    // for(int i = 0; i < getNumDataPointsGlobal(); i++)
-    //     std::cout << "myRows["<<i<<"]: " << rowTemp[i]<<std::endl;
-    // for(int i = 0; i < getNumDataPointsGlobal(); i++)
-    //     std::cout << "colMap["<<i<<"]: " << rowTemp[i]<<std::endl;
-    // for(int i = 0; i < numMatrixRows+1; i++)
-    //     std::cout << "rowPtr["<<i<<"]: " << rowPtr[i]<<std::endl;
-    // for(int i = 0; i < rowPtr[numMatrixRows]; i++)
-    //     std::cout << "colInd["<<i<<"]: " << colInd[i]<<std::endl;
+    #ifdef OXLEY_ENABLE_DEBUG_CREATE_TRI_GRAPH
+    for(int i = 0; i < getNumDataPointsGlobal(); i++)
+        std::cout << "myRows["<<i<<"]: " << rowTemp[i]<<std::endl;
+    for(int i = 0; i < getNumDataPointsGlobal(); i++)
+        std::cout << "colMap["<<i<<"]: " << rowTemp[i]<<std::endl;
+    for(int i = 0; i < numMatrixRows+1; i++)
+        std::cout << "rowPtr["<<i<<"]: " << rowPtr[i]<<std::endl;
+    for(int i = 0; i < rowPtr[numMatrixRows]; i++)
+        std::cout << "colInd["<<i<<"]: " << colInd[i]<<std::endl;
+    #endif
 
     // params
     TrilinosGraph_ptr graph(new GraphType(rowMap, colMap, rowPtr, colInd));
@@ -1472,14 +1474,16 @@ esys_trilinos::const_TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
 {
     using namespace esys_trilinos;
 
-    IndexVector rowTemp(NumDataPointsGlobal);
-    #pragma omp for
-        for(long i = 0; i < NumDataPointsGlobal; i++)
-            rowTemp[i] = i;
+    // IndexVector rowTemp(NumDataPointsGlobal);
+    // #pragma omp for
+    //     for(long i = 0; i < NumDataPointsGlobal; i++)
+    //         rowTemp[i] = i;
 
     // rowMap
-    TrilinosMap_ptr rowMap(new MapType(NumDataPointsGlobal, rowTemp, 0, TeuchosCommFromEsysComm(m_mpiInfo->comm)));
-    TrilinosMap_ptr colMap(new MapType(NumDataPointsGlobal, rowTemp, 0, TeuchosCommFromEsysComm(m_mpiInfo->comm)));
+    auto comm = TeuchosCommFromEsysComm(m_mpiInfo->comm);
+    long indexBase;
+    TrilinosMap_ptr rowMap(new MapType(NumDataPointsGlobal, indexBase, comm));
+    TrilinosMap_ptr colMap(new MapType(NumDataPointsGlobal, indexBase, comm));
     
     // rowPtr
     const vector<IndexVector>& conns(connections);
@@ -1495,6 +1499,7 @@ esys_trilinos::const_TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
         copy(conns[i].begin(), conns[i].end(), &colInd[rowPtr[i]]);
     }
 
+    // std::cout << "createTrilinosGraph" << std::endl;
     // for(int i = 0; i < getNumDataPointsGlobal(); i++)
     //     std::cout << "myRows["<<i<<"]: " << rowTemp[i]<<std::endl;
     // for(int i = 0; i < getNumDataPointsGlobal(); i++)
@@ -1508,7 +1513,7 @@ esys_trilinos::const_TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
     TrilinosGraph_ptr graph(new GraphType(rowMap, colMap, rowPtr, colInd));
     Teuchos::RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
     params->set("Optimize Storage", true);
-    graph->fillComplete(rowMap, rowMap, params);
+    graph->fillComplete(rowMap, colMap, params);
     return graph;
 }
 
