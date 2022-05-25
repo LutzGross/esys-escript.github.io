@@ -2888,8 +2888,8 @@ std::vector<IndexVector> Rectangle::getConnections(bool includeShared) const
         long nodeid = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
  
         p4est_qcoord_t l = P4EST_QUADRANT_LEN(hanging_face_orientation[i].neighbour_l);
-        p4est_qcoord_t x_inc[4][2]={{0,0},{l,0},{0,l},{0,l}};
-        p4est_qcoord_t y_inc[4][2]={{0,l},{l,l},{0,0},{l,l}};
+        p4est_qcoord_t x_inc[4][2]={{0,0},{l,l},{0,l},{0,l}};
+        p4est_qcoord_t y_inc[4][2]={{0,l},{0,l},{0,0},{l,l}};
 
         p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].neighbour_tree, 
                 hanging_face_orientation[i].neighbour_x+x_inc[hanging_face_orientation[i].face_orientation][0], 
@@ -2905,8 +2905,8 @@ std::vector<IndexVector> Rectangle::getConnections(bool includeShared) const
         indices[nodeid].push_back(lni0);
         indices[nodeid].push_back(lni1);
 
-        // indices[lni0].push_back(nodeid);
-        // indices[lni1].push_back(nodeid);
+        indices[lni0].push_back(nodeid);
+        indices[lni1].push_back(nodeid);
     }    
 
 // Sorting
