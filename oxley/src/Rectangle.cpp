@@ -1447,18 +1447,17 @@ void Rectangle::renumberNodes()
                         p4est_quadrant_t parent_quad;
                         parent = &parent_quad;
                         p4est_quadrant_parent(quad, parent);
-                        ESYS_ASSERT(p4est_quadrant_is_parent(parent, quad), "renumberNodes: Unknown programming error");
-                        ESYS_ASSERT(p4est_quadrant_is_valid(parent),"renumberNodes: Unknown programming error");
+                        ESYS_ASSERT(p4est_quadrant_is_parent(parent, quad), "renumberNodes: Quadrant is not parent");
+                        ESYS_ASSERT(p4est_quadrant_is_valid(parent),"renumberNodes: Invalid parent quadrant");
                         p4est_quadrant_t * neighbour;
                         int * nface = NULL;
-                        int tree = p4est_quadrant_face_neighbor_extra(parent, tree, tmp2.face_orientation, neighbour, nface, connectivity);
-                        if(tree==-1)
-                            tree = treeid; // This should never happen
-                        ESYS_ASSERT(p4est_quadrant_is_valid(neighbour),"renumberNodes: Unknown programming error");
+                        int newtree = p4est_quadrant_face_neighbor_extra(parent, treeid, tmp2.face_orientation, neighbour, nface, connectivity);
+                        ESYS_ASSERT(newtree!=-1, "renumberNodes: Invalid neighbour tree");
+                        ESYS_ASSERT(p4est_quadrant_is_valid(neighbour),"renumberNodes: Invalid neighbour quadrant");
                         tmp2.neighbour_x=neighbour->x;
                         tmp2.neighbour_y=neighbour->y;
                         tmp2.neighbour_l=neighbour->level;
-                        tmp2.neighbour_tree=tree;
+                        tmp2.neighbour_tree=newtree;
                         hanging_face_orientation.push_back(tmp2);
                         HangingNodes.push_back(tmp);
                     }
@@ -2901,50 +2900,11 @@ std::vector<IndexVector> Rectangle::getConnections(bool includeShared) const
                 hanging_face_orientation[i].neighbour_y+y_inc[hanging_face_orientation[i].face_orientation][1], xy);
         long lni1 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
 
-        // switch(hanging_face_orientation[i].face_orientation)
-        // {
-        //     case 0:
-        //     {
-        //         p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].neighbour_tree, hanging_face_orientation[i].neighbour_x, hanging_face_orientation[i].neighbour_y, xy);
-        //         lni0 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-        //         p4est_qcoord_t l = P4EST_QUADRANT_LEN(hanging_face_orientation[i].neighbour_l);
-        //         p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].neighbour_tree, hanging_face_orientation[i].neighbour_x, hanging_face_orientation[i].neighbour_y+l, xy);
-        //         lni1 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-        //         break;
-        //     }
-        //     case 1:
-        //     {
-        //         p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].neighbour_tree, hanging_face_orientation[i].neighbour_x+l, hanging_face_orientation[i].neighbour_y, xy);
-        //         lni0 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-        //         p4est_qcoord_t l = P4EST_QUADRANT_LEN(hanging_face_orientation[i].neighbour_l);
-        //         p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].neighbour_tree, hanging_face_orientation[i].neighbour_x+l, hanging_face_orientation[i].neighbour_y+l, xy);
-        //         lni1 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-        //         break;
-        //     }
-        //     case 2:
-        //     {
-        //         p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].neighbour_tree, hanging_face_orientation[i].neighbour_x, hanging_face_orientation[i].neighbour_y, xy);
-        //         lni0 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-        //         p4est_qcoord_t l = P4EST_QUADRANT_LEN(hanging_face_orientation[i].neighbour_l);
-        //         p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].neighbour_tree, hanging_face_orientation[i].neighbour_x+l, hanging_face_orientation[i].neighbour_y, xy);
-        //         lni1 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-        //         break;
-        //     }
-        //     case 3:
-        //     {
-        //         p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].neighbour_tree, hanging_face_orientation[i].neighbour_x, hanging_face_orientation[i].neighbour_y+l, xy);
-        //         lni0 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-        //         p4est_qcoord_t l = P4EST_QUADRANT_LEN(hanging_face_orientation[i].neighbour_l);
-        //         p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].neighbour_tree, hanging_face_orientation[i].neighbour_x+l, hanging_face_orientation[i].neighbour_y+l, xy);
-        //         lni1 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-        //         break;
-        //     }
-        // }
-
         // add info 
-        std::cout << nodeid << ": " << lni0 << ", " << lni1 << std::endl;
+        // std::cout << nodeid << ": " << lni0 << ", " << lni1 << std::endl;
         indices[nodeid].push_back(lni0);
         indices[nodeid].push_back(lni1);
+
         // indices[lni0].push_back(nodeid);
         // indices[lni1].push_back(nodeid);
     }    
