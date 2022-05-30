@@ -1224,7 +1224,7 @@ esys_trilinos::const_TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
     const dim_t numMatrixRows = getNumNodes();
 
     IndexVector rowTemp(getNumDataPointsGlobal());
-    if(getMPISize() == 1) //TODO
+    if(getMPISize() == 1)
     {
     #pragma omp for
         for(long i = 0; i < getNumDataPointsGlobal(); i++)
@@ -1251,33 +1251,20 @@ esys_trilinos::const_TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
     Teuchos::ArrayRCP<LO> colInd(rowPtr[numMatrixRows]);
 
     // colInd
-// #pragma omp parallel for
+#pragma omp parallel for
     for (index_t i=0; i < numMatrixRows; i++) {
         copy(conns[i].begin(), conns[i].end(), &colInd[rowPtr[i]]);
     }
 
     #ifdef OXLEY_ENABLE_DEBUG_CREATE_TRI_GRAPH
-        // for(int i = 0; i < getNumDataPointsGlobal(); i++)
-        //     std::cout << "myRows["<<i<<"]: " << rowTemp[i]<<std::endl;
-        // for(int i = 0; i < getNumDataPointsGlobal(); i++)
-        //     std::cout << "colMap["<<i<<"]: " << rowTemp[i]<<std::endl;
-        std::cout << "RowPtr = [";
+        for(int i = 0; i < getNumDataPointsGlobal(); i++)
+            std::cout << "myRows["<<i<<"]: " << rowTemp[i]<<std::endl;
+        for(int i = 0; i < getNumDataPointsGlobal(); i++)
+            std::cout << "colMap["<<i<<"]: " << rowTemp[i]<<std::endl;
         for(int i = 0; i < numMatrixRows+1; i++)
-            std::cout << rowPtr[i] << ", ";
-        std::cout << "]" << std::endl << "colInd = [";
+            std::cout << "rowPtr["<<i<<"]: " << rowPtr[i]<<std::endl;
         for(int i = 0; i < rowPtr[numMatrixRows]; i++)
-            std::cout << colInd[i] << ", ";
-        std::cout << "]" << std::endl;
-    #endif
-
-    #ifdef OXLEY_ENABLE_DEBUG_CREATE_TRI_GRAPH_MATRIX
-        for(int i=0; i < numMatrixRows; i++)
-        {
-            std::cout << i << ": ";
-            for(int j=rowPtr[i];j<rowPtr[i+1];j++)
-                std::cout << colInd[j] << ", ";
-            std::cout << std::endl;
-        }
+            std::cout << "colInd["<<i<<"]: " << colInd[i]<<std::endl;
     #endif
 
     // params
@@ -2317,7 +2304,7 @@ escript::Data OxleyDomain::finaliseRhs(escript::Data& rhs)
                 auto result_view_1d = Kokkos::subview(result_view, Kokkos::ALL(), 0);
 
                 origFsTypecode=rhs.getFunctionSpace().getTypeCode();
-                escript::FunctionSpace new_fs = escript::FunctionSpace(rhs.getFunctionSpace().getDomain(), getSolutionCode());
+                escript::FunctionSpace new_fs = escript::FunctionSpace(rhs.getFunctionSpace().getDomain(), DegreesOfFreedom);
                 real_t value(0);
                 bool expanded=true;
                 escript::Data rhs_new = escript::Data(value, rhs.getDataPointShape(), new_fs, expanded);

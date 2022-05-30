@@ -1517,33 +1517,27 @@ void Rectangle::renumberNodes()
     }
 
     //update hanging face information
-    is_hanging_face.clear();
-    std::vector<long> tmp={-1};
-    is_hanging_face.resize(getNumNodes(),tmp);
-    // std::vector<std::vector<long>> * indices;
-    // indices = new std::vector<std::vector<long>>;
-    // long initial[] = {0, -1, -1, -1, -1};
-    // is_hanging_face->resize(getNumNodes(), std::vector<long>(initial, initial+5))
-    for(int i = 0; i < hanging_face_orientation.size(); i++)
-    {
-        // Distances to neighbouring nodes
-        p4est_qcoord_t l = P4EST_QUADRANT_LEN(hanging_face_orientation[i].level);
-        p4est_qcoord_t xlookup[4][2] = {{0,0}, {0,0}, {-l,l}, {-l,l}};
-        p4est_qcoord_t ylookup[4][2] = {{-l,l}, {-l,l}, {0,0}, {0,0}};
-        p4est_qcoord_t zlookup[4][2] = {{l,0}, {-l,0}, {0,l}, {0,-l}};
+    // is_hanging_face.clear();
+    // std::vector<long> tmp={-1};
+    // is_hanging_face.resize(getNumNodes(),tmp);
+    // for(int i = 0; i < hanging_face_orientation.size(); i++)
+    // {
+        // // Distances to neighbouring nodes
+        // p4est_qcoord_t l = P4EST_QUADRANT_LEN(hanging_face_orientation[i].level);
+        // p4est_qcoord_t xlookup[4][2] = {{0,0}, {0,0}, {-l,l}, {-l,l}};
+        // p4est_qcoord_t ylookup[4][2] = {{-l,l}, {-l,l}, {0,0}, {0,0}};
+        // p4est_qcoord_t zlookup[4][2] = {{l,0}, {-l,0}, {0,l}, {0,-l}};
 
-        // Calculate the node ids
-        double xy[3]={0};
-        p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, hanging_face_orientation[i].x, hanging_face_orientation[i].y, xy);
-        long nodeid = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-        p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, hanging_face_orientation[i].x+xlookup[hanging_face_orientation[i].face_orientation][0], hanging_face_orientation[i].y+ylookup[hanging_face_orientation[i].face_orientation][0], xy);
-        long lni0   = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-        p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, hanging_face_orientation[i].x+xlookup[hanging_face_orientation[i].face_orientation][1], hanging_face_orientation[i].y+ylookup[hanging_face_orientation[i].face_orientation][1], xy);
-        long lni1   = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+        // // Calculate the node ids
+        // double xy[3]={0};
+        // p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, hanging_face_orientation[i].x+xlookup[hanging_face_orientation[i].face_orientation][0], hanging_face_orientation[i].y+ylookup[hanging_face_orientation[i].face_orientation][0], xy);
+        // long lni0   = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+        // p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, hanging_face_orientation[i].x+xlookup[hanging_face_orientation[i].face_orientation][1], hanging_face_orientation[i].y+ylookup[hanging_face_orientation[i].face_orientation][1], xy);
+        // long lni1   = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
 
-        is_hanging_face[lni0].push_back(lni1);
-        is_hanging_face[lni1].push_back(lni0);
-    }
+        // is_hanging_face[lni0].push_back(lni1);
+        // is_hanging_face[lni1].push_back(lni0);
+    // }
 
 #ifdef OXLEY_PRINT_QUAD_INFO
     std::cout << "There are " << quadrantIDs.size() << " quadrants" << std::endl;
@@ -2445,6 +2439,8 @@ void Rectangle::updateRowsColumns()
         if(new_connections[0]==true)
         {
             idx1a[0][0]++;
+            if(idx1a[0][0]>4)
+                std::cout << "ae " << std::endl;
             ESYS_ASSERT(idx1a[0][0]<=4, "updateRowsColumns index out of bound ");
             idx1a[0][idx1a[0][0]]=nodeid;
         }
