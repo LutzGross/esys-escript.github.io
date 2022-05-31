@@ -1450,6 +1450,8 @@ void Rectangle::renumberNodes()
                         ESYS_ASSERT(p4est_quadrant_is_parent(parent, quad), "renumberNodes: Quadrant is not parent");
                         ESYS_ASSERT(p4est_quadrant_is_valid(parent),"renumberNodes: Invalid parent quadrant");
                         p4est_quadrant_t * neighbour;
+                        p4est_quadrant_t neighbour_quad;
+                        neighbour = &neighbour_quad;
                         int * nface = NULL;
                         int newtree = p4est_quadrant_face_neighbor_extra(parent, treeid, tmp2.face_orientation, neighbour, nface, connectivity);
                         ESYS_ASSERT(newtree!=-1, "renumberNodes: Invalid neighbour tree");

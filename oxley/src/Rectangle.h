@@ -287,7 +287,7 @@ private:
     std::unordered_map<DoublePair,long,boost::hash<DoublePair>> NodeIDs; //global ids of the nodes
     // std::unordered_map<long,bool> hangingNodeIDs; //global ids of the hanging nodes
     std::vector<bool> is_hanging; // element x is true if node id x is a hanging node
-    std::vector<std::vector<long>> is_hanging_face; // if face x-y is hanging then element x is y
+    // std::vector<std::vector<long>> is_hanging_face; // if face x-y is hanging then element x is y
     std::unordered_map<DoublePair,long,boost::hash<DoublePair>> treeIDs; //global ids of the hanging nodes
     std::unordered_map<long,double> current_solution; //solution at each node
     std::vector<long> quadrantIDs; // IDs of the quadrants
