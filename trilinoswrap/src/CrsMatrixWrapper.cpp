@@ -84,6 +84,16 @@ void CrsMatrixWrapper<ST>::add(const std::vector<LO>& rowIdx,
 }
 
 template<typename ST>
+void CrsMatrixWrapper<ST>::add_single(const LO row, 
+                                      const LO col, 
+                                      const ST value)
+{
+    std::vector<LO> cols(1,col);
+    std::vector<ST> vals(1,value);
+    mat.sumIntoLocalValues(row, cols, vals);
+}
+
+template<typename ST>
 void CrsMatrixWrapper<ST>::ypAx(const Teuchos::ArrayView<ST>& y,
                                 const Teuchos::ArrayView<const ST>& x) const
 {

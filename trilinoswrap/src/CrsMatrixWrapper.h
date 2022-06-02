@@ -70,6 +70,7 @@ public:
 
     // Used by Oxley
     void IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT>> IZ);
+    void add_single(const LO row, const LO col, const ST value);
 
 protected:
     Matrix mat;
