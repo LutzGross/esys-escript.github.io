@@ -2142,7 +2142,7 @@ escript::Data OxleyDomain::finaliseRhs(escript::Data& rhs)
                 #endif
 
                 // f.modify();
-                #pragma omp parallel for
+                // #pragma omp parallel for
                 for(esys_trilinos::LO i = 0; i < static_cast<esys_trilinos::LO>(n); i++)
                 {
                     const esys_trilinos::GO gblrow = fc.getMap()->getGlobalElement(i);
@@ -2152,7 +2152,7 @@ escript::Data OxleyDomain::finaliseRhs(escript::Data& rhs)
                 }
                 
                 // g.modify();
-                #pragma omp parallel for
+                // #pragma omp parallel for
                 for(esys_trilinos::LO i = 0; i < static_cast<esys_trilinos::LO>(h); i++)
                 {
                     const esys_trilinos::GO gblrow = gc.getMap()->getGlobalElement(i);
