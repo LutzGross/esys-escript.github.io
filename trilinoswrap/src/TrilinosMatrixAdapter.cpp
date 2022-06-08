@@ -27,6 +27,8 @@
 #include <escript/FunctionSpaceFactory.h>
 #include <escript/SolverOptions.h>
 
+#include "Tpetra_createDeepCopy_CrsMatrix.hpp"
+
 namespace bp = boost::python;
 using Teuchos::rcp;
 
@@ -82,6 +84,24 @@ void TrilinosMatrixAdapter::add<cplx_t>(const std::vector<LO>& rowIdx,
         throw escript::ValueError("Please use real-valued array to add to "
                                   "real-valued matrix!");
     }
+}
+
+template<>
+escript::AbstractSystemMatrix TrilinosMatrixAdapter::IztAIz<cplx_t>(const Teuchos::RCP<Tpetra::CrsMatrix<cplx_t,LO,GO,NT>> iz, long n) 
+{
+    resumeFill();
+    escript::AbstractSystemMatrix ans = (*cmat).IztAIz(iz, n);
+    fillComplete(false);
+    return ans;
+}
+
+template<>
+escript::AbstractSystemMatrix TrilinosMatrixAdapter::IztAIz<real_t>(const Teuchos::RCP<Tpetra::CrsMatrix<real_t,LO,GO,NT>> iz, long n) 
+{
+    resumeFill();
+    escript::AbstractSystemMatrix ans = (*mat).IztAIz(iz, n);
+    fillComplete(false);
+    return ans;
 }
 
 void TrilinosMatrixAdapter::ypAx(escript::Data& y, escript::Data& x) const
@@ -195,4 +215,5 @@ void TrilinosMatrixAdapter::saveHB(const std::string& filename) const
 }
 
 }  // end of namespace
+
 

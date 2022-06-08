@@ -18,6 +18,8 @@
 #ifndef __ESYS_TRILINOS_BLOCKCRSMATRIXWRAPPER_H__
 #define __ESYS_TRILINOS_BLOCKCRSMATRIXWRAPPER_H__
 
+#include <escript/AbstractSystemMatrix.h>
+
 #include <trilinoswrap/AbstractMatrixWrapper.h>
 #include <trilinoswrap/BelosWrapper.h>
 
@@ -26,6 +28,8 @@
 #else
 #include <Tpetra_BlockCrsMatrix.hpp>
 #endif
+
+#include <TpetraExt_MatrixMatrix_def.hpp>
 
 namespace esys_trilinos {
 
@@ -68,6 +72,8 @@ public:
                escript::SolverBuddy& sb) const;
 
     void saveMM(const std::string& filename) const;
+
+    escript::AbstractSystemMatrix IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT>> IZ, long n) ;
 
 private:
     int blockSize;

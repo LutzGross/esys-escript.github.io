@@ -1867,13 +1867,10 @@ void OxleyDomain::makeIZ(bool complex)
         // updateIZ();
         if(complex==true)
         {
-            // izcrowMap = Teuchos::rcp (new Tpetra::Map<>(global_rows, local_rows, indexBase, comm));
-            // izccolMap = Teuchos::rcp (new Tpetra::Map<>(global_cols, local_cols, indexBase, comm));
-            // izdomainMap = Teuchos::rcp ( new Tpetra::Map<>(global_cols, local_cols, indexBase, comm));
             izcrowMap   = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) t, indexBase, comm));
             izccolMap   = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) n, indexBase, comm));
             izdomainMap = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) n, indexBase, comm));
-            izrangeMap=izcrowMap;
+            izrangeMap  = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) t, indexBase, comm));;
 
             Teuchos::RCP<cplx_matrix_type> tcZ (new cplx_matrix_type(izcrowMap, 5, Tpetra::StaticProfile));
             cIZ=tcZ;
@@ -1932,16 +1929,13 @@ void OxleyDomain::makeIZ(bool complex)
         }
         else
         {
-            // izrrowMap   = Teuchos::rcp (new Tpetra::Map<>(global_rows, local_rows, indexBase, comm));
-            // izrcolMap   = Teuchos::rcp (new Tpetra::Map<>(global_cols, local_cols, indexBase, comm));
-            // izdomainMap = Teuchos::rcp ( new Tpetra::Map<>(global_cols, local_cols, indexBase, comm));
             izrrowMap   = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) t, indexBase, comm));
             izrcolMap   = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) n, indexBase, comm));
             izdomainMap = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) n, indexBase, comm));
-            izrangeMap=izcrowMap;
+            izrangeMap  = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) t, indexBase, comm));
 
-            Teuchos::RCP<real_matrix_type> tcZ (new real_matrix_type(izrrowMap, 5, Tpetra::StaticProfile));
-            rIZ=tcZ;
+            Teuchos::RCP<real_matrix_type> trZ (new real_matrix_type(izrrowMap, 5, Tpetra::StaticProfile));
+            rIZ=trZ;
 
             const real_t one  = static_cast<real_t> (1.0);
             const real_t half = static_cast<real_t> (0.5);
@@ -2014,9 +2008,6 @@ void OxleyDomain::makeIZworker(Teuchos::RCP<Tpetra::CrsMatrix<S,esys_trilinos::L
     {
         const esys_trilinos::GO gblRow = iz->getRowMap()->getGlobalElement(lclRow);
         const esys_trilinos::GO gblCol = iz->getColMap()->getGlobalElement(lclRow);
-        // Rows.push_back(gblRow);
-        // Cols.push_back(gblCol);
-        // Vals.push_back(1.0);
         iz->insertGlobalValues(gblRow,
                             Teuchos::tuple<esys_trilinos::GO>(gblCol),
                             Teuchos::tuple<S> (one));
@@ -2043,9 +2034,6 @@ void OxleyDomain::makeIZworker(Teuchos::RCP<Tpetra::CrsMatrix<S,esys_trilinos::L
 
         const esys_trilinos::GO gblRowA = iz->getRowMap()->getGlobalElement(a);
         const esys_trilinos::GO gblColB = iz->getColMap()->getGlobalElement(b);
-        // Rows.push_back(gblRowA);
-        // Cols.push_back(gblColB);
-        // Vals.push_back(0.5);
         iz->insertGlobalValues(gblRowA,
                             Teuchos::tuple<esys_trilinos::GO>(gblColB),
                             Teuchos::tuple<S> (half));
@@ -2092,16 +2080,13 @@ template<typename S>
 void OxleyDomain::finaliseAworker(escript::AbstractSystemMatrix& mat, 
         Teuchos::RCP<Tpetra::CrsMatrix<S,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>>& IZ)
     {
-        ////////////////////////////////////////////////
         if(getNumHangingNodes() > 0)
         {
-            escript::AbstractSystemMatrix * pMat = &mat;
-            esys_trilinos::CrsMatrixWrapper<S> * cm = dynamic_cast<esys_trilinos::CrsMatrixWrapper<S>*>(pMat);
-            
-            if(cm)
-            {
-                cm->IztAIz(IZ);
-            }
+            //TODO
+            // escript::AbstractSystemMatrix * pMat = &mat;
+            // esys_trilinos::TrilinosMatrixAdapter * m = dynamic_cast<esys_trilinos::TrilinosMatrixAdapter*>(pMat);
+            // escript::AbstractSystemMatrix ans = m->IztAIz(IZ, getNumNodes());
+            // return ans;
         }
     }
 

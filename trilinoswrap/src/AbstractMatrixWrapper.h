@@ -61,6 +61,12 @@ public:
 
     /// saves matrix in Matrix Market (MM) format
     virtual void saveMM(const std::string& filename) const = 0;
+
+    // Used by Oxley to finalise the matrix
+    virtual escript::AbstractSystemMatrix IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT>> IZ, long n) =0;
+    // {
+
+    // };
 };
 
 } // namespace esys_trilinos

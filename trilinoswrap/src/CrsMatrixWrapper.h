@@ -18,6 +18,8 @@
 #ifndef __ESYS_TRILINOS_CRSMATRIXWRAPPER_H__
 #define __ESYS_TRILINOS_CRSMATRIXWRAPPER_H__
 
+#include <escript/AbstractSystemMatrix.h>
+
 #include <trilinoswrap/AbstractMatrixWrapper.h>
 #include <trilinoswrap/Amesos2Wrapper.h>
 #include <trilinoswrap/BelosWrapper.h>
@@ -69,7 +71,7 @@ public:
     void saveMM(const std::string& filename) const;
 
     // Used by Oxley
-    void IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT>> IZ);
+    escript::AbstractSystemMatrix IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT>> IZ, long n);
     void add_single(const LO row, const LO col, const ST value);
 
 protected:
