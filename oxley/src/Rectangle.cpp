@@ -306,10 +306,10 @@ Rectangle::~Rectangle(){
     std::cout << "destoying the connectivity..." << std::endl;
     p4est_connectivity_destroy(connectivity);
     std::cout << "destoying the p4est..." << std::endl;
-    // p4est_destroy(p4est);
+    p4est_destroy(p4est);
 #else
     p4est_connectivity_destroy(connectivity);
-    // p4est_destroy(p4est);
+    p4est_destroy(p4est);
 #endif
 }
 
@@ -906,7 +906,7 @@ void Rectangle::writeToVTK(std::string filename, bool writeMesh) const
 void Rectangle::saveMesh(std::string filename) 
 {
     bool save_data=1;
-    bool save_partition=1;
+    bool save_partition=0;
 
     std::string fnames=filename+".p4est";
     std::string cnames=filename+".conn";
@@ -914,8 +914,9 @@ void Rectangle::saveMesh(std::string filename)
     const char * fname=fnames.c_str();
     const char * cname=cnames.c_str();
 
-    p4est_connectivity_save(cname, connectivity);
-    p4est_save_ext(fname, p4est, save_data, save_partition);
+    ESYS_ASSERT(p4est_connectivity_save(cname, connectivity)==0,"Failed to save connectivity");
+    p4est_save_ext(fname, p4est, save_data, save_partition); // Should abort on file error
+    // p4est_save(fname,p4est,save_data);
 }
 
 void Rectangle::loadMesh(std::string filename) 
@@ -928,13 +929,37 @@ void Rectangle::loadMesh(std::string filename)
 
     int load_data=true;
     int autopartition=true;
-    int broadcasthead=true;
+    int broadcasthead=false;
 
-    connectivity=p4est_connectivity_load(cname, NULL);
-    ESYS_ASSERT(p4est_connectivity_is_valid(connectivity), "Invalid connectivity file");
+    // Delete the old structure
+    p4est_connectivity_destroy(connectivity);
+    p4est_destroy(p4est);
+
+    // Load the new information
+    // connectivity=p4est_connectivity_load(cname, NULL);
+    // ESYS_ASSERT(p4est_connectivity_is_valid(connectivity), "Invalid connectivity file");
     p4est=p4est_load_ext(fname, m_mpiInfo->comm, sizeof(quadrantData), load_data, 
-                    autopartition, broadcasthead, &forestData,&connectivity);
+                    autopartition, broadcasthead, &forestData, &connectivity);
+    // p4est=p4est_load(fname, m_mpiInfo->comm, sizeof(quadrantData), load_data, &forestData, &connectivity);
     ESYS_ASSERT(p4est_is_valid(p4est),"Invalid p4est file");
+
+    // Update the nodes
+    p4est_lnodes_destroy(nodes);
+    p4est_ghost_t * ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
+    nodes = p4est_lnodes_new(p4est, ghost, 1);
+    p4est_ghost_destroy(ghost);
+
+    // Update rectangle
+    updateNodeIncrements();
+    renumberNodes();
+    updateRowsColumns();
+    updateElementIds();
+    updateFaceOffset();
+    updateFaceElementCount();
+
+    // Need to update these now that the mesh has changed
+    z_needs_update=true;
+    iz_needs_update=true;
 }
 
 void Rectangle::refineMesh(std::string algorithmname)
