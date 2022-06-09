@@ -14,67 +14,84 @@
 #
 ##############################################################################
 
-# This is a template configuration file for escript on Debian/GNU Linux.
-# Refer to README_FIRST for usage instructions.
-
-escript_opts_version = 203
-
-#cxx='/usr/bin/clang++'
+clang=False
+# clang=True
 
 build_debug=False
-#build_debug=True
+build_debug=True
 
 openmp=False
 openmp=True
 
-use_paso=False
+trilinos_debug=False
+# trilinos_debug=True
 
-if build_debug == True:
-	#boost_prefix='/usr/local/boost.1.74.0'
-	boost_libs='boost_python39'
-	build_dir='build_debug'
-	cxx_extra="-O0 -g -pg -fdiagnostics-color -Wno-implicit-int-float-conversion"
-	cxx_extra+=" -Wno-deprecated-declarations"
-	# cxx_extra+=" -DOXLEY_ENABLE_DEBUG"
-	# cxx_extra+=" -DOXLEY_ENABLE_DEBUG_NODES"
-	debug=True
-	ld_extra='-L/usr/lib/openmpi/'
-	if openmp is True:
-		cxx_extra+=" -fopenmp"
-		trilinos_prefix='/usr/local/trilinos_nompi'
+use_paso=False
+# use_paso=True
+
+verbose=0
+# verbose=1
+# verbose=2
+
+##############################################################################
+
+escript_opts_version=203
+boost_libs='boost_python39'	
+cxx_extra=""
+paso=use_paso
+pythoncmd="/usr/bin/python3"
+pythonlibname="python3.9"
+pythonlibpath="/usr/lib/x86_64-linux-gnu/"
+pythonincpath="/usr/include/python3.9"
+silo=True
+silo_prefix=['/usr/include','/usr/lib/x86_64-linux-gnu']
+silo_libs=['siloh5','hdf5_serial']
+umfpack=True
+umfpack_prefix=['/usr/include/suitesparse','/usr/lib/x86_64-linux-gnu']
+trilinos=True
+
+if openmp is True:
+	cxx_extra+=" -fopenmp"
+	trilinos_prefix='/usr/local/trilinos_nompi'
+else:
+	trilinos_prefix='/usr/local/trilinos_noomp'
+
+if clang is True:
+	cxx='/usr/bin/clang++'
+	cxx_extra+=" -Wno-implicit-const-int-float-conversion -Wno-overloaded-virtual"
+	cxx_extra+=" -Wno-unknown-warning-option"
+	cxx_extra+=" -Wno-non-c-typedef-for-linkage"
+	cxx_extra+=" -Wno-dtor-name"
+	cxx_extra+=" -Wno-overloaded-virtual"
+	if build_debug is True:
+		build_dir='build_clang'
 	else:
-		trilinos_prefix='/usr/local/trilinos_noomp'
-	paso=use_paso
-	pythoncmd="/usr/bin/python3"
-	pythonlibname="python3.9"
-	pythonlibpath="/usr/lib/x86_64-linux-gnu/"
-	pythonincpath="/usr/include/python3.9"
-	umfpack=True
-	umfpack_prefix=['/usr/include/suitesparse','/usr/lib/x86_64-linux-gnu']
-	trilinos=True
-	verbose=True
+		build_dir='build_clang_norm'
+else:
+	cxx_extra+=" -Wno-deprecated-declarations"
+	if build_debug is True:
+		build_dir='build_debug'
+	else:
+		build_dir='build_normal'
+
+if build_debug is True:
+	debug=True
+	cxx_extra+=" -O0 -g -pg -fdiagnostics-color -Wno-implicit-int-float-conversion"
+	cxx_extra+=" -Wno-unused-function"
+	cxx_extra+=" -Wno-unused-variable"
+	cxx_extra+=" -Wno-unused-but-set-variable"
+	build_full=1
 	werror=False
 else:
-	#boost_prefix='/usr/local/boost.1.74.0'
-	boost_libs='boost_python39'
-	build_dir='build_normal'
-	cxx_extra="-O2 -funroll-loops -march=native -fdiagnostics-color"
 	debug=False
-	ld_extra='-L/usr/lib/openmpi/'
-	if openmp is True:
-		cxx_extra+=" -fopenmp"
-		trilinos_prefix='/usr/local/trilinos_nompi'
-	else:
-		trilinos_prefix='/usr/local/trilinos_noomp'
-	paso=use_paso
-	pythoncmd="/usr/bin/python3"
-	pythonlibname="python3.9"
-	pythonlibpath="/usr/lib/x86_64-linux-gnu/"
-	pythonincpath="/usr/include/python3.9"
-	umfpack=True
-	umfpack_prefix=['/usr/include/suitesparse','/usr/lib/x86_64-linux-gnu']
-	trilinos=True
-	verbose=True
-	werror=False
+	cxx_extra+=" -O2 -march=native -fdiagnostics-color"
+	cxx_extra+="-funroll-loops -flto "
+
+if trilinos_debug is True:
+	trilinos_prefix='/usr/local/trilinos_debug'
+
+if verbose==2:
+	verbose=1
+	cxx_extra+=" --verbose"
 
 cxx_extra+=" -Wno-maybe-unitialized"
