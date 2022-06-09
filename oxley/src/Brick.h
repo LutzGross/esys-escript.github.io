@@ -147,6 +147,18 @@ public:
 
     /**
        \brief
+       writes the mesh to file
+    */
+    virtual void saveMesh(std::string filename) ;
+
+    /**
+       \brief
+       writes the mesh to file
+    */
+    virtual void loadMesh(std::string filename) ;
+    
+    /**
+       \brief
        returns a pointer to the pXest
     */
     virtual p8est_t* borrow_p8est() { return p8est; };

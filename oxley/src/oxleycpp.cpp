@@ -444,7 +444,9 @@ BOOST_PYTHON_MODULE(oxleycpp)
         .def("finaliseRhs",&oxley::OxleyDomain::finaliseRhs, arg("rhs"), "finalisesRHS")
         .def("saveFsType",&oxley::OxleyDomain::saveFsType, arg("rhs"), "saves the fs type")
         .def("getOrigFsType",&oxley::OxleyDomain::getOrigFsType, "returns the fs type")
-        // .def("resetRhs",&oxley::OxleyDomain::resetRhs, arg("rhs"), "resets the RHS")
+        .def("loadMesh", &oxley::OxleyDomain::saveMesh, (arg("filename")),
+                "Loads a mesh (in p4est format)\n"
+                ":param filename: The name of the file to load\n")
         .def("newOperator",&oxley::OxleyDomain::newSystemMatrix,
             args("row_blocksize", "row_functionspace", "column_blocksize", "column_functionspace", "type"),
             "creates a SystemMatrixAdapter stiffness matrix and initializes it with zeros\n\n"
@@ -478,6 +480,10 @@ BOOST_PYTHON_MODULE(oxleycpp)
                 ":param x0:\n:type double: x coordinate of the point to be refined.\n"
                 ":param y0:\n:type double: y coordinate of the point to be refined.\n"
                 ":param r: \n:type double: radius of the circle.\n")
+        // .def("resetRhs",&oxley::OxleyDomain::resetRhs, arg("rhs"), "resets the RHS")
+        .def("saveMesh", &oxley::OxleyDomain::saveMesh, (arg("filename")),
+                "Saves the mesh to file using p4est format\n"
+                ":param filename: The name of the output file\n")
         .def("setRefinementLevel", &oxley::OxleyDomain::setRefinementLevels, (arg("refinementlevels")),
                 "Sets the number of levels of refinement\n"
                 ":param refinementLevels:\ntype int: `Maximum number of levels of refinement,`\n")
@@ -496,6 +502,7 @@ BOOST_PYTHON_MODULE(oxleycpp)
                 "Writes the mesh to a VTK file.\n"
                 ":param filename: The name of the output file\n"
                 ":param writeMesh: Boolean: Only writes the mesh to file")
+
         ;
 
     // These two class exports are necessary to ensure that the extra methods

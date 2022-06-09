@@ -464,9 +464,21 @@ public:
 
     /**
        \brief
-       writes the mesh to file
+       writes the mesh to a vtk file
     */
     virtual void writeToVTK(std::string filename, bool writeTagInfo) const;
+
+    /**
+       \brief
+       writes the mesh to file
+    */
+    virtual void saveMesh(std::string filename) = 0;
+
+    /**
+       \brief
+       writes the mesh to file
+    */
+    virtual void loadMesh(std::string filename) = 0;
 
     /**
        \brief

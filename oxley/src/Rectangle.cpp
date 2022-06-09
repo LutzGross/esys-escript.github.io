@@ -903,6 +903,40 @@ void Rectangle::writeToVTK(std::string filename, bool writeMesh) const
     }
 }
 
+void Rectangle::saveMesh(std::string filename) 
+{
+    bool save_data=1;
+    bool save_partition=1;
+
+    std::string fnames=filename+".p4est";
+    std::string cnames=filename+".conn";
+
+    const char * fname=fnames.c_str();
+    const char * cname=cnames.c_str();
+
+    p4est_connectivity_save(cname, connectivity);
+    p4est_save_ext(fname, p4est, save_data, save_partition);
+}
+
+void Rectangle::loadMesh(std::string filename) 
+{
+    std::string fnames=filename+".p4est";
+    std::string cnames=filename+".conn";
+
+    const char * fname=fnames.c_str();
+    const char * cname=cnames.c_str();
+
+    int load_data=true;
+    int autopartition=true;
+    int broadcasthead=true;
+
+    connectivity=p4est_connectivity_load(cname, NULL);
+    ESYS_ASSERT(p4est_connectivity_is_valid(connectivity), "Invalid connectivity file");
+    p4est=p4est_load_ext(fname, m_mpiInfo->comm, sizeof(quadrantData), load_data, 
+                    autopartition, broadcasthead, &forestData,&connectivity);
+    ESYS_ASSERT(p4est_is_valid(p4est),"Invalid p4est file");
+}
+
 void Rectangle::refineMesh(std::string algorithmname)
 {
     z_needs_update=true;

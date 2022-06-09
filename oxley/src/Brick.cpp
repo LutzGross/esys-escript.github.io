@@ -672,6 +672,16 @@ void Brick::writeToVTK(std::string filename, bool writeMesh) const
     }
 }
 
+void Brick::saveMesh(std::string filename) 
+{
+    throw OxleyException("Unimplemented"); //TODO
+}
+
+void Brick::loadMesh(std::string filename) 
+{
+    throw OxleyException("Unimplemented"); //TODO
+}
+
 void Brick::refineMesh(std::string algorithmname)
 {
     double max_levels_refinement = 8; //TODO

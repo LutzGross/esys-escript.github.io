@@ -167,6 +167,18 @@ public:
 
     /**
        \brief
+       writes the mesh to file
+    */
+    virtual void saveMesh(std::string filename);
+
+    /**
+       \brief
+       writes the mesh to file
+    */
+    virtual void loadMesh(std::string filename);
+
+    /**
+       \brief
        refines the mesh
        \param algorithmname The algorithm to use
     */
