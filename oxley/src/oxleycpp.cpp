@@ -444,7 +444,7 @@ BOOST_PYTHON_MODULE(oxleycpp)
         .def("finaliseRhs",&oxley::OxleyDomain::finaliseRhs, arg("rhs"), "finalisesRHS")
         .def("saveFsType",&oxley::OxleyDomain::saveFsType, arg("rhs"), "saves the fs type")
         .def("getOrigFsType",&oxley::OxleyDomain::getOrigFsType, "returns the fs type")
-        .def("loadMesh", &oxley::OxleyDomain::saveMesh, (arg("filename")),
+        .def("loadMesh", &oxley::OxleyDomain::loadMesh, (arg("filename")),
                 "Loads a mesh (in p4est format)\n"
                 ":param filename: The name of the file to load\n")
         .def("newOperator",&oxley::OxleyDomain::newSystemMatrix,

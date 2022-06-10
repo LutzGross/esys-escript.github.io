@@ -39,7 +39,9 @@
 #include <p4est_algorithms.h>
 #include <p4est_bits.h>
 #include <p4est_connectivity.h>
+#include <p4est_communication.h>
 #include <p4est_extended.h>
+#include <p4est_io.h>
 #include <p4est_iterate.h>
 #include <p4est_lnodes.h>
 #include <p4est_vtk.h>
@@ -905,18 +907,27 @@ void Rectangle::writeToVTK(std::string filename, bool writeMesh) const
 
 void Rectangle::saveMesh(std::string filename) 
 {
-    bool save_data=1;
-    bool save_partition=0;
-
     std::string fnames=filename+".p4est";
     std::string cnames=filename+".conn";
 
     const char * fname=fnames.c_str();
     const char * cname=cnames.c_str();
 
-    ESYS_ASSERT(p4est_connectivity_save(cname, connectivity)==0,"Failed to save connectivity");
-    p4est_save_ext(fname, p4est, save_data, save_partition); // Should abort on file error
-    // p4est_save(fname,p4est,save_data);
+    p4est_deflate_quadrants(p4est, NULL);
+
+#ifdef ESYS_MPI
+    if(escript::getMPIRankWorld()==0)
+    {
+#endif
+        int retval = p4est_connectivity_save(cname, connectivity)==0;
+        ESYS_ASSERT(retval!=0,"Failed to save connectivity");
+        int save_partition = 0;
+        int save_data = 1;
+        p4est_save_ext(fname, p4est, save_data, save_partition); // Should abort on file error
+        // p4est_save(fname,p4est,1);
+#ifdef ESYS_MPI
+    }
+#endif
 }
 
 void Rectangle::loadMesh(std::string filename) 
@@ -940,7 +951,7 @@ void Rectangle::loadMesh(std::string filename)
     // ESYS_ASSERT(p4est_connectivity_is_valid(connectivity), "Invalid connectivity file");
     p4est=p4est_load_ext(fname, m_mpiInfo->comm, sizeof(quadrantData), load_data, 
                     autopartition, broadcasthead, &forestData, &connectivity);
-    // p4est=p4est_load(fname, m_mpiInfo->comm, sizeof(quadrantData), load_data, &forestData, &connectivity);
+    // p4est = p4est_load(fname, m_mpiInfo->comm, sizeof(quadrantData), 1, NULL, &connectivity);
     ESYS_ASSERT(p4est_is_valid(p4est),"Invalid p4est file");
 
     // Update the nodes
