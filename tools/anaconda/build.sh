@@ -10,6 +10,13 @@ CXXFLAGS="${CXXFLAGS} -i sysroot ${CONDA_BUILD_SYSROOT} -fPIC -w -fopenmp"
 TRILINOS=0
 MPI='no'
 
+echo debugout
+python --version
+find ${PREFIX} -iname libboost_python* 2>/dev/null
+find ${PREFIX} -iname Python.h 2>/dev/null
+find ${PREFIX} -iname libpython* 2>/dev/null
+find ${PREFIX} -iname libumfpack* 2>/dev/null
+
 if [ ${CONDA_PY} -eq 38 ]
 then
     BOOST_LIBS="boost_python${CONDA_PY}"
@@ -27,18 +34,14 @@ then
 else
     DEFAULT_HDF5_INCDIR=$PREFIX/include
     DEFAULT_HDF5_LIBDIR=$PREFIX/lib
-    # cd ${SRC_DIR}/silo
-    # ./configure --prefix=${PREFIX} \
-    #         --with-hdf5=${PREFIX}/include,${PREFIX}/lib \
-    #         --with-zlib=$PREFIX/include,$PREFIX/lib
-    # make -j"${CPU_COUNT}"
-    # make -j"${CPU_COUNT}" install
     BOOST_LIBS="boost_python${CONDA_PY}"
     PYTHON_LIB_PATH="${PREFIX}/lib"
     PYTHON_INC_PATH="${PREFIX}/include/python${PY_VER}m"
     PYTHON_LIB_NAME="python${PY_VER}m"
     BUILD_SILO=0
 fi
+
+BUILD_SILO=0
 
 cd ${SRC_DIR}/escript
 if [ ${PY3K} -eq 1 ]
@@ -52,7 +55,8 @@ then
         cxx_extra="-w -fPIC -fdiagnostics-color -std=c++11 " \
         cppunit_prefix=${PREFIX} \
         ld_extra="-L${PREFIX}/lib -lgomp" \
-        mpi=${MPI} \
+        netcdf='no' \
+        openmp=1 \
         omp_flags="-fopenmp" \
         prefix=${PREFIX} \
         pythoncmd=${PREFIX}/bin/python \
@@ -61,8 +65,6 @@ then
         pythonlibname=${PYTHON_LIB_NAME} \
         silo=${BUILD_SILO} \
         silo_prefix=${PREFIX} \
-        trilinos=${TRILINOS} \
-        trilinos_prefix=${PREFIX} \
         umfpack_prefix=${PREFIX} \
         verbose=1 \
         build_full || cat config.log
@@ -89,7 +91,7 @@ else
         trilinos=0 \
         umfpack=0 \
         umfpack_prefix="${PREFIX}" \
-        netcdf=no \
+        netcdf='no' \
         werror=0 \
         verbose=0 \
         compressed_files=0 \

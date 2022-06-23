@@ -1,49 +1,69 @@
-{% set version = "5.6" %}
+{% set version = "5.9" %}
 
 package:
     name: esys-escript
     version: {{ version }}
 source:
-    - url: https://launchpad.net/escript-finley/3.0+/{{ version }}/+download/python-escript_{{ version }}.tar.gz
-      sha256: 78cb3c43a04426c4909c6f1ca1aa23cbec574d783fd438fcfd419931b7c63be8
+    - url: https://github.com/Unidata/netcdf-cxx4/archive/v4.3.1.tar.gz
+      sha256: e3fe3d2ec06c1c2772555bf1208d220aab5fee186d04bd265219b0bc7a978edc
+      folder: netcdf-cxx4
+      patches: netcdf-cxx4.patch
+    - url: https://github.com/esys-escript/esys-escript.github.io/archive/refs/tags/5.9pre.tar.gz
+      sha256: 076ffae508aa7b1d9e4b2075e3592a0743146a48e31d3489c892ff223b9ec6a6
       folder: escript
 build:
-    skip: True  # [not linux]
-    skip: True  # [py!=27]
+    skip: True  # [win]
+    skip: True  # [osx]
     number: 0
 requirements:
     build:
         - {{ compiler('cxx') }}
-        - svn
-        - scons >3.0.5
+        - scons >3.0.5 
         - cmake
         - make
         - python
+        - numpy
+        - mumps
+        - git
     host:
-        - boost-cpp 
+        - boost-cpp
         - boost
+        - libboost
+        - numpy
         - python 
-        - matplotlib-base
-        - gdal
-        - libopenblas
-        - libgomp
+        - matplotlib
+        - hdf5  # [linux]
+        - libblas  # [linux]
         - pyproj 
         - scipy 
+        - suitesparse  # [linux]
         - sympy
+        - gmsh  # [win]
+        - mumps
+        - libblas <=3.8.0   # [linux and py==38]
+        - libblas <=3.8.0   # [linux and py==37]
     run:
-        - boost-cpp 
+        - boost-cpp
         - boost
-        - numpy 
-        - python
-        - matplotlib-base
-        - gdal 
-        - pyproj
-        - scipy
+        - libboost
+        - numpy
+        - python 
+        - matplotlib
+        - hdf5  # [linux]
+        - libblas  # [linux]
+        - pyproj 
+        - scipy 
+        - suitesparse  # [linux]
         - sympy
+        - gmsh  # [win]
+        - mumps
+        - libblas <=3.8.0   # [linux and py==38]
+        - libblas <=3.8.0   # [linux and py==37]
 test:
     commands:
         - run-escript -c
-        - run-escript /tmp/release_sanity.py
+        - run-escript /tmp/release_sanity.py  # [linux]
+        - run-escript %TEMP%/release_sanity.py  # [win]
 about:
     home: https://launchpad.net/escript-finley
     summary: esys-escript is a programming tool for implementing mathematical 
@@ -64,4 +84,4 @@ about:
 
 extra:
     recipe-maintainers:
-        - aellery
+        - esys-escript
