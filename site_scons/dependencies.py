@@ -396,9 +396,6 @@ def checkNumpy(env):
     if numpy_h:
         conf.env.Append(CPPDEFINES = ['ESYS_HAVE_NUMPY_H'])
 
-    import numpy
-    conf.env.AppendUnique(CPPPATH=numpy.get_include())
-
     return conf.Finish()
 
 def checkCUDA(env):
@@ -438,25 +435,28 @@ def checkOptionalModules(env):
         env['warnings'].append("Cannot import gdal. Inversions will not honour WKT coordinate system information.")
 
     ######## sympy
-    if not detectModule(env, 'sympy'):
-        env['warnings'].append("Cannot import sympy. Symbolic toolbox and nonlinear PDEs will not be available.")
-        env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
-    else:
-        if env['pythoncmd'] is not None:
-            env=get_external_python_sympy(env, env['pythoncmd'])
-        else:
-            import sympy as sp
-            import distutils.version as duv
-            spVer=sp.__version__
-            spl=spVer.split('.')
-            if duv.LooseVersion(sympy.__version__) < duv.LooseVersion('0.7'):
-                env['sympy']=False
-                env['warnings'].append("sympy version too old. Symbolic toolbox and nonlinear PDEs will not be available.")
-                env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
-            if duv.LooseVersion(sympy.__version__) > duv.LooseVersion('1.2'):
-                env['sympy']=False
-                env['warnings'].append("escript does not support sympy version 1.2 and higher. Found %d" % duv.LooseVersion(sympy.__version__))
-                env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
+    env['sympy']=False
+    env['warnings'].append("Deliberately skipping sympy")
+    env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
+    # if not detectModule(env, 'sympy'):
+    #     env['warnings'].append("Cannot import sympy. Symbolic toolbox and nonlinear PDEs will not be available.")
+    #     env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
+    # else:
+    #     if env['pythoncmd'] is not None:
+    #         env=get_external_python_sympy(env, env['pythoncmd'])
+    #     else:
+    #         import sympy as sp
+    #         import distutils.version as duv
+    #         spVer=sp.__version__
+    #         spl=spVer.split('.')
+    #         if duv.LooseVersion(sympy.__version__) < duv.LooseVersion('0.7'):
+    #             env['sympy']=False
+    #             env['warnings'].append("sympy version too old. Symbolic toolbox and nonlinear PDEs will not be available.")
+    #             env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
+    #         if duv.LooseVersion(sympy.__version__) > duv.LooseVersion('1.2'):
+    #             env['sympy']=False
+    #             env['warnings'].append("escript does not support sympy version 1.2 and higher. Found %d" % duv.LooseVersion(sympy.__version__))
+    #             env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
 
     ######## gmshpy
     env['gmshpy'] = detectModule(env, 'gmshpy')
