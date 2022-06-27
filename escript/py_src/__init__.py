@@ -30,7 +30,7 @@ from esys.escriptcore.escriptcpp import *
 from esys.escriptcore.util import *
 from esys.escriptcore.nonlinearPDE import NonlinearPDE
 from esys.escriptcore.datamanager import DataManager
-from esys.escriptcore.symbolic import *
+# from esys.escriptcore.symbolic import *
 from esys.escriptcore.splitworld import *
 
 __all__=[x for x in dir() if not x.startswith('internal_') and not x.startswith('Internal_') and not x.startswith('__') and not str(type(eval(x))).find('module')>=0]
