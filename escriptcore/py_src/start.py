@@ -39,7 +39,7 @@ try:
     import sympy as sp
     spVer=sp.__version__
     spl=spVer.split('.')
-    if int(spl[0]) == 0 and int(spl[1]) < 7:
+    if (int(spl[0]) == 0 and int(spl[1]) < 7) || (int(spl[0]) == 1 and int(spl[1]) > 2):
         HAVE_SYMBOLS=False
     else:
         HAVE_SYMBOLS=True
