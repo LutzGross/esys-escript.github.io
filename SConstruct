@@ -159,7 +159,9 @@ vars.AddVariables(
   BoolVariable('osx_dependency_fix', 'Fix dependencies for libraries to have absolute paths (OSX)', False),
   BoolVariable('stdlocationisprefix', 'Set the prefix as escript root in the launcher', False),
   BoolVariable('mpi_no_host', 'Do not specify --host in run-escript launcher (only OPENMPI)', False),
-  BoolVariable('insane', 'Instructs scons to not run a sanity check after compilation.', False)
+  BoolVariable('insane', 'Instructs scons to not run a sanity check after compilation.', False),
+  ('Trilinos_LO', 'Manually specify the LO used by Trilinos.', ''),
+  ('Trilinos_GO', 'Manually specify the GO used by Trilinos.', '')
 )
 
 ##################### Create environment and help text #######################
@@ -405,6 +407,30 @@ if env['debug']:
     env.Append(CCFLAGS = env['cc_debug'])
 else:
     env.Append(CCFLAGS = env['cc_optim'])
+
+# Manually change the trilinos ordinals (if necessary)
+if env['Trilinos_LO'] != '':
+    env.Append(CPPDEFINES=['MANUALLY_SET_LO'])
+    print("Manually setting the Trilinos Local Ordinate...")
+    if env['Trilinos_LO'] == 'int':
+        env.Append(CPPDEFINES=['SET_LO_INT'])
+    elif env['Trilinos_LO'] == 'long':
+        env.Append(CPPDEFINES=['SET_LO_LONG'])
+    elif env['Trilinos_LO'] == 'long long':
+        env.Append(CPPDEFINES=['SET_LO_LONG_LONG'])
+    elif env['Trilinos_LO'] == 'complex double':
+        env.Append(CPPDEFINES=['SET_LO_COMPLEX_DOUBLE'])
+if env['Trilinos_GO'] != '':
+    env.Append(CPPDEFINES=['MANUALLY_SET_GO'])
+    print("Manually setting the Trilinos Global Ordinate...")
+    if env['Trilinos_GO'] == 'int':
+        env.Append(CPPDEFINES=['SET_GO_INT'])
+    elif env['Trilinos_GO'] == 'long':
+        env.Append(CPPDEFINES=['SET_GO_LONG'])
+    elif env['Trilinos_GO'] == 'long long':
+        env.Append(CPPDEFINES=['SET_GO_LONG_LONG'])
+    elif env['Trilinos_GO'] == 'complex double':
+        env.Append(CPPDEFINES=['SET_GO_COMPLEX_DOUBLE'])
 
 # always add cc_flags
 env.Append(CCFLAGS = env['cc_flags'])

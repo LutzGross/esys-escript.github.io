@@ -39,9 +39,33 @@ typedef escript::DataTypes::real_t  real_t;
 typedef escript::DataTypes::cplx_t  cplx_t;
 
 /// Global Ordinal type
+#ifdef MANUALLY_SET_GO
+    #ifdef SET_GO_INT
+        typedef int GO;
+    #elif SET_GO_LONG
+        typedef long GO;
+    #elif SET_GO_LONG_LONG
+        typedef long long int GO;
+    #elif SET_GO_COMPLEX_DOUBLE
+        typedef std::complex<double> GO;
+    #endif
+#else
 typedef escript::DataTypes::index_t GO;
+#endif
 /// Local Ordinal type
+#ifdef MANUALLY_SET_LO
+    #ifdef SET_LO_INT
+        typedef int LO;
+    #elif SET_LO_LONG
+        typedef long LO;
+    #elif SET_LO_LONG_LONG
+        typedef long long int LO;
+    #elif SET_LO_COMPLEX_DOUBLE
+        typedef std::complex<double> LO;
+    #endif
+#else
 typedef escript::DataTypes::index_t LO;
+#endif
 /// Kokkos Node type
 #ifdef _OPENMP
 typedef Kokkos::Compat::KokkosOpenMPWrapperNode NT;
