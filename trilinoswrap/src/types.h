@@ -48,6 +48,10 @@ typedef escript::DataTypes::cplx_t  cplx_t;
         typedef long long int GO;
     #elif SET_GO_COMPLEX_DOUBLE
         typedef std::complex<double> GO;
+    #elif SET_GO_REALT
+        typedef real_t GO;
+    #elif SET_GO_CPLXT
+        typedef cplx_t GO;
     #endif
 #else
 typedef escript::DataTypes::index_t GO;
@@ -62,6 +66,10 @@ typedef escript::DataTypes::index_t GO;
         typedef long long int LO;
     #elif SET_LO_COMPLEX_DOUBLE
         typedef std::complex<double> LO;
+    #elif SET_LO_REALT
+        typedef real_t LO;
+    #elif SET_LO_CPLXT
+        typedef cplx_t LO;
     #endif
 #else
 typedef escript::DataTypes::index_t LO;
