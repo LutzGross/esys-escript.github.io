@@ -978,8 +978,9 @@ boost::python::numpy::ndarray convertToNumpy(escript::Data data)
     bool have_complex = data.isComplex();
 
     // Work out how many data points there are
-    int numDataPoints = data.getNumSamples();
+    int numsamples = data.getNumSamples();
     int dpps = data.getNumDataPointsPerSample();
+    // int numdata = data.getNumDataPoints();
 
     // Work out the data point shape
     std::vector<int> shape = data.getDataPointShape();
@@ -987,34 +988,48 @@ boost::python::numpy::ndarray convertToNumpy(escript::Data data)
         shape.push_back(1);
     }
 
-    // Work out the shape
-    int dimensions = data.getShapeProduct();
+    //Work out how many rows each array should have
+    int spaces = data.getShapeProduct();
+        
+    // We need to interpret the samples correctly even if they are different
+    // types. For this reason, we should iterate over samples...
+    int step = (data.actsExpanded() ? DataTypes::noValues(data.getDataPointShape()) : 0);
 
-    // Initialise the ndarray
-    boost::python::tuple arrayshape = boost::python::make_tuple(dimensions, dpps * numDataPoints);
-    boost::python::numpy::dtype datatype = boost::python::numpy::dtype::get_builtin<double>();
-    if (have_complex) {
-        datatype = boost::python::numpy::dtype::get_builtin<std::complex<double>>();
+    // Initialise the numpy ndarray
+    int arraylength = dpps * numsamples;
+    bp::tuple arrayshape = bp::make_tuple(shape[0], arraylength);
+    bp::numpy::dtype datatype = bp::numpy::dtype::get_builtin<double>();
+    if(have_complex){
+        datatype = bp::numpy::dtype::get_builtin<std::complex<double>>();
     }
-    boost::python::numpy::ndarray dataArray = boost::python::numpy::zeros(arrayshape, datatype);
+    bp::numpy::ndarray dataArray = bp::numpy::zeros(arrayshape, datatype);
 
     // Initialise variables
-    std::string localmsg;
-    std::vector<const DataTypes::real_t*> samplesR(1);
+    const DataTypes::cplx_t* samplesC;
+    const DataTypes::real_t* samplesR;
 
     // This is needed below in getSampleDataRO
-    const DataTypes::real_t onlyreal = 0;
-    const DataTypes::cplx_t onlycomplex = 0;
+    const DataTypes::cplx_t onlycomplex=(0,0);
+    const DataTypes::real_t onlyreal=0;
+    
+    int offset=0;
+    for (int i=0; i<numsamples; ++i) {
+        if(have_complex)
+            samplesC = data.getSampleDataRO(i, onlycomplex);
+        else
+            samplesR = data.getSampleDataRO(i, onlyreal);
 
-// #pragma omp parallel for
-    for (int i = 0; i < numDataPoints; ++i) {
-        for (int j = 0; j < shape[0]; j++) {
+        for (int j=0; j<dpps; ++j) {
             if(have_complex){
-                dataArray[j][i] = *(data.getSampleDataRO(i, onlycomplex)+j);
+                DataTypes::pointToNumpyArray(dataArray, samplesC,
+                    data.getDataPointShape(), offset, 0, i+j*numsamples);
             } else {
-                dataArray[j][i] = *(data.getSampleDataRO(i, onlyreal)+j);
+                DataTypes::pointToNumpyArray(dataArray, samplesR,
+                    data.getDataPointShape(), offset, 0, i+j*numsamples);
             }
+            offset += step;
         }
+        offset=0;
     }
 
     // Print out the ndarray to the console - used during debugging
