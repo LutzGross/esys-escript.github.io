@@ -989,7 +989,7 @@ boost::python::numpy::ndarray convertToNumpy(escript::Data data)
     }
 
     //Work out how many rows each array should have
-    int spaces = data.getShapeProduct();
+    // int spaces = data.getShapeProduct();
         
     // We need to interpret the samples correctly even if they are different
     // types. For this reason, we should iterate over samples...
@@ -1009,7 +1009,7 @@ boost::python::numpy::ndarray convertToNumpy(escript::Data data)
     const DataTypes::real_t* samplesR;
 
     // This is needed below in getSampleDataRO
-    const DataTypes::cplx_t onlycomplex=(0,0);
+    const DataTypes::cplx_t onlycomplex=(0);
     const DataTypes::real_t onlyreal=0;
     
     int offset=0;
