@@ -28,6 +28,7 @@ from esys.escriptcore.testing import *
 from test_util import Test_util, Test_Util_SpatialFunctions, \
         Test_Util_SpatialFunctions_noGradOnBoundary, \
         Test_Util_SpatialFunctions_noGradOnBoundary_noContact
+from test_types import Test_addition_types
 from test_util_interpolation import Test_Util_Interpolation_Dirac
 from test_util_integrals import Test_Util_Integration_Dirac
 from test_util_NaN_funcs import Test_util_NaN_funcs
@@ -55,6 +56,13 @@ FINLEY_TEST_MESH_PATH=os.path.join(FINLEY_TEST_DATA,"data_meshes")
 FINLEY_MERGE_ERROR = "merge: more than 1 processor is not supported yet."
 
 NE=4 # number elements, must be even
+
+class Test_Data_Addition(Test_addition_types):
+    def setUp(self):
+       self.domain = Rectangle(NE, NE+1, 2)
+    def tearDown(self):
+       del self.domain
+
 
 class Test_UtilOnFinley(Test_util,Test_util_NaN_funcs):
    def setUp(self):
