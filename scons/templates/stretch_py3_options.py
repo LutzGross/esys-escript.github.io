@@ -18,9 +18,14 @@
 # This is a template configuration file for escript on Debian/GNU Linux.
 # Refer to README_FIRST for usage instructions.
 
-from scons.templates.stretch_options import *
+#from scons.templates.stretch_options import *
+
+escript_opts_version=203
 
 pythoncmd = 'python3'
+pythonincpath='/usr/include/python3.10'
+pythonlibpath='/usr/lib/x86_64-linux-gnu'
+pythonlibname='libpython3.10'
 
-boost_libs = boost_py3_libs
-
+boost_libs='boost_python310'
+boost_prefix=['/usr/include','/usr/lib/x86_64-linux-gnu/']
