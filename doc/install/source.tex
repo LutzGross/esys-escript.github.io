@@ -42,8 +42,8 @@ Appendix~\ref{app:cxxfeatures} for a list.
 
 Our current test compilers include:
 \begin{itemize}
- \item g++ 8
- \item clang++ 7
+ \item g++ 10.2
+ \item clang++ 11.0
  \item intel icpc v17
  \item MSVC 2017 or 2019
 \end{itemize}
@@ -103,6 +103,7 @@ see Section~\ref{sec:othersrc} for instructions.
 \begin{itemize}
  \item Debian - \ref{sec:debsrc}
  \item Ubuntu - \ref{sec:ubsrc}
+ \item Mint - \ref{sec:mintsrc}
  \item Arch Linux - \ref{sec:archsrc}
  \item OpenSuse - \ref{sec:susesrc}
  \item Centos - \ref{sec:centossrc}
@@ -160,7 +161,7 @@ scons -j4 py_tests options_file=scons/templates/XXXX_options.py
 These instructions were prepared on Ubuntu 20.04 LTS \textit{Focal Fossa}. \newline
 
 
-\noindent As a preliminary step, you should install the dependencies that \esfinley requires from the repository.
+% \noindent As a preliminary step, you should install the dependencies that \esfinley requires from the repository.
 % If you intend to use Python 2.7, then you should install the following packages:
 % \begin{shellCode}
 % sudo apt-get install python-dev python-numpy python-pyproj python-gdal
@@ -170,7 +171,8 @@ These instructions were prepared on Ubuntu 20.04 LTS \textit{Focal Fossa}. \newl
 % sudo apt-get install scons lsb-release libsuitesparse-dev
 % \end{shellCode}
 
-For Python 3.0+, you should instead install the following packages:
+%For Python 3.0+, you should instead install the following packages:
+\noindent As a preliminary step, you should install the dependencies that \esfinley requires from the repository.
 \begin{shellCode}
 sudo apt-get install python3-dev python3-numpy python3-pyproj python3-gdal
 sudo apt-get install python3-sympy python3-matplotlib python3-scipy
@@ -202,8 +204,24 @@ scons -j4 options_file=scons/templates/focus_options.py
 % scons -j4 py_tests options_file=scons/templates/XXXX_options.py
 % \end{shellCode}
 
+\subsection{Mint}\label{sec:mintsrc}
+These instructions were prepared on Mint 20.3. \newline
 
-\subsection{Ubuntu}\label{sec:archsrc}
+\noindent As a preliminary step, you should install the dependencies that \esfinley requires from the repository.
+\begin{shellCode}
+sudo apt-get install python3-dev python3-numpy python3-pyproj python3-gdal
+sudo apt-get install python3-sympy python3-matplotlib python3-scipy
+sudo apt-get install libnetcdf-cxx-legacy-dev libnetcdf-c++4-dev libnetcdf-dev
+sudo apt-get install libboost-random-dev libboost-python-dev libboost-iostreams-dev
+sudo apt-get install scons lsb-release libsuitesparse-dev
+\end{shellCode}
+
+\noindent Then navigate to the source directory and execute the following 
+\begin{shellCode}
+scons -j4 options_file=scons/templates/mint_options.py
+\end{shellCode}
+
+\subsection{Arch}\label{sec:archsrc}
 These instructions were prepared on Arch Linux. \newline
 
 First, install the dependencies that escript uses:
