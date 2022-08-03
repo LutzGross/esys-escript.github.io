@@ -260,9 +260,14 @@ def checkPython(env):
     if not conf.CheckCXXHeader('Python.h'):
         print("Cannot find python include files (tried 'Python.h' in directory %s)" % (python_inc_path))
         env.Exit(1)
-    if not conf.CheckFunc('Py_Exit', language='c++'):
-        print("Cannot find python library method Py_Exit (tried %s in directory %s)" % (python_libs, python_lib_path))
-        env.Exit(1)
+    if env['IS_WINDOWS']:
+        if not conf.CheckFunc('PyArg_Parse', language='c++'):
+            print("Cannot find python library method PyArg_Parse (tried %s in directory %s)" % (python_libs, python_lib_path))
+            env.Exit(1)
+    else:
+        if not conf.CheckFunc('Py_Exit', language='c++'):
+            print("Cannot find python library method Py_Exit (tried %s in directory %s)" % (python_libs, python_lib_path))
+            env.Exit(1)
 
     return conf.Finish()
 
