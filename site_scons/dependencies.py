@@ -217,6 +217,11 @@ def checkPython(env):
         else:
             (python_lib_path, python_libs,verstring, python_inc_path)=call_python_config(env['pythoncmd'])
     
+    if isinstance(python_inc_path, bytes):
+        python_inc_path=python_inc_path.decode()
+    if isinstance(python_lib_path, bytes):
+        python_lib_path=python_lib_path.decode()
+
     if sys.version_info[0] == 3:
         if isinstance(verstring, str) is False:
             verstring = str(verstring, 'utf-8')
