@@ -25,4 +25,5 @@ BOOST_PYTHON_MODULE(pythonMPIcpp)
 {
 	import_mpi4py();
 	boost::python::def("test_mpi_program", esys_pythonMPI::pythonMPIWrapper);
+	boost::python::def("test_mpi_program2", esys_pythonMPI::pythonMPIWrapper2, boost::python::args("comm", "x"));
 }
