@@ -23,5 +23,6 @@
 // Python interface
 BOOST_PYTHON_MODULE(pythonMPIcpp)
 {
+	import_mpi4py();
 	boost::python::def("test_mpi_program", esys_pythonMPI::pythonMPIWrapper);
 }

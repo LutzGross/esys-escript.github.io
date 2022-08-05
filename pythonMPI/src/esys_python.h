@@ -1,5 +1,6 @@
 
-
+#include <boost/python.hpp>
+#include <mpi4py/mpi4py.h>
 #include <mpi.h>
 
 #include <iostream>
