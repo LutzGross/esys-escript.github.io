@@ -266,7 +266,7 @@ void SystemMatrix<double>::copyRemoteCoupleBlock(bool recreatePattern)
     // allocate pattern and sparse matrix for remote_coupleBlock
     Pattern_ptr pattern(new Pattern(row_coupleBlock->pattern->type,
                         overlapped_n, num_couple_cols, ptr_ptr, ptr_idx));
-    remote_coupleBlock.reset(new SparseMatrix(row_coupleBlock->type,
+    remote_coupleBlock.reset(new SparseMatrix<real_t>(row_coupleBlock->type,
                              pattern, row_block_size, col_block_size, false));
 
     // send/receive value array
