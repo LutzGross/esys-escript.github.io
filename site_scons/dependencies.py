@@ -869,6 +869,17 @@ def checkOptionalLibraries(env):
 
     ######## Trilinos
     env = checkForTrilinos(env)
+
+    ######## mpi4py
+    if env['mpi']:
+        try:
+            import mpi4py
+            mpi4py_inc_path=mpi4py.get_include()
+            env.AppendUnique(CPPPATH = [mpi4py_inc_path])
+            env['mpi4py'] = True
+        except RuntimeError as e:
+            env['warnings'].append("Could not import mpi4py.")
+
     return env
 
 def checkPDFLatex(env):

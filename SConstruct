@@ -718,10 +718,11 @@ if env['weipa']:
         build_all_list += ['build_escriptreader']
         install_all_list += ['install_escriptreader']
 
+
 variant='$BUILD_DIR/$PLATFORM/'
 env.SConscript('escriptcore/SConscript', variant_dir=variant+'escriptcore', duplicate=0)
 env.SConscript('escript/py_src/SConscript', variant_dir=variant+'escript', duplicate=0)
-env.SConscript('pythonMPI/src/SConscript', variant_dir=variant+'pythonMPI', duplicate=0)
+env.SConscript('pythonMPI/SConscript', variant_dir=variant+'pythonMPI', duplicate=0)
 env.SConscript('tools/overlord/SConscript', variant_dir=variant+'tools/overlord', duplicate=0)
 env.SConscript('paso/SConscript', variant_dir=variant+'paso', duplicate=0)
 env.SConscript('trilinoswrap/SConscript', variant_dir=variant+'trilinoswrap', duplicate=0)
@@ -743,6 +744,9 @@ install_all_list += ['install_downunder_py']
 install_all_list += ['install_modellib_py']
 install_all_list += ['install_pycad_py']
 install_all_list += [env.Install(Dir('scripts',env['build_dir']), os.path.join('scripts', 'release_sanity.py'))]
+
+if env['mpi']:
+    install_all_list += ['install_pythonMPI']
 
 if env['osx_dependency_fix']:
     print("Require dependency fix")
@@ -828,6 +832,8 @@ def print_summary():
             print("             MPI:  YES (flavour: %s)"%env['mpi'])
     else:
         d_list.append('mpi')
+    if env['mpi4py']:
+        print("          mpi4py:  YES")
     if env['parmetis']:
         print("        ParMETIS:  %s (Version %s)"%(env['parmetis_prefix'],env['parmetis_version']))
     else:
@@ -885,7 +891,7 @@ def print_summary():
     else:
         print("          netcdf:  NO")
     e_list=[]
-    for i in ('weipa','debug','openmp','cppunit','gdal','mkl',
+    for i in ('weipa','debug','openmp','cppunit','gdal','mkl','mpi4py',
              'mumps','pyproj','scipy','silo','sympy','umfpack','visit'):
         if env[i]: e_list.append(i)
         else: d_list.append(i)
