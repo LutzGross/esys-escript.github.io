@@ -204,7 +204,6 @@ if env['tools_names'] != ['default']:
 pos1=netcdf_flavours.index('False')
 pos2=netcdf_flavours.index('3')
 mypos=netcdf_flavours.index(env['netcdf'])
-print(pos1, pos2, mypos)
 if 0 <= mypos <=pos1:
     env['netcdf']=0
 elif pos1 < mypos <= pos2:
@@ -760,7 +759,6 @@ env.SConscript('ripley/SConscript', variant_dir=variant+'ripley', duplicate=0)
 env.SConscript('speckley/SConscript', variant_dir=variant+'speckley', duplicate=0)
 env.SConscript('weipa/SConscript', variant_dir=variant+'weipa', duplicate=0)
 env.SConscript(dirs = ['downunder/py_src'], variant_dir=variant+'downunder', duplicate=0)
-env.SConscript(dirs = ['modellib/py_src'], variant_dir=variant+'modellib', duplicate=0)
 env.SConscript(dirs = ['pycad/py_src'], variant_dir=variant+'pycad', duplicate=0)
 env.SConscript('tools/escriptconvert/SConscript', variant_dir=variant+'tools/escriptconvert', duplicate=0)
 env.SConscript('doc/SConscript', variant_dir=variant+'doc', duplicate=0)
@@ -768,7 +766,6 @@ env.SConscript('doc/SConscript', variant_dir=variant+'doc', duplicate=0)
 env.Alias('build', build_all_list)
 
 install_all_list += ['install_downunder_py']
-install_all_list += ['install_modellib_py']
 install_all_list += ['install_pycad_py']
 install_all_list += [env.Install(Dir('scripts',env['build_dir']), os.path.join('scripts', 'release_sanity.py'))]
 
