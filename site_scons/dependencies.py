@@ -83,12 +83,14 @@ def get_external_python_sympy(env,bin):
     cmd+='import sympy\n'
     cmd+='print(sympy.__version__)\n'
     sp=subprocess.Popen([bin, '-c', cmd], stdin=None, stderr=None, stdout=subprocess.PIPE)
-    # spVer=sp.stdout.readline().strip().split('.')
+    spVer=sp.stdout.readline()
+    if hasattr(spVer, 'decode'):
+        spVer=spVer.decode()
     import sys
     if sys.version_info[0] >= 3:
-        spVer = str(sp.stdout.readline().strip(), 'utf-8')
+        spVer = spVer.strip()
     else:
-        spVer = sp.stdout.readline().strip().split('.')
+        spVer = spVer.strip().split('.')
     quit=False
     ver1=''
     ver2=''
@@ -137,14 +139,19 @@ def call_python_config(bin=None):
     cmd+='except:\n'
     cmd+='  pythonroot=sys.exec_prefix+"/bin/"\n'
     cmd+='  sp=subprocess.Popen([pythonroot+"python"+pyversion+"-config","--ldflags"], stdout=subprocess.PIPE)\n'
-    cmd+='d=sp.stdout.readline().split()\n'
-    cmd+="libdirs=[z[2:] for z in d if z.startswith(b'-L')]\n"
-    cmd+="libs=[z[2:] for z in d if z.startswith(b'-lpython')]\n"
+    cmd+='d=sp.stdout.readline()\n'
+    cmd+='if hasattr(d, "decode"):\n'
+    cmd+='    d=d.decode()\n'
+    cmd+='d=d.split()\n'
+    cmd+="libdirs=[z[2:] for z in d if z.startswith('-L')]\n"
+    cmd+="libs=[z[2:] for z in d if z.startswith('-lpython')]\n"
+    cmd+="if len(libs) == 0:\n"
+    cmd+='   libs = [ "python"+pyversion]\n'
     cmd+="target=''\n"
     cmd+="libname=''\n"
     cmd+="for d in libdirs:\n"
     cmd+="  for f in libs:\n"
-    cmd+="    s=os.path.join(d,b'lib'+f+b'.so')\n"
+    cmd+="    s=os.path.join(d,'lib'+f+'.so')\n"
     cmd+="    try:\n"
     cmd+="      dummy=os.stat(s)\n"
     cmd+="      if target=='':\n"
@@ -152,7 +159,7 @@ def call_python_config(bin=None):
     cmd+="        libname=f\n"
     cmd+="    except Exception:\n"
     cmd+="      pass\n"
-    cmd+="    s=os.path.join(d,b'lib'+f+b'.dylib')\n"
+    cmd+="    s=os.path.join(d,'lib'+f+'.dylib')\n"
     cmd+="    try:\n"
     cmd+="      dummy=os.stat(s)\n"
     cmd+="      if target=='':\n"
@@ -166,7 +173,7 @@ def call_python_config(bin=None):
        return (target,libname,ver, sysconfig.get_python_inc())
     # run an external python to get its library location
     # yes we are starting another python just to run python?-config
-    cmd+="if 'decode' in dir(target):\n"
+    cmd+="if hasattr(target,'decode'):\n"
     cmd+="   target=target.decode()\n"
     cmd+="   libname=libname.decode()\n"
     cmd+="print(target)\n"
@@ -175,10 +182,14 @@ def call_python_config(bin=None):
     cmd+="print(str(sys.version_info[0])+'.'+str(sys.version_info[1])+'.'+str(sys.version_info[2]))\n"
     cmd+="print(sysconfig.get_python_inc())\n"
     sp=subprocess.Popen([bin, '-c', cmd], stdin=None, stderr=None, stdout=subprocess.PIPE)
-    target=sp.stdout.readline().strip()
-    libname=sp.stdout.readline().strip()
-    ver=sp.stdout.readline().strip()
-    pinc=sp.stdout.readline().strip()
+    target = sp.stdout.readline()
+    libname = sp.stdout.readline()
+    ver = sp.stdout.readline()
+    pinc = sp.stdout.readline()
+    if hasattr(target, "decode"):
+        target, libname, ver, pinc=target.decode().strip(), libname.decode().strip(), ver.decode().strip(), pinc.decode().strip()
+    else:
+        target, libname, ver, pinc=target.strip(), libname.strip(), ver.strip(), pinc.strip()
     return (target, libname, ver, pinc)
 
 def checkPython(env):
@@ -214,6 +225,7 @@ def checkPython(env):
             python_lib_path = lines[1].strip()
             python_libs = [lines[2].strip()]
             verstring = lines[3].strip()
+            print((python_lib_path, python_libs,verstring, python_inc_path))
         else:
             (python_lib_path, python_libs,verstring, python_inc_path)=call_python_config(env['pythoncmd'])
     
@@ -871,7 +883,7 @@ def checkOptionalLibraries(env):
     env = checkForTrilinos(env)
 
     ######## mpi4py
-    if env['mpi']:
+    if env['mpi4py']:
         try:
             import mpi4py
             mpi4py_inc_path=mpi4py.get_include()

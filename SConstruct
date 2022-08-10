@@ -160,6 +160,7 @@ vars.AddVariables(
   BoolVariable('stdlocationisprefix', 'Set the prefix as escript root in the launcher', False),
   BoolVariable('mpi_no_host', 'Do not specify --host in run-escript launcher (only OPENMPI)', False),
   BoolVariable('insane', 'Instructs scons to not run a sanity check after compilation.', False),
+  BoolVariable('mpi4py', 'Compile with mpi4py.', False),
   ('trilinos_LO', 'Manually specify the LO used by Trilinos.', ''),
   ('trilinos_GO', 'Manually specify the GO used by Trilinos.', '')
 )
@@ -176,21 +177,34 @@ env = Environment(tools = ['default'], options = vars,
 
 # set the vars for clang
 def mkclang(env):
-    env['CXX']='clang++'
+        env['CXX']='clang'
 
 if env['tools_names'] != ['default']:
     zz=env['tools_names']
     if 'clang' in zz:
         zz.remove('clang')
         zz.insert(0, mkclang)
-    env = Environment(tools = ['default'] + env['tools_names'], options = vars,
+        env = Environment(tools = ['default'] + env['tools_names'], options = vars,
                       ENV = {'PATH' : os.environ['PATH']})
+    zzidx = [idx for idx, s in enumerate(zz) if s.startswith('clang-mp')]
+    if zzidx:
+        if len(zzidx)>1:
+             raise SConsEnvironmentError("more then one clang-mp version specified")
+        if len(zzidx) == 1:
+            vrs=dict(enumerate(zz[zzidx[0]].split('-'))).get(2, "10")
+            zz.remove(zz[zzidx[0]])
+            zz.insert(0, ('clang-mp', {'version' : vrs} ))
+            zz.insert(0,('clangxx-mp', {'version' : vrs} ))
+
+        env = Environment(tools = ['default'] + env['tools_names'], options = vars,
+                      ENV = {'PATH' : os.environ['PATH']} )
 
 # Covert env['netcdf'] into one of False, 3, 4
 # Also choose default values for libraries
 pos1=netcdf_flavours.index('False')
 pos2=netcdf_flavours.index('3')
 mypos=netcdf_flavours.index(env['netcdf'])
+print(pos1, pos2, mypos)
 if 0 <= mypos <=pos1:
     env['netcdf']=0
 elif pos1 < mypos <= pos2:
@@ -217,7 +231,6 @@ if options_file:
 
 # Generate help text (scons -h)
 Help(vars.GenerateHelpText(env))
-
 # Check for superfluous options
 if len(vars.UnknownVariables())>0:
     for k in vars.UnknownVariables():
@@ -263,6 +276,7 @@ if env['cxx'] != 'default':
 
 if env['mpi'] == 'OPENMPI':
     env['CXX'] = 'mpic++'
+
 
 # default compiler/linker options
 cc_flags = '-std=c++11'
@@ -321,17 +335,30 @@ elif cc_name == 'icl':
     cc_debug     = '/Od /RTCcsu /Zi /Y- /debug:all /Qtrapuv'
     omp_flags    = '/Qvec-report0 /Qopenmp /Qopenmp-report0 /Qparallel'
     omp_ldflags  = '/Qvec-report0 /Qopenmp /Qopenmp-report0 /Qparallel'
-elif cc_name == 'clang++':
+elif cc_name.startswith('clang++-mp'):
     # Clang++ on any system
     cc_flags     = "-std=c++11 -Wall -fPIC -fdiagnostics-color=always -Wno-uninitialized "
     cc_flags    += "-Wno-unused-private-field -Wno-unknown-pragmas "
     if env['trilinos'] is True:
-      cc_flags += "-Wno-unused-variable -Wno-exceptions -Wno-deprecated-declarations"
+      cc_flags += "-Wno-unused-variable -Wno-exceptions -Wno-deprecated-declarations "
+    cc_optim     = "-O3 "
+    cc_debug     = "-ggdb3 -O0 -fdiagnostics-fixit-info -pedantic "
+    cc_debug    += "-DDOASSERT -DDOPROF -DBOUNDS_CHECK -DSLOWSHARECHECK "
+    omp_flags    = "-fopenmp "
+    omp_ldflags  = "-fopenmp "
+    fatalwarning = "-Werror"
+    sysheaderopt = "-isystem"
+elif cc_name.startswith('clang++'):
+    # Clang++ on any system
+    cc_flags     = "-std=c++11 -Wall -fPIC -fdiagnostics-color=always -Wno-uninitialized "
+    cc_flags    += "-Wno-unused-private-field -Wno-unknown-pragmas "
+    if env['trilinos'] is True:
+      cc_flags += "-Wno-unused-variable -Wno-exceptions -Wno-deprecated-declarations "
     cc_optim     = "-O2 -march=native"
     cc_debug     = "-ggdb3 -O0 -fdiagnostics-fixit-info -pedantic "
     cc_debug    += "-DDOASSERT -DDOPROF -DBOUNDS_CHECK -DSLOWSHARECHECK "
-    omp_flags    = "-fopenmp"
-    omp_ldflags  = "-fopenmp"
+    omp_flags    = "-fopenmp "
+    omp_ldflags  = "-fomp"
     fatalwarning = "-Werror"
     sysheaderopt = "-isystem"
 elif cc_name[:3] == 'mpic++':

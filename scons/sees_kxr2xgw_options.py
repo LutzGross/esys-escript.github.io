@@ -18,15 +18,14 @@
 # This is a template configuration file for escript on Mac OS X using ports.
 # Refer to README_FIRST for usage instructions.
 
-_
 escript_opts_version = 203
 openmp = True
 boost_prefix = '/opt/local'
 cppunit_prefix = '/opt/local'
-netcdf = True
+netcdf = 4
 netcdf_prefix = '/opt/local'
-silo = True
+silo = False
 silo_prefix = '/usr/local'
 silo_libs = ['silo']
-tools_names = ['clang']
+tools_names = ['clang-mp-14']
 compression_libs = ['boost_iostreams-mt']
