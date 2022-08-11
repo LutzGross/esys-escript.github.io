@@ -888,6 +888,7 @@ def checkOptionalLibraries(env):
             import mpi4py
             mpi4py_inc_path=mpi4py.get_include()
             env.AppendUnique(CPPPATH = [mpi4py_inc_path])
+            env.Append(CPPDEFINES = ['ESYS_HAVE_MPI4PY'])
             env['mpi4py'] = True
         except RuntimeError as e:
             env['warnings'].append("Could not import mpi4py.")

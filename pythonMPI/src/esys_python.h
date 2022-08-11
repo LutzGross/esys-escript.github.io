@@ -1,6 +1,10 @@
 
 #include <boost/python.hpp>
+
+#ifdef ESYS_HAVE_MPI4PY
 #include <mpi4py/mpi4py.h>
+#endif
+
 #include <mpi.h>
 
 #include <iostream>
@@ -17,19 +21,25 @@ void example_calculation_program(float x);
 // wrapper that converts py_comm to an MPI_Comm 
 static void pythonMPIWrapper(boost::python::object py_comm)
 {
+	#ifdef ESYS_HAVE_MPI4PY
   PyObject* py_obj = py_comm.ptr();
   MPI_Comm *comm_p = PyMPIComm_Get(py_obj);
   if (comm_p == NULL) boost::python::throw_error_already_set();
   python_mpi_test_program_cxx(*comm_p);
+  #endif
 }
 
 // wrapper for floating point number test function
 static float pythonMPIWrapper2(boost::python::object py_comm, float x)
 {
+	#ifdef ESYS_HAVE_MPI4PY
   PyObject* py_obj = py_comm.ptr();
   MPI_Comm *comm_p = PyMPIComm_Get(py_obj);
   if (comm_p == NULL) boost::python::throw_error_already_set();
   return python_mpi_test_program_cxx_2(*comm_p, x);
+  #else
+  return 0.0;
+  #endif
 }
 
 /////////////////////////////////////////////////////////////////
