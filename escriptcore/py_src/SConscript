@@ -28,7 +28,6 @@ sym_pyc = local_env.PyCompile(sym_sources)
 env.Alias('build_escript', [pyc, sym_pyc])
 
 # install
-runmodel_inst = local_env.Install(local_env['bininstall'], 'runmodel.py')
 py_inst = local_env.Install(Dir('escriptcore', local_env['pyinstall']), pyc)
 sym_py_inst = local_env.Install(os.path.join(local_env['pyinstall'],'escriptcore','symboliccore'), sym_pyc)
-env.Alias('install_escript', [runmodel_inst, py_inst, sym_py_inst])
+env.Alias('install_escript', [ py_inst, sym_py_inst])
