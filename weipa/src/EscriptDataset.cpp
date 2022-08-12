@@ -849,11 +849,12 @@ bool EscriptDataset::loadDomain(const string filePattern, int nChunks)
 
     } else {
 #ifdef USE_FINLEY
-        char* str = new char[filePattern.length()+10];
+        const int lstr = filePattern.length()+10;
+        char* str = new char[lstr];
         // FIXME: This assumes a finley domain!
         if (mpiSize > 1) {
             DomainChunk_ptr chunk(new FinleyDomain());
-            sprintf(str, filePattern.c_str(), mpiRank);
+            snprintf(str, lstr, filePattern.c_str(), mpiRank);
             string domainFile = str;
             if (chunk->initFromFile(domainFile)) {
                 chunk->reorderGhostZones(mpiRank);
@@ -865,7 +866,7 @@ bool EscriptDataset::loadDomain(const string filePattern, int nChunks)
         } else {
             for (int idx=0; idx < nChunks; idx++) {
                 DomainChunk_ptr chunk(new FinleyDomain());
-                sprintf(str, filePattern.c_str(), idx);
+                snprintf(str, lstr, filePattern.c_str(), idx);
                 string domainFile = str;
                 if (chunk->initFromFile(domainFile)) {
                     if (nChunks > 1)
@@ -958,13 +959,14 @@ bool EscriptDataset::loadData(const string filePattern, const string name,
         vi.varName = name;
         vi.units = units;
         vi.valid = true;
-        char* str = new char[filePattern.length()+10];
+        const int lstr = filePattern.length()+10;
+        char* str = new char[lstr];
 
         // read all parts of the variable
         DomainChunks::iterator domIt;
         int idx = (mpiSize > 1) ? mpiRank : 0;
         for (domIt = domainChunks.begin(); domIt != domainChunks.end(); domIt++, idx++) {
-            sprintf(str, filePattern.c_str(), idx);
+            snprintf(str, lstr, filePattern.c_str(), idx);
             string dfile = str;
             DataVar_ptr var(new DataVar(name));
             if (var->initFromFile(dfile, *domIt))

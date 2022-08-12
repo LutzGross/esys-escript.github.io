@@ -326,7 +326,7 @@ Domain_ptr DudleyDomain::load(const string& fileName)
         nc_var_temp.getVar(&Tags_keys[0]);  // num_Tags
         for (i=0; i<num_Tags; i++) {
           // Retrieve tag name
-          sprintf(name_temp, "Tags_name_%d", i);
+          snprintf(name_temp, 4096, "Tags_name_%d", i);
           if ((attr=dataFile.getAtt(name_temp)), attr.isNull() ) {
               delete[] Tags_keys;
               stringstream msg;
@@ -631,7 +631,7 @@ Domain_ptr DudleyDomain::load(const string& fileName)
         }
         for (i=0; i<num_Tags; i++) {
           // Retrieve tag name
-          sprintf(name_temp, "Tags_name_%d", i);
+          snprintf(name_temp, 4096, "Tags_name_%d", i);
           if (! (attr=dataFile.get_att(name_temp)) ) {
               delete[] Tags_keys;
               stringstream msg;

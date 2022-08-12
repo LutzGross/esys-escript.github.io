@@ -712,17 +712,18 @@ string DataVar::getTensorDef() const
 
     string tensorDef;
     string tensorDir = varName+string("_comps/");
+    const int ltDef = tensor3DefFmt.length()+9*tensorDir.length();
+    char* tDef = new char[ltDef];
+
     if (shape[1] == 3) {
-        char* tDef = new char[tensor3DefFmt.length()+9*tensorDir.length()];
-        sprintf(tDef, tensor3DefFmt.c_str(),
+        snprintf(tDef, ltDef, tensor3DefFmt.c_str(),
                 tensorDir.c_str(), tensorDir.c_str(), tensorDir.c_str(),
                 tensorDir.c_str(), tensorDir.c_str(), tensorDir.c_str(),
                 tensorDir.c_str(), tensorDir.c_str(), tensorDir.c_str());
         tensorDef = tDef;
         delete[] tDef;
     } else {
-        char* tDef = new char[tensor2DefFmt.length()+4*tensorDir.length()];
-        sprintf(tDef, tensor2DefFmt.c_str(),
+        snprintf(tDef, ltDef, tensor2DefFmt.c_str(),
                 tensorDir.c_str(), tensorDir.c_str(),
                 tensorDir.c_str(), tensorDir.c_str(),
                 tensorDir.c_str(), tensorDir.c_str());
