@@ -25,6 +25,7 @@
 #include <escript/DataFactory.h>
 #include <escript/FunctionSpaceFactory.h>
 #include <escript/Random.h>
+#include <escript/Utils.h>
 
 #include <oxley/AbstractAssembler.h>
 #include <oxley/DefaultAssembler2D.h>
@@ -4154,72 +4155,73 @@ escript::Data Rectangle::randomFillWorker(
     double* src = new double[ext[0]*ext[1]*numvals];
     escript::randomFillArray(seed, src, ext[0]*ext[1]*numvals);
 
-#ifdef ESYS_MPI
-    if ((internal[0] < 5) || (internal[1] < 5)) {
-        // since the dimensions are equal for all ranks, this exception
-        // will be thrown on all ranks
-        throw OxleyException("Random Data in Oxley requires at least five elements per side per rank.");
-    }
-    dim_t X = m_mpiInfo->rank%m_NX[0];
-    dim_t Y = m_mpiInfo->rank/m_NX[0];
-#endif
+    //TODO
+// #ifdef ESYS_MPI
+//     if ((internal[0] < 5) || (internal[1] < 5)) {
+//         // since the dimensions are equal for all ranks, this exception
+//         // will be thrown on all ranks
+//         throw OxleyException("Random Data in Oxley requires at least five elements per side per rank.");
+//     }
+//     dim_t X = m_mpiInfo->rank%m_NX[0];
+//     dim_t Y = m_mpiInfo->rank/m_NX[0];
+// #endif
 
-#ifdef ESYS_MPI
-    BlockGrid2 grid(m_NX[0]-1, m_NX[1]-1);
-    // it's +2 not +1 because a whole element is shared (and hence there is
-    // an overlap of two points both of which need to have "radius" points on
-    // either side.
-    size_t inset=2*radius+2;
+// #ifdef ESYS_MPI
+//     BlockGrid2 grid(m_NX[0]-1, m_NX[1]-1);
+//     // it's +2 not +1 because a whole element is shared (and hence there is
+//     // an overlap of two points both of which need to have "radius" points on
+//     // either side.
+//     size_t inset=2*radius+2;
 
-    // how wide is the x-dimension between the two insets
-    size_t xmidlen=ext[0]-2*inset;
-    size_t ymidlen=ext[1]-2*inset;
+//     // how wide is the x-dimension between the two insets
+//     size_t xmidlen=ext[0]-2*inset;
+//     size_t ymidlen=ext[1]-2*inset;
 
-    Block2 block(ext[0], ext[1], inset, xmidlen, ymidlen, numvals);
+//     Block2 block(ext[0], ext[1], inset, xmidlen, ymidlen, numvals);
 
-    // a non-tight upper bound on how many we need
-    MPI_Request reqs[40];
-    MPI_Status stats[40];
-    short rused=0;
+//     // a non-tight upper bound on how many we need
+//     MPI_Request reqs[40];
+//     MPI_Status stats[40];
+//     short rused=0;
 
-    messvec incoms;
-    messvec outcoms;
+//     messvec incoms;
+//     messvec outcoms;
 
-    grid.generateInNeighbours(X, Y, incoms);
-    grid.generateOutNeighbours(X, Y, outcoms);
+//     grid.generateInNeighbours(X, Y, incoms);
+//     grid.generateOutNeighbours(X, Y, outcoms);
 
-    block.copyAllToBuffer(src);
+//     block.copyAllToBuffer(src);
 
-    int comserr = 0;
-    for (size_t i=0; i < incoms.size(); ++i) {
-        message& m = incoms[i];
-        comserr |= MPI_Irecv(block.getInBuffer(m.destbuffid),
-                             block.getBuffSize(m.destbuffid), MPI_DOUBLE,
-                             m.sourceID, m.tag, m_mpiInfo->comm,
-                             reqs+(rused++));
-        block.setUsed(m.destbuffid);
-    }
+//     int comserr = 0;
+//     for (size_t i=0; i < incoms.size(); ++i) {
+//         message& m = incoms[i];
+//         comserr |= MPI_Irecv(block.getInBuffer(m.destbuffid),
+//                              block.getBuffSize(m.destbuffid), MPI_DOUBLE,
+//                              m.sourceID, m.tag, m_mpiInfo->comm,
+//                              reqs+(rused++));
+//         block.setUsed(m.destbuffid);
+//     }
 
-    for (size_t i=0; i < outcoms.size(); ++i) {
-        message& m = outcoms[i];
-        comserr |= MPI_Isend(block.getOutBuffer(m.srcbuffid),
-                             block.getBuffSize(m.srcbuffid), MPI_DOUBLE,
-                             m.destID, m.tag, m_mpiInfo->comm, reqs+(rused++));
-    }
+//     for (size_t i=0; i < outcoms.size(); ++i) {
+//         message& m = outcoms[i];
+//         comserr |= MPI_Isend(block.getOutBuffer(m.srcbuffid),
+//                              block.getBuffSize(m.srcbuffid), MPI_DOUBLE,
+//                              m.destID, m.tag, m_mpiInfo->comm, reqs+(rused++));
+//     }
 
-    if (!comserr) {
-        comserr = MPI_Waitall(rused, reqs, stats);
-    }
+//     if (!comserr) {
+//         comserr = MPI_Waitall(rused, reqs, stats);
+//     }
 
-    if (comserr) {
-        // Yes this is throwing an exception as a result of an MPI error
-        // and no we don't inform the other ranks that we are doing this.
-        // However, we have no reason to believe coms work at this point anyway
-        throw OxleyException("Error in coms for randomFill");
-    }
+//     if (comserr) {
+//         // Yes this is throwing an exception as a result of an MPI error
+//         // and no we don't inform the other ranks that we are doing this.
+//         // However, we have no reason to believe coms work at this point anyway
+//         throw OxleyException("Error in coms for randomFill");
+//     }
 
-    block.copyUsedFromBuffer(src);
-#endif
+//     block.copyUsedFromBuffer(src);
+// #endif
 
     // the truth of either should imply the truth of the other but let's be safe
     if (radius==0 || numvals > 1) {
