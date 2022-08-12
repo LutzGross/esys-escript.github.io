@@ -107,14 +107,12 @@ if env['trilinos']:
 
 local_env.PrependUnique(LIBS = finleylibs)
 
-env['finley_libs'] = [module_name] + finleylibs
-
 include_path = Dir(module_name, local_env['incinstall'])
 hdr_inst = local_env.Install(include_path, headers)
 
 lib = local_env.SharedLibrary(module_name, sources)
 lib_inst = local_env.Install(local_env['libinstall'], lib)
-
+env['finley_libs'] = lib + finleylibs
 ### Python wrapper ###
 py_env = env.Clone()
 py_env.PrependUnique(LIBS = env['finley_libs'])
