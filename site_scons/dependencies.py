@@ -338,9 +338,12 @@ def checkBoost(env):
                 # windows scons template adds boost_numpy to boost_libs
                 env.Append(CPPDEFINES=['ESYS_HAVE_BOOST_NUMPY'])
             else:
-                p = subprocess.Popen(["ld","--verbose"], stdout=subprocess.PIPE)
+                p = subprocess.Popen(["ld","--verbose"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 out,err = p.communicate()
-                spath = [x[13:-3] for x in out.split() if b'SEARCH_DIR' in x]
+                if hasattr(out, 'decode'):
+                    out=out.decode()
+
+                spath = [x[13:-3] for x in out.split() if 'SEARCH_DIR' in x]
                 spath.append(boost_lib_path)
                 spath.append('/usr/lib/x86_64-linux-gnu/')
                 p2name = ''
@@ -454,14 +457,6 @@ def checkOptionalModules(env):
     ######## scipy
     if not detectModule(env, 'scipy'):
         env['warnings'].append("Cannot import scipy. NetCDF sources will not be available for inversions.")
-
-    ######## pyproj
-    if not detectModule(env, 'pyproj'):
-        env['warnings'].append("Cannot import pyproj. Inversions may not work.")
-
-    ######## gdal
-    if not detectModule(env, 'gdal'):
-        env['warnings'].append("Cannot import gdal. Inversions will not honour WKT coordinate system information.")
 
     ######## sympy
     if not detectModule(env, 'sympy'):

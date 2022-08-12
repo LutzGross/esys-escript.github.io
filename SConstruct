@@ -612,7 +612,7 @@ env=checkNumpy(env)
 ######## CppUnit (required for tests)
 env=checkCppUnit(env)
 
-######## optional python modules (sympy, pyproj)
+######## optional python modules (sympy,)
 env=checkOptionalModules(env)
 
 ######## optional dependencies (netCDF, MKL, UMFPACK, MUMPS, Lapack, Silo, ...)
@@ -758,14 +758,12 @@ env.SConscript('finley/SConscript', variant_dir=variant+'finley', duplicate=0)
 env.SConscript('ripley/SConscript', variant_dir=variant+'ripley', duplicate=0)
 env.SConscript('speckley/SConscript', variant_dir=variant+'speckley', duplicate=0)
 env.SConscript('weipa/SConscript', variant_dir=variant+'weipa', duplicate=0)
-env.SConscript(dirs = ['downunder/py_src'], variant_dir=variant+'downunder', duplicate=0)
 env.SConscript(dirs = ['pycad/py_src'], variant_dir=variant+'pycad', duplicate=0)
 env.SConscript('tools/escriptconvert/SConscript', variant_dir=variant+'tools/escriptconvert', duplicate=0)
 env.SConscript('doc/SConscript', variant_dir=variant+'doc', duplicate=0)
 
 env.Alias('build', build_all_list)
 
-install_all_list += ['install_downunder_py']
 install_all_list += ['install_pycad_py']
 install_all_list += [env.Install(Dir('scripts',env['build_dir']), os.path.join('scripts', 'release_sanity.py'))]
 
@@ -803,7 +801,6 @@ Requires('py_tests', 'install')
 
 ##################### Targets to build the documentation #####################
 
-env.Alias('pdfdocs',['user_pdf', 'install_pdf', 'cookbook_pdf', 'inversion_pdf'])
 env.Alias('basedocs', ['pdfdocs','examples_tarfile', 'examples_zipfile', 'api_doxygen'])
 env.Alias('docs', ['basedocs', 'sphinxdoc'])
 env.Alias('release_prep', ['docs', 'install'])
@@ -915,8 +912,8 @@ def print_summary():
     else:
         print("          netcdf:  NO")
     e_list=[]
-    for i in ('weipa','debug','openmp','cppunit','gdal','mkl','mpi4py',
-             'mumps','pyproj','scipy','silo','sympy','umfpack','visit'):
+    for i in ('weipa','debug','openmp','cppunit','mkl','mpi4py',
+             'mumps', 'scipy','silo','sympy','umfpack','visit'):
         if env[i]: e_list.append(i)
         else: d_list.append(i)
 

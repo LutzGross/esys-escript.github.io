@@ -26,7 +26,7 @@ jobs:
     - name: Installing packages
       run: |
         sudo apt-get -y update
-        sudo apt-get -y install python3-dev libpython3.6-dev python3-numpy python3-pyproj python3-gdal python3-sympy python3-matplotlib python3-scipy libnetcdf-cxx-legacy-dev libnetcdf-c++4-dev libnetcdf-dev libboost-random-dev libboost-python-dev libboost-iostreams-dev scons lsb-release libsuitesparse-dev screenfetch
+        sudo apt-get -y install python3-dev libpython3.6-dev python3-numpy python3-sympy python3-matplotlib python3-scipy libnetcdf-cxx-legacy-dev libnetcdf-c++4-dev libnetcdf-dev libboost-random-dev libboost-python-dev libboost-iostreams-dev scons lsb-release libsuitesparse-dev screenfetch
     
     # - name: Print debugging info
     #   run: |

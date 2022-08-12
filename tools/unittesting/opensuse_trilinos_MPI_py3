@@ -3,7 +3,7 @@ FROM opensuse/leap
 LABEL maintainer="a.ellery@uq.edu.au"
 
 WORKDIR /home
-RUN zypper update -y && RUN zypper install -y python3-devel python3-numpy python3-GDAL \
+RUN zypper update -y && RUN zypper install -y python3-devel python3-numpy\
       python3-sympy python3-matplotlib python3-scipy \
       libboost_iostreams1_66_0-devel libboost_numpy-py3-1_66_0-devel  \
       libboost_python-py3-1_66_0-devel libboost_random1_66_0-devel \

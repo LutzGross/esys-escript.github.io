@@ -117,7 +117,7 @@ class esys_install(setuptools.command.install.install):
         self.distribution.include(data_files=data_files)
         setuptools.command.install.install.run(self)
 
-install_requires = ['matplotlib', 'netCDF4', 'pyproj', 'scipy']
+install_requires = ['matplotlib', 'netCDF4', 'scipy']
 if python_version == '37':
     if plat.startswith('Windows'):
         install_requires.append('numpy==1.15.4')
