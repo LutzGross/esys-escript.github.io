@@ -80,17 +80,12 @@ def sortOutExample(name, needsGMSH=False, needsMPL=False, needsMagicMPL=False, n
 #_deps is for files which end in .py and are required for
 # testing but should not be invoked directly themselves
 
-sortOutExample('usersguide/lid_driven_cavity.py')
-sortOutExample('usersguide/mount.py')
 sortOutExample('usersguide/heatedblock.py')
 sortOutExample('usersguide/helmholtz.py')
-sortOutExample('usersguide/fluid.py')
 sortOutExample('usersguide/poisson.py')
 sortOutExample('usersguide/diffusion.py')
 sortOutExample('usersguide/poisson_vtk.py')
-sortOutExample('usersguide/darcy.py')
 sortOutExample('usersguide/dirac.py')
-sortOutExample('usersguide/slip.py')
 sortOutExample('usersguide/int_save.py')
 sortOutExample('usersguide/wave.py', needsMPL=True)
 sortOutExample('usersguide/trapezoid.py', needsGMSH=True, allowsMPI=False)

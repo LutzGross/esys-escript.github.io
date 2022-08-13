@@ -21,7 +21,6 @@ local_env = env.Clone()
 
 #  files defining test runs (passing in a release)
 testruns = []
-testruns += ['run_xml.py']
 testruns += ['run_units.py']
 testruns += ['run_data_access.py']
 testruns += ['run_testdomain.py']
