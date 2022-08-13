@@ -18,10 +18,6 @@
 
 #include <pythonMPI/esys_python.h>
 
-#ifdef ESYS_HAVE_MPI4PY
-#include <mpi4py/mpi4py.h>
-#endif
-
 
 #ifdef ESYS_HAVE_MPI4PY
 // Python interface
