@@ -357,7 +357,7 @@ elif cc_name.startswith('clang++'):
     cc_debug     = "-ggdb3 -O0 -fdiagnostics-fixit-info -pedantic "
     cc_debug    += "-DDOASSERT -DDOPROF -DBOUNDS_CHECK -DSLOWSHARECHECK "
     omp_flags    = "-fopenmp "
-    omp_ldflags  = "-fomp"
+    omp_ldflags  = " "
     fatalwarning = "-Werror"
     sysheaderopt = "-isystem"
 elif cc_name[:3] == 'mpic++':
