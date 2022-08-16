@@ -235,17 +235,89 @@ int refine_bottom(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadr
     return (xy[2] <= m_NX) && (quadrant->level < (steps+1)) && (quadrant->level < forestData->max_levels_refinement);
 }
 
+// Returns true if the point (x,y) is inside the square whose corners are (x0,y0) and (x1,y1)
+inline bool point_in_square(double x, double y, double x0, double y0, double x1, double y1)
+{
+    return (x>=x0) && (x<=x1) && (y>=y0) && (y<=y1);
+}
+
+// Returns true if the line segment connecting (x1,y1) and (x2,y2) and the line segment connecting
+// (x3,y3) and (x4,y4) intersect.
+inline bool intersection(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4)
+{
+    double t = -(x1*(y3-y2)+x2*(y1-y3)+x3*(y2-y1))/(x1*(y4-y3)+x2*(y3-y4)+x4*(y2-y1)+x3*(y1-y2));
+    double s =  (x1*(y4-y3)+x3*(y1-y4)+x4*(y3-y1))/(x1*(y4-y3)+x2*(y3-y4)+x4*(y2-y1)+x3*(y1-y2));
+    return (s<=1) && (s>=0) && (t<=1) && (t>=0);
+}
+
+// class point_info // for the sake of brevity in refine_region
+// {
+// public:
+//     double x,y;
+// };
+
 int refine_region(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
 {
     p4estData * forestData = (p4estData *) p4est->user_pointer;
     quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
-    double * xy = quadData->xy;
+    double * xy0 = quadData->xy;
+    
 
-    return  (xy[0] >= forestData->refinement_boundaries[0]) &&
-            (xy[0] <= forestData->refinement_boundaries[1]) &&
-            (xy[1] >= forestData->refinement_boundaries[2]) &&
-            (xy[1] <= forestData->refinement_boundaries[3]) &&
-            (quadrant->level < forestData->max_levels_refinement);
+    double corners_of_quadrant[4][2]={{0.0}};
+    // double l = P4EST_QUADRANT_LEN(quadrant->level);
+    double l[2] = {forestData->m_dx[0][P4EST_MAXLEVEL-quadrant->level],forestData->m_dx[1][P4EST_MAXLEVEL-quadrant->level]};
+    double inc[4][2]={{0,0},{l[0],0},{0,l[1]},{l[0],l[1]}};
+
+    // point_info region[4];
+    // region[0].x=forestData->refinement_boundaries[0];
+    // region[0].y=forestData->refinement_boundaries[1];
+    // region[1].x=forestData->refinement_boundaries[2];
+    // region[1].y=forestData->refinement_boundaries[1];
+    // region[2].x=forestData->refinement_boundaries[0];
+    // region[2].y=forestData->refinement_boundaries[3];
+    // region[3].x=forestData->refinement_boundaries[2];
+    // region[3].y=forestData->refinement_boundaries[3];
+
+    //check corners
+    bool check[4]={false};
+    double xy[4][3]={-1};
+    for(int i=0; i<4;i++)
+    {
+        xy[i][0]=*(xy0  )+inc[i][0];
+        xy[i][1]=*(xy0+1)+inc[i][1];
+        check[i]=point_in_square(xy[i][0],
+                                 xy[i][1],forestData->refinement_boundaries[0],
+                                          forestData->refinement_boundaries[2],
+                                          forestData->refinement_boundaries[1],
+                                          forestData->refinement_boundaries[3]);
+    }
+
+    //TODO
+    //check sides
+    // bool checkB[8]={false};
+    // double corners[4][2]={{forestData->refinement_boundaries[0],forestData->refinement_boundaries[1]},
+    //                       {forestData->refinement_boundaries[2],forestData->refinement_boundaries[1]},
+    //                       {forestData->refinement_boundaries[0],forestData->refinement_boundaries[3]},
+    //                       {forestData->refinement_boundaries[2],forestData->refinement_boundaries[3]}};
+
+    // // vertical
+    // checkB[0]=intersection(corners[0][0],corners[0][1],corners[2][0],corners[2][1],xy[0][0],xy[0][1],xy[1][0],xy[1][1]);
+    // checkB[1]=intersection(corners[0][0],corners[0][1],corners[2][0],corners[2][1],xy[2][0],xy[2][1],xy[3][0],xy[3][1]);
+    // checkB[2]=intersection(corners[1][0],corners[1][1],corners[3][0],corners[3][1],xy[0][0],xy[0][1],xy[1][0],xy[1][1]);
+    // checkB[3]=intersection(corners[1][0],corners[1][1],corners[3][0],corners[3][1],xy[2][0],xy[2][1],xy[3][0],xy[3][1]);
+    // //horizontal
+    // checkB[4]=intersection(corners[0][0],corners[0][1],corners[1][0],corners[1][1],xy[0][0],xy[0][1],xy[2][0],xy[2][1]);
+    // checkB[5]=intersection(corners[0][0],corners[0][1],corners[1][0],corners[1][1],xy[1][0],xy[1][1],xy[3][0],xy[3][1]);
+    // checkB[6]=intersection(corners[2][0],corners[2][1],corners[3][0],corners[3][1],xy[0][0],xy[0][1],xy[2][0],xy[2][1]);
+    // checkB[7]=intersection(corners[2][0],corners[2][1],corners[3][0],corners[3][1],xy[1][0],xy[1][1],xy[3][0],xy[3][1]);
+    
+    bool refinement = check[0] || check[1] || check[2] || check[3] ;
+
+    // bool refinement = check[0] || check[1] || check[2] || check[3] ||
+    //                   checkB[0] || checkB[1] || checkB[2] || checkB[3] ||
+    //                   checkB[4] || checkB[5] || checkB[6] || checkB[7];
+
+    return refinement && (quadrant->level < forestData->max_levels_refinement);
 }
 
 int refine_point(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
