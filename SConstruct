@@ -360,7 +360,7 @@ elif cc_name.startswith('clang++'):
     omp_ldflags  = " "
     fatalwarning = "-Werror"
     sysheaderopt = "-isystem"
-elif cc_name[:3] == 'mpic++':
+elif cc_name == 'mpic++':
     # MPIC++ on any system
     # note that -ffast-math is not used because it breaks isnan(),
     cc_flags     = " -std=c++17 -pedantic -Wall -fPIC -finline-functions"
@@ -372,7 +372,7 @@ elif cc_name[:3] == 'mpic++':
     cc_debug     = "-g3 -O0  -DDOASSERT -DDOPROF -DBOUNDS_CHECK -DSLOWSHARECHECK --param=max-vartrack-size=100000000"
     #Removed because new netcdf doesn't seem to like it
     #cc_debug += ' -D_GLIBCXX_DEBUG  '
-    ld_extra += " -fPIC -lmpi "
+    ld_extra = " -fPIC -lmpi "
     if env['openmp']:
       ld_extra += " -lgomp"
     omp_flags    = "-fopenmp"
