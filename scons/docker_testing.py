@@ -18,6 +18,8 @@
 # This is a template configuration file for escript on Debian/GNU Linux.
 # Refer to README_FIRST for usage instructions.
 
+escript_opts_version=203
+
 pythoncmd = 'python3'
 mpi_prefix=['/usr/lib/x86_64-linux-gnu/openmpi/include','/usr/lib/x86_64-linux-gnu/openmpi/lib']
 
