@@ -93,7 +93,6 @@ sortOutExample('usersguide/quad.py', needsGMSH=True)
 sortOutExample('usersguide/brick.py', needsGMSH=True)
 sortOutExample('usersguide/refine.py', needsGMSH=True)
 sortOutExample('usersguide/poisson_matplotlib.py', allowsMPI=False)
-sortOutExample('usersguide/voxet_reader.py')
 
 example_deps.append('cookbook/cblib.py')
 sortOutExample('cookbook/example01a.py')
