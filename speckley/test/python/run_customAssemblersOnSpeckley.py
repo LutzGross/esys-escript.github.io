@@ -28,7 +28,8 @@ from esys.escriptcore.testing import *
 from esys.escript import *
 from esys.speckley import Rectangle, Brick
 from esys.escript.linearPDEs import LameEquation, LinearPDESystem, WavePDE, LinearSinglePDE
-from esys.downunder import HTIWave, VTIWave, Ricker
+from esys.escript.pdetools import Ricker
+#TODO from esys.downunder import HTIWave, VTIWave
 
 EXPANDED, SCALAR, CONSTANT = range(3)
 

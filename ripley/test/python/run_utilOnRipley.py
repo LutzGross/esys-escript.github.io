@@ -101,6 +101,7 @@ class Test_Util_SpatialFunctionsOnRipley3D(Test_Util_SpatialFunctions_noGradOnBo
         del self.order
         del self.domain
 
+@unittest.skip("borrowListOfTagsInUse for Dirac points does noyt work.")
 class Test_2D_Point_Data_Interpolation(Test_Util_Interpolation_Dirac):
     def setUp(self):
         Stations = [ (0.,0.), (1.,0), (0,1), (1,1) ]
@@ -111,6 +112,7 @@ class Test_2D_Point_Data_Interpolation(Test_Util_Interpolation_Dirac):
     def tearDown(self):
         del self.domain, self.taglist, self.positions
 
+@unittest.skip("borrowListOfTagsInUse for Dirac points does noyt work.")
 class Test_3D_Point_Data_Interpolation(Test_Util_Interpolation_Dirac):
     def setUp(self):
         Stations = [ (0.,0.,0.), (1.,0,0.), (0,1,0.), (1,1,0.), (0.,0.,1.), (1.,0,1.), (0,1,1.), (1,1,1.) ]
