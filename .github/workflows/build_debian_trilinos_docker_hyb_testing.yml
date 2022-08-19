@@ -15,4 +15,4 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Building the Docker image...
-      run: docker build . --file ./tools/unittesting/debian_trilinos_hyb_py3 --tag esys-escript:$(date +%s)
+      run: docker build . --file ./tools/unittesting/debian_trilinos_hyb_py3
