@@ -24,4 +24,4 @@ pythoncmd = 'python3'
 lapack_prefix=['/usr/include/x86_64-linux-gnu/','/usr/lib/x86_64-linux-gnu/']
 mpi_prefix=['/usr/lib/x86_64-linux-gnu/openmpi/include','/usr/lib/x86_64-linux-gnu/openmpi/lib']
 silo_prefix=['/usr/include','/usr/lib/x86_64-linux-gnu/']
-umfpack_prefix=['/usr/include/suitesparse','/usr/lib/x86_64-linux-gnu/'
+umfpack_prefix=['/usr/include/suitesparse','/usr/lib/x86_64-linux-gnu/']
