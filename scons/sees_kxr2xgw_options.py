@@ -31,3 +31,6 @@ tools_names = ['clang-mp-14']
 compression_libs = ['boost_iostreams-mt']
 umfpack = True
 umfpack_prefix = '/opt/local'
+
+cxx_extra = ''
+ld_extra = '-v'

@@ -2059,7 +2059,7 @@ class Test_util_base(Test_util_values):
 #=========================================================
 #  File writer
 #=========================================================
-   def setup(self):
+   def setUp(self):
         self.workdir=ESCRIPT_WORKDIR
 
    def __checkContent(self,fn,ref_cont):

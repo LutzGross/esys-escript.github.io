@@ -47,6 +47,11 @@ else:
         pass
 
 try:
+     ESCRIPT_WORKDIR=os.environ['ESCRIPT_WORKDIR']
+except KeyError:
+     ESCRIPT_WORKDIR='.'
+
+try:
      FINLEY_TEST_DATA=os.environ['FINLEY_TEST_DATA']
 except KeyError:
      FINLEY_TEST_DATA='.'
@@ -57,20 +62,21 @@ FINLEY_MERGE_ERROR = "merge: more than 1 processor is not supported yet."
 
 NE=4 # number elements, must be even
 
+#TODO: What is this testing? Is this still needed?
 class Test_Data_Addition(Test_addition_types):
     def setUp(self):
-       self.domain = Rectangle(NE, NE+1, 2)
+        self.domain = Rectangle(NE, NE+1, 2)
+        self.workdir=ESCRIPT_WORKDIR
+
+        self.functionspace = FunctionOnBoundary(self.domain)
     def tearDown(self):
        del self.domain
 
 
 class Test_UtilOnFinley(Test_util,Test_util_NaN_funcs):
    def setUp(self):
-       try:
-           self.workdir=os.environ['FINLEY_WORKDIR']
-       except KeyError:
-           self.workdir='.'
-       self.domain = Rectangle(NE, NE+1, 2)
+       self.workdir = ESCRIPT_WORKDIR
+       self.domain = Rectangle(NE, NE + 1, 2)
        self.functionspace = FunctionOnBoundary(self.domain) # due to a bug in escript python needs to hold a reference to the domain
    def tearDown(self):
        del self.functionspace
@@ -90,10 +96,7 @@ class Test_UtilOnFinley(Test_util,Test_util_NaN_funcs):
 
 class Test_NaNFuncsOnFinley(Test_util_NaN_funcs):
    def setUp(self):
-       try:
-           self.workdir=os.environ['FINLEY_WORKDIR']
-       except KeyError:
-           self.workdir='.'
+       self.workdir = ESCRIPT_WORKDIR
        self.domain = Rectangle(NE, NE+1, 2)
        self.functionspace = FunctionOnBoundary(self.domain) # due to a bug in escript python needs to hold a reference to the domain
    def tearDown(self):
