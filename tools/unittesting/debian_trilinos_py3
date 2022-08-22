@@ -10,10 +10,10 @@ RUN apt-get update
 # escript
 WORKDIR /app/escript
 RUN git clone https://github.com/esys-escript/esys-escript.github.io --depth 1 -b 6.0 .
-RUN scons options_file=scons/docker_testing.py \
+RUN scons options_file=scons/docker_testing.py openmp=1 \
       boost_libs=boost_python39 werror=0 \
       paso=0 trilinos=1 trilinos_prefix=/usr/local build_full -j`nproc`
-ENV LD_LIBRARY_PATH=/app/escript/lib:/app/trilinos/lib:$LD_LIBRARY_PATH
+ENV LD_LIBRARY_PATH=/app/escript/lib:/usr/local/lib:$LD_LIBRARY_PATH
 ENV PYTHONPATH=/app/escript:$PYTHONPATH
 ENV PATH=/app/escript/bin:$PATH
 # run testing
