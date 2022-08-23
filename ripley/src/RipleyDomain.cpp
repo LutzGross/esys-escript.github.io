@@ -866,6 +866,7 @@ int RipleyDomain::getNumberOfTagsInUse(int fsType) const
     }
 }
 
+
 const int* RipleyDomain::borrowListOfTagsInUse(int fsType) const
 {
     switch(fsType) {
@@ -884,7 +885,7 @@ const int* RipleyDomain::borrowListOfTagsInUse(int fsType) const
         case ReducedFaceElements:
             return &m_faceTagsInUse[0];
         case Points:
-            return &m_pointsTagsInUse[0];
+            return (int *) &m_diracPoints[0];
         default: {
             stringstream msg;
             msg << "borrowListOfTagsInUse: invalid function space type "

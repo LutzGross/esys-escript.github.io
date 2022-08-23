@@ -766,7 +766,6 @@ public:
     Assembler_ptr createAssemblerFromPython(std::string type,
                                      const boost::python::list& options) const;
 
-
 protected:
     int m_numDim;
     StatusType m_status;
@@ -775,7 +774,7 @@ protected:
     mutable std::vector<int> m_nodeTags, m_nodeTagsInUse;
     mutable std::vector<int> m_elementTags, m_elementTagsInUse;
     mutable std::vector<int> m_faceTags, m_faceTagsInUse;
-    mutable std::vector<int> m_pointsTagsInUse;
+    // mutable std::vector<int> m_pointsTagsInUse;
     std::vector<DiracPoint> m_diracPoints;
     IndexVector m_diracPointNodeIDs; //for borrowSampleID
     assembler_t assembler_type;
