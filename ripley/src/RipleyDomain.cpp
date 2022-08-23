@@ -871,12 +871,20 @@ const int* RipleyDomain::borrowListOfTagsInUse(int fsType) const
     switch(fsType) {
         case Nodes:
             return &m_nodeTagsInUse[0];
+        case ReducedNodes:
+            throw ValueError("ReducedNodes does not support tags");
+        case DegreesOfFreedom:
+            throw ValueError("DegreesOfFreedom does not support tags");
+        case ReducedDegreesOfFreedom:
+            throw ValueError("ReducedDegreesOfFreedom does not support tags");
         case Elements:
         case ReducedElements:
             return &m_elementTagsInUse[0];
         case FaceElements:
         case ReducedFaceElements:
             return &m_faceTagsInUse[0];
+        case Points:
+            return &m_pointsTagsInUse[0];
         default: {
             stringstream msg;
             msg << "borrowListOfTagsInUse: invalid function space type "
