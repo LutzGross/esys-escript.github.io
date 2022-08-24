@@ -857,6 +857,8 @@ int RipleyDomain::getNumberOfTagsInUse(int fsType) const
         case FaceElements:
         case ReducedFaceElements:
             return m_faceTagsInUse.size();
+        case Points:
+            return m_diracPoints.size();
         default: {
             stringstream msg;
             msg << "getNumberOfTagsInUse: invalid function space type "
