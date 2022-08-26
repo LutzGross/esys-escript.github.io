@@ -2570,14 +2570,11 @@ void DefaultAssembler2D<Scalar>::assemblePDEBoundarySystemReduced(
 /****************************************************************************/
 // PDE HANGING NODES
 /****************************************************************************/
-
+#ifdef ESYS_HAVE_TRILINOS
 template<class Scalar>
 void DefaultAssembler2D<Scalar>::assemblePDEHanging(
                     Teuchos::RCP<Tpetra::CrsMatrix<double,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>>* IZ) const
 {
-
-#ifdef ESYS_HAVE_TRILINOS
-    
     // const Tpetra::Vector<>::scalar_type one  = static_cast<Tpetra::Vector<>::scalar_type> (1.0);
     // const Tpetra::Vector<>::scalar_type half = static_cast<Tpetra::Vector<>::scalar_type> (0.5);
 
@@ -2620,12 +2617,13 @@ void DefaultAssembler2D<Scalar>::assemblePDEHanging(
 
     // IZ->fillComplete();
 
-#endif
 }
 
 // instantiate the supported templates
 template class DefaultAssembler2D<escript::DataTypes::real_t>;
 template class DefaultAssembler2D<escript::DataTypes::cplx_t>;
+
+#endif //ESYS_HAVE_TRILINOS
 
 } // namespace oxley
 

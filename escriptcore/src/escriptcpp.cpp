@@ -432,6 +432,7 @@ args("arg"), "assigns new location to the domain\n\n"
         ":rtype: ``int``")
       // .def("getZ",&escript::AbstractContinuousDomain::getZ)
       // .def("getIZ",&escript::AbstractContinuousDomain::getIZ)
+#ifdef ESYS_HAVE_TRILINOS
       .def("finaliseA",&escript::AbstractContinuousDomain::finaliseA, args("mat", "iz"),
         "finalises the matrix system before it is passed to the solver\n\n"
         ":param mat:\n"
@@ -446,7 +447,9 @@ args("arg"), "assigns new location to the domain\n\n"
         ":param z:\n"
         ":type z: ``CRSMatrix``\n"
         ":rtype ``AbstractSystemMatrix``");
-
+#else
+        ;
+#endif ESYS_HAVE_TRILINOS
 
 
 

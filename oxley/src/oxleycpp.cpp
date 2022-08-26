@@ -438,10 +438,12 @@ BOOST_PYTHON_MODULE(oxleycpp)
             ":param symmetry:\n:type symmetry: ``int``")
         .def("getX",&oxley::OxleyDomain::getX, ":return: locations in the FEM nodes\n\n"
             ":rtype: `Data`")
+#ifdef ESYS_HAVE_TRILINOS
         .def("makeZ",&oxley::OxleyDomain::makeZ, arg("complex"), "creates the matrix Z")
         .def("makeIZ",&oxley::OxleyDomain::makeIZ, arg("complex"), "creates the matrix IZ")
         .def("finaliseA",&oxley::OxleyDomain::finaliseA, args("mat","isComplex"), "finalisesLHS")
         .def("finaliseRhs",&oxley::OxleyDomain::finaliseRhs, arg("rhs"), "finalisesRHS")
+#endif
         .def("saveFsType",&oxley::OxleyDomain::saveFsType, arg("rhs"), "saves the fs type")
         .def("getOrigFsType",&oxley::OxleyDomain::getOrigFsType, "returns the fs type")
         .def("loadMesh", &oxley::OxleyDomain::loadMesh, (arg("filename")),

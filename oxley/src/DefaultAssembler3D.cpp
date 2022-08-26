@@ -144,11 +144,13 @@ void DefaultAssembler3D<Scalar>::assemblePDEBoundarySystemReduced(
     assemblePDEBoundarySystemReduced(mat, rhs, d, y);
 }
 
+#ifdef ESYS_HAVE_TRILINOS
 template<class Scalar>
 void DefaultAssembler3D<Scalar>::assemblePDEHanging(Teuchos::RCP<Tpetra::CrsMatrix<double,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>>* mat) const
 {
 
 }
+#endif
 
 /****************************************************************************/
 // PDE SINGLE

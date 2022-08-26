@@ -112,8 +112,10 @@ public:
                               escript::AbstractSystemMatrix* mat,
                               escript::Data& rhs, const DataMap& coefs) const;
 
+#ifdef ESYS_HAVE_TRILINOS
     virtual void assemblePDEHanging(Teuchos::RCP<Tpetra::CrsMatrix<double,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>>* mat) const;
-
+#endif
+    
     void collateFunctionSpaceTypes(std::vector<int>& fsTypes,
                                    const DataMap& coefs) const;
 

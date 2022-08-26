@@ -118,7 +118,9 @@ public:
     virtual void collateFunctionSpaceTypes(std::vector<int>& fsTypes,
                                            const DataMap& coefs) const;
 
+#ifdef ESYS_HAVE_TRILINOS
     virtual void assemblePDEHanging(Teuchos::RCP<Tpetra::CrsMatrix<double,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>>* mat) const;
+#endif
 
 protected:
     POINTER_WRAPPER_CLASS(const Rectangle) domain;

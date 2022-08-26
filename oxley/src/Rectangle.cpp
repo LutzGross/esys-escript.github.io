@@ -169,7 +169,8 @@ Rectangle::Rectangle(int order,
 // #else
 //     sc_init(NULL, 1, print_backtrace, NULL, LOG_LEVEL);
 // #endif
-    p4est = p4est_new_ext(m_p4est_mpiInfo, connectivity, min_quadrants,
+    
+    p4est = p4est_new_ext(MPI_COMM_WORLD, connectivity, min_quadrants,
             min_level, fill_uniform, sizeof(quadrantData), init_rectangle_data, (void *) &forestData);
 
 #ifdef OXLEY_ENABLE_DEBUG_CHECKS //These checks are turned off by default as they can be very timeconsuming

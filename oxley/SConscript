@@ -15,9 +15,10 @@
 
 Import('env')
 if 'oxley' in env['domains']:
-    if not env['paso'] and not env['trilinos']:
-        print("Oxley requires a solver library! Please either enable Paso or Trilinos.")
-        env.Exit(1)
+    # TODO
+    # if not env['trilinos']:
+    #     print("Oxley requires Trilinos!")
+    #     env.Exit(1)
 
     # configure C++ library
     env.SConscript('src/SConscript', duplicate=0)
