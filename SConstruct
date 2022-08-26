@@ -258,6 +258,7 @@ if env['cxx'] != 'default':
 
 if env['mpi'] == 'OPENMPI':
     env['CXX'] = 'mpic++'
+    env['CC'] = 'mpicc'
 
 # default compiler/linker options
 cxx_flags = '-std=c++11'
@@ -585,14 +586,21 @@ if env['prelaunch'] == 'default':
 # Used by p4est
 if env['mpi'] != 'no' and env['mpi'] != 'none':
     env.Append(CPPDEFINES = ['P4EST_ENABLE_MPI'])
-    env.Append(CPPDEFINES = ['SC_ENABLE_MPI'])
+    env.Append(CPPDEFINES = ['P4EST_ENABLE_MPICOMMSHARED'])
+    env.Append(CPPDEFINES = ['P4EST_ENABLE_MPIIO'])
+    env.Append(CPPDEFINES = ['P4EST_ENABLE_MPISHARED'])
+    env.Append(CPPDEFINES = ['P4EST_ENABLE_MPITHREAD'])
+    env.Append(CPPDEFINES = ['P4EST_ENABLE_MPIWINSHARED'])
     env.Append(CPPDEFINES = ['P4EST_MPI'])
-    # env.Append(CPPDEFINES = ['P4EST_ENABLE_MPICOMMSHARED'])
-    # env.Append(CPPDEFINES = ['P4EST_ENABLE_MPIIO'])
-    # env.Append(CPPDEFINES = ['P4EST_ENABLE_MPITHREAD'])
-    # env.Append(CPPDEFINES = ['P4EST_MPIIO'])
-    # env.Append(CPPDEFINES = ['MPI'])
-    # env.Append(CPPDEFINES = ['MPIIO'])
+    env.Append(CPPDEFINES = ['P4EST_MPIIO'])
+    env.Append(CPPDEFINES = ['SC_ENABLE_MPI'])
+    env.Append(CPPDEFINES = ['SC_ENABLE_MPICOMMSHARED'])
+    env.Append(CPPDEFINES = ['SC_ENABLE_MPIIO'])
+    env.Append(CPPDEFINES = ['SC_ENABLE_MPISHARED'])
+    env.Append(CPPDEFINES = ['SC_ENABLE_MPITHREAD'])
+    env.Append(CPPDEFINES = ['SC_ENABLE_MPIWINSHARED'])
+    env.Append(CPPDEFINES = ['SC_MPI'])
+    env.Append(CPPDEFINES = ['SC_MPIIO'])
 
 if env['launcher'] == 'default':
     if env['mpi'] == 'INTELMPI':
