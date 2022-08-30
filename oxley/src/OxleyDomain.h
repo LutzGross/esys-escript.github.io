@@ -836,11 +836,12 @@ public:
     Teuchos::RCP<esys_trilinos::VectorType<real_t> > rgblData;
     Teuchos::RCP<esys_trilinos::VectorType<cplx_t> > cgblData;
     
-    #ifdef ESYS_MPI
-    const Teuchos::RCP<const Teuchos::Comm<int>> tril_comm = esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm);
-    #else
-    const Teuchos::RCP<const Teuchos::Comm<int>> tril_comm = Teuchos::RCP<const Teuchos::SerialComm<int>>();
-    #endif
+    // #ifdef ESYS_MPI
+    // const Teuchos::RCP<const Teuchos::Comm<int>> tril_comm = esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm);
+    // const Teuchos::RCP<const Teuchos::Comm<int>> tril_comm = Teuchos::RCP<const Teuchos::SerialComm<int>>();
+    // #else
+    // const Teuchos::RCP<const Teuchos::Comm<int>> tril_comm = Teuchos::RCP<const Teuchos::SerialComm<int>>();
+    // #endif
 
     Teuchos::RCP<real_matrix_type> rZ;
     Teuchos::RCP<real_matrix_type> rIZ;
