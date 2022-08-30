@@ -37,10 +37,10 @@
 #define MARE2DEM_TOL 0.25 
 
 #ifdef OXLEY_ENABLE_DEBUG
-// #define LOG_BACKTRACE 1  // Print a backtrace if p4est aborts prematurely
-// #define LOG_LEVEL 0  // Everything
+#define LOG_BACKTRACE 1  // Print a backtrace if p4est aborts prematurely
+#define LOG_LEVEL 0  // Everything
 // #define LOG_LEVEL 4 // Main things that each function does
-#define LOG_LEVEL 8 // Errors only
+// #define LOG_LEVEL 8 // Errors only
 #else
 // #define LOG_BACKTRACE 0
 #define LOG_LEVEL 9  // Nothing

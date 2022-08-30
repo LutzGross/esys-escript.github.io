@@ -307,13 +307,6 @@ Rectangle::~Rectangle(){
         std::cout << "broken" << std::endl;
     else
         std::cout << "OK" << std::endl;
-    std::cout << "destoying the connectivity..." << std::endl;
-    p4est_connectivity_destroy(connectivity);
-    std::cout << "destoying the p4est..." << std::endl;
-    p4est_destroy(p4est);
-#else
-    p4est_connectivity_destroy(connectivity);
-    p4est_destroy(p4est);
 #endif
 }
 
