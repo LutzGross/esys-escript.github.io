@@ -22,7 +22,8 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build dockerfile
+      - 
+        name: Build dockerfile
         run: docker build . --file ./binder/Dockerfile --tag ${{ secrets.DOCKERHUB_USERNAME }}.binder:$(date +%s)
       -
         name: Push
