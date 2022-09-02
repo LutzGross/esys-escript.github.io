@@ -31,6 +31,6 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: ./binder/Dockerfile
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}.binder:$(date +%s)
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}.binder
           push: true
         
