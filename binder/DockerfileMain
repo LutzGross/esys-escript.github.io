@@ -21,7 +21,7 @@ RUN scons openmp=1 \
       pythonlibname=python3.9 \
       boost_libs=boost_python39 werror=0 \
       paso=0 trilinos=1 trilinos_prefix=/usr/local build_full -j`nproc` \
-      prefix=/usr/local || cat config.log
+      prefix=/usr || cat config.log
 RUN rm -rf *
 
 # set up the user
