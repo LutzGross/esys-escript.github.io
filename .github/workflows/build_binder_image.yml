@@ -16,8 +16,6 @@ jobs:
       -
         name: Build dockerfile
         run: docker build . --file binder/Dockerfile --tag ${{ secrets.DOCKERHUB_USERNAME }}.binder:$(date +%s)
-        with:
-          DOCKER_CONFIG: binder
       -
         name: Login to DockerHub
         uses: docker/login-action@v2
