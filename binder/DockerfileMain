@@ -6,13 +6,13 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Binder needs these packages
 # RUN echo deb http://deb.debian.org/debian/ buster main non-free contrib >> /etc/apt/sources.list
-RUN apt-get update 
+RUN apt update
 RUN apt install -y python3-pip libffi-dev
 RUN python3 -m pip install --no-cache-dir notebook jupyterlab jupyterhub
 
 
 # install escript
-WORKDIR /app/escript
+WORKDIR /app
 RUN git clone https://github.com/esys-escript/esys-escript.github.io --depth 1 .
 RUN scons openmp=1 \
       pythoncmd=`which python3` \
