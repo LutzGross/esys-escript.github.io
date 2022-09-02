@@ -30,7 +30,9 @@ jobs:
         name: Build dockerfile
         uses: docker/build-push-action@v3
         with:
-          context: ./binder/Dockerfile
+          context: .
+          file: ./binder/Dockerfile
+          platforms: linux/amd64
           tags: ${{ secrets.DOCKERHUB_USERNAME }}.binder
           push: true
         
