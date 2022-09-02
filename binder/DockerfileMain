@@ -20,7 +20,7 @@ RUN scons openmp=1 \
       pythonincpath=/usr/include/python3.9/ \
       pythonlibname=python3.9 \
       boost_libs=boost_python39 werror=0 \
-      paso=0 trilinos=1 trilinos_prefix=/usr/local build_full -j`nproc` \
+      paso=0 trilinos=1 trilinos_prefix=/usr/ build_full -j`nproc` \
       prefix=/usr || cat config.log
 RUN rm -rf *
 
