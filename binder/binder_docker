@@ -1,0 +1,44 @@
+FROM aellery/esys.escript.trilinos.nompi
+
+LABEL maintainer="a.ellery@uq.edu.au"
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Binder needs these packages
+# RUN echo deb http://deb.debian.org/debian/ buster main non-free contrib >> /etc/apt/sources.list
+RUN apt-get update 
+RUN apt install -y python3-pip
+RUN python3 -m pip install --no-cache-dir notebook jupyterlab jupyterhub
+
+
+# install escript
+WORKDIR /app/escript
+RUN git clone https://github.com/esys-escript/esys-escript.github.io --depth 1 .
+RUN scons openmp=1 \
+      pythoncmd=`which python3` \
+      pythonlibpath=/usr/lib/x86_64-linux-gnu/ \
+      pythonincpath=/usr/include/python3.9/ \
+      pythonlibname=python3.9 \
+      boost_libs=boost_python39 werror=0 \
+      paso=0 trilinos=1 trilinos_prefix=/usr/local build_full -j`nproc` \
+      prefix=/usr/local
+RUN rm -rf *
+
+# set up the user
+ARG NB_USER=jovyan
+ARG NB_UID=1000
+ENV USER ${NB_USER}
+ENV NB_UID ${NB_UID}
+ENV HOME /home/${NB_USER}
+
+RUN adduser --disabled-password \
+    --gecos "Default user" \
+    --uid ${NB_UID} \
+    ${NB_USER}
+
+COPY . ${HOME}
+USER root
+RUN chown -R ${NB_UID} ${HOME}
+USER ${NB_USER}
+
+CMD ["/bin/bash"]
