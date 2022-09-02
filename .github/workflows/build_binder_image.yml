@@ -33,6 +33,6 @@ jobs:
           context: .
           file: ./binder/Dockerfile
           platforms: linux/amd64
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}.binder
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/esys.escript.binder
           push: true
         
