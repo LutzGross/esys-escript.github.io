@@ -7,7 +7,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Binder needs these packages
 # RUN echo deb http://deb.debian.org/debian/ buster main non-free contrib >> /etc/apt/sources.list
 RUN apt-get update 
-RUN apt install -y python3-pip
+RUN apt install -y python3-pip libffi-dev
 RUN python3 -m pip install --no-cache-dir notebook jupyterlab jupyterhub
 
 
