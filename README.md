@@ -67,6 +67,10 @@ For information on a specific Linux distrobution, please consult the install gui
 To get started using escript please consult the user guide (user.pdf) and the (cookbook.pdf) cookbook. 
 All of these documents are available here and at https://esys-escript.github.io/
 
+Click on this button to try out escript in your web browser:
+
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/esys-escript/esys-escript.github.io/HEAD)
+
 ## Questions & Bugs 
 
 To raise a question or to report a bug please start a [github issue](https://github.com/esys-escript/esys-escript.github.io/issues).
