@@ -31,7 +31,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: .
-          file: ./binder/Dockerfile
+          file: ./binder/DockerfileMain
           platforms: linux/amd64
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/esys.escript.binder
           push: true
