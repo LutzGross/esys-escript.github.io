@@ -5,7 +5,7 @@ LABEL maintainer="a.ellery@uq.edu.au"
 ENV DEBIAN_FRONTEND=noninteractive
 
 # install escript
-WORKDIR /app/escript
+WORKDIR /home/
 RUN git clone https://github.com/esys-escript/esys-escript.github.io --depth 1 .
 RUN scons openmp=1 \
       pythoncmd=`which python3` \
