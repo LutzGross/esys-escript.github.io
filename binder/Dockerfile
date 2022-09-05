@@ -19,6 +19,6 @@ USER root
 RUN chown -R ${NB_UID} ${HOME}
 USER ${NB_USER}
 
-ENV PYTHONPATH=/usr/esys/
+ENV PYTHONPATH=/usr/
 
 CMD ["/bin/bash"]
