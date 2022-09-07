@@ -17,4 +17,6 @@ RUN scons openmp=1 \
       prefix=/usr/ || cat config.log
 RUN rm -rf *
 
+WORKDIR /tmp
+
 CMD ["/bin/bash"]
