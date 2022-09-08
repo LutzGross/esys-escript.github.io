@@ -82,9 +82,8 @@ inline int indexOfMax(dim_t a, dim_t b, dim_t c)
 Brick::Brick(int order, dim_t n0, dim_t n1, dim_t n2, double x0, double y0, double z0,
              double x1, double y1, double z1, int d0, int d1, int d2,
              const std::vector<double>& points, const std::vector<int>& tags,
-             const TagMap& tagnamestonums,
-             escript::SubWorld_ptr w) :
-    SpeckleyDomain(3, order, w)
+             const TagMap& tagnamestonums) :
+    SpeckleyDomain(3, order)
 {
     if (static_cast<long>(n0 + 1) * static_cast<long>(n1 + 1)
             * static_cast<long>(n2 + 1) > std::numeric_limits<int>::max())

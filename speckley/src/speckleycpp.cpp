@@ -20,7 +20,6 @@
 #include <speckley/Rectangle.h>
 
 #include <escript/ExceptionTranslators.h>
-#include <escript/SubWorld.h>
 
 #include <boost/python.hpp> 
 #include <boost/python/module.hpp>
@@ -143,7 +142,7 @@ escript::Data readNcGrid(std::string filename, std::string varname,
 escript::Domain_ptr _brick(int order, double _n0, double _n1, double _n2,
                  const object& l0, const object& l1, const object& l2, int d0,
                  int d1, int d2, const object& objpoints, 
-                 const object& objtags, escript::SubWorld_ptr world)
+                 const object& objtags)
 {
     dim_t n0=static_cast<dim_t>(_n0), n1=static_cast<dim_t>(_n1), n2=static_cast<dim_t>(_n2);
     double x0=0., x1=1., y0=0., y1=1., z0=0., z1=1.;
@@ -229,13 +228,12 @@ escript::Domain_ptr _brick(int order, double _n0, double _n1, double _n2,
     if (numtags != numpts)
         throw SpeckleyException("Number of tags does not match number of points.");
     return escript::Domain_ptr(new Brick(order, n0,n1,n2, x0,y0,z0, x1,y1,z1, d0,d1,d2,
-                                            points, tags, tagstonames, world));
+                                            points, tags, tagstonames));
 }
 
 escript::Domain_ptr _rectangle(int order, double _n0, double _n1,
                         const object& l0, const object& l1, int d0, int d1, 
-                        const object& objpoints, const object& objtags,
-                        escript::SubWorld_ptr world
+                        const object& objpoints, const object& objtags
                        )
 {
     if (order < 2 || order > 10)
@@ -310,7 +308,7 @@ escript::Domain_ptr _rectangle(int order, double _n0, double _n1,
     if (numtags != numpts)
         throw SpeckleyException("Number of tags does not match number of points.");
     return escript::Domain_ptr(new Rectangle(order, n0,n1, x0,y0, x1,y1, d0,d1,
-                                             points, tags, tagstonames, world));
+                                             points, tags, tagstonames));
 }
 
 } // end of namespace speckley
@@ -337,7 +335,7 @@ BOOST_PYTHON_MODULE(speckleycpp)
     scope().attr("DATATYPE_FLOAT64") = (int)speckley::DATATYPE_FLOAT64;
 
     def("Brick", speckley::_brick, (arg("order"),arg("n0"),arg("n1"),arg("n2"),arg("l0")=1.0,arg("l1")=1.0,arg("l2")=1.0,
-        arg("d0")=-1,arg("d1")=-1,arg("d2")=-1,arg("diracPoints")=list(),arg("diracTags")=list(), arg("escriptworld")=escript::SubWorld_ptr()),
+        arg("d0")=-1,arg("d1")=-1,arg("d2")=-1,arg("diracPoints")=list(),arg("diracTags")=list()),
 "Creates a hexagonal mesh with n0 x n1 x n2 elements over the brick [0,l0] x [0,l1] x [0,l2].\n\n"
 ":param order: the number of quadrature points to have in each dimension\n:type n0: ``int``\n"
 ":param n0: number of elements in direction 0\n:type n0: ``int``\n"
@@ -350,7 +348,7 @@ BOOST_PYTHON_MODULE(speckleycpp)
 ":param d1: number of subdivisions in direction 1\n:type d1: ``int``\n"
 ":param d2: number of subdivisions in direction 2\n:type d2: ``int``");
 
-    def("Rectangle", speckley::_rectangle, (arg("order"),arg("n0"),arg("n1"),arg("l0")=1.0,arg("l1")=1.0,arg("d0")=-1,arg("d1")=-1,arg("diracPoints")=list(),arg("diracTags")=list(), arg("escriptworld")=escript::SubWorld_ptr()),
+    def("Rectangle", speckley::_rectangle, (arg("order"),arg("n0"),arg("n1"),arg("l0")=1.0,arg("l1")=1.0,arg("d0")=-1,arg("d1")=-1,arg("diracPoints")=list(),arg("diracTags")=list()),
 "Creates a rectangular mesh with n0 x n1 elements over the rectangle [0,l0] x [0,l1].\n\n"
 ":param n0: number of elements in direction 0\n:type n0: ``int``\n"
 ":param n1: number of elements in direction 1\n:type n1: ``int``\n"

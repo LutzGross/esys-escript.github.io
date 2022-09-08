@@ -41,8 +41,8 @@ MultiRectangle::MultiRectangle(dim_t n0, dim_t n1, double x0, double y0,
                      const vector<double>& points,
                      const vector<int>& tags,
                      const TagMap& tagnamestonums,
-                     escript::SubWorld_ptr w, unsigned int subdivisions)
-     : Rectangle(n0,n1, x0,y0, x1,y1, d0,d1, points, tags, tagnamestonums, w),
+                     unsigned int subdivisions)
+     : Rectangle(n0,n1, x0,y0, x1,y1, d0,d1, points, tags, tagnamestonums),
        m_subdivisions(subdivisions)
 {
     if (subdivisions == 0 || (subdivisions & (subdivisions - 1)) != 0)

@@ -33,8 +33,6 @@
 #endif
 #include "NonReducedVariable.h"
 #include "SolverOptions.h"
-#include "SplitWorld.h"
-#include "SubWorld.h"
 #include "TestDomain.h"
 #include "Utils.h"
 
@@ -135,39 +133,6 @@ BOOST_PYTHON_MODULE(escriptcpp)
 #ifdef NETCDF4
     def("NcFType", escript::NcFType, arg("filename"), "Return a character indicating what netcdf format a file uses.\nc or C indicates netCDF3.\n4 indicates netCDF4.\nu indicates unsupported format (eg netCDF4 file in an escript build which does not support it\n? indicates unknown.");
 #endif
-
-/* begin SubWorld things */
-
-  class_<escript::AbstractReducer, escript::Reducer_ptr, boost::noncopyable>("Reducer", "", no_init);
-
-  // Why doesn't this have a doc-string?   Because it doesn't compile if you try to add one
-  // These functions take a SplitWorld instance as their first parameter
-  def("internal_buildDomains", raw_function(escript::raw_buildDomains,2));
-  def("internal_addJob", raw_function(escript::raw_addJob,2));
-  def("internal_addJobPerWorld", raw_function(escript::raw_addJobPerWorld,2));
-  def("internal_addVariable", raw_function(escript::raw_addVariable,3));
-// #ifdef ESYS_HAVE_BOOST_NUMPY
-//   def("internal_initBoostNumpy", &escript::initBoostNumpy);
-// #endif
-  def("internal_makeDataReducer", escript::makeDataReducer, arg("op"), "Create a reducer to work with Data and the specified operation.");
-  def("internal_makeScalarReducer", escript::makeScalarReducer, arg("op"), "Create a reducer to work with doubles and the specified operation.");
-  def("internal_makeLocalOnly", escript::makeNonReducedVariable, "Create a variable which is not connected to copies in other worlds.");
-
-  class_<escript::SplitWorld, boost::noncopyable>("Internal_SplitWorld", "Manages a group of sub worlds. For internal use only.", init<unsigned int>(args("num_worlds")))
-    .def("runJobs", &escript::SplitWorld::runJobs, "Execute pending jobs.")
-    .def("removeVariable", &escript::SplitWorld::removeVariable, arg("name"), "Remove the named variable from the SplitWorld")
-    .def("clearVariable", &escript::SplitWorld::clearVariable, arg("name"), "Remove the value from the named variable")
-    .def("getVarList", &escript::SplitWorld::getVarPyList, "Lists variables known to the system")
-    .def("getVarInfo", &escript::SplitWorld::getVarPyInfo, "Lists variable descriptions known to the system")
-    .def("getDoubleVariable", &escript::SplitWorld::getScalarVariable, "Return the value of floating point variable")
-    .def("getLocalObjectVariable", &escript::SplitWorld::getLocalObjectVariable, "Returns python object for a variable which is not shared between worlds")
-    .def("getSubWorldCount",&escript::SplitWorld::getSubWorldCount)
-    .def("getSubWorldID", &escript::SplitWorld::getSubWorldID)
-    .def("copyVariable", &escript::SplitWorld::copyVariable, args("source","destination"), "Copy the contents of one variable to another");
-
-  // This class has no methods. This is deliberate - at this stage, I would like this to be an opaque type
-  class_ <escript::SubWorld, escript::SubWorld_ptr, boost::noncopyable>("SubWorld", "Information about a group of workers.", no_init);
-/* end SubWorld things */
 
   def("setNumberOfThreads",escript::setNumberOfThreads,"Use of this method is strongly discouraged.");
   def("getNumberOfThreads",escript::getNumberOfThreads,"Return the maximum number of threads"

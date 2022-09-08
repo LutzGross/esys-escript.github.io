@@ -36,10 +36,6 @@ def ReadMesh(filename, integrationOrder=-1, reducedIntegrationOrder=-1, optimize
     if 'diracTags' in kwargs:
         tags=kwargs['diracTags']
     args=[filename, integrationOrder, reducedIntegrationOrder, optimize, points, tags];
-    if 'escriptworld' in kwargs:
-      args+=[kwargs['escriptworld']]
-    else:
-      args+=[None]
     return __ReadMesh_driver(args)
   
 ReadMesh.__doc__=__ReadMesh_driver.__doc__  
@@ -54,10 +50,6 @@ def ReadGmsh(fileName, numDim, integrationOrder=-1, reducedIntegrationOrder=-1, 
         tags=kwargs['diracTags']
     args=[fileName, numDim, integrationOrder, reducedIntegrationOrder, optimize,  
       useMacroElements, points, tags];
-    if 'escriptworld' in kwargs:
-      args+=[kwargs['escriptworld']]
-    else:
-      args+=[None]
     return __ReadGmsh_driver(args)      
 
 ReadGmsh.__doc__=__ReadGmsh_driver.__doc__
@@ -79,10 +71,6 @@ def Rectangle(n0=1, n1=1, order=1, l0=1.0, l1=1.0, periodic0=False, periodic1=Fa
             faceon=1
     args=[n0, n1, order, l0, l1, periodic0, periodic1, integrationOrder, 
       reducedIntegrationOrder, faceon, useFullElementOrder, optimize, points, tags];
-    if 'escriptworld' in kwargs:
-      args+=[kwargs['escriptworld']]
-    else:
-      args+=[None]
     return __Rectangle_driver(args)
 
 Rectangle.__doc__=__Rectangle_driver.__doc__
@@ -105,10 +93,6 @@ def Brick(n0=1, n1=1, n2=1, order=1, l0=1.0, l1=1.0, l2=1.0, periodic0=0, period
     args=[n0, n1, n2, order, l0, l1, l2, periodic0,  periodic1, periodic2,
     integrationOrder, reducedIntegrationOrder, faceon, useFullElementOrder,
     optimize, points, tags];
-    if 'escriptworld' in kwargs:
-      args+=[kwargs['escriptworld']]
-    else:
-      args+=[None]
     return __Brick_driver(args)
 
 Brick.__doc__=__Brick_driver.__doc__

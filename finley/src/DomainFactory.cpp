@@ -18,7 +18,6 @@
 #include <finley/DomainFactory.h>
 
 #include <escript/index.h>
-#include <escript/SubWorld.h>
 
 #ifdef ESYS_HAVE_NETCDF
  #ifdef NETCDF4
@@ -920,17 +919,7 @@ Domain_ptr readMesh_driver(const bp::list& args)
     int numpts = bp::extract<int>(pypoints.attr("__len__")());
     int numtags = bp::extract<int>(pytags.attr("__len__")());
 
-    bp::object pworld = args[6];
-    JMPI info;
-    if (!pworld.is_none()) {
-        bp::extract<SubWorld_ptr> ex(pworld);
-        if (!ex.check()) {
-            throw ValueError("Invalid escriptWorld parameter.");
-        }
-        info = ex()->getMPI();
-    } else {
-        info = makeInfo(MPI_COMM_WORLD);
-    }
+    JMPI info = makeInfo(MPI_COMM_WORLD);
     Domain_ptr dom(FinleyDomain::read(info, fileName, integrationOrder,
                                       reducedIntegrationOrder, optimize));
 
@@ -1002,17 +991,7 @@ Domain_ptr readGmsh_driver(const bp::list& args)
     bp::list pytags = bp::extract<bp::list>(args[7]);
     int numpts = bp::extract<int>(pypoints.attr("__len__")());
     int numtags = bp::extract<int>(pytags.attr("__len__")());
-    bp::object pworld = args[8];
-    JMPI info;
-    if (!pworld.is_none()) {
-        bp::extract<SubWorld_ptr> ex(pworld);
-        if (!ex.check()) {
-            throw ValueError("Invalid escriptWorld parameter.");
-        }
-        info = ex()->getMPI();
-    } else {
-        info = makeInfo(MPI_COMM_WORLD);
-    }
+    JMPI info = makeInfo(MPI_COMM_WORLD);
     Domain_ptr dom(FinleyDomain::readGmsh(info, fileName, numDim,
                                      integrationOrder, reducedIntegrationOrder,
                                      optimize, useMacroElements));
@@ -1145,16 +1124,7 @@ Domain_ptr brick_driver(const bp::list& args)
         }
     }
     bp::object pworld = args[17];
-    JMPI info;
-    if (!pworld.is_none()) {
-        bp::extract<SubWorld_ptr> ex(pworld);
-        if (!ex.check()) {
-            throw ValueError("Invalid escriptWorld parameter.");
-        }
-        info = ex()->getMPI();
-    } else {
-        info = makeInfo(MPI_COMM_WORLD);
-    }
+    JMPI info = makeInfo(MPI_COMM_WORLD);
     return brick(info, static_cast<dim_t>(bp::extract<float>(args[0])),
                  static_cast<dim_t>(bp::extract<float>(args[1])),
                  static_cast<dim_t>(bp::extract<float>(args[2])),
@@ -1247,17 +1217,7 @@ Domain_ptr rectangle_driver(const bp::list& args)
             throw FinleyException("Unable to extract tag value.");
         }
     }
-    bp::object pworld = args[14];
-    JMPI info;
-    if (!pworld.is_none()) {
-        bp::extract<SubWorld_ptr> ex(pworld);
-        if (!ex.check()) {
-            throw ValueError("Invalid escriptWorld parameter.");
-        }
-        info = ex()->getMPI();
-    } else {
-        info = makeInfo(MPI_COMM_WORLD);
-    }
+    JMPI info = makeInfo(MPI_COMM_WORLD);
 
     return rectangle(info, static_cast<dim_t>(bp::extract<float>(args[0])),
                      static_cast<dim_t>(bp::extract<float>(args[1])),

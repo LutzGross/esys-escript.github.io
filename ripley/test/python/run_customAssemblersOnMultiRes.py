@@ -41,6 +41,7 @@ def Rectangle(**kwargs):
 def Brick(**kwargs):
     m = MultiResolutionDomain(3, **kwargs)
     return m.getLevel(1)
+    
 @unittest.skip("Ripley wave solver 2D skipping")
 class Test_RipleyWaveAssembler2D(RipleyWaveAssemblerTestBase):
     def setUp(self):

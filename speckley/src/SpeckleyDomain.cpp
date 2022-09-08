@@ -48,16 +48,12 @@ void tupleListToMap(DataMap& mapping, const bp::list& list)
     }
 }
 
-SpeckleyDomain::SpeckleyDomain(dim_t dim, int order, escript::SubWorld_ptr p) :
+SpeckleyDomain::SpeckleyDomain(dim_t dim, int order) :
     m_numDim(dim),
     m_status(0),
     m_order(order)
 {
-    if (p.get() == NULL)
-        m_mpiInfo = escript::makeInfo(MPI_COMM_WORLD);
-    else
-        m_mpiInfo = p->getMPI();
-
+    m_mpiInfo = escript::makeInfo(MPI_COMM_WORLD);
     assembler_type = DEFAULT_ASSEMBLER;
 }
 

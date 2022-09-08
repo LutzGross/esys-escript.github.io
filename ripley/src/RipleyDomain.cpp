@@ -75,15 +75,11 @@ void tupleListToMap(DataMap& mapping, const bp::list& list)
     }
 }
 
-RipleyDomain::RipleyDomain(dim_t dim, escript::SubWorld_ptr p) :
+RipleyDomain::RipleyDomain(dim_t dim) :
     m_numDim(dim),
     m_status(0)
 {
-    if (p.get() == NULL)
-        m_mpiInfo = escript::makeInfo(MPI_COMM_WORLD);
-    else
-        m_mpiInfo = p->getMPI();
-
+    m_mpiInfo = escript::makeInfo(MPI_COMM_WORLD);
     assembler_type = DEFAULT_ASSEMBLER;
 }
 

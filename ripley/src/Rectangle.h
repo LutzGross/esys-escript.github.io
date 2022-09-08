@@ -49,8 +49,7 @@ public:
               int d0=-1, int d1=-1,
               const std::vector<double>& points = std::vector<double>(),
               const std::vector<int>& tags = std::vector<int>(),
-              const TagMap& tagnamestonums = TagMap(),
-              escript::SubWorld_ptr w=escript::SubWorld_ptr()
+              const TagMap& tagnamestonums = TagMap()
  	    );
 
     /**

@@ -83,9 +83,8 @@ Rectangle::Rectangle(dim_t n0, dim_t n1, double x0, double y0, double x1,
                      double y1, int d0, int d1,
                      const vector<double>& points,
                      const vector<int>& tags,
-                     const TagMap& tagnamestonums,
-                     escript::SubWorld_ptr w) :
-    RipleyDomain(2, w)
+                     const TagMap& tagnamestonums) :
+    RipleyDomain(2)
 {
     if (static_cast<long>(n0 + 1) * static_cast<long>(n1 + 1)
             > std::numeric_limits<dim_t>::max())

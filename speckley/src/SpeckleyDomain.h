@@ -26,7 +26,6 @@
 #include <escript/AbstractContinuousDomain.h>
 #include <escript/Data.h>
 #include <escript/FunctionSpace.h>
-#include <escript/SubWorld.h>
 
 #include <boost/python/tuple.hpp>
 #include <boost/python/list.hpp>
@@ -89,7 +88,7 @@ public:
        \brief
        Constructor with number of dimensions. Allocates MPI info structure.
     */
-    SpeckleyDomain(dim_t dim, int order, escript::SubWorld_ptr p=escript::SubWorld_ptr());
+    SpeckleyDomain(dim_t dim, int order);
 
     /**
        \brief

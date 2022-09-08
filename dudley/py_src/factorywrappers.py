@@ -36,7 +36,6 @@ def Rectangle(n0=1, n1=1, order=1, l0=1.0, l1=1.0, periodic0=False,
     The following keyword arguments are understood:
       diracPoints  - coordinates of dirac points to add to domain
       diracTags    - list of tags for the dirac points
-      escriptworld - MPI (sub)world to use
 
     :param n0: number of elements for side 0
     :type n0: ``int``
@@ -63,10 +62,6 @@ def Rectangle(n0=1, n1=1, order=1, l0=1.0, l1=1.0, periodic0=False,
     faceon=useElementsOnFace
     args=[n0, n1, order, l0, l1, periodic0, periodic1, integrationOrder, 
       reducedIntegrationOrder, faceon, useFullElementOrder, optimize];
-    if 'escriptworld' in kwargs:
-      args+=[kwargs['escriptworld']]
-    else:
-      args+=[None]
     return __Rectangle_driver(args)
 
 Rectangle.__doc__=__Rectangle_driver.__doc__
@@ -81,7 +76,6 @@ def Brick(n0=1, n1=1, n2=1, order=1, l0=1.0, l1=1.0, l2=1.0, periodic0=False,
     The following keyword arguments are understood:
       diracPoints  - coordinates of dirac points to add to domain
       diracTags    - list of tags for the dirac points
-      escriptworld - MPI (sub)world to use
 
     :param n0: number of elements for side 0
     :type n0: ``int``
@@ -114,10 +108,6 @@ def Brick(n0=1, n1=1, n2=1, order=1, l0=1.0, l1=1.0, l2=1.0, periodic0=False,
     args=[n0, n1, n2, order, l0, l1, l2, periodic0,  periodic1, periodic2,
     integrationOrder, reducedIntegrationOrder, faceon, useFullElementOrder,
     optimize];
-    if 'escriptworld' in kwargs:
-      args+=[kwargs['escriptworld']]
-    else:
-      args+=[None]
     return __Brick_driver(args)
 
 Brick.__doc__=__Brick_driver.__doc__

@@ -25,7 +25,6 @@
 #include <escript/AbstractContinuousDomain.h>
 #include <escript/Data.h>
 #include <escript/FunctionSpace.h>
-#include <escript/SubWorld.h>
 
 #ifdef ESYS_HAVE_PASO
 #include <paso/Coupler.h>
@@ -106,7 +105,7 @@ public:
        \brief
        Constructor with number of dimensions. Allocates MPI info structure.
     */
-    RipleyDomain(dim_t dim, escript::SubWorld_ptr p=escript::SubWorld_ptr());
+    RipleyDomain(dim_t dim);
 
     /**
        \brief

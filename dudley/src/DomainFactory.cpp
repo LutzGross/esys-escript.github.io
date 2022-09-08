@@ -18,7 +18,6 @@
 #include <dudley/DomainFactory.h>
 
 #include <escript/index.h>
-#include <escript/SubWorld.h>
 
 #ifdef ESYS_HAVE_NETCDF
 #ifdef NETCDF4
@@ -712,16 +711,7 @@ Domain_ptr brick(JMPI info, dim_t n0, dim_t n1, dim_t n2, int order,
 Domain_ptr brick_driver(const bp::list& args)
 {
     bp::object pworld = args[15];
-    JMPI info;
-    if (!pworld.is_none()) {
-        bp::extract<SubWorld_ptr> ex(pworld);
-        if (!ex.check()) {
-            throw ValueError("Invalid escriptWorld parameter.");
-        }
-        info = ex()->getMPI();
-    } else {
-        info = makeInfo(MPI_COMM_WORLD);
-    }
+    JMPI info = makeInfo(MPI_COMM_WORLD);
     return brick(info, static_cast<dim_t>(bp::extract<float>(args[0])),
                  static_cast<dim_t>(bp::extract<float>(args[1])),
                  static_cast<dim_t>(bp::extract<float>(args[2])),
@@ -754,17 +744,7 @@ Domain_ptr rectangle(JMPI info, dim_t n0, dim_t n1, int order,
 Domain_ptr rectangle_driver(const bp::list& args)
 {
     bp::object pworld = args[12];
-    JMPI info;
-    if (!pworld.is_none()) {
-        bp::extract<SubWorld_ptr> ex(pworld);
-        if (!ex.check()) {
-            throw ValueError("Invalid escriptWorld parameter.");
-        }
-        info = ex()->getMPI();
-    } else {
-        info = makeInfo(MPI_COMM_WORLD);
-    }
-
+    JMPI info = makeInfo(MPI_COMM_WORLD);
     return rectangle(info, static_cast<dim_t>(bp::extract<float>(args[0])),
                      static_cast<dim_t>(bp::extract<float>(args[1])),
                      bp::extract<int>(args[2]), bp::extract<double>(args[3]),
