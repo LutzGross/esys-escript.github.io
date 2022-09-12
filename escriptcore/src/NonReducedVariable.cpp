@@ -15,7 +15,7 @@
 *****************************************************************************/
 
 #include "NonReducedVariable.h"
-#include "SplitWorldException.h"
+#include "EsysException.h"
 
 using namespace escript;
 
@@ -88,7 +88,7 @@ bool NonReducedVariable::sendTo(int localid, int source, JMPI& mpiinfo)
 
 double NonReducedVariable::getDouble()
 {
-    throw SplitWorldException("No double value from this type.");
+    throw EsysException("No double value from this type.");
 }
 
 boost::python::object NonReducedVariable::getPyObj()
@@ -111,7 +111,7 @@ void NonReducedVariable::copyValueFrom(boost::shared_ptr<AbstractReducer>& src)
     NonReducedVariable* sr=dynamic_cast<NonReducedVariable*>(src.get());
     if (sr==0)
     {
-	throw SplitWorldException("Source and destination need to be the same reducer types.");
+	throw EsysException("Source and destination need to be the same reducer types.");
     }
     value=sr->value;
     valueadded=true;

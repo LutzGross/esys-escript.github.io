@@ -15,7 +15,7 @@
 *****************************************************************************/
 
 #include "AbstractReducer.h"
-#include "SplitWorldException.h"
+#include "EsysException.h"
 
 namespace escript {
 
@@ -28,7 +28,7 @@ bool AbstractReducer::hasValue()
 
 double AbstractReducer::getDouble()
 {
-    throw SplitWorldException("This reducer is not able to provide a single scalar.");  
+    throw EsysException("This reducer is not able to provide a single scalar.");  
 }
 
 void AbstractReducer::clear()
