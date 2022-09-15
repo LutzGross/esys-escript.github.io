@@ -29,6 +29,7 @@ from test_util import Test_util
 from test_util import Test_Util_SpatialFunctions, Test_Util_SpatialFunctions_noGradOnBoundary_noContact
 from test_symfuncs import Test_symfuncs
 from esys.escript import *
+from esys.escriptcore.start import HAVE_SYMBOLS
 # from esys.oxley import MultiResolutionDomain
 from esys.oxley import Rectangle, Brick
 

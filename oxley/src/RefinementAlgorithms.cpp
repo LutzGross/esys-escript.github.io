@@ -1026,6 +1026,105 @@ void update_RC(p4est_iter_face_info_t *info, void *user_data)
     }
 }
 
+void update_RC(p8est_iter_face_info_t *info, void *user_data)
+{
+    //Get some pointers
+    update_RC_data_brick * data = (update_RC_data_brick *) user_data;
+    sc_array_t * sides = &(info->sides);
+
+    p8est_iter_face_side_t * side = p8est_iter_fside_array_index_int(sides, 0);
+    
+    p8est_quadrant_t * quad;
+    if(side->is_hanging)
+        return;
+    quad = side->is.full.quad;
+
+    double xy0[3], xyA[3], xyB[3];
+    
+    // Do nothing if this isn't a lower quadrant
+    p8est_qcoord_to_vertex(data->p8est->connectivity, side->treeid, quad->x, quad->y, quad->z, xy0);
+    quad_info tmp;
+    tmp.x=xy0[0];
+    tmp.y=xy0[1];
+    tmp.level=quad->level;
+    bool lower_quadrant=false;
+    for(int i=0;i<data->pQuadInfo->size();i++)
+    {
+        if((tmp.x     == data->pQuadInfo[0][i].x)
+        && (tmp.y     == data->pQuadInfo[0][i].y)
+        && (tmp.level == data->pQuadInfo[0][i].level))
+        {
+            lower_quadrant=true;
+            break;
+        }
+    }
+    if(!lower_quadrant)
+        return;
+    
+    // Calculate the length of the side
+    p8est_qcoord_t l = P8EST_QUADRANT_LEN(quad->level);
+    int fn = (int) side->face;
+    long lx[4][2] = {{0,0},{l,l},{0,l},{0,l}};
+    long ly[4][2] = {{0,l},{0,l},{0,0},{l,l}};
+    long lz[4][2] = {{0,0},{0,0},{l,l},{l,l}};
+
+    p8est_qcoord_to_vertex(data->p8est->connectivity, side->treeid, 
+        quad->x+lx[fn][0], quad->y+ly[fn][0], quad->z+lz[fn][0], xyA);
+    long lni0 = data->pNodeIDs->find(std::make_tuple(xyA[0],xyA[1],xyA[2]))->second;
+    #ifdef OXLEY_ENABLE_DEBUG_UPDATE_RC_EXTRA
+        std::cout << "(" << xyA[0] << ", " << xyA[1] << ")\t";
+    #endif
+    p8est_qcoord_to_vertex(data->p8est->connectivity, side->treeid, 
+        quad->x+lx[fn][1], quad->y+ly[fn][1], quad->z+lz[fn][0], xyB);
+    long lni1 = data->pNodeIDs->find(std::make_tuple(xyB[0],xyB[1],xyB[2]))->second;
+    #ifdef OXLEY_ENABLE_DEBUG_UPDATE_RC_EXTRA
+        std::cout << "(" << xyB[0] << ", " << xyB[1] << ")";
+        std::cout << std::endl;
+    #endif
+
+    std::vector<long> * idx0 = &data->indices[0][lni0];
+    std::vector<long> * idx1 = &data->indices[0][lni1];
+
+    bool dup = false;
+    for(int i = 1; i < idx0[0][0] + 1; i++)
+        if(idx0[0][i] == lni1)
+        {
+            dup = true;
+            break;
+        }
+
+    #ifdef OXLEY_ENABLE_DEBUG_UPDATE_RC_EXTRA
+        std::cout << "level= " << (int) quad->level ;
+        std::cout << "; hanging side " << (int) side->is_hanging;
+        std::cout << "; face= " << fn;
+        std::cout << "; (x,y)=(" << xy0[0] << ", " << xy0[1] << ")      \t";
+        if(dup)
+        {
+            std::cout << " connection " << lni0 << "---" << lni1;
+            std::cout << "\t(dupliate)" << std::endl;
+        }
+        else
+        {
+            std::cout << " connection " << lni0 << "---" << lni1;
+            std::cout << "\t(not dupliate)" << std::endl;    
+        }        
+    #endif
+
+    if(dup == false)
+    {
+#ifdef DOXLEY_ENABLE_DEBUG
+        std::cout << "update_RC " << lni1 << ": (" << xy[0] << ", " << xy[1] << ")" << std::endl; // coordinates
+#endif
+        idx0[0][0]++;
+        idx1[0][0]++;
+        ESYS_ASSERT(idx0[0][0]<=4, "update_RC index out of bound");
+        ESYS_ASSERT(idx1[0][0]<=4, "update_RC index out of bound");
+        idx0[0][idx0[0][0]]=lni1;
+        idx1[0][idx1[0][0]]=lni0;
+    }
+}
+
+
 void update_connections(p4est_iter_volume_info_t *info, void *user_data)
 {
     //Get some pointers

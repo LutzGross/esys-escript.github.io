@@ -217,7 +217,7 @@ escript::Domain_ptr _brick(int order, double _n0, double _n1, double _n2,
     if (numtags != numpts)
         throw OxleyException("Number of tags does not match number of points.");
 
-    return escript::Domain_ptr(new Brick(order, n0,n1,n2, x0,y0,z0, x1,y1,z1, d0,d1,d2,  points, tags, periodic0,periodic1,periodic2));
+    return escript::Domain_ptr(new Brick(order, n0,n1,n2, x0,y0,z0, x1,y1,z1, d0,d1,d2,  points, tags, tagstonames, periodic0,periodic1,periodic2));
 }
 
 // #ifdef ESYS_HAVE_BOOST_NUMPY

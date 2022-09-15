@@ -818,7 +818,7 @@ void Brick::dump(const std::string& fileName) const
 
     // create the nodelist
     std::vector<int> nodelist;
-    long ids[4]={0};
+    long ids[8]={0};
     for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
         p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
         sc_array_t * tquadrants = &tree->quadrants;
@@ -1898,7 +1898,7 @@ void Brick::interpolateNodesOnElementsWorker(escript::Data& out,
                 p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
                
                 long ids[8]={0};
-                getNeighouringNodeIDs(quad->level, quad->x, quad->y, treeid, ids);
+                getNeighouringNodeIDs(quad->level, quad->x, quad->y, quad->z, treeid, ids);
                 int quadID=getQuadID(ids[0]);
                 //TODO check order of indices ids[x]
                 memcpy(&f_000[0], in.getSampleDataRO(ids[0], sentinel), numComp*sizeof(S)); 
@@ -2243,20 +2243,6 @@ inline dim_t Brick::getNumElements() const
 }
 
 //protected
-inline dim_t Brick::getNumFaceElements() const
-{
-    long numElements = 0;
-    for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) 
-    {
-        p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
-        sc_array_t * tquadrants = &tree->quadrants;
-        p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
-        numElements+=Q;
-    }
-    return numElements;
-}
-
-//protected
 dim_t Brick::getNumFaceElements() const
 {
     return m_faceCount[0]+m_faceCount[1]
@@ -2316,7 +2302,7 @@ void Brick::updateRowsColumns()
     // This function loops over all interior faces
     // Note that it does not loop over the nodes on the boundaries
     // x = Lx and y = Ly
-    p8est_iterate_ext(p8est, ghost, data, NULL, update_RC, NULL, true);
+    p8est_iterate_ext(p8est, ghost, data, NULL, NULL, update_RC, NULL, true);
     p8est_ghost_destroy(ghost);
 
     // Find the indices of the nodes on the boundaries x = Lx and y = Ly
@@ -2329,7 +2315,7 @@ void Brick::updateRowsColumns()
             p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
             p8est_qcoord_t length = P8EST_QUADRANT_LEN(quad->level);
             double xy[3];
-            p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+length, quad->y, xy);
+            p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+length, quad->y, quad->z, xy);
 
             // If the node is on the boundary x=Lx or y=Ly
             if(xy[0] == forestData.m_lxyz[0]) 
@@ -2665,7 +2651,7 @@ void Brick::updateFaceElementCount()
             for(int n = 0; n < 4; n++)
             {
                 p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], quad->z+lxy[n][2], xyz[n]);
-                nodeids[n]=NodeIDs.find(std::make_pair(xyz[n][0],xyz[n][1]))->second;
+                nodeids[n]=NodeIDs.find(std::make_tuple(xyz[n][0],xyz[n][1],xyz[n][2]))->second;
 
                 //TODO
                 if(n==0)
@@ -2844,7 +2830,7 @@ void Brick::updateNodeDistribution()
                 double lz = length * ((int) (n / 2) == 1); //TODO
                 double xy[3];
                 p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+lx, quad->y+ly, quad->z+lz, xy);
-                m_nodeDistribution[counter++]=NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+                m_nodeDistribution[counter++]=NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
             }
         }
     }
@@ -2927,19 +2913,19 @@ std::vector<IndexVector> Brick::getConnections(bool includeShared) const
                                                     hanging_face_orientation[i].y,
                                                     hanging_face_orientation[i].z, xy);
         //TODO
-        long nodeid = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+        long nodeid = NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
  
         p8est_qcoord_t l = P4EST_QUADRANT_LEN(hanging_face_orientation[i].neighbour_l);
         //TODO check
         p8est_qcoord_t x_inc[4][3]={{0,0,0},{l,l,0},{0,l,l},{0,l,l}};
         p8est_qcoord_t y_inc[4][3]={{0,l,0},{0,l,0},{0,0,l},{l,l,l}};
-        p8est_qcoord_t z_inc[4][3]={{0,l,0},{0,l,0},{0,0,l},{l,l,l}};
+        p8est_qcoord_t z_inc[4][3]={{0,0,0},{0,0,0},{0,0,l},{0,0,l}};
 
         p8est_qcoord_to_vertex(p8est->connectivity, hanging_face_orientation[i].neighbour_tree, 
                 hanging_face_orientation[i].neighbour_x+x_inc[hanging_face_orientation[i].face_orientation][0], 
                 hanging_face_orientation[i].neighbour_y+y_inc[hanging_face_orientation[i].face_orientation][0],
                 hanging_face_orientation[i].neighbour_z+z_inc[hanging_face_orientation[i].face_orientation][0], xy);
-        long lni0 = NodeIDs.find(std::make_tuple(xy[0],xy[1]))->second;
+        long lni0 = NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
         p8est_qcoord_to_vertex(p8est->connectivity, hanging_face_orientation[i].neighbour_tree, 
                 hanging_face_orientation[i].neighbour_x+x_inc[hanging_face_orientation[i].face_orientation][1], 
                 hanging_face_orientation[i].neighbour_y+y_inc[hanging_face_orientation[i].face_orientation][1],
@@ -3567,17 +3553,6 @@ void Brick::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F
 }
 
 
-template
-void Brick::addToMatrixAndRHS<real_t>(escript::AbstractSystemMatrix* S, escript::Data& F,
-         const std::vector<real_t>& EM_S, const std::vector<real_t>& EM_F, 
-         bool addS, bool addF, index_t e, index_t t, int nEq, int nComp) const;
-
-template
-void Brick::addToMatrixAndRHS<cplx_t>(escript::AbstractSystemMatrix* S, escript::Data& F,
-         const std::vector<cplx_t>& EM_S, const std::vector<cplx_t>& EM_F, 
-         bool addS, bool addF, index_t e, index_t t, int nEq, int nComp) const;
-
-
 //protected
 void Brick::nodesToDOF(escript::Data& out, const escript::Data& in) const
 {
@@ -3603,6 +3578,50 @@ void Brick::nodesToDOF(escript::Data& out, const escript::Data& in) const
 //             }
 //         }
 //     }
+}
+
+// Updates m_faceOffset for each quadrant
+void Brick::updateFaceOffset()
+{
+    p8est_iterate(p8est, NULL, NULL, update_node_faceoffset, NULL, NULL, NULL);
+}
+
+// Copies the solution information to the mesh
+void Brick::updateSolutionInformation(escript::Data solution)
+{
+//     long limit=0;
+//     switch (solution.getFunctionSpace().getTypeCode()) {
+//         case Nodes:
+//             limit=getNumNodes();
+//             break;
+//         case Elements:
+//             limit=getNumElements();
+//             break;
+//         default:
+//             std::string msg = "updateSolutionInformation: fs " + solution.getFunctionSpace().getTypeCode();
+//             throw OxleyException(msg);
+//     }
+
+// #pragma omp for
+//     for(long i = 0; i < limit; i++)
+//     {
+//         current_solution[i]=*solution.getSampleDataRO(i);
+// #ifdef OXLEY_ENABLE_DEBUG_PRINT_SOLUTION
+//         std::cout << i << ": " << current_solution[i] << std::endl;
+// #endif
+//     }
+}
+
+void Brick::updateMeshInformation()
+{
+    refineMesh("MARE2DEM");
+}
+
+// Returns the solution information currently stored in Oxley
+
+escript::Data Brick::getUpdatedSolution()
+{
+    return escript::Data(0); //TODO
 }
 
 ////////////////////////////// inline methods ////////////////////////////////

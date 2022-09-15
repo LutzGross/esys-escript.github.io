@@ -271,7 +271,7 @@ struct update_RC_data_brick {
 	std::vector< std::vector<long> > * indices;
 	double m_origin[3]={0};
 
-	std::vector<quad_info> * pQuadInfo;
+	std::vector<oct_info> * pQuadInfo;
 };
 
 struct getConnections_data_brick {
