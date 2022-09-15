@@ -1026,7 +1026,7 @@ void update_RC(p4est_iter_face_info_t *info, void *user_data)
     }
 }
 
-void update_RC(p8est_iter_face_info_t *info, void *user_data)
+void update_RC(p8est_iter_edge_info *info, void *user_data)
 {
     //Get some pointers
     update_RC_data_brick * data = (update_RC_data_brick *) user_data;
