@@ -73,10 +73,11 @@ struct quadrantData
 struct borderNodeInfo
 {
 	int nodeid=-1;
-	int neighbours[4]={0};
+	int neighbours[8]={0};
 	int8_t level;
 	p4est_qcoord_t x;
 	p4est_qcoord_t y;
+	p4est_qcoord_t z;
 	// p4est_quadrant_t * quad;
 	p4est_topidx_t treeid=-1;
 };
@@ -85,12 +86,14 @@ struct hangingNodeInfo
 {
 	p4est_qcoord_t x;
 	p4est_qcoord_t y;
+	p4est_qcoord_t z; //unused by Rectangle
 	int8_t level;
 	p4est_topidx_t treeid;
 	int face_orientation={-1}; 
 	
 	p4est_qcoord_t neighbour_x;
 	p4est_qcoord_t neighbour_y;
+	p4est_qcoord_t neighbour_z;  //unused by Rectangle
 	p4est_qcoord_t neighbour_l;
 	p4est_topidx_t neighbour_tree;
 };
@@ -196,6 +199,11 @@ public:
 	// maximum levels of recursion to use during refinement
 	int max_levels_refinement = 0;
 	double refinement_depth=0.0;
+	double refinement_boundaries[8]={0.0};
+
+	// Pointer to the current solution and Node ID info
+	std::unordered_map<long,double> * current_solution;
+	std::unordered_map<DoubleTuple,long,boost::hash<DoubleTuple>> * NodeIDs;
 
 	void assign_info(addSurfaceData * tmp) {info=tmp;};
 
@@ -227,6 +235,15 @@ struct quad_info {
 	double y;
 };
 
+struct oct_info {
+	int level;
+	//bottom left coordinate
+	double x;
+	double y;
+	double z;
+};
+
+
 struct update_RC_data {
 
 	std::unordered_map<DoublePair,long,boost::hash<DoublePair>> * pNodeIDs; 
@@ -244,6 +261,25 @@ struct getConnections_data {
 	p4est_t * p4est;
 	std::vector< std::vector<escript::DataTypes::index_t> > * indices;
 	double m_origin[2]={0};
+};
+
+struct update_RC_data_brick {
+
+	std::unordered_map<DoubleTuple,long,boost::hash<DoubleTuple>> * pNodeIDs; 
+	// std::unordered_map<long,bool> * phangingNodeIDs; 
+	p8est_t * p8est;
+	std::vector< std::vector<long> > * indices;
+	double m_origin[3]={0};
+
+	std::vector<quad_info> * pQuadInfo;
+};
+
+struct getConnections_data_brick {
+
+	const std::unordered_map<DoubleTuple,long,boost::hash<DoubleTuple>> * pNodeIDs; 
+	p8est_t * p8est;
+	std::vector< std::vector<escript::DataTypes::index_t> > * indices;
+	double m_origin[3]={0};
 };
 
 // Tracks information used by the assembler

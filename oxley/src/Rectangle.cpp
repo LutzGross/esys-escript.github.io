@@ -157,15 +157,12 @@ Rectangle::Rectangle(int order,
 
 // #ifdef OXLEY_ENABLE_DEBUG_CHECKS
 //     bool print_backtrace = true;
-//     // if(sc_MPI_Init(NULL, NULL)!=true)
-//     //     std::cout << "ERROR sc mpi failed to initialise" << std::endl;
 // #else
-//     // sc_MPI_Init(NULL, NULL)
 //     bool print_backtrace = false;
 // #endif
 
 // #ifdef ESYS_MPI
-//     sc_init(sc_MPI_COMM_WORLD, 1, print_backtrace, NULL, LOG_LEVEL);
+//     sc_init(MPI_COMM_WORLD, 1, print_backtrace, NULL, LOG_LEVEL);
 // #else
 //     sc_init(NULL, 1, print_backtrace, NULL, LOG_LEVEL);
 // #endif

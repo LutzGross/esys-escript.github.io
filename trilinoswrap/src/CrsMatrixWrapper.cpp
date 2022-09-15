@@ -294,31 +294,18 @@ void CrsMatrixWrapper<ST>::resetValues(bool preserveSolverData)
 }
 
 template<typename ST>
-escript::AbstractSystemMatrix CrsMatrixWrapper<ST>::IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT>> iz, long n) 
+void CrsMatrixWrapper<ST>::IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT>> iz, long n) 
 {
-    // auto row(mat.getRowMap());
-    // Tpetra::CrsMatrix<ST,LO,GO,NT> * ans;
-    // ans = new Tpetra::CrsMatrix<ST,LO,GO,NT>(row, n);
-    
-    // auto tmp_mat1 = Tpetra::createDeepCopy(mat);
-    // tmp_mat1.resumeFill();
-    // tmp_mat1.fillComplete();
-    // Tpetra::MatrixMatrix::Multiply(*iz,true,tmp_mat1,false,*ans,false);
-    // auto tmp_mat2 = Tpetra::createDeepCopy(*ans);
-    // tmp_mat2.resumeFill();
-    // tmp_mat2.fillComplete();
-    // Tpetra::MatrixMatrix::Multiply(tmp_mat2,false,*iz,false,*ans,false);
+    mat.resumeFill();
 
-    // auto tmp_mat = Tpetra::createDeepCopy(mat);
-    // auto iz2 = Tpetra::createDeepCopy(*iz);
-    // Tpetra::TripleMatrixMultiply::MultiplyRAP(iz2,true,tmp_mat,false,*iz,false,ans,true,NULL,NULL);
+    auto tmp_mat1 = Tpetra::createDeepCopy(mat);
+    tmp_mat1.fillComplete();
+    Tpetra::MatrixMatrix::Multiply(*iz,true,tmp_mat1,false,mat,false);
+    auto tmp_mat2 = Tpetra::createDeepCopy(mat);
+    tmp_mat2.fillComplete();
+    Tpetra::MatrixMatrix::Multiply(tmp_mat2,false,*iz,false,mat,false);
 
-    // ans->fillComplete();
-    // AbstractMatrixWrapper* amat = dynamic_cast<AbstractMatrixWrapper*>(ans);
-
-    // TODO
-    escript::AbstractSystemMatrix amat;
-    return amat;
+    mat.fillComplete();
 }
 
 // instantiate the supported variants

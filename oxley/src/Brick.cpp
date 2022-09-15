@@ -22,6 +22,8 @@
 #include <escript/Data.h>
 #include <escript/DataFactory.h>
 #include <escript/FunctionSpaceFactory.h>
+#include <escript/Random.h>
+#include <escript/Utils.h>
 
 #include <oxley/AbstractAssembler.h>
 #include <oxley/DefaultAssembler3D.h>
@@ -40,6 +42,19 @@
 #include <p8est_lnodes.h>
 #include <p8est_vtk.h>
 
+#include <sc_mpi.h>
+
+#ifdef ESYS_HAVE_SILO
+#include <silo.h>
+#ifdef ESYS_MPI
+#include <pmpio.h>
+#endif
+#endif
+
+#ifdef ENABLE_OPENMP
+#include <omp.h>
+#endif
+
 namespace bp = boost::python;
 
 namespace oxley {
@@ -53,7 +68,9 @@ Brick::Brick(int order,
     double x0, double y0, double z0,
     double x1, double y1, double z1,
     int d0, int d1, int d2,
-    const std::vector<double>& points, const std::vector<int>& tags,
+    const std::vector<double>& points, 
+    const std::vector<int>& tags,
+    const TagMap& tagnamestonums,
     int periodic0, int periodic1, int periodic2): 
     OxleyDomain(3, order)
 {
@@ -82,19 +99,11 @@ Brick::Brick(int order,
     }
 
 
-    // else
-    // {
-    //     // ensure number of subdivisions chosen by the user is valid and nodes can be distributed
-    //     // among number of ranks
-    //     if(d0*d1*d2 != m_mpiInfo->size)
-    //         throw OxleyException("Invalid number of spatial subdivisions");
-    // }
-
     //Create a connectivity
-    // const p4est_topidx_t num_vertices = 8;
-    // const p4est_topidx_t num_trees = 1;
-    // const p4est_topidx_t num_edges = 3;
-    // const p4est_topidx_t num_corners = 1;
+    // const p8est_topidx_t num_vertices = 8;
+    // const p8est_topidx_t num_trees = 1;
+    // const p8est_topidx_t num_edges = 3;
+    // const p8est_topidx_t num_corners = 1;
     // const double vertices[8 * 3] = {
     //                                 x0, y0, z0,
     //                                 x1, y0, z0,
@@ -105,17 +114,17 @@ Brick::Brick(int order,
     //                                 x0, y1, z1,
     //                                 x1, y1, z1,
     //                                 };
-    // const p4est_topidx_t tree_to_vertex[8] = {0, 1, 2, 3, 4, 5, 6, 7,};
-    // const p4est_topidx_t tree_to_tree[6] = {0, 0, 0, 0, 0, 0,};
+    // const p8est_topidx_t tree_to_vertex[8] = {0, 1, 2, 3, 4, 5, 6, 7,};
+    // const p8est_topidx_t tree_to_tree[6] = {0, 0, 0, 0, 0, 0,};
     // // const int8_t tree_to_face[6] = {1, 0, 3, 2, 5, 4, };
     // const int8_t tree_to_face[6] = {0, 1, 2, 3, 4, 5 };
-    // const p4est_topidx_t tree_to_edge[12] = {0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2,};
-    // const p4est_topidx_t ett_offset[4] = {0, 4, 8, 12,};
-    // const p4est_topidx_t edge_to_tree[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,};
+    // const p8est_topidx_t tree_to_edge[12] = {0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2,};
+    // const p8est_topidx_t ett_offset[4] = {0, 4, 8, 12,};
+    // const p8est_topidx_t edge_to_tree[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,};
     // const int8_t edge_to_edge[12] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,};
-    // const p4est_topidx_t tree_to_corner[8] = {0, 0, 0, 0, 0, 0, 0, 0,};
-    // const p4est_topidx_t ctt_offset[2] = {0, 8,};
-    // const p4est_topidx_t corner_to_tree[8] = {0, 0, 0, 0, 0, 0, 0, 0,};
+    // const p8est_topidx_t tree_to_corner[8] = {0, 0, 0, 0, 0, 0, 0, 0,};
+    // const p8est_topidx_t ctt_offset[2] = {0, 8,};
+    // const p8est_topidx_t corner_to_tree[8] = {0, 0, 0, 0, 0, 0, 0, 0,};
     // const int8_t corner_to_corner[8] = {0, 1, 2, 3, 4, 5, 6, 7,};
     // connectivity = p8est_connectivity_new_copy(num_vertices, num_trees, num_edges,
     //                                   num_corners, vertices, tree_to_vertex,
@@ -127,12 +136,29 @@ Brick::Brick(int order,
 
     connectivity = new_brick_connectivity(n0, n1, n2, 0, 0, 0, x0, x1, y0, y1, z0, z1);
 
+#ifdef OXLEY_ENABLE_DEBUG_CHECKS //These checks are turned off by default as they can be very timeconsuming
+    std::cout << "In Brick() constructor..." << std::endl;
+    std::cout << "Checking connectivity ... ";
+    if(!p8est_connectivity_is_valid(connectivity))
+        std::cout << "broken" << std::endl;
+    else
+        std::cout << "OK" << std::endl;
+#endif
+
     // Create the p8est
-    p4est_locidx_t min_quadrants = n0*n1*n2;
+    p8est_locidx_t min_quadrants = n0*n1*n2;
     int min_level = 0;
     int fill_uniform = 1;
     p8est = p8est_new_ext(m_mpiInfo->comm, connectivity, min_quadrants,
             min_level, fill_uniform, sizeof(octantData), &init_brick_data, (void *) &forestData);
+
+#ifdef OXLEY_ENABLE_DEBUG_CHECKS //These checks are turned off by default as they can be very timeconsuming
+    std::cout << "Checking p8est ... ";
+    if(!p8est_is_valid(p8est))
+        std::cout << "broken" << std::endl;
+    else
+        std::cout << "OK" << std::endl;
+#endif
 
     // Nodes numbering
     p8est_ghost_t * ghost = p8est_ghost_new(p8est, P8EST_CONNECT_FULL);
@@ -169,7 +195,7 @@ Brick::Brick(int order,
     // Find the grid spacing for each level of refinement in the mesh
 #pragma omp parallel for
     for(int i = 0; i <= P8EST_MAXLEVEL; i++){
-        double numberOfSubDivisions = (p4est_qcoord_t) (1 << (P8EST_MAXLEVEL - i));
+        double numberOfSubDivisions = (p8est_qcoord_t) (1 << (P8EST_MAXLEVEL - i));
         forestData.m_dx[0][i] = forestData.m_length[0] / numberOfSubDivisions;
         forestData.m_dx[1][i] = forestData.m_length[1] / numberOfSubDivisions;
         forestData.m_dx[2][i] = forestData.m_length[2] / numberOfSubDivisions;
@@ -197,6 +223,15 @@ Brick::Brick(int order,
     renumberNodes();
     updateRowsColumns();
     updateNodeDistribution();
+    updateElementIds();
+    updateFaceOffset();
+    updateFaceElementCount();
+
+    // Tags
+    populateSampleIds();
+    for (TagMap::const_iterator i = tagnamestonums.begin(); i != tagnamestonums.end(); i++) {
+        setTagMap(i->first, i->second);
+    }
 
     // Dirac points and tags
     addPoints(points, tags);
@@ -210,7 +245,7 @@ Brick::Brick(int order,
 #ifdef ESYS_HAVE_PASO
 
     /// local array length shared
-    // dim_t local_length = p4est->local_num_quadrants;
+    // dim_t local_length = p8est->local_num_quadrants;
     dim_t local_length = 0;
 
     /// list of the processors sharing values with this processor
@@ -240,10 +275,19 @@ Brick::Brick(int order,
    Destructor.
 */
 Brick::~Brick(){
-
-    // free(forestData);
-    p8est_connectivity_destroy(connectivity);
-    p8est_destroy(p8est);
+#ifdef OXLEY_ENABLE_DEBUG_CHECKS
+    std::cout << "In Brick() destructor" << std::endl;
+    std::cout << "checking p8est ... ";
+    if(!p8est_is_valid(p8est))
+        std::cout << "broken" << std::endl;
+    else
+        std::cout << "OK" << std::endl;
+    std::cout << "checking connectivity ... ";
+    if(!p8est_connectivity_is_valid(connectivity))
+        std::cout << "broken" << std::endl;
+    else
+        std::cout << "OK" << std::endl;
+#endif
 }
 
 /**
@@ -253,16 +297,6 @@ Brick::~Brick(){
 std::string Brick::getDescription() const
 {
     return "oxley::brick";
-}
-
-/**
-   \brief
-   dumps the mesh to a file with the given name
-   \param filename The name of the output file
-*/
-void Brick::dump(const std::string& filename) const
-{
-    throw OxleyException("dump: not supported");
 }
 
 /**
@@ -277,73 +311,194 @@ void Brick::write(const std::string& filename) const
 
 void Brick::interpolateAcross(escript::Data& target, const escript::Data& source) const
 {
-    throw OxleyException("currently: not supported"); //AE this is temporary
+    const Brick *other = dynamic_cast<const Brick *>(target.getDomain().get());
+    if (other == NULL)
+        throw OxleyException("Invalid interpolation: Domains must both be instances of Brick");
+    //shouldn't ever happen, but I want to know if it does
+    if (other == this)
+        throw OxleyException("interpolateAcross: this domain is the target");
+        
+    validateInterpolationAcross(source.getFunctionSpace().getTypeCode(),
+            *(target.getDomain().get()), target.getFunctionSpace().getTypeCode());
+    int fsSource = source.getFunctionSpace().getTypeCode();
+    int fsTarget = target.getFunctionSpace().getTypeCode();
+
+    std::stringstream msg;
+    msg << "Invalid interpolation: interpolation not implemented for function space "
+        << functionSpaceTypeAsString(fsSource)
+        << " -> "
+        << functionSpaceTypeAsString(fsTarget);
+    if (other->getRefinementLevels() > getRefinementLevels()) {
+        switch (fsSource) {
+            case Nodes:
+                switch (fsTarget) {
+                    case Nodes:
+                    case ReducedNodes:
+                    case DegreesOfFreedom:
+                    case ReducedDegreesOfFreedom:
+                        interpolateNodesToNodesFiner(source, target, *other);
+                        return;
+                    case Elements:
+                        interpolateNodesToElementsFiner(source, target, *other);
+                        return;
+                }
+                break;
+            case Elements:
+                switch (fsTarget) {
+                    case Elements:
+                        interpolateElementsToElementsFiner(source, target, *other);
+                        return;
+                }
+                break;
+            case ReducedElements:
+                switch (fsTarget) {
+                    case Elements:
+                        interpolateReducedToElementsFiner(source, target, *other);
+                        return;
+                }
+                break;
+        }
+        msg << " when target is a finer mesh";
+    } else {
+        switch (fsSource) {
+            case Nodes:
+                switch (fsTarget) {
+                    case Elements:
+                        escript::Data elements=escript::Vector(0., escript::function(*this), true);
+                        interpolateNodesOnElements(elements, source, false);
+                        interpolateElementsToElementsCoarser(elements, target, *other);
+                        return;
+                }
+                break;
+            case Elements:
+                switch (fsTarget) {
+                    case Elements:
+                        interpolateElementsToElementsCoarser(source, target, *other);
+                        return;
+                }
+                break;
+        }
+        msg << " when target is a coarser mesh";
+    }
+    throw OxleyException(msg.str());
+}
+
+void Brick::validateInterpolationAcross(int fsType_source, const escript::AbstractDomain& domain, int fsType_target) const
+{
+    const Brick *other = dynamic_cast<const Brick *>(&domain);
+    if (other == NULL)
+        throw OxleyException("Invalid interpolation: domains must both be instances of oxley::Brick");
+
+    // TODO
+    // if(!p8est_is_equal(borrow_p8est, other->borrow_p8est(), 0))
+    //     throw OxleyException("Invalid interpolation: domains have different p8ests");
+
+    // if(!p8est_connectivity_is_equivalent(borrow_connectivity(),other->borrow_connectivity()))
+    //     throw OxleyException("Invalid interpolation: domains have different connectivities");
+
+
+}
+
+void Brick::interpolateNodesToNodesFiner(const escript::Data& source, escript::Data& target, const Brick& other) const
+{
+
+}
+
+void Brick::interpolateNodesToElementsFiner(const escript::Data& source, escript::Data& target, const Brick& other)  const
+{
+
+}
+
+void Brick::interpolateElementsToElementsCoarser(const escript::Data& source, escript::Data& target, const Brick& other)  const
+{
+
+}
+
+void Brick::interpolateElementsToElementsFiner(const escript::Data& source, escript::Data& target, const Brick& other)  const
+{
+
+}
+
+void Brick::interpolateReducedToElementsFiner(const escript::Data& source, escript::Data& target, const Brick& other)  const
+{
+
+}
+
+void Brick::interpolateReducedToReducedFiner(const escript::Data& source, escript::Data& target, const Brick& other)  const
+{
+
 }
 
 void Brick::setToNormal(escript::Data& out) const
 {
-    if (out.getFunctionSpace().getTypeCode() == FaceElements) 
-    {
+    if (out.getFunctionSpace().getTypeCode() == FaceElements) {
         out.requireWrite();
-        for(p8est_topidx_t t = p8est->first_local_tree; t <= p8est->last_local_tree; t++) 
+#pragma omp parallel
         {
-            p8est_tree_t * currenttree = p8est_tree_array_index(p8est->trees, t);
-            sc_array_t * tquadrants = &currenttree->quadrants;
-            p4est_qcoord_t Q = (p4est_qcoord_t) tquadrants->elem_count;
-#pragma omp parallel for
-            for(p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
-            {
-                // Work out what level this element is on 
-                p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, e);
-                octantData * quaddata = (octantData *) quad->p.user_data;               
-
-                if(quaddata->m_faceOffset[0]) {
-                    double* o = out.getSampleDataRW(e);
+            if(m_faceOffset[0] > -1) {
+#pragma omp for nowait
+                for (index_t k=0; k<NodeIDsLeft.size()-1; k++) {
+                    double* o = out.getSampleDataRW(m_faceOffset[0]+k);
                     // set vector at four quadrature points
                     *o++ = -1.; *o++ = 0.; *o++ = 0.;
                     *o++ = -1.; *o++ = 0.; *o++ = 0.;
                     *o++ = -1.; *o++ = 0.; *o++ = 0.;
                     *o++ = -1.; *o++ = 0.; *o = 0.;
                 }
+            }
             
-                if(quaddata->m_faceOffset[1]) {
-                    double* o = out.getSampleDataRW(e);
+            if(m_faceOffset[1] > -1) {
+#pragma omp for nowait
+                for (index_t k=0; k<NodeIDsRight.size()-1; k++) {
+                    double* o = out.getSampleDataRW(m_faceOffset[1]+k);
                     // set vector at four quadrature points
                     *o++ = 1.; *o++ = 0.; *o++ = 0.;
                     *o++ = 1.; *o++ = 0.; *o++ = 0.;
                     *o++ = 1.; *o++ = 0.; *o++ = 0.;
                     *o++ = 1.; *o++ = 0.; *o = 0.;
                 }
+            }
 
-                if(quaddata->m_faceOffset[2]) {
-                    double* o = out.getSampleDataRW(e);                    
+            if (m_faceOffset[2] > -1) {
+#pragma omp for nowait
+                for (index_t k=0; k<NodeIDsBottom.size()-1; k++) {
+                    double* o = out.getSampleDataRW(m_faceOffset[2]+k);                    
                     // set vector at four quadrature points
                     *o++ = 0.; *o++ = -1.; *o++ = 0.;
                     *o++ = 0.; *o++ = -1.; *o++ = 0.;
                     *o++ = 0.; *o++ = -1.; *o++ = 0.;
                     *o++ = 0.; *o++ = -1.; *o = 0.;
                 }
+            }
 
-                if(quaddata->m_faceOffset[3]) {
-                    double* o = out.getSampleDataRW(e);
+            if (m_faceOffset[3] > -1) {
+#pragma omp for nowait
+                for (index_t k=0; k<NodeIDsTop.size()-1; k++) {
+                    double* o = out.getSampleDataRW(m_faceOffset[3]+k);
                     // set vector at four quadrature points
                     *o++ = 0.; *o++ = 1.; *o++ = 0.;
                     *o++ = 0.; *o++ = 1.; *o++ = 0.;
                     *o++ = 0.; *o++ = 1.; *o++ = 0.;
                     *o++ = 0.; *o++ = 1.; *o = 0.;
                 }
+            }
 
-                if(quaddata->m_faceOffset[4]) {
-                    double* o = out.getSampleDataRW(e);
+            if(m_faceOffset[4]) {
+#pragma omp for nowait
+                for (index_t k=0; k<NodeIDsAbove.size()-1; k++) {
+                    double* o = out.getSampleDataRW(m_faceOffset[4]+k);
                     // set vector at four quadrature points
                     *o++ = 0.; *o++ = 0.; *o++ = -1.;
                     *o++ = 0.; *o++ = 0.; *o++ = -1.;
                     *o++ = 0.; *o++ = 0.; *o++ = -1.;
                     *o++ = 0.; *o++ = 0.; *o = -1.;
                 }
+            }
 
-                if(quaddata->m_faceOffset[5]) {
-                    double* o = out.getSampleDataRW(e);
+            if (m_faceOffset[5] > -1) {
+#pragma omp for nowait
+                for (index_t k=0; k<NodeIDsBelow.size()-1; k++) {
+                    double* o = out.getSampleDataRW(m_faceOffset[5]+k);
                     // set vector at four quadrature points
                     *o++ = 0.; *o++ = 0.; *o++ = 1.;
                     *o++ = 0.; *o++ = 0.; *o++ = 1.;
@@ -351,60 +506,68 @@ void Brick::setToNormal(escript::Data& out) const
                     *o++ = 0.; *o++ = 0.; *o = 1.;
                 }
             }
-        }
+        } // end of parallel
     }
     else if (out.getFunctionSpace().getTypeCode() == ReducedFaceElements) 
     {
         out.requireWrite();
-        for(p8est_topidx_t t = p8est->first_local_tree; t <= p8est->last_local_tree; t++) 
+        
+#pragma omp parallel
         {
-            p8est_tree_t * currenttree = p8est_tree_array_index(p8est->trees, t);
-            sc_array_t * tquadrants = &currenttree->quadrants;
-            p4est_qcoord_t Q = (p4est_qcoord_t) tquadrants->elem_count;
-#pragma omp parallel for
-            for(p4est_locidx_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
-            {
-                // Work out what level this element is on 
-                p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, e);
-                octantData * quaddata = (octantData *) quad->p.user_data; 
-
-                if(quaddata->m_faceOffset[0]) {
-                    double* o = out.getSampleDataRW(e);
+            if (m_faceOffset[0] > -1) {
+#pragma omp for nowait
+                for (index_t k=0; k<NodeIDsLeft.size()-1; k++) {
+                    double* o = out.getSampleDataRW(m_faceOffset[0]+k);
                     *o++ = -1.;
                     *o++ = 0.;
                     *o = 0.;
                 }
+            }
 
-                if(quaddata->m_faceOffset[1]) {
-                    double* o = out.getSampleDataRW(e);
+            if (m_faceOffset[1] > -1) {
+#pragma omp for nowait
+                for (index_t k=0; k<NodeIDsRight.size()-1; k++) {
+                    double* o = out.getSampleDataRW(m_faceOffset[1]+k);
                     *o++ = 1.;
                     *o++ = 0.;
                     *o = 0.;
                 }
+            }
 
-                if(quaddata->m_faceOffset[2]) {
-                    double* o = out.getSampleDataRW(e);
+            if (m_faceOffset[2] > -1) {
+#pragma omp for nowait
+                for (index_t k=0; k<NodeIDsBottom.size()-1; k++) {
+                    double* o = out.getSampleDataRW(m_faceOffset[2]+k);
                     *o++ = 0.;
                     *o++ = -1.;
                     *o = 0.;
                 }
+            }
 
-                if(quaddata->m_faceOffset[3]) {
-                    double* o = out.getSampleDataRW(e);
+            if (m_faceOffset[3] > -1) {
+#pragma omp for nowait
+                for (index_t k=0; k<NodeIDsTop.size()-1; k++) {
+                    double* o = out.getSampleDataRW(m_faceOffset[3]+k);
                     *o++ = 0.;
                     *o++ = 1.;
                     *o = 0.;
                 }
+            }
 
-                if(quaddata->m_faceOffset[4]) {
-                    double* o = out.getSampleDataRW(e);
+            if (m_faceOffset[4] > -1) {
+#pragma omp for nowait
+                for (index_t k=0; k<NodeIDsAbove.size()-1; k++) {
+                    double* o = out.getSampleDataRW(m_faceOffset[4]+k);
                     *o++ = 0.;
                     *o++ = 0.;
                     *o = -1.;
                 }
+            }
 
-                if(quaddata->m_faceOffset[5]) {
-                    double* o = out.getSampleDataRW(e);
+            if (m_faceOffset[4] > -1) {
+#pragma omp for nowait
+                for (index_t k=0; k<NodeIDsBelow.size()-1; k++) {
+                    double* o = out.getSampleDataRW(m_faceOffset[5]+k);
                     *o++ = 0.;
                     *o++ = 0.;
                     *o = 1.;
@@ -417,6 +580,11 @@ void Brick::setToNormal(escript::Data& out) const
             << out.getFunctionSpace().getTypeCode();
         throw ValueError(msg.str());
     }
+
+    #ifdef OXLEY_ENABLE_DEBUG_SETTONORMAL
+        std::cout << "setToNormal:" << std::endl;
+        out.print();
+    #endif
 }
 
 void Brick::setToSize(escript::Data& out) const
@@ -425,23 +593,36 @@ void Brick::setToSize(escript::Data& out) const
             || out.getFunctionSpace().getTypeCode() == ReducedElements) 
     {
         out.requireWrite();
-        const dim_t numQuad=out.getNumDataPointsPerSample();
 
+        // Find the maximum level of refinement in the mesh
+        int max_level = 0;
+        for(p8est_topidx_t tree = p8est->first_local_tree; tree <= p8est->last_local_tree; tree++) {
+            p8est_tree_t * tree_t = p8est_tree_array_index(p8est->trees, tree);
+            max_level = tree_t->maxlevel > max_level ? tree_t->maxlevel : max_level;
+        }
+        // Work out the size at each level
+        std::vector<double> size_vect(max_level+1, -1.0);
+        for(int i = 0 ; i <= max_level ; i++)
+        {
+            size_vect[i] = sqrt((forestData.m_dx[0][P4EST_MAXLEVEL-i]*forestData.m_dx[0][P4EST_MAXLEVEL-i]
+                                                    +forestData.m_dx[1][P4EST_MAXLEVEL-i]*forestData.m_dx[1][P4EST_MAXLEVEL-i]));
+        }
+
+        const dim_t numQuad=out.getNumDataPointsPerSample();
         for(p8est_topidx_t t = p8est->first_local_tree; t <= p8est->last_local_tree; t++) 
         {
-            p4est_tree_t * currenttree = p4est_tree_array_index(p8est->trees, t);
+            p8est_tree_t * currenttree = p8est_tree_array_index(p8est->trees, t);
             sc_array_t * tquadrants = &currenttree->quadrants;
-            p4est_qcoord_t Q = (p4est_qcoord_t) tquadrants->elem_count;
-        #pragma omp parallel for
-            for(p4est_qcoord_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
+            p8est_qcoord_t Q = (p8est_qcoord_t) tquadrants->elem_count;
+            for (int q = 0; q < Q; ++q)  
             {
-                // Work out what level this element is on 
-                p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, e);
-                // octantData * quaddata = (octantData *) quad->p.user_data; 
-                const double size = sqrt(forestData.m_dx[0][quad->level]*forestData.m_dx[0][quad->level]
-                                        +forestData.m_dx[1][quad->level]*forestData.m_dx[1][quad->level]
-                                        +forestData.m_dx[2][quad->level]*forestData.m_dx[2][quad->level]);
-                double* o = out.getSampleDataRW(e);
+                p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
+                int l = quad->level;
+                const double size = size_vect[l];
+                double xyz[3];
+                p8est_qcoord_to_vertex(p8est->connectivity, t, quad->x, quad->y, quad->z, xyz);
+                long id = getQuadID(NodeIDs.find(std::make_tuple(xyz[0],xyz[1],xyz[2]))->second);
+                double* o = out.getSampleDataRW(id);
                 std::fill(o, o+numQuad, size);
             }
         }
@@ -452,47 +633,51 @@ void Brick::setToSize(escript::Data& out) const
         out.requireWrite();
         const dim_t numQuad=out.getNumDataPointsPerSample();
 
-        for(p8est_topidx_t t = p8est->first_local_tree; t <= p8est->last_local_tree; t++) 
-        {
-            p4est_tree_t * currenttree = p4est_tree_array_index(p8est->trees, t);
-            sc_array_t * tquadrants = &currenttree->quadrants;
-            p4est_qcoord_t Q = (p4est_qcoord_t) tquadrants->elem_count;
-        #pragma omp parallel for
-            for(p4est_qcoord_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
-            {
-                // Work out what level this element is on 
-                p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, e);
-                octantData * quaddata = (octantData *) quad->p.user_data;
+        if (m_faceOffset[0] > -1) {
+            for (index_t k=0; k<NodeIDsLeft.size()-1; k++) {
+                borderNodeInfo tmp = NodeIDsLeft[k];
+                double* o = out.getSampleDataRW(m_faceOffset[0]+k);
+                std::fill(o, o+numQuad, forestData.m_dx[1][P4EST_MAXLEVEL-tmp.level]);
+            }
+        }
 
-                if (quaddata->m_faceOffset[0]) {
-                    double* o = out.getSampleDataRW(e);
-                    std::fill(o, o+numQuad, forestData.m_dx[1][quad->level]);
-                }
+        if (m_faceOffset[0] > -1) {
+            for (index_t k=0; k<NodeIDsRight.size()-1; k++) {
+                borderNodeInfo tmp = NodeIDsRight[k];
+                double* o = out.getSampleDataRW(m_faceOffset[1]+k);
+                std::fill(o, o+numQuad, forestData.m_dx[1][P4EST_MAXLEVEL-tmp.level]);
+            }
+        }
 
-                if (quaddata->m_faceOffset[1]) {
-                    double* o = out.getSampleDataRW(e);
-                    std::fill(o, o+numQuad, forestData.m_dx[1][quad->level]);
-                }
+        if (m_faceOffset[0] > -1) {
+            for (index_t k=0; k<NodeIDsBottom.size()-1; k++) {
+                borderNodeInfo tmp = NodeIDsBottom[k];
+                double* o = out.getSampleDataRW(m_faceOffset[2]+k);
+                std::fill(o, o+numQuad, forestData.m_dx[0][P4EST_MAXLEVEL-tmp.level]);
+            }
+        }
 
-                if (quaddata->m_faceOffset[2]) {
-                    double* o = out.getSampleDataRW(e);
-                    std::fill(o, o+numQuad, forestData.m_dx[0][quad->level]);
-                }
+        if (m_faceOffset[0] > -1) {
+            for (index_t k=0; k<NodeIDsTop.size()-1; k++) {
+                borderNodeInfo tmp = NodeIDsTop[k];
+                double* o = out.getSampleDataRW(m_faceOffset[3]+k);
+                std::fill(o, o+numQuad, forestData.m_dx[0][P4EST_MAXLEVEL-tmp.level]);
+            }
+        }
 
-                if (quaddata->m_faceOffset[3]) {
-                    double* o = out.getSampleDataRW(e);
-                    std::fill(o, o+numQuad, forestData.m_dx[0][quad->level]);
-                }
+        if (m_faceOffset[0] > -1) {
+            for (index_t k=0; k<NodeIDsAbove.size()-1; k++) {
+                borderNodeInfo tmp = NodeIDsAbove[k];
+                double* o = out.getSampleDataRW(m_faceOffset[4]+k);
+                std::fill(o, o+numQuad, forestData.m_dx[2][P4EST_MAXLEVEL-tmp.level]);
+            }
+        }
 
-                if (quaddata->m_faceOffset[4]) {
-                    double* o = out.getSampleDataRW(e);
-                    std::fill(o, o+numQuad, forestData.m_dx[2][quad->level]);
-                }
-
-                if (quaddata->m_faceOffset[5]) {
-                    double* o = out.getSampleDataRW(e);
-                    std::fill(o, o+numQuad, forestData.m_dx[2][quad->level]);
-                }
+        if (m_faceOffset[0] > -1) {
+            for (index_t k=0; k<NodeIDsBelow.size()-1; k++) {
+                borderNodeInfo tmp = NodeIDsBelow[k];
+                double* o = out.getSampleDataRW(m_faceOffset[5]+k);
+                std::fill(o, o+numQuad, forestData.m_dx[2][P4EST_MAXLEVEL-tmp.level]);
             }
         }
     } 
@@ -574,6 +759,122 @@ escript::Data Brick::randomFill(const escript::DataTypes::ShapeType& shape,
     throw OxleyException("randomFill"); //TODO this is temporary
 }
 
+void Brick::dump(const std::string& fileName) const
+{
+#ifdef ESYS_HAVE_SILO
+    
+    // Add the suffix to the filename if required
+    std::string fn = fileName;
+    if (fileName.length() < 6 || fileName.compare(fileName.length()-5, 5, ".silo") != 0) {
+        fn+=".silo";
+    }
+
+    // int driver=DB_HDF5;
+
+    // Silo file pointer
+    DBfile* dbfile = NULL; 
+
+    // The coordinate arrays
+    float *pNodex = nullptr;
+    float *pNodey = nullptr;
+    float *pNodez = nullptr;
+    long int *pNode_ids = nullptr;
+    double * pValues = nullptr;
+
+    pNodex = new float[MAXP4ESTNODES];
+    pNodey = new float[MAXP4ESTNODES];
+    pNodez = new float[MAXP4ESTNODES];
+    pNode_ids = new long int [MAXP4ESTNODES];
+    pValues = new double[MAXP4ESTNODES];
+
+    for(std::pair<DoubleTuple,long> element : NodeIDs)
+    {
+        pNodex[element.second]=std::get<0>(element.first);
+        pNodey[element.second]=std::get<1>(element.first);
+        pNode_ids[element.second]=element.second;
+    }
+
+    if(current_solution.size() != 0)
+        for(std::pair<DoubleTuple,long> element : NodeIDs)
+        {
+            pValues[element.second]=current_solution.at(element.second);
+        }
+    else
+        for(std::pair<DoubleTuple,long> element : NodeIDs)
+        {
+            pValues[element.second]=0;
+        }
+
+    // Array of the coordinate arrays
+    float * pCoordinates[3];
+    pCoordinates[0]=pNodex;
+    pCoordinates[1]=pNodey;
+    pCoordinates[2]=pNodez;
+
+    // Create the file
+    dbfile = DBCreate(fn.c_str(), DB_CLOBBER, DB_LOCAL, getDescription().c_str(), DB_HDF5);
+    if (!dbfile)
+        throw escript::IOError("dump: Could not create Silo file");
+
+    // create the nodelist
+    std::vector<int> nodelist;
+    long ids[4]={0};
+    for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
+        p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
+        sc_array_t * tquadrants = &tree->quadrants;
+        p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
+        for(int q = 0; q < Q; q++)
+        {
+            p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);          
+            getNeighouringNodeIDs(quad->level, quad->x, quad->y, quad->z, treeid, ids);
+            nodelist.push_back(ids[0]);
+            nodelist.push_back(ids[2]);
+            nodelist.push_back(ids[3]);
+            nodelist.push_back(ids[1]);
+            nodelist.push_back(ids[4]);
+            nodelist.push_back(ids[5]);
+        }
+    }
+
+    int* nodelistarray = &nodelist[0];
+
+    // write mesh
+    int lnodelist = nodelist.size();
+    int shapesize[] = {4};
+    int shapecounts[] = {lnodelist/4};
+    int nshapetypes = 1;
+    int shapetype[1] = {DB_ZONETYPE_QUAD};
+
+    // This is deprecated
+    DBPutZonelist2(dbfile, "quads", getNumElements(), 2, nodelistarray, lnodelist, 0,
+                0, 0, shapetype, shapesize, shapecounts, nshapetypes, NULL);
+        
+
+    DBPutUcdmesh(dbfile, "mesh", 2, NULL, pCoordinates, getNumNodes(), getNumElements(), 
+                    "quads", NULL, DB_FLOAT, NULL);
+
+    // Coordinates
+    DBPutPointmesh(dbfile, "nodes", 2, pCoordinates, getNumNodes(), DB_FLOAT, NULL) ;
+
+    // Node IDs
+    DBPutPointvar1(dbfile, "id", "nodes", pNode_ids, getNumNodes(), DB_LONG, NULL);
+
+    // Node values
+    if(current_solution.size() != 0)
+        DBPutPointvar1(dbfile, "u", "nodes", pValues, getNumNodes(), DB_DOUBLE, NULL);    
+
+    DBClose(dbfile);
+
+    delete [] pNodex;
+    delete [] pNodey;
+    delete [] pNodez;
+    delete [] pNode_ids;
+    delete [] pValues;
+
+#else // ESYS_HAVE_SILO
+    throw OxleyException("dump: escript was not compiled with Silo enabled");
+#endif
+}
 
 const dim_t* Brick::borrowSampleReferenceIDs(int fsType) const
 {
@@ -631,7 +932,7 @@ void Brick::writeToVTK(std::string filename, bool writeMesh) const
         context = p8est_vtk_write_header(context);
 
         // Get the point and cell data together
-        p4est_locidx_t numquads = p8est->local_num_quadrants;
+        p8est_locidx_t numquads = p8est->local_num_quadrants;
         sc_array_t * quadTag = sc_array_new_count(sizeof(double), numquads);
         p8est_iterate(p8est, NULL, (void *) quadTag, getQuadTagVector, NULL, NULL, NULL);
         sc_array_t * xcoord = sc_array_new_count(sizeof(double), numquads);
@@ -674,31 +975,103 @@ void Brick::writeToVTK(std::string filename, bool writeMesh) const
 
 void Brick::saveMesh(std::string filename) 
 {
-    throw OxleyException("Unimplemented"); //TODO
+    std::string fnames=filename+".p8est";
+    std::string cnames=filename+".conn";
+
+    const char * fname=fnames.c_str();
+    const char * cname=cnames.c_str();
+
+    p8est_deflate_quadrants(p8est, NULL);
+
+#ifdef ESYS_MPI
+    if(escript::getMPIRankWorld()==0)
+    {
+#endif
+        int retval = p8est_connectivity_save(cname, connectivity)==0;
+        ESYS_ASSERT(retval!=0,"Failed to save connectivity");
+        int save_partition = 0;
+        int save_data = 1;
+        p8est_save_ext(fname, p8est, save_data, save_partition); // Should abort on file error
+#ifdef ESYS_MPI
+    }
+#endif
 }
 
 void Brick::loadMesh(std::string filename) 
 {
-    throw OxleyException("Unimplemented"); //TODO
+    std::string fnames=filename+".p8est";
+    std::string cnames=filename+".conn";
+
+    const char * fname=fnames.c_str();
+    const char * cname=cnames.c_str();
+
+    int load_data=true;
+    int autopartition=true;
+    int broadcasthead=false;
+
+    // Delete the old structure
+    p8est_connectivity_destroy(connectivity);
+    p8est_destroy(p8est);
+
+    // Load the new information
+    p8est=p8est_load_ext(fname, m_mpiInfo->comm, sizeof(quadrantData), load_data, 
+                    autopartition, broadcasthead, &forestData, &connectivity);
+    ESYS_ASSERT(p8est_is_valid(p8est),"Invalid p8est file");
+
+    // Update the nodes
+    p8est_lnodes_destroy(nodes);
+    p8est_ghost_t * ghost = p8est_ghost_new(p8est, P8EST_CONNECT_FULL);
+    nodes = p8est_lnodes_new(p8est, ghost, 1);
+    p8est_ghost_destroy(ghost);
+
+    // Update Brick
+    updateNodeIncrements();
+    renumberNodes();
+    updateRowsColumns();
+    updateElementIds();
+    updateFaceOffset();
+    updateFaceElementCount();
+
+    // Need to update these now that the mesh has changed
+    z_needs_update=true;
+    iz_needs_update=true;
 }
 
 void Brick::refineMesh(std::string algorithmname)
 {
-    double max_levels_refinement = 8; //TODO
+    z_needs_update=true;
+    iz_needs_update=true;
 
-    if(!algorithmname.compare("uniform")){
-        p8est_refine_ext(p8est, true, max_levels_refinement, refine_uniform, NULL, refine_copy_parent_octant);
-        p8est_balance_ext(p8est, P8EST_CONNECT_FULL, NULL, refine_copy_parent_octant);
-        int partforcoarsen = 1;
-        p8est_partition(p8est, partforcoarsen, NULL);
-    } else {
+    forestData.current_solution = &current_solution;    
+    forestData.NodeIDs = &NodeIDs;
+
+    if(!algorithmname.compare("uniform"))
+    {
+        p8est_refine_ext(p8est, true, -1, refine_uniform, init_brick_data, refine_copy_parent_octant);
+        p8est_balance_ext(p8est, P8EST_CONNECT_FULL, init_brick_data, refine_copy_parent_octant);
+    }
+    else if(!algorithmname.compare("MARE2DEM") || !algorithmname.compare("mare2dem"))
+    {
+        if(adaptive_refinement == true)
+        {
+            p8est_refine_ext(p8est, true, -1, refine_mare2dem, init_brick_data, refine_copy_parent_octant);
+            p8est_balance_ext(p8est, P8EST_CONNECT_FULL, init_brick_data, refine_copy_parent_octant);
+        }
+        else
+        {
+#ifdef OXLEY_ENABLE_DEBUG
+            std::cout << "Warning: Adaptive mesh refinement is disabled." << std::endl;
+#endif
+        }
+    }
+    else {
         throw OxleyException("Unknown refinement algorithm name.");
     }
 
     // Make sure that nothing went wrong
 #ifdef OXLEY_ENABLE_DEBUG
     if(!p8est_is_valid(p8est))
-        throw OxleyException("p4est broke during refinement");
+        throw OxleyException("p8est broke during refinement");
     if(!p8est_connectivity_is_valid(connectivity))
         throw OxleyException("connectivity broke during refinement");
 #endif
@@ -716,10 +1089,16 @@ void Brick::refineMesh(std::string algorithmname)
     updateNodeIncrements();
     renumberNodes();
     updateRowsColumns();
+    updateElementIds();
+    updateFaceOffset();
+    updateFaceElementCount();
 }
 
 void Brick::refineBoundary(std::string boundaryname, double dx)
 {
+    z_needs_update=true;
+    iz_needs_update=true;
+
     forestData.refinement_depth = dx;
 
     if(!boundaryname.compare("north") || !boundaryname.compare("North")
@@ -789,11 +1168,144 @@ void Brick::refineBoundary(std::string boundaryname, double dx)
     updateNodeIncrements();
     renumberNodes();
     updateRowsColumns();
+    updateElementIds();
+    updateFaceOffset();
+    updateFaceElementCount();
 }
 
-void Brick::refineRegion(double x0, double x1, double y0, double y1)
+void Brick::refineRegion(double x0, double x1, double y0, double y1, double z0, double z1)
 {
+    z_needs_update=true;
+    iz_needs_update=true;
+
+    // If the boundaries were not specified by the user, default to the border of the domain
+    forestData.refinement_boundaries[0] = x0 == -1 ? forestData.m_origin[0] : x0; 
+    forestData.refinement_boundaries[1] = x1 == -1 ? forestData.m_origin[1] : x1;
+    forestData.refinement_boundaries[2] = y0 == -1 ? forestData.m_lxyz[0] : y0;
+    forestData.refinement_boundaries[3] = y1 == -1 ? forestData.m_lxyz[1] : y1;
+    forestData.refinement_boundaries[4] = z0 == -1 ? forestData.m_lxyz[0] : z0;
+    forestData.refinement_boundaries[5] = z1 == -1 ? forestData.m_lxyz[1] : z1;
+
+    p8est_refine_ext(p8est, true, -1, refine_region, init_brick_data, refine_copy_parent_octant);
+    p8est_balance_ext(p8est, P8EST_CONNECT_FULL, init_brick_data, refine_copy_parent_octant);
+
+    // Make sure that nothing went wrong
+#ifdef OXLEY_ENABLE_DEBUG
+    if(!p8est_is_valid(p8est))
+        throw OxleyException("p8est broke during refinement");
+    if(!p8est_connectivity_is_valid(connectivity))
+        throw OxleyException("connectivity broke during refinement");
+#endif
+
+    bool partition_for_coarsening = true;
+    p8est_partition_ext(p8est, partition_for_coarsening, NULL);
+
+    // Update the nodes
+    p8est_lnodes_destroy(nodes);
+    p8est_ghost_t * ghost = p8est_ghost_new(p8est, P8EST_CONNECT_FULL);
+    nodes = p8est_lnodes_new(p8est, ghost, 1);
+    p8est_ghost_destroy(ghost);
+
+    // Update
+    updateNodeIncrements();
+    renumberNodes();
+    updateRowsColumns();
+    updateElementIds();
+    updateFaceOffset();
+    updateFaceElementCount();
+}
+
+void Brick::refinePoint(double x0, double y0, double z0)
+{
+    z_needs_update=true;
+    iz_needs_update=true;
+
+    // Check that the point is inside the domain
+    if(x0 < forestData.m_origin[0] || x0 > forestData.m_lxyz[0] 
+        || y0 < forestData.m_origin[1] || y0 > forestData.m_lxyz[1] 
+        || z0 < forestData.m_origin[2] || z0 > forestData.m_lxyz[3] )
+    {
+        throw OxleyException("Coordinates lie outside the domain.");
+    }
+
+    // If the boundaries were not specified by the user, default to the border of the domain
+    forestData.refinement_boundaries[0] = x0;
+    forestData.refinement_boundaries[1] = y0;
+    forestData.refinement_boundaries[2] = z0;
+    p8est_refine_ext(p8est, true, -1, refine_point, init_brick_data, refine_copy_parent_octant);
+    p8est_balance_ext(p8est, P8EST_CONNECT_FULL, init_brick_data, refine_copy_parent_octant);
+
+    // Make sure that nothing went wrong
+#ifdef OXLEY_ENABLE_DEBUG
+    if(!p8est_is_valid(p8est))
+        throw OxleyException("p8est broke during refinement");
+    if(!p8est_connectivity_is_valid(connectivity))
+        throw OxleyException("connectivity broke during refinement");
+#endif
+
+    bool partition_for_coarsening = true;
+    p8est_partition_ext(p8est, partition_for_coarsening, NULL);
+
+    // Update the nodes
+    p8est_lnodes_destroy(nodes);
+    p8est_ghost_t * ghost = p8est_ghost_new(p8est, P8EST_CONNECT_FULL);
+    nodes = p8est_lnodes_new(p8est, ghost, 1);
+    p8est_ghost_destroy(ghost);
+
+    // Update
+    updateNodeIncrements();
+    renumberNodes();
+    updateRowsColumns();
+    updateElementIds();
+    updateFaceOffset();
+    updateFaceElementCount();
+}
+
+void Brick::refineSphere(double x0, double y0, double z0, double r)
+{
+    z_needs_update=true;
+    iz_needs_update=true;
     
+    // Check that the point is inside the domain
+    if(x0 < forestData.m_origin[0] || x0 > forestData.m_lxyz[0] 
+        || y0 < forestData.m_origin[1] || y0 > forestData.m_lxyz[1] 
+        || z0 < forestData.m_origin[2] || z0 > forestData.m_lxyz[3] )
+    {
+        throw OxleyException("Coordinates lie outside the domain.");
+    }
+
+    // If the boundaries were not specified by the user, default to the border of the domain
+    forestData.refinement_boundaries[0] = x0;
+    forestData.refinement_boundaries[1] = y0;
+    forestData.refinement_boundaries[2] = z0;
+    forestData.refinement_boundaries[3] = r;
+    p8est_refine_ext(p8est, true, -1, refine_sphere, init_brick_data, refine_copy_parent_octant);
+    p8est_balance_ext(p8est, P8EST_CONNECT_FULL, init_brick_data, refine_copy_parent_octant);
+
+    // Make sure that nothing went wrong
+#ifdef OXLEY_ENABLE_DEBUG
+    if(!p8est_is_valid(p8est))
+        throw OxleyException("p8est broke during refinement");
+    if(!p8est_connectivity_is_valid(connectivity))
+        throw OxleyException("connectivity broke during refinement");
+#endif
+
+    bool partition_for_coarsening = true;
+    p8est_partition_ext(p8est, partition_for_coarsening, NULL);
+
+    // Update the nodes
+    p8est_lnodes_destroy(nodes);
+    p8est_ghost_t * ghost = p8est_ghost_new(p8est, P8EST_CONNECT_FULL);
+    nodes = p8est_lnodes_new(p8est, ghost, 1);
+    p8est_ghost_destroy(ghost);
+
+    // Update
+    updateNodeIncrements();
+    renumberNodes();
+    updateRowsColumns();
+    updateElementIds();
+    updateFaceOffset();
+    updateFaceElementCount();
 }
 
 escript::Data Brick::getX() const
@@ -835,57 +1347,165 @@ Assembler_ptr Brick::createAssembler(std::string type, const DataMap& constants)
             return Assembler_ptr(new DefaultAssembler3D<real_t>(shared_from_this()));
         }
     } 
-    throw escript::NotImplementedError("oxley::rectangle does not support the requested assembler");
+    throw escript::NotImplementedError("oxley::brick does not support the requested assembler");
 }
 
 // return True for a boundary node and False for an internal node
-bool Brick::isBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t treeid, p4est_qcoord_t length) const
+bool Brick::isBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t treeid, p8est_qcoord_t length) const
 {
-    // AEAE TODO
-    return false;
-    // double lx = length * ((int) (n % 2) == 1);
-    // double ly = length * ((int) (n / 2) == 1);
-    // double xy[3];
-    // p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
-    // return (xy[0] == 0) || (xy[0] == forestData.m_lxy[0]) || (xy[1] == 0) || (xy[1] == forestData.m_lxy[1]);
+    //TODO
+    double lx = length * ((int) (n % 2) == 1);
+    double ly = length * ((int) (n / 2) == 1);
+    double lz = length * ((int) (n / 2) == 1); //TODO
+    double xy[3];
+    p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+lx, quad->y+ly, quad->z+lz, xy);
+    return (xy[0] == forestData.m_origin[0]) || (xy[0] == forestData.m_lxyz[0]) 
+        || (xy[1] == forestData.m_origin[1]) || (xy[1] == forestData.m_lxyz[1])
+        || (xy[2] == forestData.m_origin[2]) || (xy[3] == forestData.m_lxyz[3]);
 }
 
 // returns True for a boundary node on the north or east of the domain
-bool Brick::isUpperBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t treeid, p4est_qcoord_t length) const
+bool Brick::isUpperBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t treeid, p8est_qcoord_t length) const
 {
-    // AEAE TODO
-    return false;
-//     double lx = length * ((int) (n % 2) == 1);
-//     double ly = length * ((int) (n / 2) == 1);
-//     double xy[3];
-//     p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
-//     return (xy[0] == forestData.m_lxy[0]) || (xy[1] == forestData.m_lxy[1]);
+    double lx = length * ((int) (n % 2) == 1);
+    double ly = length * ((int) (n / 2) == 1);
+    double lz = length * ((int) (n / 2) == 1); //TODO
+    double xy[3];
+    p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+lx, quad->y+ly, quad->z+lz, xy);
+    return (xy[0] == forestData.m_lxyz[0]) || (xy[1] == forestData.m_lxyz[1]) || (xy[2] == forestData.m_lxyz[2]);
 }
+
+// returns True for a boundary node on the south or west of the domain
+bool Brick::isLowerBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t treeid, p8est_qcoord_t length) const
+{
+    double lx = length * ((int) (n % 2) == 1);
+    double ly = length * ((int) (n / 2) == 1);
+    double lz = length * ((int) (n / 2) == 1); //TODO
+    double xy[3];
+    p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+lx, quad->y+ly, quad->z+lz, xy);
+    return (xy[0] == forestData.m_origin[0]) 
+        || (xy[1] == forestData.m_origin[1])
+        || (xy[2] == forestData.m_origin[2]);
+}
+
+// returns True for a boundary node on the left boundary
+bool Brick::isLeftBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t treeid, p8est_qcoord_t length) const
+{
+    double lx = length * ((int) (n % 2) == 1);
+    double ly = length * ((int) (n / 2) == 1);
+    double lz = length * ((int) (n / 2) == 1); //TODO
+    double xy[3];
+    p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+lx, quad->y+ly, quad->z+lz, xy);
+    return (xy[0] == forestData.m_origin[0]);
+}
+
+// returns True for a boundary node on the right boundary
+bool Brick::isRightBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t treeid, p8est_qcoord_t length) const
+{
+    double lx = length * ((int) (n % 2) == 1);
+    double ly = length * ((int) (n / 2) == 1);
+    double lz = length * ((int) (n / 2) == 1); //TODO
+    double xy[3];
+    p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+lx, quad->y+ly, quad->z+lz, xy);
+    return (xy[0] == forestData.m_lxyz[0]);
+}
+
+// returns True for a boundary node on the bottom boundary
+bool Brick::isBottomBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t treeid, p8est_qcoord_t length) const
+{
+    double lx = length * ((int) (n % 2) == 1);
+    double ly = length * ((int) (n / 2) == 1);
+    double lz = length * ((int) (n / 2) == 1); //TODO
+    double xy[3];
+    p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+lx, quad->y+ly, quad->z+lz, xy);
+    return (xy[1] == forestData.m_origin[1]);
+}
+
+// returns True for a boundary node on the top boundary
+bool Brick::isTopBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t treeid, p8est_qcoord_t length) const
+{
+    double lx = length * ((int) (n % 2) == 1);
+    double ly = length * ((int) (n / 2) == 1);
+    double lz = length * ((int) (n / 2) == 1); //TODO
+    double xy[3];
+    p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+lx, quad->y+ly, quad->z+lz, xy);
+    return (xy[1] == forestData.m_lxyz[1]);
+}
+
+// returns True for a boundary node on the top boundary
+bool Brick::isAboveBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t treeid, p8est_qcoord_t length) const
+{
+    double lx = length * ((int) (n % 2) == 1);
+    double ly = length * ((int) (n / 2) == 1);
+    double lz = length * ((int) (n / 2) == 1); //TODO
+    double xy[3];
+    p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+lx, quad->y+ly, quad->z+lz, xy);
+    return (xy[2] == forestData.m_lxyz[3]); //todo check
+}
+
+// returns True for a boundary node on the top boundary
+bool Brick::isBelowBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t treeid, p8est_qcoord_t length) const
+{
+    double lx = length * ((int) (n % 2) == 1);
+    double ly = length * ((int) (n / 2) == 1);
+    double lz = length * ((int) (n / 2) == 1); //TODO
+    double xy[3];
+    p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+lx, quad->y+ly, quad->z+lz, xy);
+    return (xy[2] == forestData.m_lxyz[4]); //todo check
+}
+
 
 // return True for a hanging node and False for an non-hanging node
 bool Brick::isHangingNode(p8est_lnodes_code_t face_code, int n) const
 {
-    // AEAE TODO
-    return false;
-    // if(face_code == 0)
-    // {
-    //     return false;
-    // }
-    // else
-    // {
-    //     int8_t c = face_code & 0x03;
-    //     int8_t ishanging0 = (face_code >> 2) & 0x01;
-    //     int8_t ishanging1 = (face_code >> 3) & 0x01;
+    if(face_code == 0)
+    {
+        return false;
+    }
+    else
+    {
+        // TODO
+        int8_t c = face_code & 1;
+        int8_t ishanging0 = (face_code >> 2) & 1;
+        int8_t ishanging1 = (face_code >> 3) & 1;
 
-    //     int8_t f0 = p4est_corner_faces[c][0];
-    //     int8_t f1 = p4est_corner_faces[c][1];
+        int8_t f0 = p8est_corner_faces[c][0];
+        int8_t f1 = p8est_corner_faces[c][1];
 
-    //     // int d0 = c / 2 == 0;
-    //     // int d1 = c % 2 == 0;
+        // int d0 = c / 2 == 0;
+        // int d1 = c % 2 == 0;
         
-    //     return ((ishanging0 == 1) && (p4est_corner_face_corners[c][f0] == 1)) 
-    //         || ((ishanging1 == 1) && (p4est_corner_face_corners[c][f1] == 1));
-    // }
+        return ((ishanging0 == 1) && (p8est_corner_face_corners[c][f0] == 1)) 
+            || ((ishanging1 == 1) && (p8est_corner_face_corners[c][f1] == 1));
+    }
+}
+
+bool Brick::getHangingNodes(p8est_lnodes_code_t face_code, int hanging_corner[P4EST_CHILDREN]) const
+{
+    static const int ones = P4EST_CHILDREN - 1;
+
+#pragma omp parallel for
+    for(int i =0;i<P4EST_CHILDREN;i++)
+        hanging_corner[i]=-1;
+
+    if (face_code) {
+        const int c = (int) (face_code & ones);
+        int work = (int) (face_code >> P4EST_DIM);
+
+        /* These two corners are never hanging by construction. */
+        hanging_corner[c] = hanging_corner[c ^ ones] = -1;
+        for (int i = 0; i < P4EST_DIM; ++i) {
+            /* Process face hanging corners. */
+           int h = c ^ (1 << i);
+            hanging_corner[h ^ ones] = (work & 1) ? c : -1;
+            work >>= 1;
+        }
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
 }
 
 //protected
@@ -896,58 +1516,714 @@ void Brick::updateNodeIncrements()
     {
         p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
         sc_array_t * tquadrants = &tree->quadrants;
-        p4est_qcoord_t Q = (p4est_qcoord_t) tquadrants->elem_count;
+        p8est_qcoord_t Q = (p8est_qcoord_t) tquadrants->elem_count;
         nodeIncrements[k] = nodeIncrements[k-1] + Q;
     }
 }
 
 void Brick::renumberNodes()
 {
-    // AEAE TODO
+    // Clear some variables
+    NodeIDs.clear();
+    hanging_face_orientation.clear();
+    quadrantIDs.clear();
+    quadrantInfo.clear();
+    std::vector<DoubleTuple> NormalNodes;
+    std::vector<DoubleTuple> HangingNodes;
 
-// #ifdef OXLEY_ENABLE_DEBUG_NODES
-//     std::cout << "Renumbering nodes... " << std::endl;
-// #endif
+    //TODO
+    int orient_lookup[4][4]={{-1,2,0,-1}, //p8est_child_corner_faces
+                             {2,-1,1,-1},
+                             {0,-1,-1,3},
+                             {-1,1,3,-1}};
 
-//     NodeIDs.clear();
+    // Write in NodeIDs
 // #pragma omp for
-//     for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
-//         p4est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
-//         sc_array_t * tquadrants = &tree->quadrants;
-//         p4est_qcoord_t Q = (p4est_qcoord_t) tquadrants->elem_count;
-//         for(int q = 0; q < Q; ++q) { 
-//             p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
-//             p4est_qcoord_t length = P8EST_QUADRANT_LEN(quad->level);
-//             int k = q - Q + nodeIncrements[treeid - p4est->first_local_tree];
-//             for(int n = 0; n < 4; n++)
-//             {
-//                 // if( (n == 0) 
-//                 //     || isHangingNode(nodes->face_code[k], n)
-//                 //     || isUpperBoundaryNode(quad, n, treeid, length) 
-//                   // )
-//                     double lx = length * ((int) (n % 2) == 1);
-//                     double ly = length * ((int) (n / 2) == 1);
-//                     double xy[3];
-//                     p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
-//                     if(NodeIDs.count(std::make_pair(xy[0],xy[1]))==0)
-//                     {
-// #ifdef OXLEY_ENABLE_DEBUG_NODES
-//                         std::cout << NodeIDs.size() << ": " << xy[0] << ", " << xy[1] << std::endl;
-// #endif
-//                         NodeIDs[std::make_pair(xy[0],xy[1])]=NodeIDs.size();
-//                     }
-//                 // }
-//             }
-//         }
-//     }
+    int k = 0;
+    for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
+        p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
+        sc_array_t * tquadrants = &tree->quadrants;
+        p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
+        for(int q = 0; q < Q; ++q) { 
+            p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
+            p8est_qcoord_t l = P8EST_QUADRANT_LEN(quad->level);
+            p8est_qcoord_t lxy[4][2] = {{0,0},{l,0},{0,l},{l,l}};
+            int hanging[4] = {0};
+
+            getHangingNodes(nodes->face_code[k++], hanging);
+            for(int n = 0; n < 4; n++)
+            {
+                double xy[3];
+                p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], quad->z+lxy[n][2], xy);
+                auto tmp = std::make_tuple(xy[0],xy[1],xy[2]);
+
+                if(hanging[n]!=-1)
+                {
+                    if(!std::count(HangingNodes.begin(), HangingNodes.end(), tmp))
+                    {
+                        hangingNodeInfo tmp2;
+                        tmp2.x=quad->x+lxy[n][0];
+                        tmp2.y=quad->y+lxy[n][1];
+                        tmp2.z=quad->z+lxy[n][2];
+                        tmp2.level=quad->level;
+                        tmp2.treeid=treeid;
+                        tmp2.face_orientation=orient_lookup[n][hanging[n]];
+                        ESYS_ASSERT(tmp2.face_orientation!=-1, "renumberNodes: Unknown programming error");
+                        p8est_quadrant_t * parent;
+                        p8est_quadrant_t parent_quad;
+                        parent = &parent_quad;
+                        p8est_quadrant_parent(quad, parent);
+                        ESYS_ASSERT(p8est_quadrant_is_parent(parent, quad), "renumberNodes: Quadrant is not parent");
+                        ESYS_ASSERT(p8est_quadrant_is_valid(parent),"renumberNodes: Invalid parent quadrant");
+                        p8est_quadrant_t * neighbour;
+                        p8est_quadrant_t neighbour_quad;
+                        neighbour = &neighbour_quad;
+                        int * nface = NULL;
+                        int newtree = p8est_quadrant_face_neighbor_extra(parent, treeid, tmp2.face_orientation, neighbour, nface, connectivity);
+                        ESYS_ASSERT(newtree!=-1, "renumberNodes: Invalid neighbour tree");
+                        ESYS_ASSERT(p8est_quadrant_is_valid(neighbour),"renumberNodes: Invalid neighbour quadrant");
+                        tmp2.neighbour_x=neighbour->x;
+                        tmp2.neighbour_y=neighbour->y;
+                        tmp2.neighbour_z=neighbour->z;
+                        tmp2.neighbour_l=neighbour->level;
+                        tmp2.neighbour_tree=newtree;
+                        hanging_face_orientation.push_back(tmp2);
+                        HangingNodes.push_back(tmp);
+                    }
+                }
+                else
+                {
+                    if(!std::count(NormalNodes.begin(), NormalNodes.end(), tmp))
+                        NormalNodes.push_back(tmp);
+                }
+            }
+        }
+    }
+
+    // Populate NodeIDs
+    is_hanging.clear();
+    int num_norm_nodes=NormalNodes.size();
+    num_hanging=HangingNodes.size();
+    int total_nodes=num_norm_nodes+num_hanging;
+    is_hanging.resize(total_nodes,false);
+    int count = 0;
+    for(int i=0;i<num_norm_nodes;i++)
+    {
+        NodeIDs[NormalNodes[i]]=count++;
+    }
+    for(int i=0;i<num_hanging;i++)
+    {
+        NodeIDs[HangingNodes[i]]=count;
+        is_hanging[count++]=true;
+    }
+
+    // This variable currently records the number of hanging faces, not the number of hanging nodes
+    num_hanging/=2;
+
+    // Populate m_nodeIDs
+    m_nodeId.clear();
+    m_nodeId.resize(NodeIDs.size());
+    count=0;
+    for(std::pair<DoubleTuple,long> e : NodeIDs)
+        m_nodeId[count++]=e.second;
+    
+    // quadrant IDs
+    for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
+        p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
+        sc_array_t * tquadrants = &tree->quadrants;
+        p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
+        for(int q = 0; q < Q; ++q) { 
+            p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
+            double xy[3];
+            p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x, quad->y, quad->z, xy);
+            quadrantIDs.push_back(NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second);
+            oct_info tmp;
+            tmp.x=xy[0];
+            tmp.y=xy[1];
+            tmp.z=xy[2];
+            tmp.level=quad->level;
+            quadrantInfo.push_back(tmp);
+        }
+    }
+
+    //update hanging face information
+    // is_hanging_face.clear();
+    // std::vector<long> tmp={-1};
+    // is_hanging_face.resize(getNumNodes(),tmp);
+    // for(int i = 0; i < hanging_face_orientation.size(); i++)
+    // {
+        // // Distances to neighbouring nodes
+        // p8est_qcoord_t l = P4EST_QUADRANT_LEN(hanging_face_orientation[i].level);
+        // p8est_qcoord_t xlookup[4][2] = {{0,0}, {0,0}, {-l,l}, {-l,l}};
+        // p8est_qcoord_t ylookup[4][2] = {{-l,l}, {-l,l}, {0,0}, {0,0}};
+        // p8est_qcoord_t zlookup[4][2] = {{l,0}, {-l,0}, {0,l}, {0,-l}};
+
+        // // Calculate the node ids
+        // double xy[3]={0};
+        // p8est_qcoord_to_vertex(p8est->connectivity, hanging_face_orientation[i].treeid, hanging_face_orientation[i].x+xlookup[hanging_face_orientation[i].face_orientation][0], hanging_face_orientation[i].y+ylookup[hanging_face_orientation[i].face_orientation][0], xy);
+        // long lni0   = NodeIDs.find(std::make_tuple(xy[0],xy[1]))->second;
+        // p8est_qcoord_to_vertex(p8est->connectivity, hanging_face_orientation[i].treeid, hanging_face_orientation[i].x+xlookup[hanging_face_orientation[i].face_orientation][1], hanging_face_orientation[i].y+ylookup[hanging_face_orientation[i].face_orientation][1], xy);
+        // long lni1   = NodeIDs.find(std::make_tuple(xy[0],xy[1]))->second;
+
+        // is_hanging_face[lni0].push_back(lni1);
+        // is_hanging_face[lni1].push_back(lni0);
+    // }
+
+#ifdef OXLEY_PRINT_QUAD_INFO
+    std::cout << "There are " << quadrantIDs.size() << " quadrants" << std::endl;
+    for(int i = 0; i < quadrantInfo.size(); i++)
+    {
+        std::cout << i << ": (" << quadrantInfo[i].x << ", " << quadrantInfo[i].y << "), l =" 
+                << quadrantInfo[i].level << std::endl;
+    }
+#endif
+
+#ifdef OXLEY_PRINT_NODEIDS
+    std::cout << "Printing NodeIDs " << std::endl;
+    double xyf[NodeIDs.size()][2]={{0}};
+    for(std::pair<DoubleTuple,long> e : NodeIDs)
+    {
+        xyf[e.second][0]=std::get<0>(e.first);
+        xyf[e.second][1]=std::get<1>(e.first);
+    }
+    for(int i=0; i<NodeIDs.size(); i++)
+        std::cout << i << ": " << xyf[i][0] << ", " << xyf[i][1] << std::endl;
+    std::cout << "-------------------------------" << std::endl;
+#endif
+
+#ifdef OXLEY_PRINT_NODEIDS_HANGING
+    for(int i = 0; i < is_hanging.size(); i++)
+        if(is_hanging[i])
+            std::cout << i << ", "; 
+        std::cout << std::endl;
+#endif
 }
 
-// // protected
-// inline index_t Brick::getFirstInDim(unsigned axis) const
-// {
-//     // return m_offset[axis] == 0 ? 0 : 1;
-//     return nodes->global_offset == 0 ? 0 : 1;
-// }
+//protected
+void Brick::assembleCoordinates(escript::Data& arg) const
+{    
+    if (!arg.isDataPointShapeEqual(1, &m_numDim))
+        throw ValueError("assembleCoordinates: Invalid Data object shape");
+    if (!arg.numSamplesEqual(1, getNumNodes()))
+        throw ValueError("assembleCoordinates: Illegal number of samples in Data object");
+    arg.requireWrite();
+
+#ifdef OXLEY_ENABLE_DEBUG_ASSEMBLE_COORDINATES
+    std::cout << "assemble coordinates " << std::endl;
+    float bounds[6]={0.0};
+#endif
+
+    std::vector<bool> duplicates(getNumNodes(),false);
+
+    for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
+        p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
+        sc_array_t * tquadrants = &tree->quadrants;
+        p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
+
+// #pragma omp parallel for
+        for(int q = 0; q < Q; ++q) { // Loop over the elements attached to the tree
+            p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
+            p8est_qcoord_t length = P8EST_QUADRANT_LEN(quad->level);
+
+            // Loop over the four corners of the quadrant
+            for(int n = 0; n < 4; ++n){
+                // int k = q - Q + nodeIncrements[treeid - p8est->first_local_tree];
+                double lx = length * ((int) (n % 2) == 1);
+                double ly = length * ((int) (n / 2) == 1);
+                //TODO fix 
+                double lz = length * ((int) (n / 2) == 1);
+                double xy[3];
+                p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+lx, quad->y+ly, quad->z+lz, xy);
+
+                // if( (n == 0) 
+                //   || isHangingNode(nodes->face_code[q], n)
+                //   || isUpperBoundaryNode(quad, n, treeid, length) 
+                // )
+                // {
+                long lni = NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
+
+                if(duplicates[lni] == true)
+                    continue;
+                else
+                    duplicates[lni] = true;
+
+                double * point = arg.getSampleDataRW(lni);
+                point[0] = xy[0];
+                point[1] = xy[1];
+                point[2] = xy[2];
+#ifdef OXLEY_ENABLE_DEBUG_ASSEMBLE_COORDINATES
+                std::cout<<"lni="<<lni<<"\tCorner=("<<xy[0]<<","<<xy[1]<<"),"<<std::endl;
+                if(xy[0] < bounds[0]) bounds[0]=xy[0];
+                if(xy[0] > bounds[1]) bounds[1]=xy[0];
+                if(xy[1] < bounds[2]) bounds[2]=xy[1];
+                if(xy[1] > bounds[3]) bounds[3]=xy[1];
+                if(xy[2] < bounds[4]) bounds[4]=xy[2];
+                if(xy[2] > bounds[5]) bounds[5]=xy[2];
+#endif
+                // }
+            }
+        }
+    }
+#ifdef OXLEY_ENABLE_DEBUG_ASSEMBLE_COORDINATES_POINTS
+    std::cout << "assembleCoordinates new points are..." << std::endl;
+    for(int i = 0; i < getNumNodes() ; i++)
+    {
+        double * point = arg.getSampleDataRW(i);
+        std::cout << i << ": " << point[0] << ", " << point[1] << std::endl;
+    }
+#endif
+#ifdef OXLEY_ENABLE_DEBUG_ASSEMBLE_COORDINATES
+    std::cout << "bounds " << bounds[0] << ", " << bounds[1] 
+        << " and " << bounds[2] << ", " << bounds[3] << 
+        " and " << bounds[4] << ", " << bounds[5] << std::endl;
+#endif
+}
+
+
+//private
+template<typename Scalar>
+void Brick::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F,
+         const std::vector<Scalar>& EM_S, const std::vector<Scalar>& EM_F, 
+         bool addS, bool addF, borderNodeInfo quad, int nEq, int nComp) const
+{    
+    long rowIndex[8] = {0};
+    getNeighouringNodeIDs(quad.level, quad.x, quad.y, quad.z, quad.treeid, rowIndex);
+    if(addF)
+    {
+        Scalar* F_p = F.getSampleDataRW(0, static_cast<Scalar>(0));
+        for(index_t i=0; i < 8; i++) {
+            if (rowIndex[i]<getNumDOF()) {
+                for(int eq=0; eq<nEq; eq++) {
+                    F_p[INDEX2(eq, rowIndex[i], nEq)]+=EM_F[INDEX2(eq,i,nEq)];
+                }
+            }
+        }
+    }
+    if(addS)
+    {
+        IndexVector rowInd(8);
+        for(int i = 0; i < 8; i++)
+            rowInd[i]=rowIndex[i];
+        addToSystemMatrix<Scalar>(S, rowInd, nEq, EM_S);
+    }
+}
+
+
+template
+void Brick::addToMatrixAndRHS<real_t>(escript::AbstractSystemMatrix* S, escript::Data& F,
+         const std::vector<real_t>& EM_S, const std::vector<real_t>& EM_F, 
+         bool addS, bool addF, borderNodeInfo firstNode, int nEq, int nComp) const;
+
+template
+void Brick::addToMatrixAndRHS<cplx_t>(escript::AbstractSystemMatrix* S, escript::Data& F,
+         const std::vector<cplx_t>& EM_S, const std::vector<cplx_t>& EM_F, 
+         bool addS, bool addF, borderNodeInfo firstNode, int nEq, int nComp) const;
+
+template
+void Brick::addToMatrixAndRHS<real_t>(escript::AbstractSystemMatrix* S, escript::Data& F,
+         const std::vector<real_t>& EM_S, const std::vector<real_t>& EM_F, 
+         bool addS, bool addF, index_t e, index_t t, int nEq, int nComp) const;
+
+template
+void Brick::addToMatrixAndRHS<cplx_t>(escript::AbstractSystemMatrix* S, escript::Data& F,
+         const std::vector<cplx_t>& EM_S, const std::vector<cplx_t>& EM_F, 
+         bool addS, bool addF, index_t e, index_t t, int nEq, int nComp) const;
+
+//protected
+void Brick::interpolateNodesOnElements(escript::Data& out,
+                                           const escript::Data& in,
+                                           bool reduced) const
+{
+    if (in.isComplex()!=out.isComplex())
+    {
+        throw OxleyException("Programmer Error: in and out parameters do not have the same complexity.");
+    }
+    if (in.isComplex())
+    {
+        interpolateNodesOnElementsWorker(out, in, reduced, escript::DataTypes::cplx_t(0));
+    }
+    else
+    {
+        interpolateNodesOnElementsWorker(out, in, reduced, escript::DataTypes::real_t(0));      
+    }
+}
+
+//protected
+void Brick::interpolateNodesOnFaces(escript::Data& out,
+                                           const escript::Data& in,
+                                           bool reduced) const
+{
+    if (in.isComplex()!=out.isComplex())
+    {
+        throw OxleyException("Programmer Error: in and out parameters do not have the same complexity.");
+    }
+    if (in.isComplex())
+    {
+        interpolateNodesOnFacesWorker(out, in, reduced, escript::DataTypes::cplx_t(0));
+    }
+    else
+    {
+        interpolateNodesOnFacesWorker(out, in, reduced, escript::DataTypes::real_t(0));      
+    }
+}
+
+// private   
+template <typename S> 
+void Brick::interpolateNodesOnElementsWorker(escript::Data& out,
+                                           const escript::Data& in,
+                                           bool reduced, S sentinel) const
+{
+    const dim_t numComp = in.getDataPointSize();
+    
+    if (reduced) {
+        out.requireWrite();
+
+        std::vector<S> f_000(numComp);
+        std::vector<S> f_001(numComp);
+        std::vector<S> f_010(numComp);
+        std::vector<S> f_011(numComp);
+        std::vector<S> f_100(numComp);
+        std::vector<S> f_101(numComp);
+        std::vector<S> f_110(numComp);
+        std::vector<S> f_111(numComp);
+
+        for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) 
+        {
+            p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
+            sc_array_t * tquadrants = &tree->quadrants;
+            p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
+            // #pragma omp parallel for
+            for(int q = 0; q < Q; q++)
+            {
+                p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
+               
+                long ids[8]={0};
+                getNeighouringNodeIDs(quad->level, quad->x, quad->y, treeid, ids);
+                int quadID=getQuadID(ids[0]);
+                //TODO check order of indices ids[x]
+                memcpy(&f_000[0], in.getSampleDataRO(ids[0], sentinel), numComp*sizeof(S)); 
+                memcpy(&f_001[0], in.getSampleDataRO(ids[1], sentinel), numComp*sizeof(S));
+                memcpy(&f_010[0], in.getSampleDataRO(ids[2], sentinel), numComp*sizeof(S));
+                memcpy(&f_011[0], in.getSampleDataRO(ids[3], sentinel), numComp*sizeof(S));
+                memcpy(&f_100[0], in.getSampleDataRO(ids[4], sentinel), numComp*sizeof(S));
+                memcpy(&f_101[0], in.getSampleDataRO(ids[5], sentinel), numComp*sizeof(S));
+                memcpy(&f_110[0], in.getSampleDataRO(ids[6], sentinel), numComp*sizeof(S));
+                memcpy(&f_111[0], in.getSampleDataRO(ids[7], sentinel), numComp*sizeof(S));
+                S* o = out.getSampleDataRW(quadID, sentinel);
+                for (index_t i=0; i < numComp; ++i) {
+                    o[INDEX2(i,numComp,0)] = (f_000[i] + f_001[i] + f_010[i] + f_011[i] + f_100[i] + f_101[i] + f_110[i] + f_111[i])/static_cast<S>(8);
+                } // end of component loop i
+            }
+        }
+    } 
+    else 
+    {
+        out.requireWrite();
+        const S c0 = .0094373878376559314545;
+        const S c1 = .035220810900864519624;
+        const S c2 = .13144585576580214704;
+        const S c3 = .49056261216234406855;
+
+        std::vector<S> f_000(numComp);
+        std::vector<S> f_001(numComp);
+        std::vector<S> f_010(numComp);
+        std::vector<S> f_011(numComp);
+        std::vector<S> f_100(numComp);
+        std::vector<S> f_101(numComp);
+        std::vector<S> f_110(numComp);
+        std::vector<S> f_111(numComp);
+
+        for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
+            p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
+            sc_array_t * tquadrants = &tree->quadrants;
+            p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
+            // #pragma omp parallel for
+            for(int q = 0; q < Q; q++)
+            {        
+                p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
+
+                long ids[8]={0};
+                getNeighouringNodeIDs(quad->level, quad->x, quad->y, quad->z, treeid, ids);
+                long quadId = getQuadID(ids[0]);
+
+                #ifdef OXLEY_ENABLE_DEBUG_INTERPOLATE_QUADIDS
+                    std::cout << "interpolateNodesOnElementsWorker quadID: " << quadId << ", node IDs " << 
+                                        ids[0] << ", " << ids[2] << ", " << 
+                                        ids[1] << ", " << ids[3] << std::endl;
+                #endif
+
+                //TODO check order of indices ids[x]
+                memcpy(&f_000[0], in.getSampleDataRO(ids[0], sentinel), numComp*sizeof(S));
+                memcpy(&f_001[0], in.getSampleDataRO(ids[1], sentinel), numComp*sizeof(S));
+                memcpy(&f_010[0], in.getSampleDataRO(ids[2], sentinel), numComp*sizeof(S));
+                memcpy(&f_011[0], in.getSampleDataRO(ids[3], sentinel), numComp*sizeof(S));
+                memcpy(&f_100[0], in.getSampleDataRO(ids[4], sentinel), numComp*sizeof(S));
+                memcpy(&f_101[0], in.getSampleDataRO(ids[5], sentinel), numComp*sizeof(S));
+                memcpy(&f_110[0], in.getSampleDataRO(ids[6], sentinel), numComp*sizeof(S));
+                memcpy(&f_111[0], in.getSampleDataRO(ids[7], sentinel), numComp*sizeof(S));
+                S* o = out.getSampleDataRW(quadId, sentinel);
+                for (index_t i=0; i < numComp; ++i) {
+                    o[INDEX2(i,numComp,0)] = f_000[i]*c3 + f_111[i]*c0 + c2*(f_001[i] + f_010[i] + f_100[i]) + c1*(f_011[i] + f_101[i] + f_110[i]);
+                    o[INDEX2(i,numComp,1)] = f_011[i]*c0 + f_100[i]*c3 + c2*(f_000[i] + f_101[i] + f_110[i]) + c1*(f_001[i] + f_010[i] + f_111[i]);
+                    o[INDEX2(i,numComp,2)] = f_010[i]*c3 + f_101[i]*c0 + c2*(f_000[i] + f_011[i] + f_110[i]) + c1*(f_001[i] + f_100[i] + f_111[i]);
+                    o[INDEX2(i,numComp,3)] = f_001[i]*c0 + f_110[i]*c3 + c2*(f_010[i] + f_100[i] + f_111[i]) + c1*(f_000[i] + f_011[i] + f_101[i]);
+                    o[INDEX2(i,numComp,4)] = f_001[i]*c3 + f_110[i]*c0 + c2*(f_000[i] + f_011[i] + f_101[i]) + c1*(f_010[i] + f_100[i] + f_111[i]);
+                    o[INDEX2(i,numComp,5)] = f_010[i]*c0 + f_101[i]*c3 + c2*(f_001[i] + f_100[i] + f_111[i]) + c1*(f_000[i] + f_011[i] + f_110[i]);
+                    o[INDEX2(i,numComp,6)] = f_011[i]*c3 + f_100[i]*c0 + c2*(f_001[i] + f_010[i] + f_111[i]) + c1*(f_000[i] + f_101[i] + f_110[i]);
+                    o[INDEX2(i,numComp,7)] = f_000[i]*c0 + f_111[i]*c3 + c2*(f_011[i] + f_101[i] + f_110[i]) + c1*(f_001[i] + f_010[i] + f_100[i]);
+                } 
+            }
+        } 
+        
+    }
+}
+
+//protected
+void Brick::getNeighouringNodeIDs(int8_t level, p8est_qcoord_t x, p8est_qcoord_t y, p8est_qcoord_t z, p8est_topidx_t treeid, long (&ids) [8]) const
+{
+    p8est_qcoord_t l = P4EST_QUADRANT_LEN(level);
+    int adj[8][3] = {{0,0,0},{0,0,l},{0,l,0},{0,l,l},
+                     {l,0,0},{l,0,l},{l,l,0},{l,l,l}};
+// #pragma omp parallel for
+    for(int i=0; i<8;i++)
+    {
+        double xy[3];
+        p8est_qcoord_to_vertex(p8est->connectivity, treeid, x+adj[i][0], y+adj[i][1], z+adj[i][2], xy);
+        ids[i]=(long) NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
+    }
+}
+
+long Brick::getQuadID(long nodeid) const
+{
+    for(int i = 0; i < quadrantIDs.size(); i++)
+        if(quadrantIDs[i]==nodeid)
+            return i;
+    throw OxleyException("getQuadID: node id "+ std::to_string(nodeid) +" was not found.");
+}
+
+//private
+template <typename S>
+void Brick::interpolateNodesOnFacesWorker(escript::Data& out, const escript::Data& in,
+                                    bool reduced, S sentinel) const
+{
+    const dim_t numComp = in.getDataPointSize();
+    if (reduced) {
+        out.requireWrite();
+
+        std::vector<S> f_000(numComp);
+        std::vector<S> f_001(numComp);
+        std::vector<S> f_010(numComp);
+        std::vector<S> f_011(numComp);
+        std::vector<S> f_100(numComp);
+        std::vector<S> f_101(numComp);
+        std::vector<S> f_110(numComp);
+        std::vector<S> f_111(numComp);
+
+        if (m_faceOffset[0] > -1) {
+#pragma omp for nowait
+            for (index_t k=0; k<NodeIDsLeft.size()-1; k++) {
+                borderNodeInfo tmp = NodeIDsLeft[k];
+                memcpy(&f_000[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
+                memcpy(&f_001[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
+                memcpy(&f_010[0], in.getSampleDataRO(tmp.neighbours[1], sentinel), numComp*sizeof(S));
+                memcpy(&f_011[0], in.getSampleDataRO(tmp.neighbours[3], sentinel), numComp*sizeof(S));
+                S* o = out.getSampleDataRW(m_faceOffset[0]+k, sentinel);
+                for (index_t i=0; i < numComp; ++i) {
+                    o[INDEX2(i,numComp,0)] = (f_000[i] + f_001[i] + f_010[i] + f_011[i])/static_cast<S>(4);
+                } // end of component loop i
+            }
+        }
+
+        if (m_faceOffset[1] > -1) {
+#pragma omp for nowait
+            for (index_t k=0; k<NodeIDsRight.size()-1; k++) {
+                borderNodeInfo tmp = NodeIDsRight[k];
+                memcpy(&f_100[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
+                memcpy(&f_101[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
+                memcpy(&f_110[0], in.getSampleDataRO(tmp.neighbours[1], sentinel), numComp*sizeof(S));
+                memcpy(&f_111[0], in.getSampleDataRO(tmp.neighbours[3], sentinel), numComp*sizeof(S));
+                S* o = out.getSampleDataRW(m_faceOffset[1]+k, sentinel);
+                for (index_t i=0; i < numComp; ++i) {
+                    o[INDEX2(i,numComp,0)] = (f_100[i] + f_101[i] + f_110[i] + f_111[i])/static_cast<S>(4);
+                } // end of component loop i
+            }
+        }
+        if (m_faceOffset[2] > -1) {
+#pragma omp for nowait
+            for (index_t k=0; k<NodeIDsBottom.size()-1; k++) {
+                borderNodeInfo tmp = NodeIDsBottom[k];
+                memcpy(&f_000[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
+                memcpy(&f_001[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
+                memcpy(&f_100[0], in.getSampleDataRO(tmp.neighbours[1], sentinel), numComp*sizeof(S));
+                memcpy(&f_101[0], in.getSampleDataRO(tmp.neighbours[3], sentinel), numComp*sizeof(S));
+                S* o = out.getSampleDataRW(m_faceOffset[2]+k, sentinel);
+                for (index_t i=0; i < numComp; ++i) {
+                    o[INDEX2(i,numComp,0)] = (f_000[i] + f_001[i] + f_100[i] + f_101[i])/static_cast<S>(4);
+                } // end of component loop i
+            }
+        }
+        if (m_faceOffset[3] > -1) {
+#pragma omp for nowait
+            for (index_t k=0; k<NodeIDsTop.size()-1; k++) {
+                borderNodeInfo tmp = NodeIDsTop[k];
+                memcpy(&f_010[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
+                memcpy(&f_011[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
+                memcpy(&f_110[0], in.getSampleDataRO(tmp.neighbours[1], sentinel), numComp*sizeof(S));
+                memcpy(&f_111[0], in.getSampleDataRO(tmp.neighbours[3], sentinel), numComp*sizeof(S));
+                S* o = out.getSampleDataRW(m_faceOffset[3]+k, sentinel);
+                for (index_t i=0; i < numComp; ++i) {
+                    o[INDEX2(i,numComp,0)] = (f_010[i] + f_011[i] + f_110[i] + f_111[i])/static_cast<S>(4);
+                } // end of component loop i
+            }
+        }
+        if (m_faceOffset[4] > -1) {
+#pragma omp for nowait
+            for (index_t k=0; k<NodeIDsAbove.size()-1; k++) {
+                borderNodeInfo tmp = NodeIDsAbove[k];
+                memcpy(&f_000[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
+                memcpy(&f_010[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
+                memcpy(&f_100[0], in.getSampleDataRO(tmp.neighbours[1], sentinel), numComp*sizeof(S));
+                memcpy(&f_110[0], in.getSampleDataRO(tmp.neighbours[3], sentinel), numComp*sizeof(S));
+                S* o = out.getSampleDataRW(m_faceOffset[4]+k, sentinel);
+                for (index_t i=0; i < numComp; ++i) {
+                    o[INDEX2(i,numComp,0)] = (f_000[i] + f_010[i] + f_100[i] + f_110[i])/static_cast<S>(4);
+                } // end of component loop i
+            }
+        }
+        if (m_faceOffset[5] > -1) {
+#pragma omp for nowait
+            for (index_t k=0; k<NodeIDsBelow.size()-1; k++) {
+                borderNodeInfo tmp = NodeIDsBelow[k];
+                memcpy(&f_001[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
+                memcpy(&f_011[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
+                memcpy(&f_101[0], in.getSampleDataRO(tmp.neighbours[1], sentinel), numComp*sizeof(S));
+                memcpy(&f_111[0], in.getSampleDataRO(tmp.neighbours[3], sentinel), numComp*sizeof(S));
+                S* o = out.getSampleDataRW(m_faceOffset[5]+k, sentinel);
+                for (index_t i=0; i < numComp; ++i) {
+                    o[INDEX2(i,numComp,0)] = (f_001[i] + f_011[i] + f_101[i] + f_111[i])/static_cast<S>(4);
+                } // end of component loop i
+            } 
+        } 
+    } else {
+        out.requireWrite();
+        const S c0 = 0.044658198738520451079;
+        const S c1 = 0.16666666666666666667;
+        const S c2 = 0.62200846792814621559;
+
+        std::vector<S> f_000(numComp);
+        std::vector<S> f_001(numComp);
+        std::vector<S> f_010(numComp);
+        std::vector<S> f_011(numComp);
+        std::vector<S> f_100(numComp);
+        std::vector<S> f_101(numComp);
+        std::vector<S> f_110(numComp);
+        std::vector<S> f_111(numComp);
+
+        //TODO fix tmp.neighbours indices below
+        if (m_faceOffset[0] > -1) {
+#pragma omp for nowait
+            for (index_t k=0; k<NodeIDsLeft.size()-1; k++) {
+                borderNodeInfo tmp = NodeIDsLeft[k];
+                memcpy(&f_000[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
+                memcpy(&f_001[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
+                memcpy(&f_010[0], in.getSampleDataRO(tmp.neighbours[1], sentinel), numComp*sizeof(S));
+                memcpy(&f_011[0], in.getSampleDataRO(tmp.neighbours[3], sentinel), numComp*sizeof(S));
+                S* o = out.getSampleDataRW(m_faceOffset[0]+k, sentinel);
+                for (index_t i=0; i < numComp; ++i) {
+                    o[INDEX2(i,numComp,0)] = f_000[i]*c2 + f_011[i]*c0 + c1*(f_001[i] + f_010[i]);
+                    o[INDEX2(i,numComp,1)] = f_001[i]*c0 + f_010[i]*c2 + c1*(f_000[i] + f_011[i]);
+                    o[INDEX2(i,numComp,2)] = f_001[i]*c2 + f_010[i]*c0 + c1*(f_000[i] + f_011[i]);
+                    o[INDEX2(i,numComp,3)] = f_000[i]*c0 + f_011[i]*c2 + c1*(f_001[i] + f_010[i]);
+                } // end of component loop i
+            }
+        }
+        if (m_faceOffset[1] > -1) {
+    #pragma omp for nowait
+            for (index_t k=0; k<NodeIDsRight.size()-1; k++) {
+                borderNodeInfo tmp = NodeIDsRight[k];
+                memcpy(&f_100[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
+                memcpy(&f_101[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
+                memcpy(&f_110[0], in.getSampleDataRO(tmp.neighbours[1], sentinel), numComp*sizeof(S));
+                memcpy(&f_111[0], in.getSampleDataRO(tmp.neighbours[3], sentinel), numComp*sizeof(S));
+                S* o = out.getSampleDataRW(m_faceOffset[1]+k, sentinel);
+                for (index_t i=0; i < numComp; ++i) {
+                    o[INDEX2(i,numComp,0)] = f_100[i]*c2 + f_111[i]*c0 + c1*(f_101[i] + f_110[i]);
+                    o[INDEX2(i,numComp,1)] = f_101[i]*c0 + f_110[i]*c2 + c1*(f_100[i] + f_111[i]);
+                    o[INDEX2(i,numComp,2)] = f_101[i]*c2 + f_110[i]*c0 + c1*(f_100[i] + f_111[i]);
+                    o[INDEX2(i,numComp,3)] = f_100[i]*c0 + f_111[i]*c2 + c1*(f_101[i] + f_110[i]);
+                } // end of component loop i
+            }
+        }
+        if (m_faceOffset[2] > -1) {
+    #pragma omp for nowait
+             for (index_t k=0; k<NodeIDsBottom.size()-1; k++) {
+                borderNodeInfo tmp = NodeIDsBottom[k];
+                memcpy(&f_000[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
+                memcpy(&f_001[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
+                memcpy(&f_100[0], in.getSampleDataRO(tmp.neighbours[1], sentinel), numComp*sizeof(S));
+                memcpy(&f_101[0], in.getSampleDataRO(tmp.neighbours[3], sentinel), numComp*sizeof(S));
+                S* o = out.getSampleDataRW(m_faceOffset[2]+k, sentinel);
+                for (index_t i=0; i < numComp; ++i) {
+                    o[INDEX2(i,numComp,0)] = f_000[i]*c2 + f_101[i]*c0 + c1*(f_001[i] + f_100[i]);
+                    o[INDEX2(i,numComp,1)] = f_001[i]*c0 + f_100[i]*c2 + c1*(f_000[i] + f_101[i]);
+                    o[INDEX2(i,numComp,2)] = f_001[i]*c2 + f_100[i]*c0 + c1*(f_000[i] + f_101[i]);
+                    o[INDEX2(i,numComp,3)] = f_000[i]*c0 + f_101[i]*c2 + c1*(f_001[i] + f_100[i]);
+                } // end of component loop i
+            }
+        }
+        if (m_faceOffset[3] > -1) {
+    #pragma omp for nowait
+            for (index_t k=0; k<NodeIDsTop.size()-1; k++) {
+            borderNodeInfo tmp = NodeIDsTop[k];
+                memcpy(&f_010[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
+                memcpy(&f_011[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
+                memcpy(&f_110[0], in.getSampleDataRO(tmp.neighbours[1], sentinel), numComp*sizeof(S));
+                memcpy(&f_111[0], in.getSampleDataRO(tmp.neighbours[3], sentinel), numComp*sizeof(S));
+                S* o = out.getSampleDataRW(m_faceOffset[3]+k, sentinel);
+                for (index_t i=0; i < numComp; ++i) {
+                    o[INDEX2(i,numComp,0)] = f_010[i]*c2 + f_111[i]*c0 + c1*(f_011[i] + f_110[i]);
+                    o[INDEX2(i,numComp,1)] = f_011[i]*c0 + f_110[i]*c2 + c1*(f_010[i] + f_111[i]);
+                    o[INDEX2(i,numComp,2)] = f_011[i]*c2 + f_110[i]*c0 + c1*(f_010[i] + f_111[i]);
+                    o[INDEX2(i,numComp,3)] = f_010[i]*c0 + f_111[i]*c2 + c1*(f_011[i] + f_110[i]);
+                } // end of component loop i
+            }
+        }
+        if (m_faceOffset[4] > -1) {
+    #pragma omp for nowait
+            for (index_t k=0; k<NodeIDsAbove.size()-1; k++) {
+            borderNodeInfo tmp = NodeIDsAbove[k];
+                memcpy(&f_000[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
+                memcpy(&f_010[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
+                memcpy(&f_100[0], in.getSampleDataRO(tmp.neighbours[1], sentinel), numComp*sizeof(S));
+                memcpy(&f_110[0], in.getSampleDataRO(tmp.neighbours[3], sentinel), numComp*sizeof(S));
+                S* o = out.getSampleDataRW(m_faceOffset[4]+k, sentinel);
+                for (index_t i=0; i < numComp; ++i) {
+                    o[INDEX2(i,numComp,0)] = f_000[i]*c2 + f_110[i]*c0 + c1*(f_010[i] + f_100[i]);
+                    o[INDEX2(i,numComp,1)] = f_010[i]*c0 + f_100[i]*c2 + c1*(f_000[i] + f_110[i]);
+                    o[INDEX2(i,numComp,2)] = f_010[i]*c2 + f_100[i]*c0 + c1*(f_000[i] + f_110[i]);
+                    o[INDEX2(i,numComp,3)] = f_000[i]*c0 + f_110[i]*c2 + c1*(f_010[i] + f_100[i]);
+                } // end of component loop i
+            }
+        }
+        if (m_faceOffset[5] > -1) {
+    #pragma omp for nowait
+            for (index_t k=0; k<NodeIDsBelow.size()-1; k++) {
+            borderNodeInfo tmp = NodeIDsBelow[k];
+                memcpy(&f_001[0], in.getSampleDataRO(tmp.neighbours[0], sentinel), numComp*sizeof(S));
+                memcpy(&f_011[0], in.getSampleDataRO(tmp.neighbours[2], sentinel), numComp*sizeof(S));
+                memcpy(&f_101[0], in.getSampleDataRO(tmp.neighbours[1], sentinel), numComp*sizeof(S));
+                memcpy(&f_111[0], in.getSampleDataRO(tmp.neighbours[3], sentinel), numComp*sizeof(S));
+                S* o = out.getSampleDataRW(m_faceOffset[5]+k, sentinel);
+                for (index_t i=0; i < numComp; ++i) {
+                    o[INDEX2(i,numComp,0)] = f_001[i]*c2 + f_111[i]*c0 + c1*(f_011[i] + f_101[i]);
+                    o[INDEX2(i,numComp,1)] = f_011[i]*c0 + f_101[i]*c2 + c1*(f_001[i] + f_111[i]);
+                    o[INDEX2(i,numComp,2)] = f_011[i]*c2 + f_101[i]*c0 + c1*(f_001[i] + f_111[i]);
+                    o[INDEX2(i,numComp,3)] = f_001[i]*c0 + f_111[i]*c2 + c1*(f_011[i] + f_101[i]);
+                } // end of component loop i
+            }
+        }
+    }
+}
 
 //protected
 inline dim_t Brick::getNumNodes() const
@@ -969,35 +2245,23 @@ inline dim_t Brick::getNumElements() const
 //protected
 inline dim_t Brick::getNumFaceElements() const
 {
-    double xyz[3];
-    double x0 = forestData.m_origin[0];
-    double y0 = forestData.m_origin[1];
-    double z0 = forestData.m_origin[2];
-    double x1 = forestData.m_length[0]+forestData.m_origin[0];
-    double y1 = forestData.m_length[1]+forestData.m_origin[1];
-    double z1 = forestData.m_length[2]+forestData.m_origin[2];
-    p4est_qcoord_t numFaceElements = 0;
-    for(p8est_topidx_t t = p8est->first_local_tree; t <= p8est->last_local_tree; t++) 
+    long numElements = 0;
+    for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) 
     {
-        p8est_tree_t * currenttree = p8est_tree_array_index(p8est->trees, t);
-        sc_array_t * tquadrants = &currenttree->quadrants;
-        for(p4est_qcoord_t e = 0; e < tquadrants->elem_count; e++)
-        {
-            p8est_quadrant_t * q  = p8est_quadrant_array_index(tquadrants, e);
-            p4est_qcoord_t length = P8EST_QUADRANT_LEN(q->level);
-            p8est_qcoord_to_vertex(p8est->connectivity, t, q->x,q->y,q->z,xyz);
-            if(xyz[0] == x0 || xyz[1] == y0 || xyz[2] == z0){
-                numFaceElements++;
-                break;
-            }
-            p8est_qcoord_to_vertex(p8est->connectivity, t, q->x+length,q->y+length,q->z+length,xyz);
-            if(xyz[0] == x1 || xyz[1] == y1 || xyz[2] == z1){
-                numFaceElements++;
-                break;
-            }
-        }
+        p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
+        sc_array_t * tquadrants = &tree->quadrants;
+        p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
+        numElements+=Q;
     }
-    return numFaceElements;
+    return numElements;
+}
+
+//protected
+dim_t Brick::getNumFaceElements() const
+{
+    return m_faceCount[0]+m_faceCount[1]
+          +m_faceCount[2]+m_faceCount[3]
+          +m_faceCount[4]+m_faceCount[5];
 }
 
 //protected
@@ -1012,7 +2276,7 @@ void Brick::updateTreeIDs()
     for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
         p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
         sc_array_t * tquadrants = &tree->quadrants;
-        p4est_qcoord_t Q = (p4est_qcoord_t) tquadrants->elem_count;
+        p8est_qcoord_t Q = (p8est_qcoord_t) tquadrants->elem_count;
 #pragma omp parallel for
         for(int q = 0; q < Q; ++q) { // Loop over the elements attached to the tree
             p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
@@ -1023,216 +2287,283 @@ void Brick::updateTreeIDs()
 
 void Brick::updateRowsColumns()
 {
+    std::vector<std::vector<long>> * indices;
+    indices = new std::vector<std::vector<long>>;
+    long initial[] = {0, -1, -1, -1, -1};
+    indices->resize(getNumNodes(), std::vector<long>(initial, initial+5));
 
-    // AEAE TODO
+    #ifdef OXLEY_ENABLE_DEBUG_NODES_EXTRA_DETAILS
+        std::cout << "updateRowsColumns" << std::endl;
+        std::cout << "Allocated memory for " << getNumNodes() << " nodes. " << std::endl;
+    #endif
 
-//     std::vector<std::vector<long>> * indices;
-//     indices = new std::vector<std::vector<long>>;
-//     int initial[] = {0, -1, -1, -1, -1, -1, -1};
-//     indices->resize(getNumNodes(), std::vector<long>(initial, initial+7));
+    update_RC_data_brick * data;
+    data = new update_RC_data_brick;
+    data->indices = indices;
+    data->pNodeIDs = &NodeIDs;
+    data->p8est = p8est;
+    data->m_origin[0]=forestData.m_origin[0];
+    data->m_origin[1]=forestData.m_origin[1];
+    data->m_origin[2]=forestData.m_origin[2];
+    data->pQuadInfo = &quadrantInfo;
 
-//     update_RC_data * data;
-//     data = new update_RC_data;
-//     data->indices = indices;
-//     data->pNodeIDs = &NodeIDs;
-//     data->p8est = p8est;
+    p8est_ghost_t * ghost;
+    ghost = p8est_ghost_new(p8est, P8EST_CONNECT_FULL);
+    update_RC_data_brick * ghost_data;
+    ghost_data = (update_RC_data_brick *) malloc(ghost->ghosts.elem_count);
 
-//     // This function loops over all interior faces
-//     // Note that it does not loop over the nodes on the boundaries
-//     // x = Lx and y = Ly
-//     p8est_iterate_ext(p4est, NULL, data, NULL, update_RC, NULL, true);
+    p8est_ghost_exchange_data(p8est, ghost, ghost_data);
+    // This function loops over all interior faces
+    // Note that it does not loop over the nodes on the boundaries
+    // x = Lx and y = Ly
+    p8est_iterate_ext(p8est, ghost, data, NULL, update_RC, NULL, true);
+    p8est_ghost_destroy(ghost);
 
-//     // Find the indices of the nodes on the boundaries x = Lx and y = Ly
-//     for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
-//         p4est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
-//         sc_array_t * tquadrants = &tree->quadrants;
-//         p4est_qcoord_t Q = (p4est_qcoord_t) tquadrants->elem_count;
-// // #pragma omp parallel for
-//         for(int q = 0; q < Q; ++q) { // Loop over the elements attached to the tree
-//             p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
-//             p4est_qcoord_t length = P8EST_QUADRANT_LEN(quad->level);
-//             // int k = q - Q + nodeIncrements[treeid - p4est->first_local_tree];
-//             int n = 1;
-//             // long lidx = nodes->element_nodes[4*k+n];
-//             double lx = length * ((int) (n % 2) == 1);
-//             double ly = length * ((int) (n / 2) == 1);
-//             double xy[3];
-//             p4est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
-
-//             // If the node is on the boundary x=Lx or y=Ly
-//             if( (xy[0] == forestData.m_lxy[0]) )
-//             {
-//                 // Get the node IDs
-//                 long lni0 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-//                 p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+length, xy);
-//                 long lni1 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-
-//                 std::vector<long> * idx0 = &indices[0][lni0];
-//                 std::vector<long> * idx1 = &indices[0][lni1];
-
-//                 // Check for duplicates
-//                 bool dup = false;
-//                 for(int i = 1; i < idx0[0][0] + 1; i++)
-//                     if(idx0[0][i] == lni1)
-//                         dup = true;
-
-//                 // Add the new indices
-//                 if(dup == false)
-//                 {
-//                     idx0[0][0]++;
-//                     idx1[0][0]++;
-//                     idx0[0][idx0[0][0]]=lni1;
-//                     idx1[0][idx1[0][0]]=lni0;
-//                 }
-//             }
-
-//             n = 2;
-//             // long lidx = nodes->element_nodes[4*k+n];
-//             lx = length * ((int) (n % 2) == 1);
-//             ly = length * ((int) (n / 2) == 1);
-//             p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
-//             if((xy[1] == forestData.m_lxy[1]))
-//             {
-//                 // Get the node IDs
-//                 long lni0 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-//                 p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+length, quad->y+ly, xy);
-//                 long lni1 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-
-//                 std::vector<long> * idx0 = &indices[0][lni0];
-//                 std::vector<long> * idx1 = &indices[0][lni1];
-
-//                 // Check for duplicates
-//                 bool dup = false;
-//                 for(int i = 1; i < idx0[0][0] + 1; i++)
-//                     if(idx0[0][i] == lni1)
-//                         dup = true;
-
-//                 // Add the new indices
-//                 if(dup == false)
-//                 {
-//                     idx0[0][0]++;
-//                     idx1[0][0]++;
-//                     idx0[0][idx0[0][0]]=lni1;
-//                     idx1[0][idx1[0][0]]=lni0;
-//                 }
-//             }
-//         }
-//     }
-
-//     // Sorting
-// #pragma omp for
-//     for(int i = 0; i < getNumNodes(); i++){
-//         std::vector<long> * idx0 = &indices[0][i];
-//         std::sort(indices[0][i].begin()+1, indices[0][i].begin()+idx0[0][0]+1);
-//     }
-
-// #ifdef OXLEY_ENABLE_DEBUG_NODES
-//     std::cout << "Node connections: " << std::endl;
-//     // Output for debugging
-//     for(int i = 0; i < getNumNodes(); i++){
-//         std::vector<long> * idx0 = &indices[0][i];
-//         std::cout << i << ": ";
-//         for(int j = 1; j < idx0[0][0]+1; j++)
-//             std::cout << idx0[0][j] << ", ";
-//         std::cout << std::endl;
-//     }
-// #endif
-
-//     // Convert to CRS format
-//     myRows.clear();
-//     myRows.push_back(0);
-//     myColumns.clear();
-//     m_dofMap.assign(getNumNodes(), 0);
-//     long counter = 0;
-//     for(int i = 0; i < getNumNodes(); i++)
-//     {
-//         std::vector<long> * idx0 = &indices[0][i];
-//         std::vector<long> temp; 
-//         for(int j = 1; j < idx0[0][0]+1; j++)
-//         {
-//             temp.push_back(idx0[0][j]);
-//             counter++;
-//         }
-//         std::sort(temp.begin(),temp.end());
-//         for(int i = 0; i < temp.size(); i++)
-//             myColumns.push_back(temp[i]);
-//         m_dofMap[i] = counter-myRows[i];
-//         if(i < getNumNodes()-1)
-//             myRows.push_back(counter);
-//     }
-//     myRows.push_back(myColumns.size());
-// #ifdef OXLEY_ENABLE_DEBUG_NODES
-//     std::cout << "Converted to Yale format... "<< std::endl;
-//     std::cout << "COL_INDEX [";
-//     for(auto i = myColumns.begin(); i < myColumns.end(); i++)
-//         std::cout << *i << " ";
-//     std::cout << "]" << std::endl;
-//     std::cout << "ROW_INDEX [";
-//     for(auto i = myRows.begin(); i < myRows.end(); i++)
-//         std::cout << *i << " ";
-//     std::cout << "]" << std::endl;
-//     std::cout << "m_dofMap [";
-//     for(auto i = m_dofMap.begin(); i < m_dofMap.end(); i++)
-//         std::cout << *i << " ";
-//     std::cout << "]" << std::endl;
-// #endif
-
-//     delete data;
-//     delete indices;
-}
-
-//protected
-void Brick::assembleCoordinates(escript::Data& arg) const
-{
-
-    // AEAE TODO
-
-    // int numDim = m_numDim;
-    // if (!arg.isDataPointShapeEqual(1, &numDim))
-    //     throw ValueError("setToX: Invalid Data object shape");
-    // if (!arg.numSamplesEqual(1, getNumNodes()))
-    //     throw ValueError("setToX: Illegal number of samples in Data object");
-    // arg.requireWrite();
-    
-//     for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) {
-//         p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
-//         sc_array_t * tquadrants = &tree->quadrants;
-//         p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-
+    // Find the indices of the nodes on the boundaries x = Lx and y = Ly
+    for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
+        p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
+        sc_array_t * tquadrants = &tree->quadrants;
+        p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
 // #pragma omp parallel for
-//         for(int q = 0; q < Q; ++q) { // Loop over the elements attached to the tree
-//             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-//             p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
+        for(int q = 0; q < Q; ++q) { // Loop over the elements attached to the tree
+            p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
+            p8est_qcoord_t length = P8EST_QUADRANT_LEN(quad->level);
+            double xy[3];
+            p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+length, quad->y, xy);
 
-//             // Loop over the four corners of the quadrant
-//             for(int n = 0; n < 4; ++n){
-//                 int k = q - Q + nodeIncrements[treeid - p4est->first_local_tree];
-//                 long lidx = nodes->element_nodes[4*k+n];
+            // If the node is on the boundary x=Lx or y=Ly
+            if(xy[0] == forestData.m_lxyz[0]) 
+            {
+                // Get the node IDs
+                long lni0 = NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
+                p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+length, quad->y+length, quad->z+length, xy);
+                long lni1 = NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
 
-//                 double lx = length * ((int) (n % 2) == 1);
-//                 double ly = length * ((int) (n / 2) == 1);
-//                 double xy[3];
-//                 p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
+                std::vector<long> * idx0 = &indices[0][lni0];
+                std::vector<long> * idx1 = &indices[0][lni1];
 
-//                 if( (n == 0) 
-//                   || isHangingNode(nodes->face_code[k], n)
-//                   || isUpperBoundaryNode(quad, n, treeid, length) 
-//                 )
-//                 {
-//                     long lni = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-//                     double * point = arg.getSampleDataRW(lni);
-//                     point[0] = xy[0];
-//                     point[1] = xy[1];
-//                 }
-//             }
-//         }
-//     }     
+                // Check for duplicates
+                bool dup = false;
+                for(int i = 1; i < idx0[0][0] + 1; i++)
+                    if(idx0[0][i] == lni1)
+                        dup = true;
+
+                // Add the new indices
+                if(dup == false)
+                {
+                    idx0[0][0]++;
+                    idx1[0][0]++;
+                    ESYS_ASSERT(idx0[0][0]<=4, "updateRowsColumns index out of bound ");
+                    ESYS_ASSERT(idx1[0][0]<=4, "updateRowsColumns index out of bound ");
+                    idx0[0][idx0[0][0]]=lni1;
+                    idx1[0][idx1[0][0]]=lni0;
+                }
+            }
+
+            p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x, quad->y+length, quad->z+length, xy);
+            if(xy[1] == forestData.m_lxyz[1])
+            {
+                // Get the node IDs
+                long lni0 = NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
+                p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+length, quad->y+length, quad->z+length, xy);
+                long lni1 = NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
+
+                std::vector<long> * idx0 = &indices[0][lni0];
+                std::vector<long> * idx1 = &indices[0][lni1];
+
+                // Check for duplicates
+                bool dup = false;
+                for(int i = 1; i < idx0[0][0] + 1; i++)
+                    if(idx0[0][i] == lni1)
+                        dup = true;
+
+                // Add the new indices
+                if(dup == false)
+                {
+                    idx0[0][0]++;
+                    idx1[0][0]++;
+                    ESYS_ASSERT(idx0[0][0]<=4, "updateRowsColumns index out of bound ");
+                    ESYS_ASSERT(idx1[0][0]<=4, "updateRowsColumns index out of bound ");
+                    idx0[0][idx0[0][0]]=lni1;
+                    idx1[0][idx1[0][0]]=lni0;
+                }
+            }
+        }
+    }
+
+    // Hanging nodes
+    hanging_faces.clear();
+    for(int i = 0; i < hanging_face_orientation.size(); i++)
+    {
+        // Distances to neighbouring nodes
+        p8est_qcoord_t l = P4EST_QUADRANT_LEN(hanging_face_orientation[i].level);
+        p8est_qcoord_t xlookup[4][2] = {{0,0}, {0,0}, {-l,l}, {-l,l}};
+        p8est_qcoord_t ylookup[4][2] = {{-l,l}, {-l,l}, {0,0}, {0,0}};
+        p8est_qcoord_t zlookup[4][2] = {{l,0}, {-l,0}, {0,l}, {0,-l}};
+
+        // Calculate the node ids
+        double xy[3]={0};
+        p8est_qcoord_to_vertex(p8est->connectivity, hanging_face_orientation[i].treeid, 
+                                                    hanging_face_orientation[i].x, 
+                                                    hanging_face_orientation[i].y,
+                                                    hanging_face_orientation[i].z, xy);
+        long nodeid = NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
+        p8est_qcoord_to_vertex(p8est->connectivity, hanging_face_orientation[i].treeid, 
+                                                    hanging_face_orientation[i].x+xlookup[hanging_face_orientation[i].face_orientation][0], 
+                                                    hanging_face_orientation[i].y+ylookup[hanging_face_orientation[i].face_orientation][0],
+                                                    hanging_face_orientation[i].z+zlookup[hanging_face_orientation[i].face_orientation][0], xy);
+        long lni0   = NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
+        p8est_qcoord_to_vertex(p8est->connectivity, hanging_face_orientation[i].treeid, 
+                                                    hanging_face_orientation[i].x+xlookup[hanging_face_orientation[i].face_orientation][1], 
+                                                    hanging_face_orientation[i].y+ylookup[hanging_face_orientation[i].face_orientation][1],
+                                                    hanging_face_orientation[i].z+zlookup[hanging_face_orientation[i].face_orientation][0], xy);
+        long lni1   = NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
+        p8est_qcoord_to_vertex(p8est->connectivity, hanging_face_orientation[i].treeid, 
+                                                    hanging_face_orientation[i].x+zlookup[hanging_face_orientation[i].face_orientation][0], 
+                                                    hanging_face_orientation[i].y+zlookup[hanging_face_orientation[i].face_orientation][1],
+                                                    hanging_face_orientation[i].z+zlookup[hanging_face_orientation[i].face_orientation][0], xy);
+        long lni2   = NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
+
+        // Initialise vectors
+        std::vector<long> * idx0  = &indices[0][nodeid];
+        std::vector<long> * idx1a = &indices[0][lni0];
+        std::vector<long> * idx1b = &indices[0][lni1];
+        std::vector<long> * idx1c = &indices[0][lni2];
+
+        #ifdef OXLEY_ENABLE_DEBUG_NODES_EXTRA_DETAILS
+            std::cout << "nodeid = " << nodeid << ": " << idx0[0][0] << ", " << idx0[0][1] << ", " << idx0[0][2] << ", " << idx0[0][3] << ", " << idx0[0][4] << std::endl;
+            std::cout << lni0 << ": " << idx1a[0][0] << ", " << idx1a[0][1] << ", " << idx1a[0][2] << ", " << idx1a[0][3] << ", " << idx1a[0][4] << std::endl;
+            std::cout << lni1 << ": " << idx1b[0][0] << ", " << idx1b[0][1] << ", " << idx1b[0][2] << ", " << idx1b[0][3] << ", " << idx1b[0][4] << std::endl;
+            std::cout << lni2 << ": " << idx1c[0][0] << ", " << idx1c[0][1] << ", " << idx1c[0][2] << ", " << idx1c[0][3] << ", " << idx1c[0][4] << std::endl;
+        #endif
+
+        // Remove spurious connections, if they exist
+        for(int i = 1; i < 5; i++)
+        {
+            if(idx1a[0][i]==lni1)
+                idx1a[0][i]=nodeid;
+            if(idx1b[0][i]==lni0)
+                idx1b[0][i]=nodeid;
+        }
+
+        // Check to see if these are new connections
+        bool new_connections[3]={true,true,true};
+        for(int i=1;i<5;i++)
+        {
+            if(idx1a[0][i]==nodeid)
+                new_connections[0]=false;
+            if(idx1b[0][i]==nodeid)
+                new_connections[1]=false;
+            if(idx1c[0][i]==nodeid)
+                new_connections[2]=false;
+        }
+
+        // If they are new then add them to the vectors
+        if(new_connections[0]==true)
+        {
+            idx1a[0][0]++;
+            if(idx1a[0][0]>4)
+                std::cout << "ae " << std::endl;
+            ESYS_ASSERT(idx1a[0][0]<=4, "updateRowsColumns index out of bound ");
+            idx1a[0][idx1a[0][0]]=nodeid;
+        }
+        if(new_connections[1]==true)
+        {
+            idx1b[0][0]++;
+            ESYS_ASSERT(idx1b[0][0]<=4, "updateRowsColumns index out of bound ");
+            idx1b[0][idx1b[0][0]]=nodeid;
+        }
+        if(new_connections[2]==true)
+        {
+            idx1c[0][0]++;
+            ESYS_ASSERT(idx1c[0][0]<=4, "updateRowsColumns index out of bound ");
+            idx1c[0][idx1c[0][0]]=nodeid;
+        }
+        
+        // Add the hanging node
+        idx0[0][0]=3;
+        idx0[0][1]=lni0;
+        idx0[0][2]=lni1;
+        idx0[0][3]=lni2;
+        idx0[0][4]=-1;
+        hanging_faces.push_back(std::make_pair(nodeid,lni0));
+        hanging_faces.push_back(std::make_pair(nodeid,lni1));
+    }
+
+    // update num_hanging
+    num_hanging=hanging_faces.size();
+
+    // Sorting
+// #pragma omp for
+    for(int i = 0; i < getNumNodes(); i++)
+    {
+        std::vector<long> * idx0 = &indices[0][i];
+        std::sort(indices[0][i].begin()+1, indices[0][i].begin()+idx0[0][0]+1);
+    }
+
+#ifdef OXLEY_ENABLE_DEBUG_NODES
+    std::cout << "Node connections: " << std::endl;
+    // Output for debugging
+    // for(int i = getNumNodes()-0.5*num_hanging; i < getNumNodes(); i++){
+    for(int i = 0; i < getNumNodes(); i++){
+        std::vector<long> * idx0 = &indices[0][i];
+        std::cout << i << ": ";
+        for(int j = 1; j < idx0[0][0]+1; j++)
+            std::cout << idx0[0][j] << ", ";
+        std::cout << std::endl;
+    }
+#endif
+
+    // Convert to CRS format
+    myRows.clear();
+    myRows.push_back(0);
+    myColumns.clear();
+    m_dofMap.assign(getNumNodes(), 0);
+    long counter = 0;
+    for(int i = 0; i < getNumNodes(); i++)
+    {
+        std::vector<long> * idx0 = &indices[0][i];
+        std::vector<long> temp; 
+        for(int j = 1; j < idx0[0][0]+1; j++)
+        {
+            temp.push_back(idx0[0][j]);
+            counter++;
+        }
+        std::sort(temp.begin(),temp.end());
+        for(int i = 0; i < temp.size(); i++)
+        {
+            myColumns.push_back(temp[i]);
+        }
+        m_dofMap[i] = counter-myRows[i];
+        if(i < getNumNodes()-1)
+            myRows.push_back(counter);
+    }
+    myRows.push_back(myColumns.size());
+
+#ifdef OXLEY_ENABLE_DEBUG_NODES
+    std::cout << "Converted to Yale format... "<< std::endl;
+    std::cout << "COL_INDEX [";
+    for(auto i = myColumns.begin(); i < myColumns.end(); i++)
+        std::cout << *i << " ";
+    std::cout << "]" << std::endl;
+    std::cout << "ROW_INDEX [";
+    for(auto i = myRows.begin(); i < myRows.end(); i++)
+        std::cout << *i << " ";
+    std::cout << "]" << std::endl;
+    std::cout << "m_dofMap [";
+    for(auto i = m_dofMap.begin(); i < m_dofMap.end(); i++)
+        std::cout << *i << " ";
+    std::cout << "]" << std::endl;
+#endif
+
+    delete indices;
+    delete data;
 }
 
 #ifdef ESYS_HAVE_TRILINOS
 //protected
 esys_trilinos::const_TrilinosGraph_ptr Brick::getTrilinosGraph() const
-{
+{   
     if (m_graph.is_null()) {
         m_graph = createTrilinosGraph(myRows, myColumns);
     }
@@ -1246,8 +2577,6 @@ paso::SystemMatrixPattern_ptr Brick::getPasoMatrixPattern(
                                                     bool reducedRowOrder,
                                                     bool reducedColOrder) const
 {
-    // TODO
-
     if (m_pattern.get())
         return m_pattern;
 
@@ -1296,485 +2625,362 @@ paso::SystemMatrixPattern_ptr Brick::getPasoMatrixPattern(
 }
 #endif // ESYS_HAVE_PASO
 
-// bool Brick::operator==(const AbstractDomain& other) const
-// {
-//     const Brick* o=dynamic_cast<const Brick*>(&other);
-//     if (o) {
-//         return (p8est_checksum(p8est) == p8est_checksum(o->p8est)
-//             && forestData == o->forestData);
-//     }
-//     return false;
-// }
-
 //private
-template<typename Scalar>
-void Brick::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F,
-         const std::vector<Scalar>& EM_S, const std::vector<Scalar>& EM_F, 
-         bool addS, bool addF, index_t e, index_t t, int nEq, int nComp) const
-{    
-    IndexVector rowIndex(4);
-    p8est_tree_t * currenttree = p8est_tree_array_index(p8est->trees, t);
-    sc_array_t * tquadrants = &currenttree->quadrants;
-    // p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-    p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, e);
-    p4est_qcoord_t length = P8EST_QUADRANT_LEN(quad->level);
+void Brick::populateSampleIds()
+{
+    m_nodeTags.assign(getNumNodes(), 0);
+    updateTagsInUse(Nodes);
+
+    m_elementTags.assign(getNumElements(), 0);
+    updateTagsInUse(Elements);
+}
+
+void Brick::updateFaceElementCount()
+{
     for(int i = 0; i < 4; i++)
+        m_faceCount[i]=-1;
+
+    NodeIDsTop.clear();
+    NodeIDsBottom.clear();
+    NodeIDsLeft.clear();
+    NodeIDsRight.clear();
+    NodeIDsAbove.clear();
+    NodeIDsBelow.clear();
+
+    for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) 
     {
-        double lx = length * ((int) (i % 2) == 1);
-        double ly = length * ((int) (i / 2) == 1);
-        double lz = length * ((int) (i / 2) == 1);
-        double xyz[3];
-        p8est_qcoord_to_vertex(p8est->connectivity, t, quad->x+lx, quad->y+ly, quad->z+lz, xyz);
-        rowIndex[i] = NodeIDs.find(std::make_tuple(xyz[0],xyz[1],xyz[2]))->second;
-    }
-
-    if(addF)
-    {
-        Scalar* F_p = F.getSampleDataRW(0, static_cast<Scalar>(0));
-        for(index_t i=0; i<rowIndex.size(); i++) {
-            if (rowIndex[i]<getNumDOF()) {
-                for(int eq=0; eq<nEq; eq++) {
-                    F_p[INDEX2(eq, rowIndex[i], nEq)]+=EM_F[INDEX2(eq,i,nEq)];
-                }
-            }
-        }
-    }
-    if(addS)
-    {
-        addToSystemMatrix<Scalar>(S, rowIndex, nEq, EM_S);
-    }
-}
-
-
-template
-void Brick::addToMatrixAndRHS<real_t>(escript::AbstractSystemMatrix* S, escript::Data& F,
-         const std::vector<real_t>& EM_S, const std::vector<real_t>& EM_F, 
-         bool addS, bool addF, index_t e, index_t t, int nEq, int nComp) const;
-
-template
-void Brick::addToMatrixAndRHS<cplx_t>(escript::AbstractSystemMatrix* S, escript::Data& F,
-         const std::vector<cplx_t>& EM_S, const std::vector<cplx_t>& EM_F, 
-         bool addS, bool addF, index_t e, index_t t, int nEq, int nComp) const;
-
-//protected
-void Brick::interpolateNodesOnElements(escript::Data& out,
-                                       const escript::Data& in,
-                                       bool reduced) const
-{
-    if (out.isComplex()!=in.isComplex())
-    {
-        throw OxleyException("Programmer Error: in and out parameters do not have the same complexity.");   
-    }
-    if (out.isComplex())
-    {
-        interpolateNodesOnElementsWorker(out, in, reduced, escript::DataTypes::cplx_t(0));    
-    }
-    else
-    {
-        interpolateNodesOnElementsWorker(out, in, reduced, escript::DataTypes::real_t(0));    
-    }  
-}
-//protected
-void Brick::interpolateNodesOnFaces(escript::Data& out, const escript::Data& in,
-                                    bool reduced) const
-{
-    //todo:
-    throw OxleyException("interpolateNodesOnFaces");
-    
-    // if (out.isComplex()!=in.isComplex())
-    // {
-    //     throw OxleyException("Programmer Error: in and out parameters do not have the same complexity.");   
-    // }
-    // if (out.isComplex())
-    // {
-    //     interpolateNodesOnFacesWorker(out, in, reduced, escript::DataTypes::cplx_t(0));    
-    // }
-    // else
-    // {
-    //     interpolateNodesOnFacesWorker(out, in, reduced, escript::DataTypes::real_t(0));    
-    // }      
-}
-
-//private
-template <typename S>
-void Brick::interpolateNodesOnFacesWorker(escript::Data& out, const escript::Data& in,
-                                    bool reduced, S sentinel) const
-{
-    //todo:
-    throw OxleyException("interpolateNodesOnFacesWorker");
-//     const dim_t numComp = in.getDataPointSize();
-//     const long  numNodes = getNumNodes();
-//     if (reduced) {
-//         out.requireWrite();
-//         const S c0 = 0.25;
-//         double * fxx = new double[4*numComp*numNodes];
-
-
-//         // This structure is used to store info needed by p4est
-//         interpolateNodesOnElementsWorker_Data<S> interpolateData;
-//         interpolateData.fxx = fxx;
-//         interpolateData.sentinel = sentinel;
-//         interpolateData.offset = numComp*sizeof(S);
-
-//         p8est_iterate(p8est, NULL, &interpolateData, get_interpolateNodesOnElementWorker_data, NULL, NULL);
-//         for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; treeid++)
-//         {
-//             p4est_tree_t * currenttree = p8est_tree_array_index(p8est->trees, treeid);
-//             sc_array_t * tquadrants = &currenttree->quadrants;
-//             p4est_qcoord_t Q = (p4est_qcoord_t) tquadrants->elem_count;
-// #pragma omp parallel for
-//             for(p4est_qcoord_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
-//             {
-//                 S* o = out.getSampleDataRW(e, sentinel);
-
-//             if (m_faceOffset[0] > -1) {
-//                 for (index_t k2=0; k2 < m_NE[2]; ++k2) {
-//                     for (index_t k1=0; k1 < m_NE[1]; ++k1) {
-//                         memcpy(&f_000[0], in.getSampleDataRO(INDEX3(0,k1,k2, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         memcpy(&f_001[0], in.getSampleDataRO(INDEX3(0,k1,k2+1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         memcpy(&f_010[0], in.getSampleDataRO(INDEX3(0,k1+1,k2, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         memcpy(&f_011[0], in.getSampleDataRO(INDEX3(0,k1+1,k2+1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         S* o = out.getSampleDataRW(m_faceOffset[0]+INDEX2(k1,k2,m_NE[1]), sentinel);
-//                         for (index_t i=0; i < numComp; ++i) {
-//                             o[INDEX2(i,numComp,0)] = (f_000[i] + f_001[i] + f_010[i] + f_011[i])/static_cast<S>(4);
-//                         } // end of component loop i
-//                     } // end of k1 loop
-//                 } // end of k2 loop
-//             } // end of face 0
-//             if (m_faceOffset[1] > -1) {
-//                 for (index_t k2=0; k2 < m_NE[2]; ++k2) {
-//                     for (index_t k1=0; k1 < m_NE[1]; ++k1) {
-//                         memcpy(&f_100[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1,k2, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         memcpy(&f_101[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1,k2+1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         memcpy(&f_110[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1+1,k2, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         memcpy(&f_111[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1+1,k2+1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         S* o = out.getSampleDataRW(m_faceOffset[1]+INDEX2(k1,k2,m_NE[1]), sentinel);
-//                         for (index_t i=0; i < numComp; ++i) {
-//                             o[INDEX2(i,numComp,0)] = (f_100[i] + f_101[i] + f_110[i] + f_111[i])/static_cast<S>(4);
-//                         } // end of component loop i
-//                     } // end of k1 loop
-//                 } // end of k2 loop
-//             } // end of face 1
-//             if (m_faceOffset[2] > -1) {
-//                 for (index_t k2=0; k2 < m_NE[2]; ++k2) {
-//                     for (index_t k0=0; k0 < m_NE[0]; ++k0) {
-//                         memcpy(&f_000[0], in.getSampleDataRO(INDEX3(k0,0,k2, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         memcpy(&f_001[0], in.getSampleDataRO(INDEX3(k0,0,k2+1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         memcpy(&f_100[0], in.getSampleDataRO(INDEX3(k0+1,0,k2, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,0,k2+1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         S* o = out.getSampleDataRW(m_faceOffset[2]+INDEX2(k0,k2,m_NE[0]), sentinel);
-//                         for (index_t i=0; i < numComp; ++i) {
-//                             o[INDEX2(i,numComp,0)] = (f_000[i] + f_001[i] + f_100[i] + f_101[i])/static_cast<S>(4);
-//                         } // end of component loop i
-//                     } // end of k0 loop
-//                 } // end of k2 loop
-//             } // end of face 2
-//             if (m_faceOffset[3] > -1) {
-//                 for (index_t k2=0; k2 < m_NE[2]; ++k2) {
-//                     for (index_t k0=0; k0 < m_NE[0]; ++k0) {
-//                         memcpy(&f_010[0], in.getSampleDataRO(INDEX3(k0,m_NN[1]-1,k2, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         memcpy(&f_011[0], in.getSampleDataRO(INDEX3(k0,m_NN[1]-1,k2+1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,m_NN[1]-1,k2, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,m_NN[1]-1,k2+1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         S* o = out.getSampleDataRW(m_faceOffset[3]+INDEX2(k0,k2,m_NE[0]), sentinel);
-//                         for (index_t i=0; i < numComp; ++i) {
-//                             o[INDEX2(i,numComp,0)] = (f_010[i] + f_011[i] + f_110[i] + f_111[i])/static_cast<S>(4);
-//                         } // end of component loop i
-//                     } // end of k0 loop
-//                 } // end of k2 loop
-//             } // end of face 3
-//             if (m_faceOffset[4] > -1) {
-//                 for (index_t k1=0; k1 < m_NE[1]; ++k1) {
-//                     for (index_t k0=0; k0 < m_NE[0]; ++k0) {
-//                         memcpy(&f_000[0], in.getSampleDataRO(INDEX3(k0,k1,0, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         memcpy(&f_010[0], in.getSampleDataRO(INDEX3(k0,k1+1,0, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         memcpy(&f_100[0], in.getSampleDataRO(INDEX3(k0+1,k1,0, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,0, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         S* o = out.getSampleDataRW(m_faceOffset[4]+INDEX2(k0,k1,m_NE[0]), sentinel);
-//                         for (index_t i=0; i < numComp; ++i) {
-//                             o[INDEX2(i,numComp,0)] = (f_000[i] + f_010[i] + f_100[i] + f_110[i])/static_cast<S>(4);
-//                         } // end of component loop i
-//                     } // end of k0 loop
-//                 } // end of k1 loop
-//             } // end of face 4
-//             if (m_faceOffset[5] > -1) {
-//                 for (index_t k1=0; k1 < m_NE[1]; ++k1) {
-//                     for (index_t k0=0; k0 < m_NE[0]; ++k0) {
-//                         memcpy(&f_001[0], in.getSampleDataRO(INDEX3(k0,k1,m_NN[2]-1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         memcpy(&f_011[0], in.getSampleDataRO(INDEX3(k0,k1+1,m_NN[2]-1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,k1,m_NN[2]-1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,m_NN[2]-1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         S* o = out.getSampleDataRW(m_faceOffset[5]+INDEX2(k0,k1,m_NE[0]), sentinel);
-//                         for (index_t i=0; i < numComp; ++i) {
-//                             o[INDEX2(i,numComp,0)] = (f_001[i] + f_011[i] + f_101[i] + f_111[i])/static_cast<S>(4);
-//                         } // end of component loop i
-//                     } // end of k0 loop
-//                 } // end of k1 loop
-//             } // end of face 5
-//     } else {
-//         out.requireWrite();
-//         const S c0 = 0.044658198738520451079;
-//         const S c1 = 0.16666666666666666667;
-//         const S c2 = 0.62200846792814621559;
-// #pragma omp parallel
-//         {
-//             vector<S> f_000(numComp);
-//             vector<S> f_001(numComp);
-//             vector<S> f_010(numComp);
-//             vector<S> f_011(numComp);
-//             vector<S> f_100(numComp);
-//             vector<S> f_101(numComp);
-//             vector<S> f_110(numComp);
-//             vector<S> f_111(numComp);
-//             if (m_faceOffset[0] > -1) {
-// #pragma omp for nowait
-//                 for (index_t k2=0; k2 < m_NE[2]; ++k2) {
-//                     for (index_t k1=0; k1 < m_NE[1]; ++k1) {
-//                         memcpy(&f_000[0], in.getSampleDataRO(INDEX3(0,k1,k2, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         memcpy(&f_001[0], in.getSampleDataRO(INDEX3(0,k1,k2+1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         memcpy(&f_010[0], in.getSampleDataRO(INDEX3(0,k1+1,k2, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         memcpy(&f_011[0], in.getSampleDataRO(INDEX3(0,k1+1,k2+1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         S* o = out.getSampleDataRW(m_faceOffset[0]+INDEX2(k1,k2,m_NE[1]), sentinel);
-//                         for (index_t i=0; i < numComp; ++i) {
-//                             o[INDEX2(i,numComp,0)] = f_000[i]*c2 + f_011[i]*c0 + c1*(f_001[i] + f_010[i]);
-//                             o[INDEX2(i,numComp,1)] = f_001[i]*c0 + f_010[i]*c2 + c1*(f_000[i] + f_011[i]);
-//                             o[INDEX2(i,numComp,2)] = f_001[i]*c2 + f_010[i]*c0 + c1*(f_000[i] + f_011[i]);
-//                             o[INDEX2(i,numComp,3)] = f_000[i]*c0 + f_011[i]*c2 + c1*(f_001[i] + f_010[i]);
-//                         } // end of component loop i
-//                     } // end of k1 loop
-//                 } // end of k2 loop
-//             } // end of face 0
-//             if (m_faceOffset[1] > -1) {
-// #pragma omp for nowait
-//                 for (index_t k2=0; k2 < m_NE[2]; ++k2) {
-//                     for (index_t k1=0; k1 < m_NE[1]; ++k1) {
-//                         memcpy(&f_100[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1,k2, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         memcpy(&f_101[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1,k2+1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         memcpy(&f_110[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1+1,k2, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         memcpy(&f_111[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1+1,k2+1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         S* o = out.getSampleDataRW(m_faceOffset[1]+INDEX2(k1,k2,m_NE[1]), sentinel);
-//                         for (index_t i=0; i < numComp; ++i) {
-//                             o[INDEX2(i,numComp,0)] = f_100[i]*c2 + f_111[i]*c0 + c1*(f_101[i] + f_110[i]);
-//                             o[INDEX2(i,numComp,1)] = f_101[i]*c0 + f_110[i]*c2 + c1*(f_100[i] + f_111[i]);
-//                             o[INDEX2(i,numComp,2)] = f_101[i]*c2 + f_110[i]*c0 + c1*(f_100[i] + f_111[i]);
-//                             o[INDEX2(i,numComp,3)] = f_100[i]*c0 + f_111[i]*c2 + c1*(f_101[i] + f_110[i]);
-//                         } // end of component loop i
-//                     } // end of k1 loop
-//                 } // end of k2 loop
-//             } // end of face 1
-//             if (m_faceOffset[2] > -1) {
-// #pragma omp for nowait
-//                 for (index_t k2=0; k2 < m_NE[2]; ++k2) {
-//                     for (index_t k0=0; k0 < m_NE[0]; ++k0) {
-//                         memcpy(&f_000[0], in.getSampleDataRO(INDEX3(k0,0,k2, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         memcpy(&f_001[0], in.getSampleDataRO(INDEX3(k0,0,k2+1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         memcpy(&f_100[0], in.getSampleDataRO(INDEX3(k0+1,0,k2, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,0,k2+1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         S* o = out.getSampleDataRW(m_faceOffset[2]+INDEX2(k0,k2,m_NE[0]), sentinel);
-//                         for (index_t i=0; i < numComp; ++i) {
-//                             o[INDEX2(i,numComp,0)] = f_000[i]*c2 + f_101[i]*c0 + c1*(f_001[i] + f_100[i]);
-//                             o[INDEX2(i,numComp,1)] = f_001[i]*c0 + f_100[i]*c2 + c1*(f_000[i] + f_101[i]);
-//                             o[INDEX2(i,numComp,2)] = f_001[i]*c2 + f_100[i]*c0 + c1*(f_000[i] + f_101[i]);
-//                             o[INDEX2(i,numComp,3)] = f_000[i]*c0 + f_101[i]*c2 + c1*(f_001[i] + f_100[i]);
-//                         } // end of component loop i
-//                     } // end of k0 loop
-//                 } // end of k2 loop
-//             } // end of face 2
-//             if (m_faceOffset[3] > -1) {
-// #pragma omp for nowait
-//                 for (index_t k2=0; k2 < m_NE[2]; ++k2) {
-//                     for (index_t k0=0; k0 < m_NE[0]; ++k0) {
-//                         memcpy(&f_010[0], in.getSampleDataRO(INDEX3(k0,m_NN[1]-1,k2, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         memcpy(&f_011[0], in.getSampleDataRO(INDEX3(k0,m_NN[1]-1,k2+1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,m_NN[1]-1,k2, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,m_NN[1]-1,k2+1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         S* o = out.getSampleDataRW(m_faceOffset[3]+INDEX2(k0,k2,m_NE[0]), sentinel);
-//                         for (index_t i=0; i < numComp; ++i) {
-//                             o[INDEX2(i,numComp,0)] = f_010[i]*c2 + f_111[i]*c0 + c1*(f_011[i] + f_110[i]);
-//                             o[INDEX2(i,numComp,1)] = f_011[i]*c0 + f_110[i]*c2 + c1*(f_010[i] + f_111[i]);
-//                             o[INDEX2(i,numComp,2)] = f_011[i]*c2 + f_110[i]*c0 + c1*(f_010[i] + f_111[i]);
-//                             o[INDEX2(i,numComp,3)] = f_010[i]*c0 + f_111[i]*c2 + c1*(f_011[i] + f_110[i]);
-//                         } // end of component loop i
-//                     } // end of k0 loop
-//                 } // end of k2 loop
-//             } // end of face 3
-//             if (m_faceOffset[4] > -1) {
-// #pragma omp for nowait
-//                 for (index_t k1=0; k1 < m_NE[1]; ++k1) {
-//                     for (index_t k0=0; k0 < m_NE[0]; ++k0) {
-//                         memcpy(&f_000[0], in.getSampleDataRO(INDEX3(k0,k1,0, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         memcpy(&f_010[0], in.getSampleDataRO(INDEX3(k0,k1+1,0, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         memcpy(&f_100[0], in.getSampleDataRO(INDEX3(k0+1,k1,0, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,0, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         S* o = out.getSampleDataRW(m_faceOffset[4]+INDEX2(k0,k1,m_NE[0]), sentinel);
-//                         for (index_t i=0; i < numComp; ++i) {
-//                             o[INDEX2(i,numComp,0)] = f_000[i]*c2 + f_110[i]*c0 + c1*(f_010[i] + f_100[i]);
-//                             o[INDEX2(i,numComp,1)] = f_010[i]*c0 + f_100[i]*c2 + c1*(f_000[i] + f_110[i]);
-//                             o[INDEX2(i,numComp,2)] = f_010[i]*c2 + f_100[i]*c0 + c1*(f_000[i] + f_110[i]);
-//                             o[INDEX2(i,numComp,3)] = f_000[i]*c0 + f_110[i]*c2 + c1*(f_010[i] + f_100[i]);
-//                         } // end of component loop i
-//                     } // end of k0 loop
-//                 } // end of k1 loop
-//             } // end of face 4
-//             if (m_faceOffset[5] > -1) {
-// #pragma omp for nowait
-//                 for (index_t k1=0; k1 < m_NE[1]; ++k1) {
-//                     for (index_t k0=0; k0 < m_NE[0]; ++k0) {
-//                         memcpy(&f_001[0], in.getSampleDataRO(INDEX3(k0,k1,m_NN[2]-1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         memcpy(&f_011[0], in.getSampleDataRO(INDEX3(k0,k1+1,m_NN[2]-1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,k1,m_NN[2]-1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,m_NN[2]-1, m_NN[0],m_NN[1]), sentinel), numComp*sizeof(S));
-//                         S* o = out.getSampleDataRW(m_faceOffset[5]+INDEX2(k0,k1,m_NE[0]), sentinel);
-//                         for (index_t i=0; i < numComp; ++i) {
-//                             o[INDEX2(i,numComp,0)] = f_001[i]*c2 + f_111[i]*c0 + c1*(f_011[i] + f_101[i]);
-//                             o[INDEX2(i,numComp,1)] = f_011[i]*c0 + f_101[i]*c2 + c1*(f_001[i] + f_111[i]);
-//                             o[INDEX2(i,numComp,2)] = f_011[i]*c2 + f_101[i]*c0 + c1*(f_001[i] + f_111[i]);
-//                             o[INDEX2(i,numComp,3)] = f_001[i]*c0 + f_111[i]*c2 + c1*(f_011[i] + f_101[i]);
-//                         } // end of component loop i
-//                     } // end of k0 loop
-//                 } // end of k1 loop
-//             } // end of face 5
-//         } // end of parallel section
-//     }
-}
-
-
-//private
-template <typename S>
-void Brick::interpolateNodesOnElementsWorker(escript::Data& out,
-                                       const escript::Data& in,
-                                       bool reduced, S sentinel) const                                       
-{
-    const dim_t numComp = in.getDataPointSize();
-    const long numNodes = getNumNodes();
-    if (reduced) {
-        out.requireWrite();
-        const S c0 = 0.125;  
-        double * fxxx = new double[8*numComp*numNodes];
-
-        // This structure is used to store info needed by p4est
-        interpolateNodesOnElementsWorker_Data<S> interpolateData;
-        interpolateData.fxx = fxxx;
-        interpolateData.sentinel = sentinel;
-        interpolateData.offset = numComp*sizeof(S);
-
-        p8est_iterate(p8est, NULL, &interpolateData, get_interpolateNodesOnElementWorker_data, NULL, NULL, NULL);
-        for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; treeid++)
+        p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
+        sc_array_t * tquadrants = &tree->quadrants;
+        p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
+        for(int q = 0; q < Q; ++q) 
         {
-            p8est_tree_t * currenttree = p8est_tree_array_index(p8est->trees, treeid);
-            sc_array_t * tquadrants = &currenttree->quadrants;
-            p4est_qcoord_t Q = (p4est_locidx_t) tquadrants->elem_count;
-#pragma omp parallel for
-            for(p4est_qcoord_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
+            p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
+            p8est_qcoord_t l = P8EST_QUADRANT_LEN(quad->level);
+            // int k = q - Q + nodeIncrements[treeid - p8est->first_local_tree];
+            p8est_qcoord_t lxy[8][3] = {{0,0,0},{0,0,l},{0,l,0},{0,l,l},
+                                         {l,0,0},{l,0,l},{l,l,0},{l,l,l}};
+            double xyz[4][3] = {{0}};
+            int nodeids[4]={-1};
+            bool do_check_yes_no[4]={false};
+            for(int n = 0; n < 4; n++)
             {
-                S* o = out.getSampleDataRW(e, sentinel);
-                for (index_t i=0; i < numComp; ++i) {
-                    o[i] = c0 * (fxxx[INDEX3(0,i,e,numComp,numNodes)] + 
-                                 fxxx[INDEX3(1,i,e,numComp,numNodes)] + 
-                                 fxxx[INDEX3(2,i,e,numComp,numNodes)] + 
-                                 fxxx[INDEX3(3,i,e,numComp,numNodes)] + 
-                                 fxxx[INDEX3(4,i,e,numComp,numNodes)] + 
-                                 fxxx[INDEX3(5,i,e,numComp,numNodes)] + 
-                                 fxxx[INDEX3(6,i,e,numComp,numNodes)] + 
-                                 fxxx[INDEX3(7,i,e,numComp,numNodes)] );
-                }
+                p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], quad->z+lxy[n][2], xyz[n]);
+                nodeids[n]=NodeIDs.find(std::make_pair(xyz[n][0],xyz[n][1]))->second;
+
+                //TODO
+                if(n==0)
+                    do_check_yes_no[n]=true;
+                else if(n==1 && xyz[n][0]==forestData.m_lxyz[0])
+                    do_check_yes_no[n]=true;
+                else if(n==2 && xyz[n][1]==forestData.m_lxyz[1])
+                    do_check_yes_no[n]=true;
+                else if(n==3 && xyz[n][0]==forestData.m_lxyz[0] && xyz[n][1]==forestData.m_lxyz[1])
+                    do_check_yes_no[n]=true;
+                else
+                    do_check_yes_no[n]=false;
             }
-        }
-        delete[] fxxx;
-    } else {
-        out.requireWrite();
-        const S c0 = .0094373878376559314545;
-        const S c1 = .035220810900864519624;
-        const S c2 = .13144585576580214704;
-        const S c3 = .49056261216234406855;
 
-        double * fxxx = new double[8*numComp*numNodes];
-        // This structure is used to store info needed by p4est
-        interpolateNodesOnElementsWorker_Data<S> interpolateData;
-        interpolateData.fxx = fxxx;
-        interpolateData.sentinel = sentinel;
-        interpolateData.offset = numComp*sizeof(S);
-
-        p8est_iterate(p8est, NULL, &interpolateData, get_interpolateNodesOnElementWorker_data, NULL, NULL, NULL);
-        for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; treeid++)
-        {
-            p8est_tree_t * currenttree = p8est_tree_array_index(p8est->trees, treeid);
-            sc_array_t * tquadrants = &currenttree->quadrants;
-            p4est_qcoord_t Q = (p4est_locidx_t) tquadrants->elem_count;
-#pragma omp parallel for
-            for(p4est_qcoord_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
+            for(int n = 0; n < 4; n++)
             {
-                S* o = out.getSampleDataRW(e, sentinel);
-                for (index_t i=0; i < numComp; ++i) {
-                    o[INDEX2(i,numComp,0)] = c3*fxxx[INDEX3(0,i,e,numComp,numNodes)] + 
-                                             c0*fxxx[INDEX3(7,i,e,numComp,numNodes)] + 
-                                             c2*(fxxx[INDEX3(1,i,e,numComp,numNodes)] +
-                                                 fxxx[INDEX3(2,i,e,numComp,numNodes)] +  
-                                                 fxxx[INDEX3(4,i,e,numComp,numNodes)]) + 
-                                             c1*(fxxx[INDEX3(3,i,e,numComp,numNodes)] + 
-                                                 fxxx[INDEX3(5,i,e,numComp,numNodes)] +  
-                                                 fxxx[INDEX3(6,i,e,numComp,numNodes)]);
-                    o[INDEX2(i,numComp,1)] = fxxx[INDEX3(3,i,e,numComp,numNodes)]*c0 + 
-                                             fxxx[INDEX3(4,i,e,numComp,numNodes)]*c3 + 
-                                             c2*(fxxx[INDEX3(0,i,e,numComp,numNodes)] + 
-                                                 fxxx[INDEX3(5,i,e,numComp,numNodes)] + 
-                                                 fxxx[INDEX3(6,i,e,numComp,numNodes)]) + 
-                                             c1*(fxxx[INDEX3(1,i,e,numComp,numNodes)] + 
-                                                 fxxx[INDEX3(2,i,e,numComp,numNodes)] + 
-                                                 fxxx[INDEX3(7,i,e,numComp,numNodes)]);
-                    o[INDEX2(i,numComp,2)] = fxxx[INDEX3(2,i,e,numComp,numNodes)]*c3 + 
-                                             fxxx[INDEX3(5,i,e,numComp,numNodes)]*c0 + 
-                                             c2*(fxxx[INDEX3(0,i,e,numComp,numNodes)] + 
-                                                 fxxx[INDEX3(3,i,e,numComp,numNodes)] + 
-                                                 fxxx[INDEX3(6,i,e,numComp,numNodes)]) + 
-                                             c1*(fxxx[INDEX3(1,i,e,numComp,numNodes)] + 
-                                                 fxxx[INDEX3(4,i,e,numComp,numNodes)] + 
-                                                 fxxx[INDEX3(7,i,e,numComp,numNodes)]);
-                    o[INDEX2(i,numComp,3)] = fxxx[INDEX3(1,i,e,numComp,numNodes)]*c0 + 
-                                             fxxx[INDEX3(6,i,e,numComp,numNodes)]*c3 + 
-                                             c2*(fxxx[INDEX3(2,i,e,numComp,numNodes)] + 
-                                                 fxxx[INDEX3(4,i,e,numComp,numNodes)] + 
-                                                 fxxx[INDEX3(7,i,e,numComp,numNodes)]) + 
-                                             c1*(fxxx[INDEX3(0,i,e,numComp,numNodes)] + 
-                                                 fxxx[INDEX3(3,i,e,numComp,numNodes)] + 
-                                                 fxxx[INDEX3(5,i,e,numComp,numNodes)]);
-                    o[INDEX2(i,numComp,4)] = fxxx[INDEX3(1,i,e,numComp,numNodes)]*c3 + 
-                                             fxxx[INDEX3(6,i,e,numComp,numNodes)]*c0 + 
-                                             c2*(fxxx[INDEX3(0,i,e,numComp,numNodes)] + 
-                                                 fxxx[INDEX3(3,i,e,numComp,numNodes)] + 
-                                                 fxxx[INDEX3(5,i,e,numComp,numNodes)]) + 
-                                             c1*(fxxx[INDEX3(2,i,e,numComp,numNodes)] + 
-                                                 fxxx[INDEX3(4,i,e,numComp,numNodes)] + 
-                                                 fxxx[INDEX3(7,i,e,numComp,numNodes)]);
-                    o[INDEX2(i,numComp,5)] = fxxx[INDEX3(2,i,e,numComp,numNodes)]*c0 + 
-                                             fxxx[INDEX3(5,i,e,numComp,numNodes)]*c3 + 
-                                             c2*(fxxx[INDEX3(1,i,e,numComp,numNodes)] + 
-                                                 fxxx[INDEX3(4,i,e,numComp,numNodes)] + 
-                                                 fxxx[INDEX3(7,i,e,numComp,numNodes)]) + 
-                                             c1*(fxxx[INDEX3(0,i,e,numComp,numNodes)] + 
-                                                 fxxx[INDEX3(3,i,e,numComp,numNodes)] + 
-                                                 fxxx[INDEX3(6,i,e,numComp,numNodes)]);
-                    o[INDEX2(i,numComp,6)] = fxxx[INDEX3(3,i,e,numComp,numNodes)]*c3 + 
-                                             fxxx[INDEX3(4,i,e,numComp,numNodes)]*c0 + 
-                                             c2*(fxxx[INDEX3(1,i,e,numComp,numNodes)] + 
-                                                 fxxx[INDEX3(2,i,e,numComp,numNodes)] + 
-                                                 fxxx[INDEX3(7,i,e,numComp,numNodes)]) + 
-                                             c1*(fxxx[INDEX3(0,i,e,numComp,numNodes)] + 
-                                                 fxxx[INDEX3(5,i,e,numComp,numNodes)] + 
-                                                 fxxx[INDEX3(6,i,e,numComp,numNodes)]);
-                    o[INDEX2(i,numComp,7)] = fxxx[INDEX3(0,i,e,numComp,numNodes)]*c0 + 
-                                             fxxx[INDEX3(7,i,e,numComp,numNodes)]*c3 + 
-                                             c2*(fxxx[INDEX3(3,i,e,numComp,numNodes)] + 
-                                                 fxxx[INDEX3(5,i,e,numComp,numNodes)] + 
-                                                 fxxx[INDEX3(6,i,e,numComp,numNodes)]) + 
-                                             c1*(fxxx[INDEX3(1,i,e,numComp,numNodes)] + 
-                                                 fxxx[INDEX3(2,i,e,numComp,numNodes)] + 
-                                                 fxxx[INDEX3(4,i,e,numComp,numNodes)]);
+                if(do_check_yes_no[n] == false)
+                    continue;
+
+                borderNodeInfo tmp;
+                // tmp.nodeid=NodeIDs.find(std::make_pair(xy[n][0],xy[n][1]))->second;
+                tmp.nodeid=nodeids[n];
+                tmp.neighbours[0]=nodeids[0];
+                tmp.neighbours[1]=nodeids[1];
+                tmp.neighbours[2]=nodeids[2];
+                tmp.neighbours[3]=nodeids[3];
+                tmp.x=quad->x;
+                tmp.y=quad->y;
+                tmp.y=quad->z;
+                tmp.level=quad->level;
+                tmp.treeid=treeid;
+
+                if(isLeftBoundaryNode(quad, n, treeid, l))
+                {
+                    NodeIDsLeft.push_back(tmp);
+                    m_faceCount[0]++;
+                }
+
+                if(isRightBoundaryNode(quad, n, treeid, l))
+                {
+                    NodeIDsRight.push_back(tmp);
+                    m_faceCount[1]++;
+                }
                     
+                if(isBottomBoundaryNode(quad, n, treeid, l))
+                {
+                    NodeIDsBottom.push_back(tmp);
+                    m_faceCount[2]++;
+                }
+                    
+                if(isTopBoundaryNode(quad, n, treeid, l))
+                {
+                    NodeIDsTop.push_back(tmp);
+                    m_faceCount[3]++;
+                }
+
+                if(isAboveBoundaryNode(quad, n, treeid, l))
+                {
+                    NodeIDsAbove.push_back(tmp);
+                    m_faceCount[4]++;
+                }
+
+                if(isBelowBoundaryNode(quad, n, treeid, l))
+                {
+                    NodeIDsBelow.push_back(tmp);
+                    m_faceCount[5]++;
+                }
+            
+                #ifdef OXLEY_ENABLE_DEBUG_FACEELEMENTS_POINTS
+                    double xyz[3];
+                    p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], quad->z+lxy[n][2], &xyz[n]);
+                    std::cout << nodeids[n] << ": quad (x,y,z) = ( " << xyz[0] 
+                                            << ", " << xyz[1] << ", " << xyz[2] << " ) ";
+                    if(isLeftBoundaryNode(quad, n, treeid, l))
+                        std::cout << "L";
+                    if(isRightBoundaryNode(quad, n, treeid, l))
+                        std::cout << "R";
+                    if(isBottomBoundaryNode(quad, n, treeid, l))
+                        std::cout << "B";
+                    if(isTopBoundaryNode(quad, n, treeid, l))
+                        std::cout << "T";
+                    if(isAboveBoundaryNode(quad, n, treeid, l))
+                        std::cout << "A";
+                    if(isBelowBoundaryNode(quad, n, treeid, l))
+                        std::cout << "B";
+                    std::cout << std::endl;
+                #endif
+            }
+        }
+    }
+
+    const index_t LEFT=1, RIGHT=2, BOTTOM=10, TOP=20, ABOVE=100, BELOW=200;
+    m_faceTags.clear();
+    const index_t faceTag[] = { LEFT, RIGHT, BOTTOM, TOP, ABOVE, BELOW };
+    m_faceOffset.assign(6, -1);
+    index_t offset=0;
+    for (size_t i=0; i<6; i++) {
+        if (m_faceCount[i]>0) {
+            m_faceOffset[i]=offset;
+            offset+=m_faceCount[i];
+            m_faceTags.insert(m_faceTags.end(), m_faceCount[i], faceTag[i]);
+        }
+    }
+
+#ifdef OXLEY_ENABLE_DEBUG_FACEELEMENTS
+    std::cout << "NodeIDsLeft" << std::endl;
+    for(int i = 0; i < NodeIDsLeft.size()-1;i++)
+        std::cout << NodeIDsLeft[i].nodeid << " ";
+    std::cout << std::endl;
+    std::cout << "NodeIDsRight" << std::endl;
+    for(int i = 0; i < NodeIDsRight.size()-1;i++)
+        std::cout << NodeIDsRight[i].nodeid << " ";
+    std::cout << std::endl;
+    std::cout << "NodeIDsTop" << std::endl;
+    for(int i = 0; i < NodeIDsTop.size()-1;i++)
+        std::cout << NodeIDsTop[i].nodeid << " ";
+    std::cout << std::endl;
+    std::cout << "NodeIDsBottom" << std::endl;
+    for(int i = 0; i < NodeIDsBottom.size()-1;i++)
+        std::cout << NodeIDsBottom[i].nodeid << " ";
+    std::cout << std::endl;
+    std::cout << "NodeIDsAbove" << std::endl;
+    for(int i = 0; i < NodeIDsAbove.size()-1;i++)
+        std::cout << NodeIDsAbove[i].nodeid << " ";
+    std::cout << std::endl;
+    std::cout << "NodeIDsBelow" << std::endl;
+    for(int i = 0; i < NodeIDsBelow.size()-1;i++)
+        std::cout << NodeIDsBelow[i].nodeid << " ";
+    std::cout << std::endl;
+    std::cout << "-------------------------------------------------------" << std::endl;
+#endif
+
+    // set face tags
+    setTagMap("left", LEFT);
+    setTagMap("right", RIGHT);
+    setTagMap("bottom", BOTTOM);
+    setTagMap("top", TOP);
+    setTagMap("above", ABOVE);
+    setTagMap("below", BELOW);
+    updateTagsInUse(FaceElements);
+
+
+    // Update faceElementId
+    const dim_t NFE = getNumFaceElements();
+    m_faceId.resize(NFE);
+    for (dim_t k=0; k<NFE; k++)
+        m_faceId[k]=k;
+}
+
+// This is a wrapper that converts the p8est node information into an IndexVector
+IndexVector Brick::getNodeDistribution() const
+{
+    return m_nodeDistribution;
+}
+
+// This is a wrapper that converts the p8est node information into an IndexVector
+void Brick::updateNodeDistribution() 
+{
+    m_nodeDistribution.clear();
+    m_nodeDistribution.assign(MAXP4ESTNODES,0);
+
+    int counter =0;
+    for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) 
+    {
+        p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
+        sc_array_t * tquadrants = &tree->quadrants;
+        p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
+        for(int q = 0; q < Q; ++q) 
+        { 
+            p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
+            p8est_qcoord_t length = P8EST_QUADRANT_LEN(quad->level);
+            for(int n = 0; n < 4; n++)
+            {
+                double lx = length * ((int) (n % 2) == 1);
+                double ly = length * ((int) (n / 2) == 1);
+                double lz = length * ((int) (n / 2) == 1); //TODO
+                double xy[3];
+                p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+lx, quad->y+ly, quad->z+lz, xy);
+                m_nodeDistribution[counter++]=NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+            }
+        }
+    }
+    m_nodeDistribution.shrink_to_fit();
+}
+
+// updates m_elementIDs()
+void Brick::updateElementIds()
+{
+    m_elementId.clear();
+    m_elementId.assign(MAXP4ESTNODES,0);
+    int count=0;
+    for(std::pair<DoubleTuple,long> e : NodeIDs)
+        m_elementId[count++]=e.second;
+    m_elementId.shrink_to_fit();
+}
+
+std::vector<IndexVector> Brick::getConnections(bool includeShared) const
+{
+    // returns a vector v of size numDOF where v[i] is a vector with indices
+    // of DOFs connected to i (up to 9 in 2D).
+    // In other words this method returns the occupied (local) matrix columns
+    // for all (local) matrix rows.
+    // If includeShared==true then connections to non-owned DOFs are also
+    // returned (i.e. indices of the column couplings)
+
+    long numNodes = getNumNodes();
+    std::vector< std::vector<escript::DataTypes::index_t> > indices(numNodes);
+
+    // Loop over the quadrants skipped by p8est_iterate  
+    for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) 
+    {
+        p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
+        sc_array_t * tquadrants = &tree->quadrants;
+        p8est_qcoord_t Q = (p8est_qcoord_t) tquadrants->elem_count;
+// #pragma omp parallel for
+        for(p8est_qcoord_t q = 0; q < Q; ++q) // Loop over all quadrants
+        { 
+            p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
+            p8est_qcoord_t l = P8EST_QUADRANT_LEN(quad->level);
+            for(int n = 0; n < 8; n++)
+            {
+                double xyz[3];
+                long lx[8] = {0,l,0,l,0,l,0,l};
+                long ly[8] = {0,0,l,l,0,0,l,l};
+                long lz[8] = {0,0,0,0,l,l,l,l};
+                long lni[4] = {-1};
+                for(int i = 0; i < 8; i++)
+                {
+                    p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+lx[i], quad->y+ly[i], quad->z+lz[i], xyz);
+                    lni[i] = NodeIDs.find(std::make_tuple(xyz[0],xyz[1],xyz[2]))->second;
+                }
+
+                for(int i = 0; i < 4; i++)
+                {
+                    for(int j = 0; j < 4; j++)
+                    {
+                        bool dup = false;
+                        for(int k = 0; k < indices[lni[i]].size(); k++)
+                            if(indices[lni[i]][k] == lni[j])
+                            {
+                                dup = true;
+                                break;
+                            }
+                        if(dup == false)
+                            indices[lni[i]].push_back(lni[j]);
+                    }
                 }
             }
         }
     }
+
+    // Hanging Nodes
+    for(int i = 0; i < hanging_face_orientation.size(); i++)
+    {       
+        // Calculate the node ids
+        double xy[3]={0};
+        p8est_qcoord_to_vertex(p8est->connectivity, hanging_face_orientation[i].treeid, 
+                                                    hanging_face_orientation[i].x, 
+                                                    hanging_face_orientation[i].y,
+                                                    hanging_face_orientation[i].z, xy);
+        //TODO
+        long nodeid = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+ 
+        p8est_qcoord_t l = P4EST_QUADRANT_LEN(hanging_face_orientation[i].neighbour_l);
+        //TODO check
+        p8est_qcoord_t x_inc[4][3]={{0,0,0},{l,l,0},{0,l,l},{0,l,l}};
+        p8est_qcoord_t y_inc[4][3]={{0,l,0},{0,l,0},{0,0,l},{l,l,l}};
+        p8est_qcoord_t z_inc[4][3]={{0,l,0},{0,l,0},{0,0,l},{l,l,l}};
+
+        p8est_qcoord_to_vertex(p8est->connectivity, hanging_face_orientation[i].neighbour_tree, 
+                hanging_face_orientation[i].neighbour_x+x_inc[hanging_face_orientation[i].face_orientation][0], 
+                hanging_face_orientation[i].neighbour_y+y_inc[hanging_face_orientation[i].face_orientation][0],
+                hanging_face_orientation[i].neighbour_z+z_inc[hanging_face_orientation[i].face_orientation][0], xy);
+        long lni0 = NodeIDs.find(std::make_tuple(xy[0],xy[1]))->second;
+        p8est_qcoord_to_vertex(p8est->connectivity, hanging_face_orientation[i].neighbour_tree, 
+                hanging_face_orientation[i].neighbour_x+x_inc[hanging_face_orientation[i].face_orientation][1], 
+                hanging_face_orientation[i].neighbour_y+y_inc[hanging_face_orientation[i].face_orientation][1],
+                hanging_face_orientation[i].neighbour_z+z_inc[hanging_face_orientation[i].face_orientation][1], xy);
+        long lni1 = NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
+
+        // add info 
+        // std::cout << nodeid << ": " << lni0 << ", " << lni1 << std::endl;
+        indices[nodeid].push_back(lni0);
+        indices[nodeid].push_back(lni1);
+
+        indices[lni0].push_back(nodeid);
+        indices[lni1].push_back(nodeid);
+    }    
+
+// Sorting
+// #pragma omp parallel for
+    for(int i = 0; i < numNodes; i++){
+        std::sort(indices[i].begin(), indices[i].begin()+indices[i].size());
+    }
+
+// #ifdef OXLEY_ENABLE_DEBUG
+//     std::cout << "Brick::getConnections" << std::endl;
+//     for(int i = 0; i < numNodes; i++) {
+//         std::cout << "i:" << i << " ";
+//         for(auto j = 0; j < indices[i].size(); j++)
+//             std::cout << indices[i][j] << ", ";
+//         std::cout << std::endl;
+//     }
+// #endif
+
+    return indices;
+}
+
+bool Brick::operator==(const AbstractDomain& other) const
+{
+    const Brick* o=dynamic_cast<const Brick*>(&other);
+    if (o) {
+        return ((p8est_checksum(p8est) == p8est_checksum(o->p8est)));
+    }
+    return false;
 }
 
 //protected
@@ -1803,8 +3009,8 @@ void Brick::assembleGradientImpl(escript::Data& out,
         max_level = SC_MAX(max_level, tree_t->maxlevel);
     }
 
-    // double cx[7][P4EST_MAXLEVEL] = {{0}};
-    // double cy[7][P4EST_MAXLEVEL] = {{0}};
+    double cx[7][P4EST_MAXLEVEL] = {{0}};
+    double cy[7][P4EST_MAXLEVEL] = {{0}};
 
     const double C0 = .044658198738520451079;
     const double C1 = .16666666666666666667;
@@ -1813,9 +3019,25 @@ void Brick::assembleGradientImpl(escript::Data& out,
     const double C4 = .5;
     const double C5 = .62200846792814621559;
     const double C6 = .78867513459481288225;
-    // const dim_t NE0 = m_NE[0];
-    // const dim_t NE1 = m_NE[1];
-    // const dim_t NE2 = m_NE[2];
+
+    //TODO check
+// #pragma omp parallel for
+//     for(int i=0; i<= max_level; i++)
+//     {
+//         double m_dx[3]={forestData.m_dx[0][P4EST_MAXLEVEL-i], 
+//                         forestData.m_dx[1][P4EST_MAXLEVEL-i],
+//                         forestData.m_dx[2][P4EST_MAXLEVEL-i]};
+
+//         cx[0][i] = .044658198738520451079/m_dx[];
+//         cx[1][i] = .16666666666666666667/m_dx[];
+//         cx[2][i] = .21132486540518711775/m_dx[];
+//         cx[3][i] = .25/m_dx[];
+//         cx[4][i] = .5/m_dx[];
+//         cx[5][i] = .62200846792814621559/m_dx[];
+//         cx[6][i] = .78867513459481288225/m_dx[];
+//     }
+
+   
     const Scalar zero = static_cast<Scalar>(0);
 
     if (out.getFunctionSpace().getTypeCode() == Elements) 
@@ -1833,11 +3055,11 @@ void Brick::assembleGradientImpl(escript::Data& out,
 
         for(p8est_topidx_t t = p8est->first_local_tree; t <= p8est->last_local_tree; t++) // Loop over every tree
         {
-            p4est_tree_t * currenttree = p4est_tree_array_index(p8est->trees, t);
+            p8est_tree_t * currenttree = p8est_tree_array_index(p8est->trees, t);
             sc_array_t * tquadrants = &currenttree->quadrants;
-            p4est_qcoord_t Q = (p4est_locidx_t) tquadrants->elem_count;
+            p8est_qcoord_t Q = (p8est_locidx_t) tquadrants->elem_count;
 #pragma omp parallel for
-            for(p4est_qcoord_t e = nodes->global_offset; e < Q+nodes->global_offset; e++) // Loop over every quadrant within the tree
+            for(p8est_qcoord_t e = nodes->global_offset; e < Q+nodes->global_offset; e++) // Loop over every quadrant within the tree
             {
                 // Work out what level this element is on 
                 p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, e);
@@ -1912,11 +3134,11 @@ void Brick::assembleGradientImpl(escript::Data& out,
 
         for(p8est_topidx_t t = p8est->first_local_tree; t <= p8est->last_local_tree; t++) // Loop over every tree
         {
-            p4est_tree_t * currenttree = p4est_tree_array_index(p8est->trees, t);
+            p8est_tree_t * currenttree = p8est_tree_array_index(p8est->trees, t);
             sc_array_t * tquadrants = &currenttree->quadrants;
-            p4est_qcoord_t Q = (p4est_locidx_t) tquadrants->elem_count;
+            p8est_qcoord_t Q = (p8est_locidx_t) tquadrants->elem_count;
 #pragma omp parallel for
-            for(p4est_qcoord_t e = nodes->global_offset; e < Q+nodes->global_offset; e++) // Loop over every quadrant within the tree
+            for(p8est_qcoord_t e = nodes->global_offset; e < Q+nodes->global_offset; e++) // Loop over every quadrant within the tree
             {
                 // Work out what level this element is on 
                 p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, e);
@@ -1959,9 +3181,9 @@ void Brick::assembleGradientImpl(escript::Data& out,
         {
             p8est_tree_t * currenttree = p8est_tree_array_index(p8est->trees, t);
             sc_array_t * tquadrants = &currenttree->quadrants;
-            p4est_qcoord_t Q = (p4est_locidx_t) tquadrants->elem_count;
+            p8est_qcoord_t Q = (p8est_locidx_t) tquadrants->elem_count;
 #pragma omp parallel for
-            for(p4est_qcoord_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
+            for(p8est_qcoord_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
             {
                 // Work out what level this element is on 
                 p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, e);
@@ -2168,9 +3390,9 @@ void Brick::assembleGradientImpl(escript::Data& out,
         {
             p8est_tree_t * currenttree = p8est_tree_array_index(p8est->trees, t);
             sc_array_t * tquadrants = &currenttree->quadrants;
-            p4est_qcoord_t Q = (p4est_locidx_t) tquadrants->elem_count;
+            p8est_qcoord_t Q = (p8est_locidx_t) tquadrants->elem_count;
 #pragma omp parallel for
-            for(p4est_qcoord_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
+            for(p8est_qcoord_t e = nodes->global_offset; e < Q+nodes->global_offset; e++)
             {
                 // Work out what level this element is on 
                 p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, e);
@@ -2303,6 +3525,59 @@ void Brick::assembleGradientImpl(escript::Data& out,
     }
 }
 
+
+
+//private
+template<typename Scalar>
+void Brick::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F,
+         const std::vector<Scalar>& EM_S, const std::vector<Scalar>& EM_F, 
+         bool addS, bool addF, index_t e, index_t t, int nEq, int nComp) const
+{    
+    IndexVector rowIndex(4);
+    p8est_tree_t * currenttree = p8est_tree_array_index(p8est->trees, t);
+    sc_array_t * tquadrants = &currenttree->quadrants;
+    // p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
+    p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, e);
+    p8est_qcoord_t length = P8EST_QUADRANT_LEN(quad->level);
+    for(int i = 0; i < 4; i++)
+    {
+        double lx = length * ((int) (i % 2) == 1);
+        double ly = length * ((int) (i / 2) == 1);
+        double lz = length * ((int) (i / 2) == 1);
+        double xyz[3];
+        p8est_qcoord_to_vertex(p8est->connectivity, t, quad->x+lx, quad->y+ly, quad->z+lz, xyz);
+        rowIndex[i] = NodeIDs.find(std::make_tuple(xyz[0],xyz[1],xyz[2]))->second;
+    }
+
+    if(addF)
+    {
+        Scalar* F_p = F.getSampleDataRW(0, static_cast<Scalar>(0));
+        for(index_t i=0; i<rowIndex.size(); i++) {
+            if (rowIndex[i]<getNumDOF()) {
+                for(int eq=0; eq<nEq; eq++) {
+                    F_p[INDEX2(eq, rowIndex[i], nEq)]+=EM_F[INDEX2(eq,i,nEq)];
+                }
+            }
+        }
+    }
+    if(addS)
+    {
+        addToSystemMatrix<Scalar>(S, rowIndex, nEq, EM_S);
+    }
+}
+
+
+template
+void Brick::addToMatrixAndRHS<real_t>(escript::AbstractSystemMatrix* S, escript::Data& F,
+         const std::vector<real_t>& EM_S, const std::vector<real_t>& EM_F, 
+         bool addS, bool addF, index_t e, index_t t, int nEq, int nComp) const;
+
+template
+void Brick::addToMatrixAndRHS<cplx_t>(escript::AbstractSystemMatrix* S, escript::Data& F,
+         const std::vector<cplx_t>& EM_S, const std::vector<cplx_t>& EM_F, 
+         bool addS, bool addF, index_t e, index_t t, int nEq, int nComp) const;
+
+
 //protected
 void Brick::nodesToDOF(escript::Data& out, const escript::Data& in) const
 {
@@ -2348,133 +3623,15 @@ dim_t Brick::findNode(const double *coords) const
     
 }
 
-// This is a wrapper that converts the p4est node information into an IndexVector
-IndexVector Brick::getNodeDistribution() const
-{
-    return m_nodeDistribution;
-}
-
-// This is a wrapper that converts the p4est node information into an IndexVector
-void Brick::updateNodeDistribution() 
-{
-    // TODO
-    // m_nodeDistribution.clear();
-    // m_nodeDistribution.assign(MAXP4ESTNODES,0);
-
-    // int counter =0;
-    // for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) 
-    // {
-    //     p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
-    //     sc_array_t * tquadrants = &tree->quadrants;
-    //     p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-    //     for(int q = 0; q < Q; ++q) 
-    //     { 
-    //         p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-    //         p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
-    //         for(int n = 0; n < 4; n++)
-    //         {
-    //             double lx = length * ((int) (n % 2) == 1);
-    //             double ly = length * ((int) (n / 2) == 1);
-    //             double xy[3];
-    //             p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lx, quad->y+ly, xy);
-    //             m_nodeDistribution[counter++]=NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-    //         }
-    //     }
-    // }
-    // m_nodeDistribution.shrink_to_fit();
-}
-
 // adds the dirac points and tags 
 void Brick::addPoints(const std::vector<double>& coords, const std::vector<int>& tags)
 {
     
 }
 
-std::vector<IndexVector> Brick::getConnections(bool includeShared) const
-{
-    // returns a vector v of size numDOF where v[i] is a vector with indices
-    // of DOFs connected to i (up to 9 in 2D).
-    // In other words this method returns the occupied (local) matrix columns
-    // for all (local) matrix rows.
-    // If includeShared==true then connections to non-owned DOFs are also
-    // returned (i.e. indices of the column couplings)
-
-    long numNodes = getNumNodes();
-    std::vector< std::vector<escript::DataTypes::index_t> > indices(numNodes);
-
-    // Loop over interior quadrants
-    // getConnections_data * data;
-    // data = new getConnections_data;
-    // data->pNodeIDs = &NodeIDs;
-    // data->indices = &indices;
-    // data->p4est = p4est;
-    // p4est_iterate(p4est, NULL, data, update_connections, NULL, NULL);
-
-    // Loop over the quadrants skipped by p4est_iterate  
-    for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) 
-    {
-        p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
-        sc_array_t * tquadrants = &tree->quadrants;
-        long Q = (p4est_qcoord_t) tquadrants->elem_count;
-// #pragma omp parallel for
-        for(long q = 0; q < Q; ++q) // Loop over all quadrants
-        { 
-            p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
-            long length = P8EST_QUADRANT_LEN(quad->level);
-            for(int n = 0; n < 8; n++)
-            {
-                double xyz[3];
-                long lx[8] = {0,length,0,length,0,length,0,length};
-                long ly[8] = {0,0,length,length,0,0,length,length};
-                long lz[8] = {0,0,0,0,length,length,length,length};
-                long lni[4] = {-1};
-                for(int i = 0; i < 8; i++)
-                {
-                    p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+lx[i], quad->y+ly[i], quad->z+lz[i], xyz);
-                    lni[i] = NodeIDs.find(std::make_tuple(xyz[0],xyz[1],xyz[2]))->second;
-                }
-
-                for(int i = 0; i < 4; i++)
-                {
-                    for(int j = 0; j < 4; j++)
-                    {
-                        bool dup = false;
-                        for(int k = 0; k < indices[lni[i]].size(); k++)
-                            if(indices[lni[i]][k] == lni[j])
-                            {
-                                dup = true;
-                                break;
-                            }
-                        if(dup == false)
-                            indices[lni[i]].push_back(lni[j]);
-                    }
-                }
-            }
-        }
-    }
-
-// Sorting
-// #pragma omp parallel for
-    for(int i = 0; i < numNodes; i++){
-        std::sort(indices[i].begin(), indices[i].begin()+indices[i].size());
-    }
-
-// #ifdef OXLEY_ENABLE_DEBUG
-//     std::cout << "Rectangle::getConnections" << std::endl;
-//     for(int i = 0; i < numNodes; i++) {
-//         std::cout << "i:" << i << " ";
-//         for(auto j = 0; j < indices[i].size(); j++)
-//             std::cout << indices[i][j] << ", ";
-//         std::cout << std::endl;
-//     }
-// #endif
-
-    return indices;
-}
-
 static inline void
-brick_linear_to_xyz (p4est_topidx_t ti, const int logx[P8EST_DIM],
-                     const int rankx[P8EST_DIM], p4est_topidx_t tx[P8EST_DIM])
+brick_linear_to_xyz (p8est_topidx_t ti, const int logx[P8EST_DIM],
+                     const int rankx[P8EST_DIM], p8est_topidx_t tx[P8EST_DIM])
 {
     int i, j, k;
     int lastlog = 0;
@@ -2484,7 +3641,7 @@ brick_linear_to_xyz (p4est_topidx_t ti, const int logx[P8EST_DIM],
     }
 
     for (i = 0; i < P8EST_DIM - 1; i++) {
-        p4est_topidx_t tempx[3] = { 0, 0, 0 };
+        p8est_topidx_t tempx[3] = { 0, 0, 0 };
         int logi = logx[rankx[i]] - lastlog;
         int idx[3] = { -1, -1, -1 };
         int c = 0;
@@ -2522,16 +3679,16 @@ brick_linear_to_xyz (p4est_topidx_t ti, const int logx[P8EST_DIM],
     tx[rankx[P8EST_DIM - 1]] += (ti << lastlog);
 }
 
-static inline p4est_topidx_t
-brick_xyz_to_linear (const p4est_topidx_t tx[P8EST_DIM],
+static inline p8est_topidx_t
+brick_xyz_to_linear (const p8est_topidx_t tx[P8EST_DIM],
                      const int logx[P8EST_DIM], const int rankx[P8EST_DIM])
 {
     int i, j, k;
     int lastlog = logx[rankx[P8EST_DIM - 2]];
-    p4est_topidx_t ti = tx[rankx[P8EST_DIM - 1]] >> lastlog;
+    p8est_topidx_t ti = tx[rankx[P8EST_DIM - 1]] >> lastlog;
 
     for (i = P8EST_DIM - 2; i >= 0; i--) {
-        p4est_topidx_t tempx[3] = { 0, 0, 0 };
+        p8est_topidx_t tempx[3] = { 0, 0, 0 };
         int logi =  (i == 0) ? lastlog : lastlog - logx[rankx[i - 1]];
         int idx[3] = { -1, -1, -1 };
         int c = 0;
@@ -2571,9 +3728,9 @@ p8est_connectivity_t *
 Brick::new_brick_connectivity (int n0, int n1, int n2, int periodic_a, int periodic_b, int periodic_c,
                                double x0, double x1, double y0, double y1, double z0, double z1)
 {
-    const p8est_topidx_t m = (p4est_topidx_t) n0;
-    const p8est_topidx_t n = (p4est_topidx_t) n1;
-    const p8est_topidx_t p = (p4est_topidx_t) n2;
+    const p8est_topidx_t m = (p8est_topidx_t) n0;
+    const p8est_topidx_t n = (p8est_topidx_t) n1;
+    const p8est_topidx_t p = (p8est_topidx_t) n2;
     const p8est_topidx_t mc = periodic_a ? m : (m - 1);
     const p8est_topidx_t nc = periodic_b ? n : (n - 1);
     const p8est_topidx_t pc = periodic_c ? p : (p - 1);
@@ -2679,9 +3836,9 @@ Brick::new_brick_connectivity (int n0, int n1, int n2, int periodic_a, int perio
     }
 
 
-    linear_to_tree = P4EST_ALLOC(p4est_topidx_t, n_iter);
-    tree_to_corner2 = P4EST_ALLOC(p4est_topidx_t, num_trees);
-    tree_to_edge2 = P4EST_ALLOC(p4est_topidx_t, 3 * num_trees);
+    linear_to_tree = P4EST_ALLOC(p8est_topidx_t, n_iter);
+    tree_to_corner2 = P4EST_ALLOC(p8est_topidx_t, num_trees);
+    tree_to_edge2 = P4EST_ALLOC(p8est_topidx_t, 3 * num_trees);
 
     tj = 0;
     tk = 0;

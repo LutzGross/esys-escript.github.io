@@ -62,7 +62,7 @@
 
 typedef std::pair<long,long> LongPair;
 typedef std::pair<double,double> DoublePair;
-typedef std::tuple<double,double,double> DoubleTriple;
+typedef std::tuple<double,double,double> DoubleTuple;
 
 namespace oxley {
 
@@ -78,6 +78,8 @@ typedef std::vector<int> RankVector;
 typedef std::map<std::string,int> TagMap;
 
 typedef p4est_topidx_t p8est_topidx_t;
+typedef p4est_qcoord_t p8est_qcoord_t;
+typedef p4est_locidx_t p8est_locidx_t;
 
 // fs types
 enum {

@@ -73,7 +73,7 @@ public:
 
     void saveMM(const std::string& filename) const;
 
-    escript::AbstractSystemMatrix IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT>> IZ, long n) ;
+    void IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT>> IZ, long n) ;
 
 private:
     int blockSize;

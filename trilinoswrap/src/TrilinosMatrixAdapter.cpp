@@ -87,21 +87,15 @@ void TrilinosMatrixAdapter::add<cplx_t>(const std::vector<LO>& rowIdx,
 }
 
 template<>
-escript::AbstractSystemMatrix TrilinosMatrixAdapter::IztAIz<cplx_t>(const Teuchos::RCP<Tpetra::CrsMatrix<cplx_t,LO,GO,NT>> iz, long n) 
+void TrilinosMatrixAdapter::IztAIz<cplx_t>(const Teuchos::RCP<Tpetra::CrsMatrix<cplx_t,LO,GO,NT>> iz, long n) 
 {
-    resumeFill();
-    escript::AbstractSystemMatrix ans = (*cmat).IztAIz(iz, n);
-    fillComplete(false);
-    return ans;
+    (*cmat).IztAIz(iz, n);
 }
 
 template<>
-escript::AbstractSystemMatrix TrilinosMatrixAdapter::IztAIz<real_t>(const Teuchos::RCP<Tpetra::CrsMatrix<real_t,LO,GO,NT>> iz, long n) 
+void TrilinosMatrixAdapter::IztAIz<real_t>(const Teuchos::RCP<Tpetra::CrsMatrix<real_t,LO,GO,NT>> iz, long n) 
 {
-    resumeFill();
-    escript::AbstractSystemMatrix ans = (*mat).IztAIz(iz, n);
-    fillComplete(false);
-    return ans;
+    (*mat).IztAIz(iz, n);
 }
 
 void TrilinosMatrixAdapter::ypAx(escript::Data& y, escript::Data& x) const

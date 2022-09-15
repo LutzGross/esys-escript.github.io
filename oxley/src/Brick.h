@@ -16,6 +16,12 @@
 #ifndef __OXLEY_BRICK_H__
 #define __OXLEY_BRICK_H__
 
+#include <unordered_map>
+#include <utility>
+
+#include <boost/functional/hash.hpp>
+
+#include <escript/Data.h>
 #include <escript/EsysMPI.h>
 #include <escript/SubWorld.h>
 
@@ -24,11 +30,15 @@
 #include <oxley/OxleyDomain.h>
 #include <oxley/OxleyData.h>
 
+#include <p8est_io.h>
 #include <p8est.h>
 #include <p8est_connectivity.h>
 #include <p8est_lnodes.h>
 
 #include <boost/python.hpp>
+#ifdef ESYS_HAVE_BOOST_NUMPY
+#include <boost/python/numpy.hpp>
+#endif
 
 using namespace boost::python;
 
@@ -47,7 +57,7 @@ public:
 
     /**
        \brief creates a rectangular mesh with n0 x n1 x n2 elements over the
-              rectangle [x0,x1] x [y0,y1] x [z0,z1].
+              domain [x0,x1] x [y0,y1] x [z0,z1].
        \param
     */
     // Brick();
@@ -55,7 +65,18 @@ public:
     Brick(int order, dim_t n0, dim_t n1, dim_t n2, double x0, double y0, double z0,
       double x1, double y1, double z1, int d0, int d1, int d2,
       const std::vector<double>& points, const std::vector<int>& tags,
+      const TagMap& tagnamestonums,
       int periodic0, int periodic1, int periodic2);
+
+    /**
+       \brief creates a rectangular mesh from numpy arrays [x,y].
+            Requires boost numpy
+       \param
+    */
+#ifdef ESYS_HAVE_BOOST_NUMPY
+    Brick(int order, dim_t n0, dim_t n1, dim_t n2, 
+      boost::python::numpy::ndarray x, boost::python::numpy::ndarray y, boost::python::numpy::ndarray z);
+#endif
 
     /**
        \brief
@@ -84,6 +105,11 @@ public:
     virtual void write(const std::string& filename) const;
 
     /**
+       \brief equality operator
+    */
+    virtual bool operator==(const escript::AbstractDomain& other) const;
+
+    /**
        \brief
        interpolates data given on source onto target where source and target
        are given on different domains
@@ -102,12 +128,6 @@ public:
        returns the number of data points summed across all MPI processes
     */
     virtual dim_t getNumDataPointsGlobal() const;
-
-    /**
-       \brief
-       Returns true if the node is hanging
-    */
-    // int getNumHangingNodes() { return num_hanging; };
 
     /**
        \brief
@@ -156,12 +176,6 @@ public:
        writes the mesh to file
     */
     virtual void loadMesh(std::string filename) ;
-    
-    /**
-       \brief
-       returns a pointer to the pXest
-    */
-    virtual p8est_t* borrow_p8est() { return p8est; };
 
     /**
        \brief
@@ -187,7 +201,24 @@ public:
        \param y0 boundary of the region
        \param y1 boundary of the region
     */
-    virtual void refineRegion(double x0, double x1, double y0, double y1);
+    virtual void refineRegion(double x0, double x1, double y0, double y1, double z0, double z1);
+
+        /**
+       \brief
+       refines the mesh around the point x0, y0
+       \param x0 spatial coordinate of point
+       \param y0 spatial coordinate of point
+    */
+    virtual void refinePoint(double x0, double y0, double z0);
+
+    /**
+       \brief
+       refines a circle on the mesh with center x0, y0 and radius r
+       \param x0 spatial coordinate of center of the circle
+       \param y0 spatial coordinate of center of the circle
+       \param r radius of the circle
+    */
+    virtual void refineSphere(double x0, double y0, double z0, double r);
 
     /**
        \brief
@@ -200,9 +231,26 @@ public:
 
     /**
        \brief
+       sets the number of levels of refinement
+    */
+    virtual int getRefinementLevels() const
+    {
+        return forestData.max_levels_refinement;
+    };
+
+    /**
+       \brief
        returns a Data object containing the coordinate information
     */
     virtual escript::Data getX() const;
+
+    /**
+       \brief
+       returns the number of vertices (int)
+    */
+    int getNumVertices() const { return connectivity->num_vertices;};
+
+    virtual dim_t findNode(const double *coords) const;
 
     /**
       \brief
@@ -222,20 +270,8 @@ public:
     //     return !(operator==(other));
     // }
 
-    /**
-       \brief
-       returns a Data object containing the coordinate information
-    */
-    int getNumVertices() const { return connectivity->num_vertices;};
-
-    virtual dim_t findNode(const double *coords) const;
-
-    virtual void nodesToDOF(escript::Data& out, const escript::Data& in) const;
-    
-    virtual dim_t getDofOfNode(dim_t node) const;
-
     // These functions are used internally
-    p8est_t * borrow_p4est() const { return p8est;};
+    p8est_t * borrow_p8est() const { return p8est;};
 
     p8estData * borrow_forestData() { return &forestData;};
 
@@ -249,34 +285,249 @@ public:
 
     void print_debug_report(std::string);
 
+private:
+
+
+    // /**
+    //    \brief
+    //    returns a Data object containing the coordinate information
+    // */
+    // int getNumVertices() const { return connectivity->num_vertices;};
+
+    // virtual dim_t findNode(const double *coords) const;
+
+    // virtual void nodesToDOF(escript::Data& out, const escript::Data& in) const;
+    
+    // virtual dim_t getDofOfNode(dim_t node) const;
+
+
+////////////////////////////////
+private:
+
+    // A p8est
+    p8est_t * p8est;
+
+    // The data structure in p8est
+    p8estData forestData;
+
+    // This object records the connectivity of the p8est quadrants
+    p8est_connectivity_t * connectivity;
+
+    // This structure records the node numbering information
+    p8est_lnodes * nodes;
+    long nodeIncrements[MAXTREES] = {0};
+
+    // Pointer that records the location of a temporary data structure
+    void * temp_data;
+
+    // Brick needs to keep track of this information
+    std::unordered_map<DoubleTuple,long,boost::hash<DoubleTuple>> NodeIDs; //global ids of the nodes
+    // std::unordered_map<long,bool> hangingNodeIDs; //global ids of the hanging nodes
+    std::vector<bool> is_hanging; // element x is true if node id x is a hanging node
+    // std::vector<std::vector<long>> is_hanging_face; // if face x-y is hanging then element x is y
+    std::unordered_map<DoubleTuple,long,boost::hash<DoubleTuple>> treeIDs; //global ids of the hanging nodes
+    std::unordered_map<long,double> current_solution; //solution at each node
+    std::vector<long> quadrantIDs; // IDs of the quadrants
+    std::vector<oct_info> quadrantInfo;
+
+    std::vector<borderNodeInfo> NodeIDsTop;
+    std::vector<borderNodeInfo> NodeIDsBottom;
+    std::vector<borderNodeInfo> NodeIDsLeft;
+    std::vector<borderNodeInfo> NodeIDsRight;
+    std::vector<borderNodeInfo> NodeIDsAbove;
+    std::vector<borderNodeInfo> NodeIDsBelow;
+
+    std::vector<hangingNodeInfo> hanging_face_orientation;
+    
+    // Row and column indices in CRS format
+    IndexVector myRows;
+    IndexVector myColumns;
+
+    // vector that maps each node to a DOF index (used for the coupler)
+    IndexVector m_dofMap;
+
+    // 
+    IndexVector m_nodeId;
+
+    p8est_connectivity_t *
+    new_brick_connectivity (int n0, int n1, int n2, int periodic_a, int periodic_b, int periodic_c,
+                               double x0, double x1, double y0, double y1, double z0, double z1);
+
+    virtual Assembler_ptr createAssembler(std::string type,
+                                          const DataMap& options) const;
+
+    virtual void updateSolutionInformation(escript::Data solution);
+    virtual void updateMeshInformation();
+    virtual escript::Data getUpdatedSolution();
+
+    /**
+      \brief
+      Returns the ID of a quad from the ID of it's bottom left node
+    */
+    long getQuadID(long nodeid) const;
+
     template<typename Scalar>
     void assembleIntegrateImpl(std::vector<Scalar>& integrals, const escript::Data& arg) const;
 
 ////////////////////////////////
 protected:
+    
+    /**
+       \brief
+       Returns the number of nodes
+    */
     virtual dim_t getNumNodes() const;
+
+    /**
+       \brief
+       Returns the number of nodes
+    */
     virtual dim_t getNumHangingNodes() const;
+
+    /**
+       \brief
+       Returns the number of elements
+    */
     virtual dim_t getNumElements() const;
-    virtual dim_t getNumFaceElements() const;
-    virtual dim_t getNumDOF() const;
-    // virtual index_t getFirstInDim(unsigned axis) const;
-    bool isBoundaryNode(p8est_quadrant_t * quad, int n, p4est_topidx_t treeid, p4est_qcoord_t length) const;
-    bool isUpperBoundaryNode(p8est_quadrant_t * quad, int n, p4est_topidx_t treeid, p4est_qcoord_t length) const;
+
+    /**
+       \brief
+       Returns the number of face elements
+    */
+    dim_t getNumFaceElements() const;
+
+    /**
+       \brief
+       Returns the number of degrees of freedom
+    */
+    inline dim_t getNumDOF() const;
+
+    /**
+       \brief
+       Returns true if the node is on the boundary
+    */
+    bool isBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t treeid, p8est_qcoord_t length) const;
+
+    /**
+       \brief
+       Returns true if the node is on the top or right boundaries
+    */
+    bool isUpperBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t treeid, p8est_qcoord_t length) const;
+
+    /**
+       \brief
+       Returns true if the node is on the bottom or left boundaries
+    */
+    bool isLowerBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t treeid, p8est_qcoord_t length) const;
+
+    /**
+       \brief
+       Returns true if the node is on the left boundary
+    */
+    bool isLeftBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t treeid, p8est_qcoord_t length) const;
+
+    /**
+       \brief
+       Returns true if the node is on the right boundary
+    */
+    bool isRightBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t treeid, p8est_qcoord_t length) const;
+
+    /**
+       \brief
+       Returns true if the node is on the bottom boundary
+    */
+    bool isBottomBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t treeid, p8est_qcoord_t length) const;
+
+    /**
+       \brief
+       Returns true if the node is on the top boundary
+    */
+    bool isTopBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t treeid, p8est_qcoord_t length) const;
+
+    /**
+       \brief
+       Returns true if the node is on the bottom boundary
+    */
+    bool isAboveBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t treeid, p8est_qcoord_t length) const;
+
+    /**
+       \brief
+       Returns true if the node is on the top boundary
+    */
+    bool isBelowBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t treeid, p8est_qcoord_t length) const;
+
+    /**
+       \brief
+       Returns true if the face is hanging
+    */
     bool isHangingFace(p8est_lnodes_code_t face_code, int n) const;
+
+    /**
+       \brief
+       Returns true if the node is hanging
+    */
     bool isHangingNode(p8est_lnodes_code_t face_code, int n) const;
+
+    /**
+       \brief
+       Returns true if the node is hanging
+    */
+    bool getHangingNodes(p8est_lnodes_code_t face_code, int hanging[]) const;
+
+    /**
+       \brief
+       Returns true if the node is hanging
+    */
+    int getNumHangingNodes() { return num_hanging; };
+
+    /**
+       \brief
+       Updates NodeIncrements
+    */
     void updateNodeIncrements();
+
+    /**
+       \brief
+       Renumbers the nodes (called after refinement)
+    */
     void renumberNodes();
 
+    /**
+       \brief
+       Updates the NodeIDs of the hanging Nodes
+    */
+    void updateHangingNodeIDs();
+
+    /**
+       \brief
+       Updates myRows and myColumns (used to store node connectivity information Yale Formay)
+    */
+    void updateRowsColumns();
+
+    /**
+       \brief
+       Updates TreeIDs
+    */
+    void updateTreeIDs();
+
+    /**
+       \brief
+       Updates the NodeID information
+    */
     virtual void assembleCoordinates(escript::Data& arg) const;
     virtual void assembleGradient(escript::Data& out, const escript::Data& in) const;
+
+    /**
+       \brief
+       Returns the ID numbers of the neighbouring four nodes
+    */
+    void getNeighouringNodeIDs(int8_t level, p8est_qcoord_t x, p8est_qcoord_t y, p8est_qcoord_t z, p8est_topidx_t treeid, long (&ids) [4]) const;
+
     virtual void assembleIntegrate(std::vector<real_t>& integrals,
                                    const escript::Data& arg) const;
     virtual void assembleIntegrate(std::vector<cplx_t>& integrals,
                                    const escript::Data& arg) const;
     virtual std::vector<IndexVector> getConnections(bool includeShared=false) const;
-
-    // adds the dirac points and tags 
-    void addPoints(const std::vector<double>& coords, const std::vector<int>& tags);
 
 #ifdef ESYS_HAVE_TRILINOS
     virtual esys_trilinos::const_TrilinosGraph_ptr getTrilinosGraph() const;
@@ -295,91 +546,89 @@ protected:
     mutable esys_trilinos::const_TrilinosGraph_ptr m_graph;
 #endif
     
-    virtual void interpolateNodesOnElements(escript::Data& out,
-                                  const escript::Data& in, bool reduced) const;
-    virtual void interpolateNodesOnFaces(escript::Data& out,
-                                         const escript::Data& in,
-                                         bool reduced) const;
+    // INTERPOLATION
+
+
+    virtual void interpolateNodesOnElements(escript::Data& out, const escript::Data& in, bool reduced) const;   
+    virtual void interpolateNodesOnFaces(escript::Data& out, const escript::Data& in, bool reduced) const;
+    virtual void nodesToDOF(escript::Data& out, const escript::Data& in) const;
+    virtual dim_t getDofOfNode(dim_t node) const;
+    virtual void populateSampleIds();
+    
+    // INTERPOLATION (FROM COARSE TO FINE MESHES AND VICE VERSA)
+
+    /**
+       \brief
+       Checks that the given interpolation is possible, throws and OxleyException if it is not.
+    */
+    void validateInterpolationAcross(int fsType_source, const escript::AbstractDomain& domain, int fsType_target) const;
+    void interpolateNodesToNodesFiner(const escript::Data& source, escript::Data& target, const Brick& other) const;
+    void interpolateNodesToElementsFiner(const escript::Data& source, escript::Data& target, const Brick& other) const;
+    void interpolateElementsToElementsCoarser(const escript::Data& source, escript::Data& target, const Brick& other) const;
+    void interpolateElementsToElementsFiner(const escript::Data& source, escript::Data& target, const Brick& other) const;
+    void interpolateReducedToElementsFiner(const escript::Data& source, escript::Data& target, const Brick& other) const;
+    void interpolateReducedToReducedFiner(const escript::Data& source, escript::Data& target, const Brick& other) const;
 
     template <typename S>
     void interpolateNodesOnElementsWorker(escript::Data& out,
-                                  const escript::Data& in, bool reduced, S sentinel) const;
-    template <typename S>         
+                                  const escript::Data& in, bool reduced, S sentinel) const;   
+    template <typename S>
     void interpolateNodesOnFacesWorker(escript::Data& out,
                                          const escript::Data& in,
-                                         bool reduced, S sentinel) const;
+                                         bool reduced, S sentinel) const; 
 
     template<typename Scalar>
     void assembleGradientImpl(escript::Data& out,
                               const escript::Data& in) const;
 
     template<typename Scalar> void addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F,
-       const std::vector<Scalar>& EM_S, const std::vector<Scalar>& EM_F,
-       bool addS, bool addF, index_t e, index_t t, int nEq=1, int nComp=1) const;
+           const std::vector<Scalar>& EM_S, const std::vector<Scalar>& EM_F,
+           bool addS, bool addF, borderNodeInfo quad, int nEq=1, int nComp=1) const;
+    template<typename Scalar> void addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F,
+           const std::vector<Scalar>& EM_S, const std::vector<Scalar>& EM_F,
+           bool addS, bool addF, index_t e, index_t t, int nEq=1, int nComp=1) const;
 
     // Updates m_faceOffset for each quadrant
     void updateFaceOffset();
 
+    /**
+       \brief
+       Updates m_faceCount
+    */
+    void updateFaceElementCount();
+
     // vector with first node id on each rank
     IndexVector m_nodeDistribution;
     void updateNodeDistribution();
+    IndexVector m_elementId;
+    void updateElementIds();
+    IndexVector m_faceId;
 
-        // virtual void populateDofMap();
-    void updateHangingNodeIDs();
 
-    // Updates myRows and myColumns
-    void updateRowsColumns();
-    void updateTreeIDs();
+#ifdef ESYS_HAVE_PASO
+    // the Paso System Matrix pattern
+    mutable paso::SystemMatrixPattern_ptr m_pattern;
+#endif
 
     IndexVector getNodeDistribution() const;
 
+    void addPoints(const std::vector<double>& coords, const std::vector<int>& tags);
+
+    // Initial number of nodes
+    int m_NN[2] = {0};
     // Initial number of divisions
-    long m_NE[3] = {0};
+    long m_NE[2] = {0};
     // Initial spacing
-    double m_NX[3] = {0};
+    double m_NX[2] = {0};
+    /// number of face elements per edge (left, right, bottom, top)
+    dim_t m_faceCount[4];
 
+    /// faceOffset[i]=-1 if face i is not an external face, otherwise it is
+    /// the index of that face (where i: 0=left, 1=right, 2=bottom, 3=top)
+    IndexVector m_faceOffset;
 
+    // The number of hanging nodes in the mesh
     int num_hanging;
-
-////////////////////////////////
-private:
-
-    // A p8est
-    p8est_t * p8est;
-
-    // The data structure in p8est
-    p8estData forestData;
-
-    // This object records the connectivity of the p8est quadrants
-    p8est_connectivity_t * connectivity;
-
-    // This structure records the node numbering information
-    p8est_lnodes * nodes;
-    long nodeIncrements[MAXTREES] = {0};
-
-    // This ghost is needed to initialise the node numbering structure p4est_lnodes
-    p8est_ghost_t * nodes_ghost;
-
-    // Pointer that records the location of a temporary data structure
-    void * temp_data;
-
-    std::unordered_map<DoubleTriple,long,boost::hash<DoubleTriple>> NodeIDs; //global ids of the nodes
-    std::unordered_map<long,bool> hangingNodeIDs; //global ids of the hanging nodes
-    std::unordered_map<DoubleTriple,long,boost::hash<DoubleTriple>> treeIDs; //global ids of the hanging nodes
-    
-    // Row and column indices in CRS format
-    IndexVector myRows;
-    IndexVector myColumns;
-
-    // vector that maps each node to a DOF index (used for the coupler)
-    IndexVector m_dofMap;
-
-    p8est_connectivity_t *
-    new_brick_connectivity (int n0, int n1, int n2, int periodic_a, int periodic_b, int periodic_c,
-                               double x0, double x1, double y0, double y1, double z0, double z1);
-
-    virtual Assembler_ptr createAssembler(std::string type,
-                                          const DataMap& options) const;
 
 };
 

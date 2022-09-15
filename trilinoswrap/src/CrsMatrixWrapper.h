@@ -71,7 +71,7 @@ public:
     void saveMM(const std::string& filename) const;
 
     // Used by Oxley
-    escript::AbstractSystemMatrix IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT>> IZ, long n);
+    void IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT>> IZ, long n);
     void add_single(const LO row, const LO col, const ST value);
 
 protected:

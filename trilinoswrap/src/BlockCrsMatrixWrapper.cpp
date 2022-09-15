@@ -284,7 +284,7 @@ void BlockCrsMatrixWrapper<ST>::resetValues(bool preserveSolverData)
 }
 
 template<typename ST>
-escript::AbstractSystemMatrix BlockCrsMatrixWrapper<ST>::IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT>> iz, long n) 
+void BlockCrsMatrixWrapper<ST>::IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT>> iz, long n) 
 {
     // mat.resumeFill();
     // auto tmp_mat1 = Tpetra::createDeepCopy(mat);

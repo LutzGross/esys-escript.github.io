@@ -89,6 +89,69 @@ int refine_mare2dem(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * qua
     // return 0;
 }
 
+int refine_mare2dem(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadrant)
+{
+    p8estData * forestData = (p8estData *) p8est->user_pointer;
+    quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
+    std::unordered_map<long,double> * current_solution = forestData->current_solution;
+    std::unordered_map<DoubleTuple,long,boost::hash<DoubleTuple>> * NodeIDs = forestData->NodeIDs;
+
+    // Get the solution value at the current node
+    p4est_qcoord_t xyz[3] = {quadrant->x,quadrant->y,quadrant->z};
+    long lni = NodeIDs->find(std::make_tuple(xyz[0],xyz[1],xyz[2]))->second;
+    double quad_solution = current_solution->find(lni)->second;
+
+#ifdef OXLEY_ENABLE_DEBUG
+    std::cout << "refine_mare2dem: " << lni << " (" << xy[0] << "," << xy[1] << ")";
+#endif
+
+    // Get the Node IDs at the neighbouring nodes
+    double xy[3] = {0};
+    long neighbour_nodeIDs[8] = {0};
+
+    double lx = forestData->m_dx[0][quadrant->level];
+    double ly = forestData->m_dx[1][quadrant->level];
+    double lz = forestData->m_dx[2][quadrant->level];
+
+    p8est_qcoord_to_vertex(p8est->connectivity, quadData->treeid, quadrant->x,    quadrant->y+ly, quadrant->z, xy); //N    
+    neighbour_nodeIDs[0] = NodeIDs->find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
+    p8est_qcoord_to_vertex(p8est->connectivity, quadData->treeid, quadrant->x,    quadrant->y-ly, quadrant->z, xy); //S
+    neighbour_nodeIDs[1] = NodeIDs->find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
+    p8est_qcoord_to_vertex(p8est->connectivity, quadData->treeid, quadrant->x+lx, quadrant->y,    quadrant->z, xy); //E
+    neighbour_nodeIDs[2] = NodeIDs->find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
+    p8est_qcoord_to_vertex(p8est->connectivity, quadData->treeid, quadrant->x-lx, quadrant->y,    quadrant->z, xy); //W
+    neighbour_nodeIDs[3] = NodeIDs->find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
+    p8est_qcoord_to_vertex(p8est->connectivity, quadData->treeid, quadrant->x,    quadrant->y+ly, quadrant->z+lz, xy); //N    
+    neighbour_nodeIDs[4] = NodeIDs->find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
+    p8est_qcoord_to_vertex(p8est->connectivity, quadData->treeid, quadrant->x,    quadrant->y-ly, quadrant->z+lz, xy); //S
+    neighbour_nodeIDs[5] = NodeIDs->find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
+    p8est_qcoord_to_vertex(p8est->connectivity, quadData->treeid, quadrant->x+lx, quadrant->y,    quadrant->z+lz, xy); //E
+    neighbour_nodeIDs[6] = NodeIDs->find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
+    p8est_qcoord_to_vertex(p8est->connectivity, quadData->treeid, quadrant->x-lx, quadrant->y,    quadrant->z+lz, xy); //W
+    neighbour_nodeIDs[7] = NodeIDs->find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
+    
+    // Get the solution at the neighbouring four nodes
+    double average = 0;
+    average += forestData->m_origin[1] >= forestData->m_length[1] ? 0 : current_solution->find(neighbour_nodeIDs[0])->second;
+    average += forestData->m_origin[1] <= forestData->m_length[1] ? 0 : current_solution->find(neighbour_nodeIDs[1])->second;
+    average += forestData->m_origin[0] >= forestData->m_length[0] ? 0 : current_solution->find(neighbour_nodeIDs[2])->second;
+    average += forestData->m_origin[0] <= forestData->m_length[0] ? 0 : current_solution->find(neighbour_nodeIDs[3])->second;
+    //TODO fix below
+    average += forestData->m_origin[1] >= forestData->m_length[1] ? 0 : current_solution->find(neighbour_nodeIDs[4])->second;
+    average += forestData->m_origin[1] <= forestData->m_length[1] ? 0 : current_solution->find(neighbour_nodeIDs[5])->second;
+    average += forestData->m_origin[0] >= forestData->m_length[0] ? 0 : current_solution->find(neighbour_nodeIDs[6])->second;
+    average += forestData->m_origin[0] <= forestData->m_length[0] ? 0 : current_solution->find(neighbour_nodeIDs[7])->second;
+    average /= 8.0;
+
+#ifdef OXLEY_ENABLE_DEBUG
+    std::cout << std::endl;
+#endif
+
+    // Make a decision
+    return (abs(average - quad_solution) > MARE2DEM_TOL) && (quadrant->level < forestData->max_levels_refinement);
+    // return 0;
+}
+
 int refine_random(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
 {
     return ((int) rand() % 2) == 0;
@@ -364,6 +427,23 @@ int refine_circle(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadr
             (quadrant->level < forestData->max_levels_refinement);
 }
 
+int refine_region(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadrant)
+{
+    //TODO
+    return 0;
+}
+
+int refine_point(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadrant)
+{
+    //TODO
+    return 0;
+}
+
+int refine_sphere(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadrant)
+{
+    //TODO
+    return 0;
+}
 
 
 void print_quad_debug_info(p4est_iter_volume_info_t * info, p4est_quadrant_t * quadrant)
