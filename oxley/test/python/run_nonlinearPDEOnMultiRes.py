@@ -105,6 +105,56 @@ def test_Rectangle_refine_Region(**kwargs):
     m.dump("region_boundary_mesh_ae.silo")
     return m
 
+def test_Brick_refine_Mesh(**kwargs):
+    m = Brick(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineMesh("uniform")
+    m.dump("uniform_mesh_ae.silo")
+    return m
+
+def test_Brick_refine_Point(**kwargs):
+    m = Brick(**kwargs)
+    m.setRefinementLevel(1)
+    m.refinePoint(x0=0.55,y0=0.55)
+    m.dump("point_mesh_ae.silo")
+    return m
+
+def test_Brick_refine_top_Boundary(**kwargs):
+    m = Brick(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineBoundary(boundary="top",dx=DX)
+    m.dump("top_boundary_mesh_ae.silo")
+    return m
+
+def test_Brick_refine_east_Boundary(**kwargs):
+    m = Brick(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineBoundary(boundary="right",dx=DX)
+    m.dump("east_boundary_mesh_ae.silo")
+    return m
+
+def test_Brick_refine_west_Boundary(**kwargs):
+    m = Brick(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineBoundary(boundary="left",dx=DX)
+    m.dump("west_boundary_mesh_ae.silo")
+    return m
+
+def test_Brick_refine_bottom_Boundary(**kwargs):
+    m = Brick(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineBoundary(boundary="bottom",dx=DX)
+    m.dump("bottom_boundary_mesh_ae.silo")
+    return m
+
+def test_Brick_refine_Region(**kwargs):
+    m = Brick(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineRegion(x0=0.2,x1=0.6,y0=0.6,y1=0.8)
+    m.dump("region_boundary_mesh_ae.silo")
+    return m
+    return m
+
 
 # def Brick(**kwargs):
 #     m = MultiResolutionDomain(3, **kwargs)
@@ -152,13 +202,49 @@ class Test_OxleyNonLinearPDE2D_Region(Test_nlpde):
         self.domain = test_Rectangle_Region(l0=1.,l1=1., n0=10, n1=10*getMPISizeWorld()-1, d1=getMPISizeWorld()) 
    def tearDown(self):
         del self.domain                
-# TODO
-# @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
-# class Test_OxleyNonLinearPDE3D(Test_nlpde):
-#    def setUp(self):
-#         self.domain = Brick(l0=1.,l1=1.,l2=1., n0=10, n1=10*getMPISizeWorld()-1, n2=10, d1=getMPISizeWorld()) 
-#    def tearDown(self):
-#         del self.domain
+
+class Test_OxleyNonLinearPDE2D_Mesh(Test_nlpde):
+   def setUp(self):
+        self.domain = test_Brick_Mesh(l0=1.,l1=1.,l2=1., n0=10, n1=10*getMPISizeWorld()-1, n2=10, d1=getMPISizeWorld()) 
+   def tearDown(self):
+        del self.domain
+
+class Test_OxleyNonLinearPDE2D_Point(Test_nlpde):
+   def setUp(self):
+        self.domain = test_Brick_Point(l0=1.,l1=1.,l2=1., n0=10, n1=10*getMPISizeWorld()-1, n2=10, d1=getMPISizeWorld()) 
+   def tearDown(self):
+        del self.domain
+
+class Test_OxleyNonLinearPDE2D_top_Boundary(Test_nlpde):
+   def setUp(self):
+        self.domain = test_Brick_top_Boundary(l0=1.,l1=1.,l2=1., n0=10, n1=10*getMPISizeWorld()-1, n2=10, d1=getMPISizeWorld()) 
+   def tearDown(self):
+        del self.domain
+
+class Test_OxleyNonLinearPDE2D_east_Boundary(Test_nlpde):
+   def setUp(self):
+        self.domain = test_Brick_east_Boundary(l0=1.,l1=1.,l2=1., n0=10, n1=10*getMPISizeWorld()-1, n2=10, d1=getMPISizeWorld()) 
+   def tearDown(self):
+        del self.domain
+
+class Test_OxleyNonLinearPDE2D_west_Boundary(Test_nlpde):
+   def setUp(self):
+        self.domain = test_Brick_west_Boundary(l0=1.,l1=1.,l2=1., n0=10, n1=10*getMPISizeWorld()-1, n2=10, d1=getMPISizeWorld()) 
+   def tearDown(self):
+        del self.domain
+
+class Test_OxleyNonLinearPDE2D_bottom_Boundary(Test_nlpde):
+   def setUp(self):
+        self.domain = test_Brick_bottom_Boundary(l0=1.,l1=1.,l2=1., n0=10, n1=10*getMPISizeWorld()-1, n2=10, d1=getMPISizeWorld()) 
+   def tearDown(self):
+        del self.domain
+
+
+class Test_OxleyNonLinearPDE2D_Region(Test_nlpde):
+   def setUp(self):
+        self.domain = test_Brick_Region(l0=1.,l1=1.,l2=1., n0=10, n1=10*getMPISizeWorld()-1, n2=10, d1=getMPISizeWorld()) 
+   def tearDown(self):
+        del self.domain
 
 if __name__ == '__main__':
    run_tests(__name__, exit_on_failure=True)

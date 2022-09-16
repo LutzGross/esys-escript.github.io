@@ -29,7 +29,6 @@ from test_util import Test_util
 from test_util import Test_Util_SpatialFunctions, Test_Util_SpatialFunctions_noGradOnBoundary_noContact
 from test_symfuncs import Test_symfuncs
 from esys.escript import *
-from esys.escriptcore.start import HAVE_SYMBOLS
 # from esys.oxley import MultiResolutionDomain
 from esys.oxley import Rectangle, Brick
 
@@ -270,15 +269,14 @@ class Test_Util_SpatialFunctionsOnOxley2D_refine_Region(Test_Util_SpatialFunctio
         del self.domain
 
 
-# TODO
-# @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
-# class Test_Util_SpatialFunctionsOnOxley3D(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
-#     def setUp(self):
-#         self.order=1
-#         self.domain = Brick(n0=NE*NXb-1, n1=NE*NYb-1, n2=NE*NZb-1, l0=1., l1=1., l2=1., d0=NXb, d1=NYb, d2=NZb)
-#     def tearDown(self):
-#         del self.order
-#         del self.domain
+@unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
+class Test_Util_SpatialFunctionsOnOxley3D(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
+    def setUp(self):
+        self.order=1
+        self.domain = Brick(n0=NE*NXb-1, n1=NE*NYb-1, n2=NE*NZb-1, l0=1., l1=1., l2=1., d0=NXb, d1=NYb, d2=NZb)
+    def tearDown(self):
+        del self.order
+        del self.domain
 
 if __name__ == '__main__':
     run_tests(__name__, exit_on_failure=True)

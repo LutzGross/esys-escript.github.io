@@ -122,9 +122,55 @@ def test_Rectangle_refine_Region(**kwargs):
     m.dump("region_boundary_mesh_ae.silo")
     return m
 
-# def Brick(**kwargs):
-#     m = MultiResolutionDomain(3, **kwargs)
-#     return m.getLevel(1)
+def test_Brick_refine_Mesh(**kwargs):
+    m = Brick(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineMesh("uniform")
+    m.dump("uniform_mesh_ae.silo")
+    return m
+
+def test_Brick_refine_Point(**kwargs):
+    m = Brick(**kwargs)
+    m.setRefinementLevel(1)
+    m.refinePoint(x0=0.55,y0=0.55)
+    m.dump("point_mesh_ae.silo")
+    return m
+
+def test_Brick_refine_top_Boundary(**kwargs):
+    m = Brick(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineBoundary(boundary="top",dx=DX)
+    m.dump("top_boundary_mesh_ae.silo")
+    return m
+
+def test_Brick_refine_east_Boundary(**kwargs):
+    m = Brick(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineBoundary(boundary="right",dx=DX)
+    m.dump("east_boundary_mesh_ae.silo")
+    return m
+
+def test_Brick_refine_west_Boundary(**kwargs):
+    m = Brick(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineBoundary(boundary="left",dx=DX)
+    m.dump("west_boundary_mesh_ae.silo")
+    return m
+
+def test_Brick_refine_bottom_Boundary(**kwargs):
+    m = Brick(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineBoundary(boundary="bottom",dx=DX)
+    m.dump("bottom_boundary_mesh_ae.silo")
+    return m
+
+def test_Brick_refine_Region(**kwargs):
+    m = Brick(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineRegion(x0=0.2,x1=0.6,y0=0.6,y1=0.8)
+    m.dump("region_boundary_mesh_ae.silo")
+    return m
+    return m
 
 # class Test_LinearPDEOnOxleyRect(Test_LinearPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping, Test_pdetools, Test_assemblage_2Do1, Test_TransportPDE):
 class Test_LinearPDEOnOxleyRect_Mesh(Test_LinearPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping, Test_pdetools, Test_assemblage_2Do1):
@@ -224,24 +270,111 @@ class Test_LinearPDEOnOxleyRect_Region(Test_LinearPDE, Test_LameEquation, Test_H
         self.order = 1
     def tearDown(self):
         del self.domain
-# TODO
-# @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
-# class Test_LinearPDEOnOxleyBrick(Test_LinearPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping, Test_pdetools, Test_assemblage_3Do1, Test_TransportPDE):
-#     RES_TOL=1.e-7
-#     ABS_TOL=1.e-8
-#     def setUp(self):
-#         for x in [(int(mpiSize**(1/3.)),int(mpiSize**(1/3.))),(2,3),(2,2),(1,2),(1,1)]:
-#             NX=x[0]
-#             NY=x[1]
-#             NZ=mpiSize//(x[0]*x[1])
-#             if NX*NY*NZ == mpiSize:
-#                 break
 
-#         self.domain = Brick(n0=NE0, n1=NE1, n2=NE*NZ-1, l0=1., l1=1., l2=1., d0=NX, d1=NY, d2=NZ)
-#         self.order = 1
+class Test_LinearPDEOnOxleyBrick_Mesh(Test_LinearPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping, Test_pdetools, Test_assemblage_2Do1):
+    RES_TOL=1.e-7
+    ABS_TOL=1.e-8
+    def setUp(self):
+        for x in [int(sqrt(mpiSize)),2,3,5,7,1]:
+            NX=x
+            NY=mpiSize//x
+            NZ=x
+            if NX*NY == mpiSize:
+                break
+        self.domain=test_Brick_refine_Mesh(n0=NE0, n1=NE1, n2=NE2, l0=1., l1=1., l2=1., d0=NX, d1=NY, d2=NZ)
+        self.order = 1
+    def tearDown(self):
+        del self.domain
 
-#     def tearDown(self):
-#         del self.domain
+class Test_LinearPDEOnOxleyRBrickPoint(Test_LinearPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping, Test_pdetools, Test_assemblage_2Do1):
+    RES_TOL=1.e-7
+    ABS_TOL=1.e-8
+    def setUp(self):
+        for x in [int(sqrt(mpiSize)),2,3,5,7,1]:
+            NX=x
+            NY=mpiSize//x
+            NZ=x
+            if NX*NY == mpiSize:
+                break
+        self.domain=test_Brick_refine_Point(n0=NE0, n1=NE1, n2=NE2, l0=1., l1=1., l2=1., d0=NX, d1=NY, d2=NZ)
+        self.order = 1
+    def tearDown(self):
+        del self.domain
+
+class Test_LinearPDEOnOxleyRect_topBrickndary(Test_LinearPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping, Test_pdetools, Test_assemblage_2Do1):
+    RES_TOL=1.e-7
+    ABS_TOL=1.e-8
+    def setUp(self):
+        for x in [int(sqrt(mpiSize)),2,3,5,7,1]:
+            NX=x
+            NY=mpiSize//x
+            NZ=x
+            if NX*NY == mpiSize:
+                break
+        self.domain=test_Brick_refine_top_Boundary(n0=NE0, n1=NE1, n2=NE2, l0=10., l1=10., l2=1., d0=NX, d1=NY, d2=NZ)
+        self.order = 1
+    def tearDown(self):
+        del self.domain
+
+class Test_LinearPDEOnOxleyRect_eastBrickndary(Test_LinearPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping, Test_pdetools, Test_assemblage_2Do1):
+    RES_TOL=1.e-7
+    ABS_TOL=1.e-8
+    def setUp(self):
+        for x in [int(sqrt(mpiSize)),2,3,5,7,1]:
+            NX=x
+            NY=mpiSize//x
+            NZ=x
+            if NX*NY == mpiSize:
+                break
+        self.domain=test_Brick_refine_east_Boundary(n0=NE0, n1=NE1, n2=NE2, l0=10., l1=10., l2=1., d0=NX, d1=NY, d2=NZ)
+        self.order = 1
+    def tearDown(self):
+        del self.domain
+
+class Test_LinearPDEOnOxleyRect_westBrickndary(Test_LinearPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping, Test_pdetools, Test_assemblage_2Do1):
+    RES_TOL=1.e-7
+    ABS_TOL=1.e-8
+    def setUp(self):
+        for x in [int(sqrt(mpiSize)),2,3,5,7,1]:
+            NX=x
+            NY=mpiSize//x
+            NZ=x
+            if NX*NY == mpiSize:
+                break
+        self.domain=test_Brick_refine_west_Boundary(n0=NE0, n1=NE1, n2=NE2, l0=10., l1=10., l2=1., d0=NX, d1=NY, d2=NZ)
+        self.order = 1
+    def tearDown(self):
+        del self.domain
+
+class Test_LinearPDEOnOxleyRect_bottomBrickndary(Test_LinearPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping, Test_pdetools, Test_assemblage_2Do1):
+    RES_TOL=1.e-7
+    ABS_TOL=1.e-8
+    def setUp(self):
+        for x in [int(sqrt(mpiSize)),2,3,5,7,1]:
+            NX=x
+            NY=mpiSize//x
+            NZ=x
+            if NX*NY == mpiSize:
+                break
+        self.domain=test_Brick_refine_bottom_Boundary(n0=NE0, n1=NE1, n2=NE2, l0=10., l1=10., l2=1., d0=NX, d1=NY, d2=NZ)
+        self.order = 1
+    def tearDown(self):
+        del self.domain
+
+class Test_LinearPDEOnOxleyReBrickegion(Test_LinearPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping, Test_pdetools, Test_assemblage_2Do1):
+    RES_TOL=1.e-7
+    ABS_TOL=1.e-8
+    def setUp(self):
+        for x in [int(sqrt(mpiSize)),2,3,5,7,1]:
+            NX=x
+            NY=mpiSize//x
+            NZ=x
+            if NX*NY == mpiSize:
+                break
+        self.domain=test_Brick_refine_Region(n0=NE0, n1=NE1, n2=NE2, l0=1., l1=1., l2=1., d0=NX, d1=NY, d2=NZ)
+        self.order = 1
+    def tearDown(self):
+        del self.domain
 
 class Test_PoissonOnOxley_Mesh(Test_Poisson):
     RES_TOL=1.e-7
@@ -331,6 +464,104 @@ class Test_PoissonOnOxley_Region(Test_Poisson):
             if NX*NY == mpiSize:
                 break
         self.domain=test_Rectangle_refine_Region(n0=NE0, n1=NE1, l0=1., l1=1., d0=NX, d1=NY)
+    def tearDown(self):
+        del self.domain
+
+class Test_PoissonOnOxleyBrick_Mesh(Test_Poisson):
+    RES_TOL=1.e-7
+    ABS_TOL=1.e-8
+    def setUp(self):
+        for x in [int(sqrt(mpiSize)),2,3,5,7,1]:
+            NX=x
+            NY=mpiSize//x
+            NZ=x
+            if NX*NY == mpiSize:
+                break
+        self.domain=test_Brick_refine_Mesh(n0=NE0, n1=NE1, n2=NE2, l0=1., l1=1., l2=1., d0=NX, d1=NY, d2=NZ)
+    def tearDown(self):
+        del self.domain
+
+class Test_PoissonOnOxleyBrick_Point(Test_Poisson):
+    RES_TOL=1.e-7
+    ABS_TOL=1.e-8
+    def setUp(self):
+        for x in [int(sqrt(mpiSize)),2,3,5,7,1]:
+            NX=x
+            NY=mpiSize//x
+            NZ=x
+            if NX*NY == mpiSize:
+                break
+        self.domain=test_Brick_refine_Point(n0=NE0, n1=NE1, n2=NE2, l0=1., l1=1., l2=1., d0=NX, d1=NY, d2=NZ)
+    def tearDown(self):
+        del self.domain
+
+class Test_PoissonOnOxleyBrick_top_Boundary(Test_Poisson):
+    RES_TOL=1.e-7
+    ABS_TOL=1.e-8
+    def setUp(self):
+        for x in [int(sqrt(mpiSize)),2,3,5,7,1]:
+            NX=x
+            NY=mpiSize//x
+            NZ=x
+            if NX*NY == mpiSize:
+                break
+        self.domain=test_Brick_refine_top_Boundary(n0=NE0, n1=NE1, n2=NE2, l0=1., l1=1., l2=1., d0=NX, d1=NY, d2=NZ)
+    def tearDown(self):
+        del self.domain
+
+class Test_PoissonOnOxleyBrick_east_Boundary(Test_Poisson):
+    RES_TOL=1.e-7
+    ABS_TOL=1.e-8
+    def setUp(self):
+        for x in [int(sqrt(mpiSize)),2,3,5,7,1]:
+            NX=x
+            NY=mpiSize//x
+            NZ=x
+            if NX*NY == mpiSize:
+                break
+        self.domain=test_Brick_refine_east_Boundary(n0=NE0, n1=NE1, n2=NE2, l0=1., l1=1., l2=1., d0=NX, d1=NY, d2=NZ)
+    def tearDown(self):
+        del self.domain
+
+class Test_PoissonOnOxleyBrick_west_Boundary(Test_Poisson):
+    RES_TOL=1.e-7
+    ABS_TOL=1.e-8
+    def setUp(self):
+        for x in [int(sqrt(mpiSize)),2,3,5,7,1]:
+            NX=x
+            NY=mpiSize//x
+            NZ=x
+            if NX*NY == mpiSize:
+                break
+        self.domain=test_Brick_refine_west_Boundary(n0=NE0, n1=NE1, n2=NE2, l0=1., l1=1., l2=1., d0=NX, d1=NY, d2=NZ)
+    def tearDown(self):
+        del self.domain
+
+class Test_PoissonOnOxleyBrick_bottom_Boundary(Test_Poisson):
+    RES_TOL=1.e-7
+    ABS_TOL=1.e-8
+    def setUp(self):
+        for x in [int(sqrt(mpiSize)),2,3,5,7,1]:
+            NX=x
+            NY=mpiSize//x
+            NZ=x
+            if NX*NY == mpiSize:
+                break
+        self.domain=test_Brick_refine_bottom_Boundary(n0=NE0, n1=NE1, n2=NE2, l0=1., l1=1., l2=1., d0=NX, d1=NY, d2=NZ)
+    def tearDown(self):
+        del self.domain
+
+class Test_PoissonOnOxleyBrick_Region(Test_Poisson):
+    RES_TOL=1.e-7
+    ABS_TOL=1.e-8
+    def setUp(self):
+        for x in [int(sqrt(mpiSize)),2,3,5,7,1]:
+            NX=x
+            NY=mpiSize//x
+            NZ=x
+            if NX*NY == mpiSize:
+                break
+        self.domain=test_Brick_refine_Region(n0=NE0, n1=NE1, n2=NE2, l0=1., l1=1., l2=1., d0=NX, d1=NY, d2=NZ)
     def tearDown(self):
         del self.domain
 

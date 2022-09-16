@@ -82,9 +82,55 @@ def test_Rectangle_refine_Region(**kwargs):
     m.refineRegion(x0=0.2,x1=0.2,y0=0.6,y1=0.8)
     return m
 
-# def Brick(**kwargs):
-#     m = MultiResolutionDomain(3, **kwargs)
-#     return m.getLevel(1)
+def test_Brick_refine_Mesh(**kwargs):
+    m = Brick(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineMesh("uniform")
+    m.dump("uniform_mesh_ae.silo")
+    return m
+
+def test_Brick_refine_Point(**kwargs):
+    m = Brick(**kwargs)
+    m.setRefinementLevel(1)
+    m.refinePoint(x0=0.55,y0=0.55)
+    m.dump("point_mesh_ae.silo")
+    return m
+
+def test_Brick_refine_top_Boundary(**kwargs):
+    m = Brick(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineBoundary(boundary="top",dx=DX)
+    m.dump("top_boundary_mesh_ae.silo")
+    return m
+
+def test_Brick_refine_east_Boundary(**kwargs):
+    m = Brick(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineBoundary(boundary="right",dx=DX)
+    m.dump("east_boundary_mesh_ae.silo")
+    return m
+
+def test_Brick_refine_west_Boundary(**kwargs):
+    m = Brick(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineBoundary(boundary="left",dx=DX)
+    m.dump("west_boundary_mesh_ae.silo")
+    return m
+
+def test_Brick_refine_bottom_Boundary(**kwargs):
+    m = Brick(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineBoundary(boundary="bottom",dx=DX)
+    m.dump("bottom_boundary_mesh_ae.silo")
+    return m
+
+def test_Brick_refine_Region(**kwargs):
+    m = Brick(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineRegion(x0=0.2,x1=0.6,y0=0.6,y1=0.8)
+    m.dump("region_boundary_mesh_ae.silo")
+    return m
+    return m
 
 @unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
 class SimpleSolveOnMumps(SimpleSolveTestCase):
@@ -181,30 +227,98 @@ class Test_SimpleSolveMultires2D_Mumps_BICGSTAB_Jacobi_Point(SimpleSolveOnMumps)
 
     def tearDown(self):
         del self.domain                
+
 ## direct
-# @unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
-# @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
-# class Test_SimpleSolveMultires3D_Mumps_Direct(SimpleSolveOnMumps):
-#     def setUp(self):
-#         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-#         self.package = SolverOptions.MUMPS
-#         self.method = SolverOptions.DIRECT
+@unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
+class Test_SimpleSolveMultires2D_Mumps_Direct_Mesh(SimpleSolveOnMumps):
+    def setUp(self):
+        self.domain = test_Brick_refine_Mesh(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.package = SolverOptions.MUMPS
+        self.method = SolverOptions.DIRECT
 
-#     def tearDown(self):
-#         del self.domain
+    def tearDown(self):
+        del self.domain
 
-# ## direct
-# @unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
-# @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
-# class Test_SimpleSolveMultires3D_Mumps_BICGSTAB_Jacobi(SimpleSolveOnMumps):
-#     def setUp(self):
-#         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-#         self.package = SolverOptions.MUMPS
-#         self.method = SolverOptions.BICGSTAB
-#         self.preconditioner = SolverOptions.JACOBI
+### BiCGStab + Jacobi
+@unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
+class Test_SimpleSolveMultires2D_Mumps_BICGSTAB_Jacobi_Mesh(SimpleSolveOnMumps):
+    def setUp(self):
+        self.domain = test_Brick_refine_Mesh(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.package = SolverOptions.MUMPS
+        self.method = SolverOptions.BICGSTAB
+        self.preconditioner = SolverOptions.JACOBI
 
-#     def tearDown(self):
-#         del self.domain
+    def tearDown(self):
+        del self.domain
+
+## direct
+@unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
+class Test_SimpleSolveMultires2D_Mumps_Direct_Region(SimpleSolveOnMumps):
+    def setUp(self):
+        self.domain = test_Brick_refine_Region(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.package = SolverOptions.MUMPS
+        self.method = SolverOptions.DIRECT
+
+    def tearDown(self):
+        del self.domain
+
+### BiCGStab + Jacobi
+@unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
+class Test_SimpleSolveMultires2D_Mumps_BICGSTAB_Jacobi_Region(SimpleSolveOnMumps):
+    def setUp(self):
+        self.domain = test_Brick_refine_Region(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.package = SolverOptions.MUMPS
+        self.method = SolverOptions.BICGSTAB
+        self.preconditioner = SolverOptions.JACOBI
+
+    def tearDown(self):
+        del self.domain
+
+## direct
+@unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
+class Test_SimpleSolveMultires2D_Mumps_Direct_Boundary(SimpleSolveOnMumps):
+    def setUp(self):
+        self.domain = test_Brick_refine_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.package = SolverOptions.MUMPS
+        self.method = SolverOptions.DIRECT
+
+    def tearDown(self):
+        del self.domain
+
+### BiCGStab + Jacobi
+@unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
+class Test_SimpleSolveMultires2D_Mumps_BICGSTAB_Jacobi_Boundary(SimpleSolveOnMumps):
+    def setUp(self):
+        self.domain = test_Brick_refine_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.package = SolverOptions.MUMPS
+        self.method = SolverOptions.BICGSTAB
+        self.preconditioner = SolverOptions.JACOBI
+
+    def tearDown(self):
+        del self.domain
+
+## direct
+@unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
+class Test_SimpleSolveMultires2D_Mumps_Direct_Point(SimpleSolveOnMumps):
+    def setUp(self):
+        self.domain = test_Brick_refine_Point(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.package = SolverOptions.MUMPS
+        self.method = SolverOptions.DIRECT
+
+    def tearDown(self):
+        del self.domain
+
+### BiCGStab + Jacobi
+@unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
+class Test_SimpleSolveMultires2D_Mumps_BICGSTAB_Jacobi_Point(SimpleSolveOnMumps):
+    def setUp(self):
+        self.domain = test_Brick_refine_Point(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.package = SolverOptions.MUMPS
+        self.method = SolverOptions.BICGSTAB
+        self.preconditioner = SolverOptions.JACOBI
+
+    def tearDown(self):
+        del self.domain  
 
 ### PCG + Jacobi
 @unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
@@ -218,17 +332,16 @@ class Test_SimpleSolveMultires2D_Mumps_PCG_Jacobi(SimpleSolveOnMumps):
     def tearDown(self):
         del self.domain
 
-# @unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
-# @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
-# class Test_SimpleSolveMultires3D_Mumps_PCG_Jacobi(SimpleSolveOnMumps):
-#     def setUp(self):
-#         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-#         self.package = SolverOptions.MUMPS
-#         self.method = SolverOptions.PCG
-#         self.preconditioner = SolverOptions.JACOBI
+@unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
+class Test_SimpleSolveMultires2D_Mumps_PCG_Jacobi(SimpleSolveOnMumps):
+    def setUp(self):
+        self.domain = test_Brick(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.package = SolverOptions.MUMPS
+        self.method = SolverOptions.PCG
+        self.preconditioner = SolverOptions.JACOBI
 
-#     def tearDown(self):
-#         del self.domain
+    def tearDown(self):
+        del self.domain
 
 ### TFQMR + Jacobi
 @unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
@@ -242,17 +355,16 @@ class Test_SimpleSolveMultires2D_Mumps_TFQMR_Jacobi(SimpleSolveOnMumps):
     def tearDown(self):
         del self.domain
 
-# @unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
-# @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
-# class Test_SimpleSolveMultires3D_Mumps_TFQMR_Jacobi(SimpleSolveOnMumps):
-#     def setUp(self):
-#         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-#         self.package = SolverOptions.MUMPS
-#         self.method = SolverOptions.TFQMR
-#         self.preconditioner = SolverOptions.JACOBI
+@unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
+class Test_SimpleSolveMultires2D_Mumps_TFQMR_Jacobi(SimpleSolveOnMumps):
+    def setUp(self):
+        self.domain = test_Brick(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.package = SolverOptions.MUMPS
+        self.method = SolverOptions.TFQMR
+        self.preconditioner = SolverOptions.JACOBI
 
-#     def tearDown(self):
-#         del self.domain
+    def tearDown(self):
+        del self.domain
 
 ### MINRES + Jacobi
 @unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
@@ -266,17 +378,16 @@ class Test_SimpleSolveMultires2D_Mumps_MINRES_Jacobi(SimpleSolveOnMumps):
     def tearDown(self):
         del self.domain
 
-# @unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
-# @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
-# class Test_SimpleSolveMultires3D_Mumps_MINRES_Jacobi(SimpleSolveOnMumps):
-#     def setUp(self):
-#         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-#         self.package = SolverOptions.MUMPS
-#         self.method = SolverOptions.MINRES
-#         self.preconditioner = SolverOptions.JACOBI
+@unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
+class Test_SimpleSolveMultires2D_Mumps_MINRES_Jacobi(SimpleSolveOnMumps):
+    def setUp(self):
+        self.domain = test_Brick(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.package = SolverOptions.MUMPS
+        self.method = SolverOptions.MINRES
+        self.preconditioner = SolverOptions.JACOBI
 
-#     def tearDown(self):
-#         del self.domain
+    def tearDown(self):
+        del self.domain
 
 ### BiCGStab + Gauss-Seidel
 @unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
@@ -290,17 +401,16 @@ class Test_SimpleSolveMultires2D_Mumps_BICGSTAB_GaussSeidel(SimpleSolveOnMumps):
     def tearDown(self):
         del self.domain
 
-# @unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
-# @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
-# class Test_SimpleSolveMultires3D_Mumps_BICGSTAB_GaussSeidel(SimpleSolveOnMumps):
-#     def setUp(self):
-#         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-#         self.package = SolverOptions.MUMPS
-#         self.method = SolverOptions.BICGSTAB
-#         self.preconditioner = SolverOptions.GAUSS_SEIDEL
+@unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
+class Test_SimpleSolveMultires2D_Mumps_BICGSTAB_GaussSeidel(SimpleSolveOnMumps):
+    def setUp(self):
+        self.domain = test_Brick(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.package = SolverOptions.MUMPS
+        self.method = SolverOptions.BICGSTAB
+        self.preconditioner = SolverOptions.GAUSS_SEIDEL
 
-#     def tearDown(self):
-#         del self.domain
+    def tearDown(self):
+        del self.domain
 
 ### PCG + AMG
 @unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
@@ -316,19 +426,18 @@ class Test_SimpleSolveMultires2D_Mumps_PCG_AMG(SimpleSolveOnMumps):
     def tearDown(self):
         del self.domain
 
-# @unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
-# @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
-# @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
-# @unittest.skipIf(skip_amg, "AMG not available")
-# class Test_SimpleSolveMultires3D_Mumps_PCG_AMG(SimpleSolveOnMumps):
-#     def setUp(self):
-#         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-#         self.package = SolverOptions.MUMPS
-#         self.method = SolverOptions.PCG
-#         self.preconditioner = SolverOptions.AMG
+@unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
+@unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
+@unittest.skipIf(skip_amg, "AMG not available")
+class Test_SimpleSolveMultires2D_Mumps_PCG_AMG(SimpleSolveOnMumps):
+    def setUp(self):
+        self.domain = test_Brick(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.package = SolverOptions.MUMPS
+        self.method = SolverOptions.PCG
+        self.preconditioner = SolverOptions.AMG
 
-#     def tearDown(self):
-#         del self.domain
+    def tearDown(self):
+        del self.domain
 
 ### TFQMR + Gauss-Seidel
 @unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
@@ -342,17 +451,16 @@ class Test_SimpleSolveMultires2D_Mumps_TFQMR_GaussSeidel(SimpleSolveOnMumps):
     def tearDown(self):
         del self.domain
 
-# @unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
-# @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
-# class Test_SimpleSolveMultires3D_Mumps_TFQMR_GaussSeidel(SimpleSolveOnMumps):
-#     def setUp(self):
-#         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-#         self.package = SolverOptions.MUMPS
-#         self.method = SolverOptions.TFQMR
-#         self.preconditioner = SolverOptions.GAUSS_SEIDEL
+@unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
+class Test_SimpleSolveMultires2D_Mumps_TFQMR_GaussSeidel(SimpleSolveOnMumps):
+    def setUp(self):
+        self.domain = test_Brick(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.package = SolverOptions.MUMPS
+        self.method = SolverOptions.TFQMR
+        self.preconditioner = SolverOptions.GAUSS_SEIDEL
 
-#     def tearDown(self):
-#         del self.domain
+    def tearDown(self):
+        del self.domain
 
 ### MINRES + AMG
 @unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
@@ -368,19 +476,19 @@ class Test_SimpleSolveMultires2D_Mumps_MINRES_AMG(SimpleSolveOnMumps):
     def tearDown(self):
         del self.domain
 
-# @unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
-# @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
-# @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
-# @unittest.skipIf(skip_amg, "AMG not available")
-# class Test_SimpleSolveMultires3D_Mumps_MINRES_AMG(SimpleSolveOnMumps):
-#     def setUp(self):
-#         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-#         self.package = SolverOptions.MUMPS
-#         self.method = SolverOptions.MINRES
-#         self.preconditioner = SolverOptions.AMG
+@unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
+@unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
+@unittest.skipIf(skip_amg, "AMG not available")
+class Test_SimpleSolveMultires2D_Mumps_MINRES_AMG(SimpleSolveOnMumps):
+    def setUp(self):
+        self.domain = test_Brick(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.package = SolverOptions.MUMPS
+        self.method = SolverOptions.MINRES
+        self.preconditioner = SolverOptions.AMG
 
-#     def tearDown(self):
-#         del self.domain
+    def tearDown(self):
+        del self.domain
+
 
 ### BiCGStab + RILU
 @unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
@@ -394,17 +502,16 @@ class Test_SimpleSolveMultires2D_Mumps_BICGSTAB_RILU(SimpleSolveOnMumps):
     def tearDown(self):
         del self.domain
 
-# @unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
-# @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
-# class Test_SimpleSolveMultires3D_Mumps_BICGSTAB_RILU(SimpleSolveOnMumps):
-#     def setUp(self):
-#         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-#         self.package = SolverOptions.MUMPS
-#         self.method = SolverOptions.BICGSTAB
-#         self.preconditioner = SolverOptions.RILU
+@unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
+class Test_SimpleSolveMultires2D_Mumps_BICGSTAB_RILU(SimpleSolveOnMumps):
+    def setUp(self):
+        self.domain = test_Brick(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.package = SolverOptions.MUMPS
+        self.method = SolverOptions.BICGSTAB
+        self.preconditioner = SolverOptions.RILU
 
-#     def tearDown(self):
-#         del self.domain
+    def tearDown(self):
+        del self.domain
 
 ### PCG + RILU
 @unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
@@ -418,17 +525,16 @@ class Test_SimpleSolveMultires2D_Mumps_PCG_RILU(SimpleSolveOnMumps):
     def tearDown(self):
         del self.domain
 
-# @unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
-# @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
-# class Test_SimpleSolveMultires3D_Mumps_PCG_RILU(SimpleSolveOnMumps):
-#     def setUp(self):
-#         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-#         self.package = SolverOptions.MUMPS
-#         self.method = SolverOptions.PCG
-#         self.preconditioner = SolverOptions.RILU
+@unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
+class Test_SimpleSolveMultires2D_Mumps_PCG_RILU(SimpleSolveOnMumps):
+    def setUp(self):
+        self.domain = test_Brick(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.package = SolverOptions.MUMPS
+        self.method = SolverOptions.PCG
+        self.preconditioner = SolverOptions.RILU
 
-#     def tearDown(self):
-#         del self.domain
+    def tearDown(self):
+        del self.domain
 
 ### TFQMR + RILU
 @unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
@@ -442,17 +548,16 @@ class Test_SimpleSolveMultires2D_Mumps_TFQMR_RILU(SimpleSolveOnMumps):
     def tearDown(self):
         del self.domain
 
-# @unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
-# @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
-# class Test_SimpleSolveMultires3D_Mumps_TFQMR_RILU(SimpleSolveOnMumps):
-#     def setUp(self):
-#         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-#         self.package = SolverOptions.MUMPS
-#         self.method = SolverOptions.TFQMR
-#         self.preconditioner = SolverOptions.RILU
+@unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
+class Test_SimpleSolveMultires2D_Mumps_TFQMR_RILU(SimpleSolveOnMumps):
+    def setUp(self):
+        self.domain = test_Brick(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.package = SolverOptions.MUMPS
+        self.method = SolverOptions.TFQMR
+        self.preconditioner = SolverOptions.RILU
 
-#     def tearDown(self):
-#         del self.domain
+    def tearDown(self):
+        del self.domain
 
 ### MINRES + RILU
 @unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
@@ -466,17 +571,16 @@ class Test_SimpleSolveMultires2D_Mumps_MINRES_RILU(SimpleSolveOnMumps):
     def tearDown(self):
         del self.domain
 
-# @unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
-# @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
-# class Test_SimpleSolveMultires3D_Mumps_MINRES_RILU(SimpleSolveOnMumps):
-#     def setUp(self):
-#         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-#         self.package = SolverOptions.MUMPS
-#         self.method = SolverOptions.MINRES
-#         self.preconditioner = SolverOptions.RILU
+@unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
+class Test_SimpleSolveMultires2D_Mumps_MINRES_RILU(SimpleSolveOnMumps):
+    def setUp(self):
+        self.domain = test_Brick(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.package = SolverOptions.MUMPS
+        self.method = SolverOptions.MINRES
+        self.preconditioner = SolverOptions.RILU
 
-#     def tearDown(self):
-#         del self.domain
+    def tearDown(self):
+        del self.domainn
 
 ### PCG + ILUT
 @unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
@@ -490,17 +594,16 @@ class Test_SimpleSolveMultires2D_Mumps_PCG_ILUT(SimpleSolveOnMumps):
     def tearDown(self):
         del self.domain
 
-# @unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
-# @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
-# class Test_SimpleSolveMultires3D_Mumps_PCG_ILUT(SimpleSolveOnMumps):
-#     def setUp(self):
-#         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-#         self.package = SolverOptions.MUMPS
-#         self.method = SolverOptions.PCG
-#         self.preconditioner = SolverOptions.ILUT
+@unittest.skipIf(not HAVE_MUMPS, "MUMPS not available")
+class Test_SimpleSolveMultires2D_Mumps_PCG_ILUT(SimpleSolveOnMumps):
+    def setUp(self):
+        self.domain = test_Brick(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.package = SolverOptions.MUMPS
+        self.method = SolverOptions.PCG
+        self.preconditioner = SolverOptions.ILUT
 
-#     def tearDown(self):
-#         del self.domain
+    def tearDown(self):
+        del self.domain
 
 
 if __name__ == '__main__':

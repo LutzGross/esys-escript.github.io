@@ -330,12 +330,12 @@ class Test_OxleyLameAssemblers2D(OxleyLameAssemblerTestBase):
     def tearDown(self):
         del self.domain
 
-# class Test_OxleyLameAssemblers3D(OxleyLameAssemblerTestBase):
-#     def setUp(self):
-#         self.domain = Brick(10,10,10)
+class Test_OxleyLameAssemblers3D(OxleyLameAssemblerTestBase):
+    def setUp(self):
+        self.domain = Brick(10,10,10)
 
-#     def tearDown(self):
-#         del self.domain
+    def tearDown(self):
+        del self.domain
 
 
 if __name__ == '__main__':

@@ -1645,6 +1645,7 @@ void Brick::renumberNodes()
             quadrantInfo.push_back(tmp);
         }
     }
+    
 
     //update hanging face information
     // is_hanging_face.clear();

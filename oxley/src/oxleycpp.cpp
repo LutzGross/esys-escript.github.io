@@ -120,13 +120,14 @@ escript::Domain_ptr _rectangle(double _n0, double _n1,
 }
 
 
-escript::Domain_ptr _brick(int order, double _n0, double _n1, double _n2,
+escript::Domain_ptr _brick(double _n0, double _n1, double _n2,
                         const object& l0, const object& l1, const object& l2,
                         int d0, int d1, int d2,
                         const object& objpoints, const object& objtags,
                         int periodic0, int periodic1, int periodic2)
 {
     // Integration Order
+    int order=2;
     if (order < 2 || order > 10)
         throw OxleyException("Order must be in the range 2 to 10");
 
@@ -361,7 +362,7 @@ BOOST_PYTHON_MODULE(oxleycpp)
     ":param d0: number of subdivisions in direction 0\n:type d0: ``int``\n"
     ":param d1: number of subdivisions in direction 1\n:type d1: ``int``");
 
-    def("Brick", oxley::_brick, (arg("order"),
+    def("Brick", oxley::_brick, (
     arg("n0"),arg("n1"),arg("n2"),
     arg("l0")=1.0,arg("l1")=1.0,arg("l2")=1.0,
     arg("d0")=-1,arg("d1")=-1,arg("d2")=-1,

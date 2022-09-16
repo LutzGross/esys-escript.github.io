@@ -50,10 +50,11 @@ def test_Rectangle(**kwargs):
     m.refineMesh("uniform")
     return m
 
-# def Brick(**kwargs):
-#     m = MultiResolutionDomain(3, **kwargs)
-#     return m.getLevel(1)
-
+def test_Brick(**kwargs):
+    m = Brick(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineMesh("uniform")
+    return m
 
 try:
      OXLEY_WORKDIR=os.environ['OXLEY_WORKDIR']
@@ -112,21 +113,20 @@ class Test_DataOpsOnMultiOxley(Test_DataOpsOnOxley):
         del self.mainfs
         del self.otherfs
 
-# TODO 
-# @unittest.skipIf(mpiSize > 1, "Multiresolution domains require single process")
-# class Test_TableInterpolationOnMultiOxley(Test_TableInterpolationOnOxley):
-#     def setUp(self):
-#         self.domain = Brick(n0=NE*NXb-1, n1=NE*NYb-1, n2=NE*NZb-1, l0=1., l1=1., l2=1., d0=NXb, d1=NYb, d2=NZb)
-#         self.functionspaces=[ContinuousFunction(self.domain), Function(self.domain), ReducedFunction(self.domain),
-#             FunctionOnBoundary(self.domain), ReducedFunctionOnBoundary(self.domain)]
-#         #We aren't testing DiracDeltaFunctions
-#         self.xn=5 # number of grids on x axis
-#         self.yn=5 # number of grids on y axis
-#         self.zn=5
+@unittest.skipIf(mpiSize > 1, "Multiresolution domains require single process")
+class Test_TableInterpolationOnMultiOxley(Test_TableInterpolationOnOxley):
+    def setUp(self):
+        self.domain = test_Brick(n0=NE*NXb-1, n1=NE*NYb-1, n2=NE*NZb-1, l0=1., l1=1., l2=1., d0=NXb, d1=NYb, d2=NZb)
+        self.functionspaces=[ContinuousFunction(self.domain), Function(self.domain), ReducedFunction(self.domain),
+            FunctionOnBoundary(self.domain), ReducedFunctionOnBoundary(self.domain)]
+        #We aren't testing DiracDeltaFunctions
+        self.xn=5 # number of grids on x axis
+        self.yn=5 # number of grids on y axis
+        self.zn=5
 
-#     def tearDown(self):
-#         del self.domain
-#         del self.functionspaces
+    def tearDown(self):
+        del self.domain
+        del self.functionspaces
 
 class Test_CSVOnMultiOxley(Test_CSVOnOxley):
     def setUp(self):
@@ -164,16 +164,15 @@ class Test_randomOnMultiOxley(unittest.TestCase):
         self.assertRaises(ValueError, RandomData, (), fs, 0, ("gaussian",11,0.1)) #radius too large
         RandomData((2,3),fs)
 
-    # TODO
-    # @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
-    # def test_FillBrick(self):
-    #     # If we are going to do really big tests of this, the size of this brick will need to be reduced
-    #     fs=ContinuousFunction(Brick(n0=5*mpiSize, n1=5*mpiSize, n2=5*mpiSize))
-    #     RandomData((), fs, 2,("gaussian",1,0.5))
-    #     RandomData((), fs, 0,("gaussian",2,0.76))
-    #     self.assertRaises(NotImplementedError, RandomData, (2,2), fs, 0, ("gaussian",2,0.76)) #data not scalar
-    #     self.assertRaises(ValueError, RandomData, (), fs, 0, ("gaussian",11,0.1)) #radius too large
-    #     RandomData((2,3),fs)
+    @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
+    def test_FillBrick(self):
+        # If we are going to do really big tests of this, the size of this brick will need to be reduced
+        fs=ContinuousFunction(test_Brick(n0=5*mpiSize, n1=5*mpiSize, n2=5*mpiSize))
+        RandomData((), fs, 2,("gaussian",1,0.5))
+        RandomData((), fs, 0,("gaussian",2,0.76))
+        self.assertRaises(NotImplementedError, RandomData, (2,2), fs, 0, ("gaussian",2,0.76)) #data not scalar
+        self.assertRaises(ValueError, RandomData, (), fs, 0, ("gaussian",11,0.1)) #radius too large
+        RandomData((2,3),fs)
 
 # class Test_multiResolution(unittest.TestCase):
     # TODO

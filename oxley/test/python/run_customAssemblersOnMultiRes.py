@@ -103,11 +103,55 @@ def test_Rectangle_refine_Region(**kwargs):
     m.dump("region_boundary_mesh_ae.silo")
     return m
 
+def test_Brick_refine_Mesh(**kwargs):
+    m = Brick(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineMesh("uniform")
+    m.dump("uniform_mesh_ae.silo")
+    return m
 
-# def Brick(**kwargs):
-#     m = Brick(n0=10,n1=10,n2=10,l0=10,l1=10,l2=10)
-#     m.refineRegion(x0=3,x1=7,x2=7,y0=4,y1=8,y2=6)
-#     return m
+def test_Brick_refine_Point(**kwargs):
+    m = Brick(**kwargs)
+    m.setRefinementLevel(1)
+    m.refinePoint(x0=0.55,y0=0.55)
+    m.dump("point_mesh_ae.silo")
+    return m
+
+def test_Brick_refine_top_Boundary(**kwargs):
+    m = Brick(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineBoundary(boundary="top",dx=DX)
+    m.dump("top_boundary_mesh_ae.silo")
+    return m
+
+def test_Brick_refine_east_Boundary(**kwargs):
+    m = Brick(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineBoundary(boundary="right",dx=DX)
+    m.dump("east_boundary_mesh_ae.silo")
+    return m
+
+def test_Brick_refine_west_Boundary(**kwargs):
+    m = Brick(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineBoundary(boundary="left",dx=DX)
+    m.dump("west_boundary_mesh_ae.silo")
+    return m
+
+def test_Brick_refine_bottom_Boundary(**kwargs):
+    m = Brick(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineBoundary(boundary="bottom",dx=DX)
+    m.dump("bottom_boundary_mesh_ae.silo")
+    return m
+
+def test_Brick_refine_Region(**kwargs):
+    m = Brick(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineRegion(x0=0.2,x1=0.6,y0=0.6,y1=0.8)
+    m.dump("region_boundary_mesh_ae.silo")
+    return m
+    return m
 
 # TODO
 # class Test_OxleyWaveAssembler2D(OxleyWaveAssemblerTestBase):
@@ -177,14 +221,54 @@ class Test_OxleyLameAssemblers2D_Region(OxleyLameAssemblerTestBase):
     def tearDown(self):
         del self.domain
 
-# TODO
-# @unittest.skipIf(mpiSize > 1, "3D Multiresolution domains require single process")
-# class Test_OxleyLameAssemblers3D(OxleyLameAssemblerTestBase):
-#     def setUp(self):
-#         self.domain = Brick(n0=10,n1=10,n2=10)
+class Test_OxleyLameAssemblers3D_Mesh(OxleyLameAssemblerTestBase):
+    def setUp(self):
+        self.domain = test_Brick_refine_Mesh(n0=NE0, n1=NE1, n2=NE2)
 
-#     def tearDown(self):
-#         del self.domain
+    def tearDown(self):
+        del self.domain
+
+class Test_OxleyLameAssemblers3D_Point(OxleyLameAssemblerTestBase):
+    def setUp(self):
+        self.domain = test_Brick_refine_Point(n0=NE0, n1=NE1, n2=NE2)
+
+    def tearDown(self):
+        del self.domain
+
+class Test_OxleyLameAssemblers3D_top_Boundary(OxleyLameAssemblerTestBase):
+    def setUp(self):
+        self.domain = test_Brick_refine_top_Boundary(n0=NE0, n1=NE1,l0=10,l1=10, n2=NE2)
+
+    def tearDown(self):
+        del self.domain
+
+class Test_OxleyLameAssemblers3D_east_Boundary(OxleyLameAssemblerTestBase):
+    def setUp(self):
+        self.domain = test_Brick_refine_east_Boundary(n0=NE0, n1=NE1,l0=10,l1=10, n2=NE2)
+
+    def tearDown(self):
+        del self.domain
+
+class Test_OxleyLameAssemblers3D_west_Boundary(OxleyLameAssemblerTestBase):
+    def setUp(self):
+        self.domain = test_Brick_refine_west_Boundary(n0=NE0, n1=NE1,l0=10,l1=10, n2=NE2)
+
+    def tearDown(self):
+        del self.domain
+
+class Test_OxleyLameAssemblers3D_bottom_Boundary(OxleyLameAssemblerTestBase):
+    def setUp(self):
+        self.domain = test_Brick_refine_bottom_Boundary(n0=NE0, n1=NE1,l0=10,l1=10, n2=NE2)
+
+    def tearDown(self):
+        del self.domain
+
+class Test_OxleyLameAssemblers3D_Region(OxleyLameAssemblerTestBase):
+    def setUp(self):
+        self.domain = test_Brick_refine_Region(n0=NE0, n1=NE1, n2=NE2)
+
+    def tearDown(self):
+        del self.domain
 
 
 if __name__ == '__main__':

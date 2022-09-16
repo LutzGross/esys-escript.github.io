@@ -32,6 +32,8 @@ from test_symfuncs import Test_symfuncs
 from esys.escript import *
 from esys.oxley import Rectangle, Brick
 
+#TODO
+HAVE_SYMBOLS=False
 if HAVE_SYMBOLS:
     from test_symfuncs import Test_symfuncs
 else:
@@ -78,14 +80,13 @@ class Test_Util_SpatialFunctionsOnOxley2D(Test_Util_SpatialFunctions_noGradOnBou
         del self.order
         del self.domain
 
-# TODO
-# class Test_Util_SpatialFunctionsOnOxley3D(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
-#     def setUp(self):
-#         self.order=1
-#         self.domain = Brick(n0=NE*NXb-1, n1=NE*NYb-1, n2=NE*NZb-1, l0=1., l1=1., l2=1., d0=NXb, d1=NYb, d2=NZb)
-#     def tearDown(self):
-#         del self.order
-#         del self.domain
+class Test_Util_SpatialFunctionsOnOxley3D(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
+    def setUp(self):
+        self.order=1
+        self.domain = Brick(n0=NE*NXb-1, n1=NE*NYb-1, n2=NE*NZb-1, l0=1., l1=1., l2=1., d0=NXb, d1=NYb, d2=NZb)
+    def tearDown(self):
+        del self.order
+        del self.domain
 
 class Test_2D_Point_Data_Integration(Test_Util_Point_Data_Interpolation):
     def setUp(self):
@@ -95,14 +96,13 @@ class Test_2D_Point_Data_Integration(Test_Util_Point_Data_Interpolation):
     def tearDown(self):
         del self.domain
 
-# TODO
-# class Test_3D_Point_Data_Integration(Test_Util_Point_Data_Interpolation):
-#     def setUp(self):
-#         Stations = [ (0.,0.,0.), (1.,0,0.), (0,1,0.), (1,1,0.) ]
-#         StationsTags = ["A1", "A2", "A3", "A4" ]
-#         self.domain=Brick(n0=5,n1=5,n2=5,diracPoints=Stations,diracTags=StationsTags)
-#     def tearDown(self):
-#         del self.domain
+class Test_3D_Point_Data_Integration(Test_Util_Point_Data_Interpolation):
+    def setUp(self):
+        Stations = [ (0.,0.,0.), (1.,0,0.), (0,1,0.), (1,1,0.) ]
+        StationsTags = ["A1", "A2", "A3", "A4" ]
+        self.domain=Brick(n0=5,n1=5,n2=5,diracPoints=Stations,diracTags=StationsTags)
+    def tearDown(self):
+        del self.domain
 
 
 if __name__ == '__main__':
