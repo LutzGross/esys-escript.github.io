@@ -98,42 +98,6 @@ Brick::Brick(int order,
             throw OxleyException("Could not find values for d0, d1 and d2. Please set them manually.");
     }
 
-
-    //Create a connectivity
-    // const p8est_topidx_t num_vertices = 8;
-    // const p8est_topidx_t num_trees = 1;
-    // const p8est_topidx_t num_edges = 3;
-    // const p8est_topidx_t num_corners = 1;
-    // const double vertices[8 * 3] = {
-    //                                 x0, y0, z0,
-    //                                 x1, y0, z0,
-    //                                 x0, y1, z0,
-    //                                 x1, y1, z0,
-    //                                 x0, y0, z1,
-    //                                 x1, y0, z1,
-    //                                 x0, y1, z1,
-    //                                 x1, y1, z1,
-    //                                 };
-    // const p8est_topidx_t tree_to_vertex[8] = {0, 1, 2, 3, 4, 5, 6, 7,};
-    // const p8est_topidx_t tree_to_tree[6] = {0, 0, 0, 0, 0, 0,};
-    // // const int8_t tree_to_face[6] = {1, 0, 3, 2, 5, 4, };
-    // const int8_t tree_to_face[6] = {0, 1, 2, 3, 4, 5 };
-    // const p8est_topidx_t tree_to_edge[12] = {0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2,};
-    // const p8est_topidx_t ett_offset[4] = {0, 4, 8, 12,};
-    // const p8est_topidx_t edge_to_tree[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,};
-    // const int8_t edge_to_edge[12] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,};
-    // const p8est_topidx_t tree_to_corner[8] = {0, 0, 0, 0, 0, 0, 0, 0,};
-    // const p8est_topidx_t ctt_offset[2] = {0, 8,};
-    // const p8est_topidx_t corner_to_tree[8] = {0, 0, 0, 0, 0, 0, 0, 0,};
-    // const int8_t corner_to_corner[8] = {0, 1, 2, 3, 4, 5, 6, 7,};
-    // connectivity = p8est_connectivity_new_copy(num_vertices, num_trees, num_edges,
-    //                                   num_corners, vertices, tree_to_vertex,
-    //                                   tree_to_tree, tree_to_face,
-    //                                   tree_to_edge, ett_offset,
-    //                                   edge_to_tree, edge_to_edge,
-    //                                   tree_to_corner, ctt_offset,
-    //                                   corner_to_tree, corner_to_corner);
-
     connectivity = new_brick_connectivity(n0, n1, n2, 0, 0, 0, x0, x1, y0, y1, z0, z1);
 
 #ifdef OXLEY_ENABLE_DEBUG_CHECKS //These checks are turned off by default as they can be very timeconsuming
@@ -1482,19 +1446,19 @@ bool Brick::isHangingNode(p8est_lnodes_code_t face_code, int n) const
 
 bool Brick::getHangingNodes(p8est_lnodes_code_t face_code, int hanging_corner[P4EST_CHILDREN]) const
 {
-    static const int ones = P4EST_CHILDREN - 1;
+    static const int ones = P8EST_CHILDREN - 1;
 
 #pragma omp parallel for
-    for(int i =0;i<P4EST_CHILDREN;i++)
+    for(int i =0;i<P8EST_CHILDREN;i++)
         hanging_corner[i]=-1;
 
     if (face_code) {
         const int c = (int) (face_code & ones);
-        int work = (int) (face_code >> P4EST_DIM);
+        int work = (int) (face_code >> P8EST_DIM);
 
         /* These two corners are never hanging by construction. */
         hanging_corner[c] = hanging_corner[c ^ ones] = -1;
-        for (int i = 0; i < P4EST_DIM; ++i) {
+        for (int i = 0; i < P8EST_DIM; ++i) {
             /* Process face hanging corners. */
            int h = c ^ (1 << i);
             hanging_corner[h ^ ones] = (work & 1) ? c : -1;
@@ -1547,11 +1511,11 @@ void Brick::renumberNodes()
         for(int q = 0; q < Q; ++q) { 
             p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
             p8est_qcoord_t l = P8EST_QUADRANT_LEN(quad->level);
-            p8est_qcoord_t lxy[4][2] = {{0,0},{l,0},{0,l},{l,l}};
-            int hanging[4] = {0};
-
+            p8est_qcoord_t lxy[8][3] = {{0,0,0},{0,0,l},{0,l,0},{0,l,l},
+                                         {l,0,0},{l,0,l},{l,l,0},{l,l,l}};
+            int hanging[8] = {0};
             getHangingNodes(nodes->face_code[k++], hanging);
-            for(int n = 0; n < 4; n++)
+            for(int n = 0; n < 8; n++)
             {
                 double xy[3];
                 p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], quad->z+lxy[n][2], xy);

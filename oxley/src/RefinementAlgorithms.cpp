@@ -1032,7 +1032,7 @@ void update_RC(p8est_iter_edge_info *info, void *user_data)
     update_RC_data_brick * data = (update_RC_data_brick *) user_data;
     sc_array_t * sides = &(info->sides);
 
-    p8est_iter_face_side_t * side = p8est_iter_fside_array_index_int(sides, 0);
+    p8est_iter_edge_side_t * side = p8est_iter_eside_array_index_int(sides, 0); 
     
     p8est_quadrant_t * quad;
     if(side->is_hanging)
@@ -1046,12 +1046,14 @@ void update_RC(p8est_iter_edge_info *info, void *user_data)
     quad_info tmp;
     tmp.x=xy0[0];
     tmp.y=xy0[1];
+    tmp.z=xy0[2];
     tmp.level=quad->level;
     bool lower_quadrant=false;
     for(int i=0;i<data->pQuadInfo->size();i++)
     {
         if((tmp.x     == data->pQuadInfo[0][i].x)
         && (tmp.y     == data->pQuadInfo[0][i].y)
+        && (tmp.z     == data->pQuadInfo[0][i].z)
         && (tmp.level == data->pQuadInfo[0][i].level))
         {
             lower_quadrant=true;
@@ -1064,9 +1066,9 @@ void update_RC(p8est_iter_edge_info *info, void *user_data)
     // Calculate the length of the side
     p8est_qcoord_t l = P8EST_QUADRANT_LEN(quad->level);
     int fn = (int) side->face;
-    long lx[4][2] = {{0,0},{l,l},{0,l},{0,l}};
-    long ly[4][2] = {{0,l},{0,l},{0,0},{l,l}};
-    long lz[4][2] = {{0,0},{0,0},{l,l},{l,l}};
+    long lx[4][3] = {{0,0},{l,l},{0,l},{0,l}};
+    long ly[4][3] = {{0,l},{0,l},{0,0},{l,l}};
+    long lz[4][3] = {{0,0},{0,0},{l,l},{l,l}};
 
     p8est_qcoord_to_vertex(data->p8est->connectivity, side->treeid, 
         quad->x+lx[fn][0], quad->y+ly[fn][0], quad->z+lz[fn][0], xyA);
