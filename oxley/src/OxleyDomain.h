@@ -901,6 +901,7 @@ protected:
     mutable std::vector<int> m_elementTags, m_elementTagsInUse;
     mutable std::vector<int> m_faceTags, m_faceTagsInUse;
     std::vector<DiracPoint> m_diracPoints;
+    IndexVector m_faceOffset;
 
     // Function sused by the assembler
     template<typename Scalar>

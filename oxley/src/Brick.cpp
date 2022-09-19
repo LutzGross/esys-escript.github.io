@@ -782,7 +782,7 @@ void Brick::dump(const std::string& fileName) const
 
     // create the nodelist
     std::vector<int> nodelist;
-    long ids[8]={0};
+    long ids[6]={0};
     for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
         p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
         sc_array_t * tquadrants = &tree->quadrants;
@@ -1567,22 +1567,22 @@ void Brick::renumberNodes()
     // Populate NodeIDs
     is_hanging.clear();
     int num_norm_nodes=NormalNodes.size();
-    num_hanging=HangingNodes.size();
-    int total_nodes=num_norm_nodes+num_hanging;
+    // num_hanging=HangingNodes.size();
+    int total_nodes=NormalNodes.size()+HangingNodes.size();
     is_hanging.resize(total_nodes,false);
     int count = 0;
     for(int i=0;i<num_norm_nodes;i++)
     {
         NodeIDs[NormalNodes[i]]=count++;
     }
-    for(int i=0;i<num_hanging;i++)
+    for(int i=0;i<HangingNodes.size();i++)
     {
         NodeIDs[HangingNodes[i]]=count;
         is_hanging[count++]=true;
     }
 
     // This variable currently records the number of hanging faces, not the number of hanging nodes
-    num_hanging/=2;
+    // num_hanging/=2;
 
     // Populate m_nodeIDs
     m_nodeId.clear();
@@ -1751,7 +1751,7 @@ void Brick::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F
          const std::vector<Scalar>& EM_S, const std::vector<Scalar>& EM_F, 
          bool addS, bool addF, borderNodeInfo quad, int nEq, int nComp) const
 {    
-    long rowIndex[8] = {0};
+    long rowIndex[6] = {0};
     getNeighouringNodeIDs(quad.level, quad.x, quad.y, quad.z, quad.treeid, rowIndex);
     if(addF)
     {
@@ -1862,7 +1862,7 @@ void Brick::interpolateNodesOnElementsWorker(escript::Data& out,
             {
                 p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
                
-                long ids[8]={0};
+                long ids[6]={0};
                 getNeighouringNodeIDs(quad->level, quad->x, quad->y, quad->z, treeid, ids);
                 int quadID=getQuadID(ids[0]);
                 //TODO check order of indices ids[x]
@@ -1907,14 +1907,15 @@ void Brick::interpolateNodesOnElementsWorker(escript::Data& out,
             {        
                 p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
 
-                long ids[8]={0};
+                long ids[6]={0};
                 getNeighouringNodeIDs(quad->level, quad->x, quad->y, quad->z, treeid, ids);
                 long quadId = getQuadID(ids[0]);
 
                 #ifdef OXLEY_ENABLE_DEBUG_INTERPOLATE_QUADIDS
                     std::cout << "interpolateNodesOnElementsWorker quadID: " << quadId << ", node IDs " << 
                                         ids[0] << ", " << ids[2] << ", " << 
-                                        ids[1] << ", " << ids[3] << std::endl;
+                                        ids[1] << ", " << ids[3] <<
+                                        ids[4] << ", " << ids[5] << std::endl;
                 #endif
 
                 //TODO check order of indices ids[x]
@@ -1927,6 +1928,7 @@ void Brick::interpolateNodesOnElementsWorker(escript::Data& out,
                 memcpy(&f_110[0], in.getSampleDataRO(ids[6], sentinel), numComp*sizeof(S));
                 memcpy(&f_111[0], in.getSampleDataRO(ids[7], sentinel), numComp*sizeof(S));
                 S* o = out.getSampleDataRW(quadId, sentinel);
+            #pragma omp parallel for
                 for (index_t i=0; i < numComp; ++i) {
                     o[INDEX2(i,numComp,0)] = f_000[i]*c3 + f_111[i]*c0 + c2*(f_001[i] + f_010[i] + f_100[i]) + c1*(f_011[i] + f_101[i] + f_110[i]);
                     o[INDEX2(i,numComp,1)] = f_011[i]*c0 + f_100[i]*c3 + c2*(f_000[i] + f_101[i] + f_110[i]) + c1*(f_001[i] + f_010[i] + f_111[i]);
@@ -1944,13 +1946,15 @@ void Brick::interpolateNodesOnElementsWorker(escript::Data& out,
 }
 
 //protected
-void Brick::getNeighouringNodeIDs(int8_t level, p8est_qcoord_t x, p8est_qcoord_t y, p8est_qcoord_t z, p8est_topidx_t treeid, long (&ids) [8]) const
+void Brick::getNeighouringNodeIDs(int8_t level, p8est_qcoord_t x, p8est_qcoord_t y, p8est_qcoord_t z, p8est_topidx_t treeid, long (&ids) [6]) const
 {
     p8est_qcoord_t l = P4EST_QUADRANT_LEN(level);
-    int adj[8][3] = {{0,0,0},{0,0,l},{0,l,0},{0,l,l},
-                     {l,0,0},{l,0,l},{l,l,0},{l,l,l}};
+    // int adj[8][3] = {{0,0,0},{0,0,l},{0,l,0},{0,l,l},
+                     // {l,0,0},{l,0,l},{l,l,0},{l,l,l}}; //TODO double check
+    int adj[8][3] = {{0,0,0},{0,0,0},{0,0,0},{0,0,0},
+                     {0,0,0},{0,0,0},{0,0,0},{0,0,0}}; //TODO double check
 // #pragma omp parallel for
-    for(int i=0; i<8;i++)
+    for(int i=0; i<6;i++)
     {
         double xy[3];
         p8est_qcoord_to_vertex(p8est->connectivity, treeid, x+adj[i][0], y+adj[i][1], z+adj[i][2], xy);
@@ -2413,8 +2417,6 @@ void Brick::updateRowsColumns()
         if(new_connections[0]==true)
         {
             idx1a[0][0]++;
-            if(idx1a[0][0]>4)
-                std::cout << "ae " << std::endl;
             ESYS_ASSERT(idx1a[0][0]<=4, "updateRowsColumns index out of bound ");
             idx1a[0][idx1a[0][0]]=nodeid;
         }
@@ -2711,6 +2713,8 @@ void Brick::updateFaceElementCount()
     const index_t LEFT=1, RIGHT=2, BOTTOM=10, TOP=20, ABOVE=100, BELOW=200;
     m_faceTags.clear();
     const index_t faceTag[] = { LEFT, RIGHT, BOTTOM, TOP, ABOVE, BELOW };
+    m_faceOffset.clear();
+    m_faceOffset.resize(6);
     m_faceOffset.assign(6, -1);
     index_t offset=0;
     for (size_t i=0; i<6; i++) {

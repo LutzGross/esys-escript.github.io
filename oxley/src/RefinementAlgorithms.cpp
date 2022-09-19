@@ -1046,14 +1046,12 @@ void update_RC(p8est_iter_edge_info *info, void *user_data)
     quad_info tmp;
     tmp.x=xy0[0];
     tmp.y=xy0[1];
-    tmp.z=xy0[2];
     tmp.level=quad->level;
     bool lower_quadrant=false;
     for(int i=0;i<data->pQuadInfo->size();i++)
     {
         if((tmp.x     == data->pQuadInfo[0][i].x)
         && (tmp.y     == data->pQuadInfo[0][i].y)
-        && (tmp.z     == data->pQuadInfo[0][i].z)
         && (tmp.level == data->pQuadInfo[0][i].level))
         {
             lower_quadrant=true;
@@ -1065,20 +1063,32 @@ void update_RC(p8est_iter_edge_info *info, void *user_data)
     
     // Calculate the length of the side
     p8est_qcoord_t l = P8EST_QUADRANT_LEN(quad->level);
-    int fn = (int) side->face;
-    long lx[4][3] = {{0,0},{l,l},{0,l},{0,l}};
-    long ly[4][3] = {{0,l},{0,l},{0,0},{l,l}};
-    long lz[4][3] = {{0,0},{0,0},{l,l},{l,l}};
+    int fn = (int) side->edge;
+
+    // long lx[4][2] = {{0,0},{l,l},{0,l},{0,l}};
+    // long ly[4][2] = {{0,l},{0,l},{0,0},{l,l}};
+
+    long lx[12][2] = {{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0}};
+    long ly[12][2] = {{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0}};
+    long lz[12][2] = {{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0}}; //TODO CHECK
+
+    #ifdef OXLEY_ENABLE_DEBUG_UPDATE_RC_EXTRA
+        std::cout << std::endl << "(" << quad->x+lx[fn][0] << ", " 
+                  << quad->y+ly[fn][0] << ", " << quad->z+lz[fn][0] << ")\t" << std::endl;;
+    #endif
 
     p8est_qcoord_to_vertex(data->p8est->connectivity, side->treeid, 
         quad->x+lx[fn][0], quad->y+ly[fn][0], quad->z+lz[fn][0], xyA);
     long lni0 = data->pNodeIDs->find(std::make_tuple(xyA[0],xyA[1],xyA[2]))->second;
+
     #ifdef OXLEY_ENABLE_DEBUG_UPDATE_RC_EXTRA
-        std::cout << "(" << xyA[0] << ", " << xyA[1] << ")\t";
+        std::cout << "(" << xyA[0] << ", " << xyA[1] << ", " << xyA[2] << ")\t";
     #endif
+
     p8est_qcoord_to_vertex(data->p8est->connectivity, side->treeid, 
-        quad->x+lx[fn][1], quad->y+ly[fn][1], quad->z+lz[fn][0], xyB);
+        quad->x+lx[fn][1], quad->y+ly[fn][1], quad->z+lz[fn][1], xyB);
     long lni1 = data->pNodeIDs->find(std::make_tuple(xyB[0],xyB[1],xyB[2]))->second;
+
     #ifdef OXLEY_ENABLE_DEBUG_UPDATE_RC_EXTRA
         std::cout << "(" << xyB[0] << ", " << xyB[1] << ")";
         std::cout << std::endl;

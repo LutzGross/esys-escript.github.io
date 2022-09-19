@@ -449,7 +449,7 @@ args("arg"), "assigns new location to the domain\n\n"
         ":rtype ``AbstractSystemMatrix``");
 #else
         ;
-#endif ESYS_HAVE_TRILINOS
+#endif //ESYS_HAVE_TRILINOS
 
 
 

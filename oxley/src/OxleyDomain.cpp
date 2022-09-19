@@ -2103,11 +2103,9 @@ void OxleyDomain::finaliseAworker(escript::AbstractSystemMatrix& mat,
 {
     if(getNumHangingNodes() > 0)
     {
-        //TODO
-        // escript::AbstractSystemMatrix * pMat = &mat;
-        // esys_trilinos::TrilinosMatrixAdapter * m = dynamic_cast<esys_trilinos::TrilinosMatrixAdapter*>(pMat);
-        // escript::AbstractSystemMatrix ans = m->IztAIz(IZ, getNumNodes());
-        // return ans;
+        escript::AbstractSystemMatrix * pMat = &mat;
+        esys_trilinos::TrilinosMatrixAdapter * m = dynamic_cast<esys_trilinos::TrilinosMatrixAdapter*>(pMat);
+        m->IztAIz(IZ, getNumNodes());
     }
 }
 #endif

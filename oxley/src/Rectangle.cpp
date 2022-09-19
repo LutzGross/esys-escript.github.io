@@ -2503,8 +2503,6 @@ void Rectangle::updateRowsColumns()
         if(new_connections[0]==true)
         {
             idx1a[0][0]++;
-            if(idx1a[0][0]>4)
-                std::cout << "ae " << std::endl;
             ESYS_ASSERT(idx1a[0][0]<=4, "updateRowsColumns index out of bound ");
             idx1a[0][idx1a[0][0]]=nodeid;
         }

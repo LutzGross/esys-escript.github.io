@@ -63,3 +63,5 @@ except:
   
 
 
+#TODO
+HAVE_SYMBOLS=False

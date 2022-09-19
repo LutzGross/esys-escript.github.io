@@ -285,9 +285,6 @@ public:
 
     void print_debug_report(std::string);
 
-private:
-
-
     // /**
     //    \brief
     //    returns a Data object containing the coordinate information
@@ -345,6 +342,10 @@ private:
 
     // vector that maps each node to a DOF index (used for the coupler)
     IndexVector m_dofMap;
+
+        /// faceOffset[i]=-1 if face i is not an external face, otherwise it is
+    /// the index of that face (where i: 0=left, 1=right, 2=bottom, 3=top)
+    IndexVector m_faceOffset;
 
     // 
     IndexVector m_nodeId;
@@ -521,7 +522,7 @@ protected:
        \brief
        Returns the ID numbers of the neighbouring four nodes
     */
-    void getNeighouringNodeIDs(int8_t level, p8est_qcoord_t x, p8est_qcoord_t y, p8est_qcoord_t z, p8est_topidx_t treeid, long (&ids) [8]) const;
+    void getNeighouringNodeIDs(int8_t level, p8est_qcoord_t x, p8est_qcoord_t y, p8est_qcoord_t z, p8est_topidx_t treeid, long (&ids) [6]) const;
 
     virtual void assembleIntegrate(std::vector<real_t>& integrals,
                                    const escript::Data& arg) const;
@@ -622,10 +623,6 @@ protected:
     double m_NX[2] = {0};
     /// number of face elements per edge (left, right, bottom, top)
     dim_t m_faceCount[4];
-
-    /// faceOffset[i]=-1 if face i is not an external face, otherwise it is
-    /// the index of that face (where i: 0=left, 1=right, 2=bottom, 3=top)
-    IndexVector m_faceOffset;
 
     // The number of hanging nodes in the mesh
     int num_hanging;
