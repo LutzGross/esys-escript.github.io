@@ -1123,7 +1123,7 @@ Domain_ptr brick_driver(const bp::list& args)
             throw FinleyException("Unable to extract tag value.");
         }
     }
-    bp::object pworld = args[17];
+    bp::object pworld = args[16];
     JMPI info = makeInfo(MPI_COMM_WORLD);
     return brick(info, static_cast<dim_t>(bp::extract<float>(args[0])),
                  static_cast<dim_t>(bp::extract<float>(args[1])),
