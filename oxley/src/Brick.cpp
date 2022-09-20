@@ -1766,8 +1766,9 @@ void Brick::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F
     }
     if(addS)
     {
-        IndexVector rowInd(8);
-        for(int i = 0; i < 8; i++)
+        IndexVector rowInd(6);
+    #pragma omp for
+        for(int i = 0; i < 6; i++)
             rowInd[i]=rowIndex[i];
         addToSystemMatrix<Scalar>(S, rowInd, nEq, EM_S);
     }
