@@ -62,7 +62,7 @@ mpi_flavours=('no', 'none', 'MPT', 'MPICH', 'MPICH2', 'OPENMPI', 'INTELMPI')
 netcdf_flavours = ('no', 'off', 'none', 'False', # Must be last of the false alternatives
                    'yes', 'on', 'True', '3', # Must be last of the version 3 alternatives
                    '4')
-all_domains = ['dudley','finley','ripley','speckley']
+all_domains = ['finley','ripley','speckley']
 
 #Note that scons construction vars the the following purposes:
 #  CPPFLAGS -> to the preprocessor
@@ -135,8 +135,6 @@ vars.AddVariables(
   ('launcher', 'Launcher command (e.g. mpirun)', 'default'),
   ('prelaunch', 'Command to execute before launcher (e.g. mpdboot)', 'default'),
   ('postlaunch', 'Command to execute after launcher (e.g. mpdexit)', 'default'),
-  #dudley_assemble_flags = -funroll-loops      to actually do something
-  ('dudley_assemble_flags', 'compiler flags for some dudley optimisations', ''),
   # To enable passing function pointers through python
   BoolVariable('iknowwhatimdoing', 'Allow non-standard C', False),
   # An option for specifying the compiler tools
@@ -235,9 +233,6 @@ if len(vars.UnknownVariables())>0:
     for k in vars.UnknownVariables():
         print("Unknown option '%s'" % k)
     Exit(1)
-
-if 'dudley' in env['domains']:
-    env['domains'].append('finley')
 
 env['domains'] = sorted(set(env['domains']))
 
@@ -740,7 +735,7 @@ if env['weipa']:
     env.Append(CPPDEFINES = ['ESYS_HAVE_WEIPA'])
     build_all_list += ['build_weipa']
     install_all_list += ['install_weipa']
-    if 'finley' in env['domains'] or 'dudley' in env['domains']:
+    if 'finley' in env['domains']:
         build_all_list += ['build_escriptreader']
         install_all_list += ['install_escriptreader']
 
@@ -753,7 +748,6 @@ env.SConscript('tools/overlord/SConscript', variant_dir=variant+'tools/overlord'
 env.SConscript('paso/SConscript', variant_dir=variant+'paso', duplicate=0)
 env.SConscript('trilinoswrap/SConscript', variant_dir=variant+'trilinoswrap', duplicate=0)
 env.SConscript('cusplibrary/SConscript')
-env.SConscript('dudley/SConscript', variant_dir=variant+'dudley', duplicate=0)
 env.SConscript('finley/SConscript', variant_dir=variant+'finley', duplicate=0)
 env.SConscript('ripley/SConscript', variant_dir=variant+'ripley', duplicate=0)
 env.SConscript('speckley/SConscript', variant_dir=variant+'speckley', duplicate=0)
