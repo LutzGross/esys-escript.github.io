@@ -25,330 +25,288 @@ __license__ = """Licensed under the Apache License, version 2.0
 http://www.apache.org/licenses/LICENSE-2.0"""
 __url__ = "https://launchpad.net/escript-finley"
 
-__all__ = ['CostFunction', 'MeteredCostFunction']
-
-import logging
-
+__all__ = ['CostFunction']
 
 class CostFunction(object):
     """
-    A function *f(x)* that can be minimized (base class).
+    A cost function *F(m)* that can be minimized (base class).
+    Near a solution *m* in the search space the cost function is approximated 
+    in direction *p* as       
 
-    Example of usage::
-
-        cf=DerivedCostFunction()
-        # ... calculate x ...
-        args=cf.getArguments(x) # this could be potentially expensive!
-        f=cf.getValue(x, *args)
-        # ... it could be required to update x without using the gradient...
-        # ... but then ...
-        gf=cf.getGradient(x, *args)
+    *F(m+p) ~ F(m) + <grad F(m), p> + < H p, p>*
+    
+    where *F(m)* is the value of the function at *m*, *grad F* is the gradient, *H* is the Hessian and
+    *<.,.>* is dual product. These four procedures are defined in this class.
 
     The class distinguishes between the representation of the solution
-    x (x-type) and the gradients (r-type).
+    m (m-type) and the cost function gradient (g-type).
 
-    :note: The provides_inverse_Hessian_approximation class member should be set to ``True`` in subclasses that provide a valid implementation of
-            `getInverseHessianApproximation()`
+    Example of usage:
+        #
+        class DerivedCostFunction(CostFunction)
+            # overwrite: getArguments, etc.
+        cf=DerivedCostFunction()
+        # ... calculate m ...
+        args=cf.getArguments(m) # this could be potentially expensive!
+        f=cf.getValue(m, *args)
+        # ... it could be required to update m without using the gradient...
+        # ... but then ...
+        gf=cf.getGradient(m, *args)
+
+    Use the "AndCount" versions (e.g. getValueAndCount) if you want to count calls.
+
     """
-
-    provides_inverse_Hessian_approximation = False
-
     def __init__(self):
         """
         Constructor. Initializes logger.
         """
-        self.logger = logging.getLogger('inv.%s' % self.__class__.__name__)
+        #self.logger = logging.getLogger('esys.%s' % self.__class__.__name__)
+        self.resetStatistics()
 
-    def __call__(self, x, *args):
+    def resetStatistics(self):
         """
-        short for `getValue(x, *args)`.
-        """
-        return self.getValue(x, *args)
-
-    def getArguments(self, x):
-        """
-        returns precalculated values that are shared in the calculation of
-        *f(x)* and *grad f(x)* and the Hessian operator. The default
-        implementation returns an empty tuple.
-
-        .. note:: The tuple returned by this call will be passed back to this `CostFunction` in other
-           calls(eg: `getGradient`). Its contents are not specified at this level because no code,
-           other than the `CostFunction`
-           which created it, will be interacting with it.
-           That is, the implementor can put whatever information they find useful in it.
-
-        :param x: location of derivative
-        :type x: x-type
-        :rtype: ``tuple``
-        """
-        return ()
-
-    def getDualProduct(self, x, r):
-        """
-        returns the dual product of ``x`` and ``r``
-
-        :type x: x-type
-        :type r: r-type
-        :rtype: ``float``
-        """
-        raise NotImplementedError
-
-    def getGradient(self, x, *args):
-        """
-        returns the gradient of *f* at *x* using the precalculated values for
-        *x*.
-
-        :param x: location of derivative
-        :type x: x-type
-        :param args: pre-calculated values for ``x`` from `getArguments()`
-        :rtype: r-type
-        """
-        raise NotImplementedError
-
-    def getInverseHessianApproximation(self, x, r, *args):
-        """
-        returns an approximative evaluation *p* of the inverse of the Hessian
-        operator of the cost function for a given gradient *r* at a given
-        location *x*: *H(x) p = r*
-
-        :param x: location of Hessian operator to be evaluated
-        :type x: x-type
-        :param r: a given gradient
-        :type r: r-type
-        :param args: pre-calculated values for ``x`` from `getArguments()`
-        :rtype: x-type
-        :note: In general it is assumed that the Hessian *H(x)* needs to be
-               calculated in each call for a new location *x*. However, the
-               solver may suggest that this is not required, typically when
-               the iteration is close to completeness.
-        :note: Subclasses that implement this method should set the class
-               variable `provides_inverse_Hessian_approximation` to ``True`` to
-               enable the solver to call this method.
-        """
-        raise NotImplementedError
-
-    def getValue(self, x, *args):
-        """
-        returns the value *f(x)* using the precalculated values for *x*.
-
-        :param x: a solution approximation
-        :type x: x-type
-        :rtype: ``float``
-        """
-        raise NotImplementedError
-
-    def updateHessian(self):
-        """
-        notifies the class that the Hessian operator needs to be updated.
-        This method is called by the solver class.
-        """
-        pass
-
-    def getNorm(self, x):
-        """
-        returns the norm of ``x``
-
-        :type x: x-type
-        :rtype: ``float``
-        """
-        raise NotImplementedError
-
-
-class MeteredCostFunction(CostFunction):
-    """
-    This an intrumented version of the `CostFunction` class. The function
-    calls update statistical information.
-    The actual work is done by the methods with corresponding name and a
-    leading underscore. These functions need to be overwritten for a particular
-    cost function implementation.
-    """
-
-    def __init__(self):
-        """
-        the base constructor initializes the counters so subclasses should
-        ensure the super class constructor is called.
-        """
-        super(MeteredCostFunction, self).__init__()
-        self.resetCounters()
-
-    def resetCounters(self):
-        """
-        resets all statistical counters
+        resets all counters
         """
         self.DualProduct_calls = 0
         self.Value_calls = 0
         self.Gradient_calls = 0
         self.Arguments_calls = 0
         self.InverseHessianApproximation_calls = 0
+        self.UpdateHessian_calls = 0
         self.Norm_calls = 0
-
-    def getDualProduct(self, x, r):
+        
+    def getStatistics(self):
         """
-        returns the dual product of ``x`` and ``r``
+        return the call statistics as a string:
+        """
+        out="Number of cost function evaluations: %d\n" % self.Value_calls
+        out+="Number of gradient evaluations: %d\n" % self.Gradient_calls
+        out+="Number of inverse Hessian evaluations: %d\n" % self.InverseHessianApproximation_calls
+        out+="Number of gradient evaluations: %d\n" % self.Gradient_calls
+        out+="Number of inner product evaluations: %d\n" % self.DualProduct_calls
+        out+="Number of argument evaluations: %d\n" % self.Arguments_calls
+        out+="Number of Hessian initializations : %d\n" % self.UpdateHessian_calls
+        out+="Number of norm evaluations: %d" % self.Norm_calls
+        return out
 
-        :type x: x-type
-        :type r: r-type
+    def __call__(self, m, *args):
+        """
+        short for `sum(getValueAndCount(m, *args))`.
+        """
+        return self.getValueAndCount(m, *args)
+    
+    def getDualProductAndCount(self, m, r):
+        """
+        returns the dual product *<.,.>* of ``r`` and ``m``.
+
+        When calling this method the calling statistics is updated.
+
+        :type m: m-type
+        :type r: g-type
         :rtype: ``float``
         """
         self.DualProduct_calls += 1
-        return self._getDualProduct(x, r)
+        return self.getDualProduct(m, r)
 
-    def _getDualProduct(self, x, r):
+    def getNormAndCount(self, m):
         """
-        returns the dual product of ``x`` and ``r``
+        returns the norm of ``m``.
 
-        :type x: x-type
-        :type r: r-type
-        :rtype: ``float``
-        :note: This is the worker for `getDualProduct()`, needs to be overwritten.
-        """
-        raise NotImplementedError
+        When calling this method the calling statistics is updated.
 
-    def getNorm(self, x):
-        """
-        returns the norm of ``x``
-
-        :type x: x-type
+        :type m: m-type
         :rtype: ``float``
         """
         self.Norm_calls += 1
-        return self._getNorm(x)
+        return self.getNorm(m)
 
-    def _getNorm(self, x):
-        """
-        returns the norm of ``x``
-
-        :type x: x-type
-        :rtype: ``float``
-        :note: This is the worker for `getNorm()`, needs to be overwritten.
-        """
-        raise NotImplementedError
-
-    def getValue(self, x, *args):
-        """
-        returns the value *f(x)* using the precalculated values for *x*.
-
-        :param x: a solution approximation
-        :type x: x-type
-        :rtype: ``float``
-        """
-        self.Value_calls += 1
-        if len(args)==0:
-            args= self.getArguments(x)
-        return self._getValue(x, *args)
-
-    def _getValue(self, x, *args):
-        """
-        returns the value *f(x)* using the precalculated values for *x*.
-
-        :param x: a solution approximation
-        :type x: x-type
-        :rtype: ``float``
-        :note: This is the worker for ``getValue()``, needs to be overwritten.
-        """
-        raise NotImplementedError
-
-    def getGradient(self, x, *args):
-        """
-        returns the gradient of *f* at *x* using the precalculated values for
-        *x*.
-
-        :param x: location of derivative
-        :type x: x-type
-        :param args: pre-calculated values for ``x`` from `getArguments()`
-        :rtype: r-type
-        """
-        self.Gradient_calls += 1
-        if len(args)==0:
-            args= self.getArguments(x)
-        return self._getGradient(x, *args)
-
-    def _getGradient(self, x, *args):
-        """
-        returns the gradient of *f* at *x* using the precalculated values for
-        *x*.
-
-        :param x: location of derivative
-        :type x: x-type
-        :param args: pre-calculated values for ``x`` from `getArguments()`
-        :rtype: r-type
-        :note: This is the worker for `getGradient()`, needs to be overwritten.
-        """
-        raise NotImplementedError
-
-    def getArguments(self, x):
+    def getArgumentsAndCount(self, m):
         """
         returns precalculated values that are shared in the calculation of
-        *f(x)* and *grad f(x)* and the Hessian operator
+        *F(m)* and *grad F(m)* and the Hessian operator. The default
+        implementation returns an empty tuple.
 
-        .. note:: The tuple returned by this call will be passed back to this `CostFunction` in other
-           calls(eg: ``getGradient``). Its contents are not specified at this level because no code, other than the `CostFunction`
-           which created it, will be interacting with it.
+        When calling this method the calling statistics is updated.
+
+        :param m: location of derivative
+        :type m: m-type
+        :rtype: ``tuple``
+
+        :note: The tuple returned by this call will be passed back to this `CostFunction` in other
+           calls (eg: `getGradient`). Its contents are not specified at this level because no code,
+           other than the `CostFunction` which created it, will be interacting with it.
            That is, the implementor can put whatever information they find useful in it.
 
-        :param x: location of derivative
-        :type x: x-type
-        :rtype: ``tuple``
-        """
-        self.Arguments_calls += 1
-        return self._getArguments(x)
-
-    def _getArguments(self, x):
-        """
-        returns precalculated values that are shared in the calculation of
-        *f(x)* and *grad f(x)* and the Hessian operator.
-
-
-
-        :param x: location of derivative
-        :type x: x-type
         """
         return ()
 
-    def getInverseHessianApproximation(self, x, r, *args):
+    def getValueAndCount(self, m, *args):
         """
-        returns an approximative evaluation *p* of the inverse of the Hessian
-        operator of the cost function for a given gradient *r* at a given
-        location *x*: *H(x) p = r*
+        returns the value *F(m)* using the precalculated values for *m*.
 
-        .. note:: In general it is assumed that the Hessian *H(x)* needs to be
-           calculate in each call for a new location *x*. However, the
-           solver may suggest that this is not required, typically when
-           the iteration is close to completeness.
+        If the cost function is a composition the values of these components can be
+        returned. The `sum` function is automatically applied by any solver if a
+        single value is required.
 
-        :param x: location of Hessian operator to be evaluated.
-        :type x: x-type
+        When calling this method the calling statistics is updated.
+
+        :param m: a solution approximation
+        :type m: m-type
+        :param args: pre-calculated values for ``m`` from `getArgumentsAndCount()`
+        :rtype: ``float`` or valid argument for ``sum``
+        """
+        self.Value_calls += 1
+        if not args:
+            args = self.getArgumentsAndCount(m)
+        return self.getValue(m, *args)
+
+    def getGradientAndCount(self, m, *args):
+        """
+        returns the gradient of *F* at *m* using the precalculated values for *m*.
+
+        When calling this method the calling statistics is updated.
+
+        :param m: location of derivative
+        :type m: m-type
+        :param args: pre-calculated values for ``m`` from `getArgumentsAndCount()`
+        :rtype: g-type
+        """
+        self.Gradient_calls += 1
+        if not args:
+            args = self.getArgumentsAndCount(m)
+        return self.getGradient(m, *args)
+
+    def updateHessianAndCount(self, m, *args):
+        """
+        this function is called to update the (potentially approximate) Hessian H
+        at a given location *m*.
+
+        When calling this method the calling statistics is updated.
+
+        :param m: location of Hessian operator to be evaluated
+        :type m: m-type
+        :param args: pre-calculated values for ``m`` from `getArgumentsAndCount()`
+        :returns: None
+        """
+        if not args:
+            args = self.getArgumentsAndCount(m)
+        self.UpdateHessian_calls += 1
+        return self.updateHessian(m, *args)
+
+    def getInverseHessianApproximationAndCount(self, r):
+        """
+        returns an evaluation *p* of the inverse of the Hessian
+        operator of the cost function for a given gradient *r*: *H p = r*
+
+        When calling this method the calling statistics is updated.
+
         :param r: a given gradient
-        :type r: r-type
-        :param args: pre-calculated values for ``x`` from `getArguments()`
-        :rtype: x-type
-
+        :type r: g-type
+        :returns: new search direction p.
+        :rtype: m-type
         """
         self.InverseHessianApproximation_calls += 1
-        if len(args)==0:
-            args= self.getArguments(x)
-        return self._getInverseHessianApproximation(x, r, *args)
+        return self.getInverseHessianApproximation(r)
 
-    def _getInverseHessianApproximation(self, x, r, *args):
+    def getDualProduct(self, m, r):
         """
-        returns an approximative evaluation *p* of the inverse of the Hessian
-        operator of the cost function for a given gradient *r* at a given
-        location *x*: *H(x) p = r*
+        returns the dual product of ``m`` and ``r``
 
-        :param x: location of Hessian operator to be evaluated
-        :type x: x-type
-        :param r: a given gradient
-        :type r: r-type
-        :param args: pre-calculated values for ``x`` from `getArguments()`
-        :rtype: x-type
-        :note: In general it is assumed that the Hessian *H(x)* needs to be
-               calculate in each call for a new location *x*. However, the
-               solver may suggest that this is not required, typically when
-               the iteration is close to completeness.
-        :note: This is the worker for getInverseHessianApproximation()`, needs
-               to be overwritten.
-        :note: Subclasses that implement this method should set the class
-               variable `provides_inverse_Hessian_approximation` to ``True`` to
-               enable the solver to call this method.
+        :type m: m-type
+        :type r: g-type
+        :rtype: ``float``
+        :note: Overwrite this method to implement a cost function.
         """
         raise NotImplementedError
+
+    def getNorm(self, m):
+        """
+        returns the norm of ``m``.
+        Typically, this is the 'Lsup' function.
+
+        :type m: m-type
+        :rtype: ``float``
+        :note: Overwrite this method to implement a cost function.
+        """
+        raise NotImplementedError
+
+    def getArguments(self, m):
+        """
+        returns precalculated values that are shared in the calculation of
+        *F(m)* and *grad F(m)* and the Hessian operator.
+
+        :note: Overwrite this method to implement a cost function.
+        :note: The tuple returned by this call will be passed back to this `CostFunction` in other
+           calls(eg: ``getGradientAndCount``). Its contents are not specified at this level because no code,
+           other than the `CostFunction` which created it, will be interacting with it.
+           That is, the implementor can put whatever information they find useful in it.
+
+        :param m: location of derivative
+        :type m: m-type
+        :returns: pre-calculated arguments
+        :rtype: ``tuple``
+
+        :note: Overwrite this method to implement a cost function.
+        """
+        return ()
+
+    def getValue(self, m, *args):
+        """
+        returns the value *F(m)* using the precalculated values for *m*.
+
+        If the cost function is a composition the values of these components can be
+        returned. The `sum` function is automatically applied by any solver if a
+        single value is required.
+
+        :param m: a solution approximation
+        :type m: m-type
+        :param args: pre-calculated values for ``m`` from `getArgumentsAndCount()`
+        :rtype: ``float`` or valid argument for ``sum``
+
+        :note: Overwrite this method to implement a cost function.
+        """
+        raise NotImplementedError
+
+    def getGradient(self, m, *args):
+        """
+        returns the gradient of *F* at *m* using the precalculated values for
+        *m*.
+
+        :param m: location of derivative
+        :type m: m-type
+        :param args: pre-calculated values for ``m`` from `getArgumentsAndCount()`
+        :rtype: g-type
+        :note: Overwrite this method to implement a cost function.
+        """
+        raise NotImplementedError
+
+    def updateHessian(self, m, *args):
+        """
+        this function is called to update the (potentially approximate) Hessian H
+        at a given location *m*.
+
+        :param m: location of Hessian operator to be set
+        :type m: m-type
+        :param args: pre-calculated values for ``m`` from `getArgumentsAndCount()`
+        :returns: None
+        :note: Overwrite this method to implement a cost function.
+
+        :note: Typically this method is called by the solver when the iteration is restarted.
+        """
+        pass
+
+    def getInverseHessianApproximation(self, r):
+        """
+        returns an approximate evaluation *p* of the inverse of the Hessian
+        operator of the cost function for a given gradient *r*: *H p = r*
+        The Hessian is set and updated by the solver calling ``updateHessian``
+        :note: by default this method is returning *r*. In this case it is assumed that m-type==g-type
+        :note: Overwrite this method to implement a cost function.
+
+        :param r: a given gradient
+        :type r: g-type
+        :returns: new search direction p.
+        :rtype: m-type
+
+        """
+        return r
