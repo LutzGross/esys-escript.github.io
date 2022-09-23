@@ -1,0 +1,21 @@
+# based on experimental code
+IF (${PACKAGE_NAME}_ENABLE_Experimental)
+  ADD_SUBDIRECTORY(q2q1)
+  IF(${PACKAGE_NAME}_ENABLE_ADDITIVE_VARIANT)
+    MESSAGE(STATUS "MG Additive Variant enabled")
+    ADD_SUBDIRECTORY(max/AdditiveMG)
+  ENDIF()
+  IF(${PACKAGE_NAME}_ENABLE_REGION_SPLITTING)
+    MESSAGE(STATUS "MG Region Splitting enabled")
+    ADD_SUBDIRECTORY(max/XpetraSplitting)
+  ENDIF()
+  ADD_SUBDIRECTORY(luc/region_algorithms)
+  ADD_SUBDIRECTORY(mmayr/composite_to_regions/src)
+  ADD_SUBDIRECTORY(mmayr/hhg)
+  ADD_SUBDIRECTORY(regionMG/examples)
+  ADD_SUBDIRECTORY(semicoarsening)
+  ADD_SUBDIRECTORY(tawiesn/crada)
+  ADD_SUBDIRECTORY(tawiesn/aria)
+ENDIF()
+
+

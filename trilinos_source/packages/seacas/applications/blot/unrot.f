@@ -1,0 +1,57 @@
+C Copyright(C) 1999-2020 National Technology & Engineering Solutions
+C of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
+C NTESS, the U.S. Government retains certain rights in this software.
+C 
+C See packages/seacas/LICENSE for details
+
+C $Log: unrot.f,v $
+C Revision 1.2  2009/03/25 12:36:49  gdsjaar
+C Add copyright and license notice to all files.
+C Permission to assert copyright has been granted; blot is now open source, BSD
+C
+C Revision 1.1  1994/04/07 20:17:14  gdsjaar
+C Initial checkin of ACCESS/graphics/blotII2
+C
+c Revision 1.2  1990/12/14  08:59:23  gdsjaar
+c Added RCS Id and Log to all files
+c
+C=======================================================================
+      SUBROUTINE UNROT (NUM, NPROT, ROTMAT, ROTCEN,
+     &   HZ, VT, PD, XN, YN, ZN)
+C=======================================================================
+
+C   --*** UNROT *** (MESH) "Unrotate" 3D coordinates
+C   --   Written by Amy Gilkey - revised 07/08/86
+C   --
+C   --UNROT returns the original coordinates from the rotated coordinates.
+C   --It multiplies by the inverse of the rotation matrix and adds the
+C   --rotation center.
+C   --
+C   --Parameters:
+C   --   NUM - IN - the number of nodes to rotate
+C   --   NPROT - IN - the node numbers of the nodes to rotate
+C   --   ROTMAT - IN - the rotation matrix
+C   --   ROTCEN - IN - the center of the rotation
+C   --   HZ, VT, PD - IN - the rotated nodal coordinates
+C   --   XN, YN, ZN - OUT - the original nodal coordinates
+
+      INTEGER NPROT(NUM)
+      REAL ROTMAT(3,3), ROTCEN(3)
+      REAL HZ(*), VT(*), PD(*)
+      REAL XN(*), YN(*), ZN(*)
+
+      DO 100 IX = 1, NUM
+         INP = NPROT(IX)
+         X = HZ(INP)
+         Y = VT(INP)
+         Z = PD(INP)
+         XN(INP) = X*ROTMAT(1,1) + Y*ROTMAT(1,2) + Z*ROTMAT(1,3)
+         YN(INP) = X*ROTMAT(2,1) + Y*ROTMAT(2,2) + Z*ROTMAT(2,3)
+         ZN(INP) = X*ROTMAT(3,1) + Y*ROTMAT(3,2) + Z*ROTMAT(3,3)
+         XN(INP) = XN(INP) + ROTCEN(1)
+         YN(INP) = YN(INP) + ROTCEN(2)
+         ZN(INP) = ZN(INP) + ROTCEN(3)
+  100 CONTINUE
+
+      RETURN
+      END

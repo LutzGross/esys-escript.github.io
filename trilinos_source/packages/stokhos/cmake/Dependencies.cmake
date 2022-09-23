@@ -1,0 +1,8 @@
+SET(LIB_REQUIRED_DEP_PACKAGES Teuchos KokkosCore)
+SET(LIB_OPTIONAL_DEP_PACKAGES EpetraExt Ifpack ML TriKota Anasazi Sacado NOX Isorropia KokkosKernels TeuchosKokkosComm KokkosAlgorithms KokkosContainers Tpetra Ifpack2 MueLu Belos Amesos2 Thyra Xpetra)
+SET(TEST_REQUIRED_DEP_PACKAGES)
+SET(TEST_OPTIONAL_DEP_PACKAGES AztecOO Stratimikos Zoltan KokkosContainers)
+SET(LIB_REQUIRED_DEP_TPLS)
+SET(LIB_OPTIONAL_DEP_TPLS ForUQTK CUDA Thrust Cusp CUSPARSE Clp GLPK qpOASES Boost MATLABLib MKL)
+SET(TEST_REQUIRED_DEP_TPLS)
+SET(TEST_OPTIONAL_DEP_TPLS)

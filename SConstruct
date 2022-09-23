@@ -157,6 +157,7 @@ vars.AddVariables(
   BoolVariable('osx_dependency_fix', 'Fix dependencies for libraries to have absolute paths (OSX)', False),
   BoolVariable('stdlocationisprefix', 'Set the prefix as escript root in the launcher', False),
   BoolVariable('mpi_no_host', 'Do not specify --host in run-escript launcher (only OPENMPI)', False),
+  BoolVariable('build_trilinos', 'Instructs scons to build the trilinos library.', False),
   BoolVariable('insane', 'Instructs scons to not run a sanity check after compilation.', False),
   BoolVariable('mpi4py', 'Compile with mpi4py.', False),
   ('trilinos_LO', 'Manually specify the LO used by Trilinos.', ''),
@@ -590,6 +591,22 @@ env.Append(BUILDERS = {'RunPyExample' : runPyExample_builder});
 epstopdfbuilder = Builder(action = eps2pdf, suffix='.pdf', src_suffix='.eps', single_source=True)
 env.Append(BUILDERS = {'EpsToPDF' : epstopdfbuilder});
 
+################ If requested, build & install Trilinos ####################
+
+if env['build_trilinos']:
+    startdir=os.getcwd()
+    os.chdir('trilinos_build')
+    if env['mpi'] == 'OPENMPI':
+        print("Building (no MPI) trilinos..............................")
+        configure="sh mpi.sh " + env['prefix']
+    else:
+        print("Building (MPI) trilinos..............................")
+        configure="sh nompi.sh " + env['prefix']
+    res=os.system(configure)
+    res=os.system('make -j`nproc-1` install')
+    env['trilinos_prefix']=env['prefix']
+    os.chdir(startdir)
+
 ############################ Dependency checks ###############################
 
 ######## Compiler
@@ -719,10 +736,11 @@ if env['paso']:
     build_all_list += ['build_paso']
     install_all_list += ['install_paso']
 
-env['buildvars']['trilinos'] = int(env['trilinos'])
-if env['trilinos']:
-    build_all_list += ['build_trilinoswrap']
-    install_all_list += ['install_trilinoswrap']
+if env['build_trilinos'] is False:
+    env['buildvars']['trilinos'] = int(env['trilinos'])
+    if env['trilinos']:
+        build_all_list += ['build_trilinoswrap']
+        install_all_list += ['install_trilinoswrap']
 
 env['buildvars']['domains'] = ','.join(env['domains'])
 for domain in env['domains']:
@@ -830,10 +848,13 @@ def print_summary():
         print("     boost numpy:  YES")
     else:
         print("     boost numpy:  NO")
-    if env['trilinos']:
-        print("        trilinos:  %s (Version %s)" % (env['trilinos_prefix'],env['trilinos_version']))
-    else:
-        print("        trilinos:  NO")
+    if env['build_trilinos']:
+        print("        trilinos:  built-in (Version %s)" % (env['trilinos_version']))
+    else:    
+        if env['trilinos']:
+            print("        trilinos:  %s (Version %s)" % (env['trilinos_prefix'],env['trilinos_version']))
+        else:
+            print("        trilinos:  NO")
     if env['numpy_h']:
         print("           numpy:  YES (with headers)")
     else:
