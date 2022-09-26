@@ -1,0 +1,9 @@
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/../../../test/unit_tests)
+
+
+TRIBITS_ADD_EXECUTABLE(
+  SeparateSetups
+  SOURCES SeparateSetups.cpp
+  COMM serial mpi
+  )

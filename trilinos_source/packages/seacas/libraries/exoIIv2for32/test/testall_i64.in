@@ -1,0 +1,71 @@
+#! /usr/bin/env bash
+# Copyright(C) 1999-2020 National Technology & Engineering Solutions
+# of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
+# NTESS, the U.S. Government retains certain rights in this software.
+# 
+# See packages/seacas/LICENSE for details
+
+# script to run all tests and compare them to saved dump files.
+#
+# To run the tests with valgrind checking, uncomment the next line and comment the
+# following line. Can also define other prefixes if wanted.
+
+if [ "$1" == "netcdf4" ]; then
+   export EXODUS_NETCDF4=quiet
+fi
+
+#PREFIX = "valgrind --tool=memcheck"
+PREFIX=""
+SUFFIX=""
+BINDIR=@CMAKE_CURRENT_BINARY_DIR@
+SRCDIR=@CMAKE_CURRENT_SOURCE_DIR@
+NCDUMP=@NETCDF_NCDUMP@
+DIFF="diff -w"
+
+# testwt - single precision write test
+echo "************************************************************************"
+echo "************************************************************************"
+rm -f test.output
+echo "testwt ..."
+echo "begin testwt" > test.output
+${PREFIX} ${BINDIR}/f32_testwt${SUFFIX} >> test.output
+echo "end testwt" >> test.output
+${NCDUMP} -d5,5 test.exo | grep -v version | grep -v _FillValue | ${DIFF} - ${SRCDIR}/test.dmp | tee testwt.res
+
+# testrdd - double precision read test with 64-bit integers
+echo "testrddi64 ..."
+${PREFIX} ${BINDIR}/f32_testrddi64${SUFFIX} | grep -v version | grep -v _FillValue | grep -v "word size" | ${DIFF} - ${SRCDIR}/testrddi64.dmp | tee testrddi64.res
+
+# testwtd - double precision write test
+echo "testwtd ..."
+echo "begin testwtd" >> test.output
+${PREFIX} ${BINDIR}/f32_testwtd${SUFFIX} >> test.output
+echo "end testwtd" >> test.output
+${NCDUMP} -d5,5 test.exo | grep -v version | grep -v _FillValue | ${DIFF} - ${SRCDIR}/testd.dmp | tee testwtd.res
+
+# testrdd - double precision read test with 64-bit integers
+echo "testrddi64 ..."
+${PREFIX} ${BINDIR}/f32_testrddi64${SUFFIX} | grep -v version | grep -v _FillValue | grep -v "word size" | ${DIFF} - ${SRCDIR}/testrddi64.dmp | tee testrddi64.res
+
+# testwtdi64 - double precision write test with 64-bit integers
+echo "testwtdi64 ..."
+echo "begin testwtdi64" >> test.output
+${PREFIX} ${BINDIR}/f32_testwtdi64${SUFFIX} >> test.output
+echo "end testwtdi64" >> test.output
+${NCDUMP} -d5,5 test.exo | grep -v version | grep -v _FillValue | ${DIFF} - ${SRCDIR}/testdi64.dmp | tee testwtd.res
+
+# testrdd - double precision read test with 64-bit integers
+echo "testrddi64 ..."
+${PREFIX} ${BINDIR}/f32_testrddi64${SUFFIX} | grep -v version | grep -v _FillValue | grep -v "word size" | ${DIFF} - ${SRCDIR}/testrddi64.dmp | tee testrddi64.res
+
+# testrdd - double precision read test
+echo "testrdd ..."
+${PREFIX} ${BINDIR}/f32_testrdd${SUFFIX} | grep -v version | grep -v _FillValue | grep -v "word size" | ${DIFF} - ${SRCDIR}/testrdd.dmp | tee testrdd.res
+
+# testrd - single precision read of double precision file
+echo "testrd ..."
+${PREFIX} ${BINDIR}/f32_testrd${SUFFIX} | grep -v version | grep -v _FillValue | grep -v "word size" | ${DIFF} - ${SRCDIR}/testrd.dmp | tee testrd.res
+
+echo "************************************************************************"
+echo "************************************************************************"
+
