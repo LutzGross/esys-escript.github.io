@@ -10,7 +10,7 @@ cmake \
       -D BUILD_SHARED_LIBS=ON \
       -D TPL_ENABLE_BLAS=ON \
       -D TPL_ENABLE_Boost=ON \
-      -D TPL_ENABLE_Cholmod=ON \
+      -D TPL_ENABLE_Cholmod=OFF \
       -D TPL_ENABLE_SCALAPACK=OFF \
       -D SCALAPACK_LIBRARY_NAMES='libscalapack-openmpi.so' \
       -D TPL_ENABLE_ParMETIS=OFF \
