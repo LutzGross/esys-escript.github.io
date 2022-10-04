@@ -42,7 +42,7 @@ cmake \
       -D Teuchos_ENABLE_COMPLEX=ON \
       -D Tpetra_INST_INT_INT=ON \
       -D Tpetra_ENABLE_DEPRECATED_CODE=ON \
-      -D Trilinos_ENABLE_OpenMP=ON \
+      -D Trilinos_ENABLE_OpenMP=$2 \
       -D TPL_ENABLE_MPI=OFF \
       -D Trilinos_ENABLE_EXPLICIT_INSTANTIATION=ON \
       -D Kokkos_ENABLE_COMPILER_WARNINGS=ON \

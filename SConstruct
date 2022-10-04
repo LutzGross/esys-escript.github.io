@@ -549,12 +549,16 @@ env.Append(BUILDERS = {'EpsToPDF' : epstopdfbuilder});
 if env['build_trilinos']:
     startdir=os.getcwd()
     os.chdir('trilinos_build')
+    if env['openmp'] is True:
+        BUILD_WITH_OPENMP=" ON"
+    else:
+        BUILD_WITH_OPENMP=" OFF"
     if env['mpi'] == 'OPENMPI':
         print("Building (no MPI) trilinos..............................")
-        configure="sh mpi.sh " + env['prefix']
+        configure="sh mpi.sh " + env['prefix'] + BUILD_WITH_OPENMP
     else:
         print("Building (MPI) trilinos..............................")
-        configure="sh nompi.sh " + env['prefix']
+        configure="sh nompi.sh " + env['prefix'] + BUILD_WITH_OPENMP
     res=os.system(configure)
     res=os.system('make -j`nproc --ignore=2` install')
     env['trilinos_prefix']=env['prefix']
