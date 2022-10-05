@@ -286,7 +286,7 @@ void BlockCrsMatrixWrapper<ST>::resetValues(bool preserveSolverData)
 template<typename ST>
 void BlockCrsMatrixWrapper<ST>::IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT>> iz, long n) 
 {
-    throw TrilinosAdapterException("Programming error").
+    throw TrilinosAdapterException("Programming error");
     // mat.resumeFill();
     // auto tmp_mat1 = Tpetra::createDeepCopy(mat);
     // Tpetra::MatrixMatrix::Multiply(*iz,true,tmp_mat1,false,mat,false);

@@ -1567,7 +1567,7 @@ void Brick::renumberNodes()
     // Populate NodeIDs
     is_hanging.clear();
     int num_norm_nodes=NormalNodes.size();
-    // num_hanging=HangingNodes.size();
+    num_hanging=HangingNodes.size();
     int total_nodes=NormalNodes.size()+HangingNodes.size();
     is_hanging.resize(total_nodes,false);
     int count = 0;
@@ -1582,7 +1582,8 @@ void Brick::renumberNodes()
     }
 
     // This variable currently records the number of hanging faces, not the number of hanging nodes
-    // num_hanging/=2;
+    num_hanging/=2;
+    ESYS_ASSERT(hanging_faces.size()==getNumHangingNodes(), "Incorrect number of hanging nodes.");
 
     // Populate m_nodeIDs
     m_nodeId.clear();
@@ -2446,6 +2447,7 @@ void Brick::updateRowsColumns()
 
     // update num_hanging
     num_hanging=hanging_faces.size();
+    ESYS_ASSERT(hanging_faces.size()==getNumHangingNodes(), "Incorrect number of hanging nodes.");
 
     // Sorting
 // #pragma omp for
