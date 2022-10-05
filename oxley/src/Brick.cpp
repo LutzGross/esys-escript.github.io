@@ -1187,7 +1187,7 @@ void Brick::refinePoint(double x0, double y0, double z0)
     // Check that the point is inside the domain
     if(x0 < forestData.m_origin[0] || x0 > forestData.m_length[0] 
         || y0 < forestData.m_origin[1] || y0 > forestData.m_length[1] 
-        || z0 < forestData.m_origin[2] || z0 > forestData.m_length[3] )
+        || z0 < forestData.m_origin[2] || z0 > forestData.m_length[2] )
     {
         throw OxleyException("Coordinates lie outside the domain.");
     }
