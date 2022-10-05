@@ -44,6 +44,12 @@ public:
                           const_TrilinosGraph_ptr graph,
                           bool isComplex = false, bool unroll = false);
 
+    TrilinosMatrixAdapter(escript::JMPI mpiInfo, int blocksize,
+                          const escript::FunctionSpace& fs,
+                          const_TrilinosGraph_ptr graph,
+                          bool isComplex = false, bool unroll = false, 
+                          bool using_oxley=false);
+
     virtual ~TrilinosMatrixAdapter() {}
 
     virtual void nullifyRowsAndCols(escript::Data& row_q, escript::Data& col_q,

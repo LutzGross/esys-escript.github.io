@@ -62,6 +62,24 @@ TrilinosMatrixAdapter::TrilinosMatrixAdapter(escript::JMPI mpiInfo,
     }
 }
 
+TrilinosMatrixAdapter::TrilinosMatrixAdapter(escript::JMPI mpiInfo,
+        int blocksize, const escript::FunctionSpace& fs,
+        const_TrilinosGraph_ptr graph, bool isComplex, bool unroll,
+        bool using_oxley) :
+    AbstractSystemMatrix(blocksize, fs, blocksize, fs),
+    m_mpiInfo(mpiInfo),
+    m_isComplex(isComplex)
+{
+    if (isComplex) 
+    {
+        cmat = rcp(new CrsMatrixWrapper<cplx_t>(graph));
+    } 
+    else 
+    {
+        mat = rcp(new CrsMatrixWrapper<real_t>(graph));
+    }
+}
+
 template<>
 void TrilinosMatrixAdapter::add<real_t>(const std::vector<LO>& rowIdx,
                                         const std::vector<real_t>& array)

@@ -1189,7 +1189,9 @@ namespace oxley {
             esys_trilinos::const_TrilinosGraph_ptr graph(getTrilinosGraph());
             bool isComplex = (type & (int)SMT_COMPLEX);
             bool unroll = (type & (int)SMT_UNROLL);
-            escript::ASM_ptr sm(new esys_trilinos::TrilinosMatrixAdapter(m_mpiInfo, row_blocksize, row_functionspace, graph, isComplex, unroll));
+            //TODO other block sizes
+            escript::ASM_ptr sm(new esys_trilinos::TrilinosMatrixAdapter(m_mpiInfo, row_blocksize, row_functionspace, graph, isComplex, unroll, true));
+            // escript::ASM_ptr sm(new esys_trilinos::TrilinosMatrixAdapter(m_mpiInfo, row_blocksize, row_functionspace, graph, isComplex, unroll));
             return sm;
     #else
             throw OxleyException("newSystemMatrix: oxley was not compiled with Trilinos support so the Trilinos solver stack cannot be used.");
