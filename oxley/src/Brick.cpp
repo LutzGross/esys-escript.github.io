@@ -1582,7 +1582,7 @@ void Brick::renumberNodes()
     }
 
     // This variable currently records the number of hanging faces, not the number of hanging nodes
-    num_hanging/=2;
+    num_hanging/=4; //TODO
     ESYS_ASSERT(hanging_faces.size()==getNumHangingNodes(), "Incorrect number of hanging nodes.");
 
     // Populate m_nodeIDs

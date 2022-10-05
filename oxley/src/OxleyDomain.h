@@ -513,12 +513,35 @@ public:
 
     /**
        \brief
+       refines the mesh within the interior of a region bound by 
+       x0, x1, y0, y1
+       \param x0 boundary of the region
+       \param x1 boundary of the region
+       \param y0 boundary of the region
+       \param y1 boundary of the region
+       \param z0 boundary of the region
+       \param z1 boundary of the region
+    */
+    virtual void refineRegion(double x0, double x1, double y0, double y1, double z0, double z1);
+
+    /**
+       \brief
        refines the mesh around the point
        x0, y1
        \param x0 
        \param y1 
     */
-    virtual void refinePoint(double x0, double y1);
+    virtual void refinePoint(double x0, double y0);
+
+    /**
+       \brief
+       refines the mesh around the point
+       x0, y0
+       \param x0 
+       \param y0
+       \param z0
+    */
+    virtual void refinePoint(double x0, double y0, double z0);
 
     /**
        \brief
@@ -528,6 +551,15 @@ public:
        \param r
     */
     virtual void refineCircle(double x0, double y0, double r);
+
+    /**
+       \brief
+       refines a sphere on the mesh centered at (x0, y0, z0) with radius r
+       \param x0 
+       \param y1 
+       \param r
+    */
+    virtual void refineSphere(double x0, double y0, double z0, double r);
 
     /**
        \brief

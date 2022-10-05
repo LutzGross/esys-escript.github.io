@@ -940,12 +940,27 @@ namespace oxley {
         throw OxleyException("unknown error");   
     }
 
+    void OxleyDomain::refineRegion(double x0, double x1, double y0, double y1, double z0, double z1)
+    {
+        throw OxleyException("unknown error");   
+    }
+
     void OxleyDomain::refinePoint(double x0, double y0)
     {
         throw OxleyException("unknown error");   
     }
 
+    void OxleyDomain::refinePoint(double x0, double y0, double z0)
+    {
+        throw OxleyException("unknown error");   
+    }
+
     void OxleyDomain::refineCircle(double x0, double y0, double r)
+    {
+        throw OxleyException("unknown error");   
+    }
+
+    void OxleyDomain::refineSphere(double x0, double y0, double z0, double r)
     {
         throw OxleyException("unknown error");   
     }

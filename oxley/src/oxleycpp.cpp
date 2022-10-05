@@ -353,6 +353,7 @@ BOOST_PYTHON_MODULE(oxleycpp)
     arg("l0")=1.0,arg("l1")=1.0,
     arg("d0")=-1,arg("d1")=-1,
     arg("diracPoints")=list(), arg("diracTags")=list(),
+
     arg("periodic0")=0,arg("periodic1")=0),
     "Creates a rectangular p4est mesh with n0 x n1 elements over the rectangle [0,l0] x [0,l1].\n\n"
     ":param n0: number of elements in direction 0\n:type n0: ``int``\n"
@@ -462,27 +463,6 @@ BOOST_PYTHON_MODULE(oxleycpp)
                 "Refines the mesh.\n"
                 ":param RefinementAlgorithm:\n:type string: `The refinement algorithm \n"
                 "       accepted values are \"uniform\", \"MARE2DEM\" ")
-        .def("refineBoundary", &oxley::OxleyDomain::refineBoundary, (args("boundary","dx")),
-                "Refines the mesh near a boundary.\n"
-                ":param boundary:\n:type string: `The boundary (top,bottom,right,left) \n"
-                ":param dx:\n:type double: all quadrants closer to the boundary than dx will be refined. ")
-        .def("refineRegion", &oxley::OxleyDomain::refineRegion, (arg("x0")=-1,arg("x1")=-1,arg("y0")=-1,arg("y1")=-1),
-                "Refines the mesh within the interior of a region.\n"
-                ":param x0:\n:type double: boundary of the region.\n"
-                ":param x1:\n:type double: boundary of the region.\n"
-                ":param y0:\n:type double: boundary of the region.\n"
-                ":param y1:\n:type double: boundary of the region.\n")
-        .def("refinePoint", &oxley::OxleyDomain::refinePoint, (arg("x0")=-1,arg("y0")=-1),
-                "Refines the mesh around the point (x0,y0) to the level of refinement.\n"
-                "set by setRefinementLevel\n"
-                ":param x0:\n:type double: x coordinate of the point to be refined.\n"
-                ":param y0:\n:type double: y coordinate of the point to be refined.\n")
-        .def("refineCircle", &oxley::OxleyDomain::refineCircle, (arg("x0")=-1,arg("y0")=-1,arg("r")=-1),
-                "Refines the mesh around the point (x0,y0) to the level of refinement.\n"
-                "set by setRefinementLevel\n"
-                ":param x0:\n:type double: x coordinate of the point to be refined.\n"
-                ":param y0:\n:type double: y coordinate of the point to be refined.\n"
-                ":param r: \n:type double: radius of the circle.\n")
         // .def("resetRhs",&oxley::OxleyDomain::resetRhs, arg("rhs"), "resets the RHS")
         .def("saveMesh", &oxley::OxleyDomain::saveMesh, (arg("filename")),
                 "Saves the mesh to file using p4est format\n"
@@ -510,8 +490,54 @@ BOOST_PYTHON_MODULE(oxleycpp)
 
     // These two class exports are necessary to ensure that the extra methods
     // added by oxley make it to python. 
-    class_<oxley::Brick, bases<oxley::OxleyDomain> >("OxleyBrick", "", no_init);
-    class_<oxley::Rectangle, bases<oxley::OxleyDomain> >("OxleyRectangle", "", no_init);
+    class_<oxley::Brick, bases<oxley::OxleyDomain> >("OxleyBrick", "", no_init)
+        .def("refineBoundary", &oxley::Brick::refineBoundary, (args("boundary","dx")),
+                "Refines the mesh near a boundary.\n"
+                ":param boundary:\n:type string: `The boundary (top,bottom,right,left) \n"
+                ":param dx:\n:type double: all quadrants closer to the boundary than dx will be refined. ")
+        .def("refineRegion", &oxley::Brick::refineRegion, (arg("x0")=-1,arg("x1")=-1,arg("y0")=-1,arg("y1")=-1,arg("z0")=-1,arg("z1")=-1),
+                "Refines the mesh within the interior of a region.\n"
+                ":param x0:\n:type double: boundary of the region.\n"
+                ":param x1:\n:type double: boundary of the region.\n"
+                ":param y0:\n:type double: boundary of the region.\n"
+                ":param y1:\n:type double: boundary of the region.\n")
+        .def("refinePoint", &oxley::Brick::refinePoint, (arg("x0")=-1,arg("y0")=-1,arg("z0")=-1),
+                "Refines the mesh around the point (x0,y0) to the level of refinement.\n"
+                "set by setRefinementLevel\n"
+                ":param x0:\n:type double: x coordinate of the point to be refined.\n"
+                ":param y0:\n:type double: y coordinate of the point to be refined.\n")
+        .def("refineSphere", &oxley::Brick::refineSphere, (arg("x0")=-1,arg("y0")=-1,arg("z0")=-1,arg("r")=-1),
+                "Refines the mesh around the point (x0,y0) to the level of refinement.\n"
+                "set by setRefinementLevel\n"
+                ":param x0:\n:type double: x coordinate of the point to be refined.\n"
+                ":param y0:\n:type double: y coordinate of the point to be refined.\n"
+                ":param r: \n:type double: radius of the circle.\n")
+        ;
+
+    class_<oxley::Rectangle, bases<oxley::OxleyDomain> >("OxleyRectangle", "", no_init)
+        .def("refineBoundary", &oxley::Brick::refineBoundary, (args("boundary","dx")),
+                "Refines the mesh near a boundary.\n"
+                ":param boundary:\n:type string: `The boundary (top,bottom,right,left) \n"
+                ":param dx:\n:type double: all quadrants closer to the boundary than dx will be refined. ")
+        .def("refineRegion", &oxley::Brick::refineRegion, (arg("x0")=-1,arg("x1")=-1,arg("y0")=-1,arg("y1")=-1),
+                "Refines the mesh within the interior of a region.\n"
+                ":param x0:\n:type double: boundary of the region.\n"
+                ":param x1:\n:type double: boundary of the region.\n"
+                ":param y0:\n:type double: boundary of the region.\n"
+                ":param y1:\n:type double: boundary of the region.\n")
+        .def("refinePoint", &oxley::Brick::refinePoint, (arg("x0")=-1,arg("y0")=-1),
+                "Refines the mesh around the point (x0,y0) to the level of refinement.\n"
+                "set by setRefinementLevel\n"
+                ":param x0:\n:type double: x coordinate of the point to be refined.\n"
+                ":param y0:\n:type double: y coordinate of the point to be refined.\n")
+        .def("refineCircle", &oxley::Brick::refineCircle, (arg("x0")=-1,arg("y0")=-1,arg("r")=-1),
+                "Refines the mesh around the point (x0,y0) to the level of refinement.\n"
+                "set by setRefinementLevel\n"
+                ":param x0:\n:type double: x coordinate of the point to be refined.\n"
+                ":param y0:\n:type double: y coordinate of the point to be refined.\n"
+                ":param r: \n:type double: radius of the circle.\n")
+        ;
+
     class_<oxley::AbstractAssembler, oxley::Assembler_ptr, boost::noncopyable >  ("AbstractAssembler", "", no_init);
 }
 
