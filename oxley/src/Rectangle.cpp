@@ -1133,8 +1133,8 @@ void Rectangle::refinePoint(double x0, double y0)
     iz_needs_update=true;
 
     // Check that the point is inside the domain
-    if(x0 < forestData.m_origin[0] || x0 > forestData.m_lxy[0] 
-        || y0 < forestData.m_origin[1] || y0 > forestData.m_lxy[1] )
+    if(x0 < forestData.m_origin[0] || x0 > forestData.m_length[0] 
+        || y0 < forestData.m_origin[1] || y0 > forestData.m_length[1] )
     {
         throw OxleyException("Coordinates lie outside the domain.");
     }
