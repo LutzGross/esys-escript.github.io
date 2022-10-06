@@ -727,6 +727,10 @@ void Brick::dump(const std::string& fileName) const //TODO Not working
 {
 #ifdef ESYS_HAVE_SILO
     
+#ifdef OXLEY_ENABLE_DEBUG
+        std::cout << "Inside dump........" << std::endl;
+#endif
+
     // Add the suffix to the filename if required
     std::string fn = fileName;
     if (fileName.length() < 6 || fileName.compare(fileName.length()-5, 5, ".silo") != 0) {
@@ -757,6 +761,11 @@ void Brick::dump(const std::string& fileName) const //TODO Not working
         pNodey[element.second]=std::get<1>(element.first);
         pNodez[element.second]=std::get<2>(element.first);
         pNode_ids[element.second]=element.second;
+#ifdef OXLEY_ENABLE_DEBUG
+        std::cout << "Adding " << element.second << ": (" << std::get<0>(element.first) << ", " 
+                                                          << std::get<1>(element.first) << ", "  
+                                                          << std::get<2>(element.first) << ") " << std::endl;
+#endif
     }
 
     if(current_solution.size() != 0)
@@ -792,14 +801,14 @@ void Brick::dump(const std::string& fileName) const //TODO Not working
         {
             p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);          
             getNeighouringNodeIDs(quad->level, quad->x, quad->y, quad->z, treeid, ids);
-            nodelist.push_back(ids[0]);
-            nodelist.push_back(ids[1]);
-            nodelist.push_back(ids[2]);
-            nodelist.push_back(ids[3]);
-            nodelist.push_back(ids[4]); // TODO Check
-            nodelist.push_back(ids[5]);
-            nodelist.push_back(ids[6]);
             nodelist.push_back(ids[7]);
+            nodelist.push_back(ids[5]);
+            nodelist.push_back(ids[4]);
+            nodelist.push_back(ids[3]);
+            nodelist.push_back(ids[2]);
+            nodelist.push_back(ids[6]);
+            nodelist.push_back(ids[1]);
+            nodelist.push_back(ids[0]);
         }
     }
 
@@ -821,10 +830,10 @@ void Brick::dump(const std::string& fileName) const //TODO Not working
         
 
     DBPutUcdmesh(dbfile, "mesh", ndims, NULL, pCoordinates, getNumNodes(), getNumElements(), 
-                    "octants", NULL, DB_FLOAT, NULL);
+                    "octants", NULL, DB_FLOAT, NULL); //TODO
 
-    // Coordinates
-    DBPutPointmesh(dbfile, "nodes", ndims, pCoordinates, getNumNodes(), DB_FLOAT, NULL) ;
+    // // Coordinates
+    // DBPutPointmesh(dbfile, "nodes", ndims, pCoordinates, getNumNodes(), DB_FLOAT, NULL) ;
 
     // // Node IDs
     // DBPutPointvar1(dbfile, "id", "nodes", pNode_ids, getNumNodes(), DB_LONG, NULL);
