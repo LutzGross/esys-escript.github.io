@@ -1509,11 +1509,14 @@ void Brick::renumberNodes()
     std::vector<DoubleTuple> NormalNodes;
     std::vector<DoubleTuple> HangingNodes;
 
-    //TODO
-    int orient_lookup[4][4]={{-1,2,0,-1}, //p8est_child_corner_faces
-                             {2,-1,1,-1},
-                             {0,-1,-1,3},
-                             {-1,1,3,-1}};
+    int orient_lookup[8][8] = {{ -1, -1, -1,  4, -1,  2,  0, -1 },
+                               { -1, -1,  4, -1,  2, -1, -1,  1 },
+                               { -1,  4, -1, -1,  0, -1, -1,  3 },
+                               {  4, -1, -1, -1, -1,  1,  3, -1 },
+                               { -1,  2,  0, -1, -1, -1, -1,  5 },
+                               {  2, -1, -1,  1, -1, -1,  5, -1 },
+                               {  0, -1, -1,  3, -1,  5, -1, -1 },
+                               { -1,  1,  3, -1,  5, -1, -1, -1 }};
 
     // Write in NodeIDs
 // #pragma omp for
@@ -1525,8 +1528,8 @@ void Brick::renumberNodes()
         for(int q = 0; q < Q; ++q) { 
             p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
             p8est_qcoord_t l = P8EST_QUADRANT_LEN(quad->level);
-            p8est_qcoord_t lxy[8][3] = {{0,0,0},{0,0,l},{0,l,0},{0,l,l},
-                                         {l,0,0},{l,0,l},{l,l,0},{l,l,l}};
+            p8est_qcoord_t lxy[8][3] = {{0,0,0},{l,0,0},{0,l,0},{l,l,0},
+                                        {0,0,l},{l,0,l},{0,l,l},{l,l,l}};
             int hanging[8] = {0};
             getHangingNodes(nodes->face_code[k++], hanging);
             for(int n = 0; n < 8; n++)
@@ -1596,8 +1599,7 @@ void Brick::renumberNodes()
     }
 
     // This variable currently records the number of hanging faces, not the number of hanging nodes
-    num_hanging/=4; //TODO
-    ESYS_ASSERT(hanging_faces.size()==getNumHangingNodes(), "Incorrect number of hanging nodes.");
+    // num_hanging/=4;
 
     // Populate m_nodeIDs
     m_nodeId.clear();
@@ -2629,8 +2631,8 @@ void Brick::updateFaceElementCount()
             p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
             p8est_qcoord_t l = P8EST_QUADRANT_LEN(quad->level);
             // int k = q - Q + nodeIncrements[treeid - p8est->first_local_tree];
-            p8est_qcoord_t lxy[8][3] = {{0,0,0},{0,0,l},{0,l,0},{0,l,l},
-                                         {l,0,0},{l,0,l},{l,l,0},{l,l,l}};
+            p8est_qcoord_t lxy[8][3] = {{0,0,0},{l,0,0},{0,l,0},{l,l,0},
+                                        {0,0,l},{l,0,l},{0,l,l},{l,l,l}};
             double xyz[4][3] = {{0}};
             int nodeids[4]={-1};
             bool do_check_yes_no[4]={false};

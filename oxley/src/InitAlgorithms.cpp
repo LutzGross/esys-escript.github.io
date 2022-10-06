@@ -53,6 +53,8 @@ void init_brick_data(p8est_t * p8est, p4est_topidx_t tree, p8est_quadrant_t * q)
     data->u=0.0;
   	data->octantTag=0;
 
+    // data->owner=p4est->mpirank;
+
     // Save the spatial coordinates
     p8est_qcoord_to_vertex(p8est->connectivity, tree, q->x, q->y, q->z, &data->xyz[0]);
 }

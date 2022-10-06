@@ -199,7 +199,7 @@ public:
 	// maximum levels of recursion to use during refinement
 	int max_levels_refinement = 0;
 	double refinement_depth=0.0;
-	double refinement_boundaries[8]={0.0};
+	double refinement_boundaries[6]={0.0};
 
 	// Pointer to the current solution and Node ID info
 	std::unordered_map<long,double> * current_solution;

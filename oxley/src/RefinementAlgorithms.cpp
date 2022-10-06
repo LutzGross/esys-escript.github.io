@@ -435,8 +435,30 @@ int refine_region(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadr
 
 int refine_point(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadrant)
 {
-    //TODO
-    return 0;
+    p8estData * forestData = (p8estData *) p8est->user_pointer;
+    octantData * octData = (octantData *) quadrant->p.user_data;
+    double p[3] = {forestData->refinement_boundaries[0], 
+                   forestData->refinement_boundaries[1],
+                   forestData->refinement_boundaries[2]};
+    double * xy1 = octData->xyz;
+
+    double xy2[3] = {0};
+    p8est_qcoord_t l = P8EST_QUADRANT_LEN(quadrant->level);
+    p8est_qcoord_to_vertex(p8est->connectivity, tree, quadrant->x+l, quadrant->y+l, quadrant->z+l, xy2);
+
+#ifdef OXLEY_ENABLE_DEBUG
+    std::cout << "Refining point in quad " 
+              << "(" << xy1[0] << ", " << xy1[1] << ", " << xy1[2] << ") " << " & "
+              << "(" << xy2[0] << ", " << xy2[1] << ", " << xy2[2] << ") " << std::endl;
+#endif
+
+    // Check if the point is inside the quadrant
+    bool do_refinement = (p[0] >= xy1[0]) && (p[0] <= xy2[0])
+                      && (p[1] >= xy1[1]) && (p[1] <= xy2[1])
+                      && (p[2] >= xy1[2]) && (p[2] <= xy2[2]);
+
+    return  do_refinement &&
+            (quadrant->level < forestData->max_levels_refinement);
 }
 
 int refine_sphere(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadrant)
@@ -797,39 +819,37 @@ void refine_copy_parent_octant(p8est_t * p8est, p4est_topidx_t tree,
 {
     if(num_incoming == 8 && num_outgoing == 1)
     {
-        // Get the parent quadrant
-        p8est_quadrant_t * child[8];
-        p8est_quadrant_childrenpv(outgoing[0], child);
-
         // parent user data
-        octantData *childData = (octantData *) child[0]->p.user_data;
         octantData *parentData = (octantData *) outgoing[0]->p.user_data;
 
-        parentData->u=childData->u;
-        parentData->octantTag=childData->octantTag;
-
-        // Update the spatial coordinates
-        p8est_qcoord_to_vertex(p8est->connectivity, tree,
-        outgoing[0]->x, outgoing[0]->y, outgoing[0]->z, &parentData->xyz[0]);
-    }
-    else if(num_incoming == 1 && num_outgoing == 8)
-    {
-        // Get the parent quadrant
-        p8est_quadrant_t parent;
-        p8est_quadrant_parent(incoming[0], &parent);
-
-        // parent user data
-        octantData *parentData = (octantData *) parent.p.user_data;
-
+        // Averaging
+        parentData->u = 0.0;
         for(int i = 0; i < 8; i++)
         {
             octantData *childData = (octantData *) incoming[i]->p.user_data;
+            parentData->u+=childData->u;
+        }
+        parentData->u=0.125*parentData->u;
+
+        // Tags
+        octantData *childData = (octantData *) incoming[0]->p.user_data;
+        parentData->octantTag=childData->octantTag;
+
+        // Update the spatial coordinates
+        p8est_qcoord_to_vertex(p8est->connectivity, tree, outgoing[0]->x, outgoing[0]->y, outgoing[0]->z, &parentData->xyz[0]);
+    }
+    else if(num_incoming == 1 && num_outgoing == 8)
+    {
+        octantData *parentData = (octantData *) incoming[0]->p.user_data;
+
+        // Loop over the four children
+        for(int i = 0; i < 8; i++){
+            octantData *childData = (octantData *) outgoing[i]->p.user_data;
             childData->u=parentData->u;
-          	childData->octantTag=parentData->octantTag;
+            childData->octantTag=parentData->octantTag;
 
             // Update the spatial coordinates
-            p8est_qcoord_to_vertex(p8est->connectivity, tree,
-                incoming[i]->x, incoming[i]->y, incoming[i]->z, &childData->xyz[0]);
+            p8est_qcoord_to_vertex(p8est->connectivity, tree, outgoing[i]->x, outgoing[i]->y, outgoing[i]->z,&childData->xyz[0]);
         }
     }
     else
