@@ -801,14 +801,14 @@ void Brick::dump(const std::string& fileName) const //TODO Not working
         {
             p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);          
             getNeighouringNodeIDs(quad->level, quad->x, quad->y, quad->z, treeid, ids);
-            nodelist.push_back(ids[7]);
-            nodelist.push_back(ids[5]);
-            nodelist.push_back(ids[4]);
-            nodelist.push_back(ids[3]);
-            nodelist.push_back(ids[2]);
-            nodelist.push_back(ids[6]);
-            nodelist.push_back(ids[1]);
             nodelist.push_back(ids[0]);
+            nodelist.push_back(ids[1]);
+            nodelist.push_back(ids[2]);
+            nodelist.push_back(ids[3]);
+            nodelist.push_back(ids[4]);
+            nodelist.push_back(ids[5]);
+            nodelist.push_back(ids[6]);
+            nodelist.push_back(ids[7]);
         }
     }
 
@@ -824,23 +824,21 @@ void Brick::dump(const std::string& fileName) const //TODO Not working
 
     // This is deprecated
     DBPutZonelist2(dbfile, "p8est", nzones, ndims, nodelistarray, lnodelist, 
-                0, 0, 0, 
-                shapetype, shapesize, 
-                shapecounts, nshapetypes, NULL); 
+                0, 0, 0,  shapetype, shapesize,  shapecounts, nshapetypes, NULL); 
         
 
     DBPutUcdmesh(dbfile, "mesh", ndims, NULL, pCoordinates, getNumNodes(), getNumElements(), 
-                    "octants", NULL, DB_FLOAT, NULL); //TODO
+                    "p8est", NULL, DB_FLOAT, NULL);
 
-    // // Coordinates
-    // DBPutPointmesh(dbfile, "nodes", ndims, pCoordinates, getNumNodes(), DB_FLOAT, NULL) ;
+    // Coordinates
+    DBPutPointmesh(dbfile, "nodes", ndims, pCoordinates, getNumNodes(), DB_FLOAT, NULL) ;
 
-    // // Node IDs
-    // DBPutPointvar1(dbfile, "id", "nodes", pNode_ids, getNumNodes(), DB_LONG, NULL);
+    // Node IDs
+    DBPutPointvar1(dbfile, "id", "nodes", pNode_ids, getNumNodes(), DB_LONG, NULL);
 
     // Node values
-    // if(current_solution.size() != 0)
-    //     DBPutPointvar1(dbfile, "u", "nodes", pValues, getNumNodes(), DB_DOUBLE, NULL);    
+    if(current_solution.size() != 0)
+        DBPutPointvar1(dbfile, "u", "nodes", pValues, getNumNodes(), DB_DOUBLE, NULL);    
 
     DBClose(dbfile);
 
