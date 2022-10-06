@@ -755,6 +755,7 @@ void Brick::dump(const std::string& fileName) const //TODO Not working
     pNode_ids = new long int [MAXP4ESTNODES];
     pValues = new double[MAXP4ESTNODES];
 
+    int counter=0;
     for(std::pair<DoubleTuple,long> element : NodeIDs)
     {
         pNodex[element.second]=std::get<0>(element.first);
@@ -764,7 +765,7 @@ void Brick::dump(const std::string& fileName) const //TODO Not working
 #ifdef OXLEY_ENABLE_DEBUG
         std::cout << "Adding " << element.second << ": (" << std::get<0>(element.first) << ", " 
                                                           << std::get<1>(element.first) << ", "  
-                                                          << std::get<2>(element.first) << ") " << std::endl;
+                                                          << std::get<2>(element.first) << ") " << counter++ << std::endl;
 #endif
     }
 
@@ -801,13 +802,13 @@ void Brick::dump(const std::string& fileName) const //TODO Not working
         {
             p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);          
             getNeighouringNodeIDs(quad->level, quad->x, quad->y, quad->z, treeid, ids);
+            nodelist.push_back(ids[2]); // Silo uses a different node ordering to p4est
             nodelist.push_back(ids[0]);
             nodelist.push_back(ids[1]);
-            nodelist.push_back(ids[2]);
             nodelist.push_back(ids[3]);
+            nodelist.push_back(ids[6]);
             nodelist.push_back(ids[4]);
             nodelist.push_back(ids[5]);
-            nodelist.push_back(ids[6]);
             nodelist.push_back(ids[7]);
         }
     }
@@ -1963,11 +1964,12 @@ void Brick::interpolateNodesOnElementsWorker(escript::Data& out,
 //protected
 void Brick::getNeighouringNodeIDs(int8_t level, p8est_qcoord_t x, p8est_qcoord_t y, p8est_qcoord_t z, p8est_topidx_t treeid, long (&ids) [8]) const
 {
+    // 2D
+    // int adj[4][2]={{0,0},{l,0},{0,l},{l,l}};
+
     p8est_qcoord_t l = P8EST_QUADRANT_LEN(level);
-    int adj[8][3] = {{0,0,0},{l,0,0},{0,l,0},{l,l,0}
-                    ,{0,0,l},{l,0,l},{0,l,l},{l,l,l}}; //TODO double check AE
-    // int adj[8][3] = {{0,0,0},{0,0,l},{0,l,0},{0,l,l}
-    //                 ,{l,0,0},{l,0,l},{l,l,0},{l,l,l}}; //TODO double check AE
+    int adj[8][3] = {{0,0,0},{l,0,0},{0,l,0},{l,l,0},
+                     {0,0,l},{l,0,l},{0,l,l},{l,l,l}};
 
 // #pragma omp parallel for
     for(int i=0; i<8;i++)
