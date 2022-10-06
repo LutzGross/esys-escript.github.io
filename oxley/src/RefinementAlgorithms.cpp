@@ -944,11 +944,11 @@ void update_node_faceoffset(p8est_iter_volume_info_t * info, void *fxx)
 {
     octantData * octdata = (octantData *) info->quad->p.user_data;
     octdata->m_faceOffset[0] = info->quad->x == 0 ? true : false;
-    octdata->m_faceOffset[1] = info->quad->x == P4EST_ROOT_LEN ? true : false;
+    octdata->m_faceOffset[1] = info->quad->x == P8EST_ROOT_LEN ? true : false;
     octdata->m_faceOffset[2] = info->quad->y == 0 ? true : false;
-    octdata->m_faceOffset[3] = info->quad->y == P4EST_ROOT_LEN ? true : false;
+    octdata->m_faceOffset[3] = info->quad->y == P8EST_ROOT_LEN ? true : false;
     octdata->m_faceOffset[4] = info->quad->z == 0 ? true : false;
-    octdata->m_faceOffset[5] = info->quad->z == P4EST_ROOT_LEN ? true : false;
+    octdata->m_faceOffset[5] = info->quad->z == P8EST_ROOT_LEN ? true : false;
 }
 
 void update_RC(p4est_iter_face_info_t *info, void *user_data)
