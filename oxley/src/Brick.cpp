@@ -723,7 +723,7 @@ escript::Data Brick::randomFill(const escript::DataTypes::ShapeType& shape,
     throw OxleyException("randomFill"); //TODO this is temporary
 }
 
-void Brick::dump(const std::string& fileName) const
+void Brick::dump(const std::string& fileName) const //TODO Not working
 {
 #ifdef ESYS_HAVE_SILO
     
@@ -755,6 +755,7 @@ void Brick::dump(const std::string& fileName) const
     {
         pNodex[element.second]=std::get<0>(element.first);
         pNodey[element.second]=std::get<1>(element.first);
+        pNodez[element.second]=std::get<2>(element.first);
         pNode_ids[element.second]=element.second;
     }
 
@@ -782,50 +783,55 @@ void Brick::dump(const std::string& fileName) const
 
     // create the nodelist
     std::vector<int> nodelist;
-    long ids[6]={0};
+    long ids[8]={0};
     for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
         p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
         sc_array_t * tquadrants = &tree->quadrants;
         p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count;
-        for(int q = 0; q < Q; q++)
+        for(long q = 0; q < Q; q++)
         {
             p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);          
             getNeighouringNodeIDs(quad->level, quad->x, quad->y, quad->z, treeid, ids);
             nodelist.push_back(ids[0]);
+            nodelist.push_back(ids[1]);
             nodelist.push_back(ids[2]);
             nodelist.push_back(ids[3]);
-            nodelist.push_back(ids[1]);
-            nodelist.push_back(ids[4]);
+            nodelist.push_back(ids[4]); // TODO Check
             nodelist.push_back(ids[5]);
+            nodelist.push_back(ids[6]);
+            nodelist.push_back(ids[7]);
         }
     }
 
-    int* nodelistarray = &nodelist[0];
-
     // write mesh
+    int ndims = 3;
+    int* nodelistarray = &nodelist[0];
     int lnodelist = nodelist.size();
-    int shapesize[] = {4};
-    int shapecounts[] = {lnodelist/4};
+    int shapecounts[] = {getNumElements()};
+    int shapetype[1] = {DB_ZONETYPE_HEX};
+    int shapesize[1] = {8}; // Number of nodes used by each zone
     int nshapetypes = 1;
-    int shapetype[1] = {DB_ZONETYPE_QUAD};
+    int nzones = getNumElements();
 
     // This is deprecated
-    DBPutZonelist2(dbfile, "quads", getNumElements(), 2, nodelistarray, lnodelist, 0,
-                0, 0, shapetype, shapesize, shapecounts, nshapetypes, NULL);
+    DBPutZonelist2(dbfile, "p8est", nzones, ndims, nodelistarray, lnodelist, 
+                0, 0, 0, 
+                shapetype, shapesize, 
+                shapecounts, nshapetypes, NULL); 
         
 
-    DBPutUcdmesh(dbfile, "mesh", 2, NULL, pCoordinates, getNumNodes(), getNumElements(), 
-                    "quads", NULL, DB_FLOAT, NULL);
+    DBPutUcdmesh(dbfile, "mesh", ndims, NULL, pCoordinates, getNumNodes(), getNumElements(), 
+                    "octants", NULL, DB_FLOAT, NULL);
 
     // Coordinates
-    DBPutPointmesh(dbfile, "nodes", 2, pCoordinates, getNumNodes(), DB_FLOAT, NULL) ;
+    DBPutPointmesh(dbfile, "nodes", ndims, pCoordinates, getNumNodes(), DB_FLOAT, NULL) ;
 
-    // Node IDs
-    DBPutPointvar1(dbfile, "id", "nodes", pNode_ids, getNumNodes(), DB_LONG, NULL);
+    // // Node IDs
+    // DBPutPointvar1(dbfile, "id", "nodes", pNode_ids, getNumNodes(), DB_LONG, NULL);
 
     // Node values
-    if(current_solution.size() != 0)
-        DBPutPointvar1(dbfile, "u", "nodes", pValues, getNumNodes(), DB_DOUBLE, NULL);    
+    // if(current_solution.size() != 0)
+    //     DBPutPointvar1(dbfile, "u", "nodes", pValues, getNumNodes(), DB_DOUBLE, NULL);    
 
     DBClose(dbfile);
 
@@ -1752,7 +1758,7 @@ void Brick::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F
          const std::vector<Scalar>& EM_S, const std::vector<Scalar>& EM_F, 
          bool addS, bool addF, borderNodeInfo quad, int nEq, int nComp) const
 {    
-    long rowIndex[6] = {0};
+    long rowIndex[8] = {0};
     getNeighouringNodeIDs(quad.level, quad.x, quad.y, quad.z, quad.treeid, rowIndex);
     if(addF)
     {
@@ -1864,7 +1870,7 @@ void Brick::interpolateNodesOnElementsWorker(escript::Data& out,
             {
                 p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
                
-                long ids[6]={0};
+                long ids[8]={0};
                 getNeighouringNodeIDs(quad->level, quad->x, quad->y, quad->z, treeid, ids);
                 int quadID=getQuadID(ids[0]);
                 //TODO check order of indices ids[x]
@@ -1909,7 +1915,7 @@ void Brick::interpolateNodesOnElementsWorker(escript::Data& out,
             {        
                 p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
 
-                long ids[6]={0};
+                long ids[8]={0};
                 getNeighouringNodeIDs(quad->level, quad->x, quad->y, quad->z, treeid, ids);
                 long quadId = getQuadID(ids[0]);
 
@@ -1948,15 +1954,16 @@ void Brick::interpolateNodesOnElementsWorker(escript::Data& out,
 }
 
 //protected
-void Brick::getNeighouringNodeIDs(int8_t level, p8est_qcoord_t x, p8est_qcoord_t y, p8est_qcoord_t z, p8est_topidx_t treeid, long (&ids) [6]) const
+void Brick::getNeighouringNodeIDs(int8_t level, p8est_qcoord_t x, p8est_qcoord_t y, p8est_qcoord_t z, p8est_topidx_t treeid, long (&ids) [8]) const
 {
-    p8est_qcoord_t l = P4EST_QUADRANT_LEN(level);
-    // int adj[8][3] = {{0,0,0},{0,0,l},{0,l,0},{0,l,l},
-                     // {l,0,0},{l,0,l},{l,l,0},{l,l,l}}; //TODO double check
-    int adj[8][3] = {{0,0,0},{0,0,0},{0,0,0},{0,0,0},
-                     {0,0,0},{0,0,0},{0,0,0},{0,0,0}}; //TODO double check
+    p8est_qcoord_t l = P8EST_QUADRANT_LEN(level);
+    int adj[8][3] = {{0,0,0},{l,0,0},{0,l,0},{l,l,0}
+                    ,{0,0,l},{l,0,l},{0,l,l},{l,l,l}}; //TODO double check AE
+    // int adj[8][3] = {{0,0,0},{0,0,l},{0,l,0},{0,l,l}
+    //                 ,{l,0,0},{l,0,l},{l,l,0},{l,l,l}}; //TODO double check AE
+
 // #pragma omp parallel for
-    for(int i=0; i<6;i++)
+    for(int i=0; i<8;i++)
     {
         double xy[3];
         p8est_qcoord_to_vertex(p8est->connectivity, treeid, x+adj[i][0], y+adj[i][1], z+adj[i][2], xy);

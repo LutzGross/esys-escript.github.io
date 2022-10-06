@@ -102,7 +102,7 @@ int refine_mare2dem(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * qua
     double quad_solution = current_solution->find(lni)->second;
 
 #ifdef OXLEY_ENABLE_DEBUG
-    std::cout << "refine_mare2dem: " << lni << " (" << xy[0] << "," << xy[1] << ")";
+    std::cout << "refine_mare2dem: " << lni << " (" << xyz[0] << "," << xyz[1] << ")";
 #endif
 
     // Get the Node IDs at the neighbouring nodes

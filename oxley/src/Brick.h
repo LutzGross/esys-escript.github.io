@@ -522,7 +522,7 @@ protected:
        \brief
        Returns the ID numbers of the neighbouring four nodes
     */
-    void getNeighouringNodeIDs(int8_t level, p8est_qcoord_t x, p8est_qcoord_t y, p8est_qcoord_t z, p8est_topidx_t treeid, long (&ids) [6]) const;
+    void getNeighouringNodeIDs(int8_t level, p8est_qcoord_t x, p8est_qcoord_t y, p8est_qcoord_t z, p8est_topidx_t treeid, long (&ids) [8]) const;
 
     virtual void assembleIntegrate(std::vector<real_t>& integrals,
                                    const escript::Data& arg) const;
@@ -616,13 +616,13 @@ protected:
     void addPoints(const std::vector<double>& coords, const std::vector<int>& tags);
 
     // Initial number of nodes
-    int m_NN[2] = {0};
+    int m_NN[3] = {0};
     // Initial number of divisions
-    long m_NE[2] = {0};
+    long m_NE[3] = {0};
     // Initial spacing
-    double m_NX[2] = {0};
+    double m_NX[3] = {0};
     /// number of face elements per edge (left, right, bottom, top)
-    dim_t m_faceCount[4];
+    dim_t m_faceCount[8];
 
     // The number of hanging nodes in the mesh
     int num_hanging;
