@@ -98,7 +98,7 @@ Brick::Brick(int order,
             throw OxleyException("Could not find values for d0, d1 and d2. Please set them manually.");
     }
 
-    connectivity = new_brick_connectivity(n0, n1, n2, 0, 0, 0, x0, x1, y0, y1, z0, z1);
+    connectivity = new_brick_connectivity(n0, n1, n2, false, false, false, x0, x1, y0, y1, z0, z1);
 
 #ifdef OXLEY_ENABLE_DEBUG_CHECKS //These checks are turned off by default as they can be very timeconsuming
     std::cout << "In Brick() constructor..." << std::endl;
@@ -1613,6 +1613,7 @@ void Brick::renumberNodes()
     }
 
     // This variable currently records the number of hanging faces, not the number of hanging nodes
+    // TODO
     // num_hanging/=4;
 
     // Populate m_nodeIDs
@@ -3766,32 +3767,26 @@ Brick::new_brick_connectivity (int n0, int n1, int n2, int periodic_a, int perio
     const p8est_topidx_t m = (p8est_topidx_t) n0;
     const p8est_topidx_t n = (p8est_topidx_t) n1;
     const p8est_topidx_t p = (p8est_topidx_t) n2;
+    ESYS_ASSERT(m > 0 && n > 0 && p > 0, "n0, n1 and n2 must be greater than zero.");
+
     const p8est_topidx_t mc = periodic_a ? m : (m - 1);
     const p8est_topidx_t nc = periodic_b ? n : (n - 1);
     const p8est_topidx_t pc = periodic_c ? p : (p - 1);
     const p8est_topidx_t num_trees = m * n * p;
+    ESYS_ASSERT(num_trees <= MAXTREES ,"n0*n1*n2 must be less than MAXTREES.");
+
     const p8est_topidx_t num_corners = mc * nc * pc;
     const p8est_topidx_t num_ctt = P8EST_CHILDREN * num_corners;
     const p8est_topidx_t num_edges = m * nc * pc + mc * n * pc + mc * nc * p;
     const p8est_topidx_t num_ett = 4 * num_edges;
     const p8est_topidx_t num_vertices = (m + 1) * (n + 1) * (p + 1);
     const int periodic[P8EST_DIM] = { periodic_a, periodic_b, periodic_c };
-
     const p8est_topidx_t max[P8EST_DIM] = { m - 1, n - 1, p - 1 };
-    double *vertices;
-    p8est_topidx_t *tree_to_vertex;
-    p8est_topidx_t *tree_to_tree;
-    int8_t *tree_to_face;
-    p8est_topidx_t *tree_to_corner;
-    p8est_topidx_t *ctt_offset;
-    p8est_topidx_t *corner_to_tree;
-    int8_t *corner_to_corner;
+
     p8est_topidx_t  n_iter;
     int logx[P8EST_DIM];
     int rankx[P8EST_DIM];
     int i, j, l;
-    p8est_topidx_t  ti, tj, tk;
-    p8est_topidx_t  tx, ty;
     p8est_topidx_t  tf[P8EST_FACES], tc[P8EST_CHILDREN];
     p8est_topidx_t  coord[P8EST_DIM], coord2[P8EST_DIM], ttemp;
     p8est_topidx_t *linear_to_tree;
@@ -3802,33 +3797,32 @@ Brick::new_brick_connectivity (int n0, int n1, int n2, int periodic_a, int perio
     p8est_topidx_t tl;
     p8est_topidx_t tz;
     p8est_topidx_t te[P8EST_EDGES];
-    p8est_topidx_t *tree_to_edge;
-    p8est_topidx_t *ett_offset;
-    p8est_topidx_t *edge_to_tree;
-    int8_t *edge_to_edge;
     p8est_topidx_t *tree_to_edge2;
     int dir1, dir2;
 
-    ESYS_ASSERT(m > 0 && n > 0 && p > 0, "n0, n1 and n2 must be greater than zero.");
-
+    // Size of the grid spacing
+    double dx = (x1 - x0) / n0;
+    double dy = (y1 - y0) / n1;
+    double dz = (z1 - z0) / n2;
 
     conn = p8est_connectivity_new (num_vertices, num_trees, 
                                  num_edges, num_ett,
                                  num_corners, num_ctt);
 
-    vertices = conn->vertices;
-    tree_to_vertex = conn->tree_to_vertex;
-    tree_to_tree = conn->tree_to_tree;
-    tree_to_face = conn->tree_to_face;
-    tree_to_edge = conn->tree_to_edge;
-    ett_offset = conn->ett_offset;
-    edge_to_tree = conn->edge_to_tree;
-    edge_to_edge = conn->edge_to_edge;
-    tree_to_corner = conn->tree_to_corner;
-    ctt_offset = conn->ctt_offset;
-    corner_to_tree = conn->corner_to_tree;
-    corner_to_corner = conn->corner_to_corner;
+    double * vertices = conn->vertices;
+    p8est_topidx_t * tree_to_vertex = conn->tree_to_vertex;
+    p8est_topidx_t * tree_to_tree = conn->tree_to_tree;
+    int8_t * tree_to_face = conn->tree_to_face;
+    p8est_topidx_t * tree_to_edge = conn->tree_to_edge;
+    p8est_topidx_t * ett_offset = conn->ett_offset;
+    p8est_topidx_t * edge_to_tree = conn->edge_to_tree;
+    int8_t * edge_to_edge = conn->edge_to_edge;
+    p8est_topidx_t * tree_to_corner = conn->tree_to_corner;
+    p8est_topidx_t * ctt_offset = conn->ctt_offset;
+    p8est_topidx_t * corner_to_tree = conn->corner_to_tree;
+    int8_t * corner_to_corner = conn->corner_to_corner;
 
+    p8est_topidx_t  ti, tj, tk;
 #pragma omp parallel for
     for (ti = 0; ti < num_edges + 1; ti++) {
         ett_offset[ti] = 4 * ti;
@@ -3870,7 +3864,6 @@ Brick::new_brick_connectivity (int n0, int n1, int n2, int periodic_a, int perio
         rankx[1] = 2;
     }
 
-
     linear_to_tree = P4EST_ALLOC(p8est_topidx_t, n_iter);
     tree_to_corner2 = P4EST_ALLOC(p8est_topidx_t, num_trees);
     tree_to_edge2 = P4EST_ALLOC(p8est_topidx_t, 3 * num_trees);
@@ -3878,6 +3871,8 @@ Brick::new_brick_connectivity (int n0, int n1, int n2, int periodic_a, int perio
     tj = 0;
     tk = 0;
     tl = 0;
+
+    p8est_topidx_t  tx, ty;
 
     for (ti = 0; ti < n_iter; ti++) {
         brick_linear_to_xyz (ti, logx, rankx, coord);
@@ -4101,9 +4096,14 @@ Brick::new_brick_connectivity (int n0, int n1, int n2, int periodic_a, int perio
                     else 
                     {
                         tree_to_vertex[tj * P8EST_CHILDREN + i] = vcount++;
-                        vertices[vicount++] = (double) (tx + (i & 1));
-                        vertices[vicount++] = (double) (ty + ((i >> 1) & 1));
-                        vertices[vicount++] = (double) (tz + (i >> 2));
+                        vertices[vicount++] = (double) x0 + dx * (tx + (i & 1));
+                        vertices[vicount++] = (double) y0 + dy * (ty + ((i >> 1) & 1));
+                        vertices[vicount++] = (double) z0 + dz * (tz + (i >> 2));
+                        #ifdef OXLEY_PRINT_VERTICES
+                        std::cout << "( " << vertices[vicount-3] << ", " 
+                                          << vertices[vicount-2] << ", "
+                                          << vertices[vicount-1] << " )" << std::endl;
+                        #endif
                     }
                 }
             }
@@ -4116,7 +4116,7 @@ Brick::new_brick_connectivity (int n0, int n1, int n2, int periodic_a, int perio
     P4EST_FREE(tree_to_edge2);
 
 #ifdef OXLEY_ENABLE_DEBUG
-    P4EST_ASSERT (p8est_connectivity_is_valid (conn)); //This is very time consuming
+    P4EST_ASSERT(p8est_connectivity_is_valid(conn)); //This is very time consuming
 #endif
 
     return conn;
