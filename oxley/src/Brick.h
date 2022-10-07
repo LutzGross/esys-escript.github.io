@@ -334,6 +334,7 @@ private:
     std::vector<borderNodeInfo> NodeIDsAbove;
     std::vector<borderNodeInfo> NodeIDsBelow;
 
+    std::vector<hangingNodeInfo> hanging_edge_orientation;
     std::vector<hangingNodeInfo> hanging_face_orientation;
     
     // Row and column indices in CRS format
@@ -473,7 +474,7 @@ protected:
        \brief
        Returns true if the node is hanging
     */
-    bool getHangingNodes(p8est_lnodes_code_t face_code, int hanging[]) const;
+    bool getHangingInfo(p8est_lnodes_code_t face_code, int hanging_faces[], int hanging_edges[]) const;
 
     /**
        \brief

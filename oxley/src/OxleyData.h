@@ -89,7 +89,7 @@ struct hangingNodeInfo
 	p4est_qcoord_t z; //unused by Rectangle
 	int8_t level;
 	p4est_topidx_t treeid;
-	int face_orientation={-1}; 
+	int8_t face_orientation={-1}; 
 	
 	p4est_qcoord_t neighbour_x;
 	p4est_qcoord_t neighbour_y;
