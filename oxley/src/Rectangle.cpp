@@ -1469,7 +1469,7 @@ void Rectangle::renumberNodes()
     std::vector<DoublePair> NormalNodes;
     std::vector<DoublePair> HangingNodes;
 
-    int orient_lookup[4][4]={{-1,2,0,-1},
+    int orient_lookup[4][4]={{-1,2,0,-1}, //p4est_child_corner_faces
                              {2,-1,1,-1},
                              {0,-1,-1,3},
                              {-1,1,3,-1}};

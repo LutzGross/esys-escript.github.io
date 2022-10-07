@@ -1461,14 +1461,16 @@ bool Brick::isHangingNode(p8est_lnodes_code_t face_code, int n) const
 bool Brick::getHangingInfo(p8est_lnodes_code_t face_code, 
             int hanging_face[P8EST_FACES], int hanging_edge[P8EST_EDGES]) const
 {
+    //cf. p8est_lnodes.h:162-175
+
     ESYS_ASSERT(face_code >= 0, "getHangingInfo: Invalid face code.");
+
+    memset(hanging_face, -1, 6 * sizeof (int));
+    memset(hanging_edge, -1, 12 * sizeof (int));
 
     if(face_code) {
         int16_t c = face_code & 0x0007;
         int16_t work = face_code >> 3;
-
-        memset(hanging_face, -1, 6 * sizeof (int));
-        memset(hanging_edge, -1, 12 * sizeof (int));
 
         int16_t cwork = c;
         for(int i = 0; i < 3; ++i) {
@@ -1531,14 +1533,16 @@ void Brick::renumberNodes()
     std::vector<DoubleTuple> NormalNodes;
     std::vector<DoubleTuple> HangingNodes;
 
-    int orient_lookup[8][8] = {{ -1, -1, -1,  4, -1,  2,  0, -1 },
-                               { -1, -1,  4, -1,  2, -1, -1,  1 },
-                               { -1,  4, -1, -1,  0, -1, -1,  3 },
-                               {  4, -1, -1, -1, -1,  1,  3, -1 },
-                               { -1,  2,  0, -1, -1, -1, -1,  5 },
-                               {  2, -1, -1,  1, -1, -1,  5, -1 },
-                               {  0, -1, -1,  3, -1,  5, -1, -1 },
-                               { -1,  1,  3, -1,  5, -1, -1, -1 }};
+    // TODO 
+    // cf. p8est_connectivity.c 
+    int orient_lookup[8][8] = {{ -1,  0,  4, -1,  8, -1, -1, -1 }, //p8est_child_corner_edges
+                               {  0, -1, -1,  5, -1,  9, -1, -1 },
+                               {  4, -1, -1,  1, -1, -1, 10, -1 },
+                               { -1,  5,  1, -1, -1, -1, -1, 11 },
+                               {  8, -1, -1, -1, -1,  2,  6, -1 },
+                               { -1,  9, -1, -1,  2, -1, -1,  7 },
+                               { -1, -1, 10, -1,  6, -1, -1,  3 },
+                               { -1, -1, -1, 11, -1,  7,  3, -1 }};
 
     // Write in NodeIDs
 // #pragma omp for
@@ -1552,49 +1556,56 @@ void Brick::renumberNodes()
             p8est_qcoord_t l = P8EST_QUADRANT_LEN(quad->level);
             p8est_qcoord_t lxy[8][3] = {{0,0,0},{l,0,0},{0,l,0},{l,l,0},
                                         {0,0,l},{l,0,l},{0,l,l},{l,l,l}};
-            int hanging_faces[8] = {0};
-            int hanging_edges[12] = {0};
+            int hanging_faces[6];
+            int hanging_nodes[8]; memset(hanging_nodes, -1, 8 * sizeof (int));
+            int hanging_edges[12];
             getHangingInfo(nodes->face_code[k++], hanging_faces, hanging_edges);
-            for(int n = 0; n < 12; n++)
+            // p8est_lnodes_decode(nodes->face_code[k], hanging_faces, hanging_edges);
+            for(int n = 0; n < 8; n++)
             {
                 double xy[3];
                 p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], quad->z+lxy[n][2], xy);
                 auto tmp = std::make_tuple(xy[0],xy[1],xy[2]);
 
-                if(hanging_edges[n]!=-1)
+                #ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES
+                std::cout << "(" << xy[0] << ", " << xy[1] << ", " << xy[2] << "), hanging_faces[n]: " << hanging_faces[n] << " ";
+                #endif
+
+                if(hanging_nodes[n]!=-1)
                 {
                     if(!std::count(HangingNodes.begin(), HangingNodes.end(), tmp))
                     {
-                        hangingNodeInfo tmp2;
-                        tmp2.x=quad->x+lxy[n][0];
-                        tmp2.y=quad->y+lxy[n][1];
-                        tmp2.z=quad->z+lxy[n][2];
-                        tmp2.level=quad->level;
-                        tmp2.treeid=treeid;
-                        tmp2.face_orientation=orient_lookup[n][hanging_edges[n]];
-                        ESYS_ASSERT(tmp2.face_orientation!=-1, "renumberNodes: Unknown programming error");
-                        p8est_quadrant_t * parent;
-                        p8est_quadrant_t parent_quad;
-                        parent = &parent_quad;
-                        p8est_quadrant_parent(quad, parent);
-                        ESYS_ASSERT(p8est_quadrant_is_parent(parent, quad), "renumberNodes: Quadrant is not parent");
-                        ESYS_ASSERT(p8est_quadrant_is_valid(parent),"renumberNodes: Invalid parent quadrant");
-                        p8est_quadrant_t * neighbour;
-                        p8est_quadrant_t neighbour_quad;
-                        neighbour = &neighbour_quad;
-                        int * nface = NULL;
-                        int newtree = p8est_quadrant_face_neighbor_extra(parent, treeid, tmp2.face_orientation, neighbour, nface, connectivity);
-                        ESYS_ASSERT(newtree!=-1, "renumberNodes: Invalid neighbour tree");
-                        ESYS_ASSERT(p8est_quadrant_is_valid(neighbour),"renumberNodes: Invalid neighbour quadrant");
-                        tmp2.neighbour_x=neighbour->x;
-                        tmp2.neighbour_y=neighbour->y;
-                        tmp2.neighbour_z=neighbour->z;
-                        tmp2.neighbour_l=neighbour->level;
-                        tmp2.neighbour_tree=newtree;
-                        hanging_face_orientation.push_back(tmp2);
-                        HangingNodes.push_back(tmp);
+                        // TODO AE
+                        // hangingNodeInfo tmp2;
+                        // tmp2.x=quad->x+lxy[n][0];
+                        // tmp2.y=quad->y+lxy[n][1];
+                        // tmp2.z=quad->z+lxy[n][2];
+                        // tmp2.level=quad->level;
+                        // tmp2.treeid=treeid;
+                        // tmp2.face_orientation=orient_lookup[n][hanging_faces[n]];
+                        // ESYS_ASSERT(tmp2.face_orientation!=-1, "renumberNodes: Unknown programming error");
+                        // p8est_quadrant_t * parent;
+                        // p8est_quadrant_t parent_quad;
+                        // parent = &parent_quad;
+                        // p8est_quadrant_parent(quad, parent);
+                        // ESYS_ASSERT(p8est_quadrant_is_parent(parent, quad), "renumberNodes: Quadrant is not parent");
+                        // ESYS_ASSERT(p8est_quadrant_is_valid(parent),"renumberNodes: Invalid parent quadrant");
+                        // p8est_quadrant_t * neighbour;
+                        // p8est_quadrant_t neighbour_quad;
+                        // neighbour = &neighbour_quad;
+                        // int * nface = NULL;
+                        // int newtree = p8est_quadrant_face_neighbor_extra(parent, treeid, tmp2.face_orientation, neighbour, nface, connectivity);
+                        // ESYS_ASSERT(newtree!=-1, "renumberNodes: Invalid neighbour tree");
+                        // ESYS_ASSERT(p8est_quadrant_is_valid(neighbour),"renumberNodes: Invalid neighbour quadrant");
+                        // tmp2.neighbour_x=neighbour->x;
+                        // tmp2.neighbour_y=neighbour->y;
+                        // tmp2.neighbour_z=neighbour->z;
+                        // tmp2.neighbour_l=neighbour->level;
+                        // tmp2.neighbour_tree=newtree;
+                        // hanging_face_orientation.push_back(tmp2);
+                        // HangingNodes.push_back(tmp);
                         #ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES
-                        std::cout << "(" << xy[0] << ", " << xy[1] << ", " << xy[2] << ") [Hanging]" << std::endl;
+                        std::cout << "[Hanging]" << std::endl;
                         #endif
                     }
                 }
@@ -1603,10 +1614,10 @@ void Brick::renumberNodes()
                     if(!std::count(NormalNodes.begin(), NormalNodes.end(), tmp))
                     {
                         NormalNodes.push_back(tmp);
-                        #ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES
-                        std::cout << "(" << xy[0] << ", " << xy[1] << ", " << xy[2] << ") " << std::endl;
-                        #endif
                     }
+                    #ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES
+                        std::cout << std::endl;
+                    #endif
                 }
             }
         }
@@ -2337,6 +2348,9 @@ void Brick::updateRowsColumns()
             p8est_qcoord_t length = P8EST_QUADRANT_LEN(quad->level);
             double xy[3];
             p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+length, quad->y, quad->z, xy);
+            #ifdef OXLEY_ENABLE_DEBUG_NODES_EXTRA_DETAILS
+            std::cout << "(" << xy[0] << ", " << xy[1] << ", " << xy[2] << ")" << std::endl;
+            #endif
 
             // If the node is on the boundary x=Lx or y=Ly
             if(xy[0] == forestData.m_lxyz[0]) 
@@ -2344,6 +2358,9 @@ void Brick::updateRowsColumns()
                 // Get the node IDs
                 long lni0 = NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
                 p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+length, quad->y+length, quad->z+length, xy);
+                #ifdef OXLEY_ENABLE_DEBUG_NODES_EXTRA_DETAILS
+                std::cout << "(" << xy[0] << ", " << xy[1] << ", " << xy[2] << ")" << std::endl;
+                #endif
                 long lni1 = NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
 
                 std::vector<long> * idx0 = &indices[0][lni0];
