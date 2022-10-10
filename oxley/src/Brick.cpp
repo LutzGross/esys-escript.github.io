@@ -2468,7 +2468,7 @@ void Brick::updateRowsColumns()
                 double xyz[3];
                 p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+length, quad->y, quad->z, xyz);
                 long lni1 = NodeIDs.find(std::make_tuple(xyz[0],xyz[1],xyz[2]))->second;
-                #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA_DETAILS
+                #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
                 std::cout << "(" << xyz0[0] << ", " << xyz0[1] << ", " << xyz0[2] << ") " << lni0 << " --- (" << 
                                     xyz[0] << ", " << xyz[1] << ", " << xyz[2] << ") " << lni1 << " [x boundary]" << std::endl;
                 #endif                
@@ -2501,7 +2501,7 @@ void Brick::updateRowsColumns()
                 double xyz[3];
                 p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+length, quad->y+length, quad->z, xyz);
                 long lni1 = NodeIDs.find(std::make_tuple(xyz[0],xyz[1],xyz[2]))->second;
-                #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA_DETAILS
+                #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
                 std::cout << "(" << xyz0[0] << ", " << xyz0[1] << ", " << xyz0[2] << ") " << lni0 << " --- (" << 
                                     xyz[0] << ", " << xyz[1] << ", " << xyz[2] << ") " << lni1 << " [y boundary]" << std::endl;
                 #endif
@@ -2534,7 +2534,7 @@ void Brick::updateRowsColumns()
                 double xyz[3];
                 p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x, quad->y, quad->z+length, xyz);
                 long lni1 = NodeIDs.find(std::make_tuple(xyz[0],xyz[1],xyz[2]))->second;
-                #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA_DETAILS
+                #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
                 std::cout << "(" << xyz0[0] << ", " << xyz0[1] << ", " << xyz0[2] << ") " << lni0 << " --- (" << 
                                     xyz[0] << ", " << xyz[1] << ", " << xyz[2] << ") " << lni1 << " [z boundary]" << std::endl;
                 #endif

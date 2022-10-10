@@ -1140,7 +1140,7 @@ void update_RC(p8est_iter_edge_info *info, void *user_data)
     if(dup == false)
     {
 #ifdef OXLEY_ENABLE_DEBUG_UPDATE_RC
-        std::cout << "update_RC " << lni1 << ": (" << xy[0] << ", " << xy[1] << ")" << std::endl; // coordinates
+        std::cout << "update_RC " << lni1 << ": (" << xy0[0] << ", " << xy0[1] << ")" << std::endl; // coordinates
 #endif
         idx0[0][0]++;
         idx1[0][0]++;
