@@ -1669,13 +1669,13 @@ void Brick::renumberNodes()
                         HangingFaceNodes.push_back(point);
                     }
                 }
-                else
-                {
-                    if(!std::count(NormalNodes.begin(), NormalNodes.end(), point))
-                    {
-                        NormalNodes.push_back(point);
-                    }
-                }
+                // else
+                // {
+                //     if(!std::count(NormalNodes.begin(), NormalNodes.end(), point))
+                //     {
+                //         NormalNodes.push_back(point);
+                //     }
+                // }
             }
 
             // Loop over edges
@@ -1741,13 +1741,13 @@ void Brick::renumberNodes()
                         HangingEdgeNodes.push_back(point);
                     }
                 }
-                else
-                {
-                    if(!std::count(NormalNodes.begin(), NormalNodes.end(), point))
-                    {
-                        NormalNodes.push_back(point);
-                    }
-                }
+                // else
+                // {
+                //     if(!std::count(NormalNodes.begin(), NormalNodes.end(), point))
+                //     {
+                //         NormalNodes.push_back(point);
+                //     }
+                // }
             }
         }
     }
