@@ -553,12 +553,16 @@ if env['build_trilinos']:
         BUILD_WITH_OPENMP=" ON"
     else:
         BUILD_WITH_OPENMP=" OFF"
+    if env['debug'] is True:
+        BUILD_TYPE=" Debug"
+    else:
+        BUILD_TYPE=" Release"
     if env['mpi'] == 'OPENMPI':
         print("Building (no MPI) trilinos..............................")
-        configure="sh mpi.sh " + env['prefix'] + BUILD_WITH_OPENMP
+        configure="sh mpi.sh " + env['prefix'] + BUILD_WITH_OPENMP + BUILD_TYPE
     else:
         print("Building (MPI) trilinos..............................")
-        configure="sh nompi.sh " + env['prefix'] + BUILD_WITH_OPENMP
+        configure="sh nompi.sh " + env['prefix'] + BUILD_WITH_OPENMP + BUILD_TYPE
     res=os.system(configure)
     res=os.system('make -j`nproc --ignore=2` install')
     env['trilinos_prefix']=env['prefix']

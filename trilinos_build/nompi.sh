@@ -4,6 +4,7 @@ rm -f CMakeCache.txt
 
 cmake \
       -D CMAKE_INSTALL_PREFIX=$1 \
+      -D CMAKE_BUILD_TYPE=$3 \
       -D Trilinos_ENABLE_CXX11=ON \
       -D Trilinos_ENABLE_Fortran=ON \
       -D CMAKE_CXX_FLAGS=" -Wno-unused-parameter" \
