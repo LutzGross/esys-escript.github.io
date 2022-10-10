@@ -1096,10 +1096,13 @@ void update_RC(p8est_iter_edge_info *info, void *user_data)
     // Calculate the length of the side
     p8est_qcoord_t l = P8EST_QUADRANT_LEN(oct->level);
     int fn = (int) side->edge;
-    //                           0      1        2        3      4       5       6       7       8       9       10      11       
-    p8est_qcoord_t lx[12][2] = {{-l,l}, {-l,l}, {-l,l}, {-l,l}, {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0}};
-    p8est_qcoord_t ly[12][2] = {{0,0},  {0,0},  {0,0},  {0,0},  {-l,l}, {-l,l}, {-l,l}, {-l,l}, {0,0},  {0,0},  {0,0},  {0,0}};
-    p8est_qcoord_t lz[12][2] = {{0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {-l,l}, {-l,l}, {-l,l}, {-l,l}};
+
+    // long lx[4][2] = {{0,0},{l,l},{0,l},{0,l}};
+    // long ly[4][2] = {{0,l},{0,l},{0,0},{l,l}};
+    //                           0     1     2     3     4     5     6     7     8     9     10    11       
+    p8est_qcoord_t lx[12][2] = {{0,l},{0,l},{0,l},{0,l},{0,0},{l,l},{0,0},{l,l},{0,0},{l,l},{0,0},{l,l}};
+    p8est_qcoord_t ly[12][2] = {{0,0},{l,l},{0,0},{l,l},{0,l},{0,l},{0,l},{0,l},{0,0},{0,0},{l,l},{l,l}};
+    p8est_qcoord_t lz[12][2] = {{0,0},{0,0},{l,l},{l,l},{0,0},{0,0},{l,l},{l,l},{0,l},{0,l},{0,l},{0,l}};
 
     // Get the neighbouring coordinates
     p8est_qcoord_to_vertex(data->p8est->connectivity, side->treeid, oct->x+lx[fn][0], oct->y+ly[fn][0], oct->z+lz[fn][0], xyA);
