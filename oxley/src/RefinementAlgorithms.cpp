@@ -343,7 +343,7 @@ int refine_region(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadr
 
     //check corners
     bool check[4]={false};
-    double xy[4][3]={-1};
+    double xy[4][3]={{-1}};
     for(int i=0; i<4;i++)
     {
         xy[i][0]=*(xy0  )+inc[i][0];
@@ -1048,68 +1048,61 @@ void update_RC(p4est_iter_face_info_t *info, void *user_data)
 
 void update_RC(p8est_iter_edge_info *info, void *user_data)
 {
+    //TODO 
+
     //Get some pointers
     update_RC_data_brick * data = (update_RC_data_brick *) user_data;
     sc_array_t * sides = &(info->sides);
 
     p8est_iter_edge_side_t * side = p8est_iter_eside_array_index_int(sides, 0); 
     
-    p8est_quadrant_t * quad;
+    p8est_quadrant_t * oct;
     if(side->is_hanging)
         return;
-    quad = side->is.full.quad;
+    oct = side->is.full.quad;
 
     double xy0[3], xyA[3], xyB[3];
     
     // Do nothing if this isn't a lower quadrant
-    p8est_qcoord_to_vertex(data->p8est->connectivity, side->treeid, quad->x, quad->y, quad->z, xy0);
-    quad_info tmp;
+    p8est_qcoord_to_vertex(data->p8est->connectivity, side->treeid, oct->x, oct->y, oct->z, xy0);
+    oct_info tmp;
     tmp.x=xy0[0];
     tmp.y=xy0[1];
-    tmp.level=quad->level;
+    tmp.z=xy0[2];
+    tmp.level=oct->level;
     bool lower_quadrant=false;
-    for(int i=0;i<data->pQuadInfo->size();i++)
+    for(int i = 0; i < data->pOctInfo->size() ; i++)
     {
-        if((tmp.x     == data->pQuadInfo[0][i].x)
-        && (tmp.y     == data->pQuadInfo[0][i].y)
-        && (tmp.level == data->pQuadInfo[0][i].level))
-        {
-            lower_quadrant=true;
-            break;
-        }
+        if((tmp.x     == data->pOctInfo[0][i].x)
+        && (tmp.y     == data->pOctInfo[0][i].y)
+        && (tmp.z     == data->pOctInfo[0][i].z)
+        && (tmp.level == data->pOctInfo[0][i].level))
+            return;
     }
-    if(!lower_quadrant)
-        return;
-    
+
     // Calculate the length of the side
-    p8est_qcoord_t l = P8EST_QUADRANT_LEN(quad->level);
+    p8est_qcoord_t l = P8EST_QUADRANT_LEN(oct->level);
     int fn = (int) side->edge;
-
-    // long lx[4][2] = {{0,0},{l,l},{0,l},{0,l}};
-    // long ly[4][2] = {{0,l},{0,l},{0,0},{l,l}};
-
-    long lx[12][2] = {{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0}};
-    long ly[12][2] = {{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0}};
-    long lz[12][2] = {{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0}}; //TODO CHECK
+    //                                0      1        2        3      4       5       6       7       8       9       10      11       
+    p8est_qcoord_t lx[12][2] = {{-l,l}, {-l,l}, {-l,l}, {-l,l}, {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0}};
+    p8est_qcoord_t ly[12][2] = {{0,0},  {0,0},  {0,0},  {0,0},  {-l,l}, {-l,l}, {-l,l}, {-l,l}, {0,0},  {0,0},  {0,0},  {0,0}};
+    p8est_qcoord_t lz[12][2] = {{0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {-l,l}, {-l,l}, {-l,l}, {-l,l}};
 
     #ifdef OXLEY_ENABLE_DEBUG_UPDATE_RC_EXTRA
-        std::cout << std::endl << "(" << quad->x+lx[fn][0] << ", " 
-                  << quad->y+ly[fn][0] << ", " << quad->z+lz[fn][0] << ")\t" << std::endl;;
+        std::cout << std::endl << "(" << oct->x+lx[fn][0] << ", " 
+                  << oct->y+ly[fn][0] << ", " << oct->z+lz[fn][0] << ")\t" << std::endl;;
     #endif
 
+    // Get the neighbouring coordinates
     p8est_qcoord_to_vertex(data->p8est->connectivity, side->treeid, 
-        quad->x+lx[fn][0], quad->y+ly[fn][0], quad->z+lz[fn][0], xyA);
+        oct->x+lx[fn][0], oct->y+ly[fn][0], oct->z+lz[fn][0], xyA);
     long lni0 = data->pNodeIDs->find(std::make_tuple(xyA[0],xyA[1],xyA[2]))->second;
-
-    #ifdef OXLEY_ENABLE_DEBUG_UPDATE_RC_EXTRA
-        std::cout << "(" << xyA[0] << ", " << xyA[1] << ", " << xyA[2] << ")\t";
-    #endif
-
     p8est_qcoord_to_vertex(data->p8est->connectivity, side->treeid, 
-        quad->x+lx[fn][1], quad->y+ly[fn][1], quad->z+lz[fn][1], xyB);
+        oct->x+lx[fn][1], oct->y+ly[fn][1], oct->z+lz[fn][1], xyB);
     long lni1 = data->pNodeIDs->find(std::make_tuple(xyB[0],xyB[1],xyB[2]))->second;
 
     #ifdef OXLEY_ENABLE_DEBUG_UPDATE_RC_EXTRA
+        std::cout << "(" << xyA[0] << ", " << xyA[1] << ", " << xyA[2] << ")\t";
         std::cout << "(" << xyB[0] << ", " << xyB[1] << ")";
         std::cout << std::endl;
     #endif
@@ -1117,6 +1110,7 @@ void update_RC(p8est_iter_edge_info *info, void *user_data)
     std::vector<long> * idx0 = &data->indices[0][lni0];
     std::vector<long> * idx1 = &data->indices[0][lni1];
 
+    // Check for duplicates
     bool dup = false;
     for(int i = 1; i < idx0[0][0] + 1; i++)
         if(idx0[0][i] == lni1)
@@ -1126,7 +1120,7 @@ void update_RC(p8est_iter_edge_info *info, void *user_data)
         }
 
     #ifdef OXLEY_ENABLE_DEBUG_UPDATE_RC_EXTRA
-        std::cout << "level= " << (int) quad->level ;
+        std::cout << "level= " << (int) oct->level ;
         std::cout << "; hanging side " << (int) side->is_hanging;
         std::cout << "; face= " << fn;
         std::cout << "; (x,y)=(" << xy0[0] << ", " << xy0[1] << ")      \t";
@@ -1142,9 +1136,10 @@ void update_RC(p8est_iter_edge_info *info, void *user_data)
         }        
     #endif
 
+    // If this is a new coordinate, add it to the index
     if(dup == false)
     {
-#ifdef DOXLEY_ENABLE_DEBUG
+#ifdef OXLEY_ENABLE_DEBUG_UPDATE_RC
         std::cout << "update_RC " << lni1 << ": (" << xy[0] << ", " << xy[1] << ")" << std::endl; // coordinates
 #endif
         idx0[0][0]++;

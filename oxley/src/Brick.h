@@ -307,7 +307,7 @@ private:
     // The data structure in p8est
     p8estData forestData;
 
-    // This object records the connectivity of the p8est quadrants
+    // This object records the connectivity of the p8est octants
     p8est_connectivity_t * connectivity;
 
     // This structure records the node numbering information
@@ -324,8 +324,8 @@ private:
     // std::vector<std::vector<long>> is_hanging_face; // if face x-y is hanging then element x is y
     std::unordered_map<DoubleTuple,long,boost::hash<DoubleTuple>> treeIDs; //global ids of the hanging nodes
     std::unordered_map<long,double> current_solution; //solution at each node
-    std::vector<long> quadrantIDs; // IDs of the quadrants
-    std::vector<oct_info> quadrantInfo;
+    std::vector<long> octantIDs; // IDs of the octants
+    std::vector<oct_info> octantInfo;
 
     std::vector<borderNodeInfo> NodeIDsTop;
     std::vector<borderNodeInfo> NodeIDsBottom;
