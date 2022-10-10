@@ -334,8 +334,8 @@ private:
     std::vector<borderNodeInfo> NodeIDsAbove;
     std::vector<borderNodeInfo> NodeIDsBelow;
 
-    std::vector<hangingNodeInfo> hanging_edge_orientation;
-    std::vector<hangingNodeInfo> hanging_face_orientation;
+    std::vector<hangingEdgeInfo> hanging_edge_orientation;
+    std::vector<hangingFaceInfo> hanging_face_orientation;
     
     // Row and column indices in CRS format
     IndexVector myRows;
