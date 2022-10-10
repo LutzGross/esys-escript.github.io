@@ -1153,8 +1153,8 @@ void update_RC(p8est_iter_edge_info *info, void *user_data)
 #endif
         idx0[0][0]++;
         idx1[0][0]++;
-        ESYS_ASSERT(idx0[0][0]<=4, "update_RC index out of bound");
-        ESYS_ASSERT(idx1[0][0]<=4, "update_RC index out of bound");
+        ESYS_ASSERT(idx0[0][0]<=6, "update_RC index out of bound");
+        ESYS_ASSERT(idx1[0][0]<=6, "update_RC index out of bound");
         idx0[0][idx0[0][0]]=lni1;
         idx1[0][idx1[0][0]]=lni0;
     }
