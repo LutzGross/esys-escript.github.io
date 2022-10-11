@@ -1593,7 +1593,7 @@ void Brick::renumberNodes()
             #endif
             
             // Vertex Nodes
-            for(int n=0;n<8;n++)
+            for(int n = 0; n < 8; n++)
             {
                 // Get the first coordinate
                 double xyz[3];
@@ -1613,11 +1613,6 @@ void Brick::renumberNodes()
                                             oct->x+lxy_face[n][0], oct->y+lxy_face[n][1], oct->z+lxy_face[n][2], xyz);
                 auto point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
 
-                // #ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES
-                //     if(hanging_faces[n]!=-1)
-                //         std::cout << "Face " << n << ": [hanging]" << std::endl;
-                // #endif
-
                 // If the face contains a hanging node
                 if(hanging_faces[n]!=-1)
                 {
@@ -1630,8 +1625,8 @@ void Brick::renumberNodes()
                         tmp2.z=oct->z+lxy_face[n][2];
                         tmp2.level=oct->level;
                         tmp2.treeid=treeid;
-                        tmp2.face_orientation=n;
-                        ESYS_ASSERT(tmp2.face_orientation!=-1, "renumberNodes: Unknown programming error");
+                        tmp2.face_type=n;
+                        ESYS_ASSERT(tmp2.face_type!=-1, "renumberNodes: Unknown programming error");
 
                         // Get the coordinates of the end of the face for this octant
                         p8est_quadrant_t * parent;
@@ -1647,7 +1642,7 @@ void Brick::renumberNodes()
                         neighbour = &neighbour_oct;
                         int * nface = NULL;
                         int newtree = p8est_quadrant_face_neighbor_extra(parent, treeid, 
-                                                        tmp2.face_orientation, neighbour, nface, connectivity);
+                                                        tmp2.face_type, neighbour, nface, connectivity);
                         if(neighbour->x < 0 || neighbour->y < 0 || neighbour->z < 0
                             || neighbour->x > P8EST_ROOT_LEN || neighbour->y > P8EST_ROOT_LEN || neighbour->z > P8EST_ROOT_LEN)
                             continue;
@@ -1690,8 +1685,12 @@ void Brick::renumberNodes()
                                             oct->x+lxy_edge[n][0], oct->y+lxy_edge[n][1], oct->z+lxy_edge[n][2], xyz);
                 auto point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
 
+                // Already accounted for in the face node loop
+                if(hanging_edges[n]==4)
+                    continue;
+
                 //TODO check to see if edge should be included
-                // If the edge contains a hanging node
+                // Skip if the edge is not hanging
                 if(hanging_edges[n]!=-1)
                 {
                     if(!std::count(HangingEdgeNodes.begin(), HangingEdgeNodes.end(), point))
@@ -1703,8 +1702,8 @@ void Brick::renumberNodes()
                         tmp2.z=oct->z+lxy_edge[n][2];
                         tmp2.level=oct->level;
                         tmp2.treeid=treeid;
-                        tmp2.edge_orientation=n;
-                        ESYS_ASSERT(tmp2.edge_orientation!=-1, "renumberNodes: Unknown programming error");
+                        tmp2.edge_type=n;
+                        ESYS_ASSERT(tmp2.edge_type!=-1, "renumberNodes: Unknown programming error");
 
                         // Get the coordinates of the end of the edge for this octant
                         p8est_quadrant_t * parent;
@@ -1725,8 +1724,11 @@ void Brick::renumberNodes()
                             || neighbour->x > P8EST_ROOT_LEN || neighbour->y > P8EST_ROOT_LEN || neighbour->z > P8EST_ROOT_LEN)
                             continue;
                         // Skip if the neighbouring quadrant is small than this one (to prevent duplicates)
-                        if(neighbour->level < tmp2.level)
-                            continue;
+                        // TODO
+                        // if(neighbour->level < tmp2.level)
+                        //     continue;
+
+                        // TODO
                         ESYS_ASSERT(p8est_quadrant_is_valid(neighbour),"renumberNodes: Invalid neighbouring edge octant");
 
                         // Create the new entry for HangingNodes
@@ -2605,15 +2607,21 @@ void Brick::updateRowsColumns()
                                                     hanging_edge_orientation[i].y,
                                                     hanging_edge_orientation[i].z, xyz);
         long nodeid = NodeIDs.find(std::make_tuple(xyz[0],xyz[1],xyz[2]))->second;
+
+        auto tmpae1=hanging_edge_orientation[i].treeid;
+        auto tmpae2=hanging_edge_orientation[i].x+xlookup[hanging_edge_orientation[i].edge_type][0];
+        auto tmpae3=hanging_edge_orientation[i].y+ylookup[hanging_edge_orientation[i].edge_type][0];
+        auto tmpae4=hanging_edge_orientation[i].z+zlookup[hanging_edge_orientation[i].edge_type][0];
+
         p8est_qcoord_to_vertex(p8est->connectivity, hanging_edge_orientation[i].treeid, 
-                                                    hanging_edge_orientation[i].x+xlookup[hanging_edge_orientation[i].edge_orientation][0], 
-                                                    hanging_edge_orientation[i].y+ylookup[hanging_edge_orientation[i].edge_orientation][0],
-                                                    hanging_edge_orientation[i].z+zlookup[hanging_edge_orientation[i].edge_orientation][0], xyz);
+                                                    hanging_edge_orientation[i].x+xlookup[hanging_edge_orientation[i].edge_type][0], 
+                                                    hanging_edge_orientation[i].y+ylookup[hanging_edge_orientation[i].edge_type][0],
+                                                    hanging_edge_orientation[i].z+zlookup[hanging_edge_orientation[i].edge_type][0], xyz);
         long lni0   = NodeIDs.find(std::make_tuple(xyz[0],xyz[1],xyz[2]))->second;
         p8est_qcoord_to_vertex(p8est->connectivity, hanging_edge_orientation[i].treeid, 
-                                                    hanging_edge_orientation[i].x+xlookup[hanging_edge_orientation[i].edge_orientation][1], 
-                                                    hanging_edge_orientation[i].y+ylookup[hanging_edge_orientation[i].edge_orientation][1],
-                                                    hanging_edge_orientation[i].z+zlookup[hanging_edge_orientation[i].edge_orientation][1], xyz);
+                                                    hanging_edge_orientation[i].x+xlookup[hanging_edge_orientation[i].edge_type][1], 
+                                                    hanging_edge_orientation[i].y+ylookup[hanging_edge_orientation[i].edge_type][1],
+                                                    hanging_edge_orientation[i].z+zlookup[hanging_edge_orientation[i].edge_type][1], xyz);
         long lni1   = NodeIDs.find(std::make_tuple(xyz[0],xyz[1],xyz[2]))->second;
 
         // p8est_qcoord_to_vertex(p8est->connectivity, hanging_edge_orientation[i].treeid, 
@@ -3251,14 +3259,14 @@ std::vector<IndexVector> Brick::getConnections(bool includeShared) const
         p8est_qcoord_t z_inc[4][3]={{0,0,0},{0,0,0},{0,0,l},{0,0,l}};
 
         p8est_qcoord_to_vertex(p8est->connectivity, hanging_face_orientation[i].neighbour_tree, 
-                hanging_face_orientation[i].neighbour_x+x_inc[hanging_face_orientation[i].face_orientation][0], 
-                hanging_face_orientation[i].neighbour_y+y_inc[hanging_face_orientation[i].face_orientation][0],
-                hanging_face_orientation[i].neighbour_z+z_inc[hanging_face_orientation[i].face_orientation][0], xy);
+                hanging_face_orientation[i].neighbour_x+x_inc[hanging_face_orientation[i].face_type][0], 
+                hanging_face_orientation[i].neighbour_y+y_inc[hanging_face_orientation[i].face_type][0],
+                hanging_face_orientation[i].neighbour_z+z_inc[hanging_face_orientation[i].face_type][0], xy);
         long lni0 = NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
         p8est_qcoord_to_vertex(p8est->connectivity, hanging_face_orientation[i].neighbour_tree, 
-                hanging_face_orientation[i].neighbour_x+x_inc[hanging_face_orientation[i].face_orientation][1], 
-                hanging_face_orientation[i].neighbour_y+y_inc[hanging_face_orientation[i].face_orientation][1],
-                hanging_face_orientation[i].neighbour_z+z_inc[hanging_face_orientation[i].face_orientation][1], xy);
+                hanging_face_orientation[i].neighbour_x+x_inc[hanging_face_orientation[i].face_type][1], 
+                hanging_face_orientation[i].neighbour_y+y_inc[hanging_face_orientation[i].face_type][1],
+                hanging_face_orientation[i].neighbour_z+z_inc[hanging_face_orientation[i].face_type][1], xy);
         long lni1 = NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
 
         // add info 

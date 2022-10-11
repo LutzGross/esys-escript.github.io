@@ -1503,8 +1503,8 @@ void Rectangle::renumberNodes()
                         tmp2.y=quad->y+lxy[n][1];
                         tmp2.level=quad->level;
                         tmp2.treeid=treeid;
-                        tmp2.face_orientation=orient_lookup[n][hanging[n]];
-                        ESYS_ASSERT(tmp2.face_orientation!=-1, "renumberNodes: Unknown programming error");
+                        tmp2.face_type=orient_lookup[n][hanging[n]];
+                        ESYS_ASSERT(tmp2.face_type!=-1, "renumberNodes: Unknown programming error");
                         p4est_quadrant_t * parent;
                         p4est_quadrant_t parent_quad;
                         parent = &parent_quad;
@@ -1515,7 +1515,7 @@ void Rectangle::renumberNodes()
                         p4est_quadrant_t neighbour_quad;
                         neighbour = &neighbour_quad;
                         int * nface = NULL;
-                        int newtree = p4est_quadrant_face_neighbor_extra(parent, treeid, tmp2.face_orientation, neighbour, nface, connectivity);
+                        int newtree = p4est_quadrant_face_neighbor_extra(parent, treeid, tmp2.face_type, neighbour, nface, connectivity);
                         ESYS_ASSERT(newtree!=-1, "renumberNodes: Invalid neighbour tree");
                         ESYS_ASSERT(p4est_quadrant_is_valid(neighbour),"renumberNodes: Invalid neighbour quadrant");
                         tmp2.neighbour_x=neighbour->x;
@@ -1594,9 +1594,9 @@ void Rectangle::renumberNodes()
 
         // // Calculate the node ids
         // double xy[3]={0};
-        // p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, hanging_face_orientation[i].x+xlookup[hanging_face_orientation[i].face_orientation][0], hanging_face_orientation[i].y+ylookup[hanging_face_orientation[i].face_orientation][0], xy);
+        // p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, hanging_face_orientation[i].x+xlookup[hanging_face_orientation[i].face_type][0], hanging_face_orientation[i].y+ylookup[hanging_face_orientation[i].face_type][0], xy);
         // long lni0   = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-        // p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, hanging_face_orientation[i].x+xlookup[hanging_face_orientation[i].face_orientation][1], hanging_face_orientation[i].y+ylookup[hanging_face_orientation[i].face_orientation][1], xy);
+        // p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, hanging_face_orientation[i].x+xlookup[hanging_face_orientation[i].face_type][1], hanging_face_orientation[i].y+ylookup[hanging_face_orientation[i].face_type][1], xy);
         // long lni1   = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
 
         // is_hanging_face[lni0].push_back(lni1);
@@ -2458,11 +2458,11 @@ void Rectangle::updateRowsColumns()
         double xy[3]={0};
         p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, hanging_face_orientation[i].x, hanging_face_orientation[i].y, xy);
         long nodeid = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-        p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, hanging_face_orientation[i].x+xlookup[hanging_face_orientation[i].face_orientation][0], hanging_face_orientation[i].y+ylookup[hanging_face_orientation[i].face_orientation][0], xy);
+        p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, hanging_face_orientation[i].x+xlookup[hanging_face_orientation[i].face_type][0], hanging_face_orientation[i].y+ylookup[hanging_face_orientation[i].face_type][0], xy);
         long lni0   = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-        p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, hanging_face_orientation[i].x+xlookup[hanging_face_orientation[i].face_orientation][1], hanging_face_orientation[i].y+ylookup[hanging_face_orientation[i].face_orientation][1], xy);
+        p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, hanging_face_orientation[i].x+xlookup[hanging_face_orientation[i].face_type][1], hanging_face_orientation[i].y+ylookup[hanging_face_orientation[i].face_type][1], xy);
         long lni1   = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-        p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, hanging_face_orientation[i].x+zlookup[hanging_face_orientation[i].face_orientation][0], hanging_face_orientation[i].y+zlookup[hanging_face_orientation[i].face_orientation][1], xy);
+        p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, hanging_face_orientation[i].x+zlookup[hanging_face_orientation[i].face_type][0], hanging_face_orientation[i].y+zlookup[hanging_face_orientation[i].face_type][1], xy);
         long lni2   = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
 
         // Initialise vectors
@@ -2977,12 +2977,12 @@ std::vector<IndexVector> Rectangle::getConnections(bool includeShared) const
         p4est_qcoord_t y_inc[4][2]={{0,l},{0,l},{0,0},{l,l}};
 
         p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].neighbour_tree, 
-                hanging_face_orientation[i].neighbour_x+x_inc[hanging_face_orientation[i].face_orientation][0], 
-                hanging_face_orientation[i].neighbour_y+y_inc[hanging_face_orientation[i].face_orientation][0], xy);
+                hanging_face_orientation[i].neighbour_x+x_inc[hanging_face_orientation[i].face_type][0], 
+                hanging_face_orientation[i].neighbour_y+y_inc[hanging_face_orientation[i].face_type][0], xy);
         long lni0 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
         p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].neighbour_tree, 
-                hanging_face_orientation[i].neighbour_x+x_inc[hanging_face_orientation[i].face_orientation][1], 
-                hanging_face_orientation[i].neighbour_y+y_inc[hanging_face_orientation[i].face_orientation][1], xy);
+                hanging_face_orientation[i].neighbour_x+x_inc[hanging_face_orientation[i].face_type][1], 
+                hanging_face_orientation[i].neighbour_y+y_inc[hanging_face_orientation[i].face_type][1], xy);
         long lni1 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
 
         // add info 

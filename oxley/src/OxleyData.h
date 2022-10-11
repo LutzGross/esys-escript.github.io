@@ -89,7 +89,7 @@ struct hangingNodeInfo // used for hanging edges in Rectangle and hanging faces 
 	p4est_qcoord_t z; //unused by Rectangle
 	int8_t level;
 	p4est_topidx_t treeid;
-	int8_t face_orientation={-1}; 
+	int8_t face_type={-1}; 
 	
 	p4est_qcoord_t neighbour_x;
 	p4est_qcoord_t neighbour_y;
@@ -107,7 +107,7 @@ struct hangingEdgeInfo // used for hanging edges in Brick
 	p4est_qcoord_t z; 
 	int8_t level;
 	p4est_topidx_t treeid;
-	int8_t edge_orientation={-1}; 
+	int8_t edge_type={-1}; 
 	
 	p4est_qcoord_t neighbour_x;
 	p4est_qcoord_t neighbour_y;
