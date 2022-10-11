@@ -25,15 +25,13 @@ __license__ = """Licensed under the Apache License, version 2.0
 http://www.apache.org/licenses/LICENSE-2.0"""
 __url__ = "https://launchpad.net/escript-finley"
 
-__all__ = ['MinimizerException', 'MinimizerIterationIncurableBreakDown', 'LineSearchTerminated',
+__all__ = ['MinimizerException', 'MinimizerIterationIncurableBreakDown',
            'MinimizerMaxIterReached', 'AbstractMinimizer', 'MinimizerLBFGS', 'MinimizerNLCG', 'CostFunction']
 
 import numpy as np
 from .costfunctions import *
-import logging
-
-lslogger = logging.getLogger('esys.minimizer.linesearch')
-zoomlogger = logging.getLogger('esys.minimizer.linesearch.zoom')
+import logging, sys
+EPSILON = sys.float_info.epsilon
 
 
 class MinimizerException(Exception):
@@ -41,6 +39,646 @@ class MinimizerException(Exception):
     This is a generic exception thrown by a minimizer.
     """
     pass
+
+
+class CostFunction1DEvaluationFactory(object):
+    """
+    This class manages the interface of ``Costfunction`` implementing F to the 1D projection
+    Phi(a)=F(m+a*p). The idea is to use a ``EvaluatePhi`` object to hold the values of F, gradF and args
+    for a given value.
+    """
+    def __init__(self, m, p, costfunction=None):
+        """
+        sets up the factory for offset `m` and direction `p` to use costfunction ``CostFunction``.
+        :param m: offset
+        :type m: m-type
+        :param p: direction
+        :type p: m-type
+        :param costfunction: a cost function object
+        :type costfunction: ``CostFunction``
+        """
+        self.m = m
+        self.p = p
+        self.costfunction = costfunction
+
+    def getEvaluation(self, a=1):
+        """
+        issues a containe holder for Phi(a)=F(m+a*p), gradF(m+a*p) and the respective arguments
+        :param a: scaling factor of search direction
+        :type a: ``float``
+        :returns: instance ``EvalutedPhi``
+        """
+        return EvalutedPhi(self, a)
+
+    def __call__(self, a=0.):
+        return self.getEvaluation(a)
+    
+    def getArgs(self, a):
+        """
+
+        returns the arguments for m+a*p
+        :param a: scaling factor of search direction
+        :type a: ``float``
+        :returns args: arguments appropriate for ``Costfunction``
+        """
+        args = self.costfunction.getArgumentsAndCount(self.m + a * self.p)
+        return args
+
+    def getValue(self, a, args=None):
+        """
+        returns value F(m+a*p). If the arguments args==None, args is calculated
+        :param a: scaling factor of search direction
+        :type a: ``float``
+        :param args: arguments appropriate for ``Costfunction``
+        :type args: arguments appropriate for ``Costfunction`` or ``None``
+        :returns: value of F and corresponding args.
+        """
+        if args is None:
+            args = self.getArgs(a)
+        v = self. costfunction.getValueAndCount(self.m + a * self.p, *args)
+        return v, args
+
+    def getGrad(self, a, gradF=None, args=None):
+        """
+        returns value Phi'(a)=<grad F(m+a*p), p>. If the arguments args==None, args is calculated.
+        If the gradient gradF==None, the gradient is calculated (using args).
+        :param a: scaling factor of search direction
+        :type a: ``float``
+        :param args: arguments appropriate for ``Costfunction``
+        :type args: arguments appropriate for ``Costfunction`` or ``None``
+        :param gradF: gradient of ``CostFunction`` for `m+alpha*p`
+        :type gradF: appropriate for ``Costfunction`` or None
+        :returns: derivate of Phi at value a
+        """
+        if args is None:
+            args = self.getArgs(a)
+        if gradF is None:
+            gradF = self.costfunction.getGradientAndCount(self.m + a * self.p, *args)
+        return self.costfunction.getDualProductAndCount(self.p, gradF), gradF, args
+
+
+class EvalutedPhi(object):
+    """
+    this class provides an access to value Phi=F(m+a*p) for a `CostFunction`
+    The interface is handeled by a factory class that holds m, p and the costfunction
+    where methods of the latter are called via the factory when needed. Main purpose
+    of this class is to maintain a simple mechanism to manage the values of Phi and its derivative
+    Phi' (=gradPhi) but avoiding a recalculation of the arguments and full gradient once the Phi has been optimized
+    via line serach and zoom.
+    """
+    def __init__(self, factory, alpha=1., args=None, valF=None, gradF=None):
+        """
+        :param factory: factory class
+        :type factory: ``CostFunction1DEvaluationFactory`` or similar
+        :param alpha: length factor
+        :type alpha: ``float``
+        :param args: argument for `m+alpha*p` if known. Is held at self.args
+        :type args: appropriate for ``Costfunction``
+        :param valF: value of Phi(alpha)=F(m+alpha*p) if known. Is held at self.valF
+        :type valF: ``float``
+        :param gradF: gradient of ``CostFunction`` for `m+alpha*p` if known. is held at self.gradF
+        :type gradF: appropriate for ``Costfunction``
+        """
+        self.factory = factory
+        self.alpha = alpha
+        self.args = args
+        self.valF = valF
+        self.gradF = gradF
+        self.gradPhi = None
+
+    def getVal(self):
+        """
+        return the value for Phi(alpha)=F(m+alpha*p). In contrast to use self.valF
+        the value is calculated if self.valF is None.
+        """
+        if self.valF is None:
+            v, args = self.factory.getValue(self.alpha, self.args)
+            self.args = args
+            self.valF = v
+        return self.valF
+
+    def getDiff(self):
+        """
+        return the value for Phi'(alpha)=<p,grad(F(m+alpha*p)).
+        """
+        if self.gradPhi is None:
+            gp, g, args = self.factory.getGrad(self.alpha, self.gradF,  self.args)
+            self.args = args
+            self.gradF = g
+            self.gradPhi = gp
+        return self.gradPhi
+
+
+class LineSearchTerminationError(MinimizerException):
+    """
+    Exception thrown if the line search was unsucessful
+    """
+    pass
+
+
+class LineSearchInterpolationBreakDownError(LineSearchTerminationError):
+    """
+    Interpolation break down
+    """
+    pass
+
+
+def muchLarger(x, y, vareps=0.):
+    """
+    returns true is x > y and |x-y| > vareps * max(|x|,|y|)
+    """
+    L = vareps * max(abs(x), abs(y))
+    return x > y and abs(x - y) > L
+
+
+def muchSmaller(x, y, vareps=0.):
+    """
+    returns true is x < y and |x-y| > vareps * max(|x|,|y|)
+    """
+    L = vareps * max(abs(x), abs(y))
+    return x < y and abs(x - y) > L
+
+
+class LineSearchIterMaxReachedError(LineSearchTerminationError):
+    """
+    Exception thrown if the line serach reaches maximum iteration count
+    """
+    pass
+
+
+class LineSearchAlphaMinError(LineSearchTerminationError):
+    """
+    Exception thrown if the line search if minimum alpha is reached.
+    """
+    pass
+
+
+class LineSearchAlphaMaxError(LineSearchTerminationError):
+    """
+    Exception thrown if the line search if maximum alpha is reached.
+    """
+    pass
+
+
+class LineSearchSearchDirectionError(LineSearchTerminationError):
+    """
+    Exception thrown if The search direction is not a descent direction.
+    """
+    pass
+
+
+class LineSearch(object):
+    """
+    Line search method to minimize F(m+alpha*p)
+    The iteration is terminated when the strong Wolfe conditions is fulfilled.
+
+    See Chapter 3 of 'Numerical Optimization' by J. Nocedal for an explanation.
+
+    Note: the line search return a new search direction scale alpha that satisfies the strong Wolfe condition:
+          (W1) sufficient decrease condition:  Phi(alpha) <= Phi(0) + c1 * alpha * phi'(0)
+          (W2) curveture condition abs(Phi'(alpha)) <= self._c2 * abs(Phi'(0))
+
+    The first step is to find an alpha_lo and alpha_hi such that the following conditions hold:
+          (Z1) [alpha_lo, alpha_hi] contains an alpha fullfilling (W1)+(W2)
+          (Z2) alpha_lo is giving the smallest value for Phi amongst alphas generated so far and that
+             are satisfying the sufficient decrease condition (W1)
+          (Z3) alpha_hi is chosen so that Phi′(alpha_lo)(alpha_hi − alpha_lo ) < 0
+                that means alpha_hi  > alpha_lo if Phi′(alpha_lo)<0
+                and alpha_hi  < alpha_lo if Phi′(alpha_lo)>0
+
+    Condition (Z1) is fullfilled if one of the following conditions is satisfied:
+            (E1) alpha_hi violates the sufficient decrease condition (W1)
+            (E2) Phi(αlpha_hi) ≥ Phi(αlpha_lo)
+            (E3) Phi′(alpha_lo)(alpha_hi − alpha_lo )  < 0.
+
+
+    """
+    _phiEpsilon = np.sqrt(EPSILON)
+    _alphaMin = EPSILON
+    _alphaMax = 5000
+    _overStepFactor = 2
+    _iterMax = 20
+    _c1 = 1e-4
+    _c2 = 0.9
+    _inter_order = 3
+    _inter_tol = 1e-6
+    _inter_iterMax = 100
+    _alphaOffset = 1e-4
+    _alphaWidthMin = np.sqrt(EPSILON)
+    _zoom_iterMax = 20
+    _zoom_reductionMin = 0.66
+
+    def __init__(self, logger=None):
+        """
+        initialize the line search solver
+
+        :param logger: logger to be used. If not set 'esys.minimizer' is used.
+        :type logger: ``logging.Logger``
+        """
+        if logger is None:
+            logger = logging.getLogger('esys.minimizer')
+        self.lslogger = logger.getChild('linesearch')
+        self.zoomlogger = self.lslogger.getChild('zoom')
+
+    def getOptions(self):
+        """
+        returns a dictionary of LBFGS options
+        rtype: dictionary
+        """
+        return {'alphaMin': self._alphaMin, 'alphaMax': self._alphaMax, 'overStepFactor': self._overStepFactor,
+                'iterMax': self._iterMax, 'c1': self._c1, 'c2': self._c2, 'phiEpsilon': self._phiEpsilon,
+                'inter_order': self._inter_order, 'inter_tol': self._inter_tol, 'inter_iterMax': self._inter_iterMax,
+                'alphaOffset': self._alphaOffset, 'alphaWidthMin': self._alphaWidthMin,
+                'zoom_iterMax': self._zoom_iterMax, 'zoom_reductionMin': self._zoom_reductionMin}
+
+    def setOptions(self, **opts):
+        """
+        set options for the line search.
+
+
+        :key alphaMin: minimum search length
+        :type alphaMin: float
+        :default alphaMin: 1e-20
+        :key alphaMax: maximum search length
+        :type alphaMax: float
+        :default alphaMax: 5000
+        :key overStepFactor : factor to increase step size in line search
+        :type overStepFactor: float
+        :default overStepFactor: 2.
+        :key iterMax: maximum number of line search iterations
+        :type iterMax: int
+        :default iterMax: 25
+        :key c1: sufficient decrease condition factor c1
+        :type c1: float
+        :default c1: 1e-4
+        :key c2: curvature condition factor c2
+        :type c2: float
+        :default c2: 0.9
+        :key inter_order: order of the interpolation used for line search
+        :type inter_order: 1,2,3
+        :default inter_order: 3
+        :key inter_iterMax: maximum number of iteration steps to when minimizing interploted cost function
+        :type inter_iterMax: int
+        :default inter_iterMax: 100
+        :key inter_tol: tolerance to when minimizing interploted cost function
+        :type inter_tol: float
+        :default inter_tol: 1.
+        :key zoom_iterMax: maximum number of zoom iterations
+        :type zoom_iterMax: int
+        :default zoom_iterMax: 20
+
+        :key phiEpsilon : tolerance for `greater than` check of cost function values
+        :type phiEpsilon: float
+        :default phiEpsilon: ``np.sqrt(EPSILON)``
+
+        :key  alphaOffset : minimal relative distance of new alpha from boundaries
+        :type alphaOffset : float
+        :default alphaOffset : 1e-4
+
+        :key alphaWidthMin : minimal relative distance of new alpha from boundaries
+        :type alphaWidthMin: float
+        :default alphaWidthMin: ``np.sqrt(EPSILON)``
+        :key zoom_reductionMin: minimal reduction search interval length between zoom steps
+        :type zoom_reductionMin : float
+        :default zoom_reductionMin :0.66
+        """
+        self.lslogger.debug("Setting options: %s" % (str(opts)))
+        for o in opts:
+            if o == 'alphaMin':
+                self._alphaMin = max(float(opts[o]), 0.)
+            elif o == 'self._alphaMax':
+                self._alphaMax = max(float(opts[o]), 1.)
+            elif o == 'iterMax':
+                self._iterMax = max(int(opts[o]), 1)
+            elif o == 'c1':
+                self._c1 = max(float(opts[o]), 0.)
+            elif o == 'c2':
+                self._c2 = max(float(opts[o]), 0.)
+            elif o == 'overStepFactor':
+                self._overStepFactor = max(float(opts[o]), 1.)
+            elif o == 'inter_tol':
+                self._inter_tol = float(opts[o])
+            elif o == 'inter_iterMax':
+                self._inter_iterMax = max(int(opts[o]), 0)
+            elif o == 'inter_order' or o == 'interpolationOrder':
+                self._inter_order = max(int(opts[o]), 1)
+            elif o == 'phiEpsilon':
+                self._phiEpsilon = max(float(opts[o]), 0.)
+            elif o == 'alphaWidthMin':
+                self._alphaWidthMin = max(float(opts[o]), EPSILON)
+            elif o == 'alphaOffset':
+                self._alphaOffset = max(float(opts[o]), EPSILON)
+            elif o == 'zoom_iterMax':
+                self._zoom_iterMax = max(int(opts[o]), 1)
+            elif o == '_zoom_reductionMin':
+                self._zoom_reductionMin = min(max(float(opts[o]), 0.), 1)
+
+            else:
+                raise KeyError("invalid option '%s'" % o)
+
+    def run(self, phi_0, alpha=1.0):
+        """
+        Line search method to minimize F(m+alpha*p)
+        The iteration is terminated when the strong Wolfe conditions is fulfilled.
+        See Chapter 3 of 'Numerical Optimization' by J. Nocedal for an explanation.
+    
+        :param phi_0: ``EvaluatePhi`` for alpha=0
+        :param alpha: initial step length. If grad_Fm is properly scaled alpha=1 is a
+                      reasonable starting value.
+        :return: alpha
+    
+        """
+        # testing parameters:
+        assert self._c1 < self._c2, "You need to set c1 < self._c2."
+        assert self._overStepFactor > 1, "overStepFactor (=%g) must be much larger then one." % self._overStepFactor
+        assert 0 < self._alphaMin, "alphaMin (=%g) must be positive." % self._alphaMin
+        assert self._alphaMin < self._alphaMax, "self._alphaMax (=%g) must be greater alphaMin (=%g)." % (self._alphaMax, self._alphaMin)
+        assert alpha < self._alphaMax, "self._alphaMax (=%g) needs to be greater than initial alpha (=%g)." % (self._alphaMax, alpha)
+        assert alpha > self._alphaMin, "alphaMin (=%g) needs to be less than initial alpha (=%g)." % (self._alphaMin, alpha)
+        assert self._alphaWidthMin > 0, "alphaWidthMin (=%g) must be positive."  % self._alphaWidthMin
+        assert self._alphaOffset > 0 and self._alphaOffset < 1, "alphaOffset (=%g) must be in ]0, 0.5[ " % self._alphaOffset
+
+        Phi = phi_0.factory
+        value_phi_0 = phi_0.getVal()
+        diff_phi_0 = phi_0.getDiff()
+
+
+        self.lslogger.info("Initial values: phi(0)=%g, phi'(0)=%g, alpha= %g." % (value_phi_0, diff_phi_0, alpha))
+        if not diff_phi_0 < 0.:
+            raise LineSearchSearchDirectionError("The search direction is not a descent direction")
+    
+        sucess = False
+        iterCount = 1
+
+        phi_alpha=phi_0
+        phi_alpha_new = Phi(alpha)
+        while not sucess:
+            phi_alpha, phi_alpha_old = phi_alpha_new, phi_alpha
+            alpha = phi_alpha.alpha
+            value_phi_alpha = phi_alpha.getVal()
+            self.lslogger.info("Iteration %d, alpha=%g, phi(alpha)=%g" % (iterCount, alpha, value_phi_alpha))
+            # if (value_phi_alpha >  value_phi_0 + self._c1 * alpha *  diff_phi_0) or \
+            #        ( (not value_phi_alpha < phi_alpha_old.getVal() ) and (iterCount > 1)):
+            if muchLarger(value_phi_alpha, value_phi_0 + self._c1 * alpha * diff_phi_0, vareps=self._phiEpsilon) or \
+                    (muchLarger(value_phi_alpha, phi_alpha_old.getVal(), vareps=self._phiEpsilon) and iterCount > 1):
+                self.lslogger.debug("Sufficient decrease condition or decrease condition is violated -> start zoom.")
+                # [ alpha_old, alpha] meets (E1) or (E2) (alpha_hi=alpha) -> (Z1) is fullfilled.
+                # Phi(alpha_old) 
+                phi_alpha_new, sucess = self.zoom(phi_alpha_old, phi_alpha, phi_0)
+            else:
+                # alpha meets sufficient decrease condition (W1) now!
+                diff_phi_alpha = phi_alpha.getDiff()
+                self.lslogger.debug("phi'(alpha)=%g" % (diff_phi_alpha,))
+                if np.abs(diff_phi_alpha) <= -self._c2 * diff_phi_0:  # check curvature condition (W2)
+                    sucess = True
+                    self.lslogger.debug("Strong Wolfe condition is fulfilled. We are done.")
+                elif diff_phi_alpha >= 0:  #
+                    # [ alpha, alpha_old ] has alpha with strong wolf condition
+                    self.lslogger.debug("Positive phi'(alpha).")
+                    phi_alpha_new, sucess = self.zoom(phi_alpha, phi_alpha_old, phi_0)
+                else:
+                    # the factor is arbitrary as long as there is sufficient increase
+                    alpha_new = self._overStepFactor * alpha + (1 - self._overStepFactor) * self._alphaMin
+                    self.lslogger.debug("Search interval extended.")
+                    if alpha_new > self._alphaMax:
+                        raise LineSearchAlphaMaxError(
+                            "Line search terminated as maximal alpha (=%d) reached. " % self._alphaMax)
+                    phi_alpha_new = Phi(alpha_new)
+            iterCount += 1
+            if iterCount > self._iterMax:
+                raise LineSearchIterMaxReachedError("Maximum number of iteration steps (=%d) reached." % self._iterMax)
+    
+        self.lslogger.info("Line search completed after %d steps (alpha=%g, phi(alpha)=%g)." % (iterCount-1, phi_alpha.alpha, phi_alpha.getVal()))
+        return phi_alpha_new
+
+    def zoom(self, phi_lo, phi_hi, phi_0):
+        """
+        Helper function for `line_search` below which tries to tighten the range
+        phi_lo.alpha...phi_hi.alpha such that phi_lo, phi_hi fulfill one of these conditions
+        (which needs to be fullfilled at entry):
+        
+        (Z1) [alpha_lo, alpha_hi] contains an alpha fullfilling (W1)+(W2). This condition holds if
+            (E1) alpha_hi violates the sufficient decrease condition (W1)
+            (E2) Phi(αlpha_hi) ≥ Phi(αlpha_lo)
+            (E3) Phi′(alpha_lo)(alpha_hi − alpha_lo )  < 0.
+        (Z2) alpha_lo is giving the smallest value for Phi amongst alphas generated so far and that are satisfying
+            the sufficient decrease condition (W1)
+        (Z3) alpha_hi is chosen so that Phi′(alpha_lo)(alpha_hi − alpha_lo ) < 0
+        
+        
+        See Chapter 3 of 'Numerical Optimization' by
+        J. Nocedal for an explanation.
+        interpolation options are linear, quadratic, cubic or Newton interpolation.
+        """
+        def addToHistory(phi):
+            if self._inter_order > 1:
+                hist_phi.insert(0, phi)
+            if self._inter_order <= 2:
+                if len(hist_phi) > 2:
+                    hist_phi.pop(-2)
+            elif self._inter_order <= 3:
+                if len(hist_phi) > 3:
+                    hist_phi.pop(-2)
+            else:
+                if len(hist_phi) > self._inter_order + 1:
+                    hist_phi.pop(-2)
+        assert self._zoom_reductionMin > 0 and self._zoom_reductionMin <= 1., "zoom_reductionMin (=%g) must be in ]0,1]."
+        # let the show begin:
+        iterCount = 1
+        if phi_hi == phi_0:
+            hist_phi = [phi_lo, phi_0]
+        else:
+            hist_phi = [phi_hi, phi_0]
+        # note: hist_phi[-1]==phi_0 at all times.
+        Phi = phi_0.factory
+        # interval of potential alpha's  with (Z1)
+        alpha_min = min(phi_lo.alpha, phi_hi.alpha)
+        alpha_max = max(phi_lo.alpha, phi_hi.alpha)
+        width = alpha_max - alpha_min
+
+        while iterCount <= self._zoom_iterMax:
+            self.zoomlogger.debug("Iteration %d: alpha range =[%g, %g] (width= %g)" % (iterCount, alpha_min, alpha_max, width))
+            self.zoomlogger.debug("Interpolation nodes: " + str([p.alpha for p in hist_phi]))
+            # get a new alpha:
+            for k in range(min(len(hist_phi), self._inter_order), 0, -1):
+                reduceOrder = False
+                try:
+                    if k == 1:
+                        new_alpha = self._bisection(phi_lo, phi_hi)
+                    elif k == 2:
+                        new_alpha = self._quadinterpolate(hist_phi)
+                    elif k == 3:
+                        new_alpha = self._cubicinterpolate(hist_phi)
+                    else:
+                        new_alpha = self._newtoninterpolate(hist_phi)
+                except LineSearchInterpolationBreakDownError as e:
+                    # if there is any break down order is reduced: (should not happen with bisection)
+                    reduceOrder = True
+                    self.zoomlogger.debug("Interpolation order %d failed: %s" % (k, repr(e)))
+                else:
+                    # now we safeguard the new alpha:
+                    # none of these should happen with bisection.
+                    if new_alpha < alpha_min or new_alpha > alpha_max:
+                        reduceOrder = True
+                        self.zoomlogger.debug("New alpha %g outside alpha search interval." % new_alpha)
+                    elif new_alpha < self._alphaMin:
+                        reduceOrder = True
+                        self.zoomlogger.debug("alpha = %g is too small." % new_alpha)
+                    elif abs(new_alpha - alpha_min) < self._alphaOffset * width:
+                        reduceOrder = True
+                        self.zoomlogger.debug("New alpha %g to close to left alpha bound %g." % (new_alpha, alpha_min))
+                    elif abs(new_alpha - alpha_max) < self._alphaOffset * width:
+                        reduceOrder = True
+                        self.zoomlogger.debug("New alpha %g to close to right alpha bound %g." % (new_alpha, alpha_max))
+                if not reduceOrder:
+                    break
+        
+            # get new value of costfunction value:
+            new_phi = Phi(new_alpha)
+            new_phi_alpha = new_phi.getVal()
+            self.zoomlogger.debug(
+                "Iteration %d, alpha=%g, phi(alpha)=%g (interpolation order = %d)" % (iterCount, new_alpha, new_phi_alpha, k))
+
+            if muchLarger(new_phi_alpha, hist_phi[-1].getVal() + self._c1 * new_alpha * hist_phi[-1].getDiff(), vareps=self._phiEpsilon) \
+                    or muchLarger(new_phi_alpha, phi_lo.getVal(), vareps=self._phiEpsilon):  # new_phi_alpha >= phi_lo.getVal():
+                # new alpha violates E1 or E2 with phi_hi=new_phi
+                phi_hi = new_phi
+                addToHistory(phi_hi)
+                self.zoomlogger.debug("Iteration %d: alpha_hi updated, now = %g" % (iterCount, phi_hi.alpha))
+            else:
+                new_diff_phi_alpha = new_phi.getDiff()
+                # check curvature condition (W2):
+                if not muchLarger(np.abs(new_diff_phi_alpha), -self._c2 * hist_phi[-1].getDiff(), vareps=self._phiEpsilon):
+                    # now alpha_new has (W1)+(W2)
+                    self.zoomlogger.info("Zoom completed after %d steps: alpha=%g, phi(alpha)=%g, phi'(alpha)=%g." %
+                                         (iterCount, new_alpha, new_phi_alpha, new_diff_phi_alpha))
+                    self.zoomlogger.debug("Strong Wolfe condition is fulfilled. We are done.")
+                    return new_phi, True
+                # new we have (W1) and we need to set  phi_lo=phi_new
+                # To we need to meet (E3) which determines phi_hi:
+                self.zoomlogger.debug("phi'(alpha)=%g" % (new_diff_phi_alpha,))
+                if new_diff_phi_alpha * (phi_hi.alpha - phi_lo.alpha) < 0:
+                    phi_lo, phi_hi = new_phi, phi_hi
+                else:
+                    phi_lo, phi_hi = new_phi, phi_lo
+                self.zoomlogger.debug("Iteration %d: alpha_lo updated, now = %g" % (iterCount, phi_lo.alpha))
+                addToHistory(new_phi)
+
+            alpha_min = min(phi_lo.alpha, phi_hi.alpha)
+            alpha_max = max(phi_lo.alpha, phi_hi.alpha)
+            width, width2 = alpha_max - alpha_min, width
+
+            if not width < self._zoom_reductionMin * width2:
+                self.zoomlogger.debug(
+                    "Zoom is terminated due to insufficient search interval reduction (%g -> %g)." % (width2, width))
+                return new_phi, False
+
+            if width < self._alphaWidthMin:
+                self.zoomlogger.debug("Zoom is terminated due to small search interval for alpha (=%g)." % width)
+                return new_phi, False
+
+            iterCount += 1
+        self.zoomlogger.debug("Zoom is terminated (exceeded max iterations).")
+        return new_phi, False
+
+    def _bisection(self, phi_lo, phi_hi):
+        """
+        applies bisection
+        """
+        self.zoomlogger.debug("Bisection is applied.")
+        if phi_lo.alpha < phi_hi.alpha:
+            alpha = 0.5 * (max(phi_lo.alpha, self._alphaMin) + phi_hi.alpha)
+        else:
+            alpha = 0.5 * (max(phi_hi.alpha, self._alphaMin) + phi_lo.alpha)
+        return alpha
+
+    def _quadinterpolate(self, hist_phi):
+        """
+        find next alpha by quadratic  interpolation
+        P(0)=phi(0), P'(0)=phi'(0),  P(alpha[0])=phi(alpha[0])
+        """
+        assert len(hist_phi) > 1
+        self.zoomlogger.debug("Quadratic interpolation is applied.")
+        denom = 2.0 * (hist_phi[0].getVal() - hist_phi[-1].getVal() - hist_phi[-1].getDiff() * hist_phi[0].alpha)
+        if denom == 0:
+            self.zoomlogger.debug("Root calculation failed (denom == 0).")
+            LineSearchInterpolationBreakDownError("Root calculation failed (denom == 0).")
+        alpha = - hist_phi[-1].getDiff() * hist_phi[0].alpha * hist_phi[0].alpha / denom
+        return alpha
+
+    def _cubicinterpolate(self, hist_phi):
+        """
+        find next alpha by quadratic  interpolation
+        P(0)=phi(0), P'(0)=phi'(0),  P(alpha[0])=phi(alpha[0]), P(alpha[1])=phi(alpha[1])
+        """
+        assert len(hist_phi) > 2
+        self.zoomlogger.debug("Cubic interpolation is applied.")
+        a0s, a1s = hist_phi[1].alpha * hist_phi[1].alpha, hist_phi[0].alpha * hist_phi[0].alpha
+        denom = a0s * a1s * (hist_phi[0].alpha - hist_phi[1].alpha)
+        if denom == 0:
+            self.zoomlogger.debug("Root calculation failed (denom == 0).")
+            LineSearchInterpolationBreakDownError("Root calculation failed (denom == 0).")
+        a0c, a1c = a0s * hist_phi[1].alpha, a1s * hist_phi[0].alpha
+        tmpA = hist_phi[0].getVal() - hist_phi[-1].getVal() - hist_phi[-1].getDiff() * hist_phi[0].alpha
+        tmpB = hist_phi[1].getVal() - hist_phi[-1].getVal() - hist_phi[-1].getDiff() * hist_phi[1].alpha
+        a = (a0s * tmpA - a1s * tmpB) / denom
+        b = (-a0c * tmpA + a1c * tmpB) / denom
+        deter = b * b - 3.0 * a * hist_phi[-1].getDiff()
+        if deter < 0:
+            self.zoomlogger.debug("Root calculation failed (deter < 0).")
+            LineSearchInterpolationBreakDownError("Root calculation failed (deter < 0).")
+        alpha = (-b + np.sqrt(deter)) / (3.0 * a)
+        return alpha
+
+    def _newtoninterpolate(self, hist_phi):
+        # Interpolates using a polynomial of increasing order
+        # The coefficients of the interpolated polynomial are found using the Newton method
+        assert len(hist_phi) > 1
+        # calculat Newton DD:
+        coefs, alphas = self.__makeNewtonPolynomial(hist_phi)
+        alpha = self.__getNewtonPolynomialRoot(coefs, alphas, startingGuess=hist_phi[0].alpha)
+        return alpha
+
+    def __makeNewtonPolynomial(self, phis):
+        # Returns the coefficients of the newton form polynomial of Phi(alpha)
+        # for the points alpha_data and function values phi_data
+        m = len(phis)
+        x = np.array([p.alpha for p in phis])
+        a = np.array([p.getVal() for p in phis])
+        for k in range(1, m):
+            a[k:m] = (a[k:m] - a[k - 1]) / (x[k:m] - x[k - 1])
+        return a, x
+
+    def __getNewtonPolynomialRoot(self, coefs, alpha_data, startingGuess=1.):
+        # Solves for the root of a polynomial using the newton method
+        dfcoefs = list(range(1, len(coefs)))
+        for k in range(0, len(coefs) - 1):
+            dfcoefs[k] *= coefs[k + 1]
+        point = startingGuess
+        counter = 0
+        while counter < self._inter_iterMax:
+            counter += 1
+            product = 1
+            numer = coefs[0]
+            denom = dfcoefs[0]
+            for k in range(1, len(coefs)):
+                product *= (point - alpha_data[k - 1])
+                numer += product * coefs[k]
+                if k < len(coefs) - 1:
+                    denom += product * dfcoefs[k]
+            if denom == 0:
+                self.zoomlogger.debug("Root calculation failed (denom == 0).")
+                LineSearchInterpolationBreakDownError("Root calculation failed (denom == 0).")
+            newpoint = float(point - numer / denom)
+            error = abs(newpoint - point)
+            if error < self._inter_tol * max(abs(newpoint), abs(point)):
+                self.zoomlogger.debug("Higher order interpolation converged in %d iterations. Got alpha = %g" % (counter, newpoint))
+                return newpoint
+            else:
+                point = newpoint
+        self.zoomlogger.debug("Higher order interpolation failed (exceeded max iterations).")
+        LineSearchInterpolationBreakDownError("Higher order interpolation failed (exceeded max iterations).")
+        return point
 
 
 class MinimizerMaxIterReached(MinimizerException):
@@ -58,359 +696,55 @@ class MinimizerIterationIncurableBreakDown(MinimizerException):
     pass
 
 
-class LineSearchTerminated(MinimizerException):
-    """
-    Exception thrown if the line serach was unsucessful
-    """
-    pass
-
-
-def _zoom(Phi, gradPhi, getPhiArgs, alpha_lo, alpha_hi, phi_lo, phi_hi,
-          phi_0, grad_phi_0,  changeMin=1.e-6, reduceMin=1.e-4, interpolationOrder=4, c1=1e-4, c2=0.9, iterMax=25, alphaMin=0.):
-    """
-    Helper function for `line_search` below which tries to tighten the range
-    alpha_lo...alpha_hi. See Chapter 3 of 'Numerical Optimization' by
-    J. Nocedal for an explanation.
-    interpolation options are linear, quadratic, cubic or Newton interpolation.
-    """
-
-    def linearinterpolate(alpha_lo, alpha_hi, old_alpha):
-        zoomlogger.debug("Linear interpolation is applied.")
-        alpha = 0.5 * (alpha_lo + alpha_hi)
-        return alpha, 1
-
-    def quadinterpolate(alpha_lo, alpha_hi, old_alpha, old_phi):
-        if old_alpha is None:
-            return linearinterpolate(alpha_lo, alpha_hi, old_alpha)
-        zoomlogger.debug("Quadratic interpolation is applied.")
-        denom = 2.0 * (old_phi - phi_0 - grad_phi_0 * old_alpha)
-        if denom == 0:
-            zoomlogger.debug("Root calculation failed (denom == 0). Falling back to linear interpolation.")
-            return linearinterpolate(alpha_lo, alpha_hi, old_alpha)
-        alpha = -grad_phi_0 * old_alpha * old_alpha / denom
-        if np.abs(alpha - old_alpha) < changeMin or np.abs(alpha) < reduceMin * np.abs(old_alpha):
-            zoomlogger.debug("Insufficient change. Falling back to linear interpolation.")
-            return linearinterpolate(alpha_lo, alpha_hi, old_alpha)
-        if alpha < alphaMin:
-            zoomlogger.debug("alpha = %g is too small. Falling back to linear interpolation." % alpha)
-            return linearinterpolate(alpha_lo, alpha_hi, old_alpha)
-        return alpha, 2
-
-    def cubicinterpolate(alpha_lo, alpha_hi, old_alpha, old_phi, very_old_alpha, very_old_phi):
-        if very_old_alpha is None:
-            return quadinterpolate(alpha_lo, alpha_hi, old_alpha, old_phi)
-        zoomlogger.debug("Cubic interpolation is applied.")
-        a0s, a1s = very_old_alpha * very_old_alpha, old_alpha * old_alpha
-        denom = a0s * a1s * (old_alpha - very_old_alpha)
-        if denom == 0:
-            zoomlogger.debug("Root calculation failed (denom == 0). Falling back to quadratic interpolation.")
-            return quadinterpolate(alpha_lo, alpha_hi, old_alpha, old_phi)
-        a0c, a1c = a0s * very_old_alpha, a1s * old_alpha
-        tmpA = old_phi - phi_0 - grad_phi_0 * old_alpha
-        tmpB = very_old_phi - phi_0 - grad_phi_0 * very_old_alpha
-        a = (a0s * tmpA - a1s * tmpB) / denom
-        b = (-a0c * tmpA + a1c * tmpB) / denom
-        deter = b * b - 3.0 * a * grad_phi_0
-        if deter < 0:
-            zoomlogger.debug("Root calculation failed (deter < 0). Falling back to quadratic interpolation.")
-            return quadinterpolate(alpha_lo, alpha_hi, old_alpha, old_phi)
-        alpha = (-b + np.sqrt(deter)) / (3.0 * a)
-        if np.abs(alpha - old_alpha) < changeMin or np.abs(alpha) < reduceMin * np.abs(old_alpha):
-            zoomlogger.debug("Insufficient change. Falling back to quadratic interpolation.")
-            return quadinterpolate(alpha_lo, alpha_hi, old_alpha, old_phi)
-        if alpha < alphaMin:
-            zoomlogger.debug("alpha = %g is too small. Falling back to quadratic interpolation." % alpha)
-            return quadinterpolate(alpha_lo, alpha_hi, old_alpha, old_phi)
-        return alpha, 3
-
-    def newtoninterpolate(alpha_data, phi_data, old_alpha, old_phi):
-        # Interpolates using a polynomial of increasing order
-        # The coefficients of the interpolated polynomial are found using the Newton method
-        if very_old_alpha is None:
-            return quadinterpolate(alpha_lo, alpha_hi, old_alpha, old_phi)
-        if old_alpha in alpha_data:
-            return quadinterpolate(alpha_lo, alpha_hi, old_alpha, old_phi)
-        alpha_data.append(old_alpha)
-        phi_data.append(old_phi)
-        coefs = newton_poly(alpha_data, phi_data)
-        alpha, ii = newtonroot(coefs, alpha_data, old_alpha)
-        if alpha < alpha_lo or alpha > alpha_hi:  # Root is outside the domain
-            zoomlogger.debug("Newton interpolation converged on a root outside of [alpha_lo,alpha_hi]. Falling back on cubic interpolation")
-            return cubicinterpolate(alpha_lo, alpha_hi, old_alpha, old_phi, very_old_alpha, very_old_phi)
-        if np.abs(alpha - old_alpha) < changeMin or np.abs(alpha) < reduceMin * np.abs(old_alpha):
-            alpha = 0.5 * old_alpha
-            zoomlogger.debug("Insufficient change.  Falling back on cubic interpolation.")
-            return cubicinterpolate(alpha_lo, alpha_hi, old_alpha, old_phi, very_old_alpha, very_old_phi)
-        if abs(alpha) <= alphaMin:
-            zoomlogger.debug("Newton interpolation returned alpha <= alphaMin = %g. Falling back on cubic interpolation."%(alphaMin, ))
-            return cubicinterpolate(alpha_lo, alpha_hi, old_alpha, old_phi, very_old_alpha, very_old_phi)
-        return alpha, len(alpha_data)
-
-    def newton_poly(alpha_data, phi_data):
-        # Returns the coefficients of the newton form polynomial of Phi(alpha)
-        # for the points alpha_data and function values phi_data
-        m = len(alpha_data)
-        x = np.copy(alpha_data)
-        a = np.copy(phi_data)
-        for k in range(1, m):
-            a[k:m] = (a[k:m] - a[k - 1]) / (x[k:m] - x[k - 1])
-        return a
-
-    def newtonroot(coefs, alpha_data, startingGuess):
-        # Solves for the root of a polynomial using the newton method
-        dfcoefs = list(range(1, len(coefs)))
-        for k in range(0, len(coefs) - 1):
-            dfcoefs[k] *= coefs[k + 1]
-        tol = 1e-6
-        maxiterations = 100
-        point = startingGuess
-        counter = 0
-        while counter < maxiterations:
-            counter += 1
-            product = 1
-            numer = coefs[0]
-            denom = dfcoefs[0]
-            for k in range(1, len(coefs)):
-                product *= (point - alpha_data[k - 1])
-                numer += product * coefs[k]
-                if k < len(coefs) - 1:
-                    denom += product * dfcoefs[k]
-            if denom == 0:
-                zoomlogger.debug("Higher order interpolation failed (denom==0). Falling back on cubic interpolation")
-                return cubicinterpolate(alpha_lo, alpha_hi, old_alpha, old_phi, very_old_alpha, very_old_phi)
-            newpoint = float(point - numer / denom)
-            error = abs(newpoint - point)
-            if error < tol:
-                zoomlogger.debug("Higher order interpolation converged in %d iterations. Got alpha = %g" % (counter, newpoint))
-                return newpoint, counter
-            else:
-                point = newpoint
-        zoomlogger.debug("Higher order interpolation failed (exceeded max iterations). Falling back on cubic interpolation")
-        return cubicinterpolate(alpha_lo, alpha_hi, old_alpha, old_phi, very_old_alpha, very_old_phi)
-
-    iterCount = 0
-    # Setup
-    old_alpha = None
-    old_phi = None
-    very_old_alpha = None
-    very_old_phi = None
-    alpha_data = [0.0]
-    phi_data = [phi_0]
-
-    while iterCount <= iterMax:
-        if interpolationOrder == 1:
-            alpha, o = linearinterpolate(alpha_lo, alpha_hi, old_alpha)
-        elif interpolationOrder == 2:
-            alpha, o = quadinterpolate(alpha_lo, alpha_hi, old_alpha, old_phi)
-        elif interpolationOrder == 3:
-            alpha, o = cubicinterpolate(alpha_lo, alpha_hi, old_alpha, old_phi, very_old_alpha, very_old_phi)
-        else:
-            alpha, o = newtoninterpolate(alpha_data, phi_data, old_alpha, old_phi)
-
-        getPhiArgs(alpha)
-        phi_a = Phi(alpha)
-        zoomlogger.debug("Iteration %d, alpha=%g, phi(alpha)=%g (interpolation order = %d)" % (iterCount+1, alpha, phi_a, o))
-        if phi_a > phi_0 + c1 * alpha * grad_phi_0 or phi_a >= phi_lo:
-            very_old_alpha, very_old_phi = old_alpha, old_phi
-            old_alpha, old_phi = alpha_hi, phi_hi
-            alpha_hi, phi_hi = alpha, phi_a
-        else:
-            grad_phi_a = gradPhi(alpha)
-            zoomlogger.debug("phi'(alpha)=%g" % (grad_phi_a, ))
-            if np.abs(grad_phi_a) <= -c2 * grad_phi_0:
-                zoomlogger.info("Zoom completed after %d steps: alpha=%g, phi(alpha)=%g." % (iterCount+1, alpha, phi_a))
-                return alpha, phi_a
-            if grad_phi_a * (alpha_hi - alpha_lo) >= 0:
-                alpha_hi = alpha_lo
-            very_old_alpha, very_old_phi = old_alpha, old_phi
-            old_alpha, old_phi = alpha_lo, phi_lo
-            alpha_lo, phi_lo = alpha, phi_a
-        zoomlogger.debug("alpha range =[%g, %g]" % (alpha_lo, alpha_hi))
-        if not alpha_hi > alpha_lo:
-            raise LineSearchTerminated("Zoom is terminated (void search interval).")
-        iterCount += 1
-    raise LineSearchTerminated("Zoom is terminated (exceeded max iterations).")
-    return alpha, phi_a
-
-
-def line_search(F, m, p, grad_Fm, Fm, args_m, alpha=1.0, alphaMax=50.0, alphaMin=0.,
-                c1=1e-4, c2=0.9, iterMax=15, zoom_interpolationOrder=1,
-                zoom_relChangeMin=1e-6, zoom_reduceMin=1e-5, zoom_iterMax=25):
-    """
-    Line search method to minimize F(m+alpha*p)
-    The iteration is terminated when the strong Wolfe conditions is fulfilled.
-    See Chapter 3 of 'Numerical Optimization' by J. Nocedal for an explanation.
-
-    :param F: callable objective function F(m) of type ``Costfunction``
-    :param m: offset for the line search
-    :param p: search direction
-    :param grad_Fm: value for the gradient of F at m
-    :param Fm: value of F(m)
-    :param args_m: arguments for m
-    :param alpha: initial step length. If grad_Fm is properly scaled alpha=1 is a
-                  reasonable starting value.
-    :param alphaMax: maximum value for alpha. Iteration is terminated if alpha > alphaMax
-    :param alphaMin: minimum value for alpha. Iteration is terminated if alpha < alphaMin
-    :param c1: value for Armijo condition (see reference)
-    :param c2: value for curvature condition (see reference)
-    :param iterMax: maximum number of line search iterations to perform
-    :param zoom_interpolationOrder: the order of the interpolation used is Zoominb (1, 2, 3, 4)
-    :param zoom_relChangeMin: the interpolated value of alpha, alpha_i, must differ from the previous
-    :             value by at least this much i.e. abs(alpha_i-alpha_{i-1}) < zoom_relChangeMin
-    :param zoom_reduceMin: minimal reduction alpha allowed
-    :             If abs(alpha_i) < reduceMin*abs(alpha_{i-1}) the zooming reduces the interpolation order.
-    :param zoom_iterMax: maximum number of zoom steps to perform
-    :return: alpha, F, grad F, args for m+alpha*p (grad can be None)
-    """
-    # Fm_info this stores the latest grad F(m+a*p) which is returned
-    if args_m is None:
-        args_m = F.getArgumentsAndCount(m)
-        Fm = None
-        grad_Fm = None
-    if Fm is None:
-        Fm = F(m, *args_m)
-        lslogger.debug("initial F(m) calculated= %s" % str(Fm))
-    if grad_Fm is None:
-        grad_Fm = F.getGradientAndCount(m, *args_m)
-        lslogger.debug("initial grad F(m) calculated.")
-    # this stores the latest gradf(x+a*p) which is returned
-    Fm_info = [args_m, Fm, grad_Fm]
-
-    def Phi(a):
-        """ Phi(a):=F(x+a*p) """
-        if Fm_info[0] is None:
-            getPhiArgs(a)
-        Fm_info[1] = F(m + a * p, *Fm_info[0])
-        return Fm_info[1]
-
-    def gradPhi(a):
-        if Fm_info[0] is None:
-            getPhiArgs(a)
-        Fm_info[2] = F.getGradientAndCount(m + a * p, *Fm_info[0])
-        return F.getDualProductAndCount(p, Fm_info[2])
-
-    def getPhiArgs(a):
-        args = F.getArgumentsAndCount(m + a * p)
-        Fm_info[0] = args
-        Fm_info[1] = None
-        Fm_info[2] = None
-        return args
-
-    old_alpha = 0.
-    phi_0 = Fm
-    grad_phi_0 = F.getDualProductAndCount(p, grad_Fm)  # gradPhi(0., *args0)
-    lslogger.info("Initial values: phi(0)=%g, phi'(0)=%g" % (phi_0, grad_phi_0))
-
-    old_phi_a = phi_0
-    phi_a = phi_0
-    iterCount = 1
-    if zoom_interpolationOrder not in [1, 2, 3, 4]:
-        lslogger.debug("Setting interpolationOrder = 1")
-        interpolationOrder = 1
-    else:
-        interpolationOrder = zoom_interpolationOrder
-    sucess = False
-    while iterCount < max(iterMax, 2) and alpha > alphaMin and not sucess:
-        getPhiArgs(alpha)
-        phi_a = Phi(alpha)
-        lslogger.info("Iteration %d, alpha=%g, phi(alpha)=%g" % (iterCount, alpha, phi_a) )
-        if (phi_a > phi_0 + c1 * alpha * grad_phi_0) or ((phi_a >= old_phi_a) and (iterCount > 1)):
-            alpha, phi_a = _zoom(Phi, gradPhi, getPhiArgs, old_alpha, alpha, old_phi_a, phi_a, phi_0, grad_phi_0,
-                                 interpolationOrder=interpolationOrder, changeMin=zoom_relChangeMin*alphaMax,
-                                 reduceMin=zoom_reduceMin, c1=c1, c2=c2, iterMax=zoom_iterMax, alphaMin=alphaMin)
-            sucess = True
-            lslogger.info("XXXX")
-        else:
-            lslogger.info("ZZZZ")
-            grad_phi_a = gradPhi(alpha)
-            lslogger.info("\tphi'(alpha)=%g" % (grad_phi_a, ))
-            if np.abs(grad_phi_a) <= -c2 * grad_phi_0:
-                sucess = True
-                lslogger.info("Strong Wolfe condition fulfilled.")
-            elif grad_phi_a >= 0:
-                alpha, phi_a = _zoom(Phi, gradPhi, getPhiArgs, alpha, old_alpha, phi_a, old_phi_a, phi_0, grad_phi_0,
-                                 interpolationOrder=zoom_interpolationOrder, changeMin=zoom_relChangeMin*alphaMax,
-                                 reduceMin=zoom_reduceMin, c1=c1, c2=c2, iterMax=zoom_iterMax, alphaMin=alphaMin)
-                sucess = True
-                lslogger.info("YYY")
-            else:
-                old_alpha = alpha
-                old_phi_a = phi_a
-                # the factor is arbitrary as long as there is sufficient increase
-                alpha = 2. * alpha
-                if alpha > alphaMax:
-                    raise LineSearchTerminated("Line search terminated (Maximum alpha reached). ")
-        iterCount += 1
-    if not sucess:
-        raise LineSearchTerminated("Line search terminated (Minimal alpha reached). ")
-    lslogger.info("Line serach completed after %d steps (alpha=%g, phi(alpha)=%g)." % (iterCount, alpha, phi_a))
-    return alpha, phi_a, Fm_info[2], Fm_info[0]  # returns F, grad F, args for m+alpha*p (grad can be None)
-
-
 class AbstractMinimizer(object):
     """
     Base class for function minimization methods.
     """
+    __line_search = None
     __F = None
-    _m_tol = 1e-3
-    _F_tol = None
-    # maximum number of iteration steps
+    # see setOption for explanation
+    _m_tol = 1e-4
+    _grad_tol = 1e-8
     _iterMax = 300
-
-    # History size
     _truncation = 30
-
-    # rescale search direction
-    _scaleSearchDirection = True
-
-    # Initial Hessian multiplier (if applicable)
-    _initial_H = 1.
-
-    # Restart after this many iteration steps
     _restart = 60
+    _relAlphaMin = 1.e-8
+    _scaleSearchDirection = True
+    _initialAlpha = 1.
 
-    # maximum number of line search steps
-    _linesearch_iterMax = 20
+    __initializeHessian = None
 
-    # interpolation order for search direction scaling alpha when zooming
-    _zoom_interpolationOrder = 1
-
-    # maximum number of zoom steps in line search
-    _zoom_iterMax = 20
-
-    # minimal reduction alpha allowed
-    # If abs(alpha_i) < reduceMin * abs(alpha_{i - 1}) the zooming reduces
-    # the interpolation order.
-    _zoom_reduceMin = 1e-5
-
-    # search direction scaling in line search  must differ from the previous
-    # value by at least by _zoom_relChangeMin much i.e. abs(alpha_i-alpha_{i-1}) < zoom_relChangeMin
-    _zoom_relChangeMin = 1e-6
-
-    # range for alpha on line search
-    _alphaMin = 0
-    _alphaMax = 50
-    
-    # Wolfe condition paramters
-    _c1 = 1e-4
-    _c2 = 0.9
-
-    def __init__(self, F=None, m_tol=1e-4, F_tol=None, iterMax=300):
+    def __init__(self, F=None, m_tol=1e-4, grad_tol=1e-8, iterMax=300, logger=None):
         """
         Initializes a new minimizer for a given cost function.
 
         :param F: the cost function to be minimized
         :type F: `CostFunction`
-        :param m_tol: terminate interations when relative change of the level set
-                      function is less than or equal m_tol
-        :type m_tol: float
-
+        :param m_tol: relative tolerance for solution `m` for termination of iteration
+        :type m_tol: `float`
+        :default m_tol: 1e-4
+        :param grad_tol: tolerance for gradient relative to initial costfunction value for termination of iteration
+        :type grad_tol: `float`
+        :default grad_tol: 1e-8
+        :parameter iterMax: maximium number of iterations.
+        :type iterMax: `int`
+        :default iterMax: 300
         """
+        if logger is None:
+            self.logger = logging.getLogger('esys.minimizer.%s' % self.__class__.__name__)
+        else:
+            self.logger = logger
         self.setCostFunction(F)
+        self.__line_search = LineSearch(self.logger)
         self._result = None
         self._callback = None
-        self.logger = logging.getLogger('esys.minimizer.%s' % self.__class__.__name__)
-        self.setOptions(m_tol=m_tol, F_tol=F_tol, iterMax=iterMax)
+        self.setOptions(m_tol=m_tol, grad_tol=grad_tol, iterMax=iterMax)
+
+    def getLineSerach(self):
+        """
+        returns the line search object
+        """
+        return self.__line_search
 
     def setCostFunction(self, F):
         """
@@ -429,83 +763,85 @@ class AbstractMinimizer(object):
         """
         return self.__F
 
-    def setTolerance(self, m_tol=1e-4, F_tol=None):
+    def getLineSearch(self):
+        """
+        returns the ``LineSearch`` object being used.
+        """
+        return self.__line_search
+
+    def setTolerance(self, m_tol=1e-4, grad_tol=1e-8):
         """
         Sets the tolerance for the stopping criterion. The minimizer stops
         when an appropriate norm is less than `m_tol`.
-        """
-        self.setOptions(m_tol=m_tol, F_tol=F_tol)
 
-    def setMaxIterations(self, iterMax):
+        :param m_tol: relative tolerance for solution `m` for termination of iteration
+        :type m_tol: `float`
+        :default m_tol: 1e-4
+        :param grad_tol: tolerance for gradient relative to initial costfunction value for termination of iteration
+        :type grad_tol: `float`
+        :default grad_tol: 1e-8
+        """
+        self.setOptions(m_tol=m_tol, grad_tol=grad_tol)
+
+    def setIterMax(self, iterMax=300):
         """
         Sets the maximum number of iterations before the minimizer terminates.
+
+        :parameter iterMax: maximium number of iterations.
+        :type iterMax: `int`
+        :default iterMax: 300
         """
         self.setOptions(iterMax=iterMax)
 
     def getOptions(self):
         """
         returns a dictionary of LBFGS options
-        rtype: dictionary with keys 'truncation', 'initialHessian', 'restart', 'linesearch_iterMax', 'zoom_iterMax'
-        'interpolationOrder', 'zoom_relChangeMin', 'zoom_reduceMin'
+        rtype: dictionary
         """
-        return {'m_tol': self._m_tol, 'F_tol': self._F_tol, 'iterMax': self._iterMax, 'truncation': self._truncation, 
-                'scaleSearchDirection': self._scaleSearchDirection, 'initialHessian': self._initial_H,
-                'restart': self._restart,
-                'linesearch_iterMax': self._linesearch_iterMax, 'zoom_iterMax': self._zoom_iterMax,
-                'interpolationOrder': self._zoom_interpolationOrder, 'zoom_relChangeMin': self._zoom_relChangeMin, 'zoom_reduceMin': self._zoom_reduceMin,
-                'alphaMin': self._alphaMin, 'alphaMax': self._alphaMax, 'c1': self._c2, 'c2': self._c2}
+        return {'m_tol': self._m_tol, 'grad_tol': self._grad_tol, 'iterMax': self._iterMax, 'truncation': self._truncation,
+                'restart': self._restart, 'relAlphaMin': self._relAlphaMin,
+                'scaleSearchDirection': self._scaleSearchDirection, 'initialAlpha': self._initialAlpha,
+                'line_search': self.getLineSearch().getOptions()}
 
     def setOptions(self, **opts):
         """
         setOptions for LBFGS.  use       solver.setOptions( key = value)
+
+        :key m_tol: relative tolerance for solution `m` for termination of iteration
+        :type m_tol: `float`
+        :default m_tol: 1e-4
+        :key grad_tol: tolerance for gradient relative to initial costfunction value for termination of iteration
+        :type grad_tol: `float`
+        :default grad_tol: 1e-8
         :key truncation: sets the number of previous LBFGS iterations to keep
-        :type truncation : int
+        :type truncation : `int`
         :default truncation: 30
+        :key restart: restart after this many iteration steps.
+        :type restart: `int`
+        :default restart: 60
+        :key iterMax: maximium number of iterations.
+        :type iterMax: `int`
+        :default iterMax: 300
+        :key relAlphaMin: minimal step size relative to serach direction.
+                          The value should be chosen such that
+                          At any iteration step `F(m + alpha * p)` is just discriminable from
+                          `F(m)` for any `alpha > relAlphaMin * |m|/|p|'.
+        :type relAlphaMin: ``float``
+        :default relAlphaMin: 1e-8
+        :key initialAlpha: initial step size alpha in line serach. Typically alpha=1 is a good initial value
+                            but a larger or smaller initial value may help to get the iteration started
+                            when only an approximation of the Hessian is available.
+        :type initialAlpha: ``float``
+        :default initialAlpha: 1.
         :key scaleSearchDirection: if set the search direction is rescaled using an estimation of the norm of the Hessian
         :type scaleSearchDirection: ``bool``
         :default scaleSearchDirection: True
-        :key initialHessian: first value used to rescale search direction.
-                            This can be useful to a accelerate the line search in the first iteration step.
-        :type initialHessian: positive ``float``
-        :default initialHessian: 1
-        :key restart: restart after this many iteration steps
-        :type restart: int
-        :default restart: 60
-        :key linesearch_iterMax: maximum number of line search iterations
-        :type linesearch_iterMax: int
-        :default linesearch_iterMax: 25
-        :key zoom_iterMax: maximum number of zoom iterations
-        :type zoom_iterMax: int
-        :default zoom_iterMax: 60
-        :key interpolationOrder: order of the interpolation used for line search
-        :type interpolationOrder: 1,2,3
-        :default interpolationOrder: 1
-        :key alphaMin: minimum search length 
-        :type alphaMin: float
-        :default alphaMin: 0.
-        :key alphaMax: maximum search length 
-        :type alphaMax: float
-        :default alphaMax: 50.
-        :key c1 : Wolfe condition parameter c1
-        :type c1: float
-        :default c1: 1e-4
-        :key c2 : Wolfe condition parameter c2
-        :type c2: float
-        :default c2: 0.9
-        :key zoom_relChangeMin: interpolated value of alpha, alpha_i, must differ
-                   : from the previous value by at least this much
-                   : abs(alpha_i-alpha_{i-1}) > zoom_relChangeMin * alphaMax  (line search)
-        :type zoom_relChangeMin: float
-        :default zoom_relChangeMin: 1e-6
-        :key zoom_reduceMin: interpolated value of alpha must not be less than zoom_reduceMin
-                   : abs(alpha_i) < zoom_reduceMin*abs(alpha_{i-1})
-        :type zoom_reduceMin: float
-        :default zoom_reduceMin: 1e-5
-
+        
             Example of usage::
               cf=DerivedCostFunction()
-              solver=MinimizerLBFGS(J=cf, m_tol = 1e-5, F_tol = 1e-5, iterMax=300)
-              solver.setOptions(truncation=20, zoom_relChangeMin =1e-7)
+              solver=MinimizerLBFGS(J=cf, m_tol = 1e-5, grad_tol = 1e-5, iterMax=300)
+              solver.setOptions(truncation=20)
+              solver.getLineSearch().setOptions(zoom_relChangeMin =1e-7)
               solver.run(initial_m)
               result=solver.getResult()
         """
@@ -514,48 +850,22 @@ class AbstractMinimizer(object):
             if o == "iterMax":
                 self._iterMax = max(1, int(opts[o]))
             elif o == "m_tol":
-                mtol = opts[o]
-                if mtol is None:
-                    self._m_tol = None
-                else:
-                    assert float(mtol) > 0, "m_tol must be positive or None"
-                    self._m_tol = float(mtol)
-            elif o == "F_tol":
-                Ftol = opts[o]
-                if Ftol is None:
-                    self._F_tol = None
-                else:
-                    assert float(Ftol) > 0, "m_tol must be positive or None"
-                    self._F_tol = float(Ftol)
+                self._m_tol = max(float(opts[o]), EPSILON)
+            elif o == "grad_tol":
+                self._grad_tol = max(float(opts[o]), EPSILON)
             elif o == 'historySize' or o == 'truncation':
                 assert opts[o] > 2, "Trancation must be greater than 2."
                 self._truncation = max(0, int(opts[o]))
-            elif o == 'scaleSearchDirection':
-                self._scaleSearchDirection = opts[o]
-            elif o == 'initialHessian':
-                self._initial_H = opts[o]
             elif o == 'restart':
                 self._restart = max(int(opts[o]), 1)
-            elif o == 'linesearch_iterMax':
-                self._linesearch_iterMax = max(int(opts[o]), 1)
-            elif o == 'zoom_iterMax':
-                self._zoom_iterMax = max(int(opts[o]), 1)
-            elif o == 'alphaMax':
-                self._alphaMax = max(float(opts[o]), 1.)
-            elif o == 'alphaMin':
-                self._alphaMin = max(float(opts[o]), 0.)
-            elif o == 'c1':
-                self._c1 = max(float(opts[o]), 0.)
-            elif o == 'c2':
-                self._c2 = max(float(opts[o]), 0.)
-            elif o == 'interpolationOrder':
-                self._zoom_interpolationOrder = max(min(int(opts[o]), 4), 1)
-            elif o == 'zoom_relChangeMin':
-                self._zoom_relChangeMin = max(float(opts[o]), 0.)
-            elif o == 'zoom_reduceMin':
-                self._zoom_reduceMin = max(float(opts[o]), 0.)
+            elif o == 'relAlphaMin':
+                self._relAlphaMin = max(float(opts[o]), EPSILON)
+            elif o == 'initialAlpha':
+                self._initialAlpha = max(float(opts[o]), EPSILON)
+            elif o == 'scaleSearchDirection':
+                self._scaleSearchDirection = opts[o]
             else:
-                raise KeyError("esysalid option '%s'" % o)
+                raise KeyError("invalid option '%s'" % o)
 
     def setCallback(self, callback):
         """
@@ -570,6 +880,15 @@ class AbstractMinimizer(object):
         self._callback = callback
 
     def _doCallback(self, **args):
+        """
+        The callback function is called with the following arguments:
+            k       - iteration number
+            x       - current estimate
+            Fm      - value of cost function at x
+            grad_Fm    - gradient of cost function at x
+            norm_dJ - ||Fm_k - Fm_{k-1}|| (only if grad_tol is set)
+            norm_dx - ||x_k - x_{k-1}|| (only if m_tol is set)
+        """
         if self._callback is not None:
             self._callback(**args)
 
@@ -604,38 +923,35 @@ class MinimizerLBFGS(AbstractMinimizer):
     """
     def run(self, m):
         """
-        The callback function is called with the following arguments:
-            k       - iteration number
-            x       - current estimate
-            Fm      - value of cost function at x
-            grad_Fm    - gradient of cost function at x
-            norm_dJ - ||Fm_k - Fm_{k-1}|| (only if F_tol is set)
-            norm_dx - ||x_k - x_{k-1}|| (only if m_tol is set)
-
         :param m: initial guess
         :type m: m-type
         :return: solution
         :rtype: m-type
         """
-        if self._scaleSearchDirection or self._initial_H is None:
-            H_scale = None
-        else:
-            H_scale = self._initial_H
+        assert self._m_tol > 0.
+        assert self._grad_tol > 0.
+        assert self._iterMax > 1
+        assert self._relAlphaMin > 0.
+        assert self._truncation > 0
+        assert self._restart > 0
         # start the iteration:
         iterCount = 0
         iterCount_last_break_down = self._iterMax*1000
-        alpha = 1.
+
+        alpha = self._initialAlpha
+        H_scale = None
 
         self._result = m
-        args = self.getCostFunction().getArgumentsAndCount(m)
-        grad_Fm = self.getCostFunction().getGradientAndCount(m, *args)
-        Fm = self.getCostFunction().getValueAndCount(m, *args)
+        args_m = self.getCostFunction().getArgumentsAndCount(m)
+        grad_Fm = self.getCostFunction().getGradientAndCount(m, *args_m)
+        norm_m = self.getCostFunction().getNormAndCount(m)
+        Fm = self.getCostFunction().getValueAndCount(m, *args_m)
         Fm_0 = Fm
         self.logger.info("Initialization completed.")
 
         # TODO
         cbargs = {'k': iterCount, 'x': m, 'Fm': Fm, 'grad_Fm': grad_Fm}
-        if self._F_tol:
+        if self._grad_tol:
             cbargs.update(norm_dJ=None)
         if self._m_tol:
             cbargs.update(norm_dx=None)
@@ -647,28 +963,31 @@ class MinimizerLBFGS(AbstractMinimizer):
             k = 0
             break_down = False
             s_and_y = []
-            self.getCostFunction().updateHessianAndCount(m, *args)
-            self.logger.debug("Hessian is updated in step %d" % iterCount)
-            # initial step length for line search
+            self.__initializeHessian=True
 
             while not converged and not break_down and k < self._restart and iterCount < self._iterMax:
                 self.logger.info("********** iteration %3d **********" % iterCount)
                 self.logger.info("\tF(m) = %g" % Fm)
-                self.logger.debug("\tH = %s" % H_scale)
-
                 # determine search direction
-                p = -self._twoLoop(H_scale, grad_Fm, s_and_y)
-        
+                p = -self._twoLoop(H_scale, grad_Fm, s_and_y, m, args_m)
+                # Now we call the line search with F(m+alpha*p)
+                # at this point we know that grad F(m) is not zero?
+                phi=EvalutedPhi(CostFunction1DEvaluationFactory(m, p, costfunction=self.getCostFunction()),
+                                alpha=0., args=args_m, valF=Fm, gradF=grad_Fm)
+                if norm_m > 0:
+                    alphaMin = self._relAlphaMin * norm_m/self.getCostFunction().getNormAndCount(p)
+                else:
+                    alphaMin = self._relAlphaMin
+                self.getLineSearch().setOptions(alphaMin=alphaMin)
+                alpha = max(alpha, alphaMin*1.10)
+                self.logger.debug("Starting line search with alphaMin, alpha  = %g, %g" % (alphaMin, alpha))
                 try:
-                    alpha, Fm_new, grad_Fm_new, args_new = line_search(self.getCostFunction(), m, p, grad_Fm, Fm, args, alpha,
-                                                                        c1=self._c1,
-                                                                        c2=self._c2,
-                                                                        zoom_interpolationOrder=self._zoom_interpolationOrder,
-                                                                        alphaMin=self._alphaMin,
-                                                                        alphaMax=self._alphaMax,
-                                                                        iterMax=self._linesearch_iterMax,
-                                                                        zoom_iterMax=self._zoom_iterMax)
-                except LineSearchTerminated as e:
+                    phi_new = self.getLineSearch().run(phi, alpha)
+                    alpha = phi_new.alpha
+                    Fm_new = phi_new.valF
+                    grad_Fm_new = phi_new.gradF
+                    args_m_new = phi_new.args
+                except LineSearchTerminationError as e:
                     self.logger.debug("Line search failed: %s. BFGS is restarted." % str(e))
                     break_down = True
                     break
@@ -679,41 +998,38 @@ class MinimizerLBFGS(AbstractMinimizer):
                 # execute the step
                 delta_m = alpha * p
                 m_new = m + delta_m
+                norm_m_new = self.getCostFunction().getNormAndCount(m_new)
+                norm_dm = self.getCostFunction().getNormAndCount(delta_m)
+
                 self._result = m_new
-                converged = True
-                if self._F_tol:
-                    dF = abs(Fm_new - Fm)
-                    Ftol_abs = self._F_tol * abs(Fm_0)
-                    flag = dF <= Ftol_abs
-                    if self.logger.isEnabledFor(logging.DEBUG):
-                        if flag:
-                            self.logger.info("Cost function has converged: dF=%g, F_tol=%g" % (dF, Ftol_abs))
-                        else:
-                            self.logger.info("Cost function checked: dJ=%g, F_tol=%g" % (dF, Ftol_abs))
-                    cbargs.update(norm_dJ=dF)
-                    converged = converged and flag
+                converged = False
 
-                if self._m_tol:
-                    norm_m = self.getCostFunction().getNormAndCount(m_new)
-                    norm_dm = self.getCostFunction().getNormAndCount(delta_m)
-                    mtol_abs=norm_m * self._m_tol
-                    flag = norm_dm <= mtol_abs
-                    if flag:
-                        self.logger.info("Solution has converged: dm=%g, m*m_tol=%g" % (norm_dm, mtol_abs))
-                    else:
-                        self.logger.info("Solution checked: dx=%g, x*m_tol=%g" % (norm_dm, mtol_abs))
-                    cbargs.update(norm_dx=norm_dm)
-                    converged = converged and flag
-
-                if converged:
-                    self.logger.info("********** iteration %3d **********" % (iterCount + 1,))
-                    self.logger.info("\tF(m) = %g" % Fm_new)
+                mtol_abs = norm_m_new * self._m_tol
+                flag = norm_dm <= mtol_abs
+                if flag:
+                    self.logger.info("F(m) = %g" % Fm_new)
+                    self.logger.info("Solution has converged: dm=%g, m*m_tol=%g" % (norm_dm, mtol_abs))
+                    converged = True
                     break
+                else:
+                    self.logger.info("Solution checked: dx=%g, x*m_tol=%g" % (norm_dm, mtol_abs))
+                cbargs.update(norm_dx=norm_dm)
                 # unfortunately there is more work to do!
                 if grad_Fm_new is None:
                     self.logger.debug("Calculating missing gradient.")
                     args_new = self.getCostFunction().getArgumentsAndCount(m_new)
                     grad_Fm_new = self.getCostFunction().getGradientAndCount(m_new, *args_new)
+
+                Ftol_abs = self._grad_tol * abs(Fm_0)
+                gradNorm = abs(self.getCostFunction().getDualProductAndCount(m_new, grad_Fm))/self.getCostFunction().getNorm(m_new)
+                flag = gradNorm <= Ftol_abs
+                if flag:
+                    converged = True
+                    self.logger.info("F(m) = %g" % Fm_new)
+                    self.logger.info("Gradient has converged: grad F=%g, grad_tol=%g" % (gradNorm, Ftol_abs))
+                    break
+                else:
+                    self.logger.info("Gradient checked: grad F=%g, grad_tol=%g" % (gradNorm, Ftol_abs))
 
                 delta_g = grad_Fm_new - grad_Fm
                 rho = self.getCostFunction().getDualProductAndCount(delta_m, delta_g)
@@ -727,7 +1043,8 @@ class MinimizerLBFGS(AbstractMinimizer):
                 m = m_new
                 grad_Fm = grad_Fm_new
                 Fm = Fm_new
-                args = args_new
+                args_m = args_m_new
+                norm_m = norm_m_new
                 k += 1
                 iterCount += 1
                 cbargs.update(k=iterCount, x=m, Fm=Fm, grad_Fm=grad_Fm)
@@ -746,22 +1063,20 @@ class MinimizerLBFGS(AbstractMinimizer):
                     #  if there is a inverse Hessian approximation provided we use
                     #
                     #     H_scale*|dm|^2 = <dm, dg>=rho ->   H_scale =rho/|dm|^2
-                    if H_scale:
-                        H_scale = rho/self.getCostFunction().getNormAndCount(delta_m) ** 2
-                        self.logger.info("New search direction scale = %g." % H_scale)
+                    H_scale = rho/norm_dm ** 2
+                    self.logger.info("Scale of Hessian = %g." % H_scale)
             # case handling for inner iteration:
             if break_down:
                 if not iterCount > iterCount_last_break_down:
                     non_curable_break_down = True
-                    self.logger.warning(">>>>> Incurable break down detected in step %d." % (iterCount + 1) )
+                    self.logger.warning(">>>>> Incurable break down detected in step %d." % iterCount)
                 else:
                     iterCount_last_break_down = iterCount
-                    self.logger.debug("Break down detected in step %d. Iteration is restarted." % (iterCount + 1) )
+                    self.logger.debug("Break down detected in step %d. Iteration is restarted." % iterCount)
             if not k < self._restart:
-                self.logger.debug("Iteration is restarted after %d steps." % ( iterCount + 1) )
+                self.logger.debug("Iteration is restarted after %d steps." % iterCount)
 
         # case handling for inner iteration:
-        self._result = m
         if iterCount >= self._iterMax:
             self.logger.warning(">>>>>>>>>> Maximum number of iterations reached! <<<<<<<<<<")
             raise MinimizerMaxIterReached("Gave up after %d steps." % iterCount)
@@ -771,7 +1086,7 @@ class MinimizerLBFGS(AbstractMinimizer):
         self.logger.info("Success after %d iterations!" % iterCount)
         return self._result
 
-    def _twoLoop(self, H_scale, grad_Fm, s_and_y):
+    def _twoLoop(self, H_scale, grad_Fm, s_and_y, m, args_m):
         """
         Helper for the L-BFGS method.
         See 'Numerical Optimization' by J. Nocedal for an explanation.
@@ -782,17 +1097,23 @@ class MinimizerLBFGS(AbstractMinimizer):
             a = self.getCostFunction().getDualProductAndCount(s, q) / rho
             alpha.append(a)
             q = q - a * y
-        p = self.getCostFunction().getInverseHessianApproximationAndCount(q)
+
+        if self.__initializeHessian:
+            self.logger.debug("Hessian is expected to be updated.")
+        p = self.getCostFunction().getInverseHessianApproximationAndCount(q, m,
+                                                                            initializeHessian=self.__initializeHessian,
+                                                                            *args_m)
+        self.__initializeHessian = False
         norm_p = self.getCostFunction().getNormAndCount(p)
         if not norm_p > 0:
-            raise MinimizerException("approximate Hessian inverse returns zero.")
+            raise MinimizerException("Approximate Hessian inverse returns zero.")
         # this is if one wants
-        if H_scale is not None:
+        if H_scale is not None and self._scaleSearchDirection:
             p_dot_q = self.getCostFunction().getDualProductAndCount(p, q)
             if abs(p_dot_q) > 0:
                 #  we  would like to see that  h * norm(p)^2 = < H p, p> = < q, p> with h=norm(H)=H_scale
                 # so we rescale p-> a*p ; h * a^2 * norm(p)^2 = a * < q, p> -> a = <q,p>/h/norm(p)**2
-                a = p_dot_q * abs(p_dot_q) / H_scale / norm_p ** 2
+                a = abs(p_dot_q) / H_scale / norm_p ** 2
                 p *= a
                 self.logger.debug("Search direction scaled : p=%g (scale factor = %g)" % (norm_p * a, a))
         for s, y, rho in s_and_y:
@@ -819,7 +1140,7 @@ class MinimizerNLCG(AbstractMinimizer):
             gnorm - norm of grad_Fm (stopping criterion)
         """
         # self.logger.setLevel(logging.DEBUG)
-        # lslogger.setLevel(logging.DEBUG)
+        # self.lslogger.setLevel(logging.DEBUG)
         i = 0
         k = 0
         args = self.getCostFunction().getArgumentsAndCount(x)
@@ -838,15 +1159,8 @@ class MinimizerNLCG(AbstractMinimizer):
             self.logger.debug("grad F(m) = %s" % (-r))
             self.logger.debug("d = %s" % d)
             self.logger.debug("x = %s" % x)
-
-            alpha, Fm, Fm_info, args_new = line_search(self.getCostFunction(), x, d, -r, Fm, args, alpha=alpha,
-                                                       c1=self._c1,
-                                                       c2=self._c2,
-                                                       zoom_interpolationOrder=self._zoom_interpolationOrder,
-                                                       alphaMin=self._alphaMin,
-                                                       alphaMax=self._alphaMax,
-                                                       iterMax=self._linesearch_iterMax,
-                                                       zoom_iterMax=self._zoom_iterMax)
+            F = CostFunction1DEvaluationFactory(x, d, costfunction=self.getCostFunction())
+            alpha, Fm, Fm_info, args_new = self.getLineSearch(F, x, d, -r, Fm, args, alpha=alpha)
             self.logger.debug("alpha=%g" % alpha)
             x = x + alpha * d
             args = args_new
@@ -919,7 +1233,7 @@ if __name__ == "__main__":
 
     logging.basicConfig(format='[%(funcName)s] \033[1;30m%(message)s\033[0m', level=logging.DEBUG)
     m.setTolerance(m_tol=1e-5)
-    m.setMaxIterations(3000)
+    m.setIterMax(3000)
     m.run(x0)
     m.logSummary()
     print("\tLsup(result)=%.8f" % np.amax(abs(m.getResult())))

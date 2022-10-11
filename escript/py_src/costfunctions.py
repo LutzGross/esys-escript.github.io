@@ -72,7 +72,6 @@ class CostFunction(object):
         self.Gradient_calls = 0
         self.Arguments_calls = 0
         self.InverseHessianApproximation_calls = 0
-        self.UpdateHessian_calls = 0
         self.Norm_calls = 0
         
     def getStatistics(self):
@@ -85,7 +84,6 @@ class CostFunction(object):
         out+="Number of gradient evaluations: %d\n" % self.Gradient_calls
         out+="Number of inner product evaluations: %d\n" % self.DualProduct_calls
         out+="Number of argument evaluations: %d\n" % self.Arguments_calls
-        out+="Number of Hessian initializations : %d\n" % self.UpdateHessian_calls
         out+="Number of norm evaluations: %d" % self.Norm_calls
         return out
 
@@ -176,24 +174,7 @@ class CostFunction(object):
             args = self.getArgumentsAndCount(m)
         return self.getGradient(m, *args)
 
-    def updateHessianAndCount(self, m, *args):
-        """
-        this function is called to update the (potentially approximate) Hessian H
-        at a given location *m*.
-
-        When calling this method the calling statistics is updated.
-
-        :param m: location of Hessian operator to be evaluated
-        :type m: m-type
-        :param args: pre-calculated values for ``m`` from `getArgumentsAndCount()`
-        :returns: None
-        """
-        if not args:
-            args = self.getArgumentsAndCount(m)
-        self.UpdateHessian_calls += 1
-        return self.updateHessian(m, *args)
-
-    def getInverseHessianApproximationAndCount(self, r):
+    def getInverseHessianApproximationAndCount(self, r, m,  *args, initializeHessian=True):
         """
         returns an evaluation *p* of the inverse of the Hessian
         operator of the cost function for a given gradient *r*: *H p = r*
@@ -202,11 +183,21 @@ class CostFunction(object):
 
         :param r: a given gradient
         :type r: g-type
+        :poram initializeHessian: indicates if the Hessian operator should be initialized using `m`.
+                                    If updating the Hessian is expensive it should only be done
+                                    when initializeHessian is True. If this method provides an approximation
+                                    only and building the new Hessian approximation is expensive
+                                    it is typically more efficient to update the Hessian operator
+                                    occasionally.
+        :type initializeHessian: bool
+        :param args: pre-calculated values for ``m`` from `getArgumentsAndCount()`
         :returns: new search direction p.
         :rtype: m-type
         """
+        if not args:
+            args = self.getArgumentsAndCount(m)
         self.InverseHessianApproximation_calls += 1
-        return self.getInverseHessianApproximation(r)
+        return self.getInverseHessianApproximation(r, m,  *args, initializeHessian=initializeHessian)
 
     def getDualProduct(self, m, r):
         """
@@ -295,7 +286,7 @@ class CostFunction(object):
         """
         pass
 
-    def getInverseHessianApproximation(self, r):
+    def getInverseHessianApproximation(self, r, m, *args, initializeHessian = True):
         """
         returns an approximate evaluation *p* of the inverse of the Hessian
         operator of the cost function for a given gradient *r*: *H p = r*
@@ -305,6 +296,14 @@ class CostFunction(object):
 
         :param r: a given gradient
         :type r: g-type
+        :poram initializeHessian: indicates if the Hessian operator should be initialized using `m`.
+                                    If this method provides an approximation
+                                    only and building the new Hessian approximation is expensive
+                                    it is typically more efficient to update the Hessian operator
+                                    occasionally only when on input initializeHessian is `True`.
+                                    If the Hessian should be updated in each step ignore the initializeHessian
+                                    value otherwise update the Hessian only if `initializeHessian == True`.
+        :type initializeHessian: bool
         :returns: new search direction p.
         :rtype: m-type
 
