@@ -82,23 +82,35 @@ struct borderNodeInfo
 	p4est_topidx_t treeid=-1;
 };
 
-struct hangingNodeInfo // used for hanging edges in Rectangle and hanging faces in Brick
+struct hangingNodeInfo // used by Rectangle
 {
 	p4est_qcoord_t x;
 	p4est_qcoord_t y;
-	p4est_qcoord_t z; //unused by Rectangle
 	int8_t level;
 	p4est_topidx_t treeid;
 	int8_t face_type={-1}; 
 	
 	p4est_qcoord_t neighbour_x;
 	p4est_qcoord_t neighbour_y;
-	p4est_qcoord_t neighbour_z;  //unused by Rectangle
 	p4est_qcoord_t neighbour_l;
 	p4est_topidx_t neighbour_tree;
 };
 
-typedef hangingNodeInfo hangingFaceInfo;
+struct hangingFaceInfo // used for hanging faces in Brick
+{
+	p4est_qcoord_t x;
+	p4est_qcoord_t y;
+	p4est_qcoord_t z;
+	int8_t level;
+	p4est_topidx_t treeid;
+	int8_t face_type={-1}; 
+	
+	p4est_qcoord_t neighbour_x;
+	p4est_qcoord_t neighbour_y;
+	p4est_qcoord_t neighbour_z;
+	p4est_qcoord_t neighbour_l;
+	p4est_topidx_t neighbour_tree;
+};
 
 struct hangingEdgeInfo // used for hanging edges in Brick
 {
