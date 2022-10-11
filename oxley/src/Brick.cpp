@@ -1651,9 +1651,9 @@ void Brick::renumberNodes()
                         if(neighbour->x < 0 || neighbour->y < 0 || neighbour->z < 0
                             || neighbour->x > P8EST_ROOT_LEN || neighbour->y > P8EST_ROOT_LEN || neighbour->z > P8EST_ROOT_LEN)
                             continue;
-                        // Skip if the neighbouring quadrant is small than this one (to prevent duplicates)
-                        if(neighbour->level < tmp2.level)
-                            continue;                        
+                        // Skip if the neighbouring octant is smaller than this one (to prevent duplicates)
+                        if(neighbour->level == tmp2.level - 1)
+                            continue; 
                         ESYS_ASSERT(newtree!=-1, "renumberNodes: Invalid neighbouring face tree");
                         ESYS_ASSERT(p8est_quadrant_is_valid(neighbour),"renumberNodes: Invalid neighbouring face octant");
                         
