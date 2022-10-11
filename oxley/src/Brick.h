@@ -334,6 +334,10 @@ private:
     std::vector<borderNodeInfo> NodeIDsAbove;
     std::vector<borderNodeInfo> NodeIDsBelow;
 
+    std::vector<DoubleTuple> NormalNodes;
+    std::vector<DoubleTuple> HangingFaceNodes;
+    std::vector<DoubleTuple> HangingEdgeNodes;
+
     std::vector<hangingEdgeInfo> hanging_edge_orientation;
     std::vector<hangingFaceInfo> hanging_face_orientation;
     

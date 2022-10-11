@@ -1529,9 +1529,9 @@ void Brick::renumberNodes()
     // Clear some variables
     NodeIDs.clear();
     hanging_face_orientation.clear();
-    std::vector<DoubleTuple> NormalNodes;
-    std::vector<DoubleTuple> HangingFaceNodes;
-    std::vector<DoubleTuple> HangingEdgeNodes;
+    NormalNodes.clear();
+    HangingFaceNodes.clear();
+    HangingEdgeNodes.clear();
 
     // Write in NodeIDs
 // #pragma omp for
@@ -1614,9 +1614,8 @@ void Brick::renumberNodes()
                 auto point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
 
                 #ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES
-                    std::cout << "\tConsidering face " << (int) n ;//<< ", (" << xyz[0] << ", " << xyz[1] << ", " << xyz[2] << ") " ;
                     if(hanging_faces[n]!=-1)
-                        std::cout << "[hanging]" << std::endl;
+                        std::cout << "Face " << n << ": [hanging]" << std::endl;
                     else
                         std::cout << std::endl;
                 #endif
@@ -1627,7 +1626,7 @@ void Brick::renumberNodes()
                     if(!std::count(HangingFaceNodes.begin(), HangingFaceNodes.end(), point))
                     {
                         // Get the coordinates of the node
-                        hangingNodeInfo tmp2;
+                        hangingFaceInfo tmp2;
                         tmp2.x=oct->x+lxy_face[n][0];
                         tmp2.y=oct->y+lxy_face[n][1];
                         tmp2.z=oct->z+lxy_face[n][2];
@@ -1652,7 +1651,7 @@ void Brick::renumberNodes()
                         int newtree = p8est_quadrant_face_neighbor_extra(parent, treeid, 
                                                         tmp2.face_orientation, neighbour, nface, connectivity);
                         if(neighbour->x < 0 || neighbour->y < 0 || neighbour->z < 0
-                            || neighbour->x < P8EST_ROOT_LEN || neighbour->y < P8EST_ROOT_LEN || neighbour->z < P8EST_ROOT_LEN)
+                            || neighbour->x > P8EST_ROOT_LEN || neighbour->y > P8EST_ROOT_LEN || neighbour->z > P8EST_ROOT_LEN)
                             continue;
                         ESYS_ASSERT(newtree!=-1, "renumberNodes: Invalid neighbouring face tree");
                         ESYS_ASSERT(p8est_quadrant_is_valid(neighbour),"renumberNodes: Invalid neighbouring face octant");
@@ -1688,9 +1687,8 @@ void Brick::renumberNodes()
                 auto point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
 
                 #ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES
-                    std::cout << "\tConsidering edge " << (int) n ;//<< ", (" << xyz[0] << ", " << xyz[1] << ", " << xyz[2] << ") " ;
                     if(hanging_edges[n]!=-1)
-                        std::cout << "[hanging]" << std::endl;
+                        std::cout << "Edge " << n << ": [hanging]" << std::endl;
                     else
                         std::cout << std::endl;
                 #endif
@@ -1725,7 +1723,7 @@ void Brick::renumberNodes()
                         neighbour = &tmp;
                         p8est_quadrant_edge_neighbor(parent, n, neighbour);
                         if(neighbour->x < 0 || neighbour->y < 0 || neighbour->z < 0
-                            || neighbour->x < P8EST_ROOT_LEN || neighbour->y < P8EST_ROOT_LEN || neighbour->z < P8EST_ROOT_LEN)
+                            || neighbour->x > P8EST_ROOT_LEN || neighbour->y > P8EST_ROOT_LEN || neighbour->z > P8EST_ROOT_LEN)
                             continue;
                         ESYS_ASSERT(p8est_quadrant_is_valid(neighbour),"renumberNodes: Invalid neighbouring edge octant");
 
@@ -1806,8 +1804,8 @@ void Brick::renumberNodes()
         }
     }
 
-#ifdef OXLEY_PRINT_QUAD_INFO
-    std::cout << "There are " << quadrantIDs.size() << " quadrants" << std::endl;
+#ifdef OXLEY_PRINT_OCT_INFO
+    std::cout << "There are " << quadrantIDs.size() << " octants" << std::endl;
     for(int i = 0; i < quadrantInfo.size(); i++)
     {
         std::cout << i << ": (" << quadrantInfo[i].x << ", " << quadrantInfo[i].y << "), l =" 
@@ -1829,10 +1827,16 @@ void Brick::renumberNodes()
 #endif
 
 #ifdef OXLEY_PRINT_NODEIDS_HANGING
-    for(int i = 0; i < is_hanging.size(); i++)
-        if(is_hanging[i])
-            std::cout << i << ", "; 
-        std::cout << std::endl;
+    std::cout << "Hanging nodes on edges : ";
+    // if(HangingEdgeNodes.size()==0)
+    //     std::cout << "[none]";
+    // else
+    //     for(int i = 0; i < HangingEdgeNodes.size(); i++)
+    //         std::cout << HangingEdgeNodes[i] << ", ";
+    // std::cout << std::endl;
+    // std::cout << "Hanging nodes on faces : " << std::endl;
+    // for(int i = 0; i < HangingFaceNodes.size())
+        // std::cout << HangingFaceNodes[i] << std::endl;
 #endif
 }
 
@@ -2423,7 +2427,7 @@ void Brick::updateRowsColumns()
     indices->resize(getNumNodes(), std::vector<long>(initial, initial+7));
 
     #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS
-        std::cout << "updateRowsColumns" << std::endl;
+        std::cout << "updating Rows & Columns" << std::endl;
         std::cout << "Allocated memory for " << getNumNodes() << " nodes. " << std::endl;
     #endif
 
@@ -2442,12 +2446,20 @@ void Brick::updateRowsColumns()
     update_RC_data_brick * ghost_data;
     ghost_data = (update_RC_data_brick *) malloc(ghost->ghosts.elem_count);
 
+    #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS
+        std::cout << "....looping over internal nodes" << std::endl;
+    #endif
+
     p8est_ghost_exchange_data(p8est, ghost, ghost_data);
     // This function loops over all interior edges
     // Note that it does not loop over the nodes on the boundaries
     // x = Lx, y = Ly or z = Lz
     p8est_iterate_ext(p8est, ghost, data, NULL, NULL, update_RC, NULL, true);
     p8est_ghost_destroy(ghost);
+
+    #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS
+        std::cout << "....looping over boundaries" << std::endl;
+    #endif
 
     // Find the indices of the nodes on the boundaries x = Lx and y = Ly
     for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
@@ -2499,7 +2511,7 @@ void Brick::updateRowsColumns()
             {
                 // Get the node IDs
                 double xyz[3];
-                p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+length, quad->y+length, quad->z, xyz);
+                p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x, quad->y+length, quad->z, xyz);
                 long lni1 = NodeIDs.find(std::make_tuple(xyz[0],xyz[1],xyz[2]))->second;
                 #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
                 std::cout << "(" << xyz0[0] << ", " << xyz0[1] << ", " << xyz0[2] << ") " << lni0 << " --- (" << 
@@ -2562,42 +2574,43 @@ void Brick::updateRowsColumns()
         }
     }
 
-    // Hanging nodes
-    hanging_faces.clear();
-    for(int i = 0; i < hanging_face_orientation.size(); i++)
+    #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS
+        std::cout << "....looping over hanging nodes on edges" << std::endl;
+    #endif
+
+    // Nodes on hanging edges
+    hanging_edges.clear();
+    for(int i = 0; i < HangingEdgeNodes.size(); i++)
     {
         // Distances to neighbouring nodes
-        p8est_qcoord_t l = P8EST_QUADRANT_LEN(hanging_face_orientation[i].level);
+        p8est_qcoord_t l = P8EST_QUADRANT_LEN(hanging_edge_orientation[i].level);
         //                                0      1        2        3      4       5       6       7       8       9       10      11       
         p8est_qcoord_t xlookup[12][2] = {{-l,l}, {-l,l}, {-l,l}, {-l,l}, {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0}};
         p8est_qcoord_t ylookup[12][2] = {{0,0},  {0,0},  {0,0},  {0,0},  {-l,l}, {-l,l}, {-l,l}, {-l,l}, {0,0},  {0,0},  {0,0},  {0,0}};
         p8est_qcoord_t zlookup[12][2] = {{0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {-l,l}, {-l,l}, {-l,l}, {-l,l}};
 
-        // #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS
-        // std::cout << "Hanging edge orientation: " << (int) hanging_face_orientation[i].face_orientation << std::endl;
-        // #endif
-
         // Calculate the node ids
-        double xy[3]={0};
-        p8est_qcoord_to_vertex(p8est->connectivity, hanging_face_orientation[i].treeid, 
-                                                    hanging_face_orientation[i].x, 
-                                                    hanging_face_orientation[i].y,
-                                                    hanging_face_orientation[i].z, xy);
-        long nodeid = NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
-        p8est_qcoord_to_vertex(p8est->connectivity, hanging_face_orientation[i].treeid, 
-                                                    hanging_face_orientation[i].x+xlookup[hanging_face_orientation[i].face_orientation][0], 
-                                                    hanging_face_orientation[i].y+ylookup[hanging_face_orientation[i].face_orientation][0],
-                                                    hanging_face_orientation[i].z+zlookup[hanging_face_orientation[i].face_orientation][0], xy);
-        long lni0   = NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
-        p8est_qcoord_to_vertex(p8est->connectivity, hanging_face_orientation[i].treeid, 
-                                                    hanging_face_orientation[i].x+xlookup[hanging_face_orientation[i].face_orientation][1], 
-                                                    hanging_face_orientation[i].y+ylookup[hanging_face_orientation[i].face_orientation][1],
-                                                    hanging_face_orientation[i].z+zlookup[hanging_face_orientation[i].face_orientation][1], xy);
-        long lni1   = NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
-        // p8est_qcoord_to_vertex(p8est->connectivity, hanging_face_orientation[i].treeid, 
-        //                                             hanging_face_orientation[i].x+zlookup[hanging_face_orientation[i].face_orientation][0], 
-        //                                             hanging_face_orientation[i].y+zlookup[hanging_face_orientation[i].face_orientation][1],
-        //                                             hanging_face_orientation[i].z+zlookup[hanging_face_orientation[i].face_orientation][0], xy);
+        double xyz[3]={0};
+        p8est_qcoord_to_vertex(p8est->connectivity, hanging_edge_orientation[i].treeid, 
+                                                    hanging_edge_orientation[i].x, 
+                                                    hanging_edge_orientation[i].y,
+                                                    hanging_edge_orientation[i].z, xyz);
+        long nodeid = NodeIDs.find(std::make_tuple(xyz[0],xyz[1],xyz[2]))->second;
+        p8est_qcoord_to_vertex(p8est->connectivity, hanging_edge_orientation[i].treeid, 
+                                                    hanging_edge_orientation[i].x+xlookup[hanging_edge_orientation[i].edge_orientation][0], 
+                                                    hanging_edge_orientation[i].y+ylookup[hanging_edge_orientation[i].edge_orientation][0],
+                                                    hanging_edge_orientation[i].z+zlookup[hanging_edge_orientation[i].edge_orientation][0], xyz);
+        long lni0   = NodeIDs.find(std::make_tuple(xyz[0],xyz[1],xyz[2]))->second;
+        p8est_qcoord_to_vertex(p8est->connectivity, hanging_edge_orientation[i].treeid, 
+                                                    hanging_edge_orientation[i].x+xlookup[hanging_edge_orientation[i].edge_orientation][1], 
+                                                    hanging_edge_orientation[i].y+ylookup[hanging_edge_orientation[i].edge_orientation][1],
+                                                    hanging_edge_orientation[i].z+zlookup[hanging_edge_orientation[i].edge_orientation][1], xyz);
+        long lni1   = NodeIDs.find(std::make_tuple(xyz[0],xyz[1],xyz[2]))->second;
+
+        // p8est_qcoord_to_vertex(p8est->connectivity, hanging_edge_orientation[i].treeid, 
+        //                                             hanging_edge_orientation[i].x+zlookup[hanging_edge_orientation[i].edge_orientation][0], 
+        //                                             hanging_edge_orientation[i].y+zlookup[hanging_edge_orientation[i].edge_orientation][1],
+        //                                             hanging_edge_orientation[i].z+zlookup[hanging_edge_orientation[i].edge_orientation][0], xy);
         // #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS
         // std::cout << "Hanging node 4: (" << xy[0] << ", " << xy[1] << ", " << xy[2] << ")" << std::endl;
         // #endif
@@ -2609,7 +2622,7 @@ void Brick::updateRowsColumns()
         std::vector<long> * idx1b = &indices[0][lni1];
         // std::vector<long> * idx1c = &indices[0][lni2];
 
-        #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS
+        #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
             std::cout << "nodeid = " << nodeid << ": " << idx0[0][0] << ", " << idx0[0][1] << ", " << idx0[0][2] << ", " << idx0[0][3] << ", " << idx0[0][4] << ", " << idx0[0][5] << ", " << idx0[0][6] << std::endl;
             std::cout << lni0 << ": " << idx1a[0][0] << ", " << idx1a[0][1] << ", " << idx1a[0][2] << ", " << idx1a[0][3] << ", " << idx1a[0][4] << ", " << idx1a[0][5] << ", " << idx1a[0][6] << std::endl;
             std::cout << lni1 << ": " << idx1b[0][0] << ", " << idx1b[0][1] << ", " << idx1b[0][2] << ", " << idx1b[0][3] << ", " << idx1b[0][4] << ", " << idx1b[0][5] << ", " << idx1b[0][6] << std::endl;
@@ -2663,13 +2676,124 @@ void Brick::updateRowsColumns()
         idx0[0][2]=lni1;
         // idx0[0][3]=lni2;
         idx0[0][4]=-1;
-        hanging_faces.push_back(std::make_pair(nodeid,lni0));
-        hanging_faces.push_back(std::make_pair(nodeid,lni1));
+        hanging_edges.push_back(std::make_pair(nodeid,lni0));
+        hanging_edges.push_back(std::make_pair(nodeid,lni1));
+    }
+
+    #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS
+        std::cout << "....looping over hanging nodes on faces" << std::endl;
+    #endif
+
+    // Hanging nodes on hanging faces
+    hanging_faces.clear();
+    for(int i = 0; i < HangingFaceNodes.size(); i++)
+    {
+        //TODO
+
+        // Distances to neighbouring nodes
+        // p8est_qcoord_t l = P8EST_QUADRANT_LEN(hanging_face_orientation[i].level);
+        //                                0      1        2        3      4       5       6       7       8       9       10      11       
+        // p8est_qcoord_t xlookup[12][2] = {{-l,l}, {-l,l}, {-l,l}, {-l,l}, {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0}};
+        // p8est_qcoord_t ylookup[12][2] = {{0,0},  {0,0},  {0,0},  {0,0},  {-l,l}, {-l,l}, {-l,l}, {-l,l}, {0,0},  {0,0},  {0,0},  {0,0}};
+        // p8est_qcoord_t zlookup[12][2] = {{0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {-l,l}, {-l,l}, {-l,l}, {-l,l}};
+
+        // // Calculate the node ids
+        // double xy[3]={0};
+        // p8est_qcoord_to_vertex(p8est->connectivity, hanging_face_orientation[i].treeid, 
+        //                                             hanging_face_orientation[i].x, 
+        //                                             hanging_face_orientation[i].y,
+        //                                             hanging_face_orientation[i].z, xy);
+        // long nodeid = NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
+        // p8est_qcoord_to_vertex(p8est->connectivity, hanging_face_orientation[i].treeid, 
+        //                                             hanging_face_orientation[i].x+xlookup[hanging_face_orientation[i].face_orientation][0], 
+        //                                             hanging_face_orientation[i].y+ylookup[hanging_face_orientation[i].face_orientation][0],
+        //                                             hanging_face_orientation[i].z+zlookup[hanging_face_orientation[i].face_orientation][0], xy);
+        // long lni0   = NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
+        // p8est_qcoord_to_vertex(p8est->connectivity, hanging_face_orientation[i].treeid, 
+        //                                             hanging_face_orientation[i].x+xlookup[hanging_face_orientation[i].face_orientation][1], 
+        //                                             hanging_face_orientation[i].y+ylookup[hanging_face_orientation[i].face_orientation][1],
+        //                                             hanging_face_orientation[i].z+zlookup[hanging_face_orientation[i].face_orientation][1], xy);
+        // long lni1   = NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
+
+        // // p8est_qcoord_to_vertex(p8est->connectivity, hanging_face_orientation[i].treeid, 
+        // //                                             hanging_face_orientation[i].x+zlookup[hanging_face_orientation[i].face_orientation][0], 
+        // //                                             hanging_face_orientation[i].y+zlookup[hanging_face_orientation[i].face_orientation][1],
+        // //                                             hanging_face_orientation[i].z+zlookup[hanging_face_orientation[i].face_orientation][0], xy);
+        // // #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS
+        // // std::cout << "Hanging node 4: (" << xy[0] << ", " << xy[1] << ", " << xy[2] << ")" << std::endl;
+        // // #endif
+        // // long lni2   = NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
+
+        // // Initialise vectors
+        // std::vector<long> * idx0  = &indices[0][nodeid];
+        // std::vector<long> * idx1a = &indices[0][lni0];
+        // std::vector<long> * idx1b = &indices[0][lni1];
+        // // std::vector<long> * idx1c = &indices[0][lni2];
+
+        // #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
+        //     std::cout << "nodeid = " << nodeid << ": " << idx0[0][0] << ", " << idx0[0][1] << ", " << idx0[0][2] << ", " << idx0[0][3] << ", " << idx0[0][4] << ", " << idx0[0][5] << ", " << idx0[0][6] << std::endl;
+        //     std::cout << lni0 << ": " << idx1a[0][0] << ", " << idx1a[0][1] << ", " << idx1a[0][2] << ", " << idx1a[0][3] << ", " << idx1a[0][4] << ", " << idx1a[0][5] << ", " << idx1a[0][6] << std::endl;
+        //     std::cout << lni1 << ": " << idx1b[0][0] << ", " << idx1b[0][1] << ", " << idx1b[0][2] << ", " << idx1b[0][3] << ", " << idx1b[0][4] << ", " << idx1b[0][5] << ", " << idx1b[0][6] << std::endl;
+        //     // std::cout << lni2 << ": " << idx1c[0][0] << ", " << idx1c[0][1] << ", " << idx1c[0][2] << ", " << idx1c[0][3] << ", " << idx1c[0][4] << ", " << idx1c[0][5] << ", " << idx1c[0][6] << std::endl;
+        // #endif
+
+        // // Remove spurious connections, if they exist
+        // for(int i = 1; i < 5; i++)
+        // {
+        //     if(idx1a[0][i]==lni1)
+        //         idx1a[0][i]=nodeid;
+        //     if(idx1b[0][i]==lni0)
+        //         idx1b[0][i]=nodeid;
+        // }
+
+        // // Check to see if these are new connections
+        // bool new_connections[3]={true,true,true};
+        // for(int i=1;i<5;i++)
+        // {
+        //     if(idx1a[0][i]==nodeid)
+        //         new_connections[0]=false;
+        //     if(idx1b[0][i]==nodeid)
+        //         new_connections[1]=false;
+        //     // if(idx1c[0][i]==nodeid)
+        //     //     new_connections[2]=false;
+        // }
+
+        // // If they are new then add them to the vectors
+        // if(new_connections[0]==true)
+        // {
+        //     idx1a[0][0]++;
+        //     ESYS_ASSERT(idx1a[0][0]<=4, "updateRowsColumns index out of bound ");
+        //     idx1a[0][idx1a[0][0]]=nodeid;
+        // }
+        // if(new_connections[1]==true)
+        // {
+        //     idx1b[0][0]++;
+        //     ESYS_ASSERT(idx1b[0][0]<=4, "updateRowsColumns index out of bound ");
+        //     idx1b[0][idx1b[0][0]]=nodeid;
+        // }
+        // // if(new_connections[2]==true)
+        // // {
+        // //     idx1c[0][0]++;
+        // //     ESYS_ASSERT(idx1c[0][0]<=4, "updateRowsColumns index out of bound ");
+        // //     idx1c[0][idx1c[0][0]]=nodeid;
+        // // }
+        
+        // // Add the hanging node
+        // idx0[0][0]=3;
+        // idx0[0][1]=lni0;
+        // idx0[0][2]=lni1;
+        // // idx0[0][3]=lni2;
+        // idx0[0][4]=-1;
+        // hanging_edges.push_back(std::make_pair(nodeid,lni0));
+        // hanging_edges.push_back(std::make_pair(nodeid,lni1));
     }
 
     // update num_hanging
-    num_hanging=hanging_faces.size();
-    ESYS_ASSERT(hanging_faces.size()==getNumHangingNodes(), "Incorrect number of hanging nodes.");
+    num_hanging=hanging_faces.size()+hanging_edges.size();
+
+    #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS
+        std::cout << "....sorting indices" << std::endl;
+    #endif
 
     // Sorting
 // #pragma omp for
@@ -2679,10 +2803,8 @@ void Brick::updateRowsColumns()
         std::sort(indices[0][i].begin()+1, indices[0][i].begin()+idx0[0][0]+1);
     }
 
-#ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS
+#ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
     std::cout << "Node connections: " << std::endl;
-    // Output for debugging
-    // for(int i = getNumNodes()-0.5*num_hanging; i < getNumNodes(); i++){
     for(int i = 0; i < getNumNodes(); i++){
         std::vector<long> * idx0 = &indices[0][i];
         std::cout << i << ": ";
@@ -2691,6 +2813,10 @@ void Brick::updateRowsColumns()
         std::cout << std::endl;
     }
 #endif
+
+    #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS
+        std::cout << "....converting information to CRS format" << std::endl;
+    #endif
 
     // Convert to CRS format
     myRows.clear();

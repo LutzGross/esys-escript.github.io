@@ -819,9 +819,6 @@ public:
     // Flag that determines if adaptive refinement is enabled or not
     bool adaptive_refinement = false;
 
-    /// stores the hanging node information
-    std::vector<LongPair> hanging_faces; 
-
     // Converter used by Boost
     // Converts the Teuchos CRS matrix to a boost::numpy array
     // typedef Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> crs_matrix_type;
@@ -883,6 +880,10 @@ public:
     // Teuchos::RCP<Tpetra::CrsMatrix<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> * pIZ;
     // Teuchos::RCP<Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> * cpZ;
     // Teuchos::RCP<Tpetra::CrsMatrix<cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> * cpIZ;
+
+    /// stores the hanging node information
+    std::vector<DoublePair> hanging_faces; 
+    std::vector<DoublePair> hanging_edges; //unused by Rectangle
 
 protected:
 
