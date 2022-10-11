@@ -1613,12 +1613,10 @@ void Brick::renumberNodes()
                                             oct->x+lxy_face[n][0], oct->y+lxy_face[n][1], oct->z+lxy_face[n][2], xyz);
                 auto point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
 
-                #ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES
-                    if(hanging_faces[n]!=-1)
-                        std::cout << "Face " << n << ": [hanging]" << std::endl;
-                    else
-                        std::cout << std::endl;
-                #endif
+                // #ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES
+                //     if(hanging_faces[n]!=-1)
+                //         std::cout << "Face " << n << ": [hanging]" << std::endl;
+                // #endif
 
                 // If the face contains a hanging node
                 if(hanging_faces[n]!=-1)
@@ -1653,6 +1651,9 @@ void Brick::renumberNodes()
                         if(neighbour->x < 0 || neighbour->y < 0 || neighbour->z < 0
                             || neighbour->x > P8EST_ROOT_LEN || neighbour->y > P8EST_ROOT_LEN || neighbour->z > P8EST_ROOT_LEN)
                             continue;
+                        // Skip if the neighbouring quadrant is small than this one (to prevent duplicates)
+                        if(neighbour->level < tmp2.level)
+                            continue;                        
                         ESYS_ASSERT(newtree!=-1, "renumberNodes: Invalid neighbouring face tree");
                         ESYS_ASSERT(p8est_quadrant_is_valid(neighbour),"renumberNodes: Invalid neighbouring face octant");
                         
@@ -1665,6 +1666,9 @@ void Brick::renumberNodes()
                         hanging_face_orientation.push_back(tmp2);
 
                         // Add to the HangingNode information 
+                        #ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES_EXTRA
+                            std::cout << "...incrementing HangingFaceNodes with (" << xyz[0] << ", " << xyz[1] << ", " << xyz[2] << ") " << std::endl;
+                        #endif
                         HangingFaceNodes.push_back(point);
                     }
                 }
@@ -1685,13 +1689,6 @@ void Brick::renumberNodes()
                 p8est_qcoord_to_vertex(p8est->connectivity, treeid, 
                                             oct->x+lxy_edge[n][0], oct->y+lxy_edge[n][1], oct->z+lxy_edge[n][2], xyz);
                 auto point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
-
-                #ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES
-                    if(hanging_edges[n]!=-1)
-                        std::cout << "Edge " << n << ": [hanging]" << std::endl;
-                    else
-                        std::cout << std::endl;
-                #endif
 
                 //TODO check to see if edge should be included
                 // If the edge contains a hanging node
@@ -1722,8 +1719,13 @@ void Brick::renumberNodes()
                         p8est_quadrant_t tmp;
                         neighbour = &tmp;
                         p8est_quadrant_edge_neighbor(parent, n, neighbour);
+
+                        // Skip if this is outside the domain
                         if(neighbour->x < 0 || neighbour->y < 0 || neighbour->z < 0
                             || neighbour->x > P8EST_ROOT_LEN || neighbour->y > P8EST_ROOT_LEN || neighbour->z > P8EST_ROOT_LEN)
+                            continue;
+                        // Skip if the neighbouring quadrant is small than this one (to prevent duplicates)
+                        if(neighbour->level < tmp2.level)
                             continue;
                         ESYS_ASSERT(p8est_quadrant_is_valid(neighbour),"renumberNodes: Invalid neighbouring edge octant");
 
@@ -1736,6 +1738,9 @@ void Brick::renumberNodes()
                         hanging_edge_orientation.push_back(tmp2);
 
                         // Add to the HangingNode information 
+                        #ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES_EXTRA
+                            std::cout << "...incrementing HangingEdgeNodes with ("  << xyz[0] << ", " << xyz[1] << ", " << xyz[2] << ") " << std::endl;
+                        #endif
                         HangingEdgeNodes.push_back(point);
                     }
                 }
@@ -1804,7 +1809,7 @@ void Brick::renumberNodes()
         }
     }
 
-#ifdef OXLEY_PRINT_OCT_INFO
+#ifdef OXLEY_PRINT_OCTANT_INFO
     std::cout << "There are " << quadrantIDs.size() << " octants" << std::endl;
     for(int i = 0; i < quadrantInfo.size(); i++)
     {
@@ -1828,15 +1833,19 @@ void Brick::renumberNodes()
 
 #ifdef OXLEY_PRINT_NODEIDS_HANGING
     std::cout << "Hanging nodes on edges : ";
-    // if(HangingEdgeNodes.size()==0)
-    //     std::cout << "[none]";
-    // else
-    //     for(int i = 0; i < HangingEdgeNodes.size(); i++)
-    //         std::cout << HangingEdgeNodes[i] << ", ";
-    // std::cout << std::endl;
-    // std::cout << "Hanging nodes on faces : " << std::endl;
-    // for(int i = 0; i < HangingFaceNodes.size())
-        // std::cout << HangingFaceNodes[i] << std::endl;
+    if(HangingEdgeNodes.size()==0)
+        std::cout << "[none]";
+    else
+        for(int i = 0; i < HangingEdgeNodes.size(); i++)
+            std::cout << NodeIDs[HangingEdgeNodes[i]] << ", ";
+    std::cout << std::endl;
+    std::cout << "Hanging nodes on faces : ";
+    if(HangingFaceNodes.size()==0)
+        std::cout << "[none]";
+    else
+        for(int i = 0; i < HangingFaceNodes.size(); i++)
+            std::cout << NodeIDs[HangingFaceNodes[i]] << ", ";
+    std::cout << std::endl;
 #endif
 }
 
