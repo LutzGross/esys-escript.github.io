@@ -318,14 +318,12 @@ private:
     void * temp_data;
 
     // Brick needs to keep track of this information
-    std::unordered_map<DoubleTuple,long,boost::hash<DoubleTuple>> NodeIDs; //global ids of the nodes
-    // std::unordered_map<long,bool> hangingNodeIDs; //global ids of the hanging nodes
-    std::vector<bool> is_hanging; // element x is true if node id x is a hanging node
-    // std::vector<std::vector<long>> is_hanging_face; // if face x-y is hanging then element x is y
     std::unordered_map<DoubleTuple,long,boost::hash<DoubleTuple>> treeIDs; //global ids of the hanging nodes
     std::unordered_map<long,double> current_solution; //solution at each node
     std::vector<long> octantIDs; // IDs of the octants
     std::vector<oct_info> octantInfo;
+
+    std::unordered_map<DoubleTuple,long,boost::hash<DoubleTuple>> NodeIDs; //global ids of the nodes
 
     std::vector<borderNodeInfo> NodeIDsTop;
     std::vector<borderNodeInfo> NodeIDsBottom;
@@ -335,8 +333,9 @@ private:
     std::vector<borderNodeInfo> NodeIDsBelow;
 
     std::vector<DoubleTuple> NormalNodes;
-    std::vector<DoubleTuple> HangingFaceNodes;
-    std::vector<DoubleTuple> HangingEdgeNodes;
+    std::vector<long> HangingFaceNodes;
+    std::vector<long> HangingEdgeNodes;
+    std::vector<bool> is_hanging; // element x is true if node id x is a hanging node
 
     std::vector<hangingEdgeInfo> hanging_edge_orientation;
     std::vector<hangingFaceInfo> hanging_face_orientation;

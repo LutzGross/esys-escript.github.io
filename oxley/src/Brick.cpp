@@ -1554,45 +1554,7 @@ void Brick::renumberNodes()
                                               {0,h,0},{l,h,0},{0,h,l},{l,h,l},
                                               {0,0,h},{l,0,h},{0,l,h},{l,l,h}};
             
-            // Initialise some vectors
-            int hanging_faces[6];
-            int hanging_edges[12];
-
-            // Get the hanging edge and face information
-            getHangingInfo(nodes->face_code[k++], hanging_faces, hanging_edges);
-
-            #ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES
-                std::cout << "oct: " << (int) k-1 << std::endl;
-                std::cout << "\tHanging faces: ";
-                int facesum=6,edgesum=12;
-                for(int i=0;i<6;i++)  facesum+=hanging_faces[i];
-                for(int i=0;i<12;i++) edgesum+=hanging_edges[i];
-                if(facesum!=0)
-                {
-                    for(int i = 0; i < 6; i++)
-                        if(hanging_faces[i] != -1)
-                            std::cout << i << ", ";
-                }
-                else
-                {
-                    std::cout << "None";
-                }
-                std::cout << std::endl;
-                std::cout << "\tHanging edges: ";
-                if(edgesum!=0)
-                {
-                    for(int i = 0; i < 12; i++)
-                        if(hanging_edges[i] != -1)
-                            std::cout << i << ", ";
-                }
-                else
-                {
-                    std::cout << "None";
-                }
-                std::cout << std::endl;
-            #endif
-            
-            // Vertex Nodes
+            // Number the vertix nodes
             for(int n = 0; n < 8; n++)
             {
                 // Get the first coordinate
@@ -1604,180 +1566,201 @@ void Brick::renumberNodes()
                     NormalNodes.push_back(point);
             }
 
+            // Get the hanging edge and face information for this octant
+            int hanging_faces[6];
+            int hanging_edges[12];
+            getHangingInfo(nodes->face_code[k++], hanging_faces, hanging_edges);
+
+            #ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES_EXTRA
+                std::cout << "Octant number " << k-1 << ":" << std::endl;
+                int faceCount=6, edgeCount=12;
+                for(int i=0;i<6;i++) faceCount+=hanging_faces[i];
+                for(int i=0;i<12;i++) edgeCount+=hanging_edges[i];
+                std::cout << "\tHanging faces : ";
+                if(faceCount==0)
+                    std::cout << "[none]";
+                else
+                    for(int i=0; i<6;i++)
+                        if(hanging_faces[i]!=-1)
+                            std::cout << i << "(" << hanging_faces[i] << "), " ;
+                std::cout << std::endl;
+                std::cout << "\tHanging edges : ";
+                if(edgeCount==0)
+                    std::cout << "[none]";
+                else
+                    for(int i=0; i<12;i++)
+                        if(hanging_edges[i]!=-1)
+                            std::cout << i << "(" << hanging_edges[i] << "), " ;
+
+                std::cout << std::endl;
+            #endif
+        
+            // Record hanging node information
             // Loop over faces
             for(int n = 0; n < 6; n++)
             {
-                // Get the first coordinate
-                double xyz[3];
-                p8est_qcoord_to_vertex(p8est->connectivity, treeid, 
-                                            oct->x+lxy_face[n][0], oct->y+lxy_face[n][1], oct->z+lxy_face[n][2], xyz);
-                auto point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
-
-                // If the face contains a hanging node
-                if(hanging_faces[n]!=-1)
-                {
-                    if(!std::count(HangingFaceNodes.begin(), HangingFaceNodes.end(), point))
-                    {
-                        // Get the coordinates of the node
-                        hangingFaceInfo tmp2;
-                        tmp2.x=oct->x+lxy_face[n][0];
-                        tmp2.y=oct->y+lxy_face[n][1];
-                        tmp2.z=oct->z+lxy_face[n][2];
-                        tmp2.level=oct->level;
-                        tmp2.treeid=treeid;
-                        tmp2.face_type=n;
-                        ESYS_ASSERT(tmp2.face_type!=-1, "renumberNodes: Unknown programming error");
-
-                        // Get the coordinates of the end of the face for this octant
-                        p8est_quadrant_t * parent;
-                        p8est_quadrant_t parent_oct;
-                        parent = &parent_oct;
-                        p8est_quadrant_parent(oct, parent);
-                        ESYS_ASSERT(p8est_quadrant_is_parent(parent, oct), "renumberNodes: Quadrant is not parent");
-                        ESYS_ASSERT(p8est_quadrant_is_valid(parent),"renumberNodes: Invalid parent octant");
-
-                        // Get the neighbouring octant
-                        p8est_quadrant_t * neighbour;
-                        p8est_quadrant_t neighbour_oct;
-                        neighbour = &neighbour_oct;
-                        int * nface = NULL;
-                        int newtree = p8est_quadrant_face_neighbor_extra(parent, treeid, 
-                                                        tmp2.face_type, neighbour, nface, connectivity);
-                        if(neighbour->x < 0 || neighbour->y < 0 || neighbour->z < 0
-                            || neighbour->x > P8EST_ROOT_LEN || neighbour->y > P8EST_ROOT_LEN || neighbour->z > P8EST_ROOT_LEN)
-                            continue;
-                        // Skip if the neighbouring octant is smaller than this one (to prevent duplicates)
-                        if(neighbour->level == tmp2.level - 1)
-                            continue; 
-                        ESYS_ASSERT(newtree!=-1, "renumberNodes: Invalid neighbouring face tree");
-                        ESYS_ASSERT(p8est_quadrant_is_valid(neighbour),"renumberNodes: Invalid neighbouring face octant");
-                        
-                        // Create the new entry for HangingNodes
-                        tmp2.neighbour_x=neighbour->x;
-                        tmp2.neighbour_y=neighbour->y;
-                        tmp2.neighbour_z=neighbour->z;
-                        tmp2.neighbour_l=neighbour->level;
-                        tmp2.neighbour_tree=newtree;
-                        hanging_face_orientation.push_back(tmp2);
-
-                        // Add to the HangingNode information 
-                        #ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES_EXTRA
-                            std::cout << "...incrementing HangingFaceNodes with (" << xyz[0] << ", " << xyz[1] << ", " << xyz[2] << ") " << std::endl;
-                        #endif
-                        HangingFaceNodes.push_back(point);
-                    }
-                }
-                // else
-                // {
-                //     if(!std::count(NormalNodes.begin(), NormalNodes.end(), point))
-                //     {
-                //         NormalNodes.push_back(point);
-                //     }
-                // }
-            }
-
-            // Loop over edges
-            for(int n = 0; n < 12; n++)
-            {
-                // Get the first coordinate
-                double xyz[3];
-                p8est_qcoord_to_vertex(p8est->connectivity, treeid, 
-                                            oct->x+lxy_edge[n][0], oct->y+lxy_edge[n][1], oct->z+lxy_edge[n][2], xyz);
-                auto point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
-
-                // Already accounted for in the face node loop
-                if(hanging_edges[n]==4)
+                // If the face does not have any hanging nodes then skip ahead
+                if(hanging_faces[n]==-1)
                     continue;
 
-                //TODO check to see if edge should be included
-                // Skip if the edge is not hanging
-                if(hanging_edges[n]!=-1)
-                {
-                    if(!std::count(HangingEdgeNodes.begin(), HangingEdgeNodes.end(), point))
-                    {
-                        // Get the coordinates of the node
-                        hangingEdgeInfo tmp2;
-                        tmp2.x=oct->x+lxy_edge[n][0];
-                        tmp2.y=oct->y+lxy_edge[n][1];
-                        tmp2.z=oct->z+lxy_edge[n][2];
-                        tmp2.level=oct->level;
-                        tmp2.treeid=treeid;
-                        tmp2.edge_type=n;
-                        ESYS_ASSERT(tmp2.edge_type!=-1, "renumberNodes: Unknown programming error");
 
-                        // Get the coordinates of the end of the edge for this octant
-                        p8est_quadrant_t * parent;
-                        p8est_quadrant_t parent_oct;
-                        parent = &parent_oct;
-                        p8est_quadrant_parent(oct, parent);
-                        ESYS_ASSERT(p8est_quadrant_is_parent(parent, oct), "renumberNodes: Octant is not parent");
-                        ESYS_ASSERT(p8est_quadrant_is_valid(parent),"renumberNodes: Invalid parent quadrant");
 
-                        // Find the neighbour
-                        p8est_quadrant_t * neighbour;
-                        p8est_quadrant_t tmp;
-                        neighbour = &tmp;
-                        p8est_quadrant_edge_neighbor(parent, n, neighbour);
-
-                        // Skip if this is outside the domain
-                        if(neighbour->x < 0 || neighbour->y < 0 || neighbour->z < 0
-                            || neighbour->x > P8EST_ROOT_LEN || neighbour->y > P8EST_ROOT_LEN || neighbour->z > P8EST_ROOT_LEN)
-                            continue;
-                        // Skip if the neighbouring quadrant is small than this one (to prevent duplicates)
-                        // TODO
-                        // if(neighbour->level < tmp2.level)
-                        //     continue;
-
-                        // TODO
-                        ESYS_ASSERT(p8est_quadrant_is_valid(neighbour),"renumberNodes: Invalid neighbouring edge octant");
-
-                        // Create the new entry for HangingNodes
-                        tmp2.neighbour_x=neighbour->x;
-                        tmp2.neighbour_y=neighbour->y;
-                        tmp2.neighbour_z=neighbour->z;
-                        tmp2.neighbour_l=neighbour->level;
-                        // tmp2.neighbour_tree=newtree[i];
-                        hanging_edge_orientation.push_back(tmp2);
-
-                        // Add to the HangingNode information 
-                        #ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES_EXTRA
-                            std::cout << "...incrementing HangingEdgeNodes with ("  << xyz[0] << ", " << xyz[1] << ", " << xyz[2] << ") " << std::endl;
-                        #endif
-                        HangingEdgeNodes.push_back(point);
-                    }
-                }
-                // else
-                // {
-                //     if(!std::count(NormalNodes.begin(), NormalNodes.end(), point))
-                //     {
-                //         NormalNodes.push_back(point);
-                //     }
-                // }
             }
+
+
         }
     }
 
+
+    //         // Record hanging face node information
+    //         for(int n = 0; n < 6; n++)
+    //         {
+    //             // Get the first coordinate
+    //             double xyz[3];
+    //             p8est_qcoord_to_vertex(p8est->connectivity, treeid, 
+    //                                         oct->x+lxy_face[n][0], oct->y+lxy_face[n][1], oct->z+lxy_face[n][2], xyz);
+    //             DoubleTuple point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
+
+    //             // If the face contains a hanging node
+    //             if(hanging_faces[n]!=-1)
+    //             {
+    //                 std::cout << "hanging node: (" << xyz[0] << ", " << xyz[1] << ", " << xyz[2] << ")" << std::endl;
+    //                 int count = std::count(NormalNodes.begin(), NormalNodes.end(), point);
+    //                 std::cout << "appears " << count << " times." << std::endl;
+    //                 // if(std::count(NormalNodes.begin(), NormalNodes.end(), point)>0)
+    //                 // {
+    //                 //     std::cout << "ae" << std::endl;
+    //                     // HangingFaceNodes.push_back(NodeIDs.find(point)->second);
+
+    //                     // // Get the coordinates of the node
+    //                     // hangingFaceInfo tmp2;
+    //                     // tmp2.x=oct->x+lxy_face[n][0];
+    //                     // tmp2.y=oct->y+lxy_face[n][1];
+    //                     // tmp2.z=oct->z+lxy_face[n][2];
+    //                     // tmp2.level=oct->level;
+    //                     // tmp2.treeid=treeid;
+    //                     // tmp2.face_type=n;
+    //                     // ESYS_ASSERT(tmp2.face_type!=-1, "renumberNodes: Unknown programming error");
+
+    //                     // // Get the coordinates of the end of the face for this octant
+    //                     // p8est_quadrant_t * parent;
+    //                     // p8est_quadrant_t parent_oct;
+    //                     // parent = &parent_oct;
+    //                     // p8est_quadrant_parent(oct, parent);
+    //                     // ESYS_ASSERT(p8est_quadrant_is_parent(parent, oct), "renumberNodes: Quadrant is not parent");
+    //                     // ESYS_ASSERT(p8est_quadrant_is_valid(parent),"renumberNodes: Invalid parent octant");
+
+    //                     // // Get the neighbouring octant
+    //                     // p8est_quadrant_t * neighbour;
+    //                     // p8est_quadrant_t neighbour_oct;
+    //                     // neighbour = &neighbour_oct;
+    //                     // int * nface = NULL;
+    //                     // int newtree = p8est_quadrant_face_neighbor_extra(parent, treeid, 
+    //                     //                                 tmp2.face_type, neighbour, nface, connectivity);
+    //                     // if(neighbour->x < 0 || neighbour->y < 0 || neighbour->z < 0
+    //                     //     || neighbour->x > P8EST_ROOT_LEN || neighbour->y > P8EST_ROOT_LEN || neighbour->z > P8EST_ROOT_LEN)
+    //                     //     continue;
+    //                     // // Skip if the neighbouring octant is smaller than this one (to prevent duplicates)
+    //                     // if(neighbour->level == tmp2.level - 1)
+    //                     //     continue; 
+    //                     // ESYS_ASSERT(newtree!=-1, "renumberNodes: Invalid neighbouring face tree");
+    //                     // ESYS_ASSERT(p8est_quadrant_is_valid(neighbour),"renumberNodes: Invalid neighbouring face octant");
+                        
+    //                     // // Create the new entry for HangingNodes
+    //                     // tmp2.neighbour_x=neighbour->x;
+    //                     // tmp2.neighbour_y=neighbour->y;
+    //                     // tmp2.neighbour_z=neighbour->z;
+    //                     // tmp2.neighbour_l=neighbour->level;
+    //                     // tmp2.neighbour_tree=newtree;
+    //                     // hanging_face_orientation.push_back(tmp2);
+    //                 // }
+    //             }
+    //         }
+
+    //         // // // Record hanging edge node information
+    //         // for(int n = 0; n < 12; n++)
+    //         // {
+    //         //     // Get the first coordinate
+    //         //     double xyz[3];
+    //         //     p8est_qcoord_to_vertex(p8est->connectivity, treeid, 
+    //         //                                 oct->x+lxy_edge[n][0], oct->y+lxy_edge[n][1], oct->z+lxy_edge[n][2], xyz);
+    //         //     auto point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
+
+    //         //     // Skip if the edge is not hanging
+    //         //     if(hanging_edges[n]!=-1)
+    //         //     {
+    //         //         if(!std::count(HangingEdgeNodes.begin(), HangingEdgeNodes.end(), point))
+    //         //         {
+    //         //             HangingEdgeNodes.push_back(NodeIDs.find(point)->second);
+
+    //         // //             // // Get the coordinates of the node
+    //         // //             // hangingEdgeInfo tmp2;
+    //         // //             // tmp2.x=oct->x+lxy_edge[n][0];
+    //         // //             // tmp2.y=oct->y+lxy_edge[n][1];
+    //         // //             // tmp2.z=oct->z+lxy_edge[n][2];
+    //         // //             // tmp2.level=oct->level;
+    //         // //             // tmp2.treeid=treeid;
+    //         // //             // tmp2.edge_type=n;
+    //         // //             // ESYS_ASSERT(tmp2.edge_type!=-1, "renumberNodes: Unknown programming error");
+
+    //         // //             // // Get the coordinates of the end of the edge for this octant
+    //         // //             // p8est_quadrant_t * parent;
+    //         // //             // p8est_quadrant_t parent_oct;
+    //         // //             // parent = &parent_oct;
+    //         // //             // p8est_quadrant_parent(oct, parent);
+    //         // //             // ESYS_ASSERT(p8est_quadrant_is_parent(parent, oct), "renumberNodes: Octant is not parent");
+    //         // //             // ESYS_ASSERT(p8est_quadrant_is_valid(parent),"renumberNodes: Invalid parent quadrant");
+
+    //         // //             // // Find the neighbour
+    //         // //             // p8est_quadrant_t * neighbour;
+    //         // //             // p8est_quadrant_t tmp;
+    //         // //             // neighbour = &tmp;
+    //         // //             // p8est_quadrant_edge_neighbor(parent, n, neighbour);
+
+    //         // //             // // Skip if this is outside the domain
+    //         // //             // if(neighbour->x < 0 || neighbour->y < 0 || neighbour->z < 0
+    //         // //             //     || neighbour->x > P8EST_ROOT_LEN || neighbour->y > P8EST_ROOT_LEN || neighbour->z > P8EST_ROOT_LEN)
+    //         // //             //     continue;
+    //         // //             // // Skip if the neighbouring quadrant is small than this one (to prevent duplicates)
+    //         // //             // // TODO
+    //         // //             // // if(neighbour->level < tmp2.level)
+    //         // //             // //     continue;
+
+    //         // //             // // TODO
+    //         // //             // ESYS_ASSERT(p8est_quadrant_is_valid(neighbour),"renumberNodes: Invalid neighbouring edge octant");
+
+    //         // //             // // Create the new entry for HangingNodes
+    //         // //             // tmp2.neighbour_x=neighbour->x;
+    //         // //             // tmp2.neighbour_y=neighbour->y;
+    //         // //             // tmp2.neighbour_z=neighbour->z;
+    //         // //             // tmp2.neighbour_l=neighbour->level;
+    //         // //             // // tmp2.neighbour_tree=newtree[i];
+    //         // //             // hanging_edge_orientation.push_back(tmp2);
+    //         // //         }
+    //         // //     }
+    //         //     // else
+    //         //     // {
+    //         //     //     if(!std::count(NormalNodes.begin(), NormalNodes.end(), point))
+    //         //     //     {
+    //         //     //         NormalNodes.push_back(point);
+    //         //         }
+    //         //     }
+    //         // }
+    //     }
+    // }
+
     // Populate NodeIDs
     is_hanging.clear();
-    int num_norm_nodes=NormalNodes.size();
+    int num_nodes=NormalNodes.size();
     num_hanging=HangingFaceNodes.size()+HangingEdgeNodes.size();
-    int total_nodes=NormalNodes.size()+HangingFaceNodes.size()+HangingEdgeNodes.size();
+    int total_nodes=NormalNodes.size(); //+HangingFaceNodes.size()+HangingEdgeNodes.size();
     is_hanging.resize(total_nodes,false);
-    int count = 0;
-    for(int i=0;i<num_norm_nodes;i++)
-    {
-        NodeIDs[NormalNodes[i]]=count++;
-    }
+    for(int i=0;i<num_nodes;i++)
+        NodeIDs[NormalNodes[i]]=i;
     for(int i=0;i<HangingFaceNodes.size();i++)
-    {
-        NodeIDs[HangingFaceNodes[i]]=count;
-        is_hanging[count++]=true;
-    }
+        is_hanging[HangingFaceNodes[i]]=true;
     for(int i=0;i<HangingEdgeNodes.size();i++)
-    {
-        NodeIDs[HangingEdgeNodes[i]]=count;
-        is_hanging[count++]=true;
-    }
+        is_hanging[HangingEdgeNodes[i]]=true;
 
     // This variable currently records the number of hanging faces, not the number of hanging nodes
     // TODO
@@ -1786,7 +1769,7 @@ void Brick::renumberNodes()
     // Populate m_nodeIDs
     m_nodeId.clear();
     m_nodeId.resize(NodeIDs.size());
-    count=0;
+    long count=0;
     for(std::pair<DoubleTuple,long> e : NodeIDs)
         m_nodeId[count++]=e.second;
     
@@ -1839,14 +1822,14 @@ void Brick::renumberNodes()
         std::cout << "[none]";
     else
         for(int i = 0; i < HangingEdgeNodes.size(); i++)
-            std::cout << NodeIDs[HangingEdgeNodes[i]] << ", ";
+            std::cout << HangingEdgeNodes[i] << ", ";
     std::cout << std::endl;
     std::cout << "Hanging nodes on faces : ";
     if(HangingFaceNodes.size()==0)
         std::cout << "[none]";
     else
         for(int i = 0; i < HangingFaceNodes.size(); i++)
-            std::cout << NodeIDs[HangingFaceNodes[i]] << ", ";
+            std::cout << HangingFaceNodes[i] << ", ";
     std::cout << std::endl;
 #endif
 }
@@ -2593,20 +2576,7 @@ void Brick::updateRowsColumns()
     hanging_edges.clear();
     for(int i = 0; i < HangingEdgeNodes.size(); i++)
     {
-        // Distances to neighbouring nodes
-        p8est_qcoord_t l = P8EST_QUADRANT_LEN(hanging_edge_orientation[i].level);
-        p8est_qcoord_t h = 0.5 * l;
-        //                                0      1        2        3      4       5       6       7       8       9       10      11       
-        p8est_qcoord_t xlookup[12][2] = {{-h,h}, {-h,h}, {-h,h}, {-h,h}, {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0}};
-        p8est_qcoord_t ylookup[12][2] = {{0,0},  {0,0},  {0,0},  {0,0},  {-h,h}, {-h,h}, {-h,h}, {-h,h}, {0,0},  {0,0},  {0,0},  {0,0}};
-        p8est_qcoord_t zlookup[12][2] = {{0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {-h,h}, {-h,h}, {-h,h}, {-h,h}};
-        //TODO
-        //                                   0       1       2       3       4       5       6       7       8       9       10      11       
-        p8est_qcoord_t xlookup2[12][2] = {{0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0}};
-        p8est_qcoord_t ylookup2[12][2] = {{0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0}};
-        p8est_qcoord_t zlookup2[12][2] = {{0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0},  {0,0}};
-
-        // Calculate the node ids
+        // This is the id of the node being considered
         double xyz[3]={0};
         p8est_qcoord_to_vertex(p8est->connectivity, hanging_edge_orientation[i].treeid, 
                                                     hanging_edge_orientation[i].x, 
@@ -2614,100 +2584,103 @@ void Brick::updateRowsColumns()
                                                     hanging_edge_orientation[i].z, xyz);
         long nodeid = NodeIDs.find(std::make_tuple(xyz[0],xyz[1],xyz[2]))->second;
 
-        // Nodes on the edge
-        p8est_qcoord_to_vertex(p8est->connectivity, hanging_edge_orientation[i].treeid, 
-                                                    hanging_edge_orientation[i].x+xlookup[hanging_edge_orientation[i].edge_type][0], 
-                                                    hanging_edge_orientation[i].y+ylookup[hanging_edge_orientation[i].edge_type][0],
-                                                    hanging_edge_orientation[i].z+zlookup[hanging_edge_orientation[i].edge_type][0], xyz);
-        long lni0   = NodeIDs.find(std::make_tuple(xyz[0],xyz[1],xyz[2]))->second;
-        p8est_qcoord_to_vertex(p8est->connectivity, hanging_edge_orientation[i].treeid, 
-                                                    hanging_edge_orientation[i].x+xlookup[hanging_edge_orientation[i].edge_type][1], 
-                                                    hanging_edge_orientation[i].y+ylookup[hanging_edge_orientation[i].edge_type][1],
-                                                    hanging_edge_orientation[i].z+zlookup[hanging_edge_orientation[i].edge_type][1], xyz);
-        long lni1   = NodeIDs.find(std::make_tuple(xyz[0],xyz[1],xyz[2]))->second;
+        // Initialise some variables
+        p8est_qcoord_t l = P8EST_QUADRANT_LEN(hanging_edge_orientation[i].level);
+        p8est_qcoord_t h = 0.5 * l;        
+        p8est_qcoord_t xlookup[3][2]={{h,-h},{0,0},{0,0}};
+        p8est_qcoord_t ylookup[3][2]={{0,0},{h,-h},{0,0}};
+        p8est_qcoord_t zlookup[3][2]={{0,0},{0,0},{h,-h}};
+        std::vector<long> lni;
 
-        //TODO
-        // Nodes on connecting faces (in the middle of the face)
-        p8est_qcoord_to_vertex(p8est->connectivity, hanging_edge_orientation[i].treeid, 
-                                                    hanging_edge_orientation[i].x+xlookup2[hanging_edge_orientation[i].edge_type][0], 
-                                                    hanging_edge_orientation[i].y+ylookup2[hanging_edge_orientation[i].edge_type][0],
-                                                    hanging_edge_orientation[i].z+zlookup2[hanging_edge_orientation[i].edge_type][0], xyz);
-        long lni2   = NodeIDs.find(std::make_tuple(xyz[0],xyz[1],xyz[2]))->second;
-        p8est_qcoord_to_vertex(p8est->connectivity, hanging_edge_orientation[i].treeid, 
-                                                    hanging_edge_orientation[i].x+xlookup2[hanging_edge_orientation[i].edge_type][1], 
-                                                    hanging_edge_orientation[i].y+ylookup2[hanging_edge_orientation[i].edge_type][1],
-                                                    hanging_edge_orientation[i].z+zlookup2[hanging_edge_orientation[i].edge_type][1], xyz);
-        long lni3   = NodeIDs.find(std::make_tuple(xyz[0],xyz[1],xyz[2]))->second;
+        // Get the neighbouring nodes
+        for(int k=0; k<3; k++) // Loop over the axes
+            for(int j=0; j<2; j++) // Loop over the directions
+            {
+                p8est_qcoord_to_vertex(p8est->connectivity, hanging_edge_orientation[i].treeid, 
+                                                            hanging_edge_orientation[i].x+xlookup[k][j], 
+                                                            hanging_edge_orientation[i].y+ylookup[k][j],
+                                                            hanging_edge_orientation[i].z+zlookup[k][j], xyz);
+                if(NodeIDs.count(std::make_tuple(xyz[0],xyz[1],xyz[2]))>0)
+                    lni.push_back(NodeIDs.find(std::make_tuple(xyz[0],xyz[1],xyz[2]))->second);
+            }        
+        ESYS_ASSERT(lni.size()==4, "RowColumns: Did not find one or more nodes.");
 
-        // Initialise vectors
-        std::vector<long> * idx0  = &indices[0][nodeid];
-        std::vector<long> * idx1a = &indices[0][lni0];
-        std::vector<long> * idx1b = &indices[0][lni1];
-        std::vector<long> * idx1c = &indices[0][lni2];
-        std::vector<long> * idx1d = &indices[0][lni3];
+        #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
+            std::cout << "Node " << nodeid << " is connected to ";
+            for(int k=0;k<4;k++)
+                std::cout << lni[k] << ", ";
+            std::cout << std::endl;
+        #endif
 
-        // Remove spurious connections, if they exist
-        for(int i = 1; i < 5; i++)
-        {
-            if(idx1a[0][i]==lni1)
-                idx1a[0][i]=nodeid;
-            if(idx1b[0][i]==lni0)
-                idx1b[0][i]=nodeid;
-            //TODO
-        }
+        std::cout << "ae" << std::endl;
 
-        // Check to see if these are new connections
-        bool new_connections[4]={true,true,true,true};
-        for(int i=1;i<5;i++)
-        {
-            if(idx1a[0][i]==nodeid)
-                new_connections[0]=false;
-            if(idx1b[0][i]==nodeid)
-                new_connections[1]=false;
-            if(idx1c[0][i]==nodeid)
-                new_connections[2]=false;
-            if(idx1d[0][i]==nodeid)
-                new_connections[3]=false;
-        }
-
-        // If they are new then add them to the vectors
-        if(new_connections[0]==true)
-        {
-            idx1a[0][0]++;
-            ESYS_ASSERT(idx1a[0][0]<=6, "updateRowsColumns index out of bound ");
-            idx1a[0][idx1a[0][0]]=nodeid;
-        }
-        if(new_connections[1]==true)
-        {
-            idx1b[0][0]++;
-            ESYS_ASSERT(idx1b[0][0]<=6, "updateRowsColumns index out of bound ");
-            idx1b[0][idx1b[0][0]]=nodeid;
-        }
-        if(new_connections[2]==true)
-        {
-            idx1c[0][0]++;
-            ESYS_ASSERT(idx1c[0][0]<=6, "updateRowsColumns index out of bound ");
-            idx1c[0][idx1c[0][0]]=nodeid;
-        }
-        if(new_connections[3]==true)
-        {
-            idx1d[0][0]++;
-            ESYS_ASSERT(idx1d[0][0]<=6, "updateRowsColumns index out of bound ");
-            idx1d[0][idx1d[0][0]]=nodeid;
-        }
+        // Get pointers to the entries on the indices vector
+        // std::vector<std::vector<long>> * idx;
+        // idx->push_back(&indices[0][nodeid]);
+        // for(int j=0;j<lni.size();j++)
+        //     idx.push_back(&indices[0][lni[j]]);        
         
-                // Add the hanging node
-        idx0[0][0]=3;
-        idx0[0][1]=lni0;
-        idx0[0][2]=lni1;
-        idx0[0][3]=-1;
-        idx0[0][4]=-1;
-        // idx0[0][3]=lni2;
-        // idx0[0][4]=lni3;
-        idx0[0][5]=-1;
-        idx0[0][6]=-1;
-        hanging_edges.push_back(std::make_pair(nodeid,lni0));
-        hanging_edges.push_back(std::make_pair(nodeid,lni1));
+        // Remove spurious connections, if they exist
+        // for(int i = 1; i < 5; i++)
+        // {
+        //     if(idx1a[0][i]==lni[1])
+        //         idx1a[0][i]=nodeid;
+        //     if(idx1b[0][i]==lni[0])
+        //         idx1b[0][i]=nodeid;
+        // }
+
+        // // Check to see if these are new connections
+        // bool new_connections[4]={true,true,true,true};
+        // for(int i=1;i<5;i++)
+        // {
+        //     if(idx1a[0][i]==nodeid)
+        //         new_connections[0]=false;
+        //     if(idx1b[0][i]==nodeid)
+        //         new_connections[1]=false;
+        //     if(idx1c[0][i]==nodeid)
+        //         new_connections[2]=false;
+        //     if(idx1d[0][i]==nodeid)
+        //         new_connections[3]=false;
+        // }
+
+        // // If they are new then add them to the vectors
+        // if(new_connections[0]==true)
+        // {
+        //     idx1a[0][0]++;
+        //     ESYS_ASSERT(idx1a[0][0]<=6, "updateRowsColumns index out of bound ");
+        //     idx1a[0][idx1a[0][0]]=nodeid;
+        // }
+        // if(new_connections[1]==true)
+        // {
+        //     idx1b[0][0]++;
+        //     ESYS_ASSERT(idx1b[0][0]<=6, "updateRowsColumns index out of bound ");
+        //     idx1b[0][idx1b[0][0]]=nodeid;
+        // }
+        // if(new_connections[2]==true)
+        // {
+        //     idx1c[0][0]++;
+        //     ESYS_ASSERT(idx1c[0][0]<=6, "updateRowsColumns index out of bound ");
+        //     idx1c[0][idx1c[0][0]]=nodeid;
+        // }
+        // if(new_connections[3]==true)
+        // {
+        //     idx1d[0][0]++;
+        //     ESYS_ASSERT(idx1d[0][0]<=6, "updateRowsColumns index out of bound ");
+        //     idx1d[0][idx1d[0][0]]=nodeid;
+        // }
+        
+        //         // Add the hanging node
+        // idx0[0][0]=3;
+        // idx0[0][1]=lni0;
+        // idx0[0][2]=lni1;
+        // idx0[0][3]=-1;
+        // idx0[0][4]=-1;
+        // // idx0[0][3]=lni2;
+        // // idx0[0][4]=lni3;
+        // idx0[0][5]=-1;
+        // idx0[0][6]=-1;
+        // hanging_edges.push_back(std::make_pair(nodeid,lni0));
+        // hanging_edges.push_back(std::make_pair(nodeid,lni1));
     }
 
     #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS
