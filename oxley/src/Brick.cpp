@@ -728,7 +728,7 @@ void Brick::dump(const std::string& fileName) const //TODO Not working
 {
 #ifdef ESYS_HAVE_SILO
     
-#ifdef OXLEY_ENABLE_DEBUG
+#ifdef OXLEY_ENABLE_DEBUG_DUMP
         std::cout << "Inside dump........" << std::endl;
 #endif
 
@@ -763,7 +763,7 @@ void Brick::dump(const std::string& fileName) const //TODO Not working
         pNodey[element.second]=std::get<1>(element.first);
         pNodez[element.second]=std::get<2>(element.first);
         pNode_ids[element.second]=element.second;
-#ifdef OXLEY_ENABLE_DEBUG
+#ifdef OXLEY_ENABLE_DEBUG_DUMP
         std::cout << "Adding " << element.second << ": (" << std::get<0>(element.first) << ", " 
                                                           << std::get<1>(element.first) << ", "  
                                                           << std::get<2>(element.first) << ") " << counter++ << std::endl;
@@ -1532,6 +1532,43 @@ void Brick::renumberNodes()
     hanging_face_orientation.clear();
     hanging_edge_orientation.clear();
 
+    //                                                                              
+    const bool xface[6][4]={{0,0,0,0},{1,1,1,1},{1,0,1,0},{1,0,1,0},{1,0,1,0},{1,0,1,0}};
+    const bool yface[6][4]={{1,0,1,0},{1,0,1,0},{0,0,0,0},{1,1,1,1},{1,1,0,0},{1,1,0,0}};
+    const bool zface[6][4]={{1,1,0,0},{1,1,0,0},{1,1,0,0},{1,1,0,0},{0,0,0,0},{1,1,1,1}};
+
+    // three dimensions, six octant faces, four orientations (relative to parent octant), two edge nodes
+    //                           0     1     2     3
+    const bool xedge[6][4][2]={{{0,0},{0,0},{0,0},{0,0}}, //0
+                               {{1,1},{1,1},{1,1},{1,1}}, //1
+                               {{1,0},{0,1},{0,1},{1,0}}, //2
+                               {{1,0},{0,1},{0,1},{1,0}}, //3
+                               {{1,0},{0,1},{0,1},{1,0}}, //4
+                               {{1,0},{0,1},{0,1},{1,0}}};//5
+    //                           0     1     2     3
+    const bool yedge[6][4][2]={{{1,0},{0,1},{0,1},{1,0}}, //0
+                               {{1,0},{0,1},{0,1},{1,0}}, //1
+                               {{0,0},{0,0},{0,0},{0,0}}, //2
+                               {{1,1},{1,1},{1,1},{1,1}}, //3
+                               {{0,1},{0,1},{0,1},{0,1}}, //4
+                               {{0,1},{0,1},{0,1},{0,1}}};//5
+    //                           0     1     2     3
+    const bool zedge[6][4][2]={{{0,1},{0,1},{0,1},{0,1}}, //0
+                               {{0,1},{0,1},{0,1},{0,1}}, //1
+                               {{0,1},{0,1},{0,1},{0,1}}, //2
+                               {{0,1},{0,1},{0,1},{0,1}}, //3
+                               {{0,0},{0,0},{0,0},{0,0}}, //4
+                               {{1,1},{1,1},{1,1},{1,1}}};//5
+
+    // six faces, four orientations (relative to parent octant), two edges
+    //                                0       1       2       3
+    const int edge_lookup[6][4][2]={{{4,8},  {4,10}, {6,8},  {6,10}}, //0
+                                    {{5,9},  {5,11}, {7,9},  {7,11}}, //1
+                                    {{0,8},  {0,9},  {2,8},  {2,9}}, //2
+                                    {{1,10}, {1,11}, {3,10}, {3,11}}, //3
+                                    {{0,4},  {0,5},  {1,4},  {1,5}}, //4
+                                    {{2,6},  {2,7},  {3,6},  {3,7}}};//5
+
     // Write in NodeIDs
 // #pragma omp for
     int k = 0;
@@ -1618,17 +1655,14 @@ void Brick::renumberNodes()
                 if(hanging_faces[n]==-1)
                     continue;
 
-                //                                                                              
-                bool xface[6][4]={{0,0,0,0},{1,1,1,1},{1,0,1,0},{1,0,1,0},{1,0,1,0},{1,0,1,0}};
-                bool yface[6][4]={{1,0,1,0},{1,0,1,0},{0,0,0,0},{1,1,1,1},{1,1,0,0},{1,1,0,0}};
-                bool zface[6][4]={{1,1,0,0},{1,1,0,0},{1,1,0,0},{1,1,0,0},{0,0,0,0},{1,1,1,1}};
-
                 // shift to the corner of the face
                 signed long x_corner = ((int) xface[n][hanging_faces[n]]) * l;
                 signed long y_corner = ((int) yface[n][hanging_faces[n]]) * l;
                 signed long z_corner = ((int) zface[n][hanging_faces[n]]) * l;
 
-                // Point in the middle of the face
+                // *******************************************************************
+                // Face node
+                // *******************************************************************
                 double xyz[3];
                 p8est_qcoord_to_vertex(p8est->connectivity, treeid, 
                                         oct->x+x_corner, 
@@ -1642,58 +1676,46 @@ void Brick::renumberNodes()
                 if(have_node == HangingFaceNodes.end())
                       HangingFaceNodes.push_back(nodeid);
 
-                // three dimensions, six octant faces, four orientations (relative to parent octant), two edge nodes
-                //                     0     1     2     3
-                bool xedge[6][4][2]={{{0,0},{0,0},{0,0},{0,0}}, //0
-                                     {{1,1},{1,1},{1,1},{1,1}}, //1
-                                     {{1,0},{0,1},{0,1},{1,0}}, //2
-                                     {{1,0},{0,1},{0,1},{1,0}}, //3
-                                     {{1,0},{0,1},{0,1},{1,0}}, //4
-                                     {{1,0},{0,1},{0,1},{1,0}}};//5
-                //                     0     1     2     3
-                bool yedge[6][4][2]={{{1,0},{0,1},{0,1},{1,0}}, //0
-                                     {{1,0},{0,1},{0,1},{1,0}}, //1
-                                     {{0,0},{0,0},{0,0},{0,0}}, //2
-                                     {{1,1},{1,1},{1,1},{1,1}}, //3
-                                     {{0,1},{0,1},{0,1},{0,1}}, //4
-                                     {{0,1},{0,1},{0,1},{0,1}}};//5
-                //                     0     1     2     3
-                bool zedge[6][4][2]={{{0,1},{0,1},{0,1},{0,1}}, //0
-                                     {{0,1},{0,1},{0,1},{0,1}}, //1
-                                     {{0,1},{0,1},{0,1},{0,1}}, //2
-                                     {{0,1},{0,1},{0,1},{0,1}}, //3
-                                     {{0,0},{0,0},{0,0},{0,0}}, //4
-                                     {{1,1},{1,1},{1,1},{1,1}}};//5
+                // *******************************************************************
+                // Get the octant neighbouring this face
+                // *******************************************************************
+                // Get the parent
+                p8est_quadrant_t parentOct;
+                p8est_quadrant_t * parent = &parentOct;
+                p8est_quadrant_parent(oct, parent);
+                
+                // Get the neighbouring face
+                p8est_quadrant_t neighbourOct;
+                p8est_quadrant_t * neighbour = &neighbourOct;
+                // p8est_quadrant_face_neighbor(parent, n, neighbour);
+                int faceNeighbourTree=p8est_quadrant_face_neighbor_extra(parent,treeid,n,neighbour,NULL,connectivity);
 
-                // First edge node
+                // Save this information
+                hangingFaceInfo tmp;
+                tmp.x=oct->x;
+                tmp.y=oct->y;
+                tmp.z=oct->z;
+                tmp.level=oct->level;
+                tmp.treeid=treeid;
+                tmp.face_type=n;
+                tmp.neighbour_x=neighbour->x;
+                tmp.neighbour_y=neighbour->y;
+                tmp.neighbour_z=neighbour->z;
+                tmp.neighbour_level=neighbour->level;
+                tmp.neighbour_tree=faceNeighbourTree;
+                hanging_face_orientation.push_back(tmp);
+
+                // *******************************************************************
+                // Edge nodes
+                // *******************************************************************
                 signed long x_e_corner[2] = {{((int) xedge[n][hanging_faces[n]][0]) * l},{((int) xedge[n][hanging_faces[n]][1]) * l}};
                 signed long y_e_corner[2] = {{((int) yedge[n][hanging_faces[n]][0]) * l},{((int) yedge[n][hanging_faces[n]][1]) * l}};
                 signed long z_e_corner[2] = {{((int) zedge[n][hanging_faces[n]][0]) * l},{((int) zedge[n][hanging_faces[n]][1]) * l}};
-
-                // Point in the middle of the face
                 double xyzA[2][3];
                 p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+x_e_corner[0], oct->y+y_e_corner[0], oct->z+z_e_corner[0], xyzA[0]);
                 p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+x_e_corner[1], oct->y+y_e_corner[1], oct->z+z_e_corner[1], xyzA[1]);
                 DoubleTuple pointB[2] = {{std::make_tuple(xyzA[0][0],xyzA[0][1],xyzA[0][2])},{std::make_tuple(xyzA[1][0],xyzA[1][1],xyzA[1][2])}};
                 long nodeidB[2]= {{NodeIDs.find(pointB[0])->second},{NodeIDs.find(pointB[1])->second}};
-
-                #ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES_EXTRA
-                double xyzAE[3];
-                p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x, oct->y, oct->z, xyzAE);
-                auto cornerPoint = std::make_tuple(xyzAE[0],xyzAE[1],xyzAE[2]);
-                long nodeidAE = NodeIDs.find(cornerPoint)->second;
-                std::cout << "\t\toctant = \033[1;31m" << k-1 << "\033[0m, corner node = " << nodeidAE << std::endl;
-                p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+x_corner, oct->y+y_corner, oct->z+z_corner, xyzAE);//AE temp
-                auto facecornerPoint = std::make_tuple(xyzAE[0],xyzAE[1],xyzAE[2]);
-                long facenodeidAE = NodeIDs.find(facecornerPoint)->second;
-                std::cout << "\t\tface node = \033[1;31m" << facenodeidAE << "\033[0m" << std::endl;
-                // std::cout << "\t\t    index [" << n << "][" << hanging_faces[n] << "]" << std::endl;
-                // std::cout << "\t\t    shift was (Dx,Dy,Dz)= (" << x_corner << ", " << y_corner << ", " << z_corner << ")" << std::endl;
-                std::cout << "\t\tedge nodes: \033[1;31m" << nodeidB[0] << " & " << nodeidB[1] << "\033[0m" << std::endl;
-                // std::cout << "\t\t    index[" << (int) n << "][" << (int) hanging_faces[n] << "][-]" << std::endl;
-                // std::cout << "\t\t    shift was (Dx,Dy,Dz)= (" << x_e_corner[0] << " ," << y_e_corner[0] << ", " << z_e_corner[0] << ")" << std::endl;
-                // std::cout << "\t\t    shift was (Dx,Dy,Dz)= (" << x_e_corner[1] << " ," << y_e_corner[1] << ", " << z_e_corner[1] << ")" << std::endl;
-                #endif
 
                 // Add to list of nodes
                 std::vector<long>::iterator have_edge;
@@ -1703,6 +1725,92 @@ void Brick::renumberNodes()
                 have_edge = std::find(HangingEdgeNodes.begin(), HangingEdgeNodes.end(), nodeidB[1]);
                 if(have_edge == HangingEdgeNodes.end())
                       HangingEdgeNodes.push_back(nodeidB[1]);
+
+                // *******************************************************************
+                // Get the neighbouring edge(s)
+                // *******************************************************************
+                // Get the neighbours
+                p8est_quadrant_t EdgeNeighbourOct;
+                p8est_quadrant_t * EdgeNeighbour = &EdgeNeighbourOct;
+                int edge_number[2]={{edge_lookup[n][hanging_faces[n]][0]},{edge_lookup[n][hanging_faces[n]][1]}};
+                sc_array_t quads[2];
+                sc_array_t treeids[2];
+                sc_array_t nedges[2];
+                sc_array_t * pQuads[2] = {&quads[0],&quads[1]};
+                sc_array_t * pTreeids[2] = {&treeids[0],&treeids[1]};
+                sc_array_t * pNEdges[2] = {&nedges[0],&nedges[1]};
+
+                #ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES_EXTRA
+                    double xyzC[3];
+                    p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x, oct->y, oct->z, xyzC);
+                    auto cornerPoint = std::make_tuple(xyzC[0],xyzC[1],xyzC[2]);
+                    long nodeidC = NodeIDs.find(cornerPoint)->second;
+                    std::cout << "\t\toctant = \033[1;36m" << k-1 << "\033[0m, corner node = " << nodeidC << std::endl;
+                    p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+x_corner, oct->y+y_corner, oct->z+z_corner, xyzC);
+                    auto facecornerPoint = std::make_tuple(xyzC[0],xyzC[1],xyzC[2]);
+                    long facenodeidB = NodeIDs.find(facecornerPoint)->second;
+                    std::cout << "\t\tface node = \033[1;36m" << facenodeidB << "\033[0m" << std::endl;
+                    // std::cout << "\t\t    index [" << n << "][" << hanging_faces[n] << "]" << std::endl;
+                    // std::cout << "\t\t    shift was (Dx,Dy,Dz)= (" << x_corner << ", " << y_corner << ", " << z_corner << ")" << std::endl;
+                    std::cout << "\t\tedge nodes: \033[1;36m" << nodeidB[0] << " & " << nodeidB[1] << "\033[0m" << std::endl;
+                    // std::cout << "\t\t    index[" << (int) n << "][" << (int) hanging_faces[n] << "][-]" << std::endl;
+                    // std::cout << "\t\t    shift was (Dx,Dy,Dz)= (" << x_e_corner[0] << " ," << y_e_corner[0] << ", " << z_e_corner[0] << ")" << std::endl;
+                    // std::cout << "\t\t    shift was (Dx,Dy,Dz)= (" << x_e_corner[1] << " ," << y_e_corner[1] << ", " << z_e_corner[1] << ")" << std::endl;
+                    std::cout << "\t\tedge numbers: \033[1;36m" << edge_number[0] << " & " << edge_number[1] << "\033[0m" << std::endl;
+                #endif
+                
+                bool onBoundary[2];
+                onBoundary[0] = xyzA[0][0]<=0 || xyzA[0][0]>=forestData.m_length[0] ||
+                                xyzA[0][1]<=0 || xyzA[0][1]>=forestData.m_length[1] ||
+                                xyzA[0][2]<=0 || xyzA[0][2]>=forestData.m_length[2];
+                onBoundary[1] = xyzA[1][0]<=0 || xyzA[1][0]>=forestData.m_length[0] ||
+                                xyzA[1][1]<=0 || xyzA[1][1]>=forestData.m_length[1] ||
+                                xyzA[1][2]<=0 || xyzA[1][2]>=forestData.m_length[2];
+                // if(!onBoundary[0])
+                // {
+                //     p8est_quadrant_edge_neighbor_extra(parent,treeid,edge_number[0],pQuads[0],pTreeids[0],pNEdges[0],connectivity);
+                // }
+                // if(!onBoundary[1])
+                // {
+                //     p8est_quadrant_edge_neighbor_extra(parent,treeid,edge_number[1],pQuads[1],pTreeids[1],pNEdges[1],connectivity);
+                // }
+
+                // Save this information
+                // hangingFaceInfo tmp;
+                // tmp.x=oct->x;
+                // tmp.y=oct->y;
+                // tmp.z=oct->z;
+                // tmp.level=oct->level;
+                // tmp.treeid=treeid;
+                // tmp.face_type=n;
+                // tmp.neighbour_x=neighbour->x;
+                // tmp.neighbour_y=neighbour->y;
+                // tmp.neighbour_z=neighbour->z;
+                // tmp.neighbour_level=neighbour->level;
+                // tmp.neighbour_tree=faceNeighbourTree;
+                // hanging_face_orientation.push_back(tmp);
+
+                // *******************************************************************
+                // Debug output
+                // *******************************************************************
+                // #ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES_EXTRA
+                //     double xyzC[3];
+                //     p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x, oct->y, oct->z, xyzC);
+                //     auto cornerPoint = std::make_tuple(xyzC[0],xyzC[1],xyzC[2]);
+                //     long nodeidC = NodeIDs.find(cornerPoint)->second;
+                //     std::cout << "\t\toctant = \033[1;36m" << k-1 << "\033[0m, corner node = " << nodeidC << std::endl;
+                //     p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+x_corner, oct->y+y_corner, oct->z+z_corner, xyzC);//AE temp
+                //     auto facecornerPoint = std::make_tuple(xyzC[0],xyzC[1],xyzC[2]);
+                //     long facenodeidAE = NodeIDs.find(facecornerPoint)->second;
+                //     std::cout << "\t\tface node = \033[1;36m" << facenodeidAE << "\033[0m" << std::endl;
+                //     // std::cout << "\t\t    index [" << n << "][" << hanging_faces[n] << "]" << std::endl;
+                //     // std::cout << "\t\t    shift was (Dx,Dy,Dz)= (" << x_corner << ", " << y_corner << ", " << z_corner << ")" << std::endl;
+                //     std::cout << "\t\tedge nodes: \033[1;36m" << nodeidB[0] << " & " << nodeidB[1] << "\033[0m" << std::endl;
+                //     // std::cout << "\t\t    index[" << (int) n << "][" << (int) hanging_faces[n] << "][-]" << std::endl;
+                //     // std::cout << "\t\t    shift was (Dx,Dy,Dz)= (" << x_e_corner[0] << " ," << y_e_corner[0] << ", " << z_e_corner[0] << ")" << std::endl;
+                //     // std::cout << "\t\t    shift was (Dx,Dy,Dz)= (" << x_e_corner[1] << " ," << y_e_corner[1] << ", " << z_e_corner[1] << ")" << std::endl;
+                //     std::cout << "\t\ numbers: \033[1;36m" << edge_number[0] << " & " << edge_number[1] << "\033[0m" << std::endl;
+                // #endif
             }
         }
     }
@@ -3173,7 +3281,7 @@ std::vector<IndexVector> Brick::getConnections(bool includeShared) const
         //TODO
         long nodeid = NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
  
-        p8est_qcoord_t l = P4EST_QUADRANT_LEN(hanging_face_orientation[i].neighbour_l);
+        p8est_qcoord_t l = P4EST_QUADRANT_LEN(hanging_face_orientation[i].neighbour_level);
         //TODO check
         p8est_qcoord_t x_inc[4][3]={{0,0,0},{l,l,0},{0,l,l},{0,l,l}};
         p8est_qcoord_t y_inc[4][3]={{0,l,0},{0,l,0},{0,0,l},{l,l,l}};

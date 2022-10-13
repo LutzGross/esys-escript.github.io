@@ -77,7 +77,7 @@ struct borderNodeInfo
 	int8_t level;
 	p4est_qcoord_t x;
 	p4est_qcoord_t y;
-	p4est_qcoord_t z;
+	p4est_qcoord_t z; // Not used by Rectangle
 	// p4est_quadrant_t * quad;
 	p4est_topidx_t treeid=-1;
 };
@@ -108,7 +108,7 @@ struct hangingFaceInfo // used for hanging faces in Brick
 	p4est_qcoord_t neighbour_x;
 	p4est_qcoord_t neighbour_y;
 	p4est_qcoord_t neighbour_z;
-	p4est_qcoord_t neighbour_l;
+	p4est_qcoord_t neighbour_level;
 	p4est_topidx_t neighbour_tree;
 };
 

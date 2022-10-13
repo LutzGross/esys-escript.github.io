@@ -337,9 +337,9 @@ private:
     std::vector<long> HangingEdgeNodes;
     std::vector<bool> is_hanging; // element x is true if node id x is a hanging node
 
-    std::vector<hangingEdgeInfo> hanging_edge_orientation;
     std::vector<hangingFaceInfo> hanging_face_orientation;
-    
+    std::vector<hangingEdgeInfo> hanging_edge_orientation;
+        
     // Row and column indices in CRS format
     IndexVector myRows;
     IndexVector myColumns;
