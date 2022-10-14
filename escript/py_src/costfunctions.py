@@ -136,7 +136,8 @@ class CostFunction(object):
            That is, the implementor can put whatever information they find useful in it.
 
         """
-        return ()
+        self.Arguments_calls += 1
+        return self.getArguments(m)
 
     def getValueAndCount(self, m, *args):
         """

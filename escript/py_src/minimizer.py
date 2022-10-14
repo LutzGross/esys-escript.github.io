@@ -171,7 +171,7 @@ class EvalutedPhi(object):
 
 class LineSearchTerminationError(MinimizerException):
     """
-    Exception thrown if the line search was unsucessful
+    Exception thrown if the line search was unsuccessful
     """
     pass
 
@@ -265,7 +265,7 @@ class LineSearch(object):
     _inter_iterMax = 100
     _alphaOffset = 1e-4
     _alphaWidthMin = np.sqrt(EPSILON)
-    _zoom_iterMax = 20
+    _zoom_iterMax = 30
     _zoom_reductionMin = 0.66
 
     def __init__(self, logger=None):
@@ -346,7 +346,7 @@ class LineSearch(object):
         for o in opts:
             if o == 'alphaMin':
                 self._alphaMin = max(float(opts[o]), 0.)
-            elif o == 'self._alphaMax':
+            elif o == 'alphaMax':
                 self._alphaMax = max(float(opts[o]), 1.)
             elif o == 'iterMax':
                 self._iterMax = max(int(opts[o]), 1)
@@ -370,9 +370,8 @@ class LineSearch(object):
                 self._alphaOffset = max(float(opts[o]), EPSILON)
             elif o == 'zoom_iterMax':
                 self._zoom_iterMax = max(int(opts[o]), 1)
-            elif o == '_zoom_reductionMin':
+            elif o == 'zoom_reductionMin':
                 self._zoom_reductionMin = min(max(float(opts[o]), 0.), 1)
-
             else:
                 raise KeyError("invalid option '%s'" % o)
 
@@ -389,11 +388,11 @@ class LineSearch(object):
     
         """
         # testing parameters:
-        assert self._c1 < self._c2, "You need to set c1 < self._c2."
+        assert self._c1 < self._c2, "You need to set c1 < c2."
         assert self._overStepFactor > 1, "overStepFactor (=%g) must be much larger then one." % self._overStepFactor
         assert 0 < self._alphaMin, "alphaMin (=%g) must be positive." % self._alphaMin
         assert self._alphaMin < self._alphaMax, "self._alphaMax (=%g) must be greater alphaMin (=%g)." % (self._alphaMax, self._alphaMin)
-        assert alpha < self._alphaMax, "self._alphaMax (=%g) needs to be greater than initial alpha (=%g)." % (self._alphaMax, alpha)
+        assert alpha < self._alphaMax, "alphaMax (=%g) needs to be greater than initial alpha (=%g)." % (self._alphaMax, alpha)
         assert alpha > self._alphaMin, "alphaMin (=%g) needs to be less than initial alpha (=%g)." % (self._alphaMin, alpha)
         assert self._alphaWidthMin > 0, "alphaWidthMin (=%g) must be positive."  % self._alphaWidthMin
         assert self._alphaOffset > 0 and self._alphaOffset < 1, "alphaOffset (=%g) must be in ]0, 0.5[ " % self._alphaOffset
@@ -407,49 +406,52 @@ class LineSearch(object):
         if not diff_phi_0 < 0.:
             raise LineSearchSearchDirectionError("The search direction is not a descent direction")
     
-        sucess = False
+        success = False
         iterCount = 1
 
-        phi_alpha=phi_0
-        phi_alpha_new = Phi(alpha)
-        while not sucess:
-            phi_alpha, phi_alpha_old = phi_alpha_new, phi_alpha
+        phi_alpha_old=phi_0
+        phi_alpha = Phi(alpha)
+        while not success:
+            #phi_alpha, phi_alpha_old = phi_alpha_new, phi_alpha
             alpha = phi_alpha.alpha
             value_phi_alpha = phi_alpha.getVal()
             self.lslogger.info("Iteration %d, alpha=%g, phi(alpha)=%g" % (iterCount, alpha, value_phi_alpha))
             # if (value_phi_alpha >  value_phi_0 + self._c1 * alpha *  diff_phi_0) or \
             #        ( (not value_phi_alpha < phi_alpha_old.getVal() ) and (iterCount > 1)):
             if muchLarger(value_phi_alpha, value_phi_0 + self._c1 * alpha * diff_phi_0, vareps=self._phiEpsilon) or \
-                    (muchLarger(value_phi_alpha, phi_alpha_old.getVal(), vareps=self._phiEpsilon) and iterCount > 1):
-                self.lslogger.debug("Sufficient decrease condition or decrease condition is violated -> start zoom.")
+                    (not muchLarger(phi_alpha_old.getVal(), value_phi_alpha,  vareps=self._phiEpsilon) and iterCount > 1):
+                self.lslogger.debug("Sufficient decrease condition or decrease criterium are violated -> start zoom.")
                 # [ alpha_old, alpha] meets (E1) or (E2) (alpha_hi=alpha) -> (Z1) is fullfilled.
                 # Phi(alpha_old) 
-                phi_alpha_new, sucess = self.zoom(phi_alpha_old, phi_alpha, phi_0)
+                phi_alpha_new, success = self.zoom(phi_alpha_old, phi_alpha, phi_0)
             else:
                 # alpha meets sufficient decrease condition (W1) now!
                 diff_phi_alpha = phi_alpha.getDiff()
                 self.lslogger.debug("phi'(alpha)=%g" % (diff_phi_alpha,))
                 if np.abs(diff_phi_alpha) <= -self._c2 * diff_phi_0:  # check curvature condition (W2)
-                    sucess = True
+                    phi_alpha_new, success = phi_alpha, True
                     self.lslogger.debug("Strong Wolfe condition is fulfilled. We are done.")
                 elif diff_phi_alpha >= 0:  #
                     # [ alpha, alpha_old ] has alpha with strong wolf condition
                     self.lslogger.debug("Positive phi'(alpha).")
-                    phi_alpha_new, sucess = self.zoom(phi_alpha, phi_alpha_old, phi_0)
-                else:
+                    phi_alpha_new, success = self.zoom(phi_alpha, phi_alpha_old, phi_0)
+            #    else:
+            if not success:
+                    phi_alpha=phi_alpha_old
                     # the factor is arbitrary as long as there is sufficient increase
                     alpha_new = self._overStepFactor * alpha + (1 - self._overStepFactor) * self._alphaMin
                     self.lslogger.debug("Search interval extended.")
                     if alpha_new > self._alphaMax:
                         raise LineSearchAlphaMaxError(
                             "Line search terminated as maximal alpha (=%d) reached. " % self._alphaMax)
-                    phi_alpha_new = Phi(alpha_new)
+                    phi_alpha_new, success = Phi(alpha_new), False
             iterCount += 1
+            phi_alpha, phi_alpha_old = phi_alpha_new, phi_alpha
             if iterCount > self._iterMax:
                 raise LineSearchIterMaxReachedError("Maximum number of iteration steps (=%d) reached." % self._iterMax)
     
         self.lslogger.info("Line search completed after %d steps (alpha=%g, phi(alpha)=%g)." % (iterCount-1, phi_alpha.alpha, phi_alpha.getVal()))
-        return phi_alpha_new
+        return phi_alpha
 
     def zoom(self, phi_lo, phi_hi, phi_0):
         """
@@ -510,6 +512,7 @@ class LineSearch(object):
                     elif k == 3:
                         new_alpha = self._cubicinterpolate(hist_phi)
                     else:
+                        raise NotImplementedError("Higher order interpolation is not supported yet.")
                         new_alpha = self._newtoninterpolate(hist_phi)
                 except LineSearchInterpolationBreakDownError as e:
                     # if there is any break down order is reduced: (should not happen with bisection)
@@ -524,12 +527,15 @@ class LineSearch(object):
                     elif new_alpha < self._alphaMin:
                         reduceOrder = True
                         self.zoomlogger.debug("alpha = %g is too small." % new_alpha)
-                    elif abs(new_alpha - alpha_min) < self._alphaOffset * width:
+                    elif new_alpha  < alpha_min+ self._alphaOffset * width:
                         reduceOrder = True
                         self.zoomlogger.debug("New alpha %g to close to left alpha bound %g." % (new_alpha, alpha_min))
-                    elif abs(new_alpha - alpha_max) < self._alphaOffset * width:
+                    elif new_alpha > alpha_max - self._alphaOffset * width :
                         reduceOrder = True
                         self.zoomlogger.debug("New alpha %g to close to right alpha bound %g." % (new_alpha, alpha_max))
+                    elif max(new_alpha - alpha_min, alpha_max - new_alpha ) > self._zoom_reductionMin * width:
+                        reduceOrder = True
+                        self.zoomlogger.debug("Insufficient search interval reduction.")
                 if not reduceOrder:
                     break
         
@@ -538,7 +544,6 @@ class LineSearch(object):
             new_phi_alpha = new_phi.getVal()
             self.zoomlogger.debug(
                 "Iteration %d, alpha=%g, phi(alpha)=%g (interpolation order = %d)" % (iterCount, new_alpha, new_phi_alpha, k))
-
             if muchLarger(new_phi_alpha, hist_phi[-1].getVal() + self._c1 * new_alpha * hist_phi[-1].getDiff(), vareps=self._phiEpsilon) \
                     or muchLarger(new_phi_alpha, phi_lo.getVal(), vareps=self._phiEpsilon):  # new_phi_alpha >= phi_lo.getVal():
                 # new alpha violates E1 or E2 with phi_hi=new_phi
@@ -547,8 +552,10 @@ class LineSearch(object):
                 self.zoomlogger.debug("Iteration %d: alpha_hi updated, now = %g" % (iterCount, phi_hi.alpha))
             else:
                 new_diff_phi_alpha = new_phi.getDiff()
+                self.zoomlogger.debug("phi'(alpha)=%g" % (new_diff_phi_alpha,))
                 # check curvature condition (W2):
-                if not muchLarger(np.abs(new_diff_phi_alpha), -self._c2 * hist_phi[-1].getDiff(), vareps=self._phiEpsilon):
+                #if not muchLarger(np.abs(new_diff_phi_alpha), -self._c2 * hist_phi[-1].getDiff(), vareps=self._phiEpsilon):
+                if np.abs(new_diff_phi_alpha) <= -self._c2 * hist_phi[-1].getDiff():
                     # now alpha_new has (W1)+(W2)
                     self.zoomlogger.info("Zoom completed after %d steps: alpha=%g, phi(alpha)=%g, phi'(alpha)=%g." %
                                          (iterCount, new_alpha, new_phi_alpha, new_diff_phi_alpha))
@@ -556,11 +563,10 @@ class LineSearch(object):
                     return new_phi, True
                 # new we have (W1) and we need to set  phi_lo=phi_new
                 # To we need to meet (E3) which determines phi_hi:
-                self.zoomlogger.debug("phi'(alpha)=%g" % (new_diff_phi_alpha,))
-                if new_diff_phi_alpha * (phi_hi.alpha - phi_lo.alpha) < 0:
-                    phi_lo, phi_hi = new_phi, phi_hi
-                else:
+                if new_diff_phi_alpha * (phi_hi.alpha - phi_lo.alpha) >= 0:
                     phi_lo, phi_hi = new_phi, phi_lo
+                else:
+                    phi_lo, phi_hi = new_phi, phi_hi
                 self.zoomlogger.debug("Iteration %d: alpha_lo updated, now = %g" % (iterCount, phi_lo.alpha))
                 addToHistory(new_phi)
 
@@ -712,6 +718,7 @@ class AbstractMinimizer(object):
     _scaleSearchDirection = True
     _initialAlpha = 1.
 
+    # updated during iteration
     __initializeHessian = None
 
     def __init__(self, F=None, m_tol=1e-4, grad_tol=1e-8, iterMax=300, logger=None):
@@ -732,6 +739,7 @@ class AbstractMinimizer(object):
         """
         if logger is None:
             self.logger = logging.getLogger('esys.minimizer.%s' % self.__class__.__name__)
+            self.logger.setLevel(logging.ERROR)
         else:
             self.logger = logger
         self.setCostFunction(F)
@@ -870,31 +878,48 @@ class AbstractMinimizer(object):
     def setCallback(self, callback):
         """
         Sets a callback function to be called after every iteration.
-        It is up to the specific implementation what arguments are passed
-        to the callback. Subclasses should at least pass the current
-        iteration number k, the current estimate x, and possibly F(m),
-        grad F(m), and the current error.
+
+            def callback(iterCount, m, norm_m, dm, Fm, gradFm, norm_grad_Fm, failed, args)
+
+            with iteration count `iterCount`, current approximation `m`, last update `dm`, costfunction value `Fm`,
+            gradient `gradFm`, see method ``AbstractMinimizer.doCallback``
+
         """
         if callback is not None and not callable(callback):
             raise TypeError("Callback function not callable.")
         self._callback = callback
 
-    def _doCallback(self, **args):
+    def doCallback(self, **args):
         """
         The callback function is called with the following arguments:
-            k       - iteration number
-            x       - current estimate
-            Fm      - value of cost function at x
-            grad_Fm    - gradient of cost function at x
-            norm_dJ - ||Fm_k - Fm_{k-1}|| (only if grad_tol is set)
-            norm_dx - ||x_k - x_{k-1}|| (only if m_tol is set)
+
+        :key iterCount: iteration count
+        :type iterCount: ``int``
+        :key m: current solution
+        :type m: m-type (see ``CostFunction``)
+        :key dm: last solution incerement
+        :type dm: m-type (see ``CostFunction``) or None if iterCount==0
+        :norm_m: norm of current solution `m`
+        :type norm_m: ``float``
+        :key Fm: value of costs function for `m`
+        :type Fm: ``float``
+        :key gradFm: gradient for `m`
+        :type gradFm: g-type (see ``CostFunction``)
+        :key norm_gradFm: (estimated) norm of gradient at `m`
+        :type norm_gradFm: ``float`` or None if iterCount==0
+        :param args_m: arguments for `m`
+        :type args_m: ``tuple``
+        :param failed: set if the step was unsuccessful.
+        :type failed: ``bool``
         """
         if self._callback is not None:
+            self.logger.debug("Callback called.")
             self._callback(**args)
 
     def getResult(self):
         """
         Returns the result of the minimization.
+        :rtype: m-type
         """
         return self._result
 
@@ -936,7 +961,7 @@ class MinimizerLBFGS(AbstractMinimizer):
         assert self._restart > 0
         # start the iteration:
         iterCount = 0
-        iterCount_last_break_down = self._iterMax*1000
+        iterCount_last_break_down = -1
 
         alpha = self._initialAlpha
         H_scale = None
@@ -946,16 +971,11 @@ class MinimizerLBFGS(AbstractMinimizer):
         grad_Fm = self.getCostFunction().getGradientAndCount(m, *args_m)
         norm_m = self.getCostFunction().getNormAndCount(m)
         Fm = self.getCostFunction().getValueAndCount(m, *args_m)
-        Fm_0 = Fm
+        Fm_old = Fm
         self.logger.info("Initialization completed.")
 
-        # TODO
-        cbargs = {'k': iterCount, 'x': m, 'Fm': Fm, 'grad_Fm': grad_Fm}
-        if self._grad_tol:
-            cbargs.update(norm_dJ=None)
-        if self._m_tol:
-            cbargs.update(norm_dx=None)
-        self._doCallback(**cbargs)
+        self.doCallback(iterCount=0, m=m, dm=None, Fm=Fm, grad_Fm=grad_Fm,
+                        norm_m=norm_m, norm_gradFm=None, args_m=args_m, failed=False)
 
         non_curable_break_down = False
         converged = False
@@ -1013,22 +1033,25 @@ class MinimizerLBFGS(AbstractMinimizer):
                     break
                 else:
                     self.logger.info("Solution checked: dx=%g, x*m_tol=%g" % (norm_dm, mtol_abs))
-                cbargs.update(norm_dx=norm_dm)
                 # unfortunately there is more work to do!
                 if grad_Fm_new is None:
                     self.logger.debug("Calculating missing gradient.")
                     args_new = self.getCostFunction().getArgumentsAndCount(m_new)
                     grad_Fm_new = self.getCostFunction().getGradientAndCount(m_new, *args_new)
 
-                Ftol_abs = self._grad_tol * abs(Fm_0)
-                gradNorm = abs(self.getCostFunction().getDualProductAndCount(m_new, grad_Fm))/self.getCostFunction().getNorm(m_new)
+                Ftol_abs = self._grad_tol * abs(max(abs(Fm), abs(Fm_new)))
+                gradNorm1 = abs(self.getCostFunction().getDualProductAndCount(m_new, grad_Fm_new))/norm_m_new
+                gradNorm2 = abs(self.getCostFunction().getDualProductAndCount(delta_m, grad_Fm_new))/norm_dm
+                gradNorm=max(gradNorm1, gradNorm2)
                 flag = gradNorm <= Ftol_abs
                 if flag:
                     converged = True
                     self.logger.info("F(m) = %g" % Fm_new)
+                    self.logger.info("grad Fm = %g, %g" % (gradNorm1, gradNorm2))
                     self.logger.info("Gradient has converged: grad F=%g, grad_tol=%g" % (gradNorm, Ftol_abs))
                     break
                 else:
+                    self.logger.info("grad Fm = %g, %g" % (gradNorm1, gradNorm2))
                     self.logger.info("Gradient checked: grad F=%g, grad_tol=%g" % (gradNorm, Ftol_abs))
 
                 delta_g = grad_Fm_new - grad_Fm
@@ -1047,8 +1070,8 @@ class MinimizerLBFGS(AbstractMinimizer):
                 norm_m = norm_m_new
                 k += 1
                 iterCount += 1
-                cbargs.update(k=iterCount, x=m, Fm=Fm, grad_Fm=grad_Fm)
-                self._doCallback(**cbargs)
+                self.doCallback(iterCount=iterCount, m=m, dm=delta_m, Fm=Fm, grad_Fm=grad_Fm,
+                                norm_m=norm_m, norm_gradFm=gradNorm, args_m=args_m, failed=break_down)
 
                 # delete oldest vector pair
                 if k > self._truncation:
