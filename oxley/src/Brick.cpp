@@ -1562,12 +1562,12 @@ void Brick::renumberNodes()
 
     // six faces, four orientations (relative to parent octant), two edges
     //                                0       1       2       3
-    const int edge_lookup[6][4][2]={{{4,8},  {4,10}, {6,8},  {6,10}}, //0
-                                    {{5,9},  {5,11}, {7,9},  {7,11}}, //1
-                                    {{0,8},  {0,9},  {2,8},  {2,9}}, //2
-                                    {{1,10}, {1,11}, {3,10}, {3,11}}, //3
-                                    {{0,4},  {0,5},  {1,4},  {1,5}}, //4
-                                    {{2,6},  {2,7},  {3,6},  {3,7}}};//5
+    const int edge_lookup[6][4][2]={{{4,8},  {4,10}, {8,6},  {10,6}}, //0
+                                    {{5,9},  {5,11}, {9,7},  {11,7}}, //1
+                                    {{0,8},  {0,9},  {8,2},  {9,2}},  //2
+                                    {{1,10}, {1,11}, {10,3}, {11,3}}, //3
+                                    {{0,4},  {0,5},  {4,1},  {5,1}},  //4
+                                    {{2,6},  {2,7},  {6,3},  {7,3}}}; //5
 
     // Write in NodeIDs
 // #pragma omp for
@@ -1585,11 +1585,11 @@ void Brick::renumberNodes()
             p8est_quadrant_t * oct = p8est_quadrant_array_index(tquadrants, q);
             p8est_qcoord_t l = P8EST_QUADRANT_LEN(oct->level);
 
-            p8est_qcoord_t lxy_nodes[8][3] = {{0,0,0},{l,0,0},{0,l,0},{l,l,0},
+            const p8est_qcoord_t lxy_nodes[8][3] = {{0,0,0},{l,0,0},{0,l,0},{l,l,0},
                                               {0,0,l},{l,0,l},{0,l,l},{l,l,l}};
-            p8est_qcoord_t h = 0.5 * l;
-            p8est_qcoord_t lxy_face[6][3] = {{0,h,h},{l,h,h},{h,0,h},{h,l,h},{h,h,0},{h,h,l}};
-            p8est_qcoord_t lxy_edge[12][3] = {{h,0,0},{h,l,0},{h,0,l},{h,l,l},
+            const p8est_qcoord_t h = 0.5 * l;
+            const p8est_qcoord_t lxy_face[6][3] = {{0,h,h},{l,h,h},{h,0,h},{h,l,h},{h,h,0},{h,h,l}};
+            const p8est_qcoord_t lxy_edge[12][3] = {{h,0,0},{h,l,0},{h,0,l},{h,l,l},
                                               {0,h,0},{l,h,0},{0,h,l},{l,h,l},
                                               {0,0,h},{l,0,h},{0,l,h},{l,l,h}};
             
@@ -1676,14 +1676,18 @@ void Brick::renumberNodes()
                 if(have_node == HangingFaceNodes.end())
                       HangingFaceNodes.push_back(nodeid);
 
+
                 // *******************************************************************
-                // Get the octant neighbouring this face
+                // Get the parent octant
                 // *******************************************************************
-                // Get the parent
                 p8est_quadrant_t parentOct;
                 p8est_quadrant_t * parent = &parentOct;
                 p8est_quadrant_parent(oct, parent);
                 
+
+                // *******************************************************************
+                // Get the octant neighbouring this face
+                // *******************************************************************
                 // Get the neighbouring face
                 p8est_quadrant_t neighbourOct;
                 p8est_quadrant_t * neighbour = &neighbourOct;
@@ -1706,7 +1710,7 @@ void Brick::renumberNodes()
                 hanging_face_orientation.push_back(tmp);
 
                 // *******************************************************************
-                // Edge nodes
+                // Calculate the edge nodes
                 // *******************************************************************
                 signed long x_e_corner[2] = {{((int) xedge[n][hanging_faces[n]][0]) * l},{((int) xedge[n][hanging_faces[n]][1]) * l}};
                 signed long y_e_corner[2] = {{((int) yedge[n][hanging_faces[n]][0]) * l},{((int) yedge[n][hanging_faces[n]][1]) * l}};
@@ -1739,7 +1743,63 @@ void Brick::renumberNodes()
                 sc_array_t * pQuads[2] = {&quads[0],&quads[1]};
                 sc_array_t * pTreeids[2] = {&treeids[0],&treeids[1]};
                 sc_array_t * pNEdges[2] = {&nedges[0],&nedges[1]};
+                sc_array_init(pQuads[0], (size_t) sizeof(p4est_quadrant_t));
+                sc_array_init(pQuads[1], (size_t) sizeof(p4est_quadrant_t));
+                sc_array_init(pTreeids[0], (size_t) sizeof(p4est_topidx_t));
+                sc_array_init(pTreeids[1], (size_t) sizeof(p4est_topidx_t));
+                sc_array_init(pNEdges[0], (size_t) sizeof(int));
+                sc_array_init(pNEdges[1], (size_t) sizeof(int));
 
+                // Check for boundaries            
+                bool onBoundary[2];
+                onBoundary[0] = xyzA[0][0]<=0 || xyzA[0][0]>=forestData.m_length[0] ||
+                                xyzA[0][1]<=0 || xyzA[0][1]>=forestData.m_length[1] ||
+                                xyzA[0][2]<=0 || xyzA[0][2]>=forestData.m_length[2];
+                onBoundary[1] = xyzA[1][0]<=0 || xyzA[1][0]>=forestData.m_length[0] ||
+                                xyzA[1][1]<=0 || xyzA[1][1]>=forestData.m_length[1] ||
+                                xyzA[1][2]<=0 || xyzA[1][2]>=forestData.m_length[2];
+
+                hangingEdgeInfo temp;
+                if(!onBoundary[0])
+                {
+                    p8est_quadrant_edge_neighbor_extra(parent,treeid,edge_number[0],pQuads[0],pTreeids[0],pNEdges[0],connectivity);
+                    temp.x=oct->x;
+                    temp.y=oct->x;
+                    temp.z=oct->x;
+                    temp.level=oct->level;
+                    temp.treeid=treeid;
+                    temp.edge_type=n;
+                    p8est_quadrant_t * tempB = (p8est_quadrant_t *) (*pQuads[0]).array;
+                    temp.neighbour_x=tempB->x;
+                    temp.neighbour_y=tempB->y;
+                    temp.neighbour_z=tempB->z;
+                    temp.neighbour_level=tempB->level;
+                    p8est_topidx_t * tempC =  (p8est_topidx_t *) (*pTreeids[0]).array;
+                    temp.neighbour_tree=*tempC;
+                    hanging_edge_orientation.push_back(temp);
+                }
+                if(!onBoundary[1])
+                {
+                    p8est_quadrant_edge_neighbor_extra(parent,treeid,edge_number[1],pQuads[1],pTreeids[1],pNEdges[1],connectivity);
+                    temp.x=oct->x;
+                    temp.y=oct->x;
+                    temp.z=oct->x;
+                    temp.level=oct->level;
+                    temp.treeid=treeid;
+                    temp.edge_type=n;
+                    p8est_quadrant_t * tempB = (p8est_quadrant_t *) (*pQuads[1]).array;
+                    temp.neighbour_x=tempB->x;
+                    temp.neighbour_y=tempB->y;
+                    temp.neighbour_z=tempB->z;
+                    temp.neighbour_level=tempB->level;
+                    p8est_topidx_t * tempC =  (p8est_topidx_t *) (*pTreeids[1]).array;
+                    temp.neighbour_tree=*tempC;
+                    hanging_edge_orientation.push_back(temp);
+                }
+
+                // *******************************************************************
+                // Debug output
+                // *******************************************************************
                 #ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES_EXTRA
                     double xyzC[3];
                     p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x, oct->y, oct->z, xyzC);
@@ -1757,60 +1817,8 @@ void Brick::renumberNodes()
                     // std::cout << "\t\t    shift was (Dx,Dy,Dz)= (" << x_e_corner[0] << " ," << y_e_corner[0] << ", " << z_e_corner[0] << ")" << std::endl;
                     // std::cout << "\t\t    shift was (Dx,Dy,Dz)= (" << x_e_corner[1] << " ," << y_e_corner[1] << ", " << z_e_corner[1] << ")" << std::endl;
                     std::cout << "\t\tedge numbers: \033[1;36m" << edge_number[0] << " & " << edge_number[1] << "\033[0m" << std::endl;
+                    // std::cout << "\t\t    index [" << n << "][" << hanging_faces[n] << "][-]" << std::endl;
                 #endif
-                
-                bool onBoundary[2];
-                onBoundary[0] = xyzA[0][0]<=0 || xyzA[0][0]>=forestData.m_length[0] ||
-                                xyzA[0][1]<=0 || xyzA[0][1]>=forestData.m_length[1] ||
-                                xyzA[0][2]<=0 || xyzA[0][2]>=forestData.m_length[2];
-                onBoundary[1] = xyzA[1][0]<=0 || xyzA[1][0]>=forestData.m_length[0] ||
-                                xyzA[1][1]<=0 || xyzA[1][1]>=forestData.m_length[1] ||
-                                xyzA[1][2]<=0 || xyzA[1][2]>=forestData.m_length[2];
-                // if(!onBoundary[0])
-                // {
-                //     p8est_quadrant_edge_neighbor_extra(parent,treeid,edge_number[0],pQuads[0],pTreeids[0],pNEdges[0],connectivity);
-                // }
-                // if(!onBoundary[1])
-                // {
-                //     p8est_quadrant_edge_neighbor_extra(parent,treeid,edge_number[1],pQuads[1],pTreeids[1],pNEdges[1],connectivity);
-                // }
-
-                // Save this information
-                // hangingFaceInfo tmp;
-                // tmp.x=oct->x;
-                // tmp.y=oct->y;
-                // tmp.z=oct->z;
-                // tmp.level=oct->level;
-                // tmp.treeid=treeid;
-                // tmp.face_type=n;
-                // tmp.neighbour_x=neighbour->x;
-                // tmp.neighbour_y=neighbour->y;
-                // tmp.neighbour_z=neighbour->z;
-                // tmp.neighbour_level=neighbour->level;
-                // tmp.neighbour_tree=faceNeighbourTree;
-                // hanging_face_orientation.push_back(tmp);
-
-                // *******************************************************************
-                // Debug output
-                // *******************************************************************
-                // #ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES_EXTRA
-                //     double xyzC[3];
-                //     p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x, oct->y, oct->z, xyzC);
-                //     auto cornerPoint = std::make_tuple(xyzC[0],xyzC[1],xyzC[2]);
-                //     long nodeidC = NodeIDs.find(cornerPoint)->second;
-                //     std::cout << "\t\toctant = \033[1;36m" << k-1 << "\033[0m, corner node = " << nodeidC << std::endl;
-                //     p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+x_corner, oct->y+y_corner, oct->z+z_corner, xyzC);//AE temp
-                //     auto facecornerPoint = std::make_tuple(xyzC[0],xyzC[1],xyzC[2]);
-                //     long facenodeidAE = NodeIDs.find(facecornerPoint)->second;
-                //     std::cout << "\t\tface node = \033[1;36m" << facenodeidAE << "\033[0m" << std::endl;
-                //     // std::cout << "\t\t    index [" << n << "][" << hanging_faces[n] << "]" << std::endl;
-                //     // std::cout << "\t\t    shift was (Dx,Dy,Dz)= (" << x_corner << ", " << y_corner << ", " << z_corner << ")" << std::endl;
-                //     std::cout << "\t\tedge nodes: \033[1;36m" << nodeidB[0] << " & " << nodeidB[1] << "\033[0m" << std::endl;
-                //     // std::cout << "\t\t    index[" << (int) n << "][" << (int) hanging_faces[n] << "][-]" << std::endl;
-                //     // std::cout << "\t\t    shift was (Dx,Dy,Dz)= (" << x_e_corner[0] << " ," << y_e_corner[0] << ", " << z_e_corner[0] << ")" << std::endl;
-                //     // std::cout << "\t\t    shift was (Dx,Dy,Dz)= (" << x_e_corner[1] << " ," << y_e_corner[1] << ", " << z_e_corner[1] << ")" << std::endl;
-                //     std::cout << "\t\ numbers: \033[1;36m" << edge_number[0] << " & " << edge_number[1] << "\033[0m" << std::endl;
-                // #endif
             }
         }
     }

@@ -124,7 +124,7 @@ struct hangingEdgeInfo // used for hanging edges in Brick
 	p4est_qcoord_t neighbour_x;
 	p4est_qcoord_t neighbour_y;
 	p4est_qcoord_t neighbour_z;  
-	p4est_qcoord_t neighbour_l;
+	p4est_qcoord_t neighbour_level;
 	p4est_topidx_t neighbour_tree;
 };
 
