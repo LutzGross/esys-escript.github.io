@@ -114,6 +114,8 @@ struct hangingFaceInfo // used for hanging faces in Brick
 
 struct hangingEdgeInfo // used for hanging edges in Brick
 {
+	long nodeid=-1;
+
 	p4est_qcoord_t x;
 	p4est_qcoord_t y;
 	p4est_qcoord_t z; 
