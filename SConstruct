@@ -606,6 +606,7 @@ if env['build_trilinos']:
     res=os.system('make -j`nproc --ignore=2` install')
     env['trilinos_prefix']=env['prefix']
     os.chdir(startdir)
+    env['trilinos_version']='13.0.0'
 
 ############################ Dependency checks ###############################
 
