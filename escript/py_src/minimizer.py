@@ -608,7 +608,7 @@ class LineSearch(object):
         denom = 2.0 * (hist_phi[0].getVal() - hist_phi[-1].getVal() - hist_phi[-1].getDiff() * hist_phi[0].alpha)
         if denom == 0:
             self.zoomlogger.debug("Root calculation failed (denom == 0).")
-            LineSearchInterpolationBreakDownError("Root calculation failed (denom == 0).")
+            raise LineSearchInterpolationBreakDownError("Root calculation failed (denom == 0).")
         alpha = - hist_phi[-1].getDiff() * hist_phi[0].alpha * hist_phi[0].alpha / denom
         return alpha
 
@@ -623,7 +623,7 @@ class LineSearch(object):
         denom = a0s * a1s * (hist_phi[0].alpha - hist_phi[1].alpha)
         if denom == 0:
             self.zoomlogger.debug("Root calculation failed (denom == 0).")
-            LineSearchInterpolationBreakDownError("Root calculation failed (denom == 0).")
+            raise LineSearchInterpolationBreakDownError("Root calculation failed (denom == 0).")
         a0c, a1c = a0s * hist_phi[1].alpha, a1s * hist_phi[0].alpha
         tmpA = hist_phi[0].getVal() - hist_phi[-1].getVal() - hist_phi[-1].getDiff() * hist_phi[0].alpha
         tmpB = hist_phi[1].getVal() - hist_phi[-1].getVal() - hist_phi[-1].getDiff() * hist_phi[1].alpha
@@ -632,7 +632,7 @@ class LineSearch(object):
         deter = b * b - 3.0 * a * hist_phi[-1].getDiff()
         if deter < 0:
             self.zoomlogger.debug("Root calculation failed (deter < 0).")
-            LineSearchInterpolationBreakDownError("Root calculation failed (deter < 0).")
+            raise LineSearchInterpolationBreakDownError("Root calculation failed (deter < 0).")
         alpha = (-b + np.sqrt(deter)) / (3.0 * a)
         return alpha
 
@@ -674,7 +674,7 @@ class LineSearch(object):
                     denom += product * dfcoefs[k]
             if denom == 0:
                 self.zoomlogger.debug("Root calculation failed (denom == 0).")
-                LineSearchInterpolationBreakDownError("Root calculation failed (denom == 0).")
+                raise LineSearchInterpolationBreakDownError("Root calculation failed (denom == 0).")
             newpoint = float(point - numer / denom)
             error = abs(newpoint - point)
             if error < self._inter_tol * max(abs(newpoint), abs(point)):
@@ -1210,56 +1210,3 @@ class MinimizerNLCG(AbstractMinimizer):
         self.logger.info("Success after %d iterations! Initial/Final gradient=%e/%e" % (i, gnorm0, gnorm))
         return self._result
 
-
-if __name__ == "__main__":
-    # Example usage with function 'rosen' (minimum=[1,1,...1]):
-    import numpy as np
-    from scipy.optimize import rosen, rosen_der
-    from costfunctions import CostFunction
-    import sys
-
-    N = 4
-    x0 = np.array([4.] * N)  # initial guess
-
-
-    class RosenFunc(CostFunction):
-        def __init__(self):
-            super(RosenFunc, self).__init__()
-            self.provides_inverse_Hessian_approximation = False
-
-        def getDualProductAndCount(self, f0, f1):
-            return np.dot(f0, f1)
-
-        def getValue(self, x, *args):
-            return rosen(x)
-
-        def getGradient(self, x, *args):
-            return rosen_der(x)
-
-        def getNorm(self, x):
-            return np.norm(x)
-
-
-    f = RosenFunc()
-    m = None
-    if len(sys.argv) > 1:
-        method = sys.argv[1].lower()
-        if method == 'nlcg':
-            m = MinimizerNLCG(f)
-        elif method == 'bfgs':
-            m = MinimizerLBFGS(f)
-
-    if m is None:
-        # default
-        m = MinimizerLBFGS(f)
-        # m.setOptions(historySize=10000)
-
-    logging.basicConfig(format='[%(funcName)s] \033[1;30m%(message)s\033[0m', level=logging.DEBUG)
-    m.setTolerance(m_tol=1e-5)
-    m.setIterMax(3000)
-    m.run(x0)
-    m.logSummary()
-    print("\tLsup(result)=%.8f" % np.amax(abs(m.getResult())))
-
-    # from scipy.optimize import fmin_cg
-    # print("scipy ref=%.8f"%np.amax(abs(fmin_cg(rosen, x0, rosen_der, maxiter=10000))))
