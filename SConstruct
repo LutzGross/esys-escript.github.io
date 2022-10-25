@@ -606,6 +606,7 @@ if env['build_trilinos']:
     res=os.system('make -j`nproc --ignore=2` install')
     env['trilinos_prefix']=env['prefix']
     os.chdir(startdir)
+    env['trilinos_version']='13.0.0'
 
 ############################ Dependency checks ###############################
 
@@ -760,7 +761,7 @@ if env['weipa']:
 
 variant='$BUILD_DIR/$PLATFORM/'
 env.SConscript('escriptcore/SConscript', variant_dir=variant+'escriptcore', duplicate=0)
-env.SConscript('escript/py_src/SConscript', variant_dir=variant+'escript', duplicate=0)
+env.SConscript('escript/SConscript', variant_dir=variant+'escript', duplicate=0)
 env.SConscript('pythonMPI/SConscript', variant_dir=variant+'pythonMPI', duplicate=0)
 env.SConscript('tools/overlord/SConscript', variant_dir=variant+'tools/overlord', duplicate=0)
 env.SConscript('paso/SConscript', variant_dir=variant+'paso', duplicate=0)
