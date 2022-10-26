@@ -304,6 +304,12 @@ inline bool point_in_square(double x, double y, double x0, double y0, double x1,
     return (x>=x0) && (x<=x1) && (y>=y0) && (y<=y1);
 }
 
+// Returns true if the point (x,y) is inside the square whose corners are (x0,y0) and (x1,y1)
+inline bool point_in_box(double x, double y, double z, double x0, double y0, double z0, double x1, double y1, double z1)
+{
+    return (x>=x0) && (x<=x1) && (y>=y0) && (y<=y1) && (z>=z0) && (z<=z1);
+}
+
 // Returns true if the line segment connecting (x1,y1) and (x2,y2) and the line segment connecting
 // (x3,y3) and (x4,y4) intersect.
 inline bool intersection(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4)
@@ -313,11 +319,20 @@ inline bool intersection(double x1, double y1, double x2, double y2, double x3, 
     return (s<=1) && (s>=0) && (t<=1) && (t>=0);
 }
 
-// class point_info // for the sake of brevity in refine_region
-// {
-// public:
-//     double x,y;
-// };
+// Returns true if the line segment connecting (x1,y1,z2) and (x2,y2,z2) and the line segment connecting
+// (x3,y3,z3) and (x4,y4,z4) intersect.
+inline bool intersection3D(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4)
+{
+    double t = -(x1*(y3-y2)+x2*(y1-y3)+x3*(y2-y1))/(x1*(y4-y3)+x2*(y3-y4)+x4*(y2-y1)+x3*(y1-y2));
+    double s =  (x1*(y4-y3)+x3*(y1-y4)+x4*(y3-y1))/(x1*(y4-y3)+x2*(y3-y4)+x4*(y2-y1)+x3*(y1-y2));
+    return (s<=1) && (s>=0) && (t<=1) && (t>=0);
+}
+
+class point_info // for the sake of brevity in refine_region
+{
+public:
+    double x,y;
+};
 
 int refine_region(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
 {
@@ -326,53 +341,57 @@ int refine_region(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadr
     double * xy0 = quadData->xy;
     
 
-    double corners_of_quadrant[4][2]={{0.0}};
-    // double l = P4EST_QUADRANT_LEN(quadrant->level);
-    double l[2] = {forestData->m_dx[0][P4EST_MAXLEVEL-quadrant->level],forestData->m_dx[1][P4EST_MAXLEVEL-quadrant->level]};
-    double inc[4][2]={{0,0},{l[0],0},{0,l[1]},{l[0],l[1]}};
+    double corners_of_quadrant[6][3]={{0.0}};
+    double l[3] = {forestData->m_dx[0][P4EST_MAXLEVEL-quadrant->level],
+                   forestData->m_dx[1][P4EST_MAXLEVEL-quadrant->level],
+                   forestData->m_dx[2][P4EST_MAXLEVEL-quadrant->level]};
+    double inc[8][3]={{0,0,0},{l[0],0,0},{0,l[1],0},{l[0],l[1],0},
+                      {0,0,l[2]},{l[0],0,l[2]},{0,l[1],l[2]},{l[0],l[1],l[2]}};
 
-    // point_info region[4];
-    // region[0].x=forestData->refinement_boundaries[0];
-    // region[0].y=forestData->refinement_boundaries[1];
-    // region[1].x=forestData->refinement_boundaries[2];
-    // region[1].y=forestData->refinement_boundaries[1];
-    // region[2].x=forestData->refinement_boundaries[0];
-    // region[2].y=forestData->refinement_boundaries[3];
-    // region[3].x=forestData->refinement_boundaries[2];
-    // region[3].y=forestData->refinement_boundaries[3];
+    point_info region[4];
+    region[0].x=forestData->refinement_boundaries[0];
+    region[0].y=forestData->refinement_boundaries[1];
+    region[1].x=forestData->refinement_boundaries[2];
+    region[1].y=forestData->refinement_boundaries[1];
+    region[2].x=forestData->refinement_boundaries[0];
+    region[2].y=forestData->refinement_boundaries[3];
+    region[3].x=forestData->refinement_boundaries[2];
+    region[3].y=forestData->refinement_boundaries[3];
 
     //check corners
     bool check[4]={false};
     double xy[4][3]={{-1}};
-    for(int i=0; i<4;i++)
+    for(int i=0; i<6;i++)
     {
         xy[i][0]=*(xy0  )+inc[i][0];
         xy[i][1]=*(xy0+1)+inc[i][1];
-        check[i]=point_in_square(xy[i][0],
-                                 xy[i][1],forestData->refinement_boundaries[0],
-                                          forestData->refinement_boundaries[2],
-                                          forestData->refinement_boundaries[1],
-                                          forestData->refinement_boundaries[3]);
+        xy[i][2]=*(xy0+2)+inc[i][2];
+        check[i]=point_in_box(xy[i][0], xy[i][1], xy[i][2],
+                                forestData->refinement_boundaries[0],
+                                forestData->refinement_boundaries[1],
+                                forestData->refinement_boundaries[2],
+                                forestData->refinement_boundaries[3],
+                                forestData->refinement_boundaries[4],
+                                forestData->refinement_boundaries[5]);
     }
 
-    //TODO
     //check sides
-    // bool checkB[8]={false};
-    // double corners[4][2]={{forestData->refinement_boundaries[0],forestData->refinement_boundaries[1]},
-    //                       {forestData->refinement_boundaries[2],forestData->refinement_boundaries[1]},
-    //                       {forestData->refinement_boundaries[0],forestData->refinement_boundaries[3]},
-    //                       {forestData->refinement_boundaries[2],forestData->refinement_boundaries[3]}};
+    bool checkB[8]={false};
+    double corners[6][3]={{forestData->refinement_boundaries[0],forestData->refinement_boundaries[1]},
+                          {forestData->refinement_boundaries[2],forestData->refinement_boundaries[1]},
+                          {forestData->refinement_boundaries[0],forestData->refinement_boundaries[3]},
+                          {forestData->refinement_boundaries[2],forestData->refinement_boundaries[3]}};
 
-    // // vertical
-    // checkB[0]=intersection(corners[0][0],corners[0][1],corners[2][0],corners[2][1],xy[0][0],xy[0][1],xy[1][0],xy[1][1]);
-    // checkB[1]=intersection(corners[0][0],corners[0][1],corners[2][0],corners[2][1],xy[2][0],xy[2][1],xy[3][0],xy[3][1]);
-    // checkB[2]=intersection(corners[1][0],corners[1][1],corners[3][0],corners[3][1],xy[0][0],xy[0][1],xy[1][0],xy[1][1]);
-    // checkB[3]=intersection(corners[1][0],corners[1][1],corners[3][0],corners[3][1],xy[2][0],xy[2][1],xy[3][0],xy[3][1]);
+    // vertical
+    // checkB[0]=intersection3D(corners[0][0],corners[0][1],corners[2][0],corners[2][1],xy[0][0],xy[0][1],xy[1][0],xy[1][1]);
+    // checkB[1]=intersection3D(corners[0][0],corners[0][1],corners[2][0],corners[2][1],xy[2][0],xy[2][1],xy[3][0],xy[3][1]);
+    // checkB[2]=intersection3D(corners[1][0],corners[1][1],corners[3][0],corners[3][1],xy[0][0],xy[0][1],xy[1][0],xy[1][1]);
+    // checkB[3]=intersection3D(corners[1][0],corners[1][1],corners[3][0],corners[3][1],xy[2][0],xy[2][1],xy[3][0],xy[3][1]);
     // //horizontal
-    // checkB[4]=intersection(corners[0][0],corners[0][1],corners[1][0],corners[1][1],xy[0][0],xy[0][1],xy[2][0],xy[2][1]);
-    // checkB[5]=intersection(corners[0][0],corners[0][1],corners[1][0],corners[1][1],xy[1][0],xy[1][1],xy[3][0],xy[3][1]);
-    // checkB[6]=intersection(corners[2][0],corners[2][1],corners[3][0],corners[3][1],xy[0][0],xy[0][1],xy[2][0],xy[2][1]);
-    // checkB[7]=intersection(corners[2][0],corners[2][1],corners[3][0],corners[3][1],xy[1][0],xy[1][1],xy[3][0],xy[3][1]);
+    // checkB[4]=intersection3D(corners[0][0],corners[0][1],corners[1][0],corners[1][1],xy[0][0],xy[0][1],xy[2][0],xy[2][1]);
+    // checkB[5]=intersection3D(corners[0][0],corners[0][1],corners[1][0],corners[1][1],xy[1][0],xy[1][1],xy[3][0],xy[3][1]);
+    // checkB[6]=intersection3D(corners[2][0],corners[2][1],corners[3][0],corners[3][1],xy[0][0],xy[0][1],xy[2][0],xy[2][1]);
+    // checkB[7]=intersection3D(corners[2][0],corners[2][1],corners[3][0],corners[3][1],xy[1][0],xy[1][1],xy[3][0],xy[3][1]);
     
     bool refinement = check[0] || check[1] || check[2] || check[3] ;
 
@@ -842,7 +861,7 @@ void refine_copy_parent_octant(p8est_t * p8est, p4est_topidx_t tree,
     {
         octantData *parentData = (octantData *) incoming[0]->p.user_data;
 
-        // Loop over the four children
+        // Loop over the eight children
         for(int i = 0; i < 8; i++){
             octantData *childData = (octantData *) outgoing[i]->p.user_data;
             childData->u=parentData->u;
@@ -1000,7 +1019,7 @@ void update_RC(p4est_iter_face_info_t *info, void *user_data)
     p4est_qcoord_to_vertex(data->p4est->connectivity, side->treeid, quad->x+lx[fn][1], quad->y+ly[fn][1], xyB);
     long lni1 = data->pNodeIDs->find(std::make_pair(xyB[0],xyB[1]))->second;
     #ifdef OXLEY_ENABLE_DEBUG_UPDATE_RC_EXTRA
-        std::cout << "(" << xyB[0] << ", " << xyB[1] << ")";
+        std::cout << "--\t(" << xyB[0] << ", " << xyB[1] << ")";
         std::cout << std::endl;
     #endif
 
@@ -1050,7 +1069,7 @@ void update_RC(p8est_iter_edge_info *info, void *user_data)
 {
     //TODO 
     #ifdef OXLEY_ENABLE_DEBUG_UPDATE_RC
-        std::cout << "Update_RC...";
+        std::cout << "Running update_RC...";
     #endif
 
     //Get some pointers
@@ -1110,10 +1129,10 @@ void update_RC(p8est_iter_edge_info *info, void *user_data)
     p8est_qcoord_to_vertex(data->p8est->connectivity, side->treeid, oct->x+lx[fn][1], oct->y+ly[fn][1], oct->z+lz[fn][1], xyB);
     long lni1 = data->pNodeIDs->find(std::make_tuple(xyB[0],xyB[1],xyB[2]))->second;
 
-    #ifdef OXLEY_ENABLE_DEBUG_UPDATE_RC_EXTRA
-        std::cout << "(" << xyA[0] << ", " << xyA[1] << ", " << xyA[2] << ")\t";
-        std::cout << "(" << xyB[0] << ", " << xyB[1] << ")";
-        std::cout << std::endl;
+    #ifdef OXLEY_ENABLE_DEBUG_UPDATE_RC
+        std::cout << "(" << xyA[0] << ", " << xyA[1] << ", " << xyA[2] << ")--";
+        std::cout << "(" << xyB[0] << ", " << xyB[1] << ", " << xyB[2] << ")";
+        // std::cout << std::endl;
     #endif
 
     std::vector<long> * idx0 = &data->indices[0][lni0];
@@ -1149,7 +1168,7 @@ void update_RC(p8est_iter_edge_info *info, void *user_data)
     if(dup == false)
     {
 #ifdef OXLEY_ENABLE_DEBUG_UPDATE_RC
-        std::cout << lni1 << ": (" << xy0[0] << ", " << xy0[1] << ")" << std::endl; // coordinates
+        std::cout << " connecting node " << lni0 << " to " << lni1 << std::endl;
 #endif
         idx0[0][0]++;
         idx1[0][0]++;
