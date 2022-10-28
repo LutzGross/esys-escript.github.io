@@ -126,10 +126,9 @@ Brick::Brick(int order,
 #endif
 
     // Nodes numbering
-    p8est_ghost_t * ghost = p8est_ghost_new(p8est, P8EST_CONNECT_FULL);
+    ghost = p8est_ghost_new(p8est, P8EST_CONNECT_FULL);
     nodes = p8est_lnodes_new(p8est, ghost, 1);
-    p8est_ghost_destroy(ghost);
-
+    
     // This information is needed by the assembler
     m_NE[0] = n0;
     m_NE[1] = n1;
@@ -999,10 +998,8 @@ void Brick::loadMesh(std::string filename)
 
     // Update the nodes
     p8est_lnodes_destroy(nodes);
-    p8est_ghost_t * ghost = p8est_ghost_new(p8est, P8EST_CONNECT_FULL);
     nodes = p8est_lnodes_new(p8est, ghost, 1);
-    p8est_ghost_destroy(ghost);
-
+    
     // Update Brick
     updateNodeIncrements();
     renumberNodes();
@@ -1060,10 +1057,8 @@ void Brick::refineMesh(std::string algorithmname)
 
     // Update the nodes
     p8est_lnodes_destroy(nodes);
-    p8est_ghost_t * ghost = p8est_ghost_new(p8est, P8EST_CONNECT_FULL);
     nodes = p8est_lnodes_new(p8est, ghost, 1);
-    p8est_ghost_destroy(ghost);
-
+    
     // Update
     updateNodeIncrements();
     renumberNodes();
@@ -1139,10 +1134,8 @@ void Brick::refineBoundary(std::string boundaryname, double dx)
 
     // Update the nodes
     p8est_lnodes_destroy(nodes);
-    p8est_ghost_t * ghost = p8est_ghost_new(p8est, P8EST_CONNECT_FULL);
     nodes = p8est_lnodes_new(p8est, ghost, 1);
-    p8est_ghost_destroy(ghost);
-
+    
     // Update
     updateNodeIncrements();
     renumberNodes();
@@ -1181,10 +1174,8 @@ void Brick::refineRegion(double x0, double x1, double y0, double y1, double z0, 
 
     // Update the nodes
     p8est_lnodes_destroy(nodes);
-    p8est_ghost_t * ghost = p8est_ghost_new(p8est, P8EST_CONNECT_FULL);
     nodes = p8est_lnodes_new(p8est, ghost, 1);
-    p8est_ghost_destroy(ghost);
-
+    
     // Update
     updateNodeIncrements();
     renumberNodes();
@@ -1231,10 +1222,8 @@ void Brick::refinePoint(double x0, double y0, double z0)
 
     // Update the nodes
     p8est_lnodes_destroy(nodes);
-    p8est_ghost_t * ghost = p8est_ghost_new(p8est, P8EST_CONNECT_FULL);
     nodes = p8est_lnodes_new(p8est, ghost, 1);
-    p8est_ghost_destroy(ghost);
-
+    
     // Update
     updateNodeIncrements();
     renumberNodes();
@@ -1278,10 +1267,8 @@ void Brick::refineSphere(double x0, double y0, double z0, double r)
 
     // Update the nodes
     p8est_lnodes_destroy(nodes);
-    p8est_ghost_t * ghost = p8est_ghost_new(p8est, P8EST_CONNECT_FULL);
     nodes = p8est_lnodes_new(p8est, ghost, 1);
-    p8est_ghost_destroy(ghost);
-
+    
     // Update
     updateNodeIncrements();
     renumberNodes();
@@ -1817,6 +1804,25 @@ void Brick::renumberNodes()
                 }
 
                 // *******************************************************************
+                // Debuging output
+                // *******************************************************************
+                #ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES_EXTRA
+                    std::cout << "\t\toctant = \033[1;36m" << k-1 << "\033[0m, corner node = " << nodeidC << std::endl;
+                    std::cout << "\t\tface node = \033[1;36m" << nodeid << "\033[0m" << std::endl;
+                    std::cout << "\t\t    index [" << n << "][" << hanging_faces[n] << "]" << std::endl;
+                    // std::cout << "\t\t    shift was (Dx,Dy,Dz)= (" << x_corner << ", " << y_corner << ", " << z_corner << ")" << std::endl;
+                    std::cout << "\t\tedge nodes: \033[1;36m" << nodeidB[0] << " & " << nodeidB[1] << "\033[0m" << std::endl;
+                    std::cout << "\t\t    index[" << (int) n << "][" << (int) hanging_faces[n] << "][-]" << std::endl;
+                    // std::cout << "\t\t    shift was (Dx,Dy,Dz)= (" << x_e_corner[0] << " ," << y_e_corner[0] << ", " << z_e_corner[0] << ")" << std::endl;
+                    // std::cout << "\t\t    shift was (Dx,Dy,Dz)= (" << x_e_corner[1] << " ," << y_e_corner[1] << ", " << z_e_corner[1] << ")" << std::endl;
+                    // std::cout << "\t\tcorner nodes: \033[1;36m" << nodeA << "\033[0m" << std::endl;
+                    std::cout << "\t\t    index [" << n << "][" << hanging_faces[n] << "][-]" << std::endl;
+                    // std::cout << "\t\tFace nodes: \033[1;36m" << facenodeidB << "--" << nodeidB[1] << "--" << "?" << "--" << nodeidB[0] << "\033[0m" << std::endl;
+                    std::cout << "\t\tedge numbers: \033[1;36m" << edge_number[0] << " & " << edge_number[1] << "\033[0m" << std::endl;
+                    std::cout << "\t\t    index [" << n << "][" << hanging_faces[n] << "][-]" << std::endl;
+                #endif
+
+                // *******************************************************************
                 // Store connection information for updateRowsColumns
                 // *******************************************************************
                 double * xyzD;
@@ -1824,47 +1830,52 @@ void Brick::renumberNodes()
                 signed long y_corner0 = ((int) yface0[n][hanging_faces[n]]) * l;
                 signed long z_corner0 = ((int) zface0[n][hanging_faces[n]]) * l;
                 p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+x_corner0, oct->y+y_corner0, oct->z+z_corner0, xyzD);
-                auto otherCornerPoint = std::make_tuple(xyzD[0],xyzD[1],xyzD[2]);
-                long nodeA = NodeIDs.find(otherCornerPoint)->second;
-                p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+x_corner, oct->y+y_corner, oct->z+z_corner, xyzC);
-                auto facecornerPoint = std::make_tuple(xyzC[0],xyzC[1],xyzC[2]);
-                long facenodeidB = NodeIDs.find(facecornerPoint)->second;
-                int need_edge;
-                need_edge = std::count(hanging_node_connections.begin(), hanging_node_connections.end(), std::make_pair(nodeA,nodeidB[0]))
-                            + std::count(hanging_node_connections.begin(), hanging_node_connections.end(), std::make_pair(nodeidB[0],nodeA));
-                if(need_edge==0)
-                    hanging_node_connections.push_back(std::make_pair(nodeA,nodeidB[0]));
-                need_edge = std::count(hanging_node_connections.begin(), hanging_node_connections.end(), std::make_pair(nodeA,nodeidB[1]))
-                            + std::count(hanging_node_connections.begin(), hanging_node_connections.end(), std::make_pair(nodeidB[1],nodeA));
-                if(need_edge==0)
-                    hanging_node_connections.push_back(std::make_pair(nodeA,nodeidB[1]));
-                need_edge = std::count(hanging_node_connections.begin(), hanging_node_connections.end(), std::make_pair(nodeidB[0],facenodeidB))
-                            + std::count(hanging_node_connections.begin(), hanging_node_connections.end(), std::make_pair(facenodeidB,nodeidB[0]));
-                if(need_edge==0)
-                    hanging_node_connections.push_back(std::make_pair(nodeidB[0],facenodeidB));
-                need_edge = std::count(hanging_node_connections.begin(), hanging_node_connections.end(), std::make_pair(nodeidB[1],facenodeidB))
-                            + std::count(hanging_node_connections.begin(), hanging_node_connections.end(), std::make_pair(facenodeidB,nodeidB[1]));
-                if(need_edge==0)
-                    hanging_node_connections.push_back(std::make_pair(nodeidB[1],facenodeidB));
+                // auto otherCornerPoint = std::make_tuple(xyzD[0],xyzD[1],xyzD[2]);
+                // long nodeA = NodeIDs.find(otherCornerPoint)->second;
+
+                #ifdef OXLEY_ENABLE_DEBUG 
+                ESYS_ASSERT(p8est->data_size == sizeof(octantData), "renumberNodes: p8est data size is incorrect.");
+                #endif
+
+                // p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+x_corner, oct->y+y_corner, oct->z+z_corner, xyzC);
+                // auto facecornerPoint = std::make_tuple(xyzC[0],xyzC[1],xyzC[2]);
+                // long facenodeidB = NodeIDs.find(facecornerPoint)->second;
+                // int need_edge;
+                // need_edge = std::count(hanging_node_connections.begin(), hanging_node_connections.end(), std::make_pair(nodeA,nodeidB[0]))
+                //             + std::count(hanging_node_connections.begin(), hanging_node_connections.end(), std::make_pair(nodeidB[0],nodeA));
+                // if(need_edge==0)
+                //     hanging_node_connections.push_back(std::make_pair(nodeA,nodeidB[0]));
+                // need_edge = std::count(hanging_node_connections.begin(), hanging_node_connections.end(), std::make_pair(nodeA,nodeidB[1]))
+                //             + std::count(hanging_node_connections.begin(), hanging_node_connections.end(), std::make_pair(nodeidB[1],nodeA));
+                // if(need_edge==0)
+                //     hanging_node_connections.push_back(std::make_pair(nodeA,nodeidB[1]));
+                // need_edge = std::count(hanging_node_connections.begin(), hanging_node_connections.end(), std::make_pair(nodeidB[0],facenodeidB))
+                //             + std::count(hanging_node_connections.begin(), hanging_node_connections.end(), std::make_pair(facenodeidB,nodeidB[0]));
+                // if(need_edge==0)
+                //     hanging_node_connections.push_back(std::make_pair(nodeidB[0],facenodeidB));
+                // need_edge = std::count(hanging_node_connections.begin(), hanging_node_connections.end(), std::make_pair(nodeidB[1],facenodeidB))
+                //             + std::count(hanging_node_connections.begin(), hanging_node_connections.end(), std::make_pair(facenodeidB,nodeidB[1]));
+                // if(need_edge==0)
+                //     hanging_node_connections.push_back(std::make_pair(nodeidB[1],facenodeidB));
 
                 // *******************************************************************
                 // Debuging output
                 // *******************************************************************
-                #ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES_EXTRA
-                    std::cout << "\t\toctant = \033[1;36m" << k-1 << "\033[0m, corner node = " << nodeidC << std::endl;
-                    std::cout << "\t\tface node = \033[1;36m" << facenodeidB << "\033[0m" << std::endl;
-                    std::cout << "\t\t    index [" << n << "][" << hanging_faces[n] << "]" << std::endl;
-                    // std::cout << "\t\t    shift was (Dx,Dy,Dz)= (" << x_corner << ", " << y_corner << ", " << z_corner << ")" << std::endl;
-                    std::cout << "\t\tedge nodes: \033[1;36m" << nodeidB[0] << " & " << nodeidB[1] << "\033[0m" << std::endl;
-                    std::cout << "\t\t    index[" << (int) n << "][" << (int) hanging_faces[n] << "][-]" << std::endl;
-                    // std::cout << "\t\t    shift was (Dx,Dy,Dz)= (" << x_e_corner[0] << " ," << y_e_corner[0] << ", " << z_e_corner[0] << ")" << std::endl;
-                    // std::cout << "\t\t    shift was (Dx,Dy,Dz)= (" << x_e_corner[1] << " ," << y_e_corner[1] << ", " << z_e_corner[1] << ")" << std::endl;
-                    std::cout << "\t\tcorner nodes: \033[1;36m" << nodeA << "\033[0m" << std::endl;
-                    std::cout << "\t\t    index [" << n << "][" << hanging_faces[n] << "][-]" << std::endl;
-                    std::cout << "\t\tFace nodes: \033[1;36m" << facenodeidB << "--" << nodeidB[1] << "--" << nodeA << "--" << nodeidB[0] << "\033[0m" << std::endl;
-                    std::cout << "\t\tedge numbers: \033[1;36m" << edge_number[0] << " & " << edge_number[1] << "\033[0m" << std::endl;
-                    std::cout << "\t\t    index [" << n << "][" << hanging_faces[n] << "][-]" << std::endl;
-                #endif
+                // #ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES_EXTRA
+                //     std::cout << "\t\toctant = \033[1;36m" << k-1 << "\033[0m, corner node = " << nodeidC << std::endl;
+                //     std::cout << "\t\tface node = \033[1;36m" << facenodeidB << "\033[0m" << std::endl;
+                //     std::cout << "\t\t    index [" << n << "][" << hanging_faces[n] << "]" << std::endl;
+                //     // std::cout << "\t\t    shift was (Dx,Dy,Dz)= (" << x_corner << ", " << y_corner << ", " << z_corner << ")" << std::endl;
+                //     std::cout << "\t\tedge nodes: \033[1;36m" << nodeidB[0] << " & " << nodeidB[1] << "\033[0m" << std::endl;
+                //     std::cout << "\t\t    index[" << (int) n << "][" << (int) hanging_faces[n] << "][-]" << std::endl;
+                //     // std::cout << "\t\t    shift was (Dx,Dy,Dz)= (" << x_e_corner[0] << " ," << y_e_corner[0] << ", " << z_e_corner[0] << ")" << std::endl;
+                //     // std::cout << "\t\t    shift was (Dx,Dy,Dz)= (" << x_e_corner[1] << " ," << y_e_corner[1] << ", " << z_e_corner[1] << ")" << std::endl;
+                //     std::cout << "\t\tcorner nodes: \033[1;36m" << nodeA << "\033[0m" << std::endl;
+                //     std::cout << "\t\t    index [" << n << "][" << hanging_faces[n] << "][-]" << std::endl;
+                //     std::cout << "\t\tFace nodes: \033[1;36m" << facenodeidB << "--" << nodeidB[1] << "--" << nodeA << "--" << nodeidB[0] << "\033[0m" << std::endl;
+                //     std::cout << "\t\tedge numbers: \033[1;36m" << edge_number[0] << " & " << edge_number[1] << "\033[0m" << std::endl;
+                //     std::cout << "\t\t    index [" << n << "][" << hanging_faces[n] << "][-]" << std::endl;
+                // #endif
             }
         }
     }
@@ -1931,6 +1942,18 @@ void Brick::renumberNodes()
             std::cout << HangingFaceNodes[i] << ", ";
     std::cout << std::endl;
 #endif
+
+#ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES_PRINT_HANGING_NODE_CONNECTIONS
+    std::cout << "Hanging nodes connections : ";
+    if(hanging_node_connections.size()==0)
+        std::cout << "[none]";
+    else
+        for(int i = 0; i < hanging_node_connections.size(); i++)
+            std::cout << hanging_node_connections[i].first << "---" << hanging_node_connections[i].second << ", ";
+    std::cout << std::endl;
+#endif
+
+    
 }
 
 //protected
@@ -2549,14 +2572,13 @@ void Brick::updateRowsColumns()
 
     #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS
     std::cout << "checking p8est ..." ;
-    if(p8est_is_valid(p8est)!=1)
+    p8est_t * p8esttmp0=p8est_copy(p8est,0);
+    p8est_t * p8esttmp1=p8est_copy(p8est,1);
+    if(p8est_is_valid(p8esttmp1)!=1)
         std::cout << "\033[1;31mp8est is invalid\033[0m" << std::endl;
     else
         std::cout << "p8est is valid ..." << std::endl;
     #endif
-
-    p8est_ghost_t * ghost;
-    ghost = p8est_ghost_new(p8est, P8EST_CONNECT_FULL); // TODO time consuming(?)
     
     #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS
     std::cout << "checking ghost ..." ;
@@ -2570,7 +2592,6 @@ void Brick::updateRowsColumns()
     ghost_data = (update_RC_data_brick *) malloc(ghost->ghosts.elem_count);
     p8est_ghost_exchange_data(p8est, ghost, ghost_data);
     p8est_iterate_ext(p8est, ghost, data, NULL, NULL, update_RC, NULL, true);
-    p8est_ghost_destroy(ghost); // seg
 
     // *******************************************************************
     // Boundary edges

@@ -304,6 +304,9 @@ private:
     // A p8est
     p8est_t * p8est;
 
+    // A ghost
+    p8est_ghost_t * ghost;
+
     // The data structure in p8est
     p8estData forestData;
 

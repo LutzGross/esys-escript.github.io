@@ -68,7 +68,7 @@ namespace oxley {
 
         // These two statements configure the level of verbosity used by p4est
         sc_set_log_defaults(NULL, NULL, LOG_LEVEL);
-        // p4est_init(NULL, LOG_LEVEL);
+        p4est_init(NULL, LOG_LEVEL);
     }
 
     dim_t OxleyDomain::getNumNodes() const

@@ -852,7 +852,12 @@ void refine_copy_parent_octant(p8est_t * p8est, p4est_topidx_t tree,
 
         // Tags
         octantData *childData = (octantData *) incoming[0]->p.user_data;
+        parentData->nodeTag=childData->nodeTag;
         parentData->octantTag=childData->octantTag;
+
+        // metadata
+        parentData->treeid=childData->treeid;
+        parentData->owner=childData->owner;
 
         // Update the spatial coordinates
         p8est_qcoord_to_vertex(p8est->connectivity, tree, outgoing[0]->x, outgoing[0]->y, outgoing[0]->z, &parentData->xyz[0]);
@@ -865,7 +870,10 @@ void refine_copy_parent_octant(p8est_t * p8est, p4est_topidx_t tree,
         for(int i = 0; i < 8; i++){
             octantData *childData = (octantData *) outgoing[i]->p.user_data;
             childData->u=parentData->u;
+            childData->nodeTag=parentData->nodeTag;
             childData->octantTag=parentData->octantTag;
+            childData->treeid=parentData->treeid;
+            childData->owner=parentData->owner;
 
             // Update the spatial coordinates
             p8est_qcoord_to_vertex(p8est->connectivity, tree, outgoing[i]->x, outgoing[i]->y, outgoing[i]->z,&childData->xyz[0]);

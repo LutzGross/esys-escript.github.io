@@ -51,12 +51,17 @@ void init_brick_data(p8est_t * p8est, p4est_topidx_t tree, p8est_quadrant_t * q)
     octantData *data = (octantData *) q->p.user_data;
 
     data->u=0.0;
+    data->nodeTag=0;
   	data->octantTag=0;
 
-    // data->owner=p4est->mpirank;
+    // data->owner=p8est->mpirank;
 
     // Save the spatial coordinates
     p8est_qcoord_to_vertex(p8est->connectivity, tree, q->x, q->y, q->z, &data->xyz[0]);
+
+    data->treeid = -1;
+    data->owner = -1;
+    data->m_faceOffset[6] = {false};
 }
 
 void gce_rectangle_replace(p4est_t *p4est, p4est_topidx_t tree,
