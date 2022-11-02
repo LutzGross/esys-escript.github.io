@@ -1001,6 +1001,7 @@ void Brick::loadMesh(std::string filename)
     nodes = p8est_lnodes_new(p8est, ghost, 1);
     
     // Update Brick
+    reset_ghost();
     updateNodeIncrements();
     renumberNodes();
     updateRowsColumns();
@@ -1060,6 +1061,7 @@ void Brick::refineMesh(std::string algorithmname)
     nodes = p8est_lnodes_new(p8est, ghost, 1);
     
     // Update
+    reset_ghost();
     updateNodeIncrements();
     renumberNodes();
     updateRowsColumns();
@@ -1137,6 +1139,7 @@ void Brick::refineBoundary(std::string boundaryname, double dx)
     nodes = p8est_lnodes_new(p8est, ghost, 1);
     
     // Update
+    reset_ghost();
     updateNodeIncrements();
     renumberNodes();
     updateRowsColumns();
@@ -1177,6 +1180,7 @@ void Brick::refineRegion(double x0, double x1, double y0, double y1, double z0, 
     nodes = p8est_lnodes_new(p8est, ghost, 1);
     
     // Update
+    reset_ghost();
     updateNodeIncrements();
     renumberNodes();
     updateRowsColumns();
@@ -1225,6 +1229,7 @@ void Brick::refinePoint(double x0, double y0, double z0)
     nodes = p8est_lnodes_new(p8est, ghost, 1);
     
     // Update
+    reset_ghost();
     updateNodeIncrements();
     renumberNodes();
     updateRowsColumns();
@@ -1270,6 +1275,7 @@ void Brick::refineSphere(double x0, double y0, double z0, double r)
     nodes = p8est_lnodes_new(p8est, ghost, 1);
     
     // Update
+    reset_ghost();
     updateNodeIncrements();
     renumberNodes();
     updateRowsColumns();
@@ -1499,6 +1505,12 @@ bool Brick::getHangingInfo(p8est_lnodes_code_t face_code,
 }
 
 //protected
+void Brick::reset_ghost()
+{
+    p8est_ghost_destroy(ghost);
+    ghost = p8est_ghost_new(p8est, P8EST_CONNECT_FULL);
+}
+
 void Brick::updateNodeIncrements()
 {
     nodeIncrements[0] = 1;

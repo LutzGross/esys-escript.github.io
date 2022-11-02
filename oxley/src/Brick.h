@@ -492,6 +492,12 @@ protected:
 
     /**
        \brief
+       Regenerates the Ghost information
+    */
+    void reset_ghost();
+
+    /**
+       \brief
        Updates NodeIncrements
     */
     void updateNodeIncrements();
