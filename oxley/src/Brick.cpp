@@ -1587,14 +1587,6 @@ void Brick::renumberNodes()
     const bool zface0[6][4]={{0,0,1,1},{0,0,1,1},{0,0,1,1},{0,0,1,1},{0,0,0,0},{1,1,1,1}};
 
 
-    const p8est_qcoord_t lxy_nodes[8][3] = {{0,0,0},{l,0,0},{0,l,0},{l,l,0},
-                                            {0,0,l},{l,0,l},{0,l,l},{l,l,l}};
-    const p8est_qcoord_t h = 0.5 * l;
-    const p8est_qcoord_t lxy_face[6][3] = {{0,h,h},{l,h,h},{h,0,h},{h,l,h},{h,h,0},{h,h,l}};
-    const p8est_qcoord_t lxy_edge[12][3] = {{h,0,0},{h,l,0},{h,0,l},{h,l,l},
-                                            {0,h,0},{l,h,0},{0,h,l},{l,h,l},
-                                            {0,0,h},{l,0,h},{0,l,h},{l,l,h}};
-
     // Write in NodeIDs
 // #pragma omp for
     int k = 0;
@@ -1610,6 +1602,14 @@ void Brick::renumberNodes()
         for(int q = 0; q < Q; ++q) { 
             p8est_quadrant_t * oct = p8est_quadrant_array_index(tquadrants, q);
             p8est_qcoord_t l = P8EST_QUADRANT_LEN(oct->level);
+
+            const p8est_qcoord_t lxy_nodes[8][3] = {{0,0,0},{l,0,0},{0,l,0},{l,l,0},
+                                                    {0,0,l},{l,0,l},{0,l,l},{l,l,l}};
+            const p8est_qcoord_t h = 0.5 * l;
+            const p8est_qcoord_t lxy_face[6][3] = {{0,h,h},{l,h,h},{h,0,h},{h,l,h},{h,h,0},{h,h,l}};
+            const p8est_qcoord_t lxy_edge[12][3] = {{h,0,0},{h,l,0},{h,0,l},{h,l,l},
+                                                    {0,h,0},{l,h,0},{0,h,l},{l,h,l},
+                                                    {0,0,h},{l,0,h},{0,l,h},{l,l,h}};
             
             // Assign numbers to the vertix nodes
             double xyz[3];
