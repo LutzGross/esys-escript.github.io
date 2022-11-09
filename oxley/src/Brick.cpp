@@ -1877,9 +1877,6 @@ void Brick::renumberNodes()
                     std::cout << "\t\tedge numbers: \033[1;36m" << edge_number[0] << " & " << edge_number[1] << "\033[0m" << std::endl;
                     std::cout << "\t\t    index [" << n << "][" << hanging_faces[n] << "][-]" << std::endl;
                 #endif
-
-                std::cout << "\t\toctant = \033[1;36m" << k-1 << "\033[0m, corner node = " << nodeidC << std::endl;
-                std::cout << "\t\tx_corner0 =" << x_corner0 << ", y_corner0 =" << y_corner0 << ", z_corner0 =" << z_corner0 << std::endl;
             }
         }
     }
