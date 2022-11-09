@@ -99,7 +99,7 @@ Brick::Brick(int order,
             throw OxleyException("Could not find values for d0, d1 and d2. Please set them manually.");
     }
 
-    connectivity = new_brick_connectivity(n0, n1, n2, false, false, false, x0, x1, y0, y1, z0, z1);
+    connectivity = new_brick_connectivity(n0, n1, n2, false, false, false, x0, x1, y0, y1, z0, z1);    
 
 #ifdef OXLEY_ENABLE_DEBUG_CHECKS //These checks are turned off by default as they can be very timeconsuming
     std::cout << "In Brick() constructor..." << std::endl;
@@ -1544,9 +1544,16 @@ void Brick::renumberNodes()
     hanging_node_connections.clear();
 
     //                                                                              
+    //                       0         1         2         3         4         5
     const bool xface[6][4]={{0,0,0,0},{1,1,1,1},{1,0,1,0},{1,0,1,0},{1,0,1,0},{1,0,1,0}};
     const bool yface[6][4]={{1,0,1,0},{1,0,1,0},{0,0,0,0},{1,1,1,1},{1,1,0,0},{1,1,0,0}};
     const bool zface[6][4]={{1,1,0,0},{1,1,0,0},{1,1,0,0},{1,1,0,0},{0,0,0,0},{1,1,1,1}};
+
+    // used to look up the coordinate of the final node in each octant
+    //                       0         1         2         3         4         5
+    const int xface0[6][4]={{0,0,0,0},{1,1,1,1},{0,1,0,1},{0,1,0,1},{0,1,0,1},{0,1,0,1}};
+    const int yface0[6][4]={{0,1,0,1},{0,1,0,1},{0,0,0,0},{1,1,1,1},{0,0,1,1},{0,0,1,1}};
+    const int zface0[6][4]={{0,0,1,1},{0,0,1,1},{0,0,1,1},{0,0,1,1},{0,0,0,0},{1,1,1,1}};
 
     // three dimensions, six octant faces, four orientations (relative to parent octant), two edge nodes
     //                           0     1     2     3
@@ -1579,12 +1586,6 @@ void Brick::renumberNodes()
                                     {{1,10}, {1,11}, {10,3}, {11,3}}, //3
                                     {{0,4},  {0,5},  {4,1},  {5,1}},  //4
                                     {{2,6},  {2,7},  {6,3},  {7,3}}}; //5
-
-    // used to look up the coordinate of the final node in each octant
-    //                        0         1         2         3         4         5
-    const bool xface0[6][4]={{0,0,0,0},{1,1,1,1},{0,1,0,1},{0,1,0,1},{0,1,0,1},{0,1,0,1}};
-    const bool yface0[6][4]={{0,1,0,1},{0,1,0,1},{0,0,0,0},{1,1,1,1},{0,0,1,1},{0,0,1,1}};
-    const bool zface0[6][4]={{0,0,1,1},{0,0,1,1},{0,0,1,1},{0,0,1,1},{0,0,0,0},{1,1,1,1}};
 
 
     // Write in NodeIDs
@@ -1826,37 +1827,36 @@ void Brick::renumberNodes()
                 // *******************************************************************
                 // Store connection information for updateRowsColumns
                 // *******************************************************************
-                double * xyzD;
-                signed long x_corner0 = ((int) xface0[n][hanging_faces[n]]) * l;
-                signed long y_corner0 = ((int) yface0[n][hanging_faces[n]]) * l;
-                signed long z_corner0 = ((int) zface0[n][hanging_faces[n]]) * l;
+
+                signed long x_corner0 = xface0[n][hanging_faces[n]] * l;
+                signed long y_corner0 = yface0[n][hanging_faces[n]] * l;
+                signed long z_corner0 = zface0[n][hanging_faces[n]] * l;
+            
+                double xyzD[3];
                 p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+x_corner0, oct->y+y_corner0, oct->z+z_corner0, xyzD);
                 auto otherCornerPoint = std::make_tuple(xyzD[0],xyzD[1],xyzD[2]);
                 long nodeA = NodeIDs.find(otherCornerPoint)->second;
 
-                #ifdef OXLEY_ENABLE_DEBUG 
-                // ESYS_ASSERT(p8est->data_size == sizeof(octantData), "\033[1;31m[oxley]\033[0m renumberNodes: p8est data size is incorrect.");
-                #endif
-
                 p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+x_corner, oct->y+y_corner, oct->z+z_corner, xyzC);
                 auto facecornerPoint = std::make_tuple(xyzC[0],xyzC[1],xyzC[2]);
                 long facenodeidB = NodeIDs.find(facecornerPoint)->second;
-                int need_edge;
-                need_edge = std::count(hanging_node_connections.begin(), hanging_node_connections.end(), std::make_pair(nodeA,nodeidB[0]))
-                            + std::count(hanging_node_connections.begin(), hanging_node_connections.end(), std::make_pair(nodeidB[0],nodeA));
-                if(need_edge==0)
+
+                int need_edgeA[4] = {std::count(hanging_node_connections.begin(), hanging_node_connections.end(), std::make_pair(nodeA,nodeidB[0])),
+                                     std::count(hanging_node_connections.begin(), hanging_node_connections.end(), std::make_pair(nodeidB[0],nodeA)),
+                                     std::count(hanging_node_connections.begin(), hanging_node_connections.end(), std::make_pair(nodeA,nodeidB[1])),
+                                     std::count(hanging_node_connections.begin(), hanging_node_connections.end(), std::make_pair(nodeidB[1],nodeA))};
+                int need_edgeB[4] = {std::count(hanging_node_connections.begin(), hanging_node_connections.end(), std::make_pair(facenodeidB,nodeidB[0])),
+                                     std::count(hanging_node_connections.begin(), hanging_node_connections.end(), std::make_pair(nodeidB[0],facenodeidB)),
+                                     std::count(hanging_node_connections.begin(), hanging_node_connections.end(), std::make_pair(facenodeidB,nodeidB[1])),
+                                     std::count(hanging_node_connections.begin(), hanging_node_connections.end(), std::make_pair(nodeidB[1],facenodeidB))};
+
+                if(need_edgeA[0]+need_edgeA[1] == 0)
                     hanging_node_connections.push_back(std::make_pair(nodeA,nodeidB[0]));
-                need_edge = std::count(hanging_node_connections.begin(), hanging_node_connections.end(), std::make_pair(nodeA,nodeidB[1]))
-                            + std::count(hanging_node_connections.begin(), hanging_node_connections.end(), std::make_pair(nodeidB[1],nodeA));
-                if(need_edge==0)
+                if(need_edgeA[2]+need_edgeA[3] == 0)
                     hanging_node_connections.push_back(std::make_pair(nodeA,nodeidB[1]));
-                need_edge = std::count(hanging_node_connections.begin(), hanging_node_connections.end(), std::make_pair(nodeidB[0],facenodeidB))
-                            + std::count(hanging_node_connections.begin(), hanging_node_connections.end(), std::make_pair(facenodeidB,nodeidB[0]));
-                if(need_edge==0)
+                if(need_edgeB[0]+need_edgeB[1] == 0)
                     hanging_node_connections.push_back(std::make_pair(nodeidB[0],facenodeidB));
-                need_edge = std::count(hanging_node_connections.begin(), hanging_node_connections.end(), std::make_pair(nodeidB[1],facenodeidB))
-                            + std::count(hanging_node_connections.begin(), hanging_node_connections.end(), std::make_pair(facenodeidB,nodeidB[1]));
-                if(need_edge==0)
+                if(need_edgeB[2]+need_edgeB[3] == 0)
                     hanging_node_connections.push_back(std::make_pair(nodeidB[1],facenodeidB));
 
                 // *******************************************************************
@@ -1877,6 +1877,9 @@ void Brick::renumberNodes()
                     std::cout << "\t\tedge numbers: \033[1;36m" << edge_number[0] << " & " << edge_number[1] << "\033[0m" << std::endl;
                     std::cout << "\t\t    index [" << n << "][" << hanging_faces[n] << "][-]" << std::endl;
                 #endif
+
+                std::cout << "\t\toctant = \033[1;36m" << k-1 << "\033[0m, corner node = " << nodeidC << std::endl;
+                std::cout << "\t\tx_corner0 =" << x_corner0 << ", y_corner0 =" << y_corner0 << ", z_corner0 =" << z_corner0 << std::endl;
             }
         }
     }
@@ -4578,9 +4581,9 @@ Brick::new_brick_connectivity (int n0, int n1, int n2, int periodic_a, int perio
     }
 
     P4EST_ASSERT(vcount == num_vertices);
-    P4EST_FREE(linear_to_tree);
-    P4EST_FREE(tree_to_corner2);
-    P4EST_FREE(tree_to_edge2);
+    // P4EST_FREE(linear_to_tree);
+    // P4EST_FREE(tree_to_corner2);
+    // P4EST_FREE(tree_to_edge2);
 
 #ifdef OXLEY_ENABLE_DEBUG
     P4EST_ASSERT(p8est_connectivity_is_valid(conn)); //This is very time consuming
