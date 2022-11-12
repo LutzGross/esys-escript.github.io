@@ -236,7 +236,7 @@ class LineSearch(object):
 
     Note: the line search return a new search direction scale alpha that satisfies the strong Wolfe condition:
           (W1) sufficient decrease condition:  Phi(alpha) <= Phi(0) + c1 * alpha * phi'(0)
-          (W2) curveture condition abs(Phi'(alpha)) <= self._c2 * abs(Phi'(0))
+          (W2) curveture condition abs(Phi'(alpha)) <= c2 * abs(Phi'(0))
 
     The first step is to find an alpha_lo and alpha_hi such that the following conditions hold:
           (Z1) [alpha_lo, alpha_hi] contains an alpha fullfilling (W1)+(W2)
@@ -747,12 +747,6 @@ class AbstractMinimizer(object):
         self._result = None
         self._callback = None
         self.setOptions(m_tol=m_tol, grad_tol=grad_tol, iterMax=iterMax)
-
-    def getLineSerach(self):
-        """
-        returns the line search object
-        """
-        return self.__line_search
 
     def setCostFunction(self, F):
         """

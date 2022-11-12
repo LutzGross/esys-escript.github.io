@@ -94,6 +94,7 @@ sortOutExample('usersguide/brick.py', needsGMSH=True)
 sortOutExample('usersguide/refine.py', needsGMSH=True)
 sortOutExample('usersguide/poisson_matplotlib.py', allowsMPI=False)
 sortOutExample('usersguide/rosenbrock.py', allowsMPI=False)
+sortOutExample('usersguide/MT.py', allowsMPI=False)
 
 
 example_deps.append('cookbook/cblib.py')

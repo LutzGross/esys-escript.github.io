@@ -143,10 +143,6 @@ class CostFunction(object):
         """
         returns the value *F(m)* using the precalculated values for *m*.
 
-        If the cost function is a composition the values of these components can be
-        returned. The `sum` function is automatically applied by any solver if a
-        single value is required.
-
         When calling this method the calling statistics is updated.
 
         :param m: a solution approximation
@@ -246,10 +242,6 @@ class CostFunction(object):
         """
         returns the value *F(m)* using the precalculated values for *m*.
 
-        If the cost function is a composition the values of these components can be
-        returned. The `sum` function is automatically applied by any solver if a
-        single value is required.
-
         :param m: a solution approximation
         :type m: m-type
         :param args: pre-calculated values for ``m`` from `getArgumentsAndCount()`
@@ -272,26 +264,10 @@ class CostFunction(object):
         """
         raise NotImplementedError
 
-    def updateHessian(self, m, *args):
-        """
-        this function is called to update the (potentially approximate) Hessian H
-        at a given location *m*.
-
-        :param m: location of Hessian operator to be set
-        :type m: m-type
-        :param args: pre-calculated values for ``m`` from `getArgumentsAndCount()`
-        :returns: None
-        :note: Overwrite this method to implement a cost function.
-
-        :note: Typically this method is called by the solver when the iteration is restarted.
-        """
-        pass
-
     def getInverseHessianApproximation(self, r, m, *args, initializeHessian = True):
         """
         returns an approximate evaluation *p* of the inverse of the Hessian
         operator of the cost function for a given gradient *r*: *H p = r*
-        The Hessian is set and updated by the solver calling ``updateHessian``
         :note: by default this method is returning *r*. In this case it is assumed that m-type==g-type
         :note: Overwrite this method to implement a cost function.
 
@@ -302,8 +278,8 @@ class CostFunction(object):
                                     only and building the new Hessian approximation is expensive
                                     it is typically more efficient to update the Hessian operator
                                     occasionally only when on input initializeHessian is `True`.
-                                    If the Hessian should be updated in each step ignore the initializeHessian
-                                    value otherwise update the Hessian only if `initializeHessian == True`.
+                                    If the Hessian should be updated in each step ignore the
+                                    value of `initializeHessian`.
         :type initializeHessian: bool
         :returns: new search direction p.
         :rtype: m-type
