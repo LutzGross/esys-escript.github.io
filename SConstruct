@@ -603,7 +603,7 @@ if env['build_trilinos']:
         print("Building (MPI) trilinos..............................")
         configure="sh nompi.sh " + env['prefix']
     res=os.system(configure)
-    res=os.system('make -j`nproc --ignore=2` install')
+    res=os.system('make -j4 install')
     env['trilinos_prefix']=env['prefix']
     os.chdir(startdir)
     env['trilinos_version']='13.0.0'
