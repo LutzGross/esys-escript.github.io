@@ -1841,11 +1841,11 @@ void Brick::renumberNodes()
                 auto facecornerPoint = std::make_tuple(xyzC[0],xyzC[1],xyzC[2]);
                 long facenodeidB = NodeIDs.find(facecornerPoint)->second;
 
-                int need_edgeA[4] = {std::count(hanging_node_connections.begin(), hanging_node_connections.end(), std::make_pair(nodeA,nodeidB[0])),
+                long need_edgeA[4] = {std::count(hanging_node_connections.begin(), hanging_node_connections.end(), std::make_pair(nodeA,nodeidB[0])),
                                      std::count(hanging_node_connections.begin(), hanging_node_connections.end(), std::make_pair(nodeidB[0],nodeA)),
                                      std::count(hanging_node_connections.begin(), hanging_node_connections.end(), std::make_pair(nodeA,nodeidB[1])),
                                      std::count(hanging_node_connections.begin(), hanging_node_connections.end(), std::make_pair(nodeidB[1],nodeA))};
-                int need_edgeB[4] = {std::count(hanging_node_connections.begin(), hanging_node_connections.end(), std::make_pair(facenodeidB,nodeidB[0])),
+                long need_edgeB[4] = {std::count(hanging_node_connections.begin(), hanging_node_connections.end(), std::make_pair(facenodeidB,nodeidB[0])),
                                      std::count(hanging_node_connections.begin(), hanging_node_connections.end(), std::make_pair(nodeidB[0],facenodeidB)),
                                      std::count(hanging_node_connections.begin(), hanging_node_connections.end(), std::make_pair(facenodeidB,nodeidB[1])),
                                      std::count(hanging_node_connections.begin(), hanging_node_connections.end(), std::make_pair(nodeidB[1],facenodeidB))};
