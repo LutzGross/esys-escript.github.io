@@ -1557,6 +1557,15 @@ void Brick::renumberNodes()
     const int yface0[6][4]={{0,1,0,1},{0,1,0,1},{0,0,0,0},{1,1,1,1},{0,0,1,1},{0,0,1,1}};
     const int zface0[6][4]={{0,0,1,1},{0,0,1,1},{0,0,1,1},{0,0,1,1},{0,0,0,0},{1,1,1,1}};
 
+    // used to look up the coordinate of the final node in each octant
+    //                              0            1            2           3            4          5
+    const signed int xface1[6][4]={{0, 0, 0, 0},{1, 1, 1, 1},{2,-1,0, 1},{2,-1, 0, 1},{0,0,0, 1},{2,-1, 0,0}};
+    const signed int yface1[6][4]={{2,-1, 0, 1},{2,-1, 0, 1},{0, 0,0, 0},{1, 1, 1, 1},{0,0,0,-1},{0, 0,-1,0}};
+    const signed int zface1[6][4]={{0, 0,-1,-1},{0, 0,-1,-1},{0, 0,0,-1},{0, 0,-1, 1},{0,0,0, 0},{1, 1, 1,0}};
+    const signed int xface2[6][4]={{0, 0, 0, 0},{1, 1, 1, 1},{0, 1,2,-1},{0, 0, 2,-1},{0,1,2,-1},{0, 0, 0,0}};
+    const signed int yface2[6][4]={{0, 1, 2,-1},{0, 1, 2,-1},{0, 0,0, 0},{1, 0, 1, 1},{0,2,1, 1},{2, 0, 0,0}};
+    const signed int zface2[6][4]={{2, 2, 1, 1},{2, 2, 1, 1},{0, 2,1, 1},{2, 0, 1, 1},{0,0,0, 0},{1, 0, 0,0}};
+
     // three dimensions, six octant faces, four orientations (relative to parent octant), two edge nodes
     //                           0     1     2     3
     const bool xedge[6][4][2]={{{0,0},{0,0},{0,0},{0,0}}, //0
@@ -1596,6 +1605,44 @@ void Brick::renumberNodes()
     NormalNodes.clear();
     HangingFaceNodes.clear();
     HangingEdgeNodes.clear();
+
+    // Assign numbers to the nodes
+    for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
+        p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
+        sc_array_t * tquadrants = &tree->quadrants;
+        p8est_locidx_t Q = (p8est_locidx_t) tquadrants->elem_count; // TODO possible(?) bug
+
+        // Loop over octants
+        for(int q = 0; q < Q; ++q) { 
+            p8est_quadrant_t * oct = p8est_quadrant_array_index(tquadrants, q);
+            p8est_qcoord_t l = P8EST_QUADRANT_LEN(oct->level);
+
+            const p8est_qcoord_t lxy_nodes[8][3] = {{0,0,0},{l,0,0},{0,l,0},{l,l,0},
+                                                    {0,0,l},{l,0,l},{0,l,l},{l,l,l}};
+            const p8est_qcoord_t h = 0.5 * l;
+            const p8est_qcoord_t lxy_face[6][3] = {{0,h,h},{l,h,h},{h,0,h},{h,l,h},{h,h,0},{h,h,l}};
+            const p8est_qcoord_t lxy_edge[12][3] = {{h,0,0},{h,l,0},{h,0,l},{h,l,l},
+                                                    {0,h,0},{l,h,0},{0,h,l},{l,h,l},
+                                                    {0,0,h},{l,0,h},{0,l,h},{l,l,h}};
+            
+            // Assign numbers to the vertix nodes
+            double xyz[3];
+            for(int n = 0; n < 8; n++)
+            {
+                // Get the first coordinate
+                p8est_qcoord_to_vertex(p8est->connectivity, treeid, 
+                                            oct->x+lxy_nodes[n][0], oct->y+lxy_nodes[n][1], oct->z+lxy_nodes[n][2], xyz);
+                auto point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
+                if(!std::count(NormalNodes.begin(), NormalNodes.end(), point))
+                {
+                    NormalNodes.push_back(point);
+                    NodeIDs[NormalNodes[NormalNodes.size()-1]]=NormalNodes.size()-1;
+                }
+            }
+        }
+    }
+
+    // Now work out the connections
     for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
         p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
         sc_array_t * tquadrants = &tree->quadrants;
@@ -1852,20 +1899,8 @@ void Brick::renumberNodes()
                                      std::count(hanging_face_node_connections.begin(), hanging_face_node_connections.end(), std::make_pair(facenodeidB,nodeidB[1])),
                                      std::count(hanging_face_node_connections.begin(), hanging_face_node_connections.end(), std::make_pair(nodeidB[1],facenodeidB))};
 
-                // used to look up the coordinate of the final node in each octant
-                //                       0         1         2         3         4         5
-                // const int xface0[6][4]={{0,0,0,0},{1,1,1,1},{0,1,0,1},{0,1,0,1},{0,1,0,1},{0,1,0,1}};
-                // const int yface0[6][4]={{0,1,0,1},{0,1,0,1},{0,0,0,0},{1,1,1,1},{0,0,1,1},{0,0,1,1}};
-                // const int zface0[6][4]={{0,0,1,1},{0,0,1,1},{0,0,1,1},{0,0,1,1},{0,0,0,0},{1,1,1,1}};
-                //                              0            1         2           3         4          5
-                const signed int xface1[6][4]={{0, 0, 0, 0},{0,0,0,0},{2,-1,0, 1},{0,0,0,0},{0,0,0, 1},{0,0,0,0}};
-                const signed int yface1[6][4]={{2,-1, 0, 1},{0,0,0,0},{0, 0,0, 0},{0,0,0,0},{0,0,0,-1},{0,0,0,0}};
-                const signed int zface1[6][4]={{0, 0,-1,-1},{0,0,0,0},{0, 0,0,-1},{0,0,0,0},{0,0,0, 0},{0,0,0,0}};
-                const signed int xface2[6][4]={{0, 0, 0, 0},{0,0,0,0},{0, 1,2,-1},{0,0,0,0},{0,1,2,-1},{0,0,0,0}};
-                const signed int yface2[6][4]={{0, 1, 2,-1},{0,0,0,0},{0, 0,0, 0},{0,0,0,0},{0,2,1, 1},{0,0,0,0}};
-                const signed int zface2[6][4]={{2, 2, 1, 1},{0,0,0,0},{0, 2,1, 1},{0,0,0,0},{0,0,0, 0},{0,0,0,0}};
-
-                std::cout << "AE indices = [" << n << "][" << hanging_faces[n] << "]" << std::endl;
+                
+                // std::cout << " index[" << n << "][" << hanging_faces[n] << "]" << std::endl;
 
                 if(need_edgeA[0]+need_edgeA[1] == 0)
                 {
@@ -1874,28 +1909,28 @@ void Brick::renumberNodes()
                     signed long y_corner1 = yface1[n][hanging_faces[n]] * l;
                     signed long z_corner1 = zface1[n][hanging_faces[n]] * l;
                     p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+x_corner1, oct->y+y_corner1, oct->z+z_corner1, xyzD);
-                    auto otherCornerPoint = std::make_tuple(xyzD[0],xyzD[1],xyzD[2]);
-                    long defunct = NodeIDs.find(otherCornerPoint)->second;
+                    auto otherCornerPoint1 = std::make_tuple(xyzD[0],xyzD[1],xyzD[2]);
+                    long defunct1 = NodeIDs.find(otherCornerPoint1)->second;
 
-                    std::cout << "AE defunct connection1 = " << nodeA << ", " << nodeidB[0] << ", " << defunct << std::endl;
+                    std::cout << " defunct connection1 = " << nodeA << ", " << nodeidB[0] << ", " << defunct1 << std::endl;
 
                     hanging_edge_node_connections.push_back(std::make_pair(nodeA,nodeidB[0]));
-                    false_node_connections.push_back(std::make_pair(nodeA,defunct));
+                    false_node_connections.push_back(std::make_pair(nodeA,defunct1));
                 }
                 if(need_edgeA[2]+need_edgeA[3] == 0)
                 {
                     // Calculate fallacious node connection that was generated by p8est
-                    signed long x_corner1 = xface2[n][hanging_faces[n]] * l;
-                    signed long y_corner1 = yface2[n][hanging_faces[n]] * l;
-                    signed long z_corner1 = zface2[n][hanging_faces[n]] * l;
-                    p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+x_corner1, oct->y+y_corner1, oct->z+z_corner1, xyzD);
-                    auto otherCornerPoint = std::make_tuple(xyzD[0],xyzD[1],xyzD[2]);
-                    long defunct = NodeIDs.find(otherCornerPoint)->second;
+                    signed long x_corner2 = xface2[n][hanging_faces[n]] * l;
+                    signed long y_corner2 = yface2[n][hanging_faces[n]] * l;
+                    signed long z_corner2 = zface2[n][hanging_faces[n]] * l;
+                    p8est_qcoord_to_vertex(p8est->connectivity, treeid, oct->x+x_corner2, oct->y+y_corner2, oct->z+z_corner2, xyzD);
+                    auto otherCornerPoint2 = std::make_tuple(xyzD[0],xyzD[1],xyzD[2]);
+                    long defunct2 = NodeIDs.find(otherCornerPoint2)->second;
 
-                    std::cout << "AE defunct connection2 = " << nodeA << ", " << nodeidB[1] << ", " << defunct << std::endl;
+                    std::cout << " defunct connection2 = " << nodeA << ", " << nodeidB[1] << ", " << defunct2 << std::endl;
 
                     hanging_edge_node_connections.push_back(std::make_pair(nodeA,nodeidB[1]));
-                    false_node_connections.push_back(std::make_pair(nodeA,defunct));
+                    false_node_connections.push_back(std::make_pair(nodeA,defunct2));
                 }
                 if(need_edgeB[0]+need_edgeB[1] == 0)
                 {
@@ -2783,14 +2818,28 @@ void Brick::updateRowsColumns()
 
         // Get pointers to the appropriate section of the indices vector
         std::vector<long> * idx0 = &indices[0][node[0]];
+        std::vector<long> * idx1 = &indices[0][node[1]];
         
+        #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
+        bool failure=true;
+        #endif
+
         // Find the index of the defunct connection
         for(int j = 1; j < idx0[0][0]+1; j++)
             if(idx0[0][j]==false_node_connections[i].second)
             {
                 idx0[0][j]=node[1];
+                idx1[0][0]++;
+                idx1[0][idx1[0][0]]=node[0];
+                #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
+                failure=false;
+                #endif
                 break;
-            }        
+            }
+
+        #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
+        ESYS_ASSERT(failure!=true," Failed to locate an edge node connection.");
+        #endif
     }
 
     // Nodes on hanging faces
