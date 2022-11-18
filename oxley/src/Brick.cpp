@@ -240,14 +240,19 @@ Brick::Brick(int order,
 */
 Brick::~Brick(){
 #ifdef OXLEY_ENABLE_DEBUG_CHECKS
-    std::cout << "In Brick() destructor" << std::endl;
-    std::cout << "checking p8est ... ";
+    std::cout << "\033[1;31m[oxley]\033[0m In Brick() destructor" << std::endl;
+    std::cout << "\033[1;31m[oxley]\033[0m checking p8est ... ";
     if(!p8est_is_valid(p8est))
         std::cout << "broken" << std::endl;
     else
         std::cout << "OK" << std::endl;
-    std::cout << "checking connectivity ... ";
+    std::cout << "\033[1;31m[oxley]\033[0m checking connectivity ... ";
     if(!p8est_connectivity_is_valid(connectivity))
+        std::cout << "broken" << std::endl;
+    else
+        std::cout << "OK" << std::endl;
+    std::cout << "\033[1;31m[oxley]\033[0m checking ghost ... ";
+    if(!p8est_ghost_is_valid(p8est,ghost))
         std::cout << "broken" << std::endl;
     else
         std::cout << "OK" << std::endl;
@@ -1912,10 +1917,13 @@ void Brick::renumberNodes()
                     auto otherCornerPoint1 = std::make_tuple(xyzD[0],xyzD[1],xyzD[2]);
                     long defunct1 = NodeIDs.find(otherCornerPoint1)->second;
 
-                    std::cout << " defunct connection1 = " << nodeA << ", " << nodeidB[0] << ", " << defunct1 << std::endl;
+                    // std::cout << " defunct connection1 = " << nodeA << ", " << nodeidB[0] << ", " << defunct1 << std::endl;
 
                     hanging_edge_node_connections.push_back(std::make_pair(nodeA,nodeidB[0]));
                     false_node_connections.push_back(std::make_pair(nodeA,defunct1));
+
+                    hanging_edge_node_connections.push_back(std::make_pair(nodeidB[0],defunct1));
+                    false_node_connections.push_back(std::make_pair(defunct1,nodeA));
                 }
                 if(need_edgeA[2]+need_edgeA[3] == 0)
                 {
@@ -1927,10 +1935,13 @@ void Brick::renumberNodes()
                     auto otherCornerPoint2 = std::make_tuple(xyzD[0],xyzD[1],xyzD[2]);
                     long defunct2 = NodeIDs.find(otherCornerPoint2)->second;
 
-                    std::cout << " defunct connection2 = " << nodeA << ", " << nodeidB[1] << ", " << defunct2 << std::endl;
+                    // std::cout << " defunct connection2 = " << nodeA << ", " << nodeidB[1] << ", " << defunct2 << std::endl;
 
                     hanging_edge_node_connections.push_back(std::make_pair(nodeA,nodeidB[1]));
                     false_node_connections.push_back(std::make_pair(nodeA,defunct2));
+
+                    hanging_edge_node_connections.push_back(std::make_pair(nodeidB[1],defunct2));
+                    false_node_connections.push_back(std::make_pair(defunct2,nodeA));
                 }
                 if(need_edgeB[0]+need_edgeB[1] == 0)
                 {
@@ -2820,10 +2831,8 @@ void Brick::updateRowsColumns()
         std::vector<long> * idx0 = &indices[0][node[0]];
         std::vector<long> * idx1 = &indices[0][node[1]];
         
-        #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
         bool failure=true;
-        #endif
-
+        
         // Find the index of the defunct connection
         for(int j = 1; j < idx0[0][0]+1; j++)
             if(idx0[0][j]==false_node_connections[i].second)
@@ -2837,9 +2846,13 @@ void Brick::updateRowsColumns()
                 break;
             }
 
-        #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
-        ESYS_ASSERT(failure!=true," Failed to locate an edge node connection.");
-        #endif
+        if(failure==true)
+        {
+            idx0[0][0]++;
+            idx0[0][idx0[0][0]]=node[1];
+            idx1[0][0]++;
+            idx1[0][idx1[0][0]]=node[0];
+        }
     }
 
     // Nodes on hanging faces
@@ -2878,7 +2891,7 @@ void Brick::updateRowsColumns()
     #endif
 
     // Sorting
-// #pragma omp for
+#pragma omp for
     for(int i = 0; i < getNumNodes(); i++)
     {
         std::vector<long> * idx0 = &indices[0][i];
