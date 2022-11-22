@@ -182,6 +182,9 @@ Brick::Brick(int order,
     int allow_coarsening = 0;
     p8est_partition(p8est, allow_coarsening, NULL);
 
+    // Indices
+    indices = new std::vector<IndexVector>;
+
     // Number the nodes
     updateNodeIncrements();
     renumberNodes();
@@ -2635,10 +2638,9 @@ void Brick::updateTreeIDs()
 
 void Brick::updateRowsColumns()
 {
-    std::vector<std::vector<long>> * indices;
-    indices = new std::vector<std::vector<long>>;
-    long initial[] = {0, -1, -1, -1, -1, -1, -1};
-    indices->resize(getNumNodes(), std::vector<long>(initial, initial+7));
+    indices->clear();
+    int initial[] = {0, -1, -1, -1, -1, -1, -1};
+    indices->resize(getNumNodes(), IndexVector(initial, initial+7));
 
     #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS
         std::cout << "\033[1;31m[oxley]\033[0m updateRowsColumns..." << std::endl;
@@ -2691,6 +2693,8 @@ void Brick::updateRowsColumns()
     p8est_ghost_exchange_data(p8est, ghost, ghost_data);
     p8est_iterate_ext(p8est, ghost, data, NULL, NULL, update_RC, NULL, true);
 
+    delete data;
+
     // *******************************************************************
     // Boundary edges
     // *******************************************************************
@@ -2723,8 +2727,8 @@ void Brick::updateRowsColumns()
                                     xyz[0] << ", " << xyz[1] << ", " << xyz[2] << ") " << lni1 << " [x boundary]" << std::endl;
                 #endif                
 
-                std::vector<long> * idx0 = &indices[0][lni0];
-                std::vector<long> * idx1 = &indices[0][lni1];
+                IndexVector * idx0 = &indices[0][lni0];
+                IndexVector * idx1 = &indices[0][lni1];
 
                 // Check for duplicates
                 bool dup = false;
@@ -2756,8 +2760,8 @@ void Brick::updateRowsColumns()
                                     xyz[0] << ", " << xyz[1] << ", " << xyz[2] << ") " << lni1 << " [y boundary]" << std::endl;
                 #endif
 
-                std::vector<long> * idx0 = &indices[0][lni0];
-                std::vector<long> * idx1 = &indices[0][lni1];
+                std::vector<int> * idx0 = &indices[0][lni0];
+                std::vector<int> * idx1 = &indices[0][lni1];
 
                 // Check for duplicates
                 bool dup = false;
@@ -2789,8 +2793,8 @@ void Brick::updateRowsColumns()
                                     xyz[0] << ", " << xyz[1] << ", " << xyz[2] << ") " << lni1 << " [z boundary]" << std::endl;
                 #endif
 
-                std::vector<long> * idx0 = &indices[0][lni0];
-                std::vector<long> * idx1 = &indices[0][lni1];
+                std::vector<int> * idx0 = &indices[0][lni0];
+                std::vector<int> * idx1 = &indices[0][lni1];
 
                 // Check for duplicates
                 bool dup = false;
@@ -2828,10 +2832,10 @@ void Brick::updateRowsColumns()
         long node[2]={hanging_edge_node_connections[i].first,hanging_edge_node_connections[i].second};
 
         // Get pointers to the appropriate section of the indices vector
-        std::vector<long> * idx0 = &indices[0][node[0]];
-        std::vector<long> * idx1 = &indices[0][node[1]];
+        std::vector<int> * idx0 = &indices[0][node[0]];
+        std::vector<int> * idx1 = &indices[0][node[1]];
         
-        bool failure=true;
+        bool failed_to_find_node=true;
         
         // Find the index of the defunct connection
         for(int j = 1; j < idx0[0][0]+1; j++)
@@ -2841,12 +2845,12 @@ void Brick::updateRowsColumns()
                 idx1[0][0]++;
                 idx1[0][idx1[0][0]]=node[0];
                 #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
-                failure=false;
+                failed_to_find_node=false;
                 #endif
                 break;
             }
 
-        if(failure==true)
+        if(failed_to_find_node==true)
         {
             idx0[0][0]++;
             idx0[0][idx0[0][0]]=node[1];
@@ -2863,8 +2867,8 @@ void Brick::updateRowsColumns()
         long node[2]={hanging_face_node_connections[i].first,hanging_face_node_connections[i].second};
 
         // Get pointers to the appropriate section of the indices vector
-        std::vector<long> * idx0 = &indices[0][node[0]];
-        std::vector<long> * idx1 = &indices[0][node[1]];
+        std::vector<int> * idx0 = &indices[0][node[0]];
+        std::vector<int> * idx1 = &indices[0][node[1]];
 
         #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
             for(int i=1; i < idx0[0][0]; i++)
@@ -2894,14 +2898,14 @@ void Brick::updateRowsColumns()
 #pragma omp for
     for(int i = 0; i < getNumNodes(); i++)
     {
-        std::vector<long> * idx0 = &indices[0][i];
+        std::vector<int> * idx0 = &indices[0][i];
         std::sort(indices[0][i].begin()+1, indices[0][i].begin()+idx0[0][0]+1);
     }
 
 #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
     std::cout << "\033[1;31m[oxley]\033[0mNode connections: " << std::endl;
     for(int i = 0; i < getNumNodes(); i++){
-        std::vector<long> * idx0 = &indices[0][i];
+        std::vector<int> * idx0 = &indices[0][i];
         std::cout << i << ": ";
         for(int j = 1; j < idx0[0][0]+1; j++)
             std::cout << idx0[0][j] << ", ";
@@ -2925,8 +2929,8 @@ void Brick::updateRowsColumns()
     long counter = 0;
     for(int i = 0; i < getNumNodes(); i++)
     {
-        std::vector<long> * idx0 = &indices[0][i];
-        std::vector<long> temp; 
+        std::vector<int> * idx0 = &indices[0][i];
+        std::vector<int> temp; 
         for(int j = 1; j < idx0[0][0]+1; j++)
         {
             temp.push_back(idx0[0][j]);
@@ -2959,8 +2963,14 @@ void Brick::updateRowsColumns()
     std::cout << "]" << std::endl;
 #endif
 
-    delete indices;
-    delete data;
+    // try
+    // {
+    //     delete indices;
+    // }
+    // catch(...)
+    // {
+    //     throw OxleyException("Broken pointer");
+    // }
 }
 
 #ifdef ESYS_HAVE_TRILINOS
@@ -3276,107 +3286,7 @@ std::vector<IndexVector> Brick::getConnections(bool includeShared) const
     // If includeShared==true then connections to non-owned DOFs are also
     // returned (i.e. indices of the column couplings)
 
-    long numNodes = getNumNodes();
-    std::vector< std::vector<escript::DataTypes::index_t> > indices(numNodes);
-
-    // Loop over the quadrants skipped by p8est_iterate  
-    for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) 
-    {
-        p8est_tree_t * tree = p8est_tree_array_index(p8est->trees, treeid);
-        sc_array_t * tquadrants = &tree->quadrants;
-        p8est_qcoord_t Q = (p8est_qcoord_t) tquadrants->elem_count;
-// #pragma omp parallel for
-        for(p8est_qcoord_t q = 0; q < Q; ++q) // Loop over all quadrants
-        { 
-            p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
-            p8est_qcoord_t l = P8EST_QUADRANT_LEN(quad->level);
-            for(int n = 0; n < 8; n++)
-            {
-                double xyz[3];
-                long lx[8] = {0,l,0,l,0,l,0,l};
-                long ly[8] = {0,0,l,l,0,0,l,l};
-                long lz[8] = {0,0,0,0,l,l,l,l};
-                long lni[4] = {-1};
-                for(int i = 0; i < 8; i++)
-                {
-                    p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x+lx[i], quad->y+ly[i], quad->z+lz[i], xyz);
-                    lni[i] = NodeIDs.find(std::make_tuple(xyz[0],xyz[1],xyz[2]))->second;
-                }
-
-                for(int i = 0; i < 4; i++)
-                {
-                    for(int j = 0; j < 4; j++)
-                    {
-                        bool dup = false;
-                        for(int k = 0; k < indices[lni[i]].size(); k++)
-                            if(indices[lni[i]][k] == lni[j])
-                            {
-                                dup = true;
-                                break;
-                            }
-                        if(dup == false)
-                            indices[lni[i]].push_back(lni[j]);
-                    }
-                }
-            }
-        }
-    }
-
-    // Hanging Nodes
-    for(int i = 0; i < hanging_face_orientation.size(); i++)
-    {       
-        // Calculate the node ids
-        double xy[3]={0};
-        p8est_qcoord_to_vertex(p8est->connectivity, hanging_face_orientation[i].treeid, 
-                                                    hanging_face_orientation[i].x, 
-                                                    hanging_face_orientation[i].y,
-                                                    hanging_face_orientation[i].z, xy);
-        //TODO
-        long nodeid = NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
- 
-        p8est_qcoord_t l = P4EST_QUADRANT_LEN(hanging_face_orientation[i].neighbour_level);
-        //TODO check
-        p8est_qcoord_t x_inc[4][3]={{0,0,0},{l,l,0},{0,l,l},{0,l,l}};
-        p8est_qcoord_t y_inc[4][3]={{0,l,0},{0,l,0},{0,0,l},{l,l,l}};
-        p8est_qcoord_t z_inc[4][3]={{0,0,0},{0,0,0},{0,0,l},{0,0,l}};
-
-        p8est_qcoord_to_vertex(p8est->connectivity, hanging_face_orientation[i].neighbour_tree, 
-                hanging_face_orientation[i].neighbour_x+x_inc[hanging_face_orientation[i].face_type][0], 
-                hanging_face_orientation[i].neighbour_y+y_inc[hanging_face_orientation[i].face_type][0],
-                hanging_face_orientation[i].neighbour_z+z_inc[hanging_face_orientation[i].face_type][0], xy);
-        long lni0 = NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
-        p8est_qcoord_to_vertex(p8est->connectivity, hanging_face_orientation[i].neighbour_tree, 
-                hanging_face_orientation[i].neighbour_x+x_inc[hanging_face_orientation[i].face_type][1], 
-                hanging_face_orientation[i].neighbour_y+y_inc[hanging_face_orientation[i].face_type][1],
-                hanging_face_orientation[i].neighbour_z+z_inc[hanging_face_orientation[i].face_type][1], xy);
-        long lni1 = NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
-
-        // add info 
-        // std::cout << nodeid << ": " << lni0 << ", " << lni1 << std::endl;
-        indices[nodeid].push_back(lni0);
-        indices[nodeid].push_back(lni1);
-
-        indices[lni0].push_back(nodeid);
-        indices[lni1].push_back(nodeid);
-    }    
-
-// Sorting
-// #pragma omp parallel for
-    for(int i = 0; i < numNodes; i++){
-        std::sort(indices[i].begin(), indices[i].begin()+indices[i].size());
-    }
-
-// #ifdef OXLEY_ENABLE_DEBUG
-//     std::cout << "Brick::getConnections" << std::endl;
-//     for(int i = 0; i < numNodes; i++) {
-//         std::cout << "i:" << i << " ";
-//         for(auto j = 0; j < indices[i].size(); j++)
-//             std::cout << indices[i][j] << ", ";
-//         std::cout << std::endl;
-//     }
-// #endif
-
-    return indices;
+    return *indices;
 }
 
 bool Brick::operator==(const AbstractDomain& other) const

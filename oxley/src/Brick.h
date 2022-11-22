@@ -317,6 +317,9 @@ private:
     p8est_lnodes * nodes;
     long nodeIncrements[MAXTREES] = {0};
 
+    // Indices
+    std::vector<IndexVector> * indices;
+
     // Pointer that records the location of a temporary data structure
     void * temp_data;
 

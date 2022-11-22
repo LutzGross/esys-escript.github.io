@@ -1143,8 +1143,8 @@ void update_RC(p8est_iter_edge_info *info, void *user_data)
         // std::cout << std::endl;
     #endif
 
-    std::vector<long> * idx0 = &data->indices[0][lni0];
-    std::vector<long> * idx1 = &data->indices[0][lni1];
+    IndexVector * idx0 = &data->indices[0][lni0];
+    IndexVector * idx1 = &data->indices[0][lni1];
 
     // Check for duplicates
     bool dup = false;

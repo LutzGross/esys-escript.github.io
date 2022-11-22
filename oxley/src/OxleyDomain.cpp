@@ -70,6 +70,8 @@ namespace oxley {
         #ifdef OXLEY_ENABLE_DEBUG
             sc_set_log_defaults(NULL, NULL, LOG_LEVEL);
             // p4est_init(NULL, LOG_LEVEL);
+        #else
+            sc_set_log_defaults(NULL, NULL, 9);
         #endif
     }
 
@@ -1244,23 +1246,25 @@ esys_trilinos::const_TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
     const dim_t numMatrixRows = getNumNodes();
 
     IndexVector rowTemp(getNumDataPointsGlobal());
-    if(getMPISize() == 1)
-    {
+    // if(getMPISize() == 1)
+    // {
     #pragma omp for
         for(long i = 0; i < getNumDataPointsGlobal(); i++)
             rowTemp[i] = i;
-    }
-    else
-    {
-        OxleyException("Not yet implemented"); //TODO
-    }
+    // }
+    // else
+    // {
+    //     OxleyException("Not yet implemented"); //TODO
+    // }
 
     // rowMap
     // This is using the constructor on line 868 of file  Tpetra_Map_def.hpp.
-    TrilinosMap_ptr rowMap(new MapType(getNumDataPointsGlobal(), rowTemp, 0, TeuchosCommFromEsysComm(m_mpiInfo->comm)));
+    TrilinosMap_ptr rowMap(new MapType(getNumDataPointsGlobal(), 
+                                                rowTemp, 0, TeuchosCommFromEsysComm(m_mpiInfo->comm)));
 
     // colMap
-    TrilinosMap_ptr colMap(new MapType(getNumDataPointsGlobal(), rowTemp, 0, TeuchosCommFromEsysComm(m_mpiInfo->comm)));
+    TrilinosMap_ptr colMap(new MapType(getNumDataPointsGlobal(), 
+                                                rowTemp, 0, TeuchosCommFromEsysComm(m_mpiInfo->comm)));
     
     // rowPtr
     const vector<IndexVector>& conns(getConnections(true));

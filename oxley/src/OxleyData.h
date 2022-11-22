@@ -300,7 +300,7 @@ struct update_RC_data_brick {
 	std::unordered_map<DoubleTuple,long,boost::hash<DoubleTuple>> * pNodeIDs; 
 	// std::unordered_map<long,bool> * phangingNodeIDs; 
 	p8est_t * p8est;
-	std::vector< std::vector<long> > * indices;
+	std::vector<oxley::IndexVector> * indices;
 	double m_origin[3]={0};
 
 	std::vector<oct_info> * pOctInfo;
