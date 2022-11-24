@@ -883,7 +883,10 @@ public:
 
     /// stores the hanging node information
     std::vector<DoublePair> hanging_faces; 
-    std::vector<DoublePair> hanging_edges; //unused by Rectangle
+
+    std::vector<std::pair<long,long>> hanging_edge_node_connections;
+    std::vector<std::pair<long,long>> hanging_face_node_connections;
+    std::vector<std::pair<long,long>> false_node_connections;
 
 protected:
 

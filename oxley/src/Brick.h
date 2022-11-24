@@ -346,10 +346,6 @@ private:
     std::vector<hangingFaceInfo> hanging_face_orientation;
     std::vector<hangingEdgeInfo> hanging_edge_orientation;
 
-    std::vector<std::pair<long,long>> hanging_edge_node_connections;
-    std::vector<std::pair<long,long>> hanging_face_node_connections;
-    std::vector<std::pair<long,long>> false_node_connections;
-        
     // Row and column indices in CRS format
     IndexVector myRows;
     IndexVector myColumns;
