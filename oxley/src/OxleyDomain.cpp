@@ -1749,8 +1749,25 @@ void OxleyDomain::makeZ(bool complex)
             //worker
             for(int i = 0; i < getNumHangingNodes(); i++)
             {
-                int a = hanging_faces[i].first;
-                int b = hanging_faces[i].second;
+                int a, b;
+                if(getDim()==2)
+                {
+                    a = hanging_faces[i].first;
+                    b = hanging_faces[i].second;
+                }
+                else
+                {   
+                    if(i > hanging_edge_node_connections.size())
+                    {
+                        a = hanging_edge_node_connections[i].first;
+                        b = hanging_edge_node_connections[i].second;
+                    }
+                    else
+                    {
+                        a = hanging_face_node_connections[i-hanging_edge_node_connections.size()].first;
+                        b = hanging_face_node_connections[i-hanging_edge_node_connections.size()].second;   
+                    }
+                }
                 int x,y;
                 if(a>=n)
                 {
@@ -1809,8 +1826,16 @@ void OxleyDomain::makeZ(bool complex)
                 }
                 else
                 {   
-                    a = hanging_edge_node_connections[i].first;
-                    b = hanging_edge_node_connections[i].second;
+                    if(i > hanging_edge_node_connections.size())
+                    {
+                        a = hanging_edge_node_connections[i].first;
+                        b = hanging_edge_node_connections[i].second;
+                    }
+                    else
+                    {
+                        a = hanging_face_node_connections[i-hanging_edge_node_connections.size()].first;
+                        b = hanging_face_node_connections[i-hanging_edge_node_connections.size()].second;   
+                    }
                 }
                 int x,y;
                 if(a>=n)
@@ -1825,7 +1850,7 @@ void OxleyDomain::makeZ(bool complex)
                 }
 
                 #ifdef OXLEY_PRINT_DEBUG_IZ_EXTRA
-                    std::cout << "Z element: (" << x << ", " << y << ") = " << 0.5;
+                    std::cout << "Z element: ["<< a << "," << b << "] (" << x << ", " << y << ") = " << 0.5;
                 #endif
 
                 const esys_trilinos::GO gblRowAz = zrrowMap->getGlobalElement(x);
@@ -1858,8 +1883,25 @@ void OxleyDomain::makeZworker(S half,Teuchos::RCP<Tpetra::CrsMatrix<S,esys_trili
 
     for(int i = 0; i < getNumHangingNodes(); i++)
     {
-        int a = hanging_faces[i].first;
-        int b = hanging_faces[i].second;
+        int a, b;
+                if(getDim()==2)
+                {
+                    a = hanging_faces[i].first;
+                    b = hanging_faces[i].second;
+                }
+                else
+                {   
+                    if(i > hanging_edge_node_connections.size())
+                    {
+                        a = hanging_edge_node_connections[i].first;
+                        b = hanging_edge_node_connections[i].second;
+                    }
+                    else
+                    {
+                        a = hanging_face_node_connections[i-hanging_edge_node_connections.size()].first;
+                        b = hanging_face_node_connections[i-hanging_edge_node_connections.size()].second;   
+                    }
+                }
         if(a>n)
         {
             int c = a;
@@ -1868,7 +1910,7 @@ void OxleyDomain::makeZworker(S half,Teuchos::RCP<Tpetra::CrsMatrix<S,esys_trili
         }
 
         #ifdef OXLEY_PRINT_DEBUG_IZ
-            std::cout << "Z element: (" << a-n << ", " << b << ") = " << 0.5;
+            std::cout << "Z element: ["<< a << "," << b << "] = " << 0.5;
         #endif
 
         const esys_trilinos::GO gblRowAz = row->getLocalElement(a-n);
@@ -1946,8 +1988,25 @@ void OxleyDomain::makeIZ(bool complex)
             // This is Z
             for(int i = 0; i < getNumHangingNodes(); i++)
             {
-                int a = hanging_faces[i].first;
-                int b = hanging_faces[i].second;
+                int a, b;
+                if(getDim()==2)
+                {
+                    a = hanging_faces[i].first;
+                    b = hanging_faces[i].second;
+                }
+                else
+                {   
+                    if(i > hanging_edge_node_connections.size())
+                    {
+                        a = hanging_edge_node_connections[i].first;
+                        b = hanging_edge_node_connections[i].second;
+                    }
+                    else
+                    {
+                        a = hanging_face_node_connections[i-hanging_edge_node_connections.size()].first;
+                        b = hanging_face_node_connections[i-hanging_edge_node_connections.size()].second;   
+                    }
+                }
                 int x,y;
                 if(a>=n)
                 {
@@ -1961,7 +2020,7 @@ void OxleyDomain::makeIZ(bool complex)
                 }
 
                 #ifdef OXLEY_PRINT_DEBUG_IZ
-                    std::cout << "IZ Z element: (" << x << ", " << y << ") = " << 0.5;
+                    std::cout << "IZ element: ["<< a << "," << b << "] (" << x << ", " << y << ") = " << 0.5;
                 #endif
 
                 const esys_trilinos::GO gblRowAz = izcrowMap->getGlobalElement(x);
@@ -2008,8 +2067,25 @@ void OxleyDomain::makeIZ(bool complex)
             // This is Z
             for(int i = 0; i < getNumHangingNodes(); i++)
             {
-                int a = hanging_faces[i].first;
-                int b = hanging_faces[i].second;
+                int a, b;
+                if(getDim()==2)
+                {
+                    a = hanging_faces[i].first;
+                    b = hanging_faces[i].second;
+                }
+                else
+                {   
+                    if(i > hanging_edge_node_connections.size())
+                    {
+                        a = hanging_edge_node_connections[i].first;
+                        b = hanging_edge_node_connections[i].second;
+                    }
+                    else
+                    {
+                        a = hanging_face_node_connections[i-hanging_edge_node_connections.size()].first;
+                        b = hanging_face_node_connections[i-hanging_edge_node_connections.size()].second;   
+                    }
+                }
                 int x,y;
                 if(a>=n)
                 {
