@@ -1708,8 +1708,12 @@ void OxleyDomain::makeZ(bool complex)
     {
         // Size information
         const Tpetra::global_size_t t = getNumNodes(); //Total number of nodes
-        const Tpetra::global_size_t h = 0.5*getNumHangingNodes(); // Number of hanging nodes
+        const Tpetra::global_size_t h = getDim()==2 ? 0.5*getNumHangingNodes() : getNumHangingNodes(); // Number of hanging nodes
         const Tpetra::global_size_t n = t - h;
+
+        #ifdef OXLEY_PRINT_DEBUG_IZ_EXTRA
+            std::cout << "makeZ: Total nodes= " << t << ", total hanging = " << h << std::endl;
+        #endif
 
         // initialise other variables
         const esys_trilinos::GO indexBase = 0;
@@ -1760,7 +1764,7 @@ void OxleyDomain::makeZ(bool complex)
                 }
 
                 #ifdef OXLEY_PRINT_DEBUG_IZ_EXTRA
-                    std::cout << "Z element: (" << x << ", " << y << ") = " << 0.5;
+                    std::cout << "Z element: ["<< a << "," << b << "] (" << x << ", " << y << ") = " << 0.5;
                 #endif
 
                 const esys_trilinos::GO gblRowAz = zcrowMap->getGlobalElement(x);
@@ -1894,7 +1898,7 @@ void OxleyDomain::makeIZ(bool complex)
     {
         // Size information
         const Tpetra::global_size_t t = getNumNodes(); //Total number of nodes
-        const Tpetra::global_size_t h = 0.5*getNumHangingNodes(); // Number of hanging nodes
+        const Tpetra::global_size_t h = getDim()==2 ? 0.5*getNumHangingNodes() : getNumHangingNodes(); // Number of hanging nodes
         const Tpetra::global_size_t n = t - h;
 
         // initialise other variables

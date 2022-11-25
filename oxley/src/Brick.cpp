@@ -1978,10 +1978,12 @@ void Brick::renumberNodes()
         }
     }
 
+    // Update num_hanging
+    num_hanging=HangingFaceNodes.size()+HangingEdgeNodes.size();
+
     // Populate NodeIDs
     is_hanging.clear();
     int num_nodes=NormalNodes.size();
-    num_hanging=HangingFaceNodes.size()+HangingEdgeNodes.size();
     int total_nodes=NormalNodes.size(); //+HangingFaceNodes.size()+HangingEdgeNodes.size();
     is_hanging.resize(total_nodes,false);
     for(int i=0;i<num_nodes;i++)
@@ -1991,10 +1993,6 @@ void Brick::renumberNodes()
     for(int i=0;i<HangingEdgeNodes.size();i++)
         is_hanging[HangingEdgeNodes[i]]=true;
 
-    // This variable currently records the number of hanging faces, not the number of hanging nodes
-    // TODO
-    // num_hanging/=4;
-
     // Populate m_nodeIDs
     m_nodeId.clear();
     m_nodeId.resize(NodeIDs.size());
@@ -2002,8 +2000,6 @@ void Brick::renumberNodes()
     for(std::pair<DoubleTuple,long> e : NodeIDs)
         m_nodeId[count++]=e.second;
 
-    // update num_hanging
-    num_hanging=hanging_face_node_connections.size()+hanging_edge_node_connections.size();
 
 #ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES_PRINT_OCTANT_INFO
     std::cout << "There are " << quadrantIDs.size() << " octants" << std::endl;
