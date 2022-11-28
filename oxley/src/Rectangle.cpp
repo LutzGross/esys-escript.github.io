@@ -1552,6 +1552,8 @@ void Rectangle::renumberNodes()
         is_hanging[count++]=true;
     }
 
+    ESYS_ASSERT(NodeIDs.size()!=0, "renumberNodes: Did not find any nodes");
+
     // This variable currently records the number of hanging faces, not the number of hanging nodes
     num_hanging/=2;
 
@@ -1612,18 +1614,18 @@ void Rectangle::renumberNodes()
     }
 #endif
 
-#ifdef OXLEY_PRINT_NODEIDS
-    std::cout << "Printing NodeIDs " << std::endl;
-    double xyf[NodeIDs.size()][2]={{0}};
-    for(std::pair<DoublePair,long> e : NodeIDs)
-    {
-        xyf[e.second][0]=e.first.first;
-        xyf[e.second][1]=e.first.second;
-    }
-    for(int i=0; i<NodeIDs.size(); i++)
-        std::cout << i << ": " << xyf[i][0] << ", " << xyf[i][1] << std::endl;
-    std::cout << "-------------------------------" << std::endl;
-#endif
+// #ifdef OXLEY_PRINT_NODEIDS
+//     std::cout << "Printing NodeIDs " << std::endl;
+//     double xyf[NodeIDs.size()][2]={{0}};
+//     for(std::pair<DoublePair,long> e : NodeIDs)
+//     {
+//         xyf[e.second][0]=e.first.first;
+//         xyf[e.second][1]=e.first.second;
+//     }
+//     for(int i=0; i<NodeIDs.size(); i++)
+//         std::cout << i << ": " << xyf[i][0] << ", " << xyf[i][1] << std::endl;
+//     std::cout << "-------------------------------" << std::endl;
+// #endif
 
 #ifdef OXLEY_PRINT_NODEIDS_HANGING
     for(int i = 0; i < is_hanging.size(); i++)
@@ -2037,7 +2039,7 @@ void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
                 getNeighouringNodeIDs(quad->level, quad->x, quad->y, treeid, ids);
                 long quadId = getQuadID(ids[0]);
 
-            #ifdef OXLEY_ENABLE_DEBUG_INTERPOLATE_QUADIDS
+            #ifdef OXLEY_ENABLE_DEBUG_INTERPOLATE_EXTRA
                 std::cout << "interpolateNodesOnElementsWorker quadID: " << quadId << ", node IDs " << 
                                     ids[0] << ", " << ids[2] << ", " << ids[1] << ", " << ids[3] << std::endl;
             #endif
@@ -2344,7 +2346,7 @@ void Rectangle::updateRowsColumns()
     long initial[] = {0, -1, -1, -1, -1};
     indices->resize(getNumNodes(), std::vector<long>(initial, initial+5));
 
-    #ifdef OXLEY_ENABLE_DEBUG_NODES_EXTRA_DETAILS
+    #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
         std::cout << "updateRowsColumns" << std::endl;
         std::cout << "Allocated memory for " << getNumNodes() << " nodes. " << std::endl;
     #endif
@@ -2471,7 +2473,7 @@ void Rectangle::updateRowsColumns()
         std::vector<long> * idx1b = &indices[0][lni1];
         std::vector<long> * idx1c = &indices[0][lni2];
 
-        #ifdef OXLEY_ENABLE_DEBUG_NODES_EXTRA_DETAILS
+        #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
             std::cout << "nodeid = " << nodeid << ": " << idx0[0][0] << ", " << idx0[0][1] << ", " << idx0[0][2] << ", " << idx0[0][3] << ", " << idx0[0][4] << std::endl;
             std::cout << lni0 << ": " << idx1a[0][0] << ", " << idx1a[0][1] << ", " << idx1a[0][2] << ", " << idx1a[0][3] << ", " << idx1a[0][4] << std::endl;
             std::cout << lni1 << ": " << idx1b[0][0] << ", " << idx1b[0][1] << ", " << idx1b[0][2] << ", " << idx1b[0][3] << ", " << idx1b[0][4] << std::endl;
@@ -2540,7 +2542,7 @@ void Rectangle::updateRowsColumns()
         std::sort(indices[0][i].begin()+1, indices[0][i].begin()+idx0[0][0]+1);
     }
 
-#ifdef OXLEY_ENABLE_DEBUG_NODES
+#ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS
     std::cout << "Node connections: " << std::endl;
     // Output for debugging
     // for(int i = getNumNodes()-0.5*num_hanging; i < getNumNodes(); i++){
@@ -2579,7 +2581,7 @@ void Rectangle::updateRowsColumns()
     }
     myRows.push_back(myColumns.size());
 
-#ifdef OXLEY_ENABLE_DEBUG_NODES
+#ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
     std::cout << "Converted to Yale format... "<< std::endl;
     std::cout << "COL_INDEX [";
     for(auto i = myColumns.begin(); i < myColumns.end(); i++)
