@@ -1757,7 +1757,7 @@ void OxleyDomain::makeZ(bool complex)
                 }
                 else
                 {   
-                    if(i > hanging_edge_node_connections.size())
+                    if(i < hanging_edge_node_connections.size())
                     {
                         a = hanging_edge_node_connections[i].first;
                         b = hanging_edge_node_connections[i].second;
@@ -1780,6 +1780,10 @@ void OxleyDomain::makeZ(bool complex)
                     y=b-n;
                 }
 
+                #ifdef OXLEY_PRINT_DEBUG_IZ
+                    ESYS_ASSERT(x>=0, "Unknown error.");
+                    ESYS_ASSERT(y>=0, "Unknown error.");
+                #endif
                 #ifdef OXLEY_PRINT_DEBUG_IZ_EXTRA
                     std::cout << "Z element: ["<< a << "," << b << "] (" << x << ", " << y << ") = " << 0.5;
                 #endif
@@ -1826,7 +1830,7 @@ void OxleyDomain::makeZ(bool complex)
                 }
                 else
                 {   
-                    if(i > hanging_edge_node_connections.size())
+                    if(i < hanging_edge_node_connections.size())
                     {
                         a = hanging_edge_node_connections[i].first;
                         b = hanging_edge_node_connections[i].second;
@@ -1884,24 +1888,24 @@ void OxleyDomain::makeZworker(S half,Teuchos::RCP<Tpetra::CrsMatrix<S,esys_trili
     for(int i = 0; i < getNumHangingNodes(); i++)
     {
         int a, b;
-                if(getDim()==2)
-                {
-                    a = hanging_faces[i].first;
-                    b = hanging_faces[i].second;
-                }
-                else
-                {   
-                    if(i > hanging_edge_node_connections.size())
-                    {
-                        a = hanging_edge_node_connections[i].first;
-                        b = hanging_edge_node_connections[i].second;
-                    }
-                    else
-                    {
-                        a = hanging_face_node_connections[i-hanging_edge_node_connections.size()].first;
-                        b = hanging_face_node_connections[i-hanging_edge_node_connections.size()].second;   
-                    }
-                }
+        if(getDim()==2)
+        {
+            a = hanging_faces[i].first;
+            b = hanging_faces[i].second;
+        }
+        else
+        {   
+            if(i < hanging_edge_node_connections.size())
+            {
+                a = hanging_edge_node_connections[i].first;
+                b = hanging_edge_node_connections[i].second;
+            }
+            else
+            {
+                a = hanging_face_node_connections[i-hanging_edge_node_connections.size()].first;
+                b = hanging_face_node_connections[i-hanging_edge_node_connections.size()].second;   
+            }
+        }
         if(a>n)
         {
             int c = a;
@@ -1996,7 +2000,7 @@ void OxleyDomain::makeIZ(bool complex)
                 }
                 else
                 {   
-                    if(i > hanging_edge_node_connections.size())
+                    if(i < hanging_edge_node_connections.size())
                     {
                         a = hanging_edge_node_connections[i].first;
                         b = hanging_edge_node_connections[i].second;
@@ -2075,7 +2079,7 @@ void OxleyDomain::makeIZ(bool complex)
                 }
                 else
                 {   
-                    if(i > hanging_edge_node_connections.size())
+                    if(i < hanging_edge_node_connections.size())
                     {
                         a = hanging_edge_node_connections[i].first;
                         b = hanging_edge_node_connections[i].second;

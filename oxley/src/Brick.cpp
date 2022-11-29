@@ -1981,6 +1981,8 @@ void Brick::renumberNodes()
     // Update num_hanging
     num_hanging=HangingFaceNodes.size()+HangingEdgeNodes.size();
 
+    // TODO Renumber hanging nodes 
+
     // Populate NodeIDs
     is_hanging.clear();
     int num_nodes=NormalNodes.size();
