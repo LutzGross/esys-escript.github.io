@@ -1610,8 +1610,11 @@ void Brick::renumberNodes()
     // Write in NodeIDs
 // #pragma omp for
     int k = 0;
+    std::vector<DoubleTuple> NormalNodesTmp;
     NormalNodes.clear();
+    std::vector<long> HangingFaceNodesTmp;
     HangingFaceNodes.clear();
+    std::vector<long> HangingEdgeNodesTmp;
     HangingEdgeNodes.clear();
 
     // Assign numbers to the nodes
@@ -1641,10 +1644,10 @@ void Brick::renumberNodes()
                 p8est_qcoord_to_vertex(p8est->connectivity, treeid, 
                                             oct->x+lxy_nodes[n][0], oct->y+lxy_nodes[n][1], oct->z+lxy_nodes[n][2], xyz);
                 auto point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
-                if(!std::count(NormalNodes.begin(), NormalNodes.end(), point))
+                if(!std::count(NormalNodesTmp.begin(), NormalNodesTmp.end(), point))
                 {
-                    NormalNodes.push_back(point);
-                    NodeIDs[NormalNodes[NormalNodes.size()-1]]=NormalNodes.size()-1;
+                    NormalNodesTmp.push_back(point);
+                    NodeIDs[NormalNodesTmp[NormalNodesTmp.size()-1]]=NormalNodesTmp.size()-1;
                 }
             }
         }
@@ -1677,10 +1680,10 @@ void Brick::renumberNodes()
                 p8est_qcoord_to_vertex(p8est->connectivity, treeid, 
                                             oct->x+lxy_nodes[n][0], oct->y+lxy_nodes[n][1], oct->z+lxy_nodes[n][2], xyz);
                 auto point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
-                if(!std::count(NormalNodes.begin(), NormalNodes.end(), point))
+                if(!std::count(NormalNodesTmp.begin(), NormalNodesTmp.end(), point))
                 {
-                    NormalNodes.push_back(point);
-                    NodeIDs[NormalNodes[NormalNodes.size()-1]]=NormalNodes.size()-1;
+                    NormalNodesTmp.push_back(point);
+                    NodeIDs[NormalNodesTmp[NormalNodesTmp.size()-1]]=NormalNodesTmp.size()-1;
                 }
             }
 
@@ -1756,9 +1759,9 @@ void Brick::renumberNodes()
                 // Add to list of nodes
                 DoubleTuple point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
                 long nodeid = NodeIDs.find(point)->second;
-                std::vector<long>::iterator have_node = std::find(HangingFaceNodes.begin(), HangingFaceNodes.end(),nodeid);
-                if(have_node == HangingFaceNodes.end())
-                      HangingFaceNodes.push_back(nodeid);
+                std::vector<long>::iterator have_node = std::find(HangingFaceNodesTmp.begin(), HangingFaceNodesTmp.end(),nodeid);
+                if(have_node == HangingFaceNodesTmp.end())
+                      HangingFaceNodesTmp.push_back(nodeid);
 
                 // *******************************************************************
                 // Get the parent octant
@@ -1805,12 +1808,12 @@ void Brick::renumberNodes()
 
                 // Add to list of nodes
                 std::vector<long>::iterator have_edge;
-                have_edge = std::find(HangingEdgeNodes.begin(), HangingEdgeNodes.end(), nodeidB[0]);
-                if(have_edge == HangingEdgeNodes.end())
-                      HangingEdgeNodes.push_back(nodeidB[0]);
-                have_edge = std::find(HangingEdgeNodes.begin(), HangingEdgeNodes.end(), nodeidB[1]);
-                if(have_edge == HangingEdgeNodes.end())
-                      HangingEdgeNodes.push_back(nodeidB[1]);
+                have_edge = std::find(HangingEdgeNodesTmp.begin(), HangingEdgeNodesTmp.end(), nodeidB[0]);
+                if(have_edge == HangingEdgeNodesTmp.end())
+                      HangingEdgeNodesTmp.push_back(nodeidB[0]);
+                have_edge = std::find(HangingEdgeNodesTmp.begin(), HangingEdgeNodesTmp.end(), nodeidB[1]);
+                if(have_edge == HangingEdgeNodesTmp.end())
+                      HangingEdgeNodesTmp.push_back(nodeidB[1]);
 
                 // *******************************************************************
                 // Get the neighbouring edge(s)
@@ -1979,21 +1982,74 @@ void Brick::renumberNodes()
     }
 
     // Update num_hanging
-    num_hanging=HangingFaceNodes.size()+HangingEdgeNodes.size();
-
-    // TODO Renumber hanging nodes 
+    num_hanging=HangingFaceNodesTmp.size()+HangingEdgeNodesTmp.size();
 
     // Populate NodeIDs
-    is_hanging.clear();
-    int num_nodes=NormalNodes.size();
-    int total_nodes=NormalNodes.size(); //+HangingFaceNodes.size()+HangingEdgeNodes.size();
-    is_hanging.resize(total_nodes,false);
+    std::vector<bool> is_hanging_tmp;
+    int num_nodes=NormalNodesTmp.size();
+    is_hanging_tmp.resize(getNumNodes(),false);
     for(int i=0;i<num_nodes;i++)
-        NodeIDs[NormalNodes[i]]=i;
-    for(int i=0;i<HangingFaceNodes.size();i++)
-        is_hanging[HangingFaceNodes[i]]=true;
-    for(int i=0;i<HangingEdgeNodes.size();i++)
-        is_hanging[HangingEdgeNodes[i]]=true;
+        NodeIDs[NormalNodesTmp[i]]=i;
+    for(int i=0;i<HangingFaceNodesTmp.size();i++)
+        is_hanging_tmp[HangingFaceNodesTmp[i]]=true;
+    for(int i=0;i<HangingEdgeNodesTmp.size();i++)
+        is_hanging_tmp[HangingEdgeNodesTmp[i]]=true;
+
+    // Renumber hanging nodes
+    // By custom, hanging numbers are numbered last
+    std::vector<int> new_node_ids(getNumNodes(),-1);
+    int count1=0;
+    int count2=getNumNodes()-num_hanging-1;
+    for(int i=0;i<getNumNodes();i++)
+    {
+        if(!is_hanging_tmp[i])
+            new_node_ids[i]=count1++;
+        else
+            new_node_ids[i]=count2++;
+
+    }
+    
+    // TODO vectorise
+
+    for(std::pair<DoubleTuple,long> e : NodeIDs)
+        NodeIDs[e.first]=new_node_ids[e.second];
+
+    for(int i = 0; i<getNumNodes(); i++)
+        NormalNodes.push_back(NormalNodesTmp[new_node_ids[i]]);
+
+    for(int i = 0; i<HangingFaceNodesTmp.size();i++)
+        HangingFaceNodes.push_back(new_node_ids[HangingFaceNodesTmp[i]]);
+
+    for(int i = 0; i<HangingEdgeNodesTmp.size();i++)
+        HangingEdgeNodes.push_back(new_node_ids[HangingEdgeNodesTmp[i]]);
+
+    is_hanging.clear();
+    is_hanging.resize(getNumNodes(),false);
+    for(int i = 0; i<getNumNodes(); i++)
+        is_hanging[i]=is_hanging_tmp[new_node_ids[i]];
+
+    // hanging_face_orientation
+
+    for(int i = 0; i < hanging_edge_orientation.size(); i++)
+        hanging_edge_orientation[i].nodeid=new_node_ids[hanging_edge_orientation[i].nodeid];
+
+    for(int i = 0; i < hanging_edge_node_connections.size(); i++)
+    {
+        hanging_edge_node_connections[i].first=new_node_ids[hanging_edge_node_connections[i].first];
+        hanging_edge_node_connections[i].second=new_node_ids[hanging_edge_node_connections[i].second];
+    }
+    
+    for(int i = 0; i < hanging_face_node_connections.size(); i++)
+    {
+        hanging_face_node_connections[i].first=new_node_ids[hanging_face_node_connections[i].first];
+        hanging_face_node_connections[i].second=new_node_ids[hanging_face_node_connections[i].second];
+    }
+    
+    for(int i = 0; i < false_node_connections.size(); i++)
+    {
+        false_node_connections[i].first=new_node_ids[false_node_connections[i].first];
+        false_node_connections[i].second=new_node_ids[false_node_connections[i].second];
+    }
 
     // Populate m_nodeIDs
     m_nodeId.clear();
