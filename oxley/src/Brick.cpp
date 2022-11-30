@@ -1999,7 +1999,7 @@ void Brick::renumberNodes()
     // By custom, hanging numbers are numbered last
     std::vector<int> new_node_ids(getNumNodes(),-1);
     int count1=0;
-    int count2=getNumNodes()-num_hanging-1;
+    int count2=getNumNodes()-num_hanging;
     for(int i=0;i<getNumNodes();i++)
     {
         if(!is_hanging_tmp[i])
