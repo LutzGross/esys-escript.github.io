@@ -1803,7 +1803,7 @@ void OxleyDomain::makeZ(bool complex)
             cZ->fillComplete(zdomainMap,zrangeMap,params);
             z_needs_update=false;
         }
-        else
+        else // real
         {
             // zrrowMap = Teuchos::rcp (new Tpetra::Map<>(global_rows, local_rows, indexBase, comm));
             // zrcolMap = Teuchos::rcp (new Tpetra::Map<>(global_cols, local_cols, indexBase, comm));
@@ -1811,7 +1811,7 @@ void OxleyDomain::makeZ(bool complex)
             zrrowMap   = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) h, indexBase, comm));
             zrcolMap   = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) n, indexBase, comm));
             zdomainMap = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) n, indexBase, comm));
-            zrangeMap=zcrowMap;
+            zrangeMap=zrrowMap;
 
             Teuchos::RCP<real_matrix_type> trZ (new real_matrix_type(zrrowMap, 5, Tpetra::StaticProfile));
             rZ=trZ;
