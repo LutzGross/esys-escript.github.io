@@ -53,6 +53,7 @@ mpiSize=getMPISizeWorld()
 NX=1
 NY=1
 DX=0.2
+DY=0.2
 
 def test_Rectangle_refine_Mesh(**kwargs):
     m = Rectangle(**kwargs)
@@ -63,8 +64,8 @@ def test_Rectangle_refine_Mesh(**kwargs):
 
 def test_Rectangle_refine_Point(**kwargs):
     m = Rectangle(**kwargs)
-    m.setRefinementLevel(1)
-    m.refinePoint(x0=0.55,y0=0.55)
+    m.setRefinementLevel(2)
+    m.refinePoint(x0=DX,y0=DY)
     m.dump("point_mesh_ae.silo")
     return m
 
@@ -127,14 +128,14 @@ def test_Brick_refine_top_Boundary(**kwargs):
 def test_Brick_refine_east_Boundary(**kwargs):
     m = Brick(**kwargs)
     m.setRefinementLevel(1)
-    m.refineBoundary(boundary="right",dx=DX)
+    m.refineBoundary(boundary="east",dx=DX)
     m.dump("east_boundary_mesh_ae.silo")
     return m
 
 def test_Brick_refine_west_Boundary(**kwargs):
     m = Brick(**kwargs)
     m.setRefinementLevel(1)
-    m.refineBoundary(boundary="left",dx=DX)
+    m.refineBoundary(boundary="west",dx=DX)
     m.dump("west_boundary_mesh_ae.silo")
     return m
 
