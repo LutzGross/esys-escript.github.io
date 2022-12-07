@@ -18,6 +18,8 @@
 #include <random>
 #include <vector>
 
+// #include <oxley/tic.h>
+
 #include <escript/Assert.h>
 #include <escript/Data.h>
 #include <escript/DataFactory.h>
@@ -1606,6 +1608,10 @@ void Brick::renumberNodes()
                                     {{0,4},  {0,5},  {4,1},  {5,1}},  //4
                                     {{2,6},  {2,7},  {6,3},  {7,3}}}; //5
 
+    //  tmp
+    // tictocclock timer;
+    // timer.tic();                                    
+
 
     // Write in NodeIDs
 // #pragma omp for
@@ -1616,6 +1622,14 @@ void Brick::renumberNodes()
     HangingFaceNodes.clear();
     std::vector<long> HangingEdgeNodesTmp;
     HangingEdgeNodes.clear();
+
+    const float lxy_nodes[8][3] = {{0,0,0},{1,0,0},{0,1,0},{1,1,0},
+                                                    {0,0,1},{1,0,1},{0,1,1},{1,1,1}};
+    // const p8est_qcoord_t h = 0.5 * l;
+    // const float lxy_face[6][3] = {{0,0.5,0.5},{1,0.5,0.5},{0.5,0,0.5},{0.5,1,0.5},{0.5,0.5,0},{0.5,0.5,1}};
+    // const float lxy_edge[12][3] = {{0.5,0,0},{0.5,1,0},{0.5,0,1},{0.5,1,1},
+    //                                         {0,0.5,0},{1,0.5,0},{0,0.5,1},{1,0.5,1},
+    //                                         {0,0,0.5},{1,0,0.5},{0,1,0.5},{1,1,0.5}};
 
     // Assign numbers to the nodes
     for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
@@ -1628,23 +1642,15 @@ void Brick::renumberNodes()
             p8est_quadrant_t * oct = p8est_quadrant_array_index(tquadrants, q);
             p8est_qcoord_t l = P8EST_QUADRANT_LEN(oct->level);
 
-            const p8est_qcoord_t lxy_nodes[8][3] = {{0,0,0},{l,0,0},{0,l,0},{l,l,0},
-                                                    {0,0,l},{l,0,l},{0,l,l},{l,l,l}};
-            const p8est_qcoord_t h = 0.5 * l;
-            const p8est_qcoord_t lxy_face[6][3] = {{0,h,h},{l,h,h},{h,0,h},{h,l,h},{h,h,0},{h,h,l}};
-            const p8est_qcoord_t lxy_edge[12][3] = {{h,0,0},{h,l,0},{h,0,l},{h,l,l},
-                                                    {0,h,0},{l,h,0},{0,h,l},{l,h,l},
-                                                    {0,0,h},{l,0,h},{0,l,h},{l,l,h}};
-            
             // Assign numbers to the vertix nodes
             double xyz[3];
             for(int n = 0; n < 8; n++)
             {
                 // Get the first coordinate
                 p8est_qcoord_to_vertex(p8est->connectivity, treeid, 
-                                            oct->x+lxy_nodes[n][0], oct->y+lxy_nodes[n][1], oct->z+lxy_nodes[n][2], xyz);
+                                            oct->x+l*lxy_nodes[n][0], oct->y+l*lxy_nodes[n][1], oct->z+l*lxy_nodes[n][2], xyz);
                 auto point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
-                if(!std::count(NormalNodesTmp.begin(), NormalNodesTmp.end(), point))
+                if(std::find(NormalNodesTmp.begin(), NormalNodesTmp.end(), point)==NormalNodesTmp.end())
                 {
                     NormalNodesTmp.push_back(point);
                     NodeIDs[NormalNodesTmp[NormalNodesTmp.size()-1]]=NormalNodesTmp.size()-1;
@@ -1652,6 +1658,9 @@ void Brick::renumberNodes()
             }
         }
     }
+
+    // timer.toc("first loop");
+    // timer.tic();
 
     // Now work out the connections
     for(p8est_topidx_t treeid = p8est->first_local_tree; treeid <= p8est->last_local_tree; ++treeid) {
@@ -1664,13 +1673,13 @@ void Brick::renumberNodes()
             p8est_quadrant_t * oct = p8est_quadrant_array_index(tquadrants, q);
             p8est_qcoord_t l = P8EST_QUADRANT_LEN(oct->level);
 
-            const p8est_qcoord_t lxy_nodes[8][3] = {{0,0,0},{l,0,0},{0,l,0},{l,l,0},
-                                                    {0,0,l},{l,0,l},{0,l,l},{l,l,l}};
-            const p8est_qcoord_t h = 0.5 * l;
-            const p8est_qcoord_t lxy_face[6][3] = {{0,h,h},{l,h,h},{h,0,h},{h,l,h},{h,h,0},{h,h,l}};
-            const p8est_qcoord_t lxy_edge[12][3] = {{h,0,0},{h,l,0},{h,0,l},{h,l,l},
-                                                    {0,h,0},{l,h,0},{0,h,l},{l,h,l},
-                                                    {0,0,h},{l,0,h},{0,l,h},{l,l,h}};
+            // const p8est_qcoord_t lxy_nodes[8][3] = {{0,0,0},{l,0,0},{0,l,0},{l,l,0},
+            //                                         {0,0,l},{l,0,l},{0,l,l},{l,l,l}};
+            // const p8est_qcoord_t h = 0.5 * l;
+            // const p8est_qcoord_t lxy_face[6][3] = {{0,h,h},{l,h,h},{h,0,h},{h,l,h},{h,h,0},{h,h,l}};
+            // const p8est_qcoord_t lxy_edge[12][3] = {{h,0,0},{h,l,0},{h,0,l},{h,l,l},
+            //                                         {0,h,0},{l,h,0},{0,h,l},{l,h,l},
+            //                                         {0,0,h},{l,0,h},{0,l,h},{l,l,h}};
             
             // Assign numbers to the vertix nodes
             double xyz[3];
@@ -1678,9 +1687,9 @@ void Brick::renumberNodes()
             {
                 // Get the first coordinate
                 p8est_qcoord_to_vertex(p8est->connectivity, treeid, 
-                                            oct->x+lxy_nodes[n][0], oct->y+lxy_nodes[n][1], oct->z+lxy_nodes[n][2], xyz);
+                                            oct->x+l*lxy_nodes[n][0], oct->y+l*lxy_nodes[n][1], oct->z+l*lxy_nodes[n][2], xyz);
                 auto point = std::make_tuple(xyz[0],xyz[1],xyz[2]);
-                if(!std::count(NormalNodesTmp.begin(), NormalNodesTmp.end(), point))
+                if(std::find(NormalNodesTmp.begin(), NormalNodesTmp.end(), point)==NormalNodesTmp.end())
                 {
                     NormalNodesTmp.push_back(point);
                     NodeIDs[NormalNodesTmp[NormalNodesTmp.size()-1]]=NormalNodesTmp.size()-1;
@@ -1981,6 +1990,10 @@ void Brick::renumberNodes()
         }
     }
 
+
+    // timer.toc("second loop");
+    // timer.tic();
+
     // Update num_hanging
     num_hanging=HangingFaceNodesTmp.size()+HangingEdgeNodesTmp.size();
 
@@ -2108,6 +2121,8 @@ void Brick::renumberNodes()
     std::cout << std::endl;
 #endif
 
+    // timer.toc("remainder of renumberNodes");
+    // timer.tic();
     
 }
 
