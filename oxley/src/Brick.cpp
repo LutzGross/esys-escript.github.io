@@ -2784,6 +2784,10 @@ void Brick::updateRowsColumns()
             p8est_qcoord_to_vertex(p8est->connectivity, treeid, quad->x, quad->y, quad->z, xyz0);
             long lni0 = NodeIDs.find(std::make_tuple(xyz0[0],xyz0[1],xyz0[2]))->second;
 
+            #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
+                std::cout << lni0 << " at (x,y,z)=(" << xyz0[0] << "," << xyz0[1] << "," << xyz0[2] << ")" << std::endl;
+            #endif
+
             // If the node is on the boundary x=Lx
             if(xyz0[0] == forestData.m_lxyz[0])
             {

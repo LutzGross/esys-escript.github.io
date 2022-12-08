@@ -34,7 +34,7 @@ from run_customAssemblersOnOxley import OxleyLameAssemblerTestBase, Ricker
 
 NE0=20
 NE1=20
-NE2=9
+NE2=10
 
 mpiSize=getMPISizeWorld()
 # for x in [int(sqrt(mpiSize)),2,3,5,7,1]:
@@ -112,9 +112,10 @@ def test_Brick_refine_Mesh(**kwargs):
     return m
 
 def test_Brick_refine_Point(**kwargs):
-    m = Brick(**kwargs)
+    # m = Brick(**kwargs)
+    m = Brick(n0=10,n1=20,n2=20,l0=1.0,l1=2.0,l2=2.0)
     m.setRefinementLevel(1)
-    m.refinePoint(x0=0.55,y0=0.55)
+    m.refinePoint(x0=0.55,y0=0.55,z0=0.55)
     m.dump("point_mesh_ae.silo")
     return m
 

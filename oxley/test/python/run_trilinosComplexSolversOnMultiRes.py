@@ -136,7 +136,7 @@ def test_Brick_refine_Mesh(**kwargs):
 def test_Brick_refine_Point(**kwargs):
     m = Brick(**kwargs)
     m.setRefinementLevel(1)
-    m.refinePoint(x0=0.55,y0=0.55)
+    m.refinePoint(x0=0.55,y0=0.55,z0=0.55)
     m.dump("point_mesh_ae.silo")
     return m
 
