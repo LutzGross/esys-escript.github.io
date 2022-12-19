@@ -28,7 +28,6 @@ import sys
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 from esys.escript import *
-# from esys.oxley import MultiRectangle, MultiBrick, oxleycpp, MultiResolutionDomain
 from esys.oxley import Rectangle, Brick, oxleycpp
 # from test_objects import Test_Dump, Test_SetDataPointValue, Test_saveCSV, Test_TableInterpolation
 from test_objects import Test_Dump, Test_SetDataPointValue, Test_saveCSV
@@ -36,11 +35,8 @@ from test_objects import Test_Domain, Test_Lazy
 
 from test_shared import Test_Shared
 
-# from run_escriptOnOxley import Test_SharedOnOxley, Test_DomainOnOxley, \
-#                         Test_TableInterpolationOnOxley, Test_DataOpsOnOxley, \
-#                         Test_CSVOnOxley
 from run_escriptOnOxley import Test_SharedOnOxley, Test_DomainOnOxley, \
-                        Test_DataOpsOnOxley, \
+                        Test_TableInterpolationOnOxley, Test_DataOpsOnOxley, \
                         Test_CSVOnOxley
 
 

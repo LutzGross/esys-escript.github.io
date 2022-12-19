@@ -29,8 +29,7 @@ import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 from esys.escript import *
 from esys.oxley import Rectangle, Brick, oxleycpp
-# from test_objects import Test_Dump, Test_SetDataPointValue, Test_saveCSV, Test_TableInterpolation
-from test_objects import Test_Dump, Test_SetDataPointValue, Test_saveCSV
+from test_objects import Test_Dump, Test_SetDataPointValue, Test_saveCSV, Test_TableInterpolation
 from test_objects import Test_Domain, Test_Lazy, Test_tagMap
 
 from test_shared import Test_Shared
@@ -130,19 +129,19 @@ class Test_DataOpsOnOxley(Test_Dump, Test_SetDataPointValue, Test_Lazy):
 #         del self.domain
 #         del self.functionspaces
 
-# class Test_TableInterpolationOnOxley(Test_TableInterpolation):
-#     def setUp(self):
-#         self.domain = Brick(n0=NE*NXb-1, n1=NE*NYb-1, n2=NE*NZb-1, l0=1., l1=1., l2=1., d0=NXb, d1=NYb, d2=NZb)
-#         self.functionspaces=[ContinuousFunction(self.domain), Function(self.domain), ReducedFunction(self.domain),
-#             FunctionOnBoundary(self.domain), ReducedFunctionOnBoundary(self.domain)]
-#         #We aren't testing DiracDeltaFunctions
-#         self.xn=5 # number of grids on x axis
-#         self.yn=5 # number of grids on y axis
-#         self.zn=5
+class Test_TableInterpolationOnOxley(Test_TableInterpolation):
+    def setUp(self):
+        self.domain = Brick(n0=NE*NXb-1, n1=NE*NYb-1, n2=NE*NZb-1, l0=1., l1=1., l2=1., d0=NXb, d1=NYb, d2=NZb)
+        self.functionspaces=[ContinuousFunction(self.domain), Function(self.domain), ReducedFunction(self.domain),
+            FunctionOnBoundary(self.domain), ReducedFunctionOnBoundary(self.domain)]
+        #We aren't testing DiracDeltaFunctions
+        self.xn=5 # number of grids on x axis
+        self.yn=5 # number of grids on y axis
+        self.zn=5
 
-#     def tearDown(self):
-#         del self.domain
-#         del self.functionspaces
+    def tearDown(self):
+        del self.domain
+        del self.functionspaces
 
 class Test_CSVOnOxley(Test_saveCSV):
     def setUp(self):
