@@ -238,6 +238,13 @@ BOOST_PYTHON_MODULE(escriptcpp)
         ":return: true is the data is cell centered.\n"
         ":rtype: ``int``")
 #endif
+#if defined(ESYS_MPI) && defined(ESYS_HAVE_MPI4PY)
+      .def("setMPIComm", &escript::AbstractDomain::setMPIComm, 
+            (arg("COMM")),
+            "Sets the escript MPI comm to the COMM"
+            ":param COMM: An MPI communicator"
+            )
+#endif
      .def("getDim",&escript::AbstractDomain::getDim,":rtype: `int`\n"
         ":return: Spatial dimension of the `Domain`")
      .def("getNormal",&escript::AbstractDomain::getNormal,":rtype: `escript`\n"

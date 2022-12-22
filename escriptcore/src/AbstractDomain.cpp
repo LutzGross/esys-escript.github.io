@@ -63,5 +63,18 @@ bool AbstractDomain::supportsFilter(const boost::python::tuple& t) const
     return false;  
 }
 
+#if defined(ESYS_MPI) && defined(ESYS_HAVE_MPI4PY)
+void AbstractDomain::setMPIComm(boost::python::object py_comm)
+{
+    PyObject* py_obj = py_comm.ptr();
+    MPI_Comm *comm_p = PyMPIComm_Get(py_obj);
+    if (comm_p == NULL) 
+        throw EsysException("Invalid MPI communicator.");
+
+    JMPI old_comm = getMPI();
+    old_comm->comm = *comm_p;
+}
+#endif
+
 } // end of namespace
 
