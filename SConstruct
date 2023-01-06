@@ -198,6 +198,10 @@ if env['tools_names'] != ['default']:
         env = Environment(tools = ['default'] + env['tools_names'], options = vars,
                       ENV = {'PATH' : os.environ['PATH']} )
 
+    else:
+        env = Environment(tools = ['default'] + env['tools_names'], options = vars,
+                      ENV = {'PATH' : os.environ['PATH']} )
+
 # Covert env['netcdf'] into one of False, 3, 4
 # Also choose default values for libraries
 pos1=netcdf_flavours.index('False')
@@ -334,6 +338,7 @@ elif cc_name.startswith('clang++-mp'):
     # Clang++ on any system
     cc_flags     = "-std=c++11 -Wall -fPIC -fdiagnostics-color=always -Wno-uninitialized "
     cc_flags    += "-Wno-unused-private-field -Wno-unknown-pragmas "
+    cc_flags    += "-Wimplicit-function-declaration -Wno-string-concatenation "
     if env['trilinos'] is True:
       cc_flags += "-Wno-unused-variable -Wno-exceptions -Wno-deprecated-declarations "
     cc_optim     = "-O3 "
@@ -349,7 +354,7 @@ elif cc_name.startswith('clang++'):
     cc_flags    += "-Wno-unused-private-field -Wno-unknown-pragmas "
     if env['trilinos'] is True:
       cc_flags += "-Wno-unused-variable -Wno-exceptions -Wno-deprecated-declarations "
-    cc_optim     = "-O2 -march=native"
+    cc_optim     = "-O2"  # -march=native"
     cc_debug     = "-ggdb3 -O0 -fdiagnostics-fixit-info -pedantic "
     cc_debug    += "-DDOASSERT -DDOPROF -DBOUNDS_CHECK -DSLOWSHARECHECK "
     omp_flags    = "-fopenmp "
