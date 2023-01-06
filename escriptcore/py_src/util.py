@@ -3349,3 +3349,21 @@ def makeTagMap(fs):
         out.setTaggedValue(t,t)
     out.expand()
     return out
+
+def real(arg):
+    """
+    returns the real part of arg
+    """
+    return arg.real()
+
+def imag(arg):
+    """
+    returns the imaginary part of arg
+    """
+    return arg.imag()
+
+def conjugate(arg):
+    """
+    returns the complex conjugate of arg
+    """
+    return arg.conjugate()
