@@ -25,7 +25,7 @@ http://www.apache.org/licenses/LICENSE-2.0"""
 __url__="https://launchpad.net/escript-finley"
 
 
-from .finleycpp import __Brick_driver, __Rectangle_driver, __ReadMesh_driver, __ReadGmsh_driver
+from .finleycpp import __Brick_driver, __Rectangle_driver, __Rectangle_driver_MPI, __ReadMesh_driver, __ReadGmsh_driver
 
 
 def ReadMesh(filename, integrationOrder=-1, reducedIntegrationOrder=-1, optimize=True, **kwargs):
@@ -69,9 +69,16 @@ def Rectangle(n0=1, n1=1, order=1, l0=1.0, l1=1.0, periodic0=False, periodic1=Fa
             faceon=0    #Don't use it
         else:
             faceon=1
-    args=[n0, n1, order, l0, l1, periodic0, periodic1, integrationOrder, 
-      reducedIntegrationOrder, faceon, useFullElementOrder, optimize, points, tags];
-    return __Rectangle_driver(args)
+    if 'MPI' in kwargs:
+        mpi=kwargs['MPI']
+        args=[n0, n1, order, l0, l1, periodic0, periodic1, integrationOrder, 
+            reducedIntegrationOrder, faceon, useFullElementOrder, optimize, points, tags, mpi];
+        return __Rectangle_driver_MPI(args)    
+    else:
+        args=[n0, n1, order, l0, l1, periodic0, periodic1, integrationOrder, 
+            reducedIntegrationOrder, faceon, useFullElementOrder, optimize, points, tags];
+        return __Rectangle_driver(args)
+    
 
 Rectangle.__doc__=__Rectangle_driver.__doc__
 

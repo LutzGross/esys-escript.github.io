@@ -130,6 +130,8 @@ escript::Domain_ptr rectangle(escript::JMPI jmpi,
 */
 FINLEY_DLL_API
 escript::Domain_ptr rectangle_driver(const boost::python::list& args);
+FINLEY_DLL_API
+escript::Domain_ptr rectangle_driver_MPI(const boost::python::list& args);
 
 /**
     \brief

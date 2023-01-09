@@ -38,6 +38,13 @@
 
 #include <sstream>
 
+#ifdef ESYS_HAVE_MPI4PY
+#include <mpi4py/mpi4py.h>
+#include <mpi4py/mpi4py.MPI.h>
+#include <mpi4py/mpi4py.MPI_api.h>
+#endif
+
+
 using namespace std;
 using namespace escript;
 namespace bp = boost::python;
@@ -1227,6 +1234,71 @@ Domain_ptr rectangle_driver(const bp::list& args)
                      bp::extract<int>(args[8]), bp::extract<int>(args[9]),
                      bp::extract<int>(args[10]), bp::extract<int>(args[11]),
                      points, tags, tagstonames);
+}
+
+Domain_ptr rectangle_driver_MPI(const bp::list& args)
+{
+#if defined(ESYS_MPI) && defined(ESYS_HAVE_MPI4PY)
+    // we need to convert lists to stl vectors
+    bp::list pypoints = bp::extract<bp::list>(args[12]);
+    bp::list pytags = bp::extract<bp::list>(args[13]);
+    int numpts = bp::extract<int>(pypoints.attr("__len__")());
+    int numtags = bp::extract<int>(pytags.attr("__len__")());
+    vector<double> points;
+    vector<int> tags;
+    tags.resize(numtags, -1);
+    for (int i = 0; i < numpts; ++i) {
+        bp::object temp = pypoints[i];
+        int l = bp::extract<int>(temp.attr("__len__")());
+        for (int k = 0; k < l; ++k) {
+            points.push_back(bp::extract<double>(temp[k]));
+        }
+    }
+    TagMap tagstonames;
+    int curmax = 40;
+    // but which order to assign tags to names?????
+    for (int i = 0; i < numtags; ++i) {
+        bp::extract<int> ex_int(pytags[i]);
+        bp::extract<string> ex_str(pytags[i]);
+        if (ex_int.check()) {
+            tags[i] = ex_int();
+            if (tags[i] >= curmax) {
+                curmax = tags[i]+1;
+            }
+        } else if (ex_str.check()) {
+            string s = ex_str();
+            TagMap::iterator it = tagstonames.find(s);
+            if (it != tagstonames.end()) {
+                // we have the tag already so look it up
+                tags[i] = it->second;
+            } else {
+                tagstonames[s] = curmax;
+                tags[i] = curmax;
+                curmax++;
+            }
+        } else {
+            throw FinleyException("Unable to extract tag value.");
+        }
+    }
+    
+    bp::object py_comm = bp::extract<bp::object>(args[14]);
+    PyObject* py_obj = py_comm.ptr();
+    MPI_Comm *comm_p = PyMPIComm_Get(py_obj);
+    if (comm_p == NULL) 
+        throw EsysException("Invalid MPI communicator.");
+    JMPI info = makeInfo(*comm_p);
+
+    return rectangle(info, static_cast<dim_t>(bp::extract<float>(args[0])),
+                     static_cast<dim_t>(bp::extract<float>(args[1])),
+                     bp::extract<int>(args[2]), bp::extract<double>(args[3]),
+                     bp::extract<double>(args[4]), bp::extract<int>(args[5]),
+                     bp::extract<int>(args[6]), bp::extract<int>(args[7]),
+                     bp::extract<int>(args[8]), bp::extract<int>(args[9]),
+                     bp::extract<int>(args[10]), bp::extract<int>(args[11]),
+                     points, tags, tagstonames);
+#else
+    throw FinleyException("escript was not compiled with mpi4py")
+#endif
 }
 
 Domain_ptr meshMerge(const bp::list& meshList)
