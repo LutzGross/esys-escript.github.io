@@ -83,11 +83,10 @@ Rectangle::Rectangle(int order,
     if(n0 <= 0 || n1 <= 0)
         throw OxleyException("Number of elements in each spatial dimension must be positive");
 
-    // Ignore d0 and d1 if we are running in serial
-    m_mpiInfo = escript::makeInfo(MPI_COMM_WORLD);
     initZ(true);
     initIZ(true);
 
+    // Ignore d0 and d1 if we are running in serial
     if(m_mpiInfo->size == 1) {
         d0=1;
         d1=1;

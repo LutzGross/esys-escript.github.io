@@ -73,6 +73,9 @@ namespace oxley {
         #else
             sc_set_log_defaults(NULL, NULL, 9);
         #endif
+
+        m_mpiInfo = escript::makeInfo(MPI_COMM_WORLD);
+        
     }
 
     /**
@@ -1711,7 +1714,7 @@ void OxleyDomain::makeZ(bool complex)
         const Tpetra::global_size_t h = getDim()==2 ? 0.5*getNumHangingNodes() : getNumHangingNodes(); // Number of hanging nodes
         const Tpetra::global_size_t n = t - h;
 
-        #ifdef OXLEY_PRINT_DEBUG_IZ_EXTRA
+        #ifdef OXLEY_PRINT_DEBUG_Z_EXTRA
             std::cout << "\033[1;31m[oxley]\033[0m makeZ: Total nodes= " << t << ", total hanging = " << h << std::endl;
         #endif
 
@@ -1780,18 +1783,18 @@ void OxleyDomain::makeZ(bool complex)
                     y=b-n;
                 }
 
-                #ifdef OXLEY_PRINT_DEBUG_IZ
+                #ifdef OXLEY_PRINT_DEBUG_Z
                     ESYS_ASSERT(x>=0, "Unknown error.");
                     ESYS_ASSERT(y>=0, "Unknown error.");
                 #endif
-                #ifdef OXLEY_PRINT_DEBUG_IZ_EXTRA
+                #ifdef OXLEY_PRINT_DEBUG_Z_EXTRA
                     std::cout << "Z element: ["<< a << "," << b << "] (" << x << ", " << y << ") = " << 0.5;
                 #endif
 
                 const esys_trilinos::GO gblRowAz = zcrowMap->getGlobalElement(x);
                 const esys_trilinos::GO gblColBz = zccolMap->getGlobalElement(y);
 
-                #ifdef OXLEY_PRINT_DEBUG_IZ_EXTRA
+                #ifdef OXLEY_PRINT_DEBUG_Z_EXTRA
                     std::cout << "   i.e (" << gblRowAz << ", " << gblColBz << ") = " << 0.5 << std::endl;
                 #endif
 
@@ -1800,7 +1803,7 @@ void OxleyDomain::makeZ(bool complex)
                                     Teuchos::tuple<cplx_t> (half));
             }
 
-            #ifdef OXLEY_PRINT_DEBUG_IZ_EXTRA_EXTRA
+            #ifdef OXLEY_PRINT_DEBUG_Z_EXTRA_EXTRA
             cZ->description();
             // cZ->print();
             #endif
@@ -1857,14 +1860,14 @@ void OxleyDomain::makeZ(bool complex)
                     y=b-n;
                 }
 
-                #ifdef OXLEY_PRINT_DEBUG_IZ_EXTRA
+                #ifdef OXLEY_PRINT_DEBUG_Z_EXTRA
                     std::cout << "Z element: ["<< a << "," << b << "] (" << x << ", " << y << ") = " << 0.5;
                 #endif
 
                 const esys_trilinos::GO gblRowAz = zrrowMap->getGlobalElement(x);
                 const esys_trilinos::GO gblColBz = zrcolMap->getGlobalElement(y);
 
-                #ifdef OXLEY_PRINT_DEBUG_IZ_EXTRA
+                #ifdef OXLEY_PRINT_DEBUG_Z_EXTRA
                     std::cout << "   i.e (" << gblRowAz << ", " << gblColBz << ") = " << 0.5 << std::endl;
                 #endif
 
@@ -1875,7 +1878,7 @@ void OxleyDomain::makeZ(bool complex)
 
             // #pragma omp critical
 
-            #ifdef OXLEY_PRINT_DEBUG_IZ_EXTRA_EXTRA
+            #ifdef OXLEY_PRINT_DEBUG_Z_EXTRA_EXTRA
                 rZ->description();
             #endif
             
@@ -1983,6 +1986,8 @@ void OxleyDomain::makeIZ(bool complex)
             Teuchos::RCP<cplx_matrix_type> tcZ (new cplx_matrix_type(izcrowMap, getDim()==2?5:7, Tpetra::StaticProfile));
             cIZ=tcZ;
 
+            cIZ->resumeFill();
+
             const cplx_t one  = static_cast<cplx_t> (1.0);
             const cplx_t half = static_cast<cplx_t> (0.5);
 
@@ -2063,6 +2068,8 @@ void OxleyDomain::makeIZ(bool complex)
 
             Teuchos::RCP<real_matrix_type> trZ (new real_matrix_type(izrrowMap, getDim()==2?5:7, Tpetra::StaticProfile));
             rIZ=trZ;
+
+            rIZ->resumeFill();
 
             const real_t one  = static_cast<real_t> (1.0);
             const real_t half = static_cast<real_t> (0.5);
