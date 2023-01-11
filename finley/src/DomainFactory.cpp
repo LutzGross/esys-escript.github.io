@@ -1297,7 +1297,7 @@ Domain_ptr rectangle_driver_MPI(const bp::list& args)
                      bp::extract<int>(args[10]), bp::extract<int>(args[11]),
                      points, tags, tagstonames);
 #else
-    throw FinleyException("escript was not compiled with mpi4py")
+    throw FinleyException("escript was not compiled with mpi4py");
 #endif
 }
 
