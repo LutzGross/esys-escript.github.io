@@ -2,8 +2,10 @@
 
 rm -f CMakeCache.txt
 
+TRI_INSTALL_PREFIX=$1"/escript_trilinos"
+
 cmake \
-      -D CMAKE_INSTALL_PREFIX=$1 \
+      -D CMAKE_INSTALL_PREFIX=$TRI_INSTALL_PREFIX \
       -D Trilinos_ENABLE_CXX11=ON \
       -D Trilinos_ENABLE_Fortran=OFF \
       -D CMAKE_CXX_FLAGS=" " \

@@ -609,7 +609,7 @@ if env['build_trilinos']:
         configure="sh nompi.sh " + env['prefix']
     res=os.system(configure)
     res=os.system('make -j4 install')
-    env['trilinos_prefix']=env['prefix']
+    env['trilinos_prefix']=env['prefix']+'/escript_trilinos'
     os.chdir(startdir)
     env['trilinos_version']='13.0.0'
 
