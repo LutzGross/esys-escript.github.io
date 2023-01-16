@@ -115,10 +115,10 @@ def get_external_python_sympy(env,bin):
         env['sympy']=False
         env['warnings'].append("sympy version too old. Symbolic toolbox and nonlinear PDEs will not be available.")
         env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
-    elif version1 == 1 and version2 > 2:
-        env['sympy']=False
-        env['warnings'].append("escript does not support sympy version 1.2 and higher. Found %s" % spVer)
-        env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
+    #elif version1 == 1 and version2 > 2:
+    #    env['sympy']=False
+    #    env['warnings'].append("escript does not support sympy version 1.2 and higher. Found %s" % spVer)
+    #    env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
     else:
         env['sympy']=True
         env['warnings'].append("Found sympy version %s" % spVer)
@@ -494,10 +494,10 @@ def checkOptionalModules(env):
                 env['sympy']=False
                 env['warnings'].append("sympy version too old. Symbolic toolbox and nonlinear PDEs will not be available.")
                 env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
-            elif version1 == 1 and version2 > 2:
-                env['sympy']=False
-                env['warnings'].append("escript does not support sympy version 1.2 and higher. Found %s" % spVer)
-                env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
+            #elif version1 == 1 and version2 > 2:
+            #    env['sympy']=False
+            #    env['warnings'].append("escript does not support sympy version 1.2 and higher. Found %s" % spVer)
+            #    env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
             else:
                 env['sympy']=True
                 env['warnings'].append("Found sympy version %s" % spVer)

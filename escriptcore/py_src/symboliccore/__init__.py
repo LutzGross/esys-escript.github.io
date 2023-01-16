@@ -24,6 +24,11 @@ http://www.apache.org/licenses/LICENSE-2.0"""
 __url__="https://launchpad.net/escript-finley"
 
 from .symbol import *
+from . import functions as symfn
+from . import symconstants as Symconsts
+from .pretty import pretty_print, pprint
+from .utils import *
+
 #from .evaluator import *
 
 #__nodocorecursion=['symbol', 'evaluator']
