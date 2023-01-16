@@ -69,11 +69,17 @@ def Rectangle(n0=1, n1=1, order=1, l0=1.0, l1=1.0, periodic0=False, periodic1=Fa
             faceon=0    #Don't use it
         else:
             faceon=1
-    if 'MPI' in kwargs:
-        mpi=kwargs['MPI']
-        args=[n0, n1, order, l0, l1, periodic0, periodic1, integrationOrder, 
-            reducedIntegrationOrder, faceon, useFullElementOrder, optimize, points, tags, mpi];
-        return __Rectangle_driver_MPI(args)    
+    if 'mpicomm' in kwargs:
+        mpi=kwargs['mpicomm']
+        if mpi=='None':
+            mpi=JMPI(MPI_COMM_WORLD)
+            args=[n0, n1, order, l0, l1, periodic0, periodic1, integrationOrder, 
+                reducedIntegrationOrder, faceon, useFullElementOrder, optimize, points, tags, mpi];
+            return __Rectangle_driver(args)
+        else:
+            args=[n0, n1, order, l0, l1, periodic0, periodic1, integrationOrder, 
+                reducedIntegrationOrder, faceon, useFullElementOrder, optimize, points, tags, mpi];
+            return __Rectangle_driver_MPI(args)    
     else:
         args=[n0, n1, order, l0, l1, periodic0, periodic1, integrationOrder, 
             reducedIntegrationOrder, faceon, useFullElementOrder, optimize, points, tags];
