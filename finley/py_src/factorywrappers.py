@@ -102,9 +102,26 @@ def Brick(n0=1, n1=1, n2=1, order=1, l0=1.0, l1=1.0, l2=1.0, periodic0=0, period
             faceon=0    #Don't use it
         else:
             faceon=1
-    args=[n0, n1, n2, order, l0, l1, l2, periodic0,  periodic1, periodic2,
-    integrationOrder, reducedIntegrationOrder, faceon, useFullElementOrder,
-    optimize, points, tags];
-    return __Brick_driver(args)
+    if 'mpicomm' in kwargs:
+        mpi=kwargs['mpicomm']
+        if mpi=='None':
+            args=[n0, n1, n2, order, l0, l1, l2, periodic0,  periodic1, periodic2,
+                integrationOrder, reducedIntegrationOrder, faceon, useFullElementOrder,
+                optimize, points, tags]
+            return __Brick_driver(args)
+        else:
+            args=[n0, n1, n2, order, l0, l1, l2, periodic0,  periodic1, periodic2,
+                integrationOrder, reducedIntegrationOrder, faceon, useFullElementOrder,
+                optimize, points, tags, mpi]
+            return __Brick_driver_MPI(args)    
+    else:
+        args=[n0, n1, n2, order, l0, l1, l2, periodic0,  periodic1, periodic2,
+            integrationOrder, reducedIntegrationOrder, faceon, useFullElementOrder,
+            optimize, points, tags]
+        return __Brick_driver(args)
+    # args=[n0, n1, n2, order, l0, l1, l2, periodic0,  periodic1, periodic2,
+    # integrationOrder, reducedIntegrationOrder, faceon, useFullElementOrder,
+    # optimize, points, tags];
+    # return __Brick_driver(args)
 
 Brick.__doc__=__Brick_driver.__doc__

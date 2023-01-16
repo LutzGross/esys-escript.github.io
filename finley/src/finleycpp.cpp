@@ -87,7 +87,32 @@ BOOST_PYTHON_MODULE(finleycpp)
 ":param useElementsOnFace:  whether or not to use elements on face\n"
 ":type useElementsOnFace: ``int``\n"
 ":param useFullElementOrder: Whether or not to use Hex27 elements\n"":type useFullElementOrder: ``bool``\n"
-":param optimize: Enable optimisation of node labels\n:type optimize: ``bool``"
+":param optimize: Enable optimisation of node labels\n:type optimize: ``bool``\n"
+":param MPI: An MPI communicator"
+);
+
+  def ("__Brick_driver_MPI",finley::brick_driver_MPI,
+      (arg("params"))
+,"Creates a rectangular mesh with n0 x n1 x n2 elements over the brick [0,l0] x [0,l1] x [0,l2]."
+"\n\n:param n0: number of elements in direction 0\n:type n0: ``int``\n:param n1: number of elements in direction 1\n:type n1: ``int``\n"
+":param n2: number of elements in direction 2\n:type n2: ``int``\n"
+":param order: =1, =-1 or =2 gives the order of shape function. If -1 macro elements of order 1 are used.\n"
+":param l0: length of side 0\n"
+":type  l0: ``float``\n"
+":param l1: length of side 1\n"
+":type  l1: ``float``\n"
+":param l2: length of side 2\n"
+":type  l2: ``float``\n"
+":param periodic0: whether or not boundary conditions are periodic in direction 0\n:type periodic0: ``bool``\n"
+":param periodic1: whether or not boundary conditions are periodic in direction 1\n:type periodic1: ``bool``\n"
+":param periodic2: whether or not boundary conditions are periodic in direction 2\n:type periodic2: ``bool``\n"
+":param integrationOrder: order of the quadrature scheme. If integrationOrder<0 the integration order is selected independently.\n"
+":param reducedIntegrationOrder: order of the quadrature scheme. If reducedIntegrationOrder<0 the integration order is selected independently.\n"
+":param useElementsOnFace:  whether or not to use elements on face\n"
+":type useElementsOnFace: ``int``\n"
+":param useFullElementOrder: Whether or not to use Hex27 elements\n"":type useFullElementOrder: ``bool``\n"
+":param optimize: Enable optimisation of node labels\n:type optimize: ``bool``\n"
+":param MPI: An MPI communicator"
 );
 
   def ("__Rectangle_driver",finley::rectangle_driver,

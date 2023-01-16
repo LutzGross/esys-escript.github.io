@@ -1144,6 +1144,67 @@ Domain_ptr brick_driver(const bp::list& args)
                  points, tags, namestonums);
 }
 
+Domain_ptr brick_driver_MPI(const bp::list& args)
+{
+    // we need to convert lists to stl vectors
+    bp::list pypoints = bp::extract<bp::list>(args[15]);
+    bp::list pytags = bp::extract<bp::list>(args[16]);
+    int numpts = bp::extract<int>(pypoints.attr("__len__")());
+    int numtags = bp::extract<int>(pytags.attr("__len__")());
+    vector<double> points;
+    vector<int> tags;
+    tags.resize(numtags, -1);
+    for (int i = 0; i < numpts; ++i) {
+        bp::object temp = pypoints[i];
+        int l = bp::extract<int>(temp.attr("__len__")());
+        for (int k = 0; k < l; ++k) {
+            points.push_back(bp::extract<double>(temp[k]));
+        }
+    }
+    map<string, int> namestonums;
+    int curmax = 40; // bricks use up to 30
+    for (int i = 0; i < numtags; ++i) {
+        bp::extract<int> ex_int(pytags[i]);
+        bp::extract<string> ex_str(pytags[i]);
+        if (ex_int.check()) {
+            tags[i] = ex_int();
+            if (tags[i] >= curmax) {
+                curmax = tags[i]+1;
+            }
+        } else if (ex_str.check()) {
+            string s = ex_str();
+            TagMap::iterator it = namestonums.find(s);
+            if (it != namestonums.end()) {
+                // we have the tag already so look it up
+                tags[i] = it->second;
+            } else {
+                namestonums[s] = curmax;
+                tags[i] = curmax;
+                curmax++;
+            }
+        } else {
+            throw FinleyException("Unable to extract tag value.");
+        }
+    }
+    bp::object pworld = args[16];
+    
+    bp::object py_comm = bp::extract<bp::object>(args[17]);
+    // PyObject* py_obj = py_comm.ptr();
+    MPI_Comm *comm_p = pythonMPIWrapper(py_comm);
+    JMPI info = makeInfo(*comm_p);
+
+    return brick(info, static_cast<dim_t>(bp::extract<float>(args[0])),
+                 static_cast<dim_t>(bp::extract<float>(args[1])),
+                 static_cast<dim_t>(bp::extract<float>(args[2])),
+                 bp::extract<int>(args[3]), bp::extract<double>(args[4]),
+                 bp::extract<double>(args[5]), bp::extract<double>(args[6]),
+                 bp::extract<int>(args[7]), bp::extract<int>(args[8]),
+                 bp::extract<int>(args[9]), bp::extract<int>(args[10]),
+                 bp::extract<int>(args[11]), bp::extract<int>(args[12]),
+                 bp::extract<int>(args[13]), bp::extract<int>(args[14]),
+                 points, tags, namestonums);
+}
+
 Domain_ptr rectangle(JMPI info, dim_t n0, dim_t n1, int order,
                      double l0, double l1, bool periodic0, bool periodic1,
                      int integrationOrder, int reducedIntegrationOrder,
@@ -1236,6 +1297,18 @@ Domain_ptr rectangle_driver(const bp::list& args)
                      points, tags, tagstonames);
 }
 
+#ifdef ESYS_HAVE_MPI4PY
+static MPI_Comm * pythonMPIWrapper(boost::python::object py_comm)
+{
+  PyObject* py_obj = py_comm.ptr();
+  MPI_Comm *comm_p = 0; 
+  comm_p = PyMPIComm_Get(py_obj);
+  if (comm_p == NULL)
+        throw FinleyException("Null communicator.");
+  return comm_p;
+}
+#endif
+
 Domain_ptr rectangle_driver_MPI(const bp::list& args)
 {
 #if defined(ESYS_MPI) && defined(ESYS_HAVE_MPI4PY)
@@ -1282,10 +1355,8 @@ Domain_ptr rectangle_driver_MPI(const bp::list& args)
     }
     
     bp::object py_comm = bp::extract<bp::object>(args[14]);
-    PyObject* py_obj = py_comm.ptr();
-    MPI_Comm *comm_p = PyMPIComm_Get(py_obj);
-    if (comm_p == NULL) 
-        throw EsysException("Invalid MPI communicator.");
+    // PyObject* py_obj = py_comm.ptr();
+    MPI_Comm *comm_p = pythonMPIWrapper(py_comm);
     JMPI info = makeInfo(*comm_p);
 
     return rectangle(info, static_cast<dim_t>(bp::extract<float>(args[0])),
