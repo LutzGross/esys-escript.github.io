@@ -28,6 +28,7 @@ __all__ = ['Evaluator']
 
 import distutils.version as duv
 import esys.escriptcore.util as escript
+from .printer import EsysEscriptPrinter
 
 """
 Symbolic expression evaluator for escript
@@ -94,7 +95,7 @@ class Evaluator(object):
         else:
             sym=tuple(set(expression.atoms(sympy.Symbol)))
             self.symbols.append(sym)
-        print(sym)
+        print(expression, sym)
         if isinstance(expression, escript.Symbol):
             subs=expression.getDataSubstitutions()
             subs_dict={}
@@ -104,12 +105,12 @@ class Evaluator(object):
             if duv.LooseVersion(sympy.__version__) < duv.LooseVersion('0.7.6'):
                 self.lambdas.append(sympy.lambdify(sym, expression.lambdarepr(), [translator, "numpy"]))
             else:
-                self.lambdas.append(sympy.lambdify(sym, expression.lambdarepr(), modules=[translator, "numpy"], dummify=False))
+                self.lambdas.append(sympy.lambdify(sym, expression.lambdarepr(), printer=EsysEscriptPrinter, dummify=False)) # modules=[translator, "numpy"],
         else:
             if duv.LooseVersion(sympy.__version__) < duv.LooseVersion('0.7.6'):
                 self.lambdas.append(sympy.lambdify(sym, expression, [translator, "numpy"]))
             else:
-                self.lambdas.append(sympy.lambdify(sym, expression, modules=[translator, "numpy"], dummify=False))
+                self.lambdas.append(sympy.lambdify(sym, expression, printer=EsysEscriptPrinter, dummify=False))
         return self
 
     def subs(self, **args):
