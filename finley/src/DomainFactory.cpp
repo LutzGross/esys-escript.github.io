@@ -1146,6 +1146,7 @@ Domain_ptr brick_driver(const bp::list& args)
 
 Domain_ptr brick_driver_MPI(const bp::list& args)
 {
+#ifdef ESYS_MPI
     // we need to convert lists to stl vectors
     bp::list pypoints = bp::extract<bp::list>(args[15]);
     bp::list pytags = bp::extract<bp::list>(args[16]);
@@ -1203,6 +1204,9 @@ Domain_ptr brick_driver_MPI(const bp::list& args)
                  bp::extract<int>(args[11]), bp::extract<int>(args[12]),
                  bp::extract<int>(args[13]), bp::extract<int>(args[14]),
                  points, tags, namestonums);
+#else
+    throw FinleyException("escript was not compiled with MPI");
+#endif
 }
 
 Domain_ptr rectangle(JMPI info, dim_t n0, dim_t n1, int order,

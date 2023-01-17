@@ -426,10 +426,15 @@ escript::Domain_ptr _multirectangle(double _n0, double _n1, const object& l0,
     }
     else
     {
+    #ifdef ESYS_MPI
         MPI_Comm *comm_p = pythonMPIWrapper(py_comm);
         escript::JMPI info = escript::makeInfo(*comm_p);
         return escript::Domain_ptr(new MultiRectangle(n0,n1, x0,y0, x1,y1, d0,d1,
                                  points, tags, tagstonames, multiplier,info));
+    #else
+        return escript::Domain_ptr(new MultiRectangle(n0,n1, x0,y0, x1,y1, d0,d1,
+                                 points, tags, tagstonames, multiplier));
+    #endif
     }
     // return escript::Domain_ptr(new MultiRectangle(n0,n1, x0,y0, x1,y1, d0,d1,
     //                              points, tags, tagstonames, multiplier));
@@ -519,10 +524,15 @@ escript::Domain_ptr _rectangle(double _n0, double _n1, const object& l0,
     }
     else
     {
+    #ifdef ESYS_MPI
         MPI_Comm *comm_p = pythonMPIWrapper(py_comm);
         escript::JMPI info = escript::makeInfo(*comm_p);
         return escript::Domain_ptr(new Rectangle(n0,n1, x0,y0, x1,y1, d0,d1,
                                              points, tags, tagstonames, info));
+    #else
+        return escript::Domain_ptr(new Rectangle(n0,n1, x0,y0, x1,y1, d0,d1,
+                                             points, tags, tagstonames));
+    #endif
     }
     // return escript::Domain_ptr(new Rectangle(n0,n1, x0,y0, x1,y1, d0,d1,
     //                                          points, tags, tagstonames));
