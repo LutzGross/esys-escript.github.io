@@ -33,6 +33,19 @@ using namespace boost::python;
 
 namespace ripley {
 
+#ifdef ESYS_HAVE_MPI4PY
+static MPI_Comm * pythonMPIWrapper(boost::python::object py_comm)
+{
+  PyObject* py_obj = py_comm.ptr();
+  MPI_Comm *comm_p = 0; 
+  comm_p = PyMPIComm_Get(py_obj);
+  if (comm_p == NULL)
+        throw RipleyException("Null communicator.");
+  return comm_p;
+}
+#endif
+
+
 template<typename T>
 std::vector<T> extractPyArray(const object& obj, const std::string& name,
                               int expectedLength=0)
@@ -330,7 +343,9 @@ escript::Domain_ptr _multibrick(double _n0, double _n1, double _n2, const object
 escript::Domain_ptr _multirectangle(double _n0, double _n1, const object& l0,
                                const object& l1, int d0, int d1, 
                                const object& objpoints, const object& objtags,
-                               unsigned int multiplier)
+                               unsigned int multiplier,
+                               const object& pycomm
+                               )
 {
     dim_t n0=static_cast<dim_t>(_n0), n1=static_cast<dim_t>(_n1);
     double x0=0., x1=1., y0=0., y1=1.;
@@ -401,13 +416,29 @@ escript::Domain_ptr _multirectangle(double _n0, double _n1, const object& l0,
     }
     if (numtags != numpts)
         throw RipleyException("Number of tags does not match number of points.");
-    return escript::Domain_ptr(new MultiRectangle(n0,n1, x0,y0, x1,y1, d0,d1,
+
+    // MPI
+    boost::python::object py_comm = boost::python::extract<boost::python::object>(pycomm);
+    if(py_comm == NULL)
+    {
+        return escript::Domain_ptr(new MultiRectangle(n0,n1, x0,y0, x1,y1, d0,d1,
                                  points, tags, tagstonames, multiplier));
+    }
+    else
+    {
+        MPI_Comm *comm_p = pythonMPIWrapper(py_comm);
+        escript::JMPI info = escript::makeInfo(*comm_p);
+        return escript::Domain_ptr(new MultiRectangle(n0,n1, x0,y0, x1,y1, d0,d1,
+                                 points, tags, tagstonames, multiplier,info));
+    }
+    // return escript::Domain_ptr(new MultiRectangle(n0,n1, x0,y0, x1,y1, d0,d1,
+    //                              points, tags, tagstonames, multiplier));
 }
 
 escript::Domain_ptr _rectangle(double _n0, double _n1, const object& l0,
                                const object& l1, int d0, int d1, 
-                               const object& objpoints, const object& objtags
+                               const object& objpoints, const object& objtags, 
+                               object& pycomm
 			      )
 {
     dim_t n0=static_cast<dim_t>(_n0), n1=static_cast<dim_t>(_n1);
@@ -479,8 +510,22 @@ escript::Domain_ptr _rectangle(double _n0, double _n1, const object& l0,
     }
     if (numtags != numpts)
         throw RipleyException("Number of tags does not match number of points.");
-    return escript::Domain_ptr(new Rectangle(n0,n1, x0,y0, x1,y1, d0,d1,
+    // MPI
+    boost::python::object py_comm = boost::python::extract<boost::python::object>(pycomm);
+    if(py_comm == NULL)
+    {
+        return escript::Domain_ptr(new Rectangle(n0,n1, x0,y0, x1,y1, d0,d1,
                                              points, tags, tagstonames));
+    }
+    else
+    {
+        MPI_Comm *comm_p = pythonMPIWrapper(py_comm);
+        escript::JMPI info = escript::makeInfo(*comm_p);
+        return escript::Domain_ptr(new Rectangle(n0,n1, x0,y0, x1,y1, d0,d1,
+                                             points, tags, tagstonames, info));
+    }
+    // return escript::Domain_ptr(new Rectangle(n0,n1, x0,y0, x1,y1, d0,d1,
+    //                                          points, tags, tagstonames));
 }
 
 } // end of namespace ripley
@@ -531,19 +576,20 @@ BOOST_PYTHON_MODULE(ripleycpp)
 
     def("Rectangle", ripley::_rectangle, (arg("n0"),arg("n1"),arg("l0")=1.0,
         arg("l1")=1.0,arg("d0")=-1,arg("d1")=-1,
-        arg("diracPoints")=list(), arg("diracTags")=list()),
+        arg("diracPoints")=list(), arg("diracTags")=list(),arg("mpicomm")=NULL),
         "Creates a rectangular mesh with n0 x n1 elements over the rectangle [0,l0] x [0,l1].\n\n"
         ":param n0: number of elements in direction 0\n:type n0: ``int``\n"
         ":param n1: number of elements in direction 1\n:type n1: ``int``\n"
         ":param l0: length of side 0 or coordinate range of side 0\n:type l0: ``float`` or ``tuple``\n"
         ":param l1: length of side 1 or coordinate range of side 1\n:type l1: ``float`` or ``tuple``\n"
         ":param d0: number of subdivisions in direction 0\n:type d0: ``int``\n"
-        ":param d1: number of subdivisions in direction 1\n:type d1: ``int``");
+        ":param d1: number of subdivisions in direction 1\n:type d1: ``int``\n"
+        ":param mpicomm: a mpi communicator\n");
 
     def("MultiRectangle", ripley::_multirectangle, (arg("n0"),arg("n1"),
         arg("l0")=1.0,arg("l1")=1.0,arg("d0")=-1,arg("d1")=-1,
         arg("diracPoints")=list(),arg("diracTags")=list(),
-        arg("multiplier")=1),
+        arg("multiplier")=1),arg("mpicomm")=NULL,
         "Creates a rectangular mesh with n0 x n1 parent elements over the "
         "rectangle [0,l0] x [0,l1], each parent element is divided ``multiplier`` times.\n\n"
         ":param n0: number of elements in direction 0\n:type n0: ``int``\n"
@@ -552,7 +598,8 @@ BOOST_PYTHON_MODULE(ripleycpp)
         ":param l1: length of side 1 or coordinate range of side 1\n:type l1: ``float`` or ``tuple``\n"
         ":param d0: number of subdivisions in direction 0\n:type d0: ``int``\n"
         ":param d1: number of subdivisions in direction 1\n:type d1: ``int``\n"
-        ":param multiplier: size of overlap\n:type multiplier: ``unsigned int``");
+        ":param multiplier: size of overlap\n:type multiplier: ``unsigned int``\n"
+        ":param mpicomm");
 
     def("MultiBrick", ripley::_multibrick, (arg("n0"),arg("n1"),arg("n2"),
         arg("l0")=1.0,arg("l1")=1.0,arg("l2")=1.0,arg("d0")=-1,arg("d1")=-1,
