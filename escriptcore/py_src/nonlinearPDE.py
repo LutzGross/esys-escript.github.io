@@ -38,9 +38,10 @@ import numpy
 from time import time
 from . import linearPDEs as lpe
 from . import util
-from .escriptcpp import Data
+from .escriptcpp import Data, hasFeature
 
-if HAVE_SYMBOLS:
+if hasFeature("sympy"):
+# if HAVE_SYMBOLS:
     import sympy
     import esys.escriptcore.symbolic as symb
 

@@ -99,7 +99,7 @@ vars.AddVariables(
   ('mpi_prefix', 'Prefix/Paths of MPI installation', default_prefix),
   ('mpi_libs', 'MPI shared libraries to link with', ['mpi']),
   BoolVariable('use_gmsh', 'Enable gmsh, if available', True),
-  BoolVariable('use_sympy', 'Enable sympy, if available', True),
+  BoolVariable('use_sympy', 'Enable sympy, if available', False),
   EnumVariable('netcdf', 'Enable netCDF file support', False, allowed_values=netcdf_flavours),
   ('netcdf_prefix', 'Prefix/Paths of netCDF installation', default_prefix),
   ('netcdf_libs', 'netCDF libraries to link with', 'DEFAULT'),

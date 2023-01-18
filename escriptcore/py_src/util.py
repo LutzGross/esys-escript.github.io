@@ -56,7 +56,11 @@ from .escriptcpp import C_GeneralTensorProduct, Data
 from .escriptcpp import getVersion, getMPIRankWorld, getMPIWorldMax
 from .escriptcpp import printParallelThreadCounts
 from .escriptcpp import listEscriptParams
-from . import symboliccore as sym
+try:
+    from . import symboliccore as sym
+    HAVE_SYMPY=1
+except:
+    HAVE_SYMPY=0
 from .gmshrunner import gmshGeo2Msh
 
 from .escriptcpp import hasFeature

@@ -508,7 +508,7 @@ def checkOptionalModules(env):
                 env['warnings'].append("Could not find sympy")
     else:
         env['sympy']=False
-        env['warnings'].append("Building without sympy")
+        env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
 
     ######## gmshpy
     env['gmshpy'] = detectModule(env, 'gmshpy')
