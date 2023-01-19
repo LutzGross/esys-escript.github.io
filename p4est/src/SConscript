@@ -1,0 +1,227 @@
+##############################################################################
+#
+# Copyright (c) 2003-2019 by The University of Queensland
+# http://www.uq.edu.au
+#
+# Primary Business: Queensland, Australia
+# Licensed under the Apache License, version 2.0
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+# Development 2012-2013 by School of Earth Sciences
+# Development from 2014 by Centre for Geoscience Computing (GeoComp)
+#
+##############################################################################
+
+Import('*')
+
+module_name = 'p4est'
+
+sources = """
+    libb64/cencode.c
+    libb64/cdecode.c
+    iniparser/dictionary.c
+    iniparser/iniparser.c
+    p4est_algorithms.c
+    p4est_balance.c
+    p4est_base.c
+    p4est_bits.c
+    p4est_build.c
+    p4est.c
+    p4est_communication.c
+    p4est_connectivity.c
+    p4est_connrefine.c
+    p4est_empty.c
+    p4est_geometry.c
+    p4est_ghost.c
+    p4est_io.c
+    p4est_iterate.c
+    p4est_lnodes.c
+    p4est_mesh.c
+    p4est_nodes.c
+    p4est_plex.c
+    p4est_points.c
+    p4est_search.c
+    p4est_vtk.c
+    p4est_wrap.c
+    p6est.c
+    p6est_communication.c
+    p6est_empty.c
+    p6est_ghost.c
+    p6est_lnodes.c
+    p6est_profile.c
+    p6est_vtk.c
+    p8est_algorithms.c
+    p8est_balance.c
+    p8est_bits.c
+    p8est_build.c
+    p8est.c
+    p8est_communication.c
+    p8est_connectivity.c
+    p8est_connrefine.c
+    p8est_empty.c
+    p8est_geometry.c
+    p8est_ghost.c
+    p8est_io.c
+    p8est_iterate.c
+    p8est_lnodes.c
+    p8est_mesh.c
+    p8est_nodes.c
+    p8est_plex.c
+    p8est_points.c
+    p8est_search.c
+    p8est_tets_hexes.c
+    p8est_vtk.c
+    p8est_wrap.c
+    sc_allgather.c
+    sc_amr.c
+    sc_avl.c
+    sc_blas.c
+    sc_bspline.c
+    sc.c
+    sc_containers.c
+    sc_dmatrix.c
+    sc_flops.c
+    sc_functions.c
+    sc_getopt1.c
+    sc_getopt.c
+    sc_io.c
+    sc_keyvalue.c
+    sc_lapack.c
+    sc_mpi.c
+    sc_notify.c
+    sc_obstack.c
+    sc_options.c
+    sc_polynom.c
+    sc_random.c
+    sc_ranges.c
+    sc_reduce.c
+    sc_refcount.c
+    sc_search.c
+    sc_shmem.c
+    sc_sort.c
+    sc_statistics.c
+    sc_string.c
+    sc_unique_counter.c
+    sc_warp.c
+""".split()
+
+headers = """
+    iniparser/dictionary.h
+    iniparser/iniparser.h
+    p4est_algorithms.h
+    p4est_balance.h
+    p4est_base.h
+    p4est_bits.h
+    p4est_build.h
+    p4est_communication.h
+    p4est_config.h
+    p4est_connectivity.h
+    p4est_empty.h
+    p4est_extended.h
+    p4est_geometry.h
+    p4est_ghost.h
+    p4est.h
+    p4est_io.h
+    p4est_iterate.h
+    p4est_lnodes.h
+    p4est_mesh.h
+    p4est_nodes.h
+    p4est_plex.h
+    p4est_points.h
+    p4est_search.h
+    p4est_to_p8est_empty.h
+    p4est_to_p8est.h
+    p4est_vtk.h
+    p4est_wrap.h
+    p6est_communication.h
+    p6est_empty.h
+    p6est_extended.h
+    p6est_ghost.h
+    p6est.h
+    p6est_lnodes.h
+    p6est_profile.h
+    p6est_vtk.h
+    p8est_algorithms.h
+    p8est_balance.h
+    p8est_bits.h
+    p8est_build.h
+    p8est_communication.h
+    p8est_connectivity.h
+    p8est_empty.h
+    p8est_extended.h
+    p8est_geometry.h
+    p8est_ghost.h
+    p8est.h
+    p8est_io.h
+    p8est_iterate.h
+    p8est_lnodes.h
+    p8est_mesh.h
+    p8est_nodes.h
+    p8est_plex.h
+    p8est_points.h
+    p8est_search.h
+    p8est_tets_hexes.h
+    p8est_vtk.h
+    p8est_wrap.h
+    sc_allgather.h
+    sc_amr.h
+    sc_avl.h
+    sc_blas.h
+    sc_bspline.h
+    sc_config.h
+    sc_containers.h
+    sc_dmatrix.h
+    sc_flops.h
+    sc_functions.h
+    sc_getopt.h
+    sc.h
+    sc_io.h
+    sc_keyvalue.h
+    sc_lapack.h
+    sc_lua.h
+    sc_mpi.h
+    sc_notify.h
+    sc_obstack.h
+    sc_options.h
+    sc_polynom.h
+    sc_private.h
+    sc_random.h
+    sc_ranges.h
+    sc_reduce.h
+    sc_refcount.h
+    sc_search.h
+    sc_shmem.h
+    sc_sort.h
+    sc_statistics.h
+    sc_string.h
+    sc_unique_counter.h
+    sc_warp.h
+""".split()
+
+local_env = env.Clone()
+
+# collect dependencies for other modules
+p4estlibs = []
+
+if env['lapack']:
+    p4estlibs = ['lapack']
+if env['mpi']:
+    p4estlibs += env['mpi_libs']
+local_env.PrependUnique(LIBS = p4estlibs)
+
+env['p4est_libs'] = [module_name] + p4estlibs
+
+include_path = Dir(module_name, local_env['incinstall'])
+hdr_inst = local_env.Install(include_path, headers)
+
+lib = local_env.SharedLibrary(module_name, sources)
+lib_inst = local_env.Install(local_env['libinstall'], lib)
+
+build = env.Alias('build_p4est', [hdr_inst, lib])
+env.Alias('install_p4est', ['build_p4est', lib_inst])
+
+import os
+local_env.PrependUnique(CPPPATH = os.path.abspath(os.getcwd()))
+local_env.PrependUnique(CPPPATH = os.path.abspath(os.path.join(os.getcwd(),"iniparser")))
+local_env.PrependUnique(CPPPATH = os.path.abspath(os.path.join(os.getcwd(),"libb64")))

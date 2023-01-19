@@ -61,6 +61,8 @@ try:
     HAVE_SYMPY=1
 except:
     HAVE_SYMPY=0
+    class sym:
+        Symbol=type(memoryview(b'1')) #This type should never be passed to util.py
 from .gmshrunner import gmshGeo2Msh
 
 from .escriptcpp import hasFeature

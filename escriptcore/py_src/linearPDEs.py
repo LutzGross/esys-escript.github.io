@@ -486,6 +486,10 @@ class LinearProblem(object):
      self.__COEFFICIENTS={}
      self.__solution_rtol=1.e99
      self.__solution_atol=1.e99
+     # Record if we are using oxley
+     self.have_oxley=False
+     if domain.getDescription() == 'oxley::rectangle' or domain.getDescription() == 'oxley::brick':
+        self.have_oxley=True
      self.setSolverOptions()
      self.setSymmetryOff()
      # Set on lumping if we are using Speckley
@@ -715,6 +719,7 @@ class LinearProblem(object):
        self.__solver_options.setSymmetry(self.__sym)
        self.__solver_options.setHermitian(self.__herm)
        self.__solver_options.setDim(self.getDim())
+       self.__solver_options.setOxleyDomain(self.hasOxley())
 
    def getSolverOptions(self):
        """
@@ -1341,7 +1346,12 @@ class LinearProblem(object):
        """
        Returns the solution in its current state.
        """
-       if self.__solution.isEmpty(): self.__solution=self.createSolution()
+       if self.__solution.isEmpty(): 
+          self.__solution=self.createSolution()
+       if self.hasOxley():
+          self.getDomain().updateSolutionInformation(self.__solution)
+          self.getDomain().updateMeshInformation()
+          # self.__solution=self.getDomain().getUpdatedSolution() //todo
        return self.__solution
 
    def resetRightHandSide(self):
@@ -1562,6 +1572,11 @@ class LinearProblem(object):
         :type data: `list`
         """
         self.getDomain().addToSystem(op, rhs, data, self.assembler)
+        if self.hasOxley():
+            self.getDomain().makeZ(self.__complex)
+            self.getDomain().makeIZ(self.__complex)
+            self.getDomain().finaliseA(op,self.__complex)
+            rhs=self.getDomain().finaliseRhs(rhs)
 
    def addPDEToLumpedSystem(self, operator, a, b, c, hrz_lumping):
         """
@@ -1771,6 +1786,11 @@ class LinearPDE(LinearProblem):
      :param debug: if True debug information is printed
 
      """
+     #
+     #   records whether or not we are using oxley
+     #
+     self.have_oxley=False
+
      super(LinearPDE, self).__init__(domain,numEquations,numSolutions,isComplex,debug)
      #
      #   the coefficients of the PDE:
@@ -2274,6 +2294,9 @@ class LinearPDE(LinearProblem):
      if not X_reduced.isEmpty():
            out-=X_reduced
      return out
+
+   def hasOxley(self):
+     return self.have_oxley
 
 class Poisson(LinearPDE):
    """

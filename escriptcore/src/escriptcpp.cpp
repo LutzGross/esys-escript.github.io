@@ -401,8 +401,25 @@ args("arg"), "assigns new location to the domain\n\n"
         ":type arg: `Data`")
       .def("getNumDataPointsGlobal",&escript::AbstractContinuousDomain::getNumDataPointsGlobal,
         ":return: the number of data points summed across all MPI processes\n"
-        ":rtype: ``int``");
-
+        ":rtype: ``int``")
+#ifdef ESYS_HAVE_TRILINOS
+      .def("finaliseA",&escript::AbstractContinuousDomain::finaliseA, args("mat", "iz"),
+        "finalises the matrix system before it is passed to the solver\n\n"
+        ":param mat:\n"
+        ":type mat: ``AbstractSystemMatrix``\n"
+        ":param iz:\n"
+        ":type iz: ``CRSMatrix``\n"
+        ":rtype ``AbstractSystemMatrix``")
+      .def("finaliseRhs",&escript::AbstractContinuousDomain::finaliseRhs, args("rhs", "z"),
+        "finalises the matrix system before it is passed to the solver\n\n"
+        ":param rhs:\n"
+        ":type rhs: ``AbstractSystemMatrix``\n"
+        ":param z:\n"
+        ":type z: ``CRSMatrix``\n"
+        ":rtype ``AbstractSystemMatrix``");
+#else
+        ;
+#endif //ESYS_HAVE_TRILINOS
 
 
 
@@ -1300,6 +1317,10 @@ args("source", "q", "r","factor"),
         ":param refinements: number of refinements\n"
         ":type refinements: non-negative ``int``")
     .def("getNumRefinements", &escript::SolverBuddy::getNumRefinements,"Returns the number of refinement steps to refine the solution when a direct solver is applied.\n\n"
+        ":rtype: non-negative ``int``")
+    .def("setOxleyDomain", &escript::SolverBuddy::setOxleyDomain, args("using_oxley"), "Sets the parameter Oxley_Domain.\n\n"
+        ":rtype: non-negative ``int``")
+    .def("getOxleyDomain", &escript::SolverBuddy::getOxleyDomain,"True if we are using an Oxley domain, False otherwise.\n\n"
         ":rtype: non-negative ``int``")
     .def("setODESolver", &escript::SolverBuddy::setODESolver, args("solver"),"Set the solver method for ODEs.\n\n"
         ":param method: key of the ODE solver method to be used.\n"

@@ -534,8 +534,12 @@ def checkForTrilinos(env):
         'BelosTFQMRIter.hpp','BelosTFQMRSolMgr.hpp','BelosTpetraAdapter.hpp','BelosTypes.hpp',\
         'Ifpack2_Factory.hpp','Kokkos_DefaultNode.hpp',\
         'MatrixMarket_Tpetra.hpp','MueLu_CreateTpetraPreconditioner.hpp',\
-        'Teuchos_DefaultComm.hpp','Teuchos_ParameterList.hpp',\
+        'Teuchos_DefaultComm.hpp','Teuchos_ParameterList.hpp', \
+        'Teuchos_Comm.hpp', 'Tpetra_CrsMatrix_decl.hpp', \
+        'Tpetra_BlockCrsMatrix_decl.hpp', \
         'Tpetra_CrsGraph.hpp','Tpetra_CrsMatrix.hpp', 'Tpetra_RowMatrix.hpp',\
+        'Tpetra_createDeepCopy_CrsMatrix.hpp', \
+        'TpetraExt_TripleMatrixMultiply_def.hpp', \
         'Tpetra_Vector.hpp','Trilinos_version.h']
 
         print("Looking for the Trilinos headers...")
@@ -548,6 +552,53 @@ def checkForTrilinos(env):
         if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')):
             print("Checking for %s... %s" % ('Tpetra_DefaultPlatform.hpp', "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))
             env.Append(CPPDEFINES = ['ESYS_HAVE_TPETRA_DP'])
+        
+        if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_Experimental_BlockCrsMatrix.hpp')):
+            print("Checking for %s... %s" % ('Tpetra_Experimental_BlockCrsMatrix.hpp', "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))
+            env.Append(CPPDEFINES = ['ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKCRS'])
+        elif os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_BlockCrsMatrix.hpp')):
+            print("Checking for %s... %s" % ('Tpetra_BlockCrsMatrix.hpp', "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))
+        else:
+            raise RuntimeError('Could not locate the Trilinos Block CRS Matrix header')
+
+        if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_BlockCrsMatrix_Helpers.hpp')):
+            print("Checking for %s... %s" % ('Tpetra_BlockCrsMatrix_Helpers.hpp', "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))
+        elif os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_Experimental_BlockCrsMatrix_Helpers.hpp')):
+            print("Checking for %s... %s" % ('Tpetra_Experimental_BlockCrsMatrix_Helpers.hpp', "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))
+            env.Append(CPPDEFINES = ['ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKCRSH'])
+        else:
+            raise RuntimeError('Could not locate the Trilinos Block CRS Matrix Helpers header')
+
+        if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_BlockVector.hpp')):
+            print("Checking for %s... %s" % ('Tpetra_BlockVector.hpp', "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))
+        elif os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_Experimental_BlockVector.hpp')):
+            print("Checking for %s... %s" % ('Tpetra_Experimental_BlockVector.hpp', "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))
+            env.Append(CPPDEFINES = ['ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKV'])
+        else:
+            raise RuntimeError('Could not locate the Trilinos BlockVector header')
+
+        pytri_path=trilinos_lib_path+'/python'+str(sys.version_info[0])+'.'+str(sys.version_info[1])+'/site-packages/PyTrilinos'
+        pytri_test_file=os.path.join(pytri_path,'Tpetra.pyc')
+        if os.path.isfile(pytri_test_file):
+            env.Append(PYTHONPATH=pytri_path)
+        paths=sys.path
+        for i in range(0,paths.__len__()):
+            env.Append(PYTHONPATH=paths[i])
+
+        # Try to extract the trilinos version from Trilinos_version.h
+        versionh=open(os.path.join(trilinos_inc_path, 'Trilinos_version.h'))
+        trilinos_version='unknown'
+        env['trilinos_version']='unknown'
+        for line in versionh:
+            ver=re.match(r'#define TRILINOS_MAJOR_MINOR_VERSION (\d+)',line)
+            if ver:
+                trilinos_version=ver.group(1)
+                trilinos_version = int(trilinos_version)
+                major=int(str(trilinos_version)[:2])
+                minor=int(str(trilinos_version)[2:4])
+                tmp=int(str(trilinos_version)[4:6])
+                env['trilinos_version'] = str(major)+"."+str(minor)+"."+str(tmp)
+                print("Trilinos version=", env['trilinos_version'])
 
         if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_BlockCrsMatrix.hpp')):
             print("Checking for %s... %s" % ('Tpetra_BlockCrsMatrix.hpp', "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))
@@ -663,7 +714,7 @@ def checkOptionalLibraries(env):
     mumps_inc_path=''
     mumps_lib_path=''
     if env['mumps']:
-        mumps_inc_path,mumps_lib_path=findLibWithHeader(env, env['mumps_libs'], 'dmumps_c.h', env['mumps_prefix'], lang='c++')
+        mumps_inc_path,mumps_lib_path=findLibWithHeader(env, env['mumps_libs'], 'mumps_mpi.h', env['mumps_prefix'], lang='c++')
         env.AppendUnique(CPPPATH = [mumps_inc_path])
         env.AppendUnique(LIBPATH = [mumps_lib_path])
         env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], mumps_lib_path)

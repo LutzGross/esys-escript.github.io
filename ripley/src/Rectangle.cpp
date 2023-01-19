@@ -1775,6 +1775,16 @@ void Rectangle::assembleIntegrateImpl(vector<Scalar>& integrals,
                 integrals[i]+=f[i];
             }
         }
+
+//     bool HavePointData = arg.getFunctionSpace().getTypeCode() == Points;
+
+// #ifdef ESYS_MPI
+//     if(HavePointData && escript::getMPIRankWorld() == 0) {
+// #else
+//     if(HavePointData) {
+// #endif
+//         integrals[0] += arg.getNumberOfTaggedValues();
+
     } else if (fs == Elements && arg.actsExpanded()) {
 #pragma omp parallel
         {

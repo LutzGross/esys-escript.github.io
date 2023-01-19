@@ -1,0 +1,49 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright (c) 2003-2018 by The University of Queensland
+% http://www.uq.edu.au
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Apache License, version 2.0
+% http://www.apache.org/licenses/LICENSE-2.0
+%
+% Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+% Development 2012-2013 by School of Earth Sciences
+% Development from 2014 by Centre for Geoscience Computing (GeoComp)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\chapter*{Overview}\label{sec:Intro}
+The \downunder module for \Python is designed to perform inversion of
+geophysical data such as gravity and magnetic anomalies using a parallel
+supercomputer.
+The solution approach is based entirely on the finite element method not the usual approach based on Green's functions
+and linear algebra techniques.
+The module is implemented on top of the \escript solver environment for
+\Python and is distributed as part of the \escript package through
+\url{https://launchpad.net/escript-finley}.
+We refer to the \escript documentation~\cite{ESCRIPT} for installation
+instructions and to \cite{ESCRIPTCOOKBOOK} for a basic introduction to \escript.
+
+This document is split into two parts:
+Part~\ref{part1} provides a tutorial-style introduction to running inversions
+with the \downunder module.
+Users with minimal or no programming skills should be able to follow the
+tutorial which demonstrates how to run inversions of gravity anomaly data,
+magnetic anomaly data and the combination of both.
+The scripts and data files used in the examples are provided with the \escript
+distribution.
+
+Part~\ref{part2} gives more details on the mathematical methods used and the
+module infrastructure.
+It is the intention of this part to give users a deeper understanding of how
+\downunder is implemented and also to open the door for experienced \Python
+programmers to build their own inversion programs using \downunder components
+and the \escript infrastructure. 
+
+The development project of \downunder is part of the AuScope Inversion Lab. The work is funded 
+under Australian Geophysical Observing System, 
+see~\url{http://auscope.org.au/site/agos.php}, through the Education Investment Fund of
+the Australian Commonwealth (2011-2014) and under the AuScope Sustainability Funding (2011-12)
+with the support of the School of Earth Sciences at the University of Queensland, see~\url{http://www.earth.uq.edu.au/}.

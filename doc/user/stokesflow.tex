@@ -1,0 +1,249 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright (c) 2003-2018 by The University of Queensland
+% http://www.uq.edu.au
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Apache License, version 2.0
+% http://www.apache.org/licenses/LICENSE-2.0
+%
+% Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+% Development 2012-2013 by School of Earth Sciences
+% Development from 2014 by Centre for Geoscience Computing (GeoComp)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Stokes Flow}
+\label{STOKES FLOW CHAP}
+In this section we look at Computational Fluid Dynamics (CFD) to simulate
+the flow of fluid under the influence of gravity.
+The \class{StokesProblemCartesian} class will be used to calculate the velocity
+and pressure of the fluid.
+The fluid dynamics is governed by the Stokes equation. In geophysical problems
+the velocity of fluids is low; that is, the inertial forces are small compared
+with the viscous forces, therefore the inertial terms in the Navier-Stokes
+equations can be ignored.
+For a body force $f$, the governing equations are given by:
+%
+\begin{equation}
+\nabla \cdot (\eta(\nabla \vec{v} + \nabla^{T} \vec{v})) - \nabla p = -f,
+\label{GENERAL NAVIER STOKES}
+\end{equation}
+%
+with the incompressibility condition
+%
+\begin{equation}
+\nabla \cdot \vec{v} = 0.
+\label{INCOMPRESSIBILITY}
+\end{equation}
+%
+where $p$, $\eta$ and $f$ are the pressure, viscosity and body forces, respectively.
+Alternatively, the Stokes equations can be represented in Einstein summation
+tensor notation (compact notation):
+%
+\begin{equation}
+-(\eta(v_{i,j} + v_{j,i})),_{j} + p,_{i} = f_{i},
+\label{GENERAL NAVIER STOKES COM}
+\end{equation}
+%
+with the incompressibility condition
+%
+\begin{equation}
+-v_{i,i} = 0.
+\label{INCOMPRESSIBILITY COM}
+\end{equation}
+%
+The subscript comma $i$ denotes the derivative of the function with respect to $x_{i}$.
+%A linear relationship between the deviatoric stress $\sigma^{'}_{ij}$ and the stretching $D_{ij} = \frac{1}{2}(v_{i,j} + v_{j,i})$ is defined as \cite{GROSS2006}:
+%
+%\begin{equation}
+%\sigma^{'}_{ij} = 2\eta D^{'}_{ij},
+%\label{STRESS}
+%\end{equation}
+%
+%where the deviatoric stretching $D^{'}_{ij}$ is defined as
+%
+%\begin{equation}
+%D^{'}_{ij} = D^{'}_{ij} - \frac{1}{3}D_{kk}\delta_{ij}.
+%\label{DEVIATORIC STRETCHING}
+%\end{equation}
+%
+%where $\delta_{ij}$ is the Kronecker $\delta$-symbol, which is a matrix wi-th ones for its diagonal entries ($i = j$) and zeros for the remaining entries ($i \neq j$).
+The body force $f$ in \eqn{GENERAL NAVIER STOKES COM} is the gravity acting in
+the $x_{3}$ direction and is given as $f=-g\rho\delta_{i3}$.
+The Stokes equation is a saddle point problem, and can be solved using a Uzawa scheme.
+A class called \class{StokesProblemCartesian} in \escript can be used to solve
+for velocity and pressure. A more detailed discussion of the class can be
+found in Chapter \ref{MODELS CHAPTER}.
+In order to keep numerical stability and satisfy the Courant-Friedrichs-Lewy condition (CFL condition)\index{Courant number}\index{CFL condition}, the
+time-step size needs to be kept below a certain value.
+The Courant number \index{Courant number} is defined as:
+%
+\begin{equation}
+C = \frac{v \delta t}{h}
+\label{COURANT}
+\end{equation}
+%
+where $\delta t$, $v$, and $h$ are the time-step, velocity, and the width of
+an element in the mesh, respectively. The velocity $v$ may be chosen as the
+maximum velocity in the domain. In this problem the time-step size was
+calculated for a Courant number of $0.4$.
+
+The following \PYTHON script is the setup for the Stokes flow simulation, and
+is available in the \ExampleDirectory as \file{fluid.py}.
+It starts off by importing the classes, such as the \class{StokesProblemCartesian}
+class, for solving the Stokes equation and the incompressibility condition for
+velocity and pressure.
+Physical constants are defined for the viscosity and density of the fluid,
+along with the acceleration due to gravity.
+Solver settings are set for the maximum iterations and tolerance; the default
+solver used is PCG (Preconditioned Conjugate Gradients).
+The mesh is defined as a rectangle to represent the body of fluid.
+We are using $20 \times 20$ elements with piecewise linear elements for the
+pressure and for velocity but the elements are subdivided for the velocity.
+This approach is called \textit{macro elements}\index{macro elements} and
+needs to be applied to make sure that the discretized problem has a unique
+solution, see~\cite{LBB} for details\footnote{Alternatively, one can use
+second order elements for the velocity and first order elements for pressure
+on the same element. You can set \code{order=2} in \class{esys.finley.Rectangle}.}.
+The fact that pressure and velocity are represented in different ways is
+expressed by
+\begin{python}
+  velocity=Vector(0., Solution(mesh))
+  pressure=Scalar(0., ReducedSolution(mesh))
+\end{python}
+The gravitational force is calculated based on the fluid density and the
+acceleration due to gravity.
+The boundary conditions are set for a slip condition at the base and the left
+face of the domain. At the base fluid movement in the $x_{0}$-direction
+is free, but fixed in the $x_{1}$-direction, and similarly at the left
+face fluid movement in the $x_{1}$-direction is free  but fixed in
+the $x_{0}$-direction.
+An instance of the \class{StokesProblemCartesian} class is defined for the
+given computational mesh, and the solver tolerance set.
+Inside the \code{while} loop, the boundary conditions, viscosity and body
+force are initialized.
+The Stokes equation is then solved for velocity and pressure.
+The time-step size is calculated based on the Courant-Friedrichs-Lewy condition
+(CFL condition)\index{Courant number}\index{CFL condition}, to ensure stable solutions.
+The nodes in the mesh are then displaced based on the current velocity and
+time-step size, to move the body of fluid.
+The output for the simulation of velocity and pressure is then saved to a file
+for visualization.
+%
+\begin{python}
+  from esys.escript import *
+  import esys.finley
+  from esys.escript.linearPDEs import LinearPDE
+  from esys.escript.models import StokesProblemCartesian
+  from esys.weipa import saveVTK
+
+  # physical constants
+  eta=1.
+  rho=100.
+  g=10.
+
+  # solver settings
+  tolerance=1.0e-4
+  max_iter=200
+  t_end=50
+  t=0.0
+  time=0
+  verbose=True
+
+  # define mesh
+  H=2.
+  L=1.
+  W=1.
+  mesh = esys.finley.Rectangle(l0=L, l1=H, order=-1, n0=20, n1=20)
+  coordinates = mesh.getX()
+
+  # gravitational force
+  Y=Vector(0., Function(mesh))
+  Y[1] = -rho*g
+
+  # element spacing
+  h = Lsup(mesh.getSize())
+
+  # boundary conditions for slip at base
+  boundary_cond=whereZero(coordinates[1])*[0.0,1.0]
+      +whereZero(coordinates[0])*[1.0,0.0]
+
+  # velocity and pressure vectors
+  velocity=Vector(0., Solution(mesh))
+  pressure=Scalar(0., ReducedSolution(mesh))
+
+  # Stokes Cartesian
+  solution=StokesProblemCartesian(mesh)
+  solution.setTolerance(tolerance)
+
+  while t <= t_end:
+    print(" ----- Time step = %s -----"%t)
+    print("Time = %s seconds"%time)
+
+    solution.initialize(fixed_u_mask=boundary_cond, eta=eta, f=Y)
+    velocity,pressure=solution.solve(velocity,pressure,max_iter=max_iter, \
+                                     verbose=verbose)
+
+    print("Max velocity =", Lsup(velocity), "m/s")
+
+    # CFL condition
+    dt=0.4*h/(Lsup(velocity))
+    print("dt =", dt)
+
+    # displace the mesh
+    displacement = velocity * dt
+    coordinates = mesh.getX()
+    newx=interpolate(coordinates + displacement, ContinuousFunction(mesh))
+    mesh.setX(newx)
+
+    time += dt
+
+    vel_mag = length(velocity)
+
+    #save velocity and pressure output
+    saveVTK("vel.%2.2i.vtu"%t, vel=vel_mag, vec=velocity, pressure=pressure)
+    t = t+1.
+\end{python}
+%
+The results from the simulation can be viewed with \mayavi, by executing the
+following command:
+\begin{verbatim}
+mayavi2 -d vel.00.vtu -m Surface
+\end{verbatim}
+%
+Colour-coded scalar maps and velocity flow fields can be viewed by selecting
+them in the menu.
+The time-steps can be swept through to view a movie of the simulation.
+\fig{FLUID OUTPUT} shows the simulation output.
+Velocity vectors and a colour map for pressure are shown.
+As the time progresses the body of fluid falls under the influence of gravity.
+%
+\begin{figure}[ht]
+\center
+\subfigure[t=1]{\label{FLOW OUTPUT 01}\includegraphics[height=5cm]{stokes-fluid-t01}}
+\hspace{1.6cm}
+\subfigure[t=20]{\label{FLOW OUTPUT 10}\includegraphics[height=5cm]{stokes-fluid-t10}}
+\hspace{1.6cm}
+\subfigure[t=30]{\label{FLOW OUTPUT 20}\includegraphics[height=5cm]{stokes-fluid-t20}}\\
+\subfigure[t=40]{\label{FLOW OUTPUT 30}\includegraphics[height=5cm]{stokes-fluid-t30}}
+\hspace{1cm}
+\subfigure[t=50]{\label{FLOW OUTPUT 40}\includegraphics[height=5cm]{stokes-fluid-t40}}
+\hspace{1cm}
+\subfigure[t=60]{\label{FLOW OUTPUT 50}\includegraphics[height=5cm]{stokes-fluid-t50}}
+%\includegraphics[scale=0.25]{stokes-fluid-colorbar}
+\caption{Simulation output for Stokes flow. Fluid body starts off as a
+rectangular shape, then progresses downwards under the influence of gravity.
+Colour coded distribution represents the scalar values for pressure.
+Velocity vectors are displayed at each node in the mesh to show the flow field.
+Computational mesh used was 20$\times$20 elements.}
+\label{FLUID OUTPUT}
+\end{figure}
+%
+The view used here to track the fluid is the Lagrangian view, since the mesh
+moves with the fluid. One of the disadvantages of using the Lagrangian view is
+that the elements in the mesh become severely distorted after a period of time
+and introduce solver errors. To get around this limitation the Level Set
+Method can be used, with the Eulerian point of view for a fixed mesh.
+%The Level Set Method is discussed in Section \ref{LEVELSET CHAP}.
+

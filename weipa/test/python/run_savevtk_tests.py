@@ -49,6 +49,11 @@ try:
     ripleyInstalled = True
 except:
     ripleyInstalled = False
+try:
+    from esys import oxley
+    oxleyInstalled = True
+except:
+    oxleyInstalled = False
 
 try:
      WEIPA_TEST_MESHES=os.environ['WEIPA_TEST_MESHES']
@@ -1600,6 +1605,97 @@ class Test_Ripley_SaveVTK(Test_VTKSaver):
      self.check_vtk("ripley_3D_boundary", data_s=x[0], data_v=x[0]*[1.,2.,3.],
                                           data_t=x[0]*[[11.,12.,13.],[21.,22.,23.],[31.,32.,33.]])
 
+@unittest.skipIf(getMPISizeWorld()>4, "Skipping oxley saveVTK tests since MPI size > 4")
+@unittest.skipIf(not oxleyInstalled, "Skipping oxley saveVTK tests since oxley not installed")
+class Test_Oxley_SaveVTK(Test_VTKSaver):
+
+  # === oxley 2D =============================================================
+
+  def test_oxley_2D_ContinuousFunction(self):
+     dom=oxley.Rectangle(n0=11, n1=3, l0=(-2.5,8.0), l1=(1.2,3.8), d0=getMPISizeWorld())
+     x=ContinuousFunction(dom).getX()
+     self.check_vtk("oxley_2D_node", data_s=x[0], data_v=x[0]*[1.,2.],
+                                      data_t=x[0]*[[11.,12.],[21.,22.]])
+
+  def test_oxley_2D_Solution(self):
+     dom=oxley.Rectangle(n0=11, n1=3, l0=(-2.5,8.0), l1=(1.2,3.8), d0=getMPISizeWorld())
+     x=Solution(dom).getX()
+     self.check_vtk("oxley_2D_node", data_s=x[0], data_v=x[0]*[1.,2.],
+                                      data_t=x[0]*[[11.,12.],[21.,22.]])
+
+  def test_oxley_2D_ReducedSolution(self):
+     dom=oxley.Rectangle(n0=11, n1=3, l0=(-2.5,8.0), l1=(1.2,3.8), d0=getMPISizeWorld())
+     x=ReducedSolution(dom).getX()
+     self.check_vtk("oxley_2D_node", data_s=x[0], data_v=x[0]*[1.,2.],
+                                      data_t=x[0]*[[11.,12.],[21.,22.]])
+
+  def test_oxley_2D_Function(self):
+     dom=oxley.Rectangle(n0=11, n1=3, l0=(-2.5,8.0), l1=(1.2,3.8), d0=getMPISizeWorld())
+     x=Function(dom).getX()
+     self.check_vtk("oxley_2D_cell", data_s=x[0], data_v=x[0]*[1.,2.],
+                                      data_t=x[0]*[[11.,12.],[21.,22.]])
+
+  def test_oxley_2D_ReducedFunction(self):
+     dom=oxley.Rectangle(n0=11, n1=3, l0=(-2.5,8.0), l1=(1.2,3.8), d0=getMPISizeWorld())
+     x=ReducedFunction(dom).getX()
+     self.check_vtk("oxley_2D_cell", data_s=x[0], data_v=x[0]*[1.,2.],
+                                      data_t=x[0]*[[11.,12.],[21.,22.]])
+
+  def test_oxley_2D_FunctionOnBoundary(self):
+     dom=oxley.Rectangle(n0=11, n1=3, l0=(-2.5,8.0), l1=(1.2,3.8), d0=getMPISizeWorld())
+     x=FunctionOnBoundary(dom).getX()
+     self.check_vtk("oxley_2D_boundary", data_s=x[0], data_v=x[0]*[1.,2.],
+                                          data_t=x[0]*[[11.,12.],[21.,22.]])
+
+  def test_oxley_2D_ReducedFunctionOnBoundary(self):
+     dom=oxley.Rectangle(n0=11, n1=3, l0=(-2.5,8.0), l1=(1.2,3.8), d0=getMPISizeWorld())
+     x=ReducedFunctionOnBoundary(dom).getX()
+     self.check_vtk("oxley_2D_boundary", data_s=x[0], data_v=x[0]*[1.,2.],
+                                          data_t=x[0]*[[11.,12.],[21.,22.]])
+
+  # === oxley 3D =============================================================
+
+  def test_oxley_3D_ContinuousFunction(self):
+     dom=oxley.Brick(n0=11, n1=3, n2=2, l0=(-2.5,7.0), l1=(1.2,3.8), l2=4., d0=getMPISizeWorld(), d1=1, d2=1)
+     x=ContinuousFunction(dom).getX()
+     self.check_vtk("oxley_3D_node", data_s=x[0], data_v=x[0]*[1.,2.,3.],
+                                      data_t=x[0]*[[11.,12.,13.],[21.,22.,23.],[31.,32.,33.]])
+
+  def test_oxley_3D_Solution(self):
+     dom=oxley.Brick(n0=11, n1=3, n2=2, l0=(-2.5,7.0), l1=(1.2,3.8), l2=4., d0=getMPISizeWorld(), d1=1, d2=1)
+     x=Solution(dom).getX()
+     self.check_vtk("oxley_3D_node", data_s=x[0], data_v=x[0]*[1.,2.,3.],
+                                      data_t=x[0]*[[11.,12.,13.],[21.,22.,23.],[31.,32.,33.]])
+
+  def test_oxley_3D_ReducedSolution(self):
+     dom=oxley.Brick(n0=11, n1=3, n2=2, l0=(-2.5,7.0), l1=(1.2,3.8), l2=4., d0=getMPISizeWorld(), d1=1, d2=1)
+     x=ReducedSolution(dom).getX()
+     self.check_vtk("oxley_3D_node", data_s=x[0], data_v=x[0]*[1.,2.,3.],
+                                      data_t=x[0]*[[11.,12.,13.],[21.,22.,23.],[31.,32.,33.]])
+
+  def test_oxley_3D_Function(self):
+     dom=oxley.Brick(n0=11, n1=3, n2=2, l0=(-2.5,7.0), l1=(1.2,3.8), l2=4., d0=getMPISizeWorld(), d1=1, d2=1)
+     x=Function(dom).getX()
+     self.check_vtk("oxley_3D_cell", data_s=x[0], data_v=x[0]*[1.,2.,3.],
+                                      data_t=x[0]*[[11.,12.,13.],[21.,22.,23.],[31.,32.,33.]])
+
+  def test_oxley_3D_ReducedFunction(self):
+     dom=oxley.Brick(n0=11, n1=3, n2=2, l0=(-2.5,7.0), l1=(1.2,3.8), l2=4., d0=getMPISizeWorld(), d1=1, d2=1)
+     x=ReducedFunction(dom).getX()
+     self.check_vtk("oxley_3D_cell", data_s=x[0], data_v=x[0]*[1.,2.,3.],
+                                      data_t=x[0]*[[11.,12.,13.],[21.,22.,23.],[31.,32.,33.]])
+
+  def test_oxley_3D_FunctionOnBoundary(self):
+     dom=oxley.Brick(n0=11, n1=3, n2=2, l0=(-2.5,7.0), l1=(1.2,3.8), l2=4., d0=getMPISizeWorld(), d1=1, d2=1)
+     x=FunctionOnBoundary(dom).getX()
+     self.check_vtk("oxley_3D_boundary", data_s=x[0], data_v=x[0]*[1.,2.,3.],
+                                          data_t=x[0]*[[11.,12.,13.],[21.,22.,23.],[31.,32.,33.]])
+
+  def test_oxley_3D_ReducedFunctionOnBoundary(self):
+     dom=oxley.Brick(n0=11, n1=3, n2=2, l0=(-2.5,7.0), l1=(1.2,3.8), l2=4., d0=getMPISizeWorld(), d1=1, d2=1)
+     x=ReducedFunctionOnBoundary(dom).getX()
+     self.check_vtk("oxley_3D_boundary", data_s=x[0], data_v=x[0]*[1.,2.,3.],
+                                          data_t=x[0]*[[11.,12.,13.],[21.,22.,23.],[31.,32.,33.]])
 
 
 if __name__ == '__main__':

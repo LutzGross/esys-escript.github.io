@@ -20,12 +20,14 @@
 #include "BelosWrapper.h" 
 #include "PreconditionerFactory.h" 
 #include "TrilinosAdapterException.h" 
+#include "TrilinosMatrixAdapter.h"
 #include "util.h" 
 
 #include <escript/SolverOptions.h>
+#include <escript/EsysMPI.h>
 
 #include <Kokkos_DefaultNode.hpp>
-#include <MatrixMarket_Tpetra.hpp>
+// #include <MatrixMarket_Tpetra.hpp>
 #include <MueLu_CreateTpetraPreconditioner.hpp>
 
 #ifdef ESYS_HAVE_TPETRA_DP
@@ -35,6 +37,9 @@
 #endif
 
 #include <Tpetra_Vector.hpp>
+#include "Tpetra_createDeepCopy_CrsMatrix.hpp"
+// #include "TpetraExt_TripleMatrixMultiply_def.hpp"
+
 
 using Teuchos::RCP;
 using Teuchos::rcp;
@@ -78,6 +83,16 @@ void CrsMatrixWrapper<ST>::add(const std::vector<LO>& rowIdx,
             mat.sumIntoLocalValues(row, cols, vals);
         }
     }
+}
+
+template<typename ST>
+void CrsMatrixWrapper<ST>::add_single(const LO row, 
+                                      const LO col, 
+                                      const ST value)
+{
+    std::vector<LO> cols(1,col);
+    std::vector<ST> vals(1,value);
+    mat.sumIntoLocalValues(row, cols, vals);
 }
 
 template<typename ST>
@@ -278,6 +293,20 @@ void CrsMatrixWrapper<ST>::resetValues(bool preserveSolverData)
     m_resetCalled = true;
 }
 
+template<typename ST>
+void CrsMatrixWrapper<ST>::IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT>> iz, long n) 
+{
+    mat.resumeFill();
+
+    auto tmp_mat1 = Tpetra::createDeepCopy(mat);
+    tmp_mat1.fillComplete();
+    Tpetra::MatrixMatrix::Multiply(*iz,true,tmp_mat1,false,mat,false);
+    auto tmp_mat2 = Tpetra::createDeepCopy(mat);
+    tmp_mat2.fillComplete();
+    Tpetra::MatrixMatrix::Multiply(tmp_mat2,false,*iz,false,mat,false);
+
+    mat.fillComplete();
+}
 
 // instantiate the supported variants
 template class CrsMatrixWrapper<real_t>;

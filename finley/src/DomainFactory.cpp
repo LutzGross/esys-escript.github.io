@@ -1191,8 +1191,12 @@ Domain_ptr brick_driver_MPI(const bp::list& args)
     
     bp::object py_comm = bp::extract<bp::object>(args[17]);
     // PyObject* py_obj = py_comm.ptr();
+    #ifdef ESYS_HAVE_MPI4PY
     MPI_Comm *comm_p = pythonMPIWrapper(py_comm);
     JMPI info = makeInfo(*comm_p);
+    #else
+    JMPI info = makeInfo(MPI_COMM_WORLD);
+    #endif
 
     return brick(info, static_cast<dim_t>(bp::extract<float>(args[0])),
                  static_cast<dim_t>(bp::extract<float>(args[1])),
@@ -1360,8 +1364,12 @@ Domain_ptr rectangle_driver_MPI(const bp::list& args)
     
     bp::object py_comm = bp::extract<bp::object>(args[14]);
     // PyObject* py_obj = py_comm.ptr();
+    #ifdef ESYS_HAVE_MPI4PY
     MPI_Comm *comm_p = pythonMPIWrapper(py_comm);
     JMPI info = makeInfo(*comm_p);
+    #else
+    JMPI info = makeInfo(MPI_COMM_WORLD);
+    #endif
 
     return rectangle(info, static_cast<dim_t>(bp::extract<float>(args[0])),
                      static_cast<dim_t>(bp::extract<float>(args[1])),

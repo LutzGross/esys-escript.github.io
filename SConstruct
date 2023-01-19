@@ -62,7 +62,7 @@ mpi_flavours=('no', 'none', 'MPT', 'MPICH', 'MPICH2', 'OPENMPI', 'INTELMPI')
 netcdf_flavours = ('no', 'off', 'none', 'False', # Must be last of the false alternatives
                    'yes', 'on', 'True', '3', # Must be last of the version 3 alternatives
                    '4')
-all_domains = ['finley','ripley','speckley']
+all_domains = ['finley','oxley','ripley','speckley']
 
 #Note that scons construction vars the the following purposes:
 #  CPPFLAGS -> to the preprocessor
@@ -276,10 +276,11 @@ if env['cxx'] != 'default':
 
 if env['mpi'] == 'OPENMPI':
     env['CXX'] = 'mpic++'
-
+    env['CC'] = 'mpicc'
 
 # default compiler/linker options
-cc_flags = '-std=c++11'
+cxx_flags = '-std=c++11'
+cc_flags = ''
 cc_optim = ''
 cc_debug = ''
 omp_flags = ''
@@ -295,7 +296,7 @@ if cc_name == 'icpc':
     # #1478: class "std::auto_ptr<...>" was declared deprecated
     # #1875: offsetof applied to non-POD types is nonstandard (in boost)
     # removed -std=c99 because icpc doesn't like it and we aren't using c anymore
-    cc_flags    = "-std=c++11 -fPIC -w2 -wd1875 -wd1478 -Wno-unknown-pragmas"
+    cxx_flags    = "-std=c++11 -fPIC -w2 -wd1875 -wd1478 -Wno-unknown-pragmas"
     cc_optim    = "-Ofast -ftz -fno-alias -xCORE-AVX2 -ipo"
     #cc_optim    = "-Ofast -ftz -fno-alias -inline-level=2 -ipo -xCORE-AVX2"
     #cc_optim    = "-O2 -ftz -fno-alias -inline-level=2"
@@ -314,6 +315,8 @@ elif cc_name[:3] == 'g++':
     cc_flags += " -Wno-unused-function  -Wno-narrowing"
     cc_flags += " -Wno-stringop-truncation -Wno-deprecated-declarations --param=max-vartrack-size=100000000"
     cc_optim     = "-O2" # -march=native"
+    if(env['debug']):
+        cc_flags += " -DP4EST_ENABLE_DEBUG"
     #max-vartrack-size: avoid vartrack limit being exceeded with escriptcpp.cpp
     cc_debug     = "-g3 -O0  -DDOASSERT -DDOPROF -DBOUNDS_CHECK -DSLOWSHARECHECK --param=max-vartrack-size=100000000"
     #Removed because new netcdf doesn't seem to like it
@@ -324,13 +327,13 @@ elif cc_name[:3] == 'g++':
     sysheaderopt = "-isystem"
 elif cc_name == 'cl':
     # Microsoft Visual C on Windows
-    cc_flags     = "/EHsc /MD /GR /wd4068 /D_USE_MATH_DEFINES /DDLL_NETCDF"
+    cxx_flags     = "/EHsc /MD /GR /wd4068 /D_USE_MATH_DEFINES /DDLL_NETCDF"
     cc_optim     = "/O2 /Op /W3"
     cc_debug     = "/Od /RTCcsu /ZI /DBOUNDS_CHECK"
     fatalwarning = "/WX"
 elif cc_name == 'icl':
     # Intel C on Windows
-    cc_flags     = '/EHsc /GR /MD'
+    cxx_flags     = '/EHsc /GR /MD'
     cc_optim     = '/fast /Oi /W3 /Qssp /Qinline-factor- /Qinline-min-size=0 /Qunroll'
     cc_debug     = '/Od /RTCcsu /Zi /Y- /debug:all /Qtrapuv'
     omp_flags    = '/Qvec-report0 /Qopenmp /Qopenmp-report0 /Qparallel'
@@ -375,6 +378,30 @@ elif cc_name == 'mpic++':
     #Removed because new netcdf doesn't seem to like it
     #cc_debug += ' -D_GLIBCXX_DEBUG  '
     ld_extra = " -fPIC -lmpi "
+    if env['openmp']:
+      ld_extra += " -lgomp"
+    omp_flags    = "-fopenmp"
+    omp_ldflags  = "-fopenmp"
+    fatalwarning = "-Werror"
+    sysheaderopt = "-isystem"
+elif cc_name == 'mpic++':
+    print("getting options")
+    # MPIC++ on any system
+    # note that -ffast-math is not used because it breaks isnan(),
+    cc_flags     = " -std=c++17 -pedantic -Wall -fPIC -finline-functions"
+    cc_flags += " -Wno-unknown-pragmas -Wno-sign-compare -Wno-system-headers -Wno-long-long -Wno-strict-aliasing "
+    cc_flags += " -Wno-unused-function  -Wno-narrowing"
+    cc_flags += " -Wno-stringop-truncation -Wno-deprecated-declarations --param=max-vartrack-size=100000000"
+    cc_optim     = "-O2 -march=native"
+    #max-vartrack-size: avoid vartrack limit being exceeded with escriptcpp.cpp
+    cc_debug     = "-g3 -O0  -DDOASSERT -DDOPROF -DBOUNDS_CHECK -DSLOWSHARECHECK --param=max-vartrack-size=100000000"
+    #Removed because new netcdf doesn't seem to like it
+    #cc_debug += ' -D_GLIBCXX_DEBUG  '
+    try:
+        ld_extra
+    except NameError:
+        ld_extra=''
+    ld_extra += " -fPIC -lmpi "
     if env['openmp']:
       ld_extra += " -lgomp"
     omp_flags    = "-fopenmp"
@@ -427,14 +454,27 @@ else:
     env['omp_flags']=''
     env['omp_ldflags']=''
 
+# Flags used by the p4est program
+if env['openmp']:
+    env.Append(CPPDEFINES=['P4EST_HAVE_OPENMP'])
+    env.Append(CPPDEFINES=['P4EST_OPENMP'])
+    env.Append(CPPDEFINES=['P4EST_ENABLE_OPENMP'])
+    env.Append(CPPDEFINES=['ENABLE_OPENMP'])
+    env.Append(CPPDEFINES=['HAVE_OPENMP'])
+    env.Append(CPPDEFINES=['OPENMP'])
+
 env['buildvars']['openmp']=int(env['openmp'])
 
 # add debug/non-debug compiler flags
 env['buildvars']['debug']=int(env['debug'])
 if env['debug']:
     env.Append(CCFLAGS = env['cc_debug'])
+    env.Append(CXXFLAGS = env['cc_debug'])
+    env.Append(CPPDEFINES=['P4EST_ENABLE_DEBUG'])
+    env.Append(CPPDEFINES=['SC_ENABLE_DEBUG'])
 else:
     env.Append(CCFLAGS = env['cc_optim'])
+    env.Append(CXXFLAGS = env['cc_optim'])
 
 # Manually change the trilinos ordinals (if necessary)
 if env['trilinos_LO'] != '':
@@ -470,6 +510,7 @@ if env['trilinos_GO'] != '':
 
 # always add cc_flags
 env.Append(CCFLAGS = env['cc_flags'])
+env.Append(CXXFLAGS = cxx_flags)
 
 # add system libraries
 env.AppendUnique(LIBS = env['sys_libs'])
@@ -658,6 +699,25 @@ if env['prelaunch'] == 'default':
     else:
         env['prelaunch'] = ""
 
+# Used by p4est
+if env['mpi'] != 'no' and env['mpi'] != 'none':
+    env.Append(CPPDEFINES = ['P4EST_ENABLE_MPI'])
+    env.Append(CPPDEFINES = ['P4EST_ENABLE_MPICOMMSHARED'])
+    env.Append(CPPDEFINES = ['P4EST_ENABLE_MPIIO'])
+    env.Append(CPPDEFINES = ['P4EST_ENABLE_MPISHARED'])
+    env.Append(CPPDEFINES = ['P4EST_ENABLE_MPITHREAD'])
+    env.Append(CPPDEFINES = ['P4EST_ENABLE_MPIWINSHARED'])
+    env.Append(CPPDEFINES = ['P4EST_MPI'])
+    env.Append(CPPDEFINES = ['P4EST_MPIIO'])
+    env.Append(CPPDEFINES = ['SC_ENABLE_MPI'])
+    env.Append(CPPDEFINES = ['SC_ENABLE_MPICOMMSHARED'])
+    env.Append(CPPDEFINES = ['SC_ENABLE_MPIIO'])
+    env.Append(CPPDEFINES = ['SC_ENABLE_MPISHARED'])
+    env.Append(CPPDEFINES = ['SC_ENABLE_MPITHREAD'])
+    env.Append(CPPDEFINES = ['SC_ENABLE_MPIWINSHARED'])
+    env.Append(CPPDEFINES = ['SC_MPI'])
+    env.Append(CPPDEFINES = ['SC_MPIIO'])
+
 if env['launcher'] == 'default':
     if env['mpi'] == 'INTELMPI':
         env['launcher'] = "mpirun -hostfile %f -n %N -ppn %p %b"
@@ -691,6 +751,8 @@ if env['postlaunch'] == 'default':
 
 if len(env['domains']) == 0:
    env['warnings'].append("No domains have been built, escript will not be very useful!")
+else:
+   print("Building escript with the domains:  %s"%(", ".join(env['domains'])))
 
 # keep some of our install paths first in the list for the unit tests
 env.PrependENVPath(LD_LIBRARY_PATH_KEY, env['libinstall'])
@@ -698,6 +760,8 @@ env.PrependENVPath('PYTHONPATH', prefix)
 env['ENV']['ESCRIPT_ROOT'] = prefix
 
 if not env['verbose']:
+    env['CCCOMSTR'] = "Compiling $TARGET"
+    env['SHCCCOMSTR'] = "Compiling $TARGET"
     env['CXXCOMSTR'] = "Compiling $TARGET"
     env['SHCXXCOMSTR'] = "Compiling $TARGET"
     env['ARCOMSTR'] = "Linking $TARGET"
@@ -736,6 +800,13 @@ env.Alias('target_init', [target_init])
 # escript can't be turned off
 build_all_list = ['build_escript']
 install_all_list = ['target_init', 'install_escript']
+
+#p4est
+build_all_list += ['build_p4est']
+install_all_list += ['install_p4est']
+env['p4est']=True
+env['p4est_libs']=['p4est','sc']
+env['escript_src']=os.getcwd()
 
 if env['usempi']:
     build_all_list += ['build_pythonMPI', 'build_overlord']
@@ -778,6 +849,8 @@ env.SConscript('paso/SConscript', variant_dir=variant+'paso', duplicate=0)
 env.SConscript('trilinoswrap/SConscript', variant_dir=variant+'trilinoswrap', duplicate=0)
 env.SConscript('cusplibrary/SConscript')
 env.SConscript('finley/SConscript', variant_dir=variant+'finley', duplicate=0)
+env.SConscript('p4est/SConscript', variant_dir=variant+'p4est', duplicate=0)
+env.SConscript('oxley/SConscript', variant_dir=variant+'oxley', duplicate=0)
 env.SConscript('ripley/SConscript', variant_dir=variant+'ripley', duplicate=0)
 env.SConscript('speckley/SConscript', variant_dir=variant+'speckley', duplicate=0)
 env.SConscript('weipa/SConscript', variant_dir=variant+'weipa', duplicate=0)
@@ -855,7 +928,7 @@ def print_summary():
     print("  Install prefix:  %s"%env['prefix'])
     print("          Python:  %s (Version %s)"%(env['pythoncmd'],env['python_version']))
     print("           boost:  %s (Version %s)"%(env['boost_prefix'],env['boost_version']))
-    if env['have_boost_numpy']:
+    if env['have_boost_numpy'] is True:
         print("     boost numpy:  YES")
     else:
         print("     boost numpy:  NO")

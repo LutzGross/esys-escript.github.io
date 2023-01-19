@@ -14,8 +14,8 @@
 #
 ##############################################################################
 
-# This is a template configuration file for escript on Debian/GNU Linux.
-# Refer to README_FIRST for usage instructions.
+clang=False
+# clang=True
 
 escript_opts_version = 203
 

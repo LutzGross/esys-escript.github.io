@@ -23,6 +23,15 @@
 #include "AbstractDomain.h"
 #include "AbstractSystemMatrix.h"
 #include "AbstractTransportProblem.h"
+#include "DataTypes.h"
+
+#ifdef ESYS_HAVE_TRILINOS
+#include <trilinoswrap/CrsMatrixWrapper.h>
+#include <trilinoswrap/TrilinosMatrixAdapter.h>
+#include <trilinoswrap/types.h>
+#include <Teuchos_Comm.hpp>
+#include <Tpetra_CrsMatrix_decl.hpp>
+#endif
 
 #include <string>
 #include <vector>
@@ -216,6 +225,23 @@ class ESCRIPT_DLL_API AbstractContinuousDomain : public AbstractDomain
                      const escript::Data& d, const escript::Data& y,
                      const escript::Data& d_contact, const escript::Data& y_contact, 
                      const escript::Data& d_dirac, const escript::Data& y_dirac) const;
+
+  // Used by Oxley
+  #ifdef ESYS_HAVE_TRILINOS
+  // template<typename SC>
+  // virtual Teuchos::RCP<Tpetra::CrsMatrix<DataTypes::cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> getZ() const;
+  // template<typename SC>
+  // virtual Teuchos::RCP<Tpetra::CrsMatrix<DataTypes::cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> getIZ() const;
+  // template<typename SC>
+  // virtual void finalise(AbstractSystemMatrix& mat, 
+  //                       escript::Data& rhs,
+  //                       Teuchos::RCP<Tpetra::CrsMatrix<DataTypes::real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> z,
+  //                       Teuchos::RCP<Tpetra::CrsMatrix<DataTypes::real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> iz) const;
+  virtual void finaliseA(AbstractSystemMatrix& mat, 
+                        Teuchos::RCP<Tpetra::CrsMatrix<DataTypes::cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> iz) const;
+  virtual void finaliseRhs(escript::Data& rhs,
+                        Teuchos::RCP<Tpetra::CrsMatrix<DataTypes::cplx_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>> z) const;
+  #endif
 
 // We do not require this method at this level since the python side checks to ensure it exists
 // before calling it.

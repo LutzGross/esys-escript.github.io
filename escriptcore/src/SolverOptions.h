@@ -702,6 +702,16 @@ public:
     */
     bool using_default_method() const;
 
+    /**
+        Sets the parameter Oxley_Domain
+    */
+    void setOxleyDomain(bool);
+
+    /**
+        True if we are using an Oxley domain, False otherwise;
+    */
+    bool getOxleyDomain();    
+
 
 protected:
     boost::python::dict trilinosParams;
@@ -752,6 +762,8 @@ protected:
     double cum_net_time;
 
     bool using_default_solver_method;
+
+    bool have_oxley;
 };
 
 typedef boost::shared_ptr<SolverBuddy> SB_ptr;

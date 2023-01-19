@@ -9,6 +9,7 @@ from esys.escript import *
 from esys.escript.linearPDEs import Poisson
 import esys.ripley as ripley
 import esys.finley as finley
+import esys.oxley as oxley
 import esys.speckley as speckley
 from esys.weipa import saveVTK
 
@@ -23,5 +24,6 @@ u = mypde.getSolution()
 # write u to an external file  
 #saveVTK("u.vtu",sol=u)
 
+print("Passed the release_sanity test!")
 
 

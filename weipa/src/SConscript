@@ -62,6 +62,12 @@ pluginsources = [] + sources
 # clone here to use same CPPDEFINES
 visitplugin_env = local_env.Clone()
 
+if 'oxley' in env['domains']:
+    sources += ['OxleyDomain.cpp','OxleyElements.cpp','OxleyNodes.cpp']
+    headers += ['OxleyDomain.h','OxleyElements.h','OxleyNodes.h']
+    local_env.Append(CPPDEFINES = ['USE_OXLEY'])
+    weipalibs += env['oxley_libs']
+
 if 'ripley' in env['domains']:
     sources += ['RipleyDomain.cpp','RipleyElements.cpp','RipleyNodes.cpp']
     headers += ['RipleyDomain.h','RipleyElements.h','RipleyNodes.h']
