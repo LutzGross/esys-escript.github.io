@@ -638,6 +638,24 @@ env.Append(BUILDERS = {'RunPyExample' : runPyExample_builder});
 epstopdfbuilder = Builder(action = eps2pdf, suffix='.pdf', src_suffix='.eps', single_source=True)
 env.Append(BUILDERS = {'EpsToPDF' : epstopdfbuilder});
 
+################ If requested, build & install Trilinos ####################
+
+if env['build_trilinos']:
+    if not env['cxx'] == 'default ':
+        os.environ['CC'] = env['cxx']
+    startdir=os.getcwd()
+    os.chdir('trilinos_build')
+    if env['mpi'] == 'OPENMPI':
+        print("Building (MPI) trilinos..............................")
+        configure="sh mpi.sh " + env['prefix']
+    else:
+        print("Building (no MPI) trilinos..............................")
+        configure="sh nompi.sh " + env['prefix']
+    res=os.system(configure)
+    res=os.system('make -j4 install')
+    env['trilinos_prefix']=env['prefix']+'/escript_trilinos'
+    os.chdir(startdir)
+    env['trilinos_version']='13.0.0'
 
 ############################ Dependency checks ###############################
 
@@ -664,25 +682,6 @@ env=checkOptionalLibraries(env)
 
 ######## PDFLaTeX (for documentation)
 env=checkPDFLatex(env)
-
-################ If requested, build & install Trilinos ####################
-
-if env['build_trilinos']:
-    if not env['cxx'] == 'default ':
-        os.environ['CC'] = env['cxx']
-    startdir=os.getcwd()
-    os.chdir('trilinos_build')
-    if env['mpi'] == 'OPENMPI':
-        print("Building (MPI) trilinos..............................")
-        configure="sh mpi.sh " + env['prefix']
-    else:
-        print("Building (no MPI) trilinos..............................")
-        configure="sh nompi.sh " + env['prefix']
-    res=os.system(configure)
-    res=os.system('make -j4 install')
-    env['trilinos_prefix']=env['prefix']+'/escript_trilinos'
-    os.chdir(startdir)
-    env['trilinos_version']='13.0.0'
 
 # =================================
 # set defaults for launchers if not otherwise specified
