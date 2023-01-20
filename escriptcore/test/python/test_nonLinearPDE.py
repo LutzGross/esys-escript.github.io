@@ -31,7 +31,7 @@ Test suite for nonlinearPDEs class
 
 __author__="Jaco du Plessis"
 
-from esys.escript import NonlinearPDE, Symbol, whereZero, grad, sin, cos, symmetric, matrixmult, FunctionOnBoundary, hasFeature
+from esys.escript import NonlinearPDE, whereZero, grad, sin, cos, symmetric, matrixmult, FunctionOnBoundary, hasFeature
 import numpy
 import esys.escriptcore.utestselect as unittest
 from esys.escript.linearPDEs import IllegalCoefficient,IllegalCoefficientValue
@@ -40,6 +40,7 @@ from esys.escript.pdetools import Locator
 
 if hasFeature("sympy"):
     sympyavail=True
+    from esys.escript import Symbol
 else:
     sympyavail=False
 
