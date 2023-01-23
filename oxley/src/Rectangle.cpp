@@ -286,6 +286,8 @@ Rectangle::Rectangle(int order,
 
     // Refine the mesh 
     // refineMesh(num_refine, "uniform");
+
+    oxleytimer.toc("Class initialised");
 }
 
 /**
@@ -969,6 +971,8 @@ void Rectangle::loadMesh(std::string filename)
 
 void Rectangle::refineMesh(std::string algorithmname)
 {
+    oxleytimer.toc("refineMesh...");
+
     z_needs_update=true;
     iz_needs_update=true;
 
@@ -1022,10 +1026,14 @@ void Rectangle::refineMesh(std::string algorithmname)
     updateElementIds();
     updateFaceOffset();
     updateFaceElementCount();
+
+    oxleytimer.toc("refineMesh...done");
 }
 
 void Rectangle::refineBoundary(std::string boundaryname, double dx)
 {
+    oxleytimer.toc("refineBoundary...");
+
     z_needs_update=true;
     iz_needs_update=true;
 
@@ -1087,10 +1095,14 @@ void Rectangle::refineBoundary(std::string boundaryname, double dx)
     updateElementIds();
     updateFaceOffset();
     updateFaceElementCount();
+
+    oxleytimer.toc("refineBoundary...Done");
 }
 
 void Rectangle::refineRegion(double x0, double x1, double y0, double y1)
 {
+    oxleytimer.toc("refineRegion...");
+
     z_needs_update=true;
     iz_needs_update=true;
 
@@ -1127,10 +1139,14 @@ void Rectangle::refineRegion(double x0, double x1, double y0, double y1)
     updateElementIds();
     updateFaceOffset();
     updateFaceElementCount();
+
+    oxleytimer.toc("refineRegion...Done");
 }
 
 void Rectangle::refinePoint(double x0, double y0)
 {
+    oxleytimer.toc("refinePoint...Done");
+
     z_needs_update=true;
     iz_needs_update=true;
 
@@ -1171,10 +1187,14 @@ void Rectangle::refinePoint(double x0, double y0)
     updateElementIds();
     updateFaceOffset();
     updateFaceElementCount();
+
+    oxleytimer.toc("refinePoint...Done");
 }
 
 void Rectangle::refineCircle(double x0, double y0, double r)
 {
+    oxleytimer.toc("refineCircle...");
+
     z_needs_update=true;
     iz_needs_update=true;
     
@@ -1216,6 +1236,8 @@ void Rectangle::refineCircle(double x0, double y0, double r)
     updateElementIds();
     updateFaceOffset();
     updateFaceElementCount();
+
+    oxleytimer.toc("refineCircle...Done");
 }
 #endif //ESYS_HAVE_TRILINOS
 
@@ -1464,6 +1486,8 @@ void Rectangle::updateNodeIncrements()
 
 void Rectangle::renumberNodes()
 {
+    oxleytimer.toc("renumberNodes...");
+
     // Clear some variables
     NodeIDs.clear();
     hanging_face_orientation.clear();
@@ -1636,6 +1660,8 @@ void Rectangle::renumberNodes()
             std::cout << i << ", "; 
         std::cout << std::endl;
 #endif
+
+    oxleytimer.toc("renumberNodes...Done");
 }
 
 //protected
@@ -2344,6 +2370,8 @@ void Rectangle::updateTreeIDs()
 
 void Rectangle::updateRowsColumns()
 {
+    oxleytimer.toc("updateRowsColumns...");
+
     std::vector<std::vector<long>> * indices;
     indices = new std::vector<std::vector<long>>;
     long initial[] = {0, -1, -1, -1, -1};
@@ -2602,6 +2630,8 @@ void Rectangle::updateRowsColumns()
 
     delete indices;
     delete data;
+
+    oxleytimer.toc("updateRowsColumns...Done");
 }
 
 #ifdef ESYS_HAVE_TRILINOS
@@ -2907,6 +2937,8 @@ void Rectangle::updateElementIds()
 //private
 std::vector<IndexVector> Rectangle::getConnections(bool includeShared) const
 {
+    // oxleytimer.toc("getConnections...");
+
     // returns a vector v of size numDOF where v[i] is a vector with indices
     // of DOFs connected to i (up to 9 in 2D).
     // In other words this method returns the occupied (local) matrix columns
@@ -3014,6 +3046,8 @@ std::vector<IndexVector> Rectangle::getConnections(bool includeShared) const
         std::cout << std::endl;
     }
 #endif
+    
+    // oxleytimer.toc("getConnections...Done");
 
     return indices;
 }

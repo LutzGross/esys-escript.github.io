@@ -29,6 +29,8 @@
 #include <oxley/OxleyData.h>
 #include <oxley/OxleyDomain.h>
 
+#include <oxley/tictoc.h>
+
 #include <p4est.h>
 #include <p4est_connectivity.h>
 #include <p4est_lnodes.h>
@@ -599,6 +601,8 @@ protected:
     // The number of hanging nodes in the mesh
     int num_hanging;
 
+
+    TicTocClock oxleytimer;
 };
 
 
