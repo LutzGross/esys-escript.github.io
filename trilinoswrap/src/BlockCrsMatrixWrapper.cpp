@@ -40,6 +40,7 @@
 #include <Tpetra_Vector.hpp>
 
 #include "Tpetra_createDeepCopy_CrsMatrix.hpp"
+#include "TpetraExt_MatrixMatrix.hpp"
 
 using Teuchos::RCP;
 using Teuchos::rcp;
@@ -286,7 +287,7 @@ void BlockCrsMatrixWrapper<ST>::resetValues(bool preserveSolverData)
 template<typename ST>
 void BlockCrsMatrixWrapper<ST>::IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT>> iz, long n) 
 {
-    throw TrilinosAdapterException("Programming error");
+    //TODO
     // mat.resumeFill();
     // auto tmp_mat1 = Tpetra::createDeepCopy(mat);
     // Tpetra::MatrixMatrix::Multiply(*iz,true,tmp_mat1,false,mat,false);
