@@ -23,6 +23,7 @@
 #include <oxley/OxleyException.h>
 #include <oxley/AbstractAssembler.h>
 #include <oxley/domainhelpers.h>
+#include <oxley/tictoc.h>
 
 #include <escript/EsysMPI.h>
 #include <escript/AbstractContinuousDomain.h>
@@ -1065,6 +1066,8 @@ private:
 
     /// finds the node that the given point coordinates belong to
     virtual dim_t findNode(const double *coords) const = 0;
+
+    TicTocClock oxleytime;
 };
 
 #define POINTER_WRAPPER_CLASS(x) boost::shared_ptr<x>

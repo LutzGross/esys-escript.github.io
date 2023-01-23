@@ -28,6 +28,7 @@ sources = """
     OxleyData.cpp
     OxleyDomain.cpp
     RefinementAlgorithms.cpp
+    tictoc.cpp
 """.split()
 
 headers = """
@@ -45,6 +46,7 @@ headers = """
     OxleyDomain.h
     OxleyException.h
     RefinementAlgorithms.h
+    tictoc.h
 """.split()
 
 local_env = env.Clone()

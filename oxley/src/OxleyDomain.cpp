@@ -75,7 +75,8 @@ namespace oxley {
         #endif
 
         m_mpiInfo = escript::makeInfo(MPI_COMM_WORLD);
-        
+     
+        oxleytime.toc("Created an OxleyDomain");   
     }
 
     /**
@@ -661,12 +662,12 @@ namespace oxley {
 
     escript::Data OxleyDomain::getX() const
     {
-        throw OxleyException("programming error"); 
+        throw OxleyException("programming error1"); 
     }
 
     std::string OxleyDomain::getDescription() const
     {
-        throw OxleyException("programming error");
+        throw OxleyException("programming error2");
     }
 
     escript::Data OxleyDomain::getNormal() const
@@ -1500,11 +1501,15 @@ void OxleyDomain::addToSystem(escript::AbstractSystemMatrix& mat,
 
 #ifdef ESYS_HAVE_TRILINOS
         // Ensure that rhs has the correct number of data points
-        resetRhs(rhs);
 
+        resetRhs(rhs);
+        
         assemblePDE(&mat, rhs, coefs, assembler);
+        
         assemblePDEBoundary(&mat, rhs, coefs, assembler);
+        
         assemblePDEDirac(&mat, rhs, coefs, assembler);
+        
 #else
         OxleyException("Unknown error");
 #endif
@@ -1523,6 +1528,8 @@ esys_trilinos::const_TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
                                             std::vector<IndexVector> connections) const
 {
     using namespace esys_trilinos;
+
+    // oxleytime.toc("createTrilinosGraph... ");
 
     // IndexVector rowTemp(NumDataPointsGlobal);
     // #pragma omp for
@@ -1564,6 +1571,9 @@ esys_trilinos::const_TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
     Teuchos::RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
     params->set("Optimize Storage", true);
     graph->fillComplete(rowMap, colMap, params);
+
+    // oxleytime.toc("createTrilinosGraph... done.");
+
     return graph;
 }
 #endif
@@ -1575,6 +1585,8 @@ esys_trilinos::const_TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
 #ifdef ESYS_HAVE_TRILINOS
 void OxleyDomain::initZ(bool complex)
 {
+    oxleytime.toc("initZ... ");
+
     using namespace esys_trilinos;
 
     zYaleRows.clear(); zYaleRows.push_back(1);
@@ -1601,12 +1613,16 @@ void OxleyDomain::initZ(bool complex)
 
     rZ->fillComplete(zrrowMap,zrcolMap);
     cZ->fillComplete(zcrowMap,zccolMap);
+
+    oxleytime.toc("initZ... done.");
 }
 #endif
 
 #ifdef ESYS_HAVE_TRILINOS
 void OxleyDomain::initIZ(bool complex)
 {
+    oxleytime.toc("initIZ... ");
+
     using namespace esys_trilinos;
 
     izYaleRows.clear(); izYaleRows.push_back(1);
@@ -1634,6 +1650,8 @@ void OxleyDomain::initIZ(bool complex)
 
     rIZ->fillComplete(izrrowMap,izrcolMap);
     cIZ->fillComplete(izcrowMap,izccolMap);
+
+    oxleytime.toc("initIZ... done.");
 }
 #endif
 
@@ -1725,6 +1743,8 @@ void OxleyDomain::initIZ(bool complex)
 #ifdef ESYS_HAVE_TRILINOS
 void OxleyDomain::makeZ(bool complex)
 {
+    oxleytime.toc("makeZ... ");
+
     if(z_needs_update)
     {
         // Size information
@@ -1904,6 +1924,8 @@ void OxleyDomain::makeZ(bool complex)
             z_needs_update=false;
         }
     }
+
+    oxleytime.toc("makeZ... done.");
 }
 #endif
 
@@ -1971,6 +1993,8 @@ void OxleyDomain::makeZworker(S half,Teuchos::RCP<Tpetra::CrsMatrix<S,esys_trili
 #ifdef ESYS_HAVE_TRILINOS
 void OxleyDomain::makeIZ(bool complex)
 {
+    oxleytime.toc("makeIZ... ");
+
     if(iz_needs_update)
     {
         // Size information
@@ -2093,7 +2117,7 @@ void OxleyDomain::makeIZ(bool complex)
             const real_t half = static_cast<real_t> (0.5);
 
             // This is I
-            #pragma omp for
+            // #pragma omp for
             for (esys_trilinos::LO lclRow = 0; lclRow < static_cast<esys_trilinos::LO>(n); ++lclRow) 
             {
                 const esys_trilinos::GO gblRow = izrrowMap->getGlobalElement(lclRow);
@@ -2107,7 +2131,7 @@ void OxleyDomain::makeIZ(bool complex)
             }
 
             // This is Z
-            #pragma omp for
+            // #pragma omp for
             for(int i = 0; i < getNumHangingNodes(); i++)
             {
                 int a, b;
@@ -2161,6 +2185,8 @@ void OxleyDomain::makeIZ(bool complex)
             iz_needs_update=false;
         }
     }
+
+    oxleytime.toc("makeIZ... done.");
 }
 #endif
 
@@ -2241,6 +2267,8 @@ void OxleyDomain::makeIZworker(Teuchos::RCP<Tpetra::CrsMatrix<S,esys_trilinos::L
 #ifdef ESYS_HAVE_TRILINOS
 void OxleyDomain::finaliseA(escript::AbstractSystemMatrix& mat, bool isComplex)
 {
+    oxleytime.toc("finaliseA... ");
+
     if(isComplex==true) 
     {
         finaliseAworker<escript::DataTypes::cplx_t>(mat, cIZ);
@@ -2249,6 +2277,8 @@ void OxleyDomain::finaliseA(escript::AbstractSystemMatrix& mat, bool isComplex)
     {
         finaliseAworker<escript::DataTypes::real_t>(mat, rIZ);
     }
+
+    oxleytime.toc("finaliseA... done.");
 }
 #endif
 
@@ -2269,6 +2299,8 @@ void OxleyDomain::finaliseAworker(escript::AbstractSystemMatrix& mat,
 #ifdef ESYS_HAVE_TRILINOS
 escript::Data OxleyDomain::finaliseRhs(escript::Data& rhs)
 {
+    oxleytime.toc("finaliseRhs... ");
+
     if(getNumHangingNodes() > 0)
     {
         #ifdef OXLEY_PRINT_DEBUG_IZ
@@ -2380,6 +2412,7 @@ escript::Data OxleyDomain::finaliseRhs(escript::Data& rhs)
                 #endif
             }
             // rhs=rhs_new;
+            oxleytime.toc("finaliseRhs... done.");
             return rhs_new;
 
             #ifdef OXLEY_PRINT_DEBUG_IZ_RESULT
@@ -2482,6 +2515,7 @@ escript::Data OxleyDomain::finaliseRhs(escript::Data& rhs)
                 #endif
             }
             // rhs=rhs_new;
+            oxleytime.toc("finaliseRhs... done.");
             return rhs_new;
 
             #ifdef OXLEY_PRINT_DEBUG_IZ_RESULT
@@ -2495,6 +2529,9 @@ escript::Data OxleyDomain::finaliseRhs(escript::Data& rhs)
         #ifdef OXLEY_PRINT_DEBUG_IZ_RESULT
             std::cout << "finaliseRhs...................... no hanging nodes" << std::endl;
         #endif
+
+        oxleytime.toc("finaliseRhs... done.");
+
         return rhs;
     }
 }
@@ -2861,17 +2898,17 @@ bool OxleyDomain::probeInterpolationAcross(int fsType_source,
 
 void OxleyDomain::updateSolutionInformation(escript::Data solution)
 {
-    throw OxleyException("programming error");
+    throw OxleyException("programming error3");
 }
 
 void OxleyDomain::updateMeshInformation()
 {
-    throw OxleyException("programming error");
+    throw OxleyException("programming error4");
 }
 
 escript::Data OxleyDomain::getUpdatedSolution()
 {
-    throw OxleyException("programming error");
+    throw OxleyException("programming error5");
 }
 
 #ifdef ESYS_HAVE_BOOST_NUMPY
