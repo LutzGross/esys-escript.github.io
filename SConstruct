@@ -161,6 +161,7 @@ vars.AddVariables(
   BoolVariable('build_trilinos', 'Instructs scons to build the trilinos library.', False),
   BoolVariable('insane', 'Instructs scons to not run a sanity check after compilation.', False),
   BoolVariable('mpi4py', 'Compile with mpi4py.', False),
+  BoolVariable('use_p4est', 'Compile with p4est.', True),
   ('trilinos_LO', 'Manually specify the LO used by Trilinos.', ''),
   ('trilinos_GO', 'Manually specify the GO used by Trilinos.', '')
 )
@@ -346,7 +347,7 @@ elif cc_name.startswith('clang++-mp'):
     if env['trilinos'] is True:
       cc_flags += "-Wno-unused-variable -Wno-exceptions -Wno-deprecated-declarations "
     cc_optim     = "-O3 "
-    cc_debug     = "-ggdb3 -O0 -fdiagnostics-fixit-info -pedantic "
+    cc_debug     = "-ggdb3 -O0 -pedantic "
     cc_debug    += "-DDOASSERT -DDOPROF -DBOUNDS_CHECK -DSLOWSHARECHECK "
     omp_flags    = "-fopenmp "
     omp_ldflags  = "-fopenmp "
@@ -359,7 +360,7 @@ elif cc_name.startswith('clang++'):
     if env['trilinos'] is True:
       cc_flags += "-Wno-unused-variable -Wno-exceptions -Wno-deprecated-declarations "
     cc_optim     = "-O2"  # -march=native"
-    cc_debug     = "-ggdb3 -O0 -fdiagnostics-fixit-info -pedantic "
+    cc_debug     = "-ggdb3 -O0 -pedantic "
     cc_debug    += "-DDOASSERT -DDOPROF -DBOUNDS_CHECK -DSLOWSHARECHECK "
     omp_flags    = "-fopenmp "
     omp_ldflags  = " "
@@ -801,11 +802,12 @@ build_all_list = ['build_escript']
 install_all_list = ['target_init', 'install_escript']
 
 #p4est
-build_all_list += ['build_p4est']
-install_all_list += ['install_p4est']
-env['p4est']=True
-env['p4est_libs']=['p4est','sc']
-env['escript_src']=os.getcwd()
+if env['use_p4est']:
+    build_all_list += ['build_p4est']
+    install_all_list += ['install_p4est']
+    env['p4est']=True
+    env['p4est_libs']=['p4est','sc']
+    env['escript_src']=os.getcwd()
 
 if env['usempi']:
     build_all_list += ['build_pythonMPI', 'build_overlord']
@@ -848,7 +850,8 @@ env.SConscript('paso/SConscript', variant_dir=variant+'paso', duplicate=0)
 env.SConscript('trilinoswrap/SConscript', variant_dir=variant+'trilinoswrap', duplicate=0)
 env.SConscript('cusplibrary/SConscript')
 env.SConscript('finley/SConscript', variant_dir=variant+'finley', duplicate=0)
-env.SConscript('p4est/SConscript', variant_dir=variant+'p4est', duplicate=0)
+if env['use_p4est']:
+    env.SConscript('p4est/SConscript', variant_dir=variant+'p4est', duplicate=0)
 env.SConscript('oxley/SConscript', variant_dir=variant+'oxley', duplicate=0)
 env.SConscript('ripley/SConscript', variant_dir=variant+'ripley', duplicate=0)
 env.SConscript('speckley/SConscript', variant_dir=variant+'speckley', duplicate=0)
