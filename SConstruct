@@ -62,8 +62,12 @@ mpi_flavours=('no', 'none', 'MPT', 'MPICH', 'MPICH2', 'OPENMPI', 'INTELMPI')
 netcdf_flavours = ('no', 'off', 'none', 'False', # Must be last of the false alternatives
                    'yes', 'on', 'True', '3', # Must be last of the version 3 alternatives
                    '4')
-all_domains = ['finley','oxley','ripley','speckley']
-
+all_domains = ('finley','oxley','ripley','speckley')
+build_trilinos_flavours = ( "check",      # check for unsuccessful make before setting up make
+                            "True", "make", # set-up standard make install
+                            "always",    # always build
+                            "never", "False"  # never build
+                            )
 #Note that scons construction vars the the following purposes:
 #  CPPFLAGS -> to the preprocessor
 #  CCFLAGS  -> flags for _both_ C and C++
@@ -78,6 +82,7 @@ vars.AddVariables(
   BoolVariable('verbose', 'Output full compile/link lines', False),
 # Compiler/Linker options
   ('cxx', 'Path to C++ compiler', 'default'),
+  ('cc', 'Path to C compiler', 'default'),
   ('cc_flags', 'Base (C and C++) compiler flags', 'default'),
   ('cc_optim', 'Additional (C and C++) flags for a non-debug build', 'default'),
   ('cc_debug', 'Additional (C and C++) flags for a debug build', 'default'),
@@ -122,13 +127,15 @@ vars.AddVariables(
   BoolVariable('silo', 'Enable the Silo file format in weipa', False),
   ('silo_prefix', 'Prefix/Paths to Silo installation', default_prefix),
   ('silo_libs', 'Silo libraries to link with', ['siloh5', 'hdf5']),
-  BoolVariable('trilinos', 'Enable the Trilinos solvers', False),
+  BoolVariable('trilinos', 'Enable the Trilinos solvers (overwriten when trilinos is built)', False),
+  EnumVariable('build_trilinos', 'Instructs scons to build the trilinos library.', False, allowed_values=build_trilinos_flavours),
   ('trilinos_prefix', 'Prefix/Paths to Trilinos installation', default_prefix),
   ('trilinos_libs', 'Trilinos libraries to link with', []),
   BoolVariable('visit', 'Enable the VisIt simulation interface', False),
   ('visit_prefix', 'Prefix/Paths to VisIt installation', default_prefix),
   ('visit_libs', 'VisIt libraries to link with', ['simV2']),
-  ListVariable('domains', 'Which domains to build', 'all', all_domains),
+  #ListVariable('domains', 'Which domains to build', 'all', all_domains),
+  ('domains', 'Which domains to build', all_domains),
   BoolVariable('paso', 'Build Paso solver library', True),
   BoolVariable('weipa', 'Build Weipa data export library', True),
   ('mathjax_path', 'Path to MathJax.js file', 'default'),
@@ -158,13 +165,13 @@ vars.AddVariables(
   BoolVariable('osx_dependency_fix', 'Fix dependencies for libraries to have absolute paths (OSX)', False),
   BoolVariable('stdlocationisprefix', 'Set the prefix as escript root in the launcher', False),
   BoolVariable('mpi_no_host', 'Do not specify --host in run-escript launcher (only OPENMPI)', False),
-  BoolVariable('build_trilinos', 'Instructs scons to build the trilinos library.', False),
   BoolVariable('insane', 'Instructs scons to not run a sanity check after compilation.', False),
   BoolVariable('mpi4py', 'Compile with mpi4py.', False),
   BoolVariable('use_p4est', 'Compile with p4est.', True),
   ('trilinos_LO', 'Manually specify the LO used by Trilinos.', ''),
   ('trilinos_GO', 'Manually specify the GO used by Trilinos.', '')
 )
+
 
 ##################### Create environment and help text #######################
 
@@ -176,8 +183,32 @@ vars.AddVariables(
 env = Environment(tools = ['default'], options = vars,
                   ENV = {'PATH': os.environ['PATH']})
 
-if env['build_trilinos']:
-    env['trilinos'] = True
+# check options file version:
+if options_file:
+    opts_valid=False
+    if 'escript_opts_version' in env.Dictionary() and \
+        int(env['escript_opts_version']) >= REQUIRED_OPTS_VERSION:
+            opts_valid=True
+    if opts_valid:
+        print("Using options in %s." % options_file)
+    else:
+        print("\nOptions file %s" % options_file)
+        print("is outdated! Please update the file after reading scons/templates/README_FIRST")
+        print("and setting escript_opts_version to %d.\n"%REQUIRED_OPTS_VERSION)
+        Exit(1)
+
+################# Fill in compiler options if not set above ##################
+if env['cxx'] != 'default':
+    env['CXX'] = env['cxx']
+if env['cc'] != 'default':
+    env['CC'] = env['cc']
+if ( env['cc'] == 'default' and env['cxx'] != 'default') :
+    env['CC'] = env['cxx']
+
+if env['mpi'] == 'OPENMPI':
+    env['CXX'] = 'mpic++'
+    env['CC'] = 'mpicc'
+
 # set the vars for clang
 def mkclang(env):
         env['CXX']='clang'
@@ -206,6 +237,85 @@ if env['tools_names'] != ['default']:
         env = Environment(tools = ['default'] + env['tools_names'], options = vars,
                       ENV = {'PATH' : os.environ['PATH']} )
 
+# Generate help text (scons -h)
+Help(vars.GenerateHelpText(env))
+# Check for superfluous options
+if len(vars.UnknownVariables())>0:
+    for k in vars.UnknownVariables():
+        print("Unknown option '%s'" % k)
+    Exit(1)
+
+env['domains'] = sorted(set(env['domains']))
+#===== First thing we do is to install Trilinos if requested to do so:
+#
+################ If requested, build & install Trilinos ####################
+# Manually change the trilinos ordinals (if necessary)
+if env['trilinos_LO'] != '':
+    env.Append(CPPDEFINES=['MANUALLY_SET_LO'])
+    print("Manually setting the Trilinos Local Ordinate...")
+    if env['trilinos_LO'] == 'int':
+        env.Append(CPPDEFINES=['SET_LO_INT'])
+    elif env['trilinos_LO'] == 'long':
+        env.Append(CPPDEFINES=['SET_LO_LONG'])
+    elif env['trilinos_LO'] == 'long long':
+        env.Append(CPPDEFINES=['SET_LO_LONG_LONG'])
+    elif env['trilinos_LO'] == 'complex double':
+        env.Append(CPPDEFINES=['SET_LO_COMPLEX_DOUBLE'])
+    elif env['trilinos_LO'] == 'real_t':
+        env.Append(CPPDEFINES=['SET_LO_REALT'])
+    elif env['trilinos_LO'] == 'cplx_t':
+        env.Append(CPPDEFINES=['SET_LO_CPLXT'])
+if env['trilinos_GO'] != '':
+    env.Append(CPPDEFINES=['MANUALLY_SET_GO'])
+    print("Manually setting the Trilinos Global Ordinate...")
+    if env['trilinos_GO'] == 'int':
+        env.Append(CPPDEFINES=['SET_GO_INT'])
+    elif env['trilinos_GO'] == 'long':
+        env.Append(CPPDEFINES=['SET_GO_LONG'])
+    elif env['trilinos_GO'] == 'long long':
+        env.Append(CPPDEFINES=['SET_GO_LONG_LONG'])
+    elif env['trilinos_GO'] == 'complex double':
+        env.Append(CPPDEFINES=['SET_GO_COMPLEX_DOUBLE'])
+    elif env['trilinos_GO'] == 'real_t':
+        env.Append(CPPDEFINES=['SET_GO_REALT'])
+    elif env['trilinos_GO'] == 'cplx_t':
+        env.Append(CPPDEFINES=['SET_GO_CPLXT'])
+
+
+if not ( env['build_trilinos'] is False or env['build_trilinos'] == 'never' ):
+    env['trilinos_prefix']=os.path.join(env['prefix'],'escript_trilinos')
+    env['trilinos_build'] = os.path.join(env['prefix'],'trilinos_build')
+    if not env['cc'] == 'default ':
+        os.environ['CC'] = env['cc']
+    if not env['cxx'] == 'default ':
+        os.environ['CXX'] = env['cxx']
+    startdir=os.getcwd()
+    os.chdir(env['trilinos_build'])
+
+    if env['mpi'] == 'OPENMPI':
+        print("Building (MPI) trilinos..............................")
+        configure="sh mpi.sh " + env['prefix']
+    else:
+        print("Building (no MPI) trilinos..............................")
+        configure="sh nompi.sh " + env['prefix']
+
+    #if env['build_trilinos'] == "check" :
+    res=os.system('make -question install')
+    print("trilinos: make test status is ", res)
+    res=os.system(configure)
+    if res :
+        print(">>> Installation of trilinos failed. Scons stopped.")
+        Exit(1)
+    if env['build_trilinos'] is True or  env['build_trilinos'] == "make" or env['build_trilinos'] == "check":
+            res=os.system('make -j%s install'%GetOption("num_jobs"))
+    else:
+            res=os.system('make --always-make  -j%s install'%GetOption("num_jobs"))
+    if res :
+        print(">>> Installation of trilinos failed. Scons stopped.")
+        Exit(1)
+    env['trilinos'] = True
+    os.chdir(startdir)
+
 # Covert env['netcdf'] into one of False, 3, 4
 # Also choose default values for libraries
 pos1=netcdf_flavours.index('False')
@@ -221,29 +331,6 @@ else:   # netcdf4
     env['netcdf']=4
     if env['netcdf_libs']=='DEFAULT':
         env['netcdf_libs']=['netcdf_c++4']
-
-if options_file:
-    opts_valid=False
-    if 'escript_opts_version' in env.Dictionary() and \
-        int(env['escript_opts_version']) >= REQUIRED_OPTS_VERSION:
-            opts_valid=True
-    if opts_valid:
-        print("Using options in %s." % options_file)
-    else:
-        print("\nOptions file %s" % options_file)
-        print("is outdated! Please update the file after reading scons/templates/README_FIRST")
-        print("and setting escript_opts_version to %d.\n"%REQUIRED_OPTS_VERSION)
-        Exit(1)
-
-# Generate help text (scons -h)
-Help(vars.GenerateHelpText(env))
-# Check for superfluous options
-if len(vars.UnknownVariables())>0:
-    for k in vars.UnknownVariables():
-        print("Unknown option '%s'" % k)
-    Exit(1)
-
-env['domains'] = sorted(set(env['domains']))
 
 # create dictionary which will be populated with info for buildvars file
 env['buildvars'] = {}
@@ -272,18 +359,7 @@ if not os.path.isdir(env['pyinstall']):
 env.Append(CPPPATH = [env['incinstall']])
 env.Append(LIBPATH = [env['libinstall']])
 
-################# Fill in compiler options if not set above ##################
 
-if env['cxx'] != 'default':
-    env['CXX'] = env['cxx']
-if env['cc'] != 'default':
-    env['CC'] = env['cc']
-if ( env['cc'] == 'default' and env['cxx'] != 'default') :
-    env['CC'] = env['cxx']
-
-if env['mpi'] == 'OPENMPI':
-    env['CXX'] = 'mpic++'
-    env['CC'] = 'mpicc'
 
 # default compiler/linker options
 cxx_flags = '-std=c++11 '+ env['cxx_extra']  # extra CXX flags
@@ -315,7 +391,6 @@ if cxx_name == 'icpc':
     omp_ldflags = "-qopenmp" # removing -openmp-report (which is deprecated) because the replacement outputs to a file
     fatalwarning = "-Werror"
 elif cxx_name.startswith('g++-mp'):
-    # Clang++mp on any system
     # cc_flags +="-Wall" - switched off as there are problem in p4est compilation.
     cc_flags       += "-fPIC -fdiagnostics-color=always -Wno-uninitialized "
     cc_flags       += "-Wno-unknown-pragmas -Wimplicit-function-declaration "
@@ -436,7 +511,6 @@ env['sysheaderopt']=sysheaderopt
 if env['cc_flags']    == 'default': env['cc_flags'] = cc_flags
 if env['cc_optim']    == 'default': env['cc_optim'] = cc_optim
 if env['cc_debug']    == 'default': env['cc_debug'] = cc_debug
-if env['cxx_flags']    == 'default': env['cxx_flags'] = cxx_flags
 if env['omp_flags']   == 'default': env['omp_flags'] = omp_flags
 if env['omp_ldflags'] == 'default': env['omp_ldflags'] = omp_ldflags
 
@@ -489,7 +563,7 @@ env['buildvars']['openmp']=int(env['openmp'])
 
 env['buildvars']['debug']=int(env['debug'])
 env.Append(CCFLAGS = env['cc_flags'])
-env.Append(CXXFLAGS = env['cxx_flags'])
+env.Append(CXXFLAGS = cxx_flags)
 if ld_extra: env.Append(LINKFLAGS = ld_extra)
 
 if env['debug']:
@@ -501,38 +575,6 @@ else:
     env.Append(CCFLAGS = env['cc_optim'])
     #env.Append(CXXFLAGS = env['cc_optim'])
 
-
-# Manually change the trilinos ordinals (if necessary)
-if env['trilinos_LO'] != '':
-    env.Append(CPPDEFINES=['MANUALLY_SET_LO'])
-    print("Manually setting the Trilinos Local Ordinate...")
-    if env['trilinos_LO'] == 'int':
-        env.Append(CPPDEFINES=['SET_LO_INT'])
-    elif env['trilinos_LO'] == 'long':
-        env.Append(CPPDEFINES=['SET_LO_LONG'])
-    elif env['trilinos_LO'] == 'long long':
-        env.Append(CPPDEFINES=['SET_LO_LONG_LONG'])
-    elif env['trilinos_LO'] == 'complex double':
-        env.Append(CPPDEFINES=['SET_LO_COMPLEX_DOUBLE'])
-    elif env['trilinos_LO'] == 'real_t':
-        env.Append(CPPDEFINES=['SET_LO_REALT'])
-    elif env['trilinos_LO'] == 'cplx_t':
-        env.Append(CPPDEFINES=['SET_LO_CPLXT'])
-if env['trilinos_GO'] != '':
-    env.Append(CPPDEFINES=['MANUALLY_SET_GO'])
-    print("Manually setting the Trilinos Global Ordinate...")
-    if env['trilinos_GO'] == 'int':
-        env.Append(CPPDEFINES=['SET_GO_INT'])
-    elif env['trilinos_GO'] == 'long':
-        env.Append(CPPDEFINES=['SET_GO_LONG'])
-    elif env['trilinos_GO'] == 'long long':
-        env.Append(CPPDEFINES=['SET_GO_LONG_LONG'])
-    elif env['trilinos_GO'] == 'complex double':
-        env.Append(CPPDEFINES=['SET_GO_COMPLEX_DOUBLE'])
-    elif env['trilinos_GO'] == 'real_t':
-        env.Append(CPPDEFINES=['SET_GO_REALT'])
-    elif env['trilinos_GO'] == 'cplx_t':
-        env.Append(CPPDEFINES=['SET_GO_CPLXT'])
 
 
 
@@ -689,24 +731,6 @@ env=checkOptionalLibraries(env)
 ######## PDFLaTeX (for documentation)
 env=checkPDFLatex(env)
 
-################ If requested, build & install Trilinos ####################
-
-if env['build_trilinos']:
-    if not env['cxx'] == 'default ':
-        os.environ['CC'] = env['cxx']
-    startdir=os.getcwd()
-    os.chdir('trilinos_build')
-    if env['mpi'] == 'OPENMPI':
-        print("Building (MPI) trilinos..............................")
-        configure="sh mpi.sh " + env['prefix']
-    else:
-        print("Building (no MPI) trilinos..............................")
-        configure="sh nompi.sh " + env['prefix']
-    res=os.system(configure)
-    res=os.system('make -j4 install')
-    env['trilinos_prefix']=env['prefix']+'/escript_trilinos'
-    os.chdir(startdir)
-    env['trilinos_version']='13.0.0'
 
 # =================================
 # set defaults for launchers if not otherwise specified
@@ -843,11 +867,10 @@ if env['paso']:
     build_all_list += ['build_paso']
     install_all_list += ['install_paso']
 
-if env['build_trilinos'] is False:
-    env['buildvars']['trilinos'] = int(env['trilinos'])
-    if env['trilinos']:
-        build_all_list += ['build_trilinoswrap']
-        install_all_list += ['install_trilinoswrap']
+env['buildvars']['trilinos'] = int(env['trilinos'])
+if env['trilinos']:
+    build_all_list += ['build_trilinoswrap']
+    install_all_list += ['install_trilinoswrap']
 
 env['buildvars']['domains'] = ','.join(env['domains'])
 for domain in env['domains']:
@@ -959,7 +982,7 @@ def print_summary():
     else:
         print("     boost numpy:  NO")
     if env['build_trilinos']:
-        print("        trilinos:  built-in (Version %s)" % (env['trilinos_version']))
+        print("        trilinos:  %s (built-in, Version %s)" % (env['trilinos_prefix'], env['trilinos_version']))
     else:    
         if env['trilinos']:
             print("        trilinos:  %s (Version %s)" % (env['trilinos_prefix'],env['trilinos_version']))
