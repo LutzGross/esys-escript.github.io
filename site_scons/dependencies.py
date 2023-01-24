@@ -540,6 +540,7 @@ def checkForTrilinos(env):
         'Tpetra_CrsGraph.hpp','Tpetra_CrsMatrix.hpp', 'Tpetra_RowMatrix.hpp',\
         'Tpetra_createDeepCopy_CrsMatrix.hpp', \
         'TpetraExt_TripleMatrixMultiply_def.hpp', \
+        'TpetraExt_MatrixMatrix.hpp', \
         'Tpetra_Vector.hpp','Trilinos_version.h']
 
         print("Looking for the Trilinos headers...")

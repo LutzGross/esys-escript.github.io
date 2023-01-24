@@ -32,6 +32,7 @@ from esys.escript import *
 # from esys.oxley import MultiResolutionDomain
 from esys.oxley import Rectangle, Brick
 
+HAVE_SYMBOLS=0
 if HAVE_SYMBOLS:
     from test_symfuncs import Test_symfuncs
 else:

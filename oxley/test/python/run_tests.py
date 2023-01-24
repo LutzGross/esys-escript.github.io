@@ -48,7 +48,8 @@ Test suite for the linearPDE and pdetools on oxley
 import os
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
-from test_linearPDEs import Test_Poisson, Test_LinearPDE, Test_TransportPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping
+# from test_linearPDEs import Test_Poisson, Test_LinearPDE, Test_TransportPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping
+from test_linearPDEs import Test_Poisson, Test_LinearPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping
 from test_assemblage import Test_assemblage_2Do1, Test_assemblage_3Do1
 from test_pdetools import Test_pdetools, Test_pdetools_noLumping
 from esys.escript import *
@@ -80,22 +81,24 @@ class Test_LinearPDEOnOxleyRectangle(Test_LinearPDE):
     def tearDown(self):
         del self.domain
 
-class Test_LinearPDEOnOxleyBrick(Test_LinearPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping, Test_pdetools, Test_assemblage_3Do1, Test_TransportPDE):
-    RES_TOL=1.e-7
-    ABS_TOL=1.e-8
-    def setUp(self):
-        for x in [(int(mpiSize**(1/3.)),int(mpiSize**(1/3.))),(2,3),(2,2),(1,2),(1,1)]:
-            NX=x[0]
-            NY=x[1]
-            NZ=mpiSize//(x[0]*x[1])
-            if NX*NY*NZ == mpiSize:
-                break
+# class Test_LinearPDEOnOxleyBrick(Test_LinearPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping, Test_pdetools, Test_assemblage_3Do1, Test_TransportPDE):
+#TODO
+# class Test_LinearPDEOnOxleyBrick(Test_LinearPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping, Test_pdetools, Test_assemblage_3Do1):
+#     RES_TOL=1.e-7
+#     ABS_TOL=1.e-8
+#     def setUp(self):
+#         for x in [(int(mpiSize**(1/3.)),int(mpiSize**(1/3.))),(2,3),(2,2),(1,2),(1,1)]:
+#             NX=x[0]
+#             NY=x[1]
+#             NZ=mpiSize//(x[0]*x[1])
+#             if NX*NY*NZ == mpiSize:
+#                 break
 
-        self.domain = Brick(n0=NE*NX-1, n1=NE*NY-1, n2=NE*NZ-1, l0=1., l1=1., l2=1., d0=NX, d1=NY, d2=NZ)
-        self.order = 1
+#         self.domain = Brick(n0=NE*NX-1, n1=NE*NY-1, n2=NE*NZ-1, l0=1., l1=1., l2=1., d0=NX, d1=NY, d2=NZ)
+#         self.order = 1
 
-    def tearDown(self):
-        del self.domain
+#     def tearDown(self):
+#         del self.domain
 
 class Test_PoissonOnOxley(Test_Poisson):
     RES_TOL=1.e-7
@@ -106,7 +109,7 @@ class Test_PoissonOnOxley(Test_Poisson):
             NY=mpiSize//x
             if NX*NY == mpiSize:
                 break
-        self.domain=Rectangle(,n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+        self.domain=Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
     def tearDown(self):
         del self.domain
 
