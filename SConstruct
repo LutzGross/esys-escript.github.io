@@ -62,7 +62,7 @@ mpi_flavours=('no', 'none', 'MPT', 'MPICH', 'MPICH2', 'OPENMPI', 'INTELMPI')
 netcdf_flavours = ('no', 'off', 'none', 'False', # Must be last of the false alternatives
                    'yes', 'on', 'True', '3', # Must be last of the version 3 alternatives
                    '4')
-all_domains = ['finley','oxley','ripley','speckley']
+all_domains = ('finley','oxley','ripley','speckley')
 
 #Note that scons construction vars the the following purposes:
 #  CPPFLAGS -> to the preprocessor
@@ -78,6 +78,7 @@ vars.AddVariables(
   BoolVariable('verbose', 'Output full compile/link lines', False),
 # Compiler/Linker options
   ('cxx', 'Path to C++ compiler', 'default'),
+  ('cc', 'Path to C compiler', 'default'),
   ('cc_flags', 'Base (C and C++) compiler flags', 'default'),
   ('cc_optim', 'Additional (C and C++) flags for a non-debug build', 'default'),
   ('cc_debug', 'Additional (C and C++) flags for a debug build', 'default'),
@@ -128,7 +129,8 @@ vars.AddVariables(
   BoolVariable('visit', 'Enable the VisIt simulation interface', False),
   ('visit_prefix', 'Prefix/Paths to VisIt installation', default_prefix),
   ('visit_libs', 'VisIt libraries to link with', ['simV2']),
-  ListVariable('domains', 'Which domains to build', 'all', all_domains),
+  #ListVariable('domains', 'Which domains to build', 'all', all_domains),
+  ('domains', 'Which domains to build', all_domains),
   BoolVariable('paso', 'Build Paso solver library', True),
   BoolVariable('weipa', 'Build Weipa data export library', True),
   ('mathjax_path', 'Path to MathJax.js file', 'default'),
@@ -176,6 +178,8 @@ vars.AddVariables(
 env = Environment(tools = ['default'], options = vars,
                   ENV = {'PATH': os.environ['PATH']})
 
+if env['build_trilinos']:
+    env['trilinos'] = True
 # set the vars for clang
 def mkclang(env):
         env['CXX']='clang'
@@ -274,30 +278,35 @@ env.Append(LIBPATH = [env['libinstall']])
 
 if env['cxx'] != 'default':
     env['CXX'] = env['cxx']
+if env['cc'] != 'default':
+    env['CC'] = env['cc']
+if ( env['cc'] == 'default' and env['cxx'] != 'default') :
+    env['CC'] = env['cxx']
 
 if env['mpi'] == 'OPENMPI':
     env['CXX'] = 'mpic++'
     env['CC'] = 'mpicc'
 
 # default compiler/linker options
-cxx_flags = '-std=c++11'
+cxx_flags = '-std=c++11 '+ env['cxx_extra']  # extra CXX flags
 cc_flags = ''
 cc_optim = ''
 cc_debug = ''
 omp_flags = ''
 omp_ldflags = ''
+ld_extra = env['ld_extra']
 fatalwarning = '' # switch to turn warnings into errors
 sysheaderopt = '' # how to indicate that a header is a system header
 
 # env['CC'] might be a full path
-cc_name=os.path.basename(env['CXX'])
+cxx_name=os.path.basename(env['CXX'])
 
-if cc_name == 'icpc':
+if cxx_name == 'icpc':
     # Intel compiler
     # #1478: class "std::auto_ptr<...>" was declared deprecated
     # #1875: offsetof applied to non-POD types is nonstandard (in boost)
     # removed -std=c99 because icpc doesn't like it and we aren't using c anymore
-    cxx_flags    = "-std=c++11 -fPIC -w2 -wd1875 -wd1478 -Wno-unknown-pragmas"
+    cc_flags   += "fPIC -w2 -wd1875 -wd1478 -Wno-unknown-pragmas"
     cc_optim    = "-Ofast -ftz -fno-alias -xCORE-AVX2 -ipo"
     #cc_optim    = "-Ofast -ftz -fno-alias -inline-level=2 -ipo -xCORE-AVX2"
     #cc_optim    = "-O2 -ftz -fno-alias -inline-level=2"
@@ -307,11 +316,26 @@ if cc_name == 'icpc':
     omp_flags   = "-qopenmp"
     omp_ldflags = "-qopenmp" # removing -openmp-report (which is deprecated) because the replacement outputs to a file
     fatalwarning = "-Werror"
-elif cc_name[:3] == 'g++':
+elif cxx_name.startswith('g++-mp'):
+    # Clang++mp on any system
+    # cc_flags +="-Wall" - switched off as there are problem in p4est compilation.
+    cc_flags       += "-fPIC -fdiagnostics-color=always -Wno-uninitialized "
+    cc_flags       += "-Wno-unknown-pragmas -Wimplicit-function-declaration "
+    cxx_flags      += "-Wno-string-concatenation -Wno-unused-private-field "
+    #if env['trilinos'] is True:
+    #  cc_flags += "-Wno-unused-variable -Wno-exceptions -Wno-deprecated-declarations "
+    cc_optim     = "-O3 "
+    cc_debug     = "-ggdb3 -O0 -fdiagnostics-fixit-info -pedantic "
+    cc_debug    += "-DDOASSERT -DDOPROF -DBOUNDS_CHECK -DSLOWSHARECHECK "
+    omp_flags    = "-fopenmp "
+    omp_ldflags  = "-fopenmp "
+    fatalwarning = "-Werror"
+    sysheaderopt = "-isystem"
+elif cxx_name[:3] == 'g++':
     # GNU C++ on any system
     # note that -ffast-math is not used because it breaks isnan(),
     # see mantis #691
-    cc_flags     = "-std=c++11 -pedantic -Wall -fPIC -finline-functions"
+    cc_flags += "-pedantic -Wall -fPIC -finline-functions"
     cc_flags += " -Wno-unknown-pragmas -Wno-sign-compare -Wno-system-headers -Wno-long-long -Wno-strict-aliasing "
     cc_flags += " -Wno-unused-function  -Wno-narrowing"
     cc_flags += " -Wno-stringop-truncation -Wno-deprecated-declarations --param=max-vartrack-size=100000000"
@@ -326,50 +350,53 @@ elif cc_name[:3] == 'g++':
     omp_ldflags  = "-fopenmp"
     fatalwarning = "-Werror"
     sysheaderopt = "-isystem"
-elif cc_name == 'cl':
+elif cxx_name == 'cl':
     # Microsoft Visual C on Windows
-    cxx_flags     = "/EHsc /MD /GR /wd4068 /D_USE_MATH_DEFINES /DDLL_NETCDF"
+    cc_flags     = "/EHsc /MD /GR /wd4068 /D_USE_MATH_DEFINES /DDLL_NETCDF"
     cc_optim     = "/O2 /Op /W3"
     cc_debug     = "/Od /RTCcsu /ZI /DBOUNDS_CHECK"
     fatalwarning = "/WX"
-elif cc_name == 'icl':
+elif cxx_name == 'icl':
     # Intel C on Windows
-    cxx_flags     = '/EHsc /GR /MD'
+    cc_flags     = '/EHsc /GR /MD'
     cc_optim     = '/fast /Oi /W3 /Qssp /Qinline-factor- /Qinline-min-size=0 /Qunroll'
     cc_debug     = '/Od /RTCcsu /Zi /Y- /debug:all /Qtrapuv'
     omp_flags    = '/Qvec-report0 /Qopenmp /Qopenmp-report0 /Qparallel'
     omp_ldflags  = '/Qvec-report0 /Qopenmp /Qopenmp-report0 /Qparallel'
-elif cc_name.startswith('clang++-mp'):
-    # Clang++ on any system
-    cc_flags     = "-std=c++11 -Wall -fPIC -fdiagnostics-color=always -Wno-uninitialized "
-    cc_flags    += "-Wno-unused-private-field -Wno-unknown-pragmas "
-    cc_flags    += "-Wimplicit-function-declaration -Wno-string-concatenation "
-    if env['trilinos'] is True:
-      cc_flags += "-Wno-unused-variable -Wno-exceptions -Wno-deprecated-declarations "
+elif cxx_name.startswith('clang++-mp'):
+    # Clang++mp on any system
+    # cc_flags +="-Wall" - switched off as there are problem in p4est compilation.
+    cc_flags       += "-fPIC -fdiagnostics-color=always -Wno-uninitialized -Wno-deprecated-declarations "
+    #cc_flags       += "-I/opt/local/lib/gcc12/gcc/arm64-apple-darwin22/12.2.0/include "
+    cc_flags       += "-Wno-unknown-pragmas "
+    cxx_flags      += "-Wno-string-concatenation -Wno-unused-private-field -Wimplicit-function-declaration "
+    #if env['trilinos'] is True:
+    #  cc_flags += "-Wno-unused-variable -Wno-exceptions -Wno-deprecated-declarations "
     cc_optim     = "-O3 "
-    cc_debug     = "-ggdb3 -O0 -pedantic "
+    cc_debug     = "-ggdb3 -O0 -fdiagnostics-fixit-info -pedantic "
     cc_debug    += "-DDOASSERT -DDOPROF -DBOUNDS_CHECK -DSLOWSHARECHECK "
     omp_flags    = "-fopenmp "
     omp_ldflags  = "-fopenmp "
     fatalwarning = "-Werror"
     sysheaderopt = "-isystem"
-elif cc_name.startswith('clang++'):
+
+elif cxx_name.startswith('clang++'):
     # Clang++ on any system
-    cc_flags     = "-std=c++11 -Wall -fPIC -fdiagnostics-color=always -Wno-uninitialized "
+    cc_flags    += "-Wall -fPIC -fdiagnostics-color=always -Wno-uninitialized "
     cc_flags    += "-Wno-unused-private-field -Wno-unknown-pragmas "
-    if env['trilinos'] is True:
-      cc_flags += "-Wno-unused-variable -Wno-exceptions -Wno-deprecated-declarations "
-    cc_optim     = "-O2"  # -march=native"
-    cc_debug     = "-ggdb3 -O0 -pedantic "
+    #if env['trilinos'] is True:
+    #  cc_flags += "-Wno-unused-variable -Wno-exceptions -Wno-deprecated-declarations "
+    cc_optim     = "-O3 "  # -march=native"
+    cc_debug     = "-ggdb3 -O0 -fdiagnostics-fixit-info -pedantic "
     cc_debug    += "-DDOASSERT -DDOPROF -DBOUNDS_CHECK -DSLOWSHARECHECK "
     omp_flags    = "-fopenmp "
     omp_ldflags  = " "
     fatalwarning = "-Werror"
     sysheaderopt = "-isystem"
-elif cc_name == 'mpic++':
+elif cxx_name == 'mpic++':
     # MPIC++ on any system
     # note that -ffast-math is not used because it breaks isnan(),
-    cc_flags     = " -std=c++17 -pedantic -Wall -fPIC -finline-functions"
+    cc_flags += "-pedantic -Wall -fPIC -finline-functions"
     cc_flags += " -Wno-unknown-pragmas -Wno-sign-compare -Wno-system-headers -Wno-long-long -Wno-strict-aliasing "
     cc_flags += " -Wno-unused-function  -Wno-narrowing"
     cc_flags += " -Wno-stringop-truncation -Wno-deprecated-declarations --param=max-vartrack-size=100000000"
@@ -378,18 +405,17 @@ elif cc_name == 'mpic++':
     cc_debug     = "-g3 -O0  -DDOASSERT -DDOPROF -DBOUNDS_CHECK -DSLOWSHARECHECK --param=max-vartrack-size=100000000"
     #Removed because new netcdf doesn't seem to like it
     #cc_debug += ' -D_GLIBCXX_DEBUG  '
-    ld_extra = " -fPIC -lmpi "
+    ld_extra += " -fPIC -lmpi "
     if env['openmp']:
       ld_extra += " -lgomp"
     omp_flags    = "-fopenmp"
     omp_ldflags  = "-fopenmp"
     fatalwarning = "-Werror"
     sysheaderopt = "-isystem"
-elif cc_name == 'mpic++':
-    print("getting options")
-    # MPIC++ on any system
+elif cxx_name == 'mpic++':
     # note that -ffast-math is not used because it breaks isnan(),
-    cc_flags     = " -std=c++17 -pedantic -Wall -fPIC -finline-functions"
+    cxx_flags = '-std=c++17 '+ env['cxx_extra']
+    cc_flags += " -pedantic -Wall -fPIC -finline-functions"
     cc_flags += " -Wno-unknown-pragmas -Wno-sign-compare -Wno-system-headers -Wno-long-long -Wno-strict-aliasing "
     cc_flags += " -Wno-unused-function  -Wno-narrowing"
     cc_flags += " -Wno-stringop-truncation -Wno-deprecated-declarations --param=max-vartrack-size=100000000"
@@ -398,10 +424,6 @@ elif cc_name == 'mpic++':
     cc_debug     = "-g3 -O0  -DDOASSERT -DDOPROF -DBOUNDS_CHECK -DSLOWSHARECHECK --param=max-vartrack-size=100000000"
     #Removed because new netcdf doesn't seem to like it
     #cc_debug += ' -D_GLIBCXX_DEBUG  '
-    try:
-        ld_extra
-    except NameError:
-        ld_extra=''
     ld_extra += " -fPIC -lmpi "
     if env['openmp']:
       ld_extra += " -lgomp"
@@ -418,8 +440,6 @@ if env['cc_optim']    == 'default': env['cc_optim'] = cc_optim
 if env['cc_debug']    == 'default': env['cc_debug'] = cc_debug
 if env['omp_flags']   == 'default': env['omp_flags'] = omp_flags
 if env['omp_ldflags'] == 'default': env['omp_ldflags'] = omp_ldflags
-if env['cxx_extra'] != '': env.Append(CXXFLAGS = env['cxx_extra'])
-if env['ld_extra']  != '': env.Append(LINKFLAGS = env['ld_extra'])
 
 if env['longindices']:
   if env['paso']:
@@ -467,15 +487,21 @@ if env['openmp']:
 env['buildvars']['openmp']=int(env['openmp'])
 
 # add debug/non-debug compiler flags
+
 env['buildvars']['debug']=int(env['debug'])
+env.Append(CCFLAGS = env['cc_flags'])
+env.Append(CXXFLAGS = cxx_flags)
+if ld_extra: env.Append(LINKFLAGS = ld_extra)
+
 if env['debug']:
     env.Append(CCFLAGS = env['cc_debug'])
-    env.Append(CXXFLAGS = env['cc_debug'])
+    #env.Append(CXXFLAGS = env['cc_debug'])
     env.Append(CPPDEFINES=['P4EST_ENABLE_DEBUG'])
     env.Append(CPPDEFINES=['SC_ENABLE_DEBUG'])
 else:
     env.Append(CCFLAGS = env['cc_optim'])
-    env.Append(CXXFLAGS = env['cc_optim'])
+    #env.Append(CXXFLAGS = env['cc_optim'])
+
 
 # Manually change the trilinos ordinals (if necessary)
 if env['trilinos_LO'] != '':
@@ -509,9 +535,7 @@ if env['trilinos_GO'] != '':
     elif env['trilinos_GO'] == 'cplx_t':
         env.Append(CPPDEFINES=['SET_GO_CPLXT'])
 
-# always add cc_flags
-env.Append(CCFLAGS = env['cc_flags'])
-env.Append(CXXFLAGS = cxx_flags)
+
 
 # add system libraries
 env.AppendUnique(LIBS = env['sys_libs'])
@@ -639,24 +663,6 @@ env.Append(BUILDERS = {'RunPyExample' : runPyExample_builder});
 epstopdfbuilder = Builder(action = eps2pdf, suffix='.pdf', src_suffix='.eps', single_source=True)
 env.Append(BUILDERS = {'EpsToPDF' : epstopdfbuilder});
 
-################ If requested, build & install Trilinos ####################
-
-if env['build_trilinos']:
-    if not env['cxx'] == 'default ':
-        os.environ['CC'] = env['cxx']
-    startdir=os.getcwd()
-    os.chdir('trilinos_build')
-    if env['mpi'] == 'OPENMPI':
-        print("Building (MPI) trilinos..............................")
-        configure="sh mpi.sh " + env['prefix']
-    else:
-        print("Building (no MPI) trilinos..............................")
-        configure="sh nompi.sh " + env['prefix']
-    res=os.system(configure)
-    res=os.system('make -j4 install')
-    env['trilinos_prefix']=env['prefix']+'/escript_trilinos'
-    os.chdir(startdir)
-    env['trilinos_version']='13.0.0'
 
 ############################ Dependency checks ###############################
 
@@ -683,6 +689,30 @@ env=checkOptionalLibraries(env)
 
 ######## PDFLaTeX (for documentation)
 env=checkPDFLatex(env)
+
+################ If requested, build & install Trilinos ####################
+
+if env['build_trilinos']:
+    if not env['cc'] == 'default ':
+        os.environ['CC'] = env['cc']
+    if not env['cxx'] == 'default ':
+        os.environ['CXX'] = env['cxx']
+    startdir=os.getcwd()
+    os.chdir('trilinos_build')
+    if env['mpi'] == 'OPENMPI':
+        print("Building (MPI) trilinos..............................")
+        configure="sh mpi.sh " + env['prefix']
+    else:
+        print("Building (no MPI) trilinos..............................")
+        configure="sh nompi.sh " + env['prefix']
+    res=os.system(configure)
+    res=os.system('make -j4 install')
+    if res :
+        print(">>> Installation of trilinos failed. Scons stopped.")
+        sys.exit()
+    env['trilinos_prefix']=env['prefix']+'/escript_trilinos'
+    os.chdir(startdir)
+    env['trilinos_version']='13.0.0'
 
 # =================================
 # set defaults for launchers if not otherwise specified

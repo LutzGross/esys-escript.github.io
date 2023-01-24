@@ -200,10 +200,8 @@ headers = """
 """.split()
 
 local_env = env.Clone()
-
 # collect dependencies for other modules
 p4estlibs = []
-
 if env['lapack']:
     p4estlibs = ['lapack']
 if env['mpi']:
