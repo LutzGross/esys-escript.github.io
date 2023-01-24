@@ -35,7 +35,7 @@ def ReadMesh(filename, integrationOrder=-1, reducedIntegrationOrder=-1, optimize
         points=kwargs['diracPoints']
     if 'diracTags' in kwargs:
         tags=kwargs['diracTags']
-    args=[filename, integrationOrder, reducedIntegrationOrder, optimize, points, tags];
+    args=[filename, integrationOrder, reducedIntegrationOrder, optimize, points, tags, None];
     return __ReadMesh_driver(args)
   
 ReadMesh.__doc__=__ReadMesh_driver.__doc__  
@@ -49,7 +49,7 @@ def ReadGmsh(fileName, numDim, integrationOrder=-1, reducedIntegrationOrder=-1, 
     if 'diracTags' in kwargs:
         tags=kwargs['diracTags']
     args=[fileName, numDim, integrationOrder, reducedIntegrationOrder, optimize,  
-      useMacroElements, points, tags];
+      useMacroElements, points, tags, None];
     return __ReadGmsh_driver(args)      
 
 ReadGmsh.__doc__=__ReadGmsh_driver.__doc__
