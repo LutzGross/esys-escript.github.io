@@ -518,7 +518,7 @@ def checkOptionalModules(env):
 def checkForTrilinos(env):
     trilinos_inc_path=''
     trilinos_lib_path=''
-    if env['trilinos']:
+    if env['trilinos'] and not env['build_trilinos']:
         havelibs = (len(env['trilinos_libs']) > 0)
         trilinos_inc_path,trilinos_lib_path=findLibWithHeader(env,
                 env['trilinos_libs'], 'Amesos2.hpp',
