@@ -62,7 +62,7 @@ mpi_flavours=('no', 'none', 'MPT', 'MPICH', 'MPICH2', 'OPENMPI', 'INTELMPI')
 netcdf_flavours = ('no', 'off', 'none', 'False', # Must be last of the false alternatives
                    'yes', 'on', 'True', '3', # Must be last of the version 3 alternatives
                    '4')
-all_domains = ['finley','oxley','ripley','speckley']
+all_domains = ('finley','oxley','ripley','speckley')
 
 #Note that scons construction vars the the following purposes:
 #  CPPFLAGS -> to the preprocessor
@@ -78,6 +78,7 @@ vars.AddVariables(
   BoolVariable('verbose', 'Output full compile/link lines', False),
 # Compiler/Linker options
   ('cxx', 'Path to C++ compiler', 'default'),
+  ('cc', 'Path to C compiler', 'default'),
   ('cc_flags', 'Base (C and C++) compiler flags', 'default'),
   ('cc_optim', 'Additional (C and C++) flags for a non-debug build', 'default'),
   ('cc_debug', 'Additional (C and C++) flags for a debug build', 'default'),
@@ -128,7 +129,8 @@ vars.AddVariables(
   BoolVariable('visit', 'Enable the VisIt simulation interface', False),
   ('visit_prefix', 'Prefix/Paths to VisIt installation', default_prefix),
   ('visit_libs', 'VisIt libraries to link with', ['simV2']),
-  ListVariable('domains', 'Which domains to build', 'all', all_domains),
+  #ListVariable('domains', 'Which domains to build', 'all', all_domains),
+  ('domains', 'Which domains to build', all_domains),
   BoolVariable('paso', 'Build Paso solver library', True),
   BoolVariable('weipa', 'Build Weipa data export library', True),
   ('mathjax_path', 'Path to MathJax.js file', 'default'),
@@ -436,7 +438,6 @@ env['sysheaderopt']=sysheaderopt
 if env['cc_flags']    == 'default': env['cc_flags'] = cc_flags
 if env['cc_optim']    == 'default': env['cc_optim'] = cc_optim
 if env['cc_debug']    == 'default': env['cc_debug'] = cc_debug
-if env['cxx_flags']    == 'default': env['cxx_flags'] = cxx_flags
 if env['omp_flags']   == 'default': env['omp_flags'] = omp_flags
 if env['omp_ldflags'] == 'default': env['omp_ldflags'] = omp_ldflags
 
@@ -489,7 +490,7 @@ env['buildvars']['openmp']=int(env['openmp'])
 
 env['buildvars']['debug']=int(env['debug'])
 env.Append(CCFLAGS = env['cc_flags'])
-env.Append(CXXFLAGS = env['cxx_flags'])
+env.Append(CXXFLAGS = cxx_flags)
 if ld_extra: env.Append(LINKFLAGS = ld_extra)
 
 if env['debug']:
@@ -692,8 +693,10 @@ env=checkPDFLatex(env)
 ################ If requested, build & install Trilinos ####################
 
 if env['build_trilinos']:
+    if not env['cc'] == 'default ':
+        os.environ['CC'] = env['cc']
     if not env['cxx'] == 'default ':
-        os.environ['CC'] = env['cxx']
+        os.environ['CXX'] = env['cxx']
     startdir=os.getcwd()
     os.chdir('trilinos_build')
     if env['mpi'] == 'OPENMPI':
@@ -704,6 +707,9 @@ if env['build_trilinos']:
         configure="sh nompi.sh " + env['prefix']
     res=os.system(configure)
     res=os.system('make -j4 install')
+    if res :
+        print(">>> Installation of trilinos failed. Scons stopped.")
+        sys.exit()
     env['trilinos_prefix']=env['prefix']+'/escript_trilinos'
     os.chdir(startdir)
     env['trilinos_version']='13.0.0'
