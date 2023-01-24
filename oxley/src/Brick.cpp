@@ -236,6 +236,7 @@ Brick::Brick(int order,
 
 #endif
 
+    oxleytimer.toc("Class initialised");
 }
 
 /**
@@ -1201,6 +1202,8 @@ void Brick::refineRegion(double x0, double x1, double y0, double y1, double z0, 
 
 void Brick::refinePoint(double x0, double y0, double z0)
 {
+    oxleytimer.toc("Refining a point");
+
     z_needs_update=true;
     iz_needs_update=true;
 
@@ -1247,6 +1250,8 @@ void Brick::refinePoint(double x0, double y0, double z0)
     updateElementIds();
     updateFaceOffset();
     updateFaceElementCount();
+
+    oxleytimer.toc("Finished refining point");
 }
 
 void Brick::refineSphere(double x0, double y0, double z0, double r)
@@ -1543,6 +1548,8 @@ void Brick::updateNodeIncrements()
 
 void Brick::renumberNodes()
 {
+    oxleytimer.toc("Starting renumberNodes...");
+
     #ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES
     std::cout << "\033[1;31m[oxley]\033[0m Renumbering nodes...." << std::endl;
     #endif
@@ -2122,9 +2129,7 @@ void Brick::renumberNodes()
     std::cout << std::endl;
 #endif
 
-    // timer.toc("remainder of renumberNodes");
-    // timer.tic();
-    
+    oxleytimer.toc("Nodes renumbered");
 }
 
 //protected
@@ -2708,6 +2713,8 @@ void Brick::updateTreeIDs()
 
 void Brick::updateRowsColumns()
 {
+    oxleytimer.toc("Updating rows and columns..");
+
     indices->clear();
     int initial[] = {0, -1, -1, -1, -1, -1, -1};
     indices->resize(getNumNodes(), IndexVector(initial, initial+7));
@@ -3045,6 +3052,8 @@ void Brick::updateRowsColumns()
     // {
     //     throw OxleyException("Broken pointer");
     // }
+
+    oxleytimer.toc("Finished updating rows and columns");
 }
 
 #ifdef ESYS_HAVE_TRILINOS

@@ -78,12 +78,10 @@ vars.AddVariables(
   BoolVariable('verbose', 'Output full compile/link lines', False),
 # Compiler/Linker options
   ('cxx', 'Path to C++ compiler', 'default'),
-  ('cc', 'Path to C compiler', 'default'),
   ('cc_flags', 'Base (C and C++) compiler flags', 'default'),
   ('cc_optim', 'Additional (C and C++) flags for a non-debug build', 'default'),
   ('cc_debug', 'Additional (C and C++) flags for a debug build', 'default'),
-  ('cxx_flags', 'C++ compiler flags in addition to cc_flags', 'default'),
-  ('cxx_extra', 'Extra C++ compiler flags in addition to cc_flags and cxx_flags set in the options file.', ''),
+  ('cxx_extra', 'Extra C++ compiler flags', ''),
   ('ld_extra', 'Extra linker flags', ''),
   BoolVariable('werror','Treat compiler warnings as errors', True),
   BoolVariable('debug', 'Compile with debug flags', False),
@@ -163,6 +161,7 @@ vars.AddVariables(
   BoolVariable('build_trilinos', 'Instructs scons to build the trilinos library.', False),
   BoolVariable('insane', 'Instructs scons to not run a sanity check after compilation.', False),
   BoolVariable('mpi4py', 'Compile with mpi4py.', False),
+  BoolVariable('use_p4est', 'Compile with p4est.', True),
   ('trilinos_LO', 'Manually specify the LO used by Trilinos.', ''),
   ('trilinos_GO', 'Manually specify the GO used by Trilinos.', '')
 )
@@ -690,21 +689,6 @@ env=checkOptionalLibraries(env)
 ######## PDFLaTeX (for documentation)
 env=checkPDFLatex(env)
 
-# =================================
-# set defaults for launchers if not otherwise specified
-if env['prelaunch'] == 'default':
-    if env['mpi'] == 'INTELMPI' and env['openmp']:
-        env['prelaunch'] = "export I_MPI_PIN_DOMAIN=omp"
-    # elif env['mpi'] == 'OPENMPI':
-        # transform comma-separated list to '-x a -x b -x c ...'
-        # env['prelaunch'] = "EE=$echo -x %e|sed -e 's/,/ -x /g'"
-    elif env['mpi'] == 'MPT':
-        env['prelaunch'] = "export MPI_NUM_MEMORY_REGIONS=0"
-    elif env['mpi'] == 'MPICH2':
-        env['prelaunch'] = "mpdboot -n %n -r ssh -f %f"
-    else:
-        env['prelaunch'] = ""
-
 ################ If requested, build & install Trilinos ####################
 
 if env['build_trilinos']:
@@ -723,6 +707,21 @@ if env['build_trilinos']:
     env['trilinos_prefix']=env['prefix']+'/escript_trilinos'
     os.chdir(startdir)
     env['trilinos_version']='13.0.0'
+
+# =================================
+# set defaults for launchers if not otherwise specified
+if env['prelaunch'] == 'default':
+    if env['mpi'] == 'INTELMPI' and env['openmp']:
+        env['prelaunch'] = "export I_MPI_PIN_DOMAIN=omp"
+    # elif env['mpi'] == 'OPENMPI':
+        # transform comma-separated list to '-x a -x b -x c ...'
+        # env['prelaunch'] = "EE=$echo -x %e|sed -e 's/,/ -x /g'"
+    elif env['mpi'] == 'MPT':
+        env['prelaunch'] = "export MPI_NUM_MEMORY_REGIONS=0"
+    elif env['mpi'] == 'MPICH2':
+        env['prelaunch'] = "mpdboot -n %n -r ssh -f %f"
+    else:
+        env['prelaunch'] = ""
 
 # Used by p4est
 if env['mpi'] != 'no' and env['mpi'] != 'none':
@@ -827,11 +826,12 @@ build_all_list = ['build_escript']
 install_all_list = ['target_init', 'install_escript']
 
 #p4est
-build_all_list += ['build_p4est']
-install_all_list += ['install_p4est']
-env['p4est']=True
-env['p4est_libs']=['p4est','sc']
-env['escript_src']=os.getcwd()
+if env['use_p4est']:
+    build_all_list += ['build_p4est']
+    install_all_list += ['install_p4est']
+    env['p4est']=True
+    env['p4est_libs']=['p4est','sc']
+    env['escript_src']=os.getcwd()
 
 if env['usempi']:
     build_all_list += ['build_pythonMPI', 'build_overlord']
@@ -874,7 +874,8 @@ env.SConscript('paso/SConscript', variant_dir=variant+'paso', duplicate=0)
 env.SConscript('trilinoswrap/SConscript', variant_dir=variant+'trilinoswrap', duplicate=0)
 env.SConscript('cusplibrary/SConscript')
 env.SConscript('finley/SConscript', variant_dir=variant+'finley', duplicate=0)
-env.SConscript('p4est/SConscript', variant_dir=variant+'p4est', duplicate=0)
+if env['use_p4est']:
+    env.SConscript('p4est/SConscript', variant_dir=variant+'p4est', duplicate=0)
 env.SConscript('oxley/SConscript', variant_dir=variant+'oxley', duplicate=0)
 env.SConscript('ripley/SConscript', variant_dir=variant+'ripley', duplicate=0)
 env.SConscript('speckley/SConscript', variant_dir=variant+'speckley', duplicate=0)

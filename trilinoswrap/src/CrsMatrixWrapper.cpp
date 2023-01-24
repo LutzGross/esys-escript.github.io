@@ -299,10 +299,8 @@ void CrsMatrixWrapper<ST>::IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,
     mat.resumeFill();
 
     auto tmp_mat1 = Tpetra::createDeepCopy(mat);
-    tmp_mat1.fillComplete();
     Tpetra::MatrixMatrix::Multiply(*iz,true,tmp_mat1,false,mat,false);
     auto tmp_mat2 = Tpetra::createDeepCopy(mat);
-    tmp_mat2.fillComplete();
     Tpetra::MatrixMatrix::Multiply(tmp_mat2,false,*iz,false,mat,false);
 
     mat.fillComplete();
