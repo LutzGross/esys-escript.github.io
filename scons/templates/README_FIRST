@@ -106,6 +106,10 @@ boost_prefix = '/usr/local'
 boost_libs = ['boost_python-py27']
   boost-python library/libraries to link against
 
+build_trilinos = False
+  Whether to build the trilinos library
+  DEFAULT: False
+
 cppunit_prefix = '/usr/local'
   Prefix or paths to CppUnit headers and libraries. See note above.
   Only required if you like to run the C++ unit tests.
@@ -131,6 +135,10 @@ mpi_no_host = False
   would prevent multiple processes from being spawned.
   You should not need to set this option to True unless you are having
   said problem.
+
+mpi4py = False
+  Whether to build escript with the mpi4py library
+  DEFAULT: False
 
 cuda = True
   Whether to add support for GPU-based ripley system matrix (requires nvcc
@@ -205,6 +213,14 @@ mumps_libs = ['mumps_common', 'dmumps', 'zmumps']
 use_gmsh = True
   Whether to build escript with gmsh, if it is available
   DEFAULT: True
+
+use_p4est = True
+  Whether to build escript with the p4est library. This library is required by oxley.
+  DEFAULT: True
+
+use_sympy = False
+  Whether to build escript with sympy, if it is available
+  DEFAULT: False
 
 lapack = True
   Whether to use BLAS/LAPACK. Note, LAPACK is incompatible with long indices.
