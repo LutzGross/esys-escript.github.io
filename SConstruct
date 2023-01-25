@@ -704,7 +704,7 @@ if env['build_trilinos']:
         configure="sh mpi.sh " + env['prefix']
     else:
         print("Building (no MPI) trilinos..............................")
-        configure="sh nompi.sh " + env['prefix']
+        configure="sh nompi.sh " + env['prefix'] + " " + env['CXX'] + " " + env['CC']
     res=os.system(configure)
     res=os.system('make -j4 install')
     if res :
