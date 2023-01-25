@@ -44,15 +44,11 @@ if IS_WINDOWS:
 weipalibs = []
 weipalibs += env['escript_libs']
 
-if 'dudley' in env['domains'] or 'finley' in env['domains']:
+if 'finley' in env['domains']:
     sources += ['FinleyDomain.cpp','FinleyElements.cpp','FinleyNodes.cpp']
     headers += ['FinleyDomain.h','FinleyElements.h','FinleyNodes.h']
-    if 'dudley' in env['domains']:
-        local_env.Append(CPPDEFINES = ['USE_DUDLEY'])
-        weipalibs += env['dudley_libs']
-    if 'finley' in env['domains']:
-        local_env.Append(CPPDEFINES = ['USE_FINLEY'])
-        weipalibs += env['finley_libs']
+    local_env.Append(CPPDEFINES = ['USE_FINLEY'])
+    weipalibs += env['finley_libs']
 
 if local_env['silo']:
     weipalibs += env['silo_libs']

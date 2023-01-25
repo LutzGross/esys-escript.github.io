@@ -541,7 +541,7 @@ def checkForTrilinos(env):
     env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], trilinos_lib_path)
     env['buildvars']['trilinos_inc_path']=trilinos_inc_path
     env['buildvars']['trilinos_lib_path']=trilinos_lib_path
-    conf = Configure(env.Clone())
+    #conf = Configure(env.Clone())
 
     print("Looking for the Trilinos headers...")
     for check in dependencies:
@@ -592,7 +592,6 @@ def checkForTrilinos(env):
             minor=int(str(trilinos_version)[2:4])
             tmp=int(str(trilinos_version)[4:6])
             env['trilinos_version'] = str(major)+"."+str(minor)+"."+str(tmp)
-            print("Trilinos version=", env['trilinos_version'])
 
     if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_BlockCrsMatrix.hpp')):
         print("Checking for %s... %s" % ('Tpetra_BlockCrsMatrix.hpp', "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))

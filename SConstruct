@@ -281,10 +281,11 @@ if env['trilinos_GO'] != '':
     elif env['trilinos_GO'] == 'cplx_t':
         env.Append(CPPDEFINES=['SET_GO_CPLXT'])
 
-
 if not ( env['build_trilinos'] is False or env['build_trilinos'] == 'never' ):
+    TRILINOS_BUILD='trilinos_build'
     env['trilinos_prefix']=os.path.join(env['prefix'],'escript_trilinos')
     env['trilinos_build'] = os.path.join(env['prefix'],'trilinos_build')
+    print("")
     if not env['cc'] == 'default ':
         os.environ['CC'] = env['cc']
     if not env['cxx'] == 'default ':
@@ -300,7 +301,7 @@ if not ( env['build_trilinos'] is False or env['build_trilinos'] == 'never' ):
         configure="sh nompi.sh " + env['prefix']
 
     #if env['build_trilinos'] == "check" :
-    res=os.system('make -question install')
+    res=os.system('make --question install')
     print("trilinos: make test status is ", res)
     res=os.system(configure)
     if res :

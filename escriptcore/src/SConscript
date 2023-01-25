@@ -155,7 +155,7 @@ lib = local_env.SharedLibrary(module_name, sources + nonped)
 lib_inst = local_env.Install(local_env['libinstall'], lib)
 
 ### Python wrapper ###
-py_env = env.Clone()
+py_env = local_env.Clone()
 #if IS_WINDOWS:
 #    py_env.Append(CPPDEFINES = ['ESCRIPT_EXPORTS'])
 py_env.Prepend(LIBS = [ lib_inst ])  # using the module name here is not always working!!!!

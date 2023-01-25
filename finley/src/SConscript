@@ -116,8 +116,8 @@ lib = local_env.SharedLibrary(module_name, sources)
 lib_inst = local_env.Install(local_env['libinstall'], lib)
 #env['finley_libs'] = lib + finleylibs
 ### Python wrapper ###
-py_env = env.Clone()
-py_env.PrependUnique(LIBS = env['finley_libs'] + [ module_name ] )
+py_env = local_env.Clone()
+py_env.PrependUnique(LIBS = env['finley_libs'] + [ lib_inst ] )
 py_lib_name = module_name + 'cpp'
 py_lib = py_env.PythonModule(py_lib_name, 'finleycpp.cpp')
 
