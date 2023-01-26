@@ -128,7 +128,7 @@ vars.AddVariables(
   ('silo_prefix', 'Prefix/Paths to Silo installation', default_prefix),
   ('silo_libs', 'Silo libraries to link with', ['siloh5', 'hdf5']),
   BoolVariable('trilinos', 'Enable the Trilinos solvers (overwriten when trilinos is built)', False),
-  EnumVariable('build_trilinos', 'Instructs scons to build the trilinos library.', False, allowed_values=build_trilinos_flavours),
+  EnumVariable('build_trilinos', 'Instructs scons to build the trilinos library.', "False", allowed_values=build_trilinos_flavours),
   ('trilinos_prefix', 'Prefix/Paths to Trilinos installation', default_prefix),
   ('trilinos_libs', 'Trilinos libraries to link with', []),
   BoolVariable('visit', 'Enable the VisIt simulation interface', False),
@@ -268,10 +268,10 @@ if env['trilinos_GO'] != '':
     elif env['trilinos_GO'] == 'cplx_t':
         env.Append(CPPDEFINES=['SET_GO_CPLXT'])
 
-if not ( env['build_trilinos'] is False or env['build_trilinos'] == 'never' ):
+if not ( env['build_trilinos'] == "False" or env['build_trilinos'] == 'never' ):
     TRILINOS_BUILD='trilinos_build'
     env['trilinos_prefix']=os.path.join(env['prefix'],'escript_trilinos')
-    env['trilinos_build'] = os.path.join(env['prefix'],'trilinos_build')
+    env['trilinos_build'] = os.path.join(env['prefix'],TRILINOS_BUILD)
     print("")
     if not env['cc'] == 'default ':
         os.environ['CC'] = env['cc']
@@ -294,7 +294,7 @@ if not ( env['build_trilinos'] is False or env['build_trilinos'] == 'never' ):
     if res :
         print(">>> Installation of trilinos failed. Scons stopped.")
         Exit(1)
-    if env['build_trilinos'] is True or  env['build_trilinos'] == "make" or env['build_trilinos'] == "check":
+    if env['build_trilinos'] == "True" or  env['build_trilinos'] == "make" or env['build_trilinos'] == "check":
             res=os.system('make -j%s install'%GetOption("num_jobs"))
     else:
             res=os.system('make --always-make  -j%s install'%GetOption("num_jobs"))
