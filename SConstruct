@@ -220,19 +220,6 @@ if env['tools_names'] != ['default']:
         zz.insert(0, mkclang)
         env = Environment(tools = ['default'] + env['tools_names'], options = vars,
                       ENV = {'PATH' : os.environ['PATH']})
-    zzidx = [idx for idx, s in enumerate(zz) if s.startswith('clang-mp')]
-    if zzidx:
-        if len(zzidx)>1:
-             raise SConsEnvironmentError("more then one clang-mp version specified")
-        if len(zzidx) == 1:
-            vrs=dict(enumerate(zz[zzidx[0]].split('-'))).get(2, "10")
-            zz.remove(zz[zzidx[0]])
-            zz.insert(0, ('clang-mp', {'version' : vrs} ))
-            zz.insert(0,('clangxx-mp', {'version' : vrs} ))
-
-        env = Environment(tools = ['default'] + env['tools_names'], options = vars,
-                      ENV = {'PATH' : os.environ['PATH']} )
-
     else:
         env = Environment(tools = ['default'] + env['tools_names'], options = vars,
                       ENV = {'PATH' : os.environ['PATH']} )
@@ -381,7 +368,7 @@ if cxx_name == 'icpc':
     # #1478: class "std::auto_ptr<...>" was declared deprecated
     # #1875: offsetof applied to non-POD types is nonstandard (in boost)
     # removed -std=c99 because icpc doesn't like it and we aren't using c anymore
-    cc_flags   += "fPIC -w2 -wd1875 -wd1478 -Wno-unknown-pragmas"
+    cc_flags   += "-fPIC -w2 -wd1875 -wd1478 -Wno-unknown-pragmas"
     cc_optim    = "-Ofast -ftz -fno-alias -xCORE-AVX2 -ipo"
     #cc_optim    = "-Ofast -ftz -fno-alias -inline-level=2 -ipo -xCORE-AVX2"
     #cc_optim    = "-O2 -ftz -fno-alias -inline-level=2"
