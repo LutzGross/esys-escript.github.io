@@ -531,11 +531,10 @@ def checkForTrilinos(env):
                     'Tpetra_Vector.hpp', 'Trilinos_version.h']
     packages = ['Tpetra', 'Kokkos', 'Belos', 'Amesos2', 'Ifpack2', 'MueLu']
 
-    if env['trilinos']:
+    if (env['trilinos'] != "never") and (env['trilinos'] != "False"):
         havelibs = (len(env['trilinos_libs']) > 0)
-    trilinos_inc_path,trilinos_lib_path=findLibWithHeader(env,
-            env['trilinos_libs'], 'Amesos2.hpp',
-            env['trilinos_prefix'], lang='c++', try_link=havelibs)
+        trilinos_inc_path,trilinos_lib_path=findLibWithHeader(env,env['trilinos_libs'], 'Amesos2.hpp',env['trilinos_prefix'], lang='c++', try_link=havelibs)
+    
     env.AppendUnique(CPPPATH = [trilinos_inc_path])
     env.AppendUnique(LIBPATH = [trilinos_lib_path])
     env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], trilinos_lib_path)
