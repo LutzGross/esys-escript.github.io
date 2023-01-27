@@ -9,8 +9,8 @@ cmake \
       -D Trilinos_ENABLE_CXX11=ON \
       -D Trilinos_ENABLE_Fortran=OFF \
       -D CMAKE_CXX_FLAGS=" " \
-      -D CMAKE_C_COMPILER=$3 \
-      -D CMAKE_CXX_COMPILER=$2 \
+      -D CMAKE_C_COMPILER=$2 \
+      -D CMAKE_CXX_COMPILER=$3 \
       -D BUILD_SHARED_LIBS=ON \
       -D TPL_ENABLE_BLAS=ON \
       -D TPL_ENABLE_Boost=ON \
