@@ -54,9 +54,6 @@ EscriptParams::EscriptParams()
 #ifdef ESYS_HAVE_CUDA
     features.insert("cuda");
 #endif
-#ifdef ESYS_HAVE_DUDLEY
-    features.insert("dudley");
-#endif
 #ifdef ESYS_HAVE_FINLEY
     features.insert("finley");
 #endif
