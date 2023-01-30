@@ -117,7 +117,7 @@ def get_external_python_sympy(env,bin):
             env['warnings'].append("sympy version too old. Symbolic toolbox and nonlinear PDEs will not be available.")
             env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
         #elif version1 == 1 and version2 > 2:
-        #    env['sympy']=False
+                                              #    env['sympy']=False
         #    env['warnings'].append("escript does not support sympy version 1.2 and higher. Found %s" % spVer)
         #    env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
         else:
@@ -457,58 +457,22 @@ def checkCppUnit(env):
 def checkOptionalModules(env):
     ######## scipy
     if not detectModule(env, 'scipy'):
-        env['warnings'].append("Cannot import scipy. NetCDF sources will not be available for inversions.")
+        env['warnings'].append("Cannot import scipy.")
 
     ######## sympy
     if env['use_sympy'] is True:
-        if not detectModule(env, 'sympy'):
-            env['warnings'].append("Cannot import sympy. Symbolic toolbox and nonlinear PDEs will not be available.")
-            env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
+        if detectModule(env, 'sympy'):
+            env['sympy'] = True
+            env['warnings'].append("Found sympy.")
         else:
-            # if env['pythoncmd'] is not None:
-            #     env=get_external_python_sympy(env, env['pythoncmd'])
-            # else:
-            try:
-                import sympy as sp
-                import distutils.version as duv
-                spVer=sp.__version__
-                quit=False
-                ver1=''
-                ver2=''
-                count=0;
-                for i in range(0,len(spVer)):
-                    x=spVer[i]
-                    if x.isdigit() is True:
-                        if count == 0:
-                            ver1=ver1+spVer[i]
-                        else:
-                            ver2=ver2+spVer[i]
-                    else:
-                        count=count+1
-                        if quit is True:
-                            break
-                        else:
-                            quit=True
-                            continue
-                version1=float(ver1)
-                version2=float(ver2)
-                if version1 == 0 and version2 < 7:
-                    env['sympy']=False
-                    env['warnings'].append("sympy version too old. Symbolic toolbox and nonlinear PDEs will not be available.")
-                    env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
-                #elif version1 == 1 and version2 > 2:
-                #    env['sympy']=False
-                #    env['warnings'].append("escript does not support sympy version 1.2 and higher. Found %s" % spVer)
-                #    env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
-                else:
-                    env['sympy']=True
-                    env['warnings'].append("Found sympy version %s" % spVer)
-            except:
-                env['sympy']=False
-                env['warnings'].append("Could not find sympy")
+            env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
+            env['sympy']=False
+            env['warnings'].append("Could not find sympy")
     else:
         env['sympy']=False
         env.Append(CPPDEFINES = ['ESYS_NO_SYMPY'])
+
+
 
     ######## gmshpy
     env['gmshpy'] = detectModule(env, 'gmshpy')
@@ -545,35 +509,38 @@ def checkForTrilinos(env):
 
     print("Looking for the Trilinos headers...")
     for check in dependencies:
-        print("Checking for %s... %s" % (check, "yes" if os.path.isfile(os.path.join(trilinos_inc_path,check)) else "no"))
+        print("Checking for %s... %s" % (check, "yes" if os.path.isfile(os.path.join(trilinos_inc_path,check)) else "no") )
         if not os.path.isfile(os.path.join(trilinos_inc_path,check)):
-            print("Could not find a Trilinos header file (tried looking in directory %s)" % (trilinos_inc_path))
+            print("Could not find the  Trilinos header file %s (tried looking in directory %s)" % (check, trilinos_inc_path))
             env.Exit(1)
 
     if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')):
-        print("Checking for %s... %s" % ('Tpetra_DefaultPlatform.hpp', "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))
+        print("Checking for %s... %s" %('Tpetra_DefaultPlatform.hpp', "yes"))
         env.Append(CPPDEFINES = ['ESYS_HAVE_TPETRA_DP'])
+    else:
+        print("Checking for %s... %s" %('Tpetra_DefaultPlatform.hpp', "no"))
+
 
     if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_Experimental_BlockCrsMatrix.hpp')):
-        print("Checking for %s... %s" % ('Tpetra_Experimental_BlockCrsMatrix.hpp', "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))
+        print("Checking for %s... %s" % ('Tpetra_Experimental_BlockCrsMatrix.hpp', "yes"))
         env.Append(CPPDEFINES = ['ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKCRS'])
     elif os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_BlockCrsMatrix.hpp')):
-        print("Checking for %s... %s" % ('Tpetra_BlockCrsMatrix.hpp', "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))
+        print("Checking for %s... %s" % ('Tpetra_BlockCrsMatrix.hpp', "yes"))
     else:
         raise RuntimeError('Could not locate the Trilinos Block CRS Matrix header')
 
     if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_BlockCrsMatrix_Helpers.hpp')):
-        print("Checking for %s... %s" % ('Tpetra_BlockCrsMatrix_Helpers.hpp', "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))
+        print("Checking for %s... %s" % ('Tpetra_BlockCrsMatrix_Helpers.hpp', "yes"))
     elif os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_Experimental_BlockCrsMatrix_Helpers.hpp')):
-        print("Checking for %s... %s" % ('Tpetra_Experimental_BlockCrsMatrix_Helpers.hpp', "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))
+        print("Checking for %s... %s" % ('Tpetra_Experimental_BlockCrsMatrix_Helpers.hpp', "yes"))
         env.Append(CPPDEFINES = ['ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKCRSH'])
     else:
         raise RuntimeError('Could not locate the Trilinos Block CRS Matrix Helpers header')
 
     if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_BlockVector.hpp')):
-        print("Checking for %s... %s" % ('Tpetra_BlockVector.hpp', "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))
+        print("Checking for %s... %s" % ('Tpetra_BlockVector.hpp', "yes"))
     elif os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_Experimental_BlockVector.hpp')):
-        print("Checking for %s... %s" % ('Tpetra_Experimental_BlockVector.hpp', "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))
+        print("Checking for %s... %s" % ('Tpetra_Experimental_BlockVector.hpp', "yes"))
         env.Append(CPPDEFINES = ['ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKV'])
     else:
         raise RuntimeError('Could not locate the Trilinos BlockVector header')
