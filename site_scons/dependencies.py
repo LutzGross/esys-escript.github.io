@@ -519,20 +519,32 @@ def checkForTrilinos(env):
         env.Append(CPPDEFINES = ['ESYS_HAVE_TPETRA_DP'])
     else:
         print("Checking for %s... %s" %('Tpetra_DefaultPlatform.hpp', "no"))
+    # Try to extract the trilinos version from Trilinos_version.h
+    versionh=open(os.path.join(trilinos_inc_path, 'Trilinos_version.h'))
+    trilinos_version='unknown'
+    env['trilinos_version']='unknown'
+    for line in versionh:
+        ver=re.match(r'#define TRILINOS_MAJOR_MINOR_VERSION (\d+)',line)
+        if ver:
+            trilinos_version=ver.group(1)
+            trilinos_version = int(trilinos_version)
+            major=int(str(trilinos_version)[:2])
+            minor=int(str(trilinos_version)[2:4])
+            tmp=int(str(trilinos_version)[4:6])
+            env['trilinos_version'] = str(major)+"."+str(minor)+"."+str(tmp)
 
-
-    if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_Experimental_BlockCrsMatrix.hpp')):
-        print("Checking for %s... %s" % ('Tpetra_Experimental_BlockCrsMatrix.hpp', "yes"))
+    if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_BlockCrsMatrix.hpp')):
+        print("Checking for %s... %s" % ('Tpetra_BlockCrsMatrix.hpp', "yes") )
+    elif os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_Experimental_BlockCrsMatrix.hpp')):
+        print("Checking for %s... %s" % ('Tpetra_Experimental_BlockCrsMatrix.hpp', "yes" ) )
         env.Append(CPPDEFINES = ['ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKCRS'])
-    elif os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_BlockCrsMatrix.hpp')):
-        print("Checking for %s... %s" % ('Tpetra_BlockCrsMatrix.hpp', "yes"))
     else:
         raise RuntimeError('Could not locate the Trilinos Block CRS Matrix header')
 
     if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_BlockCrsMatrix_Helpers.hpp')):
         print("Checking for %s... %s" % ('Tpetra_BlockCrsMatrix_Helpers.hpp', "yes"))
     elif os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_Experimental_BlockCrsMatrix_Helpers.hpp')):
-        print("Checking for %s... %s" % ('Tpetra_Experimental_BlockCrsMatrix_Helpers.hpp', "yes"))
+        print("Checking for %s... %s" % ('Tpetra_Experimental_BlockCrsMatrix_Helpers.hpp'))
         env.Append(CPPDEFINES = ['ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKCRSH'])
     else:
         raise RuntimeError('Could not locate the Trilinos Block CRS Matrix Helpers header')
@@ -545,58 +557,6 @@ def checkForTrilinos(env):
     else:
         raise RuntimeError('Could not locate the Trilinos BlockVector header')
 
-
-    # Try to extract the trilinos version from Trilinos_version.h
-    versionh=open(os.path.join(trilinos_inc_path, 'Trilinos_version.h'))
-    trilinos_version='unknown'
-    env['trilinos_version']='unknown'
-    for line in versionh:
-        ver=re.match(r'#define TRILINOS_MAJOR_MINOR_VERSION (\d+)',line)
-        if ver:
-            trilinos_version=ver.group(1)
-            trilinos_version = int(trilinos_version)
-            major=int(str(trilinos_version)[:2])
-            minor=int(str(trilinos_version)[2:4])
-            tmp=int(str(trilinos_version)[4:6])
-            env['trilinos_version'] = str(major)+"."+str(minor)+"."+str(tmp)
-
-        if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_BlockCrsMatrix.hpp')):
-            print("Checking for %s... %s" % ('Tpetra_BlockCrsMatrix.hpp', "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))
-        elif os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_Experimental_BlockCrsMatrix.hpp')):
-            print("Checking for %s... %s" % ('Tpetra_Experimental_BlockCrsMatrix.hpp', "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))
-            env.Append(CPPDEFINES = ['ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKCRS'])
-        else:
-            raise RuntimeError('Could not locate the Trilinos Block CRS Matrix header')
-
-        if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_BlockCrsMatrix_Helpers.hpp')):
-            print("Checking for %s... %s" % ('Tpetra_BlockCrsMatrix_Helpers.hpp', "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))
-        elif os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_Experimental_BlockCrsMatrix_Helpers.hpp')):
-            print("Checking for %s... %s" % ('Tpetra_Experimental_BlockCrsMatrix_Helpers.hpp', "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))
-            env.Append(CPPDEFINES = ['ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKCRSH'])
-        else:
-            raise RuntimeError('Could not locate the Trilinos Block CRS Matrix Helpers header')
-
-        if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_BlockVector.hpp')):
-            print("Checking for %s... %s" % ('Tpetra_BlockVector.hpp', "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))
-        elif os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_Experimental_BlockVector.hpp')):
-            print("Checking for %s... %s" % ('Tpetra_Experimental_BlockVector.hpp', "yes" if os.path.isfile(os.path.join(trilinos_inc_path,'Tpetra_DefaultPlatform.hpp')) else "no"))
-            env.Append(CPPDEFINES = ['ESYS_HAVE_TPETRA_EXPERIMENTAL_BLOCKV'])
-        else:
-            raise RuntimeError('Could not locate the Trilinos BlockVector header')
-
-    # Try to extract the trilinos version from Trilinos_version.h
-    versionh=open(os.path.join(trilinos_inc_path, 'Trilinos_version.h'))
-    trilinos_version='unknown'
-    env['trilinos_version']='unknown'
-    for line in versionh:
-        ver=re.match(r'#define TRILINOS_MAJOR_MINOR_VERSION (\d+)',line)
-        if ver:
-            trilinos_version=ver.group(1)
-            trilinos_version = int(trilinos_version)
-            major=int(str(trilinos_version)[:2])
-            minor=int(str(trilinos_version)[2:4])
-            tmp=int(str(trilinos_version)[4:6])
-            env['trilinos_version'] = str(major)+"."+str(minor)+"."+str(tmp)
 
     if not havelibs:
         libs = []
