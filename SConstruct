@@ -282,10 +282,10 @@ if not ( env['build_trilinos'] == "False" or env['build_trilinos'] == 'never' ):
 
     if env['mpi'] == 'OPENMPI':
         print("Building (MPI) trilinos..............................")
-        configure="sh mpi.sh " + env['prefix']
+        configure="sh mpi.sh " + env['prefix'] + " " + env['CC'] + " " + env['CXX']
     else:
         print("Building (no MPI) trilinos..............................")
-        configure="sh nompi.sh " + env['prefix']
+        configure="sh nompi.sh " + env['prefix'] + " " + env['CC'] + " " + env['CXX']
 
     #if env['build_trilinos'] == "check" :
     res=os.system('make --question install')
