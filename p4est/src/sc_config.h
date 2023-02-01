@@ -54,8 +54,7 @@
 #endif
 
 /* Define to 1 if we are using MPI */
- // #undef ENABLE_MPI 
-// #define ENABLE_MPI 1
+/* #undef ENABLE_MPI */
 
 /* Define to 1 if we can use MPI_COMM_TYPE_SHARED */
 /* #undef ENABLE_MPICOMMSHARED */
@@ -77,9 +76,7 @@
    CFLAGS; to supply CFLAGS use --enable-openmp=<OPENMP_CFLAGS>. We check
    first for linking without any libraries and then with -lgomp; to avoid the
    latter, specify LIBS=<OPENMP_LIBS> on configure line */
-#ifndef SC_ENABLE_OPENMP
-#define SC_ENABLE_OPENMP 1
-#endif
+/* #undef ENABLE_OPENMP */
 
 /* enable POSIX threads: Using --enable-pthread without arguments does not
    specify any CFLAGS; to supply CFLAGS use --enable-pthread=<PTHREAD_CFLAGS>.
@@ -152,9 +149,7 @@
 #endif
 
 /* Define to 1 if you have the `aligned_alloc' function. */
-#ifndef SC_HAVE_ALIGNED_ALLOC
-#define SC_HAVE_ALIGNED_ALLOC 1
-#endif
+/* #undef HAVE_ALIGNED_ALLOC */
 
 /* Define to 1 if you have the `backtrace' function. */
 #ifndef SC_HAVE_BACKTRACE
@@ -185,7 +180,9 @@
 /* #undef HAVE_LPTHREAD */
 
 /* Have we found function lua_createtable. */
-/* #undef HAVE_LUA */
+#ifndef SC_HAVE_LUA
+#define SC_HAVE_LUA 1
+#endif
 
 /* Define to 1 if you have the <lua5.1/lua.h> header file. */
 /* #undef HAVE_LUA5_1_LUA_H */
@@ -197,7 +194,9 @@
 /* #undef HAVE_LUA5_3_LUA_H */
 
 /* Define to 1 if you have the <lua.h> header file. */
-/* #undef HAVE_LUA_H */
+#ifndef SC_HAVE_LUA_H
+#define SC_HAVE_LUA_H 1
+#endif
 
 /* Define to 1 if you have the <memory.h> header file. */
 #ifndef SC_HAVE_MEMORY_H
@@ -205,9 +204,7 @@
 #endif
 
 /* Have we found function omp_get_thread_num. */
-#ifndef SC_HAVE_OPENMP
-#define SC_HAVE_OPENMP 1
-#endif
+/* #undef HAVE_OPENMP */
 
 /* Define to 1 if you have the `posix_memalign' function. */
 #ifndef SC_HAVE_POSIX_MEMALIGN
@@ -276,7 +273,7 @@
 
 /* Have we found function adler32_combine. */
 #ifndef SC_HAVE_ZLIB
-#define SC_HAVE_ZLIB 0
+#define SC_HAVE_ZLIB 1
 #endif
 
 /* Define to 1 on a bigendian machine */
@@ -289,7 +286,7 @@
 
 /* Libraries */
 #ifndef SC_LIBS
-#define SC_LIBS "-lgomp -llapack -lcblas -lf77blas -latlas -lz -lm   "
+#define SC_LIBS "  -llua -lz -lm   "
 #endif
 
 /* minimal log priority */
@@ -322,9 +319,7 @@
 /* #undef NO_MINUS_C_MINUS_O */
 
 /* DEPRECATED (use SC_ENABLE_OPENMP instead) */
-#ifndef SC_OPENMP
-#define SC_OPENMP 1
-#endif
+/* #undef OPENMP */
 
 /* Name of package */
 #ifndef SC_PACKAGE
@@ -434,14 +429,10 @@
 #endif
 
 /* Define to 1 if BLAS is used */
-#ifndef SC_WITH_BLAS
-#define SC_WITH_BLAS 1
-#endif
+/* #undef WITH_BLAS */
 
 /* Define to 1 if LAPACK is used */
-#ifndef SC_WITH_LAPACK
-#define SC_WITH_LAPACK 1
-#endif
+/* #undef WITH_LAPACK */
 
 /* enable Flop counting with papi */
 /* #undef WITH_PAPI */

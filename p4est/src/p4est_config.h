@@ -89,9 +89,7 @@
    CFLAGS; to supply CFLAGS use --enable-openmp=<OPENMP_CFLAGS>. We check
    first for linking without any libraries and then with -lgomp; to avoid the
    latter, specify LIBS=<OPENMP_LIBS> on configure line */
-#ifndef P4EST_ENABLE_OPENMP
-#define P4EST_ENABLE_OPENMP 1
-#endif
+/* #undef ENABLE_OPENMP */
 
 /* enable POSIX threads: Using --enable-pthread without arguments does not
    specify any CFLAGS; to supply CFLAGS use --enable-pthread=<PTHREAD_CFLAGS>.
@@ -100,10 +98,14 @@
 /* #undef ENABLE_PTHREAD */
 
 /* Undefine if: write vtk ascii file data */
-/* #undef ENABLE_VTK_BINARY */
+#ifndef P4EST_ENABLE_VTK_BINARY
+#define P4EST_ENABLE_VTK_BINARY 1
+#endif
 
 /* Undefine if: disable zlib compression for vtk binary data */
-/* #undef ENABLE_VTK_COMPRESSION */
+#ifndef P4EST_ENABLE_VTK_COMPRESSION
+#define P4EST_ENABLE_VTK_COMPRESSION 1
+#endif
 
 /* use doubles for vtk file data */
 /* #undef ENABLE_VTK_DOUBLES */
@@ -148,9 +150,7 @@
 /* #undef FC_NO_MINUS_C_MINUS_O */
 
 /* Define to 1 if you have the `aligned_alloc' function. */
-#ifndef P4EST_HAVE_ALIGNED_ALLOC
-#define P4EST_HAVE_ALIGNED_ALLOC 1
-#endif
+/* #undef HAVE_ALIGNED_ALLOC */
 
 /* Define to 1 if you have the <arpa/inet.h> header file. */
 #ifndef P4EST_HAVE_ARPA_INET_H
@@ -191,9 +191,7 @@
 #endif
 
 /* Have we found function omp_get_thread_num. */
-#ifndef P4EST_HAVE_OPENMP
-#define P4EST_HAVE_OPENMP 1
-#endif
+/* #undef HAVE_OPENMP */
 
 /* Define to 1 if you have the `posix_memalign' function. */
 #ifndef P4EST_HAVE_POSIX_MEMALIGN
@@ -247,7 +245,7 @@
 
 /* Libraries */
 #ifndef P4EST_LIBS
-#define P4EST_LIBS "-lgomp -llapack -lblas -llua5.2 -lz -lm   "
+#define P4EST_LIBS "  -llua -lz -lm   "
 #endif
 
 /* Define to the sub-directory where libtool stores uninstalled libraries. */
@@ -278,9 +276,7 @@
 /* #undef NO_MINUS_C_MINUS_O */
 
 /* DEPRECATED (use P4EST_ENABLE_OPENMP instead) */
-#ifndef P4EST_OPENMP
-#define P4EST_OPENMP 1
-#endif
+/* #undef OPENMP */
 
 /* Name of package */
 #ifndef P4EST_PACKAGE
@@ -363,23 +359,23 @@
 #endif
 
 /* DEPRECATED (use P4EST_ENABLE_VTK_BINARY instead) */
-/* #undef VTK_BINARY */
+#ifndef P4EST_VTK_BINARY
+#define P4EST_VTK_BINARY 1
+#endif
 
 /* DEPRECATED (use P4EST_ENABLE_VTK_COMPRESSION instead) */
-/* #undef VTK_COMPRESSION */
+#ifndef P4EST_VTK_COMPRESSION
+#define P4EST_VTK_COMPRESSION 1
+#endif
 
 /* DEPRECATED (use P4EST_ENABLE_VTK_DOUBLES instead) */
 /* #undef VTK_DOUBLES */
 
 /* Define to 1 if BLAS is used */
-#ifndef P4EST_WITH_BLAS
-#define P4EST_WITH_BLAS 1
-#endif
+/* #undef WITH_BLAS */
 
 /* Define to 1 if LAPACK is used */
-#ifndef P4EST_WITH_LAPACK
-#define P4EST_WITH_LAPACK 1
-#endif
+/* #undef WITH_LAPACK */
 
 /* enable metis-dependent code */
 /* #undef WITH_METIS */
