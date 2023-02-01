@@ -33,11 +33,10 @@ __url__="https://launchpad.net/escript-finley"
 :var __version__: version
 :var __date__: date of the version
 """
-from esys.escriptcore.start import HAVE_SYMBOLS
 import numpy
 from time import time
 import esys.escriptcore.linearPDEs as lpe
-from esys.escriptcore import util
+from esys.escriptcore import util, HAVE_SYMBOLS
 from esys.escriptcore.escriptcpp import Data
 
 if HAVE_SYMBOLS:

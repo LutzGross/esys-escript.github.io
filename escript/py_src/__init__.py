@@ -72,10 +72,11 @@ if esys_paths[-(len(esys_packages)+1)] == 'site-packages':
             raise Exception('please exit python shell, set escript library path, then re-start')
 
 from esys.escriptcore.escriptcpp import *
+from esys.escriptcore.start import HAVE_SYMBOLS
 from esys.escriptcore.util import *
 from esys.escriptcore.nonlinearPDE import NonlinearPDE
 from esys.escriptcore.datamanager import DataManager
-if hasFeature("sympy"):
+if HAVE_SYMBOLS:
     from esys.escriptcore.symbolic import *
 from esys.escriptcore.splitworld import *
 from . import minimizer

@@ -31,24 +31,19 @@ Test suite for nonlinearPDEs class
 
 __author__="Jaco du Plessis"
 
-from esys.escript import NonlinearPDE, whereZero, grad, sin, cos, symmetric, matrixmult, FunctionOnBoundary, hasFeature
+from esys.escript import NonlinearPDE, whereZero, grad, sin, cos, symmetric, matrixmult, FunctionOnBoundary, HAVE_SYMBOLS
 import numpy
 import esys.escriptcore.utestselect as unittest
 from esys.escript.linearPDEs import IllegalCoefficient,IllegalCoefficientValue
 import numpy as np
 from esys.escript.pdetools import Locator
 
-if hasFeature("sympy"):
-    sympyavail=True
-    from esys.escript import Symbol
-else:
-    sympyavail=False
 
 class Test_nonLinearPDEs(unittest.TestCase):
     DEBUG=False
     VERBOSE=False   
     
-@unittest.skipIf(not sympyavail, 'sympy not available')
+@unittest.skipIf(not HAVE_SYMBOLS, 'sympy not available')
 class Test_nlpde(Test_nonLinearPDEs):
     def test_run(self):
         #test just to confirm nlpde works   

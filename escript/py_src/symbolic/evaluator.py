@@ -26,7 +26,6 @@ __author__="Cihan Altinay, Lutz Gross"
 
 __all__ = ['Evaluator']
 
-import distutils.version as duv
 import esys.escriptcore.util as escript
 from .printer import EsysEscriptPrinter
 
@@ -102,15 +101,9 @@ class Evaluator(object):
             for s in subs.keys():
                 subs_dict[s.name] = subs[s]
             self.subs(**subs_dict)
-            if duv.LooseVersion(sympy.__version__) < duv.LooseVersion('0.7.6'):
-                self.lambdas.append(sympy.lambdify(sym, expression.lambdarepr(), [translator, "numpy"]))
-            else:
-                self.lambdas.append(sympy.lambdify(sym, expression.lambdarepr(), printer=EsysEscriptPrinter, dummify=False)) # modules=[translator, "numpy"],
+            self.lambdas.append(sympy.lambdify(sym, expression.lambdarepr(), printer=EsysEscriptPrinter, dummify=False)) # modules=[translator, "numpy"],
         else:
-            if duv.LooseVersion(sympy.__version__) < duv.LooseVersion('0.7.6'):
-                self.lambdas.append(sympy.lambdify(sym, expression, [translator, "numpy"]))
-            else:
-                self.lambdas.append(sympy.lambdify(sym, expression, printer=EsysEscriptPrinter, dummify=False))
+            self.lambdas.append(sympy.lambdify(sym, expression, printer=EsysEscriptPrinter, dummify=False))
         return self
 
     def subs(self, **args):

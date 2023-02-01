@@ -30,7 +30,6 @@ from test_util import Test_Util_SpatialFunctions, Test_Util_SpatialFunctions_noG
 from test_symfuncs import Test_symfuncs
 from esys.escript import *
 from esys.ripley import MultiResolutionDomain
-from esys.escriptcore.start import HAVE_SYMBOLS
 
 if HAVE_SYMBOLS:
     from test_symfuncs import Test_symfuncs

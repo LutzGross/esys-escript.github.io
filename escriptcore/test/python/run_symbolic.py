@@ -37,16 +37,14 @@ Test suite for the escript.symbolic module
 __author__="Cihan Altinay"
 
 from esys.escript import *
-from esys.escript.symbolic import *
+if HAVE_SYMBOLS:
+    from esys.escript.symbolic import *
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 import numpy
 
-if hasFeature('sympy'):
-    sympyavail=True
-else:
-    sympyavail=False
-@unittest.skipIf(not sympyavail, 'sympy not available')
+
+@unittest.skipIf(not HAVE_SYMBOLS, 'sympy not available')
 class Test_SymbolicTestCase(unittest.TestCase):
 
     # number of digits that have to match for results to be considered equal

@@ -34,8 +34,7 @@ from test_util_integrals import Test_Util_Integration_Dirac
 from test_util_NaN_funcs import Test_util_NaN_funcs
 # from test_copyWithData import Test_copyWithMask
 
-from esys.escript import FunctionOnBoundary, getMPISizeWorld
-from esys.escriptcore.start import HAVE_SYMBOLS
+from esys.escript import FunctionOnBoundary, getMPISizeWorld, HAVE_SYMBOLS
 from esys.finley import Rectangle, Brick, JoinFaces, ReadMesh
 import os
 

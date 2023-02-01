@@ -33,15 +33,14 @@ __url__="https://launchpad.net/escript-finley"
 :var __version__: version
 :var __date__: date of the version
 """
-from .start import HAVE_SYMBOLS
 import numpy
 from time import time
 from . import linearPDEs as lpe
 from . import util
-from .escriptcpp import Data, hasFeature
+from .escriptcpp import Data
+from .start import HAVE_SYMBOLS
 
-if hasFeature("sympy"):
-# if HAVE_SYMBOLS:
+if HAVE_SYMBOLS:
     import sympy
     import esys.escriptcore.symbolic as symb
 
@@ -177,7 +176,7 @@ class NonlinearPDE(object):
         :type u: `Symbol`
         :param debug: level of debug information to be printed
         """
-        if not HAVE_SYMBOLS:
+        if HAVE_SYMBOLS:
             raise RuntimeError("Trying to instantiate a NonlinearPDE but sympy not available")
 
         self.__COEFFICIENTS = [ "X", "X_reduced", "Y", "Y_reduced", "y", "y_reduced", "y_contact", "y_contact_reduced", "y_dirac"]

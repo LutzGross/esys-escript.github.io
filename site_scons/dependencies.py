@@ -585,7 +585,6 @@ def checkForTrilinos(env):
     paths=sys.path
     for i in range(0,paths.__len__()):
         env.Append(PYTHONPATH=paths[i])
-
     env.Append(CPPDEFINES = ['ESYS_HAVE_TRILINOS'])
     # env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], trilinos_lib_path)
     # env['buildvars']['trilinos_inc_path']=trilinos_inc_path

@@ -56,16 +56,16 @@ from .escriptcpp import C_GeneralTensorProduct, Data
 from .escriptcpp import getVersion, getMPIRankWorld, getMPIWorldMax
 from .escriptcpp import printParallelThreadCounts
 from .escriptcpp import listEscriptParams
-try:
-    from . import symboliccore as sym
-    HAVE_SYMPY=1
-except:
-    HAVE_SYMPY=0
-    class sym:
-        Symbol=type(memoryview(b'1')) #This type should never be passed to util.py
+from .start import HAVE_SYMBOLS
 from .gmshrunner import gmshGeo2Msh
 
-from .escriptcpp import hasFeature
+if HAVE_SYMBOLS:
+    from . import symboliccore as sym
+else:
+    class sym:
+        Symbol=type(memoryview(b'1')) #This type should never be passed to util.py
+
+
 
 
 #=========================================================

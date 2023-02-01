@@ -32,8 +32,6 @@ from test_symfuncs import Test_symfuncs
 from esys.escript import *
 from esys.oxley import Rectangle, Brick
 
-#TODO
-HAVE_SYMBOLS=False
 if HAVE_SYMBOLS:
     from test_symfuncs import Test_symfuncs
 else:
