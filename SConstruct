@@ -473,13 +473,15 @@ elif cxx_name == 'mpic++':
     omp_ldflags  = "-fopenmp"
     fatalwarning = "-Werror"
     sysheaderopt = "-isystem"
-elif cxx_name == 'mpic++':
+elif cxx_name == 'mpiicpc':
     # note that -ffast-math is not used because it breaks isnan(),
+    env['CC']= 'mpiicc'
     cxx_flags = '-std=c++17 '+ env['cxx_extra']
     cc_flags += " -pedantic -Wall -fPIC -finline-functions"
     cc_flags += " -Wno-unknown-pragmas -Wno-sign-compare -Wno-system-headers -Wno-long-long -Wno-strict-aliasing "
     cc_flags += " -Wno-unused-function  -Wno-narrowing"
-    cc_flags += " -Wno-stringop-truncation -Wno-deprecated-declarations --param=max-vartrack-size=100000000"
+    cc_flags += " -Wno-deprecated-declarations --param=max-vartrack-size=100000000"
+    cc_flags += " -ipo "
     cc_optim     = "-O2 -march=native"
     #max-vartrack-size: avoid vartrack limit being exceeded with escriptcpp.cpp
     cc_debug     = "-g3 -O0  -DDOASSERT -DDOPROF -DBOUNDS_CHECK -DSLOWSHARECHECK --param=max-vartrack-size=100000000"
@@ -488,8 +490,8 @@ elif cxx_name == 'mpic++':
     ld_extra += " -fPIC -lmpi "
     if env['openmp']:
       ld_extra += " -lgomp"
-    omp_flags    = "-fopenmp"
-    omp_ldflags  = "-fopenmp"
+    omp_flags    = "-qopenmp"
+    omp_ldflags  = "-qopenmp"
     fatalwarning = "-Werror"
     sysheaderopt = "-isystem"
 
