@@ -472,10 +472,7 @@ if not ( env['build_trilinos'] == "False" or env['build_trilinos'] == 'never' ):
     startdir=os.getcwd()
     os.chdir(env['trilinos_build'])
 
-    print("Building Trilinos using")
-    print(env['prefix'])
-    print(env['CC'])
-    print(env['CXX'])
+    print("Building Trilinos ...")
     if env['trilinos_make'] == 'default':
         if env['mpi'] != 'none':
             print("Building (MPI) trilinos..............................")
@@ -487,7 +484,7 @@ if not ( env['build_trilinos'] == "False" or env['build_trilinos'] == 'never' ):
         Copy("hostmake.sh", env['trilinos_make'] )
         configure="sh hostmake.sh " + env['prefix'] + " " + env['CC'] + " " + env['CXX']
 
-    print("Running: "+config)
+    print("Running: "+configure)
     res=os.system(configure)
     if res :
         print(">>> Installation of trilinos failed. Scons stopped.")
