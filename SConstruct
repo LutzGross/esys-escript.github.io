@@ -129,6 +129,7 @@ vars.AddVariables(
   ('silo_libs', 'Silo libraries to link with', ['siloh5', 'hdf5']),
   BoolVariable('trilinos', 'Enable the Trilinos solvers (overwriten when trilinos is built)', False),
   EnumVariable('build_trilinos', 'Instructs scons to build the trilinos library.', "False", allowed_values=build_trilinos_flavours),
+  ('trilinos_make', 'path to shell script to run trilinos make.', 'default'),
   ('trilinos_prefix', 'Prefix/Paths to Trilinos installation', default_prefix),
   ('trilinos_libs', 'Trilinos libraries to link with', []),
   BoolVariable('visit', 'Enable the VisIt simulation interface', False),
@@ -475,17 +476,18 @@ if not ( env['build_trilinos'] == "False" or env['build_trilinos'] == 'never' ):
     print(env['prefix'])
     print(env['CC'])
     print(env['CXX'])
-
-    if env['mpi'] != 'none':
-        print("Building (MPI) trilinos..............................")
-        configure="sh mpi.sh " + env['prefix'] + " " + env['CC'] + " " + env['CXX']
+    if env['trilinos_make'] == 'default':
+        if env['mpi'] != 'none':
+            print("Building (MPI) trilinos..............................")
+            configure="sh mpi.sh " + env['prefix'] + " " + env['CC'] + " " + env['CXX']
+        else:
+            print("Building (no MPI) trilinos..............................")
+            configure="sh nompi.sh " + env['prefix'] + " " + env['CC'] + " " + env['CXX']
     else:
-        print("Building (no MPI) trilinos..............................")
-        configure="sh nompi.sh " + env['prefix'] + " " + env['CC'] + " " + env['CXX']
+        Copy("hostmake.sh", env['trilinos_make'] )
+        configure="sh hostmake.sh " + env['prefix'] + " " + env['CC'] + " " + env['CXX']
 
-    print("Running")
-    print(configure)
-
+    print("Running: "+config)
     res=os.system(configure)
     if res :
         print(">>> Installation of trilinos failed. Scons stopped.")
