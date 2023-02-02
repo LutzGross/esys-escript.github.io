@@ -20,6 +20,7 @@ import atexit, sys, os, platform, re
 from distutils import sysconfig
 from dependencies import *
 from site_init import *
+import shutil
 
 print(sys.version)
 
@@ -472,10 +473,6 @@ if not ( env['build_trilinos'] == "False" or env['build_trilinos'] == 'never' ):
     startdir=os.getcwd()
     os.chdir(env['trilinos_build'])
 
-    print("Building Trilinos using")
-    print(env['prefix'])
-    print(env['CC'])
-    print(env['CXX'])
     if env['trilinos_make'] == 'default':
         if env['mpi'] != 'none':
             print("Building (MPI) trilinos..............................")
@@ -484,10 +481,11 @@ if not ( env['build_trilinos'] == "False" or env['build_trilinos'] == 'never' ):
             print("Building (no MPI) trilinos..............................")
             configure="sh nompi.sh " + env['prefix'] + " " + env['CC'] + " " + env['CXX']
     else:
-        Copy("hostmake.sh", env['trilinos_make'] )
-        configure="sh hostmake.sh " + env['prefix'] + " " + env['CC'] + " " + env['CXX']
+        # Copy("hostmake.sh", env['trilinos_make'] )
+        shutil.copy(env['trilinos_make'], 'localmake.sh' )
+        configure="sh localmake.sh " + env['prefix'] + " " + env['CC'] + " " + env['CXX']
 
-    print("Running: "+config)
+    print("Running TRILINOS using: "+configure)
     res=os.system(configure)
     if res :
         print(">>> Installation of trilinos failed. Scons stopped.")
