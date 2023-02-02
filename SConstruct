@@ -268,42 +268,6 @@ if env['trilinos_GO'] != '':
     elif env['trilinos_GO'] == 'cplx_t':
         env.Append(CPPDEFINES=['SET_GO_CPLXT'])
 
-if not ( env['build_trilinos'] == "False" or env['build_trilinos'] == 'never' ):
-    TRILINOS_BUILD='trilinos_build'
-    env['trilinos_prefix']=os.path.join(env['prefix'],'escript_trilinos')
-    env['trilinos_build'] = os.path.join(env['prefix'],TRILINOS_BUILD)
-    print("")
-    if not env['cc'] == 'default ':
-        os.environ['CC'] = env['cc']
-    if not env['cxx'] == 'default ':
-        os.environ['CXX'] = env['cxx']
-    startdir=os.getcwd()
-    os.chdir(env['trilinos_build'])
-
-    if env['mpi'] == 'OPENMPI':
-        print("Building (MPI) trilinos..............................")
-        configure="sh mpi.sh " + env['prefix'] + " " + env['CC'] + " " + env['CXX']
-    else:
-        print("Building (no MPI) trilinos..............................")
-        configure="sh nompi.sh " + env['prefix'] + " " + env['CC'] + " " + env['CXX']
-
-    #if env['build_trilinos'] == "check" :
-    res=os.system('make --question install')
-    print("trilinos: make test status is ", res)
-    res=os.system(configure)
-    if res :
-        print(">>> Installation of trilinos failed. Scons stopped.")
-        Exit(1)
-    if env['build_trilinos'] == "True" or  env['build_trilinos'] == "make" or env['build_trilinos'] == "check":
-            res=os.system('make -j%s install'%GetOption("num_jobs"))
-    else:
-            res=os.system('make --always-make  -j%s install'%GetOption("num_jobs"))
-    if res :
-        print(">>> Installation of trilinos failed. Scons stopped.")
-        Exit(1)
-    env['trilinos'] = True
-    os.chdir(startdir)
-
 # Covert env['netcdf'] into one of False, 3, 4
 # Also choose default values for libraries
 pos1=netcdf_flavours.index('False')
@@ -494,6 +458,47 @@ elif cxx_name == 'mpiicpc':
     omp_ldflags  = "-qopenmp"
     fatalwarning = "-Werror"
     sysheaderopt = "-isystem"
+
+if not ( env['build_trilinos'] == "False" or env['build_trilinos'] == 'never' ):
+    TRILINOS_BUILD='trilinos_build'
+    env['trilinos_prefix']=os.path.join(env['prefix'],'escript_trilinos')
+    env['trilinos_build'] = os.path.join(env['prefix'],TRILINOS_BUILD)
+    print("")
+    if not env['cc'] == 'default ':
+        os.environ['CC'] = env['cc']
+    if not env['cxx'] == 'default ':
+        os.environ['CXX'] = env['cxx']
+    startdir=os.getcwd()
+    os.chdir(env['trilinos_build'])
+
+    print("Building Trilinos using")
+    print(env['prefix'])
+    print(env['CC'])
+    print(env['CXX'])
+
+    if env['mpi'] != 'none':
+        print("Building (MPI) trilinos..............................")
+        configure="sh mpi.sh " + env['prefix'] + " " + env['CC'] + " " + env['CXX']
+    else:
+        print("Building (no MPI) trilinos..............................")
+        configure="sh nompi.sh " + env['prefix'] + " " + env['CC'] + " " + env['CXX']
+
+    print("Running")
+    print(configure)
+
+    res=os.system(configure)
+    if res :
+        print(">>> Installation of trilinos failed. Scons stopped.")
+        Exit(1)
+    if env['build_trilinos'] == "True" or  env['build_trilinos'] == "make" or env['build_trilinos'] == "check":
+            res=os.system('make -j%s install'%GetOption("num_jobs"))
+    else:
+            res=os.system('make --always-make  -j%s install'%GetOption("num_jobs"))
+    if res :
+        print(">>> Installation of trilinos failed. Scons stopped.")
+        Exit(1)
+    env['trilinos'] = True
+    os.chdir(startdir)
 
 env['sysheaderopt']=sysheaderopt
 
