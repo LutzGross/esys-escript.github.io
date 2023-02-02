@@ -487,9 +487,9 @@ class LinearProblem(object):
      self.__solution_rtol=1.e99
      self.__solution_atol=1.e99
      # Record if we are using oxley
-     self.have_oxley=False
+     self.__have_oxley=False
      if domain.getDescription() == 'oxley::rectangle' or domain.getDescription() == 'oxley::brick':
-        self.have_oxley=True
+        self.__have_oxley=True
      self.setSolverOptions()
      self.setSymmetryOff()
      # Set on lumping if we are using Speckley
@@ -758,23 +758,28 @@ class LinearProblem(object):
        return self.__preservePreconditioner
 
    def preservePreconditioner(self, preserve = True):
-       """
-       Notifies the PDE that the preconditioner should not be reset when
-       making changes to the operator.
+        """
+        Notifies the PDE that the preconditioner should not be reset when
+        making changes to the operator.
 
-       Building the preconditioner data can be quite expensive (e.g. for
-       multigrid methods) so if it is known that changes to the operator are
-       going to be minor calling this method can speed up successive PDE
-       solves.
+        Building the preconditioner data can be quite expensive (e.g. for
+        multigrid methods) so if it is known that changes to the operator are
+        going to be minor calling this method can speed up successive PDE
+        solves.
 
-       :note: Not all operator types support this.
-       :param preserve: if True, preconditioner will be preserved, otherwise
-                        it will be reset when making changes to the operator,
-                        which is the default behaviour.
-       :type preserve: ``bool``
-       """
-       self.__preservePreconditioner =  preserve
+        :note: Not all operator types support this.
+        :param preserve: if True, preconditioner will be preserved, otherwise
+                            it will be reset when making changes to the operator,
+                            which is the default behaviour.
+        :type preserve: ``bool``
+        """
+        self.__preservePreconditioner =  preserve
 
+   def hasOxley(self):
+        """
+        return True if an ``esys.escript.oxley`` domain is used
+        """
+        return self.__have_oxley
    # ==========================================================================
    #    symmetry  flag:
    # ==========================================================================
@@ -1786,10 +1791,7 @@ class LinearPDE(LinearProblem):
      :param debug: if True debug information is printed
 
      """
-     #
-     #   records whether or not we are using oxley
-     #
-     self.have_oxley=False
+
 
      super(LinearPDE, self).__init__(domain,numEquations,numSolutions,isComplex,debug)
      #
@@ -2294,9 +2296,6 @@ class LinearPDE(LinearProblem):
      if not X_reduced.isEmpty():
            out-=X_reduced
      return out
-
-   def hasOxley(self):
-     return self.have_oxley
 
 class Poisson(LinearPDE):
    """
