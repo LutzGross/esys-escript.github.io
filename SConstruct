@@ -16,10 +16,11 @@
 EnsureSConsVersion(0,98,1)
 EnsurePythonVersion(3,1)
 
-import atexit, sys, os, platform, re
+import atexit, sys, os, platform, re, shutil
 from distutils import sysconfig
 from dependencies import *
 from site_init import *
+
 
 print(sys.version)
 
@@ -491,7 +492,7 @@ if not ( env['build_trilinos'] == "False" or env['build_trilinos'] == 'never' ):
             print("Building (no MPI) trilinos..............................")
             configure="sh nompi.sh " + env['prefix'] + " " + env['CC'] + " " + env['CXX'] + " " + OPENMPFLAG
     else:
-        Copy("hostmake.sh", env['trilinos_make'] )
+        shutil.copy(env['trilinos_make'], "hostmake.sh")
         configure="sh hostmake.sh " + env['prefix'] + " " + env['CC'] + " " + env['CXX'] + " " + OPENMPFLAG
 
     print("Running: "+configure)
