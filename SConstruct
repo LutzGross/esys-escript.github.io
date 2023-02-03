@@ -14,7 +14,7 @@
 ##############################################################################
 
 EnsureSConsVersion(0,98,1)
-EnsurePythonVersion(2,5)
+EnsurePythonVersion(3,1)
 
 import atexit, sys, os, platform, re
 from distutils import sysconfig
@@ -210,6 +210,9 @@ if env['mpi'] == 'OPENMPI':
     env['CXX'] = 'mpic++'
     env['CC'] = 'mpicc'
 
+if env['mpi4py'] and env['mpi'] in mpi_flavours[:2]:
+    print("mpi4py is switched on but no mpi flavour given (most likely `MPICH`).")
+    Exit(1)
 # set the vars for clang
 def mkclang(env):
         env['CXX']='clang'
@@ -471,6 +474,10 @@ if not ( env['build_trilinos'] == "False" or env['build_trilinos'] == 'never' ):
         os.environ['CXX'] = env['cxx']
     startdir=os.getcwd()
     os.chdir(env['trilinos_build'])
+    if env['openmp']:
+        OPENMPFLAG='ON'
+    else:
+        OPENMPFLAG='OFF'
 
     print("Building Trilinos using")
     print(env['prefix'])
@@ -479,15 +486,15 @@ if not ( env['build_trilinos'] == "False" or env['build_trilinos'] == 'never' ):
     if env['trilinos_make'] == 'default':
         if env['mpi'] != 'none':
             print("Building (MPI) trilinos..............................")
-            configure="sh mpi.sh " + env['prefix'] + " " + env['CC'] + " " + env['CXX']
+            configure="sh mpi.sh " + env['prefix'] + " " + env['CC'] + " " + env['CXX'] + " " + OPENMPFLAG
         else:
             print("Building (no MPI) trilinos..............................")
-            configure="sh nompi.sh " + env['prefix'] + " " + env['CC'] + " " + env['CXX']
+            configure="sh nompi.sh " + env['prefix'] + " " + env['CC'] + " " + env['CXX'] + " " + OPENMPFLAG
     else:
         Copy("hostmake.sh", env['trilinos_make'] )
-        configure="sh hostmake.sh " + env['prefix'] + " " + env['CC'] + " " + env['CXX']
+        configure="sh hostmake.sh " + env['prefix'] + " " + env['CC'] + " " + env['CXX'] + " " + OPENMPFLAG
 
-    print("Running: "+config)
+    print("Running: "+configure)
     res=os.system(configure)
     if res :
         print(">>> Installation of trilinos failed. Scons stopped.")
@@ -834,7 +841,7 @@ if ((fatalwarning != '') and (env['werror'])):
 Export(
   ['env',
    'dodgy_env',
-   'IS_WINDOWS',
+   'IS_WINDOWS', 'IS_OSX',
    'TestGroups'
   ]
 )
