@@ -76,16 +76,16 @@ if env['compressed_files']:
 
 local_env.PrependUnique(LIBS = ripleylibs)
 
-env['ripley_libs'] = [module_name] + ripleylibs
-
 include_path = Dir(module_name, local_env['incinstall'])
 hdr_inst = local_env.Install(include_path, headers)
 
 lib = local_env.SharedLibrary(module_name, sources)
 lib_inst = local_env.Install(local_env['libinstall'], lib)
 
-env['ripley_libs'] = lib + ripleylibs
-
+if IS_OSX:
+    env['ripley_libs'] = lib + ripleylibs
+else:
+    env['ripley_libs'] = [module_name] + ripleylibs
 ### Python wrapper ###
 py_env = local_env.Clone()
 if IS_OSX:

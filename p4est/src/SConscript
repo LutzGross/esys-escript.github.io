@@ -208,13 +208,17 @@ if env['mpi']:
     p4estlibs += env['mpi_libs']
 local_env.PrependUnique(LIBS = p4estlibs)
 
-env['p4est_libs'] = [module_name] + p4estlibs
 
 include_path = Dir(module_name, local_env['incinstall'])
 hdr_inst = local_env.Install(include_path, headers)
 
 lib = local_env.SharedLibrary(module_name, sources)
 lib_inst = local_env.Install(local_env['libinstall'], lib)
+
+if IS_OSX:
+    env['p4est_libs'] = [lib_inst] + p4estlibs
+else:
+    env['p4est_libs'] = [module_name] + p4estlibs
 
 build = env.Alias('build_p4est', [hdr_inst, lib])
 env.Alias('install_p4est', ['build_p4est', lib_inst])

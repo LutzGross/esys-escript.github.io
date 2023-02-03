@@ -70,13 +70,17 @@ local_env.AppendUnique(CPPPATH = [os.path.join(env['escript_src'],'p4est/src')])
 
 local_env.PrependUnique(LIBS = oxleylibs)
 
-env['oxley_libs'] = [module_name] + oxleylibs
 
 include_path = Dir(module_name, local_env['incinstall'])
 hdr_inst = local_env.Install(include_path, headers)
 
 lib = local_env.SharedLibrary(module_name, sources)
 lib_inst = local_env.Install(local_env['libinstall'], lib)
+
+if IS_OSX:
+    env['oxley_libs'] = [lib_inst] + oxleylibs
+else:
+    env['oxley_libs'] = [module_name] + oxleylibs
 
 ### Python wrapper ###
 py_env = local_env.Clone()

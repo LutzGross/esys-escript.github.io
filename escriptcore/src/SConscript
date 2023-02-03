@@ -138,7 +138,7 @@ if env['trilinos']:
 
 
 local_env.PrependUnique(LIBS = escriptlibs)
-env['escript_libs'] = [module_name] + escriptlibs
+
 
 if IS_WINDOWS:
     local_env.Append(CPPDEFINES = ['ESCRIPT_EXPORTS'])
@@ -154,6 +154,11 @@ hdr_inst = local_env.Install(include_path, headers)
 
 lib = local_env.SharedLibrary(module_name, sources + nonped)
 lib_inst = local_env.Install(local_env['libinstall'], lib)
+
+if IS_OSX:
+    env['escript_libs'] = [lib_inst] + escriptlibs
+else:
+    env['escript_libs'] = [module_name] + escriptlibs
 
 ### Python wrapper ###
 py_env = local_env.Clone()

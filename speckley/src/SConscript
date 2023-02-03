@@ -74,20 +74,24 @@ if env['silo']:
 
 local_env.PrependUnique(LIBS = speckleylibs)
 
-env['speckley_libs'] = [module_name] + speckleylibs
 
 include_path = Dir(module_name, local_env['incinstall'])
 hdr_inst = local_env.Install(include_path, headers)
 
 lib = local_env.SharedLibrary(module_name, sources)
 lib_inst = local_env.Install(local_env['libinstall'], lib)
-#env['speckley_libs'] = lib + speckleylibs
+
+if IS_OSX:
+    env['speckley_libs'] = [lib_inst] + speckleylibs
+else:
+    env['speckley_libs'] = [module_name] + speckleylibs
+
 ### Python wrapper ###
 py_env = local_env.Clone()
 if IS_OSX:
-    py_env.Prepend(LIBS = env['speckley_libs'] + [ lib_inst ])
+    py_env.Prepend(LIBS = [ lib_inst ])
 else:
-    py_env.Prepend(LIBS = env['speckley_libs'] + [ module_name ])
+    py_env.Prepend(LIBS =  [ module_name ])
 
 py_lib_name = module_name + 'cpp'
 py_lib = py_env.PythonModule(py_lib_name, 'speckleycpp.cpp')

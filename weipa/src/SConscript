@@ -85,14 +85,19 @@ if local_env['visit']:
     weipalibs += ['simV2']
 
 local_env.PrependUnique(LIBS = weipalibs)
-env['weipa_libs'] = [module_name] + weipalibs
+
 
 include_path = Dir(module_name, local_env['incinstall'])
 hdr_inst = local_env.Install(include_path, headers)
 
 lib = local_env.SharedLibrary(module_name, sources)
 lib_inst = local_env.Install(local_env['libinstall'], lib)
-#env['weipa_libs'] = lib+ weipalibs
+
+if IS_OSX:
+    env['weipa_libs'] = [lib_inst] + weipalibs
+else:
+    env['weipa_libs'] = [module_name] + weipalibs
+
 ### Python wrapper ###
 py_env = local_env.Clone()
 if IS_OSX:
