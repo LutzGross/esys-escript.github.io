@@ -61,10 +61,8 @@ silo_prefix = '/sw/libs/silo/4.10.2'
 silo_libs=['siloh5']
 build_trilinos='make'
 trilinos_make=os.getcwd()+'/scons/savanna_trilinosmake.sh'
-print(os.getcwd())
 use_p4est=0
 umfpack=0
-use_p4est=1
 verbose=0
 visit=1
 visit_prefix='/sw/apps/visit/2.10.0/linux-x86_64/libsim/V2/'
