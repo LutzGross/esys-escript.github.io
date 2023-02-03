@@ -63,6 +63,7 @@ build_trilinos='make'
 trilinos_make=os.getcwd()+'/scons/savanna_trilinosmake.sh'
 use_p4est=0
 umfpack=0
+domains = [ 'finley', 'ripley', 'speckley']
 verbose=0
 visit=1
 visit_prefix='/sw/apps/visit/2.10.0/linux-x86_64/libsim/V2/'
