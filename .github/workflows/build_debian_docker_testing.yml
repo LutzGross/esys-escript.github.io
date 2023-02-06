@@ -1,4 +1,4 @@
-name: Debian PASO unit testing
+name: Debian unit testing
 
 on:
   push:
