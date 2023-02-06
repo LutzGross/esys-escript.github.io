@@ -2,7 +2,7 @@ name: Debian unit testing
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, 6.0 ]
   pull_request:
     branches: [ master ]
 
