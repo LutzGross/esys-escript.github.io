@@ -15,4 +15,4 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Building the Docker image...
-      run: docker build . --file ./tools/unittesting/debian_py3
+      run: docker build . --file ./tools/unittesting/debian_trilinos_py3
