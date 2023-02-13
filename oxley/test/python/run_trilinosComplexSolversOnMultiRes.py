@@ -127,6 +127,7 @@ def test_Rectangle_refine_Region(**kwargs):
     m.dump("region_boundary_mesh_ae.silo")
     return m
 
+# TODO
 def test_Brick_refine_Mesh(**kwargs):
     m = Brick(**kwargs)
     m.setRefinementLevel(1)
@@ -177,9 +178,9 @@ def test_Brick_refine_Region(**kwargs):
     return m
     return m
 
-# def Brick(**kwargs):
-#     m = MultiResolutionDomain(3, **kwargs)
-#     return m.getLevel(1)
+def Brick(**kwargs):
+    m = MultiResolutionDomain(3, **kwargs)
+    return m.getLevel(1)
 
 @unittest.skipIf(not HAVE_TRILINOS, "Trilinos not available")
 class ComplexSolveOnTrilinos(ComplexSolveTestCase):

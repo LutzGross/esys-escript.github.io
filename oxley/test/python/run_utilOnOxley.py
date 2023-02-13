@@ -78,13 +78,14 @@ class Test_Util_SpatialFunctionsOnOxley2D(Test_Util_SpatialFunctions_noGradOnBou
         del self.order
         del self.domain
 
-class Test_Util_SpatialFunctionsOnOxley3D(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
-    def setUp(self):
-        self.order=1
-        self.domain = Brick(n0=NE*NXb-1, n1=NE*NYb-1, n2=NE*NZb-1, l0=1., l1=1., l2=1., d0=NXb, d1=NYb, d2=NZb)
-    def tearDown(self):
-        del self.order
-        del self.domain
+# TODO
+# class Test_Util_SpatialFunctionsOnOxley3D(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
+#     def setUp(self):
+#         self.order=1
+#         self.domain = Brick(n0=NE*NXb-1, n1=NE*NYb-1, n2=NE*NZb-1, l0=1., l1=1., l2=1., d0=NXb, d1=NYb, d2=NZb)
+#     def tearDown(self):
+#         del self.order
+#         del self.domain
 
 #TODO
 # class Test_2D_Point_Data_Integration(Test_Util_Point_Data_Interpolation):

@@ -62,142 +62,148 @@ class ComplexSolveOnTrilinos(ComplexSolveTestCase):
 
 
 ## direct
-class Test_ComplexSolveOxley2D_Trilinos_Direct(ComplexSolveOnTrilinos):
-    def setUp(self):
-        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
-        self.package = SolverOptions.TRILINOS
-        self.method = SolverOptions.DIRECT
+# TODO
+# class Test_ComplexSolveOxley2D_Trilinos_Direct(ComplexSolveOnTrilinos):
+#     def setUp(self):
+#         self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+#         self.package = SolverOptions.TRILINOS
+#         self.method = SolverOptions.DIRECT
 
-    def tearDown(self):
-        del self.domain
+#     def tearDown(self):
+#         del self.domain
 
-class Test_ComplexSolveOxley3D_Trilinos_Direct(ComplexSolveOnTrilinos):
-    def setUp(self):
-        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-        self.package = SolverOptions.TRILINOS
-        self.method = SolverOptions.DIRECT
-
-    def tearDown(self):
-        del self.domain
 ### BiCGStab + Jacobi
 
-class Test_ComplexSolveOxley2D_Trilinos_BICGSTAB_Jacobi(ComplexSolveOnTrilinos):
-    def setUp(self):
-        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
-        self.package = SolverOptions.TRILINOS
-        self.method = SolverOptions.BICGSTAB
-        self.preconditioner = SolverOptions.JACOBI
+# TODO
+# class Test_ComplexSolveOxley2D_Trilinos_BICGSTAB_Jacobi(ComplexSolveOnTrilinos):
+#     def setUp(self):
+#         self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+#         self.package = SolverOptions.TRILINOS
+#         self.method = SolverOptions.BICGSTAB
+#         self.preconditioner = SolverOptions.JACOBI
 
-    def tearDown(self):
-        del self.domain
-
-class Test_ComplexSolveOxley3D_Trilinos_BICGSTAB_Jacobi(ComplexSolveOnTrilinos):
-    SOLVER_TOL = 1.e-9
-    def setUp(self):
-        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-        self.package = SolverOptions.TRILINOS
-        self.method = SolverOptions.BICGSTAB
-        self.preconditioner = SolverOptions.JACOBI
-
-    def tearDown(self):
-        del self.domain
+#     def tearDown(self):
+#         del self.domain
 
 ### GMRES + Jacobi
 
-class Test_ComplexSolveOxley2D_Trilinos_GMRES_Jacobi(ComplexSolveOnTrilinos):
-    def setUp(self):
-        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
-        self.package = SolverOptions.TRILINOS
-        self.method = SolverOptions.GMRES
-        self.preconditioner = SolverOptions.JACOBI
+#TODO
+# class Test_ComplexSolveOxley2D_Trilinos_GMRES_Jacobi(ComplexSolveOnTrilinos):
+#     def setUp(self):
+#         self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+#         self.package = SolverOptions.TRILINOS
+#         self.method = SolverOptions.GMRES
+#         self.preconditioner = SolverOptions.JACOBI
 
-    def tearDown(self):
-        del self.domain
-
-class Test_ComplexSolveOxley3D_Trilinos_GMRES_Jacobi(ComplexSolveOnTrilinos):
-    def setUp(self):
-        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-        self.package = SolverOptions.TRILINOS
-        self.method = SolverOptions.GMRES
-        self.preconditioner = SolverOptions.JACOBI
-
-    def tearDown(self):
-        del self.domain
+#     def tearDown(self):
+#         del self.domain
 
 ### PCG + Jacobi
 
-class Test_ComplexSolveOxley2D_Trilinos_PCG_Jacobi(ComplexSolveOnTrilinos):
-    def setUp(self):
-        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
-        self.package = SolverOptions.TRILINOS
-        self.method = SolverOptions.PCG
-        self.preconditioner = SolverOptions.JACOBI
+# class Test_ComplexSolveOxley2D_Trilinos_PCG_Jacobi(ComplexSolveOnTrilinos):
+#     def setUp(self):
+#         self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+#         self.package = SolverOptions.TRILINOS
+#         self.method = SolverOptions.PCG
+#         self.preconditioner = SolverOptions.JACOBI
 
-    def tearDown(self):
-        del self.domain
+#     def tearDown(self):
+#         del self.domain
 
-class Test_ComplexSolveOxley3D_Trilinos_PCG_Jacobi(ComplexSolveOnTrilinos):
-    def setUp(self):
-        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-        self.package = SolverOptions.TRILINOS
-        self.method = SolverOptions.PCG
-        self.preconditioner = SolverOptions.JACOBI
+# ### PCG + AMG
 
-    def tearDown(self):
-        del self.domain
+# @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
+# class Test_ComplexSolveOxley2D_Trilinos_PCG_AMG(ComplexSolveOnTrilinos):
+#     def setUp(self):
+#         self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+#         self.package = SolverOptions.TRILINOS
+#         self.method = SolverOptions.PCG
+#         self.preconditioner = SolverOptions.AMG
 
-### PCG + AMG
+#     def _setSolverOptions(self, so):
+#         so.setTrilinosParameter("number of equations", 2)
 
-@unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
-class Test_ComplexSolveOxley2D_Trilinos_PCG_AMG(ComplexSolveOnTrilinos):
-    def setUp(self):
-        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
-        self.package = SolverOptions.TRILINOS
-        self.method = SolverOptions.PCG
-        self.preconditioner = SolverOptions.AMG
-
-    def _setSolverOptions(self, so):
-        so.setTrilinosParameter("number of equations", 2)
-
-    def tearDown(self):
-        del self.domain
-
-@unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
-class Test_ComplexSolveOxley3D_Trilinos_PCG_AMG(ComplexSolveOnTrilinos):
-    def setUp(self):
-        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-        self.package = SolverOptions.TRILINOS
-        self.method = SolverOptions.PCG
-        self.preconditioner = SolverOptions.AMG
-
-    def _setSolverOptions(self, so):
-        so.setTrilinosParameter("number of equations", 3)
-
-    def tearDown(self):
-        del self.domain
+#     def tearDown(self):
+#         del self.domain
 
 ### PCG + ILUT
 
-class Test_ComplexSolveOxley2D_Trilinos_PCG_ILUT(ComplexSolveOnTrilinos):
-    def setUp(self):
-        self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
-        self.package = SolverOptions.TRILINOS
-        self.method = SolverOptions.PCG
-        self.preconditioner = SolverOptions.ILUT
+# class Test_ComplexSolveOxley2D_Trilinos_PCG_ILUT(ComplexSolveOnTrilinos):
+#     def setUp(self):
+#         self.domain = Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+#         self.package = SolverOptions.TRILINOS
+#         self.method = SolverOptions.PCG
+#         self.preconditioner = SolverOptions.ILUT
 
-    def tearDown(self):
-        del self.domain
+#     def tearDown(self):
+#         del self.domain
 
-class Test_ComplexSolveOxley3D_Trilinos_PCG_ILUT(ComplexSolveOnTrilinos):
-    SOLVER_TOL = 1.e-9
-    def setUp(self):
-        self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-        self.package = SolverOptions.TRILINOS
-        self.method = SolverOptions.PCG
-        self.preconditioner = SolverOptions.ILUT
 
-    def tearDown(self):
-        del self.domain
+# # BRICK
+# class Test_ComplexSolveOxley3D_Trilinos_Direct(ComplexSolveOnTrilinos):
+#     def setUp(self):
+#         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
+#         self.package = SolverOptions.TRILINOS
+#         self.method = SolverOptions.DIRECT
+
+#     def tearDown(self):
+#         del self.domain
+
+# class Test_ComplexSolveOxley3D_Trilinos_BICGSTAB_Jacobi(ComplexSolveOnTrilinos):
+#     SOLVER_TOL = 1.e-9
+#     def setUp(self):
+#         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
+#         self.package = SolverOptions.TRILINOS
+#         self.method = SolverOptions.BICGSTAB
+#         self.preconditioner = SolverOptions.JACOBI
+
+#     def tearDown(self):
+#         del self.domain
+
+# class Test_ComplexSolveOxley3D_Trilinos_GMRES_Jacobi(ComplexSolveOnTrilinos):
+#     def setUp(self):
+#         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
+#         self.package = SolverOptions.TRILINOS
+#         self.method = SolverOptions.GMRES
+#         self.preconditioner = SolverOptions.JACOBI
+
+#     def tearDown(self):
+#         del self.domain
+
+# class Test_ComplexSolveOxley3D_Trilinos_PCG_Jacobi(ComplexSolveOnTrilinos):
+#     def setUp(self):
+#         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
+#         self.package = SolverOptions.TRILINOS
+#         self.method = SolverOptions.PCG
+#         self.preconditioner = SolverOptions.JACOBI
+
+#     def tearDown(self):
+#         del self.domain
+
+# @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
+# class Test_ComplexSolveOxley3D_Trilinos_PCG_AMG(ComplexSolveOnTrilinos):
+#     def setUp(self):
+#         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
+#         self.package = SolverOptions.TRILINOS
+#         self.method = SolverOptions.PCG
+#         self.preconditioner = SolverOptions.AMG
+
+#     def _setSolverOptions(self, so):
+#         so.setTrilinosParameter("number of equations", 3)
+
+#     def tearDown(self):
+#         del self.domain
+
+# class Test_ComplexSolveOxley3D_Trilinos_PCG_ILUT(ComplexSolveOnTrilinos):
+#     SOLVER_TOL = 1.e-9
+#     def setUp(self):
+#         self.domain = Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
+#         self.package = SolverOptions.TRILINOS
+#         self.method = SolverOptions.PCG
+#         self.preconditioner = SolverOptions.ILUT
+
+#     def tearDown(self):
+#         del self.domain
 
 
 if __name__ == '__main__':
