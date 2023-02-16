@@ -111,7 +111,6 @@ def test_Rectangle_refine_Region(**kwargs):
     m.refineRegion(x0=0.2,x1=0.6,y0=0.6,y1=0.8)
     m.dump("region_boundary_mesh_ae.silo")
     return m
-    return m
 
 def test_Brick_refine_Mesh(**kwargs):
     m = Brick(**kwargs)
@@ -134,26 +133,41 @@ def test_Brick_refine_top_Boundary(**kwargs):
     m.dump("top_boundary_mesh_ae.silo")
     return m
 
-def test_Brick_refine_east_Boundary(**kwargs):
-    m = Brick(**kwargs)
-    m.setRefinementLevel(1)
-    m.refineBoundary(boundary="right",dx=DX)
-    m.dump("east_boundary_mesh_ae.silo")
-    return m
-
-def test_Brick_refine_west_Boundary(**kwargs):
-    m = Brick(**kwargs)
-    m.setRefinementLevel(1)
-    m.refineBoundary(boundary="left",dx=DX)
-    m.dump("west_boundary_mesh_ae.silo")
-    return m
-
 def test_Brick_refine_bottom_Boundary(**kwargs):
     m = Brick(**kwargs)
     m.setRefinementLevel(1)
     m.refineBoundary(boundary="bottom",dx=DX)
     m.dump("bottom_boundary_mesh_ae.silo")
     return m
+
+def test_Brick_refine_east_Boundary(**kwargs):
+    m = Brick(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineBoundary(boundary="east",dx=DX)
+    m.dump("east_boundary_mesh_ae.silo")
+    return m
+
+def test_Brick_refine_west_Boundary(**kwargs):
+    m = Brick(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineBoundary(boundary="west",dx=DX)
+    m.dump("west_boundary_mesh_ae.silo")
+    return m
+
+def test_Brick_refine_north_Boundary(**kwargs):
+    m = Brick(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineBoundary(boundary="north",dx=DX)
+    m.dump("north_boundary_mesh_ae.silo")
+    return m
+
+def test_Brick_refine_south_Boundary(**kwargs):
+    m = Brick(**kwargs)
+    m.setRefinementLevel(1)
+    m.refineBoundary(boundary="south",dx=DX)
+    m.dump("south_boundary_mesh_ae.silo")
+    return m
+
 
 def test_Brick_refine_Region(**kwargs):
     m = Brick(**kwargs)
