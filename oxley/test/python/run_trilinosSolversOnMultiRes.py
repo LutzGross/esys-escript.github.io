@@ -60,6 +60,7 @@ mpiSize=getMPISizeWorld()
 
 NX=1
 NY=1
+NZ=1
 DX=0.2
 
 def test_Rectangle_refine_Mesh(**kwargs):
