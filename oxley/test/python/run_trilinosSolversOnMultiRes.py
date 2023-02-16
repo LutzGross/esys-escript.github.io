@@ -186,7 +186,7 @@ class SimpleSolveOnTrilinos(SimpleSolveTestCase):
 ## direct
 class Test_SimpleSolveMultiRes2D_Trilinos_Direct_Mesh(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_Mesh(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_Mesh(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.DIRECT
 
@@ -196,7 +196,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_Direct_Mesh(SimpleSolveOnTrilinos):
 ## direct
 class Test_SimpleSolveMultiRes2D_Trilinos_Direct_Point(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_Point(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_Point(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.DIRECT
 
@@ -206,7 +206,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_Direct_Point(SimpleSolveOnTrilinos):
 ## direct
 class Test_SimpleSolveMultiRes2D_Trilinos_Direct_top_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_top_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_top_Boundary(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.DIRECT
 
@@ -215,7 +215,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_Direct_top_Boundary(SimpleSolveOnTrili
 
 class Test_SimpleSolveMultiRes2D_Trilinos_Direct_east_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_east_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_east_Boundary(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.DIRECT
 
@@ -224,7 +224,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_Direct_east_Boundary(SimpleSolveOnTril
 
 class Test_SimpleSolveMultiRes2D_Trilinos_Direct_west_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_west_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_west_Boundary(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.DIRECT
 
@@ -233,7 +233,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_Direct_west_Boundary(SimpleSolveOnTril
 
 class Test_SimpleSolveMultiRes2D_Trilinos_Direct_bottom_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_bottom_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_bottom_Boundary(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.DIRECT
 
@@ -242,7 +242,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_Direct_bottom_Boundary(SimpleSolveOnTr
 ## direct
 class Test_SimpleSolveMultiRes2D_Trilinos_Direct_Region(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_Region(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_Region(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.DIRECT
 
@@ -252,7 +252,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_Direct_Region(SimpleSolveOnTrilinos):
 ## direct
 class Test_SimpleSolveMultiRes2D_Trilinos_Direct_Mesh(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_Mesh(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_Mesh(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.DIRECT
 
@@ -262,7 +262,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_Direct_Mesh(SimpleSolveOnTrilinos):
 ## direct
 class Test_SimpleSolveMultiRes2D_Trilinos_Direct_Point(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_Point(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_Point(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.DIRECT
 
@@ -272,7 +272,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_Direct_Point(SimpleSolveOnTrilinos):
 ## direct
 class Test_SimpleSolveMultiRes2D_Trilinos_Direct_top_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_top_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_top_Boundary(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.DIRECT
 
@@ -281,7 +281,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_Direct_top_Boundary(SimpleSolveOnTrili
 
 class Test_SimpleSolveMultiRes2D_Trilinos_Direct_east_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_east_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_east_Boundary(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.DIRECT
 
@@ -290,7 +290,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_Direct_east_Boundary(SimpleSolveOnTril
 
 class Test_SimpleSolveMultiRes2D_Trilinos_Direct_west_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_west_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_west_Boundary(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.DIRECT
 
@@ -299,7 +299,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_Direct_west_Boundary(SimpleSolveOnTril
 
 class Test_SimpleSolveMultiRes2D_Trilinos_Direct_bottom_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_bottom_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_bottom_Boundary(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.DIRECT
 
@@ -308,7 +308,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_Direct_bottom_Boundary(SimpleSolveOnTr
 ## direct
 class Test_SimpleSolveMultiRes2D_Trilinos_Direct_Region(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_Region(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_Region(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.DIRECT
 
@@ -319,7 +319,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_Direct_Region(SimpleSolveOnTrilinos):
 
 class Test_SimpleSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi_Mesh(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_Mesh(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_Mesh(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.BICGSTAB
         self.preconditioner = SolverOptions.JACOBI
@@ -329,7 +329,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi_Mesh(SimpleSolveOnTril
 
 class Test_SimpleSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi_Point(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_Point(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_Point(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.BICGSTAB
         self.preconditioner = SolverOptions.JACOBI
@@ -339,7 +339,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi_Point(SimpleSolveOnTri
 
 class Test_SimpleSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi_top_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_top_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_top_Boundary(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.BICGSTAB
         self.preconditioner = SolverOptions.JACOBI
@@ -349,7 +349,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi_top_Boundary(SimpleSol
 
 class Test_SimpleSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi_east_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_east_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_east_Boundary(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.BICGSTAB
         self.preconditioner = SolverOptions.JACOBI
@@ -359,7 +359,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi_east_Boundary(SimpleSo
 
 class Test_SimpleSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi_west_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_west_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_west_Boundary(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.BICGSTAB
         self.preconditioner = SolverOptions.JACOBI
@@ -369,7 +369,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi_west_Boundary(SimpleSo
 
 class Test_SimpleSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi_bottom_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_bottom_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_bottom_Boundary(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.BICGSTAB
         self.preconditioner = SolverOptions.JACOBI
@@ -379,7 +379,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi_bottom_Boundary(Simple
 
 class Test_SimpleSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi_Region(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_Region(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_Region(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.BICGSTAB
         self.preconditioner = SolverOptions.JACOBI
@@ -389,7 +389,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi_Region(SimpleSolveOnTr
 
 class Test_SimpleSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi_Mesh(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_Mesh(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_Mesh(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.BICGSTAB
         self.preconditioner = SolverOptions.JACOBI
@@ -399,7 +399,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi_Mesh(SimpleSolveOnTril
 
 class Test_SimpleSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi_Point(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_Point(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_Point(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.BICGSTAB
         self.preconditioner = SolverOptions.JACOBI
@@ -409,7 +409,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi_Point(SimpleSolveOnTri
 
 class Test_SimpleSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi_top_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_top_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_top_Boundary(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.BICGSTAB
         self.preconditioner = SolverOptions.JACOBI
@@ -419,7 +419,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi_top_Boundary(SimpleSol
 
 class Test_SimpleSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi_east_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_east_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_east_Boundary(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.BICGSTAB
         self.preconditioner = SolverOptions.JACOBI
@@ -429,7 +429,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi_east_Boundary(SimpleSo
 
 class Test_SimpleSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi_west_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_west_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_west_Boundary(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.BICGSTAB
         self.preconditioner = SolverOptions.JACOBI
@@ -439,7 +439,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi_west_Boundary(SimpleSo
 
 class Test_SimpleSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi_bottom_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_bottom_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_bottom_Boundary(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.BICGSTAB
         self.preconditioner = SolverOptions.JACOBI
@@ -449,7 +449,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi_bottom_Boundary(Simple
 
 class Test_SimpleSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi_Region(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_Region(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_Region(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.BICGSTAB
         self.preconditioner = SolverOptions.JACOBI
@@ -461,7 +461,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi_Region(SimpleSolveOnTr
 
 class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi_Mesh(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_Mesh(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Rectangle_refine_Mesh(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.GMRES
         self.preconditioner = SolverOptions.JACOBI
@@ -471,7 +471,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi_Mesh(SimpleSolveOnTrilino
 
 class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi_Point(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_Point(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_Point(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.GMRES
         self.preconditioner = SolverOptions.JACOBI
@@ -481,7 +481,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi_Point(SimpleSolveOnTrilin
 
 class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi_top_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_top_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_top_Boundary(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.GMRES
         self.preconditioner = SolverOptions.JACOBI
@@ -491,7 +491,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi_top_Boundary(SimpleSolveO
 
 class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi_east_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_east_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_east_Boundary(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.GMRES
         self.preconditioner = SolverOptions.JACOBI
@@ -501,7 +501,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi_east_Boundary(SimpleSolve
 
 class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi_west_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_west_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_west_Boundary(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.GMRES
         self.preconditioner = SolverOptions.JACOBI
@@ -511,7 +511,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi_west_Boundary(SimpleSolve
 
 class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi_bottom_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_bottom_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_bottom_Boundary(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.GMRES
         self.preconditioner = SolverOptions.JACOBI
@@ -521,7 +521,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi_bottom_Boundary(SimpleSol
 
 class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi_top_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_top_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_top_Boundary(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.GMRES
         self.preconditioner = SolverOptions.JACOBI
@@ -531,7 +531,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi_top_Boundary(SimpleSolveO
 
 class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi_east_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_east_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_east_Boundary(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.GMRES
         self.preconditioner = SolverOptions.JACOBI
@@ -541,7 +541,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi_east_Boundary(SimpleSolve
 
 class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi_west_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_west_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_west_Boundary(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.GMRES
         self.preconditioner = SolverOptions.JACOBI
@@ -551,7 +551,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi_west_Boundary(SimpleSolve
 
 class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi_bottom_Region(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_bottom_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_bottom_Boundary(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.GMRES
         self.preconditioner = SolverOptions.JACOBI
@@ -561,7 +561,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi_bottom_Region(SimpleSolve
 
 class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi_Mesh(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_Mesh(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_Mesh(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.GMRES
         self.preconditioner = SolverOptions.JACOBI
@@ -571,7 +571,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi_Mesh(SimpleSolveOnTrilino
 
 class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi_Point(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_Point(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_Point(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.GMRES
         self.preconditioner = SolverOptions.JACOBI
@@ -581,7 +581,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi_Point(SimpleSolveOnTrilin
 
 class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi_top_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_top_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_top_Boundary(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.GMRES
         self.preconditioner = SolverOptions.JACOBI
@@ -591,7 +591,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi_top_Boundary(SimpleSolveO
 
 class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi_east_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_east_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_east_Boundary(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.GMRES
         self.preconditioner = SolverOptions.JACOBI
@@ -601,7 +601,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi_east_Boundary(SimpleSolve
 
 class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi_west_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_west_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_west_Boundary(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.GMRES
         self.preconditioner = SolverOptions.JACOBI
@@ -611,7 +611,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi_west_Boundary(SimpleSolve
 
 class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi_bottom_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_bottom_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_bottom_Boundary(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.GMRES
         self.preconditioner = SolverOptions.JACOBI
@@ -621,7 +621,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi_bottom_Boundary(SimpleSol
 
 class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi_top_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_top_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_top_Boundary(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.GMRES
         self.preconditioner = SolverOptions.JACOBI
@@ -631,7 +631,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi_top_Boundary(SimpleSolveO
 
 class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi_east_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_east_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_east_Boundary(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.GMRES
         self.preconditioner = SolverOptions.JACOBI
@@ -641,7 +641,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi_east_Boundary(SimpleSolve
 
 class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi_west_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_west_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_west_Boundary(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.GMRES
         self.preconditioner = SolverOptions.JACOBI
@@ -651,7 +651,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi_west_Boundary(SimpleSolve
 
 class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi_bottom_Region(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_bottom_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_bottom_Boundary(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.GMRES
         self.preconditioner = SolverOptions.JACOBI
@@ -663,7 +663,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_GMRES_Jacobi_bottom_Region(SimpleSolve
 
 class Test_SimpleSolveMultiRes2D_Trilinos_PCG_Jacobi_Mesh(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_Mesh(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_Mesh(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.JACOBI
@@ -673,7 +673,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_Jacobi_Mesh(SimpleSolveOnTrilinos)
 
 class Test_SimpleSolveMultiRes2D_Trilinos_PCG_Jacobi_Point(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_Point(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_Point(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.JACOBI
@@ -683,7 +683,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_Jacobi_Point(SimpleSolveOnTrilinos
 
 class Test_SimpleSolveMultiRes2D_Trilinos_PCG_Jacobi_top_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_top_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_top_Boundary(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.JACOBI
@@ -693,7 +693,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_Jacobi_top_Boundary(SimpleSolveOnT
 
 class Test_SimpleSolveMultiRes2D_Trilinos_PCG_Jacobi_east_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_east_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_east_Boundary(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.JACOBI
@@ -703,7 +703,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_Jacobi_east_Boundary(SimpleSolveOn
 
 class Test_SimpleSolveMultiRes2D_Trilinos_PCG_Jacobi_west_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_west_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_west_Boundary(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.JACOBI
@@ -713,7 +713,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_Jacobi_west_Boundary(SimpleSolveOn
 
 class Test_SimpleSolveMultiRes2D_Trilinos_PCG_Jacobi_bottom_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_bottom_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_bottom_Boundary(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.JACOBI
@@ -723,7 +723,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_Jacobi_bottom_Boundary(SimpleSolve
 
 class Test_SimpleSolveMultiRes2D_Trilinos_PCG_Jacobi_Region(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_Region(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_Region(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.JACOBI
@@ -733,7 +733,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_Jacobi_Region(SimpleSolveOnTrilino
 
 class Test_SimpleSolveMultiRes2D_Trilinos_PCG_Jacobi_Mesh(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_Mesh(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_Mesh(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.JACOBI
@@ -743,7 +743,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_Jacobi_Mesh(SimpleSolveOnTrilinos)
 
 class Test_SimpleSolveMultiRes2D_Trilinos_PCG_Jacobi_Point(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_Point(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_Point(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.JACOBI
@@ -753,7 +753,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_Jacobi_Point(SimpleSolveOnTrilinos
 
 class Test_SimpleSolveMultiRes2D_Trilinos_PCG_Jacobi_top_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_top_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_top_Boundary(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.JACOBI
@@ -763,7 +763,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_Jacobi_top_Boundary(SimpleSolveOnT
 
 class Test_SimpleSolveMultiRes2D_Trilinos_PCG_Jacobi_east_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_east_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_east_Boundary(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.JACOBI
@@ -773,7 +773,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_Jacobi_east_Boundary(SimpleSolveOn
 
 class Test_SimpleSolveMultiRes2D_Trilinos_PCG_Jacobi_west_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_west_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_west_Boundary(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.JACOBI
@@ -783,7 +783,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_Jacobi_west_Boundary(SimpleSolveOn
 
 class Test_SimpleSolveMultiRes2D_Trilinos_PCG_Jacobi_bottom_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_bottom_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_bottom_Boundary(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.JACOBI
@@ -793,7 +793,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_Jacobi_bottom_Boundary(SimpleSolve
 
 class Test_SimpleSolveMultiRes2D_Trilinos_PCG_Jacobi_Region(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_Region(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_Region(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.JACOBI
@@ -805,7 +805,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_Jacobi_Region(SimpleSolveOnTrilino
 
 class Test_SimpleSolveMultiRes2D_Trilinos_MINRES_Jacobi_Mesh(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_Mesh(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_Mesh(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.MINRES
         self.preconditioner = SolverOptions.JACOBI
@@ -814,7 +814,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_MINRES_Jacobi_Mesh(SimpleSolveOnTrilin
         del self.domain
 class Test_SimpleSolveMultiRes2D_Trilinos_MINRES_Jacobi_Point(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_Point(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_Point(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.MINRES
         self.preconditioner = SolverOptions.JACOBI
@@ -824,7 +824,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_MINRES_Jacobi_Point(SimpleSolveOnTrili
 
 class Test_SimpleSolveMultiRes2D_Trilinos_MINRES_Jacobi_top_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_top_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_top_Boundary(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.MINRES
         self.preconditioner = SolverOptions.JACOBI
@@ -834,7 +834,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_MINRES_Jacobi_top_Boundary(SimpleSolve
 
 class Test_SimpleSolveMultiRes2D_Trilinos_MINRES_Jacobi_west_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_west_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_west_Boundary(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.MINRES
         self.preconditioner = SolverOptions.JACOBI
@@ -844,7 +844,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_MINRES_Jacobi_west_Boundary(SimpleSolv
 
 class Test_SimpleSolveMultiRes2D_Trilinos_MINRES_Jacobi_east_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_east_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_east_Boundary(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.MINRES
         self.preconditioner = SolverOptions.JACOBI
@@ -854,7 +854,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_MINRES_Jacobi_east_Boundary(SimpleSolv
 
 class Test_SimpleSolveMultiRes2D_Trilinos_MINRES_Jacobi_bottom_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_bottom_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_bottom_Boundary(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.MINRES
         self.preconditioner = SolverOptions.JACOBI
@@ -864,7 +864,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_MINRES_Jacobi_bottom_Boundary(SimpleSo
 
 class Test_SimpleSolveMultiRes2D_Trilinos_MINRES_Jacobi_Region(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_Region(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_Region(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.MINRES
         self.preconditioner = SolverOptions.JACOBI
@@ -874,7 +874,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_MINRES_Jacobi_Region(SimpleSolveOnTril
 
 class Test_SimpleSolveMultiRes2D_Trilinos_MINRES_Jacobi_Mesh(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_Mesh(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_Mesh(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.MINRES
         self.preconditioner = SolverOptions.JACOBI
@@ -883,7 +883,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_MINRES_Jacobi_Mesh(SimpleSolveOnTrilin
         del self.domain
 class Test_SimpleSolveMultiRes2D_Trilinos_MINRES_Jacobi_Point(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_Point(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_Point(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.MINRES
         self.preconditioner = SolverOptions.JACOBI
@@ -893,7 +893,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_MINRES_Jacobi_Point(SimpleSolveOnTrili
 
 class Test_SimpleSolveMultiRes2D_Trilinos_MINRES_Jacobi_top_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_top_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_top_Boundary(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.MINRES
         self.preconditioner = SolverOptions.JACOBI
@@ -903,7 +903,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_MINRES_Jacobi_top_Boundary(SimpleSolve
 
 class Test_SimpleSolveMultiRes2D_Trilinos_MINRES_Jacobi_west_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_west_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_west_Boundary(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.MINRES
         self.preconditioner = SolverOptions.JACOBI
@@ -913,7 +913,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_MINRES_Jacobi_west_Boundary(SimpleSolv
 
 class Test_SimpleSolveMultiRes2D_Trilinos_MINRES_Jacobi_east_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_east_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_east_Boundary(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.MINRES
         self.preconditioner = SolverOptions.JACOBI
@@ -923,7 +923,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_MINRES_Jacobi_east_Boundary(SimpleSolv
 
 class Test_SimpleSolveMultiRes2D_Trilinos_MINRES_Jacobi_bottom_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_bottom_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_bottom_Boundary(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.MINRES
         self.preconditioner = SolverOptions.JACOBI
@@ -933,7 +933,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_MINRES_Jacobi_bottom_Boundary(SimpleSo
 
 class Test_SimpleSolveMultiRes2D_Trilinos_MINRES_Jacobi_Region(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_Region(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_Region(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.MINRES
         self.preconditioner = SolverOptions.JACOBI
@@ -945,7 +945,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_MINRES_Jacobi_Region(SimpleSolveOnTril
 
 class Test_SimpleSolveMultiRes2D_Trilinos_TFQMR_RILU_Mesh(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_Mesh(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_Mesh(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.TFQMR
         self.preconditioner = SolverOptions.RILU
@@ -955,7 +955,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_TFQMR_RILU_Mesh(SimpleSolveOnTrilinos)
 
 class Test_SimpleSolveMultiRes2D_Trilinos_TFQMR_RILU_Point(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_Point(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_Point(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.TFQMR
         self.preconditioner = SolverOptions.RILU
@@ -965,7 +965,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_TFQMR_RILU_Point(SimpleSolveOnTrilinos
 
 class Test_SimpleSolveMultiRes2D_Trilinos_TFQMR_RILU_top_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_top_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_top_Boundary(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.TFQMR
         self.preconditioner = SolverOptions.RILU
@@ -975,7 +975,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_TFQMR_RILU_top_Boundary(SimpleSolveOnT
 
 class Test_SimpleSolveMultiRes2D_Trilinos_TFQMR_RILU_east_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_east_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_east_Boundary(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.TFQMR
         self.preconditioner = SolverOptions.RILU
@@ -985,7 +985,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_TFQMR_RILU_east_Boundary(SimpleSolveOn
 
 class Test_SimpleSolveMultiRes2D_Trilinos_TFQMR_RILU_west_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_west_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_west_Boundary(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.TFQMR
         self.preconditioner = SolverOptions.RILU
@@ -995,7 +995,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_TFQMR_RILU_west_Boundary(SimpleSolveOn
 
 class Test_SimpleSolveMultiRes2D_Trilinos_TFQMR_RILU_bottom_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_bottom_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_bottom_Boundary(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.TFQMR
         self.preconditioner = SolverOptions.RILU
@@ -1006,7 +1006,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_TFQMR_RILU_bottom_Boundary(SimpleSolve
 
 class Test_SimpleSolveMultiRes2D_Trilinos_TFQMR_RILU_Region(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_Region(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_Region(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.TFQMR
         self.preconditioner = SolverOptions.RILU
@@ -1016,7 +1016,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_TFQMR_RILU_Region(SimpleSolveOnTrilino
 
 class Test_SimpleSolveMultiRes2D_Trilinos_TFQMR_RILU_Mesh(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_Mesh(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_Mesh(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.TFQMR
         self.preconditioner = SolverOptions.RILU
@@ -1026,7 +1026,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_TFQMR_RILU_Mesh(SimpleSolveOnTrilinos)
 
 class Test_SimpleSolveMultiRes2D_Trilinos_TFQMR_RILU_Point(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_Point(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_Point(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.TFQMR
         self.preconditioner = SolverOptions.RILU
@@ -1036,7 +1036,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_TFQMR_RILU_Point(SimpleSolveOnTrilinos
 
 class Test_SimpleSolveMultiRes2D_Trilinos_TFQMR_RILU_top_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_top_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_top_Boundary(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.TFQMR
         self.preconditioner = SolverOptions.RILU
@@ -1046,7 +1046,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_TFQMR_RILU_top_Boundary(SimpleSolveOnT
 
 class Test_SimpleSolveMultiRes2D_Trilinos_TFQMR_RILU_east_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_east_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_east_Boundary(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.TFQMR
         self.preconditioner = SolverOptions.RILU
@@ -1056,7 +1056,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_TFQMR_RILU_east_Boundary(SimpleSolveOn
 
 class Test_SimpleSolveMultiRes2D_Trilinos_TFQMR_RILU_west_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_west_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_west_Boundary(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.TFQMR
         self.preconditioner = SolverOptions.RILU
@@ -1066,7 +1066,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_TFQMR_RILU_west_Boundary(SimpleSolveOn
 
 class Test_SimpleSolveMultiRes2D_Trilinos_TFQMR_RILU_bottom_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_bottom_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_bottom_Boundary(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.TFQMR
         self.preconditioner = SolverOptions.RILU
@@ -1077,7 +1077,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_TFQMR_RILU_bottom_Boundary(SimpleSolve
 
 class Test_SimpleSolveMultiRes2D_Trilinos_TFQMR_RILU_Region(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_Region(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_Region(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.TFQMR
         self.preconditioner = SolverOptions.RILU
@@ -1091,7 +1091,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_TFQMR_RILU_Region(SimpleSolveOnTrilino
 class Test_SimpleSolveMultiRes2D_Trilinos_LSQR_AMG_Mesh(SimpleSolveOnTrilinos):
     SOLVER_TOL = 1.e-9
     def setUp(self):
-        self.domain = test_Rectangle_refine_Mesh(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_Mesh(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.LSQR
         self.preconditioner = SolverOptions.AMG
@@ -1103,7 +1103,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_LSQR_AMG_Mesh(SimpleSolveOnTrilinos):
 class Test_SimpleSolveMultiRes2D_Trilinos_LSQR_AMG_Point(SimpleSolveOnTrilinos):
     SOLVER_TOL = 1.e-9
     def setUp(self):
-        self.domain = test_Rectangle_refine_Point(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_Point(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.LSQR
         self.preconditioner = SolverOptions.AMG
@@ -1115,7 +1115,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_LSQR_AMG_Point(SimpleSolveOnTrilinos):
 class Test_SimpleSolveMultiRes2D_Trilinos_LSQR_AMG_top_Boundary(SimpleSolveOnTrilinos):
     SOLVER_TOL = 1.e-9
     def setUp(self):
-        self.domain = test_Rectangle_refine_top_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_top_Boundary(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.LSQR
         self.preconditioner = SolverOptions.AMG
@@ -1127,7 +1127,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_LSQR_AMG_top_Boundary(SimpleSolveOnTri
 class Test_SimpleSolveMultiRes2D_Trilinos_LSQR_AMG_east_Boundary(SimpleSolveOnTrilinos):
     SOLVER_TOL = 1.e-9
     def setUp(self):
-        self.domain = test_Rectangle_refine_east_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_east_Boundary(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.LSQR
         self.preconditioner = SolverOptions.AMG
@@ -1139,7 +1139,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_LSQR_AMG_east_Boundary(SimpleSolveOnTr
 class Test_SimpleSolveMultiRes2D_Trilinos_LSQR_AMG_west_Boundary(SimpleSolveOnTrilinos):
     SOLVER_TOL = 1.e-9
     def setUp(self):
-        self.domain = test_Rectangle_refine_west_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_west_Boundary(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.LSQR
         self.preconditioner = SolverOptions.AMG
@@ -1151,7 +1151,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_LSQR_AMG_west_Boundary(SimpleSolveOnTr
 class Test_SimpleSolveMultiRes2D_Trilinos_LSQR_AMG_bottom_Boundary(SimpleSolveOnTrilinos):
     SOLVER_TOL = 1.e-9
     def setUp(self):
-        self.domain = test_Rectangle_refine_bottom_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_bottom_Boundary(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.LSQR
         self.preconditioner = SolverOptions.AMG
@@ -1165,7 +1165,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_LSQR_AMG_bottom_Boundary(SimpleSolveOn
 class Test_SimpleSolveMultiRes2D_Trilinos_LSQR_AMG_Region(SimpleSolveOnTrilinos):
     SOLVER_TOL = 1.e-9
     def setUp(self):
-        self.domain = test_Rectangle_refine_Region(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_Region(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.LSQR
         self.preconditioner = SolverOptions.AMG
@@ -1178,7 +1178,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_LSQR_AMG_Region(SimpleSolveOnTrilinos)
 class Test_SimpleSolveMultiRes2D_Trilinos_LSQR_AMG_Mesh(SimpleSolveOnTrilinos):
     SOLVER_TOL = 1.e-9
     def setUp(self):
-        self.domain = test_Brick_refine_Mesh(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_Mesh(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.LSQR
         self.preconditioner = SolverOptions.AMG
@@ -1190,7 +1190,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_LSQR_AMG_Mesh(SimpleSolveOnTrilinos):
 class Test_SimpleSolveMultiRes2D_Trilinos_LSQR_AMG_Point(SimpleSolveOnTrilinos):
     SOLVER_TOL = 1.e-9
     def setUp(self):
-        self.domain = test_Brick_refine_Point(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_Point(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.LSQR
         self.preconditioner = SolverOptions.AMG
@@ -1202,7 +1202,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_LSQR_AMG_Point(SimpleSolveOnTrilinos):
 class Test_SimpleSolveMultiRes2D_Trilinos_LSQR_AMG_top_Boundary(SimpleSolveOnTrilinos):
     SOLVER_TOL = 1.e-9
     def setUp(self):
-        self.domain = test_Brick_refine_top_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_top_Boundary(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.LSQR
         self.preconditioner = SolverOptions.AMG
@@ -1214,7 +1214,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_LSQR_AMG_top_Boundary(SimpleSolveOnTri
 class Test_SimpleSolveMultiRes2D_Trilinos_LSQR_AMG_east_Boundary(SimpleSolveOnTrilinos):
     SOLVER_TOL = 1.e-9
     def setUp(self):
-        self.domain = test_Brick_refine_east_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_east_Boundary(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.LSQR
         self.preconditioner = SolverOptions.AMG
@@ -1226,7 +1226,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_LSQR_AMG_east_Boundary(SimpleSolveOnTr
 class Test_SimpleSolveMultiRes2D_Trilinos_LSQR_AMG_west_Boundary(SimpleSolveOnTrilinos):
     SOLVER_TOL = 1.e-9
     def setUp(self):
-        self.domain = test_Brick_refine_west_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_west_Boundary(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.LSQR
         self.preconditioner = SolverOptions.AMG
@@ -1238,7 +1238,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_LSQR_AMG_west_Boundary(SimpleSolveOnTr
 class Test_SimpleSolveMultiRes2D_Trilinos_LSQR_AMG_bottom_Boundary(SimpleSolveOnTrilinos):
     SOLVER_TOL = 1.e-9
     def setUp(self):
-        self.domain = test_Brick_refine_bottom_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_bottom_Boundary(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.LSQR
         self.preconditioner = SolverOptions.AMG
@@ -1252,7 +1252,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_LSQR_AMG_bottom_Boundary(SimpleSolveOn
 class Test_SimpleSolveMultiRes2D_Trilinos_LSQR_AMG_Region(SimpleSolveOnTrilinos):
     SOLVER_TOL = 1.e-9
     def setUp(self):
-        self.domain = test_Brick_refine_Region(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_Region(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.LSQR
         self.preconditioner = SolverOptions.AMG
@@ -1265,7 +1265,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_LSQR_AMG_Region(SimpleSolveOnTrilinos)
 @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
 class Test_SimpleSolveMultiRes2D_Trilinos_PCG_AMG_Mesh(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_Mesh(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_Mesh(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.AMG
@@ -1276,7 +1276,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_AMG_Mesh(SimpleSolveOnTrilinos):
 @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
 class Test_SimpleSolveMultiRes2D_Trilinos_PCG_AMG_Point(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_Point(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_Point(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.AMG
@@ -1287,7 +1287,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_AMG_Point(SimpleSolveOnTrilinos):
 @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
 class Test_SimpleSolveMultiRes2D_Trilinos_PCG_AMG_top_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_top_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_top_Boundary(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.AMG
@@ -1298,7 +1298,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_AMG_top_Boundary(SimpleSolveOnTril
 @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
 class Test_SimpleSolveMultiRes2D_Trilinos_PCG_AMG_east_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_east_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_east_Boundary(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.AMG
@@ -1309,7 +1309,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_AMG_east_Boundary(SimpleSolveOnTri
 @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
 class Test_SimpleSolveMultiRes2D_Trilinos_PCG_AMG_west_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_west_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_west_Boundary(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.AMG
@@ -1320,7 +1320,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_AMG_west_Boundary(SimpleSolveOnTri
 @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
 class Test_SimpleSolveMultiRes2D_Trilinos_PCG_AMG_bottom_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_bottom_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_bottom_Boundary(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.AMG
@@ -1332,7 +1332,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_AMG_bottom_Boundary(SimpleSolveOnT
 @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
 class Test_SimpleSolveMultiRes2D_Trilinos_PCG_AMG_Region(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_Region(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_Region(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.AMG
@@ -1343,7 +1343,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_AMG_Region(SimpleSolveOnTrilinos):
 @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
 class Test_SimpleSolveMultiRes2D_Trilinos_PCG_AMG_Mesh(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_Mesh(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_Mesh(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.AMG
@@ -1354,7 +1354,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_AMG_Mesh(SimpleSolveOnTrilinos):
 @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
 class Test_SimpleSolveMultiRes2D_Trilinos_PCG_AMG_Point(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_Point(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_Point(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.AMG
@@ -1365,7 +1365,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_AMG_Point(SimpleSolveOnTrilinos):
 @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
 class Test_SimpleSolveMultiRes2D_Trilinos_PCG_AMG_top_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_top_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_top_Boundary(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.AMG
@@ -1376,7 +1376,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_AMG_top_Boundary(SimpleSolveOnTril
 @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
 class Test_SimpleSolveMultiRes2D_Trilinos_PCG_AMG_east_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_east_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_east_Boundary(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.AMG
@@ -1387,7 +1387,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_AMG_east_Boundary(SimpleSolveOnTri
 @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
 class Test_SimpleSolveMultiRes2D_Trilinos_PCG_AMG_west_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_west_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_west_Boundary(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.AMG
@@ -1398,7 +1398,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_AMG_west_Boundary(SimpleSolveOnTri
 @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
 class Test_SimpleSolveMultiRes2D_Trilinos_PCG_AMG_bottom_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_bottom_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_bottom_Boundary(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.AMG
@@ -1410,7 +1410,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_AMG_bottom_Boundary(SimpleSolveOnT
 @unittest.skipIf(skip_muelu_long, "MueLu AMG incompatible with index type long")
 class Test_SimpleSolveMultiRes2D_Trilinos_PCG_AMG_Region(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_Region(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_Region(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.AMG
@@ -1422,7 +1422,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_AMG_Region(SimpleSolveOnTrilinos):
 
 class Test_SimpleSolveMultiRes2D_Trilinos_PCG_ILUT_Mesh(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_Mesh(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_Mesh(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.ILUT
@@ -1432,7 +1432,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_ILUT_Mesh(SimpleSolveOnTrilinos):
 
 class Test_SimpleSolveMultiRes2D_Trilinos_PCG_ILUT_Point(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_Point(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_Point(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.ILUT
@@ -1442,7 +1442,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_ILUT_Point(SimpleSolveOnTrilinos):
 
 class Test_SimpleSolveMultiRes2D_Trilinos_PCG_ILUT_top_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_top_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_top_Boundary(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.ILUT
@@ -1452,7 +1452,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_ILUT_top_Boundary(SimpleSolveOnTri
 
 class Test_SimpleSolveMultiRes2D_Trilinos_PCG_ILUT_east_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_east_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_east_Boundary(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.ILUT
@@ -1462,7 +1462,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_ILUT_east_Boundary(SimpleSolveOnTr
 
 class Test_SimpleSolveMultiRes2D_Trilinos_PCG_ILUT_west_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_west_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_west_Boundary(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.ILUT
@@ -1472,7 +1472,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_ILUT_west_Boundary(SimpleSolveOnTr
 
 class Test_SimpleSolveMultiRes2D_Trilinos_PCG_ILUT_bottom_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_bottom_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_bottom_Boundary(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.ILUT
@@ -1483,7 +1483,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_ILUT_bottom_Boundary(SimpleSolveOn
 
 class Test_SimpleSolveMultiRes2D_Trilinos_PCG_ILUT_Region(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Rectangle_refine_Region(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
+        self.domain = test_Rectangle_refine_Region(n0=NE0,n1=NE1,d0=NX,d1=NY)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.ILUT
@@ -1493,7 +1493,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_ILUT_Region(SimpleSolveOnTrilinos)
 
 class Test_SimpleSolveMultiRes2D_Trilinos_PCG_ILUT_Mesh(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_Mesh(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_Mesh(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.ILUT
@@ -1503,7 +1503,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_ILUT_Mesh(SimpleSolveOnTrilinos):
 
 class Test_SimpleSolveMultiRes2D_Trilinos_PCG_ILUT_Point(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_Point(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_Point(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.ILUT
@@ -1513,7 +1513,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_ILUT_Point(SimpleSolveOnTrilinos):
 
 class Test_SimpleSolveMultiRes2D_Trilinos_PCG_ILUT_top_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_top_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_top_Boundary(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.ILUT
@@ -1523,7 +1523,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_ILUT_top_Boundary(SimpleSolveOnTri
 
 class Test_SimpleSolveMultiRes2D_Trilinos_PCG_ILUT_east_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_east_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_east_Boundary(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.ILUT
@@ -1533,7 +1533,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_ILUT_east_Boundary(SimpleSolveOnTr
 
 class Test_SimpleSolveMultiRes2D_Trilinos_PCG_ILUT_west_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_west_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_west_Boundary(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.ILUT
@@ -1543,7 +1543,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_ILUT_west_Boundary(SimpleSolveOnTr
 
 class Test_SimpleSolveMultiRes2D_Trilinos_PCG_ILUT_bottom_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_bottom_Boundary(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_bottom_Boundary(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.ILUT
@@ -1554,7 +1554,7 @@ class Test_SimpleSolveMultiRes2D_Trilinos_PCG_ILUT_bottom_Boundary(SimpleSolveOn
 
 class Test_SimpleSolveMultiRes2D_Trilinos_PCG_ILUT_Region(SimpleSolveOnTrilinos):
     def setUp(self):
-        self.domain = test_Brick_refine_Region(n0=NE0*NX-1, n1=NE1*NY-1, n2=NE2*NZ-1, d0=NX, d1=NY, d2=NZ)
+        self.domain = test_Brick_refine_Region(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
         self.package = SolverOptions.TRILINOS
         self.method = SolverOptions.PCG
         self.preconditioner = SolverOptions.ILUT
