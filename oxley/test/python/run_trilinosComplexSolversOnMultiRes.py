@@ -62,7 +62,7 @@ NX=1
 NY=1
 NZ=1
 DX=0.2
-ref_level=1
+ref_level=2
 
 def test_Rectangle_refine_Mesh(**kwargs):
     # kwargs['n0'] //= 2
@@ -130,49 +130,49 @@ def test_Rectangle_refine_Region(**kwargs):
 # TODO
 def test_Brick_refine_Mesh(**kwargs):
     m = Brick(**kwargs)
-    m.setRefinementLevel(1)
+    m.setRefinementLevel(ref_level)
     m.refineMesh("uniform")
     m.dump("uniform_mesh_ae.silo")
     return m
 
 def test_Brick_refine_Point(**kwargs):
     m = Brick(**kwargs)
-    m.setRefinementLevel(1)
+    m.setRefinementLevel(ref_level)
     m.refinePoint(x0=0.55,y0=0.55,z0=0.55)
     m.dump("point_mesh_ae.silo")
     return m
 
 def test_Brick_refine_top_Boundary(**kwargs):
     m = Brick(**kwargs)
-    m.setRefinementLevel(1)
+    m.setRefinementLevel(ref_level)
     m.refineBoundary(boundary="top",dx=DX)
     m.dump("top_boundary_mesh_ae.silo")
     return m
 
 def test_Brick_refine_east_Boundary(**kwargs):
     m = Brick(**kwargs)
-    m.setRefinementLevel(1)
+    m.setRefinementLevel(ref_level)
     m.refineBoundary(boundary="right",dx=DX)
     m.dump("east_boundary_mesh_ae.silo")
     return m
 
 def test_Brick_refine_west_Boundary(**kwargs):
     m = Brick(**kwargs)
-    m.setRefinementLevel(1)
+    m.setRefinementLevel(ref_level)
     m.refineBoundary(boundary="left",dx=DX)
     m.dump("west_boundary_mesh_ae.silo")
     return m
 
 def test_Brick_refine_bottom_Boundary(**kwargs):
     m = Brick(**kwargs)
-    m.setRefinementLevel(1)
+    m.setRefinementLevel(ref_level)
     m.refineBoundary(boundary="bottom",dx=DX)
     m.dump("bottom_boundary_mesh_ae.silo")
     return m
 
 def test_Brick_refine_Region(**kwargs):
     m = Brick(**kwargs)
-    m.setRefinementLevel(1)
+    m.setRefinementLevel(ref_level)
     m.refineRegion(x0=0.2,x1=0.6,y0=0.6,y1=0.8)
     m.dump("region_boundary_mesh_ae.silo")
     return m
