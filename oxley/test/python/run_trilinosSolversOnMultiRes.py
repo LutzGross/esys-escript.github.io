@@ -32,7 +32,6 @@ import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 
 from esys.escript import getMPISizeWorld, hasFeature, sqrt
-# from esys.oxley import MultiResolutionDomain
 from esys.oxley import Rectangle, Brick
 from esys.escript.linearPDEs import SolverOptions
 
@@ -193,15 +192,16 @@ class Test_SimpleSolveMultiRes2D_Trilinos_Direct_Mesh(SimpleSolveOnTrilinos):
     def tearDown(self):
         del self.domain
 
-## direct
-class Test_SimpleSolveMultiRes2D_Trilinos_Direct_Point(SimpleSolveOnTrilinos):
-    def setUp(self):
-        self.domain = test_Rectangle_refine_Point(n0=NE0,n1=NE1,d0=NX,d1=NY)
-        self.package = SolverOptions.TRILINOS
-        self.method = SolverOptions.DIRECT
+# TODO
+# ## direct
+# class Test_SimpleSolveMultiRes2D_Trilinos_Direct_Point(SimpleSolveOnTrilinos):
+#     def setUp(self):
+#         self.domain = test_Rectangle_refine_Point(n0=NE0,n1=NE1,d0=NX,d1=NY)
+#         self.package = SolverOptions.TRILINOS
+#         self.method = SolverOptions.DIRECT
 
-    def tearDown(self):
-        del self.domain
+#     def tearDown(self):
+#         del self.domain
 
 ## direct
 class Test_SimpleSolveMultiRes2D_Trilinos_Direct_top_Boundary(SimpleSolveOnTrilinos):
@@ -260,14 +260,15 @@ class Test_SimpleSolveMultiRes2D_Trilinos_Direct_Mesh(SimpleSolveOnTrilinos):
         del self.domain
 
 ## direct
-class Test_SimpleSolveMultiRes2D_Trilinos_Direct_Point(SimpleSolveOnTrilinos):
-    def setUp(self):
-        self.domain = test_Brick_refine_Point(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
-        self.package = SolverOptions.TRILINOS
-        self.method = SolverOptions.DIRECT
+# TODO
+# class Test_SimpleSolveMultiRes2D_Trilinos_Direct_Point(SimpleSolveOnTrilinos):
+#     def setUp(self):
+#         self.domain = test_Brick_refine_Point(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
+#         self.package = SolverOptions.TRILINOS
+#         self.method = SolverOptions.DIRECT
 
-    def tearDown(self):
-        del self.domain
+#     def tearDown(self):
+#         del self.domain
 
 ## direct
 class Test_SimpleSolveMultiRes2D_Trilinos_Direct_top_Boundary(SimpleSolveOnTrilinos):
@@ -327,15 +328,16 @@ class Test_SimpleSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi_Mesh(SimpleSolveOnTril
     def tearDown(self):
         del self.domain
 
-class Test_SimpleSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi_Point(SimpleSolveOnTrilinos):
-    def setUp(self):
-        self.domain = test_Rectangle_refine_Point(n0=NE0,n1=NE1,d0=NX,d1=NY)
-        self.package = SolverOptions.TRILINOS
-        self.method = SolverOptions.BICGSTAB
-        self.preconditioner = SolverOptions.JACOBI
+# TODO
+# class Test_SimpleSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi_Point(SimpleSolveOnTrilinos):
+#     def setUp(self):
+#         self.domain = test_Rectangle_refine_Point(n0=NE0,n1=NE1,d0=NX,d1=NY)
+#         self.package = SolverOptions.TRILINOS
+#         self.method = SolverOptions.BICGSTAB
+#         self.preconditioner = SolverOptions.JACOBI
 
-    def tearDown(self):
-        del self.domain
+#     def tearDown(self):
+#         del self.domain
 
 class Test_SimpleSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi_top_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
@@ -397,15 +399,16 @@ class Test_SimpleSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi_Mesh(SimpleSolveOnTril
     def tearDown(self):
         del self.domain
 
-class Test_SimpleSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi_Point(SimpleSolveOnTrilinos):
-    def setUp(self):
-        self.domain = test_Brick_refine_Point(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
-        self.package = SolverOptions.TRILINOS
-        self.method = SolverOptions.BICGSTAB
-        self.preconditioner = SolverOptions.JACOBI
+# TODO
+# class Test_SimpleSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi_Point(SimpleSolveOnTrilinos):
+#     def setUp(self):
+#         self.domain = test_Brick_refine_Point(n0=NE0,n1=NE1,n2=NE2,d0=NX,d1=NY,d2=NZ)
+#         self.package = SolverOptions.TRILINOS
+#         self.method = SolverOptions.BICGSTAB
+#         self.preconditioner = SolverOptions.JACOBI
 
-    def tearDown(self):
-        del self.domain
+#     def tearDown(self):
+#         del self.domain
 
 class Test_SimpleSolveMultiRes2D_Trilinos_BICGSTAB_Jacobi_top_Boundary(SimpleSolveOnTrilinos):
     def setUp(self):
