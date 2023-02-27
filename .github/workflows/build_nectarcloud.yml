@@ -1,5 +1,4 @@
 name: Unit testing
-description: "Runs unit testing on the Nectar cloud server"
 
 on:
   push:
@@ -19,4 +18,7 @@ jobs:
       - name: Run testing
         run: |
           ./utest.sh `pwd`/build '-t2'
+      - name: Email results
+        run: |
+
         
