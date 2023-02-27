@@ -1,0 +1,22 @@
+name: Unit testing
+description: "Runs unit testing on the Nectar cloud server"
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: nectar
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Compile
+        run: |
+          scons -j1 options_file=scons/templates/ubuntu_options.py
+      - name: Run testing
+        run: |
+          ./utest.sh `pwd`/build '-t2'
+        
