@@ -8,17 +8,15 @@ on:
 
 jobs:
   build:
-    runs-on: nectar
+    runs-on: self-hosted
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
       - name: Compile
-        run: |
-          scons -j1 options_file=scons/templates/ubuntu_options.py
+        run: scons -j1 options_file=scons/templates/ubuntu_options.py
       - name: Run testing
-        run: |
-          ./utest.sh `pwd`/build '-t2'
+        run: ./utest.sh `pwd`/build '-t2' > testout
       - name: Email results
-        run: |
+        run: 
 
         
