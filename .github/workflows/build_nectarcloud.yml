@@ -16,7 +16,5 @@ jobs:
         run: scons -j1 options_file=scons/templates/ubuntu_options.py
       - name: Run testing
         run: ./utest.sh `pwd`/build '-t2' > testout
-      - name: Email results
-        run: 
 
         
