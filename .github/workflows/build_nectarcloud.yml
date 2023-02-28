@@ -1,0 +1,20 @@
+name: Unit testing
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Compile
+        run: scons -j1 options_file=scons/nectar_options.py werror=0 verbose=1 
+      - name: Run testing
+        run: ./utest.sh `pwd`/build '-t2' > testout
+
+        
