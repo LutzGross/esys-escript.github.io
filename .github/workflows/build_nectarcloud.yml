@@ -13,8 +13,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       - name: Compile
-        run: scons -j1 options_file=scons/nectar_options.py werror=0 verbose=1 
+        run: scons -j1 options_file=scons/nectar_options.py werror=0 verbose=0 build_full
       - name: Run testing
-        run: ./utest.sh `pwd`/build '-t2' > testout
+        run: export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH; ./utest.sh `pwd`/build '-t2' > utestout
 
         
