@@ -74,6 +74,7 @@ vars = Variables(options_file, ARGUMENTS)
 vars.AddVariables(
   PathVariable('options_file', 'Path to options file', options_file, PathVariable.PathIsFile),
   PathVariable('prefix', 'Installation prefix', Dir('#.').abspath, PathVariable.PathIsDirCreate),
+  PathVariable('PREFIX', 'Installation prefix', Dir('#.').abspath, PathVariable.PathIsDirCreate),
   PathVariable('build_dir', 'Top-level build directory', Dir('#/build').abspath, PathVariable.PathIsDirCreate),
   BoolVariable('verbose', 'Output full compile/link lines', False),
 # Compiler/Linker options
@@ -235,6 +236,10 @@ env['buildvars'] = {}
 env['warnings'] = []
 
 #################### Make sure install directories exist #####################
+
+# This is for easybuild
+if len(env['PREFIX']) != 0:
+    env['prefix']=env['PREFIX']
 
 env['BUILD_DIR'] = Dir(env['build_dir']).abspath
 prefix = Dir(env['prefix']).abspath
