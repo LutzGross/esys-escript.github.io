@@ -497,6 +497,8 @@ def checkForTrilinos(env):
 
     if env['trilinos']:
         havelibs = (len(env['trilinos_libs']) > 0)
+    else:
+        havelibs = False
     trilinos_inc_path,trilinos_lib_path=findLibWithHeader(env,
             env['trilinos_libs'], 'Amesos2.hpp',
             env['trilinos_prefix'], lang='c++', try_link=havelibs)
