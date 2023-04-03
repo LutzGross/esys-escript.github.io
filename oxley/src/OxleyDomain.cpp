@@ -1778,7 +1778,8 @@ void OxleyDomain::makeZ(bool complex)
             zdomainMap = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) n, indexBase, comm));
             zrangeMap  = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) h, indexBase, comm));
 
-            Teuchos::RCP<cplx_matrix_type> tcZ (new cplx_matrix_type(zcrowMap, getDim()==2?5:7, Tpetra::StaticProfile));
+            // Teuchos::RCP<cplx_matrix_type> tcZ (new cplx_matrix_type(zcrowMap, getDim()==2?5:7, Tpetra::StaticProfile));
+            Teuchos::RCP<cplx_matrix_type> tcZ (new cplx_matrix_type(zcrowMap, getDim()==2?9:21));
             cZ=tcZ;
 
             cZ->resumeFill();
@@ -1856,7 +1857,8 @@ void OxleyDomain::makeZ(bool complex)
             zdomainMap = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) n, indexBase, comm));
             zrangeMap  = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) h, indexBase, comm));
 
-            Teuchos::RCP<real_matrix_type> trZ (new real_matrix_type(zrrowMap, getDim()==2?5:7, Tpetra::StaticProfile));
+            // Teuchos::RCP<real_matrix_type> trZ (new real_matrix_type(zrrowMap, getDim()==2?5:7, Tpetra::StaticProfile));
+            Teuchos::RCP<real_matrix_type> trZ (new real_matrix_type(zrrowMap, getDim()==2?9:21));
             rZ=trZ;
             rZ->resumeFill();
 
@@ -2025,7 +2027,8 @@ void OxleyDomain::makeIZ(bool complex)
             izdomainMap = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) n, indexBase, comm));
             izrangeMap  = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) t, indexBase, comm));;
 
-            Teuchos::RCP<cplx_matrix_type> tcZ (new cplx_matrix_type(izcrowMap, getDim()==2?5:7, Tpetra::StaticProfile));
+            // Teuchos::RCP<cplx_matrix_type> tcZ (new cplx_matrix_type(izcrowMap, getDim()==2 ? 5 : 7, Tpetra::StaticProfile));
+            Teuchos::RCP<cplx_matrix_type> tcZ (new cplx_matrix_type(izcrowMap, getDim()==2 ? 9 : 21));
             cIZ=tcZ;
 
             cIZ->resumeFill();
@@ -2108,7 +2111,8 @@ void OxleyDomain::makeIZ(bool complex)
             izdomainMap = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) n, indexBase, comm));
             izrangeMap  = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) t, indexBase, comm));
 
-            Teuchos::RCP<real_matrix_type> trZ (new real_matrix_type(izrrowMap, getDim()==2?5:7, Tpetra::StaticProfile));
+            // Teuchos::RCP<real_matrix_type> trZ (new real_matrix_type(izrrowMap, getDim()==2?5:7, Tpetra::StaticProfile));
+            Teuchos::RCP<real_matrix_type> trZ (new real_matrix_type(izrrowMap, getDim()==2 ? 9:21));
             rIZ=trZ;
 
             rIZ->resumeFill();

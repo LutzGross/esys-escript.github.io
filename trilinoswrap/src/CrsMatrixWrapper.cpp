@@ -38,7 +38,8 @@
 
 #include <Tpetra_Vector.hpp>
 #include "Tpetra_createDeepCopy_CrsMatrix.hpp"
-// #include "TpetraExt_TripleMatrixMultiply_def.hpp"
+#include "TpetraExt_TripleMatrixMultiply_decl.hpp"
+#include "TpetraExt_TripleMatrixMultiply_def.hpp"
 
 
 using Teuchos::RCP;
@@ -298,12 +299,26 @@ void CrsMatrixWrapper<ST>::IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,
 {
     mat.resumeFill();
 
-    auto tmp_mat1 = Tpetra::createDeepCopy(mat);
-    Tpetra::MatrixMatrix::Multiply(*iz,true,tmp_mat1,false,mat,false);
-    auto tmp_mat2 = Tpetra::createDeepCopy(mat);
-    Tpetra::MatrixMatrix::Multiply(tmp_mat2,false,*iz,false,mat,false);
+    // auto tmp_mat1 = Tpetra::createDeepCopy(mat);
+    // Tpetra::MatrixMatrix::Multiply(*iz,true,tmp_mat1,false,mat,false);
+    // auto tmp_mat2 = Tpetra::createDeepCopy(mat);
+    // Tpetra::MatrixMatrix::Multiply(tmp_mat2,false,*iz,false,mat,false);
 
-    mat.fillComplete();
+    // mat.fillComplete();
+
+    const auto tmp_mat1 = Tpetra::createDeepCopy(mat);
+    const auto iz_tmp = Tpetra::createDeepCopy(*iz);
+    const auto iz_tmp2 = Tpetra::createDeepCopy(*iz);
+
+    auto result = Tpetra::createDeepCopy(iz_tmp);
+    result.resumeFill();
+    RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
+    params->set("No Nonlocal Changes", true);
+    const std::string& label = "ans";
+    Tpetra::TripleMatrixMultiply::MultiplyRAP<ST,LO,GO,NT>(iz_tmp,true,tmp_mat1,false,iz_tmp2,false,result,false,label,params);
+
+    mat=result;
+    mat.fillComplete(params);
 }
 
 // instantiate the supported variants
