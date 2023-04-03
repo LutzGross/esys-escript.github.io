@@ -373,7 +373,7 @@ namespace oxley {
     #ifdef ESYS_HAVE_TRILINOS
         using namespace esys_trilinos;
 
-        const_TrilinosGraph_ptr graph(getTrilinosGraph());
+        TrilinosGraph_ptr graph(getTrilinosGraph());
         Teuchos::RCP<const MapType> colMap;
         Teuchos::RCP<const MapType> rowMap;
         MapType colPointMap;
@@ -1221,7 +1221,7 @@ namespace oxley {
             throw OxleyException("eScript does not support CUDA.");
         } else if (type & (int)SMT_TRILINOS) {
     #ifdef ESYS_HAVE_TRILINOS
-            esys_trilinos::const_TrilinosGraph_ptr graph(getTrilinosGraph());
+            esys_trilinos::TrilinosGraph_ptr graph(getTrilinosGraph());
             bool isComplex = (type & (int)SMT_COMPLEX);
             bool unroll = (type & (int)SMT_UNROLL);
             //TODO other block sizes
@@ -1257,7 +1257,7 @@ namespace oxley {
 
 #ifdef ESYS_HAVE_TRILINOS
 //protected
-esys_trilinos::const_TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
+esys_trilinos::TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
                                             const IndexVector& YaleRows,
                                             const IndexVector& YaleColumns) const
 {
@@ -1520,7 +1520,7 @@ void OxleyDomain::addToSystem(escript::AbstractSystemMatrix& mat,
  * Used to create the graph for the Z and IZ matrices
  */
 #ifdef ESYS_HAVE_TRILINOS
-esys_trilinos::const_TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
+esys_trilinos::TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
                                             const IndexVector& YaleRows,
                                             const IndexVector& YaleColumns,
                                             const dim_t numMatrixRows,

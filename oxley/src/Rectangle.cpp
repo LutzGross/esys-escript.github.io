@@ -2636,7 +2636,7 @@ void Rectangle::updateRowsColumns()
 
 #ifdef ESYS_HAVE_TRILINOS
 //protected
-esys_trilinos::const_TrilinosGraph_ptr Rectangle::getTrilinosGraph() const
+esys_trilinos::TrilinosGraph_ptr Rectangle::getTrilinosGraph() const
 {   
     if (m_graph.is_null()) {
         m_graph = createTrilinosGraph(myRows, myColumns);

@@ -3058,7 +3058,7 @@ void Brick::updateRowsColumns()
 
 #ifdef ESYS_HAVE_TRILINOS
 //protected
-esys_trilinos::const_TrilinosGraph_ptr Brick::getTrilinosGraph() const
+esys_trilinos::TrilinosGraph_ptr Brick::getTrilinosGraph() const
 {   
     if (m_graph.is_null()) {
         m_graph = createTrilinosGraph(myRows, myColumns);

@@ -505,7 +505,7 @@ protected:
     virtual void assembleIntegrate(std::vector<cplx_t>& integrals, const escript::Data& arg) const;
     virtual std::vector<IndexVector> getConnections(bool includeShared=false) const;
 #ifdef ESYS_HAVE_TRILINOS
-    virtual esys_trilinos::const_TrilinosGraph_ptr getTrilinosGraph() const;
+    virtual esys_trilinos::TrilinosGraph_ptr getTrilinosGraph() const;
 #endif
 #ifdef ESYS_HAVE_PASO
     virtual paso::SystemMatrixPattern_ptr getPasoMatrixPattern(bool reducedRowOrder, bool reducedColOrder) const;
@@ -578,7 +578,7 @@ protected:
 
 #ifdef ESYS_HAVE_TRILINOS
     /// Trilinos graph structure, cached for efficiency
-    mutable esys_trilinos::const_TrilinosGraph_ptr m_graph;
+    mutable esys_trilinos::TrilinosGraph_ptr m_graph;
 #endif
 
     IndexVector getNodeDistribution() const;

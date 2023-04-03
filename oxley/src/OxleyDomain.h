@@ -839,11 +839,11 @@ public:
     IndexVector zYaleRows;
     IndexVector zYaleCols;
     std::vector<IndexVector> zconnections;
-    esys_trilinos::const_TrilinosGraph_ptr zgraph;
+    esys_trilinos::TrilinosGraph_ptr zgraph;
     IndexVector izYaleRows;
     IndexVector izYaleCols;
     std::vector<IndexVector> izconnections;
-    esys_trilinos::const_TrilinosGraph_ptr izgraph;
+    esys_trilinos::TrilinosGraph_ptr izgraph;
     Teuchos::RCP<const Tpetra::Map<>> zccolMap;
     Teuchos::RCP<const Tpetra::Map<>> zcrowMap;
     Teuchos::RCP<const Tpetra::Map<>> zrcolMap;
@@ -961,14 +961,14 @@ protected:
 
 #ifdef ESYS_HAVE_TRILINOS
     /// returns the Trilinos matrix graph
-    virtual esys_trilinos::const_TrilinosGraph_ptr getTrilinosGraph() const = 0;
+    virtual esys_trilinos::TrilinosGraph_ptr getTrilinosGraph() const = 0;
 
     /// creates and returns a Trilinos CRS graph suitable to build a sparse
     /// matrix
-    esys_trilinos::const_TrilinosGraph_ptr createTrilinosGraph(
+    esys_trilinos::TrilinosGraph_ptr createTrilinosGraph(
             const IndexVector& myRows,  const IndexVector& myColumns) const;
 
-    esys_trilinos::const_TrilinosGraph_ptr createTrilinosGraph(
+    esys_trilinos::TrilinosGraph_ptr createTrilinosGraph(
             const IndexVector& myRows,  const IndexVector& myColumns, dim_t dof, dim_t numRows, std::vector<IndexVector> connections) const;
 #endif
 
