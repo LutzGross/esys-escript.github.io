@@ -76,6 +76,7 @@ public:
 
     void IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT>> IZ, long n) ;
 
+
 private:
     int blockSize;
     Matrix mat;

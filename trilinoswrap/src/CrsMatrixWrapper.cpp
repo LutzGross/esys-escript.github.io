@@ -36,10 +36,14 @@
 #include <Tpetra_Core.hpp>
 #endif
 
-#include <Tpetra_Vector.hpp>
+#include "Tpetra_Vector.hpp"
 #include "Tpetra_createDeepCopy_CrsMatrix.hpp"
 #include "TpetraExt_TripleMatrixMultiply_decl.hpp"
 #include "TpetraExt_TripleMatrixMultiply_def.hpp"
+#include "Teuchos_Comm.hpp"
+#include "Tpetra_CrsMatrix_decl.hpp"
+#include "Tpetra_CrsMatrix.hpp"
+#include "Tpetra_Map.hpp"
 
 
 using Teuchos::RCP;
@@ -297,27 +301,36 @@ void CrsMatrixWrapper<ST>::resetValues(bool preserveSolverData)
 template<typename ST>
 void CrsMatrixWrapper<ST>::IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT>> iz, long n) 
 {
-    mat.resumeFill();
+    // Initialise some variables
+    Tpetra::global_size_t numGblIndices = n;
+    const esys_trilinos::GO indexBase = 0;
+    escript::JMPI m_mpiInfo;
+    // auto comm = esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm);
+    auto comm = Teuchos::DefaultComm<int>::getComm();
 
-    // auto tmp_mat1 = Tpetra::createDeepCopy(mat);
-    // Tpetra::MatrixMatrix::Multiply(*iz,true,tmp_mat1,false,mat,false);
-    // auto tmp_mat2 = Tpetra::createDeepCopy(mat);
-    // Tpetra::MatrixMatrix::Multiply(tmp_mat2,false,*iz,false,mat,false);
+    // Create a new map and rcp matrix
+    typedef Tpetra::Map<LO,GO,NT> map_type;
+    Teuchos::RCP<const map_type> map = Teuchos::rcp ( new map_type (numGblIndices, indexBase, comm));
+    // Teuchos::RCP<Matrix> result (new Matrix(map, n));
+    Matrix *result = new Matrix(map, n);
 
-    // mat.fillComplete();
-
+    // Initialise some more variables
+    RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
+    params->set("No Nonlocal Changes", true);
+    const std::string& label = "ans";
     const auto tmp_mat1 = Tpetra::createDeepCopy(mat);
     const auto iz_tmp = Tpetra::createDeepCopy(*iz);
     const auto iz_tmp2 = Tpetra::createDeepCopy(*iz);
 
-    auto result = Tpetra::createDeepCopy(iz_tmp);
-    result.resumeFill();
-    RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
-    params->set("No Nonlocal Changes", true);
-    const std::string& label = "ans";
-    Tpetra::TripleMatrixMultiply::MultiplyRAP<ST,LO,GO,NT>(iz_tmp,true,tmp_mat1,false,iz_tmp2,false,result,false,label,params);
+    // Do the matrix-matrix multiplication
+    Tpetra::TripleMatrixMultiply::MultiplyRAP<ST,LO,GO,NT>(
+                    iz_tmp,true,tmp_mat1,false,iz_tmp2,false,*result,false,label,params);
 
-    mat=result;
+    // Teuchos::ScalarTraits<typename CrsMatrixType::scalar_type>::magnitudeType tol=1E-24;
+    // Teuchos::removeCrsMatrixZeros(result);
+
+    mat.resumeFill();
+    mat=Tpetra::createDeepCopy(*result);
     mat.fillComplete(params);
 }
 

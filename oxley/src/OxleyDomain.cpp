@@ -1315,7 +1315,8 @@ esys_trilinos::TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
     // params
     TrilinosGraph_ptr graph(new GraphType(rowMap, colMap, rowPtr, colInd));
     Teuchos::RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
-    params->set("Optimize Storage", true);
+    // params->set("Optimize Storage", true);
+    params->set("Static profile clone", false);
     graph->fillComplete(rowMap, colMap, params);
     return graph;
 }
@@ -1569,7 +1570,8 @@ esys_trilinos::TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
     // params
     TrilinosGraph_ptr graph(new GraphType(rowMap, colMap, rowPtr, colInd));
     Teuchos::RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
-    params->set("Optimize Storage", true);
+    // params->set("Optimize Storage", true);
+    params->set("Static profile clone", false);
     graph->fillComplete(rowMap, colMap, params);
 
     // oxleytime.toc("createTrilinosGraph... done.");
@@ -1765,6 +1767,8 @@ void OxleyDomain::makeZ(bool complex)
 
         Teuchos::RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
         params->set("No Nonlocal Changes", false);
+        // params->set("Optimize Storage", true);
+        params->set("Static profile clone", false);
 
         int global_cols=n;
         int global_rows=h;
@@ -1988,6 +1992,8 @@ void OxleyDomain::makeZworker(S half,Teuchos::RCP<Tpetra::CrsMatrix<S,esys_trili
     // Tell the matrix that we are finished adding entries to it.
     Teuchos::RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
     params->set("No Nonlocal Changes", false);
+    // params->set("Optimize Storage", true);
+    params->set("Static profile clone", false);
     z_needs_update=false;
 }
 #endif
@@ -2013,6 +2019,8 @@ void OxleyDomain::makeIZ(bool complex)
 
         Teuchos::RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
         params->set("No Nonlocal Changes", false);
+        // params->set("Optimize Storage", true);
+        params->set("Static profile clone", false);
 
         int global_cols=n;
         int global_rows=h;
@@ -2247,6 +2255,8 @@ void OxleyDomain::makeIZworker(Teuchos::RCP<Tpetra::CrsMatrix<S,esys_trilinos::L
     // Tell the matrix that we are finished adding entries to it.
     Teuchos::RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
     params->set("No Nonlocal Changes", false);
+    // params->set("Optimize Storage", true);
+    params->set("Static profile clone", false);
     iz->fillComplete(iz->getColMap(),iz->getRowMap(),params);
     iz_needs_update=false;
 }

@@ -41,6 +41,8 @@
 
 #include "Tpetra_createDeepCopy_CrsMatrix.hpp"
 #include "TpetraExt_MatrixMatrix.hpp"
+#include "TpetraExt_TripleMatrixMultiply_decl.hpp"
+#include "TpetraExt_TripleMatrixMultiply_def.hpp"
 
 using Teuchos::RCP;
 using Teuchos::rcp;
@@ -287,13 +289,45 @@ void BlockCrsMatrixWrapper<ST>::resetValues(bool preserveSolverData)
 template<typename ST>
 void BlockCrsMatrixWrapper<ST>::IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT>> iz, long n) 
 {
-    //TODO
-    // mat.resumeFill();
-    // auto tmp_mat1 = Tpetra::createDeepCopy(mat);
-    // Tpetra::MatrixMatrix::Multiply(*iz,true,tmp_mat1,false,mat,false);
-    // auto tmp_mat2 = Tpetra::createDeepCopy(mat);
-    // Tpetra::MatrixMatrix::Multiply(tmp_mat2,false,*iz,false,mat,false);
-    // mat.fillComplete();
+    // Convert to block crs matrix
+    const LO blocksize = 21;
+    Teuchos::RCP<Matrix> block_iz = Tpetra::convertToBlockCrsMatrix(*iz,blocksize);
+
+    // Initialise some variables
+    Tpetra::global_size_t numGblIndices = n;
+    const esys_trilinos::GO indexBase = 0;
+    escript::JMPI m_mpiInfo;
+    // auto comm = esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm);
+    auto comm = Teuchos::DefaultComm<int>::getComm();
+    RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
+    params->set("No Nonlocal Changes", true);
+
+
+    // todo
+
+    // // Create a new map and rcp matrix
+    // typedef Tpetra::Map<LO,GO,NT> map_type;
+    // Teuchos::RCP<const map_type> map = Teuchos::rcp ( new map_type (numGblIndices, indexBase, comm));
+    // // Teuchos::RCP<Matrix> result (new Matrix(map, n));
+    // // Teuchos::RCP<Tpetra::CrsGraph> graph = Tpetra::createCrsGraph(map, n, params);
+    // auto graph = Tpetra::createCrsGraph(map, n, params);
+    // Matrix *result = new Matrix(graph, n);
+
+
+
+    // // Initialise some more variables
+    // const std::string& label = "ans";
+    // const auto tmp_mat1 = Tpetra::createDeepCopy(mat);
+    // const auto iz_tmp = Tpetra::createDeepCopy(*block_iz);
+    // const auto iz_tmp2 = Tpetra::createDeepCopy(*block_iz);
+
+    // // Do the matrix-matrix multiplication
+    // Tpetra::TripleMatrixMultiply::MultiplyRAP<ST,LO,GO,NT>(
+    //                 iz_tmp,true,tmp_mat1,false,iz_tmp2,false,*result,false,label,params);
+
+    // resumeFill();
+    // mat=Tpetra::createDeepCopy(*result);
+    // fillComplete(true);
 }
 
 // instantiate
