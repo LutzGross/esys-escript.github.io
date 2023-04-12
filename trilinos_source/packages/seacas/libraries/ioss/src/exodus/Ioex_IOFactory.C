@@ -1,7 +1,7 @@
-// Copyright(C) 1999-2020 National Technology & Engineering Solutions
+// Copyright(C) 1999-2022 National Technology & Engineering Solutions
 // of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 // NTESS, the U.S. Government retains certain rights in this software.
-// 
+//
 // See packages/seacas/LICENSE for details
 
 #include <exodus/Ioex_DatabaseIO.h> // for Ioex DatabaseIO
@@ -17,7 +17,7 @@
 #include <fmt/ostream.h>
 #include <string> // for string
 
-#include "Ioss_CodeTypes.h" // for MPI_Comm
+#include "Ioss_CodeTypes.h" // for Ioss_MPI_Comm
 #include "Ioss_DBUsage.h"   // for DatabaseUsage
 #include "Ioss_IOFactory.h" // for IOFactory
 
@@ -57,7 +57,7 @@ namespace Ioex {
   }
 
   Ioss::DatabaseIO *IOFactory::make_IO(const std::string &filename, Ioss::DatabaseUsage db_usage,
-                                       MPI_Comm                     communicator,
+                                       Ioss_MPI_Comm                communicator,
                                        const Ioss::PropertyManager &properties) const
   {
 #if defined(PARALLEL_AWARE_EXODUS)
@@ -69,10 +69,8 @@ namespace Ioex {
     // 2. There is a DECOMPOSITION_METHOD specified in 'properties'
     // 3. The decomposition method is not "EXTERNAL"
 
-    int proc_count = 1;
-    if (communicator != MPI_COMM_NULL) {
-      MPI_Comm_size(communicator, &proc_count);
-    }
+    Ioss::ParallelUtils pu(communicator);
+    int                 proc_count = pu.parallel_size();
 
     bool decompose = false;
     if (proc_count > 1) {
@@ -98,24 +96,25 @@ namespace Ioex {
       return new Ioex::DatabaseIO(nullptr, filename, db_usage, communicator, properties);
   }
 
-  void IOFactory::show_config() const
+  std::string IOFactory::show_config() const
   {
-    ex_print_config();
+    std::stringstream config;
+    config << ex_config();
 #if !defined(NO_PARMETIS_SUPPORT)
-    fmt::print(Ioss::OUTPUT(),
+    fmt::print(config,
                "\tParMetis Library Version: {}.{}.{} (Parallel Decomposition)\n"
                "\t\tInteger Size is {}, Real Size is {}\n\n",
                PARMETIS_MAJOR_VERSION, PARMETIS_MINOR_VERSION, PARMETIS_SUBMINOR_VERSION,
                IDXTYPEWIDTH, REALTYPEWIDTH);
 #else
-    fmt::print(Ioss::OUTPUT(),
-               "\tParMetis Library is NOT Available for Parallel Decomposition.\n\n");
+    fmt::print(config, "\tParMetis Library is NOT Available for Parallel Decomposition.\n\n");
 #endif
 #if !defined(NO_ZOLTAN_SUPPORT)
-    fmt::print(Ioss::OUTPUT(), "\tZoltan Library is Available for Parallel Decomposition.\n\n");
+    fmt::print(config, "\tZoltan Library is Available for Parallel Decomposition.\n\n");
 #else
-    fmt::print(Ioss::OUTPUT(), "\tZoltan Library is NOT Available for Parallel Decomposition.\n\n");
+    fmt::print(config, "\tZoltan Library is NOT Available for Parallel Decomposition.\n\n");
 #endif
+    return config.str();
   }
 } // namespace Ioex
 

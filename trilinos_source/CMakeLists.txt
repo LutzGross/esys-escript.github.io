@@ -59,25 +59,59 @@
 
 # To be safe, define your minimum CMake version.  This may be newer than the
 # min required by TriBITS.
-CMAKE_MINIMUM_REQUIRED(VERSION 3.10.0 FATAL_ERROR)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.23.0 FATAL_ERROR)
 
 # Must set the project name as a variable at very beginning before including anything else
 # We set the project name in a separate file so CTest scripts can use it.
-INCLUDE(${CMAKE_SOURCE_DIR}/ProjectName.cmake)
+INCLUDE(${CMAKE_CURRENT_LIST_DIR}/ProjectName.cmake)
 
 # CMake requires that you declare the CMake project in the top-level file and
 # not in an include file :-(
 PROJECT(${PROJECT_NAME} NONE)
 
-## set an env so we know we are in configure
+# Set up to use ccache
+if($ENV{CCACHE_NODISABLE})
+# ccache must be requested explicitly by setting env-var CCACHE_NODISABLE
+find_program(CCACHE_PROGRAM ccache)
+if(CCACHE_PROGRAM)
+    # Set up wrapper scripts
+    set(C_LAUNCHER   "${CCACHE_PROGRAM}")
+    set(CXX_LAUNCHER "${CCACHE_PROGRAM}")
+    configure_file(launch-c.in   launch-c)
+    configure_file(launch-cxx.in launch-cxx)
+    execute_process(COMMAND chmod a+rx
+                     "${CMAKE_BINARY_DIR}/launch-c"
+                     "${CMAKE_BINARY_DIR}/launch-cxx"
+    )
+
+    if(CMAKE_GENERATOR STREQUAL "Xcode")
+        # Set Xcode project attributes to route compilation and linking
+        # through our scripts
+        set(CMAKE_XCODE_ATTRIBUTE_CC         "${CMAKE_BINARY_DIR}/launch-c")
+        set(CMAKE_XCODE_ATTRIBUTE_CXX        "${CMAKE_BINARY_DIR}/launch-cxx")
+        set(CMAKE_XCODE_ATTRIBUTE_LD         "${CMAKE_BINARY_DIR}/launch-c")
+        set(CMAKE_XCODE_ATTRIBUTE_LDPLUSPLUS "${CMAKE_BINARY_DIR}/launch-cxx")
+    else()
+        # Support Unix Makefiles and Ninja
+        set(CMAKE_C_COMPILER_LAUNCHER   "${CMAKE_BINARY_DIR}/launch-c")
+        set(CMAKE_CXX_COMPILER_LAUNCHER "${CMAKE_BINARY_DIR}/launch-cxx")
+    endif()
+else()
+    message(WARNING "ccache requested but not found")
+endif()
+endif()
+
+# Set an env so we know we are in configure
 set(ENV{CMAKE_IS_IN_CONFIGURE_MODE} 1)
+
+# Don't define TriBITS override of include_directories()
+set(TRIBITS_HIDE_DEPRECATED_INCLUDE_DIRECTORIES_OVERRIDE TRUE)
 
 #
 # B) Pull in the TriBITS system and execute
 #
 
-INCLUDE(${CMAKE_CURRENT_SOURCE_DIR}/cmake/tribits/TriBITS.cmake)
-
+INCLUDE(${CMAKE_CURRENT_LIST_DIR}/cmake/tribits/TriBITS.cmake)
 
 # Make Trilinos create <Package>Config.cmake files by default
 SET(${PROJECT_NAME}_ENABLE_INSTALL_CMAKE_CONFIG_FILES_DEFAULT ON)
@@ -86,8 +120,29 @@ SET(${PROJECT_NAME}_ENABLE_CPACK_PACKAGING_DEFAULT ON)
 # Don't allow disabled subpackages to be excluded from tarball
 SET(${PROJECT_NAME}_EXCLUDE_DISABLED_SUBPACKAGES_FROM_DISTRIBUTION_DEFAULT FALSE)
 
+# Set up C++ language standard selection (rest is handled by TriBITS)
+SET(${PROJECT_NAME}_CMAKE_CXX_STANDARD_DEFAULT 17)
+SET(${PROJECT_NAME}_CMAKE_CXX_STANDARDS_ALLOWED "(17|20|23)")
+ADVANCED_SET(CMAKE_CXX_STANDARD ${${PROJECT_NAME}_CMAKE_CXX_STANDARD_DEFAULT}
+  CACHE STRING
+  "C++ standard number with values ${${PROJECT_NAME}_CMAKE_CXX_STANDARDS_ALLOWED} (default ${${PROJECT_NAME}_CMAKE_CXX_STANDARD_DEFAULT})")
+IF (NOT CMAKE_CXX_STANDARD MATCHES "^${${PROJECT_NAME}_CMAKE_CXX_STANDARDS_ALLOWED}$")
+  MESSAGE(FATAL_ERROR
+    "CMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD} is not in the allowed set "
+    "${${PROJECT_NAME}_CMAKE_CXX_STANDARDS_ALLOWED}")
+ENDIF ()
+
+message(STATUS "The Current CXX Standard is : " ${CMAKE_CXX_STANDARD})
+
+# Force off support for Makefile.export.* files while TriBITS is refactored to
+# remove this (#8498)
+SET(${PROJECT_NAME}_ENABLE_EXPORT_MAKEFILES OFF CACHE BOOL
+  "Support being removed from TriBITS (see trilinos/Trilinos#8498)" FORCE)
+
 # Do all of the processing for this Tribits project
 TRIBITS_PROJECT()
+
+INSTALL_BUILD_STATS_SCRIPTS()
 
 # Install TriBITS so that other projects can use it.
 ADVANCED_SET(${PROJECT_NAME}_INSTALL_TriBITS ON CACHE BOOL
@@ -105,3 +160,5 @@ ENDIF()
 IF(${PROJECT_NAME}_ENABLE_YouCompleteMe)
   INCLUDE(CodeCompletion)
 ENDIF()
+
+message(STATUS "If publishing results using Trilinos, please cite us: https://trilinos.github.io/cite.html")

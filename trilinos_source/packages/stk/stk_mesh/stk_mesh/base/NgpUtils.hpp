@@ -38,11 +38,33 @@
 #include "stk_mesh/base/Bucket.hpp"
 #include "stk_mesh/base/Types.hpp"
 #include <stk_mesh/base/BulkData.hpp>
-
+#include <stk_mesh/base/MetaData.hpp>
+#include <stk_mesh/base/FieldBase.hpp>
 #include <stk_util/util/StkNgpVector.hpp>
+#include <numeric>
 
 namespace stk {
 namespace mesh {
+
+inline void ngp_field_fence(MetaData& meta)
+{
+  auto fields = meta.get_fields();
+
+  for(auto field : fields) {
+    if(field->has_ngp_field()) {
+      field->fence();
+    }
+  }
+}
+
+inline void require_ngp_mesh_rank_limit(const stk::mesh::MetaData& meta)
+{
+  const size_t maxNumRanks = stk::topology::NUM_RANKS;
+  const size_t numRanks = meta.entity_rank_count();
+  ThrowRequireMsg(numRanks <= maxNumRanks,
+                "stk::mesh::NgpMesh: too many entity ranks ("<<numRanks
+                <<"). Required to be less-or-equal stk::topology::NUM_RANKS");
+}
 
 inline stk::NgpVector<unsigned> get_bucket_ids(const stk::mesh::BulkData &bulk,
                                                stk::mesh::EntityRank rank,

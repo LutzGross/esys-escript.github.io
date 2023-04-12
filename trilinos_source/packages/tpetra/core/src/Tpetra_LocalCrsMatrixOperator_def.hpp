@@ -44,13 +44,28 @@
 #include "Tpetra_Details_Behavior.hpp"
 #include "KokkosSparse.hpp"
 #include "Teuchos_TestForException.hpp"
+#include "Teuchos_OrdinalTraits.hpp"
 
 namespace Tpetra {
 
 template<class MultiVectorScalar, class MatrixScalar, class Device>
 LocalCrsMatrixOperator<MultiVectorScalar, MatrixScalar, Device>::
-LocalCrsMatrixOperator (const std::shared_ptr<local_matrix_type>& A)
-  : A_ (A)
+LocalCrsMatrixOperator (const std::shared_ptr<local_matrix_device_type>& A)
+  : A_ (A), have_A_cusparse(false)
+{
+  const char tfecfFuncName[] = "LocalCrsMatrixOperator: ";
+  TEUCHOS_TEST_FOR_EXCEPTION_CLASS_FUNC
+    (A_.get () == nullptr, std::invalid_argument,
+     "Input matrix A is null.");
+}
+
+template<class MultiVectorScalar, class MatrixScalar, class Device>
+LocalCrsMatrixOperator<MultiVectorScalar, MatrixScalar, Device>::
+LocalCrsMatrixOperator (const std::shared_ptr<local_matrix_device_type>& A, const ordinal_view_type& A_ordinal_rowptrs) :
+  A_ (A),
+  A_cusparse("LocalCrsMatrixOperator_cuSPARSE", A->numRows(), A->numCols(), A->nnz(),
+      A->values, A_ordinal_rowptrs, A->graph.entries),
+  have_A_cusparse(true)
 {
   const char tfecfFuncName[] = "LocalCrsMatrixOperator: ";
   TEUCHOS_TEST_FOR_EXCEPTION_CLASS_FUNC
@@ -97,7 +112,17 @@ apply (Kokkos::View<const mv_scalar_type**, array_layout,
   const auto op = transpose ?
     (conjugate ? KokkosSparse::ConjugateTranspose :
      KokkosSparse::Transpose) : KokkosSparse::NoTranspose;
-  KokkosSparse::spmv (op, alpha, *A_, X, beta, Y);
+  //Currently KK has no cusparse wrapper for rank-2 (SpMM)
+  //TODO: whent that is supported, use A_cusparse for that case also
+  if(X.extent(1) == size_t(1) && have_A_cusparse)
+  {
+    KokkosSparse::spmv (op, alpha, A_cusparse, Kokkos::subview(X, Kokkos::ALL(), 0),
+                            beta, Kokkos::subview(Y, Kokkos::ALL(), 0));
+  }
+  else
+  {
+    KokkosSparse::spmv (op, alpha, *A_, X, beta, Y);
+  }
 }
 
 /// \brief Same behavior as \c apply() above, except give KokkosKernels a hint to use
@@ -138,11 +163,7 @@ applyImbalancedRows (
   //TODO BMK: If/when KokkosKernels gets its own SPMV implementation for imbalanced rows,
   //call that here or select it using Controls.
   //Ideally it supports multivectors from the beginning.
-  //
-  //TODO BMK: When cuSPARSE and KokkosKernels get cuSPARSE SpMM (SpMV for multivectors)
-  //merge path support, call that here.
-  //Also remove the useMergePathMultiVector() environment variable/behavior.
-  if(Details::Behavior::useMergePathMultiVector() || X.extent(1) == 1)
+  if((Details::Behavior::useMergePathMultiVector() || X.extent(1) == size_t(1)) && have_A_cusparse)
   {
     KokkosKernels::Experimental::Controls controls;
     controls.setParameter("algorithm", "merge");
@@ -150,21 +171,21 @@ applyImbalancedRows (
     for(size_t vec = 0; vec < X.extent(1); vec++)
     {
       KokkosSparse::spmv (controls, op,
-          alpha, *A_, Kokkos::subview(X, Kokkos::ALL(), vec),
+          alpha, A_cusparse, Kokkos::subview(X, Kokkos::ALL(), vec),
           beta, Kokkos::subview(Y, Kokkos::ALL(), vec));
     }
   }
   else
   {
-    //Just run multivector version of spmv (no controls)
+    //Just run multivector version of spmv (no controls, and no cusparse support)
     KokkosSparse::spmv (op, alpha, *A_, X, beta, Y);
   }
 }
 
 template<class MultiVectorScalar, class MatrixScalar, class Device>
-const typename LocalCrsMatrixOperator<MultiVectorScalar, MatrixScalar, Device>::local_matrix_type&
+const typename LocalCrsMatrixOperator<MultiVectorScalar, MatrixScalar, Device>::local_matrix_device_type&
 LocalCrsMatrixOperator<MultiVectorScalar, MatrixScalar, Device>::
-getLocalMatrix () const
+getLocalMatrixDevice () const
 {
   return *A_;
 }
@@ -182,5 +203,10 @@ getLocalMatrix () const
 
 #define TPETRA_LOCALCRSMATRIXOPERATOR_INSTANT(SC,NT) \
   template class LocalCrsMatrixOperator< SC, SC, NT::device_type >;
+
+// If we want mixed versions, we use this macro.
+
+#define TPETRA_LOCALCRSMATRIXOPERATOR_MIXED_INSTANT(SC,MATSC,LO,GO,NT)    \
+  template class LocalCrsMatrixOperator< SC, MATSC, NT::device_type >;
 
 #endif // TPETRA_LOCALCRSMATRIXOPERATOR_DEF_HPP

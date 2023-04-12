@@ -1,7 +1,7 @@
-// Copyright(C) 1999-2020 National Technology & Engineering Solutions
+// Copyright(C) 1999-2021 National Technology & Engineering Solutions
 // of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 // NTESS, the U.S. Government retains certain rights in this software.
-// 
+//
 // See packages/seacas/LICENSE for details
 
 #include "Ioss_CodeTypes.h"           // for IntVector
@@ -53,8 +53,6 @@ void Ioss::Tri4a::factory()
 }
 
 Ioss::Tri4a::Tri4a() : Ioss::ElementTopology(Ioss::Tri4a::name, "Triangle_4a") {}
-
-Ioss::Tri4a::~Tri4a() = default;
 
 int Ioss::Tri4a::parametric_dimension() const { return 2; }
 int Ioss::Tri4a::spatial_dimension() const { return 2; }

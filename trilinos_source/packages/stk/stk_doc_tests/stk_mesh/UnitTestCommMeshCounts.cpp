@@ -34,7 +34,7 @@
 
 #include <gtest/gtest.h>                // for AssertHelper, EXPECT_EQ, etc
 #include <stddef.h>                     // for size_t
-#include <stk_unit_test_utils/StkMeshFromGeneratedMesh.h>
+#include <stk_unit_test_utils/StkMeshFromGeneratedMesh.hpp>
 #include <sstream>                      // for basic_ostream::operator<<, etc
 #include <stk_mesh/base/Comm.hpp>       // for comm_mesh_counts
 #include <stk_util/parallel/Parallel.hpp>  // for parallel_machine_size, etc
@@ -42,7 +42,6 @@
 #include <vector>                       // for vector
 #include "mpi.h"                        // for MPI_COMM_WORLD, etc
 #include "stk_topology/topology.hpp"    // for topology, etc
-#include <stk_unit_test_utils/BulkDataTester.hpp>
 
 
 namespace
@@ -63,7 +62,7 @@ TEST( CommMeshCounts, Serial )
     if ( numprocs == 1 )
     {
         const std::string generatedMeshSpec = getGeneratedMeshString(10,20,2);
-        unitTestUtils::exampleMeshes::StkMeshCreator stkMesh(generatedMeshSpec, communicator);
+        stk::unit_test_util::simple_fields::StkMeshCreator stkMesh(generatedMeshSpec, communicator);
 
         std::vector<size_t> comm_mesh_counts;
         stk::mesh::comm_mesh_counts(*stkMesh.getBulkData(), comm_mesh_counts);
@@ -79,7 +78,7 @@ TEST( CommMeshCounts, Parallel )
     int numprocs = stk::parallel_machine_size(communicator);
 
     const std::string generatedMeshSpec = getGeneratedMeshString(10,20,2*numprocs);
-    unitTestUtils::exampleMeshes::StkMeshCreator stkMesh(generatedMeshSpec, communicator);
+    stk::unit_test_util::simple_fields::StkMeshCreator stkMesh(generatedMeshSpec, communicator);
 
     std::vector<size_t> comm_mesh_counts;
     stk::mesh::comm_mesh_counts(*stkMesh.getBulkData(), comm_mesh_counts);
@@ -94,7 +93,7 @@ TEST( CommMeshCountsWithStats, Parallel )
     int numprocs = stk::parallel_machine_size(communicator);
 
     const std::string generatedMeshSpec = getGeneratedMeshString(10,20,2*numprocs);
-    unitTestUtils::exampleMeshes::StkMeshCreator stkMesh(generatedMeshSpec, communicator);
+    stk::unit_test_util::simple_fields::StkMeshCreator stkMesh(generatedMeshSpec, communicator);
 
     std::vector<size_t> comm_mesh_counts;
     std::vector<size_t> min_counts;

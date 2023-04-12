@@ -111,12 +111,12 @@ namespace Intrepid2 {
     };
     } //namespace
 
-  template<typename SpT>
+  template<typename DeviceType>
   template<typename outputValueType,     class ...outputProperties,
            typename leftInputValueType,  class ...leftInputProperties,
            typename rightInputValueType, class ...rightInputProperties>
   void
-  ArrayTools<SpT>::Internal::
+  ArrayTools<DeviceType>::Internal::
   crossProduct(       Kokkos::DynRankView<outputValueType,    outputProperties...>      output,
                 const Kokkos::DynRankView<leftInputValueType, leftInputProperties...>   leftInput,
                 const Kokkos::DynRankView<rightInputValueType,rightInputProperties...>  rightInput,
@@ -126,7 +126,6 @@ namespace Intrepid2 {
     typedef const Kokkos::DynRankView<leftInputValueType, leftInputProperties...>   leftInputViewType;
     typedef const Kokkos::DynRankView<rightInputValueType,rightInputProperties...>  rightInputViewType;
     typedef FunctorArrayTools::F_crossProduct<OutputViewType, leftInputViewType, rightInputViewType> FunctorType;
-    typedef typename ExecSpace< typename rightInputViewType::execution_space , SpT >::ExecSpaceType ExecSpaceType;
 
     const size_type loopSize = ( hasField ? output.extent(0)*output.extent(1)*output.extent(2) :
                                             output.extent(0)*output.extent(1) );
@@ -137,12 +136,12 @@ namespace Intrepid2 {
 
 
 
-  template<typename ExecSpaceType>
+  template<typename DeviceType>
   template<typename outputFieldValueType, class ...outputFieldProperties,
            typename inputDataValueType,   class ...inputDataProperties,
            typename inputFieldValueType,  class ...inputFieldProperties>
   void
-  ArrayTools<ExecSpaceType>::
+  ArrayTools<DeviceType>::
   crossProductDataField(       Kokkos::DynRankView<outputFieldValueType,outputFieldProperties...> outputFields,
                          const Kokkos::DynRankView<inputDataValueType,  inputDataProperties...>   inputData,
                          const Kokkos::DynRankView<inputFieldValueType, inputFieldProperties...>  inputFields ) {
@@ -253,19 +252,19 @@ namespace Intrepid2 {
     }
 #endif
     // body
-    ArrayTools<ExecSpaceType>::Internal::crossProduct( outputFields,
+    ArrayTools<DeviceType>::Internal::crossProduct( outputFields,
                                                    inputData,
                                                    inputFields,
                                                    true );
   }
 
 
-  template<typename ExecSpaceType>
+  template<typename DeviceType>
   template<typename outputDataValueType,     class ...outputDataProperties,
            typename inputDataLeftValueType,  class ...inputDataLeftProperties,
            typename inputDataRightValueType, class ...inputDataRightProperties>
   void
-  ArrayTools<ExecSpaceType>::
+  ArrayTools<DeviceType>::
   crossProductDataData(       Kokkos::DynRankView<outputDataValueType,    outputDataProperties...>     outputData,
                         const Kokkos::DynRankView<inputDataLeftValueType, inputDataLeftProperties...>  inputDataLeft,
                         const Kokkos::DynRankView<inputDataRightValueType,inputDataRightProperties...> inputDataRight ) {
@@ -371,7 +370,7 @@ namespace Intrepid2 {
     }
 #endif
     // body
-    ArrayTools<ExecSpaceType>::Internal::crossProduct( outputData,
+    ArrayTools<DeviceType>::Internal::crossProduct( outputData,
                                                    inputDataLeft,
                                                    inputDataRight,
                                                    false );
@@ -434,12 +433,12 @@ namespace Intrepid2 {
     };
     }
 
-  template<typename SpT>
+  template<typename DeviceType>
   template<typename outputValueType,     class ...outputProperties,
            typename leftInputValueType,  class ...leftInputProperties,
            typename rightInputValueType, class ...rightInputProperties>
   void
-  ArrayTools<SpT>::Internal::
+  ArrayTools<DeviceType>::Internal::
   outerProduct(       Kokkos::DynRankView<outputValueType,    outputProperties...>      output,
                 const Kokkos::DynRankView<leftInputValueType, leftInputProperties...>   leftInput,
                 const Kokkos::DynRankView<rightInputValueType,rightInputProperties...>  rightInput,
@@ -449,7 +448,6 @@ namespace Intrepid2 {
     typedef const Kokkos::DynRankView<leftInputValueType, leftInputProperties...>   leftInputViewType;
     typedef const Kokkos::DynRankView<rightInputValueType,rightInputProperties...>  rightInputViewType;
     typedef FunctorArrayTools::F_outerProduct<OutputViewType, leftInputViewType, rightInputViewType> FunctorType;
-    typedef typename ExecSpace< typename leftInputViewType::execution_space , SpT >::ExecSpaceType ExecSpaceType;
 
     const size_type loopSize = ( hasField ? output.extent(0)*output.extent(1)*output.extent(2) :
                                             output.extent(0)*output.extent(1) );
@@ -458,12 +456,12 @@ namespace Intrepid2 {
   }
 
 
-  template<typename ExecSpaceType>
+  template<typename DeviceType>
   template<typename outputFieldValueType, class ...outputFieldProperties,
            typename inputDataValueType,   class ...inputDataProperties,
            typename inputFieldValueType,  class ...inputFieldProperties>
   void
-  ArrayTools<ExecSpaceType>::
+  ArrayTools<DeviceType>::
   outerProductDataField(       Kokkos::DynRankView<outputFieldValueType,outputFieldProperties...> outputFields,
                          const Kokkos::DynRankView<inputDataValueType,  inputDataProperties...>   inputData,
                          const Kokkos::DynRankView<inputFieldValueType, inputFieldProperties...> inputFields ) {
@@ -558,19 +556,19 @@ namespace Intrepid2 {
     }
 #endif
     // body
-    ArrayTools<ExecSpaceType>::Internal::outerProduct(  outputFields,
+    ArrayTools<DeviceType>::Internal::outerProduct(  outputFields,
                                                                  inputData,
                                                                  inputFields,
                                                                  true );
   }
 
 
-  template<typename ExecSpaceType>
+  template<typename DeviceType>
   template<typename outputDataValueType,     class ...outputDataProperties,
            typename inputDataLeftValuetype,  class ...inputDataLeftProperties,
            typename inputDataRightValueType, class ...inputDataRightProperties>
   void
-  ArrayTools<ExecSpaceType>::
+  ArrayTools<DeviceType>::
   outerProductDataData(       Kokkos::DynRankView<outputDataValueType,    outputDataProperties...>     outputData,
                         const Kokkos::DynRankView<inputDataLeftValuetype, inputDataLeftProperties...>  inputDataLeft,
                         const Kokkos::DynRankView<inputDataRightValueType,inputDataRightProperties...> inputDataRight ) {
@@ -662,7 +660,7 @@ namespace Intrepid2 {
     }
 #endif
     // body
-    ArrayTools<ExecSpaceType>::Internal::outerProduct( outputData,
+    ArrayTools<DeviceType>::Internal::outerProduct( outputData,
                                                                inputDataLeft,
                                                                inputDataRight,
                                                                false );
@@ -777,12 +775,12 @@ namespace Intrepid2 {
     };
   } //namespace
 
-  template<typename SpT>
+  template<typename DeviceType>
   template<typename outputValueType,     class ...outputProperties,
            typename leftInputValueType,  class ...leftInputProperties,
            typename rightInputValueType, class ...rightInputProperties>
   void
-  ArrayTools<SpT>::Internal::
+  ArrayTools<DeviceType>::Internal::
   matvecProduct(       Kokkos::DynRankView<outputValueType,    outputProperties...>      output,
                  const Kokkos::DynRankView<leftInputValueType, leftInputProperties...>   leftInput,
                  const Kokkos::DynRankView<rightInputValueType,rightInputProperties...>  rightInput,
@@ -793,29 +791,28 @@ namespace Intrepid2 {
     typedef const Kokkos::DynRankView<leftInputValueType, leftInputProperties...>   leftInputViewType;
     typedef const Kokkos::DynRankView<rightInputValueType,rightInputProperties...>  rightInputViewType;
     typedef FunctorArrayTools::F_matvecProduct<OutputViewType, leftInputViewType, rightInputViewType> FunctorType;
-    typedef typename ExecSpace< typename leftInputViewType::execution_space , SpT >::ExecSpaceType ExecSpaceType;
 
     if (hasField) {
-      using range_policy_type = Kokkos::Experimental::MDRangePolicy
-        < ExecSpaceType, Kokkos::Experimental::Rank<3>, Kokkos::IndexType<ordinal_type> >;
+      using range_policy_type = Kokkos::MDRangePolicy
+        < ExecSpaceType, Kokkos::Rank<3>, Kokkos::IndexType<ordinal_type> >;
       range_policy_type policy( { 0, 0, 0 },
                                 { output.extent(0), output.extent(1), output.extent(2) } );
       Kokkos::parallel_for( policy, FunctorType(output, leftInput, rightInput, isTranspose) );
     } else {
-      using range_policy_type = Kokkos::Experimental::MDRangePolicy
-        < ExecSpaceType, Kokkos::Experimental::Rank<2>, Kokkos::IndexType<ordinal_type> >;
+      using range_policy_type = Kokkos::MDRangePolicy
+        < ExecSpaceType, Kokkos::Rank<2>, Kokkos::IndexType<ordinal_type> >;
       range_policy_type policy( { 0, 0 },
                                 { output.extent(0), output.extent(1) } );
       Kokkos::parallel_for( policy, FunctorType(output, leftInput, rightInput, isTranspose) );
     }
   }
 
-  template<typename ExecSpaceType>
+  template<typename DeviceType>
   template<typename outputFieldValueType, class ...outputFieldProperties,
            typename inputDataValueType,   class ...inputDataProperties,
            typename inputFieldValueType,  class ...inputFieldProperties>
   void
-  ArrayTools<ExecSpaceType>::matvecProductDataField(      Kokkos::DynRankView<outputFieldValueType,outputFieldProperties...> outputFields,
+  ArrayTools<DeviceType>::matvecProductDataField(      Kokkos::DynRankView<outputFieldValueType,outputFieldProperties...> outputFields,
                           const Kokkos::DynRankView<inputDataValueType,  inputDataProperties...>   inputData,
                           const Kokkos::DynRankView<inputFieldValueType, inputFieldProperties...> inputFields,
                           const char transpose ) {
@@ -954,7 +951,7 @@ namespace Intrepid2 {
     }
 #endif
     // body
-    ArrayTools<ExecSpaceType>::Internal::matvecProduct( outputFields,
+    ArrayTools<DeviceType>::Internal::matvecProduct( outputFields,
                                                         inputData,
                                                         inputFields,
                                                         true,
@@ -963,12 +960,12 @@ namespace Intrepid2 {
 
 
 
-  template<typename ExecSpaceType>
+  template<typename DeviceType>
   template<typename outputDataValueType,     class ...outputDataProperties,
            typename inputDataLeftValueType,  class ...inputDataLeftProperties,
            typename inputDataRightValueType, class ...inputDataRightProperties>
   void
-  ArrayTools<ExecSpaceType>::
+  ArrayTools<DeviceType>::
   matvecProductDataData(       Kokkos::DynRankView<outputDataValueType,    outputDataProperties...>    outputData,
                          const Kokkos::DynRankView<inputDataLeftValueType, inputDataLeftProperties...> inputDataLeft,
                          const Kokkos::DynRankView<inputDataRightValueType,inputDataRightProperties...>    inputDataRight,
@@ -978,11 +975,11 @@ namespace Intrepid2 {
     {
       /*
        *   Check array rank and spatial dimension range (if applicable)
-       *      (1) inputDataLeft(C,P), (C,P,D) or (C,P,D,D); P=1 is admissible to allow multiply by const. left data
+       *      (1) inputDataLeft(C,P), (C,P,D) or (C,P,D1,D2); P=1 is admissible to allow multiply by const. left data
        *      (2) inputDataRight(C,P,D) or (P,D);
        *      (3) outputData(C,P,D)
        */
-      // (1) inputDataLeft is (C,P), (C,P,D) or (C,P,D,D) and 1 <= D <= 3 is required
+      // (1) inputDataLeft is (C,P), (C,P,D) or (C,P,D1,D2) and 1 <= D,D1,D2 <= 3 is required
       INTREPID2_TEST_FOR_EXCEPTION( inputDataLeft.rank() < 2 ||
                                 inputDataLeft.rank() > 4, std::invalid_argument,
                                 ">>> ERROR (ArrayTools::matvecProductDataData): inputDataLeft must have rank 2,3 or 4" );
@@ -1039,9 +1036,10 @@ namespace Intrepid2 {
                                     ">>> ERROR (ArrayTools::matvecProductDataData): outputData dimension muat match inputDataLeft dimension" );
         }
       }
-      if (inputDataLeft.rank() == 4) {  // inputDataLeft(C,P,D,D): check C and D
-        const size_type f1[] = { 0, 2, 2 }, f2[] = { 0, 2, 3 };
-        for (size_type i=0; i<3; ++i) {
+      if (inputDataLeft.rank() == 4) {  // inputDataLeft(C,P,D1,D2): check C and D
+        size_type f1[] = { 0, 2}, f2[] = { 0, 2};
+        if (transpose) f2[1] = 3;
+        for (size_type i=0; i<2; ++i) {
           INTREPID2_TEST_FOR_EXCEPTION( outputData.extent(f1[i]) != inputDataLeft.extent(f2[i]), std::invalid_argument,
                                     ">>> ERROR (ArrayTools::matvecProductDataData): outputData dimension muat match inputDataLeft dimension" );
         }
@@ -1068,15 +1066,16 @@ namespace Intrepid2 {
           }
         }
         if (inputDataLeft.rank() == 4) {  // inputDataLeft(C,P,D,D): check C and D
-          const size_type f1[] = { 0, 2, 3 }, f2[] = { 0, 2, 2 };
-          for (size_type i=0; i<3; ++i) {
+          size_type f1[] = { 0, 3}, f2[] = { 0, 2};
+          if (transpose) f1[1] = 2;
+          for (size_type i=0; i<2; ++i) {
             INTREPID2_TEST_FOR_EXCEPTION( inputDataLeft.extent(f1[i]) != inputDataRight.extent(f2[i]), std::invalid_argument,
                                       ">>> ERROR (ArrayTools::matvecProductDataData): inputDataLeft dimension muat match to inputDataRight dimension" );
           }
         }
 
-        // Cross-check (3): outputData(C,P,D) vs. inputDataRight(C,P,D): all dimensions C, P, D must match
-        for (size_type i=0; i<outputData.rank(); ++i) {
+        // Cross-check (3): outputData(C,P) vs. inputDataRight(C,P): all dimensions C, P must match
+        for (size_type i=0; i<outputData.rank()-1; ++i) {
           INTREPID2_TEST_FOR_EXCEPTION( outputData.extent(i) != inputDataRight.extent(i), std::invalid_argument,
                                     ">>> ERROR (ArrayTools::matvecProductDataData): outputData dimension muat match to inputDataRight dimension" );
         }
@@ -1110,7 +1109,7 @@ namespace Intrepid2 {
     }
 #endif
     // body
-    ArrayTools<ExecSpaceType>::Internal::matvecProduct( outputData,
+    ArrayTools<DeviceType>::Internal::matvecProduct( outputData,
                                                         inputDataLeft,
                                                         inputDataRight,
                                                         false,
@@ -1213,12 +1212,12 @@ namespace Intrepid2 {
     };
     } //namespace
 
-  template<typename SpT>
+  template<typename DeviceType>
   template<typename outputValueType,     class ...outputProperties,
            typename leftInputValueType,  class ...leftInputProperties,
            typename rightInputValueType, class ...rightInputProperties>
   void
-  ArrayTools<SpT>::Internal::
+  ArrayTools<DeviceType>::Internal::
   matmatProduct(       Kokkos::DynRankView<outputValueType,    outputProperties...>      output,
                  const Kokkos::DynRankView<leftInputValueType, leftInputProperties...>   leftInput,
                  const Kokkos::DynRankView<rightInputValueType,rightInputProperties...>  rightInput,
@@ -1229,7 +1228,6 @@ namespace Intrepid2 {
     typedef const Kokkos::DynRankView<leftInputValueType, leftInputProperties...>   leftInputViewType;
     typedef const Kokkos::DynRankView<rightInputValueType,rightInputProperties...>  rightInputViewType;
     typedef FunctorArrayTools::F_matmatProduct<OutputViewType, leftInputViewType, rightInputViewType> FunctorType;
-    typedef typename ExecSpace< typename leftInputViewType::execution_space , SpT >::ExecSpaceType ExecSpaceType;
 
     const size_type loopSize = ( hasField ? output.extent(0)*output.extent(1)*output.extent(2) :
                                             output.extent(0)*output.extent(1) );
@@ -1240,12 +1238,12 @@ namespace Intrepid2 {
 
 
 
-  template<typename ExecSpaceType>
+  template<typename DeviceType>
   template<typename outputFieldValueType, class ...outputFieldProperties,
            typename inputDataValueType,   class ...inputDataProperties,
            typename inputFieldValueType,  class ...inputFieldProperties>
   void
-  ArrayTools<ExecSpaceType>::
+  ArrayTools<DeviceType>::
   matmatProductDataField(       Kokkos::DynRankView<outputFieldValueType,outputFieldProperties...> outputFields,
                           const Kokkos::DynRankView<inputDataValueType,  inputDataProperties...>   inputData,
                           const Kokkos::DynRankView<inputFieldValueType, inputFieldProperties...>  inputFields,
@@ -1396,7 +1394,7 @@ namespace Intrepid2 {
     }
 #endif
     // body
-    ArrayTools<ExecSpaceType>::Internal::matmatProduct( outputFields,
+    ArrayTools<DeviceType>::Internal::matmatProduct( outputFields,
                                                         inputData,
                                                         inputFields,
                                                         true,
@@ -1405,12 +1403,12 @@ namespace Intrepid2 {
 
 
 
-  template<typename ExecSpaceType>
+  template<typename DeviceType>
   template<typename outputDataValueType,     class ...outputDataProperties,
            typename inputDataLeftValueType,  class ...inputDataLeftProperties,
            typename inputDataRightValueType, class ...inputDataRightProperties>
   void
-  ArrayTools<ExecSpaceType>::matmatProductDataData(     Kokkos::DynRankView<outputDataValueType,    outputDataProperties...>     outputData,
+  ArrayTools<DeviceType>::matmatProductDataData(     Kokkos::DynRankView<outputDataValueType,    outputDataProperties...>     outputData,
                          const Kokkos::DynRankView<inputDataLeftValueType, inputDataLeftProperties...>  inputDataLeft,
                          const Kokkos::DynRankView<inputDataRightValueType,inputDataRightProperties...> inputDataRight,
                          const char transpose ) {
@@ -1558,7 +1556,7 @@ namespace Intrepid2 {
     }
 #endif
     // body
-    ArrayTools<ExecSpaceType>::Internal::matmatProduct( outputData,
+    ArrayTools<DeviceType>::Internal::matmatProduct( outputData,
                                                         inputDataLeft,
                                                         inputDataRight,
                                                         false,

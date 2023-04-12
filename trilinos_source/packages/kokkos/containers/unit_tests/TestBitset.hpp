@@ -1,43 +1,17 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
 
 #ifndef KOKKOS_TEST_BITSET_HPP
@@ -47,6 +21,7 @@
 #include <iostream>
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Bitset.hpp>
+#include <array>
 
 namespace Test {
 
@@ -54,9 +29,9 @@ namespace Impl {
 
 template <typename Bitset, bool Set>
 struct TestBitset {
-  typedef Bitset bitset_type;
-  typedef typename bitset_type::execution_space execution_space;
-  typedef uint32_t value_type;
+  using bitset_type     = Bitset;
+  using execution_space = typename bitset_type::execution_space;
+  using value_type      = uint32_t;
 
   bitset_type m_bitset;
 
@@ -74,9 +49,7 @@ struct TestBitset {
   void init(value_type& v) const { v = 0; }
 
   KOKKOS_INLINE_FUNCTION
-  void join(volatile value_type& dst, const volatile value_type& src) const {
-    dst += src;
-  }
+  void join(value_type& dst, const value_type& src) const { dst += src; }
 
   KOKKOS_INLINE_FUNCTION
   void operator()(uint32_t i, value_type& v) const {
@@ -95,9 +68,9 @@ struct TestBitset {
 
 template <typename Bitset>
 struct TestBitsetTest {
-  typedef Bitset bitset_type;
-  typedef typename bitset_type::execution_space execution_space;
-  typedef uint32_t value_type;
+  using bitset_type     = Bitset;
+  using execution_space = typename bitset_type::execution_space;
+  using value_type      = uint32_t;
 
   bitset_type m_bitset;
 
@@ -115,9 +88,7 @@ struct TestBitsetTest {
   void init(value_type& v) const { v = 0; }
 
   KOKKOS_INLINE_FUNCTION
-  void join(volatile value_type& dst, const volatile value_type& src) const {
-    dst += src;
-  }
+  void join(value_type& dst, const value_type& src) const { dst += src; }
 
   KOKKOS_INLINE_FUNCTION
   void operator()(uint32_t i, value_type& v) const {
@@ -127,9 +98,9 @@ struct TestBitsetTest {
 
 template <typename Bitset, bool Set>
 struct TestBitsetAny {
-  typedef Bitset bitset_type;
-  typedef typename bitset_type::execution_space execution_space;
-  typedef uint32_t value_type;
+  using bitset_type     = Bitset;
+  using execution_space = typename bitset_type::execution_space;
+  using value_type      = uint32_t;
 
   bitset_type m_bitset;
 
@@ -147,9 +118,7 @@ struct TestBitsetAny {
   void init(value_type& v) const { v = 0; }
 
   KOKKOS_INLINE_FUNCTION
-  void join(volatile value_type& dst, const volatile value_type& src) const {
-    dst += src;
-  }
+  void join(value_type& dst, const value_type& src) const { dst += src; }
 
   KOKKOS_INLINE_FUNCTION
   void operator()(uint32_t i, value_type& v) const {
@@ -181,16 +150,30 @@ struct TestBitsetAny {
 
 template <typename Device>
 void test_bitset() {
-  typedef Kokkos::Bitset<Device> bitset_type;
-  typedef Kokkos::ConstBitset<Device> const_bitset_type;
+  using bitset_type       = Kokkos::Bitset<Device>;
+  using const_bitset_type = Kokkos::ConstBitset<Device>;
 
-  // unsigned test_sizes[] = { 0u, 1000u, 1u<<14, 1u<<16, 10000001 };
-  unsigned test_sizes[] = {1000u, 1u << 14, 1u << 16, 10000001};
+  {
+    unsigned ts = 100u;
+    bitset_type b1;
+    ASSERT_TRUE(b1.is_allocated());
 
-  for (int i = 0, end = sizeof(test_sizes) / sizeof(unsigned); i < end; ++i) {
+    b1 = bitset_type(ts);
+    bitset_type b2(b1);
+    bitset_type b3(ts);
+
+    ASSERT_TRUE(b1.is_allocated());
+    ASSERT_TRUE(b2.is_allocated());
+    ASSERT_TRUE(b3.is_allocated());
+  }
+
+  std::array<unsigned, 7> test_sizes = {
+      {0u, 10u, 100u, 1000u, 1u << 14, 1u << 16, 10000001}};
+
+  for (const auto test_size : test_sizes) {
     // std::cout << "Bitset " << test_sizes[i] << std::endl;
 
-    bitset_type bitset(test_sizes[i]);
+    bitset_type bitset(test_size);
 
     // std::cout << "  Check initial count " << std::endl;
     // nothing should be set
@@ -207,8 +190,19 @@ void test_bitset() {
     {
       Impl::TestBitsetTest<const_bitset_type> f(bitset);
       uint32_t count = f.testit();
+#if defined(KOKKOS_ENABLE_CUDA) && \
+    defined(KOKKOS_COMPILER_NVHPC)  // FIXME_NVHPC
+      if constexpr (!std::is_same_v<typename Device::execution_space,
+                                    Kokkos::Cuda>) {
+        EXPECT_EQ(bitset.size(), count);
+        EXPECT_EQ(count, bitset.count());
+      } else {
+        (void)count;
+      }
+#else
       EXPECT_EQ(bitset.size(), count);
       EXPECT_EQ(count, bitset.count());
+#endif
     }
 
     // std::cout << "  Check reset() " << std::endl;
@@ -253,10 +247,7 @@ void test_bitset() {
   }
 }
 
-// FIXME_HIP deadlock
-#ifndef KOKKOS_ENABLE_HIP
 TEST(TEST_CATEGORY, bitset) { test_bitset<TEST_EXECSPACE>(); }
-#endif
 }  // namespace Test
 
 #endif  // KOKKOS_TEST_BITSET_HPP

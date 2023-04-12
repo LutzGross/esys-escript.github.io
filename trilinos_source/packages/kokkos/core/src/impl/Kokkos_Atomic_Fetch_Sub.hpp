@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #if defined(KOKKOS_ENABLE_RFO_PREFETCH)
 #include <xmmintrin.h>
@@ -49,10 +21,6 @@
 #include <Kokkos_Macros.hpp>
 #if defined(KOKKOS_ATOMIC_HPP) && !defined(KOKKOS_ATOMIC_FETCH_SUB_HPP)
 #define KOKKOS_ATOMIC_FETCH_SUB_HPP
-
-#if defined(KOKKOS_ENABLE_CUDA)
-#include <Cuda/Kokkos_Cuda_Version_9_8_Compatibility.hpp>
-#endif
 
 namespace Kokkos {
 
@@ -91,9 +59,9 @@ __inline__ __device__ unsigned int atomic_fetch_sub(volatile double* const dest,
 #endif
 
 template <typename T>
-__inline__ __device__ T atomic_fetch_sub(
-    volatile T* const dest,
-    typename std::enable_if<sizeof(T) == sizeof(int), const T>::type val) {
+__inline__ __device__ T
+atomic_fetch_sub(volatile T* const dest,
+                 std::enable_if_t<sizeof(T) == sizeof(int), const T> val) {
   union U {
     int i;
     T t;
@@ -114,9 +82,10 @@ __inline__ __device__ T atomic_fetch_sub(
 template <typename T>
 __inline__ __device__ T atomic_fetch_sub(
     volatile T* const dest,
-    typename std::enable_if<sizeof(T) != sizeof(int) &&
-                                sizeof(T) == sizeof(unsigned long long int),
-                            const T>::type val) {
+    std::enable_if_t<sizeof(T) != sizeof(int) &&
+                         sizeof(T) == sizeof(unsigned long long int),
+                     const T>
+        val) {
   union U {
     unsigned long long int i;
     T t;
@@ -137,41 +106,33 @@ __inline__ __device__ T atomic_fetch_sub(
 //----------------------------------------------------------------------------
 
 template <typename T>
-__inline__ __device__ T
-atomic_fetch_sub(volatile T* const dest,
-                 typename std::enable_if<(sizeof(T) != 4) && (sizeof(T) != 8),
-                                         const T>::type& val) {
+__inline__ __device__ T atomic_fetch_sub(
+    volatile T* const dest,
+    std::enable_if_t<(sizeof(T) != 4) && (sizeof(T) != 8), const T>& val) {
   T return_val;
   // This is a way to (hopefully) avoid dead lock in a warp
-  int done = 0;
-#ifdef KOKKOS_IMPL_CUDA_SYNCWARP_NEEDS_MASK
-  unsigned int mask   = KOKKOS_IMPL_CUDA_ACTIVEMASK;
-  unsigned int active = KOKKOS_IMPL_CUDA_BALLOT_MASK(mask, 1);
-#else
-  unsigned int active = KOKKOS_IMPL_CUDA_BALLOT(1);
-#endif
+  int done                 = 0;
+  unsigned int mask        = __activemask();
+  unsigned int active      = __ballot_sync(mask, 1);
   unsigned int done_active = 0;
   while (active != done_active) {
     if (!done) {
       if (Impl::lock_address_cuda_space((void*)dest)) {
+        Kokkos::memory_fence();
         return_val = *dest;
         *dest      = return_val - val;
+        Kokkos::memory_fence();
         Impl::unlock_address_cuda_space((void*)dest);
         done = 1;
       }
     }
-#ifdef KOKKOS_IMPL_CUDA_SYNCWARP_NEEDS_MASK
-    done_active = KOKKOS_IMPL_CUDA_BALLOT_MASK(mask, done);
-#else
-    done_active = KOKKOS_IMPL_CUDA_BALLOT(done);
-#endif
+    done_active = __ballot_sync(mask, done);
   }
   return return_val;
 }
 #endif
 #endif
 //----------------------------------------------------------------------------
-#if !defined(KOKKOS_ENABLE_ROCM_ATOMICS) || !defined(KOKKOS_ENABLE_HIP_ATOMICS)
 #if !defined(__CUDA_ARCH__) || defined(KOKKOS_IMPL_CUDA_CLANG_WORKAROUND)
 #if defined(KOKKOS_ENABLE_GNU_ATOMICS) || defined(KOKKOS_ENABLE_INTEL_ATOMICS)
 
@@ -208,12 +169,21 @@ inline unsigned long int atomic_fetch_sub(
   return __sync_fetch_and_sub(dest, val);
 }
 
+inline unsigned long long int atomic_fetch_sub(
+    volatile unsigned long long int* const dest,
+    const unsigned long long int val) {
+#if defined(KOKKOS_ENABLE_RFO_PREFETCH)
+  _mm_prefetch((const char*)dest, _MM_HINT_ET0);
+#endif
+  return __sync_fetch_and_sub(dest, val);
+}
+
 #endif
 
 template <typename T>
 inline T atomic_fetch_sub(
     volatile T* const dest,
-    typename std::enable_if<sizeof(T) == sizeof(int), const T>::type val) {
+    std::enable_if_t<sizeof(T) == sizeof(int), const T> val) {
   union U {
     int i;
     T t;
@@ -236,10 +206,11 @@ inline T atomic_fetch_sub(
 }
 
 template <typename T>
-inline T atomic_fetch_sub(volatile T* const dest,
-                          typename std::enable_if<sizeof(T) != sizeof(int) &&
-                                                      sizeof(T) == sizeof(long),
-                                                  const T>::type val) {
+inline T atomic_fetch_sub(
+    volatile T* const dest,
+    std::enable_if_t<sizeof(T) != sizeof(int) && sizeof(T) == sizeof(long),
+                     const T>
+        val) {
 #if defined(KOKKOS_ENABLE_RFO_PREFETCH)
   _mm_prefetch((const char*)dest, _MM_HINT_ET0);
 #endif
@@ -266,16 +237,17 @@ inline T atomic_fetch_sub(volatile T* const dest,
 template <typename T>
 inline T atomic_fetch_sub(
     volatile T* const dest,
-    typename std::enable_if<(sizeof(T) != 4) && (sizeof(T) != 8),
-                            const T>::type& val) {
+    std::enable_if_t<(sizeof(T) != 4) && (sizeof(T) != 8), const T>& val) {
 #if defined(KOKKOS_ENABLE_RFO_PREFETCH)
   _mm_prefetch((const char*)dest, _MM_HINT_ET0);
 #endif
 
   while (!Impl::lock_address_host_space((void*)dest))
     ;
+  Kokkos::memory_fence();
   T return_val = *dest;
   *dest        = return_val - val;
+  Kokkos::memory_fence();
   Impl::unlock_address_host_space((void*)dest);
   return return_val;
 }
@@ -307,13 +279,12 @@ T atomic_fetch_sub(volatile T* const dest_v, const T val) {
 
 #endif
 #endif
-#endif  // !defined ROCM_ATOMICS
 
 // dummy for non-CUDA Kokkos headers being processed by NVCC
 #if defined(__CUDA_ARCH__) && !defined(KOKKOS_ENABLE_CUDA)
 template <typename T>
 __inline__ __device__ T atomic_fetch_sub(volatile T* const,
-                                         Kokkos::Impl::identity_t<T>) {
+                                         Kokkos::Impl::type_identity_t<T>) {
   return T();
 }
 #endif

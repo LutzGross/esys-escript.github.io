@@ -32,9 +32,8 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 
-#include <gtest/gtest.h>
-#include <stk_topology/topology.hpp>
-#include <vector>
+#include "gtest/gtest.h"              // for Test, EXPECT_EQ, Message, TestPartResult, SuiteApiR...
+#include "stk_topology/topology.hpp"  // for topology, topology::HEX_8
 
 #ifndef __IBMCPP__
 
@@ -52,7 +51,7 @@ TEST(side_node_ordinals, hex8)
   //i.e., side 1 is labeled as side 2 in the exodus manual. it is the second side of the element.
   //note also that the side-node-ordinals returned are 0-based whereas the node labels in the
   //exodus manual diagrams are 1-based.
- 
+
   const unsigned side1_ordinal = 1;
 
   //the following call to hex8.side_node_ordinals(..) fills our side1_node_ordinals array.

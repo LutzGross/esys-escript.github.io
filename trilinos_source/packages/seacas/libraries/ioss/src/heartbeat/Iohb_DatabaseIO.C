@@ -1,7 +1,7 @@
-// Copyright(C) 1999-2020 National Technology & Engineering Solutions
+// Copyright(C) 1999-2023 National Technology & Engineering Solutions
 // of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 // NTESS, the U.S. Government retains certain rights in this software.
-// 
+//
 // See packages/seacas/LICENSE for details
 
 #include <Ioss_CodeTypes.h>
@@ -129,7 +129,7 @@ namespace Iohb {
   IOFactory::IOFactory() : Ioss::IOFactory("heartbeat") {}
 
   Ioss::DatabaseIO *IOFactory::make_IO(const std::string &filename, Ioss::DatabaseUsage db_usage,
-                                       MPI_Comm                     communicator,
+                                       Ioss_MPI_Comm                communicator,
                                        const Ioss::PropertyManager &props) const
   {
     return new DatabaseIO(nullptr, filename, db_usage, communicator, props);
@@ -137,7 +137,7 @@ namespace Iohb {
 
   // ========================================================================
   DatabaseIO::DatabaseIO(Ioss::Region *region, const std::string &filename,
-                         Ioss::DatabaseUsage db_usage, MPI_Comm communicator,
+                         Ioss::DatabaseUsage db_usage, Ioss_MPI_Comm communicator,
                          const Ioss::PropertyManager &props)
       : Ioss::DatabaseIO(region, filename, db_usage, communicator, props)
   {
@@ -147,8 +147,6 @@ namespace Iohb {
 
   DatabaseIO::~DatabaseIO()
   {
-    delete layout_;
-    delete legend_;
     if (streamNeedsDelete && (logStream != nullptr)) {
       delete logStream;
     }
@@ -157,27 +155,24 @@ namespace Iohb {
   void DatabaseIO::initialize() const
   {
     if (!initialized_) {
-      assert(layout_ == nullptr);
-      assert(legend_ == nullptr);
-
       auto *new_this = const_cast<DatabaseIO *>(this);
 
       if (properties.exists("FILE_FORMAT")) {
         std::string format = properties.get("FILE_FORMAT").get_string();
         if (Ioss::Utils::str_equal(format, "spyhis")) {
-          new_this->fileFormat = SPYHIS;
+          new_this->fileFormat = Iohb::Format::SPYHIS;
         }
         else if (Ioss::Utils::str_equal(format, "csv")) {
-          new_this->fileFormat = CSV;
+          new_this->fileFormat = Iohb::Format::CSV;
         }
         else if (Ioss::Utils::str_equal(format, "ts_csv")) {
-          new_this->fileFormat = TS_CSV;
+          new_this->fileFormat = Iohb::Format::TS_CSV;
         }
         else if (Ioss::Utils::str_equal(format, "text")) {
-          new_this->fileFormat = TEXT;
+          new_this->fileFormat = Iohb::Format::TEXT;
         }
         else if (Ioss::Utils::str_equal(format, "ts_text")) {
-          new_this->fileFormat = TS_TEXT;
+          new_this->fileFormat = Iohb::Format::TS_TEXT;
         }
       }
 
@@ -196,26 +191,26 @@ namespace Iohb {
       }
 
       // "Predefined" formats... (put first so can modify settings if wanted)
-      if (fileFormat == CSV) {
+      if (fileFormat == Iohb::Format::CSV) {
         new_this->addTimeField = true;
         new_this->showLegend   = true;
         new_this->showLabels   = false;
         new_this->separator_   = ", ";
       }
-      else if (fileFormat == TS_CSV) {
+      else if (fileFormat == Iohb::Format::TS_CSV) {
         new_this->addTimeField = true;
         new_this->showLegend   = true;
         new_this->showLabels   = false;
         new_this->separator_   = ", ";
         new_this->tsFormat     = defaultTsFormat;
       }
-      else if (fileFormat == TEXT) {
+      else if (fileFormat == Iohb::Format::TEXT) {
         new_this->addTimeField = true;
         new_this->showLegend   = true;
         new_this->showLabels   = false;
         new_this->separator_   = "\t";
       }
-      else if (fileFormat == TS_TEXT) {
+      else if (fileFormat == Iohb::Format::TS_TEXT) {
         new_this->addTimeField = true;
         new_this->showLegend   = true;
         new_this->showLabels   = false;
@@ -236,16 +231,15 @@ namespace Iohb {
         new_this->tsFormat = properties.get("TIME_STAMP_FORMAT").get_string();
       }
 
-      if (properties.exists("SHOW_TIME_STAMP")) {
-        bool show_time_stamp = properties.get("SHOW_TIME_STAMP").get_int() == 1;
-        if (show_time_stamp) {
-          if (tsFormat.empty()) {
-            new_this->tsFormat = defaultTsFormat;
-          }
+      bool show_time_stamp = false;
+      Ioss::Utils::check_set_bool_property(properties, "SHOW_TIME_STAMP", show_time_stamp);
+      if (show_time_stamp) {
+        if (tsFormat.empty()) {
+          new_this->tsFormat = defaultTsFormat;
         }
-        else {
-          new_this->tsFormat = "";
-        }
+      }
+      else {
+        new_this->tsFormat = "";
       }
 
       if (properties.exists("PRECISION")) {
@@ -260,21 +254,16 @@ namespace Iohb {
         new_this->fieldWidth_ = precision_ + 7;
       }
 
-      if (properties.exists("SHOW_LABELS")) {
-        new_this->showLabels = (properties.get("SHOW_LABELS").get_int() == 1);
+      Ioss::Utils::check_set_bool_property(properties, "SHOW_LABELS", new_this->showLabels);
+
+      if (!new_this->appendOutput) {
+        Ioss::Utils::check_set_bool_property(properties, "SHOW_LEGEND", new_this->showLegend);
       }
 
-      if (properties.exists("SHOW_LEGEND")) {
-        new_this->showLegend =
-            (properties.get("SHOW_LEGEND").get_int() == 1 && !new_this->appendOutput);
-      }
-
-      if (properties.exists("SHOW_TIME_FIELD")) {
-        new_this->addTimeField = (properties.get("SHOW_TIME_FIELD").get_int() == 1);
-      }
+      Ioss::Utils::check_set_bool_property(properties, "SHOW_TIME_FIELD", new_this->addTimeField);
 
       // SpyHis format is specific format, so don't override these settings:
-      if (fileFormat == SPYHIS) {
+      if (fileFormat == Iohb::Format::SPYHIS) {
         new_this->addTimeField = true;
         new_this->showLegend   = true;
         new_this->showLabels   = false;
@@ -282,7 +271,7 @@ namespace Iohb {
       }
 
       if (showLegend) {
-        new_this->legend_ = new Layout(false, precision_, separator_, fieldWidth_);
+        new_this->legend_ = std::make_unique<Layout>(false, precision_, separator_, fieldWidth_);
         if (!tsFormat.empty()) {
           new_this->legend_->add_literal("+");
           new_this->legend_->add_literal(time_stamp(tsFormat));
@@ -290,7 +279,7 @@ namespace Iohb {
         }
 
         if (addTimeField) {
-          if (fileFormat == SPYHIS) {
+          if (fileFormat == Iohb::Format::SPYHIS) {
             new_this->legend_->add_legend("TIME");
           }
           else {
@@ -312,7 +301,7 @@ namespace Iohb {
     // If this is the first time, open the output stream and see if user wants a legend
     initialize();
 
-    layout_ = new Layout(showLabels, precision_, separator_, fieldWidth_);
+    layout_ = std::make_unique<Layout>(showLabels, precision_, separator_, fieldWidth_);
     if (tsFormat != "") {
       layout_->add_literal("+");
       layout_->add_literal(time_stamp(tsFormat));
@@ -336,20 +325,18 @@ namespace Iohb {
   bool DatabaseIO::end_state__(int /* state */, double /* time */)
   {
     if (legend_ != nullptr) {
-      if (fileFormat == SPYHIS) {
+      if (fileFormat == Iohb::Format::SPYHIS) {
         time_t calendar_time = time(nullptr);
         *logStream << "% Sierra SPYHIS Output " << ctime(&calendar_time);
         *logStream << *legend_ << '\n'; // Legend output twice for SPYHIS
       }
 
       *logStream << *legend_ << '\n';
-      delete legend_;
-      legend_ = nullptr;
+      legend_.reset();
     }
 
     *logStream << *layout_ << '\n';
-    delete layout_;
-    layout_ = nullptr;
+    layout_.reset();
 
     // Flush the buffer to disk...
     // flush if there is more than 'flushInterval_' seconds since the last flush to avoid
@@ -367,88 +354,6 @@ namespace Iohb {
     return true;
   }
 
-  int64_t DatabaseIO::get_field_internal(const Ioss::Region * /* reg */,
-                                         const Ioss::Field & /* field */, void * /* data */,
-                                         size_t /* data_size */) const
-  {
-    return -1;
-  }
-
-  int64_t DatabaseIO::get_field_internal(const Ioss::NodeBlock * /* nb */,
-                                         const Ioss::Field & /* field */, void * /* data */,
-                                         size_t /* data_size */) const
-  {
-    return -1;
-  }
-  int64_t DatabaseIO::get_field_internal(const Ioss::EdgeBlock * /* nb */,
-                                         const Ioss::Field & /* field */, void * /* data */,
-                                         size_t /* data_size */) const
-  {
-    return -1;
-  }
-  int64_t DatabaseIO::get_field_internal(const Ioss::FaceBlock * /* nb */,
-                                         const Ioss::Field & /* field */, void * /* data */,
-                                         size_t /* data_size */) const
-  {
-    return -1;
-  }
-  int64_t DatabaseIO::get_field_internal(const Ioss::ElementBlock * /* eb */,
-                                         const Ioss::Field & /* field */, void * /* data */,
-                                         size_t /* data_size */) const
-  {
-    return -1;
-  }
-
-  int64_t DatabaseIO::get_field_internal(const Ioss::StructuredBlock * /* sb */,
-                                         const Ioss::Field & /* field */, void * /* data */,
-                                         size_t /* data_size */) const
-  {
-    return -1;
-  }
-
-  int64_t DatabaseIO::get_field_internal(const Ioss::NodeSet * /* ns */,
-                                         const Ioss::Field & /* field */, void * /* data */,
-                                         size_t /* data_size */) const
-  {
-    return -1;
-  }
-  int64_t DatabaseIO::get_field_internal(const Ioss::EdgeSet * /* ns */,
-                                         const Ioss::Field & /* field */, void * /* data */,
-                                         size_t /* data_size */) const
-  {
-    return -1;
-  }
-  int64_t DatabaseIO::get_field_internal(const Ioss::FaceSet * /* ns */,
-                                         const Ioss::Field & /* field */, void * /* data */,
-                                         size_t /* data_size */) const
-  {
-    return -1;
-  }
-  int64_t DatabaseIO::get_field_internal(const Ioss::ElementSet * /* ns */,
-                                         const Ioss::Field & /* field */, void * /* data */,
-                                         size_t /* data_size */) const
-  {
-    return -1;
-  }
-  int64_t DatabaseIO::get_field_internal(const Ioss::SideBlock * /* eb */,
-                                         const Ioss::Field & /* field */, void * /* data */,
-                                         size_t /* data_size */) const
-  {
-    return -1;
-  }
-  int64_t DatabaseIO::get_field_internal(const Ioss::SideSet * /* fs */,
-                                         const Ioss::Field & /* field */, void * /* data */,
-                                         size_t /* data_size */) const
-  {
-    return -1;
-  }
-  int64_t DatabaseIO::get_field_internal(const Ioss::CommSet * /* cs */,
-                                         const Ioss::Field & /* field */, void * /* data */,
-                                         size_t /* data_size */) const
-  {
-    return -1;
-  }
-
   int64_t DatabaseIO::put_field_internal(const Ioss::Region * /* region */,
                                          const Ioss::Field &field, void *data,
                                          size_t data_size) const
@@ -459,16 +364,15 @@ namespace Iohb {
 
     if ((role == Ioss::Field::TRANSIENT || role == Ioss::Field::REDUCTION) && num_to_get == 1) {
 
-      int ncomp = field.transformed_storage()->component_count();
+      int ncomp = field.get_component_count(Ioss::Field::InOut::OUTPUT);
 
       if (legend_ != nullptr && layout_ != nullptr) {
         if (ncomp == 1) {
           legend_->add_legend(field.get_name());
         }
         else {
-          const Ioss::VariableType *var_type = field.transformed_storage();
           for (int i = 0; i < ncomp; i++) {
-            std::string var_name = var_type->label_name(field.get_name(), i + 1, '_');
+            std::string var_name = get_component_name(field, Ioss::Field::InOut::OUTPUT, i + 1);
             legend_->add_legend(var_name);
           }
         }
@@ -499,7 +403,7 @@ namespace Iohb {
         if (field.get_type() == Ioss::Field::INTEGER) {
           assert(field.transformed_count() == 1);
 
-          int *            i_data = reinterpret_cast<int *>(data);
+          int             *i_data = reinterpret_cast<int *>(data);
           std::vector<int> idata(ncomp);
           for (int i = 0; i < ncomp; i++) {
             idata[i] = i_data[i];
@@ -508,7 +412,7 @@ namespace Iohb {
         }
         else {
           std::vector<double> rdata(ncomp);
-          auto *              r_data = reinterpret_cast<double *>(data);
+          auto               *r_data = reinterpret_cast<double *>(data);
           for (int i = 0; i < ncomp; i++) {
             rdata[i] = r_data[i];
           }
@@ -522,81 +426,6 @@ namespace Iohb {
       IOSS_ERROR(errmsg);
     }
     return num_to_get;
-  }
-
-  int64_t DatabaseIO::put_field_internal(const Ioss::ElementBlock * /* eb */,
-                                         const Ioss::Field & /* field */, void * /* data */,
-                                         size_t /* data_size */) const
-  {
-    return -1;
-  }
-  int64_t DatabaseIO::put_field_internal(const Ioss::FaceBlock * /* nb */,
-                                         const Ioss::Field & /* field */, void * /* data */,
-                                         size_t /* data_size */) const
-  {
-    return -1;
-  }
-  int64_t DatabaseIO::put_field_internal(const Ioss::EdgeBlock * /* nb */,
-                                         const Ioss::Field & /* field */, void * /* data */,
-                                         size_t /* data_size */) const
-  {
-    return -1;
-  }
-  int64_t DatabaseIO::put_field_internal(const Ioss::NodeBlock * /* nb */,
-                                         const Ioss::Field & /* field */, void * /* data */,
-                                         size_t /* data_size */) const
-  {
-    return -1;
-  }
-
-  int64_t DatabaseIO::put_field_internal(const Ioss::NodeSet * /* ns */,
-                                         const Ioss::Field & /* field */, void * /* data */,
-                                         size_t /* data_size */) const
-  {
-    return -1;
-  }
-  int64_t DatabaseIO::put_field_internal(const Ioss::EdgeSet * /* ns */,
-                                         const Ioss::Field & /* field */, void * /* data */,
-                                         size_t /* data_size */) const
-  {
-    return -1;
-  }
-  int64_t DatabaseIO::put_field_internal(const Ioss::FaceSet * /* ns */,
-                                         const Ioss::Field & /* field */, void * /* data */,
-                                         size_t /* data_size */) const
-  {
-    return -1;
-  }
-  int64_t DatabaseIO::put_field_internal(const Ioss::ElementSet * /* ns */,
-                                         const Ioss::Field & /* field */, void * /* data */,
-                                         size_t /* data_size */) const
-  {
-    return -1;
-  }
-  int64_t DatabaseIO::put_field_internal(const Ioss::SideBlock * /* fb */,
-                                         const Ioss::Field & /* field */, void * /* data */,
-                                         size_t /* data_size */) const
-  {
-    return -1;
-  }
-  int64_t DatabaseIO::put_field_internal(const Ioss::SideSet * /* fs */,
-                                         const Ioss::Field & /* field */, void * /* data */,
-                                         size_t /* data_size */) const
-  {
-    return -1;
-  }
-  int64_t DatabaseIO::put_field_internal(const Ioss::CommSet * /* cs */,
-                                         const Ioss::Field & /* field */, void * /* data */,
-                                         size_t /* data_size */) const
-  {
-    return -1;
-  }
-
-  int64_t DatabaseIO::put_field_internal(const Ioss::StructuredBlock * /* sb */,
-                                         const Ioss::Field & /* field */, void * /* data */,
-                                         size_t /* data_size */) const
-  {
-    return -1;
   }
 
   unsigned DatabaseIO::entity_field_support() const { return Ioss::REGION; }

@@ -3,6 +3,7 @@
 #include "stk_io/FillMesh.hpp"
 #include "Ioss_Property.h"             // for Property
 #include "stk_io/StkMeshIoBroker.hpp"  // for StkMeshIoBroker
+#include "stk_mesh/base/BulkData.hpp"  // for BulkData
 // clang-format on
 // #######################   End Clang Header Tool Managed Headers  ########################
 
@@ -65,6 +66,21 @@ void fill_mesh_save_step_info(const std::string& inFile, stk::mesh::BulkData& in
     stk::io::StkMeshIoBroker stkIo;
     stk::io::fill_mesh_preexisting(stkIo, inFile, inBulk);
     save_step_info(stkIo, numSteps, maxTime);
+}
+
+void fill_mesh_with_fields(const std::string& inFile, stk::mesh::BulkData& bulk, stk::io::DatabasePurpose purpose)
+{
+    stk::io::StkMeshIoBroker stkIo;
+    fill_mesh_with_fields(inFile, stkIo, bulk, purpose);
+}
+
+void fill_mesh_with_fields(const std::string& inFile, stk::io::StkMeshIoBroker& ioBroker,
+                           stk::mesh::BulkData& bulk, stk::io::DatabasePurpose purpose)
+{
+    int numSteps;
+    double maxTime;
+    stk::io::fill_mesh_preexisting(ioBroker, inFile, bulk, purpose);
+    save_step_info(ioBroker, numSteps, maxTime);
 }
 
 }

@@ -1,8 +1,8 @@
 /*
- * Copyright(C) 1999-2020 National Technology & Engineering Solutions
+ * Copyright(C) 1999-2020, 2023 National Technology & Engineering Solutions
  * of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
  * NTESS, the U.S. Government retains certain rights in this software.
- * 
+ *
  * See packages/seacas/LICENSE for details
  */
 /*****************************************************************************
@@ -41,8 +41,8 @@ int ex_get_side_set_node_list_len(int exoid, ex_entity_id side_set_id,
   size_t    list_len     = 0;
   int64_t   tot_num_elem = 0, tot_num_ss_elem = 0;
   void_int *elem_blk_ids   = NULL;
-  int *     ss_elem_ndx    = NULL;
-  int64_t * ss_elem_ndx_64 = NULL;
+  int      *ss_elem_ndx    = NULL;
+  int64_t  *ss_elem_ndx_64 = NULL;
 
   void_int *side_set_elem_list = NULL;
   void_int *side_set_side_list = NULL;
@@ -56,9 +56,12 @@ int ex_get_side_set_node_list_len(int exoid, ex_entity_id side_set_id,
   char errmsg[MAX_ERR_LENGTH];
 
   EX_FUNC_ENTER();
-  ex__check_valid_file_id(exoid, __func__);
+  if (ex__check_valid_file_id(exoid, __func__) == EX_FATAL) {
+    EX_FUNC_LEAVE(EX_FATAL);
+  }
 
-  if (ex_int64_status(exoid) & EX_BULK_INT64_API) {
+  bool ints_64 = ex_int64_status(exoid) & EX_BULK_INT64_API;
+  if (ints_64) {
     *(int64_t *)side_set_node_list_len = 0; /* default value */
   }
   else {
@@ -109,7 +112,7 @@ int ex_get_side_set_node_list_len(int exoid, ex_entity_id side_set_id,
   }
 
   /* First determine the  # of elements in the side set*/
-  if (ex_int64_status(exoid) & EX_BULK_INT64_API) {
+  if (ints_64) {
     status = ex_get_set_param(exoid, EX_SIDE_SET, side_set_id, &tot_num_ss_elem, &num_df);
   }
   else {
@@ -134,10 +137,8 @@ int ex_get_side_set_node_list_len(int exoid, ex_entity_id side_set_id,
 
   /* Allocate space for the side set element list */
   {
-    int int_size = sizeof(int);
-    if (ex_int64_status(exoid) & EX_BULK_INT64_API) {
-      int_size = sizeof(int64_t);
-    }
+    int int_size = ints_64 ? sizeof(int64_t) : sizeof(int);
+
     if (!(side_set_elem_list = malloc(tot_num_ss_elem * int_size))) {
       snprintf(errmsg, MAX_ERR_LENGTH,
                "ERROR: failed to allocate space for side set element "
@@ -187,7 +188,7 @@ int ex_get_side_set_node_list_len(int exoid, ex_entity_id side_set_id,
   }
 
   /* Sort side set element list into index array  - non-destructive */
-  if (ex_int64_status(exoid) & EX_BULK_INT64_API) {
+  if (ints_64) {
     for (i = 0; i < tot_num_ss_elem; i++) {
       ss_elem_ndx_64[i] = i; /* init index array to current position */
     }
@@ -262,7 +263,7 @@ int ex_get_side_set_node_list_len(int exoid, ex_entity_id side_set_id,
   for (ii = 0; ii < tot_num_ss_elem; ii++) {
     size_t elem;
     size_t side;
-    if (ex_int64_status(exoid) & EX_BULK_INT64_API) {
+    if (ints_64) {
       i    = ss_elem_ndx_64[ii];
       elem = ((int64_t *)side_set_elem_list)[i];
       side = ((int64_t *)side_set_side_list)[i];
@@ -298,7 +299,7 @@ int ex_get_side_set_node_list_len(int exoid, ex_entity_id side_set_id,
     list_len += elem_blk_parms[j].num_nodes_per_side[side - 1];
   }
 
-  if (ex_int64_status(exoid) & EX_BULK_INT64_API) {
+  if (ints_64) {
     *(int64_t *)side_set_node_list_len = list_len;
   }
   else {

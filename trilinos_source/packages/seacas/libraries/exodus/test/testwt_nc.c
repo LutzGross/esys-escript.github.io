@@ -2,7 +2,7 @@
  * Copyright(C) 1999-2020 National Technology & Engineering Solutions
  * of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
  * NTESS, the U.S. Government retains certain rights in this software.
- * 
+ *
  * See packages/seacas/LICENSE for details
  */
 /*****************************************************************************
@@ -54,9 +54,9 @@ int main(int argc, char **argv)
   float  time_value;
   float  x[100], y[100], z[100];
   float  attrib[1], dist_fact[100];
-  char * coord_names[3], *qa_record[2][4], *info[3], *var_names[3];
-  char * block_names[10], *nset_names[10], *sset_names[10];
-  char * prop_names[2], *attrib_names[2];
+  char  *coord_names[3], *qa_record[2][4], *info[3], *var_names[3];
+  char  *block_names[10], *nset_names[10], *sset_names[10];
+  char  *prop_names[2], *attrib_names[2];
 
   ex_opts(EX_VERBOSE | EX_ABORT);
 
@@ -263,16 +263,14 @@ int main(int argc, char **argv)
     }
   }
 
-  /* write element order map */
-
   elem_map = (int *)calloc(num_elem, sizeof(int));
 
   for (i = 1; i <= num_elem; i++) {
-    elem_map[i - 1] = i;
+    elem_map[i - 1] = 10 * i;
   }
 
-  error = ex_put_map(exoid, elem_map);
-  printf("after ex_put_map, error = %d\n", error);
+  error = ex_put_id_map(exoid, EX_ELEM_MAP, elem_map);
+  printf("after ex_put_id_map, error = %d\n", error);
 
   if (error) {
     ex_close(exoid);

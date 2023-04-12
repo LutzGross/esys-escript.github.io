@@ -1,10 +1,9 @@
 C    Copyright(C) 1999-2020 National Technology & Engineering Solutions
 C    of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 C    NTESS, the U.S. Government retains certain rights in this software.
-C    
+C
 C    See packages/seacas/LICENSE for details
 
-C $Id: wrex2.f,v 1.5 2000/11/13 15:39:06 gdsjaar Exp $
 C=======================================================================
       SUBROUTINE WREX2 (MS, MR, NPNODE, NPELEM, MXNFLG, MXSFLG, NPREGN,
      &   NPNBC, NPSBC, IUNIT, NNN, KKK, NNXK, NODES, NELEMS, NNFLG,
@@ -14,11 +13,11 @@ C=======================================================================
      &   ERR, EIGHT, NINE, VERSN, A, IA, FILENAME)
 C=======================================================================
 C************************************************************************
-C
+
 C  SUBROUTINE WREX2 = WRITES GENESIS DATABASE MESH OUTPUT
-C
+
 C***********************************************************************
-C
+
       include 'exodusII.inc'
 
       DIMENSION XN (NPNODE), YN (NPNODE), NXK (NNXK, NPELEM)
@@ -242,8 +241,8 @@ C ... Convert sideset nodes to sideset sides
          call mddel('ISIDES')
       end if
 C     SUCCESSFUL WRITE COMPLETED
-      CALL MESAGE (' ')
-      CALL MESAGE ('ExodusII output file successfully written')
+      CALL MESSAGE(' ')
+      CALL MESSAGE('ExodusII output file successfully written')
 C ... Title is char*72, dbpini and exodusII expect char*80
       HOLD = TITLE
       if (nbcnod .gt. 0) then
@@ -270,8 +269,8 @@ C ... Title is char*72, dbpini and exodusII expect char*80
 
 C     ERROR DURING WRITE PROBLEMS
  110  CONTINUE
-      CALL MESAGE ('ERR DURING WRITE TO OUTPUT FILE')
-      CALL MESAGE ('...File may be incomplete...')
+      CALL MESSAGE('ERR DURING WRITE TO OUTPUT FILE')
+      CALL MESSAGE('...File may be incomplete...')
       RETURN
 
       END

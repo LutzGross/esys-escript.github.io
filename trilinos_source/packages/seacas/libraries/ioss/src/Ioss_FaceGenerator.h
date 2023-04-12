@@ -1,24 +1,26 @@
-// Copyright(C) 1999-2020 National Technology & Engineering Solutions
+// Copyright(C) 1999-2022 National Technology & Engineering Solutions
 // of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 // NTESS, the U.S. Government retains certain rights in this software.
-// 
+//
 // See packages/seacas/LICENSE for details
 
-#ifndef IOSS_Ioss_FaceGenerator_h
-#define IOSS_Ioss_FaceGenerator_h
+#pragma once
+
+#include "ioss_export.h"
 
 #include <algorithm>
 #include <array>
 #include <cassert>
-#include <cstddef> // for size_t
+#include <cstddef>
+#include <map>
 
-#define USE_ROBIN
-#if defined USE_STD
+#define FG_USE_ROBIN
+#if defined FG_USE_STD
 #include <unordered_set>
-#elif defined USE_HOPSCOTCH
-#include <hash/hopscotch_set.h>
-#elif defined USE_ROBIN
-#include <hash/robin_set.h>
+#elif defined FG_USE_HOPSCOTCH
+#include <hopscotch_set.h>
+#elif defined FG_USE_ROBIN
+#include <robin_set.h>
 #endif
 
 #include <utility>
@@ -26,12 +28,12 @@
 namespace Ioss {
   class Region;
 
-  class Face
+  class IOSS_EXPORT Face
   {
   public:
     Face() = default;
-    Face(size_t id, std::array<size_t, 4> conn) : hashId_(id), connectivity_(std::move(conn)) {}
-    Face(std::array<size_t, 4> conn);
+    Face(size_t id, std::array<size_t, 4> conn) : hashId_(id), connectivity_(conn) {}
+    explicit Face(std::array<size_t, 4> conn);
 
     void add_element(size_t element_id) const
     {
@@ -41,6 +43,11 @@ namespace Ioss {
       else {
         face_element_error(element_id);
       }
+    }
+
+    void add_element(size_t element_id, size_t face_ordinal) const
+    {
+      add_element(element_id * 10 + face_ordinal);
     }
 
     void face_element_error(size_t element_id) const;
@@ -60,17 +67,17 @@ namespace Ioss {
     // you could recover element_id and local_face and then set up
     // parallel communication maps.  May need to save the proc it is
     // shared with also (which is available in git history)
-    mutable size_t        element[2]{};
-    mutable int           elementCount_{0}; // Should be max of 2 solid elements...
-    std::array<size_t, 4> connectivity_{};
+    mutable std::array<size_t, 2> element{};
+    mutable int                   elementCount_{0}; // Should be max of 2 solid elements...
+    std::array<size_t, 4>         connectivity_{};
   };
 
-  struct FaceHash
+  struct IOSS_EXPORT FaceHash
   {
     size_t operator()(const Face &face) const { return face.hashId_; }
   };
 
-  struct FaceEqual
+  struct IOSS_EXPORT FaceEqual
   {
     bool operator()(const Face &left, const Face &right) const
     {
@@ -94,16 +101,16 @@ namespace Ioss {
     }
   };
 
-#if defined USE_STD
+#if defined FG_USE_STD
   using FaceUnorderedSet = std::unordered_set<Face, FaceHash, FaceEqual>;
-#elif defined USE_HOPSCOTCH
+#elif defined FG_USE_HOPSCOTCH
   using FaceUnorderedSet = tsl::hopscotch_set<Face, FaceHash, FaceEqual>;
   // using FaceUnorderedSet = tsl::hopscotch_pg_set<Face, FaceHash, FaceEqual>;
-#elif defined USE_ROBIN
+#elif defined FG_USE_ROBIN
   using FaceUnorderedSet = tsl::robin_set<Face, FaceHash, FaceEqual>;
   // using FaceUnorderedSet = tsl::robin_pg_set<Face, FaceHash, FaceEqual>;
 #endif
-  class FaceGenerator
+  class IOSS_EXPORT FaceGenerator
   {
   public:
     explicit FaceGenerator(Ioss::Region &region);
@@ -111,22 +118,21 @@ namespace Ioss {
 
     static size_t id_hash(size_t global_id);
 
-    template <typename INT> void generate_faces(INT /*dummy*/, bool block_by_block = false);
-    FaceUnorderedSet &           faces(const std::string &name = "ALL") { return faces_[name]; }
+    template <typename INT>
+    void generate_faces(INT /*dummy*/, bool block_by_block = false, bool local_ids = false);
+    FaceUnorderedSet &faces(const std::string &name = "ALL") { return faces_[name]; }
 
     //! Given a local node id (0-based), return the hashed value.
     size_t node_id_hash(size_t local_node_id) const { return hashIds_[local_node_id]; }
 
   private:
     template <typename INT> void hash_node_ids(const std::vector<INT> &node_ids);
-    template <typename INT> void generate_block_faces(INT /*dummy*/);
-    template <typename INT> void generate_model_faces(INT /*dummy*/);
+    template <typename INT> void generate_block_faces(INT /*dummy*/, bool local_ids);
+    template <typename INT> void generate_model_faces(INT /*dummy*/, bool local_ids);
 
-    Ioss::Region &                          region_;
+    Ioss::Region                           &region_;
     std::map<std::string, FaceUnorderedSet> faces_;
     std::vector<size_t>                     hashIds_;
   };
 
 } // namespace Ioss
-
-#endif

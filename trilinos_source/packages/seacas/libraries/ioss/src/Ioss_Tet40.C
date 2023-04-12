@@ -1,7 +1,7 @@
-// Copyright(C) 1999-2020 National Technology & Engineering Solutions
+// Copyright(C) 1999-2021 National Technology & Engineering Solutions
 // of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 // NTESS, the U.S. Government retains certain rights in this software.
-// 
+//
 // See packages/seacas/LICENSE for details
 
 #include "Ioss_CodeTypes.h"           // for IntVector
@@ -78,8 +78,6 @@ Ioss::Tet40::Tet40() : Ioss::ElementTopology(Ioss::Tet40::name, "Tetrahedron_40"
   Ioss::ElementTopology::alias(Ioss::Tet40::name, "Solid_Tet_40_3D");
 }
 
-Ioss::Tet40::~Tet40() = default;
-
 int Ioss::Tet40::parametric_dimension() const { return 3; }
 int Ioss::Tet40::spatial_dimension() const { return 3; }
 int Ioss::Tet40::order() const { return 3; }
@@ -145,6 +143,7 @@ Ioss::ElementTopology *Ioss::Tet40::face_type(int face_number) const
   // face_number is 1-based.
 
   assert(face_number >= 0 && face_number <= number_faces());
+  IOSS_ASSERT_USED(face_number);
   return Ioss::ElementTopology::factory("tri13");
 }
 
@@ -155,6 +154,7 @@ Ioss::ElementTopology *Ioss::Tet40::edge_type(int edge_number) const
   // edge_number is 1-based.
 
   assert(edge_number >= 0 && edge_number <= number_edges());
+  IOSS_ASSERT_USED(edge_number);
   return Ioss::ElementTopology::factory("edge4");
 }
 

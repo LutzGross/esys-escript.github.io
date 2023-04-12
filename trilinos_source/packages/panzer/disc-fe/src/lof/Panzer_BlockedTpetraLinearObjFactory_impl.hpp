@@ -45,7 +45,9 @@
 
 // Panzer
 #include "Panzer_BlockedVector_ReadOnly_GlobalEvaluationData.hpp"
+#ifdef PANZER_HAVE_EPETRA_STACK
 #include "Panzer_EpetraVector_Write_GlobalEvaluationData.hpp"                    // JMG:  Remove this eventually.
+#endif
 #include "Panzer_TpetraVector_ReadOnly_GlobalEvaluationData.hpp"
 #include "Panzer_GlobalIndexer.hpp"
 
@@ -294,13 +296,13 @@ adjustForDirichletConditions(const VectorType & local_bcs,
          if(!Teuchos::is_null(A)) {
             std::size_t numEntries = 0;
             std::size_t sz = A->getNumEntriesInLocalRow(i);
-            Teuchos::Array<LocalOrdinalT> indices(sz);
-            Teuchos::Array<ScalarT> values(sz);
+	    typename CrsMatrixType::nonconst_local_inds_host_view_type indices("indices", sz);
+	    typename CrsMatrixType::nonconst_values_host_view_type values("values", sz);
 
             A->getLocalRowCopy(i,indices,values,numEntries);
 
             for(std::size_t c=0;c<numEntries;c++)
-               values[c] = 0.0;
+	      values(c) = 0.0;
 
             A->replaceLocalValues(i,indices,values);
          }
@@ -316,13 +318,13 @@ adjustForDirichletConditions(const VectorType & local_bcs,
          if(!Teuchos::is_null(A)) {
             std::size_t numEntries = 0;
             std::size_t sz = A->getNumEntriesInLocalRow(i);
-            Teuchos::Array<LocalOrdinalT> indices(sz);
-            Teuchos::Array<ScalarT> values(sz);
+	    typename CrsMatrixType::nonconst_local_inds_host_view_type indices("indices", sz);
+	    typename CrsMatrixType::nonconst_values_host_view_type values("values", sz);
 
             A->getLocalRowCopy(i,indices,values,numEntries);
 
             for(std::size_t c=0;c<numEntries;c++)
-               values[c] /= scaleFactor;
+	      values(c) /= scaleFactor;
 
             A->replaceLocalValues(i,indices,values);
          }
@@ -369,6 +371,7 @@ buildReadOnlyDomainContainer() const
   return ged;
 } // end of buildReadOnlyDomainContainer()
 
+#ifdef PANZER_HAVE_EPETRA_STACK
 ///////////////////////////////////////////////////////////////////////////////
 //
 //  buildWriteDomainContainer()
@@ -388,6 +391,7 @@ buildWriteDomainContainer() const
   TEUCHOS_TEST_FOR_EXCEPTION(true, logic_error, "NOT YET IMPLEMENTED")
   return ged;
 } // end of buildWriteDomainContainer()
+#endif // PANZER_HAVE_EPETRA_STACK
 
 template <typename Traits,typename ScalarT,typename LocalOrdinalT,typename GlobalOrdinalT,typename NodeT>
 Teuchos::MpiComm<int> BlockedTpetraLinearObjFactory<Traits,ScalarT,LocalOrdinalT,GlobalOrdinalT,NodeT>::
@@ -567,7 +571,7 @@ getThyraDomainVector() const
    Teuchos::RCP<Thyra::ProductVectorBase<ScalarT> > p_vec = Teuchos::rcp_dynamic_cast<Thyra::ProductVectorBase<ScalarT> >(vec);
    for(std::size_t i=0;i<gidProviders_.size();i++) {
       TEUCHOS_ASSERT(Teuchos::rcp_dynamic_cast<Thyra::SpmdVectorBase<ScalarT> >(p_vec->getNonconstVectorBlock(i))->spmdSpace()->localSubDim()==
-                     Teuchos::as<int>(getMap(i)->getNodeNumElements()));
+                     Teuchos::as<int>(getMap(i)->getLocalNumElements()));
    }
 
    return vec;
@@ -1012,7 +1016,7 @@ buildTpetraGhostedGraph(int i,int j) const
                                                           // same element blocks
 
    // Count number of entries in each row of graph; needed for graph constructor
-   std::vector<size_t> nEntriesPerRow(map_i->getNodeNumElements(), 0);
+   std::vector<size_t> nEntriesPerRow(map_i->getLocalNumElements(), 0);
    std::vector<std::string>::const_iterator blockItr;
    for(blockItr=elementBlockIds.begin();blockItr!=elementBlockIds.end();++blockItr) {
       std::string blockId = *blockItr;
@@ -1036,8 +1040,7 @@ buildTpetraGhostedGraph(int i,int j) const
       }
    }
    Teuchos::ArrayView<const size_t> nEntriesPerRowView(nEntriesPerRow);
-   RCP<CrsGraphType> graph  = rcp(new CrsGraphType(map_i,map_j, nEntriesPerRowView,
-                                                   Tpetra::StaticProfile));
+   RCP<CrsGraphType> graph  = rcp(new CrsGraphType(map_i,map_j, nEntriesPerRowView));
 
 
 
@@ -1114,7 +1117,7 @@ Teuchos::RCP<Tpetra::Vector<ScalarT,LocalOrdinalT,GlobalOrdinalT,NodeT> >
 BlockedTpetraLinearObjFactory<Traits,ScalarT,LocalOrdinalT,GlobalOrdinalT,NodeT>::
 getGhostedTpetraDomainVector(int i) const
 {
-   Teuchos::RCP<const MapType> tMap = getGhostedMap(i); 
+   Teuchos::RCP<const MapType> tMap = getGhostedMap(i);
    return Teuchos::rcp(new VectorType(tMap));
 }
 
@@ -1132,7 +1135,7 @@ Teuchos::RCP<Tpetra::Vector<ScalarT,LocalOrdinalT,GlobalOrdinalT,NodeT> >
 BlockedTpetraLinearObjFactory<Traits,ScalarT,LocalOrdinalT,GlobalOrdinalT,NodeT>::
 getGhostedTpetraRangeVector(int i) const
 {
-   Teuchos::RCP<const MapType> tMap = getGhostedMap(i); 
+   Teuchos::RCP<const MapType> tMap = getGhostedMap(i);
    return Teuchos::rcp(new VectorType(tMap));
 }
 

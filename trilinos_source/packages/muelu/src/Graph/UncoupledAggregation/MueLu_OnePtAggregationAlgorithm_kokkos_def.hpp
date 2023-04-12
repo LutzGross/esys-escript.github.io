@@ -46,8 +46,6 @@
 #ifndef MUELU_ONEPTAGGREGATIONALGORITHM_DEF_HPP
 #define MUELU_ONEPTAGGREGATIONALGORITHM_DEF_HPP
 
-#ifdef HAVE_MUELU_KOKKOS_REFACTOR
-
 #include <Teuchos_Comm.hpp>
 #include <Teuchos_CommHelpers.hpp>
 
@@ -72,11 +70,11 @@ namespace MueLu {
   BuildAggregates(Teuchos::ParameterList const & /* params */,
                   LWGraph_kokkos const & graph,
                   Aggregates_kokkos & aggregates,
-                  Kokkos::View<unsigned*, typename LWGraph_kokkos::memory_space>& aggstat,
+                  Kokkos::View<unsigned*, typename LWGraph_kokkos::device_type>& aggstat,
                   LO& numNonAggregatedNodes) const {
     Monitor m(*this, "BuildAggregates");
 
-    typename Kokkos::View<unsigned*, memory_space>::HostMirror aggstatHost
+    typename Kokkos::View<unsigned*, device_type>::HostMirror aggstatHost
       = Kokkos::create_mirror(aggstat);
     Kokkos::deep_copy(aggstatHost, aggstat);
     std::vector<unsigned> aggStat;
@@ -129,5 +127,4 @@ namespace MueLu {
 
 } // end namespace
 
-#endif // HAVE_MUELU_KOKKOS_REFACTOR
 #endif // MUELU_ONEPTAGGREGATIONALGORITHM_KOKKOS_DEF_HPP

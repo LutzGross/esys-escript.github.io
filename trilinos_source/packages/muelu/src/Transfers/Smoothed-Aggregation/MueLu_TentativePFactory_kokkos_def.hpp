@@ -46,9 +46,8 @@
 #ifndef MUELU_TENTATIVEPFACTORY_KOKKOS_DEF_HPP
 #define MUELU_TENTATIVEPFACTORY_KOKKOS_DEF_HPP
 
-#ifdef HAVE_MUELU_KOKKOS_REFACTOR
-
 #include "Kokkos_UnorderedMap.hpp"
+#include "Xpetra_CrsGraphFactory.hpp"
 
 #include "MueLu_TentativePFactory_kokkos_decl.hpp"
 
@@ -56,11 +55,14 @@
 #include "MueLu_AmalgamationFactory_kokkos.hpp"
 #include "MueLu_AmalgamationInfo_kokkos.hpp"
 #include "MueLu_CoarseMapFactory_kokkos.hpp"
+
 #include "MueLu_MasterList.hpp"
 #include "MueLu_NullspaceFactory_kokkos.hpp"
 #include "MueLu_PerfUtils.hpp"
 #include "MueLu_Monitor.hpp"
 #include "MueLu_Utilities_kokkos.hpp"
+
+#include "Xpetra_IO.hpp"
 
 namespace MueLu {
 
@@ -78,7 +80,7 @@ namespace MueLu {
       }
 
       KOKKOS_INLINE_FUNCTION
-      void join (volatile LocalOrdinal& dst, const volatile LocalOrdinal& src) const {
+      void join (LocalOrdinal& dst, const LocalOrdinal& src) const {
         if (dst < src) {
           dst = src;
         }
@@ -101,11 +103,12 @@ namespace MueLu {
       typedef SCType SC;
 
       typedef typename DeviceType::execution_space execution_space;
-      typedef Kokkos::ArithTraits<SC> ATS;
-      typedef typename ATS::magnitudeType Magnitude;
+      typedef typename Kokkos::ArithTraits<SC>::val_type impl_SC;
+      typedef Kokkos::ArithTraits<impl_SC> impl_ATS;
+      typedef typename impl_ATS::magnitudeType Magnitude;
 
-      typedef Kokkos::View<SC**,typename execution_space::scratch_memory_space, Kokkos::MemoryUnmanaged> shared_matrix;
-      typedef Kokkos::View<SC* ,typename execution_space::scratch_memory_space, Kokkos::MemoryUnmanaged> shared_vector;
+      typedef Kokkos::View<impl_SC**,typename execution_space::scratch_memory_space, Kokkos::MemoryUnmanaged> shared_matrix;
+      typedef Kokkos::View<impl_SC* ,typename execution_space::scratch_memory_space, Kokkos::MemoryUnmanaged> shared_vector;
 
     private:
 
@@ -142,10 +145,10 @@ namespace MueLu {
         // size of aggregate: number of DOFs in aggregate
         auto aggSize = aggRows(agg+1) - aggRows(agg);
 
-        const SC one     = ATS::one();
-        const SC two     = one + one;
-        const SC zero    = ATS::zero();
-        const auto zeroM = ATS::magnitude(zero);
+        const impl_SC one     = impl_ATS::one();
+        const impl_SC two     = one + one;
+        const impl_SC zero    = impl_ATS::zero();
+        const auto zeroM = impl_ATS::magnitude(zero);
 
         int m = aggSize;
         int n = fineNS.extent(1);
@@ -186,8 +189,8 @@ namespace MueLu {
               // FIXME_KOKKOS: use team
               Magnitude s = zeroM, norm, norm_x;
               for (int i = k+1; i < m; i++)
-                s += pow(ATS::magnitude(r(i,k)), 2);
-              norm = sqrt(pow(ATS::magnitude(r(k,k)), 2) + s);
+                s += pow(impl_ATS::magnitude(r(i,k)), 2);
+              norm = sqrt(pow(impl_ATS::magnitude(r(k,k)), 2) + s);
 
               if (norm == zero) {
                 isSingular = true;
@@ -196,7 +199,7 @@ namespace MueLu {
 
               r(k,k) -= norm*one;
 
-              norm_x = sqrt(pow(ATS::magnitude(r(k,k)), 2) + s);
+              norm_x = sqrt(pow(impl_ATS::magnitude(r(k,k)), 2) + s);
               if (norm_x == zeroM) {
                 // We have a single diagonal element in the column.
                 // No reflections required. Just need to restor r(k,k).
@@ -211,7 +214,7 @@ namespace MueLu {
               // Update R(k:m,k+1:n)
               for (int j = k+1; j < n; j++) {
                 // FIXME_KOKKOS: use team in the loops
-                SC si = zero;
+                impl_SC si = zero;
                 for (int i = k; i < m; i++)
                   si += r(i,k) * r(i,j);
                 for (int i = k; i < m; i++)
@@ -221,7 +224,7 @@ namespace MueLu {
               // Update Q^T (k:m,k:m)
               for (int j = k; j < m; j++) {
                 // FIXME_KOKKOS: use team in the loops
-                SC si = zero;
+                impl_SC si = zero;
                 for (int i = k; i < m; i++)
                   si += r(i,k) * qt(i,j);
                 for (int i = k; i < m; i++)
@@ -238,7 +241,7 @@ namespace MueLu {
             // Q = (Q^T)^T
             for (int i = 0; i < m; i++)
               for (int j = 0; j < i; j++) {
-                SC tmp  = qt(i,j);
+                impl_SC tmp  = qt(i,j);
                 qt(i,j) = qt(j,i);
                 qt(j,i) = tmp;
               }
@@ -345,7 +348,7 @@ namespace MueLu {
             size_t rowStart = rowsAux(localRow);
             size_t lnnz = 0;
             for (int k = 0; k < n; k++) {
-              const SC qr_jk = fineNS(localRow,k);
+              const impl_SC qr_jk = fineNS(localRow,k);
               // skip zeros
               if (qr_jk != zero) {
                 colsAux(rowStart+lnnz) = offset + k;
@@ -452,11 +455,18 @@ namespace MueLu {
     }
 
     RCP<Matrix>      Ptentative;
+    // No coarse DoFs so we need to bail by setting Ptentattive to null and returning
+    // This level will ultimately be removed in MueLu_Hierarchy_defs.h via a resize()
+    if ( aggregates->GetNumGlobalAggregatesComputeIfNeeded() == 0) {
+      Ptentative = Teuchos::null;
+      Set(coarseLevel, "P", Ptentative);
+      return;
+    }
     RCP<MultiVector> coarseNullspace;
     RCP<RealValuedMultiVector> coarseCoords;
 
     if(bTransferCoordinates_) {
-      ArrayView<const GO> elementAList = coarseMap->getNodeElementList();
+      ArrayView<const GO> elementAList = coarseMap->getLocalElementList();
       GO                  indexBase    = coarseMap->getIndexBase();
 
       LO blkSize = 1;
@@ -502,8 +512,8 @@ namespace MueLu {
       auto aggGraph = aggregates->GetGraph();
       auto numAggs  = aggGraph.numRows();
 
-      auto fineCoordsView   = fineCoords  ->template getLocalView<DeviceType>();
-      auto coarseCoordsView = coarseCoords->template getLocalView<DeviceType>();
+      auto fineCoordsView   = fineCoords  ->getDeviceLocalView(Xpetra::Access::ReadOnly);
+      auto coarseCoordsView = coarseCoords->getDeviceLocalView(Xpetra::Access::OverwriteAll);
 
       // Fill in coarse coordinates
       {
@@ -530,8 +540,15 @@ namespace MueLu {
       }
     }
 
-    if (!aggregates->AggregatesCrossProcessors())
-      BuildPuncoupled(coarseLevel, A, aggregates, amalgInfo, fineNullspace, coarseMap, Ptentative, coarseNullspace, coarseLevel.GetLevelID());
+    if (!aggregates->AggregatesCrossProcessors()) {
+      if(Xpetra::Helpers<SC,LO,GO,NO>::isTpetraBlockCrs(A)) {
+        BuildPuncoupledBlockCrs(coarseLevel,A, aggregates, amalgInfo, fineNullspace, coarseMap, Ptentative, coarseNullspace,
+                                coarseLevel.GetLevelID());
+      }
+      else {
+        BuildPuncoupled(coarseLevel, A, aggregates, amalgInfo, fineNullspace, coarseMap, Ptentative, coarseNullspace, coarseLevel.GetLevelID());
+      }
+    }
     else
       BuildPcoupled  (A, aggregates, amalgInfo, fineNullspace, coarseMap, Ptentative, coarseNullspace);
 
@@ -554,10 +571,10 @@ namespace MueLu {
     Set(coarseLevel, "Nullspace", coarseNullspace);
     Set(coarseLevel, "P",         Ptentative);
 
-    if (IsPrint(Statistics1)) {
+    if (IsPrint(Statistics2)) {
       RCP<ParameterList> params = rcp(new ParameterList());
       params->set("printLoadBalancingInfo", true);
-      GetOStream(Statistics1) << PerfUtils::PrintMatrixInfo(*Ptentative, "Ptent", params);
+      GetOStream(Statistics2) << PerfUtils::PrintMatrixInfo(*Ptentative, "Ptent", params);
     }
   }
 
@@ -570,12 +587,13 @@ namespace MueLu {
     auto rowMap = A->getRowMap();
     auto colMap = A->getColMap();
 
-    const size_t numRows  = rowMap->getNodeNumElements();
+    const size_t numRows  = rowMap->getLocalNumElements();
     const size_t NSDim    = fineNullspace->getNumVectors();
 
     typedef Kokkos::ArithTraits<SC>     ATS;
-    using impl_ATS = Kokkos::ArithTraits<typename ATS::val_type>;
-    const SC zero = ATS::zero(), one = ATS::one();
+    using impl_SC = typename ATS::val_type;
+    using impl_ATS = Kokkos::ArithTraits<impl_SC>;
+    const impl_SC zero = impl_ATS::zero(), one = impl_ATS::one();
 
     const LO INVALID = Teuchos::OrdinalTraits<LO>::invalid();
 
@@ -613,8 +631,8 @@ namespace MueLu {
     GO globalOffset = amalgInfo->GlobalOffset();
 
     // Extract aggregation info (already in Kokkos host views)
-    auto         procWinner    = aggregates->GetProcWinner()  ->template getLocalView<DeviceType>();
-    auto         vertex2AggId  = aggregates->GetVertex2AggId()->template getLocalView<DeviceType>();
+    auto         procWinner    = aggregates->GetProcWinner()  ->getDeviceLocalView(Xpetra::Access::ReadOnly);
+    auto         vertex2AggId  = aggregates->GetVertex2AggId()->getDeviceLocalView(Xpetra::Access::ReadOnly);
     const size_t numAggregates = aggregates->GetNumAggregates();
 
     int myPID = aggregates->GetMap()->getComm()->getRank();
@@ -707,8 +725,8 @@ namespace MueLu {
     coarseNullspace = MultiVectorFactory::Build(coarseMap, NSDim);
 
     // Pull out the nullspace vectors so that we can have random access (on the device)
-    auto fineNS   = fineNullspace  ->template getLocalView<DeviceType>();
-    auto coarseNS = coarseNullspace->template getLocalView<DeviceType>();
+    auto fineNS   = fineNullspace  ->getDeviceLocalView(Xpetra::Access::ReadWrite);
+    auto coarseNS = coarseNullspace->getDeviceLocalView(Xpetra::Access::OverwriteAll);
 
     size_t nnz = 0;                       // actual number of nnz
 
@@ -802,7 +820,7 @@ namespace MueLu {
             // Q = localQR(:,0)/norm
             for (decltype(aggSize) k = 0; k < aggSize; k++) {
               LO localRow = agg2RowMapLO(aggRows(agg)+k);
-              SC localVal = fineNSRandom(agg2RowMapLO(aggRows(agg)+k),0) / norm;
+              impl_SC localVal = fineNSRandom(agg2RowMapLO(aggRows(agg)+k),0) / norm;
 
               rows(localRow+1) = 1;
               colsAux(localRow) = agg;
@@ -838,7 +856,7 @@ namespace MueLu {
             // Q = localQR(:,0)/norm
             for (decltype(aggSize) k = 0; k < aggSize; k++) {
               LO localRow = agg2RowMapLO(aggRows(agg)+k);
-              SC localVal = fineNSRandom(agg2RowMapLO(aggRows(agg)+k),0);
+              impl_SC localVal = fineNSRandom(agg2RowMapLO(aggRows(agg)+k),0);
 
               rows(localRow+1) = 1;
               colsAux(localRow) = agg;
@@ -946,7 +964,7 @@ namespace MueLu {
       // Stage 3: construct Xpetra::Matrix
       SubFactoryMonitor m2(*this, "Stage 3 (LocalMatrix+FillComplete)", coarseLevel);
 
-      local_matrix_type lclMatrix = local_matrix_type("A", numRows, coarseMap->getNodeNumElements(), nnz, vals, rows, cols);
+      local_matrix_type lclMatrix = local_matrix_type("A", numRows, coarseMap->getLocalNumElements(), nnz, vals, rows, cols);
 
       // Managing labels & constants for ESFC
       RCP<ParameterList> FCparams;
@@ -964,6 +982,313 @@ namespace MueLu {
     }
   }
 
+
+  template <class Scalar,class LocalOrdinal, class GlobalOrdinal, class DeviceType>
+  void TentativePFactory_kokkos<Scalar,LocalOrdinal,GlobalOrdinal,Kokkos::Compat::KokkosDeviceWrapperNode<DeviceType>>::
+    BuildPuncoupledBlockCrs(Level& coarseLevel, RCP<Matrix> A, RCP<Aggregates_kokkos> aggregates,
+                  RCP<AmalgamationInfo_kokkos> amalgInfo, RCP<MultiVector> fineNullspace,
+                  RCP<const Map> coarsePointMap, RCP<Matrix>& Ptentative,
+                  RCP<MultiVector>& coarseNullspace, const int levelID) const {
+#ifdef HAVE_MUELU_TPETRA
+  /* This routine generates a BlockCrs P for a BlockCrs A.  There are a few assumptions here, which meet the use cases we care about, but could
+       be generalized later, if we ever need to do so:
+       1) Null space dimension === block size of matrix:  So no elasticity right now
+       2) QR is not supported:  Under assumption #1, this shouldn't cause problems.
+       3) Maps are "good": Aka the first chunk of the ColMap is the RowMap.
+
+       These assumptions keep our code way simpler and still support the use cases we actually care about.
+     */
+
+    RCP<const Map> rowMap     = A->getRowMap();
+    RCP<const Map> rangeMap   = A->getRangeMap();
+    RCP<const Map> colMap     = A->getColMap();
+    //    const size_t numFinePointRows = rangeMap->getLocalNumElements();
+    const size_t numFineBlockRows = rowMap->getLocalNumElements();
+
+    // typedef Teuchos::ScalarTraits<SC> STS;
+    // typedef typename STS::magnitudeType Magnitude;
+    const LO     INVALID   = Teuchos::OrdinalTraits<LO>::invalid();
+
+    typedef Kokkos::ArithTraits<SC>     ATS;
+    using impl_SC = typename ATS::val_type;
+    using impl_ATS = Kokkos::ArithTraits<impl_SC>;
+    const impl_SC one = impl_ATS::one();
+
+    //    const GO     numAggs   = aggregates->GetNumAggregates();
+    const size_t NSDim     = fineNullspace->getNumVectors();
+    auto aggSizes          = aggregates->ComputeAggregateSizes();
+
+
+    typename Aggregates_kokkos::local_graph_type aggGraph;
+    {
+      SubFactoryMonitor m2(*this, "Get Aggregates graph", coarseLevel);
+      aggGraph = aggregates->GetGraph();
+    }
+    auto aggRows  = aggGraph.row_map;
+    auto aggCols  = aggGraph.entries;
+
+
+    // Need to generate the coarse block map
+    // NOTE: We assume NSDim == block size here
+    // NOTE: We also assume that coarseMap has contiguous GIDs
+    //const size_t numCoarsePointRows = coarsePointMap->getLocalNumElements();
+    const size_t numCoarseBlockRows = coarsePointMap->getLocalNumElements() / NSDim;
+    RCP<const Map> coarseBlockMap = MapFactory::Build(coarsePointMap->lib(),
+                                                      Teuchos::OrdinalTraits<Xpetra::global_size_t>::invalid(),
+                                                      numCoarseBlockRows,
+                                                      coarsePointMap->getIndexBase(),
+                                                      coarsePointMap->getComm());
+    // Sanity checking
+    const ParameterList& pL = GetParameterList();
+    //    const bool &doQRStep = pL.get<bool>("tentative: calculate qr");
+
+
+    // The aggregates use the amalgamated column map, which in this case is what we want
+
+    // Aggregates map is based on the amalgamated column map
+    // We can skip global-to-local conversion if LIDs in row map are
+    // same as LIDs in column map
+    bool goodMap = MueLu::Utilities<SC,LO,GO,NO>::MapsAreNested(*rowMap, *colMap);
+    TEUCHOS_TEST_FOR_EXCEPTION(!goodMap, Exceptions::RuntimeError,
+                               "MueLu: TentativePFactory_kokkos: for now works only with good maps "
+                               "(i.e. \"matching\" row and column maps)");
+
+    // STEP 1: do unamalgamation
+    // The non-kokkos version uses member functions from the AmalgamationInfo
+    // container class to unamalgamate the data. In contrast, the kokkos
+    // version of TentativePFactory does the unamalgamation here and only uses
+    // the data of the AmalgamationInfo container class
+
+    // Extract information for unamalgamation
+    LO fullBlockSize, blockID, stridingOffset, stridedBlockSize;
+    GO indexBase;
+    amalgInfo->GetStridingInformation(fullBlockSize, blockID, stridingOffset, stridedBlockSize, indexBase);
+    //GO globalOffset = amalgInfo->GlobalOffset();
+
+    // Extract aggregation info (already in Kokkos host views)
+    auto         procWinner    = aggregates->GetProcWinner()  ->getDeviceLocalView(Xpetra::Access::ReadOnly);
+    auto         vertex2AggId  = aggregates->GetVertex2AggId()->getDeviceLocalView(Xpetra::Access::ReadOnly);
+    const size_t numAggregates = aggregates->GetNumAggregates();
+
+    int myPID = aggregates->GetMap()->getComm()->getRank();
+
+    // Create Kokkos::View (on the device) to store the aggreate dof sizes
+    // Later used to get aggregate dof offsets
+    // NOTE: This zeros itself on construction
+    typedef typename Aggregates_kokkos::aggregates_sizes_type::non_const_type AggSizeType;
+    AggSizeType aggDofSizes; // This turns into "starts" after the parallel_scan
+
+    {
+      SubFactoryMonitor m2(*this, "Calc AggSizes", coarseLevel);
+
+      // FIXME_KOKKOS: use ViewAllocateWithoutInitializing + set a single value
+      aggDofSizes = AggSizeType("agg_dof_sizes", numAggregates+1);
+
+      Kokkos::deep_copy(Kokkos::subview(aggDofSizes, Kokkos::make_pair(static_cast<size_t>(1), numAggregates+1)), aggSizes);
+    }
+
+    // Find maximum dof size for aggregates
+    // Later used to reserve enough scratch space for local QR decompositions
+    LO maxAggSize = 0;
+    ReduceMaxFunctor<LO,decltype(aggDofSizes)> reduceMax(aggDofSizes);
+    Kokkos::parallel_reduce("MueLu:TentativePF:Build:max_agg_size", range_type(0, aggDofSizes.extent(0)), reduceMax, maxAggSize);
+
+    // parallel_scan (exclusive)
+    // The aggDofSizes View then contains the aggregate dof offsets
+    Kokkos::parallel_scan("MueLu:TentativePF:Build:aggregate_sizes:stage1_scan", range_type(0,numAggregates+1),
+      KOKKOS_LAMBDA(const LO i, LO& update, const bool& final_pass) {
+        update += aggDofSizes(i);
+        if (final_pass)
+          aggDofSizes(i) = update;
+      });
+
+    // Create Kokkos::View on the device to store mapping
+    // between (local) aggregate id and row map ids (LIDs)
+    Kokkos::View<LO*, DeviceType> aggToRowMapLO(Kokkos::ViewAllocateWithoutInitializing("aggtorow_map_LO"), numFineBlockRows);
+    {
+      SubFactoryMonitor m2(*this, "Create AggToRowMap", coarseLevel);
+
+      AggSizeType aggOffsets(Kokkos::ViewAllocateWithoutInitializing("aggOffsets"), numAggregates);
+      Kokkos::deep_copy(aggOffsets, Kokkos::subview(aggDofSizes, Kokkos::make_pair(static_cast<size_t>(0), numAggregates)));
+
+      Kokkos::parallel_for("MueLu:TentativePF:Build:createAgg2RowMap", range_type(0, vertex2AggId.extent(0)),
+        KOKKOS_LAMBDA(const LO lnode) {
+          if (procWinner(lnode, 0) == myPID) {
+            // No need for atomics, it's one-to-one
+            auto aggID = vertex2AggId(lnode,0);
+
+            auto offset = Kokkos::atomic_fetch_add( &aggOffsets(aggID), stridedBlockSize );
+            // FIXME: I think this may be wrong
+            // We unconditionally add the whole block here. When we calculated
+            // aggDofSizes, we did the isLocalElement check. Something's fishy.
+            for (LO k = 0; k < stridedBlockSize; k++)
+              aggToRowMapLO(offset + k) = lnode*stridedBlockSize + k;
+          }
+        });
+    }
+
+    // STEP 2: prepare local QR decomposition
+    // Reserve memory for tentative prolongation operator
+    coarseNullspace = MultiVectorFactory::Build(coarsePointMap, NSDim);
+
+    // Pull out the nullspace vectors so that we can have random access (on the device)
+    auto fineNS   = fineNullspace  ->getDeviceLocalView(Xpetra::Access::ReadWrite);
+    auto coarseNS = coarseNullspace->getDeviceLocalView(Xpetra::Access::OverwriteAll);
+
+    typedef typename Xpetra::Matrix<SC,LO,GO,NO>::local_matrix_type    local_matrix_type;
+    typedef typename local_matrix_type::row_map_type::non_const_type   rows_type;
+    typedef typename local_matrix_type::index_type::non_const_type     cols_type;
+    // typedef typename local_matrix_type::values_type::non_const_type    vals_type;
+
+
+    // Device View for status (error messages...)
+    typedef Kokkos::View<int[10], DeviceType> status_type;
+    status_type status("status");
+
+    typename AppendTrait<decltype(fineNS), Kokkos::RandomAccess>::type fineNSRandom = fineNS;
+    typename AppendTrait<status_type,      Kokkos::Atomic>      ::type statusAtomic = status;
+
+    // We're going to bypass QR in the BlockCrs version of the code regardless of what the user asks for
+    GetOStream(Runtime1) << "TentativePFactory : bypassing local QR phase" << std::endl;
+
+    // BlockCrs requires that we build the (block) graph first, so let's do that...
+
+    // NOTE: Because we're assuming that the NSDim == BlockSize, we only have one
+    // block non-zero per row in the matrix;
+    rows_type ia(Kokkos::ViewAllocateWithoutInitializing("BlockGraph_rowptr"), numFineBlockRows+1);
+    cols_type ja(Kokkos::ViewAllocateWithoutInitializing("BlockGraph_colind"), numFineBlockRows);
+
+    Kokkos::parallel_for("MueLu:TentativePF:BlockCrs:graph_init", range_type(0, numFineBlockRows),
+                         KOKKOS_LAMBDA(const LO j) {
+                           ia[j] = j;
+                           ja[j] = INVALID;
+
+                           if(j==(LO)numFineBlockRows-1)
+                             ia[numFineBlockRows] = numFineBlockRows;
+                         });
+
+    // Fill Graph
+    const Kokkos::TeamPolicy<execution_space> policy(numAggregates, 1);
+    Kokkos::parallel_for("MueLu:TentativePF:BlockCrs:fillGraph", policy,
+                         KOKKOS_LAMBDA(const typename Kokkos::TeamPolicy<execution_space>::member_type &thread) {
+                           auto agg = thread.league_rank();
+                           Xpetra::global_size_t offset = agg;
+                           
+                           // size of the aggregate (number of DOFs in aggregate)
+                           LO aggSize = aggRows(agg+1) - aggRows(agg);
+                           
+                           for (LO j = 0; j < aggSize; j++) {
+                             // FIXME: Allow for bad maps
+                             const LO localRow = aggToRowMapLO[aggDofSizes[agg]+j];
+                             const size_t rowStart = ia[localRow];
+                             ja[rowStart] = offset;
+                           }
+                         });
+
+    // Compress storage (remove all INVALID, which happen when we skip zeros)
+    // We do that in-place
+    {
+      // Stage 2: compress the arrays
+      SubFactoryMonitor m2(*this, "Stage 2 (CompressData)", coarseLevel);
+      // Fill i_temp with the correct row starts
+      rows_type i_temp(Kokkos::ViewAllocateWithoutInitializing("BlockGraph_rowptr"), numFineBlockRows+1);
+      LO nnz=0;
+      Kokkos::parallel_scan("MueLu:TentativePF:BlockCrs:compress_rows", range_type(0,numFineBlockRows),
+                            KOKKOS_LAMBDA(const LO i, LO& upd, const bool& final) {
+                              if(final)
+                                i_temp[i] = upd;
+                              for (auto j = ia[i]; j < ia[i+1]; j++)
+                                if (ja[j] != INVALID)
+                                  upd++;
+                              if(final && i == (LO) numFineBlockRows-1)
+                                i_temp[numFineBlockRows] = upd;
+                            },nnz);
+
+      cols_type j_temp(Kokkos::ViewAllocateWithoutInitializing("BlockGraph_colind"), nnz);
+      
+      
+      Kokkos::parallel_for("MueLu:TentativePF:BlockCrs:compress_cols", range_type(0,numFineBlockRows),
+                           KOKKOS_LAMBDA(const LO i) {
+                             size_t rowStart = i_temp[i];
+                             size_t lnnz = 0;
+                             for (auto j = ia[i]; j < ia[i+1]; j++)
+                               if (ja[j] != INVALID) {
+                                 j_temp[rowStart+lnnz] = ja[j];
+                                 lnnz++;
+                               }
+                           });
+      
+      ia = i_temp;
+      ja = j_temp;
+    }
+    
+    RCP<CrsGraph> BlockGraph = CrsGraphFactory::Build(rowMap,coarseBlockMap,ia,ja);
+ 
+
+    // Managing labels & constants for ESFC
+    {
+      RCP<ParameterList> FCparams;
+      if(pL.isSublist("matrixmatrix: kernel params"))
+        FCparams=rcp(new ParameterList(pL.sublist("matrixmatrix: kernel params")));
+      else
+        FCparams= rcp(new ParameterList);
+      // By default, we don't need global constants for TentativeP
+      FCparams->set("compute global constants",FCparams->get("compute global constants",false));
+      std::string levelIDs = toString(levelID);
+      FCparams->set("Timer Label",std::string("MueLu::TentativeP-")+levelIDs);
+      RCP<const Export> dummy_e;
+      RCP<const Import> dummy_i;
+      BlockGraph->expertStaticFillComplete(coarseBlockMap,rowMap,dummy_i,dummy_e,FCparams);
+    }
+
+    // We can't leave the ia/ja pointers floating around, because of host/device view counting, so
+    // we clear them here
+    ia = rows_type();
+    ja = cols_type();
+
+    
+    // Now let's make a BlockCrs Matrix
+    // NOTE: Assumes block size== NSDim
+    RCP<Xpetra::CrsMatrix<SC,LO,GO,NO> > P_xpetra = Xpetra::CrsMatrixFactory<SC,LO,GO,NO>::BuildBlock(BlockGraph, coarsePointMap, rangeMap,NSDim);
+    RCP<Xpetra::TpetraBlockCrsMatrix<SC,LO,GO,NO> > P_tpetra = rcp_dynamic_cast<Xpetra::TpetraBlockCrsMatrix<SC,LO,GO,NO> >(P_xpetra);
+    if(P_tpetra.is_null()) throw std::runtime_error("BuildPUncoupled: Matrix factory did not return a Tpetra::BlockCrsMatrix");
+    RCP<CrsMatrixWrap> P_wrap = rcp(new CrsMatrixWrap(P_xpetra));
+
+    auto values = P_tpetra->getTpetra_BlockCrsMatrix()->getValuesDeviceNonConst();
+    const LO stride = NSDim*NSDim;
+
+    Kokkos::parallel_for("MueLu:TentativePF:BlockCrs:main_loop_noqr", policy,
+                         KOKKOS_LAMBDA(const typename Kokkos::TeamPolicy<execution_space>::member_type &thread) {
+                           auto agg = thread.league_rank();
+                           
+                           // size of the aggregate (number of DOFs in aggregate)
+                           LO aggSize = aggRows(agg+1) - aggRows(agg);
+                           Xpetra::global_size_t offset = agg*NSDim;
+
+                           // Q = localQR(:,0)/norm
+                           for (LO j = 0; j < aggSize; j++) {
+                             LO localBlockRow = aggToRowMapLO(aggRows(agg)+j);
+                             LO rowStart = localBlockRow * stride;
+                             for (LO r = 0; r < (LO)NSDim; r++) {
+                               LO localPointRow = localBlockRow*NSDim + r;
+                               for (LO c = 0; c < (LO)NSDim; c++) {
+                                 values[rowStart + r*NSDim + c] = fineNSRandom(localPointRow,c);
+                               }
+                             }
+                           }
+
+                           // R = norm
+                           for(LO j=0; j<(LO)NSDim; j++)
+                             coarseNS(offset+j,j) = one;
+                         });
+
+  Ptentative = P_wrap;
+
+#else
+    throw std::runtime_error("TentativePFactory::BuildPuncoupledBlockCrs: Requires Tpetra");
+#endif
+  }
+
   template <class Scalar,class LocalOrdinal, class GlobalOrdinal, class DeviceType>
   void TentativePFactory_kokkos<Scalar,LocalOrdinal,GlobalOrdinal,Kokkos::Compat::KokkosDeviceWrapperNode<DeviceType>>::
   BuildPcoupled(RCP<Matrix> /* A */, RCP<Aggregates_kokkos> /* aggregates */,
@@ -979,8 +1304,8 @@ namespace MueLu {
     auto rowLocalMap = rowMap.getLocalMap();
     auto colLocalMap = colMap.getLocalMap();
 
-    const size_t numRows = rowLocalMap.getNodeNumElements();
-    const size_t numCols = colLocalMap.getNodeNumElements();
+    const size_t numRows = rowLocalMap.getLocalNumElements();
+    const size_t numCols = colLocalMap.getLocalNumElements();
 
     if (numCols < numRows)
       return false;
@@ -997,5 +1322,4 @@ namespace MueLu {
 } //namespace MueLu
 
 #define MUELU_TENTATIVEPFACTORY_KOKKOS_SHORT
-#endif // HAVE_MUELU_KOKKOS_REFACTOR
 #endif // MUELU_TENTATIVEPFACTORY_KOKKOS_DEF_HPP

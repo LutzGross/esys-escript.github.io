@@ -39,16 +39,11 @@
 #include <stk_mesh/base/MetaData.hpp>   // for MetaData
 #include "mpi.h"                        // for MPI_COMM_WORLD, etc
 
-#include "stk_mesh/base/BulkDataInlinedMethods.hpp"
 #include "stk_mesh/base/Types.hpp"      // for EntityIdVector, EntityId
 #include "stk_topology/topology.hpp"    // for topology, etc
 #include "stk_unit_test_utils/stk_mesh_fixtures/HexFixture.hpp"  // for HexFixture
 #include "stk_util/parallel/Parallel.hpp"  // for ParallelMachine
 namespace stk { namespace mesh { class Part; } }
-
-
-
-
 
 TEST( UnitTestDeclareElement , inject_shell )
 {
@@ -59,7 +54,7 @@ TEST( UnitTestDeclareElement , inject_shell )
 
   // Create the fixture, adding a part for the shell
 
-  stk::mesh::fixtures::HexFixture fixture( pm , 2 , 1 , 1 );
+  stk::mesh::fixtures::simple_fields::HexFixture fixture( pm , 2 , 1 , 1 );
 
   const int p_rank = fixture.m_bulk_data.parallel_rank();
 

@@ -74,7 +74,7 @@ namespace MueLu{
     using impl_scalar_type = typename Kokkos::Details::ArithTraits<real_type>::val_type;
     using coord_view_type  = typename Kokkos::View<impl_scalar_type**,
                                                    Kokkos::LayoutLeft,
-                                                   execution_space>;
+                                                   device_type>;
 
     //! @name Constructors/Destructors.
     //@{
@@ -123,8 +123,8 @@ namespace MueLu{
 
     //@}
 
-  private:
     void BuildConstantP(RCP<Matrix>& P, RCP<const CrsGraph>& prolongatorGraph, RCP<Matrix>& A) const;
+  private:
     void BuildLinearP(RCP<Matrix>& A, RCP<const CrsGraph>& prolongatorGraph,
                       RCP<realvaluedmultivector_type>& fineCoordinates,
                       RCP<realvaluedmultivector_type>& ghostCoordinates,

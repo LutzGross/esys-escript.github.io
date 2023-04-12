@@ -1,11 +1,12 @@
-// Copyright(C) 1999-2020 National Technology & Engineering Solutions
+// Copyright(C) 1999-2022 National Technology & Engineering Solutions
 // of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 // NTESS, the U.S. Government retains certain rights in this software.
-// 
+//
 // See packages/seacas/LICENSE for details
 
-#ifndef IOSS_Iogn_DashSurfaceMesh_h
-#define IOSS_Iogn_DashSurfaceMesh_h
+#pragma once
+
+#include "iogn_export.h"
 
 #include <Ioss_Beam2.h>
 #include <Ioss_Hex8.h>
@@ -22,7 +23,7 @@ namespace Iogn {
 
   enum { INVALID = -1, NUMBER_OF_SURFACES = 2, SPATIAL_DIMENSION = 3, NUM_NODES_PER_QUAD_FACE = 4 };
 
-  struct SharedNode
+  struct IOGN_EXPORT SharedNode
   {
     SharedNode() = default;
     int nodeId{-1};
@@ -41,7 +42,7 @@ namespace Iogn {
     throw std::exception();
   }
 
-  struct ExodusData
+  struct IOGN_EXPORT ExodusData
   {
     std::vector<double>                 coordinates{};
     const std::vector<std::vector<int>> elementBlockConnectivity;
@@ -65,27 +66,27 @@ namespace Iogn {
     std::vector<std::vector<std::string>> sidesetTouchingBlocks;
 
     ExodusData() {}
-    ExodusData(const std::vector<double>           coords,
-               const std::vector<std::vector<int>> elemBlockConnectivity,
-               const std::vector<int>              globalNumOfElemsInBlock,
-               const std::vector<int>              localNumOfElemsInBlock,
-               const std::vector<Topology> blockTopoData, int globalNumNodes,
-               const std::vector<int>                globalIdsOfLocalElems,
-               const std::vector<int>                globalIdsLocalNodes,
+    ExodusData(std::vector<double> coords, std::vector<std::vector<int>> elemBlockConnectivity,
+               std::vector<int> globalNumOfElemsInBlock, std::vector<int> localNumOfElemsInBlock,
+               std::vector<Topology> blockTopoData, int globalNumNodes,
+               std::vector<int> globalIdsOfLocalElems, std::vector<int> globalIdsLocalNodes,
                std::vector<std::vector<int>>         sidesetConn = std::vector<std::vector<int>>(),
                std::vector<std::vector<std::string>> sidesetBlocks =
                    std::vector<std::vector<std::string>>())
-        : coordinates(coords), elementBlockConnectivity(elemBlockConnectivity),
-          globalNumberOfElementsInBlock(globalNumOfElemsInBlock),
-          localNumberOfElementsInBlock(localNumOfElemsInBlock), blockTopologicalData(blockTopoData),
-          globalNumberOfNodes(globalNumNodes), globalIdsOfLocalElements(globalIdsOfLocalElems),
-          globalIdsOfLocalNodes(globalIdsLocalNodes), sidesetConnectivity(std::move(sidesetConn)),
+        : coordinates(std::move(coords)),
+          elementBlockConnectivity(std::move(elemBlockConnectivity)),
+          globalNumberOfElementsInBlock(std::move(globalNumOfElemsInBlock)),
+          localNumberOfElementsInBlock(std::move(localNumOfElemsInBlock)),
+          blockTopologicalData(std::move(blockTopoData)), globalNumberOfNodes(globalNumNodes),
+          globalIdsOfLocalElements(std::move(globalIdsOfLocalElems)),
+          globalIdsOfLocalNodes(std::move(globalIdsLocalNodes)),
+          sidesetConnectivity(std::move(sidesetConn)),
           sidesetTouchingBlocks(std::move(sidesetBlocks))
     {
     }
   };
 
-  struct DashSurfaceData
+  struct IOGN_EXPORT DashSurfaceData
   {
     const std::vector<double> coordinates{};
     const std::vector<int>    surfaceAConnectivity{};
@@ -102,10 +103,10 @@ namespace Iogn {
 
     std::vector<SharedNode> sharedNodes{};
 
-    DashSurfaceData(const std::vector<double> &coords, const std::vector<int> &connectivity1,
-                    const std::vector<int> &connectivity2)
-        : coordinates(coords), surfaceAConnectivity(connectivity1),
-          surfaceBConnectivity(connectivity2)
+    DashSurfaceData(std::vector<double> coords, std::vector<int> connectivity1,
+                    std::vector<int> connectivity2)
+        : coordinates(std::move(coords)), surfaceAConnectivity(std::move(connectivity1)),
+          surfaceBConnectivity(std::move(connectivity2))
     {
       this->setSerialDefaults();
     }
@@ -132,7 +133,7 @@ namespace Iogn {
     }
   };
 
-  class DashSurfaceMesh : public GeneratedMesh
+  class IOGN_EXPORT DashSurfaceMesh : public GeneratedMesh
   {
   public:
     explicit DashSurfaceMesh(DashSurfaceData &dashSurfaceData) : mDashSurfaceData(dashSurfaceData)
@@ -149,12 +150,12 @@ namespace Iogn {
     int64_t element_count_proc() const override;
     int64_t element_count_proc(int64_t block_number) const override;
 
-    int64_t block_count() const override;
+    int block_count() const override;
 
-    int64_t nodeset_count() const override;
+    int     nodeset_count() const override;
     int64_t nodeset_node_count_proc(int64_t id) const override;
 
-    int64_t sideset_count() const override;
+    int     sideset_count() const override;
     int64_t sideset_side_count_proc(int64_t id) const override;
 
     int64_t communication_node_count_proc() const override;
@@ -190,7 +191,7 @@ namespace Iogn {
     DashSurfaceData mDashSurfaceData;
   };
 
-  class ExodusMesh : public GeneratedMesh
+  class IOGN_EXPORT ExodusMesh : public GeneratedMesh
   {
   public:
     explicit ExodusMesh(const ExodusData &exodusData);
@@ -205,12 +206,12 @@ namespace Iogn {
     int64_t element_count_proc() const override;
     int64_t element_count_proc(int64_t blockNumber) const override;
 
-    int64_t block_count() const override;
+    int block_count() const override;
 
-    int64_t nodeset_count() const override;
+    int     nodeset_count() const override;
     int64_t nodeset_node_count_proc(int64_t id) const override;
 
-    int64_t sideset_count() const override;
+    int     sideset_count() const override;
     int64_t sideset_side_count_proc(int64_t id) const override;
 
     int64_t communication_node_count_proc() const override;
@@ -248,9 +249,7 @@ namespace Iogn {
     int64_t mGlobalNumberOfElements;
     int64_t mLocalNumberOfElements;
 
-    const ExodusData &   mExodusData;
+    const ExodusData    &mExodusData;
     std::vector<int64_t> mElementOffsetForBlock;
   };
 } // namespace Iogn
-
-#endif

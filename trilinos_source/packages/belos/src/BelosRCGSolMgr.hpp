@@ -58,7 +58,6 @@
 #include "BelosStatusTestCombo.hpp"
 #include "BelosStatusTestOutputFactory.hpp"
 #include "BelosOutputManager.hpp"
-#include "Teuchos_BLAS.hpp"
 #include "Teuchos_LAPACK.hpp"
 #include "Teuchos_as.hpp"
 #ifdef BELOS_TEUCHOS_TIME_MONITOR
@@ -127,16 +126,6 @@ namespace Belos {
    */
   class RCGSolMgrLAPACKFailure : public BelosError {public:
     RCGSolMgrLAPACKFailure(const std::string& what_arg) : BelosError(what_arg)
-    {}};
-
-  /** \brief RCGSolMgrRecyclingFailure is thrown when any problem occurs in using/creating
-   * the recycling subspace.
-   *
-   * This exception is thrown from the RCGSolMgr::solve() method.
-   *
-   */
-  class RCGSolMgrRecyclingFailure : public BelosError {public:
-    RCGSolMgrRecyclingFailure(const std::string& what_arg) : BelosError(what_arg)
     {}};
 
   //@}
@@ -373,7 +362,6 @@ namespace Belos {
     static constexpr int outputStyle_default_ = Belos::General;
     static constexpr int outputFreq_default_ = -1;
     static constexpr const char * label_default_ = "Belos";
-    static constexpr std::ostream * outputStream_default_ = &std::cout;
 
     //
     // Current solver values.
@@ -501,7 +489,7 @@ RCGSolMgr<ScalarType,MV,OP,true>::RCGSolMgr(
 template<class ScalarType, class MV, class OP>
 void RCGSolMgr<ScalarType,MV,OP,true>::init()
 {
-  outputStream_ = Teuchos::rcp(outputStream_default_,false);
+  outputStream_ = Teuchos::rcpFromRef(std::cout);
   convtol_ = DefaultSolverParameters::convTol;
   maxIters_ = maxIters_default_;
   numBlocks_ = numBlocks_default_;
@@ -759,7 +747,7 @@ RCGSolMgr<ScalarType,MV,OP,true>::getValidParameters() const
     pl->set("Output Frequency", static_cast<int>(outputFreq_default_),
       "How often convergence information should be outputted\n"
       "to the output stream.");
-    pl->set("Output Stream", Teuchos::rcp(outputStream_default_,false),
+    pl->set("Output Stream", Teuchos::rcpFromRef(std::cout),
       "A reference-counted pointer to the output stream where all\n"
       "solver output is sent.");
     pl->set("Show Maximum Residual Norm Only", static_cast<bool>(showMaxResNormOnly_default_),

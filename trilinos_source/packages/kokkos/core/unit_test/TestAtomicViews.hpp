@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <Kokkos_Core.hpp>
 
@@ -66,32 +38,30 @@ struct TestViewOperator_LeftAndRight;
 
 template <class DataType, class DeviceType>
 struct TestViewOperator_LeftAndRight<DataType, DeviceType, 1> {
-  typedef typename DeviceType::execution_space execution_space;
-  typedef typename DeviceType::memory_space memory_space;
-  typedef typename execution_space::size_type size_type;
+  using execution_space = typename DeviceType::execution_space;
+  using memory_space    = typename DeviceType::memory_space;
+  using size_type       = typename execution_space::size_type;
 
-  typedef int value_type;
+  using value_type = int;
 
   KOKKOS_INLINE_FUNCTION
-  static void join(volatile value_type& update,
-                   const volatile value_type& input) {
+  static void join(value_type& update, const value_type& input) {
     update |= input;
   }
 
   KOKKOS_INLINE_FUNCTION
   static void init(value_type& update) { update = 0; }
 
-  typedef Kokkos::View<DataType, Kokkos::LayoutLeft, execution_space,
-                       Kokkos::MemoryTraits<Kokkos::Atomic> >
-      left_view;
+  using left_view = Kokkos::View<DataType, Kokkos::LayoutLeft, execution_space,
+                                 Kokkos::MemoryTraits<Kokkos::Atomic> >;
 
-  typedef Kokkos::View<DataType, Kokkos::LayoutRight, execution_space,
-                       Kokkos::MemoryTraits<Kokkos::Atomic> >
-      right_view;
+  using right_view =
+      Kokkos::View<DataType, Kokkos::LayoutRight, execution_space,
+                   Kokkos::MemoryTraits<Kokkos::Atomic> >;
 
-  typedef Kokkos::View<DataType, Kokkos::LayoutStride, execution_space,
-                       Kokkos::MemoryTraits<Kokkos::Atomic> >
-      stride_view;
+  using stride_view =
+      Kokkos::View<DataType, Kokkos::LayoutStride, execution_space,
+                   Kokkos::MemoryTraits<Kokkos::Atomic> >;
 
   left_view left;
   right_view right;
@@ -123,21 +93,12 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 1> {
     for (unsigned i0 = 0; i0 < unsigned(left.extent(0)); ++i0) {
       // Below checks that values match, but unable to check the references.
       // Should this be able to be checked?
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-      if (left(i0) != left(i0, 0, 0, 0, 0, 0, 0, 0)) {
-        update |= 3;
-      }
-      if (right(i0) != right(i0, 0, 0, 0, 0, 0, 0, 0)) {
-        update |= 3;
-      }
-#else
       if (left(i0) != left.access(i0, 0, 0, 0, 0, 0, 0, 0)) {
         update |= 3;
       }
       if (right(i0) != right.access(i0, 0, 0, 0, 0, 0, 0, 0)) {
         update |= 3;
       }
-#endif
       if (left(i0) != left_stride(i0)) {
         update |= 4;
       }
@@ -157,42 +118,42 @@ struct TestViewOperator_LeftAndRight<DataType, DeviceType, 1> {
 template <typename T, class DeviceType>
 class TestAtomicViewAPI {
  public:
-  typedef DeviceType device;
+  using device = DeviceType;
 
   enum { N0 = 1000, N1 = 3, N2 = 5, N3 = 7 };
 
-  typedef Kokkos::View<T, device> dView0;
-  typedef Kokkos::View<T*, device> dView1;
-  typedef Kokkos::View<T * [N1], device> dView2;
-  typedef Kokkos::View<T * [N1][N2], device> dView3;
-  typedef Kokkos::View<T * [N1][N2][N3], device> dView4;
-  typedef Kokkos::View<const T * [N1][N2][N3], device> const_dView4;
-  typedef Kokkos::View<T****, device, Kokkos::MemoryUnmanaged> dView4_unmanaged;
-  typedef typename dView0::host_mirror_space host;
+  using dView0           = Kokkos::View<T, device>;
+  using dView1           = Kokkos::View<T*, device>;
+  using dView2           = Kokkos::View<T * [N1], device>;
+  using dView3           = Kokkos::View<T * [N1][N2], device>;
+  using dView4           = Kokkos::View<T * [N1][N2][N3], device>;
+  using const_dView4     = Kokkos::View<const T * [N1][N2][N3], device>;
+  using dView4_unmanaged = Kokkos::View<T****, device, Kokkos::MemoryUnmanaged>;
+  using host             = typename dView0::host_mirror_space;
 
-  typedef Kokkos::View<T, device, Kokkos::MemoryTraits<Kokkos::Atomic> > aView0;
-  typedef Kokkos::View<T*, device, Kokkos::MemoryTraits<Kokkos::Atomic> >
-      aView1;
-  typedef Kokkos::View<T * [N1], device, Kokkos::MemoryTraits<Kokkos::Atomic> >
-      aView2;
-  typedef Kokkos::View<T * [N1][N2], device,
-                       Kokkos::MemoryTraits<Kokkos::Atomic> >
-      aView3;
-  typedef Kokkos::View<T * [N1][N2][N3], device,
-                       Kokkos::MemoryTraits<Kokkos::Atomic> >
-      aView4;
-  typedef Kokkos::View<const T * [N1][N2][N3], device,
-                       Kokkos::MemoryTraits<Kokkos::Atomic> >
-      const_aView4;
+  using aView0 = Kokkos::View<T, device, Kokkos::MemoryTraits<Kokkos::Atomic> >;
+  using aView1 =
+      Kokkos::View<T*, device, Kokkos::MemoryTraits<Kokkos::Atomic> >;
+  using aView2 =
+      Kokkos::View<T * [N1], device, Kokkos::MemoryTraits<Kokkos::Atomic> >;
+  using aView3 =
+      Kokkos::View<T * [N1][N2], device, Kokkos::MemoryTraits<Kokkos::Atomic> >;
+  using aView4       = Kokkos::View<T * [N1][N2][N3], device,
+                              Kokkos::MemoryTraits<Kokkos::Atomic> >;
+  using const_aView4 = Kokkos::View<const T * [N1][N2][N3], device,
+                                    Kokkos::MemoryTraits<Kokkos::Atomic> >;
 
-  typedef Kokkos::View<
-      T****, device, Kokkos::MemoryTraits<Kokkos::Unmanaged | Kokkos::Atomic> >
-      aView4_unmanaged;
+  using aView4_unmanaged =
+      Kokkos::View<T****, device,
+                   Kokkos::MemoryTraits<Kokkos::Unmanaged | Kokkos::Atomic> >;
 
-  typedef typename aView0::host_mirror_space host_atomic;
+  using host_atomic = typename aView0::host_mirror_space;
 
   TestAtomicViewAPI() {
+    // FIXME_OPENMPTARGET
+#ifndef KOKKOS_ENABLE_OPENMPTARGET
     TestViewOperator_LeftAndRight<int[2], device>::testit();
+#endif
     run_test_rank0();
     run_test_rank4();
     run_test_const();
@@ -204,19 +165,19 @@ class TestAtomicViewAPI {
 
     dx = dView0("dx");
     dy = dView0("dy");
-    ASSERT_EQ(dx.use_count(), size_t(1));
-    ASSERT_EQ(dy.use_count(), size_t(1));
+    ASSERT_EQ(dx.use_count(), 1);
+    ASSERT_EQ(dy.use_count(), 1);
 
     ax = dx;
     ay = dy;
-    ASSERT_EQ(dx.use_count(), size_t(2));
-    ASSERT_EQ(dy.use_count(), size_t(2));
+    ASSERT_EQ(dx.use_count(), 2);
+    ASSERT_EQ(dy.use_count(), 2);
     ASSERT_EQ(dx.use_count(), ax.use_count());
 
     az = ax;
-    ASSERT_EQ(dx.use_count(), size_t(3));
-    ASSERT_EQ(ax.use_count(), size_t(3));
-    ASSERT_EQ(az.use_count(), size_t(3));
+    ASSERT_EQ(dx.use_count(), 3);
+    ASSERT_EQ(ax.use_count(), 3);
+    ASSERT_EQ(az.use_count(), 3);
     ASSERT_EQ(az.use_count(), ax.use_count());
   }
 
@@ -226,40 +187,40 @@ class TestAtomicViewAPI {
 
     dx = dView4("dx", N0);
     dy = dView4("dy", N0);
-    ASSERT_EQ(dx.use_count(), size_t(1));
-    ASSERT_EQ(dy.use_count(), size_t(1));
+    ASSERT_EQ(dx.use_count(), 1);
+    ASSERT_EQ(dy.use_count(), 1);
 
     ax = dx;
     ay = dy;
-    ASSERT_EQ(dx.use_count(), size_t(2));
-    ASSERT_EQ(dy.use_count(), size_t(2));
+    ASSERT_EQ(dx.use_count(), 2);
+    ASSERT_EQ(dy.use_count(), 2);
     ASSERT_EQ(dx.use_count(), ax.use_count());
 
     dView4_unmanaged unmanaged_dx = dx;
-    ASSERT_EQ(dx.use_count(), size_t(2));
+    ASSERT_EQ(dx.use_count(), 2);
 
     az = ax;
-    ASSERT_EQ(dx.use_count(), size_t(3));
-    ASSERT_EQ(ax.use_count(), size_t(3));
-    ASSERT_EQ(az.use_count(), size_t(3));
+    ASSERT_EQ(dx.use_count(), 3);
+    ASSERT_EQ(ax.use_count(), 3);
+    ASSERT_EQ(az.use_count(), 3);
     ASSERT_EQ(az.use_count(), ax.use_count());
 
     aView4_unmanaged unmanaged_ax = ax;
-    ASSERT_EQ(ax.use_count(), size_t(3));
+    ASSERT_EQ(ax.use_count(), 3);
 
     aView4_unmanaged unmanaged_ax_from_ptr_dx = aView4_unmanaged(
         dx.data(), dx.extent(0), dx.extent(1), dx.extent(2), dx.extent(3));
-    ASSERT_EQ(ax.use_count(), size_t(3));
+    ASSERT_EQ(ax.use_count(), 3);
 
     const_aView4 const_ax = ax;
-    ASSERT_EQ(ax.use_count(), size_t(4));
+    ASSERT_EQ(ax.use_count(), 4);
     ASSERT_EQ(const_ax.use_count(), ax.use_count());
 
-    ASSERT_FALSE(ax.data() == nullptr);
-    ASSERT_FALSE(const_ax.data() == nullptr);  // referenceable ptr
-    ASSERT_FALSE(unmanaged_ax.data() == nullptr);
-    ASSERT_FALSE(unmanaged_ax_from_ptr_dx.data() == nullptr);
-    ASSERT_FALSE(ay.data() == nullptr);
+    ASSERT_NE(ax.data(), nullptr);
+    ASSERT_NE(const_ax.data(), nullptr);  // referenceable ptr
+    ASSERT_NE(unmanaged_ax.data(), nullptr);
+    ASSERT_NE(unmanaged_ax_from_ptr_dx.data(), nullptr);
+    ASSERT_NE(ay.data(), nullptr);
     //    ASSERT_NE( ax, ay );
     //    Above test results in following runtime error from gtest:
     //    Expected: (ax) != (ay), actual: 32-byte object <30-01 D0-A0 D8-7F
@@ -281,29 +242,27 @@ class TestAtomicViewAPI {
               unsigned(N0) * unsigned(N1) * unsigned(N2) * unsigned(N3));
   }
 
-  typedef T DataType[2];
+  using DataType = T[2];
 
   static void check_auto_conversion_to_const(
       const Kokkos::View<const DataType, device,
                          Kokkos::MemoryTraits<Kokkos::Atomic> >& arg_const,
       const Kokkos::View<const DataType, device,
                          Kokkos::MemoryTraits<Kokkos::Atomic> >& arg) {
-    ASSERT_TRUE(arg_const == arg);
+    ASSERT_EQ(arg_const, arg);
   }
 
   static void run_test_const() {
-    typedef Kokkos::View<DataType, device,
-                         Kokkos::MemoryTraits<Kokkos::Atomic> >
-        typeX;
-    typedef Kokkos::View<const DataType, device,
-                         Kokkos::MemoryTraits<Kokkos::Atomic> >
-        const_typeX;
+    using typeX =
+        Kokkos::View<DataType, device, Kokkos::MemoryTraits<Kokkos::Atomic> >;
+    using const_typeX = Kokkos::View<const DataType, device,
+                                     Kokkos::MemoryTraits<Kokkos::Atomic> >;
 
     typeX x("X");
     const_typeX xc = x;
 
-    // ASSERT_TRUE( xc == x ); // const xc is referenceable, non-const x is not
-    // ASSERT_TRUE( x == xc );
+    // ASSERT_EQ( xc ,  x ); // const xc is referenceable, non-const x is not
+    // ASSERT_EQ( x ,  xc );
 
     check_auto_conversion_to_const(x, xc);
   }
@@ -315,7 +274,7 @@ class TestAtomicViewAPI {
 
 template <class T, class execution_space>
 struct InitFunctor_Seq {
-  typedef Kokkos::View<T*, execution_space> view_type;
+  using view_type = Kokkos::View<T*, execution_space>;
 
   view_type input;
   const int64_t length;
@@ -333,7 +292,7 @@ struct InitFunctor_Seq {
 
 template <class T, class execution_space>
 struct InitFunctor_ModTimes {
-  typedef Kokkos::View<T*, execution_space> view_type;
+  using view_type = Kokkos::View<T*, execution_space>;
 
   view_type input;
   const int64_t length;
@@ -357,7 +316,7 @@ struct InitFunctor_ModTimes {
 
 template <class T, class execution_space>
 struct InitFunctor_ModShift {
-  typedef Kokkos::View<T*, execution_space> view_type;
+  using view_type = Kokkos::View<T*, execution_space>;
 
   view_type input;
   const int64_t length;
@@ -383,10 +342,9 @@ struct InitFunctor_ModShift {
 
 template <class T, class execution_space>
 struct PlusEqualAtomicViewFunctor {
-  typedef Kokkos::View<T*, execution_space,
-                       Kokkos::MemoryTraits<Kokkos::Atomic> >
-      atomic_view_type;
-  typedef Kokkos::View<T*, execution_space> view_type;
+  using atomic_view_type =
+      Kokkos::View<T*, execution_space, Kokkos::MemoryTraits<Kokkos::Atomic> >;
+  using view_type = Kokkos::View<T*, execution_space>;
 
   view_type input;
   atomic_view_type even_odd_result;
@@ -411,8 +369,8 @@ struct PlusEqualAtomicViewFunctor {
 
 template <class T, class execution_space>
 T PlusEqualAtomicView(const int64_t input_length) {
-  typedef Kokkos::View<T*, execution_space> view_type;
-  typedef typename view_type::HostMirror host_view_type;
+  using view_type      = Kokkos::View<T*, execution_space>;
+  using host_view_type = typename view_type::HostMirror;
 
   const int64_t length = input_length;
 
@@ -480,10 +438,9 @@ bool PlusEqualAtomicViewTest(int64_t input_length) {
 
 template <class T, class execution_space>
 struct MinusEqualAtomicViewFunctor {
-  typedef Kokkos::View<T*, execution_space,
-                       Kokkos::MemoryTraits<Kokkos::Atomic> >
-      atomic_view_type;
-  typedef Kokkos::View<T*, execution_space> view_type;
+  using atomic_view_type =
+      Kokkos::View<T*, execution_space, Kokkos::MemoryTraits<Kokkos::Atomic> >;
+  using view_type = Kokkos::View<T*, execution_space>;
 
   view_type input;
   atomic_view_type even_odd_result;
@@ -509,8 +466,8 @@ struct MinusEqualAtomicViewFunctor {
 
 template <class T, class execution_space>
 T MinusEqualAtomicView(const int64_t input_length) {
-  typedef Kokkos::View<T*, execution_space> view_type;
-  typedef typename view_type::HostMirror host_view_type;
+  using view_type      = Kokkos::View<T*, execution_space>;
+  using host_view_type = typename view_type::HostMirror;
 
   const int64_t length = input_length;
 
@@ -578,10 +535,9 @@ bool MinusEqualAtomicViewTest(int64_t input_length) {
 
 template <class T, class execution_space>
 struct TimesEqualAtomicViewFunctor {
-  typedef Kokkos::View<T*, execution_space,
-                       Kokkos::MemoryTraits<Kokkos::Atomic> >
-      atomic_view_type;
-  typedef Kokkos::View<T*, execution_space> view_type;
+  using atomic_view_type =
+      Kokkos::View<T*, execution_space, Kokkos::MemoryTraits<Kokkos::Atomic> >;
+  using view_type = Kokkos::View<T*, execution_space>;
 
   view_type input;
   atomic_view_type result;
@@ -602,8 +558,8 @@ struct TimesEqualAtomicViewFunctor {
 
 template <class T, class execution_space>
 T TimesEqualAtomicView(const int64_t input_length, const int64_t remainder) {
-  typedef Kokkos::View<T*, execution_space> view_type;
-  typedef typename view_type::HostMirror host_view_type;
+  using view_type      = Kokkos::View<T*, execution_space>;
+  using host_view_type = typename view_type::HostMirror;
 
   const int64_t length = input_length;
 
@@ -669,11 +625,10 @@ bool TimesEqualAtomicViewTest(const int64_t input_length) {
 
 template <class T, class execution_space>
 struct DivEqualAtomicViewFunctor {
-  typedef Kokkos::View<T, execution_space,
-                       Kokkos::MemoryTraits<Kokkos::Atomic> >
-      atomic_view_type;
-  typedef Kokkos::View<T*, execution_space> view_type;
-  typedef Kokkos::View<T, execution_space> scalar_view_type;
+  using atomic_view_type =
+      Kokkos::View<T, execution_space, Kokkos::MemoryTraits<Kokkos::Atomic> >;
+  using view_type        = Kokkos::View<T*, execution_space>;
+  using scalar_view_type = Kokkos::View<T, execution_space>;
 
   view_type input;
   atomic_view_type result;
@@ -694,9 +649,9 @@ struct DivEqualAtomicViewFunctor {
 
 template <class T, class execution_space>
 T DivEqualAtomicView(const int64_t input_length, const int64_t remainder) {
-  typedef Kokkos::View<T*, execution_space> view_type;
-  typedef Kokkos::View<T, execution_space> scalar_view_type;
-  typedef typename scalar_view_type::HostMirror host_scalar_view_type;
+  using view_type             = Kokkos::View<T*, execution_space>;
+  using scalar_view_type      = Kokkos::View<T, execution_space>;
+  using host_scalar_view_type = typename scalar_view_type::HostMirror;
 
   const int64_t length = input_length;
 
@@ -760,11 +715,10 @@ bool DivEqualAtomicViewTest(const int64_t input_length) {
 
 template <class T, class execution_space>
 struct ModEqualAtomicViewFunctor {
-  typedef Kokkos::View<T, execution_space,
-                       Kokkos::MemoryTraits<Kokkos::Atomic> >
-      atomic_view_type;
-  typedef Kokkos::View<T*, execution_space> view_type;
-  typedef Kokkos::View<T, execution_space> scalar_view_type;
+  using atomic_view_type =
+      Kokkos::View<T, execution_space, Kokkos::MemoryTraits<Kokkos::Atomic> >;
+  using view_type        = Kokkos::View<T*, execution_space>;
+  using scalar_view_type = Kokkos::View<T, execution_space>;
 
   view_type input;
   atomic_view_type result;
@@ -785,9 +739,9 @@ struct ModEqualAtomicViewFunctor {
 
 template <class T, class execution_space>
 T ModEqualAtomicView(const int64_t input_length, const int64_t remainder) {
-  typedef Kokkos::View<T*, execution_space> view_type;
-  typedef Kokkos::View<T, execution_space> scalar_view_type;
-  typedef typename scalar_view_type::HostMirror host_scalar_view_type;
+  using view_type             = Kokkos::View<T*, execution_space>;
+  using scalar_view_type      = Kokkos::View<T, execution_space>;
+  using host_scalar_view_type = typename scalar_view_type::HostMirror;
 
   const int64_t length = input_length;
 
@@ -855,11 +809,10 @@ bool ModEqualAtomicViewTest(const int64_t input_length) {
 
 template <class T, class execution_space>
 struct RSEqualAtomicViewFunctor {
-  typedef Kokkos::View<T****, execution_space,
-                       Kokkos::MemoryTraits<Kokkos::Atomic> >
-      atomic_view_type;
-  typedef Kokkos::View<T*, execution_space> view_type;
-  typedef Kokkos::View<T****, execution_space> result_view_type;
+  using atomic_view_type = Kokkos::View<T****, execution_space,
+                                        Kokkos::MemoryTraits<Kokkos::Atomic> >;
+  using view_type        = Kokkos::View<T*, execution_space>;
+  using result_view_type = Kokkos::View<T****, execution_space>;
 
   const view_type input;
   atomic_view_type result;
@@ -890,9 +843,9 @@ struct RSEqualAtomicViewFunctor {
 template <class T, class execution_space>
 T RSEqualAtomicView(const int64_t input_length, const int64_t value,
                     const int64_t remainder) {
-  typedef Kokkos::View<T*, execution_space> view_type;
-  typedef Kokkos::View<T****, execution_space> result_view_type;
-  typedef typename result_view_type::HostMirror host_scalar_view_type;
+  using view_type             = Kokkos::View<T*, execution_space>;
+  using result_view_type      = Kokkos::View<T****, execution_space>;
+  using host_scalar_view_type = typename result_view_type::HostMirror;
 
   const int64_t length = input_length;
 
@@ -983,11 +936,10 @@ bool RSEqualAtomicViewTest(const int64_t input_length) {
 
 template <class T, class execution_space>
 struct LSEqualAtomicViewFunctor {
-  typedef Kokkos::View<T****, execution_space,
-                       Kokkos::MemoryTraits<Kokkos::Atomic> >
-      atomic_view_type;
-  typedef Kokkos::View<T*, execution_space> view_type;
-  typedef Kokkos::View<T****, execution_space> result_view_type;
+  using atomic_view_type = Kokkos::View<T****, execution_space,
+                                        Kokkos::MemoryTraits<Kokkos::Atomic> >;
+  using view_type        = Kokkos::View<T*, execution_space>;
+  using result_view_type = Kokkos::View<T****, execution_space>;
 
   view_type input;
   atomic_view_type result;
@@ -1018,9 +970,9 @@ struct LSEqualAtomicViewFunctor {
 template <class T, class execution_space>
 T LSEqualAtomicView(const int64_t input_length, const int64_t value,
                     const int64_t remainder) {
-  typedef Kokkos::View<T*, execution_space> view_type;
-  typedef Kokkos::View<T****, execution_space> result_view_type;
-  typedef typename result_view_type::HostMirror host_scalar_view_type;
+  using view_type             = Kokkos::View<T*, execution_space>;
+  using result_view_type      = Kokkos::View<T****, execution_space>;
+  using host_scalar_view_type = typename result_view_type::HostMirror;
 
   const int64_t length = input_length;
 
@@ -1111,10 +1063,9 @@ bool LSEqualAtomicViewTest(const int64_t input_length) {
 
 template <class T, class execution_space>
 struct AndEqualAtomicViewFunctor {
-  typedef Kokkos::View<T*, execution_space,
-                       Kokkos::MemoryTraits<Kokkos::Atomic> >
-      atomic_view_type;
-  typedef Kokkos::View<T*, execution_space> view_type;
+  using atomic_view_type =
+      Kokkos::View<T*, execution_space, Kokkos::MemoryTraits<Kokkos::Atomic> >;
+  using view_type = Kokkos::View<T*, execution_space>;
 
   view_type input;
   atomic_view_type even_odd_result;
@@ -1139,8 +1090,8 @@ struct AndEqualAtomicViewFunctor {
 
 template <class T, class execution_space>
 T AndEqualAtomicView(const int64_t input_length) {
-  typedef Kokkos::View<T*, execution_space> view_type;
-  typedef typename view_type::HostMirror host_view_type;
+  using view_type      = Kokkos::View<T*, execution_space>;
+  using host_view_type = typename view_type::HostMirror;
 
   const int64_t length = input_length;
 
@@ -1205,10 +1156,9 @@ bool AndEqualAtomicViewTest(int64_t input_length) {
 
 template <class T, class execution_space>
 struct OrEqualAtomicViewFunctor {
-  typedef Kokkos::View<T*, execution_space,
-                       Kokkos::MemoryTraits<Kokkos::Atomic> >
-      atomic_view_type;
-  typedef Kokkos::View<T*, execution_space> view_type;
+  using atomic_view_type =
+      Kokkos::View<T*, execution_space, Kokkos::MemoryTraits<Kokkos::Atomic> >;
+  using view_type = Kokkos::View<T*, execution_space>;
 
   view_type input;
   atomic_view_type even_odd_result;
@@ -1233,8 +1183,8 @@ struct OrEqualAtomicViewFunctor {
 
 template <class T, class execution_space>
 T OrEqualAtomicView(const int64_t input_length) {
-  typedef Kokkos::View<T*, execution_space> view_type;
-  typedef typename view_type::HostMirror host_view_type;
+  using view_type      = Kokkos::View<T*, execution_space>;
+  using host_view_type = typename view_type::HostMirror;
 
   const int64_t length = input_length;
 
@@ -1298,10 +1248,9 @@ bool OrEqualAtomicViewTest(int64_t input_length) {
 
 template <class T, class execution_space>
 struct XOrEqualAtomicViewFunctor {
-  typedef Kokkos::View<T*, execution_space,
-                       Kokkos::MemoryTraits<Kokkos::Atomic> >
-      atomic_view_type;
-  typedef Kokkos::View<T*, execution_space> view_type;
+  using atomic_view_type =
+      Kokkos::View<T*, execution_space, Kokkos::MemoryTraits<Kokkos::Atomic> >;
+  using view_type = Kokkos::View<T*, execution_space>;
 
   view_type input;
   atomic_view_type even_odd_result;
@@ -1326,8 +1275,8 @@ struct XOrEqualAtomicViewFunctor {
 
 template <class T, class execution_space>
 T XOrEqualAtomicView(const int64_t input_length) {
-  typedef Kokkos::View<T*, execution_space> view_type;
-  typedef typename view_type::HostMirror host_view_type;
+  using view_type      = Kokkos::View<T*, execution_space>;
+  using host_view_type = typename view_type::HostMirror;
 
   const int64_t length = input_length;
 

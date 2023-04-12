@@ -34,7 +34,7 @@
 
 #include "mat_vec_hierarchical_dfad.hpp"
 
-#include "impl/Kokkos_Timer.hpp"
+#include "Kokkos_Timer.hpp"
 
 template <typename ViewTypeA, typename ViewTypeB, typename ViewTypeC>
 void run_mat_vec_hierarchical_dfad(const ViewTypeA& A, const ViewTypeB& b,
@@ -159,7 +159,7 @@ do_time_fad_hierarchical_dfad(const size_t m, const size_t n, const size_t p,
   Kokkos::deep_copy(typename ConViewTypeA::array_type(A), 1.0);
   Kokkos::deep_copy(typename ConViewTypeB::array_type(b), 1.0);
 
-  Kokkos::Impl::Timer wall_clock;
+  Kokkos::Timer wall_clock;
   Perf perf;
 
 #if defined (KOKKOS_ENABLE_CUDA)
@@ -167,7 +167,7 @@ do_time_fad_hierarchical_dfad(const size_t m, const size_t n, const size_t p,
 #else
   const bool is_cuda = false;
 #endif
-  const size_t concurrency = execution_space::concurrency();
+  const size_t concurrency = execution_space().concurrency();
   const size_t warp_dim = is_cuda ? 32 : 1;
   const size_t block_size = p*sizeof(double);
   const size_t nkernels = concurrency / warp_dim;
@@ -231,7 +231,7 @@ do_time_fad_hierarchical_dfad_scratch(
   Kokkos::deep_copy(typename ConViewTypeA::array_type(A), 1.0);
   Kokkos::deep_copy(typename ConViewTypeB::array_type(b), 1.0);
 
-  Kokkos::Impl::Timer wall_clock;
+  Kokkos::Timer wall_clock;
   Perf perf;
 
   // Execute the kernel once to warm up

@@ -37,8 +37,8 @@ WrapperModelEvaluatorPairPartIMEX_CombinedFSA(
 
   appExplicitModel_ = forwardModel_->getExplicitModel();
   appImplicitModel_ = forwardModel_->getImplicitModel();
-  fsaExplicitModel_ = rcp(new FSAME(appExplicitModel_, pl));
-  fsaImplicitModel_ = rcp(new FSAME(appImplicitModel_, pl));
+  fsaExplicitModel_ = rcp(new FSAME(appExplicitModel_, appExplicitModel_, appExplicitModel_, pl));
+  fsaImplicitModel_ = rcp(new FSAME(appImplicitModel_, appImplicitModel_, appImplicitModel_, pl));
 
   const int y_param_index = forwardModel_->getParameterIndex();
   const int sens_param_index = pl->get<int>("Sensitivity Parameter Index");
@@ -98,7 +98,7 @@ initialize()
 
   int numBlocks = zPVector->productSpace()->numBlocks();
 
-  TEUCHOS_TEST_FOR_EXCEPTION( !(0 <= this->numExplicitOnlyBlocks_ and
+  TEUCHOS_TEST_FOR_EXCEPTION( !(0 <= this->numExplicitOnlyBlocks_ &&
                                 this->numExplicitOnlyBlocks_ < numBlocks),
     std::logic_error,
     "Error - WrapperModelEvaluatorPairPartIMEX_CombinedFSA::initialize()\n"
@@ -351,7 +351,7 @@ evalModelImpl(const Thyra::ModelEvaluatorBase::InArgs<Scalar>  & inArgs,
   fsaImplicitInArgs.set_x_dot(x_dot);
   for (int i=0; i<fsaImplicitModel_->Np(); ++i) {
     // Copy over parameters except for the parameter for explicit-only vector!
-    if ((inArgs.get_p(i) != Teuchos::null) and (i != p_index))
+    if ((inArgs.get_p(i) != Teuchos::null) && (i != p_index))
       fsaImplicitInArgs.set_p(i, inArgs.get_p(i));
   }
 

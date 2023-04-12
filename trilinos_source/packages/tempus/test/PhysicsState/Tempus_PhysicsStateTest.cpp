@@ -67,13 +67,13 @@ TEUCHOS_UNIT_TEST(PhysicsState, SinCos)
     pl->sublist("Demo Integrator")
        .sublist("Time Step Control").set("Initial Time Step", dt);
     RCP<Tempus::IntegratorBasic<double> > integrator =
-      Tempus::integratorBasic<double>(pl, model);
+      Tempus::createIntegratorBasic<double>(pl, model);
 
     // Replace Tempus::StepperForwardEuler with
     // Tempus_Test::StepperPhysicsStateTest
     Teuchos::RCP<Tempus::Stepper<double> > physicsStepper = Teuchos::rcp(
       new StepperPhysicsStateTest<double>(model));
-    integrator->setStepperWStepper(physicsStepper);
+    integrator->setStepper(physicsStepper);
     order = integrator->getStepper()->getOrder();
 
     // Initial Conditions
@@ -100,7 +100,7 @@ TEUCHOS_UNIT_TEST(PhysicsState, SinCos)
       integrator->getSolutionHistory()->getCurrentState()->getPhysicsState();
     TEST_EQUALITY(pS->getName(), "PhysicsStateTest");
     pSC = Teuchos::rcp_dynamic_cast<PhysicsStateCounter<double> >(pS);
-    //std::cout << " Counter = " << pSC->getCounter() << std::endl;
+    //out << " Counter = " << pSC->getCounter() << std::endl;
     TEST_EQUALITY(pSC->getCounter(), (int)(1.0/dt));
 
 
@@ -145,11 +145,11 @@ TEUCHOS_UNIT_TEST(PhysicsState, SinCos)
 
   // Check the order and intercept
   double slope = computeLinearRegressionLogLog<double>(StepSize, ErrorNorm);
-  std::cout << "  Stepper = ForwardEuler" << std::endl;
-  std::cout << "  =========================" << std::endl;
-  std::cout << "  Expected order: " << order << std::endl;
-  std::cout << "  Observed order: " << slope << std::endl;
-  std::cout << "  =========================" << std::endl;
+  out << "  Stepper = ForwardEuler" << std::endl;
+  out << "  =========================" << std::endl;
+  out << "  Expected order: " << order << std::endl;
+  out << "  Observed order: " << slope << std::endl;
+  out << "  =========================" << std::endl;
   TEST_FLOATING_EQUALITY( slope, order, 0.01 );
   TEST_FLOATING_EQUALITY( ErrorNorm[0], 0.051123, 1.0e-4 );
 

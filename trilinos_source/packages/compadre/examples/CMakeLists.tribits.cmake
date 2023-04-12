@@ -1,12 +1,10 @@
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+tribits_include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-if(Compadre_USE_LAPACK)
-  tribits_add_executable(
-    LAPACK_Test
-    SOURCES
-      UnitTest_ThreadedLapack.cpp
-    ) # end tribits_add_executable
-endif()
+#tribits_add_executable(
+#  UnitTests
+#  SOURCES
+#    Compadre_UnitTests.cpp
+#  ) # end tribits_add_executable
 
 tribits_add_executable(
   GMLS_Host_Test
@@ -86,36 +84,28 @@ tribits_add_executable(
     NeighborSearchTest.cpp
   ) # end tribits_add_executable
 
-
-# Test if LAPACK+BLAS are compatible for use in the toolkit
-if(Compadre_USE_LAPACK)
-  set(testName LAPACK_THREADSAFE)
-  tribits_add_test(
-    LAPACK_Test
-    NAME
-      ${testName}
-    COMM serial mpi
-    NUM_MPI_PROCS 1
-    ARGS
-      "--kokkos-threads=8 --verbose --output-on-failure"
-    ADDED_TESTS_NAMES_OUT ${testName}_CREATED
-    ) # end tribits_add_test
-  if (${testName}_CREATED)
-    set_tests_properties(
-      ${${testName}_CREATED}
-      PROPERTIES
-        LABELS
-          "UnitTest;unit;lapack;Lapack;LAPACK;kokkos"
-        TIMEOUT
-          5
-        SKIP_RETURN_CODE
-          77
-      ) # end set_tests_properties
-  endif() # test created
-endif() # LAPACK being used
+#set(testName Compadre_Unit_Tests)
+#tribits_add_test(
+#  UnitTests
+#  NAME
+#    ${testName}
+#  COMM serial mpi
+#  NUM_MPI_PROCS 1
+#  ADDED_TESTS_NAMES_OUT ${testName}_CREATED
+#  ) # end tribits_add_test
+#if (${testName}_CREATED)
+#  set_tests_properties(
+#    ${${testName}_CREATED}
+#    PROPERTIES
+#      LABELS
+#        "UnitTest;unittest;Unit;unit"
+#      TIMEOUT
+#        60
+#    ) # end set_tests_properties
+#endif() # test created
 
 # Host views tests for GMLS
-set(testName GMLS_Host_Dim3_SVD)
+set(testName GMLS_Host_Dim3_QR)
 tribits_add_test(
   GMLS_Host_Test
   NAME
@@ -123,7 +113,7 @@ tribits_add_test(
   COMM serial mpi
   NUM_MPI_PROCS 1
   ARGS
-    "4 200 3 0 0 0 --kokkos-threads=2"
+    "--p 4 --nt 200 --d 3 --kokkos-threads=2"
   ADDED_TESTS_NAMES_OUT ${testName}_CREATED
   ) # end tribits_add_test
 if (${testName}_CREATED)
@@ -131,13 +121,13 @@ if (${testName}_CREATED)
     ${${testName}_CREATED}
     PROPERTIES
       LABELS
-        "UnitTest;unit;kokkos"
+        "IntegrationTest;integration;kokkos"
       TIMEOUT
         60
     ) # end set_tests_properties
 endif() # test created
 
-set(testName GMLS_Host_Dim2_SVD)
+set(testName GMLS_Host_Dim2_QR)
 tribits_add_test(
   GMLS_Host_Test
   NAME
@@ -145,7 +135,7 @@ tribits_add_test(
   COMM serial mpi
   NUM_MPI_PROCS 1
   ARGS
-    "4 200 2 0 0 0 --kokkos-threads=2"
+    "--p 4 --nt 200 --d 2 --kokkos-threads=2"
   ADDED_TESTS_NAMES_OUT ${testName}_CREATED
   ) # end tribits_add_test
 if (${testName}_CREATED)
@@ -153,13 +143,13 @@ if (${testName}_CREATED)
     ${${testName}_CREATED}
     PROPERTIES
       LABELS
-        "UnitTest;unit;kokkos"
+        "IntegrationTest;integration;kokkos"
       TIMEOUT
-        20
+        60
     ) # end set_tests_properties
 endif() # test created
 
-set(testName GMLS_Host_Dim1_SVD)
+set(testName GMLS_Host_Dim1_QR)
 tribits_add_test(
   GMLS_Host_Test
   NAME
@@ -167,7 +157,7 @@ tribits_add_test(
   COMM serial mpi
   NUM_MPI_PROCS 1
   ARGS
-    "4 200 1 0 0 0 --kokkos-threads=2"
+    "--p 4 --nt 200 --d 1 --kokkos-threads=2"
   ADDED_TESTS_NAMES_OUT ${testName}_CREATED
   ) # end tribits_add_test
 if (${testName}_CREATED)
@@ -175,9 +165,9 @@ if (${testName}_CREATED)
     ${${testName}_CREATED}
     PROPERTIES
       LABELS
-        "UnitTest;unit;kokkos"
+        "IntegrationTest;integration;kokkos"
       TIMEOUT
-        20
+        60
     ) # end set_tests_properties
 endif() # test created
 
@@ -190,7 +180,7 @@ tribits_add_test(
   COMM serial mpi
   NUM_MPI_PROCS 1
   ARGS
-    "4 200 3 1 0 0 --kokkos-threads=2"
+    "--p 4 --nt 200 --d 3 --kokkos-threads=2"
   ADDED_TESTS_NAMES_OUT ${testName}_CREATED
   ) # end tribits_add_test
 if (${testName}_CREATED)
@@ -198,9 +188,9 @@ if (${testName}_CREATED)
     ${${testName}_CREATED}
     PROPERTIES
       LABELS
-        "UnitTest;unit;kokkos"
+        "IntegrationTest;integration;kokkos"
       TIMEOUT
-        10
+        60
     ) # end set_tests_properties
 endif() # test created
 
@@ -212,7 +202,7 @@ tribits_add_test(
   COMM serial mpi
   NUM_MPI_PROCS 1
   ARGS
-    "4 200 2 1 0 0 --kokkos-threads=2"
+    "--p 4 --nt 200 --d 2 --kokkos-threads=2"
   ADDED_TESTS_NAMES_OUT ${testName}_CREATED
   ) # end tribits_add_test
 if (${testName}_CREATED)
@@ -220,9 +210,9 @@ if (${testName}_CREATED)
     ${${testName}_CREATED}
     PROPERTIES
       LABELS
-        "UnitTest;unit;kokkos"
+        "IntegrationTest;integration;kokkos"
       TIMEOUT
-        10
+        60
     ) # end set_tests_properties
 endif() # test created
 
@@ -234,7 +224,7 @@ tribits_add_test(
   COMM serial mpi
   NUM_MPI_PROCS 1
   ARGS
-    "4 200 1 1 0 0 --kokkos-threads=2"
+    "--p 4 --nt 200 --d 1 --kokkos-threads=2"
   ADDED_TESTS_NAMES_OUT ${testName}_CREATED
   ) # end tribits_add_test
 if (${testName}_CREATED)
@@ -242,9 +232,9 @@ if (${testName}_CREATED)
     ${${testName}_CREATED}
     PROPERTIES
       LABELS
-        "UnitTest;unit;kokkos"
+        "IntegrationTest;integration;kokkos"
       TIMEOUT
-        10
+        60
     ) # end set_tests_properties
 endif() # test created
 
@@ -257,7 +247,7 @@ tribits_add_test(
   COMM serial mpi
   NUM_MPI_PROCS 1
   ARGS
-    "4 200 3 2 0 0 --kokkos-threads=2"
+    "--p 4 --nt 200 --d 3 --solver LU --kokkos-threads=2"
   ADDED_TESTS_NAMES_OUT ${testName}_CREATED
   ) # end tribits_add_test
 if (${testName}_CREATED)
@@ -265,9 +255,9 @@ if (${testName}_CREATED)
     ${${testName}_CREATED}
     PROPERTIES
       LABELS
-        "UnitTest;unit;kokkos"
+        "IntegrationTest;integration;kokkos"
       TIMEOUT
-        10
+        60
     ) # end set_tests_properties
 endif() # test created
 
@@ -280,7 +270,7 @@ tribits_add_test(
   COMM serial mpi
   NUM_MPI_PROCS 1
   ARGS
-    "3 200 3 2 0 1 --kokkos-threads=2"
+    "--p 3 --nt 200 --d 3 --solver LU --constraint NEUMANN_GRAD_SCALAR --kokkos-threads=2"
   ADDED_TESTS_NAMES_OUT ${testName}_CREATED
   ) # end tribits_add_test
 if (${testName}_CREATED)
@@ -288,14 +278,14 @@ if (${testName}_CREATED)
     ${${testName}_CREATED}
     PROPERTIES
       LABELS
-        "UnitTest;unit;kokkos"
+        "IntegrationTest;integration;kokkos"
       TIMEOUT
-        10
+        60
     ) # end set_tests_properties
 endif() # test created
 
-## Device views tests with Neumann BC for STAGGERED GMLS - SVD solver
-#set(testName GMLS_StaggeredNeumannGradScalar_Dim3_SVD)
+## Device views tests with Neumann BC for STAGGERED GMLS - QR solver
+#set(testName GMLS_StaggeredNeumannGradScalar_Dim3_QR)
 #tribits_add_test(
 #  GMLS_Staggered
 #  NAME
@@ -311,9 +301,9 @@ endif() # test created
 #    ${${testName}_CREATED}
 #    PROPERTIES
 #      LABELS
-#        "UnitTest;unit;kokkos;staggered"
+#        "IntegrationTest;integration;kokkos;staggered"
 #      TIMEOUT
-#        10
+#        60
 #    ) # end set_tests_properties
 #endif() # test created
 
@@ -326,7 +316,7 @@ tribits_add_test(
   COMM serial mpi
   NUM_MPI_PROCS 1
   ARGS
-    "3 20 3 1 0 0 --kokkos-threads=2"
+    "--p 3 --nt 20 --d 3 --kokkos-threads=2"
   ADDED_TESTS_NAMES_OUT ${testName}_CREATED
   ) # end tribits_add_test
 if (${testName}_CREATED)
@@ -334,9 +324,9 @@ if (${testName}_CREATED)
     ${${testName}_CREATED}
     PROPERTIES
       LABELS
-        "UnitTest;unit;kokkos;vector"
+        "IntegrationTest;integration;kokkos;vector"
       TIMEOUT
-        10
+        60
     ) # end set_tests_properties
 endif() # test created
 
@@ -348,7 +338,7 @@ tribits_add_test(
   COMM serial mpi
   NUM_MPI_PROCS 1
   ARGS
-    "3 20 2 1 0 0 --kokkos-threads=2"
+    "--p 3 --nt 20 --d 2 --kokkos-threads=2"
   ADDED_TESTS_NAMES_OUT ${testName}_CREATED
   ) # end tribits_add_test
 if (${testName}_CREATED)
@@ -356,9 +346,9 @@ if (${testName}_CREATED)
     ${${testName}_CREATED}
     PROPERTIES
       LABELS
-        "UnitTest;unit;kokkos;vector"
+        "IntegrationTest;integration;kokkos;vector"
       TIMEOUT
-        10
+        60
     ) # end set_tests_properties
 endif() # test created
 
@@ -370,7 +360,7 @@ tribits_add_test(
   COMM serial mpi
   NUM_MPI_PROCS 1
   ARGS
-    "3 20 1 1 0 0 --kokkos-threads=2"
+    "--p 3 --nt 20 --d 1 --kokkos-threads=2"
   ADDED_TESTS_NAMES_OUT ${testName}_CREATED
   ) # end tribits_add_test
 if (${testName}_CREATED)
@@ -378,9 +368,9 @@ if (${testName}_CREATED)
     ${${testName}_CREATED}
     PROPERTIES
       LABELS
-        "UnitTest;unit;kokkos;vector"
+        "IntegrationTest;integration;kokkos;vector"
       TIMEOUT
-        10
+        60
     ) # end set_tests_properties
 endif() # test created
 
@@ -393,7 +383,7 @@ tribits_add_test(
   COMM serial mpi
   NUM_MPI_PROCS 1
   ARGS
-    "3 200 3 2 0 0 --kokkos-threads=2"
+    "--p 3 --nt 200 --d 3 --solver LU --kokkos-threads=2"
   ADDED_TESTS_NAMES_OUT ${testName}_CREATED
   ) # end tribits_add_test
 if (${testName}_CREATED)
@@ -401,9 +391,9 @@ if (${testName}_CREATED)
     ${${testName}_CREATED}
     PROPERTIES
       LABELS
-        "UnitTest;unit;kokkos;vector"
+        "IntegrationTest;integration;kokkos;vector"
       TIMEOUT
-        10
+        60
     ) # end set_tests_properties
 endif() # test created
 
@@ -417,7 +407,7 @@ tribits_add_test(
   NUM_MPI_PROCS 1
   COMM serial mpi
   ARGS
-    "4 200 2 1 0 0 --kokkos-threads=2"
+    "--p 4 --nt 200 --d 2 --kokkos-threads=2"
   ADDED_TESTS_NAMES_OUT ${testName}_CREATED
   ) # end tribits_add_test
 if (${testName}_CREATED)
@@ -425,9 +415,9 @@ if (${testName}_CREATED)
     ${${testName}_CREATED}
     PROPERTIES
       LABELS
-        "UnitTest;unit;kokkos"
+        "IntegrationTest;integration;kokkos"
       TIMEOUT
-        20
+        60
     ) # end set_tests_properties
 endif() # test created
 
@@ -439,7 +429,7 @@ tribits_add_test(
   COMM serial mpi
   NUM_MPI_PROCS 1
   ARGS
-    "4 200 1 1 0 0 --kokkos-threads=2"
+    "--p 4 --nt 200 --d 1 --kokkos-threads=2"
   ADDED_TESTS_NAMES_OUT ${testName}_CREATED
   ) # end tribits_add_test
 if (${testName}_CREATED)
@@ -447,9 +437,9 @@ if (${testName}_CREATED)
     ${${testName}_CREATED}
     PROPERTIES
       LABELS
-        "UnitTest;unit;kokkos"
+        "IntegrationTest;integration;kokkos"
       TIMEOUT
-        20
+        60
     ) # end set_tests_properties
 endif() # test created
 
@@ -462,7 +452,7 @@ tribits_add_test(
   COMM serial mpi
   NUM_MPI_PROCS 1
   ARGS
-    "4 200 3 1 0 0 --kokkos-threads=2"
+    "--p 4 --nt 200 --d 3 --kokkos-threads=2"
   ADDED_TESTS_NAMES_OUT ${testName}_CREATED
   ) # end tribits_add_test
 if (${testName}_CREATED)
@@ -470,9 +460,9 @@ if (${testName}_CREATED)
     ${${testName}_CREATED}
     PROPERTIES
       LABELS
-        "UnitTest;unit;kokkos"
+        "IntegrationTest;integration;kokkos"
       TIMEOUT
-        10
+        60
     ) # end set_tests_properties
 endif() # test created
 
@@ -486,7 +476,7 @@ tribits_add_test(
   COMM serial mpi
   NUM_MPI_PROCS 1
   ARGS
-    "3 100 3 1 0 0 --kokkos-threads=4"
+    "--p 3 --nt 100 --d 3 --kokkos-threads=4"
   ADDED_TESTS_NAMES_OUT ${testName}_CREATED
   ) # end tribits_add_test
 if (${testName}_CREATED)
@@ -494,7 +484,7 @@ if (${testName}_CREATED)
     ${${testName}_CREATED}
     PROPERTIES
       LABELS
-        "UnitTest;unit;kokkos;staggered"
+        "IntegrationTest;integration;kokkos;staggered"
       TIMEOUT
         60
     ) # end set_tests_properties
@@ -510,7 +500,7 @@ tribits_add_test(
   COMM serial mpi
   NUM_MPI_PROCS 1
   ARGS
-    "3 200 2 1 0 0 --kokkos-threads=2"
+    "--p 3 --nt 200 --d 2 --kokkos-threads=2"
   ADDED_TESTS_NAMES_OUT ${testName}_CREATED
   ) # end tribits_add_test
 if (${testName}_CREATED)
@@ -518,9 +508,9 @@ if (${testName}_CREATED)
     ${${testName}_CREATED}
     PROPERTIES
       LABELS
-        "UnitTest;unit;kokkos;staggered"
+        "IntegrationTest;integration;kokkos;staggered"
       TIMEOUT
-        20
+        60
     ) # end set_tests_properties
 endif() # test created
 
@@ -528,42 +518,46 @@ if (NOT(Compadre_DEBUG OR Compadre_EXTREME_DEBUG))
   # This test is too slow in DEBUG (3x longer than all other tests
   # combined)
 
-  # Python driven test of a C++ executable (Python changes command line
-  # arguments given to executable)
-  configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/GMLS_Manifold_Multiple_Evaluation_Sites.py.in
-    ${CMAKE_CURRENT_BINARY_DIR}/GMLS_Manifold_Multiple_Evaluation_Sites.py
-    @ONLY
-    ) # end configure_file
-  set(testName GMLS_Manifold_Multiple_Evaluation_Sites)
-  TRIBITS_ADD_ADVANCED_TEST(
-    ${testName}
-    TEST_0 CMND ${PYTHON_EXECUTABLE} ARGS ${CMAKE_CURRENT_BINARY_DIR}/GMLS_Manifold_Multiple_Evaluation_Sites.py --porder=3 --grids=3 --in-trilinos=True
-    PASS_REGULAR_EXPRESSION "Passed."
-    COMM mpi serial
-    ADDED_TEST_NAME_OUT ${testName}_CREATED
-  )
-  if (${testName}_CREATED)
-    set_tests_properties(
-      ${${testName}_CREATED}
-      PROPERTIES
-        LABELS
-          "ConvergenceTest;convergence;manifold"
-        TIMEOUT
-          60
+  if (PYTHON_EXECUTABLE)
+    # Python driven test of a C++ executable (Python changes command line
+    # arguments given to executable)
+    configure_file(
+      ${CMAKE_CURRENT_SOURCE_DIR}/GMLS_Manifold_Multiple_Evaluation_Sites.py.in
+      ${CMAKE_CURRENT_BINARY_DIR}/GMLS_Manifold_Multiple_Evaluation_Sites.py
+      @ONLY
+      ) # end configure_file
+    set(testName GMLS_Manifold_Multiple_Evaluation_Sites)
+    TRIBITS_ADD_ADVANCED_TEST(
+      ${testName}
+      TEST_0 CMND ${PYTHON_EXECUTABLE} ARGS ${CMAKE_CURRENT_BINARY_DIR}/GMLS_Manifold_Multiple_Evaluation_Sites.py --porder=3 --grids=3 --in-trilinos=True
+      PASS_REGULAR_EXPRESSION "Passed."
+      COMM mpi serial
+      ADDED_TEST_NAME_OUT ${testName}_CREATED
     )
-  endif() # test created
+    if (${testName}_CREATED)
+      set_tests_properties(
+        ${${testName}_CREATED}
+        PROPERTIES
+          LABELS
+            "ConvergenceTest;convergence;manifold"
+          TIMEOUT
+            60
+          REQUIRED_FILES
+            $<TARGET_FILE:Compadre_GMLS_Manifold_MultiSite_Test>
+      )
+    endif() # test created
+  endif() # PYTHON_EXECUTABLE
 
   # Divergence-free basis test for GMLS on non-manifold
-  # Note: SVD is needed to be used here due to the null space introduced
-  set(testName GMLS_DivergenceFree_Dim3_P3_SVD)
+  # Note: QR is needed to be used here due to the null space introduced
+  set(testName GMLS_DivergenceFree_Dim3_P3_QR)
   tribits_add_test(
     GMLS_Divergence_Test
     NAME
       ${testName}
     NUM_MPI_PROCS 1
     ARGS
-      "3 200 3 0 0 0 --kokkos-threads=2"
+      "--p 3 --nt 200 --d 3 --kokkos-threads=2"
     ADDED_TESTS_NAMES_OUT ${testName}_CREATED
     ) # end tribits_add_test
   if (${testName}_CREATED)
@@ -571,12 +565,12 @@ if (NOT(Compadre_DEBUG OR Compadre_EXTREME_DEBUG))
       ${${testName}_CREATED}
       PROPERTIES
         LABELS
-          "UnitTest;unit;kokkos;divergencefree;svd;batched"
+          "IntegrationTest;integration;kokkos;divergencefree;qr;batched"
         TIMEOUT
           60
       ) # end set_tests_properties
   endif() # test created
-  #set(testName GMLS_DivergenceFree_Dim3_P2_SVD)
+  #set(testName GMLS_DivergenceFree_Dim3_P2_QR)
   #tribits_add_test(
   #  GMLS_Divergence_Test
   #  NAME
@@ -591,21 +585,21 @@ if (NOT(Compadre_DEBUG OR Compadre_EXTREME_DEBUG))
   #    ${${testName}_CREATED}
   #    PROPERTIES
   #      LABELS
-  #        "UnitTest;unit;kokkos;divergencefree;svd"
+  #        "IntegrationTest;integration;kokkos;divergencefree;qr"
   #      TIMEOUT
   #        60
   #    ) # end set_tests_properties
   #endif() # test created
 
   # Divergence-free basis test for GMLS on non-manifold
-  set(testName GMLS_DivergenceFree_Dim2_P3_SVD)
+  set(testName GMLS_DivergenceFree_Dim2_P3_QR)
   tribits_add_test(
     GMLS_Divergence_Test
     NAME
       ${testName}
     NUM_MPI_PROCS 1
     ARGS
-      "3 200 2 0 0 0 --kokkos-threads=2"
+      "--p 3 --nt 200 --d 2 --kokkos-threads=2"
     ADDED_TESTS_NAMES_OUT ${testName}_CREATED
     ) # end tribits_add_test
   if (${testName}_CREATED)
@@ -613,12 +607,12 @@ if (NOT(Compadre_DEBUG OR Compadre_EXTREME_DEBUG))
       ${${testName}_CREATED}
       PROPERTIES
         LABELS
-          "UnitTest;unit;kokkos;divergencefree;svd;batched"
+          "IntegrationTest;integration;kokkos;divergencefree;qr;batched"
         TIMEOUT
           60
       ) # end set_tests_properties
   endif() # test created
-  #set(testName GMLS_DivergenceFree_Dim2_P2_SVD)
+  #set(testName GMLS_DivergenceFree_Dim2_P2_QR)
   #tribits_add_test(
   #  GMLS_Divergence_Test
   #  NAME
@@ -633,87 +627,95 @@ if (NOT(Compadre_DEBUG OR Compadre_EXTREME_DEBUG))
   #    ${${testName}_CREATED}
   #    PROPERTIES
   #      LABELS
-  #        "UnitTest;unit;kokkos;divergencefree;svd"
+  #        "IntegrationTest;integration;kokkos;divergencefree;qr"
   #      TIMEOUT
   #        60
   #    ) # end set_tests_properties
   #endif() # test created
 endif() # not debug
 
-# Python driven test of a C++ executable (Python changes command line
-# arguments given to executable) - calling QR solver
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/GMLS_Manifold.py.in
-  ${CMAKE_CURRENT_BINARY_DIR}/GMLS_Manifold.py
-  @ONLY
-  ) # end configure_file
-set(testName GMLS_Manifold_Refinement_Study_QR)
-TRIBITS_ADD_ADVANCED_TEST(
-  ${testName}
-  TEST_0 CMND ${PYTHON_EXECUTABLE} ARGS ${CMAKE_CURRENT_BINARY_DIR}/GMLS_Manifold.py --porder=3 --grids=4 --solver-type=1 --in-trilinos=True
-  PASS_REGULAR_EXPRESSION "Passed."
-  COMM mpi serial
-  ADDED_TEST_NAME_OUT ${testName}_CREATED
-)
-if (${testName}_CREATED)
-  set_tests_properties(
-    ${${testName}_CREATED}
-    PROPERTIES
-      LABELS
-        "ConvergenceTest;convergence;manifold"
-      TIMEOUT
-        20
+if (PYTHON_EXECUTABLE)
+  # Python driven test of a C++ executable (Python changes command line
+  # arguments given to executable) - calling QR solver
+  configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/GMLS_Manifold.py.in
+    ${CMAKE_CURRENT_BINARY_DIR}/GMLS_Manifold.py
+    @ONLY
+    ) # end configure_file
+  set(testName GMLS_Manifold_Refinement_Study_QR)
+  TRIBITS_ADD_ADVANCED_TEST(
+    ${testName}
+    TEST_0 CMND ${PYTHON_EXECUTABLE} ARGS ${CMAKE_CURRENT_BINARY_DIR}/GMLS_Manifold.py --porder=3 --grids=4 --solver-type=QR --in-trilinos=True
+    PASS_REGULAR_EXPRESSION "Passed."
+    COMM mpi serial
+    ADDED_TEST_NAME_OUT ${testName}_CREATED
   )
-endif() # test created
+  if (${testName}_CREATED)
+    set_tests_properties(
+      ${${testName}_CREATED}
+      PROPERTIES
+        LABELS
+          "ConvergenceTest;convergence;manifold"
+        TIMEOUT
+          60
+        REQUIRED_FILES
+          $<TARGET_FILE:Compadre_GMLS_Manifold_Test>
+    )
+  endif() # test created
+  
+  # Python driven test of a C++ executable (Python changes command line
+  # arguments given to executable) - calling LU solver
+  set(testName GMLS_Manifold_Refinement_Study_LU)
+  TRIBITS_ADD_ADVANCED_TEST(
+    ${testName}
+    TEST_0 CMND ${PYTHON_EXECUTABLE} ARGS ${CMAKE_CURRENT_BINARY_DIR}/GMLS_Manifold.py --porder=3 --grids=4 --solver-type=LU --in-trilinos=True
+    PASS_REGULAR_EXPRESSION "Passed."
+    COMM mpi serial
+    ADDED_TEST_NAME_OUT ${testName}_CREATED
+  )
+  if (${testName}_CREATED)
+    set_tests_properties(
+      ${${testName}_CREATED}
+      PROPERTIES
+        LABELS
+          "ConvergenceTest;convergence;manifold"
+        TIMEOUT
+          60
+        REQUIRED_FILES
+          $<TARGET_FILE:Compadre_GMLS_Manifold_Test>
+    )
+  endif() # test created
 
-# Python driven test of a C++ executable (Python changes command line
-# arguments given to executable) - calling LU solver
-set(testName GMLS_Manifold_Refinement_Study_LU)
-TRIBITS_ADD_ADVANCED_TEST(
-  ${testName}
-  TEST_0 CMND ${PYTHON_EXECUTABLE} ARGS ${CMAKE_CURRENT_BINARY_DIR}/GMLS_Manifold.py --porder=3 --grids=4 --solver-type=2 --in-trilinos=True
-  PASS_REGULAR_EXPRESSION "Passed."
-  COMM mpi serial
-  ADDED_TEST_NAME_OUT ${testName}_CREATED
-)
-if (${testName}_CREATED)
-  set_tests_properties(
-    ${${testName}_CREATED}
-    PROPERTIES
-      LABELS
-        "ConvergenceTest;convergence;manifold"
-      TIMEOUT
-        20
+  # Python driven test of a C++ executable (Python changes command line
+  # arguments given to executable) - calling QR solver
+  configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/GMLS_Staggered_Manifold.py.in
+    ${CMAKE_CURRENT_BINARY_DIR}/GMLS_Staggered_Manifold.py
+    @ONLY
+    ) # end configure_file
+  # Python driven test of a C++ executable (Python changes command line
+  # arguments given to executable)
+  set(testName GMLS_Staggered_Manifold_Refinement_Study)
+  TRIBITS_ADD_ADVANCED_TEST(
+    ${testName}
+    TEST_0 CMND ${PYTHON_EXECUTABLE} ARGS ${CMAKE_CURRENT_BINARY_DIR}/GMLS_Staggered_Manifold.py --porder=3 --grids=4 --in-trilinos=True
+    PASS_REGULAR_EXPRESSION "Passed."
+    COMM mpi serial
+    ADDED_TEST_NAME_OUT ${testName}_CREATED
   )
-endif() # test created
-
-# Python driven test of a C++ executable (Python changes command line
-# arguments given to executable) - calling QR solver
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/GMLS_Staggered_Manifold.py.in
-  ${CMAKE_CURRENT_BINARY_DIR}/GMLS_Staggered_Manifold.py
-  @ONLY
-  ) # end configure_file
-# Python driven test of a C++ executable (Python changes command line
-# arguments given to executable)
-set(testName GMLS_Staggered_Manifold_Refinement_Study)
-TRIBITS_ADD_ADVANCED_TEST(
-  ${testName}
-  TEST_0 CMND ${PYTHON_EXECUTABLE} ARGS ${CMAKE_CURRENT_BINARY_DIR}/GMLS_Staggered_Manifold.py --porder=3 --grids=4 --in-trilinos=True
-  PASS_REGULAR_EXPRESSION "Passed."
-  COMM mpi serial
-  ADDED_TEST_NAME_OUT ${testName}_CREATED
-)
-if (${testName}_CREATED)
-  set_tests_properties(
-    ${${testName}_CREATED}
-    PROPERTIES
-      LABELS
-        "ConvergenceTest;convergence;manifold;staggered"
-      TIMEOUT
-        20
-  )
-endif() # test created
+  if (${testName}_CREATED)
+    set_tests_properties(
+      ${${testName}_CREATED}
+      PROPERTIES
+        LABELS
+          "ConvergenceTest;convergence;manifold;staggered"
+        TIMEOUT
+          60
+        REQUIRED_FILES
+          $<TARGET_FILE:Compadre_GMLS_Staggered_Manifold_Test>
+    )
+  endif() # test created
+endif() # PYTHON_EXECUTABLE
 
 # Utility test - Filter By ID
 set(testName Test_Utilities)
@@ -734,7 +736,7 @@ if (${testName}_CREATED)
       LABELS
         "UtilityTest;utility;kokkos"
       TIMEOUT
-        5
+        60
     ) # end set_tests_properties
 endif() # test created
 
@@ -757,7 +759,7 @@ if (${testName}_CREATED)
       LABELS
         "kdtree;nanoflann"
       TIMEOUT
-        5
+        60
     ) # end set_tests_properties
 endif() # test created
 
@@ -779,7 +781,7 @@ if (${testName}_CREATED)
       LABELS
         "kdtree;nanoflann"
       TIMEOUT
-        5
+        60
     ) # end set_tests_properties
 endif() # test created
 
@@ -801,7 +803,7 @@ endif() # test created
 #      LABELS
 #        "kdtree;nanoflann"
 #      TIMEOUT
-#        5
+#        60
 #    ) # end set_tests_properties
 #endif() # test created
 
@@ -824,7 +826,7 @@ if (${testName}_CREATED)
       LABELS
         "kdtree;nanoflann"
       TIMEOUT
-        5
+        60
     ) # end set_tests_properties
 endif() # test created
 
@@ -846,7 +848,7 @@ if (${testName}_CREATED)
       LABELS
         "kdtree;nanoflann"
       TIMEOUT
-        5
+        60
     ) # end set_tests_properties
 endif() # test created
 
@@ -868,7 +870,7 @@ endif() # test created
 #      LABELS
 #        "kdtree;nanoflann"
 #      TIMEOUT
-#        5
+#        60
 #    ) # end set_tests_properties
 #endif() # test created
 
@@ -891,7 +893,7 @@ if (${testName}_CREATED)
       LABELS
         "kdtree;nanoflann"
       TIMEOUT
-        5
+        60
     ) # end set_tests_properties
 endif() # test created
 
@@ -913,7 +915,7 @@ if (${testName}_CREATED)
       LABELS
         "kdtree;nanoflann"
       TIMEOUT
-        5
+        60
     ) # end set_tests_properties
 endif() # test created
 
@@ -935,7 +937,7 @@ endif() # test created
 #      LABELS
 #        "kdtree;nanoflann"
 #      TIMEOUT
-#        5
+#        60
 #    ) # end set_tests_properties
 #endif() # test created
 
@@ -958,7 +960,7 @@ if (${testName}_CREATED)
       LABELS
         "kdtree;nanoflann"
       TIMEOUT
-        5
+        60
     ) # end set_tests_properties
 endif() # test created
 
@@ -980,7 +982,7 @@ if (${testName}_CREATED)
       LABELS
         "kdtree;nanoflann"
       TIMEOUT
-        5
+        60
     ) # end set_tests_properties
 endif() # test created
 
@@ -1002,6 +1004,6 @@ endif() # test created
 #      LABELS
 #        "kdtree;nanoflann"
 #      TIMEOUT
-#        5
+#        60
 #    ) # end set_tests_properties
 #endif() # test created

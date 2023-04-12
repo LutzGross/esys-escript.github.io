@@ -47,7 +47,7 @@
 
 #include <MueLu_ConfigDefs.hpp>
 
-#include <Kokkos_DefaultNode.hpp> // For Epetra only runs this points to FakeKokkos in Xpetra
+#include <KokkosCompat_DefaultNode.hpp> // For Epetra only runs this points to FakeKokkos in Xpetra
 
 #include <Teuchos_XMLParameterListHelpers.hpp> // getParametersFromXmlFile()
 
@@ -117,10 +117,10 @@ int main_(Teuchos::CommandLineProcessor &clp, Xpetra::UnderlyingLib lib, int arg
 #endif
 
     switch (clp.parse(argc,argv)) {
-      case Teuchos::CommandLineProcessor::PARSE_HELP_PRINTED:        return EXIT_SUCCESS; break;
+      case Teuchos::CommandLineProcessor::PARSE_HELP_PRINTED:        return EXIT_SUCCESS;
       case Teuchos::CommandLineProcessor::PARSE_ERROR:
-      case Teuchos::CommandLineProcessor::PARSE_UNRECOGNIZED_OPTION: return EXIT_FAILURE; break;
-      case Teuchos::CommandLineProcessor::PARSE_SUCCESSFUL:                               break;
+      case Teuchos::CommandLineProcessor::PARSE_UNRECOGNIZED_OPTION: return EXIT_FAILURE;
+      case Teuchos::CommandLineProcessor::PARSE_SUCCESSFUL:          break;
     }
 
     if (comm->getRank() == 0) { std::cout << xpetraParameters << matrixParameters; }
@@ -229,7 +229,7 @@ int main_(Teuchos::CommandLineProcessor &clp, Xpetra::UnderlyingLib lib, int arg
       if (comm->getRank() == 0)
         std::cout << "||Residual|| = " << residualNorms << std::endl;
 
-#if defined(HAVE_MUELU_EPETRA) && defined(HAVE_MUELU_AZTECOO) && !defined(HAVE_MUELU_CUDA)
+#if defined(HAVE_MUELU_EPETRA) && defined(HAVE_MUELU_AZTECOO) && !defined(HAVE_MUELU_CUDA) && !defined(HAVE_MUELU_HIP)
       if (xpetraParameters.GetLib() == Xpetra::UseEpetra) { //TODO: should be doable with Tpetra too
 
         // AMG as a preconditioner
@@ -345,7 +345,7 @@ int main_(Teuchos::CommandLineProcessor &clp, Xpetra::UnderlyingLib lib, int arg
       if (comm->getRank() == 0)
         std::cout << "||Residual|| = " << residualNorms << std::endl;
 
-#if defined(HAVE_MUELU_EPETRA) && defined(HAVE_MUELU_AZTECOO) && !defined(HAVE_MUELU_CUDA)
+#if defined(HAVE_MUELU_EPETRA) && defined(HAVE_MUELU_AZTECOO) && !defined(HAVE_MUELU_CUDA) && !defined(HAVE_MUELU_HIP)
       // TODO TAW: 4/8/2016
       // temporarely deactivate this due to runtime error on perseus:
       // Cast from Xpetra::CrsMatrix to Xpetra::EpetraCrsMatrix failed
@@ -403,7 +403,7 @@ int main_(Teuchos::CommandLineProcessor &clp, Xpetra::UnderlyingLib lib, int arg
 #endif // HAVE_MUELU_AZTECOO
     } // if (translatedmuelu)
 
-#if defined(HAVE_MUELU_ML) && defined(HAVE_MUELU_EPETRA) && defined(HAVE_MUELU_AZTECOO) && !defined(HAVE_MUELU_CUDA)
+#if defined(HAVE_MUELU_ML) && defined(HAVE_MUELU_EPETRA) && defined(HAVE_MUELU_AZTECOO) && !defined(HAVE_MUELU_CUDA) && !defined(HAVE_MUELU_HIP)
     if (ml) {
 
       std::cout << std::endl << std::endl << std::endl << std::endl << "**** ML ml ML ml ML" << std::endl << std::endl << std::endl << std::endl;
@@ -487,7 +487,7 @@ int main(int argc, char* argv[]) {
     Teuchos::CommandLineProcessor clp(throwExceptions, recogniseAllOptions);
     Xpetra::Parameters xpetraParameters(clp);
 
-    std::string node = "";  clp.setOption("node", &node, "node type (serial | openmp | cuda)");
+    std::string node = "";  clp.setOption("node", &node, "node type (serial | openmp | cuda | hip)");
 
     switch (clp.parse(argc, argv, NULL)) {
       case Teuchos::CommandLineProcessor::PARSE_ERROR:               return EXIT_FAILURE;

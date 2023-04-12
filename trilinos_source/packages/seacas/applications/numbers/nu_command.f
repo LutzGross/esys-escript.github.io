@@ -1,17 +1,16 @@
-C    Copyright(C) 1999-2020 National Technology & Engineering Solutions
+C    Copyright(C) 1999-2020, 2022 National Technology & Engineering Solutions
 C    of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 C    NTESS, the U.S. Government retains certain rights in this software.
-C    
+C
 C    See packages/seacas/LICENSE for details
 
-C $Id: command.f,v 1.18 2007/03/21 20:12:37 gdsjaar Exp $
       SUBROUTINE COMMAND (A, IA, TITLE, TIME, ITMSEL, MAT, DISP,
      *   CRD, LINK, DENSTY, WAVE, ISEVOK,
      *   NAMEGL, NAMENV, NAMEEL,
      *   NQAREC, QAREC, NINFO, INFREC, DBNAME)
-C
+
 C        READ AND INTERPRET ALL INPUT DATA
-C
+
       include 'exodusII.inc'
       CHARACTER*80 TITLE, COMMENT
       INTEGER IA(*)
@@ -34,7 +33,7 @@ C
       include 'nu_io.blk'
 
       DIMENSION TRANGE(3), CENT(3)
-      PARAMETER (MXNAM = 20)
+      PARAMETER (MXNAM = 132)
       DIMENSION KV(MXNAM), RV(MXNAM), IVAL(MXNAM)
       CHARACTER*32  CV(MXNAM), NAME, CTMP
       CHARACTER*16 LABEL(32), TYPE, PROMPT
@@ -43,7 +42,7 @@ C
      *   LTMP2, LTMP3, LTMP4, CENTER
       LOGICAL FFNUMB, FFMATC, HELP, MATSTR, FFEXST
 
-      CHARACTER*8 CMDTBL(37), SORTBL(12), LISTBL(20)
+      CHARACTER*8 CMDTBL(38), SORTBL(12), LISTBL(20)
       SAVE CMDTBL, SORTBL, LISTBL
 C      --CMDTBL - the valid commands table
 C      --SORTBL - the valid sort options table
@@ -60,7 +59,7 @@ C   --changing the table.
      *   'TMIN    ', 'MASS    ', 'PRINT   ', 'ECHO    ', 'SELECT  ',
      *   'WAVESPEE', 'TIMESTEP', 'ALLTIMES', 'NINTV   ', 'ZINTV   ',
      *   'SUM     ', 'AVERAGE ', 'CONDITIO', 'ESUM    ', 'EAVERAGE',
-     *   'QUIT    ', '        '/
+     *   'QUIT    ', 'MCAVITY ', '        '/
 
       DATA SORTBL /
      *   'X       ', 'Y       ', 'Z       ', 'T       ', 'DISTANCE',
@@ -218,9 +217,9 @@ C-----------------------------------------------------------------------
 
 C-----------------------------------------------------------------------
       ELSE IF (NAME .EQ.'PROPERTI' .OR. NAME .EQ. 'MASS') THEN
-C
+
 C ... SET NUMBER OF QUADRATURE POINTS
-C
+
          CALL FFINTG (IFLD, KV, IVAL,
      *      'number of quadrature points', 1, NQUAD, *20)
          IF (NQUAD .NE. 1 .AND. NQUAD .NE. 2**NDIM) THEN
@@ -230,7 +229,7 @@ C
      *         'quadrature order must be 1 or 8')
             GO TO 20
          END IF
-C
+
          CALL FFREAL (IFLD, KV, RV,
      *      'common material density', 0.0, CDENS, *20)
          IF (CDENS .GT. 0.) THEN
@@ -241,13 +240,13 @@ C
      *         'density must be greater than zero')
             GO TO 20
          END IF
-C
+
          CALL MASSPR (A, TIME, ITMSEL, DENSTY, MAT,
      *      DISP, NQUAD, LABEL)
 
 C-----------------------------------------------------------------------
       ELSE IF (NAME .EQ. 'TIMESTEP') THEN
-C
+
          CALL FFREAL (IFLD, KV, RV,
      *      'common material wavespeed', 0.0, CWAVE, *20)
          IF (CWAVE .GT. 0.) THEN
@@ -310,6 +309,42 @@ C ... For 3d, if no center specified use 0,0,0 unless user enters 'centroid'
          ELSE
          END IF
          CALL CAVITY (A, CRD, A(IBC1), A(IBC2), A(IBC3), A(IBC4),
+     *      A(IBC5),A(IBC6), A(IBC7), A(IBC8), DISP, NUMNP, NDIM,
+     *      NUMESS, TIME, ITMSEL, TITLE, CENT, CENTER)
+
+      ELSE IF (NAME .EQ. 'MCAVITY') THEN
+         NUMCAV = 0
+ 66      CONTINUE
+         IF (FFNUMB (IFLD, KV)) THEN
+           NUMCAV = MIN(NUMCAV + 1, MAXCAV)
+           CALL FFINTG (IFLD, KV, IVAL,
+     *       'cavity boundary flag', 0, ICAV(NUMCAV), *20)
+           GO TO 66
+         END IF
+
+         CENT(1) = 0.0
+         CENT(2) = 0.0
+         CENT(3) = 0.0
+         CENTER = .FALSE.
+C ... For 3d, if no center specified use 0,0,0 unless user enters 'centroid'
+         IF (NDIM .eq. 3) then
+           center = .true.
+         end if
+         IF (FFMATC (IFLD, KV, CV, 'CENTROID', 5)) THEN
+           CENTER = .FALSE.
+         ELSE IF (FFMATC (IFLD, KV, CV, 'CENTER', 1)) THEN
+           CALL FFREAL (IFLD, KV, RV, 'X coordinate of center',
+     *       0.0, CENT(1), *20)
+           CALL FFREAL (IFLD, KV, RV, 'Y coordinate of center',
+     *       0.0, CENT(2), *20)
+           IF (NDIM .EQ. 3) THEN
+             CALL FFREAL (IFLD, KV, RV, 'Z coordinate of center',
+     *         0.0, CENT(3), *20)
+           END IF
+           CENTER = .TRUE.
+         ELSE
+         END IF
+         CALL MULTI_CAVITY (A, CRD, A(IBC1), A(IBC2), A(IBC3), A(IBC4),
      *      A(IBC5),A(IBC6), A(IBC7), A(IBC8), DISP, NUMNP, NDIM,
      *      NUMESS, TIME, ITMSEL, TITLE, CENT, CENTER)
 
@@ -572,17 +607,17 @@ C-----------------------------------------------------------------------
       ELSE IF (NAME .EQ. 'EXIT' .OR. NAME .EQ. 'END'
      &        .or. name .eq. 'QUIT') THEN
          GO TO 190
-C
+
 C ... LOCATE NODES|ELEMENTS WITHIN toler OF LINE|PLANE|POINT
-C
+
 C --- FORMAT: locate nodes line  x1,y1,[z1] x2,y2,[z2], toler1, toler2 type
 C             locate nodes plane x1,y1,[z1] i2,j2,[k2], toler1, toler2
 C             locate nodes point x1,y1,[z1] toler1, toler2
-C
+
 C             locate elements line  x1,y1,[z1] x2,y2,[z2], toler1, toler2 type
 C             locate elements plane x1,y1,[z1] i2,j2,[k2], toler1, toler2
 C             locate elements point x1,y1,[z1] toler1, toler2
-C
+
 C             x1, y1, z1, x2, y2, z2 = Coordinate locations
 C             i2, j2, k2 = Normal Vector to plane
 C             If TOLER2 .EQ. 0, then TOLER1 = Maximum Distance for locate
@@ -593,7 +628,7 @@ C             If TYPE .EQ. UNBOUNDED, then search along projection of line
 
 C-----------------------------------------------------------------------
       ELSE IF (NAME .EQ. 'LOCATE') THEN
-C
+
          TYPE = 'UNBOUNDE'
          DO 150 I=NF,4,-1
             IF (KV(I) .EQ. 0) THEN
@@ -652,7 +687,7 @@ C
      &         // '" is an invalid LOCATE option')
             GO TO 170
          END IF
-C
+
   170    CONTINUE
 
 C-----------------------------------------------------------------------
@@ -864,5 +899,5 @@ C ----------------------------------------
       GO TO 20
   190 CONTINUE
       RETURN
-C
+
       END

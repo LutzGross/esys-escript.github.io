@@ -1,7 +1,7 @@
 C    Copyright(C) 1999-2020 National Technology & Engineering Solutions
 C    of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 C    NTESS, the U.S. Government retains certain rights in this software.
-C    
+C
 C    See packages/seacas/LICENSE for details
 C=======================================================================
       SUBROUTINE RDQA (NDB, NQAREC, NINFO, KQAREC, KINFO, C)
@@ -77,4 +77,3 @@ C     ... Wrapper to get info record the right length
       call exginf(ndb, info, ierr)
       return
       end
-

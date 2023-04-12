@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <gtest/gtest.h>
 
@@ -49,38 +21,57 @@
 #ifdef KOKKOS_ENABLE_OPENMP
 #include <omp.h>
 #endif
-
+#include <set>
 #if !defined(KOKKOS_ENABLE_CUDA) || defined(__CUDACC__)
 
 namespace Test {
 
 namespace Impl {
 
+std::set<char*> delete_these;
+void cleanup_memory() {
+  for (auto x : delete_these) {
+    delete[] x;
+  }
+}
+
 char** init_kokkos_args(bool do_threads, bool do_numa, bool do_device,
-                        bool do_other, int& nargs,
+                        bool do_other, bool do_tune, int& nargs,
                         Kokkos::InitArguments& init_args) {
   nargs = (do_threads ? 1 : 0) + (do_numa ? 1 : 0) + (do_device ? 1 : 0) +
-          (do_other ? 4 : 0);
+          (do_other ? 4 : 0) + (do_tune ? 1 : 0);
 
-  char** args_kokkos = new char*[nargs];
+  char** args_kokkos      = new char*[nargs];
+  const int max_args_size = 45;
   for (int i = 0; i < nargs; i++) {
-    args_kokkos[i] = new char[20];
+    args_kokkos[i] = new char[max_args_size];
+    delete_these.insert(args_kokkos[i]);
   }
 
   int threads_idx = do_other ? 1 : 0;
   int numa_idx    = (do_other ? 3 : 0) + (do_threads ? 1 : 0);
   int device_idx =
       (do_other ? 3 : 0) + (do_threads ? 1 : 0) + (do_numa ? 1 : 0);
+  int tune_idx = (do_other ? 4 : 0) + (do_threads ? 1 : 0) + (do_numa ? 1 : 0) +
+                 (do_device ? 1 : 0);
 
   if (do_threads) {
     int nthreads = 3;
 
 #ifdef KOKKOS_ENABLE_OPENMP
-    if (omp_get_max_threads() < 3) nthreads = omp_get_max_threads();
+    if (omp_get_max_threads() < nthreads) {
+      nthreads = omp_get_max_threads();
+    }
+#elif defined(KOKKOS_ENABLE_HPX)
+    const int concurrency = std::thread::hardware_concurrency();
+    if (concurrency < nthreads) {
+      nthreads = concurrency;
+    }
 #endif
 
     if (Kokkos::hwloc::available()) {
-      if (Kokkos::hwloc::get_available_threads_per_core() < 3)
+      if (Kokkos::hwloc::get_available_threads_per_core() <
+          static_cast<unsigned>(nthreads))
         nthreads = Kokkos::hwloc::get_available_threads_per_core() *
                    Kokkos::hwloc::get_available_numa_count();
     }
@@ -94,7 +85,7 @@ char** init_kokkos_args(bool do_threads, bool do_numa, bool do_device,
 #endif
 
     init_args.num_threads = nthreads;
-    sprintf(args_kokkos[threads_idx], "--threads=%i", nthreads);
+    snprintf(args_kokkos[threads_idx], max_args_size, "--threads=%i", nthreads);
   }
 
   if (do_numa) {
@@ -112,39 +103,53 @@ char** init_kokkos_args(bool do_threads, bool do_numa, bool do_device,
 #endif
 
     init_args.num_numa = numa;
-    sprintf(args_kokkos[numa_idx], "--numa=%i", numa);
+    snprintf(args_kokkos[numa_idx], max_args_size, "--numa=%i", numa);
   }
 
   if (do_device) {
     init_args.device_id = 0;
-    sprintf(args_kokkos[device_idx], "--device=%i", 0);
+    snprintf(args_kokkos[device_idx], max_args_size, "--device-id=%i", 0);
   }
 
   if (do_other) {
-    sprintf(args_kokkos[0], "--dummyarg=1");
-    sprintf(args_kokkos[threads_idx + (do_threads ? 1 : 0)], "--dummy2arg");
-    sprintf(args_kokkos[threads_idx + (do_threads ? 1 : 0) + 1], "dummy3arg");
-    sprintf(args_kokkos[device_idx + (do_device ? 1 : 0)], "dummy4arg=1");
+    snprintf(args_kokkos[0], max_args_size, "--dummyarg=1");
+    snprintf(args_kokkos[threads_idx + (do_threads ? 1 : 0)], max_args_size,
+             "--dummy2arg");
+    snprintf(args_kokkos[threads_idx + (do_threads ? 1 : 0) + 1], max_args_size,
+             "dummy3arg");
+    snprintf(args_kokkos[device_idx + (do_device ? 1 : 0)], max_args_size,
+             "dummy4arg=1");
+  }
+
+  if (do_tune) {
+    init_args.tune_internals = true;
+    snprintf(args_kokkos[tune_idx], max_args_size, "--kokkos-tune-internals");
   }
 
   return args_kokkos;
 }
 
 Kokkos::InitArguments init_initstruct(bool do_threads, bool do_numa,
-                                      bool do_device) {
+                                      bool do_device, bool do_tune) {
   Kokkos::InitArguments args;
 
   if (do_threads) {
     int nthreads = 3;
 
 #ifdef KOKKOS_ENABLE_OPENMP
-    if (omp_get_max_threads() < 3) {
+    if (omp_get_max_threads() < nthreads) {
       nthreads = omp_get_max_threads();
+    }
+#elif defined(KOKKOS_ENABLE_HPX)
+    const int concurrency = std::thread::hardware_concurrency();
+    if (concurrency < nthreads) {
+      nthreads = concurrency;
     }
 #endif
 
     if (Kokkos::hwloc::available()) {
-      if (Kokkos::hwloc::get_available_threads_per_core() < 3) {
+      if (Kokkos::hwloc::get_available_threads_per_core() <
+          static_cast<unsigned>(nthreads)) {
         nthreads = Kokkos::hwloc::get_available_threads_per_core() *
                    Kokkos::hwloc::get_available_numa_count();
       }
@@ -182,17 +187,16 @@ Kokkos::InitArguments init_initstruct(bool do_threads, bool do_numa,
     args.device_id = 0;
   }
 
+  if (do_tune) {
+    args.tune_internals = true;
+  }
+
   return args;
 }
 
 void check_correct_initialization(const Kokkos::InitArguments& argstruct) {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-  ASSERT_EQ(Kokkos::DefaultExecutionSpace::is_initialized(), 1);
-  ASSERT_EQ(Kokkos::HostSpace::execution_space::is_initialized(), 1);
-#else
   ASSERT_EQ(Kokkos::DefaultExecutionSpace::impl_is_initialized(), 1);
   ASSERT_EQ(Kokkos::HostSpace::execution_space::impl_is_initialized(), 1);
-#endif
 
   // Figure out the number of threads the HostSpace ExecutionSpace should have
   // initialized to.
@@ -258,13 +262,8 @@ void check_correct_initialization(const Kokkos::InitArguments& argstruct) {
 #endif
   }
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-  ASSERT_EQ(Kokkos::HostSpace::execution_space::thread_pool_size(),
-            expected_nthreads);
-#else
   ASSERT_EQ(Kokkos::HostSpace::execution_space::impl_thread_pool_size(),
             expected_nthreads);
-#endif
 
 #ifdef KOKKOS_ENABLE_CUDA
   if (std::is_same<Kokkos::DefaultExecutionSpace, Kokkos::Cuda>::value) {
@@ -279,6 +278,7 @@ void check_correct_initialization(const Kokkos::InitArguments& argstruct) {
     ASSERT_EQ(expected_device, device);
   }
 #endif
+  ASSERT_EQ(argstruct.tune_internals, Kokkos::tune_internals());
 }
 
 // TODO: Add check whether correct number of threads are actually started.
@@ -310,14 +310,12 @@ TEST(defaultdevicetypeinit, no_args) { Impl::test_no_arguments(); }
 #ifdef KOKKOS_DEFAULTDEVICETYPE_INIT_TEST_02
 TEST(defaultdevicetypeinit, commandline_args_empty) {
   Kokkos::InitArguments argstruct;
-  int nargs = 0;
-  char** args =
-      Impl::init_kokkos_args(false, false, false, false, nargs, argstruct);
+  int nargs   = 0;
+  char** args = Impl::init_kokkos_args(false, false, false, false, false, nargs,
+                                       argstruct);
   Impl::test_commandline_args(nargs, args, argstruct);
 
-  for (int i = 0; i < nargs; i++) {
-    delete[] args[i];
-  }
+  Impl::cleanup_memory();
   delete[] args;
 }
 #endif
@@ -325,14 +323,12 @@ TEST(defaultdevicetypeinit, commandline_args_empty) {
 #ifdef KOKKOS_DEFAULTDEVICETYPE_INIT_TEST_03
 TEST(defaultdevicetypeinit, commandline_args_other) {
   Kokkos::InitArguments argstruct;
-  int nargs = 0;
-  char** args =
-      Impl::init_kokkos_args(false, false, false, true, nargs, argstruct);
+  int nargs   = 0;
+  char** args = Impl::init_kokkos_args(false, false, false, true, false, nargs,
+                                       argstruct);
   Impl::test_commandline_args(nargs, args, argstruct);
 
-  for (int i = 0; i < nargs; i++) {
-    delete[] args[i];
-  }
+  Impl::cleanup_memory();
   delete[] args;
 }
 #endif
@@ -340,14 +336,12 @@ TEST(defaultdevicetypeinit, commandline_args_other) {
 #ifdef KOKKOS_DEFAULTDEVICETYPE_INIT_TEST_04
 TEST(defaultdevicetypeinit, commandline_args_nthreads) {
   Kokkos::InitArguments argstruct;
-  int nargs = 0;
-  char** args =
-      Impl::init_kokkos_args(true, false, false, false, nargs, argstruct);
+  int nargs   = 0;
+  char** args = Impl::init_kokkos_args(true, false, false, false, false, nargs,
+                                       argstruct);
   Impl::test_commandline_args(nargs, args, argstruct);
 
-  for (int i = 0; i < nargs; i++) {
-    delete[] args[i];
-  }
+  Impl::cleanup_memory();
   delete[] args;
 }
 #endif
@@ -357,12 +351,11 @@ TEST(defaultdevicetypeinit, commandline_args_nthreads_numa) {
   Kokkos::InitArguments argstruct;
   int nargs = 0;
   char** args =
-      Impl::init_kokkos_args(true, true, false, false, nargs, argstruct);
+      Impl::init_kokkos_args(true, true, false, false, false, nargs, argstruct);
   Impl::test_commandline_args(nargs, args, argstruct);
 
-  for (int i = 0; i < nargs; i++) {
-    delete[] args[i];
-  }
+  Impl::cleanup_memory();
+
   delete[] args;
 }
 #endif
@@ -372,12 +365,11 @@ TEST(defaultdevicetypeinit, commandline_args_nthreads_numa_device) {
   Kokkos::InitArguments argstruct;
   int nargs = 0;
   char** args =
-      Impl::init_kokkos_args(true, true, true, false, nargs, argstruct);
+      Impl::init_kokkos_args(true, true, true, false, false, nargs, argstruct);
   Impl::test_commandline_args(nargs, args, argstruct);
 
-  for (int i = 0; i < nargs; i++) {
-    delete[] args[i];
-  }
+  Impl::cleanup_memory();
+
   delete[] args;
 }
 #endif
@@ -387,12 +379,10 @@ TEST(defaultdevicetypeinit, commandline_args_nthreads_device) {
   Kokkos::InitArguments argstruct;
   int nargs = 0;
   char** args =
-      Impl::init_kokkos_args(true, false, true, false, nargs, argstruct);
+      Impl::init_kokkos_args(true, false, true, false, false, nargs, argstruct);
   Impl::test_commandline_args(nargs, args, argstruct);
 
-  for (int i = 0; i < nargs; i++) {
-    delete[] args[i];
-  }
+  Impl::cleanup_memory();
   delete[] args;
 }
 #endif
@@ -402,12 +392,10 @@ TEST(defaultdevicetypeinit, commandline_args_numa_device) {
   Kokkos::InitArguments argstruct;
   int nargs = 0;
   char** args =
-      Impl::init_kokkos_args(false, true, true, false, nargs, argstruct);
+      Impl::init_kokkos_args(false, true, true, false, false, nargs, argstruct);
   Impl::test_commandline_args(nargs, args, argstruct);
 
-  for (int i = 0; i < nargs; i++) {
-    delete[] args[i];
-  }
+  Impl::cleanup_memory();
   delete[] args;
 }
 #endif
@@ -415,14 +403,12 @@ TEST(defaultdevicetypeinit, commandline_args_numa_device) {
 #ifdef KOKKOS_DEFAULTDEVICETYPE_INIT_TEST_09
 TEST(defaultdevicetypeinit, commandline_args_device) {
   Kokkos::InitArguments argstruct;
-  int nargs = 0;
-  char** args =
-      Impl::init_kokkos_args(false, false, true, false, nargs, argstruct);
+  int nargs   = 0;
+  char** args = Impl::init_kokkos_args(false, false, true, false, false, nargs,
+                                       argstruct);
   Impl::test_commandline_args(nargs, args, argstruct);
 
-  for (int i = 0; i < nargs; i++) {
-    delete[] args[i];
-  }
+  Impl::cleanup_memory();
   delete[] args;
 }
 #endif
@@ -432,54 +418,70 @@ TEST(defaultdevicetypeinit, commandline_args_nthreads_numa_device_other) {
   Kokkos::InitArguments argstruct;
   int nargs = 0;
   char** args =
-      Impl::init_kokkos_args(true, true, true, true, nargs, argstruct);
+      Impl::init_kokkos_args(true, true, true, true, false, nargs, argstruct);
   Impl::test_commandline_args(nargs, args, argstruct);
-
-  for (int i = 0; i < nargs; i++) {
-    delete[] args[i];
-  }
+  Impl::cleanup_memory();
   delete[] args;
 }
 #endif
 
 #ifdef KOKKOS_DEFAULTDEVICETYPE_INIT_TEST_11
+TEST(defaultdevicetypeinit, commandline_args_nthreads_numa_device_other_tune) {
+  Kokkos::InitArguments argstruct;
+  int nargs = 0;
+  char** args =
+      Impl::init_kokkos_args(true, true, true, true, true, nargs, argstruct);
+  Impl::test_commandline_args(nargs, args, argstruct);
+  Impl::cleanup_memory();
+  delete[] args;
+}
+#endif
+
+#ifdef KOKKOS_DEFAULTDEVICETYPE_INIT_TEST_12
 TEST(defaultdevicetypeinit, initstruct_default) {
   Kokkos::InitArguments args;
   Impl::test_initstruct_args(args);
 }
 #endif
 
-#ifdef KOKKOS_DEFAULTDEVICETYPE_INIT_TEST_12
-TEST(defaultdevicetypeinit, initstruct_nthreads) {
-  Kokkos::InitArguments args = Impl::init_initstruct(true, false, false);
-  Impl::test_initstruct_args(args);
-}
-#endif
-
 #ifdef KOKKOS_DEFAULTDEVICETYPE_INIT_TEST_13
-TEST(defaultdevicetypeinit, initstruct_nthreads_numa) {
-  Kokkos::InitArguments args = Impl::init_initstruct(true, true, false);
+TEST(defaultdevicetypeinit, initstruct_nthreads) {
+  Kokkos::InitArguments args = Impl::init_initstruct(true, false, false, false);
   Impl::test_initstruct_args(args);
 }
 #endif
 
 #ifdef KOKKOS_DEFAULTDEVICETYPE_INIT_TEST_14
-TEST(defaultdevicetypeinit, initstruct_device) {
-  Kokkos::InitArguments args = Impl::init_initstruct(false, false, true);
+TEST(defaultdevicetypeinit, initstruct_nthreads_numa) {
+  Kokkos::InitArguments args = Impl::init_initstruct(true, true, false, false);
   Impl::test_initstruct_args(args);
 }
 #endif
 
 #ifdef KOKKOS_DEFAULTDEVICETYPE_INIT_TEST_15
-TEST(defaultdevicetypeinit, initstruct_nthreads_device) {
-  Kokkos::InitArguments args = Impl::init_initstruct(true, false, true);
+TEST(defaultdevicetypeinit, initstruct_device) {
+  Kokkos::InitArguments args = Impl::init_initstruct(false, false, true, false);
   Impl::test_initstruct_args(args);
 }
 #endif
 
 #ifdef KOKKOS_DEFAULTDEVICETYPE_INIT_TEST_16
+TEST(defaultdevicetypeinit, initstruct_nthreads_device) {
+  Kokkos::InitArguments args = Impl::init_initstruct(true, false, true, false);
+  Impl::test_initstruct_args(args);
+}
+#endif
+
+#ifdef KOKKOS_DEFAULTDEVICETYPE_INIT_TEST_17
 TEST(defaultdevicetypeinit, initstruct_nthreads_numa_device) {
-  Kokkos::InitArguments args = Impl::init_initstruct(true, true, true);
+  Kokkos::InitArguments args = Impl::init_initstruct(true, true, true, false);
+  Impl::test_initstruct_args(args);
+}
+#endif
+
+#ifdef KOKKOS_DEFAULTDEVICETYPE_INIT_TEST_18
+TEST(defaultdevicetypeinit, initstruct_nthreads_numa_device_tune) {
+  Kokkos::InitArguments args = Impl::init_initstruct(true, true, true, true);
   Impl::test_initstruct_args(args);
 }
 #endif

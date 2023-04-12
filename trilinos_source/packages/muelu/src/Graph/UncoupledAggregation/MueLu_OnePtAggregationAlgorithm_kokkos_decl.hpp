@@ -47,7 +47,6 @@
 #define MUELU_ONEPTAGGREGATIONALGORITHM_KOKKOS_DECL_HPP
 
 #include "MueLu_ConfigDefs.hpp"
-#ifdef HAVE_MUELU_KOKKOS_REFACTOR
 
 #include <KokkosCompat_ClassicNodeAPI_Wrapper.hpp>
 
@@ -86,6 +85,7 @@ namespace MueLu {
 #include "MueLu_UseShortNamesOrdinal.hpp"
 
   public:
+    using device_type  = typename LWGraph_kokkos::device_type;
     using memory_space = typename LWGraph_kokkos::memory_space;
     //! @name Constructors/Destructors.
     //@{
@@ -107,7 +107,7 @@ namespace MueLu {
     void BuildAggregates(Teuchos::ParameterList const & params,
                          LWGraph_kokkos const & graph,
                          Aggregates_kokkos & aggregates,
-                         Kokkos::View<unsigned*, typename LWGraph_kokkos::memory_space>& aggStat,
+                         Kokkos::View<unsigned*, device_type>& aggStat,
                          LO& numNonAggregatedNodes) const;
     //@}
 
@@ -117,5 +117,4 @@ namespace MueLu {
 } //namespace MueLu
 
 #define MUELU_ONEPTAGGREGATIONALGORITHM_KOKKOS_SHORT
-#endif // HAVE_MUELU_KOKKOS_REFACTOR
 #endif // MUELU_ONEPTAGGREGATIONALGORITHM_KOKKOS_DECL_HPP

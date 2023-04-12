@@ -1,7 +1,7 @@
-// Copyright(C) 1999-2020 National Technology & Engineering Solutions
+// Copyright(C) 1999-2021 National Technology & Engineering Solutions
 // of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 // NTESS, the U.S. Government retains certain rights in this software.
-// 
+//
 // See packages/seacas/LICENSE for details
 
 //------------------------------------------------------------------------
@@ -25,7 +25,6 @@ namespace Ioss {
   };
 } // namespace Ioss
 // ========================================================================
-Ioss::Quad16 Ioss::Quad16::instance_;
 
 namespace {
   struct Constants
@@ -56,8 +55,6 @@ Ioss::Quad16::Quad16() : Ioss::ElementTopology(Ioss::Quad16::name, "Quadrilatera
   Ioss::ElementTopology::alias(Ioss::Quad16::name, "quadface16");
 }
 
-Ioss::Quad16::~Quad16() = default;
-
 int Ioss::Quad16::parametric_dimension() const { return 2; }
 int Ioss::Quad16::spatial_dimension() const { return 2; }
 int Ioss::Quad16::order() const { return 2; }
@@ -75,6 +72,7 @@ int Ioss::Quad16::number_edges_face(int /* face */) const { return 0; }
 Ioss::IntVector Ioss::Quad16::edge_connectivity(int edge_number) const
 {
   assert(edge_number > 0 && edge_number <= number_edges());
+  IOSS_ASSERT_USED(edge_number);
   Ioss::IntVector connectivity(Constants::nedgenode);
   assert(edge_number > 0 && edge_number <= Constants::nedge);
 
@@ -108,5 +106,6 @@ Ioss::ElementTopology *Ioss::Quad16::face_type(int /* face_number */) const
 Ioss::ElementTopology *Ioss::Quad16::edge_type(int edge_number) const
 {
   assert(edge_number >= 0 && edge_number <= number_edges());
+  IOSS_ASSERT_USED(edge_number);
   return Ioss::ElementTopology::factory("edge4");
 }

@@ -104,11 +104,11 @@ namespace Test {
       *outStream << "-------------------------------------------------------------------------------" << "\n\n"; \
     }
 
-template<typename ValueType, typename DeviceSpaceType>
+template<typename ValueType, typename DeviceType>
 int OrientationTri(const bool verbose) {
 
-  typedef Kokkos::DynRankView<ValueType,DeviceSpaceType> DynRankView;
-  typedef Kokkos::DynRankView<ordinal_type,DeviceSpaceType> DynRankViewInt;
+  typedef Kokkos::DynRankView<ValueType,DeviceType> DynRankView;
+  typedef Kokkos::DynRankView<ordinal_type,DeviceType> DynRankViewInt;
 #define ConstructWithLabel(obj, ...) obj(#obj, __VA_ARGS__)
 
   Teuchos::RCP<std::ostream> outStream;
@@ -121,13 +121,6 @@ int OrientationTri(const bool verbose) {
 
   Teuchos::oblackholestream oldFormatState;
   oldFormatState.copyfmt(std::cout);
-
-  typedef typename
-      Kokkos::Impl::is_space<DeviceSpaceType>::host_mirror_space::execution_space HostSpaceType ;
-
-  *outStream << "DeviceSpace::  "; DeviceSpaceType::print_configuration(*outStream, false);
-  *outStream << "HostSpace::    ";   HostSpaceType::print_configuration(*outStream, false);
-  *outStream << "\n";
 
   int errorFlag = 0;
   const ValueType tol = tolerence();
@@ -151,10 +144,8 @@ int OrientationTri(const bool verbose) {
       switch (comp) {
       case 0:
         return f0 + a*x;
-        break;
       case 1:
         return f1 + a*y;
-        break;
       default:
         return 0;
       }
@@ -172,10 +163,8 @@ int OrientationTri(const bool verbose) {
       switch (comp) {
       case 0:
         return f0 - a2*y;
-        break;
       case 1:
         return f1 + a2*x;
-        break;
       default:
         return 0;
       }
@@ -183,12 +172,12 @@ int OrientationTri(const bool verbose) {
   };
 
   typedef std::array<ordinal_type,2> edgeType;
-  typedef CellTools<DeviceSpaceType> ct;
-  typedef OrientationTools<DeviceSpaceType> ots;
+  typedef CellTools<DeviceType> ct;
+  typedef OrientationTools<DeviceType> ots;
   typedef Impl::OrientationTools iots;
-  typedef RealSpaceTools<DeviceSpaceType> rst;
-  typedef FunctionSpaceTools<DeviceSpaceType> fst;
-  typedef ArrayTools<DeviceSpaceType> at;
+  typedef RealSpaceTools<DeviceType> rst;
+  typedef FunctionSpaceTools<DeviceType> fst;
+  typedef ArrayTools<DeviceType> at;
 
   constexpr ordinal_type dim = 2;
   constexpr ordinal_type numCells = 2;
@@ -271,17 +260,17 @@ int OrientationTri(const bool verbose) {
        }
 
        //compute reference points
-       Basis_HGRAD_TRI_Cn_FEM<DeviceSpaceType,ValueType,ValueType> warpBasis(order,POINTTYPE_WARPBLEND); //used only for computing reference points
+       Basis_HGRAD_TRI_Cn_FEM<DeviceType,ValueType,ValueType> warpBasis(order,POINTTYPE_WARPBLEND); //used only for computing reference points
        ordinal_type numRefCoords = warpBasis.getCardinality();
        DynRankView ConstructWithLabel(refPoints, numRefCoords, dim);
        warpBasis.getDofCoords(refPoints);
 
        // compute orientations for cells (one time computation)
        DynRankViewInt elemNodes(&tris[0][0], numCells, numElemVertexes);
-       Kokkos::DynRankView<Orientation,DeviceSpaceType> elemOrts("elemOrts", numCells);
+       Kokkos::DynRankView<Orientation,DeviceType> elemOrts("elemOrts", numCells);
        ots::getOrientation(elemOrts, elemNodes, tri);
 
-       Basis_HGRAD_TRI_Cn_FEM<DeviceSpaceType,ValueType,ValueType> basis(order);
+       Basis_HGRAD_TRI_Cn_FEM<DeviceType,ValueType,ValueType> basis(order);
        ordinal_type basisCardinality = basis.getCardinality();
 
        //compute DofCoords Oriented
@@ -297,7 +286,7 @@ int OrientationTri(const bool verbose) {
            }
 
 
-         Basis_HGRAD_LINE_Cn_FEM<DeviceSpaceType,ValueType,ValueType> lineBasis(order);
+         Basis_HGRAD_LINE_Cn_FEM<DeviceType,ValueType,ValueType> lineBasis(order);
          ordinal_type lineBasisCardinality = lineBasis.getCardinality();
          DynRankView ConstructWithLabel(lineDofCoords, lineBasisCardinality, dim-1);
          lineBasis.getDofCoords(lineDofCoords);
@@ -334,7 +323,7 @@ int OrientationTri(const bool verbose) {
        DynRankView ConstructWithLabel(physRefCoords, numCells, numRefCoords, dim);
        DynRankView ConstructWithLabel(physDofCoords, numCells, basisCardinality, dim);
        {
-         Basis_HGRAD_TRI_C1_FEM<DeviceSpaceType,ValueType,ValueType> triLinearBasis; //used for computing physical coordinates
+         Basis_HGRAD_TRI_C1_FEM<DeviceType,ValueType,ValueType> triLinearBasis; //used for computing physical coordinates
          DynRankView ConstructWithLabel(triLinearBasisValuesAtRefCoords, tri.getNodeCount(), numRefCoords);
          triLinearBasis.getValues(triLinearBasisValuesAtRefCoords, refPoints);
          DynRankView ConstructWithLabel(triLinearBasisValuesAtDofCoords, numCells, tri.getNodeCount(), basisCardinality);
@@ -539,10 +528,8 @@ int OrientationTri(const bool verbose) {
 
 
 
-        //computing edges and tangents
-        ValueType edgeTan[numCells][numElemEdges][dim];
+        //computing edges
         ordinal_type edgeIndex[numCells];
-
         {
           edgeType edge={};
           //bool edgeOrientation[numCells][4];
@@ -561,25 +548,23 @@ int OrientationTri(const bool verbose) {
               for (std::size_t k=0; k<tri.getNodeCount(1,ie); ++k)
                 edge[k] = reorder[edge[k]];
               std::sort(edge.begin(),edge.end());
-              for(int d=0; d<dim; ++d)
-                edgeTan[i][ie][d] = vertices[edge[1]][d]-vertices[edge[0]][d];
             }
           }
         }
 
         //compute reference points
-        Basis_HGRAD_TRI_Cn_FEM<DeviceSpaceType,ValueType,ValueType> warpBasis(order,POINTTYPE_WARPBLEND); //used only for computing reference points
+        Basis_HGRAD_TRI_Cn_FEM<DeviceType,ValueType,ValueType> warpBasis(order,POINTTYPE_WARPBLEND); //used only for computing reference points
         ordinal_type numRefCoords = warpBasis.getCardinality();
         DynRankView ConstructWithLabel(refPoints, numRefCoords, dim);
         warpBasis.getDofCoords(refPoints);
 
         // compute orientations for cells (one time computation)
         DynRankViewInt elemNodes(&tris[0][0], numCells, numElemVertexes);
-        Kokkos::DynRankView<Orientation,DeviceSpaceType> elemOrts("elemOrts", numCells);
+        Kokkos::DynRankView<Orientation,DeviceType> elemOrts("elemOrts", numCells);
         ots::getOrientation(elemOrts, elemNodes, tri);
 
 
-        Basis_HCURL_TRI_In_FEM<DeviceSpaceType,ValueType,ValueType> basis(order);
+        Basis_HCURL_TRI_In_FEM<DeviceType,ValueType,ValueType> basis(order);
         ordinal_type basisCardinality = basis.getCardinality();
 
         //compute DofCoords Oriented
@@ -587,7 +572,7 @@ int OrientationTri(const bool verbose) {
         DynRankView ConstructWithLabel(dofCoordsOriented, numCells, basisCardinality, dim);
         basis.getDofCoords(dofCoords);
         {
-          Basis_HVOL_LINE_Cn_FEM<DeviceSpaceType,ValueType,ValueType> lineBasis(order-1);
+          Basis_HVOL_LINE_Cn_FEM<DeviceType,ValueType,ValueType> lineBasis(order-1);
           ordinal_type lineBasisCardinality = lineBasis.getCardinality();
           DynRankView ConstructWithLabel(lineDofCoords, lineBasisCardinality, dim-1);
           lineBasis.getDofCoords(lineDofCoords);
@@ -624,7 +609,7 @@ int OrientationTri(const bool verbose) {
         DynRankView ConstructWithLabel(physRefCoords, numCells, numRefCoords, dim);
         DynRankView ConstructWithLabel(physDofCoords, numCells, basisCardinality, dim);
         {
-          Basis_HGRAD_TRI_C1_FEM<DeviceSpaceType,ValueType,ValueType> triLinearBasis; //used for computing physical coordinates
+          Basis_HGRAD_TRI_C1_FEM<DeviceType,ValueType,ValueType> triLinearBasis; //used for computing physical coordinates
           DynRankView ConstructWithLabel(triLinearBasisValuesAtRefCoords, tri.getNodeCount(), numRefCoords);
           triLinearBasis.getValues(triLinearBasisValuesAtRefCoords, refPoints);
           DynRankView ConstructWithLabel(triLinearBasisValuesAtDofCoords, numCells, tri.getNodeCount(), basisCardinality);
@@ -657,7 +642,6 @@ int OrientationTri(const bool verbose) {
           auto numEdgeDOFs = basis.getDofCount(1,0);
           DynRankView ConstructWithLabel(refEdgeTan,  dim);
 
-          const ValueType refEdgeLength = 2.0;
           for(ordinal_type i=0; i<numCells; ++i) {
 
             for(ordinal_type iedge=0; iedge<numElemEdges; iedge++) {
@@ -668,7 +652,7 @@ int OrientationTri(const bool verbose) {
               ct::getReferenceEdgeTangent(refEdgeTan, iedge, tri);
               ValueType edgeTan2d[dim] = {};
               for(ordinal_type d=0; d <dim; ++d)
-                edgeTan2d[d] = refEdgeTan(d)*((eOrt[iedge] == 0) ? 1 : -1)*refEdgeLength;
+                edgeTan2d[d] = refEdgeTan(d)*((eOrt[iedge] == 0) ? 1 : -1);
 
               for(ordinal_type j=0; j<numEdgeDOFs; ++j) {
                 auto idof = basis.getDofOrdinal(1, iedge, j);
@@ -686,32 +670,6 @@ int OrientationTri(const bool verbose) {
         ct::setJacobian(jacobian, dofCoordsOriented, physVertexes, tri);
         ct::setJacobianInv (jacobian_inv, jacobian);
         rst::matvec(dofCoeffsPhys, jacobian, dofCoeffsTmp);
-
-        //check whether dofCoeffs related to edges are proportional to edges' tangents
-        {
-          auto numEdgeDOFs = basis.getDofCount(1,0);
-          for(ordinal_type i=0; i<numCells; ++i) {
-
-            for(ordinal_type iedge=0; iedge<numElemEdges; iedge++)
-              for(ordinal_type j=0; j<numEdgeDOFs; ++j) {
-                auto idof = basis.getDofOrdinal(1, iedge, j);
-                ValueType tangent[dim];
-                bool areDifferent = false;
-                for(ordinal_type d=0; d <dim; ++d) {
-                  tangent[d] = edgeTan[i][iedge][d];
-                  if(std::abs(dofCoeffsPhys(i,idof,d) - tangent[d])>tol)
-                    areDifferent = true;
-                }
-                if(areDifferent) {
-                  errorFlag++;
-                  *outStream << std::setw(70) << "^^^^----FAILURE!" << "\n";
-                  *outStream << "Coefficients of Dof " << idof << " at cell "  << i << " are NOT equivalent to the tangent of edge " << iedge << "\n";
-                  *outStream << "Dof Coefficients are: (" << dofCoeffsPhys(i,idof,0) << ", " << dofCoeffsPhys(i,idof,1)  << ")\n";
-                  *outStream << "Edge tangent is: (" << tangent[0] << ", " << tangent[1] << ")\n";
-                }
-              }
-          }
-        }
 
         //Testing Kronecker property of basis functions
         {
@@ -935,16 +893,16 @@ int OrientationTri(const bool verbose) {
 
         // compute orientations for cells (one time computation)
         DynRankViewInt elemNodes(&tris[0][0], numCells, numElemVertexes);
-        Kokkos::DynRankView<Orientation,DeviceSpaceType> elemOrts("elemOrts", numCells);
+        Kokkos::DynRankView<Orientation,DeviceType> elemOrts("elemOrts", numCells);
         ots::getOrientation(elemOrts, elemNodes, tri);
 
         //compute reference points
-        Basis_HGRAD_TRI_Cn_FEM<DeviceSpaceType,ValueType,ValueType> warpBasis(order,POINTTYPE_WARPBLEND); //used only for computing reference points
+        Basis_HGRAD_TRI_Cn_FEM<DeviceType,ValueType,ValueType> warpBasis(order,POINTTYPE_WARPBLEND); //used only for computing reference points
         ordinal_type numRefCoords = warpBasis.getCardinality();
         DynRankView ConstructWithLabel(refPoints, numRefCoords, dim);
         warpBasis.getDofCoords(refPoints);
 
-        Basis_HDIV_TRI_In_FEM<DeviceSpaceType,ValueType,ValueType> basis(order);
+        Basis_HDIV_TRI_In_FEM<DeviceType,ValueType,ValueType> basis(order);
         ordinal_type basisCardinality = basis.getCardinality();
 
         //compute DofCoords Oriented
@@ -992,7 +950,7 @@ int OrientationTri(const bool verbose) {
         DynRankView ConstructWithLabel(physRefCoords, numCells, numRefCoords, dim);
         DynRankView ConstructWithLabel(physDofCoords, numCells, basisCardinality, dim);
         {
-          Basis_HGRAD_TRI_C1_FEM<DeviceSpaceType,ValueType,ValueType> triLinearBasis; //used for computing physical coordinates
+          Basis_HGRAD_TRI_C1_FEM<DeviceType,ValueType,ValueType> triLinearBasis; //used for computing physical coordinates
           DynRankView ConstructWithLabel(triLinearBasisValuesAtRefCoords, tri.getNodeCount(), numRefCoords);
           triLinearBasis.getValues(triLinearBasisValuesAtRefCoords, refPoints);
           DynRankView ConstructWithLabel(triLinearBasisValuesAtDofCoords, numCells, tri.getNodeCount(), basisCardinality);
@@ -1026,7 +984,6 @@ int OrientationTri(const bool verbose) {
 
           DynRankView ConstructWithLabel(refEdgeNormal,  dim);
 
-          const ValueType refEdgeLength = 2.0;
           for(ordinal_type i=0; i<numCells; ++i) {
             ordinal_type fOrt[numElemEdges];
             elemOrts(i).getEdgeOrientation(fOrt, numElemEdges);
@@ -1034,7 +991,7 @@ int OrientationTri(const bool verbose) {
               ct::getReferenceSideNormal(refEdgeNormal, iedge, tri);
               ValueType edgeNormal2d[dim];
               for(ordinal_type d=0; d <dim; ++d)
-                edgeNormal2d[d] = refEdgeNormal(d)*c[fOrt[iedge]]*refEdgeLength;
+                edgeNormal2d[d] = refEdgeNormal(d)*c[fOrt[iedge]];
               
               for(ordinal_type j=0; j<numEdgeDOFs; ++j) {
                 auto idof = basis.getDofOrdinal(dim-1, iedge, j);
@@ -1069,15 +1026,21 @@ int OrientationTri(const bool verbose) {
                 auto idof = basis.getDofOrdinal(dim-1, iedge, j);
               ValueType normal[dim];
               bool areDifferent = false;
+              ValueType norm1(0), norm2(0);
+              for(ordinal_type d=0; d <dim; ++d) {
+                norm1 += pow(edgeNormal[i][iedge][d],2);
+                norm2 += pow(dofCoeffsPhys(i,idof,d),2);
+              }
+              norm1 = sqrt(norm1); norm2=sqrt(norm2);
               for(ordinal_type d=0; d <dim; ++d) {
                 normal[d] = edgeNormal[i][iedge][d];
-                if(std::abs(dofCoeffsPhys(i,idof,d) - normal[d])>tol)
+                if(std::abs(dofCoeffsPhys(i,idof,d)/norm2 - normal[d]/norm1)>tol)
                   areDifferent = true;
               }
               if(areDifferent) {
                 errorFlag++;
                 *outStream << std::setw(70) << "^^^^----FAILURE!" << "\n";
-                *outStream << "Coefficients of Dof " << idof << " at cell "  << i << " are NOT equivalent to the normal of edge " << iedge << "\n";
+                *outStream << "Coefficients of Dof " << idof << " at cell "  << i << " are NOT proportional to the normal of edge " << iedge << "\n";
                 *outStream << "Dof Coefficients are: (" << dofCoeffsPhys(i,idof,0) << ", " << dofCoeffsPhys(i,idof,1) <<  ")\n";
                 *outStream << "Edge normal is: (" << normal[0] << ", " << normal[1]  << ")\n";
               }

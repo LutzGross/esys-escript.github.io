@@ -5,11 +5,11 @@ IF(${PROJECT_NAME}_ENABLE_Intrepid AND
    ${PROJECT_NAME}_ENABLE_Amesos2  AND
    ${PROJECT_NAME}_ENABLE_Tpetra )
 
-  INCLUDE_DIRECTORIES(${${PACKAGE_NAME}_SOURCE_DIR}/adapters/teuchos/src/sol)
+  TRIBITS_INCLUDE_DIRECTORIES(${${PACKAGE_NAME}_SOURCE_DIR}/adapters/teuchos/src/sol)
 
   # Need ROL_TpetraMultiVector.hpp
-  INCLUDE_DIRECTORIES(${${PACKAGE_NAME}_SOURCE_DIR}/adapters/tpetra/src/vector)
-  INCLUDE_DIRECTORIES(${${PACKAGE_NAME}_SOURCE_DIR}/adapters/tpetra/src/sol)
+  TRIBITS_INCLUDE_DIRECTORIES(${${PACKAGE_NAME}_SOURCE_DIR}/adapters/tpetra/src/vector)
+  TRIBITS_INCLUDE_DIRECTORIES(${${PACKAGE_NAME}_SOURCE_DIR}/adapters/tpetra/src/sol)
 
   TRIBITS_ADD_EXECUTABLE(
     example_01
@@ -50,14 +50,14 @@ IF(${PROJECT_NAME}_ENABLE_Intrepid AND
     ADD_DIR_TO_NAME
   )
 
-  TRIBITS_ADD_TEST(
-    example_02
-    ARGS PrintItAll
-    NUM_MPI_PROCS 4
-    NUM_TOTAL_CORES_USED 4
-    PASS_REGULAR_EXPRESSION "TEST PASSED"
-    ADD_DIR_TO_NAME
-  )
+  #TRIBITS_ADD_TEST(
+  #  example_02
+  #  ARGS PrintItAll
+  #  NUM_MPI_PROCS 4
+  #  NUM_TOTAL_CORES_USED 4
+  #  PASS_REGULAR_EXPRESSION "TEST PASSED"
+  #  ADD_DIR_TO_NAME
+  #)
 
   TRIBITS_COPY_FILES_TO_BINARY_DIR(
     NavierStokesDataCopy

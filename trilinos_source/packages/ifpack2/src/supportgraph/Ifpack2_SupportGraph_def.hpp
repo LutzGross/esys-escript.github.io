@@ -256,11 +256,11 @@ setMatrix (const Teuchos::RCP<const row_matrix_type>& A)
   // Check in serial or one-process mode if the matrix is square.
   TEUCHOS_TEST_FOR_EXCEPTION(
     ! A.is_null() && A->getComm()->getSize() == 1 &&
-    A->getNodeNumRows() != A->getNodeNumCols(),
+    A->getLocalNumRows() != A->getLocalNumCols(),
     std::runtime_error, "Ifpack2::ILUT::setMatrix: If A's communicator only "
     "contains one process, then A must be square.  Instead, you provided a "
-    "matrix A with " << A->getNodeNumRows() << " rows and "
-    << A->getNodeNumCols() << " columns.");
+    "matrix A with " << A->getLocalNumRows() << " rows and "
+    << A->getLocalNumCols() << " columns.");
 
   // It's legal for A to be null; in that case, you may not call
   // initialize() until calling setMatrix() with a nonnull input.
@@ -292,9 +292,9 @@ SupportGraph<MatrixType>::findSupport ()
 
   //Teuchos::RCP<Teuchos::FancyOStream> out = Teuchos::getFancyOStream (Teuchos::rcpFromRef (std::cout));
 
-  size_t num_verts = A_local_->getNodeNumRows();
+  size_t num_verts = A_local_->getLocalNumRows();
   size_t num_edges
-    = (A_local_->getNodeNumEntries() - A_local_->getNodeNumDiags())/2;
+    = (A_local_->getLocalNumEntries() - A_local_->getLocalNumDiags())/2;
 
 
   // Create data structures for the BGL code
@@ -306,7 +306,7 @@ SupportGraph<MatrixType>::findSupport ()
   lemon::ListGraph::EdgeMap<magnitude_type> edgeWeights(graph);
 
   size_t num_entries;
-  size_t max_num_entries = A_local_->getNodeMaxNumRowEntries();
+  size_t max_num_entries = A_local_->getLocalMaxNumRowEntries();
 
   std::vector<scalar_type> valuestemp (max_num_entries);
   std::vector<local_ordinal_type> indicestemp (max_num_entries);
@@ -473,7 +473,7 @@ SupportGraph<MatrixType>::findSupport ()
   // Create the CrsMatrix for the support graph
   Support_ = rcp (new crs_matrix_type (A_local_->getRowMap(),
                                        A_local_->getColMap(),
-                                       localnumnz, Tpetra::StaticProfile));
+                                       localnumnz));
 
   // Fill in the matrix with the stl vectors for each row
   for (size_t row = 0; row < num_verts; ++row) {
@@ -516,7 +516,7 @@ void SupportGraph<MatrixType>::initialize ()
   if (timer.is_null()) {
     timer = TimeMonitor::getNewCounter(timerName);
   }
-
+  double startTime = timer->wallTime();
   { // Start timing here.
     TimeMonitor timeMon (*timer);
 
@@ -543,9 +543,7 @@ void SupportGraph<MatrixType>::initialize ()
     ++NumInitialize_;
   } // Stop timing here.
 
-  // timer->totalElapsedTime() returns the total time over all timer
-  // calls.  Thus, we use = instead of +=.
-  InitializeTime_ = timer->totalElapsedTime();
+  InitializeTime_ += (timer->wallTime() - startTime);
 }
 
 
@@ -570,7 +568,7 @@ void SupportGraph<MatrixType>::compute () {
   if (timer.is_null()) {
     timer = TimeMonitor::getNewCounter(timerName);
   }
-
+  double startTime = timer->wallTime();
   { // Start timing here.
     Teuchos::TimeMonitor timeMon (*timer);
     solver_->numericFactorization();
@@ -578,9 +576,7 @@ void SupportGraph<MatrixType>::compute () {
     ++NumCompute_;
   } // Stop timing here.
 
-  // timer->totalElapsedTime() returns the total time over all timer
-  // calls.  Thus, we use = instead of +=.
-  ComputeTime_ = timer->totalElapsedTime();
+  ComputeTime_ += (timer->wallTime() - startTime);
 }
 
 
@@ -622,7 +618,7 @@ apply (const Tpetra::MultiVector<scalar_type,
   if (timer.is_null()) {
     timer = TimeMonitor::getNewCounter(timerName);
   }
-
+  double startTime = timer->wallTime();
   { // Start timing here.
     Teuchos::TimeMonitor timeMon (*timer);
 
@@ -646,9 +642,7 @@ apply (const Tpetra::MultiVector<scalar_type,
     // we need to create an auxiliary vector, Xcopy
     RCP<const MV> Xcopy;
     {
-      auto X_lcl_host = X.getLocalView<Kokkos::HostSpace> ();
-      auto Y_lcl_host = Y.getLocalView<Kokkos::HostSpace> ();
-      if (X_lcl_host.data () == Y_lcl_host.data ()) {
+      if (X.aliases(Y)) {
         Xcopy = rcp (new MV (X, Teuchos::Copy));
       } else {
         Xcopy = rcpFromRef (X);
@@ -668,9 +662,7 @@ apply (const Tpetra::MultiVector<scalar_type,
 
   ++NumApply_;
 
-  // timer->totalElapsedTime() returns the total time over all timer
-  // calls.  Thus, we use = instead of +=.
-  ApplyTime_ = timer->totalElapsedTime();
+  ApplyTime_ += (timer->wallTime() - startTime);
 }
 
 

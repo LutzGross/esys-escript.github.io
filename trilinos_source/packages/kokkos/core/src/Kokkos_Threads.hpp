@@ -1,47 +1,24 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#include <Kokkos_Macros.hpp>
+static_assert(false,
+              "Including non-public Kokkos header files is not allowed.");
+#endif
 #ifndef KOKKOS_THREADS_HPP
 #define KOKKOS_THREADS_HPP
 
@@ -57,13 +34,14 @@
 #include <Kokkos_Layout.hpp>
 #include <Kokkos_MemoryTraits.hpp>
 #include <impl/Kokkos_Profiling_Interface.hpp>
-#include <impl/Kokkos_Tags.hpp>
+#include <impl/Kokkos_InitializationSettings.hpp>
 
 /*--------------------------------------------------------------------------*/
 
 namespace Kokkos {
 namespace Impl {
 class ThreadsExec;
+enum class fence_is_static { yes, no };
 }  // namespace Impl
 }  // namespace Kokkos
 
@@ -71,22 +49,22 @@ class ThreadsExec;
 
 namespace Kokkos {
 
-/** \brief  Execution space for a pool of Pthreads or C11 threads on a CPU. */
+/** \brief  Execution space for a pool of C++11 threads on a CPU. */
 class Threads {
  public:
   //! \name Type declarations that all Kokkos devices must provide.
   //@{
   //! Tag this class as a kokkos execution space
-  typedef Threads execution_space;
-  typedef Kokkos::HostSpace memory_space;
+  using execution_space = Threads;
+  using memory_space    = Kokkos::HostSpace;
 
   //! This execution space preferred device_type
-  typedef Kokkos::Device<execution_space, memory_space> device_type;
+  using device_type = Kokkos::Device<execution_space, memory_space>;
 
-  typedef Kokkos::LayoutRight array_layout;
-  typedef memory_space::size_type size_type;
+  using array_layout = Kokkos::LayoutRight;
+  using size_type    = memory_space::size_type;
 
-  typedef ScratchMemorySpace<Threads> scratch_memory_space;
+  using scratch_memory_space = ScratchMemorySpace<Threads>;
 
   //@}
   /*------------------------------------------------------------------------*/
@@ -98,7 +76,7 @@ class Threads {
   static int in_parallel();
 
   /// \brief Print configuration information to the given output stream.
-  static void print_configuration(std::ostream&, const bool detail = false);
+  void print_configuration(std::ostream& os, bool verbose = false) const;
 
   /// \brief Wait until all dispatched functors complete.
   ///
@@ -106,47 +84,18 @@ class Threads {
   /// return asynchronously, before the functor completes.  This
   /// method does not return until all dispatched functors on this
   /// device have completed.
-  static void impl_static_fence();
+  static void impl_static_fence(const std::string& name);
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-  static void fence();
-#else
-  void fence() const;
-#endif
+  void fence(const std::string& name =
+                 "Kokkos::Threads::fence: Unnamed Instance Fence") const;
 
   /** \brief  Return the maximum amount of concurrency.  */
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
   static int concurrency();
-
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-  static bool sleep();
-
-  static bool wake();
-
-  static void finalize();
-
-  static void initialize(unsigned threads_count             = 0,
-                         unsigned use_numa_count            = 0,
-                         unsigned use_cores_per_numa        = 0,
-                         bool allow_asynchronous_threadpool = false);
-
-  static int is_initialized();
-
-  static Threads& instance(int = 0);
-
-  //----------------------------------------
-
-  static int thread_pool_size(int depth = 0);
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-  static int thread_pool_rank();
 #else
-  KOKKOS_INLINE_FUNCTION static int thread_pool_rank() { return 0; }
+  int concurrency() const;
 #endif
 
-  inline static unsigned max_hardware_threads() { return thread_pool_size(0); }
-  KOKKOS_INLINE_FUNCTION static unsigned hardware_thread_id() {
-    return thread_pool_rank();
-  }
-#else
   /// \brief Free any resources being consumed by the device.
   ///
   /// For the Threads device, this terminates spawned worker threads.
@@ -158,27 +107,7 @@ class Threads {
   //! \name Space-specific functions
   //@{
 
-  /** \brief Initialize the device in the "ready to work" state.
-   *
-   *  The device is initialized in a "ready to work" or "awake" state.
-   *  This state reduces latency and thus improves performance when
-   *  dispatching work.  However, the "awake" state consumes resources
-   *  even when no work is being done.  You may call sleep() to put
-   *  the device in a "sleeping" state that does not consume as many
-   *  resources, but it will take time (latency) to awaken the device
-   *  again (via the wake()) method so that it is ready for work.
-   *
-   *  Teams of threads are distributed as evenly as possible across
-   *  the requested number of numa regions and cores per numa region.
-   *  A team will not be split across a numa region.
-   *
-   *  If the 'use_' arguments are not supplied the hwloc is queried
-   *  to use all available cores.
-   */
-  static void impl_initialize(unsigned threads_count             = 0,
-                              unsigned use_numa_count            = 0,
-                              unsigned use_cores_per_numa        = 0,
-                              bool allow_asynchronous_threadpool = false);
+  static void impl_initialize(InitializationSettings const&);
 
   static int impl_is_initialized();
 
@@ -187,11 +116,14 @@ class Threads {
   //----------------------------------------
 
   static int impl_thread_pool_size(int depth = 0);
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-  static int impl_thread_pool_rank();
-#else
-  KOKKOS_INLINE_FUNCTION static int impl_thread_pool_rank() { return 0; }
-#endif
+
+  static int impl_thread_pool_rank_host();
+
+  static KOKKOS_FUNCTION int impl_thread_pool_rank() {
+    KOKKOS_IF_ON_HOST((return impl_thread_pool_rank_host();))
+
+    KOKKOS_IF_ON_DEVICE((return 0;))
+  }
 
   inline static unsigned impl_max_hardware_threads() {
     return impl_thread_pool_size(0);
@@ -199,23 +131,26 @@ class Threads {
   KOKKOS_INLINE_FUNCTION static unsigned impl_hardware_thread_id() {
     return impl_thread_pool_rank();
   }
-#endif
 
-  uint32_t impl_instance_id() const noexcept { return 0; }
+  uint32_t impl_instance_id() const noexcept { return 1; }
 
   static const char* name();
   //@}
   //----------------------------------------
+ private:
+  friend bool operator==(Threads const&, Threads const&) { return true; }
+  friend bool operator!=(Threads const&, Threads const&) { return false; }
 };
 
-namespace Profiling {
+namespace Tools {
 namespace Experimental {
 template <>
 struct DeviceTypeTraits<Threads> {
   static constexpr DeviceType id = DeviceType::Threads;
+  static int device_id(const Threads&) { return 0; }
 };
 }  // namespace Experimental
-}  // namespace Profiling
+}  // namespace Tools
 }  // namespace Kokkos
 
 /*--------------------------------------------------------------------------*/
@@ -226,17 +161,9 @@ namespace Impl {
 template <>
 struct MemorySpaceAccess<Kokkos::Threads::memory_space,
                          Kokkos::Threads::scratch_memory_space> {
-  enum { assignable = false };
-  enum { accessible = true };
-  enum { deepcopy = false };
-};
-
-template <>
-struct VerifyExecutionCanAccessMemorySpace<
-    Kokkos::Threads::memory_space, Kokkos::Threads::scratch_memory_space> {
-  enum { value = true };
-  inline static void verify(void) {}
-  inline static void verify(const void*) {}
+  enum : bool { assignable = false };
+  enum : bool { accessible = true };
+  enum : bool { deepcopy = false };
 };
 
 }  // namespace Impl
@@ -248,7 +175,10 @@ struct VerifyExecutionCanAccessMemorySpace<
 #include <Kokkos_Parallel.hpp>
 #include <Threads/Kokkos_ThreadsExec.hpp>
 #include <Threads/Kokkos_ThreadsTeam.hpp>
-#include <Threads/Kokkos_Threads_Parallel.hpp>
+#include <Threads/Kokkos_Threads_Parallel_Range.hpp>
+#include <Threads/Kokkos_Threads_Parallel_MDRange.hpp>
+#include <Threads/Kokkos_Threads_Parallel_Team.hpp>
+#include <Threads/Kokkos_Threads_UniqueToken.hpp>
 
 #include <KokkosExp_MDRangePolicy.hpp>
 

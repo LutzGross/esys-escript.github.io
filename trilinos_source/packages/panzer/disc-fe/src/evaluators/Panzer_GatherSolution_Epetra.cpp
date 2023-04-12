@@ -40,7 +40,10 @@
 // ***********************************************************************
 // @HEADER
 
+#include "Kokkos_View_Fad.hpp"
+
 #include "PanzerDiscFE_config.hpp"
+
 
 #include "Panzer_ExplicitTemplateInstantiation.hpp"
 

@@ -13,7 +13,7 @@
 //#include "UniformRefinerPattern.hpp"
 #include <adapt/sierra_element/RefinementTopology.hpp>
 #include <adapt/sierra_element/StdMeshObjTopologies.hpp>
-
+#include <adapt/CompareCoordinates.hpp>
 #include <adapt/RefinerPattern_Tri3_Tri3_N.hpp>
 
 #include <adapt/Percept_MOAB_SimplexTemplateRefiner.hpp>
@@ -226,30 +226,31 @@
         // general case (now includes uniform refinement (all edges marked))
         else
           {
-            double * node_coords[4];
+            std::array<double *, 4> node_coords;
             for (int inode=0; inode < 4; inode++)
               {
-                node_coords[inode] = stk::mesh::field_data( *eMesh.get_coordinates_field() , tet_elem_nodes[inode] );
+                node_coords[inode] = static_cast<double*>(stk::mesh::field_data( *eMesh.get_coordinates_field() , tet_elem_nodes[inode] ));
                 if (0) std::cout << "tmp RP node_coords= "
                                  << node_coords[inode][0] << " "
                                  << node_coords[inode][1] << " "
                                  << node_coords[inode][2] << std::endl;
               }
 
+            const std::array<int, 4> node_rank = get_rank_of_nodes_based_on_coordinates(node_coords);
             std::vector<moab::TetTupleInt> new_tets;
             bool choose_best_tets = true;
             moab::SimplexTemplateRefiner str(choose_best_tets);
             str.refine_3_simplex(new_tets, edge_marks, 1,
-                                 node_coords[0], 0, eMesh.identifier(tet_elem_nodes[0]),
-                                 node_coords[1], 0, eMesh.identifier(tet_elem_nodes[1]),
-                                 node_coords[2], 0, eMesh.identifier(tet_elem_nodes[2]),
-                                 node_coords[3], 0, eMesh.identifier(tet_elem_nodes[3]) );
+                                 node_coords[0], 0, node_rank[0],
+                                 node_coords[1], 0, node_rank[1],
+                                 node_coords[2], 0, node_rank[2],
+                                 node_coords[3], 0, node_rank[3] );
 
             if (0)
               {
                 for (int inode=0; inode < 4; inode++)
                   {
-                    node_coords[inode] = stk::mesh::field_data( *eMesh.get_coordinates_field() , tet_elem_nodes[inode] );
+                    node_coords[inode] = static_cast<double*>(stk::mesh::field_data( *eMesh.get_coordinates_field() , tet_elem_nodes[inode] ));
                     std::cout << "tmp RefPatt::createNewElements node_coords after= "
                               << node_coords[inode][0] << " "
                               << node_coords[inode][1] << " "
@@ -333,7 +334,7 @@
 
             if (proc_rank_field)
               {
-                double *fdata = stk::mesh::field_data( *static_cast<const ScalarFieldType *>(proc_rank_field) , newElement );
+                double *fdata = static_cast<double*>(stk::mesh::field_data( *proc_rank_field, newElement ));
                 //fdata[0] = double(eMesh.get_rank());
                 fdata[0] = double(eMesh.owner_rank(newElement));
               }

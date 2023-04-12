@@ -63,7 +63,6 @@
 #include "BelosStatusTestOutput.hpp"
 #include "BelosStatusTestOutputFactory.hpp"
 #include "BelosOutputManager.hpp"
-#include "Teuchos_BLAS.hpp"
 #ifdef BELOS_TEUCHOS_TIME_MONITOR
 #include "Teuchos_TimeMonitor.hpp"
 #endif
@@ -333,7 +332,6 @@ private:
   static constexpr const char * expResScale_default_ = "Norm of Initial Residual";
   static constexpr const char * label_default_ = "Belos";
   static constexpr const char * orthoType_default_ = "ICGS";
-  static constexpr std::ostream * outputStream_default_ = &std::cout;
 
   // Current solver values.
   MagnitudeType convtol_, orthoKappa_, achievedTol_;
@@ -356,7 +354,7 @@ private:
 // Empty Constructor
 template<class ScalarType, class MV, class OP>
 BlockGmresSolMgr<ScalarType,MV,OP>::BlockGmresSolMgr() :
-  outputStream_(Teuchos::rcp(outputStream_default_,false)),
+  outputStream_(Teuchos::rcpFromRef(std::cout)),
   convtol_(DefaultSolverParameters::convTol),
   orthoKappa_(DefaultSolverParameters::orthoKappa),
   achievedTol_(Teuchos::ScalarTraits<typename Teuchos::ScalarTraits<ScalarType>::magnitudeType>::zero()),
@@ -388,7 +386,7 @@ BlockGmresSolMgr<ScalarType,MV,OP>::
 BlockGmresSolMgr (const Teuchos::RCP<LinearProblem<ScalarType,MV,OP> > &problem,
                   const Teuchos::RCP<Teuchos::ParameterList> &pl) :
   problem_(problem),
-  outputStream_(Teuchos::rcp(outputStream_default_,false)),
+  outputStream_(Teuchos::rcpFromRef(std::cout)),
   convtol_(DefaultSolverParameters::convTol),
   orthoKappa_(DefaultSolverParameters::orthoKappa),
   achievedTol_(Teuchos::ScalarTraits<typename Teuchos::ScalarTraits<ScalarType>::magnitudeType>::zero()),
@@ -460,7 +458,7 @@ BlockGmresSolMgr<ScalarType,MV,OP>::getValidParameters() const
     pl->set("Output Frequency", static_cast<int>(outputFreq_default_),
       "How often convergence information should be outputted\n"
       "to the output stream.");
-    pl->set("Output Stream", Teuchos::rcp(outputStream_default_,false),
+    pl->set("Output Stream", Teuchos::rcpFromRef(std::cout),
       "A reference-counted pointer to the output stream where all\n"
       "solver output is sent.");
     pl->set("Show Maximum Residual Norm Only", static_cast<bool>(showMaxResNormOnly_default_),
@@ -888,8 +886,6 @@ ReturnType BlockGmresSolMgr<ScalarType,MV,OP>::solve() {
   if (!isSet_) {
     setParameters(Teuchos::parameterList(*getValidParameters()));
   }
-
-  Teuchos::BLAS<int,ScalarType> blas;
 
   TEUCHOS_TEST_FOR_EXCEPTION(problem_ == Teuchos::null,BlockGmresSolMgrLinearProblemFailure,
     "Belos::BlockGmresSolMgr::solve(): Linear problem is not a valid object.");

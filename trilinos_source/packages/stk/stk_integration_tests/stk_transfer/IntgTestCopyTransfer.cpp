@@ -35,7 +35,7 @@
 #include "stk_mesh/base/BulkData.hpp"          // for BulkData, etc
 #include "stk_mesh/base/CoordinateSystems.hpp" // for Cartesian2d, etc.
 #include "stk_mesh/base/FEMHelpers.hpp"        // for declare_element
-#include "stk_mesh/base/GetEntities.hpp"       // for get_selected_entities, etc.
+#include "stk_mesh/base/GetEntities.hpp"
 #include "stk_mesh/base/MetaData.hpp"          // for MetaData, entity_rank_names, etc
 #include "stk_mesh/base/Part.hpp"              // for Part
 #include "stk_mesh/base/Relation.hpp"
@@ -43,6 +43,7 @@
 #include "stk_topology/topology.hpp"           // for topology, etc
 #include "stk_util/parallel/Parallel.hpp"      // for ParallelMachine, etc
 #include "stk_unit_test_utils/TextMesh.hpp"
+#include "stk_unit_test_utils/BuildMesh.hpp"
 #include "stk_io/FillMesh.hpp"
 #include "stk_io/IossBridge.hpp"
 #include "gtest/gtest.h"
@@ -59,10 +60,11 @@
 
 namespace
 {
+using stk::unit_test_util::build_mesh;
 
-typedef stk::mesh::Field<int>                            ScalarIntField;
-typedef stk::mesh::Field<double>                         ScalarDoubleField;
-typedef stk::mesh::Field<double, stk::mesh::Cartesian3d> VectorDoubleField;
+typedef stk::mesh::Field<int>    ScalarIntField;
+typedef stk::mesh::Field<double> ScalarDoubleField;
+typedef stk::mesh::Field<double> VectorDoubleField;
 
 void build_mesh(stk::mesh::MetaData & meta,
                 stk::mesh::BulkData & mesh,
@@ -84,33 +86,33 @@ void build_mesh(stk::mesh::MetaData & meta,
   stk::mesh::Part * elem_part = &meta.declare_part_with_topology("elem_part", stk::topology::HEX_8);
   stk::mesh::Part * face_part = &meta.declare_part_with_topology("face_part", stk::topology::QUAD_4);
   stk::mesh::Part * shell_part = &meta.declare_part_with_topology("shell_part", stk::topology::SHELL_QUAD_4);
-  ScalarIntField    & scalarIntFieldNode    = meta.declare_field<ScalarIntField>(stk::topology::NODE_RANK, "Node Scalar Int Field");
-  ScalarDoubleField & scalarDoubleFieldNode = meta.declare_field<ScalarDoubleField>(stk::topology::NODE_RANK, "Node Scalar Double Field");
-  VectorDoubleField & vectorDoubleFieldNode = meta.declare_field<VectorDoubleField>(stk::topology::NODE_RANK, "Node Vector Double Field");
-  VectorDoubleField & coordsFieldNode       = meta.declare_field<VectorDoubleField>(stk::topology::NODE_RANK, "coordinates");
+  ScalarIntField    & scalarIntFieldNode    = meta.declare_field<int>(stk::topology::NODE_RANK, "Node Scalar Int Field");
+  ScalarDoubleField & scalarDoubleFieldNode = meta.declare_field<double>(stk::topology::NODE_RANK, "Node Scalar Double Field");
+  VectorDoubleField & vectorDoubleFieldNode = meta.declare_field<double>(stk::topology::NODE_RANK, "Node Vector Double Field");
+  VectorDoubleField & coordsFieldNode       = meta.declare_field<double>(stk::topology::NODE_RANK, "coordinates");
   meta.set_coordinate_field(&coordsFieldNode);
   stk::mesh::put_field_on_mesh(scalarIntFieldNode, meta.universal_part(), &int_init_vals);
   stk::mesh::put_field_on_mesh(scalarDoubleFieldNode, meta.universal_part(), double_init_vals);
-  stk::mesh::put_field_on_mesh(vectorDoubleFieldNode, meta.universal_part(), double_init_vals);
-  stk::mesh::put_field_on_mesh(coordsFieldNode, meta.universal_part(), double_init_vals);
-  ScalarIntField    & scalarIntFieldElement    = meta.declare_field<ScalarIntField>(stk::topology::ELEM_RANK, "Element Scalar Int Field");
-  ScalarDoubleField & scalarDoubleFieldElement = meta.declare_field<ScalarDoubleField>(stk::topology::ELEM_RANK, "Element Scalar Double Field");
-  VectorDoubleField & vectorDoubleFieldElement = meta.declare_field<VectorDoubleField>(stk::topology::ELEM_RANK, "Element Vector Double Field");
+  stk::mesh::put_field_on_mesh(vectorDoubleFieldNode, meta.universal_part(), 3, double_init_vals);
+  stk::mesh::put_field_on_mesh(coordsFieldNode, meta.universal_part(), 3, double_init_vals);
+  ScalarIntField    & scalarIntFieldElement    = meta.declare_field<int>(stk::topology::ELEM_RANK, "Element Scalar Int Field");
+  ScalarDoubleField & scalarDoubleFieldElement = meta.declare_field<double>(stk::topology::ELEM_RANK, "Element Scalar Double Field");
+  VectorDoubleField & vectorDoubleFieldElement = meta.declare_field<double>(stk::topology::ELEM_RANK, "Element Vector Double Field");
   stk::mesh::put_field_on_mesh(scalarIntFieldElement, meta.universal_part(), &int_init_vals);
   stk::mesh::put_field_on_mesh(scalarDoubleFieldElement, meta.universal_part(), double_init_vals);
-  stk::mesh::put_field_on_mesh(vectorDoubleFieldElement, meta.universal_part(), double_init_vals);
-  ScalarIntField    & scalarIntFieldFace    = meta.declare_field<ScalarIntField>(stk::topology::FACE_RANK, "Face Scalar Int Field");
-  ScalarDoubleField & scalarDoubleFieldFace = meta.declare_field<ScalarDoubleField>(stk::topology::FACE_RANK, "Face Scalar Double Field");
-  VectorDoubleField & vectorDoubleFieldFace = meta.declare_field<VectorDoubleField>(stk::topology::FACE_RANK, "Face Vector Double Field");
+  stk::mesh::put_field_on_mesh(vectorDoubleFieldElement, meta.universal_part(), 3, double_init_vals);
+  ScalarIntField    & scalarIntFieldFace    = meta.declare_field<int>(stk::topology::FACE_RANK, "Face Scalar Int Field");
+  ScalarDoubleField & scalarDoubleFieldFace = meta.declare_field<double>(stk::topology::FACE_RANK, "Face Scalar Double Field");
+  VectorDoubleField & vectorDoubleFieldFace = meta.declare_field<double>(stk::topology::FACE_RANK, "Face Vector Double Field");
   stk::mesh::put_field_on_mesh(scalarIntFieldFace, meta.universal_part(), &int_init_vals);
   stk::mesh::put_field_on_mesh(scalarDoubleFieldFace, meta.universal_part(), double_init_vals);
-  stk::mesh::put_field_on_mesh(vectorDoubleFieldFace, meta.universal_part(), double_init_vals);
-  ScalarIntField    & scalarIntFieldShell    = meta.declare_field<ScalarIntField>(stk::topology::ELEM_RANK, "Shell Scalar Int Field");
-  ScalarDoubleField & scalarDoubleFieldShell = meta.declare_field<ScalarDoubleField>(stk::topology::ELEM_RANK, "Shell Scalar Double Field");
-  VectorDoubleField & vectorDoubleFieldShell = meta.declare_field<VectorDoubleField>(stk::topology::ELEM_RANK, "Shell Vector Double Field");
+  stk::mesh::put_field_on_mesh(vectorDoubleFieldFace, meta.universal_part(), 3, double_init_vals);
+  ScalarIntField    & scalarIntFieldShell    = meta.declare_field<int>(stk::topology::ELEM_RANK, "Shell Scalar Int Field");
+  ScalarDoubleField & scalarDoubleFieldShell = meta.declare_field<double>(stk::topology::ELEM_RANK, "Shell Scalar Double Field");
+  VectorDoubleField & vectorDoubleFieldShell = meta.declare_field<double>(stk::topology::ELEM_RANK, "Shell Vector Double Field");
   stk::mesh::put_field_on_mesh(scalarIntFieldShell, *shell_part, &int_init_vals);
   stk::mesh::put_field_on_mesh(scalarDoubleFieldShell, *shell_part, double_init_vals);
-  stk::mesh::put_field_on_mesh(vectorDoubleFieldShell, *shell_part, double_init_vals);
+  stk::mesh::put_field_on_mesh(vectorDoubleFieldShell, *shell_part, 3, double_init_vals);
   meta.commit();
 
   mesh.initialize_face_adjacent_element_graph();
@@ -369,8 +371,9 @@ public:
     //
     if (commOwnsMesh[0])
     {
-      metaA = std::unique_ptr<stk::mesh::MetaData>(new stk::mesh::MetaData(spatial_dimension));
-      meshA = std::unique_ptr<stk::mesh::BulkData>(new stk::mesh::BulkData(*metaA, pmSub));
+      metaA = stk::mesh::MeshBuilder().set_spatial_dimension(spatial_dimension).create_meta_data();
+      metaA->use_simple_fields();
+      meshA = stk::mesh::MeshBuilder(pmSub).create(metaA);
       build_mesh(*metaA, *meshA, info.num_elements, info.num_nodes, info.element_ids, element_ownerA, &info.elem_node_ids[0], info.node_sharingA, info.coordinates, create_faces);
     }
 
@@ -378,8 +381,9 @@ public:
     //
     if (commOwnsMesh[1])
     {
-      metaB = std::unique_ptr<stk::mesh::MetaData>(new stk::mesh::MetaData(spatial_dimension));
-      meshB = std::unique_ptr<stk::mesh::BulkData>(new stk::mesh::BulkData(*metaB, pmSub));
+      metaB = stk::mesh::MeshBuilder().set_spatial_dimension(spatial_dimension).create_meta_data();
+      metaB->use_simple_fields();
+      meshB = stk::mesh::MeshBuilder(pmSub).create(metaB);
       build_mesh(*metaB, *meshB, info.num_elements, info.num_nodes, info.element_ids, element_ownerB, &info.elem_node_ids[0], info.node_sharingB, info.coordinates, create_faces);
     }
   }
@@ -399,7 +403,8 @@ public:
       ScalarDoubleField & scalarDoubleSourceField = static_cast<ScalarDoubleField&>(*metaA->get_field(field_rank, prefix + " Scalar Double Field"));
       VectorDoubleField & vectorDoubleSourceField = static_cast<VectorDoubleField&>(*metaA->get_field(field_rank, prefix + " Vector Double Field"));
       std::vector<stk::mesh::Entity> sourceNodes;
-      stk::mesh::get_selected_entities(metaA->locally_owned_part(), meshA->buckets(field_rank), sourceNodes);
+      const bool sortById = true;
+      stk::mesh::get_entities(*meshA, field_rank, metaA->locally_owned_part(), sourceNodes, sortById);
       std::vector<stk::mesh::FieldBase*> sourceFields;
       sourceFields.push_back(&scalarIntSourceField);
       sourceFields.push_back(&scalarDoubleSourceField);
@@ -418,7 +423,12 @@ public:
       vectorDoubleTargetField = static_cast<VectorDoubleField*>(metaB->get_field(field_rank, prefix + " Vector Double Field"));
 
       std::vector<stk::mesh::Entity> targetNodes;
-      stk::mesh::get_selected_entities(metaB->locally_owned_part(), meshB->buckets(field_rank), targetNodes);
+      stk::mesh::Selector receiverSelector = metaB->locally_owned_part();
+      if (receiverIncludesSharedNodes) {
+        receiverSelector |= metaB->globally_shared_part();
+      }
+      stk::mesh::get_entities(*meshB, field_rank, receiverSelector, targetNodes);
+
       std::vector<stk::mesh::FieldBase*> targetFields;
       targetFields.push_back(scalarIntTargetField);
       targetFields.push_back(scalarDoubleTargetField);
@@ -436,6 +446,7 @@ public:
       KeyToTargetProcessor key_to_target_processor;
       copySearch.do_search(*transferSourcePtr, *transferTargetPtr,key_to_target_processor);
 
+      stk::util::sort_and_unique(key_to_target_processor);
       keyToTargetCheck(key_to_target_processor);
 
       typedef stk::transfer::SearchById::MeshIDSet MeshIDSet;
@@ -479,17 +490,25 @@ public:
       EXPECT_TRUE (meshA); //if mehsB didn't exist on processor, mehsA should exist
     }
   }
-  virtual ~CopyTransferFixture() = default;
+
+  void add_shared_nodes_to_receiver() { receiverIncludesSharedNodes = true; }
+
+  virtual ~CopyTransferFixture()
+  {
+    MPI_Comm_free(&pmSub);
+  }
+
 protected:
   stk::ParallelMachine pm;
   stk::ParallelMachine pmSub;
 //  Does this communicator own the mesh
   std::vector<bool> commOwnsMesh;
   SearchById copySearch;
+  bool receiverIncludesSharedNodes = false;
   const size_t spatial_dimension = 3;
-  std::unique_ptr<stk::mesh::MetaData> metaA;
+  std::shared_ptr<stk::mesh::MetaData> metaA;
   std::unique_ptr<stk::mesh::BulkData> meshA;
-  std::unique_ptr<stk::mesh::MetaData> metaB;
+  std::shared_ptr<stk::mesh::MetaData> metaB;
   std::unique_ptr<stk::mesh::BulkData> meshB;
   ScalarIntField * scalarIntTargetField = nullptr;
   ScalarDoubleField * scalarDoubleTargetField = nullptr;
@@ -698,27 +717,29 @@ TYPED_TEST(CopyTransferFixture, copy1T0_MPMD)
 
   this->check_target_fields();
 }
+
 namespace {
 stk::transfer::SearchById::KeyToTargetProcessor get_01T10_key_to_target_processor_gold(stk::ParallelMachine pm)
 {
   const int p_rank = stk::parallel_machine_rank( pm );
-  stk::transfer::SearchById::KeyToTargetProcessor gold_map;
+  stk::transfer::SearchById::KeyToTargetProcessor gold;
   if (0 == p_rank) {
-    gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,1)] = 1;
-    gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,4)] = 1;
-    gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,7)] = 1;
-    gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,10)] = 1;
-    gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,2)] = 0;
-    gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,5)] = 0;
-    gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,8)] = 0;
-    gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,11)] = 0;
+    gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,1), 1);
+    gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,4), 1);
+    gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,7), 1);
+    gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,10), 1);
+    gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,2), 0);
+    gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,5), 0);
+    gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,8), 0);
+    gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,11), 0);
   } else {
-    gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,3)] = 0;
-    gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,6)] = 0;
-    gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,9)] = 0;
-    gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,12)] = 0;
+    gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,3), 0);
+    gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,6), 0);
+    gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,9), 0);
+    gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,12), 0);
   }
-  return gold_map;
+  stk::util::sort_and_unique(gold);
+  return gold;
 }
 
 
@@ -771,12 +792,12 @@ TYPED_TEST(CopyTransferFixture, copy01T10)
   this->build_fixture(element_ownerA, element_ownerB, FourElemMeshInfo());
   this->run_test([=](const stk::transfer::SearchById::KeyToTargetProcessor & key_to_target_processor)
       {
-    auto gold_map = get_01T10_key_to_target_processor_gold(this->pm);
-    EXPECT_TRUE( gold_map == key_to_target_processor );
+    auto gold = get_01T10_key_to_target_processor_gold(this->pm);
+    EXPECT_EQ(gold, key_to_target_processor);
       },
       [=](const stk::transfer::SearchById::MeshIDSet & remote_keys){
         auto gold_remote_keys = get_01T10_remote_key_gold(this->pm);
-        EXPECT_TRUE( remote_keys == gold_remote_keys);
+        EXPECT_EQ(remote_keys, gold_remote_keys);
       });
 
   this->check_target_fields();
@@ -820,14 +841,14 @@ TYPED_TEST(CopyTransferFixture, copy01T32_MPMD)
         if (color == 1) return;
 
         //Map wrt subcommunicators is same as non mpmd 01T10 case above
-        auto gold_map = get_01T10_key_to_target_processor_gold(this->pmSub);
+        auto gold = get_01T10_key_to_target_processor_gold(this->pmSub);
 
         //adjust from subcommunicator to global
-        for (auto && elem : gold_map)
+        for (auto && elem : gold)
         {
           elem.second+=2;
         }
-        EXPECT_TRUE( gold_map == key_to_target_processor );
+        EXPECT_EQ(gold, key_to_target_processor);
       },
       [=](const stk::transfer::SearchById::MeshIDSet & remote_keys){
         if (color == 0) return;
@@ -841,7 +862,7 @@ TYPED_TEST(CopyTransferFixture, copy01T32_MPMD)
           gold_remote_keys.insert(stk::mesh::EntityKey(stk::topology::NODE_RANK,11).m_value);
         }
 
-        EXPECT_TRUE( remote_keys == gold_remote_keys);
+        EXPECT_EQ(remote_keys, gold_remote_keys);
       });
 
   this->check_target_fields();
@@ -877,27 +898,28 @@ TYPED_TEST(CopyTransferFixture, copy001T011)
   const int p_rank = stk::parallel_machine_rank( this->pm );
   this->run_test([=](const stk::transfer::SearchById::KeyToTargetProcessor & key_to_target_processor)
       {
-      stk::transfer::SearchById::KeyToTargetProcessor gold_map;
+      stk::transfer::SearchById::KeyToTargetProcessor gold;
       if (0 == p_rank) {
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,1)] = 0;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,5)] = 0;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,9)] = 0;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,13)] = 0;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,2)] = 0;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,6)] = 0;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,10)] = 0;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,14)] = 0;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,3)] = 1;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,7)] = 1;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,11)] = 1;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,15)] = 1;
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,1), 0);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,5), 0);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,9), 0);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,13), 0);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,2), 0);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,6), 0);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,10), 0);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,14), 0);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,3), 1);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,7), 1);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,11), 1);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,15), 1);
       } else {
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,4)] = 1;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,8)] = 1;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,12)] = 1;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,16)] = 1;
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,4), 1);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,8), 1);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,12), 1);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,16), 1);
       }
-      EXPECT_TRUE( gold_map == key_to_target_processor );
+      stk::util::sort_and_unique(gold);
+      EXPECT_EQ(gold, key_to_target_processor);
       },
 
       [=](const stk::transfer::SearchById::MeshIDSet & remote_keys){
@@ -910,7 +932,7 @@ TYPED_TEST(CopyTransferFixture, copy001T011)
           gold_remote_keys.insert(stk::mesh::EntityKey(stk::topology::NODE_RANK,11).m_value);
           gold_remote_keys.insert(stk::mesh::EntityKey(stk::topology::NODE_RANK,15).m_value);
         }
-        EXPECT_TRUE( remote_keys == gold_remote_keys );
+        EXPECT_EQ(remote_keys, gold_remote_keys);
       });
 
   this->check_target_fields();
@@ -945,14 +967,15 @@ TYPED_TEST(CopyTransferFixture, copy001T011Element)
   const int p_rank = stk::parallel_machine_rank( this->pm );
   this->run_test([=](const stk::transfer::SearchById::KeyToTargetProcessor & key_to_target_processor)
       {
-        stk::transfer::SearchById::KeyToTargetProcessor gold_map;
+        stk::transfer::SearchById::KeyToTargetProcessor gold;
         if (0 == p_rank) {
-          gold_map[stk::mesh::EntityKey(stk::topology::ELEM_RANK,1)] = 0;
-          gold_map[stk::mesh::EntityKey(stk::topology::ELEM_RANK,2)] = 1;
+          gold.emplace_back(stk::mesh::EntityKey(stk::topology::ELEM_RANK,1), 0);
+          gold.emplace_back(stk::mesh::EntityKey(stk::topology::ELEM_RANK,2), 1);
         } else {
-          gold_map[stk::mesh::EntityKey(stk::topology::ELEM_RANK,3)] = 1;
+          gold.emplace_back(stk::mesh::EntityKey(stk::topology::ELEM_RANK,3), 1);
         }
-        EXPECT_TRUE( gold_map == key_to_target_processor );
+        stk::util::sort_and_unique(gold);
+        EXPECT_EQ(gold, key_to_target_processor);
       },
 
       [=](const stk::transfer::SearchById::MeshIDSet & remote_keys){
@@ -961,7 +984,7 @@ TYPED_TEST(CopyTransferFixture, copy001T011Element)
         if (1 == p_rank) {
           gold_remote_keys.insert(stk::mesh::EntityKey(stk::topology::ELEM_RANK,2).m_value);
         }
-        EXPECT_TRUE( remote_keys == gold_remote_keys );
+        EXPECT_EQ(remote_keys, gold_remote_keys);
       }, stk::topology::ELEM_RANK);
 
   this->check_target_fields(stk::topology::ELEMENT_RANK);
@@ -1013,39 +1036,40 @@ TYPED_TEST(CopyTransferFixture, copy001T011Face)
   const int p_rank = stk::parallel_machine_rank( this->pm );
   auto & mesh_a = *this->meshA;
   auto & mesh_b = *this->meshB;
-  this->run_test([&](const stk::transfer::SearchById::KeyToTargetProcessor & key_to_target_processor)
+  this->run_test([&, p_rank](const stk::transfer::SearchById::KeyToTargetProcessor & key_to_target_processor)
       {
       typedef stk::transfer::SearchById::KeyToTargetProcessor KeyToTargetProcessor;
-      KeyToTargetProcessor gold_map;
+      KeyToTargetProcessor gold;
       if (0 == p_rank) {
         stk::mesh::Entity elem1 = mesh_a.get_entity(stk::topology::ELEM_RANK, 1);
         stk::mesh::Entity elem2 = mesh_a.get_entity(stk::topology::ELEM_RANK, 2);
-        gold_map[mesh_a.entity_key(stk::mesh::get_side_entity_for_elem_side_pair(mesh_a, elem1, 0))] = 0;
-        gold_map[mesh_a.entity_key(stk::mesh::get_side_entity_for_elem_side_pair(mesh_a, elem1, 1))] = 0;
-        gold_map[mesh_a.entity_key(stk::mesh::get_side_entity_for_elem_side_pair(mesh_a, elem1, 2))] = 0;
-        gold_map[mesh_a.entity_key(stk::mesh::get_side_entity_for_elem_side_pair(mesh_a, elem1, 3))] = 0;
-        gold_map[mesh_a.entity_key(stk::mesh::get_side_entity_for_elem_side_pair(mesh_a, elem1, 4))] = 0;
-        gold_map[mesh_a.entity_key(stk::mesh::get_side_entity_for_elem_side_pair(mesh_a, elem1, 5))] = 0;
+        gold.emplace_back(mesh_a.entity_key(stk::mesh::get_side_entity_for_elem_side_pair(mesh_a, elem1, 0)), 0);
+        gold.emplace_back(mesh_a.entity_key(stk::mesh::get_side_entity_for_elem_side_pair(mesh_a, elem1, 1)), 0);
+        gold.emplace_back(mesh_a.entity_key(stk::mesh::get_side_entity_for_elem_side_pair(mesh_a, elem1, 2)), 0);
+        gold.emplace_back(mesh_a.entity_key(stk::mesh::get_side_entity_for_elem_side_pair(mesh_a, elem1, 3)), 0);
+        gold.emplace_back(mesh_a.entity_key(stk::mesh::get_side_entity_for_elem_side_pair(mesh_a, elem1, 4)), 0);
+        gold.emplace_back(mesh_a.entity_key(stk::mesh::get_side_entity_for_elem_side_pair(mesh_a, elem1, 5)), 0);
 
-        gold_map[mesh_a.entity_key(stk::mesh::get_side_entity_for_elem_side_pair(mesh_a, elem2, 0))] = 1;
-        gold_map[mesh_a.entity_key(stk::mesh::get_side_entity_for_elem_side_pair(mesh_a, elem2, 1))] = 1;
-        gold_map[mesh_a.entity_key(stk::mesh::get_side_entity_for_elem_side_pair(mesh_a, elem2, 2))] = 1;
-        //gold_map[mesh_a.entity_key(stk::mesh::get_side_entity_for_elem_side_pair(meshA, elem2, 3))] = 0;  // Already in map from elem1
-        gold_map[mesh_a.entity_key(stk::mesh::get_side_entity_for_elem_side_pair(mesh_a, elem2, 4))] = 1;
-        gold_map[mesh_a.entity_key(stk::mesh::get_side_entity_for_elem_side_pair(mesh_a, elem2, 5))] = 1;
+        gold.emplace_back(mesh_a.entity_key(stk::mesh::get_side_entity_for_elem_side_pair(mesh_a, elem2, 0)), 1);
+        gold.emplace_back(mesh_a.entity_key(stk::mesh::get_side_entity_for_elem_side_pair(mesh_a, elem2, 1)), 1);
+        gold.emplace_back(mesh_a.entity_key(stk::mesh::get_side_entity_for_elem_side_pair(mesh_a, elem2, 2)), 1);
+        //gold.emplace_back(mesh_a.entity_key(stk::mesh::get_side_entity_for_elem_side_pair(meshA, elem2, 3)), 0);  // Already in map from elem1
+        gold.emplace_back(mesh_a.entity_key(stk::mesh::get_side_entity_for_elem_side_pair(mesh_a, elem2, 4)), 1);
+        gold.emplace_back(mesh_a.entity_key(stk::mesh::get_side_entity_for_elem_side_pair(mesh_a, elem2, 5)), 1);
       } else {
         stk::mesh::Entity elem3 = mesh_a.get_entity(stk::topology::ELEM_RANK, 3);
-        gold_map[mesh_a.entity_key(stk::mesh::get_side_entity_for_elem_side_pair(mesh_a, elem3, 0))] = 1;
-        gold_map[mesh_a.entity_key(stk::mesh::get_side_entity_for_elem_side_pair(mesh_a, elem3, 1))] = 1;
-        gold_map[mesh_a.entity_key(stk::mesh::get_side_entity_for_elem_side_pair(mesh_a, elem3, 2))] = 1;
-        //gold_map[mesh_a.entity_key(stk::mesh::get_side_entity_for_elem_side_pair(meshA, elem3, 3))] = 0;  // Not owned by this proc
-        gold_map[mesh_a.entity_key(stk::mesh::get_side_entity_for_elem_side_pair(mesh_a, elem3, 4))] = 1;
-        gold_map[mesh_a.entity_key(stk::mesh::get_side_entity_for_elem_side_pair(mesh_a, elem3, 5))] = 1;
+        gold.emplace_back(mesh_a.entity_key(stk::mesh::get_side_entity_for_elem_side_pair(mesh_a, elem3, 0)), 1);
+        gold.emplace_back(mesh_a.entity_key(stk::mesh::get_side_entity_for_elem_side_pair(mesh_a, elem3, 1)), 1);
+        gold.emplace_back(mesh_a.entity_key(stk::mesh::get_side_entity_for_elem_side_pair(mesh_a, elem3, 2)), 1);
+        //gold.emplace_back(mesh_a.entity_key(stk::mesh::get_side_entity_for_elem_side_pair(meshA, elem3, 3)), 0);  // Not owned by this proc
+        gold.emplace_back(mesh_a.entity_key(stk::mesh::get_side_entity_for_elem_side_pair(mesh_a, elem3, 4)), 1);
+        gold.emplace_back(mesh_a.entity_key(stk::mesh::get_side_entity_for_elem_side_pair(mesh_a, elem3, 5)), 1);
       }
-      EXPECT_TRUE( gold_map == key_to_target_processor );
+      stk::util::sort_and_unique(gold);
+      EXPECT_EQ(gold, key_to_target_processor);
       },
 
-      [&](const stk::transfer::SearchById::MeshIDSet & remote_keys){
+      [&, p_rank](const stk::transfer::SearchById::MeshIDSet & remote_keys){
       typedef stk::transfer::SearchById::MeshIDSet MeshIDSet;
       MeshIDSet gold_remote_keys;
       if (1 == p_rank) {
@@ -1057,7 +1081,7 @@ TYPED_TEST(CopyTransferFixture, copy001T011Face)
         gold_remote_keys.insert(mesh_b.entity_key(stk::mesh::get_side_entity_for_elem_side_pair(mesh_b, elem2, 4)).m_value);
         gold_remote_keys.insert(mesh_b.entity_key(stk::mesh::get_side_entity_for_elem_side_pair(mesh_b, elem2, 5)).m_value);
       }
-      EXPECT_TRUE( remote_keys == gold_remote_keys );
+      EXPECT_EQ(remote_keys, gold_remote_keys);
       }, stk::topology::FACE_RANK);
 
   this->check_target_fields(stk::topology::FACE_RANK);
@@ -1093,7 +1117,7 @@ TEST(Transfer, copy001T011Shell)
   {
     if (1 == search_index) {
       copySearchPtr = &geometricSearch;
-      EXPECT_TRUE( copySearchPtr == &geometricSearch );
+      EXPECT_EQ(copySearchPtr, &geometricSearch);
     }
     stk::transfer::SearchById & copySearch = *copySearchPtr;
 
@@ -1108,21 +1132,21 @@ TEST(Transfer, copy001T011Shell)
         {10,11,3,2,14,15,7,6},
         {11,12,4,3,15,16,8,7} };
     std::vector<int> node_sharingA = { -1, -1,  1, -1, -1, -1,  1, -1, -1, -1,  1, -1, -1, -1,  1, -1,
-                            -1, -1,  0, -1, -1, -1,  0, -1, -1, -1,  0, -1, -1, -1,  0, -1 };
+                                       -1, -1,  0, -1, -1, -1,  0, -1, -1, -1,  0, -1, -1, -1,  0, -1 };
     std::vector<int> node_sharingB = { -1,  1, -1, -1, -1,  1, -1, -1, -1,  1, -1, -1, -1,  1, -1, -1,
-                            -1,  0, -1, -1, -1,  0, -1, -1, -1,  0, -1, -1, -1,  0, -1, -1 };
+                                       -1,  0, -1, -1, -1,  0, -1, -1, -1,  0, -1, -1, -1,  0, -1, -1 };
     std::vector<std::vector<double>> coordinates = { {0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {2.0, 0.0, 0.0}, {3.0, 0.0, 0.0},
-                                {0.0, 1.0, 0.0}, {1.0, 1.0, 0.0}, {2.0, 1.0, 0.0}, {3.0, 1.0, 0.0},
-                                {0.0, 0.0, 1.0}, {1.0, 0.0, 1.0}, {2.0, 0.0, 1.0}, {3.0, 0.0, 1.0},
-                                {0.0, 1.0, 1.0}, {1.0, 1.0, 1.0}, {2.0, 1.0, 1.0}, {3.0, 1.0, 1.0} };
+                                                     {0.0, 1.0, 0.0}, {1.0, 1.0, 0.0}, {2.0, 1.0, 0.0}, {3.0, 1.0, 0.0},
+                                                     {0.0, 0.0, 1.0}, {1.0, 0.0, 1.0}, {2.0, 0.0, 1.0}, {3.0, 0.0, 1.0},
+                                                     {0.0, 1.0, 1.0}, {1.0, 1.0, 1.0}, {2.0, 1.0, 1.0}, {3.0, 1.0, 1.0} };
 
 
     // Set up the "source" mesh for the transfer
     //
-    stk::mesh::MetaData metaA(spatial_dimension);
-    stk::mesh::BulkData meshA(metaA, pm);
+    std::shared_ptr<stk::mesh::BulkData> meshA = build_mesh(spatial_dimension, pm);
+    stk::mesh::MetaData& metaA = meshA->mesh_meta_data();
     build_mesh(metaA,
-               meshA,
+               *meshA,
                num_elements,
                num_nodes,
                element_ids,
@@ -1133,8 +1157,9 @@ TEST(Transfer, copy001T011Shell)
 
     // Set up the "target" mesh for the transfer
     //
-    stk::mesh::MetaData metaB(spatial_dimension);
-    stk::mesh::BulkData meshB(metaB, pm);
+    std::shared_ptr<stk::mesh::BulkData> meshBPtr = build_mesh(spatial_dimension, pm);
+    stk::mesh::MetaData& metaB = meshBPtr->mesh_meta_data();
+    stk::mesh::BulkData& meshB = *meshBPtr;
     build_mesh(metaB,
                meshB,
                num_elements,
@@ -1162,7 +1187,7 @@ TEST(Transfer, copy001T011Shell)
                                            {1, 1, 1, 1, 1, 1} };
     const int num_shells = 10;
     add_shells_to_mesh(metaA,
-                       meshA,
+                       *meshA,
                        num_elements,
                        element_ids,
                        shell_node_ids,
@@ -1180,7 +1205,7 @@ TEST(Transfer, copy001T011Shell)
 
     // Fill "source" fields with valid data
     //
-    fill_mesh_values(meshA);
+    fill_mesh_values(*meshA);
 
     ScalarIntField    & scalarSourceIntField    = static_cast<ScalarIntField&>(*metaA.get_field(stk::topology::ELEM_RANK, "Shell Scalar Int Field"));
     ScalarDoubleField & scalarSourceDoubleField = static_cast<ScalarDoubleField&>(*metaA.get_field(stk::topology::ELEM_RANK, "Shell Scalar Double Field"));
@@ -1194,20 +1219,21 @@ TEST(Transfer, copy001T011Shell)
     stk::mesh::Part & shell_part = *metaA.get_part("shell_part");
 
     std::vector<stk::mesh::Entity> sourceShells;
-    stk::mesh::get_selected_entities(metaA.locally_owned_part() & shell_part,
-                                     meshA.buckets(stk::topology::ELEM_RANK),
-                                     sourceShells);
+    const bool sortById = true;
+    stk::mesh::get_entities(*meshA, stk::topology::ELEM_RANK,
+                            metaA.locally_owned_part() & shell_part,
+                            sourceShells, sortById);
 
     std::vector<stk::mesh::Entity> targetShells;
-    stk::mesh::get_selected_entities(metaB.locally_owned_part() & shell_part,
-                                     meshB.buckets(stk::topology::ELEM_RANK),
-                                     targetShells);
+    stk::mesh::get_entities(meshB, stk::topology::ELEM_RANK,
+                            metaB.locally_owned_part() & shell_part,
+                            targetShells, sortById);
 
     std::vector<stk::mesh::FieldBase*> sourceFields;
     sourceFields.push_back(&scalarSourceIntField);
     sourceFields.push_back(&scalarSourceDoubleField);
     sourceFields.push_back(&vectorSourceDoubleField);
-    stk::transfer::TransferCopyByIdStkMeshAdapter transferSource(meshA, sourceShells, sourceFields);
+    stk::transfer::TransferCopyByIdStkMeshAdapter transferSource(*meshA, sourceShells, sourceFields);
 
     std::vector<stk::mesh::FieldBase*> targetFields;
     targetFields.push_back(&scalarTargetIntField);
@@ -1220,30 +1246,32 @@ TEST(Transfer, copy001T011Shell)
       typedef stk::transfer::SearchById::KeyToTargetProcessor KeyToTargetProcessor;
       KeyToTargetProcessor key_to_target_processor;
       copySearch.do_search(transferSource,transferTarget,key_to_target_processor);
+      stk::util::sort_and_unique(key_to_target_processor);
 
-      KeyToTargetProcessor gold_map;
+      KeyToTargetProcessor gold;
       for (int shell_index=0; shell_index<num_shells; ++shell_index) {
         if (0 == p_rank) {
-          gold_map[stk::mesh::EntityKey(stk::topology::ELEM_RANK,10+100*shell_index)] = 0;
-          gold_map[stk::mesh::EntityKey(stk::topology::ELEM_RANK,11+100*shell_index)] = 0;
-          gold_map[stk::mesh::EntityKey(stk::topology::ELEM_RANK,12+100*shell_index)] = 0;
-          gold_map[stk::mesh::EntityKey(stk::topology::ELEM_RANK,13+100*shell_index)] = 0;
-          gold_map[stk::mesh::EntityKey(stk::topology::ELEM_RANK,14+100*shell_index)] = 0;
-          gold_map[stk::mesh::EntityKey(stk::topology::ELEM_RANK,15+100*shell_index)] = 0;
-          gold_map[stk::mesh::EntityKey(stk::topology::ELEM_RANK,16+100*shell_index)] = 1;
-          gold_map[stk::mesh::EntityKey(stk::topology::ELEM_RANK,17+100*shell_index)] = 1;
-          gold_map[stk::mesh::EntityKey(stk::topology::ELEM_RANK,18+100*shell_index)] = 1;
-          gold_map[stk::mesh::EntityKey(stk::topology::ELEM_RANK,19+100*shell_index)] = 1;
-          gold_map[stk::mesh::EntityKey(stk::topology::ELEM_RANK,20+100*shell_index)] = 1;
+          gold.emplace_back(stk::mesh::EntityKey(stk::topology::ELEM_RANK,10+100*shell_index), 0);
+          gold.emplace_back(stk::mesh::EntityKey(stk::topology::ELEM_RANK,11+100*shell_index), 0);
+          gold.emplace_back(stk::mesh::EntityKey(stk::topology::ELEM_RANK,12+100*shell_index), 0);
+          gold.emplace_back(stk::mesh::EntityKey(stk::topology::ELEM_RANK,13+100*shell_index), 0);
+          gold.emplace_back(stk::mesh::EntityKey(stk::topology::ELEM_RANK,14+100*shell_index), 0);
+          gold.emplace_back(stk::mesh::EntityKey(stk::topology::ELEM_RANK,15+100*shell_index), 0);
+          gold.emplace_back(stk::mesh::EntityKey(stk::topology::ELEM_RANK,16+100*shell_index), 1);
+          gold.emplace_back(stk::mesh::EntityKey(stk::topology::ELEM_RANK,17+100*shell_index), 1);
+          gold.emplace_back(stk::mesh::EntityKey(stk::topology::ELEM_RANK,18+100*shell_index), 1);
+          gold.emplace_back(stk::mesh::EntityKey(stk::topology::ELEM_RANK,19+100*shell_index), 1);
+          gold.emplace_back(stk::mesh::EntityKey(stk::topology::ELEM_RANK,20+100*shell_index), 1);
         } else {
-          gold_map[stk::mesh::EntityKey(stk::topology::ELEM_RANK,21+100*shell_index)] = 1;
-          gold_map[stk::mesh::EntityKey(stk::topology::ELEM_RANK,22+100*shell_index)] = 1;
-          gold_map[stk::mesh::EntityKey(stk::topology::ELEM_RANK,23+100*shell_index)] = 1;
-          gold_map[stk::mesh::EntityKey(stk::topology::ELEM_RANK,24+100*shell_index)] = 1;
-          gold_map[stk::mesh::EntityKey(stk::topology::ELEM_RANK,25+100*shell_index)] = 1;
+          gold.emplace_back(stk::mesh::EntityKey(stk::topology::ELEM_RANK,21+100*shell_index), 1);
+          gold.emplace_back(stk::mesh::EntityKey(stk::topology::ELEM_RANK,22+100*shell_index), 1);
+          gold.emplace_back(stk::mesh::EntityKey(stk::topology::ELEM_RANK,23+100*shell_index), 1);
+          gold.emplace_back(stk::mesh::EntityKey(stk::topology::ELEM_RANK,24+100*shell_index), 1);
+          gold.emplace_back(stk::mesh::EntityKey(stk::topology::ELEM_RANK,25+100*shell_index), 1);
         }
       }
-      EXPECT_TRUE( gold_map == key_to_target_processor );
+      stk::util::sort_and_unique(gold);
+      EXPECT_EQ(gold, key_to_target_processor);
 
       typedef stk::transfer::SearchById::MeshIDSet MeshIDSet;
       MeshIDSet gold_remote_keys;
@@ -1256,7 +1284,7 @@ TEST(Transfer, copy001T011Shell)
           gold_remote_keys.insert(stk::mesh::EntityKey(stk::topology::ELEM_RANK,20+100*shell_index).m_value);
         }
       }
-      EXPECT_TRUE( copySearch.get_remote_keys() == gold_remote_keys );
+      EXPECT_EQ(copySearch.get_remote_keys(), gold_remote_keys);
     }
     stk::transfer::TransferCopyById transfer(copySearch, transferSource, transferTarget);
 
@@ -1354,28 +1382,29 @@ TYPED_TEST(CopyTransferFixture, copy012T000)
   const int p_rank = stk::parallel_machine_rank( this->pm );
   this->run_test([=](const stk::transfer::SearchById::KeyToTargetProcessor & key_to_target_processor)
     {
-      stk::transfer::SearchById::KeyToTargetProcessor gold_map;
+      stk::transfer::SearchById::KeyToTargetProcessor gold;
       if (0 == p_rank) {
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,1)] = 0;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,5)] = 0;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,9)] = 0;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,13)] = 0;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,2)] = 0;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,6)] = 0;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,10)] = 0;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,14)] = 0;
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,1), 0);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,5), 0);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,9), 0);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,13), 0);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,2), 0);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,6), 0);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,10), 0);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,14), 0);
       } else if (1 == p_rank) {
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,3)] = 0;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,7)] = 0;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,11)] = 0;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,15)] = 0;
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,3), 0);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,7), 0);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,11), 0);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,15), 0);
       } else {
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,4)] = 0;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,8)] = 0;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,12)] = 0;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,16)] = 0;
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,4), 0);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,8), 0);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,12), 0);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,16), 0);
       }
-      EXPECT_TRUE( gold_map == key_to_target_processor );
+      stk::util::sort_and_unique(gold);
+      EXPECT_EQ(gold, key_to_target_processor);
       },
 
       [=](const stk::transfer::SearchById::MeshIDSet & remote_keys){
@@ -1391,7 +1420,7 @@ TYPED_TEST(CopyTransferFixture, copy012T000)
         gold_remote_keys.insert(stk::mesh::EntityKey(stk::topology::NODE_RANK,12).m_value);
         gold_remote_keys.insert(stk::mesh::EntityKey(stk::topology::NODE_RANK,16).m_value);
       }
-      EXPECT_TRUE( remote_keys == gold_remote_keys );
+      EXPECT_EQ(remote_keys, gold_remote_keys);
     });
 
   this->check_target_fields();
@@ -1431,29 +1460,30 @@ TYPED_TEST(CopyTransferFixture, copy000T012)
   this->run_test([=](const stk::transfer::SearchById::KeyToTargetProcessor & key_to_target_processor)
     {
       typedef stk::transfer::SearchById::KeyToTargetProcessor KeyToTargetProcessor;
-      KeyToTargetProcessor gold_map;
+      KeyToTargetProcessor gold;
       if (0 == p_rank) {
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,1)] = 0;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,5)] = 0;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,9)] = 0;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,13)] = 0;
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,1), 0);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,5), 0);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,9), 0);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,13), 0);
 
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,2)] = 0;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,6)] = 0;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,10)] = 0;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,14)] = 0;
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,2), 0);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,6), 0);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,10), 0);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,14), 0);
 
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,3)] = 1;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,7)] = 1;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,11)] = 1;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,15)] = 1;
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,3), 1);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,7), 1);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,11), 1);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,15), 1);
 
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,4)] = 2;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,8)] = 2;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,12)] = 2;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,16)] = 2;
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,4), 2);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,8), 2);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,12), 2);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,16), 2);
       }
-      EXPECT_TRUE( gold_map == key_to_target_processor );
+      stk::util::sort_and_unique(gold);
+      EXPECT_EQ(gold, key_to_target_processor);
       },
 
       [=](const stk::transfer::SearchById::MeshIDSet & remote_keys){
@@ -1470,7 +1500,109 @@ TYPED_TEST(CopyTransferFixture, copy000T012)
         gold_remote_keys.insert(stk::mesh::EntityKey(stk::topology::NODE_RANK,12).m_value);
         gold_remote_keys.insert(stk::mesh::EntityKey(stk::topology::NODE_RANK,16).m_value);
       }
-      EXPECT_TRUE( remote_keys == gold_remote_keys );
+      EXPECT_EQ(remote_keys, gold_remote_keys);
+    });
+
+  this->check_target_fields();
+}
+
+TYPED_TEST(CopyTransferFixture, copy000T012_multipleTargets)
+{
+//    ^ Y       ID.owning_proc
+//    |
+//    |    X                   meshA                                         meshB
+//    .---->    5.0--------6.0--------7.0--------8.0         5.0--------6.0--------7.1--------8.2
+//   /          /|         /|         /|         /|          /|         /|         /|         /|
+//  /          / |        / |        / |        / |         / |        / |        / |        / |
+// v Z      13.0-------14.0-------15.0-------16.0 |      13.0-------14.0-------15.1-------16.2 |
+//            |  |  1.0  |  |  2.0  |  |  3.0  |  |  -->   |  |  1.0  |  |  2.1  |  |  3.2  |  |
+//            | 1.0------|-2.0------|-3.0------|-4.0       | 1.0------|-2.0------|-3.1------|-4.2
+//            | /        | /        | /        | /         | /        | /        | /        | /
+//            |/         |/         |/         |/          |/         |/         |/         |/
+//           9.0-------10.0-------11.0-------12.0         9.0-------10.0-------11.1-------12.2
+//
+//  This is the same as the previous test, but with the destination receiving values
+//  on both locally-owned and shared instead of just locally-owned.  So, every node
+//  that isn't ghosted will receive some data.
+
+  const int color = 0; //all ranks same communicator
+  this->init(MPI_COMM_WORLD, color);
+
+  const int p_size = stk::parallel_machine_size( this->pm );
+  if (p_size != 3) {
+    return;
+  }
+
+
+  auto meshInfo = create_SixElemMeshInfo_000T012();
+  std::vector<int> element_ownerA = {0, 0, 0};
+  std::vector<int> element_ownerB = {0, 1, 2};
+  this->build_fixture(element_ownerA, element_ownerB, meshInfo);
+  const int p_rank = stk::parallel_machine_rank( this->pm );
+  this->add_shared_nodes_to_receiver();
+
+  this->run_test([=](const stk::transfer::SearchById::KeyToTargetProcessor & key_to_target_processor)
+    {
+      typedef stk::transfer::SearchById::KeyToTargetProcessor KeyToTargetProcessor;
+      KeyToTargetProcessor gold;
+      if (0 == p_rank) {
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,1), 0);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,5), 0);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,9), 0);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,13), 0);
+
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,2), 0);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,2), 1);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,6), 0);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,6), 1);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,10), 0);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,10), 1);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,14), 0);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,14), 1);
+
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,3), 1);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,3), 2);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,7), 1);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,7), 2);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,11), 1);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,11), 2);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,15), 1);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,15), 2);
+
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,4), 2);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,8), 2);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,12), 2);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,16), 2);
+      }
+      stk::util::sort_and_unique(gold);
+      EXPECT_EQ(gold, key_to_target_processor);
+      },
+
+      [=](const stk::transfer::SearchById::MeshIDSet & remote_keys){
+      typedef stk::transfer::SearchById::MeshIDSet MeshIDSet;
+      MeshIDSet gold_remote_keys;
+      if (1 == p_rank) {
+        gold_remote_keys.insert(stk::mesh::EntityKey(stk::topology::NODE_RANK,2).m_value);
+        gold_remote_keys.insert(stk::mesh::EntityKey(stk::topology::NODE_RANK,6).m_value);
+        gold_remote_keys.insert(stk::mesh::EntityKey(stk::topology::NODE_RANK,10).m_value);
+        gold_remote_keys.insert(stk::mesh::EntityKey(stk::topology::NODE_RANK,14).m_value);
+
+        gold_remote_keys.insert(stk::mesh::EntityKey(stk::topology::NODE_RANK,3).m_value);
+        gold_remote_keys.insert(stk::mesh::EntityKey(stk::topology::NODE_RANK,7).m_value);
+        gold_remote_keys.insert(stk::mesh::EntityKey(stk::topology::NODE_RANK,11).m_value);
+        gold_remote_keys.insert(stk::mesh::EntityKey(stk::topology::NODE_RANK,15).m_value);
+      } else if (2 == p_rank) {
+        gold_remote_keys.insert(stk::mesh::EntityKey(stk::topology::NODE_RANK,3).m_value);
+        gold_remote_keys.insert(stk::mesh::EntityKey(stk::topology::NODE_RANK,7).m_value);
+        gold_remote_keys.insert(stk::mesh::EntityKey(stk::topology::NODE_RANK,11).m_value);
+        gold_remote_keys.insert(stk::mesh::EntityKey(stk::topology::NODE_RANK,15).m_value);
+
+        gold_remote_keys.insert(stk::mesh::EntityKey(stk::topology::NODE_RANK,4).m_value);
+        gold_remote_keys.insert(stk::mesh::EntityKey(stk::topology::NODE_RANK,8).m_value);
+        gold_remote_keys.insert(stk::mesh::EntityKey(stk::topology::NODE_RANK,12).m_value);
+        gold_remote_keys.insert(stk::mesh::EntityKey(stk::topology::NODE_RANK,16).m_value);
+      }
+      EXPECT_EQ(remote_keys, gold_remote_keys);
     });
 
   this->check_target_fields();
@@ -1527,34 +1659,35 @@ TYPED_TEST(CopyTransferFixture, copy0011T1010)
   this->run_test([=](const stk::transfer::SearchById::KeyToTargetProcessor & key_to_target_processor)
     {
       typedef stk::transfer::SearchById::KeyToTargetProcessor KeyToTargetProcessor;
-      KeyToTargetProcessor gold_map;
+      KeyToTargetProcessor gold;
       if (0 == p_rank) {
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,1)] = 1;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,6)] = 1;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,11)] = 1;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,16)] = 1;
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,1), 1);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,6), 1);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,11), 1);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,16), 1);
 
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,2)] = 0;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,7)] = 0;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,12)] = 0;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,17)] = 0;
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,2), 0);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,7), 0);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,12), 0);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,17), 0);
 
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,3)] = 0;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,8)] = 0;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,13)] = 0;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,18)] = 0;
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,3), 0);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,8), 0);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,13), 0);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,18), 0);
       } else if (1 == p_rank) {
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,4)] = 0;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,9)] = 0;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,14)] = 0;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,19)] = 0;
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,4), 0);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,9), 0);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,14), 0);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,19), 0);
 
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,5)] = 0;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,10)] = 0;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,15)] = 0;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,20)] = 0;
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,5), 0);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,10), 0);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,15), 0);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,20), 0);
       }
-      EXPECT_TRUE( gold_map == key_to_target_processor );
+      stk::util::sort_and_unique(gold);
+      EXPECT_EQ(gold, key_to_target_processor);
       },
 
       [=](const stk::transfer::SearchById::MeshIDSet & remote_keys){
@@ -1576,7 +1709,7 @@ TYPED_TEST(CopyTransferFixture, copy0011T1010)
         gold_remote_keys.insert(stk::mesh::EntityKey(stk::topology::NODE_RANK,11).m_value);
         gold_remote_keys.insert(stk::mesh::EntityKey(stk::topology::NODE_RANK,16).m_value);
       }
-      EXPECT_TRUE( remote_keys == gold_remote_keys );
+      EXPECT_EQ(remote_keys, gold_remote_keys);
     });
 
   this->check_target_fields();
@@ -1612,7 +1745,7 @@ TEST(Transfer, copy0T_)
   {
     if (1 == search_index) {
       copySearchPtr = &geometricSearch;
-      EXPECT_TRUE( copySearchPtr == &geometricSearch );
+      EXPECT_EQ(copySearchPtr, &geometricSearch);
     }
     stk::transfer::SearchById & copySearch = *copySearchPtr;
 
@@ -1629,27 +1762,29 @@ TEST(Transfer, copy0T_)
 
     // Set up the "source" mesh for the transfer
     //
-    stk::mesh::MetaData metaA(spatial_dimension);
-    stk::mesh::BulkData meshA(metaA, pm);
+    std::shared_ptr<stk::mesh::BulkData> meshAPtr = build_mesh(spatial_dimension, pm);
+    stk::mesh::MetaData& metaA = meshAPtr->mesh_meta_data();
+    stk::mesh::BulkData& meshA = *meshAPtr;
     build_mesh(metaA, meshA, num_elements, num_nodes, element_ids, element_owner, elem_node_ids, node_sharing, coordinates);
 
     // Set up the "target" mesh for the transfer without creating any elements
     //
-    stk::mesh::MetaData metaB(spatial_dimension);
-    stk::mesh::BulkData meshB(metaB, pm);
+    std::shared_ptr<stk::mesh::BulkData> meshBPtr = build_mesh(spatial_dimension, pm);
+    stk::mesh::MetaData& metaB = meshBPtr->mesh_meta_data();
+    stk::mesh::BulkData& meshB = *meshBPtr;
 
     int int_init_vals = std::numeric_limits<int>::max();
     double double_init_vals[] = {std::numeric_limits<double>::max(),
       std::numeric_limits<double>::max(),
       std::numeric_limits<double>::max()};
-    ScalarIntField    & scalarTargetIntField    = metaB.declare_field<ScalarIntField>(stk::topology::NODE_RANK, "Node Scalar Int Field");
-    ScalarDoubleField & scalarTargetDoubleField = metaB.declare_field<ScalarDoubleField>(stk::topology::NODE_RANK, "Node Scalar Double Field");
-    VectorDoubleField & vectorTargetDoubleField = metaB.declare_field<VectorDoubleField>(stk::topology::NODE_RANK, "Node Vector Double Field");
-    VectorDoubleField & coordsTargetField = metaB.declare_field<VectorDoubleField>(stk::topology::NODE_RANK, "coordinates");
+    ScalarIntField    & scalarTargetIntField    = metaB.declare_field<int>(stk::topology::NODE_RANK, "Node Scalar Int Field");
+    ScalarDoubleField & scalarTargetDoubleField = metaB.declare_field<double>(stk::topology::NODE_RANK, "Node Scalar Double Field");
+    VectorDoubleField & vectorTargetDoubleField = metaB.declare_field<double>(stk::topology::NODE_RANK, "Node Vector Double Field");
+    VectorDoubleField & coordsTargetField = metaB.declare_field<double>(stk::topology::NODE_RANK, "coordinates");
     stk::mesh::put_field_on_mesh(scalarTargetIntField, metaB.universal_part(), &int_init_vals);
     stk::mesh::put_field_on_mesh(scalarTargetDoubleField, metaB.universal_part(), double_init_vals);
-    stk::mesh::put_field_on_mesh(vectorTargetDoubleField, metaB.universal_part(), double_init_vals);
-    stk::mesh::put_field_on_mesh(coordsTargetField, metaB.universal_part(), double_init_vals);
+    stk::mesh::put_field_on_mesh(vectorTargetDoubleField, metaB.universal_part(), 3, double_init_vals);
+    stk::mesh::put_field_on_mesh(coordsTargetField, metaB.universal_part(), 3, double_init_vals);
     metaB.commit();
 
     // Fill "source" fields with valid data
@@ -1663,9 +1798,10 @@ TEST(Transfer, copy0T_)
     // Set up the transfer
     //
     std::vector<stk::mesh::Entity> sourceNodes;
-    stk::mesh::get_selected_entities(metaA.locally_owned_part(), meshA.buckets(stk::topology::NODE_RANK), sourceNodes);
+    const bool sortById = true;
+    stk::mesh::get_entities(meshA, stk::topology::NODE_RANK, metaA.locally_owned_part(), sourceNodes, sortById);
     std::vector<stk::mesh::Entity> targetNodes;
-    stk::mesh::get_selected_entities(metaB.locally_owned_part(), meshB.buckets(stk::topology::NODE_RANK), targetNodes);
+    stk::mesh::get_entities(meshB, stk::topology::NODE_RANK, metaB.locally_owned_part(), targetNodes, sortById);
 
     std::vector<stk::mesh::FieldBase*> sourceFields;
     sourceFields.push_back(&scalarSourceIntField);
@@ -1692,12 +1828,12 @@ TEST(Transfer, copy0T_)
       KeyToTargetProcessor key_to_target_processor;
       copySearch.do_search(transferSource,transferTarget,key_to_target_processor);
 
-      KeyToTargetProcessor gold_map;
-      EXPECT_TRUE( gold_map == key_to_target_processor );
+      KeyToTargetProcessor gold;
+      EXPECT_EQ(gold, key_to_target_processor);
 
       typedef stk::transfer::SearchById::MeshIDSet MeshIDSet;
       MeshIDSet gold_remote_keys;
-      EXPECT_TRUE( copySearch.get_remote_keys() == gold_remote_keys );
+      EXPECT_EQ(copySearch.get_remote_keys(), gold_remote_keys);
     }
     stk::transfer::TransferCopyById transfer(copySearch, transferSource, transferTarget);
 
@@ -1738,7 +1874,7 @@ TEST(Transfer, copy_T0)
   {
     if (1 == search_index) {
       copySearchPtr = &geometricSearch;
-      EXPECT_TRUE( copySearchPtr == &geometricSearch );
+      EXPECT_EQ(copySearchPtr, &geometricSearch);
     }
     stk::transfer::SearchById & copySearch = *copySearchPtr;
 
@@ -1755,27 +1891,29 @@ TEST(Transfer, copy_T0)
 
     // Set up the "source" mesh for the transfer
     //
-    stk::mesh::MetaData metaA(spatial_dimension);
-    stk::mesh::BulkData meshA(metaA, pm);
+    std::shared_ptr<stk::mesh::BulkData> meshAPtr = build_mesh(spatial_dimension, pm);
+    stk::mesh::MetaData& metaA = meshAPtr->mesh_meta_data();
+    stk::mesh::BulkData& meshA = *meshAPtr;
 
     int int_init_vals = std::numeric_limits<int>::max();
     double double_init_vals[] = {std::numeric_limits<double>::max(),
       std::numeric_limits<double>::max(),
       std::numeric_limits<double>::max()};
-    ScalarIntField    & scalarSourceIntField    = metaA.declare_field<ScalarIntField>(stk::topology::NODE_RANK, "Node Scalar Int Field");
-    ScalarDoubleField & scalarSourceDoubleField = metaA.declare_field<ScalarDoubleField>(stk::topology::NODE_RANK, "Node Scalar Double Field");
-    VectorDoubleField & vectorSourceDoubleField = metaA.declare_field<VectorDoubleField>(stk::topology::NODE_RANK, "Node Vector Double Field");
-    VectorDoubleField & coordsSourceField = metaA.declare_field<VectorDoubleField>(stk::topology::NODE_RANK, "coordinates");
+    ScalarIntField    & scalarSourceIntField    = metaA.declare_field<int>(stk::topology::NODE_RANK, "Node Scalar Int Field");
+    ScalarDoubleField & scalarSourceDoubleField = metaA.declare_field<double>(stk::topology::NODE_RANK, "Node Scalar Double Field");
+    VectorDoubleField & vectorSourceDoubleField = metaA.declare_field<double>(stk::topology::NODE_RANK, "Node Vector Double Field");
+    VectorDoubleField & coordsSourceField = metaA.declare_field<double>(stk::topology::NODE_RANK, "coordinates");
     stk::mesh::put_field_on_mesh(scalarSourceIntField, metaA.universal_part(), &int_init_vals);
     stk::mesh::put_field_on_mesh(scalarSourceDoubleField, metaA.universal_part(), double_init_vals);
-    stk::mesh::put_field_on_mesh(vectorSourceDoubleField, metaA.universal_part(), double_init_vals);
-    stk::mesh::put_field_on_mesh(coordsSourceField, metaA.universal_part(), double_init_vals);
+    stk::mesh::put_field_on_mesh(vectorSourceDoubleField, metaA.universal_part(), 3, double_init_vals);
+    stk::mesh::put_field_on_mesh(coordsSourceField, metaA.universal_part(), 3, double_init_vals);
     metaA.commit();
 
     // Set up the "target" mesh for the transfer without creating any elements
     //
-    stk::mesh::MetaData metaB(spatial_dimension);
-    stk::mesh::BulkData meshB(metaB, pm);
+    std::shared_ptr<stk::mesh::BulkData> meshBPtr = build_mesh(spatial_dimension, pm);
+    stk::mesh::MetaData& metaB = meshBPtr->mesh_meta_data();
+    stk::mesh::BulkData& meshB = *meshBPtr;
     build_mesh(metaB, meshB, num_elements, num_nodes, element_ids, element_owner, elem_node_ids, node_sharing, coordinates);
 
     ScalarIntField & scalarTargetIntField       = static_cast<ScalarIntField&>(*metaB.get_field(stk::topology::NODE_RANK, "Node Scalar Int Field"));
@@ -1785,9 +1923,10 @@ TEST(Transfer, copy_T0)
     // Set up the transfer
     //
     std::vector<stk::mesh::Entity> sourceNodes;
-    stk::mesh::get_selected_entities(metaA.locally_owned_part(), meshA.buckets(stk::topology::NODE_RANK), sourceNodes);
+    const bool sortById = true;
+    stk::mesh::get_entities(meshA, stk::topology::NODE_RANK, metaA.locally_owned_part(), sourceNodes, sortById);
     std::vector<stk::mesh::Entity> targetNodes;
-    stk::mesh::get_selected_entities(metaB.locally_owned_part(), meshB.buckets(stk::topology::NODE_RANK), targetNodes);
+    stk::mesh::get_entities(meshB, stk::topology::NODE_RANK, metaB.locally_owned_part(), targetNodes, sortById);
 
     std::vector<stk::mesh::FieldBase*> sourceFields;
     sourceFields.push_back(&scalarSourceIntField);
@@ -1806,8 +1945,8 @@ TEST(Transfer, copy_T0)
       KeyToTargetProcessor key_to_target_processor;
       copySearch.do_search(transferSource,transferTarget,key_to_target_processor);
 
-      KeyToTargetProcessor gold_map;
-      EXPECT_TRUE( gold_map == key_to_target_processor );
+      KeyToTargetProcessor gold;
+      EXPECT_EQ(gold, key_to_target_processor);
 
       EXPECT_EQ( 8u, copySearch.get_remote_keys().size() );
     }
@@ -1852,7 +1991,7 @@ TEST(Transfer, copy00_T_11)
   {
     if (1 == search_index) {
       copySearchPtr = &geometricSearch;
-      EXPECT_TRUE( copySearchPtr == &geometricSearch );
+      EXPECT_EQ(copySearchPtr, &geometricSearch);
     }
     stk::transfer::SearchById & copySearch = *copySearchPtr;
 
@@ -1867,24 +2006,26 @@ TEST(Transfer, copy00_T_11)
         {2, 3, 7, 6, 10, 11, 15, 14},
         {3, 4, 8, 7, 11, 12, 16, 15} };
     std::vector<int> node_sharingA = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
+                                       -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
     std::vector<int> node_sharingB = { -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-      -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
+                                       -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 };
     std::vector<std::vector<double>> coordinates = { {0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {2.0, 0.0, 0.0}, {3.0, 0.0, 0.0},
-      {0.0, 1.0, 0.0}, {1.0, 1.0, 0.0}, {2.0, 1.0, 0.0}, {3.0, 1.0, 0.0},
-      {0.0, 0.0, 1.0}, {1.0, 0.0, 1.0}, {2.0, 0.0, 1.0}, {3.0, 0.0, 1.0},
-      {0.0, 1.0, 1.0}, {1.0, 1.0, 1.0}, {2.0, 1.0, 1.0}, {3.0, 1.0, 1.0} };
+                                                     {0.0, 1.0, 0.0}, {1.0, 1.0, 0.0}, {2.0, 1.0, 0.0}, {3.0, 1.0, 0.0},
+                                                     {0.0, 0.0, 1.0}, {1.0, 0.0, 1.0}, {2.0, 0.0, 1.0}, {3.0, 0.0, 1.0},
+                                                     {0.0, 1.0, 1.0}, {1.0, 1.0, 1.0}, {2.0, 1.0, 1.0}, {3.0, 1.0, 1.0} };
 
     // Set up the "source" mesh for the transfer
     //
-    stk::mesh::MetaData metaA(spatial_dimension);
-    stk::mesh::BulkData meshA(metaA, pm);
+    std::shared_ptr<stk::mesh::BulkData> meshAPtr = build_mesh(spatial_dimension, pm);
+    stk::mesh::MetaData& metaA = meshAPtr->mesh_meta_data();
+    stk::mesh::BulkData& meshA = *meshAPtr;
     build_mesh(metaA, meshA, num_elements, num_nodes, element_ids, element_ownerA, elem_node_ids, node_sharingA, coordinates);
 
     // Set up the "target" mesh for the transfer
     //
-    stk::mesh::MetaData metaB(spatial_dimension);
-    stk::mesh::BulkData meshB(metaB, pm);
+    std::shared_ptr<stk::mesh::BulkData> meshBPtr = build_mesh(spatial_dimension, pm);
+    stk::mesh::MetaData& metaB = meshBPtr->mesh_meta_data();
+    stk::mesh::BulkData& meshB = *meshBPtr;
     build_mesh(metaB, meshB, num_elements, num_nodes, element_ids, element_ownerB, elem_node_ids, node_sharingB, coordinates);
 
     // Fill "source" fields with valid data
@@ -1901,9 +2042,10 @@ TEST(Transfer, copy00_T_11)
     // Set up the transfer
     //
     std::vector<stk::mesh::Entity> sourceNodes;
-    stk::mesh::get_selected_entities(metaA.locally_owned_part(), meshA.buckets(stk::topology::NODE_RANK), sourceNodes);
+    const bool sortById = true;
+    stk::mesh::get_entities(meshA, stk::topology::NODE_RANK, metaA.locally_owned_part(), sourceNodes, sortById);
     std::vector<stk::mesh::Entity> targetNodes;
-    stk::mesh::get_selected_entities(metaB.locally_owned_part(), meshB.buckets(stk::topology::NODE_RANK), targetNodes);
+    stk::mesh::get_entities(meshB, stk::topology::NODE_RANK, metaB.locally_owned_part(), targetNodes, sortById);
 
     std::vector<stk::mesh::FieldBase*> sourceFields;
     sourceFields.push_back(&scalarSourceIntField);
@@ -1931,19 +2073,20 @@ TEST(Transfer, copy00_T_11)
       KeyToTargetProcessor key_to_target_processor;
       copySearch.do_search(transferSource,transferTarget,key_to_target_processor);
 
-      KeyToTargetProcessor gold_map;
+      KeyToTargetProcessor gold;
       if (0 == p_rank) {
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,2)] = 1;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,6)] = 1;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,10)] = 1;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,14)] = 1;
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,2), 1);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,6), 1);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,10), 1);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,14), 1);
 
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,3)] = 1;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,7)] = 1;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,11)] = 1;
-        gold_map[stk::mesh::EntityKey(stk::topology::NODE_RANK,15)] = 1;
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,3), 1);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,7), 1);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,11), 1);
+        gold.emplace_back(stk::mesh::EntityKey(stk::topology::NODE_RANK,15), 1);
       }
-      EXPECT_TRUE( gold_map == key_to_target_processor );
+      stk::util::sort_and_unique(gold);
+      EXPECT_EQ(gold, key_to_target_processor);
 
       typedef stk::transfer::SearchById::MeshIDSet MeshIDSet;
       MeshIDSet gold_remote_keys;
@@ -1963,7 +2106,7 @@ TEST(Transfer, copy00_T_11)
         gold_remote_keys.insert(stk::mesh::EntityKey(stk::topology::NODE_RANK,12).m_value);
         gold_remote_keys.insert(stk::mesh::EntityKey(stk::topology::NODE_RANK,16).m_value);
       }
-      EXPECT_TRUE( copySearch.get_remote_keys() == gold_remote_keys );
+      EXPECT_EQ(copySearch.get_remote_keys(), gold_remote_keys);
     }
     stk::transfer::TransferCopyById transfer(copySearch, transferSource, transferTarget);
 
@@ -2006,7 +2149,7 @@ TEST(Transfer, copy00___T___11)
   {
     if (1 == search_index) {
       copySearchPtr = &geometricSearch;
-      EXPECT_TRUE( copySearchPtr == &geometricSearch );
+      EXPECT_EQ(copySearchPtr, &geometricSearch);
     }
     stk::transfer::SearchById & copySearch = *copySearchPtr;
 
@@ -2033,14 +2176,16 @@ TEST(Transfer, copy00___T___11)
 
     // Set up the "source" mesh for the transfer
     //
-    stk::mesh::MetaData metaA(spatial_dimension);
-    stk::mesh::BulkData meshA(metaA, pm);
+    std::shared_ptr<stk::mesh::BulkData> meshAPtr = build_mesh(spatial_dimension, pm);
+    stk::mesh::MetaData& metaA = meshAPtr->mesh_meta_data();
+    stk::mesh::BulkData& meshA = *meshAPtr;
     build_mesh(metaA, meshA, num_elements, num_nodes, element_ids, element_ownerA, elem_node_ids, node_sharingA, coordinates);
 
     // Set up the "target" mesh for the transfer
     //
-    stk::mesh::MetaData metaB(spatial_dimension);
-    stk::mesh::BulkData meshB(metaB, pm);
+    std::shared_ptr<stk::mesh::BulkData> meshBPtr = build_mesh(spatial_dimension, pm);
+    stk::mesh::MetaData& metaB = meshBPtr->mesh_meta_data();
+    stk::mesh::BulkData& meshB = *meshBPtr;
     build_mesh(metaB, meshB, num_elements, num_nodes, element_ids, element_ownerB, elem_node_ids, node_sharingB, coordinates);
 
     // Fill "source" fields with valid data
@@ -2057,9 +2202,10 @@ TEST(Transfer, copy00___T___11)
     // Set up the transfer
     //
     std::vector<stk::mesh::Entity> sourceNodes;
-    stk::mesh::get_selected_entities(metaA.locally_owned_part(), meshA.buckets(stk::topology::NODE_RANK), sourceNodes);
+    const bool sortById = true;
+    stk::mesh::get_entities(meshA, stk::topology::NODE_RANK, metaA.locally_owned_part(), sourceNodes, sortById);
     std::vector<stk::mesh::Entity> targetNodes;
-    stk::mesh::get_selected_entities(metaB.locally_owned_part(), meshB.buckets(stk::topology::NODE_RANK), targetNodes);
+    stk::mesh::get_entities(meshB, stk::topology::NODE_RANK, metaB.locally_owned_part(), targetNodes, sortById);
 
     std::vector<stk::mesh::FieldBase*> sourceFields;
     sourceFields.push_back(&scalarSourceIntField);
@@ -2087,8 +2233,8 @@ TEST(Transfer, copy00___T___11)
       KeyToTargetProcessor key_to_target_processor;
       copySearch.do_search(transferSource,transferTarget,key_to_target_processor);
 
-      KeyToTargetProcessor gold_map;
-      EXPECT_TRUE( gold_map == key_to_target_processor );
+      KeyToTargetProcessor gold;
+      EXPECT_EQ(gold, key_to_target_processor);
 
       typedef stk::transfer::SearchById::MeshIDSet MeshIDSet;
       MeshIDSet gold_remote_keys;
@@ -2109,7 +2255,7 @@ TEST(Transfer, copy00___T___11)
         gold_remote_keys.insert(stk::mesh::EntityKey(stk::topology::NODE_RANK,18).m_value);
         gold_remote_keys.insert(stk::mesh::EntityKey(stk::topology::NODE_RANK,24).m_value);
       }
-      EXPECT_TRUE( copySearch.get_remote_keys() == gold_remote_keys );
+      EXPECT_EQ(copySearch.get_remote_keys(), gold_remote_keys);
     }
     stk::transfer::TransferCopyById transfer(copySearch, transferSource, transferTarget);
 
@@ -2261,19 +2407,21 @@ TEST(Transfer, mismatchedFieldDataTypeCopyTransfer)
   double doubleInitVals = std::numeric_limits<double>::max();
   std::vector<double> coords = {0,0, 1,0, 0,1, 1,1};
 
-  stk::mesh::MetaData metaA(2);
-  stk::mesh::BulkData bulkA(metaA, MPI_COMM_WORLD);
+  std::shared_ptr<stk::mesh::BulkData> bulkAPtr = build_mesh(2, MPI_COMM_WORLD);
+  stk::mesh::MetaData& metaA = bulkAPtr->mesh_meta_data();
+  stk::mesh::BulkData& bulkA = *bulkAPtr;
   create_block_part(metaA, stk::topology::QUAD_4_2D, "block_1", 1);
-  stk::mesh::FieldBase* fieldBaseA = &metaA.declare_field<stk::mesh::Field<int>>(stk::topology::NODE_RANK, fieldName);
+  stk::mesh::FieldBase* fieldBaseA = &metaA.declare_field<int>(stk::topology::NODE_RANK, fieldName);
   stk::mesh::put_field_on_mesh(*fieldBaseA, metaA.universal_part(), &intInitVals);
 
   std::string meshDescA = "0,1,QUAD_4_2D,1,2,4,3,block_1";
-  stk::unit_test_util::setup_text_mesh(bulkA, meshDescA, coords);
+  stk::unit_test_util::simple_fields::setup_text_mesh(bulkA, stk::unit_test_util::simple_fields::get_full_text_mesh_desc(meshDescA, coords));
 
-  stk::mesh::MetaData metaB(2);
-  stk::mesh::BulkData bulkB(metaB, MPI_COMM_WORLD);
+  std::shared_ptr<stk::mesh::BulkData> bulkBPtr = build_mesh(2, MPI_COMM_WORLD);
+  stk::mesh::MetaData& metaB = bulkBPtr->mesh_meta_data();
+  stk::mesh::BulkData& bulkB = *bulkBPtr;
   create_block_part(metaB, stk::topology::QUAD_4_2D, "block_1", 1);
-  stk::mesh::FieldBase* fieldBaseB = &metaB.declare_field<stk::mesh::Field<double>>(stk::topology::NODE_RANK, fieldName);
+  stk::mesh::FieldBase* fieldBaseB = &metaB.declare_field<double>(stk::topology::NODE_RANK, fieldName);
   stk::mesh::put_field_on_mesh(*fieldBaseB, metaB.universal_part(), &doubleInitVals);
 
   std::string meshDescB;
@@ -2282,13 +2430,13 @@ TEST(Transfer, mismatchedFieldDataTypeCopyTransfer)
   } else {
     meshDescB = "1,1,QUAD_4_2D,1,2,4,3,block_1";
   }
-  stk::unit_test_util::setup_text_mesh(bulkB, meshDescB, coords);
+  stk::unit_test_util::simple_fields::setup_text_mesh(bulkB, stk::unit_test_util::simple_fields::get_full_text_mesh_desc(meshDescB, coords));
 
   // Set up CopyTransfer
   stk::mesh::EntityVector entitiesA;
-  stk::mesh::get_selected_entities(metaA.locally_owned_part(),
-                                   bulkA.buckets(stk::topology::NODE_RANK),
-                                   entitiesA);
+  const bool sortById = true;
+  stk::mesh::get_entities(bulkA, stk::topology::NODE_RANK, metaA.locally_owned_part(),
+                          entitiesA, sortById);
   std::vector<stk::mesh::FieldBase*> fieldsA;
   fieldsA.push_back(fieldBaseA);
   stk::transfer::TransferCopyByIdStkMeshAdapter transferMeshA(bulkA,entitiesA,fieldsA);
@@ -2299,9 +2447,8 @@ TEST(Transfer, mismatchedFieldDataTypeCopyTransfer)
   }
 
   stk::mesh::EntityVector entitiesB;
-  stk::mesh::get_selected_entities(metaB.locally_owned_part(),
-                                   bulkB.buckets(stk::topology::NODE_RANK),
-                                   entitiesB);
+  stk::mesh::get_entities(bulkB, stk::topology::NODE_RANK, metaB.locally_owned_part(),
+                          entitiesB, sortById);
   std::vector<stk::mesh::FieldBase*> fieldsB;
   fieldsB.push_back(fieldBaseB);
   stk::transfer::TransferCopyByIdStkMeshAdapter transferMeshB(bulkB,entitiesB,fieldsB);

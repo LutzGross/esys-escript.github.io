@@ -230,17 +230,14 @@ namespace { // (anonymous)
   /// directly.  Otherwise, we have to copy the input View into the
   /// output View's memory space, before we can use the functor.
   ///
-  /// NOTE (mfh 29 Jan 2016, 26 Jun 2017): See kokkos/kokkos#178 for
-  /// why we use a memory space, rather than an execution space, as
-  /// the first argument of VerifyExecutionCanAccessMemorySpace.
   template<class OutputViewType,
            class InputViewType,
            const bool canUseKokkosDeepCopy =
              CanUseKokkosDeepCopy<OutputViewType, InputViewType>::value,
            const bool outputExecSpaceCanAccessInputMemSpace =
-             Kokkos::Impl::VerifyExecutionCanAccessMemorySpace<
+             Kokkos::SpaceAccessibility<
                typename OutputViewType::memory_space,
-               typename InputViewType::memory_space>::value>
+               typename InputViewType::memory_space>::accessible>
   struct CopyConvertImpl {
     static void
     run (const OutputViewType& dst,
@@ -279,11 +276,15 @@ namespace { // (anonymous)
         // it's cheaper to allocate.  Hopefully users aren't doing
         // aliased copies in a tight loop.
         auto src_copy = Kokkos::create_mirror (Kokkos::HostSpace (), src);
+        // DEEP_COPY REVIEW - NOT TESTED
         Kokkos::deep_copy (src_copy, src);
+        // DEEP_COPY REVIEW - NOT TESTED
         Kokkos::deep_copy (dst, src_copy);
       }
       else { // no aliasing
-        Kokkos::deep_copy (dst, src);
+        // DEEP_COPY REVIEW - DEVICE-TO-DEVICE
+        using execution_space = typename OutputViewType::execution_space;
+        Kokkos::deep_copy (execution_space(), dst, src);
       }
     }
   };
@@ -326,9 +327,11 @@ namespace { // (anonymous)
          const InputViewType& src)
     {
       using output_memory_space = typename OutputViewType::memory_space;
+      using output_execution_space = typename OutputViewType::execution_space;
       auto src_outputSpaceCopy =
         Kokkos::create_mirror_view (output_memory_space (), src);
-      Kokkos::deep_copy (src_outputSpaceCopy, src);
+      // DEEP_COPY REVIEW - DEVICE-TO-HOSTMIRROR
+      Kokkos::deep_copy (output_execution_space(), src_outputSpaceCopy, src);
 
       // The output View's execution space can access
       // outputSpaceCopy's data, so we can run the functor now.
@@ -359,9 +362,9 @@ void
 copyConvert (const OutputViewType& dst,
              const InputViewType& src)
 {
-  static_assert (Kokkos::Impl::is_view<OutputViewType>::value,
+  static_assert (Kokkos::is_view<OutputViewType>::value,
                  "OutputViewType must be a Kokkos::View.");
-  static_assert (Kokkos::Impl::is_view<InputViewType>::value,
+  static_assert (Kokkos::is_view<InputViewType>::value,
                  "InputViewType must be a Kokkos::View.");
   static_assert (std::is_same<typename OutputViewType::value_type,
                    typename OutputViewType::non_const_value_type>::value,

@@ -92,6 +92,8 @@ namespace Tpetra {
     TEUCHOS_ASSERT( ! this->TransferData_->exportLIDs_.need_sync_device () );
     TEUCHOS_ASSERT( ! this->TransferData_->exportLIDs_.need_sync_host () );
 
+    this->detectRemoteExportLIDsContiguous();
+
     if (this->verbose ()) {
       std::ostringstream os;
       const int myRank = source->getComm ()->getRank ();
@@ -192,8 +194,8 @@ namespace Tpetra {
 
     const map_type& source = * (this->getSourceMap ());
     const map_type& target = * (this->getTargetMap ());
-    ArrayView<const GO> sourceGIDs = source.getNodeElementList ();
-    ArrayView<const GO> targetGIDs = target.getNodeElementList ();
+    ArrayView<const GO> sourceGIDs = source.getLocalElementList ();
+    ArrayView<const GO> targetGIDs = target.getLocalElementList ();
 
 #ifdef HAVE_TPETRA_DEBUG
     ArrayView<const GO> rawSrcGids = sourceGIDs;
@@ -242,8 +244,6 @@ namespace Tpetra {
     const LO numSrcLids = static_cast<LO> (numSrcGids);
     LO numPermutes = 0;
     LO numExports = 0;
-
-    Kokkos::fence(); // target.getLocalElement will be UVM access
 
     for (LO srcLid = numSameGids; srcLid < numSrcLids; ++srcLid) {
       const GO curSrcGid = rawSrcGids[srcLid];
@@ -505,10 +505,9 @@ namespace Tpetra {
     // sending to us and get the proper ordering of GIDs for incoming
     // remote entries (these will be converted to LIDs when done).
 
-    std::unique_ptr<GO[]> remoteGIDs_ptr (new GlobalOrdinal [numRemoteIDs]);
-    Teuchos::ArrayView<GO> remoteGIDs
-      (numRemoteIDs == 0 ? nullptr : remoteGIDs_ptr.get (), numRemoteIDs);
-    distributor.doPostsAndWaits (exportGIDs ().getConst (), 1, remoteGIDs);
+    Kokkos::View<const GO*, Kokkos::HostSpace> exportGIDsConst(exportGIDs.data(), exportGIDs.size());
+    Kokkos::View<GO*, Kokkos::HostSpace> remoteGIDs("remoteGIDs", numRemoteIDs);
+    distributor.doPostsAndWaits(exportGIDsConst, 1, remoteGIDs);
 
     // Remote (incoming) IDs come in as GIDs; convert to LIDs.  LIDs
     // tell this process where to store the incoming remote data.
@@ -516,8 +515,6 @@ namespace Tpetra {
       typename decltype (this->TransferData_->remoteLIDs_)::t_host;
     host_remote_lids_type remoteLIDs
       (view_alloc_no_init ("remoteLIDs"), numRemoteIDs);
-
-    Kokkos::fence(); // tgtMap.getLocalElement will be UVM access
 
     for (LO j = 0; j < LO (numRemoteIDs); ++j) {
       remoteLIDs[j] = tgtMap.getLocalElement (remoteGIDs[j]);

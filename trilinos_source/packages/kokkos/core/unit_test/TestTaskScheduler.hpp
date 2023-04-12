@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_UNITTEST_TASKSCHEDULER_HPP
 #define KOKKOS_UNITTEST_TASKSCHEDULER_HPP
@@ -48,7 +20,6 @@
 #include <Kokkos_Macros.hpp>
 #if defined(KOKKOS_ENABLE_TASKDAG)
 #include <Kokkos_Core.hpp>
-#include <impl/Kokkos_FixedBufferMemoryPool.hpp>
 #include <cstdio>
 #include <iostream>
 #include <cmath>
@@ -136,7 +107,7 @@ struct TestFib {
   }
 
   static void run(int i, size_t MemoryCapacity = 16000) {
-    typedef typename sched_type::memory_space memory_space;
+    using memory_space = typename sched_type::memory_space;
 
     enum { MinBlockSize = 64 };
     enum { MaxBlockSize = 1024 };
@@ -185,10 +156,10 @@ namespace TestTaskScheduler {
 
 template <class Scheduler>
 struct TestTaskDependence {
-  typedef Scheduler sched_type;
-  typedef Kokkos::BasicFuture<void, Scheduler> future_type;
-  typedef Kokkos::View<long, typename sched_type::execution_space> accum_type;
-  typedef void value_type;
+  using sched_type  = Scheduler;
+  using future_type = Kokkos::BasicFuture<void, Scheduler>;
+  using accum_type  = Kokkos::View<long, typename sched_type::execution_space>;
+  using value_type  = void;
 
   accum_type m_accum;
   long m_count;
@@ -224,7 +195,7 @@ struct TestTaskDependence {
   }
 
   static void run(int n) {
-    typedef typename sched_type::memory_space memory_space;
+    using memory_space = typename sched_type::memory_space;
 
     enum { MemoryCapacity = 16000 };
     enum { MinBlockSize = 64 };
@@ -264,11 +235,11 @@ struct TestTaskTeam {
   enum { SPAN = 33 };
   // enum { SPAN = 1 };
 
-  typedef void value_type;
+  using value_type  = void;
   using sched_type  = Scheduler;
   using future_type = Kokkos::BasicFuture<void, sched_type>;
   using ExecSpace   = typename sched_type::execution_space;
-  typedef Kokkos::View<long*, ExecSpace> view_type;
+  using view_type   = Kokkos::View<long*, ExecSpace>;
 
   future_type future;
 
@@ -304,7 +275,7 @@ struct TestTaskTeam {
             TestTaskTeam(parfor_result, parreduce_check, parscan_result,
                          parscan_check, begin - 1));
 
-#if !defined(__HCC_ACCELERATOR__) && !defined(__CUDA_ARCH__)
+#if !defined(__HIP_DEVICE_COMPILE__) && !defined(__CUDA_ARCH__)
         assert(!future.is_null());
 #endif
 
@@ -480,11 +451,11 @@ template <class Scheduler>
 struct TestTaskTeamValue {
   enum { SPAN = 8 };
 
-  typedef long value_type;
+  using value_type  = long;
   using sched_type  = Scheduler;
   using future_type = Kokkos::BasicFuture<value_type, sched_type>;
   using ExecSpace   = typename sched_type::execution_space;
-  typedef Kokkos::View<long*, ExecSpace> view_type;
+  using view_type   = Kokkos::View<long*, ExecSpace>;
 
   future_type future;
 
@@ -508,7 +479,7 @@ struct TestTaskTeamValue {
         future = sched.task_spawn(TestTaskTeamValue(result, begin - 1),
                                   Kokkos::TaskTeam);
 
-#if !defined(__HCC_ACCELERATOR__) && !defined(__CUDA_ARCH__)
+#if !defined(__HIP_DEVICE_COMPILE__) && !defined(__CUDA_ARCH__)
         assert(!future.is_null());
 #endif
 
@@ -576,8 +547,8 @@ template <class Scheduler>
 struct TestTaskSpawnWithPool {
   using sched_type  = Scheduler;
   using future_type = Kokkos::BasicFuture<void, sched_type>;
-  typedef void value_type;
-  using Space = typename sched_type::execution_space;
+  using value_type  = void;
+  using Space       = typename sched_type::execution_space;
 
   int m_count;
   Kokkos::MemoryPool<Space> m_pool;
@@ -596,7 +567,7 @@ struct TestTaskSpawnWithPool {
   }
 
   static void run() {
-    typedef typename sched_type::memory_space memory_space;
+    using memory_space = typename sched_type::memory_space;
 
     enum { MemoryCapacity = 16000 };
     enum { MinBlockSize = 64 };
@@ -793,7 +764,7 @@ struct TestMultipleDependence {
   }
 
   static void run(int depth) {
-    typedef typename sched_type::memory_space memory_space;
+    using memory_space = typename sched_type::memory_space;
 
     enum { MemoryCapacity = 1 << 30 };
     enum { MinBlockSize = 64 };

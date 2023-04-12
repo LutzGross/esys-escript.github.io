@@ -1,11 +1,12 @@
-// Copyright(C) 1999-2020 National Technology & Engineering Solutions
+// Copyright(C) 1999-2022 National Technology & Engineering Solutions
 // of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 // NTESS, the U.S. Government retains certain rights in this software.
-// 
+//
 // See packages/seacas/LICENSE for details
 
-#ifndef IOSS_Ioss_Quad9_h
-#define IOSS_Ioss_Quad9_h
+#pragma once
+
+#include "ioss_export.h"
 
 #include <Ioss_CodeTypes.h>       // for IntVector
 #include <Ioss_ElementTopology.h> // for ElementTopology
@@ -13,19 +14,20 @@
 // STL Includes
 
 namespace Ioss {
-  class Quad9 : public Ioss::ElementTopology
+  class IOSS_EXPORT Quad9 : public Ioss::ElementTopology
   {
 
   public:
     static const char *name;
 
     static void factory();
-    ~Quad9() override;
+    ~Quad9() override = default;
 
     ElementShape shape() const override { return ElementShape::QUAD; }
     int          spatial_dimension() const override;
     int          parametric_dimension() const override;
     bool         is_element() const override { return true; }
+    bool         is_shell() const override { return false; }
     int          order() const override;
 
     int number_corner_nodes() const override;
@@ -48,9 +50,6 @@ namespace Ioss {
     Quad9();
 
   private:
-    static Quad9 instance_;
-
     Quad9(const Quad9 &) = delete;
   };
 } // namespace Ioss
-#endif

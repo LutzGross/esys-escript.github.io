@@ -1,46 +1,22 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
+
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
+#endif
 
 #include <cstdio>
 
@@ -54,12 +30,11 @@
 
 namespace Test {
 
-#ifndef KOKKOS_ENABLE_DEPRECATED_CODE
 namespace {
 
 template <typename ExecSpace>
 struct TestViewLayoutTiled {
-  typedef double Scalar;
+  using Scalar = double;
 
   static constexpr int T0 = 2;
   static constexpr int T1 = 4;
@@ -71,46 +46,46 @@ struct TestViewLayoutTiled {
   static constexpr int T7 = 2;
 
   // Rank 2
-  typedef Kokkos::Experimental::LayoutTiled<Kokkos::Iterate::Left,
-                                            Kokkos::Iterate::Left, T0, T1>
-      LayoutLL_2D_2x4;
-  typedef Kokkos::Experimental::LayoutTiled<Kokkos::Iterate::Right,
-                                            Kokkos::Iterate::Left, T0, T1>
-      LayoutRL_2D_2x4;
-  typedef Kokkos::Experimental::LayoutTiled<Kokkos::Iterate::Left,
-                                            Kokkos::Iterate::Right, T0, T1>
-      LayoutLR_2D_2x4;
-  typedef Kokkos::Experimental::LayoutTiled<Kokkos::Iterate::Right,
-                                            Kokkos::Iterate::Right, T0, T1>
-      LayoutRR_2D_2x4;
+  using LayoutLL_2D_2x4 =
+      Kokkos::Experimental::LayoutTiled<Kokkos::Iterate::Left,
+                                        Kokkos::Iterate::Left, T0, T1>;
+  using LayoutRL_2D_2x4 =
+      Kokkos::Experimental::LayoutTiled<Kokkos::Iterate::Right,
+                                        Kokkos::Iterate::Left, T0, T1>;
+  using LayoutLR_2D_2x4 =
+      Kokkos::Experimental::LayoutTiled<Kokkos::Iterate::Left,
+                                        Kokkos::Iterate::Right, T0, T1>;
+  using LayoutRR_2D_2x4 =
+      Kokkos::Experimental::LayoutTiled<Kokkos::Iterate::Right,
+                                        Kokkos::Iterate::Right, T0, T1>;
 
   // Rank 3
-  typedef Kokkos::Experimental::LayoutTiled<Kokkos::Iterate::Left,
-                                            Kokkos::Iterate::Left, T0, T1, T2>
-      LayoutLL_3D_2x4x4;
-  typedef Kokkos::Experimental::LayoutTiled<Kokkos::Iterate::Right,
-                                            Kokkos::Iterate::Left, T0, T1, T2>
-      LayoutRL_3D_2x4x4;
-  typedef Kokkos::Experimental::LayoutTiled<Kokkos::Iterate::Left,
-                                            Kokkos::Iterate::Right, T0, T1, T2>
-      LayoutLR_3D_2x4x4;
-  typedef Kokkos::Experimental::LayoutTiled<Kokkos::Iterate::Right,
-                                            Kokkos::Iterate::Right, T0, T1, T2>
-      LayoutRR_3D_2x4x4;
+  using LayoutLL_3D_2x4x4 =
+      Kokkos::Experimental::LayoutTiled<Kokkos::Iterate::Left,
+                                        Kokkos::Iterate::Left, T0, T1, T2>;
+  using LayoutRL_3D_2x4x4 =
+      Kokkos::Experimental::LayoutTiled<Kokkos::Iterate::Right,
+                                        Kokkos::Iterate::Left, T0, T1, T2>;
+  using LayoutLR_3D_2x4x4 =
+      Kokkos::Experimental::LayoutTiled<Kokkos::Iterate::Left,
+                                        Kokkos::Iterate::Right, T0, T1, T2>;
+  using LayoutRR_3D_2x4x4 =
+      Kokkos::Experimental::LayoutTiled<Kokkos::Iterate::Right,
+                                        Kokkos::Iterate::Right, T0, T1, T2>;
 
   // Rank 4
-  typedef Kokkos::Experimental::LayoutTiled<
-      Kokkos::Iterate::Left, Kokkos::Iterate::Left, T0, T1, T2, T3>
-      LayoutLL_4D_2x4x4x2;
-  typedef Kokkos::Experimental::LayoutTiled<
-      Kokkos::Iterate::Right, Kokkos::Iterate::Left, T0, T1, T2, T3>
-      LayoutRL_4D_2x4x4x2;
-  typedef Kokkos::Experimental::LayoutTiled<
-      Kokkos::Iterate::Left, Kokkos::Iterate::Right, T0, T1, T2, T3>
-      LayoutLR_4D_2x4x4x2;
-  typedef Kokkos::Experimental::LayoutTiled<
-      Kokkos::Iterate::Right, Kokkos::Iterate::Right, T0, T1, T2, T3>
-      LayoutRR_4D_2x4x4x2;
+  using LayoutLL_4D_2x4x4x2 =
+      Kokkos::Experimental::LayoutTiled<Kokkos::Iterate::Left,
+                                        Kokkos::Iterate::Left, T0, T1, T2, T3>;
+  using LayoutRL_4D_2x4x4x2 =
+      Kokkos::Experimental::LayoutTiled<Kokkos::Iterate::Right,
+                                        Kokkos::Iterate::Left, T0, T1, T2, T3>;
+  using LayoutLR_4D_2x4x4x2 =
+      Kokkos::Experimental::LayoutTiled<Kokkos::Iterate::Left,
+                                        Kokkos::Iterate::Right, T0, T1, T2, T3>;
+  using LayoutRR_4D_2x4x4x2 =
+      Kokkos::Experimental::LayoutTiled<Kokkos::Iterate::Right,
+                                        Kokkos::Iterate::Right, T0, T1, T2, T3>;
 
 #if !defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
   static void test_view_layout_tiled_2d(const int, const int) {
@@ -123,8 +98,8 @@ struct TestViewLayoutTiled {
     // Test create_mirror_view, deep_copy
     // Create LL View
     {
-      typedef typename Kokkos::View<Scalar**, LayoutLL_2D_2x4, ExecSpace>
-          ViewType;
+      using ViewType =
+          typename Kokkos::View<Scalar**, LayoutLL_2D_2x4, ExecSpace>;
       ViewType v("v", N0, N1);
 
       typename ViewType::HostMirror hv = Kokkos::create_mirror_view(v);
@@ -188,8 +163,8 @@ struct TestViewLayoutTiled {
 
     // Create RL View
     {
-      typedef typename Kokkos::View<Scalar**, LayoutRL_2D_2x4, ExecSpace>
-          ViewType;
+      using ViewType =
+          typename Kokkos::View<Scalar**, LayoutRL_2D_2x4, ExecSpace>;
       Kokkos::View<Scalar**, LayoutRL_2D_2x4, ExecSpace> v("v", N0, N1);
 
       typename ViewType::HostMirror hv = Kokkos::create_mirror_view(v);
@@ -254,8 +229,8 @@ struct TestViewLayoutTiled {
 
     // Create LR View
     {
-      typedef typename Kokkos::View<Scalar**, LayoutLR_2D_2x4, ExecSpace>
-          ViewType;
+      using ViewType =
+          typename Kokkos::View<Scalar**, LayoutLR_2D_2x4, ExecSpace>;
       Kokkos::View<Scalar**, LayoutLR_2D_2x4, ExecSpace> v("v", N0, N1);
 
       typename ViewType::HostMirror hv = Kokkos::create_mirror_view(v);
@@ -320,8 +295,8 @@ struct TestViewLayoutTiled {
 
     // Create RR View
     {
-      typedef typename Kokkos::View<Scalar**, LayoutRR_2D_2x4, ExecSpace>
-          ViewType;
+      using ViewType =
+          typename Kokkos::View<Scalar**, LayoutRR_2D_2x4, ExecSpace>;
       Kokkos::View<Scalar**, LayoutRR_2D_2x4, ExecSpace> v("v", N0, N1);
 
       typename ViewType::HostMirror hv = Kokkos::create_mirror_view(v);
@@ -399,7 +374,7 @@ struct TestViewLayoutTiled {
 
     // Create LL View
     {
-      typedef Kokkos::View<Scalar***, LayoutLL_3D_2x4x4, ExecSpace> ViewType;
+      using ViewType = Kokkos::View<Scalar***, LayoutLL_3D_2x4x4, ExecSpace>;
       Kokkos::View<Scalar***, LayoutLL_3D_2x4x4, ExecSpace> dv("dv", N0, N1,
                                                                N2);
 
@@ -470,7 +445,7 @@ struct TestViewLayoutTiled {
 
     // Create RL View
     {
-      typedef Kokkos::View<Scalar***, LayoutRL_3D_2x4x4, ExecSpace> ViewType;
+      using ViewType = Kokkos::View<Scalar***, LayoutRL_3D_2x4x4, ExecSpace>;
       Kokkos::View<Scalar***, LayoutRL_3D_2x4x4, ExecSpace> dv("dv", N0, N1,
                                                                N2);
 
@@ -541,7 +516,7 @@ struct TestViewLayoutTiled {
 
     // Create LR View
     {
-      typedef Kokkos::View<Scalar***, LayoutLR_3D_2x4x4, ExecSpace> ViewType;
+      using ViewType = Kokkos::View<Scalar***, LayoutLR_3D_2x4x4, ExecSpace>;
       Kokkos::View<Scalar***, LayoutLR_3D_2x4x4, ExecSpace> dv("dv", N0, N1,
                                                                N2);
 
@@ -612,7 +587,7 @@ struct TestViewLayoutTiled {
 
     // Create RR View
     {
-      typedef Kokkos::View<Scalar***, LayoutRR_3D_2x4x4, ExecSpace> ViewType;
+      using ViewType = Kokkos::View<Scalar***, LayoutRR_3D_2x4x4, ExecSpace>;
       Kokkos::View<Scalar***, LayoutRR_3D_2x4x4, ExecSpace> dv("dv", N0, N1,
                                                                N2);
 
@@ -698,7 +673,7 @@ struct TestViewLayoutTiled {
 
     // Create LL View
     {
-      typedef Kokkos::View<Scalar****, LayoutLL_4D_2x4x4x2, ExecSpace> ViewType;
+      using ViewType = Kokkos::View<Scalar****, LayoutLL_4D_2x4x4x2, ExecSpace>;
       Kokkos::View<Scalar****, LayoutLL_4D_2x4x4x2, ExecSpace> dv("dv", N0, N1,
                                                                   N2, N3);
 
@@ -780,7 +755,7 @@ struct TestViewLayoutTiled {
 
     // Create RL View
     {
-      typedef Kokkos::View<Scalar****, LayoutRL_4D_2x4x4x2, ExecSpace> ViewType;
+      using ViewType = Kokkos::View<Scalar****, LayoutRL_4D_2x4x4x2, ExecSpace>;
       Kokkos::View<Scalar****, LayoutRL_4D_2x4x4x2, ExecSpace> dv("dv", N0, N1,
                                                                   N2, N3);
 
@@ -863,7 +838,7 @@ struct TestViewLayoutTiled {
 
     // Create LR View
     {
-      typedef Kokkos::View<Scalar****, LayoutLR_4D_2x4x4x2, ExecSpace> ViewType;
+      using ViewType = Kokkos::View<Scalar****, LayoutLR_4D_2x4x4x2, ExecSpace>;
       Kokkos::View<Scalar****, LayoutLR_4D_2x4x4x2, ExecSpace> dv("dv", N0, N1,
                                                                   N2, N3);
 
@@ -947,7 +922,7 @@ struct TestViewLayoutTiled {
 
     // Create RR View
     {
-      typedef Kokkos::View<Scalar****, LayoutRR_4D_2x4x4x2, ExecSpace> ViewType;
+      using ViewType = Kokkos::View<Scalar****, LayoutRR_4D_2x4x4x2, ExecSpace>;
       Kokkos::View<Scalar****, LayoutRR_4D_2x4x4x2, ExecSpace> dv("dv", N0, N1,
                                                                   N2, N3);
 
@@ -1776,5 +1751,6 @@ TEST(TEST_CATEGORY, view_layouttiled_subtile) {
   TestViewLayoutTiled<TEST_EXECSPACE>::test_view_layout_tiled_subtile_4d(
       4, 12, 16, 12);
 }
-#endif
 }  // namespace Test
+
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE

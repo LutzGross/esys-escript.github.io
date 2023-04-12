@@ -1,10 +1,9 @@
-C Copyright(C) 1999-2020 National Technology & Engineering Solutions
+C Copyright(C) 1999-2020, 2022 National Technology & Engineering Solutions
 C of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 C NTESS, the U.S. Government retains certain rights in this software.
-C 
+C
 C See packages/seacas/LICENSE for details
 
-C
 c=======================================================================
       PROGRAM BLOTII
 C=======================================================================
@@ -64,7 +63,6 @@ C   --Current author and code sponsor: John Glick
 C   --
 C   --Revision History:
 C   --   05/88  Added PATHLINE (Amy Gilkey)
-C   --   03/88  Added Master/Slave logic (Amy Gilkey)
 C   --   10/87  Added EXPLORE (Amy Gilkey)
 C   --   10/87  Converted from SEACO to EXODUS database (Amy Gilkey)
 C   --   07/87  Combined DETOUR, TPLOT, and SPLOT (Amy Gilkey)
@@ -242,6 +240,9 @@ C   --Open database file
         CALL PRTERR ('CMDSPEC',
      *    'Syntax is: "blot.dev [-basename basename] [-ps_option num]'//
      *    ' [-nomap node|element|all] filename"')
+        CALL PRTERR ('CMDSPEC',
+     *       'Documentation: https://sandialabs.github.io' //
+     $       '/seacas-docs/sphinx/html/index.html#blot')
         GOTO 190
       end if
 
@@ -254,6 +255,9 @@ C   --Open database file
         CALL PRTERR ('CMDSPEC',
      *    'Syntax is: "blot.dev [-basename basename] [-ps_option num]'//
      *    ' [-nomap node|element|all] [-show_filename] filename"')
+        CALL PRTERR ('CMDSPEC',
+     *       'Documentation: https://sandialabs.github.io' //
+     $       '/seacas-docs/sphinx/html/index.html#blot')
         GOTO 170
       END IF
       EXODUS = .FALSE.
@@ -421,7 +425,6 @@ C     Initialize element block integer arrays
       CALL INIINT(NELBLK, 0, IA(KNELB))
       CALL INIINT(NELBLK, 0, IA(KNLNKE))
       CALL INIINT(NELBLK, 0, IA(KNATR))
-
 
       CALL INISTR (NELBLK, ' ', C(KNMLB))
 
@@ -749,7 +752,6 @@ C      --QNPICK uses NPFIND to find NPSURF
         CALL MDSTAT (NERR, MEM)
         IF (NERR .GT. 0) GOTO 160
 
-
         IF (.NOT. IS3DIM) THEN
           CALL MAKSU2 (A(KLENL), A(KLNSET), MSHBOR,
      &      .FALSE., IDUM, A(KNPSUR))
@@ -996,6 +998,7 @@ C   --Finish graphics
 
 C   --Close files
 
+      call MDFREE()
       CALL EXCLOS(NDB, IERR)
       IF (NEUOPN) THEN
         WRITE (NEU, 10030) 'xmax', wxmax

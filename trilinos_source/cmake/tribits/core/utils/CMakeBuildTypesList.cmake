@@ -37,5 +37,8 @@
 # ************************************************************************
 # @HEADER
 
-SET(CMAKE_BUILD_TYPES_LIST
+set(CMAKE_BUILD_TYPES_LIST
   DEBUG MINSIZEREL RELEASE RELWITHDEBINFO NONE)
+
+set(CMAKE_CONFIG_FILE_BUILD_TYPES_LIST
+  Debug Release RelWithDebInfo MinSizeRel NoConfig)

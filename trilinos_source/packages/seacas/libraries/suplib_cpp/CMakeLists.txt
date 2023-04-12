@@ -7,16 +7,22 @@ SET(SUPLIBCPP_VERSION_PATCH "0")
 SET(SUPLIBCPP_VERSION "${SUPLIBCPP_VERSION_MAJOR}.${SUPLIBCPP_VERSION_MINOR}")
 SET(SUPLIBCPP_VERSION_FULL "${SUPLIBCPP_VERSION}.${SUPLIBCPP_VERSION_PATCH}")
 
-INCLUDE_DIRECTORIES(
+TRIBITS_INCLUDE_DIRECTORIES(
   "${CMAKE_CURRENT_SOURCE_DIR}"
   )
 
 SET(SOURCES
+  FileInfo.C
   GetLongOpt.C
-  smart_assert.C
-  timer.C
-  copyright.C
   SL_tokenize.C
+  copyright.C
+  format_time.C
+  hwm.C
+  iqsort.C
+  smart_assert.C
+  sys_info.C
+  time_stamp.C
+  timer.C
   )
 
 TRIBITS_ADD_LIBRARY(
@@ -26,4 +32,3 @@ TRIBITS_ADD_LIBRARY(
   )
 
 TRIBITS_SUBPACKAGE_POSTPROCESS()
-

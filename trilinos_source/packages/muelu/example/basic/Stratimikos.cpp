@@ -69,7 +69,7 @@ The source code is not MueLu specific and can be used with any Stratimikos strat
 #include <Thyra_SolveSupportTypes.hpp>
 
 // Stratimikos includes
-#include <Stratimikos_DefaultLinearSolverBuilder.hpp>
+#include <Stratimikos_LinearSolverBuilder.hpp>
 #include <Stratimikos_MueLuHelpers.hpp>
 
 // Xpetra include
@@ -88,28 +88,8 @@ The source code is not MueLu specific and can be used with any Stratimikos strat
 #endif
 
 
-// Main wrappers struct
-// Because C++ doesn't support partial template specialization of functions.
-// The reason for this is that Stratimikos only supports Scalar=double.
-// By default, don't do anything and just return success
 template<typename Scalar,class LocalOrdinal,class GlobalOrdinal,class Node>
-struct MainWrappers {
-  static int main_(Teuchos::CommandLineProcessor &clp, Xpetra::UnderlyingLib lib, int argc, char *argv[]){ return EXIT_SUCCESS; }
-};
-
-
-// Partial template specialization on SC=double
-template<class LocalOrdinal, class GlobalOrdinal, class Node>
-struct MainWrappers<double,LocalOrdinal,GlobalOrdinal,Node> {
-  static int main_(Teuchos::CommandLineProcessor &clp, Xpetra::UnderlyingLib lib, int argc, char *argv[]);
-};
-
-
-// Partial template specialization on SC=double
-// Stratimikos only supports Scalar=double
-template<class LocalOrdinal, class GlobalOrdinal, class Node>
-int MainWrappers<double,LocalOrdinal,GlobalOrdinal,Node>::main_(Teuchos::CommandLineProcessor &clp, Xpetra::UnderlyingLib lib, int argc, char *argv[]) {
-  typedef double Scalar;
+int main_(Teuchos::CommandLineProcessor &clp, Xpetra::UnderlyingLib lib, int argc, char *argv[]) {
   #include <MueLu_UseShortNames.hpp>
   typedef Teuchos::ScalarTraits<Scalar> STS;
   typedef typename STS::coordinateType real_type;
@@ -150,15 +130,17 @@ int MainWrappers<double,LocalOrdinal,GlobalOrdinal,Node>::main_(Teuchos::Command
     std::string matrixFile;                             clp.setOption("matrix",                &matrixFile,        "matrix data file");
     std::string rhsFile;                                clp.setOption("rhs",                   &rhsFile,           "rhs data file");
     std::string coordFile;                              clp.setOption("coords",                &coordFile,         "coordinates data file");
+    std::string coordMapFile;                           clp.setOption("coordsmap",             &coordMapFile,      "coordinates map data file");
     std::string nullFile;                               clp.setOption("nullspace",             &nullFile,          "nullspace data file");
     std::string materialFile;                           clp.setOption("material",              &materialFile,      "material data file");
     int         numVectors        = 1;                  clp.setOption("multivector",           &numVectors,        "number of rhs to solve simultaneously");
+    int         numSolves         = 1;                  clp.setOption("numSolves",             &numSolves,         "number of times the system should be solved");
 
     switch (clp.parse(argc,argv)) {
-      case Teuchos::CommandLineProcessor::PARSE_HELP_PRINTED:        return EXIT_SUCCESS; break;
+      case Teuchos::CommandLineProcessor::PARSE_HELP_PRINTED:        return EXIT_SUCCESS;
       case Teuchos::CommandLineProcessor::PARSE_ERROR:
-      case Teuchos::CommandLineProcessor::PARSE_UNRECOGNIZED_OPTION: return EXIT_FAILURE; break;
-      case Teuchos::CommandLineProcessor::PARSE_SUCCESSFUL:                               break;
+      case Teuchos::CommandLineProcessor::PARSE_UNRECOGNIZED_OPTION: return EXIT_FAILURE;
+      case Teuchos::CommandLineProcessor::PARSE_SUCCESSFUL:          break;
     }
 
     RCP<Teuchos::FancyOStream> fancy = Teuchos::fancyOStream(Teuchos::rcpFromRef(std::cout));
@@ -192,8 +174,9 @@ int MainWrappers<double,LocalOrdinal,GlobalOrdinal,Node>::main_(Teuchos::Command
     RCP<MultiVector>           X, B;
 
     std::ostringstream galeriStream;
-    MatrixLoad<SC,LocalOrdinal,GlobalOrdinal,Node>(comm,lib,binaryFormat,matrixFile,rhsFile,rowMapFile,colMapFile,domainMapFile,rangeMapFile,coordFile,nullFile,materialFile,map,A,coordinates,nullspace,material,X,B,numVectors,matrixParameters,xpetraParameters,galeriStream);
+    MatrixLoad<SC,LocalOrdinal,GlobalOrdinal,Node>(comm,lib,binaryFormat,matrixFile,rhsFile,rowMapFile,colMapFile,domainMapFile,rangeMapFile,coordFile,coordMapFile,nullFile,materialFile,map,A,coordinates,nullspace,material,X,B,numVectors,matrixParameters,xpetraParameters,galeriStream);
     out << galeriStream.str();
+    X->putScalar(0);
 
     //
     // Build Thyra linear algebra objects
@@ -210,9 +193,9 @@ int MainWrappers<double,LocalOrdinal,GlobalOrdinal,Node>::main_(Teuchos::Command
     //
 
     // This is the Stratimikos main class (= factory of solver factory).
-    Stratimikos::DefaultLinearSolverBuilder linearSolverBuilder;
+    Stratimikos::LinearSolverBuilder<Scalar> linearSolverBuilder;
     // Register MueLu as a Stratimikos preconditioner strategy.
-    Stratimikos::enableMueLu<LocalOrdinal,GlobalOrdinal,Node>(linearSolverBuilder);
+    Stratimikos::enableMueLu<Scalar,LocalOrdinal,GlobalOrdinal,Node>(linearSolverBuilder);
 #ifdef HAVE_MUELU_IFPACK2
     // Register Ifpack2 as a Stratimikos preconditioner strategy.
     typedef Thyra::PreconditionerFactoryBase<Scalar> Base;
@@ -220,11 +203,12 @@ int MainWrappers<double,LocalOrdinal,GlobalOrdinal,Node>::main_(Teuchos::Command
     linearSolverBuilder.setPreconditioningStrategyFactory(Teuchos::abstractFactoryStd<Base, Impl>(), "Ifpack2");
 #endif
 
-    // add coordinates to parameter list
+    // add coordinates and nullspace to parameter list
     if (paramList->isSublist("Preconditioner Types") &&
         paramList->sublist("Preconditioner Types").isSublist("MueLu")) {
         ParameterList& userParamList = paramList->sublist("Preconditioner Types").sublist("MueLu").sublist("user data");
         userParamList.set<RCP<RealValuedMultiVector> >("Coordinates", coordinates);
+        userParamList.set<RCP<MultiVector> >("Nullspace", nullspace);
       }
 
     // Setup solver parameters using a Stratimikos parameter list.
@@ -232,14 +216,34 @@ int MainWrappers<double,LocalOrdinal,GlobalOrdinal,Node>::main_(Teuchos::Command
 
     // Build a new "solver factory" according to the previously specified parameter list.
     RCP<Thyra::LinearOpWithSolveFactoryBase<Scalar> > solverFactory = Thyra::createLinearSolveStrategy(linearSolverBuilder);
+    auto precFactory = solverFactory->getPreconditionerFactory();
+    RCP<Thyra::PreconditionerBase<Scalar> > prec;
+    Teuchos::RCP<Thyra::LinearOpWithSolveBase<Scalar> > thyraInverseA;
+    if (!precFactory.is_null()) {
+      prec = precFactory->createPrec();
 
-    // Build a Thyra operator corresponding to A^{-1} computed using the Stratimikos solver.
-    Teuchos::RCP<Thyra::LinearOpWithSolveBase<Scalar> > thyraInverseA = Thyra::linearOpWithSolve(*solverFactory, thyraA);
+      // Build a Thyra operator corresponding to A^{-1} computed using the Stratimikos solver.
+      Thyra::initializePrec<Scalar>(*precFactory, thyraA, prec.ptr());
+      thyraInverseA = solverFactory->createOp();
+      Thyra::initializePreconditionedOp<Scalar>(*solverFactory, thyraA, prec, thyraInverseA.ptr());
+    } else {
+      thyraInverseA = Thyra::linearOpWithSolve(*solverFactory, thyraA);
+    }
 
     // Solve Ax = b.
     Thyra::SolveStatus<Scalar> status = Thyra::solve<Scalar>(*thyraInverseA, Thyra::NOTRANS, *thyraB, thyraX.ptr());
 
     success = (status.solveStatus == Thyra::SOLVE_STATUS_CONVERGED);
+
+    for (int solveno = 1; solveno < numSolves; solveno++) {
+      if (!precFactory.is_null())
+        Thyra::initializePrec<Scalar>(*precFactory, thyraA, prec.ptr());
+      thyraX->assign(0.);
+
+      status = Thyra::solve<Scalar>(*thyraInverseA, Thyra::NOTRANS, *thyraB, thyraX.ptr());
+
+      success = success && (status.solveStatus == Thyra::SOLVE_STATUS_CONVERGED);
+    }
 
     // print timings
     if (printTimings) {
@@ -278,11 +282,6 @@ int MainWrappers<double,LocalOrdinal,GlobalOrdinal,Node>::main_(Teuchos::Command
   return ( success ? EXIT_SUCCESS : EXIT_FAILURE );
 }
 
-
-template<typename Scalar,class LocalOrdinal,class GlobalOrdinal,class Node>
-int main_(Teuchos::CommandLineProcessor &clp, Xpetra::UnderlyingLib lib, int argc, char *argv[]) {
-  return MainWrappers<Scalar,LocalOrdinal,GlobalOrdinal,Node>::main_(clp, lib, argc, argv);
-}
 
 //- -- --------------------------------------------------------
 #define MUELU_AUTOMATIC_TEST_ETI_NAME main_

@@ -16,21 +16,30 @@ namespace Tempus {
 
   TEMPUS_INSTANTIATE_TEMPLATE_CLASS(IntegratorPseudoTransientForwardSensitivity)
 
-  // non-member ctor
+  /// Nonmember constructor
   template Teuchos::RCP<IntegratorPseudoTransientForwardSensitivity<double> >
-  integratorPseudoTransientForwardSensitivity(
+  createIntegratorPseudoTransientForwardSensitivity(
+    Teuchos::RCP<Teuchos::ParameterList>                pList,
+    const Teuchos::RCP<Thyra::ModelEvaluator<double> >& model,
+    const Teuchos::RCP<Thyra::ModelEvaluator<double> >& sens_residual_model,
+    const Teuchos::RCP<Thyra::ModelEvaluator<double> >& sens_solve_model);
+
+  /// Nonmember constructor
+  template Teuchos::RCP<IntegratorPseudoTransientForwardSensitivity<double> >
+  createIntegratorPseudoTransientForwardSensitivity(
+    Teuchos::RCP<Teuchos::ParameterList>                pList,
+    const Teuchos::RCP<Thyra::ModelEvaluator<double> >& model,
+    const Teuchos::RCP<Thyra::ModelEvaluator<double> >& sens_residual_model);
+
+  // Nonmember ctor
+  template Teuchos::RCP<IntegratorPseudoTransientForwardSensitivity<double> >
+  createIntegratorPseudoTransientForwardSensitivity(
     Teuchos::RCP<Teuchos::ParameterList>        parameterList,
     const Teuchos::RCP<Thyra::ModelEvaluator<double> >& model);
 
-  // non-member ctor
+  // Nonmember ctor
   template Teuchos::RCP<IntegratorPseudoTransientForwardSensitivity<double> >
-  integratorPseudoTransientForwardSensitivity(
-    const Teuchos::RCP<Thyra::ModelEvaluator<double> >& model,
-    std::string stepperType);
-
-  // non-member ctor
-  template Teuchos::RCP<IntegratorPseudoTransientForwardSensitivity<double> >
-  integratorPseudoTransientForwardSensitivity();
+  createIntegratorPseudoTransientForwardSensitivity();
 
 } // namespace Tempus
 

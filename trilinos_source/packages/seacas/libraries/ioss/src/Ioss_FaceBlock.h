@@ -1,11 +1,12 @@
-// Copyright(C) 1999-2020 National Technology & Engineering Solutions
+// Copyright(C) 1999-2020, 2022 National Technology & Engineering Solutions
 // of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 // NTESS, the U.S. Government retains certain rights in this software.
-// 
+//
 // See packages/seacas/LICENSE for details
 
-#ifndef IOSS_Ioss_FaceBlock_h
-#define IOSS_Ioss_FaceBlock_h
+#pragma once
+
+#include "ioss_export.h"
 
 #include "Ioss_EntityType.h" // for EntityType, etc
 #include <Ioss_EntityBlock.h>
@@ -24,7 +25,7 @@ namespace Ioss {
 
   /** \brief A collection of element faces with the same topology.
    */
-  class FaceBlock : public EntityBlock
+  class IOSS_EXPORT FaceBlock : public EntityBlock
   {
   public:
     FaceBlock(DatabaseIO *io_database, const std::string &my_name, const std::string &face_type,
@@ -51,4 +52,3 @@ namespace Ioss {
                                     size_t data_size) const override;
   };
 } // namespace Ioss
-#endif

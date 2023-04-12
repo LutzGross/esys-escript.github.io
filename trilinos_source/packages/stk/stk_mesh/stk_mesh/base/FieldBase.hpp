@@ -35,32 +35,43 @@
 #ifndef stk_mesh_base_FieldBase_hpp
 #define stk_mesh_base_FieldBase_hpp
 
+#include <any>
 #include <stddef.h>                     // for NULL
 #include <iosfwd>                       // for ostream
-#include <stk_mesh/base/Bucket.hpp>     // for Bucket, Bucket::size_type
+#include <stk_mesh/base/Bucket.hpp>     // for Bucket
 #include <stk_mesh/base/BulkData.hpp>   // for BulkData
 #include <stk_mesh/base/FieldRestriction.hpp>  // for FieldRestriction, etc
 #include <stk_mesh/base/FieldState.hpp>  // for FieldState
 #include <stk_mesh/base/Types.hpp>      // for FieldTraits, EntityRank, etc
 #include <stk_mesh/base/NgpFieldBase.hpp>
 #include <stk_mesh/base/FieldSyncDebugging.hpp>
-#include <stk_mesh/baseImpl/FieldBaseImpl.hpp>  // for FieldBaseImpl
+#include <stk_mesh/base/StkFieldSyncDebugger.hpp>
 #include <string>                       // for string
 #include "stk_mesh/base/DataTraits.hpp"  // for DataTraits
 #include "stk_mesh/base/Entity.hpp"     // for Entity
 #include "stk_topology/topology.hpp"    // for topology, topology::rank_t, etc
 #include "stk_util/util/ReportHandler.hpp"  // for ThrowAssert, etc
+#include <stk_util/util/SimpleArrayOps.hpp>  // for Copy
+#include <stk_util/util/CSet.hpp>
+#include <type_traits>
 
 namespace shards { class ArrayDimTag; }
-namespace stk { namespace mesh { class BulkData; } }
-namespace stk { namespace mesh { class MetaData; } }
-namespace stk { namespace mesh { class UnitTestFieldImpl; } }
-namespace stk { namespace mesh { namespace impl { class FieldRepository; } } }
-namespace stk { namespace mesh { class DataTraits; } }
-namespace stk { namespace mesh { template<typename T> class DeviceField; } }
 
-namespace stk {
-namespace mesh {
+namespace stk::mesh 
+{
+
+class BulkData;
+class MetaData;
+class UnitTestFieldImpl;
+class FieldBase;
+template<typename T, template <typename> class NgpDebugger> class DeviceField;
+
+namespace impl {
+class FieldRepository;
+NgpFieldBase* get_ngp_field(const FieldBase & field);
+void set_ngp_field(const FieldBase & stkField, NgpFieldBase * ngpField);
+stk::CSet & get_attributes(FieldBase & field);
+}
 
 struct FieldMetaData
 {
@@ -79,10 +90,6 @@ typedef std::vector<FieldMetaData> FieldMetaDataVector;
  * API for Field objects. Note that the entire Field API is much broader than
  * what's defined in this class. See Field.hpp for more.
  */
-// Implementation details:
-//   Simply wraps a FieldBaseImpl object which is kept as a member, all calls are
-//   inlined and passed through to the impl object. This design is analogous
-//   to the "P-impl" pattern.
 class FieldBase
 {
 public:
@@ -90,59 +97,59 @@ public:
   FieldBase(const FieldBase &) = delete;
   FieldBase & operator=(const FieldBase &) = delete;
 
+  virtual FieldBase * clone(stk::mesh::impl::FieldRepository & fieldRepo) const = 0;
+
    /** \brief  The \ref stk::mesh::MetaData "meta data manager"
    *          that owns this field
    */
-  MetaData & mesh_meta_data() const { return m_impl.meta_data(); }
+  MetaData & mesh_meta_data() const { return *m_meta_data; }
+
   /** \brief  Internally generated ordinal of this field that is unique
    *          within the owning \ref stk::mesh::MetaData "meta data manager".
    */
-  unsigned mesh_meta_data_ordinal() const { return m_impl.ordinal(); }
+  unsigned mesh_meta_data_ordinal() const { return m_ordinal; }
 
   /** \brief  Application-defined text name of this field */
-  const std::string & name() const { return m_impl.name() ; }
+  const std::string & name() const { return m_name ; }
 
   /** \brief  Query if the type is Type */
   template<class Type> bool type_is() const
-  { return m_impl.type_is<Type>(); }
+  { return m_data_traits.type_info == typeid(Type); }
 
   /** \brief  Return the \ref stk::mesh::DataTraits "data traits"
    *          for this field's type
    */
-  const DataTraits & data_traits() const { return m_impl.data_traits() ; }
+  const DataTraits & data_traits() const { return m_data_traits ; }
 
   /** \brief  Number of states of this field */
-  unsigned number_of_states() const { return m_impl.number_of_states() ; }
+  unsigned number_of_states() const { return m_num_states ; }
 
   /** \brief  FieldState of this field */
-  FieldState state() const { return m_impl.state() ; }
+  FieldState state() const { return m_this_state; }
 
   /** \brief  Multi-dimensional array rank of this field,
    *          which is zero for a scalar field.
    */
-  unsigned field_array_rank() const { return m_impl.field_array_rank(); }
+  unsigned field_array_rank() const;
 
-  EntityRank entity_rank() const { return m_impl.entity_rank(); }
+  EntityRank entity_rank() const { return m_entity_rank; }
 
   /** \brief  Multi-dimensional
    *          \ref shards::ArrayDimTag "array dimension tags"
    *          of this field.
    */
-  const shards::ArrayDimTag * const * dimension_tags() const
-  { return m_impl.dimension_tags() ; }
+  const shards::ArrayDimTag * const * dimension_tags() const;
 
   /** \brief  Maximum field data allocation size declared for this
    *          field for the given entity rank.
    */
-  unsigned max_size( EntityRank ent_rank) const {
-    return m_impl.max_size( ent_rank );
-  }
+  unsigned max_size( EntityRank ent_rank) const;
 
   //----------------------------------------
 
   /** \brief  Query attribute that has been attached to this field */
   template<class A>
-  const A * attribute() const { return m_impl.attribute<A>(); }
+  const A * attribute() const { return m_attribute.template get<A>(); }
 
   typedef FieldRestriction Restriction;
 
@@ -152,27 +159,42 @@ public:
   /** \brief  Vector of field restriction which is volatile until the owning
    *          \ref stk::mesh::MetaData "meta data manager" is committed.
    */
-  const RestrictionVector &restrictions() const {
-    return m_impl.restrictions();
-  }
+  const FieldRestrictionVector &restrictions() const { return m_field_states[0]->m_restrictions; }
+  FieldRestrictionVector & restrictions() { return m_field_states[0]->m_restrictions; }
 
   //----------------------------------------
 
   FieldBase * field_state( FieldState fstate) const {
-    return m_impl.field_state(fstate);
+    return m_field_states[fstate];
   }
 
   bool is_state_valid(FieldState fstate) const {
     return field_state(fstate) != nullptr;
   }
 
-  const void* get_initial_value() const { return m_impl.get_initial_value(); }
+  const void* get_initial_value() const
+  {
+    return m_field_states[0]->m_initial_value;
+  }
+  
+  void* get_initial_value() {
+    return m_field_states[0]->m_initial_value;
+  }
+  
+  unsigned get_initial_value_num_bytes() const {
+    return m_field_states[0]->m_initial_value_num_bytes;
+  }
 
-  void* get_initial_value() { return m_impl.get_initial_value(); }
+  virtual ~FieldBase() {
+    delete m_ngpField;
 
-  unsigned get_initial_value_num_bytes() const { return m_impl.get_initial_value_num_bytes(); }
+    if (state() == StateNone) {
+      void*& init_val = m_initial_value;
 
-  virtual ~FieldBase() {}
+      delete [] reinterpret_cast<char*>(init_val);
+      init_val = nullptr;
+    }
+  }
 
   virtual std::ostream& print_data(std::ostream& out, void* data, unsigned size_per_entity) const { return out; }
 
@@ -206,11 +228,19 @@ public:
 
   bool defined_on(const stk::mesh::Part& part) const;
 
-  void modify_on_host() const { m_impl.modify_on_host(); }
-  void modify_on_device() const { m_impl.modify_on_device(); }
-  void sync_to_host() const { m_impl.sync_to_host(); }
-  void sync_to_device() const { m_impl.sync_to_device(); }
-  void clear_sync_state() const { m_impl.clear_sync_state(); }
+  void modify_on_host() const;
+  void modify_on_device() const;
+  void modify_on_host(const Selector& s) const;
+  void modify_on_device(const Selector& s) const;
+  bool need_sync_to_host() const;
+  bool need_sync_to_device() const;
+  void sync_to_host() const;
+  void sync_to_host(const stk::ngp::ExecSpace& newExecSpace) const;
+  void sync_to_device() const;
+  void sync_to_device(const stk::ngp::ExecSpace& newExecSpace) const;
+  void clear_sync_state() const;
+  void clear_host_sync_state() const;
+  void clear_device_sync_state() const;
 
   unsigned synchronized_count() const
   {
@@ -220,81 +250,104 @@ public:
     return get_mesh().synchronized_count();
   }
 
-  size_t num_syncs_to_host() const { return m_impl.num_syncs_to_host(); }
-  size_t num_syncs_to_device() const { return m_impl.num_syncs_to_device(); }
+  size_t num_syncs_to_host() const;
+  size_t num_syncs_to_device() const;
+  bool has_ngp_field() const { return get_ngp_field() != nullptr; }
+  void fence() const;
+
+  template <typename StkDebugger>
+  void make_field_sync_debugger() const {
+    if (!(m_stkFieldSyncDebugger.has_value())) {
+      m_stkFieldSyncDebugger = std::any(StkDebugger(this));
+    }
+  }
+
+  template <typename StkDebugger>
+  StkDebugger & get_field_sync_debugger() const {
+    return std::any_cast<StkDebugger&>(m_stkFieldSyncDebugger);
+  }
 
   void rotate_multistate_data();
 
-#ifdef STK_DEBUG_FIELD_SYNC
-  unsigned get_num_components(const FastMeshIndex & index) const;
-  bool has_device_field_debug_data() const { return ((get_debug_ngp_field() != nullptr) && (m_debugFieldLastModification.extent(0) > 0)); }
-  void set_last_modification_view(const LastFieldModLocationType & lastModView) const;
-  bool last_accessed_entity_value_has_changed(const FastMeshIndex & index, unsigned component) const;
-  void set_last_modification(const FastMeshIndex & index, unsigned component, LastModLocation location) const;
-  void detect_host_field_entity_modification() const;
-  bool last_entity_modification_not_on_host(const FastMeshIndex & index, unsigned component) const;
-  void store_last_entity_access_location(const FastMeshIndex & index) const;
-  void check_stale_field_entity_access(const FastMeshIndex & index, const char * fileName, int lineNumber) const;
+ private:
+  stk::ngp::ExecSpace& get_execution_space() const {
+    return m_execSpace;
+  }
 
-  void store_last_bucket_access_location(const stk::mesh::Bucket & bucket) const;
-  void detect_host_field_bucket_modification() const;
-  void check_stale_field_bucket_access(const stk::mesh::Bucket & bucket, const char * fileName, int lineNumber) const;
+  void set_execution_space(const stk::ngp::ExecSpace& executionSpace) const {
+    m_execSpace = executionSpace;
+  }
 
-  void reset_debug_state();
-  NgpFieldBase * get_debug_ngp_field() const { return m_impl.get_ngp_field(); }
-#endif
+  void set_execution_space(stk::ngp::ExecSpace&& executionSpace) const {
+    m_execSpace = std::move(executionSpace);
+  }
 
-private:
+  void reset_execution_space() const {
+    m_execSpace = Kokkos::DefaultExecutionSpace();
+  }
+
+  CSet & get_attributes() { return m_attribute; }
+
+  template<class A>
+    const A * declare_attribute_no_delete(const A * a) {
+      return m_attribute.template insert_no_delete<A>(a);
+    }   
+
+  template<class A>
+    const A * declare_attribute_with_delete(const A * a) {
+      return m_attribute.template insert_with_delete<A>(a);
+    }   
+
+  template<class A>
+    bool remove_attribute(const A * a) {
+      return m_attribute.template remove<A>(a);
+    }
+
+  template<typename FieldType>
+  void set_field_states(FieldType ** field_states)
+  {
+    for (unsigned i = 0; i < m_num_states; ++i) {
+      m_field_states[i] = field_states[i];
+    }
+  }
+
 
   //  Associate this field with a bulk data.
   //  Note, a field can be associated with one and only one bulk data object
   void set_mesh(stk::mesh::BulkData* bulk);
 
-  /** \brief  The \ref stk::mesh::MetaData "meta data manager"
-   *          that owns this field
-   */
-  MetaData & meta_data() const { return m_impl.meta_data(); }
+  NgpFieldBase * get_ngp_field() const { return m_ngpField; }
+  void set_ngp_field(NgpFieldBase * ngpField) const;
 
-  NgpFieldBase * get_ngp_field() const { return m_impl.get_ngp_field(); }
-  void set_ngp_field(NgpFieldBase * ngpField) const { m_impl.set_ngp_field(ngpField); }
+  void increment_num_syncs_to_host() const;
+  void increment_num_syncs_to_device() const;
 
-  void increment_num_syncs_to_host() const { m_impl.increment_num_syncs_to_host(); }
-  void increment_num_syncs_to_device() const { m_impl.increment_num_syncs_to_device(); }
+  void set_initial_value(const void* new_initial_value, unsigned num_scalars, unsigned num_bytes);
+
+  void insert_restriction( const char       * arg_method ,
+                         const Selector   & arg_selector ,
+                         const unsigned     arg_num_scalars_per_entity ,
+                         const unsigned     arg_first_dimension ,
+                         const void*        arg_init_value = NULL);
+
+  void verify_and_clean_restrictions( const Part& superset, const Part& subset );
 
   friend class ::stk::mesh::MetaData;
   friend class ::stk::mesh::BulkData;
   friend class ::stk::mesh::impl::FieldRepository;
-  friend class ::stk::mesh::impl::FieldBaseImpl;
+  friend CSet & impl::get_attributes(stk::mesh::FieldBase & field);
 
   /** \brief  Allow the unit test driver access */
   friend class ::stk::mesh::UnitTestFieldImpl ;
 
-  template <typename T> friend NgpField<T> & get_updated_ngp_field(const FieldBase & stkField);
-  template <typename T> friend class DeviceField;
+  friend NgpFieldBase* impl::get_ngp_field(const FieldBase & stkField);
+  friend void impl::set_ngp_field(const FieldBase & stkField, NgpFieldBase * ngpField);
 
-  FieldMetaDataVector m_field_meta_data;
+  template <typename T, template <typename> class NgpDebugger> friend class HostField;
+  template <typename T, template <typename> class NgpDebugger> friend class DeviceField;
+  template <typename Scalar, class Tag1, class Tag2, class Tag3, class Tag4, class Tag5, class Tag6, class Tag7> friend class Field;
 
 protected:
-  FieldBase(MetaData                   * arg_mesh_meta_data,
-            unsigned                     arg_ordinal,
-            const std::string          & arg_name,
-            const DataTraits           & arg_traits,
-            unsigned                     arg_rank,
-            const shards::ArrayDimTag  * const * arg_dim_tags,
-            unsigned                     arg_number_of_states,
-            FieldState                   arg_this_state)
-    : m_mesh(nullptr),
-      m_impl(arg_mesh_meta_data,
-             stk::topology::INVALID_RANK,
-             arg_ordinal,
-             arg_name,
-             arg_traits,
-             arg_rank,
-             arg_dim_tags,
-             arg_number_of_states,
-             arg_this_state)
-  {}
-
   FieldBase(MetaData                   * arg_mesh_meta_data,
             stk::topology::rank_t        arg_entity_rank,
             unsigned                     arg_ordinal,
@@ -305,27 +358,59 @@ protected:
             unsigned                     arg_number_of_states,
             FieldState                   arg_this_state)
     : m_mesh(nullptr),
-      m_impl(arg_mesh_meta_data,
-             arg_entity_rank,
-             arg_ordinal,
-             arg_name,
-             arg_traits,
-             arg_rank,
-             arg_dim_tags,
-             arg_number_of_states,
-             arg_this_state)
-  {}
+      m_entity_rank(arg_entity_rank),
+      m_name(arg_name),
+      m_num_states(arg_number_of_states),
+      m_field_rank( arg_rank ),
+      m_restrictions(),
+      m_initial_value(nullptr),
+      m_initial_value_num_bytes(0),
+      m_data_traits( arg_traits ),
+      m_meta_data(arg_mesh_meta_data),
+      m_ordinal(arg_ordinal),
+      m_this_state(arg_this_state),
+      m_ngpField(nullptr),
+      m_numSyncsToHost(0),
+      m_numSyncsToDevice(0),
+      m_modifiedOnHost(false),
+      m_modifiedOnDevice(false),
+      m_execSpace(Kokkos::DefaultExecutionSpace())
+  {
+    FieldBase * const pzero = nullptr ;
+    const shards::ArrayDimTag * const dzero = nullptr ;
+    Copy<MaximumFieldStates>(    m_field_states , pzero );
+    Copy<MaximumFieldDimension>( m_dim_tags ,     dzero );
+
+    for ( unsigned i = 0 ; i < arg_rank ; ++i ) {
+      m_dim_tags[i] = arg_dim_tags[i];
+    }
+  }
 
 private:
-  stk::mesh::BulkData* m_mesh;
-  impl::FieldBaseImpl  m_impl;
+  FieldMetaDataVector m_field_meta_data;
 
-#ifdef STK_DEBUG_FIELD_SYNC
-  mutable LastFieldModLocationType m_debugFieldLastModification;
-  mutable FastMeshIndex            m_lastFieldEntityLocation = {INVALID_BUCKET_ID, 0};
-  mutable Bucket *                 m_lastFieldBucketLocation = nullptr;
-  mutable std::vector<uint8_t>     m_lastFieldValue;
-#endif
+  stk::mesh::BulkData* m_mesh;
+  EntityRank m_entity_rank;
+  const std::string m_name;
+  const unsigned m_num_states;
+  unsigned m_field_rank;
+  FieldBase                  * m_field_states[ MaximumFieldStates ];
+  const shards::ArrayDimTag  * m_dim_tags[ MaximumFieldDimension ];
+  FieldRestrictionVector m_restrictions;
+  void*                        m_initial_value;
+  unsigned                     m_initial_value_num_bytes;
+  CSet                         m_attribute;
+  const DataTraits           & m_data_traits ;
+  MetaData             * const m_meta_data ;
+  const unsigned               m_ordinal ;
+  const FieldState             m_this_state ;
+  mutable NgpFieldBase       * m_ngpField;
+  mutable size_t               m_numSyncsToHost;
+  mutable size_t               m_numSyncsToDevice;
+  mutable bool                 m_modifiedOnHost;
+  mutable bool                 m_modifiedOnDevice;
+  mutable stk::ngp::ExecSpace  m_execSpace;
+  mutable std::any m_stkFieldSyncDebugger;
 };
 
 /** \brief  Print the field type, text name, and number of states. */
@@ -341,6 +426,15 @@ std::ostream & print_restrictions( std::ostream & ,
                                    const char * const ,
                                    const FieldBase & );
 
+namespace impl {
+inline NgpFieldBase* get_ngp_field(const FieldBase & stkField) {
+  return stkField.get_ngp_field();
+}
+
+inline void set_ngp_field(const FieldBase & stkField, NgpFieldBase * ngpField) {
+  stkField.set_ngp_field(ngpField);
+}
+}
 
 //
 //  Field free access methods
@@ -402,6 +496,17 @@ inline bool field_is_allocated_for_bucket(const FieldBase& f, const Bucket& b) {
   return (is_matching_rank(f, b) && 0 != f.get_meta_data_for_field()[b.bucket_id()].m_bytes_per_entity);
 }
 
+inline size_t get_total_ngp_field_allocation_bytes(const FieldBase & f) {
+  const Selector selector = stk::mesh::selectField(f);
+  const BucketVector & buckets = f.get_mesh().get_buckets(f.entity_rank(), selector);
+  const size_t numBuckets = buckets.size();
+  const size_t bucketCapacity = (buckets.empty()) ? 0 : buckets[0]->capacity();
+  const size_t numPerEntity = f.max_size(f.entity_rank());
+  const size_t bytesPerScalar = f.data_traits().size_of;
+
+  return numBuckets * bucketCapacity * numPerEntity * bytesPerScalar;
+}
+
 struct FieldBasePtrLess {
   bool operator()(const stk::mesh::FieldBase* lhs, const stk::mesh::FieldBase* rhs) const
   {
@@ -416,86 +521,107 @@ struct FieldBasePtrLess {
 //  size everywhere.
 //
 
-#ifdef STK_DEBUG_FIELD_SYNC
-
-template<class FieldType>
-inline
-typename FieldTraits<FieldType>::data_type*
-field_data(const FieldType & f, const unsigned bucket_id, Bucket::size_type bucket_ord, const int knownSize,
-           DummyOverload dummyArg = DummyOverload(), const char * fileName = HOST_DEBUG_FILE_NAME, int lineNumber = HOST_DEBUG_LINE_NUMBER)
+template <typename StkDebugger>
+void debug_stale_access_entity_check(const FieldBase& stkField, const Entity& entity, const char* fileName, int lineNumber)
 {
-  ThrowAssertMsg(f.get_meta_data_for_field()[bucket_id].m_bytes_per_entity >= knownSize, "field name= " << f.name() << "knownSize= " << knownSize << ", m_bytes_per_entity= " << f.get_meta_data_for_field()[bucket_id].m_bytes_per_entity);
-  ThrowAssert(f.get_meta_data_for_field()[bucket_id].m_data != NULL);
-
-  if (f.has_device_field_debug_data()) {
-    stk::mesh::FastMeshIndex index {bucket_id, static_cast<unsigned>(bucket_ord)};
-    f.get_debug_ngp_field()->detect_device_field_modification();
-    f.detect_host_field_entity_modification();
-    f.check_stale_field_entity_access(index, fileName, lineNumber);
-    f.store_last_entity_access_location(index);
+  if constexpr (std::is_same_v<StkDebugger, StkFieldSyncDebugger>)
+  {
+    if (stkField.has_ngp_field()) {
+      stkField.get_field_sync_debugger<StkDebugger>().host_stale_access_entity_check(entity, fileName, lineNumber);
+    }
   }
-
-  return reinterpret_cast<typename FieldTraits<FieldType>::data_type*>(f.get_meta_data_for_field()[bucket_id].m_data + knownSize * bucket_ord);
 }
 
-template<class FieldType>
+template <typename StkDebugger>
+void debug_stale_access_entity_check(const FieldBase& stkField, const unsigned bucketId, unsigned bucketOrd, const char* fileName, int lineNumber)
+{
+  if constexpr (std::is_same_v<StkDebugger, StkFieldSyncDebugger>)
+  {
+    if (stkField.has_ngp_field()) {
+      stkField.get_field_sync_debugger<StkDebugger>().host_stale_access_entity_check(bucketId, bucketOrd, fileName, lineNumber);
+    }
+  }
+}
+
+template <typename StkDebugger>
+void debug_stale_access_bucket_check(const FieldBase& stkField, const Bucket& bucket, const char* fileName, int lineNumber)
+{
+  if constexpr (std::is_same_v<StkDebugger, StkFieldSyncDebugger>)
+  {
+    if (stkField.has_ngp_field()) {
+      stkField.get_field_sync_debugger<StkDebugger>().host_stale_access_bucket_check(bucket, fileName, lineNumber);
+    }
+  }
+}
+
+template <typename StkDebugger>
+void debug_stale_access_bucket_check(const FieldBase& stkField, const unsigned& bucketId, const char* fileName, int lineNumber)
+{
+  if constexpr (std::is_same_v<StkDebugger, StkFieldSyncDebugger>)
+  {
+    if (stkField.has_ngp_field()) {
+      stkField.get_field_sync_debugger<StkDebugger>().host_stale_access_bucket_check(bucketId, fileName, lineNumber);
+    }
+  }
+}
+
+template<class FieldType, typename StkDebugger = DefaultStkFieldSyncDebugger>
+inline
+typename FieldTraits<FieldType>::data_type*
+field_data(const FieldType & f, const unsigned bucket_id, unsigned bucket_ord, const int knownSize,
+           DummyOverload dummyArg = DummyOverload(), const char * fileName = HOST_DEBUG_FILE_NAME, int lineNumber = HOST_DEBUG_LINE_NUMBER)
+{
+  ThrowAssertMsg(f.get_meta_data_for_field()[bucket_id].m_bytes_per_entity >= knownSize,
+                 "field name= " << f.name() << "knownSize= " << knownSize << ", m_bytes_per_entity= "
+                 << f.get_meta_data_for_field()[bucket_id].m_bytes_per_entity);
+  ThrowAssert(f.get_meta_data_for_field()[bucket_id].m_data != NULL);
+
+  debug_stale_access_entity_check<StkDebugger>(static_cast<const FieldBase&>(f), bucket_id, bucket_ord, fileName, lineNumber);
+
+  return reinterpret_cast<typename FieldTraits<FieldType>::data_type*>(f.get_meta_data_for_field()[bucket_id].m_data +
+                                                                       knownSize * bucket_ord);
+}
+
+template<class FieldType, typename StkDebugger = DefaultStkFieldSyncDebugger>
 inline
 typename FieldTraits<FieldType>::data_type*
 field_data(const FieldType & f, const unsigned bucket_id,
            DummyOverload dummyArg = DummyOverload(), const char * fileName = HOST_DEBUG_FILE_NAME, int lineNumber = HOST_DEBUG_LINE_NUMBER)
 {
-  if (f.has_device_field_debug_data()) {
-    stk::mesh::Bucket & bucket = *f.get_mesh().buckets(f.entity_rank())[bucket_id];
-    f.get_debug_ngp_field()->detect_device_field_modification();
-    f.detect_host_field_bucket_modification();
-    f.check_stale_field_bucket_access(bucket, fileName, lineNumber);
-    f.store_last_bucket_access_location(bucket);
-  }
+  debug_stale_access_bucket_check<StkDebugger>(static_cast<const FieldBase&>(f), bucket_id, fileName, lineNumber);
 
   return reinterpret_cast<typename FieldTraits<FieldType>::data_type*>(f.get_meta_data_for_field()[bucket_id].m_data);
 }
 
-template<class FieldType>
+template<class FieldType, typename StkDebugger = DefaultStkFieldSyncDebugger>
 inline
 typename FieldTraits<FieldType>::data_type*
-field_data(const FieldType & f, const unsigned bucket_id, Bucket::size_type bucket_ord,
+field_data(const FieldType & f, const unsigned bucket_id, unsigned bucket_ord,
            DummyOverload dummyArg = DummyOverload(), const char * fileName = HOST_DEBUG_FILE_NAME, int lineNumber = HOST_DEBUG_LINE_NUMBER)
 {
-  if (f.has_device_field_debug_data()) {
-    stk::mesh::FastMeshIndex index {bucket_id, static_cast<unsigned>(bucket_ord)};
-    f.get_debug_ngp_field()->detect_device_field_modification();
-    f.detect_host_field_entity_modification();
-    f.check_stale_field_entity_access(index, fileName, lineNumber);
-    f.store_last_entity_access_location(index);
-  }
+  debug_stale_access_entity_check<StkDebugger>(static_cast<const FieldBase&>(f), bucket_id, bucket_ord, fileName, lineNumber);
 
   const FieldMetaData& field_meta_data = f.get_meta_data_for_field()[bucket_id];
   return reinterpret_cast<typename FieldTraits<FieldType>::data_type*>(field_meta_data.m_data + field_meta_data.m_bytes_per_entity * bucket_ord);
 }
 
-
-template<class FieldType>
+template<class FieldType, typename StkDebugger = DefaultStkFieldSyncDebugger>
 inline
 typename FieldTraits<FieldType>::data_type*
-field_data(const FieldType & f, const Bucket& b, Bucket::size_type bucket_ord,
+field_data(const FieldType & f, const Bucket& b, unsigned bucket_ord,
            DummyOverload dummyArg = DummyOverload(), const char * fileName = HOST_DEBUG_FILE_NAME, int lineNumber = HOST_DEBUG_LINE_NUMBER)
 {
   ThrowAssert(f.entity_rank() == b.entity_rank());
   ThrowAssert(&f.get_mesh() == &b.mesh());
 
-  if (f.has_device_field_debug_data()) {
-    stk::mesh::FastMeshIndex index {b.bucket_id(), static_cast<unsigned>(bucket_ord)};
-    f.get_debug_ngp_field()->detect_device_field_modification();
-    f.detect_host_field_entity_modification();
-    f.check_stale_field_entity_access(index, fileName, lineNumber);
-    f.store_last_entity_access_location(index);
-  }
+  debug_stale_access_entity_check<StkDebugger>(static_cast<const FieldBase&>(f), b[bucket_ord], fileName, lineNumber);
 
   const FieldMetaData& field_meta_data = f.get_meta_data_for_field()[b.bucket_id()];
-  return reinterpret_cast<typename FieldTraits<FieldType>::data_type*>(field_meta_data.m_data + field_meta_data.m_bytes_per_entity * bucket_ord);
+  return reinterpret_cast<typename FieldTraits<FieldType>::data_type*>(field_meta_data.m_data +
+                                                                       field_meta_data.m_bytes_per_entity * bucket_ord);
 }
 
-template<class FieldType>
+template<class FieldType, typename StkDebugger = DefaultStkFieldSyncDebugger>
 inline
 typename FieldTraits<FieldType>::data_type*
 field_data(const FieldType & f, const Bucket& b,
@@ -504,119 +630,31 @@ field_data(const FieldType & f, const Bucket& b,
   ThrowAssert(f.entity_rank() == b.entity_rank());
   ThrowAssert(&b.mesh() == &f.get_mesh());
 
-  if (f.has_device_field_debug_data()) {
-    f.get_debug_ngp_field()->detect_device_field_modification();
-    f.detect_host_field_bucket_modification();
-    f.check_stale_field_bucket_access(b, fileName, lineNumber);
-    f.store_last_bucket_access_location(b);
-  }
+  debug_stale_access_bucket_check<StkDebugger>(static_cast<const FieldBase&>(f), b, fileName, lineNumber);
 
   const FieldMetaData& field_meta_data = f.get_meta_data_for_field()[b.bucket_id()];
   return reinterpret_cast<typename FieldTraits<FieldType>::data_type*>(field_meta_data.m_data);
 }
 
-template<class FieldType>
-inline
-typename FieldTraits<FieldType>::data_type*
-ngp_debug_field_data(const FieldType & f, const Bucket& b)
-{
-  ThrowAssert(f.entity_rank() == b.entity_rank());
-  ThrowAssert(&b.mesh() == &f.get_mesh());
-  const FieldMetaData& field_meta_data = f.get_meta_data_for_field()[b.bucket_id()];
-  return reinterpret_cast<typename FieldTraits<FieldType>::data_type*>(field_meta_data.m_data);
-}
-
-template<class FieldType>
+template<class FieldType, typename StkDebugger = DefaultStkFieldSyncDebugger>
 inline
 typename FieldTraits<FieldType>::data_type*
 field_data(const FieldType & f, Entity e,
            DummyOverload dummyArg = DummyOverload(), const char * fileName = HOST_DEBUG_FILE_NAME, int lineNumber = HOST_DEBUG_LINE_NUMBER)
 {
   const MeshIndex& mi = f.get_mesh().mesh_index(e);
-  ThrowAssert(f.entity_rank() == mi.bucket->entity_rank());
+  ThrowAssertMsg(f.entity_rank() == mi.bucket->entity_rank(),
+                 "field_data called with " << f.entity_rank() << " field (" << f.name() << ") and different-rank entity "
+                 << f.get_mesh().entity_key(e) << ". The rank of the field and entity must match.");
   ThrowAssert(&f.get_mesh() == &mi.bucket->mesh());
 
-  if (f.has_device_field_debug_data()) {
-    stk::mesh::FastMeshIndex index {mi.bucket->bucket_id(), mi.bucket_ordinal};
-    f.get_debug_ngp_field()->detect_device_field_modification();
-    f.detect_host_field_entity_modification();
-    f.check_stale_field_entity_access(index, fileName, lineNumber);
-    f.store_last_entity_access_location(index);
-  }
+  debug_stale_access_entity_check<StkDebugger>(static_cast<const FieldBase&>(f), e, fileName, lineNumber);
 
   const FieldMetaData& field_meta_data = f.get_meta_data_for_field()[mi.bucket->bucket_id()];
-  return reinterpret_cast<typename FieldTraits<FieldType>::data_type*>(field_meta_data.m_data + field_meta_data.m_bytes_per_entity * mi.bucket_ordinal);
+  return reinterpret_cast<typename FieldTraits<FieldType>::data_type*>(field_meta_data.m_data +
+                                                                       field_meta_data.m_bytes_per_entity * mi.bucket_ordinal);
 }
 
-#else
-
-template<class FieldType>
-inline
-typename FieldTraits<FieldType>::data_type*
-field_data(const FieldType & f, const unsigned bucket_id, Bucket::size_type bucket_ord, const int knownSize)
-{
-  ThrowAssertMsg(f.get_meta_data_for_field()[bucket_id].m_bytes_per_entity >= knownSize, "field name= " << f.name() << "knownSize= " << knownSize << ", m_bytes_per_entity= " << f.get_meta_data_for_field()[bucket_id].m_bytes_per_entity);
-  ThrowAssert(f.get_meta_data_for_field()[bucket_id].m_data != NULL);
-
-  return reinterpret_cast<typename FieldTraits<FieldType>::data_type*>(f.get_meta_data_for_field()[bucket_id].m_data + knownSize * bucket_ord);
-}
-
-template<class FieldType>
-inline
-typename FieldTraits<FieldType>::data_type*
-field_data(const FieldType & f, const unsigned bucket_id)
-{
-  return reinterpret_cast<typename FieldTraits<FieldType>::data_type*>(f.get_meta_data_for_field()[bucket_id].m_data);
-}
-
-template<class FieldType>
-inline
-typename FieldTraits<FieldType>::data_type*
-field_data(const FieldType & f, const unsigned bucket_id, Bucket::size_type bucket_ord)
-{
-  const FieldMetaData& field_meta_data = f.get_meta_data_for_field()[bucket_id];
-  return reinterpret_cast<typename FieldTraits<FieldType>::data_type*>(field_meta_data.m_data + field_meta_data.m_bytes_per_entity * bucket_ord);
-}
-
-
-template<class FieldType>
-inline
-typename FieldTraits<FieldType>::data_type*
-field_data(const FieldType & f, const Bucket& b, Bucket::size_type bucket_ord)
-{
-  ThrowAssert(f.entity_rank() == b.entity_rank());
-  ThrowAssert(&f.get_mesh() == &b.mesh());
-  const FieldMetaData& field_meta_data = f.get_meta_data_for_field()[b.bucket_id()];
-  return reinterpret_cast<typename FieldTraits<FieldType>::data_type*>(field_meta_data.m_data + field_meta_data.m_bytes_per_entity * bucket_ord);
-}
-
-template<class FieldType>
-inline
-typename FieldTraits<FieldType>::data_type*
-field_data(const FieldType & f, const Bucket& b)
-{
-  ThrowAssert(f.entity_rank() == b.entity_rank());
-  ThrowAssert(&b.mesh() == &f.get_mesh());
-  const FieldMetaData& field_meta_data = f.get_meta_data_for_field()[b.bucket_id()];
-  return reinterpret_cast<typename FieldTraits<FieldType>::data_type*>(field_meta_data.m_data);
-}
-
-template<class FieldType>
-inline
-typename FieldTraits<FieldType>::data_type*
-field_data(const FieldType & f, Entity e)
-{
-  const MeshIndex& mi           = f.get_mesh().mesh_index(e);
-
-  ThrowAssert(f.entity_rank() == mi.bucket->entity_rank());
-  ThrowAssert(&f.get_mesh() == &mi.bucket->mesh());
-  const FieldMetaData& field_meta_data = f.get_meta_data_for_field()[mi.bucket->bucket_id()];
-  return reinterpret_cast<typename FieldTraits<FieldType>::data_type*>(field_meta_data.m_data + field_meta_data.m_bytes_per_entity * mi.bucket_ordinal);
-}
-
-#endif
-
-} //namespace mesh
-} //namespace stk
+} //namespace stk::mesh
 
 #endif //stk_mesh_base_FieldBase_hpp

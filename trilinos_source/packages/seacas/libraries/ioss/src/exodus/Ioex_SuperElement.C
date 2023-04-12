@@ -1,7 +1,7 @@
 // Copyright(C) 1999-2020 National Technology & Engineering Solutions
 // of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 // NTESS, the U.S. Government retains certain rights in this software.
-// 
+//
 // See packages/seacas/LICENSE for details
 
 #include <exodus/Ioex_SuperElement.h> // for SuperElement
@@ -241,7 +241,7 @@ int64_t Ioex::SuperElement::internal_get_field_data(const Ioss::Field &field, vo
     }
   }
   else {
-    fmt::print(Ioss::WARNING(), "{} '{}'. Unknown input field '{}'", type(), name(),
+    fmt::print(Ioss::WarnOut(), "{} '{}'. Unknown input field '{}'", static_cast<int>(type()), name(),
                field.get_name());
     return -4;
   }

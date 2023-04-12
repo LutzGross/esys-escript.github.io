@@ -26,6 +26,7 @@ private:
    Teko::InverseLibrary invLib;
 
    bool use_discrete_curl_;
+   bool simplifyFaraday_;
    bool dump;
    bool doDebug;
    bool useAsPreconditioner;
@@ -33,6 +34,8 @@ private:
 
    // type of preconditioner for Schur complement
    std::string S_E_prec_type_;
+
+   mutable Teko::InverseLinearOp S_E_prec_;
 
    // parameters
    Teuchos::ParameterList params;

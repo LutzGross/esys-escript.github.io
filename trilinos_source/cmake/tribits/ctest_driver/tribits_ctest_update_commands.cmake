@@ -18,6 +18,8 @@
 # 3.12) crash in that case.
 #
 
+cmake_minimum_required(VERSION 3.17.0 FATAL_ERROR)
+
 message("\ncmake -P tribits_ctest_update_commands.cmake:")
 message("-- GIT_EXE=${GIT_EXE}")
 message("-- REMOTE_NAME=${REMOTE_NAME}")
@@ -33,7 +35,7 @@ macro(execute_process_wrapper)
   else()
     execute_process(${ARGN} RESULT_VARIABLE RTN_CODE)
     message("RTN_CODE: ${RTN_CODE}")
-    IF (NOT "${RTN_CODE}" STREQUAL "0")
+    if (NOT "${RTN_CODE}" STREQUAL "0")
       set(OVERALL_SUCCESS FALSE)
       set(ERROR_CODE ${RTN_CODE})
     endif()

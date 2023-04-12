@@ -1,8 +1,8 @@
 /*
- * Copyright(C) 1999-2020 National Technology & Engineering Solutions
+ * Copyright(C) 1999-2020, 2023 National Technology & Engineering Solutions
  * of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
  * NTESS, the U.S. Government retains certain rights in this software.
- * 
+ *
  * See packages/seacas/LICENSE for details
  */
 /*****************************************************************************
@@ -44,7 +44,7 @@ int main(int argc, char **argv)
   int id, ebids[10], ids[10];
   int num_nodes_per_set[10], num_elem_per_set[10];
   int num_df_per_set[10];
-  int df_ind[10], node_ind[10], elem_ind[10];
+  int node_ind[10], elem_ind[10];
   int num_qa_rec, num_info;
   int num_glo_vars, num_nod_vars, num_ele_vars;
   int whole_time_step, num_time_steps;
@@ -55,9 +55,9 @@ int main(int argc, char **argv)
   float  time_value;
   float  x[100], y[100], z[100];
   float  attrib[100], dist_fact[100];
-  char * coord_names[3], *qa_record[2][4], *info[3], *var_names[3];
-  char * emap_names[2];
-  char * prop_names[2];
+  char  *coord_names[3], *qa_record[2][4], *info[3], *var_names[3];
+  char  *emap_names[2];
+  char  *prop_names[2];
 
   ex_opts(EX_VERBOSE | EX_ABORT);
 
@@ -288,16 +288,16 @@ int main(int argc, char **argv)
 
   /* write element block parameters */
 
-  num_elem_in_block[0] = 1; /* element 1: Quad 1 */
-  num_elem_in_block[1] = 2; /* elements 2, 3: Quad 1 & 2 */
+  num_elem_in_block[0] = 1; /* element 1: Shell 1 */
+  num_elem_in_block[1] = 2; /* elements 2, 3: Shell 1 & 2 */
   num_elem_in_block[2] = 1; /* element 4: Hex    */
   num_elem_in_block[3] = 1; /* element 5: Tetra  */
   num_elem_in_block[4] = 1; /* element 6: Circle */
   num_elem_in_block[5] = 1; /* element 7: Sphere */
   num_elem_in_block[6] = 1; /* element 8: Wedge  */
 
-  num_nodes_per_elem[0] = 4; /* elements in block #1 are 4-node quads  */
-  num_nodes_per_elem[1] = 4; /* elements in block #2 are 4-node quads  */
+  num_nodes_per_elem[0] = 4; /* elements in block #1 are 4-node shells  */
+  num_nodes_per_elem[1] = 4; /* elements in block #2 are 4-node shells  */
   num_nodes_per_elem[2] = 8; /* elements in block #3 are 8-node hexes  */
   num_nodes_per_elem[3] = 4; /* elements in block #3 are 4-node tetras */
   num_nodes_per_elem[4] = 1; /* elements in block #4 are 1-node circles */
@@ -320,11 +320,11 @@ int main(int argc, char **argv)
   num_attr[5] = 3;
   num_attr[6] = 3;
 
-  error = ex_put_block(exoid, EX_ELEM_BLOCK, ebids[0], "quad", num_elem_in_block[0],
+  error = ex_put_block(exoid, EX_ELEM_BLOCK, ebids[0], "shell", num_elem_in_block[0],
                        num_nodes_per_elem[0], 0, 0, num_attr[0]);
   printf("after ex_put_elem_block, error = %d\n", error);
 
-  error = ex_put_block(exoid, EX_ELEM_BLOCK, ebids[1], "quad", num_elem_in_block[1],
+  error = ex_put_block(exoid, EX_ELEM_BLOCK, ebids[1], "shell", num_elem_in_block[1],
                        num_nodes_per_elem[1], 0, 0, num_attr[1]);
   printf("after ex_put_elem_block, error = %d\n", error);
 
@@ -505,8 +505,7 @@ int main(int argc, char **argv)
   num_df_per_set[0] = 5;
   num_df_per_set[1] = 3;
 
-  df_ind[0] = 0;
-  df_ind[1] = 5;
+  int ns_df_ind[2] = {0, 5};
 
   dist_fact[0] = 1.0;
   dist_fact[1] = 2.0;
@@ -524,7 +523,7 @@ int main(int argc, char **argv)
     set_specs.num_entries_per_set = num_nodes_per_set;
     set_specs.num_dist_per_set    = num_df_per_set;
     set_specs.sets_entry_index    = node_ind;
-    set_specs.sets_dist_index     = df_ind;
+    set_specs.sets_dist_index     = ns_df_ind;
     set_specs.sets_entry_list     = node_list;
     set_specs.sets_extra_list     = NULL;
     set_specs.sets_dist_fact      = dist_fact;
@@ -555,7 +554,7 @@ int main(int argc, char **argv)
   ids[4] = 34;
   ids[5] = 35;
 
-  /* side set #1  - quad */
+  /* side set #1  - shell */
   node_list[0] = 8;
   node_list[1] = 5;
   elem_list[0] = 3;
@@ -563,7 +562,7 @@ int main(int argc, char **argv)
   node_list[3] = 7;
   elem_list[1] = 3;
 
-  /* side set #2  - quad/hex, spanning 2 element types  */
+  /* side set #2  - shell/hex, spanning 2 element types  */
   node_list[4] = 2;
   node_list[5] = 3;
   elem_list[2] = 1;
@@ -710,8 +709,7 @@ int main(int argc, char **argv)
   num_df_per_set[4] = 0;
   num_df_per_set[5] = 0;
 
-  df_ind[0] = 0;
-  df_ind[1] = 4;
+  int ss_df_ind[] = {0, 4, 4, 4, 4, 4};
 
   /* side set #1 df */
   dist_fact[0] = 30.0;
@@ -732,7 +730,7 @@ int main(int argc, char **argv)
     set_specs.num_entries_per_set = num_elem_per_set;
     set_specs.num_dist_per_set    = num_df_per_set;
     set_specs.sets_entry_index    = elem_ind;
-    set_specs.sets_dist_index     = df_ind;
+    set_specs.sets_dist_index     = ss_df_ind;
     set_specs.sets_entry_list     = elem_list;
     set_specs.sets_extra_list     = side_list;
     set_specs.sets_dist_fact      = dist_fact;

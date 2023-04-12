@@ -96,7 +96,8 @@ cuSOLVER<Matrix,Vector>::preOrdering_impl()
     if(data_.bReorder) {
       Amesos2::Util::reorder(
         device_row_ptr_view_, device_cols_view_,
-        device_perm_, device_peri_, sorted_nnz);
+        device_perm_, device_peri_, sorted_nnz,
+        true);
     }
   }
 
@@ -189,20 +190,23 @@ cuSOLVER<Matrix,Vector>::solve_impl(
   const global_size_type ld_rhs = this->root_ ? X->getGlobalLength() : 0;
   const ordinal_type nrhs = X->getGlobalNumVectors();
 
+  bool bAssignedX;
   {                             // Get values from RHS B
 #ifdef HAVE_AMESOS2_TIMERS
     Teuchos::TimeMonitor mvConvTimer(this->timers_.vecConvTime_);
     Teuchos::TimeMonitor redistTimer(this->timers_.vecRedistTime_);
 #endif
 
+    const bool initialize_data = true;
+    const bool do_not_initialize_data = false;
     Util::get_1d_copy_helper_kokkos_view<MultiVecAdapter<Vector>,
-      device_solve_array_t>::do_get(B, this->bValues_, Teuchos::as<size_t>(ld_rhs),
+      device_solve_array_t>::do_get(initialize_data, B, this->bValues_, Teuchos::as<size_t>(ld_rhs),
       ROOTED, this->rowIndexBase_);
 
     // In general we may want to write directly to the x space without a copy.
     // So we 'get' x which may be a direct view assignment to the MV.
-    Util::get_1d_copy_helper_kokkos_view<MultiVecAdapter<Vector>,
-      device_solve_array_t>::do_get(X, this->xValues_, Teuchos::as<size_t>(ld_rhs),
+    bAssignedX = Util::get_1d_copy_helper_kokkos_view<MultiVecAdapter<Vector>,
+      device_solve_array_t>::do_get(do_not_initialize_data, X, this->xValues_, Teuchos::as<size_t>(ld_rhs),
       ROOTED, this->rowIndexBase_);
   }
 
@@ -242,7 +246,10 @@ cuSOLVER<Matrix,Vector>::solve_impl(
   }
 
   /* Update X's global values */
-  {
+
+  // if bDidAssignX, then we solved straight to the adapter's X memory space without
+  // requiring additional memory allocation, so the x data is already in place.
+  if(!bAssignedX) {
 #ifdef HAVE_AMESOS2_TIMERS
     Teuchos::TimeMonitor redistTimer(this->timers_.vecRedistTime_);
 #endif

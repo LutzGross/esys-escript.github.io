@@ -42,8 +42,6 @@
 #ifndef TPETRA_ROWGRAPH_DEF_HPP
 #define TPETRA_ROWGRAPH_DEF_HPP
 
-#include "Tpetra_Distributor.hpp" // avoid error C2027: use of undefined type 'Tpetra::Distributor' at (void) distor below
-
 namespace Tpetra {
   template<class LocalOrdinal, class GlobalOrdinal, class Node>
   void
@@ -51,15 +49,13 @@ namespace Tpetra {
   pack (const Teuchos::ArrayView<const LocalOrdinal>& exportLIDs,
         Teuchos::Array<GlobalOrdinal>& exports,
         const Teuchos::ArrayView<size_t>& numPacketsPerLID,
-        size_t& constantNumPackets,
-        Distributor& distor) const
+        size_t& constantNumPackets) const
   {
     using Teuchos::Array;
     typedef LocalOrdinal LO;
     typedef GlobalOrdinal GO;
     typedef Map<LO, GO, Node> map_type;
     const char tfecfFuncName[] = "packAndPrepare";
-    (void) distor; // forestall "unused argument" compiler warning
 
     TEUCHOS_TEST_FOR_EXCEPTION_CLASS_FUNC(
       exportLIDs.size() != numPacketsPerLID.size(), std::runtime_error,
@@ -74,7 +70,7 @@ namespace Tpetra {
     // packets (that is, entries) owned by this process in all the
     // rows that the caller wants us to send out.
     size_t totalNumPackets = 0;
-    Array<GO> row;
+    nonconst_global_inds_host_view_type row;
     for (LO i = 0; i < exportLIDs.size (); ++i) {
       const GO GID = srcMap.getGlobalElement (exportLIDs[i]);
       size_t row_length = this->getNumEntriesInGlobalRow (GID);
@@ -90,60 +86,17 @@ namespace Tpetra {
     for (LO i = 0; i < exportLIDs.size (); ++i) {
       const GO GID = srcMap.getGlobalElement (exportLIDs[i]);
       size_t row_length = this->getNumEntriesInGlobalRow (GID);
-      row.resize (row_length);
+      Kokkos::resize(row,row_length);
       size_t check_row_length = 0;
-      this->getGlobalRowCopy (GID, row (), check_row_length);
-      typename Array<GO>::const_iterator row_iter = row.begin();
-      typename Array<GO>::const_iterator row_end = row.end();
-      size_t j = 0;
-      for (; row_iter != row_end; ++row_iter, ++j) {
-        exports[exportsOffset+j] = *row_iter;
+      this->getGlobalRowCopy (GID, row, check_row_length);
+
+      for (size_t j=0; j<row_length; ++j) {
+        exports[exportsOffset+j] = row[j];
       }
-      exportsOffset += row.size ();
+      exportsOffset += row.extent(0);
     }
   }
 
-  template<class LocalOrdinal, class GlobalOrdinal, class Node>
-  void
-  RowGraph<LocalOrdinal,GlobalOrdinal,Node>::
-  getLocalRowView (const LocalOrdinal /* lclRow */,
-                   Teuchos::ArrayView<const LocalOrdinal>& /* lclColInds */) const
-  {
-    const char prefix[] = "Tpetra::RowGraph::getLocalRowView: ";
-
-    // Subclasses are expected to implement this method.  We would
-    // have made this method pure virtual, but that would have broken
-    // backwards compatibility, since we added the method at least one
-    // major release after introducing this class.
-    TEUCHOS_TEST_FOR_EXCEPTION
-      (! this->supportsRowViews (), std::runtime_error,
-       prefix << "This object does not support row views.");
-    TEUCHOS_TEST_FOR_EXCEPTION
-      (this->supportsRowViews (), std::runtime_error,
-       prefix << "This object claims to support row views, "
-       "but this method is not implemented.");
-  }
-
-  template<class LocalOrdinal, class GlobalOrdinal, class Node>
-  void
-  RowGraph<LocalOrdinal,GlobalOrdinal,Node>::
-  getGlobalRowView (const GlobalOrdinal /* gblRow */,
-                    Teuchos::ArrayView<const GlobalOrdinal>& /* gblColInds */) const
-  {
-    const char prefix[] = "Tpetra::RowGraph::getGlobalRowView: ";
-
-    // Subclasses are expected to implement this method.  We would
-    // have made this method pure virtual, but that would have broken
-    // backwards compatibility, since we added the method at least one
-    // major release after introducing this class.
-    TEUCHOS_TEST_FOR_EXCEPTION
-      (! this->supportsRowViews (), std::runtime_error,
-       prefix << "This object does not support row views.");
-    TEUCHOS_TEST_FOR_EXCEPTION
-      (this->supportsRowViews (), std::runtime_error,
-       prefix << "This object claims to support row views, "
-       "but this method is not implemented.");
-  }
 } // namespace Tpetra
 
 //

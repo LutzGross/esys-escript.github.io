@@ -16,19 +16,49 @@ namespace Tempus {
 
   TEMPUS_INSTANTIATE_TEMPLATE_CLASS(IntegratorPseudoTransientAdjointSensitivity)
 
-  // non-member ctor
+  // Nonmember ctor
   template Teuchos::RCP<IntegratorPseudoTransientAdjointSensitivity<double> >
   integratorPseudoTransientAdjointSensitivity(
     Teuchos::RCP<Teuchos::ParameterList>        parameterList,
     const Teuchos::RCP<Thyra::ModelEvaluator<double> >& model);
 
-  // non-member ctor
+  // Nonmember ctor
   template Teuchos::RCP<IntegratorPseudoTransientAdjointSensitivity<double> >
   integratorPseudoTransientAdjointSensitivity(
     const Teuchos::RCP<Thyra::ModelEvaluator<double> >& model,
     std::string stepperType);
 
-  // non-member ctor
+  // Nonmember ctor
+  template Teuchos::RCP<IntegratorPseudoTransientAdjointSensitivity<double> >
+  integratorPseudoTransientAdjointSensitivity(
+    Teuchos::RCP<Teuchos::ParameterList>        parameterList,
+    const Teuchos::RCP<Thyra::ModelEvaluator<double> >& model,
+    const Teuchos::RCP<Thyra::ModelEvaluator<double> >& adjoint_model);
+
+  // Nonmember ctor
+  template Teuchos::RCP<IntegratorPseudoTransientAdjointSensitivity<double> >
+  integratorPseudoTransientAdjointSensitivity(
+    const Teuchos::RCP<Thyra::ModelEvaluator<double> >& model,
+    const Teuchos::RCP<Thyra::ModelEvaluator<double> >& adjoint_model,
+    std::string stepperType);
+
+  // Nonmember ctor
+  template Teuchos::RCP<IntegratorPseudoTransientAdjointSensitivity<double> >
+  integratorPseudoTransientAdjointSensitivity(
+    Teuchos::RCP<Teuchos::ParameterList>        parameterList,
+    const Teuchos::RCP<Thyra::ModelEvaluator<double> >& model,
+    const Teuchos::RCP<Thyra::ModelEvaluator<double> >& adjoint_residual_model,
+    const Teuchos::RCP<Thyra::ModelEvaluator<double> >& adjoint_solve_model);
+
+  // Nonmember ctor
+  template Teuchos::RCP<IntegratorPseudoTransientAdjointSensitivity<double> >
+  integratorPseudoTransientAdjointSensitivity(
+    const Teuchos::RCP<Thyra::ModelEvaluator<double> >& model,
+    const Teuchos::RCP<Thyra::ModelEvaluator<double> >& adjoint_residual_model,
+    const Teuchos::RCP<Thyra::ModelEvaluator<double> >& adjoint_solve_model,
+    std::string stepperType);
+
+  // Nonmember ctor
   template Teuchos::RCP<IntegratorPseudoTransientAdjointSensitivity<double> >
   integratorPseudoTransientAdjointSensitivity();
 

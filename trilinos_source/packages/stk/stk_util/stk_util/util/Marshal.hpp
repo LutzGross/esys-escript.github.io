@@ -35,13 +35,14 @@
 #ifndef STK_UTIL_UTIL_MARSHAL_HPP
 #define STK_UTIL_UTIL_MARSHAL_HPP
 
+#include "stk_util/stk_config.h"
+
 #include <stddef.h>                     // for size_t
 #include <list>                         // for list
 #include <sstream>                      // for stringstream
 #include <string>                       // for string
 #include <typeinfo>                     // for type_info
 #include <vector>                       // for vector
-
 
 namespace stk {
 
@@ -346,5 +347,4 @@ Marshal &read(Marshal &min, T &t) {
 }
 
 } // namespace stk
-
 #endif // STK_UTIL_UTIL_MARSHAL_HPP

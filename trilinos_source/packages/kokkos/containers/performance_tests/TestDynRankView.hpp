@@ -1,44 +1,17 @@
-
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
 
 #ifndef KOKKOS_TEST_DYNRANKVIEW_HPP
@@ -48,7 +21,7 @@
 #include <Kokkos_DynRankView.hpp>
 #include <vector>
 
-#include <impl/Kokkos_Timer.hpp>
+#include <Kokkos_Timer.hpp>
 
 // Compare performance of DynRankView to View, specific focus on the parenthesis
 // operators
@@ -58,7 +31,7 @@ namespace Performance {
 // View functor
 template <typename DeviceType>
 struct InitViewFunctor {
-  typedef Kokkos::View<double ***, DeviceType> inviewtype;
+  using inviewtype = Kokkos::View<double ***, DeviceType>;
   inviewtype _inview;
 
   InitViewFunctor(inviewtype &inview_) : _inview(inview_) {}
@@ -73,10 +46,10 @@ struct InitViewFunctor {
   }
 
   struct SumComputationTest {
-    typedef Kokkos::View<double ***, DeviceType> inviewtype;
+    using inviewtype = Kokkos::View<double ***, DeviceType>;
     inviewtype _inview;
 
-    typedef Kokkos::View<double *, DeviceType> outviewtype;
+    using outviewtype = Kokkos::View<double *, DeviceType>;
     outviewtype _outview;
 
     KOKKOS_INLINE_FUNCTION
@@ -96,7 +69,7 @@ struct InitViewFunctor {
 
 template <typename DeviceType>
 struct InitStrideViewFunctor {
-  typedef Kokkos::View<double ***, Kokkos::LayoutStride, DeviceType> inviewtype;
+  using inviewtype = Kokkos::View<double ***, Kokkos::LayoutStride, DeviceType>;
   inviewtype _inview;
 
   InitStrideViewFunctor(inviewtype &inview_) : _inview(inview_) {}
@@ -113,7 +86,7 @@ struct InitStrideViewFunctor {
 
 template <typename DeviceType>
 struct InitViewRank7Functor {
-  typedef Kokkos::View<double *******, DeviceType> inviewtype;
+  using inviewtype = Kokkos::View<double *******, DeviceType>;
   inviewtype _inview;
 
   InitViewRank7Functor(inviewtype &inview_) : _inview(inview_) {}
@@ -131,7 +104,7 @@ struct InitViewRank7Functor {
 // DynRankView functor
 template <typename DeviceType>
 struct InitDynRankViewFunctor {
-  typedef Kokkos::DynRankView<double, DeviceType> inviewtype;
+  using inviewtype = Kokkos::DynRankView<double, DeviceType>;
   inviewtype _inview;
 
   InitDynRankViewFunctor(inviewtype &inview_) : _inview(inview_) {}
@@ -146,10 +119,10 @@ struct InitDynRankViewFunctor {
   }
 
   struct SumComputationTest {
-    typedef Kokkos::DynRankView<double, DeviceType> inviewtype;
+    using inviewtype = Kokkos::DynRankView<double, DeviceType>;
     inviewtype _inview;
 
-    typedef Kokkos::DynRankView<double, DeviceType> outviewtype;
+    using outviewtype = Kokkos::DynRankView<double, DeviceType>;
     outviewtype _outview;
 
     KOKKOS_INLINE_FUNCTION
@@ -169,8 +142,8 @@ struct InitDynRankViewFunctor {
 
 template <typename DeviceType>
 void test_dynrankview_op_perf(const int par_size) {
-  typedef DeviceType execution_space;
-  typedef typename execution_space::size_type size_type;
+  using execution_space = DeviceType;
+  using size_type       = typename execution_space::size_type;
   const size_type dim_2 = 90;
   const size_type dim_3 = 30;
 
@@ -184,7 +157,7 @@ void test_dynrankview_op_perf(const int par_size) {
   {
     Kokkos::View<double ***, DeviceType> testview("testview", par_size, dim_2,
                                                   dim_3);
-    typedef InitViewFunctor<DeviceType> FunctorType;
+    using FunctorType = InitViewFunctor<DeviceType>;
 
     timer.reset();
     Kokkos::RangePolicy<DeviceType> policy(0, par_size);
@@ -204,7 +177,7 @@ void test_dynrankview_op_perf(const int par_size) {
 
     Kokkos::View<double ***, Kokkos::LayoutStride, DeviceType> teststrideview =
         Kokkos::subview(testview, Kokkos::ALL, Kokkos::ALL, Kokkos::ALL);
-    typedef InitStrideViewFunctor<DeviceType> FunctorStrideType;
+    using FunctorStrideType = InitStrideViewFunctor<DeviceType>;
 
     timer.reset();
     Kokkos::parallel_for(policy, FunctorStrideType(teststrideview));
@@ -216,7 +189,7 @@ void test_dynrankview_op_perf(const int par_size) {
   {
     Kokkos::View<double *******, DeviceType> testview("testview", par_size,
                                                       dim_2, dim_3, 1, 1, 1, 1);
-    typedef InitViewRank7Functor<DeviceType> FunctorType;
+    using FunctorType = InitViewRank7Functor<DeviceType>;
 
     timer.reset();
     Kokkos::RangePolicy<DeviceType> policy(0, par_size);
@@ -229,7 +202,7 @@ void test_dynrankview_op_perf(const int par_size) {
   {
     Kokkos::DynRankView<double, DeviceType> testdrview("testdrview", par_size,
                                                        dim_2, dim_3);
-    typedef InitDynRankViewFunctor<DeviceType> FunctorType;
+    using FunctorType = InitDynRankViewFunctor<DeviceType>;
 
     timer.reset();
     Kokkos::RangePolicy<DeviceType> policy(0, par_size);

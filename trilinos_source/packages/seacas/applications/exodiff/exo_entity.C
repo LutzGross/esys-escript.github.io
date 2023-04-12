@@ -1,7 +1,7 @@
-// Copyright(C) 1999-2020 National Technology & Engineering Solutions
+// Copyright(C) 1999-2021 National Technology & Engineering Solutions
 // of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 // NTESS, the U.S. Government retains certain rights in this software.
-// 
+//
 // See packages/seacas/LICENSE for details
 
 #include "ED_SystemInterface.h"
@@ -27,23 +27,14 @@ namespace {
 #endif
 } // namespace
 
-Exo_Entity::Exo_Entity()
-    : fileId(-1), id_(EX_INVALID_ID), index_(0), numEntity(0), truth_(nullptr), currentStep(0),
-      numVars(0), results_(nullptr), numAttr(0)
-{
-}
-
-Exo_Entity::Exo_Entity(int file_id, size_t id)
-    : fileId(file_id), id_(id), index_(0), numEntity(0), truth_(nullptr), currentStep(0),
-      numVars(0), results_(nullptr), numAttr(0)
+Exo_Entity::Exo_Entity(int file_id, size_t id) : fileId(file_id), id_(id)
 {
   SMART_ASSERT(file_id > 0);
   SMART_ASSERT((int)id > EX_INVALID_ID);
 }
 
 Exo_Entity::Exo_Entity(int file_id, size_t id, size_t nnodes)
-    : fileId(file_id), id_(id), index_(0), numEntity(nnodes), truth_(nullptr), currentStep(0),
-      numVars(0), results_(nullptr), numAttr(0)
+    : fileId(file_id), id_(id), numEntity(nnodes)
 {
   SMART_ASSERT(file_id > 0);
   SMART_ASSERT((int)id > EX_INVALID_ID);
@@ -108,7 +99,6 @@ std::string Exo_Entity::Load_Results(int time_step, int var_index)
   }
   if (var_index < 0 || var_index >= numVars) {
     Error("Exo_Entity::Load_Results(): var_index is invalid. Aborting...\n");
-    exit(1);
   }
   SMART_ASSERT(time_step >= 1 && time_step <= (int)get_num_timesteps(fileId));
 
@@ -130,14 +120,13 @@ std::string Exo_Entity::Load_Results(int time_step, int var_index)
     if (numEntity != 0u) {
       int err = 0;
       err     = ex_get_var(fileId, time_step, exodus_type(), var_index + 1, id_, numEntity,
-                       results_[var_index]);
+                           results_[var_index]);
 
       if (err < 0) {
         Error(fmt::format("Exo_Entity::Load_Results(): Call to exodus routine"
                           " returned error value! {} id = {}\n"
                           "Aborting...\n",
                           label(), id_));
-        exit(1);
       }
       else if (err > 0) {
         return fmt::format("WARNING:  Number {} returned from call to exodus get variable routine.",
@@ -194,7 +183,6 @@ std::string Exo_Entity::Load_Results(int t1, int t2, double proportion, int var_
             "Exo_Entity::Load_Results(): Call to exodus routine returned error value! {} id = {}\n"
             "Aborting...\n",
             label(), id_));
-        exit(1);
       }
       else if (err > 0) {
         return fmt::format("WARNING:  Number {} returned from call to exodus get variable routine.",
@@ -210,7 +198,6 @@ std::string Exo_Entity::Load_Results(int t1, int t2, double proportion, int var_
                             " returned error value! {} id = {}\n"
                             "Aborting...\n",
                             label(), id_));
-          exit(1);
         }
 
         double *results1 = results_[var_index];
@@ -297,7 +284,6 @@ std::string Exo_Entity::Load_Attributes(int attr_index)
                         " returned error value! {} id = {}\n"
                         "Aborting...\n",
                         label(), id_));
-      exit(1);
     }
     else if (err > 0) {
       return fmt::format("WARNING:  Number {} returned from call to exodus get variable routine.",
@@ -383,7 +369,6 @@ void Exo_Entity::internal_load_params()
       Error(fmt::format(
           "ExoII_Read::Get_Init_Data(): Failed to get {} attribute names!  Aborting...\n",
           label()));
-      exit(1);
     }
 
     for (int vg = 0; vg < numAttr; ++vg) {
@@ -452,7 +437,9 @@ namespace {
     case EX_ELEM_BLOCK: inquiry = EX_INQ_ELEM_BLK; break;
     case EX_NODE_SET: inquiry = EX_INQ_NODE_SETS; break;
     case EX_SIDE_SET: inquiry = EX_INQ_SIDE_SETS; break;
-    default: Error("Invalid entity type in get_num_entities\n"); exit(1);
+    case EX_EDGE_BLOCK: inquiry = EX_INQ_EDGE_BLK; break;
+    case EX_FACE_BLOCK: inquiry = EX_INQ_FACE_BLK; break;
+    default: Error("Invalid entity type in get_num_entities\n");
     }
     SMART_ASSERT(inquiry != EX_INQ_INVALID);
     return ex_inquire_int(file_id, inquiry);
@@ -464,7 +451,6 @@ namespace {
     int err      = ex_get_variable_param(file_id, type, &num_vars);
     if (err < 0) {
       Error(fmt::format("Failed to get number of '{}' variables!  Aborting...\n", label));
-      exit(1);
     }
     return num_vars;
   }
@@ -475,7 +461,6 @@ namespace {
     int err      = ex_get_attr_param(file_id, type, id, &num_attr);
     if (err < 0) {
       Error(fmt::format("Failed to get number of '{}' attributes!  Aborting...\n", label));
-      exit(1);
     }
     return num_attr;
   }

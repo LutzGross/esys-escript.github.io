@@ -53,6 +53,11 @@
 #include "MueLu_Monitor.hpp"
 #include "MueLu_IndexManager_kokkos.hpp"
 
+#ifdef HAVE_MUELU_TPETRA
+#include "Xpetra_TpetraCrsMatrix.hpp"
+#endif
+
+
 // Including this one last ensure that the short names of the above headers are defined properly
 #include "MueLu_GeometricInterpolationPFactory_kokkos_decl.hpp"
 
@@ -63,7 +68,6 @@ namespace MueLu {
     RCP<ParameterList> validParamList = rcp(new ParameterList());
 
 #define SET_VALID_ENTRY(name) validParamList->setEntry(name, MasterList::getEntry(name))
-    SET_VALID_ENTRY("interp: interpolation order");
     SET_VALID_ENTRY("interp: build coarse coordinates");
 #undef  SET_VALID_ENTRY
 
@@ -82,6 +86,8 @@ namespace MueLu {
                                                  "Number of nodes per spatial dimension on the coarse grid.");
     validParamList->set<RCP<const FactoryBase> >("indexManager",                 Teuchos::null,
                                                  "The index manager associated with the local mesh.");
+    validParamList->set<RCP<const FactoryBase> >("structuredInterpolationOrder", Teuchos::null,
+    						 "Interpolation order for constructing the prolongator.");
 
     return validParamList;
   }
@@ -96,9 +102,10 @@ namespace MueLu {
     Input(fineLevel, "numDimensions");
     Input(fineLevel, "prolongatorGraph");
     Input(fineLevel, "lCoarseNodesPerDim");
+    Input(fineLevel, "structuredInterpolationOrder");
 
     if( pL.get<bool>("interp: build coarse coordinates") ||
-        (pL.get<int>("interp: interpolation order") == 1) ) {
+        Get<int>(fineLevel, "structuredInterpolationOrder") == 1) {
       Input(fineLevel, "Coordinates");
       Input(fineLevel, "indexManager");
     }
@@ -130,7 +137,7 @@ namespace MueLu {
     // Get inputs from the parameter list
     const ParameterList& pL = GetParameterList();
     const bool buildCoarseCoordinates = pL.get<bool>("interp: build coarse coordinates");
-    const int interpolationOrder      = pL.get<int> ("interp: interpolation order");
+    const int interpolationOrder      = Get<int>(fineLevel, "structuredInterpolationOrder");
     const int numDimensions           = Get<int>(fineLevel, "numDimensions");
 
     // Declared main input/outputs to be retrieved and placed on the fine resp. coarse level
@@ -158,9 +165,10 @@ namespace MueLu {
         Build(coarseCoordsMap, fineCoordinates->getNumVectors());
 
       // Construct and launch functor to fill coarse coordinates values
+      // function should take a const view really
       coarseCoordinatesBuilderFunctor myCoarseCoordinatesBuilder(geoData,
-                                                                 fineCoordinates->  template getLocalView<device_type>(),
-                                                                 coarseCoordinates->template getLocalView<device_type>());
+                                                                 fineCoordinates->  getDeviceLocalView(Xpetra::Access::ReadWrite),
+                                                                 coarseCoordinates->getDeviceLocalView(Xpetra::Access::OverwriteAll));
       Kokkos::parallel_for("GeometricInterpolation: build coarse coordinates",
                            Kokkos::RangePolicy<execution_space>(0, geoData->getNumCoarseNodes()),
                            myCoarseCoordinatesBuilder);
@@ -233,21 +241,87 @@ namespace MueLu {
       StridedMapFactory::Build(prolongatorGraph->getDomainMap(), strideInfo);
 
     *out << "Call prolongator constructor" << std::endl;
+    using helpers=Xpetra::Helpers<Scalar,LocalOrdinal,GlobalOrdinal,Node>;
+    if(helpers::isTpetraBlockCrs(A)) {
+#ifdef HAVE_MUELU_TPETRA
+      LO NSDim = A->GetStorageBlockSize();
 
-    // Create the prolongator matrix and its associated objects
-    RCP<ParameterList> dummyList = rcp(new ParameterList());
-    P = rcp(new CrsMatrixWrap(prolongatorGraph, dummyList));
-    RCP<CrsMatrix> PCrs = rcp_dynamic_cast<CrsMatrixWrap>(P)->getCrsMatrix();
-    PCrs->setAllToScalar(1.0);
-    PCrs->fillComplete();
+      // Build the exploded Map
+      // FIXME: Should look at doing this on device
+      RCP<const Map> BlockMap = prolongatorGraph->getDomainMap();
+      Teuchos::ArrayView<const GO> block_dofs = BlockMap->getLocalElementList();
+      Teuchos::Array<GO> point_dofs(block_dofs.size()*NSDim);
+      for(LO i=0, ct=0; i<block_dofs.size(); i++) {
+        for(LO j=0; j<NSDim; j++) {
+          point_dofs[ct] = block_dofs[i]*NSDim + j;
+          ct++;
+        }
+      }
+      
+      RCP<const Map> PointMap = MapFactory::Build(BlockMap->lib(),
+                                                  BlockMap->getGlobalNumElements() *NSDim,
+                                                  point_dofs(),
+                                                  BlockMap->getIndexBase(),
+                                                  BlockMap->getComm());
+      strideInfo[0]    = A->GetFixedBlockSize();
+      RCP<const StridedMap> stridedPointMap =  StridedMapFactory::Build(PointMap, strideInfo);
 
-    // set StridingInformation of P
-    if (A->IsView("stridedMaps") == true) {
-      P->CreateView("stridedMaps", A->getRowMap("stridedMaps"), stridedDomainMap);
-    } else {
-      P->CreateView("stridedMaps", P->getRangeMap(), stridedDomainMap);
+     RCP<Xpetra::CrsMatrix<SC,LO,GO,NO> > P_xpetra = Xpetra::CrsMatrixFactory<SC,LO,GO,NO>::BuildBlock(prolongatorGraph, PointMap, A->getRangeMap(),NSDim);
+      RCP<Xpetra::TpetraBlockCrsMatrix<SC,LO,GO,NO> > P_tpetra = rcp_dynamic_cast<Xpetra::TpetraBlockCrsMatrix<SC,LO,GO,NO> >(P_xpetra);
+      if(P_tpetra.is_null()) throw std::runtime_error("BuildConstantP: Matrix factory did not return a Tpetra::BlockCrsMatrix");
+      RCP<CrsMatrixWrap> P_wrap = rcp(new CrsMatrixWrap(P_xpetra));
+      
+      const LO stride = strideInfo[0]*strideInfo[0];
+      const LO in_stride = strideInfo[0];
+      typename CrsMatrix::local_graph_type localGraph = prolongatorGraph->getLocalGraphDevice();
+      auto rowptr  = localGraph.row_map;
+      auto indices = localGraph.entries;
+      auto values = P_tpetra->getTpetra_BlockCrsMatrix()->getValuesDeviceNonConst();
+
+      using ISC = typename Tpetra::BlockCrsMatrix<SC,LO,GO,NO>::impl_scalar_type;
+      ISC one = Teuchos::ScalarTraits<ISC>::one();
+
+      const Kokkos::TeamPolicy<execution_space> policy(prolongatorGraph->getLocalNumRows(), 1);
+      
+      Kokkos::parallel_for("MueLu:GeoInterpFact::BuildConstantP::fill", policy,
+                           KOKKOS_LAMBDA(const typename Kokkos::TeamPolicy<execution_space>::member_type &thread) {
+                           auto row = thread.league_rank();
+                           for(LO j = (LO)rowptr[row]; j<(LO) rowptr[row+1]; j++) {
+                             LO block_offset = j*stride;
+                             for(LO k=0; k<in_stride; k++)
+                               values[block_offset + k*(in_stride+1) ] = one;
+                           }
+                         });
+
+      P = P_wrap;
+      if (A->IsView("stridedMaps") == true) {
+        P->CreateView("stridedMaps", A->getRowMap("stridedMaps"), stridedPointMap);
+      }
+      else {
+        P->CreateView("stridedMaps", P->getRangeMap(),   PointMap);
+      }
+
+#else
+      throw std::runtime_error("GeometricInteroplationFactory::BuildConstantP(): BlockCrs requires Tpetra");
+#endif
+
     }
-
+    else {
+      // Create the prolongator matrix and its associated objects
+      RCP<ParameterList> dummyList = rcp(new ParameterList());
+      P = rcp(new CrsMatrixWrap(prolongatorGraph, dummyList));
+      RCP<CrsMatrix> PCrs = rcp_dynamic_cast<CrsMatrixWrap>(P)->getCrsMatrix();
+      PCrs->setAllToScalar(1.0);
+      PCrs->fillComplete();
+      
+      // set StridingInformation of P
+      if (A->IsView("stridedMaps") == true) {
+        P->CreateView("stridedMaps", A->getRowMap("stridedMaps"), stridedDomainMap);
+      } else {
+        P->CreateView("stridedMaps", P->getRangeMap(), stridedDomainMap);
+      }
+    }
+      
   } // BuildConstantP
 
   template <class Scalar, class LocalOrdinal, class GlobalOrdinal, class Node>

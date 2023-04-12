@@ -3,6 +3,7 @@
 
 #include "GlobalReporter.hpp"
 #include "Reporter.hpp"
+#include "stk_util/ngp/NgpSpaces.hpp"
 
 namespace ngp_testing {
 namespace global {
@@ -23,7 +24,11 @@ ReporterBase*& getDeviceReporterOnHost()
 
 NGP_TEST_INLINE ReporterBase*& getDeviceReporterOnDevice()
 {
-  static ReporterBase* deviceReporterOnDevice = nullptr;
+  #ifdef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HIP_GPU
+    __device__ static ReporterBase* deviceReporterOnDevice = nullptr;
+  #else
+    static ReporterBase* deviceReporterOnDevice = nullptr;
+  #endif
   return deviceReporterOnDevice;
 }
 
@@ -36,17 +41,12 @@ ReporterBase*& getDeviceReporterAddress()
 }
 
 using DeviceReporter = Reporter<Kokkos::DefaultExecutionSpace::device_type>;
-
-#ifdef KOKKOS_ENABLE_OPENMP
-using HostReporter = Reporter<Kokkos::OpenMP::device_type>;
-#else
-using HostReporter = Reporter<Kokkos::Serial::device_type>;
-#endif
+using HostReporter = Reporter<Kokkos::DefaultHostExecutionSpace::device_type>;
 
 inline
 void copy_to_device(const DeviceReporter& reporter,
                     ReporterBase* const addr) {
-  Kokkos::parallel_for(Kokkos::RangePolicy<>(0,1), KOKKOS_LAMBDA(const int){
+  Kokkos::parallel_for(stk::ngp::DeviceRangePolicy(0, 1), KOKKOS_LAMBDA(const int){
     global::getDeviceReporterOnDevice() = addr;
     new (global::getDeviceReporterOnDevice()) DeviceReporter(reporter);
   });
@@ -64,12 +64,14 @@ void initialize_reporters() {
 inline
 void finalize_reporters() {
   delete global::getHostReporter();
+  global::getHostReporter() = nullptr;
   delete global::getDeviceReporterOnHost();
+  global::getDeviceReporterOnHost() = nullptr;
   Kokkos::kokkos_free(global::getDeviceReporterAddress());
 }
 
 NGP_TEST_INLINE ReporterBase* get_reporter() {
-#ifdef __CUDA_ARCH__
+#if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
   return global::getDeviceReporterOnDevice();
 #else
   return global::getHostReporter();

@@ -130,7 +130,7 @@ getValues( /* */ OutputViewType output,
   }
 }
 
-template<typename SpT, ordinal_type numPtsPerEval,
+template<typename DT, ordinal_type numPtsPerEval,
 typename outputValueValueType, class ...outputValueProperties,
 typename inputPointValueType,  class ...inputPointProperties,
 typename vinvValueType,        class ...vinvProperties>
@@ -143,7 +143,7 @@ getValues( /* */ Kokkos::DynRankView<outputValueValueType,outputValueProperties.
   typedef          Kokkos::DynRankView<outputValueValueType,outputValueProperties...>         outputValueViewType;
   typedef          Kokkos::DynRankView<inputPointValueType, inputPointProperties...>          inputPointViewType;
   typedef          Kokkos::DynRankView<vinvValueType,       vinvProperties...>                vinvViewType;
-  typedef typename ExecSpace<typename inputPointViewType::execution_space,SpT>::ExecSpaceType ExecSpaceType;
+  typedef typename ExecSpace<typename inputPointViewType::execution_space,typename DT::execution_space>::ExecSpaceType ExecSpaceType;
 
   // loopSize corresponds to cardinality
   const auto loopSizeTmp1 = (inputPoints.extent(0)/numPtsPerEval);
@@ -183,18 +183,22 @@ getValues( /* */ Kokkos::DynRankView<outputValueValueType,outputValueProperties.
 }
 
 // -------------------------------------------------------------------------------------
-template<typename SpT, typename OT, typename PT>
-Basis_HDIV_TRI_In_FEM<SpT,OT,PT>::
+template<typename DT, typename OT, typename PT>
+Basis_HDIV_TRI_In_FEM<DT,OT,PT>::
 Basis_HDIV_TRI_In_FEM( const ordinal_type order,
     const EPointType   pointType ) {
+  // Note: the only reason why equispaced can't support higher order than Parameters::MaxOrder appears to be the fact that the tags below get stored into a fixed-length array.
+  // TODO: relax the maximum order requirement by setting up tags in a different container, perhaps directly into an OrdinalTypeArray1DHost (tagView, below).  (As of this writing (1/25/22), looks like other nodal bases do this in a similar way -- those should be fixed at the same time; maybe search for Parameters::MaxOrder.)
+  INTREPID2_TEST_FOR_EXCEPTION( order > Parameters::MaxOrder, std::invalid_argument, "polynomial order exceeds the max supported by this class");
 
   constexpr ordinal_type spaceDim = 2;
   this->basisCardinality_  = CardinalityHDivTri(order);
   this->basisDegree_       = order; // small n
   this->basisCellTopology_ = shards::CellTopology(shards::getCellTopologyData<shards::Triangle<3> >() );
-  this->basisType_         = BASIS_FEM_FIAT;
+  this->basisType_         = BASIS_FEM_LAGRANGIAN;
   this->basisCoordinates_  = COORDINATES_CARTESIAN;
   this->functionSpace_     = FUNCTION_SPACE_HDIV;
+  pointType_ = (pointType == POINTTYPE_DEFAULT) ? POINTTYPE_EQUISPACED : pointType;
 
   const ordinal_type card = this->basisCardinality_;
 
@@ -211,13 +215,13 @@ Basis_HDIV_TRI_In_FEM( const ordinal_type order,
   ordinal_type tags[maxCard][tagSize];
 
   // points are computed in the host and will be copied
-  Kokkos::DynRankView<scalarType,typename SpT::array_layout,Kokkos::HostSpace>
+  Kokkos::DynRankView<scalarType,typename DT::execution_space::array_layout,Kokkos::HostSpace>
   dofCoords("Hdiv::Tri::In::dofCoords", card, spaceDim);
 
-  Kokkos::DynRankView<scalarType,typename SpT::array_layout,Kokkos::HostSpace>
+  Kokkos::DynRankView<scalarType,typename DT::execution_space::array_layout,Kokkos::HostSpace>
   dofCoeffs("Hdiv::Tri::In::dofCoeffs", card, spaceDim);
 
-  Kokkos::DynRankView<scalarType,typename SpT::array_layout,Kokkos::HostSpace>
+  Kokkos::DynRankView<scalarType,typename DT::execution_space::array_layout,Kokkos::HostSpace>
   coeffs("Hdiv::Tri::In::coeffs", cardVecPn, card);
 
   // first, need to project the basis for RT space onto the
@@ -225,7 +229,7 @@ Basis_HDIV_TRI_In_FEM( const ordinal_type order,
   // get coefficients of PkHx
 
   const ordinal_type lwork = card*card;
-  Kokkos::DynRankView<scalarType,typename SpT::array_layout,Kokkos::HostSpace>
+  Kokkos::DynRankView<scalarType,typename DT::execution_space::array_layout,Kokkos::HostSpace>
   V1("Hdiv::Tri::In::V1", cardVecPn, card);
 
   // basis for the space is
@@ -244,12 +248,12 @@ Basis_HDIV_TRI_In_FEM( const ordinal_type order,
   // now I need to integrate { (x,y) phi } against the big basis
   // first, get a cubature rule.
   CubatureDirectTriDefault<Kokkos::HostSpace::execution_space,scalarType,scalarType> myCub( 2 * order );
-  Kokkos::DynRankView<scalarType,typename SpT::array_layout,Kokkos::HostSpace> cubPoints("Hdiv::Tri::In::cubPoints", myCub.getNumPoints() , spaceDim );
-  Kokkos::DynRankView<scalarType,typename SpT::array_layout,Kokkos::HostSpace> cubWeights("Hdiv::Tri::In::cubWeights", myCub.getNumPoints() );
+  Kokkos::DynRankView<scalarType,typename DT::execution_space::array_layout,Kokkos::HostSpace> cubPoints("Hdiv::Tri::In::cubPoints", myCub.getNumPoints() , spaceDim );
+  Kokkos::DynRankView<scalarType,typename DT::execution_space::array_layout,Kokkos::HostSpace> cubWeights("Hdiv::Tri::In::cubWeights", myCub.getNumPoints() );
   myCub.getCubature( cubPoints , cubWeights );
 
   // tabulate the scalar orthonormal basis at cubature points
-  Kokkos::DynRankView<scalarType,typename SpT::array_layout,Kokkos::HostSpace> phisAtCubPoints("Hdiv::Tri::In::phisAtCubPoints", cardPn , myCub.getNumPoints() );
+  Kokkos::DynRankView<scalarType,typename DT::execution_space::array_layout,Kokkos::HostSpace> phisAtCubPoints("Hdiv::Tri::In::phisAtCubPoints", cardPn , myCub.getNumPoints() );
   Impl::Basis_HGRAD_TRI_Cn_FEM_ORTH::getValues<Kokkos::HostSpace::execution_space,Parameters::MaxNumPtsPerBasisEval>(phisAtCubPoints, cubPoints, order, OPERATOR_VALUE);
 
   // now do the integration
@@ -267,7 +271,7 @@ Basis_HDIV_TRI_In_FEM( const ordinal_type order,
   }
 
   // next, apply the RT nodes (rows) to the basis for (P_n)^2 (columns)
-  Kokkos::DynRankView<scalarType,typename SpT::array_layout,Kokkos::HostSpace>
+  Kokkos::DynRankView<scalarType,typename DT::execution_space::array_layout,Kokkos::HostSpace>
   V2("Hdiv::Tri::In::V2", card ,cardVecPn);
 
   const ordinal_type numEdges = this->basisCellTopology_.getEdgeCount();
@@ -280,33 +284,27 @@ Basis_HDIV_TRI_In_FEM( const ordinal_type order,
 
   // first numEdges * degree nodes are normals at each edge
   // get the points on the line
-  Kokkos::DynRankView<scalarType,typename SpT::array_layout,Kokkos::HostSpace> linePts("Hdiv::Tri::In::linePts", numPtsPerEdge , 1 );
+  Kokkos::DynRankView<scalarType,typename DT::execution_space::array_layout,Kokkos::HostSpace> linePts("Hdiv::Tri::In::linePts", numPtsPerEdge , 1 );
 
   // construct lattice
   const ordinal_type offset = 1;
   PointTools::getLattice( linePts,
       edgeTop,
       order+1, offset,
-      pointType );
+      pointType_ );
 
   // holds the image of the line points
-  Kokkos::DynRankView<scalarType,typename SpT::array_layout,Kokkos::HostSpace> edgePts("Hdiv::Tri::In::edgePts", numPtsPerEdge , spaceDim );
-  Kokkos::DynRankView<scalarType,typename SpT::array_layout,Kokkos::HostSpace> phisAtEdgePoints("Hdiv::Tri::In::phisAtEdgePoints", cardPn , numPtsPerEdge );
-  Kokkos::DynRankView<scalarType,typename SpT::array_layout,Kokkos::HostSpace> edgeNormal("Hcurl::Tri::In::edgeNormal", spaceDim );
+  Kokkos::DynRankView<scalarType,typename DT::execution_space::array_layout,Kokkos::HostSpace> edgePts("Hdiv::Tri::In::edgePts", numPtsPerEdge , spaceDim );
+  Kokkos::DynRankView<scalarType,typename DT::execution_space::array_layout,Kokkos::HostSpace> phisAtEdgePoints("Hdiv::Tri::In::phisAtEdgePoints", cardPn , numPtsPerEdge );
+  Kokkos::DynRankView<scalarType,typename DT::execution_space::array_layout,Kokkos::HostSpace> edgeNormal("Hcurl::Tri::In::edgeNormal", spaceDim );
 
   // these are normal scaled by the appropriate edge lengths.
   for (ordinal_type edge=0;edge<numEdges;edge++) {  // loop over edges
-    CellTools<Kokkos::HostSpace::execution_space>::getReferenceSideNormal( edgeNormal ,
+    CellTools<Kokkos::HostSpace>::getReferenceSideNormal( edgeNormal ,
         edge ,
         this->basisCellTopology_ );
 
-    /* multiply by measure of reference edge so that magnitude of the edgeTan is equal to the edge measure */
-    const scalarType refEdgeMeasure = 2.0;
-    for (ordinal_type j=0;j<spaceDim;j++)
-      edgeNormal(j) *= refEdgeMeasure;
-
-
-    CellTools<Kokkos::HostSpace::execution_space>::mapToReferenceSubcell( edgePts ,
+    CellTools<Kokkos::HostSpace>::mapToReferenceSubcell( edgePts ,
         linePts ,
         1 ,
         edge ,
@@ -354,15 +352,15 @@ Basis_HDIV_TRI_In_FEM( const ordinal_type order,
       1 );
 
   if (numPtsPerCell > 0) {
-    Kokkos::DynRankView<scalarType,typename SpT::array_layout,Kokkos::HostSpace>
+    Kokkos::DynRankView<scalarType,typename DT::execution_space::array_layout,Kokkos::HostSpace>
     internalPoints( "Hdiv::Tri::In::internalPoints", numPtsPerCell , spaceDim );
     PointTools::getLattice( internalPoints ,
         this->basisCellTopology_ ,
         order + 1 ,
         1 ,
-        pointType );
+        pointType_ );
 
-    Kokkos::DynRankView<scalarType,typename SpT::array_layout,Kokkos::HostSpace>
+    Kokkos::DynRankView<scalarType,typename DT::execution_space::array_layout,Kokkos::HostSpace>
     phisAtInternalPoints("Hdiv::Tri::In::phisAtInternalPoints", cardPn , numPtsPerCell );
     Impl::Basis_HGRAD_TRI_Cn_FEM_ORTH::getValues<Kokkos::HostSpace::execution_space,Parameters::MaxNumPtsPerBasisEval>( phisAtInternalPoints , internalPoints , order, OPERATOR_VALUE );
 
@@ -439,13 +437,13 @@ Basis_HDIV_TRI_In_FEM( const ordinal_type order,
       coeffs(i,j) = s;
     }
 
-  this->coeffs_ = Kokkos::create_mirror_view(typename SpT::memory_space(), coeffs);
+  this->coeffs_ = Kokkos::create_mirror_view(typename DT::memory_space(), coeffs);
   Kokkos::deep_copy(this->coeffs_ , coeffs);
 
-  this->dofCoords_ = Kokkos::create_mirror_view(typename SpT::memory_space(), dofCoords);
+  this->dofCoords_ = Kokkos::create_mirror_view(typename DT::memory_space(), dofCoords);
   Kokkos::deep_copy(this->dofCoords_, dofCoords);
 
-  this->dofCoeffs_ = Kokkos::create_mirror_view(typename SpT::memory_space(), dofCoeffs);
+  this->dofCoeffs_ = Kokkos::create_mirror_view(typename DT::memory_space(), dofCoeffs);
   Kokkos::deep_copy(this->dofCoeffs_, dofCoeffs);
 
 

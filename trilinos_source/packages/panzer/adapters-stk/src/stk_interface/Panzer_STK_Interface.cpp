@@ -52,6 +52,7 @@
 #include <stk_mesh/base/Selector.hpp>
 #include <stk_mesh/base/GetEntities.hpp>
 #include <stk_mesh/base/GetBuckets.hpp>
+#include <stk_mesh/base/MeshBuilder.hpp>
 #include <stk_mesh/base/CreateAdjacentEntities.hpp>
 
 // #include <stk_rebalance/Rebalance.hpp>
@@ -65,6 +66,7 @@
 #ifdef PANZER_HAVE_IOSS
 #include <Ionit_Initializer.h>
 #include <stk_io/IossBridge.hpp>
+#include <stk_io/WriteMesh.hpp>
 #endif
 
 #ifdef PANZER_HAVE_PERCEPT
@@ -99,6 +101,8 @@ const std::string STK_Interface::coordsString = "coordinates";
 const std::string STK_Interface::nodesString = "nodes";
 const std::string STK_Interface::edgesString = "edges";
 const std::string STK_Interface::facesString = "faces";
+const std::string STK_Interface::edgeBlockString = "edge_block";
+const std::string STK_Interface::faceBlockString = "face_block";
 
 STK_Interface::STK_Interface()
    : dimension_(0), initialized_(false), currentLocalId_(0), initialStateTime_(0.0), currentStateTime_(0.0), useFieldCoordinates_(false)
@@ -190,6 +194,50 @@ void STK_Interface::addCellField(const std::string & fieldName,const std::string
    }
 }
 
+void STK_Interface::addEdgeField(const std::string & fieldName,const std::string & blockId)
+{
+   TEUCHOS_TEST_FOR_EXCEPTION(!validBlockId(blockId),ElementBlockException,
+                      "Unknown element block \"" << blockId << "\"");
+   std::pair<std::string,std::string> key = std::make_pair(fieldName,blockId);
+
+   // add & declare field if not already added...currently assuming linears
+   if(fieldNameToEdgeField_.find(key)==fieldNameToEdgeField_.end()) {
+      SolutionFieldType * field = metaData_->get_field<SolutionFieldType>(stk::topology::EDGE_RANK, fieldName);
+      if(field==0) {
+         field = &metaData_->declare_field<SolutionFieldType>(stk::topology::EDGE_RANK, fieldName);
+      }
+
+      if ( initialized_ )  {
+        metaData_->enable_late_fields();
+        stk::mesh::FieldTraits<SolutionFieldType>::data_type* init_sol = nullptr;
+        stk::mesh::put_field_on_mesh(*field, metaData_->universal_part(),init_sol );
+      }
+      fieldNameToEdgeField_[key] = field;
+   }
+}
+
+void STK_Interface::addFaceField(const std::string & fieldName,const std::string & blockId)
+{
+   TEUCHOS_TEST_FOR_EXCEPTION(!validBlockId(blockId),ElementBlockException,
+                      "Unknown element block \"" << blockId << "\"");
+   std::pair<std::string,std::string> key = std::make_pair(fieldName,blockId);
+
+   // add & declare field if not already added...currently assuming linears
+   if(fieldNameToFaceField_.find(key)==fieldNameToFaceField_.end()) {
+      SolutionFieldType * field = metaData_->get_field<SolutionFieldType>(stk::topology::FACE_RANK, fieldName);
+      if(field==0) {
+         field = &metaData_->declare_field<SolutionFieldType>(stk::topology::FACE_RANK, fieldName);
+      }
+
+      if ( initialized_ )  {
+        metaData_->enable_late_fields();
+        stk::mesh::FieldTraits<SolutionFieldType>::data_type* init_sol = nullptr;
+        stk::mesh::put_field_on_mesh(*field, metaData_->universal_part(),init_sol );
+      }
+      fieldNameToFaceField_[key] = field;
+   }
+}
+
 void STK_Interface::addMeshCoordFields(const std::string & blockId,
                                        const std::vector<std::string> & coordNames,
                                        const std::string & dispPrefix)
@@ -234,6 +282,11 @@ void STK_Interface::addMeshCoordFields(const std::string & blockId,
    }
 }
 
+void STK_Interface::addInformationRecords(const std::vector<std::string> & info_records)
+{
+   informationRecords_.insert(info_records.begin(), info_records.end());
+}
+
 void STK_Interface::initialize(stk::ParallelMachine parallelMach,bool setupIO,
                                const bool buildRefinementSupport)
 {
@@ -258,6 +311,8 @@ void STK_Interface::initialize(stk::ParallelMachine parallelMach,bool setupIO,
 
    initializeFieldsInSTK(fieldNameToSolution_, setupIO);
    initializeFieldsInSTK(fieldNameToCellField_, setupIO);
+   initializeFieldsInSTK(fieldNameToEdgeField_, setupIO);
+   initializeFieldsInSTK(fieldNameToFaceField_, setupIO);
 
 #ifdef PANZER_HAVE_IOSS
    if(setupIO) {
@@ -270,6 +325,22 @@ void STK_Interface::initialize(stk::ParallelMachine parallelMach,bool setupIO,
          for(itr=elementBlocks_.begin();itr!=elementBlocks_.end();++itr)
             if(!stk::io::is_part_io_part(*itr->second))
                stk::io::put_io_part_attribute(*itr->second); // this can only be called once per part
+      }
+
+      // add edge blocks
+      {
+         std::map<std::string, stk::mesh::Part*>::iterator itr;
+         for(itr=edgeBlocks_.begin();itr!=edgeBlocks_.end();++itr)
+            if(!stk::io::is_part_edge_block_io_part(*itr->second))
+               stk::io::put_edge_block_io_part_attribute(*itr->second); // this can only be called once per part
+      }
+
+      // add face blocks
+      {
+         std::map<std::string, stk::mesh::Part*>::iterator itr;
+         for(itr=faceBlocks_.begin();itr!=faceBlocks_.end();++itr)
+            if(!stk::io::is_part_face_block_io_part(*itr->second))
+               stk::io::put_face_block_io_part_attribute(*itr->second); // this can only be called once per part
       }
 
       // add side sets
@@ -290,12 +361,12 @@ void STK_Interface::initialize(stk::ParallelMachine parallelMach,bool setupIO,
 
       // add nodes
       if(!stk::io::is_part_io_part(*nodesPart_))
-	stk::io::put_io_part_attribute(*nodesPart_);
+         stk::io::put_io_part_attribute(*nodesPart_);
 
       stk::io::set_field_role(*coordinatesField_, Ioss::Field::MESH);
       stk::io::set_field_role(*edgesField_, Ioss::Field::MESH);
       if (dimension_ > 2)
-        stk::io::set_field_role(*facesField_, Ioss::Field::MESH);
+         stk::io::set_field_role(*facesField_, Ioss::Field::MESH);
       stk::io::set_field_role(*processorIdField_, Ioss::Field::TRANSIENT);
       // stk::io::set_field_role(*loadBalField_, Ioss::Field::TRANSIENT);
    }
@@ -353,7 +424,8 @@ void STK_Interface::instantiateBulkData(stk::ParallelMachine parallelMach)
    if(mpiComm_==Teuchos::null)
       mpiComm_ = getSafeCommunicator(parallelMach);
 
-   bulkData_ = rcp(new stk::mesh::BulkData(*metaData_, *mpiComm_->getRawMpiComm()));
+   std::unique_ptr<stk::mesh::BulkData> bulkUPtr = stk::mesh::MeshBuilder(*mpiComm_->getRawMpiComm()).create(Teuchos::get_shared_ptr(metaData_));
+   bulkData_ = rcp(bulkUPtr.release());
 }
 
 void STK_Interface::beginModification()
@@ -452,6 +524,40 @@ void STK_Interface::addEntityToNodeset(stk::mesh::Entity entity,stk::mesh::Part 
    nodesetV.push_back(nodeset);
 
    bulkData_->change_entity_parts(entity,nodesetV);
+}
+
+void STK_Interface::addEntityToEdgeBlock(stk::mesh::Entity entity,stk::mesh::Part * edgeblock)
+{
+   std::vector<stk::mesh::Part*> edgeblockV;
+   edgeblockV.push_back(edgeblock);
+
+   bulkData_->change_entity_parts(entity,edgeblockV);
+}
+void STK_Interface::addEntitiesToEdgeBlock(std::vector<stk::mesh::Entity> entities,stk::mesh::Part * edgeblock)
+{
+   if (entities.size() > 0) {
+      std::vector<stk::mesh::Part*> edgeblockV;
+      edgeblockV.push_back(edgeblock);
+
+      bulkData_->change_entity_parts(entities,edgeblockV);
+   }
+}
+
+void STK_Interface::addEntityToFaceBlock(stk::mesh::Entity entity,stk::mesh::Part * faceblock)
+{
+   std::vector<stk::mesh::Part*> faceblockV;
+   faceblockV.push_back(faceblock);
+
+   bulkData_->change_entity_parts(entity,faceblockV);
+}
+void STK_Interface::addEntitiesToFaceBlock(std::vector<stk::mesh::Entity> entities,stk::mesh::Part * faceblock)
+{
+   if (entities.size() > 0) {
+      std::vector<stk::mesh::Part*> faceblockV;
+      faceblockV.push_back(faceblock);
+
+      bulkData_->change_entity_parts(entities,faceblockV);
+   }
 }
 
 void STK_Interface::addElement(const Teuchos::RCP<ElementDescriptor> & ed,stk::mesh::Part * block)
@@ -556,10 +662,10 @@ stk::mesh::Entity STK_Interface::findConnectivityById(stk::mesh::Entity src, stk
 ///////////////////////////////////////////////////////////////////////////////
 void
 STK_Interface::
-writeToExodus(
-  const std::string& filename)
+writeToExodus(const std::string& filename,
+              const bool append)
 {
-  setupExodusFile(filename);
+  setupExodusFile(filename,append);
   writeToExodus(0.0);
 } // end of writeToExodus()
 
@@ -570,8 +676,10 @@ writeToExodus(
 ///////////////////////////////////////////////////////////////////////////////
 void
 STK_Interface::
-setupExodusFile(
-  const std::string& filename)
+setupExodusFile(const std::string& filename,
+                const bool append,
+                const bool append_after_restart_time,
+                const double restart_time)
 {
   using std::runtime_error;
   using stk::io::StkMeshIoBroker;
@@ -581,10 +689,22 @@ setupExodusFile(
   PANZER_FUNC_TIME_MONITOR("STK_Interface::setupExodusFile(filename)");
 #ifdef PANZER_HAVE_IOSS
   TEUCHOS_ASSERT(not mpiComm_.is_null())
+
   ParallelMachine comm = *mpiComm_->getRawMpiComm();
   meshData_ = rcp(new StkMeshIoBroker(comm));
-  meshData_->set_bulk_data(bulkData_);
-  meshIndex_ = meshData_->create_output_mesh(filename, stk::io::WRITE_RESULTS);
+  meshData_->set_bulk_data(Teuchos::get_shared_ptr(bulkData_));
+  Ioss::PropertyManager props;
+  props.add(Ioss::Property("LOWER_CASE_VARIABLE_NAMES", "FALSE"));
+  if (append) {
+    if (append_after_restart_time) {
+      meshIndex_ = meshData_->create_output_mesh(filename, stk::io::APPEND_RESULTS,
+                                                 props, restart_time);
+    }
+    else // Append results to the end of the file
+      meshIndex_ = meshData_->create_output_mesh(filename, stk::io::APPEND_RESULTS, props);
+  }
+  else
+    meshIndex_ = meshData_->create_output_mesh(filename, stk::io::WRITE_RESULTS, props);
   const FieldVector& fields = metaData_->get_fields();
   for (size_t i(0); i < fields.size(); ++i) {
     // Do NOT add MESH type stk fields to exodus io, but do add everything
@@ -600,6 +720,10 @@ setupExodusFile(
       meshData_->add_field(meshIndex_, *fields[i]);
     }
   }
+
+  // convert the set to a vector
+  std::vector<std::string> deduped_info_records(informationRecords_.begin(),informationRecords_.end());
+  meshData_->add_info_records(meshIndex_, deduped_info_records);
 #else
   TEUCHOS_ASSERT(false)
 #endif
@@ -1069,6 +1193,143 @@ void STK_Interface::getNeighborElements(const std::string & blockID,std::vector<
    stk::mesh::get_selected_entities(neighborBlock,bulkData_->buckets(elementRank),elements);
 }
 
+void STK_Interface::getMyEdges(std::vector<stk::mesh::Entity> & edges) const
+{
+   // setup local ownership
+   stk::mesh::Selector ownedPart = metaData_->locally_owned_part();
+
+   // grab elements
+   stk::mesh::get_selected_entities(ownedPart,bulkData_->buckets(getEdgeRank()),edges);
+}
+
+void STK_Interface::getMyEdges(const std::string & edgeBlockName,std::vector<stk::mesh::Entity> & edges) const
+{
+   stk::mesh::Part * edgeBlockPart = getEdgeBlock(edgeBlockName);
+   TEUCHOS_TEST_FOR_EXCEPTION(edgeBlockPart==0,std::logic_error,
+                      "Unknown edge block \"" << edgeBlockName << "\"");
+
+   stk::mesh::Selector edge_block = *edgeBlockPart;
+   stk::mesh::Selector owned_block = metaData_->locally_owned_part() & edge_block;
+
+   // grab elements
+   stk::mesh::get_selected_entities(owned_block,bulkData_->buckets(getEdgeRank()),edges);
+}
+
+void STK_Interface::getMyEdges(const std::string & edgeBlockName,const std::string & blockName,std::vector<stk::mesh::Entity> & edges) const
+{
+   stk::mesh::Part * edgeBlockPart = getEdgeBlock(edgeBlockName);
+   stk::mesh::Part * elmtPart = getElementBlockPart(blockName);
+   TEUCHOS_TEST_FOR_EXCEPTION(edgeBlockPart==0,EdgeBlockException,
+                      "Unknown edge block \"" << edgeBlockName << "\"");
+   TEUCHOS_TEST_FOR_EXCEPTION(elmtPart==0,ElementBlockException,
+                      "Unknown element block \"" << blockName << "\"");
+
+   stk::mesh::Selector edge_block = *edgeBlockPart;
+   stk::mesh::Selector element_block = *elmtPart;
+   stk::mesh::Selector owned_block = metaData_->locally_owned_part() & element_block & edge_block;
+
+   // grab elements
+   stk::mesh::get_selected_entities(owned_block,bulkData_->buckets(getEdgeRank()),edges);
+}
+
+void STK_Interface::getAllEdges(const std::string & edgeBlockName,std::vector<stk::mesh::Entity> & edges) const
+{
+   stk::mesh::Part * edgeBlockPart = getEdgeBlock(edgeBlockName);
+   TEUCHOS_TEST_FOR_EXCEPTION(edgeBlockPart==0,std::logic_error,
+                      "Unknown edge block \"" << edgeBlockName << "\"");
+
+   stk::mesh::Selector edge_block = *edgeBlockPart;
+
+   // grab elements
+   stk::mesh::get_selected_entities(edge_block,bulkData_->buckets(getEdgeRank()),edges);
+}
+
+void STK_Interface::getAllEdges(const std::string & edgeBlockName,const std::string & blockName,std::vector<stk::mesh::Entity> & edges) const
+{
+   stk::mesh::Part * edgeBlockPart = getEdgeBlock(edgeBlockName);
+   stk::mesh::Part * elmtPart = getElementBlockPart(blockName);
+   TEUCHOS_TEST_FOR_EXCEPTION(edgeBlockPart==0,EdgeBlockException,
+                      "Unknown edge block \"" << edgeBlockName << "\"");
+   TEUCHOS_TEST_FOR_EXCEPTION(elmtPart==0,ElementBlockException,
+                      "Unknown element block \"" << blockName << "\"");
+
+   stk::mesh::Selector edge_block = *edgeBlockPart;
+   stk::mesh::Selector element_block = *elmtPart;
+   stk::mesh::Selector element_edge_block = element_block & edge_block;
+
+   // grab elements
+   stk::mesh::get_selected_entities(element_edge_block,bulkData_->buckets(getEdgeRank()),edges);
+}
+
+void STK_Interface::getMyFaces(std::vector<stk::mesh::Entity> & faces) const
+{
+   // setup local ownership
+   stk::mesh::Selector ownedPart = metaData_->locally_owned_part();
+
+   // grab elements
+   stk::mesh::EntityRank faceRank = getFaceRank();
+   stk::mesh::get_selected_entities(ownedPart,bulkData_->buckets(faceRank),faces);
+}
+
+void STK_Interface::getMyFaces(const std::string & faceBlockName,std::vector<stk::mesh::Entity> & faces) const
+{
+   stk::mesh::Part * faceBlockPart = getFaceBlock(faceBlockName);
+   TEUCHOS_TEST_FOR_EXCEPTION(faceBlockPart==0,std::logic_error,
+                      "Unknown face block \"" << faceBlockName << "\"");
+
+   stk::mesh::Selector face_block = *faceBlockPart;
+   stk::mesh::Selector owned_block = metaData_->locally_owned_part() & face_block;
+
+   // grab elements
+   stk::mesh::get_selected_entities(owned_block,bulkData_->buckets(getFaceRank()),faces);
+}
+
+void STK_Interface::getMyFaces(const std::string & faceBlockName,const std::string & blockName,std::vector<stk::mesh::Entity> & faces) const
+{
+   stk::mesh::Part * faceBlockPart = getFaceBlock(faceBlockName);
+   stk::mesh::Part * elmtPart = getElementBlockPart(blockName);
+   TEUCHOS_TEST_FOR_EXCEPTION(faceBlockPart==0,FaceBlockException,
+                      "Unknown face block \"" << faceBlockName << "\"");
+   TEUCHOS_TEST_FOR_EXCEPTION(elmtPart==0,ElementBlockException,
+                      "Unknown element block \"" << blockName << "\"");
+
+   stk::mesh::Selector face_block = *faceBlockPart;
+   stk::mesh::Selector element_block = *elmtPart;
+   stk::mesh::Selector owned_block = metaData_->locally_owned_part() & element_block & face_block;
+
+   // grab elements
+   stk::mesh::get_selected_entities(owned_block,bulkData_->buckets(getFaceRank()),faces);
+}
+
+void STK_Interface::getAllFaces(const std::string & faceBlockName,std::vector<stk::mesh::Entity> & faces) const
+{
+   stk::mesh::Part * faceBlockPart = getFaceBlock(faceBlockName);
+   TEUCHOS_TEST_FOR_EXCEPTION(faceBlockPart==0,std::logic_error,
+                      "Unknown face block \"" << faceBlockName << "\"");
+
+   stk::mesh::Selector face_block = *faceBlockPart;
+
+   // grab elements
+   stk::mesh::get_selected_entities(face_block,bulkData_->buckets(getFaceRank()),faces);
+}
+
+void STK_Interface::getAllFaces(const std::string & faceBlockName,const std::string & blockName,std::vector<stk::mesh::Entity> & faces) const
+{
+   stk::mesh::Part * faceBlockPart = getFaceBlock(faceBlockName);
+   stk::mesh::Part * elmtPart = getElementBlockPart(blockName);
+   TEUCHOS_TEST_FOR_EXCEPTION(faceBlockPart==0,FaceBlockException,
+                      "Unknown face block \"" << faceBlockName << "\"");
+   TEUCHOS_TEST_FOR_EXCEPTION(elmtPart==0,ElementBlockException,
+                      "Unknown element block \"" << blockName << "\"");
+
+   stk::mesh::Selector face_block = *faceBlockPart;
+   stk::mesh::Selector element_block = *elmtPart;
+   stk::mesh::Selector element_face_block = element_block & face_block;
+
+   // grab elements
+   stk::mesh::get_selected_entities(element_face_block,bulkData_->buckets(getFaceRank()),faces);
+}
+
 void STK_Interface::getMySides(const std::string & sideName,std::vector<stk::mesh::Entity> & sides) const
 {
    stk::mesh::Part * sidePart = getSideset(sideName);
@@ -1164,7 +1425,7 @@ void STK_Interface::getSidesetNames(std::vector<std::string> & names) const
    names.clear();
 
    // fill vector with automagically ordered string values
-   std::map<std::string, stk::mesh::Part*>::const_iterator sideItr;   // Element blocks
+   std::map<std::string, stk::mesh::Part*>::const_iterator sideItr;   // Side sets
    for(sideItr=sidesets_.begin();sideItr!=sidesets_.end();++sideItr)
       names.push_back(sideItr->first);
 }
@@ -1174,9 +1435,29 @@ void STK_Interface::getNodesetNames(std::vector<std::string> & names) const
    names.clear();
 
    // fill vector with automagically ordered string values
-   std::map<std::string, stk::mesh::Part*>::const_iterator nodeItr;   // Element blocks
+   std::map<std::string, stk::mesh::Part*>::const_iterator nodeItr;   // Node sets
    for(nodeItr=nodesets_.begin();nodeItr!=nodesets_.end();++nodeItr)
       names.push_back(nodeItr->first);
+}
+
+void STK_Interface::getEdgeBlockNames(std::vector<std::string> & names) const
+{
+   names.clear();
+
+   // fill vector with automagically ordered string values
+   std::map<std::string, stk::mesh::Part*>::const_iterator edgeBlockItr;   // Edge blocks
+   for(edgeBlockItr=edgeBlocks_.begin();edgeBlockItr!=edgeBlocks_.end();++edgeBlockItr)
+      names.push_back(edgeBlockItr->first);
+}
+
+void STK_Interface::getFaceBlockNames(std::vector<std::string> & names) const
+{
+   names.clear();
+
+   // fill vector with automagically ordered string values
+   std::map<std::string, stk::mesh::Part*>::const_iterator faceBlockItr;   // Face blocks
+   for(faceBlockItr=faceBlocks_.begin();faceBlockItr!=faceBlocks_.end();++faceBlockItr)
+      names.push_back(faceBlockItr->first);
 }
 
 std::size_t STK_Interface::elementLocalId(stk::mesh::Entity elmt) const
@@ -1194,6 +1475,58 @@ std::size_t STK_Interface::elementLocalId(stk::mesh::EntityId gid) const
    // return elementLocalId(elmt);
    std::unordered_map<stk::mesh::EntityId,std::size_t>::const_iterator itr = localIDHash_.find(gid);
    TEUCHOS_ASSERT(itr!=localIDHash_.end());
+   return itr->second;
+}
+
+bool STK_Interface::isEdgeLocal(stk::mesh::Entity edge) const
+{
+   return isEdgeLocal(bulkData_->identifier(edge));
+}
+
+bool STK_Interface::isEdgeLocal(stk::mesh::EntityId gid) const
+{
+   std::unordered_map<stk::mesh::EntityId,std::size_t>::const_iterator itr = localEdgeIDHash_.find(gid);
+   if (itr==localEdgeIDHash_.end()) {
+     return false;
+   }
+   return true;
+}
+
+std::size_t STK_Interface::edgeLocalId(stk::mesh::Entity edge) const
+{
+   return edgeLocalId(bulkData_->identifier(edge));
+}
+
+std::size_t STK_Interface::edgeLocalId(stk::mesh::EntityId gid) const
+{
+   std::unordered_map<stk::mesh::EntityId,std::size_t>::const_iterator itr = localEdgeIDHash_.find(gid);
+   TEUCHOS_ASSERT(itr!=localEdgeIDHash_.end());
+   return itr->second;
+}
+
+bool STK_Interface::isFaceLocal(stk::mesh::Entity face) const
+{
+   return isFaceLocal(bulkData_->identifier(face));
+}
+
+bool STK_Interface::isFaceLocal(stk::mesh::EntityId gid) const
+{
+   std::unordered_map<stk::mesh::EntityId,std::size_t>::const_iterator itr = localFaceIDHash_.find(gid);
+   if (itr==localFaceIDHash_.end()) {
+     return false;
+   }
+   return true;
+}
+
+std::size_t STK_Interface::faceLocalId(stk::mesh::Entity face) const
+{
+   return faceLocalId(bulkData_->identifier(face));
+}
+
+std::size_t STK_Interface::faceLocalId(stk::mesh::EntityId gid) const
+{
+   std::unordered_map<stk::mesh::EntityId,std::size_t>::const_iterator itr = localFaceIDHash_.find(gid);
+   TEUCHOS_ASSERT(itr!=localFaceIDHash_.end());
    return itr->second;
 }
 
@@ -1234,6 +1567,34 @@ stk::mesh::Field<double> * STK_Interface::getCellField(const std::string & field
    return iter->second;
 }
 
+stk::mesh::Field<double> * STK_Interface::getEdgeField(const std::string & fieldName,
+                                                       const std::string & blockId) const
+{
+   // look up field in map
+   std::map<std::pair<std::string,std::string>, SolutionFieldType*>::const_iterator
+         iter = fieldNameToEdgeField_.find(std::make_pair(fieldName,blockId));
+
+   // check to make sure field was actually found
+   TEUCHOS_TEST_FOR_EXCEPTION(iter==fieldNameToEdgeField_.end(),std::runtime_error,
+                      "Edge field named \"" << fieldName << "\" in block ID \"" << blockId << "\" was not found");
+
+   return iter->second;
+}
+
+stk::mesh::Field<double> * STK_Interface::getFaceField(const std::string & fieldName,
+                                                       const std::string & blockId) const
+{
+   // look up field in map
+   std::map<std::pair<std::string,std::string>, SolutionFieldType*>::const_iterator
+         iter = fieldNameToFaceField_.find(std::make_pair(fieldName,blockId));
+
+   // check to make sure field was actually found
+   TEUCHOS_TEST_FOR_EXCEPTION(iter==fieldNameToFaceField_.end(),std::runtime_error,
+                      "Face field named \"" << fieldName << "\" in block ID \"" << blockId << "\" was not found");
+
+   return iter->second;
+}
+
 Teuchos::RCP<const std::vector<stk::mesh::Entity> > STK_Interface::getElementsOrderedByLID() const
 {
    using Teuchos::RCP;
@@ -1263,6 +1624,96 @@ void STK_Interface::addElementBlock(const std::string & name,const CellTopologyD
    // add element block part and cell topology
    elementBlocks_.insert(std::make_pair(name,block));
    elementBlockCT_.insert(std::make_pair(name,ct));
+}
+
+Teuchos::RCP<const std::vector<stk::mesh::Entity> > STK_Interface::getEdgesOrderedByLID() const
+{
+   using Teuchos::RCP;
+   using Teuchos::rcp;
+
+   if(orderedEdgeVector_==Teuchos::null) {
+      // safe because essentially this is a call to modify a mutable object
+      const_cast<STK_Interface*>(this)->buildLocalEdgeIDs();
+   }
+
+   return orderedEdgeVector_.getConst();
+}
+
+void STK_Interface::addEdgeBlock(const std::string & elemBlockName,
+                                 const std::string & edgeBlockName,
+                                 const stk::topology & topology)
+{
+   TEUCHOS_ASSERT(not initialized_);
+
+   stk::mesh::Part * edge_block = metaData_->get_part(edgeBlockName);
+   if(edge_block==0) {
+      edge_block = &metaData_->declare_part_with_topology(edgeBlockName, topology);
+   }
+
+   /* There is only one edge block for each edge topology, so declare it
+    * as a subset of the element block even if it wasn't just created.
+    */
+   stk::mesh::Part * elem_block = metaData_->get_part(elemBlockName);
+   metaData_->declare_part_subset(*elem_block, *edge_block);
+
+   // add edge block part
+   edgeBlocks_.insert(std::make_pair(edgeBlockName,edge_block));
+}
+
+void STK_Interface::addEdgeBlock(const std::string & elemBlockName,
+                                 const std::string & edgeBlockName,
+                                 const CellTopologyData * ctData)
+{
+   TEUCHOS_ASSERT(not initialized_);
+
+   addEdgeBlock(elemBlockName,
+                edgeBlockName,
+                stk::mesh::get_topology(shards::CellTopology(ctData), dimension_));
+}
+
+Teuchos::RCP<const std::vector<stk::mesh::Entity> > STK_Interface::getFacesOrderedByLID() const
+{
+   using Teuchos::RCP;
+   using Teuchos::rcp;
+
+   if(orderedFaceVector_==Teuchos::null) {
+      // safe because essentially this is a call to modify a mutable object
+      const_cast<STK_Interface*>(this)->buildLocalFaceIDs();
+   }
+
+   return orderedFaceVector_.getConst();
+}
+
+void STK_Interface::addFaceBlock(const std::string & elemBlockName,
+                                 const std::string & faceBlockName,
+                                 const stk::topology & topology)
+{
+   TEUCHOS_ASSERT(not initialized_);
+
+   stk::mesh::Part * face_block = metaData_->get_part(faceBlockName);
+   if(face_block==0) {
+      face_block = &metaData_->declare_part_with_topology(faceBlockName, topology);
+   }
+
+   /* There is only one face block for each edge topology, so declare it
+    * as a subset of the element block even if it wasn't just created.
+    */
+   stk::mesh::Part * elem_block = metaData_->get_part(elemBlockName);
+   metaData_->declare_part_subset(*elem_block, *face_block);
+
+   // add face block part
+   faceBlocks_.insert(std::make_pair(faceBlockName,face_block));
+}
+
+void STK_Interface::addFaceBlock(const std::string & elemBlockName,
+                                 const std::string & faceBlockName,
+                                 const CellTopologyData * ctData)
+{
+   TEUCHOS_ASSERT(not initialized_);
+
+   addFaceBlock(elemBlockName,
+                faceBlockName,
+                stk::mesh::get_topology(shards::CellTopology(ctData), dimension_));
 }
 
 void STK_Interface::initializeFromMetaData()
@@ -1353,6 +1804,46 @@ void STK_Interface::applyElementLoadBalanceWeights()
   }
 }
 
+void STK_Interface::buildLocalEdgeIDs()
+{
+   currentLocalId_ = 0;
+
+   orderedEdgeVector_ = Teuchos::null; // forces rebuild of ordered lists
+
+   // might be better (faster) to do this by buckets
+   std::vector<stk::mesh::Entity> edges;
+   getMyEdges(edges);
+
+   for(std::size_t index=0;index<edges.size();++index) {
+      stk::mesh::Entity edge = edges[index];
+      localEdgeIDHash_[bulkData_->identifier(edge)] = currentLocalId_;
+      currentLocalId_++;
+   }
+
+   // copy edges into the ordered edge vector
+   orderedEdgeVector_ = Teuchos::rcp(new std::vector<stk::mesh::Entity>(edges));
+}
+
+void STK_Interface::buildLocalFaceIDs()
+{
+   currentLocalId_ = 0;
+
+   orderedFaceVector_ = Teuchos::null; // forces rebuild of ordered lists
+
+   // might be better (faster) to do this by buckets
+   std::vector<stk::mesh::Entity> faces;
+   getMyFaces(faces);
+
+   for(std::size_t index=0;index<faces.size();++index) {
+      stk::mesh::Entity face = faces[index];
+      localFaceIDHash_[bulkData_->identifier(face)] = currentLocalId_;
+      currentLocalId_++;
+   }
+
+   // copy faces into the ordered face vector
+   orderedFaceVector_ = Teuchos::rcp(new std::vector<stk::mesh::Entity>(faces));
+}
+
 bool
 STK_Interface::isMeshCoordField(const std::string & eBlock,
                                 const std::string & fieldName,
@@ -1381,10 +1872,11 @@ STK_Interface::getPeriodicNodePairing() const
    Teuchos::RCP<std::vector<std::pair<std::size_t,std::size_t> > > vec;
    Teuchos::RCP<std::vector<unsigned int > > type_vec = rcp(new std::vector<unsigned int>);
    const std::vector<Teuchos::RCP<const PeriodicBC_MatcherBase> > & matchers = getPeriodicBCVector();
+   const bool & useBBoxSearch = useBoundingBoxSearch();
+   std::vector<std::vector<std::string> > matchedSides(3); // (coord,edge,face)
 
    // build up the vectors by looping over the matched pair
    for(std::size_t m=0;m<matchers.size();m++){
-      vec = matchers[m]->getMatchedPair(*this,vec);
       unsigned int type;
       if(matchers[m]->getType() == "coord")
         type = 0;
@@ -1394,7 +1886,21 @@ STK_Interface::getPeriodicNodePairing() const
         type = 2;
       else
         TEUCHOS_ASSERT(false);
+#ifdef PANZER_HAVE_STKSEARCH
+
+      if (useBBoxSearch) {
+         vec = matchers[m]->getMatchedPair(*this,matchedSides[type],vec);
+      } else {
+         vec = matchers[m]->getMatchedPair(*this,vec);
+      }
+#else 
+      TEUCHOS_TEST_FOR_EXCEPTION(useBBoxSearch,std::logic_error,
+          "panzer::STK_Interface::getPeriodicNodePairing(): Requested bounding box search, but "
+          "did not compile with STK_SEARCH enabled.");
+      vec = matchers[m]->getMatchedPair(*this,vec);
+#endif
       type_vec->insert(type_vec->begin(),vec->size()-type_vec->size(),type);
+      matchedSides[type].push_back(matchers[m]->getLeftSidesetName());
    }
 
    return std::make_pair(vec,type_vec);
@@ -1569,12 +2075,10 @@ void STK_Interface::refineMesh(const int numberOfLevels, const bool deleteParent
   refinedMesh_->setCoordinatesField();
 
   percept::UniformRefiner breaker(*refinedMesh_,*breakPattern_);
+  breaker.setRemoveOldElements(deleteParentElements);
 
   for (int i=0; i < numberOfLevels; ++i)
     breaker.doBreak();
-
-  if (deleteParentElements)
-    breaker.deleteParentElements();
 
 #else
   TEUCHOS_TEST_FOR_EXCEPTION(true,std::logic_error,

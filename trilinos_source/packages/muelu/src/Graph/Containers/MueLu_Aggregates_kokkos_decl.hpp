@@ -48,7 +48,6 @@
 #define MUELU_AGGREGATES_KOKKOS_DECL_HPP
 
 #include "MueLu_ConfigDefs.hpp"
-#ifdef HAVE_MUELU_KOKKOS_REFACTOR
 
 #include <Kokkos_StaticCrsGraph.hpp>
 #include <KokkosCompat_ClassicNodeAPI_Wrapper.hpp>
@@ -116,8 +115,9 @@ namespace MueLu {
     using node_type           = Kokkos::Compat::KokkosDeviceWrapperNode<DeviceType>;
     using device_type         = DeviceType;
     using range_type          = Kokkos::RangePolicy<local_ordinal_type, execution_space>;
+    using LO_view             = Kokkos::View<local_ordinal_type*, device_type>;
 
-    using aggregates_sizes_type = Kokkos::View<LocalOrdinal*, DeviceType>;
+    using aggregates_sizes_type = Kokkos::View<LocalOrdinal*, device_type>;
 
   private:
     // For compatibility
@@ -192,6 +192,12 @@ namespace MueLu {
     */
     void SetNumAggregates(LO nAggregates) { numAggregates_ = nAggregates; }
 
+    /*! @brief Set number of global aggregates on current processor.
+  
+        This has to be done by the aggregation routines.
+    */
+    void SetNumGlobalAggregates(GO nGlobalAggregates) { numGlobalAggregates_ = nGlobalAggregates; }
+
     ///< returns the number of aggregates of the current processor. Note: could/should be renamed to GetNumLocalAggregates?
     KOKKOS_INLINE_FUNCTION LO GetNumAggregates() const {
       return numAggregates_;
@@ -259,6 +265,16 @@ namespace MueLu {
 
     local_graph_type GetGraph() const;
 
+    /*! @brief Generates a compressed list of nodes in each aggregate, where
+      the entries in aggNodes[aggPtr[i]] up to aggNodes[aggPtr[i+1]-1] contain the nodes in aggregate i.
+      unaggregated contains the list of nodes which are, for whatever reason, not aggregated (e.g. Dirichlet)
+     */
+    void ComputeNodesInAggregate(LO_view & aggPtr, LO_view & aggNodes, LO_view & unaggregated) const;
+
+    //! Get global number of aggregates
+    //  If # of global aggregates is unknown, this method does coummunication and internally record the value
+    GO GetNumGlobalAggregatesComputeIfNeeded();
+
     //! @name Overridden from Teuchos::Describable
     //@{
 
@@ -271,6 +287,7 @@ namespace MueLu {
 
   private:
     LO   numAggregates_;              ///< Number of aggregates on this processor
+    GO   numGlobalAggregates_;        ///< Number of global aggregates
 
     /*! vertex2AggId[k] gives a local id corresponding to the aggregate to which
      * local id k has been assigned. While k is the local id on my processor (MyPID),
@@ -299,7 +316,7 @@ namespace MueLu {
      */
     LO graphNumColors_;
 
-    Kokkos::View<bool*, DeviceType> isRoot_;
+    Kokkos::View<bool*, device_type> isRoot_;
 
     //! Set to false iff aggregates do not include any DOFs belong to other processes.
     bool aggregatesIncludeGhosts_;
@@ -311,15 +328,9 @@ namespace MueLu {
     //! Aggregates represented as Kokkos graph type
     mutable
     local_graph_type graph_;
-
-    //! Get global number of aggregates
-    // This method is private because it is used only for printing and because with the current implementation, communication occurs each time this method is called.
-    GO GetNumGlobalAggregates() const;
   };
 
 } //namespace MueLu
-
-#endif // HAVE_MUELU_KOKKOS_REFACTOR
 
 #define MUELU_AGGREGATES_KOKKOS_SHORT
 #endif // MUELU_AGGREGATES_KOKKOS_DECL_HPP

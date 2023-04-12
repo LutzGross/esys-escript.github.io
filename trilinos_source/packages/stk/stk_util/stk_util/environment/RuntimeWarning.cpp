@@ -32,9 +32,10 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 
-#include <stk_util/environment/RuntimeWarning.hpp>
-#include <exception>                    // for exception
-#include "stk_util/environment/RuntimeMessage.hpp"
+#include "stk_util/environment/RuntimeWarning.hpp"
+#include "stk_util/environment/RuntimeMessage.hpp"  // for MSG_WARNING, report_message, MessageCode
+#include <exception>                                // for exception
+#include <string>                                   // for basic_string
 
 namespace stk {
 
@@ -42,6 +43,18 @@ unsigned
 get_warning_count()
 {
   return get_message_count(MSG_WARNING);
+}
+
+unsigned 
+get_warning_printed_count()
+{
+  return get_message_printed_count(MSG_WARNING);
+}
+
+unsigned 
+get_warning_printed_count(const MessageCode &messageCode)
+{
+  return get_message_printed_count(messageCode);
 }
 
 

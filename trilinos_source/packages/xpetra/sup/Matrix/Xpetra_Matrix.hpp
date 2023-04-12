@@ -49,7 +49,7 @@
 #ifndef XPETRA_MATRIX_HPP
 #define XPETRA_MATRIX_HPP
 
-#include <Kokkos_DefaultNode.hpp>
+#include <KokkosCompat_DefaultNode.hpp>
 
 #include "Xpetra_ConfigDefs.hpp"
 #include "Xpetra_Exceptions.hpp"
@@ -107,10 +107,8 @@ namespace Xpetra {
     typedef GlobalOrdinal   global_ordinal_type;
     typedef Node            node_type;
 
-#ifdef HAVE_XPETRA_KOKKOS_REFACTOR
 #ifdef HAVE_XPETRA_TPETRA
     typedef typename CrsMatrix::local_matrix_type local_matrix_type;
-#endif
 #endif
 
     //! @name Constructor/Destructor Methods
@@ -346,13 +344,13 @@ namespace Xpetra {
     virtual global_size_t getGlobalNumCols() const =0;
 
     //! Returns the number of matrix rows owned on the calling node.
-    virtual size_t getNodeNumRows() const =0;
+    virtual size_t getLocalNumRows() const =0;
 
     //! Returns the global number of entries in this matrix.
     virtual global_size_t getGlobalNumEntries() const =0;
 
     //! Returns the local number of entries in this matrix.
-    virtual size_t getNodeNumEntries() const =0;
+    virtual size_t getLocalNumEntries() const =0;
 
     //! Returns the current number of entries on this node in the specified local row.
     /*! Returns OrdinalTraits<size_t>::invalid() if the specified local row is not valid for this matrix. */
@@ -370,7 +368,8 @@ namespace Xpetra {
     //! \brief Returns the maximum number of entries across all rows/columns on this node.
     /** Undefined if isFillActive().
      */
-    virtual size_t getNodeMaxNumRowEntries() const =0;
+    virtual size_t getLocalMaxNumRowEntries() const =0;
+
 
     //! \brief If matrix indices are in the local range, this function returns true. Otherwise, this function returns false. */
     virtual bool isLocallyIndexed() const =0;
@@ -445,24 +444,6 @@ namespace Xpetra {
 
     //@}
 
-    //! @name Advanced Matrix-vector multiplication and solve methods
-    //@{
-
-    //! Multiplies this matrix by a MultiVector.
-    /*! \c X is required to be post-imported, i.e., described by the column map of the matrix. \c Y is required to be pre-exported, i.e., described by the row map of the matrix.
-
-    Both are required to have constant stride, and they are not permitted to ocupy overlapping space. No runtime checking will be performed in a non-debug build.
-
-    This method is templated on the scalar type of MultiVector objects, allowing this method to be applied to MultiVector objects of arbitrary type. However, it is recommended that multiply() not be called directly; instead, use the CrsMatrixMultiplyOp, as it will handle the import/exprt operations required to apply a matrix with non-trivial communication needs.
-
-    If \c beta is equal to zero, the operation will enjoy overwrite semantics (\c Y will be overwritten with the result of the multiplication). Otherwise, the result of the multiplication
-    will be accumulated into \c Y.
-    */
-    //TODO virtual=0 // TODO: Add default parameters ?
-//     virtual void multiply(const MultiVector<Scalar,LocalOrdinal,GlobalOrdinal,Node> & X, MultiVector<Scalar,LocalOrdinal,GlobalOrdinal,Node> &Y, Teuchos::ETransp trans, Scalar alpha, Scalar beta) const=0;
-
-    //@}
-
     //! Implements DistObject interface
     //{@
 
@@ -492,17 +473,6 @@ namespace Xpetra {
     //! @name Overridden from Teuchos::Describable
     //@{
 
-    // TODO: describe of views can be done here
-
-    //   /** \brief Return a simple one-line description of this object. */
-    //   virtual std::string description() const =0;
-
-    //   /** \brief Print the object with some verbosity level to an FancyOStream object. */
-    //   virtual void describe(Teuchos::FancyOStream &out, const Teuchos::EVerbosityLevel verbLevel=Teuchos::Describable::verbLevel_default) const =0;
-
-    //@}
-
-
     //! @name Overridden from Teuchos::Describable
     //@{
 
@@ -525,6 +495,19 @@ namespace Xpetra {
 
     //! Returns the CrsGraph associated with this matrix.
     virtual RCP<const CrsGraph> getCrsGraph() const =0;
+
+    // To keep the normal virtual matrix-multivector definition of apply before overloading with the region variant
+    using Xpetra::Operator< Scalar, LocalOrdinal, GlobalOrdinal, Node >::apply;
+
+    //! Computes the matrix-multivector multiplication for region layout matrices
+    virtual void apply(const MultiVector< Scalar, LocalOrdinal, GlobalOrdinal, Node > &X,
+                      MultiVector< Scalar, LocalOrdinal, GlobalOrdinal, Node > &Y,
+                      Teuchos::ETransp mode,
+                      Scalar alpha,
+                      Scalar beta,
+                      bool sumInterfaceValues,
+                      const RCP<Import<LocalOrdinal, GlobalOrdinal, Node> >& regionInterfaceImporter,
+                      const Teuchos::ArrayRCP<LocalOrdinal>& regionInterfaceLIDs ) const =0;
 
     // ----------------------------------------------------------------------------------
     // "TEMPORARY" VIEW MECHANISM
@@ -555,14 +538,14 @@ namespace Xpetra {
                                               offset
                                               );
 
-      if(IsView("stridedMaps") == true) RemoveView("stridedMaps");
+      if(IsFixedBlockSizeSet()) RemoveView("stridedMaps");
       CreateView("stridedMaps", stridedRangeMap, stridedDomainMap);
     }
 
     //==========================================================================
 
     LocalOrdinal GetFixedBlockSize() const {
-      if(IsView("stridedMaps")==true) {
+      if(IsFixedBlockSizeSet()) {
         Teuchos::RCP<const StridedMap<LocalOrdinal, GlobalOrdinal, Node> > rangeMap = Teuchos::rcp_dynamic_cast<const StridedMap<LocalOrdinal, GlobalOrdinal, Node> >(getRowMap("stridedMaps"));
         Teuchos::RCP<const StridedMap<LocalOrdinal, GlobalOrdinal, Node> > domainMap = Teuchos::rcp_dynamic_cast<const StridedMap<LocalOrdinal, GlobalOrdinal, Node> >(getColMap("stridedMaps"));
         TEUCHOS_TEST_FOR_EXCEPTION(rangeMap  == Teuchos::null, Exceptions::BadCast, "Xpetra::Matrix::GetFixedBlockSize(): rangeMap is not of type StridedMap");
@@ -573,6 +556,17 @@ namespace Xpetra {
         //TEUCHOS_TEST_FOR_EXCEPTION(false, Exceptions::RuntimeError, "Xpetra::Matrix::GetFixedBlockSize(): no strided maps available."); // TODO remove this
         return 1;
     }; //TODO: why LocalOrdinal?
+
+
+    //! Returns true, if `SetFixedBlockSize` has been called before.
+    bool IsFixedBlockSizeSet() const {
+      return IsView("stridedMaps");
+    };
+
+
+    //! Returns the block size of the storage mechanism, which is usually 1, except for Tpetra::BlockCrsMatrix
+    virtual LocalOrdinal GetStorageBlockSize() const = 0;
+
 
     // ----------------------------------------------------------------------------------
 
@@ -587,14 +581,12 @@ namespace Xpetra {
     }
 
     // ----------------------------------------------------------------------------------
-#ifdef HAVE_XPETRA_KOKKOS_REFACTOR
 #ifdef HAVE_XPETRA_TPETRA
-    /// \brief Access the underlying local Kokkos::CrsMatrix object
-    virtual local_matrix_type getLocalMatrix () const = 0;
+    virtual local_matrix_type getLocalMatrixDevice () const = 0;
+    virtual typename local_matrix_type::HostMirror getLocalMatrixHost () const = 0;
 #else
 #ifdef __GNUC__
 #warning "Xpetra Kokkos interface for CrsMatrix is enabled (HAVE_XPETRA_KOKKOS_REFACTOR) but Tpetra is disabled. The Kokkos interface needs Tpetra to be enabled, too."
-#endif
 #endif
 #endif
     // ----------------------------------------------------------------------------------

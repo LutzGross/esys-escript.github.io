@@ -32,19 +32,21 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 
-#include <gtest/gtest.h>
-#include <vector>
-#include "mpi.h"
-#include <algorithm>
-#include <stk_util/util/ReportHandler.hpp>
-#include <stk_util/environment/WallTime.hpp>
-#include <stk_util/parallel/Parallel.hpp>  // for parallel_machine_rank, etc
-#include <stk_util/parallel/GenerateParallelUniqueIDs.hpp>
-#include <stk_util/parallel/DistributedIndex.hpp>
-#include <stk_util/parallel/MPI.hpp>
-#include <stk_util/stk_config.h>
-#include <fstream>
-#include <stdint.h>
+#include "gtest/gtest.h"
+#include "stk_util/environment/WallTime.hpp"                // for wall_time
+#include "stk_util/parallel/DistributedIndex.hpp"           // for DistributedIndex::KeyTypeVector
+#include "stk_util/parallel/GenerateParallelUniqueIDs.hpp"  // for generate_parallel_unique_ids
+#include "stk_util/parallel/MPI.hpp"                        // for Datatype
+#include "stk_util/parallel/Parallel.hpp"                   // for MPI_Bcast, MPI_Comm, MPI_Reduce
+#include "stk_util/stk_config.h"                            // for STK_HAS_MPI
+#include "stk_util/util/ReportHandler.hpp"                  // for ThrowRequireMsg
+#include <cstddef>                                          // for size_t
+#include <algorithm>                                        // for binary_search, sort, copy
+#include <cstdint>                                          // for uint64_t
+#include <iostream>                                         // for operator<<, basic_ostream, endl
+#include <memory>                                           // for allocator_traits<>::value_type
+#include <string>                                           // for string
+#include <vector>                                           // for vector, vector<>::iterator
 
 #if defined(STK_HAS_MPI)  // means that MPI is available
 
@@ -716,7 +718,7 @@ TEST(GeneratedIds, multiPerf) {
     for(int iter=0; iter<64; ++iter) {
       MPI_Barrier(MPI_COMM_WORLD);
       double startTime = stk::wall_time();
-      new32a = stk::generate_parallel_unique_ids(maxAllowableId32, inUse32a, numNew, MPI_COMM_WORLD);
+      new32a = stk::generate_parallel_unique_ids(maxAllowableId32, inUse32a, numNew, MPI_COMM_WORLD, inUse32a.back());
       MPI_Barrier(MPI_COMM_WORLD);
       double endTime = stk::wall_time();
       timeGenerateParallelUniqueA += (endTime-startTime);

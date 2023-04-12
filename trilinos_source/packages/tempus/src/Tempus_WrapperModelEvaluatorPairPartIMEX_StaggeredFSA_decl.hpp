@@ -9,6 +9,7 @@
 #ifndef Tempus_ModelEvaluatorPairPartIMEX_StaggeredFSA_decl_hpp
 #define Tempus_ModelEvaluatorPairPartIMEX_StaggeredFSA_decl_hpp
 
+#include "Tempus_config.hpp"
 #include "Tempus_SensitivityModelEvaluatorBase.hpp"
 #include "Tempus_WrapperModelEvaluatorPairPartIMEX_Basic.hpp"
 #include "Tempus_StaggeredForwardSensitivityModelEvaluator.hpp"
@@ -37,6 +38,7 @@ public:
   /// Constructor
   WrapperModelEvaluatorPairPartIMEX_StaggeredFSA(
     const Teuchos::RCP<const WrapperModelEvaluatorPairPartIMEX_Basic<Scalar> >& forwardModel,
+    const bool is_pseudotransient,
     const Teuchos::RCP<const Teuchos::ParameterList>& pList = Teuchos::null);
 
   /// Destructor

@@ -74,7 +74,7 @@ void buildSubMaps(GO numGlobals,int numVars,const Teuchos::Comm<int> & comm,std:
 void buildSubMaps(const Tpetra::Map<LO,GO,NT> & globalMap,const std::vector<int> & vars,const Teuchos::Comm<int> & comm,
                   std::vector<std::pair<int,Teuchos::RCP<Tpetra::Map<LO,GO,NT> > > > & subMaps)
 {
-   buildSubMaps(globalMap.getGlobalNumElements(),globalMap.getNodeNumElements(),globalMap.getMinGlobalIndex(),
+   buildSubMaps(globalMap.getGlobalNumElements(),globalMap.getLocalNumElements(),globalMap.getMinGlobalIndex(),
                 vars,comm,subMaps);
 }
 
@@ -93,7 +93,7 @@ void buildSubMaps(GO numGlobals,const std::vector<int> & vars,const Teuchos::Com
 
    Tpetra::Map<LO,GO,NT> sampleMap(numGlobals/numGlobalVars,0,rcpFromRef(comm));
 
-   buildSubMaps(numGlobals,numGlobalVars*sampleMap.getNodeNumElements(),numGlobalVars*sampleMap.getMinGlobalIndex(),vars,comm,subMaps);
+   buildSubMaps(numGlobals,numGlobalVars*sampleMap.getLocalNumElements(),numGlobalVars*sampleMap.getMinGlobalIndex(),vars,comm,subMaps);
 }
 
 // build maps to make other conversions
@@ -240,19 +240,21 @@ RCP<Tpetra::CrsMatrix<ST,LO,GO,NT> > buildSubBlock(int i,int j,const RCP<const T
    localA.doImport(*A,import,Tpetra::INSERT);
 
    // get entry information
-   LO numMyRows = rowMap.getNodeNumElements();
+   LO numMyRows = rowMap.getLocalNumElements();
    LO maxNumEntries = A->getGlobalMaxNumRowEntries();
 
    // for extraction
-   std::vector<GO> indices(maxNumEntries);
-   std::vector<ST> values(maxNumEntries);
+   auto indices = typename Tpetra::CrsMatrix<ST,LO,GO,NT>::nonconst_global_inds_host_view_type(Kokkos::ViewAllocateWithoutInitializing("rowIndices"),maxNumEntries);
+   auto values = typename Tpetra::CrsMatrix<ST,LO,GO,NT>::nonconst_values_host_view_type(Kokkos::ViewAllocateWithoutInitializing("rowIndices"),maxNumEntries);
 
    // for counting row sizes
    std::vector<size_t> numEntriesPerRow(numMyRows,0);
 
+   const size_t invalid = Teuchos::OrdinalTraits<size_t>::invalid();
+
    // Count the sizes of each row, using same logic as insertion below
    for(LO localRow=0;localRow<numMyRows;localRow++) {
-      size_t numEntries = -1; 
+      size_t numEntries = invalid;
       GO globalRow = gRowMap.getGlobalElement(localRow);
       GO contigRow = rowMap.getGlobalElement(localRow);
 
@@ -260,10 +262,10 @@ RCP<Tpetra::CrsMatrix<ST,LO,GO,NT> > buildSubBlock(int i,int j,const RCP<const T
       TEUCHOS_ASSERT(contigRow>=0);
 
       // extract a global row copy
-      localA.getGlobalRowCopy(globalRow, Teuchos::ArrayView<GO>(indices), Teuchos::ArrayView<ST>(values), numEntries);
+      localA.getGlobalRowCopy(globalRow, indices, values, numEntries);
       LO numOwnedCols = 0;
       for(size_t localCol=0;localCol<numEntries;localCol++) {
-         GO globalCol = indices[localCol];
+         GO globalCol = indices(localCol);
 
          // determinate which block this column ID is in
          int block = globalCol / numGlobalVars;
@@ -292,7 +294,7 @@ RCP<Tpetra::CrsMatrix<ST,LO,GO,NT> > buildSubBlock(int i,int j,const RCP<const T
    // insert each row into subblock
    // let FillComplete handle column distribution
    for(LO localRow=0;localRow<numMyRows;localRow++) {
-      size_t numEntries = -1; 
+      size_t numEntries = invalid;
       GO globalRow = gRowMap.getGlobalElement(localRow);
       GO contigRow = rowMap.getGlobalElement(localRow);
 
@@ -300,10 +302,10 @@ RCP<Tpetra::CrsMatrix<ST,LO,GO,NT> > buildSubBlock(int i,int j,const RCP<const T
       TEUCHOS_ASSERT(contigRow>=0);
 
       // extract a global row copy
-      localA.getGlobalRowCopy(globalRow, Teuchos::ArrayView<GO>(indices), Teuchos::ArrayView<ST>(values), numEntries);
+      localA.getGlobalRowCopy(globalRow, indices, values, numEntries);
       LO numOwnedCols = 0;
       for(size_t localCol=0;localCol<numEntries;localCol++) {
-         GO globalCol = indices[localCol];
+        GO globalCol = indices(localCol);
 
          // determinate which block this column ID is in
          int block = globalCol / numGlobalVars;
@@ -319,7 +321,7 @@ RCP<Tpetra::CrsMatrix<ST,LO,GO,NT> > buildSubBlock(int i,int j,const RCP<const T
             GO familyOffset = globalCol-(block*numGlobalVars+colBlockOffset);
 
             colIndices[numOwnedCols] = block*colFamilyCnt + familyOffset;
-            colValues[numOwnedCols] = values[localCol];
+            colValues[numOwnedCols] = values(localCol);
 
             numOwnedCols++;
          }
@@ -377,21 +379,23 @@ void rebuildSubBlock(int i,int j,const RCP<const Tpetra::CrsMatrix<ST,LO,GO,NT> 
    mat.setAllToScalar(0.0);
 
    // get entry information
-   LO numMyRows = rowMap.getNodeNumElements();
+   LO numMyRows = rowMap.getLocalNumElements();
    GO maxNumEntries = A->getGlobalMaxNumRowEntries();
 
    // for extraction
-   std::vector<GO> indices(maxNumEntries);
-   std::vector<ST> values(maxNumEntries);
+   auto indices = typename Tpetra::CrsMatrix<ST,LO,GO,NT>::nonconst_global_inds_host_view_type(Kokkos::ViewAllocateWithoutInitializing("rowIndices"),maxNumEntries);
+   auto values = typename Tpetra::CrsMatrix<ST,LO,GO,NT>::nonconst_values_host_view_type(Kokkos::ViewAllocateWithoutInitializing("rowIndices"),maxNumEntries);
 
    // for insertion
    std::vector<GO> colIndices(maxNumEntries);
    std::vector<ST> colValues(maxNumEntries);
 
+   const size_t invalid = Teuchos::OrdinalTraits<size_t>::invalid();
+
    // insert each row into subblock
    // let FillComplete handle column distribution
    for(LO localRow=0;localRow<numMyRows;localRow++) {
-      size_t numEntries = -1; 
+      size_t numEntries = invalid;
       GO globalRow = gRowMap.getGlobalElement(localRow);
       GO contigRow = rowMap.getGlobalElement(localRow);
 
@@ -399,11 +403,11 @@ void rebuildSubBlock(int i,int j,const RCP<const Tpetra::CrsMatrix<ST,LO,GO,NT> 
       TEUCHOS_ASSERT(contigRow>=0);
 
       // extract a global row copy
-      localA.getGlobalRowCopy(globalRow, Teuchos::ArrayView<GO>(indices), Teuchos::ArrayView<ST>(values), numEntries);
+      localA.getGlobalRowCopy(globalRow, indices, values, numEntries);
 
       LO numOwnedCols = 0;
       for(size_t localCol=0;localCol<numEntries;localCol++) {
-         GO globalCol = indices[localCol];
+        GO globalCol = indices(localCol);
 
          // determinate which block this column ID is in
          int block = globalCol / numGlobalVars;
@@ -419,7 +423,7 @@ void rebuildSubBlock(int i,int j,const RCP<const Tpetra::CrsMatrix<ST,LO,GO,NT> 
             GO familyOffset = globalCol-(block*numGlobalVars+colBlockOffset);
 
             colIndices[numOwnedCols] = block*colFamilyCnt + familyOffset;
-            colValues[numOwnedCols] = values[localCol];
+            colValues[numOwnedCols] = values(localCol);
 
             numOwnedCols++;
          }

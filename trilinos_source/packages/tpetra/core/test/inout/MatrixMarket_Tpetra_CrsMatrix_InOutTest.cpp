@@ -42,12 +42,14 @@
 #include <MatrixMarket_Tpetra.hpp>
 #include <Tpetra_Core.hpp>
 #include <Tpetra_Util.hpp> // sort2, merge2
+#include <Tpetra_TestingUtilities.hpp>
 #include <Teuchos_UnitTestHarness.hpp>
 #include "TpetraCore_ETIHelperMacros.h"
 
 namespace { // anonymous
 
 using Tpetra::global_size_t;
+using Tpetra::TestingUtilities::arcp_from_view;
 using Teuchos::Array;
 using Teuchos::as;
 using Teuchos::Comm;
@@ -150,12 +152,12 @@ computeGatherMap (Teuchos::RCP<const MapType> map,
     // MPI_Gatherv.  Counts and offsets are all int, because
     // that's what MPI uses.  Teuchos::as will at least prevent
     // bad casts to int in a dbg build.
-    const int myEltCount = as<int> (oneToOneMap->getNodeNumElements ());
+    const int myEltCount = as<int> (oneToOneMap->getLocalNumElements ());
     Array<int> recvCounts (numProcs);
     const int rootProc = 0;
     gather<int, int> (&myEltCount, 1, recvCounts.getRawPtr (), 1, rootProc, *comm);
 
-    ArrayView<const GO> myGlobalElts = oneToOneMap->getNodeElementList ();
+    ArrayView<const GO> myGlobalElts = oneToOneMap->getLocalElementList ();
     const int numMyGlobalElts = as<int> (myGlobalElts.size ());
     // Only Proc 0 needs to receive and store all the GIDs (from
     // all processes).
@@ -259,9 +261,10 @@ compareCrsMatrix (const CrsMatrixType& A_orig, const CrsMatrixType& A, Teuchos::
   using Teuchos::RCP;
   using Teuchos::reduceAll;
   using Teuchos::REDUCE_MIN;
-  typedef typename CrsMatrixType::scalar_type ST;
   typedef typename CrsMatrixType::global_ordinal_type GO;
   typedef typename ArrayView<const GO>::size_type size_type;
+  typedef typename CrsMatrixType::nonconst_global_inds_host_view_type gids_type;
+  typedef typename CrsMatrixType::nonconst_values_host_view_type vals_type;
 
   Teuchos::OSTab tab (Teuchos::rcpFromRef (out));
   int localEqual = 1;
@@ -269,12 +272,12 @@ compareCrsMatrix (const CrsMatrixType& A_orig, const CrsMatrixType& A, Teuchos::
   //
   // Are my local matrices equal?
   //
-  Array<GO> indOrig, ind;
-  Array<ST> valOrig, val;
+  gids_type indOrig, ind;
+  vals_type valOrig, val;
   size_t numEntriesOrig = 0;
   size_t numEntries = 0;
 
-  ArrayView<const GO> localElts = A.getRowMap ()->getNodeElementList ();
+  ArrayView<const GO> localElts = A.getRowMap ()->getLocalElementList ();
   const size_type numLocalElts = localElts.size ();
   for (size_type i = 0; i < numLocalElts; ++i) {
     const GO globalRow = localElts[i];
@@ -285,17 +288,16 @@ compareCrsMatrix (const CrsMatrixType& A_orig, const CrsMatrixType& A, Teuchos::
       localEqual = 0;
       break;
     }
-    indOrig.resize (numEntriesOrig);
-    valOrig.resize (numEntriesOrig);
-    A_orig.getGlobalRowCopy (globalRow, indOrig (), valOrig (), numEntriesOrig);
-    ind.resize (numEntries);
-    val.resize (numEntries);
-    A.getGlobalRowCopy (globalRow, ind (), val (), numEntries);
+    Kokkos::resize(indOrig,numEntriesOrig);
+    Kokkos::resize(valOrig,numEntriesOrig);
+    A_orig.getGlobalRowCopy (globalRow, indOrig, valOrig, numEntriesOrig);
+    Kokkos::resize(ind,numEntries);
+    Kokkos::resize(val,numEntries);
+    A.getGlobalRowCopy (globalRow, ind, val, numEntries);
 
     // Global row entries are not necessarily sorted.  Sort them so
-    // we can compare them.
-    Tpetra::sort2 (indOrig.begin (), indOrig.end (), valOrig.begin ());
-    Tpetra::sort2 (ind.begin (), ind.end (), val.begin ());
+    Tpetra::sort2 (indOrig, indOrig.extent(0), valOrig);
+    Tpetra::sort2 (ind, ind.extent(0), val);
 
     for (size_t k = 0; k < numEntries; ++k) {
       // Values should be _exactly_ equal.
@@ -323,6 +325,7 @@ compareCrsMatrixValues (const CrsMatrixType& A_orig,
 {
   using Teuchos::Array;
   using Teuchos::ArrayView;
+  using Teuchos::ArrayRCP;
   using Teuchos::Comm;
   using Teuchos::RCP;
   using Teuchos::reduceAll;
@@ -334,18 +337,21 @@ compareCrsMatrixValues (const CrsMatrixType& A_orig,
   typedef Teuchos::ScalarTraits<ST> STS;
   typedef typename STS::magnitudeType MT;
   typedef Teuchos::ScalarTraits<MT> STM;
+  typedef typename CrsMatrixType::nonconst_global_inds_host_view_type gids_type;
+  typedef typename CrsMatrixType::nonconst_values_host_view_type vals_type;
 
   Teuchos::OSTab tab (Teuchos::rcpFromRef (out));
 
   //
   // Are my local matrices equal?
   //
-  Array<GO> indOrig, ind;
-  Array<ST> valOrig, val;
+ //
+  gids_type indOrig_v, ind_v;
+  vals_type valOrig_v, val_v;
   size_t numEntriesOrig = 0;
   size_t numEntries = 0;
 
-  ArrayView<const GO> localElts = A.getRowMap ()->getNodeElementList ();
+  ArrayView<const GO> localElts = A.getRowMap ()->getLocalElementList ();
   const size_type numLocalElts = localElts.size ();
   MT localDiff = STM::zero (); // \sum_{i,j} |A_orig(i,j) - A(i,j)| locally
   for (size_type i = 0; i < numLocalElts; ++i) {
@@ -353,32 +359,38 @@ compareCrsMatrixValues (const CrsMatrixType& A_orig,
     numEntriesOrig = A_orig.getNumEntriesInGlobalRow (globalRow);
     numEntries = A.getNumEntriesInGlobalRow (globalRow);
 
-    indOrig.resize (numEntriesOrig);
-    valOrig.resize (numEntriesOrig);
-    A_orig.getGlobalRowCopy (globalRow, indOrig (), valOrig (), numEntriesOrig);
-    ind.resize (numEntries);
-    val.resize (numEntries);
-    A.getGlobalRowCopy (globalRow, ind (), val (), numEntries);
+    Kokkos::resize(indOrig_v,numEntriesOrig);
+    Kokkos::resize(valOrig_v,numEntriesOrig);
+    A_orig.getGlobalRowCopy (globalRow, indOrig_v, valOrig_v, numEntriesOrig);
+    Kokkos::resize(ind_v,numEntries);
+    Kokkos::resize(val_v,numEntries);
+    A.getGlobalRowCopy (globalRow, ind_v , val_v, numEntries);
 
     // Global row entries are not necessarily sorted.  Sort them
     // (and their values with them) so we can merge their values.
-    Tpetra::sort2 (indOrig.begin (), indOrig.end (), valOrig.begin ());
-    Tpetra::sort2 (ind.begin (), ind.end (), val.begin ());
+    Tpetra::sort2 (indOrig_v, indOrig_v.extent(0), valOrig_v);
+    Tpetra::sort2 (ind_v, ind_v.extent(0), val_v);
+
+    auto indOrig = arcp_from_view(indOrig_v);
+    auto ind = arcp_from_view(ind_v);
+    auto valOrig = arcp_from_view(valOrig_v);
+    auto val = arcp_from_view(val_v);
 
     //
     // Merge repeated values in each set of indices and values.
     //
 
-    typename Array<GO>::iterator indOrigIter = indOrig.begin ();
-    typename Array<ST>::iterator valOrigIter = valOrig.begin ();
-    typename Array<GO>::iterator indOrigEnd = indOrig.end ();
-    typename Array<ST>::iterator valOrigEnd = valOrig.end ();
+    typename ArrayRCP<GO>::iterator indOrigIter = indOrig.begin ();
+    typename ArrayRCP<ST>::iterator valOrigIter = valOrig.begin ();
+    typename ArrayRCP<GO>::iterator indOrigEnd = indOrig.end ();
+    typename ArrayRCP<ST>::iterator valOrigEnd = valOrig.end ();
     Tpetra::merge2 (indOrigEnd, valOrigEnd, indOrigIter, indOrigEnd, valOrigIter, valOrigEnd);
 
-    typename Array<GO>::iterator indIter = ind.begin ();
-    typename Array<ST>::iterator valIter = val.begin ();
-    typename Array<GO>::iterator indEnd = ind.end ();
-    typename Array<ST>::iterator valEnd = val.end ();
+  
+    typename ArrayRCP<GO>::iterator indIter = ind.begin ();
+    typename ArrayRCP<ST>::iterator valIter = val.begin ();
+    typename ArrayRCP<GO>::iterator indEnd = ind.end ();
+    typename ArrayRCP<ST>::iterator valEnd = val.end ();
     Tpetra::merge2 (indEnd, valEnd, indIter, indEnd, valIter, valEnd);
 
     //
@@ -572,6 +584,144 @@ testCrsMatrix (Teuchos::FancyOStream& out, const GlobalOrdinalType indexBase)
   return success;
 }
 
+
+template<class ScalarType, class LocalOrdinalType, class GlobalOrdinalType, class NodeType>
+bool
+testCrsMatrixPerFile (Teuchos::FancyOStream& out, const GlobalOrdinalType indexBase)
+{
+  typedef ScalarType ST;
+  typedef LocalOrdinalType LO;
+  typedef GlobalOrdinalType GO;
+  typedef NodeType NT;
+  typedef Tpetra::Map<LO, GO, NT> map_type;
+  typedef Tpetra::CrsMatrix<ST, LO, GO, NT> crs_matrix_type;
+  bool result = true; // current Boolean result; reused below
+  bool success = true;
+
+  out << "Test: CrsMatrix Per File Matrix Market I/O, w/ Map with index base "
+      << indexBase << endl;
+  OSTab tab1 (out);
+
+  RCP<const Comm<int> > comm = Tpetra::getDefaultComm ();
+
+  out << "Creating the row Map" << endl;
+  const global_size_t globalNumElts = 5;
+  RCP<const map_type> rowMap =
+    rcp (new map_type (globalNumElts, indexBase, comm,
+                       Tpetra::GloballyDistributed));
+
+  out << "Creating original matrix" << endl;
+  RCP<crs_matrix_type> A_orig =
+    createSymRealSmall<ST, LO, GO, NT> (rowMap, out, debug);
+
+  out << "Original sparse matrix:" << endl;
+  A_orig->describe(out, Teuchos::VERB_EXTREME);
+
+
+
+  // We'll add the number of total MPI ranks to the suffix
+  // so if ctest runs multiple jobs w/ different num procs at 
+  // the same time, they won't clash   
+  std::string prefix = "outfile_";
+  std::string suffix = std::string("_") + std::to_string(comm->getSize());
+
+  // Write out the matrix, rank by rank
+  typedef Tpetra::MatrixMarket::Writer<crs_matrix_type> writer_type;
+  writer_type::writeSparsePerRank(prefix,suffix,*A_orig,"Original","");
+
+  // Read matrix back in
+  typedef Tpetra::MatrixMarket::Reader<crs_matrix_type> reader_type;
+  RCP<const map_type> row_map = rowMap;
+  RCP<const map_type> col_map, domain_map = row_map, range_map = row_map;
+  RCP<crs_matrix_type> A_new = reader_type::readSparsePerRank(prefix,suffix,row_map,col_map,domain_map,range_map);
+
+  out << "New sparse matrix:" << endl;
+  A_new->describe(out, Teuchos::VERB_EXTREME);
+
+  out << "Comparing read-in matrix to original matrix" << endl;
+  result = compareCrsMatrix<crs_matrix_type> (*A_orig, *A_new, out);
+  bool local_success = true;
+  TEUCHOS_TEST_EQUALITY( result, true, out, local_success );
+  if (! result) { // see if ignoring zero values helps
+    result = compareCrsMatrixValues<crs_matrix_type> (*A_orig, *A_new, out);
+    local_success = true;
+    TEUCHOS_TEST_EQUALITY( result, true, out, local_success );
+  }
+  success = success && local_success;
+
+  return success;
+}
+
+template<class ScalarType, class LocalOrdinalType, class GlobalOrdinalType, class NodeType>
+bool
+testCrsMatrixPerFileNonContiguous (Teuchos::FancyOStream& out, const GlobalOrdinalType indexBase)
+{
+  typedef ScalarType ST;
+  typedef LocalOrdinalType LO;
+  typedef GlobalOrdinalType GO;
+  typedef NodeType NT;
+  typedef Tpetra::Map<LO, GO, NT> map_type;
+  typedef Tpetra::CrsMatrix<ST, LO, GO, NT> crs_matrix_type;
+  bool result = true; // current Boolean result; reused below
+  bool success = true;
+
+  out << "Test: Noncontiguous row map CrsMatrix Per File Matrix Market I/O, w/ Map with index base "
+      << indexBase << endl;
+  OSTab tab1 (out);
+
+  RCP<const Comm<int> > comm = Tpetra::getDefaultComm ();
+
+  // Two rows per rank, reverse numbered
+  out << "Creating the non-contiguous row Map" << endl;
+  GO INVALID = Teuchos::OrdinalTraits<GO>::invalid();
+  Teuchos::Array<GO> my_gids(2);
+  my_gids[0] =  2*comm->getSize() - 2*comm->getRank() - 2 + indexBase;
+  my_gids[1] = my_gids[0] + 1;
+  RCP<const map_type> rowMap =
+    rcp (new map_type (INVALID,my_gids(),indexBase,comm));
+
+  out << "Creating original matrix" << endl;
+  RCP<crs_matrix_type> A_orig =
+    createSymRealSmall<ST, LO, GO, NT> (rowMap, out, debug);
+
+  out << "Original sparse matrix:" << endl;
+  A_orig->describe(out, Teuchos::VERB_EXTREME);
+
+  // We'll add the number of total MPI ranks to the suffix
+  // so if ctest runs multiple jobs w/ different num procs at 
+  // the same time, they won't clash   
+  std::string prefix = "outfile_";
+  std::string suffix = std::string("_") + std::to_string(comm->getSize());
+
+  // Write out the matrix, rank by rank
+  typedef Tpetra::MatrixMarket::Writer<crs_matrix_type> writer_type;
+  writer_type::writeSparsePerRank(prefix,suffix,*A_orig,"Original","");
+
+  // Read matrix back in
+  typedef Tpetra::MatrixMarket::Reader<crs_matrix_type> reader_type;
+  RCP<const map_type> row_map = rowMap;
+  RCP<const map_type> col_map, domain_map = row_map, range_map = row_map;
+  RCP<crs_matrix_type> A_new = reader_type::readSparsePerRank(prefix,suffix,row_map,col_map,domain_map,range_map);
+
+  out << "New sparse matrix:" << endl;
+  A_new->describe(out, Teuchos::VERB_EXTREME);
+
+  out << "Comparing read-in matrix to original matrix" << endl;
+  result = compareCrsMatrix<crs_matrix_type> (*A_orig, *A_new, out);
+  bool local_success = true;
+  TEUCHOS_TEST_EQUALITY( result, true, out, local_success );
+  if (! result) { // see if ignoring zero values helps
+    result = compareCrsMatrixValues<crs_matrix_type> (*A_orig, *A_new, out);
+    local_success = true;
+    TEUCHOS_TEST_EQUALITY( result, true, out, local_success );
+  }
+  success = success && local_success;
+
+  return success;
+}
+
+
+
 } // namespace (anonymous)
 
 TEUCHOS_UNIT_TEST_TEMPLATE_4_DECL( CrsMatrixOutputInput, IndexBase0, ST, LO, GO, NT )
@@ -586,6 +736,32 @@ TEUCHOS_UNIT_TEST_TEMPLATE_4_DECL( CrsMatrixOutputInput, IndexBase1, ST, LO, GO,
   success = testCrsMatrix<ST, LO, GO, NT> (out, indexBase);
 }
 
+
+TEUCHOS_UNIT_TEST_TEMPLATE_4_DECL( CrsMatrixPerFile, IndexBase0, ST, LO, GO, NT )
+{
+  const GO indexBase = 0;
+  success = testCrsMatrixPerFile<ST, LO, GO, NT> (out, indexBase);
+}
+
+TEUCHOS_UNIT_TEST_TEMPLATE_4_DECL( CrsMatrixPerFile, IndexBase1, ST, LO, GO, NT )
+{
+  const GO indexBase = 1;
+  success = testCrsMatrixPerFile<ST, LO, GO, NT> (out, indexBase);
+}
+
+TEUCHOS_UNIT_TEST_TEMPLATE_4_DECL( CrsMatrixPerFileNonContiguous, IndexBase0, ST, LO, GO, NT )
+{
+  const GO indexBase = 0;
+  success = testCrsMatrixPerFileNonContiguous<ST, LO, GO, NT> (out, indexBase);
+}
+
+TEUCHOS_UNIT_TEST_TEMPLATE_4_DECL( CrsMatrixPerFileNonContiguous, IndexBase1, ST, LO, GO, NT )
+{
+  const GO indexBase = 1;
+  success = testCrsMatrixPerFileNonContiguous<ST, LO, GO, NT> (out, indexBase);
+}
+
+
 // We instantiate tests for all combinations of the following parameters:
 //   - indexBase = {0, 1}
 //   - Scalar = {double, float}
@@ -593,13 +769,20 @@ TEUCHOS_UNIT_TEST_TEMPLATE_4_DECL( CrsMatrixOutputInput, IndexBase1, ST, LO, GO,
 #if defined(HAVE_TPETRA_INST_DOUBLE)
 #  define UNIT_TEST_GROUP( LO, GO, NODE ) \
   TEUCHOS_UNIT_TEST_TEMPLATE_4_INSTANT( CrsMatrixOutputInput, IndexBase0, double, LO, GO, NODE ) \
-  TEUCHOS_UNIT_TEST_TEMPLATE_4_INSTANT( CrsMatrixOutputInput, IndexBase1, double, LO, GO, NODE )
+  TEUCHOS_UNIT_TEST_TEMPLATE_4_INSTANT( CrsMatrixOutputInput, IndexBase1, double, LO, GO, NODE ) \
+  TEUCHOS_UNIT_TEST_TEMPLATE_4_INSTANT( CrsMatrixPerFile, IndexBase0, double, LO, GO, NODE ) \
+  TEUCHOS_UNIT_TEST_TEMPLATE_4_INSTANT( CrsMatrixPerFile, IndexBase1, double, LO, GO, NODE ) \
+  TEUCHOS_UNIT_TEST_TEMPLATE_4_INSTANT( CrsMatrixPerFileNonContiguous, IndexBase0, double, LO, GO, NODE ) \
+  TEUCHOS_UNIT_TEST_TEMPLATE_4_INSTANT( CrsMatrixPerFileNonContiguous, IndexBase1, double, LO, GO, NODE ) 
 
 #elif defined(HAVE_TPETRA_INST_FLOAT)
 #  define UNIT_TEST_GROUP( LO, GO, NODE ) \
   TEUCHOS_UNIT_TEST_TEMPLATE_4_INSTANT( CrsMatrixOutputInput, IndexBase0, float, LO, GO, NODE ) \
-  TEUCHOS_UNIT_TEST_TEMPLATE_4_INSTANT( CrsMatrixOutputInput, IndexBase1, float, LO, GO, NODE )
-
+  TEUCHOS_UNIT_TEST_TEMPLATE_4_INSTANT( CrsMatrixOutputInput, IndexBase1, float, LO, GO, NODE ) \
+  TEUCHOS_UNIT_TEST_TEMPLATE_4_INSTANT( CrsMatrixPerFile, IndexBase0, float, LO, GO, NODE ) \
+  TEUCHOS_UNIT_TEST_TEMPLATE_4_INSTANT( CrsMatrixPerFile, IndexBase1, float, LO, GO, NODE ) \
+  TEUCHOS_UNIT_TEST_TEMPLATE_4_INSTANT( CrsMatrixPerFileNonContiguous, IndexBase0, float, LO, GO, NODE ) \
+  TEUCHOS_UNIT_TEST_TEMPLATE_4_INSTANT( CrsMatrixPerFileNonContiguous, IndexBase1, float, LO, GO, NODE ) 
 #else
 #  define UNIT_TEST_GROUP( LO, GO, NODE )
 #endif

@@ -1,8 +1,8 @@
 /*
- * Copyright(C) 1999-2020 National Technology & Engineering Solutions
+ * Copyright(C) 1999-2021, 2023 National Technology & Engineering Solutions
  * of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
  * NTESS, the U.S. Government retains certain rights in this software.
- * 
+ *
  * See packages/seacas/LICENSE for details
  */
 /* sdcgi - standard single device cgi routines
@@ -40,134 +40,134 @@
 #if defined(ADDC_)
 #endif
 #if !defined(CRA) && !defined(ADDC_) && !defined(COUGAR)
-#define ci_ ci
-#define ct_ ct
+#define ci_     ci
+#define ct_     ct
 #define cxdfac_ cxdfac
-#define cpds_ cpds
+#define cpds_   cpds
 #define cendpg_ cendpg
-#define cbc_ cbc
-#define cvdcx_ cvdcx
-#define cv_ cv
-#define ccl_ ccl
+#define cbc_    cbc
+#define cvdcx_  cvdcx
+#define cv_     cv
+#define ccl_    ccl
 #define cdqerr_ cdqerr
 #define cerhct_ cerhct
-#define ccixp_ ccixp
-#define cesc1_ cesc1
-#define cesc2_ cesc2
-#define cqid_ cqid
-#define cqd_ cqd
-#define clf_ clf
-#define clpr_ clpr
-#define cqsp_ cqsp
-#define clesc_ clesc
-#define cqp_ cqp
-#define cpl_ cpl
-#define cdjpl_ cdjpl
-#define cdscl_ cdscl
-#define cqcl_ cqcl
-#define cpm_ cpm
-#define ctx1_ ctx1
-#define ctx2_ ctx2
-#define cpg_ cpg
-#define cca_ cca
-#define clnt_ clnt
-#define clnw_ clnw
-#define clnc_ clnc
-#define cmkt_ cmkt
-#define cmkc_ cmkc
-#define ctxp_ ctxp
-#define ctxc_ ctxc
-#define cchh_ cchh
-#define ccho_ ccho
-#define cis_ cis
-#define cflc_ cflc
-#define ccsm_ ccsm
-#define cct_ cct
+#define ccixp_  ccixp
+#define cesc1_  cesc1
+#define cesc2_  cesc2
+#define cqid_   cqid
+#define cqd_    cqd
+#define clf_    clf
+#define clpr_   clpr
+#define cqsp_   cqsp
+#define clesc_  clesc
+#define cqp_    cqp
+#define cpl_    cpl
+#define cdjpl_  cdjpl
+#define cdscl_  cdscl
+#define cqcl_   cqcl
+#define cpm_    cpm
+#define ctx1_   ctx1
+#define ctx2_   ctx2
+#define cpg_    cpg
+#define cca_    cca
+#define clnt_   clnt
+#define clnw_   clnw
+#define clnc_   clnc
+#define cmkt_   cmkt
+#define cmkc_   cmkc
+#define ctxp_   ctxp
+#define ctxc_   ctxc
+#define cchh_   cchh
+#define ccho_   ccho
+#define cis_    cis
+#define cflc_   cflc
+#define ccsm_   ccsm
+#define cct_    cct
 #define cgtxx1_ cgtxx1
 #define cgtxx2_ cgtxx2
-#define cqprl_ cqprl
-#define cqln_ cqln
-#define cqlnt_ cqlnt
+#define cqprl_  cqprl
+#define cqln_   cqln
+#define cqlnt_  cqlnt
 #define cqchh1_ cqchh1
 #define cqchh2_ cqchh2
-#define cqfl_ cqfl
-#define cqc_ cqc
-#define cqlna_ cqlna
-#define cqtxa_ cqtxa
-#define cqcte_ cqcte
-#define cili_ cili
-#define crqlc_ crqlc
-#define cpxa_ cpxa
+#define cqfl_   cqfl
+#define cqc_    cqc
+#define cqlna_  cqlna
+#define cqtxa_  cqtxa
+#define cqcte_  cqcte
+#define cili_   cili
+#define crqlc_  crqlc
+#define cpxa_   cpxa
 #endif
 #if defined(CRA)
-#define ci_ CI
-#define ct_ CT
+#define ci_     CI
+#define ct_     CT
 #define cxdfac_ CXDFAC
-#define cpds_ CPDS
+#define cpds_   CPDS
 #define cendpg_ CENDPG
-#define cbc_ CBC
-#define cvdcx_ CVDCX
-#define cv_ CV
-#define ccl_ CCL
+#define cbc_    CBC
+#define cvdcx_  CVDCX
+#define cv_     CV
+#define ccl_    CCL
 #define cdqerr_ CDQERR
 #define cerhct_ CERHCT
-#define ccixp_ CCIXP
-#define cesc1_ CESC1
-#define cesc2_ CESC2
-#define cqid_ CQID
-#define cqd_ CQD
-#define clf_ CLF
-#define clpr_ CLPR
-#define cqsp_ CQSP
-#define clesc_ CLESC
-#define cqp_ CQP
-#define cpl_ CPL
-#define cdjpl_ CDJPL
-#define cdscl_ CDSCL
-#define cqcl_ CQCL
-#define cpm_ CPM
-#define ctx1_ CTX1
-#define ctx2_ CTX2
-#define cpg_ CPG
-#define cca_ CCA
-#define clnt_ CLNT
-#define clnw_ CLNW
-#define clnc_ CLNC
-#define cmkt_ CMKT
-#define cmkc_ CMKC
-#define ctxp_ CTXP
-#define ctxc_ CTXC
-#define cchh_ CCHH
-#define ccho_ CCHO
-#define cis_ CIS
-#define cflc_ CFLC
-#define ccsm_ CCSM
-#define cct_ CCT
+#define ccixp_  CCIXP
+#define cesc1_  CESC1
+#define cesc2_  CESC2
+#define cqid_   CQID
+#define cqd_    CQD
+#define clf_    CLF
+#define clpr_   CLPR
+#define cqsp_   CQSP
+#define clesc_  CLESC
+#define cqp_    CQP
+#define cpl_    CPL
+#define cdjpl_  CDJPL
+#define cdscl_  CDSCL
+#define cqcl_   CQCL
+#define cpm_    CPM
+#define ctx1_   CTX1
+#define ctx2_   CTX2
+#define cpg_    CPG
+#define cca_    CCA
+#define clnt_   CLNT
+#define clnw_   CLNW
+#define clnc_   CLNC
+#define cmkt_   CMKT
+#define cmkc_   CMKC
+#define ctxp_   CTXP
+#define ctxc_   CTXC
+#define cchh_   CCHH
+#define ccho_   CCHO
+#define cis_    CIS
+#define cflc_   CFLC
+#define ccsm_   CCSM
+#define cct_    CCT
 #define cgtxx1_ CGTXX1
 #define cgtxx2_ CGTXX2
-#define cqprl_ CQPRL
-#define cqln_ CQLN
-#define cqlnt_ CQLNT
+#define cqprl_  CQPRL
+#define cqln_   CQLN
+#define cqlnt_  CQLNT
 #define cqchh1_ CQCHH1
 #define cqchh2_ CQCHH2
-#define cqfl_ CQFL
-#define cqc_ CQC
-#define cqlna_ CQLNA
-#define cqtxa_ CQTXA
-#define cqcte_ CQCTE
-#define cili_ CILI
-#define crqlc_ CRQLC
-#define cpxa_ CPXA
+#define cqfl_   CQFL
+#define cqc_    CQC
+#define cqlna_  CQLNA
+#define cqtxa_  CQTXA
+#define cqcte_  CQCTE
+#define cili_   CILI
+#define crqlc_  CRQLC
+#define cpxa_   CPXA
 #endif
 #ifdef Build64
 #if defined(ADDC_)
-#define cesc1_ cesc14_
-#define ctx1_ ctx14_
+#define cesc1_  cesc14_
+#define ctx1_   ctx14_
 #define cgtxx1_ cgtxx14_
 #define cqchh1_ cqchh14_
 #else
-#define cesc1 cesc14
-#define ctx1 ctx14
+#define cesc1  cesc14
+#define ctx1   ctx14
 #define cgtxx1 cgtxx14
 #define cqchh1 cqchh14
 #endif
@@ -211,9 +211,9 @@ typedef struct FortranStr Fortran_Str; /* Make the declarations in the */
 /******************************************************************************/
 /* these are also used in mdcgi.c, where they are externs */
 device_struct devices[MAX_DEVICES];     /* list of currently initialized */
-anything *    in_params[MAX_IN_PARAMS]; /* params sent to driver */
+anything     *in_params[MAX_IN_PARAMS]; /* params sent to driver */
 short         num_devices = 0;          /* how many items in devices*/
-anything *    sol_surf    = NULL;       /* current solicitation surface, */
+anything     *sol_surf    = NULL;       /* current solicitation surface, */
 
 /******************************************************************************/
 /*                                                                            */
@@ -222,8 +222,7 @@ anything *    sol_surf    = NULL;       /* current solicitation surface, */
 /******************************************************************************/
 void ci_(f_integer *pds)
 {
-  short func_id = CI_FN;
-  short i;
+  static short func_id = CI_FN;
 
   if (num_devices == 0) {
     /* find the default device and initialize it */
@@ -234,7 +233,7 @@ void ci_(f_integer *pds)
   in_params[0] = (anything *)&func_id;
   in_params[1] = (anything *)pds;
 
-  for (i = 0; i < num_devices; ++i) {
+  for (short i = 0; i < num_devices; ++i) {
     (*devices[i].device_fn)(in_params, devices[i].num_on_surfaces, devices[i].statelist);
   } /* end for all devices */
 } /* end CI */
@@ -246,13 +245,12 @@ void ci_(f_integer *pds)
 /******************************************************************************/
 void ct_(void)
 {
-  short func_id = CT_FN;
-  short i;
+  static short func_id = CT_FN;
 
   /* set up parameter array */
   in_params[0] = (anything *)&func_id;
 
-  for (i = 0; i < num_devices; ++i) {
+  for (short i = 0; i < num_devices; ++i) {
     (*devices[i].device_fn)(in_params, devices[i].num_on_surfaces, devices[i].statelist);
   } /* end for all devices */
 } /* end ct */
@@ -264,13 +262,12 @@ void ct_(void)
 /******************************************************************************/
 void cxdfac_(void)
 {
-  short func_id = CXDFAC_FN;
-  short i;
+  static short func_id = CXDFAC_FN;
 
   /* set up parameter array */
   in_params[0] = (anything *)&func_id;
 
-  for (i = 0; i < num_devices; ++i) {
+  for (short i = 0; i < num_devices; ++i) {
     (*devices[i].device_fn)(in_params, devices[i].num_on_surfaces, devices[i].statelist);
   } /* end for all devices */
 } /* end cxdfac */
@@ -282,14 +279,13 @@ void cxdfac_(void)
 /******************************************************************************/
 void cpds_(f_integer *clear)
 {
-  short func_id = CPDS_FN;
-  short i;
+  static short func_id = CPDS_FN;
 
   /* set up parameter array */
   in_params[0] = (anything *)&func_id;
   in_params[1] = (anything *)clear;
 
-  for (i = 0; i < num_devices; ++i) {
+  for (short i = 0; i < num_devices; ++i) {
     (*devices[i].device_fn)(in_params, devices[i].num_on_surfaces, devices[i].statelist);
   } /* end for all devices */
 } /* end cpds */
@@ -301,13 +297,12 @@ void cpds_(f_integer *clear)
 /******************************************************************************/
 void cendpg_(void)
 {
-  short func_id = CENDPG_FN;
-  short i;
+  static short func_id = CENDPG_FN;
 
   /* set up parameter array */
   in_params[0] = (anything *)&func_id;
 
-  for (i = 0; i < num_devices; ++i) {
+  for (short i = 0; i < num_devices; ++i) {
     (*devices[i].device_fn)(in_params, devices[i].num_on_surfaces, devices[i].statelist);
   } /* end for all devices */
 } /* end cendpg */
@@ -319,8 +314,7 @@ void cendpg_(void)
 /******************************************************************************/
 void cbc_(f_integer *red, f_integer *green, f_integer *blue)
 {
-  short func_id = CBC_FN;
-  short i;
+  static short func_id = CBC_FN;
 
   /* set up parameter array */
   in_params[0] = (anything *)&func_id;
@@ -328,7 +322,7 @@ void cbc_(f_integer *red, f_integer *green, f_integer *blue)
   in_params[2] = (anything *)green;
   in_params[3] = (anything *)blue;
 
-  for (i = 0; i < num_devices; ++i) {
+  for (short i = 0; i < num_devices; ++i) {
     (*devices[i].device_fn)(in_params, devices[i].num_on_surfaces, devices[i].statelist);
   } /* end for all devices */
 } /* end cbc */
@@ -340,8 +334,7 @@ void cbc_(f_integer *red, f_integer *green, f_integer *blue)
 /******************************************************************************/
 void cvdcx_(f_real *x1, f_real *y1, f_real *x2, f_real *y2)
 {
-  short func_id = CVDCX_FN;
-  short i;
+  static short func_id = CVDCX_FN;
 
   /* set up parameter array */
   in_params[0] = (anything *)&func_id;
@@ -350,7 +343,7 @@ void cvdcx_(f_real *x1, f_real *y1, f_real *x2, f_real *y2)
   in_params[3] = (anything *)x2;
   in_params[4] = (anything *)y2;
 
-  for (i = 0; i < num_devices; ++i) {
+  for (short i = 0; i < num_devices; ++i) {
     (*devices[i].device_fn)(in_params, devices[i].num_on_surfaces, devices[i].statelist);
   } /* end for all devices */
 } /* end cvdcx */
@@ -362,8 +355,7 @@ void cvdcx_(f_real *x1, f_real *y1, f_real *x2, f_real *y2)
 /******************************************************************************/
 void cv_(f_real *x1, f_real *y1, f_real *x2, f_real *y2)
 {
-  short func_id = CV_FN;
-  short i;
+  static short func_id = CV_FN;
 
   /* set up parameter array */
   in_params[0] = (anything *)&func_id;
@@ -372,7 +364,7 @@ void cv_(f_real *x1, f_real *y1, f_real *x2, f_real *y2)
   in_params[3] = (anything *)x2;
   in_params[4] = (anything *)y2;
 
-  for (i = 0; i < num_devices; ++i) {
+  for (short i = 0; i < num_devices; ++i) {
     (*devices[i].device_fn)(in_params, devices[i].num_on_surfaces, devices[i].statelist);
   } /* end for all devices */
 } /* end cv */
@@ -384,14 +376,13 @@ void cv_(f_real *x1, f_real *y1, f_real *x2, f_real *y2)
 /******************************************************************************/
 void ccl_(f_integer *clipi)
 {
-  short func_id = CCL_FN;
-  short i;
+  static short func_id = CCL_FN;
 
   /* set up parameter array */
   in_params[0] = (anything *)&func_id;
   in_params[1] = (anything *)clipi;
 
-  for (i = 0; i < num_devices; ++i) {
+  for (short i = 0; i < num_devices; ++i) {
     (*devices[i].device_fn)(in_params, devices[i].num_on_surfaces, devices[i].statelist);
   } /* end for all devices */
 } /* end ccl */
@@ -403,14 +394,13 @@ void ccl_(f_integer *clipi)
 /******************************************************************************/
 void cdscl_(f_integer *clipi)
 {
-  short func_id = CDSCL_FN;
-  short i;
+  static short func_id = CDSCL_FN;
 
   /* set up parameter array */
   in_params[0] = (anything *)&func_id;
   in_params[1] = (anything *)clipi;
 
-  for (i = 0; i < num_devices; ++i) {
+  for (short i = 0; i < num_devices; ++i) {
     (*devices[i].device_fn)(in_params, devices[i].num_on_surfaces, devices[i].statelist);
   } /* end for all devices */
 } /* end cdsl */
@@ -423,12 +413,8 @@ void cdscl_(f_integer *clipi)
 void cdqerr_(f_integer *nreq, f_integer *vstat, f_integer *nrem, f_integer *nret, f_integer *errcl,
              f_integer *errnm, f_integer *funcid)
 {
-  short     dev;       /* which device to look at now */
-  short     dev_found; /* which device was it found on */
-  short     func_id = CDQERR_FN;
-  short     surf;           /* which surface on device */
-  short     surf_found = 0; /* which active_surface was found */
-  anything *temp_surface[1];
+  static short func_id    = CDQERR_FN;
+  short        surf_found = 0; /* which active_surface was found */
 
   /* set up parameter array */
   in_params[0] = (anything *)&func_id;
@@ -441,9 +427,9 @@ void cdqerr_(f_integer *nreq, f_integer *vstat, f_integer *nrem, f_integer *nret
   in_params[7] = (anything *)funcid;
 
   /* search active devices for this surface */
-  dev_found = -1;
-  for (dev = 0; (dev < num_devices) && (dev_found == -1); ++dev) {
-    for (surf = 0; surf < devices[dev].num_active_surfaces; ++surf) {
+  short dev_found = -1;
+  for (short dev = 0; (dev < num_devices) && (dev_found == -1); ++dev) {
+    for (short surf = 0; surf < devices[dev].num_active_surfaces; ++surf) {
       if (sol_surf == devices[dev].statelist[surf]) {
         dev_found  = dev;
         surf_found = surf;
@@ -453,7 +439,7 @@ void cdqerr_(f_integer *nreq, f_integer *vstat, f_integer *nrem, f_integer *nret
   }     /* end for all devices */
 
   if (dev_found != -1) {
-    temp_surface[0] = devices[dev_found].statelist[surf_found];
+    anything *temp_surface[] = {devices[dev_found].statelist[surf_found]};
     (*devices[dev_found].device_fn)(in_params, 1, temp_surface);
   } /* end if surface not found */
 
@@ -466,8 +452,7 @@ void cdqerr_(f_integer *nreq, f_integer *vstat, f_integer *nrem, f_integer *nret
 /******************************************************************************/
 void cerhct_(f_integer *n, f_integer *erclas, f_integer *hflag)
 {
-  short func_id = CERHCT_FN;
-  short i;
+  static short func_id = CERHCT_FN;
 
   /* set up parameter array */
   in_params[0] = (anything *)&func_id;
@@ -475,7 +460,7 @@ void cerhct_(f_integer *n, f_integer *erclas, f_integer *hflag)
   in_params[2] = (anything *)erclas;
   in_params[3] = (anything *)hflag;
 
-  for (i = 0; i < num_devices; ++i) {
+  for (short i = 0; i < num_devices; ++i) {
     (*devices[i].device_fn)(in_params, devices[i].num_on_surfaces, devices[i].statelist);
   } /* end for all devices */
 } /* end cerht */
@@ -487,14 +472,13 @@ void cerhct_(f_integer *n, f_integer *erclas, f_integer *hflag)
 /******************************************************************************/
 void ccixp_(f_integer *cip)
 {
-  short func_id = CCIXP_FN;
-  short i;
+  static short func_id = CCIXP_FN;
 
   /* set up parameter array */
   in_params[0] = (anything *)&func_id;
   in_params[1] = (anything *)cip;
 
-  for (i = 0; i < num_devices; ++i) {
+  for (short i = 0; i < num_devices; ++i) {
     (*devices[i].device_fn)(in_params, devices[i].num_on_surfaces, devices[i].statelist);
   } /* end for all devices */
 } /* end ccixp */
@@ -506,9 +490,8 @@ void ccixp_(f_integer *cip)
 /******************************************************************************/
 void cesc1_(f_integer *funcid, f_integer *ldr, char *data, f_integer *drec_size)
 {
-  char *data1;
-  short func_id = CESC_FN;
-  short i;
+  char        *data1;
+  static short func_id = CESC_FN;
 
   data1 = f2cchar(data); /* convert Fortran char ptr to C ptr */
 
@@ -524,7 +507,7 @@ void cesc1_(f_integer *funcid, f_integer *ldr, char *data, f_integer *drec_size)
   in_params[3] = (anything *)data1;
   in_params[4] = (anything *)drec_size;
 
-  for (i = 0; i < num_devices; ++i) {
+  for (short i = 0; i < num_devices; ++i) {
     (*devices[i].device_fn)(in_params, devices[i].num_on_surfaces, devices[i].statelist);
   } /* end for all devices */
 } /* end cesc */
@@ -536,12 +519,8 @@ void cesc1_(f_integer *funcid, f_integer *ldr, char *data, f_integer *drec_size)
 /******************************************************************************/
 void cqid_(f_integer *maxchr, f_integer *vstat, f_integer *dclass, char *devid)
 {
-  short     dev;       /* which device to look at now */
-  short     dev_found; /* which device was it found on */
-  short     func_id = CQID_FN;
-  short     surf;           /* which surface on device */
-  short     surf_found = 0; /* which active_surface was found */
-  anything *temp_surface[1];
+  static short func_id    = CQID_FN;
+  short        surf_found = 0; /* which active_surface was found */
 
   /* set up parameter array */
   in_params[0] = (anything *)&func_id;
@@ -551,9 +530,9 @@ void cqid_(f_integer *maxchr, f_integer *vstat, f_integer *dclass, char *devid)
   in_params[4] = (anything *)devid;
 
   /* search active devices for this surface */
-  dev_found = -1;
-  for (dev = 0; (dev < num_devices) && (dev_found == -1); ++dev) {
-    for (surf = 0; surf < devices[dev].num_active_surfaces; ++surf) {
+  short dev_found = -1;
+  for (short dev = 0; (dev < num_devices) && (dev_found == -1); ++dev) {
+    for (short surf = 0; surf < devices[dev].num_active_surfaces; ++surf) {
       if (sol_surf == devices[dev].statelist[surf]) {
         dev_found  = dev;
         surf_found = surf;
@@ -563,7 +542,7 @@ void cqid_(f_integer *maxchr, f_integer *vstat, f_integer *dclass, char *devid)
   }     /* end for all devices */
 
   if (dev_found != -1) {
-    temp_surface[0] = devices[dev_found].statelist[surf_found];
+    anything *temp_surface[] = {devices[dev_found].statelist[surf_found]};
     (*devices[dev_found].device_fn)(in_params, 1, temp_surface);
   } /* end if surface not found */
 
@@ -578,12 +557,8 @@ void cqd_(f_integer *vstat, f_integer *hscopy, f_integer *disp, f_integer *bcolo
           f_integer *dynvdm, f_integer *dx1, f_integer *dy1, f_integer *dx2, f_integer *dy2,
           f_real *width, f_real *height, f_integer *pixloc)
 {
-  short     dev;       /* which device to look at now */
-  short     dev_found; /* which device was it found on */
-  short     func_id = CQD_FN;
-  short     surf;           /* which surface on device */
-  short     surf_found = 0; /* which active_surface was found */
-  anything *temp_surface[1];
+  static short func_id    = CQD_FN;
+  short        surf_found = 0; /* which active_surface was found */
 
   /* set up parameter array */
   in_params[0]  = (anything *)&func_id;
@@ -602,9 +577,9 @@ void cqd_(f_integer *vstat, f_integer *hscopy, f_integer *disp, f_integer *bcolo
   in_params[13] = (anything *)pixloc;
 
   /* search active devices for this surface */
-  dev_found = -1;
-  for (dev = 0; (dev < num_devices) && (dev_found == -1); ++dev) {
-    for (surf = 0; surf < devices[dev].num_active_surfaces; ++surf) {
+  short dev_found = -1;
+  for (short dev = 0; (dev < num_devices) && (dev_found == -1); ++dev) {
+    for (short surf = 0; surf < devices[dev].num_active_surfaces; ++surf) {
       if (sol_surf == devices[dev].statelist[surf]) {
         dev_found  = dev;
         surf_found = surf;
@@ -614,7 +589,7 @@ void cqd_(f_integer *vstat, f_integer *hscopy, f_integer *disp, f_integer *bcolo
   }     /* end for all devices */
 
   if (dev_found != -1) {
-    temp_surface[0] = devices[dev_found].statelist[surf_found];
+    anything *temp_surface[] = {devices[dev_found].statelist[surf_found]};
     (*devices[dev_found].device_fn)(in_params, 1, temp_surface);
   } /* end if surface not found */
 
@@ -627,12 +602,8 @@ void cqd_(f_integer *vstat, f_integer *hscopy, f_integer *disp, f_integer *bcolo
 /******************************************************************************/
 void clf_(f_integer *n, f_integer *funccl, f_integer *funcid, f_integer *vstat, f_integer *supprt)
 {
-  short     dev;       /* which device to look at now */
-  short     dev_found; /* which device was it found on */
-  short     func_id = CLF_FN;
-  short     surf;           /* which surface on device */
-  short     surf_found = 0; /* which active_surface was found */
-  anything *temp_surface[1];
+  static short func_id    = CLF_FN;
+  short        surf_found = 0; /* which active_surface was found */
 
   /* set up parameter array */
   in_params[0] = (anything *)&func_id;
@@ -643,9 +614,9 @@ void clf_(f_integer *n, f_integer *funccl, f_integer *funcid, f_integer *vstat, 
   in_params[5] = (anything *)supprt;
 
   /* search active devices for this surface */
-  dev_found = -1;
-  for (dev = 0; (dev < num_devices) && (dev_found == -1); ++dev) {
-    for (surf = 0; surf < devices[dev].num_active_surfaces; ++surf) {
+  short dev_found = -1;
+  for (short dev = 0; (dev < num_devices) && (dev_found == -1); ++dev) {
+    for (short surf = 0; surf < devices[dev].num_active_surfaces; ++surf) {
       if (sol_surf == devices[dev].statelist[surf]) {
         dev_found  = dev;
         surf_found = surf;
@@ -655,7 +626,7 @@ void clf_(f_integer *n, f_integer *funccl, f_integer *funcid, f_integer *vstat, 
   }     /* end for all devices */
 
   if (dev_found != -1) {
-    temp_surface[0] = devices[dev_found].statelist[surf_found];
+    anything *temp_surface[] = {devices[dev_found].statelist[surf_found]};
     (*devices[dev_found].device_fn)(in_params, 1, temp_surface);
   } /* end if surface not found */
 
@@ -668,12 +639,8 @@ void clf_(f_integer *n, f_integer *funccl, f_integer *funcid, f_integer *vstat, 
 /******************************************************************************/
 void clpr_(f_integer *n, char *profid, f_integer *profid_size, f_integer *vstat, f_integer *supprt)
 {
-  short     dev;       /* which device to look at now */
-  short     dev_found; /* which device was it found on */
-  short     func_id = CLPR_FN;
-  short     surf;           /* which surface on device */
-  short     surf_found = 0; /* which active_surface was found */
-  anything *temp_surface[1];
+  static short func_id    = CLPR_FN;
+  short        surf_found = 0; /* which active_surface was found */
 
   /* set up parameter array */
   in_params[0] = (anything *)&func_id;
@@ -684,9 +651,9 @@ void clpr_(f_integer *n, char *profid, f_integer *profid_size, f_integer *vstat,
   in_params[5] = (anything *)supprt;
 
   /* search active devices for this surface */
-  dev_found = -1;
-  for (dev = 0; (dev < num_devices) && (dev_found == -1); ++dev) {
-    for (surf = 0; surf < devices[dev].num_active_surfaces; ++surf) {
+  short dev_found = -1;
+  for (short dev = 0; (dev < num_devices) && (dev_found == -1); ++dev) {
+    for (short surf = 0; surf < devices[dev].num_active_surfaces; ++surf) {
       if (sol_surf == devices[dev].statelist[surf]) {
         dev_found  = dev;
         surf_found = surf;
@@ -696,7 +663,7 @@ void clpr_(f_integer *n, char *profid, f_integer *profid_size, f_integer *vstat,
   }     /* end for all devices */
 
   if (dev_found != -1) {
-    temp_surface[0] = devices[dev_found].statelist[surf_found];
+    anything *temp_surface[] = {devices[dev_found].statelist[surf_found]};
     (*devices[dev_found].device_fn)(in_params, 1, temp_surface);
   } /* end if surface not found */
 
@@ -712,12 +679,8 @@ void cqsp_(f_integer *vstat, f_integer *nvip, f_integer *vip, f_integer *nvrp, f
            f_integer *rfmt, f_integer *rexp, f_integer *rfrac, f_integer *nixp, f_integer *ixp,
            f_integer *ncp, f_integer *cp, f_integer *ncixp, f_integer *cixp)
 {
-  short     dev;       /* which device to look at now */
-  short     dev_found; /* which device was it found on */
-  short     func_id = CQSP_FN;
-  short     surf;           /* which surface on device */
-  short     surf_found = 0; /* which active_surface was found */
-  anything *temp_surface[1];
+  static short func_id    = CQSP_FN;
+  short        surf_found = 0; /* which active_surface was found */
 
   /* set up parameter array */
   in_params[0]  = (anything *)&func_id;
@@ -742,9 +705,9 @@ void cqsp_(f_integer *vstat, f_integer *nvip, f_integer *vip, f_integer *nvrp, f
   in_params[19] = (anything *)cixp;
 
   /* search active devices for this surface */
-  dev_found = -1;
-  for (dev = 0; (dev < num_devices) && (dev_found == -1); ++dev) {
-    for (surf = 0; surf < devices[dev].num_active_surfaces; ++surf) {
+  short dev_found = -1;
+  for (short dev = 0; (dev < num_devices) && (dev_found == -1); ++dev) {
+    for (short surf = 0; surf < devices[dev].num_active_surfaces; ++surf) {
       if (sol_surf == devices[dev].statelist[surf]) {
         dev_found  = dev;
         surf_found = surf;
@@ -754,7 +717,7 @@ void cqsp_(f_integer *vstat, f_integer *nvip, f_integer *vip, f_integer *nvrp, f
   }     /* end for all devices */
 
   if (dev_found != -1) {
-    temp_surface[0] = devices[dev_found].statelist[surf_found];
+    anything *temp_surface[] = {devices[dev_found].statelist[surf_found]};
     (*devices[dev_found].device_fn)(in_params, 1, temp_surface);
   } /* end if surface not found */
 
@@ -767,12 +730,8 @@ void cqsp_(f_integer *vstat, f_integer *nvip, f_integer *vip, f_integer *nvrp, f
 /******************************************************************************/
 void clesc_(f_integer *n, f_integer *escid, f_integer *vstat, f_integer *supprt)
 {
-  short     dev;       /* which device to look at now */
-  short     dev_found; /* which device was it found on */
-  short     func_id = CLESC_FN;
-  short     surf;           /* which surface on device */
-  short     surf_found = 0; /* which active_surface was found */
-  anything *temp_surface[1];
+  static short func_id    = CLESC_FN;
+  short        surf_found = 0; /* which active_surface was found */
 
   /* set up parameter array */
   in_params[0] = (anything *)&func_id;
@@ -782,9 +741,9 @@ void clesc_(f_integer *n, f_integer *escid, f_integer *vstat, f_integer *supprt)
   in_params[4] = (anything *)supprt;
 
   /* search active devices for this surface */
-  dev_found = -1;
-  for (dev = 0; (dev < num_devices) && (dev_found == -1); ++dev) {
-    for (surf = 0; surf < devices[dev].num_active_surfaces; ++surf) {
+  short dev_found = -1;
+  for (short dev = 0; (dev < num_devices) && (dev_found == -1); ++dev) {
+    for (short surf = 0; surf < devices[dev].num_active_surfaces; ++surf) {
       if (sol_surf == devices[dev].statelist[surf]) {
         dev_found  = dev;
         surf_found = surf;
@@ -794,7 +753,8 @@ void clesc_(f_integer *n, f_integer *escid, f_integer *vstat, f_integer *supprt)
   }     /* end for all devices */
 
   if (dev_found != -1) {
-    temp_surface[0] = devices[dev_found].statelist[surf_found];
+    anything *temp_surface[] = {devices[dev_found].statelist[surf_found]};
+    temp_surface[0]          = devices[dev_found].statelist[surf_found];
     (*devices[dev_found].device_fn)(in_params, 1, temp_surface);
   } /* end if surface not found */
 
@@ -809,12 +769,8 @@ void cqp_(f_integer *vstat, f_integer *vip, f_integer *vrfmt, f_integer *vrexp, 
           f_integer *ip, f_integer *rfmt, f_integer *rexp, f_integer *rfrac, f_integer *ixp,
           f_integer *cp, f_integer *cixp)
 {
-  short     dev;       /* which device to look at now */
-  short     dev_found; /* which device was it found on */
-  short     func_id = CQP_FN;
-  short     surf;           /* which surface on device */
-  short     surf_found = 0; /* which active_surface was found */
-  anything *temp_surface[1];
+  static short func_id    = CQP_FN;
+  short        surf_found = 0; /* which active_surface was found */
 
   /* set up parameter array */
   in_params[0]  = (anything *)&func_id;
@@ -832,9 +788,9 @@ void cqp_(f_integer *vstat, f_integer *vip, f_integer *vrfmt, f_integer *vrexp, 
   in_params[12] = (anything *)cixp;
 
   /* search active devices for this surface */
-  dev_found = -1;
-  for (dev = 0; (dev < num_devices) && (dev_found == -1); ++dev) {
-    for (surf = 0; surf < devices[dev].num_active_surfaces; ++surf) {
+  short dev_found = -1;
+  for (short dev = 0; (dev < num_devices) && (dev_found == -1); ++dev) {
+    for (short surf = 0; surf < devices[dev].num_active_surfaces; ++surf) {
       if (sol_surf == devices[dev].statelist[surf]) {
         dev_found  = dev;
         surf_found = surf;
@@ -844,7 +800,7 @@ void cqp_(f_integer *vstat, f_integer *vip, f_integer *vrfmt, f_integer *vrexp, 
   }     /* end for all devices */
 
   if (dev_found != -1) {
-    temp_surface[0] = devices[dev_found].statelist[surf_found];
+    anything *temp_surface[] = {devices[dev_found].statelist[surf_found]};
     (*devices[dev_found].device_fn)(in_params, 1, temp_surface);
   } /* end if surface not found */
 
@@ -858,12 +814,8 @@ void cqp_(f_integer *vstat, f_integer *vip, f_integer *vrfmt, f_integer *vrexp, 
 void cqcl_(f_integer *vstat, f_integer *clip1, f_integer *clipr, f_integer *sclip1,
            f_integer *sclipr)
 {
-  short     dev;       /* which device to look at now */
-  short     dev_found; /* which device was it found on */
-  short     func_id = CQCL_FN;
-  short     surf;           /* which surface on device */
-  short     surf_found = 0; /* which active_surface was found */
-  anything *temp_surface[1];
+  static short func_id    = CQCL_FN;
+  short        surf_found = 0; /* which active_surface was found */
 
   /* set up parameter array */
   in_params[0] = (anything *)&func_id;
@@ -874,9 +826,9 @@ void cqcl_(f_integer *vstat, f_integer *clip1, f_integer *clipr, f_integer *scli
   in_params[5] = (anything *)sclipr;
 
   /* search active devices for this surface */
-  dev_found = -1;
-  for (dev = 0; (dev < num_devices) && (dev_found == -1); ++dev) {
-    for (surf = 0; surf < devices[dev].num_active_surfaces; ++surf) {
+  short dev_found = -1;
+  for (short dev = 0; (dev < num_devices) && (dev_found == -1); ++dev) {
+    for (short surf = 0; surf < devices[dev].num_active_surfaces; ++surf) {
       if (sol_surf == devices[dev].statelist[surf]) {
         dev_found  = dev;
         surf_found = surf;
@@ -886,7 +838,7 @@ void cqcl_(f_integer *vstat, f_integer *clip1, f_integer *clipr, f_integer *scli
   }     /* end for all devices */
 
   if (dev_found != -1) {
-    temp_surface[0] = devices[dev_found].statelist[surf_found];
+    anything *temp_surface[] = {devices[dev_found].statelist[surf_found]};
     (*devices[dev_found].device_fn)(in_params, 1, temp_surface);
   } /* end if surface not found */
 
@@ -899,8 +851,7 @@ void cqcl_(f_integer *vstat, f_integer *clip1, f_integer *clipr, f_integer *scli
 /******************************************************************************/
 void cpl_(f_integer *np, f_real *px, f_real *py)
 {
-  short func_id = CPL_FN;
-  short i;
+  static short func_id = CPL_FN;
 
   /* set up parameter array */
   in_params[0] = (anything *)&func_id;
@@ -908,7 +859,7 @@ void cpl_(f_integer *np, f_real *px, f_real *py)
   in_params[2] = (anything *)px;
   in_params[3] = (anything *)py;
 
-  for (i = 0; i < num_devices; ++i) {
+  for (short i = 0; i < num_devices; ++i) {
     (*devices[i].device_fn)(in_params, devices[i].num_on_surfaces, devices[i].statelist);
   } /* end for all devices */
 } /* end cpl */
@@ -920,8 +871,7 @@ void cpl_(f_integer *np, f_real *px, f_real *py)
 /******************************************************************************/
 void cdjpl_(f_integer *np, f_real *px, f_real *py)
 {
-  short func_id = CDJPL_FN;
-  short i;
+  static short func_id = CDJPL_FN;
 
   /* set up parameter array */
   in_params[0] = (anything *)&func_id;
@@ -929,7 +879,7 @@ void cdjpl_(f_integer *np, f_real *px, f_real *py)
   in_params[2] = (anything *)px;
   in_params[3] = (anything *)py;
 
-  for (i = 0; i < num_devices; ++i) {
+  for (short i = 0; i < num_devices; ++i) {
     (*devices[i].device_fn)(in_params, devices[i].num_on_surfaces, devices[i].statelist);
   } /* end for all devices */
 } /* end cdjpl */
@@ -941,8 +891,7 @@ void cdjpl_(f_integer *np, f_real *px, f_real *py)
 /******************************************************************************/
 void cpm_(f_integer *np, f_real *px, f_real *py)
 {
-  short func_id = CPM_FN;
-  short i;
+  static short func_id = CPM_FN;
 
   /* set up parameter array */
   in_params[0] = (anything *)&func_id;
@@ -950,7 +899,7 @@ void cpm_(f_integer *np, f_real *px, f_real *py)
   in_params[2] = (anything *)px;
   in_params[3] = (anything *)py;
 
-  for (i = 0; i < num_devices; ++i) {
+  for (short i = 0; i < num_devices; ++i) {
     (*devices[i].device_fn)(in_params, devices[i].num_on_surfaces, devices[i].statelist);
   } /* end for all devices */
 } /* end cpm */
@@ -962,9 +911,8 @@ void cpm_(f_integer *np, f_real *px, f_real *py)
 /******************************************************************************/
 void ctx1_(f_real *x, f_real *y, f_integer *flag, char *text, f_integer *text_size)
 {
-  char *text1;
-  short func_id = CTX_FN;
-  short i;
+  char        *text1;
+  static short func_id = CTX_FN;
 
   text1 = f2cchar(text); /* convert Fortran char ptr to C ptr */
 
@@ -976,7 +924,7 @@ void ctx1_(f_real *x, f_real *y, f_integer *flag, char *text, f_integer *text_si
   in_params[4] = (anything *)text1;
   in_params[5] = (anything *)text_size;
 
-  for (i = 0; i < num_devices; ++i) {
+  for (short i = 0; i < num_devices; ++i) {
     (*devices[i].device_fn)(in_params, devices[i].num_on_surfaces, devices[i].statelist);
   } /* end for all devices */
 } /* end ctx */
@@ -988,8 +936,7 @@ void ctx1_(f_real *x, f_real *y, f_integer *flag, char *text, f_integer *text_si
 /******************************************************************************/
 void cpg_(f_integer *np, f_real *px, f_real *py)
 {
-  short func_id = CPG_FN;
-  short i;
+  static short func_id = CPG_FN;
 
   /* set up parameter array */
   in_params[0] = (anything *)&func_id;
@@ -997,7 +944,7 @@ void cpg_(f_integer *np, f_real *px, f_real *py)
   in_params[2] = (anything *)px;
   in_params[3] = (anything *)py;
 
-  for (i = 0; i < num_devices; ++i) {
+  for (short i = 0; i < num_devices; ++i) {
     (*devices[i].device_fn)(in_params, devices[i].num_on_surfaces, devices[i].statelist);
   } /* end for all devices */
 } /* end cpg */
@@ -1010,8 +957,7 @@ void cpg_(f_integer *np, f_real *px, f_real *py)
 void cca_(f_real *x1, f_real *y1, f_real *x2, f_real *y2, f_real *x3, f_real *y3, f_integer *nx,
           f_integer *ny, f_integer *lcp, f_integer *cells)
 {
-  short func_id = CCA_FN;
-  short i;
+  static short func_id = CCA_FN;
 
   /* set up parameter array */
   in_params[0]  = (anything *)&func_id;
@@ -1026,7 +972,7 @@ void cca_(f_real *x1, f_real *y1, f_real *x2, f_real *y2, f_real *x3, f_real *y3
   in_params[9]  = (anything *)lcp;
   in_params[10] = (anything *)cells;
 
-  for (i = 0; i < num_devices; ++i) {
+  for (short i = 0; i < num_devices; ++i) {
     (*devices[i].device_fn)(in_params, devices[i].num_on_surfaces, devices[i].statelist);
   } /* end for all devices */
 } /* end cca */
@@ -1038,14 +984,13 @@ void cca_(f_real *x1, f_real *y1, f_real *x2, f_real *y2, f_real *x3, f_real *y3
 /******************************************************************************/
 void clnt_(f_integer *lntyp)
 {
-  short func_id = CLNT_FN;
-  short i;
+  static short func_id = CLNT_FN;
 
   /* set up parameter array */
   in_params[0] = (anything *)&func_id;
   in_params[1] = (anything *)lntyp;
 
-  for (i = 0; i < num_devices; ++i) {
+  for (short i = 0; i < num_devices; ++i) {
     (*devices[i].device_fn)(in_params, devices[i].num_on_surfaces, devices[i].statelist);
   } /* end for all devices */
 } /* end clnt */
@@ -1057,14 +1002,13 @@ void clnt_(f_integer *lntyp)
 /******************************************************************************/
 void clnw_(f_real *lnwid)
 {
-  short func_id = CLNW_FN;
-  short i;
+  static short func_id = CLNW_FN;
 
   /* set up parameter array */
   in_params[0] = (anything *)&func_id;
   in_params[1] = (anything *)lnwid;
 
-  for (i = 0; i < num_devices; ++i) {
+  for (short i = 0; i < num_devices; ++i) {
     (*devices[i].device_fn)(in_params, devices[i].num_on_surfaces, devices[i].statelist);
   } /* end for all devices */
 } /* end clnw */
@@ -1076,14 +1020,13 @@ void clnw_(f_real *lnwid)
 /******************************************************************************/
 void clnc_(f_integer *lnclr)
 {
-  short func_id = CLNC_FN;
-  short i;
+  static short func_id = CLNC_FN;
 
   /* set up parameter array */
   in_params[0] = (anything *)&func_id;
   in_params[1] = (anything *)lnclr;
 
-  for (i = 0; i < num_devices; ++i) {
+  for (short i = 0; i < num_devices; ++i) {
     (*devices[i].device_fn)(in_params, devices[i].num_on_surfaces, devices[i].statelist);
   } /* end for all devices */
 } /* end clnc */
@@ -1095,14 +1038,13 @@ void clnc_(f_integer *lnclr)
 /******************************************************************************/
 void cmkt_(f_integer *mktyp)
 {
-  short func_id = CMKT_FN;
-  short i;
+  static short func_id = CMKT_FN;
 
   /* set up parameter array */
   in_params[0] = (anything *)&func_id;
   in_params[1] = (anything *)mktyp;
 
-  for (i = 0; i < num_devices; ++i) {
+  for (short i = 0; i < num_devices; ++i) {
     (*devices[i].device_fn)(in_params, devices[i].num_on_surfaces, devices[i].statelist);
   } /* end for all devices */
 } /* end cmkt*/
@@ -1114,14 +1056,13 @@ void cmkt_(f_integer *mktyp)
 /******************************************************************************/
 void cmkc_(f_integer *mkclr)
 {
-  short func_id = CMKC_FN;
-  short i;
+  static short func_id = CMKC_FN;
 
   /* set up parameter array */
   in_params[0] = (anything *)&func_id;
   in_params[1] = (anything *)mkclr;
 
-  for (i = 0; i < num_devices; ++i) {
+  for (short i = 0; i < num_devices; ++i) {
     (*devices[i].device_fn)(in_params, devices[i].num_on_surfaces, devices[i].statelist);
   } /* end for all devices */
 } /* end cmkc*/
@@ -1133,14 +1074,13 @@ void cmkc_(f_integer *mkclr)
 /******************************************************************************/
 void ctxp_(f_integer *txp)
 {
-  short func_id = CTXP_FN;
-  short i;
+  static short func_id = CTXP_FN;
 
   /* set up parameter array */
   in_params[0] = (anything *)&func_id;
   in_params[1] = (anything *)txp;
 
-  for (i = 0; i < num_devices; ++i) {
+  for (short i = 0; i < num_devices; ++i) {
     (*devices[i].device_fn)(in_params, devices[i].num_on_surfaces, devices[i].statelist);
   } /* end for all devices */
 } /* end ctxp */
@@ -1152,14 +1092,13 @@ void ctxp_(f_integer *txp)
 /******************************************************************************/
 void ctxc_(f_integer *txclr)
 {
-  short func_id = CTXC_FN;
-  short i;
+  static short func_id = CTXC_FN;
 
   /* set up parameter array */
   in_params[0] = (anything *)&func_id;
   in_params[1] = (anything *)txclr;
 
-  for (i = 0; i < num_devices; ++i) {
+  for (short i = 0; i < num_devices; ++i) {
     (*devices[i].device_fn)(in_params, devices[i].num_on_surfaces, devices[i].statelist);
   } /* end for all devices */
 } /* end ctxc */
@@ -1171,14 +1110,13 @@ void ctxc_(f_integer *txclr)
 /******************************************************************************/
 void cchh_(f_real *chhit)
 {
-  short func_id = CCHH_FN;
-  short i;
+  static short func_id = CCHH_FN;
 
   /* set up parameter array */
   in_params[0] = (anything *)&func_id;
   in_params[1] = (anything *)chhit;
 
-  for (i = 0; i < num_devices; ++i) {
+  for (short i = 0; i < num_devices; ++i) {
     (*devices[i].device_fn)(in_params, devices[i].num_on_surfaces, devices[i].statelist);
   } /* end for all devices */
 } /* end cchh */
@@ -1190,8 +1128,7 @@ void cchh_(f_real *chhit)
 /******************************************************************************/
 void ccho_(f_integer *xup, f_integer *yup, f_integer *xbase, f_integer *ybase)
 {
-  short func_id = CCHO_FN;
-  short i;
+  static short func_id = CCHO_FN;
 
   /* set up parameter array */
   in_params[0] = (anything *)&func_id;
@@ -1200,7 +1137,7 @@ void ccho_(f_integer *xup, f_integer *yup, f_integer *xbase, f_integer *ybase)
   in_params[3] = (anything *)xbase;
   in_params[4] = (anything *)ybase;
 
-  for (i = 0; i < num_devices; ++i) {
+  for (short i = 0; i < num_devices; ++i) {
     (*devices[i].device_fn)(in_params, devices[i].num_on_surfaces, devices[i].statelist);
   } /* end for all devices */
 } /* end ccho */
@@ -1212,14 +1149,13 @@ void ccho_(f_integer *xup, f_integer *yup, f_integer *xbase, f_integer *ybase)
 /******************************************************************************/
 void cis_(f_integer *instyl)
 {
-  short func_id = CIS_FN;
-  short i;
+  static short func_id = CIS_FN;
 
   /* set up parameter array */
   in_params[0] = (anything *)&func_id;
   in_params[1] = (anything *)instyl;
 
-  for (i = 0; i < num_devices; ++i) {
+  for (short i = 0; i < num_devices; ++i) {
     (*devices[i].device_fn)(in_params, devices[i].num_on_surfaces, devices[i].statelist);
   } /* end for all devices */
 } /* end cis*/
@@ -1231,14 +1167,13 @@ void cis_(f_integer *instyl)
 /******************************************************************************/
 void cflc_(f_integer *fclr)
 {
-  short func_id = CFLC_FN;
-  short i;
+  static short func_id = CFLC_FN;
 
   /* set up parameter array */
   in_params[0] = (anything *)&func_id;
   in_params[1] = (anything *)fclr;
 
-  for (i = 0; i < num_devices; ++i) {
+  for (short i = 0; i < num_devices; ++i) {
     (*devices[i].device_fn)(in_params, devices[i].num_on_surfaces, devices[i].statelist);
   } /* end for all devices */
 } /* end cflc*/
@@ -1250,14 +1185,13 @@ void cflc_(f_integer *fclr)
 /******************************************************************************/
 void ccsm_(f_integer *csmode)
 {
-  short func_id = CCSM_FN;
-  short i;
+  static short func_id = CCSM_FN;
 
   /* set up parameter array */
   in_params[0] = (anything *)&func_id;
   in_params[1] = (anything *)csmode;
 
-  for (i = 0; i < num_devices; ++i) {
+  for (short i = 0; i < num_devices; ++i) {
     (*devices[i].device_fn)(in_params, devices[i].num_on_surfaces, devices[i].statelist);
   } /* end for all devices */
 } /* end ccsm */
@@ -1269,8 +1203,7 @@ void ccsm_(f_integer *csmode)
 /******************************************************************************/
 void cct_(f_integer *starti, f_integer *nclrs, f_integer *clrs)
 {
-  short func_id = CCT_FN;
-  short i;
+  static short func_id = CCT_FN;
 
   /* set up parameter array */
   in_params[0] = (anything *)&func_id;
@@ -1278,7 +1211,7 @@ void cct_(f_integer *starti, f_integer *nclrs, f_integer *clrs)
   in_params[2] = (anything *)nclrs;
   in_params[3] = (anything *)clrs;
 
-  for (i = 0; i < num_devices; ++i) {
+  for (short i = 0; i < num_devices; ++i) {
     (*devices[i].device_fn)(in_params, devices[i].num_on_surfaces, devices[i].statelist);
   } /* end for all devices */
 } /* end cct */
@@ -1292,13 +1225,9 @@ void cgtxx1_(f_real *x, f_real *y, char *string, f_integer *vstat, f_integer *vc
              f_real *yconc, f_real *x1, f_real *y1, f_real *x2, f_real *y2, f_real *x3, f_real *y3,
              f_real *x4, f_real *y4, f_integer *string_size)
 {
-  char *    string1;
-  short     dev;       /* which device to look at now */
-  short     dev_found; /* which device was it found on */
-  short     func_id = CGTXX_FN;
-  short     surf;           /* which surface on device */
-  short     surf_found = 0; /* which active_surface was found */
-  anything *temp_surface[1];
+  char        *string1;
+  static short func_id    = CGTXX_FN;
+  short        surf_found = 0; /* which active_surface was found */
 
   string1 = f2cchar(string); /* convert Fortran char ptr to C ptr */
 
@@ -1322,9 +1251,9 @@ void cgtxx1_(f_real *x, f_real *y, char *string, f_integer *vstat, f_integer *vc
   in_params[16] = (anything *)string_size;
 
   /* search active devices for this surface */
-  dev_found = -1;
-  for (dev = 0; (dev < num_devices) && (dev_found == -1); ++dev) {
-    for (surf = 0; surf < devices[dev].num_active_surfaces; ++surf) {
+  short dev_found = -1;
+  for (short dev = 0; (dev < num_devices) && (dev_found == -1); ++dev) {
+    for (short surf = 0; surf < devices[dev].num_active_surfaces; ++surf) {
       if (sol_surf == devices[dev].statelist[surf]) {
         dev_found  = dev;
         surf_found = surf;
@@ -1334,7 +1263,7 @@ void cgtxx1_(f_real *x, f_real *y, char *string, f_integer *vstat, f_integer *vc
   }     /* end for all devices */
 
   if (dev_found != -1) {
-    temp_surface[0] = devices[dev_found].statelist[surf_found];
+    anything *temp_surface[] = {devices[dev_found].statelist[surf_found]};
     (*devices[dev_found].device_fn)(in_params, 1, temp_surface);
   } /* end if surface not found */
 
@@ -1350,12 +1279,8 @@ void cqprl_(f_integer *vstat, f_integer *maxpl, f_integer *maxdpl, f_integer *ma
             f_integer *maxcel, f_integer *celfil, f_integer *celaln, f_integer *comptx,
             f_integer *clofig)
 {
-  short     dev;       /* which device to look at now */
-  short     dev_found; /* which device was it found on */
-  short     func_id = CQPRL_FN;
-  short     surf;           /* which surface on device */
-  short     surf_found = 0; /* which active_surface was found */
-  anything *temp_surface[1];
+  static short func_id    = CQPRL_FN;
+  short        surf_found = 0; /* which active_surface was found */
 
   /* set up parameter array */
   in_params[0]  = (anything *)&func_id;
@@ -1374,9 +1299,9 @@ void cqprl_(f_integer *vstat, f_integer *maxpl, f_integer *maxdpl, f_integer *ma
   in_params[13] = (anything *)clofig;
 
   /* search active devices for this surface */
-  dev_found = -1;
-  for (dev = 0; (dev < num_devices) && (dev_found == -1); ++dev) {
-    for (surf = 0; surf < devices[dev].num_active_surfaces; ++surf) {
+  short dev_found = -1;
+  for (short dev = 0; (dev < num_devices) && (dev_found == -1); ++dev) {
+    for (short surf = 0; surf < devices[dev].num_active_surfaces; ++surf) {
       if (sol_surf == devices[dev].statelist[surf]) {
         dev_found  = dev;
         surf_found = surf;
@@ -1386,7 +1311,7 @@ void cqprl_(f_integer *vstat, f_integer *maxpl, f_integer *maxdpl, f_integer *ma
   }     /* end for all devices */
 
   if (dev_found != -1) {
-    temp_surface[0] = devices[dev_found].statelist[surf_found];
+    anything *temp_surface[] = {devices[dev_found].statelist[surf_found]};
     (*devices[dev_found].device_fn)(in_params, 1, temp_surface);
   } /* end if surface not found */
 
@@ -1400,12 +1325,8 @@ void cqprl_(f_integer *vstat, f_integer *maxpl, f_integer *maxdpl, f_integer *ma
 void cqln_(f_integer *vstat, f_integer *npdefb, f_integer *nsetb, f_integer *maxbi,
            f_integer *dynmod, f_integer *nomwid, f_integer *minwid, f_integer *maxwid)
 {
-  short     dev;       /* which device to look at now */
-  short     dev_found; /* which device was it found on */
-  short     func_id = CQLN_FN;
-  short     surf;           /* which surface on device */
-  short     surf_found = 0; /* which active_surface was found */
-  anything *temp_surface[1];
+  static short func_id    = CQLN_FN;
+  short        surf_found = 0; /* which active_surface was found */
 
   /* set up parameter array */
   in_params[0] = (anything *)&func_id;
@@ -1419,9 +1340,9 @@ void cqln_(f_integer *vstat, f_integer *npdefb, f_integer *nsetb, f_integer *max
   in_params[8] = (anything *)maxwid;
 
   /* search active devices for this surface */
-  dev_found = -1;
-  for (dev = 0; (dev < num_devices) && (dev_found == -1); ++dev) {
-    for (surf = 0; surf < devices[dev].num_active_surfaces; ++surf) {
+  short dev_found = -1;
+  for (short dev = 0; (dev < num_devices) && (dev_found == -1); ++dev) {
+    for (short surf = 0; surf < devices[dev].num_active_surfaces; ++surf) {
       if (sol_surf == devices[dev].statelist[surf]) {
         dev_found  = dev;
         surf_found = surf;
@@ -1431,7 +1352,7 @@ void cqln_(f_integer *vstat, f_integer *npdefb, f_integer *nsetb, f_integer *max
   }     /* end for all devices */
 
   if (dev_found != -1) {
-    temp_surface[0] = devices[dev_found].statelist[surf_found];
+    anything *temp_surface[] = {devices[dev_found].statelist[surf_found]};
     (*devices[dev_found].device_fn)(in_params, 1, temp_surface);
   } /* end if surface not found */
 
@@ -1445,12 +1366,8 @@ void cqln_(f_integer *vstat, f_integer *npdefb, f_integer *nsetb, f_integer *max
 void cqlnt_(f_integer *nreq, f_integer *first, f_integer *vstat, f_integer *ntotal,
             f_integer *nlist, f_integer *lntyp)
 {
-  short     dev;       /* which device to look at now */
-  short     dev_found; /* which device was it found on */
-  short     func_id = CQLNT_FN;
-  short     surf;           /* which surface on device */
-  short     surf_found = 0; /* which active_surface was found */
-  anything *temp_surface[1];
+  static short func_id    = CQLNT_FN;
+  short        surf_found = 0; /* which active_surface was found */
 
   /* set up parameter array */
   in_params[0] = (anything *)&func_id;
@@ -1462,9 +1379,9 @@ void cqlnt_(f_integer *nreq, f_integer *first, f_integer *vstat, f_integer *ntot
   in_params[6] = (anything *)lntyp;
 
   /* search active devices for this surface */
-  dev_found = -1;
-  for (dev = 0; (dev < num_devices) && (dev_found == -1); ++dev) {
-    for (surf = 0; surf < devices[dev].num_active_surfaces; ++surf) {
+  short dev_found = -1;
+  for (short dev = 0; (dev < num_devices) && (dev_found == -1); ++dev) {
+    for (short surf = 0; surf < devices[dev].num_active_surfaces; ++surf) {
       if (sol_surf == devices[dev].statelist[surf]) {
         dev_found  = dev;
         surf_found = surf;
@@ -1474,7 +1391,7 @@ void cqlnt_(f_integer *nreq, f_integer *first, f_integer *vstat, f_integer *ntot
   }     /* end for all devices */
 
   if (dev_found != -1) {
-    temp_surface[0] = devices[dev_found].statelist[surf_found];
+    anything *temp_surface[] = {devices[dev_found].statelist[surf_found]};
     (*devices[dev_found].device_fn)(in_params, 1, temp_surface);
   } /* end if surface not found */
 
@@ -1488,13 +1405,9 @@ void cqlnt_(f_integer *nreq, f_integer *first, f_integer *vstat, f_integer *ntot
 void cqchh1_(char *font, f_integer *txp, f_integer *nreq, f_integer *first, f_integer *vstat,
              f_integer *ntotal, f_integer *nlist, f_integer *chhit, f_integer *font_size)
 {
-  char *    font1;
-  short     dev;       /* which device to look at now */
-  short     dev_found; /* which device was it found on */
-  short     func_id = CQCHH_FN;
-  short     surf;           /* which surface on device */
-  short     surf_found = 0; /* which active_surface was found */
-  anything *temp_surface[1];
+  char        *font1;
+  static short func_id    = CQCHH_FN;
+  short        surf_found = 0; /* which active_surface was found */
 
   font1 = f2cchar(font); /* convert Fortran char ptr to C ptr */
 
@@ -1511,9 +1424,9 @@ void cqchh1_(char *font, f_integer *txp, f_integer *nreq, f_integer *first, f_in
   in_params[9] = (anything *)font_size;
 
   /* search active devices for this surface */
-  dev_found = -1;
-  for (dev = 0; (dev < num_devices) && (dev_found == -1); ++dev) {
-    for (surf = 0; surf < devices[dev].num_active_surfaces; ++surf) {
+  short dev_found = -1;
+  for (short dev = 0; (dev < num_devices) && (dev_found == -1); ++dev) {
+    for (short surf = 0; surf < devices[dev].num_active_surfaces; ++surf) {
       if (sol_surf == devices[dev].statelist[surf]) {
         dev_found  = dev;
         surf_found = surf;
@@ -1523,7 +1436,7 @@ void cqchh1_(char *font, f_integer *txp, f_integer *nreq, f_integer *first, f_in
   }     /* end for all devices */
 
   if (dev_found != -1) {
-    temp_surface[0] = devices[dev_found].statelist[surf_found];
+    anything *temp_surface[] = {devices[dev_found].statelist[surf_found]};
     (*devices[dev_found].device_fn)(in_params, 1, temp_surface);
   } /* end if surface not found */
 
@@ -1539,12 +1452,8 @@ void cqfl_(f_integer *vstat, f_integer *npdefb, f_integer *nsetb, f_integer *max
            f_integer *nsetp, f_integer *maxpi, f_integer *pdiv, f_integer *maxpx, f_integer *maxpy,
            f_integer *ptrans)
 {
-  short     dev;       /* which device to look at now */
-  short     dev_found; /* which device was it found on */
-  short     func_id = CQFL_FN;
-  short     surf;           /* which surface on device */
-  short     surf_found = 0; /* which active_surface was found */
-  anything *temp_surface[1];
+  static short func_id    = CQFL_FN;
+  short        surf_found = 0; /* which active_surface was found */
 
   /* set up parameter array */
   in_params[0]  = (anything *)&func_id;
@@ -1564,9 +1473,9 @@ void cqfl_(f_integer *vstat, f_integer *npdefb, f_integer *nsetb, f_integer *max
   in_params[14] = (anything *)ptrans;
 
   /* search active devices for this surface */
-  dev_found = -1;
-  for (dev = 0; (dev < num_devices) && (dev_found == -1); ++dev) {
-    for (surf = 0; surf < devices[dev].num_active_surfaces; ++surf) {
+  short dev_found = -1;
+  for (short dev = 0; (dev < num_devices) && (dev_found == -1); ++dev) {
+    for (short surf = 0; surf < devices[dev].num_active_surfaces; ++surf) {
       if (sol_surf == devices[dev].statelist[surf]) {
         dev_found  = dev;
         surf_found = surf;
@@ -1576,7 +1485,7 @@ void cqfl_(f_integer *vstat, f_integer *npdefb, f_integer *nsetb, f_integer *max
   }     /* end for all devices */
 
   if (dev_found != -1) {
-    temp_surface[0] = devices[dev_found].statelist[surf_found];
+    anything *temp_surface[] = {devices[dev_found].statelist[surf_found]};
     (*devices[dev_found].device_fn)(in_params, 1, temp_surface);
   } /* end if surface not found */
 
@@ -1590,12 +1499,8 @@ void cqfl_(f_integer *vstat, f_integer *npdefb, f_integer *nsetb, f_integer *max
 void cqc_(f_integer *vstat, f_integer *nsimul, f_integer *navail, f_integer *nint, f_integer *cmode,
           f_integer *dynmod, f_integer *overit, f_integer *monoc)
 {
-  short     dev;       /* which device to look at now */
-  short     dev_found; /* which device was it found on */
-  short     func_id = CQC_FN;
-  short     surf;           /* which surface on device */
-  short     surf_found = 0; /* which active_surface was found */
-  anything *temp_surface[1];
+  static short func_id    = CQC_FN;
+  short        surf_found = 0; /* which active_surface was found */
 
   /* set up parameter array */
   in_params[0] = (anything *)&func_id;
@@ -1609,9 +1514,9 @@ void cqc_(f_integer *vstat, f_integer *nsimul, f_integer *navail, f_integer *nin
   in_params[8] = (anything *)monoc;
 
   /* search active devices for this surface */
-  dev_found = -1;
-  for (dev = 0; (dev < num_devices) && (dev_found == -1); ++dev) {
-    for (surf = 0; surf < devices[dev].num_active_surfaces; ++surf) {
+  short dev_found = -1;
+  for (short dev = 0; (dev < num_devices) && (dev_found == -1); ++dev) {
+    for (short surf = 0; surf < devices[dev].num_active_surfaces; ++surf) {
       if (sol_surf == devices[dev].statelist[surf]) {
         dev_found  = dev;
         surf_found = surf;
@@ -1621,7 +1526,7 @@ void cqc_(f_integer *vstat, f_integer *nsimul, f_integer *navail, f_integer *nin
   }     /* end for all devices */
 
   if (dev_found != -1) {
-    temp_surface[0] = devices[dev_found].statelist[surf_found];
+    anything *temp_surface[] = {devices[dev_found].statelist[surf_found]};
     (*devices[dev_found].device_fn)(in_params, 1, temp_surface);
   } /* end if surface not found */
 
@@ -1635,12 +1540,8 @@ void cqc_(f_integer *vstat, f_integer *nsimul, f_integer *navail, f_integer *nin
 void cqlna_(f_integer *vstat, f_integer *lnbi, f_integer *lntyp, f_integer *lwmode,
             f_integer *lnwid, f_integer *csmode, f_integer *lnclr, f_integer *lcmode)
 {
-  short     dev;       /* which device to look at now */
-  short     dev_found; /* which device was it found on */
-  short     func_id = CQLNA_FN;
-  short     surf;           /* which surface on device */
-  short     surf_found = 0; /* which active_surface was found */
-  anything *temp_surface[1];
+  static short func_id    = CQLNA_FN;
+  short        surf_found = 0; /* which active_surface was found */
 
   /* set up parameter array */
   in_params[0] = (anything *)&func_id;
@@ -1654,9 +1555,9 @@ void cqlna_(f_integer *vstat, f_integer *lnbi, f_integer *lntyp, f_integer *lwmo
   in_params[8] = (anything *)lcmode;
 
   /* search active devices for this surface */
-  dev_found = -1;
-  for (dev = 0; (dev < num_devices) && (dev_found == -1); ++dev) {
-    for (surf = 0; surf < devices[dev].num_active_surfaces; ++surf) {
+  short dev_found = -1;
+  for (short dev = 0; (dev < num_devices) && (dev_found == -1); ++dev) {
+    for (short surf = 0; surf < devices[dev].num_active_surfaces; ++surf) {
       if (sol_surf == devices[dev].statelist[surf]) {
         dev_found  = dev;
         surf_found = surf;
@@ -1666,7 +1567,7 @@ void cqlna_(f_integer *vstat, f_integer *lnbi, f_integer *lntyp, f_integer *lwmo
   }     /* end for all devices */
 
   if (dev_found != -1) {
-    temp_surface[0] = devices[dev_found].statelist[surf_found];
+    anything *temp_surface[] = {devices[dev_found].statelist[surf_found]};
     (*devices[dev_found].device_fn)(in_params, 1, temp_surface);
   } /* end if surface not found */
 
@@ -1682,12 +1583,8 @@ void cqtxa_(f_integer *vstat, f_integer *txbi, f_integer *fonti, f_integer *font
             f_real *orient[4], f_integer *txpath, f_integer *horal, f_real *contha,
             f_integer *veral, f_real *contva, f_integer *chsi, f_integer *achsi)
 {
-  short     dev;       /* which device to look at now */
-  short     dev_found; /* which device was it found on */
-  short     func_id = CQTXA_FN;
-  short     surf;           /* which surface on device */
-  short     surf_found = 0; /* which active_surface was found */
-  anything *temp_surface[1];
+  static short func_id    = CQTXA_FN;
+  short        surf_found = 0; /* which active_surface was found */
 
   /* set up parameter array */
   in_params[0]  = (anything *)&func_id;
@@ -1710,9 +1607,9 @@ void cqtxa_(f_integer *vstat, f_integer *txbi, f_integer *fonti, f_integer *font
   in_params[17] = (anything *)achsi;
 
   /* search active devices for this surface */
-  dev_found = -1;
-  for (dev = 0; (dev < num_devices) && (dev_found == -1); ++dev) {
-    for (surf = 0; surf < devices[dev].num_active_surfaces; ++surf) {
+  short dev_found = -1;
+  for (short dev = 0; (dev < num_devices) && (dev_found == -1); ++dev) {
+    for (short surf = 0; surf < devices[dev].num_active_surfaces; ++surf) {
       if (sol_surf == devices[dev].statelist[surf]) {
         dev_found  = dev;
         surf_found = surf;
@@ -1722,7 +1619,7 @@ void cqtxa_(f_integer *vstat, f_integer *txbi, f_integer *fonti, f_integer *font
   }     /* end for all devices */
 
   if (dev_found != -1) {
-    temp_surface[0] = devices[dev_found].statelist[surf_found];
+    anything *temp_surface[] = {devices[dev_found].statelist[surf_found]};
     (*devices[dev_found].device_fn)(in_params, 1, temp_surface);
   } /* end if surface not found */
 
@@ -1736,12 +1633,8 @@ void cqtxa_(f_integer *vstat, f_integer *txbi, f_integer *fonti, f_integer *font
 void cqcte_(f_integer *nreq, f_integer *first, f_integer *vstat, f_integer *ntotal,
             f_integer *nlist, f_integer *colors)
 {
-  short     dev;       /* which device to look at now */
-  short     dev_found; /* which device was it found on */
-  short     func_id = CQCTE_FN;
-  short     surf;           /* which surface on device */
-  short     surf_found = 0; /* which active_surface was found */
-  anything *temp_surface[1];
+  static short func_id    = CQCTE_FN;
+  short        surf_found = 0; /* which active_surface was found */
 
   /* set up parameter array */
   in_params[0] = (anything *)&func_id;
@@ -1753,9 +1646,9 @@ void cqcte_(f_integer *nreq, f_integer *first, f_integer *vstat, f_integer *ntot
   in_params[6] = (anything *)colors;
 
   /* search active devices for this surface */
-  dev_found = -1;
-  for (dev = 0; (dev < num_devices) && (dev_found == -1); ++dev) {
-    for (surf = 0; surf < devices[dev].num_active_surfaces; ++surf) {
+  short dev_found = -1;
+  for (short dev = 0; (dev < num_devices) && (dev_found == -1); ++dev) {
+    for (short surf = 0; surf < devices[dev].num_active_surfaces; ++surf) {
       if (sol_surf == devices[dev].statelist[surf]) {
         dev_found  = dev;
         surf_found = surf;
@@ -1765,7 +1658,7 @@ void cqcte_(f_integer *nreq, f_integer *first, f_integer *vstat, f_integer *ntot
   }     /* end for all devices */
 
   if (dev_found != -1) {
-    temp_surface[0] = devices[dev_found].statelist[surf_found];
+    anything *temp_surface[] = {devices[dev_found].statelist[surf_found]};
     (*devices[dev_found].device_fn)(in_params, 1, temp_surface);
   } /* end if surface not found */
 
@@ -1778,12 +1671,8 @@ void cqcte_(f_integer *nreq, f_integer *first, f_integer *vstat, f_integer *ntot
 /******************************************************************************/
 void cili_(f_integer *iclass, f_integer *idev)
 {
-  short     dev;       /* which device to look at now */
-  short     dev_found; /* which device was it found on */
-  short     func_id = CILI_FN;
-  short     surf;           /* which surface on device */
-  short     surf_found = 0; /* which active_surface was found */
-  anything *temp_surface[1];
+  static short func_id    = CILI_FN;
+  short        surf_found = 0; /* which active_surface was found */
 
   /* set up parameter array */
   in_params[0] = (anything *)&func_id;
@@ -1791,9 +1680,9 @@ void cili_(f_integer *iclass, f_integer *idev)
   in_params[2] = (anything *)idev;
 
   /* search active devices for this surface */
-  dev_found = -1;
-  for (dev = 0; (dev < num_devices) && (dev_found == -1); ++dev) {
-    for (surf = 0; surf < devices[dev].num_active_surfaces; ++surf) {
+  short dev_found = -1;
+  for (short dev = 0; (dev < num_devices) && (dev_found == -1); ++dev) {
+    for (short surf = 0; surf < devices[dev].num_active_surfaces; ++surf) {
       if (sol_surf == devices[dev].statelist[surf]) {
         dev_found  = dev;
         surf_found = surf;
@@ -1803,7 +1692,7 @@ void cili_(f_integer *iclass, f_integer *idev)
   }     /* end for all devices */
 
   if (dev_found != -1) {
-    temp_surface[0] = devices[dev_found].statelist[surf_found];
+    anything *temp_surface[] = {devices[dev_found].statelist[surf_found]};
     (*devices[dev_found].device_fn)(in_params, 1, temp_surface);
   } /* end if surface not found */
 
@@ -1817,12 +1706,8 @@ void cili_(f_integer *iclass, f_integer *idev)
 void crqlc_(f_integer *idev, f_real *timeout, f_integer *vstat, f_integer *rstat, f_integer *mvalid,
             f_integer *triggr, f_real *x, f_real *y)
 {
-  short     dev;       /* which device to look at now */
-  short     dev_found; /* which device was it found on */
-  short     func_id = CRQLC_FN;
-  short     surf;           /* which surface on device */
-  short     surf_found = 0; /* which active_surface was found */
-  anything *temp_surface[1];
+  static short func_id    = CRQLC_FN;
+  short        surf_found = 0; /* which active_surface was found */
 
   /* set up parameter array */
   in_params[0] = (anything *)&func_id;
@@ -1836,9 +1721,9 @@ void crqlc_(f_integer *idev, f_real *timeout, f_integer *vstat, f_integer *rstat
   in_params[8] = (anything *)y;
 
   /* search active devices for this surface */
-  dev_found = -1;
-  for (dev = 0; (dev < num_devices) && (dev_found == -1); ++dev) {
-    for (surf = 0; surf < devices[dev].num_active_surfaces; ++surf) {
+  short dev_found = -1;
+  for (short dev = 0; (dev < num_devices) && (dev_found == -1); ++dev) {
+    for (short surf = 0; surf < devices[dev].num_active_surfaces; ++surf) {
       if (sol_surf == devices[dev].statelist[surf]) {
         dev_found  = dev;
         surf_found = surf;
@@ -1848,7 +1733,7 @@ void crqlc_(f_integer *idev, f_real *timeout, f_integer *vstat, f_integer *rstat
   }     /* end for all devices */
 
   if (dev_found != -1) {
-    temp_surface[0] = devices[dev_found].statelist[surf_found];
+    anything *temp_surface[] = {devices[dev_found].statelist[surf_found]};
     (*devices[dev_found].device_fn)(in_params, 1, temp_surface);
   } /* end if surface not found */
 
@@ -1862,8 +1747,7 @@ void crqlc_(f_integer *idev, f_real *timeout, f_integer *vstat, f_integer *rstat
 void cpxa_(f_real *x, f_real *y, f_integer *nx, f_integer *ny, f_integer *xscal, f_integer *yscal,
            f_integer *xdir, f_integer *ydir, f_integer *pxclrs)
 {
-  short func_id = CPXA_FN;
-  short i;
+  static short func_id = CPXA_FN;
 
   /* set up parameter array */
   in_params[0] = (anything *)&func_id;
@@ -1877,7 +1761,7 @@ void cpxa_(f_real *x, f_real *y, f_integer *nx, f_integer *ny, f_integer *xscal,
   in_params[8] = (anything *)ydir;
   in_params[9] = (anything *)pxclrs;
 
-  for (i = 0; i < num_devices; ++i) {
+  for (short i = 0; i < num_devices; ++i) {
     (*devices[i].device_fn)(in_params, devices[i].num_on_surfaces, devices[i].statelist);
   } /* end for all devices */
 } /* end cpxa */

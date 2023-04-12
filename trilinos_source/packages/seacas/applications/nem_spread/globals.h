@@ -1,15 +1,16 @@
-#ifndef GLOBALS_H
-#define GLOBALS_H
 /*
- * Copyright(C) 1999-2020 National Technology & Engineering Solutions
+ * Copyright(C) 1999-2022 National Technology & Engineering Solutions
  * of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
  * NTESS, the U.S. Government retains certain rights in this software.
- * 
+ *
  * See packages/seacas/LICENSE for details
  */
+#pragma once
 
 #include <cstdlib>
+#include <exodusII.h>
 #include <rf_allo.h>
+#include <vector>
 
 /*---------------------------------------------------------------------------*/
 /*      STRUCTURES FOR COMMUNICATION MAPS                                    */
@@ -18,17 +19,17 @@ template <typename INT> struct ELEM_COMM_MAP
 {
   size_t map_id{0};
   size_t elem_cnt{0};
-  INT *  elem_ids{nullptr};
-  INT *  side_ids{nullptr};
-  INT *  proc_ids{nullptr};
+  INT   *elem_ids{nullptr};
+  INT   *side_ids{nullptr};
+  INT   *proc_ids{nullptr};
 };
 
 template <typename INT> struct NODE_COMM_MAP
 {
   size_t map_id{0};
   size_t node_cnt{0};
-  INT *  node_ids{nullptr};
-  INT *  proc_ids{nullptr};
+  INT   *node_ids{nullptr};
+  INT   *proc_ids{nullptr};
 };
 
 /*---------------------------------------------------------------------------*/
@@ -53,6 +54,7 @@ public:
   int Num_Info_Recs{0}; /* Number of Info records in original file     */
 
   int Num_Coordinate_Frames{0};
+  int Num_Assemblies{0};
 
   /*---------------------------------------------------------------------------*/
   /*    VARIABLES THAT DEAL WITH SPECIFICATION OF LOAD BALANCE PROPERTIES      */
@@ -338,9 +340,11 @@ public:
 
   char **Info_Record{nullptr}; /* The Information Records from the original *
                                 * file                                      */
-  INT * Coordinate_Frame_Ids{nullptr};
-  T *   Coordinate_Frame_Coordinates{nullptr};
+  INT  *Coordinate_Frame_Ids{nullptr};
+  T    *Coordinate_Frame_Coordinates{nullptr};
   char *Coordinate_Frame_Tags{nullptr};
+
+  std::vector<ex_assembly> Assemblies{};
 
   Globals() = default;
 
@@ -362,5 +366,3 @@ public:
     safe_free((void **)&Elem_Type);
   }
 };
-
-#endif

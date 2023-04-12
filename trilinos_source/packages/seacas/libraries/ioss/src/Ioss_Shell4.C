@@ -1,7 +1,7 @@
-// Copyright(C) 1999-2020 National Technology & Engineering Solutions
+// Copyright(C) 1999-2021 National Technology & Engineering Solutions
 // of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 // NTESS, the U.S. Government retains certain rights in this software.
-// 
+//
 // See packages/seacas/LICENSE for details
 
 //------------------------------------------------------------------------
@@ -73,8 +73,6 @@ Ioss::Shell4::Shell4() : Ioss::ElementTopology(Ioss::Shell4::name, "ShellQuadril
   Ioss::ElementTopology::alias(Ioss::Shell4::name, "SHELL_QUADRILATERAL_4");
 }
 
-Ioss::Shell4::~Shell4() = default;
-
 int Ioss::Shell4::parametric_dimension() const { return 2; }
 int Ioss::Shell4::spatial_dimension() const { return 3; }
 int Ioss::Shell4::order() const { return 1; }
@@ -136,6 +134,7 @@ Ioss::IntVector Ioss::Shell4::element_connectivity() const
 Ioss::ElementTopology *Ioss::Shell4::face_type(int face_number) const
 {
   assert(face_number >= 0 && face_number <= number_faces());
+  IOSS_ASSERT_USED(face_number);
   //  return Ioss::ElementTopology::factory("quadface4");
   return Ioss::ElementTopology::factory("quad4");
 }
@@ -143,6 +142,7 @@ Ioss::ElementTopology *Ioss::Shell4::face_type(int face_number) const
 Ioss::ElementTopology *Ioss::Shell4::edge_type(int edge_number) const
 {
   assert(edge_number >= 0 && edge_number <= number_edges());
+  IOSS_ASSERT_USED(edge_number);
   return Ioss::ElementTopology::factory("edge2");
 }
 

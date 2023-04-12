@@ -48,7 +48,22 @@
 #include "Tpetra_BlockMultiVector_decl.hpp"
 #include "Tpetra_CrsMatrix_decl.hpp"
 
+#include "KokkosSparse_BsrMatrix.hpp"
+
 namespace Tpetra {
+
+template<class BlockCrsMatrixType>
+Teuchos::RCP<BlockCrsMatrixType>
+importAndFillCompleteBlockCrsMatrix (const Teuchos::RCP<const BlockCrsMatrixType>& sourceMatrix,
+                                     const Import<typename BlockCrsMatrixType::local_ordinal_type,
+                                                  typename BlockCrsMatrixType::global_ordinal_type,
+				                  typename BlockCrsMatrixType::node_type>& importer);
+template<class BlockCrsMatrixType>
+Teuchos::RCP<BlockCrsMatrixType>
+exportAndFillCompleteBlockCrsMatrix (const Teuchos::RCP<const BlockCrsMatrixType>& sourceMatrix,
+                                     const Export<typename BlockCrsMatrixType::local_ordinal_type,
+                                                  typename BlockCrsMatrixType::global_ordinal_type,
+				                  typename BlockCrsMatrixType::node_type>& exporter);
 
 /// \class BlockCrsMatrix
 /// \brief Sparse matrix whose entries are small dense square blocks,
@@ -127,6 +142,16 @@ namespace Tpetra {
 /// }
 /// \endcode
 ///
+
+namespace Impl {
+  /// give an option to use layoutleft
+#if defined(TPETRA_ENABLE_BLOCKCRS_LITTLEBLOCK_LAYOUTLEFT)
+  using BlockCrsMatrixLittleBlockArrayLayout = Kokkos::LayoutLeft;
+#else
+  using BlockCrsMatrixLittleBlockArrayLayout = Kokkos::LayoutRight;
+#endif
+}
+
 template<class Scalar,
          class LO,
          class GO,
@@ -185,28 +210,58 @@ public:
 
   //! The type used to access nonconst matrix blocks.
   typedef Kokkos::View<impl_scalar_type**,
-                       Kokkos::LayoutRight,
+                       Impl::BlockCrsMatrixLittleBlockArrayLayout,
                        device_type,
                        Kokkos::MemoryTraits<Kokkos::Unmanaged> >
           little_block_type;
+  typedef typename little_block_type::HostMirror little_block_host_type;
+
   //! The type used to access const matrix blocks.
   typedef Kokkos::View<const impl_scalar_type**,
-                       Kokkos::LayoutRight,
+                       Impl::BlockCrsMatrixLittleBlockArrayLayout,
                        device_type,
                        Kokkos::MemoryTraits<Kokkos::Unmanaged> >
           const_little_block_type;
   //! The type used to access nonconst vector blocks.
-  typedef Kokkos::View<impl_scalar_type*,
-                       Kokkos::LayoutRight,
-                       device_type,
-                       Kokkos::MemoryTraits<Kokkos::Unmanaged> >
-          little_vec_type;
+  typedef typename BMV::little_vec_type little_vec_type;
+  typedef typename BMV::little_host_vec_type little_host_vec_type;
+
   //! The type used to access const vector blocks.
-  typedef Kokkos::View<const impl_scalar_type*,
-                       Kokkos::LayoutRight,
-                       device_type,
-                       Kokkos::MemoryTraits<Kokkos::Unmanaged> >
-          const_little_vec_type;
+  typedef typename BMV::const_little_vec_type const_little_vec_type;
+  typedef typename BMV::const_little_host_vec_type const_host_little_vec_type;
+
+  using row_matrix_type = RowMatrix<Scalar, LO, GO, node_type>;
+  using local_inds_device_view_type =
+        typename row_matrix_type::local_inds_device_view_type;
+  using local_inds_host_view_type =
+        typename row_matrix_type::local_inds_host_view_type;
+  using nonconst_local_inds_host_view_type =
+        typename row_matrix_type::nonconst_local_inds_host_view_type;
+
+  using global_inds_device_view_type =
+        typename row_matrix_type::global_inds_device_view_type;
+  using global_inds_host_view_type =
+        typename row_matrix_type::global_inds_host_view_type;
+  using nonconst_global_inds_host_view_type =
+        typename row_matrix_type::nonconst_global_inds_host_view_type;
+
+  using values_device_view_type =
+        typename row_matrix_type::values_device_view_type;
+  using values_host_view_type =
+        typename row_matrix_type::values_host_view_type;
+  using nonconst_values_host_view_type =
+        typename row_matrix_type::nonconst_values_host_view_type;
+
+  using local_graph_device_type = typename crs_graph_type::local_graph_device_type;
+
+  using  local_matrix_device_type =
+    KokkosSparse::Experimental::BsrMatrix<impl_scalar_type,
+                          local_ordinal_type,
+                          device_type,
+                          void,
+                          typename local_graph_device_type::size_type>;
+  using local_matrix_host_type =
+    typename local_matrix_device_type::HostMirror;
 
   //@}
   //! \name Constructors and destructor
@@ -225,6 +280,10 @@ public:
   /// \param graph [in] A fill-complete graph.
   /// \param blockSize [in] Number of degrees of freedom per mesh point.
   BlockCrsMatrix (const crs_graph_type& graph, const LO blockSize);
+
+  BlockCrsMatrix (const crs_graph_type& graph,
+                  const typename local_matrix_device_type::values_type& values,
+                  const LO blockSize);
 
   /// \brief Constructor that takes a graph, domain and range point
   ///   Maps, and a block size.
@@ -246,24 +305,24 @@ public:
   //@{
 
   //! Get the (point) domain Map of this matrix.
-  Teuchos::RCP<const map_type> getDomainMap () const;
+  Teuchos::RCP<const map_type> getDomainMap () const override;
 
   //! Get the (point) range Map of this matrix.
-  Teuchos::RCP<const map_type> getRangeMap () const;
+  Teuchos::RCP<const map_type> getRangeMap () const override;
 
   //! get the (mesh) map for the rows of this block matrix.
-  Teuchos::RCP<const map_type> getRowMap () const;
+  Teuchos::RCP<const map_type> getRowMap () const override;
 
   //! get the (mesh) map for the columns of this block matrix.
-  Teuchos::RCP<const map_type> getColMap () const;
+  Teuchos::RCP<const map_type> getColMap () const override;
 
   //! get the global number of block rows
-  global_size_t getGlobalNumRows() const;
+  global_size_t getGlobalNumRows() const override;
 
   //! get the local number of block rows
-  size_t getNodeNumRows() const;
+  size_t getLocalNumRows() const override;
 
-  size_t getNodeMaxNumRowEntries() const;
+  size_t getLocalMaxNumRowEntries() const override;
 
   /// \brief For this matrix A, compute <tt>Y := beta * Y + alpha * Op(A) * X</tt>.
   ///
@@ -279,11 +338,11 @@ public:
          mv_type& Y,
          Teuchos::ETransp mode = Teuchos::NO_TRANS,
          Scalar alpha = Teuchos::ScalarTraits<Scalar>::one (),
-         Scalar beta = Teuchos::ScalarTraits<Scalar>::zero ()) const;
+         Scalar beta = Teuchos::ScalarTraits<Scalar>::zero ()) const override;
 
   /// \brief Whether it is valid to apply the transpose or conjugate
   ///   transpose of this matrix.
-  bool hasTransposeApply () const {
+  bool hasTransposeApply () const override {
     // FIXME (mfh 04 May 2014) Transpose and conjugate transpose modes
     // are not implemented yet.  Fill in applyBlockTrans() to fix this.
     return false;
@@ -297,7 +356,7 @@ public:
   //@{
 
   //! One-line description of this object.
-  std::string description () const;
+  std::string description () const override;
 
   /// \brief Print a description of this object to the given output stream.
   ///
@@ -324,7 +383,7 @@ public:
   /// \endcode
   void
   describe (Teuchos::FancyOStream& out,
-            const Teuchos::EVerbosityLevel verbLevel) const;
+            const Teuchos::EVerbosityLevel verbLevel) const override;
 
   //@}
   //! \name Block operations
@@ -334,7 +393,7 @@ public:
   LO getBlockSize () const { return blockSize_; }
 
   //! Get the (mesh) graph.
-  virtual Teuchos::RCP<const ::Tpetra::RowGraph<LO,GO,Node> > getGraph () const;
+  virtual Teuchos::RCP<const ::Tpetra::RowGraph<LO,GO,Node> > getGraph () const override;
 
   const crs_graph_type & getCrsGraph () const { return graph_; }
 
@@ -349,57 +408,18 @@ public:
               const Scalar alpha = Teuchos::ScalarTraits<Scalar>::one (),
               const Scalar beta = Teuchos::ScalarTraits<Scalar>::zero ());
 
-  /// \brief Version of gaussSeidel(), with fewer requirements on X.
-  ///
-  /// Not Implemented
+  /// \brief Import from <tt>this</tt> to the given destination
+  ///   matrix, and make the result fill complete.
   void
-  gaussSeidelCopy (MultiVector<Scalar,LO,GO,Node> &X,
-                   const ::Tpetra::MultiVector<Scalar,LO,GO,Node> &B,
-                   const ::Tpetra::MultiVector<Scalar,LO,GO,Node> &D,
-                   const Scalar& dampingFactor,
-                   const ESweepDirection direction,
-                   const int numSweeps,
-                   const bool zeroInitialGuess) const;
+  importAndFillComplete (Teuchos::RCP<BlockCrsMatrix<Scalar, LO, GO, Node> >& destMatrix,
+                         const Import<LO, GO, Node>& importer) const;
 
-  /// \brief Version of reorderedGaussSeidel(), with fewer requirements on X.
-  ///
-  /// Not Implemented
+  /// \brief Import from <tt>this</tt> to the given destination
+  ///   matrix, and make the result fill complete.
   void
-  reorderedGaussSeidelCopy (::Tpetra::MultiVector<Scalar,LO,GO,Node>& X,
-                            const ::Tpetra::MultiVector<Scalar,LO,GO,Node>& B,
-                            const ::Tpetra::MultiVector<Scalar,LO,GO,Node>& D,
-                            const Teuchos::ArrayView<LO>& rowIndices,
-                            const Scalar& dampingFactor,
-                            const ESweepDirection direction,
-                            const int numSweeps,
-                            const bool zeroInitialGuess) const;
+  exportAndFillComplete (Teuchos::RCP<BlockCrsMatrix<Scalar, LO, GO, Node> >& destMatrix,
+                         const Export<LO, GO, Node>& exporter) const;
 
-  /// \brief Local Gauss-Seidel solve, given a factorized diagonal
-  ///
-  /// \param Residual [in] The "residual" (right-hand side) block
-  ///   (multi)vector
-  /// \param Solution [in/out] On input: the initial guess / current
-  ///   approximate solution.  On output: the new approximate
-  ///   solution.
-  /// \param D_inv [in] Block diagonal, the explicit inverse of this
-  ///   matrix's block diagonal (possibly modified for algorithmic
-  ///   reasons).
-  /// \param omega [in] (S)SOR relaxation coefficient
-  /// \param direction [in] Forward, Backward, or Symmetric.
-  ///
-  /// One may access block i in \c D_inv using the
-  /// following code:
-  /// \code
-  /// auto D_ii = Kokkos::subview(D_inv, i, Kokkos::ALL(), Kokkos::ALL());
-  /// \endcode
-  /// The resulting block is b x b, where <tt>b = this->getBlockSize()</tt>.
-  void
-  localGaussSeidel (const BlockMultiVector<Scalar, LO, GO, Node>& Residual,
-                          BlockMultiVector<Scalar, LO, GO, Node>& Solution,
-                    const Kokkos::View<impl_scalar_type***, device_type,
-                          Kokkos::MemoryUnmanaged>& D_inv,
-                    const Scalar& omega,
-                    const ESweepDirection direction) const;
 
   /// \brief Replace values at the given (mesh, i.e., block) column
   ///   indices, in the given (mesh, i.e., block) row.
@@ -465,6 +485,7 @@ public:
                       const Scalar vals[],
                       const LO numColInds) const;
 
+
   /// \brief Get a view of the (mesh, i.e., block) row, using local
   ///   (mesh, i.e., block) indices.
   ///
@@ -494,27 +515,33 @@ public:
   ///
   /// \return 0 if \c localRowInd is valid, else
   ///   <tt>Teuchos::OrdinalTraits<LO>::invalid()</tt>.
-  LO
-  getLocalRowView (const LO localRowInd,
-                   const LO*& colInds,
-                   Scalar*& vals,
-                   LO& numInds) const;
-
-  /// \brief Not implemented.
+  /// KK: this is inherited from row matrix interface and it returns const
+  ///      this cannot replace the deprecated pointer interface
+  ///      we need nonconst version of this code
   void
   getLocalRowView (LO LocalRow,
-                   Teuchos::ArrayView<const LO> &indices,
-                   Teuchos::ArrayView<const Scalar> &values) const;
+                   local_inds_host_view_type &indices,
+                   values_host_view_type &values) const override;
 
-  /// \brief Not implemented.
+  /// KK: this is new addition to replace getLocalRowVie with pointers and arrayviews
+  ///     we can change name if it is not prefrred
   void
+  getLocalRowViewNonConst (LO LocalRow,
+                           local_inds_host_view_type &indices,
+                           nonconst_values_host_view_type &values) const;
+  
+  /// \brief Not implemented.
+  virtual void
   getLocalRowCopy (LO LocalRow,
-                   const Teuchos::ArrayView<LO> &Indices,
-                   const Teuchos::ArrayView<Scalar> &Values,
-                   size_t &NumEntries) const;
-
+                   nonconst_local_inds_host_view_type &Indices,
+                   nonconst_values_host_view_type &Values,
+                   size_t& NumEntries) const override;
   little_block_type
-  getLocalBlock (const LO localRowInd, const LO localColInd) const;
+  getLocalBlockDeviceNonConst (const LO localRowInd, const LO localColInd) const;
+
+  little_block_host_type
+  getLocalBlockHostNonConst (const LO localRowInd, const LO localColInd) const;
+
 
   /// \brief Get relative offsets corresponding to the given rows,
   ///   given by local row index.
@@ -556,6 +583,12 @@ public:
                                const Scalar vals[],
                                const LO numOffsets) const;
 
+  LO
+  absMaxLocalValuesByOffsets (const LO localRowInd,
+                              const ptrdiff_t offsets[],
+                              const Scalar vals[],
+                              const LO numOffsets) const;
+
   /// \brief Like sumIntoLocalValues, but avoids computing row offsets.
   ///
   /// \return The number of valid column indices in colInds.  This
@@ -573,7 +606,12 @@ public:
   /// If the given local row index is invalid, this method (sensibly)
   /// returns zero, since the calling process trivially does not own
   /// any entries in that row.
-  size_t getNumEntriesInLocalRow (const LO localRowInd) const;
+  size_t getNumEntriesInLocalRow (const LO localRowInd) const override;
+
+
+  /// Get KokkosSparce::Experimental::BsrMatrix representation
+  /// of this BlockCrsMatrix 
+  local_matrix_device_type getLocalMatrixDevice () const;
 
   /// \brief Whether this object had an error on the calling process.
   ///
@@ -626,7 +664,7 @@ public:
   ///   has a column Map).
   /// \pre All diagonal entries of the matrix's graph must be
   ///   populated on this process.  Results are undefined otherwise.
-  /// \post <tt>offsets.extent(0) == getNodeNumRows()</tt>
+  /// \post <tt>offsets.extent(0) == getLocalNumRows()</tt>
   ///
   /// This method creates an array of offsets of the local diagonal
   /// entries in the matrix.  This array is suitable for use in the
@@ -681,12 +719,6 @@ public:
   /// This method uses the offsets of the diagonal entries, as
   /// precomputed by getLocalDiagOffsets(), to speed up copying the
   /// diagonal of the matrix.
-  void
-  getLocalDiagCopy (const Kokkos::View<impl_scalar_type***, device_type,
-                                       Kokkos::MemoryUnmanaged>& diag,
-                    const Teuchos::ArrayView<const size_t>& offsets) const;
-
-
 protected:
   //! Like sumIntoLocalValues, but for the ABSMAX combine mode.
   LO
@@ -694,13 +726,6 @@ protected:
                      const LO colInds[],
                      const Scalar vals[],
                      const LO numColInds) const;
-
-  //! Like sumIntoLocalValuesByOffsets, but for the ABSMAX combine mode.
-  LO
-  absMaxLocalValuesByOffsets (const LO localRowInd,
-                              const ptrdiff_t offsets[],
-                              const Scalar vals[],
-                              const LO numOffsets) const;
 
   /// \brief \name Implementation of Tpetra::DistObject.
   ///
@@ -716,7 +741,7 @@ protected:
   using buffer_device_type = typename DistObject<Scalar, LO, GO,
                                                  Node>::buffer_device_type;
 
-  virtual bool checkSizes (const ::Tpetra::SrcDistObject& source);
+  virtual bool checkSizes (const ::Tpetra::SrcDistObject& source) override;
 
   virtual void
   copyAndPermute
@@ -725,7 +750,8 @@ protected:
    const Kokkos::DualView<const local_ordinal_type*,
      buffer_device_type>& permuteToLIDs,
    const Kokkos::DualView<const local_ordinal_type*,
-     buffer_device_type>& permuteFromLIDs);
+     buffer_device_type>& permuteFromLIDs,
+   const CombineMode CM) override;
 
   virtual void
   packAndPrepare
@@ -736,8 +762,7 @@ protected:
      buffer_device_type>& exports,
    Kokkos::DualView<size_t*,
      buffer_device_type> numPacketsPerLID,
-   size_t& constantNumPackets,
-   Distributor& /* distor */);
+   size_t& constantNumPackets) override;
 
   virtual void
   unpackAndCombine
@@ -748,8 +773,7 @@ protected:
    Kokkos::DualView<size_t*,
      buffer_device_type> numPacketsPerLID,
    const size_t constantNumPackets,
-   Distributor& /* distor */,
-   const CombineMode combineMode);
+   const CombineMode combineMode) override;
   //@}
 
 private:
@@ -795,21 +819,25 @@ private:
   /// Kokkos::DualView has extra Views in it for the "modified" flags,
   /// and we don't want the (modest) overhead of creating and storing
   /// those.
-  typename crs_graph_type::local_graph_type::row_map_type::HostMirror ptrHost_;
+  using graph_row_offset_host_type = typename crs_graph_type::local_graph_device_type::row_map_type::HostMirror;
+  graph_row_offset_host_type ptrHost_;
 
   /// \brief Host version of the graph's array of column indices.
   ///
   /// The device version of this is already stored in the graph.  We
   /// need the host version here, because this class' interface needs
   /// to access it on host.  See notes on ptrHost_ above.
-  typename crs_graph_type::local_graph_type::entries_type::HostMirror indHost_;
+  using graph_column_indices_host_type =   typename crs_graph_type::local_graph_device_type::entries_type::HostMirror;
+  graph_column_indices_host_type indHost_;
 
   /// \brief The array of values in the matrix.
   ///
   /// Each blockSize_ x blockSize_ block of values is stored
   /// contiguously, in row major format, with no padding either inside
   /// a block or between blocks.
-  typename Kokkos::DualView<impl_scalar_type*, device_type> val_;
+  using impl_scalar_type_dualview = Kokkos::DualView<impl_scalar_type*, device_type>;
+  using impl_scalar_type_wrapped_dualview = Details::WrappedDualView<impl_scalar_type_dualview>;
+  mutable impl_scalar_type_wrapped_dualview val_;
 
   /// \brief Column Map block multivector (only initialized if needed).
   ///
@@ -888,96 +916,24 @@ private:
     // to run on device then, so we should sync to device.
     static constexpr bool value =
       std::is_same<typename Device::execution_space, Kokkos::Cuda>::value;
+    // Gonna badly fake this here for other execspaces
+#elif defined(KOKKOS_ENABLE_HIP)
+    static constexpr bool value =
+      std::is_same<typename Device::execution_space, Kokkos::Experimental::HIP>::value;
+#elif defined(KOKKOS_ENABLE_SYCL)
+    static constexpr bool value =
+      std::is_same<typename Device::execution_space, Kokkos::Experimental::SYCL>::value;
 #else
     static constexpr bool value = false;
-#endif // defined(KOKKOS_ENABLE_CUDA)
+#endif
   };
 
 public:
-  //! \name Implementation of "dual view semantics"
-  //@{
+    typename impl_scalar_type_dualview::t_host::const_type
+    getValuesHost() const;
 
-  //! Mark the matrix's valueas as modified in host space
-  inline void modify_host()
-  {
-    val_.modify_host();
-  }
-
-  //! Mark the matrix's valueas as modified in device space
-  inline void modify_device()
-  {
-    val_.modify_device();
-  }
-
-  //! Mark the matrix's values as modified in the given memory space.
-  template<class MemorySpace>
-  void modify ()
-  {
-    if (is_cuda<MemorySpace>::value) {
-      this->modify_device ();
-    }
-    else {
-      this->modify_host ();
-    }
-  }
-
-  //! Whether the matrix's values need sync'ing to host space
-  inline bool need_sync_host() const
-  {
-    return val_.need_sync_host();
-  }
-
-  //! Whether the matrix's values need sync'ing to device space
-  inline bool need_sync_device() const
-  {
-    return val_.need_sync_device();
-  }
-
-  //! Whether the matrix's values need sync'ing to the given memory space.
-  template<class MemorySpace>
-  bool need_sync () const
-  {
-    if (is_cuda<MemorySpace>::value) {
-      return this->need_sync_device ();
-    }
-    else {
-      return this->need_sync_host ();
-    }
-  }
-
-  //! Sync the matrix's values to host space
-  inline void sync_host()
-  {
-    val_.sync_host();
-  }
-
-  //! Sync the matrix's values to device space
-  inline void sync_device()
-  {
-    val_.sync_device();
-  }
-
-  //! Sync the matrix's values <i>to</i> the given memory space.
-  template<class MemorySpace>
-  void sync ()
-  {
-    if (is_cuda<MemorySpace>::value) {
-      this->sync_device ();
-    }
-    else {
-      this->sync_host ();
-    }
-  }
-
-  // \brief Get the host view of the matrix's values
-  typename Kokkos::DualView<impl_scalar_type*, device_type>::t_host getValuesHost () const {
-    return val_.view_host();
-  }
-
-  // \brief Get the device view of the matrix's values
-  typename Kokkos::DualView<impl_scalar_type*, device_type>::t_dev getValuesDevice () const {
-    return val_.view_device();
-  }
+    typename impl_scalar_type_dualview::t_dev::const_type
+    getValuesDevice() const;
 
   /// \brief Get the host or device View of the matrix's values (\c val_).
   ///
@@ -996,20 +952,28 @@ public:
   ///
   /// CT: While we reserved the "right" we ignored this and explicitly did const cast away
   /// Hence I made the non-templated functions [getValuesHost and getValuesDevice; see above] const.
-  template<class MemorySpace>
-  typename std::conditional<is_cuda<MemorySpace>::value,
-                            typename Kokkos::DualView<impl_scalar_type*, device_type>::t_dev,
-                            typename Kokkos::DualView<impl_scalar_type*, device_type>::t_host>::type
-  getValues ()
-  {
-    // Unlike std::conditional, if_c has a select method.
-    return Kokkos::Impl::if_c<
-        is_cuda<MemorySpace>::value,
-        typename Kokkos::DualView<impl_scalar_type*, device_type>::t_dev,
-        typename Kokkos::DualView<impl_scalar_type*, device_type>::t_host
-      >::select (this->getValuesDevice (), this->getValuesHost ());
-  }
+  /// KK: This should be deprecated.
+    typename impl_scalar_type_dualview::t_host
+    getValuesHostNonConst() const;
 
+    typename impl_scalar_type_dualview::t_dev
+    getValuesDeviceNonConst() const;
+
+    /// \brief Get a const Host view of the locally owned values
+    typename impl_scalar_type_dualview::t_host::const_type
+    getValuesHost (const LO& lclRow) const;
+
+    /// \brief Get a const Device view of the locally owned values
+    typename impl_scalar_type_dualview::t_dev::const_type
+    getValuesDevice (const LO& lclRow) const;
+
+    /// \brief Get a non-const Host view of the locally owned values
+    typename impl_scalar_type_dualview::t_host
+    getValuesHostNonConst (const LO& lclRow);
+
+    /// \brief Get a non-const Device view of the locally owned values
+    typename impl_scalar_type_dualview::t_dev
+    getValuesDeviceNonConst (const LO& lclRow);
   //@}
 
 private:
@@ -1110,37 +1074,29 @@ private:
   little_block_type
   getNonConstLocalBlockFromInput (impl_scalar_type* val, const size_t pointOffset) const;
 
-  const_little_block_type
-  getConstLocalBlockFromAbsOffset (const size_t absBlockOffset) const;
+  little_block_host_type
+  getNonConstLocalBlockFromInputHost (impl_scalar_type* val, const size_t pointOffset) const;
 
-  little_block_type
-  getNonConstLocalBlockFromAbsOffset (const size_t absBlockOffset) const;
 
-  /// \c Block at the given local mesh row and relative (mesh) offset.
-  ///
-  /// Use this for 2-argument getLocalDiagCopy that writes to Kokkos::View.
-  const_little_block_type
-  getConstLocalBlockFromRelOffset (const LO lclMeshRow,
-                                   const size_t relMeshOffset) const;
 
 public:
+
   //! The communicator over which this matrix is distributed.
-  virtual Teuchos::RCP<const Teuchos::Comm<int> > getComm() const;
+  virtual Teuchos::RCP<const Teuchos::Comm<int> > getComm() const override;
 
 
   //! The global number of columns of this matrix.
-  virtual global_size_t getGlobalNumCols() const;
+  virtual global_size_t getGlobalNumCols() const override;
 
-  virtual size_t getNodeNumCols() const;
+  virtual size_t getLocalNumCols() const override;
 
-  virtual GO getIndexBase() const;
+  virtual GO getIndexBase() const override;
 
   //! The global number of stored (structurally nonzero) entries.
-  virtual global_size_t getGlobalNumEntries() const;
+  virtual global_size_t getGlobalNumEntries() const override;
 
   //! The local number of stored (structurally nonzero) entries.
-  virtual size_t getNodeNumEntries() const;
-
+  virtual size_t getLocalNumEntries() const override;
   /// \brief The current number of entries on the calling process in the specified global row.
   ///
   /// Note that if the row Map is overlapping, then the calling
@@ -1150,14 +1106,14 @@ public:
   /// \return <tt>Teuchos::OrdinalTraits<size_t>::invalid()</tt> if
   ///   the specified global row does not belong to this graph, else
   ///   the number of entries.
-  virtual size_t getNumEntriesInGlobalRow (GO globalRow) const;
+  virtual size_t getNumEntriesInGlobalRow (GO globalRow) const override;
 
   /// \brief The maximum number of entries in any row over all
   ///   processes in the matrix's communicator.
-  virtual size_t getGlobalMaxNumRowEntries () const;
+  virtual size_t getGlobalMaxNumRowEntries () const override;
 
   //! Whether this matrix has a well-defined column Map.
-  virtual bool hasColMap () const;
+  virtual bool hasColMap () const override;
 
   /// \brief Whether matrix indices are locally indexed.
   ///
@@ -1168,7 +1124,7 @@ public:
   /// switch from global to local indices without extra work.
   /// Furthermore, some operations only work for one or the other
   /// case.
-  virtual bool isLocallyIndexed () const;
+  virtual bool isLocallyIndexed () const override;
 
   /// \brief Whether matrix indices are globally indexed.
   ///
@@ -1179,13 +1135,13 @@ public:
   /// switch from global to local indices without extra work.
   /// Furthermore, some operations only work for one or the other
   /// case.
-  virtual bool isGloballyIndexed () const;
+  virtual bool isGloballyIndexed () const override;
 
   //! Whether fillComplete() has been called.
-  virtual bool isFillComplete () const;
+  virtual bool isFillComplete () const override;
 
   //! Whether this object implements getLocalRowView() and getGlobalRowView().
-  virtual bool supportsRowViews () const;
+  virtual bool supportsRowViews () const override;
 
 
   //@}
@@ -1214,10 +1170,9 @@ public:
   /// not modify Indices or Values.
   virtual void
   getGlobalRowCopy (GO GlobalRow,
-                    const Teuchos::ArrayView<GO> &Indices,
-                    const Teuchos::ArrayView<Scalar> &Values,
-                    size_t& NumEntries) const;
-
+                    nonconst_global_inds_host_view_type &Indices,
+                    nonconst_values_host_view_type &Values,
+                    size_t& NumEntries) const override;
   /// \brief Get a constant, nonpersisting, globally indexed view of
   ///   the given row of the matrix.
   ///
@@ -1244,8 +1199,8 @@ public:
   /// is set to \c null.
   virtual void
   getGlobalRowView (GO GlobalRow,
-                    Teuchos::ArrayView<const GO>& indices,
-                    Teuchos::ArrayView<const Scalar>& values) const;
+                    global_inds_host_view_type & indices,
+                    values_host_view_type & values) const override;
 
   /// \brief Get a copy of the diagonal entries, distributed by the row Map.
   ///
@@ -1258,7 +1213,7 @@ public:
   /// same diagonal element.  You may combine these overlapping
   /// diagonal elements by doing an Export from the row Map Vector
   /// to a range Map Vector.
-  virtual void getLocalDiagCopy (::Tpetra::Vector<Scalar,LO,GO,Node>& diag) const;
+  virtual void getLocalDiagCopy (::Tpetra::Vector<Scalar,LO,GO,Node>& diag) const override;
 
   //@}
   //! \name Mathematical methods
@@ -1269,14 +1224,14 @@ public:
    *
    * On return, for all entries i,j in the matrix, \f$A(i,j) = x(i)*A(i,j)\f$.
    */
-  virtual void leftScale (const ::Tpetra::Vector<Scalar, LO, GO, Node>& x);
+  virtual void leftScale (const ::Tpetra::Vector<Scalar, LO, GO, Node>& x) override;
 
   /**
    * \brief Scale the RowMatrix on the right with the given Vector x.
    *
    * On return, for all entries i,j in the matrix, \f$A(i,j) = x(j)*A(i,j)\f$.
    */
-  virtual void rightScale (const ::Tpetra::Vector<Scalar, LO, GO, Node>& x);
+  virtual void rightScale (const ::Tpetra::Vector<Scalar, LO, GO, Node>& x) override;
 
   /// \brief The Frobenius norm of the matrix.
   ///
@@ -1287,9 +1242,50 @@ public:
   /// It has the same value as the Euclidean norm of a vector made
   /// by stacking the columns of \f$A\f$.
   virtual typename ::Tpetra::RowMatrix<Scalar, LO, GO, Node>::mag_type
-  getFrobeniusNorm () const;
+  getFrobeniusNorm () const override;
   //@}
+
+  // Friend declaration for nonmember function.
+  template<class BlockCrsMatrixType>
+  friend Teuchos::RCP<BlockCrsMatrixType>
+  Tpetra::importAndFillCompleteBlockCrsMatrix (const Teuchos::RCP<const BlockCrsMatrixType>& sourceMatrix,
+                                               const Import<typename BlockCrsMatrixType::local_ordinal_type,
+                                                            typename BlockCrsMatrixType::global_ordinal_type,
+					                    typename BlockCrsMatrixType::node_type>& importer);
+  // Friend declaration for nonmember function.
+  template<class BlockCrsMatrixType>
+  friend Teuchos::RCP<BlockCrsMatrixType>
+  Tpetra::exportAndFillCompleteBlockCrsMatrix (const Teuchos::RCP<const BlockCrsMatrixType>& sourceMatrix,
+                                               const Export<typename BlockCrsMatrixType::local_ordinal_type,
+                                                            typename BlockCrsMatrixType::global_ordinal_type,
+					                    typename BlockCrsMatrixType::node_type>& exporter);
+
 };
+
+template<class BlockCrsMatrixType>
+Teuchos::RCP<BlockCrsMatrixType>
+importAndFillCompleteBlockCrsMatrix (const Teuchos::RCP<const BlockCrsMatrixType>& sourceMatrix,
+                                     const Import<typename BlockCrsMatrixType::local_ordinal_type,
+                                                  typename BlockCrsMatrixType::global_ordinal_type,
+                                                  typename BlockCrsMatrixType::node_type>& importer)
+{
+  Teuchos::RCP<BlockCrsMatrixType> destMatrix;
+  sourceMatrix->importAndFillComplete (destMatrix, importer);
+  return destMatrix;
+}
+
+
+template<class BlockCrsMatrixType>
+Teuchos::RCP<BlockCrsMatrixType>
+exportAndFillCompleteBlockCrsMatrix (const Teuchos::RCP<const BlockCrsMatrixType>& sourceMatrix,
+                                     const Export<typename BlockCrsMatrixType::local_ordinal_type,
+                                                  typename BlockCrsMatrixType::global_ordinal_type,
+                                                  typename BlockCrsMatrixType::node_type>& exporter)
+{
+  Teuchos::RCP<BlockCrsMatrixType> destMatrix;
+  sourceMatrix->exportAndFillComplete (destMatrix, exporter);
+  return destMatrix;
+}
 
 } // namespace Tpetra
 

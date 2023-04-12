@@ -1,11 +1,12 @@
-// Copyright(C) 1999-2020 National Technology & Engineering Solutions
+// Copyright(C) 1999-2020, 2022 National Technology & Engineering Solutions
 // of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 // NTESS, the U.S. Government retains certain rights in this software.
-// 
+//
 // See packages/seacas/LICENSE for details
 
-#ifndef IOSS_Ioss_Blob_h
-#define IOSS_Ioss_Blob_h
+#pragma once
+
+#include "ioss_export.h"
 
 #include "Ioss_EntityType.h" // for EntityType, etc
 #include "Ioss_Property.h"   // for Property
@@ -24,12 +25,12 @@ namespace Ioss {
 
   /** \brief A homogeneous collection of other GroupingEntities.
    */
-  class Blob : public GroupingEntity
+  class IOSS_EXPORT Blob : public GroupingEntity
   {
   public:
     Blob()                  = default; // Used for template typing only
     Blob(const Blob &other) = default;
-    ~Blob()                 = default;
+    ~Blob() override        = default;
 
     Blob(DatabaseIO *io_database, const std::string &my_name, int64_t item_count);
 
@@ -51,4 +52,3 @@ namespace Ioss {
                                     size_t data_size) const override;
   };
 } // namespace Ioss
-#endif

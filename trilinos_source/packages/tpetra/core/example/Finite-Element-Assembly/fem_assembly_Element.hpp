@@ -42,7 +42,6 @@
 #define TPETRAEXAMPLES_FEM_ASSEMBLY_ELEMENT_HPP
 
 #include <iomanip>
-#include "Kokkos_View.hpp"
 
 namespace TpetraExamples
 {
@@ -100,7 +99,6 @@ KOKKOS_INLINE_FUNCTION void ReferenceQuad4RHS(ViewType& rhs) {
     rhs[i] = static_cast<Scalar>(.25);
 }
 
-template<>
 void ReferenceQuad4RHS(Teuchos::Array<Scalar>& rhs) {
   for(int i=0; (int)i<rhs.size(); i++)
     rhs[i] = static_cast<Scalar>(.25);

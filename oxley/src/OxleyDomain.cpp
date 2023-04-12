@@ -2399,7 +2399,11 @@ escript::Data OxleyDomain::finaliseRhs(escript::Data& rhs)
                 std::cout << cZ->getGlobalNumCols() << "x" << cZ->getGlobalNumRows() << std::endl;
             #endif
             
+            #ifdef ESYS_TRILINOS_14
+            auto result_view = fc.getLocalViewHost(Tpetra::Access::ReadOnly);
+            #else
             auto result_view = fc.getLocalViewHost();
+            #endif
             auto result_view_1d = Kokkos::subview(result_view, Kokkos::ALL(), 0);
 
             escript::FunctionSpace new_fs = escript::FunctionSpace(rhs.getFunctionSpace().getDomain(), DegreesOfFreedom);
@@ -2509,7 +2513,12 @@ escript::Data OxleyDomain::finaliseRhs(escript::Data& rhs)
                 std::cout << gr.description() << std::endl;
             #endif
             
+            #ifdef ESYS_TRILINOS_14
+            auto result_view = fr.getLocalViewHost(Tpetra::Access::ReadOnly);
+            #else
             auto result_view = fr.getLocalViewHost();
+            #endif
+
             auto result_view_1d = Kokkos::subview(result_view, Kokkos::ALL(), 0);
 
             origFsTypecode=rhs.getFunctionSpace().getTypeCode();

@@ -109,7 +109,8 @@ namespace MueLu {
     SET_VALID_ENTRY("aggregation: preserve Dirichlet points");
     SET_VALID_ENTRY("aggregation: allow user-specified singletons");
     SET_VALID_ENTRY("aggregation: error on nodes with no on-rank neighbors");
-    SET_VALID_ENTRY("aggregation: phase2a include root");
+    SET_VALID_ENTRY("aggregation: match ML phase2a");
+    SET_VALID_ENTRY("aggregation: phase2a agg factor");
     SET_VALID_ENTRY("aggregation: phase3 avoid singletons");
 
     // From StructuredAggregationFactory
@@ -345,9 +346,9 @@ namespace MueLu {
                                                                numRanks,
                                                                Array<GO>(3, -1),
                                                                lFineNodesPerDir,
-                                                               coarseRate));
+                                                               coarseRate, false));
 
-      TEUCHOS_TEST_FOR_EXCEPTION(fineMap->getNodeNumElements()
+      TEUCHOS_TEST_FOR_EXCEPTION(fineMap->getLocalNumElements()
                                  != static_cast<size_t>(geoData->getNumLocalFineNodes()),
                                  Exceptions::RuntimeError,
                                  "The local number of elements in the graph's map is not equal to "
@@ -496,7 +497,7 @@ namespace MueLu {
       for(int dim = 0; dim < 3; ++dim) {
         numInterfaceNodes *= fineNodesPerDim[dim];
         numCoarseNodes    *= coarseNodesPerDim[dim];
-        endRate[dim]       = fineNodesPerDim[dim] % coarseRate[dim];
+        endRate[dim]       = (fineNodesPerDim[dim]-1) % coarseRate[dim];
       }
       ArrayView<LO> interfaceNodes = nodesOnInterfaces(interfaceOffset, numInterfaceNodes);
 
@@ -554,9 +555,6 @@ namespace MueLu {
             rate = endRate[dim];
           }
           if(rem > (rate / 2)) {++coarseIJK[dim];}
-          if(coarseNodesPerDim[dim] - coarseIJK[dim] > fineNodesPerDim[dim]-nodeIJK[dim]){
-            ++coarseIJK[dim];
-          }
         }
 
         for(LO dim = 0; dim < 3; ++dim) {

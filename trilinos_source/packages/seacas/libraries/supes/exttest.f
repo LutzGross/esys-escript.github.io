@@ -1,7 +1,7 @@
 C Copyright(C) 1999-2020 National Technology & Engineering Solutions
 C of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 C NTESS, the U.S. Government retains certain rights in this software.
-C 
+C
 C See packages/seacas/LICENSE for details
 
       PROGRAM TSTEXT
@@ -58,6 +58,10 @@ C      CALL EXREAD( 'TST: ',LINE,IOSTAT )
       MEMRTN = -998
       CALL EXMEMY( -10,LOCBLK,MEMRTN )
       PRINT *,'Memory block location and length: ',LOCBLK,MEMRTN
+
+      MEMRTN = -999
+      CALL EXMEMY( -10,LOCBLK,MEMRTN )
+      PRINT *,'Freeing Memory block location and length: ',LOCBLK,MEMRTN
 
       NN = IXLNUM( A(5) ) - IXLNUM( A )
       PRINT *,'Numeric difference = ',NN

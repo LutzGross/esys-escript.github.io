@@ -67,6 +67,54 @@ void move_killed_elements_out_of_parts(stk::mesh::BulkData& bulkData,
     bulkData.batch_change_entity_parts(killedElements, add_parts, rm_parts);
 }
 
+void put_elements_into_part(stk::mesh::BulkData& bulk, const std::vector<ElementAndPart> & entries)
+{
+  stk::mesh::MetaData & meta = bulk.mesh_meta_data();
+
+  for (const ElementAndPart & entry : entries) {
+    const stk::mesh::Part * part = meta.get_part(entry.partName);
+    if (part == nullptr) {
+      meta.declare_part(entry.partName, stk::topology::ELEM_RANK);
+    }
+  }
+
+  bulk.modification_begin();
+  for (const ElementAndPart & entry : entries) {
+    const stk::mesh::Entity elem = bulk.get_entity(stk::topology::ELEM_RANK, entry.id);
+    if (bulk.is_valid(elem) && bulk.bucket(elem).owned()) {
+      const stk::mesh::Part * part = meta.get_part(entry.partName);
+      bulk.change_entity_parts(elem, stk::mesh::ConstPartVector{part});
+    }
+  }
+  bulk.modification_end();
+}
+
+namespace simple_fields {
+
+void put_mesh_into_part(stk::mesh::BulkData& bulkData, stk::mesh::Part& part)
+{
+  stk::unit_test_util::put_mesh_into_part(bulkData, part);
+}
+
+std::string get_name_of_generated_mesh(int xdim, int ydim, int zdim, const std::string &options)
+{
+  return stk::unit_test_util::get_name_of_generated_mesh(xdim, ydim, zdim, options);
+}
+
+void move_killed_elements_out_of_parts(stk::mesh::BulkData& bulkData,
+                                       const stk::mesh::EntityVector& killedElements,
+                                       const stk::mesh::PartVector& removeParts)
+{
+  stk::unit_test_util::move_killed_elements_out_of_parts(bulkData, killedElements, removeParts);
+}
+
+void put_elements_into_part(stk::mesh::BulkData& bulk, const std::vector<ElementAndPart> & entries)
+{
+  stk::unit_test_util::put_elements_into_part(bulk, entries);
+}
+
+} // namespace simple_fields
+
 } // namespace unit_test_util
 } // namespace stk
 

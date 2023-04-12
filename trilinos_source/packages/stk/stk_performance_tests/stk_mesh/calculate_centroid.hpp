@@ -40,6 +40,8 @@
 #include "stk_mesh/base/NgpMesh.hpp"
 #include "stk_mesh/base/NgpField.hpp"
 #include "stk_mesh/base/GetNgpField.hpp"
+#include "stk_mesh/base/GetNgpMesh.hpp"
+#include "stk_mesh/base/GetEntities.hpp"
 #include "stk_mesh/base/ForEachEntity.hpp"
 
 namespace stk {
@@ -106,21 +108,21 @@ void calculate_centroid(const stk::mesh::NgpMesh &ngpMesh, const CoordFieldType 
                                  KOKKOS_LAMBDA(const stk::mesh::FastMeshIndex& elem)
                                  {
                                    stk::mesh::NgpMesh::ConnectedNodes nodes = ngpMesh.get_nodes(stk::topology::ELEM_RANK, elem);
-
-                                   for(unsigned dim = 0; dim < 3; dim++) {
-                                     ngpCentroid(elem, dim) = 0;
+                                   const unsigned numComponents = ngpCentroid.get_num_components_per_entity(elem);
+                                   if (numComponents == 0) {
+                                     return;
                                    }
 
-                                   for(size_t i = 0; i < nodes.size(); i++)
-                                   {
-                                     stk::mesh::FastMeshIndex nodeIndex = ngpMesh.fast_mesh_index(nodes[i]);
-                                     for(unsigned dim = 0; dim < 3; dim++) {
-                                       ngpCentroid(elem, dim) += ngpCoords(nodeIndex, dim);
+                                   for (unsigned dim = 0; dim < numComponents; dim++) {
+                                     double elemDimValue = 0.0;
+
+                                     for (size_t i = 0; i < nodes.size(); i++) {
+                                       stk::mesh::FastMeshIndex nodeIndex = ngpMesh.fast_mesh_index(nodes[i]);
+                                       elemDimValue += ngpCoords(nodeIndex, dim);
                                      }
-                                   }
 
-                                   for(unsigned dim = 0; dim < 3; dim++) {
-                                     ngpCentroid(elem, dim) /= nodes.size();
+                                     elemDimValue /= nodes.size();
+                                     ngpCentroid(elem, dim) = elemDimValue;
                                    }
                                  });
   ngpCentroid.modify_on_device();
@@ -131,7 +133,7 @@ void calculate_centroid_using_coord_field(const stk::mesh::BulkData &bulk, const
 {
   const stk::mesh::FieldBase& coords = *bulk.mesh_meta_data().coordinate_field();
   stk::mesh::NgpField<double>& ngpCentroid = stk::mesh::get_updated_ngp_field<double>(centroid);
-  stk::mesh::NgpMesh& ngpMesh = bulk.get_updated_ngp_mesh();
+  stk::mesh::NgpMesh& ngpMesh = stk::mesh::get_updated_ngp_mesh(bulk);
 
   stk::mesh::NgpField<double>& ngpCoords = stk::mesh::get_updated_ngp_field<double>(coords);
   calculate_centroid(ngpMesh, ngpCoords, selector, ngpCentroid);
@@ -146,14 +148,56 @@ void calculate_centroid_using_coord_field(const stk::mesh::BulkData &bulk, stk::
 }
 
 inline
-std::vector<double> get_centroid_average(stk::mesh::BulkData &bulk, stk::mesh::Field<double, stk::mesh::Cartesian3d> &centroid)
+void calc_centroid(const double** coordData, int numNodes, double* centroid)
+{
+  centroid[0] = 0.0;
+  centroid[1] = 0.0;
+  centroid[2] = 0.0;
+
+  for(int i=0; i<numNodes; ++i) {
+    centroid[0] += coordData[i][0];
+    centroid[1] += coordData[i][1];
+    centroid[2] += coordData[i][2];
+  }
+
+  centroid[0] /= numNodes;
+  centroid[1] /= numNodes;
+  centroid[2] /= numNodes;
+}
+
+inline void calculate_centroid_using_host_coord_fields(const stk::mesh::BulkData& bulk, stk::mesh::FieldBase& centroid)
+{
+  stk::mesh::Selector selector(centroid);
+  selector &= bulk.mesh_meta_data().locally_owned_part();
+  const stk::mesh::FieldBase& coords = *bulk.mesh_meta_data().coordinate_field();
+
+  const int maxNumNodes = 8;
+  const double*elemNodeCoords[maxNumNodes];
+
+  auto centroidCalculator = [&](stk::mesh::Entity elem, const stk::mesh::Entity* nodes, size_t numNodes)
+  {
+      ThrowAssertMsg(numNodes <= maxNumNodes, "numNodes("<<numNodes<<") must be <= maxNumNodes("<<maxNumNodes<<")");
+
+      for(size_t i = 0; i < numNodes; i++) {
+        elemNodeCoords[i] = reinterpret_cast<double*>(stk::mesh::field_data(coords, nodes[i]));
+      }
+
+      double* centroidData = reinterpret_cast<double*>(stk::mesh::field_data(centroid, elem));
+      calc_centroid(elemNodeCoords, numNodes, centroidData);
+  };
+
+  stk::mesh::for_each_entity_run_with_nodes(bulk, stk::topology::ELEM_RANK, selector, centroidCalculator);
+}
+
+inline
+std::vector<double> get_centroid_average_from_host(stk::mesh::BulkData &bulk, stk::mesh::Field<double> &centroid, const stk::mesh::Selector& selector)
 {
   std::vector<double> average = {0, 0, 0};
   size_t numElems = 0;
-  for(const stk::mesh::Bucket *bucket : bulk.buckets(stk::topology::ELEM_RANK))
-  {
-    for(stk::mesh::Entity elem : *bucket)
-    {
+  stk::mesh::Selector fieldSelector(centroid);
+  fieldSelector &= selector;
+  for (const stk::mesh::Bucket *bucket : bulk.get_buckets(stk::topology::ELEM_RANK, fieldSelector)) {
+    for (stk::mesh::Entity elem : *bucket) {
       double *elemCentroid = stk::mesh::field_data(centroid, elem);
       for(size_t dim = 0; dim < 3; dim++) {
         average[dim] += elemCentroid[dim];
@@ -162,8 +206,47 @@ std::vector<double> get_centroid_average(stk::mesh::BulkData &bulk, stk::mesh::F
     }
   }
 
+  if (numElems > 0) {
+    for(size_t dim = 0; dim < 3; dim++) {
+      average[dim] /= numElems;
+    }
+  }
+
+  return average;
+}
+
+inline
+std::vector<double> get_centroid_average_from_device(stk::mesh::BulkData &bulk, stk::mesh::Field<double> &centroid, const stk::mesh::Selector& selector)
+{
+  stk::mesh::NgpField<double>& ngpField = stk::mesh::get_updated_ngp_field<double>(centroid);
+  stk::mesh::NgpMesh& ngpMesh = stk::mesh::get_updated_ngp_mesh(bulk);
+
+  typedef Kokkos::View<double*, stk::ngp::MemSpace> DeviceAverageView;
+  typedef typename DeviceAverageView::HostMirror HostAverageView;
+
+  DeviceAverageView deviceAverageView("averageVew", 4);
+  HostAverageView hostAverageView = Kokkos::create_mirror_view(deviceAverageView);
+
+  Kokkos::deep_copy(deviceAverageView, 0.0);
+
+  stk::mesh::Selector fieldSelector(centroid);
+  fieldSelector &= selector;
+  stk::mesh::for_each_entity_run(ngpMesh, stk::topology::ELEM_RANK, fieldSelector,
+                                 KOKKOS_LAMBDA(const stk::mesh::FastMeshIndex& elem)
+                                 {
+                                   for(size_t dim = 0; dim < 3; dim++) {
+                                     Kokkos::atomic_add(&deviceAverageView(dim), ngpField(elem, dim));
+                                   }
+                                   Kokkos::atomic_increment(&deviceAverageView(3));
+                                 });
+
+  Kokkos::deep_copy(hostAverageView, deviceAverageView);
+
+  std::vector<double> average = {0, 0, 0};
+  unsigned numElems = hostAverageView(3);
+
   for(size_t dim = 0; dim < 3; dim++) {
-    average[dim] /= numElems;
+    average[dim] = numElems > 0 ? hostAverageView(dim) / numElems : 0.0;
   }
 
   return average;

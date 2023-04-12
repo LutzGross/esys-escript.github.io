@@ -67,7 +67,7 @@ Container<MatrixType>::Container(
   using Teuchos::Array;
   using Teuchos::ArrayView;
   using Teuchos::Comm;
-  NumLocalRows_ = inputMatrix_->getNodeNumRows();
+  NumLocalRows_ = inputMatrix_->getLocalNumRows();
   NumGlobalRows_ = inputMatrix_->getGlobalNumRows();
   NumGlobalNonzeros_ = inputMatrix_->getGlobalNumEntries();
   IsParallel_ = inputMatrix_->getRowMap()->getComm()->getSize() != 1;
@@ -173,14 +173,14 @@ bool Container<MatrixType>::isComputed () const {
 
 template<class MatrixType>
 void Container<MatrixType>::
-applyMV(mv_type& X, mv_type& Y) const
+applyMV(const mv_type& X, mv_type& Y) const
 {
   TEUCHOS_TEST_FOR_EXCEPT_MSG(true, "Not implemented.");
 }
 
 template<class MatrixType>
 void Container<MatrixType>::
-weightedApplyMV(mv_type& X, mv_type& Y, vector_type& W) const
+weightedApplyMV(const mv_type& X, mv_type& Y, vector_type& W) const
 {
   TEUCHOS_TEST_FOR_EXCEPT_MSG(true, "Not implemented.");
 }
@@ -193,14 +193,14 @@ getName()
 }
 
 template<class MatrixType>
-void Container<MatrixType>::DoGSBlock(HostView X, HostView Y, HostView Y2, HostView Resid,
+void Container<MatrixType>::DoGSBlock(ConstHostView X, HostView Y, HostView Y2, HostView Resid,
     SC dampingFactor, LO i) const
 {
   TEUCHOS_TEST_FOR_EXCEPT_MSG(true, "Not implemented.");
 }
 
 template <class MatrixType>
-void Container<MatrixType>::DoJacobi(HostView X, HostView Y, SC dampingFactor) const
+void Container<MatrixType>::DoJacobi(ConstHostView X, HostView Y, SC dampingFactor) const
 {
   using STS = Teuchos::ScalarTraits<ISC>;
   const ISC one = STS::one();
@@ -220,19 +220,19 @@ void Container<MatrixType>::DoJacobi(HostView X, HostView Y, SC dampingFactor) c
     {
       LO LRID = blockRows_[blockOffsets_[i]];
       getMatDiag();
-      HostView diagView = Diag_->getLocalViewHost();
-      ISC d = one / diagView(LRID, 0);
+      auto diagView = Diag_->getLocalViewHost(Tpetra::Access::ReadOnly);
+      ISC d = one * (static_cast<ISC> (dampingFactor)) / diagView(LRID, 0);
       for(size_t nv = 0; nv < numVecs; nv++)
       {
         ISC x = X(LRID, nv);
-        Y(LRID, nv) = x * d;
+        Y(LRID, nv) += x * d;
       }
     }
   }
 }
 
 template <class MatrixType>
-void Container<MatrixType>::DoOverlappingJacobi(HostView X, HostView Y, HostView W, SC dampingFactor) const
+void Container<MatrixType>::DoOverlappingJacobi(ConstHostView X, HostView Y, ConstHostView W, SC dampingFactor, bool nonsymScaling) const
 {
   using STS = Teuchos::ScalarTraits<SC>;
   // Overlapping Jacobi
@@ -241,8 +241,42 @@ void Container<MatrixType>::DoOverlappingJacobi(HostView X, HostView Y, HostView
     // may happen that a partition is empty
     if(blockSizes_[i] == 0)
       continue;
-    if(blockSizes_[i] != 1)
-      weightedApply(X, Y, W, i, Teuchos::NO_TRANS, dampingFactor, STS::one());
+    if(blockSizes_[i] != 1) {
+      if (!nonsymScaling) 
+        weightedApply(X, Y, W, i, Teuchos::NO_TRANS, dampingFactor, STS::one());
+      else {
+        // A crummy way of doing nonsymmetric scaling. We effectively
+        // first reverse scale x, which later gets scaled inside weightedApply
+        // so the net effect is that x is not scaled.
+        // This was done to keep using weightedApply() that is defined in
+        // many spots in the code.
+        HostView tempo("", X.extent(0), X.extent(1));
+        size_t numVecs = X.extent(1);
+        LO  bOffset = blockOffsets_[i];
+        for (LO ii = 0; ii < blockSizes_[i]; ii++) {
+          LO LRID = blockRows_[bOffset++];
+          for (size_t jj = 0; jj < numVecs; jj++) tempo(LRID,jj)=X(LRID,jj)/ W(LRID,0);
+        }
+        weightedApply(tempo, Y, W, i, Teuchos::NO_TRANS, dampingFactor, STS::one());
+      }
+    }
+    else    // singleton, can't access Containers_[i] as it was never filled and may be null.
+    {
+      const ISC one = STS::one();
+      size_t numVecs = X.extent(1);
+      LO LRID = blockRows_[blockOffsets_[i]];
+      getMatDiag();
+      auto diagView = Diag_->getLocalViewHost(Tpetra::Access::ReadOnly);
+      ISC recip  = one / diagView(LRID, 0);
+      ISC wval   = W(LRID,0);
+      ISC combo  = wval*recip;
+      ISC d = combo*(static_cast<ISC> (dampingFactor));
+      for(size_t nv = 0; nv < numVecs; nv++)
+      {
+        ISC x = X(LRID, nv);
+        Y(LRID, nv) = x * d + Y(LRID, nv);
+      }
+    }
   }
 }
 
@@ -250,7 +284,7 @@ void Container<MatrixType>::DoOverlappingJacobi(HostView X, HostView Y, HostView
 //This is used 3 times: once in DoGaussSeidel and twice in DoSGS
 template<class MatrixType, typename LocalScalarType>
 void ContainerImpl<MatrixType, LocalScalarType>::DoGSBlock(
-    HostView X, HostView Y, HostView Y2, HostView Resid,
+    ConstHostView X, HostView Y, HostView Y2, HostView Resid,
     SC dampingFactor, LO i) const
 {
   using Teuchos::ArrayView;
@@ -264,13 +298,15 @@ void ContainerImpl<MatrixType, LocalScalarType>::DoGSBlock(
     //Use efficient blocked version
     ArrayView<const LO> blockRows = this->getBlockRows(i);
     const size_t localNumRows = this->blockSizes_[i];
+    using inds_type = typename block_crs_matrix_type::local_inds_host_view_type;
+    using vals_type = typename block_crs_matrix_type::values_host_view_type;
     for(size_t j = 0; j < localNumRows; j++)
     {
       LO row = blockRows[j]; // Containers_[i]->ID (j);
-      LO numEntries;
-      SC* values;
-      const LO* colinds;
-      this->inputBlockMatrix_->getLocalRowView(row, colinds, values, numEntries);
+      vals_type values;
+      inds_type colinds;
+      this->inputBlockMatrix_->getLocalRowView(row, colinds, values);
+      LO numEntries = (LO) colinds.size();
       for(size_t m = 0; m < numVecs; m++)
       {
         for (int localR = 0; localR < this->bcrsBlockSize_; localR++)
@@ -302,13 +338,29 @@ void ContainerImpl<MatrixType, LocalScalarType>::DoGSBlock(
     // singleton, can't access Containers_[i] as it was never filled and may be null.
     // a singleton calculation (just using matrix diagonal) is exact, all residuals should be zero.
     LO LRID = this->blockOffsets_[i];  // by definition, a singleton 1 row in block.
-    HostView diagView = this->Diag_->getLocalViewHost();
-    ISC d = one / diagView(LRID, 0);
+    //Use the KokkosSparse internal matrix for low-overhead values/indices access
+    //But, can only do this if the matrix is accessible directly from host, since it's not a DualView
+    using container_exec_space = typename ContainerImpl<MatrixType, LocalScalarType>::crs_matrix_type::execution_space;
+    container_exec_space().fence();
+    auto localA = this->inputCrsMatrix_->getLocalMatrixHost();
+    using size_type = typename crs_matrix_type::local_matrix_host_type::size_type;
+    const auto& rowmap = localA.graph.row_map;
+    const auto& entries = localA.graph.entries;
+    const auto& values = localA.values;
+    this->getMatDiag();
+    auto diagView = this->Diag_->getLocalViewHost(Tpetra::Access::ReadOnly);
+    ISC d = (static_cast<ISC> (dampingFactor)) / diagView(LRID, 0);
     for(size_t m = 0; m < numVecs; m++)
     {
-      ISC x = X(LRID, m);
-      ISC newy = x * d;
-      Y2(LRID, m) = newy;
+      // ISC x = X(LRID, m);
+      ISC r = X(LRID, m);
+      for(size_type k = rowmap(LRID); k < rowmap(LRID + 1); k++) {
+        const LO col = entries(k);
+        r -= values(k) * Y2(col, m);
+      }
+
+      ISC newy = r * d;
+      Y2(LRID, m) += newy;
     }
   }
   else if(!this->inputCrsMatrix_.is_null() &&
@@ -318,8 +370,8 @@ void ContainerImpl<MatrixType, LocalScalarType>::DoGSBlock(
     //But, can only do this if the matrix is accessible directly from host, since it's not a DualView
     using container_exec_space = typename ContainerImpl<MatrixType, LocalScalarType>::crs_matrix_type::execution_space;
     container_exec_space().fence();
-    auto localA = this->inputCrsMatrix_->getLocalMatrix();
-    using size_type = typename crs_matrix_type::local_matrix_type::size_type;
+    auto localA = this->inputCrsMatrix_->getLocalMatrixHost();
+    using size_type = typename crs_matrix_type::local_matrix_host_type::size_type;
     const auto& rowmap = localA.graph.row_map;
     const auto& entries = localA.graph.entries;
     const auto& values = localA.values;
@@ -377,7 +429,7 @@ void ContainerImpl<MatrixType, LocalScalarType>::DoGSBlock(
 
 template<class MatrixType>
 void Container<MatrixType>::
-DoGaussSeidel(HostView X, HostView Y, HostView Y2, SC dampingFactor) const
+DoGaussSeidel(ConstHostView X, HostView Y, HostView Y2, SC dampingFactor) const
 {
   using Teuchos::Array;
   using Teuchos::ArrayRCP;
@@ -397,7 +449,7 @@ DoGaussSeidel(HostView X, HostView Y, HostView Y2, SC dampingFactor) const
   }
   if(IsParallel_)
   {
-    auto numMyRows = inputMatrix_->getNodeNumRows();
+    auto numMyRows = inputMatrix_->getLocalNumRows();
     for (size_t m = 0; m < numVecs; ++m)
     {
       for (size_t i = 0; i < numMyRows * bcrsBlockSize_; ++i)
@@ -410,7 +462,7 @@ DoGaussSeidel(HostView X, HostView Y, HostView Y2, SC dampingFactor) const
 
 template<class MatrixType>
 void Container<MatrixType>::
-DoSGS(HostView X, HostView Y, HostView Y2, SC dampingFactor) const
+DoSGS(ConstHostView X, HostView Y, HostView Y2, SC dampingFactor) const
 {
   // X = RHS, Y = initial guess
   using Teuchos::Array;
@@ -437,7 +489,7 @@ DoSGS(HostView X, HostView Y, HostView Y2, SC dampingFactor) const
   }
   if(IsParallel_)
   {
-    auto numMyRows = inputMatrix_->getNodeNumRows();
+    auto numMyRows = inputMatrix_->getLocalNumRows();
     for (size_t m = 0; m < numVecs; ++m)
     {
       for (size_t i = 0; i < numMyRows * bcrsBlockSize_; ++i)
@@ -489,22 +541,22 @@ applyInverseJacobi (const mv_type& /* X */, mv_type& /* Y */,
 
 template<class MatrixType, class LocalScalarType>
 void ContainerImpl<MatrixType, LocalScalarType>::
-applyMV (mv_type& X, mv_type& Y) const
+applyMV (const mv_type& X, mv_type& Y) const
 {
-  HostView XView = X.getLocalViewHost();
-  HostView YView = Y.getLocalViewHost();
+  ConstHostView XView = X.getLocalViewHost(Tpetra::Access::ReadOnly);
+  HostView YView = Y.getLocalViewHost(Tpetra::Access::ReadWrite);
   this->apply (XView, YView, 0);
 }
 
 template<class MatrixType, class LocalScalarType>
 void ContainerImpl<MatrixType, LocalScalarType>::
-weightedApplyMV (mv_type& X,
+weightedApplyMV (const mv_type& X,
                  mv_type& Y,
                  vector_type& W) const
 {
-  HostView XView = X.getLocalViewHost();
-  HostView YView = Y.getLocalViewHost();
-  HostView WView = W.getLocalViewHost();
+  ConstHostView XView = X.getLocalViewHost(Tpetra::Access::ReadOnly);
+  HostView YView = Y.getLocalViewHost(Tpetra::Access::ReadWrite);
+  ConstHostView WView = W.getLocalViewHost(Tpetra::Access::ReadOnly);
   weightedApply (XView, YView, WView, 0);
 }
 
@@ -517,7 +569,7 @@ getName()
 
 template<class MatrixType, class LocalScalarType>
 void ContainerImpl<MatrixType, LocalScalarType>::
-solveBlock(HostSubviewLocal X,
+solveBlock(ConstHostSubviewLocal X,
            HostSubviewLocal Y,
            int blockIndex,
            Teuchos::ETransp mode,
@@ -573,7 +625,7 @@ translateRowToCol(LO row)
 
 template<class MatrixType, class LocalScalarType>
 void ContainerImpl<MatrixType, LocalScalarType>::
-apply (HostView X,
+apply (ConstHostView X,
        HostView Y,
        int blockIndex,
        Teuchos::ETransp mode,
@@ -684,9 +736,9 @@ apply (HostView X,
 
 template<class MatrixType, class LocalScalarType>
 void ContainerImpl<MatrixType, LocalScalarType>::
-weightedApply(HostView X,
+weightedApply(ConstHostView X,
               HostView Y,
-              HostView D,
+              ConstHostView D,
               int blockIndex,
               Teuchos::ETransp mode,
               SC alpha,
@@ -844,33 +896,47 @@ Details::StridedRowView<
   typename ContainerImpl<MatrixType, LocalScalarType>::NO>
 ContainerImpl<MatrixType, LocalScalarType>::
 getInputRowView(LO row) const
-{
+{  
+
+  typedef typename MatrixType::nonconst_local_inds_host_view_type nonconst_local_inds_host_view_type;
+  typedef typename MatrixType::nonconst_values_host_view_type nonconst_values_host_view_type;
+
+  typedef typename MatrixType::local_inds_host_view_type local_inds_host_view_type;
+  typedef typename MatrixType::values_host_view_type values_host_view_type;
+  using IST = typename row_matrix_type::impl_scalar_type;
+
   if(this->hasBlockCrs_)
   {
-    const LO* colinds;
-    SC* values;
-    LO numEntries;
-    this->inputBlockMatrix_->getLocalRowView(row / this->bcrsBlockSize_, colinds, values, numEntries);
-    return StridedRowView(values + row % this->bcrsBlockSize_, colinds, this->bcrsBlockSize_, numEntries * this->bcrsBlockSize_);
+    using h_inds_type = typename block_crs_matrix_type::local_inds_host_view_type;
+    using h_vals_type = typename block_crs_matrix_type::values_host_view_type;
+    h_inds_type colinds;
+    h_vals_type values;
+    this->inputBlockMatrix_->getLocalRowView(row / this->bcrsBlockSize_, colinds, values);
+    size_t numEntries = colinds.size();
+    // CMS: Can't say I understand what this really does
+    //return StridedRowView(values + row % this->bcrsBlockSize_, colinds, this->bcrsBlockSize_, numEntries * this->bcrsBlockSize_);
+    h_vals_type subvals = Kokkos::subview(values,std::pair<size_t,size_t>(row % this->bcrsBlockSize_,values.size()));
+    return StridedRowView(subvals, colinds, this->bcrsBlockSize_, numEntries * this->bcrsBlockSize_);
   }
   else if(!this->inputMatrix_->supportsRowViews())
   {
-    size_t maxEntries = this->inputMatrix_->getNodeMaxNumRowEntries();
-    Teuchos::Array<LO> indsCopy(maxEntries);
-    Teuchos::Array<SC> valsCopy(maxEntries);
+    size_t maxEntries = this->inputMatrix_->getLocalMaxNumRowEntries();
+    Teuchos::Array<LO> inds(maxEntries);
+    Teuchos::Array<SC> vals(maxEntries);
+    nonconst_local_inds_host_view_type inds_v(inds.data(),maxEntries);
+    nonconst_values_host_view_type vals_v(reinterpret_cast<IST*>(vals.data()),maxEntries);
     size_t numEntries;
-    this->inputMatrix_->getLocalRowCopy(row, indsCopy, valsCopy, numEntries);
-    indsCopy.resize(numEntries);
-    valsCopy.resize(numEntries);
-    return StridedRowView(valsCopy, indsCopy);
+    this->inputMatrix_->getLocalRowCopy(row, inds_v, vals_v, numEntries);
+    vals.resize(numEntries); inds.resize(numEntries);
+    return StridedRowView(vals, inds);
   }
   else
   {
-    const LO* colinds;
-    const SC* values;
-    LO numEntries;
-    this->inputMatrix_->getLocalRowViewRaw(row, numEntries, colinds, values);
-    return StridedRowView(values, colinds, 1, numEntries);
+    // CMS - This is dangerous and might not work.
+    local_inds_host_view_type colinds;
+    values_host_view_type values;
+    this->inputMatrix_->getLocalRowView(row, colinds, values);
+    return StridedRowView(values, colinds, 1, colinds.size());
   }
 }
 
@@ -890,14 +956,14 @@ namespace Details {
 //Implementation of Ifpack2::Details::StridedRowView
 template<class Scalar, class LocalOrdinal, class GlobalOrdinal, class Node>
 StridedRowView<Scalar, LocalOrdinal, GlobalOrdinal, Node>::
-StridedRowView(const SC* vals_, const LO* inds_, int blockSize_, size_t nnz_)
+StridedRowView(h_vals_type vals_, h_inds_type inds_, int blockSize_, size_t nnz_)
   : vals(vals_), inds(inds_), blockSize(blockSize_), nnz(nnz_)
 {}
 
 template<class Scalar, class LocalOrdinal, class GlobalOrdinal, class Node>
 StridedRowView<Scalar, LocalOrdinal, GlobalOrdinal, Node>::
 StridedRowView(Teuchos::Array<SC>& vals_, Teuchos::Array<LO>& inds_)
-  : vals(nullptr), inds(nullptr), blockSize(1), nnz(vals_.size())
+  : vals(), inds(), blockSize(1), nnz(vals_.size())
 {
   valsCopy.swap(vals_);
   indsCopy.swap(inds_);
@@ -911,7 +977,7 @@ val(size_t i) const
   TEUCHOS_TEST_FOR_EXCEPTION(i >= nnz, std::runtime_error,
       "Out-of-bounds access into Ifpack2::Container::StridedRowView");
   #endif
-  if(vals)
+  if(vals.size() > 0)
   {
     if(blockSize == 1)
       return vals[i];
@@ -931,7 +997,7 @@ ind(size_t i) const
         "Out-of-bounds access into Ifpack2::Container::StridedRowView");
   #endif
   //inds is smaller than vals by a factor of the block size (dofs/node)
-  if(inds)
+    if(inds.size() > 0)
   {
     if(blockSize == 1)
       return inds[i];

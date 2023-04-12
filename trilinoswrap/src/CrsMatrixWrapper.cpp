@@ -26,7 +26,9 @@
 #include <escript/SolverOptions.h>
 #include <escript/EsysMPI.h>
 
+#ifndef ESYS_TRILINOS_14
 #include <Kokkos_DefaultNode.hpp>
+#endif
 // #include <MatrixMarket_Tpetra.hpp>
 #include <MueLu_CreateTpetraPreconditioner.hpp>
 
@@ -258,6 +260,33 @@ void CrsMatrixWrapper<ST>::nullifyRowsAndCols(
     resumeFill();
 // Can't use OpenMP here as replaceLocalValues() is not thread-safe.
 //#pragma omp parallel for
+#ifdef ESYS_TRILINOS_14
+    for (LO lclrow = 0; lclrow < mat.getLocalNumRows(); lclrow++) {
+        // Teuchos::ArrayView<const LO> indices;
+        // Teuchos::ArrayView<const ST> values;
+        std::vector<GO> cols;
+        std::vector<ST> vals;
+
+        using local_inds_host_view_type = typename Tpetra::CrsMatrix<ST,LO,GO,NT>::local_inds_host_view_type;
+        using values_host_view_type = typename Tpetra::CrsMatrix<ST,LO,GO,NT>::values_host_view_type;
+        local_inds_host_view_type indices;
+        values_host_view_type values;
+
+        mat.getLocalRowView(lclrow, indices, values);
+        GO row = rowMap->getGlobalElement(lclrow);
+        for (size_t c = 0; c < indices.size(); c++) {
+            const LO lclcol = indices[c];
+            const GO col = mat.getColMap()->getGlobalElement(lclcol);
+            if (rowMask[lclrow] > 0. || colMask[lclcol] > 0.) {
+                cols.push_back(lclcol);
+                vals.push_back(row==col ? mdv : zero);
+            }
+        }
+        if (cols.size() > 0)
+            mat.replaceLocalValues(lclrow, cols, vals);
+    }
+    fillComplete(true);
+#else
     for (LO lclrow = 0; lclrow < mat.getNodeNumRows(); lclrow++) {
         Teuchos::ArrayView<const LO> indices;
         Teuchos::ArrayView<const ST> values;
@@ -277,6 +306,7 @@ void CrsMatrixWrapper<ST>::nullifyRowsAndCols(
             mat.replaceLocalValues(lclrow, cols, vals);
     }
     fillComplete(true);
+#endif
 }
 
 template<typename ST>
@@ -301,37 +331,38 @@ void CrsMatrixWrapper<ST>::resetValues(bool preserveSolverData)
 template<typename ST>
 void CrsMatrixWrapper<ST>::IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT>> iz, long n) 
 {
-    // Initialise some variables
-    Tpetra::global_size_t numGblIndices = n;
-    const esys_trilinos::GO indexBase = 0;
-    escript::JMPI m_mpiInfo;
-    // auto comm = esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm);
-    auto comm = Teuchos::DefaultComm<int>::getComm();
+    // // Initialise some variables
+    // Tpetra::global_size_t numGblIndices = n;
+    // const esys_trilinos::GO indexBase = 0;
+    // escript::JMPI m_mpiInfo;
+    // auto comm = Teuchos::DefaultComm<int>::getComm();
 
-    // Create a new map and rcp matrix
-    typedef Tpetra::Map<LO,GO,NT> map_type;
-    Teuchos::RCP<const map_type> map = Teuchos::rcp ( new map_type (numGblIndices, indexBase, comm));
-    // Teuchos::RCP<Matrix> result (new Matrix(map, n));
-    Matrix *result = new Matrix(map, n);
+    // // Create a new map and rcp matrix
+    // typedef Tpetra::Map<LO,GO,NT> map_type;
+    // Teuchos::RCP<const map_type> map = Teuchos::rcp ( new map_type (numGblIndices, indexBase, comm));
+    // Matrix *result = new Matrix(map, n);
 
-    // Initialise some more variables
-    RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
-    params->set("No Nonlocal Changes", true);
-    const std::string& label = "ans";
-    const auto tmp_mat1 = Tpetra::createDeepCopy(mat);
-    const auto iz_tmp = Tpetra::createDeepCopy(*iz);
-    const auto iz_tmp2 = Tpetra::createDeepCopy(*iz);
+    // // Initialise some more variables
+    // RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
+    // params->set("No Nonlocal Changes", true);
+    // const std::string& label = "ans";
+    // // const auto tmp_mat1 = new Tpetra::createDeepCopy(mat);
+    // const auto iz_tmp = new Tpetra::createDeepCopy(*iz);
+    // // const auto iz_tmp2 = Tpetra::createDeepCopy(*iz);
 
-    // Do the matrix-matrix multiplication
-    Tpetra::TripleMatrixMultiply::MultiplyRAP<ST,LO,GO,NT>(
-                    iz_tmp,true,tmp_mat1,false,iz_tmp2,false,*result,false,label,params);
+    // // Do the matrix-matrix multiplication
+    // Tpetra::TripleMatrixMultiply::MultiplyRAP<ST,LO,GO,NT>(
+    //                 iz_tmp,true,mat,false,*iz,false,*result,false,label,params);
 
-    // Teuchos::ScalarTraits<typename CrsMatrixType::scalar_type>::magnitudeType tol=1E-24;
-    // Teuchos::removeCrsMatrixZeros(result);
+    // Teuchos::ScalarTraits<ST>::magnitudeType threshold=1E-24;
+    // Teuchos::removeCrsMatrixZeros(result, threshold);
 
-    mat.resumeFill();
-    mat=Tpetra::createDeepCopy(*result);
-    mat.fillComplete(params);
+    // mat.resumeFill();
+    // mat=Tpetra::createDeepCopy(*result);
+    // mat.fillComplete(params);
+
+    // delete iz_tmp;
+    // delete result;
 }
 
 // instantiate the supported variants

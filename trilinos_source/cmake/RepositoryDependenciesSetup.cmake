@@ -1,16 +1,16 @@
-if (TPL_ENABLE_CUDA AND NOT Kokkos_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE)
-  if ("${${PROJECT_NAME}_ENABLE_ShyLU_NodeTacho}" STREQUAL "")
-    message(
-      "-- " "NOTE: Setting ${PROJECT_NAME}_ENABLE_ShyLU_NodeTacho=OFF by default since TPL_ENABLE_CUDA='${TPL_ENABLE_CUDA}' AND Kokkos_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE='${Kokkos_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE}'!\n"
-      "-- NOTE: To allow the enable of ShyLU_NodeTacho, please set Kokkos_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE=ON.")
-    set(${PROJECT_NAME}_ENABLE_ShyLU_NodeTacho OFF)
-    # NOTE: Above we set the non-cache var
-    # ${PROJECT_NAME}_ENABLE_ShyLU_NodeTacho so that each reconfigure will
-    # show this same note.
-  elseif (${PROJECT_NAME}_ENABLE_ShyLU_NodeTacho)
-    message(FATAL_ERROR "ERROR: ${PROJECT_NAME}_ENABLE_ShyLU_NodeTacho=ON but TPL_ENABLE_CUDA='${TPL_ENABLE_CUDA}' AND Kokkos_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE='${Kokkos_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE}' which is not allowed!")
-  endif()
-endif() 
+# if (TPL_ENABLE_CUDA AND NOT Kokkos_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE)
+#   if ("${${PROJECT_NAME}_ENABLE_ShyLU_NodeTacho}" STREQUAL "")
+#     message(
+#       "-- " "NOTE: Setting ${PROJECT_NAME}_ENABLE_ShyLU_NodeTacho=OFF by default since TPL_ENABLE_CUDA='${TPL_ENABLE_CUDA}' AND Kokkos_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE='${Kokkos_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE}'!\n"
+#       "-- NOTE: To allow the enable of ShyLU_NodeTacho, please set Kokkos_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE=ON.")
+#     set(${PROJECT_NAME}_ENABLE_ShyLU_NodeTacho OFF)
+#     # NOTE: Above we set the non-cache var
+#     # ${PROJECT_NAME}_ENABLE_ShyLU_NodeTacho so that each reconfigure will
+#     # show this same note.
+#   elseif (${PROJECT_NAME}_ENABLE_ShyLU_NodeTacho)
+#     message(FATAL_ERROR "ERROR: ${PROJECT_NAME}_ENABLE_ShyLU_NodeTacho=ON but TPL_ENABLE_CUDA='${TPL_ENABLE_CUDA}' AND Kokkos_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE='${Kokkos_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE}' which is not allowed!")
+#   endif()
+# endif() 
 
 #########################################################################
 # STKBalance does not work with GO=INT or GO=UNSIGNED
@@ -105,3 +105,24 @@ IF(KDD_INT_LONG OR KDD_INT_LONG_LONG OR KDD_INT_UNSIGNED)
    ENDIF()
 ENDIF()
 
+# Special logic to disable SEACAS subpackages depending on Fortran enabled or not
+
+if (SEACAS_SOURCE_DIR)
+  include("${SEACAS_SOURCE_DIR}/cmake/SeacasDisableSubpackagesDependingOnFortran.cmake")
+  seacas_disable_subpackages_depending_on_fortran()
+endif()
+
+# Enable Build Status package and enable reporting the reporting test
+
+set(bulidStats "${${PROJECT_NAME}_ENABLE_BUILD_STATS}")
+if (
+    bulidStats
+    AND
+    ("${${PROJECT_NAME}_ENABLE_TrilinosBuildStats}" STREQUAL "")
+    )
+  message("-- " "Setting ${PROJECT_NAME}_ENABLE_TrilinosBuildStats=ON"
+    " by default because"
+    " ${PROJECT_NAME}_ENABLE_BUILD_STATS=${bulidStats}"
+    )
+  set(${PROJECT_NAME}_ENABLE_TrilinosBuildStats ON)
+endif()

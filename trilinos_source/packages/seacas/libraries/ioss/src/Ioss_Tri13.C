@@ -1,7 +1,7 @@
-// Copyright(C) 1999-2020 National Technology & Engineering Solutions
+// Copyright(C) 1999-2021 National Technology & Engineering Solutions
 // of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 // NTESS, the U.S. Government retains certain rights in this software.
-// 
+//
 // See packages/seacas/LICENSE for details
 
 // ========================================================================
@@ -57,8 +57,6 @@ Ioss::Tri13::Tri13() : Ioss::ElementTopology(Ioss::Tri13::name, "Triangle_13")
   Ioss::ElementTopology::alias(Ioss::Tri13::name, "triface13");
 }
 
-Ioss::Tri13::~Tri13() = default;
-
 int Ioss::Tri13::parametric_dimension() const { return 2; }
 int Ioss::Tri13::spatial_dimension() const { return 2; }
 int Ioss::Tri13::order() const { return 3; }
@@ -109,5 +107,6 @@ Ioss::ElementTopology *Ioss::Tri13::face_type(int /* face_number */) const
 Ioss::ElementTopology *Ioss::Tri13::edge_type(int edge_number) const
 {
   assert(edge_number >= 0 && edge_number <= number_edges());
+  IOSS_ASSERT_USED(edge_number);
   return Ioss::ElementTopology::factory("edge4");
 }

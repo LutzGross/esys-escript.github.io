@@ -1,11 +1,15 @@
-// Copyright(C) 1999-2020 National Technology & Engineering Solutions
+// Copyright(C) 1999-2022 National Technology & Engineering Solutions
 // of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 // NTESS, the U.S. Government retains certain rights in this software.
-// 
+//
 // See packages/seacas/LICENSE for details
 
-#ifndef IOSS_Iocgns_ParallelDatabaseIO_h
-#define IOSS_Iocgns_ParallelDatabaseIO_h
+#pragma once
+
+#include "iocgns_export.h"
+
+#include <cgnsconfig.h>
+#if CG_BUILD_PARALLEL
 
 #include <Ioss_CodeTypes.h>
 #include <Ioss_DBUsage.h>    // for DatabaseUsage
@@ -14,11 +18,11 @@
 #include <Ioss_Map.h>        // for Map
 #include <Ioss_MeshType.h>
 #include <Ioss_State.h> // for State
+#include <cstddef>      // for size_t
+#include <cstdint>      // for int64_t
 #include <iostream>     // for ostream
 #include <memory>
-#include <stddef.h> // for size_t
-#include <stdint.h> // for int64_t
-#include <string>   // for string
+#include <string> // for string
 
 #include <cgns/Iocgns_DecompositionData.h>
 #include <cgns/Iocgns_Defines.h>
@@ -48,16 +52,16 @@ namespace Ioss {
 
 namespace Iocgns {
 
-  class ParallelDatabaseIO : public Ioss::DatabaseIO
+  class IOCGNS_EXPORT ParallelDatabaseIO : public Ioss::DatabaseIO
   {
   public:
     enum class entity_type { NODE, ELEM };
 
     ParallelDatabaseIO(Ioss::Region *region, const std::string &filename,
-                       Ioss::DatabaseUsage db_usage, MPI_Comm communicator,
+                       Ioss::DatabaseUsage db_usage, Ioss_MPI_Comm communicator,
                        const Ioss::PropertyManager &props);
 
-    ~ParallelDatabaseIO();
+    ~ParallelDatabaseIO() override;
 
     const std::string get_format() const override { return "CGNS"; }
 
@@ -163,7 +167,7 @@ namespace Iocgns {
                                size_t data_size) const override;
     int64_t put_field_internal(const Ioss::StructuredBlock *sb, const Ioss::Field &field,
                                void *data, size_t data_size) const override;
-    int64_t put_field_internal(const Ioss::SideBlock *fb, const Ioss::Field &field, void *data,
+    int64_t put_field_internal(const Ioss::SideBlock *sb, const Ioss::Field &field, void *data,
                                size_t data_size) const override;
     int64_t put_field_internal(const Ioss::NodeSet *ns, const Ioss::Field &field, void *data,
                                size_t data_size) const override;
@@ -194,7 +198,7 @@ namespace Iocgns {
 
     // ID Mapping functions.
     const Ioss::Map &get_map(entity_type type) const;
-    const Ioss::Map &get_map(Ioss::Map &entity_map, int64_t entityCount, int64_t file_offset,
+    const Ioss::Map &get_map(Ioss::Map &entity_map, int64_t entity_count, int64_t file_offset,
                              int64_t file_count, entity_type type) const;
 
     int64_t handle_element_ids(const Ioss::ElementBlock *eb, void *ids, size_t num_to_get,
@@ -213,14 +217,14 @@ namespace Iocgns {
     mutable std::unique_ptr<DecompositionDataBase> decomp;
 
     int          m_flushInterval{0}; // Default is no flushing after each timestep
-    int          m_currentVertexSolutionIndex     = 0;
-    int          m_currentCellCenterSolutionIndex = 0;
-    mutable bool m_dbFinalized                    = false;
+    int          m_currentVertexSolutionIndex{0};
+    int          m_currentCellCenterSolutionIndex{0};
+    mutable bool m_dbFinalized{false};
 
     mutable std::vector<size_t> m_zoneOffset; // Offset for local zone/block element ids to global.
 
     mutable std::vector<size_t>
-                                       m_bcOffset; // The BC Section element offsets in unstructured output.
+        m_bcOffset; // The BC Section element offsets in unstructured output.
     mutable std::vector<double>        m_timesteps; // Should be able to get this from region?
     std::map<std::string, int>         m_zoneNameMap;
     mutable std::map<int, Ioss::Map *> m_globalToBlockLocalNodeMap;

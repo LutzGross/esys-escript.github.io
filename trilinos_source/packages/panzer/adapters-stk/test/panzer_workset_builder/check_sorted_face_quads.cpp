@@ -85,14 +85,14 @@ namespace panzer {
 
     RCP<Teuchos::ParameterList> pl = rcp(new Teuchos::ParameterList);
     pl->set<int>   ("X Blocks",     1);
-    pl->set<int>   ("X Elements", 128);
+    pl->set<int>   ("X Elements",   2);
     pl->set<double>("X0",         0.0);
-    pl->set<double>("Xf",         2.5);
+    pl->set<double>("Xf",         1.0);
     pl->set<int>   ("X Procs",      1);
     pl->set<int>   ("Y Blocks",     1);
     pl->set<int>   ("Y Elements",   2);
     pl->set<double>("Y0",           0);
-    pl->set<double>("Yf",     1.11804);
+    pl->set<double>("Yf",         1.0);
     pl->set<int>   ("Y Procs",      1);
     pl->sublist("Periodic BCs");
     pl->sublist("Periodic BCs").set<std::string>("Periodic Condition 1","y-all 1e-8: left;right");
@@ -157,20 +157,32 @@ namespace panzer {
 
     const int num_points = normals.extent(1);
     const int num_faces = face_connectivity.numSubcells();
-    const int num_faces_per_cell = face_connectivity.numSubcellsOnCell(0);
+    const int num_faces_per_cell = face_connectivity.numSubcellsOnCellHost(0);
     const int num_points_per_face = num_points / num_faces_per_cell;
 
-    TEST_EQUALITY(num_faces,512); // 128 * 2 vertical edges (2 removed by periodicity)
-                                  // 128 * 2 horizontal edges (128 removed by periodicty)
+    TEST_EQUALITY(num_faces,8); // 3*2-2 vertical edges (2 removed by periodicity)
+                                // 3*2-2 horizontal edges (2 removed by periodicty)
     TEST_EQUALITY(num_faces_per_cell,4);
     TEST_EQUALITY(num_points,2*4);
 
-    for(int face=0; face<num_faces; ++face) {
-      int cell_l = face_connectivity.cellForSubcell(face,0);
-      int cell_r = face_connectivity.cellForSubcell(face,1);
+    auto normals_view = PHX::as_view(normals);
+    auto normals_h = Kokkos::create_mirror_view(normals_view);
+    Kokkos::deep_copy(normals_h, normals_view);
 
-      int local_face_l = face_connectivity.localSubcellForSubcell(face,0);
-      int local_face_r = face_connectivity.localSubcellForSubcell(face,1);
+    auto ip_coordinates_view = PHX::as_view(ip_coordinates);
+    auto ip_coordinates_h = Kokkos::create_mirror_view(ip_coordinates_view);
+    Kokkos::deep_copy(ip_coordinates_h, ip_coordinates_view);
+
+    auto rot_matrices_view = PHX::as_view(rot_matrices);
+    auto rot_matrices_h = Kokkos::create_mirror_view(rot_matrices_view);
+    Kokkos::deep_copy(rot_matrices_h, rot_matrices_view);
+
+    for(int face=0; face<num_faces; ++face) {
+      int cell_l = face_connectivity.cellForSubcellHost(face,0);
+      int cell_r = face_connectivity.cellForSubcellHost(face,1);
+
+      int local_face_l = face_connectivity.localSubcellForSubcellHost(face,0);
+      int local_face_r = face_connectivity.localSubcellForSubcellHost(face,1);
 
       out << "Face " << face << ": "
           << "Left "  << cell_l << " ( " << local_face_l << " ), "
@@ -181,66 +193,67 @@ namespace panzer {
 
     // test a periodic horizontal pair
     for(int point=0;point<num_points_per_face;point++) {
-      int local_face_l = 3;
-      int local_face_r = 1;
-      int cell_l = 0;
-      int cell_r = 127;
-      int point_l = local_face_l * num_points_per_face + point;
-      int point_r = local_face_r * num_points_per_face + point;
+      const int cell_l = 0;
+      const int cell_r = 1;
+      const int local_face_l = 3; // Left side of left cell
+      const int local_face_r = 1; // Right side of right cell
+      const int point_l = local_face_l * num_points_per_face + point;
+      const int point_r = local_face_r * num_points_per_face + point;
 
       out << std::endl;
       out << std::scientific;
-      out << std::setprecision(16) << "LEFT Normal = [ " << normals(cell_l,point_l,0) << ", "
-                                                         << normals(cell_l,point_l,1) << " ]" << std::endl;
-      out << std::setprecision(16) << "RGHT Normal = [ " << normals(cell_r,point_r,0) << ", "
-                                                         << normals(cell_r,point_r,1) << " ]" << std::endl;
+      out << std::setprecision(16) << "LEFT Normal = [ " << normals_h(cell_l,point_l,0) << ", "
+                                                         << normals_h(cell_l,point_l,1) << " ]" << std::endl;
+      out << std::setprecision(16) << "RGHT Normal = [ " << normals_h(cell_r,point_r,0) << ", "
+                                                         << normals_h(cell_r,point_r,1) << " ]" << std::endl;
 
       out << std::endl;
-      out << std::setprecision(16) << "LEFT Coords = [ " << ip_coordinates(cell_l,point_l,0) << ", "
-                                                         << ip_coordinates(cell_l,point_l,1) << " ]" << std::endl;
-      out << std::setprecision(16) << "RGHT Coords = [ " << ip_coordinates(cell_r,point_r,0) << ", "
-                                                         << ip_coordinates(cell_r,point_r,1) << " ]" << std::endl;
+      out << std::setprecision(16) << "LEFT Coords = [ " << ip_coordinates_h(cell_l,point_l,0) << ", "
+                                                         << ip_coordinates_h(cell_l,point_l,1) << " ]" << std::endl;
+      out << std::setprecision(16) << "RGHT Coords = [ " << ip_coordinates_h(cell_r,point_r,0) << ", "
+                                                         << ip_coordinates_h(cell_r,point_r,1) << " ]" << std::endl;
 
-      TEST_ASSERT(std::fabs(ip_coordinates(cell_l,point_l,0) - 0.0) < 1.0e-14);
-      TEST_ASSERT(std::fabs(ip_coordinates(cell_r,point_r,0) - 2.5) < 1.0e-14);
-      TEST_ASSERT(std::fabs(ip_coordinates(cell_l,point_l,1) - ip_coordinates(cell_r,point_r,1)) < 1.0e-14);
+      TEST_FLOATING_EQUALITY(ip_coordinates_h(cell_l,point_l,0), 0.0, 1.0e-14);
+      TEST_FLOATING_EQUALITY(ip_coordinates_h(cell_r,point_r,0), 1.0, 1.0e-14);
+      TEST_FLOATING_EQUALITY(ip_coordinates_h(cell_l,point_l,1), ip_coordinates_h(cell_r,point_r,1), 1.0e-14);
 
       out << "LEFT rotation" << std::endl;
       out << std::setprecision(16)
-          << "  " << rot_matrices(cell_l,point_l,0,0) << ", " << rot_matrices(cell_l,point_l,0,1) << "  " << rot_matrices(cell_l,point_l,0,2) << std::endl
-          << "  " << rot_matrices(cell_l,point_l,1,0) << ", " << rot_matrices(cell_l,point_l,1,1) << "  " << rot_matrices(cell_l,point_l,1,2) << std::endl
-          << "  " << rot_matrices(cell_l,point_l,2,0) << ", " << rot_matrices(cell_l,point_l,2,1) << "  " << rot_matrices(cell_l,point_l,2,2) << std::endl;
+          << "  " << rot_matrices_h(cell_l,point_l,0,0) << ", " << rot_matrices_h(cell_l,point_l,0,1) << "  " << rot_matrices_h(cell_l,point_l,0,2) << std::endl
+          << "  " << rot_matrices_h(cell_l,point_l,1,0) << ", " << rot_matrices_h(cell_l,point_l,1,1) << "  " << rot_matrices_h(cell_l,point_l,1,2) << std::endl
+          << "  " << rot_matrices_h(cell_l,point_l,2,0) << ", " << rot_matrices_h(cell_l,point_l,2,1) << "  " << rot_matrices_h(cell_l,point_l,2,2) << std::endl;
     }
 
     // test an interior horizontal pair
     for(int point=0;point<num_points_per_face;point++) {
-      int local_face_l = 1;
-      int local_face_r = 3;
-      int cell_l = 0;
-      int cell_r = 1;
-      int point_l = local_face_l * num_points_per_face + point;
-      int point_r = local_face_r * num_points_per_face + point;
+      const int cell_l = 0;
+      const int cell_r = 1;
+      const int local_face_l = 1; // Right side of left cell
+      const int local_face_r = 3; // Left side of right cell
+      const int point_l = local_face_l * num_points_per_face + point;
+      const int point_r = local_face_r * num_points_per_face + point;
 
       out << std::endl;
       out << std::scientific;
-      out << std::setprecision(16) << "LEFT Normal = [ " << normals(cell_l,point_l,0) << ", "
-                                                         << normals(cell_l,point_l,1) << " ]" << std::endl;
-      out << std::setprecision(16) << "RGHT Normal = [ " << normals(cell_r,point_r,0) << ", "
-                                                         << normals(cell_r,point_r,1) << " ]" << std::endl;
+      out << std::setprecision(16) << "LEFT Normal = [ " << normals_h(cell_l,point_l,0) << ", "
+                                                         << normals_h(cell_l,point_l,1) << " ]" << std::endl;
+      out << std::setprecision(16) << "RGHT Normal = [ " << normals_h(cell_r,point_r,0) << ", "
+                                                         << normals_h(cell_r,point_r,1) << " ]" << std::endl;
 
       out << std::endl;
-      out << std::setprecision(16) << "LEFT Coords = [ " << ip_coordinates(cell_l,point_l,0) << ", "
-                                                         << ip_coordinates(cell_l,point_l,1) << " ]" << std::endl;
-      out << std::setprecision(16) << "RGHT Coords = [ " << ip_coordinates(cell_r,point_r,0) << ", "
-                                                         << ip_coordinates(cell_r,point_r,1) << " ]" << std::endl;
+      out << std::setprecision(16) << "LEFT Coords = [ " << ip_coordinates_h(cell_l,point_l,0) << ", "
+                                                         << ip_coordinates_h(cell_l,point_l,1) << " ]" << std::endl;
+      out << std::setprecision(16) << "RGHT Coords = [ " << ip_coordinates_h(cell_r,point_r,0) << ", "
+                                                         << ip_coordinates_h(cell_r,point_r,1) << " ]" << std::endl;
 
-      TEST_ASSERT(std::fabs(ip_coordinates(cell_l,point_l,1) - ip_coordinates(cell_r,point_r,1)) < 1.0e-14);
+      TEST_FLOATING_EQUALITY(ip_coordinates_h(cell_l,point_l,0), ip_coordinates_h(cell_r,point_r,0), 1.0e-14);
+      TEST_FLOATING_EQUALITY(ip_coordinates_h(cell_l,point_l,1), ip_coordinates_h(cell_r,point_r,1), 1.0e-14);
 
       out << "LEFT rotation" << std::endl;
       out << std::setprecision(16)
-          << "  " << rot_matrices(cell_l,point_l,0,0) << ", " << rot_matrices(cell_l,point_l,0,1) << "  " << rot_matrices(cell_l,point_l,0,2) << std::endl
-          << "  " << rot_matrices(cell_l,point_l,1,0) << ", " << rot_matrices(cell_l,point_l,1,1) << "  " << rot_matrices(cell_l,point_l,1,2) << std::endl
-          << "  " << rot_matrices(cell_l,point_l,2,0) << ", " << rot_matrices(cell_l,point_l,2,1) << "  " << rot_matrices(cell_l,point_l,2,2) << std::endl;
+          << "  " << rot_matrices_h(cell_l,point_l,0,0) << ", " << rot_matrices_h(cell_l,point_l,0,1) << "  " << rot_matrices_h(cell_l,point_l,0,2) << std::endl
+          << "  " << rot_matrices_h(cell_l,point_l,1,0) << ", " << rot_matrices_h(cell_l,point_l,1,1) << "  " << rot_matrices_h(cell_l,point_l,1,2) << std::endl
+          << "  " << rot_matrices_h(cell_l,point_l,2,0) << ", " << rot_matrices_h(cell_l,point_l,2,1) << "  " << rot_matrices_h(cell_l,point_l,2,2) << std::endl;
     }
   }
 } // end namespace panzer

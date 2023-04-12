@@ -36,69 +36,6 @@ SolutionState<Scalar>::SolutionState()
 }
 
 
-#ifndef TEMPUS_HIDE_DEPRECATED_CODE
-template<class Scalar>
-SolutionState<Scalar>::SolutionState(
-  const Teuchos::RCP<Thyra::VectorBase<Scalar> >& x,
-  const Teuchos::RCP<Thyra::VectorBase<Scalar> >& xdot,
-  const Teuchos::RCP<Thyra::VectorBase<Scalar> >& xdotdot,
-  const Teuchos::RCP<StepperState<Scalar> >& stepperState,
-  const Teuchos::RCP<PhysicsState<Scalar> >& physicsState)
-  : x_              (x),
-    x_nc_           (x),
-    xdot_           (xdot),
-    xdot_nc_        (xdot),
-    xdotdot_        (xdotdot),
-    xdotdot_nc_     (xdotdot),
-    stepperState_   (stepperState),
-    stepperState_nc_(stepperState),
-    physicsState_   (physicsState),
-    physicsState_nc_(physicsState)
-{
-  metaData_nc_ = Teuchos::rcp(new SolutionStateMetaData<Scalar>());
-  metaData_    = metaData_nc_;
-  if (stepperState_nc_ == Teuchos::null) {
-    stepperState_nc_ = Teuchos::rcp(new StepperState<Scalar>("Default"));
-    stepperState_    = stepperState_nc_;
-  }
-  if (physicsState_nc_ == Teuchos::null) {
-    physicsState_nc_ = Teuchos::rcp(new PhysicsState<Scalar> ());
-    physicsState_    = physicsState_nc_;
-  }
-}
-
-template<class Scalar>
-SolutionState<Scalar>::SolutionState(
-  const Teuchos::RCP<const Thyra::VectorBase<Scalar> >& x,
-  const Teuchos::RCP<const Thyra::VectorBase<Scalar> >& xdot,
-  const Teuchos::RCP<const Thyra::VectorBase<Scalar> >& xdotdot,
-  const Teuchos::RCP<const StepperState<Scalar> >& stepperState,
-  const Teuchos::RCP<const PhysicsState<Scalar> >& physicsState)
-  : x_              (x),
-    x_nc_           (Teuchos::null),
-    xdot_           (xdot),
-    xdot_nc_        (Teuchos::null),
-    xdotdot_        (xdotdot),
-    xdotdot_nc_     (Teuchos::null),
-    stepperState_   (stepperState),
-    stepperState_nc_(Teuchos::null),
-    physicsState_   (physicsState),
-    physicsState_nc_(Teuchos::null)
-{
-  metaData_nc_ = Teuchos::rcp(new SolutionStateMetaData<Scalar>());
-  metaData_    = metaData_nc_;
-
-  using Teuchos::rcp_const_cast;
-  if (stepperState_ == Teuchos::null) {
-    stepperState_ = Teuchos::rcp(new StepperState<Scalar>("Default"));
-  }
-  if (physicsState_ == Teuchos::null) {
-    physicsState_ = Teuchos::rcp(new PhysicsState<Scalar> ());
-  }
-}
-#endif
-
-
 template<class Scalar>
 SolutionState<Scalar>::SolutionState(
   const Teuchos::RCP<SolutionStateMetaData<Scalar> > metaData,
@@ -159,70 +96,6 @@ SolutionState<Scalar>::SolutionState(
   }
 }
 
-
-#ifndef TEMPUS_HIDE_DEPRECATED_CODE
-template<class Scalar>
-SolutionState<Scalar>::SolutionState(
-  const Teuchos::RCP<const Thyra::ModelEvaluator<Scalar> >& model,
-  const Teuchos::RCP<StepperState<Scalar> >& stepperState,
-  const Teuchos::RCP<PhysicsState<Scalar> >& physicsState)
-{
-  typedef Thyra::ModelEvaluatorBase MEB;
-  using Teuchos::rcp_const_cast;
-
-  metaData_nc_ = Teuchos::rcp(new SolutionStateMetaData<Scalar>());
-  metaData_nc_->setSolutionStatus(Status::PASSED);
-  metaData_ = metaData_nc_;
-
-  MEB::InArgs<Scalar> inArgs = model->getNominalValues();
-
-  TEUCHOS_TEST_FOR_EXCEPTION(inArgs.supports(MEB::IN_ARG_x) == false,
-    std::logic_error,
-    model->description() << "does not support an x solution vector!");
-
-  // The solution vector, x, is required (usually).
-  x_nc_ = rcp_const_cast<Thyra::VectorBase<Scalar> > (inArgs.get_x());
-  x_    = x_nc_;
-
-  // The solution derivative, xdot, can be optional provided, based on
-  // application needs.  Here we will base it on "supports" IN_ARG_x_dot.
-  // Depending on the stepper used, a temporary xdot vector may be created
-  // within the Stepper, but not moved to the SolutionState.
-  if (inArgs.supports(MEB::IN_ARG_x_dot)) {
-    xdot_nc_ = rcp_const_cast<Thyra::VectorBase<Scalar> >(inArgs.get_x_dot());
-    xdot_    = xdot_nc_;
-  } else {
-    xdot_nc_ = Teuchos::null;
-    xdot_    = xdot_nc_;
-  }
-
-  // Similar as xdot.
-  if (inArgs.supports(MEB::IN_ARG_x_dot_dot)) {
-    xdotdot_nc_ =
-      rcp_const_cast<Thyra::VectorBase<Scalar> > (inArgs.get_x_dot_dot());
-    xdotdot_    = xdotdot_nc_;
-  } else {
-    xdotdot_nc_ = Teuchos::null;
-    xdotdot_    = xdotdot_nc_;
-  }
-
-  if (stepperState == Teuchos::null) {
-    stepperState_nc_ = Teuchos::rcp(new StepperState<Scalar> ()); // Use default
-    stepperState_    = stepperState_nc_;
-  } else {
-    stepperState_nc_ = stepperState;
-    stepperState_    = stepperState;
-  }
-
-  if (physicsState == Teuchos::null) {
-    physicsState_nc_ = Teuchos::rcp(new PhysicsState<Scalar> ()); // Use default
-    physicsState_    = physicsState_nc_;
-  } else {
-    physicsState_nc_ = physicsState;
-    physicsState_    = physicsState;
-  }
-}
-#endif
 
 template<class Scalar>
 SolutionState<Scalar>::SolutionState(const SolutionState<Scalar>& ss_)
@@ -399,8 +272,13 @@ bool SolutionState<Scalar>::operator== (const Scalar& t) const
 template<class Scalar>
 std::string SolutionState<Scalar>::description() const
 {
-  std::string name = "Tempus::SolutionState";
-  return (name);
+  std::ostringstream out;
+  out << "SolutionState"
+      << " (index =" <<std::setw(6)<< this->getIndex()
+      << "; time =" <<std::setw(10)<<std::setprecision(3)<<this->getTime()
+      << "; dt ="   <<std::setw(10)<<std::setprecision(3)<<this->getTimeStep()
+      << ")";
+  return out.str();
 }
 
 template<class Scalar>
@@ -408,28 +286,33 @@ void SolutionState<Scalar>::describe(
    Teuchos::FancyOStream               &out,
    const Teuchos::EVerbosityLevel      verbLevel) const
 {
-  if (verbLevel == Teuchos::VERB_EXTREME) {
-    out << description() << "::describe:" << std::endl
-        << "metaData = " << std::endl;
-        metaData_->describe(out,verbLevel);
-    out << "x = " << std::endl;
-    x_->describe(out,verbLevel);
+  auto l_out = Teuchos::fancyOStream( out.getOStream() );
+  Teuchos::OSTab ostab(*l_out, 2, this->description());
+  l_out->setOutputToRootOnly(0);
+
+  *l_out << "\n--- " << this->description() << " ---" << std::endl;
+
+  if (Teuchos::as<int>(verbLevel) >= Teuchos::as<int>(Teuchos::VERB_EXTREME)) {
+
+    metaData_->describe(*l_out,verbLevel);
+    *l_out << "  x       = " << std::endl;
+    x_->describe(*l_out,verbLevel);
+
     if (xdot_ != Teuchos::null) {
-      out << "xdot_ = " << std::endl;
-      xdot_->describe(out,verbLevel);
+      *l_out << "  xdot_   = " << std::endl;
+      xdot_->describe(*l_out,verbLevel);
     }
     if (xdotdot_ != Teuchos::null) {
-      out << "xdotdot = " << std::endl;
-      xdotdot_->describe(out,verbLevel);
+      *l_out << "  xdotdot = " << std::endl;
+      xdotdot_->describe(*l_out,verbLevel);
     }
-    if (stepperState_ != Teuchos::null) {
-      out << "stepperState = " << std::endl;
-      stepperState_->describe(out,verbLevel);
-    }
-    if (physicsState_ != Teuchos::null) {
-      out << "physicsState = " << std::endl;
-      physicsState_->describe(out,verbLevel);
-    }
+
+    if (stepperState_ != Teuchos::null)
+      stepperState_->describe(*l_out,verbLevel);
+    if (physicsState_ != Teuchos::null)
+      physicsState_->describe(*l_out,verbLevel);
+
+    *l_out << std::string(this->description().length()+8, '-') <<std::endl;
   }
 }
 

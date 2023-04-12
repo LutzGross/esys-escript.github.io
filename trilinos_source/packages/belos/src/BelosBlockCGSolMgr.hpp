@@ -61,7 +61,6 @@
 #include "BelosStatusTestCombo.hpp"
 #include "BelosStatusTestOutputFactory.hpp"
 #include "BelosOutputManager.hpp"
-#include "Teuchos_BLAS.hpp"
 #include "Teuchos_LAPACK.hpp"
 #ifdef BELOS_TEUCHOS_TIME_MONITOR
 #  include "Teuchos_TimeMonitor.hpp"
@@ -101,17 +100,6 @@ namespace Belos {
   class BlockCGSolMgrLinearProblemFailure : public BelosError {public:
     BlockCGSolMgrLinearProblemFailure(const std::string& what_arg) : BelosError(what_arg)
     {}};
-
-  /** \brief BlockCGSolMgrOrthoFailure is thrown when the orthogonalization manager is
-   * unable to generate orthonormal columns from the initial basis vectors.
-   *
-   * This std::exception is thrown from the BlockCGSolMgr::solve() method.
-   *
-   */
-  class BlockCGSolMgrOrthoFailure : public BelosError {public:
-    BlockCGSolMgrOrthoFailure(const std::string& what_arg) : BelosError(what_arg)
-    {}};
-
 
   template<class ScalarType, class MV, class OP,
            const bool lapackSupportsScalarType =
@@ -374,7 +362,6 @@ namespace Belos {
     static constexpr const char * label_default_ = "Belos";
     static constexpr const char * orthoType_default_ = "ICGS";
     static constexpr bool assertPositiveDefiniteness_default_ = true;
-    static constexpr std::ostream * outputStream_default_ = &std::cout;
 
     //
     // Current solver parameters and other values.
@@ -420,7 +407,7 @@ namespace Belos {
 // Empty Constructor
 template<class ScalarType, class MV, class OP>
 BlockCGSolMgr<ScalarType,MV,OP,true>::BlockCGSolMgr() :
-  outputStream_(Teuchos::rcp(outputStream_default_,false)),
+  outputStream_(Teuchos::rcpFromRef(std::cout)),
   convtol_(DefaultSolverParameters::convTol),
   orthoKappa_(DefaultSolverParameters::orthoKappa),
   achievedTol_(Teuchos::ScalarTraits<MagnitudeType>::zero()),
@@ -448,7 +435,7 @@ BlockCGSolMgr<ScalarType,MV,OP,true>::
 BlockCGSolMgr(const Teuchos::RCP<LinearProblem<ScalarType,MV,OP> > &problem,
               const Teuchos::RCP<Teuchos::ParameterList> &pl) :
   problem_(problem),
-    outputStream_(Teuchos::rcp(outputStream_default_,false)),
+    outputStream_(Teuchos::rcpFromRef(std::cout)),
   convtol_(DefaultSolverParameters::convTol),
   orthoKappa_(DefaultSolverParameters::orthoKappa),
   achievedTol_(Teuchos::ScalarTraits<MagnitudeType>::zero()),
@@ -523,9 +510,11 @@ setParameters (const Teuchos::RCP<Teuchos::ParameterList> &params)
   // Check if the user is requesting the single-reduction version of CG (only for blocksize == 1)
   if (params->isParameter("Use Single Reduction")) {
     useSingleReduction_ = params->get("Use Single Reduction", useSingleReduction_default_);
-    if (useSingleReduction_)
-      foldConvergenceDetectionIntoAllreduce_ = params->get("Fold Convergence Detection Into Allreduce",
-                                                           foldConvergenceDetectionIntoAllreduce_default_);
+  }
+
+  if (params->isParameter("Fold Convergence Detection Into Allreduce")) {
+    foldConvergenceDetectionIntoAllreduce_ = params->get("Fold Convergence Detection Into Allreduce",
+                                                         foldConvergenceDetectionIntoAllreduce_default_);
   }
 
   // Check to see if the timer label changed.
@@ -792,7 +781,7 @@ BlockCGSolMgr<ScalarType,MV,OP,true>::getValidParameters() const
     pl->set("Output Frequency", static_cast<int>(outputFreq_default_),
       "How often convergence information should be outputted\n"
       "to the output stream.");
-    pl->set("Output Stream", Teuchos::rcp(outputStream_default_,false),
+    pl->set("Output Stream", Teuchos::rcpFromRef(std::cout),
       "A reference-counted pointer to the output stream where all\n"
       "solver output is sent.");
     pl->set("Show Maximum Residual Norm Only", static_cast<bool>(showMaxResNormOnly_default_),
@@ -838,7 +827,6 @@ ReturnType BlockCGSolMgr<ScalarType,MV,OP,true>::solve() {
     setParameters(Teuchos::parameterList(*getValidParameters()));
   }
 
-  Teuchos::BLAS<int,ScalarType> blas;
   Teuchos::LAPACK<int,ScalarType> lapack;
 
   TEUCHOS_TEST_FOR_EXCEPTION( !problem_->isProblemSet(),
@@ -898,9 +886,9 @@ ReturnType BlockCGSolMgr<ScalarType,MV,OP,true>::solve() {
     // Standard (nonblock) CG is faster for the special case of a
     // block size of 1.  A single reduction iteration can also be used
     // if collectives are more expensive than vector updates.
+    plist.set("Fold Convergence Detection Into Allreduce",
+              foldConvergenceDetectionIntoAllreduce_);
     if (useSingleReduction_) {
-      plist.set("Fold Convergence Detection Into Allreduce",
-                foldConvergenceDetectionIntoAllreduce_);
       block_cg_iter =
         rcp (new CGSingleRedIter<ScalarType,MV,OP> (problem_, printer_,
                                                     outputTest_, convTest_, plist));
@@ -908,7 +896,7 @@ ReturnType BlockCGSolMgr<ScalarType,MV,OP,true>::solve() {
     else {
       block_cg_iter =
         rcp (new CGIter<ScalarType,MV,OP> (problem_, printer_,
-                                           outputTest_, plist));
+                                           outputTest_, convTest_, plist));
     }
   } else {
     block_cg_iter =

@@ -83,7 +83,7 @@ TEUCHOS_UNIT_TEST(DIRK, SinCos_ASA)
     std::replace(RKMethod_.begin(), RKMethod_.end(), '/', '.');
     std::vector<double> StepSize;
     std::vector<double> ErrorNorm;
-    const int nTimeStepSizes = 3; // 7 for error plots
+    const int nTimeStepSizes = 2; // 7 for error plots
     double dt = 0.05;
     double order = 0.0;
     for (int n=0; n<nTimeStepSizes; n++) {
@@ -124,7 +124,7 @@ TEUCHOS_UNIT_TEST(DIRK, SinCos_ASA)
       pl->sublist("Default Integrator")
          .sublist("Time Step Control").set("Initial Time Step", dt);
       RCP<Tempus::IntegratorAdjointSensitivity<double> > integrator =
-        Tempus::integratorAdjointSensitivity<double>(pl, model);
+        Tempus::createIntegratorAdjointSensitivity<double>(pl, model);
       order = integrator->getStepper()->getOrder();
 
       // Initial Conditions

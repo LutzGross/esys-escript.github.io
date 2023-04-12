@@ -34,69 +34,45 @@
 
 // #######################  Start Clang Header Tool Managed Headers ########################
 // clang-format off
-#include <stk_util/environment/Env.hpp>
-#include <stk_io/StkMeshIoBroker.hpp>
-#include <Ionit_Initializer.h>                       // for Initializer
-#include <assert.h>                                  // for assert
-#include <stdlib.h>                                  // for exit, etc
-#include <string.h>                                  // for memcpy
-#include <cstdint>                                   // for int64_t
-#include <iostream>                                  // for operator<<, etc
-#include <iterator>
-#include <limits>                                    // for numeric_limits
-#include <map>
-#include <stdexcept>                                 // for runtime_error
-#include <stk_io/IOHelpers.hpp>
-#include <stk_io/OutputFile.hpp>                     // for OutputFile
-#include <stk_io/IossBridge.hpp>                     // for FieldAndName, etc
-#include <stk_mesh/base/BulkData.hpp>                // for BulkData, etc
-#include <stk_mesh/base/Comm.hpp>
-#include <stk_mesh/base/FEMHelpers.hpp>
-#include <stk_mesh/base/Field.hpp>                   // for Field
-#include <stk_mesh/base/GetEntities.hpp>
-#include <stk_mesh/base/MetaData.hpp>                // for MetaData, etc
-#include <stk_util/environment/FileUtils.hpp>
-#include <stk_util/util/ReportHandler.hpp>    // for ThrowErrorMsgIf, etc
-#include <utility>                                   // for pair, make_pair
-#include "Ioss_CodeTypes.h"                          // for NameList
-#include "Ioss_DBUsage.h"
-#include "Ioss_DatabaseIO.h"                         // for DatabaseIO
-#include "Ioss_ElementBlock.h"                       // for ElementBlock
-#include "Ioss_ElementTopology.h"                    // for ElementTopology
-#include "Ioss_EntityType.h"
-#include "Ioss_Field.h"
-#include "Ioss_GroupingEntity.h"                     // for GroupingEntity
-#include "Ioss_IOFactory.h"                          // for IOFactory
-#include "Ioss_NodeBlock.h"                          // for NodeBlock
-#include "Ioss_NodeSet.h"                            // for NodeSet
-#include "Ioss_ParallelUtils.h"                      // for ParallelUtils
-#include "Ioss_Property.h"                           // for Property
-#include "Ioss_PropertyManager.h"                    // for PropertyManager
-#include "Ioss_Region.h"                             // for Region, etc
-#include "Ioss_SideBlock.h"                          // for SideBlock
-#include "Ioss_SideSet.h"                            // for SideSet
-#include "Ioss_State.h"
-#include "Ioss_VariableType.h"                       // for VariableType
-#include "ProcessSetsOrBlocks.hpp"
-#include "SidesetTranslator.hpp"
-#include "StkIoUtils.hpp"
-#include "Teuchos_RCP.hpp"                           // for RCP::operator->, etc
-#include "boost/any.hpp"                             // for any_cast, any
-#include "stk_io/DatabasePurpose.hpp"                // for DatabasePurpose, etc
-#include "stk_io/MeshField.hpp"                      // for MeshField, etc
-#include "stk_mesh/base/BulkDataInlinedMethods.hpp"
-#include "stk_mesh/base/Entity.hpp"                  // for Entity
-#include "stk_mesh/base/FieldBase.hpp"               // for FieldBase
-#include "stk_mesh/base/FieldParallel.hpp"
-#include "stk_mesh/base/FieldState.hpp"              // for FieldState
-#include "stk_mesh/base/Part.hpp"                    // for Part
-#include "stk_mesh/base/Selector.hpp"                // for Selector, etc
-#include "stk_mesh/base/Types.hpp"                   // for FieldVector, etc
-#include "stk_topology/topology.hpp"                 // for topology, etc
-#include "stk_util/parallel/Parallel.hpp"            // for ParallelMachine, etc
-#include "stk_util/util/ParameterList.hpp"           // for Type, etc
-#include "stk_util/diag/StringUtil.hpp"           // for Type, etc
-#include "stk_util/util/string_case_compare.hpp"
+#include <stk_io/OutputFile.hpp>
+#include <cstdlib>                          // for exit, EXIT_FAILURE
+#include <algorithm>                        // for max, sort
+#include <cstdint>                          // for int64_t
+#include <iostream>                         // for operator<<, basic_ostream
+#include <memory>                           // for allocator_traits<>::value...
+#include <stk_io/IOHelpers.hpp>             // for internal_add_global, put_...
+#include <stk_io/IossBridge.hpp>            // for GlobalAnyVariable, ioss_a...
+#include <stk_mesh/base/BulkData.hpp>       // for BulkData
+#include <stk_mesh/base/MetaData.hpp>       // for MetaData
+#include <stk_util/util/ReportHandler.hpp>  // for ThrowErrorMsgIf, ThrowReq...
+#include <utility>                          // for pair, move, swap
+#include "Ioss_DBUsage.h"                   // for DB_APPEND, WRITE_RESULTS
+#include "Ioss_DatabaseIO.h"                // for DatabaseIO
+#include "Ioss_EntityType.h"                // for SIDESET, SIDEBLOCK, ELEME...
+#include "Ioss_Field.h"                     // for Field::BasicType, Field
+#include "Ioss_GroupingEntity.h"            // for GroupingEntity
+#include "Ioss_IOFactory.h"                 // for IOFactory
+#include "Ioss_NodeBlock.h"                 // for NodeBlock
+#include "Ioss_Property.h"                  // for Property
+#include "Ioss_PropertyManager.h"           // for PropertyManager
+#include "Ioss_Region.h"                    // for Region, NodeBlockContainer
+#include "Ioss_SideBlock.h"                 // for SideBlock
+#include "Ioss_SideSet.h"                   // for SideSet
+#include "Ioss_State.h"                     // for STATE_TRANSIENT, STATE_DE...
+#include "StkIoUtils.hpp"                   // for part_primary_entity_rank
+#include "Teuchos_RCP.hpp"                  // for RCP::operator->, RCP::ope...
+#include "stk_io/DatabasePurpose.hpp"       // for WRITE_RESTART
+#include "stk_io/OutputParams.hpp"          // for OutputParams
+#include "stk_mesh/base/Entity.hpp"         // for Entity
+#include "stk_mesh/base/FieldBase.hpp"      // for FieldBase
+#include "stk_mesh/base/FieldState.hpp"     // for FieldState
+#include "stk_mesh/base/Part.hpp"           // for Part
+#include "stk_mesh/base/Types.hpp"          // for EntityRank, PartVector
+#include "stk_topology/topology.hpp"        // for topology, topology::NODE_...
+#include "stk_util/parallel/Parallel.hpp"   // for ParallelMachine
+#include "stk_util/util/ParameterList.hpp"  // for Parameter
+namespace Ioss { class ElementTopology; }
+namespace stk { namespace mesh { class Selector; } }
 
 // clang-format on
 // #######################   End Clang Header Tool Managed Headers  ########################
@@ -158,6 +134,10 @@ void OutputFile::setup_output_params(OutputParams &params) const
     params.set_has_adaptivity(m_hasAdaptivity);
     params.set_additional_attribute_fields(m_additionalAttributeFields);
     params.set_is_restart(m_dbPurpose == stk::io::WRITE_RESTART);
+    params.set_enable_edge_io(m_enableEdgeIO);
+
+    params.set_filter_empty_entity_blocks(m_filterEmptyEntityBlocks);
+    params.set_filter_empty_assembly_entity_blocks(m_filterEmptyAssemblyEntityBlocks);
 }
 
 void OutputFile::set_input_region(const Ioss::Region *input_region)
@@ -169,7 +149,7 @@ void OutputFile::set_input_region(const Ioss::Region *input_region)
 }
 
 void OutputFile::write_output_mesh(const stk::mesh::BulkData& bulk_data,
-                                         const std::vector<std::vector<int>> &attributeOrdering)
+                                   const std::vector<std::vector<int>> &attributeOrdering)
 {
     if ( m_meshDefined == false )
     {
@@ -219,8 +199,10 @@ std::vector<stk::mesh::Entity> OutputFile::get_output_entities(const stk::mesh::
 
     std::vector<stk::mesh::Entity> entities;
 
-    stk::io::OutputParams params(*m_region, bulk_data);
-    setup_output_params(params);
+    if (m_outputParams == nullptr){
+      m_outputParams = std::make_shared<stk::io::OutputParams>(*m_region, bulk_data);
+      setup_output_params(*m_outputParams);
+    }
 
     Ioss::GroupingEntity *ge = m_region->get_entity(name);
     ThrowErrorMsgIf (ge == nullptr,
@@ -233,7 +215,7 @@ std::vector<stk::mesh::Entity> OutputFile::get_output_entities(const stk::mesh::
     } else if(type == Ioss::NODESET) {
         part_type = stk::topology::NODE_RANK;
     } else if(type == Ioss::ELEMENTBLOCK) {
-        part_type = params.has_skin_mesh_selector() ? meta.side_rank() : stk::topology::ELEMENT_RANK;
+        part_type = m_outputParams->has_skin_mesh_selector() ? meta.side_rank() : stk::topology::ELEMENT_RANK;
     } else if(type == Ioss::SIDESET) {
         part = meta.get_part(name);
         ThrowRequireMsg(nullptr != part, "Could not find a sideset with name: " + name);
@@ -251,15 +233,15 @@ std::vector<stk::mesh::Entity> OutputFile::get_output_entities(const stk::mesh::
     }
 
     if(type == Ioss::SIDEBLOCK) {
-        Ioss::Region &io_region = params.io_region();
+        Ioss::Region &io_region = m_outputParams->io_region();
         bool ints64bit = db_api_int_size(&io_region) == 8;
         if (ints64bit) {
-            internal_fill_output_entities_for_sideblock<int64_t>(params, ge, part, entities);
+            internal_fill_output_entities_for_sideblock<int64_t>(*m_outputParams, ge, part, entities);
         } else {
-            internal_fill_output_entities_for_sideblock<int>(params, ge, part, entities);
+            internal_fill_output_entities_for_sideblock<int>(*m_outputParams, ge, part, entities);
         }
     } else {
-        get_output_entity_list(ge, part_type, params, entities);
+        get_output_entity_list(ge, part_type, *m_outputParams, entities);
     }
 
     return entities;
@@ -386,14 +368,14 @@ void OutputFile::add_user_data(const std::vector<std::string>& partNames, const 
 
 }
 
-void OutputFile::add_global_ref(const std::string &name, const boost::any *value, stk::util::ParameterType::Type type)
+void OutputFile::add_global_ref(const std::string &name, const stk::util::Parameter &param)
 {
     ThrowErrorMsgIf (m_fieldsDefined,
                      "On region named " << m_region->name() <<
                      " Attempting to add global variable after data has already been written to the database.");
-    std::pair<size_t, Ioss::Field::BasicType> parameter_type = get_io_parameter_size_and_type(type, *value);
+    std::pair<size_t, Ioss::Field::BasicType> parameter_type = get_io_parameter_size_and_type(param.type, param.value);
     internal_add_global(m_region, name, parameter_type.first, parameter_type.second);
-    m_globalAnyFields.emplace_back(name, value, type);
+    m_globalAnyFields.emplace_back(name, &param.value, param.type);
 }
 
 bool OutputFile::has_global(const std::string &globalVarName) const
@@ -401,12 +383,12 @@ bool OutputFile::has_global(const std::string &globalVarName) const
     return m_region->field_exists(globalVarName);
 }
 
-void OutputFile::add_global(const std::string &name, const boost::any &value, stk::util::ParameterType::Type type)
+void OutputFile::add_global(const std::string &name, const stk::util::Parameter &param)
 {
     ThrowErrorMsgIf (m_fieldsDefined,
                      "On region named " << m_region->name() <<
                      " Attempting to add global variable after data has already been written to the database.");
-    std::pair<size_t, Ioss::Field::BasicType> parameter_type = get_io_parameter_size_and_type(type, value);
+    std::pair<size_t, Ioss::Field::BasicType> parameter_type = get_io_parameter_size_and_type(param.type, param.value);
     m_anyGlobalVariablesDefined = true;  // This output file has at least 1 global variable.
     internal_add_global(m_region, name, parameter_type.first, parameter_type.second);
 }
@@ -439,9 +421,9 @@ void OutputFile::add_global(const std::string &globalVarName, const std::string 
 }
 
 void OutputFile::write_global(const std::string &globalVarName,
-                                    const boost::any &value, stk::util::ParameterType::Type type)
+                              const stk::util::Parameter &param)
 {
-    internal_write_parameter(m_region, globalVarName, value, type);
+    internal_write_parameter(m_region, globalVarName, param);
 }
 
 void OutputFile::write_global(const std::string &globalVarName, std::vector<double>& globalVarData)
@@ -579,7 +561,7 @@ void OutputFile::define_output_fields(const stk::mesh::BulkData& bulk_data,
                                 : m_useNodesetForBlockNodesFields;
 
                         if (use_nodeset) {
-                            std::string nodes_name = partName + s_entity_nodes_suffix;
+                            std::string nodes_name = partName + s_entityNodesSuffix;
                             node_entity = region->get_entity(nodes_name);
                         }
                     }
@@ -668,7 +650,7 @@ int OutputFile::write_defined_output_fields(const stk::mesh::BulkData& bulk_data
                             m_useNodesetForBlockNodesFields;
 
                     if (use_nodeset) {
-                        std::string nodes_name = partName + s_entity_nodes_suffix;
+                        std::string nodes_name = partName + s_entityNodesSuffix;
                         node_entity = region->get_entity(nodes_name);
                     }
                 }
@@ -826,6 +808,21 @@ void OutputFile::has_adaptivity(bool hasAdaptivity)
 bool OutputFile::is_skin_mesh() const
 {
     return m_skinMeshSelector.get() != nullptr;
+}
+
+void OutputFile::set_enable_edge_io(bool enableEdgeIO)
+{
+    m_enableEdgeIO = enableEdgeIO;
+}
+
+void OutputFile::set_filter_empty_entity_blocks(const bool filterEmptyEntityBlocks)
+{
+  m_filterEmptyEntityBlocks = filterEmptyEntityBlocks;
+}
+
+void OutputFile::set_filter_empty_assembly_entity_blocks(const bool filterEmptyAssemblyEntityBlocks)
+{
+  m_filterEmptyAssemblyEntityBlocks = filterEmptyAssemblyEntityBlocks;
 }
 
 } // namespace impl

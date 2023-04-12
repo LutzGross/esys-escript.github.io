@@ -1,49 +1,21 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <Kokkos_Core.hpp>
-#include <impl/Kokkos_Timer.hpp>
+#include <Kokkos_Timer.hpp>
 #include <cstdio>
 
 // These two View types are both 2-D arrays of double.  However, they
@@ -51,14 +23,14 @@
 // which means "column major," the same as in Fortran, the BLAS, or
 // LAPACK.  right_type has "layout right," which means "row major,"
 // the same as in C, C++, or Java.
-typedef Kokkos::View<double**, Kokkos::LayoutLeft> left_type;
-typedef Kokkos::View<double**, Kokkos::LayoutRight> right_type;
+using left_type  = Kokkos::View<double**, Kokkos::LayoutLeft>;
+using right_type = Kokkos::View<double**, Kokkos::LayoutRight>;
 // This is a one-dimensional View, so the layout matters less.
 // However, it still has a layout!  Since its layout is not specified
 // explicitly in the type, its layout is a function of the memory
 // space.  For example, the default Cuda layout is LayoutLeft, and the
 // default Host layout is LayoutRight.
-typedef Kokkos::View<double*> view_type;
+using view_type = Kokkos::View<double*>;
 
 // parallel_for functor that fills the given View with some data.  It
 // expects to access the View by rows in parallel: each call i of
@@ -68,13 +40,15 @@ struct init_view {
   ViewType a;
   init_view(ViewType a_) : a(a_) {}
 
+  using size_type = typename ViewType::size_type;
+
   KOKKOS_INLINE_FUNCTION
   void operator()(const typename ViewType::size_type i) const {
     // On CPUs this loop could be vectorized so j should do stride 1
     // access on a for optimal performance. I.e. a should be LayoutRight.
     // On GPUs threads should do coalesced loads and stores. That means
     // that i should be the stride one access for optimal performance.
-    for (typename ViewType::size_type j = 0; j < a.extent(1); ++j) {
+    for (size_type j = 0; j < static_cast<size_type>(a.extent(1)); ++j) {
       a(i, j) = 1.0 * a.extent(0) * i + 1.0 * j;
     }
   }
@@ -95,6 +69,8 @@ struct contraction {
   contraction(view_type a_, ViewType1 v1_, ViewType2 v2_)
       : a(a_), v1(v1_), v2(v2_) {}
 
+  using size_type = typename view_type::size_type;
+
   // As with the initialization functor the performance of this operator
   // depends on the architecture and the chosen data layouts.
   // On CPUs optimal would be to vectorize the inner loop, so j should be the
@@ -104,7 +80,7 @@ struct contraction {
   // LayoutLeft and v2 LayoutRight.
   KOKKOS_INLINE_FUNCTION
   void operator()(const view_type::size_type i) const {
-    for (view_type::size_type j = 0; j < v1.extent(1); ++j) {
+    for (size_type j = 0; j < static_cast<size_type>(a.extent(1)); ++j) {
       a(i) = v1(i, j) * v2(j, i);
     }
   }
@@ -114,7 +90,7 @@ struct contraction {
 struct dot {
   view_type a;
   dot(view_type a_) : a(a_) {}
-  typedef double value_type;  // Specify type for reduction target, lsum
+  using value_type = double;  // Specify type for reduction target, lsum
   KOKKOS_INLINE_FUNCTION
   void operator()(const view_type::size_type i, double& lsum) const {
     lsum += a(i) * a(i);

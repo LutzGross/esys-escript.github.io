@@ -50,8 +50,6 @@
 #include <stk_transfer/GeometricTransferImpl.hpp>
 #include <stk_transfer/TransferBase.hpp>
 
-#include<impl/Kokkos_Timer.hpp>
-
 
 namespace stk {
 namespace transfer {
@@ -146,6 +144,7 @@ template <class Mesh>
 void get_unique_procs_from_entity_keys(const typename Mesh::EntityProcVec & vec, std::vector<int> & uniqueProcVec)
 {
   //recalculate uniqueProcs using masked values
+  uniqueProcVec.clear();
   uniqueProcVec.reserve(vec.size());
   std::transform(vec.begin(), vec.end(), std::back_inserter(uniqueProcVec),
       [](typename Mesh::EntityProc a) {return a.proc();});
@@ -176,12 +175,12 @@ void create_offset_and_num_key(const std::vector<int> & uniqueProcVec,
 {
   for(unsigned iproc = 0; iproc < uniqueProcVec.size(); ++iproc)
   {
-    const unsigned procid = uniqueProcVec[iproc];
+    const int procid = uniqueProcVec[iproc];
     int offset = -1;
     int numKeys = 0;
     for(int jj = 0; jj < (int) entity_key_proc.size(); ++jj)
     {
-      if(entity_key_proc[jj].proc() == procid)
+      if(static_cast<int>(entity_key_proc[jj].proc()) == procid)
       {
         if(offset < 0)
           offset = jj;
@@ -355,7 +354,7 @@ void ReducedDependencyGeometricTransfer<INTERPOlATE>::filter_to_nearest(typename
   {
     int offset = m_comm_data.offset_and_num_keys_to_mesh[ii].first;
     for(int jj =0; jj < m_comm_data.offset_and_num_keys_to_mesh[ii].second; ++jj){
-      ThrowRequire(offset+jj < (int)to_points_distance_on_to_mesh.size());
+      ThrowRequireMsg(offset+jj < (int)to_points_distance_on_to_mesh.size(),"'offset+jj' ("<<offset<<"+"<<jj<<") required to be less than to_points_distance_on_to_mesh.size() ("<<to_points_distance_on_to_mesh.size()<<")");
       std::pair<double,int> dist_and_to_entity_index = std::make_pair(to_points_distance_on_to_mesh[offset+jj], offset+jj);
       auto key = to_entity_keys[offset+jj].id();
       if ( filterMap.find(key) == filterMap.end() )

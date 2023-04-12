@@ -428,8 +428,12 @@ namespace TSQR {
 
       bool success = true;
 
-      const int nrows = params.numRows;
-      const int ncols = params.numCols;
+      /* const */ int nrows = params.numRows;
+      /* const */ int ncols = params.numCols;
+      // 9/2020  nrows and ncols should be const, but
+      // gcc7.2+cuda9 with std=c++14 fails when const is used; 
+      // see https://github.com/trilinos/Trilinos/pull/8047
+
 
       Matrix<int, Scalar> A(nrows, ncols);
       Matrix<int, Scalar> A_copy(nrows, ncols);
@@ -802,8 +806,6 @@ namespace TSQR {
     {
       using std::cerr;
       using std::endl;
-      using STS = Teuchos::ScalarTraits<Scalar>;
-      using mag_type = typename STS::magnitudeType;
       const bool verbose = params.verbose;
 
       const std::string scalarType =
@@ -819,8 +821,11 @@ namespace TSQR {
                << endl;
         }
       }
-      const int nrows = params.numRows;
-      const int ncols = params.numCols;
+      /* const */ int nrows = params.numRows;
+      /* const */ int ncols = params.numCols;
+      // 9/2020  nrows and ncols should be const, but
+      // gcc7.2+cuda9 with std=c++14 fails when const is used; 
+      // see https://github.com/trilinos/Trilinos/pull/8047
 
       Matrix<int, Scalar> A(nrows, ncols);
       Matrix<int, Scalar> A_copy(nrows, ncols);
@@ -893,10 +898,16 @@ namespace TSQR {
       if(verbose) {
         cerr << "-- Do LAPACK lwork query" << endl;
       }
+      std::vector<Scalar> tau(ncols);
+      Kokkos::View<IST*> tau_d;
+      if(lapack.wants_device_memory())
+        tau_d = Kokkos::View<IST*>("tau_d", ncols);
       const int lwork = [&]() {
         if(lapack.wants_device_memory()) {
           Scalar* A_copy_d_raw =
             reinterpret_cast<Scalar*>(A_copy_d.data());
+          Scalar* tau_raw=
+            reinterpret_cast<Scalar*>(tau_d.data());
           const int A_copy_d_lda(A_copy_d.stride(1));
           TEUCHOS_ASSERT( nrows == 0 || ncols == 0 ||
                           A_copy_d_raw != nullptr );
@@ -904,28 +915,25 @@ namespace TSQR {
                           size_t(nrows) );
           TEUCHOS_ASSERT( size_t(A_copy_d.extent(1)) ==
                           size_t(ncols) );
-          return lapack.compute_QR_lwork(nrows, ncols, A_copy_d_raw,
-                                         A_copy_d_lda);
+          return std::max(
+              lapack.compute_QR_lwork(nrows, ncols, A_copy_d_raw, A_copy_d_lda),
+              lapack.compute_explicit_Q_lwork(nrows, ncols, ncols, A_copy_d_raw, A_copy_d_lda, tau_raw));
         }
         else {
           Scalar* A_copy_raw = A_copy.data();
           const int A_copy_lda(A_copy.stride(1));
-          return lapack.compute_QR_lwork(nrows, ncols, A_copy_raw,
-                                         A_copy_lda);
+          return std::max(
+              lapack.compute_QR_lwork(nrows, ncols, A_copy_raw, A_copy_lda),
+              lapack.compute_explicit_Q_lwork(nrows, ncols, ncols, A_copy_raw, A_copy_lda, tau.data()));
         }
       }();
       if(verbose) {
         cerr << "-- lwork=" << lwork << endl;
       }
       std::vector<Scalar> work(lwork);
-      std::vector<Scalar> tau(ncols);
-
       Kokkos::View<IST*> work_d;
-      Kokkos::View<IST*> tau_d;
-      if(lapack.wants_device_memory()) {
+      if(lapack.wants_device_memory())
         work_d = Kokkos::View<IST*>("work_d", lwork);
-        tau_d = Kokkos::View<IST*>("tau_d", ncols);
-      }
 
       if(verbose) {
         cerr << "-- Call compute_QR" << endl;
@@ -1455,7 +1463,6 @@ namespace TSQR {
                       const NodeTestParameters& p)
     {
       using Teuchos::TypeNameTraits;
-      using LO = int;
 
       std::vector<int> iseed{{0, 0, 0, 1}};
       if(p.testReal) {

@@ -48,8 +48,21 @@
 #include "Teuchos_RCP.hpp"
 #include "Thyra_ModelEvaluatorDefaultBase.hpp"
 #include "Thyra_VectorStdOps.hpp"
+#include "Piro_ROL_ObserverBase.hpp"
 
 namespace Piro {
+
+  template<class CharT, class Traits=std::char_traits<CharT>>
+  class RolOutputBuffer : public std::basic_streambuf<CharT,Traits> {
+     public:
+     const std::stringstream& getStringStream() const;
+
+     protected:
+     inline virtual int overflow(int c = Traits::eof());
+
+     private:
+     std::stringstream ss;
+  };
 
   //! \name Top-level Thyra analysis driver
   //@{
@@ -60,7 +73,8 @@ namespace Piro {
   int PerformAnalysis(
      Thyra::ModelEvaluatorDefaultBase<double>& piroModel,
      Teuchos::ParameterList& analysisParams,
-     Teuchos::RCP< Thyra::VectorBase<double> >& result
+     Teuchos::RCP< Thyra::VectorBase<double> >& result,
+     Teuchos::RCP< ROL_ObserverBase<double> > observer = Teuchos::null
      );
   //@}
 
@@ -79,7 +93,8 @@ namespace Piro {
   int PerformROLAnalysis(
      Thyra::ModelEvaluatorDefaultBase<double>& piroModel,
      Teuchos::ParameterList& rolParams,
-     Teuchos::RCP< Thyra::VectorBase<double> >& p
+     Teuchos::RCP< Thyra::VectorBase<double> >& p,
+     Teuchos::RCP< ROL_ObserverBase<double> > observer = Teuchos::null
      );
   //@}
 
@@ -94,6 +109,12 @@ namespace Piro {
   //! \ingroup Piro_analysis_driver_grp
   Teuchos::RCP<const Teuchos::ParameterList>
     getValidPiroAnalysisDakotaParameters();
+  //@}
+
+  //! Valid parameters for the list sent to PerformROLAnalysis
+  //! \ingroup Piro_analysis_driver_grp
+  Teuchos::RCP<const Teuchos::ParameterList>
+    getValidPiroAnalysisROLParameters(int num_parameters);
   //@}
 }
 

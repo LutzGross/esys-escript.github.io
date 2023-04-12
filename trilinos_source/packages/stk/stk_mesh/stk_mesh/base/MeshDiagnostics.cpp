@@ -1,19 +1,20 @@
 #include <stk_mesh/base/MeshDiagnostics.hpp>
-#include <stddef.h>                     // for size_t, nullptr
 #include <stk_util/parallel/ParallelReduceBool.hpp>
-#include <map>
-#include <string>
-#include "BulkData.hpp"
-#include "MetaData.hpp"
+#include "stk_mesh/base/BulkData.hpp"
+#include "stk_mesh/base/MetaData.hpp"
 #include <stk_mesh/base/ExodusTranslator.hpp>
 #include "stk_mesh/baseImpl/elementGraph/ElemElemGraph.hpp"
+#include "stk_mesh/baseImpl/elementGraph/ElemFilter.hpp"
 #include "stk_mesh/baseImpl/elementGraph/MeshDiagnosticObserver.hpp"
 #include "stk_mesh/baseImpl/EquivalentEntityBlocks.hpp"
 #include "stk_util/parallel/DistributedIndex.hpp"
-#include "GetEntities.hpp"
+#include "stk_mesh/base/GetEntities.hpp"
 #include "stk_mesh/baseImpl/MeshImplUtils.hpp"
 #include "stk_mesh/baseImpl/elementGraph/BulkDataIdMapper.hpp"
 #include "stk_mesh/baseImpl/elementGraph/ElemGraphCoincidentElems.hpp"
+#include <stddef.h>                     // for size_t, nullptr
+#include <map>
+#include <string>
 
 namespace stk { namespace mesh {
 
@@ -48,10 +49,12 @@ void fill_split_coincident_connections(const stk::mesh::BulkData & bulk, const i
 
 SideNodeToReceivedElementDataMap get_element_sides_from_other_procs(stk::mesh::BulkData & bulkData)
 {
-    impl::ElemSideToProcAndFaceId elementSideIdsToSend = impl::gather_element_side_ids_to_send(bulkData);
-    impl::fill_suggested_side_ids(bulkData, elementSideIdsToSend);
+    impl::ElemSideProcVector elementSideIdsToSend = impl::gather_element_side_ids_to_send(bulkData);
     SharedSidesCommunication sharedSidesCommunication(bulkData, elementSideIdsToSend);
-    return sharedSidesCommunication.get_received_element_sides();
+    sharedSidesCommunication.communicate_element_sides();
+    SideNodeToReceivedElementDataMap elementSidesReceived;
+    sharedSidesCommunication.unpack_side_data_map(elementSidesReceived);
+    return elementSidesReceived;
 }
 
 SplitCoincidentInfo get_split_coincident_elements_from_received_element_sides(stk::mesh::BulkData& bulkData, const impl::ElementLocalIdMapper & localIdMapper, SideNodeToReceivedElementDataMap & elementSidesReceived)

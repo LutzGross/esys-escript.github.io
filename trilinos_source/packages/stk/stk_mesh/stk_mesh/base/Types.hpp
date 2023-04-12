@@ -56,7 +56,6 @@ namespace stk { namespace mesh { class Part; } }
 namespace stk { namespace mesh { class Selector; } }
 namespace stk { namespace mesh { class Relation; } }
 namespace stk { namespace mesh { struct Entity; } }
-namespace stk { namespace mesh { namespace impl { class EntityRepository; } } }
 namespace stk { namespace mesh { struct EntityKey; } }
 
 
@@ -82,7 +81,7 @@ typedef std::vector< FieldBase * >  FieldVector;
 typedef std::vector< unsigned >     OrdinalVector;
 typedef std::vector< unsigned >     PermutationIndexVector;
 typedef std::vector<Entity>         EntityVector;
-
+typedef std::vector<EntityKey>      EntityKeyVector;
 
 template< typename Scalar = void ,
           class Tag1 = void , class Tag2 = void ,
@@ -119,6 +118,18 @@ enum EntityState : char { Unchanged = 0 ,
                    Created  = 1 ,
                    Modified = 2 ,
                    Deleted  = 3 };
+inline
+std::ostream& operator<<(std::ostream& os, EntityState state)
+{
+  switch(state) {
+  case Unchanged: os<<"Unchanged"; break;
+  case Created: os<<"Created"; break;
+  case Modified: os<<"Modified"; break;
+  case Deleted: os<<"Deleted"; break;
+  default: break;
+  };
+  return os;
+}
 
 template< class FieldType > struct FieldTraits ;
 
@@ -153,12 +164,10 @@ typedef std::vector<BucketIndices> VolatileFastSharedCommMapOneRank;
 typedef stk::topology::rank_t EntityRank ;
 
 typedef std::map<std::pair<EntityRank, Selector>, std::pair<size_t, size_t> > SelectorCountMap;
-typedef std::map<std::pair<EntityRank, Selector>, BucketVector> SelectorBucketMap;
+typedef std::map<Selector, BucketVector> SelectorBucketMap;
 typedef std::vector<VolatileFastSharedCommMapOneRank> VolatileFastSharedCommMap;
 
 typedef std::map<EntityKey,std::set<int> > EntityToDependentProcessorsMap;
-typedef std::vector<std::pair<EntityKey,Entity> >::const_iterator const_entity_iterator;
-typedef std::vector<std::pair<EntityKey,Entity> >::iterator entity_iterator;
 
 typedef unsigned Ordinal;
 static const Ordinal InvalidOrdinal = static_cast<Ordinal>(-1); // std::numeric_limits<PartOrdinal>::max();
@@ -191,8 +200,6 @@ struct RelationType
   {
     USES      = 0 ,
     USED_BY   = 1 ,
-    CONTACT   = 0x00ff , // 5
-    AUXILIARY = 0x00ff ,
     INVALID   = 10
   };
 
@@ -231,11 +238,16 @@ typedef PairIter< std::vector< EntityProc >::const_iterator >
 
 NAMED_PAIR( EntityCommInfo , unsigned , ghost_id , int , proc )
 
+inline bool operator>=(const EntityCommInfo& lhs, const EntityCommInfo& rhs)
+{
+  return lhs.ghost_id >= rhs.ghost_id && lhs.proc >= rhs.proc;
+}
+
 /** \brief  Span of ( communication-subset-ordinal , process-rank ) pairs
  *          for the communication of an entity.
  */
 typedef std::vector<EntityCommInfo> EntityCommInfoVector;
-typedef PairIter<  EntityCommInfoVector::const_iterator >  PairIterEntityComm ;
+typedef PairIter<const EntityCommInfo*>  PairIterEntityComm ;
 
 #endif
 /** \} */
@@ -293,7 +305,7 @@ using ConnectivityOrdinal = uint32_t;
 constexpr ConnectivityOrdinal INVALID_CONNECTIVITY_ORDINAL = ~0U;
 #endif
 
-enum Permutation
+enum Permutation : unsigned char
 {
   DEFAULT_PERMUTATION = 0,
   INVALID_PERMUTATION = 128

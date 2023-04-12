@@ -69,22 +69,20 @@ testGids (bool& success,
 
   try {
     auto gblInds = gblMap.getMyGlobalIndices ();
-    auto gblInds_host = Kokkos::create_mirror_view (gblInds);
-    Kokkos::deep_copy (gblInds_host, gblInds);
 
-    TEST_EQUALITY( static_cast<size_t> (gblInds_host.size ()),
-                   static_cast<size_t> (gblMap.getNodeNumElements ()) );
+    TEST_EQUALITY( static_cast<size_t> (gblInds.size ()),
+                   static_cast<size_t> (gblMap.getLocalNumElements ()) );
     if (success) {
-      const LO numLclElts = static_cast<LO> (gblInds_host.size ());
+      const LO numLclElts = static_cast<LO> (gblInds.size ());
 
       // Test the reported global indices.
       for (LO lid = 0; lid < numLclElts; ++lid) {
         const GO expectedGid = gblMap.getGlobalElement (lid);
-        const GO reportedGid = gblInds_host(lid);
+        const GO reportedGid = gblInds(lid);
 
         // Make sure that the (global) Map behaves as expected.
         TEST_INEQUALITY( expectedGid, gblInvalid );
-        // Make sure gblInds_host contains the right global index.
+        // Make sure gblInds contains the right global index.
         TEST_EQUALITY( expectedGid, reportedGid );
       }
     }
@@ -117,7 +115,7 @@ TEUCHOS_UNIT_TEST_TEMPLATE_3_DECL( getMyGlobalIndices, UniformContig, LO, GO, NT
   map_type gblMap (numGblElts, indexBase, comm);
 
   // Sanity check on the global Map.
-  TEST_EQUALITY( gblMap.getNodeNumElements (), static_cast<size_t> (numLclElts) );
+  TEST_EQUALITY( gblMap.getLocalNumElements (), static_cast<size_t> (numLclElts) );
   TEST_EQUALITY( gblMap.getMinLocalIndex (), static_cast<LO> (0) );
   TEST_EQUALITY( gblMap.getMaxLocalIndex (), static_cast<LO> (numLclElts - 1) );
 
@@ -159,7 +157,7 @@ TEUCHOS_UNIT_TEST_TEMPLATE_3_DECL( getMyGlobalIndices, NonuniformContig, LO, GO,
   map_type gblMap (numGblElts, static_cast<size_t> (numLclElts), indexBase, comm);
 
   // Sanity check on the global Map.
-  TEST_EQUALITY( gblMap.getNodeNumElements (), static_cast<size_t> (numLclElts) );
+  TEST_EQUALITY( gblMap.getLocalNumElements (), static_cast<size_t> (numLclElts) );
   TEST_EQUALITY( gblMap.getMinLocalIndex (), static_cast<LO> (0) );
   TEST_EQUALITY( gblMap.getMaxLocalIndex (), static_cast<LO> (numLclElts - 1) );
 
@@ -208,7 +206,7 @@ TEUCHOS_UNIT_TEST_TEMPLATE_3_DECL( getMyGlobalIndices, Noncontig, LO, GO, NT )
   map_type gblMap (numGblElts, eltList (), indexBase, comm);
 
   // Sanity check on the global Map.
-  TEST_EQUALITY( gblMap.getNodeNumElements (), static_cast<size_t> (numLclElts) );
+  TEST_EQUALITY( gblMap.getLocalNumElements (), static_cast<size_t> (numLclElts) );
   TEST_EQUALITY( gblMap.getMinLocalIndex (), static_cast<LO> (0) );
   TEST_EQUALITY( gblMap.getMaxLocalIndex (), static_cast<LO> (numLclElts - 1) );
 

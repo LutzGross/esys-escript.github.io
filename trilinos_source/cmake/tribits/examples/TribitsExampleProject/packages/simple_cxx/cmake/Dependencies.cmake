@@ -1,5 +1,5 @@
-TRIBITS_PACKAGE_DEFINE_DEPENDENCIES(
+tribits_package_define_dependencies(
   LIB_REQUIRED_TPLS  HeaderOnlyTpl
-  LIB_OPTIONAL_TPLS  SimpleTpl
+  LIB_OPTIONAL_TPLS  SimpleTpl  MPI
   REGRESSION_EMAIL_LIST simplecxx-regressions@someurl.none
   )

@@ -1,8 +1,8 @@
 /*
- * Copyright(C) 1999-2020 National Technology & Engineering Solutions
+ * Copyright(C) 1999-2022 National Technology & Engineering Solutions
  * of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
  * NTESS, the U.S. Government retains certain rights in this software.
- * 
+ *
  * See packages/seacas/LICENSE for details
  */
 /*****************************************************************************
@@ -69,7 +69,6 @@ requiring
 returned
                compute word size (4 or 8).
 
-
 \param[in,out] io_ws The word size in bytes (0, 4 or 8) of the floating
                     point data as they are stored in the exodus file. If the
 word
@@ -120,18 +119,16 @@ struct ncvar /* variable */
 int ex_open_par_int(const char *path, int mode, int *comp_ws, int *io_ws, float *version,
                     MPI_Comm comm, MPI_Info info, int run_version)
 {
-  int     exoid  = -1;
-  int     status = 0, stat_att = 0, stat_dim = 0;
-  nc_type att_type      = NC_NAT;
-  size_t  att_len       = 0;
-  int     nc_mode       = 0;
-  int     old_fill      = 0;
-  int     file_wordsize = 0;
-  int     dim_str_name  = 0;
-  int     int64_status  = 0;
-  int     is_hdf5       = 0;
-  int     is_pnetcdf    = 0;
-  int     in_redef      = 0;
+  int  exoid         = -1;
+  int  status        = 0;
+  int  nc_mode       = 0;
+  int  old_fill      = 0;
+  int  file_wordsize = 0;
+  int  dim_str_name  = 0;
+  int  int64_status  = 0;
+  bool is_hdf5       = false;
+  bool is_pnetcdf    = false;
+  bool in_redef      = false;
 
   char errmsg[MAX_ERR_LENGTH];
 
@@ -159,6 +156,16 @@ int ex_open_par_int(const char *path, int mode, int *comp_ws, int *io_ws, float 
 
   if (mode & EX_WRITE) {
     nc_mode = (NC_WRITE | NC_MPIIO);
+#if NC_HAS_HDF5
+    if (mode & EX_NETCDF4) {
+      nc_mode |= NC_NETCDF4;
+    }
+#endif
+#if NC_HAS_CDF5
+    if (mode & EX_64BIT_DATA) {
+      nc_mode |= NC_64BIT_DATA;
+    }
+#endif
   }
   else {
     nc_mode = (NC_NOWRITE | NC_SHARE | NC_MPIIO);
@@ -184,7 +191,10 @@ int ex_open_par_int(const char *path, int mode, int *comp_ws, int *io_ws, float 
     int type = 0;
     ex__check_file_type(path, &type);
 
-    if (type == 5) {
+    if (type == 0) {
+      /* Error message printed at lower level */
+    }
+    else if (type == 5) {
 #if NC_HAS_HDF5
       snprintf(errmsg, MAX_ERR_LENGTH,
                "EXODUS: ERROR: Attempting to open the netcdf-4 "
@@ -243,7 +253,7 @@ int ex_open_par_int(const char *path, int mode, int *comp_ws, int *io_ws, float 
       snprintf(errmsg, MAX_ERR_LENGTH,
                "EXODUS: ERROR: Attempting to open the classic NetCDF "
                "file:\n\t'%s'\n\tfailed. The netcdf library supports "
-               "PNetCDF files as required for parallel readinf of this "
+               "PNetCDF files as required for parallel reading of this "
                "file type, so there must be a filesystem or some other "
                "issue \n",
                path);
@@ -262,10 +272,10 @@ int ex_open_par_int(const char *path, int mode, int *comp_ws, int *io_ws, float 
     }
 
     snprintf(errmsg, MAX_ERR_LENGTH,
-             "ERROR: failed to open %s of type %d for reading. Either the "
-             "file does not exist, or there is a permission or file format "
+             "ERROR: failed to open %s for read/write. Either the file "
+             "does not exist,\n\tor there is a permission or file format "
              "issue.",
-             path, type);
+             path);
     ex_err(__func__, errmsg, status);
     EX_FUNC_LEAVE(EX_FATAL);
   }
@@ -274,10 +284,10 @@ int ex_open_par_int(const char *path, int mode, int *comp_ws, int *io_ws, float 
   int type = 0;
   ex__check_file_type(path, &type);
   if (type == 5) {
-    is_hdf5 = 1;
+    is_hdf5 = true;
   }
   else if (type == 1 || type == 2 || type == 4) {
-    is_pnetcdf = 1;
+    is_pnetcdf = true;
   }
 
   if (mode & EX_WRITE) { /* Appending */
@@ -288,7 +298,7 @@ int ex_open_par_int(const char *path, int mode, int *comp_ws, int *io_ws, float 
         ex_err_fn(exoid, __func__, errmsg, status);
         EX_FUNC_LEAVE(EX_FATAL);
       }
-      in_redef = 1;
+      in_redef = true;
     }
 
     if ((status = nc_set_fill(exoid, NC_NOFILL, &old_fill)) != NC_NOERR) {
@@ -297,8 +307,10 @@ int ex_open_par_int(const char *path, int mode, int *comp_ws, int *io_ws, float 
       EX_FUNC_LEAVE(EX_FATAL);
     }
 
-    stat_att = nc_inq_att(exoid, NC_GLOBAL, ATT_MAX_NAME_LENGTH, &att_type, &att_len);
-    stat_dim = nc_inq_dimid(exoid, DIM_STR_NAME, &dim_str_name);
+    nc_type att_type = NC_NAT;
+    size_t  att_len  = 0;
+    int     stat_att = nc_inq_att(exoid, NC_GLOBAL, ATT_MAX_NAME_LENGTH, &att_type, &att_len);
+    int     stat_dim = nc_inq_dimid(exoid, DIM_STR_NAME, &dim_str_name);
     if (stat_att != NC_NOERR || stat_dim != NC_NOERR) {
       if (!in_redef) {
         if ((status = nc_redef(exoid)) != NC_NOERR) {
@@ -307,7 +319,7 @@ int ex_open_par_int(const char *path, int mode, int *comp_ws, int *io_ws, float 
           ex_err_fn(exoid, __func__, errmsg, status);
           EX_FUNC_LEAVE(EX_FATAL);
         }
-        in_redef = 1;
+        in_redef = true;
       }
       if (stat_att != NC_NOERR) {
         int max_so_far = 32;
@@ -327,41 +339,49 @@ int ex_open_par_int(const char *path, int mode, int *comp_ws, int *io_ws, float 
       if ((status = ex__leavedef(exoid, __func__)) != NC_NOERR) {
         EX_FUNC_LEAVE(EX_FATAL);
       }
-      in_redef = 0;
-    }
-
-    /* If this is a parallel execution and we are appending, then we
-     * need to set the parallel access method for all transient variables to NC_COLLECTIVE since
-     * they will be being extended.
-     */
-    int ndims;    /* number of dimensions */
-    int nvars;    /* number of variables */
-    int ngatts;   /* number of global attributes */
-    int recdimid; /* id of unlimited dimension */
-
-    int varid;
-
-    /* Determine number of variables on the database... */
-    nc_inq(exoid, &ndims, &nvars, &ngatts, &recdimid);
-
-    for (varid = 0; varid < nvars; varid++) {
-      struct ncvar var;
-      nc_inq_var(exoid, varid, var.name, &var.type, &var.ndims, var.dims, &var.natts);
-
-      if ((strcmp(var.name, VAR_GLO_VAR) == 0) || (strncmp(var.name, "vals_elset_var", 14) == 0) ||
-          (strncmp(var.name, "vals_sset_var", 13) == 0) ||
-          (strncmp(var.name, "vals_fset_var", 13) == 0) ||
-          (strncmp(var.name, "vals_eset_var", 13) == 0) ||
-          (strncmp(var.name, "vals_nset_var", 13) == 0) ||
-          (strncmp(var.name, "vals_nod_var", 12) == 0) ||
-          (strncmp(var.name, "vals_edge_var", 13) == 0) ||
-          (strncmp(var.name, "vals_face_var", 13) == 0) ||
-          (strncmp(var.name, "vals_elem_var", 13) == 0) ||
-          (strcmp(var.name, VAR_WHOLE_TIME) == 0)) {
-        nc_var_par_access(exoid, varid, NC_COLLECTIVE);
-      }
     }
   } /* End of (mode & EX_WRITE) */
+
+  /* If this is a `pnetcdf` file (non HDF5), then we can't set the
+   * collective vs independent setting on a per-variable basis -- it
+   * is set for the entire file.  Several apps rely on being able to
+   * access some set or other data in an independent mode, so we can't
+   * set any vars to collective or it sets the file to collective and
+   * we potentially hang...
+   */
+  if (!is_pnetcdf) {
+
+  /* If this is a parallel execution and we are appending, then we
+   * need to set the parallel access method for all transient variables to NC_COLLECTIVE since
+   * they will be being extended.
+   */
+  int ndims;    /* number of dimensions */
+  int nvars;    /* number of variables */
+  int ngatts;   /* number of global attributes */
+  int recdimid; /* id of unlimited dimension */
+
+  int varid;
+
+  /* Determine number of variables on the database... */
+  nc_inq(exoid, &ndims, &nvars, &ngatts, &recdimid);
+
+  for (varid = 0; varid < nvars; varid++) {
+    struct ncvar var;
+    nc_inq_var(exoid, varid, var.name, &var.type, &var.ndims, var.dims, &var.natts);
+    
+    if (((strncmp(var.name, "vals_", 5) == 0) && (strncmp(var.name, "vals_red_", 9) != 0)) ||
+	(strcmp(var.name, VAR_WHOLE_TIME) == 0) ||
+	(strncmp(var.name, "coord", 5) == 0) ||
+	(strcmp(var.name, "connect") == 0) ||
+	(strcmp(var.name, "edgconn") == 0) ||
+	(strcmp(var.name, "ebconn") == 0) ||
+	(strcmp(var.name, "facconn") == 0) ||
+	(strcmp(var.name, "fbconn") == 0) ||
+	(strcmp(var.name, "attrib") == 0)) {
+      nc_var_par_access(exoid, varid, NC_COLLECTIVE);
+    }
+  }
+  }
 
   /* determine version of EXODUS file, and the word size of
    * floating point and integer values stored in the file

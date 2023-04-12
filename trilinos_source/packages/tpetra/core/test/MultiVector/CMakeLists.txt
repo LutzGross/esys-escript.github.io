@@ -1,7 +1,7 @@
 TRIBITS_ADD_EXECUTABLE_AND_TEST(
   MultiVector_UnitTests
   SOURCES
-    MultiVector_UnitTests
+    MultiVector_UnitTests.cpp
     ${TEUCHOS_STD_UNIT_TEST_MAIN}
   COMM serial mpi
   STANDARD_PASS_OUTPUT
@@ -9,25 +9,38 @@ TRIBITS_ADD_EXECUTABLE_AND_TEST(
   )
 
 TRIBITS_ADD_EXECUTABLE_AND_TEST(
-  ForEach
+  Bug9856
   SOURCES
-    ForEach
+    Bug9856.cpp
+  COMM serial mpi
+  NUM_MPI_PROCS 1
+  STANDARD_PASS_OUTPUT
+  )
+
+TRIBITS_ADD_EXECUTABLE_AND_TEST(
+  Bug9583
+  SOURCES
+    Bug9583.cpp
+    ${TEUCHOS_STD_UNIT_TEST_MAIN}
+  COMM mpi
+  NUM_MPI_PROCS 4
+  STANDARD_PASS_OUTPUT
+  )
+
+TRIBITS_ADD_EXECUTABLE_AND_TEST(
+  Bug7758
+  SOURCES
+    Bug7758.cpp
+    ${TEUCHOS_STD_UNIT_TEST_MAIN}
   COMM serial mpi
   STANDARD_PASS_OUTPUT
   )
 
 TRIBITS_ADD_EXECUTABLE_AND_TEST(
-  Transform
+  Bug7745
   SOURCES
-    Transform
-  COMM serial mpi
-  STANDARD_PASS_OUTPUT
-  )
-
-TRIBITS_ADD_EXECUTABLE_AND_TEST(
-  WithLocalAccess
-  SOURCES
-    WithLocalAccess
+    Bug7745.cpp
+    ${TEUCHOS_STD_UNIT_TEST_MAIN}
   COMM serial mpi
   STANDARD_PASS_OUTPUT
   )
@@ -35,10 +48,20 @@ TRIBITS_ADD_EXECUTABLE_AND_TEST(
 TRIBITS_ADD_EXECUTABLE_AND_TEST(
   Bug5474
   SOURCES
-    Bug5474
+    Bug5474.cpp
     ${TEUCHOS_STD_UNIT_TEST_MAIN}
   COMM serial mpi
   STANDARD_PASS_OUTPUT
+  )
+
+TRIBITS_ADD_EXECUTABLE_AND_TEST(
+  MultiVector_LocalViewTests
+  SOURCES
+    MultiVector_LocalViewTests.cpp
+    ${TEUCHOS_STD_UNIT_TEST_MAIN}
+  COMM serial mpi
+  STANDARD_PASS_OUTPUT
+  ${MAXNP}
   )
 
 # This test requires exactly 2 MPI processes.  It could be rewritten
@@ -47,7 +70,7 @@ TRIBITS_ADD_EXECUTABLE_AND_TEST(
 TRIBITS_ADD_EXECUTABLE_AND_TEST(
   MV_subViewSomeZeroRows
   SOURCES
-    MV_subViewSomeZeroRows
+    MV_subViewSomeZeroRows.cpp
     ${TEUCHOS_STD_UNIT_TEST_MAIN}
   COMM mpi
   NUM_MPI_PROCS 2
@@ -59,7 +82,7 @@ TRIBITS_ADD_EXECUTABLE_AND_TEST(
 TRIBITS_ADD_EXECUTABLE_AND_TEST(
   MV_Kokkos_DualView_subview
   SOURCES
-  MV_Kokkos_DualView_subview
+  MV_Kokkos_DualView_subview.cpp
   ${TEUCHOS_STD_UNIT_TEST_MAIN}
   COMM serial mpi
   NUM_MPI_PROCS 1
@@ -87,7 +110,7 @@ TRIBITS_ADD_EXECUTABLE_AND_TEST(
 TRIBITS_ADD_EXECUTABLE_AND_TEST(
   MultiVector_get2dView
   SOURCES
-    MultiVector_get2dView
+    MultiVector_get2dView.cpp
     ${TEUCHOS_STD_UNIT_TEST_MAIN}
   COMM serial mpi
   NUM_MPI_PROCS 1
@@ -100,7 +123,7 @@ TRIBITS_ADD_EXECUTABLE_AND_TEST(
 TRIBITS_ADD_EXECUTABLE_AND_TEST(
   MultiVector_TwoArgRandomize
   SOURCES
-    MultiVector_TwoArgRandomize
+    MultiVector_TwoArgRandomize.cpp
     ${TEUCHOS_STD_UNIT_TEST_MAIN}
   COMM serial mpi
   NUM_MPI_PROCS 1
@@ -112,7 +135,7 @@ TRIBITS_ADD_EXECUTABLE_AND_TEST(
 TRIBITS_ADD_EXECUTABLE_AND_TEST(
   Issue364
   SOURCES
-    Issue364
+    Issue364.cpp
     ${TEUCHOS_STD_UNIT_TEST_MAIN}
   COMM serial mpi
   NUM_MPI_PROCS 1
@@ -124,7 +147,7 @@ TRIBITS_ADD_EXECUTABLE_AND_TEST(
 TRIBITS_ADD_EXECUTABLE_AND_TEST(
   Issue46
   SOURCES
-    Issue46
+    Issue46.cpp
     ${TEUCHOS_STD_UNIT_TEST_MAIN}
   COMM serial mpi
   NUM_MPI_PROCS 1
@@ -134,7 +157,7 @@ TRIBITS_ADD_EXECUTABLE_AND_TEST(
 TRIBITS_ADD_EXECUTABLE_AND_TEST(
   MultiVector_MicroBenchmark
   SOURCES
-    MultiVector_MicroBenchmark
+    MultiVector_MicroBenchmark.cpp
     ${TEUCHOS_STD_UNIT_TEST_MAIN}
   COMM serial mpi
   NUM_MPI_PROCS 1
@@ -147,7 +170,7 @@ IF (${PACKAGE_NAME}_ENABLE_TeuchosNumerics)
   TRIBITS_ADD_EXECUTABLE_AND_TEST(
     deep_copy_SerialDenseMatrix_to_MultiVector
     SOURCES
-      deep_copy_from_SDM
+      deep_copy_from_SDM.cpp
       ${TEUCHOS_STD_UNIT_TEST_MAIN}
     COMM serial mpi
     NUM_MPI_PROCS 1
@@ -156,7 +179,7 @@ IF (${PACKAGE_NAME}_ENABLE_TeuchosNumerics)
   TRIBITS_ADD_EXECUTABLE_AND_TEST(
     deep_copy_MultiVector_to_SerialDenseMatrix
     SOURCES
-      deep_copy_from_SDM
+      deep_copy_from_SDM.cpp
       ${TEUCHOS_STD_UNIT_TEST_MAIN}
     COMM serial mpi
     NUM_MPI_PROCS 1
@@ -170,30 +193,26 @@ ENDIF ()
 TRIBITS_ADD_EXECUTABLE_AND_TEST(
   MV_reduce_strided
   SOURCES
-    MV_reduce_strided
+    MV_reduce_strided.cpp
     ${TEUCHOS_STD_UNIT_TEST_MAIN}
   COMM mpi
   NUM_MPI_PROCS 2-4
   STANDARD_PASS_OUTPUT
   )
 
-# mfh 14 Apr 2019: Weirdly, this unit test was set to build the wrong
-# file.  When I fixed that, it turns out that the unit test didn't
-# build correctly.  We will fix that later.
-#
-#TRIBITS_ADD_EXECUTABLE_AND_TEST(
-#  Vector_offsetViewCtor
-#  SOURCES
-#    Vector_offsetViewCtor
-#    ${TEUCHOS_STD_UNIT_TEST_MAIN}
-#  COMM serial mpi
-#  STANDARD_PASS_OUTPUT
-#  )
+TRIBITS_ADD_EXECUTABLE_AND_TEST(
+  Vector_offsetViewCtor
+  SOURCES
+    Vector_offsetViewCtor.cpp
+    ${TEUCHOS_STD_UNIT_TEST_MAIN}
+  COMM serial mpi
+  STANDARD_PASS_OUTPUT
+  )
 
 TRIBITS_ADD_EXECUTABLE_AND_TEST(
   aliased_deep_copy
   SOURCES
-    aliased_deep_copy
+    aliased_deep_copy.cpp
     ${TEUCHOS_STD_UNIT_TEST_MAIN}
   COMM serial mpi
   STANDARD_PASS_OUTPUT
@@ -206,7 +225,7 @@ IF (Tpetra_INST_CUDA AND Tpetra_INST_SERIAL)
   TRIBITS_ADD_EXECUTABLE_AND_TEST(
     MultiVector_MixedNode
     SOURCES
-      MultiVector_MixedNode
+      MultiVector_MixedNode.cpp
     ${TEUCHOS_STD_UNIT_TEST_MAIN}
     ARGS ${ARGS}
     COMM mpi
@@ -214,4 +233,3 @@ IF (Tpetra_INST_CUDA AND Tpetra_INST_SERIAL)
     STANDARD_PASS_OUTPUT
     )
 ENDIF ()
-

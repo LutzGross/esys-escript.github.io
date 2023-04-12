@@ -70,21 +70,35 @@ namespace Details {
 template<class LocalOrdinal, class GlobalOrdinal, class DeviceType>
 class LocalMap {
 public:
-  typedef LocalOrdinal local_ordinal_type;
-  typedef GlobalOrdinal global_ordinal_type;
-  typedef DeviceType device_type;
+  //! The type of local indices.
+  using local_ordinal_type = LocalOrdinal;
 
-  LocalMap () :
-    indexBase_ (0),
-    myMinGid_ (Tpetra::Details::OrdinalTraits<GlobalOrdinal>::invalid ()),
-    myMaxGid_ (Tpetra::Details::OrdinalTraits<GlobalOrdinal>::invalid ()),
-    firstContiguousGid_ (Tpetra::Details::OrdinalTraits<GlobalOrdinal>::invalid ()),
-    lastContiguousGid_ (Tpetra::Details::OrdinalTraits<GlobalOrdinal>::invalid ()),
-    numLocalElements_ (0),
-    contiguous_ (false)
-  {}
-  LocalMap (const ::Tpetra::Details::FixedHashTable<GlobalOrdinal, LocalOrdinal, DeviceType>& glMap,
-            const ::Kokkos::View<const GlobalOrdinal*, ::Kokkos::LayoutLeft, DeviceType>& lgMap,
+  //! The type of global indices.
+  using global_ordinal_type = GlobalOrdinal;
+
+  //! The device type
+  using device_type = DeviceType;
+
+  //! The Kokkos execution space.
+  using execution_space = typename device_type::execution_space;
+
+  //! The Kokkos memory space.
+  using memory_space = typename device_type::memory_space;
+
+  //! The hash will be CudaSpace, not CudaUVMSpace
+#ifdef KOKKOS_ENABLE_CUDA
+  using no_uvm_memory_space = typename std::conditional<std::is_same<memory_space, Kokkos::CudaUVMSpace>::value,
+    Kokkos::CudaSpace, memory_space>::type;
+  using no_uvm_device_type = Kokkos::Device<execution_space, no_uvm_memory_space>;
+#else
+  using no_uvm_device_type = device_type;
+#endif
+
+  //! Default constructor.
+  KOKKOS_DEFAULTED_FUNCTION LocalMap() = default;
+
+  LocalMap (const ::Tpetra::Details::FixedHashTable<GlobalOrdinal, LocalOrdinal, no_uvm_device_type>& glMap,
+            const ::Kokkos::View<const GlobalOrdinal*, ::Kokkos::LayoutLeft, no_uvm_device_type>& lgMap,
             const GlobalOrdinal indexBase,
             const GlobalOrdinal myMinGid,
             const GlobalOrdinal myMaxGid,
@@ -104,7 +118,7 @@ public:
   {}
 
   //! The number of indices that live on the calling process.
-  KOKKOS_INLINE_FUNCTION LocalOrdinal getNodeNumElements () const {
+  KOKKOS_INLINE_FUNCTION LocalOrdinal getLocalNumElements () const {
     return numLocalElements_;
   }
 
@@ -147,7 +161,7 @@ public:
     return myMaxGid_;
   }
 
-  //! Get the local index corresponding to the given global index.
+  //! Get the local index corresponding to the given global index. (device only)
   KOKKOS_INLINE_FUNCTION LocalOrdinal
   getLocalElement (const GlobalOrdinal globalIndex) const
   {
@@ -168,7 +182,7 @@ public:
     }
   }
 
-  //! Get the global index corresponding to the given local index.
+  //! Get the global index corresponding to the given local index. (device only)
   KOKKOS_INLINE_FUNCTION GlobalOrdinal
   getGlobalElement (const LocalOrdinal localIndex) const
   {
@@ -185,7 +199,7 @@ public:
 
 private:
   //! Table that maps from global index to local index.
-  ::Tpetra::Details::FixedHashTable<GlobalOrdinal, LocalOrdinal, DeviceType> glMap_;
+  ::Tpetra::Details::FixedHashTable<GlobalOrdinal, LocalOrdinal, no_uvm_device_type> glMap_;
   /// \brief Mapping from local indices to global indices.
   ///
   /// If this is empty, then it could be either that the Map is
@@ -200,14 +214,15 @@ private:
   /// LayoutRight because LayoutRight is the default on non-CUDA
   /// Devices, and we want to make sure we catch assignment or
   /// copying from the default to the nondefault layout.
-  ::Kokkos::View<const GlobalOrdinal*, ::Kokkos::LayoutLeft, DeviceType> lgMap_;
-  GlobalOrdinal indexBase_;
-  GlobalOrdinal myMinGid_;
-  GlobalOrdinal myMaxGid_;
-  GlobalOrdinal firstContiguousGid_;
-  GlobalOrdinal lastContiguousGid_;
-  LocalOrdinal numLocalElements_;
-  bool contiguous_;
+  ::Kokkos::View<const GlobalOrdinal*, ::Kokkos::LayoutLeft, no_uvm_device_type> lgMap_;
+
+  GlobalOrdinal indexBase_          = 0;
+  GlobalOrdinal myMinGid_           = Tpetra::Details::OrdinalTraits<GlobalOrdinal>::invalid();
+  GlobalOrdinal myMaxGid_           = Tpetra::Details::OrdinalTraits<GlobalOrdinal>::invalid();
+  GlobalOrdinal firstContiguousGid_ = Tpetra::Details::OrdinalTraits<GlobalOrdinal>::invalid();
+  GlobalOrdinal lastContiguousGid_  = Tpetra::Details::OrdinalTraits<GlobalOrdinal>::invalid();
+  LocalOrdinal numLocalElements_    = 0;
+  bool contiguous_                  = false;
 };
 
 } // namespace Details

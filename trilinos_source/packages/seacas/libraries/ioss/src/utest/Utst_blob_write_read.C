@@ -1,7 +1,7 @@
-// Copyright(C) 1999-2020 National Technology & Engineering Solutions
+// Copyright(C) 1999-2023 National Technology & Engineering Solutions
 // of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 // NTESS, the U.S. Government retains certain rights in this software.
-// 
+//
 // See packages/seacas/LICENSE for details
 
 #include <Ioss_Blob.h>
@@ -10,6 +10,7 @@
 #include <Ioss_Property.h>
 #include <Ioss_Region.h>
 #include <Ioss_ScopeGuard.h>
+#include <Ioss_Sort.h>
 #include <Ioss_Utils.h>
 
 #include <Ionit_Initializer.h>
@@ -26,8 +27,8 @@
 void write_blob();
 bool read_blob();
 
-std::vector<double> generate_data(double time, size_t global_size, double offset, size_t local_size,
-                                  size_t proc_offset)
+std::vector<double> generate_data(double time, size_t /* global_size */, double offset,
+                                  size_t local_size, size_t proc_offset)
 {
   // Determine this ranks portion of the data
   std::vector<double> data;
@@ -57,7 +58,7 @@ namespace {
   }
 } // namespace
 
-int main(int argc, char *argv[])
+int main(IOSS_MAYBE_UNUSED int argc, IOSS_MAYBE_UNUSED char *argv[])
 {
 #ifdef SEACAS_HAVE_MPI
   MPI_Init(&argc, &argv);
@@ -83,8 +84,9 @@ void write_blob()
   std::cout << "***** Writing Blob Example File...\n";
   Ioss::PropertyManager properties;
   properties.add(Ioss::Property("COMPOSE_RESTART", "YES"));
-  Ioss::DatabaseIO *dbo = Ioss::IOFactory::create(
-      "exodus", "ioss_blob_example.e", Ioss::WRITE_RESTART, (MPI_Comm)MPI_COMM_WORLD, properties);
+  Ioss::DatabaseIO *dbo =
+      Ioss::IOFactory::create("exodus", "ioss_blob_example.e", Ioss::WRITE_RESTART,
+                              Ioss::ParallelUtils::comm_world(), properties);
   if (dbo == NULL || !dbo->ok(true)) {
     std::exit(EXIT_FAILURE);
   }
@@ -106,22 +108,19 @@ void write_blob()
   Ioss::Blob *blob1        = new Ioss::Blob(dbo, "Tempus", count_offset.first);
   region.add(blob1);
 
-  // NOTE: These properties are not neede for serial case, but don't cause problems
-  blob1->property_add(Ioss::Property("processor_offset", (int64_t)count_offset.second));
+  // NOTE: These properties are not needed for serial case, but don't cause problems
   blob1->property_add(Ioss::Property("global_size", (int64_t)b1_size));
 
   count_offset      = get_blob_size(b2_size, par_size, my_rank);
   Ioss::Blob *blob2 = new Ioss::Blob(dbo, "Solver", count_offset.first);
   region.add(blob2);
 
-  blob2->property_add(Ioss::Property("processor_offset", (int64_t)count_offset.second));
   blob2->property_add(Ioss::Property("global_size", (int64_t)b2_size));
 
   count_offset      = get_blob_size(b3_size, par_size, my_rank);
   Ioss::Blob *blob3 = new Ioss::Blob(dbo, "ABlob", count_offset.first);
   region.add(blob3);
 
-  blob3->property_add(Ioss::Property("processor_offset", (int64_t)count_offset.second));
   blob3->property_add(Ioss::Property("global_size", (int64_t)b3_size));
 
   // These are "entity attributes" for blob1. Non-transient (constant) property
@@ -171,7 +170,7 @@ void write_blob()
   region.begin_mode(Ioss::STATE_TRANSIENT);
   const size_t num_ts = 10;
   for (size_t ts = 0; ts < num_ts; ts++) {
-    double time = ts / 10.0;
+    double time = ts;
     auto   step = region.add_state(time);
     region.begin_state(step);
 
@@ -183,21 +182,19 @@ void write_blob()
       const size_t size = blob->entity_count();
 
       // Get the global size and offset of this blob on this rank...
-      size_t gl_size  = blob->get_property("global_size").get_int();
-      size_t p_offset = blob->get_property("processor_offset").get_int();
+      size_t gl_size  = blob->get_optional_property("global_size", size);
+      size_t p_offset = blob->get_optional_property("_processor_offset", 0);
 
       // Get the fields that are defined on this blob...
-      Ioss::NameList fields;
-      blob->field_describe(Ioss::Field::RoleType::TRANSIENT, &fields);
-      std::sort(fields.begin(), fields.end()); // Just done for testing; not needed
+      Ioss::NameList fields = blob->field_describe(Ioss::Field::RoleType::TRANSIENT);
+      Ioss::sort(fields.begin(), fields.end()); // Just done for testing; not needed
       for (const auto &field : fields) {
         std::vector<double> data = generate_data(time, gl_size, idx++, size, p_offset);
         blob->put_field_data(field, data);
       }
 
       // Reduction fields...
-      Ioss::NameList red_fields;
-      blob->field_describe(Ioss::Field::RoleType::REDUCTION, &red_fields);
+      Ioss::NameList red_fields = blob->field_describe(Ioss::Field::RoleType::REDUCTION);
       for (const auto &field : red_fields) {
         std::vector<double> data = generate_data(time, 3, idx++, 3, 0);
         blob->put_field_data(field, data);
@@ -214,8 +211,9 @@ bool read_blob()
   std::cout << "\n***** Reading Blob Example File...\n";
   Ioss::PropertyManager properties;
   properties.add(Ioss::Property("DECOMPOSITION_METHOD", "linear"));
-  Ioss::DatabaseIO *dbi = Ioss::IOFactory::create(
-      "exodus", "ioss_blob_example.e", Ioss::READ_RESTART, (MPI_Comm)MPI_COMM_WORLD, properties);
+  Ioss::DatabaseIO *dbi =
+      Ioss::IOFactory::create("exodus", "ioss_blob_example.e", Ioss::READ_RESTART,
+                              Ioss::ParallelUtils::comm_world(), properties);
   if (dbi == NULL || !dbi->ok(true)) {
     std::exit(EXIT_FAILURE);
   }
@@ -245,18 +243,14 @@ bool read_blob()
 
   for (const auto *blob : blobs) {
     // Get the names of the fields that are defined on this blob...
-    Ioss::NameList fields;
-    blob->field_describe(Ioss::Field::RoleType::TRANSIENT, &fields);
-    std::sort(fields.begin(), fields.end()); // Just done for testing; not needed
+    Ioss::NameList fields = blob->field_describe(Ioss::Field::RoleType::TRANSIENT);
+    Ioss::sort(fields.begin(), fields.end()); // Just done for testing; not needed
     all_fields.push_back(fields);
 
     // Reduction fields...
-    Ioss::NameList red_fields;
-    blob->field_describe(Ioss::Field::RoleType::REDUCTION, &red_fields);
+    Ioss::NameList red_fields = blob->field_describe(Ioss::Field::RoleType::REDUCTION);
     all_red_fields.push_back(red_fields);
   }
-
-  size_t par_size = dbi->util().parallel_size();
 
   bool diff = false;
   for (size_t step = 1; step <= ts_count; step++) {
@@ -271,12 +265,8 @@ bool read_blob()
       // Get the global size and offset of this blob on this rank...
       // These are only needed for the comparison, not needed to just read data.
       size_t size     = blob->entity_count();
-      size_t gl_size  = size;
-      size_t p_offset = 0;
-      if (par_size > 1) {
-        gl_size  = blob->get_property("global_size").get_int();
-        p_offset = blob->get_property("processor_offset").get_int();
-      }
+      size_t gl_size  = blob->get_optional_property("global_size", size);
+      size_t p_offset = blob->get_optional_property("_processor_offset", 0);
 
       const auto &fields = all_fields[idx];
       for (const auto &field : fields) {
@@ -287,6 +277,12 @@ bool read_blob()
         if (data != gold) {
           std::cout << "Difference for field " << field << " on blob " << blob->name()
                     << " at step " << step << "\n";
+          for (size_t i = 0; i < data.size(); i++) {
+            if (data[i] != gold[i]) {
+              std::cout << "Difference at index " << i << ", Data[i] = " << data[i]
+                        << ", Gold[i] = " << gold[i] << "\n";
+            }
+          }
           diff = true;
         }
       }

@@ -1,8 +1,8 @@
 /*
- * Copyright(C) 1999-2020 National Technology & Engineering Solutions
+ * Copyright(C) 1999-2020, 2022 National Technology & Engineering Solutions
  * of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
  * NTESS, the U.S. Government retains certain rights in this software.
- * 
+ *
  * See packages/seacas/LICENSE for details
  */
 /*****************************************************************************
@@ -66,8 +66,8 @@ int ex_get_side_set_node_list(int exoid, ex_entity_id side_set_id, void_int *sid
   void_int *elem_blk_ids       = NULL;
   void_int *connect            = NULL;
   void_int *ss_elem_ndx        = NULL;
-  int64_t * ss_elem_node_ndx   = NULL;
-  int64_t * ss_parm_ndx        = NULL;
+  int64_t  *ss_elem_node_ndx   = NULL;
+  int64_t  *ss_parm_ndx        = NULL;
   void_int *side_set_elem_list = NULL;
   void_int *side_set_side_list = NULL;
   size_t    elem_ctr, node_ctr, elem_num_pos;
@@ -216,7 +216,9 @@ int ex_get_side_set_node_list(int exoid, ex_entity_id side_set_id, void_int *sid
   char errmsg[MAX_ERR_LENGTH];
 
   EX_FUNC_ENTER();
-  ex__check_valid_file_id(exoid, __func__);
+  if (ex__check_valid_file_id(exoid, __func__) == EX_FATAL) {
+    EX_FUNC_LEAVE(EX_FATAL);
+  }
 
   /* first check if any side sets are specified */
   /* inquire how many side sets have been stored */
@@ -604,8 +606,16 @@ int ex_get_side_set_node_list(int exoid, ex_entity_id side_set_id, void_int *sid
 
     case EX_EL_BEAM: { /* Note: no side-node lookup table is used for this
                           simple case */
-      for (i = 0; i < num_nodes_per_elem; i++) {
-        get_nodes(exoid, side_set_node_list, node_pos + i, connect, connect_offset + i);
+      if (side_num == 0) {
+        for (i = 0; i < num_nodes_per_elem; i++) {
+          get_nodes(exoid, side_set_node_list, node_pos + i, connect, connect_offset + i);
+        }
+      }
+      else {
+        for (i = 0; i < num_nodes_per_elem; i++) {
+          int nn = num_nodes_per_elem - i - 1;
+          get_nodes(exoid, side_set_node_list, node_pos + i, connect, connect_offset + nn);
+        }
       }
       break;
     }

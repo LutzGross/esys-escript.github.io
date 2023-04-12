@@ -11,6 +11,8 @@
 #     -P tribits_get_version_date.cmake
 #   
 
+cmake_minimum_required(VERSION 3.17.0 FATAL_ERROR)
+
 # A) Validate input
 
 if ("${PROJECT_NAME}" STREQUAL "")
@@ -28,7 +30,7 @@ endif()
 # B) Include modules
 
 set(${PROJECT_NAME}_TRIBITS_DIR "${CMAKE_CURRENT_LIST_DIR}/../..")
-SET(CMAKE_MODULE_PATH
+set(CMAKE_MODULE_PATH
    ${${PROJECT_NAME}_TRIBITS_DIR}/core/utils
    ${${PROJECT_NAME}_TRIBITS_DIR}/core/package_arch
    )

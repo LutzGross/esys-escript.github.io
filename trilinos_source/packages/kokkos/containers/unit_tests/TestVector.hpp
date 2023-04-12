@@ -1,43 +1,17 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
 
 #ifndef KOKKOS_TEST_VECTOR_HPP
@@ -55,14 +29,17 @@ namespace Impl {
 
 template <typename Scalar, class Device>
 struct test_vector_insert {
-  typedef Scalar scalar_type;
-  typedef Device execution_space;
+  using scalar_type     = Scalar;
+  using execution_space = Device;
 
   template <typename Vector>
   void run_test(Vector& a) {
-    int n = a.size();
+    auto n = a.size();
 
     auto it = a.begin();
+    if (n > 0) {
+      ASSERT_EQ(a.data(), &a[0]);
+    }
     it += 15;
     ASSERT_EQ(*it, scalar_type(1));
 
@@ -75,7 +52,7 @@ struct test_vector_insert {
 // Looks like some std::vector implementations do not have the restriction
 // right on the overload taking three iterators, and thus the following call
 // will hit that overload and then fail to compile.
-#if defined(KOKKOS_COMPILER_INTEL) && (1700 > KOKKOS_COMPILER_INTEL)
+#if defined(KOKKOS_COMPILER_INTEL)
 // And at least GCC 4.8.4 doesn't implement vector insert correct for C++11
 // Return type is void ...
 #if (__GNUC__ < 5)
@@ -94,19 +71,19 @@ struct test_vector_insert {
 #endif
 
     ASSERT_EQ(a.size(), n + 1 + n + 5);
-    ASSERT_EQ(std::distance(it_return, a.begin() + 17), 0);
+    ASSERT_EQ(std::distance(it_return, a.begin() + 17), 0u);
 
     Vector b;
 
 // Looks like some std::vector implementations do not have the restriction
 // right on the overload taking three iterators, and thus the following call
 // will hit that overload and then fail to compile.
-#if defined(KOKKOS_COMPILER_INTEL) && (1700 > KOKKOS_COMPILER_INTEL)
+#if defined(KOKKOS_COMPILER_INTEL)
     b.insert(b.begin(), typename Vector::size_type(7), 9);
 #else
     b.insert(b.begin(), 7, 9);
 #endif
-    ASSERT_EQ(b.size(), 7);
+    ASSERT_EQ(b.size(), 7u);
     ASSERT_EQ(b[0], scalar_type(9));
 
     it = a.begin();
@@ -118,11 +95,11 @@ struct test_vector_insert {
     it_return = a.insert(it, b.begin(), b.end());
 #endif
     ASSERT_EQ(a.size(), n + 1 + n + 5 + 7);
-    ASSERT_EQ(std::distance(it_return, a.begin() + 27 + n), 0);
+    ASSERT_EQ(std::distance(it_return, a.begin() + 27 + n), 0u);
 
     // Testing insert at end via all three function interfaces
     a.insert(a.end(), 11);
-#if defined(KOKKOS_COMPILER_INTEL) && (1700 > KOKKOS_COMPILER_INTEL)
+#if defined(KOKKOS_COMPILER_INTEL)
     a.insert(a.end(), typename Vector::size_type(2), 12);
 #else
     a.insert(a.end(), 2, 12);
@@ -169,15 +146,63 @@ struct test_vector_insert {
       run_test(a);
       check_test(a, size);
     }
+    { test_vector_insert_into_empty(size); }
+  }
+
+  void test_vector_insert_into_empty(const size_t size) {
+    using Vector = Kokkos::vector<Scalar, Device>;
+    {
+      Vector a;
+      Vector b(size);
+      a.insert(a.begin(), b.begin(), b.end());
+      ASSERT_EQ(a.size(), size);
+    }
+
+    {
+      Vector c;
+      c.insert(c.begin(), size, Scalar{});
+      ASSERT_EQ(c.size(), size);
+    }
+  }
+};
+
+template <typename Scalar, class Device>
+struct test_vector_allocate {
+  using self_type = test_vector_allocate<Scalar, Device>;
+
+  using scalar_type     = Scalar;
+  using execution_space = Device;
+
+  bool result = false;
+
+  template <typename Vector>
+  Scalar run_me(unsigned int n) {
+    {
+      Vector v1;
+      if (v1.is_allocated() == true) return false;
+
+      v1 = Vector(n, 1);
+      Vector v2(v1);
+      Vector v3(n, 1);
+
+      if (v1.is_allocated() == false) return false;
+      if (v2.is_allocated() == false) return false;
+      if (v3.is_allocated() == false) return false;
+    }
+    return true;
+  }
+
+  test_vector_allocate(unsigned int size) {
+    result = run_me<Kokkos::vector<Scalar, Device> >(size);
   }
 };
 
 template <typename Scalar, class Device>
 struct test_vector_combinations {
-  typedef test_vector_combinations<Scalar, Device> self_type;
+  using self_type = test_vector_combinations<Scalar, Device>;
 
-  typedef Scalar scalar_type;
-  typedef Device execution_space;
+  using scalar_type     = Scalar;
+  using execution_space = Device;
 
   Scalar reference;
   Scalar result;
@@ -231,13 +256,33 @@ void test_vector_combinations(unsigned int size) {
   ASSERT_EQ(test.reference, test.result);
 }
 
+template <typename Scalar, typename Device>
+void test_vector_allocate(unsigned int size) {
+  Impl::test_vector_allocate<Scalar, Device> test(size);
+  ASSERT_TRUE(test.result);
+}
+
 TEST(TEST_CATEGORY, vector_combination) {
+  test_vector_allocate<int, TEST_EXECSPACE>(10);
   test_vector_combinations<int, TEST_EXECSPACE>(10);
   test_vector_combinations<int, TEST_EXECSPACE>(3057);
 }
 
 TEST(TEST_CATEGORY, vector_insert) {
   Impl::test_vector_insert<int, TEST_EXECSPACE>(3057);
+}
+
+// The particular scenario below triggered a bug where empty modified_flags
+// would cause resize in push_back to be executed on the device overwriting the
+// values that were stored on the host previously.
+TEST(TEST_CATEGORY, vector_push_back_default_exec) {
+  Kokkos::vector<int, TEST_EXECSPACE> V;
+  V.clear();
+  V.push_back(4);
+  ASSERT_EQ(V[0], 4);
+  V.push_back(3);
+  ASSERT_EQ(V[1], 3);
+  ASSERT_EQ(V[0], 4);
 }
 
 }  // namespace Test

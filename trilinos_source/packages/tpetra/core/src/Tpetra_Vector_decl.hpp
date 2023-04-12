@@ -44,11 +44,6 @@
 
 /// \file Tpetra_Vector_decl.hpp
 /// \brief Declaration of the Tpetra::Vector class
-///
-/// If you want to use Tpetra::Vector, include "Tpetra_Vector.hpp" (a
-/// file which CMake generates and installs for you).  If you only
-/// want the declaration of Tpetra::Vector, include this file
-/// (Tpetra_Vector_decl.hpp).
 
 #include "Tpetra_ConfigDefs.hpp"
 #include "Tpetra_Vector_fwd.hpp"
@@ -127,6 +122,9 @@ public:
 
   //! Kokkos::DualView specialization used by this class.
   typedef typename base_type::dual_view_type dual_view_type;
+
+  //! WrappedDualView specialization used by this class.
+  typedef typename base_type::wrapped_dual_view_type wrapped_dual_view_type;
 
   //! The type of the Map specialization used by this class.
   typedef typename base_type::map_type map_type;
@@ -211,6 +209,17 @@ public:
           const dual_view_type& view,
           const dual_view_type& origView);
 
+  /// \brief Expert mode constructor, that takes a WrappedDualView
+  ///   of the MultiVector's data.
+  ///
+  /// \warning This constructor is only for expert users.  We make
+  ///   no promises about backwards compatibility for this
+  ///   interface.  It may change or go away at any time.  It is
+  ///   mainly useful for Tpetra developers and we do not expect it
+  ///   to be useful for anyone else.
+  Vector (const Teuchos::RCP<const map_type>& map,
+	  const wrapped_dual_view_type& d_view);
+  
   /// \brief Create a Vector that views a single column of the input
   ///   MultiVector.
   ///
@@ -262,7 +271,7 @@ public:
   //! Replace current value at the specified location with specified value.
   /** \pre \c globalRow must be a valid global element on this node, according to the row map.
    */
-  void replaceGlobalValue (const GlobalOrdinal globalRow, const Scalar& value) const;
+  void replaceGlobalValue (const GlobalOrdinal globalRow, const Scalar& value);
 
   /// \brief Add value to existing value, using global (row) index.
   ///
@@ -286,12 +295,12 @@ public:
   void
   sumIntoGlobalValue (const GlobalOrdinal globalRow,
                       const Scalar& value,
-                      const bool atomic = base_type::useAtomicUpdatesByDefault) const;
+                      const bool atomic = base_type::useAtomicUpdatesByDefault);
 
   //! Replace current value at the specified location with specified values.
   /** \pre \c localRow must be a valid local element on this node, according to the row map.
    */
-  void replaceLocalValue (const LocalOrdinal myRow, const Scalar& value) const;
+  void replaceLocalValue (const LocalOrdinal myRow, const Scalar& value);
 
   /// \brief Add \c value to existing value, using local (row) index.
   ///
@@ -313,7 +322,7 @@ public:
   void
   sumIntoLocalValue (const LocalOrdinal myRow,
                      const Scalar& value,
-                     const bool atomic = base_type::useAtomicUpdatesByDefault) const;
+                     const bool atomic = base_type::useAtomicUpdatesByDefault);
 
   //@}
 

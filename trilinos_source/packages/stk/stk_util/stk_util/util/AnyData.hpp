@@ -34,14 +34,14 @@
 #ifndef SIERRA_UTILITY_ANY_DATA_H
 #define SIERRA_UTILITY_ANY_DATA_H
 
+#include "stk_util/util/Writer.hpp"     // for operator"", Writer
+#include "stk_util/diag/StringUtil.hpp" // for demangle
+#include "stk_util/util/Writer_fwd.hpp" // for Writer
 #include <typeinfo>
 #include <stdexcept>
 #include <string>
 #include <ostream>
 #include <vector>
-#include <stk_util/util/Writer.hpp>     // for operator<<, Writer
-#include "stk_util/diag/StringUtil.hpp" // for demangle
-#include "stk_util/util/Writer_fwd.hpp" // for Writer
 
 namespace sierra {
 
@@ -246,6 +246,11 @@ inline std::ostream& operator<<(std::ostream& os, const std::vector<double>& t)
 {
   for(unsigned i = 0; i < t.size(); i++)
     os << t[i] << " ";
+  return os;
+}
+inline std::ostream& operator<<(std::ostream& os, const std::vector<int>& t)
+{
+  for (unsigned i = 0; i < t.size(); i++) os << t[i] << " ";
   return os;
 }
 

@@ -1,15 +1,31 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.10.0)
+cmake_minimum_required(VERSION 3.17.0)
 
-ADD_LIBRARY(simpletpl SimpleTpl.hpp SimpleTpl.cpp)
-
-INSTALL(
-  TARGETS simpletpl
-  RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}/lib"
-  LIBRARY DESTINATION "${CMAKE_INSTALL_PREFIX}/lib"
-  ARCHIVE DESTINATION "${CMAKE_INSTALL_PREFIX}/lib"
+project(SimpleTpl
+  DESCRIPTION
+    "Simple TPL with a header file and a library"
+  LANGUAGES C CXX
   )
 
-INSTALL(
+add_library(simpletpl SimpleTpl.hpp SimpleTpl.cpp)
+target_include_directories(simpletpl
+  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+  )
+
+include(GNUInstallDirs)
+
+install(
+  TARGETS simpletpl
+  EXPORT SimpleTpl
+  INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+  )
+
+install(
   FILES SimpleTpl.hpp
-  DESTINATION "${CMAKE_INSTALL_PREFIX}/include"
+  DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+  )
+
+install(EXPORT SimpleTpl
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/SimpleTpl
+  NAMESPACE SimpleTpl::
+  FILE SimplTplConfig.cmake
   )

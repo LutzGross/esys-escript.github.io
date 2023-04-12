@@ -1,7 +1,7 @@
-// Copyright(C) 1999-2020 National Technology & Engineering Solutions
+// Copyright(C) 1999-2021 National Technology & Engineering Solutions
 // of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 // NTESS, the U.S. Government retains certain rights in this software.
-// 
+//
 // See packages/seacas/LICENSE for details
 
 #include "Ioss_CodeTypes.h"           // for IntVector
@@ -74,8 +74,6 @@ Ioss::TriShell3::TriShell3() : Ioss::ElementTopology(Ioss::TriShell3::name, "She
   Ioss::ElementTopology::alias(Ioss::TriShell3::name, "shell3");
 }
 
-Ioss::TriShell3::~TriShell3() = default;
-
 int Ioss::TriShell3::parametric_dimension() const { return 2; }
 int Ioss::TriShell3::spatial_dimension() const { return 3; }
 int Ioss::TriShell3::order() const { return 1; }
@@ -137,6 +135,7 @@ Ioss::IntVector Ioss::TriShell3::element_connectivity() const
 Ioss::ElementTopology *Ioss::TriShell3::face_type(int face_number) const
 {
   assert(face_number >= 0 && face_number <= number_faces());
+  IOSS_ASSERT_USED(face_number);
   //  return Ioss::ElementTopology::factory("triface3");
   return Ioss::ElementTopology::factory("tri3");
 }
@@ -144,6 +143,7 @@ Ioss::ElementTopology *Ioss::TriShell3::face_type(int face_number) const
 Ioss::ElementTopology *Ioss::TriShell3::edge_type(int edge_number) const
 {
   assert(edge_number >= 0 && edge_number <= number_edges());
+  IOSS_ASSERT_USED(edge_number);
   return Ioss::ElementTopology::factory("edge2");
 }
 

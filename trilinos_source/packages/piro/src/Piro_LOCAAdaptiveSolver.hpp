@@ -70,6 +70,7 @@ public:
   LOCAAdaptiveSolver(
       const Teuchos::RCP<Teuchos::ParameterList> &piroParams,
       const Teuchos::RCP<Thyra::ModelEvaluator<Scalar> > &model,
+      const Teuchos::RCP<Thyra::ModelEvaluator<Scalar> > &ajdointModel,
       const Teuchos::RCP<Thyra::AdaptiveSolutionManager> &solMgr,
       const Teuchos::RCP<LOCA::Thyra::SaveDataStrategy> &saveDataStrategy);
 
@@ -80,6 +81,9 @@ public:
   void reportFinalPoint(const Thyra::ModelEvaluatorBase::InArgs<Scalar>& finalPoint, const bool /* wasSolved */)
        { finalPoint_ = Teuchos::rcpFromRef(finalPoint); }
 
+  //! Returns the underlying stepper
+  Teuchos::RCP<LOCA::AdaptiveStepper>
+  getStepper();
 
 private:
   /** \name Overridden from Thyra::ModelEvaluatorDefaultBase . */
@@ -114,6 +118,7 @@ Teuchos::RCP<LOCAAdaptiveSolver<Scalar> >
 observedLocaSolver(
     const Teuchos::RCP<Teuchos::ParameterList> &piroParams,
     const Teuchos::RCP<Thyra::ModelEvaluator<Scalar> > &model,
+    const Teuchos::RCP<Thyra::ModelEvaluator<Scalar> > &adjointModel,
     const Teuchos::RCP<Thyra::AdaptiveSolutionManager> &solMgr,
     const Teuchos::RCP<Piro::ObserverBase<Scalar> > &observer);
 

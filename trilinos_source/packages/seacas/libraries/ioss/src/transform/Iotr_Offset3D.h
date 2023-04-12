@@ -1,23 +1,27 @@
-// Copyright(C) 1999-2020 National Technology & Engineering Solutions
+// Copyright(C) 1999-2022 National Technology & Engineering Solutions
 // of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 // NTESS, the U.S. Government retains certain rights in this software.
-// 
+//
 // See packages/seacas/LICENSE for details
 
-#ifndef IOSS_Iotr_Offset3D_h
-#define IOSS_Iotr_Offset3D_h
+#pragma once
 
-#include "Ioss_VariableType.h" // for VariableType
+#include "iotr_export.h"
+
 #include <Ioss_Transform.h>    // for Transform, Factory
-#include <string>              // for string
-#include <vector>              // for vector
+#include <Ioss_VariableType.h> // for VariableType
+#include <transform/Iotr_Factory.h>
+
+#include <string> // for string
+#include <vector> // for vector
+
 namespace Ioss {
   class Field;
 } // namespace Ioss
 
 namespace Iotr {
 
-  class Offset3D_Factory : public Factory
+  class IOTR_EXPORT Offset3D_Factory : public Factory
   {
   public:
     static const Offset3D_Factory *factory();
@@ -27,13 +31,13 @@ namespace Iotr {
     Ioss::Transform *make(const std::string & /*unused*/) const override;
   };
 
-  class Offset3D : public Ioss::Transform
+  class IOTR_EXPORT Offset3D : public Ioss::Transform
   {
     friend class Offset3D_Factory;
 
   public:
     const Ioss::VariableType *output_storage(const Ioss::VariableType *in) const override;
-    int                       output_count(int in) const override;
+    size_t                    output_count(size_t in) const override;
 
     void set_properties(const std::string &name, const std::vector<int> &values) override;
     void set_properties(const std::string &name, const std::vector<double> &values) override;
@@ -48,5 +52,3 @@ namespace Iotr {
     double realOffset[3]{};
   };
 } // namespace Iotr
-
-#endif // IOSS_Iotr_Offset3D_h

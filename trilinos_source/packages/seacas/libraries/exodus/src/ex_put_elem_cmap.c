@@ -2,7 +2,7 @@
  * Copyright(C) 1999-2020 National Technology & Engineering Solutions
  * of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
  * NTESS, the U.S. Government retains certain rights in this software.
- * 
+ *
  * See packages/seacas/LICENSE for details
  */
 /****************************************************************************/
@@ -30,8 +30,8 @@
 #include <exodusII.h>     // for ex_err, etc
 #include <exodusII_int.h> // for EX_FATAL, DIM_ECNT_CMAP, etc
 
-int ex_put_elem_cmap(int exoid, ex_entity_id map_id, void_int *elem_ids, void_int *side_ids,
-                     void_int *proc_ids, int processor)
+int ex_put_elem_cmap(int exoid, ex_entity_id map_id, const void_int *elem_ids,
+                     const void_int *side_ids, const void_int *proc_ids, int processor)
 {
   int     map_idx, varid, dimid, status;
   size_t  start[1], count[1], ret_val;
@@ -42,7 +42,9 @@ int ex_put_elem_cmap(int exoid, ex_entity_id map_id, void_int *elem_ids, void_in
   /*-----------------------------Execution begins-----------------------------*/
 
   EX_FUNC_ENTER();
-  ex__check_valid_file_id(exoid, __func__);
+  if (ex__check_valid_file_id(exoid, __func__) == EX_FATAL) {
+    EX_FUNC_LEAVE(EX_FATAL);
+  }
 
   /* get the index for the comm map information variables */
   if (ex_get_idx(exoid, VAR_E_COMM_INFO_IDX, varidx, processor) == -1) {

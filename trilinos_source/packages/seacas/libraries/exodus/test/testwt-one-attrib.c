@@ -2,7 +2,7 @@
  * Copyright(C) 1999-2020 National Technology & Engineering Solutions
  * of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
  * NTESS, the U.S. Government retains certain rights in this software.
- * 
+ *
  * See packages/seacas/LICENSE for details
  */
 #undef NDEBUG
@@ -24,7 +24,7 @@ int main(int argc, char **argv)
   float  version;
   float *attrib;
   float  x[100], y[100], z[100];
-  char * coord_names[3];
+  char  *coord_names[3];
 
   /* Coordinate Frames */
   int   cf_ids[2]        = {20, 13};

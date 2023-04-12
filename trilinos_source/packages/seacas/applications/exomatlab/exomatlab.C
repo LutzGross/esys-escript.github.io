@@ -1,8 +1,8 @@
 /*
- * Copyright(C) 1999-2020 National Technology & Engineering Solutions
+ * Copyright(C) 1999-2022 National Technology & Engineering Solutions
  * of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
  * NTESS, the U.S. Government retains certain rights in this software.
- * 
+ *
  * See packages/seacas/LICENSE for details
  */
 
@@ -54,7 +54,7 @@ namespace {
 
 namespace {
   std::string codename;
-  std::string version = "1.1";
+  std::string version = "1.2";
 } // namespace
 
 int main(int argc, char *argv[])
@@ -110,8 +110,8 @@ namespace {
     // INPUT ...
     // NOTE: The "READ_RESTART" mode ensures that the node and element ids will be mapped.
     //========================================================================
-    Ioss::DatabaseIO *dbi =
-        Ioss::IOFactory::create(input_type, inpfile, Ioss::READ_RESTART, (MPI_Comm)MPI_COMM_WORLD);
+    Ioss::DatabaseIO *dbi = Ioss::IOFactory::create(input_type, inpfile, Ioss::READ_RESTART,
+                                                    Ioss::ParallelUtils::comm_world());
     if (dbi == nullptr || !dbi->ok(true)) {
       return false;
     }
@@ -124,18 +124,16 @@ namespace {
 
     if (interFace.list_vars()) {
       StringIdVector types_to_list = interFace.vars_to_list();
-      for (auto types : types_to_list) {
+      for (auto &types : types_to_list) {
         std::string type = types.first;
 
         if (type == "all" || type == "global") {
-          Ioss::NameList fields;
-          region.field_describe(Ioss::Field::TRANSIENT, &fields);
+          Ioss::NameList fields = region.field_describe(Ioss::Field::REDUCTION);
           output_names("Global", fields, &region);
         }
         if (type == "all" || type == "nodal") {
-          Ioss::NameList   fields;
-          Ioss::NodeBlock *nb = region.get_node_blocks()[0];
-          nb->field_describe(Ioss::Field::TRANSIENT, &fields);
+          Ioss::NodeBlock *nb     = region.get_node_blocks()[0];
+          Ioss::NameList   fields = nb->field_describe(Ioss::Field::TRANSIENT);
           output_names("Nodal", fields, nb);
         }
       }
@@ -146,7 +144,7 @@ namespace {
     StringIdVector global_vars = interFace.global_var_names();
     if (!global_vars.empty()) {
       if (global_vars[0].first == "all") {
-        region.field_describe(Ioss::Field::TRANSIENT, &fields);
+        region.field_describe(Ioss::Field::REDUCTION, &fields);
       }
       else if (global_vars[0].first == "none") {
         ; // do nothing.  This will be used when nodal, element, ... supported
@@ -166,7 +164,7 @@ namespace {
       }
     }
     else {
-      region.field_describe(Ioss::Field::TRANSIENT, &fields);
+      region.field_describe(Ioss::Field::REDUCTION, &fields);
     }
 
     if (fields.empty()) {
@@ -200,11 +198,8 @@ namespace {
     fmt::print(out_stream, "];\n");
 
     // Get number of timesteps...
-    int num_steps = 0;
-    if (region.property_exists("state_count") && region.get_property("state_count").get_int() > 0) {
-      num_steps = region.get_property("state_count").get_int();
-    }
-    else {
+    int num_steps = region.get_optional_property("state_count", 0);
+    if (num_steps == 0) {
       fmt::print(out_stream, "GENESIS file -- no time steps written\n");
       return false;
     }

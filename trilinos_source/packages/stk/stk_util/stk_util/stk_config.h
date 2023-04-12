@@ -47,7 +47,7 @@
 #else
 // This file gets created by cmake during a Trilinos build
 // and will not be present in a sierra build using bjam or associated wrappers
-#include <STK_Trilinos_config.h>
+#include "STK_Trilinos_config.h"
 #ifdef HAVE_MPI
 #define STK_HAS_MPI
 #else
@@ -72,7 +72,19 @@
 
 //----------------------------------------------------------------------
 
-// Use macro below to deprecate functions (place at beginning of function or class method)
+// Use macro below to deprecate:
+//   classes (class STK_DEPRECATED Class;), 
+//   structs (struct STK_DEPRECATED Struct;), 
+//   typedefs (STK_DEPRECATED typedef Type 1 Type2;, using Type1 STK_DEPRECATED = Type2;), 
+//   variables (STK_DEPRECATED int variable;), 
+//   non-static data members (union Union { STK_DEPRECATED int variable; }), 
+//   functions (STK_DEPRECATED void function();),
+//   inline functions (STK_DEPRECATED inline void function();),
+//   namespaces (namespace STK_DEPRECATED stk { int variable; }),
+//   enumeration (enum STK_DEPRECATED Enum{};),
+//   enumerators (enum {Type 1 STK_DEPRECATED, Type2 DEPRECATED};), and
+//   template specialization (template<> struct STK_DEPRECATED Struct<int>;).
+//
 // This is basically copied from the Trilinos version in Tribits to maintain some compatibility
 /* Usage Example
  * #ifndef STK_HIDE_DEPRECATED_CODE // Delete after FILL_IN_DATE_TWO_SPRINTS_AFTER_END_OF_THIS_SPRINT_HERE
@@ -88,20 +100,10 @@
  */
 #ifdef STK_SHOW_DEPRECATED_WARNINGS
 #  ifndef STK_DEPRECATED
-#    if (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1))
-#      define STK_DEPRECATED  __attribute__((__deprecated__))
-#    else
-#      define STK_DEPRECATED
-#    endif
+#    define STK_DEPRECATED [[deprecated]]
 #  endif
 #  ifndef STK_DEPRECATED_MSG
-#    if (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 5))
-#      define STK_DEPRECATED_MSG(MSG)  __attribute__((__deprecated__ (#MSG) ))
-#    elif (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1))
-#      define STK_DEPRECATED_MSG(MSG)  __attribute__((__deprecated__))
-#    else
-#      define STK_DEPRECATED_MSG(MSG)
-#    endif
+#    define STK_DEPRECATED_MSG(MSG) [[deprecated(#MSG)]]
 #  endif
 #else
 #  ifndef STK_DEPRECATED
@@ -110,6 +112,6 @@
 #  endif
 #endif
 
-#include <stk_util/stk_kokkos_macros.h>
+#include "stk_util/stk_kokkos_macros.h"
 
 #endif /* stk_util_config_h */

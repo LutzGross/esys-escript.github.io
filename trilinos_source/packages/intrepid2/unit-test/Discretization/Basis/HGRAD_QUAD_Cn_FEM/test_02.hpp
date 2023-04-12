@@ -62,29 +62,28 @@ namespace Intrepid2 {
   namespace Test {
 
     // This code provides an example to use serial interface of high order elements
-    template<typename OutValueType, typename PointValueType, typename DeviceSpaceType>
+    template<typename OutValueType, typename PointValueType, typename DeviceType>
     int HGRAD_QUAD_Cn_FEM_Test02(const bool verbose) {
-
       Kokkos::print_configuration(std::cout, false);
 
       int errorFlag = 0;
 
       try { 
         for (int order=1;order<Parameters::MaxOrder;++order) {
-          Basis_HGRAD_QUAD_Cn_FEM<DeviceSpaceType,OutValueType,PointValueType> basis(order);
+          Basis_HGRAD_QUAD_Cn_FEM<DeviceType,OutValueType,PointValueType> basis(order);
           
           // problem setup 
           //   let's say we want to evaluate 1000 points in parallel. output values are stored in outputValuesA and B.
           //   A is compuated via serial interface and B is computed with top-level interface.
           const int npts = 1000, ndim = 2;
-          Kokkos::DynRankView<OutValueType,DeviceSpaceType> outputValuesA("outputValuesA", basis.getCardinality(), npts);
-          Kokkos::DynRankView<OutValueType,DeviceSpaceType> outputValuesB("outputValuesB", basis.getCardinality(), npts);
+          Kokkos::DynRankView<OutValueType,DeviceType> outputValuesA("outputValuesA", basis.getCardinality(), npts);
+          Kokkos::DynRankView<OutValueType,DeviceType> outputValuesB("outputValuesB", basis.getCardinality(), npts);
           
-          Kokkos::View<PointValueType**,DeviceSpaceType> inputPointsViewToUseRandom("inputPoints", npts, ndim);
-          Kokkos::DynRankView<PointValueType,DeviceSpaceType> inputPoints (inputPointsViewToUseRandom.data(),  npts, ndim);
+          Kokkos::View<PointValueType**,DeviceType> inputPointsViewToUseRandom("inputPoints", npts, ndim);
+          Kokkos::DynRankView<PointValueType,DeviceType> inputPoints (inputPointsViewToUseRandom.data(),  npts, ndim);
           
           // random values between (-1,1) x (-1,1)
-          Kokkos::Random_XorShift64_Pool<DeviceSpaceType> random(13718);
+          Kokkos::Random_XorShift64_Pool<DeviceType> random(13718);
           Kokkos::fill_random(inputPointsViewToUseRandom, random, 1.0);
           
           // compute setup
@@ -107,7 +106,7 @@ namespace Intrepid2 {
           typedef Kokkos::pair<int,int> range_type;
           
           // parallel execution with serial interface
-          Kokkos::RangePolicy<DeviceSpaceType> policy(0, npts);
+          Kokkos::RangePolicy<typename DeviceType::execution_space> policy(0, npts);
           Kokkos::parallel_for(policy, KOKKOS_LAMBDA(int i) {
               // we evaluate a single point 
               const range_type pointRange = range_type(i,i+1);
@@ -119,7 +118,7 @@ namespace Intrepid2 {
               // wrap static workspace with a view; serial interface has a template view interface.
               // either view or dynrankview with a right size is okay.
               OutValueType workbuf[worksize];
-              Kokkos::View<OutValueType*,Kokkos::Impl::ActiveExecutionMemorySpace> work(&workbuf[0], worksize);
+              Kokkos::View<OutValueType*,Kokkos::AnonymousSpace> work(&workbuf[0], worksize);
               
               // evaluate basis using serial interface
               Impl::Basis_HGRAD_QUAD_Cn_FEM

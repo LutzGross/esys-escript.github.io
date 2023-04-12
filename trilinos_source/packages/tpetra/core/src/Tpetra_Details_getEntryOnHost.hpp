@@ -60,11 +60,26 @@ typename ViewType::non_const_value_type
 getEntryOnHost (const ViewType& x,
                 const IndexType ind)
 {
+  using execution_space = typename ViewType::execution_space;
   static_assert (ViewType::Rank == 1, "x must be a rank-1 Kokkos::View.");
   // Get a 0-D subview of the entry of the array, and copy to host scalar.
   typename ViewType::non_const_value_type val;
-  Kokkos::deep_copy(val, Kokkos::subview(x, ind));
+  // DEEP_COPY REVIEW - DEVICE-TO-VALUE
+  Kokkos::deep_copy(execution_space(), val, Kokkos::subview(x, ind));
   return val;
+}
+
+template<class ViewType,
+         class IndexType>
+typename ViewType::HostMirror::const_type
+getEntriesOnHost (const ViewType& x,
+                  const IndexType ind,
+                  const int count)
+{
+  static_assert (ViewType::Rank == 1, "x must be a rank-1 Kokkos::View.");
+  // Get a 1-D subview of the entry of the array, and copy to host.
+  auto subview = Kokkos::subview(x, Kokkos::make_pair(ind, ind + count));
+  return Kokkos::create_mirror_view_and_copy(typename ViewType::HostMirror::memory_space(), subview);
 }
 
 } // namespace Details

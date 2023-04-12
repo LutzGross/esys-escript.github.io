@@ -39,44 +39,15 @@ fi
 # Load the modules
 #
 
-module purge
+if [[ "${ATDM_CONFIG_DONT_LOAD_SPARC_MODULES_PLEASE}" != "1" ]] ; then
+  module purge
+else
+  echo "NOTE: ATDM_CONFIG_DONT_LOAD_SPARC_MODULES_PLEASE=1 is set so using pre-loaded sparc-dev module!"
+fi
 
-if [[ "$ATDM_CONFIG_COMPILER" == "ARM-20.0_OPENMPI-4.0.2" ]]; then
-  module load devpack-arm
+if [[ "$ATDM_CONFIG_COMPILER" == "ARM-20.1_OPENMPI-4.0.5" ]]; then
+  module load sparc-dev/arm-20.1_openmpi-4.0.5
   module unload yaml-cpp
-  # provides numpy module for empire
-  module load python/3.6.8
-  module load arm/20.0
-  # Check if openmpi is already loaded. If it is, swap it. Otherwise, just load ompi4.
-  if [[ ! -z $(module list openmpi | grep '1)' | awk -F ' ' '{print $2}') ]]; then
-    module swap $(module list openmpi | grep '1)' | awk -F ' ' '{print $2}') openmpi4/4.0.2
-  else
-    module load openmpi4/4.0.2
-  fi
-  module load armpl/20.0.0
-
-  export LAPACK_ROOT="$ARMPL_LIB"
-  export ATDM_CONFIG_LAPACK_LIBS="-L${LAPACK_ROOT};-larmpl_ilp64_mp"
-  export ATDM_CONFIG_BLAS_LIBS="-L${LAPACK_ROOT};-larmpl_ilp64_mp"
-
-  # We'll use TPL_ROOT for consistency across ATDM environments
-  export MPI_ROOT=${MPI_DIR}
-  export BLAS_ROOT=${ARMPL_DIR}
-  export LAPACK_ROOT=${ARMPL_DIR}
-  export HDF5_ROOT=${HDF5_DIR}
-  export NETCDF_ROOT=${NETCDF_DIR}
-  export PNETCDF_ROOT=${PNETCDF_DIR}
-  export ZLIB_ROOT=${ZLIB_DIR}
-  export CGNS_ROOT=${CGNS_DIR}
-  export BOOST_ROOT=${BOOST_DIR}
-  export METIS_ROOT=${METIS_DIR}
-  export PARMETIS_ROOT=${PARMETIS_DIR}
-  export SUPERLUDIST_ROOT=${SUPERLU_DIST_DIR}
-  export BINUTILS_ROOT=${BINUTILS_DIR}
-
-  module load git/2.19.2
-elif [[ "$ATDM_CONFIG_COMPILER" == "ARM-20.1_OPENMPI-4.0.3" ]]; then
-  module load sparc-dev/arm-20.1_openmpi-4.0.3
 
   if [ "$ATDM_CONFIG_NODE_TYPE" == "OPENMP" ] ; then
     unset OMP_PLACES
@@ -114,7 +85,7 @@ fi
 
 # Common modules for all builds
 module load ninja
-module load cmake/3.12.2
+module load cmake/3.17.1
 
 export ATDM_CONFIG_USE_HWLOC=OFF
 export HWLOC_LIBS=
@@ -162,7 +133,7 @@ export F90=mpif90
 # MPI_EXEC settings
 export ATDM_CONFIG_MPI_PRE_FLAGS="--bind-to;none"
 export ATDM_CONFIG_MPI_EXEC_NUMPROCS_FLAG="-np"
-export ATDM_CONFIG_MPI_EXEC="mpirun"
+export ATDM_CONFIG_MPI_EXEC="$MPI_ROOT/bin/mpirun"
 export ATMD_CONFIG_MPI_USE_COMPILER_WRAPPERS=ON
 
 export ATDM_CONFIG_WCID_ACCOUNT_DEFAULT=fy150090

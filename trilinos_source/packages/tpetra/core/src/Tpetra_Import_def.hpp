@@ -174,6 +174,8 @@ namespace Tpetra {
     TEUCHOS_ASSERT( ! this->TransferData_->exportLIDs_.need_sync_device () );
     TEUCHOS_ASSERT( ! this->TransferData_->exportLIDs_.need_sync_host () );
 
+    this->detectRemoteExportLIDsContiguous();
+
     if (this->verbose ()) {
       std::ostringstream os;
       os << *verbPrefix << "Done!" << endl;
@@ -292,8 +294,8 @@ namespace Tpetra {
       this->verboseOutputStream () << os.str ();
     }
 
-    ArrayView<const GO> sourceGIDs = source->getNodeElementList ();
-    ArrayView<const GO> targetGIDs = target->getNodeElementList ();
+    ArrayView<const GO> sourceGIDs = source->getLocalElementList ();
+    ArrayView<const GO> targetGIDs = target->getLocalElementList ();
 
     Array<GO> tRemoteGIDs;
     if (this->verbose ()) {
@@ -357,8 +359,6 @@ namespace Tpetra {
         Array<int> newRemotePIDs(indexIntoRemotePIDs-cnt);
         cnt = 0;
 
-        Kokkos::fence(); // target->getLocalElement is UVM access
-
         for (size_type j = 0; j < indexIntoRemotePIDs; ++j)
           if(tRemotePIDs[j] != -1) {
             newRemoteGIDs[cnt] = tRemoteGIDs[j];
@@ -410,6 +410,8 @@ namespace Tpetra {
       Distributor& distributor = this->TransferData_->distributor_;
       distributor.createFromSendsAndRecvs (this->TransferData_->exportPIDs_, tRemotePIDs);
     }
+
+    this->detectRemoteExportLIDsContiguous();
 
     TEUCHOS_ASSERT( ! this->TransferData_->permuteFromLIDs_.need_sync_device () );
     TEUCHOS_ASSERT( ! this->TransferData_->permuteFromLIDs_.need_sync_host () );
@@ -488,6 +490,8 @@ namespace Tpetra {
                     size_t (exportLIDs.size ()) );
     this->TransferData_->exportPIDs_.swap (exportPIDs);
     this->TransferData_->distributor_.swap (distributor);
+
+    this->detectRemoteExportLIDsContiguous();
 
     TEUCHOS_ASSERT( ! this->TransferData_->permuteFromLIDs_.need_sync_device () );
     TEUCHOS_ASSERT( ! this->TransferData_->permuteFromLIDs_.need_sync_host () );
@@ -618,7 +622,7 @@ namespace Tpetra {
       // Create list of GIDs to go into target Map.  We need to copy
       // the GIDs into this list anyway, so once we have them, we can
       // sort the "remotes" in place.
-      const LO numLclSrcIDs = static_cast<LO> (sourceMap.getNodeNumElements ());
+      const LO numLclSrcIDs = static_cast<LO> (sourceMap.getLocalNumElements ());
       const LO numLclTgtIDs = numLclSrcIDs + numTargetMapRemoteOrPermuteGlobalIndices;
       if (verbose) {
         std::ostringstream os;
@@ -635,8 +639,8 @@ namespace Tpetra {
           tgtGIDs[k] = curTgtGID;
         }
       }
-      else { // avoid calling getNodeElementList on a contiguous Map
-        auto srcGIDs = sourceMap.getNodeElementList (); // Teuchos::ArrayView has a different
+      else { // avoid calling getLocalElementList on a contiguous Map
+        auto srcGIDs = sourceMap.getLocalElementList (); // Teuchos::ArrayView has a different
         for (LO k = 0; k < numLclSrcIDs; ++k) {         // iterator type, so can't std::copy
           tgtGIDs[k] = srcGIDs[k];
         }
@@ -676,7 +680,7 @@ namespace Tpetra {
       }
       // The _actual_ number of remotes.
       const LO numRemotes = numTargetMapRemoteOrPermuteGlobalIndices - result.numPermutes;
-      result.numSameIDs = static_cast<LO> (sourceMap.getNodeNumElements ());
+      result.numSameIDs = static_cast<LO> (sourceMap.getLocalNumElements ());
 
       if (verbose) {
         std::ostringstream os;
@@ -907,8 +911,6 @@ namespace Tpetra {
       typename decltype (this->TransferData_->exportLIDs_)::t_host
         exportLIDs (view_alloc_no_init ("exportLIDs"), numExportIDs);
 
-      Kokkos::fence(); // sourceMap->getLocalElement is UVm access
-
       for (size_type k = 0; k < numExportIDs; ++k) {
         exportLIDs[k] = sourceMap->getLocalElement (exportGIDs[k]);
       }
@@ -970,8 +972,8 @@ namespace Tpetra {
 
     const map_type& source = * (this->getSourceMap ());
     const map_type& target = * (this->getTargetMap ());
-    ArrayView<const GO> sourceGIDs = source.getNodeElementList ();
-    ArrayView<const GO> targetGIDs = target.getNodeElementList ();
+    ArrayView<const GO> sourceGIDs = source.getLocalElementList ();
+    ArrayView<const GO> targetGIDs = target.getLocalElementList ();
 
 #ifdef HAVE_TPETRA_DEBUG
     ArrayView<const GO> rawSrcGids = sourceGIDs;
@@ -1010,8 +1012,6 @@ namespace Tpetra {
     const LO LINVALID = Teuchos::OrdinalTraits<LO>::invalid ();
     const LO numTgtLids = as<LO> (numTgtGids);
     LO numPermutes = 0;
-
-    Kokkos::fence(); // source.getLocalElement is UVM access
 
     for (LO tgtLid = numSameGids; tgtLid < numTgtLids; ++tgtLid) {
       const GO curTargetGid = rawTgtGids[tgtLid];
@@ -1177,7 +1177,7 @@ namespace Tpetra {
 
       const size_type numInvalidRemote =
         std::count_if (remoteProcIDs.begin (), remoteProcIDs.end (),
-                       std::bind1st (std::equal_to<int> (), -1));
+                       std::bind (std::equal_to<int> (), -1, std::placeholders::_1));
       TEUCHOS_TEST_FOR_EXCEPTION_CLASS_FUNC
         (numInvalidRemote == 0, std::logic_error, "Calling getRemoteIndexList "
          "on the source Map returned IDNotPresent, but none of the returned "
@@ -1301,8 +1301,6 @@ namespace Tpetra {
       typename decltype (this->TransferData_->exportLIDs_)::t_host
         exportLIDs (view_alloc_no_init ("exportLIDs"), numExportIDs);
       ArrayView<const GO> expGIDs = exportGIDs ();
-
-      Kokkos::fence(); // source.getLocalElement is UVM access
 
       for (size_type k = 0; k < numExportIDs; ++k) {
         exportLIDs[k] = source.getLocalElement (expGIDs[k]);
@@ -1483,10 +1481,10 @@ namespace Tpetra {
     // Get the same GIDs (same GIDs are a subview of the first numSame target
     // GIDs)
     const size_type numSameGIDs1 = this->getNumSameIDs();
-    ArrayView<const GO> sameGIDs1 = (tgtMap1->getNodeElementList())(0,numSameGIDs1);
+    ArrayView<const GO> sameGIDs1 = (tgtMap1->getLocalElementList())(0,numSameGIDs1);
 
     const size_type numSameGIDs2 = rhs.getNumSameIDs();
-    ArrayView<const GO> sameGIDs2 = (tgtMap2->getNodeElementList())(0,numSameGIDs2);
+    ArrayView<const GO> sameGIDs2 = (tgtMap2->getLocalElementList())(0,numSameGIDs2);
 
     // Get permute GIDs
     ArrayView<const LO> permuteToLIDs1 = this->getPermuteToLIDs();
@@ -1542,8 +1540,6 @@ namespace Tpetra {
     // Convert the permute GIDs to permute-from LIDs in the source Map.
     Array<LO> permuteToLIDsUnion(numPermuteIDsUnion);
     Array<LO> permuteFromLIDsUnion(numPermuteIDsUnion);
-
-    Kokkos::fence(); // srcMap->getLocalElement is UVM access
 
     for (size_type k = 0; k < numPermuteIDsUnion; ++k) {
       size_type idx = numSameIDsUnion + k;
@@ -1702,11 +1698,11 @@ namespace Tpetra {
     RCP<const map_type> tgtMap = this->getTargetMap ();
     RCP<const Comm<int> > comm = srcMap->getComm ();
 
-    ArrayView<const GO> srcGIDs = srcMap->getNodeElementList ();
-    ArrayView<const GO> tgtGIDs = tgtMap->getNodeElementList ();
+    ArrayView<const GO> srcGIDs = srcMap->getLocalElementList ();
+    ArrayView<const GO> tgtGIDs = tgtMap->getLocalElementList ();
 
     // All elements in srcMap will be in the "new" target map, so...
-    size_t numSameIDsNew    = srcMap->getNodeNumElements ();
+    size_t numSameIDsNew    = srcMap->getLocalNumElements ();
     size_t numRemoteIDsNew  = this->getNumRemoteIDs ();
     Array<LO> permuteToLIDsNew, permuteFromLIDsNew; // empty on purpose
 
@@ -1796,11 +1792,11 @@ namespace Tpetra {
       if (remoteTarget.is_null ()) {
         lclSuccess = -1;
       }
-      else if (NumRemotes != remoteTarget->getNodeNumElements ()) {
+      else if (NumRemotes != remoteTarget->getLocalNumElements ()) {
         lclSuccess = 0;
         lclErr << *procPrefix << "getNumRemoteIDs() = " << NumRemotes
-               << " != remoteTarget->getNodeNumElements() = "
-               << remoteTarget->getNodeNumElements () << "." << endl;
+               << " != remoteTarget->getLocalNumElements() = "
+               << remoteTarget->getLocalNumElements () << "." << endl;
       }
 
       if (comm.is_null ()) {
@@ -1838,8 +1834,6 @@ namespace Tpetra {
     if (debug) {
       badIndices = std::unique_ptr<std::vector<size_t>> (new std::vector<size_t>);
     }
-
-    Kokkos::fence(); // remoteTarget->getLocalElement is UVM access
 
     for (size_t i = 0; i < NumRemotes; ++i) {
       const LO oldLclInd = oldRemoteLIDs[i];

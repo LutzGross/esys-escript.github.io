@@ -170,10 +170,10 @@ int main_(Teuchos::CommandLineProcessor &clp, Xpetra::UnderlyingLib lib, int arg
     std::string xmlFileName = "driver.xml";      clp.setOption("xml",                   &xmlFileName,     "read parameters from a file. Otherwise, this example uses by default 'scalingTest.xml'");
 
     switch (clp.parse(argc,argv)) {
-      case Teuchos::CommandLineProcessor::PARSE_HELP_PRINTED:        return EXIT_SUCCESS; break;
+      case Teuchos::CommandLineProcessor::PARSE_HELP_PRINTED:        return EXIT_SUCCESS;
       case Teuchos::CommandLineProcessor::PARSE_ERROR:
-      case Teuchos::CommandLineProcessor::PARSE_UNRECOGNIZED_OPTION: return EXIT_FAILURE; break;
-      case Teuchos::CommandLineProcessor::PARSE_SUCCESSFUL:                               break;
+      case Teuchos::CommandLineProcessor::PARSE_UNRECOGNIZED_OPTION: return EXIT_FAILURE;
+      case Teuchos::CommandLineProcessor::PARSE_SUCCESSFUL:          break;
     }
 
     // =========================================================================
@@ -222,7 +222,7 @@ int main_(Teuchos::CommandLineProcessor &clp, Xpetra::UnderlyingLib lib, int arg
           }
         }
       }
-      catch(const std::exception& e) {
+      catch(const std::exception&) {
         TEUCHOS_TEST_FOR_EXCEPTION(true, MueLu::Exceptions::RuntimeError,"Problem opening/reading file " << ss.str());
       }
 
@@ -261,7 +261,7 @@ int main_(Teuchos::CommandLineProcessor &clp, Xpetra::UnderlyingLib lib, int arg
           dofGlobals[i] = Teuchos::as<GlobalOrdinal>(data);
         }
       }
-      catch(const std::exception& e) {
+      catch(const std::exception&) {
         TEUCHOS_TEST_FOR_EXCEPTION(true, MueLu::Exceptions::RuntimeError,"Problem opening/reading file " << ss.str());
       }
 
@@ -294,7 +294,7 @@ int main_(Teuchos::CommandLineProcessor &clp, Xpetra::UnderlyingLib lib, int arg
           nodalGlobals[i] = Teuchos::as<GlobalOrdinal>(data);
         }
       }
-      catch(const std::exception& e) {
+      catch(const std::exception&) {
         TEUCHOS_TEST_FOR_EXCEPTION(true, MueLu::Exceptions::RuntimeError,"Problem opening/reading file " << ss.str());
       }
       for(GlobalOrdinal i = 0; i < nNodes; i++) {
@@ -361,7 +361,7 @@ int main_(Teuchos::CommandLineProcessor &clp, Xpetra::UnderlyingLib lib, int arg
         // loop over all local nodes
         data_file >> dofGlobals[0];
       }
-      catch(const std::exception& e) {
+      catch(const std::exception&) {
         TEUCHOS_TEST_FOR_EXCEPTION(true, MueLu::Exceptions::RuntimeError,"Problem opening/reading file " << ss.str());
       }
       for(decltype(nDofs) i = 0; i < nDofs; i++) dofGlobals[i] = i + dofGlobals[0];
@@ -464,7 +464,7 @@ int main(int argc, char* argv[]) {
     Teuchos::CommandLineProcessor clp(throwExceptions, recogniseAllOptions);
     Xpetra::Parameters xpetraParameters(clp);
 
-    std::string node = "";  clp.setOption("node", &node, "node type (serial | openmp | cuda)");
+    std::string node = "";  clp.setOption("node", &node, "node type (serial | openmp | cuda | hip)");
 
     switch (clp.parse(argc, argv, NULL)) {
       case Teuchos::CommandLineProcessor::PARSE_ERROR:               return EXIT_FAILURE;
@@ -560,6 +560,26 @@ int main(int argc, char* argv[]) {
 #  endif
 #else
         throw MueLu::Exceptions::RuntimeError("CUDA node type is disabled");
+#endif
+      } else if (node == "hip") {
+#ifdef KOKKOS_HAVE_HIP
+        typedef Kokkos::Compat::KokkosHIPWrapperNode Node;
+
+#  ifndef HAVE_MUELU_EXPLICIT_INSTANTIATION
+        return main_<double,int,long,Node>(clp, argc, argv);
+#  else
+#    if defined(HAVE_TPETRA_INST_DOUBLE) && defined(HAVE_TPETRA_INST_HIP) && defined(HAVE_TPETRA_INST_INT_INT)
+        return main_<double,int,int,Node> (clp, lib, argc, argv);
+#    elif defined(HAVE_TPETRA_INST_DOUBLE) && defined(HAVE_TPETRA_INST_HIP) && defined(HAVE_TPETRA_INST_INT_LONG)
+        return main_<double,int,long,Node>(clp, lib, argc, argv);
+#    elif defined(HAVE_TPETRA_INST_DOUBLE) && defined(HAVE_TPETRA_INST_HIP) && defined(HAVE_TPETRA_INST_INT_LONG_LONG)
+        return main_<double,int,long long,Node>(clp, lib, argc, argv);
+#    else
+        throw MueLu::Exceptions::RuntimeError("Found no suitable instantiation");
+#    endif
+#  endif
+#else
+        throw MueLu::Exceptions::RuntimeError("HIP node type is disabled");
 #endif
       } else {
         throw MueLu::Exceptions::RuntimeError("Unrecognized node type");

@@ -191,7 +191,7 @@ namespace MueLuTests {
         GO numGlobalElements; //global_size_t
         if (matrixType == "Laplace1D")
           numGlobalElements = nx;
-        else if (matrixType == "Laplace2D" || matrixType == "Star2D")
+        else if (matrixType == "Laplace2D" || matrixType == "Star2D" || matrixType == "Cross2D")
           numGlobalElements = nx*ny;
         else if(matrixType == "Elasticity2D")
           numGlobalElements = 2*nx*ny;
@@ -223,8 +223,8 @@ namespace MueLuTests {
 
         Teuchos::RCP<Matrix> mtx = Xpetra::MatrixFactory<Scalar, LocalOrdinal, GlobalOrdinal, Node>::Build(dofMap, 3);
 
-        LocalOrdinal NumMyElements = dofMap->getNodeNumElements();
-        Teuchos::ArrayView<const GlobalOrdinal> MyGlobalElements = dofMap->getNodeElementList();
+        LocalOrdinal NumMyElements = dofMap->getLocalNumElements();
+        Teuchos::ArrayView<const GlobalOrdinal> MyGlobalElements = dofMap->getLocalElementList();
         GlobalOrdinal indexBase = dofMap->getIndexBase();
 
         GlobalOrdinal NumEntries;
@@ -579,8 +579,8 @@ namespace MueLuTests {
         Teuchos::RCP<const Teuchos::Comm<int> > comm = Amap.getComm();
 
         GlobalOrdinal count=0;
-        Teuchos::Array<GlobalOrdinal> myaugids(Amap.getNodeNumElements());
-        for (size_t i=0; i<Amap.getNodeNumElements(); ++i) {
+        Teuchos::Array<GlobalOrdinal> myaugids(Amap.getLocalNumElements());
+        for (size_t i=0; i<Amap.getLocalNumElements(); ++i) {
           const GlobalOrdinal gid = Amap.getGlobalElement(i);
           if (Agiven.isNodeGlobalElement(gid)) continue;
           myaugids[Teuchos::as<GlobalOrdinal>(count)] = gid;
@@ -630,8 +630,8 @@ namespace MueLuTests {
         for (int it=0; it<noBlocks; it++) {
           blocks[it] = CrsMatrixFactory::Build(maps[it], 1);
 
-          LocalOrdinal NumMyElements = maps[it]->getNodeNumElements();
-          Teuchos::ArrayView<const GlobalOrdinal> MyGlobalElements = maps[it]->getNodeElementList();
+          LocalOrdinal NumMyElements = maps[it]->getLocalNumElements();
+          Teuchos::ArrayView<const GlobalOrdinal> MyGlobalElements = maps[it]->getLocalElementList();
 
           for (LocalOrdinal i = 0; i < NumMyElements; i++)
             blocks[it]->insertGlobalValues(MyGlobalElements[i],
@@ -671,8 +671,8 @@ namespace MueLuTests {
         for (int it=0; it<noBlocks; it++) {
           blocks[it] = CrsMatrixFactory::Build(maps[it], 1);
 
-          LocalOrdinal NumMyElements = maps[it]->getNodeNumElements();
-          Teuchos::ArrayView<const GlobalOrdinal> MyGlobalElements = maps[it]->getNodeElementList();
+          LocalOrdinal NumMyElements = maps[it]->getLocalNumElements();
+          Teuchos::ArrayView<const GlobalOrdinal> MyGlobalElements = maps[it]->getLocalElementList();
 
           for (LocalOrdinal i = 0; i < NumMyElements; i++)
             blocks[it]->insertGlobalValues(MyGlobalElements[i],
@@ -735,58 +735,6 @@ namespace MueLuTests {
         return bop;
       }
 
-     // Create a matrix as specified by parameter list options
-     /*static RCP<Matrix> BuildBlockMatrix(Teuchos::ParameterList &matrixList, Xpetra::UnderlyingLib lib=Xpetra::NotSpecified) {
-       RCP<const Teuchos::Comm<int> > comm = TestHelpers::Parameters::getDefaultComm();
-       RCP<Matrix> Op;
-
-        if (lib == Xpetra::NotSpecified)
-          lib = TestHelpers::Parameters::getLib();
-
-        // This only works for Tpetra
-        if (lib!=Xpetra::UseTpetra) return Op;
-
-#if defined(HAVE_MUELU_TPETRA)
-#ifdef HAVE_MUELU_BROKEN_TESTS
-        // Thanks for the code, Travis!
-
-        // Make the graph
-        RCP<Matrix> FirstMatrix = BuildMatrix(matrixList,lib);
-        RCP<const Xpetra::CrsGraph<LO,GO,NO> > Graph = FirstMatrix->getCrsGraph();
-
-        int blocksize = 3;
-        RCP<const Xpetra::TpetraCrsGraph<LO,GO,NO> > TGraph = rcp_dynamic_cast<const Xpetra::TpetraCrsGraph<LO,GO,NO> >(Graph);
-        RCP<const Tpetra::CrsGraph<LO,GO,NO> > TTGraph = TGraph->getTpetra_CrsGraph();
-
-        RCP<Tpetra::BlockCrsMatrix<SC,LO,GO,NO> > bcrsmatrix = rcp(new Tpetra::BlockCrsMatrix<SC,LO,GO,NO> (*TTGraph, blocksize));
-
-        const Tpetra::Map<LO,GO,NO>& meshRowMap = *bcrsmatrix->getRowMap();
-        const Scalar zero   = Teuchos::ScalarTraits<SC>::zero();
-        const Scalar one   = Teuchos::ScalarTraits<SC>::one();
-        const Scalar two   = one+one;
-        const Scalar three = two+one;
-
-        Teuchos::Array<SC> basematrix(blocksize*blocksize, zero);
-        basematrix[0] = two;
-        basematrix[2] = three;
-        basematrix[3] = three;
-        basematrix[4] = two;
-        basematrix[7] = three;
-        basematrix[8] = two;
-        Teuchos::Array<LO> lclColInds(1);
-        for (LocalOrdinal lclRowInd = meshRowMap.getMinLocalIndex (); lclRowInd <= meshRowMap.getMaxLocalIndex(); ++lclRowInd) {
-          lclColInds[0] = lclRowInd;
-          bcrsmatrix->replaceLocalValues(lclRowInd, lclColInds.getRawPtr(), &basematrix[0], 1);
-        }
-
-        RCP<Xpetra::CrsMatrix<SC,LO,GO,NO> > temp = rcp(new Xpetra::TpetraBlockCrsMatrix<SC,LO,GO,NO>(bcrsmatrix));
-        Op = rcp(new Xpetra::CrsMatrixWrap<SC,LO,GO,NO>(temp));
-#endif
-#endif
-        return Op;
-     } // BuildMatrix()*/
-
-
       // Needed to initialize correctly a level used for testing SingleLevel factory Build() methods.
       // This method initializes LevelID and linked list of level
       static void createSingleLevelHierarchy(Level& currentLevel) {
@@ -820,6 +768,65 @@ namespace MueLuTests {
         return Teuchos::rcp( new TrilinosSmoother(ifpackType, ifpackList) );
       }
 
+
+      // Create a matrix as specified by parameter list options
+      static RCP<Matrix> BuildBlockMatrixAsPoint(Teuchos::ParameterList &matrixList, Xpetra::UnderlyingLib lib) {
+        RCP<const Teuchos::Comm<int> > comm = TestHelpers::Parameters::getDefaultComm();
+        GO GO_INVALID = Teuchos::OrdinalTraits<GO>::invalid();
+        RCP<Matrix> Op;
+
+         if (lib == Xpetra::NotSpecified)
+           lib = TestHelpers::Parameters::getLib();
+
+
+         // Make the base graph
+         RCP<Matrix> old_matrix    = TestHelpers::TestFactory<Scalar, LocalOrdinal, GlobalOrdinal, Node>::BuildMatrix(matrixList,lib);
+         RCP<const CrsGraph> old_graph   = old_matrix->getCrsGraph();
+         RCP<const Map> old_rowmap = old_graph->getRowMap();
+         RCP<const Map> old_colmap = old_graph->getColMap();
+         int blocksize = 3;
+
+         // Block Map
+         LO orig_num_rows = (LO) old_graph->getRowMap()->getLocalNumElements();
+         Teuchos::Array<GlobalOrdinal> owned_rows(blocksize*orig_num_rows);
+         for(LO i=0; i<orig_num_rows; i++) {
+           GO old_gid = old_rowmap->getGlobalElement(i);
+           for(int j=0; j<blocksize; j++) {
+             owned_rows[i*blocksize+j] = old_gid*blocksize+j;
+           }
+         }
+         RCP<Map> new_map = Xpetra::MapFactory<LO,GO,NO>::Build(lib,GO_INVALID,owned_rows(),0,comm);
+         if(new_map.is_null()) throw std::runtime_error("BuildBlockMatrixAsPoint: Map constructor failed");
+
+
+         // Block Graph / Matrix
+         RCP<CrsMatrix> new_matrix = Xpetra::CrsMatrixFactory<SC,LO,GO,NO>::Build(new_map,blocksize*old_graph->getLocalMaxNumRowEntries());
+         if(new_matrix.is_null()) throw std::runtime_error("BuildBlockMatrixAsPoint: Matrix constructor failed");
+         for(LO i=0; i<orig_num_rows; i++) {
+           Teuchos::ArrayView<const LO> old_indices;
+           Teuchos::ArrayView<const SC> old_values;
+           Teuchos::Array<GO> new_indices(1);
+           Teuchos::Array<SC> new_values(1);
+           old_matrix->getLocalRowView(i,old_indices,old_values);
+           for(int ii=0; ii<blocksize; ii++) {
+             GO GRID = new_map->getGlobalElement(i*blocksize+ii);
+             for(LO j=0; j<(LO)old_indices.size(); j++) {
+               for(int jj=0; jj<blocksize; jj++) {
+                new_indices[0] = old_colmap->getGlobalElement(old_indices[j]) * blocksize + jj;
+                new_values[0]  = old_values[j] * (SC)( (ii == jj && i == old_indices[j] ) ? blocksize*blocksize : 1 );
+                new_matrix->insertGlobalValues(GRID,new_indices(),new_values);
+               }
+             }
+           }
+         }
+         new_matrix->fillComplete();
+         Op = rcp(new CrsMatrixWrap(new_matrix));
+         if(new_map.is_null()) throw std::runtime_error("BuildBlockMatrixAsPoint: CrsMatrixWrap constructor failed");
+         Op->SetFixedBlockSize(blocksize);
+
+         return Op;
+      } // BuildBlockMatrixAsPoint()
+
     }; // class TestFactory
 
 
@@ -827,7 +834,7 @@ namespace MueLuTests {
     // We put this into an extra helper class as we need partial specializations and
     // do not want to introduce partial specializations for the full TestFactory class
     //
-    // The BuildBlockMatrix is only available with Teptra. However, if both Epetra
+    // The BuildBlockMatrix is only available with Tpetra. However, if both Epetra
     // and Tpetra are enabled it may be that Tpetra is not instantiated on either
     // GO=int/long long and/or Node=Serial/OpenMP. We need partial specializations
     // with an empty BuildBlockMatrix routine for all instantiations Teptra is not
@@ -853,10 +860,10 @@ namespace MueLuTests {
 
          // Make the graph
          RCP<Xpetra::Matrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> > FirstMatrix = TestHelpers::TestFactory<Scalar, LocalOrdinal, GlobalOrdinal, Node>::BuildMatrix(matrixList,lib);
-         RCP<const Xpetra::CrsGraph<LocalOrdinal, GlobalOrdinal, Node> > Graph = FirstMatrix->getCrsGraph();
+         RCP<const Xpetra::CrsGraph<LocalOrdinal, GlobalOrdinal, Node> > FGraph = FirstMatrix->getCrsGraph();
 
          int blocksize = 3;
-         RCP<const Xpetra::TpetraCrsGraph<LocalOrdinal, GlobalOrdinal, Node> > TGraph = rcp_dynamic_cast<const Xpetra::TpetraCrsGraph<LocalOrdinal, GlobalOrdinal, Node> >(Graph);
+         RCP<const Xpetra::TpetraCrsGraph<LocalOrdinal, GlobalOrdinal, Node> > TGraph = rcp_dynamic_cast<const Xpetra::TpetraCrsGraph<LocalOrdinal, GlobalOrdinal, Node> >(FGraph);
          RCP<const Tpetra::CrsGraph<LocalOrdinal,GlobalOrdinal,Node> > TTGraph = TGraph->getTpetra_CrsGraph();
 
          RCP<Tpetra::BlockCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> > bcrsmatrix = rcp(new Tpetra::BlockCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> (*TTGraph, blocksize));
@@ -874,10 +881,24 @@ namespace MueLuTests {
          basematrix[4] = two;
          basematrix[7] = three;
          basematrix[8] = two;
+         Teuchos::Array<Scalar> offmatrix(blocksize*blocksize, zero);
+         offmatrix[0]=offmatrix[4]=offmatrix[8]=-1;
+
          Teuchos::Array<LocalOrdinal> lclColInds(1);
          for (LocalOrdinal lclRowInd = meshRowMap.getMinLocalIndex (); lclRowInd <= meshRowMap.getMaxLocalIndex(); ++lclRowInd) {
            lclColInds[0] = lclRowInd;
            bcrsmatrix->replaceLocalValues(lclRowInd, lclColInds.getRawPtr(), &basematrix[0], 1);
+           
+           // Off diagonals
+           if(lclRowInd > meshRowMap.getMinLocalIndex ()) {
+             lclColInds[0] = lclRowInd - 1;
+             bcrsmatrix->replaceLocalValues(lclRowInd, lclColInds.getRawPtr(), &offmatrix[0], 1);
+           }
+           if(lclRowInd < meshRowMap.getMaxLocalIndex ()) {
+             lclColInds[0] = lclRowInd + 1;
+             bcrsmatrix->replaceLocalValues(lclRowInd, lclColInds.getRawPtr(), &offmatrix[0], 1);
+           }
+
          }
 
          RCP<Xpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> > temp = rcp(new Xpetra::TpetraBlockCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>(bcrsmatrix));
@@ -885,6 +906,9 @@ namespace MueLuTests {
 #endif
          return Op;
       } // BuildBlockMatrix()
+
+
+
 
     private:
       TpetraTestFactory() {} // static class
@@ -902,6 +926,7 @@ namespace MueLuTests {
 #include "MueLu_UseShortNames.hpp"
     public:
       static RCP<Matrix> BuildBlockMatrix(Teuchos::ParameterList &matrixList, Xpetra::UnderlyingLib lib) { return Teuchos::null; }
+      static RCP<Matrix> BuildBlockMatrixAsPoint(Teuchos::ParameterList &matrixList, Xpetra::UnderlyingLib lib) { return Teuchos::null; }
     private:
       TpetraTestFactory() {} // static class
     }; // class TpetraTestFactory
@@ -915,6 +940,7 @@ namespace MueLuTests {
 #include "MueLu_UseShortNames.hpp"
     public:
       static RCP<Matrix> BuildBlockMatrix(Teuchos::ParameterList &matrixList, Xpetra::UnderlyingLib lib) { return Teuchos::null; }
+      static RCP<Matrix> BuildBlockMatrixAsPoint(Teuchos::ParameterList &matrixList, Xpetra::UnderlyingLib lib) { return Teuchos::null; }
     private:
       TpetraTestFactory() {} // static class
     }; // class TpetraTestFactory
@@ -930,6 +956,7 @@ namespace MueLuTests {
 #include "MueLu_UseShortNames.hpp"
     public:
       static RCP<Matrix> BuildBlockMatrix(Teuchos::ParameterList &matrixList, Xpetra::UnderlyingLib lib) { return Teuchos::null; }
+      static RCP<Matrix> BuildBlockMatrixAsPoint(Teuchos::ParameterList &matrixList, Xpetra::UnderlyingLib lib) { return Teuchos::null; }
     private:
       TpetraTestFactory() {} // static class
     }; // class TpetraTestFactory

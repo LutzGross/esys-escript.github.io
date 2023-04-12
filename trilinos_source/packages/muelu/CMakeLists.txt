@@ -1,5 +1,3 @@
-INCLUDE(CombinedOption)
-
 #
 # A) Define the package
 #
@@ -18,7 +16,6 @@ ASSERT_DEFINED(Xpetra_ENABLE_Epetra)
 ASSERT_DEFINED(Xpetra_ENABLE_Tpetra)
 ASSERT_DEFINED(Xpetra_INT_LONG_LONG)
 ASSERT_DEFINED(Xpetra_ENABLE_Experimental)
-ASSERT_DEFINED(Xpetra_ENABLE_Kokkos_Refactor)
 IF (${PACKAGE_NAME}_ENABLE_KokkosCore AND NOT ${PACKAGE_NAME}_ENABLE_Tpetra)
   MESSAGE(FATAL_ERROR "MueLu requires that if Kokkos is enabled, Tpetra must also be enabled.")
 ENDIF()
@@ -107,6 +104,18 @@ IF (NOT ${PACKAGE_NAME}_ENABLE_Tpetra)
   SET(${PACKAGE_NAME}_ENABLE_Ifpack2 OFF)
   GLOBAL_SET(HAVE_${PACKAGE_NAME_UC}_IFPACK2 OFF)
 ENDIF ()
+
+
+# Print a warning when we might be lacking a coarse solver.
+ASSERT_DEFINED(${PACKAGE_NAME}_ENABLE_Amesos)
+IF (${PACKAGE_NAME}_ENABLE_Epetra AND NOT ${PACKAGE_NAME}_ENABLE_Amesos)
+  MESSAGE(WARNING "MueLu's Epetra backend is enabled, but Amesos is disabled. This means only iterative coarse solves are available when using Epetra.")
+ENDIF ()
+ASSERT_DEFINED(${PACKAGE_NAME}_ENABLE_Amesos2)
+IF (${PACKAGE_NAME}_ENABLE_Tpetra AND NOT ${PACKAGE_NAME}_ENABLE_Amesos2)
+  MESSAGE(WARNING "MueLu's Tpetra backend is enabled, but Amesos2 is disabled. This means only iterative coarse solves are available when using Tpetra.")
+ENDIF ()
+
 
 # Enable experimental code
 TRIBITS_ADD_OPTION_AND_DEFINE(
@@ -216,23 +225,8 @@ TRIBITS_ADD_OPTION_AND_DEFINE(${PACKAGE_NAME}_ENABLE_Boost_for_real
   "Enable Boost"
   OFF)
 
-# Define option to enable code that is refactored to use Kokkos
-# This is ON by default when Kokkos is enabled.
-IF (${PACKAGE_NAME}_ENABLE_KokkosCore)
-  SET(Kokkos_Refactor_On_By_Default ON)
-  MESSAGE(STATUS "MueLu: Kokkos_Refactor ON by default")
-ELSE()
-  SET(Kokkos_Refactor_On_By_Default OFF)
-ENDIF()
-
-TRIBITS_ADD_OPTION_AND_DEFINE(
-  ${PACKAGE_NAME}_ENABLE_Kokkos_Refactor
-  HAVE_${PACKAGE_NAME_UC}_KOKKOS_REFACTOR
-  "Enable Xpetra code refactored to use Kokkos."
-  ${Kokkos_Refactor_On_By_Default})
-
-IF (${PACKAGE_NAME}_ENABLE_Kokkos_Refactor AND NOT Xpetra_ENABLE_Kokkos_Refactor)
-  MESSAGE(FATAL_ERROR "Kokkos Refactor in MueLu requires one to also enable Kokkos Refactor in Xpetra (-DXpetra_ENABLE_Kokkos_Refactor:BOOL=ON).")
+IF (DEFINED ${PACKAGE_NAME}_ENABLE_Kokkos_Refactor)
+  MESSAGE(WARNING "MueLu no longer uses the option \'MueLu_ENABLE_Kokkos_Refactor\' and will always build with Kokkos code enabled. \'MueLu_ENABLE_Kokkos_Refactor\' can safely be removed from the CMake invocation.")
 ENDIF()
 
 # Define HAVE_MUELU_STRATIMIKOS if Stratimikos package is enabled
@@ -251,9 +245,14 @@ GLOBAL_SET(HAVE_${PACKAGE_NAME_UC}_DEFAULT_GO_LONG OFF)
 GLOBAL_SET(HAVE_${PACKAGE_NAME_UC}_DEFAULT_GO_LONGLONG OFF)
 
 IF(${PACKAGE_NAME}_ENABLE_EXPLICIT_INSTANTIATION)
+  GLOBAL_SET(${PACKAGE_NAME}_HAVE_GO_INT OFF)
+  GLOBAL_SET(${PACKAGE_NAME}_HAVE_GO_LONG OFF)
+  GLOBAL_SET(${PACKAGE_NAME}_HAVE_GO_LONG_LONG OFF)
+
   # <double, int, int>
   # Examples and tests need at least this one, also if Epetra is enabled
   IF(Tpetra_INST_DOUBLE AND Tpetra_INST_INT_INT)
+    GLOBAL_SET(${PACKAGE_NAME}_HAVE_GO_INT ON)
     GLOBAL_SET(${PACKAGE_NAME}_INST_DOUBLE_INT_INT ON)
     GLOBAL_SET(HAVE_${PACKAGE_NAME_UC}_INST_DOUBLE_INT_INT ON)
   ELSE()
@@ -275,6 +274,7 @@ IF(${PACKAGE_NAME}_ENABLE_EXPLICIT_INSTANTIATION)
 
   # <double, int, long>
   IF(Tpetra_INST_DOUBLE AND Tpetra_INST_INT_LONG)
+    GLOBAL_SET(${PACKAGE_NAME}_HAVE_GO_INT ON)
     GLOBAL_SET(${PACKAGE_NAME}_INST_DOUBLE_INT_LONGINT ON)
     GLOBAL_SET(HAVE_${PACKAGE_NAME_UC}_INST_DOUBLE_INT_LONGINT ON)
   ELSE()
@@ -285,6 +285,7 @@ IF(${PACKAGE_NAME}_ENABLE_EXPLICIT_INSTANTIATION)
 
   # <double, int, long long int>
   IF(Tpetra_INST_DOUBLE AND Tpetra_INST_INT_LONG_LONG)
+    GLOBAL_SET(${PACKAGE_NAME}_HAVE_GO_LONG_LONG ON)
     GLOBAL_SET(${PACKAGE_NAME}_INST_DOUBLE_INT_LONGLONGINT ON)
     GLOBAL_SET(HAVE_${PACKAGE_NAME_UC}_INST_DOUBLE_INT_LONGLONGINT ON)
   ELSE()
@@ -294,6 +295,7 @@ IF(${PACKAGE_NAME}_ENABLE_EXPLICIT_INSTANTIATION)
 
   # <complex, int, int>
   IF(Tpetra_INST_COMPLEX_DOUBLE AND Tpetra_INST_INT_INT)
+    GLOBAL_SET(${PACKAGE_NAME}_HAVE_GO_INT ON)
     GLOBAL_SET(${PACKAGE_NAME}_INST_COMPLEX_INT_INT ON)
     GLOBAL_SET(HAVE_${PACKAGE_NAME_UC}_INST_COMPLEX_INT_INT ON)
   ELSE()
@@ -303,6 +305,7 @@ IF(${PACKAGE_NAME}_ENABLE_EXPLICIT_INSTANTIATION)
 
   # <complex, int, long long int>
   IF(Tpetra_INST_COMPLEX_DOUBLE AND Tpetra_INST_INT_LONG_LONG)
+    GLOBAL_SET(${PACKAGE_NAME}_HAVE_GO_LONG_LONG ON)
     GLOBAL_SET(${PACKAGE_NAME}_INST_COMPLEX_INT_LONG_LONG ON)
     GLOBAL_SET(HAVE_${PACKAGE_NAME_UC}_INST_COMPLEX_INT_LONG_LONG ON)
   ELSE()
@@ -312,6 +315,7 @@ IF(${PACKAGE_NAME}_ENABLE_EXPLICIT_INSTANTIATION)
 
   # <float, int, int>
   IF(Tpetra_INST_FLOAT AND Tpetra_INST_INT_INT)
+    GLOBAL_SET(${PACKAGE_NAME}_HAVE_GO_LONG ON)
     GLOBAL_SET(${PACKAGE_NAME}_INST_FLOAT_INT_INT ON)
     GLOBAL_SET(HAVE_${PACKAGE_NAME_UC}_INST_FLOAT_INT_INT ON)
   ELSE()
@@ -319,22 +323,38 @@ IF(${PACKAGE_NAME}_ENABLE_EXPLICIT_INSTANTIATION)
     GLOBAL_SET(HAVE_${PACKAGE_NAME_UC}_INST_FLOAT_INT_INT OFF)
   ENDIF()
 
+# <float, int, long long>
+  IF(Tpetra_INST_FLOAT AND Tpetra_INST_INT_LONG_LONG)
+    GLOBAL_SET(${PACKAGE_NAME}_HAVE_GO_LONG_LONG ON)
+    GLOBAL_SET(${PACKAGE_NAME}_INST_FLOAT_INT_LONG_LONG ON)
+    GLOBAL_SET(HAVE_${PACKAGE_NAME_UC}_INST_FLOAT_INT_LONG_LONG ON)
+  ELSE()
+    GLOBAL_SET(${PACKAGE_NAME}_INST_FLOAT_INT_LONG_LONG OFF)
+    GLOBAL_SET(HAVE_${PACKAGE_NAME_UC}_INST_FLOAT_INT_LONG_LONG OFF)
+  ENDIF()
+
   MESSAGE(STATUS "${PACKAGE_NAME}: Enabling ETI support")
   MESSAGE(STATUS "   <float,   int, int>       : ${${PACKAGE_NAME}_INST_FLOAT_INT_INT}")
+  MESSAGE(STATUS "   <float,   int, long long> : ${${PACKAGE_NAME}_INST_FLOAT_INT_LONG_LONG}")
   MESSAGE(STATUS "   <double,  int, int>       : ${${PACKAGE_NAME}_INST_DOUBLE_INT_INT}")
   MESSAGE(STATUS "   <double,  int, long>      : ${${PACKAGE_NAME}_INST_DOUBLE_INT_LONGINT}")
   MESSAGE(STATUS "   <double,  int, long long> : ${${PACKAGE_NAME}_INST_DOUBLE_INT_LONGLONGINT}")
   MESSAGE(STATUS "   <complex, int, int>       : ${${PACKAGE_NAME}_INST_COMPLEX_INT_INT}")
+  MESSAGE(STATUS "   <complex, int, long long> : ${${PACKAGE_NAME}_INST_COMPLEX_INT_LONG_LONG}")
 
   # GO preference: int > long long > long
-  IF(NOT ${${PACKAGE_NAME}_INST_DOUBLE_INT_INT})
+  IF(NOT ${${PACKAGE_NAME}_HAVE_GO_INT})
     # No GO=int (first choice for default)
-    IF(NOT ${${PACKAGE_NAME}_INST_DOUBLE_INT_LONGLONGINT})
+    IF(NOT ${${PACKAGE_NAME}_HAVE_GO_LONG_LONG})
       #No GO=long long (second choice), must use long
       GLOBAL_SET(HAVE_${PACKAGE_NAME_UC}_DEFAULT_GO_LONG ON)
+      MESSAGE(STATUS "MueLu: Default GO: long")
     ELSE()
       GLOBAL_SET(HAVE_${PACKAGE_NAME_UC}_DEFAULT_GO_LONGLONG ON)
+      MESSAGE(STATUS "MueLu: Default GO: long long")
     ENDIF()
+  ELSE()
+      MESSAGE(STATUS "MueLu: Default GO: int")
   ENDIF()
 
   # If Tpetra is enabled, determine which Nodes are used
@@ -342,6 +362,7 @@ IF(${PACKAGE_NAME}_ENABLE_EXPLICIT_INSTANTIATION)
     GLOBAL_SET (HAVE_${PACKAGE_NAME_UC}_SERIAL  ${Tpetra_INST_SERIAL})
     GLOBAL_SET (HAVE_${PACKAGE_NAME_UC}_OPENMP  ${Tpetra_INST_OPENMP})
     GLOBAL_SET (HAVE_${PACKAGE_NAME_UC}_CUDA    ${Tpetra_INST_CUDA})
+    GLOBAL_SET (HAVE_${PACKAGE_NAME_UC}_HIP     ${Tpetra_INST_HIP})
   ENDIF()
   IF (${PACKAGE_NAME}_ENABLE_Epetra)
     # If Epetra is active, always activate SerialNode
@@ -350,6 +371,7 @@ IF(${PACKAGE_NAME}_ENABLE_EXPLICIT_INSTANTIATION)
   MESSAGE(STATUS "   HAVE_${PACKAGE_NAME_UC}_SERIAL       : ${HAVE_${PACKAGE_NAME_UC}_SERIAL}")
   MESSAGE(STATUS "   HAVE_${PACKAGE_NAME_UC}_OPENMP       : ${HAVE_${PACKAGE_NAME_UC}_OPENMP}")
   MESSAGE(STATUS "   HAVE_${PACKAGE_NAME_UC}_CUDA         : ${HAVE_${PACKAGE_NAME_UC}_CUDA}")
+  MESSAGE(STATUS "   HAVE_${PACKAGE_NAME_UC}_HIP          : ${HAVE_${PACKAGE_NAME_UC}_HIP}")
 ELSE()
   # ETI is turned off
 
@@ -426,17 +448,17 @@ ENDIF ()
 ADD_SUBDIRECTORY(src)
 
 if(TPL_ENABLE_MATLAB)
-  if (NOT ${PROJECT_NAME}_ENABLE_EXPLICIT_INSTANTIATION)
-    MESSAGE(FATAL_ERROR "Muemex interfaces require \"-D${PROJECT_NAME}_ENABLE_EXPLICIT_INSTANTIATION:BOOL=ON\".")
-  ENDIF()
-  IF(NOT ${PACKAGE_NAME}_ENABLE_Epetra OR NOT ${PACKAGE_NAME}_ENABLE_Tpetra)
-      MESSAGE(FATAL_ERROR "Muemex interfaces require \"-D${PACKAGE_NAME}_ENABLE_Epetra:BOOL=ON\" and \"-D${PACKAGE_NAME}_ENABLE_Tpetra:BOOL=ON\".")
-  ENDIF()
-
-  IF(NOT Tpetra_INST_INT_INT OR  Tpetra_INST_INT_LONG OR Tpetra_INST_INT_LONG_LONG)
+  IF(NOT Tpetra_INST_INT_INT OR Tpetra_INST_INT_LONG OR Tpetra_INST_INT_LONG_LONG)
     MESSAGE(FATAL_ERROR "Muemex interfaces require that Tpetra only be instantiated with Tpetra_INST_INT_INT, not Tpetra_INST_INT_LONG or Tpetra_INST_INT_LONG_LONG")
   ENDIF()
 
+  if (NOT ${PROJECT_NAME}_ENABLE_EXPLICIT_INSTANTIATION)
+    MESSAGE(FATAL_ERROR "Muemex interfaces require \"-D${PROJECT_NAME}_ENABLE_EXPLICIT_INSTANTIATION:BOOL=ON\".")
+  ENDIF()
+
+  IF(NOT ${PACKAGE_NAME}_ENABLE_Epetra OR NOT ${PACKAGE_NAME}_ENABLE_Tpetra)
+      MESSAGE(FATAL_ERROR "Muemex interfaces require \"-D${PACKAGE_NAME}_ENABLE_Epetra:BOOL=ON\" and \"-D${PACKAGE_NAME}_ENABLE_Tpetra:BOOL=ON\".")
+  ENDIF()
 ENDIF()
 
 if(TPL_ENABLE_MATLAB)
@@ -457,7 +479,7 @@ ENDIF()
 
 
 TRIBITS_ADD_EXAMPLE_DIRECTORIES(example)
-TRIBITS_ADD_EXAMPLE_DIRECTORIES(research)
+ADD_SUBDIRECTORY(research)
 TRIBITS_ADD_TEST_DIRECTORIES(test)
 
 #

@@ -199,18 +199,16 @@ int main(int argc, char *argv[]) {
   LO maxLevels = 3;
   LO its=10;
   std::string coarseSolver="ifpack2";
-  int pauseForDebugger=0;
   clp.setOption("nSmoothers",&nSmoothers,"number of Gauss-Seidel smoothers in the MergedSmootehrs");
   clp.setOption("maxLevels",&maxLevels,"maximum number of levels allowed. If 1, then a MergedSmoother is used on the coarse grid");
   clp.setOption("its",&its,"number of multigrid cycles");
   clp.setOption("coarseSolver",&coarseSolver,"amesos2 or ifpack2 (Tpetra specific. Ignored for Epetra)");
-  clp.setOption("debug",&pauseForDebugger,"pause to attach debugger");
 
   switch (clp.parse(argc,argv)) {
-    case Teuchos::CommandLineProcessor::PARSE_HELP_PRINTED:        return EXIT_SUCCESS; break;
+    case Teuchos::CommandLineProcessor::PARSE_HELP_PRINTED:        return EXIT_SUCCESS;
     case Teuchos::CommandLineProcessor::PARSE_ERROR:
-    case Teuchos::CommandLineProcessor::PARSE_UNRECOGNIZED_OPTION: return EXIT_FAILURE; break;
-    case Teuchos::CommandLineProcessor::PARSE_SUCCESSFUL:                               break;
+    case Teuchos::CommandLineProcessor::PARSE_UNRECOGNIZED_OPTION: return EXIT_FAILURE;
+    case Teuchos::CommandLineProcessor::PARSE_SUCCESSFUL:          break;
   }
 
   matrixParameters.check();
@@ -221,10 +219,6 @@ int main(int argc, char *argv[]) {
     matrixParameters.print();
     xpetraParameters.print();
     // TODO: print custom parameters
-  }
-
-  if (pauseForDebugger) {
-    Utils::PauseForDebugger();
   }
 
   /**********************************************************************************/

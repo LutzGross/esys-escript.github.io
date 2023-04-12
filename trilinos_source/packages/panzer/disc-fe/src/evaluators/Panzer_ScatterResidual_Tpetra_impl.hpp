@@ -125,11 +125,10 @@ postRegistrationSetup(typename TRAITS::SetupData d,
     fieldIds_[fd] = globalIndexer_->getFieldNum(fieldName);
 
     const std::vector<int> & offsets = globalIndexer_->getGIDFieldOffsets(blockId,fieldIds_[fd]);
-    scratch_offsets_[fd] = Kokkos::View<int*,PHX::Device>("offsets",offsets.size());
-    for(std::size_t i=0;i<offsets.size();i++)
-      scratch_offsets_[fd](i) = offsets[i];
+    scratch_offsets_[fd] = PHX::View<int*>("offsets",offsets.size());
+    Kokkos::deep_copy(scratch_offsets_[fd], Kokkos::View<const int*, Kokkos::HostSpace, Kokkos::MemoryUnmanaged>(offsets.data(), offsets.size()));
   }
-  scratch_lids_ = Kokkos::View<LO**,PHX::Device>("lids",scatterFields_[0].extent(0),
+  scratch_lids_ = PHX::View<LO**>("lids",scatterFields_[0].extent(0),
                                                  globalIndexer_->getElementBlockGIDCount(blockId));
 
 }
@@ -221,7 +220,7 @@ preEvaluate(typename TRAITS::PreEvalData d)
   typedef TpetraLinearObjContainer<double,LO,GO,NodeT> LOC;
 
   // this is the list of parameters and their names that this scatter has to account for
-  std::vector<std::string> activeParameters = 
+  std::vector<std::string> activeParameters =
     rcp_dynamic_cast<ParameterList_GlobalEvaluationData>(d.gedc->getDataObject("PARAMETER_NAMES"))->getActiveParameters();
 
   dfdp_vectors_.clear();
@@ -280,6 +279,8 @@ ScatterResidual_Tpetra(const Teuchos::RCP<const GlobalIndexer> & indexer,
                        const Teuchos::ParameterList& p)
    : globalIndexer_(indexer)
    , globalDataKey_("Residual Scatter Container")
+   , my_derivative_size_(0)
+   , other_derivative_size_(0)
 {
   std::string scatterName = p.get<std::string>("Scatter Name");
   scatterHolder_ =
@@ -333,13 +334,19 @@ postRegistrationSetup(typename TRAITS::SetupData d,
 
     int fieldNum = fieldIds_[fd];
     const std::vector<int> & offsets = globalIndexer_->getGIDFieldOffsets(blockId,fieldNum);
-    scratch_offsets_[fd] = Kokkos::View<int*,PHX::Device>("offsets",offsets.size());
-    for(std::size_t i=0;i<offsets.size();i++)
-      scratch_offsets_[fd](i) = offsets[i];
+    scratch_offsets_[fd] = PHX::View<int*>("offsets",offsets.size());
+    Kokkos::deep_copy(scratch_offsets_[fd], Kokkos::View<const int*, Kokkos::HostSpace, Kokkos::MemoryUnmanaged>(offsets.data(), offsets.size()));
   }
 
-  scratch_lids_ = Kokkos::View<LO**,PHX::Device>("lids",scatterFields_[0].extent(0),
-                                                 globalIndexer_->getElementBlockGIDCount(blockId));
+  my_derivative_size_ = globalIndexer_->getElementBlockGIDCount(blockId);
+  if (Teuchos::nonnull(workset_0.other)) {
+    auto otherBlockId = workset_0.other->block_id;
+    other_derivative_size_ = globalIndexer_->getElementBlockGIDCount(otherBlockId);
+  }
+  scratch_lids_ = Kokkos::View<LO**, Kokkos::LayoutRight, PHX::Device>(
+    "lids", scatterFields_[0].extent(0), my_derivative_size_ + other_derivative_size_ );
+  scratch_vals_ = Kokkos::View<typename Sacado::ScalarType<ScalarT>::type**, Kokkos::LayoutRight, PHX::Device>(
+    "vals", scatterFields_[0].extent(0), my_derivative_size_ + other_derivative_size_ );
 }
 
 // **********************************************************************
@@ -374,20 +381,16 @@ public:
   Kokkos::View<double**, Kokkos::LayoutLeft,PHX::Device> r_data;
   LocalMatrixT jac; // Kokkos jacobian type
 
-  Kokkos::View<const LO**,PHX::Device> lids;    // local indices for unknowns
-  Kokkos::View<const int*,PHX::Device> offsets; // how to get a particular field
+  Kokkos::View<const LO**, Kokkos::LayoutRight, PHX::Device> lids; // local indices for unknowns.
+  Kokkos::View<typename Sacado::ScalarType<ScalarT>::type**, Kokkos::LayoutRight, PHX::Device> vals;
+  PHX::View<const int*> offsets; // how to get a particular field
   FieldType field;
 
 
   KOKKOS_INLINE_FUNCTION
   void operator()(const unsigned int cell) const
   {
-    LO cLIDs[256];
-    typename Sacado::ScalarType<ScalarT>::type vals[256];
     int numIds = lids.extent(1);
-
-    for(int i=0;i<numIds;i++)
-      cLIDs[i] = lids(cell,i);
 
     // loop over the basis functions (currently they are nodes)
     for(std::size_t basis=0; basis < offsets.extent(0); basis++) {
@@ -401,10 +404,10 @@ public:
 
        // loop over the sensitivity indices: all DOFs on a cell
        for(int sensIndex=0;sensIndex<numIds;++sensIndex)
-          vals[sensIndex] = scatterField.fastAccessDx(sensIndex);
+          vals(cell,sensIndex) = scatterField.fastAccessDx(sensIndex);
 
        // Sum Jacobian
-       jac.sumIntoValues(lid, cLIDs,numIds, vals, true, true);
+       jac.sumIntoValues(lid, &lids(cell,0), numIds, &vals(cell,0), true, true);
     } // end basis
   }
 };
@@ -417,8 +420,8 @@ public:
 
   Kokkos::View<double**, Kokkos::LayoutLeft,PHX::Device> r_data;
 
-  Kokkos::View<const LO**,PHX::Device> lids;    // local indices for unknowns
-  Kokkos::View<const int*,PHX::Device> offsets; // how to get a particular field
+  PHX::View<const LO**> lids;    // local indices for unknowns
+  PHX::View<const int*> offsets; // how to get a particular field
   FieldType field;
 
 
@@ -454,7 +457,7 @@ evaluateFields(typename TRAITS::EvalData workset)
   globalIndexer_->getElementLIDs(this->wda(workset).cell_local_ids_k,scratch_lids_);
 
   ScatterResidual_Residual_Functor<ScalarT,LO,GO,NodeT> functor;
-  functor.r_data = r->template getLocalView<PHX::Device>();
+  functor.r_data = r->getLocalViewDevice(Tpetra::Access::ReadWrite);
   functor.lids = scratch_lids_;
 
   // for each field, do a parallel for loop
@@ -473,7 +476,7 @@ evaluateFields(typename TRAITS::EvalData workset)
 {
    typedef TpetraLinearObjContainer<double,LO,GO,NodeT> LOC;
 
-   typedef typename LOC::CrsMatrixType::local_matrix_type LocalMatrixT;
+   typedef typename LOC::CrsMatrixType::local_matrix_device_type LocalMatrixT;
 
    // for convenience pull out some objects from workset
    std::string blockId = this->wda(workset).block_id;
@@ -481,14 +484,26 @@ evaluateFields(typename TRAITS::EvalData workset)
    Teuchos::RCP<typename LOC::VectorType> r = tpetraContainer_->get_f();
    Teuchos::RCP<typename LOC::CrsMatrixType> Jac = tpetraContainer_->get_A();
 
-   globalIndexer_->getElementLIDs(this->wda(workset).cell_local_ids_k,scratch_lids_);
+   // Cache scratch lids. For interface bc problems the derivative
+   // dimension extent spans two cells. Use subviews to get the self
+   // lids and the other lids.
+   if (Teuchos::nonnull(workset.other)) {
+     auto my_scratch_lids = Kokkos::subview(scratch_lids_,Kokkos::ALL,std::make_pair(0,my_derivative_size_));
+     globalIndexer_->getElementLIDs(this->wda(workset).cell_local_ids_k,my_scratch_lids);
+     auto other_scratch_lids = Kokkos::subview(scratch_lids_,Kokkos::ALL,std::make_pair(my_derivative_size_,my_derivative_size_ + other_derivative_size_));
+     globalIndexer_->getElementLIDs(workset.other->cell_local_ids_k,other_scratch_lids);
+   }
+   else {
+     globalIndexer_->getElementLIDs(this->wda(workset).cell_local_ids_k,scratch_lids_);
+   }
 
    ScatterResidual_Jacobian_Functor<ScalarT,LO,GO,NodeT,LocalMatrixT> functor;
    functor.fillResidual = (r!=Teuchos::null);
    if(functor.fillResidual)
-     functor.r_data = r->template getLocalView<PHX::Device>();
-   functor.jac = Jac->getLocalMatrix();
+     functor.r_data = r->getLocalViewDevice(Tpetra::Access::ReadWrite);
+   functor.jac = Jac->getLocalMatrixDevice();
    functor.lids = scratch_lids_;
+   functor.vals = scratch_vals_;
 
    // for each field, do a parallel for loop
    for(std::size_t fieldIndex = 0; fieldIndex < scatterFields_.size(); fieldIndex++) {
@@ -497,6 +512,7 @@ evaluateFields(typename TRAITS::EvalData workset)
 
      Kokkos::parallel_for(workset.num_cells,functor);
    }
+
 }
 
 // **********************************************************************

@@ -39,7 +39,6 @@
 #include "mpi.h"                        // for MPI_COMM_WORLD
 
 #include "stk_mesh/base/BulkData.hpp"   // for BulkData
-#include "stk_mesh/base/BulkDataInlinedMethods.hpp"
 #include "stk_mesh/base/Entity.hpp"     // for Entity
 #include "stk_mesh/base/MetaData.hpp"   // for MetaData
 #include "stk_mesh/base/Types.hpp"      // for EntityId, EntityRank
@@ -60,7 +59,7 @@ TEST( UnitTestHexFixture, elem_ids_1d_x )
   const unsigned NX = 3;
   const unsigned NY = 1;
   const unsigned NZ = 1;
-  stk::mesh::fixtures::HexFixture hf(MPI_COMM_WORLD,NX,NY,NZ);
+  stk::mesh::fixtures::simple_fields::HexFixture hf(MPI_COMM_WORLD,NX,NY,NZ);
   hf.m_meta.commit();
   hf.generate_mesh();
   EXPECT_EQ( hf.elem_id(0,0,0), 1u );
@@ -74,7 +73,7 @@ TEST( UnitTestHexFixture, elem_ids_3d_x )
   const unsigned NX = 3;
   const unsigned NY = 3;
   const unsigned NZ = 3;
-  stk::mesh::fixtures::HexFixture hf(MPI_COMM_WORLD,NX,NY,NZ);
+  stk::mesh::fixtures::simple_fields::HexFixture hf(MPI_COMM_WORLD,NX,NY,NZ);
   hf.m_meta.commit();
   hf.generate_mesh();
   EXPECT_EQ( hf.elem_id(0,0,0), 1u );
@@ -88,7 +87,7 @@ TEST( UnitTestHexFixture, elem_ids_1d_y )
   const unsigned NX = 1;
   const unsigned NY = 3;
   const unsigned NZ = 1;
-  stk::mesh::fixtures::HexFixture hf(MPI_COMM_WORLD,NX,NY,NZ);
+  stk::mesh::fixtures::simple_fields::HexFixture hf(MPI_COMM_WORLD,NX,NY,NZ);
   hf.m_meta.commit();
   hf.generate_mesh();
   EXPECT_EQ( hf.elem_id(0,0,0), 1u );
@@ -102,7 +101,7 @@ TEST( UnitTestHexFixture, elem_ids_3d_y )
   const unsigned NX = 3;
   const unsigned NY = 3;
   const unsigned NZ = 3;
-  stk::mesh::fixtures::HexFixture hf(MPI_COMM_WORLD,NX,NY,NZ);
+  stk::mesh::fixtures::simple_fields::HexFixture hf(MPI_COMM_WORLD,NX,NY,NZ);
   hf.m_meta.commit();
   hf.generate_mesh();
   EXPECT_EQ( hf.elem_id(0,0,0), 1u );
@@ -116,7 +115,7 @@ TEST( UnitTestHexFixture, elem_ids_1d_z )
   const unsigned NX = 1;
   const unsigned NY = 1;
   const unsigned NZ = 3;
-  stk::mesh::fixtures::HexFixture hf(MPI_COMM_WORLD,NX,NY,NZ);
+  stk::mesh::fixtures::simple_fields::HexFixture hf(MPI_COMM_WORLD,NX,NY,NZ);
   hf.m_meta.commit();
   hf.generate_mesh();
   EXPECT_EQ( hf.elem_id(0,0,0), 1u );
@@ -130,7 +129,7 @@ TEST( UnitTestHexFixture, elem_ids_3d_z )
   const unsigned NX = 3;
   const unsigned NY = 3;
   const unsigned NZ = 3;
-  stk::mesh::fixtures::HexFixture hf(MPI_COMM_WORLD,NX,NY,NZ);
+  stk::mesh::fixtures::simple_fields::HexFixture hf(MPI_COMM_WORLD,NX,NY,NZ);
   hf.m_meta.commit();
   hf.generate_mesh();
   EXPECT_EQ( hf.elem_id(0,0,0), 1u );
@@ -144,7 +143,7 @@ TEST( UnitTestHexFixture, elem_ids_3d_diag )
   const unsigned NX = 3;
   const unsigned NY = 3;
   const unsigned NZ = 3;
-  stk::mesh::fixtures::HexFixture hf(MPI_COMM_WORLD,NX,NY,NZ);
+  stk::mesh::fixtures::simple_fields::HexFixture hf(MPI_COMM_WORLD,NX,NY,NZ);
   hf.m_meta.commit();
   hf.generate_mesh();
   EXPECT_EQ( hf.elem_id(0,0,0), 1u );
@@ -181,7 +180,7 @@ TEST( UnitTestHexFixture, trivial_parallel_2 )
   }
 
   // Create the fixture
-  stk::mesh::fixtures::HexFixture hf(MPI_COMM_WORLD,NX,NY,NZ);
+  stk::mesh::fixtures::simple_fields::HexFixture hf(MPI_COMM_WORLD,NX,NY,NZ);
   hf.m_meta.commit();
   if (p_rank <= 1) {
     hf.fill_node_map(parallel_distribution);
@@ -232,7 +231,7 @@ TEST( UnitTestHexFixture, disjoint_parallel_psizex1x1 )
   }
 
   // Create the fixture
-  stk::mesh::fixtures::HexFixture hf(MPI_COMM_WORLD,NX,NY,NZ);
+  stk::mesh::fixtures::simple_fields::HexFixture hf(MPI_COMM_WORLD,NX,NY,NZ);
   hf.m_meta.commit();
   hf.fill_node_map(parallel_distribution);
   hf.generate_mesh(parallel_distribution[p_rank]);
@@ -301,7 +300,7 @@ TEST( UnitTestHexFixture, disjoint_parallel_4x2x1 )
   }
 
   // Create the fixture
-  stk::mesh::fixtures::HexFixture hf(MPI_COMM_WORLD,NX,NY,NZ);
+  stk::mesh::fixtures::simple_fields::HexFixture hf(MPI_COMM_WORLD,NX,NY,NZ);
   hf.m_meta.commit();
   if (p_rank <= 1) {
     hf.fill_node_map(parallel_distribution);
@@ -404,7 +403,7 @@ TEST( UnitTestHexFixture, disjoint_parallel_5x1x1 )
   }
 
   // Create the fixture
-  stk::mesh::fixtures::HexFixture hf(MPI_COMM_WORLD,NX,NY,NZ);
+  stk::mesh::fixtures::simple_fields::HexFixture hf(MPI_COMM_WORLD,NX,NY,NZ);
   hf.m_meta.commit();
   if (p_rank <= 1) {
     hf.fill_node_map(parallel_distribution);

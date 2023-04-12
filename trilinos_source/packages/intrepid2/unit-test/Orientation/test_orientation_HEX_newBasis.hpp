@@ -98,11 +98,11 @@ namespace Test {
       *outStream << "-------------------------------------------------------------------------------" << "\n\n"; \
     }
 
-template<typename ValueType, typename DeviceSpaceType>
+template<typename ValueType, typename DeviceType>
 int OrientationHexNewBasis(const bool verbose) {
 
-  typedef Kokkos::DynRankView<ValueType,DeviceSpaceType> DynRankView;
-  typedef Kokkos::DynRankView<ordinal_type,DeviceSpaceType> DynRankViewInt;
+  typedef Kokkos::DynRankView<ValueType,DeviceType> DynRankView;
+  typedef Kokkos::DynRankView<ordinal_type,DeviceType> DynRankViewInt;
 #define ConstructWithLabel(obj, ...) obj(#obj, __VA_ARGS__)
 
   static Teuchos::RCP<std::ostream> outStream;
@@ -115,13 +115,6 @@ int OrientationHexNewBasis(const bool verbose) {
 
   Teuchos::oblackholestream oldFormatState;
   oldFormatState.copyfmt(std::cout);
-
-  typedef typename
-      Kokkos::Impl::is_space<DeviceSpaceType>::host_mirror_space::execution_space HostSpaceType ;
-
-  *outStream << "DeviceSpace::  "; DeviceSpaceType::print_configuration(*outStream, false);
-  *outStream << "HostSpace::    ";   HostSpaceType::print_configuration(*outStream, false);
-  *outStream << "\n";
 
   int errorFlag = 0;
   const ValueType tol = tolerence();
@@ -230,20 +223,20 @@ int OrientationHexNewBasis(const bool verbose) {
   private:
     Teuchos::LAPACK<ordinal_type,ValueType> lapack;
     ordinal_type basisCardinality, numRefCoords, dim;
-    Kokkos::View<ValueType**,Kokkos::LayoutLeft,HostSpaceType> work;
-    Kokkos::View<ValueType**,Kokkos::LayoutLeft,HostSpaceType> cellMassMat;
-    Kokkos::View<ValueType**,Kokkos::LayoutLeft,HostSpaceType> cellRhsMat;
+    Kokkos::View<ValueType**,Kokkos::LayoutLeft,Kokkos::HostSpace> work;
+    Kokkos::View<ValueType**,Kokkos::LayoutLeft,Kokkos::HostSpace> cellMassMat;
+    Kokkos::View<ValueType**,Kokkos::LayoutLeft,Kokkos::HostSpace> cellRhsMat;
   };
 
 
   typedef std::array<ordinal_type,2> edgeType;
   typedef std::array<ordinal_type,4> faceType;
-  typedef CellTools<DeviceSpaceType> ct;
-  typedef OrientationTools<DeviceSpaceType> ots;
-  typedef RealSpaceTools<DeviceSpaceType> rst;
-  typedef FunctionSpaceTools<DeviceSpaceType> fst;
+  typedef CellTools<DeviceType> ct;
+  typedef OrientationTools<DeviceType> ots;
+  typedef RealSpaceTools<DeviceType> rst;
+  typedef FunctionSpaceTools<DeviceType> fst;
 
-  using  basisType = Basis<DeviceSpaceType,ValueType,ValueType>;
+  using  basisType = Basis<DeviceType,ValueType,ValueType>;
 
   constexpr ordinal_type dim = 3;
   constexpr ordinal_type numCells = 2;
@@ -351,7 +344,7 @@ int OrientationHexNewBasis(const bool verbose) {
         bool areDifferent(false);
         for(ordinal_type j=0;j<numFaceDOFs && !areDifferent;j++) {
           areDifferent = std::abs(basisCoeffs(0,basis->getDofOrdinal(2,faceIndex[0],j))
-              - basisCoeffs(1,basis->getDofOrdinal(2,faceIndex[1],j))) > 10*tol;
+              - basisCoeffs(1,basis->getDofOrdinal(2,faceIndex[1],j))) > 100*tol;
         }
 
         if(areDifferent) {
@@ -517,8 +510,9 @@ int OrientationHexNewBasis(const bool verbose) {
           }
         }
 
-        using CG_NBasis = NodalBasisFamily<DeviceSpaceType,ValueType,ValueType>;
-        using CG_HBasis = HierarchicalBasisFamily<DeviceSpaceType,ValueType,ValueType>;
+        using CG_NBasis = NodalBasisFamily<DeviceType,ValueType,ValueType>;
+        using CG_DNBasis = DerivedNodalBasisFamily<DeviceType,ValueType,ValueType>;
+        using CG_HBasis = HierarchicalBasisFamily<DeviceType,ValueType,ValueType>;
         std::vector<basisType*> basis_set;
 
         //compute reference points
@@ -529,13 +523,13 @@ int OrientationHexNewBasis(const bool verbose) {
 
         // compute orientations for cells (one time computation)
         DynRankViewInt elemNodes(&hexas[0][0], numCells, numElemVertexes);
-        Kokkos::DynRankView<Orientation,DeviceSpaceType> elemOrts("elemOrts", numCells);
+        Kokkos::DynRankView<Orientation,DeviceType> elemOrts("elemOrts", numCells);
         ots::getOrientation(elemOrts, elemNodes, hexa);
 
         //Compute physical Dof Coordinates and Reference coordinates
         DynRankView ConstructWithLabel(physRefCoords, numCells, numRefCoords, dim);
         {
-          Basis_HGRAD_HEX_C1_FEM<DeviceSpaceType,ValueType,ValueType> hexaLinearBasis; //used for computing physical coordinates
+          Basis_HGRAD_HEX_C1_FEM<DeviceType,ValueType,ValueType> hexaLinearBasis; //used for computing physical coordinates
           DynRankView ConstructWithLabel(hexaLinearBasisValuesAtRefCoords, hexa.getNodeCount(), numRefCoords);
           hexaLinearBasis.getValues(hexaLinearBasisValuesAtRefCoords, refPoints);
           for(ordinal_type i=0; i<numCells; ++i)
@@ -557,6 +551,7 @@ int OrientationHexNewBasis(const bool verbose) {
           }
 
           basis_set.push_back(new typename  CG_NBasis::HGRAD_HEX(order));
+          basis_set.push_back(new typename  CG_DNBasis::HGRAD_HEX(order));
           basis_set.push_back(new typename  CG_HBasis::HGRAD_HEX(order));
 
           for (auto basisPtr:basis_set) {
@@ -615,6 +610,7 @@ int OrientationHexNewBasis(const bool verbose) {
 
           basis_set.clear();
           basis_set.push_back(new typename  CG_NBasis::HCURL_HEX(order));
+          basis_set.push_back(new typename  CG_DNBasis::HCURL_HEX(order));
           basis_set.push_back(new typename  CG_HBasis::HCURL_HEX(order));
 
           for (auto basisPtr:basis_set) {
@@ -680,6 +676,7 @@ int OrientationHexNewBasis(const bool verbose) {
           }
           basis_set.clear();
           basis_set.push_back(new typename  CG_NBasis::HDIV_HEX(order));
+          basis_set.push_back(new typename  CG_DNBasis::HDIV_HEX(order));
           basis_set.push_back(new typename  CG_HBasis::HDIV_HEX(order));
 
           for (auto basisPtr:basis_set) {

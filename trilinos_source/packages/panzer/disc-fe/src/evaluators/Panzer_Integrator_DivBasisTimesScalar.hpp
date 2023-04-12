@@ -178,7 +178,7 @@ namespace panzer
       /**
        *  \brief Post-Registration Setup.
        *
-       *  Get the Kokkos::Views of the field multipliers, and determine the
+       *  Get the PHX::Views of the field multipliers, and determine the
        *  index in the Workset bases for our particular basis name.
        *
        *  \param[in] sd Essentially a list of `Workset`s, which are collections
@@ -322,11 +322,11 @@ namespace panzer
       std::vector<PHX::MDField<const ScalarT, Cell, IP>> fieldMults_;
 
       /**
-       *  \brief The `Kokkos::View` representation of the (possibly empty) list
+       *  \brief The `PHX::View` representation of the (possibly empty) list
        *         of fields that are multipliers out in front of the integral
        *         (\f$ a(x) \f$, \f$ b(x) \f$, etc.).
        */
-    Kokkos::View<Kokkos::View<const ScalarT**,typename PHX::DevLayout<ScalarT>::type,PHX::Device>*> kokkosFieldMults_;
+    PHX::View<PHX::UnmanagedView<const ScalarT**>*> kokkosFieldMults_;
 
       /**
        *  \brief The number of quadrature points for each cell.
@@ -353,6 +353,9 @@ namespace panzer
        * \brief If set to true, device shared memory will be used.
        */
       bool use_shared_memory;
+
+    /// Temporary for non-shared calculations
+    PHX::View<ScalarT*> tmp_;
 
   }; // end of class Integrator_DivBasisTimesScalar
 

@@ -59,6 +59,7 @@
 #include "Ifpack2_SparseContainer.hpp"
 #include "Ifpack2_TriDiContainer.hpp"
 #include "Ifpack2_LocalSparseTriangularSolver.hpp"
+#include "Ifpack2_Hiptmair.hpp"
 
 #ifdef HAVE_IFPACK2_SHYLU_NODEFASTILU
 #include "Ifpack2_Details_Fic.hpp"
@@ -69,6 +70,11 @@
 #ifdef HAVE_IFPACK2_AMESOS2
 #  include "Ifpack2_Details_Amesos2Wrapper.hpp"
 #endif // HAVE_IFPACK2_AMESOS2
+
+#ifdef HAVE_IFPACK2_HYPRE
+#  include "Ifpack2_Hypre.hpp"
+#endif // HAVE_IFPACK2_HYPRE
+
 
 namespace Ifpack2 {
 namespace Details {
@@ -207,6 +213,14 @@ OneLevelFactory<MatrixType>::create (const std::string& precType,
            precTypeUpper == "SPARSETRIANGULARSOLVER") {
     prec = rcp (new LocalSparseTriangularSolver<row_matrix_type> (matrix));
   }
+  else if(precTypeUpper == "HIPTMAIR") {
+    prec = rcp (new Hiptmair<row_matrix_type> (matrix));
+  }
+#ifdef HAVE_IFPACK2_HYPRE
+  else if (precTypeUpper == "HYPRE") {
+    prec = rcp (new Hypre<row_matrix_type> (matrix));
+  }
+#endif
   else {
     TEUCHOS_TEST_FOR_EXCEPTION(
       true, std::invalid_argument, "Ifpack2::Details::OneLevelFactory::create: "
@@ -239,10 +253,14 @@ OneLevelFactory<MatrixType>::isSupported (const std::string& precType) const
 #ifdef HAVE_IFPACK2_AMESOS2
     "SPARSE_BLOCK_RELAXATION", "SPARSE BLOCK RELAXATION", "SPARSEBLOCKRELAXATION",
 #endif
+    #ifdef HAVE_IFPACK2_HYPRE
+    "HYPRE",
+#endif
     "TRIDI_RELAXATION", "TRIDI RELAXATION", "TRIDIRELAXATION", "TRIDIAGONAL_RELAXATION", "TRIDIAGONAL RELAXATION", "TRIDIAGONALRELAXATION",
     "BANDED_RELAXATION", "BANDED RELAXATION", "BANDEDRELAXATION",
     "IDENTITY", "IDENTITY_SOLVER",
-    "LOCAL SPARSE TRIANGULAR SOLVER", "LOCAL_SPARSE_TRIANGULAR_SOLVER", "LOCALSPARSETRIANGULARSOLVER", "SPARSE TRIANGULAR SOLVER", "SPARSE_TRIANGULAR_SOLVER", "SPARSETRIANGULARSOLVER"
+    "LOCAL SPARSE TRIANGULAR SOLVER", "LOCAL_SPARSE_TRIANGULAR_SOLVER", "LOCALSPARSETRIANGULARSOLVER", "SPARSE TRIANGULAR SOLVER", "SPARSE_TRIANGULAR_SOLVER", "SPARSETRIANGULARSOLVER",
+    "HIPTMAIR"
   };
   // const size_t numSupportedNames = supportedNames.size();
   // const auto end = supportedNames + numSupportedNames;

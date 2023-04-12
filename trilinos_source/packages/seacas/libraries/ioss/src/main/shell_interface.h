@@ -1,16 +1,16 @@
 /*
- * Copyright(C) 1999-2020 National Technology & Engineering Solutions
+ * Copyright(C) 1999-2022 National Technology & Engineering Solutions
  * of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
  * NTESS, the U.S. Government retains certain rights in this software.
- * 
+ *
  * See packages/seacas/LICENSE for details
  */
-#ifndef shell_SystemInterface_h
-#define shell_SystemInterface_h
+#pragma once
 
 #include "Ioss_GetLongOpt.h"
 
 #include <iosfwd>
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -20,10 +20,10 @@ namespace IOShell {
   class Interface
   {
   public:
-    Interface();
+    explicit Interface(const std::string &app_version);
     ~Interface();
 
-    bool parse_options(int argc, char **argv);
+    bool parse_options(int argc, char **argv, int my_processor);
 
     //! Dumps representation of data in this class to cerr
 
@@ -32,22 +32,28 @@ namespace IOShell {
     Ioss::GetLongOption options_;
 
     std::vector<std::string> inputFile;
+    std::string              version{};
     std::string              outputFile;
     std::string              inFiletype{"unknown"};
     std::string              outFiletype{"unknown"};
     std::string              groupName;
     std::string              decomp_method;
+    std::string              decomp_extra{"processor_id"};
     std::string              compose_output{"default"};
+    std::string              customField{""};
     double                   maximum_time{std::numeric_limits<double>::max()};
     double                   minimum_time{-std::numeric_limits<double>::max()};
     double                   append_time{std::numeric_limits<double>::max()};
     double                   timestep_delay{0.0};
     int                      append_step{std::numeric_limits<int>::max()};
-    int                      surface_split_type{1};
+    int                      surface_split_type{-1};
     int                      data_storage_type{0};
     int                      compression_level{0};
     int                      serialize_io_size{0};
     int                      flush_interval{0};
+
+    //! If non-empty, then it is a list of times that should be transferred to the output file.
+    std::vector<double> selected_times{};
 
     //! If non-zero, then put `split_times` timesteps in each file. Then close file and start new
     //! file.
@@ -87,7 +93,9 @@ namespace IOShell {
     // Testing CGNS - defines zones in reverse order from input file.
     bool reverse{false};
     bool add_processor_id_field{false};
+    bool boundary_sideset{false};
+    bool compare{false};
+    bool ignore_qa_info{false};
     char fieldSuffixSeparator{'_'};
   };
 } // namespace IOShell
-#endif

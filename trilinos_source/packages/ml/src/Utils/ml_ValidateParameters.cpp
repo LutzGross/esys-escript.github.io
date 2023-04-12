@@ -145,13 +145,19 @@ void ML_Epetra::SetValidSmooParams(Teuchos::ParameterList *PL, Teuchos::Array<st
 # endif
   /* Unlisted Options */
   setIntParameter("smoother: self overlap",0,"experimental option",PL,intParam);
+  setDoubleParameter("aggregation: enrich beta",0.0,"Unlisted option",PL,dblParam);
+
   /* Unlisted Options that should probably be listed */
   PL->set("smoother: self list",dummy);
   PL->sublist("smoother: self list").disableRecursiveValidation();
   setDoubleParameter("coarse: add to diag", 0.0,"Unlisted option",PL,dblParam);
   PL->set("coarse: split communicator",false);
   PL->set("smoother: split communicator",false);
-    
+  PL->set("dump matrix: enable",false);
+
+
+
+
 
   // From ml_Multilevel_Smoothers.cpp:
   setIntParameter("smoother: ParaSails matrix",0,"Unlisted option",PL,intParam);
@@ -471,6 +477,10 @@ Teuchos::ParameterList * ML_Epetra::GetValidMLPParameters(){
   setIntParameter("aggregation: material: max levels",10,"Unlisted option",PL,intParam);
   PL->set("material coordinates",(double*)0);
 
+  /* EXPERIMENTAL - EdgeMatrixFreePreconditioner */
+  PL->set("edge matrix free: skip first level",true);
+
+
   return PL;
 }
 
@@ -540,6 +550,7 @@ Teuchos::ParameterList * ML_Epetra::GetValidRefMaxwellParameters(){
   setStringToIntegralParameter<int>("refmaxwell: 11solver","edge matrix free","(1,1) Block Solver",tuple<std::string>("edge matrix free","sa"),PL);
   setStringToIntegralParameter<int>("refmaxwell: 22solver","multilevel","(2,2) Block Solver",tuple<std::string>("multilevel"),PL);
   setStringToIntegralParameter<int>("refmaxwell: mode","additive","Mode for RefMaxwell",tuple<std::string>("additive","212","121","none"),PL);
+  setStringToIntegralParameter<int>("refmaxwell: 11matrix","SM","(1,1) Block Matrix",tuple<std::string>("SM","S","M"),PL);
   List11.set("aggregation: aux: user matrix",(Epetra_CrsMatrix*)0);  
   PL->set("edge matrix free: coarse",dummy);
   PL->set("refmaxwell: 11list",List11);

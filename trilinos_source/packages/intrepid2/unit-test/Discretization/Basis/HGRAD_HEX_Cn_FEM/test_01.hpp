@@ -79,7 +79,7 @@ namespace Test {
       *outStream << "-------------------------------------------------------------------------------" << "\n\n"; \
     }
 
-template<typename OutValueType, typename PointValueType, typename DeviceSpaceType>
+template<typename OutValueType, typename PointValueType, typename DeviceType>
 int HGRAD_HEX_Cn_FEM_Test01(const bool verbose) {
 
   Teuchos::RCP<std::ostream> outStream;
@@ -93,11 +93,12 @@ int HGRAD_HEX_Cn_FEM_Test01(const bool verbose) {
   Teuchos::oblackholestream oldFormatState;
   oldFormatState.copyfmt(std::cout);
 
+  using DeviceSpaceType = typename DeviceType::execution_space;
   typedef typename
-      Kokkos::Impl::is_space<DeviceSpaceType>::host_mirror_space::execution_space HostSpaceType ;
+      Kokkos::DefaultHostExecutionSpace HostSpaceType ;
 
-  *outStream << "DeviceSpace::  "; DeviceSpaceType::print_configuration(*outStream, false);
-  *outStream << "HostSpace::    ";   HostSpaceType::print_configuration(*outStream, false);
+  *outStream << "DeviceSpace::  "; DeviceSpaceType().print_configuration(*outStream, false);
+  *outStream << "HostSpace::    ";   HostSpaceType().print_configuration(*outStream, false);
 
   *outStream
   << "===============================================================================\n"
@@ -119,10 +120,10 @@ int HGRAD_HEX_Cn_FEM_Test01(const bool verbose) {
   << "|                                                                             |\n"
   << "===============================================================================\n";
 
-  typedef Kokkos::DynRankView<PointValueType,DeviceSpaceType> DynRankViewPointValueType;
-  typedef Kokkos::DynRankView<OutValueType,DeviceSpaceType> DynRankViewOutValueType;
+  typedef Kokkos::DynRankView<PointValueType,DeviceType> DynRankViewPointValueType;
+  typedef Kokkos::DynRankView<OutValueType,DeviceType> DynRankViewOutValueType;
   typedef typename ScalarTraits<OutValueType>::scalar_type scalar_type;
-  typedef Kokkos::DynRankView<scalar_type, DeviceSpaceType> DynRankViewScalarValueType;      
+  typedef Kokkos::DynRankView<scalar_type, DeviceType> DynRankViewScalarValueType;      
   typedef Kokkos::DynRankView<scalar_type, HostSpaceType> DynRankViewHostScalarValueType;      
 
 #define ConstructWithLabelScalar(obj, ...) obj(#obj, __VA_ARGS__)
@@ -130,7 +131,7 @@ int HGRAD_HEX_Cn_FEM_Test01(const bool verbose) {
   const scalar_type tol = tolerence();
   int errorFlag = 0;
 
-  typedef Basis_HGRAD_HEX_Cn_FEM<DeviceSpaceType,OutValueType,PointValueType> HexBasisType;
+  typedef Basis_HGRAD_HEX_Cn_FEM<DeviceType,OutValueType,PointValueType> HexBasisType;
   constexpr ordinal_type maxOrder = Parameters::MaxOrder;
 
 
@@ -324,7 +325,7 @@ int HGRAD_HEX_Cn_FEM_Test01(const bool verbose) {
     DynRankViewPointValueType ConstructWithLabelPointView(lattice, basisCardinality , dim);
 
     hexBasis.getDofCoords(lattice_scalar);
-    RealSpaceTools<DeviceSpaceType>::clone(lattice,lattice_scalar);
+    RealSpaceTools<DeviceType>::clone(lattice,lattice_scalar);
 
     auto lattice_host = Kokkos::create_mirror_view(lattice);
 
@@ -424,7 +425,7 @@ int HGRAD_HEX_Cn_FEM_Test01(const bool verbose) {
   // GRAD and D1 values are stored in (F,P,D) format in a data file. Read file and do the test
   std::vector<scalar_type> basisGrads;           // Flat array for the gradient values.
   {
-    fileName = "../testdata/HEX_C2_GradVals.dat";
+    fileName = "./testdata/HEX_C2_GradVals.dat";
     dataFile.open(fileName.c_str());
     INTREPID2_TEST_FOR_EXCEPTION( !dataFile.good(), std::logic_error,
         ">>> ERROR (HGRAD_HEX_C2/test01): could not open GRAD values data file, test aborted.");
@@ -444,7 +445,7 @@ int HGRAD_HEX_Cn_FEM_Test01(const bool verbose) {
   //D2: flat array with the values of D2 applied to basis functions. Multi-index is (F,P,D2cardinality)
   std::vector<scalar_type> basisD2;
   {
-    fileName = "../testdata/HEX_C2_D2Vals.dat";
+    fileName = "./testdata/HEX_C2_D2Vals.dat";
     dataFile.open(fileName.c_str());
     INTREPID2_TEST_FOR_EXCEPTION( !dataFile.good(), std::logic_error,
         ">>> ERROR (HGRAD_HEX_C2/test01): could not open D2 values data file, test aborted.");
@@ -464,7 +465,7 @@ int HGRAD_HEX_Cn_FEM_Test01(const bool verbose) {
   //D3: flat array with the values of D3 applied to basis functions. Multi-index is (F,P,D3cardinality)
   std::vector<scalar_type> basisD3;
   {
-    fileName = "../testdata/HEX_C2_D3Vals.dat";
+    fileName = "./testdata/HEX_C2_D3Vals.dat";
     dataFile.open(fileName.c_str());
     TEUCHOS_TEST_FOR_EXCEPTION( !dataFile.good(), std::logic_error,
         ">>> ERROR (HGRAD_HEX_C2/test01): could not open D3 values data file, test aborted.");
@@ -485,7 +486,7 @@ int HGRAD_HEX_Cn_FEM_Test01(const bool verbose) {
   //D4: flat array with the values of D applied to basis functions. Multi-index is (F,P,D4cardinality)
   std::vector<scalar_type> basisD4;
   {
-    fileName = "../testdata/HEX_C2_D4Vals.dat";
+    fileName = "./testdata/HEX_C2_D4Vals.dat";
     dataFile.open(fileName.c_str());
     TEUCHOS_TEST_FOR_EXCEPTION( !dataFile.good(), std::logic_error,
         ">>> ERROR (HGRAD_HEX_C2/test01): could not open D4 values data file, test aborted.");
@@ -541,10 +542,10 @@ int HGRAD_HEX_Cn_FEM_Test01(const bool verbose) {
       hexNodesHost(25, 0) = 0.0;    hexNodesHost(25, 1) =  1.0;  hexNodesHost(25, 2) = 1.0;
       hexNodesHost(26, 0) = 1.0;    hexNodesHost(26, 1) =  1.0;  hexNodesHost(26, 2) = 1.0;
 
-      auto hexNodes_scalar = Kokkos::create_mirror_view(typename DeviceSpaceType::memory_space(), hexNodesHost);
+      auto hexNodes_scalar = Kokkos::create_mirror_view(typename DeviceType::memory_space(), hexNodesHost);
       Kokkos::deep_copy(hexNodes_scalar, hexNodesHost);
       
-      RealSpaceTools<DeviceSpaceType>::clone(hexNodes, hexNodes_scalar);
+      RealSpaceTools<DeviceType>::clone(hexNodes, hexNodes_scalar);
 
       // Dimensions for the output arrays:
       const ordinal_type numFields = hexBasis.getCardinality();

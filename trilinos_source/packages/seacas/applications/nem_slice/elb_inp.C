@@ -1,8 +1,8 @@
 /*
- * Copyright(C) 1999-2020 National Technology & Engineering Solutions
+ * Copyright(C) 1999-2023 National Technology & Engineering Solutions
  * of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
  * NTESS, the U.S. Government retains certain rights in this software.
- * 
+ *
  * See packages/seacas/LICENSE for details
  */
 
@@ -19,7 +19,8 @@
 #include "elb_inp.h"
 #include "elb_util.h" // for strip_string, token_compare, etc
 #include "fmt/ostream.h"
-#ifdef _MSC_VER
+#if defined(WIN32) || defined(__WIN32__) || defined(_WIN32) || defined(_MSC_VER) ||                \
+    defined(__MINGW32__) || defined(_WIN64) || defined(__MINGW64__)
 #include "XGetopt.h"
 #include <unistd.h>
 #else
@@ -35,6 +36,8 @@
 #include <exodusII.h> // for ex_close, EX_READ, etc
 
 namespace {
+  int my_getsubopt(char **optionp, char *const *tokens, char **valuep);
+
   void print_usage();
 
   std::string remove_extension(const std::string &filename)
@@ -67,13 +70,13 @@ template int cmd_line_arg_parse(int argc, char *argv[], std::string &exoII_inp_f
 
 template <typename INT>
 int cmd_line_arg_parse(int argc, char *argv[],                  /* Args as passed by main() */
-                       std::string &            exoII_inp_file, /* The input ExodusII file name */
-                       std::string &            ascii_inp_file, /* The ASCII input file name */
-                       std::string &            nemI_out_file,  /* Output NemesisI file name */
-                       Machine_Description *    machine, /* Structure for machine description */
-                       LB_Description<INT> *    lb,     /* Structure for load balance description */
-                       Problem_Description *    prob,   /* Structure for various problem params */
-                       Solver_Description *     solver, /* Structure for eigen solver params */
+                       std::string             &exoII_inp_file, /* The input ExodusII file name */
+                       std::string             &ascii_inp_file, /* The ASCII input file name */
+                       std::string             &nemI_out_file,  /* Output NemesisI file name */
+                       Machine_Description     *machine, /* Structure for machine description */
+                       LB_Description<INT>     *lb,     /* Structure for load balance description */
+                       Problem_Description     *prob,   /* Structure for various problem params */
+                       Solver_Description      *solver, /* Structure for eigen solver params */
                        Weight_Description<INT> *weight  /* Structure for weighting graph */
 )
 {
@@ -83,7 +86,7 @@ int cmd_line_arg_parse(int argc, char *argv[],                  /* Args as passe
   int         wgt;
   int         max_dim = 0;
   int         i;
-  char *      sub_opt = nullptr, *value = nullptr, *cptr = nullptr, *cptr2 = nullptr;
+  char       *sub_opt = nullptr, *value = nullptr, *cptr = nullptr, *cptr2 = nullptr;
   std::string ctemp;
 
   /* see NOTE in elb.h about the order of the following array */
@@ -174,20 +177,10 @@ int cmd_line_arg_parse(int argc, char *argv[],                  /* Args as passe
     case 'w':
       /* Weighting options */
       sub_opt = optarg;
-#ifdef _MSC_VER
-      fprintf(stderr, "Windows build does not use getsubopt yet...\n");
-      exit(1);
-#else
       while (sub_opt != nullptr && *sub_opt != '\0') {
-        switch (getsubopt(&sub_opt, (char *const *)weight_subopts, &value)) {
+        switch (my_getsubopt(&sub_opt, (char *const *)weight_subopts, &value)) {
         case READ_EXO:
-          if (value == nullptr) {
-            ctemp =
-                fmt::format("FATAL: must specify a file name with {}", weight_subopts[READ_EXO]);
-            Gen_Error(0, ctemp);
-            return 0;
-          }
-          if (strlen(value) == 0) {
+          if (value == nullptr || strlen(value) == 0) {
             ctemp =
                 fmt::format("FATAL: must specify a file name with {}", weight_subopts[READ_EXO]);
             Gen_Error(0, ctemp);
@@ -211,12 +204,7 @@ int cmd_line_arg_parse(int argc, char *argv[],                  /* Args as passe
           break; /* End "case READ_EXO" */
 
         case VAR_INDX:
-          if (value == nullptr) {
-            ctemp = fmt::format("FATAL: must specify a value with {}", weight_subopts[VAR_INDX]);
-            Gen_Error(0, ctemp);
-            return 0;
-          }
-          if (strlen(value) == 0) {
+          if (value == nullptr || strlen(value) == 0) {
             ctemp = fmt::format("FATAL: must specify a value with {}", weight_subopts[VAR_INDX]);
             Gen_Error(0, ctemp);
             return 0;
@@ -231,12 +219,7 @@ int cmd_line_arg_parse(int argc, char *argv[],                  /* Args as passe
           break;
 
         case TIME_INDX:
-          if (value == nullptr) {
-            ctemp = fmt::format("FATAL: must specify a value with {}", weight_subopts[TIME_INDX]);
-            Gen_Error(0, ctemp);
-            return 0;
-          }
-          if (strlen(value) == 0) {
+          if (value == nullptr || strlen(value) == 0) {
             ctemp = fmt::format("FATAL: must specify a value with {}", weight_subopts[TIME_INDX]);
             Gen_Error(0, ctemp);
             return 0;
@@ -251,12 +234,7 @@ int cmd_line_arg_parse(int argc, char *argv[],                  /* Args as passe
           break;
 
         case VAR_NAME:
-          if (value == nullptr) {
-            ctemp = fmt::format("FATAL: must specify a value with {}", weight_subopts[VAR_NAME]);
-            Gen_Error(0, ctemp);
-            return 0;
-          }
-          if (strlen(value) == 0) {
+          if (value == nullptr || strlen(value) == 0) {
             ctemp = fmt::format("FATAL: must specify a value with {}", weight_subopts[VAR_NAME]);
             Gen_Error(0, ctemp);
             return 0;
@@ -325,10 +303,9 @@ int cmd_line_arg_parse(int argc, char *argv[],                  /* Args as passe
           Gen_Error(0, ctemp);
           return 0;
 
-        } /* End "switch(getsubopt(&sub_opt, weight_subopts, &value))" */
+        } /* End "switch(my_getsubopt(&sub_opt, weight_subopts, &value))" */
 
-      } /* End "while(*sub_opt != '\0')" */
-#endif
+      }      /* End "while(*sub_opt != '\0')" */
       break; /* End "case 'w'" */
 
     case 'a':
@@ -369,14 +346,10 @@ int cmd_line_arg_parse(int argc, char *argv[],                  /* Args as passe
       if (sub_opt != nullptr) {
         string_to_lower(sub_opt, '\0');
       }
-#ifdef _MSC_VER
-      fprintf(stderr, "Windows build does not use getsubopt yet...\n");
-      exit(1);
-#else
       while (sub_opt != nullptr && *sub_opt != '\0') {
 
         /* Switch over the machine description */
-        switch (getsubopt(&sub_opt, (char *const *)mach_subopts, &value)) {
+        switch (my_getsubopt(&sub_opt, (char *const *)mach_subopts, &value)) {
         case HCUBE:
         case HYPERCUBE:
           if (machine->type < 0) {
@@ -462,10 +435,9 @@ int cmd_line_arg_parse(int argc, char *argv[],                  /* Args as passe
 
         default: Gen_Error(0, "FATAL: unknown machine type"); return 0;
 
-        } /* End "switch(getsubopt(&sub_opt, mach_subopts, &value))" */
+        } /* End "switch(my_getsubopt(&sub_opt, mach_subopts, &value))" */
 
-      } /* End "while(*sub_opt != '\0')" */
-#endif
+      }      /* End "while(*sub_opt != '\0')" */
       break; /* End "case 'm'" */
 
     case 'l':
@@ -474,12 +446,8 @@ int cmd_line_arg_parse(int argc, char *argv[],                  /* Args as passe
       if (sub_opt != nullptr) {
         string_to_lower(sub_opt, '\0');
       }
-#ifdef _MSC_VER
-      fprintf(stderr, "Windows build does not use getsubopt yet...\n");
-      exit(1);
-#else
       while (sub_opt != nullptr && *sub_opt != '\0') {
-        switch (getsubopt(&sub_opt, (char *const *)lb_subopts, &value)) {
+        switch (my_getsubopt(&sub_opt, (char *const *)lb_subopts, &value)) {
         case MULTIKL: lb->type = MULTIKL; break;
 
         case SPECTRAL: lb->type = SPECTRAL; break;
@@ -556,10 +524,9 @@ int cmd_line_arg_parse(int argc, char *argv[],                  /* Args as passe
           Gen_Error(0, ctemp);
           return 0;
 
-        } /* End "switch(getsubopt(&sup_opt, mach_subopts, &value))" */
+        } /* End "switch(my_getsubopt(&sup_opt, mach_subopts, &value))" */
 
-      } /* End "while(*sup_opt != '\0')" */
-#endif
+      }      /* End "while(*sup_opt != '\0')" */
       break; /* End "case 'l'" */
 
     case 'S': prob->no_sph = 1; break;
@@ -570,12 +537,8 @@ int cmd_line_arg_parse(int argc, char *argv[],                  /* Args as passe
       if (sub_opt != nullptr) {
         string_to_lower(sub_opt, '\0');
       }
-#ifdef _MSC_VER
-      fprintf(stderr, "Windows build does not use getsubopt yet...\n");
-      exit(1);
-#else
       while (sub_opt != nullptr && *sub_opt != '\0') {
-        switch (getsubopt(&sub_opt, (char *const *)solve_subopts, &value)) {
+        switch (my_getsubopt(&sub_opt, (char *const *)solve_subopts, &value)) {
         case TOLER:
           if (value == nullptr) {
             fmt::print(stderr, "FATAL: tolerance specification requires \
@@ -615,10 +578,9 @@ value\n");
 
         default: fmt::print(stderr, "FATAL: unknown solver option\n"); return 0;
 
-        } /* End "switch(getsubopt(&sub_opt, solve_subopts, &value))" */
+        } /* End "switch(my_getsubopt(&sub_opt, solve_subopts, &value))" */
 
-      } /* End "while(sub_opt != '\0')" */
-#endif
+      }      /* End "while(sub_opt != '\0')" */
       break; /* End "case 's'" */
 
     case 'g':
@@ -683,11 +645,11 @@ int read_cmd_file(std::string &ascii_inp_file, std::string &exoII_inp_file,
                   Problem_Description *problem, Solver_Description *solver,
                   Weight_Description<INT> *weight)
 {
-  FILE *      inp_fd;
+  FILE       *inp_fd;
   std::string ctemp;
   char        inp_line[MAX_INP_LINE];
   char        inp_copy[MAX_INP_LINE];
-  char *      cptr, *cptr2;
+  char       *cptr, *cptr2;
 
   int  iret;
   int  el_blk;
@@ -698,7 +660,7 @@ int read_cmd_file(std::string &ascii_inp_file, std::string &exoII_inp_file,
   char tmpstr[2048];
   /*-----------------------------Execution Begins------------------------------*/
   if (!(inp_fd = fopen(ascii_inp_file.c_str(), "r"))) {
-    ctemp = fmt::format("FATAL: unable to open ASCII input file {}", ascii_inp_file.c_str());
+    ctemp = fmt::format("FATAL: unable to open ASCII input file {}", ascii_inp_file);
     Gen_Error(0, ctemp);
     return 0;
   }
@@ -1352,21 +1314,6 @@ int check_inp_specs(std::string &exoII_inp_file, std::string &nemI_out_file,
                     Problem_Description *prob, Solver_Description *solver,
                     Weight_Description<INT> *weight)
 {
-  std::string    ctemp;
-  ex_entity_type type;
-  char **        var_names;
-  int            cnt;
-  int            exoid;
-  int            cpu_ws = 0;
-  int            io_ws  = 0;
-  int            nvars;
-  int            tmp_vindx = 0;
-  float          version;
-  int            exid_inp;
-  int            icpu_ws = 0;
-  int            iio_ws  = 0;
-  float          vers;
-
   /* Check that an input ExodusII file name was specified */
   if (exoII_inp_file.empty()) {
     Gen_Error(0, "FATAL: no input ExodusII file specified");
@@ -1374,8 +1321,12 @@ int check_inp_specs(std::string &exoII_inp_file, std::string &nemI_out_file,
   }
 
   /* Check for the existence and readability of the input file */
+  int   icpu_ws = 0;
+  int   iio_ws  = 0;
+  float vers;
+  int   exid_inp;
   if ((exid_inp = ex_open(exoII_inp_file.c_str(), EX_READ, &icpu_ws, &iio_ws, &vers)) < 0) {
-    ctemp = fmt::format("FATAL: unable to open input ExodusII file {}", exoII_inp_file.c_str());
+    std::string ctemp = fmt::format("FATAL: unable to open input ExodusII file {}", exoII_inp_file);
     Gen_Error(0, ctemp);
     return 0;
   }
@@ -1412,7 +1363,7 @@ int check_inp_specs(std::string &exoII_inp_file, std::string &nemI_out_file,
   }
   else {
     machine->procs_per_box = machine->dim[0];
-    for (cnt = 1; cnt < machine->num_dims; cnt++) {
+    for (int cnt = 1; cnt < machine->num_dims; cnt++) {
       machine->procs_per_box *= machine->dim[cnt];
     }
   }
@@ -1617,9 +1568,13 @@ int check_inp_specs(std::string &exoII_inp_file, std::string &nemI_out_file,
      * If a variable name and or index was specified then open the ExodusII
      * file and compare the specified name against what exists in the file.
      */
+    int   exoid;
+    float version;
+    int   cpu_ws = 0;
+    int   io_ws  = 0;
     if ((exoid = ex_open(weight->exo_filename.c_str(), EX_READ, &cpu_ws, &io_ws, &version)) < 0) {
-      ctemp = fmt::format("FATAL: failed to open ExodusII weighting file {}",
-                          weight->exo_filename.c_str());
+      std::string ctemp =
+          fmt::format("FATAL: failed to open ExodusII weighting file {}", weight->exo_filename);
       Gen_Error(0, ctemp);
       return 0;
     }
@@ -1632,12 +1587,13 @@ int check_inp_specs(std::string &exoII_inp_file, std::string &nemI_out_file,
     }
 
     if (weight->exo_tindx > ntimes) {
-      ctemp = fmt::format("FATAL: requested time index %d not available in weighting file",
-                          weight->exo_tindx);
+      std::string ctemp = fmt::format(
+          "FATAL: requested time index %d not available in weighting file", weight->exo_tindx);
       Gen_Error(0, ctemp);
       return 0;
     }
 
+    ex_entity_type type;
     if (prob->type == NODAL) {
       type = EX_NODAL;
     }
@@ -1649,6 +1605,7 @@ int check_inp_specs(std::string &exoII_inp_file, std::string &nemI_out_file,
      * First check that there are variables of the requested type in the
      * specified ExodusII file.
      */
+    int nvars;
     if (ex_get_variable_param(exoid, type, &nvars) < 0) {
       Gen_Error(0, "FATAL: unable to get variable params from ExodusII"
                    " weighting file");
@@ -1660,7 +1617,7 @@ int check_inp_specs(std::string &exoII_inp_file, std::string &nemI_out_file,
     }
 
     /* Read the variable names from the requested file */
-    var_names = reinterpret_cast<char **>(malloc(nvars * sizeof(char *)));
+    char **var_names = reinterpret_cast<char **>(malloc(nvars * sizeof(char *)));
     if (!var_names) {
       Gen_Error(0, "FATAL: insufficient memory");
       return 0;
@@ -1670,7 +1627,7 @@ int check_inp_specs(std::string &exoII_inp_file, std::string &nemI_out_file,
       int max_name_length = ex_inquire_int(exoid, EX_INQ_DB_MAX_USED_NAME_LENGTH);
       ex_set_max_name_length(exoid, max_name_length);
 
-      for (cnt = 0; cnt < nvars; cnt++) {
+      for (int cnt = 0; cnt < nvars; cnt++) {
         var_names[cnt] = reinterpret_cast<char *>(malloc((max_name_length + 1) * sizeof(char)));
         if (!var_names[cnt]) {
           Gen_Error(0, "FATAL: insufficient memory");
@@ -1690,7 +1647,8 @@ int check_inp_specs(std::string &exoII_inp_file, std::string &nemI_out_file,
      * sure they match.
      */
     if (!weight->exo_varname.empty()) {
-      for (cnt = 0; cnt < nvars; cnt++) {
+      int tmp_vindx = 0;
+      for (int cnt = 0; cnt < nvars; cnt++) {
         if (strcmp(var_names[cnt], weight->exo_varname.c_str()) == 0) {
           tmp_vindx = cnt + 1;
 
@@ -1709,7 +1667,7 @@ int check_inp_specs(std::string &exoII_inp_file, std::string &nemI_out_file,
     }
 
     /* Free up memory */
-    for (cnt = 0; cnt < nvars; cnt++) {
+    for (int cnt = 0; cnt < nvars; cnt++) {
       free(var_names[cnt]);
     }
     free(var_names);
@@ -1719,8 +1677,8 @@ int check_inp_specs(std::string &exoII_inp_file, std::string &nemI_out_file,
      * not exist in the specified file.
      */
     if (weight->exo_vindx <= 0) {
-      ctemp = fmt::format("FATAL: requested weighting variable {} not found in ExodusII file",
-                          weight->exo_varname.c_str());
+      std::string ctemp = fmt::format(
+          "FATAL: requested weighting variable {} not found in ExodusII file", weight->exo_varname);
       Gen_Error(0, ctemp);
       return 0;
     }
@@ -1741,9 +1699,9 @@ int check_inp_specs(std::string &exoII_inp_file, std::string &nemI_out_file,
       sort2(weight->elemblk.size(), weight->elemblk.data(), weight->elemblk_wgt.data());
 
       /* now loop through, and make sure that we don't have multiple values */
-      for (cnt = 1; cnt < (int)weight->elemblk.size(); cnt++) {
+      for (int cnt = 1; cnt < (int)weight->elemblk.size(); cnt++) {
         if (weight->elemblk[cnt] == weight->elemblk[cnt - 1]) {
-          ctemp =
+          std::string ctemp =
               fmt::format("WARNING: multiple weight specified for block {}", weight->elemblk[cnt]);
           Gen_Error(1, ctemp);
         }
@@ -1756,6 +1714,78 @@ int check_inp_specs(std::string &exoII_inp_file, std::string &nemI_out_file,
 } /*-------------------End check_inp_specs()-----------------*/
 
 namespace {
+  /* Parse comma separate list into words.
+     Copyright (C) 1996, 1997, 1999, 2004 Free Software Foundation, Inc.
+     This file is part of the GNU C Library.
+     Contributed by Ulrich Drepper <drepper@cygnus.com>, 1996.
+     The GNU C Library is free software; you can redistribute it and/or
+     modify it under the terms of the GNU Lesser General Public
+     License as published by the Free Software Foundation; either
+     version 2.1 of the License, or (at your option) any later version.
+     The GNU C Library is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+     Lesser General Public License for more details.
+     You should have received a copy of the GNU Lesser General Public
+     License along with the GNU C Library; if not, write to the Free
+     Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+     02111-1307 USA.  */
+
+  const char *my_strchrnul(const char *s, int c)
+  {
+    const char *result = strchr(s, c);
+
+    if (!result) {
+      result = (char *)s + strlen(s);
+    }
+
+    return (result);
+  }
+
+  /* Parse comma separated suboption from *OPTIONP and match against
+     strings in TOKENS.  If found return index and set *VALUEP to
+     optional value introduced by an equal sign.  If the suboption is
+     not part of TOKENS return in *VALUEP beginning of unknown
+     suboption.  On exit *OPTIONP is set to the beginning of the next
+     token or at the terminating NUL character.  */
+  int my_getsubopt(char **optionp, char *const *tokens, char **valuep)
+  {
+    if (**optionp == '\0')
+      return -1;
+
+    /* Find end of next token.  */
+    char *endp = (char *)my_strchrnul(*optionp, ',');
+
+    /* Find start of value.  */
+    char *vstart = (char *)memchr(*optionp, '=', endp - *optionp);
+    if (vstart == nullptr)
+      vstart = endp;
+
+    /* Try to match the characters between *OPTIONP and VSTART against
+       one of the TOKENS.  */
+    for (int cnt = 0; tokens[cnt] != nullptr; ++cnt)
+      if (strncmp(*optionp, tokens[cnt], vstart - *optionp) == 0 &&
+          tokens[cnt][vstart - *optionp] == '\0') {
+        /* We found the current option in TOKENS.  */
+        *valuep = vstart != endp ? vstart + 1 : nullptr;
+
+        if (*endp != '\0')
+          *endp++ = '\0';
+        *optionp = endp;
+
+        return cnt;
+      }
+
+    /* The current suboption does not match any option.  */
+    *valuep = *optionp;
+
+    if (*endp != '\0')
+      *endp++ = '\0';
+    *optionp = endp;
+
+    return -1;
+  }
+
   void print_usage()
   {
     fmt::print("\nusage:\t{} [-h] [<-n|-e> -o <output file>"

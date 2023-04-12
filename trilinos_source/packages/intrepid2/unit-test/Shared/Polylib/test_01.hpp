@@ -165,7 +165,7 @@ namespace Intrepid2 {
       return sum;
     }
 
-    template<typename ValueType, typename DeviceSpaceType>
+    template<typename ValueType, typename DeviceType>
     int Polylib_Test01(const bool verbose) {
 
       Teuchos::RCP<std::ostream> outStream;
@@ -178,12 +178,6 @@ namespace Intrepid2 {
 
       Teuchos::oblackholestream oldFormatState;
       oldFormatState.copyfmt(std::cout);
-
-      typedef typename
-        Kokkos::Impl::is_space<DeviceSpaceType>::host_mirror_space::execution_space HostSpaceType ;
-
-      *outStream << "DeviceSpace::  "; DeviceSpaceType::print_configuration(*outStream, false);
-      *outStream << "HostSpace::    ";   HostSpaceType::print_configuration(*outStream, false);
 
       *outStream
         << "===============================================================================\n"
@@ -237,13 +231,13 @@ namespace Intrepid2 {
       const ValueType tol = 1000.0 * tolerence();
 
       try {
-        Kokkos::View<ValueType*,HostSpaceType> 
+        Kokkos::View<ValueType*,Kokkos::HostSpace> 
           z("z", npUpper), 
           w("w", npUpper), 
           p("p", npUpper),
           null;
         
-        Kokkos::View<ValueType**,HostSpaceType> 
+        Kokkos::View<ValueType**,Kokkos::HostSpace> 
           d("d", npUpper, npUpper);
 
         const EPolyType ps[] = {

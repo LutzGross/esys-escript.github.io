@@ -1,93 +1,40 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_IMPL_STATICCRSGRAPH_FACTORY_HPP
 #define KOKKOS_IMPL_STATICCRSGRAPH_FACTORY_HPP
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
+#include <Kokkos_Core.hpp>
+#include <Kokkos_StaticCrsGraph.hpp>
 
 namespace Kokkos {
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-template <class DataType, class Arg1Type, class Arg2Type, typename SizeType,
-          class Arg3Type>
-inline typename StaticCrsGraph<DataType, Arg1Type, Arg2Type, SizeType,
-                               Arg3Type>::HostMirror
-create_mirror_view(
-    const StaticCrsGraph<DataType, Arg1Type, Arg2Type, SizeType, Arg3Type>&
-        view,
-    typename std::enable_if<ViewTraits<DataType, Arg1Type, Arg2Type,
-                                       Arg3Type>::is_hostspace>::type* = 0) {
-  return view;
-}
-#else
 template <class DataType, class Arg1Type, class Arg2Type, class Arg3Type,
           typename SizeType>
 inline typename StaticCrsGraph<DataType, Arg1Type, Arg2Type, Arg3Type,
                                SizeType>::HostMirror
-create_mirror_view(
-    const StaticCrsGraph<DataType, Arg1Type, Arg2Type, Arg3Type, SizeType>&
-        view,
-    typename std::enable_if<ViewTraits<DataType, Arg1Type, Arg2Type,
-                                       Arg3Type>::is_hostspace>::type* = 0) {
+create_mirror_view(const StaticCrsGraph<DataType, Arg1Type, Arg2Type, Arg3Type,
+                                        SizeType>& view,
+                   std::enable_if_t<ViewTraits<DataType, Arg1Type, Arg2Type,
+                                               Arg3Type>::is_hostspace>* = 0) {
   return view;
 }
-#endif
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-template <class DataType, class Arg1Type, class Arg2Type, typename SizeType,
-          class Arg3Type>
-inline typename StaticCrsGraph<DataType, Arg1Type, Arg2Type, SizeType,
-                               Arg3Type>::HostMirror
-create_mirror(const StaticCrsGraph<DataType, Arg1Type, Arg2Type, SizeType,
-                                   Arg3Type>& view) {
-  // Force copy:
-  // typedef Impl::ViewAssignment< Impl::ViewDefault > alloc ; // unused
-  typedef StaticCrsGraph<DataType, Arg1Type, Arg2Type, SizeType, Arg3Type>
-      staticcrsgraph_type;
-#else
 template <class DataType, class Arg1Type, class Arg2Type, class Arg3Type,
           typename SizeType>
 inline typename StaticCrsGraph<DataType, Arg1Type, Arg2Type, Arg3Type,
@@ -95,10 +42,9 @@ inline typename StaticCrsGraph<DataType, Arg1Type, Arg2Type, Arg3Type,
 create_mirror(const StaticCrsGraph<DataType, Arg1Type, Arg2Type, Arg3Type,
                                    SizeType>& view) {
   // Force copy:
-  // typedef Impl::ViewAssignment< Impl::ViewDefault > alloc ; // unused
-  typedef StaticCrsGraph<DataType, Arg1Type, Arg2Type, Arg3Type, SizeType>
-      staticcrsgraph_type;
-#endif
+  // using alloc = Impl::ViewAssignment<Impl::ViewDefault>; // unused
+  using staticcrsgraph_type =
+      StaticCrsGraph<DataType, Arg1Type, Arg2Type, Arg3Type, SizeType>;
 
   typename staticcrsgraph_type::HostMirror tmp;
   typename staticcrsgraph_type::row_map_type::HostMirror tmp_row_map =
@@ -120,28 +66,14 @@ create_mirror(const StaticCrsGraph<DataType, Arg1Type, Arg2Type, Arg3Type,
   return tmp;
 }
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-template <class DataType, class Arg1Type, class Arg2Type, typename SizeType,
-          class Arg3Type>
-inline typename StaticCrsGraph<DataType, Arg1Type, Arg2Type, SizeType,
-                               Arg3Type>::HostMirror
-create_mirror_view(
-    const StaticCrsGraph<DataType, Arg1Type, Arg2Type, SizeType, Arg3Type>&
-        view,
-    typename std::enable_if<!ViewTraits<DataType, Arg1Type, Arg2Type,
-                                        Arg3Type>::is_hostspace>::type* = 0)
-#else
 template <class DataType, class Arg1Type, class Arg2Type, class Arg3Type,
           typename SizeType>
 inline typename StaticCrsGraph<DataType, Arg1Type, Arg2Type, Arg3Type,
                                SizeType>::HostMirror
-create_mirror_view(
-    const StaticCrsGraph<DataType, Arg1Type, Arg2Type, Arg3Type, SizeType>&
-        view,
-    typename std::enable_if<!ViewTraits<DataType, Arg1Type, Arg2Type,
-                                        Arg3Type>::is_hostspace>::type* = 0)
-#endif
-{
+create_mirror_view(const StaticCrsGraph<DataType, Arg1Type, Arg2Type, Arg3Type,
+                                        SizeType>& view,
+                   std::enable_if_t<!ViewTraits<DataType, Arg1Type, Arg2Type,
+                                                Arg3Type>::is_hostspace>* = 0) {
   return create_mirror(view);
 }
 }  // namespace Kokkos
@@ -154,16 +86,11 @@ namespace Kokkos {
 template <class StaticCrsGraphType, class InputSizeType>
 inline typename StaticCrsGraphType::staticcrsgraph_type create_staticcrsgraph(
     const std::string& label, const std::vector<InputSizeType>& input) {
-  typedef StaticCrsGraphType output_type;
-  // typedef std::vector< InputSizeType >  input_type ; // unused
-
-  typedef typename output_type::entries_type entries_type;
-
-  typedef View<typename output_type::size_type[],
-               typename output_type::array_layout,
-               typename output_type::execution_space,
-               typename output_type::memory_traits>
-      work_type;
+  using output_type  = StaticCrsGraphType;
+  using entries_type = typename output_type::entries_type;
+  using work_type    = View<
+      typename output_type::size_type[], typename output_type::array_layout,
+      typename output_type::device_type, typename output_type::memory_traits>;
 
   output_type output;
 
@@ -197,16 +124,14 @@ template <class StaticCrsGraphType, class InputSizeType>
 inline typename StaticCrsGraphType::staticcrsgraph_type create_staticcrsgraph(
     const std::string& label,
     const std::vector<std::vector<InputSizeType> >& input) {
-  typedef StaticCrsGraphType output_type;
-  typedef typename output_type::entries_type entries_type;
+  using output_type  = StaticCrsGraphType;
+  using entries_type = typename output_type::entries_type;
 
   static_assert(entries_type::rank == 1, "Graph entries view must be rank one");
 
-  typedef View<typename output_type::size_type[],
-               typename output_type::array_layout,
-               typename output_type::execution_space,
-               typename output_type::memory_traits>
-      work_type;
+  using work_type = View<
+      typename output_type::size_type[], typename output_type::array_layout,
+      typename output_type::device_type, typename output_type::memory_traits>;
 
   output_type output;
 

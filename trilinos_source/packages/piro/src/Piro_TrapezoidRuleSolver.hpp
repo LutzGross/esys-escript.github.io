@@ -67,7 +67,7 @@ class TrapezoidDecorator
   //@{
 
   TrapezoidDecorator(
-                const Teuchos::RCP<Thyra::ModelEvaluator<Scalar> > &model
+                const Teuchos::RCP<Thyra::ModelEvaluator<Scalar> > &modelEvaluator
                 );
 
   //@}
@@ -144,7 +144,18 @@ class TrapezoidRuleSolver
   Teuchos::RCP<const Thyra::VectorSpaceBase<Scalar> > get_p_space(int l) const;
   /** \brief . */
   Teuchos::RCP<const Thyra::VectorSpaceBase<Scalar> > get_g_space(int j) const;
+  /** \brief . */
+  Teuchos::RCP<Piro::NOXSolver<Scalar> > getNOXSolver() const;
+  /** \brief . */
+  Teuchos::RCP<Piro::TrapezoidDecorator<Scalar> > getDecorator() const;
+  /** \brief . */
+  Teuchos::RCP<Thyra::AdaptiveSolutionManager> getSolutionManager() const;
+  /** \brief .*/
+  void disableCalcInitAccel() { calc_init_accel_ = false; }; 
+  /** \brief .*/
+  void enableCalcInitAccel() { calc_init_accel_ = true; }; 
   //@}
+
 
 private:
   /** \name Overridden from Thyra::ModelEvaluatorDefaultBase. */
@@ -182,6 +193,7 @@ private:
    int numTimeSteps;
    Scalar t_init, t_final, delta_t;
 
+   mutable bool calc_init_accel_{true}; 
 };
 
 }

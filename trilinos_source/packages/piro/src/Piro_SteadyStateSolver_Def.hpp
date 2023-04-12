@@ -68,10 +68,34 @@
 #include <cstddef>
 #include <ostream>
 
+#include <Piro_config.hpp>
+
+#ifdef HAVE_PIRO_ROL
+#include "ROL_ThyraVector.hpp"
+#include "ROL_ScaledThyraVector.hpp"
+#include "ROL_Thyra_BoundConstraint.hpp"
+#include "ROL_ThyraME_Objective.hpp"
+#include "ROL_ThyraProductME_Objective.hpp"
+#include "Piro_ThyraProductME_Objective_SimOpt.hpp"
+#include "Piro_ThyraProductME_Constraint_SimOpt.hpp"
+#include "ROL_LineSearchStep.hpp"
+#include "ROL_TrustRegionStep.hpp"
+#include "ROL_Algorithm.hpp"
+#include "ROL_Reduced_Objective_SimOpt.hpp"
+#include "ROL_OptimizationSolver.hpp"
+#include "ROL_BoundConstraint_SimOpt.hpp"
+#include "ROL_Bounds.hpp"
+#include "Thyra_VectorDefaultBase.hpp"
+#include "Thyra_DefaultProductVectorSpace.hpp"
+#include "Thyra_DefaultProductVector.hpp"
+#endif
+
 template <typename Scalar>
 Piro::SteadyStateSolver<Scalar>::
-SteadyStateSolver(const Teuchos::RCP<const Thyra::ModelEvaluator<Scalar> > &model) :
+SteadyStateSolver(const Teuchos::RCP<const Thyra::ModelEvaluator<Scalar> > &model,
+  const Teuchos::RCP<const Thyra::ModelEvaluator<Scalar> > &adjointModel) :
   model_(model),
+  adjointModel_(adjointModel),
   num_p_(model->Np()),
   num_g_(model->Ng()),
   sensitivityMethod_(NONE)
@@ -81,8 +105,10 @@ template <typename Scalar>
 Piro::SteadyStateSolver<Scalar>::
 SteadyStateSolver(
     const Teuchos::RCP<const Thyra::ModelEvaluator<Scalar> > &model,
+    const Teuchos::RCP<const Thyra::ModelEvaluator<Scalar> > &adjointModel,
     int numParameters) :
   model_(model),
+  adjointModel_(adjointModel),
   num_p_(numParameters),
   num_g_(model->Ng()),
   sensitivityMethod_(NONE)
@@ -136,7 +162,7 @@ Piro::SteadyStateSolver<Scalar>::createInArgsImpl() const
 {
   Thyra::ModelEvaluatorBase::InArgsSetup<Scalar> result;
   result.setModelEvalDescription(this->description());
-  result.set_Np(num_p_);
+  result.set_Np_Ng(num_p_, num_g_);
   const Thyra::ModelEvaluatorBase::InArgs<Scalar> modelInArgs = model_->createInArgs();
   result.setSupports(Thyra::ModelEvaluatorBase::IN_ARG_x, modelInArgs.supports(Thyra::ModelEvaluatorBase::IN_ARG_x));
   return result;
@@ -266,6 +292,20 @@ Thyra::ModelEvaluatorBase::OutArgs<Scalar> Piro::SteadyStateSolver<Scalar>::crea
     }
   }
 
+#ifdef Thyra_BUILD_HESSIAN_SUPPORT
+  for (int i=0; i<num_g_; i++) {
+    for (int j1=0; j1<num_p_; j1++) {
+      for (int j2=0; j2<num_p_; j2++) {
+        result.setSupports(Thyra::ModelEvaluatorBase::OUT_ARG_hess_vec_prod_g_pp,
+        i,
+        j1,
+        j2,
+        modelOutArgs.supports(Thyra::ModelEvaluatorBase::OUT_ARG_hess_vec_prod_g_pp, i, j1, j2));
+      }
+    }
+  }
+#endif  // ifdef Thyra_BUILD_HESSIAN_SUPPORT
+
   return result;
 }
 
@@ -314,7 +354,8 @@ Piro::SteadyStateSolver<Scalar>::getSensitivityMethod()
 template <typename Scalar>
 void Piro::SteadyStateSolver<Scalar>::evalConvergedModelResponsesAndSensitivities(
     const Thyra::ModelEvaluatorBase::InArgs<Scalar>& modelInArgs,
-    const Thyra::ModelEvaluatorBase::OutArgs<Scalar>& outArgs) const
+    const Thyra::ModelEvaluatorBase::OutArgs<Scalar>& outArgs,
+    Teuchos::ParameterList& appParams) const
 {
   using Teuchos::RCP;
   using Teuchos::rcp;
@@ -350,6 +391,87 @@ void Piro::SteadyStateSolver<Scalar>::evalConvergedModelResponsesAndSensitivitie
 
   bool computeForwardSensitivities = compute_sensitivities && (sensitivityMethod_==FORWARD);
   bool computeAdjointSensitivities = compute_sensitivities && (sensitivityMethod_==ADJOINT);
+
+#ifdef HAVE_PIRO_ROL
+  if(computeAdjointSensitivities) {
+    double tol = 1e-8;
+
+    Teuchos::Array<Teuchos::RCP<Thyra::VectorSpaceBase<Scalar> const>> p_spaces(num_p_);
+    Teuchos::Array<Teuchos::RCP<Thyra::VectorBase<Scalar>>> p_vecs(num_p_);
+    Teuchos::Array<Teuchos::RCP<Thyra::VectorBase<Scalar>>> g_vecs(num_p_);
+    std::vector<int> p_indices(num_p_);
+    for (auto i = 0; i < num_p_; ++i) {
+      p_indices[i] = i;
+      p_spaces[i] = this->getModel().get_p_space(i);
+      p_vecs[i] = Thyra::createMember(p_spaces[i]);
+      g_vecs[i] = Thyra::createMember(p_spaces[i]);
+    }
+
+    RCP<Thyra::DefaultProductVectorSpace<Scalar> const> p_space = Thyra::productVectorSpace<Scalar>(p_spaces);
+    RCP<Thyra::DefaultProductVector<Scalar>> p_prod = Thyra::defaultProductVector<Scalar>(p_space, p_vecs());
+
+    for (auto i = 0; i < num_p_; ++i) {
+      RCP<const Thyra::VectorBase<Scalar> > p_init = modelInArgs.get_p(i) != Teuchos::null ? modelInArgs.get_p(i) : this->getModel().getNominalValues().get_p(i);
+      Thyra::copy(*p_init, p_prod->getNonconstVectorBlock(i).ptr());
+    }
+
+    ROL::ThyraVector<Scalar> rol_p(p_prod);
+
+    Teuchos::RCP<Thyra::VectorSpaceBase<Scalar> const> x_space = this->getModel().get_x_space();
+    Teuchos::RCP<Thyra::VectorBase<Scalar>> x = Thyra::createMember(x_space);
+    Thyra::copy(*modelInArgs.get_x(), x.ptr());
+
+    ROL::ThyraVector<Scalar> rol_x(x);
+    Teuchos::RCP<Thyra::VectorBase<Scalar>> lambda_vec = Thyra::createMember(x_space);
+    ROL::ThyraVector<Scalar> rol_lambda(lambda_vec);
+
+    RCP<Thyra::DefaultProductVector<Scalar> > current_g = Thyra::defaultProductVector<Scalar>(p_space, g_vecs());
+    ROL::ThyraVector<Scalar> rol_current_g(current_g);
+
+    ROL::Ptr<ROL::Vector<Scalar> > rol_p_ptr = ROL::makePtrFromRef(rol_p);
+    ROL::Ptr<ROL::Vector<Scalar> > rol_x_ptr = ROL::makePtrFromRef(rol_x);
+    ROL::Ptr<ROL::Vector<Scalar> > rol_lambda_ptr = ROL::makePtrFromRef(rol_lambda);
+
+
+    Piro::ThyraProductME_Constraint_SimOpt<Scalar> constr(model_, adjointModel_, p_indices, appParams, Teuchos::VERB_NONE);
+    auto  stateStore = ROL::makePtr<ROL::VectorController<Scalar>>();
+      
+    for (int i=0; i<num_g_; ++i) {      
+
+      Piro::ThyraProductME_Objective_SimOpt<Scalar> obj(model_, i, p_indices, appParams, Teuchos::VERB_NONE);
+
+      ROL::Ptr<ROL::Objective_SimOpt<Scalar> > obj_ptr = ROL::makePtrFromRef(obj);
+      ROL::Ptr<ROL::Constraint_SimOpt<Scalar> > constr_ptr = ROL::makePtrFromRef(constr);
+
+      //create the ROL reduce objective initializing it with the current state and parameter
+      ROL::Reduced_Objective_SimOpt<Scalar> reduced_obj(obj_ptr,constr_ptr,stateStore,rol_x_ptr,rol_p_ptr,rol_lambda_ptr);
+      reduced_obj.update(rol_p,ROL::UpdateType::Temp);
+      stateStore->set(*rol_x_ptr, std::vector<Scalar>());  //second argument not meaningful for deterministic problems 
+
+      //reduced_obj.set_precomputed_state(rol_x,rol_p);
+      if(i>0) { //a bit hacky, but the jacobian and, if needed, its adjoint have been computed at iteration 0
+        constr.computeJacobian1_ = false;
+        constr.computeAdjointJacobian1_ = false;
+      }
+
+      Scalar tmp = reduced_obj.value(rol_p,tol);
+      reduced_obj.gradient(rol_current_g, rol_p, tol);
+
+      RCP<Thyra::VectorBase<Scalar> > g_out = outArgs.get_g(i);
+      Thyra::set_ele(0,tmp,g_out.ptr());
+
+      for (int j=0; j<num_p_; ++j) {
+        if (!outArgs.supports(Thyra::ModelEvaluatorBase::OUT_ARG_DgDp, i, j).none() &&
+            !outArgs.get_DgDp(i,j).isEmpty()) {
+
+          RCP<Thyra::MultiVectorBase<Scalar> > dgdp_out = outArgs.get_DgDp(i,j).getMultiVector();
+          Thyra::assign(dgdp_out->col(0).ptr(), *current_g->getNonconstVectorBlock(j));
+        }
+      }
+    }
+    return;
+  }
+#endif
 
   if(computeForwardSensitivities)
   {
@@ -437,6 +559,7 @@ void Piro::SteadyStateSolver<Scalar>::evalConvergedModelResponsesAndSensitivitie
       }
     }
   } else if(computeAdjointSensitivities) {
+
     // Compute adjoint layouts of df/dp, dg/dx depending on
     for (int i=0; i<num_p_; i++) {
       // p
@@ -568,8 +691,8 @@ void Piro::SteadyStateSolver<Scalar>::evalConvergedModelResponsesAndSensitivitie
               int num_params = p_space->dim();
               auto p_space_plus = Teuchos::rcp_dynamic_cast<const Thyra::SpmdVectorSpaceDefaultBase<Scalar>>(p_space);
               bool p_dist = !p_space_plus->isLocallyReplicated();//p_space->DistributedGlobal();
-              Thyra::ModelEvaluatorBase::DerivativeSupport ds = modelOutArgs.supports(Thyra::ModelEvaluatorBase::OUT_ARG_DgDp,j,i);
-              if (ds.supports(Thyra::ModelEvaluatorBase::DERIV_LINEAR_OP)) {
+              Thyra::ModelEvaluatorBase::DerivativeSupport ds_dgdp = modelOutArgs.supports(Thyra::ModelEvaluatorBase::OUT_ARG_DgDp,j,i);
+              if (ds_dgdp.supports(Thyra::ModelEvaluatorBase::DERIV_LINEAR_OP)) {
                 auto dgdp_op =
                     this->getModel().create_DgDp_op(j,i);
                 TEUCHOS_TEST_FOR_EXCEPTION(
@@ -579,13 +702,13 @@ void Piro::SteadyStateSolver<Scalar>::evalConvergedModelResponsesAndSensitivitie
                     std::endl);
                 modelOutArgs.set_DgDp(j,i,dgdp_op);
               }
-              else if (ds.supports(Thyra::ModelEvaluatorBase::DERIV_MV_JACOBIAN_FORM) && !p_dist) {
+              else if (ds_dgdp.supports(Thyra::ModelEvaluatorBase::DERIV_MV_JACOBIAN_FORM) && !p_dist) {
                 auto tmp_dgdp = createMembers(g_space, num_params);
                 Thyra::ModelEvaluatorBase::DerivativeMultiVector<Scalar>
                 dmv_dgdp(tmp_dgdp, Thyra::ModelEvaluatorBase::DERIV_MV_JACOBIAN_FORM);
                 modelOutArgs.set_DgDp(j,i,dmv_dgdp);
               }
-              else if (ds.supports(Thyra::ModelEvaluatorBase::DERIV_MV_GRADIENT_FORM) && !g_dist) {
+              else if (ds_dgdp.supports(Thyra::ModelEvaluatorBase::DERIV_MV_GRADIENT_FORM) && !g_dist) {
                 auto tmp_dgdp = createMembers(p_space, num_responses);
                 Thyra::ModelEvaluatorBase::DerivativeMultiVector<Scalar>
                 dmv_dgdp(tmp_dgdp, Thyra::ModelEvaluatorBase::DERIV_MV_GRADIENT_FORM);
@@ -796,21 +919,23 @@ void Piro::SteadyStateSolver<Scalar>::evalConvergedModelResponsesAndSensitivitie
     }
   } else if (computeAdjointSensitivities) {
 
+    bool availableAdjointModel = Teuchos::nonnull(adjointModel_);
+
     // Create implicitly transpose Jacobian and preconditioner
-    Teuchos::RCP< const Thyra::LinearOpWithSolveFactoryBase<double> > lows_factory = model_->get_W_factory();
+    Teuchos::RCP< const Thyra::LinearOpWithSolveFactoryBase<double> > lows_factory = availableAdjointModel ?  adjointModel_->get_W_factory() : model_->get_W_factory();
     TEUCHOS_ASSERT(Teuchos::nonnull(lows_factory));
-    Teuchos::RCP< Thyra::LinearOpBase<double> > lop = model_->create_W_op();
+    Teuchos::RCP< Thyra::LinearOpBase<double> > lop = availableAdjointModel ?  adjointModel_->create_W_op() : model_->create_W_op();
     Teuchos::RCP< const ::Thyra::DefaultLinearOpSource<double> > losb = Teuchos::rcp(new ::Thyra::DefaultLinearOpSource<double>(lop));
     Teuchos::RCP< ::Thyra::PreconditionerBase<double> > prec;
 
-    auto in_args = model_->createInArgs();
-    auto out_args = model_->createOutArgs();
+    auto in_args = availableAdjointModel ?  adjointModel_->createInArgs() : model_->createInArgs();
+    auto out_args = availableAdjointModel ?  adjointModel_->createOutArgs() : model_->createOutArgs();
 
     Teuchos::RCP< ::Thyra::PreconditionerFactoryBase<double> > prec_factory =  lows_factory->getPreconditionerFactory();
     if (Teuchos::nonnull(prec_factory)) {
       prec = prec_factory->createPrec();
     } else if (out_args.supports( Thyra::ModelEvaluatorBase::OUT_ARG_W_prec)) {
-      prec = model_->create_W_prec();
+      prec = availableAdjointModel ?  adjointModel_->create_W_prec() : model_->create_W_prec();
     }
 
     const RCP<Thyra::LinearOpWithSolveBase<Scalar> > jacobian =
@@ -820,7 +945,10 @@ void Piro::SteadyStateSolver<Scalar>::evalConvergedModelResponsesAndSensitivitie
       const auto timer = Teuchos::rcp(new Teuchos::TimeMonitor(*Teuchos::TimeMonitor::getNewTimer("Piro::SteadyStateSolver::evalConvergedModelResponsesAndSensitivities::evalModel")));
       in_args.set_x(modelInArgs.get_x());
       out_args.set_W_op(lop);
-      model_->evalModel(in_args, out_args);
+      if(availableAdjointModel)
+        adjointModel_->evalModel(in_args, out_args);
+      else 
+        model_->evalModel(in_args, out_args);
       in_args.set_x(Teuchos::null);
       out_args.set_W_op(Teuchos::null);
     }
@@ -830,18 +958,30 @@ void Piro::SteadyStateSolver<Scalar>::evalConvergedModelResponsesAndSensitivitie
     else if ( Teuchos::nonnull(prec) && (out_args.supports( Thyra::ModelEvaluatorBase::OUT_ARG_W_prec)) ) {
       in_args.set_x(modelInArgs.get_x());
       out_args.set_W_prec(prec);
-      model_->evalModel(in_args, out_args);
+      if(availableAdjointModel)
+        adjointModel_->evalModel(in_args, out_args);
+      else
+        model_->evalModel(in_args, out_args);
     }
 
-    if(Teuchos::nonnull(prec))
-      Thyra::initializePreconditionedOp<double>(*lows_factory,
-          Thyra::transpose<double>(lop),
-          Thyra::unspecifiedPrec<double>(::Thyra::transpose<double>(prec->getUnspecifiedPrecOp())),
+    if(Teuchos::nonnull(prec)) {
+      if(availableAdjointModel) {
+        Thyra::initializePreconditionedOp<double>(*lows_factory,
+          lop,
+          prec,
           jacobian.ptr());
-    else
-      Thyra::initializeOp<double>(*lows_factory,
-          Thyra::transpose<double>(lop),
-          jacobian.ptr());
+      } else {
+        Thyra::initializePreconditionedOp<double>(*lows_factory,
+            Thyra::transpose<double>(lop),
+            Thyra::unspecifiedPrec<double>(::Thyra::transpose<double>(prec->getUnspecifiedPrecOp())),
+            jacobian.ptr());
+      }
+    } else {
+      if(availableAdjointModel)
+        Thyra::initializeOp<double>(*lows_factory, lop, jacobian.ptr());
+      else
+        Thyra::initializeOp<double>(*lows_factory, Thyra::transpose<double>(lop), jacobian.ptr());
+    }
 
 
     for (int j=0; j<num_g_; j++) {
@@ -1035,6 +1175,129 @@ void Piro::SteadyStateSolver<Scalar>::evalConvergedModelResponsesAndSensitivitie
       }
     }
   }
+}
+
+template <typename Scalar>
+void Piro::SteadyStateSolver<Scalar>::evalReducedHessian(
+    const Thyra::ModelEvaluatorBase::InArgs<Scalar>& modelInArgs,
+    const Thyra::ModelEvaluatorBase::OutArgs<Scalar>& outArgs,
+    Teuchos::ParameterList& appParams) const
+{
+#ifdef HAVE_PIRO_ROL
+  using Teuchos::RCP;
+  using Teuchos::rcp;
+
+  // Compute the number of directions
+  int n_directions = 0;
+
+  for (auto p_index = 0; p_index < num_p_; ++p_index) {
+    if (Teuchos::nonnull(modelInArgs.get_p_direction(p_index))) {
+      const int current_n_directions = modelInArgs.get_p_direction(p_index)->domain()->dim();
+      if (current_n_directions > n_directions)
+        n_directions = current_n_directions;
+    }
+  }
+
+  if (n_directions==0)
+    return;
+
+  double tol = 1e-8;
+
+  Teuchos::Array<Teuchos::RCP<Thyra::VectorSpaceBase<Scalar> const>> p_spaces(num_p_);
+  Teuchos::Array<Teuchos::RCP<Thyra::VectorBase<Scalar>>> p_vecs(num_p_);
+  Teuchos::Array<Teuchos::RCP<Thyra::VectorBase<Scalar>>> direction_p_vecs(num_p_);
+  Teuchos::Array<Teuchos::RCP<Thyra::VectorBase<Scalar>>> hv_vecs(num_p_);
+  std::vector<int> p_indices(num_p_);
+  for (auto i = 0; i < num_p_; ++i) {
+    p_indices[i] = i;
+    p_spaces[i] = this->getModel().get_p_space(i);
+    p_vecs[i] = Thyra::createMember(p_spaces[i]);
+    direction_p_vecs[i] = Thyra::createMember(p_spaces[i]);
+    hv_vecs[i] = Thyra::createMember(p_spaces[i]);
+  }
+
+  RCP<Thyra::DefaultProductVectorSpace<Scalar> const> p_space = Thyra::productVectorSpace<Scalar>(p_spaces);
+  RCP<Thyra::DefaultProductVector<Scalar>> p_prod = Thyra::defaultProductVector<Scalar>(p_space, p_vecs());
+  RCP<Thyra::DefaultProductVector<Scalar>> direction_p_prod = Thyra::defaultProductVector<Scalar>(p_space, direction_p_vecs());
+
+  for (auto i = 0; i < num_p_; ++i) {
+    RCP<const Thyra::VectorBase<Scalar> > p_init = modelInArgs.get_p(i) != Teuchos::null ? modelInArgs.get_p(i) : this->getModel().getNominalValues().get_p(i);
+    Thyra::copy(*p_init, p_prod->getNonconstVectorBlock(i).ptr());
+  }
+
+  ROL::ThyraVector<Scalar> rol_p(p_prod);
+  ROL::ThyraVector<Scalar> rol_direction_p(direction_p_prod);
+
+  Teuchos::RCP<Thyra::VectorSpaceBase<Scalar> const> x_space = this->getModel().get_x_space();
+  Teuchos::RCP<Thyra::VectorBase<Scalar>> x = Thyra::createMember(x_space);
+  Thyra::copy(*modelInArgs.get_x(), x.ptr());
+
+  ROL::ThyraVector<Scalar> rol_x(x);
+  Teuchos::RCP<Thyra::VectorBase<Scalar>> lambda_vec = Thyra::createMember(x_space);
+  ROL::ThyraVector<Scalar> rol_lambda(lambda_vec);
+
+  RCP<Thyra::DefaultProductVector<Scalar> > current_hv = Thyra::defaultProductVector<Scalar>(p_space, hv_vecs());
+  ROL::ThyraVector<Scalar> rol_current_hv(current_hv);
+
+  ROL::Ptr<ROL::Vector<Scalar> > rol_p_ptr = ROL::makePtrFromRef(rol_p);
+  ROL::Ptr<ROL::Vector<Scalar> > rol_x_ptr = ROL::makePtrFromRef(rol_x);
+  ROL::Ptr<ROL::Vector<Scalar> > rol_lambda_ptr = ROL::makePtrFromRef(rol_lambda);
+
+  if (Teuchos::nonnull(modelInArgs.get_f_multiplier())) {
+    RCP<const Thyra::VectorBase<Scalar> > lambda_init = modelInArgs.get_f_multiplier();
+    Thyra::copy(*lambda_init, lambda_vec.ptr());
+  }
+
+
+  Piro::ThyraProductME_Constraint_SimOpt<Scalar> constr(model_, adjointModel_, p_indices, appParams, Teuchos::VERB_NONE);
+  auto stateStore = ROL::makePtr<ROL::VectorController<Scalar>>(); 
+  
+  for (int g_index=0; g_index<num_g_; ++g_index) {
+    Piro::ThyraProductME_Objective_SimOpt<Scalar> obj(model_, g_index, p_indices, appParams, Teuchos::VERB_NONE);
+    
+    ROL::Ptr<ROL::Constraint_SimOpt<Scalar> > constr_ptr = ROL::makePtrFromRef(constr);
+    ROL::Ptr<ROL::Objective_SimOpt<Scalar> > obj_ptr = ROL::makePtrFromRef(obj);    
+
+    //create the ROL reduce objective initializing it with the current state and parameter
+    ROL::Reduced_Objective_SimOpt<Scalar> reduced_obj(obj_ptr,constr_ptr,stateStore,rol_x_ptr,rol_p_ptr,rol_lambda_ptr);
+    reduced_obj.update(rol_p,ROL::UpdateType::Temp);
+    stateStore->set(*rol_x_ptr, std::vector<Scalar>());  //second argument not meaningful for deterministic problems 
+
+    if(g_index>0) { //a bit hacky, but the jacobian and, if needed, its adjoint have been computed at iteration 0
+      constr.computeJacobian1_ = false;
+      constr.computeAdjointJacobian1_ = false;
+    }
+
+    for (auto j = 0; j < n_directions; ++j) {
+      for (int p_index=0; p_index<num_p_; ++p_index) {
+        if (Teuchos::nonnull(modelInArgs.get_p_direction(p_index))) {
+          const int current_n_directions = modelInArgs.get_p_direction(p_index)->domain()->dim();
+          if (j < current_n_directions) {
+            RCP<const Thyra::VectorBase<Scalar> > current_p_direction = modelInArgs.get_p_direction(p_index)->col(j);
+            Thyra::copy(*current_p_direction, direction_p_prod->getNonconstVectorBlock(p_index).ptr());
+          }
+        }
+      }
+
+      reduced_obj.hessVec(rol_current_hv, rol_direction_p, rol_p, tol);
+
+      for (int p_index=0; p_index<num_p_; ++p_index) {
+        if (outArgs.supports(Thyra::ModelEvaluatorBase::OUT_ARG_hess_vec_prod_g_pp, g_index, p_index, p_index)) {
+          RCP<Thyra::MultiVectorBase<Scalar> > reduced_hv_out = outArgs.get_hess_vec_prod_g_pp(g_index, p_index, p_index);
+          Thyra::assign(reduced_hv_out->col(j).ptr(), *current_hv->getNonconstVectorBlock(p_index));
+        }
+      }
+    }
+  }
+#else
+  TEUCHOS_TEST_FOR_EXCEPTION(
+    true,
+    std::logic_error,
+    std::endl <<
+    "Piro::SteadyStateSolver::evalReducedHessian():  " <<
+    "This fuction requires ROL." <<
+    std::endl);
+#endif
 }
 
 template <typename Scalar>

@@ -43,7 +43,6 @@
 #include "stk_mesh/base/Part.hpp"       // for Part
 #include "stk_topology/topology.hpp"    // for topology, etc
 
-
 using stk::mesh::MetaData;
 
 //----------------------------------------------------------------------------
@@ -51,10 +50,11 @@ using stk::mesh::MetaData;
 TEST ( UnitTestMetaData, create )
 {
   stk::mesh::MetaData fem_meta;
+  fem_meta.use_simple_fields();
   EXPECT_TRUE ( true );
   EXPECT_FALSE( fem_meta.is_initialized() );
   EXPECT_EQ( fem_meta.spatial_dimension(), 0u );
-  EXPECT_EQ( fem_meta.side_rank(), static_cast<unsigned>(stk::topology::INVALID_RANK) );
+  EXPECT_EQ( fem_meta.side_rank(), stk::topology::INVALID_RANK );
 
   // Verify throws/etc for FEM calls prior to initialization:
   stk::mesh::Part & universal_part = fem_meta.universal_part();
@@ -65,6 +65,7 @@ TEST ( UnitTestMetaData, create )
 TEST( UnitTestMetaData, initialize )
 {
   stk::mesh::MetaData fem_meta;
+  fem_meta.use_simple_fields();
   const size_t spatial_dimension = 3;
   fem_meta.initialize(spatial_dimension);
   EXPECT_TRUE( fem_meta.is_initialized() );
@@ -74,6 +75,7 @@ TEST( UnitTestMetaData, initialize )
 TEST( UnitTestMetaData, initialize_only_once )
 {
   stk::mesh::MetaData fem_meta;
+  fem_meta.use_simple_fields();
   const size_t spatial_dimension = 3;
   fem_meta.initialize(spatial_dimension);
   ASSERT_THROW( fem_meta.initialize(2), std::runtime_error );
@@ -82,36 +84,40 @@ TEST( UnitTestMetaData, initialize_only_once )
 TEST( UnitTestMetaData, entity_ranks_1 )
 {
   stk::mesh::MetaData fem_meta;
+  fem_meta.use_simple_fields();
   const size_t spatial_dimension = 1;
   fem_meta.initialize(spatial_dimension);
-  EXPECT_EQ( fem_meta.side_rank(), static_cast<unsigned>(stk::topology::NODE_RANK) );
+  EXPECT_EQ( fem_meta.side_rank(), stk::topology::NODE_RANK );
 }
 
 TEST( UnitTestMetaData, entity_ranks_2 )
 {
   stk::mesh::MetaData fem_meta;
+  fem_meta.use_simple_fields();
   const size_t spatial_dimension = 2;
   fem_meta.initialize(spatial_dimension);
-  EXPECT_EQ( fem_meta.side_rank(), static_cast<unsigned>(stk::topology::EDGE_RANK) );
+  EXPECT_EQ( fem_meta.side_rank(), stk::topology::EDGE_RANK );
 }
 
 TEST( UnitTestMetaData, entity_ranks_3 )
 {
   stk::mesh::MetaData fem_meta;
+  fem_meta.use_simple_fields();
   const size_t spatial_dimension = 3;
   fem_meta.initialize(spatial_dimension);
-  EXPECT_EQ( fem_meta.side_rank(), static_cast<unsigned>(stk::topology::FACE_RANK) );
+  EXPECT_EQ( fem_meta.side_rank(), stk::topology::FACE_RANK );
 }
 
 TEST( UnitTestMetaData, get_topology_trivial )
 {
   stk::mesh::MetaData fem_meta;
+  fem_meta.use_simple_fields();
   const size_t spatial_dimension = 3;
   fem_meta.initialize(spatial_dimension);
   stk::mesh::Part & hex_part = fem_meta.get_topology_root_part(stk::topology::HEX_8);
 
   EXPECT_TRUE( stk::mesh::is_auto_declared_part(hex_part) );
-  EXPECT_EQ( hex_part.primary_entity_rank(), spatial_dimension );
+  EXPECT_EQ( hex_part.primary_entity_rank(), stk::topology::ELEM_RANK );
   stk::topology hex_topology = fem_meta.get_topology(hex_part);
   EXPECT_EQ( (hex_topology == stk::topology::HEX_8), true );
 
@@ -125,18 +131,18 @@ TEST( UnitTestMetaData, get_topology_trivial )
 TEST( UnitTestMetaData, cell_topology_subsetting )
 {
   stk::mesh::MetaData fem_meta;
+  fem_meta.use_simple_fields();
   const size_t spatial_dimension = 3;
-  const stk::mesh::EntityRank element_rank = static_cast<stk::mesh::EntityRank>(spatial_dimension);
   fem_meta.initialize(spatial_dimension);
-  stk::mesh::Part & element_part = fem_meta.declare_part("element part", element_rank );
+  stk::mesh::Part & element_part = fem_meta.declare_part("element part", stk::topology::ELEM_RANK );
   stk::mesh::set_topology( element_part, stk::topology::HEX_8 );
 
   stk::mesh::Part & hex_part = fem_meta.get_topology_root_part(stk::topology::HEX_8);
 
   const stk::mesh::PartVector & element_part_supersets = element_part.supersets();
   EXPECT_EQ(
-      std::count(element_part_supersets.begin(),element_part_supersets.end(),&hex_part), 1
-      );
+        std::count(element_part_supersets.begin(),element_part_supersets.end(),&hex_part), 1
+        );
 }
 
 // 02/16/11:  Topology Induced Membership
@@ -201,6 +207,7 @@ TEST( UnitTestMetaData, cell_topology_subsetting )
 TEST( UnitTestMetaData, topology_test_1 )
 {
   stk::mesh::MetaData fem_meta;
+  fem_meta.use_simple_fields();
   const size_t spatial_dimension = 3;
   fem_meta.initialize(spatial_dimension);
   stk::mesh::Part & HR = fem_meta.get_topology_root_part(stk::topology::HEX_8);
@@ -215,6 +222,7 @@ TEST( UnitTestMetaData, topology_test_1 )
 TEST( UnitTestMetaData, topology_test_2a )
 {
   stk::mesh::MetaData fem_meta;
+  fem_meta.use_simple_fields();
   const size_t spatial_dimension = 3;
   fem_meta.initialize(spatial_dimension);
   stk::mesh::Part & HR = fem_meta.get_topology_root_part(stk::topology::HEX_8);
@@ -227,6 +235,7 @@ TEST( UnitTestMetaData, topology_test_2a )
 TEST( UnitTestMetaData, topology_test_2b )
 {
   stk::mesh::MetaData fem_meta;
+  fem_meta.use_simple_fields();
   const size_t spatial_dimension = 3;
   fem_meta.initialize(spatial_dimension);
 
@@ -246,6 +255,7 @@ TEST( UnitTestMetaData, topology_test_2b )
 TEST( UnitTestMetaData, topology_test_3a )
 {
   stk::mesh::MetaData fem_meta;
+  fem_meta.use_simple_fields();
   const size_t spatial_dimension = 3;
   fem_meta.initialize(spatial_dimension);
 
@@ -263,6 +273,7 @@ TEST( UnitTestMetaData, topology_test_3a )
 TEST( UnitTestMetaData, topology_test_3b )
 {
   stk::mesh::MetaData fem_meta;
+  fem_meta.use_simple_fields();
   const size_t spatial_dimension = 3;
   fem_meta.initialize(spatial_dimension);
 
@@ -285,6 +296,7 @@ TEST( UnitTestMetaData, topology_test_3b )
 TEST( UnitTestMetaData, topology_test_3c )
 {
   stk::mesh::MetaData fem_meta;
+  fem_meta.use_simple_fields();
   const size_t spatial_dimension = 3;
   fem_meta.initialize(spatial_dimension);
 
@@ -309,6 +321,7 @@ TEST( UnitTestMetaData, topology_test_3c )
 TEST( UnitTestMetaData, topology_test_4a )
 {
   stk::mesh::MetaData fem_meta;
+  fem_meta.use_simple_fields();
   const size_t spatial_dimension = 3;
   fem_meta.initialize(spatial_dimension);
 
@@ -330,6 +343,7 @@ TEST( UnitTestMetaData, topology_test_4a )
 TEST( UnitTestMetaData, topology_test_4b )
 {
   stk::mesh::MetaData fem_meta;
+  fem_meta.use_simple_fields();
   const size_t spatial_dimension = 3;
   fem_meta.initialize(spatial_dimension);
 
@@ -353,6 +367,7 @@ TEST( UnitTestMetaData, topology_test_4b )
 TEST( UnitTestMetaData, topology_test_5a )
 {
   stk::mesh::MetaData fem_meta;
+  fem_meta.use_simple_fields();
   const size_t spatial_dimension = 3;
   fem_meta.initialize(spatial_dimension);
 
@@ -372,6 +387,7 @@ TEST( UnitTestMetaData, topology_test_5a )
 TEST( UnitTestMetaData, topology_test_5b )
 {
   stk::mesh::MetaData fem_meta;
+  fem_meta.use_simple_fields();
   const size_t spatial_dimension = 3;
   fem_meta.initialize(spatial_dimension);
 
@@ -395,6 +411,7 @@ TEST( UnitTestMetaData, topology_test_5b )
 TEST( UnitTestMetaData, topology_test_5c )
 {
   stk::mesh::MetaData fem_meta;
+  fem_meta.use_simple_fields();
   const size_t spatial_dimension = 3;
   fem_meta.initialize(spatial_dimension);
 
@@ -414,9 +431,32 @@ TEST( UnitTestMetaData, topology_test_5c )
   ASSERT_THROW( fem_meta.declare_part_subset(A, B), std::runtime_error );
 }
 
+TEST(UnitTestMetaData, subsetRankRequirements)
+{
+  stk::mesh::MetaData meta(3);
+  meta.use_simple_fields();
+  stk::mesh::Part& elemPart = meta.declare_part("elemPart", stk::topology::ELEM_RANK);
+  stk::mesh::Part& facePart = meta.declare_part("facePart", stk::topology::FACE_RANK);
+
+  meta.declare_part_subset(elemPart, facePart);
+  ASSERT_THROW(meta.declare_part_subset(facePart, elemPart), std::runtime_error);
+}
+
+TEST(UnitTestMetaData, subsetRankTopologyRequirements)
+{
+  stk::mesh::MetaData meta(3);
+  meta.use_simple_fields();
+  stk::mesh::Part& elemPart = meta.declare_part("elemPart", stk::topology::ELEM_RANK);
+  stk::mesh::Part& quadPart = meta.declare_part_with_topology("quadPart", stk::topology::QUAD_4);
+
+  meta.declare_part_subset(elemPart, quadPart);
+  ASSERT_THROW(meta.declare_part_subset(quadPart, elemPart), std::runtime_error);
+}
+
 TEST( MetaData, register_topology_duplicate )
 {
   stk::mesh::MetaData fem_meta;
+  fem_meta.use_simple_fields();
   const size_t spatial_dimension = 3;
   fem_meta.initialize(spatial_dimension);
 
@@ -427,6 +467,7 @@ TEST( MetaData, register_topology_duplicate )
 TEST( MetaData, get_topology_root_part_invalid )
 {
   stk::mesh::MetaData fem_meta;
+  fem_meta.use_simple_fields();
   const size_t spatial_dimension = 2;
   fem_meta.initialize(spatial_dimension);
 

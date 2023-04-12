@@ -239,6 +239,9 @@ public:
   ///   always use the zero vector(s) as the initial guess(es).  If
   ///   false, then apply() will use X on input as the initial
   ///   guess(es).
+  /// - "chebyshev: compute spectral radius" (\c bool): If true, the
+  ///   power method will compute the spectral radius of the operator.
+  ///   If false, it will compute the dominant eigenvalue.
   ///
   /// Parameters that govern backwards compatibility:
   /// - "chebyshev: textbook algorithm" (\c bool): If true, use the
@@ -261,6 +264,8 @@ public:
   /// Default settings for parameters relating to spectral bounds come
   /// from Ifpack.
   void setParameters (Teuchos::ParameterList& plist);
+
+  void setZeroStartingSolution (bool zeroStartingSolution) { zeroStartingSolution_ = zeroStartingSolution; }
 
   /// \brief (Re)compute the left scaling D_inv, and estimate min and
   ///   max eigenvalues of D_inv * A.
@@ -474,6 +479,22 @@ private:
   //! Number of power method iterations for estimating the max eigenvalue.
   int eigMaxIters_;
 
+  //! Relative tolerance for power method iterations for estimating the max eigenvalue.
+  MT eigRelTolerance_;
+
+  //! Whether the iteration vectors of the power method should be saved.
+  bool eigKeepVectors_;
+
+  //! Type of eigen-analysis, i.e. power method or cg.
+  std::string eigenAnalysisType_;
+
+  //! Iteration vectors of the power method. Can be saved for the purpose of multiple setups.
+  Teuchos::RCP<V> eigVector_;
+  Teuchos::RCP<V> eigVector2_;
+
+  //! Frequency of normalization in the power method.
+  int eigNormalizationFreq_;
+
   //! Whether to assume that the X input to apply() is always zero.
   bool zeroStartingSolution_;
 
@@ -490,6 +511,13 @@ private:
 
   //! Whether apply() will compute and return the max residual norm.
   bool computeMaxResNorm_;
+
+  //! Whether the power method will compute the spectral radius or the dominant eigenvalue.
+  bool computeSpectralRadius_;
+
+  /// If true, the ChebyshevKernel operator will not to use a fused kernel
+  /// and insead use native blas/SpMV operators
+  bool ckUseNativeSpMV_;
 
   /// \brief Output stream for debug output ONLY.
   ///
@@ -638,35 +666,22 @@ private:
                    const ST eigRatio,
                    const V& D_inv);
 
-  /// \brief Fill x with random initial guess for power method
-  ///
-  /// \param x [out] Initial guess vector; a domain Map vector of the
-  ///   matrix.
-  /// \param nonnegativeRealParts [in] Whether to force all entries of
-  ///   x (on output) to have nonnegative real parts.  Defaults to
-  ///   false (don't force).
-  ///
-  /// This is an implementation detail of powerMethod() below.  For a
-  /// justification of the second parameter, see Github Issues #64 and
-  /// #567.
-  void computeInitialGuessForPowerMethod (V& x, const bool nonnegativeRealParts = false) const;
-
-  /// \brief Use the power method to estimate the maximum eigenvalue
+  /// \brief Use the cg method to estimate the maximum eigenvalue
   ///   of A*D_inv, given an initial guess vector x.
   ///
   /// \param A [in] The Operator to use.
   /// \param D_inv [in] Vector to use as implicit right scaling of A.
   /// \param numIters [in] Maximum number of iterations of the power
   ///   method.
-  /// \param x [in/out] On input: Initial guess Vector for the power
+  /// \param x [in/out] On input: Initial guess Vector for the cg
   ///   method.  Its Map must be the same as that of the domain Map of
   ///   A.  This method may use this Vector as scratch space.
   ///
   /// \return Estimate of the maximum eigenvalue of A*D_inv.
   ST
-  powerMethodWithInitGuess (const op_type& A, const V& D_inv, const int numIters, V& x);
+  cgMethodWithInitGuess (const op_type& A, const V& D_inv, const int numIters, V& x);
 
-  /// \brief Use the power method to estimate the maximum eigenvalue
+  /// \brief Use the cg method to estimate the maximum eigenvalue
   ///   of A*D_inv.
   ///
   /// \param A [in] The Operator to use.
@@ -676,7 +691,7 @@ private:
   ///
   /// \return Estimate of the maximum eigenvalue of A*D_inv.
   ST
-  powerMethod (const op_type& A, const V& D_inv, const int numIters);
+  cgMethod (const op_type& A, const V& D_inv, const int numIters);
 
   //! The maximum infinity norm of all the columns of X.
   static MT maxNormInf (const MV& X);

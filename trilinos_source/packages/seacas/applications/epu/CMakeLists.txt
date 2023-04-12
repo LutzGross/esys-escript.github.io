@@ -2,13 +2,13 @@
 # In a MPI-enabled build, it will build 'epu' which is a serial application and 'pepu' which is a parallel-enabled epu
 # In a serial, non-MPI-enabled build, it will only build 'epu'.
 # On some platforms, both applications may perform the same if run in serial; however, some platforms require
-# parallel applications to be run on a compute-partition.  We used to just build a parallel-enabled epu 
-# when MPI was enabled, but this caused issues for users on those platforms which would not allow a 
+# parallel applications to be run on a compute-partition.  We used to just build a parallel-enabled epu
+# when MPI was enabled, but this caused issues for users on those platforms which would not allow a
 # parallel application to be run on a non-compute partition, so now we build two versions...
 
 TRIBITS_SUBPACKAGE(Epu)
 
-INCLUDE_DIRECTORIES(
+TRIBITS_INCLUDE_DIRECTORIES(
   "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
@@ -29,7 +29,6 @@ IF(NOT __LINUX_COMPILER_PGI)
     SOURCES ${SOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/epu.C
     INSTALLABLE
     )
-
 IF (TPL_ENABLE_MPI)
   TRIBITS_ADD_EXECUTABLE(
     pepu
@@ -39,6 +38,7 @@ IF (TPL_ENABLE_MPI)
     COMM mpi
     INSTALLABLE
     )
+    target_compile_definitions(pepu PUBLIC SEACAS_HAVE_MPI)
 ENDIF()
 ENDIF()
 

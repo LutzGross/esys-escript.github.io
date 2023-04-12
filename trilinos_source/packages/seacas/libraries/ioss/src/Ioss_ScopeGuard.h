@@ -1,18 +1,20 @@
 /*
- * Copyright(C) 1999-2020 National Technology & Engineering Solutions
+ * Copyright(C) 1999-2022 National Technology & Engineering Solutions
  * of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
  * NTESS, the U.S. Government retains certain rights in this software.
- * 
+ *
  * See packages/seacas/LICENSE for details
  */
-#ifndef SCOPEGUARD_H_
-#define SCOPEGUARD_H_
+#pragma once
+
+#include "ioss_export.h"
 
 /*
   Scopeguard, by Andrei Alexandrescu and Petru Marginean, December 2000.
   Modified by Joshua Lehrer, FactSet Research Systems, November 2005.
 */
 
+namespace Ioss {
 template <class T> class RefHolder
 {
   T &ref_;
@@ -25,9 +27,9 @@ public:
 
 template <class T> inline RefHolder<T> ByRef(T &t) { return RefHolder<T>(t); }
 
-class ScopeGuardImplBase
+class IOSS_EXPORT ScopeGuardImplBase
 {
-  ScopeGuardImplBase &operator=(const ScopeGuardImplBase &);
+  ScopeGuardImplBase &operator=(const ScopeGuardImplBase &) = delete;
 
 protected:
   ~ScopeGuardImplBase() = default;
@@ -35,6 +37,7 @@ protected:
   {
     other.Dismiss();
   }
+
   template <typename J> static void SafeExecute(J &j)
   {
     if (!j.dismissed_) {
@@ -46,10 +49,10 @@ protected:
     }
   }
 
-  mutable bool dismissed_;
+  mutable bool dismissed_{false};
 
 public:
-  ScopeGuardImplBase() : dismissed_(false) {}
+  ScopeGuardImplBase() = default;
   void Dismiss() const { dismissed_ = true; }
 };
 
@@ -156,7 +159,7 @@ public:
 
 protected:
   ObjScopeGuardImpl0(Obj &obj, MemFun memFun) : obj_(obj), memFun_(memFun) {}
-  Obj &  obj_;
+  Obj   &obj_;
   MemFun memFun_;
 };
 
@@ -191,7 +194,7 @@ public:
 
 protected:
   ObjScopeGuardImpl1(Obj &obj, MemFun memFun, P1 p1) : obj_(obj), memFun_(memFun), p1_(p1) {}
-  Obj &    obj_;
+  Obj     &obj_;
   MemFun   memFun_;
   const P1 p1_;
 };
@@ -232,7 +235,7 @@ protected:
       : obj_(obj), memFun_(memFun), p1_(p1), p2_(p2)
   {
   }
-  Obj &    obj_;
+  Obj     &obj_;
   MemFun   memFun_;
   const P1 p1_;
   const P2 p2_;
@@ -263,10 +266,9 @@ MakeGuard(Ret (Obj2::*memFun)(P1a, P2a), Obj1 *obj, P1b p1, P2b p2)
 }
 
 #define CONCATENATE_DIRECT(s1, s2) s1##s2
-#define CONCATENATE(s1, s2) CONCATENATE_DIRECT(s1, s2)
-#define ANONYMOUS_VARIABLE(str) CONCATENATE(str, __LINE__)
+#define CONCATENATE(s1, s2)        CONCATENATE_DIRECT(s1, s2)
+#define ANONYMOUS_VARIABLE(str)    CONCATENATE(str, __LINE__)
 
-#define ON_BLOCK_EXIT ScopeGuard ANONYMOUS_VARIABLE(scopeGuard) = MakeGuard
-#define ON_BLOCK_EXIT_OBJ ScopeGuard ANONYMOUS_VARIABLE(scopeGuard) = MakeObjGuard
-
-#endif // SCOPEGUARD_H_
+#define ON_BLOCK_EXIT     ::Ioss::ScopeGuard ANONYMOUS_VARIABLE(scopeGuard) = ::Ioss::MakeGuard
+#define ON_BLOCK_EXIT_OBJ ::Ioss::ScopeGuard ANONYMOUS_VARIABLE(scopeGuard) = ::Ioss::MakeObjGuard
+} // namespace Ioss

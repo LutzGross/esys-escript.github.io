@@ -43,14 +43,17 @@
 #ifndef STK_UTIL_UTIL_FArray_h
 #define STK_UTIL_UTIL_FArray_h
 
-#include <cstddef>
-#include <utility>
-#include <algorithm>
-#include <stdexcept>
-#include <typeinfo>
-#include <iterator>
+#include "stk_util/util/StaticAssert.hpp"  // for StaticAssert
+#include <algorithm>                       // for fill
+#include <cstddef>                         // for ptrdiff_t, size_t
+#include <iterator>                        // for reverse_iterator
+#include <memory>                          // for allocator
+#include <typeinfo>                        // for type_info
 
-#include <stk_util/util/StaticAssert.hpp>
+namespace sierra { template <class ElementType, int Dimension, class A = std::allocator<ElementType>> class FArrayContainer; }
+namespace sierra { template <class ElementType, int Dimension> class FArray; }
+namespace sierra { template <unsigned int N> struct ArrayHelper; }
+
 
 #ifndef NDEBUG
 #  define SIERRA_ARRAY_BOUNDS_CHECK
@@ -102,22 +105,17 @@ array_dimension_error(
  * into the same memory as the input array.  This is the preferred method of passing
  * arrays as access required less memory indirection.
  */
-template<class ElementType, int Dimension>
-class FArray;
 
 /**
  * @class sierra::FArrayContainer
  *
  * @brief Extend FArray with deep copy assignment and resize operations.
  */
-template<class ElementType, int Dimension, class A = std::allocator<ElementType> >
-class FArrayContainer;
 
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
 // Helpers
 
-template<unsigned N> struct ArrayHelper;
 
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
@@ -1189,13 +1187,13 @@ public:
   typedef typename A::size_type size_type;
   typedef typename A::difference_type difference_type;
 
-  typedef typename A::pointer pointer;
-  typedef typename A::const_pointer const_pointer;
-  typedef typename A::reference reference;
-  typedef typename A::const_reference const_reference;
+  typedef value_type * pointer;
+  typedef const value_type * const_pointer;
+  typedef value_type & reference;
+  typedef const value_type & const_reference;
 
-  typedef typename A::pointer iterator;
-  typedef typename A::const_pointer const_iterator;
+  typedef pointer iterator;
+  typedef const_pointer const_iterator;
 
   typedef typename std::reverse_iterator<iterator> reverse_iterator;
   typedef typename std::reverse_iterator<const_iterator> const_reverse_iterator;

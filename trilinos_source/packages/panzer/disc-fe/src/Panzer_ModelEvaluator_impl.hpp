@@ -61,7 +61,6 @@
 #include "Panzer_LOCPair_GlobalEvaluationData.hpp"
 #include "Panzer_ParameterList_GlobalEvaluationData.hpp"
 #include "Panzer_ParameterLibraryUtilities.hpp"
-#include "Panzer_EpetraVector_ReadOnly_GlobalEvaluationData.hpp"
 #include "Panzer_LinearObjFactory_Utilities.hpp"
 
 #include "Thyra_TpetraThyraWrappers.hpp"
@@ -73,6 +72,11 @@
 #include "Thyra_MultiVectorStdOps.hpp"
 #include "Thyra_VectorStdOps.hpp"
 
+// For writing out residuals/Jacobians
+#include "Thyra_ProductVectorBase.hpp"
+#include "Thyra_BlockedLinearOpBase.hpp"
+#include "Thyra_TpetraVector.hpp"
+#include "Thyra_TpetraLinearOp.hpp"
 #include "Tpetra_CrsMatrix.hpp"
 
 // Constructors/Initializers/Accessors
@@ -104,6 +108,7 @@ ModelEvaluator(const Teuchos::RCP<panzer::FieldManagerBuilder>& fmb,
   , build_volume_field_managers_(true)
   , build_bc_field_managers_(true)
   , active_evaluation_types_(Sacado::mpl::size<panzer::Traits::EvalTypes>::value, true)
+  , write_matrix_count_(0)
 {
   using Teuchos::RCP;
   using Teuchos::rcp;
@@ -159,6 +164,7 @@ ModelEvaluator(const Teuchos::RCP<const panzer::LinearObjFactory<panzer::Traits>
   , build_volume_field_managers_(true)
   , build_bc_field_managers_(true)
   , active_evaluation_types_(Sacado::mpl::size<panzer::Traits::EvalTypes>::value, true)
+  , write_matrix_count_(0)
 {
   using Teuchos::RCP;
   using Teuchos::rcp_dynamic_cast;
@@ -724,6 +730,7 @@ Teuchos::RCP<Thyra::LinearOpBase<Scalar> >
 panzer::ModelEvaluator<Scalar>::
 create_W_op() const
 {
+  PANZER_FUNC_TIME_MONITOR("panzer::ModelEvaluator::create_W_op");
   Teuchos::RCP<const ThyraObjFactory<Scalar> > tof
      = Teuchos::rcp_dynamic_cast<const ThyraObjFactory<Scalar> >(lof_,true);
 
@@ -1380,7 +1387,7 @@ evalModel_D2fDpDx(int pIndex,
   using Teuchos::rcp_dynamic_cast;
   using Teuchos::null;
 
-  // parameter is not distributed 
+  // parameter is not distributed
   TEUCHOS_ASSERT(parameters_[pIndex]->is_distributed);
 
   // parameter is distributed but has no global indexer.
@@ -1407,7 +1414,7 @@ evalModel_D2fDpDx(int pIndex,
                                          // gather seeds
   ae_inargs.first_sensitivities_name  = (*parameters_[pIndex]->names)[0]; // distributed parameters have one name!
   ae_inargs.second_sensitivities_name  = "";
-                                         
+
   rLibrary.addResponsesToInArgs<Traits::Hessian>(ae_inargs);
   rLibrary.evaluate<Traits::Hessian>(ae_inargs);
 #else
@@ -1431,7 +1438,7 @@ evalModel_D2fDp2(int pIndex,
   using Teuchos::rcp_dynamic_cast;
   using Teuchos::null;
 
-  // parameter is not distributed 
+  // parameter is not distributed
   TEUCHOS_ASSERT(parameters_[pIndex]->is_distributed);
 
   // parameter is distributed but has no global indexer.
@@ -1458,7 +1465,7 @@ evalModel_D2fDp2(int pIndex,
                                          // gather seeds
   ae_inargs.first_sensitivities_name  = (*parameters_[pIndex]->names)[0]; // distributed parameters have one name!
   ae_inargs.second_sensitivities_name = (*parameters_[pIndex]->names)[0]; // distributed parameters have one name!
-                                         
+
   rLibrary.addResponsesToInArgs<Traits::Hessian>(ae_inargs);
   rLibrary.evaluate<Traits::Hessian>(ae_inargs);
 #else
@@ -1629,6 +1636,48 @@ evalModelImpl_basic(const Thyra::ModelEvaluatorBase::InArgs<Scalar> &inArgs,
 
   // reset parameters back to nominal values
   resetParameters();
+
+  const bool writeToFile = false;
+  if (writeToFile && nonnull(W_out)) {
+    const auto check_blocked = Teuchos::rcp_dynamic_cast<::Thyra::BlockedLinearOpBase<double> >(W_out,false);
+    if (check_blocked) {
+      const int numBlocks = check_blocked->productDomain()->numBlocks();
+      const int rangeBlocks = check_blocked->productRange()->numBlocks();
+      TEUCHOS_ASSERT(numBlocks == rangeBlocks); // not true for optimization
+      for (int row=0; row < numBlocks; ++row) {
+        for (int col=0; col < numBlocks; ++col) {
+          using LO = panzer::LocalOrdinal;
+          using GO = panzer::GlobalOrdinal;
+          using NodeT = panzer::TpetraNodeType;
+          const auto thyraTpetraOperator = Teuchos::rcp_dynamic_cast<::Thyra::TpetraLinearOp<double,LO,GO,NodeT>>(check_blocked->getNonconstBlock(row,col),true);
+          const auto tpetraCrsMatrix = Teuchos::rcp_dynamic_cast<Tpetra::CrsMatrix<double,LO,GO,NodeT>>(thyraTpetraOperator->getTpetraOperator(),true);
+          tpetraCrsMatrix->print(std::cout);
+          std::stringstream ss;
+          ss << "W_out_" << write_matrix_count_ << ".rank_" << tpetraCrsMatrix->getMap()->getComm()->getRank() << ".block_" << row << "_" << col << ".txt";
+          std::fstream fs(ss.str().c_str(),std::fstream::out|std::fstream::trunc);
+          Teuchos::FancyOStream fos(Teuchos::rcpFromRef(fs));
+          tpetraCrsMatrix->describe(fos,Teuchos::VERB_EXTREME);
+          fs.close();
+        }
+      }
+    }
+    else {
+      using LO = panzer::LocalOrdinal;
+      using GO = panzer::GlobalOrdinal;
+      using NodeT = panzer::TpetraNodeType;
+      const auto thyraTpetraOperator = Teuchos::rcp_dynamic_cast<::Thyra::TpetraLinearOp<double,LO,GO,NodeT>>(W_out,true);
+      const auto tpetraCrsMatrix = Teuchos::rcp_dynamic_cast<Tpetra::CrsMatrix<double,LO,GO,NodeT>>(thyraTpetraOperator->getTpetraOperator(),true);
+      tpetraCrsMatrix->print(std::cout);
+      std::stringstream ss;
+      ss << "W_out_" << write_matrix_count_ << ".rank_" << tpetraCrsMatrix->getMap()->getComm()->getRank() << ".txt";
+      std::fstream fs(ss.str().c_str(),std::fstream::out|std::fstream::trunc);
+      Teuchos::FancyOStream fos(Teuchos::rcpFromRef(fs));
+      tpetraCrsMatrix->describe(fos,Teuchos::VERB_EXTREME);
+      fs.close();
+    }
+    ++write_matrix_count_;
+  }
+
 }
 
 template <typename Scalar>

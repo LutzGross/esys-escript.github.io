@@ -80,6 +80,9 @@ public:
   typedef typename GraphType::local_ordinal_type local_ordinal_type;
   typedef typename GraphType::global_ordinal_type global_ordinal_type;
   typedef typename GraphType::node_type node_type;
+  typedef typename GraphType::nonconst_global_inds_host_view_type nonconst_global_inds_host_view_type;
+  typedef typename GraphType::nonconst_local_inds_host_view_type nonconst_local_inds_host_view_type;
+ 
   typedef Tpetra::RowGraph<local_ordinal_type, global_ordinal_type, node_type> row_graph_type;
 
   //! Constructor.
@@ -174,9 +177,10 @@ protected:
   /// explicitly defined \c Parts_, then \c Partition_ is unused.
   Teuchos::Array<local_ordinal_type> Partition_;
 
-  /// \brief Mapping from partition to all local rows it contains.
+  /// \brief Mapping from partition to all rows it contains.
   ///
-  /// \c Parts_[i][j] is the local index of the j-th row contained in the
+  /// \c Used with 'partitioner: parts' (or 'partitioner: global ID parts')
+  /// \c Parts_[i][j] is the local (or global) index of the j-th row contained in the
   /// (overlapping) partition i.
   Teuchos::Array<Teuchos::ArrayRCP<local_ordinal_type> > Parts_;
 

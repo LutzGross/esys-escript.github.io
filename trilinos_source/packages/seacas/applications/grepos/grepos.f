@@ -1,13 +1,13 @@
-C Copyright(C) 1999-2020 National Technology & Engineering Solutions
+C Copyright(C) 1999-2022 National Technology & Engineering Solutions
 C of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 C NTESS, the U.S. Government retains certain rights in this software.
-C 
+C
 C See packages/seacas/LICENSE for details
 
 C=======================================================================
       PROGRAM GREPOS
 C=======================================================================
-C
+
 C     --*** GREPOS *** (GREPOS) GENESIS Positioning Program
 C     --   Written by Greg Sjaardema - revised 03/07/89
 C     --   Modified from GEN3D
@@ -57,14 +57,14 @@ C     --   none
       include 'gp_attrot.blk'
       INCLUDE 'argparse.inc'
 
-      CHARACTER*2048 FILIN, FILOUT, SCRATCH, SYNTAX
+      CHARACTER*2048 FILIN, FILOUT, SCRATCH, SYNTAX, HELP
       CHARACTER*80 SCRSTR
 
 C... String containing name of common element topology in model
 C    or 'MULTIPLE_TOPOLOGIES' if not common topology.
       character*(MXSTLN) comtop
 
-      LOGICAL EXODUS, NONQUD, ALLONE
+      LOGICAL EXODUS, NONQUD, ALLONE, ORDER
       LOGICAL SMOOTH, SWPSS, USRSUB, CENTRD
 
       LOGICAL ISATRB, EXECUT, L64BIT
@@ -100,10 +100,13 @@ C     --A - the dynamic numeric memory base array
 C .. Get filename from command line.  If not specified, emit error message
       SYNTAX =
      *  'Syntax is: "grepos [-name_length len] [-64] file_in file_out"'
+      HELP = 'Documentation: https://sandialabs.github.io' //
+     $     '/seacas-docs/sphinx/html/index.html#grepos'
       NARG = argument_count()
       if (narg .lt. 2) then
         CALL PRTERR ('FATAL', 'Filenames not specified.')
         CALL PRTERR ('CMDSPEC', SYNTAX(:LENSTR(SYNTAX)))
+        CALL PRTERR ('CMDSPEC', HELP(:LENSTR(HELP)))
         GOTO 60
       end if
 
@@ -125,6 +128,7 @@ C ... Parse options...
             SCRATCH = 'Unrecognized command option "'//FILIN(:LNAM)//'"'
             CALL PRTERR ('FATAL', SCRATCH(:LENSTR(SCRATCH)))
             CALL PRTERR ('CMDSPEC', SYNTAX(:LENSTR(SYNTAX)))
+            CALL PRTERR ('CMDSPEC', HELP(:LENSTR(HELP)))
           end if
           if (iarg .gt. narg-2) exit
         end do
@@ -643,7 +647,6 @@ C     --location of original numelb, isevok arrays
       RENEL = (I .LT. NELBLK)
       NUMEL1 = NUMEL
 
-
       if (renel .or. delnp) then
         CALL MDRSRV ('MSCR', KMSCR, MAX(NUMEL0, NUMNP0))
         if (exodus) then
@@ -685,7 +688,7 @@ C     old array contents into new (Only needed if EXODUS)
          CALL MDRSRV ('IXELB', KIXELB, NELBLK)
          CALL MDRSRV ('JNELB', KJNELB, NELBLK)
          CALL MDRSRV ('ISCR',  KISCR,  NELBLK)
-         CALL MCRSRV ('NAMSCR', KNMSC, MXSTLN*NELBLK)
+         CALL MCRSRV ('NAMSCR', KNMSC, maxnam*NELBLK)
          CALL MDSTAT (NERR, MEM)
          IF (NERR .GT. 0) GOTO 40
 
@@ -815,7 +818,7 @@ C     --"Munch" the nodal point sets
          CALL MDRSRV ('ISCR',   KISCR,  NUMNPS)
          CALL MDRSRV ('IDNS0',  KIDNS0, NUMNPS0)
          CALL MDRSRV ('NNNPS0', KNNNS0, NUMNPS0)
-         CALL MCRSRV ('NAMSCR', KNMSC, MXSTLN*NUMNPS)
+         CALL MCRSRV ('NAMSCR', KNMSC,  maxnam*NUMNPS)
          CALL MDSTAT (NERR, MEM)
          IF (NERR .GT. 0) GOTO 40
 
@@ -899,7 +902,7 @@ C     --"Munch" the element side sets
          CALL MDRSRV ('ISCR',   KISCR,  NUMESS)
          CALL MDRSRV ('IDSS0',  KIDSS0, NUMESS0)
          CALL MDRSRV ('NEESS0', KNESS0, NUMESS0)
-         CALL MCRSRV ('NAMSCR', KNMSC, MXSTLN*NUMESS)
+         CALL MCRSRV ('NAMSCR', KNMSC,  maxnam*NUMESS)
          CALL MDSTAT (NERR, MEM)
          IF (NERR .GT. 0) GOTO 40
 
@@ -911,7 +914,6 @@ C     --"Munch" the element side sets
      &     IA(KLTESS), IA(KLTSSS), A(KFACSS),
      &     IA(KLTESO), IA(KLTSSO), A(KFACS0), IA(KIXESO), IA(KIXDS0),
      &     IA(KNESO), IA(KNDS0), IA(KISCR), C(KNMSC), C(KNAMSS))
-
 
          CALL MDDEL ('LTEESO')
          CALL MDDEL ('LTSSO')
@@ -1020,8 +1022,15 @@ C     --Write the coordinates
       call expcor (ndbout, a(kxn), a(kyn), a(kzn), ierr)
 
 C     --Write the node/element order maps
-      call expenm (ndbout, ia(kmapel), ierr)
-      call expnnm (ndbout, ia(kmapnn), ierr)
+C ... If the maps are 1..num, then don't write them...
+      call check_map(ia(kmapel), numel, order)
+      if (.not. order) then
+         call expenm (ndbout, ia(kmapel), ierr)
+      end if
+      call check_map(ia(kmapnn), numnp, order)
+      if (.not. order) then
+         call expnnm (ndbout, ia(kmapnn), ierr)
+      end if
 
 C     --Write the element block
       CALL DBOELB (NDBOUT, 1, NELBLK,
@@ -1251,18 +1260,13 @@ C     number element blocks, and truth table.
 10010 FORMAT (/, 4X, A,
      &     ' time steps have been written to the output database')
 
-      CALL MDDEL ('VARGL')
-      CALL MDDEL ('VARNP')
-      CALL MDDEL ('VAREL')
-      CALL MDDEL ('VARNS')
-      CALL MDDEL ('VARSS')
-
       GO TO 50
  40   CONTINUE
       CALL MEMERR
       GOTO 50
 
  50   CONTINUE
+      call mdfree()
       call exclos(ndbin, ierr)
       call exclos(ndbout, ierr)
 
@@ -1420,7 +1424,7 @@ C   This is currently used in the sideset mirroring code
 
       subroutine putnam(ndb, itype, isiz, names)
       include 'gp_namlen.blk'
-      character*(maxnam) names(*)
+      character*(namlen) names(*)
 
       call expnams(ndb, itype, isiz, names, ierr)
       return
@@ -1433,5 +1437,20 @@ C   This is currently used in the sideset mirroring code
       do i=1, nelblk
         idout(i) = idin(i)
       end do
+      return
+      end
+
+      subroutine check_map(map, length, order)
+      integer map(*)
+      integer length
+      logical order
+
+      do i = 1, length
+         if (map(i) .ne. i) then
+            order = .false.
+            return
+         end if
+      end do
+      order = .true.
       return
       end

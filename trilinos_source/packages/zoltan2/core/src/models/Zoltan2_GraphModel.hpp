@@ -336,8 +336,10 @@ GraphModel<Adapter>::GraphModel(
   }
 
   // Get the matrix from the input adapter
-  gno_t const *vtxIds=NULL, *nborIds=NULL;
-  offset_t const *offsets=NULL;
+  gno_t const *vtxIds=NULL;
+  ArrayRCP<const gno_t> nborIds;
+  ArrayRCP<const offset_t> offsets;
+
   try{
     nLocalVertices_ = ia->getLocalNumIDs();
     ia->getIDsView(vtxIds);
@@ -359,10 +361,8 @@ GraphModel<Adapter>::GraphModel(
   nLocalEdges_ = offsets[nLocalVertices_];
   vGids_ = arcp_const_cast<gno_t>(
                 arcp<const gno_t>(vtxIds, 0, nLocalVertices_, false));
-  eGids_ = arcp_const_cast<gno_t>(
-                arcp<const gno_t>(nborIds, 0, nLocalEdges_, false));
-  eOffsets_ = arcp_const_cast<offset_t>(
-                   arcp<const offset_t>(offsets, 0, nLocalVertices_+1, false));
+  eGids_ = arcp_const_cast<gno_t>(nborIds);
+  eOffsets_ = arcp_const_cast<offset_t>(offsets);
 
   // Edge weights
   nWeightsPerEdge_ = 0;   // no edge weights from a matrix yet.
@@ -640,7 +640,7 @@ void GraphModel<Adapter>::shared_constructor(
 
     // Loop over edges; keep only those that are local (i.e., on-rank)
     eOffsets_[0] = 0;
-    lno_t ecnt = 0;
+    offset_t ecnt = 0;
     for (size_t i = 0; i < nLocalVertices_; i++) {
       vGids_[i] = gno_t(i);
       for (offset_t j = adapterEOffsets[i]; j < adapterEOffsets[i+1]; j++) {
@@ -765,7 +765,7 @@ void GraphModel<Adapter>::shared_constructor(
     }
 
     // Renumber and/or filter the edges and vertices
-    lno_t ecnt = 0;
+    offset_t ecnt = 0;
     int me = comm_->getRank();
     for (size_t i = 0; i < nLocalVertices_; i++) {
 

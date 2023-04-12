@@ -45,6 +45,7 @@
 #include "stk_util/parallel/DistributedIndex.hpp"  // for DistributedIndex, etc
 #include <stk_mesh/base/FEMHelpers.hpp>
 #include <stk_mesh/baseImpl/MeshImplUtils.hpp>
+#include <stk_mesh/baseImpl/EntityGhostData.hpp>
 
 #include <vector>
 
@@ -57,12 +58,6 @@ namespace impl {
 bool is_in_list(Entity entity, const Entity* begin, const Entity* end)
 {
     return std::find(begin, end, entity) != end;
-}
-
-void remove_index_from_list(size_t index, std::vector<Entity>& elementsInCommon)
-{
-    std::swap(elementsInCommon[index], elementsInCommon.back());
-    elementsInCommon.resize(elementsInCommon.size() - 1);
 }
 
 void remove_entities_not_in_list(const Entity* begin, const Entity* end, std::vector<Entity>& elementsInCommon)
@@ -82,10 +77,7 @@ void remove_entities_not_in_list(const Entity* begin, const Entity* end, std::ve
 void remove_entities_not_connected_to_other_nodes(const BulkData& mesh, stk::mesh::EntityRank rank, unsigned numNodes, const Entity* nodes, std::vector<Entity>& elementsInCommon)
 {
     for(unsigned i = 1; i < numNodes; ++i) {
-        const MeshIndex& meshIndex = mesh.mesh_index(nodes[i]);
-        const Bucket& bucket = *meshIndex.bucket;
-        const unsigned ord = meshIndex.bucket_ordinal;
-        remove_entities_not_in_list(bucket.begin(ord, rank), bucket.end(ord, rank), elementsInCommon);
+        remove_entities_not_in_list(mesh.begin(nodes[i], rank), mesh.end(nodes[i], rank), elementsInCommon);
     }
 }
 
@@ -94,10 +86,7 @@ void find_entities_these_nodes_have_in_common(const BulkData& mesh, stk::mesh::E
     elementsInCommon.clear();
     if(numNodes > 0)
     {
-        const MeshIndex& meshIndex = mesh.mesh_index(nodes[0]);
-        const Bucket& bucket = *meshIndex.bucket;
-        const unsigned ord = meshIndex.bucket_ordinal;
-        elementsInCommon.assign(bucket.begin(ord, rank), bucket.end(ord, rank));
+        elementsInCommon.assign(mesh.begin(nodes[0], rank), mesh.end(nodes[0], rank));
         remove_entities_not_connected_to_other_nodes(mesh, rank, numNodes, nodes, elementsInCommon);
     }
 }
@@ -128,6 +117,15 @@ void find_entities_with_larger_ids_these_nodes_have_in_common_and_locally_owned(
     }
 }
 
+const EntityCommListInfo& find_entity(const BulkData& mesh,
+                               const EntityCommListInfoVector& entities,
+                               const EntityKey& key)
+{
+  EntityCommListInfoVector::const_iterator lb_itr = std::lower_bound(entities.begin(), entities.end(), key);
+  ThrowAssertMsg(lb_itr != entities.end() && lb_itr->key == key,
+                 "proc " << mesh.parallel_rank() << " Cannot find entity-key " << key << " in comm-list" );
+  return *lb_itr;
+}
 
 bool do_these_nodes_have_any_shell_elements_in_common(BulkData& mesh, unsigned numNodes, const Entity* nodes)
 {
@@ -418,7 +416,7 @@ void internal_generate_parallel_change_lists( const BulkData & mesh ,
           ip = local_change.begin() ; ip != local_change.end() ; ++ip ) {
       Entity entity      = ip->first ;
       int new_owner = ip->second;
-      mesh.comm_procs( mesh.entity_key(entity) , procs );
+      mesh.comm_procs( entity , procs );
       for ( std::vector<int>::iterator
             j = procs.begin() ; j != procs.end() ; ++j )
       {
@@ -631,18 +629,16 @@ void find_side_nodes(BulkData& mesh, Entity element, int side_ordinal, EntityVec
 }
 
 void get_part_ordinals_to_induce_on_lower_ranks_except_for_omits(const BulkData       & mesh,
-                             const Entity           entity_from,
+                             const Bucket&          bucket_from,
                              const OrdinalVector  & omit,
                                    EntityRank       entity_rank_to,
                                    OrdinalVector  & induced_parts)
 {
   const bool dont_check_owner     = mesh.parallel_size() == 1; // critical for fmwk
-  const int      local_proc_rank  = mesh.parallel_rank();
 
   // Only induce parts for normal (not back) relations. Can only trust
   // 'entity_from' to be accurate if it is owned by the local process.
-  if ( dont_check_owner || local_proc_rank == mesh.parallel_owner_rank(entity_from) ) {
-    const Bucket   & bucket_from    = mesh.bucket(entity_from);
+  if ( dont_check_owner || bucket_from.owned() ) {
     const EntityRank entity_rank_from = bucket_from.entity_rank();
     ThrowAssert(entity_rank_from > entity_rank_to);
 
@@ -658,16 +654,15 @@ void get_part_ordinals_to_induce_on_lower_ranks_except_for_omits(const BulkData 
   }
 }
 
-void get_part_ordinals_to_induce_on_lower_ranks(const BulkData       & mesh,
-                             const Entity           entity_from,
-                                   EntityRank       entity_rank_to,
-                                   OrdinalVector  & induced_parts)
+void get_part_ordinals_to_induce_on_lower_ranks(const BulkData& mesh,
+                                                const Bucket& bucket_from,
+                                                EntityRank       entity_rank_to,
+                                                OrdinalVector  & induced_parts)
 {
   const bool dont_check_owner     = mesh.parallel_size() == 1; // critical for fmwk
 
   // Only induce parts for normal (not back) relations. Can only trust
   // 'entity_from' to be accurate if it is owned by the local process.
-  const Bucket& bucket_from = mesh.bucket(entity_from);
   if ( dont_check_owner || bucket_from.owned() ) {
     const EntityRank entity_rank_from = bucket_from.entity_rank();
     ThrowAssert(entity_rank_from > entity_rank_to);
@@ -958,12 +953,9 @@ void send_entity_keys_to_owners(
   }
 }
 
-// Synchronize the send list to the receive list.
-
-void comm_sync_send_recv(
-  BulkData & mesh ,
-  std::set< EntityProc , EntityLess > & sendGhosts ,
-  std::set< EntityKey > & recvGhosts )
+void comm_sync_send_recv(const BulkData & mesh ,
+                         EntityProcVec& sendGhosts ,
+                         std::set< EntityKey > & recvGhosts )
 {
   const int parallel_rank = mesh.parallel_rank();
   const int parallel_size = mesh.parallel_size();
@@ -972,12 +964,11 @@ void comm_sync_send_recv(
 
   // Communication sizing:
 
-  for ( std::set< EntityProc , EntityLess >::iterator
-        i = sendGhosts.begin() ; i != sendGhosts.end() ; ++i ) {
-    const int owner = mesh.parallel_owner_rank(i->first);
-    all.send_buffer( i->second ).skip<EntityKey>(1).skip<int>(1);
+  for (const EntityProc& ep : sendGhosts) {
+    const int owner = mesh.parallel_owner_rank(ep.first);
+    all.send_buffer(ep.second).skip<EntityKey>(1).skip<int>(1);
     if ( owner != parallel_rank ) {
-      all.send_buffer( owner ).skip<EntityKey>(1).skip<int>(1);
+      all.send_buffer(owner).skip<EntityKey>(1).skip<int>(1);
     }
   }
 
@@ -987,9 +978,8 @@ void comm_sync_send_recv(
   // Also, if the owner of the entity is NOT me, also send the entity key to the owing proc
 
   // Communication packing (with message content comments):
-  for ( std::set< EntityProc , EntityLess >::iterator
-        i = sendGhosts.begin() ; i != sendGhosts.end() ; ) {
-    const int owner = mesh.parallel_owner_rank(i->first);
+  for (EntityProc& entProc : sendGhosts) {
+    const int owner = mesh.parallel_owner_rank(entProc.first);
 
     // Inform receiver of ghosting, the receiver does not own
     // and does not share this entity.
@@ -997,25 +987,25 @@ void comm_sync_send_recv(
     // This status will be resolved on the final communication pass
     // when new ghosts are packed and sent.
 
-    const EntityKey entity_key = mesh.entity_key(i->first);
-    const int proc = i->second;
+    const EntityKey entity_key = mesh.entity_key(entProc.first);
+    const int proc = entProc.second;
 
-    all.send_buffer( proc ).pack(entity_key).pack(proc);
+    all.send_buffer(proc).pack(entity_key).pack(proc);
 
     if ( owner != parallel_rank ) {
       // I am not the owner of this entity.
       // Inform the owner of this ghosting need.
-      all.send_buffer( owner ).pack(entity_key).pack(proc);
+      all.send_buffer(owner).pack(entity_key).pack(proc);
 
       // Erase it from my processor's ghosting responsibility:
       // The iterator passed to the erase method will be invalidated.
-      std::set< EntityProc , EntityLess >::iterator jrem = i ; ++i ;
-      sendGhosts.erase( jrem );
-    }
-    else {
-      ++i ;
-    }
+      entProc.first = Entity();
+    }      
   }
+
+  auto shouldRemove = [&](const EntityProc& ep){ return ep.first.local_offset() == 0; };
+  sendGhosts.erase(std::remove_if(sendGhosts.begin(), sendGhosts.end(), shouldRemove),
+                   sendGhosts.end());
 
   all.communicate();
 
@@ -1040,8 +1030,7 @@ void comm_sync_send_recv(
             "Unknown entity key: " <<
             mesh.mesh_meta_data().entity_rank_name(entity_key.rank()) <<
             "[" << entity_key.id() << "]");
-        EntityProc tmp( e , proc );
-        sendGhosts.insert( tmp );
+        sendGhosts.push_back(EntityProc(e, proc));
       }
       else if ( mesh.is_valid(e) ) {
         //  I am the receiver for this ghost.
@@ -1054,101 +1043,150 @@ void comm_sync_send_recv(
   }
 }
 
-void comm_sync_send_recv(
-  BulkData & mesh ,
-  std::set< EntityProc , EntityLess > & sendGhosts ,
-  std::vector<Entity> & recvGhosts,
-  std::vector<bool>& ghostStatus )
+struct OwnerEntityReceiver {
+  OwnerEntityReceiver(int o, Entity e, int r) : owner(o), entity(e), receiver(r){}
+  int owner;
+  Entity entity;
+  int receiver;
+};
+
+class GhostCommHelper
 {
-  const int parallel_rank = mesh.parallel_rank();
-  const int parallel_size = mesh.parallel_size();
+public:
+  GhostCommHelper(const BulkData& mesh,
+                  const std::vector<Entity>& removeRecvGhosts,
+                  EntityProcVec& newSendGhosts)
+  : m_mesh(mesh),
+    m_commSparse(mesh.parallel()),
+    m_rmRecvCounts(mesh.parallel_size(), 0),
+    m_nonOwnedSendCounts(mesh.parallel_size(), 0),
+    m_nonOwnedSends()
+  {
+    const int myRank = mesh.parallel_rank();
 
-  stk::CommSparse all( mesh.parallel() );
-
-  // Communication sizing:
-
-  for ( std::set< EntityProc , EntityLess >::iterator
-        i = sendGhosts.begin() ; i != sendGhosts.end() ; ++i ) {
-    const int owner = mesh.parallel_owner_rank(i->first);
-    all.send_buffer( i->second ).skip<EntityKey>(1).skip<int>(1);
-    if ( owner != parallel_rank ) {
-      all.send_buffer( owner ).skip<EntityKey>(1).skip<int>(1);
+    for(Entity entity : removeRecvGhosts) {
+      ++m_rmRecvCounts[mesh.parallel_owner_rank(entity)];
     }
-  }
 
-  all.allocate_buffers();
-
-  // Loop thru all entities in sendGhosts, send the entity key to the sharing/ghosting proc
-  // Also, if the owner of the entity is NOT me, also send the entity key to the owing proc
-
-  // Communication packing (with message content comments):
-  for ( std::set< EntityProc , EntityLess >::iterator
-        i = sendGhosts.begin() ; i != sendGhosts.end() ; ) {
-    const int owner = mesh.parallel_owner_rank(i->first);
-
-    // Inform receiver of ghosting, the receiver does not own
-    // and does not share this entity.
-    // The ghost either already exists or is a to-be-done new ghost.
-    // This status will be resolved on the final communication pass
-    // when new ghosts are packed and sent.
-
-    const Entity entity = i->first;
-    const EntityKey entity_key = mesh.entity_key(entity);
-    const int proc = i->second;
-
-    all.send_buffer( proc ).pack(entity_key).pack(proc);
-
-    if ( owner != parallel_rank ) {
-      // I am not the owner of this entity.
-      // Inform the owner of this ghosting need.
-      all.send_buffer( owner ).pack(entity_key).pack(proc);
-
-      // Erase it from my processor's ghosting responsibility:
-      // The iterator passed to the erase method will be invalidated.
-      std::set< EntityProc , EntityLess >::iterator jrem = i ; ++i ;
-      sendGhosts.erase( jrem );
-    }
-    else {
-      ++i ;
-    }
-  }
-
-  all.communicate();
-
-  // Loop thru all the buffers, and insert ghosting request for entity e to other proc
-  // if the proc sending me the data is me, then insert into recvGhosts.
-  // Communication unpacking:
-  for ( int p = 0 ; p < parallel_size ; ++p ) {
-    CommBuffer & buf = all.recv_buffer(p);
-    while ( buf.remaining() ) {
-
-      EntityKey entity_key;
-      int proc = 0;
-
-      buf.unpack(entity_key).unpack(proc);
-
-      Entity const e = mesh.get_entity( entity_key );
-
-      if ( parallel_rank != proc ) {
-        //  Receiving a ghosting need for an entity I own.
-        //  Add it to my send list.
-        ThrowRequireMsg(mesh.is_valid(e),
-            "Unknown entity key: " <<
-            mesh.mesh_meta_data().entity_rank_name(entity_key.rank()) <<
-            "[" << entity_key.id() << "]");
-        EntityProc tmp( e , proc );
-        sendGhosts.insert( tmp );
-      }
-      else if ( mesh.is_valid(e) ) {
-        //  I am the receiver for this ghost.
-        //  If I already have it add it to the receive list,
-        //  otherwise don't worry about it - I will receive
-        //  it in the final new-ghosting communication.
-        recvGhosts.push_back( e );
-        ghostStatus[e.local_offset()] = true;
+    for(EntityProc& ep : newSendGhosts) {
+      int owner = mesh.parallel_owner_rank(ep.first);
+      if (owner != myRank) {
+        ++m_nonOwnedSendCounts[owner];
+        m_nonOwnedSends.emplace_back(owner,ep.first,ep.second);
+        ep.first = Entity();
       }
     }
+    auto shouldRemove = [&](const EntityProc& ep) { return ep.first.local_offset() == 0; };
+    newSendGhosts.erase(
+          std::remove_if(newSendGhosts.begin(), newSendGhosts.end(), shouldRemove),
+          newSendGhosts.end());
+
+    auto isLess = [](const OwnerEntityReceiver& lhs, const OwnerEntityReceiver& rhs)
+                    { return lhs.owner < rhs.owner; };
+    std::sort(m_nonOwnedSends.begin(), m_nonOwnedSends.end(), isLess);
   }
+
+  void setup_send_buffers()
+  {
+    for(int p=0; p<m_commSparse.parallel_size(); ++p) {
+      m_commSparse.send_buffer(p).skip<unsigned>(1);
+      if (m_rmRecvCounts[p] > 0) {
+        m_commSparse.send_buffer(p).skip<EntityKey>(m_rmRecvCounts[p]);
+      }
+      m_commSparse.send_buffer(p).skip<unsigned>(1);
+      if (m_nonOwnedSendCounts[p] > 0) {
+        for(unsigned i=0; i<m_nonOwnedSendCounts[p]; ++i) {
+          m_commSparse.send_buffer(p).skip<EntityKey>(1);
+          m_commSparse.send_buffer(p).skip<int>(1);
+        }
+      }
+    }
+
+    m_commSparse.allocate_buffers();
+  }
+  
+  void pack_and_communicate_buffers(const std::vector<Entity>& removeRecvGhosts)
+  {
+    unsigned idx = 0;
+
+    for(int p=0; p<m_commSparse.parallel_size(); ++p) {
+      stk::CommBuffer& buf = m_commSparse.send_buffer(p);
+  
+      buf.pack<unsigned>(m_rmRecvCounts[p]);
+      if (m_rmRecvCounts[p] > 0) {
+        for(Entity entity : removeRecvGhosts) {
+          int owner = m_mesh.parallel_owner_rank(entity);
+          if (p == owner) {
+            buf.pack<EntityKey>(m_mesh.entity_key(entity));
+          }
+        }
+      }
+  
+      buf.pack<unsigned>(m_nonOwnedSendCounts[p]);
+      if (m_nonOwnedSendCounts[p] > 0) {
+        for(unsigned i=idx; i<idx+m_nonOwnedSendCounts[p]; ++i) {
+          int owner = m_nonOwnedSends[i].owner;
+          Entity ent = m_nonOwnedSends[i].entity;
+          int proc = m_nonOwnedSends[i].receiver;
+          ThrowRequireMsg(owner == p, "Error, owner doesn't match");
+          buf.pack<EntityKey>(m_mesh.entity_key(ent));
+          buf.pack<int>(proc);
+        }
+        idx += m_nonOwnedSendCounts[p];
+      }
+    }
+
+    m_commSparse.communicate();
+  }
+  
+  void unpack_recv_buffers(EntityProcVec& newSendGhosts,
+                           std::set<EntityKeyProc>& removeSendGhosts)
+  {
+    for ( int p = 0 ; p < m_commSparse.parallel_size() ; ++p ) {
+      CommBuffer & buf = m_commSparse.recv_buffer(p);
+      unsigned numRemoveSends = 0;
+      buf.unpack<unsigned>(numRemoveSends);
+  
+      for(unsigned i=0; i<numRemoveSends; ++i) {
+        EntityKey key;
+        buf.unpack<EntityKey>(key);
+        removeSendGhosts.insert(EntityKeyProc(key,p));
+      }
+  
+      unsigned numReferredSends = 0;
+      buf.unpack<unsigned>(numReferredSends);
+      for(unsigned i=0; i<numReferredSends; ++i) {
+        EntityKey key;
+        buf.unpack<EntityKey>(key);
+        int proc = 0;
+        buf.unpack<int>(proc);
+        Entity entity = m_mesh.get_entity(key);
+        ThrowRequireMsg(m_mesh.is_valid(entity), "Recvd invalid entity key");
+        newSendGhosts.push_back(EntityProc(entity,proc));
+      }
+    }
+  }
+
+private:
+  const BulkData& m_mesh;
+  CommSparse m_commSparse;
+  std::vector<unsigned> m_rmRecvCounts;
+  std::vector<unsigned> m_nonOwnedSendCounts;
+  std::vector<OwnerEntityReceiver> m_nonOwnedSends;
+};
+
+void comm_sync_send_recv(const BulkData & mesh ,
+                         const std::vector<Entity>& removeRecvGhosts,
+                         EntityProcVec& newSendGhosts,
+                         std::set< EntityKeyProc> & removeSendGhosts)
+{
+  GhostCommHelper commHelper(mesh, removeRecvGhosts, newSendGhosts);
+
+  commHelper.setup_send_buffers();
+
+  commHelper.pack_and_communicate_buffers(removeRecvGhosts);
+
+  commHelper.unpack_recv_buffers(newSendGhosts, removeSendGhosts);
 }
 
 void comm_sync_aura_send_recv(
@@ -1232,133 +1270,165 @@ void comm_sync_aura_send_recv(
   }
 }
 
-void insert_upward_relations(const BulkData& bulk_data, Entity rel_entity,
-                             const EntityRank rank_of_orig_entity,
-                             const int share_proc,
-                             std::vector<EntityProc>& send)
+void comm_sync_nonowned_sends(
+  const BulkData & mesh ,
+  std::vector<EntityProc> & nonOwnedSendGhosts,
+  EntityProcMapping& entityProcMapping)
 {
-  EntityRank rel_entity_rank = bulk_data.entity_rank(rel_entity);
-  ThrowAssert(rel_entity_rank > rank_of_orig_entity);
+  const int parallel_size = mesh.parallel_size();
+  const int parallel_rank = mesh.parallel_rank();
+  stk::CommSparse commSparse( mesh.parallel() );
 
-  // If related entity is higher rank, I own it, and it is not
-  // already shared by proc, ghost it to the sharing processor.
-  if ( bulk_data.bucket(rel_entity).owned() && ! bulk_data.in_shared(rel_entity, share_proc) ) {
+  for (const EntityProc& ep : nonOwnedSendGhosts) {
+    const int owner = mesh.parallel_owner_rank(ep.first);
+    if ( owner != mesh.parallel_rank() ) {
+      commSparse.send_buffer( owner ).skip<EntityKey>(1).skip<int>(1);
+    }
+  }
 
-    send.emplace_back(rel_entity,share_proc);
+  commSparse.allocate_buffers();
 
-    // There may be even higher-ranking entities that need to be ghosted, so we must recurse
-    const EntityRank end_rank = static_cast<EntityRank>(bulk_data.mesh_meta_data().entity_rank_count());
-    for (EntityRank irank = static_cast<EntityRank>(rel_entity_rank + 1); irank < end_rank; ++irank)
-    {
-      const int num_rels = bulk_data.num_connectivity(rel_entity, irank);
-      Entity const* rels     = bulk_data.begin(rel_entity, irank);
+  for (const EntityProc& ep : nonOwnedSendGhosts) {
+    const int owner = mesh.parallel_owner_rank(ep.first);
+    if ( owner != parallel_rank ) {
+      commSparse.send_buffer( owner ).pack<EntityKey>(mesh.entity_key(ep.first)).pack<int>(ep.second);
+      entityProcMapping.eraseEntityProc(ep.first, ep.second);
+    }
+  }
 
-      for (int r = 0; r < num_rels; ++r)
-      {
-        Entity const rel_of_rel_entity = rels[r];
-        if (bulk_data.is_valid(rel_of_rel_entity)) {
-          insert_upward_relations(bulk_data, rel_of_rel_entity, rel_entity_rank, share_proc, send);
-        }
-      }
+  commSparse.communicate();
+
+  for ( int p = 0 ; p < parallel_size ; ++p ) {
+    CommBuffer & buf = commSparse.recv_buffer(p);
+    while ( buf.remaining() ) {
+
+      EntityKey entity_key;
+      int proc = 0;
+
+      buf.unpack(entity_key).unpack(proc);
+
+      Entity const e = mesh.get_entity( entity_key );
+
+      ThrowAssert(parallel_rank != proc);
+      ThrowAssert(mesh.is_valid(e));
+
+      //Receiving a ghosting need for an entity I own, add it.
+      entityProcMapping.addEntityProc(e, proc);
     }
   }
 }
 
-void insert_upward_relations(const BulkData& bulk_data, Entity rel_entity,
-                             const EntityRank rank_of_orig_entity,
-                             const int share_proc,
+EntityRank get_highest_upward_connected_rank(const Bucket& bucket,
+                                             unsigned bucketOrdinal,
+                                             EntityRank entityRank,
+                                             EntityRank maxRank)
+{
+  EntityRank highestRank = maxRank;
+  while(highestRank > entityRank && bucket.num_connectivity(bucketOrdinal, highestRank) == 0) {
+    highestRank = static_cast<EntityRank>(highestRank-1);
+  }
+  return highestRank;
+}
+
+void insert_upward_relations_for_owned(const BulkData& bulk_data,
+                             const Entity entity,
+                             const EntityRank entityRank,
+                             const EntityRank maxRank,
+                             const std::vector<int>& sharingProcs,
                              EntityProcMapping& send)
 {
-  EntityRank rel_entity_rank = bulk_data.entity_rank(rel_entity);
-  ThrowAssert(rel_entity_rank > rank_of_orig_entity);
-
   // If related entity is higher rank, I own it, and it is not
   // already shared by proc, ghost it to the sharing processor.
-  if ( bulk_data.bucket(rel_entity).owned() && ! bulk_data.in_shared(rel_entity, share_proc) ) {
+  const MeshIndex& idx = bulk_data.mesh_index(entity);
+  const Bucket& bucket = *idx.bucket;
+  ThrowAssert(bucket.owned());
+  const unsigned bucketOrd = idx.bucket_ordinal;
+  const EntityRank upwardRank = get_highest_upward_connected_rank(bucket, bucketOrd, entityRank, maxRank);
 
-    send.addEntityProc(rel_entity,share_proc);
+  if (upwardRank > entityRank) {
+    const int numRels = bucket.num_connectivity(bucketOrd, upwardRank);
+    const Entity* rels     = bucket.begin(bucketOrd, upwardRank);
 
-    // There may be even higher-ranking entities that need to be ghosted, so we must recurse
-    const EntityRank end_rank = static_cast<EntityRank>(bulk_data.mesh_meta_data().entity_rank_count());
-    for (EntityRank irank = static_cast<EntityRank>(rel_entity_rank + 1); irank < end_rank; ++irank)
-    {
-      const int num_rels = bulk_data.num_connectivity(rel_entity, irank);
-      Entity const* rels     = bulk_data.begin(rel_entity, irank);
-
-      for (int r = 0; r < num_rels; ++r)
-      {
-        Entity const rel_of_rel_entity = rels[r];
-        if (bulk_data.is_valid(rel_of_rel_entity)) {
-          insert_upward_relations(bulk_data, rel_of_rel_entity, rel_entity_rank, share_proc, send);
+    for (int r = 0; r < numRels; ++r) {
+      Entity const upwardEntity = rels[r];
+      if (bulk_data.is_valid(upwardEntity) && bulk_data.bucket(upwardEntity).owned()) {
+        for(int sharingProc : sharingProcs) {
+          if (upwardRank >= stk::topology::ELEM_RANK ||
+              !bulk_data.in_shared(upwardEntity, sharingProc)) {
+            send.addEntityProc(upwardEntity, sharingProc);
+          }
+        }
+      }
+    }
+  }
+  else {
+    if (entityRank >= stk::topology::ELEM_RANK || !bulk_data.in_shared(entity)) {
+      for(int sharingProc : sharingProcs) {
+        send.addEntityProc(entity,sharingProc);
+      }
+    }
+    else {
+      for(int sharingProc : sharingProcs) {
+        if (!bulk_data.in_shared(entity, sharingProc)) {
+          send.addEntityProc(entity,sharingProc);
         }
       }
     }
   }
 }
 
-void move_unowned_entities_for_owner_to_ghost(
-  stk::mesh::BulkData & mesh ,
-  std::set< stk::mesh::EntityProc , stk::mesh::EntityLess > & entitiesToGhostOntoOtherProcessors)
+void move_unowned_entities_for_owner_to_ghost(BulkData & mesh, EntityProcVec& sendGhosts)
 {
     const int myProcId = mesh.parallel_rank();
     const int parallel_size = mesh.parallel_size();
 
     stk::CommSparse all(mesh.parallel());
 
-    for(std::set<stk::mesh::EntityProc, stk::mesh::EntityLess>::iterator i = entitiesToGhostOntoOtherProcessors.begin();
-            i != entitiesToGhostOntoOtherProcessors.end(); ++i)
-    {
-        const int owner = mesh.parallel_owner_rank(i->first);
-        if(owner != myProcId)
-        {
+    for(const EntityProc& entProc : sendGhosts) {
+        const int owner = mesh.parallel_owner_rank(entProc.first);
+        if(owner != myProcId) {
             all.send_buffer(owner).skip < stk::mesh::EntityKey > (1).skip<int>(1);
         }
     }
 
     all.allocate_buffers();
 
-    for(std::set<stk::mesh::EntityProc, stk::mesh::EntityLess>::iterator i = entitiesToGhostOntoOtherProcessors.begin();
-            i != entitiesToGhostOntoOtherProcessors.end();)
-    {
-        const int owner = mesh.parallel_owner_rank(i->first);
+    for(EntityProc& entProc : sendGhosts) {
+        const int owner = mesh.parallel_owner_rank(entProc.first);
 
-        const stk::mesh::EntityKey entity_key = mesh.entity_key(i->first);
-        const int proc = i->second;
+        const stk::mesh::EntityKey entity_key = mesh.entity_key(entProc.first);
+        const int proc = entProc.second;
 
-        if(owner != myProcId)
-        {
+        if(owner != myProcId) {
             all.send_buffer(owner).pack(entity_key).pack(proc);
-
-            std::set<stk::mesh::EntityProc, stk::mesh::EntityLess>::iterator jrem = i;
-            ++i;
-            entitiesToGhostOntoOtherProcessors.erase(jrem);
-        }
-        else
-        {
-            ++i;
+            entProc.first = Entity();
+            entProc.second = -1;
         }
     }
 
     all.communicate();
+
+    auto shouldRemove = [&](const EntityProc& ep) { return ep.first.local_offset() == 0; };
+
+    sendGhosts.erase(std::remove_if(sendGhosts.begin(), sendGhosts.end(), shouldRemove),
+                     sendGhosts.end());
 
     for(int p = 0; p < parallel_size; ++p)
     {
         stk::CommBuffer & buf = all.recv_buffer(p);
         while(buf.remaining())
         {
-            stk::mesh::EntityKey entity_key;
+            EntityKey entity_key;
             int procToGhost = 0;
 
             buf.unpack(entity_key).unpack(procToGhost);
 
-            stk::mesh::Entity const e = mesh.get_entity(entity_key);
+            Entity const e = mesh.get_entity(entity_key);
 
             ThrowRequireWithSierraHelpMsg(mesh.is_valid(e) && mesh.parallel_owner_rank(e) == myProcId);
 
-            if(myProcId != procToGhost)
-            {
-                stk::mesh::EntityProc tmp(e, procToGhost);
-                entitiesToGhostOntoOtherProcessors.insert(tmp);
+            if(myProcId != procToGhost) {
+                sendGhosts.push_back(EntityProc(e, procToGhost));
             }
         }
     }
@@ -1389,9 +1459,22 @@ stk::mesh::ConnectivityOrdinal get_ordinal_from_side_entity(const std::vector<st
     return stk::mesh::INVALID_CONNECTIVITY_ORDINAL;
 }
 
+bool are_any_parts_ranked(const stk::mesh::MetaData& meta,
+                          const OrdinalVector& partOrdinals)
+{
+  const PartVector& allParts = meta.get_parts();
+  for(Ordinal ord : partOrdinals) {
+    if (allParts[ord]->primary_entity_rank() != InvalidEntityRank) {
+      return true;
+    }
+  }
+  return false;
+}
+
 void filter_out( OrdinalVector & vec ,
                  const OrdinalVector & parts ,
-                 OrdinalVector & removed )
+                 OrdinalVector & removed ,
+                 bool trackRemoved )
 {
   OrdinalVector::iterator i , j ;
   i = j = vec.begin();
@@ -1402,7 +1485,9 @@ void filter_out( OrdinalVector & vec ,
     if      ( *ip < *j ) { ++ip ; }
     else if ( *j < *ip ) { *i = *j ; ++i ; ++j ; }
     else {
-      removed.push_back( *ip );
+      if (trackRemoved) {
+        removed.push_back( *ip );
+      }
       ++j ;
       ++ip ;
     }    
@@ -1512,6 +1597,59 @@ void check_size_of_types()
 #endif
 }
 
+void require_valid_relation(const char action[],
+                            const BulkData& mesh,
+                            const Entity e_from,
+                            const Entity e_to)
+{
+  const bool error_rank      = !(mesh.entity_rank(e_from) > mesh.entity_rank(e_to));
+  const bool error_nil_from  = !mesh.is_valid(e_from);
+  const bool error_nil_to    = !mesh.is_valid(e_to);
+
+  if ( error_rank || error_nil_from || error_nil_to ) {
+    std::ostringstream msg ;
+
+    msg << "Could not " << action << " relation from entity "
+        << mesh.entity_key(e_from) << " to entity " << mesh.entity_key(e_to) << "\n";
+
+    ThrowErrorMsgIf( error_nil_from  || error_nil_to,
+                     msg.str() << ", entity was destroyed");
+    ThrowErrorMsgIf( error_rank, msg.str() <<
+                     "A relation must be from higher to lower ranking entity");
+  }
+}
+
+bool is_good_rank_and_id(const MetaData& meta,
+                         EntityRank rank,
+                         EntityId id)
+{
+  const EntityRank rank_count = meta.entity_rank_count();
+  const bool ok_id   = EntityKey::is_valid_id(id);
+  const bool ok_rank = rank < rank_count &&
+                 !(rank == stk::topology::FACE_RANK && meta.spatial_dimension() == 2);
+
+  return ok_id && ok_rank;
+}
+
+EntityId get_global_max_id_in_use(const BulkData& mesh,
+                                  EntityRank rank,
+                                  const std::vector<Entity::entity_value_type>& deletedEntitiesCurModCycle,
+                                  const std::vector<EntityId>& reservedIds)
+{
+  EntityId localMax = stk::mesh::get_max_id_on_local_proc(mesh, rank);
+  EntityId localMaxReserved = reservedIds.empty() ? 0 : *std::max_element(reservedIds.begin(), reservedIds.end());
+  localMax = std::max(localMax, localMaxReserved);
+
+  for (Entity::entity_value_type local_offset : deletedEntitiesCurModCycle) {    
+    stk::mesh::Entity entity(local_offset);
+    if ( mesh.is_valid(entity) && mesh.entity_rank(entity) == rank ) {
+      localMax = std::max(localMax, mesh.entity_key(entity).id());
+    }        
+  }
+
+  return stk::get_global_max(mesh.parallel(), localMax);
+}
+
 void check_declare_element_side_inputs(const BulkData & mesh,
                                        const Entity elem,
                                        const unsigned localSideId)
@@ -1536,6 +1674,117 @@ void check_declare_element_side_inputs(const BulkData & mesh,
           << localSideId << ", No element topology found");
 }
 
+bool connect_edge_or_face_to_elements_impl(stk::mesh::BulkData& bulk, stk::mesh::Entity entity)
+{
+  stk::mesh::EntityRank entityRank = bulk.entity_rank(entity);
+  if (entityRank != stk::topology::EDGE_RANK && entityRank != stk::topology::FACE_RANK) {
+    return false;
+  }
+  const stk::mesh::Entity* nodes = bulk.begin_nodes(entity);
+  unsigned numNodes = bulk.num_nodes(entity);
+  stk::mesh::EntityVector elems;
+  stk::mesh::impl::find_entities_these_nodes_have_in_common(bulk, stk::topology::ELEM_RANK, numNodes, nodes, elems);
+  if (elems.empty()) {
+    return false;
+  }
+
+  stk::mesh::EntityVector entityNodes(bulk.begin_nodes(entity), bulk.end_nodes(entity));
+  stk::topology entityTopo = bulk.bucket(entity).topology();
+  for(stk::mesh::Entity elem : elems) {
+    stk::mesh::OrdinalAndPermutation ordinalAndPerm = stk::mesh::get_ordinal_and_permutation(bulk, elem,
+                                                                                            entityRank, entityNodes);
+
+    if(ordinalAndPerm.first == stk::mesh::INVALID_CONNECTIVITY_ORDINAL) { return false; }
+    
+    stk::mesh::impl::connect_element_to_entity(bulk, elem, entity, ordinalAndPerm.first, stk::mesh::PartVector{}, entityTopo);
+  }
+  return true;
+}
+
+bool connect_edge_to_elements(stk::mesh::BulkData& bulk, stk::mesh::Entity edge)
+{
+  return connect_edge_or_face_to_elements_impl(bulk, edge);
+}
+
+void connect_face_to_elements(stk::mesh::BulkData& bulk, stk::mesh::Entity face)
+{
+  ThrowRequireMsg(connect_edge_or_face_to_elements_impl(bulk, face),
+                  "Face with id: " << bulk.identifier(face) << " has no valid connectivity to elements");
+}
+
+bool has_upward_recv_ghost_connectivity(const stk::mesh::BulkData &bulk,
+                                        const stk::mesh::Ghosting& ghosting,
+                                        stk::mesh::Entity entity)
+{
+  if(!bulk.is_valid(entity))
+    return false;
+
+  const stk::mesh::EntityRank entityRank = bulk.entity_rank(entity);
+  const stk::mesh::EntityRank endRank = static_cast<stk::mesh::EntityRank>(bulk.mesh_meta_data().entity_rank_count());
+  for(stk::mesh::EntityRank conRank = static_cast<stk::mesh::EntityRank>(entityRank + 1); conRank <= endRank; ++conRank)
+  {
+    unsigned numConnected = bulk.num_connectivity(entity, conRank);
+    if(numConnected > 0) {
+      const stk::mesh::Entity* conn = bulk.begin(entity, conRank);
+      for(unsigned i=0; i<numConnected; ++i) {
+        if (bulk.in_receive_ghost(ghosting, conn[i])) {
+          return true;
+        }
+      }
+    }
+  }
+
+  return false;
+}
+
+bool has_upward_send_ghost_connectivity(const stk::mesh::BulkData &bulk,
+                                        const stk::mesh::Ghosting& ghosting,
+                                        int proc,
+                                        stk::mesh::Entity entity)
+{
+  if(!bulk.is_valid(entity))
+    return false;
+
+  const stk::mesh::EntityRank entityRank = bulk.entity_rank(entity);
+  const stk::mesh::EntityRank endRank = static_cast<stk::mesh::EntityRank>(bulk.mesh_meta_data().entity_rank_count());
+  for(stk::mesh::EntityRank conRank = static_cast<stk::mesh::EntityRank>(entityRank + 1); conRank <= endRank; ++conRank)
+  {
+    unsigned numConnected = bulk.num_connectivity(entity, conRank);
+    if(numConnected > 0) {
+      const stk::mesh::Entity* conn = bulk.begin(entity, conRank);
+      for(unsigned i=0; i<numConnected; ++i) {
+        if (bulk.in_send_ghost(ghosting, bulk.entity_key(conn[i]), proc)) {
+          return true;
+        }
+      }
+    }
+  }
+
+  return false;
+}
+
+bool has_upward_connectivity(const stk::mesh::BulkData &bulk, stk::mesh::Entity entity)
+{
+  if(!bulk.is_valid(entity))
+    return false;
+
+  const stk::mesh::EntityRank entityRank = bulk.entity_rank(entity);
+  const stk::mesh::EntityRank endRank = static_cast<stk::mesh::EntityRank>(bulk.mesh_meta_data().entity_rank_count());
+  for(stk::mesh::EntityRank conRank = static_cast<stk::mesh::EntityRank>(entityRank + 1); conRank <= endRank; ++conRank)
+  {
+    unsigned numConnected = bulk.num_connectivity(entity, conRank);
+    if(numConnected > 0)
+      return true;
+  }
+
+  return false;
+}
+
+bool can_destroy_entity(const stk::mesh::BulkData &bulk, stk::mesh::Entity entity)
+{
+  return bulk.is_valid(entity) && !impl::has_upward_connectivity(bulk, entity);
+}
+  
 } // namespace impl
 } // namespace mesh
 } // namespace stk

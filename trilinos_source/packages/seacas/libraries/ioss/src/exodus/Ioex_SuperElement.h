@@ -1,10 +1,11 @@
-// Copyright(C) 1999-2020 National Technology & Engineering Solutions
+// Copyright(C) 1999-2020, 2022 National Technology & Engineering Solutions
 // of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 // NTESS, the U.S. Government retains certain rights in this software.
-// 
+//
 // See packages/seacas/LICENSE for details
-#ifndef IOSS_Ioex_SuperElement_h
-#define IOSS_Ioex_SuperElement_h
+#pragma once
+
+#include "ioex_export.h"
 
 #include "Ioss_EntityType.h"     // for EntityType, etc
 #include "Ioss_Property.h"       // for Property
@@ -21,7 +22,7 @@ namespace Ioss {
 } // namespace Ioss
 
 namespace Ioex {
-  class SuperElement : public Ioss::GroupingEntity
+  class IOEX_EXPORT SuperElement : public Ioss::GroupingEntity
   {
   public:
     SuperElement(std::string filename, const std::string &my_name);
@@ -54,4 +55,3 @@ namespace Ioex {
     int         filePtr{-1};
   };
 } // namespace Ioex
-#endif

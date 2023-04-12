@@ -48,18 +48,16 @@
 
 #include "Xpetra_ConfigDefs.hpp"
 
-#include <Kokkos_DefaultNode.hpp>
+#include <KokkosCompat_DefaultNode.hpp>
 #include <Teuchos_Describable.hpp>
 
 #ifdef HAVE_XPETRA_EPETRA
     #include "Epetra_config.h"
 #endif
 
-#ifdef HAVE_XPETRA_KOKKOS_REFACTOR
     #ifdef HAVE_XPETRA_TPETRA
         #include <Tpetra_Map.hpp>
     #endif
-#endif
 
 namespace Xpetra {
 
@@ -109,7 +107,7 @@ namespace Xpetra {
     virtual global_size_t getGlobalNumElements() const = 0;
 
     //! The number of elements belonging to the calling process.
-    virtual size_t getNodeNumElements() const = 0;
+    virtual size_t getLocalNumElements() const = 0;
 
     //! The index base for this Map.
     virtual GlobalOrdinal getIndexBase() const = 0;
@@ -148,7 +146,7 @@ namespace Xpetra {
                                             const Teuchos::ArrayView< int > &nodeIDList) const = 0;
 
     //! Return a view of the global indices owned by this process.
-    virtual Teuchos::ArrayView< const GlobalOrdinal > getNodeElementList() const = 0;
+    virtual Teuchos::ArrayView< const GlobalOrdinal > getLocalElementList() const = 0;
 
     //@}
 
@@ -221,13 +219,11 @@ namespace Xpetra {
     // it to return the base map.
     virtual RCP<const Xpetra::Map<LocalOrdinal, GlobalOrdinal, Node> > getMap() const;
 
-#ifdef HAVE_XPETRA_KOKKOS_REFACTOR
 #ifdef HAVE_XPETRA_TPETRA
     typedef typename Tpetra::Map<LocalOrdinal, GlobalOrdinal, Node>::local_map_type local_map_type;
 
     /// \brief Get the local Map for Kokkos kernels.
     virtual local_map_type getLocalMap () const = 0;
-#endif
 #endif
 
     //@}

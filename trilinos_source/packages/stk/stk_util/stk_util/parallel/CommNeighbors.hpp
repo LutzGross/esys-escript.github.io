@@ -35,11 +35,11 @@
 #ifndef stk_util_CommNeighbors_hpp
 #define stk_util_CommNeighbors_hpp
 
-#include <cstddef>                      // for size_t, ptrdiff_t
-#include <vector>
-#include <stk_util/stk_config.h>
-#include <stk_util/parallel/Parallel.hpp>  // for ParallelMachine
-#include <stk_util/parallel/CommBufferV.hpp>
+#include "stk_util/stk_config.h"              // for STK_HAS_MPI
+#include "stk_util/parallel/CommBufferV.hpp"  // for CommBufferV
+#include "stk_util/parallel/Parallel.hpp"     // for ParallelMachine, OMPI_MAJOR_VERSION, ompi_c...
+#include "stk_util/util/ReportHandler.hpp"
+#include <vector>                             // for vector
 
 //------------------------------------------------------------------------
 //
@@ -62,6 +62,10 @@
 #if OMPI_MAJOR_VERSION == 2
 #undef STK_MPI_SUPPORTS_NEIGHBOR_COMM
 #endif
+#if OMPI_MAJOR_VERSION == 10
+//This is the IBM Spectrum MPI, which also has slow MPI_Neighbor functions.
+#undef STK_MPI_SUPPORTS_NEIGHBOR_COMM
+#endif
 
 #endif
 
@@ -73,7 +77,6 @@
 #ifdef __INTEL_COMPILER
 #undef STK_MPI_SUPPORTS_NEIGHBOR_COMM
 #endif
-#define STK_MPI_SUPPORTS_NEIGHBOR_COMM
 
 //Finally: if the user explicitly enables or disables mpi-neighbor-comm
 //by defining one of the following macros (e.g., with cmake option or with
@@ -104,18 +107,14 @@ public:
   /** Obtain the message buffer for a given processor */
   CommBufferV & send_buffer( int p )
   {
-#ifndef NDEBUG
-    if ( m_size <= p ) { rank_error("send_buffer",p); }
-#endif
+    ThrowAssertMsg(m_size > p, "CommNeighbors::send_buffer p="<<p<<" out of range.");
     return m_send[p] ;
   }
 
   /** Obtain the message buffer for a given processor */
   CommBufferV & recv_buffer( int p )
   {
-#ifndef NDEBUG
-    if ( m_size <= p ) { rank_error("recv_buffer",p); }
-#endif
+    ThrowAssertMsg(m_size > p, "CommNeighbors::recv_buffer p="<<p<<" out of range.");
     return m_recv[p] ;
   }
 
@@ -141,6 +140,10 @@ public:
    *  Sets 'size() == 0' and 'remaining() == capacity()'.
    */
   void reset_buffers();
+
+  /** send procs become recv procs, send buffers become recv buffers...
+  */
+  void swap_send_recv();
 
   virtual ~CommNeighbors();
 
@@ -168,7 +171,6 @@ protected:
   CommNeighbors( const CommNeighbors & );
   CommNeighbors & operator = ( const CommNeighbors & );
 
-  void rank_error( const char * , int ) const ;
   void sort_procs_and_resize_buffers();
 
   stk::ParallelMachine m_comm ;

@@ -1,7 +1,7 @@
 C Copyright(C) 1999-2020 National Technology & Engineering Solutions
 C of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 C NTESS, the U.S. Government retains certain rights in this software.
-C 
+C
 C See packages/seacas/LICENSE for details
 
 C************************************************************************
@@ -25,10 +25,9 @@ C      --   (4) = program name with version appended
 C      --   (5) = date of current run
 C      --   (6) = time of current run
 
-
       qainfo(1) = 'mapvar-kd                       '
-      qainfo(2) = '2019/05/15                      '
-      qainfo(3) = ' 2.01                           '
+      qainfo(2) = '2022/09/16                      '
+      qainfo(3) = ' 2.02                           '
       qainfo(4) = '                                '
       qainfo(5) = '                                '
       qainfo(6) = '                                '

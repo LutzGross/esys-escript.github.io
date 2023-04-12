@@ -1,14 +1,18 @@
 // #######################  Start Clang Header Tool Managed Headers ########################
 // clang-format off
 #include "stk_io/WriteMesh.hpp"
-#include <stddef.h>                    // for size_t
-#include "Ioss_Field.h"                // for Field, Field::RoleType, etc
-#include "stk_io/DatabasePurpose.hpp"  // for DatabasePurpose, etc
+#include <cstddef>                     // for size_t
+#include "Ioss_DatabaseIO.h"           // for DatabaseIO
+#include "Ioss_Field.h"                // for Field, Field::RoleType, Field:...
+#include "Ioss_Property.h"             // for Property
+#include "Ioss_Region.h"               // for Region
+#include "stk_io/DatabasePurpose.hpp"  // for DatabasePurpose
 #include "stk_io/IossBridge.hpp"       // for get_field_role
 #include "stk_io/StkMeshIoBroker.hpp"  // for StkMeshIoBroker
 #include "stk_mesh/base/BulkData.hpp"  // for BulkData
 #include "stk_mesh/base/MetaData.hpp"  // for MetaData
 #include "stk_mesh/base/Types.hpp"     // for FieldVector
+#include "stk_topology/topology.hpp"   // for topology, topology::ELEM_RANK
 namespace stk { namespace mesh { class FieldBase; } }
 // clang-format on
 // #######################   End Clang Header Tool Managed Headers  ########################
@@ -24,9 +28,20 @@ void write_mesh(const std::string &filename,
 {
     stk::io::StkMeshIoBroker stkIo;
     stkIo.set_bulk_data(bulkData);
-    size_t outputFileIndex = stkIo.create_output_mesh(filename, databasePurpose);
-    stkIo.write_output_mesh(outputFileIndex);
+    write_mesh(filename, stkIo, databasePurpose);
 }
+
+void write_mesh(const std::string &filename,
+                stk::io::StkMeshIoBroker& ioBroker,
+                stk::io::DatabasePurpose databasePurpose)
+{
+    size_t outputFileIndex = ioBroker.create_output_mesh(filename, databasePurpose);
+    ioBroker.write_output_mesh(outputFileIndex);
+
+    auto region = ioBroker.get_output_io_region(outputFileIndex);
+    region->get_database()->closeDatabase();
+}
+    
 
 void write_mesh_with_canonical_name(const std::string &filename,
                                     stk::mesh::BulkData &bulkData,
@@ -61,6 +76,7 @@ void write_mesh_subset(const std::string &filename,
     stkIo.set_bulk_data(bulkData);
     size_t outputFileIndex = stkIo.create_output_mesh(filename, databasePurpose);
     stkIo.set_subset_selector(outputFileIndex, subsetSelector);
+    stkIo.set_output_selector(outputFileIndex, stk::topology::ELEM_RANK, subsetSelector);
     stkIo.write_output_mesh(outputFileIndex);
 }
 

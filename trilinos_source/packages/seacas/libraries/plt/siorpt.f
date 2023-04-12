@@ -1,14 +1,9 @@
-C Copyright(C) 1999-2020 National Technology & Engineering Solutions
+C Copyright(C) 1999-2021 National Technology & Engineering Solutions
 C of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 C NTESS, the U.S. Government retains certain rights in this software.
-C 
+C
 C See packages/seacas/LICENSE for details
 
-C $Id: siorpt.f,v 1.1 1993/07/16 16:50:05 gdsjaar Exp $
-C $Log: siorpt.f,v $
-C Revision 1.1  1993/07/16 16:50:05  gdsjaar
-C Changed plt to library rather than single source file.
-C
 C=======================================================================
       SUBROUTINE SIORPT(MODULE,MESS,DISP)
       IMPLICIT INTEGER (A-Z)
@@ -35,8 +30,6 @@ C=======================================================================
      *            ' at '//ERRORT(1:LT)
          WRITE (6,10) LOCLIN
 
-   10    FORMAT (1X,A)
-
          LOCLIN = '#Error message: '//ERRMSG
          WRITE (6,10) LOCLIN
 
@@ -61,6 +54,8 @@ C=======================================================================
          LOCLIN = '#Error message: '//ERRMSG
          WRITE (6,10) LOCLIN
       END IF
+
+ 10   FORMAT (1X,A)
 
       RETURN
 

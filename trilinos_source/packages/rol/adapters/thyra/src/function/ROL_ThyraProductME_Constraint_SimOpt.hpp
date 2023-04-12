@@ -54,7 +54,7 @@
 #include "Tpetra_CrsMatrix.hpp"
 #include "Teuchos_VerbosityLevel.hpp"
 
-using namespace ROL;
+namespace ROL {
 
 //! \brief ROL interface wrapper for Sacado SimOpt Constraint
 template<class Real>
@@ -62,7 +62,7 @@ class ThyraProductME_Constraint_SimOpt : public Constraint_SimOpt<Real> {
 
 public:
 
-  ThyraProductME_Constraint_SimOpt(Thyra::ModelEvaluatorDefaultBase<double>& thyra_model_, int g_index_, const std::vector<int>& p_indices_,
+  ThyraProductME_Constraint_SimOpt(const Thyra::ModelEvaluator<double>& thyra_model_, int g_index_, const std::vector<int>& p_indices_,
       Teuchos::RCP<Teuchos::ParameterList> params_ = Teuchos::null, Teuchos::EVerbosityLevel verbLevel= Teuchos::VERB_HIGH) :
         thyra_model(thyra_model_), g_index(g_index_), p_indices(p_indices_), params(params_),
         out(Teuchos::VerboseObjectBase::getDefaultOStream()),
@@ -80,7 +80,7 @@ public:
     }
   };
 
-  void setExternalSolver(Teuchos::RCP<Thyra::ModelEvaluatorDefaultBase<double>> thyra_solver_) {
+  void setExternalSolver(Teuchos::RCP<Thyra::ModelEvaluator<double>> thyra_solver_) {
     thyra_solver = thyra_solver_;
   }
 
@@ -107,7 +107,9 @@ public:
     }
     else {
       const ThyraVector<Real>  & thyra_p = dynamic_cast<const ThyraVector<Real>&>(z);
-      const ThyraVector<Real>  & thyra_x = dynamic_cast<const ThyraVector<Real>&>(u);
+      Ptr<Vector<Real>> unew = u.clone();
+      unew->set(u);
+      const ThyraVector<Real>  & thyra_x = dynamic_cast<const ThyraVector<Real>&>(*unew);
       ThyraVector<Real>  & thyra_f = dynamic_cast<ThyraVector<Real>&>(c);
       Teuchos::RCP<const Thyra::ProductVectorBase<Real> > thyra_prodvec_p = Teuchos::rcp_dynamic_cast<const Thyra::ProductVectorBase<Real>>(thyra_p.getVector());
 
@@ -522,7 +524,14 @@ public:
     TEUCHOS_ASSERT(Teuchos::nonnull(lows_factory));
     Teuchos::RCP< Thyra::LinearOpBase<double> > lop;
 
-    if(computeJacobian1)
+    bool explicitlyTransposMatrix = false;
+    if(params != Teuchos::null) {
+      explicitlyTransposMatrix = params->get("Enable Explicit Matrix Transpose", false);
+      if(explicitlyTransposMatrix)
+        params->set("Compute Transposed Jacobian", true);
+    }
+
+    if(computeJacobian1 || explicitlyTransposMatrix)
       lop = thyra_model.create_W_op();
     else {
       if(verbosityLevel >= Teuchos::VERB_HIGH)
@@ -542,14 +551,14 @@ public:
     }
     const Teuchos::RCP<Thyra::LinearOpWithSolveBase<Real> > jacobian = lows_factory->createOp();
 
-    if(computeJacobian1)
+    if(computeJacobian1 || explicitlyTransposMatrix)
     {
       outArgs.set_W_op(lop);
       thyra_model.evalModel(inArgs, outArgs);
       outArgs.set_W_op(Teuchos::null);
       jac1 = lop;
 
-      computeJacobian1 = false;
+      computeJacobian1 = explicitlyTransposMatrix;
     }
 
     if (Teuchos::nonnull(prec_factory))
@@ -559,14 +568,25 @@ public:
       thyra_model.evalModel(inArgs, outArgs);
     }
 
-    if(Teuchos::nonnull(prec))
-      Thyra::initializePreconditionedOp<double>(*lows_factory,
-          Thyra::transpose<double>(lop),
-          Thyra::unspecifiedPrec<double>(::Thyra::transpose<double>(prec->getUnspecifiedPrecOp())),
+    if(Teuchos::nonnull(prec)) {
+      if(explicitlyTransposMatrix) {
+        Thyra::initializePreconditionedOp<double>(*lows_factory,
+          lop,
+          prec,
           jacobian.ptr());
-    else
-      Thyra::initializeOp<double>(*lows_factory, Thyra::transpose<double>(lop), jacobian.ptr());
-
+      } else {
+        Thyra::initializePreconditionedOp<double>(*lows_factory,
+            Thyra::transpose<double>(lop),
+            Thyra::unspecifiedPrec<double>(::Thyra::transpose<double>(prec->getUnspecifiedPrecOp())),
+            jacobian.ptr());
+      }
+    }
+    else {
+      if(explicitlyTransposMatrix)
+        Thyra::initializeOp<double>(*lows_factory, lop, jacobian.ptr());
+      else
+        Thyra::initializeOp<double>(*lows_factory, Thyra::transpose<double>(lop), jacobian.ptr());
+    }
     const Thyra::SolveCriteria<Real> solve_criteria;
 
     lop->apply(Thyra::NOTRANS, *thyra_v.getVector(), thyra_iajv.getVector().ptr(), 1.0, 0.0);
@@ -578,6 +598,11 @@ public:
         *thyra_v.getVector(),
         thyra_iajv_ptr.ptr(),
         Teuchos::ptr(&solve_criteria));
+
+    if(params != Teuchos::null) {
+      params->set("Compute Transposed Jacobian", false);
+    }
+
   };
 
   void applyAdjointJacobian_2(Vector<Real> &ajv, const Vector<Real> &v, const Vector<Real> &u,
@@ -715,6 +740,10 @@ public:
     }
   }
 
+  void solve_update(const Vector<Real> &u, const Vector<Real> &z, EUpdateType type, int iter = -1) {
+    this->update(u,z,type,iter);
+  }
+
   void solve(Vector<Real> &c,
       Vector<Real> &u,
       const Vector<Real> &z,
@@ -758,7 +787,9 @@ public:
 
       inArgs.set_x(thyra_x.getVector());
 
-      params->set<bool>("Compute State", true);
+      if(params != Teuchos::null)
+        params->set<bool>("Compute State", true);
+
       thyra_solver->evalModel(inArgs, outArgs);
 
       Teuchos::RCP<const Thyra::VectorBase<double> > gx_out = outArgs.get_g(num_responses);
@@ -797,7 +828,9 @@ public:
 
     if(supports_deriv) { //use derivatives computed by model evaluator
       const ThyraVector<Real>  & thyra_p = dynamic_cast<const ThyraVector<Real>&>(z);
-      const ThyraVector<Real>  & thyra_x = dynamic_cast<const ThyraVector<Real>&>(u);
+      Ptr<Vector<Real>> unew = u.clone();
+      unew->set(u);
+      const ThyraVector<Real>  & thyra_x = dynamic_cast<const ThyraVector<Real>&>(*unew);
       const ThyraVector<Real>  & thyra_v = dynamic_cast<const ThyraVector<Real>&>(v);
       const ThyraVector<Real>  & thyra_w = dynamic_cast<const ThyraVector<Real>&>(w);
 
@@ -841,6 +874,7 @@ public:
       // Compute Newton quotient
       ahwv.axpy(-1.0,*jv);
       ahwv.scale(0.5/h);
+      this->update(u,z);
     }
   }
 
@@ -870,7 +904,9 @@ public:
     if(supports_deriv) {  //use derivatives computed by model evaluator
 
       const ThyraVector<Real>  & thyra_p = dynamic_cast<const ThyraVector<Real>&>(z);
-      const ThyraVector<Real>  & thyra_x = dynamic_cast<const ThyraVector<Real>&>(u);
+      Ptr<Vector<Real>> unew = u.clone();
+      unew->set(u);
+      const ThyraVector<Real>  & thyra_x = dynamic_cast<const ThyraVector<Real>&>(*unew);
       const ThyraVector<Real>  & thyra_v = dynamic_cast<const ThyraVector<Real>&>(v);
       const ThyraVector<Real>  & thyra_w = dynamic_cast<const ThyraVector<Real>&>(w);
 
@@ -918,6 +954,7 @@ public:
       // Compute Newton quotient
       ahwv.axpy(-1.0,*jv);
       ahwv.scale(0.5/h);
+      this->update(u,z);
     }
   }
 
@@ -946,7 +983,9 @@ public:
     if(supports_deriv) { //use derivatives computed by model evaluator
 
       const ThyraVector<Real>  & thyra_p = dynamic_cast<const ThyraVector<Real>&>(z);
-      const ThyraVector<Real>  & thyra_x = dynamic_cast<const ThyraVector<Real>&>(u);
+      Ptr<Vector<Real>> unew = u.clone();
+      unew->set(u);
+      const ThyraVector<Real>  & thyra_x = dynamic_cast<const ThyraVector<Real>&>(*unew);
       const ThyraVector<Real>  & thyra_v = dynamic_cast<const ThyraVector<Real>&>(v);
       const ThyraVector<Real>  & thyra_w = dynamic_cast<const ThyraVector<Real>&>(w);
 
@@ -1003,6 +1042,7 @@ public:
       // Compute Newton quotient
       ahwv.axpy(-1.0,*jv);
       ahwv.scale(0.5/h);
+      this->update(u,z);
     }
   }
 
@@ -1031,7 +1071,9 @@ public:
     if(supports_deriv) {  //use derivatives computed by model evaluator
 
       const ThyraVector<Real>  & thyra_p = dynamic_cast<const ThyraVector<Real>&>(z);
-      const ThyraVector<Real>  & thyra_x = dynamic_cast<const ThyraVector<Real>&>(u);
+      Ptr<Vector<Real>> unew = u.clone();
+      unew->set(u);
+      const ThyraVector<Real>  & thyra_x = dynamic_cast<const ThyraVector<Real>&>(*unew);
       const ThyraVector<Real>  & thyra_v = dynamic_cast<const ThyraVector<Real>&>(v);
       const ThyraVector<Real>  & thyra_w = dynamic_cast<const ThyraVector<Real>&>(w);
 
@@ -1096,6 +1138,7 @@ public:
       // Compute Newton quotient
       ahwv.axpy(-1.0,*jv);
       ahwv.scale(0.5/h);
+      this->update(u,z);
     }
   }
 
@@ -1119,12 +1162,53 @@ public:
       params->set<int>("Optimizer Iteration Number", iter);
   }
 
+  void update_1( const Vector<Real> &u, EUpdateType type, int iter = -1 ) {
+    if(u_hasChanged(u)) {
+      if(verbosityLevel >= Teuchos::VERB_HIGH)
+        *out << "ROL::ThyraProductME_Constraint_SimOpt::update_1, The State Changed" << std::endl;
+      computeValue = computeJacobian1 = true;
+
+      if (Teuchos::is_null(rol_u_ptr))
+        rol_u_ptr = u.clone();
+      rol_u_ptr->set(u);
+    }
+
+    if(params != Teuchos::null)
+      params->set<int>("Optimizer Iteration Number", iter);
+  }
+
   /** \brief Update constraint functions with respect to Opt variable.
                 x is the optimization variable,
                 flag = ??,
                 iter is the outer algorithm iterations count.
    */
   void update_2( const Vector<Real> &z, bool /*flag*/ = true, int iter = -1 ) {
+    if(z_hasChanged(z)) {
+      if(verbosityLevel >= Teuchos::VERB_HIGH)
+        *out << "ROL::ThyraProductME_Constraint_SimOpt::update_2, The Parameter Changed" << std::endl;
+      computeValue = computeJacobian1 = solveConstraint = true;
+
+      if (Teuchos::is_null(rol_z_ptr))
+        rol_z_ptr = z.clone();
+      rol_z_ptr->set(z);
+    }
+
+    if(Teuchos::nonnull(params)) {
+      auto& z_stored_ptr = params->get<Teuchos::RCP<Vector<Real> > >("Optimization Variable");
+      if(Teuchos::is_null(z_stored_ptr) || z_hasChanged(*z_stored_ptr)) {
+        if(verbosityLevel >= Teuchos::VERB_HIGH)
+          *out << "ROL::ThyraProductME_Constraint_SimOpt::update_2, Signaling That Parameter Changed" << std::endl;
+        params->set<bool>("Optimization Variables Changed", true);
+        if(Teuchos::is_null(z_stored_ptr))
+          z_stored_ptr = z.clone();
+        z_stored_ptr->set(z);
+      }
+
+      params->set<int>("Optimizer Iteration Number", iter);
+    }
+  }
+
+  void update_2( const Vector<Real> &z, EUpdateType type, int iter = -1 ) {
     if(z_hasChanged(z)) {
       if(verbosityLevel >= Teuchos::VERB_HIGH)
         *out << "ROL::ThyraProductME_Constraint_SimOpt::update_2, The Parameter Changed" << std::endl;
@@ -1178,8 +1262,8 @@ public:
   bool computeValue, computeJacobian1, solveConstraint;
 
 private:
-  Teuchos::RCP<Thyra::ModelEvaluatorDefaultBase<double>> thyra_solver;
-  Thyra::ModelEvaluatorDefaultBase<Real>& thyra_model;
+  Teuchos::RCP<Thyra::ModelEvaluator<double>> thyra_solver;
+  const Thyra::ModelEvaluator<Real>& thyra_model;
   const int g_index;
   const std::vector<int> p_indices;
   int num_responses;
@@ -1192,5 +1276,5 @@ private:
 
 };
 
-
+}
 #endif

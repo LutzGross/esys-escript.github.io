@@ -92,21 +92,6 @@ namespace Belos {
   //! @name MinresIteration Exceptions
   //@{ 
   
-  /** \brief MinresIterationInitFailure is thrown when the MinresIteration object is unable to
-   * generate an initial iterate in the MinresIteration::initialize() routine.
-   *
-   * This std::exception is thrown from the MinresIteration::initialize() method, which is
-   * called by the user or from the MinresIteration::iterate() method if isInitialized()
-   * == \c false.
-   *
-   * In the case that this std::exception is thrown, 
-   * MinresIteration::isInitialized() will be \c false and the user will need to provide
-   * a new initial iterate to the iteration.
-   */
-  class MinresIterationInitFailure : public BelosError {public:
-    MinresIterationInitFailure(const std::string& what_arg) : BelosError(what_arg)
-    {}};
-
   /** \brief MinresIterateFailure is thrown when the MinresIteration object is unable to
    * compute the next iterate in the MinresIteration::iterate() routine.
    *
@@ -115,26 +100,6 @@ namespace Belos {
    */
   class MinresIterateFailure : public BelosError {public:
     MinresIterateFailure(const std::string& what_arg) : BelosError(what_arg)
-    {}};
-  
-  /** \brief MinresIterationOrthoFailure is thrown when the MinresIteration object is unable to
-   * compute independent direction vectors in the MinresIteration::iterate() routine.
-   *
-   * This std::exception is thrown from the MinresIteration::iterate() method.
-   *
-   */
-  class MinresIterationOrthoFailure : public BelosError {public:
-    MinresIterationOrthoFailure(const std::string& what_arg) : BelosError(what_arg)
-    {}};
-
-  /** \brief MinresIterationLAPACKFailure is thrown when a nonzero return value is passed back
-   * from an LAPACK routine.
-   *
-   * This std::exception is thrown from the MinresIteration::iterate() method.
-   *
-   */
-  class MinresIterationLAPACKFailure : public BelosError {public:
-    MinresIterationLAPACKFailure(const std::string& what_arg) : BelosError(what_arg)
     {}};
   
   //@}

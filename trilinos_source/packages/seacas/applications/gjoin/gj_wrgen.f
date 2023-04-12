@@ -1,10 +1,9 @@
-C Copyright(C) 1999-2020 National Technology & Engineering Solutions
+C Copyright(C) 1999-2022 National Technology & Engineering Solutions
 C of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 C NTESS, the U.S. Government retains certain rights in this software.
-C 
+C
 C See packages/seacas/LICENSE for details
 
-C $Id: wrgen.f,v 1.12 2006/03/20 18:38:37 gdsjaar Exp $
 C=======================================================================
       SUBROUTINE WRGEN (A,IA, FILNAM, TITLE, NDIM, NUMNP, NUMEL, NELBLK,
      &   NUMNPS, LNPSNL, NUMESS, LESSEL, LESSDL,
@@ -12,7 +11,8 @@ C=======================================================================
      &   KIDELB, KNELB, KNLNK, KNATR, KLINK, KATRIB,
      &   KIDNS, KNNNS, KIXNNS, KLTNNS, KFACNS,
      &   KIDSS, KNESS, KNDSS, KIXESS, KIXDSS, KLTESS, KFACSS,
-     &   kltsss, NQAREC, QAREC, NINFO, INFREC, NAMELB, L64BIT, NC4, *)
+     &   kltsss, NQAREC, QAREC, NINFO, INFREC, NAMELB, L64BIT, NC4,
+     $   NAMBK, NAMNS, NAMSS, *)
 C=======================================================================
 
 C   --*** WRGEN *** (GJOIN) Writes the GENESIS database
@@ -60,6 +60,7 @@ C   --   L64BIT - IN - true if use 64-bit integer output database
 
       include 'exodusII.inc'
       include 'gj_params.blk'
+      include 'gj_namlen.blk'
 
       DIMENSION A(*), IA(*)
       CHARACTER*(*) FILNAM
@@ -67,6 +68,7 @@ C   --   L64BIT - IN - true if use 64-bit integer output database
       character*(MXSTLN) qarec(4,MAXQA)
       character*(MXLNLN) infrec(MAXINF)
       character*(MXSTLN) nameco(6), namelb(*)
+      character*(namlen) nambk(*), namns(*), namss(*)
       LOGICAL            l64bit, NC4
 
 C      --QAREC - the QA records
@@ -100,6 +102,9 @@ C     Create the netcdf file
          call exerr('gjoin2', 'Error from excre', exlmsg)
          go to 150
       endif
+
+C   -- Set output name length
+      call exmxnm(idexo, namlen, ierr)
 
 C   --Write the QA records
 
@@ -159,7 +164,7 @@ C   --Write the coordinates
       endif
 
 C   --Write out the nodal point sets
-C
+
       if (numnps .gt. 0) then
          call expcns (idexo, ia(kidns), ia(knnns), ia(kansdf),
      &                ia(kixnns), ia(kixnns), ia(kltnns),
@@ -169,6 +174,7 @@ C
             goto 150
          endif
          call mddel('NSDF')
+         call expnams(idexo, 2, numnps, namns, ierr)
       endif
 
 C   --Write element side sets
@@ -180,6 +186,7 @@ C   --Write element side sets
           call exerr ('gjoin2', 'Error from expcss', exlmsg)
           goto 150
         endif
+         call expnams(idexo, 3, numess, namss, ierr)
       endif
 
 C   --Write the element blocks
@@ -191,7 +198,6 @@ C        Write concatenated element block parameters
         call exerr('gjoin2', 'Error from expclb', exlmsg)
         goto 150
       endif
-
 
       ioff = katrib
       iptr = klink
@@ -223,6 +229,7 @@ C        skipping null element blocks
          ioff = ioff + ( ia(knatr+ielb-1) * ia(knelb+ielb-1) )
          iptr = iptr + ( ia(knlnk+ielb-1) * ia(knelb+ielb-1) )
  100  continue
+      call expnams(idexo, 1, nelblk, nambk, ierr)
 
  150  call exclos (idexo, ierr)
 

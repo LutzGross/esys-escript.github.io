@@ -225,7 +225,7 @@ namespace panzer
       /**
        *  \brief Post-Registration Setup.
        *
-       *  Sets the `Kokkos::View`s for all the of the field multipliers, sets
+       *  Sets the `PHX::View`s for all the of the field multipliers, sets
        *  the number of quadrature points and dimensions in our vector field,
        *  and sets the basis index.
        *
@@ -356,11 +356,11 @@ namespace panzer
       fieldMults_;
 
       /**
-       *  \brief The `Kokkos::View` representation of the (possibly empty) list
+       *  \brief The `PHX::View` representation of the (possibly empty) list
        *         of fields that are multipliers out in front of the integral
        *         (\f$ a(x) \f$, \f$ b(x) \f$, etc.).
        */
-    Kokkos::View<Kokkos::View<const ScalarT**,typename PHX::DevLayout<ScalarT>::type,PHX::Device>*> kokkosFieldMults_;
+    PHX::View<Kokkos::View<const ScalarT**, typename PHX::DevLayout<ScalarT>::type, Kokkos::MemoryUnmanaged>*> kokkosFieldMults_;
 
       /**
        *  \brief The number of quadrature points for each cell.
@@ -386,9 +386,11 @@ namespace panzer
       /**
        *  \brief The vector basis information necessary for integration.
        */
-      PHX::MDField<double, panzer::Cell, panzer::BASIS, panzer::IP,
+      PHX::MDField<const double, panzer::Cell, panzer::BASIS, panzer::IP,
         panzer::Dim> basis_;
 
+    /// Temporary for caching field multipliers
+    PHX::View<ScalarT*> tmp_;
   }; // end of class Integrator_BasisTimesVector
 
 } // end of namespace panzer

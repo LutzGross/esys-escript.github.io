@@ -1,14 +1,14 @@
 /*
- * Copyright(C) 1999-2020 National Technology & Engineering Solutions
+ * Copyright(C) 1999-2020, 2022 National Technology & Engineering Solutions
  * of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
  * NTESS, the U.S. Government retains certain rights in this software.
- * 
+ *
  * See packages/seacas/LICENSE for details
  */
 /* cdrcom.h - external structure is used to hook up with fortran
  *            common block /cdrcom/
- * 9 Sep, 1989 - date last modified
  */
+#pragma once
 
 extern struct cdr
 {
@@ -22,5 +22,3 @@ extern struct cdr
   int KBAUD;
   int KCOMTP;
 } cdrcom;
-
-/* end cdrcom.h */

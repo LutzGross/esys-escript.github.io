@@ -54,7 +54,6 @@
 
 #include "Phalanx_MDField.hpp"
 #include "Phalanx_Field.hpp"
-#include "Kokkos_View.hpp"
 
 // **************************************************************
 template<typename Traits>
@@ -379,6 +378,15 @@ getKokkosExtendedDataTypeDimensions() const
 {
   return m_eval_containers.template getAsObject<EvalT>()->
     getKokkosExtendedDataTypeDimensions();
+}
+
+// **************************************************************
+template<typename Traits>
+template<typename EvalT>
+const PHX::DagManager<Traits>&
+PHX::FieldManager<Traits>::getDagManager() const
+{
+  return m_eval_containers.template getAsObject<EvalT>()->getDagManager();
 }
 
 // **************************************************************

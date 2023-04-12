@@ -1,24 +1,55 @@
+// Copyright 2002 - 2008, 2010, 2011 National Technology Engineering
+// Solutions of Sandia, LLC (NTESS). Under the terms of Contract
+// DE-NA0003525 with NTESS, the U.S. Government retains certain rights
+// in this software.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are
+// met:
+// 
+//     * Redistributions of source code must retain the above copyright
+//       notice, this list of conditions and the following disclaimer.
+// 
+//     * Redistributions in binary form must reproduce the above
+//       copyright notice, this list of conditions and the following
+//       disclaimer in the documentation and/or other materials provided
+//       with the distribution.
+// 
+//     * Neither the name of NTESS nor the names of its contributors
+//       may be used to endorse or promote products derived from this
+//       software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 #ifndef STK_FACE_CREATION_TEST_UTILS_H
 #define STK_FACE_CREATION_TEST_UTILS_H
 
-#include "mpi.h"                        // for MPI_COMM_WORLD
-#include "stk_io/DatabasePurpose.hpp"
+#include <stk_util/parallel/Parallel.hpp>
+#include <stk_util/parallel/ParallelReduceBool.hpp>
 #include <gtest/gtest.h>                // for AssertHelper, EXPECT_EQ, etc
-#include <init/Ionit_Initializer.h>     // for Initializer
 #include <stddef.h>                     // for size_t, nullptr
-#include <stk_io/StkMeshIoBroker.hpp>   // for StkMeshIoBroker
 #include <stk_mesh/base/Comm.hpp>
 #include <stk_mesh/base/GetEntities.hpp>
 #include <stk_mesh/base/SkinBoundary.hpp>
-#include <stk_mesh/baseImpl/elementGraph/ElemElemGraph.hpp>
-#include <stk_unit_test_utils/MeshFixture.hpp>  // for MeshTestFixture
 #include <stk_unit_test_utils/ioUtils.hpp>
+#include <stk_unit_test_utils/BuildMesh.hpp>
 #include <stk_util/parallel/ParallelReduce.hpp>
 #include <string>                       // for string
 
 #include "stk_mesh/base/MeshDiagnostics.hpp"
-#include "stk_util/parallel/ParallelReduceBool.hpp"
 #include <stk_balance/fixSplitCoincidentElements.hpp>
+
+using stk::unit_test_util::build_mesh;
 
 namespace SideTestUtil
 {
@@ -153,18 +184,17 @@ protected:
     virtual void test_one_case(const SideTestUtil::TestCase &testCase,
                        stk::mesh::BulkData::AutomaticAuraOption auraOption)
     {
-        stk::mesh::MetaData metaData;
-        stk::mesh::BulkData bulkData(metaData, communicator, auraOption);
-        SideTestUtil::read_and_decompose_mesh(testCase.filename, bulkData);
-        stk::balance::make_mesh_consistent_with_parallel_mesh_rule1(bulkData);
+        std::shared_ptr<stk::mesh::BulkData> bulkData = build_mesh(communicator, auraOption);
+        SideTestUtil::read_and_decompose_mesh(testCase.filename, *bulkData);
+        stk::balance::make_mesh_consistent_with_parallel_mesh_rule1(*bulkData);
 
-        stk::mesh::SplitCoincidentInfo splitCoincidentElementsAfter = stk::mesh::get_split_coincident_elements(bulkData);
+        stk::mesh::SplitCoincidentInfo splitCoincidentElementsAfter = stk::mesh::get_split_coincident_elements(*bulkData);
         bool allOkAfterThisProc = splitCoincidentElementsAfter.size()==0;
         ASSERT_TRUE(allOkAfterThisProc);
-        bool allOkEverywhereAfter = stk::is_true_on_all_procs(bulkData.parallel(), allOkAfterThisProc);
+        bool allOkEverywhereAfter = stk::is_true_on_all_procs(bulkData->parallel(), allOkAfterThisProc);
         EXPECT_TRUE(allOkEverywhereAfter);
 
-        test_side_creation(bulkData, testCase);
+        test_side_creation(*bulkData, testCase);
     }
 
     virtual void test_side_creation(stk::mesh::BulkData& bulkData,
@@ -173,40 +203,46 @@ protected:
     MPI_Comm communicator;
 };
 
-}
+namespace simple_fields {
 
-// Copyright 2002 - 2008, 2010, 2011 National Technology Engineering
-// Solutions of Sandia, LLC (NTESS). Under the terms of Contract
-// DE-NA0003525 with NTESS, the U.S. Government retains certain rights
-// in this software.
-//
- // Redistribution and use in source and binary forms, with or without
- // modification, are permitted provided that the following conditions are
- // met:
- // 
- //     * Redistributions of source code must retain the above copyright
- //       notice, this list of conditions and the following disclaimer.
- // 
- //     * Redistributions in binary form must reproduce the above
- //       copyright notice, this list of conditions and the following
- //       disclaimer in the documentation and/or other materials provided
- //       with the distribution.
- // 
-//     * Neither the name of NTESS nor the names of its contributors
-//       may be used to endorse or promote products derived from this
-//       software without specific prior written permission.
-//
- // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- // "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- // LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
- // A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- // OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- // SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- // LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- // DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- // THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+class SideCreationTester
+{
+public:
+    SideCreationTester(MPI_Comm comm) : communicator(comm) {}
+    virtual ~SideCreationTester() {}
+
+    void run_all_test_cases(const SideTestUtil::TestCaseData &testCases, stk::mesh::BulkData::AutomaticAuraOption auraOption)
+    {
+        for(const SideTestUtil::TestCase& testCase : testCases)
+            if(stk::parallel_machine_size(communicator) <= testCase.maxNumProcs)
+                test_one_case(testCase, auraOption);
+    }
+protected:
+    virtual void test_one_case(const SideTestUtil::TestCase &testCase,
+                       stk::mesh::BulkData::AutomaticAuraOption auraOption)
+    {
+        std::shared_ptr<stk::mesh::BulkData> bulkData = build_mesh(communicator, auraOption);
+        SideTestUtil::read_and_decompose_mesh(testCase.filename, *bulkData);
+        stk::balance::make_mesh_consistent_with_parallel_mesh_rule1(*bulkData);
+
+        stk::mesh::SplitCoincidentInfo splitCoincidentElementsAfter = stk::mesh::get_split_coincident_elements(*bulkData);
+        bool allOkAfterThisProc = splitCoincidentElementsAfter.size()==0;
+        ASSERT_TRUE(allOkAfterThisProc);
+        bool allOkEverywhereAfter = stk::is_true_on_all_procs(bulkData->parallel(), allOkAfterThisProc);
+        EXPECT_TRUE(allOkEverywhereAfter);
+
+        test_side_creation(*bulkData, testCase);
+    }
+
+    virtual void test_side_creation(stk::mesh::BulkData& bulkData,
+                                    const SideTestUtil::TestCase& testCase) = 0;
+
+    MPI_Comm communicator;
+};
+
+} // namespace simple_fields
+
+}
 
 #endif
 

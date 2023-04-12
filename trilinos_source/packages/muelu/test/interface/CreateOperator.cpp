@@ -293,9 +293,6 @@ int main_(Teuchos::CommandLineProcessor &clp, Xpetra::UnderlyingLib lib, int arg
 
     bool useKokkos = false;
     if(lib == Xpetra::UseTpetra) {
-#if !defined(HAVE_MUELU_KOKKOS_REFACTOR)
-      useKokkos = false;
-#else
 # ifdef HAVE_MUELU_SERIAL
       if (typeid(Node).name() == typeid(Kokkos::Compat::KokkosSerialWrapperNode).name())
         useKokkos = false;
@@ -308,15 +305,18 @@ int main_(Teuchos::CommandLineProcessor &clp, Xpetra::UnderlyingLib lib, int arg
       if (typeid(Node).name() == typeid(Kokkos::Compat::KokkosCudaWrapperNode).name())
         useKokkos = true;
 # endif
-#endif
+# ifdef HAVE_MUELU_HIP
+      if (typeid(Node).name() == typeid(Kokkos::Compat::KokkosHIPWrapperNode).name())
+        useKokkos = true;
+# endif
     }
-    clp.setOption("kokkosRefactor", "noKokkosRefactor", &useKokkos, "use kokkos refactor");
+    clp.setOption("useKokkosRefactor", "noKokkosRefactor", &useKokkos, "use kokkos refactor");
 
     switch (clp.parse(argc, argv)) {
-      case Teuchos::CommandLineProcessor::PARSE_HELP_PRINTED:        return EXIT_SUCCESS; break;
+      case Teuchos::CommandLineProcessor::PARSE_HELP_PRINTED:        return EXIT_SUCCESS;
       case Teuchos::CommandLineProcessor::PARSE_ERROR:
-      case Teuchos::CommandLineProcessor::PARSE_UNRECOGNIZED_OPTION: return EXIT_FAILURE; break;
-      case Teuchos::CommandLineProcessor::PARSE_SUCCESSFUL:                               break;
+      case Teuchos::CommandLineProcessor::PARSE_UNRECOGNIZED_OPTION: return EXIT_FAILURE;
+      case Teuchos::CommandLineProcessor::PARSE_SUCCESSFUL:          break;
     }
 
     ParameterList galeriList = galeriParameters.GetParameterList();
@@ -336,16 +336,11 @@ int main_(Teuchos::CommandLineProcessor &clp, Xpetra::UnderlyingLib lib, int arg
 
     std::string prefix;
     if (useKokkos) {
-#if defined(HAVE_MUELU_KOKKOS_REFACTOR)
       if (TYPE_EQUAL(Scalar, std::complex<double>) || TYPE_EQUAL(Scalar, std::complex<float>)) {
         prefix = "kokkos-complex/";
       } else {
         prefix = "kokkos/";
       }
-#else
-      out << "No kokkos refactor available." << std::endl;
-      return EXIT_FAILURE;
-#endif
     } else {
       if (TYPE_EQUAL(Scalar, std::complex<double>) || TYPE_EQUAL(Scalar, std::complex<float>)) {
         prefix = "complex/";
@@ -374,7 +369,7 @@ int main_(Teuchos::CommandLineProcessor &clp, Xpetra::UnderlyingLib lib, int arg
       std::srand(12345);
 
       ParameterList mueluList;
-      mueluList.set("verbosity",                           "test");
+      mueluList.set("verbosity",                           "interfacetest");
       mueluList.set("coarse: max size",                    100);
       mueluList.set("use kokkos refactor",                 useKokkos);
       mueluList.set("aggregation: deterministic",          useKokkos);
@@ -419,7 +414,7 @@ int main_(Teuchos::CommandLineProcessor &clp, Xpetra::UnderlyingLib lib, int arg
       std::srand(12345);
 
       ParameterList mueluList;
-      mueluList.set("verbosity",          "test");
+      mueluList.set("verbosity",          "interfacetest");
       mueluList.set("coarse: max size",   100);
       mueluList.set("use kokkos refactor", useKokkos);
       mueluList.set("aggregation: deterministic", useKokkos);
@@ -449,7 +444,7 @@ int main_(Teuchos::CommandLineProcessor &clp, Xpetra::UnderlyingLib lib, int arg
       std::srand(12345);
 
       ParameterList mueluList;
-      mueluList.set("verbosity",                  "test");
+      mueluList.set("verbosity",                  "interfacetest");
       mueluList.set("transpose: use implicit",    false);
       mueluList.set("max levels",                 4);
       mueluList.set("coarse: max size",           100);
@@ -480,7 +475,7 @@ int main_(Teuchos::CommandLineProcessor &clp, Xpetra::UnderlyingLib lib, int arg
       std::srand(12345);
 
       ParameterList mueluList;
-      mueluList.set("verbosity",                  "test");
+      mueluList.set("verbosity",                  "interfacetest");
       mueluList.set("coarse: max size",           100);
       mueluList.set("transpose: use implicit",    true);
       mueluList.set("max levels",                 2);

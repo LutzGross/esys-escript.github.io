@@ -1,8 +1,8 @@
 /*
- * Copyright(C) 1999-2020 National Technology & Engineering Solutions
+ * Copyright(C) 1999-2020, 2022 National Technology & Engineering Solutions
  * of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
  * NTESS, the U.S. Government retains certain rights in this software.
- * 
+ *
  * See packages/seacas/LICENSE for details
  */
 /*****************************************************************************
@@ -50,13 +50,12 @@ int ex_close(int exoid)
   int  status;
   int  status1;
   int  status2;
-#if NC_HAS_HDF5
-  int parent_id = 0;
-#endif
 
   EX_FUNC_ENTER();
 
-  ex__check_valid_file_id(exoid, __func__);
+  if (ex__check_valid_file_id(exoid, __func__) == EX_FATAL) {
+    EX_FUNC_LEAVE(EX_FATAL);
+  }
 
   /*
    * NOTE: If using netcdf-4, exoid must refer to the root group.
@@ -68,9 +67,10 @@ int ex_close(int exoid)
   /* nc_inq_grp_parent() will return NC_ENOGRP error if exoid
    * refers to the root group (which is what we want)
    */
+  int parent_id = 0;
   if ((status = nc_inq_grp_parent(exoid, &parent_id)) != NC_ENOGRP) {
     snprintf(errmsg, MAX_ERR_LENGTH, "ERROR: file id %d does not refer to root group.", exoid);
-    ex_err_fn(exoid, __func__, errmsg, EX_NOTROOTID);
+    ex_err_fn(exoid, __func__, errmsg, status);
     EX_FUNC_LEAVE(EX_FATAL);
   }
 #endif

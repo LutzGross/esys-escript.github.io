@@ -353,7 +353,6 @@ TEUCHOS_UNIT_TEST(field, all)
       c_f6.setFieldData(PHX::KokkosViewFactory<double,typename PHX::DevLayout<double>::type,PHX::Device>::buildView(c_f6.fieldTag()));
       c_f7.setFieldData(PHX::KokkosViewFactory<double,typename PHX::DevLayout<double>::type,PHX::Device>::buildView(c_f7.fieldTag()));
     }
-
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Kokkos static View accessors
     {
@@ -376,7 +375,7 @@ TEUCHOS_UNIT_TEST(field, all)
       auto kvc = c.get_view();
       Kokkos::parallel_for("t1",Kokkos::RangePolicy<PHX::Device>(0,1),KOKKOS_LAMBDA(const int ){kvc(0,0) = MyTraits::FadType(1.0);});
       // const view (view const, not const data)
-      const Kokkos::DynRankView<double,PHX::Device> const_kva = a.get_view();
+      const Kokkos::DynRankView<double,typename PHX::DevLayout<double>::type,PHX::Device> const_kva = a.get_view();
       Kokkos::parallel_for("t1",Kokkos::RangePolicy<PHX::Device>(0,1),KOKKOS_LAMBDA(const int ){const_kva(0,0) = 1.0;});
       const auto const_kvc = c.get_view();
       Kokkos::parallel_for("t1",Kokkos::RangePolicy<PHX::Device>(0,1),KOKKOS_LAMBDA(const int ){const_kvc(0,0) = MyTraits::FadType(1.0);});
@@ -451,4 +450,24 @@ TEUCHOS_UNIT_TEST(field, UnsafeCtor)
   TEST_EQUALITY(f5.rank(),std::size_t(5));
   TEST_EQUALITY(f6.rank(),std::size_t(6));
   TEST_EQUALITY(f7.rank(),std::size_t(7));
+}
+
+TEUCHOS_UNIT_TEST(field, releaseFieldData)
+{
+  using namespace PHX;
+
+  const size_t c = 10;
+  const size_t p = 9;
+  const size_t d = 2;
+  Field<double,3> a("a","",c,p,d);
+
+  TEST_EQUALITY(a.extent(0),c);
+  TEST_EQUALITY(a.extent(1),p);
+  TEST_EQUALITY(a.extent(2),d);
+
+  a.releaseFieldData();
+
+  TEST_EQUALITY(a.extent(0),0);
+  TEST_EQUALITY(a.extent(1),0);
+  TEST_EQUALITY(a.extent(2),0);
 }

@@ -72,7 +72,7 @@
 
 #include <Zoltan2_TestHelpers.hpp>
 #include <Tpetra_MultiVector.hpp>
-#include <Kokkos_DefaultNode.hpp>
+#include <KokkosCompat_DefaultNode.hpp>
 #include <GeometricGenerator.hpp>
 
 #include <vector>
@@ -217,7 +217,7 @@ void getObjList(void *data, int numGid, int numLid,
 
   size_t localLen = dots->coordinates->getLocalLength();
   const zgno_t *ids =
-               dots->coordinates->getMap()->getNodeElementList().getRawPtr();
+               dots->coordinates->getMap()->getLocalElementList().getRawPtr();
 
   if (sizeof(ZOLTAN_ID_TYPE) == sizeof(zgno_t))
     memcpy(gids, ids, sizeof(ZOLTAN_ID_TYPE) * localLen);

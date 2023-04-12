@@ -32,20 +32,22 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 
-#include <stk_util/stk_config.h>        // for STK_HAS_MPI
-#include <stk_util/environment/RuntimeMessage.hpp>
-#include <stk_util/parallel/Parallel.hpp>  // for ParallelMachine, etc
-#include <algorithm>                    // for max, stable_sort
-#include <functional>                   // for equal_to, binary_function
-#include <sstream>                      // for operator<<, basic_ostream, etc
-#include <stdexcept>                    // for runtime_error
-#include <stk_util/util/ReportHandler.hpp>  // for report
-#include <stk_util/util/Bootstrap.hpp>  // for Bootstrap
-#include <stk_util/util/Marshal.hpp>    // for Marshal, operator<<, etc
-#include <string>                       // for string, char_traits, etc
-#include <utility>                      // for pair, operator==
-#include <vector>                       // for vector, etc
-#include <unordered_map>
+#include "stk_util/environment/RuntimeMessage.hpp"
+#include "stk_util/parallel/Parallel.hpp"   // for parallel_machine_rank, MPI_Gather, MPI_Gatherv
+#include "stk_util/stk_config.h"            // for STK_HAS_MPI
+#include "stk_util/util/Bootstrap.hpp"      // for Bootstrap
+#include "stk_util/util/Marshal.hpp"        // for operator<<, operator>>, Marshal
+#include "stk_util/util/ReportHandler.hpp"  // for report
+#include <algorithm>                        // for stable_sort
+#include <functional>                       // for hash, binary_function
+#include <sstream>                          // for operator<<, basic_ostream, basic_ostream::ope...
+#include <stdexcept>                        // for runtime_error
+#include <string>                           // for string, operator<<, char_traits, operator==
+#include <system_error>                     // for hash
+#include <unordered_map>                    // for unordered_map<>::iterator, _Node_iterator
+#include <utility>                          // for pair
+#include <vector>                           // for vector, vector<>::const_iterator
+
 
 namespace stk {
   typedef std::pair<MessageId, std::string> MessageKey;
@@ -129,7 +131,7 @@ struct DeferredMessage
 
 typedef std::vector<DeferredMessage> DeferredMessageVector;
 
-struct DeferredMessageLess : public std::binary_function<DeferredMessage, DeferredMessage, bool>
+struct DeferredMessageLess
 {
   bool operator()(const DeferredMessage &key_1, const DeferredMessage &key_2) const {
     return (key_1.m_type < key_2.m_type)
@@ -168,11 +170,7 @@ get_message_type_info(
   return s_messageTypeInfo[type & MSG_TYPE_MASK];
 }
 
-
-
-
-
-
+#ifdef STK_HAS_MPI
 Marshal &operator<<(Marshal &mout, const DeferredMessage &s)  {
   mout << s.m_type << s.m_messageId << s.m_rank << s.m_throttleGroup << s.m_throttleCutoff << s.m_header << s.m_aggregate;
   return mout;
@@ -182,19 +180,28 @@ Marshal &operator>>(Marshal &min, DeferredMessage &s)  {
   min >> s.m_type >> s.m_messageId >> s.m_rank >> s.m_throttleGroup >> s.m_throttleCutoff >> s.m_header >> s.m_aggregate;
   return min;
 }
+#endif // STK_HAS_MPI
 
 } // namespace <empty>
 
+bool should_increment_message_count(unsigned messageType)
+{
+  return !(messageType & MSG_SYMMETRIC) || (stk::parallel_machine_rank(MPI_COMM_WORLD) == 0);
+}
 
 CutoffStatus
-count_message(const MessageCode &   message_code)
+count_message(unsigned messageType, const MessageCode &   message_code)
 {
 
     MessageId message_id     = message_code.m_id;
     const Throttle &throttle = message_code.m_throttle;
 
   std::pair<MessageIdMap::iterator, bool> res = s_messageIdMap.insert(MessageIdMap::value_type(MessageIdMap::key_type(message_id, std::string("")), throttle));
-  size_t count = ++(*res.first).second.m_count;
+  if (should_increment_message_count(messageType)) {
+    ++(*res.first).second.m_count;
+  }
+
+  size_t count = (*res.first).second.m_count;
 
   if (count < (*res.first).second.m_cutoff) {
       return CutoffStatus::MSG_DISPLAY;
@@ -225,23 +232,41 @@ get_message_count(
   return get_message_type_info(message_type).m_count;
 }
 
-
-unsigned
-increment_message_count(
-  unsigned              message_type)
+unsigned get_message_printed_count(unsigned messageType)
 {
-  if ( (message_type & MSG_SYMMETRIC) && stk::parallel_machine_rank(MPI_COMM_WORLD) != 0 ) {
-    return get_message_type_info(message_type).m_count;
+  ThrowRequireMsg(messageType==MSG_WARNING,"Only count printed warning messages.");
+  unsigned totalPrinted = 0;
+  for(auto& iter : s_messageIdMap) {
+    totalPrinted += std::min(iter.second.m_count, iter.second.m_cutoff);
   }
-  return ++get_message_type_info(message_type).m_count;
+  return totalPrinted;
 }
 
+unsigned get_message_printed_count(const MessageCode& messageCode)
+{
+  MessageIdMap::iterator iter = s_messageIdMap.find(MessageIdMap::key_type(messageCode.m_id, std::string("")));
+  if (iter != s_messageIdMap.end()) {
+    return std::min(iter->second.m_count, iter->second.m_cutoff);
+  }
+  return 0;
+}
+
+
+void increment_message_count(unsigned message_type)
+{
+  if (should_increment_message_count(message_type)) {
+    ++get_message_type_info(message_type).m_count;
+  }
+}
 
 void
 reset_message_count(
   unsigned              message_type)
 {
   get_message_type_info(message_type).m_count = 0;
+  for(auto& iter : s_messageIdMap) {
+    iter.second.m_count = 0;
+  }
 }
 
 
@@ -279,8 +304,9 @@ report_message(
   if (message_type & MSG_DEFERRED) {
     report(message, message_type);
   } else { 
-    unsigned count = increment_message_count(message_type);
-    unsigned max_count = get_max_message_count(message_type); 
+    increment_message_count(message_type);
+    const unsigned count = get_message_count(message_type);
+    const unsigned max_count = get_max_message_count(message_type); 
   
     if (count == max_count) {
       report(message, message_type);
@@ -291,7 +317,7 @@ report_message(
     }
 
     else if (count < max_count) {
-      CutoffStatus cutoff = count_message(message_code);
+      CutoffStatus cutoff = count_message(message_type, message_code);
     
       if (cutoff == CutoffStatus::MSG_CUTOFF) {
         report(message, message_type);
@@ -451,3 +477,4 @@ operator<<(
 }
 
 } // namespace stk
+

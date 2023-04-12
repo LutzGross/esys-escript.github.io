@@ -54,14 +54,6 @@ IF(${PACKAGE_NAME}_ENABLE_Epetra AND ${PACKAGE_NAME}_ENABLE_EpetraExt AND
     NUM_MPI_PROCS 1
     )
 
-  TRIBITS_ADD_EXECUTABLE_AND_TEST(
-    Example_Poisson2D_p2_tpetra
-    SOURCES example_Poisson2D_p2_tpetra.cpp
-      TrilinosCouplings_Pamgen_Utils.cpp
-    NUM_MPI_PROCS 1
-    COMM mpi # Fails to build in serial (see Trilinos #465)
-    )
-
   TRIBITS_ADD_EXECUTABLE(
     Example_Maxwell
     SOURCES example_Maxwell.cpp
@@ -87,8 +79,33 @@ IF(${PACKAGE_NAME}_ENABLE_Epetra AND ${PACKAGE_NAME}_ENABLE_EpetraExt AND
       )
   ENDIF()
 
+
   IF(${PACKAGE_NAME}_ENABLE_Belos AND
       ${PACKAGE_NAME}_ENABLE_MueLu)
+
+    TRIBITS_ADD_EXECUTABLE_AND_TEST(
+      Example_Poisson2D_p2_tpetra
+      SOURCES example_Poisson2D_p2_tpetra.cpp
+        TrilinosCouplings_Pamgen_Utils.cpp
+      NUM_MPI_PROCS 1
+      COMM mpi # Fails to build in serial (see Trilinos #465)
+      )
+
+    TRIBITS_ADD_EXECUTABLE(
+      Example_Poisson2D_pn_tpetra
+      SOURCES example_Poisson2D_pn_tpetra.cpp
+      TrilinosCouplings_Pamgen_Utils.cpp
+      TrilinosCouplings_IntrepidPoissonExampleHelpers.cpp	
+      COMM mpi
+      )
+
+    TRIBITS_ADD_TEST(
+      Example_Poisson2D_pn_tpetra
+      NAME "Poisson2D_pn=4_tpetra"
+      ARGS "--mesh=Poisson2D_p4.xml --solver=muelu_ho.xml"
+      COMM mpi
+      NUM_MPI_PROCS 1
+      )
 
     IF(MueLu_ENABLE_Epetra)
       TRIBITS_ADD_TEST(
@@ -111,7 +128,7 @@ IF(${PACKAGE_NAME}_ENABLE_Epetra AND ${PACKAGE_NAME}_ENABLE_EpetraExt AND
         TRIBITS_ADD_TEST(
           Example_Maxwell
           NAME Example_Maxwell_MueLu_Stratimikos
-          ARGS "--solverName=MueLu-Stratimikos"
+          ARGS "--solverName=Stratimikos"
           NUM_MPI_PROCS 1
           COMM mpi serial
           )
@@ -119,16 +136,29 @@ IF(${PACKAGE_NAME}_ENABLE_Epetra AND ${PACKAGE_NAME}_ENABLE_EpetraExt AND
         TRIBITS_ADD_TEST(
           Example_Maxwell
           NAME Example_Maxwell_MueLu_Stratimikos
-          ARGS "--solverName=MueLu-Stratimikos"
+          ARGS "--solverName=Stratimikos"
           NUM_MPI_PROCS 4
           COMM mpi
           )
+
+	ASSERT_DEFINED(${PACKAGE_NAME}_ENABLE_AvatarT)
+	IF( TPL_ENABLE_AVATAR OR ${PACKAGE_NAME}_ENABLE_AvatarT)
+	  TRIBITS_ADD_TEST(
+	    Example_Maxwell
+	    NAME Example_Maxwell_Avatar
+	    ARGS "--inputParams=Maxwell_avatar.xml"
+	    NUM_MPI_PROCS 1
+	    COMM mpi serial
+	    )
+
+	ENDIF()
+
       ENDIF()
     ENDIF() # MueLu_ENABLE_Epetra
   ENDIF()
 
   TRIBITS_COPY_FILES_TO_BINARY_DIR(TestCopyMaxwellFiles
-    SOURCE_FILES Maxwell.xml Ninja.xml
+    SOURCE_FILES Maxwell.xml Ninja.xml Maxwell_avatar.xml stratimikos.xml
     SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}
     DEST_DIR ${CMAKE_CURRENT_BINARY_DIR}
     )
@@ -154,13 +184,6 @@ IF(${PACKAGE_NAME}_ENABLE_Epetra AND ${PACKAGE_NAME}_ENABLE_EpetraExt AND
     COMM serial mpi
     )
 
-  TRIBITS_ADD_EXECUTABLE(
-    Example_Poisson2D_pn_tpetra
-    SOURCES example_Poisson2D_pn_tpetra.cpp
-    TrilinosCouplings_Pamgen_Utils.cpp
-    COMM mpi
-    )
-
  TRIBITS_ADD_TEST(
    Example_Poisson2D_pn
    NAME "Poisson2D_pn=2"
@@ -182,14 +205,6 @@ IF(${PACKAGE_NAME}_ENABLE_Epetra AND ${PACKAGE_NAME}_ENABLE_EpetraExt AND
    NAME "Poisson2D_pn=4"
    ARGS "Poisson2D_p4.xml"
    COMM serial mpi
-   NUM_MPI_PROCS 1
-   )
-
- TRIBITS_ADD_TEST(
-   Example_Poisson2D_pn_tpetra
-   NAME "Poisson2D_pn=4_tpetra"
-   ARGS "--mesh=Poisson2D_p4.xml --solver=muelu_ho.xml"
-   COMM mpi
    NUM_MPI_PROCS 1
    )
 
@@ -245,17 +260,20 @@ IF(${PACKAGE_NAME}_ENABLE_Epetra AND ${PACKAGE_NAME}_ENABLE_EpetraExt AND
   )
 ENDIF()
 
+
 IF(${PACKAGE_NAME}_ENABLE_Epetra AND ${PACKAGE_NAME}_ENABLE_EpetraExt AND
    ${PACKAGE_NAME}_ENABLE_Amesos AND ${PACKAGE_NAME}_ENABLE_AztecOO AND
    ${PACKAGE_NAME}_ENABLE_Intrepid AND ${PACKAGE_NAME}_ENABLE_ML AND
    ${PACKAGE_NAME}_ENABLE_STKIO AND ${PACKAGE_NAME}_ENABLE_STKMesh)
-  TRIBITS_ADD_EXECUTABLE(
+ message(STATUS "Building Example_Poisson_STK")
+ TRIBITS_ADD_EXECUTABLE(
     Example_Poisson_STK
     SOURCES example_Poisson_stk.cpp
     )
   TRIBITS_COPY_FILES_TO_BINARY_DIR(CopyMeshFilesSTK
   SOURCE_FILES unit_cube_10int_hex.exo
                unit_cube_5int_tet.exo
+	       unit_cube_int_tri.exo
   SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}
   DEST_DIR ${CMAKE_CURRENT_BINARY_DIR}
   )
@@ -321,6 +339,20 @@ IF(${PACKAGE_NAME}_ENABLE_Belos AND
       TrilinosCouplings_Pamgen_Utils.cpp
     COMM serial mpi
     )
+
+  ASSERT_DEFINED(${PACKAGE_NAME}_ENABLE_AvatarT)
+  IF( TPL_ENABLE_AVATAR OR ${PACKAGE_NAME}_ENABLE_AvatarT)
+    TRIBITS_ADD_TEST(
+      IntrepidPoisson_Pamgen_Tpetra
+      NAME IntrepidPoisson_Pamgen_Avatar
+      ARGS "--inputParams=Poisson_avatar.xml"
+      NUM_MPI_PROCS 1
+      COMM mpi serial
+      )
+
+  ENDIF()
+
+
 ENDIF()
 
 # mfh 24 May 2012
@@ -465,4 +497,52 @@ IF(${PACKAGE_NAME}_ENABLE_Belos AND
    SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}
    DEST_DIR ${CMAKE_CURRENT_BINARY_DIR}
    )
+
+
+ IF(${PACKAGE_NAME}_ENABLE_MueLu)
+   TRIBITS_ADD_EXECUTABLE(
+     Example_Maxwell_Tpetra
+     SOURCES example_Maxwell_Tpetra.cpp
+     TrilinosCouplings_Pamgen_Utils.cpp
+     COMM serial mpi
+     )
+
+   TRIBITS_ADD_TEST(
+     Example_Maxwell_Tpetra
+     NAME Example_Maxwell_Tpetra_MueLu
+     ARGS "--solverName=MueLu"
+     NUM_MPI_PROCS 1
+     COMM mpi serial
+     )
+ ENDIF()
+
+ENDIF()
+
+
+# Just build this executable; don't run it as a test.
+IF (${PACKAGE_NAME}_ENABLE_Pamgen AND
+    ${PACKAGE_NAME}_ENABLE_SEACASExodus AND
+    ${PACKAGE_NAME}_ENABLE_SEACASNemesis)
+  message("-- TrilinosCouplings: Building rtpamgen")
+   TRIBITS_ADD_EXECUTABLE(
+     rtpamgen
+     SOURCES rtpamgen.cpp
+     COMM serial mpi
+     )
+   TRIBITS_COPY_FILES_TO_BINARY_DIR(TestRtpamgen
+     SOURCE_FILES test.rtp
+     SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}
+     DEST_DIR ${CMAKE_CURRENT_BINARY_DIR}
+     )
+
+
+  TRIBITS_ADD_TEST(
+   rtpamgen
+   NAME "RTpamgen_test"
+   ARGS "--file=test.rtp"
+   COMM serial mpi
+   NUM_MPI_PROCS 1
+   )
+
+
 ENDIF()

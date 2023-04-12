@@ -90,16 +90,6 @@ namespace Belos {
     TFQMRSolMgrLinearProblemFailure(const std::string& what_arg) : BelosError(what_arg)
     {}};
 
-  /** \brief TFQMRSolMgrOrthoFailure is thrown when the orthogonalization manager is
-   * unable to generate orthonormal columns from the initial basis vectors.
-   *
-   * This std::exception is thrown from the TFQMRSolMgr::solve() method.
-   *
-   */
-  class TFQMRSolMgrOrthoFailure : public BelosError {public:
-    TFQMRSolMgrOrthoFailure(const std::string& what_arg) : BelosError(what_arg)
-    {}};
-
   template<class ScalarType, class MV, class OP>
   class TFQMRSolMgr : public SolverManager<ScalarType,MV,OP> {
 
@@ -279,7 +269,6 @@ namespace Belos {
     static constexpr const char * impResScale_default_ = "Norm of Preconditioned Initial Residual";
     static constexpr const char * expResScale_default_ = "Norm of Initial Residual";
     static constexpr const char * label_default_ = "Belos";
-    static constexpr std::ostream * outputStream_default_ = &std::cout;
 
     // Current solver values.
     MagnitudeType convtol_, impTolScale_, achievedTol_;
@@ -301,7 +290,7 @@ namespace Belos {
 // Empty Constructor
 template<class ScalarType, class MV, class OP>
 TFQMRSolMgr<ScalarType,MV,OP>::TFQMRSolMgr() :
-  outputStream_(Teuchos::rcp(outputStream_default_,false)),
+  outputStream_(Teuchos::rcpFromRef(std::cout)),
   convtol_(DefaultSolverParameters::convTol),
   impTolScale_(DefaultSolverParameters::impTolScale),
   achievedTol_(Teuchos::ScalarTraits<typename Teuchos::ScalarTraits<ScalarType>::magnitudeType>::zero()),
@@ -326,7 +315,7 @@ TFQMRSolMgr<ScalarType,MV,OP>::TFQMRSolMgr(
                                              const Teuchos::RCP<LinearProblem<ScalarType,MV,OP> > &problem,
                                              const Teuchos::RCP<Teuchos::ParameterList> &pl ) :
   problem_(problem),
-  outputStream_(Teuchos::rcp(outputStream_default_,false)),
+  outputStream_(Teuchos::rcpFromRef(std::cout)),
   convtol_(DefaultSolverParameters::convTol),
   impTolScale_(DefaultSolverParameters::impTolScale),
   achievedTol_(Teuchos::ScalarTraits<typename Teuchos::ScalarTraits<ScalarType>::magnitudeType>::zero()),
@@ -626,7 +615,7 @@ TFQMRSolMgr<ScalarType,MV,OP>::getValidParameters() const
     pl->set("Output Frequency", static_cast<int>(outputFreq_default_),
       "How often convergence information should be outputted\n"
       "to the output stream.");
-    pl->set("Output Stream", Teuchos::rcp(outputStream_default_,false),
+    pl->set("Output Stream", Teuchos::rcpFromRef(std::cout),
       "A reference-counted pointer to the output stream where all\n"
       "solver output is sent.");
     pl->set("Explicit Residual Test", static_cast<bool>(expResTest_default_),

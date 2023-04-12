@@ -51,6 +51,7 @@
 #include "Teuchos_FancyOStream.hpp"
 #include "Teuchos_VerbosityLevel.hpp"
 #include "Kokkos_Core.hpp"
+#include "Kokkos_ArithTraits.hpp"
 
 namespace Tpetra {
 namespace Details {
@@ -127,7 +128,7 @@ public:
   typedef Kokkos::View<const KeyType*, Kokkos::LayoutLeft, device_type> keys_type;
 
   //! Default constructor; makes an empty table.
-  FixedHashTable ();
+  KOKKOS_DEFAULTED_FUNCTION FixedHashTable() = default;
 
   /// \brief Constructor for arbitrary keys and contiguous values
   ///   starting with zero.
@@ -147,11 +148,7 @@ public:
   /// for i = 0, 1, ..., <tt>keys.size()</tt>.
   ///
   /// \param keys [in] The keys in the hash table.
-  /// \param keepKeys [in] Whether to keep (a deep copy of) the keys.
-  ///   Keeping a copy lets you convert from a value back to a key
-  ///   (the reverse of what get() does).
-  FixedHashTable (const Teuchos::ArrayView<const KeyType>& keys,
-                  const bool keepKeys = false);
+  FixedHashTable (const Teuchos::ArrayView<const KeyType>& keys);
 
   /// \brief Constructor for arbitrary keys and contiguous values
   ///   starting with \c startingValue.
@@ -180,12 +177,8 @@ public:
   /// \param keys [in] The keys in the hash table.
   /// \param startingValue [in] First value in the contiguous sequence
   ///   of values.
-  /// \param keepKeys [in] Whether to keep (a deep copy of) the keys.
-  ///   Keeping a copy lets you convert from a value back to a key
-  ///   (the reverse of what get() does).
   FixedHashTable (const Teuchos::ArrayView<const KeyType>& keys,
-                  const ValueType startingValue,
-                  const bool keepKeys = false);
+                  const ValueType startingValue);
 
   /// \brief Constructor for arbitrary keys and contiguous values
   ///   starting with \c startingValue, that takes an initial
@@ -205,14 +198,10 @@ public:
   ///   contiguous sequence of keys.
   /// \param startingValue [in] First value in the contiguous sequence
   ///   of values.
-  /// \param keepKeys [in] Whether to keep the input keys (NOT deep
-  ///   copied, in this case).  Keeping a copy lets you convert from a
-  ///   value back to a key (the reverse of what get() does).
   FixedHashTable (const keys_type& keys,
                   const KeyType firstContigKey,
                   const KeyType lastContigKey,
-                  const ValueType startingValue,
-                  const bool keepKeys = false);
+                  const ValueType startingValue);
 
   /// \brief Constructor for arbitrary keys and contiguous values
   ///   starting with \c startingValue, that takes an initial
@@ -229,23 +218,16 @@ public:
   ///   contiguous sequence of keys.
   /// \param startingValue [in] First value in the contiguous sequence
   ///   of values.
-  /// \param keepKeys [in] Whether to keep (a deep copy of) the keys.
-  ///   Keeping a copy lets you convert from a value back to a key
-  ///   (the reverse of what get() does).
   FixedHashTable (const Teuchos::ArrayView<const KeyType>& keys,
                   const KeyType firstContigKey,
                   const KeyType lastContigKey,
-                  const ValueType startingValue,
-                  const bool keepKeys = false);
+                  const ValueType startingValue);
 
   /// \brief Constructor for arbitrary keys and arbitrary values.
   ///
   /// Add <tt>(keys[i], vals[i])</tt> to the table, for i = 0, 1, ...,
   /// <tt>keys.size()</tt>.  This version is useful for applications
   /// other than Map's GID-to-LID lookup table.
-  ///
-  /// The \c keepKeys option (see above constructors) does not make
-  /// sense for this constructor, so we do not provide it here.
   ///
   /// \param keys [in] The keys in the hash table.
   /// \param vals [in] The values in the hash table.
@@ -276,14 +258,15 @@ public:
     // offset_type comes from the memory space's size_type typedef.
     // That's why we use a specialized deep copy function here instead
     // of Kokkos::deep_copy.
-    nonconst_ptr_type ptr (ViewAllocateWithoutInitializing ("ptr"),
+    nonconst_ptr_type ptr (ViewAllocateWithoutInitializing ("Tpetra::FixedHashTable::ptr"),
                            src.ptr_.extent (0));
     ::Tpetra::Details::copyOffsets (ptr, src.ptr_);
-    nonconst_val_type val (ViewAllocateWithoutInitializing ("val"),
+    nonconst_val_type val (ViewAllocateWithoutInitializing ("Tpetra::FixedHashTable::val"),
                            src.val_.extent (0));
     // val and src.val_ have the same entry types, unlike (possibly)
     // ptr and src.ptr_.  Thus, we can use Kokkos::deep_copy here.
-    Kokkos::deep_copy (val, src.val_);
+    // DEEP_COPY REVIEW - DEVICE-TO-DEVICE
+    Kokkos::deep_copy (execution_space(), val, src.val_);
 
     this->ptr_ = ptr;
     this->val_ = val;
@@ -296,10 +279,6 @@ public:
     this->contiguousValues_ = src.contiguousValues_;
     this->checkedForDuplicateKeys_ = src.checkedForDuplicateKeys_;
     this->hasDuplicateKeys_ = src.hasDuplicateKeys_;
-
-#if defined(HAVE_TPETRA_DEBUG)
-    this->check ();
-#endif // defined(HAVE_TPETRA_DEBUG)
   }
 
   //! Get the value corresponding to the given key.
@@ -332,32 +311,6 @@ public:
     // Don't use Teuchos::OrdinalTraits or std::numeric_limits here,
     // because neither have the right device function markings.
     return Tpetra::Details::OrdinalTraits<ValueType>::invalid ();
-  }
-
-  /// \brief Whether it is safe to call getKey().
-  ///
-  /// You may ONLY call getKey() if this object was created with a
-  /// constructor that takes the keepKeys argument, and ONLY if that
-  /// argument was true when calling the constructor.
-  bool hasKeys () const;
-
-  /// \brief Get the key corresponding to the given value.
-  ///
-  /// \warning This ONLY works if this object was created with a
-  ///   constructor that takes the keepKeys argument, and ONLY if that
-  ///   argument was true when calling the constructor.  Otherwise,
-  ///   segfaults or incorrect answers may result!
-  KOKKOS_INLINE_FUNCTION KeyType getKey (const ValueType& val) const {
-    // If there are no keys in the table, then we set minVal_ to the
-    // the max possible ValueType value and maxVal_ to the min
-    // possible ValueType value.  Thus, this is always true.
-    if (val < this->minVal () || val > this->maxVal ()) {
-      return Tpetra::Details::OrdinalTraits<KeyType>::invalid ();
-    }
-    else {
-      const ValueType index = val - this->minVal ();
-      return keys_[index];
-    }
   }
 
   /// \brief Number of (key, value) pairs in the table.
@@ -454,16 +407,6 @@ public:
   //@}
 
 private:
-  /// \brief Array of keys; only valid if keepKeys = true on construction.
-  ///
-  /// If you want the reverse mapping from values to keys, you need
-  /// this View.  The reverse mapping only works if this object was
-  /// constructed using one of the contiguous values constructors.
-  /// The reverse mapping is only useful in Tpetra::Map, which only
-  /// ever uses the contiguous values constructors.  The noncontiguous
-  /// values constructor (that takes arrays of keys <i>and</i> values)
-  /// does NOT set this field.
-  keys_type keys_;
   //! Array of "row" offsets.
   ptr_type ptr_;
   //! Array of hash table entries.
@@ -473,25 +416,31 @@ private:
   ///
   /// In Tpetra::Map, this corresponds to the minimum global index
   /// (local to the MPI process).
-  KeyType minKey_;
+  /// @remark It will be set in @ref init.
+  KeyType minKey_ = ::Kokkos::Details::ArithTraits<KeyType>::max();
 
   /// \brief Maximum key (computed in init()).
   ///
   /// In Tpetra::Map, this corresponds to the maximum global index
   /// (local to the MPI process).
-  KeyType maxKey_;
+  /// @remark It will be set in @ref init.
+  KeyType maxKey_ = ::Kokkos::Details::ArithTraits<KeyType>::is_integer ?
+                    ::Kokkos::Details::ArithTraits<KeyType>::min() :
+                   -::Kokkos::Details::ArithTraits<KeyType>::max();
 
   /// \brief Minimum value.
   ///
   /// In Tpetra::Map, this corresponds to the minimum local index
   /// (local to the MPI process).
-  ValueType minVal_;
+  ValueType minVal_ = ::Kokkos::Details::ArithTraits<ValueType>::max();
 
   /// \brief Maximum value.
   ///
   /// In Tpetra::Map, this corresponds to the maximum local index
   /// (local to the MPI process).
-  ValueType maxVal_;
+  ValueType maxVal_ = ::Kokkos::Details::ArithTraits<ValueType>::is_integer ?
+                      ::Kokkos::Details::ArithTraits<ValueType>::min() :
+                     -::Kokkos::Details::ArithTraits<ValueType>::max();
 
   /// \brief First key in any initial contiguous sequence.
   ///
@@ -499,7 +448,7 @@ private:
   /// In that case, the initial contiguous sequence of keys may have
   /// length 1 or more.  Length 1 means that the sequence is trivial
   /// (there are no initial contiguous keys).
-  KeyType firstContigKey_;
+  KeyType firstContigKey_ = ::Kokkos::Details::ArithTraits<KeyType>::max();
 
   /// \brief Last key in any initial contiguous sequence.
   ///
@@ -507,7 +456,9 @@ private:
   /// In that case, the initial contiguous sequence of keys may have
   /// length 1 or more.  Length 1 means that the sequence is trivial
   /// (there are no initial contiguous keys).
-  KeyType lastContigKey_;
+  KeyType lastContigKey_ = ::Kokkos::Details::ArithTraits<KeyType>::is_integer ?
+                           ::Kokkos::Details::ArithTraits<KeyType>::min() :
+                          -::Kokkos::Details::ArithTraits<KeyType>::max();
 
   /// \brief Whether the table was created using one of the
   ///   constructors that assume contiguous values.
@@ -515,19 +466,20 @@ private:
   /// This is false if this object was created using the two-argument
   /// (keys, vals) constructor (that takes lists of both keys and
   /// values), else true.
-  bool contiguousValues_;
+  bool contiguousValues_ = true;
 
   /// \brief Whether the table has checked for duplicate keys.
   ///
   /// This is set at the end of the first call to hasDuplicateKeys().
   /// The results of that method are cached in hasDuplicateKeys_ (see
   /// below).
-  bool checkedForDuplicateKeys_;
+  /// @remark It will be revised in @ref hasDuplicateKeys.
+  bool checkedForDuplicateKeys_ = true;
 
   /// \brief Whether the table noticed any duplicate keys.
   ///
   /// This is only valid if checkedForDuplicateKeys_ (above) is true.
-  bool hasDuplicateKeys_;
+  bool hasDuplicateKeys_ = false;
 
   /// \brief Whether the table has duplicate keys.
   ///
@@ -541,9 +493,6 @@ private:
       static_cast<offset_type> (0) :
       static_cast<offset_type> (ptr_.extent (0) - 1);
   }
-
-  //! Sanity checks; throw std::logic_error if any of them fail.
-  void check () const;
 
   typedef Kokkos::View<const KeyType*,
                        typename ptr_type::HostMirror::array_layout,

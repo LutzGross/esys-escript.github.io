@@ -2,7 +2,7 @@
  * Copyright(C) 1999-2020 National Technology & Engineering Solutions
  * of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
  * NTESS, the U.S. Government retains certain rights in this software.
- * 
+ *
  * See packages/seacas/LICENSE for details
  */
 
@@ -12,7 +12,7 @@
 #include <cstring>
 #include <fmt/ostream.h>
 
-#define LINEAR 1
+#define LINEAR    1
 #define QUADRATIC 2
 
 /*************** R O U T I N E S   I N   T H I S   F I L E ********************

@@ -180,7 +180,7 @@ namespace Intrepid2 {
       }
     }
 
-    template<typename SpT, ordinal_type numPtsPerEval,
+    template<typename DT, ordinal_type numPtsPerEval,
              typename outputValueValueType, class ...outputValueProperties,
              typename inputPointValueType,  class ...inputPointProperties,
              typename vinvValueType,        class ...vinvProperties>
@@ -194,7 +194,7 @@ namespace Intrepid2 {
       typedef          Kokkos::DynRankView<outputValueValueType,outputValueProperties...>         outputValueViewType;
       typedef          Kokkos::DynRankView<inputPointValueType, inputPointProperties...>          inputPointViewType;
       typedef          Kokkos::DynRankView<vinvValueType,       vinvProperties...>                vinvViewType;
-      typedef typename ExecSpace<typename inputPointViewType::execution_space,SpT>::ExecSpaceType ExecSpaceType;
+      typedef typename ExecSpace<typename inputPointViewType::execution_space,typename DT::execution_space>::ExecSpaceType ExecSpaceType;
 
       // loopSize corresponds to cardinality
       const auto loopSizeTmp1 = (inputPoints.extent(0)/numPtsPerEval);
@@ -243,8 +243,8 @@ namespace Intrepid2 {
   }
   
   // -------------------------------------------------------------------------------------
-  template<typename SpT, typename OT, typename PT>
-  Basis_HCURL_QUAD_In_FEM<SpT,OT,PT>::
+  template<typename DT, typename OT, typename PT>
+  Basis_HCURL_QUAD_In_FEM<DT,OT,PT>::
   Basis_HCURL_QUAD_In_FEM( const ordinal_type order,
                            const EPointType   pointType ) {
 
@@ -253,15 +253,15 @@ namespace Intrepid2 {
                                   ">>> ERROR (Basis_HCURL_QUAD_In_FEM): pointType must be either equispaced or warpblend.");
 
     // this should be in host
-    Basis_HGRAD_LINE_Cn_FEM<SpT,OT,PT> lineBasis( order, pointType );
-    Basis_HGRAD_LINE_Cn_FEM<SpT,OT,PT> bubbleBasis( order - 1, POINTTYPE_GAUSS );
+    Basis_HGRAD_LINE_Cn_FEM<DT,OT,PT> lineBasis( order, pointType );
+    Basis_HVOL_LINE_Cn_FEM<DT,OT,PT> bubbleBasis( order - 1, POINTTYPE_GAUSS );
 
     const ordinal_type
       cardLine = lineBasis.getCardinality(),
       cardBubble = bubbleBasis.getCardinality();
 
-    this->vinvLine_   = Kokkos::DynRankView<typename ScalarViewType::value_type,SpT>("Hcurl::Quad::In::vinvLine", cardLine, cardLine);
-    this->vinvBubble_ = Kokkos::DynRankView<typename ScalarViewType::value_type,SpT>("Hcurl::Quad::In::vinvBubble", cardBubble, cardBubble);
+    this->vinvLine_   = Kokkos::DynRankView<typename ScalarViewType::value_type,DT>("Hcurl::Quad::In::vinvLine", cardLine, cardLine);
+    this->vinvBubble_ = Kokkos::DynRankView<typename ScalarViewType::value_type,DT>("Hcurl::Quad::In::vinvBubble", cardBubble, cardBubble);
 
     lineBasis.getVandermondeInverse(this->vinvLine_);
     bubbleBasis.getVandermondeInverse(this->vinvBubble_);
@@ -269,9 +269,10 @@ namespace Intrepid2 {
     this->basisCardinality_  = 2*cardLine*cardBubble;
     this->basisDegree_       = order;
     this->basisCellTopology_ = shards::CellTopology(shards::getCellTopologyData<shards::Quadrilateral<4> >() );
-    this->basisType_         = BASIS_FEM_FIAT;
+    this->basisType_         = BASIS_FEM_LAGRANGIAN;
     this->basisCoordinates_  = COORDINATES_CARTESIAN;
     this->functionSpace_     = FUNCTION_SPACE_HCURL;
+    pointType_ = pointType;
 
     // initialize tags
     {
@@ -281,6 +282,10 @@ namespace Intrepid2 {
       const ordinal_type posScOrd = 1;        // position in the tag, counting from 0, of the subcell ordinal
       const ordinal_type posDfOrd = 2;        // position in the tag, counting from 0, of DoF ordinal relative to the subcell
 
+      // Note: the only reason why equispaced can't support higher order than Parameters::MaxOrder appears to be the fact that the tags below get stored into a fixed-length array.
+      // TODO: relax the maximum order requirement by setting up tags in a different container, perhaps directly into an OrdinalTypeArray1DHost (tagView, below).  (As of this writing (1/25/22), looks like other nodal bases do this in a similar way -- those should be fixed at the same time; maybe search for Parameters::MaxOrder.)
+      INTREPID2_TEST_FOR_EXCEPTION( order > Parameters::MaxOrder, std::invalid_argument, "polynomial order exceeds the max supported by this class");
+      
       // An array with local DoF tags assigned to the basis functions, in the order of their local enumeration
       constexpr ordinal_type maxCardLine = Parameters::MaxOrder + 1;
       constexpr ordinal_type maxCardBubble = Parameters::MaxOrder;
@@ -365,23 +370,23 @@ namespace Intrepid2 {
     }
 
     // dofCoords on host and create its mirror view to device
-    Kokkos::DynRankView<typename ScalarViewType::value_type,typename SpT::array_layout,Kokkos::HostSpace>
+    Kokkos::DynRankView<typename ScalarViewType::value_type,typename DT::execution_space::array_layout,Kokkos::HostSpace>
       dofCoordsHost("dofCoordsHost", this->basisCardinality_, this->basisCellTopology_.getDimension());
 
     // dofCoeffs on host and create its mirror view to device
-    Kokkos::DynRankView<typename ScalarViewType::value_type,typename SpT::array_layout,Kokkos::HostSpace>
+    Kokkos::DynRankView<typename ScalarViewType::value_type,typename DT::execution_space::array_layout,Kokkos::HostSpace>
       dofCoeffsHost("dofCoeffsHost", this->basisCardinality_, this->basisCellTopology_.getDimension());
 
-    Kokkos::DynRankView<typename ScalarViewType::value_type,SpT>
+    Kokkos::DynRankView<typename ScalarViewType::value_type,DT>
       dofCoordsLine("dofCoordsLine", cardLine, 1),
       dofCoordsBubble("dofCoordsBubble", cardBubble, 1);
 
     lineBasis.getDofCoords(dofCoordsLine);
-    auto dofCoordsLineHost = Kokkos::create_mirror_view(Kokkos::HostSpace(), dofCoordsLine);
+    auto dofCoordsLineHost = Kokkos::create_mirror_view(dofCoordsLine);
     Kokkos::deep_copy(dofCoordsLineHost, dofCoordsLine);
 
     bubbleBasis.getDofCoords(dofCoordsBubble);
-    auto dofCoordsBubbleHost = Kokkos::create_mirror_view(Kokkos::HostSpace(), dofCoordsBubble);
+    auto dofCoordsBubbleHost = Kokkos::create_mirror_view(dofCoordsBubble);
     Kokkos::deep_copy(dofCoordsBubbleHost, dofCoordsBubble);
 
     {
@@ -406,10 +411,10 @@ namespace Intrepid2 {
       }
     }
 
-    this->dofCoords_ = Kokkos::create_mirror_view(typename SpT::memory_space(), dofCoordsHost);
+    this->dofCoords_ = Kokkos::create_mirror_view(typename DT::memory_space(), dofCoordsHost);
     Kokkos::deep_copy(this->dofCoords_, dofCoordsHost);
 
-    this->dofCoeffs_ = Kokkos::create_mirror_view(typename SpT::memory_space(), dofCoeffsHost);
+    this->dofCoeffs_ = Kokkos::create_mirror_view(typename DT::memory_space(), dofCoeffsHost);
     Kokkos::deep_copy(this->dofCoeffs_, dofCoeffsHost);
   }
 

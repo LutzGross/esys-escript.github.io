@@ -190,53 +190,19 @@ namespace Amesos2 {
 
   // implementation functions
   template <typename Scalar, typename LocalOrdinal, typename ExecutionSpace>
+  template <typename KV_GO, typename KV_S>
   void
   ConcreteMatrixAdapter<
-    KokkosSparse::CrsMatrix<Scalar,LocalOrdinal,ExecutionSpace>>::getGlobalRowCopy_impl(global_ordinal_t row,
-                                       const ArrayView<global_ordinal_t>& indices,
-                                       const ArrayView<scalar_t>& vals,
-                                       size_t& nnz) const
+    KokkosSparse::CrsMatrix<Scalar,LocalOrdinal,ExecutionSpace>>::getGlobalRowCopy_kokkos_view_impl(global_ordinal_t row,
+                                                   KV_GO & indices,
+                                                   KV_S & vals,
+                                                   size_t& nnz) const
     {
       TEUCHOS_TEST_FOR_EXCEPTION( true,
                         std::runtime_error,
-                        "getGlobalRowCopy_impl not implemented for Kokkos CrsMatrix yet.  "
+                        "getGlobalRowCopy_kokkos_view_impl not implemented for Kokkos CrsMatrix yet.  "
                         "Please contact the Amesos2 developers." );
     }
-
-  template <typename Scalar, typename LocalOrdinal, typename ExecutionSpace>
-  void
-  ConcreteMatrixAdapter<
-    KokkosSparse::CrsMatrix<Scalar,LocalOrdinal,ExecutionSpace>>::getGlobalColCopy_impl(global_ordinal_t col,
-                             const ArrayView<global_ordinal_t>& indices,
-                             const ArrayView<scalar_t>& vals,
-                             size_t& nnz) const
-  {
-    TEUCHOS_TEST_FOR_EXCEPTION( true,
-                        std::runtime_error,
-                        "Column access to row-based object not yet supported.  "
-                        "Please contact the Amesos2 developers." );
-  }
-
-  template <typename Scalar, typename LocalOrdinal, typename ExecutionSpace>
-  typename ConcreteMatrixAdapter<KokkosSparse::CrsMatrix<Scalar,LocalOrdinal,ExecutionSpace>>::spmtx_ptr_t
-  ConcreteMatrixAdapter<KokkosSparse::CrsMatrix<Scalar,LocalOrdinal,ExecutionSpace>>::getSparseRowPtr() const
-  {
-    return this->mat_->graph.row_map.data();
-  }
-
-  template <typename Scalar, typename LocalOrdinal, typename ExecutionSpace>
-  typename ConcreteMatrixAdapter<KokkosSparse::CrsMatrix<Scalar,LocalOrdinal,ExecutionSpace>>::spmtx_idx_t
-  ConcreteMatrixAdapter<KokkosSparse::CrsMatrix<Scalar,LocalOrdinal,ExecutionSpace>>::getSparseColInd() const
-  {
-    return this->mat_->graph.entries.data();
-  }
-
-  template <typename Scalar, typename LocalOrdinal, typename ExecutionSpace>
-  typename ConcreteMatrixAdapter<KokkosSparse::CrsMatrix<Scalar,LocalOrdinal,ExecutionSpace>>::spmtx_vals_t
-  ConcreteMatrixAdapter<KokkosSparse::CrsMatrix<Scalar,LocalOrdinal,ExecutionSpace>>::getSparseValues() const
-  {
-    return this->mat_->values.data();
-  }
 
 } // end namespace Amesos2
 

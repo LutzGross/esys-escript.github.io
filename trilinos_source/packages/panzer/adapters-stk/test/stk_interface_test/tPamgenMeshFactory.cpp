@@ -54,14 +54,13 @@
 
 #include "Shards_BasicTopologies.hpp"
 
-#ifdef HAVE_MPI
-   #include "Epetra_MpiComm.h"
-#else
-   #include "Epetra_SerialComm.h"
+#ifdef PANZER_HAVE_PERCEPT
+#include "percept/PerceptMesh.hpp"
 #endif
 
 #include "stk_mesh/base/GetEntities.hpp"
 #include "stk_mesh/base/Selector.hpp"
+#include "stk_mesh/base/MeshBuilder.hpp"
 #include "stk_mesh/base/CreateAdjacentEntities.hpp"
 
 namespace panzer_stk {
@@ -90,9 +89,10 @@ TEUCHOS_UNIT_TEST(tPamgenFactory, acceptance)
     RCP<stk::io::StkMeshIoBroker> broker = rcp(new stk::io::StkMeshIoBroker(MPI_COMM_WORLD));
     broker->add_mesh_database("pamgen_test.gen", "pamgen", stk::io::READ_MESH);
     broker->create_input_mesh();
-    metaData = broker->meta_data_rcp();
-    bulkData = Teuchos::rcp(new stk::mesh::BulkData(*metaData,MPI_COMM_WORLD));
-    broker->set_bulk_data(bulkData);
+    metaData = Teuchos::rcp(broker->meta_data_ptr());
+    std::unique_ptr<stk::mesh::BulkData> bulkUPtr = stk::mesh::MeshBuilder(MPI_COMM_WORLD).create(Teuchos::get_shared_ptr(metaData));
+    bulkData = Teuchos::rcp(bulkUPtr.release());
+    broker->set_bulk_data(Teuchos::get_shared_ptr(bulkData));
     broker->add_all_mesh_fields_as_input_fields();
     broker->populate_bulk_data();
 
@@ -137,7 +137,7 @@ TEUCHOS_UNIT_TEST(tPamgenFactory, acceptance)
   {
     out << "\nWriting output file." << std::endl;
     RCP<stk::io::StkMeshIoBroker> broker = rcp(new stk::io::StkMeshIoBroker(MPI_COMM_WORLD));
-    broker->set_bulk_data(bulkData);
+    broker->set_bulk_data(Teuchos::get_shared_ptr(bulkData));
     auto meshIndex_ = broker->create_output_mesh(output_exodus_file_name,stk::io::PURPOSE_UNKNOWN);
 
     const stk::mesh::FieldVector& fields = metaData->get_fields();
@@ -172,9 +172,10 @@ TEUCHOS_UNIT_TEST(tPamgenFactory, acceptance)
     RCP<stk::io::StkMeshIoBroker> broker = rcp(new stk::io::StkMeshIoBroker(MPI_COMM_WORLD));
     broker->add_mesh_database(output_exodus_file_name, "exodus", stk::io::READ_MESH);
     broker->create_input_mesh();
-    metaData = broker->meta_data_rcp();
-    bulkData = Teuchos::rcp(new stk::mesh::BulkData(*metaData,MPI_COMM_WORLD));
-    broker->set_bulk_data(bulkData);
+    metaData = Teuchos::rcp(broker->meta_data_ptr());
+    std::unique_ptr<stk::mesh::BulkData> bulkUPtr = stk::mesh::MeshBuilder(MPI_COMM_WORLD).create(Teuchos::get_shared_ptr(metaData));
+    bulkData = Teuchos::rcp(bulkUPtr.release());
+    broker->set_bulk_data(Teuchos::get_shared_ptr(bulkData));
     broker->add_all_mesh_fields_as_input_fields();
     broker->populate_bulk_data();
 
@@ -318,7 +319,132 @@ TEUCHOS_UNIT_TEST(tPamgenFactory, basic)
 
 TEUCHOS_UNIT_TEST(tPamgenFactory, getMeshDimension)
 {
-  TEST_EQUALITY(panzer_stk::getMeshDimension("pamgen_test.gen",MPI_COMM_WORLD,false),3);
+  TEST_EQUALITY(panzer_stk::getMeshDimension("pamgen_test.gen",MPI_COMM_WORLD,"Pamgen"),3);
 }
+
+
+#ifdef PANZER_HAVE_PERCEPT
+// test the ability to save the percept mesh hierarchy
+TEUCHOS_UNIT_TEST(tPamgenFactory, keepPerceptData)
+{
+  using namespace Teuchos;
+  using Teuchos::RCP;
+  using Teuchos::rcp;
+
+  {
+    out << "\nCreating pamgen mesh with parent elements." << std::endl;
+    RCP<ParameterList> p = parameterList();
+    const std::string input_file_name = "pamgen_test.gen";
+    p->set("File Name",input_file_name);
+    p->set("File Type","Pamgen");
+    p->set("Levels of Uniform Refinement",1);
+    p->set("Keep Percept Data",true);
+    p->set("Keep Percept Parent Elements",true);
+
+    RCP<STK_ExodusReaderFactory> pamgenFactory = rcp(new STK_ExodusReaderFactory());
+    TEST_NOTHROW(pamgenFactory->setParameterList(p));
+
+    RCP<STK_Interface> mesh = pamgenFactory->buildMesh(MPI_COMM_WORLD);
+    RCP<percept::PerceptMesh> refinedMesh = mesh->getRefinedMesh();
+
+    // check if the Percept data exists and has elements
+    TEST_ASSERT(nonnull(refinedMesh));
+    TEST_ASSERT(refinedMesh->get_number_elements()>0);
+
+    // check if the parent information is stored
+    std::vector<stk::mesh::EntityRank> ranks_to_be_deleted;
+    ranks_to_be_deleted.push_back(stk::topology::ELEMENT_RANK);
+    ranks_to_be_deleted.push_back(refinedMesh->side_rank());
+    if (refinedMesh->get_spatial_dim() == 3)
+      ranks_to_be_deleted.push_back(refinedMesh->edge_rank());
+
+    //percept::SetOfEntities parents(*refinedMesh->get_bulk_data());
+    for (unsigned irank=0; irank < ranks_to_be_deleted.size()-1; irank++) // don't look for children of nodes
+    {
+      const stk::mesh::BucketVector & buckets = refinedMesh->get_bulk_data()->buckets( ranks_to_be_deleted[irank] );
+      int npar=0;
+      int nchild=0;
+      for ( stk::mesh::BucketVector::const_iterator k = buckets.begin() ; k != buckets.end() ; ++k )
+      {
+        stk::mesh::Bucket & bucket = **k ;
+
+        const unsigned num_elements_in_bucket = bucket.size();
+        for (unsigned iElement = 0; iElement < num_elements_in_bucket; iElement++)
+        {
+	  stk::mesh::Entity element = bucket[iElement];
+	  if (!refinedMesh->isParentElement(element, false))
+	  {
+	    ++nchild;
+	  }
+     	  else
+	  {
+	    ++npar;
+	    //parents.insert(element);
+	  }
+        }
+      }
+      TEST_ASSERT(npar>0);
+      TEST_ASSERT(nchild>0);
+    }
+  }
+
+
+  {
+    out << "\nCreating pamgen mesh without parent elements." << std::endl;
+    RCP<ParameterList> p = parameterList();
+    const std::string input_file_name = "pamgen_test.gen";
+    p->set("File Name",input_file_name);
+    p->set("File Type","Pamgen");
+    p->set("Levels of Uniform Refinement",1);
+    p->set("Keep Percept Data",true);
+
+    RCP<STK_ExodusReaderFactory> pamgenFactory = rcp(new STK_ExodusReaderFactory());
+    TEST_NOTHROW(pamgenFactory->setParameterList(p));
+
+    RCP<STK_Interface> mesh = pamgenFactory->buildMesh(MPI_COMM_WORLD);
+    RCP<percept::PerceptMesh> refinedMesh = mesh->getRefinedMesh();
+
+    // check if the Percept data exists and has elements
+    TEST_ASSERT(nonnull(refinedMesh));
+    TEST_ASSERT(refinedMesh->get_number_elements()>0);
+
+    // check if the parent information is stored
+    std::vector<stk::mesh::EntityRank> ranks_to_be_deleted;
+    ranks_to_be_deleted.push_back(stk::topology::ELEMENT_RANK);
+    ranks_to_be_deleted.push_back(refinedMesh->side_rank());
+    if (refinedMesh->get_spatial_dim() == 3)
+      ranks_to_be_deleted.push_back(refinedMesh->edge_rank());
+
+    //percept::SetOfEntities parents(*refinedMesh->get_bulk_data());
+    for (unsigned irank=0; irank < ranks_to_be_deleted.size()-1; irank++) // don't look for children of nodes
+    {
+      const stk::mesh::BucketVector & buckets = refinedMesh->get_bulk_data()->buckets( ranks_to_be_deleted[irank] );
+      int npar=0;
+      int nchild=0;
+      for ( stk::mesh::BucketVector::const_iterator k = buckets.begin() ; k != buckets.end() ; ++k )
+      {
+        stk::mesh::Bucket & bucket = **k ;
+
+        const unsigned num_elements_in_bucket = bucket.size();
+        for (unsigned iElement = 0; iElement < num_elements_in_bucket; iElement++)
+        {
+	  stk::mesh::Entity element = bucket[iElement];
+	  if (!refinedMesh->isParentElement(element, false))
+	  {
+	    ++nchild;
+	  }
+     	  else
+	  {
+	    ++npar;
+	    //parents.insert(element);
+	  }
+        }
+      }
+      TEST_EQUALITY(npar,0);
+      TEST_ASSERT(nchild>0);
+    }
+  }
+}
+#endif
 
 } // namespace panzer_stk

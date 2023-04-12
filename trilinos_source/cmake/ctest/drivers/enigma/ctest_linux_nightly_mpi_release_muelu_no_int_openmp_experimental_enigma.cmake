@@ -70,7 +70,7 @@ SET(BUILD_NAME_DETAILS NO-INT_OPENMP_EXPERIMENTAL)
 
 SET(CTEST_PARALLEL_LEVEL 8)
 SET(CTEST_TEST_TYPE Nightly)
-SET(Trilinos_TRACK  Specialized)     # Set the CDash track
+SET(Trilinos_TRACK  Experimental)     # Set the CDash track
 SET(CTEST_TEST_TIMEOUT 900)
 
 SET(Trilinos_PACKAGES MueLu Xpetra)
@@ -82,6 +82,7 @@ SET(EXTRA_CONFIGURE_OPTIONS
     "-DTpetra_INST_INT_LONG:BOOL=OFF"
     "-DTpetra_INST_INT_LONG_LONG:BOOL=ON"
     "-DTpetra_INST_SERIAL:BOOL=ON"
+    "-DKokkos_ENABLE_SERIAL:BOOL=ON"
     "-DTrilinos_ENABLE_OpenMP=ON"
 
   ### MISC ###

@@ -34,22 +34,38 @@
 
 ASSERT_DEFINED(PACKAGE_SOURCE_DIR CMAKE_CURRENT_SOURCE_DIR)
 
-if ( TPL_ENABLE_MPI )
-  ADD_SUBDIRECTORY(parallel)
-  FILE(GLOB SOURCES diag/*.cpp environment/*.cpp util/*.cpp *.cpp)
-ELSE()
-  FILE(GLOB SOURCES util/*.cpp)
+FILE(GLOB SOURCES *.cpp
+                  command_line/*.cpp
+                  diag/*.cpp
+                  environment/*.cpp
+                  ngp/*.cpp
+                  parallel/*.cpp
+                  registry/*.cpp
+                  util/*.cpp)
+
+IF (NOT TPL_ENABLE_MPI)
+LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/parallel/UnitTestDistributedIndex.cpp")
+LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/parallel/UnitTestGenerateParallelConsistentIDs.cpp")
+LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/parallel/UnitTestGenerateUniqueConsistentIDs.cpp")
+LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/parallel/UnitTestIndexGapFinder.cpp")
+LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/parallel/UnitTestLoc.cpp")
+LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/parallel/UnitTestIreduceReplacement.cpp")
+LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/parallel/UnitTestMPIDatatypeGenerator.cpp")
+LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/parallel/UnitTestMPITagManager.cpp")
+LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/parallel/UnitTestParallelVectorConcat.cpp")
+LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/parallel/UnitTestImprobeAll.cpp")
+LIST(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/parallel/UnitTestImprobeSelf.cpp")
 ENDIF()
 
-INCLUDE_DIRECTORIES(${${PACKAGE_NAME}_BINARY_DIR}/stk_util)
+TRIBITS_INCLUDE_DIRECTORIES(${${PACKAGE_NAME}_BINARY_DIR}/stk_util)
 
 TRIBITS_ADD_EXECUTABLE_AND_TEST(
-    util_UnitTest
+    stk_util_unit_tests
     SOURCES ${SOURCES}
     TESTONLYLIBS stk_unit_main
-    DEPLIBS
     COMM serial mpi
-    NUM_MPI_PROCS 1
+    NUM_MPI_PROCS 1-6
+    NOEXEPREFIX
     )
 
 

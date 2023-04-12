@@ -1,7 +1,7 @@
-// Copyright(C) 1999-2020 National Technology & Engineering Solutions
+// Copyright(C) 1999-2021 National Technology & Engineering Solutions
 // of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 // NTESS, the U.S. Government retains certain rights in this software.
-// 
+//
 // See packages/seacas/LICENSE for details
 
 #include "Ioss_CodeTypes.h"           // for IntVector
@@ -74,8 +74,6 @@ Ioss::Wedge24::Wedge24() : Ioss::ElementTopology(Ioss::Wedge24::name, "Wedge_24"
 {
   Ioss::ElementTopology::alias(Ioss::Wedge24::name, "Solid_Wedge_24_3D");
 }
-
-Ioss::Wedge24::~Wedge24() = default;
 
 int Ioss::Wedge24::parametric_dimension() const { return 3; }
 int Ioss::Wedge24::spatial_dimension() const { return 3; }
@@ -152,6 +150,7 @@ Ioss::ElementTopology *Ioss::Wedge24::face_type(int face_number) const
 Ioss::ElementTopology *Ioss::Wedge24::edge_type(int edge_number) const
 {
   assert(edge_number >= 0 && edge_number <= number_edges());
+  IOSS_ASSERT_USED(edge_number);
   return Ioss::ElementTopology::factory("edge4");
 }
 

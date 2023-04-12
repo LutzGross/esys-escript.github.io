@@ -1,18 +1,18 @@
 C    Copyright(C) 1999-2020 National Technology & Engineering Solutions
 C    of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 C    NTESS, the U.S. Government retains certain rights in this software.
-C    
+C
 C    See packages/seacas/LICENSE for details
       SUBROUTINE MXLONG (NAME1, NEWLEN, NEWLOC, MYV, MYCHAR, MYLOC,
      *   MYCLOC, UCLOC, COFFST, OFFSET,
      *   DICT, DPOINT, LDICT, NNAMES, VOID, LVOID, NVOIDS,
      *   FILL, FDATA, CFILL, CFDATA, CHRNUM, CHRCOL, LASTER)
-C
+
       IMPLICIT INTEGER (A-Z)
       INCLUDE 'params.inc'
-C
+
 C***********************************************************************
-C
+
 C     NAME1    Name of the vector which changes length
                CHARACTER*8 NAME1
 C     NEWLEN   The new length of the vector
@@ -47,21 +47,21 @@ C     CFDATA   Data for fill.
 C     CHRNUM   Number of characters per numeric storage unit
 C     CHRCOL   Number of column for character names.
 C     LASTER   Error return
-C
+
 C***********************************************************************
-C
+
 C     Get current location and length.
-C
+
       CALL MXFIND (NAME1, DICT, DPOINT, LDICT, NNAMES,
      *   CHRCOL, LASTER, ROW)
-      IF (LASTER .NE. SUCESS) RETURN
-C
+      IF (LASTER .NE. SUCCESS) RETURN
+
 C     Save the current location of the array.
-C
+
       OLDLOC = DPOINT(ROW,1,1)
       OLDLEN = DPOINT(ROW,1,2)
 
-      LASTER = SUCESS
+      LASTER = SUCCESS
       oldadr = oldloc+myloc-1
       memret = -998
       memlen = newlen
@@ -83,28 +83,18 @@ C      Need to call malloc instead of realloc.
         return
       end if
 
-      IF (LASTER .NE. SUCESS) RETURN
+      IF (LASTER .NE. SUCCESS) RETURN
 
       DPOINT(ROW,1,1) = oldadr+1-myloc
       NEWLOC = DPOINT(ROW,1,1) + OFFSET
       DPOINT(ROW,1,2) = NEWLEN
-C
+
 C     Perform data fill if appropriate.
-C
+
       IF (FILL) THEN
-         DO 120 I = DPOINT(ROW,1,1)+OLDLEN, DPOINT(ROW,1,1)+NEWLEN-1-7,8
-            MYV(I+0) = FDATA
-            MYV(I+1) = FDATA
-            MYV(I+2) = FDATA
-            MYV(I+3) = FDATA
-            MYV(I+4) = FDATA
-            MYV(I+5) = FDATA
-            MYV(I+6) = FDATA
-            MYV(I+7) = FDATA
-  120    CONTINUE
-         DO 130 J = I, DPOINT(ROW,1,1)+NEWLEN-1
-            MYV(J) = FDATA
-  130    CONTINUE
+        DO J = DPOINT(ROW,1,1)+OLDLEN, DPOINT(ROW,1,1)+NEWLEN-1
+          MYV(J) = FDATA
+        end do
       END IF
 
       RETURN

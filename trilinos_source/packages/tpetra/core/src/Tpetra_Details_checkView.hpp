@@ -40,15 +40,15 @@
 #ifndef TPETRA_DETAILS_CHECKVIEW_HPP
 #define TPETRA_DETAILS_CHECKVIEW_HPP
 
-/// \file Tpetra_Details_checkPointer.hpp
+/// \file Tpetra_Details_checkView.hpp
 /// \brief Declaration of functions for checking whether a given
 ///   pointer is accessible from a given Kokkos execution space.
 ///
 /// \warning This header file and its contents are implementation
 ///   details of Tpetra.
 
-#include "Tpetra_Details_checkPointer.hpp"
 #include "Tpetra_Details_gathervPrint.hpp"
+#include "Tpetra_Details_WrappedDualView.hpp"
 #include "Kokkos_DualView.hpp"
 #include "Teuchos_TypeNameTraits.hpp"
 #include "Teuchos_Comm.hpp"
@@ -57,11 +57,6 @@
 
 namespace Tpetra {
 namespace Details {
-
-template<class ExecutionSpace>
-bool
-pointerAccessibleFromExecutionSpace (const void* ptr,
-                                     const ExecutionSpace& space);
 
 std::string memorySpaceName (const void* ptr);
 
@@ -75,13 +70,6 @@ std::string memorySpaceName (const void* ptr);
 ///      is accessible from ViewType::execution_space (e.g., not a
 ///      host pointer with execution_space Kokkos::Cuda). </li>
 /// </ol>
-///
-/// This function doesn't promise exact results for anything other
-/// than CudaSpace, CudaUVMSpace, or CudaHostPinnedSpace.  The point
-/// of this function is for Tpetra classes to debug user error in
-/// which users create a Kokkos::View with a raw pointer in the wrong
-/// memory space (e.g., a host pointer, when they should have used a
-/// UVM pointer).
 ///
 /// \param lclErrStrm [out] If the View is invalid, and this pointer
 ///   is nonnull, then write a human-readable explanation of what's
@@ -102,7 +90,6 @@ checkLocalViewValidity
   using Teuchos::TypeNameTraits;
   using std::endl;
   using view_type = Kokkos::View<DataType, Properties...>;
-  using ES = typename view_type::execution_space;
 
   if (view.size () == 0) {
     // Kokkos::View can be zero size with a nonnull pointer.
@@ -121,21 +108,8 @@ checkLocalViewValidity
       }
       return false;
     }
-    else { // nonnull pointer, nonzero size
-      const bool canAcc = pointerAccessibleFromExecutionSpace (ptr, ES ());
-      if (! canAcc && lclErrStrm != nullptr) {
-        const std::string viewName = TypeNameTraits<view_type>::name ();
-        const std::string esName = TypeNameTraits<ES>::name ();
-        *lclErrStrm << "Proc " << myMpiProcessRank << ": Kokkos::View "
-          "of type " << viewName << " and nonzero size " << view.size ()
-          << " has a pointer " << ptr << " which is nonnull, but not "
-          "accessible from the View's claimed execution space "
-          << esName << ".  As far as I can tell, the View's pointer "
-          "(view.data()) lives in memory space " << memorySpaceName (ptr)
-          << "." << endl;
-      }
-      return canAcc;
-    }
+    else 
+      return true;
   }
 }
 
@@ -218,18 +192,11 @@ checkGlobalDualViewValidity
 
   if (gblSuccess != 1 && gblErrStrm != nullptr) {
     *gblErrStrm << "On at least one (MPI) process, the "
-      "Kokkos::DualView has either device or host pointer that "
-      "is not accessible from the corresponding execution space.  "
-      "This can happen if you, the user, created the DualView "
-      "with raw pointer(s) that is/are not in the correct memory "
-      "space.  For example, you may have a Kokkos::DualView whose "
-      "device memory_space is Kokkos::CudaUVMSpace, but you gave "
-      "the device View's constructor a raw host pointer.  It may "
-      "also happen if either the device or host pointer in the "
-      "DualView is null, but the DualView has a nonzero number of "
+      "Kokkos::DualView has "
+      "either the device or host pointer in the "
+      "DualView equal to null, but the DualView has a nonzero number of "
       "rows.  For more detailed information, please rerun with the "
-      "TPETRA_VERBOSE environment variable set to 1.  (You do not "
-      "need to recompile.)";
+      "TPETRA_VERBOSE environment variable set to 1. ";
     if (verbose) {
       *gblErrStrm << "  Here are error messages from all "
         "processes:" << endl;
@@ -245,6 +212,104 @@ checkGlobalDualViewValidity
   }
   return gblSuccess == 1;
 }
+
+
+/// \brief Is the given Tpetra::WrappedDualView valid?
+///
+/// A WrappedDualView is valid if both of its constituent Views are valid.
+template<class DataType ,
+         class Arg1Type = void ,
+         class Arg2Type = void ,
+         class Arg3Type = void>
+bool
+checkLocalWrappedDualViewValidity
+  (std::ostream* const lclErrStrm,
+   const int myMpiProcessRank,
+   const Tpetra::Details::WrappedDualView<Kokkos::DualView<DataType, Arg1Type, Arg2Type, Arg3Type> >& dv)
+{
+  const bool dev_good  = dv.is_valid_device();
+  const bool host_good = dv. is_valid_host();
+  const bool good = dev_good && host_good;
+  if (! good && lclErrStrm != nullptr) {
+    using Teuchos::TypeNameTraits;
+    using std::endl;
+    using dv_type =
+      Tpetra::Details::WrappedDualView<Kokkos::DualView<DataType, Arg1Type, Arg2Type, Arg3Type> >;
+
+    const std::string dvName = TypeNameTraits<dv_type>::name ();
+    *lclErrStrm << "Proc " << myMpiProcessRank << ": Tpetra::WrappedDualView "
+      "of type " << dvName << " has one or more invalid Views.  See "
+      "above error messages from this MPI process for details." << endl;
+  }
+  return good;
+}
+
+template<class DataType ,
+         class Arg1Type = void ,
+         class Arg2Type = void ,
+         class Arg3Type = void>
+bool
+checkGlobalWrappedDualViewValidity
+(std::ostream* const gblErrStrm,
+ const Tpetra::Details::WrappedDualView<Kokkos::DualView<DataType, Arg1Type, Arg2Type, Arg3Type> >& dv,
+ const bool verbose,
+ const Teuchos::Comm<int>* const comm)
+{
+  using std::endl;
+  const int myRank = comm == nullptr ? 0 : comm->getRank ();
+  std::ostringstream lclErrStrm;
+  int lclSuccess = 1;
+
+  try {
+    const bool lclValid =
+      checkLocalWrappedDualViewValidity (&lclErrStrm, myRank, dv);
+    lclSuccess = lclValid ? 1 : 0;
+  }
+  catch (std::exception& e) {
+    lclErrStrm << "Proc " << myRank << ": checkLocalDualViewValidity "
+      "threw an exception: " << e.what () << endl;
+    lclSuccess = 0;
+  }
+  catch (...) {
+    lclErrStrm << "Proc " << myRank << ": checkLocalDualViewValidity "
+      "threw an exception not a subclass of std::exception." << endl;
+    lclSuccess = 0;
+  }
+
+  int gblSuccess = 0; // output argument
+  if (comm == nullptr) {
+    gblSuccess = lclSuccess;
+  }
+  else {
+    using Teuchos::outArg;
+    using Teuchos::REDUCE_MIN;
+    using Teuchos::reduceAll;
+    reduceAll (*comm, REDUCE_MIN, lclSuccess, outArg (gblSuccess));
+  }
+
+  if (gblSuccess != 1 && gblErrStrm != nullptr) {
+    *gblErrStrm << "On at least one (MPI) process, the "
+      "Kokkos::DualView has "
+      "either the device or host pointer in the "
+      "DualView equal to null, but the DualView has a nonzero number of "
+      "rows.  For more detailed information, please rerun with the "
+      "TPETRA_VERBOSE environment variable set to 1. ";
+    if (verbose) {
+      *gblErrStrm << "  Here are error messages from all "
+        "processes:" << endl;
+      if (comm == nullptr) {
+        *gblErrStrm << lclErrStrm.str ();
+      }
+      else {
+        using Tpetra::Details::gathervPrint;
+        gathervPrint (*gblErrStrm, lclErrStrm.str (), *comm);
+      }
+    }
+   *gblErrStrm << endl;
+  }
+  return gblSuccess == 1;
+}
+
 
 } // namespace Details
 } // namespace Tpetra

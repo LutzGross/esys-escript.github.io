@@ -43,12 +43,6 @@
 // ***********************************************************************
 //
 // @HEADER
-/*
- * MueLu_BlockedGaussSeidelSmoother_def.hpp
- *
- *  Created on: 30.01.2012
- *      Author: tobias
- */
 
 #ifndef MUELU_BLOCKEDGAUSSSEIDELSMOOTHER_DEF_HPP_
 #define MUELU_BLOCKEDGAUSSSEIDELSMOOTHER_DEF_HPP_
@@ -102,10 +96,10 @@ namespace MueLu {
     size_t myPos = Teuchos::as<size_t>(pos);
 
     if (myPos < FactManager_.size()) {
-      // replace existing entris in FactManager_ vector
+      // replace existing entries in FactManager_ vector
       FactManager_.at(myPos) = FactManager;
-    } else if( myPos == FactManager_.size()) {
-      // add new Factory manager in the end of the vector
+    } else if(myPos == FactManager_.size()) {
+      // append new Factory manager at the end of the vector
       FactManager_.push_back(FactManager);
     } else { // if(myPos > FactManager_.size())
       RCP<Teuchos::FancyOStream> out = Teuchos::fancyOStream(Teuchos::rcpFromRef(std::cout));
@@ -133,13 +127,10 @@ namespace MueLu {
       // request "A" for current subblock row (only needed for Thyra mode)
       currentLevel.DeclareInput("A",(*it)->GetFactory("A").get());
     }
-
-    //RCP<Teuchos::FancyOStream> out = Teuchos::fancyOStream(Teuchos::rcpFromRef(std::cout));
   }
 
   template <class Scalar,class LocalOrdinal, class GlobalOrdinal, class Node>
   void BlockedGaussSeidelSmoother<Scalar, LocalOrdinal, GlobalOrdinal, Node>::Setup(Level &currentLevel) {
-    //typedef Xpetra::BlockedCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> BlockedCrsOMatrix;
 
     RCP<Teuchos::FancyOStream> out = Teuchos::fancyOStream(Teuchos::rcpFromRef(std::cout));
 
@@ -202,8 +193,6 @@ namespace MueLu {
       //this->GetOStream(Runtime1) << "BlockedGaussSeidel: X is a MultiVector of size " << X.getMap()->getGlobalNumElements() << std::endl;
       //TEUCHOS_TEST_FOR_EXCEPTION(bA->getFullDomainMap()->isSameAs(*(X.getMap())) == false, Exceptions::RuntimeError, "MueLu::BlockedGaussSeidelSmoother::Apply(): The map of the solution vector X is not the same as domain map of the blocked operator A. Please check the map of X and A.");
     }
-
-
 #endif
     SC zero = Teuchos::ScalarTraits<SC>::zero(), one = Teuchos::ScalarTraits<SC>::one();
 
@@ -302,6 +291,12 @@ namespace MueLu {
     LocalOrdinal nSweeps = pL.get<LocalOrdinal>("Sweeps");
     Scalar omega = pL.get<Scalar>("Damping factor");
 
+
+    // Clear solution from previos V cycles in case it is still stored
+    if( InitialGuessIsZero==true )
+      rcpX->putScalar(Teuchos::ScalarTraits<Scalar>::zero());
+
+
     // outer Richardson loop
     for (LocalOrdinal run = 0; run < nSweeps; ++run) {
       // one BGS sweep
@@ -313,7 +308,6 @@ namespace MueLu {
         residual->update(1.0,*rcpB,0.0); // r = B
         if(InitialGuessIsZero == false || i > 0 || run > 0)
           bA->bgs_apply(*rcpX, *residual, i, Teuchos::NO_TRANS, -1.0, 1.0);
-          //A_->apply(*rcpX, *residual, Teuchos::NO_TRANS, -1.0, 1.0);
 
         // extract corresponding subvectors from X and residual
         bool bRangeThyraMode =  rangeMapExtractor_->getThyraMode();
@@ -328,8 +322,6 @@ namespace MueLu {
         // update vector
         Xi->update(omega,*tXi,1.0);  // X_{i+1} = X_i + omega \Delta X_i
 
-        // update corresponding part of rhs and lhs
-        domainMapExtractor_->InsertVector(Xi, i, rcpX, bDomainThyraMode); // TODO wrong! fix me
       }
     }
 
@@ -374,11 +366,7 @@ namespace MueLu {
     // FIXME: This is a placeholder
     return Teuchos::OrdinalTraits<size_t>::invalid();
   }
-  
-
 
 } // namespace MueLu
-
-
 
 #endif /* MUELU_BLOCKEDGAUSSSEIDELSMOOTHER_DEF_HPP_ */

@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_TEST_EXPERIMENTAL_ERROR_REPORTER_HPP
 #define KOKKOS_TEST_EXPERIMENTAL_ERROR_REPORTER_HPP
@@ -49,10 +21,6 @@
 #include <iostream>
 #include <Kokkos_Core.hpp>
 #include <Kokkos_ErrorReporter.hpp>
-
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
 
 namespace Test {
 
@@ -84,9 +52,9 @@ void checkReportersAndReportsAgree(const std::vector<int> &reporters,
 
 template <typename DeviceType>
 struct ErrorReporterDriverBase {
-  typedef ThreeValReport<int, int, double> report_type;
-  typedef Kokkos::Experimental::ErrorReporter<report_type, DeviceType>
-      error_reporter_type;
+  using report_type = ThreeValReport<int, int, double>;
+  using error_reporter_type =
+      Kokkos::Experimental::ErrorReporter<report_type, DeviceType>;
   error_reporter_type m_errorReporter;
 
   ErrorReporterDriverBase(int reporter_capacity, int /*test_size*/)
@@ -97,10 +65,11 @@ struct ErrorReporterDriverBase {
   }
 
   void check_expectations(int reporter_capacity, int test_size) {
+    using namespace std;
     int num_reported = m_errorReporter.getNumReports();
     int num_attempts = m_errorReporter.getNumReportAttempts();
 
-    int expected_num_reports = std::min(reporter_capacity, test_size / 2);
+    int expected_num_reports = min(reporter_capacity, test_size / 2);
     EXPECT_EQ(expected_num_reports, num_reported);
     EXPECT_EQ(test_size / 2, num_attempts);
 
@@ -112,7 +81,7 @@ struct ErrorReporterDriverBase {
 
 template <typename ErrorReporterDriverType>
 void TestErrorReporter() {
-  typedef ErrorReporterDriverType tester_type;
+  using tester_type = ErrorReporterDriverType;
   std::vector<int> reporters;
   std::vector<typename tester_type::report_type> reports;
 
@@ -147,9 +116,9 @@ void TestErrorReporter() {
 
 template <typename DeviceType>
 struct ErrorReporterDriver : public ErrorReporterDriverBase<DeviceType> {
-  typedef ErrorReporterDriverBase<DeviceType> driver_base;
-  typedef typename driver_base::error_reporter_type::execution_space
-      execution_space;
+  using driver_base = ErrorReporterDriverBase<DeviceType>;
+  using execution_space =
+      typename driver_base::error_reporter_type::execution_space;
 
   ErrorReporterDriver(int reporter_capacity, int test_size)
       : driver_base(reporter_capacity, test_size) {
@@ -173,29 +142,33 @@ struct ErrorReporterDriver : public ErrorReporterDriverBase<DeviceType> {
   KOKKOS_INLINE_FUNCTION
   void operator()(const int work_idx) const {
     if (driver_base::error_condition(work_idx)) {
-      double val = M_PI * static_cast<double>(work_idx);
+      double val = Kokkos::numbers::pi * static_cast<double>(work_idx);
       typename driver_base::report_type report = {work_idx, -2 * work_idx, val};
       driver_base::m_errorReporter.add_report(work_idx, report);
     }
   }
 };
 
-#if defined(KOKKOS_CLASS_LAMBDA) && \
-    (!defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_CUDA_LAMBDA))
+#if !defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_CUDA_LAMBDA)
 template <typename DeviceType>
 struct ErrorReporterDriverUseLambda
     : public ErrorReporterDriverBase<DeviceType> {
-  typedef ErrorReporterDriverBase<DeviceType> driver_base;
-  typedef typename driver_base::error_reporter_type::execution_space
-      execution_space;
+  using driver_base = ErrorReporterDriverBase<DeviceType>;
+  using execution_space =
+      typename driver_base::error_reporter_type::execution_space;
 
   ErrorReporterDriverUseLambda(int reporter_capacity, int test_size)
       : driver_base(reporter_capacity, test_size) {
+    execute(reporter_capacity, test_size);
+  }
+
+  void execute(int reporter_capacity, int test_size) {
     Kokkos::parallel_for(
         Kokkos::RangePolicy<execution_space>(0, test_size),
+        // NOLINTNEXTLINE(kokkos-implicit-this-capture)
         KOKKOS_CLASS_LAMBDA(const int work_idx) {
           if (driver_base::error_condition(work_idx)) {
-            double val = M_PI * static_cast<double>(work_idx);
+            double val = Kokkos::numbers::pi * static_cast<double>(work_idx);
             typename driver_base::report_type report = {work_idx, -2 * work_idx,
                                                         val};
             driver_base::m_errorReporter.add_report(work_idx, report);
@@ -210,16 +183,16 @@ struct ErrorReporterDriverUseLambda
 #ifdef KOKKOS_ENABLE_OPENMP
 struct ErrorReporterDriverNativeOpenMP
     : public ErrorReporterDriverBase<Kokkos::OpenMP> {
-  typedef ErrorReporterDriverBase<Kokkos::OpenMP> driver_base;
-  typedef typename driver_base::error_reporter_type::execution_space
-      execution_space;
+  using driver_base = ErrorReporterDriverBase<Kokkos::OpenMP>;
+  using execution_space =
+      typename driver_base::error_reporter_type::execution_space;
 
   ErrorReporterDriverNativeOpenMP(int reporter_capacity, int test_size)
       : driver_base(reporter_capacity, test_size) {
 #pragma omp parallel for
     for (int work_idx = 0; work_idx < test_size; ++work_idx) {
       if (driver_base::error_condition(work_idx)) {
-        double val = M_PI * static_cast<double>(work_idx);
+        double val = Kokkos::numbers::pi * static_cast<double>(work_idx);
         typename driver_base::report_type report = {work_idx, -2 * work_idx,
                                                     val};
         driver_base::m_errorReporter.add_report(work_idx, report);
@@ -230,7 +203,9 @@ struct ErrorReporterDriverNativeOpenMP
 };
 #endif
 
-#if defined(KOKKOS_CLASS_LAMBDA) && \
+// FIXME_MSVC MSVC just gets confused when using the base class in the
+// KOKKOS_CLASS_LAMBDA
+#if !defined(KOKKOS_COMPILER_MSVC) && \
     (!defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_CUDA_LAMBDA))
 TEST(TEST_CATEGORY, ErrorReporterViaLambda) {
   TestErrorReporter<ErrorReporterDriverUseLambda<TEST_EXECSPACE>>();

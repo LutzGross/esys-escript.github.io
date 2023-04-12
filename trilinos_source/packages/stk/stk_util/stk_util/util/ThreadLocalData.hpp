@@ -47,7 +47,6 @@
 #include <iostream>
 #include <vector>
 #include <limits>
-//#include <Kokkos_Core.hpp>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -61,7 +60,7 @@ template<class dataType> class ThreadLocalData {
 
    std::size_t concurrency() const {
 //     using execution_space = Kokkos::DefaultHostExecutionSpace;
-//     return execution_space::concurrency();
+//     return execution_space().concurrency();
 #if defined( _OPENMP )
     return omp_get_max_threads();
 #else

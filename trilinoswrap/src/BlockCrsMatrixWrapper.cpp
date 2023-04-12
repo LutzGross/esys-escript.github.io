@@ -26,7 +26,10 @@
 #include <escript/index.h>
 #include <escript/SolverOptions.h>
 
+#ifndef ESYS_TRILINOS_14
 #include <Kokkos_DefaultNode.hpp>
+#endif
+
 #ifdef ESYS_HAVE_TPETRA_DP
 #include <Tpetra_DefaultPlatform.hpp>
 #else
@@ -40,9 +43,12 @@
 #include <Tpetra_Vector.hpp>
 
 #include "Tpetra_createDeepCopy_CrsMatrix.hpp"
+#include "TpetraExt_MatrixMatrix_decl.hpp"
+#include "TpetraExt_MatrixMatrix_def.hpp"
 #include "TpetraExt_MatrixMatrix.hpp"
 #include "TpetraExt_TripleMatrixMultiply_decl.hpp"
 #include "TpetraExt_TripleMatrixMultiply_def.hpp"
+
 
 using Teuchos::RCP;
 using Teuchos::rcp;
@@ -229,11 +235,23 @@ void BlockCrsMatrixWrapper<ST>::nullifyRowsAndCols(
 // Can't use OpenMP here as replaceLocalValues() is not thread-safe.
 //#pragma omp parallel for
     // loop through local row blocks
+#ifdef ESYS_TRILINOS_14
+    using Kokkos::ALL;
+    using Kokkos::subview;
+    for (LO lrb = 0; lrb < static_cast<LO>(mat.getLocalNumRows()); lrb++) {
+        LO numIndices = 0;
+        using local_inds_host_view_type = typename Tpetra::BlockCrsMatrix<ST,LO,GO,NT>::local_inds_host_view_type;
+        using values_host_view_type = typename Tpetra::BlockCrsMatrix<ST,LO,GO,NT>::values_host_view_type;
+        local_inds_host_view_type indices;
+        values_host_view_type values;
+        mat.getLocalRowView(lrb, indices, values);
+#else
     for (LO lrb = 0; lrb < mat.getNodeNumRows(); lrb++) {
         LO numIndices = 0;
-        const LO* indices;
-        ST* values;
+        const LO * indices;
+        ST * values;
         mat.getLocalRowView(lrb, indices, values, numIndices);
+#endif
         std::vector<GO> cols(numIndices);
         std::vector<ST> vals(numIndices*blockSize*blockSize);
         const GO rowblk = mat.getRowMap()->getGlobalElement(lrb);
@@ -289,45 +307,39 @@ void BlockCrsMatrixWrapper<ST>::resetValues(bool preserveSolverData)
 template<typename ST>
 void BlockCrsMatrixWrapper<ST>::IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT>> iz, long n) 
 {
-    // Convert to block crs matrix
-    const LO blocksize = 21;
-    Teuchos::RCP<Matrix> block_iz = Tpetra::convertToBlockCrsMatrix(*iz,blocksize);
-
-    // Initialise some variables
-    Tpetra::global_size_t numGblIndices = n;
-    const esys_trilinos::GO indexBase = 0;
-    escript::JMPI m_mpiInfo;
-    // auto comm = esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm);
-    auto comm = Teuchos::DefaultComm<int>::getComm();
-    RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
-    params->set("No Nonlocal Changes", true);
-
-
-    // todo
+    // // Initialise some variables
+    // Tpetra::global_size_t numGblIndices = n;
+    // const esys_trilinos::GO indexBase = 0;
+    // escript::JMPI m_mpiInfo;
+    // auto comm = Teuchos::DefaultComm<int>::getComm();
 
     // // Create a new map and rcp matrix
     // typedef Tpetra::Map<LO,GO,NT> map_type;
     // Teuchos::RCP<const map_type> map = Teuchos::rcp ( new map_type (numGblIndices, indexBase, comm));
-    // // Teuchos::RCP<Matrix> result (new Matrix(map, n));
-    // // Teuchos::RCP<Tpetra::CrsGraph> graph = Tpetra::createCrsGraph(map, n, params);
-    // auto graph = Tpetra::createCrsGraph(map, n, params);
-    // Matrix *result = new Matrix(graph, n);
-
-
+    // Matrix *result = new Matrix(map, n);
 
     // // Initialise some more variables
+    // RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
+    // params->set("No Nonlocal Changes", true);
     // const std::string& label = "ans";
-    // const auto tmp_mat1 = Tpetra::createDeepCopy(mat);
-    // const auto iz_tmp = Tpetra::createDeepCopy(*block_iz);
-    // const auto iz_tmp2 = Tpetra::createDeepCopy(*block_iz);
+    // const auto tmp_mat1 = new Tpetra::createDeepCopy(convertToCrsMatrix(mat));
+    // const auto iz_tmp = new Tpetra::createDeepCopy(*iz);
+    // // const auto iz_tmp2 = Tpetra::createDeepCopy(*iz);
 
     // // Do the matrix-matrix multiplication
     // Tpetra::TripleMatrixMultiply::MultiplyRAP<ST,LO,GO,NT>(
-    //                 iz_tmp,true,tmp_mat1,false,iz_tmp2,false,*result,false,label,params);
+    //                 iz_tmp,true,tmp_mat1,false,*iz,false,*result,false,label,params);
 
-    // resumeFill();
-    // mat=Tpetra::createDeepCopy(*result);
-    // fillComplete(true);
+    // Teuchos::ScalarTraits<ST>::magnitudeType threshold=1E-24;
+    // Teuchos::removeCrsMatrixZeros(result, threshold);
+
+    // mat.resumeFill();
+    // mat=Tpetra::createDeepCopy(convertToBlockCrsMatrix(*result,blockSize));
+    // mat.fillComplete(params);
+
+    // delete tmp_mat1;
+    // delete iz_tmp;
+    // delete result;
 }
 
 // instantiate
@@ -335,3 +347,5 @@ template class BlockCrsMatrixWrapper<real_t>;
 template class BlockCrsMatrixWrapper<cplx_t>;
 
 }  // end of namespace
+
+

@@ -196,7 +196,6 @@ private:
 
     typedef typename V::scalar_type scalar_type;
     typedef typename V::mag_type mag_type;
-    typedef Teuchos::ScalarTraits<scalar_type> STS;
 
     const scalar_type ONE = STS::one ();
     const mag_type min_val_abs = STS::magnitude (STS::eps ());
@@ -379,7 +378,7 @@ TEUCHOS_UNIT_TEST(Ifpack2Chebyshev, Convergence)
   RCP<const map_type> domainMap = rowMap;
 
   // Create the matrix, with static profile.
-  RCP<crs_matrix_type> A (new crs_matrix_type (rowMap, 3, Tpetra::StaticProfile));
+  RCP<crs_matrix_type> A (new crs_matrix_type (rowMap, 3));
 
   // Fill the matrix.
   Array<GO> cols (3);

@@ -165,7 +165,7 @@ namespace MueLu {
 	  pointsAndIndex[i] = std::make_pair(myVec2(xCoords[aggNodes[i]], yCoords[aggNodes[i]]),i);
 	}
 
-	// Sort by x coordinate    
+	// Sort by x coordinate
 	std::sort(pointsAndIndex.begin(),pointsAndIndex.end(),[](const MyPair &a, const MyPair &b) {
 	    return a.first.x < b.first.x || (a.first.x == b.first.x && a.first.y < b.first.y);
 	  });
@@ -185,7 +185,7 @@ namespace MueLu {
 	  vertices.push_back(aggNodes[pointsAndIndex.back().second]);
 	  geomSizes.push_back(2);
 	}
-	else {      
+	else {
 	  std::vector<int> hull(2*N);
 	  int count=0;
 	  
@@ -510,7 +510,8 @@ namespace MueLu {
       for(int i = 0; i < 5; i++) {
         for(int j = i + 1; j < 6; j++) {
           double thisDist = distance(extremeVectors[i], extremeVectors[j]);
-          if(thisDist > maxDist) {
+          // Want to make sure thisDist is significantly larger than maxDist to prevent roundoff errors from impacting node choice.
+          if(thisDist > maxDist && thisDist - maxDist > 1e-12) {
             maxDist = thisDist;
             base1 = i;
             base2 = j;
@@ -534,7 +535,8 @@ namespace MueLu {
       for(Iter node = aggNodes.begin(); node != aggNodes.end(); node++) {
         myVec3 nodePos(xCoords[*node], yCoords[*node], zCoords[*node]);
         double dist = mymagnitude(crossProduct(vecSubtract(nodePos, b1), vecSubtract(nodePos, b2))) / mymagnitude(vecSubtract(b2, b1));
-        if(dist > maxDist) {
+        // Want to make sure dist is significantly larger than maxDist to prevent roundoff errors from impacting node choice.
+        if(dist > maxDist && dist - maxDist > 1e-12) {
           maxDist = dist;
           thirdNode = node;
         }
@@ -550,7 +552,8 @@ namespace MueLu {
       for(Iter node = aggNodes.begin(); node != aggNodes.end(); node++) {
         myVec3 thisNode(xCoords[*node], yCoords[*node], zCoords[*node]);
         double nodeDist = pointDistFromTri(thisNode, b1, b2, b3);
-        if(nodeDist > maxDist) {
+        // Want to make sure nodeDist is significantly larger than maxDist to prevent roundoff errors from impacting node choice.
+        if(nodeDist > maxDist && nodeDist - maxDist > 1e-12) {
           maxDist = nodeDist;
           fourthVertex = *node;
         }
@@ -951,7 +954,8 @@ namespace MueLu {
     {
       myVec3 pointVec(xCoords[*point], yCoords[*point], zCoords[*point]);
       double dist = pointDistFromTri(pointVec, v1, v2, v3);
-      if(dist > maxDist)
+      // Want to make sure nodeDist is significantly larger than maxDist to prevent roundoff errors from impacting node choice.
+      if(dist > maxDist && dist - maxDist > 1e-12)
       {
         dist = maxDist;
         farPointVec = pointVec;
@@ -1282,7 +1286,7 @@ namespace MueLu {
     std::string indent = "      ";
     fout << "        <DataArray type=\"Int32\" Name=\"Node\" format=\"ascii\">" << std::endl;
     indent = "          ";
-    bool localIsGlobal = GlobalOrdinal(nodeMap->getGlobalNumElements()) == GlobalOrdinal(nodeMap->getNodeNumElements());
+    bool localIsGlobal = GlobalOrdinal(nodeMap->getGlobalNumElements()) == GlobalOrdinal(nodeMap->getLocalNumElements());
     for(size_t i = 0; i < uniqueFine.size(); i++)
     {
       if(localIsGlobal)

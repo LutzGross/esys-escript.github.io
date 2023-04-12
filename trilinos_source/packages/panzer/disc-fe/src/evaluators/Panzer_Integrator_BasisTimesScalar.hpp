@@ -177,7 +177,7 @@ namespace panzer
       /**
        *  \brief Post-Registration Setup.
        *
-       *  Get the Kokkos::Views of the field multipliers, and determine the
+       *  Get the PHX::Views of the field multipliers, and determine the
        *  index in the Workset bases for our particular basis name.
        *
        *  \param[in] sd Essentially a list of `Workset`s, which are collections
@@ -285,16 +285,14 @@ namespace panzer
        *  \brief The (possibly empty) list of fields that are multipliers out
        *         in front of the integral (\f$ a(x) \f$, \f$ b(x) \f$, etc.).
        */
-      std::vector<PHX::MDField<const ScalarT, panzer::Cell, panzer::IP>>
-      fieldMults_;
+      std::vector<PHX::MDField<const ScalarT, panzer::Cell, panzer::IP>> fieldMults_;
 
       /**
-       *  \brief The `Kokkos::View` representation of the (possibly empty) list
+       *  \brief The `PHX::View` representation of the (possibly empty) list
        *         of fields that are multipliers out in front of the integral
        *         (\f$ a(x) \f$, \f$ b(x) \f$, etc.).
        */
-    Kokkos::View<Kokkos::View<const ScalarT**,
-      typename PHX::DevLayout<ScalarT>::type, PHX::Device>*> kokkosFieldMults_;
+    PHX::View<Kokkos::View<const ScalarT**, typename PHX::DevLayout<ScalarT>::type, Kokkos::MemoryUnmanaged>*> kokkosFieldMults_;
 
       /**
        *  \brief The number of quadrature points for each cell.
@@ -316,6 +314,11 @@ namespace panzer
        *  \brief The scalar basis information necessary for integration.
        */
       PHX::MDField<double, panzer::Cell, panzer::BASIS, panzer::IP> basis_;
+
+    /// For storing temporaries, one value per thread
+    PHX::View<ScalarT*> tmp_;
+    /// For storing temporaries, one value per thread
+    PHX::View<ScalarT*> tmp2_;
 
   }; // end of class Integrator_BasisTimesScalar
 

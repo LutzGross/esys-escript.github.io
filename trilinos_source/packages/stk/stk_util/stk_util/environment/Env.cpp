@@ -34,37 +34,34 @@
 // 
  */
 
-#include <stk_util/stk_config.h>
-
-#include <stk_util/environment/Env.hpp>
-#include <time.h>                       // for localtime, strftime, time_t
-#include <limits.h>                     // for PATH_MAX
-#include <stddef.h>                     // for size_t
-#include <unistd.h>                     // for getcwd, sleep
-#include <cstdlib>                      // for exit, EXIT_FAILURE
-#include <cstring>                      // for strlen, strcpy
-#include <iomanip>                      // for operator<<, setw
-#include <iostream>                     // for cerr, cout
-#include <map>                          // for map<>::mapped_type
-#include <sstream>                      // for basic_ostream, operator<<, etc
-#include <stk_util/util/Signal.hpp>     // for HUP_received
-#include <stk_util/environment/RuntimeMessage.hpp>
-#include <stk_util/environment/ParseCommandLineArgs.hpp>
-#include <stk_util/parallel/ParallelReduce.hpp>  // for all_write_string
-#include <string>                       // for string, operator<<, etc
-
-#include "stk_util/util/ReportHandler.hpp"  // for ThrowRequire
+#include "stk_util/environment/Env.hpp"
+#include "stk_util/environment/EnvData.hpp"               // for EnvData, EXEC_TYPE_PEER, EnvDat...
+#include "stk_util/environment/ParseCommandLineArgs.hpp"  // for parse_command_line_args
+#include "stk_util/environment/ParsedOptions.hpp"         // for ParsedOptions, VariableType
+#include "stk_util/environment/ProgramOptions.hpp"        // for get_options_specification, get_...
+#include "stk_util/environment/RuntimeMessage.hpp"        // for report_deferred_messages
+#include "stk_util/parallel/ParallelReduce.hpp"           // for all_write_string
+#include "stk_util/stk_config.h"                          // for STK_HAS_MPI
+#include "stk_util/util/Signal.hpp"                       // for HUP_received
+#include <limits.h>                                       // for PATH_MAX
+#include <time.h>                                         // for localtime, strftime, time_t
+#include <unistd.h>                                       // for getcwd, sleep
+#include <cstdlib>                                        // for exit, EXIT_FAILURE, size_t
+#include <cstring>                                        // for strlen, strcpy
+#include <iomanip>                                        // for operator<<, setw
+#include <iostream>                                       // for operator<<, basic_ostream, endl
+#include <string>                                         // for string, operator<<, char_traits
 
 #if defined(__GNUC__)
-#include <sys/time.h>
-#include <sys/resource.h>
+#include <sys/resource.h>                                 // for rusage, getrusage, RUSAGE_SELF
+#include <sys/time.h>                                     // for timeval, gettimeofday, timezone
 #endif
 
-#include <stk_util/environment/EnvData.hpp>  // for EnvData, etc
-#include <stk_util/environment/ProgramOptions.hpp>
-
-
 using namespace std;
+
+#ifdef SIERRA_GCOV
+extern "C" void __gcov_dump();
+#endif
 
 namespace sierra {
 
@@ -261,7 +258,7 @@ parallel_world_comm()
 
 int peer_group() 
 {
-  return stk::EnvData::instance().m_execMap[EXEC_TYPE_PEER].m_master;
+  return stk::EnvData::instance().m_execMap[EXEC_TYPE_PEER].m_rootProcessor;
 }
 
 bool
@@ -287,9 +284,10 @@ output_flush()
 
 
 void
-request_shutdown(bool shutdown)
+request_shutdown(bool shutdown, const std::string shutdownReason)
 {
   stk::EnvData::instance().m_shutdownRequested = shutdown;
+  stk::EnvData::instance().m_shutdownReason = shutdownReason;
 }
 
 bool
@@ -331,6 +329,11 @@ void abort()
 
   ::sleep(1); // Give the other processors a chance at
               // catching up, seems to help hanging problems.
+
+#ifdef SIERRA_GCOV
+  __gcov_dump();
+#endif
+
 #if defined(STK_HAS_MPI)
   MPI_Abort(env_data.m_parallelComm, MPI_ERR_OTHER); // First try to die
 #endif
@@ -360,7 +363,6 @@ set_param(
   const char *s = std::strcpy(new char[std::strlen(option) + 1], option);
 
   stk::parse_command_line_args(argc, &s, stk::get_options_specification(), stk::get_parsed_options());
-
   delete [] s;
 }
 
@@ -370,8 +372,8 @@ void set_mpi_communicator(MPI_Comm communicator)
   if (communicator != MPI_COMM_NULL) {
     env_data.m_parallelComm = communicator;
 
-    MPI_Comm_size(env_data.m_parallelComm, &env_data.m_parallelSize);
-    MPI_Comm_rank(env_data.m_parallelComm, &env_data.m_parallelRank);
+    env_data.m_parallelSize = stk::parallel_machine_size(communicator);
+    env_data.m_parallelRank = stk::parallel_machine_rank(communicator);
   }
 }
 

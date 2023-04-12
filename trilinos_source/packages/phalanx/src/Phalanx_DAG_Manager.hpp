@@ -59,7 +59,6 @@
 #include "Phalanx_Print.hpp"
 #include "Phalanx_DAG_Node.hpp"
 #include "Teuchos_TimeMonitor.hpp"
-#include "Kokkos_View.hpp"
 #include "Phalanx_DeviceEvaluator.hpp"
 
 #ifdef PHX_ENABLE_KOKKOS_AMT
@@ -260,6 +259,17 @@ namespace PHX {
 
     /// Returns all fields that the user requested to to be evaluated by the field manager.
     const std::vector<Teuchos::RCP<PHX::FieldTag>>& getRequiredFields() const;
+
+    /** Returns the internal fields this DagManager can currently
+        evaluate and the index into the DAG node vector. This function
+        is provided only for query, debug and unit testing.
+    */
+    const std::unordered_map<std::string,int>& queryRegisteredFields() const;
+
+    /** Returns all nodes registered with the DagManager. This
+        function is provided only for query, debug and unit testing.
+     */
+    const std::vector<PHX::DagNode<Traits>>& queryRegisteredEvaluators() const;
 
   protected:
 

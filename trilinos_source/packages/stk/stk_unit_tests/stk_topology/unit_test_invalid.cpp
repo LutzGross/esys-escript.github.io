@@ -32,10 +32,12 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 
-#include <gtest/gtest.h>
-#include <stk_topology/topology.hpp>
-#include <stk_ngp_test/ngp_test.hpp>
-#include "topology_test_utils.hpp"
+#include "Kokkos_Core.hpp"            // for parallel_for, KOKKOS_LAMBDA
+#include "gtest/gtest.h"              // for AssertionResult, Message, TestPartResult, EXPECT_EQ
+#include "stk_ngp_test/ngp_test.hpp"  // for NGP_EXPECT_EQ, NGP_EXPECT_FALSE, NGP_TEST
+#include "stk_topology/topology.hpp"  // for topology, topology::INVALID_TOPOLOGY, topology::INV...
+
+namespace {
 
 TEST( stk_topology, invalid_topology)
 {
@@ -68,7 +70,7 @@ TEST( stk_topology, invalid_topology)
 
 void check_invalid_on_device()
 {
-  Kokkos::parallel_for(1, KOKKOS_LAMBDA(const int i)
+  Kokkos::parallel_for(stk::ngp::DeviceRangePolicy(0, 1), KOKKOS_LAMBDA(const int i)
   {
     stk::topology t = stk::topology::INVALID_TOPOLOGY;
 
@@ -100,4 +102,6 @@ void check_invalid_on_device()
 NGP_TEST(stk_topology_ngp, invalid_topology)
 {
   check_invalid_on_device();
+}
+
 }

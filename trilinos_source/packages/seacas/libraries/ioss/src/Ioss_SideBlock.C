@@ -1,7 +1,7 @@
-// Copyright(C) 1999-2020 National Technology & Engineering Solutions
+// Copyright(C) 1999-2022 National Technology & Engineering Solutions
 // of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 // NTESS, the U.S. Government retains certain rights in this software.
-// 
+//
 // See packages/seacas/LICENSE for details
 
 #include <Ioss_DatabaseIO.h>
@@ -13,7 +13,9 @@
 #include <Ioss_SideBlock.h>
 #include <cassert>
 #include <cstddef>
+#include <fmt/ostream.h>
 #include <string>
+#include <tokenize.h>
 #include <vector>
 
 #include "Ioss_FieldManager.h"
@@ -55,6 +57,54 @@ Ioss::SideBlock::SideBlock(const Ioss::SideBlock &other)
     : EntityBlock(other), parentTopology_(other.parentTopology_),
       consistentSideNumber(other.consistentSideNumber)
 {
+}
+
+std::string Ioss::SideBlock::generate_sideblock_name(const std::string &sideset_name,
+                                                     const std::string &block_or_element,
+                                                     const std::string &face_topology_name)
+{
+  // The naming of sideblocks is:
+  // * If name is of form surface_{id},
+  //   * then {surface} + _ + block-or-element-topology + _ + side_topology + _ + {id}
+  //   * Eg – surface_1 would have sideblocks surface_block_1_quad_1
+  //
+  // * If name is not of that form (e.g. surface_1_foam or “gregs_liner”) then:
+  //   * Name + _ + block-or-element-topology + _ + side_topology
+  //   * Eg surface_1_foam_block_1_edge2, surface_1_foam_quad4_edge2
+  //   * Eg gregs_liner_block_1_edge2, gregs_liner_quad4_edge2
+
+  // Check whether the `block_or_element` portion of the name names a valid element topology...
+  std::string tmp_block_or_element = block_or_element;
+  auto       *element_topology     = ElementTopology::factory(block_or_element);
+  if (element_topology != nullptr) {
+    tmp_block_or_element = element_topology->name();
+  }
+
+  // Verify that `face_topology_name` is a valid topology and Get its "non-aliased" name.
+  std::string tmp_face_topology = face_topology_name;
+  auto       *face_topology     = ElementTopology::factory(face_topology_name);
+  if (face_topology != nullptr) {
+    tmp_face_topology = face_topology->name();
+  }
+  else {
+    std::ostringstream errmsg;
+    fmt::print(errmsg, "ERROR: Invalid face topology '{}' in function {}.\n", face_topology_name,
+               __func__);
+    IOSS_ERROR(errmsg);
+  }
+
+  auto tokens = Ioss::tokenize(sideset_name, "_");
+  if (tokens.size() == 2) {
+    bool all_dig = tokens[1].find_first_not_of("0123456789") == std::string::npos;
+    if (all_dig && Ioss::Utils::str_equal(tokens[0], "surface")) {
+      std::string sideblock_name =
+          tokens[0] + "_" + tmp_block_or_element + "_" + tmp_face_topology + "_" + tokens[1];
+      return sideblock_name;
+    }
+  }
+
+  std::string sideblock_name = sideset_name + "_" + tmp_block_or_element + "_" + tmp_face_topology;
+  return sideblock_name;
 }
 
 int64_t Ioss::SideBlock::internal_get_field_data(const Ioss::Field &field, void *data,
@@ -107,9 +157,9 @@ namespace {
   template <typename INT> int internal_consistent_side_number(std::vector<INT> &element_side)
   {
     size_t ecount = element_side.size();
-    int    side   = ecount > 0 ? element_side[1] : 0;
+    int    side   = ecount > 0 ? static_cast<INT>(element_side[1]) : 0;
     for (size_t i = 3; i < ecount; i += 2) {
-      int this_side = element_side[i];
+      int this_side = static_cast<INT>(element_side[i]);
       if (this_side != side) {
         side = 999; // Indicates the sides are not consistent ;
         break;
@@ -151,3 +201,41 @@ int Ioss::SideBlock::get_consistent_side_number() const
   }
   return consistentSideNumber;
 }
+
+bool Ioss::SideBlock::equal_(const Ioss::SideBlock &rhs, bool quiet) const
+{
+  if (this->parentTopology_ != rhs.parentTopology_) {
+    if (!quiet) {
+      fmt::print(Ioss::OUTPUT(), "SideBlock: parentTopology_ mismatch\n");
+    }
+    return false;
+  }
+
+  if (this->blockMembership != rhs.blockMembership) {
+    if (!quiet) {
+      fmt::print(Ioss::OUTPUT(), "SideBlock: blockMembership mismatch\n");
+    }
+    return false;
+  }
+
+  if (this->consistentSideNumber != rhs.consistentSideNumber) {
+    if (!quiet) {
+      fmt::print(Ioss::OUTPUT(), "SideBlock: consistentSideNumber mismatch ({} vs. {})\n",
+                 this->consistentSideNumber, rhs.consistentSideNumber);
+    }
+    return false;
+  }
+
+  if (!quiet) {
+    return Ioss::EntityBlock::equal(rhs);
+  }
+  else {
+    return Ioss::EntityBlock::operator==(rhs);
+  }
+}
+
+bool Ioss::SideBlock::operator==(const Ioss::SideBlock &rhs) const { return equal_(rhs, true); }
+
+bool Ioss::SideBlock::operator!=(const Ioss::SideBlock &rhs) const { return !(*this == rhs); }
+
+bool Ioss::SideBlock::equal(const Ioss::SideBlock &rhs) const { return equal_(rhs, false); }

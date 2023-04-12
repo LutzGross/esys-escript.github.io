@@ -48,9 +48,7 @@
 #include <Xpetra_UnitTestHelpers.hpp>
 #include <Teuchos_ScalarTraits.hpp>
 
-#ifdef HAVE_XPETRA_KOKKOS_REFACTOR
 #include <KokkosSparse_CrsMatrix.hpp>
-#endif
 
 #include <Xpetra_ConfigDefs.hpp>
 #include <Xpetra_DefaultPlatform.hpp>
@@ -60,7 +58,10 @@
 #include <Xpetra_MapExtractor.hpp>
 #include <Xpetra_MultiVectorFactory.hpp> // taw: include MultiVectorFactory before VectorFactory for BlockedMultiVector
 #include <Xpetra_VectorFactory.hpp>
+#include <Xpetra_Vector.hpp>
+#include <Xpetra_MatrixFactory.hpp>
 #include <Xpetra_Matrix.hpp>
+#include <Xpetra_BlockedCrsMatrix.hpp>
 #include <Xpetra_CrsMatrix.hpp>
 #include <Xpetra_Exceptions.hpp>
 #include "Teuchos_ScalarTraits.hpp"
@@ -99,6 +100,39 @@ namespace {
   // UNIT TESTS
   //
 
+  TEUCHOS_UNIT_TEST_TEMPLATE_5_DECL( CrsMatrix, Constructor_Vector, M, Scalar, LO, GO, Node )
+  {
+    using MapClass = Xpetra::Map<LO, GO, Node>;
+    using MapFactoryClass = Xpetra::MapFactory<LO, GO, Node>;
+    using STS = Teuchos::ScalarTraits<Scalar>;
+    typedef typename STS::magnitudeType MT;
+
+    // get a comm and node
+    RCP<const Teuchos::Comm<int> > comm = getDefaultComm();
+
+    M testMap(1,0,comm);
+    Xpetra::UnderlyingLib lib = testMap.lib();
+
+    // generate problem
+    const LO nEle = 63;
+    const RCP<const MapClass> map = MapFactoryClass::Build(lib, nEle, 0, comm);
+
+    const RCP<Xpetra::Vector<Scalar, LO, GO, Node> > vec = Xpetra::VectorFactory<Scalar, LO, GO, Node>::Build(map);
+    vec->randomize();
+    RCP<Xpetra::Matrix<Scalar,LO,GO,Node> > mat = Xpetra::MatrixFactory<Scalar,LO,GO,Node>::Build(vec.getConst());
+
+    const MT tol = 1e-12;
+
+    TEST_ASSERT(!mat.is_null());
+    TEST_EQUALITY(nEle, mat->getGlobalNumEntries());
+    TEST_FLOATING_EQUALITY(vec->norm2(), mat->getFrobeniusNorm(), tol);
+
+    const RCP<Xpetra::Vector<Scalar, LO, GO, Node> > diagonal = Xpetra::VectorFactory<Scalar, LO, GO, Node>::Build(map);
+
+    mat->getLocalDiagCopy(*diagonal);
+    TEST_FLOATING_EQUALITY(vec->norm2(), diagonal->norm2(), tol);
+  }
+
   TEUCHOS_UNIT_TEST_TEMPLATE_5_DECL( CrsMatrix, Apply, M, Scalar, LO, GO, Node )
   {
     typedef Xpetra::Map<LO, GO, Node> MapClass;
@@ -117,8 +151,8 @@ namespace {
     RCP<Xpetra::CrsMatrix<Scalar, LO, GO, Node> > matrix =
         Xpetra::CrsMatrixFactory<Scalar,LO,GO,Node>::Build(map, 10);
 
-    LO NumMyElements = map->getNodeNumElements();
-    Teuchos::ArrayView<const GO> MyGlobalElements = map->getNodeElementList();
+    LO NumMyElements = map->getLocalNumElements();
+    Teuchos::ArrayView<const GO> MyGlobalElements = map->getLocalElementList();
 
     for (LO i = 0; i < NumMyElements; ++i) {
         matrix->insertGlobalValues(MyGlobalElements[i],
@@ -162,9 +196,9 @@ namespace {
     LO nEle = 63;
     const RCP<const MapClass> map = MapFactoryClass::Build(lib, nEle, 0, comm);
 
-    LO NumMyElements = map->getNodeNumElements();
+    LO NumMyElements = map->getLocalNumElements();
     GO NumGlobalElements = map->getGlobalNumElements();
-    Teuchos::ArrayView<const GO> MyGlobalElements = map->getNodeElementList();
+    Teuchos::ArrayView<const GO> MyGlobalElements = map->getLocalElementList();
 
     RCP<Xpetra::CrsMatrix<Scalar, LO, GO, Node> > A =
         Xpetra::CrsMatrixFactory<Scalar,LO,GO,Node>::Build(map, 3);
@@ -211,7 +245,7 @@ namespace {
 
     // edit matrix
 
-    const LO nodeNumRows = A->getNodeNumRows();
+    const LO nodeNumRows = A->getLocalNumRows();
     A->resumeFill();
     TEUCHOS_TEST_FOR_EXCEPTION(A->isFillComplete() == true || A->isFillActive() == false, std::runtime_error, "");
 
@@ -259,9 +293,9 @@ namespace {
 
     TEST_EQUALITY(Teuchos::as<LO>(map->getGlobalNumElements()), nEle);
 
-    LO NumMyElements = map->getNodeNumElements();
+    LO NumMyElements = map->getLocalNumElements();
     GO NumGlobalElements = map->getGlobalNumElements();
-    Teuchos::ArrayView<const GO> MyGlobalElements = map->getNodeElementList();
+    Teuchos::ArrayView<const GO> MyGlobalElements = map->getLocalElementList();
 
     RCP<Xpetra::CrsMatrix<Scalar, LO, GO, Node> > A =
         Xpetra::CrsMatrixFactory<Scalar,LO,GO,Node>::Build(map, 3);
@@ -288,12 +322,18 @@ namespace {
     TEST_EQUALITY(A->isFillComplete(), true);
 
     RCP<VectorClass> s = VectorFactoryClass::Build(map, true);
-    Teuchos::ArrayRCP< Scalar > sd = s->getDataNonConst(0);
-    for(LO i = 0; i < NumMyElements; ++i) {
-      sd[i] = Teuchos::as<Scalar>(map->getGlobalElement(i));
+    {
+      Teuchos::ArrayRCP< Scalar > sd = s->getDataNonConst(0);
+      for(LO i = 0; i < NumMyElements; ++i) {
+        sd[i] = Teuchos::as<Scalar>(map->getGlobalElement(i));
+      }
     }
 
     A->leftScale(*s);
+
+#ifdef HAVE_XPETRA_TPETRA
+    Kokkos::fence();
+#endif
 
     for (size_t i = 0; i < static_cast<size_t> (NumMyElements); i++) {
       if (MyGlobalElements[i] == 0) {
@@ -351,9 +391,9 @@ namespace {
 
     TEST_EQUALITY(Teuchos::as<LO>(map->getGlobalNumElements()), nEle);
 
-    LO NumMyElements = map->getNodeNumElements();
+    LO NumMyElements = map->getLocalNumElements();
     GO NumGlobalElements = map->getGlobalNumElements();
-    Teuchos::ArrayView<const GO> MyGlobalElements = map->getNodeElementList();
+    Teuchos::ArrayView<const GO> MyGlobalElements = map->getLocalElementList();
 
     RCP<Xpetra::CrsMatrix<Scalar, LO, GO, Node> > A =
         Xpetra::CrsMatrixFactory<Scalar,LO,GO,Node>::Build(map, 3);
@@ -380,12 +420,18 @@ namespace {
     TEST_EQUALITY(A->isFillComplete(), true);
 
     RCP<VectorClass> s = VectorFactoryClass::Build(map, true);
-    Teuchos::ArrayRCP< Scalar > sd = s->getDataNonConst(0);
-    for(LO i = 0; i < NumMyElements; ++i) {
-      sd[i] = Teuchos::as<Scalar>(map->getGlobalElement(i));
+    {
+      Teuchos::ArrayRCP< Scalar > sd = s->getDataNonConst(0);
+      for(LO i = 0; i < NumMyElements; ++i) {
+	sd[i] = Teuchos::as<Scalar>(map->getGlobalElement(i));
+      }
     }
 
     A->rightScale(*s);
+
+#ifdef HAVE_XPETRA_TPETRA
+    Kokkos::fence();
+#endif
 
     for (size_t i = 0; i < static_cast<size_t> (NumMyElements); i++) {
       if (MyGlobalElements[i] == 0) {
@@ -525,6 +571,14 @@ namespace {
       TEST_THROW(mx(Teuchos::null, 0), Xpetra::Exceptions::RuntimeError);
     }
 #endif
+#if defined(HAVE_XPETRA_TPETRA) && defined(HAVE_TPETRA_INST_HIP)
+    {
+      typedef Xpetra::EpetraMapT<GO, Kokkos::Compat::KokkosHIPWrapperNode> mm;
+      TEST_THROW(mm(10, 0, comm), Xpetra::Exceptions::RuntimeError);
+      typedef Xpetra::EpetraCrsMatrixT<GO, Kokkos::Compat::KokkosHIPWrapperNode> mx;
+      TEST_THROW(mx(Teuchos::null, 0), Xpetra::Exceptions::RuntimeError);
+    }
+#endif
 
 #endif
   }
@@ -548,8 +602,8 @@ namespace {
     RCP<Xpetra::CrsMatrix<Scalar, LO, GO, Node> > matrix =
         Xpetra::CrsMatrixFactory<Scalar,LO,GO,Node>::Build(map, 10);
 
-    LO NumMyElements = map->getNodeNumElements();
-    Teuchos::ArrayView<const GO> MyGlobalElements = map->getNodeElementList();
+    LO NumMyElements = map->getLocalNumElements();
+    Teuchos::ArrayView<const GO> MyGlobalElements = map->getLocalElementList();
 
     for (LO i = 0; i < NumMyElements; ++i) {
         matrix->insertGlobalValues(MyGlobalElements[i],
@@ -625,8 +679,8 @@ namespace {
     RCP<const map_type> map = map_factory_type::Build(lib, nEle, 0, comm);
 
     RCP<crs_matrix_type> matrix = crs_matrix_factory_type::Build (map, 10);
-    const LO NumMyElements = map->getNodeNumElements ();
-    Teuchos::ArrayView<const GO> MyGlobalElements = map->getNodeElementList();
+    const LO NumMyElements = map->getLocalNumElements ();
+    Teuchos::ArrayView<const GO> MyGlobalElements = map->getLocalElementList();
 
     // Make the matrix the identity matrix.
     out << "Fill matrix by calling insertGlobalValues" << endl;
@@ -748,21 +802,21 @@ namespace {
     // of ones everywhere, except for the entry at local index zero
     // (on every process), which should be 5.0.
     matrix->apply (*vec, *vec_sol, Teuchos::NO_TRANS, 1.0, 0.0);
-    if (rangeMap->getNodeNumElements () > 0) {
+    if (rangeMap->getLocalNumElements () > 0) {
       // Test this both for a const view and for a nonconst view.
       // This may also be a test for {T,X}petra::MultiVector::getData
       // and {T,X}petra::MultiVector::getDataNonConst.
 
       // Create the const view.
       Teuchos::ArrayRCP<const Scalar> outData = vec_sol->getData (0);
-      TEST_ASSERT( outData.size () == static_cast<size_type>(rangeMap->getNodeNumElements()) );
-      if (outData.size () == static_cast<size_type>(rangeMap->getNodeNumElements()) &&
+      TEST_ASSERT( outData.size () == static_cast<size_type>(rangeMap->getLocalNumElements()) );
+      if (outData.size () == static_cast<size_type>(rangeMap->getLocalNumElements()) &&
           outData.size () > static_cast<size_type> (0)) {
         TEST_EQUALITY( outData[0], FIVE );
       }
-      if (rangeMap->getNodeNumElements () > static_cast<size_t> (1)) {
+      if (rangeMap->getLocalNumElements () > static_cast<size_t> (1)) {
         bool allOnes = true;
-        for (size_t k = 1; k < size_t(rangeMap->getNodeNumElements()); ++k) {
+        for (size_t k = 1; k < size_t(rangeMap->getLocalNumElements()); ++k) {
           if (outData[k] != ONE) {
             allOnes = false;
           }
@@ -774,14 +828,14 @@ namespace {
       outData = Teuchos::null;
       // Create the nonconst view.
       Teuchos::ArrayRCP<Scalar> outDataNonConst = vec_sol->getDataNonConst (0);
-      TEST_ASSERT( outDataNonConst.size () == static_cast<size_type>(rangeMap->getNodeNumElements()) );
-      if (outDataNonConst.size() == static_cast<size_type>(rangeMap->getNodeNumElements()) &&
+      TEST_ASSERT( outDataNonConst.size () == static_cast<size_type>(rangeMap->getLocalNumElements()) );
+      if (outDataNonConst.size() == static_cast<size_type>(rangeMap->getLocalNumElements()) &&
           outDataNonConst.size () > static_cast<size_type> (0)) {
         TEST_EQUALITY( outDataNonConst[0], FIVE );
       }
-      if (rangeMap->getNodeNumElements () > static_cast<size_t> (1)) {
+      if (rangeMap->getLocalNumElements () > static_cast<size_t> (1)) {
         bool allOnes = true;
-        for (size_type k = 1; k < static_cast<size_type>(rangeMap->getNodeNumElements()); ++k) {
+        for (size_type k = 1; k < static_cast<size_type>(rangeMap->getLocalNumElements()); ++k) {
           if (outDataNonConst[k] != ONE) {
             allOnes = false;
           }
@@ -803,8 +857,10 @@ namespace {
 
     RCP<vec_type> vectest = vec_factory_type::Build (map);
     vectest->putScalar (1.0);
-    Teuchos::ArrayRCP<Scalar> vectestData = vectest->getDataNonConst(0);
-    vectestData[0] = 5.0;
+    {
+      Teuchos::ArrayRCP<Scalar> vectestData = vectest->getDataNonConst(0);
+      vectestData[0] = 5.0;
+    }
 
     vec_sol->update(-1.0,*vectest,1.0);
 
@@ -862,8 +918,8 @@ namespace {
     RCP<Xpetra::CrsMatrix<Scalar, LO, GO, Node> > A =
         Xpetra::CrsMatrixFactory<Scalar,LO,GO,Node>::Build (map, 10);
 
-    LO NumMyElements = map->getNodeNumElements();
-    Teuchos::ArrayView<const GO> MyGlobalElements = map->getNodeElementList();
+    LO NumMyElements = map->getLocalNumElements();
+    Teuchos::ArrayView<const GO> MyGlobalElements = map->getLocalElementList();
 
     {
       using std::cerr;
@@ -1072,10 +1128,10 @@ namespace {
 
     // FIXME (mfh 24 Apr 2014) Need to test separately on each MPI
     // process and do an all-reduce to check if all got it right.
-    TEST_EQUALITY(A->getNodeNumRows (), Acopy->getNodeNumRows ());
-    TEST_EQUALITY(A->getNodeNumCols (), Acopy->getNodeNumCols ());
-    TEST_EQUALITY(A->getNodeNumEntries (), Acopy->getNodeNumEntries ());
-    TEST_EQUALITY(A->getNodeMaxNumRowEntries (), Acopy->getNodeMaxNumRowEntries ());
+    TEST_EQUALITY(A->getLocalNumRows (), Acopy->getLocalNumRows ());
+    TEST_EQUALITY(A->getLocalNumCols (), Acopy->getLocalNumCols ());
+    TEST_EQUALITY(A->getLocalNumEntries (), Acopy->getLocalNumEntries ());
+    TEST_EQUALITY(A->getLocalMaxNumRowEntries (), Acopy->getLocalMaxNumRowEntries ());
 
     // Acopy and A should be identically the same.  We can verify this
     // in two ways.  First, we can directly compare the rows of both
@@ -1091,16 +1147,16 @@ namespace {
       // mfh 24 Apr 2014: Apparently, Xpetra::CrsMatrix implements
       // neither getGlobalRowCopy nor getNumEntriesInGlobalRow.
       //
-      // Teuchos::Array<GO> A_ginds (A->getNodeMaxNumRowEntries ());
-      Teuchos::Array<LO> A_linds (A->getNodeMaxNumRowEntries ());
-      Teuchos::Array<Scalar> A_vals (A->getNodeMaxNumRowEntries ());
+      // Teuchos::Array<GO> A_ginds (A->getLocalMaxNumRowEntries ());
+      Teuchos::Array<LO> A_linds (A->getLocalMaxNumRowEntries ());
+      Teuchos::Array<Scalar> A_vals (A->getLocalMaxNumRowEntries ());
 
       // mfh 24 Apr 2014: Apparently, Xpetra::CrsMatrix implements
       // neither getGlobalRowCopy nor getNumEntriesInGlobalRow.
       //
-      // Teuchos::Array<GO> Acopy_ginds (Acopy->getNodeMaxNumRowEntries ());
-      Teuchos::Array<LO> Acopy_linds (Acopy->getNodeMaxNumRowEntries ());
-      Teuchos::Array<Scalar> Acopy_vals (Acopy->getNodeMaxNumRowEntries ());
+      // Teuchos::Array<GO> Acopy_ginds (Acopy->getLocalMaxNumRowEntries ());
+      Teuchos::Array<LO> Acopy_linds (Acopy->getLocalMaxNumRowEntries ());
+      Teuchos::Array<Scalar> Acopy_vals (Acopy->getLocalMaxNumRowEntries ());
 
       for (size_type k = 0; k < static_cast<size_type> (NumMyElements); ++k) {
         const LO lrow = static_cast<LO> (k);
@@ -1192,8 +1248,8 @@ namespace {
     RCP<Xpetra::CrsMatrix<Scalar, LO, GO, Node> > A =
         Xpetra::CrsMatrixFactory<Scalar,LO,GO,Node>::Build(map, 10);
 
-    LO NumMyElements = map->getNodeNumElements();
-    Teuchos::ArrayView<const GO> MyGlobalElements = map->getNodeElementList();
+    LO NumMyElements = map->getLocalNumElements();
+    Teuchos::ArrayView<const GO> MyGlobalElements = map->getLocalElementList();
 
     for (LO i = 0; i < NumMyElements; ++i) {
         A->insertGlobalValues(MyGlobalElements[i],
@@ -1228,7 +1284,6 @@ namespace {
 
   TEUCHOS_UNIT_TEST_TEMPLATE_5_DECL( CrsMatrix, GetLocalMatrix, M, Scalar, LO, GO, Node )
   {
-#ifdef HAVE_XPETRA_KOKKOS_REFACTOR
     typedef Xpetra::Map<LO, GO, Node> MapClass;
     typedef Xpetra::MapFactory<LO, GO, Node> MapFactoryClass;
     typedef typename Xpetra::CrsMatrix<Scalar, LO, GO, Node>::local_matrix_type local_matrix_type;
@@ -1252,8 +1307,8 @@ namespace {
     RCP<Xpetra::CrsMatrix<Scalar, LO, GO, Node> > A =
         Xpetra::CrsMatrixFactory<Scalar,LO,GO,Node>::Build(map, 10);
 
-    LO NumMyElements = map->getNodeNumElements();
-    Teuchos::ArrayView<const GO> MyGlobalElements = map->getNodeElementList();
+    LO NumMyElements = map->getLocalNumElements();
+    Teuchos::ArrayView<const GO> MyGlobalElements = map->getLocalElementList();
 
     for (LO i = 0; i < NumMyElements; ++i) {
         A->insertGlobalValues(MyGlobalElements[i],
@@ -1263,79 +1318,86 @@ namespace {
 
     A->fillComplete();
 
-    // access data after fill complete!
-    local_matrix_type view2 = A->getLocalMatrix();
-    TEST_EQUALITY(Teuchos::as<size_t>(view2.numRows()), A->getNodeNumRows());
-    TEST_EQUALITY(Teuchos::as<size_t>(view2.numCols()), A->getNodeNumCols());
-    TEST_EQUALITY(Teuchos::as<size_t>(view2.nnz()),   A->getNodeNumEntries());
+    {
+      // access data after fill complete!
+      auto view2 = A->getLocalMatrixHost();
+      TEST_EQUALITY(Teuchos::as<size_t>(view2.numRows()), A->getLocalNumRows());
+      TEST_EQUALITY(Teuchos::as<size_t>(view2.numCols()), A->getLocalNumCols());
+      TEST_EQUALITY(Teuchos::as<size_t>(view2.nnz()),   A->getLocalNumEntries());
+      
+      // check that the local_matrix_type taken the second time is the same
+      auto view3 = A->getLocalMatrixHost();
+      // The row pointer is only identical for Tpetra. For Epetra, the
+      // rowptr has a different type than what the local matrix wants,
+      // so we are copying to a new Kokkos view..
+      if (map->lib() == Xpetra::UseTpetra)
+        TEST_EQUALITY(view2.graph.row_map.data(), view3.graph.row_map.data());
+      TEST_EQUALITY(view2.graph.entries.data(), view3.graph.entries.data());
+      TEST_EQUALITY(view2.values.data(), view3.values.data());
 
-    // check that the local_matrix_type taken the second time is the same
-    local_matrix_type view3 = A->getLocalMatrix();
-    TEST_EQUALITY(view2.graph.row_map.data(), view3.graph.row_map.data());
+      for (LO r = 0; r < view2.numRows(); ++r) {
+	// extract data from current row r
+	auto rowview = view2.row (r);
 
-    for (LO r = 0; r < view2.numRows(); ++r) {
-      // extract data from current row r
-      auto rowview = view2.row (r);
-
-      for (LO c = 0; c < rowview.length; ++c) {
-        Scalar   vv  = rowview.value  (c);
-        LO       cc = rowview.colidx (c);
-        TEST_EQUALITY(rowview.length, 1);
-        TEST_EQUALITY(cc, r);
-        TEST_EQUALITY(vv, ONE);
+	for (LO c = 0; c < rowview.length; ++c) {
+	  Scalar   vv  = rowview.value  (c);
+	  LO       cc = rowview.colidx (c);
+	  TEST_EQUALITY(rowview.length, 1);
+	  TEST_EQUALITY(cc, r);
+	  TEST_EQUALITY(vv, ONE);
+	}
       }
+
+      Teuchos::ArrayView< const LO > indices;
+      Teuchos::ArrayView< const Scalar > values;
+      A->getLocalRowView(0, indices, values);
+      TEST_EQUALITY(indices.size(), 1);
+      TEST_EQUALITY(values[0], ONE);
+
+      /////////////////////////////////////////
+
+      // check whether later changes are updated in view!
+      ordinal_type nColIdx = 0;
+      value_type value = 42.0;
+      view2.replaceValues (0, &nColIdx, 1, &value);
+
+      A->getLocalRowView(0, indices, values);
+      TEST_EQUALITY(indices.size(), 1);
+
+      // NOTE (mfh 23 Feb 2020) You can't always convert double to
+      // Scalar directly; e.g., with Scalar=complex<float>.
+      const Scalar FORTY_TWO = Scalar(mag_type(42.0));
+      TEST_EQUALITY(values[0], FORTY_TWO);  // changes in the view also changes matrix values
     }
 
-    Teuchos::ArrayView< const LO > indices;
-    Teuchos::ArrayView< const Scalar > values;
-    A->getLocalRowView(0, indices, values);
-    TEST_EQUALITY(indices.size(), 1);
-    TEST_EQUALITY(values[0], ONE);
-
-    /////////////////////////////////////////
-
-    // check whether later changes are updated in view!
-    ordinal_type nColIdx = 0;
-    value_type value = 42.0;
-    view2.replaceValues (0, &nColIdx, 1, &value);
-
-    A->getLocalRowView(0, indices, values);
-    TEST_EQUALITY(indices.size(), 1);
-
-    // NOTE (mfh 23 Feb 2020) You can't always convert double to
-    // Scalar directly; e.g., with Scalar=complex<float>.
-    const Scalar FORTY_TWO = Scalar(mag_type(42.0));
-    TEST_EQUALITY(values[0], FORTY_TWO);  // changes in the view also changes matrix values
-
-    A->resumeFill();
     A->setAllToScalar(-123.4);
-    A->fillComplete();
 
-    TEST_EQUALITY(Teuchos::as<size_t>(view2.numRows()), A->getNodeNumRows());
-    TEST_EQUALITY(Teuchos::as<size_t>(view2.numCols()), A->getNodeNumCols());
-    TEST_EQUALITY(Teuchos::as<size_t>(view2.nnz()),     A->getNodeNumEntries());
+    {
+      auto view2 = A->getLocalMatrixHost();
+      TEST_EQUALITY(Teuchos::as<size_t>(view2.numRows()), A->getLocalNumRows());
+      TEST_EQUALITY(Teuchos::as<size_t>(view2.numCols()), A->getLocalNumCols());
+      TEST_EQUALITY(Teuchos::as<size_t>(view2.nnz()),     A->getLocalNumEntries());
 
-    for (LO r = 0; r < view2.numRows(); ++r) {
-      // extract data from current row r
-      auto rowview = view2.row (r);
+      for (LO r = 0; r < view2.numRows(); ++r) {
+	// extract data from current row r
+	auto rowview = view2.row (r);
 
-      for (LO c = 0; c < rowview.length; ++c) {
-        Scalar   vv  = rowview.value  (c);
-        LO       cc = rowview.colidx (c);
-        TEST_EQUALITY(rowview.length, 1);
-        TEST_EQUALITY(cc, r);
-        // NOTE (mfh 23 Feb 2020) You can't always convert double to
-        // Scalar directly; e.g., with Scalar=complex<float>.
-        const Scalar expected_vv = Scalar(mag_type(-123.4));
-        TEST_EQUALITY(vv, expected_vv);
+	for (LO c = 0; c < rowview.length; ++c) {
+	  Scalar   vv  = rowview.value  (c);
+	  LO       cc = rowview.colidx (c);
+	  TEST_EQUALITY(rowview.length, 1);
+	  TEST_EQUALITY(cc, r);
+	  // NOTE (mfh 23 Feb 2020) You can't always convert double to
+	  // Scalar directly; e.g., with Scalar=complex<float>.
+	  const Scalar expected_vv = Scalar(mag_type(-123.4));
+	  TEST_EQUALITY(vv, expected_vv);
+	}
       }
     }
-#endif
   }
 
   TEUCHOS_UNIT_TEST_TEMPLATE_5_DECL( CrsMatrix, ConstructMatrixKokkos, M, Scalar, LO, GO, Node )
   {
-#ifdef HAVE_XPETRA_KOKKOS_REFACTOR
 #ifdef HAVE_XPETRA_TPETRA  // Note: get Kokkos interface for Epetra is only available if Tpetra is also enabled!
     std::cout << "Run ConstructMatrixKokkos test" << std::endl;
     //Kokkos::initialize();
@@ -1379,6 +1441,7 @@ namespace {
       numCols = 5;
       nnz = 9;
     }
+
 
     // Create the output Views.
     ptr_type ptr = ptr_type("ptr", numRows + 1);
@@ -1452,9 +1515,6 @@ namespace {
       Kokkos::deep_copy (val, valIn);
     }
 
-    // create local CrsMatrix
-    local_matrix_type lclMatrix = local_matrix_type("A", numRows, numCols, nnz, val, ptr, ind);
-
     // reconstruct row and column map
     //std::vector<GO> rowMapGids;  // vector for collecting row map GIDs
     //std::vector<GO> colMapGids;  // vector for collecting column map GIDs
@@ -1490,13 +1550,25 @@ namespace {
     Teuchos::RCP<const MapClass > rowMap = MapFactoryClass::Build(lib, INVALID, rowMapGids.view(0,rowMapGids.size()), 0, comm);
     Teuchos::RCP<const MapClass > colMap = MapFactoryClass::Build(lib, INVALID, colMapGids.view(0,colMapGids.size()), 0, comm);
 
-    Teuchos::RCP<CrsMatrixClass> mat = CrsMatrixFactoryClass::Build(rowMap,colMap,lclMatrix);
-    if(mat == Teuchos::null) std::cout << "mat is Teuchos::null..." << std::endl;
+    Teuchos::RCP<CrsMatrixClass> mat;
+    {
+      // create local CrsMatrix
+      local_matrix_type lclMatrix = local_matrix_type("A", numRows, numCols, nnz, val, ptr, ind);
+
+      mat = CrsMatrixFactoryClass::Build(rowMap,colMap,lclMatrix);
+      if(mat == Teuchos::null) std::cout << "mat is Teuchos::null..." << std::endl;
+
+      // Blank out views to reduce ref count
+      ptr = ptr_type();
+      ind = ind_type();
+      val = val_type();
+    }
+
 
     TEST_EQUALITY(mat->isFillComplete(),true);
     TEST_EQUALITY(mat->getGlobalMaxNumRowEntries(),3);
-    TEST_EQUALITY(mat->getNodeMaxNumRowEntries(),3);
-    TEST_EQUALITY(mat->getNodeNumRows(),3);
+    TEST_EQUALITY(mat->getLocalMaxNumRowEntries(),3);
+    TEST_EQUALITY(mat->getLocalNumRows(),3);
     TEST_EQUALITY(static_cast<size_t>(mat->getGlobalNumCols()),
                   static_cast<size_t>(3*numProcs));
     TEST_EQUALITY(static_cast<size_t>(mat->getGlobalNumRows()),
@@ -1504,7 +1576,7 @@ namespace {
     TEST_EQUALITY(static_cast<size_t>(mat->getGlobalNumEntries()),
                   static_cast<size_t>(9*numProcs-2));
 
-    size_t numLocalRows = mat->getNodeNumRows();
+    size_t numLocalRows = mat->getLocalNumRows();
     for(size_t row=0; row<numLocalRows; row++) {
       GO grid = mat->getRowMap()->getGlobalElement(row);
       // extract row information from input matrix
@@ -1516,15 +1588,14 @@ namespace {
         const Scalar ONE = STS::one();
         const Scalar TWO = ONE + ONE;
 
-        if(grid == colMap->getGlobalElement(indices[col])) {
+	if(grid == colMap->getGlobalElement(indices[col])) {
           TEST_EQUALITY(vals[col], TWO);
         } else {
           TEST_EQUALITY(vals[col], -ONE);
-        }
+	}
       }
     }
     //Kokkos::finalize();
-#endif
 #endif
   }
 
@@ -1547,7 +1618,8 @@ namespace {
 #endif
 
 // for common tests (Epetra and Tpetra...)
-#define UNIT_TEST_GROUP_ORDINAL( SC, LO, GO, Node )                     \
+#define UNIT_TEST_GROUP_ORDINAL( SC, LO, GO, Node ) \
+  TEUCHOS_UNIT_TEST_TEMPLATE_5_INSTANT(   CrsMatrix, Constructor_Vector , M##LO##GO##Node , SC, LO, GO, Node ) \
   TEUCHOS_UNIT_TEST_TEMPLATE_5_INSTANT(   CrsMatrix, Apply , M##LO##GO##Node , SC, LO, GO, Node ) \
   TEUCHOS_UNIT_TEST_TEMPLATE_5_INSTANT(   CrsMatrix, ReplaceGlobalAndLocalValues, M##LO##GO##Node , SC, LO, GO, Node ) \
   TEUCHOS_UNIT_TEST_TEMPLATE_5_INSTANT(   CrsMatrix, leftScale, M##LO##GO##Node , SC, LO, GO, Node ) \

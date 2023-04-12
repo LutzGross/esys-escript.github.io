@@ -72,7 +72,7 @@ namespace Intrepid2 {
       *outStream << "-------------------------------------------------------------------------------" << "\n\n"; \
     }
 
-    template<typename ValueType, typename DeviceSpaceType>
+    template<typename ValueType, typename DeviceType>
     int HGRAD_QUAD_C1_FEM_Test01(const bool verbose) {
 
       Teuchos::RCP<std::ostream> outStream;
@@ -86,11 +86,12 @@ namespace Intrepid2 {
       Teuchos::oblackholestream oldFormatState;
       oldFormatState.copyfmt(std::cout);
 
+      using DeviceSpaceType = typename DeviceType::execution_space;
       typedef typename
-        Kokkos::Impl::is_space<DeviceSpaceType>::host_mirror_space::execution_space HostSpaceType ;
+        Kokkos::DefaultHostExecutionSpace HostSpaceType ;
 
-      *outStream << "DeviceSpace::  "; DeviceSpaceType::print_configuration(*outStream, false);
-      *outStream << "HostSpace::    ";   HostSpaceType::print_configuration(*outStream, false);
+      *outStream << "DeviceSpace::  "; DeviceSpaceType().print_configuration(*outStream, false);
+      *outStream << "HostSpace::    ";   HostSpaceType().print_configuration(*outStream, false);
 
       *outStream
         << "===============================================================================\n"
@@ -109,7 +110,7 @@ namespace Intrepid2 {
         << "|                                                                             |\n"
         << "===============================================================================\n";
 
-      typedef Kokkos::DynRankView<ValueType,DeviceSpaceType> DynRankView;
+      typedef Kokkos::DynRankView<ValueType,DeviceType> DynRankView;
       typedef Kokkos::DynRankView<ValueType,HostSpaceType>   DynRankViewHost;
 #define ConstructWithLabel(obj, ...) obj(#obj, __VA_ARGS__)
 
@@ -119,7 +120,7 @@ namespace Intrepid2 {
       // for virtual function, value and point types are declared in the class
       typedef ValueType outputValueType;
       typedef ValueType pointValueType;
-      Basis_HGRAD_QUAD_C1_FEM<DeviceSpaceType,outputValueType,pointValueType> quadBasis;
+      Basis_HGRAD_QUAD_C1_FEM<DeviceType,outputValueType,pointValueType> quadBasis;
       //typedef typename decltype(quadBasis)::OutputViewType OutputViewType;
       //typedef typename decltype(quadBasis)::PointViewType  PointViewType;
 
@@ -343,7 +344,7 @@ namespace Intrepid2 {
         quadNodesHost(3,0) = -1.0;  quadNodesHost(3,1) =  1.0;
         quadNodesHost(4,0) =  0.0;  quadNodesHost(4,1) =  0.0;
 
-        auto quadNodes = Kokkos::create_mirror_view(typename DeviceSpaceType::memory_space(), quadNodesHost);
+        auto quadNodes = Kokkos::create_mirror_view(typename DeviceType::memory_space(), quadNodesHost);
         Kokkos::deep_copy(quadNodes, quadNodesHost);
 
         // Generic array for the output values; needs to be properly resized depending on the operator type
@@ -491,9 +492,9 @@ namespace Intrepid2 {
         << "===============================================================================\n";
 
       try{
-        Basis_HGRAD_QUAD_C1_FEM<DeviceSpaceType> quadBasis;
-        const ordinal_type numFields = quadBasis.getCardinality();
-        const ordinal_type spaceDim  = quadBasis.getBaseCellTopology().getDimension();
+        Basis_HGRAD_QUAD_C1_FEM<DeviceType> quadB;
+        const ordinal_type numFields = quadB.getCardinality();
+        const ordinal_type spaceDim = quadB.getBaseCellTopology().getDimension();
 
         // Check exceptions.
         ordinal_type nthrow = 0, ncatch = 0;
@@ -521,8 +522,8 @@ namespace Intrepid2 {
         DynRankView ConstructWithLabel(cvals, numFields, spaceDim);
 
         // Check mathematical correctness.
-        quadBasis.getDofCoords(cvals);
-        quadBasis.getValues(bvals, cvals, OPERATOR_VALUE);
+        quadB.getDofCoords(cvals);
+        quadB.getValues(bvals, cvals, OPERATOR_VALUE);
 
         auto bvals_host = Kokkos::create_mirror_view(typename HostSpaceType::memory_space(), bvals);
         Kokkos::deep_copy(bvals_host, bvals);

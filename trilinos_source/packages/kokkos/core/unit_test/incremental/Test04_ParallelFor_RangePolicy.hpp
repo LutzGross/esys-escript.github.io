@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <Kokkos_Core.hpp>
 #include <gtest/gtest.h>
@@ -52,17 +24,18 @@
 
 namespace Test {
 
-using value_type       = double;
-int num_elements       = 10;
-const value_type value = 0.5;
+using value_type = double;
+int num_elements = 10;
 
 struct ParallelForFunctor {
   value_type *_data;
+  const value_type _value;
 
-  ParallelForFunctor(value_type *data) : _data(data) {}
+  ParallelForFunctor(value_type *data, const value_type value)
+      : _data(data), _value(value) {}
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(const int i) const { _data[i] = (i + 1) * value; }
+  void operator()(const int i) const { _data[i] = (i + 1) * _value; }
 };
 
 template <class ExecSpace>
@@ -72,6 +45,7 @@ struct TestParallel_For {
   using h_memspace_type = Kokkos::HostSpace;
 
   value_type *deviceData, *hostData;
+  const value_type value = 0.5;
 
   // Check if the array values are updated correctly.
   void correctness_check(value_type *data) {
@@ -108,6 +82,7 @@ struct TestParallel_For {
     // Copy the data back to Host memory space
     Kokkos::Impl::DeepCopy<h_memspace_type, d_memspace_type>(
         hostData, deviceData, num_elements * sizeof(value_type));
+    Kokkos::fence("Fence after copying data to host memory space");
 
     // Check if all data has been update correctly
     correctness_check(hostData);
@@ -124,8 +99,9 @@ struct TestParallel_For {
     init();
 
     // parallel-for functor called for num_elements number of iterations.
-    Kokkos::parallel_for("parallel_for", num_elements,
-                         ParallelForFunctor(deviceData));
+    Kokkos::parallel_for("parallel_for",
+                         Kokkos::RangePolicy<ExecSpace>(0, num_elements),
+                         ParallelForFunctor(deviceData, value));
 
     Kokkos::fence();
     // Checks if parallel_for gave the correct results.
@@ -140,13 +116,13 @@ struct TestParallel_For {
     init();
 
     // Creates a range policy that uses dynamic scheduling.
-    typedef Kokkos::RangePolicy<ExecSpace, Kokkos::Schedule<Kokkos::Dynamic> >
-        range_policy_t;
+    using range_policy_t =
+        Kokkos::RangePolicy<ExecSpace, Kokkos::Schedule<Kokkos::Dynamic> >;
 
     // parallel-for functor with range-policy from 0 to num_elements iterations.
     Kokkos::parallel_for("RangePolicy_ParallelFor",
                          range_policy_t(0, num_elements),
-                         ParallelForFunctor(deviceData));
+                         ParallelForFunctor(deviceData, value));
 
     // Checks if parallel_for gave the correct results.
     // Free the allocated memory in init().

@@ -108,14 +108,22 @@ class MapFactory
           const Teuchos::RCP<const Teuchos::Comm<int>>&  comm);
 
 
-    //! Map constructor transforming degrees of freedom
-    //! for numDofPerNode this acts like a deep copy
+    /*!
+      @brief Map constructor generating degrees of freedom with numDofPerNode for given nodeMap
+
+      @param[in] nodeMap Existing (node) map
+      @param[in] numDofPerNode Number of DOFs per node for output map
+      @param[in] gidOffset GID offset for output map
+      @return Map
+
+      \note This acts like a deep copy.
+    */
     static Teuchos::RCP<Map<LocalOrdinal, GlobalOrdinal, Node>>
-    Build(const Teuchos::RCP<const Xpetra::Map<LocalOrdinal, GlobalOrdinal, Node>>& map,
-          LocalOrdinal                                                              numDofPerNode);
+    Build(const Teuchos::RCP<const Xpetra::Map<LocalOrdinal, GlobalOrdinal, Node>>& nodeMap,
+          const LocalOrdinal numDofPerNode,
+          const GlobalOrdinal gidOffset = Teuchos::ScalarTraits<GlobalOrdinal>::zero());
 
 
-#ifdef HAVE_XPETRA_KOKKOS_REFACTOR
 #ifdef HAVE_XPETRA_TPETRA
     static Teuchos::RCP<Map<LocalOrdinal, GlobalOrdinal, Node>>
     Build(UnderlyingLib                                                         lib,
@@ -124,7 +132,6 @@ class MapFactory
           GlobalOrdinal                                                         indexBase,
           const Teuchos::RCP<const Teuchos::Comm<int>>&                         comm);
 #endif
-#endif      // HAVE_XPETRA_KOKKOS_REFACTOR
 
 
     //! Create a locally replicated Map with the default node.
@@ -176,7 +183,12 @@ class MapFactory
                             size_t                                        localNumElements,
                             const Teuchos::RCP<const Teuchos::Comm<int>>& comm);
 
-
+    //! Create a copy of the map, only using the new Comm object *if* the Comm would be valid
+    // for this map.
+    static Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> >
+    copyMapWithNewComm(const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> & oldmap,
+                       const Teuchos::RCP<const Teuchos::Comm<int>>& newComm);
+  
 };      // class MapFactory
 
 
@@ -237,11 +249,20 @@ class MapFactory
           int indexBase,
           const Teuchos::RCP<const Teuchos::Comm<int> > &comm);
 
-    //! Map constructor transforming degrees of freedom
-    //! for numDofPerNode this acts like a deep copy
-    static Teuchos::RCP<Map<LocalOrdinal,GlobalOrdinal, Node> >
-    Build(const Teuchos::RCP<const Map<LocalOrdinal,GlobalOrdinal,Node> >& map,
-          LocalOrdinal                                                     numDofPerNode);
+    /*!
+      @brief Map constructor transforming degrees of freedom for numDofPerNode
+
+      @param[in] map Existing (node) map
+      @param[in] numDofPerNode Number of DOFs per node for output map
+      @param[in] gidOffset GID offset for output map
+      @return Map
+
+      \note This acts like a deep copy.
+    */
+    static Teuchos::RCP<Map<LocalOrdinal, GlobalOrdinal, Node>>
+    Build(const Teuchos::RCP<const Xpetra::Map<LocalOrdinal, GlobalOrdinal, Node>>& map,
+          const LocalOrdinal numDofPerNode,
+          const GlobalOrdinal gidOffset = Teuchos::ScalarTraits<GlobalOrdinal>::zero());
 
 
     static Teuchos::RCP<const Map<LocalOrdinal,GlobalOrdinal, Node> >
@@ -288,6 +309,11 @@ class MapFactory
                             global_size_t numElements,
                             size_t localNumElements,
                             const Teuchos::RCP< const Teuchos::Comm< int > > &comm);
+
+    static Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> >
+    copyMapWithNewComm(const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> & oldmap,
+                       const Teuchos::RCP<const Teuchos::Comm<int>>& newComm);
+
 
   };    // class MapFactory<int, int ... > specialization
 
@@ -396,6 +422,11 @@ class MapFactory
                             global_size_t numElements,
                             size_t localNumElements,
                             const Teuchos::RCP< const Teuchos::Comm< int > > &comm);
+
+    static Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> >
+    copyMapWithNewComm(const Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node>> & oldmap,
+                       const Teuchos::RCP<const Teuchos::Comm<int>>& newComm);
+
 
   };    // class MapFactory<int, long long, EpetraNode> specialization
 

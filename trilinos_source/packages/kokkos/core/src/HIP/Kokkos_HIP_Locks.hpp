@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_HIP_LOCKS_HPP
 #define KOKKOS_HIP_LOCKS_HPP
@@ -51,20 +23,21 @@
 
 #include <HIP/Kokkos_HIP_Error.hpp>
 
-// FIXME_HIP We cannot use global variables defined in a namespace
+#ifdef KOKKOS_ENABLE_IMPL_DESUL_ATOMICS
+#include <desul/atomics/Lock_Array_HIP.hpp>
+#endif
+
+namespace Kokkos {
+namespace Impl {
 
 struct HIPLockArrays {
   std::int32_t* atomic;
-  std::int32_t* scratch;
   std::int32_t n;
 };
 
 /// \brief This global variable in Host space is the central definition
 ///        of these arrays.
 extern HIPLockArrays g_host_hip_lock_arrays;
-
-namespace Kokkos {
-namespace Impl {
 
 /// \brief After this call, the g_host_hip_lock_arrays variable has
 ///        valid, initialized arrays.
@@ -77,9 +50,6 @@ void initialize_host_hip_lock_arrays();
 ///
 /// This call is idempotent.
 void finalize_host_hip_lock_arrays();
-
-}  // namespace Impl
-}  // namespace Kokkos
 
 #if defined(__HIPCC__)
 
@@ -107,9 +77,6 @@ __device__
     HIPLockArrays g_device_hip_lock_arrays;
 
 #define KOKKOS_IMPL_HIP_SPACE_ATOMIC_MASK 0x1FFFF
-
-namespace Kokkos {
-namespace Impl {
 
 /// \brief Acquire a lock for the address
 ///
@@ -152,15 +119,18 @@ inline int eliminate_warning_for_lock_array() { return lock_array_copied; }
 /* Dan Ibanez: it is critical that this code be a macro, so that it will
    capture the right address for g_device_hip_lock_arrays!
    putting this in an inline function will NOT do the right thing! */
-#define KOKKOS_COPY_HIP_LOCK_ARRAYS_TO_DEVICE()                             \
-  {                                                                         \
-    if (::Kokkos::Impl::lock_array_copied == 0) {                           \
-      HIP_SAFE_CALL(hipMemcpyToSymbol(HIP_SYMBOL(g_device_hip_lock_arrays), \
-                                      &g_host_hip_lock_arrays,              \
-                                      sizeof(HIPLockArrays)));              \
-    }                                                                       \
-    lock_array_copied = 1;                                                  \
+#define KOKKOS_COPY_HIP_LOCK_ARRAYS_TO_DEVICE()                 \
+  {                                                             \
+    if (::Kokkos::Impl::lock_array_copied == 0) {               \
+      KOKKOS_IMPL_HIP_SAFE_CALL(hipMemcpyToSymbol(              \
+          HIP_SYMBOL(::Kokkos::Impl::g_device_hip_lock_arrays), \
+          &::Kokkos::Impl::g_host_hip_lock_arrays,              \
+          sizeof(::Kokkos::Impl::HIPLockArrays)));              \
+    }                                                           \
+    ::Kokkos::Impl::lock_array_copied = 1;                      \
   }
+
+#ifndef KOKKOS_ENABLE_IMPL_DESUL_ATOMICS
 
 #ifdef KOKKOS_ENABLE_HIP_RELOCATABLE_DEVICE_CODE
 #define KOKKOS_ENSURE_HIP_LOCK_ARRAYS_ON_DEVICE()
@@ -168,6 +138,19 @@ inline int eliminate_warning_for_lock_array() { return lock_array_copied; }
 #define KOKKOS_ENSURE_HIP_LOCK_ARRAYS_ON_DEVICE() \
   KOKKOS_COPY_HIP_LOCK_ARRAYS_TO_DEVICE()
 #endif
+
+#else
+
+#ifdef KOKKOS_ENABLE_HIP_RELOCATABLE_DEVICE_CODE
+#define KOKKOS_ENSURE_HIP_LOCK_ARRAYS_ON_DEVICE()
+#else
+// Still Need COPY_CUDA_LOCK_ARRAYS for team scratch etc.
+#define KOKKOS_ENSURE_HIP_LOCK_ARRAYS_ON_DEVICE() \
+  KOKKOS_COPY_HIP_LOCK_ARRAYS_TO_DEVICE()         \
+  DESUL_ENSURE_HIP_LOCK_ARRAYS_ON_DEVICE()
+#endif
+
+#endif /* defined( KOKKOS_ENABLE_IMPL_DESUL_ATOMICS ) */
 
 #endif /* defined( __HIPCC__ ) */
 

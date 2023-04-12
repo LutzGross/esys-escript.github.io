@@ -1,29 +1,51 @@
-// Copyright(C) 1999-2020 National Technology & Engineering Solutions
+// Copyright(C) 1999-2020, 2022 National Technology & Engineering Solutions
 // of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 // NTESS, the U.S. Government retains certain rights in this software.
-// 
+//
 // See packages/seacas/LICENSE for details
 
-#ifndef IOSS_Ioss_Map_h
-#define IOSS_Ioss_Map_h
+#pragma once
+
+#include "ioss_export.h"
 
 #include <Ioss_CodeTypes.h>
-#include <cstddef> // for size_t
-#include <cstdint> // for int64_t
-#include <string>  // for string
-#include <utility> // for pair
-#include <vector>  // for vector
+#include <cstddef>
+#include <cstdint>
+#include <string>
+#include <vector>
+
+#define MAP_USE_STD
+#if defined MAP_USE_STD
+#include <unordered_map>
+#elif defined MAP_USE_HOPSCOTCH
+#include <bhopscotch_map.h>
+#elif defined MAP_USE_ROBIN
+#include <robin_map.h>
+#endif
+
 namespace Ioss {
   class Field;
 } // namespace Ioss
 
 namespace Ioss {
 
-  using MapContainer        = std::vector<int64_t>;
+  using MapContainer = std::vector<int64_t>;
+#if defined MAP_USE_SORTED_VECTOR
   using IdPair              = std::pair<int64_t, int64_t>;
   using ReverseMapContainer = std::vector<IdPair>;
+#elif defined MAP_USE_STD
+  using ReverseMapContainer = std::unordered_map<int64_t, int64_t>;
+#elif defined MAP_USE_HOPSCOTCH
+  // The `b` variant requires less-than-comparable key, but is faster
+  using ReverseMapContainer = tsl::bhopscotch_map<int64_t, int64_t>;
+  // using ReverseMapContainer = tsl::hopscotch_map<int64_t, int64_t>;
+  // using ReverseMapContainer = tsl::hopscotch_pg_map<int64_t, int64_t>;
+#elif defined MAP_USE_ROBIN
+  using ReverseMapContainer = tsl::robin_map<int64_t, int64_t>;
+  // using ReverseMapContainer = tsl::robin_pg_map<int64_t, int64_t>;
+#endif
 
-  class Map
+  class IOSS_EXPORT Map
   {
   public:
     Map() = default;
@@ -32,9 +54,11 @@ namespace Ioss {
           m_myProcessor(processor)
     {
     }
-    Map(const Map &from) = delete;
+    Map(const Map &from)            = delete;
     Map &operator=(const Map &from) = delete;
     ~Map()                          = default;
+
+    void set_rank(int processor) { m_myProcessor = processor; }
 
     void   set_size(size_t entity_count);
     size_t size() const { return m_map.empty() ? 0 : m_map.size() - 1; }
@@ -67,7 +91,7 @@ namespace Ioss {
                                         size_t offset);
 
     const MapContainer &map() const { return m_map; }
-    MapContainer &      map() { return m_map; }
+    MapContainer       &map() { return m_map; }
 
     bool defined() const { return m_defined; }
     void set_defined(bool yes_no) { m_defined = yes_no; }
@@ -82,8 +106,9 @@ namespace Ioss {
     int64_t global_to_local__(int64_t global, bool must_exist = true) const;
     void    build_reorder_map__(int64_t start, int64_t count);
     void    build_reverse_map__(int64_t num_to_get, int64_t offset);
-    void    verify_no_duplicate_ids(std::vector<Ioss::IdPair> &reverse_map);
-
+#if defined MAP_USE_SORTED_VECTOR
+    void verify_no_duplicate_ids(std::vector<Ioss::IdPair> &reverse_map);
+#endif
 #if defined(IOSS_THREADSAFE)
     mutable std::mutex m_;
 #endif
@@ -92,10 +117,8 @@ namespace Ioss {
     ReverseMapContainer m_reverse{};
     std::string         m_entityType{"unknown"}; // node, element, edge, face
     std::string         m_filename{"undefined"}; // For error messages only.
-    int64_t             m_offset{-1};            // local to global offset if m_map is sequential.
+    mutable int64_t     m_offset{-1};            // local to global offset if m_map is sequential.
     int                 m_myProcessor{0};        // For error messages...
     bool m_defined{false}; // For use by some clients; not all, so don't read too much into value...
   };
 } // namespace Ioss
-
-#endif // IOSS_Ioss_Map_h

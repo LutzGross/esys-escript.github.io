@@ -83,7 +83,7 @@ public:
      *                  (integration rules and basis values for each element block)
      */ 
    WorksetContainer(const Teuchos::RCP<const WorksetFactoryBase> & factory,
-                    const std::map<std::string,WorksetNeeds> & needs);
+                    const std::map<std::string,WorksetNeeds> & needs = {});
 
    /** Copies the workset factory, the PhysicsBlock vector, and the workset size,
      * but not constructed worksets.
@@ -207,6 +207,13 @@ private:
      * \param[in] worksets Set the unique identifiers on these worksets
      */
    void setIdentifiers(const WorksetDescriptor & wd,std::map<unsigned,Workset> & wkstMap);
+
+   /** Check if WorksetNeeds have been registered
+    *
+    * \return True if there are element blocks with required needs objects
+    */
+   bool hasNeeds() const
+   {return ebToNeeds_.size() > 0;}
 
    Teuchos::RCP<const WorksetFactoryBase> wkstFactory_;      //! How to construct worksets
    std::map<std::string,WorksetNeeds> ebToNeeds_; //! Maps element blocks to input physics block objects

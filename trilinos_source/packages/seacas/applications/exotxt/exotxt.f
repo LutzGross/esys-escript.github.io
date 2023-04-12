@@ -1,16 +1,14 @@
-C Copyright(C) 1999-2020 National Technology & Engineering Solutions
+C Copyright(C) 1999-2022 National Technology & Engineering Solutions
 C of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 C NTESS, the U.S. Government retains certain rights in this software.
-C 
+C
 C See packages/seacas/LICENSE for details
 
 C=======================================================================
       PROGRAM EXOTXT
 C=======================================================================
 
-C   --*** EXO2TXT *** Renamed for ExodusIIv2 database
 C   --*** EXOTXT *** (EXOTXT) EXODUS to TEXT translator
-C   --   Written by Amy Gilkey - revised 03/02/88
 C   --   Modified for ExodusIIv2 database format
 C   --
 C   --EXOTXT reads either from an EXODUS database or from the user
@@ -20,7 +18,6 @@ C   --Expects the input database on unit 9, the output text file on unit 20.
 
       include 'exodusII.inc'
       INCLUDE 'argparse.inc'
-
 
 C     Input/Output File Arguments
 C     CPUWS - The word size in bytes of the floating point variables
@@ -48,12 +45,11 @@ C     C(1) dynamic memory base array for character data
       DIMENSION A(1)
       CHARACTER*1 C(1)
 
-
 C     Program Information
 C.
       QAINFO(1) = 'exotxt                          '
-      QAINFO(2) = '2018/08/14                      '
-      QAINFO(3) = ' 2.00                           '
+      QAINFO(2) = '2021/01/28                      '
+      QAINFO(3) = ' 2.01                           '
       QAINFO(4) = '                                '
       QAINFO(5) = '                                '
       QAINFO(6) = '                                '
@@ -64,6 +60,8 @@ C.
      &   'EXODUSII DATABASE TO TEXT FILE TRANSLATOR',
      &   ' ', ' ')
 
+      CALL PRTERR ('CMDSPEC',
+     $     'Please use ncdump/ncgen instead of exotxt/txtexo.')
       CALL MDINIT (A)
       CALL MCINIT (C)
       CALL MDSTAT (NERR, MEM)
@@ -82,11 +80,17 @@ C .. Get filename from command line.  If not specified, emit error message
       NARG = argument_count()
       if (narg .lt. 2) then
         CALL PRTERR ('FATAL', 'Filename not specified.')
-        CALL PRTERR ('FATAL', 'Syntax is: "exotxt db_file text_file"')
+        CALL PRTERR ('CMDSPEC', 'Syntax is: "exotxt db_file text_file"')
+        CALL PRTERR ('CMDSPEC',
+     *    'Documentation: https://sandialabs.github.io' //
+     $       '/seacas-docs/sphinx/html/index.html#exotxt')
         GOTO 140
       else if (narg .gt. 2) then
         CALL PRTERR ('FATAL', 'Too many arguments specified.')
-        CALL PRTERR ('FATAL', 'Syntax is: "exotxt db_file text_file"')
+        CALL PRTERR ('CMDSPEC', 'Syntax is: "exotxt db_file text_file"')
+        CALL PRTERR ('CMDSPEC',
+     *    'Documentation: https://sandialabs.github.io' //
+     $       '/seacas-docs/sphinx/html/index.html#exotxt')
         GOTO 140
       end if
 
@@ -298,7 +302,6 @@ C        Read the concatenated node sets
          END IF
       END IF
 
-
 C   --Read/write the element side sets
 
       IF (NUMESS .GT. 0) THEN
@@ -347,7 +350,6 @@ C        Convert sides to nodes
          CALL DBIGN (NDB, NUMESS, A(KIDSS), A(KNNSS),
      &               A(KIXNSS), A(KLTNSS), A(KLTNNN), IOERR)
          IF (IOERR .EQ. 1) GO TO 140
-
 
          CALL WRESS (NTXT, NUMESS, LESSEL, LESSNL, LESSDF,
      &        A(KIDSS), A(KNESS), A(KNDSS), A(KIXESS), A(KIDESS),
@@ -448,7 +450,6 @@ C************************************************************************
          ioerr = 1
       end if
 
-
 C   --Read the QA records
 C     QA and Information record number stored in dbnumq.blk
 C     Request the number of QA records.  Return the value
@@ -477,7 +478,6 @@ C     Reserve space to read the QA and information records
          CALL MEMERR
          GOTO 140
       END IF
-
 
 C   --Read the database names
 
@@ -589,12 +589,13 @@ C     Delete dynamic memory
   140 CONTINUE
 
       CLOSE (NTXT, IOSTAT=K)
-      call exclos(ndb, ierr)
+      if (ndb .ne. 11 .and. ndb .gt. 0) call exclos(ndb, ierr)
       call addlog (QAINFO(1)(:lenstr(QAINFO(1))))
+      CALL PRTERR ('CMDSPEC',
+     $     'Please use ncdump/ncgen instead of exotxt/txtexo.')
       CALL WRAPUP (QAINFO(1))
 
       END
-
 
 C ... Written as wrapper to get string lengths correct on coordinate
 C     name array which is dynamically allocated
@@ -605,4 +606,3 @@ C     name array which is dynamically allocated
       call exgcon(ndb, nameco, ierr)
       return
       end
-

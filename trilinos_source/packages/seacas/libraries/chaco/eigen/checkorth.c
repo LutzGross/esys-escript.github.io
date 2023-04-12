@@ -2,7 +2,7 @@
  * Copyright(C) 1999-2020 National Technology & Engineering Solutions
  * of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
  * NTESS, the U.S. Government retains certain rights in this software.
- * 
+ *
  * See packages/seacas/LICENSE for details
  */
 
@@ -21,7 +21,7 @@ void checkorth(double **mat, int n, int dim)
   int    screenlim; /* value of lim that will fit on screen */
   int    option;    /* which option to use */
 
-  double dot(); /* standard dot product routine */
+  double dot(double *vec1, int beg, int end, double *vec2); /* standard dot product routine */
 
   /* The T/F argument in the conditionals is just a convenient option: */
 
@@ -92,7 +92,7 @@ void checkorth_float(float **mat, int n, int dim)
   int    screenlim; /* value of lim that will fit on screen */
   int    option;    /* which option to use */
 
-  double dot_float(); /* standard dot product routine */
+  double dot_float(float *vec1, int beg, int end, float *vec2); /* standard dot product routine */
 
   /* The T/F argument in the conditionals is just a convenient option: */
 

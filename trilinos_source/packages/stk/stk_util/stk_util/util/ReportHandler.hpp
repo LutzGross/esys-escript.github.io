@@ -35,10 +35,12 @@
 #ifndef STK_UTIL_ENVIRONMENT_REPORTHANDLER_HPP
 #define STK_UTIL_ENVIRONMENT_REPORTHANDLER_HPP
 
-#include <sstream>                      // for ostringstream
-#include <string>                       // for string
-#include <Kokkos_Core.hpp>
-#include "stk_util/stk_kokkos_macros.h"
+#include "Kokkos_Core.hpp"
+#include "stk_util/stk_kokkos_macros.h"  // for STK_INLINE_FUNCTION
+
+#include <sstream>                       // for ostringstream
+#include <stdexcept>                     // for logic_error, runtime_error
+#include <string>                        // for operator+, allocator, string, char_traits
 
 namespace stk {
 
@@ -186,6 +188,8 @@ void handle_invalid_arg(const char* expr,
 /// @}
 ///
 
+std::ostream & output_stacktrace(std::ostream & os);
+
 } // namespace stk
 
 ///
@@ -229,22 +233,29 @@ void handle_invalid_arg(const char* expr,
 //   ThrowRequire(foo);
 // The compiler does not know whether the else statement that the macro inserts
 // applies to the "if (something) " or the "if (expr)".
-#define ThrowGenericCond(expr, message, handler)                        \
-  do {                                                                  \
-    if ( !(expr) ) {                                                    \
-      std::ostringstream stk_util_internal_throw_require_oss;           \
-      stk_util_internal_throw_require_oss << message;                   \
-      stk::handler( #expr,                                              \
-                    STK_STR_TRACE,                                      \
-                    stk_util_internal_throw_require_oss );              \
-    }                                                                   \
+#define ThrowGenericCond(expr, message, handler)                             \
+  do {                                                                       \
+    if ( !(expr) ) {                                                         \
+      std::ostringstream stk_util_internal_throw_require_oss;                \
+      stk_util_internal_throw_require_oss << message;                        \
+      std::ostringstream stk_util_internal_throw_require_loc_oss;            \
+      stk_util_internal_throw_require_loc_oss <<                             \
+        stk::source_relative_path(STK_STR_TRACE) << "\n";                    \
+      stk::output_stacktrace(stk_util_internal_throw_require_loc_oss); \
+      stk::handler( #expr,                                                   \
+                    stk_util_internal_throw_require_loc_oss.str(),           \
+                    stk_util_internal_throw_require_oss );                   \
+    }                                                                        \
   } while (false)
 
 inline void ThrowMsgHost(bool expr, const char * exprString, const char * message, const std::string & location)
 {
+  std::ostringstream stk_util_internal_throw_require_loc_oss;
+  stk_util_internal_throw_require_loc_oss << stk::source_relative_path(location) << "\n";
+  stk::output_stacktrace(stk_util_internal_throw_require_loc_oss);
   throw std::logic_error(
     std::string("Requirement( ") + exprString + " ) FAILED\n" +
-    "Error occured at: " + stk::source_relative_path(location) + "\n" +
+    "Error occurred at: " + stk_util_internal_throw_require_loc_oss.str() + "\n" +
     "Error: " + message + "\n");
 }
 
@@ -255,15 +266,21 @@ STK_INLINE_FUNCTION void ThrowMsgDevice(const char * message)
 
 inline void ThrowHost(bool expr, const char * exprString, const std::string & location)
 {
+  std::ostringstream stk_util_internal_throw_require_loc_oss;
+  stk_util_internal_throw_require_loc_oss << stk::source_relative_path(location) << "\n";
+  stk::output_stacktrace(stk_util_internal_throw_require_loc_oss);
   throw std::logic_error(
     std::string("Requirement( ") + exprString + " ) FAILED\n" +
-    "Error occured at: " + stk::source_relative_path(location) + "\n");
+    "Error occurred at: " + stk_util_internal_throw_require_loc_oss.str() + "\n");
 }
 
 inline void ThrowErrorMsgHost(const char * message, const std::string & location)
 {
+  std::ostringstream stk_util_internal_throw_require_loc_oss;
+  stk_util_internal_throw_require_loc_oss << stk::source_relative_path(location) << "\n";
+  stk::output_stacktrace(stk_util_internal_throw_require_loc_oss);
   throw std::runtime_error(
-    std::string("Error occured at: ") + stk::source_relative_path(location) + "\n" +
+    std::string("Error occurred at: ") + stk_util_internal_throw_require_loc_oss.str() + "\n" +
     "Error: " + message + "\n");
 }
 
@@ -276,13 +293,17 @@ STK_INLINE_FUNCTION void ThrowErrorMsgDevice(const char * message)
 // This generic macro is for unconditional throws. We pass "" as the expr
 // string, the handler should be smart enough to realize that this means there
 // was not expression checked, AKA, this throw was unconditional.
-#define ThrowGeneric(message, handler)                                  \
-  do {                                                                  \
-    std::ostringstream stk_util_internal_throw_require_oss;             \
-    stk_util_internal_throw_require_oss << message;                     \
-    stk::handler( "",                                                   \
-                  STK_STR_TRACE,                                        \
-                  stk_util_internal_throw_require_oss );                \
+#define ThrowGeneric(message, handler)                                     \
+  do {                                                                     \
+    std::ostringstream stk_util_internal_throw_require_oss;                \
+    stk_util_internal_throw_require_oss << message;                        \
+    std::ostringstream stk_util_internal_throw_require_loc_oss;            \
+    stk_util_internal_throw_require_loc_oss <<                             \
+      stk::source_relative_path(STK_STR_TRACE) << "\n";                    \
+    stk::output_stacktrace(stk_util_internal_throw_require_loc_oss); \
+    stk::handler( "",                                                      \
+                  stk_util_internal_throw_require_loc_oss.str(),           \
+                  stk_util_internal_throw_require_oss );                   \
 } while (false)
 
 // The macros below define the exceptions that we want to support within
@@ -341,6 +362,8 @@ STK_INLINE_FUNCTION void ThrowErrorMsgDevice(const char * message)
 #define ThrowRequireMsg(expr,message) ThrowGenericCond(expr, message, handle_assert)
 #define ThrowRequire(expr)            ThrowRequireMsg(expr, "")
 
+#ifndef __HIP_DEVICE_COMPILE__
+
 #ifdef NDEBUG
 #  define ThrowAssert(expr)            (static_cast<void>(0))
 #  define ThrowAssertMsg(expr,message) (static_cast<void>(0))
@@ -356,8 +379,20 @@ STK_INLINE_FUNCTION void ThrowErrorMsgDevice(const char * message)
 #define ThrowInvalidArgMsgIf(expr, message) ThrowGenericCond( !(expr), message, handle_invalid_arg)
 #define ThrowInvalidArgIf(expr)             ThrowInvalidArgMsgIf(expr, "")
 
+#else
+//FIXME: unsupported indirect call to function on HIP-Clang
+#define ThrowAssert(expr)
+#define ThrowAssertMsg(expr,message)
 
-#if (defined(__CUDA_ARCH__) && (__CUDA_ARCH__ > 0))
+#define ThrowErrorMsgIf(expr, message)
+#define ThrowErrorIf(expr)
+#define ThrowErrorMsg(message)
+
+#define ThrowInvalidArgMsgIf(expr, message)
+#define ThrowInvalidArgIf(expr)
+#endif
+
+#if ((defined(__CUDA_ARCH__) && (__CUDA_ARCH__ > 0)) || defined(__HIP_DEVICE_COMPILE__))
 #define NGP_ThrowRequireMsg(expr, message)                  \
 do {                                                        \
   if ( !(expr) ) {                                          \
@@ -373,7 +408,7 @@ do {                                                    \
 } while(false);
 #endif
 
-#if (defined(__CUDA_ARCH__) && (__CUDA_ARCH__ > 0))
+#if ((defined(__CUDA_ARCH__) && (__CUDA_ARCH__ > 0)) || defined(__HIP_DEVICE_COMPILE__))
 #define NGP_ThrowRequire(expr)                                 \
 do {                                                           \
   if ( !(expr) ) {                                             \
@@ -397,7 +432,7 @@ do {                                        \
 #  define NGP_ThrowAssertMsg(expr,message) NGP_ThrowRequireMsg(expr, message)
 #endif
 
-#if (defined(__CUDA_ARCH__) && (__CUDA_ARCH__ > 0))
+#if ((defined(__CUDA_ARCH__) && (__CUDA_ARCH__ > 0)) || defined(__HIP_DEVICE_COMPILE__))
 #define NGP_ThrowErrorMsgIf(expr, message) NGP_ThrowRequireMsg(!(expr), message);
 #else
 #define NGP_ThrowErrorMsgIf(expr, message)                       \
@@ -408,7 +443,7 @@ do {                                                             \
 } while(false);
 #endif
 
-#if (defined(__CUDA_ARCH__) && (__CUDA_ARCH__ > 0))
+#if ((defined(__CUDA_ARCH__) && (__CUDA_ARCH__ > 0)) || defined(__HIP_DEVICE_COMPILE__))
 #define NGP_ThrowErrorIf(expr) NGP_ThrowRequireMsg(!(expr), "!(" #expr ")");
 #else
 #define NGP_ThrowErrorIf(expr)                       \
@@ -419,7 +454,7 @@ do {                                                 \
 } while(false);
 #endif
 
-#if (defined(__CUDA_ARCH__) && (__CUDA_ARCH__ > 0))
+#if ((defined(__CUDA_ARCH__) && (__CUDA_ARCH__ > 0)) || defined(__HIP_DEVICE_COMPILE__))
 #define NGP_ThrowErrorMsg(message) ThrowErrorMsgDevice(message ": " __FILE__ ":" LINE_STRING);
 #else
 #define NGP_ThrowErrorMsg(message) ThrowErrorMsgHost(message, STK_STR_TRACE);

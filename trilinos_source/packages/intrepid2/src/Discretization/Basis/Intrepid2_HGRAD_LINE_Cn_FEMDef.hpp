@@ -129,7 +129,7 @@ namespace Intrepid2 {
     }
     
 
-    template<typename SpT, ordinal_type numPtsPerEval,
+    template<typename DT, ordinal_type numPtsPerEval,
              typename outputValueValueType, class ...outputValueProperties,
              typename inputPointValueType,  class ...inputPointProperties,
              typename vinvValueType,        class ...vinvProperties>
@@ -142,7 +142,7 @@ namespace Intrepid2 {
       typedef          Kokkos::DynRankView<outputValueValueType,outputValueProperties...>         outputValueViewType;
       typedef          Kokkos::DynRankView<inputPointValueType, inputPointProperties...>          inputPointViewType;
       typedef          Kokkos::DynRankView<vinvValueType,       vinvProperties...>                vinvViewType;
-      typedef typename ExecSpace<typename inputPointViewType::execution_space,SpT>::ExecSpaceType ExecSpaceType;
+      typedef typename ExecSpace<typename inputPointViewType::execution_space,typename DT::execution_space>::ExecSpaceType ExecSpaceType;
 
       // loopSize corresponds to cardinality
       const auto loopSizeTmp1 = (inputPoints.extent(0)/numPtsPerEval);
@@ -192,25 +192,28 @@ namespace Intrepid2 {
   }
 
   // -------------------------------------------------------------------------------------
-  template<typename SpT, typename OT, typename PT>
-  Basis_HGRAD_LINE_Cn_FEM<SpT,OT,PT>::
+  template<typename DT, typename OT, typename PT>
+  Basis_HGRAD_LINE_Cn_FEM<DT,OT,PT>::
   Basis_HGRAD_LINE_Cn_FEM( const ordinal_type order,
                            const EPointType   pointType ) {
+    this->pointType_         = pointType;
     this->basisCardinality_  = order+1;
     this->basisDegree_       = order;
     this->basisCellTopology_ = shards::CellTopology(shards::getCellTopologyData<shards::Line<2> >() );
-    this->basisType_         = BASIS_FEM_FIAT;
+    this->basisType_         = BASIS_FEM_LAGRANGIAN;
     this->basisCoordinates_  = COORDINATES_CARTESIAN;
     this->functionSpace_     = FUNCTION_SPACE_HGRAD;
 
     const ordinal_type card = this->basisCardinality_;
     
     // points are computed in the host and will be copied 
-    Kokkos::DynRankView<typename ScalarViewType::value_type,typename SpT::array_layout,Kokkos::HostSpace>
+    Kokkos::DynRankView<typename ScalarViewType::value_type,typename DT::execution_space::array_layout,Kokkos::HostSpace>
       dofCoords("Hgrad::Line::Cn::dofCoords", card, 1);
 
+    //Default is Equispaced
+    auto pointT = (pointType == POINTTYPE_DEFAULT) ? POINTTYPE_EQUISPACED : pointType;
 
-    switch (pointType) {
+    switch (pointT) {
     case POINTTYPE_EQUISPACED:
     case POINTTYPE_WARPBLEND: {
       // lattice ordering 
@@ -219,41 +222,19 @@ namespace Intrepid2 {
         PointTools::getLattice( dofCoords,
                                 this->basisCellTopology_, 
                                 order, offset, 
-                                pointType );
+                                pointT );
         
       }
-      // topological order
-      // { 
-      //   // two vertices
-      //   dofCoords(0,0) = -1.0;
-      //   dofCoords(1,0) =  1.0;
-        
-      //   // internal points
-      //   typedef Kokkos::pair<ordinal_type,ordinal_type> range_type;
-      //   auto pts = Kokkos::subview(dofCoords, range_type(2, card), Kokkos::ALL());
-        
-      //   const auto offset = 1;
-      //   PointTools::getLattice( pts,
-      //                           this->basisCellTopology_, 
-      //                           order, offset, 
-      //                           pointType );
-      // }
-      break;
-    }
-    case POINTTYPE_GAUSS: {
-      // internal points only
-      PointTools::getGaussPoints( dofCoords, 
-                                  order );
       break;
     }
     default: {
-      INTREPID2_TEST_FOR_EXCEPTION( !isValidPointType(pointType),
+      INTREPID2_TEST_FOR_EXCEPTION( !isValidPointType(pointT),
                                     std::invalid_argument , 
                                     ">>> ERROR: (Intrepid2::Basis_HGRAD_LINE_Cn_FEM) invalid pointType." );
     }
     }
 
-    this->dofCoords_ = Kokkos::create_mirror_view(typename SpT::memory_space(), dofCoords);
+    this->dofCoords_ = Kokkos::create_mirror_view(typename DT::memory_space(), dofCoords);
     Kokkos::deep_copy(this->dofCoords_, dofCoords);
     
     // form Vandermonde matrix; actually, this is the transpose of the VDM,
@@ -292,84 +273,75 @@ namespace Intrepid2 {
                                   ">>> ERROR: (Intrepid2::Basis_HGRAD_LINE_Cn_FEM) lapack.GETRI returns nonzero info." );
     
     // create host mirror 
-    Kokkos::DynRankView<typename ScalarViewType::value_type,typename SpT::array_layout,Kokkos::HostSpace>
+    Kokkos::DynRankView<typename ScalarViewType::value_type,typename DT::execution_space::array_layout,Kokkos::HostSpace>
       vinv("Hgrad::Line::Cn::vinv", card, card);
 
     for (ordinal_type i=0;i<card;++i) 
       for (ordinal_type j=0;j<card;++j) 
         vinv(i,j) = vmat(j,i);
 
-    this->vinv_ = Kokkos::create_mirror_view(typename SpT::memory_space(), vinv);
+    this->vinv_ = Kokkos::create_mirror_view(typename DT::memory_space(), vinv);
     Kokkos::deep_copy(this->vinv_ , vinv);
 
     // initialize tags
     {
-      const bool is_vertex_included = (pointType != POINTTYPE_GAUSS);
-
       // Basis-dependent initializations
       const ordinal_type tagSize  = 4;        // size of DoF tag, i.e., number of fields in the tag
       const ordinal_type posScDim = 0;        // position in the tag, counting from 0, of the subcell dim 
       const ordinal_type posScOrd = 1;        // position in the tag, counting from 0, of the subcell ordinal
       const ordinal_type posDfOrd = 2;        // position in the tag, counting from 0, of DoF ordinal relative to the subcell
       
-
+      // Note: the only reason why equispaced can't support higher order than Parameters::MaxOrder appears to be the fact that the tags below get stored into a fixed-length array.
+      // TODO: relax the maximum order requirement by setting up tags in a different container, perhaps directly into an OrdinalTypeArray1DHost (tagView, below).  (As of this writing (1/25/22), looks like other nodal bases do this in a similar way -- those should be fixed at the same time; maybe search for Parameters::MaxOrder.)
+      INTREPID2_TEST_FOR_EXCEPTION( order > Parameters::MaxOrder, std::invalid_argument, "polynomial order exceeds the max supported by this class");
       ordinal_type tags[Parameters::MaxOrder+1][4];
 
-      // now we check the points for association 
-      if (is_vertex_included) {
-        // lattice order
-        {
-          const auto v0 = 0;
-          tags[v0][0] = 0; // vertex dof
-          tags[v0][1] = 0; // vertex id
-          tags[v0][2] = 0; // local dof id
-          tags[v0][3] = 1; // total number of dofs in this vertex
-          
-          const ordinal_type iend = card - 2;
-          for (ordinal_type i=0;i<iend;++i) {
-            const auto e = i + 1;
-            tags[e][0] = 1;    // edge dof
-            tags[e][1] = 0;    // edge id
-            tags[e][2] = i;    // local dof id
-            tags[e][3] = iend; // total number of dofs in this edge
-          }
+      // lattice order
+      {
+        const auto v0 = 0;
+        tags[v0][0] = 0; // vertex dof
+        tags[v0][1] = 0; // vertex id
+        tags[v0][2] = 0; // local dof id
+        tags[v0][3] = 1; // total number of dofs in this vertex
 
-          const auto v1 = card -1;
-          tags[v1][0] = 0; // vertex dof
-          tags[v1][1] = 1; // vertex id
-          tags[v1][2] = 0; // local dof id
-          tags[v1][3] = 1; // total number of dofs in this vertex
+        const ordinal_type iend = card - 2;
+        for (ordinal_type i=0;i<iend;++i) {
+          const auto e = i + 1;
+          tags[e][0] = 1;    // edge dof
+          tags[e][1] = 0;    // edge id
+          tags[e][2] = i;    // local dof id
+          tags[e][3] = iend; // total number of dofs in this edge
         }
 
-        // topological order
-        // {
-        //   tags[0][0] = 0; // vertex dof
-        //   tags[0][1] = 0; // vertex id
-        //   tags[0][2] = 0; // local dof id
-        //   tags[0][3] = 1; // total number of dofs in this vertex
-          
-        //   tags[1][0] = 0; // vertex dof
-        //   tags[1][1] = 1; // vertex id
-        //   tags[1][2] = 0; // local dof id
-        //   tags[1][3] = 1; // total number of dofs in this vertex
-          
-        //   const ordinal_type iend = card - 2;
-        //   for (ordinal_type i=0;i<iend;++i) {
-        //     const auto ii = i + 2;
-        //     tags[ii][0] = 1;    // edge dof
-        //     tags[ii][1] = 0;    // edge id
-        //     tags[ii][2] = i;    // local dof id
-        //     tags[ii][3] = iend; // total number of dofs in this edge
-        //   }
-        // }
-      } else {
-        for (ordinal_type i=0;i<card;++i) {
-          tags[i][0] = 1;    // edge dof
-          tags[i][1] = 0;    // edge id
-          tags[i][2] = i;    // local dof id
-          tags[i][3] = card; // total number of dofs in this edge
-        }
+        const auto v1 = card -1;
+        tags[v1][0] = 0; // vertex dof
+        tags[v1][1] = 1; // vertex id
+        tags[v1][2] = 0; // local dof id
+        tags[v1][3] = 1; // total number of dofs in this vertex
       }
+
+      // topological order
+      // {
+      //   tags[0][0] = 0; // vertex dof
+      //   tags[0][1] = 0; // vertex id
+      //   tags[0][2] = 0; // local dof id
+      //   tags[0][3] = 1; // total number of dofs in this vertex
+
+      //   tags[1][0] = 0; // vertex dof
+      //   tags[1][1] = 1; // vertex id
+      //   tags[1][2] = 0; // local dof id
+      //   tags[1][3] = 1; // total number of dofs in this vertex
+
+      //   const ordinal_type iend = card - 2;
+      //   for (ordinal_type i=0;i<iend;++i) {
+      //     const auto ii = i + 2;
+      //     tags[ii][0] = 1;    // edge dof
+      //     tags[ii][1] = 0;    // edge id
+      //     tags[ii][2] = i;    // local dof id
+      //     tags[ii][3] = iend; // total number of dofs in this edge
+      //   }
+      // }
+
 
       OrdinalTypeArray1DHost tagView(&tags[0][0], card*4);
 

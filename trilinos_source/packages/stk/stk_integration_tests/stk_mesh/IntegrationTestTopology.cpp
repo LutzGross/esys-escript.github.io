@@ -35,13 +35,16 @@
 #include <stk_io/StkMeshIoBroker.hpp>
 #include <stk_mesh/base/Part.hpp>
 #include <stk_mesh/base/SkinBoundary.hpp>
+#include <stk_mesh/base/GetEntities.hpp>
 #include <stk_unit_test_utils/TextMesh.hpp>
 #include <stk_unit_test_utils/MeshFixture.hpp>  // for MeshTestFixture
+#include <stk_unit_test_utils/BuildMesh.hpp>
 
 #include <unistd.h>
 
+using stk::unit_test_util::build_mesh;
 
-class StkTopologyTest : public stk::unit_test_util::MeshFixture
+class StkTopologyTest : public stk::unit_test_util::simple_fields::MeshFixture
 {
 public:
   StkTopologyTest()
@@ -52,22 +55,14 @@ public:
   void init_mesh_with_wedge12_element(stk::mesh::BulkData& bulk)
   {
     std::string meshDesc = "0,1,WEDGE_12,1,2,3,4,5,6,7,8,9,10,11,12";
-    stk::unit_test_util::setup_text_mesh(bulk, meshDesc);
+    stk::unit_test_util::simple_fields::setup_text_mesh(bulk, meshDesc);
     stk::mesh::create_all_sides(bulk, bulk.mesh_meta_data().universal_part(), {}, true);
-  }
-
-  stk::topology get_face_topology(stk::mesh::BulkData& bulk, unsigned faceOrdinal)
-  {
-    stk::mesh::EntityVector faces;
-    bulk.get_entities(stk::topology::FACE_RANK, bulk.mesh_meta_data().universal_part(), faces);
-    EXPECT_TRUE(faceOrdinal < faces.size());
-    return bulk.bucket(faces[faceOrdinal]).topology();
   }
 
   stk::topology get_element_topology(const stk::mesh::BulkData& bulk)
   {
     stk::mesh::EntityVector elements;
-    bulk.get_entities(stk::topology::ELEMENT_RANK, bulk.mesh_meta_data().universal_part(), elements);
+    stk::mesh::get_entities(bulk, stk::topology::ELEMENT_RANK, elements);
     EXPECT_EQ(elements.size(), 1u);
     return bulk.bucket(elements[0]).topology();
   }
@@ -81,11 +76,15 @@ public:
   {
     EXPECT_EQ(get_element_topology(bulk), stk::topology::WEDGE_12);
 
-    EXPECT_EQ(get_face_topology(bulk, 0), stk::topology::TRI_6);
-    EXPECT_EQ(get_face_topology(bulk, 1), stk::topology::TRI_6);
-    EXPECT_EQ(get_face_topology(bulk, 2), stk::topology::QUAD_6);
-    EXPECT_EQ(get_face_topology(bulk, 3), stk::topology::QUAD_6);
-    EXPECT_EQ(get_face_topology(bulk, 4), stk::topology::QUAD_6);
+    stk::mesh::Entity elem = bulk.get_entity(stk::topology::ELEM_RANK, 1);
+    EXPECT_TRUE(bulk.is_valid(elem));
+    const stk::mesh::Entity* faces = bulk.begin_faces(elem);
+    EXPECT_EQ(5u, bulk.num_faces(elem));
+    EXPECT_EQ(bulk.bucket(faces[0]).topology(), stk::topology::QUAD_6);
+    EXPECT_EQ(bulk.bucket(faces[1]).topology(), stk::topology::QUAD_6);
+    EXPECT_EQ(bulk.bucket(faces[2]).topology(), stk::topology::QUAD_6);
+    EXPECT_EQ(bulk.bucket(faces[3]).topology(), stk::topology::TRI_6);
+    EXPECT_EQ(bulk.bucket(faces[4]).topology(), stk::topology::TRI_6);
   }
 };
 
@@ -106,8 +105,9 @@ TEST_F(StkTopologyTest, writeWedge12ToExodusFile)
 
   output_mesh(get_bulk(), fileName);
 
-  stk::mesh::MetaData newMeta(3);
-  stk::mesh::BulkData newBulk(newMeta, get_comm());
+  std::shared_ptr<stk::mesh::BulkData> newBulkPtr = build_mesh(3, get_comm());
+  stk::mesh::BulkData& newBulk = *newBulkPtr;
+  stk::mesh::MetaData& newMeta = newBulk.mesh_meta_data();
   stk::io::fill_mesh(fileName, newBulk);
   stk::mesh::create_all_sides(newBulk, newMeta.universal_part(), {}, true);
 

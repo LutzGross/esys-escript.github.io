@@ -40,7 +40,6 @@
 #include <stk_mesh/base/Entity.hpp>     // for Entity
 #include <stk_mesh/base/MetaData.hpp>   // for MetaData
 #include <utility>                      // for pair
-#include "stk_mesh/base/ConnectivityMap.hpp"  // for ConnectivityMap
 #include "stk_mesh/base/Types.hpp"      // for EntityRank, OrdinalVector, etc
 #include <stk_mesh/baseImpl/MeshImplUtils.hpp>
 #include "stk_topology/topology.hpp"    // for topology, etc
@@ -57,6 +56,7 @@ Relation::RawRelationType & Relation::RawRelationType::operator =(const Relation
     return *this;
 }
 
+#ifndef STK_HIDE_DEPRECATED_CODE // Delete after October 2022
 //----------------------------------------------------------------------
 
 namespace {
@@ -103,7 +103,7 @@ void get_entities_through_relations(
 
 } // namespace
 
-void get_entities_through_relations(
+STK_DEPRECATED void get_entities_through_relations(
   const BulkData &mesh,
   const std::vector<Entity> & entities ,
         std::vector<Entity> & entities_related )
@@ -129,6 +129,7 @@ void get_entities_through_relations(
     }
   }
 }
+#endif
 
 void get_entities_through_relations(
   const BulkData& mesh,
@@ -157,9 +158,14 @@ void induced_part_membership(const BulkData& mesh,
     int num_rels = mesh.num_connectivity(entity, irank);
     Entity const* rels     = mesh.begin(entity, irank);
 
+    const Bucket* prevBucketPtr = nullptr;
     for (int j = 0; j < num_rels; ++j)
     {
-      impl::get_part_ordinals_to_induce_on_lower_ranks(mesh, rels[j], e_rank, induced_parts);
+      const Bucket* curBucketPtr = mesh.bucket_ptr(rels[j]);
+      if (prevBucketPtr != curBucketPtr) {
+        prevBucketPtr = curBucketPtr;
+        impl::get_part_ordinals_to_induce_on_lower_ranks(mesh, *curBucketPtr, e_rank, induced_parts);
+      }
     }
   }
 }

@@ -1,57 +1,120 @@
-INCLUDE(Join)
-INCLUDE(TribitsFilepathHelpers)
+include(Join)
+include(TribitsFilepathHelpers)
+include(AppendStringVarWithSep)
 
 
-FUNCTION(TRIBITS_CONFIGURE_SET_INSTALLED_GROUP_AND_PERMS_FILE  TARGET_FILE)
+function(tribits_raise_install_perms_mods_not_supported_on_windows_error)
 
-  SET(PROJECT_SET_GROUP_AND_PERMISSIONS_ON_INSTALL_BASE_DIR
+  set(INSTALL_PERMS_SET "")
+  tribits_append_install_perms_var_not_supported(
+    ${PROJECT_NAME}_MAKE_INSTALL_GROUP_WRITABLE)
+  tribits_append_install_perms_var_not_supported(
+    ${PROJECT_NAME}_MAKE_INSTALL_GROUP_READABLE)
+  tribits_append_install_perms_var_not_supported(
+    ${PROJECT_NAME}_MAKE_INSTALL_WORLD_READABLE)
+  tribits_append_install_perms_var_not_supported(
+    ${PROJECT_NAME}_MAKE_INSTALL_GROUP)
+
+  message(FATAL_ERROR
+    "ERROR: The options:\n"
+    "${INSTALL_PERMS_SET}"
+    "are not supported on Windows!\n"
+    "Please remove these options and configure from scratch!"
+    )
+
+endfunction()
+
+
+# Reads and writes var INSTALL_PERMS_SET in above function
+macro(tribits_append_install_perms_var_not_supported  VAR_NAME)
+  if (NOT "${${VAR_NAME}}" STREQUAL "")
+    set(INSTALL_PERMS_SET  "${INSTALL_PERMS_SET}    ${VAR_NAME}='${${VAR_NAME}}'\n")
+  endif()
+endmacro()
+
+
+function(tribits_determine_if_setup_for_group_and_perms_modifications
+  SETUP_FOR_GROUP_AND_PERMS_MODIFICATIONS_OUT
+  )
+
+  if(
+    ${PROJECT_NAME}_MAKE_INSTALL_GROUP_WRITABLE OR
+    ${PROJECT_NAME}_MAKE_INSTALL_GROUP_READABLE OR
+    ${PROJECT_NAME}_MAKE_INSTALL_WORLD_READABLE OR
+    (NOT "${${PROJECT_NAME}_MAKE_INSTALL_GROUP}" STREQUAL "")
+    )
+    set(setupForGroupAndPermsModifications TRUE)
+  else()
+    set(setupForGroupAndPermsModifications FALSE)
+  endif()
+
+  if (setupForGroupAndPermsModifications AND
+    ${PROJECT_NAME}_HOSTTYPE STREQUAL "Windows"
+    )
+    tribits_raise_install_perms_mods_not_supported_on_windows_error()
+  endif()
+
+  set(${SETUP_FOR_GROUP_AND_PERMS_MODIFICATIONS_OUT}
+    ${setupForGroupAndPermsModifications} PARENT_SCOPE)
+
+endfunction()
+
+
+function(tribits_configure_set_installed_group_and_perms_file  TARGET_FILE)
+
+  set(PROJECT_SET_GROUP_AND_PERMISSIONS_ON_INSTALL_BASE_DIR
     "${${PROJECT_NAME}_SET_GROUP_AND_PERMISSIONS_ON_INSTALL_BASE_DIR}")
 
-  TRIBITS_GET_DIR_ARRAY_BELOW_BASE_DIR(
+  tribits_get_dir_array_below_base_dir(
     "${${PROJECT_NAME}_SET_GROUP_AND_PERMISSIONS_ON_INSTALL_BASE_DIR}"
     "${CMAKE_INSTALL_PREFIX}"
     PROJECT_SUBDIR_PATHS_ARRAY
     )
 
-  SET(PROJECT_MAKE_INSTALL_GROUP "${${PROJECT_NAME}_MAKE_INSTALL_GROUP}")
+  set(PROJECT_MAKE_INSTALL_GROUP "${${PROJECT_NAME}_MAKE_INSTALL_GROUP}")
 
-  SET(group_perms "")
-  IF (${PROJECT_NAME}_MAKE_INSTALL_GROUP_WRITABLE)
-    SET(group_perms "g+rwX")
-  ELSEIF (${PROJECT_NAME}_MAKE_INSTALL_GROUP_READABLE)
-    SET(group_perms "g+rX")
-  ENDIF()
+  set(group_perms "")
+  if (${PROJECT_NAME}_MAKE_INSTALL_GROUP_WRITABLE)
+    set(group_perms "g+rwX")
+  elseif (${PROJECT_NAME}_MAKE_INSTALL_GROUP_READABLE
+    OR ${PROJECT_NAME}_MAKE_INSTALL_WORLD_READABLE
+    )
+    set(group_perms "g+rX")
+  endif()
 
-  SET(other_perms "")
-  IF (${PROJECT_NAME}_MAKE_INSTALL_WORLD_READABLE)
-    SET(other_perms "o+rX")
-  ENDIF()
+  set(other_perms "")
+  if (${PROJECT_NAME}_MAKE_INSTALL_WORLD_READABLE)
+    set(other_perms "o+rX")
+  endif()
 
-  JOIN(PROJECT_MAKE_INSTALL_PERMS_CHANGE "," FALSE
+  join(PROJECT_MAKE_INSTALL_PERMS_CHANGE "," FALSE
     ${group_perms} ${other_perms} )
 
-  SET(tribits_install_src
+  set(tribits_install_src
     "${${PROJECT_NAME}_TRIBITS_DIR}/${TRIBITS_CMAKE_INSTALLATION_FILES_DIR}")
-  CONFIGURE_FILE(
+  configure_file(
     "${tribits_install_src}/set_installed_group_and_permissions.cmake.in"
     "${TARGET_FILE}" @ONLY )
 
-ENDFUNCTION()
+endfunction()
 
 
-FUNCTION(TRIBITS_ADD_INSTALL_GROUP_AND_PERMS_FIXUPS)
+function(tribits_add_install_group_and_perms_fixups)
 
-  IF (NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
+  tribits_determine_if_setup_for_group_and_perms_modifications(
+    setupForGroupAndPermsModifications)
 
-    SET(set_installed_group_and_permissions_file
+  if (setupForGroupAndPermsModifications)
+
+    set(set_installed_group_and_permissions_file
       "${PROJECT_BINARY_DIR}/set_installed_group_and_permissions.cmake")
 
-    TRIBITS_CONFIGURE_SET_INSTALLED_GROUP_AND_PERMS_FILE(
+    tribits_configure_set_installed_group_and_perms_file(
       "${set_installed_group_and_permissions_file}" )
 
     # Fix up install for default 'install' command
-    INSTALL(SCRIPT "${set_installed_group_and_permissions_file}")
+    install(SCRIPT "${set_installed_group_and_permissions_file}")
 
-  ENDIF()
+  endif()
 
-ENDFUNCTION()
+endfunction()

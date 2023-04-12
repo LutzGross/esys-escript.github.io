@@ -60,7 +60,6 @@
 #include "BelosStatusTestCombo.hpp"
 #include "BelosStatusTestOutputFactory.hpp"
 #include "BelosOutputManager.hpp"
-#include "Teuchos_BLAS.hpp"
 #include "Teuchos_LAPACK.hpp"
 #ifdef BELOS_TEUCHOS_TIME_MONITOR
 #include "Teuchos_TimeMonitor.hpp"
@@ -95,16 +94,6 @@ namespace Belos {
    */
   class PseudoBlockCGSolMgrLinearProblemFailure : public BelosError {public:
     PseudoBlockCGSolMgrLinearProblemFailure(const std::string& what_arg) : BelosError(what_arg)
-    {}};
-
-  /** \brief PseudoBlockCGSolMgrOrthoFailure is thrown when the orthogonalization manager is
-   * unable to generate orthonormal columns from the initial basis vectors.
-   *
-   * This std::exception is thrown from the PseudoBlockCGSolMgr::solve() method.
-   *
-   */
-  class PseudoBlockCGSolMgrOrthoFailure : public BelosError {public:
-    PseudoBlockCGSolMgrOrthoFailure(const std::string& what_arg) : BelosError(what_arg)
     {}};
 
 
@@ -240,6 +229,7 @@ namespace Belos {
       \note Only works if "Estimate Condition Number" is set on parameterlist
     */
     ScalarType getConditionEstimate() const {return condEstimate_;}
+    Teuchos::ArrayRCP<MagnitudeType> getEigenEstimates() const {return eigenEstimates_;}
 
     //! Return the residual status test
     Teuchos::RCP<StatusTestGenResNorm<ScalarType,MV,OP> >
@@ -302,6 +292,7 @@ namespace Belos {
     // Compute the condition number estimate
     void compute_condnum_tridiag_sym(Teuchos::ArrayView<MagnitudeType> diag,
                                      Teuchos::ArrayView<MagnitudeType> offdiag,
+                                     Teuchos::ArrayRCP<MagnitudeType>& lambdas,
                                      ScalarType & lambda_min,
                                      ScalarType & lambda_max,
                                      ScalarType & ConditionNumber );
@@ -337,9 +328,9 @@ namespace Belos {
     static constexpr int outputStyle_default_ = Belos::General;
     static constexpr int outputFreq_default_ = -1;
     static constexpr int defQuorum_default_ = 1;
+    static constexpr bool foldConvergenceDetectionIntoAllreduce_default_ = false;
     static constexpr const char * resScale_default_ = "Norm of Initial Residual";
     static constexpr const char * label_default_ = "Belos";
-    static constexpr std::ostream * outputStream_default_ = &std::cout;
     static constexpr bool genCondEst_default_ = false;
 
     // Current solver values.
@@ -347,9 +338,11 @@ namespace Belos {
     int maxIters_, numIters_;
     int verbosity_, outputStyle_, outputFreq_, defQuorum_;
     bool assertPositiveDefiniteness_, showMaxResNormOnly_;
+    bool foldConvergenceDetectionIntoAllreduce_;
     std::string resScale_;
     bool genCondEst_;
     ScalarType condEstimate_;
+    Teuchos::ArrayRCP<MagnitudeType> eigenEstimates_;
 
     // Timers.
     std::string label_;
@@ -363,7 +356,7 @@ namespace Belos {
 // Empty Constructor
 template<class ScalarType, class MV, class OP>
 PseudoBlockCGSolMgr<ScalarType,MV,OP,true>::PseudoBlockCGSolMgr() :
-  outputStream_(Teuchos::rcp(outputStream_default_,false)),
+  outputStream_(Teuchos::rcpFromRef(std::cout)),
   convtol_(DefaultSolverParameters::convTol),
   maxIters_(maxIters_default_),
   numIters_(0),
@@ -373,6 +366,7 @@ PseudoBlockCGSolMgr<ScalarType,MV,OP,true>::PseudoBlockCGSolMgr() :
   defQuorum_(defQuorum_default_),
   assertPositiveDefiniteness_(assertPositiveDefiniteness_default_),
   showMaxResNormOnly_(showMaxResNormOnly_default_),
+  foldConvergenceDetectionIntoAllreduce_(foldConvergenceDetectionIntoAllreduce_default_),
   resScale_(resScale_default_),
   genCondEst_(genCondEst_default_),
   condEstimate_(-Teuchos::ScalarTraits<ScalarType>::one()),
@@ -386,7 +380,7 @@ PseudoBlockCGSolMgr<ScalarType,MV,OP,true>::
 PseudoBlockCGSolMgr (const Teuchos::RCP<LinearProblem<ScalarType,MV,OP> > &problem,
                      const Teuchos::RCP<Teuchos::ParameterList> &pl ) :
   problem_(problem),
-  outputStream_(Teuchos::rcp(outputStream_default_,false)),
+  outputStream_(Teuchos::rcpFromRef(std::cout)),
   convtol_(DefaultSolverParameters::convTol),
   maxIters_(maxIters_default_),
   numIters_(0),
@@ -396,6 +390,7 @@ PseudoBlockCGSolMgr (const Teuchos::RCP<LinearProblem<ScalarType,MV,OP> > &probl
   defQuorum_(defQuorum_default_),
   assertPositiveDefiniteness_(assertPositiveDefiniteness_default_),
   showMaxResNormOnly_(showMaxResNormOnly_default_),
+  foldConvergenceDetectionIntoAllreduce_(foldConvergenceDetectionIntoAllreduce_default_),
   resScale_(resScale_default_),
   genCondEst_(genCondEst_default_),
   condEstimate_(-Teuchos::ScalarTraits<ScalarType>::one()),
@@ -469,6 +464,11 @@ setParameters (const Teuchos::RCP<Teuchos::ParameterList>& params)
 
     // Update parameter in our list.
     params_->set ("Assert Positive Definiteness", assertPositiveDefiniteness_);
+  }
+
+  if (params->isParameter("Fold Convergence Detection Into Allreduce")) {
+    foldConvergenceDetectionIntoAllreduce_ = params->get("Fold Convergence Detection Into Allreduce",
+                                                         foldConvergenceDetectionIntoAllreduce_default_);
   }
 
   // Check to see if the timer label changed.
@@ -709,7 +709,7 @@ PseudoBlockCGSolMgr<ScalarType,MV,OP,true>::getValidParameters() const
     pl->set("Deflation Quorum", static_cast<int>(defQuorum_default_),
       "The number of linear systems that need to converge before\n"
       "they are deflated.  This number should be <= block size.");
-    pl->set("Output Stream", Teuchos::rcp(outputStream_default_,false),
+    pl->set("Output Stream", Teuchos::rcpFromRef(std::cout),
       "A reference-counted pointer to the output stream where all\n"
       "solver output is sent.");
     pl->set("Show Maximum Residual Norm Only", static_cast<bool>(showMaxResNormOnly_default_),
@@ -729,6 +729,9 @@ PseudoBlockCGSolMgr<ScalarType,MV,OP,true>::getValidParameters() const
             "name is deprecated; the new name is \"Implicit Residual Scaling\".");
     pl->set("Timer Label", static_cast<const char *>(label_default_),
       "The string to use as a prefix for the timer labels.");
+    pl->set("Fold Convergence Detection Into Allreduce",static_cast<bool>(foldConvergenceDetectionIntoAllreduce_default_),
+      "Merge the allreduce for convergence detection with the one for CG.\n"
+      "This saves one all-reduce, but incurs more computation.");
     validParams_ = pl;
   }
   return validParams_;
@@ -783,8 +786,10 @@ ReturnType PseudoBlockCGSolMgr<ScalarType,MV,OP,true>::solve ()
   // Pseudo-Block CG solver
   Teuchos::RCP<CGIteration<ScalarType,MV,OP> > block_cg_iter;
   if (numRHS2Solve == 1) {
+    plist.set("Fold Convergence Detection Into Allreduce",
+              foldConvergenceDetectionIntoAllreduce_);
     block_cg_iter =
-      Teuchos::rcp (new CGIter<ScalarType,MV,OP> (problem_, printer_, outputTest_, plist));
+      Teuchos::rcp (new CGIter<ScalarType,MV,OP> (problem_, printer_, outputTest_, convTest_, plist));
   } else {
     block_cg_iter =
       Teuchos::rcp (new PseudoBlockCGIter<ScalarType,MV,OP> (problem_, printer_, outputTest_, plist));
@@ -871,7 +876,7 @@ ReturnType PseudoBlockCGSolMgr<ScalarType,MV,OP,true>::solve ()
               ScalarType l_min, l_max;
               Teuchos::ArrayView<MagnitudeType> diag    = block_cg_iter->getDiag();
               Teuchos::ArrayView<MagnitudeType> offdiag = block_cg_iter->getOffDiag();
-              compute_condnum_tridiag_sym(diag,offdiag,l_min,l_max,condEstimate_);
+              compute_condnum_tridiag_sym(diag,offdiag,eigenEstimates_,l_min,l_max,condEstimate_);
 
               // Make sure not to do more condition estimate computations for this solve.
               block_cg_iter->setDoCondEst(false); 
@@ -976,7 +981,7 @@ ReturnType PseudoBlockCGSolMgr<ScalarType,MV,OP,true>::solve ()
     ScalarType l_min, l_max;
     Teuchos::ArrayView<MagnitudeType> diag    = block_cg_iter->getDiag();
     Teuchos::ArrayView<MagnitudeType> offdiag = block_cg_iter->getOffDiag();
-    compute_condnum_tridiag_sym(diag,offdiag,l_min,l_max,condEstimate_);
+    compute_condnum_tridiag_sym(diag,offdiag,eigenEstimates_,l_min,l_max,condEstimate_);
     condEstPerf = true;
   }
 
@@ -1003,6 +1008,7 @@ void
 PseudoBlockCGSolMgr<ScalarType,MV,OP,true>::
 compute_condnum_tridiag_sym (Teuchos::ArrayView<MagnitudeType> diag,
                              Teuchos::ArrayView<MagnitudeType> offdiag,
+                             Teuchos::ArrayRCP<MagnitudeType>& lambdas,
                              ScalarType & lambda_min,
                              ScalarType & lambda_max,
                              ScalarType & ConditionNumber )
@@ -1022,6 +1028,7 @@ compute_condnum_tridiag_sym (Teuchos::ArrayView<MagnitudeType> diag,
   char char_N = 'N';
   Teuchos::LAPACK<int,ScalarType> lapack;
 
+  lambdas.resize(N, 0.0);
   lambda_min = STS::one ();
   lambda_max = STS::one ();
   if( N > 2 ) {
@@ -1032,6 +1039,9 @@ compute_condnum_tridiag_sym (Teuchos::ArrayView<MagnitudeType> diag,
        "compute_condnum_tridiag_sym: LAPACK's _PTEQR failed with info = "
        << info << " < 0.  This suggests there might be a bug in the way Belos "
        "is calling LAPACK.  Please report this to the Belos developers.");
+    for (int k = 0; k < N; k++) {
+      lambdas[k] = diag[N - 1 - k];
+    }
     lambda_min = Teuchos::as<ScalarType> (diag[N-1]);
     lambda_max = Teuchos::as<ScalarType> (diag[0]);
   }

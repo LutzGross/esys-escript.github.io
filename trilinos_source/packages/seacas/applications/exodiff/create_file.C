@@ -1,7 +1,7 @@
-// Copyright(C) 1999-2020 National Technology & Engineering Solutions
+// Copyright(C) 1999-2022 National Technology & Engineering Solutions
 // of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 // NTESS, the U.S. Government retains certain rights in this software.
-// 
+//
 // See packages/seacas/LICENSE for details
 
 #include "ED_SystemInterface.h" // for SystemInterface, interFace
@@ -54,13 +54,13 @@ void Build_Variable_Names(ExoII_Read<INT> &file1, ExoII_Read<INT> &file2, bool *
   // Build (and compare) element variable names.
   build_variable_names("element", interFace.elmt_var_names, interFace.elmt_var,
                        interFace.elmt_var_default, interFace.elmt_var_do_all_flag,
-                       file1.Elmt_Var_Names(), file2.Elmt_Var_Names(), diff_found);
+                       file1.Element_Var_Names(), file2.Element_Var_Names(), diff_found);
 
   // Build (and compare) element variable names.
   if (!interFace.ignore_attributes) {
     build_variable_names("element attribute", interFace.elmt_att_names, interFace.elmt_att,
                          interFace.elmt_att_default, interFace.elmt_att_do_all_flag,
-                         file1.Elmt_Att_Names(), file2.Elmt_Att_Names(), diff_found);
+                         file1.Element_Att_Names(), file2.Element_Att_Names(), diff_found);
   }
 
   // Build (and compare) nodeset variable names.
@@ -72,6 +72,16 @@ void Build_Variable_Names(ExoII_Read<INT> &file1, ExoII_Read<INT> &file2, bool *
   build_variable_names("sideset", interFace.ss_var_names, interFace.ss_var,
                        interFace.ss_var_default, interFace.ss_var_do_all_flag, file1.SS_Var_Names(),
                        file2.SS_Var_Names(), diff_found);
+
+  // Build (and compare) edgeblock variable names.
+  build_variable_names("edgeblock", interFace.eb_var_names, interFace.eb_var,
+                       interFace.eb_var_default, interFace.eb_var_do_all_flag, file1.EB_Var_Names(),
+                       file2.EB_Var_Names(), diff_found);
+
+  // Build (and compare) faceblock variable names.
+  build_variable_names("faceblock", interFace.fb_var_names, interFace.fb_var,
+                       interFace.fb_var_default, interFace.fb_var_do_all_flag, file1.FB_Var_Names(),
+                       file2.FB_Var_Names(), diff_found);
 }
 
 template <typename INT>
@@ -107,21 +117,20 @@ int Create_File(ExoII_Read<INT> &file1, ExoII_Read<INT> &file2, const std::strin
     out_file_id = ex_create(diffile_name.c_str(), mode, &compws, &iows);
     if (out_file_id < 0) {
       Error(fmt::format("Couldn't create output file \"{}\".\n", diffile_name));
-      exit(1);
     }
     ex_copy(file1.File_ID(), out_file_id);
   }
 
   if (!interFace.quiet_flag) {
     if (out_file_id >= 0) { // The files are to be differenced .. just list names.
-      if (interFace.coord_tol.type != IGNORE_) {
+      if (interFace.coord_tol.type != ToleranceMode::IGNORE_) {
         fmt::print("Coordinates:  tol: {:8g} {}, floor: {:8g}\n", interFace.coord_tol.value,
                    interFace.coord_tol.typestr(), interFace.coord_tol.floor);
       }
       else {
         fmt::print("Locations of nodes will not be considered.\n");
       }
-      if (interFace.time_tol.type != IGNORE_) {
+      if (interFace.time_tol.type != ToleranceMode::IGNORE_) {
         fmt::print("Time step values:  tol: {:8g} {}, floor: {:8g}\n", interFace.time_tol.value,
                    interFace.time_tol.typestr(), interFace.time_tol.floor);
       }
@@ -134,6 +143,8 @@ int Create_File(ExoII_Read<INT> &file1, ExoII_Read<INT> &file2, const std::strin
       output_diff_names("Element Attribute", interFace.elmt_att_names);
       output_diff_names("Nodeset", interFace.ns_var_names);
       output_diff_names("Sideset", interFace.ss_var_names);
+      output_diff_names("Edgeblock", interFace.eb_var_names);
+      output_diff_names("Faceblock", interFace.fb_var_names);
     }
     else { // The files are to be compared .. echo additional info.
       if (Tolerance::use_old_floor) {
@@ -141,10 +152,11 @@ int Create_File(ExoII_Read<INT> &file1, ExoII_Read<INT> &file2, const std::strin
         fmt::print(info, "INFO: Using old definition of floor tolerance. |a-b|<floor.\n\n");
         DIFF_OUT(info, fmt::color::yellow);
       }
-      if (interFace.coord_tol.type != IGNORE_) {
-        fmt::print("\nNodal coordinates will be compared .. tol: {:8g} ({}), floor: {:8g}\n",
-                   interFace.coord_tol.value, interFace.coord_tol.typestr(),
-                   interFace.coord_tol.floor);
+      if (interFace.coord_tol.type != ToleranceMode::IGNORE_) {
+        fmt::print(
+            "\nNodal coordinates will be compared:\n   {:<{}} tol: {:8g} ({}), floor: {:8g}\n",
+            "...", name_length(), interFace.coord_tol.value, interFace.coord_tol.typestr(),
+            interFace.coord_tol.floor);
       }
       else {
         std::ostringstream info;
@@ -152,9 +164,9 @@ int Create_File(ExoII_Read<INT> &file1, ExoII_Read<INT> &file2, const std::strin
         DIFF_OUT(info, fmt::color::yellow);
       }
 
-      if (interFace.time_tol.type != IGNORE_) {
-        fmt::print("Time step values will be compared  .. tol: {:8g} ({}), floor: {:8g}\n",
-                   interFace.time_tol.value, interFace.time_tol.typestr(),
+      if (interFace.time_tol.type != ToleranceMode::IGNORE_) {
+        fmt::print("Time step values will be compared:\n   {:<{}} tol: {:8g} ({}), floor: {:8g}\n",
+                   "...", name_length(), interFace.time_tol.value, interFace.time_tol.typestr(),
                    interFace.time_tol.floor);
       }
       else {
@@ -170,24 +182,25 @@ int Create_File(ExoII_Read<INT> &file1, ExoII_Read<INT> &file2, const std::strin
                            file1.Num_Nodal_Vars(), file2.Num_Nodal_Vars());
 
       output_compare_names("Element", interFace.elmt_var_names, interFace.elmt_var,
-                           file1.Num_Elmt_Vars(), file2.Num_Elmt_Vars());
+                           file1.Num_Element_Vars(), file2.Num_Element_Vars());
 
       output_compare_names("Element Attribute", interFace.elmt_att_names, interFace.elmt_att,
-                           file1.Num_Elmt_Atts(), file2.Num_Elmt_Atts());
+                           file1.Num_Element_Atts(), file2.Num_Element_Atts());
 
       output_compare_names("Nodeset", interFace.ns_var_names, interFace.ns_var, file1.Num_NS_Vars(),
                            file2.Num_NS_Vars());
 
       output_compare_names("Sideset", interFace.ss_var_names, interFace.ss_var, file1.Num_SS_Vars(),
                            file2.Num_SS_Vars());
-      if (!interFace.ignore_sideset_df && interFace.ss_df_tol.type != IGNORE_ &&
+      if (!interFace.ignore_sideset_df && interFace.ss_df_tol.type != ToleranceMode::IGNORE_ &&
           file1.Num_Side_Sets() > 0 && file2.Num_Side_Sets() > 0) {
-        fmt::print(
-            "Sideset Distribution Factors will be compared .. tol: {:8g} ({}), floor: {:8g}\n",
-            interFace.ss_df_tol.value, interFace.ss_df_tol.typestr(), interFace.ss_df_tol.floor);
+        fmt::print("Sideset Distribution Factors will be compared:\n   {:<{}} tol: {:8g} ({}), "
+                   "floor: {:8g}\n",
+                   "...", name_length(), interFace.ss_df_tol.value, interFace.ss_df_tol.typestr(),
+                   interFace.ss_df_tol.floor);
       }
       else {
-        if (interFace.ignore_sideset_df || interFace.ss_df_tol.type == IGNORE_) {
+        if (interFace.ignore_sideset_df || interFace.ss_df_tol.type == ToleranceMode::IGNORE_) {
           std::ostringstream info;
           fmt::print(info, "Sideset Distribution Factors will not be compared.\n");
           DIFF_OUT(info, fmt::color::yellow);
@@ -196,13 +209,17 @@ int Create_File(ExoII_Read<INT> &file1, ExoII_Read<INT> &file2, const std::strin
           fmt::print("No Sideset Distribution Factors on either file.\n");
         }
       }
+      output_compare_names("Edgeblock", interFace.eb_var_names, interFace.eb_var,
+                           file1.Num_EB_Vars(), file2.Num_EB_Vars());
+      output_compare_names("Faceblock", interFace.fb_var_names, interFace.fb_var,
+                           file1.Num_FB_Vars(), file2.Num_FB_Vars());
     }
   }
 
   std::vector<int> truth_tab;
   build_truth_table(EX_ELEM_BLOCK, "Element Block", interFace.elmt_var_names,
-                    file1.Num_Elmt_Blocks(), file1, file2, file1.Elmt_Var_Names(),
-                    file2.Elmt_Var_Names(), truth_tab, interFace.quiet_flag, diff_found);
+                    file1.Num_Element_Blocks(), file1, file2, file1.Element_Var_Names(),
+                    file2.Element_Var_Names(), truth_tab, interFace.quiet_flag, diff_found);
 
   std::vector<int> ns_truth_tab;
   build_truth_table(EX_NODE_SET, "Nodeset", interFace.ns_var_names, file1.Num_Node_Sets(), file1,
@@ -212,6 +229,16 @@ int Create_File(ExoII_Read<INT> &file1, ExoII_Read<INT> &file2, const std::strin
   std::vector<int> ss_truth_tab;
   build_truth_table(EX_SIDE_SET, "Sideset", interFace.ss_var_names, file1.Num_Side_Sets(), file1,
                     file2, file1.SS_Var_Names(), file2.SS_Var_Names(), ss_truth_tab,
+                    interFace.quiet_flag, diff_found);
+
+  std::vector<int> eb_truth_tab;
+  build_truth_table(EX_EDGE_BLOCK, "Edgeblock", interFace.eb_var_names, file1.Num_Edge_Blocks(),
+                    file1, file2, file1.EB_Var_Names(), file2.EB_Var_Names(), eb_truth_tab,
+                    interFace.quiet_flag, diff_found);
+
+  std::vector<int> fb_truth_tab;
+  build_truth_table(EX_FACE_BLOCK, "Faceblock", interFace.fb_var_names, file1.Num_Face_Blocks(),
+                    file1, file2, file1.FB_Var_Names(), file2.FB_Var_Names(), fb_truth_tab,
                     interFace.quiet_flag, diff_found);
 
   // Put out the concatenated variable parameters here and then
@@ -227,6 +254,8 @@ int Create_File(ExoII_Read<INT> &file1, ExoII_Read<INT> &file2, const std::strin
     output_exodus_names(out_file_id, EX_ELEM_BLOCK, interFace.elmt_var_names);
     output_exodus_names(out_file_id, EX_NODE_SET, interFace.ns_var_names);
     output_exodus_names(out_file_id, EX_SIDE_SET, interFace.ss_var_names);
+    output_exodus_names(out_file_id, EX_EDGE_BLOCK, interFace.eb_var_names);
+    output_exodus_names(out_file_id, EX_FACE_BLOCK, interFace.fb_var_names);
   }
   return out_file_id;
 }
@@ -251,12 +280,12 @@ namespace {
       fmt::print("{} variables to be compared:\n", type);
       for (unsigned v = 0; v < names.size(); ++v) {
         if (v == 0) {
-          fmt::print("{:<32} tol: {:8g} ({}), floor: {:8g}\n", names[v], tol[v].value,
-                     tol[v].typestr(), tol[v].floor);
+          fmt::print("   {:<{}} tol: {:8g} ({}), floor: {:8g}\n", names[v], name_length(),
+                     tol[v].value, tol[v].typestr(), tol[v].floor);
         }
         else {
-          fmt::print("{:<32}      {:8g} ({}),        {:8g}\n", names[v], tol[v].value,
-                     tol[v].typestr(), tol[v].floor);
+          fmt::print("   {:<{}}      {:8g} ({}),        {:8g}\n", names[v], name_length(),
+                     tol[v].value, tol[v].typestr(), tol[v].floor);
         }
       }
     }
@@ -296,9 +325,8 @@ namespace {
     }
 
     if (do_all_flag) {
-      int n;
-      int name_length = var_names1.size();
-      for (n = 0; n < name_length; ++n) {
+      auto length_name = var_names1.size();
+      for (size_t n = 0; n < length_name; ++n) {
         const std::string &name = var_names1[n];
         if (!interFace.summary_flag &&
             find_string(var_names2, name, interFace.nocase_var_names) < 0) {
@@ -322,15 +350,15 @@ namespace {
         }
         if (find_string(names, name, interFace.nocase_var_names) < 0 &&
             find_string(x_list, name, interFace.nocase_var_names) < 0) {
-          int idx = names.size();
           names.push_back(name);
-          tols[idx] = default_tol;
+          tols.push_back(default_tol);
+          SMART_ASSERT(names.size() == tols.size())(names.size())(tols.size());
         }
       }
 
       if (!interFace.noSymmetricNameCheck) {
-        name_length = var_names2.size();
-        for (n = 0; n < name_length; ++n) {
+        length_name = var_names2.size();
+        for (size_t n = 0; n < length_name; ++n) {
           const std::string &name = var_names2[n];
           if (!interFace.summary_flag &&
               find_string(var_names1, name, interFace.nocase_var_names) < 0) {
@@ -354,7 +382,8 @@ namespace {
     }
 
     std::vector<std::string> tmp_list;
-    for (unsigned n = 0; n < names.size(); ++n) {
+    std::vector<Tolerance>   tmp_tols;
+    for (size_t n = 0; n < names.size(); ++n) {
       std::string name = names[n];
       chop_whitespace(name);
       if (name[0] == '!') {
@@ -365,7 +394,7 @@ namespace {
       if (idx >= 0) {
         if (interFace.summary_flag ||
             find_string(var_names2, name, interFace.nocase_var_names) >= 0) {
-          tols[tmp_list.size()] = tols[n];
+          tmp_tols.push_back(tols[n]);
           tmp_list.push_back(var_names1[idx]);
         }
         else {
@@ -392,6 +421,8 @@ namespace {
       }
     }
     names = tmp_list;
+    tols  = tmp_tols;
+    SMART_ASSERT(names.size() == tols.size())(names.size())(tols.size());
   }
 
   template <typename INT>
@@ -420,7 +451,7 @@ namespace {
         }
 
         if (set2 == nullptr) {
-          if (interFace.map_flag != PARTIAL) {
+          if (interFace.map_flag != MapType::PARTIAL) {
             *diff_found = true;
             std::ostringstream diff;
             fmt::print(diff,
@@ -437,7 +468,6 @@ namespace {
           int                idx2 = find_string(var_names2, name, interFace.nocase_var_names);
           if (idx1 < 0 || idx2 < 0) {
             Error(fmt::format("Unable to find variable named '{}' on database.\n", name));
-            exit(1);
           }
 
           if (set1->is_valid_var(idx1)) {

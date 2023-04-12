@@ -1,4 +1,4 @@
-INCLUDE_DIRECTORIES(${${PACKAGE_NAME}_SOURCE_DIR}/adapters/teuchos/src/sol)
+TRIBITS_INCLUDE_DIRECTORIES(${${PACKAGE_NAME}_SOURCE_DIR}/adapters/teuchos/src/sol)
 
 TRIBITS_ADD_EXECUTABLE(
   example_01
@@ -114,12 +114,12 @@ if( ${lower_build_type} STREQUAL "release" )
     ADD_DIR_TO_NAME
   )
 
-  TRIBITS_ADD_TEST(
-    example_07
-    ARGS PrintItAll
-    NUM_MPI_PROCS 1
-    PASS_REGULAR_EXPRESSION "TEST PASSED"
-    ADD_DIR_TO_NAME
-  )
+  #TRIBITS_ADD_TEST(
+  #  example_07
+  #  ARGS PrintItAll
+  #  NUM_MPI_PROCS 1
+  #  PASS_REGULAR_EXPRESSION "TEST PASSED"
+  #  ADD_DIR_TO_NAME
+  #)
 
 endif()

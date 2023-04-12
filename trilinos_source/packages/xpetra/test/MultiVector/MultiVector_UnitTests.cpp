@@ -61,6 +61,7 @@
 #  include "Tpetra_Map.hpp"
 #  include "Xpetra_TpetraMultiVector.hpp"
 #  include "Xpetra_TpetraVector.hpp"
+#  include "Tpetra_Details_Behavior.hpp"
 #endif
 #ifdef HAVE_XPETRA_EPETRA
 #  include "Xpetra_EpetraMap.hpp"
@@ -358,7 +359,7 @@ namespace {
     // getDataNonConst(0).
     {
       Teuchos::ArrayRCP<Scalar> vcopy_data = vcopy->getDataNonConst (0);
-      if (map->getNodeNumElements () != 0) {
+      if (map->getLocalNumElements () != 0) {
         vcopy_data[0] += static_cast<magnitude_type> (10000.0);
       }
       // Destroy the view, so that the changes get written back to the Vector.
@@ -543,7 +544,7 @@ namespace {
     #endif
     {
       if(!(is_same<typename MV::scalar_type, int>::value || is_same<typename MV::scalar_type, long long int>::value)) {
-        std::cout << "Running the norm tests!" << std::endl;
+        out << "Running the norm tests!" << std::endl;
         // we zeroed it out in the constructor; all norms should be zero
         Array<Magnitude> norms(numVecs), zeros(numVecs);
         std::fill(zeros.begin(),zeros.end(),ScalarTraits<Magnitude>::zero());
@@ -559,7 +560,7 @@ namespace {
     Scalar testValue = 2, sumValue = 3;
     LocalOrdinal  testLID = 7;
     GlobalOrdinal testGID = myRank*numLocal + testLID;
-    std::cout << "myRank: " << myRank << ", testGID=" << testGID << std::endl;
+    out << "myRank: " << myRank << ", testGID=" << testGID << std::endl;
     mvec.replaceLocalValue(testLID, 3, testValue);
     mvec.replaceLocalValue(testLID, 4, testValue);
     mvec.sumIntoLocalValue(testLID, 4, sumValue);
@@ -2464,15 +2465,17 @@ namespace {
       //TEST_THROW(m1n2.scale(rnd,m1n1), std::runtime_error); // abs  // TODO only available with Tpetra??
       //TEST_THROW(m1n2.scale(rnd,m2n2), std::runtime_error);
       TEST_THROW(m1n2.update(rnd,m1n1,rnd), std::runtime_error); // update(alpha,A,beta)
-      TEST_THROW(m1n2.update(rnd,m2n2,rnd), std::runtime_error);
-      TEST_THROW(m1n2.update(rnd,m2n2  ,rnd,m1n2_2,rnd), std::runtime_error); // update(alpha,A,beta,B,gamma) // A incompat
-      TEST_THROW(m1n2.update(rnd,m2n2  ,rnd,m1n2_2,rnd), std::runtime_error); // incompt is length            // A incompat
-      TEST_THROW(m1n2.update(rnd,m1n2_2,rnd,m2n2  ,rnd), std::runtime_error);                                 // B incompat
-      TEST_THROW(m1n2.update(rnd,m1n2_2,rnd,m2n2  ,rnd), std::runtime_error);                                 // B incompat
-      TEST_THROW(m1n2.update(rnd,m2n2  ,rnd,m2n2  ,rnd), std::runtime_error);                                 // A,B incompat
-      TEST_THROW(m1n2.update(rnd,m2n2  ,rnd,m2n2  ,rnd), std::runtime_error);                                 // A,B incompat
-      TEST_THROW(m1n2.update(rnd,m1n1  ,rnd,m1n2_2,rnd), std::runtime_error); // incompt is numVecs           // A incompat
-      TEST_THROW(m1n2.update(rnd,m1n1  ,rnd,m1n2_2,rnd), std::runtime_error);                                 // A incompat
+      if (::Tpetra::Details::Behavior::debug ()) {
+        TEST_THROW(m1n2.update(rnd,m2n2,rnd), std::runtime_error);
+        TEST_THROW(m1n2.update(rnd,m2n2  ,rnd,m1n2_2,rnd), std::runtime_error); // update(alpha,A,beta,B,gamma) // A incompat
+        TEST_THROW(m1n2.update(rnd,m2n2  ,rnd,m1n2_2,rnd), std::runtime_error); // incompt is length            // A incompat
+        TEST_THROW(m1n2.update(rnd,m1n2_2,rnd,m2n2  ,rnd), std::runtime_error);                                 // B incompat
+        TEST_THROW(m1n2.update(rnd,m1n2_2,rnd,m2n2  ,rnd), std::runtime_error);                                 // B incompat
+        TEST_THROW(m1n2.update(rnd,m2n2  ,rnd,m2n2  ,rnd), std::runtime_error);                                 // A,B incompat
+        TEST_THROW(m1n2.update(rnd,m2n2  ,rnd,m2n2  ,rnd), std::runtime_error);                                 // A,B incompat
+        TEST_THROW(m1n2.update(rnd,m1n1  ,rnd,m1n2_2,rnd), std::runtime_error); // incompt is numVecs           // A incompat
+        TEST_THROW(m1n2.update(rnd,m1n1  ,rnd,m1n2_2,rnd), std::runtime_error);                                 // A incompat
+      }
       TEST_THROW(m1n2.update(rnd,m1n2_2,rnd,m1n1  ,rnd), std::runtime_error);                                 // B incompat
       TEST_THROW(m1n2.update(rnd,m1n2_2,rnd,m1n1  ,rnd), std::runtime_error);                                 // B incompat
       TEST_THROW(m1n2.update(rnd,m1n1  ,rnd,m1n1  ,rnd), std::runtime_error);                                 // A,B incompat
@@ -2506,6 +2509,14 @@ namespace {
       typedef Xpetra::EpetraMapT<GlobalOrdinal, Kokkos::Compat::KokkosCudaWrapperNode> mm;
       TEST_THROW(mm(10, 0, comm), Xpetra::Exceptions::RuntimeError);
       typedef Xpetra::EpetraMultiVectorT<GlobalOrdinal, Kokkos::Compat::KokkosCudaWrapperNode> mx;
+      TEST_THROW(mx(Teuchos::null, 3), Xpetra::Exceptions::RuntimeError);
+    }
+#endif
+#if defined(HAVE_XPETRA_TPETRA) && defined(HAVE_TPETRA_INST_HIP)
+    {
+      typedef Xpetra::EpetraMapT<GlobalOrdinal, Kokkos::Compat::KokkosHIPWrapperNode> mm;
+      TEST_THROW(mm(10, 0, comm), Xpetra::Exceptions::RuntimeError);
+      typedef Xpetra::EpetraMultiVectorT<GlobalOrdinal, Kokkos::Compat::KokkosHIPWrapperNode> mx;
       TEST_THROW(mx(Teuchos::null, 3), Xpetra::Exceptions::RuntimeError);
     }
 #endif

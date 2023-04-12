@@ -62,7 +62,6 @@
 #include <KokkosBatched_Gemm_Serial_Impl.hpp>
 #include <KokkosBatched_Gemm_Team_Impl.hpp>
 #include <KokkosBatched_Gemv_Decl.hpp>
-#include <KokkosBatched_Gemv_Serial_Impl.hpp>
 #include <KokkosBatched_Gemv_Team_Impl.hpp>
 #include <KokkosBatched_Trsm_Decl.hpp>
 #include <KokkosBatched_Trsm_Serial_Impl.hpp>
@@ -91,9 +90,6 @@
 #define IFPACK2_BLOCKTRIDICONTAINER_USE_MPI_3
 #endif
 
-// this requires kokkos develop branch (do not use this yet)
-//#define IFPACK2_BLOCKTRIDICONTAINER_USE_CUDA_STREAM
-
 // ::: Experiments :::
 // define either pinned memory or cudamemory for mpi
 // if both macros are disabled, it will use tpetra memory space which is uvm space for cuda
@@ -110,16 +106,14 @@
 #define IFPACK2_BLOCKTRIDICONTAINER_USE_SMALL_SCALAR_FOR_BLOCKTRIDIAG
 #endif
 
+// if defined, it uses multiple execution spaces
+#define IFPACK2_BLOCKTRIDICONTAINER_USE_EXEC_SPACE_INSTANCES
+
 namespace Ifpack2 {
 
   namespace BlockTriDiContainerDetails {
 
-    /// for the next promotion
-#if defined(__KOKKOSBATCHED_PROMOTION__)
-namespace KB = KokkosBatched;
-#else
-namespace KB = KokkosBatched::Experimental;
-#endif
+    namespace KB = KokkosBatched;
 
     ///
     /// view decorators for unmanaged and const memory
@@ -165,6 +159,19 @@ namespace KB = KokkosBatched::Experimental;
                                  typename ViewType::execution_space::scratch_memory_space,
                                  MemoryTraits<typename ViewType::memory_traits, Kokkos::Unmanaged> >;
 
+    /// 
+    /// tpetra little block index
+    ///
+    template<typename LayoutType> struct TpetraLittleBlock;
+    template<> struct TpetraLittleBlock<Kokkos::LayoutLeft> {
+      template<typename T> KOKKOS_INLINE_FUNCTION
+      static T getFlatIndex(const T i, const T j, const T blksize) { return i+j*blksize; }
+    };
+    template<> struct TpetraLittleBlock<Kokkos::LayoutRight> {
+      template<typename T> KOKKOS_INLINE_FUNCTION
+      static T getFlatIndex(const T i, const T j, const T blksize) { return i*blksize+j; }
+    };
+
     ///
     /// block tridiag scalar type
     ///
@@ -177,11 +184,55 @@ namespace KB = KokkosBatched::Experimental;
     ///
     /// cuda specialization
     ///
-    template<typename T> struct is_cuda        { enum : bool { value = false }; };
+    template<typename T> struct is_cuda                 { enum : bool { value = false }; };
 #if defined(KOKKOS_ENABLE_CUDA)
-    template<> struct is_cuda<Kokkos::Cuda>    { enum : bool { value = true  }; };
+    template<> struct is_cuda<Kokkos::Cuda>             { enum : bool { value = true  }; };
 #endif
 
+    ///
+    /// hip specialization
+    ///
+    template<typename T> struct is_hip                  { enum : bool { value = false }; };
+#if defined(KOKKOS_ENABLE_HIP)
+    template<> struct is_hip<Kokkos::Experimental::HIP> { enum : bool { value = true  }; };
+#endif
+
+    ///
+    /// execution space instance
+    ///
+    template<typename T>
+    struct ExecutionSpaceFactory {
+      static void createInstance(T &exec_instance) {
+        exec_instance = T();
+      }
+#if defined(KOKKOS_ENABLE_CUDA)
+      static void createInstance(const cudaStream_t &s, T &exec_instance) {
+        exec_instance = T();
+      }
+#endif
+    };
+
+#if defined(KOKKOS_ENABLE_CUDA)
+    template<>
+    struct ExecutionSpaceFactory<Kokkos::Cuda> {
+      static void createInstance(Kokkos::Cuda &exec_instance) {
+        exec_instance = Kokkos::Cuda();
+      }
+      static void createInstance(const cudaStream_t &s, Kokkos::Cuda &exec_instance) {
+        exec_instance = Kokkos::Cuda(s);
+      }      
+    };
+#endif
+
+#if defined(KOKKOS_ENABLE_HIP)
+    template<>
+    struct ExecutionSpaceFactory<Kokkos::Experimental::HIP> {
+      static void createInstance(Kokkos::Experimental::HIP &exec_instance) {
+	exec_instance = Kokkos::Experimental::HIP();
+      }
+    };
+#endif
+    
     ///
     /// utility functions
     ///
@@ -215,15 +266,6 @@ namespace KB = KokkosBatched::Experimental;
     static
     KOKKOS_INLINE_FUNCTION
     void
-    operator+=(volatile ArrayValueType<T,N> &a,
-               volatile const ArrayValueType<T,N> &b) {
-      for (int i=0;i<N;++i)
-        a.v[i] += b.v[i];
-    }
-    template<typename T, int N>
-    static
-    KOKKOS_INLINE_FUNCTION
-    void
     operator+=(ArrayValueType<T,N> &a,
                const ArrayValueType<T,N> &b) {
       for (int i=0;i<N;++i)
@@ -244,12 +286,7 @@ namespace KB = KokkosBatched::Experimental;
       SumReducer(value_type &val) : value(&val) {}
 
       KOKKOS_INLINE_FUNCTION
-      void join(value_type &dst, value_type &src) const {
-        for (int i=0;i<N;++i)
-          dst.v[i] += src.v[i];
-      }
-      KOKKOS_INLINE_FUNCTION
-      void join(volatile value_type &dst, const volatile value_type &src) const {
+      void join(value_type &dst, value_type const &src) const {
         for (int i=0;i<N;++i)
           dst.v[i] += src.v[i];
       }
@@ -276,10 +313,10 @@ namespace KB = KokkosBatched::Experimental;
 
 #if defined(KOKKOS_ENABLE_CUDA) && defined(IFPACK2_BLOCKTRIDICONTAINER_ENABLE_PROFILE)
 #define IFPACK2_BLOCKTRIDICONTAINER_PROFILER_REGION_BEGIN \
-    CUDA_SAFE_CALL(cudaProfilerStart());
+    KOKKOS_IMPL_CUDA_SAFE_CALL(cudaProfilerStart());
 
 #define IFPACK2_BLOCKTRIDICONTAINER_PROFILER_REGION_END \
-    { CUDA_SAFE_CALL( cudaProfilerStop() ); }
+    { KOKKOS_IMPL_CUDA_SAFE_CALL( cudaProfilerStop() ); }
 #else
     /// later put vtune profiler region
 #define IFPACK2_BLOCKTRIDICONTAINER_PROFILER_REGION_BEGIN
@@ -341,7 +378,7 @@ namespace KB = KokkosBatched::Experimental;
       typedef Tpetra::BlockCrsMatrix<scalar_type,local_ordinal_type,global_ordinal_type,node_type> tpetra_block_crs_matrix_type;
       typedef typename tpetra_block_crs_matrix_type::little_block_type tpetra_block_access_view_type;
       typedef Tpetra::BlockMultiVector<scalar_type,local_ordinal_type,global_ordinal_type,node_type> tpetra_block_multivector_type;
-      typedef typename tpetra_block_crs_matrix_type::crs_graph_type::local_graph_type local_crs_graph_type;
+      typedef typename tpetra_block_crs_matrix_type::crs_graph_type::local_graph_device_type local_crs_graph_type;
 
       ///
       /// simd vectorization
@@ -442,36 +479,6 @@ namespace KB = KokkosBatched::Experimental;
 #endif
       }
 
-#if defined(KOKKOS_ENABLE_CUDA) && defined(IFPACK2_BLOCKTRIDICONTAINER_USE_CUDA_STREAM)
-      struct CallbackDataArgsForSendRecv {
-        MPI_Comm comm;
-        char *buf;
-        int count;
-        int pid;
-        int tag;
-        MPI_Request *ireq;
-
-        int r_val;
-      };
-
-      static void CUDART_CB callback_isend(cudaStream_t this_stream, cudaError_t status, void *data) {
-        CallbackDataArgsForSendRecv *in = reinterpret_cast<CallbackDataArgsForSendRecv*>(data);
-        in->r_val = isend(in->comm, in->buf, in->count, in->pid, in->tag, in->ireq);
-      }
-
-      static void CUDART_CB callback_irecv(cudaStream_t this_stream, cudaError_t status, void *data) {
-        CallbackDataArgsForSendRecv *in = reinterpret_cast<CallbackDataArgsForSendRecv*>(data);
-        in->r_val = irecv(in->comm, in->buf, in->count, in->pid, in->tag, in->ireq);
-      }
-
-      static void CUDART_CB callback_wait(cudaStream_t this_stream, cudaError_t status, void *data) {
-#ifdef HAVE_IFPACK2_MPI
-        MPI_Request *req = reinterpret_cast<MPI_Request*>(data);
-        MPI_Wait(req, MPI_STATUS_IGNORE);
-#endif // HAVE_IFPACK2_MPI
-      }
-#endif // defined(KOKKOS_ENABLE_CUDA) && defined(IFPACK2_BLOCKTRIDICONTAINER_USE_CUDA_STREAM)
-
       static int waitany(int count, MPI_Request* reqs, int* index) {
 #ifdef HAVE_IFPACK2_MPI
         return MPI_Waitany(count, reqs, index, MPI_STATUS_IGNORE);
@@ -545,12 +552,9 @@ namespace KB = KokkosBatched::Experimental;
 
       local_ordinal_type_1d_view dm2cm; // permutation
 
-#if defined(KOKKOS_ENABLE_CUDA) && defined(IFPACK2_BLOCKTRIDICONTAINER_USE_CUDA_STREAM)
-      using cuda_stream_1d_std_vector = std::vector<cudaStream_t>;
-      SendRecvPair<cuda_stream_1d_std_vector> stream;
-
-      using callback_data_send_recv_1d_std_vector = std::vector<CallbackDataArgsForSendRecv>;
-      SendRecvPair<callback_data_send_recv_1d_std_vector> callback_data;
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
+      using exec_instance_1d_std_vector = std::vector<execution_space>;
+      exec_instance_1d_std_vector exec_instances;  
 #endif
 
       // for cuda
@@ -573,6 +577,19 @@ namespace KB = KokkosBatched::Experimental;
           });
       }
 
+      void setOffsetValuesHost(const Teuchos::ArrayView<const size_t> &lens,
+                               const size_type_1d_view_host &offs) {
+        // wrap lens to kokkos view and deep copy to device
+        Kokkos::View<size_t*,Kokkos::HostSpace> lens_host(const_cast<size_t*>(lens.getRawPtr()), lens.size());
+        const auto lens_device = Kokkos::create_mirror_view_and_copy(memory_space(), lens_host);
+
+        // exclusive scan
+        offs(0) = 0;
+        for (local_ordinal_type i=1,iend=offs.extent(0);i<iend;++i) {
+          offs(i) = offs(i-1) + lens[i-1];
+        }
+      }
+
     private:
       void createMpiRequests(const tpetra_import_type &import) {
         Tpetra::Distributor &distributor = import.getDistributor();
@@ -591,6 +608,7 @@ namespace KB = KokkosBatched::Experimental;
         reqs.send.resize(pids.send.extent(0)); memset(reqs.send.data(), 0, reqs.send.size()*sizeof(MPI_Request));
 
         // construct offsets
+#if 0
         const auto lengths_to = distributor.getLengthsTo();
         offset.send = size_type_1d_view(do_not_initialize_tag("offset send"), lengths_to.size() + 1);
 
@@ -602,6 +620,19 @@ namespace KB = KokkosBatched::Experimental;
 
         setOffsetValues(lengths_from, offset.recv);
         offset_host.recv = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), offset.recv);
+#else
+        const auto lengths_to = distributor.getLengthsTo();
+        offset_host.send = size_type_1d_view_host(do_not_initialize_tag("offset send"), lengths_to.size() + 1);
+
+        const auto lengths_from = distributor.getLengthsFrom();
+        offset_host.recv = size_type_1d_view_host(do_not_initialize_tag("offset recv"), lengths_from.size() + 1);
+
+        setOffsetValuesHost(lengths_to, offset_host.send);
+        //offset.send = Kokkos::create_mirror_view_and_copy(memory_space(), offset_host.send);
+
+        setOffsetValuesHost(lengths_from, offset_host.recv);
+        //offset.recv = Kokkos::create_mirror_view_and_copy(memory_space(), offset_host.recv);
+#endif
       }
 
       void createSendRecvIDs(const tpetra_import_type &import) {
@@ -624,11 +655,19 @@ namespace KB = KokkosBatched::Experimental;
           const auto pid_send_value = pids.send[i];
           for (local_ordinal_type j=0,jend=epids.size();j<jend;++j)
             if (epids[j] == pid_send_value) lids_send_host[cnt++] = elids[j];
-#if !defined(__CUDA_ARCH__)
+#if !defined(__HIP_DEVICE_COMPILE__) && !defined(__CUDA_ARCH__)
           TEUCHOS_ASSERT(static_cast<size_t>(cnt) == offset_host.send[i+1]);
 #endif
         }
         Kokkos::deep_copy(lids.send, lids_send_host);
+      }
+
+      void createExecutionSpaceInstances() {
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
+        //The following line creates 8 streams:
+        exec_instances =
+          Kokkos::Experimental::partition_space(execution_space(), 1, 1, 1, 1, 1, 1, 1, 1);
+#endif
       }
 
     public:
@@ -650,38 +689,7 @@ namespace KB = KokkosBatched::Experimental;
 
         createMpiRequests(import);
         createSendRecvIDs(import);
-
-#if defined(KOKKOS_ENABLE_CUDA) && defined(IFPACK2_BLOCKTRIDICONTAINER_USE_CUDA_STREAM)
-        {
-          const local_ordinal_type num_streams = pids.send.extent(0);
-          stream.send.resize(num_streams);
-          callback_data.send.resize(num_streams);
-          for (local_ordinal_type i=0;i<num_streams;++i)
-            CUDA_SAFE_CALL(cudaStreamCreate(&stream.send[i])); // nonblocking flag is not really necessary here
-        }
-        {
-          const local_ordinal_type num_streams = pids.recv.extent(0);
-          stream.recv.resize(num_streams);
-          callback_data.recv.resize(num_streams);
-          for (local_ordinal_type i=0;i<num_streams;++i)
-            CUDA_SAFE_CALL(cudaStreamCreate(&stream.recv[i])); // nonblocking flag is not really necessary here
-        }
-#endif
-      }
-
-      ~AsyncableImport() {
-#if defined(KOKKOS_ENABLE_CUDA) && defined(IFPACK2_BLOCKTRIDICONTAINER_USE_CUDA_STREAM)
-        {
-          const local_ordinal_type num_streams = stream.send.size();
-          for (local_ordinal_type i=0;i<num_streams;++i)
-            CUDA_SAFE_CALL(cudaStreamDestroy(stream.send[i]));
-        }
-        {
-          const local_ordinal_type num_streams = stream.recv.size();
-          for (local_ordinal_type i=0;i<num_streams;++i)
-            CUDA_SAFE_CALL(cudaStreamDestroy(stream.recv[i]));
-        }
-#endif
+        createExecutionSpaceInstances();
       }
 
       void createDataBuffer(const local_ordinal_type &num_vectors) {
@@ -714,16 +722,16 @@ namespace KB = KokkosBatched::Experimental;
       // - cuda only with kokkos develop branch
       // ======================================================================
 
-#if defined(KOKKOS_ENABLE_CUDA) && defined(IFPACK2_BLOCKTRIDICONTAINER_USE_CUDA_STREAM)
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
       template<typename PackTag>
       static
-      void copyViaCudaStream(const local_ordinal_type_1d_view &lids_,
-                             const impl_scalar_type_1d_view &buffer_,
-                             const local_ordinal_type ibeg_,
-                             const local_ordinal_type iend_,
-                             const impl_scalar_type_2d_view_tpetra &multivector_,
-                             const local_ordinal_type blocksize_,
-                             const cudaStream_t &stream_) {
+      void copy(const local_ordinal_type_1d_view &lids_,
+                const impl_scalar_type_1d_view &buffer_,
+                const local_ordinal_type ibeg_,
+                const local_ordinal_type iend_,
+                const impl_scalar_type_2d_view_tpetra &multivector_,
+                const local_ordinal_type blocksize_,
+                const execution_space &exec_instance_) {
         const local_ordinal_type num_vectors = multivector_.extent(1);
         const local_ordinal_type mv_blocksize = blocksize_*num_vectors;
         const local_ordinal_type idiff = iend_ - ibeg_;
@@ -736,9 +744,8 @@ namespace KB = KokkosBatched::Experimental;
         else if (blocksize_ <= 16) vector_size = 16;
         else                       vector_size = 32;
 
-        const auto exec_instance = Kokkos::Cuda(stream_);
         const auto work_item_property = Kokkos::Experimental::WorkItemProperty::HintLightWeight;
-        const team_policy_type policy(exec_instance, idiff, 1, vector_size);
+        const team_policy_type policy(exec_instance_, idiff, 1, vector_size);
         Kokkos::parallel_for
           (//"AsyncableImport::TeamPolicy::copyViaCudaStream",
            Kokkos::Experimental::require(policy, work_item_property),
@@ -762,7 +769,7 @@ namespace KB = KokkosBatched::Experimental;
           });
       }
 
-      void asyncSendRecvViaCudaStream(const impl_scalar_type_2d_view_tpetra &mv) {
+      void asyncSendRecvVar1(const impl_scalar_type_2d_view_tpetra &mv) {
         IFPACK2_BLOCKTRIDICONTAINER_TIMER("BlockTriDi::AsyncableImport::AsyncSendRecv");
 
 #ifdef HAVE_IFPACK2_MPI
@@ -780,37 +787,25 @@ namespace KB = KokkosBatched::Experimental;
                 &reqs.recv[i]);
         }
 
+        /// this is necessary to pass unit test. somewhere overlapped using the default execution space
+        execution_space().fence();
+
         // 1. async memcpy
-#if defined (KOKKOS_ENABLE_OPENMP)
-#pragma omp parallel for
-#endif
         for (local_ordinal_type i=0;i<static_cast<local_ordinal_type>(pids.send.extent(0));++i) {
-          auto &stream_at_i = stream.send[i];
           // 1.0. enqueue pack buffer
-          copyViaCudaStream<ToBuffer>(lids.send, buffer.send,
-                                      offset_host.send(i), offset_host.send(i+1),
-                                      mv, blocksize,
-                                      stream_at_i);
+          if (i<8)  exec_instances[i%8].fence();
+          copy<ToBuffer>(lids.send, buffer.send,
+                         offset_host.send(i), offset_host.send(i+1),
+                         mv, blocksize,
+                         //execution_space());
+                         exec_instances[i%8]);
 
-          // // 1.1. enqueue call back posting isend , call back does not really work; what did I do wrong.
-          // auto &data_at_i = callback_data.send[i];
-          // data_at_i.comm = comm;
-          // data_at_i.buf = (char*)(buffer.send.data() + offset_host.send[i]*mv_blocksize);
-          // data_at_i.count = (offset_host.send[i+1] - offset_host.send[i])*mv_blocksize*sizeof(impl_scalar_type);
-          // data_at_i.pid = pids.send[i];
-          // data_at_i.tag = 42;
-          // data_at_i.ireq = &reqs.send[i];
-          // data_at_i.r_val = 0;
-          // CUDA_SAFE_CALL(cudaStreamAddCallback(stream_at_i, callback_isend, (void*)&data_at_i, 0));
         }
-
-        Kokkos::fence();
-#if defined (KOKKOS_ENABLE_OPENMP)
-#pragma omp parallel for
-#endif
+        /// somehow one unit test fails when we use exec_instance[i%8]
+        //execution_space().fence();
         for (local_ordinal_type i=0;i<static_cast<local_ordinal_type>(pids.send.extent(0));++i) {
           // 1.1. sync the stream and isend
-          //CUDA_SAFE_CALL(cudaStreamSynchronize(stream_at_i));
+          if (i<8)  exec_instances[i%8].fence();
           isend(comm,
                 reinterpret_cast<const char*>(buffer.send.data() + offset_host.send[i]*mv_blocksize),
                 (offset_host.send[i+1] - offset_host.send[i])*mv_blocksize*sizeof(impl_scalar_type),
@@ -828,28 +823,21 @@ namespace KB = KokkosBatched::Experimental;
 #endif // HAVE_IFPACK2_MPI
       }
 
-      void syncRecvViaCudaStream() {
+      void syncRecvVar1() {
         IFPACK2_BLOCKTRIDICONTAINER_TIMER("BlockTriDi::AsyncableImport::SyncRecv");
 #ifdef HAVE_IFPACK2_MPI
         // 0. wait for receive async.
-#if defined (KOKKOS_ENABLE_OPENMP)
-#pragma omp parallel for
-#endif
         for (local_ordinal_type i=0;i<static_cast<local_ordinal_type>(pids.recv.extent(0));++i) {
           local_ordinal_type idx = i;
-          auto &stream_at_idx = stream.recv[idx];
 
           // 0.0. wait any
           waitany(pids.recv.extent(0), reqs.recv.data(), &idx);
 
-          // 0.0. add call back for waiting version (not working, what did i do wrong?)
-          //CUDA_SAFE_CALL(cudaStreamAddCallback(stream_at_idx, callback_wait, (void*)&reqs.recv[idx], 0));
-
           // 0.1. unpack data after data is moved into a device
-          copyViaCudaStream<ToMultiVector>(lids.recv, buffer.recv,
-                                           offset_host.recv(idx), offset_host.recv(idx+1),
-                                           remote_multivector, blocksize,
-                                           stream_at_idx);
+          copy<ToMultiVector>(lids.recv, buffer.recv,
+                              offset_host.recv(idx), offset_host.recv(idx+1),
+                              remote_multivector, blocksize,
+                              exec_instances[idx%8]);
         }
 
         // 1. fire up all cuda events
@@ -859,7 +847,7 @@ namespace KB = KokkosBatched::Experimental;
         waitall(reqs.send.size(), reqs.send.data());
 #endif // HAVE_IFPACK2_MPI
       }
-#endif //defined(KOKKOS_ENABLE_CUDA) && defined(IFPACK2_BLOCKTRIDICONTAINER_USE_CUDA_STREAM)
+#endif //defined(KOKKOS_ENABLE_CUDA)
 
       // ======================================================================
       // Generic version without using cuda stream
@@ -878,8 +866,8 @@ namespace KB = KokkosBatched::Experimental;
         const local_ordinal_type mv_blocksize = blocksize_*num_vectors;
         const local_ordinal_type idiff = iend_ - ibeg_;
         const auto abase = buffer_.data() + mv_blocksize*ibeg_;
-        if (is_cuda<execution_space>::value) {
-#if defined(KOKKOS_ENABLE_CUDA)
+        if (is_cuda<execution_space>::value || is_hip<execution_space>::value) {
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
           using team_policy_type = Kokkos::TeamPolicy<execution_space>;
           local_ordinal_type vector_size(0);
           if      (blocksize_ <=  4) vector_size =  4;
@@ -909,8 +897,8 @@ namespace KB = KokkosBatched::Experimental;
             });
 #endif
         } else {
-#if defined(__CUDA_ARCH__)
-          TEUCHOS_TEST_FOR_EXCEPT_MSG(true, "Error: CUDA should not see this code");
+#if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
+          TEUCHOS_TEST_FOR_EXCEPT_MSG(true, "Error: device compiler should not see this code");
 #else
           {
             const Kokkos::RangePolicy<execution_space> policy(0, idiff*num_vectors);
@@ -928,10 +916,13 @@ namespace KB = KokkosBatched::Experimental;
           }
 #endif
         }
-        Kokkos::fence();
       }
 
-      void asyncSendRecv(const impl_scalar_type_2d_view_tpetra &mv) {
+
+      ///
+      /// standard comm
+      ///
+      void asyncSendRecvVar0(const impl_scalar_type_2d_view_tpetra &mv) {
         IFPACK2_BLOCKTRIDICONTAINER_TIMER("BlockTriDi::AsyncableImport::AsyncSendRecv");
 
 #ifdef HAVE_IFPACK2_MPI
@@ -953,6 +944,7 @@ namespace KB = KokkosBatched::Experimental;
         for (local_ordinal_type i=0,iend=pids.send.extent(0);i<iend;++i) {
           copy<ToBuffer>(lids.send, buffer.send, offset_host.send(i), offset_host.send(i+1),
                          mv, blocksize);
+          Kokkos::fence();
           isend(comm,
                 reinterpret_cast<const char*>(buffer.send.data() + offset_host.send[i]*mv_blocksize),
                 (offset_host.send[i+1] - offset_host.send[i])*mv_blocksize*sizeof(impl_scalar_type),
@@ -971,7 +963,7 @@ namespace KB = KokkosBatched::Experimental;
 #endif
       }
 
-      void syncRecv() {
+      void syncRecvVar0() {
         IFPACK2_BLOCKTRIDICONTAINER_TIMER("BlockTriDi::AsyncableImport::SyncRecv");
 #ifdef HAVE_IFPACK2_MPI
         // receive async.
@@ -986,15 +978,36 @@ namespace KB = KokkosBatched::Experimental;
 #endif
       }
 
+      ///
+      /// front interface
+      ///
+      void asyncSendRecv(const impl_scalar_type_2d_view_tpetra &mv) {
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
+#if defined(IFPACK2_BLOCKTRIDICONTAINER_USE_EXEC_SPACE_INSTANCES)
+        asyncSendRecvVar1(mv);
+#else
+        asyncSendRecvVar0(mv);
+#endif
+#else
+        asyncSendRecvVar0(mv);
+#endif
+      }
+      void syncRecv() {
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
+#if defined(IFPACK2_BLOCKTRIDICONTAINER_USE_EXEC_SPACE_INSTANCES)
+        syncRecvVar1();
+#else
+        syncRecvVar0();
+#endif
+#else
+        syncRecvVar0();
+#endif
+      }
+
       void syncExchange(const impl_scalar_type_2d_view_tpetra &mv) {
         IFPACK2_BLOCKTRIDICONTAINER_TIMER("BlockTriDi::AsyncableImport::SyncExchange");
-#if defined(KOKKOS_ENABLE_CUDA) && defined(IFPACK2_BLOCKTRIDICONTAINER_USE_CUDA_STREAM)
-        asyncSendRecvViaCudaStream(mv);
-        syncRecvViaCudaStream();
-#else
         asyncSendRecv(mv);
         syncRecv();
-#endif
       }
 
       impl_scalar_type_2d_view_tpetra getRemoteMultiVectorLocalView() const { return remote_multivector; }
@@ -1019,7 +1032,7 @@ namespace KB = KokkosBatched::Experimental;
 
       std::vector<global_ordinal_type> gids;
       bool separate_remotes = true, found_first = false, need_owned_permutation = false;
-      for (size_t i=0;i<column_map->getNodeNumElements();++i) {
+      for (size_t i=0;i<column_map->getLocalNumElements();++i) {
         const global_ordinal_type gid = column_map->getGlobalElement(i);
         if (!domain_map->isNodeGlobalElement(gid)) {
           found_first = true;
@@ -1050,9 +1063,9 @@ namespace KB = KokkosBatched::Experimental;
           // make the importer only if needed.
           local_ordinal_type_1d_view dm2cm;
           if (need_owned_permutation) {
-            dm2cm = local_ordinal_type_1d_view(do_not_initialize_tag("dm2cm"), domain_map->getNodeNumElements());
+            dm2cm = local_ordinal_type_1d_view(do_not_initialize_tag("dm2cm"), domain_map->getLocalNumElements());
             const auto dm2cm_host = Kokkos::create_mirror_view(dm2cm);
-            for (size_t i=0;i<domain_map->getNodeNumElements();++i)
+            for (size_t i=0;i<domain_map->getLocalNumElements();++i)
               dm2cm_host(i) = domain_map->getLocalElement(column_map->getGlobalElement(i));
             Kokkos::deep_copy(dm2cm, dm2cm_host);
           }
@@ -1132,7 +1145,7 @@ namespace KB = KokkosBatched::Experimental;
       PartInterface<MatrixType> interf;
 
       const bool jacobi = partitions.size() == 0;
-      const local_ordinal_type A_n_lclrows = A->getNodeNumRows();
+      const local_ordinal_type A_n_lclrows = A->getLocalNumRows();
       const local_ordinal_type nparts = jacobi ? A_n_lclrows : partitions.size();
 
 #if defined(BLOCKTRIDICONTAINER_DEBUG)
@@ -1144,7 +1157,7 @@ namespace KB = KokkosBatched::Experimental;
 
       TEUCHOS_TEST_FOR_EXCEPT_MSG
         (nrows != A_n_lclrows, get_msg_prefix(comm) << "The #rows implied by the local partition is not "
-         << "the same as getNodeNumRows: " << nrows << " vs " << A_n_lclrows);
+         << "the same as getLocalNumRows: " << nrows << " vs " << A_n_lclrows);
 #endif
 
       // permutation vector
@@ -1189,35 +1202,66 @@ namespace KB = KokkosBatched::Experimental;
       part2rowidx0(0) = 0;
       part2packrowidx0(0) = 0;
       local_ordinal_type pack_nrows = 0;
-      for (local_ordinal_type ip=0;ip<nparts;++ip) {
-        const auto* part = jacobi ? NULL : &partitions[p[ip]];
-        const local_ordinal_type ipnrows = jacobi ? 1 : part->size();
-        TEUCHOS_ASSERT(ip == 0 || (jacobi || ipnrows <= static_cast<local_ordinal_type>(partitions[p[ip-1]].size())));
-        TEUCHOS_TEST_FOR_EXCEPT_MSG(ipnrows == 0,
-                                    get_msg_prefix(comm)
-                                    << "partition " << p[ip]
-                                    << " is empty, which is not allowed.");
-        //assume No overlap.
-        part2rowidx0(ip+1) = part2rowidx0(ip) + ipnrows;
-        // Since parts are ordered in nonincreasing size, the size of the first
-        // part in a pack is the size for all parts in the pack.
-        if (ip % vector_length == 0) pack_nrows = ipnrows;
-        part2packrowidx0(ip+1) = part2packrowidx0(ip) + ((ip+1) % vector_length == 0 || ip+1 == nparts ? pack_nrows : 0);
-        const local_ordinal_type os = partptr(ip);
-        for (local_ordinal_type i=0;i<ipnrows;++i) {
-          const auto lcl_row = jacobi ? ip : (*part)[i];
-          TEUCHOS_TEST_FOR_EXCEPT_MSG(lcl_row < 0 || lcl_row >= A_n_lclrows,
-                                      get_msg_prefix(comm)
-                                      << "partitions[" << p[ip] << "]["
-                                      << i << "] = " << lcl_row
-                                      << " but input matrix implies limits of [0, " << A_n_lclrows-1
-                                      << "].");
-          lclrow(os+i) = lcl_row;
-          rowidx2part(os+i) = ip;
-          if (interf.row_contiguous && os+i > 0 && lclrow((os+i)-1) + 1 != lcl_row)
-            interf.row_contiguous = false;
-        }
-        partptr(ip+1) = os + ipnrows;
+      if (jacobi) {
+	for (local_ordinal_type ip=0;ip<nparts;++ip) {
+	  const local_ordinal_type ipnrows = 1;
+	  TEUCHOS_TEST_FOR_EXCEPT_MSG(ipnrows == 0,
+				      get_msg_prefix(comm)
+				      << "partition " << p[ip]
+				      << " is empty, which is not allowed.");
+	  //assume No overlap.
+	  part2rowidx0(ip+1) = part2rowidx0(ip) + ipnrows;
+	  // Since parts are ordered in nonincreasing size, the size of the first
+	  // part in a pack is the size for all parts in the pack.
+	  if (ip % vector_length == 0) pack_nrows = ipnrows;
+	  part2packrowidx0(ip+1) = part2packrowidx0(ip) + ((ip+1) % vector_length == 0 || ip+1 == nparts ? pack_nrows : 0);
+	  const local_ordinal_type os = partptr(ip);
+	  for (local_ordinal_type i=0;i<ipnrows;++i) {
+	    const auto lcl_row = ip;
+	    TEUCHOS_TEST_FOR_EXCEPT_MSG(lcl_row < 0 || lcl_row >= A_n_lclrows,
+					get_msg_prefix(comm)
+					<< "partitions[" << p[ip] << "]["
+					<< i << "] = " << lcl_row
+					<< " but input matrix implies limits of [0, " << A_n_lclrows-1
+					<< "].");
+	    lclrow(os+i) = lcl_row;
+	    rowidx2part(os+i) = ip;
+	    if (interf.row_contiguous && os+i > 0 && lclrow((os+i)-1) + 1 != lcl_row)
+	      interf.row_contiguous = false;
+	  }
+	  partptr(ip+1) = os + ipnrows;
+	}
+      } else {
+	for (local_ordinal_type ip=0;ip<nparts;++ip) {
+	  const auto* part = &partitions[p[ip]];
+	  const local_ordinal_type ipnrows = part->size();
+	  TEUCHOS_ASSERT(ip == 0 || (ipnrows <= static_cast<local_ordinal_type>(partitions[p[ip-1]].size())));
+	  TEUCHOS_TEST_FOR_EXCEPT_MSG(ipnrows == 0,
+				      get_msg_prefix(comm)
+				      << "partition " << p[ip]
+				      << " is empty, which is not allowed.");
+	  //assume No overlap.
+	  part2rowidx0(ip+1) = part2rowidx0(ip) + ipnrows;
+	  // Since parts are ordered in nonincreasing size, the size of the first
+	  // part in a pack is the size for all parts in the pack.
+	  if (ip % vector_length == 0) pack_nrows = ipnrows;
+	  part2packrowidx0(ip+1) = part2packrowidx0(ip) + ((ip+1) % vector_length == 0 || ip+1 == nparts ? pack_nrows : 0);
+	  const local_ordinal_type os = partptr(ip);
+	  for (local_ordinal_type i=0;i<ipnrows;++i) {
+	    const auto lcl_row = (*part)[i];
+	    TEUCHOS_TEST_FOR_EXCEPT_MSG(lcl_row < 0 || lcl_row >= A_n_lclrows,
+					get_msg_prefix(comm)
+					<< "partitions[" << p[ip] << "]["
+					<< i << "] = " << lcl_row
+					<< " but input matrix implies limits of [0, " << A_n_lclrows-1
+					<< "].");
+	    lclrow(os+i) = lcl_row;
+	    rowidx2part(os+i) = ip;
+	    if (interf.row_contiguous && os+i > 0 && lclrow((os+i)-1) + 1 != lcl_row)
+	      interf.row_contiguous = false;
+	  }
+	  partptr(ip+1) = os + ipnrows;
+	}
       }
 #if defined(BLOCKTRIDICONTAINER_DEBUG)
       TEUCHOS_ASSERT(partptr(nparts) == nrows);
@@ -1415,6 +1459,20 @@ namespace KB = KokkosBatched::Experimental;
         else                      total_team_size = 160;
         const local_ordinal_type team_size = total_team_size/vector_loop_size;
         const team_policy_type policy(packptr.extent(0)-1, team_size, vector_loop_size);
+#elif defined(KOKKOS_ENABLE_HIP)
+	// FIXME: HIP
+	// These settings might be completely wrong
+	// will have to do some experiments to decide
+	// what makes sense on AMD GPUs
+        local_ordinal_type total_team_size(0);
+        if      (blocksize <=  5) total_team_size =  32;
+        else if (blocksize <=  9) total_team_size =  64;
+        else if (blocksize <= 12) total_team_size =  96;
+        else if (blocksize <= 16) total_team_size = 128;
+        else if (blocksize <= 20) total_team_size = 160;
+        else                      total_team_size = 160;
+        const local_ordinal_type team_size = total_team_size/vector_loop_size;
+        const team_policy_type policy(packptr.extent(0)-1, team_size, vector_loop_size);
 #else // Host architecture: team size is always one
         const team_policy_type policy(packptr.extent(0)-1, 1, 1);
 #endif
@@ -1446,8 +1504,7 @@ namespace KB = KokkosBatched::Experimental;
       using impl_type = ImplType<MatrixType>;
       using local_ordinal_type_1d_view = typename impl_type::local_ordinal_type_1d_view;
       using size_type_1d_view = typename impl_type::size_type_1d_view;
-      using impl_scalar_type_1d_view_tpetra = typename impl_type::impl_scalar_type_1d_view_tpetra;
-
+      using impl_scalar_type_1d_view_tpetra = Unmanaged<typename impl_type::impl_scalar_type_1d_view_tpetra>;
       // rowptr points to the start of each row of A_colindsub.
       size_type_1d_view rowptr, rowptr_remote;
       // Indices into A's rows giving the blocks to extract. rowptr(i) points to
@@ -1481,7 +1538,7 @@ namespace KB = KokkosBatched::Experimental;
       IFPACK2_BLOCKTRIDICONTAINER_TIMER("BlockTriDi::SymbolicPhase");
 
       using impl_type = ImplType<MatrixType>;
-      using node_memory_space = typename impl_type::node_memory_space;
+      // using node_memory_space = typename impl_type::node_memory_space;
       using host_execution_space = typename impl_type::host_execution_space;
 
       using local_ordinal_type = typename impl_type::local_ordinal_type;
@@ -1508,7 +1565,7 @@ namespace KB = KokkosBatched::Experimental;
       const local_ordinal_type nrows = partptr(partptr.extent(0) - 1);
 
       // find column to row map on host
-      Kokkos::View<local_ordinal_type*,host_execution_space> col2row("col2row", A->getNodeNumCols());
+      Kokkos::View<local_ordinal_type*,host_execution_space> col2row("col2row", A->getLocalNumCols());
       Kokkos::deep_copy(col2row, Teuchos::OrdinalTraits<local_ordinal_type>::invalid());
       {
         const auto rowmap = g.getRowMap();
@@ -1516,7 +1573,7 @@ namespace KB = KokkosBatched::Experimental;
         const auto dommap = g.getDomainMap();
         TEUCHOS_ASSERT( !(rowmap.is_null() || colmap.is_null() || dommap.is_null()));
 
-#if !defined(__CUDA_ARCH__)
+#if !defined(__CUDA_ARCH__) && !defined(__HIP_DEVICE_COMPILE__)
         const Kokkos::RangePolicy<host_execution_space> policy(0,nrows);
         Kokkos::parallel_for
           ("performSymbolicPhase::RangePolicy::col2row",
@@ -1538,10 +1595,10 @@ namespace KB = KokkosBatched::Experimental;
 
       // construct the D and R graphs in A = D + R.
       {
-        const auto& local_graph = g.getLocalGraph();
-        const auto& local_graph_rowptr = local_graph.row_map;
+        const auto local_graph = g.getLocalGraphHost();
+        const auto local_graph_rowptr = local_graph.row_map;
         TEUCHOS_ASSERT(local_graph_rowptr.size() == static_cast<size_t>(nrows + 1));
-        const auto& local_graph_colidx = local_graph.entries;
+        const auto local_graph_colidx = local_graph.entries;
 
         //assume no overlap.
 
@@ -1572,7 +1629,7 @@ namespace KB = KokkosBatched::Experimental;
                 const local_ordinal_type lc2r = col2row[lc];
                 bool incr_R = false;
                 do { // breakable
-                  if (lc2r == Teuchos::OrdinalTraits<local_ordinal_type>::invalid()) {
+                  if (lc2r == (local_ordinal_type) -1) {
                     incr_R = true;
                     break;
                   }
@@ -1633,7 +1690,7 @@ namespace KB = KokkosBatched::Experimental;
                   for (size_type j=j0;j<local_graph_rowptr(lr0+1);++j) {
                     const local_ordinal_type lc = local_graph_colidx(j);
                     const local_ordinal_type lc2r = col2row[lc];
-                    if (lc2r == Teuchos::OrdinalTraits<local_ordinal_type>::invalid()) continue;
+                    if (lc2r == (local_ordinal_type) -1) continue;
                     const local_ordinal_type ri = lclrow2idx[lc2r];
                     const local_ordinal_type pi = rowidx2part(ri);
                     if (pi != pi0) continue;
@@ -1684,7 +1741,7 @@ namespace KB = KokkosBatched::Experimental;
                 for (size_type j=j0;j<local_graph_rowptr(lr+1);++j) {
                   const local_ordinal_type lc = local_graph_colidx(j);
                   const local_ordinal_type lc2r = col2row[lc];
-                  if (lc2r != Teuchos::OrdinalTraits<local_ordinal_type>::invalid()) {
+                  if (lc2r != (local_ordinal_type) -1) {
                     const local_ordinal_type ri = lclrow2idx[lc2r];
                     const local_ordinal_type pi = rowidx2part(ri);
                     if (pi == pi0 && ri + 1 >= ri0 && ri <= ri0 + 1) {
@@ -1731,7 +1788,7 @@ namespace KB = KokkosBatched::Experimental;
                     for (size_type j=j0;j<local_graph_rowptr(lr+1);++j) {
                       const local_ordinal_type lc = local_graph_colidx(j);
                       const local_ordinal_type lc2r = col2row[lc];
-                      if (lc2r != Teuchos::OrdinalTraits<local_ordinal_type>::invalid()) {
+                      if (lc2r != (local_ordinal_type) -1) {
                         const local_ordinal_type ri = lclrow2idx[lc2r];
                         const local_ordinal_type pi = rowidx2part(ri);
                         if (pi == pi0 && ri + 1 >= ri0 && ri <= ri0 + 1)
@@ -1758,8 +1815,8 @@ namespace KB = KokkosBatched::Experimental;
           }
 
           // Allocate or view values.
-          amd.tpetra_values = (const_cast<block_crs_matrix_type*>(A.get())->
-                               template getValues<node_memory_space>());
+          amd.tpetra_values = (const_cast<block_crs_matrix_type*>(A.get())->getValuesDeviceNonConst());
+                               
         }
       }
     }
@@ -1823,6 +1880,42 @@ namespace KB = KokkosBatched::Experimental;
     };
 #endif
 
+#if defined(KOKKOS_ENABLE_HIP)
+    static inline int ExtractAndFactorizeRecommendedHIPTeamSize(const int blksize,
+								const int vector_length,
+								const int internal_vector_length) {
+      const int vector_size = vector_length/internal_vector_length;
+      int total_team_size(0);
+      if      (blksize <=  5) total_team_size =  32;
+      else if (blksize <=  9) total_team_size =  32; // 64
+      else if (blksize <= 12) total_team_size =  96;
+      else if (blksize <= 16) total_team_size = 128;
+      else if (blksize <= 20) total_team_size = 160;
+      else                    total_team_size = 160;
+      return 2*total_team_size/vector_size;
+    }
+    template<>
+    struct ExtractAndFactorizeTridiagsDefaultModeAndAlgo<Kokkos::Experimental::HIPSpace> {
+      typedef KB::Mode::Team mode_type;
+      typedef KB::Algo::Level3::Unblocked algo_type;
+      static int recommended_team_size(const int blksize,
+                                       const int vector_length,
+                                       const int internal_vector_length) {
+        return ExtractAndFactorizeRecommendedHIPTeamSize(blksize, vector_length, internal_vector_length);
+      }
+    };
+    template<>
+    struct ExtractAndFactorizeTridiagsDefaultModeAndAlgo<Kokkos::Experimental::HIPHostPinnedSpace> {
+      typedef KB::Mode::Team mode_type;
+      typedef KB::Algo::Level3::Unblocked algo_type;
+      static int recommended_team_size(const int blksize,
+                                       const int vector_length,
+                                       const int internal_vector_length) {
+        return ExtractAndFactorizeRecommendedHIPTeamSize(blksize, vector_length, internal_vector_length);
+      }
+    };
+#endif
+
     template<typename MatrixType>
     struct ExtractAndFactorizeTridiags {
     public:
@@ -1863,8 +1956,7 @@ namespace KB = KokkosBatched::Experimental;
       const ConstUnmanaged<local_ordinal_type_1d_view> partptr, lclrow, packptr;
       const local_ordinal_type max_partsz;
       // block crs matrix (it could be Kokkos::UVMSpace::size_type, which is int)
-      using a_rowptr_value_type = typename Kokkos::ViewTraits<local_ordinal_type*,typename impl_type::node_device_type>::size_type;
-      using size_type_1d_view_tpetra = Kokkos::View<a_rowptr_value_type*,typename impl_type::node_device_type>;
+      using size_type_1d_view_tpetra = Kokkos::View<size_t*,typename impl_type::node_device_type>;
       const ConstUnmanaged<size_type_1d_view_tpetra> A_rowptr;
       const ConstUnmanaged<impl_scalar_type_1d_view_tpetra> A_values;
       // block tridiags
@@ -1890,8 +1982,8 @@ namespace KB = KokkosBatched::Experimental;
         packptr(interf_.packptr),
         max_partsz(interf_.max_partsz),
         // block crs matrix
-        A_rowptr(A_->getCrsGraph().getLocalGraph().row_map),
-        A_values(const_cast<block_crs_matrix_type*>(A_.get())->template getValues<memory_space>()),
+        A_rowptr(A_->getCrsGraph().getLocalGraphDevice().row_map),
+        A_values(const_cast<block_crs_matrix_type*>(A_.get())->getValuesDeviceNonConst()),
         // block tridiags
         pack_td_ptr(btdm_.pack_td_ptr),
         flat_td_ptr(btdm_.flat_td_ptr),
@@ -1919,6 +2011,7 @@ namespace KB = KokkosBatched::Experimental;
       void
       extract(local_ordinal_type partidx,
               local_ordinal_type npacks) const {
+        using tlb = TpetraLittleBlock<Tpetra::Impl::BlockCrsMatrixLittleBlockArrayLayout>;
         const size_type kps = pack_td_ptr(partidx);
         local_ordinal_type kfs[vector_length] = {};
         local_ordinal_type ri0[vector_length] = {};
@@ -1940,7 +2033,8 @@ namespace KB = KokkosBatched::Experimental;
             ++j;
             for (local_ordinal_type ii=0;ii<blocksize;++ii) {
               for (local_ordinal_type jj=0;jj<blocksize;++jj) {
-                const auto idx = ii*blocksize + jj;
+                //const auto idx = ii*blocksize + jj;
+                const auto idx = tlb::getFlatIndex(ii, jj, blocksize);
                 auto& v = internal_vector_values(pi, ii, jj, 0);
                 for (local_ordinal_type vi=0;vi<npacks;++vi)
                   v[vi] = static_cast<btdm_scalar_type>(block[vi][idx]);
@@ -1965,6 +2059,7 @@ namespace KB = KokkosBatched::Experimental;
               const local_ordinal_type &partidxbeg,
               const local_ordinal_type &npacks,
               const local_ordinal_type &vbeg) const {
+        using tlb = TpetraLittleBlock<Tpetra::Impl::BlockCrsMatrixLittleBlockArrayLayout>;
         local_ordinal_type kfs_vals[internal_vector_length] = {};
         local_ordinal_type ri0_vals[internal_vector_length] = {};
         local_ordinal_type nrows_vals[internal_vector_length] = {};
@@ -1993,8 +2088,8 @@ namespace KB = KokkosBatched::Experimental;
                 Kokkos::parallel_for
                   (Kokkos::TeamThreadRange(member,blocksize),
                    [&](const local_ordinal_type &ii) {
-                    for (local_ordinal_type jj=0;jj<blocksize;++jj)
-                      scalar_values(pi, ii, jj, v) = static_cast<btdm_scalar_type>(block[ii*blocksize + jj]);
+                    for (local_ordinal_type jj=0;jj<blocksize;++jj) 
+                      scalar_values(pi, ii, jj, v) = static_cast<btdm_scalar_type>(block[tlb::getFlatIndex(ii,jj,blocksize)]);
                   });
               }
             }
@@ -2012,10 +2107,12 @@ namespace KB = KokkosBatched::Experimental;
                 const local_ordinal_type &v,
                 const AAViewType &AA,
                 const WWViewType &WW) const {
+
         typedef ExtractAndFactorizeTridiagsDefaultModeAndAlgo
-          <Kokkos::Impl::ActiveExecutionMemorySpace> default_mode_and_algo_type;
-        typedef default_mode_and_algo_type::mode_type default_mode_type;
-        typedef default_mode_and_algo_type::algo_type default_algo_type;
+          <typename execution_space::memory_space> default_mode_and_algo_type;
+
+        typedef typename default_mode_and_algo_type::mode_type default_mode_type;
+        typedef typename default_mode_and_algo_type::algo_type default_algo_type;
 
         // constant
         const auto one = Kokkos::ArithTraits<btdm_magnitude_type>::one();
@@ -2025,6 +2122,7 @@ namespace KB = KokkosBatched::Experimental;
         KB::LU<member_type,
                default_mode_type,KB::Algo::LU::Unblocked>
           ::invoke(member, A , tiny);
+
         if (nrows > 1) {
           auto B = A;
           auto C = A;
@@ -2041,6 +2139,8 @@ namespace KB = KokkosBatched::Experimental;
                      default_mode_type,default_algo_type>
               ::invoke(member, one, A, C);
             A.assign_data( &AA(i+3,0,0,v) );
+
+            member.team_barrier();
             KB::Gemm<member_type,
                      KB::Trans::NoTranspose,KB::Trans::NoTranspose,
                      default_mode_type,default_algo_type>
@@ -2090,10 +2190,14 @@ namespace KB = KokkosBatched::Experimental;
           factorize(member, i0, nrows, 0, internal_vector_values, WW);
         } else {
           Kokkos::parallel_for
-            (Kokkos::ThreadVectorRange(member, vector_loop_size), [&](const local_ordinal_type &v) {
+            (Kokkos::ThreadVectorRange(member, vector_loop_size),
+	     [&](const local_ordinal_type &v) {
               const local_ordinal_type vbeg = v*internal_vector_length;
               if (vbeg < npacks)
                 extract(member, partidx+vbeg, npacks, vbeg);
+              // this is not safe if vector loop size is different from vector size of 
+              // the team policy. we always make sure this when constructing the team policy
+              member.team_barrier();
               factorize(member, i0, nrows, v, internal_vector_values, WW);
             });
         }
@@ -2153,6 +2257,7 @@ namespace KB = KokkosBatched::Experimental;
       using local_ordinal_type_1d_view = typename impl_type::local_ordinal_type_1d_view;
       using vector_type_3d_view = typename impl_type::vector_type_3d_view;
       using impl_scalar_type_2d_view_tpetra = typename impl_type::impl_scalar_type_2d_view_tpetra;
+      using const_impl_scalar_type_2d_view_tpetra = typename impl_scalar_type_2d_view_tpetra::const_type;
       static constexpr int vector_length = impl_type::vector_length;
 
       using member_type = typename Kokkos::TeamPolicy<execution_space>::member_type;
@@ -2169,7 +2274,7 @@ namespace KB = KokkosBatched::Experimental;
 
       // packed multivector output (or input)
       vector_type_3d_view packed_multivector;
-      impl_scalar_type_2d_view_tpetra scalar_multivector;
+      const_impl_scalar_type_2d_view_tpetra scalar_multivector;
 
       template<typename TagType>
       KOKKOS_INLINE_FUNCTION
@@ -2196,7 +2301,8 @@ namespace KB = KokkosBatched::Experimental;
           packed_multivector(pmv) {}
 
       // TODO:: modify this routine similar to the team level functions
-      inline
+      // inline  ---> FIXME HIP: should not need the KOKKOS_INLINE_FUNCTION below...
+      KOKKOS_INLINE_FUNCTION
       void
       operator() (const local_ordinal_type &packidx) const {
         local_ordinal_type partidx = packptr(packidx);
@@ -2251,7 +2357,7 @@ namespace KB = KokkosBatched::Experimental;
           });
       }
 
-      void run(const impl_scalar_type_2d_view_tpetra &scalar_multivector_) {
+      void run(const const_impl_scalar_type_2d_view_tpetra &scalar_multivector_) {
         IFPACK2_BLOCKTRIDICONTAINER_PROFILER_REGION_BEGIN;
         IFPACK2_BLOCKTRIDICONTAINER_TIMER("BlockTriDi::MultiVectorConverter");
 
@@ -2263,9 +2369,16 @@ namespace KB = KokkosBatched::Experimental;
           Kokkos::parallel_for
             ("MultiVectorConverter::TeamPolicy", policy, *this);
 #endif
+	} else if(is_hip<execution_space>::value) {
+#if defined(KOKKOS_ENABLE_HIP)
+          const local_ordinal_type vl = vector_length;
+          const Kokkos::TeamPolicy<execution_space> policy(packptr.extent(0) - 1, Kokkos::AUTO(), vl);
+          Kokkos::parallel_for
+            ("MultiVectorConverter::TeamPolicy", policy, *this);
+#endif
         } else {
-#if defined(__CUDA_ARCH__)
-          TEUCHOS_TEST_FOR_EXCEPT_MSG(true, "Error: CUDA should not see this code");
+#if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
+          TEUCHOS_TEST_FOR_EXCEPT_MSG(true, "Error: device compiler should not see this code");
 #else
           const Kokkos::RangePolicy<execution_space> policy(0, packptr.extent(0) - 1);
           Kokkos::parallel_for
@@ -2337,6 +2450,45 @@ namespace KB = KokkosBatched::Experimental;
     };
 #endif
 
+#if defined(KOKKOS_ENABLE_HIP)
+    static inline int SolveTridiagsRecommendedHIPTeamSize(const int blksize,
+							  const int vector_length,
+							  const int internal_vector_length) {
+      const int vector_size = vector_length/internal_vector_length;
+      int total_team_size(0);
+      if      (blksize <=  5) total_team_size =  32;
+      else if (blksize <=  9) total_team_size =  32; // 64
+      else if (blksize <= 12) total_team_size =  96;
+      else if (blksize <= 16) total_team_size = 128;
+      else if (blksize <= 20) total_team_size = 160;
+      else                    total_team_size = 160;
+      return total_team_size/vector_size;
+    }
+
+    template<>
+    struct SolveTridiagsDefaultModeAndAlgo<Kokkos::Experimental::HIPSpace> {
+      typedef KB::Mode::Team mode_type;
+      typedef KB::Algo::Level2::Unblocked single_vector_algo_type;
+      typedef KB::Algo::Level3::Unblocked multi_vector_algo_type;
+      static int recommended_team_size(const int blksize,
+                                       const int vector_length,
+                                       const int internal_vector_length) {
+        return SolveTridiagsRecommendedHIPTeamSize(blksize, vector_length, internal_vector_length);
+      }
+    };
+    template<>
+    struct SolveTridiagsDefaultModeAndAlgo<Kokkos::Experimental::HIPHostPinnedSpace> {
+      typedef KB::Mode::Team mode_type;
+      typedef KB::Algo::Level2::Unblocked single_vector_algo_type;
+      typedef KB::Algo::Level3::Unblocked multi_vector_algo_type;
+      static int recommended_team_size(const int blksize,
+                                       const int vector_length,
+                                       const int internal_vector_length) {
+        return SolveTridiagsRecommendedHIPTeamSize(blksize, vector_length, internal_vector_length);
+      }
+    };
+#endif
+
     template<typename MatrixType>
     struct SolveTridiags {
     public:
@@ -2389,7 +2541,7 @@ namespace KB = KokkosBatched::Experimental;
 
       // copy to multivectors : damping factor and Y_scalar_multivector
       Unmanaged<impl_scalar_type_2d_view_tpetra> Y_scalar_multivector;
-#if defined(__CUDA_ARCH__)
+#if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
       AtomicUnmanaged<impl_scalar_type_1d_view> Z_scalar_vector;
 #else
       /* */ Unmanaged<impl_scalar_type_1d_view> Z_scalar_vector;
@@ -2520,10 +2672,12 @@ namespace KB = KokkosBatched::Experimental;
                         const local_ordinal_type &nrows,
                         const local_ordinal_type &v,
                         const WWViewType &WW) const {
+
         typedef SolveTridiagsDefaultModeAndAlgo
-          <Kokkos::Impl::ActiveExecutionMemorySpace> default_mode_and_algo_type;
-        typedef default_mode_and_algo_type::mode_type default_mode_type;
-        typedef default_mode_and_algo_type::single_vector_algo_type default_algo_type;
+          <typename execution_space::memory_space> default_mode_and_algo_type;
+
+        typedef typename default_mode_and_algo_type::mode_type default_mode_type;
+        typedef typename default_mode_and_algo_type::single_vector_algo_type default_algo_type;
 
         // base pointers
         auto A = D_internal_vector_values.data();
@@ -2562,6 +2716,7 @@ namespace KB = KokkosBatched::Experimental;
              X, xs0);
 
           for (local_ordinal_type tr=1;tr<nrows;++tr) {
+            member.team_barrier();
             KOKKOSBATCHED_GEMV_NO_TRANSPOSE_INTERNAL_INVOKE
               (default_mode_type,default_algo_type,
                member,
@@ -2571,7 +2726,6 @@ namespace KB = KokkosBatched::Experimental;
                X, xs0,
                one,
                X+1*xstep, xs0);
-
             KOKKOSBATCHED_TRSV_LOWER_NO_TRANSPOSE_INTERNAL_INVOKE
               (default_mode_type,default_algo_type,
                member,
@@ -2597,6 +2751,7 @@ namespace KB = KokkosBatched::Experimental;
 
           for (local_ordinal_type tr=nrows;tr>1;--tr) {
             A -= 3*astep;
+            member.team_barrier();
             KOKKOSBATCHED_GEMV_NO_TRANSPOSE_INTERNAL_INVOKE
               (default_mode_type,default_algo_type,
                member,
@@ -2606,7 +2761,6 @@ namespace KB = KokkosBatched::Experimental;
                X, xs0,
                one,
                X-1*xstep, xs0);
-
             KOKKOSBATCHED_TRSV_UPPER_NO_TRANSPOSE_INTERNAL_INVOKE
               (default_mode_type,default_algo_type,
                member,
@@ -2615,7 +2769,6 @@ namespace KB = KokkosBatched::Experimental;
                one,
                A, as0, as1,
                X-1*xstep,xs0);
-
             X -= 1*xstep;
           }
           // for multiple rhs
@@ -2626,6 +2779,7 @@ namespace KB = KokkosBatched::Experimental;
           KOKKOSBATCHED_COPY_VECTOR_NO_TRANSPOSE_INTERNAL_INVOKE
             (default_mode_type,
              member, blocksize, X, xs0, W, ws0);
+          member.team_barrier();
           KOKKOSBATCHED_GEMV_NO_TRANSPOSE_INTERNAL_INVOKE
             (default_mode_type,default_algo_type,
              member,
@@ -2648,10 +2802,12 @@ namespace KB = KokkosBatched::Experimental;
                        const local_ordinal_type &nrows,
                        const local_ordinal_type &v,
                        const WWViewType &WW) const {
+
         typedef SolveTridiagsDefaultModeAndAlgo
-          <Kokkos::Impl::ActiveExecutionMemorySpace> default_mode_and_algo_type;
-        typedef default_mode_and_algo_type::mode_type default_mode_type;
-        typedef default_mode_and_algo_type::multi_vector_algo_type default_algo_type;
+          <typename execution_space::memory_space> default_mode_and_algo_type;
+
+        typedef typename default_mode_and_algo_type::mode_type default_mode_type;
+        typedef typename default_mode_and_algo_type::multi_vector_algo_type default_algo_type;
 
         // constant
         const auto one = Kokkos::ArithTraits<btdm_magnitude_type>::one();
@@ -2674,6 +2830,7 @@ namespace KB = KokkosBatched::Experimental;
           for (local_ordinal_type tr=1;tr<nrows;++tr,i+=3) {
             A.assign_data( &D_internal_vector_values(i+2,0,0,v) );
             X2.assign_data( &X_internal_vector_values(++r,0,0,v) );
+            member.team_barrier();
             KB::Gemm<member_type,
                      KB::Trans::NoTranspose,KB::Trans::NoTranspose,
                      default_mode_type,default_algo_type>
@@ -2695,10 +2852,12 @@ namespace KB = KokkosBatched::Experimental;
             i -= 3;
             A.assign_data( &D_internal_vector_values(i+1,0,0,v) );
             X2.assign_data( &X_internal_vector_values(--r,0,0,v) );
+            member.team_barrier();
             KB::Gemm<member_type,
                      KB::Trans::NoTranspose,KB::Trans::NoTranspose,
                      default_mode_type,default_algo_type>
               ::invoke(member, -one, A, X1, one, X2);
+
             A.assign_data( &D_internal_vector_values(i,0,0,v) );
             KB::Trsm<member_type,
                      KB::Side::Left,KB::Uplo::Upper,KB::Trans::NoTranspose,KB::Diag::NonUnit,
@@ -2711,6 +2870,7 @@ namespace KB = KokkosBatched::Experimental;
           auto W = Kokkos::subview(WW, Kokkos::ALL(), Kokkos::ALL(), v);
           KB::Copy<member_type,KB::Trans::NoTranspose,default_mode_type>
             ::invoke(member, X1, W);
+          member.team_barrier();
           KB::Gemm<member_type,
                    KB::Trans::NoTranspose,KB::Trans::NoTranspose,
                    default_mode_type,default_algo_type>
@@ -2856,6 +3016,18 @@ namespace KB = KokkosBatched::Experimental;
       return total_team_size/team_size;
     }
 
+    static inline int ComputeResidualVectorRecommendedHIPVectorSize(const int blksize,
+								    const int team_size) {
+      int total_team_size(0);
+      if      (blksize <=  5) total_team_size =  32;
+      else if (blksize <=  9) total_team_size =  32; // 64
+      else if (blksize <= 12) total_team_size =  96;
+      else if (blksize <= 16) total_team_size = 128;
+      else if (blksize <= 20) total_team_size = 160;
+      else                    total_team_size = 160;
+      return total_team_size/team_size;
+    }
+
     template<typename MatrixType>
     struct ComputeResidualVector {
     public:
@@ -2901,8 +3073,7 @@ namespace KB = KokkosBatched::Experimental;
 
       // block crs graph information
       // for cuda (kokkos crs graph uses a different size_type from size_t)
-      using a_rowptr_value_type = typename Kokkos::ViewTraits<local_ordinal_type*,node_device_type>::size_type;
-      const ConstUnmanaged<Kokkos::View<a_rowptr_value_type*,node_device_type> > A_rowptr;
+      const ConstUnmanaged<Kokkos::View<size_t*,node_device_type> > A_rowptr;
       const ConstUnmanaged<Kokkos::View<local_ordinal_type*,node_device_type> > A_colind;
 
       // blocksize
@@ -2945,9 +3116,9 @@ namespace KB = KokkosBatched::Experimental;
                  const impl_scalar_type * const KOKKOS_RESTRICT AA,
                  const impl_scalar_type * const KOKKOS_RESTRICT xx,
                  /* */ impl_scalar_type * KOKKOS_RESTRICT yy) const {
+        using tlb = TpetraLittleBlock<Tpetra::Impl::BlockCrsMatrixLittleBlockArrayLayout>;
         for (local_ordinal_type k0=0;k0<blocksize;++k0) {
           impl_scalar_type val = 0;
-          const local_ordinal_type offset = k0*blocksize;
 #if defined(KOKKOS_ENABLE_PRAGMA_IVDEP)
 #   pragma ivdep
 #endif
@@ -2955,7 +3126,7 @@ namespace KB = KokkosBatched::Experimental;
 #   pragma unroll
 #endif
           for (local_ordinal_type k1=0;k1<blocksize;++k1)
-            val += AA[offset+k1]*xx[k1];
+            val += AA[tlb::getFlatIndex(k0,k1,blocksize)]*xx[k1];
           yy[k0] -= val;
         }
       }
@@ -3033,7 +3204,8 @@ namespace KB = KokkosBatched::Experimental;
 
       struct SeqTag {};
 
-      inline
+      // inline  ---> FIXME HIP: should not need KOKKOS_INLINE_FUNCTION
+      KOKKOS_INLINE_FUNCTION
       void
       operator() (const SeqTag &, const local_ordinal_type& i) const {
         const local_ordinal_type blocksize = blocksize_requested;
@@ -3104,7 +3276,8 @@ namespace KB = KokkosBatched::Experimental;
       struct AsyncTag {};
 
       template<int B>
-      inline
+      // inline  ---> FIXME HIP: should not need KOKKOS_INLINE_FUNCTION
+      KOKKOS_INLINE_FUNCTION
       void
       operator() (const AsyncTag<B> &, const local_ordinal_type &rowidx) const {
         const local_ordinal_type blocksize = (B == 0 ? blocksize_requested : B);
@@ -3208,7 +3381,8 @@ namespace KB = KokkosBatched::Experimental;
       template <int P, int B> struct OverlapTag {};
 
       template<int P, int B>
-      inline
+      // inline  ---> FIXME HIP: should not need KOKKOS_INLINE_FUNCTION
+      KOKKOS_INLINE_FUNCTION
       void
       operator() (const OverlapTag<P,B> &, const local_ordinal_type& rowidx) const {
         const local_ordinal_type blocksize = (B == 0 ? blocksize_requested : B);
@@ -3346,9 +3520,18 @@ namespace KB = KokkosBatched::Experimental;
           Kokkos::parallel_for
             ("ComputeResidual::TeamPolicy::run<SeqTag>", policy, *this);
 #endif
+	} else if(is_hip<execution_space>::value) {
+#if defined(KOKKOS_ENABLE_HIP)
+          const local_ordinal_type blocksize = blocksize_requested;
+          const local_ordinal_type team_size = 8;
+          const local_ordinal_type vector_size = ComputeResidualVectorRecommendedHIPVectorSize(blocksize, team_size);
+          const Kokkos::TeamPolicy<execution_space,SeqTag> policy(rowptr.extent(0) - 1, team_size, vector_size);
+          Kokkos::parallel_for
+            ("ComputeResidual::TeamPolicy::run<SeqTag>", policy, *this);
+#endif
         } else {
-#if defined(__CUDA_ARCH__)
-          TEUCHOS_TEST_FOR_EXCEPT_MSG(true, "Error: CUDA should not see this code");
+#if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
+          TEUCHOS_TEST_FOR_EXCEPT_MSG(true, "Error: device compiler should not see this code");
 #else
           const Kokkos::RangePolicy<execution_space,SeqTag> policy(0, rowptr.extent(0) - 1);
           Kokkos::parallel_for
@@ -3372,6 +3555,14 @@ namespace KB = KokkosBatched::Experimental;
         b = b_; x = x_; x_remote = x_remote_;
         if (is_cuda<execution_space>::value) {
 #if defined(KOKKOS_ENABLE_CUDA)
+          y_packed_scalar = btdm_scalar_type_4d_view((btdm_scalar_type*)y_packed_.data(),
+                                                     y_packed_.extent(0),
+                                                     y_packed_.extent(1),
+                                                     y_packed_.extent(2),
+                                                     vector_length);
+#endif
+        } else if (is_hip<execution_space>::value) {
+#if defined(KOKKOS_ENABLE_HIP)
           y_packed_scalar = btdm_scalar_type_4d_view((btdm_scalar_type*)y_packed_.data(),
                                                      y_packed_.extent(0),
                                                      y_packed_.extent(1),
@@ -3411,9 +3602,38 @@ namespace KB = KokkosBatched::Experimental;
           }
 #undef BLOCKTRIDICONTAINER_DETAILS_COMPUTERESIDUAL
 #endif
-        } else {
-#if defined(__CUDA_ARCH__)
-          TEUCHOS_TEST_FOR_EXCEPT_MSG(true, "Error: CUDA should not see this code");
+        } else if (is_hip<execution_space>::value) {
+#if defined(KOKKOS_ENABLE_HIP)
+          const local_ordinal_type blocksize = blocksize_requested;
+          const local_ordinal_type team_size = 8;
+          const local_ordinal_type vector_size = ComputeResidualVectorRecommendedHIPVectorSize(blocksize, team_size);
+          // local_ordinal_type vl_power_of_two = 1;
+          // for (;vl_power_of_two<=blocksize_requested;vl_power_of_two*=2);
+          // vl_power_of_two *= (vl_power_of_two < blocksize_requested ? 2 : 1);
+          // const local_ordinal_type vl = vl_power_of_two > vector_length ? vector_length : vl_power_of_two;
+#define BLOCKTRIDICONTAINER_DETAILS_COMPUTERESIDUAL(B) {                \
+            const Kokkos::TeamPolicy<execution_space,AsyncTag<B> >      \
+              policy(rowidx2part.extent(0), team_size, vector_size);    \
+            Kokkos::parallel_for                                        \
+              ("ComputeResidual::TeamPolicy::run<AsyncTag>",            \
+               policy, *this); } break
+          switch (blocksize_requested) {
+          case   3: BLOCKTRIDICONTAINER_DETAILS_COMPUTERESIDUAL( 3);
+          case   5: BLOCKTRIDICONTAINER_DETAILS_COMPUTERESIDUAL( 5);
+          case   7: BLOCKTRIDICONTAINER_DETAILS_COMPUTERESIDUAL( 7);
+          case   9: BLOCKTRIDICONTAINER_DETAILS_COMPUTERESIDUAL( 9);
+          case  10: BLOCKTRIDICONTAINER_DETAILS_COMPUTERESIDUAL(10);
+          case  11: BLOCKTRIDICONTAINER_DETAILS_COMPUTERESIDUAL(11);
+          case  16: BLOCKTRIDICONTAINER_DETAILS_COMPUTERESIDUAL(16);
+          case  17: BLOCKTRIDICONTAINER_DETAILS_COMPUTERESIDUAL(17);
+          case  18: BLOCKTRIDICONTAINER_DETAILS_COMPUTERESIDUAL(18);
+          default : BLOCKTRIDICONTAINER_DETAILS_COMPUTERESIDUAL( 0);
+          }
+#undef BLOCKTRIDICONTAINER_DETAILS_COMPUTERESIDUAL
+#endif
+	} else {
+#if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
+          TEUCHOS_TEST_FOR_EXCEPT_MSG(true, "Error: device compiler should not see this code");
 #else
 #define BLOCKTRIDICONTAINER_DETAILS_COMPUTERESIDUAL(B) {                \
             const Kokkos::RangePolicy<execution_space,AsyncTag<B> > policy(0, rowidx2part.extent(0)); \
@@ -3459,6 +3679,14 @@ namespace KB = KokkosBatched::Experimental;
                                                      y_packed_.extent(2),
                                                      vector_length);
 #endif
+        } else if (is_hip<execution_space>::value) {
+#if defined(KOKKOS_ENABLE_HIP)
+          y_packed_scalar = btdm_scalar_type_4d_view((btdm_scalar_type*)y_packed_.data(),
+                                                     y_packed_.extent(0),
+                                                     y_packed_.extent(1),
+                                                     y_packed_.extent(2),
+                                                     vector_length);
+#endif
         } else {
           y_packed = y_packed_;
         }
@@ -3498,9 +3726,44 @@ namespace KB = KokkosBatched::Experimental;
           }
 #undef BLOCKTRIDICONTAINER_DETAILS_COMPUTERESIDUAL
 #endif
+	} else if (is_hip<execution_space>::value) {
+#if defined(KOKKOS_ENABLE_HIP)
+          const local_ordinal_type blocksize = blocksize_requested;
+          const local_ordinal_type team_size = 8;
+          const local_ordinal_type vector_size = ComputeResidualVectorRecommendedHIPVectorSize(blocksize, team_size);
+          // local_ordinal_type vl_power_of_two = 1;
+          // for (;vl_power_of_two<=blocksize_requested;vl_power_of_two*=2);
+          // vl_power_of_two *= (vl_power_of_two < blocksize_requested ? 2 : 1);
+          // const local_ordinal_type vl = vl_power_of_two > vector_length ? vector_length : vl_power_of_two;
+#define BLOCKTRIDICONTAINER_DETAILS_COMPUTERESIDUAL(B)  \
+          if (compute_owned) {                                          \
+            const Kokkos::TeamPolicy<execution_space,OverlapTag<0,B> > \
+              policy(rowidx2part.extent(0), team_size, vector_size);    \
+            Kokkos::parallel_for                                        \
+              ("ComputeResidual::TeamPolicy::run<OverlapTag<0> >", policy, *this); \
+          } else {                                                      \
+            const Kokkos::TeamPolicy<execution_space,OverlapTag<1,B> > \
+              policy(rowidx2part.extent(0), team_size, vector_size);    \
+            Kokkos::parallel_for                                        \
+              ("ComputeResidual::TeamPolicy::run<OverlapTag<1> >", policy, *this); \
+          } break
+          switch (blocksize_requested) {
+          case   3: BLOCKTRIDICONTAINER_DETAILS_COMPUTERESIDUAL( 3);
+          case   5: BLOCKTRIDICONTAINER_DETAILS_COMPUTERESIDUAL( 5);
+          case   7: BLOCKTRIDICONTAINER_DETAILS_COMPUTERESIDUAL( 7);
+          case   9: BLOCKTRIDICONTAINER_DETAILS_COMPUTERESIDUAL( 9);
+          case  10: BLOCKTRIDICONTAINER_DETAILS_COMPUTERESIDUAL(10);
+          case  11: BLOCKTRIDICONTAINER_DETAILS_COMPUTERESIDUAL(11);
+          case  16: BLOCKTRIDICONTAINER_DETAILS_COMPUTERESIDUAL(16);
+          case  17: BLOCKTRIDICONTAINER_DETAILS_COMPUTERESIDUAL(17);
+          case  18: BLOCKTRIDICONTAINER_DETAILS_COMPUTERESIDUAL(18);
+          default : BLOCKTRIDICONTAINER_DETAILS_COMPUTERESIDUAL( 0);
+          }
+#undef BLOCKTRIDICONTAINER_DETAILS_COMPUTERESIDUAL
+#endif
         } else {
-#if defined(__CUDA_ARCH__)
-          TEUCHOS_TEST_FOR_EXCEPT_MSG(true, "Error: CUDA should not see this code");
+#if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
+          TEUCHOS_TEST_FOR_EXCEPT_MSG(true, "Error: device compiler should not see this code");
 #else
 #define BLOCKTRIDICONTAINER_DETAILS_COMPUTERESIDUAL(B)  \
           if (compute_owned) {                                          \
@@ -3615,10 +3878,10 @@ namespace KB = KokkosBatched::Experimental;
         IFPACK2_BLOCKTRIDICONTAINER_TIMER("BlockTriDi::NormManager::Ireduce");
 
         work_[1] = work_[0];
+#ifdef HAVE_IFPACK2_MPI
         auto send_data = &work_[1];
         auto recv_data = &work_[0];
         if (collective_) {
-#ifdef HAVE_IFPACK2_MPI
 # if defined(IFPACK2_BLOCKTRIDICONTAINER_USE_MPI_3)
           MPI_Iallreduce(send_data, recv_data, 1,
                          Teuchos::Details::MpiTypeTraits<magnitude_type>::getType(),
@@ -3628,8 +3891,8 @@ namespace KB = KokkosBatched::Experimental;
                          Teuchos::Details::MpiTypeTraits<magnitude_type>::getType(),
                          MPI_SUM, comm_);
 # endif
-#endif
         }
+#endif
       }
 
       // Check if the norm-based termination criterion is met. tol2 is the
@@ -3749,6 +4012,13 @@ namespace KB = KokkosBatched::Experimental;
                                   "The seq method for applyInverseJacobi, " <<
                                   "which in any case is for developer use only, " <<
                                   "does not support norm-based termination.");
+      const bool device_accessible_from_host = Kokkos::SpaceAccessibility<
+        Kokkos::DefaultHostExecutionSpace, node_memory_space>::accessible;
+      TEUCHOS_TEST_FOR_EXCEPTION(is_seq_method_requested && !device_accessible_from_host,
+                                 std::invalid_argument,
+                                 "The seq method for applyInverseJacobi, " <<
+                                 "which in any case is for developer use only, " <<
+                                 "only supports memory spaces accessible from host.");
 
       // if workspace is needed more, resize it
       const size_type work_span_required = num_blockrows*num_vectors*blocksize;
@@ -3776,9 +4046,9 @@ namespace KB = KokkosBatched::Experimental;
 
       // wrap the workspace with 3d view
       vector_type_3d_view pmv(work.data(), num_blockrows, blocksize, num_vectors);
-      const auto XX = X.template getLocalView<node_memory_space>();
-      const auto YY = Y.template getLocalView<node_memory_space>();
-      const auto ZZ = Z.template getLocalView<node_memory_space>();
+      const auto XX = X.getLocalViewDevice(Tpetra::Access::ReadOnly);
+      const auto YY = Y.getLocalViewDevice(Tpetra::Access::ReadWrite);
+      const auto ZZ = Z.getLocalViewDevice(Tpetra::Access::ReadWrite);
       if (is_y_zero) Kokkos::deep_copy(YY, zero);
 
       MultiVectorConverter<MatrixType> multivector_converter(interf, pmv);
@@ -3787,7 +4057,7 @@ namespace KB = KokkosBatched::Experimental;
 
       const local_ordinal_type_1d_view dummy_local_ordinal_type_1d_view;
       ComputeResidualVector<MatrixType>
-        compute_residual_vector(amd, A->getCrsGraph().getLocalGraph(), blocksize, interf,
+        compute_residual_vector(amd, A->getCrsGraph().getLocalGraphDevice(), blocksize, interf,
                                 is_async_importer_active ? async_importer->dm2cm : dummy_local_ordinal_type_1d_view);
 
       // norm manager workspace resize

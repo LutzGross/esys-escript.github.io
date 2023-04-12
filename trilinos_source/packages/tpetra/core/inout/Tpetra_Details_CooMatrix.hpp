@@ -975,10 +975,10 @@ protected:
   checkSizes (const ::Tpetra::SrcDistObject& source)
   {
     using std::endl;
-    typedef CooMatrix<SC, LO, GO, NT> this_type;
+    typedef CooMatrix<SC, LO, GO, NT> this_COO_type;
     const char prefix[] = "Tpetra::Details::CooMatrix::checkSizes: ";
 
-    const this_type* src = dynamic_cast<const this_type* > (&source);
+    const this_COO_type* src = dynamic_cast<const this_COO_type* > (&source);
 
     if (src == NULL) {
       std::ostream& err = markLocalErrorAndGetStream ();
@@ -1005,10 +1005,11 @@ protected:
    const Kokkos::DualView<const LO*,
      buffer_device_type>& permuteToLIDs,
    const Kokkos::DualView<const LO*,
-     buffer_device_type>& permuteFromLIDs)
+     buffer_device_type>& permuteFromLIDs,
+   const CombineMode /* CM */)
   {
     using std::endl;
-    using this_type = CooMatrix<SC, LO, GO, NT>;
+    using this_COO_type = CooMatrix<SC, LO, GO, NT>;
     const char prefix[] = "Tpetra::Details::CooMatrix::copyAndPermute: ";
 
     // There's no communication in this method, so it's safe just to
@@ -1021,7 +1022,7 @@ protected:
       return;
     }
 
-    const this_type* src = dynamic_cast<const this_type*> (&sourceObject);
+    const this_COO_type* src = dynamic_cast<const this_COO_type*> (&sourceObject);
     if (src == nullptr) {
       std::ostream& err = this->markLocalErrorAndGetStream ();
       err << prefix << "Input argument 'sourceObject' is not a CooMatrix."
@@ -1208,13 +1209,12 @@ protected:
      buffer_device_type>& exports,
    Kokkos::DualView<size_t*,
      buffer_device_type> numPacketsPerLID,
-   size_t& constantNumPackets,
-   ::Tpetra::Distributor& /* distor */)
+   size_t& constantNumPackets)
   {
     using Teuchos::Comm;
     using Teuchos::RCP;
     using std::endl;
-    using this_type = CooMatrix<SC, LO, GO, NT>;
+    using this_COO_type = CooMatrix<SC, LO, GO, NT>;
     const char prefix[] = "Tpetra::Details::CooMatrix::packAndPrepare: ";
     const char suffix[] = "  This should never happen.  "
       "Please report this bug to the Tpetra developers.";
@@ -1223,7 +1223,7 @@ protected:
     // of matrix entries.
     constantNumPackets = 0;
 
-    const this_type* src = dynamic_cast<const this_type*> (&sourceObject);
+    const this_COO_type* src = dynamic_cast<const this_COO_type*> (&sourceObject);
     if (src == nullptr) {
       std::ostream& err = this->markLocalErrorAndGetStream ();
       err << prefix << "Input argument 'sourceObject' is not a CooMatrix."
@@ -1405,7 +1405,6 @@ protected:
    Kokkos::DualView<size_t*,
      buffer_device_type> numPacketsPerLID,
    const size_t /* constantNumPackets */,
-   ::Tpetra::Distributor& /* distor */,
    const ::Tpetra::CombineMode /* combineMode */)
   {
     using Teuchos::Comm;

@@ -127,7 +127,6 @@ namespace {
 
   TEUCHOS_UNIT_TEST_TEMPLATE_7_DECL( MultiVector, XpetraSpecific_GetHostLocalView, M, MV, V, Scalar, LocalOrdinal, GlobalOrdinal, Node )
   {
-#ifdef HAVE_XPETRA_KOKKOS_REFACTOR
     using Teuchos::RCP;
     using Teuchos::rcp;
 
@@ -153,7 +152,7 @@ namespace {
     }
 
     // get a view of the multivector data on the host memory
-    typename dual_view_type::t_host_um hostView = mv->getHostLocalView ();
+    typename dual_view_type::t_host_um hostView = mv->getHostLocalView (Xpetra::Access::ReadWrite);
 
     TEST_EQUALITY(hostView.extent(0), numLocal);
     TEST_EQUALITY(hostView.extent(1), 3);
@@ -197,7 +196,6 @@ namespace {
 
     // delete vector
     mv = Teuchos::null;
-#endif // HAVE_XPETRA_KOKKOS_REFACTOR
   }
 
 

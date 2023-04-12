@@ -8,6 +8,7 @@ try
   mueluProblem = muelu('setup', A, coords, 'xml parameter file', 'mueluParams.xml');
   matlabP = muelu('get', matlabProblem, 1, 'P');
   mueluP = muelu('get', mueluProblem, 1, 'P');
+  muelu('cleanup');
   diff = nonzeros(matlabP - mueluP);
   passed = true(1);
   for i = 1:numel(diff)
@@ -26,6 +27,7 @@ try
   end
 
 catch me
-  disp('Test failed, on exception.');
+  disp('Test failed, on exception:');
+  disp(getReport(me));
   exit(-2)
 end

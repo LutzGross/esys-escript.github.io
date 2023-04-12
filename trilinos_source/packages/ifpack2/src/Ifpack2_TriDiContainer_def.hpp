@@ -117,7 +117,7 @@ void TriDiContainer<MatrixType, LocalScalarType>::compute ()
 {
   #ifdef HAVE_IFPACK2_DEBUG
   TEUCHOS_TEST_FOR_EXCEPTION(
-    ipiv_.size () != this->blockRows_.size( * scalarsPerRow_), std::logic_error,
+    ipiv_.size () != this->blockRows_.size() * this->scalarsPerRow_, std::logic_error,
     "Ifpack2::TriDiContainer::compute: ipiv_ array has the wrong size.  "
     "Please report this bug to the Ifpack2 developers.");
   #endif
@@ -146,7 +146,7 @@ void TriDiContainer<MatrixType, LocalScalarType>::extract()
   //This provides the block and col within a block in O(1).
   if(this->scalarsPerRow_ > 1)
   {
-    Array<LO> colToBlockOffset(this->inputBlockMatrix_->getNodeNumCols(), INVALID);
+    Array<LO> colToBlockOffset(this->inputBlockMatrix_->getLocalNumCols(), INVALID);
     for(int i = 0; i < this->numBlocks_; i++)
     {
       //Get the interval where block i is defined in blockRows_
@@ -161,14 +161,16 @@ void TriDiContainer<MatrixType, LocalScalarType>::extract()
         LO localCol = this->translateRowToCol(blockRows[j]);
         colToBlockOffset[localCol] = blockStart + j;
       }
+      using h_inds_type = typename block_crs_matrix_type::local_inds_host_view_type;
+      using h_vals_type = typename block_crs_matrix_type::values_host_view_type;
       for(LO blockRow = 0; blockRow < LO(blockRows.size()); blockRow++)
       {
         //get a raw view of the whole block row
-        const LO* indices;
-        SC* values;
-        LO numEntries;
+        h_inds_type indices;
+        h_vals_type values;
         LO inputRow = this->blockRows_[blockStart + blockRow];
-        this->inputBlockMatrix_->getLocalRowView(inputRow, indices, values, numEntries);
+        this->inputBlockMatrix_->getLocalRowView(inputRow, indices, values);
+        LO numEntries = (LO) indices.size();
         for(LO k = 0; k < numEntries; k++)
         {
           LO colOffset = colToBlockOffset[indices[k]];
@@ -198,7 +200,7 @@ void TriDiContainer<MatrixType, LocalScalarType>::extract()
   {
     //get the mapping from point-indexed matrix columns to offsets in blockRows_
     //(this includes regular CrsMatrix columns, in which case bcrsBlockSize_ == 1)
-    Array<LO> colToBlockOffset(this->inputMatrix_->getNodeNumCols() * this->bcrsBlockSize_, INVALID);
+    Array<LO> colToBlockOffset(this->inputMatrix_->getLocalNumCols() * this->bcrsBlockSize_, INVALID);
     for(int i = 0; i < this->numBlocks_; i++)
     {
       //Get the interval where block i is defined in blockRows_
@@ -277,7 +279,7 @@ void TriDiContainer<MatrixType, LocalScalarType>::factor ()
 
 template<class MatrixType, class LocalScalarType>
 void TriDiContainer<MatrixType, LocalScalarType>::
-solveBlock(HostSubviewLocal X,
+solveBlock(ConstHostSubviewLocal X,
            HostSubviewLocal Y,
            int blockIndex,
            Teuchos::ETransp mode,

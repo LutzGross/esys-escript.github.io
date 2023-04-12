@@ -17,7 +17,7 @@ bool is_other_element_shell(const stk::mesh::GraphEdge& graphEdge,
     if(stk::mesh::impl::is_local_element(graphEdge.elem2()))
         topo = elementTopologies[graphEdge.elem2()];
     else
-        topo = parGraphInfo.get_parallel_info_for_graph_edge(graphEdge).m_remote_element_toplogy;
+        topo = parGraphInfo.get_parallel_info_for_graph_edge(graphEdge).m_remote_element_topology;
     return stk::mesh::impl::is_shell_or_beam2(topo);
 }
 
@@ -96,26 +96,40 @@ bool SideConnections::does_side_have_both_connection_to_shell_and_to_nonshell(in
 }
 
 
-void delete_non_shell_graph_edges(GraphInfo &graphInfo, const stk::mesh::impl::ElementSidePair &elementSidePair)
+void fill_non_shell_graph_edges_to_delete(GraphInfo &graphInfo, const stk::mesh::impl::ElementSidePair &elementSidePair, std::vector<GraphEdge>& edgesToDelete)
 {
+    std::vector<GraphEdge> pllEdgesToDelete;
     for(const stk::mesh::GraphEdge& graphEdge : graphInfo.graph.get_edges_for_element_side(elementSidePair.first, elementSidePair.second))
     {
-        if(!is_this_element_shell(graphEdge, graphInfo.elementTopologies) && !is_other_element_shell(graphEdge, graphInfo.elementTopologies, graphInfo.parGraphInfo))
+        bool thisIsShell = is_this_element_shell(graphEdge, graphInfo.elementTopologies);
+        bool thatIsShell = is_other_element_shell(graphEdge, graphInfo.elementTopologies, graphInfo.parGraphInfo);
+
+        if(!thisIsShell && !thatIsShell)
         {
-            if(!impl::is_local_element(graphEdge.elem2()))
-                graphInfo.parGraphInfo.erase_parallel_info_for_graph_edge(graphEdge);
-            graphInfo.graph.delete_edge(graphEdge);
+            if(!impl::is_local_element(graphEdge.elem2())) {
+                pllEdgesToDelete.push_back(graphEdge);
+            }
+            edgesToDelete.push_back(graphEdge);
         }
     }
+    graphInfo.parGraphInfo.erase_edges(pllEdgesToDelete);
 }
 
 void remove_graph_edges_blocked_by_shell(GraphInfo &graphInfo)
 {
+    std::vector<GraphEdge> edgesToDelete;
     for(size_t localId = 0; localId < graphInfo.graph.get_num_elements_in_graph(); localId++)
     {
         SideConnections sideConnectionsForElement(graphInfo.elementTopologies[localId].num_sides());
         for(int side : sideConnectionsForElement.get_sides_connected_to_shell_and_nonshell(graphInfo, localId))
-            delete_non_shell_graph_edges(graphInfo, stk::mesh::impl::ElementSidePair(localId, side));
+            fill_non_shell_graph_edges_to_delete(graphInfo, stk::mesh::impl::ElementSidePair(localId, side), edgesToDelete);
+
+        if (edgesToDelete.size() > 0)
+        {
+            std::sort(edgesToDelete.begin(), edgesToDelete.end(), GraphEdgeLessByElem1());
+            graphInfo.graph.delete_sorted_edges(edgesToDelete);
+            edgesToDelete.clear();
+        }
     }
 }
 

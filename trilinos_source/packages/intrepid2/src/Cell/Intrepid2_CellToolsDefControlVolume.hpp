@@ -64,47 +64,29 @@ namespace Intrepid2 {
 
   namespace FunctorCellTools {
 
-    /** \brief  Computes cell barycenter
+    /** \brief  Computes barycenter of polygonal cells
          \param  center            [out] - cell barycenter
          \param  verts             [in]  - cell vertices
     */
     template<typename centerViewType, typename vertViewType>
     KOKKOS_INLINE_FUNCTION
-    void getBaryCenter(       centerViewType center,
-                        const vertViewType verts) {
+    void getBarycenterPolygon2D(       centerViewType center,
+                                 const vertViewType verts) {
       // the enumeration already assumes the ordering of vertices (circling around the polygon)
       const ordinal_type nvert = verts.extent(0);
-      const ordinal_type dim   = verts.extent(1);
-      
-      switch (dim) {
-      case 2: {
-        center(0) = 0;
-        center(1) = 0;
-        typename centerViewType::value_type area = 0;
-        for (ordinal_type i=0;i<nvert;++i) {
-          const ordinal_type j = (i + 1)%nvert;
-          const auto scale = verts(i,0)*verts(j,1) - verts(j,0)*verts(i,1);
-          center(0) += (verts(i,0) + verts(j,0))*scale;
-          center(1) += (verts(i,1) + verts(j,1))*scale;
-          area += 0.5*scale;
-        }
-        center(0) /= (6.0*area);
-        center(1) /= (6.0*area);
-        break;
+
+      center(0) = 0;
+      center(1) = 0;
+      typename centerViewType::value_type area = 0;
+      for (ordinal_type i=0;i<nvert;++i) {
+        const ordinal_type j = (i + 1)%nvert;
+        const auto scale = verts(i,0)*verts(j,1) - verts(j,0)*verts(i,1);
+        center(0) += (verts(i,0) + verts(j,0))*scale;
+        center(1) += (verts(i,1) + verts(j,1))*scale;
+        area += 0.5*scale;
       }
-      case 3: {
-        // This method works fine for simplices, but for other 3-d shapes
-        // is not precisely accurate. Could replace with approximate integration
-        // perhaps.
-        for (ordinal_type j=0;j<dim;++j) {
-          center(j) = 0;
-          for (ordinal_type i=0;i<nvert;++i) 
-            center(j) += verts(i,j);
-          center(j) /= nvert;
-        }
-        break;
-      }
-      }
+      center(0) /= (6.0*area);
+      center(1) /= (6.0*area);
     }
     
     template<typename midPointViewType, typename nodeMapViewType, typename vertViewType>
@@ -159,10 +141,10 @@ namespace Intrepid2 {
         // work space for barycenter and midpoints on edges
         typedef typename subcvCoordViewType::value_type value_type;
         value_type buf_center[2], buf_midpts[4*2];
-        Kokkos::View<value_type*,Kokkos::Impl::ActiveExecutionMemorySpace> center(buf_center, 2);
-        Kokkos::View<value_type**,Kokkos::Impl::ActiveExecutionMemorySpace> midpts(buf_midpts, 4, 2);
+        Kokkos::View<value_type*,Kokkos::AnonymousSpace> center(buf_center, 2);
+        Kokkos::View<value_type**,Kokkos::AnonymousSpace> midpts(buf_midpts, 4, 2);
 
-        getBaryCenter(center, verts);
+        getBarycenterPolygon2D(center, verts);
         getMidPoints(midpts, _edgeMap, verts);
 
         for (ordinal_type i=0;i<nvert;++i) {
@@ -200,7 +182,7 @@ namespace Intrepid2 {
         // vertices of cell (P,D)
         const auto verts = Kokkos::subdynrankview( _cellCoords, cell, 
                                                    Kokkos::ALL(), Kokkos::ALL() );
-        // const ordinal_type nvert = verts.extent(0);
+        const ordinal_type nvert = verts.extent(0);
         const ordinal_type dim   = verts.extent(1);
 
         // control volume coords (N,P,D), here N corresponds to cell vertices
@@ -210,11 +192,19 @@ namespace Intrepid2 {
         //  work space for barycenter and midpoints on edges
         typedef typename subcvCoordViewType::value_type value_type;
         value_type buf_center[3], buf_edge_midpts[12*3], buf_face_midpts[6*3];
-        Kokkos::View<value_type*,Kokkos::Impl::ActiveExecutionMemorySpace> center(buf_center, 3);
-        Kokkos::View<value_type**,Kokkos::Impl::ActiveExecutionMemorySpace> edge_midpts(buf_edge_midpts, 12, 3);
-        Kokkos::View<value_type**,Kokkos::Impl::ActiveExecutionMemorySpace> face_midpts(buf_face_midpts,  6, 3);
+        Kokkos::View<value_type*,Kokkos::AnonymousSpace> center(buf_center, 3);
+        Kokkos::View<value_type**,Kokkos::AnonymousSpace> edge_midpts(buf_edge_midpts, 12, 3);
+        Kokkos::View<value_type**,Kokkos::AnonymousSpace> face_midpts(buf_face_midpts,  6, 3);
 
-        getBaryCenter(center, verts);
+        // find barycenter
+        //Warning! I think this assumes the Hexa is affinely mapped from the reference Hexa
+        for (ordinal_type j=0;j<3;++j) {
+          center(j) = 0;
+          for (ordinal_type i=0;i<nvert;++i) 
+            center(j) += verts(i,j);
+          center(j) /= nvert;
+        }
+
         getMidPoints(edge_midpts, _edgeMap, verts);
         getMidPoints(face_midpts, _faceMap, verts);
 
@@ -290,7 +280,7 @@ namespace Intrepid2 {
         // ** vertices of cell (P,D)
         const auto verts = Kokkos::subdynrankview( _cellCoords, cell, 
                                                    Kokkos::ALL(), Kokkos::ALL() );
-        //const ordinal_type nvert = verts.extent(0);
+        const ordinal_type nvert = verts.extent(0);
         const ordinal_type dim   = verts.extent(1);
 
         //  control volume coords (N,P,D), here N corresponds to cell vertices
@@ -300,11 +290,18 @@ namespace Intrepid2 {
         //  work space for barycenter and midpoints on edges
         typedef typename subcvCoordViewType::value_type value_type;
         value_type buf_center[3], buf_edge_midpts[6*3], buf_face_midpts[4*3];
-        Kokkos::View<value_type*,Kokkos::Impl::ActiveExecutionMemorySpace> center(buf_center, 3);
-        Kokkos::View<value_type**,Kokkos::Impl::ActiveExecutionMemorySpace> edge_midpts(buf_edge_midpts,  6, 3);
-        Kokkos::View<value_type**,Kokkos::Impl::ActiveExecutionMemorySpace> face_midpts(buf_face_midpts,  4, 3);
+        Kokkos::View<value_type*,Kokkos::AnonymousSpace> center(buf_center, 3);
+        Kokkos::View<value_type**,Kokkos::AnonymousSpace> edge_midpts(buf_edge_midpts,  6, 3);
+        Kokkos::View<value_type**,Kokkos::AnonymousSpace> face_midpts(buf_face_midpts,  4, 3);
 
-        getBaryCenter(center, verts);
+        // find barycenter
+        for (ordinal_type j=0;j<3;++j) {
+          center(j) = 0;
+          for (ordinal_type i=0;i<nvert;++i) 
+            center(j) += verts(i,j);
+          center(j) /= nvert;
+        }
+        
         getMidPoints(edge_midpts, _edgeMap, verts);
         getMidPoints(face_midpts, _faceMap, verts);
 
@@ -368,11 +365,11 @@ namespace Intrepid2 {
 
   }
   
-  template<typename SpT>
+  template<typename DeviceType>
   template<typename subcvCoordValueType, class ...subcvCoordProperties,
            typename cellCoordValueType,  class ...cellCoordProperties>
   void
-  CellTools<SpT>::
+  CellTools<DeviceType>::
   getSubcvCoords(       Kokkos::DynRankView<subcvCoordValueType,subcvCoordProperties...> subcvCoords,
                   const Kokkos::DynRankView<cellCoordValueType,cellCoordProperties...>   cellCoords,
                   const shards::CellTopology primaryCell ) {
@@ -386,6 +383,13 @@ namespace Intrepid2 {
     INTREPID2_TEST_FOR_EXCEPTION( cellCoords.extent(2) != primaryCell.getDimension(), std::invalid_argument,
                                   ">>> ERROR (Intrepid2::CellTools::getSubcvCoords): cell coords dimension(2) does not match to the dimension of the cell." );
 #endif
+    constexpr bool are_accessible =
+        Kokkos::Impl::MemorySpaceAccess<MemSpaceType,
+        typename decltype(subcvCoords)::memory_space>::accessible &&
+        Kokkos::Impl::MemorySpaceAccess<MemSpaceType,
+        typename decltype(cellCoords)::memory_space>::accessible;
+    static_assert(are_accessible, "CellTools<DeviceType>::getSubcvCoords(..): input/output views' memory spaces are not compatible with DeviceType");
+
 
     // get array dimensions
     const ordinal_type numCells = cellCoords.extent(0);
@@ -394,7 +398,8 @@ namespace Intrepid2 {
 
     // construct edge and face map for the cell type
     const ordinal_type numEdge = primaryCell.getSubcellCount(1);
-    Kokkos::View<ordinal_type**,Kokkos::LayoutRight,Kokkos::HostSpace> edgeMapHost("CellTools::getSubcvCoords::edgeMapHost", numEdge, 3);
+    Kokkos::View<ordinal_type**,DeviceType> edgeMap("CellTools::getSubcvCoords::edgeMap", numEdge, 3);
+    auto edgeMapHost = Kokkos::create_mirror_view(edgeMap);
     for (ordinal_type i=0;i<numEdge;++i) {
       edgeMapHost(i,0) = primaryCell.getNodeCount(1, i);
       for (ordinal_type j=0;j<edgeMapHost(i,0);++j)
@@ -402,29 +407,24 @@ namespace Intrepid2 {
     }
 
     const ordinal_type numFace = (spaceDim > 2 ? primaryCell.getSubcellCount(2) : 0);
-    Kokkos::View<ordinal_type**,Kokkos::LayoutRight,Kokkos::HostSpace> faceMapHost("CellTools::getSubcvCoords::faceMapHost", numFace, 5);
+    Kokkos::View<ordinal_type**,DeviceType> faceMap("CellTools::getSubcvCoords::faceMap", numFace, 5);
+    auto faceMapHost = Kokkos::create_mirror_view(faceMap);
     for (ordinal_type i=0;i<numFace;++i) {
       faceMapHost(i,0) = primaryCell.getNodeCount(2, i);
       for (ordinal_type j=0;j<faceMapHost(i,0);++j)
         faceMapHost(i,j+1) = primaryCell.getNodeMap(2, i, j);
     }
 
-    // create mirror to device
-    auto edgeMap = Kokkos::create_mirror_view(typename SpT::memory_space(), edgeMapHost);
-    auto faceMap = Kokkos::create_mirror_view(typename SpT::memory_space(), faceMapHost);
-
     Kokkos::deep_copy(edgeMap, edgeMapHost);
     Kokkos::deep_copy(faceMap, faceMapHost);
 
     // parallel run
-    typedef Kokkos::DynRankView<subcvCoordValueType,subcvCoordProperties...> subcvCoordViewType;
-    typedef Kokkos::DynRankView<cellCoordValueType,cellCoordProperties...>   cellCoordViewType;
-    typedef Kokkos::View<ordinal_type**,Kokkos::LayoutRight,SpT>             mapViewType;
-
-    typedef typename ExecSpace<typename subcvCoordViewType::execution_space,SpT>::ExecSpaceType ExecSpaceType;
+    using subcvCoordViewType = decltype(subcvCoords);
+    using cellCoordViewType = decltype(cellCoords);
+    using mapViewType = decltype(edgeMap);
 
     const auto loopSize = numCells;
-    Kokkos::RangePolicy<ExecSpaceType,Kokkos::Schedule<Kokkos::Static> > policy(0, loopSize);
+    Kokkos::RangePolicy<ExecSpaceType, Kokkos::Schedule<Kokkos::Static> > policy(0, loopSize);
 
     switch (primaryCell.getKey()) {
     case shards::Triangle<3>::key:

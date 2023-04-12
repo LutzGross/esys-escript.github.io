@@ -1,5 +1,5 @@
 INCLUDE(CMakePackageConfigHelpers)
-IF (NOT KOKKOS_HAS_TRILINOS)
+IF (NOT KOKKOS_HAS_TRILINOS AND NOT Kokkos_INSTALL_TESTING)
   INCLUDE(GNUInstallDirs)
 
   #Set all the variables needed for KokkosConfig.cmake
@@ -19,7 +19,7 @@ IF (NOT KOKKOS_HAS_TRILINOS)
 
   WRITE_BASIC_PACKAGE_VERSION_FILE("${Kokkos_BINARY_DIR}/KokkosConfigVersion.cmake"
       VERSION "${Kokkos_VERSION}"
-      COMPATIBILITY SameMajorVersion)
+      COMPATIBILITY AnyNewerVersion)
 
   # Install the KokkosConfig*.cmake files
   install(FILES

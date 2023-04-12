@@ -55,13 +55,16 @@
 /* Whether to enable timing */
 #cmakedefine GET_TIMING
 
-/* Whether to use Cuda Host Pinned memory for MPI */
-#cmakedefine CUDA_HOST_PINNED_MPI
+/* Whether to use Cuda/HIP Host Pinned memory for MPI */
+#cmakedefine ADELUS_HOST_PINNED_MEM_MPI
 
 /* Whether to use Kokkos::deep_copy for BLAS copy */
 #cmakedefine USE_DEEPCOPY
 
 /* Whether to enable status prints */
 #cmakedefine PRINT_STATUS
+
+/* Whether to have time monitor */
+#cmakedefine ADELUS_HAVE_TIME_MONITOR
 
 #endif // ADELUS_CONFIG_H

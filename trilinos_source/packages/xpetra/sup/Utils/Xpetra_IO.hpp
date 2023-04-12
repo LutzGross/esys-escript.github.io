@@ -74,8 +74,10 @@
 #include <Tpetra_RowMatrixTransposer.hpp>
 #include <TpetraExt_MatrixMatrix.hpp>
 #include <Xpetra_TpetraMultiVector.hpp>
+#include <Xpetra_TpetraCrsGraph.hpp>
 #include <Xpetra_TpetraCrsMatrix.hpp>
 #include <Xpetra_TpetraBlockCrsMatrix.hpp>
+#include "Tpetra_Util.hpp"
 #endif
 
 #ifdef HAVE_XPETRA_EPETRA
@@ -84,6 +86,7 @@
 
 #include "Xpetra_Matrix.hpp"
 #include "Xpetra_MatrixMatrix.hpp"
+#include "Xpetra_CrsGraph.hpp"
 #include "Xpetra_CrsMatrixWrap.hpp"
 #include "Xpetra_BlockedCrsMatrix.hpp"
 
@@ -94,6 +97,7 @@
 #include "Xpetra_MatrixFactory.hpp"
 
 #include <Teuchos_MatrixMarket_Raw_Writer.hpp>
+#include <Teuchos_MatrixMarket_Raw_Reader.hpp>
 #include <string>
 
 
@@ -310,6 +314,15 @@ namespace Xpetra {
         Tpetra::MatrixMarket::Writer<Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> >::writeSparseFile(fileName, A);
         return;
       }
+      const RCP<const Xpetra::TpetraBlockCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> >& tmp_BlockCrs = 
+        Teuchos::rcp_dynamic_cast<const Xpetra::TpetraBlockCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> >(tmp_CrsMtx);
+      if(tmp_BlockCrs != Teuchos::null) {
+        std::ofstream outstream (fileName,std::ofstream::out);
+        Teuchos::FancyOStream ofs(Teuchos::rcpFromRef(outstream));
+        tmp_BlockCrs->getTpetra_BlockCrsMatrix()->describe(ofs,Teuchos::VERB_EXTREME);        
+        return;
+      }
+
 #endif // HAVE_XPETRA_TPETRA
 
       throw Exceptions::BadCast("Could not cast to EpetraCrsMatrix or TpetraCrsMatrix in matrix writing");
@@ -340,47 +353,55 @@ namespace Xpetra {
       Teuchos::MatrixMarket::Raw::Writer<Scalar,LocalOrdinal> writer;
       writer.writeFile(fileName + "." + std::to_string(Op.getRowMap()->getComm()->getSize()) + "." + std::to_string(Op.getRowMap()->getComm()->getRank()),
                        rowptr2,colind,vals,
-                       rowptr.size()-1,Op.getColMap()->getNodeNumElements());
+                       rowptr.size()-1,Op.getColMap()->getLocalNumElements());
     } //WriteLocal
 
 
-    /*! @brief Save matrix to file in Matrix Market format. */
-    static void WriteBlockedCrsMatrix(const std::string& fileName, const Xpetra::BlockedCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> & Op, const bool &writeAllMaps = false) {
-      typedef Xpetra::Map<LocalOrdinal,GlobalOrdinal,Node>                     XpMap;
-      typedef Xpetra::MapExtractor<Scalar, LocalOrdinal, GlobalOrdinal, Node>  XpMapExtractor;
-      //typedef Xpetra::CrsMatrix<Scalar,LocalOrdinal,GlobalOrdinal,Node>        XpCrsMat;
-      typedef Xpetra::CrsMatrixWrap<Scalar,LocalOrdinal,GlobalOrdinal,Node>    XpCrsMatWrap;
-      typedef Xpetra::Matrix<Scalar,LocalOrdinal,GlobalOrdinal,Node>           XpMat;
-      typedef Xpetra::IO<Scalar, LocalOrdinal, GlobalOrdinal, Node>            XpIO;
+    /*! @brief Save block matrix to one file per block in Matrix Market format.
 
-      // write all matrices with their maps
-      for (size_t r = 0; r < Op.Rows(); ++r) {
-        for (size_t c = 0; c < Op.Cols(); ++c) {
-          RCP<const XpMat > m = Op.getMatrix(r,c);
+    We write one MatrixMarket file for each block of the given BlockedCrsMatrix.
+    The block (row,col) indicators are included into the file name, such that filename02.m indicates
+    the block in row = 0 and col = 2, for example.
+
+    While the user can enable/disable the output of all maps of each matrix block,
+    we always write the range and domain maps of each block as well of the full blocked operator
+    in order to enable reconstruction of the MapExtractor objects for range and domain maps.
+
+    @param fileName String to indicate file name of files to be written
+    @param Op BlockedCrsMatrix to be written
+    @param writeAllMaps Flag to control output of maps to separate files (defaults to \c false )
+    */
+    static void WriteBlockedCrsMatrix(const std::string& fileName, const Xpetra::BlockedCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> & Op, const bool &writeAllMaps = false) {
+      using XpIO = Xpetra::IO<Scalar, LocalOrdinal, GlobalOrdinal, Node>;
+
+      // Write all matrix blocks with their maps
+      for (size_t row = 0; row < Op.Rows(); ++row) {
+        for (size_t col = 0; col < Op.Cols(); ++col) {
+          RCP<const Matrix > m = Op.getMatrix(row,col);
           if(m != Teuchos::null) { // skip empty blocks
-            TEUCHOS_TEST_FOR_EXCEPTION(Teuchos::rcp_dynamic_cast<const XpCrsMatWrap>(m) == Teuchos::null, Xpetra::Exceptions::BadCast,
-              "Sub block matrix (" << r << "," << c << ") is not of type CrsMatrixWrap.");
-            XpIO::Write(fileName + toString(r) + toString(c) + ".m", *m, writeAllMaps);
+            TEUCHOS_TEST_FOR_EXCEPTION(Teuchos::rcp_dynamic_cast<const CrsMatrixWrap>(m) == Teuchos::null, Xpetra::Exceptions::BadCast,
+              "Sub block matrix (" << row << "," << col << ") is not of type CrsMatrixWrap.");
+            XpIO::Write(fileName + toString(row) + toString(col) + ".m", *m, writeAllMaps);
           }
         }
       }
 
       // write map information of map extractors
-      RCP<const XpMapExtractor> rangeMapExtractor  = Op.getRangeMapExtractor();
-      RCP<const XpMapExtractor> domainMapExtractor = Op.getDomainMapExtractor();
+      RCP<const MapExtractor> rangeMapExtractor = Op.getRangeMapExtractor();
+      RCP<const MapExtractor> domainMapExtractor = Op.getDomainMapExtractor();
 
-      for(size_t r = 0; r < rangeMapExtractor->NumMaps(); ++r) {
-        RCP<const XpMap> map = rangeMapExtractor->getMap(r);
-        XpIO::Write("subRangeMap_" + fileName + XpIO::toString<size_t>(r) + ".m", *map);
+      for(size_t row = 0; row < rangeMapExtractor->NumMaps(); ++row) {
+        RCP<const Map> map = rangeMapExtractor->getMap(row);
+        XpIO::Write("subRangeMap_" + fileName + XpIO::toString<size_t>(row) + ".m", *map);
       }
       XpIO::Write("fullRangeMap_" + fileName +".m",*(rangeMapExtractor->getFullMap()));
 
-      for(size_t c = 0; c < domainMapExtractor->NumMaps(); ++c) {
-        RCP<const XpMap> map = domainMapExtractor->getMap(c);
-        XpIO::Write("subDomainMap_" + fileName + XpIO::toString<size_t>(c) + ".m", *map);
+      for(size_t col = 0; col < domainMapExtractor->NumMaps(); ++col) {
+        RCP<const Map> map = domainMapExtractor->getMap(col);
+        XpIO::Write("subDomainMap_" + fileName + XpIO::toString<size_t>(col) + ".m", *map);
       }
       XpIO::Write("fullDomainMap_" + fileName+ ".m",*(domainMapExtractor->getFullMap()));
-    } //WriteBlockCrsMatrix
+    } // WriteBlockedCrsMatrix
 
     //! @brief Read matrix from file in Matrix Market or binary format.
     static Teuchos::RCP<Xpetra::Matrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> > Read(const std::string& fileName, Xpetra::UnderlyingLib lib, const RCP<const Teuchos::Comm<int> >& comm, bool binary = false) {
@@ -446,12 +467,12 @@ namespace Xpetra {
           Teuchos::Array<GlobalOrdinal> inds;
           Teuchos::Array<Scalar> vals;
           // Scan matrix to determine the exact nnz per row.
-          Teuchos::ArrayRCP<size_t> numEntriesPerRow(m);
+          Teuchos::ArrayRCP<size_t> numEntriesPerRow(m,(size_t)(0));
           for (int i = 0; i < m; i++) {
             int row, rownnz;
             ifs.read(reinterpret_cast<char*>(&row),    sizeof(row));
             ifs.read(reinterpret_cast<char*>(&rownnz), sizeof(rownnz));
-            numEntriesPerRow[i] = rownnz;
+            numEntriesPerRow[row] = rownnz;
             for (int j = 0; j < rownnz; j++) {
               int index;
               ifs.read(reinterpret_cast<char*>(&index), sizeof(index));
@@ -462,14 +483,14 @@ namespace Xpetra {
             }
           }
 
-          A   = Xpetra::MatrixFactory<Scalar, LocalOrdinal, GlobalOrdinal, Node>::Build(rowMap, colMap, numEntriesPerRow);
+          A = Xpetra::MatrixFactory<Scalar, LocalOrdinal, GlobalOrdinal, Node>::Build(rowMap, colMap, numEntriesPerRow);
 
           // Now that nnz per row are known, reread and store the matrix.
           ifs.seekg(0, ifs.beg); //rewind to beginning of file
           int junk; //skip header info
-          ifs.read(reinterpret_cast<char*>(&m),   sizeof(junk));
-          ifs.read(reinterpret_cast<char*>(&n),   sizeof(junk));
-          ifs.read(reinterpret_cast<char*>(&nnz), sizeof(junk));
+          ifs.read(reinterpret_cast<char*>(&junk), sizeof(junk));
+          ifs.read(reinterpret_cast<char*>(&junk), sizeof(junk));
+          ifs.read(reinterpret_cast<char*>(&junk), sizeof(junk));
           for (int i = 0; i < m; i++) {
             int row, rownnz;
             ifs.read(reinterpret_cast<char*>(&row),    sizeof(row));
@@ -489,6 +510,10 @@ namespace Xpetra {
             A->insertGlobalValues(row, inds, vals);
           }
         } //if (myRank == 0)
+        else {
+          Teuchos::ArrayRCP<size_t> numEntriesPerRow(0,(size_t)(0));
+          A = Xpetra::MatrixFactory<Scalar, LocalOrdinal, GlobalOrdinal, Node>::Build(rowMap, colMap, numEntriesPerRow);
+        }
 
         A->fillComplete(domainMap, rangeMap);
 
@@ -576,54 +601,179 @@ namespace Xpetra {
           throw Exceptions::RuntimeError("Utils::Read : you must specify Xpetra::UseEpetra or Xpetra::UseTpetra.");
         }
       } else {
-        // Custom file format (binary)
-        std::ifstream ifs(filename.c_str(), std::ios::binary);
-        TEUCHOS_TEST_FOR_EXCEPTION(!ifs.good(), Exceptions::RuntimeError, "Can not read \"" << filename << "\"");
-        int m, n, nnz;
-        ifs.read(reinterpret_cast<char*>(&m),   sizeof(m));
-        ifs.read(reinterpret_cast<char*>(&n),   sizeof(n));
-        ifs.read(reinterpret_cast<char*>(&nnz), sizeof(nnz));
 
-        //2020-June-05 JHU : for Tpetra, this will probably fail because Tpetra now requires staticly-sized matrix graphs.
-        RCP<Xpetra::Matrix<Scalar,LocalOrdinal,GlobalOrdinal,Node> > A = Xpetra::MatrixFactory<Scalar,LocalOrdinal,GlobalOrdinal,Node>::Build(rowMap, colMap, 1);
+        // Read in on rank 0.
+        auto tempA = Read(filename, lib, rowMap->getComm(), binary);
 
-        //2019-06-07 JHU I don't see why this should matter.
-        //TEUCHOS_TEST_FOR_EXCEPTION(sizeof(int) != sizeof(GO), Exceptions::RuntimeError, "Incompatible sizes");
+        auto A = Xpetra::MatrixFactory<Scalar,LocalOrdinal,GlobalOrdinal,Node>::Build(rowMap, colMap, 0);
+        auto importer  = Xpetra::ImportFactory<LocalOrdinal,GlobalOrdinal,Node>::Build(tempA->getRowMap(), rowMap);
+        A->doImport(*tempA, *importer, Xpetra::INSERT);
+        if (callFillComplete)
+          A->fillComplete(domainMap, rangeMap);
 
-        Teuchos::ArrayView<const GlobalOrdinal> rowElements = rowMap->getNodeElementList();
-        Teuchos::ArrayView<const GlobalOrdinal> colElements = colMap->getNodeElementList();
-
-        Teuchos::Array<GlobalOrdinal> inds;
-        Teuchos::Array<Scalar> vals;
-        for (int i = 0; i < m; i++) {
-          int row, rownnz;
-          ifs.read(reinterpret_cast<char*>(&row),    sizeof(row));
-          ifs.read(reinterpret_cast<char*>(&rownnz), sizeof(rownnz));
-          inds.resize(rownnz);
-          vals.resize(rownnz);
-          for (int j = 0; j < rownnz; j++) {
-            int index;
-            ifs.read(reinterpret_cast<char*>(&index), sizeof(index));
-            inds[j] = colElements[Teuchos::as<LocalOrdinal>(index)];
-          }
-          for (int j = 0; j < rownnz; j++) {
-            double value;
-            ifs.read(reinterpret_cast<char*>(&value), sizeof(value));
-            vals[j] = Teuchos::as<SC>(value);
-          }
-          //This implies that row is not a global index.
-          A->insertGlobalValues(rowElements[row], inds, vals);
-        }
-        A->fillComplete(domainMap, rangeMap);
         return A;
       }
 
       TEUCHOS_UNREACHABLE_RETURN(Teuchos::null);
     }
+
+    /*! @brief Read matrix from local files in Matrix Market or binary format.
+
+      The file name format is filename.SIZE.RANK, where SIZE is the
+      size of the communicator of the rowMap and RANK is the MPI ranks
+      of the calling process.
+
+      If only rowMap is specified, then it is used for the domainMap and rangeMap, as well.
+      */
+    static Teuchos::RCP<Xpetra::Matrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> > ReadLocal(const std::string&   filename,
+                                                                                              const RCP<const Xpetra::Map<LocalOrdinal, GlobalOrdinal, Node> > rowMap,
+                                                                                              RCP<const Xpetra::Map<LocalOrdinal, GlobalOrdinal, Node> > colMap,
+                                                                                              const RCP<const Xpetra::Map<LocalOrdinal, GlobalOrdinal, Node> > domainMap        = Teuchos::null,
+                                                                                              const RCP<const Xpetra::Map<LocalOrdinal, GlobalOrdinal, Node> > rangeMap         = Teuchos::null,
+                                                                                              const bool           callFillComplete = true,
+                                                                                              const bool           binary           = false,
+                                                                                              const bool           tolerant         = false,
+                                                                                              const bool           debug            = false) {
+      TEUCHOS_TEST_FOR_EXCEPTION(rowMap.is_null(), Exceptions::RuntimeError, "Utils::ReadLocal() : rowMap cannot be null");
+      TEUCHOS_TEST_FOR_EXCEPTION(colMap.is_null(), Exceptions::RuntimeError, "Utils::ReadLocal() : colMap cannot be null");
+
+      using matrix_type = Xpetra::Matrix<Scalar,LocalOrdinal,GlobalOrdinal,Node>;
+      using crs_wrap_type = Xpetra::CrsMatrixWrap<Scalar,LocalOrdinal,GlobalOrdinal,Node>;
+      using crs_type = Xpetra::CrsMatrix<Scalar,LocalOrdinal,GlobalOrdinal,Node>;
+
+      RCP<const Xpetra::Map<LocalOrdinal,GlobalOrdinal,Node> > domain = (domainMap.is_null() ? rowMap : domainMap);
+      RCP<const Xpetra::Map<LocalOrdinal,GlobalOrdinal,Node> > range  = (rangeMap .is_null() ? rowMap : rangeMap);
+
+      std::string rankFilename = filename + "." + std::to_string(rowMap->getComm()->getSize()) + "." + std::to_string(rowMap->getComm()->getRank());
+      RCP<matrix_type> A = rcp(new crs_wrap_type(rowMap, colMap, 0));
+
+      if (binary == false) {
+
+        RCP<Teuchos::ParameterList> params = rcp(new Teuchos::ParameterList());
+        params->set("Parse tolerantly", tolerant);
+        params->set("Debug mode", debug);
+
+        LocalOrdinal numRows = rowMap->getLocalNumElements();
+        LocalOrdinal numCols = colMap->getLocalNumElements();
+
+        ArrayRCP<LocalOrdinal> rowptr2_RCP;
+        ArrayRCP<LocalOrdinal> colind2_RCP;
+        ArrayRCP<Scalar> vals2_RCP;
+
+        Teuchos::MatrixMarket::Raw::Reader<Scalar,LocalOrdinal> reader;
+        reader.readFile(rowptr2_RCP,colind2_RCP,vals2_RCP,
+                        numRows,numCols,
+                        rankFilename);
+
+
+        RCP<crs_type>    ACrs = Teuchos::rcp_dynamic_cast<crs_wrap_type>(A)->getCrsMatrix();
+
+        ArrayRCP<size_t>       rowptr_RCP;
+        ArrayRCP<LocalOrdinal> colind_RCP;
+        ArrayRCP<Scalar>       vals_RCP;
+        ACrs->allocateAllValues(colind2_RCP.size(), rowptr_RCP, colind_RCP, vals_RCP);
+
+        rowptr_RCP.assign(rowptr2_RCP.begin(), rowptr2_RCP.end());
+        colind_RCP = colind2_RCP;
+        vals_RCP = vals2_RCP;
+
+        ACrs->setAllValues(rowptr_RCP, colind_RCP, vals_RCP);
+      } else {
+                // Custom file format (binary)
+        std::ifstream ifs = std::ifstream(rankFilename.c_str(), std::ios::binary);
+        TEUCHOS_TEST_FOR_EXCEPTION(!ifs.good(), Exceptions::RuntimeError, "Can not read \"" << filename << "\"");
+
+        int m, n, nnz;
+        ifs.read(reinterpret_cast<char*>(&m),   sizeof(m));
+        ifs.read(reinterpret_cast<char*>(&n),   sizeof(n));
+        ifs.read(reinterpret_cast<char*>(&nnz), sizeof(nnz));
+
+        TEUCHOS_ASSERT_EQUALITY(Teuchos::as<int>(rowMap->getLocalNumElements()), m);
+
+        Teuchos::ArrayRCP<size_t>       rowptrRCP;
+        Teuchos::ArrayRCP<LocalOrdinal> indicesRCP;
+        Teuchos::ArrayRCP<Scalar>       valuesRCP;
+
+        RCP<crs_type>    ACrs = Teuchos::rcp_dynamic_cast<crs_wrap_type>(A)->getCrsMatrix();
+
+        ACrs->allocateAllValues(nnz, rowptrRCP, indicesRCP, valuesRCP);
+
+        Teuchos::ArrayView<size_t>       rowptr = rowptrRCP();
+        Teuchos::ArrayView<LocalOrdinal> indices = indicesRCP();
+        Teuchos::ArrayView<Scalar>       values = valuesRCP();
+
+        bool sorted = true;
+
+        // Read in rowptr
+        for (int i = 0; i < m; i++) {
+          int row, rownnz;
+          ifs.read(reinterpret_cast<char*>(&row),    sizeof(row));
+          ifs.read(reinterpret_cast<char*>(&rownnz), sizeof(rownnz));
+
+          rowptr[row+1] += rownnz;
+          ifs.seekg(sizeof(int)*rownnz + sizeof(double)*rownnz, ifs.cur);
+        }
+        for (int i = 0; i < m; i++)
+          rowptr[i+1] += rowptr[i];
+        TEUCHOS_ASSERT(Teuchos::as<int>(rowptr[m]) == nnz);
+
+        // reset to where the data starts
+        ifs.seekg(sizeof(int)*3, ifs.beg);
+
+        // read in entries
+        for (int i = 0; i < m; i++) {
+          int row, rownnz;
+          ifs.read(reinterpret_cast<char*>(&row),    sizeof(row));
+          ifs.read(reinterpret_cast<char*>(&rownnz), sizeof(rownnz));
+          size_t ptr = rowptr[row];
+          for (int j = 0; j < rownnz; j++) {
+            int index;
+            ifs.read(reinterpret_cast<char*>(&index), sizeof(index));
+            indices[ptr] = Teuchos::as<LocalOrdinal>(index);
+            if (j>0)
+              sorted = sorted & (indices[ptr-1] < indices[ptr]);
+            ++ptr;
+          }
+          ptr = rowptr[row];
+          for (int j = 0; j < rownnz; j++) {
+            double value;
+            ifs.read(reinterpret_cast<char*>(&value), sizeof(value));
+            values[ptr] = Teuchos::as<Scalar>(value);
+            ++ptr;
+          }
+          rowptr[row] += rownnz;
+        }
+        for (int i = m; i > 0; i--)
+          rowptr[i] = rowptr[i-1];
+        rowptr[0] = 0;
+
+#ifdef HAVE_XPETRA_TPETRA
+        if (!sorted) {
+          for (LocalOrdinal lclRow = 0; lclRow < m; lclRow++) {
+            size_t rowBegin = rowptr[lclRow];
+            size_t rowEnd = rowptr[lclRow+1];
+            Tpetra::sort2(&indices[rowBegin], &indices[rowEnd], &values[rowBegin]);
+          }
+        }
+#else
+        TEUCHOS_ASSERT(sorted);
+#endif
+
+        ACrs->setAllValues(rowptrRCP, indicesRCP, valuesRCP);
+
+      }
+
+      if (callFillComplete)
+        A->fillComplete(domainMap, rangeMap);
+      return A;
+
+    }
     //@}
 
 
-    static RCP<MultiVector> ReadMultiVector (const std::string& fileName, const RCP<const Map>& map) {
+    static RCP<MultiVector> ReadMultiVector (const std::string& fileName,
+                                             const RCP<const Map>& map,
+                                             const bool binary=false) {
       Xpetra::UnderlyingLib lib = map->lib();
 
       if (lib == Xpetra::UseEpetra) {
@@ -637,7 +787,7 @@ namespace Xpetra {
         typedef Tpetra::MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node>            multivector_type;
 
         RCP<const map_type>   temp = toTpetra(map);
-        RCP<multivector_type> TMV  = reader_type::readDenseFile(fileName,map->getComm(),temp);
+        RCP<multivector_type> TMV  = reader_type::readDenseFile(fileName,map->getComm(),temp,false,false,binary);
         RCP<MultiVector>      rmv  = Xpetra::toXpetra(TMV);
         return rmv;
 #else
@@ -650,7 +800,10 @@ namespace Xpetra {
       TEUCHOS_UNREACHABLE_RETURN(Teuchos::null);
     }
 
-    static RCP<const Map>   ReadMap         (const std::string& fileName, Xpetra::UnderlyingLib lib, const RCP<const Teuchos::Comm<int> >& comm) {
+    static RCP<const Map>   ReadMap         (const std::string& fileName,
+                                             Xpetra::UnderlyingLib lib,
+                                             const RCP<const Teuchos::Comm<int> >& comm,
+                                             const bool binary=false) {
       if (lib == Xpetra::UseEpetra) {
         TEUCHOS_TEST_FOR_EXCEPTION(true, ::Xpetra::Exceptions::BadCast, "Epetra can only be used with Scalar=double and Ordinal=int");
       } else if (lib == Xpetra::UseTpetra) {
@@ -658,7 +811,7 @@ namespace Xpetra {
         typedef Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> sparse_matrix_type;
         typedef Tpetra::MatrixMarket::Reader<sparse_matrix_type>                          reader_type;
 
-        RCP<const Tpetra::Map<LocalOrdinal,GlobalOrdinal,Node> > tMap = reader_type::readMapFile(fileName, comm);
+        RCP<const Tpetra::Map<LocalOrdinal,GlobalOrdinal,Node> > tMap = reader_type::readMapFile(fileName, comm, false, false, binary);
         if (tMap.is_null())
           throw Exceptions::RuntimeError("The Tpetra::Map returned from readSparseFile() is null.");
 
@@ -674,31 +827,37 @@ namespace Xpetra {
 
     }
 
-    /*! @brief Read matrix to file in Matrix Market format. */
+    /*! @brief Read block matrix from one file per block in Matrix Market format.
+
+    We read one MatrixMarket file for each block of the desired BlockedCrsMatrix.
+    The block (row,col) indicators are included into the file name, such that filename02.m indicates
+    the block in row = 0 and col = 2, for example.
+
+    We also read the range and domain maps of each block as well of the full blocked operator
+    in order to enable reconstruction of the MapExtractor objects for range and domain maps.
+
+    @param fileName String to indicate file name of files to be written
+    @param lib Underlying type of linear algebra package
+    @param comm Communicator
+    */
     static RCP<const Xpetra::BlockedCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> >   ReadBlockedCrsMatrix (const std::string& fileName, Xpetra::UnderlyingLib lib, const RCP<const Teuchos::Comm<int> >& comm) {
-      typedef Xpetra::Map<LocalOrdinal,GlobalOrdinal,Node>                     XpMap;
-      typedef Xpetra::MapExtractor<Scalar, LocalOrdinal, GlobalOrdinal, Node>  XpMapExtractor;
-      //typedef Xpetra::CrsMatrix<Scalar,LocalOrdinal,GlobalOrdinal,Node>        XpCrsMat;
-      //typedef Xpetra::CrsMatrixWrap<Scalar,LocalOrdinal,GlobalOrdinal,Node>    XpCrsMatWrap;
-      typedef Xpetra::Matrix<Scalar,LocalOrdinal,GlobalOrdinal,Node>           XpMat;
-      typedef Xpetra::BlockedCrsMatrix<Scalar,LocalOrdinal,GlobalOrdinal,Node> XpBlockedCrsMat;
-      typedef Xpetra::IO<Scalar, LocalOrdinal, GlobalOrdinal, Node>            XpIO;
+      using XpIO = Xpetra::IO<Scalar, LocalOrdinal, GlobalOrdinal, Node>;
 
       size_t numBlocks = 2; // TODO user parameter?
 
-      std::vector<RCP<const XpMap> > rgMapVec;
-      for(size_t r = 0; r < numBlocks; ++r) {
-        RCP<const XpMap> map = XpIO::ReadMap("subRangeMap_" + fileName + XpIO::toString<size_t>(r) + ".m", lib, comm);
-        rgMapVec.push_back(map);
+      std::vector<RCP<const Map> > rangeMapVec;
+      for(size_t row = 0; row < numBlocks; ++row) {
+        RCP<const Map> map = XpIO::ReadMap("subRangeMap_" + fileName + XpIO::toString<size_t>(row) + ".m", lib, comm);
+        rangeMapVec.push_back(map);
       }
-      RCP<const XpMap> fullRangeMap = XpIO::ReadMap("fullRangeMap_" + fileName + ".m", lib, comm);
+      RCP<const Map> fullRangeMap = XpIO::ReadMap("fullRangeMap_" + fileName + ".m", lib, comm);
 
-      std::vector<RCP<const XpMap> > doMapVec;
-      for(size_t c = 0; c < numBlocks; ++c) {
-        RCP<const XpMap> map = XpIO::ReadMap("subDomainMap_" + fileName + XpIO::toString<size_t>(c) + ".m", lib, comm);
-        doMapVec.push_back(map);
+      std::vector<RCP<const Map> > domainMapVec;
+      for(size_t col = 0; col < numBlocks; ++col) {
+        RCP<const Map> map = XpIO::ReadMap("subDomainMap_" + fileName + XpIO::toString<size_t>(col) + ".m", lib, comm);
+        domainMapVec.push_back(map);
       }
-      RCP<const XpMap> fullDomainMap = XpIO::ReadMap("fullDomainMap_" + fileName + ".m", lib, comm);
+      RCP<const Map> fullDomainMap = XpIO::ReadMap("fullDomainMap_" + fileName + ".m", lib, comm);
 
       /*std::vector<RCP<const XpMap> > testRgMapVec;
       for(size_t r = 0; r < numBlocks; ++r) {
@@ -721,8 +880,8 @@ namespace Xpetra {
       }
       if ( gMinGids==0 && testRgMapVec.size() > 1 ) bRangeUseThyraStyleNumbering = true;
       */
-      RCP<const XpMapExtractor> rangeMapExtractor =
-          Teuchos::rcp(new XpMapExtractor(fullRangeMap, rgMapVec, bRangeUseThyraStyleNumbering));
+      RCP<const MapExtractor> rangeMapExtractor =
+          Teuchos::rcp(new MapExtractor(fullRangeMap, rangeMapVec, bRangeUseThyraStyleNumbering));
 
 
       // domain map extractor
@@ -733,28 +892,27 @@ namespace Xpetra {
       }
       if ( gMinGids==0 && testDoMapVec.size() > 1 ) bDomainUseThyraStyleNumbering = true;
       */
-      RCP<const XpMapExtractor> domainMapExtractor =
-          Teuchos::rcp(new XpMapExtractor(fullDomainMap, doMapVec, bDomainUseThyraStyleNumbering));
+      RCP<const MapExtractor> domainMapExtractor =
+          Teuchos::rcp(new MapExtractor(fullDomainMap, domainMapVec, bDomainUseThyraStyleNumbering));
 
-      RCP<XpBlockedCrsMat> bOp = Teuchos::rcp(new XpBlockedCrsMat(rangeMapExtractor,domainMapExtractor,33));
+      RCP<BlockedCrsMatrix> bOp = Teuchos::rcp(new BlockedCrsMatrix(rangeMapExtractor, domainMapExtractor,33));
 
-      // write all matrices with their maps
-      for (size_t r = 0; r < numBlocks; ++r) {
-        for (size_t c = 0; c < numBlocks; ++c) {
-          RCP<const XpMap> rowSubMap = XpIO::ReadMap("rowmap_" + fileName + XpIO::toString<size_t>(r) + XpIO::toString<size_t>(c) + ".m", lib, comm);
-          RCP<const XpMap> colSubMap = XpIO::ReadMap("colmap_" + fileName + XpIO::toString<size_t>(r) + XpIO::toString<size_t>(c) + ".m", lib, comm);
-          RCP<const XpMap> domSubMap = XpIO::ReadMap("domainmap_" + fileName + XpIO::toString<size_t>(r) + XpIO::toString<size_t>(c) + ".m", lib, comm);
-          RCP<const XpMap> ranSubMap = XpIO::ReadMap("rangemap_" + fileName + XpIO::toString<size_t>(r) + XpIO::toString<size_t>(c) + ".m", lib, comm);
-          RCP<XpMat> mat = XpIO::Read(fileName + XpIO::toString<size_t>(r) + XpIO::toString<size_t>(c) + ".m", rowSubMap, colSubMap, domSubMap, ranSubMap);
-          //RCP<XpCrsMatWrap> cmat = Teuchos::rcp_dynamic_cast<XpCrsMatWrap>(mat);
-          bOp->setMatrix(r, c, mat);
+      // Read all sub-matrices with their maps and place into blocked operator
+      for (size_t row = 0; row < numBlocks; ++row) {
+        for (size_t col = 0; col < numBlocks; ++col) {
+          RCP<const Map> rowSubMap = XpIO::ReadMap("rowmap_" + fileName + XpIO::toString<size_t>(row) + XpIO::toString<size_t>(col) + ".m", lib, comm);
+          RCP<const Map> colSubMap = XpIO::ReadMap("colmap_" + fileName + XpIO::toString<size_t>(row) + XpIO::toString<size_t>(col) + ".m", lib, comm);
+          RCP<const Map> domSubMap = XpIO::ReadMap("domainmap_" + fileName + XpIO::toString<size_t>(row) + XpIO::toString<size_t>(col) + ".m", lib, comm);
+          RCP<const Map> ranSubMap = XpIO::ReadMap("rangemap_" + fileName + XpIO::toString<size_t>(row) + XpIO::toString<size_t>(col) + ".m", lib, comm);
+          RCP<Matrix> mat = XpIO::Read(fileName + XpIO::toString<size_t>(row) + XpIO::toString<size_t>(col) + ".m", rowSubMap, colSubMap, domSubMap, ranSubMap);
+          bOp->setMatrix(row, col, mat);
         }
       }
 
       bOp->fillComplete();
 
       return bOp;
-    } //ReadBlockedCrsMatrix
+    } // ReadBlockedCrsMatrix
 
 
     //! Little helper function to convert non-string types to strings
@@ -914,6 +1072,54 @@ namespace Xpetra {
         Tpetra::MatrixMarket::Writer<Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> >::writeSparseFile(fileName, A);
         return;
       }
+      const RCP<const Xpetra::TpetraBlockCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> >& tmp_BlockCrs = 
+        Teuchos::rcp_dynamic_cast<const Xpetra::TpetraBlockCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> >(tmp_CrsMtx);
+      if(tmp_BlockCrs != Teuchos::null) {
+        std::ofstream outstream (fileName,std::ofstream::out);
+        Teuchos::FancyOStream ofs(Teuchos::rcpFromRef(outstream));
+        tmp_BlockCrs->getTpetra_BlockCrsMatrix()->describe(ofs,Teuchos::VERB_EXTREME);
+        return;
+      }
+
+# endif
+#endif // HAVE_XPETRA_TPETRA
+
+      throw Exceptions::BadCast("Could not cast to EpetraCrsMatrix or TpetraCrsMatrix in matrix writing");
+    } //Write
+
+
+    /*! @brief Save CrsGraph to file in Matrix Market format. */
+    static void Write(const std::string& fileName, const Xpetra::CrsGraph<LocalOrdinal, GlobalOrdinal, Node> & graph, const bool &writeAllMaps = false) {
+
+      Write("rowmap_"    + fileName, *(graph.getRowMap()));
+      if ( !graph.getDomainMap()->isSameAs(*(graph.getRowMap())) || writeAllMaps )
+        Write("domainmap_" + fileName, *(graph.getDomainMap()));
+      if ( !graph.getRangeMap()->isSameAs(*(graph.getRowMap())) || writeAllMaps )
+        Write("rangemap_"  + fileName, *(graph.getRangeMap()));
+      if ( !graph.getColMap()->isSameAs(*(graph.getDomainMap())) || writeAllMaps )
+        Write("colmap_"    + fileName, *(graph.getColMap()));
+
+      RCP<const Xpetra::CrsGraph<LocalOrdinal, GlobalOrdinal, Node> > tmp_Graph = rcpFromRef(graph);
+
+#if defined(HAVE_XPETRA_EPETRA) && defined(HAVE_XPETRA_EPETRAEXT)
+      const RCP<const Xpetra::EpetraCrsGraphT<GlobalOrdinal,Node> >& tmp_ECrsGraph = Teuchos::rcp_dynamic_cast<const Xpetra::EpetraCrsGraphT<GlobalOrdinal,Node> >(tmp_Graph);
+      if (tmp_ECrsGraph != Teuchos::null) {
+        throw Exceptions::BadCast("Writing not implemented for EpetraCrsGraphT");
+      }
+#endif // endif HAVE_XPETRA_EPETRA
+
+#ifdef HAVE_XPETRA_TPETRA
+# if ((defined(EPETRA_HAVE_OMP) && (!defined(HAVE_TPETRA_INST_OPENMP) || !defined(HAVE_TPETRA_INST_INT_INT))) || \
+     (!defined(EPETRA_HAVE_OMP) && (!defined(HAVE_TPETRA_INST_SERIAL) || !defined(HAVE_TPETRA_INST_INT_INT))))
+      // do nothin
+# else
+      RCP<const Xpetra::TpetraCrsGraph<LocalOrdinal, GlobalOrdinal, Node> > tmp_TCrsGraph =
+        Teuchos::rcp_dynamic_cast<const Xpetra::TpetraCrsGraph<LocalOrdinal, GlobalOrdinal, Node> >(tmp_Graph);
+      if (tmp_TCrsGraph != Teuchos::null) {
+        RCP<const Tpetra::CrsGraph<LocalOrdinal, GlobalOrdinal, Node> > G = tmp_TCrsGraph->getTpetra_CrsGraph();
+        Tpetra::MatrixMarket::Writer<Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> >::writeSparseGraphFile(fileName, G);
+        return;
+      }
 # endif
 #endif // HAVE_XPETRA_TPETRA
 
@@ -939,52 +1145,63 @@ namespace Xpetra {
 
       rowptr2_RCP.resize(rowptr.size());
       ArrayView<LocalOrdinal> rowptr2 = rowptr2_RCP();
-      for (size_t j = 0; j<rowptr.size(); j++)
+      for (size_t j = 0; j<Teuchos::as<size_t>(rowptr.size()); j++)
         rowptr2[j] = rowptr[j];
 
       Teuchos::MatrixMarket::Raw::Writer<Scalar,LocalOrdinal> writer;
       writer.writeFile(fileName + "." + std::to_string(Op.getRowMap()->getComm()->getSize()) + "." + std::to_string(Op.getRowMap()->getComm()->getRank()),
                        rowptr2,colind,vals,
-                       rowptr.size()-1,Op.getColMap()->getNodeNumElements());
+                       rowptr.size()-1,Op.getColMap()->getLocalNumElements());
     } //WriteLocal
 
-    /*! @brief Save matrix to file in Matrix Market format. */
+    /*! @brief Save block matrix to one file per block in Matrix Market format.
+
+    We write one MatrixMarket file for each block of the given BlockedCrsMatrix.
+    The block (row,col) indicators are included into the file name, such that filename02.m indicates
+    the block in row = 0 and col = 2, for example.
+
+    While the user can enable/disable the output of all maps of each matrix block,
+    we always write the range and domain maps of each block as well of the full blocked operator
+    in order to enable reconstruction of the MapExtractor objects for range and domain maps.
+
+    @param fileName String to indicate file name of files to be written
+    @param Op BlockedCrsMatrix to be written
+    @param writeAllMaps Flag to control output of maps to separate files (defaults to \c false )
+
+    \note This is the Epetra specialization.
+    */
     static void WriteBlockedCrsMatrix(const std::string& fileName, const Xpetra::BlockedCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> & Op, const bool &writeAllMaps = false) {
-      typedef Xpetra::Map<LocalOrdinal,GlobalOrdinal,Node>                     XpMap;
-      typedef Xpetra::MapExtractor<Scalar, LocalOrdinal, GlobalOrdinal, Node>  XpMapExtractor;
-      //typedef Xpetra::CrsMatrix<Scalar,LocalOrdinal,GlobalOrdinal,Node>        XpCrsMat;
-      typedef Xpetra::CrsMatrixWrap<Scalar,LocalOrdinal,GlobalOrdinal,Node>    XpCrsMatWrap;
-      typedef Xpetra::Matrix<Scalar,LocalOrdinal,GlobalOrdinal,Node>           XpMat;
-      typedef Xpetra::IO<Scalar, LocalOrdinal, GlobalOrdinal, Node>            XpIO;
+#include "Xpetra_UseShortNames.hpp"
+      using XpIO = Xpetra::IO<Scalar, LocalOrdinal, GlobalOrdinal, Node>;
 
       // write all matrices with their maps
-      for (size_t r = 0; r < Op.Rows(); ++r) {
-        for (size_t c = 0; c < Op.Cols(); ++c) {
-          RCP<const XpMat > m = Op.getMatrix(r,c);
+      for (size_t row = 0; row < Op.Rows(); ++row) {
+        for (size_t col = 0; col < Op.Cols(); ++col) {
+          RCP<const Matrix> m = Op.getMatrix(row, col);
           if(m != Teuchos::null) { // skip empty blocks
-            TEUCHOS_TEST_FOR_EXCEPTION(Teuchos::rcp_dynamic_cast<const XpCrsMatWrap>(m) == Teuchos::null, Xpetra::Exceptions::BadCast,
-              "Sub block matrix (" << r << "," << c << ") is not of type CrsMatrixWrap.");
-            XpIO::Write(fileName + toString(r) + toString(c) + ".m", *m, writeAllMaps);
+            TEUCHOS_TEST_FOR_EXCEPTION(Teuchos::rcp_dynamic_cast<const CrsMatrixWrap>(m) == Teuchos::null, Xpetra::Exceptions::BadCast,
+              "Sub block matrix (" << row << "," << col << ") is not of type CrsMatrixWrap.");
+            XpIO::Write(fileName + toString(row) + toString(col) + ".m", *m, writeAllMaps);
           }
         }
       }
 
       // write map information of map extractors
-      RCP<const XpMapExtractor> rangeMapExtractor  = Op.getRangeMapExtractor();
-      RCP<const XpMapExtractor> domainMapExtractor = Op.getDomainMapExtractor();
+      RCP<const MapExtractor> rangeMapExtractor = Op.getRangeMapExtractor();
+      RCP<const MapExtractor> domainMapExtractor = Op.getDomainMapExtractor();
 
-      for(size_t r = 0; r < rangeMapExtractor->NumMaps(); ++r) {
-        RCP<const XpMap> map = rangeMapExtractor->getMap(r);
-        XpIO::Write("subRangeMap_" + fileName + XpIO::toString<size_t>(r) + ".m", *map);
+      for(size_t row = 0; row < rangeMapExtractor->NumMaps(); ++row) {
+        RCP<const Map> map = rangeMapExtractor->getMap(row);
+        XpIO::Write("subRangeMap_" + fileName + XpIO::toString<size_t>(row) + ".m", *map);
       }
-      XpIO::Write("fullRangeMap_" + fileName +".m",*(rangeMapExtractor->getFullMap()));
+      XpIO::Write("fullRangeMap_" + fileName +".m", *(rangeMapExtractor->getFullMap()));
 
-      for(size_t c = 0; c < domainMapExtractor->NumMaps(); ++c) {
-        RCP<const XpMap> map = domainMapExtractor->getMap(c);
-        XpIO::Write("subDomainMap_" + fileName + XpIO::toString<size_t>(c) + ".m", *map);
+      for(size_t col = 0; col < domainMapExtractor->NumMaps(); ++col) {
+        RCP<const Map> map = domainMapExtractor->getMap(col);
+        XpIO::Write("subDomainMap_" + fileName + XpIO::toString<size_t>(col) + ".m", *map);
       }
-      XpIO::Write("fullDomainMap_" + fileName+ ".m",*(domainMapExtractor->getFullMap()));
-    } //WriteBlockCrsMatrix
+      XpIO::Write("fullDomainMap_" + fileName+ ".m", *(domainMapExtractor->getFullMap()));
+    } // WriteBlockedCrsMatrix
 
     //! @brief Read matrix from file in Matrix Market or binary format.
     static Teuchos::RCP<Xpetra::Matrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> > Read(const std::string& fileName, Xpetra::UnderlyingLib lib, const RCP<const Teuchos::Comm<int> >& comm, bool binary = false) {
@@ -1099,6 +1316,10 @@ namespace Xpetra {
             A->insertGlobalValues(row, inds, vals);
           }
         } //if (myRank == 0)
+        else {
+          Teuchos::ArrayRCP<size_t> numEntriesPerRow(0);
+          A   = Xpetra::MatrixFactory<Scalar, LocalOrdinal, GlobalOrdinal, Node>::Build(rowMap, colMap, numEntriesPerRow);
+        }
 
         A->fillComplete(domainMap, rangeMap);
 
@@ -1190,62 +1411,189 @@ namespace Xpetra {
           throw Exceptions::RuntimeError("Utils::Read : you must specify Xpetra::UseEpetra or Xpetra::UseTpetra.");
         }
       } else {
-        // Custom file format (binary)
-        std::ifstream ifs(filename.c_str(), std::ios::binary);
-        TEUCHOS_TEST_FOR_EXCEPTION(!ifs.good(), Exceptions::RuntimeError, "Can not read \"" << filename << "\"");
-        int m, n, nnz;
-        ifs.read(reinterpret_cast<char*>(&m),   sizeof(m));
-        ifs.read(reinterpret_cast<char*>(&n),   sizeof(n));
-        ifs.read(reinterpret_cast<char*>(&nnz), sizeof(nnz));
 
-        //2020-June-05 JHU : for Tpetra, this will probably fail because Tpetra now requires staticly-sized matrix graphs.
-        RCP<Xpetra::Matrix<Scalar,LocalOrdinal,GlobalOrdinal,Node> > A = Xpetra::MatrixFactory<Scalar,LocalOrdinal,GlobalOrdinal,Node>::Build(rowMap, colMap, 1);
+        // Read in on rank 0.
+        auto tempA = Read(filename, lib, rowMap->getComm(), binary);
 
-        //2019-06-07 JHU I don't see why this should matter.
-        //TEUCHOS_TEST_FOR_EXCEPTION(sizeof(int) != sizeof(GlobalOrdinal), Exceptions::RuntimeError, "Incompatible sizes");
+        auto A = Xpetra::MatrixFactory<Scalar,LocalOrdinal,GlobalOrdinal,Node>::Build(rowMap, colMap, 0);
+        auto importer  = Xpetra::ImportFactory<LocalOrdinal,GlobalOrdinal,Node>::Build(tempA->getRowMap(), rowMap);
+        A->doImport(*tempA, *importer, Xpetra::INSERT);
+        if (callFillComplete)
+          A->fillComplete(domainMap, rangeMap);
 
-        Teuchos::ArrayView<const GlobalOrdinal> rowElements = rowMap->getNodeElementList();
-        Teuchos::ArrayView<const GlobalOrdinal> colElements = colMap->getNodeElementList();
-
-        Teuchos::Array<GlobalOrdinal> inds;
-        Teuchos::Array<Scalar> vals;
-        for (int i = 0; i < m; i++) {
-          int row, rownnz;
-          ifs.read(reinterpret_cast<char*>(&row),    sizeof(row));
-          ifs.read(reinterpret_cast<char*>(&rownnz), sizeof(rownnz));
-          inds.resize(rownnz);
-          vals.resize(rownnz);
-          for (int j = 0; j < rownnz; j++) {
-            int index;
-            ifs.read(reinterpret_cast<char*>(&index), sizeof(index));
-            inds[j] = colElements[Teuchos::as<LocalOrdinal>(index)];
-          }
-          for (int j = 0; j < rownnz; j++) {
-            double value;
-            ifs.read(reinterpret_cast<char*>(&value), sizeof(value));
-            vals[j] = Teuchos::as<Scalar>(value);
-          }
-          //This implies that row is not a global index.
-          A->insertGlobalValues(rowElements[row], inds, vals);
-        }
-        A->fillComplete(domainMap, rangeMap);
         return A;
       }
 
       TEUCHOS_UNREACHABLE_RETURN(Teuchos::null);
     }
+
+    /*! @brief Read matrix from local files in Matrix Market or binary format.
+
+      The file name format is filename.SIZE.RANK, where SIZE is the
+      size of the communicator of the rowMap and RANK is the MPI ranks
+      of the calling process.
+
+      If only rowMap is specified, then it is used for the domainMap and rangeMap, as well.
+      */
+    static Teuchos::RCP<Xpetra::Matrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> > ReadLocal(const std::string&   filename,
+                                                                                              const RCP<const Xpetra::Map<LocalOrdinal, GlobalOrdinal, Node> > rowMap,
+                                                                                              RCP<const Xpetra::Map<LocalOrdinal, GlobalOrdinal, Node> > colMap,
+                                                                                              const RCP<const Xpetra::Map<LocalOrdinal, GlobalOrdinal, Node> > domainMap        = Teuchos::null,
+                                                                                              const RCP<const Xpetra::Map<LocalOrdinal, GlobalOrdinal, Node> > rangeMap         = Teuchos::null,
+                                                                                              const bool           callFillComplete = true,
+                                                                                              const bool           binary           = false,
+                                                                                              const bool           tolerant         = false,
+                                                                                              const bool           debug            = false) {
+      TEUCHOS_TEST_FOR_EXCEPTION(rowMap.is_null(), Exceptions::RuntimeError, "Utils::ReadLocal() : rowMap cannot be null");
+      TEUCHOS_TEST_FOR_EXCEPTION(colMap.is_null(), Exceptions::RuntimeError, "Utils::ReadLocal() : colMap cannot be null");
+
+      using matrix_type = Xpetra::Matrix<Scalar,LocalOrdinal,GlobalOrdinal,Node>;
+      using crs_wrap_type = Xpetra::CrsMatrixWrap<Scalar,LocalOrdinal,GlobalOrdinal,Node>;
+      using crs_type = Xpetra::CrsMatrix<Scalar,LocalOrdinal,GlobalOrdinal,Node>;
+
+      RCP<const Xpetra::Map<LocalOrdinal,GlobalOrdinal,Node> > domain = (domainMap.is_null() ? rowMap : domainMap);
+      RCP<const Xpetra::Map<LocalOrdinal,GlobalOrdinal,Node> > range  = (rangeMap .is_null() ? rowMap : rangeMap);
+
+      std::string rankFilename = filename + "." + std::to_string(rowMap->getComm()->getSize()) + "." + std::to_string(rowMap->getComm()->getRank());
+      RCP<matrix_type> A = rcp(new crs_wrap_type(rowMap, colMap, 0));
+
+      if (binary == false) {
+
+        RCP<Teuchos::ParameterList> params = rcp(new Teuchos::ParameterList());
+        params->set("Parse tolerantly", tolerant);
+        params->set("Debug mode", debug);
+
+        LocalOrdinal numRows = rowMap->getLocalNumElements();
+        LocalOrdinal numCols = colMap->getLocalNumElements();
+
+        ArrayRCP<LocalOrdinal> rowptr2_RCP;
+        ArrayRCP<LocalOrdinal> colind2_RCP;
+        ArrayRCP<Scalar> vals2_RCP;
+
+        Teuchos::MatrixMarket::Raw::Reader<Scalar,LocalOrdinal> reader;
+        reader.readFile(rowptr2_RCP,colind2_RCP,vals2_RCP,
+                        numRows,numCols,
+                        rankFilename);
+
+
+        RCP<crs_type>    ACrs = Teuchos::rcp_dynamic_cast<crs_wrap_type>(A)->getCrsMatrix();
+
+        ArrayRCP<size_t>       rowptr_RCP;
+        ArrayRCP<LocalOrdinal> colind_RCP;
+        ArrayRCP<Scalar>       vals_RCP;
+        ACrs->allocateAllValues(colind2_RCP.size(), rowptr_RCP, colind_RCP, vals_RCP);
+
+        rowptr_RCP.assign(rowptr2_RCP.begin(), rowptr2_RCP.end());
+        colind_RCP = colind2_RCP;
+        vals_RCP = vals2_RCP;
+
+        ACrs->setAllValues(rowptr_RCP, colind_RCP, vals_RCP);
+      } else {
+                // Custom file format (binary)
+        std::ifstream ifs = std::ifstream(rankFilename.c_str(), std::ios::binary);
+        TEUCHOS_TEST_FOR_EXCEPTION(!ifs.good(), Exceptions::RuntimeError, "Can not read \"" << filename << "\"");
+
+        int m, n, nnz;
+        ifs.read(reinterpret_cast<char*>(&m),   sizeof(m));
+        ifs.read(reinterpret_cast<char*>(&n),   sizeof(n));
+        ifs.read(reinterpret_cast<char*>(&nnz), sizeof(nnz));
+
+        TEUCHOS_ASSERT_EQUALITY(Teuchos::as<int>(rowMap->getLocalNumElements()), m);
+
+        Teuchos::ArrayRCP<size_t>       rowptrRCP;
+        Teuchos::ArrayRCP<LocalOrdinal> indicesRCP;
+        Teuchos::ArrayRCP<Scalar>       valuesRCP;
+
+        RCP<crs_type>    ACrs = Teuchos::rcp_dynamic_cast<crs_wrap_type>(A)->getCrsMatrix();
+
+        ACrs->allocateAllValues(nnz, rowptrRCP, indicesRCP, valuesRCP);
+
+        Teuchos::ArrayView<size_t>       rowptr = rowptrRCP();
+        Teuchos::ArrayView<LocalOrdinal> indices = indicesRCP();
+        Teuchos::ArrayView<Scalar>       values = valuesRCP();
+
+        bool sorted = true;
+
+        // Read in rowptr
+        for (int i = 0; i < m; i++) {
+          int row, rownnz;
+          ifs.read(reinterpret_cast<char*>(&row),    sizeof(row));
+          ifs.read(reinterpret_cast<char*>(&rownnz), sizeof(rownnz));
+
+          rowptr[row+1] += rownnz;
+          ifs.seekg(sizeof(int)*rownnz + sizeof(double)*rownnz, ifs.cur);
+        }
+        for (int i = 0; i < m; i++)
+          rowptr[i+1] += rowptr[i];
+        TEUCHOS_ASSERT(Teuchos::as<int>(rowptr[m]) == nnz);
+
+        // reset to where the data starts
+        ifs.seekg(sizeof(int)*3, ifs.beg);
+
+        // read in entries
+        for (int i = 0; i < m; i++) {
+          int row, rownnz;
+          ifs.read(reinterpret_cast<char*>(&row),    sizeof(row));
+          ifs.read(reinterpret_cast<char*>(&rownnz), sizeof(rownnz));
+          size_t ptr = rowptr[row];
+          for (int j = 0; j < rownnz; j++) {
+            int index;
+            ifs.read(reinterpret_cast<char*>(&index), sizeof(index));
+            indices[ptr] = Teuchos::as<LocalOrdinal>(index);
+            if (j>0)
+              sorted = sorted & (indices[ptr-1] < indices[ptr]);
+            ++ptr;
+          }
+          ptr = rowptr[row];
+          for (int j = 0; j < rownnz; j++) {
+            double value;
+            ifs.read(reinterpret_cast<char*>(&value), sizeof(value));
+            values[ptr] = Teuchos::as<Scalar>(value);
+            ++ptr;
+          }
+          rowptr[row] += rownnz;
+        }
+        for (int i = m; i > 0; i--)
+          rowptr[i] = rowptr[i-1];
+        rowptr[0] = 0;
+
+#ifdef HAVE_XPETRA_TPETRA
+        if (!sorted) {
+          for (LocalOrdinal lclRow = 0; lclRow < m; lclRow++) {
+            size_t rowBegin = rowptr[lclRow];
+            size_t rowEnd = rowptr[lclRow+1];
+            Tpetra::sort2(&indices[rowBegin], &indices[rowEnd], &values[rowBegin]);
+          }
+        }
+#else
+        TEUCHOS_ASSERT(sorted);
+#endif
+
+        ACrs->setAllValues(rowptrRCP, indicesRCP, valuesRCP);
+
+      }
+
+      if (callFillComplete)
+        A->fillComplete(domainMap, rangeMap);
+      return A;
+
+    }
     //@}
 
 
-    static RCP<Xpetra::MultiVector<Scalar,LocalOrdinal,GlobalOrdinal,Node> > ReadMultiVector (const std::string& fileName, const RCP<const Xpetra::Map<LocalOrdinal,GlobalOrdinal,Node> >& map) {
+    static RCP<Xpetra::MultiVector<Scalar,LocalOrdinal,GlobalOrdinal,Node> > ReadMultiVector (const std::string& fileName,
+                                                                                              const RCP<const Xpetra::Map<LocalOrdinal,GlobalOrdinal,Node> >& map,
+                                                                                              const bool binary=false) {
       Xpetra::UnderlyingLib lib = map->lib();
 
       if (lib == Xpetra::UseEpetra) {
         // taw: Oct 9 2015: do we need a specialization for <double,int,int>??
         //TEUCHOS_TEST_FOR_EXCEPTION(true, ::Xpetra::Exceptions::BadCast, "Epetra can only be used with Scalar=double and Ordinal=int");
 #if defined(HAVE_XPETRA_EPETRA) && defined(HAVE_XPETRA_EPETRAEXT)
+        TEUCHOS_ASSERT(!binary);
         Epetra_MultiVector * MV;
-        EpetraExt::MatrixMarketFileToMultiVector(fileName.c_str(), toEpetra(map), MV);
+        int rv = EpetraExt::MatrixMarketFileToMultiVector(fileName.c_str(), toEpetra(map), MV);
+        if(rv != 0) throw Exceptions::RuntimeError("EpetraExt::MatrixMarketFileToMultiVector failed");
         RCP<Epetra_MultiVector> MVrcp = rcp(MV);
         return Convert_Epetra_MultiVector_ToXpetra_MultiVector<Scalar,LocalOrdinal,GlobalOrdinal,Node>(MVrcp);
 #else
@@ -1263,7 +1611,7 @@ namespace Xpetra {
         typedef Tpetra::MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node>            multivector_type;
 
         RCP<const map_type>   temp = toTpetra(map);
-        RCP<multivector_type> TMV  = reader_type::readDenseFile(fileName,map->getComm(),temp);
+        RCP<multivector_type> TMV  = reader_type::readDenseFile(fileName,map->getComm(),temp,false,false,binary);
         RCP<Xpetra::MultiVector<Scalar, LocalOrdinal, GlobalOrdinal, Node> >      rmv  = Xpetra::toXpetra(TMV);
         return rmv;
 # endif
@@ -1279,11 +1627,15 @@ namespace Xpetra {
     }
 
 
-    static RCP<const Xpetra::Map<LocalOrdinal,GlobalOrdinal,Node> >   ReadMap         (const std::string& fileName, Xpetra::UnderlyingLib lib, const RCP<const Teuchos::Comm<int> >& comm) {
+    static RCP<const Xpetra::Map<LocalOrdinal,GlobalOrdinal,Node> >   ReadMap         (const std::string& fileName,
+                                                                                       Xpetra::UnderlyingLib lib,
+                                                                                       const RCP<const Teuchos::Comm<int> >& comm,
+                                                                                       const bool binary=false) {
       if (lib == Xpetra::UseEpetra) {
         // do we need another specialization for <double,int,int> ??
         //TEUCHOS_TEST_FOR_EXCEPTION(true, ::Xpetra::Exceptions::BadCast, "Epetra can only be used with Scalar=double and Ordinal=int");
 #if defined(HAVE_XPETRA_EPETRA) && defined(HAVE_XPETRA_EPETRAEXT)
+        TEUCHOS_ASSERT(!binary);
         Epetra_Map *eMap;
         int rv = EpetraExt::MatrixMarketFileToMap(fileName.c_str(), *(Xpetra::toEpetra(comm)), eMap);
         if (rv != 0)
@@ -1303,7 +1655,7 @@ namespace Xpetra {
         typedef Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> sparse_matrix_type;
         typedef Tpetra::MatrixMarket::Reader<sparse_matrix_type>                          reader_type;
 
-        RCP<const Tpetra::Map<LocalOrdinal,GlobalOrdinal,Node> > tMap = reader_type::readMapFile(fileName, comm);
+        RCP<const Tpetra::Map<LocalOrdinal,GlobalOrdinal,Node> > tMap = reader_type::readMapFile(fileName, comm, false, false, binary);
         if (tMap.is_null())
           throw Exceptions::RuntimeError("The Tpetra::Map returned from readSparseFile() is null.");
 
@@ -1320,32 +1672,40 @@ namespace Xpetra {
 
     }
 
-    /*! @brief Read matrix to file in Matrix Market format. */
-    static RCP<const Xpetra::BlockedCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> >   ReadBlockedCrsMatrix (const std::string& fileName, Xpetra::UnderlyingLib lib, const RCP<const Teuchos::Comm<int> >& comm) {
-      typedef Xpetra::Map<LocalOrdinal,GlobalOrdinal,Node>                     XpMap;
-      typedef Xpetra::MapExtractor<Scalar, LocalOrdinal, GlobalOrdinal, Node>  XpMapExtractor;
-      //typedef Xpetra::CrsMatrix<Scalar,LocalOrdinal,GlobalOrdinal,Node>        XpCrsMat;
-      //typedef Xpetra::CrsMatrixWrap<Scalar,LocalOrdinal,GlobalOrdinal,Node>    XpCrsMatWrap;
-      typedef Xpetra::BlockedCrsMatrix<Scalar,LocalOrdinal,GlobalOrdinal,Node> XpBlockedCrsMat;
-      typedef Xpetra::Matrix<Scalar,LocalOrdinal,GlobalOrdinal,Node>           XpMat;
-      typedef Xpetra::IO<Scalar, LocalOrdinal, GlobalOrdinal, Node>            XpIO;
+    /*! @brief Read block matrix from one file per block in Matrix Market format.
 
+    We read one MatrixMarket file for each block of the desired BlockedCrsMatrix.
+    The block (row,col) indicators are included into the file name, such that filename02.m indicates
+    the block in row = 0 and col = 2, for example.
+
+    We also read the range and domain maps of each block as well of the full blocked operator
+    in order to enable reconstruction of the MapExtractor objects for range and domain maps.
+
+    @param fileName Indicator of file(s) to be read
+    @param lib Underlying type of sparse linear algebra to be used for the blocked operator
+    @param comm Communicator
+
+    \note This is the Epetra specialization.
+    */
+    static RCP<const Xpetra::BlockedCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> >   ReadBlockedCrsMatrix (const std::string& fileName, Xpetra::UnderlyingLib lib, const RCP<const Teuchos::Comm<int> >& comm) {
+#include "Xpetra_UseShortNames.hpp"
+      using XpIO = Xpetra::IO<Scalar, LocalOrdinal, GlobalOrdinal, Node>;
 
       size_t numBlocks = 2; // TODO user parameter?
 
-      std::vector<RCP<const XpMap> > rgMapVec;
-      for(size_t r = 0; r < numBlocks; ++r) {
-        RCP<const XpMap> map = XpIO::ReadMap("subRangeMap_" + fileName + XpIO::toString<size_t>(r) + ".m", lib, comm);
-        rgMapVec.push_back(map);
+      std::vector<RCP<const Map> > rangeMapVec;
+      for(size_t row = 0; row < numBlocks; ++row) {
+        RCP<const Map> map = XpIO::ReadMap("subRangeMap_" + fileName + XpIO::toString<size_t>(row) + ".m", lib, comm);
+        rangeMapVec.push_back(map);
       }
-      RCP<const XpMap> fullRangeMap = XpIO::ReadMap("fullRangeMap_" + fileName + ".m", lib, comm);
+      RCP<const Map> fullRangeMap = XpIO::ReadMap("fullRangeMap_" + fileName + ".m", lib, comm);
 
-      std::vector<RCP<const XpMap> > doMapVec;
-      for(size_t c = 0; c < numBlocks; ++c) {
-        RCP<const XpMap> map = XpIO::ReadMap("subDomainMap_" + fileName + XpIO::toString<size_t>(c) + ".m", lib, comm);
-        doMapVec.push_back(map);
+      std::vector<RCP<const Map> > domainMapVec;
+      for(size_t col = 0; col < numBlocks; ++col) {
+        RCP<const Map> map = XpIO::ReadMap("subDomainMap_" + fileName + XpIO::toString<size_t>(col) + ".m", lib, comm);
+        domainMapVec.push_back(map);
       }
-      RCP<const XpMap> fullDomainMap = XpIO::ReadMap("fullDomainMap_" + fileName + ".m", lib, comm);
+      RCP<const Map> fullDomainMap = XpIO::ReadMap("fullDomainMap_" + fileName + ".m", lib, comm);
 
       /*std::vector<RCP<const XpMap> > testRgMapVec;
       for(size_t r = 0; r < numBlocks; ++r) {
@@ -1368,8 +1728,8 @@ namespace Xpetra {
         gMinGids += testRgMapVec[v]->getMinAllGlobalIndex();
       }
       if ( gMinGids==0 && testRgMapVec.size() > 1 ) bRangeUseThyraStyleNumbering = true;*/
-      RCP<const XpMapExtractor> rangeMapExtractor =
-          Teuchos::rcp(new XpMapExtractor(fullRangeMap, rgMapVec, bRangeUseThyraStyleNumbering));
+      RCP<const MapExtractor> rangeMapExtractor =
+          rcp(new MapExtractor(fullRangeMap, rangeMapVec, bRangeUseThyraStyleNumbering));
 
       // domain map extractor
       bool bDomainUseThyraStyleNumbering = false;
@@ -1378,28 +1738,27 @@ namespace Xpetra {
         gMinGids += testDoMapVec[v]->getMinAllGlobalIndex();
       }
       if ( gMinGids==0 && testDoMapVec.size() > 1) bDomainUseThyraStyleNumbering = true;*/
-      RCP<const XpMapExtractor> domainMapExtractor =
-          Teuchos::rcp(new XpMapExtractor(fullDomainMap, doMapVec, bDomainUseThyraStyleNumbering));
+      RCP<const MapExtractor> domainMapExtractor =
+          rcp(new MapExtractor(fullDomainMap, domainMapVec, bDomainUseThyraStyleNumbering));
 
-      RCP<XpBlockedCrsMat> bOp = Teuchos::rcp(new XpBlockedCrsMat(rangeMapExtractor,domainMapExtractor,33));
+      RCP<BlockedCrsMatrix> bOp = Teuchos::rcp(new BlockedCrsMatrix(rangeMapExtractor, domainMapExtractor, 33));
 
-      // write all matrices with their maps
-      for (size_t r = 0; r < numBlocks; ++r) {
-        for (size_t c = 0; c < numBlocks; ++c) {
-          RCP<const XpMap> rowSubMap = XpIO::ReadMap("rowmap_" + fileName + XpIO::toString<size_t>(r) + XpIO::toString<size_t>(c) + ".m", lib, comm);
-          RCP<const XpMap> colSubMap = XpIO::ReadMap("colmap_" + fileName + XpIO::toString<size_t>(r) + XpIO::toString<size_t>(c) + ".m", lib, comm);
-          RCP<const XpMap> domSubMap = XpIO::ReadMap("domainmap_" + fileName + XpIO::toString<size_t>(r) + XpIO::toString<size_t>(c) + ".m", lib, comm);
-          RCP<const XpMap> ranSubMap = XpIO::ReadMap("rangemap_" + fileName + XpIO::toString<size_t>(r) + XpIO::toString<size_t>(c) + ".m", lib, comm);
-          RCP<XpMat> mat = XpIO::Read(fileName + XpIO::toString<size_t>(r) + XpIO::toString<size_t>(c) + ".m", rowSubMap, colSubMap, domSubMap, ranSubMap);
-          //RCP<XpCrsMatWrap> cmat = Teuchos::rcp_dynamic_cast<XpCrsMatWrap>(mat);
-          bOp->setMatrix(r, c, mat);
+      // Read all matrices with their maps and create the BlockedCrsMatrix
+      for (size_t row = 0; row < numBlocks; ++row) {
+        for (size_t col = 0; col < numBlocks; ++col) {
+          RCP<const Map> rowSubMap = XpIO::ReadMap("rowmap_" + fileName + XpIO::toString<size_t>(row) + XpIO::toString<size_t>(col) + ".m", lib, comm);
+          RCP<const Map> colSubMap = XpIO::ReadMap("colmap_" + fileName + XpIO::toString<size_t>(row) + XpIO::toString<size_t>(col) + ".m", lib, comm);
+          RCP<const Map> domSubMap = XpIO::ReadMap("domainmap_" + fileName + XpIO::toString<size_t>(row) + XpIO::toString<size_t>(col) + ".m", lib, comm);
+          RCP<const Map> ranSubMap = XpIO::ReadMap("rangemap_" + fileName + XpIO::toString<size_t>(row) + XpIO::toString<size_t>(col) + ".m", lib, comm);
+          RCP<Matrix> mat = XpIO::Read(fileName + XpIO::toString<size_t>(row) + XpIO::toString<size_t>(col) + ".m", rowSubMap, colSubMap, domSubMap, ranSubMap);
+          bOp->setMatrix(row, col, mat);
         }
       }
 
       bOp->fillComplete();
 
       return bOp;
-    } //ReadBlockedCrsMatrix
+    } // ReadBlockedCrsMatrix
 
     //! Little helper function to convert non-string types to strings
     template<class T>

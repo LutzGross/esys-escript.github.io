@@ -1,8 +1,8 @@
 /*
- * Copyright(C) 1999-2020 National Technology & Engineering Solutions
+ * Copyright(C) 1999-2021, 2023 National Technology & Engineering Solutions
  * of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
  * NTESS, the U.S. Government retains certain rights in this software.
- * 
+ *
  * See packages/seacas/LICENSE for details
  */
 
@@ -27,7 +27,7 @@
 #define EXIT_FAILURE 1
 #endif
 
-#define NOT_NETCDF 2
+#define NOT_NETCDF   2
 #define NOT_EXODUSII 3
 
 char *progname;
@@ -55,7 +55,6 @@ int main(int argc, char *argv[])
   int   int64_status    = 0;
   int   max_name_length = 0;
   int   fn_idx          = 1;
-  char  cversion[9];
 
   CPU_word_size = 0; /* float or double */
   IO_word_size  = 0; /* use what is stored in file */
@@ -69,7 +68,7 @@ int main(int argc, char *argv[])
   }
 
   if (argv[1][0] == '-') {
-    if (argv[1][1] == 'c') {
+    if (argv[1][1] == 'c' || (argv[1][1] == '-' && argv[1][2] == 'c')) {
       fprintf(stderr, "\nExodus Configuration Information:\n");
       ex_print_config();
     }
@@ -84,7 +83,7 @@ int main(int argc, char *argv[])
 
   fid = fopen(filename, "r");
   if (fid == NULL) {
-    (void)fprintf(stderr, "         Could not open %s\n", filename);
+    fprintf(stderr, "         Could not open %s\n", filename);
     exit(EXIT_FAILURE);
   }
   c1 = getc(fid);
@@ -99,7 +98,7 @@ int main(int argc, char *argv[])
     hdf5_based = 1;
   }
   else {
-    (void)fprintf(stderr, "         %s is not an EXODUS or netCDF file\n", filename);
+    fprintf(stderr, "         %s is not an EXODUS or netCDF file\n", filename);
     exit(NOT_NETCDF);
   }
   exoid = ex_open(filename, EX_READ, /* access mode = READ */
@@ -109,12 +108,10 @@ int main(int argc, char *argv[])
 
   if (exoid < 0) {
     if (netcdf_based) {
-      (void)fprintf(stderr, "         %s is a NetCDF file, but not a valid EXODUS file\n",
-                    filename);
+      fprintf(stderr, "         %s is a NetCDF file, but not a valid EXODUS file\n", filename);
     }
     else if (hdf5_based) {
-      (void)fprintf(stderr, "         %s is an HDF5 file, but not a valid EXODUS file.\n",
-                    filename);
+      fprintf(stderr, "         %s is an HDF5 file, but not a valid EXODUS file.\n", filename);
     }
     exit(NOT_EXODUSII);
   }
@@ -212,7 +209,8 @@ int main(int argc, char *argv[])
   }
 
   version += 0.00005F;
-  sprintf(cversion, "%4.2f", version);
+  char cversion[9];
+  snprintf(cversion, 9, "%4.2f", version);
 
   k = strlen(cversion);
   for (j = 0; j < k; j++) {
@@ -221,7 +219,7 @@ int main(int argc, char *argv[])
     }
   }
   if (j == k) {
-    (void)fprintf(stderr, "         %s is not an EXODUS file\n", filename);
+    fprintf(stderr, "         %s is not an EXODUS file\n", filename);
     exit(NOT_EXODUSII);
   }
 

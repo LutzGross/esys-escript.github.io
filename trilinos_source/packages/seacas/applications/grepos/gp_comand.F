@@ -1,7 +1,7 @@
-C Copyright(C) 1999-2020 National Technology & Engineering Solutions
+C Copyright(C) 1999-2022 National Technology & Engineering Solutions
 C of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 C NTESS, the U.S. Government retains certain rights in this software.
-C 
+C
 C See packages/seacas/LICENSE for details
 
 C     -*- Mode: fortran -*-
@@ -97,7 +97,7 @@ C     --   Sets ROT3D, ROTMAT, ROTCEN of /XYZROT/
 
       LOGICAL FFEXST, MATSTR, HELP
 
-      CHARACTER*(128) STRING
+      CHARACTER*(256) STRING
       CHARACTER*(mxlnln) INFREC(*)
       CHARACTER*(mxstln) QAREC(4,*)
       CHARACTER*(mxstln) BLKTYP(*)
@@ -268,6 +268,15 @@ C     --Read command line
       IF (IOSTAT .LT. 0) GOTO 430
       IF (NUMFLD .EQ. 0) GOTO 110
       INTYP(MIN(MAXFLD,NUMFLD)+1) = -999
+      if (numfld .gt. maxfld) then
+         write (string, 1) numfld, maxfld
+ 1       format('There were ',i3, ' words entered on the command line,'
+     $          ' but only ',i3,' are allowed.')
+         CALL PRTERR ('WARNING', STRING(:LENSTR(STRING)))
+         CALL PRTERR ('CMDSPEC',
+     $        ' Please enter the command on two or more lines')
+         CALL PRTERR ('CMDSPEC',' ')
+      end if
 
       IFLD = 1
       CALL FFCHAR (IFLD, INTYP, CFIELD, ' ', WORD)
@@ -349,14 +358,14 @@ C=======================================================================
       ELSE IF (VERB .EQ. 'ADJUST') THEN
 C...  ADJUST {CENTER|MINIMUM|MAXIMUM} {X|Y|Z} adjustment
 C...  ADJUST {MINIMUM|MAXIMUM} {X|Y|Z} adjustment
-C
+
 C...  Calculate offset such that the value in the generated mesh
 C     (ignoring any other offsets, scales, or rotations)
 C     will equal the input value.
-C
+
 C...EXAMPLE:adjust maximum x 10
 C     will set the maximum x in the generated mesh equal to 10.
-C
+
  140    CONTINUE
         IF (FFEXST (IFLD, INTYP)) THEN
           CALL FFCHAR (IFLD, INTYP, CFIELD, ' ', WORD)
@@ -429,9 +438,10 @@ C=======================================================================
 C=======================================================================
       ELSE IF (VERB .EQ. 'EXPLODE') THEN
         DO 170 IBLK = 1, NELBLK
-          CALL INTSTR (1, 0, IDELB(IBLK), WORD, LW)
-          WRITE (CTEMP, 10010) 'Offset for Material ', WORD(:LW),'> '
-10010     FORMAT (1X, 3A)
+          WRITE (CTEMP, 10010) 'Offset for Material ', idelb(iblk),' > '
+10010     FORMAT (1X, A, I10, A)
+          CALL SQZSTR (CTEMP, LSTR)
+
           CALL FREFLD (0, 0, CTEMP(:LENSTR(CTEMP)+1), MAXFLD,
      &      IOSTAT, NUMFLD, INTYP, CFIELD, IFIELD, RFIELD)
           IF (IOSTAT .LT. 0) GOTO 430
@@ -600,7 +610,7 @@ C ... Field is Attribute number
 C ... Setup the scale and echo to the user
             CALL SCLATR(NELBLK, IDELB, NUMATR, IDATR, DOALLA,
      *        IDBLK, DOALLB, ASCALE, ATRSCL, .TRUE., .TRUE.)
-C
+
           ELSE IF (MATSTR(WORD, 'BLOCK', 1)) THEN
             DO 220 IBLK = 1, NELBLK
               CALL INTSTR (1, 0, IDELB(IBLK), WORD, LW)
@@ -1330,12 +1340,18 @@ C=======================================================================
         IF (MATSTR(WORD,'MATERIALS',1) .OR.
      &    MATSTR(WORD, 'BLOCKS',1)) THEN
           CALL INCID ('M', IDELB, NELBLK, IDINC)
-        ELSE IF (MATSTR(WORD,'NODESETS',1) .OR.
-     $      MATSTR(WORD,'NSETS',   1)) THEN
+        ELSE IF (MATSTR(WORD,'NODESETS',5) .OR.
+     $      MATSTR(WORD,'NSETS',   2)) THEN
           CALL INCID ('N', IDNPS, NUMNPS, IDINC)
         ELSE IF (MATSTR(WORD,'SIDESETS',1) .OR.
      $      MATSTR(WORD,'SSETS',   1)) THEN
           CALL INCID ('S', IDESS, NUMESS, IDINC)
+        ELSE IF (MATSTR(WORD,'NODEMAP',5) .OR.
+     $      MATSTR(WORD,'NMAP',   2)) THEN
+          CALL INCMAP (MAPNOD, NUMNP, IDINC)
+        ELSE IF (MATSTR(WORD,'ELEMMAP',5) .OR.
+     $      MATSTR(WORD,'EMAP',   2)) THEN
+          CALL INCMAP (MAPEL, NUMEL, IDINC)
         END IF
         VERB = ' '
 
@@ -1555,7 +1571,7 @@ C ... Field is character
                   GO TO 333
                 END IF
 
-              ELSE IF (MATSTR (WORD2, 'NAMES', 2)) THEN
+            ELSE IF (MATSTR (WORD2, 'NAMES', 2)) THEN
                 IF (MATSTR(WORD,'MATERIALS',1) .OR.
      &            MATSTR(WORD, 'BLOCKS',1)) THEN
                   do i=1, nelblk
@@ -1568,15 +1584,15 @@ C ... Field is character
                   CALL PRTERR ('CMDSPEC',
      *              'All material block names deleted.')
                 ELSE IF (MATSTR(WORD,'NODESETS',1) .OR.
-     &              MATSTR(WORD,'NSETS',   1) ) THEN
-                  do i=1, numnps
+     &                 MATSTR(WORD,'NSETS',   1) ) THEN
+                   do i=1, numnps
 #if defined(__XLF__)
-                    nsname(i) = " "
+                      nsname(i) = " "
 #else
-                    nsname(i) = ""
+                      nsname(i) = ""
 #endif
-                  end do
-                  CALL PRTERR ('CMDSPEC','All nodeset names deleted.')
+                   end do
+                   CALL PRTERR ('CMDSPEC','All nodeset names deleted.')
                 ELSE IF (MATSTR(WORD,'SIDESETS',1) .OR.
      &              MATSTR(WORD,'SSETS',   1) ) THEN
                   do i=1, numess
@@ -1587,13 +1603,22 @@ C ... Field is character
 #endif
                   end do
                   CALL PRTERR ('CMDSPEC','All sideset names deleted.')
-                ELSE
+               ELSE
                   CALL PRTERR ('CMDERR', '"' // WORD(:LENSTR(WORD))
      &              // '" is an invalid DELETE NAME option')
                   GO TO 333
-                END IF
+               END IF
 
-              ELSE IF (MATSTR (WORD2, 'RESET', 2)) THEN
+            ELSE IF (MATSTR (WORD2, 'ATTRIBUTES', 2)) THEN
+               IF (MATSTR(WORD,'MATERIALS',1) .OR.
+     &              MATSTR(WORD, 'BLOCKS',1)) THEN
+                  do i=1, nelblk
+                     numatr(i) = 0
+                  end do
+                  CALL PRTERR ('CMDSPEC',
+     *              'All element block attributes deleted.')
+               END IF
+            ELSE IF (MATSTR (WORD2, 'RESET', 2)) THEN
                 IF (MATSTR(WORD,'MATERIALS',1) .OR.
      &            MATSTR(WORD, 'BLOCKS',1)) THEN
                   do i=1, nelblk
@@ -2294,6 +2319,8 @@ C========================================================================
 
 C========================================================================
       ELSE IF (VERB .EQ. 'QUIT') THEN
+         call prterr('WARNING',
+     &   'Aborting current execution; no output file will be written')
         CALL SCNEOF
         RETURN 1
 

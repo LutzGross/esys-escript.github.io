@@ -71,7 +71,7 @@ SET(CTEST_PARALLEL_LEVEL 8)
 SET(CTEST_TEST_TYPE Nightly)
 SET(Trilinos_TRACK  Specialized)     # Set CDash track.
 SET(CTEST_TEST_TIMEOUT 14400) # twice the default value, for valgrind
-SET(CTEST_MEMORYCHECK_COMMAND /usr/local/bin/valgrind)
+SET(CTEST_MEMORYCHECK_COMMAND /usr/bin/valgrind)
 SET(CTEST_DO_MEMORY_TESTING TRUE)
 
 SET(Trilinos_PACKAGES MueLu Xpetra ML)
@@ -81,7 +81,18 @@ SET(EXTRA_CONFIGURE_OPTIONS
   "-DTrilinos_ENABLE_DEPENDENCY_UNIT_TESTS=OFF"
   "-DTPL_ENABLE_SuperLU=ON"
   "-DTeuchos_GLOBALLY_REDUCE_UNITTEST_RESULTS=ON"
+  "-DTeuchosCore_MemoryManagement_RCP_Abort_Verify_DISABLE=ON"
+  "-DTeuchosCore_testDisablePrintActiveRcpNodesOnExit_noprint_DISABLE=ON"
+  "-DTeuchosNumerics_DenseMatrix_example_DISABLE=ON"
+  "-DTeuchosCore_TypeConversions_UnitTest_DISABLE=ON"
+  "-DML_ValidateParameters_compareTestOutput_DISABLE=ON"
 )
+
+# NOTE: We cannot SET() the test disables directly in here since those get ignored by 
+# the calling file.  They have to be disabled through EXTRA_CONFIGURE_OPTIONS above.
+# - The Teuchos tests don't valgrind cleanly and probably shouldn't --- they're purposely
+# triggering error cases.  
+# - The ML test won't valgrind cleanly because of python on geminga.
 
 #
 # Set the rest of the system-specific options and run the dashboard build/test

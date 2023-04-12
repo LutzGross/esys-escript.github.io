@@ -203,7 +203,7 @@ namespace panzer
       /**
        *  \brief Post-Registration Setup.
        *
-       *  Sets the `Kokkos::View`s for all the of the field multipliers, sets
+       *  Sets the `PHX::View`s for all the of the field multipliers, sets
        *  the number of quadrature points and dimensions in our vector field,
        *  and sets the basis index.
        *
@@ -310,10 +310,10 @@ namespace panzer
       tensor_;
 
       /**
-       *  \brief The `Kokkos::View` representation of the tensor fields that are multiplied out in front of the integral
+       *  \brief The `PHX::View` representation of the tensor fields that are multiplied out in front of the integral
        *         (\f$ a(x) \f$).
        */
-    Kokkos::View<const ScalarT****,typename PHX::DevLayout<ScalarT>::type,PHX::Device> kokkosTensor_;
+    PHX::View<const ScalarT****> kokkosTensor_;
 
 
       /**
@@ -340,8 +340,11 @@ namespace panzer
       /**
        *  \brief The vector basis information necessary for integration.
        */
-      PHX::MDField<double, panzer::Cell, panzer::BASIS, panzer::IP,
+      PHX::MDField<const double, panzer::Cell, panzer::BASIS, panzer::IP,
         panzer::Dim> basis_;
+
+    /// Scratch space for caching temporary values in the kokkos kernel. 
+    PHX::View<ScalarT*> tmp_;
 
   }; // end of class Integrator_BasisTimesTensorTimesVector
 

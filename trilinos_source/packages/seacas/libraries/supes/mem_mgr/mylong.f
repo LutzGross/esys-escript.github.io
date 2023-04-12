@@ -1,18 +1,18 @@
 C    Copyright(C) 1999-2020 National Technology & Engineering Solutions
 C    of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 C    NTESS, the U.S. Government retains certain rights in this software.
-C    
+C
 C    See packages/seacas/LICENSE for details
       SUBROUTINE MYLONG (NAME1, NEWLEN, NEWLOC, MYV, MYCHAR, MYLOC,
      *   MYCLOC, UCLOC, COFFST, OFFSET,
      *   DICT, DPOINT, LDICT, NNAMES, VOID, LVOID, NVOIDS,
      *   FILL, FDATA, CFILL, CFDATA, CHRNUM, CHRCOL, MAXSIZ, LASTER)
-C
+
       IMPLICIT INTEGER (A-Z)
       INCLUDE 'params.inc'
-C
+
 C***********************************************************************
-C
+
 C     NAME1    Name of the vector which changes length
                CHARACTER*8 NAME1
 C     NEWLEN   The new length of the vector (character units)
@@ -48,19 +48,19 @@ C     CHRNUM   Number of characters per numeric storage unit
 C     CHRCOL   Number of column for character names.
 C     MAXSIZ   Dimension of static character array.
 C     LASTER   Error return
-C
+
 C***********************************************************************
-C
+
       INTLEN = (NEWLEN + CHRNUM - 1) / CHRNUM
-C
+
 C     Get current location and length.
-C
+
       CALL MYFIND (NAME1, DICT, DPOINT, LDICT, NNAMES,
      *   CHRCOL, LASTER, ROW)
-      IF (LASTER .NE. SUCESS) RETURN
-C
+      IF (LASTER .NE. SUCCESS) RETURN
+
 C     Save the current location of the array.
-C
+
       OLDLOC = DPOINT(ROW,CHRCOL,1)
       OLDLEN = DPOINT(ROW,CHRCOL,2)
       OLDCL = DPOINT(ROW,CHRCOL,3)
@@ -73,7 +73,9 @@ C ... If the old length == 0, then we don't have a valid pointer.
 C      Need to call malloc instead of realloc.
       if (oldlen .eq. 0) then
          memret = 0
-        call exmemy(memlen, newadr, memret)
+         if (memlen .gt. 0) then
+           call exmemy(memlen, newadr, memret)
+         end if
       else
 
 C ... Passing a size of 0 to realloc (via exmemy) is the
@@ -99,7 +101,7 @@ C     we request a space of '1' to maintain a valid pointer.
          return
       end if
 
-      IF (LASTER .NE. SUCESS) RETURN
+      IF (LASTER .NE. SUCCESS) RETURN
 
       if (chrcol .eq. 1) then
         DPOINT(ROW,CHRCOL,1) = newadr+1-myloc
@@ -109,9 +111,9 @@ C     we request a space of '1' to maintain a valid pointer.
       NEWLOC = (DPOINT(ROW,CHRCOL,1) - 1) * CHRNUM + 1 + COFFST
       DPOINT(ROW,CHRCOL,2) = INTLEN
       DPOINT(ROW,CHRCOL,3) = NEWLEN
-C
+
 C     Perform data fill if appropriate.
-C
+
       IF (CFILL) THEN
          I1 = NEWLOC + UCLOC - MYCLOC + OLDCL
          I2 = I1 + NEWLEN - OLDCL - 1
@@ -119,6 +121,6 @@ C
             MYCHAR(I) = CFDATA
   130    CONTINUE
       END IF
-C
+
       RETURN
       END

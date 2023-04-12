@@ -56,6 +56,7 @@
 #include <Xpetra_TripleMatrixMultiply.hpp>
 #include <Xpetra_Vector.hpp>
 #include <Xpetra_VectorFactory.hpp>
+#include <Xpetra_IO.hpp>
 
 #include "MueLu_RAPFactory_decl.hpp"
 
@@ -79,6 +80,8 @@ namespace MueLu {
     SET_VALID_ENTRY("transpose: use implicit");
     SET_VALID_ENTRY("rap: triple product");
     SET_VALID_ENTRY("rap: fix zero diagonals");
+    SET_VALID_ENTRY("rap: fix zero diagonals threshold");
+    SET_VALID_ENTRY("rap: fix zero diagonals replacement");
     SET_VALID_ENTRY("rap: relative diagonal floor");
 #undef  SET_VALID_ENTRY
     validParamList->set< RCP<const FactoryBase> >("A",                   null, "Generating factory of the matrix A used during the prolongator smoothing process");
@@ -130,20 +133,31 @@ namespace MueLu {
       const Teuchos::ParameterList& pL = GetParameterList();
       RCP<Matrix> A = Get< RCP<Matrix> >(fineLevel,   "A");
       RCP<Matrix> P = Get< RCP<Matrix> >(coarseLevel, "P"), AP;
+      // We don't have a valid P (e.g., # global aggregates = 0) so we bail.
+      // This level will ultimately be removed in MueLu_Hierarchy_defs.h via a resize()
+      if (P == Teuchos::null) {
+        Ac = Teuchos::null;
+        Set(coarseLevel, "A", Ac);
+        return;
+      }
 
       bool isEpetra = A->getRowMap()->lib() == Xpetra::UseEpetra;
+      bool isGPU =
 #ifdef KOKKOS_ENABLE_CUDA
-      bool isCuda = typeid(Node).name() == typeid(Kokkos::Compat::KokkosCudaWrapperNode).name();
-#else
-      bool isCuda = false;
+	(typeid(Node).name() == typeid(Kokkos::Compat::KokkosCudaWrapperNode).name()) ||
 #endif
+#ifdef KOKKOS_ENABLE_HIP
+	(typeid(Node).name() == typeid(Kokkos::Compat::KokkosHIPWrapperNode).name()) ||
+#endif
+	false;
 
-      if (pL.get<bool>("rap: triple product") == false || isEpetra || isCuda) {
+      if (pL.get<bool>("rap: triple product") == false || isEpetra || isGPU) {
         if (pL.get<bool>("rap: triple product") && isEpetra)
           GetOStream(Warnings1) << "Switching from triple product to R x (A x P) since triple product has not been implemented for Epetra.\n";
-#ifdef KOKKOS_ENABLE_CUDA
-        if (pL.get<bool>("rap: triple product") && isCuda)
-          GetOStream(Warnings1) << "Switching from triple product to R x (A x P) since triple product has not been implemented for Cuda.\n";
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
+        if (pL.get<bool>("rap: triple product") && isGPU)
+          GetOStream(Warnings1) << "Switching from triple product to R x (A x P) since triple product has not been implemented for "
+				<< Node::execution_space::name() << std::endl;
 #endif
 
         // Reuse pattern if available (multiple solve)
@@ -219,8 +233,16 @@ namespace MueLu {
 
         bool repairZeroDiagonals = pL.get<bool>("RepairMainDiagonal") || pL.get<bool>("rap: fix zero diagonals");
         bool checkAc             = pL.get<bool>("CheckMainDiagonal")|| pL.get<bool>("rap: fix zero diagonals"); ;
-        if (checkAc || repairZeroDiagonals)
-          Xpetra::MatrixUtils<SC,LO,GO,NO>::CheckRepairMainDiagonal(Ac, repairZeroDiagonals, GetOStream(Warnings1));
+        if (checkAc || repairZeroDiagonals) {
+          using magnitudeType = typename Teuchos::ScalarTraits<Scalar>::magnitudeType;
+          magnitudeType threshold;
+          if (pL.isType<magnitudeType>("rap: fix zero diagonals threshold"))
+            threshold = pL.get<magnitudeType>("rap: fix zero diagonals threshold");
+          else
+            threshold = Teuchos::as<magnitudeType>(pL.get<double>("rap: fix zero diagonals threshold"));
+          Scalar replacement = Teuchos::as<Scalar>(pL.get<double>("rap: fix zero diagonals replacement"));
+          Xpetra::MatrixUtils<SC,LO,GO,NO>::CheckRepairMainDiagonal(Ac, repairZeroDiagonals, GetOStream(Warnings1), threshold, replacement);
+        }
 
         if (IsPrint(Statistics2)) {
           RCP<ParameterList> params = rcp(new ParameterList());;
@@ -232,10 +254,14 @@ namespace MueLu {
         if(!Ac.is_null()) {std::ostringstream oss; oss << "A_" << coarseLevel.GetLevelID(); Ac->setObjectLabel(oss.str());}
         Set(coarseLevel, "A",         Ac);
 
-        APparams->set("graph", AP);
-        Set(coarseLevel, "AP reuse data",  APparams);
-        RAPparams->set("graph", Ac);
-        Set(coarseLevel, "RAP reuse data", RAPparams);
+        if (!isGPU) {
+          APparams->set("graph", AP);
+          Set(coarseLevel, "AP reuse data",  APparams);
+        }
+        if (!isGPU) {
+          RAPparams->set("graph", Ac);
+          Set(coarseLevel, "RAP reuse data", RAPparams);
+        }
       } else {
         RCP<ParameterList> RAPparams = rcp(new ParameterList);
         if(pL.isSublist("matrixmatrix: kernel params"))
@@ -267,8 +293,7 @@ namespace MueLu {
           Xpetra::TripleMatrixMultiply<SC,LO,GO,NO>::
             MultiplyRAP(*P, doTranspose, *A, !doTranspose, *P, !doTranspose, *Ac, doFillComplete,
                         doOptimizeStorage, labelstr+std::string("MueLu::R*A*P-implicit-")+levelstr.str(),
-                        RAPparams);
-
+                        RAPparams);         
         } else {
           RCP<Matrix> R = Get< RCP<Matrix> >(coarseLevel, "R");
           Ac = MatrixFactory::Build(R->getRowMap(), Teuchos::as<LO>(0));
@@ -288,9 +313,16 @@ namespace MueLu {
 
         bool repairZeroDiagonals = pL.get<bool>("RepairMainDiagonal") || pL.get<bool>("rap: fix zero diagonals");
         bool checkAc             = pL.get<bool>("CheckMainDiagonal")|| pL.get<bool>("rap: fix zero diagonals"); ;
-        if (checkAc || repairZeroDiagonals)
-          Xpetra::MatrixUtils<SC,LO,GO,NO>::CheckRepairMainDiagonal(Ac, repairZeroDiagonals, GetOStream(Warnings1));
-
+        if (checkAc || repairZeroDiagonals) {
+          using magnitudeType = typename Teuchos::ScalarTraits<Scalar>::magnitudeType;
+          magnitudeType threshold;
+          if (pL.isType<magnitudeType>("rap: fix zero diagonals threshold"))
+            threshold = pL.get<magnitudeType>("rap: fix zero diagonals threshold");
+          else
+            threshold = Teuchos::as<magnitudeType>(pL.get<double>("rap: fix zero diagonals threshold"));
+          Scalar replacement = Teuchos::as<Scalar>(pL.get<double>("rap: fix zero diagonals replacement"));
+          Xpetra::MatrixUtils<SC,LO,GO,NO>::CheckRepairMainDiagonal(Ac, repairZeroDiagonals, GetOStream(Warnings1), threshold, replacement);
+        }
 
 
         if (IsPrint(Statistics2)) {
@@ -303,8 +335,10 @@ namespace MueLu {
         if(!Ac.is_null()) {std::ostringstream oss; oss << "A_" << coarseLevel.GetLevelID(); Ac->setObjectLabel(oss.str());}
         Set(coarseLevel, "A",         Ac);
 
-        RAPparams->set("graph", Ac);
-        Set(coarseLevel, "RAP reuse data", RAPparams);
+        if (!isGPU) {
+          RAPparams->set("graph", Ac);
+          Set(coarseLevel, "RAP reuse data", RAPparams);
+        }
       }
 
 

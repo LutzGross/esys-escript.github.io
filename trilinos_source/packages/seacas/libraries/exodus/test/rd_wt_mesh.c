@@ -1,14 +1,10 @@
 /*
- * Copyright(C) 1999-2020 National Technology & Engineering Solutions
+ * Copyright(C) 1999-2023 National Technology & Engineering Solutions
  * of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
  * NTESS, the U.S. Government retains certain rights in this software.
- * 
+ *
  * See packages/seacas/LICENSE for details
  */
-
-#define _FILE_OFFSET_BITS 64
-#define _LARGEFILE_SOURCE
-#define _LARGE_FILES 1
 
 #ifdef PARALLEL_AWARE_EXODUS
 #include <mpi.h>
@@ -28,21 +24,22 @@
 #include <unistd.h>
 
 #if defined(_MSC_VER)
+#define NOMINMAX
 #include <windows.h>
 #define sleep(a) Sleep(a * 1000)
 #endif
 
 #include "exodusII.h"
 
-#define DEFAULT_NUM_FIELDS 0
-#define DEFAULT_FILE_NAME "mesh"
+#define DEFAULT_NUM_FIELDS     0
+#define DEFAULT_FILE_NAME      "mesh"
 #define DEFAULT_NUM_ITERATIONS 1
-#define EXODUS_FILE_TYPE "e"
-#define MBYTES (1024 * 1024)
-#define MAX_STRING_LEN 128
-#define NUM_NODES_PER_ELEM 8
-#define WRITE_FILE_TYPE "new"
-#define EBLK_ID 100000
+#define EXODUS_FILE_TYPE       "e"
+#define MBYTES                 (1024 * 1024)
+#define MAX_STRING_LEN         128
+#define NUM_NODES_PER_ELEM     8
+#define WRITE_FILE_TYPE        "new"
+#define EBLK_ID                100000
 
 /*
  *      Prototypes
@@ -69,7 +66,7 @@ int write_exo_mesh(char *file_name, int rank, int num_dim, int num_domains, int 
                    int *node_map, int num_elems, int *elem_map, realtyp *x_coords,
                    realtyp *y_coords, realtyp *z_coords, int *connect, int close_files);
 
-double my_timer()
+double my_timer(void)
 {
 #ifdef PARALLEL_AWARE_EXODUS
   double t1 = MPI_Wtime();
@@ -134,10 +131,6 @@ int main(int argc, char **argv)
 
   ex_opts(EX_VERBOSE | EX_ABORT);
 
-#if defined(__LIBCATAMOUNT__)
-  setlinebuf(stderr);
-#endif
-
 #ifdef PARALLEL_AWARE_EXODUS
   MPI_Init(&argc, &argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -186,7 +179,6 @@ int main(int argc, char **argv)
     char *env;                        /* Contents of environmental variable.  */
     int   hint;                       /* ROMIO hint index.                    */
     char  hint_value[MAX_STRING_LEN]; /* ROMIO hint value.                    */
-    int   rank;                       /* MPI process rank.                    */
 
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     /*      The "value" of the hint is obtained from the environment of
@@ -247,14 +239,13 @@ int main(int argc, char **argv)
                      num_element_fields, num_timesteps, files_per_domain, sleep_time,
                      num_iterations, loc_num_nodes, node_map, loc_num_elems, elem_map, x_coords,
                      y_coords, z_coords, loc_connect, close_files);
-
-      free(elem_map);
-      free(loc_connect);
-      free(node_map);
-      free(x_coords);
-      free(y_coords);
-      free(z_coords);
     }
+    free(elem_map);
+    free(loc_connect);
+    free(node_map);
+    free(x_coords);
+    free(y_coords);
+    free(z_coords);
   }
 #ifdef PARALLEL_AWARE_EXODUS
   MPI_Finalize();
@@ -277,22 +268,22 @@ int parse_input(int argc, char *argv[], bool *exodus, bool *close_files, char *f
   while (++arg < argc) {
     if (strcmp("-c", argv[arg]) == 0) {
       if (++arg < argc) {
-        *num_nodal_fields = atoi(argv[arg]);
+        *num_nodal_fields = strtol(argv[arg], NULL, 10);
       }
     }
     else if (strcmp("-nv", argv[arg]) == 0) {
       if (++arg < argc) {
-        *num_nodal_fields = atoi(argv[arg]);
+        *num_nodal_fields = strtol(argv[arg], NULL, 10);
       }
     }
     else if (strcmp("-gv", argv[arg]) == 0) {
       if (++arg < argc) {
-        *num_global_fields = atoi(argv[arg]);
+        *num_global_fields = strtol(argv[arg], NULL, 10);
       }
     }
     else if (strcmp("-ev", argv[arg]) == 0) {
       if (++arg < argc) {
-        *num_element_fields = atoi(argv[arg]);
+        *num_element_fields = strtol(argv[arg], NULL, 10);
       }
     }
     else if (strcmp("-f", argv[arg]) == 0) {
@@ -302,17 +293,17 @@ int parse_input(int argc, char *argv[], bool *exodus, bool *close_files, char *f
     }
     else if (strcmp("-M", argv[arg]) == 0) {
       if (++arg < argc) {
-        *files_per_domain = atoi(argv[arg]);
+        *files_per_domain = strtol(argv[arg], NULL, 10);
       }
     }
     else if (strcmp("-i", argv[arg]) == 0) {
       if (++arg < argc) {
-        *num_iterations = atoi(argv[arg]);
+        *num_iterations = strtol(argv[arg], NULL, 10);
       }
     }
     else if (strcmp("-w", argv[arg]) == 0) {
       if (++arg < argc) {
-        *sleep_time = atoi(argv[arg]);
+        *sleep_time = strtol(argv[arg], NULL, 10);
       }
     }
     else if (strcmp("-x", argv[arg]) == 0) {
@@ -714,7 +705,7 @@ int write_exo_mesh(char *file_name, int rank, int num_dim, int num_domains, int 
   int    IO_word_size  = sizeof(realtyp);
   int    j, t, npd, err, num_elem_blk, num_node_sets, num_side_sets;
   int    iter;
-  int *  elem_var_tab = NULL;
+  int   *elem_var_tab = NULL;
   size_t file_size;
 
   struct stat file_status;
@@ -750,7 +741,7 @@ int write_exo_mesh(char *file_name, int rank, int num_dim, int num_domains, int 
       for (npd = 0; npd < files_per_domain; npd++) {
         /* create the EXODUS file */
 
-        sprintf(base_name, "%s_%d", file_name, npd);
+        snprintf(base_name, MAX_STRING_LEN, "%s_%d", file_name, npd);
         get_file_name(base_name, EXODUS_FILE_TYPE, rank, num_domains, WRITE_FILE_TYPE, tmp_name);
         exoid[npd] = ex_create(tmp_name, EX_CLOBBER, &CPU_word_size, &IO_word_size);
 
@@ -776,12 +767,20 @@ int write_exo_mesh(char *file_name, int rank, int num_dim, int num_domains, int 
 
       if (close_files) {
         /* create the EXODUS file */
-        sprintf(base_name, "%s_%d", file_name, npd);
+        snprintf(base_name, MAX_STRING_LEN, "%s_%d", file_name, npd);
         get_file_name(base_name, EXODUS_FILE_TYPE, rank, num_domains, WRITE_FILE_TYPE, tmp_name);
         exoid[npd] = ex_create(tmp_name, EX_CLOBBER, &CPU_word_size, &IO_word_size);
 
         if (exoid[npd] < 0) {
           printf("after ex_create\n");
+          if (elem_var_tab) {
+            free(elem_var_tab);
+            elem_var_tab = NULL;
+          }
+          if (globals) {
+            free(globals);
+            globals = NULL;
+          }
           free(exoid);
           return (1);
         }
@@ -813,7 +812,7 @@ int write_exo_mesh(char *file_name, int rank, int num_dim, int num_domains, int 
       }
 #else
       err = ex_put_block(exoid[npd], EX_ELEM_BLOCK, EBLK_ID, "hex", num_elems, NUM_NODES_PER_ELEM,
-                         0, 0, 0);
+                            0, 0, 0);
 #endif
       if (err) {
         printf("after ex_put_elem_block, error = %d\n", err);
@@ -897,7 +896,7 @@ int write_exo_mesh(char *file_name, int rank, int num_dim, int num_domains, int 
         }
       }
       else {
-        elem_var_tab = 0;
+        elem_var_tab = NULL;
       }
       err = ex_put_all_var_param(exoid[npd], num_global_fields, num_nodal_fields,
                                  num_element_fields, elem_var_tab, 0, 0, 0, 0);
@@ -914,7 +913,7 @@ int write_exo_mesh(char *file_name, int rank, int num_dim, int num_domains, int 
           assert(nvar_name);
           for (j = 0; j < num_nodal_fields; j++) {
             nvar_name[j] = malloc((MAX_STRING_LEN + 1) * sizeof(char));
-            sprintf(nvar_name[j], "node_field_%d", j + 1);
+            snprintf(nvar_name[j], MAX_STRING_LEN + 1, "node_field_%d", j + 1);
           }
         }
         err = ex_put_variable_names(exoid[npd], EX_NODAL, num_nodal_fields, nvar_name);
@@ -932,7 +931,7 @@ int write_exo_mesh(char *file_name, int rank, int num_dim, int num_domains, int 
           gvar_name = malloc(num_global_fields * sizeof(char *));
           for (j = 0; j < num_global_fields; j++) {
             gvar_name[j] = malloc((MAX_STRING_LEN + 1) * sizeof(char));
-            sprintf(gvar_name[j], "global_field_%d", j + 1);
+            snprintf(gvar_name[j], MAX_STRING_LEN + 1, "global_field_%d", j + 1);
             globals[j] = j;
           }
         }
@@ -952,7 +951,7 @@ int write_exo_mesh(char *file_name, int rank, int num_dim, int num_domains, int 
           evar_name = malloc(num_element_fields * sizeof(char *));
           for (j = 0; j < num_element_fields; j++) {
             evar_name[j] = malloc((MAX_STRING_LEN + 1) * sizeof(char));
-            sprintf(evar_name[j], "element_field_%d", j + 1);
+            snprintf(evar_name[j], MAX_STRING_LEN + 1, "element_field_%d", j + 1);
           }
         }
 
@@ -960,6 +959,7 @@ int write_exo_mesh(char *file_name, int rank, int num_dim, int num_domains, int 
 
         if (npd == files_per_domain - 1) {
           free(elem_var_tab);
+          elem_var_tab = NULL;
           for (j = 0; j < num_element_fields; j++) {
             free(evar_name[j]);
           }
@@ -984,7 +984,7 @@ int write_exo_mesh(char *file_name, int rank, int num_dim, int num_domains, int 
 
           if (close_files) {
             float version;
-            sprintf(base_name, "%s_%d", file_name, npd);
+            snprintf(base_name, MAX_STRING_LEN, "%s_%d", file_name, npd);
             t_tmp1 = my_timer();
             get_file_name(base_name, EXODUS_FILE_TYPE, rank, num_domains, WRITE_FILE_TYPE,
                           tmp_name);
@@ -1182,6 +1182,7 @@ int write_exo_mesh(char *file_name, int rank, int num_dim, int num_domains, int 
   free(exoid);
   if (num_global_fields > 0) {
     free(globals);
+    globals = NULL;
   }
   return (0);
 }
@@ -1190,10 +1191,6 @@ int write_exo_mesh(char *file_name, int rank, int num_dim, int num_domains, int 
 void get_file_name(const char *base, const char *ext, int rank, int nprocs, const char *other,
                    char *output)
 {
-  int  i1, iTemp1;
-  int  iMaxDigit = 0, iMyDigit = 0;
-  char cTemp[128];
-
   output[0] = '\0';
   ex_copy_string(output, base, MAX_STRING_LEN);
   strcat(output, ".");
@@ -1209,8 +1206,8 @@ void get_file_name(const char *base, const char *ext, int rank, int nprocs, cons
      * This allows numbers like 01-99, i.e., prepending zeros to the
      * name to preserve proper alphabetic sorting of the files.
      */
-
-    iTemp1 = nprocs;
+    int iMaxDigit = 0, iMyDigit = 0;
+    int iTemp1 = nprocs;
     do {
       iTemp1 /= 10;
       iMaxDigit++;
@@ -1223,18 +1220,20 @@ void get_file_name(const char *base, const char *ext, int rank, int nprocs, cons
     } while (iTemp1 >= 1);
 
     strcat(output, ".");
-    sprintf(cTemp, "%d", nprocs);
+
+    char cTemp[128];
+    snprintf(cTemp, 128, "%d", nprocs);
     strcat(output, cTemp);
     strcat(output, ".");
 
     /*
      * Append the proper number of zeros to the filename.
      */
-    for (i1 = 0; i1 < iMaxDigit - iMyDigit; i1++) {
+    for (int i1 = 0; i1 < iMaxDigit - iMyDigit; i1++) {
       strcat(output, "0");
     }
 
-    sprintf(cTemp, "%d", rank);
+    snprintf(cTemp, 128, "%d", rank);
     strcat(output, cTemp);
   }
 }

@@ -127,7 +127,7 @@ public:
     functor_type functor (offsets, counts);
     OffsetType total (0);
     const char funcName[] = "Tpetra::Details::computeOffsetsFromCounts";
-    Kokkos::parallel_scan (range, functor, total, funcName);
+    Kokkos::parallel_scan (funcName, range, functor, total);
     return total;
   }
 
@@ -197,7 +197,7 @@ public:
     const OffsetType total = numOffsets*count;
     const char funcName[] =
       "Tpetra::Details::computeOffsetsFromConstantCount";
-    Kokkos::parallel_for (range, functor, funcName);
+    Kokkos::parallel_for (funcName, range, functor);
     return total;
   }
 
@@ -246,9 +246,9 @@ computeOffsetsFromCounts (const ExecutionSpace& execSpace,
 {
   static_assert (Kokkos::is_execution_space<ExecutionSpace>::value,
                  "ExecutionSpace must be a Kokkos execution space.");
-  static_assert (Kokkos::Impl::is_view<OffsetsViewType>::value,
+  static_assert (Kokkos::is_view<OffsetsViewType>::value,
                  "OffsetsViewType (the type of ptr) must be a Kokkos::View.");
-  static_assert (Kokkos::Impl::is_view<CountsViewType>::value,
+  static_assert (Kokkos::is_view<CountsViewType>::value,
                  "CountsViewType (the type of counts) must be a Kokkos::View.");
   static_assert (std::is_same<typename OffsetsViewType::value_type,
                    typename OffsetsViewType::non_const_value_type>::value,
@@ -279,32 +279,6 @@ computeOffsetsFromCounts (const ExecutionSpace& execSpace,
        ": counts.size() = " << numCounts << " >= ptr.size() = " <<
        numOffsets << ".");
 
-#ifdef TPETRA_AVOID_PARALLEL_SCAN
-    // KDD 11/25/19  Temporary workaround to the one scan whose behavior
-    // makes a difference for GPU runs.  On the GPU platforms, serializing
-    // this scan (via Kokkos' magic) makes the code perform correctly.  
-    // This code serializes the scan, without the Kokkos magic, for debugging
-    // on stria.  #6345
-    // To use this code, add -DTPETRA_AVOID_PARALLEL_SCAN to CMAKE_CXX_FLAGS
-
-    Kokkos::View<offset_type*,Kokkos::HostSpace> 
-            ptrAPS(Kokkos::ViewAllocateWithoutInitializing("APS_offsets"),
-                   numOffsets);
-    Kokkos::View<count_type*,Kokkos::HostSpace> 
-            countsAPS(Kokkos::ViewAllocateWithoutInitializing("APS_counts"),
-                      numCounts);
-
-    Kokkos::deep_copy(countsAPS, counts);
-
-    ptrAPS(0) = 0;
-    for (size_t i = 0; i < numCounts; i++)
-      ptrAPS(i+1) = ptrAPS(i) + countsAPS(i);
-
-    total = ptrAPS(numCounts);
-
-    Kokkos::deep_copy(ptr, ptrAPS);
-
-#else
     using Kokkos::AnonymousSpace;
     using Kokkos::View;
     View<offset_type*, AnonymousSpace> ptr_a = ptr;
@@ -318,8 +292,8 @@ computeOffsetsFromCounts (const ExecutionSpace& execSpace,
       typename offsets_device_type::memory_space;
     using counts_memory_space = typename CountsViewType::memory_space;
     constexpr bool countsAccessibleFromOffsetsExecSpace =
-      Kokkos::Impl::VerifyExecutionCanAccessMemorySpace<
-        offsets_memory_space, counts_memory_space>::value;
+      Kokkos::SpaceAccessibility<
+        offsets_memory_space, counts_memory_space>::accessible;
     if (countsAccessibleFromOffsetsExecSpace) {
       // NOTE (mfh 21 Aug 2019) Some compilers have trouble deducing
       // that operator= works if more than one template argument
@@ -332,14 +306,13 @@ computeOffsetsFromCounts (const ExecutionSpace& execSpace,
       using Kokkos::WithoutInitializing;
       counts_copy = counts_copy_type
         (view_alloc ("counts_copy", WithoutInitializing), numCounts);
-      Kokkos::deep_copy (counts_copy, counts);
+      Kokkos::deep_copy (execSpace, counts_copy, counts);
       counts_a = counts_copy;
     }
 
     using functor_type =
       ComputeOffsetsFromCounts<offset_type, count_type, SizeType>;
     total = functor_type::run (execSpace, ptr_a, counts_a);
-#endif
   }
 
   return total;
@@ -386,7 +359,7 @@ typename OffsetsViewType::non_const_value_type
 computeOffsetsFromConstantCount (const OffsetsViewType& ptr,
                                  const CountType count)
 {
-  static_assert (Kokkos::Impl::is_view<OffsetsViewType>::value,
+  static_assert (Kokkos::is_view<OffsetsViewType>::value,
                  "ptr must be a Kokkos::View.");
   static_assert (std::is_same<typename OffsetsViewType::value_type,
                    typename OffsetsViewType::non_const_value_type>::value,

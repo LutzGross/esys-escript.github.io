@@ -188,8 +188,8 @@ TEUCHOS_UNIT_TEST_TEMPLATE_3_DECL(RBILUK, LowerTriangularBlockCrsMatrix, Scalar,
   MV y = yBlock.getMultiVectorView ();
   x.putScalar (Teuchos::ScalarTraits<Scalar>::one ());
 
-  TEST_EQUALITY( x.getMap()->getNodeNumElements (), blockSize * num_rows_per_proc );
-  TEST_EQUALITY( y.getMap ()->getNodeNumElements (), blockSize * num_rows_per_proc );
+  TEST_EQUALITY( x.getMap()->getLocalNumElements (), blockSize * num_rows_per_proc );
+  TEST_EQUALITY( y.getMap ()->getLocalNumElements (), blockSize * num_rows_per_proc );
 
   try {
     prec->apply (x, y);
@@ -207,10 +207,9 @@ TEUCHOS_UNIT_TEST_TEMPLATE_3_DECL(RBILUK, LowerTriangularBlockCrsMatrix, Scalar,
 
   for (size_t k = 0; k < num_rows_per_proc; ++k) {
     LO lcl_row = k;
-    typename BMV::little_vec_type ylcl = yBlock.getLocalBlock(lcl_row,0);
-    Scalar* yb = ylcl.data();
+    auto ylcl = yBlock.getLocalBlockHost(lcl_row, 0, Tpetra::Access::ReadOnly);
     for (int j = 0; j < blockSize; ++j) {
-      TEST_FLOATING_EQUALITY(yb[j],exactSol[k],1e-14);
+      TEST_FLOATING_EQUALITY(ylcl(j),exactSol[k],1e-14);
     }
   }
 }
@@ -251,8 +250,8 @@ TEUCHOS_UNIT_TEST_TEMPLATE_3_DECL(RBILUK, UpperTriangularBlockCrsMatrix, Scalar,
   MV y = yBlock.getMultiVectorView ();
   x.putScalar (Teuchos::ScalarTraits<Scalar>::one ());
 
-  TEST_EQUALITY(x.getMap()->getNodeNumElements(), blockSize*num_rows_per_proc);
-  TEST_EQUALITY(y.getMap()->getNodeNumElements(), blockSize*num_rows_per_proc);
+  TEST_EQUALITY(x.getMap()->getLocalNumElements(), blockSize*num_rows_per_proc);
+  TEST_EQUALITY(y.getMap()->getLocalNumElements(), blockSize*num_rows_per_proc);
   TEST_NOTHROW(prec.apply(x, y));
 
   Teuchos::Array<Scalar> exactSol(num_rows_per_proc);
@@ -261,10 +260,9 @@ TEUCHOS_UNIT_TEST_TEMPLATE_3_DECL(RBILUK, UpperTriangularBlockCrsMatrix, Scalar,
   exactSol[2] = 0.5;
 
   for (int k = 0; k < num_rows_per_proc; ++k) {
-    typename BMV::little_vec_type ylcl = yBlock.getLocalBlock(k,0);
-    Scalar* yb = ylcl.data();
+    auto ylcl = yBlock.getLocalBlockHost(k, 0, Tpetra::Access::ReadOnly);
     for (int j = 0; j < blockSize; ++j) {
-      TEST_FLOATING_EQUALITY(yb[j],exactSol[k],1e-14);
+      TEST_FLOATING_EQUALITY(ylcl(j), exactSol[k], 1e-14);
     }
   }
 }
@@ -305,8 +303,8 @@ TEUCHOS_UNIT_TEST_TEMPLATE_3_DECL(RBILUK, FullLocalBlockCrsMatrix, Scalar, Local
   MV y = yBlock.getMultiVectorView ();
   x.putScalar (Teuchos::ScalarTraits<Scalar>::one ());
 
-  TEST_EQUALITY(x.getMap()->getNodeNumElements(), blockSize*num_rows_per_proc);
-  TEST_EQUALITY(y.getMap()->getNodeNumElements(), blockSize*num_rows_per_proc);
+  TEST_EQUALITY(x.getMap()->getLocalNumElements(), blockSize*num_rows_per_proc);
+  TEST_EQUALITY(y.getMap()->getLocalNumElements(), blockSize*num_rows_per_proc);
   TEST_NOTHROW(prec.apply(x, y));
 
   Teuchos::Array<Scalar> exactSol(num_rows_per_proc);
@@ -315,10 +313,9 @@ TEUCHOS_UNIT_TEST_TEMPLATE_3_DECL(RBILUK, FullLocalBlockCrsMatrix, Scalar, Local
   exactSol[2] = 2.0/7.0;
 
   for (int k = 0; k < num_rows_per_proc; ++k) {
-    typename BMV::little_vec_type ylcl = yBlock.getLocalBlock(k,0);
-    Scalar* yb = ylcl.data();
+    auto ylcl = yBlock.getLocalBlockHost(k, 0, Tpetra::Access::ReadOnly);
     for (int j = 0; j < blockSize; ++j) {
-      TEST_FLOATING_EQUALITY(yb[j],exactSol[k],1e-14);
+      TEST_FLOATING_EQUALITY(ylcl(j), exactSol[k], 1e-14);
     }
   }
 }
@@ -367,8 +364,8 @@ TEUCHOS_UNIT_TEST_TEMPLATE_3_DECL(RBILUK, BandedBlockCrsMatrixWithDropping, Scal
 
   x.randomize();
 
-  TEST_EQUALITY(x.getMap()->getNodeNumElements(), blockSize*num_rows_per_proc);
-  TEST_EQUALITY(y.getMap()->getNodeNumElements(), blockSize*num_rows_per_proc);
+  TEST_EQUALITY(x.getMap()->getLocalNumElements(), blockSize*num_rows_per_proc);
+  TEST_EQUALITY(y.getMap()->getLocalNumElements(), blockSize*num_rows_per_proc);
   TEST_NOTHROW(prec.apply(x, y));
 
   RCP<const crs_matrix_type > crsmatrix = tif_utest::create_banded_matrix<Scalar,LocalOrdinal,GlobalOrdinal,Node>(crsgraph->getRowMap(),rbandwidth);
@@ -395,8 +392,8 @@ TEUCHOS_UNIT_TEST_TEMPLATE_3_DECL(RBILUK, BandedBlockCrsMatrixWithDropping, Scal
 
 TEUCHOS_UNIT_TEST_TEMPLATE_3_DECL(RBILUK, BlockMatrixOps, Scalar, LocalOrdinal, GlobalOrdinal)
 {
-  typedef Kokkos::View<Scalar**,Kokkos::LayoutRight,Kokkos::MemoryTraits<Kokkos::Unmanaged> > little_block_type;
-  typedef Kokkos::View<Scalar*,Kokkos::LayoutRight,Kokkos::MemoryTraits<Kokkos::Unmanaged> > little_vec_type;
+  typedef Kokkos::View<Scalar**,Kokkos::LayoutRight,Kokkos::HostSpace,Kokkos::MemoryTraits<Kokkos::Unmanaged> > little_block_type;
+  typedef Kokkos::View<Scalar*,Kokkos::LayoutRight,Kokkos::HostSpace,Kokkos::MemoryTraits<Kokkos::Unmanaged> > little_vec_type;
   typedef typename Kokkos::Details::ArithTraits<Scalar>::val_type impl_scalar_type;
   typedef Teuchos::ScalarTraits<Scalar> STS;
 
@@ -731,10 +728,9 @@ TEUCHOS_UNIT_TEST_TEMPLATE_3_DECL(RBILUK, DiagonalBlockCrsMatrix, Scalar, LocalO
   const Scalar exactSol = 0.2;
 
   for (int k = 0; k < num_rows_per_proc; ++k) {
-    typename BMV::little_vec_type ylcl = yBlock.getLocalBlock(k,0);
-    Scalar* yb = ylcl.data();
+    auto ylcl = yBlock.getLocalBlockHost(k, 0, Tpetra::Access::ReadOnly);
     for (int j = 0; j < blockSize; ++j) {
-      TEST_FLOATING_EQUALITY(yb[j],exactSol,1e-14);
+      TEST_FLOATING_EQUALITY(ylcl(j), exactSol, 1e-14);
     }
   }
 }

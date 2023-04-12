@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <Kokkos_Core.hpp>
 
@@ -48,9 +20,9 @@ namespace TestCXX11 {
 
 template <class DeviceType>
 struct FunctorAddTest {
-  typedef Kokkos::View<double**, DeviceType> view_type;
-  typedef DeviceType execution_space;
-  typedef typename Kokkos::TeamPolicy<execution_space>::member_type team_member;
+  using view_type       = Kokkos::View<double**, DeviceType>;
+  using execution_space = DeviceType;
+  using team_member = typename Kokkos::TeamPolicy<execution_space>::member_type;
 
   view_type a_, b_;
 
@@ -81,7 +53,7 @@ struct FunctorAddTest {
 
 template <class DeviceType, bool PWRTest>
 double AddTestFunctor() {
-  typedef Kokkos::TeamPolicy<DeviceType> policy_type;
+  using policy_type = Kokkos::TeamPolicy<DeviceType>;
 
   Kokkos::View<double**, DeviceType> a("A", 100, 5);
   Kokkos::View<double**, DeviceType> b("B", 100, 5);
@@ -142,16 +114,17 @@ double AddTestLambda() {
           b(i, 4) = a(i, 3) + a(i, 4);
         });
   } else {
-    typedef Kokkos::TeamPolicy<DeviceType> policy_type;
-    typedef typename policy_type::member_type team_member;
+    using policy_type = Kokkos::TeamPolicy<DeviceType>;
+    using team_member = typename policy_type::member_type;
 
     policy_type policy(25, Kokkos::AUTO);
 
     Kokkos::parallel_for(
         policy, KOKKOS_LAMBDA(const team_member& dev) {
-          const int begin = dev.league_rank() * 4;
-          const int end   = begin + 4;
-          for (int i = begin + dev.team_rank(); i < end; i += dev.team_size()) {
+          const unsigned int begin = dev.league_rank() * 4;
+          const unsigned int end   = begin + 4;
+          for (unsigned int i = begin + dev.team_rank(); i < end;
+               i += dev.team_size()) {
             b(i, 0) = a(i, 1) + a(i, 2);
             b(i, 1) = a(i, 0) - a(i, 3);
             b(i, 2) = a(i, 4) + a(i, 0);
@@ -180,10 +153,10 @@ double AddTestLambda() {
 
 template <class DeviceType>
 struct FunctorReduceTest {
-  typedef Kokkos::View<double**, DeviceType> view_type;
-  typedef DeviceType execution_space;
-  typedef double value_type;
-  typedef typename Kokkos::TeamPolicy<execution_space>::member_type team_member;
+  using view_type       = Kokkos::View<double**, DeviceType>;
+  using execution_space = DeviceType;
+  using value_type      = double;
+  using team_member = typename Kokkos::TeamPolicy<execution_space>::member_type;
 
   view_type a_;
 
@@ -215,18 +188,17 @@ struct FunctorReduceTest {
   void init(value_type& update) const { update = 0.0; }
 
   KOKKOS_INLINE_FUNCTION
-  void join(volatile value_type& update,
-            volatile value_type const& input) const {
+  void join(value_type& update, value_type const& input) const {
     update += input;
   }
 };
 
 template <class DeviceType, bool PWRTest>
 double ReduceTestFunctor() {
-  typedef Kokkos::TeamPolicy<DeviceType> policy_type;
-  typedef Kokkos::View<double**, DeviceType> view_type;
-  typedef Kokkos::View<double, Kokkos::HostSpace, Kokkos::MemoryUnmanaged>
-      unmanaged_result;
+  using policy_type = Kokkos::TeamPolicy<DeviceType>;
+  using view_type   = Kokkos::View<double**, DeviceType>;
+  using unmanaged_result =
+      Kokkos::View<double, Kokkos::HostSpace, Kokkos::MemoryUnmanaged>;
 
   view_type a("A", 100, 5);
   typename view_type::HostMirror h_a = Kokkos::create_mirror_view(a);
@@ -255,10 +227,10 @@ double ReduceTestFunctor() {
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
 template <class DeviceType, bool PWRTest>
 double ReduceTestLambda() {
-  typedef Kokkos::TeamPolicy<DeviceType> policy_type;
-  typedef Kokkos::View<double**, DeviceType> view_type;
-  typedef Kokkos::View<double, Kokkos::HostSpace, Kokkos::MemoryUnmanaged>
-      unmanaged_result;
+  using policy_type = Kokkos::TeamPolicy<DeviceType>;
+  using view_type   = Kokkos::View<double**, DeviceType>;
+  using unmanaged_result =
+      Kokkos::View<double, Kokkos::HostSpace, Kokkos::MemoryUnmanaged>;
 
   view_type a("A", 100, 5);
   typename view_type::HostMirror h_a = Kokkos::create_mirror_view(a);
@@ -284,13 +256,14 @@ double ReduceTestLambda() {
         },
         unmanaged_result(&result));
   } else {
-    typedef typename policy_type::member_type team_member;
+    using team_member = typename policy_type::member_type;
     Kokkos::parallel_reduce(
         policy_type(25, Kokkos::AUTO),
         KOKKOS_LAMBDA(const team_member& dev, double& sum) {
-          const int begin = dev.league_rank() * 4;
-          const int end   = begin + 4;
-          for (int i = begin + dev.team_rank(); i < end; i += dev.team_size()) {
+          const unsigned int begin = dev.league_rank() * 4;
+          const unsigned int end   = begin + 4;
+          for (unsigned int i = begin + dev.team_rank(); i < end;
+               i += dev.team_size()) {
             sum += a(i, 1) + a(i, 2);
             sum += a(i, 0) - a(i, 3);
             sum += a(i, 4) + a(i, 0);

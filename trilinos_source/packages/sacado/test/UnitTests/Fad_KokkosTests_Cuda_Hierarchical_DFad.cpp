@@ -35,7 +35,6 @@
 #define SACADO_KOKKOS_USE_MEMORY_POOL 1
 
 #include "Fad_KokkosTests.hpp"
-#include "Kokkos_Core.hpp"
 
 typedef Kokkos::LayoutContiguous<Kokkos::LayoutLeft,32> LeftContiguous32;
 typedef Kokkos::LayoutContiguous<Kokkos::LayoutRight,32> RightContiguous32;
@@ -59,8 +58,8 @@ int main( int argc, char* argv[] ) {
   Teuchos::GlobalMPISession mpiSession(&argc, &argv);
 
   // Initialize Cuda
-  Kokkos::InitArguments init_args;
-  init_args.device_id = 0;
+  Kokkos::InitializationSettings init_args;
+  init_args.set_device_id(0);
   Kokkos::initialize( init_args );
   Kokkos::print_configuration(std::cout);
 

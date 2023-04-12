@@ -74,12 +74,16 @@
 #include "BelosSolverFactory.hpp"
 #include "BelosEpetraAdapter.hpp"
 #include "BelosTpetraAdapter.hpp"
+#include "BelosPseudoBlockGmresSolMgr.hpp"
+#include "BelosBlockGmresSolMgr.hpp"
 #include "BelosMueLuAdapter.hpp"
 #include "MueLu_MatlabUtils.hpp"
 
 #include "mex.h"
 
+#ifdef HAVE_TPETRA_INST_COMPLEX_DOUBLE
 #define HAVE_COMPLEX_SCALARS
+#endif
 
 namespace MueLu
 {
@@ -101,7 +105,8 @@ typedef enum
     MODE_AGGREGATE, //4
     MODE_GET, //5
     MODE_SET, //6
-    MODE_ERROR //7
+    MODE_ERROR, //7
+    MODE_APPLY //8
   } MODE_TYPE;
 
 /* Note: MuemexSystem is declared friend in MueLu::Hierarchy and MueLu::FactoryManager.
@@ -129,6 +134,7 @@ class EpetraSystem : public MuemexSystem
   int setup(const mxArray* matlabA, bool haveCoords = false, const mxArray* matlabCoords = NULL);
   int status();
   mxArray* solve(Teuchos::RCP<Teuchos::ParameterList> params, Teuchos::RCP<Epetra_CrsMatrix> matrix, const mxArray* rhs, int &iters);
+  mxArray* apply(const mxArray* rhs);
   Teuchos::RCP<Epetra_CrsMatrix> GetMatrix()
   {
     return A;
@@ -168,6 +174,7 @@ class TpetraSystem : public MuemexSystem
   void customSetup(const mxArray* matlabA, bool haveCoords = false, const mxArray* matlabCoords = NULL);
   int status();
   mxArray* solve(Teuchos::RCP<Teuchos::ParameterList> params, Teuchos::RCP<TMatrix> matrix, const mxArray* rhs, int &iters);
+  mxArray* apply(const mxArray* rhs);
   //note: I typedef'd mm_node_t at the top of this file as the Kokkos default type
   Teuchos::RCP<TMatrix> GetMatrix()
   { 

@@ -33,10 +33,8 @@
 // 
 
 #include <stk_mesh/base/FEMHelpers.hpp>
-#include <sstream>                      // for operator<<, etc
 #include <stk_mesh/base/BulkData.hpp>   // for BulkData
 #include <stk_mesh/base/Types.hpp>      // for PartVector, EntityId, etc
-#include <string>                       // for char_traits, operator<<
 #include "stk_mesh/base/MetaData.hpp"   // for get_topology, etc
 #include "stk_mesh/base/Part.hpp"       // for Part
 #include "stk_topology/topology.hpp"    // for topology, etc
@@ -44,10 +42,12 @@
 #include <stk_mesh/baseImpl/MeshImplUtils.hpp>
 #include <stk_mesh/baseImpl/Partition.hpp>
 #include <stk_mesh/baseImpl/elementGraph/ElemElemGraph.hpp>
+#include <sstream>                      // for operator<<, etc
+#include <string>                       // for char_traits, operator<<
+#include <iterator>
+#include <type_traits>
 
-namespace stk
-{
-namespace mesh
+namespace stk::mesh
 {
 
 namespace
@@ -270,6 +270,47 @@ get_ordinal_and_permutation(const stk::mesh::BulkData& mesh,
     return get_ordinal_and_permutation_with_filter(mesh, parent_entity, to_rank, nodes_of_sub_rank, pFilter);
 }
 
+bool element_side_polarity(const BulkData& mesh,
+                           const Entity elem ,
+                           const Entity side , unsigned local_side_id )
+{
+    // 09/14/10:  TODO:  tscoffe:  Will this work in 1D??
+    const bool is_side = mesh.entity_rank(side) != stk::topology::EDGE_RANK;
+    stk::topology elem_top = mesh.bucket(elem).topology();
+
+    const unsigned side_count = ! (elem_top != stk::topology::INVALID_TOPOLOGY) ? 0 : (
+        is_side ? elem_top.num_sides()
+            : elem_top.num_edges() );
+
+    ThrowErrorMsgIf( elem_top == stk::topology::INVALID_TOPOLOGY,
+        "For Element[" << mesh.identifier(elem) << "], element has no defined topology");
+
+    ThrowErrorMsgIf( static_cast<unsigned>(side_count) <= local_side_id,
+        "For Element[" << mesh.identifier(elem) << "], " <<
+        "side: " << mesh.identifier(side) << ", " <<
+        "local_side_id = " << local_side_id <<
+        " ; unsupported local_side_id");
+
+    stk::topology side_top =
+        is_side ? elem_top.side_topology( local_side_id )
+            : elem_top.sub_topology( stk::topology::EDGE_RANK, local_side_id );
+
+    std::vector<unsigned> side_map(side_top.num_nodes());
+    elem_top.side_node_ordinals( local_side_id, side_map.data());
+
+    Entity const *elem_nodes = mesh.begin_nodes(elem);
+    Entity const *side_nodes = mesh.begin_nodes(side);
+    const unsigned n = side_top.num_nodes();
+    bool good = false ;
+    for ( unsigned i = 0 ; !good && i < n ; ++i ) {
+        good = true;
+        for ( unsigned j = 0; good && j < n ; ++j ) {
+          good = side_nodes[(j+i)%n] == elem_nodes[ side_map[j] ];
+        }    
+    }    
+    return good ;
+}
+
 stk::EquivalentPermutation sub_rank_equivalent(const stk::mesh::BulkData& mesh,
                                             stk::mesh::Entity element,
                                             unsigned ordinal,
@@ -443,7 +484,7 @@ stk::topology get_subcell_nodes(const BulkData& mesh, const Entity entity,
         }
 
 // valid ranks fall within the dimension of the cell topology
-        const bool bad_rank = subcell_rank >= celltopology.dimension();
+        const bool bad_rank = static_cast<unsigned>(subcell_rank) >= celltopology.dimension();
         ThrowInvalidArgMsgIf( bad_rank, "subcell_rank is >= celltopology dimension\n");
 
 // subcell_identifier must be less than the subcell count
@@ -520,26 +561,29 @@ stk::mesh::Entity get_side_entity_for_elem_id_side_pair_of_rank(const stk::mesh:
     return get_side_entity_for_elem_side_pair_of_rank(bulk, elem, sideOrdinal, sideRank);
 }
 
+template<class IterType>
+EntityId get_max_id(IterType begin, IterType end)
+{
+  EntityId maxId = 0;
+  if constexpr (std::is_same_v<std::vector<std::pair<EntityKey,Entity>>::const_iterator, IterType>)
+  {
+    if (begin != end) {
+      IterType lastEntityKeyEntityPair = --end;
+      maxId = lastEntityKeyEntityPair->first.id();
+    }
+  }
+  else
+  {
+    for(IterType iter = begin; iter != end; ++iter) {
+      maxId = std::max(maxId, iter->first.id());
+    } 
+  }
+  return maxId;
+}
+
 EntityId get_max_id_on_local_proc(const BulkData& bulk, EntityRank rank)
 {
-    const BucketVector& buckets = bulk.buckets(rank);
-    EntityId maxId = 0;
-    for(const Bucket* bptr : buckets) {
-      const Bucket& bkt = *bptr;
-      if (bkt.getPartition()->needs_to_be_sorted()) {
-        for(Entity entity : bkt) {
-          maxId = std::max(maxId, bulk.identifier(entity));
-        }
-      }
-      else {
-        unsigned indexOfLastEntityInBucket = bkt.size() - 1;
-        EntityId id = bulk.identifier(bkt[indexOfLastEntityInBucket]);
-        maxId = std::max(maxId, id);
-      }
-    }
-
-    return maxId;
+  return get_max_id(bulk.begin_entities(rank), bulk.end_entities(rank));
 }
 
-}
 }

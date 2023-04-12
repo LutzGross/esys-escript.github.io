@@ -19,10 +19,18 @@ KOKKOS_CFG_DEPENDS(DEVICES NONE)
 KOKKOS_DEPRECATED_LIST(DEVICES ENABLE)
 
 
-KOKKOS_DEVICE_OPTION(PTHREAD       OFF HOST "Whether to build Pthread backend")
-IF (KOKKOS_ENABLE_PTHREAD)
-  #patch the naming here
-  SET(KOKKOS_ENABLE_THREADS ON)
+KOKKOS_DEVICE_OPTION(THREADS OFF HOST "Whether to build C++ threads backend")
+
+# detect clang++ / cl / clang-cl clashes
+IF (CMAKE_CXX_COMPILER_ID STREQUAL Clang AND "x${CMAKE_CXX_SIMULATE_ID}" STREQUAL "xMSVC")
+  # this specific test requires CMake >= 3.15
+  IF ("x${CMAKE_CXX_COMPILER_FRONTEND_VARIANT}" STREQUAL "xGNU")
+    # use pure clang++ instead of clang-cl
+    SET(KOKKOS_COMPILER_CLANG_MSVC OFF)
+  ELSE()
+    # it defaults to clang-cl
+    SET(KOKKOS_COMPILER_CLANG_MSVC ON)
+  ENDIF()
 ENDIF()
 
 IF(Trilinos_ENABLE_Kokkos AND Trilinos_ENABLE_OpenMP)
@@ -31,40 +39,32 @@ ELSE()
   SET(OMP_DEFAULT OFF)
 ENDIF()
 KOKKOS_DEVICE_OPTION(OPENMP ${OMP_DEFAULT} HOST "Whether to build OpenMP backend")
-IF(KOKKOS_ENABLE_OPENMP)
+
+KOKKOS_DEVICE_OPTION(OPENACC OFF DEVICE "Whether to build the OpenACC backend")
+
+KOKKOS_DEVICE_OPTION(OPENMPTARGET OFF DEVICE "Whether to build the OpenMP target backend")
+IF (KOKKOS_ENABLE_OPENMPTARGET)
   SET(ClangOpenMPFlag -fopenmp=libomp)
   IF(KOKKOS_CLANG_IS_CRAY)
     SET(ClangOpenMPFlag -fopenmp)
   ENDIF()
-  COMPILER_SPECIFIC_FLAGS(
-    Clang      ${ClangOpenMPFlag}
-    AppleClang -Xpreprocessor -fopenmp
-    PGI        -mp
-    NVIDIA     -Xcompiler -fopenmp
-    Cray       NO-VALUE-SPECIFIED
-    XL         -qsmp=omp
-    DEFAULT    -fopenmp
-  )
-  COMPILER_SPECIFIC_LIBS(
-    AppleClang -lomp
-  )
-ENDIF()
 
-KOKKOS_DEVICE_OPTION(OPENMPTARGET OFF DEVICE "Whether to build the OpenMP target backend")
-IF (KOKKOS_ENABLE_OPENMPTARGET)
   COMPILER_SPECIFIC_FLAGS(
-    Clang      -fopenmp -fopenmp=libomp
-    XL         -qsmp=omp -qoffload -qnoeh
+    Clang      ${ClangOpenMPFlag} -Wno-openmp-mapping
+    IntelLLVM  -fiopenmp -Wno-openmp-mapping
+    NVHPC      -mp=gpu
     DEFAULT    -fopenmp
   )
   COMPILER_SPECIFIC_DEFS(
-    XL    KOKKOS_IBM_XL_OMP45_WORKAROUND
     Clang KOKKOS_WORKAROUND_OPENMPTARGET_CLANG
   )
 # Are there compilers which identify as Clang and need this library?
 #  COMPILER_SPECIFIC_LIBS(
 #    Clang -lopenmptarget
 #  )
+   IF(KOKKOS_CXX_STANDARD LESS 17)
+     MESSAGE(FATAL_ERROR "OpenMPTarget backend requires C++17 or newer")
+   ENDIF()
 ENDIF()
 
 IF(Trilinos_ENABLE_Kokkos AND TPL_ENABLE_CUDA)
@@ -76,6 +76,8 @@ KOKKOS_DEVICE_OPTION(CUDA ${CUDA_DEFAULT} DEVICE "Whether to build CUDA backend"
 
 IF (KOKKOS_ENABLE_CUDA)
   GLOBAL_SET(KOKKOS_DONT_ALLOW_EXTENSIONS "CUDA enabled")
+## Cuda has extra setup requirements, turn on Kokkos_Setup_Cuda.hpp in macros
+  LIST(APPEND DEVICE_SETUP_LIST Cuda)
 ENDIF()
 
 # We want this to default to OFF for cache reasons, but if no
@@ -96,3 +98,18 @@ KOKKOS_DEVICE_OPTION(SERIAL ${SERIAL_DEFAULT} HOST "Whether to build serial back
 KOKKOS_DEVICE_OPTION(HPX OFF HOST "Whether to build HPX backend (experimental)")
 
 KOKKOS_DEVICE_OPTION(HIP OFF DEVICE "Whether to build HIP backend")
+
+## HIP has extra setup requirements, turn on Kokkos_Setup_HIP.hpp in macros
+IF (KOKKOS_ENABLE_HIP)
+  LIST(APPEND DEVICE_SETUP_LIST HIP)
+ENDIF()
+
+KOKKOS_DEVICE_OPTION(SYCL OFF DEVICE "Whether to build SYCL backend")
+
+## SYCL has extra setup requirements, turn on Kokkos_Setup_SYCL.hpp in macros
+IF (KOKKOS_ENABLE_SYCL)
+  IF(KOKKOS_CXX_STANDARD LESS 17)
+    MESSAGE(FATAL_ERROR "SYCL backend requires C++17 or newer!")
+  ENDIF()
+  LIST(APPEND DEVICE_SETUP_LIST SYCL)
+ENDIF()

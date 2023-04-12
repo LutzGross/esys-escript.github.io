@@ -98,9 +98,14 @@ TEUCHOS_UNIT_TEST( Distributor, Issue1454 )
   std::is_same<typename device_type::execution_space, Kokkos::Cuda>::value,
     Kokkos::CudaSpace,
     typename device_type::memory_space>::type;
+#elif defined(KOKKOS_ENABLE_SYCL)
+  using buffer_memory_space = typename std::conditional<
+  std::is_same<typename device_type::execution_space, Kokkos::Experimental::SYCL>::value,
+    Kokkos::Experimental::SYCLDeviceUSMSpace,
+    typename device_type::memory_space>::type;
 #else
   using buffer_memory_space = typename device_type::memory_space;
-#endif // KOKKOS_ENABLE_CUDA
+#endif
   using buffer_execution_space = typename device_type::execution_space;
   using buffer_device_type = Kokkos::Device<buffer_execution_space, buffer_memory_space>;
 
@@ -142,20 +147,25 @@ TEUCHOS_UNIT_TEST( Distributor, Issue1454 )
 
   Kokkos::View<int *, buffer_device_type> imports( "imports", n_imports );
   auto imports_host = Kokkos::create_mirror_view (imports);
+  // This assertion fails and is meaningless for HIP right now which uses HostPinnedSpace here
+  #ifndef KOKKOS_ENABLE_HIP
   static_assert (std::is_same<typename decltype (imports_host)::memory_space,
                    Kokkos::HostSpace>::value,
                  "imports_host should be a HostSpace View, but is not.");
-
-  if (Tpetra::Details::Behavior::assumeMpiIsCudaAware ()) {
+  #endif
+  if (Tpetra::Details::Behavior::assumeMpiIsGPUAware ()) {
     distributor.doPostsAndWaits (exports, 1, imports);
     Kokkos::deep_copy (imports_host, imports);
   }
   else {
     Kokkos::deep_copy (imports_host, imports);
     auto exports_host = Kokkos::create_mirror_view (exports);
+    // This assertion fails and is meaningless for HIP right now which uses HostPinnedSpace here
+    #ifndef KOKKOS_ENABLE_HIP
     static_assert (std::is_same<typename decltype (exports_host)::memory_space,
                    Kokkos::HostSpace>::value,
       "exports_host should be a HostSpace View, but is not.");
+    #endif
     Kokkos::deep_copy (exports_host, exports);
     distributor.doPostsAndWaits (exports_host, 1, imports_host);
   }

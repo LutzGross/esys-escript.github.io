@@ -39,8 +39,8 @@
 // ************************************************************************
 //@HEADER
 
-#ifndef THYRA_FROSCH_XPETRA_FACTORY_DECL_HPP
-#define THYRA_FROSCH_XPETRA_FACTORY_DECL_HPP
+#ifndef _THYRA_FROSCH_FACTORY_DECL_HPP
+#define _THYRA_FROSCH_FACTORY_DECL_HPP
 
 #include <ShyLU_DDFROSch_config.h>
 
@@ -75,6 +75,11 @@
 #include <Xpetra_EpetraMap.hpp>
 #endif
 
+//Tpetra
+#if defined(HAVE_XPETRA_TPETRA) && defined(HAVE_TPETRA_INST_DOUBLE) && defined(HAVE_TPETRA_INST_FLOAT)
+#include <Xpetra_TpetraHalfPrecisionOperator.hpp>
+#endif
+
 //Epetra
 #ifdef HAVE_SHYLU_DDFROSCH_EPETRA
 #include <Epetra_Map.h>
@@ -83,14 +88,10 @@
 #endif
 
 //FROSch
-#include <FROSch_AlgebraicOverlappingPreconditioner_def.hpp>
-#include <FROSch_GDSWPreconditioner_def.hpp>
-#include <FROSch_RGDSWPreconditioner_def.hpp>
-#include <FROSch_OneLevelPreconditioner_def.hpp>
-#include <FROSch_TwoLevelPreconditioner_def.hpp>
-#include <FROSch_TwoLevelBlockPreconditioner_def.hpp>
 #include <Thyra_FROSchLinearOp_def.hpp>
 #include <FROSch_Tools_def.hpp>
+
+#include <FROSch_SchwarzPreconditioners_fwd.hpp>
 
 
 namespace Thyra {
@@ -137,6 +138,15 @@ namespace Thyra {
         using ConstXMultiVector             = const XMultiVector;
         using XMultiVectorPtr               = RCP<XMultiVector>;
         using ConstXMultiVectorPtr          = RCP<ConstXMultiVector>;
+        using XMultiVectorPtrVecPtr         = ArrayRCP<XMultiVectorPtr>;
+        using ConstXMultiVectorPtrVecPtr    = ArrayRCP<ConstXMultiVectorPtr>;
+
+#if defined(HAVE_XPETRA_TPETRA) && defined(HAVE_TPETRA_INST_DOUBLE) && defined(HAVE_TPETRA_INST_FLOAT)
+        using HalfPrecOp                    = Xpetra::TpetraHalfPrecisionOperator<SC,LO,GO,NO>;
+        using HalfSC                        = typename HalfPrecOp::HalfScalar;
+        using HalfPrecMatrix                = Matrix<HalfSC,LO,GO,NO>;
+        using HalfPrecMultiVector           = MultiVector<HalfSC,LO,GO,NO>;
+#endif
 
         using ParameterListPtr              = RCP<ParameterList>;
         using ConstParameterListPtr         = RCP<const ParameterList>;

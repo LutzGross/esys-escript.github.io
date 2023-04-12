@@ -1,9 +1,8 @@
-// Copyright(C) 1999-2020 National Technology & Engineering Solutions
+// Copyright(C) 1999-2022 National Technology & Engineering Solutions
 // of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 // NTESS, the U.S. Government retains certain rights in this software.
-// 
+//
 // See packages/seacas/LICENSE for details
-
 
 #include "EJ_SystemInterface.h"
 #include "EJ_Version.h"  // for qainfo
@@ -184,6 +183,14 @@ void SystemInterface::enroll_options()
                   "True if forcing the use of 64-bit integers for the output file", nullptr);
 
   options_.enroll(
+      "zlib", GetLongOption::NoValue,
+      "Use the Zlib / libz compression method if compression is enabled (default) [exodus only].",
+      nullptr);
+
+  options_.enroll("szip", GetLongOption::NoValue,
+                  "Use SZip compression. [exodus only, enables netcdf-4]", nullptr);
+
+  options_.enroll(
       "compress", GetLongOption::MandatoryValue,
       "Specify the hdf5 (netcdf4) compression level [0..9] to be used on the output file.",
       nullptr);
@@ -206,7 +213,8 @@ bool SystemInterface::parse_options(int argc, char **argv)
   if (options_.retrieve("help") != nullptr) {
     options_.usage();
     fmt::print(stderr, "\n\tCan also set options via EJOIN_OPTIONS environment variable.\n"
-                       "\n\t->->-> Send email to gdsjaar@sandia.gov for ejoin support.<-<-<-\n");
+	       "\n\tDocumentation: https://sandialabs.github.io/seacas-docs/sphinx/html/index.html#ejoin\n"
+	       "\n\t->->-> Send email to gdsjaar@sandia.gov for ejoin support.<-<-<-\n");
     exit(EXIT_SUCCESS);
   }
 
@@ -216,7 +224,7 @@ bool SystemInterface::parse_options(int argc, char **argv)
   }
 
   if (options_.retrieve("copyright") != nullptr) {
-    fmt::print("{}", copyright("2010-2019"));
+    fmt::print("{}", copyright("2010-2021"));
     exit(EXIT_SUCCESS);
   }
 
@@ -251,19 +259,8 @@ bool SystemInterface::parse_options(int argc, char **argv)
     options_.parse(options, options_.basename(*argv));
   }
 
-  {
-    const char *temp = options_.retrieve("output");
-    if (temp != nullptr) {
-      outputName_ = temp;
-    }
-  }
-
-  {
-    const char *temp = options_.retrieve("block_prefix");
-    if (temp != nullptr) {
-      blockPrefix_ = temp;
-    }
-  }
+  outputName_  = options_.get_option_value("output", outputName_);
+  blockPrefix_ = options_.get_option_value("block_prefix", blockPrefix_);
 
   {
     const char *temp = options_.retrieve("offset");
@@ -272,12 +269,7 @@ bool SystemInterface::parse_options(int argc, char **argv)
     }
   }
 
-  {
-    const char *temp = options_.retrieve("tolerance");
-    if (temp != nullptr) {
-      tolerance_ = strtod(temp, nullptr);
-    }
-  }
+  tolerance_ = options_.get_option_value("tolerance", tolerance_);
 
   {
     const char *temp = options_.retrieve("steps");
@@ -381,31 +373,25 @@ bool SystemInterface::parse_options(int argc, char **argv)
     }
   }
 
-  if (options_.retrieve("disable_field_recognition") != nullptr) {
-    disableFieldRecognition_ = true;
-  }
-  else {
-    disableFieldRecognition_ = false;
-  }
-
-  if (options_.retrieve("netcdf4") != nullptr) {
-    useNetcdf4_ = true;
-  }
-
-  if (options_.retrieve("ignore_element_ids") != nullptr) {
-    ignoreElementIds_ = true;
-  }
+  disableFieldRecognition_ = options_.retrieve("disable_field_recognition") != nullptr;
+  useNetcdf4_              = options_.retrieve("netcdf4") != nullptr;
+  ignoreElementIds_        = options_.retrieve("ignore_element_ids") != nullptr;
 
   if (options_.retrieve("64-bit") != nullptr) {
     ints64bit_ = true;
   }
 
-  {
-    const char *temp = options_.retrieve("compress");
-    if (temp != nullptr) {
-      compressionLevel_ = std::strtol(temp, nullptr, 10);
-    }
+  if (options_.retrieve("szip") != nullptr) {
+    szip_ = true;
+    zlib_ = false;
   }
+  zlib_ = (options_.retrieve("zlib") != nullptr);
+
+  if (szip_ && zlib_) {
+    fmt::print(stderr, "ERROR: Only one of 'szip' or 'zlib' can be specified.\n");
+  }
+
+  compressionLevel_ = options_.get_option_value("compress", compressionLevel_);
 
   if (options_.retrieve("match_node_ids") != nullptr) {
     matchNodeIds_ = true;
@@ -521,7 +507,7 @@ void SystemInterface::parse_step_option(const char *tokens)
 void SystemInterface::show_version()
 {
   fmt::print("EJoin\n"
-             "\t(A code for merging Exodus II databases; with or without results data.)\n"
+             "\t(A code for merging Exodus databases; with or without results data.)\n"
              "\t(Version: {}) Modified: {}\n",
              qainfo[2], qainfo[1]);
 }
@@ -555,13 +541,13 @@ namespace {
         StringVector name_id  = SLIB::tokenize(*I, ":");
         std::string  var_name = LowerCase(name_id[0]);
         if (name_id.size() == 1) {
-          (*variable_list).emplace_back(std::make_pair(var_name, 0));
+          (*variable_list).emplace_back(var_name, 0);
         }
         else {
           for (size_t i = 1; i < name_id.size(); i++) {
             // Convert string to integer...
             int id = std::stoi(name_id[i]);
-            (*variable_list).emplace_back(std::make_pair(var_name, id));
+            (*variable_list).emplace_back(var_name, id);
           }
         }
         ++I;

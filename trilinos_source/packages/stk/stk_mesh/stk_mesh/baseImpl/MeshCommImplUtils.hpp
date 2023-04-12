@@ -74,11 +74,25 @@ void pack_part_memberships( const BulkData& meshbulk, stk::CommSparse & comm ,
                             const std::vector<EntityProc> & send_list );
 
 void unpack_induced_parts_from_sharers(OrdinalVector& induced_parts,
-                                       const EntityCommInfoVector& entity_comm_info,
+                                       PairIterEntityComm entity_comm_info,
                                        stk::CommSparse& comm,
                                        EntityKey expected_key);
 
 void pack_and_send_induced_parts_from_sharers_to_owners(const BulkData& bulkData, stk::CommSparse& comm, EntityCommListInfoVector& entity_comm_list);
+
+bool pack_and_send_modified_shared_entity_states(stk::CommSparse& comm,
+                                                 const BulkData& bulk,
+                                                 const EntityCommListInfoVector& commList);
+
+void pack_entity_keys_to_send(stk::CommSparse &comm,
+                              const std::vector<stk::mesh::EntityKeyProc> &entities_to_send_data);
+
+void unpack_entity_keys_from_procs(stk::CommSparse &comm,
+                                   std::vector<stk::mesh::EntityKey> &receivedEntityKeys);
+
+void unpack_shared_entities(const BulkData& mesh,
+                            stk::CommSparse &comm,
+                            std::vector< std::pair<int, shared_entity_type> > &shared_entities_and_proc);
 
 void filter_out_unneeded_induced_parts(const BulkData& bulkData,
                                        Entity entity,
@@ -114,6 +128,13 @@ bool ghost_id_is_found_in_comm_data(const PairIterEntityComm& comm_data,
 bool all_ghost_ids_are_found_in_comm_data(const PairIterEntityComm& comm_data,
                                           int entity_owner,
                                           const std::vector<int>& recvd_ghost_ids);
+
+void comm_shared_procs(PairIterEntityComm commInfo,
+                       std::vector<int>& sharingProcs);
+
+void fill_sorted_procs(const PairIterEntityComm& ec, std::vector<int>& procs);
+
+void fill_ghosting_procs(const PairIterEntityComm& ec, unsigned ghost_id, std::vector<int>& procs);
 
 inline
 bool is_comm_ordered(const PairIterEntityComm& ec)

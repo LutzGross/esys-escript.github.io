@@ -67,7 +67,7 @@ namespace MueLu {
 
     int minNodesPerAggregate = params.get<int>("aggregation: min agg size");
     int maxNodesPerAggregate = params.get<int>("aggregation: max agg size");
-    bool includeRootInAgg = params.get<bool>("aggregation: phase2a include root");
+    bool matchMLbehavior = params.get<bool>("aggregation: match ML phase2a");
 
     const LO  numRows = graph.GetNodeNumVertices();
     const int myRank  = graph.GetComm()->getRank();
@@ -80,25 +80,28 @@ namespace MueLu {
     LO numLocalNodes      = procWinner.size();
     LO numLocalAggregated = numLocalNodes - numNonAggregatedNodes;
 
-    const double aggFactor = 0.5;
+    const double aggFactor = params.get<double>("aggregation: phase2a agg factor");
     double       factor    = as<double>(numLocalAggregated)/(numLocalNodes+1);
     factor = pow(factor, aggFactor);
 
     int              aggIndex = -1;
     size_t           aggSize  =  0;
-    std::vector<int> aggList(graph.getNodeMaxNumRowEntries());
+    std::vector<int> aggList(graph.getLocalMaxNumRowEntries());
 
     for (LO rootCandidate = 0; rootCandidate < numRows; rootCandidate++) {
       if (aggStat[rootCandidate] != READY)
         continue;
 
+      LO numNeighbors = 0;
       aggSize = 0;
-      if (includeRootInAgg)
+      if (matchMLbehavior) {
         aggList[aggSize++] = rootCandidate;
+        numNeighbors++;
+      }
 
       ArrayView<const LocalOrdinal> neighOfINode = graph.getNeighborVertices(rootCandidate);
 
-      LO numNeighbors = 0;
+
       for (int j = 0; j < neighOfINode.size(); j++) {
         LO neigh = neighOfINode[j];
 
@@ -119,8 +122,7 @@ namespace MueLu {
 
       // NOTE: ML uses a hardcoded value 3 instead of MinNodesPerAggregate
       if (aggSize > as<size_t>(minNodesPerAggregate) &&
-          ((includeRootInAgg && aggSize-1 > factor*numNeighbors) ||
-           (!includeRootInAgg && aggSize > factor*numNeighbors))) {
+          (aggSize > factor*numNeighbors)) {
         // Accept new aggregate
         // rootCandidate becomes the root of the newly formed aggregate
         aggregates.SetIsRoot(rootCandidate);

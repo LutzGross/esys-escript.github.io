@@ -1,15 +1,15 @@
-// Copyright(C) 1999-2020 National Technology & Engineering Solutions
+// Copyright(C) 1999-2022 National Technology & Engineering Solutions
 // of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 // NTESS, the U.S. Government retains certain rights in this software.
-// 
+//
 // See packages/seacas/LICENSE for details
 
-#include <Ioss_Assembly.h>
-#include <Ioss_Blob.h>
 #include <Ioss_CodeTypes.h>
-#include <Ioss_CommSet.h>
-#include <Ioss_MeshCopyOptions.h>
+#include <Ioss_DatabaseIO.h>
+#include <Ioss_FileInfo.h>
+#include <Ioss_SubSystem.h>
 #include <Ioss_Utils.h>
+
 #include <algorithm>
 #include <cassert>
 #include <cctype>
@@ -17,17 +17,16 @@
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
-#include <ctime>
 #include <fmt/chrono.h>
 #include <fmt/format.h>
 #include <fmt/ostream.h>
-#include <iomanip>
+#include <fstream>
 #include <sstream>
 #include <string>
 #include <tokenize.h>
 #include <vector>
 
-#ifndef _WIN32
+#if !defined(__IOSS_WINDOWS__)
 #include <sys/ioctl.h>
 #include <sys/utsname.h>
 #endif
@@ -37,14 +36,17 @@
 #endif
 #include <cstdio>
 
-#if defined(_MSC_VER)
+// For memory utilities...
+#if defined(__IOSS_WINDOWS__)
 #include <io.h>
 #define isatty _isatty
+#define WIN32_LEAN_AND_MEAN
+#ifndef NOMINMAX
+#define NOMINMAX
 #endif
-
-// For memory utilities...
-#if defined(_WIN32)
+#if 0
 #include <psapi.h>
+#endif
 #include <windows.h>
 
 #elif defined(__unix__) || defined(__unix) || defined(unix) ||                                     \
@@ -70,125 +72,23 @@
 #include <spi/include/kernel/memory.h>
 #endif
 
-#include <Ioss_SubSystem.h>
-
-#include <fstream>
-
 std::ostream *Ioss::Utils::m_warningStream  = &std::cerr;
 std::ostream *Ioss::Utils::m_debugStream    = &std::cerr;
 std::ostream *Ioss::Utils::m_outputStream   = &std::cerr;
 std::string   Ioss::Utils::m_preWarningText = "\nIOSS WARNING: ";
 
-// For copy_database...
 namespace {
-  auto initial_time = std::chrono::high_resolution_clock::now();
-
-  size_t max_field_size = 0;
-
-  struct DataPool
-  {
-    // Data space shared by most field input/output routines...
-    std::vector<char>    data;
-    std::vector<int>     data_int;
-    std::vector<int64_t> data_int64;
-    std::vector<double>  data_double;
-    std::vector<Complex> data_complex;
-#ifdef SEACAS_HAVE_KOKKOS
-    Kokkos::View<char *>    data_view_char;
-    Kokkos::View<int *>     data_view_int;
-    Kokkos::View<int64_t *> data_view_int64;
-    Kokkos::View<double *>  data_view_double;
-    // Kokkos::View<Kokkos_Complex *> data_view_complex cannot be a global variable,
-    // Since Kokkos::initialize() has not yet been called. Also, a Kokkos:View cannot
-    // have type std::complex entities.
-    Kokkos::View<char **>    data_view_2D_char;
-    Kokkos::View<int **>     data_view_2D_int;
-    Kokkos::View<int64_t **> data_view_2D_int64;
-    Kokkos::View<double **>  data_view_2D_double;
-    // Kokkos::View<Kokkos_Complex **> data_view_2D_complex cannot be a global variable,
-    // Since Kokkos::initialize() has not yet been called. Also, a Kokkos:View cannot
-    // have type std::complex entities.
-    Kokkos::View<char **, Kokkos::LayoutRight, Kokkos::HostSpace> data_view_2D_char_layout_space;
-    Kokkos::View<int **, Kokkos::LayoutRight, Kokkos::HostSpace>  data_view_2D_int_layout_space;
-    Kokkos::View<int64_t **, Kokkos::LayoutRight, Kokkos::HostSpace>
-        data_view_2D_int64_layout_space;
-    Kokkos::View<double **, Kokkos::LayoutRight, Kokkos::HostSpace>
-        data_view_2D_double_layout_space;
-    // Kokkos::View<Kokkos_Complex **, Kokkos::LayoutRight, Kokkos::HostSpace>
-    // data_view_2D_complex_layout_space cannot be a global variable,
-    // Since Kokkos::initialize() has not yet been called. Also, a Kokkos:View cannot
-    // have type std::complex entities.
-#endif
-  };
-
-  void show_step(int istep, double time, const Ioss::MeshCopyOptions &options, int rank);
-
-  void transfer_nodeblock(Ioss::Region &region, Ioss::Region &output_region, DataPool &pool,
-                          const Ioss::MeshCopyOptions &options, int rank);
-  void transfer_structuredblocks(Ioss::Region &region, Ioss::Region &output_region,
-                                 const Ioss::MeshCopyOptions &options, int rank);
-  void transfer_elementblocks(Ioss::Region &region, Ioss::Region &output_region,
-                              const Ioss::MeshCopyOptions &options, int rank);
-  void transfer_edgeblocks(Ioss::Region &region, Ioss::Region &output_region,
-                           const Ioss::MeshCopyOptions &options, int rank);
-  void transfer_faceblocks(Ioss::Region &region, Ioss::Region &output_region,
-                           const Ioss::MeshCopyOptions &options, int rank);
-  void transfer_nodesets(Ioss::Region &region, Ioss::Region &output_region,
-                         const Ioss::MeshCopyOptions &options, int rank);
-  void transfer_edgesets(Ioss::Region &region, Ioss::Region &output_region,
-                         const Ioss::MeshCopyOptions &options, int rank);
-  void transfer_facesets(Ioss::Region &region, Ioss::Region &output_region,
-                         const Ioss::MeshCopyOptions &options, int rank);
-  void transfer_elemsets(Ioss::Region &region, Ioss::Region &output_region,
-                         const Ioss::MeshCopyOptions &options, int rank);
-  void transfer_sidesets(Ioss::Region &region, Ioss::Region &output_region,
-                         const Ioss::MeshCopyOptions &options, int rank);
-  void transfer_commsets(Ioss::Region &region, Ioss::Region &output_region,
-                         const Ioss::MeshCopyOptions &options, int rank);
-  void transfer_coordinate_frames(Ioss::Region &region, Ioss::Region &output_region);
-  void transfer_assemblies(Ioss::Region &region, Ioss::Region &output_region,
-                           const Ioss::MeshCopyOptions &options, int rank);
-  void transfer_blobs(Ioss::Region &region, Ioss::Region &output_region,
-                      const Ioss::MeshCopyOptions &options, int rank);
-
-  template <typename T>
-  void transfer_fields(const std::vector<T *> &entities, Ioss::Region &output_region,
-                       Ioss::Field::RoleType role, const Ioss::MeshCopyOptions &options, int rank);
-
-  void transfer_fields(const Ioss::GroupingEntity *ige, Ioss::GroupingEntity *oge,
-                       Ioss::Field::RoleType role, const std::string &prefix = "");
-
-  void add_proc_id(Ioss::Region &region, int rank);
-
-  template <typename T>
-  void transfer_field_data(const std::vector<T *> &entities, Ioss::Region &output_region,
-                           DataPool &pool, Ioss::Field::RoleType role,
-                           const Ioss::MeshCopyOptions &options);
-
-  void transfer_field_data(Ioss::GroupingEntity *ige, Ioss::GroupingEntity *oge, DataPool &pool,
-                           Ioss::Field::RoleType role, const Ioss::MeshCopyOptions &options,
-                           const std::string &prefix = "");
-
-  void transfer_properties(const Ioss::GroupingEntity *ige, Ioss::GroupingEntity *oge);
-
-  void transfer_qa_info(Ioss::Region &in, Ioss::Region &out);
-
-  void transfer_field_data_internal(Ioss::GroupingEntity *ige, Ioss::GroupingEntity *oge,
-                                    DataPool &pool, const std::string &field_name,
-                                    const Ioss::MeshCopyOptions &options);
-
-  template <typename INT>
-  void set_owned_node_count(Ioss::Region &region, int my_processor, INT dummy);
+  auto initial_time = std::chrono::steady_clock::now();
 
   ////////////////////////////////////////////////////////////////////////
   bool is_separator(const char separator, const char value) { return separator == value; }
 
-  size_t match(const char *name1, const char *name2)
+  int match(const char *name1, const char *name2)
   {
-    size_t l1  = std::strlen(name1);
-    size_t l2  = std::strlen(name2);
-    size_t len = l1 < l2 ? l1 : l2;
-    for (size_t i = 0; i < len; i++) {
+    int l1  = static_cast<int>(std::strlen(name1));
+    int l2  = static_cast<int>(std::strlen(name2));
+    int len = l1 < l2 ? l1 : l2;
+    for (int i = 0; i < len; i++) {
       if (name1[i] != name2[i]) {
         while (i > 0 && (isdigit(name1[i - 1]) != 0) && (isdigit(name2[i - 1]) != 0)) {
           i--;
@@ -239,20 +139,37 @@ namespace {
       tokens.push_back(curr_token);
     }
   }
-
 } // namespace
+
+void Ioss::Utils::set_all_streams(std::ostream &out_stream)
+{
+  m_outputStream  = &out_stream;
+  m_debugStream   = &out_stream;
+  m_warningStream = &out_stream;
+}
+
+void Ioss::Utils::set_output_stream(std::ostream &out_stream) { m_outputStream = &out_stream; }
+
+void Ioss::Utils::set_debug_stream(std::ostream &out_stream) { m_debugStream = &out_stream; }
+
+void Ioss::Utils::set_warning_stream(std::ostream &out_stream) { m_warningStream = &out_stream; }
+
+std::ostream &Ioss::Utils::get_output_stream() { return *m_outputStream; }
+
+std::ostream &Ioss::Utils::get_warning_stream() { return *m_warningStream; }
+
+std::ostream &Ioss::Utils::get_debug_stream() { return *m_debugStream; }
 
 void Ioss::Utils::time_and_date(char *time_string, char *date_string, size_t length)
 {
-  time_t      calendar_time = time(nullptr);
-  auto *      lt            = std::localtime(&calendar_time);
-  std::string time          = fmt::format("{:%H:%M:%S}", *lt);
+  std::time_t t    = std::time(nullptr);
+  std::string time = fmt::format("{:%H:%M:%S}", fmt::localtime(t));
   std::string date;
   if (length >= 10) {
-    date = fmt::format("{:%Y/%m/%d}", *lt);
+    date = fmt::format("{:%Y/%m/%d}", fmt::localtime(t));
   }
   else {
-    date = fmt::format("{:%y/%m/%d}", *lt);
+    date = fmt::format("{:%y/%m/%d}", fmt::localtime(t));
   }
   copy_string(time_string, time, 9);
   copy_string(date_string, date, length + 1);
@@ -280,14 +197,26 @@ std::string Ioss::Utils::decode_filename(const std::string &filename, int proces
   // Examples: basename.8.1, basename.64.03, basename.128.001
 
   // Create a std::string containing the total number of processors
-  size_t proc_width = number_width(num_processors);
+  if (num_processors > 1) {
+    size_t proc_width = number_width(num_processors);
 
-  std::string decoded_filename =
-      fmt::format("{}.{}.{:0{}}", filename, num_processors, processor, proc_width);
-  return decoded_filename;
+    std::string decoded_filename =
+        fmt::format("{}.{}.{:0{}}", filename, num_processors, processor, proc_width);
+    return decoded_filename;
+  }
+  return filename;
 }
 
-size_t Ioss::Utils::get_number(const std::string &suffix)
+std::string Ioss::Utils::get_trailing_digits(const std::string &name)
+{
+  size_t digits = name.find_last_not_of("0123456789");
+  if (digits != std::string::npos) {
+    return name.substr(digits + 1);
+  }
+  return std::string{};
+}
+
+int Ioss::Utils::get_number(const std::string &suffix)
 {
   int  N       = 0;
   bool all_dig = suffix.find_first_not_of("0123456789") == std::string::npos;
@@ -297,11 +226,11 @@ size_t Ioss::Utils::get_number(const std::string &suffix)
   return N;
 }
 
-int64_t Ioss::Utils::extract_id(const std::string &name_id)
+int Ioss::Utils::extract_id(const std::string &name_id)
 {
-  int64_t id = 0;
+  int id = 0;
 
-  std::vector<std::string> tokens = Ioss::tokenize(name_id, "_");
+  auto tokens = Ioss::tokenize(name_id, "_");
   if (tokens.size() > 1) {
     // Check whether last token is an integer...
     std::string str_id = tokens.back();
@@ -384,7 +313,7 @@ std::string Ioss::Utils::fixup_type(const std::string &base, int nodes_per_eleme
   // nodes.  To fix this, check the block type name and see if it
   // ends with a number.  If it does, assume it is OK; if not, append
   // the 'nodes_per_element'.
-  if (isdigit(*(type.rbegin())) == 0) {
+  if (type.empty() || isdigit(*(type.rbegin())) == 0) {
     if (nodes_per_element > 1) {
       type += std::to_string(nodes_per_element);
     }
@@ -460,8 +389,10 @@ std::string Ioss::Utils::local_filename(const std::string &relative_filename,
 int Ioss::Utils::field_warning(const Ioss::GroupingEntity *ge, const Ioss::Field &field,
                                const std::string &inout)
 {
-  fmt::print(Ioss::WARNING(), "{} '{}'. Unknown {} field '{}'\n", ge->type_string(), ge->name(),
-             inout, field.get_name());
+  if (field.get_name() != "ids") {
+    fmt::print(Ioss::WarnOut(), "{} '{}'. Unknown {} field '{}'\n", ge->type_string(), ge->name(),
+               inout, field.get_name());
+  }
   return -4;
 }
 
@@ -481,8 +412,7 @@ namespace {
 
     char suffix[2] = {suffix_separator, '\0'};
 
-    std::vector<std::string> tokens =
-        Ioss::tokenize(names[which_names[which_names.size() - 1]], suffix);
+    auto tokens = Ioss::tokenize(names[which_names.back()], suffix);
 
     if (tokens.size() <= 2) {
       return nullptr;
@@ -491,7 +421,7 @@ namespace {
     assert(tokens.size() > 2);
 
     // Check that suffix is a number -- all digits
-    size_t N = Ioss::Utils::get_number(tokens[tokens.size() - 1]);
+    int N = Ioss::Utils::get_number(tokens.back());
 
     if (N == 0) {
       return nullptr;
@@ -507,7 +437,7 @@ namespace {
     // Gather the first 'inner_ccomp' inner field suffices...
     std::vector<Ioss::Suffix> suffices;
     for (size_t i = 0; i < inner_comp; i++) {
-      std::vector<std::string> ltokens = Ioss::tokenize(names[which_names[i]], suffix);
+      auto ltokens = Ioss::tokenize(std::string(names[which_names[i]]), suffix);
       // The second-last token is the suffix for this component...
       Ioss::Suffix tmp(ltokens[inner_token]);
       suffices.push_back(tmp);
@@ -516,9 +446,9 @@ namespace {
     // check that the suffices on the next copies of the inner field
     // match the first copy...
     size_t j = inner_comp;
-    for (size_t copy = 1; copy < N; copy++) {
+    for (int copy = 1; copy < N; copy++) {
       for (size_t i = 0; i < inner_comp; i++) {
-        std::vector<std::string> ltokens = Ioss::tokenize(names[which_names[j++]], suffix);
+        auto ltokens = Ioss::tokenize(std::string(names[which_names[j++]]), suffix);
         // The second-last token is the suffix for this component...
         if (suffices[i] != ltokens[inner_token]) {
           return nullptr;
@@ -536,7 +466,8 @@ namespace {
   }
 
   const Ioss::VariableType *match_single_field(char **names, Ioss::IntVector &which_names,
-                                               const char suffix_separator)
+                                               const char suffix_separator,
+                                               bool       ignore_realn_fields)
   {
     // Strip off the suffix from each name indexed in 'which_names'
     // and see if it defines a valid type...
@@ -545,20 +476,20 @@ namespace {
     char suffix[2] = {suffix_separator, '\0'};
 
     for (int which_name : which_names) {
-      std::vector<std::string> tokens     = Ioss::tokenize(names[which_name], suffix);
-      size_t                   num_tokens = tokens.size();
+      auto   tokens     = Ioss::tokenize(names[which_name], suffix);
+      size_t num_tokens = tokens.size();
 
       // The last token is the suffix for this component...
       Ioss::Suffix tmp(tokens[num_tokens - 1]);
       suffices.push_back(tmp);
     }
-    const Ioss::VariableType *type = Ioss::VariableType::factory(suffices);
+    const Ioss::VariableType *type = Ioss::VariableType::factory(suffices, ignore_realn_fields);
     return type;
   }
 
   Ioss::Field get_next_field(char **names, int num_names, size_t count,
                              Ioss::Field::RoleType fld_role, const char suffix_separator,
-                             const int *truth_table)
+                             const int *truth_table, bool ignore_realn_fields)
   {
     // NOTE: 'names' are all lowercase at this point.
 
@@ -587,7 +518,8 @@ namespace {
     // not valid for this grouping entity (truth_table entry == 0).
     assert(index < num_names && names[index][0] != '\0' &&
            (truth_table == nullptr || truth_table[index] == 1));
-    char *name = names[index];
+    char *name        = names[index];
+    auto  name_length = strlen(name);
 
     // Split the name up into tokens separated by the
     // 'suffix_separator'.  Note that the basename itself could
@@ -626,73 +558,87 @@ namespace {
     // (num_tokens-suffix_size) tokens and see if their suffices form
     // a valid variable type...
     while (suffix_size > 0) {
-      Ioss::IntVector which_names; // Contains index of names that
-      // potentially match as components
-      // of a higher-order type.
-
-      std::string base_name = tokens[0];
-      for (size_t i = 1; i < num_tokens - suffix_size; i++) {
+      for (int i = 0; i <= 1; i++) {
+        bool            same_length = (i == 0);
+        Ioss::IntVector which_names; // Contains index of names that potentially match as components
+                                     // of a higher-order type.
+        std::string base_name = tokens[0];
+        for (size_t it = 1; it < num_tokens - suffix_size; it++) {
+          base_name += suffix_separator;
+          base_name += tokens[it];
+        }
         base_name += suffix_separator;
-        base_name += tokens[i];
-      }
-      base_name += suffix_separator;
-      size_t bn_len = base_name.length(); // Length of basename portion only
-      size_t length = std::strlen(name);  // Length of total name (with suffix)
+        size_t bn_len = base_name.length(); // Length of basename portion only
 
-      // Add the current name...
-      which_names.push_back(index);
+        // Add the current name...
+        which_names.push_back(index);
 
-      // Gather all other names that are valid for this entity, and
-      // have the same overall length and match in the first 'bn_len'
-      // characters.
-      //
-      // Check that they have the same number of tokens,
-      // It is possible that the first name(s) that match with two
-      // suffices have a basename that match other names with only a
-      // single suffix lc_cam_x, lc_cam_y, lc_sfarea.
-      for (int i = index + 1; i < num_names; i++) {
-        char *                   tst_name = names[i];
-        std::vector<std::string> subtokens;
-        field_tokenize(tst_name, suffix_separator, subtokens);
-        if ((truth_table == nullptr || truth_table[i] == 1) && // Defined on this entity
-            std::strlen(tst_name) == length &&                 // names must be same length
-            std::strncmp(name, tst_name, bn_len) == 0 &&       // base portion must match
-            subtokens.size() == num_tokens) {
-          which_names.push_back(i);
+        // Gather all other names that are valid for this entity, and
+        // match in the first 'bn_len' characters.
+        //
+        // Check that they have the same number of tokens,
+        // It is possible that the first name(s) that match with two
+        // suffices have a basename that match other names with only a
+        // single suffix lc_cam_x, lc_cam_y, lc_sfarea.
+        for (int id = index + 1; id < num_names; id++) {
+          char                    *tst_name = names[id];
+          std::vector<std::string> subtokens;
+          field_tokenize(tst_name, suffix_separator, subtokens);
+          if ((truth_table == nullptr || truth_table[id] == 1) && // Defined on this entity
+              std::strncmp(name, tst_name, bn_len) == 0 &&       // base portion must match
+              (!same_length || (strlen(tst_name) == name_length)) &&
+              subtokens.size() == num_tokens) {
+            which_names.push_back(id);
+          }
+        }
+
+        const Ioss::VariableType *type = nullptr;
+        if (suffix_size == 2) {
+          if (which_names.size() > 1) {
+            type = match_composite_field(names, which_names, suffix_separator);
+          }
+        }
+        else {
+          assert(suffix_size == 1);
+          type = match_single_field(names, which_names, suffix_separator, ignore_realn_fields);
+        }
+
+        if (type != nullptr) {
+          // A valid variable type was recognized.
+          // Mark the names which were used so they aren't used for another field on this entity.
+          // Create a field of that variable type.
+          assert(type->component_count() == static_cast<int>(which_names.size()));
+          Ioss::Field field(base_name.substr(0, bn_len - 1), Ioss::Field::REAL, type, fld_role,
+                            count);
+          if (suffix_separator != '_') {
+            field.set_suffix_separator(suffix_separator);
+          }
+          // Are suffices upper or lowercase...
+          std::vector<std::string> tmp;
+          field_tokenize(names[which_names[0]], suffix_separator, tmp);
+          Ioss::Suffix suffix{tmp[tmp.size() - 1]};
+          field.set_suffices_uppercase(suffix.is_uppercase());
+          field.set_index(index);
+          for (const auto &which_name : which_names) {
+            names[which_name][0] = '\0';
+          }
+          return field;
+        }
+        if (suffix_size == 1 && !same_length) {
+          // Failure recognizing a higher-order field; just take the
+          // first field and return it as a scalar...
+          Ioss::Field field(name, Ioss::Field::REAL, IOSS_SCALAR(), fld_role, count);
+
+          // Are suffices upper or lowercase...
+          std::vector<std::string> tmp;
+          field_tokenize(names[which_names[0]], suffix_separator, tmp);
+          Ioss::Suffix suffix{tmp[tmp.size() - 1]};
+          field.set_suffices_uppercase(suffix.is_uppercase());
+          field.set_index(index);
+          names[index][0] = '\0';
+          return field;
         }
       }
-
-      const Ioss::VariableType *type = nullptr;
-      if (suffix_size == 2) {
-        if (which_names.size() > 1) {
-          type = match_composite_field(names, which_names, suffix_separator);
-        }
-      }
-      else {
-        assert(suffix_size == 1);
-        type = match_single_field(names, which_names, suffix_separator);
-      }
-
-      if (type != nullptr) {
-        // A valid variable type was recognized.
-        // Mark the names which were used so they aren't used for another field on this entity.
-        // Create a field of that variable type.
-        assert(type->component_count() == static_cast<int>(which_names.size()));
-        Ioss::Field field(base_name.substr(0, bn_len - 1), Ioss::Field::REAL, type, fld_role,
-                          count);
-        field.set_index(index);
-        for (const auto &which_name : which_names) {
-          names[which_name][0] = '\0';
-        }
-        return field;
-      }
-      if (suffix_size == 1) {
-        Ioss::Field field(name, Ioss::Field::REAL, IOSS_SCALAR(), fld_role, count);
-        field.set_index(index);
-        names[index][0] = '\0';
-        return field;
-      }
-
       suffix_size--;
     }
     return Ioss::Field("", Ioss::Field::INVALID, IOSS_SCALAR(), fld_role, 1);
@@ -701,20 +647,31 @@ namespace {
   // common
   bool define_field(size_t nmatch, size_t match_length, char **names,
                     std::vector<Ioss::Suffix> &suffices, size_t entity_count,
-                    Ioss::Field::RoleType fld_role, std::vector<Ioss::Field> &fields)
+                    Ioss::Field::RoleType fld_role, std::vector<Ioss::Field> &fields,
+                    bool strip_trailing_, bool ignore_realn_fields, char suffix_separator)
   {
     // Try to define a field of size 'nmatch' with the suffices in 'suffices'.
     // If this doesn't define a known field, then assume it is a scalar instead
     // and return false.
     if (nmatch > 1) {
-      const Ioss::VariableType *type = Ioss::VariableType::factory(suffices);
+      const Ioss::VariableType *type = Ioss::VariableType::factory(suffices, ignore_realn_fields);
       if (type == nullptr) {
         nmatch = 1;
       }
       else {
         char *name         = names[0];
         name[match_length] = '\0';
+        auto suffix        = suffix_separator;
+        if (strip_trailing_ && name[match_length - 1] == '_') {
+          name[match_length - 1] = '\0';
+          suffix                 = '_';
+        }
         Ioss::Field field(name, Ioss::Field::REAL, type, fld_role, entity_count);
+        if (suffix != suffix_separator) {
+          field.set_suffix_separator(suffix);
+        }
+        // Are suffices upper or lowercase...
+        field.set_suffices_uppercase(suffices[0].is_uppercase());
         if (field.is_valid()) {
           fields.push_back(field);
         }
@@ -738,25 +695,29 @@ namespace {
     return false; // Can't get here...  Quiet the compiler
   }
 } // namespace
+
 // Read scalar fields off an input database and determine whether
 // they are components of a higher order type (vector, tensor, ...).
-// This routine is used if there is no field component separator.  E.g.,
-// fieldx, fieldy, fieldz instead of field_x field_y field_z
-
 void Ioss::Utils::get_fields(int64_t entity_count, // The number of objects in this entity.
-                             char ** names,        // Raw list of field names from exodus
-                             size_t  num_names,    // Number of names in list
-                             Ioss::Field::RoleType fld_role, // Role of field
-                             bool enable_field_recognition, const char suffix_separator,
-                             int *local_truth, // Truth table for this entity;
+                             char  **names,        // Raw list of field names from exodus
+                             int     num_names,    // Number of names in list
+                             Ioss::Field::RoleType   fld_role, // Role of field
+                             const Ioss::DatabaseIO *db,
+                             int                    *local_truth, // Truth table for this entity;
                              // null if not applicable.
                              std::vector<Ioss::Field> &fields) // The fields that were found.
 {
+  bool enable_field_recognition = db->get_field_recognition();
+  bool strip_trailing_          = db->get_field_strip_trailing_();
+  bool ignore_realn_fields      = db->get_ignore_realn_fields();
+  char suffix_separator         = db->get_field_separator();
+
   if (!enable_field_recognition) {
     // Create a separate field for each name.
-    for (size_t i = 0; i < num_names; i++) {
+    for (int i = 0; i < num_names; i++) {
       if (local_truth == nullptr || local_truth[i] == 1) {
         Ioss::Field field(names[i], Ioss::Field::REAL, IOSS_SCALAR(), fld_role, entity_count);
+        field.set_index(i);
         fields.push_back(field);
         names[i][0] = '\0';
       }
@@ -765,8 +726,8 @@ void Ioss::Utils::get_fields(int64_t entity_count, // The number of objects in t
   else if (suffix_separator != 0) {
     while (true) {
       // NOTE: 'get_next_field' determines storage type (vector, tensor,...)
-      Ioss::Field field =
-          get_next_field(names, num_names, entity_count, fld_role, suffix_separator, local_truth);
+      Ioss::Field field = get_next_field(names, num_names, entity_count, fld_role, suffix_separator,
+                                         local_truth, ignore_realn_fields);
       if (field.is_valid()) {
         fields.push_back(field);
       }
@@ -776,9 +737,11 @@ void Ioss::Utils::get_fields(int64_t entity_count, // The number of objects in t
     }
   }
   else {
-    size_t                    nmatch = 1;
-    size_t                    ibeg   = 0;
-    size_t                    pmat   = 0;
+    // This routine is used if there is no field component separator.  E.g.,
+    // fieldx, fieldy, fieldz instead of field_x field_y field_z
+    int                       nmatch = 1;
+    int                       ibeg   = 0;
+    int                       pmat   = 0;
     std::vector<Ioss::Suffix> suffices;
   top:
 
@@ -788,8 +751,8 @@ void Ioss::Utils::get_fields(int64_t entity_count, // The number of objects in t
           ibeg++;
         }
       }
-      for (size_t i = ibeg + 1; i < num_names; i++) {
-        size_t mat = match(names[ibeg], names[i]);
+      for (int i = ibeg + 1; i < num_names; i++) {
+        auto mat = match(names[ibeg], names[i]);
         if (local_truth != nullptr && local_truth[i] == 0) {
           mat = 0;
         }
@@ -820,7 +783,8 @@ void Ioss::Utils::get_fields(int64_t entity_count, // The number of objects in t
         else {
 
           bool multi_component =
-              define_field(nmatch, pmat, &names[ibeg], suffices, entity_count, fld_role, fields);
+              define_field(nmatch, pmat, &names[ibeg], suffices, entity_count, fld_role, fields,
+                           strip_trailing_, ignore_realn_fields, suffix_separator);
           if (!multi_component) {
             // Although we matched multiple suffices, it wasn't a
             // higher-order field, so we only used 1 name instead of
@@ -846,7 +810,8 @@ void Ioss::Utils::get_fields(int64_t entity_count, // The number of objects in t
     if (ibeg < num_names) {
       if (local_truth == nullptr || local_truth[ibeg] == 1) {
         bool multi_component =
-            define_field(nmatch, pmat, &names[ibeg], suffices, entity_count, fld_role, fields);
+            define_field(nmatch, pmat, &names[ibeg], suffices, entity_count, fld_role, fields,
+                         strip_trailing_, ignore_realn_fields, suffix_separator);
         clear(suffices);
         if (nmatch > 1 && !multi_component) {
           ibeg++;
@@ -861,9 +826,34 @@ void Ioss::Utils::get_fields(int64_t entity_count, // The number of objects in t
   }
 }
 
+bool Ioss::Utils::check_int_to_real_overflow(const Ioss::Field &field, int64_t *data,
+                                             size_t num_entity)
+{
+  // Check all values in `data` to make sure that if they are converted to a double and
+  // back again, there will be no data loss.  This requires that the value be less than 2^53.
+  static int64_t max_double = 2LL << 53;
+  assert(int64_t(double(max_double)) == max_double);
+  assert(int64_t(double(max_double + 1)) != max_double + 1);
+
+  size_t comp_count = field.get_component_count(Ioss::Field::InOut::OUTPUT);
+  for (size_t i = 0; i < num_entity * comp_count; i++) {
+    if (data[i] > max_double) {
+      fmt::print(
+          Ioss::WarnOut(),
+          "Field '{}' contains 64-bit integer data that is not representable as a double value.\n"
+          "\tThis value can not currently be stored in the exodus database without data loss.\n"
+          "\tThe first such value is at location {}, component {} (1-based) with value {}.\n",
+          field.get_name(), fmt::group_digits(i / comp_count + 1), i % comp_count + 1,
+          fmt::group_digits(data[i]));
+      return true;
+    }
+  }
+  return false;
+}
+
 std::string Ioss::Utils::platform_information()
 {
-#ifndef _WIN32
+#if !defined(__IOSS_WINDOWS__)
   struct utsname sys_info
   {
   };
@@ -881,11 +871,15 @@ size_t Ioss::Utils::get_memory_info()
 {
   // Code from http://nadeausoftware.com/sites/NadeauSoftware.com/files/getRSS.c
   size_t memory_usage = 0;
-#if defined(_WIN32)
+#if defined(__IOSS_WINDOWS__)
+#if 0
   /* Windows -------------------------------------------------- */
   PROCESS_MEMORY_COUNTERS info;
   GetProcessMemoryInfo(GetCurrentProcess(), &info, sizeof(info));
   memory_usage = (size_t)info.WorkingSetSize;
+#else
+  memory_usage = 0;
+#endif
 
 #elif defined(__APPLE__) && defined(__MACH__)
   kern_return_t               error;
@@ -895,7 +889,7 @@ size_t Ioss::Utils::get_memory_info()
   taskinfo.virtual_size = 0;
   outCount              = MACH_TASK_BASIC_INFO_COUNT;
   error                 = task_info(mach_task_self(), MACH_TASK_BASIC_INFO,
-                    reinterpret_cast<task_info_t>(&taskinfo), &outCount);
+                                    reinterpret_cast<task_info_t>(&taskinfo), &outCount);
   if (error == KERN_SUCCESS) {
     memory_usage = taskinfo.resident_size;
   }
@@ -945,11 +939,15 @@ size_t Ioss::Utils::get_hwm_memory_info()
 {
   // Code from http://nadeausoftware.com/sites/NadeauSoftware.com/files/getRSS.c
   size_t memory_usage = 0;
-#if defined(_WIN32)
+#if defined(__IOSS_WINDOWS__)
+#if 0
   /* Windows -------------------------------------------------- */
   PROCESS_MEMORY_COUNTERS info;
   GetProcessMemoryInfo(GetCurrentProcess(), &info, sizeof(info));
   memory_usage = (size_t)info.PeakWorkingSetSize;
+#else
+  memory_usage = 0;
+#endif
 
 #elif (defined(_AIX) || defined(__TOS__AIX__)) ||                                                  \
     (defined(__sun__) || defined(__sun) || defined(sun) && (defined(__SVR4) || defined(__svr4__)))
@@ -980,33 +978,30 @@ size_t Ioss::Utils::get_hwm_memory_info()
 
 bool Ioss::Utils::block_is_omitted(Ioss::GroupingEntity *block)
 {
-  bool omitted = false;
-  if (block->property_exists("omitted")) {
-    omitted = (block->get_property("omitted").get_int() == 1);
-  }
+  bool omitted = block->get_optional_property("omitted", 0) == 1;
   return omitted;
 }
 
-void Ioss::Utils::calculate_sideblock_membership(IntVector &            face_is_member,
-                                                 const Ioss::SideBlock *ef_blk,
+void Ioss::Utils::calculate_sideblock_membership(IntVector             &face_is_member,
+                                                 const Ioss::SideBlock *sd_blk,
                                                  size_t int_byte_size, const void *element,
                                                  const void *sides, int64_t number_sides,
                                                  const Ioss::Region *region)
 {
-  assert(ef_blk != nullptr);
+  assert(sd_blk != nullptr);
 
   face_is_member.reserve(number_sides);
 
   const ElementTopology *unknown = Ioss::ElementTopology::factory("unknown");
 
   // Topology of faces in this face block...
-  const ElementTopology *ftopo = ef_blk->topology();
+  const ElementTopology *ftopo = sd_blk->topology();
 
   // Topology of parent element for faces in this face block
-  const ElementTopology *parent_topo = ef_blk->parent_element_topology();
+  const ElementTopology *parent_topo = sd_blk->parent_element_topology();
 
   // If split by element block then parent_block will be non-nullptr
-  const ElementBlock *parent_block = ef_blk->parent_element_block();
+  const ElementBlock *parent_block = sd_blk->parent_element_block();
 
   // The element block containing the face we are working on...
   Ioss::ElementBlock *block = nullptr;
@@ -1021,24 +1016,18 @@ void Ioss::Utils::calculate_sideblock_membership(IntVector &            face_is_
   const ElementTopology *topo = nullptr;
 
   // The element side that the current face is on the element...
-  int64_t current_side = -1;
-
-  if (number_sides > 0 && (element == nullptr || sides == nullptr)) {
-    std::ostringstream errmsg;
-    fmt::print(errmsg, "INTERNAL ERROR: null element or sides pointer passed to {}.", __func__);
-    IOSS_ERROR(errmsg);
-  }
+  int current_side = -1;
 
   for (int64_t iel = 0; iel < number_sides; iel++) {
     int64_t elem_id = 0;
-    int64_t side_id = 0;
+    int     side_id = 0;
     if (int_byte_size == 4) {
-      elem_id = ((int *)element)[iel];
-      side_id = ((int *)sides)[iel];
+      elem_id = static_cast<const int *>(element)[iel];
+      side_id = static_cast<const int *>(sides)[iel];
     }
     else {
-      elem_id = ((int64_t *)element)[iel];
-      side_id = ((int64_t *)sides)[iel];
+      elem_id = static_cast<const int64_t *>(element)[iel];
+      side_id = static_cast<int>(static_cast<const int64_t *>(sides)[iel]);
     }
 
     // Get the element block containing this face...
@@ -1094,17 +1083,59 @@ int64_t Ioss::Utils::get_side_offset(const Ioss::SideBlock *sb)
   return side_offset;
 }
 
+std::string Ioss::Utils::shape_to_string(const Ioss::ElementShape &shape)
+{
+  switch (shape) {
+  case Ioss::ElementShape::UNKNOWN: return std::string("Unknown");
+  case Ioss::ElementShape::POINT: return std::string("Point");
+  case Ioss::ElementShape::SPHERE: return std::string("Sphere");
+  case Ioss::ElementShape::LINE: return std::string("Line");
+  case Ioss::ElementShape::SPRING: return std::string("Spring");
+  case Ioss::ElementShape::TRI: return std::string("Tri");
+  case Ioss::ElementShape::QUAD: return std::string("Quad");
+  case Ioss::ElementShape::TET: return std::string("Tet");
+  case Ioss::ElementShape::PYRAMID: return std::string("Pyramid");
+  case Ioss::ElementShape::WEDGE: return std::string("Wedge");
+  case Ioss::ElementShape::HEX: return std::string("Hex");
+  case Ioss::ElementShape::SUPER: return std::string("Super");
+  }
+  return std::string("Invalid shape [") + std::to_string(unsigned(shape)) + std::string("]");
+}
+
+std::string Ioss::Utils::entity_type_to_string(const Ioss::EntityType &type)
+{
+  switch (type) {
+  case Ioss::EntityType::NODEBLOCK: return std::string("NODEBLOCK");
+  case Ioss::EntityType::EDGEBLOCK: return std::string("EDGEBLOCK");
+  case Ioss::EntityType::FACEBLOCK: return std::string("FACEBLOCK");
+  case Ioss::EntityType::ELEMENTBLOCK: return std::string("ELEMENTBLOCK");
+  case Ioss::EntityType::NODESET: return std::string("NODESET");
+  case Ioss::EntityType::EDGESET: return std::string("EDGESET");
+  case Ioss::EntityType::FACESET: return std::string("FACESET");
+  case Ioss::EntityType::ELEMENTSET: return std::string("ELEMENTSET");
+  case Ioss::EntityType::SIDESET: return std::string("SIDESET");
+  case Ioss::EntityType::COMMSET: return std::string("COMMSET");
+  case Ioss::EntityType::SIDEBLOCK: return std::string("SIDEBLOCK");
+  case Ioss::EntityType::REGION: return std::string("REGION");
+  case Ioss::EntityType::SUPERELEMENT: return std::string("SUPERELEMENT");
+  case Ioss::EntityType::STRUCTUREDBLOCK: return std::string("STRUCTUREDBLOCK");
+  case Ioss::EntityType::ASSEMBLY: return std::string("ASSEMBLY");
+  case Ioss::EntityType::BLOB: return std::string("BLOB");
+  case Ioss::EntityType::INVALID_TYPE: return std::string("INVALID_TYPE");
+  }
+  return std::string("Invalid entity type [") + std::to_string(unsigned(type)) + std::string("]");
+}
+
 unsigned int Ioss::Utils::hash(const std::string &name)
 {
   // Hash function from Aho, Sethi, Ullman "Compilers: Principles,
   // Techniques, and Tools.  Page 436
 
-  const char * symbol = name.c_str();
+  const char  *symbol = name.c_str();
   unsigned int hashval;
-  unsigned int g;
   for (hashval = 0; *symbol != '\0'; symbol++) {
     hashval = (hashval << 4) + *symbol;
-    g       = hashval & 0xf0000000;
+    auto g  = hashval & 0xf0000000;
     if (g != 0) {
       hashval = hashval ^ (g >> 24);
       hashval = hashval ^ g;
@@ -1115,7 +1146,7 @@ unsigned int Ioss::Utils::hash(const std::string &name)
 
 double Ioss::Utils::timer()
 {
-  auto now = std::chrono::high_resolution_clock::now();
+  auto now = std::chrono::steady_clock::now();
   return std::chrono::duration<double>(now - initial_time).count();
 }
 
@@ -1165,15 +1196,23 @@ bool Ioss::Utils::substr_equal(const std::string &prefix, const std::string &str
   return (str.size() >= prefix.size()) && str_equal(prefix, str.substr(0, prefix.size()));
 }
 
+std::string Ioss::Utils::capitalize(std::string name)
+{
+  name[0] = std::toupper(name[0]);
+  return name;
+}
+
 std::string Ioss::Utils::uppercase(std::string name)
 {
-  std::transform(name.begin(), name.end(), name.begin(), [](char c) { return std::toupper(c); });
+  std::transform(name.begin(), name.end(), name.begin(),
+                 [](char c) { return static_cast<char>(std::toupper(c)); });
   return name;
 }
 
 std::string Ioss::Utils::lowercase(std::string name)
 {
-  std::transform(name.begin(), name.end(), name.begin(), [](char c) { return std::tolower(c); });
+  std::transform(name.begin(), name.end(), name.begin(),
+                 [](char c) { return static_cast<char>(std::tolower(c)); });
   return name;
 }
 
@@ -1264,9 +1303,9 @@ std::string Ioss::Utils::variable_name_kluge(const std::string &name, size_t com
   // Width = 'max_var_len'.
   // Reserve space for suffix '_00...'
   // Reserve 3 for hash   '.xx'
-  int hash_len = 3;
-  int comp_len = 3; // _00
-  int copy_len = 0;
+  size_t hash_len = 3;
+  size_t comp_len = 3; // _00
+  size_t copy_len = 0;
 
   if (copies > 1) {
     assert(component_count % copies == 0);
@@ -1298,7 +1337,7 @@ std::string Ioss::Utils::variable_name_kluge(const std::string &name, size_t com
   // Know that the name is too long, try to shorten. Need room for
   // hash now.
   maxlen -= hash_len;
-  int len = name.length();
+  size_t len = name.length();
 
   // Take last 'maxlen' characters.  Motivation for this is that the
   // beginning of the composed (or generated) variable name is the
@@ -1329,11 +1368,11 @@ void Ioss::Utils::generate_history_mesh(Ioss::Region *region)
     region->begin_mode(Ioss::STATE_DEFINE_MODEL);
 
     // Node Block
-    Ioss::NodeBlock *nb = new Ioss::NodeBlock(db, "nodeblock_1", 1, 3);
+    auto *nb = new Ioss::NodeBlock(db, "nodeblock_1", 1, 3);
     region->add(nb);
 
     // Element Block
-    Ioss::ElementBlock *eb = new Ioss::ElementBlock(db, "e1", "sphere", 1);
+    auto *eb = new Ioss::ElementBlock(db, "e1", "sphere", 1);
     eb->property_add(Ioss::Property("id", 1));
     eb->property_add(Ioss::Property("guid", 1));
     region->add(eb);
@@ -1400,11 +1439,42 @@ int Ioss::Utils::term_width()
   return cols != 0 ? cols : 100;
 }
 
+std::string Ioss::Utils::get_type_from_file(const std::string &filename)
+{
+  Ioss::FileInfo file(filename);
+  auto           extension = file.extension();
+
+  // If the extension is numeric, then we are probably dealing with a single file of a
+  // set of FPP decomposed files (e.g. file.cgns.32.17).  In that case, we tokenize
+  // with "." as delimiter and see if last two tokens are all digits and if there
+  // are at least 4 tokens (basename.extension.#proc.proc)...
+  bool all_dig = extension.find_first_not_of("0123456789") == std::string::npos;
+  if (all_dig) {
+    auto tokens = Ioss::tokenize(filename, ".");
+    if (tokens.size() >= 4) {
+      auto proc_count = tokens[tokens.size() - 2];
+      if (proc_count.find_first_not_of("0123456789") == std::string::npos) {
+        extension = tokens[tokens.size() - 3];
+      }
+    }
+  }
+
+  if (extension == "e" || extension == "g" || extension == "gen" || extension == "exo") {
+    return "exodus";
+  }
+  else if (extension == "cgns") {
+    return "cgns";
+  }
+  else {
+    // "exodus" is default...
+    return "exodus";
+  }
+}
+
 void Ioss::Utils::info_fields(const Ioss::GroupingEntity *ige, Ioss::Field::RoleType role,
                               const std::string &header, const std::string &suffix)
 {
-  Ioss::NameList fields;
-  ige->field_describe(role, &fields);
+  Ioss::NameList fields = ige->field_describe(role);
 
   if (fields.empty()) {
     return;
@@ -1413,19 +1483,17 @@ void Ioss::Utils::info_fields(const Ioss::GroupingEntity *ige, Ioss::Field::Role
   if (!header.empty()) {
     fmt::print("{}{}", header, suffix);
   }
-  // Iterate through results fields and transfer to output
-  // database...
-  // Get max width of a name...
-  int max_width = 0;
+  // Iterate through results fields. Get max width of a name...
+  size_t max_width = 0;
   for (const auto &field_name : fields) {
-    max_width = max_width > (int)field_name.length() ? max_width : field_name.length();
+    max_width = max_width > field_name.length() ? max_width : field_name.length();
   }
 
-  auto width = Ioss::Utils::term_width();
+  size_t width = Ioss::Utils::term_width();
   if (width == 0) {
     width = 80;
   }
-  int cur_out = 8; // Tab width...
+  size_t cur_out = 8; // Tab width...
   if (!header.empty()) {
     cur_out = header.size() + suffix.size() + 16; // Assume 2 tabs...
   }
@@ -1435,7 +1503,7 @@ void Ioss::Utils::info_fields(const Ioss::GroupingEntity *ige, Ioss::Field::Role
     fmt::print("{1:>{0}s}:{2}  ", max_width, field_name, comp_count);
     cur_out += max_width + 4;
     if (cur_out + max_width >= width) {
-      fmt::print("\n\t");
+      fmt::print(suffix);
       cur_out = 8;
     }
   }
@@ -1448,8 +1516,7 @@ void Ioss::Utils::info_property(const Ioss::GroupingEntity *ige, Ioss::Property:
                                 const std::string &header, const std::string &suffix,
                                 bool print_empty)
 {
-  Ioss::NameList properties;
-  ige->property_describe(origin, &properties);
+  Ioss::NameList properties = ige->property_describe(origin);
 
   if (properties.empty()) {
     if (print_empty && !header.empty()) {
@@ -1489,1198 +1556,42 @@ void Ioss::Utils::info_property(const Ioss::GroupingEntity *ige, Ioss::Property:
   }
 }
 
-void Ioss::Utils::copy_database(Ioss::Region &region, Ioss::Region &output_region,
-                                Ioss::MeshCopyOptions &options)
+void Ioss::Utils::copyright(std::ostream &out, const std::string &year_range)
 {
-  DataPool data_pool;
-
-  Ioss::DatabaseIO *dbi = region.get_database();
-
-  int rank = dbi->util().parallel_rank();
-
-  bool appending = output_region.get_database()->open_create_behavior() == Ioss::DB_APPEND;
-
-  if (!appending) {
-
-    if (options.debug && rank == 0) {
-      fmt::print(Ioss::DEBUG(), "DEFINING MODEL ... \n");
-    }
-    dbi->progress("DEFINING MODEL");
-    if (!output_region.begin_mode(Ioss::STATE_DEFINE_MODEL)) {
-      if (options.verbose) {
-        std::ostringstream errmsg;
-        fmt::print(errmsg, "ERROR: Could not put output region into define model state\n");
-        IOSS_ERROR(errmsg);
-      }
-    }
-
-    // Get all properties of input database...
-    transfer_properties(&region, &output_region);
-    transfer_qa_info(region, output_region);
-
-    transfer_nodeblock(region, output_region, data_pool, options, rank);
-
-#ifdef SEACAS_HAVE_MPI
-    // This also assumes that the node order and count is the same for input
-    // and output regions... (This is checked during nodeset output)
-    if (output_region.get_database()->needs_shared_node_information()) {
-      if (options.ints_64_bit)
-        set_owned_node_count(region, rank, (int64_t)0);
-      else
-        set_owned_node_count(region, rank, (int)0);
-    }
-#endif
-
-    transfer_edgeblocks(region, output_region, options, rank);
-    transfer_faceblocks(region, output_region, options, rank);
-    transfer_elementblocks(region, output_region, options, rank);
-    transfer_structuredblocks(region, output_region, options, rank);
-
-    transfer_nodesets(region, output_region, options, rank);
-    transfer_edgesets(region, output_region, options, rank);
-    transfer_facesets(region, output_region, options, rank);
-    transfer_elemsets(region, output_region, options, rank);
-
-    transfer_sidesets(region, output_region, options, rank);
-    transfer_commsets(region, output_region, options, rank);
-
-    transfer_coordinate_frames(region, output_region);
-    transfer_blobs(region, output_region, options, rank);
-
-    // This must be last...
-    transfer_assemblies(region, output_region, options, rank);
-
-    if (options.debug && rank == 0) {
-      fmt::print(Ioss::DEBUG(), "END STATE_DEFINE_MODEL...\n");
-    }
-    dbi->progress("END STATE_DEFINE_MODEL");
-
-    output_region.end_mode(Ioss::STATE_DEFINE_MODEL);
-    dbi->progress("output_region.end_mode(Ioss::STATE_DEFINE_MODEL) finished");
-
-    if (options.verbose && rank == 0) {
-      fmt::print(Ioss::DEBUG(), "Maximum Field size = {:n} bytes.\n", max_field_size);
-    }
-    data_pool.data.resize(max_field_size);
-    if (options.verbose && rank == 0) {
-      fmt::print(Ioss::DEBUG(), "Resize finished...\n");
-    }
-
-    if (options.debug && rank == 0) {
-      fmt::print(Ioss::DEBUG(), "TRANSFERRING MESH FIELD DATA ...\n");
-    }
-    dbi->progress("TRANSFERRING MESH FIELD DATA ... ");
-
-    // Model defined, now fill in the model data...
-    output_region.begin_mode(Ioss::STATE_MODEL);
-
-    // Transfer MESH field_data from input to output...
-    // Transfer MESH field_data from input to output...
-    bool node_major = output_region.node_major();
-
-    if (!node_major) {
-      transfer_field_data(region.get_element_blocks(), output_region, data_pool, Ioss::Field::MESH,
-                          options);
-      transfer_field_data(region.get_element_blocks(), output_region, data_pool,
-                          Ioss::Field::ATTRIBUTE, options);
-    }
-
-    if (region.mesh_type() != Ioss::MeshType::STRUCTURED) {
-      transfer_field_data(region.get_node_blocks(), output_region, data_pool, Ioss::Field::MESH,
-                          options);
-      transfer_field_data(region.get_node_blocks(), output_region, data_pool,
-                          Ioss::Field::ATTRIBUTE, options);
-    }
-
-    if (node_major) {
-      transfer_field_data(region.get_element_blocks(), output_region, data_pool, Ioss::Field::MESH,
-                          options);
-      transfer_field_data(region.get_element_blocks(), output_region, data_pool,
-                          Ioss::Field::ATTRIBUTE, options);
-    }
-
-    // Structured Blocks -- Contain a NodeBlock that also needs its field data transferred...
-    const auto &sbs = region.get_structured_blocks();
-    for (const auto &isb : sbs) {
-      const std::string &name = isb->name();
-      if (options.debug && rank == 0) {
-        fmt::print(Ioss::DEBUG(), "{}, ", name);
-      }
-      // Find matching output structured block
-      Ioss::StructuredBlock *osb = output_region.get_structured_block(name);
-      if (osb != nullptr) {
-        transfer_field_data(isb, osb, data_pool, Ioss::Field::MESH, options);
-        transfer_field_data(isb, osb, data_pool, Ioss::Field::ATTRIBUTE, options);
-
-        auto &inb = isb->get_node_block();
-        auto &onb = osb->get_node_block();
-        if (options.debug && rank == 0) {
-          fmt::print(Ioss::DEBUG(), "NB: {}, ", inb.name());
-        }
-
-        transfer_field_data(&inb, &onb, data_pool, Ioss::Field::MESH, options);
-        transfer_field_data(&inb, &onb, data_pool, Ioss::Field::ATTRIBUTE, options);
-      }
-    }
-
-    transfer_field_data(region.get_assemblies(), output_region, data_pool, Ioss::Field::MESH,
-                        options);
-    transfer_field_data(region.get_assemblies(), output_region, data_pool, Ioss::Field::ATTRIBUTE,
-                        options);
-
-    transfer_field_data(region.get_blobs(), output_region, data_pool, Ioss::Field::MESH, options);
-    transfer_field_data(region.get_blobs(), output_region, data_pool, Ioss::Field::ATTRIBUTE,
-                        options);
-
-    transfer_field_data(region.get_edge_blocks(), output_region, data_pool, Ioss::Field::MESH,
-                        options);
-    transfer_field_data(region.get_edge_blocks(), output_region, data_pool, Ioss::Field::ATTRIBUTE,
-                        options);
-
-    transfer_field_data(region.get_face_blocks(), output_region, data_pool, Ioss::Field::MESH,
-                        options);
-    transfer_field_data(region.get_face_blocks(), output_region, data_pool, Ioss::Field::ATTRIBUTE,
-                        options);
-
-    transfer_field_data(region.get_nodesets(), output_region, data_pool, Ioss::Field::MESH,
-                        options);
-    transfer_field_data(region.get_nodesets(), output_region, data_pool, Ioss::Field::ATTRIBUTE,
-                        options);
-
-    transfer_field_data(region.get_edgesets(), output_region, data_pool, Ioss::Field::MESH,
-                        options);
-    transfer_field_data(region.get_edgesets(), output_region, data_pool, Ioss::Field::ATTRIBUTE,
-                        options);
-
-    transfer_field_data(region.get_facesets(), output_region, data_pool, Ioss::Field::MESH,
-                        options);
-    transfer_field_data(region.get_facesets(), output_region, data_pool, Ioss::Field::ATTRIBUTE,
-                        options);
-
-    transfer_field_data(region.get_elementsets(), output_region, data_pool, Ioss::Field::MESH,
-                        options);
-    transfer_field_data(region.get_elementsets(), output_region, data_pool, Ioss::Field::ATTRIBUTE,
-                        options);
-
-    transfer_field_data(region.get_commsets(), output_region, data_pool, Ioss::Field::MESH,
-                        options);
-    transfer_field_data(region.get_commsets(), output_region, data_pool, Ioss::Field::ATTRIBUTE,
-                        options);
-    transfer_field_data(region.get_commsets(), output_region, data_pool, Ioss::Field::COMMUNICATION,
-                        options);
-
-    // Side Sets
-    if (region.mesh_type() == Ioss::MeshType::UNSTRUCTURED) {
-      const auto &fss = region.get_sidesets();
-      for (const auto &ifs : fss) {
-        const std::string &name = ifs->name();
-        if (options.debug && rank == 0) {
-          fmt::print(Ioss::DEBUG(), "{}, ", name);
-        }
-        // Find matching output sideset
-        Ioss::SideSet *ofs = output_region.get_sideset(name);
-
-        if (ofs != nullptr) {
-          transfer_field_data(ifs, ofs, data_pool, Ioss::Field::MESH, options);
-          transfer_field_data(ifs, ofs, data_pool, Ioss::Field::ATTRIBUTE, options);
-
-          const auto &fbs = ifs->get_side_blocks();
-          for (const auto &ifb : fbs) {
-
-            // Find matching output sideblock
-            const std::string &fbname = ifb->name();
-            if (options.debug && rank == 0) {
-              fmt::print(Ioss::DEBUG(), "{}, ", fbname);
-            }
-            Ioss::SideBlock *ofb = ofs->get_side_block(fbname);
-
-            if (ofb != nullptr) {
-              transfer_field_data(ifb, ofb, data_pool, Ioss::Field::MESH, options);
-              transfer_field_data(ifb, ofb, data_pool, Ioss::Field::ATTRIBUTE, options);
-            }
-          }
-        }
-      }
-      if (options.debug && rank == 0) {
-        fmt::print(Ioss::DEBUG(), "\n");
-      }
-    }
-    if (options.debug && rank == 0) {
-      fmt::print(Ioss::DEBUG(), "END STATE_MODEL... \n");
-    }
-    dbi->progress("END STATE_MODEL... ");
-    output_region.end_mode(Ioss::STATE_MODEL);
-
-    if (options.add_proc_id) {
-      Ioss::Utils::clear(data_pool.data);
-      add_proc_id(output_region, rank);
-      return;
-    }
-
-    if (options.delete_timesteps) {
-      Ioss::Utils::clear(data_pool.data);
-      return;
-    }
-  } // !appending
-
-  if (options.debug && rank == 0) {
-    fmt::print(Ioss::DEBUG(), "DEFINING TRANSIENT FIELDS ... \n");
-  }
-  dbi->progress("DEFINING TRANSIENT FIELDS ... ");
-
-  if (region.property_exists("state_count") && region.get_property("state_count").get_int() > 0) {
-    if (options.verbose && rank == 0) {
-      fmt::print(Ioss::DEBUG(), "\nNumber of time steps on database = {}\n\n",
-                 region.get_property("state_count").get_int());
-    }
-
-    output_region.begin_mode(Ioss::STATE_DEFINE_TRANSIENT);
-
-    // NOTE: For most types, the fields are transferred from input to output
-    //       via the copy constructor.  The "special" ones are handled here.
-    // The below lines handle both methods of handling global variables...
-    transfer_fields(&region, &output_region, Ioss::Field::REDUCTION);
-    transfer_fields(&region, &output_region, Ioss::Field::TRANSIENT);
-
-    // Structured Blocks -- Contain a NodeBlock that also needs its fields transferred...
-    const auto &sbs = region.get_structured_blocks();
-    for (const auto &isb : sbs) {
-
-      // Find matching output structured block
-      const std::string &    name = isb->name();
-      Ioss::StructuredBlock *osb  = output_region.get_structured_block(name);
-      if (osb != nullptr) {
-        transfer_fields(isb, osb, Ioss::Field::TRANSIENT);
-        transfer_fields(isb, osb, Ioss::Field::REDUCTION);
-
-        auto &inb = isb->get_node_block();
-        auto &onb = osb->get_node_block();
-        transfer_fields(&inb, &onb, Ioss::Field::TRANSIENT);
-        transfer_fields(&inb, &onb, Ioss::Field::REDUCTION);
-      }
-    }
-
-    if (options.debug && rank == 0) {
-      fmt::print(Ioss::DEBUG(), "END STATE_DEFINE_TRANSIENT... \n");
-    }
-    dbi->progress("END STATE_DEFINE_TRANSIENT... ");
-    output_region.end_mode(Ioss::STATE_DEFINE_TRANSIENT);
-  }
-
-  if (options.debug && rank == 0) {
-    fmt::print(Ioss::DEBUG(), "TRANSFERRING TRANSIENT FIELDS ... \n");
-  }
-  dbi->progress("TRANSFERRING TRANSIENT FIELDS... ");
-
-  output_region.begin_mode(Ioss::STATE_TRANSIENT);
-  // Get the timesteps from the input database.  Step through them
-  // and transfer fields to output database...
-
-  int step_count = region.get_property("state_count").get_int();
-
-  for (int istep = 1; istep <= step_count; istep++) {
-    double time = region.get_state_time(istep);
-    if (time < options.minimum_time) {
-      continue;
-    }
-    if (time > options.maximum_time) {
-      break;
-    }
-
-    int ostep = output_region.add_state(time);
-    show_step(istep, time, options, rank);
-
-    output_region.begin_state(ostep);
-    region.begin_state(istep);
-
-    for (int i = 0; i < 2; i++) {
-      auto field_type = Ioss::Field::TRANSIENT;
-      if (i > 0) {
-        field_type = Ioss::Field::REDUCTION;
-      }
-
-      transfer_field_data(&region, &output_region, data_pool, field_type, options);
-
-      transfer_field_data(region.get_assemblies(), output_region, data_pool, field_type, options);
-      transfer_field_data(region.get_blobs(), output_region, data_pool, field_type, options);
-
-      if (region.mesh_type() != Ioss::MeshType::STRUCTURED) {
-        transfer_field_data(region.get_node_blocks(), output_region, data_pool, field_type,
-                            options);
-      }
-      transfer_field_data(region.get_edge_blocks(), output_region, data_pool, field_type, options);
-      transfer_field_data(region.get_face_blocks(), output_region, data_pool, field_type, options);
-      transfer_field_data(region.get_element_blocks(), output_region, data_pool, field_type,
-                          options);
-
-      {
-        // Structured Blocks -- handle embedded NodeBlock also.
-        const auto &sbs = region.get_structured_blocks();
-        for (const auto &isb : sbs) {
-          const std::string &name = isb->name();
-          if (options.debug && rank == 0) {
-            fmt::print(Ioss::DEBUG(), "{}, ", name);
-          }
-          // Find matching output structured block
-          Ioss::StructuredBlock *osb = output_region.get_structured_block(name);
-          if (osb != nullptr) {
-            transfer_field_data(isb, osb, data_pool, field_type, options);
-
-            auto &inb = isb->get_node_block();
-            auto &onb = osb->get_node_block();
-            transfer_field_data(&inb, &onb, data_pool, field_type, options);
-          }
-        }
-      }
-
-      transfer_field_data(region.get_nodesets(), output_region, data_pool, field_type, options);
-      transfer_field_data(region.get_edgesets(), output_region, data_pool, field_type, options);
-      transfer_field_data(region.get_facesets(), output_region, data_pool, field_type, options);
-      transfer_field_data(region.get_elementsets(), output_region, data_pool, field_type, options);
-
-      // Side Sets
-      {
-        const auto &fss = region.get_sidesets();
-        for (const auto &ifs : fss) {
-          const std::string &name = ifs->name();
-          if (options.debug && rank == 0) {
-            fmt::print(Ioss::DEBUG(), "{}, ", name);
-          }
-
-          // Find matching output sideset
-          Ioss::SideSet *ofs = output_region.get_sideset(name);
-          if (ofs != nullptr) {
-            transfer_field_data(ifs, ofs, data_pool, field_type, options);
-
-            const auto &fbs = ifs->get_side_blocks();
-            for (const auto &ifb : fbs) {
-
-              // Find matching output sideblock
-              const std::string &fbname = ifb->name();
-              if (options.debug && rank == 0) {
-                fmt::print(Ioss::DEBUG(), "{}, ", fbname);
-              }
-
-              Ioss::SideBlock *ofb = ofs->get_side_block(fbname);
-              if (ofb != nullptr) {
-                transfer_field_data(ifb, ofb, data_pool, field_type, options);
-              }
-            }
-          }
-        }
-      }
-    }
-    region.end_state(istep);
-    output_region.end_state(ostep);
-    if (options.delay > 0.0) {
-#ifndef _MSC_VER
-      struct timespec delay;
-      delay.tv_sec  = (int)options.delay;
-      delay.tv_nsec = (options.delay - delay.tv_sec) * 1000000000L;
-      nanosleep(&delay, nullptr);
-#else
-      Sleep((int)(options.delay * 1000));
-#endif
-    }
-  }
-  if (options.debug && rank == 0) {
-    fmt::print(Ioss::DEBUG(), "END STATE_TRANSIENT... \n");
-  }
-  dbi->progress("END STATE_TRANSIENT (begin) ... ");
-
-  output_region.end_mode(Ioss::STATE_TRANSIENT);
-  dbi->progress("END STATE_TRANSIENT (end) ... ");
-  Ioss::Utils::clear(data_pool.data);
-
-  output_region.output_summary(std::cout);
+  fmt::print(out,
+             "\n"
+             "Copyright(C) {} National Technology & Engineering Solutions of\n"
+             "Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with\n"
+             "NTESS, the U.S. Government retains certain rights in this software.\n"
+             "\n"
+             "Redistribution and use in source and binary forms, with or without\n"
+             "modification, are permitted provided that the following conditions are\n"
+             "met:\n"
+             "\n"
+             "* Redistributions of source code must retain the above copyright\n"
+             "   notice, this list of conditions and the following disclaimer.\n"
+             "\n"
+             "* Redistributions in binary form must reproduce the above\n"
+             "  copyright notice, this list of conditions and the following\n"
+             "  disclaimer in the documentation and/or other materials provided\n"
+             "  with the distribution.\n"
+             "\n"
+             "* Neither the name of NTESS nor the names of its\n"
+             "  contributors may be used to endorse or promote products derived\n"
+             "  from this software without specific prior written permission.\n"
+             "\n"
+             "THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS\n"
+             "\" AS IS \" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT\n"
+             "LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR\n"
+             "A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT\n"
+             "OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,\n"
+             "SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT\n"
+             "LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,\n"
+             "DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY\n"
+             "THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT\n"
+             "(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE\n"
+             "OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n"
+             "\n",
+             year_range);
+  return;
 }
-
-namespace {
-  template <typename T> void transfer_mesh_info(const T *input, T *output)
-  {
-    transfer_properties(input, output);
-    transfer_fields(input, output, Ioss::Field::MESH);
-    transfer_fields(input, output, Ioss::Field::ATTRIBUTE);
-    transfer_fields(input, output, Ioss::Field::MESH_REDUCTION);
-  }
-
-  void transfer_nodeblock(Ioss::Region &region, Ioss::Region &output_region, DataPool &pool,
-                          const Ioss::MeshCopyOptions &options, int rank)
-  {
-    const auto &nbs = region.get_node_blocks();
-    for (const auto &inb : nbs) {
-      const std::string &name = inb->name();
-      if (options.debug && rank == 0) {
-        fmt::print(Ioss::DEBUG(), "{}, ", name);
-      }
-      size_t num_nodes = inb->entity_count();
-      size_t degree    = inb->get_property("component_degree").get_int();
-      if (options.verbose && rank == 0) {
-        fmt::print(Ioss::DEBUG(), " Number of Coordinates per Node = {:14n}\n", degree);
-        fmt::print(Ioss::DEBUG(), " Number of Nodes                = {:14n}\n", num_nodes);
-      }
-      auto nb = new Ioss::NodeBlock(*inb);
-      output_region.add(nb);
-
-      if (output_region.get_database()->needs_shared_node_information()) {
-        // If the "owning_processor" field exists on the input
-        // nodeblock, transfer it and the "ids" field to the output
-        // nodeblock at this time since it is used to determine
-        // per-processor sizes of nodeblocks and nodesets.
-        if (inb->field_exists("owning_processor")) {
-          size_t isize = inb->get_field("ids").get_size();
-          pool.data.resize(isize);
-          inb->get_field_data("ids", pool.data.data(), isize);
-          nb->put_field_data("ids", pool.data.data(), isize);
-
-          isize = inb->get_field("owning_processor").get_size();
-          pool.data.resize(isize);
-          inb->get_field_data("owning_processor", pool.data.data(), isize);
-          nb->put_field_data("owning_processor", pool.data.data(), isize);
-        }
-      }
-    }
-    if (options.debug && rank == 0) {
-      fmt::print(Ioss::DEBUG(), "\n");
-    }
-  }
-
-  template <typename T>
-  void transfer_fields(const std::vector<T *> &entities, Ioss::Region &output_region,
-                       Ioss::Field::RoleType role, const Ioss::MeshCopyOptions &options, int rank)
-  {
-    for (const auto &entity : entities) {
-      const std::string &name = entity->name();
-      if (options.debug && rank == 0) {
-        fmt::print(Ioss::DEBUG(), "{}, ", name);
-      }
-
-      // Find the corresponding output node_block...
-      Ioss::GroupingEntity *oeb = output_region.get_entity(name, entity->type());
-      if (oeb != nullptr) {
-        transfer_fields(entity, oeb, role);
-      }
-    }
-    if (options.debug && rank == 0) {
-      fmt::print(Ioss::DEBUG(), "\n");
-    }
-  }
-
-  template <typename T>
-  void transfer_field_data(const std::vector<T *> &entities, Ioss::Region &output_region,
-                           DataPool &pool, Ioss::Field::RoleType role,
-                           const Ioss::MeshCopyOptions &options)
-  {
-    for (const auto &entity : entities) {
-      const std::string &name = entity->name();
-
-      // Find the corresponding output block...
-      Ioss::GroupingEntity *output = output_region.get_entity(name, entity->type());
-      if (output != nullptr) {
-        transfer_field_data(entity, output, pool, role, options);
-      }
-    }
-  }
-
-  template <typename T>
-  void transfer_blocks(const std::vector<T *> &blocks, Ioss::Region &output_region,
-                       const Ioss::MeshCopyOptions &options, int rank)
-  {
-    if (!blocks.empty()) {
-      size_t total_entities = 0;
-      for (const auto &iblock : blocks) {
-        const std::string &name = iblock->name();
-        if (options.debug && rank == 0) {
-          fmt::print(Ioss::DEBUG(), "{}, ", name);
-        }
-        size_t count = iblock->entity_count();
-        total_entities += count;
-
-        auto block = new T(*iblock);
-        output_region.add(block);
-      }
-      if (options.verbose && rank == 0) {
-        fmt::print(Ioss::DEBUG(), " Number of {:20s} = {:14n}\n",
-                   (*blocks.begin())->type_string() + "s", blocks.size());
-        fmt::print(Ioss::DEBUG(), " Number of {:20s} = {:14n}\n",
-                   (*blocks.begin())->contains_string() + "s", total_entities);
-      }
-      if (options.debug && rank == 0) {
-        fmt::print(Ioss::DEBUG(), "\n");
-      }
-    }
-  }
-
-  void transfer_structuredblocks(Ioss::Region &region, Ioss::Region &output_region,
-                                 const Ioss::MeshCopyOptions &options, int rank)
-  {
-    auto blocks = region.get_structured_blocks();
-    if (!blocks.empty()) {
-      size_t total_entities = 0;
-      if (options.reverse) {
-        // Defines the CGNS zones in the reverse order they
-        // were read from the input mesh.  This is used in
-        // testing to verify that we handle zone reordering
-        // correctly.
-        for (int i = blocks.size() - 1; i >= 0; i--) {
-          const auto &       iblock = blocks[i];
-          const std::string &name   = iblock->name();
-          if (options.debug && rank == 0) {
-            fmt::print(Ioss::DEBUG(), "{}, ", name);
-          }
-          size_t count = iblock->entity_count();
-          total_entities += count;
-
-          auto block = iblock->clone(output_region.get_database());
-          output_region.add(block);
-          transfer_mesh_info(iblock, block);
-
-          // Now do the transfer on the NodeBlock contained in the StructuredBlock
-          auto &inb = iblock->get_node_block();
-          auto &onb = block->get_node_block();
-          if (options.debug && rank == 0) {
-            fmt::print(Ioss::DEBUG(), "(NB: {}), ", inb.name());
-          }
-          transfer_mesh_info(&inb, &onb);
-        }
-      }
-      else {
-        for (const auto &iblock : blocks) {
-          const std::string &name = iblock->name();
-          if (options.debug && rank == 0) {
-            fmt::print(Ioss::DEBUG(), "{}, ", name);
-          }
-          size_t count = iblock->entity_count();
-          total_entities += count;
-
-          auto block = iblock->clone(output_region.get_database());
-          output_region.add(block);
-          transfer_mesh_info(iblock, block);
-
-          // Now do the transfer on the NodeBlock contained in the StructuredBlock
-          auto &inb = iblock->get_node_block();
-          auto &onb = block->get_node_block();
-          if (options.debug && rank == 0) {
-            fmt::print(Ioss::DEBUG(), "(NB: {}), ", inb.name());
-          }
-          transfer_mesh_info(&inb, &onb);
-        }
-      }
-
-      if (options.verbose && rank == 0) {
-        fmt::print(Ioss::DEBUG(), " Number of {:20s} = {:14n}\n",
-                   (*blocks.begin())->type_string() + "s", blocks.size());
-        fmt::print(Ioss::DEBUG(), " Number of {:20s} = {:14n}\n",
-                   (*blocks.begin())->contains_string() + "s", total_entities);
-      }
-      if (options.debug && rank == 0) {
-        fmt::print(Ioss::DEBUG(), "\n");
-      }
-    }
-  }
-
-  void transfer_elementblocks(Ioss::Region &region, Ioss::Region &output_region,
-                              const Ioss::MeshCopyOptions &options, int rank)
-  {
-    const auto &ebs = region.get_element_blocks();
-    transfer_blocks(ebs, output_region, options, rank);
-  }
-
-  void transfer_edgeblocks(Ioss::Region &region, Ioss::Region &output_region,
-                           const Ioss::MeshCopyOptions &options, int rank)
-  {
-    const auto &ebs = region.get_edge_blocks();
-    transfer_blocks(ebs, output_region, options, rank);
-  }
-
-  void transfer_faceblocks(Ioss::Region &region, Ioss::Region &output_region,
-                           const Ioss::MeshCopyOptions &options, int rank)
-  {
-    const auto &ebs = region.get_face_blocks();
-    transfer_blocks(ebs, output_region, options, rank);
-  }
-
-  void transfer_sidesets(Ioss::Region &region, Ioss::Region &output_region,
-                         const Ioss::MeshCopyOptions &options, int rank)
-  {
-    const auto &fss         = region.get_sidesets();
-    size_t      total_sides = 0;
-    for (const auto &ss : fss) {
-      const std::string &name = ss->name();
-      if (options.debug && rank == 0) {
-        fmt::print(Ioss::DEBUG(), "{}, ", name);
-      }
-      auto surf = new Ioss::SideSet(*ss);
-      output_region.add(surf);
-
-      // Fix up the optional 'owner_block' in copied SideBlocks...
-      const auto &fbs = ss->get_side_blocks();
-      for (const auto &ifb : fbs) {
-        if (ifb->parent_block() != nullptr) {
-          auto               fb_name = ifb->parent_block()->name();
-          Ioss::EntityBlock *parent =
-              dynamic_cast<Ioss::EntityBlock *>(output_region.get_entity(fb_name));
-
-          Ioss::SideBlock *ofb = surf->get_side_block(ifb->name());
-          ofb->set_parent_block(parent);
-        }
-      }
-    }
-
-    if (options.verbose && rank == 0 && !fss.empty()) {
-      fmt::print(Ioss::DEBUG(), " Number of {:20s} = {:14n}\n", (*fss.begin())->type_string() + "s",
-                 fss.size());
-      fmt::print(Ioss::DEBUG(), " Number of {:20s} = {:14n}\n",
-                 (*fss.begin())->contains_string() + "s", total_sides);
-    }
-    if (options.debug && rank == 0) {
-      fmt::print(Ioss::DEBUG(), "\n");
-    }
-  }
-
-  template <typename T>
-  void transfer_sets(const std::vector<T *> &sets, Ioss::Region &output_region,
-                     const Ioss::MeshCopyOptions &options, int rank)
-  {
-    if (!sets.empty()) {
-      size_t total_entities = 0;
-      for (const auto &set : sets) {
-        const std::string &name = set->name();
-        if (options.debug && rank == 0) {
-          fmt::print(Ioss::DEBUG(), "{}, ", name);
-        }
-        size_t count = set->entity_count();
-        total_entities += count;
-        auto o_set = new T(*set);
-        output_region.add(o_set);
-      }
-
-      if (options.verbose && rank == 0) {
-        fmt::print(Ioss::DEBUG(), " Number of {:20s} = {:14n}",
-                   (*sets.begin())->type_string() + "s", sets.size());
-        fmt::print(Ioss::DEBUG(), "\tLength of entity list = {:14n}\n", total_entities);
-      }
-      if (options.debug && rank == 0) {
-        fmt::print(Ioss::DEBUG(), "\n");
-      }
-    }
-  }
-
-  void transfer_assemblies(Ioss::Region &region, Ioss::Region &output_region,
-                           const Ioss::MeshCopyOptions &options, int rank)
-  {
-    const auto &assem = region.get_assemblies();
-    if (!assem.empty()) {
-      for (const auto &assm : assem) {
-        const std::string &name = assm->name();
-        if (options.debug && rank == 0) {
-          fmt::print(stderr, "{}, ", name);
-        }
-
-        // NOTE: Can't totally use the copy constructor as it will
-        // create a members list containing entities from input
-        // database.  We need corresponding entities from output
-        // database...
-        auto o_assem = new Ioss::Assembly(*assm);
-        o_assem->remove_members();
-
-        // Now, repopulate member list with corresponding entities from output database...
-        const auto &members = assm->get_members();
-        for (const auto &member : members) {
-          const auto *entity = output_region.get_entity(member->name(), member->type());
-          if (entity != nullptr) {
-            o_assem->add(entity);
-          }
-        }
-        output_region.add(o_assem);
-      }
-
-      if (options.verbose && rank == 0) {
-        fmt::print(stderr, " Number of {:20s} = {:14n}\n", "Assemblies", assem.size());
-      }
-      if (options.debug && rank == 0) {
-        fmt::print(stderr, "\n");
-      }
-    }
-  }
-
-  void transfer_blobs(Ioss::Region &region, Ioss::Region &output_region,
-                      const Ioss::MeshCopyOptions &options, int rank)
-  {
-    const auto &blobs = region.get_blobs();
-    if (!blobs.empty()) {
-      size_t total_entities = 0;
-      for (const auto &blob : blobs) {
-        const std::string &name = blob->name();
-        if (options.debug && rank == 0) {
-          fmt::print(stderr, "{}, ", name);
-        }
-        size_t count = blob->entity_count();
-        total_entities += count;
-        auto o_blob = new Ioss::Blob(*blob);
-        output_region.add(o_blob);
-      }
-
-      if (options.verbose && rank == 0) {
-        fmt::print(stderr, " Number of {:20s} = {:14n}", (*blobs.begin())->type_string() + "s",
-                   blobs.size());
-        fmt::print(stderr, "\tLength of entity list = {:14n}\n", total_entities);
-      }
-      if (options.debug && rank == 0) {
-        fmt::print(Ioss::DEBUG(), "\n");
-      }
-    }
-  }
-
-  void transfer_nodesets(Ioss::Region &region, Ioss::Region &output_region,
-                         const Ioss::MeshCopyOptions &options, int rank)
-  {
-    const auto &nss = region.get_nodesets();
-    transfer_sets(nss, output_region, options, rank);
-  }
-
-  void transfer_edgesets(Ioss::Region &region, Ioss::Region &output_region,
-                         const Ioss::MeshCopyOptions &options, int rank)
-  {
-    const auto &nss = region.get_edgesets();
-    transfer_sets(nss, output_region, options, rank);
-  }
-
-  void transfer_facesets(Ioss::Region &region, Ioss::Region &output_region,
-                         const Ioss::MeshCopyOptions &options, int rank)
-  {
-    const auto &nss = region.get_facesets();
-    transfer_sets(nss, output_region, options, rank);
-  }
-
-  void transfer_elemsets(Ioss::Region &region, Ioss::Region &output_region,
-                         const Ioss::MeshCopyOptions &options, int rank)
-  {
-    const auto &nss = region.get_elementsets();
-    transfer_sets(nss, output_region, options, rank);
-  }
-
-  void transfer_commsets(Ioss::Region &region, Ioss::Region &output_region,
-                         const Ioss::MeshCopyOptions &options, int rank)
-  {
-    const auto &css = region.get_commsets();
-    for (const auto &ics : css) {
-      const std::string &name = ics->name();
-      if (options.debug && rank == 0) {
-        fmt::print(Ioss::DEBUG(), "{}, ", name);
-      }
-      auto cs = new Ioss::CommSet(*ics);
-      output_region.add(cs);
-    }
-    if (options.debug && rank == 0) {
-      fmt::print(Ioss::DEBUG(), "\n");
-    }
-  }
-
-  void transfer_coordinate_frames(Ioss::Region &region, Ioss::Region &output_region)
-  {
-    const Ioss::CoordinateFrameContainer &cf = region.get_coordinate_frames();
-    for (const auto &frame : cf) {
-      output_region.add(frame);
-    }
-  }
-
-  void transfer_fields(const Ioss::GroupingEntity *ige, Ioss::GroupingEntity *oge,
-                       Ioss::Field::RoleType role, const std::string &prefix)
-  {
-    // Check for transient fields...
-    Ioss::NameList fields;
-    ige->field_describe(role, &fields);
-
-    // Iterate through results fields and transfer to output
-    // database...  If a prefix is specified, only transfer fields
-    // whose names begin with the prefix
-    for (const auto &field_name : fields) {
-      Ioss::Field field = ige->get_field(field_name);
-      if (field.get_size() > max_field_size) {
-        max_field_size = field.get_size();
-      }
-      if (field_name != "ids" && !oge->field_exists(field_name) &&
-          Ioss::Utils::substr_equal(prefix, field_name)) {
-        // If the field does not already exist, add it to the output node block
-        oge->field_add(field);
-      }
-    }
-  }
-
-  void transfer_field_data(Ioss::GroupingEntity *ige, Ioss::GroupingEntity *oge, DataPool &pool,
-                           Ioss::Field::RoleType role, const Ioss::MeshCopyOptions &options,
-                           const std::string &prefix)
-  {
-    // Iterate through the TRANSIENT-role fields of the input
-    // database and transfer to output database.
-    Ioss::NameList state_fields;
-    ige->field_describe(role, &state_fields);
-
-    // Complication here is that if the 'role' is 'Ioss::Field::MESH',
-    // then the 'ids' field must be transferred first...
-    if (role == Ioss::Field::MESH && ige->field_exists("ids")) {
-      assert(oge->field_exists("ids"));
-      transfer_field_data_internal(ige, oge, pool, "ids", options);
-    }
-
-    for (const auto &field_name : state_fields) {
-      // All of the 'Ioss::EntityBlock' derived classes have a
-      // 'connectivity' field, but it is only interesting on the
-      // Ioss::ElementBlock class. On the other classes, it just
-      // generates overhead...
-      if (field_name == "connectivity" && ige->type() != Ioss::ELEMENTBLOCK) {
-        continue;
-      }
-      if (field_name == "ids") {
-        continue;
-      }
-      if (Ioss::Utils::substr_equal(prefix, field_name)) {
-        assert(oge->field_exists(field_name));
-        transfer_field_data_internal(ige, oge, pool, field_name, options);
-      }
-    }
-  }
-
-  void transfer_field_data_internal(Ioss::GroupingEntity *ige, Ioss::GroupingEntity *oge,
-                                    DataPool &pool, const std::string &field_name,
-                                    const Ioss::MeshCopyOptions &options)
-  {
-
-    size_t isize = ige->get_field(field_name).get_size();
-    assert(isize == oge->get_field(field_name).get_size());
-
-    int basic_type = ige->get_field(field_name).get_type();
-
-    if (field_name == "mesh_model_coordinates_x") {
-      return;
-    }
-    if (field_name == "mesh_model_coordinates_y") {
-      return;
-    }
-    if (field_name == "mesh_model_coordinates_z") {
-      return;
-    }
-    if (field_name == "connectivity_raw") {
-      return;
-    }
-    if (field_name == "element_side_raw") {
-      return;
-    }
-    if (field_name == "ids_raw") {
-      return;
-    }
-    if (field_name == "implicit_ids") {
-      return;
-    }
-    if (field_name == "node_connectivity_status") {
-      return;
-    }
-    if (field_name == "owning_processor") {
-      return;
-    }
-    if (field_name == "entity_processor_raw") {
-      return;
-    }
-    if (field_name == "ids" && ige->type() == Ioss::SIDEBLOCK) {
-      return;
-    }
-    if (field_name == "ids" && ige->type() == Ioss::STRUCTUREDBLOCK) {
-      return;
-    }
-    if (field_name == "cell_ids" && ige->type() == Ioss::STRUCTUREDBLOCK) {
-      return;
-    }
-    if (field_name == "cell_node_ids" && ige->type() == Ioss::STRUCTUREDBLOCK) {
-      return;
-    }
-
-    if (options.data_storage_type == 1 || options.data_storage_type == 2) {
-      if (pool.data.size() < isize) {
-        pool.data.resize(isize);
-      }
-    }
-    else {
-    }
-
-    assert(pool.data.size() >= isize);
-
-    switch (options.data_storage_type) {
-    case 1: ige->get_field_data(field_name, pool.data.data(), isize); break;
-    case 2:
-      if ((basic_type == Ioss::Field::CHARACTER) || (basic_type == Ioss::Field::STRING)) {
-        ige->get_field_data(field_name, pool.data);
-      }
-      else if (basic_type == Ioss::Field::INT32) {
-        ige->get_field_data(field_name, pool.data_int);
-      }
-      else if (basic_type == Ioss::Field::INT64) {
-        ige->get_field_data(field_name, pool.data_int64);
-      }
-      else if (basic_type == Ioss::Field::REAL) {
-        ige->get_field_data(field_name, pool.data_double);
-      }
-      else if (basic_type == Ioss::Field::COMPLEX) {
-        ige->get_field_data(field_name, pool.data_complex);
-      }
-      else {
-      }
-      break;
-#ifdef SEACAS_HAVE_KOKKOS
-    case 3:
-      if ((basic_type == Ioss::Field::CHARACTER) || (basic_type == Ioss::Field::STRING)) {
-        ige->get_field_data<char>(field_name, pool.data_view_char);
-      }
-      else if (basic_type == Ioss::Field::INT32) {
-        ige->get_field_data<int>(field_name, pool.data_view_int);
-      }
-      else if (basic_type == Ioss::Field::INT64) {
-        ige->get_field_data<int64_t>(field_name, pool.data_view_int64);
-      }
-      else if (basic_type == Ioss::Field::REAL) {
-        ige->get_field_data<double>(field_name, pool.data_view_double);
-      }
-      else if (basic_type == Ioss::Field::COMPLEX) {
-        // Since data_view_complex cannot be a global variable.
-        ige->get_field_data(field_name, pool.data.data(), isize);
-      }
-      else {
-      }
-      break;
-    case 4:
-      if ((basic_type == Ioss::Field::CHARACTER) || (basic_type == Ioss::Field::STRING)) {
-        ige->get_field_data<char>(field_name, pool.data_view_2D_char);
-      }
-      else if (basic_type == Ioss::Field::INT32) {
-        ige->get_field_data<int>(field_name, pool.data_view_2D_int);
-      }
-      else if (basic_type == Ioss::Field::INT64) {
-        ige->get_field_data<int64_t>(field_name, pool.data_view_2D_int64);
-      }
-      else if (basic_type == Ioss::Field::REAL) {
-        ige->get_field_data<double>(field_name, pool.data_view_2D_double);
-      }
-      else if (basic_type == Ioss::Field::COMPLEX) {
-        // Since data_view_complex cannot be a global variable.
-        ige->get_field_data(field_name, pool.data.data(), isize);
-      }
-      else {
-      }
-      break;
-    case 5:
-      if ((basic_type == Ioss::Field::CHARACTER) || (basic_type == Ioss::Field::STRING)) {
-        ige->get_field_data<char, Kokkos::LayoutRight, Kokkos::HostSpace>(
-            field_name, pool.data_view_2D_char_layout_space);
-      }
-      else if (basic_type == Ioss::Field::INT32) {
-        ige->get_field_data<int, Kokkos::LayoutRight, Kokkos::HostSpace>(
-            field_name, pool.data_view_2D_int_layout_space);
-      }
-      else if (basic_type == Ioss::Field::INT64) {
-        ige->get_field_data<int64_t, Kokkos::LayoutRight, Kokkos::HostSpace>(
-            field_name, pool.data_view_2D_int64_layout_space);
-      }
-      else if (basic_type == Ioss::Field::REAL) {
-        ige->get_field_data<double, Kokkos::LayoutRight, Kokkos::HostSpace>(
-            field_name, pool.data_view_2D_double_layout_space);
-      }
-      else if (basic_type == Ioss::Field::COMPLEX) {
-        // Since data_view_complex cannot be a global variable.
-        ige->get_field_data(field_name, pool.data.data(), isize);
-      }
-      else {
-      }
-      break;
-#endif
-    default:
-      if (field_name == "mesh_model_coordinates") {
-        fmt::print(Ioss::DEBUG(), "data_storage option not recognized.");
-      }
-      return;
-    }
-
-    switch (options.data_storage_type) {
-    case 1: oge->put_field_data(field_name, pool.data.data(), isize); break;
-    case 2:
-      if ((basic_type == Ioss::Field::CHARACTER) || (basic_type == Ioss::Field::STRING)) {
-        oge->put_field_data(field_name, pool.data);
-      }
-      else if (basic_type == Ioss::Field::INT32) {
-        oge->put_field_data(field_name, pool.data_int);
-      }
-      else if (basic_type == Ioss::Field::INT64) {
-        oge->put_field_data(field_name, pool.data_int64);
-      }
-      else if (basic_type == Ioss::Field::REAL) {
-        oge->put_field_data(field_name, pool.data_double);
-      }
-      else if (basic_type == Ioss::Field::COMPLEX) {
-        oge->put_field_data(field_name, pool.data_complex);
-      }
-      else {
-      }
-      break;
-#ifdef SEACAS_HAVE_KOKKOS
-    case 3:
-      if ((basic_type == Ioss::Field::CHARACTER) || (basic_type == Ioss::Field::STRING)) {
-        oge->put_field_data<char>(field_name, pool.data_view_char);
-      }
-      else if (basic_type == Ioss::Field::INT32) {
-        oge->put_field_data<int>(field_name, pool.data_view_int);
-      }
-      else if (basic_type == Ioss::Field::INT64) {
-        oge->put_field_data<int64_t>(field_name, pool.data_view_int64);
-      }
-      else if (basic_type == Ioss::Field::REAL) {
-        oge->put_field_data<double>(field_name, pool.data_view_double);
-      }
-      else if (basic_type == Ioss::Field::COMPLEX) {
-        // Since data_view_complex cannot be a global variable.
-        oge->put_field_data(field_name, pool.data.data(), isize);
-      }
-      else {
-      }
-      break;
-    case 4:
-      if ((basic_type == Ioss::Field::CHARACTER) || (basic_type == Ioss::Field::STRING)) {
-        oge->put_field_data<char>(field_name, pool.data_view_2D_char);
-      }
-      else if (basic_type == Ioss::Field::INT32) {
-        oge->put_field_data<int>(field_name, pool.data_view_2D_int);
-      }
-      else if (basic_type == Ioss::Field::INT64) {
-        oge->put_field_data<int64_t>(field_name, pool.data_view_2D_int64);
-      }
-      else if (basic_type == Ioss::Field::REAL) {
-        oge->put_field_data<double>(field_name, pool.data_view_2D_double);
-      }
-      else if (basic_type == Ioss::Field::COMPLEX) {
-        // Since data_view_complex cannot be a global variable.
-        oge->put_field_data(field_name, pool.data.data(), isize);
-      }
-      else {
-      }
-      break;
-    case 5:
-      if ((basic_type == Ioss::Field::CHARACTER) || (basic_type == Ioss::Field::STRING)) {
-        oge->put_field_data<char, Kokkos::LayoutRight, Kokkos::HostSpace>(
-            field_name, pool.data_view_2D_char_layout_space);
-      }
-      else if (basic_type == Ioss::Field::INT32) {
-        oge->put_field_data<int, Kokkos::LayoutRight, Kokkos::HostSpace>(
-            field_name, pool.data_view_2D_int_layout_space);
-      }
-      else if (basic_type == Ioss::Field::INT64) {
-        oge->put_field_data<int64_t, Kokkos::LayoutRight, Kokkos::HostSpace>(
-            field_name, pool.data_view_2D_int64_layout_space);
-      }
-      else if (basic_type == Ioss::Field::REAL) {
-        oge->put_field_data<double, Kokkos::LayoutRight, Kokkos::HostSpace>(
-            field_name, pool.data_view_2D_double_layout_space);
-      }
-      else if (basic_type == Ioss::Field::COMPLEX) {
-        // Since data_view_complex cannot be a global variable.
-        oge->put_field_data(field_name, pool.data.data(), isize);
-      }
-      else {
-      }
-      break;
-#endif
-    default: return;
-    }
-  }
-
-  void transfer_qa_info(Ioss::Region &in, Ioss::Region &out)
-  {
-    out.add_information_records(in.get_information_records());
-
-    const std::vector<std::string> &qa = in.get_qa_records();
-    for (size_t i = 0; i < qa.size(); i += 4) {
-      out.add_qa_record(qa[i + 0], qa[i + 1], qa[i + 2], qa[i + 3]);
-    }
-  }
-
-  void transfer_properties(const Ioss::GroupingEntity *ige, Ioss::GroupingEntity *oge)
-  {
-    Ioss::NameList properties;
-    ige->property_describe(&properties);
-
-    // Iterate through properties and transfer to output database...
-    for (const auto &property : properties) {
-      if (!oge->property_exists(property)) {
-        oge->property_add(ige->get_property(property));
-      }
-    }
-  }
-
-  void show_step(int istep, double time, const Ioss::MeshCopyOptions &options, int rank)
-  {
-    if (options.verbose && rank == 0) {
-      fmt::print(Ioss::DEBUG(), "\r\tTime step {:5d} at time {:10.5e}", istep, time);
-    }
-  }
-
-  template <typename INT>
-  void set_owned_node_count(Ioss::Region &region, int my_processor, INT /*dummy*/)
-  {
-    Ioss::NodeBlock *nb = region.get_node_block("nodeblock_1");
-    if (nb->field_exists("owning_processor")) {
-      std::vector<int> my_data;
-      nb->get_field_data("owning_processor", my_data);
-
-      INT owned = std::count(my_data.begin(), my_data.end(), my_processor);
-      nb->property_add(Ioss::Property("locally_owned_count", owned));
-
-      // Set locally_owned_count property on all nodesets...
-      const Ioss::NodeSetContainer &nss = region.get_nodesets();
-      for (auto ns : nss) {
-
-        std::vector<INT> ids;
-        ns->get_field_data("ids_raw", ids);
-        owned = 0;
-        for (size_t n = 0; n < ids.size(); n++) {
-          INT id = ids[n];
-          if (my_data[id - 1] == my_processor) {
-            ++owned;
-          }
-        }
-        ns->property_add(Ioss::Property("locally_owned_count", owned));
-      }
-    }
-  }
-
-  void add_proc_id(Ioss::Region &region, int rank)
-  {
-    region.begin_mode(Ioss::STATE_DEFINE_TRANSIENT);
-    auto &sblocks = region.get_structured_blocks();
-    for (auto &sb : sblocks) {
-      sb->field_add(
-          Ioss::Field("processor_id", Ioss::Field::REAL, "scalar", Ioss::Field::TRANSIENT));
-    }
-
-    auto &eblocks = region.get_element_blocks();
-    for (auto &eb : eblocks) {
-      eb->field_add(
-          Ioss::Field("processor_id", Ioss::Field::REAL, "scalar", Ioss::Field::TRANSIENT));
-    }
-    region.end_mode(Ioss::STATE_DEFINE_TRANSIENT);
-
-    region.begin_mode(Ioss::STATE_TRANSIENT);
-
-    auto step = region.add_state(0.0);
-    region.begin_state(step);
-
-    for (auto &sb : sblocks) {
-      std::vector<double> proc_id(sb->entity_count(), rank);
-      sb->put_field_data("processor_id", proc_id);
-    }
-
-    for (auto &eb : eblocks) {
-      std::vector<double> proc_id(eb->entity_count(), rank);
-      eb->put_field_data("processor_id", proc_id);
-    }
-
-    region.end_state(step);
-    region.end_mode(Ioss::STATE_TRANSIENT);
-  }
-} // namespace

@@ -1,12 +1,12 @@
 /*
- * Copyright(C) 1999-2020 National Technology & Engineering Solutions
+ * Copyright(C) 1999-2020, 2022 National Technology & Engineering Solutions
  * of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
  * NTESS, the U.S. Government retains certain rights in this software.
- * 
+ *
  * See packages/seacas/LICENSE for details
  */
-#ifndef SEACAS_Variables_H
-#define SEACAS_Variables_H
+#pragma once
+
 #include "EP_ObjectType.h"
 #include <cstring>
 #include <smart_assert.h>
@@ -14,7 +14,7 @@
 #include <vector>
 
 namespace Excn {
-  enum InOut { IN = 1, OUT = 2 };
+  enum class InOut { IN = 1, OUT = 2 };
 
   using IntVector = std::vector<int>;
 
@@ -22,16 +22,18 @@ namespace Excn {
   {
     explicit Variables(ObjectType otype) : objectType(otype), outputCount(0), addProcessorId(false)
     {
-      SMART_ASSERT(otype == EBLK || otype == NSET || otype == SSET || otype == NODE ||
-                   otype == GLOBAL);
+      SMART_ASSERT(otype == Excn::ObjectType::EBLK || otype == Excn::ObjectType::NSET ||
+                   otype == Excn::ObjectType::SSET || otype == Excn::ObjectType::NODE ||
+                   otype == Excn::ObjectType::EDBLK || otype == Excn::ObjectType::FABLK ||
+                   otype == Excn::ObjectType::GLOBAL);
     }
 
-    int count(InOut in_out = IN) const
+    int count(InOut in_out = InOut::IN) const
     {
       int ret_val = 0;
       switch (in_out) {
-      case IN: ret_val = index_.size() - (addProcessorId ? 1 : 0); break;
-      case OUT: ret_val = outputCount; break;
+      case InOut::IN: ret_val = index_.size() - (addProcessorId ? 1 : 0); break;
+      case InOut::OUT: ret_val = outputCount; break;
       }
       return ret_val;
     }
@@ -39,11 +41,13 @@ namespace Excn {
     const char *label() const
     {
       switch (objectType) {
-      case EBLK: return "element";
-      case NSET: return "nodeset";
-      case GLOBAL: return "global";
-      case NODE: return "nodal";
-      case SSET: return "sideset";
+      case Excn::ObjectType::EBLK: return "element";
+      case Excn::ObjectType::NSET: return "nodeset";
+      case Excn::ObjectType::GLOBAL: return "global";
+      case Excn::ObjectType::NODE: return "nodal";
+      case Excn::ObjectType::SSET: return "sideset";
+      case Excn::ObjectType::EDBLK: return "edgeblock";
+      case Excn::ObjectType::FABLK: return "faceblock";
       default: return "UNKNOWN";
       }
     }
@@ -51,11 +55,13 @@ namespace Excn {
     ex_entity_type type() const
     {
       switch (objectType) {
-      case EBLK: return EX_ELEM_BLOCK;
-      case NSET: return EX_NODE_SET;
-      case SSET: return EX_SIDE_SET;
-      case NODE: return EX_NODAL;
-      case GLOBAL: return EX_GLOBAL;
+      case Excn::ObjectType::EBLK: return EX_ELEM_BLOCK;
+      case Excn::ObjectType::NSET: return EX_NODE_SET;
+      case Excn::ObjectType::SSET: return EX_SIDE_SET;
+      case Excn::ObjectType::NODE: return EX_NODAL;
+      case Excn::ObjectType::GLOBAL: return EX_GLOBAL;
+      case Excn::ObjectType::EDBLK: return EX_EDGE_BLOCK;
+      case Excn::ObjectType::FABLK: return EX_FACE_BLOCK;
       default: return EX_INVALID;
       }
     }
@@ -69,5 +75,3 @@ namespace Excn {
     std::string type_{};
   };
 } // namespace Excn
-
-#endif

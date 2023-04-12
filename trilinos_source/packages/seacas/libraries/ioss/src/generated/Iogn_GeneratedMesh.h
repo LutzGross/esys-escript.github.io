@@ -1,11 +1,12 @@
-// Copyright(C) 1999-2020 National Technology & Engineering Solutions
+// Copyright(C) 1999-2022 National Technology & Engineering Solutions
 // of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 // NTESS, the U.S. Government retains certain rights in this software.
-// 
+//
 // See packages/seacas/LICENSE for details
 
-#ifndef IOSS_Iogn_GeneratedMesh_h
-#define IOSS_Iogn_GeneratedMesh_h
+#pragma once
+
+#include "iogn_export.h"
 
 #include <Ioss_CodeTypes.h>
 #include <Ioss_EntityType.h> // for EntityType
@@ -18,9 +19,7 @@
 #include <vector>  // for vector
 
 namespace Iogn {
-  using MapVector = std::vector<int64_t>;
-
-  class GeneratedMesh
+  class IOGN_EXPORT GeneratedMesh
   {
   public:
     enum ShellLocation { MX = 0, PX = 1, MY = 2, PY = 3, MZ = 4, PZ = 5 };
@@ -73,6 +72,9 @@ namespace Iogn {
        - tets -- no argument - specifies that each hex should be
        split into 6 tetrahedral elements.  Cannot currently be used with
        shells or sidesets.
+
+       - pyramids -- no argument - specifies that each hex should be
+       split into 6 pyramidal elements.
 
        - shell -- argument = xXyYzZ which specifies whether there is a shell
        block at that location. 'x' is minimum x face, 'X' is maximum x face,
@@ -166,13 +168,22 @@ namespace Iogn {
     explicit GeneratedMesh(const std::string &parameters, int proc_count = 1, int my_proc = 0);
     GeneratedMesh(int64_t num_x, int64_t num_y, int64_t num_z, int proc_count = 1, int my_proc = 0);
     GeneratedMesh();
-    virtual ~GeneratedMesh();
+    GeneratedMesh(const GeneratedMesh &)            = delete;
+    GeneratedMesh &operator=(const GeneratedMesh &) = delete;
+
+    virtual ~GeneratedMesh() = default;
 
     /**
      * Split each hexahedral element into 6 tetrahedral elements.
      * Cannot currently be used with sidesets or shells.
      */
     void create_tets(bool yesno);
+
+    /**
+     * Split each hexahedral element into 6 pyramidal elements.
+     * Cannot currently be used with sidesets or shells.
+     */
+    void create_pyramids(bool yesno);
 
     /**
      * Add a shell block along the specified face of the hex mesh.
@@ -261,12 +272,12 @@ namespace Iogn {
     /**
      * Return number of element blocks in the entire model.
      */
-    virtual int64_t block_count() const;
+    virtual int block_count() const;
 
     /**
      * Return number of nodesets in the entire model.
      */
-    virtual int64_t nodeset_count() const;
+    virtual int nodeset_count() const;
 
     /**
      * Return number of nodeset nodes on nodeset 'id'
@@ -286,7 +297,7 @@ namespace Iogn {
     /**
      * Return number of sidesets in the entire model.
      */
-    virtual int64_t sideset_count() const;
+    virtual int sideset_count() const;
 
     /**
      * Return number of sideset 'sides' on sideset 'id'
@@ -319,7 +330,7 @@ namespace Iogn {
      */
     int64_t shell_element_count_proc(ShellLocation /*loc*/) const;
 
-    int64_t timestep_count() const { return timestepCount; }
+    int timestep_count() const { return timestepCount; }
     /**
      * Return number of elements in the element block with id
      * 'block_number'. The 'block_number' ranges from '1' to
@@ -344,7 +355,7 @@ namespace Iogn {
     void            build_node_map(Ioss::Int64Vector &map, std::vector<int> &proc, int64_t slab,
                                    size_t slabOffset, size_t adjacentProc, size_t index);
     virtual int64_t communication_node_count_proc() const;
-    virtual void    node_communication_map(MapVector &map, std::vector<int> &proc);
+    virtual void    node_communication_map(Ioss::Int64Vector &map, std::vector<int> &proc);
     virtual void    owning_processor(int *owner, int64_t num_node);
 
     /**
@@ -352,7 +363,7 @@ namespace Iogn {
      * "map[local_position] = global_id" for the nodes on this
      * processor.
      */
-    virtual void node_map(MapVector &map) const;
+    virtual void node_map(Ioss::Int64Vector &map) const;
     virtual void node_map(Ioss::IntVector &map) const;
 
     /**
@@ -360,7 +371,7 @@ namespace Iogn {
      * "map[local_position] = global_id" for the elements on this
      * processor in block "block_number".
      */
-    virtual void element_map(int64_t block_number, MapVector &map) const;
+    virtual void element_map(int64_t block_number, Ioss::Int64Vector &map) const;
     virtual void element_map(int64_t block_number, Ioss::IntVector &map) const;
 
     /**
@@ -368,7 +379,7 @@ namespace Iogn {
      * "map[local_position] = global_id" for all elements on this
      * processor
      */
-    virtual void element_map(MapVector &map) const;
+    virtual void element_map(Ioss::Int64Vector &map) const;
     virtual void element_map(Ioss::IntVector &map) const;
 
     /**
@@ -378,7 +389,7 @@ namespace Iogn {
      * all elements on the current processor having a face on the
      * surface defined by ShellLocation.
      */
-    void element_surface_map(ShellLocation loc, MapVector &map) const;
+    void element_surface_map(ShellLocation loc, Ioss::Int64Vector &map) const;
 
     /**
      * Return the connectivity for the elements on this processor in
@@ -460,9 +471,6 @@ namespace Iogn {
     template <typename INT> void raw_element_map(std::vector<INT> &map) const;
     template <typename INT> void raw_connectivity(int64_t block_number, INT *connect) const;
 
-    GeneratedMesh(const GeneratedMesh &);
-    GeneratedMesh &operator=(const GeneratedMesh &);
-
     void set_variable_count(const std::string &type, size_t count);
     void parse_options(const std::vector<std::string> &groups);
     void show_parameters() const;
@@ -472,22 +480,22 @@ namespace Iogn {
     std::vector<ShellLocation>           nodesets;
     std::vector<ShellLocation>           sidesets;
     std::array<std::array<double, 3>, 3> rotmat;
-    size_t                               numX, numY, numZ;
-    size_t                               myNumZ, myStartZ;
+    int64_t                              numX{0}, numY{0}, numZ{0};
+    int64_t                              myNumZ{0}, myStartZ{0};
 
-    size_t processorCount;
-    size_t myProcessor;
+    int processorCount{0};
+    int myProcessor{0};
 
-    size_t                             timestepCount;
+    int                                timestepCount{0};
     std::map<Ioss::EntityType, size_t> variableCount;
 
-    double offX, offY, offZ; /** Offsets in X, Y, and Z directions */
-    double sclX, sclY, sclZ; /** Scale in X, Y, and Z directions
-                              * location of node at (i,j,k)
-                              * position is (sclX*i+offX,
-                              * sclY*i+offY, sclZ*i+offZ) */
-    bool doRotation;
-    bool createTets;
+    double offX{0}, offY{0}, offZ{0}; /** Offsets in X, Y, and Z directions */
+    double sclX{1}, sclY{1}, sclZ{1}; /** Scale in X, Y, and Z directions
+                                       * location of node at (i,j,k)
+                                       * position is (sclX*i+offX,
+                                       * sclY*i+offY, sclZ*i+offZ) */
+    bool doRotation{false};
+    bool createTets{false};
+    bool createPyramids{false};
   };
 } // namespace Iogn
-#endif

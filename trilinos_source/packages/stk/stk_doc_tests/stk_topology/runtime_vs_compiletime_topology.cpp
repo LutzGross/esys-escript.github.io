@@ -32,24 +32,24 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 
-#include <gtest/gtest.h>
-#include <stk_topology/topology.hpp>
+#include "gtest/gtest.h"              // for Test, EXPECT_EQ, Message, SuiteApiResolver, TestInf...
+#include "stk_topology/topology.hpp"  // for topology, topology::HEX_8, topology::topology_type
 
 namespace {
 //-BEGIN
 TEST(stk_topology_how_to, runtime_vs_compiletime_topology )
 {
-    stk::topology runtime_hex8 = stk::topology::HEX_8;
+  stk::topology runtime_hex8 = stk::topology::HEX_8;
 
-    typedef stk::topology::topology_type<stk::topology::HEX_8> compiletime_hex8;
+  typedef stk::topology::topology_type<stk::topology::HEX_8> compiletime_hex8;
 
-    const unsigned compiletime_num_nodes = compiletime_hex8::num_nodes;
+  const unsigned compiletime_num_nodes = compiletime_hex8::num_nodes;
 
-    EXPECT_EQ( runtime_hex8.num_nodes(), compiletime_num_nodes );
+  EXPECT_EQ( runtime_hex8.num_nodes(), compiletime_num_nodes );
 
-    //declare a static array with length given by compile-time num-nodes
-    double compile_time_sized_array[compiletime_num_nodes];
-    EXPECT_EQ(sizeof(compile_time_sized_array), sizeof(double)*compiletime_num_nodes);
+  //declare a static array with length given by compile-time num-nodes
+  double compile_time_sized_array[compiletime_num_nodes];
+  EXPECT_EQ(sizeof(compile_time_sized_array), sizeof(double)*compiletime_num_nodes);
 }
 //-END
 }

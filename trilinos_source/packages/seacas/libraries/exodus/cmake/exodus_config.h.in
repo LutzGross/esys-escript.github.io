@@ -1,3 +1,4 @@
+#pragma once
 #cmakedefine EXODUS_THREADSAFE
 
 @SEACAS_DEPRECATED_DECLARATIONS@

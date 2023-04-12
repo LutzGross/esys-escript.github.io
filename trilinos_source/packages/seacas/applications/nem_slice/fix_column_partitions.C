@@ -1,8 +1,8 @@
 /*
- * Copyright(C) 1999-2020 National Technology & Engineering Solutions
+ * Copyright(C) 1999-2021, 2023 National Technology & Engineering Solutions
  * of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
  * NTESS, the U.S. Government retains certain rights in this software.
- * 
+ *
  * See packages/seacas/LICENSE for details
  */
 
@@ -39,8 +39,8 @@ namespace {
 
     // Get nodes of this side (face) of the element
 
-    int nsnodes = is_hex(etype) ? 4 : 3;
-    INT side_nodes[9]; // SHELL9 has 9 nodes on a face.
+    int nsnodes       = is_hex(etype) ? 4 : 3;
+    INT side_nodes[9] = {0}; // SHELL9 has 9 nodes on a face.
 
     INT *elnodes = mesh->connect[cur_elem];
     ss_to_node_list(etype, elnodes, side_id, side_nodes);
@@ -48,7 +48,7 @@ namespace {
     // How would these side's nodes be if they were viewed from the
     // adjacent element
 
-    INT side_nodes_flipped[9]; // Realistically: 4, max possible: 9
+    INT side_nodes_flipped[9] = {0}; // Realistically: 4, max possible: 9
     get_ss_mirror(etype, side_nodes, side_id, side_nodes_flipped);
 
     for (int i = 0; i < nadj; i++) {
@@ -87,7 +87,7 @@ namespace {
 
 template int fix_column_partitions(LB_Description<int> *lb, Mesh_Description<int> const *const mesh,
                                    Graph_Description<int> const *const graph);
-template int fix_column_partitions(LB_Description<int64_t> *               lb,
+template int fix_column_partitions(LB_Description<int64_t>                *lb,
                                    Mesh_Description<int64_t> const *const  mesh,
                                    Graph_Description<int64_t> const *const graph);
 
@@ -95,9 +95,9 @@ template <typename INT>
 int fix_column_partitions(LB_Description<INT> *lb, Mesh_Description<INT> const *const mesh,
                           Graph_Description<INT> const *const graph)
 {
-  int nmoved = 0;
-  int nel    = mesh->num_elems;
-  int nnod   = mesh->num_nodes;
+  int  nmoved = 0;
+  auto nel    = mesh->num_elems;
+  auto nnod   = mesh->num_nodes;
 
   // a flag to indicate if a particular element has been processed
   std::vector<bool> processed_flag(nel, false);
@@ -106,7 +106,7 @@ int fix_column_partitions(LB_Description<INT> *lb, Mesh_Description<INT> const *
   // that contain it. Then check if the column is all on one partition
   // - if not, fix it
 
-  for (int i = 0; i < nel; i++) {
+  for (size_t i = 0; i < nel; i++) {
     if (processed_flag[i])
       continue;
 
@@ -139,7 +139,8 @@ int fix_column_partitions(LB_Description<INT> *lb, Mesh_Description<INT> const *
 
     int count = 0;
     for (int j = 0; j < nelfaces; j++) {
-      INT fnodes[9]; // Should only need 4, but ss_to_node_list can potentially access 9 (SHELL9).
+      INT fnodes[9] = {
+          0}; // Should only need 4, but ss_to_node_list can potentially access 9 (SHELL9).
 
       int nfn = 4;
       if (is_wedge(etype)) {
@@ -155,7 +156,7 @@ int fix_column_partitions(LB_Description<INT> *lb, Mesh_Description<INT> const *
       ss_to_node_list(etype, mesh->connect[i], j + 1, fnodes);
 
       // Translate global IDs of side nodes to local IDs in element
-      int fnodes_loc[9];
+      int fnodes_loc[9] = {0};
       for (int k = 0; k < nfn; k++) {
         bool found = false;
         for (int k2 = 0; k2 < nelnodes; k2++) {
@@ -243,7 +244,7 @@ int fix_column_partitions(LB_Description<INT> *lb, Mesh_Description<INT> const *
     bool upsearch_done = false;
     while (!upsearch_done) {
 
-      int        nadj = graph->start[cur_elem + 1] - graph->start[cur_elem];
+      auto       nadj = graph->start[cur_elem + 1] - graph->start[cur_elem];
       INT const *adj  = graph->adj.data() + graph->start[cur_elem];
       find_adjacent_element(cur_elem, etype, top_side, nadj, adj, mesh, &adj_elem, &adj_side);
       if (adj_elem == -1) {
@@ -271,7 +272,7 @@ int fix_column_partitions(LB_Description<INT> *lb, Mesh_Description<INT> const *
         processed_flag[adj_elem] = true;
       }
     } // while (!upsearch_done)
-    int nabove = above_list.size();
+    auto nabove = above_list.size();
 
     cur_elem             = i;
     bot_side             = bot_side0;
@@ -279,7 +280,7 @@ int fix_column_partitions(LB_Description<INT> *lb, Mesh_Description<INT> const *
     bool downsearch_done = false;
     while (!downsearch_done) {
 
-      int        nadj = graph->start[cur_elem + 1] - graph->start[cur_elem];
+      auto       nadj = graph->start[cur_elem + 1] - graph->start[cur_elem];
       INT const *adj  = graph->adj.data() + graph->start[cur_elem];
       find_adjacent_element(cur_elem, etype, bot_side, nadj, adj, mesh, &adj_elem, &adj_side);
       if (adj_elem == -1) {
@@ -307,7 +308,7 @@ int fix_column_partitions(LB_Description<INT> *lb, Mesh_Description<INT> const *
         processed_flag[adj_elem] = true;
       }
     } // while (!upsearch_done)
-    int nbelow = below_list.size();
+    auto nbelow = below_list.size();
 
     // Build list of elements in column from top to bottom
     // Code below assumes we are NOT compiling with C++11 standard enabled

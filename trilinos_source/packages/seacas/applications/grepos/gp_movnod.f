@@ -1,7 +1,7 @@
 C Copyright(C) 1999-2020 National Technology & Engineering Solutions
 C of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 C NTESS, the U.S. Government retains certain rights in this software.
-C 
+C
 C See packages/seacas/LICENSE for details
 
 C=======================================================================
@@ -165,4 +165,3 @@ C ... Update the nodes position (Currently, assumes in vector direction)
 10020 format(/,'Node movement = ',1pe11.4)
       return
       end
-

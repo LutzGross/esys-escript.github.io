@@ -1552,7 +1552,7 @@
                           bool stk_auto= stk::mesh::is_auto_declared_part(*parts[ip]);
 
                           if (stk_auto) continue;
-                          unsigned per = parts[ip]->primary_entity_rank();
+                          stk::mesh::EntityRank per = parts[ip]->primary_entity_rank();
 
                           if (per == m_eMesh.side_rank())
                             {
@@ -1605,14 +1605,14 @@
                   double drop_off_coeffs[3] = {1,1,1};  // FIXME
                   int nlayers_drop_off = 40;
                   niter = 1;
-                  percept::ReferenceMeshSmootherAlgebraic pmmpsi(&m_eMesh, selector,NULL, mesh_geometry, niter, 1.e-4, drop_off_coeffs, nlayers_drop_off);
+                  percept::ReferenceMeshSmootherAlgebraic pmmpsi(&m_eMesh, selector, mesh_geometry, niter, 1.e-4, drop_off_coeffs, nlayers_drop_off);
                   pmmpsi.m_do_animation = 0;
                   pmmpsi.m_use_ref_mesh = use_ref_mesh;
                   pmmpsi.run();
                 }
               else
                 {
-                  percept::ReferenceMeshSmootherConjugateGradientImpl<STKMesh> pmmpsi(&m_eMesh, selector,NULL, mesh_geometry, niter, tol);
+                  percept::ReferenceMeshSmootherConjugateGradientImpl<STKMesh> pmmpsi(&m_eMesh, selector, mesh_geometry, niter, tol);
                   pmmpsi.m_use_ref_mesh = use_ref_mesh;
                   pmmpsi.run();
                 }
@@ -1934,7 +1934,7 @@
               numSubDimNeededEntities = 1;
             }
 
-          if (needed_entity_ranks[ineed_ent].first >= new_sub_entity_nodes.size())
+          if (static_cast<unsigned>(needed_entity_ranks[ineed_ent].first) >= new_sub_entity_nodes.size())
             {
               throw std::logic_error("Refiner::createNewNeededNodeIds logic err #1");
             }
@@ -2129,7 +2129,7 @@
                   if (side_auto_part)
                     continue;
 
-                  unsigned per = side_parts[isp]->primary_entity_rank();
+                  stk::mesh::EntityRank per = side_parts[isp]->primary_entity_rank();
                   if (per != side_rank_iter)
                     continue;
 
@@ -3099,7 +3099,7 @@
     percept::MyPairIterRelation parent_elem_nodes (eMesh, parent_elem,  stk::topology::NODE_RANK );
     for (unsigned i = 0; i < parent_elem_nodes.size(); i++)
       {
-        if (checkInShared && !eMesh.get_bulk_data()->in_shared(eMesh.key(parent_elem_nodes[i].entity()))) continue;
+        if (checkInShared && !eMesh.get_bulk_data()->in_shared(parent_elem_nodes[i].entity())) continue;
 
         bool found = false;
         percept::MyPairIterRelation ft_nodes (eMesh, family_tree,  stk::topology::NODE_RANK );
@@ -3126,7 +3126,7 @@
       }
     for (unsigned i = 0; i < child_elem_nodes.size(); i++)
       {
-        if (checkInShared && !eMesh.get_bulk_data()->in_shared(eMesh.key(child_elem_nodes[i].entity()))) continue;
+        if (checkInShared && !eMesh.get_bulk_data()->in_shared(child_elem_nodes[i].entity())) continue;
 
         bool found = false;
         percept::MyPairIterRelation ft_nodes (eMesh, family_tree,  stk::topology::NODE_RANK );
@@ -3156,7 +3156,7 @@
         percept::MyPairIterRelation ft_level_0_nodes (eMesh, family_tree_level_0,  stk::topology::NODE_RANK );
         for (unsigned i = 0; i < ft_level_0_nodes.size(); i++)
           {
-            if (checkInShared && !eMesh.get_bulk_data()->in_shared(eMesh.key(ft_level_0_nodes[i].entity()))) continue;
+            if (checkInShared && !eMesh.get_bulk_data()->in_shared(ft_level_0_nodes[i].entity())) continue;
 
             bool found = false;
             percept::MyPairIterRelation ft_nodes (eMesh, family_tree,  stk::topology::NODE_RANK );

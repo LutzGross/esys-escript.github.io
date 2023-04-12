@@ -1,7 +1,7 @@
-// Copyright(C) 1999-2020 National Technology & Engineering Solutions
+// Copyright(C) 1999-2021, 2023 National Technology & Engineering Solutions
 // of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 // NTESS, the U.S. Government retains certain rights in this software.
-// 
+//
 // See packages/seacas/LICENSE for details
 
 #include "smart_assert.h"
@@ -18,7 +18,7 @@ namespace {
   // in case we're logging using the default logger...
   struct stream_holder
   {
-    stream_holder() : out_(nullptr), owns_(false) {}
+    stream_holder() = default;
     ~stream_holder()
     {
       if (owns_) {
@@ -26,15 +26,15 @@ namespace {
       }
       out_ = nullptr;
     }
-    std::ostream *out_{};
-    bool          owns_;
+    std::ostream *out_{nullptr};
+    bool          owns_{false};
   };
   // information about the stream we write to, in case
   // we're using the default logger
   stream_holder default_logger_info;
 
   // initializes the SMART_ASSERT library
-  struct assert_initializer
+  [[maybe_unused]] struct assert_initializer
   {
     assert_initializer() { Private::init_assert(); }
   } init;
@@ -85,7 +85,7 @@ namespace smart_assert {
     out << "\nExpression: '" << context.get_expr() << "'\n";
 
     typedef assert_context::vals_array ac_vals_array;
-    const ac_vals_array &              aVals = context.get_vals_array();
+    const ac_vals_array               &aVals = context.get_vals_array();
     if (!aVals.empty()) {
       bool                          bFirstTime = true;
       ac_vals_array::const_iterator first = aVals.begin(), last = aVals.end();

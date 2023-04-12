@@ -84,9 +84,10 @@ template <typename Scalar>
 Piro::LOCAAdaptiveSolver<Scalar>::LOCAAdaptiveSolver(
     const Teuchos::RCP<Teuchos::ParameterList> &piroParams,
     const Teuchos::RCP<Thyra::ModelEvaluator<Scalar> > &model,
+    const Teuchos::RCP<Thyra::ModelEvaluator<Scalar> > &adjointModel,
     const Teuchos::RCP<Thyra::AdaptiveSolutionManager> &solMgr,
     const Teuchos::RCP<LOCA::Thyra::SaveDataStrategy> &saveDataStrategy) :
-  SteadyStateSolver<Scalar>(model, model->Np() > 0), // Only one parameter supported
+  SteadyStateSolver<Scalar>(model, adjointModel, model->Np() > 0), // Only one parameter supported
   piroParams_(piroParams),
   saveDataStrategy_(saveDataStrategy),
   globalData_(LOCA::createGlobalData(piroParams)),
@@ -265,7 +266,8 @@ Piro::LOCAAdaptiveSolver<Scalar>::evalModelImpl(
       modelInArgs.set_p(l, p_inargs);
     }
 
-    this->evalConvergedModelResponsesAndSensitivities(modelInArgs, outArgs);
+    Teuchos::ParameterList analysisParams;
+    this->evalConvergedModelResponsesAndSensitivities(modelInArgs, outArgs, analysisParams);
 
     // Save the final solution TODO: this needs to be redone
 
@@ -285,6 +287,7 @@ Teuchos::RCP<Piro::LOCAAdaptiveSolver<Scalar> >
 Piro::observedLocaSolver(
     const Teuchos::RCP<Teuchos::ParameterList> &appParams,
     const Teuchos::RCP<Thyra::ModelEvaluator<Scalar> > &model,
+    const Teuchos::RCP<Thyra::ModelEvaluator<Scalar> > &adjointModel,
     const Teuchos::RCP<Thyra::AdaptiveSolutionManager> &solMgr,
     const Teuchos::RCP<Piro::ObserverBase<Scalar> > &observer)
 {
@@ -293,7 +296,14 @@ Piro::observedLocaSolver(
     Teuchos::rcp(new Piro::ObserverToLOCASaveDataStrategyAdapter(observer)) :
     Teuchos::null;
 
-  return Teuchos::rcp(new Piro::LOCAAdaptiveSolver<Scalar>(appParams, model, solMgr, saveDataStrategy));
+  return Teuchos::rcp(new Piro::LOCAAdaptiveSolver<Scalar>(appParams, model, adjointModel, solMgr, saveDataStrategy));
+}
+
+template <typename Scalar>
+Teuchos::RCP<LOCA::AdaptiveStepper>
+Piro::LOCAAdaptiveSolver<Scalar>::getStepper()
+{
+  return stepper_;
 }
 
 #endif /* PIRO_LOCAADAPTIVESOLVER_DEF_HPP */

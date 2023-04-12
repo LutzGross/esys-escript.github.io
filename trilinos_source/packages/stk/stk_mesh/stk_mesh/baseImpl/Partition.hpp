@@ -42,11 +42,12 @@
 #include <string>                       // for string
 #include <vector>                       // for vector, etc
 #include "stk_mesh/base/Bucket.hpp"     // for Bucket
-#include <stk_mesh/base/EntityLess.hpp>
+#include <stk_mesh/base/EntitySorterBase.hpp>
 
 namespace stk { namespace mesh { class BulkData; } }
 namespace stk { namespace mesh { class FieldBase; } }
 namespace stk { namespace mesh { struct Entity; } }
+namespace stk { namespace mesh { namespace impl { class BucketRepository; } } }
 
 namespace stk {
 namespace mesh {
@@ -84,14 +85,12 @@ public:
 
   /// Sort the entities in this partition by EntityKey without changing
   /// the number or sizes of buckets.
-  void default_sort_if_needed();
+  void default_sort_if_needed(bool mustSortFacesByNodeIds=false);
   void sort(const EntitySorterBase& sorter);
 
   void set_flag_needs_to_be_sorted(bool flag) { m_updated_since_sort = flag; }
 
   bool needs_to_be_sorted() const { return m_updated_since_sort; }
-
-  size_t field_data_footprint(const FieldBase &f) const;
 
   ////
   //// This part of the interface exposes the Buckets that are currently a part of
@@ -132,7 +131,13 @@ public:
   std::ostream &dumpit(std::ostream &os) const;
   std::string dumpit() const;
 
-  void delete_bucket(Bucket * bucket);
+  void delete_bucket(Bucket* bucket);
+
+  void remove_bucket(Bucket* bucket);
+
+  void add_bucket(Bucket* bucket);
+
+  void reset_partition_key(const std::vector<unsigned>& newKey);
 
 private:
   BulkData& m_mesh;
@@ -169,19 +174,6 @@ private:
   {
 #ifndef NDEBUG
     internal_check_no_null_buckets_invariant();
-    internal_check_size_invariant();
-#endif
-  }
-
-  void internal_check_size_invariant() const
-  {
-#ifndef NDEBUG
-    size_t sum = 0;
-    for (size_t i = 0, e = m_buckets.size(); i < e; ++i) {
-      sum += m_buckets[i]->size();
-      m_buckets[i]->check_size_invariant();
-    }
-    ThrowAssertMsg(sum == m_size, "Inconsistent sizes, bucket sum is " << sum << ", m_size is " << m_size);
 #endif
   }
 

@@ -1,43 +1,17 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
 
 #ifndef KOKKOS_ALGORITHMS_UNITTESTS_TESTSORT_HPP
@@ -55,8 +29,8 @@ namespace Impl {
 
 template <class ExecutionSpace, class Scalar>
 struct is_sorted_struct {
-  typedef unsigned int value_type;
-  typedef ExecutionSpace execution_space;
+  using value_type      = unsigned int;
+  using execution_space = ExecutionSpace;
 
   Kokkos::View<Scalar*, ExecutionSpace> keys;
 
@@ -69,8 +43,8 @@ struct is_sorted_struct {
 
 template <class ExecutionSpace, class Scalar>
 struct sum {
-  typedef double value_type;
-  typedef ExecutionSpace execution_space;
+  using value_type      = double;
+  using execution_space = ExecutionSpace;
 
   Kokkos::View<Scalar*, ExecutionSpace> keys;
 
@@ -81,8 +55,8 @@ struct sum {
 
 template <class ExecutionSpace, class Scalar>
 struct bin3d_is_sorted_struct {
-  typedef unsigned int value_type;
-  typedef ExecutionSpace execution_space;
+  using value_type      = unsigned int;
+  using execution_space = ExecutionSpace;
 
   Kokkos::View<Scalar * [3], ExecutionSpace> keys;
 
@@ -115,8 +89,8 @@ struct bin3d_is_sorted_struct {
 
 template <class ExecutionSpace, class Scalar>
 struct sum3D {
-  typedef double value_type;
-  typedef ExecutionSpace execution_space;
+  using value_type      = double;
+  using execution_space = ExecutionSpace;
 
   Kokkos::View<Scalar * [3], ExecutionSpace> keys;
 
@@ -130,13 +104,14 @@ struct sum3D {
 };
 
 template <class ExecutionSpace, typename KeyType>
-void test_1D_sort_impl(unsigned int n, bool force_kokkos) {
-  typedef Kokkos::View<KeyType*, ExecutionSpace> KeyViewType;
+void test_1D_sort_impl(unsigned int n) {
+  using KeyViewType = Kokkos::View<KeyType*, ExecutionSpace>;
   KeyViewType keys("Keys", n);
 
   // Test sorting array with all numbers equal
-  Kokkos::deep_copy(keys, KeyType(1));
-  Kokkos::sort(keys, force_kokkos);
+  ExecutionSpace exec;
+  Kokkos::deep_copy(exec, keys, KeyType(1));
+  Kokkos::sort(exec, keys);
 
   Kokkos::Random_XorShift64_Pool<ExecutionSpace> g(1931);
   Kokkos::fill_random(keys, g,
@@ -147,26 +122,29 @@ void test_1D_sort_impl(unsigned int n, bool force_kokkos) {
   double sum_after        = 0.0;
   unsigned int sort_fails = 0;
 
-  Kokkos::parallel_reduce(n, sum<ExecutionSpace, KeyType>(keys), sum_before);
+  Kokkos::parallel_reduce(Kokkos::RangePolicy<ExecutionSpace>(exec, 0, n),
+                          sum<ExecutionSpace, KeyType>(keys), sum_before);
 
-  Kokkos::sort(keys, force_kokkos);
+  Kokkos::sort(exec, keys);
 
-  Kokkos::parallel_reduce(n, sum<ExecutionSpace, KeyType>(keys), sum_after);
-  Kokkos::parallel_reduce(
-      n - 1, is_sorted_struct<ExecutionSpace, KeyType>(keys), sort_fails);
+  Kokkos::parallel_reduce(Kokkos::RangePolicy<ExecutionSpace>(exec, 0, n),
+                          sum<ExecutionSpace, KeyType>(keys), sum_after);
+  Kokkos::parallel_reduce(Kokkos::RangePolicy<ExecutionSpace>(exec, 0, n - 1),
+                          is_sorted_struct<ExecutionSpace, KeyType>(keys),
+                          sort_fails);
 
   double ratio   = sum_before / sum_after;
   double epsilon = 1e-10;
   unsigned int equal_sum =
       (ratio > (1.0 - epsilon)) && (ratio < (1.0 + epsilon)) ? 1 : 0;
 
-  ASSERT_EQ(sort_fails, 0);
-  ASSERT_EQ(equal_sum, 1);
+  ASSERT_EQ(sort_fails, 0u);
+  ASSERT_EQ(equal_sum, 1u);
 }
 
 template <class ExecutionSpace, typename KeyType>
 void test_3D_sort_impl(unsigned int n) {
-  typedef Kokkos::View<KeyType * [3], ExecutionSpace> KeyViewType;
+  using KeyViewType = Kokkos::View<KeyType * [3], ExecutionSpace>;
 
   KeyViewType keys("Keys", n * n * n);
 
@@ -177,8 +155,10 @@ void test_3D_sort_impl(unsigned int n) {
   double sum_after        = 0.0;
   unsigned int sort_fails = 0;
 
-  Kokkos::parallel_reduce(keys.extent(0), sum3D<ExecutionSpace, KeyType>(keys),
-                          sum_before);
+  ExecutionSpace exec;
+  Kokkos::parallel_reduce(
+      Kokkos::RangePolicy<ExecutionSpace>(exec, 0, keys.extent(0)),
+      sum3D<ExecutionSpace, KeyType>(keys), sum_before);
 
   int bin_1d = 1;
   while (bin_1d * bin_1d * bin_1d * 4 < (int)keys.extent(0)) bin_1d *= 2;
@@ -186,18 +166,20 @@ void test_3D_sort_impl(unsigned int n) {
   typename KeyViewType::value_type min[3] = {0, 0, 0};
   typename KeyViewType::value_type max[3] = {100, 100, 100};
 
-  typedef Kokkos::BinOp3D<KeyViewType> BinOp;
+  using BinOp = Kokkos::BinOp3D<KeyViewType>;
   BinOp bin_op(bin_max, min, max);
   Kokkos::BinSort<KeyViewType, BinOp> Sorter(keys, bin_op, false);
-  Sorter.create_permute_vector();
-  Sorter.template sort<KeyViewType>(keys);
+  Sorter.create_permute_vector(exec);
+  Sorter.sort(exec, keys);
 
-  Kokkos::parallel_reduce(keys.extent(0), sum3D<ExecutionSpace, KeyType>(keys),
-                          sum_after);
-  Kokkos::parallel_reduce(keys.extent(0) - 1,
-                          bin3d_is_sorted_struct<ExecutionSpace, KeyType>(
-                              keys, bin_1d, min[0], max[0]),
-                          sort_fails);
+  Kokkos::parallel_reduce(
+      Kokkos::RangePolicy<ExecutionSpace>(exec, 0, keys.extent(0)),
+      sum3D<ExecutionSpace, KeyType>(keys), sum_after);
+  Kokkos::parallel_reduce(
+      Kokkos::RangePolicy<ExecutionSpace>(exec, 0, keys.extent(0) - 1),
+      bin3d_is_sorted_struct<ExecutionSpace, KeyType>(keys, bin_1d, min[0],
+                                                      max[0]),
+      sort_fails);
 
   double ratio   = sum_before / sum_after;
   double epsilon = 1e-10;
@@ -207,17 +189,17 @@ void test_3D_sort_impl(unsigned int n) {
   if (sort_fails)
     printf("3D Sort Sum: %f %f Fails: %u\n", sum_before, sum_after, sort_fails);
 
-  ASSERT_EQ(sort_fails, 0);
-  ASSERT_EQ(equal_sum, 1);
+  ASSERT_EQ(sort_fails, 0u);
+  ASSERT_EQ(equal_sum, 1u);
 }
 
 //----------------------------------------------------------------------------
 
 template <class ExecutionSpace, typename KeyType>
 void test_dynamic_view_sort_impl(unsigned int n) {
-  typedef Kokkos::Experimental::DynamicView<KeyType*, ExecutionSpace>
-      KeyDynamicViewType;
-  typedef Kokkos::View<KeyType*, ExecutionSpace> KeyViewType;
+  using KeyDynamicViewType =
+      Kokkos::Experimental::DynamicView<KeyType*, ExecutionSpace>;
+  using KeyViewType = Kokkos::View<KeyType*, ExecutionSpace>;
 
   const size_t upper_bound    = 2 * n;
   const size_t min_chunk_size = 1024;
@@ -229,36 +211,36 @@ void test_dynamic_view_sort_impl(unsigned int n) {
   KeyViewType keys_view("KeysTmp", n);
 
   // Test sorting array with all numbers equal
-  Kokkos::deep_copy(keys_view, KeyType(1));
+  ExecutionSpace exec;
+  Kokkos::deep_copy(exec, keys_view, KeyType(1));
   Kokkos::deep_copy(keys, keys_view);
-  Kokkos::sort(keys, 0 /* begin */, n /* end */);
+  Kokkos::sort(exec, keys, 0 /* begin */, n /* end */);
 
   Kokkos::Random_XorShift64_Pool<ExecutionSpace> g(1931);
   Kokkos::fill_random(keys_view, g,
                       Kokkos::Random_XorShift64_Pool<
                           ExecutionSpace>::generator_type::MAX_URAND);
 
-  ExecutionSpace().fence();
+  exec.fence();
   Kokkos::deep_copy(keys, keys_view);
-  // ExecutionSpace().fence();
 
   double sum_before       = 0.0;
   double sum_after        = 0.0;
   unsigned int sort_fails = 0;
 
-  Kokkos::parallel_reduce(n, sum<ExecutionSpace, KeyType>(keys_view),
-                          sum_before);
+  Kokkos::parallel_reduce(Kokkos::RangePolicy<ExecutionSpace>(exec, 0, n),
+                          sum<ExecutionSpace, KeyType>(keys_view), sum_before);
 
-  Kokkos::sort(keys, 0 /* begin */, n /* end */);
+  Kokkos::sort(exec, keys, 0 /* begin */, n /* end */);
 
-  ExecutionSpace().fence();  // Need this fence to prevent BusError with Cuda
+  exec.fence();  // Need this fence to prevent BusError with Cuda
   Kokkos::deep_copy(keys_view, keys);
-  // ExecutionSpace().fence();
 
-  Kokkos::parallel_reduce(n, sum<ExecutionSpace, KeyType>(keys_view),
-                          sum_after);
-  Kokkos::parallel_reduce(
-      n - 1, is_sorted_struct<ExecutionSpace, KeyType>(keys_view), sort_fails);
+  Kokkos::parallel_reduce(Kokkos::RangePolicy<ExecutionSpace>(exec, 0, n),
+                          sum<ExecutionSpace, KeyType>(keys_view), sum_after);
+  Kokkos::parallel_reduce(Kokkos::RangePolicy<ExecutionSpace>(exec, 0, n - 1),
+                          is_sorted_struct<ExecutionSpace, KeyType>(keys_view),
+                          sort_fails);
 
   double ratio   = sum_before / sum_after;
   double epsilon = 1e-10;
@@ -271,8 +253,8 @@ void test_dynamic_view_sort_impl(unsigned int n) {
               << std::endl;
   }
 
-  ASSERT_EQ(sort_fails, 0);
-  ASSERT_EQ(equal_sum, 1);
+  ASSERT_EQ(sort_fails, 0u);
+  ASSERT_EQ(equal_sum, 1u);
 }
 
 //----------------------------------------------------------------------------
@@ -301,12 +283,13 @@ void test_issue_1160_impl() {
   for (int i = 0; i < 10; ++i) {
     h_v.access(i, 0) = h_x.access(i, 0) = double(h_element(i));
   }
-  Kokkos::deep_copy(element_, h_element);
-  Kokkos::deep_copy(x_, h_x);
-  Kokkos::deep_copy(v_, h_v);
+  ExecutionSpace exec;
+  Kokkos::deep_copy(exec, element_, h_element);
+  Kokkos::deep_copy(exec, x_, h_x);
+  Kokkos::deep_copy(exec, v_, h_v);
 
-  typedef decltype(element_) KeyViewType;
-  typedef Kokkos::BinOp1D<KeyViewType> BinOp;
+  using KeyViewType = decltype(element_);
+  using BinOp       = Kokkos::BinOp1D<KeyViewType>;
 
   int begin = 3;
   int end   = 8;
@@ -316,15 +299,16 @@ void test_issue_1160_impl() {
 
   Kokkos::BinSort<KeyViewType, BinOp> Sorter(element_, begin, end, binner,
                                              false);
-  Sorter.create_permute_vector();
-  Sorter.sort(element_, begin, end);
+  Sorter.create_permute_vector(exec);
+  Sorter.sort(exec, element_, begin, end);
 
-  Sorter.sort(x_, begin, end);
-  Sorter.sort(v_, begin, end);
+  Sorter.sort(exec, x_, begin, end);
+  Sorter.sort(exec, v_, begin, end);
 
-  Kokkos::deep_copy(h_element, element_);
-  Kokkos::deep_copy(h_x, x_);
-  Kokkos::deep_copy(h_v, v_);
+  Kokkos::deep_copy(exec, h_element, element_);
+  Kokkos::deep_copy(exec, h_x, x_);
+  Kokkos::deep_copy(exec, h_v, v_);
+  exec.fence();
 
   ASSERT_EQ(h_element(0), 9);
   ASSERT_EQ(h_element(1), 8);
@@ -343,12 +327,60 @@ void test_issue_1160_impl() {
   }
 }
 
+template <class ExecutionSpace>
+void test_issue_4978_impl() {
+  Kokkos::View<long long*, ExecutionSpace> element_("element", 9);
+
+  auto h_element = Kokkos::create_mirror_view(element_);
+
+  h_element(0) = LLONG_MIN;
+  h_element(1) = 0;
+  h_element(2) = 3;
+  h_element(3) = 2;
+  h_element(4) = 1;
+  h_element(5) = 3;
+  h_element(6) = 6;
+  h_element(7) = 4;
+  h_element(8) = 3;
+
+  ExecutionSpace exec;
+  Kokkos::deep_copy(exec, element_, h_element);
+
+  Kokkos::sort(exec, element_);
+
+  Kokkos::deep_copy(exec, h_element, element_);
+  exec.fence();
+
+  ASSERT_EQ(h_element(0), LLONG_MIN);
+  ASSERT_EQ(h_element(1), 0);
+  ASSERT_EQ(h_element(2), 1);
+  ASSERT_EQ(h_element(3), 2);
+  ASSERT_EQ(h_element(4), 3);
+  ASSERT_EQ(h_element(5), 3);
+  ASSERT_EQ(h_element(6), 3);
+  ASSERT_EQ(h_element(7), 4);
+  ASSERT_EQ(h_element(8), 6);
+}
+
+template <class ExecutionSpace, class T>
+void test_sort_integer_overflow() {
+  // array with two extrema in reverse order to expose integer overflow bug in
+  // bin calculation
+  T a[2]  = {Kokkos::Experimental::finite_max<T>::value,
+            Kokkos::Experimental::finite_min<T>::value};
+  auto vd = Kokkos::create_mirror_view_and_copy(
+      ExecutionSpace(), Kokkos::View<T[2], Kokkos::HostSpace>(a));
+  Kokkos::sort(vd);
+  auto vh = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), vd);
+  EXPECT_TRUE(std::is_sorted(vh.data(), vh.data() + 2))
+      << "view (" << vh[0] << ", " << vh[1] << ") is not sorted";
+}
+
 //----------------------------------------------------------------------------
 
 template <class ExecutionSpace, typename KeyType>
 void test_1D_sort(unsigned int N) {
-  test_1D_sort_impl<ExecutionSpace, KeyType>(N * N * N, true);
-  test_1D_sort_impl<ExecutionSpace, KeyType>(N * N * N, false);
+  test_1D_sort_impl<ExecutionSpace, KeyType>(N * N * N);
 }
 
 template <class ExecutionSpace, typename KeyType>
@@ -366,12 +398,32 @@ void test_issue_1160_sort() {
   test_issue_1160_impl<ExecutionSpace>();
 }
 
+template <class ExecutionSpace>
+void test_issue_4978_sort() {
+  test_issue_4978_impl<ExecutionSpace>();
+}
+
 template <class ExecutionSpace, typename KeyType>
 void test_sort(unsigned int N) {
   test_1D_sort<ExecutionSpace, KeyType>(N);
-  test_3D_sort<ExecutionSpace, KeyType>(N);
+#if defined(KOKKOS_ENABLE_CUDA) && \
+    defined(KOKKOS_COMPILER_NVHPC)  // FIXME_NVHPC
+  if (!std::is_same_v<ExecutionSpace, Kokkos::Cuda>)
+#endif
+    test_3D_sort<ExecutionSpace, KeyType>(N);
+// FIXME_OPENMPTARGET: OpenMPTarget doesn't support DynamicView yet.
+#ifndef KOKKOS_ENABLE_OPENMPTARGET
   test_dynamic_view_sort<ExecutionSpace, KeyType>(N);
-  test_issue_1160_sort<ExecutionSpace>();
+#endif
+#if defined(KOKKOS_ENABLE_CUDA) && \
+    defined(KOKKOS_COMPILER_NVHPC)  // FIXME_NVHPC
+  if (!std::is_same_v<ExecutionSpace, Kokkos::Cuda>)
+#endif
+    test_issue_1160_sort<ExecutionSpace>();
+  test_issue_4978_sort<ExecutionSpace>();
+  test_sort_integer_overflow<ExecutionSpace, long long>();
+  test_sort_integer_overflow<ExecutionSpace, unsigned long long>();
+  test_sort_integer_overflow<ExecutionSpace, int>();
 }
 }  // namespace Impl
 }  // namespace Test

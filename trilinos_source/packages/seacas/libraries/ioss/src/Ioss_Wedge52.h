@@ -1,12 +1,13 @@
-// Copyright(C) 1999-2020 National Technology & Engineering Solutions
+// Copyright(C) 1999-2022 National Technology & Engineering Solutions
 // of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 // NTESS, the U.S. Government retains certain rights in this software.
-// 
+//
 // See packages/seacas/LICENSE for details
 
 // -*- Mode: c++ -*-
-#ifndef IOSS_Ioss_Wedge52_h
-#define IOSS_Ioss_Wedge52_h
+#pragma once
+
+#include "ioss_export.h"
 
 #include <Ioss_CodeTypes.h>       // for IntVector
 #include <Ioss_ElementTopology.h> // for ElementTopology
@@ -14,19 +15,20 @@
 // STL Includes
 
 namespace Ioss {
-  class Wedge52 : public Ioss::ElementTopology
+  class IOSS_EXPORT Wedge52 : public Ioss::ElementTopology
   {
 
   public:
     static const char *name;
 
     static void factory();
-    ~Wedge52() override;
+    ~Wedge52() override = default;
 
     ElementShape shape() const override { return ElementShape::WEDGE; }
     int          spatial_dimension() const override;
     int          parametric_dimension() const override;
     bool         is_element() const override { return true; }
+    bool         is_shell() const override { return false; }
     int          order() const override;
 
     int number_corner_nodes() const override;
@@ -56,4 +58,3 @@ namespace Ioss {
     Wedge52(const Wedge52 &) = delete;
   };
 } // namespace Ioss
-#endif

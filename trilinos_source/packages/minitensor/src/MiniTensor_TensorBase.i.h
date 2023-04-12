@@ -399,30 +399,6 @@ TensorBase<T, ST>::fill(Filler const value)
     }
     break;
 
-  case Filler::RANDOM:
-    for (Index i = 0; i < number_components; ++i) {
-      auto & entry = (*this)[i];
-      fill_AD<T>(entry, Kokkos::Details::ArithTraits<S>::zero());
-      entry = random<S>();
-    }
-    break;
-
-  case Filler::RANDOM_UNIFORM:
-    for (Index i = 0; i < number_components; ++i) {
-      auto & entry = (*this)[i];
-      fill_AD<T>(entry, Kokkos::Details::ArithTraits<S>::zero());
-      entry = random_uniform<S>();
-    }
-    break;
-
-  case Filler::RANDOM_NORMAL:
-    for (Index i = 0; i < number_components; ++i) {
-      auto & entry = (*this)[i];
-      fill_AD<T>(entry, Kokkos::Details::ArithTraits<S>::zero());
-      entry = random_normal<S>();
-    }
-    break;
-
   case Filler::NANS:
     for (Index i = 0; i < number_components; ++i) {
       auto & entry = (*this)[i];
@@ -431,8 +407,48 @@ TensorBase<T, ST>::fill(Filler const value)
     }
     break;
 
+  case Filler::RANDOM:
+    KOKKOS_IF_ON_HOST((
+    for (Index i = 0; i < number_components; ++i) {
+      auto & entry = (*this)[i];
+      fill_AD<T>(entry, Kokkos::Details::ArithTraits<S>::zero());
+      entry = random<S>();
+    }
+    break;
+    ))
+    KOKKOS_IF_ON_DEVICE((
+    [[fallthrough]];
+    ))
+
+  case Filler::RANDOM_UNIFORM:
+    KOKKOS_IF_ON_HOST((
+    for (Index i = 0; i < number_components; ++i) {
+      auto & entry = (*this)[i];
+      fill_AD<T>(entry, Kokkos::Details::ArithTraits<S>::zero());
+      entry = random_uniform<S>();
+    }
+    break;
+    ))
+    KOKKOS_IF_ON_DEVICE((
+    [[fallthrough]];
+    ))
+
+  case Filler::RANDOM_NORMAL:
+    KOKKOS_IF_ON_HOST((
+    for (Index i = 0; i < number_components; ++i) {
+      auto & entry = (*this)[i];
+      fill_AD<T>(entry, Kokkos::Details::ArithTraits<S>::zero());
+      entry = random_normal<S>();
+    }
+    break;
+    ))
+    KOKKOS_IF_ON_DEVICE((
+    [[fallthrough]];
+    ))
+
   default:
-    MT_ERROR_EXIT("Unknown specification of value for filling components.");
+    MT_ERROR_EXIT("Unknown or undefined (in execution space) specification of "
+                  "value for filling components.");
     break;
   }
 

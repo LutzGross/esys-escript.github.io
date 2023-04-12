@@ -113,8 +113,6 @@ namespace percept {
     stk::parallel_machine_finalize();
 #endif
 
-    Kokkos::finalize();
-
     std::exit(exit_code);
   }      
 
@@ -1340,7 +1338,7 @@ namespace percept {
                 stk::mesh::Part *part = eMeshP->get_fem_meta_data()->get_part(bname);
 
                 if (!part) {
-                    const std::string alias = eMeshP->get_ioss_mesh_data()->get_input_io_region()->get_alias(bname);
+                  const std::string alias = eMeshP->get_ioss_mesh_data()->get_input_io_region()->get_alias(bname, Ioss::ELEMENTBLOCK);
 
                     if (debug && !eMeshP->get_rank())
                       std::cout << "block= " << bname << " replaced with alias=" << alias << std::endl;
@@ -2071,12 +2069,6 @@ namespace percept {
     m_comm = stk::ParallelMachine(stk::parallel_machine_init(&argc, &argv));
 #endif
 
-    // don't pass "--help" to Kokkos, as it clutters output!
-    // actually, we don't really need to pass in anything
-    int kokkos_argc(1);
-    char ** kokkos_argv = &argv[0]; // executable name
-    Kokkos::initialize( kokkos_argc, &kokkos_argv[0] );
-
     EXCEPTWATCH;
 
     p_rank = stk::parallel_machine_rank(m_comm);
@@ -2107,6 +2099,8 @@ namespace percept {
 //    std::string output_mesh_save = output_mesh;
 
     eMeshP.reset(new percept::PerceptMesh);
+    eMeshP->use_simple_fields();
+
     if (output_active_elements_only)
       eMeshP->output_active_children_only(true);
 
@@ -2352,7 +2346,7 @@ void MeshAdapt::initialize_m2g_geometry(std::string input_geometry)
       bool toDeclare = true;
 
       int lowestRank = std::numeric_limits<int>::max();
-      std::vector<stk::mesh::EntityKey> keysToCheck;
+      std::vector<stk::mesh::Entity> entitiesToCheck;
      
       procsSharedTo.clear(); //std::vector<int> procsSharedTo;
 
@@ -2361,11 +2355,10 @@ void MeshAdapt::initialize_m2g_geometry(std::string input_geometry)
 
         cur_node = bd->get_entity(stk::topology::NODE_RANK, shellNodeIDs[j]);
 
-        stk::mesh::EntityKey key = bd->entity_key(cur_node);
-        keysToCheck.push_back(key);
+        entitiesToCheck.push_back(cur_node);
       }
 
-      bd->shared_procs_intersection(keysToCheck, procsSharedTo);
+      bd->shared_procs_intersection(entitiesToCheck, procsSharedTo);
       procsSharedTo.push_back(THIS_PROC_NUM);//find all processes that either own or have these nodes shared to them
       for (size_t iii = 0; iii < procsSharedTo.size(); iii++) {
         if (procsSharedTo[iii] < lowestRank)

@@ -1,7 +1,7 @@
 C    Copyright(C) 1999-2020 National Technology & Engineering Solutions
 C    of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 C    NTESS, the U.S. Government retains certain rights in this software.
-C    
+C
 C    See packages/seacas/LICENSE for details
 C=======================================================================
       SUBROUTINE WNAM (NDBOUT, NDIM, NELBLK, NELBO, VISELB,
@@ -80,7 +80,6 @@ C   --Write the variable names
         end if
       END IF
 
-
       IF ((NVAREO .GT. 0) .AND. (NELBLK .GT. 0)) THEN
          NO = 0
 C        Loop from 1 to number of element blocks
@@ -109,4 +108,3 @@ C        Write the element variable truth table to the output file
 
       RETURN
       END
-

@@ -118,10 +118,10 @@ int main_(Teuchos::CommandLineProcessor &clp,  Xpetra::UnderlyingLib& lib, int a
     const int   numPDEs      = 2;
 
     switch (clp.parse(argc,argv)) {
-      case Teuchos::CommandLineProcessor::PARSE_HELP_PRINTED:        return EXIT_SUCCESS; break;
+      case Teuchos::CommandLineProcessor::PARSE_HELP_PRINTED:        return EXIT_SUCCESS;
       case Teuchos::CommandLineProcessor::PARSE_ERROR:
-      case Teuchos::CommandLineProcessor::PARSE_UNRECOGNIZED_OPTION: return EXIT_FAILURE; break;
-      case Teuchos::CommandLineProcessor::PARSE_SUCCESSFUL:                               break;
+      case Teuchos::CommandLineProcessor::PARSE_UNRECOGNIZED_OPTION: return EXIT_FAILURE;
+      case Teuchos::CommandLineProcessor::PARSE_SUCCESSFUL:          break;
     }
 
     RCP<TimeMonitor> globalTimeMonitor = rcp(new TimeMonitor(*TimeMonitor::getNewTimer("Global Time"))), tm;
@@ -180,7 +180,7 @@ int main_(Teuchos::CommandLineProcessor &clp,  Xpetra::UnderlyingLib& lib, int a
       Teuchos::ArrayRCP<SC> data0, data1;
       data0 = nullspace->getDataNonConst(0);
       data1 = nullspace->getDataNonConst(1);
-      for (size_t k = 0; k < Aprecond->getRowMap()->getNodeNumElements(); k += 2)
+      for (size_t k = 0; k < Aprecond->getRowMap()->getLocalNumElements(); k += 2)
         data0[k+0] = data1[k+1] = one;
 
       // Build the preconditioner

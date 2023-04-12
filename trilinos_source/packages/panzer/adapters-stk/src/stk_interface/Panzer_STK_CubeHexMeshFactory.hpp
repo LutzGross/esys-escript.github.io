@@ -79,7 +79,7 @@ public:
    //! what is the 3D tuple describe this processor distribution
    Teuchos::Tuple<std::size_t,3> procRankToProcTuple(std::size_t procRank) const;
 
-protected: 
+protected:
    void initializeWithDefaults();
 
    void buildMetaData(stk::ParallelMachine parallelMach,STK_Interface & mesh) const;
@@ -93,6 +93,8 @@ protected:
    void addSides(STK_Interface & mesh) const; // this adds side entities only (does not inject them into side sets)
    void addSideSets(STK_Interface & mesh) const;
    void addNodeSets(STK_Interface & mesh) const;
+   void addEdgeBlocks(STK_Interface & mesh) const;
+   void addFaceBlocks(STK_Interface & mesh) const;
 
    double x0_, y0_, z0_;
    double xf_, yf_, zf_;
@@ -107,8 +109,13 @@ protected:
 
    bool buildInterfaceSidesets_;
    bool buildSubcells_;
+   bool createEdgeBlocks_;
+   bool createFaceBlocks_;
 
    mutable Teuchos::Tuple<std::size_t,3> procTuple_;
+
+   std::string edgeBlockName_;
+   std::string faceBlockName_;
 };
 
 }

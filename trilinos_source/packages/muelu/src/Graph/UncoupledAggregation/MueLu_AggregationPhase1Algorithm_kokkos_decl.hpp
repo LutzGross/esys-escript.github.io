@@ -47,7 +47,6 @@
 #define MUELU_AGGREGATIONPHASE1ALGORITHM_KOKKOS_DECL_HPP
 
 #include "MueLu_ConfigDefs.hpp"
-#ifdef HAVE_MUELU_KOKKOS_REFACTOR
 
 #include <KokkosCompat_ClassicNodeAPI_Wrapper.hpp>
 
@@ -92,6 +91,7 @@ namespace MueLu {
 #include "MueLu_UseShortNamesOrdinal.hpp"
 
   public:
+    using device_type     = typename LWGraph_kokkos::device_type;
     using execution_space = typename LWGraph_kokkos::execution_space;
     using memory_space    = typename LWGraph_kokkos::memory_space;
 
@@ -115,19 +115,19 @@ namespace MueLu {
     void BuildAggregates(const Teuchos::ParameterList& params,
                          const LWGraph_kokkos& graph,
                          Aggregates_kokkos& aggregates,
-                         Kokkos::View<unsigned*, memory_space>& aggStat,
+                         Kokkos::View<unsigned*, device_type>& aggStat,
                          LO& numNonAggregatedNodes) const;
 
     void BuildAggregatesRandom(const LO maxAggSize,
                                const LWGraph_kokkos& graph,
                                Aggregates_kokkos& aggregates,
-                               Kokkos::View<unsigned*, memory_space>& aggStat,
+                               Kokkos::View<unsigned*, device_type>& aggStat,
                                LO& numNonAggregatedNodes) const;
 
     void BuildAggregatesDeterministic(const LO maxAggSize,
                                       const LWGraph_kokkos& graph,
                                       Aggregates_kokkos& aggregates,
-                                      Kokkos::View<unsigned*, memory_space>& aggStat,
+                                      Kokkos::View<unsigned*, device_type>& aggStat,
                                       LO& numNonAggregatedNodes) const;
     //@}
 
@@ -138,5 +138,4 @@ namespace MueLu {
 } //namespace MueLu
 
 #define MUELU_AGGREGATIONPHASE1ALGORITHM_KOKKOS_SHORT
-#endif // HAVE_MUELU_KOKKOS_REFACTOR
 #endif // MUELU_AGGREGATIONPHASE1ALGORITHM_KOKKOS_DECL_HPP

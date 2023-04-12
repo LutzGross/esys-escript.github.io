@@ -9,8 +9,9 @@ ADD_SUBDIRECTORIES(
   Block
   BugTests
   Comm
-  Core  
+  Core
   CrsGraph
+  CrsGraphTransposer
   CrsMatrix
   Directory
   Distributor
@@ -21,17 +22,18 @@ ADD_SUBDIRECTORIES(
   ImportExport
   ImportExport2
   inout
+  KokkosIntegration
   Map
   MatrixMatrix
   Merge
   MultiVector
   Node
+  Operator
   PerformanceCGSolve
   Sort
   Utils
   RowMatrixTransposer
   Tsqr
-  TypeStack
   )
 
 ASSERT_DEFINED(${PACKAGE_NAME}_ENABLE_Epetra)

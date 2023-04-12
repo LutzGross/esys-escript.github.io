@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <cstdio>
 #include <cstring>
@@ -48,7 +20,7 @@
 #include <limits>
 
 #include <Kokkos_Core.hpp>
-#include <impl/Kokkos_Timer.hpp>
+#include <Kokkos_Timer.hpp>
 
 using ExecSpace   = Kokkos::DefaultExecutionSpace;
 using MemorySpace = Kokkos::DefaultExecutionSpace::memory_space;
@@ -56,7 +28,7 @@ using MemorySpace = Kokkos::DefaultExecutionSpace::memory_space;
 using MemoryPool = Kokkos::MemoryPool<ExecSpace>;
 
 struct TestFunctor {
-  typedef Kokkos::View<uintptr_t*, ExecSpace> ptrs_type;
+  using ptrs_type = Kokkos::View<uintptr_t*, ExecSpace>;
 
   enum : unsigned { chunk = 32 };
 
@@ -87,7 +59,7 @@ struct TestFunctor {
 
   //----------------------------------------
 
-  typedef long value_type;
+  using value_type = long;
 
   //----------------------------------------
 
@@ -100,14 +72,14 @@ struct TestFunctor {
 
       const unsigned size_alloc = chunk * (1 + (j % chunk_span));
 
-      ptrs(j) = (uintptr_t)pool.allocate(size_alloc);
+      ptrs(j) = reinterpret_cast<uintptr_t>(pool.allocate(size_alloc));
 
       if (ptrs(j)) ++update;
     }
   }
 
   bool test_fill() {
-    typedef Kokkos::RangePolicy<ExecSpace, TagFill> policy;
+    using policy = Kokkos::RangePolicy<ExecSpace, TagFill>;
 
     long result = 0;
 
@@ -129,12 +101,12 @@ struct TestFunctor {
 
       const unsigned size_alloc = chunk * (1 + (j % chunk_span));
 
-      pool.deallocate((void*)ptrs(j), size_alloc);
+      pool.deallocate(reinterpret_cast<void*>(ptrs(j)), size_alloc);
     }
   }
 
   void test_del() {
-    typedef Kokkos::RangePolicy<ExecSpace, TagDel> policy;
+    using policy = Kokkos::RangePolicy<ExecSpace, TagDel>;
 
     Kokkos::parallel_for(policy(0, range_iter), *this);
     Kokkos::fence();
@@ -153,9 +125,9 @@ struct TestFunctor {
         for (unsigned k = 0; k < repeat_inner; ++k) {
           const unsigned size_alloc = chunk * (1 + (j % chunk_span));
 
-          pool.deallocate((void*)ptrs(j), size_alloc);
+          pool.deallocate(reinterpret_cast<void*>(ptrs(j)), size_alloc);
 
-          ptrs(j) = (uintptr_t)pool.allocate(size_alloc);
+          ptrs(j) = reinterpret_cast<uintptr_t>(pool.allocate(size_alloc));
 
           if (0 == ptrs(j)) update++;
         }
@@ -164,7 +136,7 @@ struct TestFunctor {
   }
 
   bool test_alloc_dealloc() {
-    typedef Kokkos::RangePolicy<ExecSpace, TagAllocDealloc> policy;
+    using policy = Kokkos::RangePolicy<ExecSpace, TagAllocDealloc>;
 
     long error_count = 0;
 
@@ -203,22 +175,22 @@ int main(int argc, char* argv[]) {
       total_alloc_size = atol(a + strlen(alloc_size_flag));
 
     if (!strncmp(a, super_size_flag, strlen(super_size_flag)))
-      min_superblock_size = atoi(a + strlen(super_size_flag));
+      min_superblock_size = std::stoi(a + strlen(super_size_flag));
 
     if (!strncmp(a, fill_stride_flag, strlen(fill_stride_flag)))
-      fill_stride = atoi(a + strlen(fill_stride_flag));
+      fill_stride = std::stoi(a + strlen(fill_stride_flag));
 
     if (!strncmp(a, fill_level_flag, strlen(fill_level_flag)))
-      fill_level = atoi(a + strlen(fill_level_flag));
+      fill_level = std::stoi(a + strlen(fill_level_flag));
 
     if (!strncmp(a, chunk_span_flag, strlen(chunk_span_flag)))
-      chunk_span = atoi(a + strlen(chunk_span_flag));
+      chunk_span = std::stoi(a + strlen(chunk_span_flag));
 
     if (!strncmp(a, repeat_outer_flag, strlen(repeat_outer_flag)))
-      repeat_outer = atoi(a + strlen(repeat_outer_flag));
+      repeat_outer = std::stoi(a + strlen(repeat_outer_flag));
 
     if (!strncmp(a, repeat_inner_flag, strlen(repeat_inner_flag)))
-      repeat_inner = atoi(a + strlen(repeat_inner_flag));
+      repeat_inner = std::stoi(a + strlen(repeat_inner_flag));
   }
 
   int chunk_span_bytes = 0;
@@ -266,7 +238,7 @@ int main(int argc, char* argv[]) {
     TestFunctor functor(total_alloc_size, min_superblock_size, number_alloc,
                         fill_stride, chunk_span, repeat_inner);
 
-    Kokkos::Impl::Timer timer;
+    Kokkos::Timer timer;
 
     if (!functor.test_fill()) {
       Kokkos::abort("fill ");

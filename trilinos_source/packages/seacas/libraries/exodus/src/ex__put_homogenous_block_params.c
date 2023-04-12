@@ -1,8 +1,8 @@
 /*
- * Copyright(C) 1999-2020 National Technology & Engineering Solutions
+ * Copyright(C) 1999-2022 National Technology & Engineering Solutions
  * of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
  * NTESS, the U.S. Government retains certain rights in this software.
- * 
+ *
  * See packages/seacas/LICENSE for details
  */
 
@@ -10,7 +10,7 @@
 #include "exodusII_int.h" // for EX_FATAL, etc
 
 /*!
- * Internal function used to put a homogenous `blocks` array that
+ * Internal function used to put a homogeneous `blocks` array that
  * contains all blocks of that specified type that will be defined.
  * Permits some optimizations and safer for N->1 parallel.
  * Arbitrary  polyhedra are handled in more general routine; not here.
@@ -22,7 +22,9 @@ int ex__put_homogenous_block_params(int exoid, size_t block_count, const struct 
   int  varid, dims[2];
   char errmsg[MAX_ERR_LENGTH];
 
-  ex__check_valid_file_id(exoid, __func__);
+  if (ex__check_valid_file_id(exoid, __func__) == EX_FATAL) {
+    EX_FUNC_LEAVE(EX_FATAL);
+  }
 
   const char *vblkids = NULL;
   const char *vblksta = NULL;
@@ -152,26 +154,26 @@ int ex__put_homogenous_block_params(int exoid, size_t block_count, const struct 
     case EX_EDGE_BLOCK:
       dneblk  = DIM_NUM_ED_IN_EBLK(blk_id_ndx);
       dnnpe   = DIM_NUM_NOD_PER_ED(blk_id_ndx);
-      dnepe   = 0;
-      dnfpe   = 0;
+      dnepe   = NULL;
+      dnfpe   = NULL;
       dnape   = DIM_NUM_ATT_IN_EBLK(blk_id_ndx);
       vblkatt = VAR_EATTRIB(blk_id_ndx);
       vattnam = VAR_NAME_EATTRIB(blk_id_ndx);
       vnodcon = VAR_EBCONN(blk_id_ndx);
-      vedgcon = 0;
-      vfaccon = 0;
+      vedgcon = NULL;
+      vfaccon = NULL;
       break;
     case EX_FACE_BLOCK:
       dneblk  = DIM_NUM_FA_IN_FBLK(blk_id_ndx);
       dnnpe   = DIM_NUM_NOD_PER_FA(blk_id_ndx);
-      dnepe   = 0;
-      dnfpe   = 0;
+      dnepe   = NULL;
+      dnfpe   = NULL;
       dnape   = DIM_NUM_ATT_IN_FBLK(blk_id_ndx);
       vblkatt = VAR_FATTRIB(blk_id_ndx);
       vattnam = VAR_NAME_FATTRIB(blk_id_ndx);
       vnodcon = VAR_FBCONN(blk_id_ndx);
-      vedgcon = 0;
-      vfaccon = 0;
+      vedgcon = NULL;
+      vfaccon = NULL;
       break;
     case EX_ELEM_BLOCK:
       dneblk  = DIM_NUM_EL_IN_BLK(blk_id_ndx);
@@ -266,21 +268,6 @@ int ex__put_homogenous_block_params(int exoid, size_t block_count, const struct 
       }
       ex__compress_variable(exoid, varid, 2);
 
-#if defined(PARALLEL_AWARE_EXODUS)
-      /*
-       * There is currently a bug in netcdf-4.5.1-devel and earlier
-       * for partial parallel output of strided arrays in collective
-       * mode for netcdf-4-based output.  If the number of attributes >
-       * 1 and in parallel mode, set the mode to independent.
-       */
-      if (blocks[i].num_attribute > 1) {
-        struct ex__file_item *file = ex__find_file_item(exoid);
-        if (file->is_parallel && file->is_hdf5) {
-          nc_var_par_access(exoid, varid, NC_INDEPENDENT);
-        }
-      }
-#endif
-
       /* Attribute names... */
       dims[0] = numattrdim;
       dims[1] = strdim;
@@ -359,6 +346,8 @@ int ex__put_homogenous_block_params(int exoid, size_t block_count, const struct 
 
   /* leave define mode  */
   if ((status = ex__leavedef(exoid, __func__)) != NC_NOERR) {
+    snprintf(errmsg, MAX_ERR_LENGTH, "ERROR: failed to exit define mode in file id %d", exoid);
+    ex_err_fn(exoid, __func__, errmsg, status);
     return (EX_FATAL);
   }
 
@@ -380,7 +369,7 @@ int ex__put_homogenous_block_params(int exoid, size_t block_count, const struct 
       */
       size_t count[2];
       size_t start[2];
-      char * text = "";
+      char  *text = "";
 
       count[0] = 1;
       start[1] = 0;

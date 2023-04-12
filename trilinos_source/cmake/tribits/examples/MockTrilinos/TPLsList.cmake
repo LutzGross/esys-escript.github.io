@@ -1,4 +1,4 @@
-TRIBITS_REPOSITORY_DEFINE_TPLS(
+tribits_repository_define_tpls(
   MPI            "${${PROJECT_NAME}_TRIBITS_DIR}/tpls/"    PT
   BLAS           cmake/TPLs/    PT
   LAPACK         cmake/TPLs/    PT
@@ -10,6 +10,7 @@ TRIBITS_REPOSITORY_DEFINE_TPLS(
   ADOLC          cmake/TPLs/    ST
   ADIC           cmake/TPLs/    EX
   TVMET          cmake/TPLs/    ST
+  #Zlib           cmake/TPLs/    PT  # Listed in zoltan/cmake/Dependencies.cmake!
   y12m           cmake/TPLs/    ST
   SuperLUDist    cmake/TPLs/    ST
   SuperLU        cmake/TPLs/    ST

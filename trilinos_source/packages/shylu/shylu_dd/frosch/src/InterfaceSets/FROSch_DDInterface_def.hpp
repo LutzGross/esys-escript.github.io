@@ -61,21 +61,22 @@ namespace FROSch {
     MpiComm_ (localToGlobalMap->getComm()),
     Dimension_ (dimension),
     DofsPerNode_ (dofsPerNode),
-    NumMyNodes_ (localToGlobalMap->getNodeNumElements()),
+    NumMyNodes_ (localToGlobalMap->getLocalNumElements()),
     NodesMap_ (localToGlobalMap),
+    CommStrategy_ (commStrategy),
     Verbose_ (MpiComm_->getRank()==0),
     Verbosity_ (verbosity),
     LevelID_ (levelID)
     {
-        FROSCH_TIMER_START_LEVELID(dDInterfaceTime,"DDInterface::DDInterface");
-        FROSCH_ASSERT(((Dimension_==2)||(Dimension_==3)),"FROSch::DDInterface : ERROR: Only dimension 2 and 3 are available");
+        FROSCH_DETAILTIMER_START_LEVELID(dDInterfaceTime,"DDInterface::DDInterface");
+        FROSCH_ASSERT(((Dimension_==2)||(Dimension_==3)),"FROSch::DDInterface: Only dimension 2 and 3 are available");
 
         //if (Verbose_ && Verbosity_==All) cout << "FROSch::DDInterface" << endl;
 
         IntVecVecPtr componentsSubdomains;
         IntVecVec componentsSubdomainsUnique;
 
-        communicateLocalComponents(componentsSubdomains,componentsSubdomainsUnique,commStrategy);
+        communicateLocalComponents(componentsSubdomains,componentsSubdomainsUnique);
 
         identifyLocalComponents(componentsSubdomains,componentsSubdomainsUnique);
     }
@@ -89,7 +90,7 @@ namespace FROSch {
     template <class SC,class LO,class GO,class NO>
     int DDInterface<SC,LO,GO,NO>::resetGlobalDofs(ConstXMapPtrVecPtr dofsMaps)
     {
-        FROSCH_TIMER_START_LEVELID(resetGlobalDofsTime,"DDInterface::resetGlobalDofs");
+        FROSCH_DETAILTIMER_START_LEVELID(resetGlobalDofsTime,"DDInterface::resetGlobalDofs");
         //if (Verbose_ && Verbosity_==All) cout << "FROSch::DDInterface : Resetting Global IDs" << endl;
 
         // EntityVector
@@ -142,7 +143,7 @@ namespace FROSch {
     template <class SC,class LO,class GO,class NO>
     int DDInterface<SC,LO,GO,NO>::removeDirichletNodes(GOVecView dirichletBoundaryDofs)
     {
-        FROSCH_TIMER_START_LEVELID(removeDirichletNodesTime,"DDInterface::removeDirichletNodes");
+        FROSCH_DETAILTIMER_START_LEVELID(removeDirichletNodesTime,"DDInterface::removeDirichletNodes");
         //if (Verbose_ && Verbosity_==All) cout << "FROSch::DDInterface : Removing Dirichlet Nodes from the domain decomposition interface" << endl;
 
         // EntityVector
@@ -159,7 +160,7 @@ namespace FROSch {
     template <class SC,class LO,class GO,class NO>
     int DDInterface<SC,LO,GO,NO>::divideUnconnectedEntities(ConstXMatrixPtr matrix)
     {
-        FROSCH_TIMER_START_LEVELID(divideUnconnectedEntitiesTime,"DDInterface::divideUnconnectedEntities");
+        FROSCH_DETAILTIMER_START_LEVELID(divideUnconnectedEntitiesTime,"DDInterface::divideUnconnectedEntities");
         //if (Verbose_ && Verbosity_==All) cout << "FROSch::DDInterface : Decomposing unconnected interface components" << endl;
 
         GOVecPtr indicesGammaDofs(DofsPerNode_*Interface_->getEntity(0)->getNumNodes());
@@ -168,7 +169,9 @@ namespace FROSch {
                 indicesGammaDofs[Interface_->getEntity(0)->getGammaDofID(i,k)] = Interface_->getEntity(0)->getGlobalDofID(i,k);
             }
         }
-        XMapPtr map = MapFactory<LO,GO,NO>::Build(matrix->getRowMap()->lib(),-1,indicesGammaDofs(),0,MpiComm_);
+
+        const GO INVALID = Teuchos::OrdinalTraits<GO>::invalid();
+        XMapPtr map = MapFactory<LO,GO,NO>::Build(matrix->getRowMap()->lib(),INVALID,indicesGammaDofs(),0,MpiComm_);
         matrix = FROSch::ExtractLocalSubdomainMatrix(matrix.getConst(),map.getConst(),ScalarTraits<SC>::one());
 
         // Operate on hierarchy
@@ -201,7 +204,7 @@ namespace FROSch {
     template <class SC,class LO,class GO,class NO>
     int DDInterface<SC,LO,GO,NO>::flagEntities(ConstXMultiVectorPtr nodeList)
     {
-        FROSCH_TIMER_START_LEVELID(flagEntitiesTime,"DDInterface::flagEntities");
+        FROSCH_DETAILTIMER_START_LEVELID(flagEntitiesTime,"DDInterface::flagEntities");
         for (UN l=0; l<EntitySetVector_.size(); l++) {
             EntitySetVector_[l]->flagNodes();
             EntitySetVector_[l]->flagShortEntities();
@@ -217,7 +220,7 @@ namespace FROSch {
     template <class SC,class LO,class GO,class NO>
     int DDInterface<SC,LO,GO,NO>::removeEmptyEntities()
     {
-        FROSCH_TIMER_START_LEVELID(removeEmptyEntitiesTime,"DDInterface::removeEmptyEntities");
+        FROSCH_DETAILTIMER_START_LEVELID(removeEmptyEntitiesTime,"DDInterface::removeEmptyEntities");
         //if (Verbose_ && Verbosity_==All) cout << "FROSch::DDInterface : Removing empty interface components" << endl;
 
         for (UN l=0; l<EntitySetVector_.size(); l++) {
@@ -229,7 +232,7 @@ namespace FROSch {
     template <class SC,class LO,class GO,class NO>
     int DDInterface<SC,LO,GO,NO>::sortVerticesEdgesFaces(ConstXMultiVectorPtr nodeList)
     {
-        FROSCH_TIMER_START_LEVELID(sortVerticesEdgesFacesTime,"DDInterface::sortVerticesEdgesFaces");
+        FROSCH_DETAILTIMER_START_LEVELID(sortVerticesEdgesFacesTime,"DDInterface::sortVerticesEdgesFaces");
         //if (Verbose_ && Verbosity_==All) cout << "FROSch::DDInterface : Sorting interface components" << endl;
 
         // Clear EntitySets if non-empty
@@ -247,10 +250,10 @@ namespace FROSch {
         for (UN l=0; l<EntitySetVector_.size(); l++) {
             switch (l) {
                 case 0:
-                    FROSCH_ASSERT(EntitySetVector_[l]->getNumEntities()==0,"FROSch::DDInterface : ERROR: This case is impossible.");
+                    FROSCH_ASSERT(EntitySetVector_[l]->getNumEntities()==0,"FROSch::DDInterface: This case is impossible.");
                     break;
                 case 1:
-                    FROSCH_ASSERT(EntitySetVector_[l]->getNumEntities()==0,"FROSch::DDInterface : ERROR: In this case, the entity is interior to the subdomain.");
+                    FROSCH_ASSERT(EntitySetVector_[l]->getNumEntities()==0,"FROSch::DDInterface: In this case, the entity is interior to the subdomain.");
                     break;
                 case 2:
                     for (UN i=0; i<EntitySetVector_[l]->getNumEntities(); i++) {
@@ -315,7 +318,7 @@ namespace FROSch {
                                                   bool buildRootsMap,
                                                   bool buildLeafsMap)
     {
-        FROSCH_TIMER_START_LEVELID(buildEntityMapsTime,"DDInterface::buildEntityMaps");
+        FROSCH_DETAILTIMER_START_LEVELID(buildEntityMapsTime,"DDInterface::buildEntityMaps");
         //if (Verbose_ && Verbosity_==All) cout << "FROSch::DDInterface : Building global interface component maps" << endl;
 
         if (buildVerticesMap) Vertices_->buildEntityMap(NodesMap_);
@@ -327,7 +330,7 @@ namespace FROSch {
         if (buildLeafsMap) Leafs_->buildEntityMap(NodesMap_);
 
         if (Verbosity_==All) {
-            FROSCH_TIMER_START_LEVELID(printStatisticsTime,"print statistics");
+            FROSCH_DETAILTIMER_START_LEVELID(printStatisticsTime,"print statistics");
             // Count entities
             GOVec globalVec(7);
             LOVec localVec(7);
@@ -341,7 +344,7 @@ namespace FROSch {
                     globalVec[0] += 1;
                 }
                 if (globalVec[0]<0) globalVec[0] = 0;
-                localVec[0] = (LO) max((LO) Vertices_->getEntityMap()->getNodeNumElements(),(LO) 0);
+                localVec[0] = (LO) max((LO) Vertices_->getEntityMap()->getLocalNumElements(),(LO) 0);
                 reduceAll(*this->MpiComm_,REDUCE_SUM,localVec[0],ptr(&sumVec[0]));
                 avgVec[0] = max(sumVec[0]/double(MpiComm_->getSize()),0.0);
                 reduceAll(*MpiComm_,REDUCE_MIN,localVec[0],ptr(&minVec[0]));
@@ -360,7 +363,7 @@ namespace FROSch {
                     globalVec[1] += 1;
                 }
                 if (globalVec[1]<0) globalVec[1] = 0;
-                localVec[1] = (LO) max((LO) ShortEdges_->getEntityMap()->getNodeNumElements(),(LO) 0);
+                localVec[1] = (LO) max((LO) ShortEdges_->getEntityMap()->getLocalNumElements(),(LO) 0);
                 reduceAll(*this->MpiComm_,REDUCE_SUM,localVec[1],ptr(&sumVec[1]));
                 avgVec[1] = max(sumVec[1]/double(MpiComm_->getSize()),0.0);
                 reduceAll(*MpiComm_,REDUCE_MIN,localVec[1],ptr(&minVec[1]));
@@ -379,7 +382,7 @@ namespace FROSch {
                     globalVec[2] += 1;
                 }
                 if (globalVec[2]<0) globalVec[2] = 0;
-                localVec[2] = (LO) max((LO) StraightEdges_->getEntityMap()->getNodeNumElements(),(LO) 0);
+                localVec[2] = (LO) max((LO) StraightEdges_->getEntityMap()->getLocalNumElements(),(LO) 0);
                 reduceAll(*this->MpiComm_,REDUCE_SUM,localVec[2],ptr(&sumVec[2]));
                 avgVec[2] = max(sumVec[2]/double(MpiComm_->getSize()),0.0);
                 reduceAll(*MpiComm_,REDUCE_MIN,localVec[2],ptr(&minVec[2]));
@@ -398,7 +401,7 @@ namespace FROSch {
                     globalVec[3] += 1;
                 }
                 if (globalVec[3]<0) globalVec[3] = 0;
-                localVec[3] = max((LO) Edges_->getEntityMap()->getNodeNumElements(),(LO) 0);
+                localVec[3] = max((LO) Edges_->getEntityMap()->getLocalNumElements(),(LO) 0);
                 reduceAll(*this->MpiComm_,REDUCE_SUM,localVec[3],ptr(&sumVec[3]));
                 avgVec[3] = max(sumVec[3]/double(MpiComm_->getSize()),0.0);
                 reduceAll(*MpiComm_,REDUCE_MIN,localVec[3],ptr(&minVec[3]));
@@ -417,7 +420,7 @@ namespace FROSch {
                     globalVec[4] += 1;
                 }
                 if (globalVec[4]<0) globalVec[4] = 0;
-                localVec[4] = max((LO) Faces_->getEntityMap()->getNodeNumElements(),(LO) 0);
+                localVec[4] = max((LO) Faces_->getEntityMap()->getLocalNumElements(),(LO) 0);
                 reduceAll(*this->MpiComm_,REDUCE_SUM,localVec[4],ptr(&sumVec[4]));
                 avgVec[4] = max(sumVec[4]/double(MpiComm_->getSize()),0.0);
                 reduceAll(*MpiComm_,REDUCE_MIN,localVec[4],ptr(&minVec[4]));
@@ -436,7 +439,7 @@ namespace FROSch {
                     globalVec[5] += 1;
                 }
                 if (globalVec[5]<0) globalVec[5] = 0;
-                localVec[5] = (LO) max((LO) Roots_->getEntityMap()->getNodeNumElements(),(LO) 0);
+                localVec[5] = (LO) max((LO) Roots_->getEntityMap()->getLocalNumElements(),(LO) 0);
                 reduceAll(*this->MpiComm_,REDUCE_SUM,localVec[5],ptr(&sumVec[5]));
                 avgVec[5] = max(sumVec[5]/double(MpiComm_->getSize()),0.0);
                 reduceAll(*MpiComm_,REDUCE_MIN,localVec[5],ptr(&minVec[5]));
@@ -455,7 +458,7 @@ namespace FROSch {
                     globalVec[6] += 1;
                 }
                 if (globalVec[6]<0) globalVec[6] = 0;
-                localVec[6] = (LO) max((LO) Leafs_->getEntityMap()->getNodeNumElements(),(LO) 0);
+                localVec[6] = (LO) max((LO) Leafs_->getEntityMap()->getLocalNumElements(),(LO) 0);
                 reduceAll(*this->MpiComm_,REDUCE_SUM,localVec[6],ptr(&sumVec[6]));
                 avgVec[6] = max(sumVec[6]/double(MpiComm_->getSize()),0.0);
                 reduceAll(*MpiComm_,REDUCE_MIN,localVec[6],ptr(&minVec[6]));
@@ -475,17 +478,25 @@ namespace FROSch {
                 }
             }
 
+            NumEntity_ = globalVec;
+
             if (Verbose_) {
                 cout
-                << "\n" << setw(FROSCH_INDENT) << " "
+                << "\n" << setw(FROSCH_OUTPUT_INDENT) << " "
                 << setw(89) << "-----------------------------------------------------------------------------------------"
-                << "\n" << setw(FROSCH_INDENT) << " "
+                << "\n" << setw(FROSCH_OUTPUT_INDENT) << " "
                 << "| "
-                << left << setw(74) << "Interface statistics " << right << setw(8) << "(Level " << setw(2) << LevelID_ << ")"
+                << left << setw(74) << "> Interface Statistics " << right << setw(8) << "(Level " << setw(2) << LevelID_ << ")"
                 << " |"
-                << "\n" << setw(FROSCH_INDENT) << " "
+                << "\n" << setw(FROSCH_OUTPUT_INDENT) << " "
                 << setw(89) << "========================================================================================="
-                << "\n" << setw(FROSCH_INDENT) << " "
+                << "\n" << setw(FROSCH_OUTPUT_INDENT) << " "
+                << "| " << left << setw(41) << "Interface communication strategy" << right
+                << " | " << setw(41) << CommStrategy_
+                << " |"
+                << "\n" << setw(FROSCH_OUTPUT_INDENT) << " "
+                << setw(89) << "-----------------------------------------------------------------------------------------"
+                << "\n" << setw(FROSCH_OUTPUT_INDENT) << " "
                 << "| " << left << setw(20) << " " << right
                 << " | " << setw(10) << "total"
                 << " | " << setw(10) << "avg"
@@ -493,9 +504,9 @@ namespace FROSch {
                 << " | " << setw(10) << "max"
                 << " | " << setw(10) << "global sum"
                 << " |"
-                << "\n" << setw(FROSCH_INDENT) << " "
+                << "\n" << setw(FROSCH_OUTPUT_INDENT) << " "
                 << setw(89) << "-----------------------------------------------------------------------------------------"
-                << "\n" << setw(FROSCH_INDENT) << " "
+                << "\n" << setw(FROSCH_OUTPUT_INDENT) << " "
                 << "| " << left << setw(20) << "Vertices" << right
                 << " | "; globalVec[0]<0 ? cout << setw(10) << " " : cout << setw(10) << globalVec[0]; cout
                 << " | "; avgVec[0]<0 ? cout << setw(10) << " " : cout << setw(10) << setprecision(5) << avgVec[0]; cout
@@ -503,7 +514,7 @@ namespace FROSch {
                 << " | "; maxVec[0]<0 ? cout << setw(10) << " " : cout << setw(10) << maxVec[0]; cout
                 << " | "; sumVec[0]<0 ? cout << setw(10) << " " : cout << setw(10) << sumVec[0]; cout
                 << " |"
-                << "\n" << setw(FROSCH_INDENT) << " "
+                << "\n" << setw(FROSCH_OUTPUT_INDENT) << " "
                 << "| " << left << setw(20) << "Short edges" << right
                 << " | "; globalVec[1]<0 ? cout << setw(10) << " " : cout << setw(10) << globalVec[1]; cout
                 << " | "; avgVec[1]<0 ? cout << setw(10) << " " : cout << setw(10) << setprecision(5) << avgVec[1]; cout
@@ -511,7 +522,7 @@ namespace FROSch {
                 << " | "; maxVec[1]<0 ? cout << setw(10) << " " : cout << setw(10) << maxVec[1]; cout
                 << " | "; sumVec[1]<0 ? cout << setw(10) << " " : cout << setw(10) << sumVec[1]; cout
                 << " |"
-                << "\n" << setw(FROSCH_INDENT) << " "
+                << "\n" << setw(FROSCH_OUTPUT_INDENT) << " "
                 << "| " << left << setw(20) << "Straight edges" << right
                 << " | "; globalVec[2]<0 ? cout << setw(10) << " " : cout << setw(10) << globalVec[2]; cout
                 << " | "; avgVec[2]<0 ? cout << setw(10) << " " : cout << setw(10) << setprecision(5) << avgVec[2]; cout
@@ -519,7 +530,7 @@ namespace FROSch {
                 << " | "; maxVec[2]<0 ? cout << setw(10) << " " : cout << setw(10) << maxVec[2]; cout
                 << " | "; sumVec[2]<0 ? cout << setw(10) << " " : cout << setw(10) << sumVec[2]; cout
                 << " |"
-                << "\n" << setw(FROSCH_INDENT) << " "
+                << "\n" << setw(FROSCH_OUTPUT_INDENT) << " "
                 << "| " << left << setw(20) << "Edges" << right
                 << " | "; globalVec[3]<0 ? cout << setw(10) << " " : cout << setw(10) << globalVec[3]; cout
                 << " | "; avgVec[3]<0 ? cout << setw(10) << " " : cout << setw(10) << setprecision(5) << avgVec[3]; cout
@@ -527,7 +538,7 @@ namespace FROSch {
                 << " | "; maxVec[3]<0 ? cout << setw(10) << " " : cout << setw(10) << maxVec[3]; cout
                 << " | "; sumVec[3]<0 ? cout << setw(10) << " " : cout << setw(10) << sumVec[3]; cout
                 << " |"
-                << "\n" << setw(FROSCH_INDENT) << " "
+                << "\n" << setw(FROSCH_OUTPUT_INDENT) << " "
                 << "| " << left << setw(20) << "Faces" << right
                 << " | "; globalVec[4]<0 ? cout << setw(10) << " " : cout << setw(10) << globalVec[4]; cout
                 << " | "; avgVec[4]<0 ? cout << setw(10) << " " : cout << setw(10) << setprecision(5) << avgVec[4]; cout
@@ -535,7 +546,7 @@ namespace FROSch {
                 << " | "; maxVec[4]<0 ? cout << setw(10) << " " : cout << setw(10) << maxVec[4]; cout
                 << " | "; sumVec[4]<0 ? cout << setw(10) << " " : cout << setw(10) << sumVec[4]; cout
                 << " |"
-                << "\n" << setw(FROSCH_INDENT) << " "
+                << "\n" << setw(FROSCH_OUTPUT_INDENT) << " "
                 << "| " << left << setw(20) << "Roots" << right
                 << " | "; globalVec[5]<0 ? cout << setw(10) << " " : cout << setw(10) << globalVec[5]; cout
                 << " | "; avgVec[5]<0 ? cout << setw(10) << " " : cout << setw(10) << setprecision(5) << avgVec[5]; cout
@@ -543,7 +554,7 @@ namespace FROSch {
                 << " | "; maxVec[5]<0 ? cout << setw(10) << " " : cout << setw(10) << maxVec[5]; cout
                 << " | "; sumVec[5]<0 ? cout << setw(10) << " " : cout << setw(10) << sumVec[5]; cout
                 << " |"
-                << "\n" << setw(FROSCH_INDENT) << " "
+                << "\n" << setw(FROSCH_OUTPUT_INDENT) << " "
                 << "| " << left << setw(20) << "Leafs" << right
                 << " | "; globalVec[6]<0 ? cout << setw(10) << " " : cout << setw(10) << globalVec[6]; cout
                 << " | "; avgVec[6]<0 ? cout << setw(10) << " " : cout << setw(10) << setprecision(5) << avgVec[6]; cout
@@ -551,7 +562,7 @@ namespace FROSch {
                 << " | "; maxVec[6]<0 ? cout << setw(10) << " " : cout << setw(10) << maxVec[6]; cout
                 << " | "; sumVec[6]<0 ? cout << setw(10) << " " : cout << setw(10) << sumVec[6]; cout
                 << " |"
-                << "\n" << setw(FROSCH_INDENT) << " "
+                << "\n" << setw(FROSCH_OUTPUT_INDENT) << " "
                 << setw(89) << "-----------------------------------------------------------------------------------------"
                 << endl;
             }
@@ -563,7 +574,7 @@ namespace FROSch {
     template <class SC,class LO,class GO,class NO>
     int DDInterface<SC,LO,GO,NO>::buildEntityHierarchy()
     {
-        FROSCH_TIMER_START_LEVELID(buildEntityHierarchyTime,"DDInterface::buildEntityHierarchy");
+        FROSCH_DETAILTIMER_START_LEVELID(buildEntityHierarchyTime,"DDInterface::buildEntityHierarchy");
         //if (Verbose_ && Verbosity_==All) cout << "FROSch::DDInterface : Building hierarchy of interface components" << endl;
 
         // Build hierarchy
@@ -596,7 +607,7 @@ namespace FROSch {
                                                           ConstXMultiVectorPtr &nodeList,
                                                           DistanceFunction distanceFunction)
     {
-        FROSCH_TIMER_START_LEVELID(computeDistancesToRootsTime,"DDInterface::computeDistancesToRoots");
+        FROSCH_DETAILTIMER_START_LEVELID(computeDistancesToRootsTime,"DDInterface::computeDistancesToRoots");
         //if (Verbose_ && Verbosity_==All) cout << "FROSch::DDInterface : Computing distances to the coarse nodes" << endl;
 
         for (UN i=0; i<EntitySetVector_.size(); i++) {
@@ -609,7 +620,7 @@ namespace FROSch {
     int DDInterface<SC,LO,GO,NO>::identifyConnectivityEntities(UNVecPtr multiplicities,
                                                                EntityFlagVecPtr flags)
     {
-        FROSCH_TIMER_START_LEVELID(identifyConnectivityEntitiesTime,"DDInterface::identifyConnectivityEntities");
+        FROSCH_DETAILTIMER_START_LEVELID(identifyConnectivityEntitiesTime,"DDInterface::identifyConnectivityEntities");
         //if (Verbose_ && Verbosity_==All) cout << "FROSch::DDInterface : Preparing subdomain graph" << endl;
 
         if (multiplicities.is_null()) {
@@ -712,6 +723,12 @@ namespace FROSch {
     }
 
     template <class SC,class LO,class GO,class NO>
+    typename DDInterface<SC,LO,GO,NO>::GOVec DDInterface<SC,LO,GO,NO>::getNumEnt() const
+    {
+        return NumEntity_;
+    }
+
+    template <class SC,class LO,class GO,class NO>
     typename DDInterface<SC,LO,GO,NO>::EntitySetConstPtr & DDInterface<SC,LO,GO,NO>::getConnectivityEntities() const
     {
         return ConnectivityEntities_;
@@ -725,19 +742,19 @@ namespace FROSch {
 
     template <class SC,class LO,class GO,class NO>
     int DDInterface<SC,LO,GO,NO>::communicateLocalComponents(IntVecVecPtr &componentsSubdomains,
-                                                             IntVecVec &componentsSubdomainsUnique,
-                                                             CommunicationStrategy commStrategy)
+                                                             IntVecVec &componentsSubdomainsUnique)
     {
-        FROSCH_TIMER_START_LEVELID(communicateLocalComponentsTime,"DDInterface::communicateLocalComponents");
+        FROSCH_DETAILTIMER_START_LEVELID(communicateLocalComponentsTime,"DDInterface::communicateLocalComponents");
         //if (Verbose_ && Verbosity_==All) cout << "FROSch::DDInterface : Communicating nodes" << endl;
 
-        if (NodesMap_->lib() == UseEpetra && commStrategy == CreateOneToOneMap) {
+        if (NodesMap_->lib() == UseEpetra && CommStrategy_ == CreateOneToOneMap) {
             FROSCH_WARNING("FROSch::DDInterface",Verbose_,"CreateOneToOneMap communication strategy does not work for Epetra => Switching to CommCrsGraph.");
-            commStrategy = CommCrsGraph;
+            CommStrategy_ = CommCrsGraph;
         }
 
         // Different communication strategies
-        switch (commStrategy) {
+        const GO INVALID = Teuchos::OrdinalTraits<GO>::invalid();
+        switch (CommStrategy_) {
             case CommCrsMatrix:
                 {
                     UniqueNodesMap_ = BuildUniqueMap<LO,GO,NO>(NodesMap_);
@@ -750,7 +767,7 @@ namespace FROSch {
                     for (int i=0; i<NumMyNodes_; i++) {
                         commMat->insertGlobalValues(NodesMap_->getGlobalElement(i),myPID(),one());
                     }
-                    XMapPtr domainMap = MapFactory<LO,GO,NO>::Build(NodesMap_->lib(),-1,myPID(),0,NodesMap_->getComm());
+                    XMapPtr domainMap = MapFactory<LO,GO,NO>::Build(NodesMap_->lib(),INVALID,myPID(),0,NodesMap_->getComm());
 
                     commMat->fillComplete(domainMap,NodesMap_);
                     commMatTmp->doExport(*commMat,*commExporter,INSERT);
@@ -784,7 +801,7 @@ namespace FROSch {
                     for (int i=0; i<NumMyNodes_; i++) {
                         commGraph->insertGlobalIndices(NodesMap_->getGlobalElement(i),myPID());
                     }
-                    XMapPtr domainMap = MapFactory<LO,GO,NO>::Build(NodesMap_->lib(),-1,myPID(),0,NodesMap_->getComm());
+                    XMapPtr domainMap = MapFactory<LO,GO,NO>::Build(NodesMap_->lib(),INVALID,myPID(),0,NodesMap_->getComm());
 
                     commGraph->fillComplete(domainMap,NodesMap_); // AH 08/07/2019: Can we remove some fillComplete?
                     commGraphTmp->doExport(*commGraph,*commExporter,INSERT);
@@ -815,8 +832,7 @@ namespace FROSch {
                 break;
 
             default:
-                FROSCH_ASSERT(false,"FROSch::DDInterface : ERROR: Specify a valid communication strategy.");
-                break;
+                FROSCH_ASSERT(false,"FROSch::DDInterface: Specify a valid communication strategy.");
         }
 
         componentsSubdomainsUnique = IntVecVec(NumMyNodes_);
@@ -835,7 +851,7 @@ namespace FROSch {
     int DDInterface<SC,LO,GO,NO>::identifyLocalComponents(IntVecVecPtr &componentsSubdomains,
                                                           IntVecVec &componentsSubdomainsUnique)
     {
-        FROSCH_TIMER_START_LEVELID(identifyLocalComponentsTime,"DDInterface::identifyLocalComponents");
+        FROSCH_DETAILTIMER_START_LEVELID(identifyLocalComponentsTime,"DDInterface::identifyLocalComponents");
         //if (Verbose_ && Verbosity_==All) cout << "FROSch::DDInterface : Classifying interface components based on equivalence classes" << endl;
 
         // Hier herausfinden, ob Ecke, Kante oder Fläche
@@ -878,7 +894,7 @@ namespace FROSch {
                 }
                 interior->addNode(nodeIDI,nodeIDLocal,nodeIDGlobal,DofsPerNode_,dofsI,dofsLocal,dofsGlobal);
             } else {
-                FROSCH_ASSERT(componentsMultiplicity[localComponentIndices[i]]>1,"FROSch::DDInterface : ERROR: There cannot be any nodes with multiplicity 0.");
+                FROSCH_ASSERT(componentsMultiplicity[localComponentIndices[i]]>1,"FROSch::DDInterface: There cannot be any nodes with multiplicity 0.");
                 LO nodeIDGamma = interface->getNumNodes();
                 LO nodeIDLocal = i;
                 GO nodeIDGlobal = NodesMap_->getGlobalElement(nodeIDLocal);
@@ -900,7 +916,7 @@ namespace FROSch {
         Interface_->addEntity(interface);
 
         for (UN i=0; i<componentsSubdomainsUnique.size(); i++) {
-            FROSCH_ASSERT(componentsMultiplicity[i]>0,"FROSch::DDInterface : ERROR: There cannot be any component with multiplicity 0.");
+            FROSCH_ASSERT(componentsMultiplicity[i]>0,"FROSch::DDInterface: There cannot be any component with multiplicity 0.");
             RCP<InterfaceEntity<SC,LO,GO,NO> > tmpEntity(new InterfaceEntity<SC,LO,GO,NO>(VertexType,DofsPerNode_,componentsMultiplicity[i],&(componentsSubdomainsUnique[i][0])));
             LO nodeIDGamma;
             LO nodeIDLocal;

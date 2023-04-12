@@ -1,13 +1,14 @@
 /*
- * Copyright(C) 1999-2020 National Technology & Engineering Solutions
+ * Copyright(C) 1999-2022 National Technology & Engineering Solutions
  * of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
  * NTESS, the U.S. Government retains certain rights in this software.
- * 
+ *
  * See packages/seacas/LICENSE for details
  */
 
-#ifndef IOSS_Ioex_Internals_h
-#define IOSS_Ioex_Internals_h
+#pragma once
+
+#include "ioex_export.h"
 
 #include "Ioss_ParallelUtils.h" // for ParallelUtils
 #include <cstdint>              // for int64_t
@@ -66,18 +67,13 @@ namespace Ioss {
  * </ul>
  */
 namespace Ioex {
-  struct NodeBlock
+  struct IOEX_EXPORT NodeBlock
   {
     NodeBlock()                       = default;
     NodeBlock(const NodeBlock &other) = default;
     explicit NodeBlock(const Ioss::NodeBlock &other);
 
-    NodeBlock &operator=(const NodeBlock &other);
-
     ~NodeBlock() = default;
-
-    bool operator==(const NodeBlock &) const;
-    bool operator!=(const NodeBlock &other) const { return !(*this == other); }
 
     std::string name{};
     entity_id   id{0};
@@ -87,18 +83,12 @@ namespace Ioex {
     int64_t     procOffset{0};
   };
 
-  struct Assembly
+  struct IOEX_EXPORT Assembly
   {
     Assembly()                      = default;
     Assembly(const Assembly &other) = default;
     explicit Assembly(const Ioss::Assembly &other);
-
-    Assembly &operator=(const Assembly &other);
-
     ~Assembly() = default;
-
-    bool operator==(const Assembly &) const;
-    bool operator!=(const Assembly &other) const { return !(*this == other); }
 
     std::string          name{};
     entity_id            id{0};
@@ -108,18 +98,12 @@ namespace Ioex {
     std::vector<int64_t> memberIdList;
   };
 
-  struct Blob
+  struct IOEX_EXPORT Blob
   {
     Blob()                  = default;
     Blob(const Blob &other) = default;
     explicit Blob(const Ioss::Blob &other);
-
-    Blob &operator=(const Blob &other);
-
     ~Blob() = default;
-
-    bool operator==(const Blob &) const;
-    bool operator!=(const Blob &other) const { return !(*this == other); }
 
     std::string name{};
     entity_id   id{0};
@@ -129,7 +113,7 @@ namespace Ioex {
     int64_t     procOffset{0};
   };
 
-  struct EdgeBlock
+  struct IOEX_EXPORT EdgeBlock
   {
     EdgeBlock() { Ioss::Utils::copy_string(elType, ""); }
 
@@ -143,12 +127,7 @@ namespace Ioex {
 
     explicit EdgeBlock(const Ioss::EdgeBlock &other);
 
-    EdgeBlock &operator=(const EdgeBlock &other);
-
     ~EdgeBlock() = default;
-
-    bool operator==(const EdgeBlock & /*other*/) const;
-    bool operator!=(const EdgeBlock &other) const { return !(*this == other); }
 
     char        elType[MAX_STR_LENGTH + 1]{};
     std::string name{};
@@ -161,7 +140,7 @@ namespace Ioex {
   private:
   };
 
-  struct FaceBlock
+  struct IOEX_EXPORT FaceBlock
   {
     FaceBlock() { Ioss::Utils::copy_string(elType, ""); }
 
@@ -175,12 +154,7 @@ namespace Ioex {
 
     explicit FaceBlock(const Ioss::FaceBlock &other);
 
-    FaceBlock &operator=(const FaceBlock &other);
-
     ~FaceBlock() = default;
-
-    bool operator==(const FaceBlock & /*other*/) const;
-    bool operator!=(const FaceBlock &other) const { return !(*this == other); }
 
     char        elType[MAX_STR_LENGTH + 1]{};
     std::string name{};
@@ -194,32 +168,28 @@ namespace Ioex {
   private:
   };
 
-  struct ElemBlock
+  struct IOEX_EXPORT ElemBlock
   {
     ElemBlock() { Ioss::Utils::copy_string(elType, ""); }
 
     ElemBlock(const ElemBlock &other)
         : name(other.name), id(other.id), entityCount(other.entityCount),
-          nodesPerEntity(other.nodesPerEntity), edgesPerEntity(other.edgesPerEntity),
-          facesPerEntity(other.facesPerEntity), attributeCount(other.attributeCount),
-          offset_(other.offset_), procOffset(other.procOffset)
+          globalEntityCount(other.globalEntityCount), nodesPerEntity(other.nodesPerEntity),
+          edgesPerEntity(other.edgesPerEntity), facesPerEntity(other.facesPerEntity),
+          attributeCount(other.attributeCount), offset_(other.offset_), procOffset(other.procOffset)
     {
       Ioss::Utils::copy_string(elType, other.elType);
     }
 
     explicit ElemBlock(const Ioss::ElementBlock &other);
 
-    ElemBlock &operator=(const ElemBlock &other);
-
     ~ElemBlock() = default;
-
-    bool operator==(const ElemBlock & /*other*/) const;
-    bool operator!=(const ElemBlock &other) const { return !(*this == other); }
 
     char        elType[MAX_STR_LENGTH + 1]{};
     std::string name{};
     entity_id   id{0};
     int64_t     entityCount{0};
+    int64_t     globalEntityCount{0};
     int64_t     nodesPerEntity{0};
     int64_t     edgesPerEntity{0};
     int64_t     facesPerEntity{0};
@@ -228,30 +198,27 @@ namespace Ioex {
     int64_t     procOffset{0};
   };
 
-  struct NodeSet
+  struct IOEX_EXPORT NodeSet
   {
     NodeSet()                     = default;
     NodeSet(const NodeSet &other) = default;
     explicit NodeSet(const Ioss::NodeSet &other);
-    bool operator==(const NodeSet & /*other*/) const;
-    bool operator!=(const NodeSet &other) const { return !(*this == other); }
 
     std::string name{};
     entity_id   id{0};
     int64_t     entityCount{0};
+    int64_t     globalEntityCount{0};
     int64_t     localOwnedCount{0};
     int64_t     attributeCount{0};
     int64_t     dfCount{0};
     int64_t     procOffset{0};
   };
 
-  struct EdgeSet
+  struct IOEX_EXPORT EdgeSet
   {
     EdgeSet()                     = default;
     EdgeSet(const EdgeSet &other) = default;
     explicit EdgeSet(const Ioss::EdgeSet &other);
-    bool operator==(const EdgeSet & /*other*/) const;
-    bool operator!=(const EdgeSet &other) const { return !(*this == other); }
 
     std::string name{};
     entity_id   id{0};
@@ -261,13 +228,11 @@ namespace Ioex {
     int64_t     procOffset{0};
   };
 
-  struct FaceSet
+  struct IOEX_EXPORT FaceSet
   {
     FaceSet()                     = default;
     FaceSet(const FaceSet &other) = default;
     explicit FaceSet(const Ioss::FaceSet &other);
-    bool operator==(const FaceSet & /*other*/) const;
-    bool operator!=(const FaceSet &other) const { return !(*this == other); }
 
     std::string name{};
     entity_id   id{0};
@@ -277,13 +242,11 @@ namespace Ioex {
     int64_t     procOffset{0};
   };
 
-  struct ElemSet
+  struct IOEX_EXPORT ElemSet
   {
     ElemSet()                     = default;
     ElemSet(const ElemSet &other) = default;
     explicit ElemSet(const Ioss::ElementSet &other);
-    bool operator==(const ElemSet & /*other*/) const;
-    bool operator!=(const ElemSet &other) const { return !(*this == other); }
 
     std::string name{};
     entity_id   id{0};
@@ -293,37 +256,34 @@ namespace Ioex {
     int64_t     procOffset{0};
   };
 
-  struct SideSet
+  struct IOEX_EXPORT SideSet
   {
     SideSet() = default;
     explicit SideSet(const Ioss::SideBlock &other);
     explicit SideSet(const Ioss::SideSet &other);
-    bool operator==(const SideSet & /*other*/) const;
-    bool operator!=(const SideSet &other) const { return !(*this == other); }
 
     std::string name{};
     entity_id   id{0};
     int64_t     entityCount{0};
+    int64_t     globalEntityCount{0};
     int64_t     dfCount{0};
     int64_t     procOffset{0};
     int64_t     dfProcOffset{0};
   };
 
-  struct CommunicationMap
+  struct IOEX_EXPORT CommunicationMap
   {
     CommunicationMap() = default;
     CommunicationMap(entity_id the_id, int64_t count, char the_type)
         : id(the_id), entityCount(count), type(the_type)
     {
     }
-    bool      operator==(const CommunicationMap & /*other*/) const;
-    bool      operator!=(const CommunicationMap &other) const { return !(*this == other); }
     entity_id id{0};
     int64_t   entityCount{0};
     char      type{'U'}; // 'n' for node, 'e' for element
   };
 
-  struct CommunicationMetaData
+  struct IOEX_EXPORT CommunicationMetaData
   {
     CommunicationMetaData()                              = default;
     CommunicationMetaData(const CommunicationMetaData &) = delete;
@@ -345,11 +305,11 @@ namespace Ioex {
     bool                          outputNemesis{false};
   };
 
-  class Redefine
+  class IOEX_EXPORT Redefine
   {
   public:
     explicit Redefine(int exoid);
-    Redefine(const Redefine &from) = delete;
+    Redefine(const Redefine &from)            = delete;
     Redefine &operator=(const Redefine &from) = delete;
     ~Redefine();
 
@@ -357,21 +317,28 @@ namespace Ioex {
     int exodusFilePtr;
   };
 
-  class Mesh
+  class IOEX_EXPORT Mesh
   {
   public:
     Mesh() = default;
 
-    Mesh(int dim, char *the_title, bool file_pp) : dimensionality(dim), file_per_processor(file_pp)
+    Mesh(int dim, const char *the_title, const Ioss::ParallelUtils &util, bool file_pp)
+        : dimensionality(dim), file_per_processor(file_pp), parallelUtil(util)
     {
       Ioss::Utils::copy_string(title, the_title);
     }
 
     void populate(Ioss::Region *region);
+    void get_global_counts();
 
     char title[MAX_LINE_LENGTH + 1]{};
     int  dimensionality{};
     bool file_per_processor{true};
+    bool use_node_map{true};
+    bool use_elem_map{true};
+    bool use_face_map{true};
+    bool use_edge_map{true};
+    bool full_nemesis_data{true};
 
     std::vector<Assembly> assemblies{};
     std::vector<Blob>     blobs{};
@@ -386,30 +353,29 @@ namespace Ioex {
     std::vector<ElemSet>   elemsets{};
     std::vector<SideSet>   sidesets{};
     CommunicationMetaData  comm{};
+    Ioss::ParallelUtils    parallelUtil;
   };
 
-  class Internals
+  class IOEX_EXPORT Internals
   {
   public:
     Internals(int exoid, int maximum_name_length, const Ioss::ParallelUtils &util);
-    Internals(const Internals &from) = delete;
+    Internals(const Internals &from)            = delete;
     Internals &operator=(const Internals &from) = delete;
 
     int initialize_state_file(Mesh &mesh, const ex_var_params &var_params,
-                              const std::string &base_file_name);
+                              const std::string &base_filename);
 
     int write_meta_data(Mesh &mesh);
 
     /* Special use for updating assembly data in-place in existing db file */
     /* See src/main/io_assembly.C for current use */
-    static void update_assembly_data(int filePtr, std::vector<Assembly> &assemblies, int stage = 0);
+    static void update_assembly_data(int exoid, std::vector<Assembly> &assemblies, int stage = 0);
 
     // Simple wrapper around `ex_copy`, but keeps users from including `exodusII.h`
     static void copy_database(int in_file, int out_file, bool transient_also = true);
 
   private:
-    void get_global_counts(Mesh &mesh);
-
     int put_metadata(const Mesh &mesh, const CommunicationMetaData &comm);
     int put_metadata(const std::vector<Assembly> &assemblies);
     int put_metadata(const std::vector<Blob> &blobs);
@@ -425,20 +391,20 @@ namespace Ioex {
 
     int put_metadata(const std::vector<SideSet> &sidesets, bool count_only = false);
 
-    int put_non_define_data(const CommunicationMetaData &comm);
+    int put_non_define_data(const CommunicationMetaData &comm, bool minimal_nemesis_data);
     int put_non_define_data(const std::vector<Assembly> &assemblies);
     int put_non_define_data(const std::vector<Blob> &blobs);
     int put_non_define_data(const std::vector<NodeBlock> &nodeblocks);
     int put_non_define_data(const std::vector<EdgeBlock> &blocks);
     int put_non_define_data(const std::vector<FaceBlock> &blocks);
-    int put_non_define_data(const std::vector<ElemBlock> &blocks);
+    int put_non_define_data(const std::vector<ElemBlock> &blocks, bool output_global_data);
 
-    int put_non_define_data(const std::vector<NodeSet> &nodesets);
+    int put_non_define_data(const std::vector<NodeSet> &nodesets, bool output_global_data);
     int put_non_define_data(const std::vector<EdgeSet> &edgesets);
     int put_non_define_data(const std::vector<FaceSet> &facesets);
     int put_non_define_data(const std::vector<ElemSet> &elemsets);
 
-    int put_non_define_data(const std::vector<SideSet> &sidesets);
+    int put_non_define_data(const std::vector<SideSet> &sidesets, bool output_global_data);
 
     int max_name_length() const { return maximumNameLength; }
 
@@ -451,4 +417,3 @@ namespace Ioex {
     Ioss::ParallelUtils parallelUtil;
   };
 } // namespace Ioex
-#endif /* IOSS_Ioex_Internals_h */

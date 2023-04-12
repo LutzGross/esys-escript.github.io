@@ -37,39 +37,39 @@
 # ************************************************************************
 # @HEADER
 
-INCLUDE(CMakeParseArguments)
+include(CMakeParseArguments)
+include(TribitsDeprecatedHelpers)
 
 
+# @MACRO: tribits_include_directories()
 #
-# @MACRO: TRIBITS_INCLUDE_DIRECTORIES()
-#
-# This function is to override the standard behavior of the built-in CMake
-# ``INCLUDE_DIRECTORIES()`` command.
+# This function overrides the standard behavior of the built-in CMake
+# ``include_directories()`` command for special behavior for installation
+# testing.
 #
 # Usage::
 #
-#   TRIBITS_INCLUDE_DIRECTORIES(
-#     [REQUIRED_DURING_INSTALLATION_TESTING] <dir0> <dir1> ...
-#     )
+#   tribits_include_directories(
+#     [REQUIRED_DURING_INSTALLATION_TESTING] <dir0> <dir1> ... )
 #
 # If specified, ``REQUIRED_DURING_INSTALLATION_TESTING`` can appear anywhere
 # in the argument list.
 #
 # This function allows overriding the default behavior of
-# ``INCLUDE_DIRECTORIES()`` for installation testing, to ensure that include
+# ``include_directories()`` for installation testing, to ensure that include
 # directories will not be inadvertently added to the build lines for tests
 # during installation testing (see `Installation and Backward Compatibility
 # Testing`_). Normally we want the include directories to be handled as cmake
 # usually does.  However during TriBITS installation testing we do not want
 # most of the include directories to be used as the majority of the files
-# should come from the installation we are building against.  There is an
-# exception to this and that is when there are test only headers that are
-# needed.  For that case ``REQUIRED_DURING_INSTALLATION_TESTING`` must be
-# passed in to ensure the include paths are added for installation testing.
+# should come from the installation we are building against.  The exception is
+# when there are test only headers that are needed.  For that case
+# ``REQUIRED_DURING_INSTALLATION_TESTING`` must be passed in to ensure the
+# include paths are added for installation testing.
 #
-MACRO(TRIBITS_INCLUDE_DIRECTORIES)
+macro(tribits_include_directories)
 
-  CMAKE_PARSE_ARGUMENTS(
+  cmake_parse_arguments(
     #prefix
     PARSE
     #options
@@ -81,16 +81,32 @@ MACRO(TRIBITS_INCLUDE_DIRECTORIES)
     ${ARGN}
     )
 
-  IF(NOT ${PROJECT_NAME}_ENABLE_INSTALLATION_TESTING OR PARSE_REQUIRED_DURING_INSTALLATION_TESTING)
-    _INCLUDE_DIRECTORIES(${PARSE_UNPARSED_ARGUMENTS})
-  ENDIF()
-ENDMACRO()
+  if(NOT ${PROJECT_NAME}_ENABLE_INSTALLATION_TESTING
+      OR PARSE_REQUIRED_DURING_INSTALLATION_TESTING
+    )
+    if (TRIBITS_HIDE_DEPRECATED_INCLUDE_DIRECTORIES_OVERRIDE)
+      include_directories(${PARSE_UNPARSED_ARGUMENTS})
+    else()
+      _include_directories(${PARSE_UNPARSED_ARGUMENTS})
+    endif()
+  endif()
+endmacro()
 
 
-# Deprecated.  Use TRIBITS_INCLUDE_DIRECTORIES() instead!
-MACRO(INCLUDE_DIRECTORIES)
+if (NOT TRIBITS_HIDE_DEPRECATED_INCLUDE_DIRECTORIES_OVERRIDE)
 
- CMAKE_PARSE_ARGUMENTS(
+# Deprecated.  Use tribits_include_directories() instead!
+#
+# To hide this macro from even being defined, set
+# ``TRIBITS_HIDE_DEPRECATED_INCLUDE_DIRECTORIES_OVERRIDE=TRUE``.
+#
+macro(include_directories)
+
+  tribits_deprecated_command(include_directories
+    MESSAGE "Use tribits_include_directories() instead."
+    )
+
+  cmake_parse_arguments(
     #prefix
     PARSE
     #options
@@ -102,12 +118,11 @@ MACRO(INCLUDE_DIRECTORIES)
     ${ARGN}
     )
 
-#  IF (PARSE_REQUIRED_DURING_INSTALLATION_TESTING)
-#    MESSAGE(WARNING "Warning: the override INCLUDE_DIRECTORIES() is deprecated,"
-#    " use TRIBITS_INCLUDE_DIRECTORIES() instead!")
-#  ENDIF()
+  if(NOT ${PROJECT_NAME}_ENABLE_INSTALLATION_TESTING
+      OR PARSE_REQUIRED_DURING_INSTALLATION_TESTING
+    )
+    _include_directories(${PARSE_UNPARSED_ARGUMENTS})
+  endif()
+endmacro()
 
-  IF(NOT ${PROJECT_NAME}_ENABLE_INSTALLATION_TESTING OR PARSE_REQUIRED_DURING_INSTALLATION_TESTING)
-    _INCLUDE_DIRECTORIES(${PARSE_UNPARSED_ARGUMENTS})
-  ENDIF()
-ENDMACRO()
+endif (NOT TRIBITS_HIDE_DEPRECATED_INCLUDE_DIRECTORIES_OVERRIDE)

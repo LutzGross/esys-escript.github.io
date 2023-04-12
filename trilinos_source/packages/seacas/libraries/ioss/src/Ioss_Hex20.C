@@ -1,7 +1,7 @@
-// Copyright(C) 1999-2020 National Technology & Engineering Solutions
+// Copyright(C) 1999-2021 National Technology & Engineering Solutions
 // of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 // NTESS, the U.S. Government retains certain rights in this software.
-// 
+//
 // See packages/seacas/LICENSE for details
 
 #include "Ioss_CodeTypes.h"           // for IntVector
@@ -74,8 +74,6 @@ Ioss::Hex20::Hex20() : Ioss::ElementTopology(Ioss::Hex20::name, "Hexahedron_20")
   Ioss::ElementTopology::alias(Ioss::Hex20::name, "Solid_Hex_20_3D");
 }
 
-Ioss::Hex20::~Hex20() = default;
-
 int Ioss::Hex20::parametric_dimension() const { return 3; }
 int Ioss::Hex20::spatial_dimension() const { return 3; }
 int Ioss::Hex20::order() const { return 2; }
@@ -141,6 +139,7 @@ Ioss::ElementTopology *Ioss::Hex20::face_type(int face_number) const
   // face_number is 1-based.
 
   assert(face_number >= 0 && face_number <= number_faces());
+  IOSS_ASSERT_USED(face_number);
   //  return Ioss::ElementTopology::factory("quadface8");
   return Ioss::ElementTopology::factory("quad8");
 }
@@ -152,6 +151,7 @@ Ioss::ElementTopology *Ioss::Hex20::edge_type(int edge_number) const
   // edge_number is 1-based.
 
   assert(edge_number >= 0 && edge_number <= number_edges());
+  IOSS_ASSERT_USED(edge_number);
   return Ioss::ElementTopology::factory("edge3");
 }
 

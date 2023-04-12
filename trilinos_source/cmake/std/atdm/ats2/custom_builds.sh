@@ -6,36 +6,7 @@
 #
 
 # Custom compiler selection logic
-
 if atdm_match_any_buildname_keyword \
-  cuda-10.1.243-xl-2019.08.20-spmpi-rolling \
-  cuda-10.1.243_xl-2019.08.20_spmpi-rolling \
-  cuda-10.1.243-xl-2019.08.20 \
-  cuda-10.1.243_xl-2019.08.20 \
-  cuda-10.1.243-xl-2019 \
-  cuda-10.1.243_xl-2019 \
-  cuda-xl\
-  ; then
-  echo
-  echo "ERROR: Currently not supporting cuda-10.1.243-xl-2019.08.20-spmpi-rolling"
-  echo
-  return
-  #export ATDM_CONFIG_COMPILER=CUDA-10.1.243_XL-2019.08.20_SPMPI-ROLLING
-
-elif atdm_match_any_buildname_keyword \
-  xl-2019.08.20-spmpi-rolling \
-  xl-2019.08.20_spmpi-rolling \
-  xl-2019.08.20 \
-  xl-2019 \
-  xl \
-  ; then
-  echo
-  echo "ERROR: Currently not supporting xl-2019.08.20-spmpi-rolling"
-  echo
-  return
-  #export ATDM_CONFIG_COMPILER=XL-2019.08.20_SPMPI-ROLLING
-
-elif atdm_match_any_buildname_keyword \
   cuda-10.1.243-gnu-7.3.1-spmpi-rolling \
   cuda-10.1.243_gnu-7.3.1_spmpi-rolling \
   cuda-10.1.243-gnu-7.3.1 \
@@ -68,10 +39,8 @@ else
   echo "***"
   echo "*** Supported compilers include:"
   echo "***"
-  echo "****  gnu-7.3.1_spmpi-rolling                  (default, default gnu)"
-  echo "****  cuda-10.1.243_gnu-7.3.1_spmpi-rolling    (default cuda)"
-  echo "****  xl-2019.08.20_spmpi-rolling              (disabled)"
-  echo "****  cuda-10.1.243-gnu-7.3.1-spmpi-rolling    (disabled)"
+  echo "****  gnu-7.3.1_spmpi-rolling                      (default, default gnu)"
+  echo "****  cuda-10.1.243_gnu-7.3.1_spmpi-rolling        (default cuda)"
   echo "***"
   return
 

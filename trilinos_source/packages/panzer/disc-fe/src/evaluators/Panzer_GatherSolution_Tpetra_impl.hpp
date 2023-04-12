@@ -53,6 +53,7 @@
 #include "Panzer_TpetraVector_ReadOnly_GlobalEvaluationData.hpp"
 #include "Panzer_GatherSolution_Input.hpp"
 #include "Panzer_GlobalEvaluationDataContainer.hpp"
+#include "Panzer_DOFManager.hpp"
 
 #include "Teuchos_FancyOStream.hpp"
 
@@ -137,12 +138,11 @@ postRegistrationSetup(typename TRAITS::SetupData d,
 
     int fieldNum = fieldIds_[fd];
     const std::vector<int> & offsets = globalIndexer_->getGIDFieldOffsets(blockId,fieldNum);
-    scratch_offsets_[fd] = Kokkos::View<int*,PHX::Device>("offsets",offsets.size());
-    for(std::size_t i=0;i<offsets.size();i++)
-      scratch_offsets_[fd](i) = offsets[i];
+    scratch_offsets_[fd] = PHX::View<int*>("offsets",offsets.size());
+    Kokkos::deep_copy(scratch_offsets_[fd], Kokkos::View<const int*, Kokkos::HostSpace, Kokkos::MemoryUnmanaged>(offsets.data(), offsets.size()));
   }
 
-  scratch_lids_ = Kokkos::View<LO**,PHX::Device>("lids",gatherFields_[0].extent(0),
+  scratch_lids_ = PHX::View<LO**>("lids",gatherFields_[0].extent(0),
                                                  globalIndexer_->getElementBlockGIDCount(blockId));
 
   indexerNames_.clear();  // Don't need this anymore
@@ -182,7 +182,7 @@ evaluateFields(typename TRAITS::EvalData workset)
    else
      x = tpetraContainer_->get_x();
 
-   auto x_data = x->template getLocalView<PHX::Device>();
+   auto x_data = x->getLocalViewDevice(Tpetra::Access::ReadOnly);
 
    globalIndexer_->getElementLIDs(this->wda(workset).cell_local_ids_k,scratch_lids_);
 
@@ -196,7 +196,7 @@ evaluateFields(typename TRAITS::EvalData workset)
    auto lids = scratch_lids_;
    for (std::size_t fieldIndex=0; fieldIndex<gatherFields_.size();fieldIndex++) {
      auto offsets = scratch_offsets_[fieldIndex];
-     auto gather_field = gatherFields_[fieldIndex];
+     auto gather_field = gatherFields_[fieldIndex].get_static_view();
 
      Kokkos::parallel_for(localCellIds.size(), KOKKOS_LAMBDA (std::size_t worksetCellIndex) {
        // loop over basis functions and fill the fields
@@ -282,10 +282,36 @@ postRegistrationSetup(typename TRAITS::SetupData /* d */,
 
   fieldIds_.resize(gatherFields_.size());
 
+  // Original implementation of tangentFields used vector of
+  // vectors. The inner vectors could have different sizes for each
+  // [fd]. With UVM removal, we need to use a rank 2 view of views. So
+  // we need an extra vector to carry around the inner vector sizes.
+  tangentInnerVectorSizes_ = PHX::View<size_t*>("tangentInnerVectorSizes_",gatherFields_.size());
+  auto tangentInnerVectorSizes_host = Kokkos::create_mirror_view(tangentInnerVectorSizes_);
+  size_t inner_vector_max_size = 0;
+  for (std::size_t fd = 0; fd < tangentFields_.size(); ++fd) {
+    inner_vector_max_size = std::max(inner_vector_max_size,tangentFields_[fd].size());
+    tangentInnerVectorSizes_host(fd) = tangentFields_[fd].size();
+  }
+  Kokkos::deep_copy(tangentInnerVectorSizes_,tangentInnerVectorSizes_host);
+
+  gatherFieldsVoV_.initialize("GatherSolution_Teptra<Tangent>::gatherFieldsVoV_",gatherFields_.size());
+  tangentFieldsVoV_.initialize("GatherSolution_Teptra<Tangent>::tangentFieldsVoV_",gatherFields_.size(),inner_vector_max_size);
+
   for (std::size_t fd = 0; fd < gatherFields_.size(); ++fd) {
     const std::string& fieldName = indexerNames_[fd];
     fieldIds_[fd] = globalIndexer_->getFieldNum(fieldName);
+    gatherFieldsVoV_.addView(gatherFields_[fd].get_static_view(),fd);
+
+    if (has_tangent_fields_) {
+      for (std::size_t i=0; i<tangentFields_[fd].size(); ++i) {
+        tangentFieldsVoV_.addView(tangentFields_[fd][i].get_static_view(),fd,i);
+      }
+    }
   }
+
+  gatherFieldsVoV_.syncHostToDevice();
+  tangentFieldsVoV_.syncHostToDevice();
 
   indexerNames_.clear();  // Don't need this anymore
 }
@@ -316,7 +342,6 @@ evaluateFields(typename TRAITS::EvalData workset)
 
    // for convenience pull out some objects from workset
    std::string blockId = this->wda(workset).block_id;
-   const std::vector<std::size_t> & localCellIds = this->wda(workset).cell_local_ids;
 
    Teuchos::RCP<typename LOC::VectorType> x;
    if (useTimeDerivativeSolutionVector_)
@@ -324,64 +349,42 @@ evaluateFields(typename TRAITS::EvalData workset)
    else
      x = tpetraContainer_->get_x();
 
-   Teuchos::ArrayRCP<const double> x_array = x->get1dView();
-
-   // NOTE: A reordering of these loops will likely improve performance
-   //       The "getGIDFieldOffsets may be expensive.  However the
-   //       "getElementGIDs" can be cheaper. However the lookup for LIDs
-   //       may be more expensive!
-
    typedef typename PHX::MDField<ScalarT,Cell,NODE>::array_type::reference_type reference_type;
+   auto cellLocalIdsKokkos = this->wda(workset).getLocalCellIDs();
+   auto lids = globalIndexer_->getLIDs();
+   auto gidFieldOffsetsVoV = Teuchos::rcp_dynamic_cast<const panzer::DOFManager>(globalIndexer_,true)->getGIDFieldOffsetsKokkos(blockId,fieldIds_);
+   auto gidFieldOffsets = gidFieldOffsetsVoV.getViewDevice();
+   auto gatherFieldsDevice = gatherFieldsVoV_.getViewDevice();
+   auto x_view = x->getLocalViewDevice(Tpetra::Access::ReadOnly);
+   auto tangentInnerVectorSizes = this->tangentInnerVectorSizes_;
 
    if (has_tangent_fields_) {
-     // gather operation for each cell in workset
-     for(std::size_t worksetCellIndex=0;worksetCellIndex<localCellIds.size();++worksetCellIndex) {
-       std::size_t cellLocalId = localCellIds[worksetCellIndex];
-
-       auto LIDs = globalIndexer_->getElementLIDs(cellLocalId);
-
-       // loop over the fields to be gathered
-       for (std::size_t fieldIndex=0; fieldIndex<gatherFields_.size();fieldIndex++) {
-         int fieldNum = fieldIds_[fieldIndex];
-         const std::vector<int> & elmtOffset = globalIndexer_->getGIDFieldOffsets(blockId,fieldNum);
-
-         const std::vector< PHX::MDField<const RealT,Cell,NODE> >& tf_ref =
-           tangentFields_[fieldIndex];
-         const std::size_t num_tf = tf_ref.size();
-
-         // loop over basis functions and fill the fields
-         for(std::size_t basis=0;basis<elmtOffset.size();basis++) {
-           int offset = elmtOffset[basis];
-           LO lid = LIDs[offset];
-           reference_type gf_ref = (gatherFields_[fieldIndex])(worksetCellIndex,basis);
-           gf_ref.val() = x_array[lid];
-           for (std::size_t i=0; i<num_tf; ++i)
-             gf_ref.fastAccessDx(i) = tf_ref[i](worksetCellIndex,basis);
+     auto tangentFieldsDevice = tangentFieldsVoV_.getViewDevice();
+     Kokkos::parallel_for("GatherSolutionTpetra<Tangent>",cellLocalIdsKokkos.extent(0),KOKKOS_LAMBDA(const int worksetCellIndex) {
+       for (size_t fieldIndex = 0; fieldIndex < gidFieldOffsets.extent(0); ++fieldIndex) { 
+         for(size_t basis=0;basis<gidFieldOffsets(fieldIndex).extent(0);basis++) {
+           int offset = gidFieldOffsets(fieldIndex)(basis);
+           LO lid = lids(cellLocalIdsKokkos(worksetCellIndex),offset);
+           auto gf_ref = (gatherFieldsDevice[fieldIndex])(worksetCellIndex,basis);
+           gf_ref.val() = x_view(lid,0);
+           for (std::size_t i=0; i<tangentInnerVectorSizes(fieldIndex); ++i) {
+             gf_ref.fastAccessDx(i) = tangentFieldsDevice(fieldIndex,i)(worksetCellIndex,basis);
+           }
          }
        }
-     }
+     });
    }
    else {
-     // gather operation for each cell in workset
-     for(std::size_t worksetCellIndex=0;worksetCellIndex<localCellIds.size();++worksetCellIndex) {
-       std::size_t cellLocalId = localCellIds[worksetCellIndex];
-
-       auto LIDs = globalIndexer_->getElementLIDs(cellLocalId);
-
-       // loop over the fields to be gathered
-       for (std::size_t fieldIndex=0; fieldIndex<gatherFields_.size();fieldIndex++) {
-         int fieldNum = fieldIds_[fieldIndex];
-         const std::vector<int> & elmtOffset = globalIndexer_->getGIDFieldOffsets(blockId,fieldNum);
-
-         // loop over basis functions and fill the fields
-         for(std::size_t basis=0;basis<elmtOffset.size();basis++) {
-            int offset = elmtOffset[basis];
-            LO lid = LIDs[offset];
-            reference_type gf_ref = (gatherFields_[fieldIndex])(worksetCellIndex,basis);
-            gf_ref.val() = x_array[lid];
+     Kokkos::parallel_for("GatherSolutionTpetra<Tangent>",cellLocalIdsKokkos.extent(0),KOKKOS_LAMBDA(const int worksetCellIndex) {
+       for (size_t fieldIndex = 0; fieldIndex < gidFieldOffsets.extent(0); ++fieldIndex) { 
+         for(size_t basis=0;basis<gidFieldOffsets(fieldIndex).extent(0);basis++) {
+           int offset = gidFieldOffsets(fieldIndex)(basis);
+           LO lid = lids(cellLocalIdsKokkos(worksetCellIndex),offset);
+           reference_type gf_ref = (gatherFieldsDevice[fieldIndex])(worksetCellIndex,basis);
+           gf_ref.val() = x_view(lid,0);
          }
        }
-     }
+     });
    }
 }
 
@@ -435,7 +438,7 @@ GatherSolution_Tpetra(
     this->setName(n);
   }
   else {
-    std::string n = "GatherSolution (Tpetra): "+firstName+" ("+PHX::print<EvalT>()+") ";
+    std::string n = "GatherSolution (Tpetra): "+firstName+" (Jacobian) ";
     this->setName(n);
   }
 }
@@ -460,12 +463,11 @@ postRegistrationSetup(typename TRAITS::SetupData d,
 
     int fieldNum = fieldIds_[fd];
     const std::vector<int> & offsets = globalIndexer_->getGIDFieldOffsets(blockId,fieldNum);
-    scratch_offsets_[fd] = Kokkos::View<int*,PHX::Device>("offsets",offsets.size());
-    for(std::size_t i=0;i<offsets.size();i++)
-      scratch_offsets_[fd](i) = offsets[i];
+    scratch_offsets_[fd] = PHX::View<int*>("offsets",offsets.size());
+    Kokkos::deep_copy(scratch_offsets_[fd], Kokkos::View<const int*, Kokkos::HostSpace, Kokkos::MemoryUnmanaged>(offsets.data(), offsets.size()));
   }
 
-  scratch_lids_ = Kokkos::View<LO**,PHX::Device>("lids",gatherFields_[0].extent(0),
+  scratch_lids_ = PHX::View<LO**>("lids",gatherFields_[0].extent(0),
                                                  globalIndexer_->getElementBlockGIDCount(blockId));
 
   indexerNames_.clear();  // Don't need this anymore
@@ -507,8 +509,6 @@ preEvaluate(typename TRAITS::PreEvalData d)
 
     x_vector = ro_ged->getGhostedVector_Tpetra();
 
-    x_vector->template sync<PHX::Device>();
-
     return;
   }
 
@@ -531,8 +531,6 @@ preEvaluate(typename TRAITS::PreEvalData d)
       else
         x_vector = tpetraContainer->get_x();
 
-      x_vector->template sync<PHX::Device>();
-
       return; // epetraContainer was found
     }
   }
@@ -543,8 +541,6 @@ preEvaluate(typename TRAITS::PreEvalData d)
 
     x_vector = ro_ged->getGhostedVector_Tpetra();
   }
-
-  x_vector->template sync<PHX::Device>();
 }
 
 // **********************************************************************
@@ -575,6 +571,16 @@ evaluateFields(typename TRAITS::EvalData workset)
    if(!applySensitivities_)
       seed_value = 0.0;
 
+   // Interface worksets handle DOFs from two element blocks.  The
+   // derivative offset for the other element block must be shifted by
+   // the derivative side of my element block.
+   functor_data.dos = 0;
+   if (this->wda.getDetailsIndex() == 1)
+   {
+     // Get the DOF count for my element block.
+     functor_data.dos = globalIndexer_->getElementBlockGIDCount(workset.details(0).block_id);
+   }
+
    // switch to a faster assembly
    bool use_seed = true;
    if(seed_value==0.0)
@@ -585,7 +591,7 @@ evaluateFields(typename TRAITS::EvalData workset)
    // now setup the fuctor_data, and run the parallel_for loop
    //////////////////////////////////////////////////////////////////////////////////
 
-   functor_data.x_data = x_vector->template getLocalView<PHX::Device>();
+   functor_data.x_data = x_vector->getLocalViewDevice(Tpetra::Access::ReadOnly);
    functor_data.seed_value = seed_value;
    functor_data.lids = scratch_lids_;
 
@@ -602,6 +608,7 @@ evaluateFields(typename TRAITS::EvalData workset)
      else
        Kokkos::parallel_for(Kokkos::RangePolicy<PHX::Device,NoSeed>(0,workset.num_cells),*this);
    }
+   functor_data.x_data = Kokkos::View<const double**, Kokkos::LayoutLeft,PHX::Device>();
 }
 
 // **********************************************************************
@@ -616,8 +623,12 @@ operator()(const int worksetCellIndex) const
     LO lid    = functor_data.lids(worksetCellIndex,offset);
 
     // set the value and seed the FAD object
-    functor_data.field(worksetCellIndex,basis).val() = functor_data.x_data(lid,0);
-    functor_data.field(worksetCellIndex,basis).fastAccessDx(offset) = functor_data.seed_value;
+    if (functor_data.dos == 0)
+      functor_data.field(worksetCellIndex,basis).val() = functor_data.x_data(lid,0);
+    else // Interface conditions need to zero out derivative array
+      functor_data.field(worksetCellIndex,basis) = ScalarT(functor_data.x_data(lid,0));
+
+    functor_data.field(worksetCellIndex,basis).fastAccessDx(functor_data.dos + offset) = functor_data.seed_value;
   }
 }
 

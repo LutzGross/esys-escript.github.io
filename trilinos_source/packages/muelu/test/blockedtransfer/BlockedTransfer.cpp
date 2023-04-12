@@ -115,8 +115,8 @@ namespace MueLuTests {
 #include "MueLu_UseShortNames.hpp"
     Teuchos::RCP<CrsMatrixWrap> mtx = Galeri::Xpetra::MatrixTraits<Map,CrsMatrixWrap>::Build(map, 3);
 
-    LocalOrdinal NumMyElements = map->getNodeNumElements();
-    Teuchos::ArrayView<const GlobalOrdinal> MyGlobalElements = map->getNodeElementList();
+    LocalOrdinal NumMyElements = map->getLocalNumElements();
+    Teuchos::ArrayView<const GlobalOrdinal> MyGlobalElements = map->getLocalElementList();
     GlobalOrdinal NumGlobalElements = map->getGlobalNumElements();
     GlobalOrdinal nIndexBase = map->getIndexBase();
 
@@ -200,10 +200,10 @@ int main_(Teuchos::CommandLineProcessor &clp, Xpetra::UnderlyingLib lib, int arg
     Xpetra::Parameters xpetraParameters(clp);             // manage parameters of xpetra
 
     switch (clp.parse(argc,argv)) {
-      case Teuchos::CommandLineProcessor::PARSE_HELP_PRINTED:        return EXIT_SUCCESS; break;
+      case Teuchos::CommandLineProcessor::PARSE_HELP_PRINTED:        return EXIT_SUCCESS;
       case Teuchos::CommandLineProcessor::PARSE_ERROR:
-      case Teuchos::CommandLineProcessor::PARSE_UNRECOGNIZED_OPTION: return EXIT_FAILURE; break;
-      case Teuchos::CommandLineProcessor::PARSE_SUCCESSFUL:                               break;
+      case Teuchos::CommandLineProcessor::PARSE_UNRECOGNIZED_OPTION: return EXIT_FAILURE;
+      case Teuchos::CommandLineProcessor::PARSE_SUCCESSFUL:          break;
     }
 
     xpetraParameters.check();
@@ -229,9 +229,9 @@ int main_(Teuchos::CommandLineProcessor &clp, Xpetra::UnderlyingLib lib, int arg
     map2   = StridedMapFactory::Build(lib, numElements2, numElements1, stridingInfo, comm, -1);
 
     std::vector<GlobalOrdinal> localGids; // vector with all local GIDs on cur proc
-    Teuchos::ArrayView< const GlobalOrdinal > map1eleList = map1->getNodeElementList(); // append all local gids from map1 and map2
+    Teuchos::ArrayView< const GlobalOrdinal > map1eleList = map1->getLocalElementList(); // append all local gids from map1 and map2
     localGids.insert(localGids.end(), map1eleList.begin(), map1eleList.end());
-    Teuchos::ArrayView< const GlobalOrdinal > map2eleList = map2->getNodeElementList();
+    Teuchos::ArrayView< const GlobalOrdinal > map2eleList = map2->getLocalElementList();
     localGids.insert(localGids.end(), map2eleList.begin(), map2eleList.end());
     Teuchos::ArrayView<GlobalOrdinal> eleList(&localGids[0],localGids.size());
     bigMap = StridedMapFactory::Build(lib, numElements, eleList, 0, stridingInfo, comm); // create full big map (concatenation of map1 and map2)
@@ -345,7 +345,6 @@ int main_(Teuchos::CommandLineProcessor &clp, Xpetra::UnderlyingLib lib, int arg
     H.SetVerbLevel(MueLu::Test);
     H.Setup(M);
 
-    std::cout << "main AcFact = " << AcFact.get() << std::endl;
     RCP<Level> l0 = H.GetLevel(0);
     RCP<Level> l1 = H.GetLevel(1);
     RCP<Level> l2 = H.GetLevel(2);

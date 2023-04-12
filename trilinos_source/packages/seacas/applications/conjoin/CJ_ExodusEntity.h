@@ -1,10 +1,9 @@
-// Copyright(C) 1999-2020 National Technology & Engineering Solutions
+// Copyright(C) 1999-2020, 2022 National Technology & Engineering Solutions
 // of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 // NTESS, the U.S. Government retains certain rights in this software.
-// 
+//
 // See packages/seacas/LICENSE for details
-#ifndef SEACAS_ExodusEntity_H
-#define SEACAS_ExodusEntity_H
+#pragma once
 
 #define NO_NETCDF_2
 #include "CJ_ObjectType.h"
@@ -27,13 +26,13 @@ namespace Excn {
     size_t count(ObjectType type) const
     {
       switch (type) {
-      case EBLK: return blockCount;
-      case NSET: return nodesetCount;
-      case SSET: return sidesetCount;
-      case NODE: return nodeCount;
-      case ELEM: return elementCount;
-      case TIME: return timestepCount;
-      case DIM: return dimensionality;
+      case ObjectType::EBLK: return blockCount;
+      case ObjectType::NSET: return nodesetCount;
+      case ObjectType::SSET: return sidesetCount;
+      case ObjectType::NODE: return nodeCount;
+      case ObjectType::ELEM: return elementCount;
+      case ObjectType::TIME: return timestepCount;
+      case ObjectType::DIM: return dimensionality;
       default: return 0;
       }
     }
@@ -118,8 +117,8 @@ namespace Excn {
 
     void dump() const
     {
-      fmt::print("NodeSet {}, Name: '{}', {:n} nodes, {:n} df,\torder = {}\n", id, name_, nodeCount,
-                 dfCount, position_);
+      fmt::print("NodeSet {}, Name: '{}', {} nodes, {} df,\torder = {}\n", id, name_,
+                 fmt::group_digits(nodeCount), fmt::group_digits(dfCount), position_);
     }
 
     void dump_order() const
@@ -132,7 +131,7 @@ namespace Excn {
     }
   };
 
-  typedef std::pair<int, int> Side;
+  using Side = std::pair<int, int>;
   template <typename INT> struct SideSet
   {
     SideSet() = default;
@@ -157,8 +156,8 @@ namespace Excn {
 
     void dump() const
     {
-      fmt::print("SideSet {}, Name: '{}', {:n} sides, {:n} df\toffset = {}, order = {}\n", id,
-                 name_, sideCount, dfCount, offset_, position_);
+      fmt::print("SideSet {}, Name: '{}', {} sides, {} df\toffset = {}, order = {}\n", id, name_,
+                 fmt::group_digits(sideCount), fmt::group_digits(dfCount), offset_, position_);
     }
   };
 
@@ -193,4 +192,3 @@ namespace Excn {
     size_t elementsBorder{0};
   };
 } // namespace Excn
-#endif /* SEACAS_ExodusEntity_H */

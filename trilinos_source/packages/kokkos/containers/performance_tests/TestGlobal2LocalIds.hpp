@@ -1,43 +1,17 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
 
 #ifndef KOKKOS_TEST_GLOBAL_TO_LOCAL_IDS_HPP
@@ -48,7 +22,7 @@
 #include <vector>
 #include <algorithm>
 
-#include <impl/Kokkos_Timer.hpp>
+#include <Kokkos_Timer.hpp>
 
 // This test will simulate global ids
 
@@ -65,9 +39,9 @@ union helper {
 
 template <typename Device>
 struct generate_ids {
-  typedef Device execution_space;
-  typedef typename execution_space::size_type size_type;
-  typedef Kokkos::View<uint32_t*, execution_space> local_id_view;
+  using execution_space = Device;
+  using size_type       = typename execution_space::size_type;
+  using local_id_view   = Kokkos::View<uint32_t*, execution_space>;
 
   local_id_view local_2_global;
 
@@ -96,13 +70,12 @@ struct generate_ids {
 
 template <typename Device>
 struct fill_map {
-  typedef Device execution_space;
-  typedef typename execution_space::size_type size_type;
-  typedef Kokkos::View<const uint32_t*, execution_space,
-                       Kokkos::MemoryRandomAccess>
-      local_id_view;
-  typedef Kokkos::UnorderedMap<uint32_t, size_type, execution_space>
-      global_id_view;
+  using execution_space = Device;
+  using size_type       = typename execution_space::size_type;
+  using local_id_view   = Kokkos::View<const uint32_t*, execution_space,
+                                     Kokkos::MemoryRandomAccess>;
+  using global_id_view =
+      Kokkos::UnorderedMap<uint32_t, size_type, execution_space>;
 
   global_id_view global_2_local;
   local_id_view local_2_global;
@@ -120,18 +93,17 @@ struct fill_map {
 
 template <typename Device>
 struct find_test {
-  typedef Device execution_space;
-  typedef typename execution_space::size_type size_type;
-  typedef Kokkos::View<const uint32_t*, execution_space,
-                       Kokkos::MemoryRandomAccess>
-      local_id_view;
-  typedef Kokkos::UnorderedMap<const uint32_t, const size_type, execution_space>
-      global_id_view;
+  using execution_space = Device;
+  using size_type       = typename execution_space::size_type;
+  using local_id_view   = Kokkos::View<const uint32_t*, execution_space,
+                                     Kokkos::MemoryRandomAccess>;
+  using global_id_view =
+      Kokkos::UnorderedMap<const uint32_t, const size_type, execution_space>;
 
   global_id_view global_2_local;
   local_id_view local_2_global;
 
-  typedef size_t value_type;
+  using value_type = size_t;
 
   find_test(global_id_view gIds, local_id_view lIds, value_type& num_errors)
       : global_2_local(gIds), local_2_global(lIds) {
@@ -142,9 +114,7 @@ struct find_test {
   void init(value_type& v) const { v = 0; }
 
   KOKKOS_INLINE_FUNCTION
-  void join(volatile value_type& dst, volatile value_type const& src) const {
-    dst += src;
-  }
+  void join(value_type& dst, value_type const& src) const { dst += src; }
 
   KOKKOS_INLINE_FUNCTION
   void operator()(size_type i, value_type& num_errors) const {
@@ -156,12 +126,12 @@ struct find_test {
 
 template <typename Device>
 void test_global_to_local_ids(unsigned num_ids) {
-  typedef Device execution_space;
-  typedef typename execution_space::size_type size_type;
+  using execution_space = Device;
+  using size_type       = typename execution_space::size_type;
 
-  typedef Kokkos::View<uint32_t*, execution_space> local_id_view;
-  typedef Kokkos::UnorderedMap<uint32_t, size_type, execution_space>
-      global_id_view;
+  using local_id_view = Kokkos::View<uint32_t*, execution_space>;
+  using global_id_view =
+      Kokkos::UnorderedMap<uint32_t, size_type, execution_space>;
 
   // size
   std::cout << num_ids << ", ";

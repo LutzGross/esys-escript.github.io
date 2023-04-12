@@ -62,9 +62,7 @@
 #include "MueLu_BlockedPFactory_decl.hpp"
 #include "MueLu_TentativePFactory.hpp"
 #include "MueLu_FactoryBase.hpp"
-#include "MueLu_SmootherFactory.hpp"
 #include "MueLu_FactoryManager.hpp"
-#include "MueLu_Utilities.hpp"
 #include "MueLu_Monitor.hpp"
 #include "MueLu_HierarchyUtils.hpp"
 
@@ -170,7 +168,7 @@ namespace MueLu {
       //subBlockPRangeMaps[i] = subBlockP[i]->getRowMap("stridedMaps");
 
       // Use plain range map to determine the DOF ids
-      ArrayView<const GO> nodeRangeMap = subBlockPRangeMaps[i]->getNodeElementList();
+      ArrayView<const GO> nodeRangeMap = subBlockPRangeMaps[i]->getLocalElementList();
       fullRangeMapVector.insert(fullRangeMapVector.end(), nodeRangeMap.begin(), nodeRangeMap.end());
 
       // Append strided col map (= domain map) to list of range maps.
@@ -184,7 +182,7 @@ namespace MueLu {
       //subBlockPDomainMaps[i] = subBlockP[i]->getColMap("stridedMaps");
 
       // Use plain domain map to determine the DOF ids
-      ArrayView<const GO> nodeDomainMap = subBlockPDomainMaps[i]->getNodeElementList();
+      ArrayView<const GO> nodeDomainMap = subBlockPDomainMaps[i]->getLocalElementList();
       fullDomainMapVector.insert(fullDomainMapVector.end(), nodeDomainMap.begin(), nodeDomainMap.end());
     }
 
@@ -253,7 +251,7 @@ namespace MueLu {
     RCP<const Map >       fullDomainMap    = null;
     if (stridedDoFullMap != null) {
       TEUCHOS_TEST_FOR_EXCEPTION(stridedDoFullMap == Teuchos::null, Exceptions::BadCast,
-        "MueLu::BlockedPFactory::Build: full map in domain map extractor has no striding information! error.");
+        "MueLu::BlockedPFactory::Build: full map in domain map extractor has no striding information!");
 
       std::vector<size_t> stridedData2 = stridedDoFullMap->getStridingData();
       fullDomainMap = StridedMapFactory::Build(
@@ -289,7 +287,7 @@ namespace MueLu {
         } else {
           P->setMatrix(i, j, Teuchos::null);
         }
-    
+
     P->fillComplete();
 
     // Level Set

@@ -1,13 +1,14 @@
-// Copyright(C) 1999-2020 National Technology & Engineering Solutions
+// Copyright(C) 1999-2022 National Technology & Engineering Solutions
 // of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 // NTESS, the U.S. Government retains certain rights in this software.
-// 
+//
 // See packages/seacas/LICENSE for details
 
 #if defined(EXODUS_SUPPORT)
 #include "aprepro.h"
 #include "exodusII.h"
 
+#include "apr_symrec.h"
 #include "apr_util.h"
 #include "aprepro_parser.h"
 
@@ -23,6 +24,35 @@ namespace {
   {
     return strncmp(pre, str, strlen(pre)) == 0;
   }
+
+  std::string entity_type_name(ex_entity_type ent_type)
+  {
+    switch (ent_type) {
+    case EX_ASSEMBLY: return "assembly_";
+    case EX_ELEM_BLOCK: return "block_";
+    case EX_NODE_SET: return "nodeset_";
+    case EX_SIDE_SET: return "sideset_";
+    default: return "invalid_";
+    }
+  }
+
+  void add_name(int exoid, ex_entity_type ent_type, int64_t id, char *name, std::string &names)
+  {
+    std::string str_name;
+    ex_get_name(exoid, ent_type, id, name);
+    if (name[0] == '\0') {
+      str_name = entity_type_name(ent_type) + std::to_string(id);
+    }
+    else {
+      str_name = name;
+    }
+
+    if (names.length() > 0) {
+      names += ",";
+    }
+    names += str_name;
+  }
+
 } // namespace
 
 namespace SEAMS {
@@ -32,10 +62,9 @@ namespace SEAMS {
   {
     int   cpu = sizeof(double);
     int   io  = 0;
-    int   exo;
     float version;
 
-    exo = ex_open(filename, EX_READ | EX_ALL_INT64_API, &cpu, &io, &version);
+    int exo = ex_open(filename, EX_READ | EX_ALL_INT64_API, &cpu, &io, &version);
     if (exo < 0) {
       // If there is an include path specified, try opening file there
       std::string file_path(aprepro->ap_options.include_path);
@@ -163,18 +192,17 @@ namespace SEAMS {
     }
 
     // read database parameters
-    static char title[MAX_LINE_LENGTH + 1];
-    int64_t     ndim, num_nodes, num_elements, num_elemblks, num_nodesets, num_sidesets;
-    ex_get_init(exoid, title, &ndim, &num_nodes, &num_elements, &num_elemblks, &num_nodesets,
-                &num_sidesets);
+    ex_init_params info;
+    ex_get_init_ext(exoid, &info);
 
-    aprepro->add_variable("ex_title", title);
-    aprepro->add_variable("ex_dimension", ndim);
-    aprepro->add_variable("ex_node_count", num_nodes);
-    aprepro->add_variable("ex_element_count", num_elements);
-    aprepro->add_variable("ex_block_count", num_elemblks);
-    aprepro->add_variable("ex_nodeset_count", num_nodesets);
-    aprepro->add_variable("ex_sideset_count", num_sidesets);
+    aprepro->add_variable("ex_title", info.title);
+    aprepro->add_variable("ex_dimension", info.num_dim);
+    aprepro->add_variable("ex_node_count", info.num_nodes);
+    aprepro->add_variable("ex_element_count", info.num_elem);
+    aprepro->add_variable("ex_block_count", info.num_elem_blk);
+    aprepro->add_variable("ex_assembly_count", info.num_assembly);
+    aprepro->add_variable("ex_nodeset_count", info.num_node_sets);
+    aprepro->add_variable("ex_sideset_count", info.num_side_sets);
 
     { // Nemesis Information
       int  proc_count;
@@ -211,14 +239,14 @@ namespace SEAMS {
     // -- 'ex_sideset_info'
     int max_name_length = ex_inquire_int(exoid, EX_INQ_DB_MAX_USED_NAME_LENGTH);
     ex_set_max_name_length(exoid, max_name_length);
-    char *      name = new char[max_name_length + 1];
+    char       *name = new char[max_name_length + 1];
     std::string str_name;
 
-    if (num_elemblks > 0) {
-      auto array_data       = new array(num_elemblks, 1);
-      auto array_block_info = new array(num_elemblks, 4);
+    if (info.num_elem_blk > 0) {
+      auto array_data       = aprepro->make_array(info.num_elem_blk, 1);
+      auto array_block_info = aprepro->make_array(info.num_elem_blk, 4);
 
-      std::vector<int64_t> ids(num_elemblks);
+      std::vector<int64_t> ids(info.num_elem_blk);
       ex_get_ids(exoid, EX_ELEM_BLOCK, ids.data());
 
       char    type[MAX_STR_LENGTH + 1];
@@ -230,7 +258,7 @@ namespace SEAMS {
       std::string topology;
 
       int64_t idx = 0;
-      for (int64_t i = 0; i < num_elemblks; i++) {
+      for (int64_t i = 0; i < info.num_elem_blk; i++) {
         ex_get_block(exoid, EX_ELEM_BLOCK, ids[i], type, &nel, &nnel, nullptr, nullptr, &natr);
         array_data->data[i]           = ids[i];
         array_block_info->data[idx++] = ids[i];
@@ -238,20 +266,11 @@ namespace SEAMS {
         array_block_info->data[idx++] = nnel;
         array_block_info->data[idx++] = natr;
 
-        ex_get_name(exoid, EX_ELEM_BLOCK, ids[i], name);
-        if (name[0] == '\0') {
-          str_name = "block_" + std::to_string(ids[i]);
-        }
-        else {
-          str_name = name;
-        }
-
         if (i > 0) {
           topology += ",";
-          names += ",";
         }
         topology += type;
-        names += str_name;
+        add_name(exoid, EX_ELEM_BLOCK, ids[i], name, names);
       }
 
       topology = LowerCase(topology);
@@ -261,17 +280,48 @@ namespace SEAMS {
       aprepro->add_variable("ex_block_info", array_block_info);
     }
 
-    // Nodesets...
-    if (num_nodesets > 0) {
-      auto array_data     = new array(num_nodesets, 1);
-      auto array_set_info = new array(num_nodesets, 3);
+    if (info.num_assembly > 0) {
+      std::vector<int64_t> ids(info.num_assembly);
+      ex_get_ids(exoid, EX_ASSEMBLY, ids.data());
 
-      std::vector<int64_t> ids(num_nodesets);
+      std::string names;
+      std::string type;
+      auto        array_data = aprepro->make_array(info.num_assembly, 1);
+      auto        array_info = aprepro->make_array(info.num_assembly, 1);
+
+      for (int64_t i = 0; i < info.num_assembly; i++) {
+        ex_assembly assembly;
+        assembly.id          = ids[i];
+        assembly.name        = new char[max_name_length + 1];
+        assembly.entity_list = nullptr;
+
+        ex_get_assembly(exoid, &assembly);
+        if (i > 0) {
+          names += ",";
+          type += ",";
+        }
+        array_data->data[i] = ids[i];
+        array_info->data[i] = assembly.entity_count;
+        names += assembly.name;
+        type += ex_name_of_object(assembly.type);
+      }
+      aprepro->add_variable("ex_assembly_type", type);
+      aprepro->add_variable("ex_assembly_names", names);
+      aprepro->add_variable("ex_assembly_ids", array_data);
+      aprepro->add_variable("ex_assembly_info", array_info);
+    }
+
+    // Nodesets...
+    if (info.num_node_sets > 0) {
+      auto array_data     = aprepro->make_array(info.num_node_sets, 1);
+      auto array_set_info = aprepro->make_array(info.num_node_sets, 3);
+
+      std::vector<int64_t> ids(info.num_node_sets);
       ex_get_ids(exoid, EX_NODE_SET, ids.data());
 
       std::string names;
       int64_t     idx = 0;
-      for (int64_t i = 0; i < num_nodesets; i++) {
+      for (int64_t i = 0; i < info.num_node_sets; i++) {
         int64_t num_entry;
         int64_t num_dist;
         ex_get_set_param(exoid, EX_NODE_SET, ids[i], &num_entry, &num_dist);
@@ -280,18 +330,7 @@ namespace SEAMS {
         array_set_info->data[idx++] = num_entry;
         array_set_info->data[idx++] = num_dist;
 
-        ex_get_name(exoid, EX_NODE_SET, ids[i], name);
-        if (name[0] == '\0') {
-          str_name = "nodeset_" + std::to_string(ids[i]);
-        }
-        else {
-          str_name = name;
-        }
-
-        if (i > 0) {
-          names += ",";
-        }
-        names += str_name;
+        add_name(exoid, EX_NODE_SET, ids[i], name, names);
       }
 
       aprepro->add_variable("ex_nodeset_names", names);
@@ -300,16 +339,16 @@ namespace SEAMS {
     }
 
     // Sidesets...
-    if (num_sidesets > 0) {
-      auto array_data     = new array(num_sidesets, 1);
-      auto array_set_info = new array(num_sidesets, 3);
+    if (info.num_side_sets > 0) {
+      auto array_data     = aprepro->make_array(info.num_side_sets, 1);
+      auto array_set_info = aprepro->make_array(info.num_side_sets, 3);
 
-      std::vector<int64_t> ids(num_sidesets);
+      std::vector<int64_t> ids(info.num_side_sets);
       ex_get_ids(exoid, EX_SIDE_SET, ids.data());
 
       std::string names;
       int64_t     idx = 0;
-      for (int64_t i = 0; i < num_sidesets; i++) {
+      for (int64_t i = 0; i < info.num_side_sets; i++) {
         int64_t num_entry;
         int64_t num_dist;
         ex_get_set_param(exoid, EX_SIDE_SET, ids[i], &num_entry, &num_dist);
@@ -318,18 +357,7 @@ namespace SEAMS {
         array_set_info->data[idx++] = num_entry;
         array_set_info->data[idx++] = num_dist;
 
-        ex_get_name(exoid, EX_SIDE_SET, ids[i], name);
-        if (name[0] == '\0') {
-          str_name = "sideset_" + std::to_string(ids[i]);
-        }
-        else {
-          str_name = name;
-        }
-
-        if (i > 0) {
-          names += ",";
-        }
-        names += str_name;
+        add_name(exoid, EX_SIDE_SET, ids[i], name, names);
       }
 
       aprepro->add_variable("ex_sideset_names", names);
@@ -345,7 +373,7 @@ namespace SEAMS {
       std::vector<double> timesteps(ts_count);
       ex_get_all_times(exoid, timesteps.data());
 
-      auto ts_array_data = new array(ts_count, 1);
+      auto ts_array_data = aprepro->make_array(ts_count, 1);
       for (int64_t i = 0; i < ts_count; i++) {
         ts_array_data->data[i] = timesteps[i];
       }
@@ -366,7 +394,7 @@ namespace SEAMS {
       }
       aprepro->add_variable("ex_global_var_names", names);
 
-      auto                glo_array_data = new array(ts_count, num_global);
+      auto                glo_array_data = aprepro->make_array(ts_count, num_global);
       std::vector<double> globals(num_global);
       int                 index = 0;
       for (int64_t i = 0; i < ts_count; i++) {

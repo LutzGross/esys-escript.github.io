@@ -47,7 +47,6 @@
 #define MUELU_COALESCEDROPFACTORY_KOKKOS_DECL_HPP
 
 #include "MueLu_ConfigDefs.hpp"
-#ifdef HAVE_MUELU_KOKKOS_REFACTOR
 
 #include <KokkosCompat_ClassicNodeAPI_Wrapper.hpp>
 
@@ -65,9 +64,13 @@ namespace MueLu {
 
   /*!
     @class CoalesceDropFactory_kokkos
-    @brief Factory for creating a graph base on a given matrix.
+    @brief Factory for creating a graph based on a given matrix.
 
     Factory for creating graphs from matrices with entries selectively dropped.
+    This factory combines the functionality of CoalesceDropFactory and FilteredAFactory from the non-Kokkos
+    code path.
+
+    For an in-depth discussion, see https://github.com/trilinos/Trilinos/issues/1676.
 
     ## Code paths ##
 
@@ -171,5 +174,4 @@ namespace MueLu {
 } //namespace MueLu
 
 #define MUELU_COALESCEDROPFACTORY_KOKKOS_SHORT
-#endif // HAVE_MUELU_KOKKOS_REFACTOR
 #endif // MUELU_COALESCEDROPFACTORY_KOKKOS_DECL_HPP

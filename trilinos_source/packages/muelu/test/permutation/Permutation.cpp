@@ -120,7 +120,7 @@ namespace MueLuTests {
     Teuchos::RCP<Epetra_CrsMatrix> epExpected = Teuchos::rcp(ptrExpected);
 
     // Epetra_CrsMatrix -> Xpetra::Matrix
-    Teuchos::RCP<CrsMatrix> exA = Teuchos::rcp(new Xpetra::EpetraCrsMatrix(epA));
+    Teuchos::RCP<CrsMatrix> exA = Teuchos::rcp(new EpetraCrsMatrix(epA));
     Teuchos::RCP<CrsMatrixWrap> crsOp = Teuchos::rcp(new CrsMatrixWrap(exA));
     Teuchos::RCP<Matrix> A = Teuchos::rcp_dynamic_cast<Matrix>(crsOp);
     A->SetFixedBlockSize(1);
@@ -220,7 +220,7 @@ namespace MueLuTests {
     Teuchos::RCP<Epetra_CrsMatrix> epExpected = Teuchos::rcp(ptrExpected);
 
     // Epetra_CrsMatrix -> Xpetra::Matrix
-    Teuchos::RCP<CrsMatrix> exA = Teuchos::rcp(new Xpetra::EpetraCrsMatrix(epA));
+    Teuchos::RCP<CrsMatrix> exA = Teuchos::rcp(new EpetraCrsMatrix(epA));
     Teuchos::RCP<CrsMatrixWrap> crsOp = Teuchos::rcp(new CrsMatrixWrap(exA));
     Teuchos::RCP<Matrix> A = Teuchos::rcp_dynamic_cast<Matrix>(crsOp);
     A->SetFixedBlockSize(3);
@@ -333,7 +333,7 @@ int main(int argc, char* argv[]) {
   Teuchos::CommandLineProcessor clp(throwExceptions, recogniseAllOptions);
   Xpetra::Parameters xpetraParameters(clp);
 
-  std::string node = "";  clp.setOption("node", &node, "node type (serial | openmp | cuda)");
+  std::string node = "";  clp.setOption("node", &node, "node type (serial | openmp | cuda | hip)");
 
   switch (clp.parse(argc, argv, NULL)) {
     case Teuchos::CommandLineProcessor::PARSE_ERROR:               return EXIT_FAILURE;

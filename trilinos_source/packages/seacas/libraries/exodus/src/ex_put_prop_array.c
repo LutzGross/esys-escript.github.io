@@ -1,8 +1,8 @@
 /*
- * Copyright(C) 1999-2020 National Technology & Engineering Solutions
+ * Copyright(C) 1999-2020, 2022 National Technology & Engineering Solutions
  * of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
  * NTESS, the U.S. Government retains certain rights in this software.
- * 
+ *
  * See packages/seacas/LICENSE for details
  */
 
@@ -64,7 +64,6 @@ stored. Maximum
 |  #EX_EDGE_MAP   |  Edge Map entity type     |
 |  #EX_FACE_MAP   |  Face Map entity type     |
 
-
 For an example of code to write an array of object properties, refer
 to the description for ex_put_prop_names().
  */
@@ -78,13 +77,15 @@ int ex_put_prop_array(int exoid, ex_entity_type obj_type, const char *prop_name,
   bool   found = false;
   int    int_type;
   size_t num_obj;
-  char * name;
+  char  *name;
   char   tmpstr[MAX_STR_LENGTH + 1];
 
   char errmsg[MAX_ERR_LENGTH];
 
   EX_FUNC_ENTER();
-  ex__check_valid_file_id(exoid, __func__);
+  if (ex__check_valid_file_id(exoid, __func__) == EX_FATAL) {
+    EX_FUNC_LEAVE(EX_FATAL);
+  }
 
   /* check if property has already been created */
 
@@ -199,6 +200,8 @@ int ex_put_prop_array(int exoid, ex_entity_type obj_type, const char *prop_name,
     /* leave define mode  */
 
     if ((status = ex__leavedef(exoid, __func__)) != NC_NOERR) {
+      snprintf(errmsg, MAX_ERR_LENGTH, "ERROR: failed to exit define mode");
+      ex_err_fn(exoid, __func__, errmsg, status);
       EX_FUNC_LEAVE(EX_FATAL);
     }
   }

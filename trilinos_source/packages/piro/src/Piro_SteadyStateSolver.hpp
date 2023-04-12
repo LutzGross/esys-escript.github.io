@@ -60,11 +60,13 @@ class SteadyStateSolver
   /** \name Constructors/initializers */
   //@{
   /** \brief . */
-  explicit SteadyStateSolver(const Teuchos::RCP<const Thyra::ModelEvaluator<Scalar> > &model);
+  explicit SteadyStateSolver(const Teuchos::RCP<const Thyra::ModelEvaluator<Scalar> > &model,
+      const Teuchos::RCP<const Thyra::ModelEvaluator<Scalar> > &adjointModel);
 
   /** \brief . */
   SteadyStateSolver(
       const Teuchos::RCP<const Thyra::ModelEvaluator<Scalar> > &model,
+      const Teuchos::RCP<const Thyra::ModelEvaluator<Scalar> > &adjointModel,
       int numParameters);
   //@}
 
@@ -122,7 +124,14 @@ class SteadyStateSolver
   /** \brief . */
   void evalConvergedModelResponsesAndSensitivities(
       const Thyra::ModelEvaluatorBase::InArgs<Scalar>& modelInArgs,
-      const Thyra::ModelEvaluatorBase::OutArgs<Scalar>& outArgs) const;
+      const Thyra::ModelEvaluatorBase::OutArgs<Scalar>& outArgs,
+      Teuchos::ParameterList& appParams) const;
+
+  /** \brief . */
+  void evalReducedHessian(
+      const Thyra::ModelEvaluatorBase::InArgs<Scalar>& modelInArgs,
+      const Thyra::ModelEvaluatorBase::OutArgs<Scalar>& outArgs,
+      Teuchos::ParameterList& appParams) const;
   //@}
 
   private:
@@ -141,7 +150,7 @@ class SteadyStateSolver
   Thyra::ModelEvaluatorBase::InArgs<Scalar> createInArgsImpl() const;
   //@}
 
-  Teuchos::RCP<const Thyra::ModelEvaluator<Scalar> > model_;
+  Teuchos::RCP<const Thyra::ModelEvaluator<Scalar> > model_, adjointModel_;
 
   int num_p_;
   int num_g_;

@@ -55,6 +55,7 @@
 #include "Kokkos_Random.hpp"
 #include "KokkosSparse_spmv.hpp"
 #include "KokkosKernels_IOUtils.hpp"
+#include "KokkosSparse_IOUtils.hpp"
 
 #include <Teuchos_CommandLineProcessor.hpp>
 #include <Teuchos_TestingHelpers.hpp>
@@ -1024,8 +1025,11 @@ bool do_tpetra_test_with_types(const string& mm_file,
 
     // perturb the values just a bit (element-wise square of first row)
     size_t l_fst_row_nnz = A2->getNumEntriesInLocalRow(0);
-    Array<LocalOrdinal> indices(l_fst_row_nnz);
-    Array<Scalar> values(l_fst_row_nnz);
+    //Array<LocalOrdinal> indices(l_fst_row_nnz);
+    //Array<Scalar> values(l_fst_row_nnz);
+    typename MAT::nonconst_local_inds_host_view_type indices ("indices", l_fst_row_nnz);
+    typename MAT::nonconst_values_host_view_type     values  ("values",  l_fst_row_nnz);
+
     A2->getLocalRowCopy(0, indices, values, l_fst_row_nnz);
     for( size_t i = 0; i < l_fst_row_nnz; ++i ){
       values[i] = values[i] * values[i];
@@ -1455,7 +1459,7 @@ bool do_kokkos_test_with_types(const string& mm_file,
   const size_t numRHS = 5;      // also arbitrary
 
   if(!bEmptyLoad) {
-    *A = KokkosKernels::Impl::read_kokkos_crst_matrix<MAT>(path.c_str());
+    *A = KokkosSparse::Impl::read_kokkos_crst_matrix<MAT>(path.c_str());
   }
 
   if (verbosity > 2) {
@@ -1492,7 +1496,7 @@ bool do_kokkos_test_with_types(const string& mm_file,
     x2 = rcp(new view_t(Kokkos::ViewAllocateWithoutInitializing("x2"), num_rows, numVecs));
     b2 = rcp(new view_t(Kokkos::ViewAllocateWithoutInitializing("b2"), num_rows, numVecs));
     if(!bEmptyLoad) {
-      *A2 = KokkosKernels::Impl::read_kokkos_crst_matrix<MAT>(path.c_str());
+      *A2 = KokkosSparse::Impl::read_kokkos_crst_matrix<MAT>(path.c_str());
       auto vals = A2->values; // don't use RCP in kernel
       // perturb the values just a bit (element-wise square of first row)
       auto row_map = A2->graph.row_map;

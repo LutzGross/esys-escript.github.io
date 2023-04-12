@@ -36,7 +36,7 @@
 #define stk_mesh_ForEachEntityLoopAbstractions_hpp
 
 #include <stk_mesh/base/Types.hpp>      // for MeshIndex, EntityRank, etc
-#include <stk_mesh/base/Bucket.hpp>     // for Bucket, Bucket::size_type, etc
+#include <stk_mesh/base/Bucket.hpp>     // for Bucket
 #include <stk_mesh/base/Selector.hpp>
 #include <stk_mesh/base/BulkData.hpp>
 
@@ -44,8 +44,9 @@ namespace stk {
 namespace mesh {
 namespace impl {
 
-template <typename ALGORITHM_PER_ENTITY>
-void for_each_selected_entity_run(const BulkData &mesh, stk::topology::rank_t rank, const stk::mesh::Selector &selector, const ALGORITHM_PER_ENTITY &functor)
+inline
+void for_each_selected_entity_run(const BulkData &mesh, stk::topology::rank_t rank, const Selector &selector,
+                                  const std::function<void(const BulkData&,const MeshIndex&)>& functor)
 {
     const stk::mesh::BucketVector & buckets = mesh.get_buckets(rank, selector);
     const size_t numBuckets = buckets.size();
@@ -58,6 +59,49 @@ void for_each_selected_entity_run(const BulkData &mesh, stk::topology::rank_t ra
         for(size_t i=0; i<bucket->size(); i++)
         {
             functor(mesh, stk::mesh::MeshIndex({bucket,i}));
+        }
+    }
+}
+
+inline
+void for_each_selected_entity_run(const BulkData &mesh, stk::topology::rank_t rank, const Selector &selector,
+                                  const std::function<void(const BulkData&,const Entity&)>& functor)
+{
+    const stk::mesh::BucketVector & buckets = mesh.get_buckets(rank, selector);
+    const size_t numBuckets = buckets.size();
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+    for(size_t j=0; j<numBuckets; j++)
+    {
+        stk::mesh::Bucket *bucket = buckets[j];
+        for(size_t i=0; i<bucket->size(); i++)
+        {
+            functor(mesh, (*bucket)[i]);
+        }
+    }
+}
+
+template<typename ALGORITHM_TO_RUN_PER_ENTITY>
+void for_each_selected_entity_run_with_nodes(const BulkData &mesh, stk::topology::rank_t rank, const Selector &selector,
+                                             const ALGORITHM_TO_RUN_PER_ENTITY& functor)
+{
+    const stk::mesh::BucketVector & buckets = mesh.get_buckets(rank, selector);
+    const size_t numBuckets = buckets.size();
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+    for(size_t j=0; j<numBuckets; j++)
+    {
+        stk::mesh::Bucket& bucket = *buckets[j];
+        const size_t numNodesPerEntity = bucket.topology().num_nodes();
+        const Entity* nodes = bucket.begin_nodes(0);
+        const size_t bucketSize = bucket.size();
+        for(size_t i=0; i<bucketSize; i++)
+        {
+            Entity entity = bucket[i];
+            functor(entity, nodes, numNodesPerEntity);
+            nodes += numNodesPerEntity;
         }
     }
 }

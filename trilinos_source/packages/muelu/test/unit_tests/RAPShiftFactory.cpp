@@ -281,6 +281,9 @@ namespace MueLuTests {
 #   include "MueLu_UseShortNames.hpp"
     MUELU_TESTING_SET_OSTREAM;
     MUELU_TESTING_LIMIT_SCOPE(Scalar,GlobalOrdinal,Node);
+#   if !defined(HAVE_MUELU_AMESOS2)
+    MUELU_TESTING_DO_NOT_TEST(Xpetra::UseTpetra, "Amesos2");
+#   endif
     out << "version: " << MueLu::Version() << std::endl;
     typedef Scalar SC;
     typedef GlobalOrdinal GO;
@@ -381,7 +384,7 @@ namespace MueLuTests {
     out << "||X||_2 = " << normX << std::endl;
     result1->norm2(normResult1);
     result2->norm2(normResult2);
-    TEST_FLOATING_EQUALITY(normResult1[0], normResult2[0], 1e-12);
+    TEST_FLOATING_EQUALITY(normResult1[0], normResult2[0], 1e4*Teuchos::ScalarTraits<typename Teuchos::ScalarTraits<SC>::magnitudeType>::eps());
 
   }
 
@@ -392,6 +395,9 @@ namespace MueLuTests {
 #   include "MueLu_UseShortNames.hpp"
     MUELU_TESTING_SET_OSTREAM;
     MUELU_TESTING_LIMIT_SCOPE(Scalar,GlobalOrdinal,Node);
+#   if !defined(HAVE_MUELU_AMESOS2)
+    MUELU_TESTING_DO_NOT_TEST(Xpetra::UseTpetra, "Amesos2");
+#   endif
     out << "version: " << MueLu::Version() << std::endl;
     typedef Scalar SC;
     typedef GlobalOrdinal GO;
@@ -459,7 +465,7 @@ namespace MueLuTests {
     out << "||X||_2 = " << normX << std::endl;
     result1->norm2(normResult1);
     result2->norm2(normResult2);
-    TEST_FLOATING_EQUALITY(normResult1[0], normResult2[0], 1e-12);
+    TEST_FLOATING_EQUALITY(normResult1[0], normResult2[0], 1e4*Teuchos::ScalarTraits<typename Teuchos::ScalarTraits<SC>::magnitudeType>::eps());
 
   }
 
@@ -469,6 +475,9 @@ namespace MueLuTests {
 #   include "MueLu_UseShortNames.hpp"
     MUELU_TESTING_SET_OSTREAM;
     MUELU_TESTING_LIMIT_SCOPE(Scalar,GlobalOrdinal,Node);
+#   if !defined(HAVE_MUELU_AMESOS2)
+    MUELU_TESTING_DO_NOT_TEST(Xpetra::UseTpetra, "Amesos2");
+#   endif
     out << "version: " << MueLu::Version() << std::endl;
     typedef Scalar SC;
     typedef GlobalOrdinal GO;
@@ -557,6 +566,9 @@ namespace MueLuTests {
 #   include "MueLu_UseShortNames.hpp"
     MUELU_TESTING_SET_OSTREAM;
     MUELU_TESTING_LIMIT_SCOPE(Scalar,GlobalOrdinal,Node);
+#   if !defined(HAVE_MUELU_AMESOS2)
+    MUELU_TESTING_DO_NOT_TEST(Xpetra::UseTpetra, "Amesos2");
+#   endif
     out << "version: " << MueLu::Version() << std::endl;
     typedef Scalar SC;
     typedef GlobalOrdinal GO;
@@ -646,6 +658,9 @@ namespace MueLuTests {
 #   include "MueLu_UseShortNames.hpp"
     MUELU_TESTING_SET_OSTREAM;
     MUELU_TESTING_LIMIT_SCOPE(Scalar,GlobalOrdinal,Node);
+#   if !defined(HAVE_MUELU_AMESOS2)
+    MUELU_TESTING_DO_NOT_TEST(Xpetra::UseTpetra, "Amesos2");
+#   endif
     out << "version: " << MueLu::Version() << std::endl;
     typedef Scalar SC;
     typedef GlobalOrdinal GO;
@@ -735,6 +750,9 @@ namespace MueLuTests {
 #   include "MueLu_UseShortNames.hpp"
     MUELU_TESTING_SET_OSTREAM;
     MUELU_TESTING_LIMIT_SCOPE(Scalar,GlobalOrdinal,Node);
+#   if !defined(HAVE_MUELU_AMESOS2)
+    MUELU_TESTING_DO_NOT_TEST(Xpetra::UseTpetra, "Amesos2");
+#   endif
     out << "version: " << MueLu::Version() << std::endl;
     typedef Scalar SC;
     typedef GlobalOrdinal GO;

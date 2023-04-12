@@ -50,6 +50,7 @@
 #include "Tpetra_CrsMatrix.hpp"
 #include "Tpetra_Core.hpp"
 #include "Tpetra_Map.hpp"
+#include "MatrixMarket_Tpetra.hpp"
 
 #include "Kokkos_Random.hpp"
 
@@ -71,6 +72,8 @@ struct CmdLineOpts {
   int numEntPerRow;
   // Bool that determines if a warm up apply is performed before timing
   bool warmUp;
+  // String that points to a matrix market file to load the matrix
+  std::string matrixFile;
 };
 
 // Use a utility from the Teuchos package of Trilinos to set up
@@ -88,6 +91,7 @@ setCmdLineOpts (CmdLineOpts& opts,
   opts.lclNumRows = 10000;
   opts.numEntPerRow = 10;
   opts.warmUp = true;
+  opts.matrixFile = "";
 
   clp.setOption ("numTrials", &(opts.numTrials), "Number of trials per "
                  "timing loop (to increase timer precision).");
@@ -97,6 +101,8 @@ setCmdLineOpts (CmdLineOpts& opts,
                  "per row in the sparse graph.");
   clp.setOption ("warm-up", "no-warm-up", &(opts.warmUp), "Perform a first un-timed apply"
                  " before running numTrials applies.");
+  clp.setOption("matrixFile", &(opts.matrixFile), "Matrix market file containing matrix");
+
 }
 
 // Actually read the command-line options from the command line,
@@ -168,6 +174,7 @@ printCmdLineOpts (Teuchos::FancyOStream& out,
       << "lclNumRows: " << opts.lclNumRows << endl
       << "numEntPerRow: " << opts.numEntPerRow << endl
       << "warmUp: " << opts.warmUp << endl
+      << "matrixFile: " << opts.matrixFile << endl
       << endl;
 }
 
@@ -219,8 +226,7 @@ getTpetraGraph (const Teuchos::RCP<const Teuchos::Comm<int> >& comm,
   const GO gblNumCols = static_cast<GO> (rowMap->getGlobalNumElements ());
   // Create the graph structure of the sparse matrix.
   RCP<graph_type> G =
-    rcp (new graph_type (rowMap, opts.numEntPerRow,
-                         Tpetra::StaticProfile));
+    rcp (new graph_type (rowMap, opts.numEntPerRow));
   // Fill in the sparse graph.
   Teuchos::Array<GO> gblColInds (opts.numEntPerRow);
   for (LO lclRow = 0; lclRow < lclNumRows; ++lclRow) { // for each of my rows
@@ -271,20 +277,23 @@ getTpetraCrsMatrix (Teuchos::FancyOStream& out,
   // columns, or asking the column Map for the number of entries,
   // won't give the correct number of columns in the graph.
   // const GO gblNumCols = graph->getDomainMap ()->getGlobalNumElements ();
-  const LO lclNumRows = meshRowMap.getNodeNumElements ();
+  const LO lclNumRows = meshRowMap.getLocalNumElements ();
 
   RCP<matrix_type> A = rcp (new matrix_type (graph));
 
   // Fill in the sparse matrix.
   out << "Fill the CrsMatrix" << endl;
   for (LO lclRow = 0; lclRow < lclNumRows; ++lclRow) { // for each of my rows
-    Teuchos::ArrayView<const LO> lclColInds;
+    matrix_type::local_inds_host_view_type lclColInds;
     graph->getLocalRowView (lclRow, lclColInds);
 
     // Put some entries in the matrix.
-    Teuchos::Array<SC> lclValues(lclColInds.size(), Teuchos::ScalarTraits<SC>::one());
-    const LO err = A->replaceLocalValues (lclRow, lclColInds, lclValues());
-    TEUCHOS_TEST_FOR_EXCEPTION(err != lclColInds.size(), std::logic_error, "Bug");
+    matrix_type::values_host_view_type::non_const_type
+                 lclValues("testLclValues", lclColInds.extent(0));
+    Kokkos::deep_copy(lclValues, Teuchos::ScalarTraits<SC>::one());
+    const LO err = A->replaceLocalValues (lclRow, lclColInds, lclValues);
+    TEUCHOS_TEST_FOR_EXCEPTION(size_t(err) != lclColInds.size(),
+                               std::logic_error, "Bug");
   }
   A->fillComplete();
 
@@ -335,17 +344,26 @@ main (int argc, char* argv[])
     out << "Command-line options:" << endl;
     printCmdLineOpts (out, opts);
 
-    auto timer = TimeMonitor::getNewCounter ("Tpetra CrsMatrix Benchmark: getGraph");
-    RCP<Tpetra::CrsGraph<> > G;
-    {
-      TimeMonitor timeMon (*timer);
-      G = getTpetraGraph (comm, opts);
-    }
-    timer = TimeMonitor::getNewCounter ("Tpetra CrsMatrix Benchmark: getCrsMatrix");
+    // Create or read in the matrix
     RCP<Tpetra::CrsMatrix<> > A;
-    {
-      TimeMonitor timeMon (*timer);
-      A = getTpetraCrsMatrix (out, G, opts);
+    if(opts.matrixFile.empty()) {
+      auto timer = TimeMonitor::getNewCounter ("Tpetra CrsMatrix Benchmark: getGraph");
+      RCP<Tpetra::CrsGraph<> > G;
+      {
+        TimeMonitor timeMon (*timer);
+        G = getTpetraGraph (comm, opts);
+      }
+      timer = TimeMonitor::getNewCounter ("Tpetra CrsMatrix Benchmark: getCrsMatrix");
+      {
+        TimeMonitor timeMon (*timer);
+        A = getTpetraCrsMatrix (out, G, opts);
+      }
+    } else {
+      auto timer = TimeMonitor::getNewCounter ("Tpetra CrsMatrix Benchmark: readCrsMatrix");
+      {
+        TimeMonitor timeMon (*timer);
+        A = Tpetra::MatrixMarket::Reader<Tpetra::CrsMatrix<> >::readSparseFile(opts.matrixFile, comm);
+      }
     }
     Tpetra::Vector<> X (A->getDomainMap ());
     Tpetra::Vector<> Y (A->getRangeMap ());
@@ -356,7 +374,7 @@ main (int argc, char* argv[])
     // (or even denorms) via traps.  This is very expensive, so if the
     // norms increase or decrease a lot, that might trigger the slow
     // case.
-    timer = TimeMonitor::getNewCounter ("Tpetra CrsMatrix Benchmark: create vectors");
+    auto timer = TimeMonitor::getNewCounter ("Tpetra CrsMatrix Benchmark: create vectors");
     {
       TimeMonitor timeMon (*timer);
       const SC X_val = static_cast<SC> (1.0) /

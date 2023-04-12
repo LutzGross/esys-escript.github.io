@@ -52,11 +52,13 @@
 namespace stk {
 namespace mesh {
 
-void compute_memory_usage(const BulkData& bulk, MemoryUsage& mem_usage)
+#ifndef STK_HIDE_DEPRECATED_CODE // Delete after Feb 2023
+STK_DEPRECATED void compute_memory_usage(const BulkData& bulk, MemoryUsage& mem_usage)
 {
-  mem_usage.entity_rank_names = bulk.mesh_meta_data().entity_rank_names();
+  const MetaData& meta = bulk.mesh_meta_data();
+  mem_usage.entity_rank_names = meta.entity_rank_names();
 
-  const FieldVector& fields = bulk.mesh_meta_data().get_fields();
+  const FieldVector& fields = meta.get_fields();
   mem_usage.num_fields = fields.size();
   mem_usage.field_bytes = fields.size()*sizeof(FieldBase);
   for(size_t i=0; i<fields.size(); ++i) {
@@ -64,7 +66,7 @@ void compute_memory_usage(const BulkData& bulk, MemoryUsage& mem_usage)
     mem_usage.field_bytes += sizeof(FieldRestriction)*fields[i]->restrictions().size();
   }
 
-  const PartVector& parts = bulk.mesh_meta_data().get_parts();
+  const PartVector& parts = meta.get_parts();
   mem_usage.num_parts = parts.size();
   mem_usage.part_bytes = parts.size()*sizeof(Part);
   for(size_t i=0; i<parts.size(); ++i) {
@@ -81,18 +83,17 @@ void compute_memory_usage(const BulkData& bulk, MemoryUsage& mem_usage)
   mem_usage.bucket_counts.clear();
   mem_usage.bucket_bytes.clear();
 
-  Selector all = bulk.mesh_meta_data().universal_part();
+  Selector all = meta.universal_part();
   count_entities(all, bulk, mem_usage.entity_counts);
 
-  size_t nranks = mem_usage.entity_counts.size();
+  EntityRank nranks = meta.entity_rank_count();
   mem_usage.downward_relation_counts.resize(nranks, 0);
   mem_usage.upward_relation_counts.resize(nranks, 0);
   mem_usage.bucket_counts.resize(nranks, 0);
   mem_usage.bucket_bytes.resize(nranks, 0);
 
   std::vector<Entity> entities;
-  for(size_t i=0; i<nranks; ++i) {
-    EntityRank rank_i = static_cast<EntityRank>(i);
+  for(EntityRank rank_i = stk::topology::NODE_RANK; rank_i < nranks; ++rank_i) {
     total_bytes += mem_usage.entity_counts[rank_i]*sizeof(Entity);
 
     get_entities(bulk, rank_i, entities);
@@ -123,7 +124,7 @@ void compute_memory_usage(const BulkData& bulk, MemoryUsage& mem_usage)
   mem_usage.total_bytes = total_bytes;
 }
 
-void print_memory_usage(const MemoryUsage& mem_usage, std::ostream& os)
+STK_DEPRECATED void print_memory_usage(const MemoryUsage& mem_usage, std::ostream& os)
 {
   os << "----- stk_mesh Memory Usage: ------"<<std::endl;
   os << "Fields:"<<std::endl;
@@ -172,8 +173,8 @@ void print_memory_usage(const MemoryUsage& mem_usage, std::ostream& os)
   }
   os << "Total bytes: "<<mem_usage.total_bytes<<" ("<<(static_cast<double>(mem_usage.total_bytes))/(1024*1024)<<"MB)"<<std::endl;
 }
+#endif
 
 }//namespace mesh
 }//namespace stk
-
 

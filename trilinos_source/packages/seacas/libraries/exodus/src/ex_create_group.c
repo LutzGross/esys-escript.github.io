@@ -1,8 +1,8 @@
 /*
- * Copyright(C) 1999-2020 National Technology & Engineering Solutions
+ * Copyright(C) 1999-2020, 2022 National Technology & Engineering Solutions
  * of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
  * NTESS, the U.S. Government retains certain rights in this software.
- * 
+ *
  * See packages/seacas/LICENSE for details
  */
 
@@ -22,7 +22,9 @@ int ex_create_group(int parent_id, const char *group_name)
   int status;
 
   EX_FUNC_ENTER();
-  ex__check_valid_file_id(parent_id, __func__);
+  if (ex__check_valid_file_id(parent_id, __func__) != EX_NOERR) {
+    EX_FUNC_LEAVE(EX_FATAL);
+  }
 
   if ((status = nc_redef(parent_id)) != NC_NOERR) {
     snprintf(errmsg, MAX_ERR_LENGTH, "ERROR: failed to put file id %d into define mode", parent_id);
@@ -38,6 +40,8 @@ int ex_create_group(int parent_id, const char *group_name)
   }
 
   if ((status = ex__leavedef(parent_id, __func__)) != NC_NOERR) {
+    snprintf(errmsg, MAX_ERR_LENGTH, "ERROR: failed to exit define mode");
+    ex_err_fn(exoid, __func__, errmsg, status);
     EX_FUNC_LEAVE(EX_FATAL);
   }
   EX_FUNC_LEAVE(exoid);

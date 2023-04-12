@@ -1,7 +1,7 @@
-// Copyright(C) 1999-2020 National Technology & Engineering Solutions
+// Copyright(C) 1999-2021 National Technology & Engineering Solutions
 // of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 // NTESS, the U.S. Government retains certain rights in this software.
-// 
+//
 // See packages/seacas/LICENSE for details
 
 #include "fmt/color.h"
@@ -9,12 +9,33 @@
 #include "util.h"
 #include <cstring> // for nullptr, memset
 #include <iostream>
+#include <stringx.h>
 #include <unistd.h>
 
-#if defined(_MSC_VER)
+#include "ED_SystemInterface.h" // for SystemInterface, interFace
+
+#if defined(WIN32) || defined(__WIN32__) || defined(_WIN32) || defined(_MSC_VER) ||                \
+    defined(__MINGW32__) || defined(_WIN64) || defined(__MINGW64__)
 #include <io.h>
 #define isatty _isatty
 #endif
+
+int name_length()
+{
+  static int max_name_length = -1;
+  if (max_name_length < 0) {
+    max_name_length = std::max(max_name_length, max_string_length(interFace.glob_var_names));
+    max_name_length = std::max(max_name_length, max_string_length(interFace.node_var_names));
+    max_name_length = std::max(max_name_length, max_string_length(interFace.elmt_var_names));
+    max_name_length = std::max(max_name_length, max_string_length(interFace.elmt_att_names));
+    max_name_length = std::max(max_name_length, max_string_length(interFace.ns_var_names));
+    max_name_length = std::max(max_name_length, max_string_length(interFace.ss_var_names));
+    max_name_length = std::max(max_name_length, max_string_length(interFace.eb_var_names));
+    max_name_length = std::max(max_name_length, max_string_length(interFace.fb_var_names));
+    max_name_length++;
+  }
+  return max_name_length;
+}
 
 char **get_name_array(int size, int length)
 {
@@ -51,7 +72,23 @@ namespace {
   }
 } // namespace
 
+void Error(std::ostringstream &x)
+{
+  std::ostringstream out;
+  fmt::print(out, "exodiff: ERROR: {}", x.str());
+  ERR_OUT(out);
+  exit(EXIT_FAILURE);
+}
+
 void Error(const std::string &x)
+{
+  std::ostringstream out;
+  fmt::print(out, "exodiff: ERROR: {}", x);
+  ERR_OUT(out);
+  exit(EXIT_FAILURE);
+}
+
+void Warning(const std::string &x)
 {
   std::ostringstream out;
   fmt::print(out, "exodiff: ERROR: {}", x);
@@ -68,7 +105,7 @@ void ERR_OUT(std::ostringstream &buf)
   }
 }
 
-void DIFF_OUT(std::ostringstream &buf, fmt::internal::color_type color)
+void DIFF_OUT(std::ostringstream &buf, fmt::detail::color_type color)
 {
   if (term_out()) {
     fmt::print(fmt::fg(color), "{}\n", buf.str());
@@ -78,7 +115,7 @@ void DIFF_OUT(std::ostringstream &buf, fmt::internal::color_type color)
   }
 }
 
-void DIFF_OUT(const std::string &buf, fmt::internal::color_type color)
+void DIFF_OUT(const std::string &buf, fmt::detail::color_type color)
 {
   if (term_out()) {
     fmt::print(fmt::fg(color), "{}\n", buf);

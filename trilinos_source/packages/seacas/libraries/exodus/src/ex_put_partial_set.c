@@ -2,7 +2,7 @@
  * Copyright(C) 1999-2020 National Technology & Engineering Solutions
  * of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
  * NTESS, the U.S. Government retains certain rights in this software.
- * 
+ *
  * See packages/seacas/LICENSE for details
  */
 /*****************************************************************************
@@ -48,12 +48,14 @@ int ex_put_partial_set(int exoid, ex_entity_type set_type, ex_entity_id set_id, 
   int    entry_list_id, extra_list_id, set_id_ndx;
   size_t start[1], count[1];
   char   errmsg[MAX_ERR_LENGTH];
-  char * entryptr = NULL;
-  char * extraptr = NULL;
+  char  *entryptr = NULL;
+  char  *extraptr = NULL;
 
   EX_FUNC_ENTER();
 
-  ex__check_valid_file_id(exoid, __func__);
+  if (ex__check_valid_file_id(exoid, __func__) == EX_FATAL) {
+    EX_FUNC_LEAVE(EX_FATAL);
+  }
 
   /* first check if any sets are specified */
   if ((status = nc_inq_dimid(exoid, ex__dim_num_objects(set_type), &dimid)) != NC_NOERR) {

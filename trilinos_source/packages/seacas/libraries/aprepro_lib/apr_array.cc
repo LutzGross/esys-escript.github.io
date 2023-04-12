@@ -1,11 +1,13 @@
-// Copyright(C) 1999-2020 National Technology & Engineering Solutions
+// Copyright(C) 1999-2021 National Technology & Engineering Solutions
 // of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 // NTESS, the U.S. Government retains certain rights in this software.
-// 
+//
 // See packages/seacas/LICENSE for details
 
+#include "apr_symrec.h"
 #include "aprepro.h" // for array, Aprepro, etc
-#include <vector>    // for vector
+
+#include <vector> // for vector
 
 namespace SEAMS {
   extern SEAMS::Aprepro *aprepro;
@@ -18,18 +20,13 @@ namespace SEAMS {
      * (0.0 -> rows-1) (0.0 -> cols-1)
      */
 
-    if (aprepro->ap_options.one_based_index) {
-      row--;
-      col--;
-    }
-
-    int irl = row;
-    int irh = irl + 1;
-    int icl = col;
-    int ich = icl + 1;
-
     int cols = arr->cols;
     int rows = arr->rows;
+
+    int irl = row;
+    int irh = rows > 1 ? irl + 1 : irl;
+    int icl = col;
+    int ich = cols > 1 ? icl + 1 : icl;
 
     double value = 0.0;
 
@@ -38,8 +35,16 @@ namespace SEAMS {
       double v21 = arr->data[irh * cols + icl];
       double v12 = arr->data[irl * cols + ich];
       double v22 = arr->data[irh * cols + ich];
-      value      = v11 * (irh - row) * (ich - col) + v21 * (row - irl) * (ich - col) +
-              v12 * (irh - row) * (col - icl) + v22 * (row - irl) * (col - icl);
+      if (rows > 1 && cols > 1) {
+        value = (v11 * (irh - row) + v21 * (row - irl)) * (ich - col) +
+                (v12 * (irh - row) * v22 * (row - irl)) * (col - icl);
+      }
+      else if (rows > 1 && cols == 1) {
+        value = v11 * (irh - row) + v21 * (row - irl);
+      }
+      else if (cols > 1 && rows == 1) {
+        value = v11 * (ich - col) + v12 * (col - icl);
+      }
     }
     else {
       aprepro->error("Row or Column index out of range");
@@ -76,7 +81,7 @@ namespace SEAMS {
 
   array *array_add(const array *a, const array *b)
   {
-    auto array_data = new array(a->rows, a->cols);
+    auto array_data = aprepro->make_array(a->rows, a->cols);
     for (int i = 0; i < a->rows * a->cols; i++) {
       array_data->data[i] = a->data[i] + b->data[i];
     }
@@ -85,7 +90,7 @@ namespace SEAMS {
 
   array *array_sub(const array *a, const array *b)
   {
-    auto array_data = new array(a->rows, a->cols);
+    auto array_data = aprepro->make_array(a->rows, a->cols);
 
     for (int i = 0; i < a->rows * a->cols; i++) {
       array_data->data[i] = a->data[i] - b->data[i];
@@ -95,7 +100,7 @@ namespace SEAMS {
 
   array *array_scale(const array *a, double s)
   {
-    auto array_data = new array(a->rows, a->cols);
+    auto array_data = aprepro->make_array(a->rows, a->cols);
 
     for (int i = 0; i < a->rows * a->cols; i++) {
       array_data->data[i] = a->data[i] * s;
@@ -109,7 +114,7 @@ namespace SEAMS {
     int ac = a->cols;
     int bc = b->cols;
 
-    auto array_data = new array(a->rows, b->cols);
+    auto array_data = aprepro->make_array(a->rows, b->cols);
 
     for (int i = 0; i < b->cols; i++) {
       for (int j = 0; j < a->rows; j++) {

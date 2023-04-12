@@ -11,7 +11,7 @@ TRIBITS_PACKAGE(Percept)
 TRIBITS_ADD_OPTION_AND_DEFINE(${PACKAGE_NAME}_ENABLE_DEBUG
   PERCEPT_DEBUG
   "Build with debug code enabled."
-  ${Trilinos_ENABLE_DEBUG})
+  ${${PROJECT_NAME}_ENABLE_DEBUG})
 
 TRIBITS_ADD_OPTION_AND_DEFINE(${PACKAGE_NAME}_ENABLE_GEOMETRY
   STK_PERCEPT_HAS_GEOMETRY
@@ -45,9 +45,9 @@ TRIBITS_CONFIGURE_FILE(${PACKAGE_NAME}_config.hpp)
 #TRIBITS_ADD_TEST_DIRECTORIES(test)
 #TRIBITS_ADD_EXAMPLE_DIRECTORIES(example)
 
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/src)
+TRIBITS_INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
+TRIBITS_INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
+TRIBITS_INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 FILE (GLOB ADAPT_MAIN
      src/adapt/main/*.cpp
@@ -133,6 +133,65 @@ TRIBITS_ADD_LIBRARY(
   HEADERS ${HEADER}
   SOURCES ${SOURCE}
   )
+
+SET(HEADER_SUBDIRS 
+     adapt
+     adapt/sierra_element
+     adapt/markers
+
+     percept
+
+     percept/eigen_verify
+     percept/element/intrepid
+
+     percept/fixtures
+     percept/function
+     percept/function/internal
+
+     percept/math
+     percept/mesh/diff
+     percept/mesh/gen
+     percept/mesh/geometry/kernel
+     percept/mesh/geometry/kernel/xfer
+     percept/mesh/geometry/recovery
+     percept/mesh/geometry/stk_geom
+     percept/mesh/geometry/stk_geom/3D
+     percept/mesh/geometry/volume
+     percept/mesh/geometry/volume/sierra_only
+     percept/mesh/mod/smoother
+     percept/mesh_transfer
+
+     percept/norm
+
+     percept/stk_rebalance
+     percept/stk_rebalance_utils
+     percept/structured
+     percept/uq
+     percept/util
+     percept/verifier/mesh
+     percept/xfer
+    )
+
+FOREACH(SUBDIR ${HEADER_SUBDIRS})
+    FILE (GLOB HEADERS_TMP src/${SUBDIR}/*.hpp src/${SUBDIR}/*.h)
+    MESSAGE("Install Percept:" ${SUBDIR})
+    TRIBITS_INSTALL_HEADERS(
+        HEADERS ${HEADERS_TMP}
+        INSTALL_SUBDIR ${SUBDIR}
+        )
+ENDFOREACH()
+        
+#FILE (GLOB HEADERS_TMP src/percept/util/*.hpp)
+#TRIBITS_INSTALL_HEADERS(
+#  HEADERS ${HEADERS_TMP}
+#  INSTALL_SUBDIR percept/util
+#  )
+
+#FILE (GLOB HEADERS_TMP src/percept/xfer/*.hpp)
+#TRIBITS_INSTALL_HEADERS(
+#  HEADERS ${HEADERS_TMP}
+#  INSTALL_SUBDIR percept/xfer
+#  )
 
 TRIBITS_ADD_EXECUTABLE(
   perceptX

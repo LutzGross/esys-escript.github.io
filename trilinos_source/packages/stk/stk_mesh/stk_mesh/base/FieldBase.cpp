@@ -37,9 +37,10 @@
 #include <vector>                       // for vector, etc
 #include "Shards_Array.hpp"             // for ArrayDimTag
 #include "stk_mesh/base/DataTraits.hpp"  // for DataTraits
+#include "stk_mesh/base/MetaData.hpp"  // for FieldRestriction
 #include "stk_mesh/base/FieldRestriction.hpp"  // for FieldRestriction
 #include <stk_mesh/base/FindRestriction.hpp>
-#include <stk_mesh/base/NgpField.hpp>
+#include <stk_mesh/base/NgpFieldBase.hpp>
 #include "stk_util/util/ReportHandler.hpp"  // for ThrowRequireMsg
 
 
@@ -48,26 +49,68 @@ namespace stk { namespace mesh { class BulkData; } }
 namespace stk {
 namespace mesh {
 
-std::ostream & operator << ( std::ostream & s , const FieldBase & field )
-{
-  s << "Field<" ;
-  s << field.data_traits().name ;
-  for ( unsigned i = 0 ; i < field.field_array_rank() ; ++i ) {
-    s << "," << field.dimension_tags()[i]->name();
-  }
-  s << ">" ;
+//----------------------------------------------------------------------
 
-  s << "[ name: \"" ;
-  s << field.name() ;
-  s << "\" , #states: " ;
-  s << field.number_of_states();
-  s << " ]" ;
+template<typename PARTVECTOR>
+void get_parts_and_all_subsets(const PARTVECTOR& parts, OrdinalVector& parts_and_all_subsets)
+{
+  parts_and_all_subsets.clear();
+  for(const Part* part : parts) {
+    stk::util::insert_keep_sorted_and_unique(part->mesh_meta_data_ordinal(), parts_and_all_subsets);
+
+    const PartVector& subsets = part->subsets();
+    for(const Part* subset : subsets) {
+      stk::util::insert_keep_sorted_and_unique(subset->mesh_meta_data_ordinal(), parts_and_all_subsets);
+    }
+  }
+}
+
+std::pair<bool,bool> check_for_existing_subsets_or_supersets(FieldRestriction& tmp,
+                                                             FieldRestrictionVector::iterator i,
+                                                             PartVector& selectorI_parts,
+                                                             OrdinalVector& selectorI_parts_and_subsets,
+                                                             PartVector& arg_selector_parts,
+                                                             OrdinalVector& arg_selector_parts_and_subsets,
+                                                             bool arg_selector_is_all_unions
+                                                            )
+{
+  bool found_subset = false;
+  bool found_superset = false;
+
+  const Selector& selectorI = i->selector();
+  selectorI_parts.clear();
+  selectorI.get_parts(selectorI_parts);
+  get_parts_and_all_subsets(selectorI_parts, selectorI_parts_and_subsets);
+  const bool selectorI_is_all_unions = selectorI.is_all_unions();
+  
+  const bool both_selectors_are_unions = arg_selector_is_all_unions && selectorI_is_all_unions;
+  found_superset = both_selectors_are_unions ? is_subset(arg_selector_parts_and_subsets, selectorI_parts_and_subsets) : false;
+  
+  found_subset = both_selectors_are_unions ? is_subset(selectorI_parts_and_subsets, arg_selector_parts_and_subsets) : false;
+  if (found_subset) {
+    *i = tmp;
+  }
+
+  return std::make_pair(found_superset, found_subset);
+}
+
+std::ostream & operator<<(std::ostream & s, const FieldBase & field)
+{
+  if (field.mesh_meta_data().is_using_simple_fields()) {
+    s << "Field<" << field.data_traits().name << ">";
+  }
+  else {
+    s << "Field<" << field.data_traits().name;
+    for (unsigned i = 0; i < field.field_array_rank(); ++i) {
+      s << "," << field.dimension_tags()[i]->name();
+    }
+    s << ">";
+  }
+  s << "[\"" << field.name() << "\", #states: " << field.number_of_states() << "]";
   return s ;
 }
 
-std::ostream & print( std::ostream & s ,
-                      const char * const b ,
-                      const FieldBase & field )
+std::ostream & print(std::ostream & s, const char * const b, const FieldBase & field)
 {
   s << b << field << std::endl;
   std::string indent = b;
@@ -76,18 +119,189 @@ std::ostream & print( std::ostream & s ,
   return s ;
 }
 
-std::ostream & print_restrictions(std::ostream & s ,
-                                  const char * const b ,
-                                  const FieldBase & field )
+std::ostream & print_restrictions(std::ostream & s, const char * const b, const FieldBase & field)
 {
   const std::vector<FieldBase::Restriction> & rMap = field.restrictions();
 
   for ( const FieldBase::Restriction& r : rMap ) {
     s << b;
-    r.print( s, r.selector(), field.field_array_rank() );
+    r.print(s, r.selector());
     s << std::endl;
   }
   return s;
+}
+
+void FieldBase::set_initial_value(const void* new_initial_value, unsigned num_scalars, unsigned num_bytes) {
+  void*& init_val = field_state(StateNone)->m_initial_value;
+
+  delete [] reinterpret_cast<char*>(init_val);
+  init_val = new char[num_bytes];
+
+  m_field_states[0]->m_initial_value_num_bytes = num_bytes;
+
+  data_traits().copy(init_val, new_initial_value, num_scalars);
+}
+
+void FieldBase::insert_restriction(
+  const char     * arg_method ,
+  const Selector & arg_selector ,
+  const unsigned   arg_num_scalars_per_entity ,
+  const unsigned   arg_first_dimension ,
+  const void*      arg_init_value )
+{
+  FieldRestriction tmp( arg_selector );
+
+  tmp.set_num_scalars_per_entity(arg_num_scalars_per_entity);
+  tmp.set_dimension(arg_first_dimension);
+
+  if (arg_init_value != NULL) {
+    //insert_restriction can be called multiple times for the same field, giving
+    //the field different lengths on different mesh-parts.
+    //We will only store one initial-value array, we need to store the one with
+    //maximum length for this field so that it can be used to initialize data
+    //for all field-restrictions. For the parts on which the field is shorter,
+    //a subset of the initial-value array will be used.
+    //  
+    //We want to end up storing the longest arg_init_value array for this field.
+    //  
+    //Thus, we call set_initial_value only if the current length is longer
+    //than what's already been stored.
+
+    //length in bytes is num-scalars X sizeof-scalar:
+
+    size_t num_scalars = arg_num_scalars_per_entity;
+    size_t sizeof_scalar = data_traits().size_of;
+    size_t nbytes = sizeof_scalar * num_scalars;
+
+    size_t old_nbytes = 0;
+    if (get_initial_value() != NULL) {
+      old_nbytes = get_initial_value_num_bytes();
+    }   
+    if (nbytes > old_nbytes) {
+      set_initial_value(arg_init_value, num_scalars, nbytes);
+    }   
+  }
+
+  {
+    FieldRestrictionVector & restrs = restrictions();
+
+    FieldRestrictionVector::iterator restr = restrs.begin();
+    FieldRestrictionVector::iterator last_restriction = restrs.end();
+
+    restr = std::lower_bound(restr,last_restriction,tmp);
+
+    const bool new_restriction = ( ( restr == last_restriction ) || !(*restr == tmp) );
+
+    if ( new_restriction ) { 
+      if (mesh_meta_data().is_commit()) {
+        ThrowRequireMsg(mesh_meta_data().are_late_fields_enabled(),
+                        "Attempting to register Field '" << m_name << "' after MetaData is" << std::endl <<
+                        "committed. If you are willing to accept the performance implications, call" << std::endl <<
+                        "MetaData::enable_late_fields() before adding these Fields.");
+      }   
+
+      PartVector arg_selector_parts, selectorI_parts;
+      OrdinalVector arg_selector_parts_and_subsets, selectorI_parts_and_subsets;
+      arg_selector.get_parts(arg_selector_parts);
+      get_parts_and_all_subsets(arg_selector_parts, arg_selector_parts_and_subsets);
+
+      const bool arg_selector_is_all_unions = arg_selector.is_all_unions();
+      bool found_superset = false;
+      bool found_subset = false;
+
+      for(FieldRestrictionVector::iterator i=restrs.begin(), iend=restrs.end(); i!=iend; ++i) {
+
+        const unsigned i_num_scalars_per_entity = i->num_scalars_per_entity();
+
+        bool shouldCheckForExistingSubsetsOrSupersets =
+          arg_num_scalars_per_entity != i_num_scalars_per_entity;
+#ifndef NDEBUG
+        shouldCheckForExistingSubsetsOrSupersets = true;
+#endif
+        if (shouldCheckForExistingSubsetsOrSupersets) {
+          std::pair<bool,bool> result =
+             check_for_existing_subsets_or_supersets(tmp, i,
+                                                     selectorI_parts, selectorI_parts_and_subsets,
+                                                     arg_selector_parts, arg_selector_parts_and_subsets,
+                                                     arg_selector_is_all_unions
+                                                      );
+          if (result.first) {
+            found_superset = true;
+          }
+          if (result.second) {
+            found_subset = true;
+          }
+        }
+
+        if (found_superset) {
+          ThrowErrorMsgIf(i_num_scalars_per_entity != arg_num_scalars_per_entity,
+                          "FAILED to add new field-restriction " << print_restriction(*i, arg_selector) <<
+                          " WITH INCOMPATIBLE REDECLARATION " << print_restriction(tmp, arg_selector));
+          return;
+          }
+        if (found_subset) {
+          ThrowErrorMsgIf(i_num_scalars_per_entity != arg_num_scalars_per_entity,
+                          arg_method << " FAILED for " << *this << " " << print_restriction(*i, arg_selector) <<
+                          " WITH INCOMPATIBLE REDECLARATION " << print_restriction(tmp, arg_selector));
+        }
+      }
+      if (!found_subset) {
+        restrs.insert( restr , tmp );
+      }
+      else {
+        //if subsets were found, we replaced them with the new restriction. so now we need
+        //to sort and unique the vector, and trim it to remove any duplicates:
+        stk::util::sort_and_unique(restrs);
+      }
+    }
+    else {
+      ThrowErrorMsgIf(restr->num_scalars_per_entity() != tmp.num_scalars_per_entity(),
+                      arg_method << " FAILED for " << *this << " " << print_restriction(*restr, arg_selector) <<
+                      " WITH INCOMPATIBLE REDECLARATION " << print_restriction(tmp, arg_selector));
+    }
+  }
+}
+
+void FieldBase::verify_and_clean_restrictions(const Part& superset, const Part& subset)
+{   
+  FieldRestrictionVector & restrs = restrictions();
+    
+  //Check whether restriction contains subset part, if so, it may now be redundant
+  //with another restriction.
+  //If they are, make sure they are compatible and remove the subset restrictions.
+  PartVector scratch1, scratch2;
+  const FieldRestriction* restrData = restrs.data();
+  std::vector<unsigned> scratch;
+  for (size_t r = 0; r < restrs.size(); ++r) {
+    FieldRestriction const& curr_restriction = restrData[r];
+      
+    if (curr_restriction.selector()(subset)) {
+      scratch.push_back(r);
+    }
+  } 
+  
+  for (size_t r = 0; r < scratch.size(); ++r) {
+    FieldRestriction const& curr_restriction = restrData[scratch[r]];
+  
+    bool delete_me = false;
+    for (size_t i = 0, ie = scratch.size(); i < ie; ++i) {
+      FieldRestriction const& check_restriction = restrData[scratch[i]];
+      if (i != r &&
+          check_restriction.num_scalars_per_entity() != curr_restriction.num_scalars_per_entity() &&
+          is_subset(curr_restriction.selector(), check_restriction.selector(), scratch1, scratch2)) {
+        ThrowErrorMsgIf( check_restriction.num_scalars_per_entity() != curr_restriction.num_scalars_per_entity(),
+                         "Incompatible field restrictions for parts "<< superset.name() << " and "<< subset.name());
+        delete_me = true;
+        break;
+      }
+    }
+    if (delete_me) {
+      restrs.erase(restrs.begin() + scratch[r]);
+      for(unsigned j=r+1; j<scratch.size(); ++j) {
+        --scratch[j];
+      }
+    }
+  }
 }
 
 void FieldBase::set_mesh(stk::mesh::BulkData* bulk)
@@ -105,16 +319,55 @@ bool FieldBase::defined_on(const stk::mesh::Part& part) const
   return (length(part) > 0);
 }
 
+unsigned
+FieldBase::field_array_rank() const
+{
+  if (m_meta_data->is_using_simple_fields()) {
+    ThrowErrorMsg("FieldBase::field_array_rank() is no longer supported since it represents" << std::endl
+               << "the number of extra template parameters, which are being removed.");
+  }
+
+  return m_field_rank;
+}
+
+const shards::ArrayDimTag * const *
+FieldBase::dimension_tags() const
+{
+  if (m_meta_data->is_using_simple_fields()) {
+    ThrowErrorMsg("FieldBase::dimension_tags() is no longer supported since it holds the" << std::endl
+               << "extra template parameters, which are being removed.");
+  }
+
+  return m_dim_tags;
+}
+
 unsigned FieldBase::length(const stk::mesh::Part& part) const
 {
-  const stk::mesh::FieldRestriction& restriction =
-    stk::mesh::find_restriction(*this, entity_rank(), part);
+  const stk::mesh::FieldRestriction& restriction = stk::mesh::find_restriction(*this, entity_rank(), part);
   return restriction.num_scalars_per_entity();
+}
+
+unsigned FieldBase::max_size( EntityRank ent_rank) const
+{
+  unsigned max = 0 ; 
+
+  if (entity_rank() == ent_rank)
+  {   
+      const FieldRestrictionVector & rMap = restrictions();
+      const FieldRestrictionVector::const_iterator ie = rMap.end() ;
+            FieldRestrictionVector::const_iterator i = rMap.begin();
+
+      for ( ; i != ie ; ++i ) { 
+          const unsigned len = i->num_scalars_per_entity();
+          if ( max < len ) { max = len ; } 
+      }   
+  }   
+  return max ;
 }
 
 void FieldBase::rotate_multistate_data()
 {
-  const unsigned numStates = m_impl.number_of_states();
+  const unsigned numStates = number_of_states();
   if (numStates > 1 && StateNew == state()) {
     NgpFieldBase* ngpField = get_ngp_field();
     if (ngpField != nullptr) {
@@ -123,190 +376,171 @@ void FieldBase::rotate_multistate_data()
     for (unsigned s = 1; s < numStates; ++s) {
       FieldBase* sField = field_state(static_cast<FieldState>(s));
       m_field_meta_data.swap(sField->m_field_meta_data);
+
+      std::swap(m_numSyncsToDevice, sField->m_numSyncsToDevice);
+      std::swap(m_numSyncsToHost, sField->m_numSyncsToHost);
+
+      std::swap(m_modifiedOnHost, sField->m_modifiedOnHost);
+      std::swap(m_modifiedOnDevice, sField->m_modifiedOnDevice);
     }
   }
 }
 
-#ifdef STK_DEBUG_FIELD_SYNC
-unsigned
-FieldBase::get_num_components(const FastMeshIndex & index) const
-{
-  const unsigned bytesPerScalar = data_traits().size_of;
-  return m_field_meta_data[index.bucket_id].m_bytes_per_entity/bytesPerScalar;
+void
+FieldBase::modify_on_host() const
+{ 
+  ThrowRequireMsg(m_modifiedOnDevice == false,
+                  "Modify on host called for Field: " << name() << " but it has an uncleared modified_on_device");
+
+  m_modifiedOnHost = true;
 }
 
 void
-FieldBase::set_last_modification_view(const LastFieldModLocationType & lastModView) const
-{
-  m_debugFieldLastModification = lastModView;
+FieldBase::modify_on_device() const
+{ 
+  ThrowRequireMsg(m_modifiedOnHost == false,
+                  "Modify on device called for Field: " << name() << " but it has an uncleared modified_on_host");
+
+  m_modifiedOnDevice = true;
+}
+
+void
+FieldBase::modify_on_host(const Selector& s) const
+{ 
+  modify_on_host();
+}
+
+void
+FieldBase::modify_on_device(const Selector& s) const
+{ 
+  modify_on_device();
 }
 
 bool
-FieldBase::last_accessed_entity_value_has_changed(const FastMeshIndex & index, unsigned component) const
+FieldBase::need_sync_to_device() const
 {
-  const unsigned bytesPerScalar = data_traits().size_of;
-  const FieldMetaData& field_meta_data = m_field_meta_data[index.bucket_id];
-  const unsigned entityOffset = field_meta_data.m_bytes_per_entity * index.bucket_ord;
-  const unsigned componentOffset = bytesPerScalar * component;
-
-  const uint8_t * data = field_meta_data.m_data + entityOffset + componentOffset;
-  const uint8_t * lastValueData = m_lastFieldValue.data() + entityOffset + componentOffset;
-
-  return std::memcmp(data, lastValueData, bytesPerScalar);
-}
-
-void
-FieldBase::set_last_modification(const FastMeshIndex & index, unsigned component, LastModLocation location) const
-{
-  m_debugFieldLastModification(index.bucket_id, ORDER_INDICES(index.bucket_ord, component)) = location;
-}
-
-void
-FieldBase::detect_host_field_entity_modification() const
-{
-  if (m_lastFieldEntityLocation.bucket_id == INVALID_BUCKET_ID) return;
-
-  for (unsigned component = 0; component < get_num_components(m_lastFieldEntityLocation);  ++component) {
-    if (last_accessed_entity_value_has_changed(m_lastFieldEntityLocation, component)) {
-      set_last_modification(m_lastFieldEntityLocation, component, LastModLocation::HOST);
-    }
-  }
+  return m_modifiedOnHost;
 }
 
 bool
-FieldBase::last_entity_modification_not_on_host(const FastMeshIndex & index, unsigned component) const
+FieldBase::need_sync_to_host() const
 {
-  return !(m_debugFieldLastModification(index.bucket_id,
-                                        ORDER_INDICES(index.bucket_ord, component)) & LastModLocation::HOST);
+  return m_modifiedOnDevice;
 }
 
 void
-FieldBase::store_last_entity_access_location(const FastMeshIndex & index) const
-{
-  const FieldMetaData& field_meta_data = m_field_meta_data[index.bucket_id];
-  const uint8_t * data = field_meta_data.m_data + field_meta_data.m_bytes_per_entity * index.bucket_ord;
-
-  const unsigned bucketCapacity = get_mesh().buckets(entity_rank())[index.bucket_id]->capacity();
-  m_lastFieldValue.resize(field_meta_data.m_bytes_per_entity * bucketCapacity);
-  uint8_t * lastValueData = m_lastFieldValue.data() + field_meta_data.m_bytes_per_entity * index.bucket_ord;
-
-  std::memcpy(lastValueData, data, field_meta_data.m_bytes_per_entity);
-  m_lastFieldEntityLocation = index;
+FieldBase::sync_to_host() const
+{ 
+  if (m_ngpField != nullptr) {
+    m_ngpField->sync_to_host();
+  } else {
+    clear_device_sync_state();
+  }
 }
 
-std::string location_string(const char * fullPath, int lineNumber)
+void FieldBase::sync_to_host(const stk::ngp::ExecSpace& exec_space) const
 {
-  if (lineNumber != -1) {
-    std::string fileName(fullPath);
-    std::size_t pathDelimeter = fileName.find_last_of("/");
-    if (pathDelimeter < fileName.size()) {
-      fileName = fileName.substr(pathDelimeter+1);
-    }
-    return fileName + ":" + std::to_string(lineNumber) + " ";
-  }
-  else {
-    return "";
+  if (m_ngpField != nullptr) {
+    m_ngpField->sync_to_host(exec_space);
+  } else {
+    clear_device_sync_state();
   }
 }
 
 void
-FieldBase::check_stale_field_entity_access(const FastMeshIndex & index, const char * fileName, int lineNumber) const
+FieldBase::sync_to_device() const
 {
-  if (get_ngp_field()->any_device_field_modification()) {
-    std::cout << location_string(fileName, lineNumber)
-              << "*** WARNING: Lost Device values for Field " << name()
-              << " due to a mesh modification before a sync to Host" << std::endl;
-    return;
+  if (m_ngpField != nullptr) {
+    m_ngpField->sync_to_device();
+  } else {
+    clear_host_sync_state();
   }
+}
 
-  for (unsigned component = 0; component < get_num_components(index);  ++component) {
-    if (last_entity_modification_not_on_host(index, component)) {
-      const unsigned bytesPerScalar = data_traits().size_of;
-      const FieldMetaData& field_meta_data = m_field_meta_data[index.bucket_id];
-      const unsigned entityOffset = field_meta_data.m_bytes_per_entity * index.bucket_ord;
-      const unsigned componentOffset = bytesPerScalar * component;
-
-      uint8_t * data = field_meta_data.m_data + entityOffset + componentOffset;
-
-      const std::string baseMessage = location_string(fileName, lineNumber) +
-                                      "*** WARNING: Accessing stale data on Host for Field " + name() +
-                                      "[" + std::to_string(component) + "]=";
-      if (data_traits().is_floating_point && data_traits().size_of == 8u) {
-        std::cout << baseMessage << *reinterpret_cast<double*>(data) << std::endl;
-      }
-      else if (data_traits().is_floating_point && data_traits().size_of == 4u) {
-        std::cout << baseMessage << *reinterpret_cast<float*>(data) << std::endl;
-      }
-      else if (data_traits().is_integral && data_traits().is_signed && data_traits().size_of == 4u) {
-        std::cout << baseMessage << *reinterpret_cast<int32_t*>(data) << std::endl;
-      }
-      else if (data_traits().is_integral && data_traits().is_unsigned && data_traits().size_of == 4u) {
-        std::cout << baseMessage << *reinterpret_cast<uint32_t*>(data) << std::endl;
-      }
-      else if (data_traits().is_integral && data_traits().is_signed && data_traits().size_of == 8u) {
-        std::cout << baseMessage << *reinterpret_cast<int64_t*>(data) << std::endl;
-      }
-      else if (data_traits().is_integral && data_traits().is_unsigned && data_traits().size_of == 8u) {
-        std::cout << baseMessage << *reinterpret_cast<uint64_t*>(data) << std::endl;
-      }
-      else if (data_traits().is_integral && data_traits().is_signed && data_traits().size_of == 2u) {
-        std::cout << baseMessage << *reinterpret_cast<int16_t*>(data) << std::endl;
-      }
-      else if (data_traits().is_integral && data_traits().is_unsigned && data_traits().size_of == 2u) {
-        std::cout << baseMessage << *reinterpret_cast<uint16_t*>(data) << std::endl;
-      }
-      else {
-        std::cout << location_string(fileName, lineNumber)
-                  << "*** WARNING: Accessing stale data on Host for Field " << name() << std::endl;
-      }
-    }
+void FieldBase::sync_to_device(const stk::ngp::ExecSpace& exec_space) const
+{
+  if (m_ngpField != nullptr) {
+    m_ngpField->sync_to_device(exec_space);
+  } else {
+    clear_host_sync_state();
   }
 }
 
 void
-FieldBase::store_last_bucket_access_location(const stk::mesh::Bucket & bucket) const
+FieldBase::clear_sync_state() const
 {
-  const FieldMetaData& field_meta_data = m_field_meta_data[bucket.bucket_id()];
-  m_lastFieldValue.resize(field_meta_data.m_bytes_per_entity * bucket.capacity());
-
-  std::memcpy(m_lastFieldValue.data(), field_meta_data.m_data, field_meta_data.m_bytes_per_entity * bucket.size());
-  m_lastFieldBucketLocation = &const_cast<stk::mesh::Bucket&>(bucket);
+  if(m_ngpField != nullptr) {
+    m_ngpField->notify_sync_debugger_clear_sync_state();
+  }
+  m_modifiedOnHost = false;
+  m_modifiedOnDevice = false;
 }
 
 void
-FieldBase::detect_host_field_bucket_modification() const
+FieldBase::clear_host_sync_state() const
 {
-  if (m_lastFieldBucketLocation == nullptr) return;
+  if(m_ngpField != nullptr) {
+    m_ngpField->notify_sync_debugger_clear_host_sync_state();
+  }
+  m_modifiedOnHost = false;
+}
 
-  for (unsigned ordinal = 0; ordinal < m_lastFieldBucketLocation->size(); ++ordinal) {
-    const FastMeshIndex index {m_lastFieldBucketLocation->bucket_id(), ordinal};
-    for (unsigned component = 0; component < get_num_components(index);  ++component) {
-      if (last_accessed_entity_value_has_changed(index, component)) {
-        set_last_modification(index, component, LastModLocation::HOST);
-      }
-    }
+void
+FieldBase::clear_device_sync_state() const
+{
+  if(m_ngpField != nullptr) {
+    m_ngpField->notify_sync_debugger_clear_device_sync_state();
+  }
+  m_modifiedOnDevice = false;
+}
+
+void
+FieldBase::set_ngp_field(NgpFieldBase * ngpField) const
+{
+  ThrowRequireMsg(m_ngpField == nullptr || m_ngpField == ngpField,
+                  "Error: Only one NgpField may be set on a StkField(" /*<< m_name <<*/ ")");
+  m_ngpField = ngpField;
+}
+
+void
+FieldBase::fence() const
+{
+  if(m_ngpField != nullptr) {
+    m_ngpField->fence();
   }
 }
 
-void
-FieldBase::check_stale_field_bucket_access(const stk::mesh::Bucket & bucket, const char * fileName, int lineNumber) const
+size_t
+FieldBase::num_syncs_to_host() const
 {
-  for (unsigned ordinal = 0; ordinal < bucket.size(); ++ordinal) {
-    const FastMeshIndex index {bucket.bucket_id(), ordinal};
-    check_stale_field_entity_access(index, fileName, lineNumber);
-  }
+  return m_numSyncsToHost;
+}
+
+size_t
+FieldBase::num_syncs_to_device() const
+{
+  return m_numSyncsToDevice;
 }
 
 void
-FieldBase::reset_debug_state()
+FieldBase::increment_num_syncs_to_host() const
 {
-  m_lastFieldEntityLocation = {INVALID_BUCKET_ID, 0};
-  m_lastFieldBucketLocation = nullptr;
+  ++m_numSyncsToHost;
 }
 
-#endif
+void
+FieldBase::increment_num_syncs_to_device() const
+{
+  ++m_numSyncsToDevice;
+}
 
-//----------------------------------------------------------------------
+namespace impl {
+
+stk::CSet & get_attributes(FieldBase & field) {
+  return field.get_attributes();
+}
+
+} // namespace impl
 
 } // namespace mesh
 } // namespace stk

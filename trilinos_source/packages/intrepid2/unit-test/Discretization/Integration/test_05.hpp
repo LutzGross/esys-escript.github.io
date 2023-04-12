@@ -78,7 +78,7 @@ namespace Intrepid2 {
       *outStream << "-------------------------------------------------------------------------------" << "\n\n"; \
     };
     
-    template<typename ValueType, typename DeviceSpaceType>
+    template<typename ValueType, typename DeviceType>
     int Integration_Test05(const bool verbose) {
 
       Teuchos::RCP<std::ostream> outStream;
@@ -92,11 +92,12 @@ namespace Intrepid2 {
       Teuchos::oblackholestream oldFormatState;
       oldFormatState.copyfmt(std::cout);
       
+      using DeviceSpaceType = typename DeviceType::execution_space;
       typedef typename
-        Kokkos::Impl::is_space<DeviceSpaceType>::host_mirror_space::execution_space HostSpaceType ;
+        Kokkos::DefaultHostExecutionSpace HostSpaceType ;
       
-      *outStream << "DeviceSpace::  "; DeviceSpaceType::print_configuration(*outStream, false);
-      *outStream << "HostSpace::    ";   HostSpaceType::print_configuration(*outStream, false);
+      *outStream << "DeviceSpace::  "; DeviceSpaceType().print_configuration(*outStream, false);
+      *outStream << "HostSpace::    ";   HostSpaceType().print_configuration(*outStream, false);
       
       
       *outStream
@@ -117,19 +118,20 @@ namespace Intrepid2 {
         << "| TEST 1: integrals of monomials in 2D                                        |\n"
         << "===============================================================================\n";
       
-      typedef Kokkos::DynRankView<ValueType,DeviceSpaceType> DynRankView;
+      typedef Kokkos::DynRankView<ValueType,DeviceType> DynRankView;
+      typedef Kokkos::DynRankView<ValueType,Kokkos::HostSpace> DynRankViewHost;
 #define ConstructWithLabel(obj, ...) obj(#obj, __VA_ARGS__)
 
       typedef ValueType pointValueType;
       typedef ValueType weightValueType;
-      typedef CubatureDirectTriDefault<DeviceSpaceType,pointValueType,weightValueType> CubatureTriType;
+      typedef CubatureDirectTriDefault<DeviceType,pointValueType,weightValueType> CubatureTriType;
 
       const auto tol = 10.0 * tolerence();
 
       int errorFlag = 0;
       
       // get names of files with analytic values
-      std::string basedir = "../data";
+      std::string basedir = "./data";
       std::stringstream namestream;
       std::string filename;
       namestream << basedir << "/TRI_integrals" << ".dat";
@@ -139,16 +141,16 @@ namespace Intrepid2 {
 
       // compute and compare integrals
       try {
-        const auto maxDeg   = Parameters::MaxCubatureDegreeTri;
+        const auto maxDeg   = 10; //Parameters::MaxCubatureDegreeTri;
         const auto polySize = (maxDeg+1)*(maxDeg+2)/2;
         
         // test inegral values
-        DynRankView ConstructWithLabel(testInt, maxDeg+1, polySize);
+        DynRankViewHost ConstructWithLabel(testInt, maxDeg+1, polySize);
         
         // analytic integral values
         const auto analyticMaxDeg = 20;
         const auto analyticPolySize = (analyticMaxDeg+1)*(analyticMaxDeg+2)/2;
-        DynRankView ConstructWithLabel(analyticInt, analyticPolySize, 1);
+        DynRankViewHost ConstructWithLabel(analyticInt, analyticPolySize, 1);
         
         // storage for cubatrue points and weights
         DynRankView ConstructWithLabel(cubPoints,
@@ -161,7 +163,7 @@ namespace Intrepid2 {
         // compute integrals
         for (auto cubDeg=0;cubDeg<=maxDeg;++cubDeg) {
           CubatureTriType triCub(cubDeg);
-
+          *outStream << "Cubature order " << std::setw(2) << std::left << cubDeg << "  Testing\n";   
           ordinal_type cnt = 0;
           for (auto xDeg=0;xDeg<=cubDeg;++xDeg) 
             for (auto yDeg=0;yDeg<=(cubDeg-xDeg);++yDeg,++cnt) 

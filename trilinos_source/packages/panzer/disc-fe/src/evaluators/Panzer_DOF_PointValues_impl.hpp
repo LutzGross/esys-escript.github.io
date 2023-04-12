@@ -95,16 +95,16 @@ DOF_PointValues(const Teuchos::ParameterList & p)
                 evalName,
      	        pointRule->dl_scalar);
      this->addEvaluatedField(dof_ip_scalar);
-     this->addDependentField(basisValues->basis_ref_scalar);
-     this->addDependentField(basisValues->basis_scalar);
+     this->addNonConstDependentField(basisValues->basis_ref_scalar);
+     this->addNonConstDependentField(basisValues->basis_scalar);
   }
   else if(basis->isVectorBasis()) {
      dof_ip_vector = PHX::MDField<ScalarT,Cell,Point,Dim>(
                 evalName,
      	        pointRule->dl_vector);
      this->addEvaluatedField(dof_ip_vector);
-     this->addDependentField(basisValues->basis_ref_vector);
-     this->addDependentField(basisValues->basis_vector);
+     this->addNonConstDependentField(basisValues->basis_ref_vector);
+     this->addNonConstDependentField(basisValues->basis_vector);
   }
   else
   { TEUCHOS_ASSERT(false); }
@@ -173,7 +173,7 @@ DOF_PointValues(const Teuchos::ParameterList & p)
     const std::vector<int> & offsets = *p.get<Teuchos::RCP<const std::vector<int> > >("Jacobian Offsets Vector");
 
     // allocate and copy offsets vector to Kokkos array
-    offsets_array = Kokkos::View<int*,PHX::Device>("offsets",offsets.size());
+    offsets_array = PHX::View<int*>("offsets",offsets.size());
     for(std::size_t i=0;i<offsets.size();i++)
       offsets_array(i) = offsets[i];
 
@@ -204,16 +204,16 @@ DOF_PointValues(const Teuchos::ParameterList & p)
                 evalName,
      	        pointRule->dl_scalar);
      this->addEvaluatedField(dof_ip_scalar);
-     this->addDependentField(basisValues->basis_ref_scalar);
-     this->addDependentField(basisValues->basis_scalar);
+     this->addNonConstDependentField(basisValues->basis_ref_scalar);
+     this->addNonConstDependentField(basisValues->basis_scalar);
   }
   else if(basis->isVectorBasis()) {
      dof_ip_vector = PHX::MDField<ScalarT,Cell,Point,Dim>(
                 evalName,
      	        pointRule->dl_vector);
      this->addEvaluatedField(dof_ip_vector);
-     this->addDependentField(basisValues->basis_ref_vector);
-     this->addDependentField(basisValues->basis_vector);
+     this->addNonConstDependentField(basisValues->basis_ref_vector);
+     this->addNonConstDependentField(basisValues->basis_vector);
   }
   else
   { TEUCHOS_ASSERT(false); }

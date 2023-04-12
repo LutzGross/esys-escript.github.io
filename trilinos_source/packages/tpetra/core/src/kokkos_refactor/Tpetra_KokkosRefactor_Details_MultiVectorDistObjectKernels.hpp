@@ -46,12 +46,18 @@
 // (it would only matter if LocalOrdinal were bigger than size_t on a
 // particular platform, which is unlikely).
 
+// KDD Aug 2020:  In the permute/pack/unpack functors, 
+// the Enabled template parameter is specialized in 
+// downstream packages like Stokhos using SFINAE to provide partial 
+// specializations based on the scalar type of the SrcView and DstView 
+// template parameters. See #7898.
+// Do not remove it before checking with Stokhos and other specializing users.
+
 #ifndef TPETRA_KOKKOS_REFACTOR_DETAILS_MULTI_VECTOR_DIST_OBJECT_KERNELS_HPP
 #define TPETRA_KOKKOS_REFACTOR_DETAILS_MULTI_VECTOR_DIST_OBJECT_KERNELS_HPP
 
 #include "Kokkos_Core.hpp"
 #include "Kokkos_ArithTraits.hpp"
-#include "impl/Kokkos_Atomic_Generic.hpp"
 #include <sstream>
 #include <stdexcept>
 
@@ -116,7 +122,8 @@ outOfBounds (const IntegerType x, const IntegerType exclusiveUpperBound)
   // Functors for implementing packAndPrepare and unpackAndCombine
   // through parallel_for
 
-  template <typename DstView, typename SrcView, typename IdxView>
+  template <typename DstView, typename SrcView, typename IdxView,
+            typename Enabled = void>
   struct PackArraySingleColumn {
     typedef typename DstView::execution_space execution_space;
     typedef typename execution_space::size_type size_type;
@@ -154,14 +161,15 @@ outOfBounds (const IntegerType x, const IntegerType exclusiveUpperBound)
   template <typename DstView,
             typename SrcView,
             typename IdxView,
-            typename SizeType = typename DstView::execution_space::size_type>
+            typename SizeType = typename DstView::execution_space::size_type,
+            typename Enabled = void>
   class PackArraySingleColumnWithBoundsCheck {
   private:
-    static_assert (Kokkos::Impl::is_view<DstView>::value,
+    static_assert (Kokkos::is_view<DstView>::value,
                    "DstView must be a Kokkos::View.");
-    static_assert (Kokkos::Impl::is_view<SrcView>::value,
+    static_assert (Kokkos::is_view<SrcView>::value,
                    "SrcView must be a Kokkos::View.");
-    static_assert (Kokkos::Impl::is_view<IdxView>::value,
+    static_assert (Kokkos::is_view<IdxView>::value,
                    "IdxView must be a Kokkos::View.");
     static_assert (static_cast<int> (DstView::rank) == 1,
                    "DstView must be a rank-1 Kokkos::View.");
@@ -208,8 +216,8 @@ outOfBounds (const IntegerType x, const IntegerType exclusiveUpperBound)
     }
 
     KOKKOS_INLINE_FUNCTION void
-    join (volatile value_type& dstErrorCount,
-          const volatile value_type& srcErrorCount) const
+    join (value_type& dstErrorCount,
+          const value_type& srcErrorCount) const
     {
       dstErrorCount += srcErrorCount;
     }
@@ -236,6 +244,8 @@ outOfBounds (const IntegerType x, const IntegerType exclusiveUpperBound)
         // array.  Performance doesn't matter since we are already in
         // an error state, so we can do this sequentially, on host.
         auto idx_h = Kokkos::create_mirror_view (idx);
+
+        // DEEP_COPY REVIEW - NOT TESTED
         Kokkos::deep_copy (idx_h, idx);
 
         std::vector<index_type> badIndices;
@@ -278,11 +288,11 @@ outOfBounds (const IntegerType x, const IntegerType exclusiveUpperBound)
                             const size_t col,
                             const bool debug = true)
   {
-    static_assert (Kokkos::Impl::is_view<DstView>::value,
+    static_assert (Kokkos::is_view<DstView>::value,
                    "DstView must be a Kokkos::View.");
-    static_assert (Kokkos::Impl::is_view<SrcView>::value,
+    static_assert (Kokkos::is_view<SrcView>::value,
                    "SrcView must be a Kokkos::View.");
-    static_assert (Kokkos::Impl::is_view<IdxView>::value,
+    static_assert (Kokkos::is_view<IdxView>::value,
                    "IdxView must be a Kokkos::View.");
     static_assert (static_cast<int> (DstView::rank) == 1,
                    "DstView must be a rank-1 Kokkos::View.");
@@ -301,7 +311,8 @@ outOfBounds (const IntegerType x, const IntegerType exclusiveUpperBound)
     }
   }
 
-  template <typename DstView, typename SrcView, typename IdxView>
+  template <typename DstView, typename SrcView, typename IdxView,
+            typename Enabled = void>
   struct PackArrayMultiColumn {
     typedef typename DstView::execution_space execution_space;
     typedef typename execution_space::size_type size_type;
@@ -341,7 +352,8 @@ outOfBounds (const IntegerType x, const IntegerType exclusiveUpperBound)
   template <typename DstView,
             typename SrcView,
             typename IdxView,
-            typename SizeType = typename DstView::execution_space::size_type>
+            typename SizeType = typename DstView::execution_space::size_type,
+            typename Enabled = void>
   class PackArrayMultiColumnWithBoundsCheck {
   public:
     using size_type = SizeType;
@@ -383,8 +395,8 @@ outOfBounds (const IntegerType x, const IntegerType exclusiveUpperBound)
     }
 
     KOKKOS_INLINE_FUNCTION void
-    join (volatile value_type& dstErrorCount,
-          const volatile value_type& srcErrorCount) const
+    join (value_type& dstErrorCount,
+          const value_type& srcErrorCount) const
     {
       dstErrorCount += srcErrorCount;
     }
@@ -410,6 +422,8 @@ outOfBounds (const IntegerType x, const IntegerType exclusiveUpperBound)
         // array.  Performance doesn't matter since we are already in
         // an error state, so we can do this sequentially, on host.
         auto idx_h = Kokkos::create_mirror_view (idx);
+
+        // DEEP_COPY REVIEW - NOT TESTED
         Kokkos::deep_copy (idx_h, idx);
 
         std::vector<index_type> badIndices;
@@ -423,7 +437,7 @@ outOfBounds (const IntegerType x, const IntegerType exclusiveUpperBound)
 
         TEUCHOS_TEST_FOR_EXCEPTION
           (errorCount != badIndices.size (), std::logic_error,
-           "PackArraySingleColumnWithBoundsCheck: errorCount = " << errorCount
+           "PackArrayMultiColumnWithBoundsCheck: errorCount = " << errorCount
            << " != badIndices.size() = " << badIndices.size () << ".  This sho"
            "uld never happen.  Please report this to the Tpetra developers.");
 
@@ -454,11 +468,11 @@ outOfBounds (const IntegerType x, const IntegerType exclusiveUpperBound)
                            const size_t numCols,
                            const bool debug = true)
   {
-    static_assert (Kokkos::Impl::is_view<DstView>::value,
+    static_assert (Kokkos::is_view<DstView>::value,
                    "DstView must be a Kokkos::View.");
-    static_assert (Kokkos::Impl::is_view<SrcView>::value,
+    static_assert (Kokkos::is_view<SrcView>::value,
                    "SrcView must be a Kokkos::View.");
-    static_assert (Kokkos::Impl::is_view<IdxView>::value,
+    static_assert (Kokkos::is_view<IdxView>::value,
                    "IdxView must be a Kokkos::View.");
     static_assert (static_cast<int> (DstView::rank) == 1,
                    "DstView must be a rank-1 Kokkos::View.");
@@ -479,7 +493,7 @@ outOfBounds (const IntegerType x, const IntegerType exclusiveUpperBound)
   }
 
   template <typename DstView, typename SrcView, typename IdxView,
-            typename ColView>
+            typename ColView, typename Enabled = void>
   struct PackArrayMultiColumnVariableStride {
     typedef typename DstView::execution_space execution_space;
     typedef typename execution_space::size_type size_type;
@@ -523,7 +537,8 @@ outOfBounds (const IntegerType x, const IntegerType exclusiveUpperBound)
             typename SrcView,
             typename IdxView,
             typename ColView,
-            typename SizeType = typename DstView::execution_space::size_type>
+            typename SizeType = typename DstView::execution_space::size_type,
+            typename Enabled = void>
   class PackArrayMultiColumnVariableStrideWithBoundsCheck {
   public:
     using size_type = SizeType;
@@ -574,8 +589,8 @@ outOfBounds (const IntegerType x, const IntegerType exclusiveUpperBound)
     }
 
     KOKKOS_INLINE_FUNCTION void
-    join (volatile value_type& dstErrorCount,
-          const volatile value_type& srcErrorCount) const
+    join (value_type& dstErrorCount,
+          const value_type& srcErrorCount) const
     {
       dstErrorCount += srcErrorCount;
     }
@@ -611,6 +626,8 @@ outOfBounds (const IntegerType x, const IntegerType exclusiveUpperBound)
         // row indices.  Performance doesn't matter since we are already
         // in an error state, so we can do this sequentially, on host.
         auto idx_h = Kokkos::create_mirror_view (idx);
+
+        // DEEP_COPY REVIEW - NOT TESTED
         Kokkos::deep_copy (idx_h, idx);
 
         std::vector<row_index_type> badRows;
@@ -645,6 +662,8 @@ outOfBounds (const IntegerType x, const IntegerType exclusiveUpperBound)
         // Go back and find any out-of-bounds entries in the array
         // of column indices.
         auto col_h = Kokkos::create_mirror_view (col);
+
+        // DEEP_COPY REVIEW - NOT TESTED
         Kokkos::deep_copy (col_h, col);
 
         std::vector<col_index_type> badCols;
@@ -700,13 +719,13 @@ outOfBounds (const IntegerType x, const IntegerType exclusiveUpperBound)
                                            const size_t numCols,
                                            const bool debug = true)
   {
-    static_assert (Kokkos::Impl::is_view<DstView>::value,
+    static_assert (Kokkos::is_view<DstView>::value,
                    "DstView must be a Kokkos::View.");
-    static_assert (Kokkos::Impl::is_view<SrcView>::value,
+    static_assert (Kokkos::is_view<SrcView>::value,
                    "SrcView must be a Kokkos::View.");
-    static_assert (Kokkos::Impl::is_view<IdxView>::value,
+    static_assert (Kokkos::is_view<IdxView>::value,
                    "IdxView must be a Kokkos::View.");
-    static_assert (Kokkos::Impl::is_view<ColView>::value,
+    static_assert (Kokkos::is_view<ColView>::value,
                    "ColView must be a Kokkos::View.");
     static_assert (static_cast<int> (DstView::rank) == 1,
                    "DstView must be a rank-1 Kokkos::View.");
@@ -734,57 +753,69 @@ outOfBounds (const IntegerType x, const IntegerType exclusiveUpperBound)
   struct atomic_tag {};
   struct nonatomic_tag {};
 
-  template<class SC>
   struct AddOp {
+    template<class SC>
     KOKKOS_INLINE_FUNCTION
     void operator() (atomic_tag, SC& dest, const SC& src) const {
       Kokkos::atomic_add (&dest, src);
     }
 
+    template<class SC>
     KOKKOS_INLINE_FUNCTION
     void operator() (nonatomic_tag, SC& dest, const SC& src) const {
       dest += src;
     }
   };
 
-  template<class SC>
   struct InsertOp {
     // There's no point to using Kokkos::atomic_assign for the REPLACE
     // or INSERT CombineModes, since this is not a well-defined
     // reduction for MultiVector anyway.  See GitHub Issue #4417
     // (which this fixes).
+    template<class SC>
     KOKKOS_INLINE_FUNCTION
     void operator() (atomic_tag, SC& dest, const SC& src) const {
       dest = src;
     }
 
+    template<class SC>
     KOKKOS_INLINE_FUNCTION
     void operator() (nonatomic_tag, SC& dest, const SC& src) const {
       dest = src;
     }
   };
 
-  // Kokkos::Impl::atomic_fetch_oper wants a class like this.
-  template<class Scalar1, class Scalar2>
-  struct AbsMaxOper {
-    KOKKOS_INLINE_FUNCTION
-    static Scalar1 apply(const Scalar1& val1, const Scalar2& val2) {
-      const auto val1_abs = Kokkos::ArithTraits<Scalar1>::abs(val1);
-      const auto val2_abs = Kokkos::ArithTraits<Scalar2>::abs(val2);
-      return val1_abs > val2_abs ? Scalar1(val1_abs) : Scalar1(val2_abs);
-    }
-  };
-
-  template <typename SC>
   struct AbsMaxOp {
+    template <class Scalar>
+    struct AbsMaxHelper{
+      Scalar value;
+
+      KOKKOS_FUNCTION AbsMaxHelper& operator+=(AbsMaxHelper const& rhs) {
+        auto lhs_abs_value = Kokkos::ArithTraits<Scalar>::abs(value);
+        auto rhs_abs_value = Kokkos::ArithTraits<Scalar>::abs(rhs.value);
+        value = lhs_abs_value > rhs_abs_value ? lhs_abs_value : rhs_abs_value;
+        return *this;
+      }
+
+      KOKKOS_FUNCTION AbsMaxHelper operator+(AbsMaxHelper const& rhs) const {
+        AbsMaxHelper ret = *this;
+        ret += rhs;
+        return ret;
+      }
+    };
+
+    template <typename SC>
     KOKKOS_INLINE_FUNCTION
-    void operator() (atomic_tag, SC& dest, const SC& src) const {
-      Kokkos::Impl::atomic_fetch_oper (AbsMaxOper<SC, SC> (), &dest, src);
+    void operator() (atomic_tag, SC& dst, const SC& src) const {
+      Kokkos::atomic_add(reinterpret_cast<AbsMaxHelper<SC>*>(&dst), AbsMaxHelper<SC>{src});
     }
 
+    template <typename SC>
     KOKKOS_INLINE_FUNCTION
-    void operator() (nonatomic_tag, SC& dest, const SC& src) const {
-      dest = AbsMaxOper<SC, SC> ().apply (dest, src);
+    void operator() (nonatomic_tag, SC& dst, const SC& src) const {
+      auto dst_abs_value = Kokkos::ArithTraits<SC>::abs(dst);
+      auto src_abs_value = Kokkos::ArithTraits<SC>::abs(src);
+      dst = dst_abs_value > src_abs_value ? dst_abs_value : src_abs_value;
     }
   };
 
@@ -792,14 +823,15 @@ outOfBounds (const IntegerType x, const IntegerType exclusiveUpperBound)
             typename DstView,
             typename SrcView,
             typename IdxView,
-            typename Op>
+            typename Op,
+            typename Enabled = void>
   class UnpackArrayMultiColumn {
   private:
-    static_assert (Kokkos::Impl::is_view<DstView>::value,
+    static_assert (Kokkos::is_view<DstView>::value,
                    "DstView must be a Kokkos::View.");
-    static_assert (Kokkos::Impl::is_view<SrcView>::value,
+    static_assert (Kokkos::is_view<SrcView>::value,
                    "SrcView must be a Kokkos::View.");
-    static_assert (Kokkos::Impl::is_view<IdxView>::value,
+    static_assert (Kokkos::is_view<IdxView>::value,
                    "IdxView must be a Kokkos::View.");
     static_assert (static_cast<int> (DstView::rank) == 2,
                    "DstView must be a rank-2 Kokkos::View.");
@@ -882,14 +914,15 @@ outOfBounds (const IntegerType x, const IntegerType exclusiveUpperBound)
             typename SrcView,
             typename IdxView,
             typename Op,
-            typename SizeType = typename ExecutionSpace::execution_space::size_type>
+            typename SizeType = typename ExecutionSpace::execution_space::size_type,
+            typename Enabled = void>
   class UnpackArrayMultiColumnWithBoundsCheck {
   private:
-    static_assert (Kokkos::Impl::is_view<DstView>::value,
+    static_assert (Kokkos::is_view<DstView>::value,
                    "DstView must be a Kokkos::View.");
-    static_assert (Kokkos::Impl::is_view<SrcView>::value,
+    static_assert (Kokkos::is_view<SrcView>::value,
                    "SrcView must be a Kokkos::View.");
-    static_assert (Kokkos::Impl::is_view<IdxView>::value,
+    static_assert (Kokkos::is_view<IdxView>::value,
                    "IdxView must be a Kokkos::View.");
     static_assert (static_cast<int> (DstView::rank) == 2,
                    "DstView must be a rank-2 Kokkos::View.");
@@ -960,8 +993,8 @@ outOfBounds (const IntegerType x, const IntegerType exclusiveUpperBound)
     template<class TagType>
     KOKKOS_INLINE_FUNCTION void
     join (TagType,
-          volatile size_t& dstErrorCount,
-          const volatile size_t& srcErrorCount) const
+          size_t& dstErrorCount,
+          const size_t& srcErrorCount) const
     {
       dstErrorCount += srcErrorCount;
     }
@@ -1004,6 +1037,8 @@ outOfBounds (const IntegerType x, const IntegerType exclusiveUpperBound)
         // array.  Performance doesn't matter since we are already in
         // an error state, so we can do this sequentially, on host.
         auto idx_h = Kokkos::create_mirror_view (idx);
+
+        // DEEP_COPY REVIEW - NOT TESTED
         Kokkos::deep_copy (idx_h, idx);
 
         std::vector<index_type> badIndices;
@@ -1054,11 +1089,11 @@ outOfBounds (const IntegerType x, const IntegerType exclusiveUpperBound)
                              const bool use_atomic_updates,
                              const bool debug)
   {
-    static_assert (Kokkos::Impl::is_view<DstView>::value,
+    static_assert (Kokkos::is_view<DstView>::value,
                    "DstView must be a Kokkos::View.");
-    static_assert (Kokkos::Impl::is_view<SrcView>::value,
+    static_assert (Kokkos::is_view<SrcView>::value,
                    "SrcView must be a Kokkos::View.");
-    static_assert (Kokkos::Impl::is_view<IdxView>::value,
+    static_assert (Kokkos::is_view<IdxView>::value,
                    "IdxView must be a Kokkos::View.");
     static_assert (static_cast<int> (DstView::rank) == 2,
                    "DstView must be a rank-2 Kokkos::View.");
@@ -1086,16 +1121,17 @@ outOfBounds (const IntegerType x, const IntegerType exclusiveUpperBound)
             typename SrcView,
             typename IdxView,
             typename ColView,
-            typename Op>
+            typename Op,
+            typename Enabled = void>
   class UnpackArrayMultiColumnVariableStride {
   private:
-    static_assert (Kokkos::Impl::is_view<DstView>::value,
+    static_assert (Kokkos::is_view<DstView>::value,
                    "DstView must be a Kokkos::View.");
-    static_assert (Kokkos::Impl::is_view<SrcView>::value,
+    static_assert (Kokkos::is_view<SrcView>::value,
                    "SrcView must be a Kokkos::View.");
-    static_assert (Kokkos::Impl::is_view<IdxView>::value,
+    static_assert (Kokkos::is_view<IdxView>::value,
                    "IdxView must be a Kokkos::View.");
-    static_assert (Kokkos::Impl::is_view<ColView>::value,
+    static_assert (Kokkos::is_view<ColView>::value,
                    "ColView must be a Kokkos::View.");
     static_assert (static_cast<int> (DstView::rank) == 2,
                    "DstView must be a rank-2 Kokkos::View.");
@@ -1187,16 +1223,17 @@ outOfBounds (const IntegerType x, const IntegerType exclusiveUpperBound)
             typename IdxView,
             typename ColView,
             typename Op,
-            typename SizeType = typename ExecutionSpace::execution_space::size_type>
+            typename SizeType = typename ExecutionSpace::execution_space::size_type,
+            typename Enabled = void>
   class UnpackArrayMultiColumnVariableStrideWithBoundsCheck {
   private:
-    static_assert (Kokkos::Impl::is_view<DstView>::value,
+    static_assert (Kokkos::is_view<DstView>::value,
                    "DstView must be a Kokkos::View.");
-    static_assert (Kokkos::Impl::is_view<SrcView>::value,
+    static_assert (Kokkos::is_view<SrcView>::value,
                    "SrcView must be a Kokkos::View.");
-    static_assert (Kokkos::Impl::is_view<IdxView>::value,
+    static_assert (Kokkos::is_view<IdxView>::value,
                    "IdxView must be a Kokkos::View.");
-    static_assert (Kokkos::Impl::is_view<ColView>::value,
+    static_assert (Kokkos::is_view<ColView>::value,
                    "ColView must be a Kokkos::View.");
     static_assert (static_cast<int> (DstView::rank) == 2,
                    "DstView must be a rank-2 Kokkos::View.");
@@ -1277,8 +1314,8 @@ outOfBounds (const IntegerType x, const IntegerType exclusiveUpperBound)
     }
 
     KOKKOS_INLINE_FUNCTION void
-    join (volatile value_type& dstErrorCount,
-          const volatile value_type& srcErrorCount) const
+    join (value_type& dstErrorCount,
+          const value_type& srcErrorCount) const
     {
       dstErrorCount += srcErrorCount;
     }
@@ -1331,6 +1368,8 @@ outOfBounds (const IntegerType x, const IntegerType exclusiveUpperBound)
         // already in an error state, so we can do this sequentially,
         // on host.
         auto idx_h = Kokkos::create_mirror_view (idx);
+
+        // DEEP_COPY REVIEW - NOT TESTED
         Kokkos::deep_copy (idx_h, idx);
 
         std::vector<row_index_type> badRows;
@@ -1366,6 +1405,8 @@ outOfBounds (const IntegerType x, const IntegerType exclusiveUpperBound)
         // Go back and find any out-of-bounds entries in the array
         // of column indices.
         auto col_h = Kokkos::create_mirror_view (col);
+
+        // DEEP_COPY REVIEW - NOT TESTED
         Kokkos::deep_copy (col_h, col);
 
         std::vector<col_index_type> badCols;
@@ -1426,13 +1467,13 @@ outOfBounds (const IntegerType x, const IntegerType exclusiveUpperBound)
                                              const bool use_atomic_updates,
                                              const bool debug)
   {
-    static_assert (Kokkos::Impl::is_view<DstView>::value,
+    static_assert (Kokkos::is_view<DstView>::value,
                    "DstView must be a Kokkos::View.");
-    static_assert (Kokkos::Impl::is_view<SrcView>::value,
+    static_assert (Kokkos::is_view<SrcView>::value,
                    "SrcView must be a Kokkos::View.");
-    static_assert (Kokkos::Impl::is_view<IdxView>::value,
+    static_assert (Kokkos::is_view<IdxView>::value,
                    "IdxView must be a Kokkos::View.");
-    static_assert (Kokkos::Impl::is_view<ColView>::value,
+    static_assert (Kokkos::is_view<ColView>::value,
                    "ColView must be a Kokkos::View.");
     static_assert (static_cast<int> (DstView::rank) == 2,
                    "DstView must be a rank-2 Kokkos::View.");
@@ -1459,7 +1500,8 @@ outOfBounds (const IntegerType x, const IntegerType exclusiveUpperBound)
   }
 
   template <typename DstView, typename SrcView,
-            typename DstIdxView, typename SrcIdxView>
+            typename DstIdxView, typename SrcIdxView, typename Op,
+            typename Enabled = void>
   struct PermuteArrayMultiColumn {
     typedef typename DstView::execution_space execution_space;
     typedef typename execution_space::size_type size_type;
@@ -1469,21 +1511,24 @@ outOfBounds (const IntegerType x, const IntegerType exclusiveUpperBound)
     DstIdxView dst_idx;
     SrcIdxView src_idx;
     size_t numCols;
+    Op op;
 
     PermuteArrayMultiColumn (const DstView& dst_,
                              const SrcView& src_,
                              const DstIdxView& dst_idx_,
                              const SrcIdxView& src_idx_,
-                             const size_t numCols_) :
+                             const size_t numCols_,
+                             const Op& op_) :
       dst(dst_), src(src_), dst_idx(dst_idx_), src_idx(src_idx_),
-      numCols(numCols_) {}
+      numCols(numCols_), op(op_) {}
 
     KOKKOS_INLINE_FUNCTION void
     operator() (const size_type k) const {
       const typename DstIdxView::value_type toRow = dst_idx(k);
       const typename SrcIdxView::value_type fromRow = src_idx(k);
+      nonatomic_tag tag;  // permute does not need atomics
       for (size_t j = 0; j < numCols; ++j) {
-        dst(toRow, j) = src(fromRow, j);
+        op(tag, dst(toRow, j), src(fromRow, j));
       }
     }
 
@@ -1492,33 +1537,38 @@ outOfBounds (const IntegerType x, const IntegerType exclusiveUpperBound)
 	     const SrcView& src,
 	     const DstIdxView& dst_idx,
 	     const SrcIdxView& src_idx,
-	     const size_t numCols)
+	     const size_t numCols,
+             const Op& op)
     {
-      using range_type = Kokkos::RangePolicy<execution_space, size_type>;      
+      using range_type = 
+            Kokkos::RangePolicy<execution_space, size_type>;
+            // permute does not need atomics for Op
       const size_type n = std::min (dst_idx.size (), src_idx.size ());
       Kokkos::parallel_for
 	("Tpetra::MultiVector permute multicol const stride",
 	 range_type (0, n),
-	 PermuteArrayMultiColumn (dst, src, dst_idx, src_idx, numCols));
+	 PermuteArrayMultiColumn (dst, src, dst_idx, src_idx, numCols, op));
     }
   };
 
   // To do:  Add enable_if<> restrictions on DstView::Rank == 1,
   // SrcView::Rank == 2
   template <typename DstView, typename SrcView,
-            typename DstIdxView, typename SrcIdxView>
+            typename DstIdxView, typename SrcIdxView, typename Op>
   void permute_array_multi_column(const DstView& dst,
                                   const SrcView& src,
                                   const DstIdxView& dst_idx,
                                   const SrcIdxView& src_idx,
-                                  size_t numCols) {
-    PermuteArrayMultiColumn<DstView,SrcView,DstIdxView,SrcIdxView>::permute(
-      dst, src, dst_idx, src_idx, numCols);
+                                  size_t numCols,
+                                  const Op& op) {
+    PermuteArrayMultiColumn<DstView,SrcView,DstIdxView,SrcIdxView,Op>::permute(
+      dst, src, dst_idx, src_idx, numCols, op);
   }
 
   template <typename DstView, typename SrcView,
             typename DstIdxView, typename SrcIdxView,
-            typename DstColView, typename SrcColView>
+            typename DstColView, typename SrcColView, typename Op,
+            typename Enabled = void>
   struct PermuteArrayMultiColumnVariableStride {
     typedef typename DstView::execution_space execution_space;
     typedef typename execution_space::size_type size_type;
@@ -1530,6 +1580,7 @@ outOfBounds (const IntegerType x, const IntegerType exclusiveUpperBound)
     DstColView dst_col;
     SrcColView src_col;
     size_t numCols;
+    Op op;
 
     PermuteArrayMultiColumnVariableStride(const DstView& dst_,
                                           const SrcView& src_,
@@ -1537,17 +1588,19 @@ outOfBounds (const IntegerType x, const IntegerType exclusiveUpperBound)
                                           const SrcIdxView& src_idx_,
                                           const DstColView& dst_col_,
                                           const SrcColView& src_col_,
-                                          const size_t numCols_) :
+                                          const size_t numCols_,
+                                          const Op& op_) :
       dst(dst_), src(src_), dst_idx(dst_idx_), src_idx(src_idx_),
       dst_col(dst_col_), src_col(src_col_),
-      numCols(numCols_) {}
+      numCols(numCols_), op(op_) {}
 
     KOKKOS_INLINE_FUNCTION void
     operator() (const size_type k) const {
       const typename DstIdxView::value_type toRow = dst_idx(k);
       const typename SrcIdxView::value_type fromRow = src_idx(k);
+      const nonatomic_tag tag;  // permute does not need atomics
       for (size_t j = 0; j < numCols; ++j) {
-        dst(toRow, dst_col(j)) = src(fromRow, src_col(j));
+        op(tag, dst(toRow, dst_col(j)), src(fromRow, src_col(j)));
       }
     }
 
@@ -1558,7 +1611,8 @@ outOfBounds (const IntegerType x, const IntegerType exclusiveUpperBound)
 	     const SrcIdxView& src_idx,
 	     const DstColView& dst_col,
 	     const SrcColView& src_col,
-	     const size_t numCols)
+	     const size_t numCols,
+             const Op& op)
     {
       using range_type = Kokkos::RangePolicy<execution_space, size_type>;      
       const size_type n = std::min (dst_idx.size (), src_idx.size ());
@@ -1566,7 +1620,7 @@ outOfBounds (const IntegerType x, const IntegerType exclusiveUpperBound)
 	("Tpetra::MultiVector permute multicol var stride",
 	 range_type (0, n),
 	 PermuteArrayMultiColumnVariableStride (dst, src, dst_idx, src_idx,
-						dst_col, src_col, numCols));
+						dst_col, src_col, numCols, op));
     }
   };
 
@@ -1574,17 +1628,18 @@ outOfBounds (const IntegerType x, const IntegerType exclusiveUpperBound)
   // SrcView::Rank == 2
   template <typename DstView, typename SrcView,
             typename DstIdxView, typename SrcIdxView,
-            typename DstColView, typename SrcColView>
+            typename DstColView, typename SrcColView, typename Op>
   void permute_array_multi_column_variable_stride(const DstView& dst,
                                                   const SrcView& src,
                                                   const DstIdxView& dst_idx,
                                                   const SrcIdxView& src_idx,
                                                   const DstColView& dst_col,
                                                   const SrcColView& src_col,
-                                                  size_t numCols) {
+                                                  size_t numCols, 
+                                                  const Op& op) {
     PermuteArrayMultiColumnVariableStride<DstView,SrcView,
-      DstIdxView,SrcIdxView,DstColView,SrcColView>::permute(
-      dst, src, dst_idx, src_idx, dst_col, src_col, numCols);
+      DstIdxView,SrcIdxView,DstColView,SrcColView,Op>::permute(
+      dst, src, dst_idx, src_idx, dst_col, src_col, numCols, op);
   }
 
 } // Details namespace

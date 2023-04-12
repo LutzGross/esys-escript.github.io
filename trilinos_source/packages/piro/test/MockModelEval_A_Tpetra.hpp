@@ -49,6 +49,7 @@
 #include "Tpetra_MultiVector.hpp"
 #include "Tpetra_CrsMatrix.hpp"
 #include "Thyra_TpetraThyraWrappers.hpp"
+#include "MatrixBased_LOWS.hpp"
 
 
 using LO = Tpetra::Map<>::local_ordinal_type;
@@ -84,7 +85,7 @@ class MockModelEval_A_Tpetra
   //@{
 
   /** \brief Takes the number of elements in the discretization . */
-  MockModelEval_A_Tpetra(const Teuchos::RCP<const Teuchos::Comm<int> >  appComm);
+  MockModelEval_A_Tpetra(const Teuchos::RCP<const Teuchos::Comm<int> >  appComm, bool adjoint=false, const Teuchos::RCP<Teuchos::ParameterList>& problemList = Teuchos::null, bool hessianSupport = false);
 
   //@}
 
@@ -112,6 +113,10 @@ class MockModelEval_A_Tpetra
   /** \brief . */
   Teuchos::RCP<const Thyra::LinearOpWithSolveFactoryBase<double>>
   get_W_factory() const;
+
+  /** \brief . */
+  Teuchos::RCP<Thyra::LinearOpBase<double>>
+  create_hess_g_pp( int j, int l1, int l2 ) const;
 
   /** \brief . */
   Thyra::ModelEvaluatorBase::InArgs<double>
@@ -166,6 +171,7 @@ class MockModelEval_A_Tpetra
   Teuchos::RCP<const Tpetra_Map> p_map;
   Teuchos::RCP<const Tpetra_Map> g_map;
   Teuchos::RCP<Tpetra_CrsGraph> crs_graph;
+  Teuchos::RCP<Tpetra_CrsGraph> hess_crs_graph;
   Teuchos::RCP<const Teuchos::Comm<int> > comm;
 
   Teuchos::RCP<Tpetra_Vector> p_vec;
@@ -176,6 +182,15 @@ class MockModelEval_A_Tpetra
    Thyra::ModelEvaluatorBase::InArgs<double> nominalValues;
    Thyra::ModelEvaluatorBase::InArgs<double> lowerBounds;
    Thyra::ModelEvaluatorBase::InArgs<double> upperBounds;
+
+   //whether to compute the adjoint model
+   bool adjointModel;
+
+   //whether hessian is supported 
+   bool hessSupport;
+
+   //Problem parameter list
+   Teuchos::RCP<Teuchos::ParameterList> probList_;
 
 };
 

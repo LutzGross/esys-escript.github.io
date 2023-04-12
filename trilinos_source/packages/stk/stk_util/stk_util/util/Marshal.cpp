@@ -32,7 +32,8 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 
-#include <stk_util/util/Marshal.hpp>
+#include "stk_util/util/Marshal.hpp"
+
 #include <stdint.h>                     // for uint32_t
 #include <algorithm>                    // for fill
 #include <cstring>                      // for strlen
@@ -457,3 +458,4 @@ Marshal &operator>>(Marshal &min, std::string &s)  {
 }
 
 } // namespace stk
+

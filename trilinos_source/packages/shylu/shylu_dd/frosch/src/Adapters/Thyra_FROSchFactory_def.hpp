@@ -39,18 +39,25 @@
 // ************************************************************************
 //@HEADER
 
-#ifndef THYRA_FROSCH_XPETRA_FACTORY_DEF_HPP
-#define THYRA_FROSCH_XPETRA_FACTORY_DEF_HPP
+#ifndef _THYRA_FROSCH_FACTORY_DEF_HPP
+#define _THYRA_FROSCH_FACTORY_DEF_HPP
 
 #include "Thyra_FROSchFactory_decl.hpp"
 
+#include <FROSch_AlgebraicOverlappingPreconditioner_def.hpp>
+#include <FROSch_GDSWPreconditioner_def.hpp>
+#include <FROSch_RGDSWPreconditioner_def.hpp>
+#include <FROSch_OneLevelPreconditioner_def.hpp>
+#include <FROSch_TwoLevelPreconditioner_def.hpp>
+#include <FROSch_TwoLevelBlockPreconditioner_def.hpp>
+
+#include <FROSch_TpetraPreconditioner_def.hpp>
 
 namespace Thyra {
 
     using namespace FROSch;
     using namespace std;
     using namespace Teuchos;
-    using namespace Thyra;
     using namespace Xpetra;
 
     //Constructor
@@ -107,14 +114,14 @@ namespace Thyra {
         TEUCHOS_TEST_FOR_EXCEPT((bIsEpetra == bIsTpetra) && bIsBlocked == false);
         TEUCHOS_TEST_FOR_EXCEPT((bIsEpetra != bIsTpetra) && bIsBlocked == true);
 
-        // Retrieve Matrix
-        ConstXCrsMatrixPtr xpetraFwdCrsMat = ThyraUtils<SC,LO,GO,NO>::toXpetra(fwdOp);
-        TEUCHOS_TEST_FOR_EXCEPT(is_null(xpetraFwdCrsMat));
+        // Check whether to use HalfPrecision
+#if defined(HAVE_XPETRA_TPETRA) && defined(HAVE_TPETRA_INST_DOUBLE) && defined(HAVE_TPETRA_INST_FLOAT)
+        const bool useHalfPrecision = paramList_->get<bool>("Use Half Precision", false);
+#endif
 
-        // AH 08/07/2019: Going from const to non-const to const. One should be able to improve this.
-        XCrsMatrixPtr xpetraFwdCrsMatNonConst = rcp_const_cast<XCrsMatrix>(xpetraFwdCrsMat);
-        XMatrixPtr ANonConst = rcp(new CrsMatrixWrap<SC,LO,GO,NO>(xpetraFwdCrsMatNonConst));
-        ConstXMatrixPtr A = ANonConst.getConst();
+        // Retrieve Matrix
+        ConstXMatrixPtr A = ThyraUtils<SC,LO,GO,NO>::toXpetra(fwdOp);
+        TEUCHOS_TEST_FOR_EXCEPT(is_null(A));
 
         CommPtr comm = A->getMap()->getComm();
         UnderlyingLib underlyingLib = A->getMap()->lib();
@@ -124,13 +131,14 @@ namespace Thyra {
         TEUCHOS_TEST_FOR_EXCEPT(is_null(defaultPrec));
 
         // extract preconditioner operator
-        LinearOpBasePtr thyra_precOp = null;
-        thyra_precOp = rcp_dynamic_cast<LinearOpBase<SC> >(defaultPrec->getNonconstUnspecifiedPrecOp(), true);
+        auto precOp = defaultPrec->getNonconstUnspecifiedPrecOp();
 
         // Abstract SchwarzPreconditioner
-        RCP<SchwarzPreconditioner<SC,LO,GO,NO> > SchwarzPreconditioner = null;
-
-        const bool startingOver = (thyra_precOp.is_null() || !paramList_->isParameter("Recycling") || !paramList_->get("Recycling",true));
+        RCP<SchwarzPreconditioner<SC,LO,GO,NO> > schwarzPreconditioner = null;
+#if defined(HAVE_XPETRA_TPETRA) && defined(HAVE_TPETRA_INST_DOUBLE) && defined(HAVE_TPETRA_INST_FLOAT)
+        RCP<SchwarzPreconditioner<HalfSC,LO,GO,NO> > halfSchwarzPreconditioner = null;
+#endif
+        const bool startingOver = (precOp.is_null() || !paramList_->isParameter("Recycling") || !paramList_->get("Recycling",true));
 
         if (startingOver) {
             FROSCH_ASSERT(paramList_->isParameter("FROSch Preconditioner Type"),"FROSch Preconditioner Type is not defined!");
@@ -144,7 +152,7 @@ namespace Thyra {
                 AOP->initialize(paramList_->get("Overlap",1),
                                 repeatedMap);
 
-                SchwarzPreconditioner = AOP;
+                schwarzPreconditioner = AOP;
             } else if (!paramList_->get("FROSch Preconditioner Type","TwoLevelPreconditioner").compare("GDSWPreconditioner")) {
                 // Extract the repeated map
                 ConstXMapPtr repeatedMap = extractRepeatedMap(comm,underlyingLib);
@@ -173,7 +181,7 @@ namespace Thyra {
                                repeatedMap,
                                coordinatesList);
 
-                SchwarzPreconditioner = GP;
+                schwarzPreconditioner = GP;
             } else if (!paramList_->get("FROSch Preconditioner Type","TwoLevelPreconditioner").compare("RGDSWPreconditioner")) {
                 // Extract the repeated map
                 ConstXMapPtr repeatedMap = extractRepeatedMap(comm,underlyingLib);
@@ -192,17 +200,38 @@ namespace Thyra {
                 } else {
                     FROSCH_ASSERT(false,"ERROR: Specify a valid DofOrdering.");
                 }
+#if defined(HAVE_XPETRA_TPETRA) && defined(HAVE_TPETRA_INST_DOUBLE) && defined(HAVE_TPETRA_INST_FLOAT)
+                if (useHalfPrecision)
+                {
+                    auto ANonConst = rcp_const_cast<XMatrix>(A);
+                    auto halfA = Xpetra::convertToHalfPrecision(ANonConst);
 
-                RCP<RGDSWPreconditioner<SC,LO,GO,NO> > RGP(new RGDSWPreconditioner<SC,LO,GO,NO>(A,paramList_));
+                    RCP<RGDSWPreconditioner<HalfSC,LO,GO,NO> > halfRGP(new RGDSWPreconditioner<HalfSC,LO,GO,NO>(halfA,paramList_));
 
-                RGP->initialize(paramList_->get("Dimension",3),
-                                paramList_->get("DofsPerNode",1),
-                                dofOrdering,
-                                paramList_->get("Overlap",1),
-                                repeatedMap,
-                                coordinatesList);
+                    XMultiVectorPtr coordinatesListNonConst = (coordinatesList == null ? null : rcp_const_cast<XMultiVector>(coordinatesList));
+                    auto halfCoordinatesList = rcp_dynamic_cast<const HalfPrecMultiVector> (Xpetra::convertToHalfPrecision(coordinatesListNonConst));
+                    halfRGP->initialize(paramList_->get("Dimension",3),
+                                        paramList_->get("DofsPerNode",1),
+                                        dofOrdering,
+                                        paramList_->get("Overlap",1),
+                                        repeatedMap,
+                                        halfCoordinatesList);
 
-                SchwarzPreconditioner = RGP;
+                    halfSchwarzPreconditioner = halfRGP;
+                } else
+#endif
+                {
+                    RCP<RGDSWPreconditioner<SC,LO,GO,NO> > RGP(new RGDSWPreconditioner<SC,LO,GO,NO>(A,paramList_));
+
+                    RGP->initialize(paramList_->get("Dimension",3),
+                                    paramList_->get("DofsPerNode",1),
+                                    dofOrdering,
+                                    paramList_->get("Overlap",1),
+                                    repeatedMap,
+                                    coordinatesList);
+
+                    schwarzPreconditioner = RGP;
+                }
             } else if (!paramList_->get("FROSch Preconditioner Type","TwoLevelPreconditioner").compare("OneLevelPreconditioner")) {
                 // Extract the repeated map
                 ConstXMapPtr repeatedMap = extractRepeatedMap(comm,underlyingLib);
@@ -212,7 +241,7 @@ namespace Thyra {
                 OLP->initialize(paramList_->get("Overlap",1),
                                 repeatedMap);
 
-                SchwarzPreconditioner = OLP;
+                schwarzPreconditioner = OLP;
             } else if (!paramList_->get("FROSch Preconditioner Type","TwoLevelPreconditioner").compare("TwoLevelPreconditioner")) {
                 // Extract the repeated map
                 ConstXMapPtr repeatedMap = extractRepeatedMap(comm,underlyingLib);
@@ -234,36 +263,72 @@ namespace Thyra {
                 } else {
                     FROSCH_ASSERT(false,"ERROR: Specify a valid DofOrdering.");
                 }
+#if defined(HAVE_XPETRA_TPETRA) && defined(HAVE_TPETRA_INST_DOUBLE) && defined(HAVE_TPETRA_INST_FLOAT)
+                if (useHalfPrecision)
+                {
+                    auto ANonConst = rcp_const_cast<XMatrix>(A);
+                    auto halfA = Xpetra::convertToHalfPrecision(ANonConst);
 
-                RCP<TwoLevelPreconditioner<SC,LO,GO,NO> > TLP(new TwoLevelPreconditioner<SC,LO,GO,NO>(A,paramList_));
+                    RCP<TwoLevelPreconditioner<HalfSC,LO,GO,NO> > halfTLP(new TwoLevelPreconditioner<HalfSC,LO,GO,NO>(halfA,paramList_));
 
-                TLP->initialize(paramList_->get("Dimension",3),
-                                paramList_->get("DofsPerNode",1),
-                                paramList_->get("Overlap",1),
-                                nullSpaceBasis,
-                                coordinatesList,
-                                dofOrdering,
-                                repeatedMap);
+                    XMultiVectorPtr coordinatesListNonConst = rcp_const_cast<XMultiVector>(coordinatesList);
+                    XMultiVectorPtr nullSpaceBasisNonConst = rcp_const_cast<XMultiVector>(nullSpaceBasis);
+                    auto halfCoordinatesList = (coordinatesListNonConst == null ? null : rcp_dynamic_cast<const HalfPrecMultiVector> (Xpetra::convertToHalfPrecision(coordinatesListNonConst)));
+                    auto halfNullSpaceBasis = (nullSpaceBasisNonConst == null ? null : rcp_dynamic_cast<const HalfPrecMultiVector> (Xpetra::convertToHalfPrecision(nullSpaceBasisNonConst)));
+                    halfTLP->initialize(paramList_->get("Dimension",3),
+                                        paramList_->get("DofsPerNode",1),
+                                        paramList_->get("Overlap",1),
+                                        halfNullSpaceBasis,
+                                        halfCoordinatesList,
+                                        dofOrdering,
+                                        repeatedMap);
 
-                SchwarzPreconditioner = TLP;
+                    halfSchwarzPreconditioner = halfTLP;
+                } else
+#endif
+                {
+                    RCP<TwoLevelPreconditioner<SC,LO,GO,NO> > TLP(new TwoLevelPreconditioner<SC,LO,GO,NO>(A,paramList_));
+
+                    TLP->initialize(paramList_->get("Dimension",3),
+                                    paramList_->get("DofsPerNode",1),
+                                    paramList_->get("Overlap",1),
+                                    nullSpaceBasis,
+                                    coordinatesList,
+                                    dofOrdering,
+                                    repeatedMap);
+
+                    schwarzPreconditioner = TLP;
+                }
             } else if (!paramList_->get("FROSch Preconditioner Type","TwoLevelPreconditioner").compare("TwoLevelBlockPreconditioner")) {
                 ConstXMapPtrVecPtr repeatedMaps = null;
+                ConstXMultiVectorPtrVecPtr coordinatesList = null;
                 UNVecPtr dofsPerNodeVector;
                 DofOrderingVecPtr dofOrderings;
 
                 FROSCH_ASSERT(paramList_->isParameter("DofsPerNode Vector"),"Currently, TwoLevelBlockPreconditioner cannot be constructed without DofsPerNode Vector.");
                 FROSCH_ASSERT(paramList_->isParameter("DofOrdering Vector"),"Currently, TwoLevelBlockPreconditioner cannot be constructed without DofOrdering Vector.");
+                // Extract the repeated map vector
                 if (paramList_->isParameter("Repeated Map Vector")) {
                     XMapPtrVecPtr repeatedMapsTmp = ExtractVectorFromParameterList<XMapPtr>(*paramList_,"Repeated Map Vector");
+                    XMultiVectorPtrVecPtr nodeListVecTmp = ExtractVectorFromParameterList<XMultiVectorPtr>(*paramList_,"Coordinates List Vector");
                     if (!repeatedMapsTmp.is_null()) {
                         repeatedMaps.resize(repeatedMapsTmp.size());
                         for (unsigned i=0; i<repeatedMaps.size(); i++) {
                             repeatedMaps[i] = repeatedMapsTmp[i].getConst();
                         }
                     }
-                    FROSCH_ASSERT(!repeatedMaps.is_null(),"FROSch::FROSchFactory : ERROR: repeatedMaps.is_null()");
+                    // Extract the nodeList map vector
+                    if (!nodeListVecTmp.is_null()) {
+                      coordinatesList.resize(nodeListVecTmp.size());
+                      for (unsigned i = 0; i<coordinatesList.size();i++) {
+                        coordinatesList[i] = nodeListVecTmp[i].getConst();
+                      }
+                    }
 
+                    FROSCH_ASSERT(!repeatedMaps.is_null(),"FROSch::FROSchFactory: repeatedMaps.is_null()");
+                    // Extract the DofsPerNode  vector
                     dofsPerNodeVector = ExtractVectorFromParameterList<UN>(*paramList_,"DofsPerNode Vector");
+                    // Extract the DofOrdering vector
                     dofOrderings = ExtractVectorFromParameterList<DofOrdering>(*paramList_,"DofOrdering Vector");
                 } else {
                     FROSCH_ASSERT(false,"Currently, TwoLevelBlockPreconditioner cannot be constructed without Repeated Maps.");
@@ -278,63 +343,124 @@ namespace Thyra {
                                  dofsPerNodeVector,
                                  dofOrderings,
                                  paramList_->get("Overlap",1),
+                                 coordinatesList,
                                  repeatedMaps);
 
-                SchwarzPreconditioner = TLBP;
+                schwarzPreconditioner = TLBP;
             } else {
-                FROSCH_ASSERT(false,"Thyra::FROSchFactory : ERROR: Preconditioner Type is unknown.");
+                FROSCH_ASSERT(false,"Thyra::FROSchFactory: Preconditioner Type is unknown.");
             }
 
-            SchwarzPreconditioner->compute();
             //-----------------------------------------------
 
             LinearOpBasePtr thyraPrecOp = null;
-            //FROSCh_XpetraOP
-            ConstVectorSpaceBasePtr thyraRangeSpace  = ThyraUtils<SC,LO,GO,NO>::toThyra(SchwarzPreconditioner->getRangeMap());
-            ConstVectorSpaceBasePtr thyraDomainSpace = ThyraUtils<SC,LO,GO,NO>::toThyra(SchwarzPreconditioner->getDomainMap());
 
-            RCP<Operator<SC,LO,GO,NO> > xpOp = rcp_dynamic_cast<Operator<SC,LO,GO,NO> >(SchwarzPreconditioner);
+#if defined(HAVE_XPETRA_TPETRA)
+            if (bIsTpetra) {
+                RCP<Tpetra::Operator<SC,LO,GO,NO> > tpOp;
+#if defined(HAVE_XPETRA_TPETRA) && defined(HAVE_TPETRA_INST_DOUBLE) && defined(HAVE_TPETRA_INST_FLOAT)
+                if (halfSchwarzPreconditioner != null)
+                {
+                    halfSchwarzPreconditioner->compute();
+                    auto halfSchwarzOperator = rcp (new HalfPrecOp (halfSchwarzPreconditioner));
+                    RCP<TpetraPreconditioner<SC,LO,GO,NO> > TPreconditioner (new TpetraPreconditioner<SC,LO,GO,NO>(halfSchwarzOperator));
+                    tpOp = rcp_dynamic_cast<Tpetra::Operator<SC,LO,GO,NO> >(TPreconditioner);
+                } else
+#endif
+                {
+                    schwarzPreconditioner->compute();
+                    auto schwarzOperator = rcp_dynamic_cast<Xpetra::Operator<SC,LO,GO,NO> >(schwarzPreconditioner);
+                    RCP<TpetraPreconditioner<SC,LO,GO,NO> > TPreconditioner (new TpetraPreconditioner<SC,LO,GO,NO>(schwarzOperator));
+                    tpOp = rcp_dynamic_cast<Tpetra::Operator<SC,LO,GO,NO> >(TPreconditioner);
+                }
+                thyraPrecOp = Thyra::createLinearOp(tpOp);
+            } else
+#endif
+            {
+                RCP<Operator<SC,LO,GO,NO> > xpOp;
+#if defined(HAVE_XPETRA_TPETRA) && defined(HAVE_TPETRA_INST_DOUBLE) && defined(HAVE_TPETRA_INST_FLOAT)
+                if (halfSchwarzPreconditioner != null) {
+                    halfSchwarzPreconditioner->compute();
+                    xpOp = rcp_dynamic_cast<Operator<SC,LO,GO,NO> >(rcp (new HalfPrecOp (halfSchwarzPreconditioner)));
+                } else
+#endif
+                {
+                    schwarzPreconditioner->compute();
+                    xpOp = rcp_dynamic_cast<Operator<SC,LO,GO,NO> >(schwarzPreconditioner);
+                }
 
-            thyraPrecOp = fROSchLinearOp<SC,LO,GO,NO>(thyraRangeSpace,thyraDomainSpace,xpOp,bIsEpetra,bIsTpetra);
-
+                ConstVectorSpaceBasePtr thyraRangeSpace  = ThyraUtils<SC,LO,GO,NO>::toThyra(schwarzPreconditioner->getRangeMap());
+                ConstVectorSpaceBasePtr thyraDomainSpace = ThyraUtils<SC,LO,GO,NO>::toThyra(schwarzPreconditioner->getDomainMap());
+                thyraPrecOp = fROSchLinearOp<SC,LO,GO,NO>(thyraRangeSpace,thyraDomainSpace,xpOp,bIsEpetra,bIsTpetra);
+            }
             TEUCHOS_TEST_FOR_EXCEPT(is_null(thyraPrecOp));
 
             //Set SchwarzPreconditioner
             defaultPrec->initializeUnspecified(thyraPrecOp);
         } else {
             // cast to SchwarzPreconditioner
-            RCP<FROSchLinearOp<SC,LO,GO,NO> > fROSch_LinearOp = rcp_dynamic_cast<FROSchLinearOp<SC,LO,GO,NO> >(thyra_precOp,true);
-            RCP<Operator<SC,LO,GO,NO> > xpetraOp = fROSch_LinearOp->getXpetraOperator();
-
-            if (!paramList_->get("FROSch Preconditioner Type","TwoLevelPreconditioner").compare("AlgebraicOverlappingPreconditioner")) {
-                RCP<AlgebraicOverlappingPreconditioner<SC,LO,GO,NO> > AOP = rcp_dynamic_cast<AlgebraicOverlappingPreconditioner<SC,LO,GO,NO> >(xpetraOp, true);
-                AOP->resetMatrix(A);
-                SchwarzPreconditioner = AOP;
-            } else if (!paramList_->get("FROSch Preconditioner Type","TwoLevelPreconditioner").compare("GDSWPreconditioner")) {
-                RCP<AlgebraicOverlappingPreconditioner<SC,LO,GO,NO> > GP = rcp_dynamic_cast<AlgebraicOverlappingPreconditioner<SC,LO,GO,NO> >(xpetraOp, true);
-                GP->resetMatrix(A);
-                SchwarzPreconditioner = GP;
-            } else if (!paramList_->get("FROSch Preconditioner Type","TwoLevelPreconditioner").compare("RGDSWPreconditioner")) {
-                RCP<OneLevelPreconditioner<SC,LO,GO,NO> > RGP = rcp_dynamic_cast<OneLevelPreconditioner<SC,LO,GO,NO> >(xpetraOp, true);
-                RGP->resetMatrix(A);
-                SchwarzPreconditioner = RGP;
-            } else if (!paramList_->get("FROSch Preconditioner Type","TwoLevelPreconditioner").compare("OneLevelPreconditioner")) {
-                RCP<OneLevelPreconditioner<SC,LO,GO,NO> > OLP = rcp_dynamic_cast<OneLevelPreconditioner<SC,LO,GO,NO> >(xpetraOp, true);
-                OLP->resetMatrix(A);
-                SchwarzPreconditioner = OLP;
-            } else if (!paramList_->get("FROSch Preconditioner Type","TwoLevelPreconditioner").compare("TwoLevelPreconditioner")) {
-                RCP<OneLevelPreconditioner<SC,LO,GO,NO> > TLP = rcp_dynamic_cast<OneLevelPreconditioner<SC,LO,GO,NO> >(xpetraOp, true);
-                TLP->resetMatrix(A);
-                SchwarzPreconditioner = TLP;
-            } else if (!paramList_->get("FROSch Preconditioner Type","TwoLevelPreconditioner").compare("TwoLevelBlockPreconditioner")) {
-                RCP<OneLevelPreconditioner<SC,LO,GO,NO> > TLBP = rcp_dynamic_cast<OneLevelPreconditioner<SC,LO,GO,NO> >(xpetraOp, true);
-                TLBP->resetMatrix(A);
-                SchwarzPreconditioner = TLBP;
-            } else {
-                FROSCH_ASSERT(false,"Thyra::FROSchFactory : ERROR: Preconditioner Type is unknown.");
+            RCP<Operator<SC,LO,GO,NO> > xpetraOp;
+#if defined(HAVE_XPETRA_TPETRA)
+            if (bIsTpetra) {
+                RCP<Thyra::TpetraLinearOp<SC,LO,GO,NO> > thyra_precOp = rcp_dynamic_cast<Thyra::TpetraLinearOp<SC,LO,GO,NO>>(precOp, true);
+                RCP<Tpetra::Operator<SC,LO,GO,NO> > tpOp = thyra_precOp->getTpetraOperator();
+                RCP<TpetraPreconditioner<SC,LO,GO,NO> > tpetra_precOp = rcp_dynamic_cast<TpetraPreconditioner<SC,LO,GO,NO>>(tpOp, true);
+                xpetraOp = rcp_dynamic_cast<Operator<SC,LO,GO,NO> >(tpetra_precOp->getSchwarzPreconditioner());
+            } else
+#endif
+            {
+                RCP<FROSchLinearOp<SC,LO,GO,NO> > fROSch_LinearOp = rcp_dynamic_cast<FROSchLinearOp<SC,LO,GO,NO> >(precOp,true);
+                xpetraOp = fROSch_LinearOp->getXpetraOperator();
             }
-            // recompute SchwarzPreconditioner
-            SchwarzPreconditioner->compute();
+
+#if defined(HAVE_XPETRA_TPETRA) && defined(HAVE_TPETRA_INST_DOUBLE) && defined(HAVE_TPETRA_INST_FLOAT)
+            if (useHalfPrecision)
+            {
+                if (!paramList_->get("FROSch Preconditioner Type","TwoLevelPreconditioner").compare("RGDSWPreconditioner") ||
+                    !paramList_->get("FROSch Preconditioner Type","TwoLevelPreconditioner").compare("TwoLevelPreconditioner")) {
+                    auto ANonConst = rcp_const_cast<XMatrix>(A);
+                    auto halfA = rcp_const_cast<const HalfPrecMatrix>(Xpetra::convertToHalfPrecision(ANonConst));
+                    auto halfPrecOp = rcp_dynamic_cast<HalfPrecOp>(xpetraOp);
+                    auto halfXpetraOp = rcp_dynamic_cast<Operator<HalfSC,LO,GO,NO>>(halfPrecOp->GetHalfPrecisionOperator());
+                    RCP<OneLevelPreconditioner<HalfSC,LO,GO,NO> > TLP = rcp_dynamic_cast<OneLevelPreconditioner<HalfSC,LO,GO,NO> >(halfXpetraOp, true);
+                    TLP->resetMatrix(halfA);
+
+                    halfSchwarzPreconditioner = rcp_dynamic_cast<SchwarzPreconditioner<HalfSC,LO,GO,NO> >(halfXpetraOp, true);
+                    halfSchwarzPreconditioner->compute();
+                }
+            } else
+#endif
+            {
+                if (!paramList_->get("FROSch Preconditioner Type","TwoLevelPreconditioner").compare("AlgebraicOverlappingPreconditioner")) {
+                    RCP<AlgebraicOverlappingPreconditioner<SC,LO,GO,NO> > AOP = rcp_dynamic_cast<AlgebraicOverlappingPreconditioner<SC,LO,GO,NO> >(xpetraOp, true);
+                    AOP->resetMatrix(A);
+                    schwarzPreconditioner = AOP;
+                } else if (!paramList_->get("FROSch Preconditioner Type","TwoLevelPreconditioner").compare("GDSWPreconditioner")) {
+                    RCP<AlgebraicOverlappingPreconditioner<SC,LO,GO,NO> > GP = rcp_dynamic_cast<AlgebraicOverlappingPreconditioner<SC,LO,GO,NO> >(xpetraOp, true);
+                    GP->resetMatrix(A);
+                    schwarzPreconditioner = GP;
+                } else if (!paramList_->get("FROSch Preconditioner Type","TwoLevelPreconditioner").compare("RGDSWPreconditioner")) {
+                    RCP<OneLevelPreconditioner<SC,LO,GO,NO> > RGP = rcp_dynamic_cast<OneLevelPreconditioner<SC,LO,GO,NO> >(xpetraOp, true);
+                    RGP->resetMatrix(A);
+                    schwarzPreconditioner = RGP;
+                } else if (!paramList_->get("FROSch Preconditioner Type","TwoLevelPreconditioner").compare("OneLevelPreconditioner")) {
+                    RCP<OneLevelPreconditioner<SC,LO,GO,NO> > OLP = rcp_dynamic_cast<OneLevelPreconditioner<SC,LO,GO,NO> >(xpetraOp, true);
+                    OLP->resetMatrix(A);
+                    schwarzPreconditioner = OLP;
+                } else if (!paramList_->get("FROSch Preconditioner Type","TwoLevelPreconditioner").compare("TwoLevelPreconditioner")) {
+                    RCP<OneLevelPreconditioner<SC,LO,GO,NO> > TLP = rcp_dynamic_cast<OneLevelPreconditioner<SC,LO,GO,NO> >(xpetraOp, true);
+                    TLP->resetMatrix(A);
+                    schwarzPreconditioner = TLP;
+                } else if (!paramList_->get("FROSch Preconditioner Type","TwoLevelPreconditioner").compare("TwoLevelBlockPreconditioner")) {
+                    RCP<OneLevelPreconditioner<SC,LO,GO,NO> > TLBP = rcp_dynamic_cast<OneLevelPreconditioner<SC,LO,GO,NO> >(xpetraOp, true);
+                    TLBP->resetMatrix(A);
+                    schwarzPreconditioner = TLBP;
+                } else {
+                    FROSCH_ASSERT(false,"Thyra::FROSchFactory: Preconditioner Type is unknown.");
+                }
+                // recompute SchwarzPreconditioner
+                schwarzPreconditioner->compute();
+            }
         }
     }
 
@@ -428,7 +554,7 @@ namespace Thyra {
 #endif
                 }
             }
-            FROSCH_ASSERT(!repeatedMap.is_null(),"FROSch::FROSchFactory : ERROR: repeatedMap.is_null()");
+            FROSCH_ASSERT(!repeatedMap.is_null(),"FROSch::FROSchFactory: repeatedMap.is_null()");
         }
         return repeatedMap;
     }
@@ -452,7 +578,7 @@ namespace Thyra {
 #endif
                 }
             }
-            FROSCH_ASSERT(!coordinatesList.is_null(),"FROSch::FROSchFactory : ERROR: coordinatesList.is_null()");
+            FROSCH_ASSERT(!coordinatesList.is_null(),"FROSch::FROSchFactory: coordinatesList.is_null()");
         }
         return coordinatesList;
     }
@@ -476,7 +602,7 @@ namespace Thyra {
 #endif
                 }
             }
-            FROSCH_ASSERT(!nullSpaceBasis.is_null(),"FROSch::FROSchFactory : ERROR: nullSpaceBasis.is_null()");
+            FROSCH_ASSERT(!nullSpaceBasis.is_null(),"FROSch::FROSchFactory: nullSpaceBasis.is_null()");
         }
         return nullSpaceBasis;
     }

@@ -39,8 +39,8 @@
 // ************************************************************************
 //@HEADER
 
-#ifndef THYRA_FROSCH_LINEAR_OP_DEF_HPP
-#define THYRA_FROSCH_LINEAR_OP_DEF_HPP
+#ifndef _THYRA_FROSCH_LINEAR_OP_DEF_HPP
+#define _THYRA_FROSCH_LINEAR_OP_DEF_HPP
 
 #include "Thyra_FROSchLinearOp_decl.hpp"
 
@@ -150,7 +150,7 @@ namespace Thyra {
         const EOpTransp real_M_trans = real_trans(M_trans);
 
         if (this->bIsEpetra_) {
-            const RCP<const VectorSpaceBase<double> > XY_domain = X_in.domain();
+            const RCP<const VectorSpaceBase<SC> > XY_domain = X_in.domain();
 
             RCP<const Map<LO,GO,NO> > DomainM = this->xpetraOperator_->getDomainMap();
             RCP<const EpetraMapT<GO,NO> > eDomainM = rcp_dynamic_cast<const EpetraMapT<GO,NO> >(DomainM);
@@ -213,10 +213,10 @@ namespace Thyra {
             RCP<DetachedMultiVectorView<SC> > thyData = rcp(new DetachedMultiVectorView<SC>(*rcpFromPtr(Y_inout),Range1D(localOffset,localOffset+localSubDim-1)));
 
             // AH 08/14/2019 TODO: Is this necessary??
-            for( size_t j = 0; j <xY->getNumVectors(); ++j) {
+            for ( size_t j = 0; j <xY->getNumVectors(); ++j) {
                 ArrayRCP< const SC > xpData = xY->getData(j); // access const data from Xpetra object
                 // loop over all local rows
-                for( LO i = 0; i < localSubDim; ++i) {
+                for ( LO i = 0; i < localSubDim; ++i) {
                     (*thyData)(i,j) = xpData[i];
                 }
             }

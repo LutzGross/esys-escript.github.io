@@ -1,7 +1,7 @@
-// Copyright(C) 1999-2020 National Technology & Engineering Solutions
+// Copyright(C) 1999-2021 National Technology & Engineering Solutions
 // of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 // NTESS, the U.S. Government retains certain rights in this software.
-// 
+//
 // See packages/seacas/LICENSE for details
 
 #include <Ioss_Property.h>
@@ -22,7 +22,6 @@ Ioss::PropertyManager::PropertyManager(const PropertyManager &from)
 Ioss::PropertyManager::~PropertyManager()
 {
   try {
-    IOSS_FUNC_ENTER(m_);
     m_properties.clear();
   }
   catch (...) {
@@ -50,7 +49,6 @@ void Ioss::PropertyManager::add(const Ioss::Property &new_prop)
  */
 bool Ioss::PropertyManager::exists(const std::string &property_name) const
 {
-  IOSS_FUNC_ENTER(m_);
   return (m_properties.find(property_name) != m_properties.end());
 }
 
@@ -71,6 +69,55 @@ Ioss::Property Ioss::PropertyManager::get(const std::string &property_name) cons
   return (*iter).second;
 }
 
+/** \brief Get an optional property object from the property manager.
+ *
+ *  \param[in] property_name The name of the property to get.
+ *  \param[in] optional_value The value to return if the property does not exist.
+ *  \returns The property object.
+ */
+int Ioss::PropertyManager::get_optional(const std::string &property_name, int optional_value) const
+{
+  IOSS_FUNC_ENTER(m_);
+  auto iter = m_properties.find(property_name);
+  if (iter == m_properties.end()) {
+    return optional_value;
+  }
+  return (*iter).second.get_int();
+}
+
+int64_t Ioss::PropertyManager::get_optional(const std::string &property_name,
+                                            int64_t            optional_value) const
+{
+  IOSS_FUNC_ENTER(m_);
+  auto iter = m_properties.find(property_name);
+  if (iter == m_properties.end()) {
+    return optional_value;
+  }
+  return (*iter).second.get_int();
+}
+
+double Ioss::PropertyManager::get_optional(const std::string &property_name,
+                                           double             optional_value) const
+{
+  IOSS_FUNC_ENTER(m_);
+  auto iter = m_properties.find(property_name);
+  if (iter == m_properties.end()) {
+    return optional_value;
+  }
+  return (*iter).second.get_real();
+}
+
+std::string Ioss::PropertyManager::get_optional(const std::string &property_name,
+                                                const std::string &optional_value) const
+{
+  IOSS_FUNC_ENTER(m_);
+  auto iter = m_properties.find(property_name);
+  if (iter == m_properties.end()) {
+    return optional_value;
+  }
+  return (*iter).second.get_string();
+}
+
 /** \brief Remove a property from the property manager.
  *
  *  Assumes that the property with the given name already exists in the property manager.
@@ -89,6 +136,17 @@ void Ioss::PropertyManager::erase(const std::string &property_name)
 
 /** \brief Get the names of all properties in the property manager
  *
+ *  \returns All the property names in the property manager.
+ */
+Ioss::NameList Ioss::PropertyManager::describe() const
+{
+  Ioss::NameList names;
+  describe(&names);
+  return names;
+}
+
+/** \brief Get the names of all properties in the property manager
+ *
  *  \param[out] names All the property names in the property manager.
  *  \returns The number of properties extracted from the property manager.
  */
@@ -102,6 +160,18 @@ int Ioss::PropertyManager::describe(NameList *names) const
     the_count++;
   }
   return the_count;
+}
+
+/** \brief Get the names of all properties in the property manager that have the origin `origin`
+ *
+ *  \param[in]  origin The origin of the property: IMPLICIT, EXTERNAL, ATTRIBUTE
+ *  \returns The number of properties extracted from the property manager.
+ */
+Ioss::NameList Ioss::PropertyManager::describe(Ioss::Property::Origin origin) const
+{
+  Ioss::NameList names;
+  describe(origin, &names);
+  return names;
 }
 
 /** \brief Get the names of all properties in the property manager that have the origin `origin`

@@ -46,6 +46,7 @@
 #include "Phalanx_config.hpp"
 #include "Phalanx_Evaluator_Macros.hpp"
 #include "Phalanx_MDField.hpp"
+#include "Phalanx_KokkosViewOfViews.hpp"
 
 #include "Teuchos_ParameterList.hpp"
 
@@ -139,8 +140,8 @@ private:
   bool has_tangent_fields_;
   std::vector< std::vector< PHX::MDField<const ScalarT,Cell,NODE> > > tangentFields_;
 
-  Kokkos::View<int**,PHX::Device> scratch_lids_;
-  std::vector<Kokkos::View<int*,PHX::Device> > scratch_offsets_;
+  PHX::View<int**> scratch_lids_;
+  std::vector<PHX::View<int*> > scratch_offsets_;
 
   GatherSolution_Tpetra();
 };
@@ -185,6 +186,7 @@ private:
   std::vector<int> fieldIds_; // field IDs needing mapping
 
   std::vector< PHX::MDField<ScalarT,Cell,NODE> > gatherFields_;
+  PHX::ViewOfViews3<1,PHX::View<ScalarT**>> gatherFieldsVoV_;
 
   std::vector<std::string> indexerNames_;
   bool useTimeDerivativeSolutionVector_;
@@ -195,6 +197,8 @@ private:
   // Fields for storing tangent components dx/dp of solution vector x
   bool has_tangent_fields_;
   std::vector< std::vector< PHX::MDField<const RealT,Cell,NODE> > > tangentFields_;
+  PHX::ViewOfViews3<2,PHX::View<const RealT**>> tangentFieldsVoV_;
+  PHX::View<size_t*> tangentInnerVectorSizes_;
 
   GatherSolution_Tpetra();
 };
@@ -262,16 +266,17 @@ private:
 
   GatherSolution_Tpetra();
 
-  Kokkos::View<int**,PHX::Device> scratch_lids_;
-  std::vector<Kokkos::View<int*,PHX::Device> > scratch_offsets_;
+  PHX::View<int**> scratch_lids_;
+  std::vector<PHX::View<int*> > scratch_offsets_;
 
   // functor data
   struct {
     // input values
-    Kokkos::View<const LO**,PHX::Device> lids;    // local indices for unknowns
-    Kokkos::View<const int*,PHX::Device> offsets; // how to get a particular field
+    PHX::View<const LO**> lids;    // local indices for unknowns
+    PHX::View<const int*> offsets; // how to get a particular field
     Kokkos::View<const double**, Kokkos::LayoutLeft,PHX::Device> x_data;
     double seed_value;                            // AD seed information
+    int dos;	                                  // Offset for special interface bc
 
     // output fields
     PHX::MDField<ScalarT,Cell,NODE> field;

@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <Kokkos_Core.hpp>
 #include <cstdio>
@@ -48,8 +20,8 @@
 #include <cmath>
 
 // Type of a one-dimensional length-N array of int.
-typedef Kokkos::View<int*> view_type;
-typedef view_type::HostMirror host_view_type;
+using view_type      = Kokkos::View<int*>;
+using host_view_type = view_type::HostMirror;
 // This is a "zero-dimensional" View, that is, a View of a single
 // value (an int, in this case).  Access the value using operator()
 // with no arguments: e.g., 'count()'.
@@ -57,8 +29,8 @@ typedef view_type::HostMirror host_view_type;
 // Zero-dimensional Views are useful for reduction results that stay
 // resident in device memory, as well as for irregularly updated
 // shared state.  We use it for the latter in this example.
-typedef Kokkos::View<int> count_type;
-typedef count_type::HostMirror host_count_type;
+using count_type      = Kokkos::View<int>;
+using host_count_type = count_type::HostMirror;
 
 // Functor for finding a list of primes in a given set of numbers.  If
 // run in parallel, the order of results is nondeterministic, because
@@ -118,11 +90,11 @@ int main() {
     host_view_type h_result = Kokkos::create_mirror_view(result);
     host_count_type h_count = Kokkos::create_mirror_view(count);
 
-    typedef view_type::size_type size_type;
+    using size_type = view_type::size_type;
     // Fill the 'data' array on the host with random numbers.  We assume
     // that they come from some process which is only implemented on the
     // host, via some library.  (That's true in this case.)
-    for (size_type i = 0; i < data.extent(0); ++i) {
+    for (size_type i = 0; i < static_cast<size_type>(data.extent(0)); ++i) {
       h_data(i) = rand() % nnumbers;
     }
     Kokkos::deep_copy(data, h_data);  // copy from host to device

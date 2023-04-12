@@ -99,12 +99,55 @@ namespace Tpetra {
     //! The Kokkos Node type.
     typedef Node          node_type;
 
+    /// \brief The type used internally in place of \c Scalar.
+    ///
+    /// Some \c Scalar types might not work with Kokkos on all
+    /// execution spaces, due to missing CUDA device macros or
+    /// volatile overloads.  The C++ standard type std::complex<T> has
+    /// this problem.  To fix this, we replace std::complex<T> values
+    /// internally with the (usually) bitwise identical type
+    /// Kokkos::complex<T>.  The latter is the \c impl_scalar_type
+    /// corresponding to \c Scalar = std::complex.
+    using impl_scalar_type = typename Kokkos::ArithTraits<Scalar>::val_type;
     /// \brief Type of a norm result.
     ///
     /// This is usually the same as the type of the magnitude
     /// (absolute value) of <tt>Scalar</tt>, but may differ for
     /// certain <tt>Scalar</tt> types.
     using mag_type = typename Kokkos::ArithTraits<Scalar>::mag_type;
+
+    typedef typename 
+        Kokkos::View<impl_scalar_type*, typename Node::device_type>::const_type
+        values_device_view_type;
+    typedef typename values_device_view_type::HostMirror::const_type
+        values_host_view_type;
+    typedef typename values_device_view_type::HostMirror
+        nonconst_values_host_view_type;
+
+    typedef typename
+        Kokkos::View<LocalOrdinal *, typename Node::device_type>::const_type
+        local_inds_device_view_type;
+    typedef typename local_inds_device_view_type::HostMirror::const_type
+        local_inds_host_view_type;
+    typedef typename local_inds_device_view_type::HostMirror
+        nonconst_local_inds_host_view_type;
+
+    typedef typename
+        Kokkos::View<GlobalOrdinal *, typename Node::device_type>::const_type
+        global_inds_device_view_type;
+    typedef typename global_inds_device_view_type::HostMirror::const_type
+        global_inds_host_view_type;
+    typedef typename global_inds_device_view_type::HostMirror
+        nonconst_global_inds_host_view_type;
+
+
+    typedef typename
+        Kokkos::View<const size_t*, typename Node::device_type>::const_type
+        row_ptrs_device_view_type;
+    typedef typename row_ptrs_device_view_type::HostMirror::const_type
+        row_ptrs_host_view_type;
+
+
 
     //@}
     //! @name Destructor
@@ -137,14 +180,14 @@ namespace Tpetra {
     virtual global_size_t getGlobalNumCols() const = 0;
 
     //! The number of rows owned by the calling process.
-    virtual size_t getNodeNumRows() const = 0;
+    virtual size_t getLocalNumRows() const = 0;
 
     /// \brief The number of columns needed to apply the forward operator on this node.
     ///
     /// This is the same as the number of elements listed in the
     /// column Map.  It is <i>not</i> necessarily the same as the
     /// number of domain Map elements owned by the calling process.
-    virtual size_t getNodeNumCols() const = 0;
+    virtual size_t getLocalNumCols() const = 0;
 
     //! The index base for global indices in this matrix.
     virtual GlobalOrdinal getIndexBase() const = 0;
@@ -153,7 +196,7 @@ namespace Tpetra {
     virtual global_size_t getGlobalNumEntries() const = 0;
 
     //! The local number of stored (structurally nonzero) entries.
-    virtual size_t getNodeNumEntries() const = 0;
+    virtual size_t getLocalNumEntries() const = 0;
 
     /// \brief The current number of entries on the calling process in the specified global row.
     ///
@@ -195,7 +238,7 @@ namespace Tpetra {
     ///
     /// This method only uses the matrix's graph.  Explicitly stored
     /// zeros count as "entries."
-    virtual size_t getNodeMaxNumRowEntries () const = 0;
+    virtual size_t getLocalMaxNumRowEntries () const = 0;
 
     //! Whether this matrix has a well-defined column Map.
     virtual bool hasColMap () const = 0;
@@ -255,9 +298,9 @@ namespace Tpetra {
     /// not modify Indices or Values.
     virtual void
     getGlobalRowCopy (GlobalOrdinal GlobalRow,
-                      const Teuchos::ArrayView<GlobalOrdinal> &Indices,
-                      const Teuchos::ArrayView<Scalar> &Values,
-                      size_t &NumEntries) const = 0;
+                      nonconst_global_inds_host_view_type &Indices,
+                      nonconst_values_host_view_type &Values,
+                      size_t& NumEntries) const = 0;
 
     /// \brief Get a copy of the given local row's entries.
     ///
@@ -281,9 +324,9 @@ namespace Tpetra {
     /// not modify Indices or Values.
     virtual void
     getLocalRowCopy (LocalOrdinal LocalRow,
-                     const Teuchos::ArrayView<LocalOrdinal> &Indices,
-                     const Teuchos::ArrayView<Scalar> &Values,
-                     size_t &NumEntries) const = 0;
+                     nonconst_local_inds_host_view_type &Indices,
+                     nonconst_values_host_view_type &Values,
+                     size_t& NumEntries) const = 0;
 
     /// \brief Get a constant, nonpersisting, globally indexed view of
     ///   the given row of the matrix.
@@ -311,8 +354,8 @@ namespace Tpetra {
     /// is set to \c null.
     virtual void
     getGlobalRowView (GlobalOrdinal GlobalRow,
-                      Teuchos::ArrayView<const GlobalOrdinal> &indices,
-                      Teuchos::ArrayView<const Scalar> &values) const = 0;
+                      global_inds_host_view_type &indices,
+                      values_host_view_type &values) const = 0;
 
     /// \brief Get a constant, nonpersisting, locally indexed view of
     ///   the given row of the matrix.
@@ -340,40 +383,8 @@ namespace Tpetra {
     /// is set to \c null.
     virtual void
     getLocalRowView (LocalOrdinal LocalRow,
-                     Teuchos::ArrayView<const LocalOrdinal>& indices,
-                     Teuchos::ArrayView<const Scalar>& values) const = 0;
-
-    /// \brief Get a constant, nonpersisting, locally indexed view of
-    ///   the given row of the matrix, using "raw" pointers instead of
-    ///   Teuchos::ArrayView.
-    ///
-    /// The returned views of the column indices and values are not
-    /// guaranteed to persist beyond the lifetime of <tt>this</tt>.
-    /// Furthermore, some RowMatrix implementations allow changing the
-    /// values, or the indices and values.  Any such changes
-    /// invalidate the returned views.
-    ///
-    /// This method only gets the entries in the given row that are
-    /// stored on the calling process.  Note that if the matrix has an
-    /// overlapping row Map, it is possible that the calling process
-    /// does not store all the entries in that row.
-    ///
-    /// \pre <tt>isLocallyIndexed () && supportsRowViews ()</tt>
-    /// \post <tt>numEnt == getNumEntriesInGlobalRow (LocalRow)</tt>
-    ///
-    /// \param lclRow [in] Local index of the row.
-    /// \param numEnt [out] Number of entries in the row that are
-    ///   stored on the calling process.
-    /// \param lclColInds [out] Local indices of the columns
-    ///   corresponding to values.
-    /// \param vals [out] Matrix values.
-    ///
-    /// \return Error code; zero on no error.
-    virtual LocalOrdinal
-    getLocalRowViewRaw (const LocalOrdinal lclRow,
-                        LocalOrdinal& numEnt,
-                        const LocalOrdinal*& lclColInds,
-                        const Scalar*& vals) const;
+                     local_inds_host_view_type & indices,
+                     values_host_view_type & values) const = 0;
 
     /// \brief Get a copy of the diagonal entries, distributed by the row Map.
     ///
@@ -498,8 +509,7 @@ namespace Tpetra {
     packImpl (const Teuchos::ArrayView<const LocalOrdinal>& exportLIDs,
               Teuchos::Array<char>& exports,
               const Teuchos::ArrayView<size_t>& numPacketsPerLID,
-              size_t& constantNumPackets,
-              Distributor& distor) const;
+              size_t& constantNumPackets) const;
 
 
   public:
@@ -515,8 +525,7 @@ namespace Tpetra {
     pack (const Teuchos::ArrayView<const LocalOrdinal>& exportLIDs,
           Teuchos::Array<char>& exports,
           const Teuchos::ArrayView<size_t>& numPacketsPerLID,
-          size_t& constantNumPackets,
-          Distributor& distor) const;
+          size_t& constantNumPackets) const;
     //@}
   }; // class RowMatrix
 } // namespace Tpetra

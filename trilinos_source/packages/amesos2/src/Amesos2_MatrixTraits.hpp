@@ -85,10 +85,9 @@ namespace Amesos2 {
     typedef Node node_t;
 
     typedef Tpetra::RowMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>  matrix_type;
-    typedef typename matrix_type::local_matrix_type  local_matrix_t;
-    typedef typename matrix_type::local_matrix_type::row_map_type::pointer_type  sparse_ptr_type;
-    typedef typename matrix_type::local_matrix_type::index_type::pointer_type sparse_idx_type;
-    typedef typename matrix_type::local_matrix_type::values_type::pointer_type sparse_values_type;
+
+    typedef typename matrix_type::nonconst_global_inds_host_view_type global_host_idx_type;
+    typedef typename matrix_type::nonconst_values_host_view_type      global_host_val_type;
 
     typedef row_access major_access;
   };
@@ -108,10 +107,9 @@ namespace Amesos2 {
     typedef Node node_t;
 
     typedef Tpetra::CrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>  matrix_type;
-    typedef typename matrix_type::local_matrix_type  local_matrix_t;
-    typedef typename matrix_type::local_matrix_type::row_map_type::pointer_type  sparse_ptr_type;
-    typedef typename matrix_type::local_matrix_type::index_type::pointer_type sparse_idx_type;
-    typedef typename matrix_type::local_matrix_type::values_type::pointer_type sparse_values_type;
+
+    typedef typename matrix_type::nonconst_global_inds_host_view_type global_host_idx_type;
+    typedef typename matrix_type::nonconst_values_host_view_type      global_host_val_type;
 
     typedef row_access major_access;
   };
@@ -131,10 +129,8 @@ namespace Amesos2 {
     typedef KokkosSparse::CrsMatrix<Scalar, LocalOrdinal, DeviceType>  matrix_type;
     typedef Tpetra::Map<>::node_type node_t;
 
-    typedef matrix_type  local_matrix_t; // is the same right now
-    typedef typename matrix_type::row_map_type::value_type * sparse_ptr_type;
-    typedef typename matrix_type::ordinal_type * sparse_idx_type;
-    typedef typename matrix_type::value_type * sparse_values_type;
+    typedef typename matrix_type::HostMirror::index_type  global_host_idx_type;
+    typedef typename matrix_type::HostMirror::values_type global_host_val_type;
 
     typedef row_access major_access;
   };
@@ -154,6 +150,9 @@ namespace Amesos2 {
     typedef int* sparse_idx_type;
     typedef double* sparse_values_type;
 
+    typedef Kokkos::View<global_ordinal_t*, Kokkos::HostSpace> global_host_idx_type;
+    typedef Kokkos::View<scalar_t*,         Kokkos::HostSpace> global_host_val_type;
+
     typedef row_access major_access;
   };
 
@@ -169,6 +168,9 @@ namespace Amesos2 {
     typedef int* sparse_ptr_type;
     typedef int* sparse_idx_type;
     typedef double* sparse_values_type;
+
+    typedef Kokkos::View<global_ordinal_t*, Kokkos::HostSpace> global_host_idx_type;
+    typedef Kokkos::View<scalar_t*,         Kokkos::HostSpace> global_host_val_type;
 
     typedef row_access major_access;
   };

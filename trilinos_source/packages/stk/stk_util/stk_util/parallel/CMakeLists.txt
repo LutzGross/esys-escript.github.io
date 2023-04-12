@@ -48,37 +48,34 @@
 SET(HEADERS "")
 SET(SOURCES "")
 
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
+TRIBITS_INCLUDE_DIRECTORIES(${${PACKAGE_NAME}_SOURCE_DIR})
 
-#
-# Core headers
-#
 
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
+IF (TPL_ENABLE_MPI)
 
 FILE(GLOB HEADERS *.hpp *.h)
 FILE(GLOB SOURCES *.cpp)
 
-#APPEND_SET(HEADERS
-#BroadcastArg.hpp
-#DistributedIndex.hpp
-#ParallelComm.hpp
-#Parallel.hpp
-#ParallelIndex.hpp
-#ParallelReduce.hpp
-#  )
-#
-#APPEND_SET(SOURCES
-#BroadcastArg.cpp
-#DistributedIndex.cpp
-#ParallelComm.cpp
-#Parallel.cpp
-#ParallelIndex.cpp
-#ParallelReduce.cpp
-#  )
-#
-#IF (TPL_ENABLE_MPI)
-#ENDIF()
+ELSE()
+
+FILE(GLOB HEADERS
+     CommBuffer.hpp
+     Parallel.hpp
+     ParallelComm.hpp
+     ParallelReduce.hpp
+     ParallelReduceBool.hpp
+     ParallelVectorConcat.hpp
+     mpi_filebuf.hpp
+    )
+FILE(GLOB SOURCES
+     CommBuffer.cpp
+     Parallel.cpp
+     ParallelComm.cpp
+     ParallelReduce.cpp
+     mpi_filebuf.cpp
+    )
+
+ENDIF()
 
 #
 # C) Define the targets for package's library(s)
@@ -92,4 +89,4 @@ TRIBITS_ADD_LIBRARY(
   )
 
 INSTALL(FILES ${HEADERS} DESTINATION
-    ${CMAKE_INSTALL_PREFIX}/${${PROJECT_NAME}_INSTALL_INCLUDE_DIR}/stk_util/parallel/)
+    ${${PROJECT_NAME}_INSTALL_INCLUDE_DIR}/stk_util/parallel/)

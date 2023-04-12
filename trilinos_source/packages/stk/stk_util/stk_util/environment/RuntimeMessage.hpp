@@ -35,11 +35,12 @@
 #ifndef STK_UTIL_ENVIRONMENT_RUNTIMEMESSAGE_HPP
 #define STK_UTIL_ENVIRONMENT_RUNTIMEMESSAGE_HPP
 
-#include <iosfwd>
-#include <vector>
-#include <cstddef>
+#include "stk_util/parallel/Parallel.hpp"  // for MPI_Comm
+#include <cstddef>                         // for size_t, ptrdiff_t
+#include <iosfwd>                          // for ostream
+#include <string>                          // for string
 
-#include <stk_util/parallel/Parallel.hpp>
+
 namespace stk {
 
 ///
@@ -182,6 +183,8 @@ struct MessageCode
 };
 
 unsigned get_message_count(unsigned message_type);
+unsigned get_message_printed_count(unsigned messageType);
+unsigned get_message_printed_count(const MessageCode& messageCode);
 
 void reset_message_count(unsigned message_type);
 
@@ -244,7 +247,7 @@ enum class CutoffStatus {
   MSG_CUTOFF            = 1,
   MSG_CUTOFF_EXCEEDED   = 2
 };
-CutoffStatus count_message(const MessageCode &   message_code);
+CutoffStatus count_message(unsigned message_type, const MessageCode & message_code);
 
 
 } // namespace stk

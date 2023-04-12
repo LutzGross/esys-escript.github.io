@@ -66,13 +66,13 @@ DropFilter<MatrixType>::DropFilter(const Teuchos::RCP<const Tpetra::RowMatrix<Sc
 {
 
  // use this filter only on serial matrices
-  if (A_->getComm()->getSize() != 1 || A_->getNodeNumRows() != A_->getGlobalNumRows()) {
+  if (A_->getComm()->getSize() != 1 || A_->getLocalNumRows() != A_->getGlobalNumRows()) {
     throw std::runtime_error("Ifpack2::DropFilter can be used with Comm().getSize() == 1 only. This class is a tool for Ifpack2_AdditiveSchwarz, and it is not meant to be used otherwise.");
   }
 
 
   // localized matrix has all the local rows of Matrix
-  NumRows_ = A_->getNodeNumRows();
+  NumRows_ = A_->getLocalNumRows();
 
   // NodeNumEntries_ will contain the actual number of nonzeros
   // for each localized row (that is, without external nodes,
@@ -81,12 +81,12 @@ DropFilter<MatrixType>::DropFilter(const Teuchos::RCP<const Tpetra::RowMatrix<Sc
 
   // tentative value for MaxNumEntries. This is the number of
   // nonzeros in the local matrix
-  MaxNumEntries_  = A_->getNodeMaxNumRowEntries();
-  MaxNumEntriesA_ = A_->getNodeMaxNumRowEntries();
+  MaxNumEntries_  = A_->getLocalMaxNumRowEntries();
+  MaxNumEntriesA_ = A_->getLocalMaxNumRowEntries();
 
   // ExtractMyRowCopy() will use these vectors
-  Indices_.resize(MaxNumEntries_);
-  Values_.resize(MaxNumEntries_);
+  Kokkos::resize(Indices_,MaxNumEntries_);
+  Kokkos::resize(Values_,MaxNumEntries_);
 
   size_t ActualMaxNumEntries = 0;
   for (size_t i = 0 ; i < NumRows_ ; ++i) {
@@ -186,7 +186,7 @@ global_size_t DropFilter<MatrixType>::getGlobalNumCols() const
 
 //==========================================================================
 template<class MatrixType>
-size_t DropFilter<MatrixType>::getNodeNumRows() const
+size_t DropFilter<MatrixType>::getLocalNumRows() const
 {
   return NumRows_;
 }
@@ -194,7 +194,7 @@ size_t DropFilter<MatrixType>::getNodeNumRows() const
 //==========================================================================
 
 template<class MatrixType>
-size_t DropFilter<MatrixType>::getNodeNumCols() const
+size_t DropFilter<MatrixType>::getLocalNumCols() const
 {
   return NumRows_;
 }
@@ -215,7 +215,7 @@ global_size_t DropFilter<MatrixType>::getGlobalNumEntries() const
 
 //==========================================================================
 template<class MatrixType>
-size_t DropFilter<MatrixType>::getNodeNumEntries() const
+size_t DropFilter<MatrixType>::getLocalNumEntries() const
 {
   return NumNonzeros_;
 }
@@ -243,7 +243,7 @@ size_t DropFilter<MatrixType>::getGlobalMaxNumRowEntries() const
 
 //==========================================================================
 template<class MatrixType>
-size_t DropFilter<MatrixType>::getNodeMaxNumRowEntries() const
+size_t DropFilter<MatrixType>::getLocalMaxNumRowEntries() const
 {
   return MaxNumEntries_;
 }
@@ -278,20 +278,22 @@ bool DropFilter<MatrixType>::isFillComplete() const
 
 //==========================================================================
 template<class MatrixType>
-void DropFilter<MatrixType>::getGlobalRowCopy(GlobalOrdinal /* GlobalRow */,
-                                                  const Teuchos::ArrayView<GlobalOrdinal> &/* Indices */,
-                                                  const Teuchos::ArrayView<Scalar> &/* Values */,
-                                                  size_t &/* NumEntries */) const
+void DropFilter<MatrixType>::
+getGlobalRowCopy (GlobalOrdinal /*GlobalRow*/,
+                  nonconst_global_inds_host_view_type &/*Indices*/,
+                  nonconst_values_host_view_type &/*Values*/,
+                  size_t& /*NumEntries*/) const
 {
   throw std::runtime_error("Ifpack2::DropFilter does not implement getGlobalRowCopy.");
 }
 
 //==========================================================================
 template<class MatrixType>
-void DropFilter<MatrixType>::getLocalRowCopy(LocalOrdinal LocalRow,
-                                              const Teuchos::ArrayView<LocalOrdinal> &Indices,
-                                              const Teuchos::ArrayView<Scalar> &Values,
-                                              size_t &NumEntries) const
+void DropFilter<MatrixType>::
+  getLocalRowCopy (LocalOrdinal LocalRow,
+                   nonconst_local_inds_host_view_type &Indices,
+                   nonconst_values_host_view_type &Values,
+                   size_t& NumEntries) const
 {
   TEUCHOS_TEST_FOR_EXCEPTION((LocalRow < 0 || (size_t) LocalRow >=  NumRows_ || (size_t) Indices.size() <  NumEntries_[LocalRow]), std::runtime_error, "Ifpack2::DropFilter::getLocalRowCopy invalid row or array size.");
 
@@ -302,7 +304,7 @@ void DropFilter<MatrixType>::getLocalRowCopy(LocalOrdinal LocalRow,
   // This is because I need more space than that given by
   // the user (for the external nodes)
   size_t A_NumEntries=0;
-  A_->getLocalRowCopy(LocalRow,Indices_(),Values_(),A_NumEntries);
+  A_->getLocalRowCopy(LocalRow,Indices_,Values_,A_NumEntries);
 
   // loop over all nonzero elements of row MyRow,
   // and drop elements below specified threshold.
@@ -323,8 +325,8 @@ void DropFilter<MatrixType>::getLocalRowCopy(LocalOrdinal LocalRow,
 //==========================================================================
 template<class MatrixType>
 void DropFilter<MatrixType>::getGlobalRowView(GlobalOrdinal /* GlobalRow */,
-                                                  Teuchos::ArrayView<const GlobalOrdinal> &/* indices */,
-                                                  Teuchos::ArrayView<const Scalar> &/* values */) const
+                                                  global_inds_host_view_type &/*indices*/,
+                                                  values_host_view_type &/*values*/) const
 {
   throw std::runtime_error("Ifpack2::DropFilter: does not support getGlobalRowView.");
 }
@@ -332,8 +334,8 @@ void DropFilter<MatrixType>::getGlobalRowView(GlobalOrdinal /* GlobalRow */,
 //==========================================================================
 template<class MatrixType>
 void DropFilter<MatrixType>::getLocalRowView(LocalOrdinal /* LocalRow */,
-                                                 Teuchos::ArrayView<const LocalOrdinal> &/* indices */,
-                                                 Teuchos::ArrayView<const Scalar> &/* values */) const
+    local_inds_host_view_type & /*indices*/,
+    values_host_view_type & /*values*/) const
 {
   throw std::runtime_error("Ifpack2::DropFilter: does not support getLocalRowView.");
 }
@@ -383,21 +385,22 @@ void DropFilter<MatrixType>::apply(const Tpetra::MultiVector<Scalar,LocalOrdinal
   for (size_t i = 0 ; i < NumRows_ ; ++i) {
     size_t Nnz;
     // Use this class's getrow to make the below code simpler
-    getLocalRowCopy(i,Indices_(),Values_(),Nnz);
+    getLocalRowCopy(i,Indices_,Values_,Nnz);
+    Scalar* Values = reinterpret_cast<Scalar*>(Values_.data());
     if (mode==Teuchos::NO_TRANS){
       for (size_t j = 0 ; j < Nnz ; ++j)
         for (size_t k = 0 ; k < NumVectors ; ++k)
-          y_ptr[k][i] += Values_[j] * x_ptr[k][Indices_[j]];
+          y_ptr[k][i] += Values[j] * x_ptr[k][Indices_[j]];
     }
     else if (mode==Teuchos::TRANS){
       for (size_t j = 0 ; j < Nnz ; ++j)
         for (size_t k = 0 ; k < NumVectors ; ++k)
-          y_ptr[k][Indices_[j]] += Values_[j] * x_ptr[k][i];
+          y_ptr[k][Indices_[j]] += Values[j] * x_ptr[k][i];
     }
     else { //mode==Teuchos::CONJ_TRANS
       for (size_t j = 0 ; j < Nnz ; ++j)
         for (size_t k = 0 ; k < NumVectors ; ++k)
-          y_ptr[k][Indices_[j]] += Teuchos::ScalarTraits<Scalar>::conjugate(Values_[j]) * x_ptr[k][i];
+          y_ptr[k][Indices_[j]] += Teuchos::ScalarTraits<Scalar>::conjugate(Values[j]) * x_ptr[k][i];
     }
   }
 }

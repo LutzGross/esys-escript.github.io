@@ -26,7 +26,7 @@
 #include "/usr/netpub/valgrind-3.8.1/include/valgrind/callgrind.h"
 #endif
 
-#define DO_ALT_TIMER 1
+#define DO_ALT_TIMER 0
 
 #define TIMING(code) code
 #define TIMER(name) stk::diag::Timer timer ## name ( #name, Base::rootTimer());  stk::diag::TimeBlock tbTimer ## name (timer ## name)
@@ -614,7 +614,7 @@
         if (!m_refine_field_set)
           {
             m_refine_field_set = true;
-            m_refine_field = eMesh.get_fem_meta_data()->template get_field<RefineFieldType>(stk::topology::ELEMENT_RANK, "refine_field");
+            m_refine_field = eMesh.get_fem_meta_data()->template get_field<RefineFieldType_type>(stk::topology::ELEMENT_RANK, "refine_field");
           }
 
         {

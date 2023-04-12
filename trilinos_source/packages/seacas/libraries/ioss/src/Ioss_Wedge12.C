@@ -1,7 +1,7 @@
-// Copyright(C) 1999-2020 National Technology & Engineering Solutions
+// Copyright(C) 1999-2021, 2023 National Technology & Engineering Solutions
 // of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 // NTESS, the U.S. Government retains certain rights in this software.
-// 
+//
 // See packages/seacas/LICENSE for details
 
 #include "Ioss_CodeTypes.h"           // for IntVector
@@ -75,8 +75,6 @@ Ioss::Wedge12::Wedge12() : Ioss::ElementTopology(Ioss::Wedge12::name, "Wedge_12"
   Ioss::ElementTopology::alias(Ioss::Wedge12::name, "Solid_Wedge_12_3D");
 }
 
-Ioss::Wedge12::~Wedge12() = default;
-
 int Ioss::Wedge12::parametric_dimension() const { return 3; }
 int Ioss::Wedge12::spatial_dimension() const { return 3; }
 int Ioss::Wedge12::order() const { return 1; }
@@ -116,6 +114,7 @@ int Ioss::Wedge12::number_edges_face(int face) const
 
 Ioss::IntVector Ioss::Wedge12::edge_connectivity(int edge_number) const
 {
+  assert(edge_number > 0 && edge_number <= number_edges());
   Ioss::IntVector connectivity(number_nodes_edge(edge_number));
 
   for (int i = 0; i < number_nodes_edge(edge_number); i++) {

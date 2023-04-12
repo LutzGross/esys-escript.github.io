@@ -110,8 +110,8 @@ namespace Galeri {
 
       Teuchos::RCP<Matrix> mtx = MatrixTraits<Map,Matrix>::Build(map, 1);
 
-      LocalOrdinal NumMyElements = map->getNodeNumElements();
-      Teuchos::ArrayView<const GlobalOrdinal> MyGlobalElements = map->getNodeElementList();
+      LocalOrdinal NumMyElements = map->getLocalNumElements();
+      Teuchos::ArrayView<const GlobalOrdinal> MyGlobalElements = map->getLocalElementList();
 
       {
 	Teuchos::RCP<TimeMonitor> tm = rcp(new TimeMonitor(*TimeMonitor::getNewTimer("Galeri: Scaled Identity Generation")));
@@ -143,8 +143,8 @@ namespace Galeri {
 
       Teuchos::RCP<Matrix> mtx = MatrixTraits<Map,Matrix>::Build(map, 3);
 
-      LocalOrdinal NumMyElements = map->getNodeNumElements();
-      Teuchos::ArrayView<const GlobalOrdinal> MyGlobalElements = map->getNodeElementList();
+      LocalOrdinal NumMyElements = map->getLocalNumElements();
+      Teuchos::ArrayView<const GlobalOrdinal> MyGlobalElements = map->getLocalElementList();
       GlobalOrdinal indexBase = map->getIndexBase();
 
       Teuchos::RCP<const Teuchos::Comm<int> > comm = map->getComm();
@@ -224,10 +224,10 @@ namespace Galeri {
 
       RCP<Matrix> mtx = MatrixTraits<Map,Matrix>::Build(map, nnz);
 
-      LocalOrdinal  numMyElements = map->getNodeNumElements();
+      LocalOrdinal  numMyElements = map->getLocalNumElements();
       GlobalOrdinal indexBase     = map->getIndexBase();
 
-      Teuchos::ArrayView<const GlobalOrdinal> myGlobalElements = map->getNodeElementList();
+      Teuchos::ArrayView<const GlobalOrdinal> myGlobalElements = map->getLocalElementList();
 
       GlobalOrdinal center, left, right, lower, upper;
       std::vector<Scalar>        vals(nnz);
@@ -317,10 +317,10 @@ namespace Galeri {
 
       Teuchos::RCP<Matrix> mtx = MatrixTraits<Map,Matrix>::Build(map, nnz);
 
-      LocalOrdinal  numMyElements = map->getNodeNumElements();
+      LocalOrdinal  numMyElements = map->getLocalNumElements();
       GlobalOrdinal indexBase     = map->getIndexBase();
 
-      Teuchos::ArrayView<const GlobalOrdinal> myGlobalElements = map->getNodeElementList();
+      Teuchos::ArrayView<const GlobalOrdinal> myGlobalElements = map->getLocalElementList();
 
       GlobalOrdinal center, left, right, lower, upper;
       std::vector<Scalar>        vals(nnz);
@@ -410,10 +410,10 @@ namespace Galeri {
 
       Teuchos::RCP<Matrix> mtx = MatrixTraits<Map,Matrix>::Build(map, nnz);
 
-      LocalOrdinal  numMyElements = map->getNodeNumElements();
+      LocalOrdinal  numMyElements = map->getLocalNumElements();
       GlobalOrdinal indexBase     = map->getIndexBase();
 
-      Teuchos::ArrayView<const GlobalOrdinal> myGlobalElements = map->getNodeElementList();
+      Teuchos::ArrayView<const GlobalOrdinal> myGlobalElements = map->getLocalElementList();
 
       GlobalOrdinal center, left, right, lower, upper, left2, right2, lower2, upper2;
       std::vector<Scalar>        vals(nnz);
@@ -508,10 +508,10 @@ namespace Galeri {
 
       Teuchos::RCP<Matrix> mtx = MatrixTraits<Map,Matrix>::Build(map, nnz);
 
-      LocalOrdinal  numMyElements = map->getNodeNumElements();
+      LocalOrdinal  numMyElements = map->getLocalNumElements();
       GlobalOrdinal indexBase     = map->getIndexBase();
 
-      Teuchos::ArrayView<const GlobalOrdinal> myGlobalElements = map->getNodeElementList();
+      Teuchos::ArrayView<const GlobalOrdinal> myGlobalElements = map->getLocalElementList();
 
       GlobalOrdinal center, left, right, bottom, top, front, back;
       std::vector<GlobalOrdinal> inds(nnz);
@@ -530,12 +530,12 @@ namespace Galeri {
 	  GetNeighboursCartesian3d(center, nx, ny, nz,
 				   left, right, front, back, bottom, top);
 
-	  bool isDirichlet = (left  == -1 && (DirichletBC & DIR_LEFT))   ||
-                             (right == -1 && (DirichletBC & DIR_RIGHT))  ||
-	                     (front == -1 && (DirichletBC & DIR_BOTTOM)) ||
-	                     (back  == -1 && (DirichletBC & DIR_TOP))    ||
-                             (front == -1 && (DirichletBC & DIR_FRONT))  ||
-                             (back  == -1 && (DirichletBC & DIR_BACK));
+	  bool isDirichlet = (left   == -1 && (DirichletBC & DIR_LEFT))   ||
+                             (right  == -1 && (DirichletBC & DIR_RIGHT))  ||
+                             (bottom == -1 && (DirichletBC & DIR_BOTTOM)) ||
+                             (top    == -1 && (DirichletBC & DIR_TOP))    ||
+                             (front  == -1 && (DirichletBC & DIR_FRONT))  ||
+                             (back   == -1 && (DirichletBC & DIR_BACK));
 
 	  if (isDirichlet && keepBCs) {
 	    // Dirichlet unknown we want to keep
@@ -600,10 +600,10 @@ namespace Galeri {
 
       Teuchos::RCP<Matrix> mtx = MatrixTraits<Map,Matrix>::Build(map, nnz);
 
-      LocalOrdinal  numMyElements = map->getNodeNumElements();
+      LocalOrdinal  numMyElements = map->getLocalNumElements();
       GlobalOrdinal indexBase     = map->getIndexBase();
 
-      Teuchos::ArrayView<const GlobalOrdinal> myGlobalElements = map->getNodeElementList();
+      Teuchos::ArrayView<const GlobalOrdinal> myGlobalElements = map->getLocalElementList();
 
       GlobalOrdinal center, left, right, front, back, below, above;
       std::vector<Scalar>        vals(nnz);
@@ -635,8 +635,8 @@ namespace Galeri {
 
 	  bool isDirichlet = (left  == -1 && (DirichletBC & DIR_LEFT))   ||
                              (right == -1 && (DirichletBC & DIR_RIGHT))  ||
-                             (front == -1 && (DirichletBC & DIR_BOTTOM)) ||
-                             (back  == -1 && (DirichletBC & DIR_TOP))    ||
+                             (below == -1 && (DirichletBC & DIR_BOTTOM)) ||
+                             (above == -1 && (DirichletBC & DIR_TOP))    ||
                              (front == -1 && (DirichletBC & DIR_FRONT))  ||
                              (back  == -1 && (DirichletBC & DIR_BACK));
 

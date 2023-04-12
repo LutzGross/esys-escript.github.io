@@ -9,17 +9,17 @@
 #ifndef Tempus_SolutionState_decl_hpp
 #define Tempus_SolutionState_decl_hpp
 
-// Teuchos
 #include "Teuchos_VerboseObject.hpp"
 #include "Teuchos_Describable.hpp"
-// Thrya
+
 #include "Thyra_VectorBase.hpp"
 #include "Thyra_ModelEvaluator.hpp"
-// Tempus
+
 #include "Tempus_config.hpp"
 #include "Tempus_SolutionStateMetaData.hpp"
 #include "Tempus_StepperState.hpp"
 #include "Tempus_PhysicsState.hpp"
+
 
 namespace Tempus {
 
@@ -66,22 +66,6 @@ public:
    */
   SolutionState();
 
-#ifndef TEMPUS_HIDE_DEPRECATED_CODE
-  SolutionState(
-    const Teuchos::RCP<Thyra::VectorBase<Scalar> >& x,
-    const Teuchos::RCP<Thyra::VectorBase<Scalar> >& xdot    = Teuchos::null,
-    const Teuchos::RCP<Thyra::VectorBase<Scalar> >& xddot   = Teuchos::null,
-    const Teuchos::RCP<StepperState<Scalar> >& stepperState = Teuchos::null,
-    const Teuchos::RCP<PhysicsState<Scalar> >& physicsState = Teuchos::null);
-
-  SolutionState(
-    const Teuchos::RCP<const Thyra::VectorBase<Scalar> >& x,
-    const Teuchos::RCP<const Thyra::VectorBase<Scalar> >& xdot = Teuchos::null,
-    const Teuchos::RCP<const Thyra::VectorBase<Scalar> >& xddot= Teuchos::null,
-    const Teuchos::RCP<const StepperState<Scalar> >& stepperSt = Teuchos::null,
-    const Teuchos::RCP<const PhysicsState<Scalar> >& physicsSt = Teuchos::null);
-#endif
-
   SolutionState(
     const Teuchos::RCP<SolutionStateMetaData<Scalar> > ssmd,
     const Teuchos::RCP<Thyra::VectorBase<Scalar> >& x,
@@ -97,13 +81,6 @@ public:
     const Teuchos::RCP<const Thyra::VectorBase<Scalar> >& xdotdot,
     const Teuchos::RCP<const StepperState<Scalar> >& stepperState,
     const Teuchos::RCP<const PhysicsState<Scalar> >& physicsState);
-
-#ifndef TEMPUS_HIDE_DEPRECATED_CODE
-  SolutionState(
-    const Teuchos::RCP<const Thyra::ModelEvaluator<Scalar> >& model,
-    const Teuchos::RCP<StepperState<Scalar> >& stepperState = Teuchos::null,
-    const Teuchos::RCP<PhysicsState<Scalar> >& physicsState = Teuchos::null);
-#endif
 
   /// This is a shallow copy constructor, use clone for a deep copy constructor
   SolutionState(const SolutionState<Scalar>& ss);
@@ -134,6 +111,8 @@ public:
     virtual Scalar getTimeStep()         const {return metaData_->getDt();}
     virtual Scalar getErrorAbs()         const {return metaData_->getErrorAbs();}
     virtual Scalar getErrorRel()         const {return metaData_->getErrorRel();}
+    virtual Scalar getErrorRelNm1()      const {return metaData_->getErrorRelNm1();}
+    virtual Scalar getErrorRelNm2()      const {return metaData_->getErrorRelNm2();}
     virtual int    getOrder()            const {return metaData_->getOrder();}
     virtual int    getNFailures()        const {return metaData_->getNFailures();}
     virtual int    getNRunningFailures() const {return metaData_->getNRunningFailures();}

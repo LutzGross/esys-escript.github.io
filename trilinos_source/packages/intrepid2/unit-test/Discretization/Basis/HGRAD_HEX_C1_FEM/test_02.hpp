@@ -213,12 +213,6 @@ namespace Intrepid2 {
       Teuchos::oblackholestream oldFormatState;
       oldFormatState.copyfmt(std::cout);
 
-      typedef typename
-        Kokkos::Impl::is_space<DeviceSpaceType>::host_mirror_space::execution_space HostSpaceType ;
-
-      *outStream << "DeviceSpace::  "; DeviceSpaceType::print_configuration(*outStream, false);
-      *outStream << "HostSpace::    ";   HostSpaceType::print_configuration(*outStream, false);
-
       *outStream 
         << "===============================================================================\n" \
         << "|                                                                             |\n" \
@@ -389,8 +383,7 @@ namespace Intrepid2 {
                 //create basis
                 // for virtual function, value and point types are declared in the class
                 typedef ValueType outputValueType;
-                typedef ValueType pointValueType;
-                
+
                 Basis_HGRAD_HEX_C1_FEM<DeviceSpaceType,outputValueType,pointValueType> basis;
                 //Teuchos::RCP<Basis<double,FieldContainer<double> > > basis =
                 //  Teuchos::rcp(new Basis_HGRAD_HEX_C1_FEM<double,FieldContainer<double> >() );
@@ -609,7 +602,9 @@ namespace Intrepid2 {
             
                 rst::subtract(interpolant, exact_solution);
 
-                ValueType relNorm = rst::Serial::vectorNorm(interpolant, NORM_TWO);
+                auto interpolant_h = Kokkos::create_mirror_view(interpolant);
+                Kokkos::deep_copy(interpolant_h, interpolant);
+                ValueType relNorm = rst::Serial::vectorNorm(interpolant_h, NORM_TWO);
                               
                 *outStream << "\nRelative norm-2 error between exact solution polynomial of order ("
                            << x_order << ", " << y_order << ", " << z_order

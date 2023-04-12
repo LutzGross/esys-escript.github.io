@@ -35,9 +35,10 @@
 #ifndef STK_UTIL_ENVIRONMENT_RUNTIMEWARNING_HPP
 #define STK_UTIL_ENVIRONMENT_RUNTIMEWARNING_HPP
 
-#include <sstream>
+#include "stk_util/environment/RuntimeMessage.hpp"  // for MessageCode, MessageCode::s_defaultMe...
+#include <sstream>                                  // for ostringstream, operator<<, ios_base
+#include <utility>                                  // for pair
 
-#include <stk_util/environment/RuntimeMessage.hpp>
 
 namespace stk {
 
@@ -53,6 +54,9 @@ typedef std::ios_base &(*IOSBaseFunctionPtr)(std::ios_base &);
  * @brief Function <b>get_warning_count</b> returns the accumulated warning count.
  */
 unsigned get_warning_count();
+
+unsigned get_warning_printed_count();
+unsigned get_warning_printed_count(const MessageCode &messageCode);
 
 /**
  * @brief Function <b>reset_warning_count</b> sets the accumulated warning count to zero.

@@ -1,7 +1,7 @@
-C Copyright(C) 1999-2020 National Technology & Engineering Solutions
+C Copyright(C) 1999-2022 National Technology & Engineering Solutions
 C of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 C NTESS, the U.S. Government retains certain rights in this software.
-C 
+C
 C See packages/seacas/LICENSE for details
 
 C=======================================================================
@@ -10,9 +10,8 @@ C=======================================================================
      &   KIDELB, KNELB, KNLNK, KNATR, KLINK, KATRIB,
      &   KIDNS, KNNNS, KIXNNS, KLTNNS, KFACNS,
      &   KIDSS, KNESS, KNDSS, KIXESS, KIXDSS, KLTESS, kltsss,
-     &   kltsnc, KFACSS, KNMLB)
+     &   kltsnc, KFACSS, KNMLB, KNMBK, KNMNS, KNMSS)
 C=======================================================================
-C $Id: inigen.f,v 1.3 2001/06/26 17:38:54 gdsjaar Exp $
 
 C   --*** INIGEN *** (GJOIN) Initialize the memory for GENESIS database
 C   --   Written by Amy Gilkey - revised 10/14/87
@@ -50,8 +49,15 @@ C   --   kltsss - OUT - index of LTSESS; the sides for all sets
 C   --   kltsnc - OUT - index of LTSSNC; the index of the first dist factor for each face.
 C   --   KFACSS - OUT - index of FACESS; the distribution factors for all sets
 
+      include 'exodusII.inc'
+      include 'gj_namlen.blk'
+
       DIMENSION A(*)
       LOGICAL FIRST
+
+      if (FIRST) THEN
+         namlen = MXNAME
+      end if
 
       IF (FIRST) THEN
          CALL MDRSRV ('XN', KXN, 0)
@@ -105,7 +111,6 @@ C   --   KFACSS - OUT - index of FACESS; the distribution factors for all sets
          call mdlong ('CFACNP', kcfacn, 0) ! Exo II df list array
       END IF
 
-
       IF (FIRST) THEN
          CALL MDRSRV ('IDESS', KIDSS, 0)
          CALL MDRSRV ('NEESS', KNESS, 0)
@@ -130,8 +135,14 @@ C   --   KFACSS - OUT - index of FACESS; the distribution factors for all sets
 
       IF (FIRST) THEN
          CALL MCRSRV ('NAMELB', KNMLB, 0)
+         CALL MCRSRV ('NAMBK', KNMBK, 0)
+         CALL MCRSRV ('NAMNS', KNMNS, 0)
+         CALL MCRSRV ('NAMSS', KNMSS, 0)
       ELSE
-         CALL MDLONG ('NAMELB', KNMLB, 0)
+         CALL MCLONG ('NAMELB', KNMLB, 0)
+         CALL MCLONG ('NAMBK', KNMBK, 0)
+         CALL MCLONG ('NAMNS', KNMNS, 0)
+         CALL MCLONG ('NAMSS', KNMSS, 0)
       END IF
 
       RETURN

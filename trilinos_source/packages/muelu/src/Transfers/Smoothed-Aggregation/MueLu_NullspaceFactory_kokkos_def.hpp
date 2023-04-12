@@ -46,8 +46,6 @@
 #ifndef MUELU_NULLSPACEFACTORY_KOKKOS_DEF_HPP
 #define MUELU_NULLSPACEFACTORY_KOKKOS_DEF_HPP
 
-#ifdef HAVE_MUELU_KOKKOS_REFACTOR
-
 #include "MueLu_NullspaceFactory_kokkos_decl.hpp"
 
 #include <Xpetra_Matrix.hpp>
@@ -163,7 +161,7 @@ namespace MueLu {
         GetOStream(Runtime1) << "Generating canonical nullspace: dimension = " << numPDEs << std::endl;
 
         nullspace = MultiVectorFactory::Build(A->getDomainMap(), numPDEs);
-        auto nullspaceView = nullspace->template getLocalView<DeviceType>();
+        auto nullspaceView = nullspace->getDeviceLocalView(Xpetra::Access::OverwriteAll);
 
         int numBlocks = nullspace->getLocalLength() / numPDEs;
 
@@ -185,5 +183,4 @@ namespace MueLu {
 
 } //namespace MueLu
 
-#endif // HAVE_MUELU_KOKKOS_REFACTOR
 #endif // MUELU_NULLSPACEFACTORY_KOKKOS_DEF_HPP

@@ -82,7 +82,8 @@ namespace FROSch {
 
         using EntitySetPtr                  = typename SchwarzOperator<SC,LO,GO,NO>::EntitySetPtr;
 
-        using SubdomainSolverPtr            = typename SchwarzOperator<SC,LO,GO,NO>::SubdomainSolverPtr;
+        using SolverPtr                     = typename SchwarzOperator<SC,LO,GO,NO>::SolverPtr;
+        using SolverFactoryPtr              = typename SchwarzOperator<SC,LO,GO,NO>::SolverFactoryPtr;
 
         using UN                            = typename SchwarzOperator<SC,LO,GO,NO>::UN;
         using UNVecPtr                      = typename SchwarzOperator<SC,LO,GO,NO>::UNVecPtr;
@@ -109,7 +110,6 @@ namespace FROSch {
         virtual int initialize()
         {
             FROSCH_ASSERT(false,"GDSWCoarseOperator cannot be built without a repeated Map");
-            return 0;
         };
 
         int initialize(UN dimension,
@@ -154,6 +154,12 @@ namespace FROSch {
                       const EVerbosityLevel verbLevel=Describable::verbLevel_default) const;
 
         string description() const;
+
+        // AH: Could this be moved to protected?
+        virtual XMapPtr BuildRepeatedMapCoarseLevel(ConstXMapPtr &nodesMap,
+                                                    UN dofsPerNode,
+                                                    ConstXMapPtrVecPtr dofsMaps,
+                                                    UN partitionType );
 
     protected:
 

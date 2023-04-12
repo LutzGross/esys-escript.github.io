@@ -91,9 +91,16 @@ namespace panzer_stk {
     std::vector<stk::mesh::Entity> sides;
     stk::mesh::get_selected_entities(mySelector,bulkData->buckets(metaData->side_rank()),sides);
 
+    std::vector<std::size_t> missingElementIndices;
     std::vector<std::size_t> localSideTopoIDs;
     std::vector<stk::mesh::Entity> parentElements;
-    panzer_stk::workset_utils::getUniversalSubcellElements(*mesh,elementBlockName,sides,localSideTopoIDs,parentElements);
+    panzer_stk::workset_utils::getUniversalSubcellElements(*mesh,elementBlockName,sides,localSideTopoIDs,parentElements,missingElementIndices);
+
+    // Delete all sides whose neighboring element in elementBlockName is not in the current process
+    std::vector<std::size_t>::reverse_iterator index;
+    for(index=missingElementIndices.rbegin(); index != missingElementIndices.rend(); ++index) {
+      sides.erase(sides.begin()+*index);
+    }
 
     if (pout != NULL) {
       for (std::size_t i=0; i < localSideTopoIDs.size(); ++i) {
@@ -123,8 +130,7 @@ namespace panzer_stk {
 
     // KK: invoke serial interface; cubDegree is 1 and integration point is one 
     //     for debugging statement, use max dimension
-    // this lookup table setup is necessary before any impl::celltools is called
-    Intrepid2::Impl::CellTools::setSubcellParametrization();
+    auto side_parametrization = Intrepid2::RefSubcellParametrization<Kokkos::HostSpace>::get(2,parentTopology->getKey());
     Kokkos::DynRankView<double,Kokkos::HostSpace> normal_at_point("normal",3); // parentTopology->getDimension());
     for ( ; sideID != localSideTopoIDs.end(); ++side,++sideID,++parentElement) {
     
@@ -132,7 +138,8 @@ namespace panzer_stk {
       elementEntities.push_back(*parentElement); // notice this is size 1!
       PHX::MDField<double,panzer::Cell,panzer::NODE,panzer::Dim> vertices 
           = af.buildStaticArray<double,Cell,NODE,Dim>("",elementEntities.size(), parentTopology->getVertexCount(), mesh->getDimension());
-      mesh->getElementVerticesNoResize(elementEntities,elementBlockName,vertices);
+      auto vert_view = vertices.get_view();
+      mesh->getElementVerticesNoResize(elementEntities,elementBlockName,vert_view);
       
       panzer::CellData sideCellData(1,*sideID,parentTopology); // this is size 1 because elementEntties is size 1!
       RCP<panzer::IntegrationRule> ir = Teuchos::rcp(new panzer::IntegrationRule(cubDegree,sideCellData));
@@ -144,11 +151,11 @@ namespace panzer_stk {
       // KK: use serial interface; jac_at_point (D,D) from (C,P,D,D)
       {
         auto jac_at_point = Kokkos::subview(iv.jac.get_view(), 0, 0, Kokkos::ALL(), Kokkos::ALL());
+	auto jac_at_point_h = Kokkos::create_mirror_view(jac_at_point);
+	Kokkos::deep_copy(jac_at_point_h, jac_at_point);
         Intrepid2::Impl::
-          CellTools::Serial::getPhysicalSideNormal(normal_at_point, jac_at_point, *sideID, *(ir->topology));
+          CellTools::Serial::getPhysicalSideNormal(normal_at_point, side_parametrization, jac_at_point_h, *sideID);
       }
-      // Kokkos::DynRankView<double,PHX::Device> normal("normal",1,ir->num_points,parentTopology->getDimension());
-      // Intrepid2::CellTools<PHX::exec_space>::getPhysicalSideNormals(normal, iv.jac.get_view(), *sideID, *(ir->topology));
 
       if (pout != NULL) {
       *pout << "element normals: "
@@ -258,9 +265,16 @@ namespace panzer_stk {
 
     RCP<const shards::CellTopology> parentTopology = mesh->getCellTopology(elementBlockName);
 
+    std::vector<std::size_t> missingElementIndices;
     std::vector<std::size_t> localSideTopoIDs;
     std::vector<stk::mesh::Entity> parentElements;
-    panzer_stk::workset_utils::getUniversalSubcellElements(*mesh,elementBlockName,sides,localSideTopoIDs,parentElements);
+    panzer_stk::workset_utils::getUniversalSubcellElements(*mesh,elementBlockName,sides,localSideTopoIDs,parentElements,missingElementIndices);
+
+    // Delete all sides whose neighboring element in elementBlockName is not in the current process
+    std::vector<std::size_t>::reverse_iterator index;
+    for(index=missingElementIndices.rbegin(); index != missingElementIndices.rend(); ++index) {
+      sides.erase(sides.begin()+*index);
+    }
     
     std::vector<stk::mesh::Entity>::const_iterator side = sides.begin();
     std::vector<std::size_t>::const_iterator sideID = localSideTopoIDs.begin();
@@ -272,23 +286,23 @@ namespace panzer_stk {
       stk::mesh::Entity const* nodeRelations = bulkData->begin_nodes(*parentElement);
 
       normals[mesh->elementLocalId(*parentElement)] = Kokkos::DynRankView<double,PHX::Device>("normals",numNodes,parentTopology->getDimension());
-
+      auto normals_h = Kokkos::create_mirror_view(normals[mesh->elementLocalId(*parentElement)]);
       for (size_t nodeIndex=0; nodeIndex<numNodes; ++nodeIndex) {
         stk::mesh::Entity node = nodeRelations[nodeIndex];
 	// if the node is on the sideset, insert, otherwise set normal
 	// to zero (it is an interior node of the parent element).
 	if (nodeEntityIdToNormals.find(bulkData->identifier(node)) != nodeEntityIdToNormals.end()) { 
 	  for (unsigned dim = 0; dim < parentTopology->getDimension(); ++dim) {
-	    (normals[mesh->elementLocalId(*parentElement)])(nodeIndex,dim) = (nodeEntityIdToNormals[bulkData->identifier(node)])[dim];
+	    normals_h(nodeIndex,dim) = (nodeEntityIdToNormals[bulkData->identifier(node)])[dim];
 	  }
 	}
 	else {
 	  for (unsigned dim = 0; dim < parentTopology->getDimension(); ++dim) {
-	    (normals[mesh->elementLocalId(*parentElement)])(nodeIndex,dim) = 0.0;
+	    normals_h(nodeIndex,dim) = 0.0;
 	  }
 	}
       }
- 
+      Kokkos::deep_copy(normals[mesh->elementLocalId(*parentElement)], normals_h);
     }
 
   }

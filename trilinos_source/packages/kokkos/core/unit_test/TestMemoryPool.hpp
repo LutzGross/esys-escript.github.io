@@ -1,63 +1,30 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_UNITTEST_MEMPOOL_HPP
 #define KOKKOS_UNITTEST_MEMPOOL_HPP
 
-#include <cstdio>
-#include <iostream>
-#include <cmath>
-#include <algorithm>
-
-#include <impl/Kokkos_Timer.hpp>
+#include <Kokkos_Core.hpp>
 
 namespace TestMemoryPool {
 
 template <typename MemSpace = Kokkos::HostSpace>
 void test_host_memory_pool_defaults() {
-  typedef typename MemSpace::execution_space Space;
-  typedef typename Kokkos::MemoryPool<Space> MemPool;
+  using Space   = typename MemSpace::execution_space;
+  using MemPool = typename Kokkos::MemoryPool<Space>;
 
   {
     const size_t MemoryCapacity = 32000;
@@ -132,8 +99,8 @@ void test_host_memory_pool_defaults() {
 
 template <typename MemSpace = Kokkos::HostSpace>
 void test_host_memory_pool_stats() {
-  typedef typename MemSpace::execution_space Space;
-  typedef typename Kokkos::MemoryPool<Space> MemPool;
+  using Space   = typename MemSpace::execution_space;
+  using MemPool = typename Kokkos::MemoryPool<Space>;
 
   const size_t MemoryCapacity = 32000;
   const size_t MinBlockSize   = 64;
@@ -178,8 +145,8 @@ void test_host_memory_pool_stats() {
 
 template <class DeviceType>
 struct TestMemoryPool_Functor {
-  typedef Kokkos::View<uintptr_t*, DeviceType> ptrs_type;
-  typedef Kokkos::MemoryPool<DeviceType> pool_type;
+  using ptrs_type = Kokkos::View<uintptr_t*, DeviceType>;
+  using pool_type = Kokkos::MemoryPool<DeviceType>;
 
   pool_type pool;
   ptrs_type ptrs;
@@ -268,15 +235,15 @@ void print_memory_pool_stats(typename PoolType::usage_statistics const& stats) {
 template <class DeviceType>
 void test_memory_pool_v2(const bool print_statistics,
                          const bool print_superblocks) {
-  typedef typename DeviceType::memory_space memory_space;
-  typedef typename DeviceType::execution_space execution_space;
-  typedef Kokkos::MemoryPool<DeviceType> pool_type;
-  typedef TestMemoryPool_Functor<DeviceType> functor_type;
+  using memory_space    = typename DeviceType::memory_space;
+  using execution_space = typename DeviceType::execution_space;
+  using pool_type       = Kokkos::MemoryPool<DeviceType>;
+  using functor_type    = TestMemoryPool_Functor<DeviceType>;
 
-  typedef typename functor_type::TagAlloc TagAlloc;
-  typedef typename functor_type::TagDealloc TagDealloc;
-  typedef typename functor_type::TagRealloc TagRealloc;
-  typedef typename functor_type::TagMixItUp TagMixItUp;
+  using TagAlloc   = typename functor_type::TagAlloc;
+  using TagDealloc = typename functor_type::TagDealloc;
+  using TagRealloc = typename functor_type::TagRealloc;
+  using TagMixItUp = typename functor_type::TagMixItUp;
 
   const size_t total_alloc_size = 10000000;
   const unsigned min_block_size = 64;
@@ -364,8 +331,8 @@ void test_memory_pool_v2(const bool print_statistics,
 
 template <class DeviceType>
 struct TestMemoryPoolCorners {
-  typedef Kokkos::View<uintptr_t*, DeviceType> ptrs_type;
-  typedef Kokkos::MemoryPool<DeviceType> pool_type;
+  using ptrs_type = Kokkos::View<uintptr_t*, DeviceType>;
+  using pool_type = Kokkos::MemoryPool<DeviceType>;
 
   pool_type pool;
   ptrs_type ptrs;
@@ -407,11 +374,11 @@ struct TestMemoryPoolCorners {
 template <class DeviceType>
 void test_memory_pool_corners(const bool print_statistics,
                               const bool print_superblocks) {
-  typedef typename DeviceType::memory_space memory_space;
-  typedef typename DeviceType::execution_space execution_space;
-  typedef Kokkos::MemoryPool<DeviceType> pool_type;
-  typedef TestMemoryPoolCorners<DeviceType> functor_type;
-  typedef typename functor_type::ptrs_type ptrs_type;
+  using memory_space    = typename DeviceType::memory_space;
+  using execution_space = typename DeviceType::execution_space;
+  using pool_type       = Kokkos::MemoryPool<DeviceType>;
+  using functor_type    = TestMemoryPoolCorners<DeviceType>;
+  using ptrs_type       = typename functor_type::ptrs_type;
 
   {
     // superblock size 1 << 14
@@ -489,11 +456,11 @@ struct TestMemoryPoolHuge {
 template <class DeviceType>
 struct TestMemoryPoolHuge<
     DeviceType,
-    typename std::enable_if<std::is_same<
-        Kokkos::HostSpace, typename DeviceType::memory_space>::value>::type> {
-  typedef Kokkos::View<uintptr_t*, DeviceType> ptrs_type;
-  typedef Kokkos::MemoryPool<DeviceType> pool_type;
-  typedef typename DeviceType::memory_space memory_space;
+    std::enable_if_t<std::is_same<Kokkos::HostSpace,
+                                  typename DeviceType::memory_space>::value>> {
+  using ptrs_type    = Kokkos::View<uintptr_t*, DeviceType>;
+  using pool_type    = Kokkos::MemoryPool<DeviceType>;
+  using memory_space = typename DeviceType::memory_space;
 
   pool_type pool;
   ptrs_type ptrs;
@@ -541,9 +508,9 @@ struct TestMemoryPoolHuge<
 
 template <class DeviceType>
 void test_memory_pool_huge() {
-  typedef typename DeviceType::execution_space execution_space;
-  typedef TestMemoryPoolHuge<DeviceType> functor_type;
-  typedef Kokkos::RangePolicy<execution_space> policy_type;
+  using execution_space = typename DeviceType::execution_space;
+  using functor_type    = TestMemoryPoolHuge<DeviceType>;
+  using policy_type     = Kokkos::RangePolicy<execution_space>;
 
   functor_type f;
   policy_type policy(0, functor_type::num_superblock);

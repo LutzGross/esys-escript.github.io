@@ -114,6 +114,9 @@ namespace MueLu {
     validParamList->set< RCP<const FactoryBase> >("A",         null, "Factory of the coarse matrix");
     validParamList->set< RCP<const FactoryBase> >("Nullspace", null, "Factory of the nullspace");
     validParamList->set<bool>("fix nullspace", false, "Remove zero eigenvalue by adding rank one correction.");
+    ParameterList norecurse;
+    norecurse.disableRecursiveValidation();
+    validParamList->set<ParameterList> ("Amesos2", norecurse, "Parameters that are passed to Amesos2");
     return validParamList;
   }
 
@@ -170,12 +173,6 @@ namespace MueLu {
       }
 
       ArrayRCP<const SC> nullspaceRCP, nullspaceImpRCP;
-      ArrayView<const SC> nullspace, nullspaceImp;
-      nullspaceRCP = Nullspace->getData(0);
-      nullspace = nullspaceRCP();
-      nullspaceImpRCP = NullspaceImp->getData(0);
-      nullspaceImp = nullspaceImpRCP();
-
       RCP<CrsMatrixWrap> Acrs = rcp_dynamic_cast<CrsMatrixWrap>(A);
 
       TEUCHOS_TEST_FOR_EXCEPTION(Acrs.is_null(), Exceptions::RuntimeError,
@@ -190,7 +187,7 @@ namespace MueLu {
       ArrayRCP<LO>     newColIndices_RCP;
       ArrayRCP<SC>     newValues_RCP;
 
-      size_t N = rowMap->getNodeNumElements();
+      size_t N = rowMap->getLocalNumElements();
       newRowPointers_RCP.resize(N+1);
       newColIndices_RCP.resize(N*M);
       newValues_RCP.resize(N*M);
@@ -201,6 +198,12 @@ namespace MueLu {
 
       SC normalization = Nullspace->getVector(0)->norm2();
       normalization = Teuchos::ScalarTraits<Scalar>::one()/(normalization*normalization);
+
+      ArrayView<const SC> nullspace, nullspaceImp;
+      nullspaceRCP = Nullspace->getData(0);
+      nullspace = nullspaceRCP();
+      nullspaceImpRCP = NullspaceImp->getData(0);
+      nullspaceImp = nullspaceImpRCP();
 
       // form nullspace * nullspace^T
       for (size_t i = 0; i < N; i++) {
@@ -238,11 +241,13 @@ namespace MueLu {
 
     prec_ = Amesos2::create<Tpetra_CrsMatrix,Tpetra_MultiVector>(type_, tA);
     TEUCHOS_TEST_FOR_EXCEPTION(prec_ == Teuchos::null, Exceptions::RuntimeError, "Amesos2::create returns Teuchos::null");
+    RCP<Teuchos::ParameterList> amesos2_params = Teuchos::rcpFromRef(pL.sublist("Amesos2"));
+    amesos2_params->setName("Amesos2");
     if (rowMap->getGlobalNumElements() != as<size_t>((rowMap->getMaxAllGlobalIndex() - rowMap->getMinAllGlobalIndex())+1)) {
-      auto amesos2_params = Teuchos::rcp(new Teuchos::ParameterList("Amesos2"));
-      amesos2_params->sublist(prec_->name()).set("IsContiguous", false, "Are GIDs Contiguous");
-      prec_->setParameters(amesos2_params);
+      if (!(amesos2_params->sublist(prec_->name()).template isType<bool>("IsContiguous")))
+        amesos2_params->sublist(prec_->name()).set("IsContiguous", false, "Are GIDs Contiguous");
     }
+    prec_->setParameters(amesos2_params);
 
     SmootherPrototype::IsSetup(true);
   }

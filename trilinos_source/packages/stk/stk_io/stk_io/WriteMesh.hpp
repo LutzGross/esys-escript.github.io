@@ -34,19 +34,27 @@
 #ifndef PACKAGES_STK_STK_IO_STK_IO_WRITEMESH_HPP_
 #define PACKAGES_STK_STK_IO_STK_IO_WRITEMESH_HPP_
 
-#include <string>
-#include <stk_io/DatabasePurpose.hpp> // for stk::io::DatabasePurpose
-namespace stk { namespace mesh { class BulkData; }}
-namespace stk { namespace mesh { class Selector; }}
+// #######################  Start Clang Header Tool Managed Headers ########################
+// clang-format off
+#include <stk_io/DatabasePurpose.hpp>  // for WRITE_RESULTS, DatabasePurpose
+#include <string>                      // for string
+namespace stk { namespace io { class StkMeshIoBroker; } }
+namespace stk { namespace mesh { class BulkData; } }
+namespace stk { namespace mesh { class Selector; } }
+// clang-format on
+// #######################   End Clang Header Tool Managed Headers  ########################
 
 namespace stk
 {
 namespace io
 {
-class StkMeshIoBroker;
 
 void write_mesh(const std::string &filename,
                 stk::mesh::BulkData &bulkData,
+                stk::io::DatabasePurpose databasePurpose = stk::io::WRITE_RESULTS);
+
+void write_mesh(const std::string &filename,
+                stk::io::StkMeshIoBroker& ioBroker,
                 stk::io::DatabasePurpose databasePurpose = stk::io::WRITE_RESULTS);
 
 void write_mesh_with_canonical_name(const std::string &filename,

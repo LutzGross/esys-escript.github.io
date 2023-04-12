@@ -132,7 +132,6 @@
 #include "Sacado_No_Kokkos.hpp"
 #endif
 
-//#if defined(HAVE_TRINOSCOUPLINGS_BELOS) && defined(HAVE_TRILINOSCOUPLINGS_MUELU)
 #include <BelosConfigDefs.hpp>
 #include <BelosLinearProblem.hpp>
 #include <BelosPseudoBlockCGSolMgr.hpp>
@@ -141,7 +140,6 @@
 
 #include <BelosXpetraAdapter.hpp>     // => This header defines Belos::XpetraOp
 #include <BelosMueLuAdapter.hpp>      // => This header defines Belos::MueLuOp
-//#endif
 
 using namespace std;
 using namespace Intrepid;
@@ -1632,7 +1630,7 @@ int TestMultiLevelPreconditionerLaplace(char ProblemType[],
       amgList.remove("user coarse matrix");
       userCoarseA = true;
     }
-    MueLu::ParameterListInterpreter<scalar_type> mueLuFactory(amgList);
+    MueLu::ParameterListInterpreter<scalar_type,local_ordinal_type,global_ordinal_type> mueLuFactory(amgList);
     RCP<MueLu::Hierarchy<scalar_type,local_ordinal_type,global_ordinal_type> > H = mueLuFactory.CreateHierarchy();
     H->setVerbLevel(Teuchos::VERB_HIGH);
     H->GetLevel(0)->Set("A", mueluA);
@@ -1719,7 +1717,7 @@ int TestMultiLevelPreconditionerLaplace(char ProblemType[],
   // ======================================================= //
   double d = 0.0, d_tot = 0.0 , s =0.0, s_tot=0.0;
   //for( int i=0 ; i<lhs->Map().NumMyElements() ; ++i ) {
-  for( size_t i=0 ; i<lhs->getMap()->getNodeNumElements() ; ++i ) {
+  for( size_t i=0 ; i<lhs->getMap()->getLocalNumElements() ; ++i ) {
     d += (lhsdata[i] - xexactdata[i]) * (lhsdata[i] - xexactdata[i]);
     s +=  xexactdata[i]* xexactdata[i];
   }
@@ -2297,15 +2295,14 @@ void Apply_Dirichlet_BCs(std::vector<int> &BCNodes, crs_matrix_type & A, multive
 
     xdata[lrid]=bdata[lrid] = solndata[lrid];
 
-    size_t numEntriesInRow = A.getNumEntriesInLocalRow(lrid);
-    Array<local_ordinal_type> cols(numEntriesInRow);
-    Array<scalar_type> vals(numEntriesInRow);
-    A.getLocalRowCopy(lrid, cols(), vals(), numEntriesInRow);
+    size_t numEntriesInRow = A.getNumEntriesInLocalRow(lrid);    typename crs_matrix_type::nonconst_local_inds_host_view_type cols("cols", numEntriesInRow);
+    typename crs_matrix_type::nonconst_values_host_view_type vals("vals", numEntriesInRow);
+    A.getLocalRowCopy(lrid, cols, vals, numEntriesInRow);
 
-    for(int j=0; j<vals.size(); j++)
-      vals[j] = (cols[j] == lrid) ? 1.0 : 0.0;
+    for(size_t j=0; j<vals.extent(0); j++)
+      vals(j) = (cols(j) == lrid) ? 1.0 : 0.0;
 
-    A.replaceLocalValues(lrid, cols(), vals());
+    A.replaceLocalValues(lrid, cols, vals);
   }
 
   A.fillComplete();

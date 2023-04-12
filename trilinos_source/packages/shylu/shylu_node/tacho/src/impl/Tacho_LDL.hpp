@@ -1,3 +1,21 @@
+// clang-format off
+/* =====================================================================================
+Copyright 2022 National Technology & Engineering Solutions of Sandia, LLC (NTESS).
+Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains
+certain rights in this software.
+
+SCR#:2790.0
+
+This file is part of Tacho. Tacho is open source software: you can redistribute it
+and/or modify it under the terms of BSD 2-Clause License
+(https://opensource.org/licenses/BSD-2-Clause). A copy of the licese is also
+provided under the main directory
+
+Questions? Kyungjoo Kim at <kyukim@sandia.gov,https://github.com/kyungjoo-kim>
+
+Sandia National Laboratories, Albuquerque, NM, USA
+===================================================================================== */
+// clang-format on
 #ifndef __TACHO_LDL_HPP__
 #define __TACHO_LDL_HPP__
 
@@ -8,61 +26,19 @@
 #include "Tacho_Util.hpp"
 
 namespace Tacho {
-  
-    ///
-    /// LDL:
-    /// 
-    /// 
 
-    /// various implementation for different uplo and algo parameters
-    template<typename ArgUplo, 
-             typename ArgAlgo>
-    struct LDL;
-    
-    /// task construction for the above chol implementation
-    // LDL<ArgUplo,ArgAlgo>::invoke(_sched, member, _A);
-    template<typename SchedulerType,
-             typename DenseMatrixViewType,
-             typename ArgUplo,
-             typename ArgAlgo>
-    struct TaskFunctor_LDL {
-    public:
-      typedef SchedulerType scheduler_type;
-      typedef typename scheduler_type::member_type member_type;
+///
+/// LDL:
+///
+///
 
-      typedef DenseMatrixViewType dense_block_type;
-      typedef typename dense_block_type::future_type future_type;
-      typedef typename future_type::value_type value_type;
-      
-    private:
-      scheduler_type _sched;
-      dense_block_type _A;
-      dense_block_type _ipiv;
-      
-    public:
-      KOKKOS_INLINE_FUNCTION
-      TaskFunctor_LDL() = delete;
-      
-      KOKKOS_INLINE_FUNCTION
-      TaskFunctor_LDL(const scheduler_type &sched,
-                      const dense_block_type &A,
-                      const dense_block_type &ipiv)
-        : _sched(sched), 
-          _A(A),
-          _ipiv(ipiv) {}
-      
-      KOKKOS_INLINE_FUNCTION
-      void operator()(member_type &member, value_type &r_val) {
-        const int ierr = LDL<ArgUplo,ArgAlgo>
-          ::invoke(_sched, member, _A, _ipiv);
+/// various implementation for different uplo and algo parameters
+template <typename ArgUplo, typename ArgAlgo> struct LDL;
 
-        Kokkos::single(Kokkos::PerTeam(member), [&] () {
-            _A.set_future();
-            r_val = ierr;
-          });
-      }
-    };
+struct LDL_Algorithm {
+  using type = ActiveAlgorithm::type;
+};
 
-}
+} // namespace Tacho
 
 #endif

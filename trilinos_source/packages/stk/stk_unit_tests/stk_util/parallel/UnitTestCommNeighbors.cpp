@@ -32,13 +32,13 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 
-#include <gtest/gtest.h>
-#include <vector>                       // for vector
-#include <stk_util/stk_config.h>
-#include <limits>
-#include <stk_util/parallel/Parallel.hpp>  // for parallel_machine_size, etc
-#include <stk_util/parallel/CommNeighbors.hpp>
-#include <stk_util/parallel/MPI.hpp>
+#include "gtest/gtest.h"
+#include "stk_util/parallel/CommBufferV.hpp"    // for CommBufferV
+#include "stk_util/parallel/CommNeighbors.hpp"  // for CommNeighbors, STK_MPI_SUPPORTS_NEIGHBOR_...
+#include "stk_util/parallel/Parallel.hpp"       // for parallel_machine_rank, parallel_machine_size
+#include "stk_util/stk_config.h"                // for STK_HAS_MPI
+#include <cstddef>                              // for size_t
+#include <vector>                               // for vector
 
 #if defined ( STK_HAS_MPI )
 
@@ -209,6 +209,9 @@ TEST(Parallel, CommNeighbors)
   stk::parallel_machine_barrier(comm);
  
   stk::CommNeighbors commNeighbors(comm, neighborProcs);
+
+  EXPECT_EQ(numProcs, commNeighbors.parallel_size());
+  EXPECT_EQ(myProc, commNeighbors.parallel_rank());
 
   for(int proc : neighborProcs) {
       stk::CommBufferV& proc_buff = commNeighbors.send_buffer(proc);

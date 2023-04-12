@@ -38,8 +38,9 @@
 #include <iomanip>
 #include <iostream>
 #include <stddef.h>
-#include <stk_util/environment/CPUTime.hpp>
+#include <stk_util/environment/WallTime.hpp>
 #include <stk_util/parallel/Parallel.hpp>
+#include <stk_util/parallel/ParallelReduceBool.hpp>
 
 namespace unitTestUtils
 {
@@ -92,9 +93,9 @@ void update_run_info(double timeForOneRun, double duration, RunInfo &runInfo)
 template <typename ALGORITHM>
 double get_time_to_run_algorithm(const ALGORITHM &alg)
 {
-    double startTime = stk::cpu_time();
+    double startTime = stk::wall_time();
     alg();
-    return stk::cpu_time() - startTime;
+    return stk::wall_time() - startTime;
 }
 
 bool has_mean_converged_within_tolerance(const RunInfo &runInfo, const double lastMean, const size_t minRuns, const double tolerance)
@@ -110,10 +111,7 @@ bool has_mean_converged_within_tolerance(const RunInfo &runInfo, const double la
 
 bool has_converged_on_all_procs(bool done, stk::ParallelMachine comm)
 {
-    int sendDone = convert_bool_to_int(done);
-    int recvDone = 0;
-    MPI_Allreduce(&sendDone, &recvDone, 1, MPI_INTEGER, MPI_MIN, comm);
-    return recvDone == 1;
+    return stk::is_true_on_all_procs(comm, done);
 }
 
 template <typename ALGORITHM>
@@ -130,7 +128,7 @@ RunInfo time_algorithm(const double tolerance, const size_t minRuns, stk::Parall
     {
         double timeForOneRun = get_time_to_run_algorithm(alg);
 
-        duration += timeForOneRun;
+        duration += std::abs(timeForOneRun);
         update_run_info(timeForOneRun, duration, runInfo);
 
         bool isConvergedOnThisProc = has_mean_converged_within_tolerance(runInfo, lastMean, minRuns, tolerance);
@@ -148,9 +146,6 @@ void print_run_info(std::ostream &os, const std::string &tag, const int numProcs
             << " over " << numProcs << " procs"
             << " mean was "<< std::setw(15) << runInfo.mean
             << " with (min " << runInfo.min << ", max " << runInfo.max << ")" << std::endl;
-//    os      << tag << ", "
-//            << numProcs << ", "
-//            << std::setw(15) << runInfo.mean << std::endl;
 }
 
 }

@@ -114,14 +114,16 @@ TEUCHOS_UNIT_TEST_TEMPLATE_3_DECL(Ifpack2Chebyshev, Test0, Scalar, LocalOrdinal,
 
   prec.applyMat(x, y);
 
-  Teuchos::ArrayRCP<const Scalar> yview = y.get1dView();
+  {
+    Teuchos::ArrayRCP<const Scalar> yview = y.get1dView();
 
-  //Since crsmatrix is a diagonal matrix with 2 on the diagonal,
-  //y should be full of 2's now.
+    //Since crsmatrix is a diagonal matrix with 2 on the diagonal,
+    //y should be full of 2's now.
 
-  Teuchos::ArrayRCP<Scalar> twos(num_rows_per_proc*2, 2);
+    Teuchos::ArrayRCP<Scalar> twos(num_rows_per_proc*2, 2);
 
-  TEST_COMPARE_FLOATING_ARRAYS(yview, twos(), Teuchos::ScalarTraits<Scalar>::eps());
+    TEST_COMPARE_FLOATING_ARRAYS(yview, twos(), Teuchos::ScalarTraits<Scalar>::eps());
+  }
 
   prec.apply(x, y);
 
@@ -131,7 +133,11 @@ TEUCHOS_UNIT_TEST_TEMPLATE_3_DECL(Ifpack2Chebyshev, Test0, Scalar, LocalOrdinal,
 
   typename Teuchos::ScalarTraits<Scalar>::magnitudeType trial_tol = 1.e-13;
   typename Teuchos::ScalarTraits<Scalar>::magnitudeType tol = std::max(trial_tol, Teuchos::ScalarTraits<Scalar>::eps());
-  TEST_COMPARE_FLOATING_ARRAYS(yview, halfs(), tol);
+
+  {
+    Teuchos::ArrayRCP<const Scalar> yview = y.get1dView();
+    TEST_COMPARE_FLOATING_ARRAYS(yview, halfs(), tol);
+  }
 
   //If I now increase the degree of the polynomial to 4 the solve won't be
   //exact, but it should still be within a tol of 1.e-4 for this trivial data.
@@ -140,7 +146,35 @@ TEUCHOS_UNIT_TEST_TEMPLATE_3_DECL(Ifpack2Chebyshev, Test0, Scalar, LocalOrdinal,
   prec.apply(x, y);
 
   tol = 1.e-4;
-  TEST_COMPARE_FLOATING_ARRAYS(yview, halfs(), tol);
+
+  {
+    Teuchos::ArrayRCP<const Scalar> yview = y.get1dView();
+    TEST_COMPARE_FLOATING_ARRAYS(yview, halfs(), tol);
+  }
+
+  crsmatrix = tif_utest::create_test_matrix<Scalar,LocalOrdinal,GlobalOrdinal,Node>(rowmap, -one);
+  Scalar n = Teuchos::as<Scalar>(rowmap->getGlobalNumElements());
+  Scalar expectedLambdaMax = one-std::cos(Teuchos::ScalarTraits<Scalar>::pi()*n/(n+1));
+
+  prec.setMatrix(crsmatrix);
+
+  params.set("debug", true);
+  params.remove("chebyshev: max eigenvalue");
+  params.remove("chebyshev: min eigenvalue");
+
+  params.set("eigen-analysis: type", "power method");
+  params.set("chebyshev: eigenvalue max iterations",30);
+  prec.setParameters(params);
+  prec.compute();
+
+  TEST_FLOATING_EQUALITY(prec.getLambdaMaxForApply(),expectedLambdaMax,4.5e-2);
+
+  params.set("eigen-analysis: type", "cg");
+  params.set("chebyshev: eigenvalue max iterations",10);
+  prec.setParameters(params);
+  prec.compute();
+
+  TEST_FLOATING_EQUALITY(prec.getLambdaMaxForApply(),expectedLambdaMax,4.5e-2);
 }
 
 #define UNIT_TEST_GROUP_SC_LO_GO(Scalar,LocalOrdinal,GlobalOrdinal) \

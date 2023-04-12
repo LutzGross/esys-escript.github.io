@@ -32,11 +32,13 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 
-#include <stk_util/parallel/Parallel.hpp>  // for parallel_machine_size, etc
-#include <stk_util/parallel/MPI.hpp>
-#include <gtest/gtest.h>
-#include <stk_util/stk_config.h>
-#include <stk_util/parallel/ParallelReduce.hpp>
+#include "gtest/gtest.h"
+#include "stk_util/parallel/Parallel.hpp"        // for parallel_machine_rank, parallel_machine_...
+#include "stk_util/parallel/ParallelReduce.hpp"  // for all_reduce_max, all_reduce_maxloc, all_r...
+#include "stk_util/stk_config.h"                 // for STK_HAS_MPI
+#include <cstdint>                               // for uint64_t, uint32_t
+#include <limits>                                // for numeric_limits
+#include <vector>                                // for vector
 
 
 #if defined ( STK_HAS_MPI )
@@ -110,7 +112,31 @@ TEST(ParallelComm, AllReduce)
     for(int n = 0; n < nvalues; n++) {
       EXPECT_EQ(n*numProcs + alpha, globalValues[n]);
     }
-
 }
+
+TEST(ParallelComm, GetGlobal)
+{
+    stk::ParallelMachine comm = MPI_COMM_WORLD;
+
+    int myProcId = stk::parallel_machine_rank(comm);
+    int numProcs = stk::parallel_machine_size(comm);
+
+    double localValue = myProcId * numProcs;
+
+    double globalMax = stk::get_global_max(comm, localValue);
+    EXPECT_EQ(globalMax, (numProcs-1)*numProcs);
+
+    double globalMin = stk::get_global_min(comm, localValue);
+    EXPECT_EQ(globalMin, 0);
+
+    int expectedSum = 0;
+    for(int n = 0; n < numProcs; ++n) {
+      expectedSum += n*numProcs;
+    }
+
+    double globalSum = stk::get_global_sum(comm, localValue);
+    EXPECT_EQ(globalSum, expectedSum);
+}
+
 #endif
 

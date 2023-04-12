@@ -1,7 +1,7 @@
-// Copyright(C) 1999-2020 National Technology & Engineering Solutions
+// Copyright(C) 1999-2021 National Technology & Engineering Solutions
 // of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 // NTESS, the U.S. Government retains certain rights in this software.
-// 
+//
 // See packages/seacas/LICENSE for details
 
 //------------------------------------------------------------------------
@@ -25,7 +25,6 @@ namespace Ioss {
   };
 } // namespace Ioss
 // ========================================================================
-Ioss::Quad6 Ioss::Quad6::instance_;
 
 namespace {
   struct Constants
@@ -55,8 +54,6 @@ Ioss::Quad6::Quad6() : Ioss::ElementTopology(Ioss::Quad6::name, "Quadrilateral_6
   Ioss::ElementTopology::alias(Ioss::Quad6::name, "Face_Quad_6_3D");
   Ioss::ElementTopology::alias(Ioss::Quad6::name, "quadface6");
 }
-
-Ioss::Quad6::~Quad6() = default;
 
 int Ioss::Quad6::parametric_dimension() const { return 2; }
 int Ioss::Quad6::spatial_dimension() const { return 2; }

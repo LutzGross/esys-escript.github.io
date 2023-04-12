@@ -71,7 +71,7 @@ namespace Intrepid2 {
       *outStream << "-------------------------------------------------------------------------------" << "\n\n"; \
     }
     
-    template<typename ValueType, typename DeviceSpaceType>
+    template<typename ValueType, typename DeviceType>
     int HGRAD_WEDGE_C2_FEM_Test01(const bool verbose) {
       
       Teuchos::RCP<std::ostream> outStream;
@@ -85,11 +85,12 @@ namespace Intrepid2 {
       Teuchos::oblackholestream oldFormatState;
       oldFormatState.copyfmt(std::cout);
 
+      using DeviceSpaceType = typename DeviceType::execution_space;
       typedef typename
-        Kokkos::Impl::is_space<DeviceSpaceType>::host_mirror_space::execution_space HostSpaceType ;
+        Kokkos::DefaultHostExecutionSpace HostSpaceType ;
 
-      *outStream << "DeviceSpace::  "; DeviceSpaceType::print_configuration(*outStream, false);
-      *outStream << "HostSpace::    ";   HostSpaceType::print_configuration(*outStream, false);
+      *outStream << "DeviceSpace::  "; DeviceSpaceType().print_configuration(*outStream, false);
+      *outStream << "HostSpace::    ";   HostSpaceType().print_configuration(*outStream, false);
 
       *outStream                                                       
         << "===============================================================================\n"
@@ -109,7 +110,7 @@ namespace Intrepid2 {
         << "|                                                                             |\n"
         << "===============================================================================\n";
 
-      typedef Kokkos::DynRankView<ValueType,DeviceSpaceType> DynRankView;
+      typedef Kokkos::DynRankView<ValueType,DeviceType> DynRankView;
       typedef Kokkos::DynRankView<ValueType,HostSpaceType>   DynRankViewHost;
 #define ConstructWithLabel(obj, ...) obj(#obj, __VA_ARGS__)
 
@@ -119,7 +120,7 @@ namespace Intrepid2 {
       // for virtual function, value and point types are declared in the class
       typedef ValueType outputValueType;
       typedef ValueType pointValueType;
-      Basis_HGRAD_WEDGE_C2_FEM<DeviceSpaceType,outputValueType,pointValueType> wedgeBasis;
+      Basis_HGRAD_WEDGE_C2_FEM<DeviceType,outputValueType,pointValueType> wedgeBasis;
 
       *outStream
         << "\n"
@@ -315,7 +316,7 @@ namespace Intrepid2 {
       // GRAD and D1 values are stored in (F,P,D) format in a data file. Read file and do the test     
       std::vector<ValueType> basisGrads;           // Flat array for the gradient values.
       { 
-        std::ifstream dataFile("../testdata/WEDGE_C2_GradVals.dat");
+        std::ifstream dataFile("./testdata/WEDGE_C2_GradVals.dat");
         
         INTREPID2_TEST_FOR_EXCEPTION( !dataFile.good(), std::logic_error,
                                       ">>> ERROR (HGRAD_WEDGE_C2/test01): could not open GRAD values data file, test aborted.");
@@ -332,7 +333,7 @@ namespace Intrepid2 {
       //D2: flat array with the values of D2 applied to basis functions. Multi-index is (F,P,D2cardinality)
       std::vector<ValueType> basisD2;
       { 
-        std::ifstream dataFile("../testdata/WEDGE_C2_D2Vals.dat");
+        std::ifstream dataFile("./testdata/WEDGE_C2_D2Vals.dat");
         
         INTREPID2_TEST_FOR_EXCEPTION( !dataFile.good(), std::logic_error,
                                       ">>> ERROR (HGRAD_WEDGE_C2/test01): could not open D2 values data file, test aborted.");
@@ -349,7 +350,7 @@ namespace Intrepid2 {
       //D3: flat array with the values of D3 applied to basis functions. Multi-index is (F,P,D3cardinality)
       std::vector<ValueType> basisD3;
       { 
-        std::ifstream dataFile("../testdata/WEDGE_C2_D3Vals.dat");
+        std::ifstream dataFile("./testdata/WEDGE_C2_D3Vals.dat");
         
         INTREPID2_TEST_FOR_EXCEPTION( !dataFile.good(), std::logic_error,
                                       ">>> ERROR (HGRAD_WEDGE_C2/test01): could not open D3 values data file, test aborted.");
@@ -366,7 +367,7 @@ namespace Intrepid2 {
       //D4: flat array with the values of D3 applied to basis functions. Multi-index is (F,P,D4cardinality)
       std::vector<ValueType> basisD4;
       { 
-        std::ifstream dataFile("../testdata/WEDGE_C2_D4Vals.dat");
+        std::ifstream dataFile("./testdata/WEDGE_C2_D4Vals.dat");
         
         INTREPID2_TEST_FOR_EXCEPTION( !dataFile.good(), std::logic_error,
                                       ">>> ERROR (HGRAD_WEDGE_C2/test01): could not open D4 values data file, test aborted.");
@@ -404,7 +405,7 @@ namespace Intrepid2 {
         wedgeNodesHost(16,0)=  0.5;  wedgeNodesHost(16,1)=  0.5;  wedgeNodesHost(16,2)=  0.0;  
         wedgeNodesHost(17,0)=  0.0;  wedgeNodesHost(17,1)=  0.5;  wedgeNodesHost(17,2)=  0.0;  
         
-        auto wedgeNodes = Kokkos::create_mirror_view(typename DeviceSpaceType::memory_space(), wedgeNodesHost);
+        auto wedgeNodes = Kokkos::create_mirror_view(typename DeviceType::memory_space(), wedgeNodesHost);
         Kokkos::deep_copy(wedgeNodes, wedgeNodesHost);
 
         // Dimensions for the output arrays:

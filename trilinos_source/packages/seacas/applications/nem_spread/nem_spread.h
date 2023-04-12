@@ -1,12 +1,11 @@
 /*
- * Copyright(C) 1999-2020 National Technology & Engineering Solutions
+ * Copyright(C) 1999-2022 National Technology & Engineering Solutions
  * of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
  * NTESS, the U.S. Government retains certain rights in this software.
- * 
+ *
  * See packages/seacas/LICENSE for details
  */
-#ifndef NEM_SPREAD_H
-#define NEM_SPREAD_H
+#pragma once
 
 #include "globals.h"
 #include "nem_spread.h"        // for NemSpread, etc
@@ -15,7 +14,7 @@
 #include "rf_io_const.h"
 
 #define UTIL_NAME "nem_spread"
-#define VER_STR "7.00 (2019/04/23)"
+#define VER_STR   "7.01 (2021/03/19)"
 
 extern void   check_exodus_error(int, const char *);
 extern double second();
@@ -163,5 +162,3 @@ public:
 
   ~NemSpread() { safe_free((void **)&GM_Elem_Types); }
 };
-
-#endif

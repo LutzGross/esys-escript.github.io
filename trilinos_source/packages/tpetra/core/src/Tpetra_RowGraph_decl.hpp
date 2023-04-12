@@ -73,12 +73,35 @@ namespace Tpetra {
     //! \name Typedefs
     //@{
     //! The type of local indices in the graph.
-    typedef LocalOrdinal  local_ordinal_type;
+    typedef LocalOrdinal local_ordinal_type;
     //! The type of global indices in the graph.
     typedef GlobalOrdinal global_ordinal_type;
     //! The Kokkos Node type.
-    typedef Node          node_type;
+    typedef Node node_type;
     //@}
+
+    typedef typename
+        Kokkos::View<LocalOrdinal *, typename Node::device_type>::const_type
+        local_inds_device_view_type;
+    typedef typename local_inds_device_view_type::HostMirror::const_type
+        local_inds_host_view_type;
+    typedef typename local_inds_device_view_type::HostMirror
+        nonconst_local_inds_host_view_type;
+
+
+    typedef typename
+        Kokkos::View<GlobalOrdinal *, typename Node::device_type>::const_type
+        global_inds_device_view_type;
+    typedef typename global_inds_device_view_type::HostMirror::const_type
+        global_inds_host_view_type;
+    typedef typename global_inds_device_view_type::HostMirror
+        nonconst_global_inds_host_view_type;
+
+    typedef typename 
+        Kokkos::View<const size_t*, typename Node::device_type>::const_type
+        row_ptrs_device_view_type;
+    typedef typename row_ptrs_device_view_type::HostMirror::const_type
+        row_ptrs_host_view_type;
 
     //! Destructor (virtual for memory safety of derived classes).
     virtual ~RowGraph() {};
@@ -122,10 +145,10 @@ namespace Tpetra {
     virtual global_size_t getGlobalNumCols() const = 0;
 
     //! Returns the number of rows owned on the calling node.
-    virtual size_t getNodeNumRows() const = 0;
+    virtual size_t getLocalNumRows() const = 0;
 
     //! Returns the number of columns connected to the locally owned rows of this graph.
-    virtual size_t getNodeNumCols() const = 0;
+    virtual size_t getLocalNumCols() const = 0;
 
     //! Returns the index base for global indices for this graph.
     virtual GlobalOrdinal getIndexBase() const = 0;
@@ -134,7 +157,7 @@ namespace Tpetra {
     virtual global_size_t getGlobalNumEntries() const = 0;
 
     //! Returns the local number of entries in the graph.
-    virtual size_t getNodeNumEntries() const = 0;
+    virtual size_t getLocalNumEntries() const = 0;
 
     //! \brief Returns the current number of entries on this node in the specified global row.
     /*! Returns Teuchos::OrdinalTraits<size_t>::invalid() if the specified global row does not belong to this graph. */
@@ -148,7 +171,7 @@ namespace Tpetra {
     virtual size_t getGlobalMaxNumRowEntries() const = 0;
 
     //! \brief Returns the maximum number of entries across all rows/columns on this node.
-    virtual size_t getNodeMaxNumRowEntries() const = 0;
+    virtual size_t getLocalMaxNumRowEntries() const = 0;
 
     //! Whether the graph has a well-defined column Map.
     virtual bool hasColMap() const = 0;
@@ -182,9 +205,10 @@ namespace Tpetra {
     ///
     /// \pre <tt>getRowMap()->isNodeGlobalElement(gblRow)<tt> is <tt>true</tt>.
     /// \pre <tt>gblColInds.size() >= getNumEntriesInGlobalRow(gblRow)</tt> is <tt>true</tt>.
+
     virtual void
-    getGlobalRowCopy (GlobalOrdinal gblRow,
-                      const Teuchos::ArrayView<GlobalOrdinal>& gblColInds,
+    getGlobalRowCopy (const GlobalOrdinal gblRow,
+                      nonconst_global_inds_host_view_type& gblColInds,
                       size_t& numColInds) const = 0;
 
     /// \brief Get a copy of the local column indices in a given row
@@ -204,8 +228,8 @@ namespace Tpetra {
     /// \pre <tt>getRowMap()->isNodeLocalElement(lclRow)<tt> is <tt>true</tt>.
     /// \pre <tt>lclColInds.size() >= getNumEntriesInLocalRow(lclRow)</tt> is <tt>true</tt>.
     virtual void
-    getLocalRowCopy (LocalOrdinal lclRow,
-                     const Teuchos::ArrayView<LocalOrdinal>& lclColInds,
+    getLocalRowCopy (const LocalOrdinal lclRow,
+                     nonconst_local_inds_host_view_type & lclColInds,
                      size_t& numColInds) const = 0;
 
     /// \brief Whether this class implements getLocalRowView() and
@@ -247,7 +271,7 @@ namespace Tpetra {
     /// one major release after introducing this class.
     virtual void
     getLocalRowView (const LocalOrdinal lclRow,
-                     Teuchos::ArrayView<const LocalOrdinal>& lclColInds) const;
+                     local_inds_host_view_type & lclColInds) const = 0;
 
     /// \brief Get a const, non-persisting view of the given global
     ///   row's global column indices, as a Teuchos::ArrayView.
@@ -266,7 +290,7 @@ namespace Tpetra {
     /// one major release after introducing this class.
     virtual void
     getGlobalRowView (const GlobalOrdinal gblRow,
-                      Teuchos::ArrayView<const GlobalOrdinal>& gblColInds) const;
+                      global_inds_host_view_type& gblColInds) const = 0;
 
     //@}
     //! \name Implementation of Packable interface
@@ -277,8 +301,7 @@ namespace Tpetra {
     pack (const Teuchos::ArrayView<const LocalOrdinal>& exportLIDs,
           Teuchos::Array<GlobalOrdinal>& exports,
           const Teuchos::ArrayView<size_t>& numPacketsPerLID,
-          size_t& constantNumPackets,
-          Distributor& distor) const;
+          size_t& constantNumPackets) const;
     //@}
   }; // class RowGraph
 } // namespace Tpetra

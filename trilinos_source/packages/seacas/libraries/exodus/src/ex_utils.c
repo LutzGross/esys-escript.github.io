@@ -1,8 +1,8 @@
 /*
- * Copyright(C) 1999-2020 National Technology & Engineering Solutions
+ * Copyright(C) 1999-2023 National Technology & Engineering Solutions
  * of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
  * NTESS, the U.S. Government retains certain rights in this software.
- * 
+ *
  * See packages/seacas/LICENSE for details
  */
 /*****************************************************************************
@@ -20,19 +20,19 @@
 #include "exodusII.h"
 #include "exodusII_int.h"
 
-struct ex__obj_stats *exoII_eb  = 0;
-struct ex__obj_stats *exoII_ed  = 0;
-struct ex__obj_stats *exoII_fa  = 0;
-struct ex__obj_stats *exoII_ns  = 0;
-struct ex__obj_stats *exoII_es  = 0;
-struct ex__obj_stats *exoII_fs  = 0;
-struct ex__obj_stats *exoII_ss  = 0;
-struct ex__obj_stats *exoII_els = 0;
-struct ex__obj_stats *exoII_em  = 0;
-struct ex__obj_stats *exoII_edm = 0;
-struct ex__obj_stats *exoII_fam = 0;
-struct ex__obj_stats *exoII_nm  = 0;
-struct ex__obj_stats *exoII_ass = 0;
+struct ex__obj_stats *exoII_eb  = NULL;
+struct ex__obj_stats *exoII_ed  = NULL;
+struct ex__obj_stats *exoII_fa  = NULL;
+struct ex__obj_stats *exoII_ns  = NULL;
+struct ex__obj_stats *exoII_es  = NULL;
+struct ex__obj_stats *exoII_fs  = NULL;
+struct ex__obj_stats *exoII_ss  = NULL;
+struct ex__obj_stats *exoII_els = NULL;
+struct ex__obj_stats *exoII_em  = NULL;
+struct ex__obj_stats *exoII_edm = NULL;
+struct ex__obj_stats *exoII_fam = NULL;
+struct ex__obj_stats *exoII_nm  = NULL;
+struct ex__obj_stats *exoII_ass = NULL;
 
 /*****************************************************************************
  *
@@ -56,94 +56,115 @@ extern int H5get_libversion(unsigned *, unsigned *, unsigned *);
 #endif
 #endif
 
+#if 0
 #if NC_HAS_PNETCDF
 extern char *ncmpi_inq_libvers();
+#endif
 #endif
 
 /*!
   \ingroup Utilities
   \undoc
 */
-void ex_print_config(void)
+const char *ex_config(void)
 {
-  fprintf(stderr, "\tExodus Version %s, Released %s\n", EXODUS_VERSION, EXODUS_RELEASE_DATE);
+  static char buffer[2048];
+  int         buffer_size = sizeof(buffer) / sizeof(buffer[0]);
+
+  int j = snprintf(buffer, buffer_size, "\tExodus Version %s, Released %s\n", EXODUS_VERSION,
+                   EXODUS_RELEASE_DATE);
 #if defined(PARALLEL_AWARE_EXODUS)
-  fprintf(stderr, "\t\tParallel enabled\n");
+  j += snprintf(buffer + j, buffer_size - j, "\t\tParallel enabled\n");
 #else
-  fprintf(stderr, "\t\tParallel NOT enabled\n");
+  j += snprintf(buffer + j, buffer_size - j, "\t\tParallel NOT enabled\n");
 #endif
 #if defined(EXODUS_THREADSAFE)
-  fprintf(stderr, "\t\tThread Safe enabled\n");
+  j += snprintf(buffer + j, buffer_size - j, "\t\tThread Safe enabled\n");
 #else
-  fprintf(stderr, "\t\tThread Safe NOT enabled\n");
+  j += snprintf(buffer + j, buffer_size - j, "\t\tThread Safe NOT enabled\n");
 #endif
 #if defined(SEACAS_HIDE_DEPRECATED_CODE)
-  fprintf(stderr, "\t\tDeprecated Functions NOT built\n\n");
+  j += snprintf(buffer + j, buffer_size - j, "\t\tDeprecated Functions NOT built\n\n");
 #else
-  fprintf(stderr, "\t\tDeprecated Functions available\n\n");
+  j += snprintf(buffer + j, buffer_size - j, "\t\tDeprecated Functions available\n\n");
 #endif
 #if defined(NC_VERSION)
-  fprintf(stderr, "\tNetCDF Version %s\n", NC_VERSION);
+  j += snprintf(buffer + j, buffer_size - j, "\tNetCDF Version %s\n", NC_VERSION);
 #else
-  fprintf(stderr, "\tNetCDF Version < 4.3.3\n");
+  j += snprintf(buffer + j, buffer_size - j, "\tNetCDF Version < 4.3.3\n");
 #endif
 #if NC_HAS_CDF5
-  fprintf(stderr, "\t\tCDF5 enabled\n");
+  j += snprintf(buffer + j, buffer_size - j, "\t\tCDF5 enabled\n");
 #endif
 #ifndef _MSC_VER
 #if NC_HAS_HDF5
   {
     unsigned major, minor, release;
     H5get_libversion(&major, &minor, &release);
-    fprintf(stderr, "\t\tHDF5 enabled (%u.%u.%u)\n", major, minor, release);
+    j += snprintf(buffer + j, buffer_size - j, "\t\tHDF5 enabled (%u.%u.%u)\n", major, minor,
+                  release);
   }
-  fprintf(stderr, "\t\tZlib Compression (read/write) enabled\n");
-#if defined(NC_HAS_SZIP_WRITE) && defined(DISABLED_FOR_NOW)
-  fprintf(stderr, "\t\tSZip Compression (read/write) enabled\n");
+  j += snprintf(buffer + j, buffer_size - j, "\t\tZlib Compression (read/write) enabled\n");
+#if NC_HAS_SZIP_WRITE == 1
+  j += snprintf(buffer + j, buffer_size - j, "\t\tSZip Compression (read/write) enabled\n");
+#else
+  j += snprintf(buffer + j, buffer_size - j, "\t\tSZip Compression (read/write) NOT enabled\n");
 #endif
 #endif
 #endif
 #if defined(PARALLEL_AWARE_EXODUS)
 #if NC_HAS_PARALLEL
-  fprintf(stderr, "\t\tParallel IO enabled via HDF5 and/or PnetCDF\n");
+  j += snprintf(buffer + j, buffer_size - j, "\t\tParallel IO enabled via HDF5 and/or PnetCDF\n");
 #else
-  fprintf(stderr,
-          "\t\tParallel IO *NOT* enabled via HDF5 and/or PnetCDF (PROBABLY A BUILD ERROR!)\n");
+  j +=
+      snprintf(buffer + j, buffer_size - j,
+               "\t\tParallel IO *NOT* enabled via HDF5 and/or PnetCDF (PROBABLY A BUILD ERROR!)\n");
 #endif
 #if NC_HAS_PARALLEL4
-  fprintf(stderr, "\t\tParallel IO enabled via HDF5\n");
+  j += snprintf(buffer + j, buffer_size - j, "\t\tParallel IO enabled via HDF5\n");
 #else
-  fprintf(stderr, "\t\tParallel IO *NOT* enabled via HDF5\n");
+  j += snprintf(buffer + j, buffer_size - j, "\t\tParallel IO *NOT* enabled via HDF5\n");
 #endif
 #if NC_HAS_PAR_FILTERS
-  fprintf(stderr, "\t\tParallel IO supports filters\n");
+  j += snprintf(buffer + j, buffer_size - j, "\t\tParallel IO supports filters\n");
 #endif
 #if NC_HAS_PNETCDF
   {
+#if 0
     char *libver = ncmpi_inq_libvers();
-    fprintf(stderr, "\t\tParallel IO enabled via PnetCDF (%s)\n", libver);
+    j += snprintf(buffer + j, buffer_size - j, "\t\tParallel IO enabled via PnetCDF (%s)\n", libver);
+#else
+    j += snprintf(buffer + j, buffer_size - j, "\t\tParallel IO enabled via PnetCDF.\n");
+#endif
   }
 #else
-  fprintf(stderr, "\t\tParallel IO *NOT* enabled via PnetCDF\n");
+  j += snprintf(buffer + j, buffer_size - j, "\t\tParallel IO *NOT* enabled via PnetCDF\n");
 #endif
 #endif /* PARALLEL_AWARE_EXODUS */
 
 #if NC_HAS_ERANGE_FILL
-  fprintf(stderr, "\t\tERANGE_FILL support\n");
+  j += snprintf(buffer + j, buffer_size - j, "\t\tERANGE_FILL support\n");
 #endif
 #if NC_RELAX_COORD_BOUND
-  fprintf(stderr, "\t\tRELAX_COORD_BOUND defined\n");
+  j += snprintf(buffer + j, buffer_size - j, "\t\tRELAX_COORD_BOUND defined\n");
+#endif
+#if defined(NC_COMPACT)
+  j += snprintf(buffer + j, buffer_size - j, "\t\tNC_COMPACT defined\n");
 #endif
 #if defined(NC_HAVE_META_H)
-  fprintf(stderr, "\t\tNC_HAVE_META_H defined\n");
+  j += snprintf(buffer + j, buffer_size - j, "\t\tNC_HAVE_META_H defined\n");
 #endif
-#if defined(NC_HAS_NC2)
-  fprintf(stderr, "\t\tAPI Version 2 support enabled\n");
+#if NC_HAS_NC2
+  j += snprintf(buffer + j, buffer_size - j, "\t\tAPI Version 2 support enabled\n");
 #else
-  fprintf(stderr, "\t\tAPI Version 2 support NOT enabled\n");
+  j += snprintf(buffer + j, buffer_size - j, "\t\tAPI Version 2 support NOT enabled\n");
 #endif
-  fprintf(stderr, "\n");
+  j += snprintf(buffer + j, buffer_size - j, "\n");
+
+  assert(j < 2048);
+  return buffer;
 }
+void ex_print_config(void) { fprintf(stderr, "%s\n", ex_config()); }
 
 /*!
   \ingroup Utilities
@@ -153,16 +174,16 @@ int ex__check_file_type(const char *path, int *type)
 {
   /* Based on (stolen from?) NC_check_file_type from netcdf sources.
 
-  Type is set to:
-  1 if this is a netcdf classic file,
-  2 if this is a netcdf 64-bit offset file,
-  4 pnetcdf cdf5 file.
-  5 if this is an hdf5 file
+     Type is set to:
+     1 if this is a netcdf classic file,
+     2 if this is a netcdf 64-bit offset file,
+     4 pnetcdf cdf5 file.
+     5 if this is an hdf5 file
   */
 
 #define MAGIC_NUMBER_LEN 4
 
-  char magic[MAGIC_NUMBER_LEN];
+  char magic[MAGIC_NUMBER_LEN + 1];
   EX_FUNC_ENTER();
 
   *type = 0;
@@ -170,15 +191,22 @@ int ex__check_file_type(const char *path, int *type)
   /* Get the 4-byte magic from the beginning of the file. */
   {
     FILE *fp;
-    int   i;
-
     if (!(fp = fopen(path, "r"))) {
-      EX_FUNC_LEAVE(errno);
+      char errmsg[MAX_ERR_LENGTH];
+      snprintf(errmsg, MAX_ERR_LENGTH, "ERROR: Could not open file '%s', error = %s.", path,
+               strerror(errno));
+      ex_err(__func__, errmsg, EX_WRONGFILETYPE);
+      EX_FUNC_LEAVE(EX_FATAL);
     }
-    i = fread(magic, MAGIC_NUMBER_LEN, 1, fp);
+    int i                   = fread(magic, 1, MAGIC_NUMBER_LEN, fp);
+    magic[MAGIC_NUMBER_LEN] = '\0';
     fclose(fp);
-    if (i != 1) {
-      EX_FUNC_LEAVE(errno);
+    if (i != MAGIC_NUMBER_LEN) {
+      char errmsg[MAX_ERR_LENGTH];
+      snprintf(errmsg, MAX_ERR_LENGTH, "ERROR: Could not read magic data from file '%s', err = %s.",
+               path, strerror(errno));
+      ex_err(__func__, errmsg, EX_WRONGFILETYPE);
+      EX_FUNC_LEAVE(EX_FATAL);
     }
   }
 
@@ -197,6 +225,15 @@ int ex__check_file_type(const char *path, int *type)
       *type = 4; /* cdf5 (including pnetcdf) file */
     }
   }
+  if (*type == 0) {
+    char errmsg[MAX_ERR_LENGTH];
+    snprintf(
+        errmsg, MAX_ERR_LENGTH,
+        "ERROR: Could not recognize %s as a valid Exodus/NetCDF file variant.  Magic value is '%s'",
+        path, magic);
+    ex_err(__func__, errmsg, EX_WRONGFILETYPE);
+    EX_FUNC_LEAVE(EX_FATAL);
+  }
   EX_FUNC_LEAVE(EX_NOERR);
 }
 
@@ -209,7 +246,9 @@ int ex_set_max_name_length(int exoid, int length)
   char errmsg[MAX_ERR_LENGTH];
 
   EX_FUNC_ENTER();
-  ex__check_valid_file_id(exoid, __func__);
+  if (ex__check_valid_file_id(exoid, __func__) == EX_FATAL) {
+    EX_FUNC_LEAVE(EX_FATAL);
+  }
   if (length <= 0) {
     snprintf(errmsg, MAX_ERR_LENGTH, "ERROR: Max name length must be positive.");
     ex_err_fn(exoid, __func__, errmsg, NC_EMAXNAME);
@@ -233,14 +272,15 @@ int ex_set_max_name_length(int exoid, int length)
 */
 void ex__update_max_name_length(int exoid, int length)
 {
+  EX_FUNC_ENTER();
+  if (ex__check_valid_file_id(exoid, __func__) == EX_FATAL) {
+    EX_FUNC_VOID();
+  }
+
+  /* Get current value of the maximum_name_length attribute... */
   int status;
   int db_length = 0;
   int rootid    = exoid & EX_FILE_ID_MASK;
-
-  EX_FUNC_ENTER();
-  ex__check_valid_file_id(exoid, __func__);
-
-  /* Get current value of the maximum_name_length attribute... */
   if ((status = nc_get_att_int(rootid, NC_GLOBAL, ATT_MAX_NAME_LENGTH, &db_length)) != NC_NOERR) {
     char errmsg[MAX_ERR_LENGTH];
     snprintf(errmsg, MAX_ERR_LENGTH,
@@ -268,25 +308,19 @@ void ex__update_max_name_length(int exoid, int length)
   \internal
   \undoc
 */
-int ex__put_names(int exoid, int varid, size_t num_names, char **names, ex_entity_type obj_type,
-                  const char *subtype, const char *routine)
+int ex__put_names(int exoid, int varid, size_t num_names, char *const *names,
+                  ex_entity_type obj_type, const char *subtype, const char *routine)
 {
-  size_t i;
-  int    status;
-  char   errmsg[MAX_ERR_LENGTH];
-  int    max_name_len = 0;
-  size_t name_length;
-  size_t length;
-  char * int_names  = NULL;
-  size_t idx        = 0;
-  int    found_name = 0;
-
   EX_FUNC_ENTER();
-  ex__check_valid_file_id(exoid, __func__);
+  if (ex__check_valid_file_id(exoid, __func__) == EX_FATAL) {
+    EX_FUNC_LEAVE(EX_FATAL);
+  }
   /* inquire previously defined dimensions  */
-  name_length = ex_inquire_int(exoid, EX_INQ_DB_MAX_ALLOWED_NAME_LENGTH) + 1;
+  size_t name_length = ex_inquire_int(exoid, EX_INQ_DB_MAX_ALLOWED_NAME_LENGTH) + 1;
 
+  char *int_names = NULL;
   if (!(int_names = calloc(num_names * name_length, 1))) {
+    char errmsg[MAX_ERR_LENGTH];
     snprintf(errmsg, MAX_ERR_LENGTH,
              "ERROR: failed to allocate memory for internal int_names "
              "array in file id %d",
@@ -295,11 +329,14 @@ int ex__put_names(int exoid, int varid, size_t num_names, char **names, ex_entit
     EX_FUNC_LEAVE(EX_FATAL);
   }
 
-  for (i = 0; i < num_names; i++) {
+  size_t idx          = 0;
+  int    max_name_len = 0;
+  int    found_name   = 0;
+  for (size_t i = 0; i < num_names; i++) {
     if (names != NULL && *names != NULL && *names[i] != '\0') {
       found_name = 1;
       ex_copy_string(&int_names[idx], names[i], name_length);
-      length = strlen(names[i]) + 1;
+      size_t length = strlen(names[i]) + 1;
       if (length > name_length) {
         fprintf(stderr,
                 "Warning: The %s %s name '%s' is too long.\n\tIt will "
@@ -316,8 +353,10 @@ int ex__put_names(int exoid, int varid, size_t num_names, char **names, ex_entit
     idx += name_length;
   }
 
+  int status;
   if ((status = nc_put_var_text(exoid, varid, int_names)) != NC_NOERR) {
     free(int_names);
+    char errmsg[MAX_ERR_LENGTH];
     snprintf(errmsg, MAX_ERR_LENGTH, "ERROR: failed to store %s names in file id %d",
              ex_name_of_object(obj_type), exoid);
     ex_err_fn(exoid, __func__, errmsg, status);
@@ -341,20 +380,18 @@ int ex__put_names(int exoid, int varid, size_t num_names, char **names, ex_entit
 int ex__put_name(int exoid, int varid, size_t index, const char *name, ex_entity_type obj_type,
                  const char *subtype, const char *routine)
 {
-  int    status;
-  size_t start[2], count[2];
-  char   errmsg[MAX_ERR_LENGTH];
-  size_t name_length;
-
-  ex__check_valid_file_id(exoid, __func__);
+  if (ex__check_valid_file_id(exoid, __func__) == EX_FATAL) {
+    EX_FUNC_LEAVE(EX_FATAL);
+  }
 
   /* inquire previously defined dimensions  */
-  name_length = ex_inquire_int(exoid, EX_INQ_DB_MAX_ALLOWED_NAME_LENGTH) + 1;
+  size_t name_length = ex_inquire_int(exoid, EX_INQ_DB_MAX_ALLOWED_NAME_LENGTH) + 1;
 
   if (name != NULL && *name != '\0') {
-    int too_long = 0;
-    start[0]     = index;
-    start[1]     = 0;
+    size_t start[2], count[2];
+    int    too_long = 0;
+    start[0]        = index;
+    start[1]        = 0;
 
     count[0] = 1;
     count[1] = strlen(name) + 1;
@@ -369,7 +406,9 @@ int ex__put_name(int exoid, int varid, size_t index, const char *name, ex_entity
       too_long = 1;
     }
 
+    int status;
     if ((status = nc_put_vara_text(exoid, varid, start, count, name)) != NC_NOERR) {
+      char errmsg[MAX_ERR_LENGTH];
       snprintf(errmsg, MAX_ERR_LENGTH, "ERROR: failed to store %s name in file id %d",
                ex_name_of_object(obj_type), exoid);
       ex_err_fn(exoid, __func__, errmsg, status);
@@ -395,9 +434,6 @@ int ex__put_name(int exoid, int varid, size_t index, const char *name, ex_entity
 int ex__get_names(int exoid, int varid, size_t num_names, char **names, ex_entity_type obj_type,
                   const char *routine)
 {
-  size_t i;
-  int    status;
-
   /* Query size of names on file
    * Use the smaller of the size on file or user-specified length
    */
@@ -405,8 +441,8 @@ int ex__get_names(int exoid, int varid, size_t num_names, char **names, ex_entit
   int api_name_size = ex_inquire_int(exoid, EX_INQ_MAX_READ_NAME_LENGTH);
   int name_size     = db_name_size < api_name_size ? db_name_size : api_name_size;
 
-  for (i = 0; i < num_names; i++) {
-    status = ex__get_name(exoid, varid, i, names[i], name_size, obj_type, routine);
+  for (size_t i = 0; i < num_names; i++) {
+    int status = ex__get_name(exoid, varid, i, names[i], name_size, obj_type, routine);
     if (status != NC_NOERR) {
       return (status);
     }
@@ -421,21 +457,17 @@ int ex__get_names(int exoid, int varid, size_t num_names, char **names, ex_entit
 int ex__get_name(int exoid, int varid, size_t index, char *name, int name_size,
                  ex_entity_type obj_type, const char *routine)
 {
-  size_t start[2], count[2];
-  int    status;
-  char   errmsg[MAX_ERR_LENGTH];
-  int    api_name_size = 0;
-
-  api_name_size = ex_inquire_int(exoid, EX_INQ_MAX_READ_NAME_LENGTH);
 
   /* read the name */
+  size_t start[2], count[2];
   start[0] = index;
   count[0] = 1;
   start[1] = 0;
   count[1] = name_size + 1;
 
-  status = nc_get_vara_text(exoid, varid, start, count, name);
+  int status = nc_get_vara_text(exoid, varid, start, count, name);
   if (status != NC_NOERR) {
+    char errmsg[MAX_ERR_LENGTH];
     snprintf(errmsg, MAX_ERR_LENGTH,
              "ERROR: failed to get %s name at index %d from file id %d [Called from %s]",
              ex_name_of_object(obj_type), (int)index, exoid, routine);
@@ -443,6 +475,7 @@ int ex__get_name(int exoid, int varid, size_t index, char *name, int name_size,
     return (EX_FATAL);
   }
 
+  int api_name_size   = ex_inquire_int(exoid, EX_INQ_MAX_READ_NAME_LENGTH);
   name[api_name_size] = '\0';
 
   ex__trim(name);
@@ -457,19 +490,16 @@ void ex__trim(char *name)
 {
   /* Thread-safe, reentrant */
   /* Trim trailing spaces... */
-  size_t size;
-  char * end;
-
   if (name == NULL) {
     return;
   }
 
-  size = strlen(name);
+  size_t size = strlen(name);
   if (size == 0) {
     return;
   }
 
-  end = name + size - 1;
+  char *end = name + size - 1;
   while (end >= name && isspace(*end)) {
     end--;
   }
@@ -487,7 +517,7 @@ char *ex__catstr(const char *string, int num)
 {
   /* Only called from an already locked function */
   char *tmp_string = cur_string;
-  cur_string += sprintf(cur_string, "%s%d", string, num) + 1;
+  cur_string += snprintf(cur_string, MAX_VAR_NAME_LENGTH + 1, "%s%d", string, num) + 1;
   if (cur_string - ret_string > 9 * (MAX_VAR_NAME_LENGTH + 1)) {
     cur_string = ret_string;
   }
@@ -503,7 +533,8 @@ char *ex__catstr2(const char *string1, int num1, const char *string2, int num2)
 {
   /* Only called from an already locked function */
   char *tmp_string = cur_string;
-  cur_string += sprintf(cur_string, "%s%d%s%d", string1, num1, string2, num2) + 1;
+  cur_string +=
+      snprintf(cur_string, MAX_VAR_NAME_LENGTH + 1, "%s%d%s%d", string1, num1, string2, num2) + 1;
   if (cur_string - ret_string > 9 * (MAX_VAR_NAME_LENGTH + 1)) {
     cur_string = ret_string;
   }
@@ -735,15 +766,15 @@ char *ex__name_of_map(ex_entity_type map_type, int map_index)
 */
 int ex__id_lkup(int exoid, ex_entity_type id_type, ex_entity_id num)
 {
-  char *   id_table;
-  char *   id_dim;
-  char *   stat_table;
+  char    *id_table   = NULL;
+  char    *id_dim     = NULL;
+  char    *stat_table = NULL;
   int      varid, dimid;
-  size_t   dim_len, i, j;
+  size_t   dim_len;
+  int64_t  i;
   int64_t *id_vals   = NULL;
-  int *    stat_vals = NULL;
+  int     *stat_vals = NULL;
 
-  static bool           filled     = false;
   static bool           sequential = false;
   struct ex__obj_stats *tmp_stats;
   int                   status;
@@ -904,8 +935,8 @@ int ex__id_lkup(int exoid, ex_entity_type id_type, ex_entity_id num)
     }
 
     /* check if values in stored arrays are filled with non-zeroes */
-    filled     = true;
-    sequential = true;
+    bool filled = true;
+    sequential  = true;
     for (i = 0; i < dim_len; i++) {
       if (id_vals[i] != i + 1) {
         sequential = false;
@@ -981,7 +1012,7 @@ int ex__id_lkup(int exoid, ex_entity_type id_type, ex_entity_id num)
       }
     }
     else {
-      for (j = 0; j < dim_len; j++) {
+      for (size_t j = 0; j < dim_len; j++) {
         stat_vals[j] = 1;
       }
     }
@@ -1027,9 +1058,7 @@ int ex__id_lkup(int exoid, ex_entity_type id_type, ex_entity_id num)
 
 struct ex__obj_stats *ex__get_stat_ptr(int exoid, struct ex__obj_stats **obj_ptr)
 {
-  struct ex__obj_stats *tmp_ptr;
-
-  tmp_ptr = *obj_ptr;
+  struct ex__obj_stats *tmp_ptr = *obj_ptr;
 
   while (tmp_ptr) {
     if ((tmp_ptr)->exoid == exoid) {
@@ -1067,10 +1096,8 @@ struct ex__obj_stats *ex__get_stat_ptr(int exoid, struct ex__obj_stats **obj_ptr
 
 void ex__rm_stat_ptr(int exoid, struct ex__obj_stats **obj_ptr)
 {
-  struct ex__obj_stats *last_head_list_ptr, *tmp_ptr;
-
-  tmp_ptr            = *obj_ptr;
-  last_head_list_ptr = *obj_ptr; /* save last head pointer */
+  struct ex__obj_stats *tmp_ptr            = *obj_ptr;
+  struct ex__obj_stats *last_head_list_ptr = *obj_ptr; /* save last head pointer */
 
   while (tmp_ptr) /* Walk linked list of file ids/vals */
   {
@@ -1093,26 +1120,26 @@ void ex__rm_stat_ptr(int exoid, struct ex__obj_stats **obj_ptr)
 }
 
 /* structures to hold number of blocks of that type for each file id */
-static struct ex__list_item *ed_ctr_list = 0; /* edge blocks */
-static struct ex__list_item *fa_ctr_list = 0; /* face blocks */
-static struct ex__list_item *eb_ctr_list = 0; /* element blocks */
+static struct ex__list_item *ed_ctr_list = NULL; /* edge blocks */
+static struct ex__list_item *fa_ctr_list = NULL; /* face blocks */
+static struct ex__list_item *eb_ctr_list = NULL; /* element blocks */
 
 /* structures to hold number of sets of that type for each file id */
-static struct ex__list_item *ns_ctr_list  = 0; /* node sets */
-static struct ex__list_item *es_ctr_list  = 0; /* edge sets */
-static struct ex__list_item *fs_ctr_list  = 0; /* face sets */
-static struct ex__list_item *ss_ctr_list  = 0; /* side sets */
-static struct ex__list_item *els_ctr_list = 0; /* element sets */
+static struct ex__list_item *ns_ctr_list  = NULL; /* node sets */
+static struct ex__list_item *es_ctr_list  = NULL; /* edge sets */
+static struct ex__list_item *fs_ctr_list  = NULL; /* face sets */
+static struct ex__list_item *ss_ctr_list  = NULL; /* side sets */
+static struct ex__list_item *els_ctr_list = NULL; /* element sets */
 
 /* structures to hold number of blobs/assemblies for each file id */
-static struct ex__list_item *assm_ctr_list = 0; /* assemblies */
-static struct ex__list_item *blob_ctr_list = 0; /* blobs */
+static struct ex__list_item *assm_ctr_list = NULL; /* assemblies */
+static struct ex__list_item *blob_ctr_list = NULL; /* blobs */
 
 /* structures to hold number of maps of that type for each file id */
-static struct ex__list_item *nm_ctr_list  = 0; /* node maps */
-static struct ex__list_item *edm_ctr_list = 0; /* edge maps */
-static struct ex__list_item *fam_ctr_list = 0; /* face maps */
-static struct ex__list_item *em_ctr_list  = 0; /* element maps */
+static struct ex__list_item *nm_ctr_list  = NULL; /* node maps */
+static struct ex__list_item *edm_ctr_list = NULL; /* edge maps */
+static struct ex__list_item *fam_ctr_list = NULL; /* face maps */
+static struct ex__list_item *em_ctr_list  = NULL; /* element maps */
 
 /*!
   \internal
@@ -1333,6 +1360,7 @@ int ex_get_num_props(int exoid, ex_entity_type obj_type)
     }
     cntr++;
   }
+  EX_FUNC_LEAVE(EX_FATAL);
 }
 
 /*!
@@ -1349,11 +1377,9 @@ int ex__get_cpu_ws(void) { return (sizeof(float)); }
 static void ex_swap(int v[], int64_t i, int64_t j)
 {
   /* Thread-safe, reentrant */
-  int temp;
-
-  temp = v[i];
-  v[i] = v[j];
-  v[j] = temp;
+  int temp = v[i];
+  v[i]     = v[j];
+  v[j]     = temp;
 }
 
 /*!
@@ -1363,11 +1389,9 @@ static void ex_swap(int v[], int64_t i, int64_t j)
 static void ex_swap64(int64_t v[], int64_t i, int64_t j)
 {
   /* Thread-safe, reentrant */
-  int64_t temp;
-
-  temp = v[i];
-  v[i] = v[j];
-  v[j] = temp;
+  int64_t temp = v[i];
+  v[i]         = v[j];
+  v[j]         = temp;
 }
 
 #define EX_QSORT_CUTOFF 12
@@ -1379,8 +1403,7 @@ static void ex_swap64(int64_t v[], int64_t i, int64_t j)
 static int ex_int_median3(int v[], int iv[], int64_t left, int64_t right)
 {
   /* Thread-safe, reentrant */
-  int64_t center;
-  center = (left + right) / 2;
+  int64_t center = (left + right) / 2;
 
   if (v[iv[left]] > v[iv[center]]) {
     ex_swap(iv, left, center);
@@ -1403,8 +1426,7 @@ static int ex_int_median3(int v[], int iv[], int64_t left, int64_t right)
 static int64_t ex_int_median3_64(int64_t v[], int64_t iv[], int64_t left, int64_t right)
 {
   /* Thread-safe, reentrant */
-  int64_t center;
-  center = (left + right) / 2;
+  int64_t center = (left + right) / 2;
 
   if (v[iv[left]] > v[iv[center]]) {
     ex_swap64(iv, left, center);
@@ -1427,13 +1449,10 @@ static int64_t ex_int_median3_64(int64_t v[], int64_t iv[], int64_t left, int64_
 static void ex_int_iqsort(int v[], int iv[], int left, int right)
 {
   /* Thread-safe, reentrant */
-  int pivot;
-  int i, j;
-
   if (left + EX_QSORT_CUTOFF <= right) {
-    pivot = ex_int_median3(v, iv, left, right);
-    i     = left;
-    j     = right - 1;
+    int pivot = ex_int_median3(v, iv, left, right);
+    int i     = left;
+    int j     = right - 1;
 
     for (;;) {
       while (v[iv[++i]] < v[pivot]) {
@@ -1463,13 +1482,10 @@ static void ex_int_iqsort(int v[], int iv[], int left, int right)
 static void ex_int_iqsort64(int64_t v[], int64_t iv[], int64_t left, int64_t right)
 {
   /* Thread-safe, reentrant */
-  int64_t pivot;
-  int64_t i, j;
-
   if (left + EX_QSORT_CUTOFF <= right) {
-    pivot = ex_int_median3_64(v, iv, left, right);
-    i     = left;
-    j     = right - 1;
+    int64_t pivot = ex_int_median3_64(v, iv, left, right);
+    int64_t i     = left;
+    int64_t j     = right - 1;
 
     for (;;) {
       while (v[iv[++i]] < v[pivot]) {
@@ -1499,13 +1515,9 @@ static void ex_int_iqsort64(int64_t v[], int64_t iv[], int64_t left, int64_t rig
 static void ex_int_iisort(int v[], int iv[], int N)
 {
   /* Thread-safe, reentrant */
-  int i, j;
-  int ndx = 0;
-  int small;
-  int tmp;
-
-  small = v[iv[0]];
-  for (i = 1; i < N; i++) {
+  int ndx   = 0;
+  int small = v[iv[0]];
+  for (int i = 1; i < N; i++) {
     if (v[iv[i]] < small) {
       small = v[iv[i]];
       ndx   = i;
@@ -1514,8 +1526,9 @@ static void ex_int_iisort(int v[], int iv[], int N)
   /* Put smallest value in slot 0 */
   ex_swap(iv, 0, ndx);
 
-  for (i = 1; i < N; i++) {
-    tmp = iv[i];
+  for (int i = 1; i < N; i++) {
+    int tmp = iv[i];
+    int j;
     for (j = i; v[tmp] < v[iv[j - 1]]; j--) {
       iv[j] = iv[j - 1];
     }
@@ -1530,13 +1543,9 @@ static void ex_int_iisort(int v[], int iv[], int N)
 static void ex_int_iisort64(int64_t v[], int64_t iv[], int64_t N)
 {
   /* Thread-safe, reentrant */
-  int64_t i, j;
-  int64_t ndx = 0;
-  int64_t small;
-  int64_t tmp;
-
-  small = v[iv[0]];
-  for (i = 1; i < N; i++) {
+  int64_t ndx   = 0;
+  int64_t small = v[iv[0]];
+  for (int64_t i = 1; i < N; i++) {
     if (v[iv[i]] < small) {
       small = v[iv[i]];
       ndx   = i;
@@ -1545,8 +1554,9 @@ static void ex_int_iisort64(int64_t v[], int64_t iv[], int64_t N)
   /* Put smallest value in slot 0 */
   ex_swap64(iv, 0, ndx);
 
-  for (i = 1; i < N; i++) {
-    tmp = iv[i];
+  for (int64_t i = 1; i < N; i++) {
+    int64_t tmp = iv[i];
+    int64_t j;
     for (j = i; v[tmp] < v[iv[j - 1]]; j--) {
       iv[j] = iv[j - 1];
     }
@@ -1574,14 +1584,14 @@ static void ex_int_iisort64(int64_t v[], int64_t iv[], int64_t N)
  *       representable as 'int'.
  * \internal
  */
-void ex__iqsort(int v[], int iv[], int N)
+void ex__iqsort(int v[], int iv[], size_t N)
 {
   /* Thread-safe, reentrant */
   ex_int_iqsort(v, iv, 0, N - 1);
   ex_int_iisort(v, iv, N);
 
 #if defined(DEBUG_QSORT)
-  fprintf(stderr, "Checking sort of %d values\n", N + 1);
+  fprintf(stderr, "Checking sort of %zu values\n", N + 1);
   int i;
   for (i = 1; i < N; i++) {
     assert(v[iv[i - 1]] <= v[iv[i]]);
@@ -1638,8 +1648,7 @@ int ex_large_model(int exoid)
 int ex__get_dimension(int exoid, const char *DIMENSION, const char *label, size_t *count,
                       int *dimid, const char *routine)
 {
-  char errmsg[MAX_ERR_LENGTH];
-  int  status;
+  int status;
 
   *count = 0;
   *dimid = -1;
@@ -1647,11 +1656,13 @@ int ex__get_dimension(int exoid, const char *DIMENSION, const char *label, size_
   if ((status = nc_inq_dimid(exoid, DIMENSION, dimid)) != NC_NOERR) {
     if (routine != NULL) {
       if (status == NC_EBADDIM) {
+        char errmsg[MAX_ERR_LENGTH];
         snprintf(errmsg, MAX_ERR_LENGTH, "Warning: no dimension defining '%s' found in file id %d",
                  label, exoid);
         ex_err_fn(exoid, __func__, errmsg, status);
       }
       else {
+        char errmsg[MAX_ERR_LENGTH];
         snprintf(errmsg, MAX_ERR_LENGTH,
                  "ERROR: failed to locate dimension defining number of '%s' in file id %d", label,
                  exoid);
@@ -1663,6 +1674,7 @@ int ex__get_dimension(int exoid, const char *DIMENSION, const char *label, size_
 
   if ((status = nc_inq_dimlen(exoid, *dimid, count)) != NC_NOERR) {
     if (routine != NULL) {
+      char errmsg[MAX_ERR_LENGTH];
       snprintf(errmsg, MAX_ERR_LENGTH,
                "ERROR: failed to get length of dimension defining number of '%s' in file id %d",
                label, exoid);
@@ -1696,7 +1708,11 @@ void ex__set_compact_storage(int exoid, int varid)
 #endif
 }
 
-/* type = 1 for integer, 2 for real, 3 for character */
+/*
+ * type = 1 for integer, 2 for real, 3 for character
+ * If type < 0, then don't compress, but do set collective on parallel
+ */
+
 /*!
   \internal
   \undoc
@@ -1714,25 +1730,31 @@ void ex__compress_variable(int exoid, int varid, int type)
   }
   else {
     /* Compression only supported on HDF5 (NetCDF-4) files; Do not try to compress character data */
-    if (type != 3 && file->is_hdf5) {
+    if ((type == 1 || type == 2) && file->is_hdf5) {
       if (file->compression_algorithm == EX_COMPRESS_GZIP) {
         int deflate_level = file->compression_level;
-        int compress      = 1;
-        int shuffle       = file->shuffle;
         if (deflate_level > 0) {
+          int compress = 1;
+          int shuffle  = file->shuffle;
           nc_def_var_deflate(exoid, varid, shuffle, compress, deflate_level);
         }
       }
       else if (file->compression_algorithm == EX_COMPRESS_SZIP) {
-#if defined(NC_HAS_SZIP_WRITE) && defined(DISABLED_FOR_NOW)
+#if NC_HAS_SZIP_WRITE == 1
         /* See: https://support.hdfgroup.org/doc_resource/SZIP/ and
                 https://support.hdfgroup.org/HDF5/doc/RM/RM_H5P.html#Property-SetSzip
            for details on SZIP library and parameters.
         */
 
-        /* const int NC_SZIP_EC = 4; */       /* Selects entropy coding method for szip. */
-        const int NC_SZIP_NN            = 32; /* Selects nearest neighbor coding method for szip. */
-        const int SZIP_PIXELS_PER_BLOCK = 16; /* Even and <= 32; typical values are 8, 10, 16, 32 */
+#if !defined(NC_SZIP_EC)
+        const int NC_SZIP_EC = 4; /* Selects entropy coding method for szip. */
+#endif
+#if !defined(NC_SZIP_NN)
+        const int NC_SZIP_NN = 32; /* Selects nearest neighbor coding method for szip. */
+#endif
+        /* Even and between 4 and 32; typical values are 8, 10, 16, 32 */
+        const int SZIP_PIXELS_PER_BLOCK =
+            file->compression_level == 0 ? 32 : file->compression_level;
         nc_def_var_szip(exoid, varid, NC_SZIP_NN, SZIP_PIXELS_PER_BLOCK);
 #else
         char errmsg[MAX_ERR_LENGTH];
@@ -1741,13 +1763,12 @@ void ex__compress_variable(int exoid, int varid, int type)
         ex_err_fn(exoid, __func__, errmsg, EX_BADPARAM);
 #endif
       }
-
-#if defined(PARALLEL_AWARE_EXODUS)
-      if (file->is_parallel && file->is_hdf5) {
-        nc_var_par_access(exoid, varid, NC_COLLECTIVE);
-      }
-#endif
     }
+#if defined(PARALLEL_AWARE_EXODUS)
+    if (file->is_parallel) {
+      nc_var_par_access(exoid, varid, NC_COLLECTIVE);
+    }
+#endif
   }
 #endif
 }
@@ -1758,10 +1779,10 @@ void ex__compress_variable(int exoid, int varid, int type)
 */
 int ex__leavedef(int exoid, const char *call_rout)
 {
-  char errmsg[MAX_ERR_LENGTH];
-  int  status;
+  int status;
 
   if ((status = nc_enddef(exoid)) != NC_NOERR) {
+    char errmsg[MAX_ERR_LENGTH];
     snprintf(errmsg, MAX_ERR_LENGTH, "ERROR: failed to complete definition for file id %d", exoid);
     ex_err_fn(exoid, call_rout, errmsg, status);
 
@@ -2103,12 +2124,12 @@ int ex__handle_mode(unsigned int my_mode, int is_parallel, int run_version)
 int ex__populate_header(int exoid, const char *path, int my_mode, int is_parallel, int *comp_ws,
                         int *io_ws)
 {
-  int status;
-  int old_fill;
-  int lio_ws;
-  int filesiz    = 1;
-  int is_hdf5    = 0;
-  int is_pnetcdf = 0;
+  int  status;
+  int  old_fill;
+  int  lio_ws;
+  int  filesiz    = 1;
+  bool is_hdf5    = false;
+  bool is_pnetcdf = false;
 
   float version;
   char  errmsg[MAX_ERR_LENGTH];
@@ -2151,11 +2172,12 @@ int ex__populate_header(int exoid, const char *path, int my_mode, int is_paralle
   nc_inq_format_extended(exoid, &format, &mode);
 
   if (format & NC_FORMAT_PNETCDF) {
-    is_pnetcdf = 1;
+    is_pnetcdf = true;
+    ;
   }
 
   if (format & NC_FORMAT_NC_HDF5) {
-    is_hdf5 = 1;
+    is_hdf5 = true;
   }
 
   if (ex__conv_init(exoid, comp_ws, io_ws, 0, int64_status, is_parallel, is_hdf5, is_pnetcdf,

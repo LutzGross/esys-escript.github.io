@@ -205,6 +205,12 @@ namespace Amesos2 {
     typename multivec_t::impl_scalar_type * getMVPointer_impl() const;
 
     /**
+     * \brief Clone the multivector
+     */ 
+    Teuchos::RCP<multivec_t>
+    clone() const;
+
+    /**
      * \brief Copies the multivector's data into the user-provided vector.
      *
      *  Each vector of the multivector is placed \c lda apart in the
@@ -241,8 +247,8 @@ namespace Amesos2 {
                                               EDistribution distribution) const;
 
     template<typename KV>
-    void
-    get1dCopy_kokkos_view (KV& v,
+    bool
+    get1dCopy_kokkos_view (bool bInitialize, KV& v,
                size_t lda,
                Teuchos::Ptr<const Tpetra::Map<local_ordinal_t,
                                               global_ordinal_t,

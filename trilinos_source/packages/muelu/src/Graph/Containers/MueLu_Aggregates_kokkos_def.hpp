@@ -62,6 +62,7 @@ namespace MueLu {
   Aggregates_kokkos<LocalOrdinal, GlobalOrdinal, Kokkos::Compat::KokkosDeviceWrapperNode<DeviceType> >::
   Aggregates_kokkos(LWGraph_kokkos graph) {
     numAggregates_  = 0;
+    numGlobalAggregates_  = 0;
 
     vertex2AggId_ = LOVectorFactory::Build(graph.GetImportMap());
     vertex2AggId_->putScalar(MUELU_UNAGGREGATED);
@@ -69,7 +70,7 @@ namespace MueLu {
     procWinner_ = LOVectorFactory::Build(graph.GetImportMap());
     procWinner_->putScalar(MUELU_UNASSIGNED);
 
-    isRoot_ = Kokkos::View<bool*,DeviceType>(Kokkos::ViewAllocateWithoutInitializing("roots"), graph.GetImportMap()->getNodeNumElements());
+    isRoot_ = Kokkos::View<bool*, device_type>(Kokkos::ViewAllocateWithoutInitializing("roots"), graph.GetImportMap()->getLocalNumElements());
     Kokkos::deep_copy(isRoot_, false);
 
     // slow but safe, force TentativePFactory to build column map for P itself
@@ -80,6 +81,7 @@ namespace MueLu {
   Aggregates_kokkos<LocalOrdinal, GlobalOrdinal, Kokkos::Compat::KokkosDeviceWrapperNode<DeviceType> >::
   Aggregates_kokkos(const RCP<const Map>& map) {
     numAggregates_ = 0;
+    numGlobalAggregates_  = 0;
 
     vertex2AggId_ = LOVectorFactory::Build(map);
     vertex2AggId_->putScalar(MUELU_UNAGGREGATED);
@@ -87,7 +89,7 @@ namespace MueLu {
     procWinner_ = LOVectorFactory::Build(map);
     procWinner_->putScalar(MUELU_UNASSIGNED);
 
-    isRoot_ = Kokkos::View<bool*,DeviceType>(Kokkos::ViewAllocateWithoutInitializing("roots"), map->getNodeNumElements());
+    isRoot_ = Kokkos::View<bool*,device_type>(Kokkos::ViewAllocateWithoutInitializing("roots"), map->getLocalNumElements());
     Kokkos::deep_copy(isRoot_, false);
 
     // slow but safe, force TentativePFactory to build column map for P itself
@@ -106,8 +108,8 @@ namespace MueLu {
 
       int myPID = GetMap()->getComm()->getRank();
 
-      auto vertex2AggId = vertex2AggId_->template getLocalView<DeviceType>();
-      auto procWinner   = procWinner_  ->template getLocalView<DeviceType>();
+      auto vertex2AggId = vertex2AggId_->getDeviceLocalView(Xpetra::Access::ReadOnly);
+      auto procWinner   = procWinner_  ->getDeviceLocalView(Xpetra::Access::ReadOnly);
 
       typename AppendTrait<decltype(aggregateSizes_), Kokkos::Atomic>::type aggregateSizesAtomic = aggregateSizes;
       Kokkos::parallel_for("MueLu:Aggregates:ComputeAggregateSizes:for", range_type(0,procWinner.size()),
@@ -126,16 +128,17 @@ namespace MueLu {
   template <class LocalOrdinal, class GlobalOrdinal, class DeviceType>
   typename Aggregates_kokkos<LocalOrdinal, GlobalOrdinal, Kokkos::Compat::KokkosDeviceWrapperNode<DeviceType> >::local_graph_type
   Aggregates_kokkos<LocalOrdinal, GlobalOrdinal, Kokkos::Compat::KokkosDeviceWrapperNode<DeviceType> >::GetGraph() const {
-    typedef typename local_graph_type::row_map_type row_map_type;
-    typedef typename local_graph_type::entries_type entries_type;
+    using row_map_type = typename local_graph_type::row_map_type;
+    using entries_type = typename local_graph_type::entries_type;
+    using size_type    = typename local_graph_type::size_type;
 
     auto numAggregates = numAggregates_;
 
     if (static_cast<LO>(graph_.numRows()) == numAggregates)
       return graph_;
 
-    auto vertex2AggId = vertex2AggId_->template getLocalView<DeviceType>();
-    auto procWinner   = procWinner_  ->template getLocalView<DeviceType>();
+    auto vertex2AggId = vertex2AggId_->getDeviceLocalView(Xpetra::Access::ReadOnly);
+    auto procWinner   = procWinner_  ->getDeviceLocalView(Xpetra::Access::ReadOnly);
     auto sizes        = ComputeAggregateSizes();
 
     // FIXME_KOKKOS: replace by ViewAllocateWithoutInitializing + rows(0) = 0.
@@ -154,7 +157,14 @@ namespace MueLu {
 
     int myPID = GetMap()->getComm()->getRank();
 
-    typename entries_type::non_const_type cols(Kokkos::ViewAllocateWithoutInitializing("Agg_cols"), rows(numAggregates));
+    size_type numNNZ;
+    {
+      Kokkos::View<size_type, device_type> numNNZ_device = Kokkos::subview(rows, numAggregates);
+      typename Kokkos::View<size_type, device_type>::HostMirror numNNZ_host = Kokkos::create_mirror_view(numNNZ_device);
+      Kokkos::deep_copy(numNNZ_host, numNNZ_device);
+      numNNZ = numNNZ_host();
+    }
+    typename entries_type::non_const_type cols(Kokkos::ViewAllocateWithoutInitializing("Agg_cols"), numNNZ);
     size_t realnnz = 0;
     Kokkos::parallel_reduce("MueLu:Aggregates:GetGraph:compute_cols", range_type(0, procWinner.size()),
       KOKKOS_LAMBDA(const LO i, size_t& nnz) {
@@ -165,33 +175,92 @@ namespace MueLu {
           nnz++;
         }
       }, realnnz);
-    TEUCHOS_TEST_FOR_EXCEPTION(realnnz != rows(numAggregates), Exceptions::RuntimeError,
-        "MueLu: Internal error: Something is wrong with aggregates graph construction");
+    TEUCHOS_TEST_FOR_EXCEPTION(realnnz != numNNZ, Exceptions::RuntimeError,
+                               "MueLu: Internal error: Something is wrong with aggregates graph construction: numNNZ = " << numNNZ << " != " << realnnz << " = realnnz");
 
     graph_ = local_graph_type(cols, rows);
 
     return graph_;
   }
+  
+  template <class LocalOrdinal, class GlobalOrdinal, class DeviceType>
+  void 
+  Aggregates_kokkos<LocalOrdinal, GlobalOrdinal, Kokkos::Compat::KokkosDeviceWrapperNode<DeviceType> >::ComputeNodesInAggregate(LO_view & aggPtr, LO_view & aggNodes, LO_view & unaggregated) const {
+    LO numAggs  = GetNumAggregates();
+    LO numNodes = vertex2AggId_->getLocalLength();
+    auto vertex2AggId = vertex2AggId_->getDeviceLocalView(Xpetra::Access::ReadOnly);
+    typename aggregates_sizes_type::const_type aggSizes = ComputeAggregateSizes(true);
+    LO INVALID = Teuchos::OrdinalTraits<LO>::invalid();
+
+    aggPtr = LO_view("aggPtr",numAggs+1);
+    aggNodes = LO_view("aggNodes",numNodes);
+    LO_view aggCurr("agg curr",numAggs+1);
+
+    // Construct the "rowptr" and the counter
+    Kokkos::parallel_scan("MueLu:Aggregates:ComputeNodesInAggregate:scan", range_type(0,numAggs+1),
+      KOKKOS_LAMBDA(const LO aggIdx, LO& aggOffset, bool final_pass) {
+        LO count = 0;
+        if(aggIdx < numAggs)
+          count = aggSizes(aggIdx);
+        if(final_pass) {
+          aggPtr(aggIdx) = aggOffset;
+          aggCurr(aggIdx) = aggOffset;
+          if(aggIdx==numAggs)
+            aggCurr(numAggs) = 0; // use this for counting unaggregated nodes
+        }
+        aggOffset += count;
+      });
+
+    // Preallocate unaggregated to the correct size
+    LO numUnaggregated = 0;
+    Kokkos::parallel_reduce("MueLu:Aggregates:ComputeNodesInAggregate:unaggregatedSize", range_type(0,numNodes),
+      KOKKOS_LAMBDA(const LO nodeIdx, LO & count) { 
+        if(vertex2AggId(nodeIdx,0)==INVALID) 
+          count++;
+      }, numUnaggregated);
+    unaggregated = LO_view("unaggregated",numUnaggregated);
+
+    // Stick the nodes in each aggregate's spot
+    Kokkos::parallel_for("MueLu:Aggregates:ComputeNodesInAggregate:for", range_type(0,numNodes),
+      KOKKOS_LAMBDA(const LO nodeIdx) {
+        LO aggIdx = vertex2AggId(nodeIdx,0);
+        if(aggIdx != INVALID) {
+          // atomic postincrement aggCurr(aggIdx) each time
+          aggNodes(Kokkos::atomic_fetch_add(&aggCurr(aggIdx),1)) = nodeIdx;
+        } else {
+          // same, but using last entry of aggCurr for unaggregated nodes
+          unaggregated(Kokkos::atomic_fetch_add(&aggCurr(numAggs),1)) = nodeIdx;
+        }
+      });
+    
+  }
 
   template <class LocalOrdinal, class GlobalOrdinal, class DeviceType>
   std::string Aggregates_kokkos<LocalOrdinal, GlobalOrdinal, Kokkos::Compat::KokkosDeviceWrapperNode<DeviceType> >::description() const {
-    return BaseClass::description() + "{nGlobalAggregates = " + toString(GetNumGlobalAggregates()) + "}";
+    if (numGlobalAggregates_ == -1) return BaseClass::description() + "{nGlobalAggregates = not computed}"; 
+    else                            return BaseClass::description() + "{nGlobalAggregates = " + toString(numGlobalAggregates_) + "}";
   }
 
   template <class LocalOrdinal, class GlobalOrdinal, class DeviceType>
   void Aggregates_kokkos<LocalOrdinal, GlobalOrdinal, Kokkos::Compat::KokkosDeviceWrapperNode<DeviceType> >::print(Teuchos::FancyOStream& out, const Teuchos::EVerbosityLevel verbLevel) const {
     MUELU_DESCRIBE;
 
-    if (verbLevel & Statistics1)
-      out0 << "Global number of aggregates: " << GetNumGlobalAggregates() << std::endl;
+    if (verbLevel & Statistics1) {
+      if (numGlobalAggregates_ == -1) out0 << "Global number of aggregates: not computed " << std::endl;
+      else                            out0 << "Global number of aggregates: " << numGlobalAggregates_ << std::endl;
+    }
   }
 
   template <class LocalOrdinal, class GlobalOrdinal, class DeviceType>
-  GlobalOrdinal Aggregates_kokkos<LocalOrdinal, GlobalOrdinal, Kokkos::Compat::KokkosDeviceWrapperNode<DeviceType> >::GetNumGlobalAggregates() const {
-    LO nAggregates = GetNumAggregates();
-    GO nGlobalAggregates;
-    MueLu_sumAll(vertex2AggId_->getMap()->getComm(), (GO)nAggregates, nGlobalAggregates);
-    return nGlobalAggregates;
+  GlobalOrdinal Aggregates_kokkos<LocalOrdinal, GlobalOrdinal, Kokkos::Compat::KokkosDeviceWrapperNode<DeviceType> >::GetNumGlobalAggregatesComputeIfNeeded() {
+
+    if (numGlobalAggregates_ != -1) {
+      LO nAggregates = GetNumAggregates();
+      GO nGlobalAggregates;
+      MueLu_sumAll(vertex2AggId_->getMap()->getComm(), (GO)nAggregates, nGlobalAggregates);
+      SetNumGlobalAggregates(nGlobalAggregates);
+    }
+    return numGlobalAggregates_;
   }
 
   template <class LocalOrdinal, class GlobalOrdinal, class DeviceType>

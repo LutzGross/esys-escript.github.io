@@ -1,7 +1,7 @@
-C Copyright(C) 1999-2020 National Technology & Engineering Solutions
+C Copyright(C) 1999-2020, 2023 National Technology & Engineering Solutions
 C of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 C NTESS, the U.S. Government retains certain rights in this software.
-C 
+C
 C See packages/seacas/LICENSE for details
 
 C=======================================================================
@@ -65,7 +65,7 @@ C   --   XN, YN, ZN - IN - the nodal coordinates
 
 10000  FORMAT (/, 1X, 'COORDINATES')
 10010  FORMAT (/, 1X, 'Node Ids are Global Ids',/,
-     *   5X, 6X, 4X, 5 (3X, A8, :, 3X), :, /,
+     *   5X, 14X, 4X, 5 (3X, A8, :, 3X), :, /,
      &   (1X, 5 (3X, A8, :, 3X)))
 10020  FORMAT (1X, 'Node ', I9, 4X, 5 (1X, 1PE13.6), :, /,
      &   (1X, 5 (1X, 1PE13.6)))

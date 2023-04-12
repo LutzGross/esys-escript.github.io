@@ -10,21 +10,17 @@
 #ifndef SIERRA_SLIB_RESOURCE2_H
 #define SIERRA_SLIB_RESOURCE2_H
 
-#include "stk_util/diag/String.hpp"       // for String, operator<, etc
-#include "stk_util/util/AnyData.hpp"      // for Value, AnyData
-#include "stk_util/util/Writer_fwd.hpp"   // for Writer
-#include <algorithm>                      // for find_if, lower_bound
-#include <stddef.h>                       // for size_t
-#include <typeinfo>                       // for type_info
-#include <vector>                         // for vector, etc
+#include "stk_util/diag/String.hpp"      // for String, operator<, operator==
+#include "stk_util/util/AnyData.hpp"     // for AnyData, Data (ptr only), Value, bad_any_data_cast
+#include "stk_util/util/Writer_fwd.hpp"  // for Writer
+#include <cstddef>                       // for size_t
+#include <algorithm>                     // for find_if, lower_bound
+#include <typeinfo>                      // for type_info
+#include <vector>                        // for vector, vector<>::const_iterator, vector<>::iter...
 
-namespace sierra {
-namespace Rsrc2 {
-class Resource;
-class ResourceList;
-struct Resource_;
-}
-}
+namespace sierra { namespace Rsrc2 { class Resource; } }
+namespace sierra { namespace Rsrc2 { class ResourceList; } }
+namespace sierra { namespace Rsrc2 { struct Resource_; } }
 
 namespace sierra {
 namespace Rsrc2 {
@@ -158,7 +154,7 @@ class ResourceList {
     {
     }
 
-    bool operator()(const Resource& resource) { return resource.name() == m_name; }
+    bool operator()(const Resource& resource) { return resource.name().size() == m_name.size() && resource.name() == m_name; }
 
     const String& m_name;
   };
@@ -170,10 +166,7 @@ class ResourceList {
 
   Resource front() const { return m_resourceVector.front(); }
 
-  void insert(Resource resource)
-  {
-    m_resourceVector.insert(std::lower_bound(m_resourceVector.begin(), m_resourceVector.end(), resource), resource);
-  }
+  void insert(Resource resource);
 
   iterator find(const String& resource_name) { return std::find_if(begin(), end(), find_pred(resource_name)); }
 

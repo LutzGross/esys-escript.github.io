@@ -45,17 +45,18 @@
 // @HEADER
 #include <Teuchos_UnitTestHarness.hpp>
 #include <Teuchos_ScalarTraits.hpp>
+#include <Teuchos_Comm.hpp>
 
 #include <Xpetra_MultiVectorFactory.hpp>
+#include <Xpetra_Matrix.hpp>
 #include <Xpetra_MatrixMatrix.hpp>
 #include <Xpetra_BlockReorderManager.hpp>
 #include <Xpetra_ReorderedBlockedCrsMatrix.hpp>
+#include <Xpetra_IO.hpp>
 
 #include <MueLu_config.hpp>
-
 #include <MueLu_TestHelpers.hpp>
 #include <MueLu_Version.hpp>
-
 #include <MueLu_Utilities.hpp>
 
 // This file is intended to house all the tests for MueLu_Utilities.hpp.
@@ -460,6 +461,7 @@ namespace MueLuTests {
     }
 #endif
   }
+
   TEUCHOS_UNIT_TEST_TEMPLATE_4_DECL(Utilities,GetInverse,Scalar,LocalOrdinal,GlobalOrdinal,Node)
   {
 #   include <MueLu_UseShortNames.hpp>
@@ -476,13 +478,14 @@ namespace MueLuTests {
 
     RCP<Vector> v  = Xpetra::VectorFactory<Scalar,LocalOrdinal,GlobalOrdinal,Node>::Build(m, true);
     RCP<Vector> tv = Xpetra::VectorFactory<Scalar,LocalOrdinal,GlobalOrdinal,Node>::Build(m, true);
-    Teuchos::ArrayRCP<Scalar> vData  = v->getDataNonConst(0);
-    Teuchos::ArrayRCP<Scalar> tvData = tv->getDataNonConst(0);
-    for(LocalOrdinal i = 0; i < Teuchos::as<LocalOrdinal>(v->getLocalLength()); ++i) {
-      vData[i] = Teuchos::as<Scalar>(i+1);
-      tvData[i] = Teuchos::ScalarTraits<Scalar>::one() / Teuchos::as<Scalar>(i+1);
+    {
+      Teuchos::ArrayRCP<Scalar> vData  = v->getDataNonConst(0);
+      Teuchos::ArrayRCP<Scalar> tvData = tv->getDataNonConst(0);
+      for(LocalOrdinal i = 0; i < Teuchos::as<LocalOrdinal>(v->getLocalLength()); ++i) {
+	vData[i] = Teuchos::as<Scalar>(i+1);
+	tvData[i] = Teuchos::ScalarTraits<Scalar>::one() / Teuchos::as<Scalar>(i+1);
+      }
     }
-
     RCP<Vector> inv = Utilities::GetInverse(v);
 
     tv->update(1.0,*inv,-1.0);
@@ -491,12 +494,142 @@ namespace MueLuTests {
     TEST_EQUALITY(tv->normInf(),Teuchos::ScalarTraits<Scalar>::zero());
   }
 
+  TEUCHOS_UNIT_TEST_TEMPLATE_4_DECL(Utilities,GetThresholdedMatrix,Scalar,LocalOrdinal,GlobalOrdinal,Node)
+  {
+#   include <MueLu_UseShortNames.hpp>
+      MUELU_TESTING_SET_OSTREAM;
+      MUELU_TESTING_LIMIT_SCOPE(Scalar,GlobalOrdinal,Node);
+
+      using TST = Teuchos::ScalarTraits<SC>;
+      using magnitude_type = typename TST::magnitudeType;
+      using TMT = Teuchos::ScalarTraits<magnitude_type>;
+
+      RCP<const Teuchos::Comm<int> > comm = Parameters::getDefaultComm();
+      Xpetra::UnderlyingLib lib = MueLuTests::TestHelpers::Parameters::getLib();
+
+      // Don't test for complex - matrix reader won't work
+      if (TST::isComplex) {success=true; return;}
+      RCP<Matrix> Ain = Xpetra::IO<Scalar,LocalOrdinal,GlobalOrdinal,Node>::Read("TestMatrices/filter.mm", lib, comm);
+
+      RCP<Xpetra::Matrix<Scalar,LocalOrdinal,GlobalOrdinal,Node>> Aout =
+              MueLu::Utilities<Scalar,LocalOrdinal,GlobalOrdinal,Node>::GetThresholdedMatrix(Ain, 1e-5, true, -1);
+
+      TEST_EQUALITY(Aout->getCrsGraph()->getGlobalNumEntries(), Teuchos::as<size_t>(13));
+      TEST_FLOATING_EQUALITY(Aout->getFrobeniusNorm(), Teuchos::as<magnitude_type>(7.549834435270750), 1e2*Teuchos::ScalarTraits<Scalar>::eps());
+  }
+
+  TEUCHOS_UNIT_TEST_TEMPLATE_4_DECL(Utilities,GetThresholdedGraph,Scalar,LocalOrdinal,GlobalOrdinal,Node)
+  {
+#   include <MueLu_UseShortNames.hpp>
+      MUELU_TESTING_SET_OSTREAM;
+      MUELU_TESTING_LIMIT_SCOPE(Scalar,GlobalOrdinal,Node);
+
+      using TST = Teuchos::ScalarTraits<SC>;
+      using magnitude_type = typename TST::magnitudeType;
+      using TMT = Teuchos::ScalarTraits<magnitude_type>;
+
+      RCP<const Teuchos::Comm<int> > comm = Parameters::getDefaultComm();
+      Xpetra::UnderlyingLib lib = MueLuTests::TestHelpers::Parameters::getLib();
+
+      // Don't test for complex - matrix reader won't work
+      if (TST::isComplex) {success=true; return;}
+      RCP<Matrix> A = Xpetra::IO<Scalar,LocalOrdinal,GlobalOrdinal,Node>::Read("TestMatrices/filter.mm", lib, comm);
+
+      RCP<Xpetra::CrsGraph<LocalOrdinal,GlobalOrdinal,Node>> graph =
+              MueLu::Utilities<Scalar,LocalOrdinal,GlobalOrdinal,Node>::GetThresholdedGraph(A, 1e-5, -1);
+
+      TEST_EQUALITY(graph->getGlobalNumEntries(), Teuchos::as<size_t>(13));
+  }
+
+  TEUCHOS_UNIT_TEST_TEMPLATE_4_DECL(Utilities,TransposeNonsymmetricConstMatrix,Scalar,LocalOrdinal,GlobalOrdinal,Node)
+  {
+#   include <MueLu_UseShortNames.hpp>
+    MUELU_TESTING_SET_OSTREAM;
+    MUELU_TESTING_LIMIT_SCOPE(Scalar,GlobalOrdinal,Node);
+
+    RCP<const Teuchos::Comm<int> > comm = TestHelpers::Parameters::getDefaultComm();
+    Xpetra::UnderlyingLib lib = TestHelpers::Parameters::getLib();
+
+    const GO numGlobalElements = 29;
+    RCP<Map> dofMap  = Xpetra::MapFactory<LocalOrdinal,GlobalOrdinal,Node>::Build(lib, numGlobalElements, 0, comm);
+
+    TEST_ASSERT(!dofMap.is_null());
+    TEST_EQUALITY_CONST(dofMap->getGlobalNumElements(), numGlobalElements);
+
+    RCP<const Matrix> matrix = TestHelpers::TestFactory<SC, LO, GO, NO>::BuildTridiag(dofMap, 1.0, 2.0, 3.0, lib);
+    TEST_ASSERT(!matrix.is_null());
+    TEST_EQUALITY_CONST(matrix->getGlobalNumRows(), numGlobalElements);
+
+    RCP<const Matrix> transposedMatrix = Utilities::Transpose(const_cast<Matrix&>(*matrix));
+    TEST_ASSERT(!transposedMatrix.is_null());
+
+    TEST_ASSERT(transposedMatrix->getRangeMap()->isSameAs(*matrix->getDomainMap()));
+    TEST_ASSERT(transposedMatrix->getDomainMap()->isSameAs(*matrix->getRangeMap()));
+
+    // Verify, that A^T actually differs from A
+    {
+      RCP<Matrix> diffMatrix = rcp(new CrsMatrixWrap(matrix->getCrsGraph()));
+      MatrixMatrix::TwoMatrixAdd(*matrix, false, 1.0, *transposedMatrix, false, -1.0, diffMatrix, out);
+      diffMatrix->fillComplete();
+      TEST_ASSERT(!diffMatrix.is_null());
+
+      bool allEntriesAreZero = true;
+      for (LO lRowId = 0; lRowId < Teuchos::as<LO>(diffMatrix->getLocalNumRows()); ++lRowId)
+      {
+        ArrayView<const LO> cols;
+        ArrayView<const Scalar> vals;
+        diffMatrix->getLocalRowView(lRowId, cols, vals);
+
+        TEST_INEQUALITY_CONST(cols.size(), 0);
+        TEST_INEQUALITY_CONST(vals.size(), 0);
+
+        for (const auto& entry : vals) {
+          if (entry != Teuchos::ScalarTraits<Scalar>::zero()) allEntriesAreZero = false;
+        }
+      }
+      TEST_ASSERT(!allEntriesAreZero);
+    }
+
+    RCP<const Matrix> doubleTransposedMatrix = Utilities::Transpose(const_cast<Matrix&>(*transposedMatrix));
+    TEST_ASSERT(!doubleTransposedMatrix.is_null());
+
+    TEST_ASSERT(doubleTransposedMatrix->getRangeMap()->isSameAs(*matrix->getRangeMap()));
+    TEST_ASSERT(doubleTransposedMatrix->getDomainMap()->isSameAs(*matrix->getDomainMap()));
+
+    // Transpose twice: A - (A^T)^T needs to be the zero matrix
+    {
+      RCP<Matrix> diffMatrix = rcp(new CrsMatrixWrap(matrix->getCrsGraph()));
+      MatrixMatrix::TwoMatrixAdd(*matrix, false, 1.0, *doubleTransposedMatrix, false, -1.0, diffMatrix, out);
+      diffMatrix->fillComplete();
+      TEST_ASSERT(!diffMatrix.is_null());
+
+      bool allEntriesAreZero = true;
+      for (LO lRowId = 0; lRowId < Teuchos::as<LO>(diffMatrix->getLocalNumRows()); ++lRowId)
+      {
+        ArrayView<const LO> cols;
+        ArrayView<const Scalar> vals;
+        diffMatrix->getLocalRowView(lRowId, cols, vals);
+
+        TEST_INEQUALITY_CONST(cols.size(), 0);
+        TEST_INEQUALITY_CONST(vals.size(), 0);
+
+        for (const auto& entry : vals) {
+          if (entry != Teuchos::ScalarTraits<Scalar>::zero()) allEntriesAreZero = false;
+        }
+      }
+      TEST_ASSERT(allEntriesAreZero);
+    }
+  }
+
 #define MUELU_ETI_GROUP(Scalar, LO, GO, Node) \
-         TEUCHOS_UNIT_TEST_TEMPLATE_4_INSTANT(Utilities,MatMatMult_EpetraVsTpetra,Scalar,LO,GO,Node) \
-         TEUCHOS_UNIT_TEST_TEMPLATE_4_INSTANT(Utilities,DetectDirichletRows,Scalar,LO,GO,Node) \
-         TEUCHOS_UNIT_TEST_TEMPLATE_4_INSTANT(Utilities,GetDiagonalInverse,Scalar,LO,GO,Node) \
-         TEUCHOS_UNIT_TEST_TEMPLATE_4_INSTANT(Utilities,GetLumpedDiagonal,Scalar,LO,GO,Node) \
-         TEUCHOS_UNIT_TEST_TEMPLATE_4_INSTANT(Utilities,GetInverse,Scalar,LO,GO,Node)
+  TEUCHOS_UNIT_TEST_TEMPLATE_4_INSTANT(Utilities,MatMatMult_EpetraVsTpetra,Scalar,LO,GO,Node) \
+  TEUCHOS_UNIT_TEST_TEMPLATE_4_INSTANT(Utilities,DetectDirichletRows,Scalar,LO,GO,Node) \
+  TEUCHOS_UNIT_TEST_TEMPLATE_4_INSTANT(Utilities,GetDiagonalInverse,Scalar,LO,GO,Node) \
+  TEUCHOS_UNIT_TEST_TEMPLATE_4_INSTANT(Utilities,GetLumpedDiagonal,Scalar,LO,GO,Node) \
+  TEUCHOS_UNIT_TEST_TEMPLATE_4_INSTANT(Utilities,GetInverse,Scalar,LO,GO,Node) \
+  TEUCHOS_UNIT_TEST_TEMPLATE_4_INSTANT(Utilities,GetThresholdedMatrix,Scalar,LO,GO,Node) \
+  TEUCHOS_UNIT_TEST_TEMPLATE_4_INSTANT(Utilities,GetThresholdedGraph,Scalar,LO,GO,Node) \
+  TEUCHOS_UNIT_TEST_TEMPLATE_4_INSTANT(Utilities,TransposeNonsymmetricConstMatrix,Scalar,LO,GO,Node)
 
 #include <MueLu_ETI_4arg.hpp>
 

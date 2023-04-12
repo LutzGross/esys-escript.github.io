@@ -98,9 +98,6 @@ int main_(Teuchos::CommandLineProcessor &clp, Xpetra::UnderlyingLib& lib, int ar
   std::string xmlForceFile = "";
   bool useKokkos = false;
   if(lib == Xpetra::UseTpetra) {
-#if !defined(HAVE_MUELU_KOKKOS_REFACTOR)
-    useKokkos = false;
-#else
 # ifdef HAVE_MUELU_SERIAL
     if (typeid(Node).name() == typeid(Kokkos::Compat::KokkosSerialWrapperNode).name())
       useKokkos = false;
@@ -113,7 +110,10 @@ int main_(Teuchos::CommandLineProcessor &clp, Xpetra::UnderlyingLib& lib, int ar
     if (typeid(Node).name() == typeid(Kokkos::Compat::KokkosCudaWrapperNode).name())
       useKokkos = true;
 # endif
-#endif
+# ifdef HAVE_MUELU_HIP
+    if (typeid(Node).name() == typeid(Kokkos::Compat::KokkosHIPWrapperNode).name())
+      useKokkos = true;
+# endif
   }
   bool compareWithGold = true;
 #ifdef KOKKOS_ENABLE_CUDA
@@ -121,7 +121,12 @@ int main_(Teuchos::CommandLineProcessor &clp, Xpetra::UnderlyingLib& lib, int ar
     // Behavior of some algorithms on Cuda is non-deterministic, so we won't check the output.
     compareWithGold = false;
 #endif
-  clp.setOption("kokkosRefactor", "noKokkosRefactor", &useKokkos, "use kokkos refactor");
+#ifdef KOKKOS_ENABLE_HIP
+  if (typeid(Node).name() == typeid(Kokkos::Compat::KokkosHIPWrapperNode).name())
+    // Behavior of some algorithms on HIP is non-deterministic, so we won't check the output.
+    compareWithGold = false;
+#endif
+  clp.setOption("useKokkosRefactor", "noKokkosRefactor", &useKokkos, "use kokkos refactor");
   clp.setOption("heavytests", "noheavytests",  &runHeavyTests, "whether to exercise tests that take a long time to run");
   clp.setOption("xml", &xmlForceFile, "xml input file (useful for debugging)");
   clp.setOption("compareWithGold", "skipCompareWithGold", &compareWithGold, "compare runs against gold files");
@@ -141,15 +146,12 @@ int main_(Teuchos::CommandLineProcessor &clp, Xpetra::UnderlyingLib& lib, int ar
   matrixParameters.set("matrixType", "Laplace1D");
   RCP<Matrix>      A           = MueLuTests::TestHelpers::TestFactory<SC, LO, GO, NO>::Build1DPoisson(matrixParameters.get<GO>("nx"), lib);
   RCP<RealValuedMultiVector> coordinates = Galeri::Xpetra::Utils::CreateCartesianCoordinates<real_type,LO,GO,Map,RealValuedMultiVector>("1D", A->getRowMap(), matrixParameters);
+  RCP<MultiVector> nullspace = MultiVectorFactory::Build(A->getRowMap(), 1);
+  nullspace->putScalar(1.0);
 
   std::string prefix;
   if (useKokkos) {
-#if defined(HAVE_MUELU_KOKKOS_REFACTOR)
     prefix = "kokkos/";
-#else
-    std::cout << "No kokkos refactor available." << std::endl;
-    return EXIT_FAILURE;
-#endif
   } else {
     prefix = "default/";
   }
@@ -213,6 +215,7 @@ int main_(Teuchos::CommandLineProcessor &clp, Xpetra::UnderlyingLib& lib, int ar
         baseFile = outFile.substr(0, outFile.find_last_of('.'));
         found = baseFile.find("_np");
         jumpOut = true;
+        xmlFile = prefix + xmlFile;
         std::cout << "Test dir: " << dirList[k] << std::endl;
       }
 
@@ -246,13 +249,11 @@ int main_(Teuchos::CommandLineProcessor &clp, Xpetra::UnderlyingLib& lib, int ar
       Teuchos::ParameterList paramList;
       Teuchos::updateParametersFromXmlFileAndBroadcast(xmlFile, Teuchos::Ptr<Teuchos::ParameterList>(&paramList), *comm);
       if      (dirList[k] == prefix+"EasyParameterListInterpreter/" || dirList[k] == prefix+"EasyParameterListInterpreter-heavy/")
-        paramList.set("verbosity", "test");
+        paramList.set("verbosity", "interfacetest");
       else if (dirList[k] == prefix+"FactoryParameterListInterpreter/" || dirList[k] == prefix+"FactoryParameterListInterpreter-heavy/")
-        paramList.sublist("Hierarchy").set("verbosity", "Test");
-      else if (dirList[k] == prefix+"MLParameterListInterpreter/")
-        paramList.set("ML output",     42);
-      else if (dirList[k] == prefix+"MLParameterListInterpreter2/")
-        paramList.set("ML output",     10);
+        paramList.sublist("Hierarchy").set("verbosity", "InterfaceTest");
+      else if (dirList[k] == prefix+"MLParameterListInterpreter/" || dirList[k] == prefix+"MLParameterListInterpreter2/")
+        paramList.set("ML output",     666);
 
       try {
         timer.start();
@@ -262,6 +263,7 @@ int main_(Teuchos::CommandLineProcessor &clp, Xpetra::UnderlyingLib& lib, int ar
         // here we have to distinguish between the general MueLu parameter list interpreter
         // and the ML parameter list interpreter. Note that the ML paramter interpreter also
         // works with Tpetra matrices.
+        bool coordsSet = false;
         if (dirList[k] == prefix+"EasyParameterListInterpreter/"         ||
             dirList[k] == prefix+"EasyParameterListInterpreter-heavy/") {
           paramList.set("use kokkos refactor", useKokkos);
@@ -273,6 +275,20 @@ int main_(Teuchos::CommandLineProcessor &clp, Xpetra::UnderlyingLib& lib, int ar
 
         } else if (dirList[k] == prefix+"MLParameterListInterpreter/") {
           paramList.set("use kokkos refactor", useKokkos);
+
+          paramList.set("x-coordinates",coordinates->getDataNonConst(0).get());
+          if (coordinates->getNumVectors() > 1)
+            paramList.set("y-coordinates",coordinates->getDataNonConst(1).get());
+          if (coordinates->getNumVectors() > 2)
+            paramList.set("z-coordinates",coordinates->getDataNonConst(2).get());
+          coordsSet = true;
+
+          // MLParameterInterpreter needs the nullspace information if rebalancing is active!
+          // add default constant null space vector
+          paramList.set("null space: type", "pre-computed");
+          paramList.set("null space: dimension", Teuchos::as<int>(nullspace->getNumVectors()));
+          paramList.set("null space: vectors", nullspace->getDataNonConst(0).get());
+
           mueluFactory = Teuchos::rcp(new MLParameterListInterpreter(paramList));
 
         } else if (dirList[k] == prefix+"MLParameterListInterpreter2/") {
@@ -286,15 +302,8 @@ int main_(Teuchos::CommandLineProcessor &clp, Xpetra::UnderlyingLib& lib, int ar
 
         H->GetLevel(0)->template Set<RCP<Matrix> >("A", A);
 
-        if (dirList[k] == prefix+"MLParameterListInterpreter/") {
-          // MLParameterInterpreter needs the nullspace information if rebalancing is active!
-          // add default constant null space vector
-          RCP<MultiVector> nullspace = MultiVectorFactory::Build(A->getRowMap(), 1);
-          nullspace->putScalar(1.0);
-          H->GetLevel(0)->Set("Nullspace", nullspace);
-        }
-
-        H->GetLevel(0)->Set("Coordinates", coordinates);
+        if (!coordsSet)
+          H->GetLevel(0)->Set("Coordinates", coordinates);
 
         mueluFactory->SetupHierarchy(*H);
 
@@ -439,6 +448,9 @@ int main_(Teuchos::CommandLineProcessor &clp, Xpetra::UnderlyingLib& lib, int ar
 
 int main(int argc, char *argv[]) {
   Teuchos::TimeMonitor::setStackedTimer(Teuchos::null);
+#ifdef KOKKOS_ENABLE_OPENMP
+  omp_set_num_threads(1);
+#endif
   return Automatic_Test_ETI(argc,argv);
 }
 

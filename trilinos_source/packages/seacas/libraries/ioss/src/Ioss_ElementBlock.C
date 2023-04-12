@@ -1,7 +1,7 @@
-// Copyright(C) 1999-2020 National Technology & Engineering Solutions
+// Copyright(C) 1999-2021 National Technology & Engineering Solutions
 // of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 // NTESS, the U.S. Government retains certain rights in this software.
-// 
+//
 // See packages/seacas/LICENSE for details
 
 #include "Ioss_BoundingBox.h"  // for AxisAlignedBoundingBox
@@ -61,8 +61,24 @@ namespace Ioss {
     get_database()->get_block_adjacencies(this, block_adjacency);
   }
 
+  std::vector<std::string> ElementBlock::get_block_adjacencies() const
+  {
+    std::vector<std::string> block_adjacency;
+    get_database()->get_block_adjacencies(this, block_adjacency);
+    return block_adjacency;
+  }
+
   AxisAlignedBoundingBox ElementBlock::get_bounding_box() const
   {
     return get_database()->get_bounding_box(this);
   }
+
+  bool ElementBlock::operator==(const ElementBlock &rhs) const
+  {
+    return EntityBlock::operator==(rhs);
+  }
+
+  bool Ioss::ElementBlock::operator!=(const ElementBlock &rhs) const { return !(*this == rhs); }
+
+  bool ElementBlock::equal(const ElementBlock &rhs) const { return EntityBlock::equal(rhs); }
 } // namespace Ioss

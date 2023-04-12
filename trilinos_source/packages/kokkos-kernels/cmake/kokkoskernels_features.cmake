@@ -10,12 +10,20 @@ endfunction()
 
 KOKKOSKERNELS_ADD_OPTION(
   ENABLE_SUPERNODAL_SPTRSV
-  OFF
+  ON
   BOOL
   "Whether to build supernodal SPTRSV support")
-KOKKOSKERNELS_FEATURE_DEPENDS_ON_TPLS(
-  SUPERNODAL_SPTRSV
-    CHOLMOD
-    SUPERLU
-    BLAS
-)
+
+IF (KOKKOSKERNELS_ENABLE_SUPERNODAL_SPTRSV AND NOT KOKKOSKERNELS_INST_LAYOUTLEFT)
+  MESSAGE(WARNING "Disabling SUPERNODAL_SPTRSV - this capability is only supported with LayoutLeft")
+  SET(KOKKOSKERNELS_ENABLE_SUPERNODAL_SPTRSV OFF CACHE BOOL "Disabling SUPERNODAL_SPTRSV - this capability is only supported with LayoutLeft" FORCE)
+ENDIF()
+
+# ==================================================================
+# Fortran Complex BLAS
+# ==================================================================
+
+IF (KOKKOSKERNELS_ENABLE_TPL_BLAS OR KOKKOSKERNELS_ENABLE_TPL_MKL OR KOKKOSKERNELS_ENABLE_TPL_ARMPL)
+  INCLUDE(CheckHostBlasReturnComplex.cmake)
+  CHECK_HOST_BLAS_RETURN_COMPLEX(KOKKOSKERNELS_TPL_BLAS_RETURN_COMPLEX)
+ENDIF()

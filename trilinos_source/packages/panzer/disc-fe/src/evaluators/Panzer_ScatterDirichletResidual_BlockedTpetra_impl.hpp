@@ -40,17 +40,17 @@
 // ***********************************************************************
 // @HEADER
 
-#ifndef PANZER_SCATTER_DIRICHLET_RESIDUAL_BLOCEDEPETRA_IMPL_HPP
-#define PANZER_SCATTER_DIRICHLET_RESIDUAL_BLOCEDEPETRA_IMPL_HPP
+#ifndef PANZER_SCATTER_DIRICHLET_RESIDUAL_BLOCEDTPETRA_IMPL_HPP
+#define PANZER_SCATTER_DIRICHLET_RESIDUAL_BLOCEDTPETRA_IMPL_HPP
 
 #include "Teuchos_RCP.hpp"
 #include "Teuchos_Assert.hpp"
 
 #include "Phalanx_DataLayout.hpp"
 
-#include "Epetra_Map.h"
-#include "Epetra_Vector.h"
-#include "Epetra_CrsMatrix.h"
+// #include "Epetra_Map.h"
+// #include "Epetra_Vector.h"
+// #include "Epetra_CrsMatrix.h"
 
 #include "Panzer_GlobalIndexer.hpp"
 #include "Panzer_BlockedDOFManager.hpp"
@@ -63,7 +63,7 @@
 #include "Thyra_SpmdVectorBase.hpp"
 #include "Thyra_ProductVectorBase.hpp"
 #include "Thyra_BlockedLinearOpBase.hpp"
-#include "Thyra_get_Epetra_Operator.hpp"
+// #include "Thyra_get_Epetra_Operator.hpp"
 
 #include "Teuchos_FancyOStream.hpp"
 
@@ -189,7 +189,7 @@ postRegistrationSetup(typename TRAITS::SetupData d,
       const auto& offsetPair = fieldGlobalIndexers_[fd]->getGIDFieldOffsets_closure(blockId,fieldIds_[fd],side_subcell_dim_,local_side_id_);
       {
         const auto& offsets =  offsetPair.first;
-        fieldOffsets_[fd] = Kokkos::View<int*,PHX::Device>("ScatterDirichletResidual_BlockedTpetra(Residual):fieldOffsets",offsets.size());
+        fieldOffsets_[fd] = PHX::View<int*>("ScatterDirichletResidual_BlockedTpetra(Residual):fieldOffsets",offsets.size());
         auto hostOffsets = Kokkos::create_mirror_view(fieldOffsets_[fd]);
         for (std::size_t i=0; i < offsets.size(); ++i)
           hostOffsets(i) = offsets[i];
@@ -197,7 +197,7 @@ postRegistrationSetup(typename TRAITS::SetupData d,
       }
       {
         const auto& basisIndex =  offsetPair.second;
-        basisIndexForMDFieldOffsets_[fd] = Kokkos::View<int*,PHX::Device>("ScatterDirichletResidual_BlockedTpetra(Residual):basisIndexForMDFieldOffsets",basisIndex.size());
+        basisIndexForMDFieldOffsets_[fd] = PHX::View<int*>("ScatterDirichletResidual_BlockedTpetra(Residual):basisIndexForMDFieldOffsets",basisIndex.size());
         auto hostBasisIndex = Kokkos::create_mirror_view(basisIndexForMDFieldOffsets_[fd]);
         for (std::size_t i=0; i < basisIndex.size(); ++i)
           hostBasisIndex(i) = basisIndex[i];
@@ -207,7 +207,7 @@ postRegistrationSetup(typename TRAITS::SetupData d,
     else {
       // For ICs, only need offsets, not basisIndex
       const std::vector<int>& offsets = fieldGlobalIndexers_[fd]->getGIDFieldOffsets(blockId,fieldIds_[fd]);
-      fieldOffsets_[fd] = Kokkos::View<int*,PHX::Device>("ScatterDirichletResidual_BlockedTpetra(Residual):fieldOffsets",offsets.size());
+      fieldOffsets_[fd] = PHX::View<int*>("ScatterDirichletResidual_BlockedTpetra(Residual):fieldOffsets",offsets.size());
       auto hostOffsets = Kokkos::create_mirror_view(fieldOffsets_[fd]);
       for (std::size_t i=0; i < offsets.size(); ++i)
         hostOffsets(i) = offsets[i];
@@ -215,13 +215,12 @@ postRegistrationSetup(typename TRAITS::SetupData d,
     }
 
     maxElementBlockGIDCount = std::max(fieldGlobalIndexers_[fd]->getElementBlockGIDCount(blockId),maxElementBlockGIDCount);
-    typename PHX::Device().fence();
   }
 
   // We will use one workset lid view for all fields, but has to be
   // sized big enough to hold the largest elementBlockGIDCount in the
   // ProductVector.
-  worksetLIDs_ = Kokkos::View<LO**,PHX::Device>("ScatterResidual_BlockedTpetra(Residual):worksetLIDs",
+  worksetLIDs_ = PHX::View<LO**>("ScatterResidual_BlockedTpetra(Residual):worksetLIDs",
                                                 scatterFields_[0].extent(0),
                                                 maxElementBlockGIDCount);
 }
@@ -269,18 +268,18 @@ evaluateFields(typename TRAITS::EvalData workset)
      }
 
      // Get Scatter target block
-     const auto& tpetraScatterTarget = *((rcp_dynamic_cast<Thyra::TpetraVector<RealType,LO,GO,NodeT>>(thyraScatterTarget->getNonconstVectorBlock(productVectorBlockIndex_[fieldIndex]),true))->getTpetraVector());
-     const auto& kokkosScatterTarget = tpetraScatterTarget.template getLocalView<PHX::mem_space>();
+     auto& tpetraScatterTarget = *((rcp_dynamic_cast<Thyra::TpetraVector<RealType,LO,GO,NodeT>>(thyraScatterTarget->getNonconstVectorBlock(productVectorBlockIndex_[fieldIndex]),true))->getTpetraVector());
+     const auto& kokkosScatterTarget = tpetraScatterTarget.getLocalViewDevice(Tpetra::Access::ReadWrite);
 
      // Get dirichlet counter block
-     const auto& tpetraDirichletCounter = *((rcp_dynamic_cast<Thyra::TpetraVector<RealType,LO,GO,NodeT>>(dirichletCounter_->getNonconstVectorBlock(productVectorBlockIndex_[fieldIndex]),true))->getTpetraVector());
-     const auto& kokkosDirichletCounter = tpetraDirichletCounter.template getLocalView<PHX::mem_space>();
+     auto& tpetraDirichletCounter = *((rcp_dynamic_cast<Thyra::TpetraVector<RealType,LO,GO,NodeT>>(dirichletCounter_->getNonconstVectorBlock(productVectorBlockIndex_[fieldIndex]),true))->getTpetraVector());
+     const auto& kokkosDirichletCounter = tpetraDirichletCounter.getLocalViewDevice(Tpetra::Access::ReadWrite);
 
      // Class data fields for lambda capture
      const auto fieldOffsets = fieldOffsets_[fieldIndex];
      const auto basisIndices = basisIndexForMDFieldOffsets_[fieldIndex];
      const auto worksetLIDs = worksetLIDs_;
-     const auto fieldValues = scatterFields_[fieldIndex];
+     const auto fieldValues = scatterFields_[fieldIndex].get_static_view();
      const auto applyBC = applyBC_[fieldIndex].get_static_view();
      const bool checkApplyBC = checkApplyBC_;
 
@@ -399,7 +398,7 @@ postRegistrationSetup(typename TRAITS::SetupData d,
     const auto& offsetPair = fieldGlobalIndexer->getGIDFieldOffsets_closure(blockId,fieldIds_[fd],side_subcell_dim_,local_side_id_);
     {
       const auto& offsets =  offsetPair.first;
-      fieldOffsets_[fd] = Kokkos::View<int*,PHX::Device>("ScatterDirichletResidual_BlockedTpetra(Jacobian):fieldOffsets",offsets.size());
+      fieldOffsets_[fd] = PHX::View<int*>("ScatterDirichletResidual_BlockedTpetra(Jacobian):fieldOffsets",offsets.size());
       auto hostOffsets = Kokkos::create_mirror_view(fieldOffsets_[fd]);
       for (std::size_t i=0; i < offsets.size(); ++i)
         hostOffsets(i) = offsets[i];
@@ -407,7 +406,7 @@ postRegistrationSetup(typename TRAITS::SetupData d,
     }
     {
       const auto& basisIndex =  offsetPair.second;
-      basisIndexForMDFieldOffsets_[fd] = Kokkos::View<int*,PHX::Device>("ScatterDirichletResidual_BlockedTpetra(Jacobian):basisIndexForMDFieldOffsets",basisIndex.size());
+      basisIndexForMDFieldOffsets_[fd] = PHX::View<int*>("ScatterDirichletResidual_BlockedTpetra(Jacobian):basisIndexForMDFieldOffsets",basisIndex.size());
       auto hostBasisIndex = Kokkos::create_mirror_view(basisIndexForMDFieldOffsets_[fd]);
       for (std::size_t i=0; i < basisIndex.size(); ++i)
         hostBasisIndex(i) = basisIndex[i];
@@ -419,24 +418,24 @@ postRegistrationSetup(typename TRAITS::SetupData d,
   // we need the LIDs for all sub-blocks, not just the single
   // sub-block for the field residual scatter.
   int elementBlockGIDCount = 0;
-  for (const auto blockDOFMgr : globalIndexer_->getFieldDOFManagers())
+  for (const auto& blockDOFMgr : globalIndexer_->getFieldDOFManagers())
     elementBlockGIDCount += blockDOFMgr->getElementBlockGIDCount(blockId);
 
-  worksetLIDs_ = Kokkos::View<LO**,PHX::Device>("ScatterDirichletResidual_BlockedTpetra(Jacobian):worksetLIDs",
+  worksetLIDs_ = PHX::View<LO**>("ScatterDirichletResidual_BlockedTpetra(Jacobian):worksetLIDs",
                                                 scatterFields_[0].extent(0),
                                                 elementBlockGIDCount);
 
   // Compute the block offsets
   const auto& blockGlobalIndexers = globalIndexer_->getFieldDOFManagers();
   const int numBlocks = static_cast<int>(globalIndexer_->getFieldDOFManagers().size());
-  blockOffsets_ = Kokkos::View<LO*,PHX::Device>("ScatterDirichletResidual_BlockedTpetra(Jacobian):blockOffsets_",
+  blockOffsets_ = PHX::View<LO*>("ScatterDirichletResidual_BlockedTpetra(Jacobian):blockOffsets_",
                                                 numBlocks+1); // Number of fields, plus a sentinel
   const auto hostBlockOffsets = Kokkos::create_mirror_view(blockOffsets_);
   for (int blk=0;blk<numBlocks;blk++) {
     int blockOffset = globalIndexer_->getBlockGIDOffset(blockId,blk);
     hostBlockOffsets(blk) = blockOffset;
   }
-  blockOffsets_(numBlocks) = blockOffsets_(numBlocks-1) + blockGlobalIndexers[blockGlobalIndexers.size()-1]->getElementBlockGIDCount(blockId);
+  hostBlockOffsets(numBlocks) = hostBlockOffsets(numBlocks-1) + blockGlobalIndexers[blockGlobalIndexers.size()-1]->getElementBlockGIDCount(blockId);
   Kokkos::deep_copy(blockOffsets_,hostBlockOffsets);
 
   // Make sure the that hard coded derivative dimension in the
@@ -451,8 +450,6 @@ postRegistrationSetup(typename TRAITS::SetupData d,
                                << "in the evaluate call! You must manually increase the "
                                << "size and recompile!");
   }
-
-  typename PHX::Device().fence();
 }
 
 // **********************************************************************
@@ -495,11 +492,11 @@ evaluateFields(typename TRAITS::EvalData workset)
   // on host and then deep_copy to device. The sub-blocks are
   // unmanaged since they are allocated and ref counted separately on
   // host.
-  using LocalMatrixType = KokkosSparse::CrsMatrix<double,LO,PHX::Device,Kokkos::MemoryTraits<Kokkos::Unmanaged>>;
-  typename Kokkos::View<LocalMatrixType**,PHX::Device>::HostMirror
+  using LocalMatrixType = KokkosSparse::CrsMatrix<double,LO,PHX::Device,Kokkos::MemoryTraits<Kokkos::Unmanaged>, size_t>;
+  typename PHX::View<LocalMatrixType**>::HostMirror
     hostJacTpetraBlocks("panzer::ScatterResidual_BlockTpetra<Jacobian>::hostJacTpetraBlocks", numFieldBlocks,numFieldBlocks);
 
-  Kokkos::View<int**,PHX::Device> blockExistsInJac =   Kokkos::View<int**,PHX::Device>("blockExistsInJac_",numFieldBlocks,numFieldBlocks);
+  PHX::View<int**> blockExistsInJac =   PHX::View<int**>("blockExistsInJac_",numFieldBlocks,numFieldBlocks);
   auto hostBlockExistsInJac = Kokkos::create_mirror_view(blockExistsInJac);
 
   for (int row=0; row < numFieldBlocks; ++row) {
@@ -522,7 +519,7 @@ evaluateFields(typename TRAITS::EvalData workset)
         {
           // Grab the local managed matrix and graph
           const auto tpetraCrsMatrix = rcp_dynamic_cast<Tpetra::CrsMatrix<double,LO,GO,NodeT>>(thyraTpetraOperator->getTpetraOperator(),true);
-          const auto managedMatrix = tpetraCrsMatrix->getLocalMatrix();
+          const auto managedMatrix = tpetraCrsMatrix->getLocalMatrixDevice();
           const auto managedGraph = managedMatrix.graph;
 
           // Create runtime unmanaged versions
@@ -544,11 +541,10 @@ evaluateFields(typename TRAITS::EvalData workset)
       }
     }
   }
-  typename Kokkos::View<LocalMatrixType**,PHX::Device>
+  typename PHX::View<LocalMatrixType**>
     jacTpetraBlocks("panzer::ScatterResidual_BlockedTpetra<Jacobian>::jacTpetraBlocks",numFieldBlocks,numFieldBlocks);
   Kokkos::deep_copy(jacTpetraBlocks,hostJacTpetraBlocks);
   Kokkos::deep_copy(blockExistsInJac,hostBlockExistsInJac);
-  typename PHX::Device().fence();
 
   // worksetLIDs is larger for Jacobian than Residual fill. Need the
   // entire set of field offsets for derivative indexing no matter
@@ -556,8 +552,10 @@ evaluateFields(typename TRAITS::EvalData workset)
   // lids for the sub-block that it is scattering to. The subviews
   // below are to offset the LID blocks correctly.
   const auto& globalIndexers = globalIndexer_->getFieldDOFManagers();
+  auto blockOffsets_h = Kokkos::create_mirror_view(blockOffsets_);
+  Kokkos::deep_copy(blockOffsets_h, blockOffsets_);
   for (size_t block=0; block < globalIndexers.size(); ++block) {
-    const auto subviewOfBlockLIDs = Kokkos::subview(worksetLIDs_,Kokkos::ALL(), std::make_pair(blockOffsets_(block),blockOffsets_(block+1)));
+    const auto subviewOfBlockLIDs = Kokkos::subview(worksetLIDs_,Kokkos::ALL(), std::make_pair(blockOffsets_h(block),blockOffsets_h(block+1)));
     globalIndexers[block]->getElementLIDs(localCellIds,subviewOfBlockLIDs);
   }
 
@@ -567,20 +565,20 @@ evaluateFields(typename TRAITS::EvalData workset)
     const int blockRowIndex = productVectorBlockIndex_[fieldIndex];
     typename Tpetra::Vector<double,LO,GO,PHX::Device>::dual_view_type::t_dev kokkosResidual;
     if (haveResidual) {
-      const auto& tpetraResidual = *((rcp_dynamic_cast<Thyra::TpetraVector<RealType,LO,GO,NodeT>>(thyraBlockResidual->getNonconstVectorBlock(blockRowIndex),true))->getTpetraVector());
-      kokkosResidual = tpetraResidual.template getLocalView<PHX::mem_space>();
+      auto& tpetraResidual = *((rcp_dynamic_cast<Thyra::TpetraVector<RealType,LO,GO,NodeT>>(thyraBlockResidual->getNonconstVectorBlock(blockRowIndex),true))->getTpetraVector());
+      kokkosResidual = tpetraResidual.getLocalViewDevice(Tpetra::Access::OverwriteAll);
     }
 
     // Get dirichlet counter block
-    const auto& tpetraDirichletCounter = *((rcp_dynamic_cast<Thyra::TpetraVector<RealType,LO,GO,NodeT>>(dirichletCounter_->getNonconstVectorBlock(blockRowIndex),true))->getTpetraVector());
-    const auto& kokkosDirichletCounter = tpetraDirichletCounter.template getLocalView<PHX::mem_space>();
+    auto& tpetraDirichletCounter = *((rcp_dynamic_cast<Thyra::TpetraVector<RealType,LO,GO,NodeT>>(dirichletCounter_->getNonconstVectorBlock(blockRowIndex),true))->getTpetraVector());
+    const auto& kokkosDirichletCounter = tpetraDirichletCounter.getLocalViewDevice(Tpetra::Access::ReadWrite);
 
     // Class data fields for lambda capture
-    const Kokkos::View<const int*,PHX::Device> fieldOffsets = fieldOffsets_[fieldIndex];
+    const PHX::View<const int*> fieldOffsets = fieldOffsets_[fieldIndex];
     const auto& basisIndices = basisIndexForMDFieldOffsets_[fieldIndex];
-    const Kokkos::View<const LO**,PHX::Device> worksetLIDs = worksetLIDs_;
+    const PHX::View<const LO**> worksetLIDs = worksetLIDs_;
     const PHX::View<const ScalarT**> fieldValues = scatterFields_[fieldIndex].get_static_view();
-    const Kokkos::View<const LO*,PHX::Device> blockOffsets = blockOffsets_;
+    const PHX::View<const LO*> blockOffsets = blockOffsets_;
     const auto& applyBC = applyBC_[fieldIndex].get_static_view();
     const bool checkApplyBC = checkApplyBC_;
 
@@ -589,7 +587,8 @@ evaluateFields(typename TRAITS::EvalData workset)
       typename Sacado::ScalarType<ScalarT>::type vals[maxDerivativeArraySize_];
 
       for(int basis=0; basis < static_cast<int>(fieldOffsets.size()); ++basis) {
-        const int rowLID = worksetLIDs(cell,fieldOffsets(basis));
+        const int block_row_offset = blockOffsets(blockRowIndex);
+        const int rowLID = worksetLIDs(cell,block_row_offset+fieldOffsets(basis));
 
         if (rowLID < 0) // not on this processor!
           continue;

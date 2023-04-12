@@ -112,6 +112,7 @@ TRIBITS_REPOSITORY_DEFINE_PACKAGES(
   Compadre              packages/compadre                 ST
   STK                   packages/stk                      PT # Depends on boost
   Percept               packages/percept                  PT # Depends on boost
+  Krino                 packages/krino                    PT # Depends on boost
   SCORECapf_zoltan      SCOREC/zoltan                     ST
   SCORECapf_stk         SCOREC/stk                        ST
   SCORECma              SCOREC/ma                         ST
@@ -131,9 +132,10 @@ TRIBITS_REPOSITORY_DEFINE_PACKAGES(
   Stokhos               packages/stokhos                  PT
   ROL                   packages/rol                      PT
   Piro                  packages/piro                     PT
+  SGM                   packages/sgm                      ST
+  UMR                   packages/umr                      ST
   Panzer                packages/panzer                   PT
   CTrilinos             packages/CTrilinos                ST # Switched to ST to speed up checkin testing
-#  ForTrilinos           packages/ForTrilinos              EX
   PyTrilinos            packages/PyTrilinos               ST
   WebTrilinos           packages/WebTrilinos              EX # Should be ST
   NewPackage            packages/new_package              EX # Should be ST
@@ -142,6 +144,8 @@ TRIBITS_REPOSITORY_DEFINE_PACKAGES(
   TrilinosCouplings     packages/trilinoscouplings        PT
   Pike                  packages/pike                     PT
   xSDKTrilinos          packages/xSDKTrilinos             ST
+  TrilinosBuildStats    commonTools/build_stats           PT
+  TrilinosInstallTests  packages/TrilinosInstallTests     PT
   )
 
 # Allow builds even if some packages are missing
@@ -164,11 +168,12 @@ TRIBITS_ALLOW_MISSING_EXTERNAL_PACKAGES(Avatar)
 TRIBITS_ALLOW_MISSING_EXTERNAL_PACKAGES(MOOCHO)
 TRIBITS_ALLOW_MISSING_EXTERNAL_PACKAGES(Sundance)
 TRIBITS_ALLOW_MISSING_EXTERNAL_PACKAGES(CTrilinos)
-TRIBITS_ALLOW_MISSING_EXTERNAL_PACKAGES(ForTrilinos)
 TRIBITS_ALLOW_MISSING_EXTERNAL_PACKAGES(Optika)
 TRIBITS_ALLOW_MISSING_EXTERNAL_PACKAGES(Mesquite)
 TRIBITS_ALLOW_MISSING_EXTERNAL_PACKAGES(WebTrilinos)
 TRIBITS_ALLOW_MISSING_EXTERNAL_PACKAGES(xSDKTrilinos)
+TRIBITS_ALLOW_MISSING_EXTERNAL_PACKAGES(SGM)
+TRIBITS_ALLOW_MISSING_EXTERNAL_PACKAGES(UMR)
 
 #
 # Disable certain packages on certain platforms.
@@ -187,7 +192,6 @@ TRIBITS_DISABLE_PACKAGE_ON_PLATFORMS(Ifpack2 Windows)
 TRIBITS_DISABLE_PACKAGE_ON_PLATFORMS(TriKota Windows)
 TRIBITS_DISABLE_PACKAGE_ON_PLATFORMS(Pamgen Windows)
 TRIBITS_DISABLE_PACKAGE_ON_PLATFORMS(STK Windows)
-TRIBITS_DISABLE_PACKAGE_ON_PLATFORMS(SEACAS Windows)
 TRIBITS_DISABLE_PACKAGE_ON_PLATFORMS(Anasazi Windows)
 TRIBITS_DISABLE_PACKAGE_ON_PLATFORMS(Isorropia Windows)
 TRIBITS_DISABLE_PACKAGE_ON_PLATFORMS(Zoltan Windows)

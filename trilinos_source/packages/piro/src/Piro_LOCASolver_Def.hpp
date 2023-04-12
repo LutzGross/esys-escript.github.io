@@ -83,8 +83,9 @@ template <typename Scalar>
 Piro::LOCASolver<Scalar>::LOCASolver(
     const Teuchos::RCP<Teuchos::ParameterList> &piroParams,
     const Teuchos::RCP<Thyra::ModelEvaluator<Scalar> > &model,
+    const Teuchos::RCP<Thyra::ModelEvaluator<Scalar> > &adjointModel,
     const Teuchos::RCP<LOCA::Thyra::SaveDataStrategy> &saveDataStrategy) :
-  SteadyStateSolver<Scalar>(model, model->Np() > 0), // Only one parameter supported
+  SteadyStateSolver<Scalar>(model, adjointModel, model->Np() > 0), // Only one parameter supported
   piroParams_(piroParams),
   saveDataStrategy_(saveDataStrategy),
   globalData_(LOCA::createGlobalData(piroParams)),
@@ -167,6 +168,13 @@ Piro::LOCASolver<Scalar>::getStepSizeParams()
 }
 
 template <typename Scalar>
+Teuchos::RCP<LOCA::Stepper>
+Piro::LOCASolver<Scalar>::getStepper()
+{
+  return stepper_;
+}
+
+template <typename Scalar>
 void
 Piro::LOCASolver<Scalar>::evalModelImpl(
     const Thyra::ModelEvaluatorBase::InArgs<Scalar>& inArgs,
@@ -226,7 +234,8 @@ Piro::LOCASolver<Scalar>::evalModelImpl(
       modelInArgs.set_p(l, p_inargs);
     }
 
-    this->evalConvergedModelResponsesAndSensitivities(modelInArgs, outArgs);
+    Teuchos::ParameterList analysisParams;
+    this->evalConvergedModelResponsesAndSensitivities(modelInArgs, outArgs, analysisParams);
   }
 }
 
@@ -236,6 +245,7 @@ Teuchos::RCP<Piro::LOCASolver<Scalar> >
 Piro::observedLocaSolver(
     const Teuchos::RCP<Teuchos::ParameterList> &appParams,
     const Teuchos::RCP<Thyra::ModelEvaluator<Scalar> > &model,
+    const Teuchos::RCP<Thyra::ModelEvaluator<Scalar> > &adjointModel,
     const Teuchos::RCP<Piro::ObserverBase<Scalar> > &observer)
 {
   const Teuchos::RCP<LOCA::Thyra::SaveDataStrategy> saveDataStrategy =
@@ -243,7 +253,7 @@ Piro::observedLocaSolver(
     Teuchos::rcp(new Piro::ObserverToLOCASaveDataStrategyAdapter(observer)) :
     Teuchos::null;
 
-  return Teuchos::rcp(new Piro::LOCASolver<Scalar>(appParams, model, saveDataStrategy));
+  return Teuchos::rcp(new Piro::LOCASolver<Scalar>(appParams, model, adjointModel, saveDataStrategy));
 }
 
 #endif /* PIRO_LOCASOLVER_DEF_HPP */

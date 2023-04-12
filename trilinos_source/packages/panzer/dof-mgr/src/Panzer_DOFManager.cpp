@@ -389,20 +389,54 @@ DOFManager::getGIDFieldOffsets(const std::string & blockID, int fieldNum) const
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-const Kokkos::View<const int*,PHX::Device>
+const PHX::View<const int*>
 DOFManager::getGIDFieldOffsetsKokkos(const std::string & blockID, int fieldNum) const
 {
   TEUCHOS_TEST_FOR_EXCEPTION(!buildConnectivityRun_,std::logic_error, "DOFManager::getGIDFieldOffsets: cannot be called before "
                                                                       "buildGlobalUnknowns has been called");
   std::map<std::string,int>::const_iterator bitr = blockNameToID_.find(blockID);
-  if(bitr==blockNameToID_.end())
+  if(bitr==blockNameToID_.end()) {
     TEUCHOS_TEST_FOR_EXCEPTION(true,std::logic_error,"DOFManager::fieldInBlock: invalid block name");
+  }
+
   int bid=bitr->second;
   if(fa_fps_[bid]!=Teuchos::null)
     return fa_fps_[bid]->localOffsetsKokkos(fieldNum);
 
-  static const Kokkos::View<int*,PHX::Device> empty("panzer::DOFManager::getGIDFieldOffsetsKokkos() empty",0);
+  static const PHX::View<int*> empty("panzer::DOFManager::getGIDFieldOffsetsKokkos() empty",0);
   return empty;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+const PHX::ViewOfViews3<1,PHX::View<const int*>>
+DOFManager::getGIDFieldOffsetsKokkos(const std::string & blockID, const std::vector<int> & fieldNums) const
+{
+  TEUCHOS_TEST_FOR_EXCEPTION(!buildConnectivityRun_,std::logic_error, "DOFManager::getGIDFieldOffsets: cannot be called before "
+                                                                      "buildGlobalUnknowns has been called");
+  std::map<std::string,int>::const_iterator bitr = blockNameToID_.find(blockID);
+  if(bitr==blockNameToID_.end()) {
+    TEUCHOS_TEST_FOR_EXCEPTION(true,std::logic_error,"DOFManager::fieldInBlock: invalid block name");
+  }
+
+  PHX::ViewOfViews3<1,PHX::View<const int*>> vov("panzer::getGIDFieldOffsetsKokkos vector version",fieldNums.size());
+  vov.disableSafetyCheck(); // Its going to be moved/copied
+
+  int bid=bitr->second;
+
+  for (size_t i=0; i < fieldNums.size(); ++i) {
+    if(fa_fps_[bid]!=Teuchos::null) {
+      vov.addView(fa_fps_[bid]->localOffsetsKokkos(fieldNums[i]),i);
+    }
+    else {
+      TEUCHOS_TEST_FOR_EXCEPTION(true,std::runtime_error,"panzer::DOFManager::getGIDFieldOffsets() - no field pattern exists in block " 
+                                 << blockID << "for field number " << fieldNums[i] << " exists!");
+      // vov.addView(PHX::View<int*>("panzer::DOFManager::getGIDFieldOffsetsKokkos() empty",0),i);
+    }
+  }
+
+  vov.syncHostToDevice();
+
+  return vov;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -550,11 +584,8 @@ void DOFManager::buildGlobalUnknowns(const Teuchos::RCP<const FieldPattern> & ge
     HashTable isOwned, remainingOwned;
 
     // owned_ is made up of owned_ids.: This doesn't work for high order
-    non_overlap_mv->sync_host();
-    tagged_non_overlap_mv->sync_host();
-    PHX::Device().fence();
-    auto nvals = non_overlap_mv->template getLocalView<PHX::Device>();
-    auto tagged_vals = tagged_non_overlap_mv->template getLocalView<PHX::Device>();
+    auto nvals = non_overlap_mv->getLocalViewHost(Tpetra::Access::ReadOnly);
+    auto tagged_vals = tagged_non_overlap_mv->getLocalViewHost(Tpetra::Access::ReadOnly);
     TEUCHOS_ASSERT(nvals.size()==tagged_vals.size());
     for (size_t i = 0; i < nvals.extent(1); ++i) {
       for (size_t j = 0; j < nvals.extent(0); ++j) {
@@ -762,12 +793,11 @@ DOFManager::buildGlobalUnknowns_GUN(const Tpetra::MultiVector<panzer::GlobalOrdi
   panzer::GlobalOrdinal localsum=0;
   {
     PANZER_FUNC_TIME_MONITOR_DIFF("panzer::DOFManager::buildGlobalUnknowns_GUN::line_07-09 local_count",GUN07_09);
-    auto values = non_overlap_mv->getLocalViewDevice();
+    auto values = non_overlap_mv->getLocalViewDevice(Tpetra::Access::ReadOnly);
     auto mv_size = values.extent(0);
     Kokkos::parallel_reduce(mv_size,panzer::dof_functors::SumRank2<panzer::GlobalOrdinal,decltype(values)>(values),localsum);
-    PHX::Device().fence();
   }
-  
+
  /* 11. Create a map using local sums to generate final GIDs.
    */
 
@@ -795,9 +825,7 @@ DOFManager::buildGlobalUnknowns_GUN(const Tpetra::MultiVector<panzer::GlobalOrdi
   {
     PANZER_FUNC_TIME_MONITOR_DIFF("panzer::DOFManager::buildGlobalUnknowns_GUN::line_13-21 gid_assignment",GUN13_21);
     int which_id=0;
-    if (non_overlap_mv->need_sync_host())
-      non_overlap_mv->sync_host();
-    auto editnonoverlap = non_overlap_mv->getLocalViewHost();
+    auto editnonoverlap = non_overlap_mv->getLocalViewHost(Tpetra::Access::ReadWrite);
     for(size_t i=0; i<non_overlap_mv->getLocalLength(); ++i){
       for(int j=0; j<numFields_; ++j){
         if(editnonoverlap(i,j)!=0){
@@ -812,9 +840,6 @@ DOFManager::buildGlobalUnknowns_GUN(const Tpetra::MultiVector<panzer::GlobalOrdi
 
       }
     }
-    non_overlap_mv->modify_host();
-    non_overlap_mv->sync_device();
-    PHX::Device().fence();
   }
 
   // LINE 22: In the GUN paper. Were performed above, and the overlaped_mv is
@@ -882,7 +907,6 @@ DOFManager::buildTaggedMultiVector(const ElementBlockAccess & ownedAccess)
   }
 
   RCP<const Map> overlapmap       = buildOverlapMapFromElements(ownedAccess);
-  PHX::Device().fence();
 
   // LINE 22: In the GUN paper...the overlap_mv is reused for the tagged multivector.
   //          This is a bit of a practical abuse of the algorithm presented in the paper.
@@ -893,7 +917,6 @@ DOFManager::buildTaggedMultiVector(const ElementBlockAccess & ownedAccess)
 
     overlap_mv = Tpetra::createMultiVector<panzer::GlobalOrdinal>(overlapmap,(size_t)numFields_);
     overlap_mv->putScalar(0); // if tpetra is not initialized with zeros
-    PHX::Device().fence();
   }
 
   /* 5.  Iterate through all local elements again, checking with the FP
@@ -905,9 +928,7 @@ DOFManager::buildTaggedMultiVector(const ElementBlockAccess & ownedAccess)
 
     // temporary working vector to fill each row in tagged array
     std::vector<int> working(overlap_mv->getNumVectors());
-    overlap_mv->sync_host();
-    PHX::Device().fence();
-    auto edittwoview_host = overlap_mv->getLocalViewHost();
+    auto edittwoview_host = overlap_mv->getLocalViewHost(Tpetra::Access::ReadWrite);
     for (size_t b = 0; b < blockOrder_.size(); ++b) {
       // there has to be a field pattern associated with the block
       if(fa_fps_[b]==Teuchos::null)
@@ -940,10 +961,6 @@ DOFManager::buildTaggedMultiVector(const ElementBlockAccess & ownedAccess)
         }
       }
     }
-    overlap_mv->modify_host();
-    overlap_mv->sync_device();
-    PHX::Device().fence();
-
     // // verbose output for inspecting overlap_mv
     // for(int i=0;i<overlap_mv->getLocalLength(); i++) {
     //   for(int j=0;j<overlap_mv->getNumVectors() ; j++)
@@ -1268,7 +1285,7 @@ DOFManager::buildOverlapMapFromElements(const ElementBlockAccess & access) const
 
   /* 3.  Construct an overlap map from this structure.
    */
-  return Tpetra::createNonContigMap<panzer::LocalOrdinal,panzer::GlobalOrdinal>(overlapVector,getComm());
+  return Tpetra::createNonContigMapWithNode<panzer::LocalOrdinal,panzer::GlobalOrdinal,panzer::TpetraNodeType>(overlapVector,getComm());
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1282,9 +1299,7 @@ fillGIDsFromOverlappedMV(const ElementBlockAccess & access,
 
   //To generate elementGIDs we need to go through all of the local elements.
   auto overlap_mv = const_cast<Tpetra::MultiVector<panzer::GlobalOrdinal,panzer::LocalOrdinal,panzer::GlobalOrdinal,panzer::TpetraNodeType>&>(const_overlap_mv);
-  overlap_mv.sync_host();
-  PHX::Device().fence();
-  const auto twoview_host = overlap_mv.getLocalViewHost();
+  const auto twoview_host = overlap_mv.getLocalViewHost(Tpetra::Access::ReadOnly);
 
   //And for each of the things in fa_fp.fieldIds we go to that column. To the the row,
   //we move from globalID to localID in the map and use our local value for something.
@@ -1387,7 +1402,7 @@ DOFManager<panzer::LocalOrdinal,panzer::GlobalOrdinal>::runLocalRCMReordering(co
 
   graph->fillComplete();
 
-  std::vector<panzer::GlobalOrdinal> newOrder(map->getNodeNumElements());
+  std::vector<panzer::GlobalOrdinal> newOrder(map->getLocalNumElements());
   {
     // graph is constructed, now run RCM using zoltan2
     typedef Zoltan2::XpetraCrsGraphInput<Graph> SparseGraphAdapter;
@@ -1406,7 +1421,7 @@ DOFManager<panzer::LocalOrdinal,panzer::GlobalOrdinal>::runLocalRCMReordering(co
     size_t checkLength = soln->getPermutationSize();
     panzer::LocalOrdinal * checkPerm = soln->getPermutation(&dummy);
 
-    Teuchos::ArrayView<const panzer::GlobalOrdinal > oldOrder = map->getNodeElementList();
+    Teuchos::ArrayView<const panzer::GlobalOrdinal > oldOrder = map->getLocalElementList();
     TEUCHOS_ASSERT(checkLength==oldOrder.size());
     TEUCHOS_ASSERT(checkLength==newOrder.size());
 

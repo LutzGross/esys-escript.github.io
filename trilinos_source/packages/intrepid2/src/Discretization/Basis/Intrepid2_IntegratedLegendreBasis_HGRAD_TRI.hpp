@@ -49,11 +49,12 @@
 #ifndef Intrepid2_IntegratedLegendreBasis_HGRAD_TRI_h
 #define Intrepid2_IntegratedLegendreBasis_HGRAD_TRI_h
 
-#include <Kokkos_View.hpp>
 #include <Kokkos_DynRankView.hpp>
 
 #include <Intrepid2_config.h>
 
+#include "Intrepid2_Basis.hpp"
+#include "Intrepid2_IntegratedLegendreBasis_HGRAD_LINE.hpp"
 #include "Intrepid2_Polynomials.hpp"
 #include "Intrepid2_Utils.hpp"
 
@@ -64,10 +65,11 @@ namespace Intrepid2
    
    This functor is not intended for use outside of IntegratedLegendreBasis_HGRAD_TRI.
   */
-  template<class ExecutionSpace, class OutputScalar, class PointScalar,
+  template<class DeviceType, class OutputScalar, class PointScalar,
            class OutputFieldType, class InputPointsType>
   struct Hierarchical_HGRAD_TRI_Functor
   {
+    using ExecutionSpace     = typename DeviceType::execution_space;
     using ScratchSpace       = typename ExecutionSpace::scratch_memory_space;
     using OutputScratchView  = Kokkos::View<OutputScalar*,ScratchSpace,Kokkos::MemoryTraits<Kokkos::Unmanaged>>;
     using PointScratchView   = Kokkos::View<PointScalar*, ScratchSpace,Kokkos::MemoryTraits<Kokkos::Unmanaged>>;
@@ -168,15 +170,20 @@ namespace Intrepid2
             // these functions multiply the edge functions from the 01 edge by integrated Jacobi functions, appropriately scaled
             const double jacobiScaling = 1.0; // s0 + s1 + s2
             
-            for (int i=2; i<polyOrder_; i++)
+            const int max_ij_sum = polyOrder_;
+            const int min_i = 2;
+            const int min_j = 1;
+            const int min_ij_sum = min_i + min_j;
+            for (int ij_sum = min_ij_sum; ij_sum <= max_ij_sum; ij_sum++)
             {
-              const int edgeBasisOrdinal = i+numVertices-2; // i+1: where the value of the edge function is stored in output_
-              const auto & edgeValue = output_(edgeBasisOrdinal,pointOrdinal);
-              const double alpha = i*2.0;
-              
-              Polynomials::integratedJacobiValues(jacobi_values_at_point, alpha, polyOrder_-2, lambda[2], jacobiScaling);
-              for (int j=1; i+j <= polyOrder_; j++)
+              for (int i=min_i; i<=ij_sum-min_j; i++)
               {
+                const int j = ij_sum - i;
+                const int edgeBasisOrdinal = i+numVertices-2; // i+1: where the value of the edge function is stored in output_
+                const auto & edgeValue = output_(edgeBasisOrdinal,pointOrdinal);
+                const double alpha = i*2.0;
+                
+                Polynomials::shiftedScaledIntegratedJacobiValues(jacobi_values_at_point, alpha, polyOrder_-2, lambda[2], jacobiScaling);
                 const auto & jacobiValue = jacobi_values_at_point(j);
                 output_(fieldOrdinalOffset,pointOrdinal) = edgeValue * jacobiValue;
                 fieldOrdinalOffset++;
@@ -262,7 +269,7 @@ namespace Intrepid2
            and
              [R^{2i}_{j-1}(s0,s1)] = d/dt L^{2i}_j(s1,s0+s1)
            We have implemented P^{alpha}_{j} as shiftedScaledJacobiValues,
-           and d/dt L^{alpha}_{j} as integratedJacobiValues_dt.
+           and d/dt L^{alpha}_{j} as shiftedScaledIntegratedJacobiValues_dt.
            */
           // rename the scratch memory to match our usage here:
           auto & P_2i_j_minus_1 = edge_field_values_at_point;
@@ -273,29 +280,34 @@ namespace Intrepid2
             // face functions multiply the edge functions from the 01 edge by integrated Jacobi functions, appropriately scaled
             const double jacobiScaling = 1.0; // s0 + s1 + s2
 
-            for (int i=2; i<polyOrder_; i++)
+            const int max_ij_sum = polyOrder_;
+            const int min_i = 2;
+            const int min_j = 1;
+            const int min_ij_sum = min_i + min_j;
+            for (int ij_sum = min_ij_sum; ij_sum <= max_ij_sum; ij_sum++)
             {
-              // the edge function here is for edge 01, in the first set of edge functions.
-              const int edgeBasisOrdinal = i+numVertices-2; // i+1: where the value of the edge function is stored in output_
-              const auto & grad_L_i_dx = output_(edgeBasisOrdinal,pointOrdinal,0);
-              const auto & grad_L_i_dy = output_(edgeBasisOrdinal,pointOrdinal,1);
-              
-              const double alpha = i*2.0;
-
-              Polynomials::shiftedScaledIntegratedLegendreValues(L_i, polyOrder_, lambda[1], lambda[0]+lambda[1]);
-              Polynomials::integratedJacobiValues_dt(     L_2i_j_dt, alpha, polyOrder_,   lambda[2], jacobiScaling);
-              Polynomials::integratedJacobiValues   (        L_2i_j, alpha, polyOrder_,   lambda[2], jacobiScaling);
-              Polynomials::shiftedScaledJacobiValues(P_2i_j_minus_1, alpha, polyOrder_-1, lambda[2], jacobiScaling);
-              
-              const auto & s0_dx = lambda_dx[0];
-              const auto & s0_dy = lambda_dy[0];
-              const auto & s1_dx = lambda_dx[1];
-              const auto & s1_dy = lambda_dy[1];
-              const auto & s2_dx = lambda_dx[2];
-              const auto & s2_dy = lambda_dy[2];
-              
-              for (int j=1; i+j <= polyOrder_; j++)
+              for (int i=min_i; i<=ij_sum-min_j; i++)
               {
+                const int j = ij_sum - i;
+                // the edge function here is for edge 01, in the first set of edge functions.
+                const int edgeBasisOrdinal = i+numVertices-2; // i+1: where the value of the edge function is stored in output_
+                const auto & grad_L_i_dx = output_(edgeBasisOrdinal,pointOrdinal,0);
+                const auto & grad_L_i_dy = output_(edgeBasisOrdinal,pointOrdinal,1);
+                
+                const double alpha = i*2.0;
+
+                Polynomials::shiftedScaledIntegratedLegendreValues (L_i, polyOrder_, lambda[1], lambda[0]+lambda[1]);
+                Polynomials::shiftedScaledIntegratedJacobiValues_dt(L_2i_j_dt, alpha, polyOrder_, lambda[2], jacobiScaling);
+                Polynomials::shiftedScaledIntegratedJacobiValues   (   L_2i_j, alpha, polyOrder_, lambda[2], jacobiScaling);
+                Polynomials::shiftedScaledJacobiValues(P_2i_j_minus_1, alpha, polyOrder_-1, lambda[2], jacobiScaling);
+                
+                const auto & s0_dx = lambda_dx[0];
+                const auto & s0_dy = lambda_dy[0];
+                const auto & s1_dx = lambda_dx[1];
+                const auto & s1_dy = lambda_dy[1];
+                const auto & s2_dx = lambda_dx[2];
+                const auto & s2_dy = lambda_dy[2];
+                
                 const OutputScalar basisValue_dx = L_2i_j(j) * grad_L_i_dx + L_i(i) * (P_2i_j_minus_1(j-1) * s2_dx + L_2i_j_dt(j) * (s0_dx + s1_dx + s2_dx));
                 const OutputScalar basisValue_dy = L_2i_j(j) * grad_L_i_dy + L_i(i) * (P_2i_j_minus_1(j-1) * s2_dy + L_2i_j_dt(j) * (s0_dy + s1_dy + s2_dy));
                 
@@ -341,10 +353,9 @@ namespace Intrepid2
   };
   
   /** \class  Intrepid2::IntegratedLegendreBasis_HGRAD_TRI
-      \brief  Basis defining integrated Legendre basis on the line, a polynomial subspace of H(grad) on the line.
+      \brief  Basis defining integrated Legendre basis on the line, a polynomial subspace of H(grad) on the line: extension to triangle using Jacobi blending functions.
 
-              This is used in the construction of hierarchical bases on higher-dimensional topologies.  For
-              mathematical details of the construction, see:
+              For mathematical details of the construction, see:
    
                Federico Fuentes, Brendan Keith, Leszek Demkowicz, Sriram Nagaraj.
                "Orientation embedded high order shape functions for the exact sequence elements of all shapes."
@@ -357,23 +368,29 @@ namespace Intrepid2
                is true, then the first basis function will instead be 1.0-x-y, and the basis will be suitable for
                continuous discretizations.
   */
-  template<typename ExecutionSpace=Kokkos::DefaultExecutionSpace,
+  template<typename DeviceType,
            typename OutputScalar = double,
            typename PointScalar  = double,
            bool defineVertexFunctions = true>            // if defineVertexFunctions is true, first three basis functions are 1-x-y, x, and y.  Otherwise, they are 1, x, and y.
   class IntegratedLegendreBasis_HGRAD_TRI
-  : public Basis<ExecutionSpace,OutputScalar,PointScalar>
+  : public Basis<DeviceType,OutputScalar,PointScalar>
   {
   public:
-    using OrdinalTypeArray1DHost = typename Basis<ExecutionSpace,OutputScalar,PointScalar>::OrdinalTypeArray1DHost;
-    using OrdinalTypeArray2DHost = typename Basis<ExecutionSpace,OutputScalar,PointScalar>::OrdinalTypeArray2DHost;
-    
-    using OutputViewType = typename Basis<ExecutionSpace,OutputScalar,PointScalar>::OutputViewType;
-    using PointViewType  = typename Basis<ExecutionSpace,OutputScalar,PointScalar>::PointViewType;
-    using ScalarViewType = typename Basis<ExecutionSpace,OutputScalar,PointScalar>::ScalarViewType;
+    using BasisBase = Basis<DeviceType,OutputScalar,PointScalar>;
+    using HostBasis = IntegratedLegendreBasis_HGRAD_TRI<typename Kokkos::HostSpace::device_type,OutputScalar,PointScalar,defineVertexFunctions>;
+
+    using typename BasisBase::OrdinalTypeArray1DHost;
+    using typename BasisBase::OrdinalTypeArray2DHost;
+
+    using typename BasisBase::OutputViewType;
+    using typename BasisBase::PointViewType;
+    using typename BasisBase::ScalarViewType;
+
+    using typename BasisBase::ExecutionSpace;
+
   protected:
     int polyOrder_; // the maximum order of the polynomial
-    bool defineVertexFunctions_; // if true, first and second basis functions are x and 1-x.  Otherwise, they are 1 and x.
+    EPointType pointType_;
   public:
     /** \brief  Constructor.
         \param [in] polyOrder - the polynomial order of the basis.
@@ -385,10 +402,13 @@ namespace Intrepid2
      If defineVertexFunctions is true, then the first two basis functions are 1-x and x, and these are identified with the left and right vertices of the cell.
      
      */
-    IntegratedLegendreBasis_HGRAD_TRI(int polyOrder)
+    IntegratedLegendreBasis_HGRAD_TRI(int polyOrder, const EPointType pointType=POINTTYPE_DEFAULT)
     :
-    polyOrder_(polyOrder)
+    polyOrder_(polyOrder),
+    pointType_(pointType)
     {
+      INTREPID2_TEST_FOR_EXCEPTION(pointType!=POINTTYPE_DEFAULT,std::invalid_argument,"PointType not supported");
+
       this->basisCardinality_  = ((polyOrder+2) * (polyOrder+1)) / 2;
       this->basisDegree_       = polyOrder;
       this->basisCellTopology_ = shards::CellTopology(shards::getCellTopologyData<shards::Triangle<> >() );
@@ -398,6 +418,7 @@ namespace Intrepid2
       
       const int degreeLength = 1;
       this->fieldOrdinalPolynomialDegree_ = OrdinalTypeArray2DHost("Integrated Legendre H(grad) triangle polynomial degree lookup", this->basisCardinality_, degreeLength);
+      this->fieldOrdinalH1PolynomialDegree_ = OrdinalTypeArray2DHost("Integrated Legendre H(grad) triangle polynomial degree lookup", this->basisCardinality_, degreeLength);
       
       int fieldOrdinalOffset = 0;
       // **** vertex functions **** //
@@ -408,11 +429,13 @@ namespace Intrepid2
       {
         // for H(grad) on triangle, if defineVertexFunctions is false, first three basis members are linear
         // if not, then the only difference is that the first member is constant
-        this->fieldOrdinalPolynomialDegree_(i,0) = 1;
+        this->fieldOrdinalPolynomialDegree_  (i,0) = 1;
+        this->fieldOrdinalH1PolynomialDegree_(i,0) = 1;
       }
       if (!defineVertexFunctions)
       {
-        this->fieldOrdinalPolynomialDegree_(0,0) = 0;
+        this->fieldOrdinalPolynomialDegree_  (0,0) = 0;
+        this->fieldOrdinalH1PolynomialDegree_(0,0) = 0;
       }
       fieldOrdinalOffset += numVertexFunctions;
       
@@ -423,18 +446,24 @@ namespace Intrepid2
       {
         for (int i=0; i<numFunctionsPerEdge; i++)
         {
-          this->fieldOrdinalPolynomialDegree_(i+fieldOrdinalOffset,0) = i+2; // vertex functions are 1st order; edge functions start at order 2
+          this->fieldOrdinalPolynomialDegree_(i+fieldOrdinalOffset,0)   = i+2; // vertex functions are 1st order; edge functions start at order 2
+          this->fieldOrdinalH1PolynomialDegree_(i+fieldOrdinalOffset,0) = i+2; // vertex functions are 1st order; edge functions start at order 2
         }
         fieldOrdinalOffset += numFunctionsPerEdge;
       }
       
       // **** face functions **** //
       const int max_ij_sum = polyOrder;
-      for (int i=2; i<max_ij_sum; i++)
+      const int min_i = 2;
+      const int min_j = 1;
+      const int min_ij_sum = min_i + min_j;
+      for (int ij_sum = min_ij_sum; ij_sum <= max_ij_sum; ij_sum++)
       {
-        for (int j=1; i+j<=max_ij_sum; j++)
+        for (int i=min_i; i<=ij_sum-min_j; i++)
         {
-          this->fieldOrdinalPolynomialDegree_(fieldOrdinalOffset,0) = i+j;
+          const int j = ij_sum - i;
+          this->fieldOrdinalPolynomialDegree_(fieldOrdinalOffset,0)   = i+j;
+          this->fieldOrdinalH1PolynomialDegree_(fieldOrdinalOffset,0) = i+j;
           fieldOrdinalOffset++;
         }
       }
@@ -531,7 +560,7 @@ namespace Intrepid2
     // since the getValues() below only overrides the FEM variant, we specify that
     // we use the base class's getValues(), which implements the FVD variant by throwing an exception.
     // (It's an error to use the FVD variant on this basis.)
-    using Basis<ExecutionSpace,OutputScalar,PointScalar>::getValues;
+    using BasisBase::getValues;
     
     /** \brief  Evaluation of a FEM basis on a <strong>reference cell</strong>.
 
@@ -556,7 +585,7 @@ namespace Intrepid2
     {
       auto numPoints = inputPoints.extent_int(0);
       
-      using FunctorType = Hierarchical_HGRAD_TRI_Functor<ExecutionSpace, OutputScalar, PointScalar, OutputViewType, PointViewType>;
+      using FunctorType = Hierarchical_HGRAD_TRI_Functor<DeviceType, OutputScalar, PointScalar, OutputViewType, PointViewType>;
       
       FunctorType functor(operatorType, outputValues, inputPoints, polyOrder_, defineVertexFunctions);
       
@@ -564,9 +593,38 @@ namespace Intrepid2
       const int pointVectorSize  = getVectorSizeForHierarchicalParallelism<PointScalar>();
       const int vectorSize = std::max(outputVectorSize,pointVectorSize);
       const int teamSize = 1; // because of the way the basis functions are computed, we don't have a second level of parallelism...
-      
+
       auto policy = Kokkos::TeamPolicy<ExecutionSpace>(numPoints,teamSize,vectorSize);
-      Kokkos::parallel_for( policy , functor, "Hierarchical_HGRAD_TRI_Functor");
+      Kokkos::parallel_for("Hierarchical_HGRAD_TRI_Functor", policy, functor);
+    }
+
+    /** \brief returns the basis associated to a subCell.
+
+        The bases of the subCell are the restriction to the subCell
+        of the bases of the parent cell.
+        \param [in] subCellDim - dimension of subCell
+        \param [in] subCellOrd - position of the subCell among of the subCells having the same dimension
+        \return pointer to the subCell basis of dimension subCellDim and position subCellOrd
+     */
+    BasisPtr<DeviceType,OutputScalar,PointScalar>
+      getSubCellRefBasis(const ordinal_type subCellDim, const ordinal_type subCellOrd) const override{
+      if(subCellDim == 1) {
+        return Teuchos::rcp(new
+            IntegratedLegendreBasis_HGRAD_LINE<DeviceType,OutputScalar,PointScalar>
+                    (this->basisDegree_));
+      }
+      INTREPID2_TEST_FOR_EXCEPTION(true,std::invalid_argument,"Input parameters out of bounds");
+    }
+
+    /** \brief Creates and returns a Basis object whose DeviceType template argument is Kokkos::HostSpace::device_type, but is otherwise identical to this.
+     
+        \return Pointer to the new Basis object.
+     */
+    virtual BasisPtr<typename Kokkos::HostSpace::device_type, OutputScalar, PointScalar>
+    getHostBasis() const override {
+      using HostDeviceType = typename Kokkos::HostSpace::device_type;
+      using HostBasisType  = IntegratedLegendreBasis_HGRAD_TRI<HostDeviceType, OutputScalar, PointScalar, defineVertexFunctions>;
+      return Teuchos::rcp( new HostBasisType(polyOrder_, pointType_) );
     }
   };
 } // end namespace Intrepid2

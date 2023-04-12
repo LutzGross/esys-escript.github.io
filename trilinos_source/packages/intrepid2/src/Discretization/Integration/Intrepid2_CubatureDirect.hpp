@@ -70,11 +70,11 @@ namespace Intrepid2 {
       All templates are defined on a reference cell and can be mapped to physical space
       cells by the methods available in the MultiCell class.
   */
-  template<typename ExecSpaceType = void,
+  template<typename DeviceType = void,
            typename pointValueType = double,
            typename weightValueType = double>
   class CubatureDirect
-    : public Cubature<ExecSpaceType,pointValueType,weightValueType> {
+    : public Cubature<DeviceType,pointValueType,weightValueType> {
   protected:
 
     /**
@@ -106,11 +106,12 @@ namespace Intrepid2 {
 
       /** \brief  Array with the (X,Y,Z) coordinates of the cubature points.
        */
-      Kokkos::DynRankView<pointValueType,ExecSpaceType> points_;
+      Kokkos::DynRankView<pointValueType,DeviceType> points_;
 
       /** \brief  Array with the associated cubature weights.
        */
-      Kokkos::DynRankView<weightValueType,ExecSpaceType> weights_;
+      Kokkos::DynRankView<weightValueType,DeviceType> weights_;
+
     };
 
     /** \brief The degree of polynomials that are integrated
@@ -177,15 +178,15 @@ namespace Intrepid2 {
     //
     // Cubature public functions
     //
-    typedef typename Cubature<ExecSpaceType,pointValueType,weightValueType>::PointViewType  PointViewType;
-    typedef typename Cubature<ExecSpaceType,pointValueType,weightValueType>::weightViewType weightViewType;
+    typedef typename Cubature<DeviceType,pointValueType,weightValueType>::PointViewType  PointViewType;
+    typedef typename Cubature<DeviceType,pointValueType,weightValueType>::weightViewType weightViewType;
 
-    using Cubature<ExecSpaceType,pointValueType,weightValueType>::getCubature;
+    using Cubature<DeviceType,pointValueType,weightValueType>::getCubature;
 
     virtual
     void
     getCubature( PointViewType  cubPoints,
-                 weightViewType cubWeights ) const {
+                 weightViewType cubWeights ) const override {
       this->getCubatureFromData(cubPoints, cubWeights, this->cubatureData_);
     }
 
@@ -193,7 +194,7 @@ namespace Intrepid2 {
      */
     virtual
     ordinal_type
-    getNumPoints() const {
+    getNumPoints() const override {
       return cubatureData_.numPoints_;
     }
 
@@ -201,7 +202,7 @@ namespace Intrepid2 {
      */
     virtual
     ordinal_type
-    getDimension() const {
+    getDimension() const override {
       return dimension_;
     }
 
@@ -209,7 +210,7 @@ namespace Intrepid2 {
      */
     virtual
     const char*
-    getName() const {
+    getName() const override {
       return "CubatureDirect";
     }
 
@@ -218,7 +219,7 @@ namespace Intrepid2 {
     */
     virtual
     ordinal_type 
-    getAccuracy() const {
+    getAccuracy() const override {
       return degree_;
     }
 
@@ -232,11 +233,18 @@ namespace Intrepid2 {
         dimension_(b.dimension_),
         cubatureData_(b.cubatureData_) {}
 
+    CubatureDirect& operator=(const CubatureDirect &b) {
+        this->degree_       = b.degree_;
+        this->dimension_    = b.dimension_;
+        this->cubatureData_ = b.cubatureData_;
+        return *this;
+    } 
+    
     CubatureDirect(const ordinal_type degree,
-                   const ordinal_type dimension)
-      : degree_(degree),
-        dimension_(dimension),
-        cubatureData_() {}
+                   const ordinal_type dimension) 
+    : degree_(degree),
+      dimension_(dimension),
+      cubatureData_() {}
 
   };
 

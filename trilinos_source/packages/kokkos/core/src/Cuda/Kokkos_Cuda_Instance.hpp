@@ -1,5 +1,26 @@
+//@HEADER
+// ************************************************************************
+//
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
+//
+// Under the terms of Contract DE-NA0003525 with NTESS,
+// the U.S. Government retains certain rights in this software.
+//
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+//@HEADER
+
 #ifndef KOKKOS_CUDA_INSTANCE_HPP_
 #define KOKKOS_CUDA_INSTANCE_HPP_
+
+#include <vector>
+#include <impl/Kokkos_Tools.hpp>
+#include <atomic>
+#include <Cuda/Kokkos_Cuda_Error.hpp>
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -15,25 +36,24 @@ namespace Kokkos {
 namespace Impl {
 
 struct CudaTraits {
-  enum { WarpSize = 32 /* 0x0020 */ };
-  enum { WarpIndexMask = 0x001f /* Mask for warpindex */ };
-  enum { WarpIndexShift = 5 /* WarpSize == 1 << WarpShift */ };
+  static constexpr CudaSpace::size_type WarpSize = 32 /* 0x0020 */;
+  static constexpr CudaSpace::size_type WarpIndexMask =
+      0x001f; /* Mask for warpindex */
+  static constexpr CudaSpace::size_type WarpIndexShift =
+      5; /* WarpSize == 1 << WarpShift */
 
-  enum { ConstantMemoryUsage = 0x008000 /* 32k bytes */ };
-  enum { ConstantMemoryCache = 0x002000 /*  8k bytes */ };
-  enum { KernelArgumentLimit = 0x001000 /*  4k bytes */ };
+  static constexpr CudaSpace::size_type ConstantMemoryUsage =
+      0x008000; /* 32k bytes */
+  static constexpr CudaSpace::size_type ConstantMemoryCache =
+      0x002000; /*  8k bytes */
+  static constexpr CudaSpace::size_type KernelArgumentLimit =
+      0x001000; /*  4k bytes */
+  static constexpr CudaSpace::size_type MaxHierarchicalParallelism =
+      1024; /* team_size * vector_length */
+  using ConstantGlobalBufferType =
+      unsigned long[ConstantMemoryUsage / sizeof(unsigned long)];
 
-  typedef unsigned long
-      ConstantGlobalBufferType[ConstantMemoryUsage / sizeof(unsigned long)];
-
-#if defined(KOKKOS_ARCH_VOLTA) || defined(KOKKOS_ARCH_PASCAL)
-  enum {
-    ConstantMemoryUseThreshold =
-        0x000200 /* 0 bytes -> always use constant (or global)*/
-  };
-#else
-  enum { ConstantMemoryUseThreshold = 0x000200 /* 512 bytes */ };
-#endif
+  static constexpr int ConstantMemoryUseThreshold = 0x000200 /* 512 bytes */;
 
   KOKKOS_INLINE_FUNCTION static CudaSpace::size_type warp_count(
       CudaSpace::size_type i) {
@@ -42,7 +62,7 @@ struct CudaTraits {
 
   KOKKOS_INLINE_FUNCTION static CudaSpace::size_type warp_align(
       CudaSpace::size_type i) {
-    enum { Mask = ~CudaSpace::size_type(WarpIndexMask) };
+    constexpr CudaSpace::size_type Mask = ~WarpIndexMask;
     return (i + WarpIndexMask) & Mask;
   }
 };
@@ -51,17 +71,17 @@ struct CudaTraits {
 
 CudaSpace::size_type cuda_internal_multiprocessor_count();
 CudaSpace::size_type cuda_internal_maximum_warp_count();
-CudaSpace::size_type cuda_internal_maximum_grid_count();
+std::array<CudaSpace::size_type, 3> cuda_internal_maximum_grid_count();
 CudaSpace::size_type cuda_internal_maximum_shared_words();
 
 CudaSpace::size_type cuda_internal_maximum_concurrent_block_count();
 
-CudaSpace::size_type* cuda_internal_scratch_flags(
-    const Cuda&, const CudaSpace::size_type size);
-CudaSpace::size_type* cuda_internal_scratch_space(
-    const Cuda&, const CudaSpace::size_type size);
-CudaSpace::size_type* cuda_internal_scratch_unified(
-    const Cuda&, const CudaSpace::size_type size);
+CudaSpace::size_type* cuda_internal_scratch_flags(const Cuda&,
+                                                  const std::size_t size);
+CudaSpace::size_type* cuda_internal_scratch_space(const Cuda&,
+                                                  const std::size_t size);
+CudaSpace::size_type* cuda_internal_scratch_unified(const Cuda&,
+                                                    const std::size_t size);
 
 }  // namespace Impl
 }  // namespace Kokkos
@@ -79,51 +99,65 @@ class CudaInternal {
 #endif
 
  public:
-  typedef Cuda::size_type size_type;
+  using size_type = Cuda::size_type;
 
-  int m_cudaDev;
+  inline static int m_cudaDev = -1;
 
   // Device Properties
-  int m_cudaArch;
-  unsigned m_multiProcCount;
-  unsigned m_maxWarpCount;
-  unsigned m_maxBlock;
-  unsigned m_maxSharedWords;
-  uint32_t m_maxConcurrency;
-  int m_shmemPerSM;
-  int m_maxShmemPerBlock;
-  int m_regsPerSM;
-  int m_maxBlocksPerSM;
-  int m_maxThreadsPerSM;
-  int m_maxThreadsPerBlock;
+  inline static int m_cudaArch                      = -1;
+  inline static unsigned m_multiProcCount           = 0;
+  inline static unsigned m_maxWarpCount             = 0;
+  inline static std::array<size_type, 3> m_maxBlock = {0, 0, 0};
+  inline static unsigned m_maxSharedWords           = 0;
+  inline static int m_shmemPerSM                    = 0;
+  inline static int m_maxShmemPerBlock              = 0;
+  inline static int m_maxBlocksPerSM                = 0;
+  inline static int m_maxThreadsPerSM               = 0;
+  inline static int m_maxThreadsPerBlock            = 0;
+  static int concurrency();
 
-  cudaDeviceProp m_deviceProp;
+  inline static cudaDeviceProp m_deviceProp;
 
-  mutable size_type m_scratchSpaceCount;
-  mutable size_type m_scratchFlagsCount;
-  mutable size_type m_scratchUnifiedCount;
-  mutable size_type m_scratchFunctorSize;
-  size_type m_scratchUnifiedSupported;
-  size_type m_streamCount;
+  // Scratch Spaces for Reductions
+  mutable std::size_t m_scratchSpaceCount;
+  mutable std::size_t m_scratchFlagsCount;
+  mutable std::size_t m_scratchUnifiedCount;
+  mutable std::size_t m_scratchFunctorSize;
+
+  inline static size_type m_scratchUnifiedSupported = 0;
   mutable size_type* m_scratchSpace;
   mutable size_type* m_scratchFlags;
   mutable size_type* m_scratchUnified;
   mutable size_type* m_scratchFunctor;
-  uint32_t* m_scratchConcurrentBitset;
   cudaStream_t m_stream;
+  uint32_t m_instance_id;
+  bool m_manage_stream;
 
-  static int was_initialized;
-  static int was_finalized;
+  // Team Scratch Level 1 Space
+  int m_n_team_scratch = 10;
+  mutable int64_t m_team_scratch_current_size[10];
+  mutable void* m_team_scratch_ptr[10];
+  mutable std::atomic_int m_team_scratch_pool[10];
+  std::int32_t* m_scratch_locks;
+
+  bool was_initialized = false;
+  bool was_finalized   = false;
+
+  // FIXME_CUDA: these want to be per-device, not per-stream...  use of 'static'
+  //  here will break once there are multiple devices though
+  inline static unsigned long* constantMemHostStaging = nullptr;
+  inline static cudaEvent_t constantMemReusable       = nullptr;
+  inline static std::mutex constantMemMutex;
 
   static CudaInternal& singleton();
 
   int verify_is_initialized(const char* const label) const;
 
   int is_initialized() const {
-    return 0 != m_scratchSpace && 0 != m_scratchFlags;
+    return nullptr != m_scratchSpace && nullptr != m_scratchFlags;
   }
 
-  void initialize(int cuda_device_id, cudaStream_t stream = 0);
+  void initialize(cudaStream_t stream, bool manage_stream);
   void finalize();
 
   void print_configuration(std::ostream&) const;
@@ -133,43 +167,83 @@ class CudaInternal {
   static void cuda_set_serial_execution(bool);
 #endif
 
+  void fence(const std::string&) const;
   void fence() const;
 
   ~CudaInternal();
 
   CudaInternal()
-      : m_cudaDev(-1),
-        m_cudaArch(-1),
-        m_multiProcCount(0),
-        m_maxWarpCount(0),
-        m_maxBlock(0),
-        m_maxSharedWords(0),
-        m_maxConcurrency(0),
-        m_shmemPerSM(0),
-        m_maxShmemPerBlock(0),
-        m_regsPerSM(0),
-        m_maxBlocksPerSM(0),
-        m_maxThreadsPerSM(0),
-        m_maxThreadsPerBlock(0),
-        m_scratchSpaceCount(0),
+      : m_scratchSpaceCount(0),
         m_scratchFlagsCount(0),
         m_scratchUnifiedCount(0),
         m_scratchFunctorSize(0),
-        m_scratchUnifiedSupported(0),
-        m_streamCount(0),
-        m_scratchSpace(0),
-        m_scratchFlags(0),
-        m_scratchUnified(0),
-        m_scratchFunctor(0),
-        m_scratchConcurrentBitset(0),
-        m_stream(0) {}
+        m_scratchSpace(nullptr),
+        m_scratchFlags(nullptr),
+        m_scratchUnified(nullptr),
+        m_scratchFunctor(nullptr),
+        m_stream(nullptr),
+        m_instance_id(
+            Kokkos::Tools::Experimental::Impl::idForInstance<Kokkos::Cuda>(
+                reinterpret_cast<uintptr_t>(this))) {
+    for (int i = 0; i < m_n_team_scratch; ++i) {
+      m_team_scratch_current_size[i] = 0;
+      m_team_scratch_ptr[i]          = nullptr;
+      m_team_scratch_pool[i]         = 0;
+    }
+  }
 
-  size_type* scratch_space(const size_type size) const;
-  size_type* scratch_flags(const size_type size) const;
-  size_type* scratch_unified(const size_type size) const;
-  size_type* scratch_functor(const size_type size) const;
+  // Resizing of reduction related scratch spaces
+  size_type* scratch_space(const std::size_t size) const;
+  size_type* scratch_flags(const std::size_t size) const;
+  size_type* scratch_unified(const std::size_t size) const;
+  size_type* scratch_functor(const std::size_t size) const;
+  uint32_t impl_get_instance_id() const;
+  int acquire_team_scratch_space();
+  // Resizing of team level 1 scratch
+  void* resize_team_scratch_space(int scratch_pool_id, std::int64_t bytes,
+                                  bool force_shrink = false);
+  void release_team_scratch_space(int scratch_pool_id);
 };
 
 }  // Namespace Impl
+
+namespace Experimental {
+// Partitioning an Execution Space: expects space and integer arguments for
+// relative weight
+//   Customization point for backends
+//   Default behavior is to return the passed in instance
+
+namespace Impl {
+inline void create_Cuda_instances(std::vector<Cuda>& instances) {
+  for (int s = 0; s < int(instances.size()); s++) {
+    cudaStream_t stream;
+    KOKKOS_IMPL_CUDA_SAFE_CALL(cudaStreamCreate(&stream));
+    instances[s] = Cuda(stream, true);
+  }
+}
+}  // namespace Impl
+
+template <class... Args>
+std::vector<Cuda> partition_space(const Cuda&, Args...) {
+  static_assert(
+      (... && std::is_arithmetic_v<Args>),
+      "Kokkos Error: partitioning arguments must be integers or floats");
+  std::vector<Cuda> instances(sizeof...(Args));
+  Impl::create_Cuda_instances(instances);
+  return instances;
+}
+
+template <class T>
+std::vector<Cuda> partition_space(const Cuda&, std::vector<T>& weights) {
+  static_assert(
+      std::is_arithmetic<T>::value,
+      "Kokkos Error: partitioning arguments must be integers or floats");
+
+  std::vector<Cuda> instances(weights.size());
+  Impl::create_Cuda_instances(instances);
+  return instances;
+}
+}  // namespace Experimental
+
 }  // Namespace Kokkos
 #endif

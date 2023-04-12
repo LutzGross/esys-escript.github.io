@@ -90,16 +90,6 @@ namespace Belos {
     PseudoBlockTFQMRSolMgrLinearProblemFailure(const std::string& what_arg) : BelosError(what_arg)
     {}};
 
-  /** \brief PseudoBlockTFQMRSolMgrOrthoFailure is thrown when the orthogonalization manager is
-   * unable to generate orthonormal columns from the initial basis vectors.
-   *
-   * This std::exception is thrown from the PseudoBlockTFQMRSolMgr::solve() method.
-   *
-   */
-  class PseudoBlockTFQMRSolMgrOrthoFailure : public BelosError {public:
-    PseudoBlockTFQMRSolMgrOrthoFailure(const std::string& what_arg) : BelosError(what_arg)
-    {}};
-
   template<class ScalarType, class MV, class OP>
   class PseudoBlockTFQMRSolMgr : public SolverManager<ScalarType,MV,OP> {
 
@@ -280,7 +270,6 @@ namespace Belos {
     static constexpr const char * impResScale_default_ = "Norm of Preconditioned Initial Residual";
     static constexpr const char * expResScale_default_ = "Norm of Initial Residual";
     static constexpr const char * label_default_ = "Belos";
-    static constexpr std::ostream * outputStream_default_ = &std::cout;
 
     // Current solver values.
     MagnitudeType convtol_, impTolScale_, achievedTol_;
@@ -301,7 +290,7 @@ namespace Belos {
 // Empty Constructor
 template<class ScalarType, class MV, class OP>
 PseudoBlockTFQMRSolMgr<ScalarType,MV,OP>::PseudoBlockTFQMRSolMgr() :
-  outputStream_(Teuchos::rcp(outputStream_default_,false)),
+  outputStream_(Teuchos::rcpFromRef(std::cout)),
   convtol_(DefaultSolverParameters::convTol),
   impTolScale_(DefaultSolverParameters::impTolScale),
   achievedTol_(Teuchos::ScalarTraits<typename Teuchos::ScalarTraits<ScalarType>::magnitudeType>::zero()),
@@ -326,7 +315,7 @@ PseudoBlockTFQMRSolMgr<ScalarType,MV,OP>::PseudoBlockTFQMRSolMgr(
                                              const Teuchos::RCP<LinearProblem<ScalarType,MV,OP> > &problem,
                                              const Teuchos::RCP<Teuchos::ParameterList> &pl ) :
   problem_(problem),
-  outputStream_(Teuchos::rcp(outputStream_default_,false)),
+  outputStream_(Teuchos::rcpFromRef(std::cout)),
   convtol_(DefaultSolverParameters::convTol),
   impTolScale_(DefaultSolverParameters::impTolScale),
   achievedTol_(Teuchos::ScalarTraits<typename Teuchos::ScalarTraits<ScalarType>::magnitudeType>::zero()),
@@ -624,7 +613,7 @@ PseudoBlockTFQMRSolMgr<ScalarType,MV,OP>::getValidParameters() const
       "to the output stream.");
     pl->set("Deflation Quorum", static_cast<int>(defQuorum_default_),
       "The number of linear systems that need to converge before they are deflated.");
-    pl->set("Output Stream", Teuchos::rcp(outputStream_default_,false),
+    pl->set("Output Stream", Teuchos::rcpFromRef(std::cout),
       "A reference-counted pointer to the output stream where all\n"
       "solver output is sent.");
     pl->set("Explicit Residual Test", static_cast<bool>(expResTest_default_),

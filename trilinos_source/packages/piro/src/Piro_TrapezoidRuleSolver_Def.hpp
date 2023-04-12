@@ -74,7 +74,7 @@ TrapezoidRuleSolver(const Teuchos::RCP<Teuchos::ParameterList> &appParams_,
                      "Not Implemented for Ng>1 : " << num_g << std::endl);
 
   *out << "\nA) Get the base parameter list ...\n";
-
+ 
   RCP<Teuchos::ParameterList> trPL = sublist(appParams, "Trapezoid Rule", true);
   trPL->validateParameters(*getValidTrapezoidRuleParameters(),0);
 
@@ -91,13 +91,13 @@ TrapezoidRuleSolver(const Teuchos::RCP<Teuchos::ParameterList> &appParams_,
   numTimeSteps = trPL->get("Num Time Steps", 10);
   t_final = trPL->get("Final Time", 0.1);
   t_init  = trPL->get("Initial Time", 0.0);
-  delta_t = t_final / numTimeSteps;
+  delta_t = (t_final - t_init) / numTimeSteps;
 
   *out << "\nB) Using Trapezoid Decorator and NOX Solver\n";
 
   // Construct NOX solver -- will look for NOX sublist -- this must be set!!
   trPL->sublist("NOX").set("Reset Initial Guess",true);
-  noxSolver = Teuchos::rcp(new Piro::NOXSolver<Scalar>(trPL, model));
+  noxSolver = Teuchos::rcp(new Piro::NOXSolver<Scalar>(appParams, model));
 
 }
 
@@ -292,19 +292,19 @@ Piro::TrapezoidRuleSolver<Scalar>::evalModelImpl(
 
    //calculate intial acceleration using small time step (1.0e-3*delta_t)
    // AGS: Check this for inital velocity
-   {
-     Scalar pert= 1.0e6 * 4.0 / (delta_t * delta_t);
-     assign(x_pred_a.ptr(), *x);
-     assign(x_pred_v.ptr(), *x);
+  if (calc_init_accel_ == true) {
+    Scalar pert= 1.0e6 * 4.0 / (delta_t * delta_t);
+    assign(x_pred_a.ptr(), *x);
+    assign(x_pred_v.ptr(), *x);
 
-     Vp_StV(x_pred_v.ptr(), sqrt(pert), *v);
-     model->injectData(x_pred_a, x_pred_a, pert, x_pred_v, sqrt(pert), t);
+    Vp_StV(x_pred_v.ptr(), sqrt(pert), *v);
+    model->injectData(x_pred_a, x_pred_a, pert, x_pred_v, sqrt(pert), t);
 
-     noxSolver->evalModel(nox_inargs, nox_outargs);
+    noxSolver->evalModel(nox_inargs, nox_outargs);
 
-     V_StVpStV(a.ptr(), pert, *gx_out,  -pert, *x_pred_a);
-     nrm = norm_2(*a);
-     *out << "Calculated a_init = " << nrm << std::endl;
+    V_StVpStV(a.ptr(), pert, *gx_out,  -pert, *x_pred_a);
+    nrm = norm_2(*a);
+    *out << "Calculated a_init = " << nrm << std::endl;
    }
 
    // Start integration loop
@@ -342,6 +342,7 @@ Piro::TrapezoidRuleSolver<Scalar>::evalModelImpl(
        x = soln->col(0);
        v = soln->col(1);
        a = soln->col(2);
+       nrm = norm_2(*a);
 
        x_pred_a = Thyra::createMember<Scalar>(model->get_f_space());
        x_pred_v = Thyra::createMember<Scalar>(model->get_f_space());
@@ -378,6 +379,8 @@ Piro::TrapezoidRuleSolver<Scalar>::evalModelImpl(
      Vp_StV(v.ptr(), hdt, *a);
      Vp_StV(v.ptr(), hdt, *a_old);
      // Should be equivalent to: v->Update(tdt, *x, -tdt, *x_pred_v, 0.0);
+     
+     nrm = norm_2(*a);
 
      // Observe completed time step
      if (observer != Teuchos::null) observer->observeSolution(*soln, t);
@@ -399,20 +402,41 @@ Piro::TrapezoidRuleSolver<Scalar>::getValidTrapezoidRuleParameters() const
   validPL->set<double>("Final Time", 1.0, "");
   validPL->set<double>("Initial Time", 0.0, "");
   validPL->set<std::string>("Verbosity Level", "", "");
-  validPL->set<bool>("Invert Mass Matrix", false, "");
-  validPL->set<bool>("Lump Mass Matrix", false, "");
+  validPL->set<bool>("Lump Mass Matrix", false, "Boolean to tell code to lump mass matrix");
+  validPL->set<bool>("Constant Mass Matrix", false, "Boolean to tell code to if mass matrix is constant in time");
   validPL->sublist("Stratimikos", false, "");
   validPL->sublist("NOX", false, "");
   return validPL;
+}
+
+template <typename Scalar>
+Teuchos::RCP<Piro::NOXSolver<Scalar> >
+Piro::TrapezoidRuleSolver<Scalar>::getNOXSolver() const
+{
+  return noxSolver;
+}
+
+template <typename Scalar>
+Teuchos::RCP<Piro::TrapezoidDecorator<Scalar> >
+Piro::TrapezoidRuleSolver<Scalar>::getDecorator() const
+{
+  return model;
+}
+
+template <typename Scalar>
+Teuchos::RCP<Thyra::AdaptiveSolutionManager>
+Piro::TrapezoidRuleSolver<Scalar>::getSolutionManager() const
+{
+  return solMgr;
 }
 
 /****************************************************************************/
 
 template <typename Scalar>
 Piro::TrapezoidDecorator<Scalar>::TrapezoidDecorator(
-                          const Teuchos::RCP<Thyra::ModelEvaluator<Scalar> >& model_) :
-  Thyra::ModelEvaluatorDelegatorBase<Scalar>(model_),
-  DMEWSF(Teuchos::rcp_dynamic_cast<Thyra::DefaultModelEvaluatorWithSolveFactory<Scalar> >(model_)),
+                          const Teuchos::RCP<Thyra::ModelEvaluator<Scalar> >& modelEvaluator) :
+  Thyra::ModelEvaluatorDelegatorBase<Scalar>(modelEvaluator),
+  DMEWSF(Teuchos::rcp_dynamic_cast<Thyra::DefaultModelEvaluatorWithSolveFactory<Scalar> >(modelEvaluator)),
   fdt2(0.0),
   tdt(0.0),
   time(0.0),

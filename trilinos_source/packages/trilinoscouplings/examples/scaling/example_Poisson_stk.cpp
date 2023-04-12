@@ -76,6 +76,8 @@
 /**************************************************************/
 
 #include <unistd.h>
+#include <vector>
+#include <map>
 
 #include "TrilinosCouplings_config.h"
 
@@ -89,6 +91,8 @@
 #include "Intrepid_Basis.hpp"
 #include "Intrepid_HGRAD_HEX_C1_FEM.hpp"
 #include "Intrepid_HGRAD_TET_C1_FEM.hpp"
+#include "Intrepid_HGRAD_QUAD_C1_FEM.hpp"
+#include "Intrepid_HGRAD_TRI_C1_FEM.hpp"
 #include "Intrepid_RealSpaceTools.hpp"
 #include "Intrepid_DefaultCubatureFactory.hpp"
 #include "Intrepid_Utils.hpp"
@@ -165,15 +169,22 @@
 #include "stk_mesh/base/FieldBase.hpp"  // for field_data, etc
 #include "stk_mesh/base/Types.hpp"      // for BucketVector, EntityId
 
+#ifdef HAVE_TRILINOSCOUPLINGS_MUELU
+#include "TrilinosCouplings_Statistics.hpp"
+#endif
+
 /*********************************************************/
 /*                     Typedefs                          */
 /*********************************************************/
-typedef Sacado::Fad::SFad<double,3>      Fad3; //# ind. vars fixed at 3
 typedef shards::CellTopology             ShardsCellTopology;
 typedef Intrepid::FunctionSpaceTools     IntrepidFSTools;
 typedef Intrepid::RealSpaceTools<double> IntrepidRSTools;
 typedef Intrepid::CellTools<double>      IntrepidCTools;
 typedef Intrepid::FieldContainer<double> IntrepidFieldContainer;
+
+
+// Number of dimensions
+int spaceDim;
 
 /**********************************************************************************/
 /******** FUNCTION DECLARATIONS FOR EXACT SOLUTION AND SOURCE TERMS ***************/
@@ -297,6 +308,8 @@ void getBasis(Teuchos::RCP<Intrepid::Basis<double,IntrepidFieldContainer > > &ba
                const ShardsCellTopology & cellTopology,
                int order);
 
+int getDimension(const ShardsCellTopology & cellTopology);
+
 /**********************************************************************************/
 /**********************************************************************************/
 /**********************************************************************************/
@@ -347,7 +360,7 @@ int main(int argc, char *argv[]) {
   Teuchos::CommandLineProcessor clp(false);
 
   std::string optMeshFile = "unit_cube_10int_hex.exo";
-  clp.setOption("mesh",  &optMeshFile, "Exodus hexahedral or tetrahedral mesh file with nodeset define for boundary");
+  clp.setOption("mesh",  &optMeshFile, "Exodus hexahedra, tetrahedral, quadrilateral or triangle mesh file with nodeset define for boundary");
   std::string optXmlFile  = "";
   clp.setOption("xml",   &optXmlFile,  "xml file containing ML solver options");
   bool optPrintLocalStats = false; clp.setOption("localstats", "nolocalstats", &optPrintLocalStats, "print per-process statistics");
@@ -428,10 +441,6 @@ int main(int argc, char *argv[]) {
   /**********************************************************************************/
   /*********************************** READ MESH ************************************/
   /**********************************************************************************/
-
-  // 3-D meshes only
-   int spaceDim = 3;
-
   stk::io::StkMeshIoBroker broker(Comm.GetMpiComm());
   broker.property_add(Ioss::Property("MAXIMUM_NAME_LENGTH", 180));
   broker.property_add(Ioss::Property("DECOMPOSITION_METHOD", "rcb"));
@@ -478,16 +487,20 @@ int main(int argc, char *argv[]) {
     for (int i=0; i<numRanks; ++i) {
       if (MyPID == i) {
         std::cout << "(" << MyPID << ")    Number of local Elements: " << numLocalElems << std::endl
-                  << "(" << MyPID << ")       Number of local Nodes: " << numLocalNodes << std::endl << std::endl;
+                  << "(" << MyPID << ")    Number of local Nodes   : " << numLocalNodes << std::endl << std::endl;
       }
       Comm.Barrier();
     }
   }
 
-  int numGlobalNodes = 0;
+  int numGlobalNodes = 0, numGlobalElements = 0;
   Comm.SumAll(&numLocalNodes,&numGlobalNodes,1);
-  if (MyPID == 0)
-    std::cout << "       Number of global Nodes: " << numGlobalNodes << std::endl;
+  Comm.SumAll(&numLocalElems,&numGlobalElements,1);
+  if (MyPID == 0) {
+    std::cout << "       Number of global Nodes   : " << numGlobalNodes << std::endl;
+    std::cout << "       Number of global Elements: " << numGlobalElements << std::endl;
+  }
+ 
 
   typedef stk::mesh::Field<double, stk::mesh::Cartesian>  CoordFieldType;
   // get coordinates field
@@ -505,24 +518,48 @@ int main(int argc, char *argv[]) {
   for (stk::mesh::PartVector::const_iterator i  = all_parts.begin(); i != all_parts.end(); ++i) {
 
     stk::mesh::Part & part = **i ;
-
-    // if part only contains nodes, then it is a node set
-    //   ! this assumes that the only node set defined is the set
-    //   ! of boundary nodes
-    if (part.primary_entity_rank() == NODE_RANK) {
+    //printf("Loading mesh part %s isnode=%s\n",part.name().c_str(),part.primary_entity_rank() == NODE_RANK ? "YES" : "NO");
+    // if part only contains nodes and isn't the ROOT_CELL_TOPOLOGY guy, then it is a node set
+    if (part.primary_entity_rank() == NODE_RANK && part.name() != "{FEM_ROOT_CELL_TOPOLOGY_PART_NODE}") {
       stk::mesh::Selector partSelector(part);
       stk::mesh::Selector bcNodeSelector = partSelector & locallyOwnedSelector;
-      stk::mesh::get_selected_entities(bcNodeSelector, nodeBuckets, bcNodes);
+
+      if(bcNodes.size() == 0)
+        stk::mesh::get_selected_entities(bcNodeSelector, nodeBuckets, bcNodes);
+      else {
+        std::vector<entity_type> myBcNodes;
+        stk::mesh::get_selected_entities(bcNodeSelector, nodeBuckets, myBcNodes);
+        std::copy(myBcNodes.begin(),myBcNodes.end(),std::back_inserter(bcNodes));
+      }        
+
+      if(MyPID==0) printf("Adding nodeset %s\n",part.name().c_str());
+
     }
     else if(part.primary_entity_rank() == ELEMENT_RANK) {
       // Here the topology is defined from the mesh. Note that it is assumed
       // that all parts with elements (aka ELEMENT_RANK) have the same topology type
-      cellType = stk::mesh::get_cell_topology(metaData.get_topology( part ));
+      auto myCell = stk::mesh::get_cell_topology(metaData.get_topology( part ));
+      if(myCell.getCellTopologyData()) {
+	cellType =  myCell;
+      }
     }
 
   } // end loop over mesh parts
 
   int numNodesPerElem = cellType.getNodeCount();  
+#if defined(HAVE_TRILINOSCOUPLINGS_MUELU) && defined(HAVE_MUELU_EPETRA)
+  int numEdgesPerElem = cellType.getEdgeCount();  
+#endif
+
+  if(MyPID==0) {
+    std::cout<<"Cell Topology: "<<cellType.getName() << " ("<<cellType.getBaseName()<<")"<<std::endl;
+  }
+
+#if defined(HAVE_TRILINOSCOUPLINGS_MUELU) && defined(HAVE_MUELU_EPETRA)
+  MachineLearningStatistics_Hex3D<double, int, int, Xpetra::EpetraNode> MLStatistics(numGlobalElements);
+  bool do_statistics = !strcmp(cellType.getName(),"Hexahedron_8") && (Comm.NumProc() == 1);
+  if(MyPID==0) std::cout<<"do_statistics = "<<do_statistics<<std::endl;
+#endif
 
   // if no boundary node set was found give a warning
   int numLocalBCs = bcNodes.size();
@@ -563,6 +600,7 @@ int main(int argc, char *argv[]) {
   // Define cubature of the specified degree for the cellType
   Intrepid::DefaultCubatureFactory<double>  cubFactory;
   int cubDegree = 2;
+
   RCP<Intrepid::Cubature<double> > cellCubature = cubFactory.create(cellType, cubDegree);
 
   int cubDim       = cellCubature -> getDimension();
@@ -586,6 +624,7 @@ int main(int argc, char *argv[]) {
 
   // Select basis from the cell topology
   int order = 1;
+  spaceDim = getDimension(cellType);
   RCP<Intrepid::Basis<double, IntrepidFieldContainer > >  HGradBasis;
   getBasis(HGradBasis, cellType, order);
 
@@ -624,7 +663,7 @@ int main(int argc, char *argv[]) {
   /******************************** STASH COORDINATES *******************************/
   /**********************************************************************************/
   // Put coordinates in multivector for output
-  Epetra_MultiVector nCoord(globalMapG,3);    
+  Epetra_MultiVector nCoord(globalMapG,spaceDim);    
   // Loop over elements
   
   for (size_t bucketIndex = 0; bucketIndex < localElementBuckets.size(); ++bucketIndex) {
@@ -638,17 +677,113 @@ int main(int argc, char *argv[]) {
       for (unsigned inode = 0; inode < numNodes; ++inode) {
 	double *coord = stk::mesh::field_data(*coords, nodes[inode]);
 	int lid = globalMapG.LID((int)bulkData.identifier(nodes[inode]) -1);
-	nCoord[0][lid] = coord[0];
-	nCoord[1][lid] = coord[1];
-	nCoord[2][lid] = coord[2];
+        if(lid != -1) {
+          nCoord[0][lid] = coord[0];
+          nCoord[1][lid] = coord[1];
+          if(spaceDim==3)
+            nCoord[2][lid] = coord[2];
+        }
       }
     }      
   } // end loop over elements
   if(coordsFilename != "") {
+    // WARNING: This does *NOT* output the coordinates in an ordering that corresponds
+    // to the matrix unless the matrix is (a) in serial and (b) has identical global and ordering
+    // The ifdef'd code below will do processor-by-processor output with global IDs for matching
+    // in all other cases
     EpetraExt::MultiVectorToMatrixMarketFile(coordsFilename.c_str(),nCoord,0,0,false);
+
+#if 0
+    // Processor-by-processor output
+    char fn[80];
+    sprintf(fn,"test-%d-%s",MyPID,coordsFilename.c_str());
+    FILE *f = fopen(fn,"w");
+    for(int i=0;i<nCoord.MyLength(); i++) {
+      fprintf(f,"%d ",nCoord.Map().GID(i));
+      for(int j=0; j<nCoord.NumVectors(); j++)
+        fprintf(f,"%22.16e ",nCoord[j][i]);
+      fprintf(f,"\n");
+    }
+    fclose(f);
+#endif
+
     if(MyPID==0) {Time.ResetStartTime();}
   }
 
+
+  /**********************************************************************************/
+  /****************************** STATISTICS (Part I) *******************************/
+  /**********************************************************************************/
+#if defined(HAVE_TRILINOSCOUPLINGS_MUELU) && defined(HAVE_MUELU_EPETRA)
+  if(do_statistics) {
+    Intrepid::FieldContainer<int> elemToNode(numLocalElems,numNodesPerElem);
+    Intrepid::FieldContainer<int> elemToEdge(numLocalElems,numEdgesPerElem);
+    Intrepid::FieldContainer<double> nodeCoord (numLocalNodes, spaceDim);
+    Intrepid::FieldContainer<double> sigmaVal(numLocalElems);
+    
+    int elem_ct=0;
+    std::map<std::pair<int,int>,int> local_edge_hash;
+    std::vector<std::pair<int,int> > edge_vector;
+
+    for (size_t bucketIndex = 0; bucketIndex < localElementBuckets.size(); ++bucketIndex) {
+      stk::mesh::Bucket &elemBucket = *localElementBuckets[bucketIndex];
+      for (size_t elemIndex = 0; elemIndex < elemBucket.size(); ++elemIndex) {
+        stk::mesh::Entity elem = elemBucket[elemIndex];
+        //TODO (Optimization) It's assumed all elements are the same type, so this is constant.
+        //TODO Therefore there's no need to do this everytime.
+        unsigned numNodes = bulkData.num_nodes(elem);
+        stk::mesh::Entity const* nodes = bulkData.begin_nodes(elem);
+        for (unsigned inode = 0; inode < numNodes; ++inode) {
+          double *coord = stk::mesh::field_data(*coords, nodes[inode]);
+          int lid = globalMapG.LID((int)bulkData.identifier(nodes[inode]) -1);
+          elemToNode(elem_ct,inode) = lid;
+          if(lid != -1) {
+            nodeCoord(lid,0) = coord[0];
+            nodeCoord(lid,1) = coord[1];
+            if(spaceDim==3)
+              nodeCoord(lid,2) = coord[2];
+          }
+        }//end node loop
+        
+        auto data = cellType.getCellTopologyData();
+        for(unsigned iedge=0; iedge<cellType.getEdgeCount(); iedge++) {
+          int n0 = data->edge[iedge].node[0];
+          int n1 = data->edge[iedge].node[1];
+          int lid0 = globalMapG.LID((int)bulkData.identifier(nodes[n0]) -1);
+          int lid1 = globalMapG.LID((int)bulkData.identifier(nodes[n1]) -1);
+          if(lid0 != -1 && lid1 != -1) {
+            int lo = std::min(lid0,lid1);            
+            int hi = std::max(lid0,lid1);
+            std::pair<int,int> key(lo,hi);
+            if (local_edge_hash.find(key) == local_edge_hash.end()) {
+              int new_edge_id = edge_vector.size();
+              local_edge_hash[key] = new_edge_id;
+              edge_vector.push_back(key);
+              elemToEdge(elem_ct,iedge) = new_edge_id;
+            }
+            else {
+              elemToEdge(elem_ct,iedge) = local_edge_hash[key];
+            }
+          }
+        }//end edge loop
+      
+        sigmaVal(elem_ct) = 1;// Not doing sigma here
+        
+        elem_ct++;
+      }//end element loop
+    }//end bucket loop
+
+    Intrepid::FieldContainer<int> edgeToNode(edge_vector.size(), 2);
+    for(int i=0; i<(int)edge_vector.size(); i++) {
+      edgeToNode(i,0) = edge_vector[i].first;
+      edgeToNode(i,1) = edge_vector[i].second;
+    }
+
+
+    MLStatistics.Phase1(elemToNode,elemToEdge,edgeToNode,nodeCoord,sigmaVal);
+
+  }
+#endif
 
   /**********************************************************************************/
   /******************** DEFINE WORKSETS AND LOOP OVER THEM **************************/
@@ -704,7 +839,7 @@ int main(int argc, char *argv[]) {
           double *coord = stk::mesh::field_data(*coords, nodes[inode]);
           cellWorkset(cellCounter, inode, 0) = coord[0];
           cellWorkset(cellCounter, inode, 1) = coord[1];
-          cellWorkset(cellCounter, inode, 2) = coord[2];
+          if(spaceDim==3) cellWorkset(cellCounter, inode, 2) = coord[2];
         }
         cellCounter++;
       }
@@ -835,6 +970,17 @@ int main(int argc, char *argv[]) {
       Time.ResetStartTime();
     }
 
+    
+
+
+    /**********************************************************************************/
+    /***************************** STATISTICS (Part II) ******************************/
+    /**********************************************************************************/
+#if defined(HAVE_TRILINOSCOUPLINGS_MUELU) && defined(HAVE_MUELU_EPETRA)
+    if(do_statistics)
+      MLStatistics.Phase2a(worksetJacobDet,worksetCubWeights);
+#endif
+
     /**********************************************************************************/
     /*                         Assemble into Global Matrix                            */
     /**********************************************************************************/
@@ -842,6 +988,7 @@ int main(int argc, char *argv[]) {
     //"WORKSET CELL" loop: local cell ordinal is relative to numLocalElems
     //JJH runs from 0 to (#local cells - 1)
     int worksetCellOrdinal = 0;
+
     for (size_t bucketIndex = 0; bucketIndex < localElementBuckets.size(); ++bucketIndex) {
 
       stk::mesh::Bucket &elemBucket = *localElementBuckets[bucketIndex];
@@ -872,12 +1019,14 @@ int main(int argc, char *argv[]) {
 
         }// end cell row loop
 
+        worksetCellOrdinal++;
       }// end workset cell loop
-      worksetCellOrdinal++;
+
 
     } //for (size_t bucketIndex = 0; ...
 
   }// end workset loop
+
 
   StiffMatrix.GlobalAssemble();
   StiffMatrix.FillComplete();
@@ -888,6 +1037,26 @@ int main(int argc, char *argv[]) {
               << Time.ElapsedTime() << " seconds" << std::endl;
     Time.ResetStartTime();
   }
+/**********************************************************************************/
+/***************************** STATISTICS (Part IIb) ******************************/
+/**********************************************************************************/
+#if defined(HAVE_TRILINOSCOUPLINGS_MUELU) && defined(HAVE_MUELU_EPETRA)
+  if(do_statistics){
+    MLStatistics.Phase2b(Teuchos::rcp(&StiffMatrix.Graph(),false),Teuchos::rcp(&nCoord,false));
+  }
+#endif
+/**********************************************************************************/
+/***************************** STATISTICS (Part III) ******************************/
+/**********************************************************************************/
+#if defined(HAVE_TRILINOSCOUPLINGS_MUELU) && defined(HAVE_MUELU_EPETRA)
+  if(do_statistics){
+    MLStatistics.Phase3();
+    Teuchos::ParameterList problemStatistics = MLStatistics.GetStatistics();
+    if(MyPID==0) std::cout<<"*** Problem Statistics ***"<<std::endl<<problemStatistics<<std::endl;
+  }
+#endif
+
+ 
 
   /**********************************************************************************/
   /************************** DIRICHLET BC SETUP ************************************/
@@ -909,7 +1078,7 @@ int main(int argc, char *argv[]) {
       // look up exact value of function on boundary
       double x  = coord[0];
       double y  = coord[1];
-      double z  = coord[2];
+      double z  = (spaceDim==3) ? coord[2] : 0;
       lhsVector[lid]=rhsVector[0][lid]=exactSolution(x, y, z);
     }
   } // end loop over boundary nodes
@@ -919,6 +1088,8 @@ int main(int argc, char *argv[]) {
   //  and add one to diagonal.
   ML_Epetra::Apply_BCsToMatrixRows(&(ownedBoundaryNodes[0]), ownedBoundaryNodes.size(), StiffMatrix);
   ML_Epetra::Remove_Zeroed_Rows(StiffMatrix,0.0);
+
+
 
   if(MyPID==0) {
     std::cout << "Adjust global matrix and rhs due to BCs     "
@@ -953,7 +1124,7 @@ int main(int argc, char *argv[]) {
       // look up exact value of function on boundary
       double x  = coord[0];
       double y  = coord[1];
-      double z  = coord[2];
+      double z  = (spaceDim==3) ? coord[2] : 0;
       int gNodeId = bulkData.identifier(node) - 1;
       //exactNodalVals[0][gNodeId]=exactSolution(x, y, z);
       int lid = globalMapG.LID(gNodeId);
@@ -984,8 +1155,12 @@ int main(int argc, char *argv[]) {
 template<typename Scalar>
 const Scalar exactSolution(const Scalar& x, const Scalar& y, const Scalar& z) {
 
+  // Patch test: tri-linear function is in the FE space and should be recovered
+  return 1. + x + y + z + x*y + x*z + y*z + x*y*z;
+
+
   // Patch test - tet: function is in the FE space and should be recovered
-     return 1. + x + y + z ;
+  //     return 1. + x + y + z ;
 
   // Patch test - hex: tri-linear function is in the FE space and should be recovered
   // return 1. + x + y + z + x*y + x*z + y*z + x*y*z;
@@ -1097,7 +1272,8 @@ void evaluateMaterialTensor(ArrayOut &        matTensorValues,
 
       double x = evaluationPoints(cell, pt, 0);
       double y = evaluationPoints(cell, pt, 1);
-      double z = evaluationPoints(cell, pt, 2);
+      double z = 0.0;
+      if(spaceDim==3) z = evaluationPoints(cell, pt, 2);
 
       materialTensor<double>(material, x, y, z);
 
@@ -1122,8 +1298,10 @@ void evaluateSourceTerm(ArrayOut &       sourceTermValues,
     for(int pt = 0; pt < numPoints; pt++){
 
       Sacado::Fad::SFad<double,3> x = evaluationPoints(cell, pt, 0);
-      Sacado::Fad::SFad<double,3> y = evaluationPoints(cell, pt, 1);
-      Sacado::Fad::SFad<double,3> z = evaluationPoints(cell, pt, 2);
+      Sacado::Fad::SFad<double,3> y = evaluationPoints(cell, pt, 1);      
+      Sacado::Fad::SFad<double,3> z;
+      if(spaceDim==3) 
+	z = evaluationPoints(cell, pt, 2);
 
       sourceTermValues(cell, pt) = sourceTerm<Sacado::Fad::SFad<double,3> >(x, y, z).val();
     }
@@ -1143,7 +1321,9 @@ void evaluateExactSolution(ArrayOut &       exactSolutionValues,
 
       double x = evaluationPoints(cell, pt, 0);
       double y = evaluationPoints(cell, pt, 1);
-      double z = evaluationPoints(cell, pt, 2);
+      double z=0.0;
+      if(spaceDim==3) 
+	z = evaluationPoints(cell, pt, 2);
 
       exactSolutionValues(cell, pt) = exactSolution<double>(x, y, z);
     }
@@ -1167,7 +1347,9 @@ void evaluateExactSolutionGrad(ArrayOut &       exactSolutionGradValues,
 
       double x = evaluationPoints(cell, pt, 0);
       double y = evaluationPoints(cell, pt, 1);
-      double z = evaluationPoints(cell, pt, 2);
+      double z = 0.0;
+      if(spaceDim==3)
+	z = evaluationPoints(cell, pt, 2);
 
       exactSolutionGrad<double>(gradient, x, y, z);
 
@@ -1215,9 +1397,13 @@ int TestMultiLevelPreconditioner(char ProblemType[],
   }
 
   RCP<Epetra_Operator> M;
-  if(precondType == "ML") {
-    ML_Epetra::SetDefaults("SA", MLList, 0, 0, false);
-    M = rcp(new ML_Epetra::MultiLevelPreconditioner(A, MLList, true));
+  if(precondType == "ML") {    
+    Teuchos::ParameterList mylist;
+    if(MLList.isSublist("ML")) mylist = MLList.sublist("ML");
+    else  mylist = MLList;
+    
+    ML_Epetra::SetDefaults("SA", mylist, 0, 0, false);
+    M = rcp(new ML_Epetra::MultiLevelPreconditioner(A, mylist, true));
   }
 #if defined(HAVE_TRILINOSCOUPLINGS_MUELU) && defined(HAVE_MUELU_EPETRA)
   else if(precondType == "MueLu") {
@@ -1226,7 +1412,8 @@ int TestMultiLevelPreconditioner(char ProblemType[],
     if (MLList.isSublist("MueLu"))
       mueluParams = MLList.sublist("MueLu");
     mueluParams.sublist("user data").set("Coordinates",Teuchos::rcpFromRef(coords));
-    std::cout<<"*** MueLu Params ***" <<std::endl<<mueluParams<<std::endl;
+    if(A.Comm().MyPID()==0)
+      std::cout<<"*** MueLu Params ***" <<std::endl<<mueluParams<<std::endl;
     M = MueLu::CreateEpetraPreconditioner(Teuchos::rcpFromRef(A),mueluParams);
   }
 
@@ -1296,17 +1483,33 @@ void getBasis(Teuchos::RCP<Intrepid::Basis<double,IntrepidFieldContainer > > &ba
          basis = Teuchos::rcp(new Intrepid::Basis_HGRAD_HEX_C1_FEM<double, IntrepidFieldContainer > );
          break;
 
+       case shards::Triangle<3>::key:
+         basis = Teuchos::rcp(new Intrepid::Basis_HGRAD_TRI_C1_FEM<double, IntrepidFieldContainer > );
+         break;
+
+       case shards::Quadrilateral<4>::key:
+         basis = Teuchos::rcp(new Intrepid::Basis_HGRAD_QUAD_C1_FEM<double, IntrepidFieldContainer > );
+         break;
+
+
        default:
-         TEUCHOS_TEST_FOR_EXCEPTION( ( (cellTopology.getKey() != shards::Tetrahedron<4>::key)             &&
-                               (cellTopology.getKey() != shards::Hexahedron<8>::key) ),
-                                std::invalid_argument,
-                               "Unknown cell topology for basis selction. Please use Hexahedron_8 or Tetrahedron_4.");
+         TEUCHOS_TEST_FOR_EXCEPTION(1,std::invalid_argument,
+				    "Unknown cell topology for basis selction. Please use Hexahedron_8 or Tetrahedron_4, Quadrilateral_4 or Triangle_3");
 
      }
 
 }
 
-
-
-
-
+int getDimension( const ShardsCellTopology & cellTopology) {
+  switch (cellTopology.getKey()) {    
+  case shards::Tetrahedron<4>::key:
+  case shards::Hexahedron<8>::key:
+    return 3;
+  case shards::Triangle<3>::key:
+  case shards::Quadrilateral<4>::key:
+    return 2;
+  default:
+    TEUCHOS_TEST_FOR_EXCEPTION(1,std::invalid_argument,
+			       "Unknown cell topology for basis selction. Please use Hexahedron_8 or Tetrahedron_4, Quadrilateral_4 or Triangle_3");    
+  }
+}

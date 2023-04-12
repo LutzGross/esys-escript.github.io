@@ -1,12 +1,13 @@
-// Copyright(C) 1999-2020 National Technology & Engineering Solutions
+// Copyright(C) 1999-2021 National Technology & Engineering Solutions
 // of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 // NTESS, the U.S. Government retains certain rights in this software.
-// 
+//
 // See packages/seacas/LICENSE for details
 
 //------------------------------------------------------------------------
 // Define a variable type for storage of this elements connectivity
 #include "Ioss_CodeTypes.h"           // for IntVector
+#include "Ioss_ElementPermutation.h"  // for ElementPermutation
 #include "Ioss_ElementTopology.h"     // for ElementTopology
 #include <Ioss_ElementVariableType.h> // for ElementVariableType
 #include <Ioss_Node.h>
@@ -49,8 +50,6 @@ Ioss::Node::Node() : Ioss::ElementTopology(Ioss::Node::name, "Node_0_3D")
   Ioss::ElementTopology::alias(Ioss::Node::name, "NODE");
 }
 
-Ioss::Node::~Node() = default;
-
 int Ioss::Node::parametric_dimension() const { return 0; }
 int Ioss::Node::spatial_dimension() const { return 3; }
 int Ioss::Node::order() const { return 1; }
@@ -66,6 +65,7 @@ int Ioss::Node::number_nodes_face(int face) const
 {
   // face is 1-based.  0 passed in for all faces.
   assert(face >= 0 && face <= number_faces());
+  IOSS_ASSERT_USED(face);
   return Constants::nfacenode;
 }
 
@@ -73,6 +73,7 @@ int Ioss::Node::number_edges_face(int face) const
 {
   // face is 1-based.  0 passed in for all faces.
   assert(face >= 0 && face <= number_faces());
+  IOSS_ASSERT_USED(face);
   return Constants::nfaceedge;
 }
 
@@ -85,6 +86,7 @@ Ioss::IntVector Ioss::Node::edge_connectivity(int /* edge_number */) const
 Ioss::IntVector Ioss::Node::face_connectivity(int face_number) const
 {
   assert(face_number > 0 && face_number <= number_faces());
+  IOSS_ASSERT_USED(face_number);
   Ioss::IntVector connectivity;
   return connectivity;
 }
@@ -105,6 +107,7 @@ Ioss::ElementTopology *Ioss::Node::face_type(int face_number) const
   // face_number is 1-based.
 
   assert(face_number >= 0 && face_number <= number_faces());
+  IOSS_ASSERT_USED(face_number);
   return (Ioss::ElementTopology *)nullptr;
 }
 
@@ -115,5 +118,6 @@ Ioss::ElementTopology *Ioss::Node::edge_type(int edge_number) const
   // edge_number is 1-based.
 
   assert(edge_number >= 0 && edge_number <= number_edges());
+  IOSS_ASSERT_USED(edge_number);
   return nullptr;
 }

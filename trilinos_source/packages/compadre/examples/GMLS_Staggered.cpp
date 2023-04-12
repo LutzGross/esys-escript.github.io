@@ -12,6 +12,7 @@
 #include <Compadre_PointCloudSearch.hpp>
 
 #include "GMLS_Tutorial.hpp"
+#include "CommandLineProcessor.hpp"
 
 #ifdef COMPADRE_USE_MPI
 #include <mpi.h>
@@ -41,72 +42,14 @@ bool all_passed = true;
 // code block to reduce scope for all Kokkos View allocations
 // otherwise, Views may be deallocating when we call Kokkos::finalize() later
 {
-    // check if 7 arguments are given from the command line, the first being the program name
-    //  constraint_type used in solving each GMLS problem:
-    //      0 - No constraints used in solving each GMLS problem
-    //      1 - Neumann Gradient Scalar used in solving each GMLS problem
-    int constraint_type = 0; // No constraints by default
-    if (argc >= 7) {
-        int arg7toi = atoi(args[6]);
-        if (arg7toi > 0) {
-            constraint_type = arg7toi;
-        }
-    }
 
-    // check if 6 arguments are given from the command line, the first being the program name
-    // problem_type used in solving each GMLS problem:
-    //      0 - Standard GMLS problem
-    //      1 - Manifold GMLS problem
-    int problem_type = 0; // Standard by default
-    if (argc >= 6) {
-        int arg6toi = atoi(args[5]);
-        if (arg6toi > 0) {
-            problem_type = arg6toi;
-        }
-    }
-
-    // check if 5 arguments are given from the command line, the first being the program name
-    //  solver_type used for factorization in solving each GMLS problem:
-    //      0 - SVD used for factorization in solving each GMLS problem
-    //      1 - QR  used for factorization in solving each GMLS problem
-    //      2 - LU  used for factorization in solving each GMLS problem
-    int solver_type = 1; // QR by default
-    if (argc >= 5) {
-        int arg5toi = atoi(args[4]);
-        if (arg5toi >= 0) {
-            solver_type = arg5toi;
-        }
-    }
-
-    // check if 4 arguments are given from the command line
-    //  dimension for the coordinates and the solution
-    int dimension = 3; // dimension 3 by default
-    if (argc >= 4) {
-        int arg4toi = atoi(args[3]);
-        if (arg4toi > 0) {
-            dimension = arg4toi;
-        }
-    }
-
-    // check if 3 arguments are given from the command line
-    //  set the number of target sites where we will reconstruct the target functionals at
-    int number_target_coords = 200; // 200 target sites by default
-    if (argc >= 3) {
-        int arg3toi = atoi(args[2]);
-        if (arg3toi > 0) {
-            number_target_coords = arg3toi;
-        }
-    }
-
-    // check if 2 arguments are given from the command line
-    //  set the number of target sites where we will reconstruct the target functionals at
-    int order = 3; // 3rd degree polynomial basis by default
-    if (argc >= 2) {
-        int arg2toi = atoi(args[1]);
-        if (arg2toi > 0) {
-            order = arg2toi;
-        }
-    }
+    CommandLineProcessor clp(argc, args);
+    auto order = clp.order;
+    auto dimension = clp.dimension;
+    auto number_target_coords = clp.number_target_coords;
+    auto constraint_name = clp.constraint_name;
+    auto solver_name = clp.solver_name;
+    auto problem_name = clp.problem_name;
 
     // the functions we will be seeking to reconstruct are in the span of the basis
     // of the reconstruction space we choose for GMLS, so the error should be very small
@@ -184,7 +127,7 @@ bool all_passed = true;
         for (int j=0; j<3; j++) {
             target_coords(i, j) = source_coords(source_site_to_copy, j);
         }
-        if (constraint_type == 1) { // create bundles of normal vectors
+        if (constraint_name == "NEUMANN_GRAD_SCALAR") { // create bundles of normal vectors
             if (dimension == 3) {
                 tangent_bundles(i, 0, 0) = 0.0;
                 tangent_bundles(i, 0, 1) = 0.0;
@@ -284,32 +227,6 @@ bool all_passed = true;
     Kokkos::deep_copy(neighbor_lists_device, neighbor_lists);
     Kokkos::deep_copy(epsilon_device, epsilon);
 
-    // solver name for passing into the GMLS class
-    std::string solver_name;
-    if (solver_type == 0) { // SVD
-        solver_name = "SVD";
-    } else if (solver_type == 1) { // QR
-        solver_name = "QR";
-    } else if (solver_type == 2) { // LU
-        solver_name = "LU";
-    }
-
-    // problem name for passing into the GMLS class
-    std::string problem_name;
-    if (problem_type == 0) { // Standard
-        problem_name = "STANDARD";
-    } else if (problem_type == 1) { // Manifold
-        problem_name = "MANIFOLD";
-    }
-
-    // boundary name for passing into the GMLS class
-    std::string constraint_name;
-    if (constraint_type == 0) { // No constraints
-        constraint_name = "NO_CONSTRAINT";
-    } else if (constraint_type == 1) { // Neumann Gradient Scalar
-        constraint_name = "NEUMANN_GRAD_SCALAR";
-    }
-    
     // initialize an instance of the GMLS class
     // NULL in manifold order indicates non-manifold case
     // First, analytica gradient on scalar polynomial basis
@@ -362,8 +279,8 @@ bool all_passed = true;
     vector_basis_gmls.setWeightingType(WeightingFunctionType::Power);
 
     // power to use in that weighting kernel function
-    scalar_basis_gmls.setWeightingPower(2);
-    vector_basis_gmls.setWeightingPower(2);
+    scalar_basis_gmls.setWeightingParameter(2);
+    vector_basis_gmls.setWeightingParameter(2);
 
     // setup quadrature for StaggeredEdgeIntegralSample
     vector_basis_gmls.setOrderOfQuadraturePoints(order);
@@ -445,10 +362,10 @@ bool all_passed = true;
 
         // obtain adjusted value for divergence
         if (constraint_name == "NEUMANN_GRAD_SCALAR") {
-            double b_i_scalar = scalar_basis_gmls.getAlpha0TensorTo0Tensor(DivergenceOfVectorPointEvaluation, i, num_neigh_i);
+            double b_i_scalar = scalar_basis_gmls.getSolutionSetHost()->getAlpha0TensorTo0Tensor(DivergenceOfVectorPointEvaluation, i, num_neigh_i);
             GMLS_Divergence_Scalar = GMLS_Divergence_Scalar + b_i_scalar*g;
 
-            double b_i_vector = vector_basis_gmls.getAlpha0TensorTo0Tensor(DivergenceOfVectorPointEvaluation, i, num_neigh_i);
+            double b_i_vector = vector_basis_gmls.getSolutionSetHost()->getAlpha0TensorTo0Tensor(DivergenceOfVectorPointEvaluation, i, num_neigh_i);
             GMLS_Divergence_Vector = GMLS_Divergence_Vector + b_i_vector*g;
         }
 
@@ -477,16 +394,16 @@ bool all_passed = true;
 
         // Obtain adjusted value
         if (constraint_name == "NEUMANN_GRAD_SCALAR") {
-            double bx_i_scalar = scalar_basis_gmls.getAlpha0TensorTo1Tensor(GradientOfScalarPointEvaluation, i, 0, num_neigh_i);
-            double by_i_scalar = scalar_basis_gmls.getAlpha0TensorTo1Tensor(GradientOfScalarPointEvaluation, i, 1, num_neigh_i);
-            double bz_i_scalar = scalar_basis_gmls.getAlpha0TensorTo1Tensor(GradientOfScalarPointEvaluation, i, 2, num_neigh_i);
+            double bx_i_scalar = scalar_basis_gmls.getSolutionSetHost()->getAlpha0TensorTo1Tensor(GradientOfScalarPointEvaluation, i, 0, num_neigh_i);
+            double by_i_scalar = scalar_basis_gmls.getSolutionSetHost()->getAlpha0TensorTo1Tensor(GradientOfScalarPointEvaluation, i, 1, num_neigh_i);
+            double bz_i_scalar = scalar_basis_gmls.getSolutionSetHost()->getAlpha0TensorTo1Tensor(GradientOfScalarPointEvaluation, i, 2, num_neigh_i);
             Scalar_GMLS_GradX = Scalar_GMLS_GradX + bx_i_scalar*g;
             Scalar_GMLS_GradY = Scalar_GMLS_GradY + by_i_scalar*g;
             Scalar_GMLS_GradZ = Scalar_GMLS_GradZ + bz_i_scalar*g;
 
-            double bx_i_vector = vector_basis_gmls.getAlpha0TensorTo1Tensor(GradientOfScalarPointEvaluation, i, 0, num_neigh_i);
-            double by_i_vector = vector_basis_gmls.getAlpha0TensorTo1Tensor(GradientOfScalarPointEvaluation, i, 1, num_neigh_i);
-            double bz_i_vector = vector_basis_gmls.getAlpha0TensorTo1Tensor(GradientOfScalarPointEvaluation, i, 2, num_neigh_i);
+            double bx_i_vector = vector_basis_gmls.getSolutionSetHost()->getAlpha0TensorTo1Tensor(GradientOfScalarPointEvaluation, i, 0, num_neigh_i);
+            double by_i_vector = vector_basis_gmls.getSolutionSetHost()->getAlpha0TensorTo1Tensor(GradientOfScalarPointEvaluation, i, 1, num_neigh_i);
+            double bz_i_vector = vector_basis_gmls.getSolutionSetHost()->getAlpha0TensorTo1Tensor(GradientOfScalarPointEvaluation, i, 2, num_neigh_i);
             Vector_GMLS_GradX = Vector_GMLS_GradX + bx_i_vector*g;
             Vector_GMLS_GradY = Vector_GMLS_GradY + by_i_vector*g;
             Vector_GMLS_GradZ = Vector_GMLS_GradZ + bz_i_vector*g;

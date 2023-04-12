@@ -49,7 +49,6 @@
 #include <string>
 
 #include "MueLu_ConfigDefs.hpp"
-#ifdef HAVE_MUELU_KOKKOS_REFACTOR
 
 #include <KokkosCompat_ClassicNodeAPI_Wrapper.hpp>
 
@@ -148,6 +147,10 @@ namespace MueLu {
 
     void BuildP(Level& fineLevel, Level& coarseLevel) const;
 
+    void SatisfyPConstraints(RCP<Matrix> A, RCP<Matrix>& P) const;
+
+    void optimalSatisfyPConstraintsForScalarPDEs( RCP<Matrix>& P) const;
+
     //@}
 
   };
@@ -155,5 +158,4 @@ namespace MueLu {
 } //namespace MueLu
 
 #define MUELU_SAPFACTORY_KOKKOS_SHORT
-#endif // HAVE_MUELU_KOKKOS_REFACTOR
 #endif // MUELU_SAPFACTORY_KOKKOS_DECL_HPP

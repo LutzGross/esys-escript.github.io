@@ -2,7 +2,7 @@
  * Copyright(C) 1999-2020 National Technology & Engineering Solutions
  * of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
  * NTESS, the U.S. Government retains certain rights in this software.
- * 
+ *
  * See packages/seacas/LICENSE for details
  */
 
@@ -15,13 +15,13 @@
 
 int maxmatch3(struct vtx_data **graph,      /* array of vtx data for graph */
               int               nvtxs,      /* number of vertices in graph */
-              int *             mflag,      /* flag indicating vtx selected or not */
+              int              *mflag,      /* flag indicating vtx selected or not */
               int               using_ewgts /* are edge weights being used? */
 )
 {
   extern int HEAVY_MATCH; /* pick heavy edges in matching? */
-  int *      order;       /* random ordering of vertices */
-  int *      iptr, *jptr; /* loops through integer arrays */
+  int       *order;       /* random ordering of vertices */
+  int       *iptr, *jptr; /* loops through integer arrays */
   double     prob_sum;    /* sum of probabilities to select from */
   double     val;         /* random value for selecting neighbor */
   float      ewgt;        /* edge weight */
@@ -31,8 +31,8 @@ int maxmatch3(struct vtx_data **graph,      /* array of vtx data for graph */
   int        nmerged;     /* number of edges in matching */
   int        i, j;        /* loop counters */
 
-  double drandom();
-  void   randomize();
+  double drandom(void);
+  void   randomize(int *array, int n);
 
   /* First, randomly permute the vertices. */
   iptr = order = smalloc((nvtxs + 1) * sizeof(int));

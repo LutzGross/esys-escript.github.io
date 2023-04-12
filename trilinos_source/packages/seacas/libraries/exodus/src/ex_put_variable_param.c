@@ -1,8 +1,8 @@
 /*
- * Copyright(C) 1999-2020 National Technology & Engineering Solutions
+ * Copyright(C) 1999-2020, 2022 National Technology & Engineering Solutions
  * of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
  * NTESS, the U.S. Government retains certain rights in this software.
- * 
+ *
  * See packages/seacas/LICENSE for details
  */
 
@@ -131,7 +131,9 @@ int ex_put_variable_param(int exoid, ex_entity_type obj_type, int num_vars)
   int  status;
 
   EX_FUNC_ENTER();
-  ex__check_valid_file_id(exoid, __func__);
+  if (ex__check_valid_file_id(exoid, __func__) == EX_FATAL) {
+    EX_FUNC_LEAVE(EX_FATAL);
+  }
 
   /* if no variables are to be stored, return with warning */
   if (num_vars == 0) {
@@ -160,7 +162,7 @@ int ex_put_variable_param(int exoid, ex_entity_type obj_type, int num_vars)
   }
 
   if (obj_type == EX_NODAL) {
-    if ((status = nc_inq_dimid(exoid, DIM_NUM_NODES, &num_nod_dim)) != NC_NOERR) {
+    if (nc_inq_dimid(exoid, DIM_NUM_NODES, &num_nod_dim) != NC_NOERR) {
       EX_FUNC_LEAVE(EX_NOERR); /* Probably no nodes on database (e.g., badly
                                   load-balanced parallel run) */
     }
@@ -182,8 +184,8 @@ int ex_put_variable_param(int exoid, ex_entity_type obj_type, int num_vars)
 
   /* define dimensions and variables */
   if (obj_type == EX_GLOBAL) {
-    if ((status = ex_prepare_result_var(exoid, num_vars, "global", DIM_NUM_GLO_VAR,
-                                        VAR_NAME_GLO_VAR)) != EX_NOERR) {
+    if (ex_prepare_result_var(exoid, num_vars, "global", DIM_NUM_GLO_VAR, VAR_NAME_GLO_VAR) !=
+        EX_NOERR) {
       goto error_ret;
     }
 
@@ -203,11 +205,13 @@ int ex_put_variable_param(int exoid, ex_entity_type obj_type, int num_vars)
       goto error_ret; /* exit define mode and return */
     }
     ex__compress_variable(exoid, varid, 2);
-    ex__set_compact_storage(exoid, varid);
+    if (num_vars * 8 < 64 * 1024) {
+      ex__set_compact_storage(exoid, varid);
+    }
   }
   else if (obj_type == EX_NODAL) {
-    if ((status = ex_prepare_result_var(exoid, num_vars, "nodal", DIM_NUM_NOD_VAR,
-                                        VAR_NAME_NOD_VAR)) != EX_NOERR) {
+    if (ex_prepare_result_var(exoid, num_vars, "nodal", DIM_NUM_NOD_VAR, VAR_NAME_NOD_VAR) !=
+        EX_NOERR) {
       goto error_ret;
     }
 
@@ -232,68 +236,70 @@ int ex_put_variable_param(int exoid, ex_entity_type obj_type, int num_vars)
    * (the info that is stored in the obj_type variable truth table)
    */
   else if (obj_type == EX_ELEM_BLOCK) {
-    if ((status = ex_prepare_result_var(exoid, num_vars, "element", DIM_NUM_ELE_VAR,
-                                        VAR_NAME_ELE_VAR)) != EX_NOERR) {
+    if (ex_prepare_result_var(exoid, num_vars, "element", DIM_NUM_ELE_VAR, VAR_NAME_ELE_VAR) !=
+        EX_NOERR) {
       goto error_ret;
     }
   }
   else if (obj_type == EX_NODE_SET) {
-    if ((status = ex_prepare_result_var(exoid, num_vars, "nodeset", DIM_NUM_NSET_VAR,
-                                        VAR_NAME_NSET_VAR)) != EX_NOERR) {
+    if (ex_prepare_result_var(exoid, num_vars, "nodeset", DIM_NUM_NSET_VAR, VAR_NAME_NSET_VAR) !=
+        EX_NOERR) {
       goto error_ret;
     }
   }
   else if (obj_type == EX_SIDE_SET) {
-    if ((status = ex_prepare_result_var(exoid, num_vars, "sideset", DIM_NUM_SSET_VAR,
-                                        VAR_NAME_SSET_VAR)) != EX_NOERR) {
+    if (ex_prepare_result_var(exoid, num_vars, "sideset", DIM_NUM_SSET_VAR, VAR_NAME_SSET_VAR) !=
+        EX_NOERR) {
       goto error_ret;
     }
   }
   else if (obj_type == EX_ASSEMBLY) {
-    if ((status = ex_prepare_result_var(exoid, num_vars, "assembly", DIM_NUM_ASSEMBLY_VAR,
-                                        VAR_NAME_ASSEMBLY_VAR)) != EX_NOERR) {
+    if (ex_prepare_result_var(exoid, num_vars, "assembly", DIM_NUM_ASSEMBLY_VAR,
+                              VAR_NAME_ASSEMBLY_VAR) != EX_NOERR) {
       goto error_ret;
     }
   }
   else if (obj_type == EX_BLOB) {
-    if ((status = ex_prepare_result_var(exoid, num_vars, "blob", DIM_NUM_BLOB_VAR,
-                                        VAR_NAME_BLOB_VAR)) != EX_NOERR) {
+    if (ex_prepare_result_var(exoid, num_vars, "blob", DIM_NUM_BLOB_VAR, VAR_NAME_BLOB_VAR) !=
+        EX_NOERR) {
       goto error_ret;
     }
   }
   else if (obj_type == EX_EDGE_BLOCK) {
-    if ((status = ex_prepare_result_var(exoid, num_vars, "edge", DIM_NUM_EDG_VAR,
-                                        VAR_NAME_EDG_VAR)) != EX_NOERR) {
+    if (ex_prepare_result_var(exoid, num_vars, "edge", DIM_NUM_EDG_VAR, VAR_NAME_EDG_VAR) !=
+        EX_NOERR) {
       goto error_ret;
     }
   }
   else if (obj_type == EX_FACE_BLOCK) {
-    if ((status = ex_prepare_result_var(exoid, num_vars, "face", DIM_NUM_FAC_VAR,
-                                        VAR_NAME_FAC_VAR)) != EX_NOERR) {
+    if (ex_prepare_result_var(exoid, num_vars, "face", DIM_NUM_FAC_VAR, VAR_NAME_FAC_VAR) !=
+        EX_NOERR) {
       goto error_ret;
     }
   }
   else if (obj_type == EX_EDGE_SET) {
-    if ((status = ex_prepare_result_var(exoid, num_vars, "edgeset", DIM_NUM_ESET_VAR,
-                                        VAR_NAME_ESET_VAR)) != EX_NOERR) {
+    if (ex_prepare_result_var(exoid, num_vars, "edgeset", DIM_NUM_ESET_VAR, VAR_NAME_ESET_VAR) !=
+        EX_NOERR) {
       goto error_ret;
     }
   }
   else if (obj_type == EX_FACE_SET) {
-    if ((status = ex_prepare_result_var(exoid, num_vars, "faceset", DIM_NUM_FSET_VAR,
-                                        VAR_NAME_FSET_VAR)) != EX_NOERR) {
+    if (ex_prepare_result_var(exoid, num_vars, "faceset", DIM_NUM_FSET_VAR, VAR_NAME_FSET_VAR) !=
+        EX_NOERR) {
       goto error_ret;
     }
   }
   else if (obj_type == EX_ELEM_SET) {
-    if ((status = ex_prepare_result_var(exoid, num_vars, "elementset", DIM_NUM_ELSET_VAR,
-                                        VAR_NAME_ELSET_VAR)) != EX_NOERR) {
+    if (ex_prepare_result_var(exoid, num_vars, "elementset", DIM_NUM_ELSET_VAR,
+                              VAR_NAME_ELSET_VAR) != EX_NOERR) {
       goto error_ret;
     }
   }
 
   /* leave define mode  */
   if ((status = ex__leavedef(exoid, __func__)) != NC_NOERR) {
+    snprintf(errmsg, MAX_ERR_LENGTH, "ERROR: failed to exit define mode");
+    ex_err_fn(exoid, __func__, errmsg, status);
     EX_FUNC_LEAVE(EX_FATAL);
   }
 

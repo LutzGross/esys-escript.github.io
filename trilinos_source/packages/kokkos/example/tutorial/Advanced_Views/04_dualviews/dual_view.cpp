@@ -1,50 +1,22 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #include <Kokkos_Core.hpp>
 #include <Kokkos_DualView.hpp>
-#include <impl/Kokkos_Timer.hpp>
+#include <Kokkos_Timer.hpp>
 #include <cstdio>
 #include <cstdlib>
 
@@ -66,30 +38,30 @@
 // operations to help you manage memory take almost no time in that
 // case.  This makes your code even more performance portable.
 
-typedef Kokkos::DualView<double*> view_type;
-typedef Kokkos::DualView<int**> idx_type;
+using view_type = Kokkos::DualView<double*>;
+using idx_type  = Kokkos::DualView<int**>;
 
 template <class ExecutionSpace>
 struct localsum {
-  // If the functor has a public 'execution_space' typedef, that defines
+  // If the functor has a public 'execution_space' alias, that defines
   // the functor's execution space (where it runs in parallel).  This
   // overrides Kokkos' default execution space.
-  typedef ExecutionSpace execution_space;
+  using execution_space = ExecutionSpace;
 
-  typedef typename Kokkos::Impl::if_c<
+  using memory_space = typename Kokkos::Impl::if_c<
       std::is_same<ExecutionSpace, Kokkos::DefaultExecutionSpace>::value,
-      idx_type::memory_space, idx_type::host_mirror_space>::type memory_space;
+      idx_type::memory_space, idx_type::host_mirror_space>::type;
 
   // Get the view types on the particular device for which the functor
   // is instantiated.
   //
-  // "const_data_type" is a typedef in View (and DualView) which is
+  // "const_data_type" is an alias in View (and DualView) which is
   // the const version of the first template parameter of the View.
   // For example, the const_data_type version of double** is const
   // double**.
   Kokkos::View<idx_type::const_data_type, idx_type::array_layout, memory_space>
       idx;
-  // "scalar_array_type" is a typedef in ViewTraits (and DualView) which is the
+  // "scalar_array_type" is an alias in ViewTraits (and DualView) which is the
   // array version of the value(s) stored in the View.
   Kokkos::View<view_type::scalar_array_type, view_type::array_layout,
                memory_space>
@@ -150,7 +122,7 @@ class ParticleType {
  protected:
 };
 
-typedef Kokkos::DualView<ParticleType[10]> ParticleTypes;
+using ParticleTypes = Kokkos::DualView<ParticleType[10]>;
 int main(int narg, char* arg[]) {
   Kokkos::initialize(narg, arg);
 
@@ -175,8 +147,9 @@ int main(int narg, char* arg[]) {
     // Get a reference to the host view of idx directly (equivalent to
     // idx.view<idx_type::host_mirror_space>() )
     idx_type::t_host h_idx = idx.h_view;
+    using size_type        = view_type::size_type;
     for (int i = 0; i < size; ++i) {
-      for (view_type::size_type j = 0; j < h_idx.extent(1); ++j) {
+      for (size_type j = 0; j < static_cast<size_type>(h_idx.extent(1)); ++j) {
         h_idx(i, j) = (size + i + (rand() % 500 - 250)) % size;
       }
     }

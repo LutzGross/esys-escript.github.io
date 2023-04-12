@@ -2,7 +2,7 @@
  * Copyright(C) 1999-2020 National Technology & Engineering Solutions
  * of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
  * NTESS, the U.S. Government retains certain rights in this software.
- * 
+ *
  * See packages/seacas/LICENSE for details
  */
 
@@ -12,21 +12,21 @@
 
 int maxmatch5(struct vtx_data **graph, /* array of vtx data for graph */
               int               nvtxs, /* number of vertices in graph */
-              int *             mflag, /* flag indicating vtx selected or not */
+              int              *mflag, /* flag indicating vtx selected or not */
               int               igeom, /* geometric dimensionality */
-              float **          coords /* coordinates of each vertex */
+              float           **coords /* coordinates of each vertex */
 )
 {
   extern double DOUBLE_MAX; /* largest floating point value */
   double        dist;       /* distance to free neighbor */
   double        min_dist;   /* smallest distance to free neighbor */
-  int *         jptr;       /* loops through integer arrays */
+  int          *jptr;       /* loops through integer arrays */
   int           vtx;        /* vertex to process next */
   int           neighbor;   /* neighbor of a vertex */
   int           nmerged;    /* number of edges in matching */
   int           jsave;      /* best edge so far */
   int           i, j;       /* loop counters */
-  double        drandom();
+  double        drandom(void);
 
   /* Initialize mflag array. */
   jptr = mflag;

@@ -78,7 +78,6 @@ namespace { // (anonymous)
     typedef Teuchos::ScalarTraits<Scalar> STS;
     typedef typename MV::mag_type mag_type;
     typedef Teuchos::ScalarTraits<mag_type> STM;
-    typedef typename MV::device_type device_type;
 
     out << "Test Tpetra::MultiVector::get2dView and get2dViewNonConst" << endl;
     Teuchos::OSTab tab1 (out);
@@ -112,8 +111,6 @@ namespace { // (anonymous)
     // of 0, because 0 is the default fill value.
     out << "Fill X" << endl;
     curVal = STS::one ();
-    X.template sync<device_type> ();
-    X.template modify<device_type> ();
     for (size_t j = 0; j < numCols; ++j) {
       X.getVectorNonConst (j)->putScalar (curVal);
       curVal += STS::one ();
@@ -123,8 +120,6 @@ namespace { // (anonymous)
     // expected values.
     out << "Test fill of X" << endl;
     V diff (map);
-    diff.template sync<device_type> ();
-    diff.template modify<device_type> ();
     {
       Teuchos::OSTab tab2 (out);
 
@@ -241,24 +236,36 @@ namespace { // (anonymous)
     // been most recently modified on device.  get2dView and
     // get2dViewNonConst both must sync to host.
 
+    // The sync state of a MultiVector is only updated if the memory spaces 
+    // are not the same between host and device
+
     out << "Make sure X_noncontig->get2dView() syncs to host" << endl;
     {
       Teuchos::OSTab tab2 (out);
 
       Teuchos::ArrayRCP<Teuchos::ArrayRCP<const Scalar> > viewsConst =
         X_noncontig->get2dView ();
-      TEST_ASSERT( ! X_noncontig->need_sync_host () );
+      if (! std::is_same<typename MV::dual_view_type::t_dev::memory_space,
+	  typename MV::dual_view_type::t_host::memory_space>::value) {
+	TEST_ASSERT( ! X_noncontig->need_sync_host () );
+      }
     }
 
     out << "Test X_noncontig->get2dViewNonConst()" << endl;
     {
       Teuchos::ArrayRCP<Teuchos::ArrayRCP<Scalar> > viewsNonConst =
         X_noncontig->get2dViewNonConst ();
-      TEST_ASSERT( ! X_noncontig->need_sync_host () );
+      if (! std::is_same<typename MV::dual_view_type::t_dev::memory_space,
+	  typename MV::dual_view_type::t_host::memory_space>::value) {
+	TEST_ASSERT( ! X_noncontig->need_sync_host () );
+      }
 
       // get2dViewNonConst is supposed to mark the host data as
       // modified.  Thus, the device data need a sync, if host and
       // device are actually different data.
+      //
+      // The sync state of a MultiVector is only updated if the memory spaces 
+      // are not the same between host and device
       if (! std::is_same<typename MV::dual_view_type::t_dev::memory_space,
                          typename MV::dual_view_type::t_host::memory_space>::value) {
         TEST_ASSERT( X_noncontig->need_sync_device () );
@@ -288,7 +295,6 @@ namespace { // (anonymous)
 
       // Sync back to device, so we can test whether the modifications
       // took effect.
-      X_noncontig->template sync<device_type> ();
       for (size_t j = 0; j < numColsSubset; ++j) {
         auto X_col = X_noncontig->getVector (j);
         diff.putScalar (flagVal);

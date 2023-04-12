@@ -52,10 +52,10 @@ SET(SOURCES "")
 # Core headers
 #
 
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
-
 FILE(GLOB HEADERS *.hpp *.h)
 FILE(GLOB SOURCES *.cpp)
+
+TRIBITS_INCLUDE_DIRECTORIES(${${PACKAGE_NAME}_SOURCE_DIR})
 
 #
 # C) Define the targets for package's library(s)
@@ -70,4 +70,4 @@ TRIBITS_ADD_LIBRARY(
   )
 
 INSTALL(FILES ${HEADERS} DESTINATION
-        ${CMAKE_INSTALL_PREFIX}/${${PROJECT_NAME}_INSTALL_INCLUDE_DIR}/stk_util/environment/)
+        ${${PROJECT_NAME}_INSTALL_INCLUDE_DIR}/stk_util/environment/)

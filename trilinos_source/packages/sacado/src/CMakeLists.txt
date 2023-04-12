@@ -11,15 +11,15 @@ TRIBITS_CONFIGURE_FILE(${PACKAGE_NAME}_config.h)
 SET(HEADERS "")
 SET(SOURCES "")
 
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
+TRIBITS_INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
 
 SET(HEADERS ${HEADERS}
   ${CMAKE_CURRENT_BINARY_DIR}/${PACKAGE_NAME}_config.h
   )
 
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
+TRIBITS_INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
 
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/new_design)
+TRIBITS_INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/new_design)
 SET(HEADERS ${HEADERS}
   new_design/Sacado_Fad_Exp_MathFunctions.hpp
   new_design/Sacado_Fad_Exp_Expression.hpp
@@ -40,12 +40,14 @@ SET(HEADERS ${HEADERS}
   new_design/Sacado_Fad_Exp_SFad.hpp
   new_design/Sacado_Fad_Exp_ViewFad.hpp
   new_design/Sacado_Fad_Exp_DVFad.hpp
+  new_design/Sacado_Fad_Exp_Atomic.hpp
   )
 
 # FAD
 SET(HEADERS ${HEADERS}
   Sacado_Fad_GeneralFad.hpp
   Sacado_Fad_GeneralFadExpr.hpp
+  Sacado_Fad_GeneralFadTestingHelpers.hpp
   Sacado_Fad_ExpressionTraits.hpp
   Sacado_Fad_ExpressionFwd.hpp
   Sacado_Fad_Expression.hpp
@@ -183,7 +185,7 @@ SET(SOURCES ${SOURCES}
   )
 
 # TEMPLATE
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/template)
+TRIBITS_INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/template)
 SET(HEADERS ${HEADERS}
   template/Sacado_TemplateContainer.hpp
   )
@@ -217,7 +219,7 @@ IF (${PACKAGE_NAME}_ENABLE_TeuchosCore)
 
   IF (${PACKAGE_NAME}_ENABLE_PARAMLIB)
 
-    INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/parameter)
+    TRIBITS_INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/parameter)
     SET(HEADERS ${HEADERS}
       parameter/Sacado_ParameterFamilyBase.hpp
       parameter/Sacado_ParameterFamilyBaseImp.hpp
@@ -248,7 +250,7 @@ IF (${PACKAGE_NAME}_ENABLE_TeuchosComm)
 ENDIF()
 
 #mpl
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/mpl)
+TRIBITS_INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/mpl)
 SET(HEADERS ${HEADERS}
   mpl/Sacado_mpl_is_same.hpp
   mpl/Sacado_mpl_is_convertible.hpp
@@ -306,6 +308,7 @@ SET(HEADERS ${HEADERS}
   Kokkos_DynRankView_Fad_Contiguous.hpp
   Kokkos_LayoutContiguous.hpp
   Kokkos_LayoutNatural.hpp
+  Kokkos_View_Fad_Fwd.hpp
   KokkosExp_View_Fad.hpp
   KokkosExp_View_Fad_Contiguous.hpp
   Kokkos_ViewFactory.hpp

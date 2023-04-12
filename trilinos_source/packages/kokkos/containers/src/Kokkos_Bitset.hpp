@@ -1,56 +1,30 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_BITSET_HPP
 #define KOKKOS_BITSET_HPP
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_BITSET
+#endif
 
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Functional.hpp>
 
 #include <impl/Kokkos_Bitset_impl.hpp>
-
-#include <stdexcept>
 
 namespace Kokkos {
 
@@ -73,23 +47,28 @@ void deep_copy(ConstBitset<DstDevice>& dst, ConstBitset<SrcDevice> const& src);
 template <typename Device>
 class Bitset {
  public:
-  typedef Device execution_space;
-  typedef unsigned size_type;
+  using execution_space = typename Device::execution_space;
+  using size_type       = unsigned int;
 
-  enum { BIT_SCAN_REVERSE = 1u };
-  enum { MOVE_HINT_BACKWARD = 2u };
+  static constexpr unsigned BIT_SCAN_REVERSE   = 1u;
+  static constexpr unsigned MOVE_HINT_BACKWARD = 2u;
 
-  enum {
-    BIT_SCAN_FORWARD_MOVE_HINT_FORWARD  = 0u,
-    BIT_SCAN_REVERSE_MOVE_HINT_FORWARD  = BIT_SCAN_REVERSE,
-    BIT_SCAN_FORWARD_MOVE_HINT_BACKWARD = MOVE_HINT_BACKWARD,
-    BIT_SCAN_REVERSE_MOVE_HINT_BACKWARD = BIT_SCAN_REVERSE | MOVE_HINT_BACKWARD
-  };
+  static constexpr unsigned BIT_SCAN_FORWARD_MOVE_HINT_FORWARD = 0u;
+  static constexpr unsigned BIT_SCAN_REVERSE_MOVE_HINT_FORWARD =
+      BIT_SCAN_REVERSE;
+  static constexpr unsigned BIT_SCAN_FORWARD_MOVE_HINT_BACKWARD =
+      MOVE_HINT_BACKWARD;
+  static constexpr unsigned BIT_SCAN_REVERSE_MOVE_HINT_BACKWARD =
+      BIT_SCAN_REVERSE | MOVE_HINT_BACKWARD;
 
  private:
-  enum { block_size = static_cast<unsigned>(sizeof(unsigned) * CHAR_BIT) };
-  enum { block_mask = block_size - 1u };
-  enum { block_shift = Kokkos::Impl::integral_power_of_two(block_size) };
+  enum : unsigned {
+    block_size = static_cast<unsigned>(sizeof(unsigned) * CHAR_BIT)
+  };
+  enum : unsigned { block_mask = block_size - 1u };
+  enum : unsigned {
+    block_shift = Kokkos::Impl::integral_power_of_two(block_size)
+  };
 
  public:
   /// constructor
@@ -137,11 +116,12 @@ class Bitset {
 
     if (m_last_block_mask) {
       // clear the unused bits in the last block
-      typedef Kokkos::Impl::DeepCopy<typename execution_space::memory_space,
-                                     Kokkos::HostSpace>
-          raw_deep_copy;
-      raw_deep_copy(m_blocks.data() + (m_blocks.extent(0) - 1u),
-                    &m_last_block_mask, sizeof(unsigned));
+      Kokkos::Impl::DeepCopy<typename Device::memory_space, Kokkos::HostSpace>(
+          m_blocks.data() + (m_blocks.extent(0) - 1u), &m_last_block_mask,
+          sizeof(unsigned));
+      Kokkos::fence(
+          "Bitset::set: fence after clearing unused bits copying from "
+          "HostSpace");
     }
   }
 
@@ -184,8 +164,12 @@ class Bitset {
   KOKKOS_FORCEINLINE_FUNCTION
   bool test(unsigned i) const {
     if (i < m_size) {
+#ifdef KOKKOS_ENABLE_SYCL
+      const unsigned block = Kokkos::atomic_load(&m_blocks[i >> block_shift]);
+#else
       const unsigned block = volatile_load(&m_blocks[i >> block_shift]);
-      const unsigned mask  = 1u << static_cast<int>(i & block_mask);
+#endif
+      const unsigned mask = 1u << static_cast<int>(i & block_mask);
       return block & mask;
     }
     return false;
@@ -208,7 +192,11 @@ class Bitset {
     const unsigned block_idx =
         (hint >> block_shift) < m_blocks.extent(0) ? (hint >> block_shift) : 0;
     const unsigned offset = hint & block_mask;
-    unsigned block        = volatile_load(&m_blocks[block_idx]);
+#ifdef KOKKOS_ENABLE_SYCL
+    unsigned block = Kokkos::atomic_load(&m_blocks[block_idx]);
+#else
+    unsigned block = volatile_load(&m_blocks[block_idx]);
+#endif
     block = !m_last_block_mask || (block_idx < (m_blocks.extent(0) - 1))
                 ? block
                 : block & m_last_block_mask;
@@ -226,12 +214,20 @@ class Bitset {
       unsigned scan_direction = BIT_SCAN_FORWARD_MOVE_HINT_FORWARD) const {
     const unsigned block_idx = hint >> block_shift;
     const unsigned offset    = hint & block_mask;
-    unsigned block           = volatile_load(&m_blocks[block_idx]);
+#ifdef KOKKOS_ENABLE_SYCL
+    unsigned block = Kokkos::atomic_load(&m_blocks[block_idx]);
+#else
+    unsigned block = volatile_load(&m_blocks[block_idx]);
+#endif
     block = !m_last_block_mask || (block_idx < (m_blocks.extent(0) - 1))
                 ? ~block
                 : ~block & m_last_block_mask;
 
     return find_any_helper(block_idx, offset, block, scan_direction);
+  }
+
+  KOKKOS_INLINE_FUNCTION constexpr bool is_allocated() const {
+    return m_blocks.is_allocated();
   }
 
  private:
@@ -259,7 +255,7 @@ class Bitset {
     block = Impl::rotate_right(block, offset);
     return (((!(scan_direction & BIT_SCAN_REVERSE)
                   ? Impl::bit_scan_forward(block)
-                  : ::Kokkos::log2(block)) +
+                  : Impl::int_log2(block)) +
              offset) &
             block_mask) +
            block_start;
@@ -279,7 +275,7 @@ class Bitset {
  private:
   unsigned m_size;
   unsigned m_last_block_mask;
-  View<unsigned*, execution_space, MemoryTraits<RandomAccess> > m_blocks;
+  View<unsigned*, Device, MemoryTraits<RandomAccess> > m_blocks;
 
  private:
   template <typename DDevice>
@@ -304,8 +300,8 @@ class Bitset {
 template <typename Device>
 class ConstBitset {
  public:
-  typedef Device execution_space;
-  typedef unsigned size_type;
+  using execution_space = typename Device::execution_space;
+  using size_type       = unsigned int;
 
  private:
   enum { block_size = static_cast<unsigned>(sizeof(unsigned) * CHAR_BIT) };
@@ -313,14 +309,18 @@ class ConstBitset {
   enum { block_shift = Kokkos::Impl::integral_power_of_two(block_size) };
 
  public:
+  KOKKOS_FUNCTION
   ConstBitset() : m_size(0) {}
 
+  KOKKOS_FUNCTION
   ConstBitset(Bitset<Device> const& rhs)
       : m_size(rhs.m_size), m_blocks(rhs.m_blocks) {}
 
+  KOKKOS_FUNCTION
   ConstBitset(ConstBitset<Device> const& rhs)
       : m_size(rhs.m_size), m_blocks(rhs.m_blocks) {}
 
+  KOKKOS_FUNCTION
   ConstBitset<Device>& operator=(Bitset<Device> const& rhs) {
     this->m_size   = rhs.m_size;
     this->m_blocks = rhs.m_blocks;
@@ -328,6 +328,7 @@ class ConstBitset {
     return *this;
   }
 
+  KOKKOS_FUNCTION
   ConstBitset<Device>& operator=(ConstBitset<Device> const& rhs) {
     this->m_size   = rhs.m_size;
     this->m_blocks = rhs.m_blocks;
@@ -355,7 +356,7 @@ class ConstBitset {
 
  private:
   unsigned m_size;
-  View<const unsigned*, execution_space, MemoryTraits<RandomAccess> > m_blocks;
+  View<const unsigned*, Device, MemoryTraits<RandomAccess> > m_blocks;
 
  private:
   template <typename DDevice>
@@ -376,45 +377,52 @@ class ConstBitset {
 template <typename DstDevice, typename SrcDevice>
 void deep_copy(Bitset<DstDevice>& dst, Bitset<SrcDevice> const& src) {
   if (dst.size() != src.size()) {
-    throw std::runtime_error(
+    Kokkos::Impl::throw_runtime_exception(
         "Error: Cannot deep_copy bitsets of different sizes!");
   }
 
-  typedef Kokkos::Impl::DeepCopy<typename DstDevice::memory_space,
-                                 typename SrcDevice::memory_space>
-      raw_deep_copy;
-  raw_deep_copy(dst.m_blocks.data(), src.m_blocks.data(),
-                sizeof(unsigned) * src.m_blocks.extent(0));
+  Kokkos::fence("Bitset::deep_copy: fence before copy operation");
+  Kokkos::Impl::DeepCopy<typename DstDevice::memory_space,
+                         typename SrcDevice::memory_space>(
+      dst.m_blocks.data(), src.m_blocks.data(),
+      sizeof(unsigned) * src.m_blocks.extent(0));
+  Kokkos::fence("Bitset::deep_copy: fence after copy operation");
 }
 
 template <typename DstDevice, typename SrcDevice>
 void deep_copy(Bitset<DstDevice>& dst, ConstBitset<SrcDevice> const& src) {
   if (dst.size() != src.size()) {
-    throw std::runtime_error(
+    Kokkos::Impl::throw_runtime_exception(
         "Error: Cannot deep_copy bitsets of different sizes!");
   }
 
-  typedef Kokkos::Impl::DeepCopy<typename DstDevice::memory_space,
-                                 typename SrcDevice::memory_space>
-      raw_deep_copy;
-  raw_deep_copy(dst.m_blocks.data(), src.m_blocks.data(),
-                sizeof(unsigned) * src.m_blocks.extent(0));
+  Kokkos::fence("Bitset::deep_copy: fence before copy operation");
+  Kokkos::Impl::DeepCopy<typename DstDevice::memory_space,
+                         typename SrcDevice::memory_space>(
+      dst.m_blocks.data(), src.m_blocks.data(),
+      sizeof(unsigned) * src.m_blocks.extent(0));
+  Kokkos::fence("Bitset::deep_copy: fence after copy operation");
 }
 
 template <typename DstDevice, typename SrcDevice>
 void deep_copy(ConstBitset<DstDevice>& dst, ConstBitset<SrcDevice> const& src) {
   if (dst.size() != src.size()) {
-    throw std::runtime_error(
+    Kokkos::Impl::throw_runtime_exception(
         "Error: Cannot deep_copy bitsets of different sizes!");
   }
 
-  typedef Kokkos::Impl::DeepCopy<typename DstDevice::memory_space,
-                                 typename SrcDevice::memory_space>
-      raw_deep_copy;
-  raw_deep_copy(dst.m_blocks.data(), src.m_blocks.data(),
-                sizeof(unsigned) * src.m_blocks.extent(0));
+  Kokkos::fence("Bitset::deep_copy: fence before copy operation");
+  Kokkos::Impl::DeepCopy<typename DstDevice::memory_space,
+                         typename SrcDevice::memory_space>(
+      dst.m_blocks.data(), src.m_blocks.data(),
+      sizeof(unsigned) * src.m_blocks.extent(0));
+  Kokkos::fence("Bitset::deep_copy: fence after copy operation");
 }
 
 }  // namespace Kokkos
 
+#ifdef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_BITSET
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_BITSET
+#endif
 #endif  // KOKKOS_BITSET_HPP

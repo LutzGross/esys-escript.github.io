@@ -36,37 +36,40 @@
 #define STK_IO_OUTPUTFILE_HPP
 // #######################  Start Clang Header Tool Managed Headers ########################
 // clang-format off
-#include <Ioss_Field.h>                            // for Field, etc
-#include <Ioss_PropertyManager.h>                  // for PropertyManager
-#include <stddef.h>                                // for size_t
-#include <Teuchos_RCP.hpp>                         // for RCP::RCP<T>, etc
-#include <algorithm>                               // for swap
-#include <stk_io/DatabasePurpose.hpp>              // for DatabasePurpose
-#include <stk_io/IossBridge.hpp>
-#include <stk_io/Heartbeat.hpp>
-#include <stk_io/MeshField.hpp>                    // for MeshField, etc
-#include <stk_mesh/base/BulkData.hpp>              // for BulkData
-#include <stk_mesh/base/Selector.hpp>              // for Selector
-#include <stk_util/parallel/Parallel.hpp>          // for ParallelMachine
-#include <stk_util/util/ParameterList.hpp>         // for Type
-#include <string>                                  // for string
-#include <vector>                                  // for vector
-#include "Teuchos_RCPDecl.hpp"                     // for RCP
-#include "mpi.h"                                   // for MPI_Comm, etc
-#include "stk_mesh/base/Types.hpp"                 // for FieldVector
-#include "stk_util/util/ReportHandler.hpp"  // for ThrowAssert, etc
-namespace Ioss { class Property; }
+#include <Ioss_Field.h>                     // for Field::BasicType, Field
+#include <exception>                 // for exception
+#include <Teuchos_RCP.hpp>                  // for RCP::RCP<T>, RCP::reset
+#include <cstddef>                          // for size_t
+#include <stk_io/DatabasePurpose.hpp>       // for DatabasePurpose
+#include <stk_io/IOHelpers.hpp>             // for internal_add_global
+#include <stk_io/IossBridge.hpp>            // for GlobalAnyVariable
+#include <stk_mesh/base/Selector.hpp>       // for Selector
+#include <stk_util/util/ParameterList.hpp>  // for Type
+#include <string>                           // for string
+#include <utility>                          // for pair, swap
+#include <vector>                           // for vector
+#include "Teuchos_RCPDecl.hpp"              // for RCP
+#include "mpi.h"                            // for MPI_Comm, ompi_communicat...
+#include "stk_io/FieldAndName.hpp"          // for FieldAndName, UserDataAnd...
+#include "stk_io/OutputVariableParams.hpp"  // for OutputVariableParams
+#include "stk_io/StkIoUtils.hpp"            // for get_io_parameter_size_and...
+#include "stk_mesh/base/FieldState.hpp"     // for FieldState
+#include "stk_mesh/base/Types.hpp"          // for EntityRank
+#include "stk_topology/topology.hpp"        // for topology, topology::ELEM_...
+namespace Ioss { class DatabaseIO; }
+namespace Ioss { class PropertyManager; }
 namespace Ioss { class Region; }
-namespace boost { class any; }
-namespace stk { namespace io { class InputFile; } }
+namespace stk { namespace io { struct OutputParams; } }
+namespace stk { namespace mesh { class BulkData; } }
 namespace stk { namespace mesh { class FieldBase; } }
-namespace stk { namespace mesh { class MetaData; } }
 namespace stk { namespace mesh { class Part; } }
+namespace stk { namespace mesh { struct Entity; } }
+namespace Ioss { class Property; }
+namespace stk { namespace io { class InputFile; } }
+namespace stk { namespace mesh { class MetaData; } }
 // clang-format on
 // #######################   End Clang Header Tool Managed Headers  ########################
-namespace stk { namespace mesh { class BulkData; } }
 
-namespace Ioss { class DatabaseIO; }
 
 namespace stk {
 namespace io {
@@ -90,12 +93,16 @@ public:
       m_hasGhosting(false),
       m_hasAdaptivity(false),
       m_isSkinMesh(false),
+      m_enableEdgeIO(false),
       m_dbPurpose(db_type),
       m_inputRegion(input_region),
+      m_outputParams(nullptr),
       m_subsetSelector(nullptr),
       m_sharedSelector(nullptr),
       m_skinMeshSelector(nullptr),
-      m_multiStateSuffixes(nullptr)
+      m_multiStateSuffixes(nullptr),
+      m_filterEmptyEntityBlocks(false),
+      m_filterEmptyAssemblyEntityBlocks(false)
     {
         initialize_output_selectors();
         setup_output_file(filename, communicator, property_manager, type, openFileImmediately);
@@ -117,12 +124,16 @@ public:
       m_hasGhosting(false),
       m_hasAdaptivity(false),
       m_isSkinMesh(false),
+      m_enableEdgeIO(false),
       m_dbPurpose(db_type),
       m_inputRegion(input_region),
+      m_outputParams(nullptr),
       m_subsetSelector(nullptr),
       m_sharedSelector(nullptr),
       m_skinMeshSelector(nullptr),
-      m_multiStateSuffixes(nullptr)
+      m_multiStateSuffixes(nullptr),
+      m_filterEmptyEntityBlocks(false),
+      m_filterEmptyAssemblyEntityBlocks(false)
     {
         m_region = ioss_output_region;
         m_meshDefined = true;
@@ -148,14 +159,24 @@ public:
     void add_attribute_field(stk::mesh::FieldBase &field, const OutputVariableParams &var);
     void add_user_data(const std::vector<std::string>& userData, const std::string &alternate_name, stk::io::DataLocation loc);
     bool has_global(const std::string &globalVarName) const;
-    void add_global(const std::string &variableName, const boost::any &value, stk::util::ParameterType::Type type);
-    void add_global_ref(const std::string &variableName, const boost::any *value, stk::util::ParameterType::Type type);
+    void add_global(const std::string &variableName, const stk::util::Parameter &value);
+
+    template<typename T>
+    void add_global(const std::string &variableName, const T& value, stk::util::ParameterType::Type type)
+    {
+      std::any anyValue(value);
+      std::pair<size_t, Ioss::Field::BasicType> parameter_type = get_io_parameter_size_and_type(type, anyValue);
+      m_anyGlobalVariablesDefined = true;
+      internal_add_global(m_region, variableName, parameter_type.first, parameter_type.second);
+    }
+
+    void add_global_ref(const std::string &variableName, const stk::util::Parameter &value);
     void add_global(const std::string &variableName, Ioss::Field::BasicType dataType);
     void add_global(const std::string &variableName, const std::string &type, Ioss::Field::BasicType dataType);
     void add_global(const std::string &variableName, int component_count,     Ioss::Field::BasicType dataType);
 
     void write_global(const std::string &variableName,
-                      const boost::any &value, stk::util::ParameterType::Type type);
+                      const stk::util::Parameter &param);
     void write_global(const std::string &variableName, double globalVarData);
     void write_global(const std::string &variableName, int globalVarData);
     void write_global(const std::string &variableName, std::vector<double>& globalVarData);
@@ -198,6 +219,11 @@ public:
     bool is_skin_mesh() const;
     void is_skin_mesh(bool skinMesh);
 
+    void set_enable_edge_io(bool enableEdgeIO);
+
+    void set_filter_empty_entity_blocks(const bool filterEmptyEntityBlocks);
+    void set_filter_empty_assembly_entity_blocks(const bool filterEmptyAssemblyEntityBlocks);
+
     Ioss::DatabaseIO *get_output_database();
 
     std::vector<stk::mesh::Entity> get_output_entities(const stk::mesh::BulkData& bulk_data, const std::string &name);
@@ -227,8 +253,10 @@ private:
     bool m_hasGhosting;
     bool m_hasAdaptivity;
     bool m_isSkinMesh;
+    bool m_enableEdgeIO;
     DatabasePurpose m_dbPurpose;
     const Ioss::Region* m_inputRegion;
+    std::shared_ptr<stk::io::OutputParams> m_outputParams;
     Teuchos::RCP<stk::mesh::Selector> m_subsetSelector;
     Teuchos::RCP<stk::mesh::Selector> m_sharedSelector;
     Teuchos::RCP<stk::mesh::Selector> m_outputSelector[stk::topology::ELEM_RANK+1];
@@ -242,6 +270,9 @@ private:
     std::vector<GlobalAnyVariable> m_globalAnyFields;
 
     std::vector<std::string>* m_multiStateSuffixes = nullptr;
+
+    bool m_filterEmptyEntityBlocks;
+    bool m_filterEmptyAssemblyEntityBlocks;
 
     OutputFile(const OutputFile &);
     const OutputFile & operator=(const OutputFile &);

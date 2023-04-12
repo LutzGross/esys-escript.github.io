@@ -1,11 +1,12 @@
-// Copyright(C) 1999-2020 National Technology & Engineering Solutions
+// Copyright(C) 1999-2023 National Technology & Engineering Solutions
 // of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 // NTESS, the U.S. Government retains certain rights in this software.
-// 
+//
 // See packages/seacas/LICENSE for details
 
-#ifndef IOSS_Ioss_DatabaseIO_h
-#define IOSS_Ioss_DatabaseIO_h
+#pragma once
+
+#include "ioss_export.h"
 
 #include <Ioss_BoundingBox.h>
 #include <Ioss_CodeTypes.h>
@@ -49,16 +50,22 @@ namespace Ioss {
 namespace Ioss {
   class EntityBlock;
 
+  enum class DuplicateFieldBehavior { UNSET_, IGNORE_, WARNING_, ERROR_ };
+
   // Contains (parent_element, side) topology pairs
   using TopoContainer = std::vector<std::pair<const ElementTopology *, const ElementTopology *>>;
 
   /** \brief An input or output Database.
    *
    */
-  class DatabaseIO
+  class IOSS_EXPORT DatabaseIO
   {
   public:
     friend class SerializeIO;
+
+    DatabaseIO()                              = delete;
+    DatabaseIO(const DatabaseIO &)            = delete;
+    DatabaseIO &operator=(const DatabaseIO &) = delete;
 
     /** \brief Check to see if database state is OK.
      *
@@ -221,18 +228,21 @@ namespace Ioss {
     void openDatabase() const
     {
       IOSS_FUNC_ENTER(m_);
+      progress(__func__);
       openDatabase__();
     }
 
     void closeDatabase() const
     {
       IOSS_FUNC_ENTER(m_);
+      progress(__func__);
       closeDatabase__();
     }
 
     void flush_database() const
     {
       IOSS_FUNC_ENTER(m_);
+      progress(__func__);
       flush_database__();
     }
 
@@ -286,6 +296,7 @@ namespace Ioss {
     bool begin(Ioss::State state)
     {
       IOSS_FUNC_ENTER(m_);
+      progress(__func__);
       return begin__(state);
     }
 
@@ -302,6 +313,7 @@ namespace Ioss {
     bool end(Ioss::State state)
     {
       IOSS_FUNC_ENTER(m_);
+      progress(__func__);
       return end__(state);
     }
 
@@ -312,7 +324,9 @@ namespace Ioss {
     void read_meta_data()
     {
       IOSS_FUNC_ENTER(m_);
-      return read_meta_data__();
+      progress("Begin read_meta_data()");
+      read_meta_data__();
+      progress("End read_meta_data()");
     }
 
     void get_step_times()
@@ -401,6 +415,9 @@ namespace Ioss {
     bool ignore_database_names() const { return ignoreDatabaseNames; }
     void ignore_database_names(bool yes_no) { ignoreDatabaseNames = yes_no; }
 
+    bool get_ignore_realn_fields() const { return m_ignoreRealnFields; }
+    void set_ignore_realn_fields(bool yes_no) { m_ignoreRealnFields = yes_no; }
+
     /** \brief Get the length of the longest name in the database file.
      *
      *  \returns The length, or 0 for unlimited.
@@ -409,10 +426,16 @@ namespace Ioss {
     virtual void set_maximum_symbol_length(int /* requested_symbol_size */) {
     } // Default does nothing...
 
-    char get_field_separator() const { return fieldSeparator; }
-    bool get_field_recognition() const { return enableFieldRecognition; }
-    void set_field_separator(char separator);
-    void set_field_recognition(bool yes_no) { enableFieldRecognition = yes_no; }
+    std::string get_component_name(const Ioss::Field &field, Ioss::Field::InOut in_out,
+                                   int component) const;
+    char        get_field_separator() const { return fieldSeparator; }
+    bool        get_field_recognition() const { return enableFieldRecognition; }
+    bool        get_field_strip_trailing_() const { return fieldStripTrailing_; }
+    void        set_field_separator(char separator);
+    void        set_field_recognition(bool yes_no) { enableFieldRecognition = yes_no; }
+    void        set_field_strip_trailing_(bool yes_no) { fieldStripTrailing_ = yes_no; }
+
+    DuplicateFieldBehavior get_duplicate_field_behavior() const { return duplicateFieldBehavior; }
 
     void set_lower_case_variable_names(bool true_false) const
     {
@@ -430,17 +453,21 @@ namespace Ioss {
     void set_block_omissions(const std::vector<std::string> &omissions,
                              const std::vector<std::string> &inclusions = {});
 
+    void set_assembly_omissions(const std::vector<std::string> &omissions,
+                                const std::vector<std::string> &inclusions = {});
+
     void get_block_adjacencies(const Ioss::ElementBlock *eb,
                                std::vector<std::string> &block_adjacency) const
     {
       return get_block_adjacencies__(eb, block_adjacency);
     }
-    void compute_block_membership(Ioss::SideBlock *         efblock,
+    void compute_block_membership(Ioss::SideBlock          *efblock,
                                   std::vector<std::string> &block_membership) const
     {
       return compute_block_membership__(efblock, block_membership);
     }
 
+    AxisAlignedBoundingBox get_bounding_box(const Ioss::NodeBlock *nb) const;
     AxisAlignedBoundingBox get_bounding_box(const Ioss::ElementBlock *eb) const;
     AxisAlignedBoundingBox get_bounding_box(const Ioss::StructuredBlock *sb) const;
 
@@ -505,7 +532,7 @@ namespace Ioss {
 
     void set_time_scale_factor(double factor) { timeScaleFactor = factor; }
 
-    const Ioss::ParallelUtils &  util() const { return util_; }
+    const Ioss::ParallelUtils   &util() const { return util_; }
     const Ioss::PropertyManager &get_property_manager() const { return properties; }
     /** \brief Get the processor that this mesh database is on.
      *
@@ -524,7 +551,7 @@ namespace Ioss {
 
   protected:
     DatabaseIO(Region *region, std::string filename, Ioss::DatabaseUsage db_usage,
-               MPI_Comm communicator, const Ioss::PropertyManager &props);
+               Ioss_MPI_Comm communicator, const Ioss::PropertyManager &props);
 
     /*!
      * The properties member data contains properties that can be
@@ -576,9 +603,9 @@ namespace Ioss {
      * run since the passed in filename is just the basename, not the
      * processor-specific filename.
      */
-    std::string         originalDBFilename;
-    std::string         DBFilename;
-    mutable std::string decodedFilename;
+    std::string         originalDBFilename{};
+    std::string         DBFilename{};
+    mutable std::string decodedFilename{};
 
     /*!
      * `bbName` is a temporary swizzled name which resides inside Burst Buffer namespace.
@@ -610,7 +637,7 @@ namespace Ioss {
     void check_side_topology() const;
 
     /// Used to speed up faceblock/edgeblock calculations.
-    TopoContainer sideTopology;
+    TopoContainer sideTopology{};
 
     /*! Typically used for restart output, but can be used for all output...
      * Maximum number of states on the output file.  Overwrite the existing
@@ -623,9 +650,9 @@ namespace Ioss {
     mutable int overlayCount{0};
 
     /*! Scale the time read/written from/to the file by the specified
-      scaleFactor.  If the datbase times are 0.1, 0.2, 0.3 and the
+      scaleFactor.  If the database times are 0.1, 0.2, 0.3 and the
       scaleFactor is 20, then the application will think that the
-      times read are 20, 40, 60.
+      times read are 2.0, 4.0, 6.0.
 
       If specified for an output database, then the analysis time
       is divided by the scaleFactor time prior to output.
@@ -633,7 +660,7 @@ namespace Ioss {
     double timeScaleFactor{1.0};
 
     Ioss::SurfaceSplitType splitType{SPLIT_BY_TOPOLOGIES};
-    Ioss::DatabaseUsage    dbUsage;
+    Ioss::DatabaseUsage    dbUsage{};
 
     mutable Ioss::DataSize dbIntSizeAPI{USE_INT32_API};
 
@@ -656,11 +683,13 @@ namespace Ioss {
     // element ids and offsets are still calculated assuming that the
     // blocks exist in the model...
     // Only one of these can have values and the other must be empty.
-    std::vector<std::string> blockOmissions;
-    std::vector<std::string> blockInclusions;
+    std::vector<std::string> blockOmissions{};
+    std::vector<std::string> blockInclusions{};
+    std::vector<std::string> assemblyOmissions{};
+    std::vector<std::string> assemblyInclusions{};
 
-    std::vector<std::string> informationRecords;
-    std::vector<std::string> qaRecords;
+    std::vector<std::string> informationRecords{};
+    std::vector<std::string> qaRecords{};
 
     //---Node Map -- Maps internal (1..NUMNP) ids to global ids used on the
     //               application side.   global = nodeMap[local]
@@ -789,10 +818,6 @@ namespace Ioss {
     virtual int64_t put_field_internal(const StructuredBlock * /*sb*/, const Field & /*field*/,
                                        void * /*data*/, size_t /*data_size*/) const = 0;
 
-    DatabaseIO()                   = delete;
-    DatabaseIO(const DatabaseIO &) = delete;
-    DatabaseIO &operator=(const DatabaseIO &) = delete;
-
     mutable std::map<std::string, AxisAlignedBoundingBox> elementBlockBoundingBoxes;
 
     Ioss::ParallelUtils util_; // Encapsulate parallel and other utility functions.
@@ -802,18 +827,22 @@ namespace Ioss {
 
   private:
 #endif
-    Region *region_{nullptr};
-    char    fieldSeparator{'_'};
-    bool    enableFieldRecognition{true};
-    bool    isInput;
-    bool    isParallelConsistent{
+    Region                *region_{nullptr};
+    char                   fieldSeparator{'_'};
+    DuplicateFieldBehavior duplicateFieldBehavior{DuplicateFieldBehavior::UNSET_};
+
+    bool fieldSeparatorSpecified{false};
+    bool enableFieldRecognition{true};
+    bool fieldStripTrailing_{false};
+    bool isInput;
+    bool isParallelConsistent{
         true}; // True if application will make field data get/put calls parallel
-                  // consistently.
-                  // True is default and required for parallel-io databases.
+               // consistently.
+               // True is default and required for parallel-io databases.
     // Even if false, metadata operations must be called by all processors
 
-    bool singleProcOnly;   // True if history or heartbeat which is only written from proc 0...
-    bool doLogging{false}; // True if logging field input/output
+    bool singleProcOnly{false}; // True if history or heartbeat which is only written from proc 0...
+    bool doLogging{false};      // True if logging field input/output
     bool useGenericCanonicalName{
         false}; // True if "block_id" is used as canonical name instead of the name
     // given on the mesh file e.g. "fireset".  Both names are still aliases.
@@ -824,8 +853,9 @@ namespace Ioss {
 
     bool m_timeStateInOut{false};
     bool m_enableTracing{false};
-    std::chrono::time_point<std::chrono::high_resolution_clock>
+    bool m_ignoreRealnFields{false}; // Do not recognize var_1, var_2, ..., var_n as an n-component
+                                     // field.  Keep as n scalar fields.
+    std::chrono::time_point<std::chrono::steady_clock>
         m_stateStart; // Used for optional output step timing.
   };
 } // namespace Ioss
-#endif

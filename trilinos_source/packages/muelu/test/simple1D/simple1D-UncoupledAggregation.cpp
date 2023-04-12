@@ -100,30 +100,24 @@ int main_(Teuchos::CommandLineProcessor &clp, Xpetra::UnderlyingLib lib, int arg
     Xpetra::Parameters xpetraParameters(clp);             // manage parameters of xpetra
 
     // custom parameters
-    int pauseForDebugger=0;
     //std::string aggOrdering = "natural";
     int minPerAgg=2; //was 3 in simple
     int maxNbrAlreadySelected=0;
     int printTimings=0;
 
     //clp.setOption("aggOrdering",&aggOrdering,"aggregation ordering strategy (natural,graph)");
-    clp.setOption("debug",&pauseForDebugger,"pause to attach debugger");
     clp.setOption("maxNbrSel",&maxNbrAlreadySelected,"maximum # of nbrs allowed to be in other aggregates");
     clp.setOption("minPerAgg",&minPerAgg,"minimum #DOFs per aggregate");
     clp.setOption("timings",&printTimings,"print timings to screen");
 
     switch (clp.parse(argc,argv)) {
-      case Teuchos::CommandLineProcessor::PARSE_HELP_PRINTED:        return EXIT_SUCCESS; break;
+      case Teuchos::CommandLineProcessor::PARSE_HELP_PRINTED:        return EXIT_SUCCESS;
       case Teuchos::CommandLineProcessor::PARSE_ERROR:
-      case Teuchos::CommandLineProcessor::PARSE_UNRECOGNIZED_OPTION: return EXIT_FAILURE; break;
-      case Teuchos::CommandLineProcessor::PARSE_SUCCESSFUL:                               break;
+      case Teuchos::CommandLineProcessor::PARSE_UNRECOGNIZED_OPTION: return EXIT_FAILURE;
+      case Teuchos::CommandLineProcessor::PARSE_SUCCESSFUL:          break;
     }
 
     Teuchos::RCP<Teuchos::TimeMonitor> globalTimeMonitor = Teuchos::rcp (new Teuchos::TimeMonitor(*Teuchos::TimeMonitor::getNewTimer("Timings: Global Time")));
-
-    if (pauseForDebugger) {
-      Utilities::PauseForDebugger();
-    }
 
     matrixParameters.check();
     xpetraParameters.check();

@@ -9,25 +9,25 @@
 #ifndef Tempus_StepperStaggeredForwardSensitivity_impl_hpp
 #define Tempus_StepperStaggeredForwardSensitivity_impl_hpp
 
-#include "Tempus_config.hpp"
-#include "Tempus_StepperFactory.hpp"
-#include "Tempus_WrapStaggeredFSAModelEvaluator.hpp"
-#include "Tempus_WrapCombinedFSAModelEvaluator.hpp"
-#include "Teuchos_VerboseObjectParameterListHelpers.hpp"
-
+#include "Thyra_VectorStdOps.hpp"
+#include "Thyra_MultiVectorStdOps.hpp"
 #include "Thyra_DefaultMultiVectorProductVectorSpace.hpp"
 #include "Thyra_DefaultMultiVectorProductVector.hpp"
 
-namespace Tempus {
+#include "Tempus_StepperFactory.hpp"
+#include "Tempus_WrapStaggeredFSAModelEvaluator.hpp"
+#include "Tempus_WrapCombinedFSAModelEvaluator.hpp"
 
-// Forward Declaration for recursive includes (this Stepper <--> StepperFactory)
-template<class Scalar> class StepperFactory;
+
+namespace Tempus {
 
 
 template<class Scalar>
 StepperStaggeredForwardSensitivity<Scalar>::
 StepperStaggeredForwardSensitivity()
+  : stepMode_(SensitivityStepMode::Forward)
 {
+  this->setStepperName(        "StaggeredForwardSensitivity");
   this->setStepperType(        "StaggeredForwardSensitivity");
   this->setParams(Teuchos::null, Teuchos::null);
 }
@@ -37,13 +37,17 @@ template<class Scalar>
 StepperStaggeredForwardSensitivity<Scalar>::
 StepperStaggeredForwardSensitivity(
   const Teuchos::RCP<const Thyra::ModelEvaluator<Scalar> >& appModel,
+  const Teuchos::RCP<const Thyra::ModelEvaluator<Scalar> >& sens_residual_model,
+  const Teuchos::RCP<const Thyra::ModelEvaluator<Scalar> >& sens_solve_model,
   const Teuchos::RCP<Teuchos::ParameterList>& pList,
   const Teuchos::RCP<Teuchos::ParameterList>& sens_pList)
+  : stepMode_(SensitivityStepMode::Forward)
 {
   // Set all the input parameters and call initialize
+  this->setStepperName(        "StaggeredForwardSensitivity");
   this->setStepperType(        "StaggeredForwardSensitivity");
   this->setParams(pList, sens_pList);
-  this->setModel(appModel);
+  this->setModel(appModel, sens_residual_model, sens_solve_model);
   this->initialize();
 }
 
@@ -51,7 +55,9 @@ StepperStaggeredForwardSensitivity(
 template<class Scalar>
 void StepperStaggeredForwardSensitivity<Scalar>::
 setModel(
-  const Teuchos::RCP<const Thyra::ModelEvaluator<Scalar> >& appModel)
+  const Teuchos::RCP<const Thyra::ModelEvaluator<Scalar> >& appModel,
+  const Teuchos::RCP<const Thyra::ModelEvaluator<Scalar> >& sens_residual_model,
+  const Teuchos::RCP<const Thyra::ModelEvaluator<Scalar> >& sens_solve_model)
 {
   using Teuchos::RCP;
   using Teuchos::rcp;
@@ -62,13 +68,15 @@ setModel(
   *spl = *sensPL_;
   spl->remove("Reuse State Linear Solver");
   spl->remove("Force W Update");
-  fsa_model_ = wrapStaggeredFSAModelEvaluator(appModel, spl);
+  fsa_model_ = wrapStaggeredFSAModelEvaluator(
+    appModel, sens_residual_model, sens_solve_model, false, spl);
 
   // Create combined FSA ME which serves as "the" ME for this stepper,
   // so that getModel() has a ME consistent the FSA problem (including both
   // state and sensitivity components), e.g., the integrator may call
   // getModel()->getNominalValues(), which needs to be consistent.
-  combined_fsa_model_ = wrapCombinedFSAModelEvaluator(appModel, spl);
+  combined_fsa_model_ = wrapCombinedFSAModelEvaluator(
+    appModel, sens_residual_model, sens_solve_model, spl);
 
   // Create state and sensitivity steppers
   RCP<StepperFactory<Scalar> > sf =Teuchos::rcp(new StepperFactory<Scalar>());
@@ -89,7 +97,7 @@ setModel(
 template<class Scalar>
 Teuchos::RCP<const Thyra::ModelEvaluator<Scalar> >
 StepperStaggeredForwardSensitivity<Scalar>::
-getModel()
+getModel() const
 {
   return combined_fsa_model_;
 }
@@ -138,6 +146,7 @@ takeStep(
     RCP<SolutionState<Scalar> > state = solutionHistory->getCurrentState();
     RCP<DMVPV> X, XDot, XDotDot;
     X = rcp_dynamic_cast<DMVPV>(state->getX(),true);
+
     XDot = rcp_dynamic_cast<DMVPV>(state->getXDot(),true);
     if (state->getXDotDot() != Teuchos::null)
       XDotDot = rcp_dynamic_cast<DMVPV>(state->getXDotDot(),true);
@@ -155,7 +164,7 @@ takeStep(
     state_state->setX(x);
     state_state->setXDot(xdot);
     state_state->setXDotDot(xdotdot);
-    stateSolutionHistory_ = rcp(new SolutionHistory<Scalar>(shPL));
+    stateSolutionHistory_ = createSolutionHistoryPL<Scalar>(shPL);
     stateSolutionHistory_->addState(state_state);
 
     const int num_param = X->getMultiVector()->domain()->dim()-1;
@@ -183,7 +192,7 @@ takeStep(
     sens_state->setX(dxdp_vec);
     sens_state->setXDot(dxdotdp_vec);
     sens_state->setXDotDot(dxdotdotdp_vec);
-    sensSolutionHistory_ = rcp(new SolutionHistory<Scalar>(shPL));
+    sensSolutionHistory_ = createSolutionHistoryPL<Scalar>(shPL);
     sensSolutionHistory_->addState(sens_state);
   }
 
@@ -196,6 +205,7 @@ takeStep(
     XDotDot = rcp_dynamic_cast<DMVPV>(prod_state->getXDotDot(),true);
 
   // Take step for state equations
+  stepMode_ = SensitivityStepMode::Forward;
   stateSolutionHistory_->initWorkingState();
   RCP<SolutionState<Scalar> > state = stateSolutionHistory_->getWorkingState();
   state->getMetaData()->copy(prod_state->getMetaData());
@@ -222,6 +232,7 @@ takeStep(
     fsa_model_->setSolver(stateStepper_->getSolver(), force_W_update_);
 
   // Take step in sensitivity equations
+  stepMode_ = SensitivityStepMode::Sensitivity;
   sensSolutionHistory_->initWorkingState();
   RCP<SolutionState<Scalar> > sens_state =
     sensSolutionHistory_->getWorkingState();
@@ -274,6 +285,7 @@ describe(
    Teuchos::FancyOStream               &out,
    const Teuchos::EVerbosityLevel      verbLevel) const
 {
+  out.setOutputToRootOnly(0);
   out << std::endl;
   Stepper<Scalar>::describe(out, verbLevel);
 
@@ -296,6 +308,7 @@ describe(
 template<class Scalar>
 bool StepperStaggeredForwardSensitivity<Scalar>::isValidSetup(Teuchos::FancyOStream & out) const
 {
+  out.setOutputToRootOnly(0);
   bool isValidSetup = true;
 
   if ( !Stepper<Scalar>::isValidSetup(out) ) isValidSetup = false;

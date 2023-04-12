@@ -50,34 +50,41 @@
 namespace Tpetra {
 namespace Details {
 
+ProfilingRegion::ProfilingRegion ():
+  kokkos_region_active_(false)
+{
+
+}
+
 ProfilingRegion::ProfilingRegion (const char name[]) {
-#if defined(KOKKOS_ENABLE_PROFILING)
-  if(Behavior::profilingRegionUseKokkosProfiling())
+  kokkos_region_active_ = false;
+  if(Behavior::profilingRegionUseKokkosProfiling()){
+    kokkos_region_active_ = true;
     ::Kokkos::Profiling::pushRegion(name);
-#endif
+  }
   if(Behavior::profilingRegionUseTeuchosTimers())
     tm = Teuchos::rcp(new Teuchos::TimeMonitor(*Teuchos::TimeMonitor::getNewTimer(name)));
 
 }
 
 ProfilingRegion::ProfilingRegion (const char name[], const char group[]) {
+  kokkos_region_active_ = false;
   const bool timeit = Behavior::timing(group);
   if (timeit)
   {
-#if defined(KOKKOS_ENABLE_PROFILING)
-    if(Behavior::profilingRegionUseKokkosProfiling())
+    if(Behavior::profilingRegionUseKokkosProfiling()){
+      kokkos_region_active_ = true;
       ::Kokkos::Profiling::pushRegion(name);
-#endif
+    }
     if(Behavior::profilingRegionUseTeuchosTimers())
       tm = Teuchos::rcp(new Teuchos::TimeMonitor(*Teuchos::TimeMonitor::getNewTimer(name)));
   }
 }
 
 ProfilingRegion::~ProfilingRegion () {
-#if defined(KOKKOS_ENABLE_PROFILING)
-  if(Behavior::profilingRegionUseKokkosProfiling())
+  if(Behavior::profilingRegionUseKokkosProfiling() && kokkos_region_active_){
     ::Kokkos::Profiling::popRegion();
-#endif
+  }
 }
 
 } // namespace Details

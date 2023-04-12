@@ -50,7 +50,7 @@
 #include "Teuchos_CommandLineProcessor.hpp"
 #include <Teuchos_StackedTimer.hpp>
 
-#include <Kokkos_DefaultNode.hpp>
+#include <KokkosCompat_DefaultNode.hpp>
 
 #include "Xpetra_CrsMatrixWrap.hpp"
 #include "Xpetra_CrsMatrix.hpp"
@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
     My_CLP.recogniseAllOptions(true);
     My_CLP.throwExceptions(false);
     CommandLineProcessor::EParseCommandLineReturn parseReturn = My_CLP.parse(argc,argv);
-    if(parseReturn == CommandLineProcessor::PARSE_HELP_PRINTED) {
+    if (parseReturn == CommandLineProcessor::PARSE_HELP_PRINTED) {
         return(EXIT_SUCCESS);
     }
 

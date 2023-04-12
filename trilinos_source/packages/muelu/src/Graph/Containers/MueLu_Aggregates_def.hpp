@@ -64,6 +64,7 @@ namespace MueLu {
   template <class LocalOrdinal, class GlobalOrdinal, class Node>
   Aggregates<LocalOrdinal, GlobalOrdinal, Node>::Aggregates(const GraphBase & graph) {
     nAggregates_  = 0;
+    nGlobalAggregates_ = 0;
 
     vertex2AggId_ = LOMultiVectorFactory::Build(graph.GetImportMap(), 1);
     vertex2AggId_->putScalar(MUELU_UNAGGREGATED);
@@ -71,7 +72,7 @@ namespace MueLu {
     procWinner_ = LOVectorFactory::Build(graph.GetImportMap());
     procWinner_->putScalar(MUELU_UNASSIGNED);
 
-    isRoot_ = Teuchos::ArrayRCP<bool>(graph.GetImportMap()->getNodeNumElements(), false);
+    isRoot_ = Teuchos::ArrayRCP<bool>(graph.GetImportMap()->getLocalNumElements(), false);
 
     // slow but safe, force TentativePFactory to build column map for P itself
     aggregatesIncludeGhosts_ = true;
@@ -81,6 +82,7 @@ namespace MueLu {
   template <class LocalOrdinal, class GlobalOrdinal, class Node>
   Aggregates<LocalOrdinal, GlobalOrdinal, Node>::Aggregates(const RCP<const Map> & map) {
     nAggregates_ = 0;
+    nGlobalAggregates_ = 0;
 
     vertex2AggId_ = LOMultiVectorFactory::Build(map, 1);
     vertex2AggId_->putScalar(MUELU_UNAGGREGATED);
@@ -88,7 +90,7 @@ namespace MueLu {
     procWinner_ = LOVectorFactory::Build(map);
     procWinner_->putScalar(MUELU_UNASSIGNED);
 
-    isRoot_ = Teuchos::ArrayRCP<bool>(map->getNodeNumElements(), false);
+    isRoot_ = Teuchos::ArrayRCP<bool>(map->getLocalNumElements(), false);
 
     // slow but safe, force TentativePFactory to build column map for P itself
     aggregatesIncludeGhosts_ = true;
@@ -130,7 +132,8 @@ namespace MueLu {
   std::string Aggregates<LocalOrdinal, GlobalOrdinal, Node>::description() const {
     std::ostringstream out;
     out << BaseClass::description();
-    out << "{nGlobalAggregates = " << GetNumGlobalAggregates() << "}";
+    if (nGlobalAggregates_ == -1) out << "{nGlobalAggregates = not computed}";
+    else                            out << "{nGlobalAggregates = " << nGlobalAggregates_ << "}";
     return out.str();
   }
 
@@ -138,21 +141,78 @@ namespace MueLu {
   void Aggregates<LocalOrdinal, GlobalOrdinal, Node>::print(Teuchos::FancyOStream &out, const Teuchos::EVerbosityLevel verbLevel) const {
     MUELU_DESCRIBE;
 
-    if (verbLevel & Statistics1)
-      out0 << "Global number of aggregates: " << GetNumGlobalAggregates() << std::endl;
+
+    if (verbLevel & Statistics1) {
+      if (nGlobalAggregates_ == -1) out0 << "Global number of aggregates: not computed " << std::endl;
+      else                            out0 << "Global number of aggregates: " << nGlobalAggregates_ << std::endl;
+    }
+
+    if(verbLevel == Teuchos::VERB_EXTREME) {
+      for(size_t j=0; j <vertex2AggId_->getNumVectors(); j++) {
+        auto data = vertex2AggId_->getData(j);
+        for(size_t i=0; i<vertex2AggId_->getLocalLength(); i++) {
+          out<<i<<" : "<< data[i] <<std::endl;
+        }
+        out<<std::endl;
+      }
+    }
+    
   }
 
   template <class LocalOrdinal, class GlobalOrdinal, class Node>
-  GlobalOrdinal Aggregates<LocalOrdinal, GlobalOrdinal, Node>::GetNumGlobalAggregates() const {
-    LO nAggregates = GetNumAggregates();
-    GO nGlobalAggregates; MueLu_sumAll(vertex2AggId_->getMap()->getComm(), (GO)nAggregates, nGlobalAggregates);
-    return nGlobalAggregates;
+  GlobalOrdinal Aggregates<LocalOrdinal, GlobalOrdinal, Node>::GetNumGlobalAggregatesComputeIfNeeded() {
+    if (nGlobalAggregates_ != -1) {
+      LO nAggregates = GetNumAggregates();
+      GO nGlobalAggregates; 
+      MueLu_sumAll(vertex2AggId_->getMap()->getComm(), (GO)nAggregates, nGlobalAggregates);
+      SetNumGlobalAggregates(nGlobalAggregates); 
+    }
+    return nGlobalAggregates_;
   }
 
   template <class LocalOrdinal, class GlobalOrdinal, class Node>
   const RCP<const Xpetra::Map<LocalOrdinal,GlobalOrdinal, Node> > Aggregates<LocalOrdinal, GlobalOrdinal, Node>::GetMap() const {
     return vertex2AggId_->getMap();
   }
+
+  template <class LocalOrdinal, class GlobalOrdinal, class Node>
+  void Aggregates<LocalOrdinal, GlobalOrdinal, Node>::ComputeNodesInAggregate(Array<LO> & aggPtr, Array<LO> & aggNodes, Array<LO> & unaggregated) const {
+    LO numAggs  = GetNumAggregates();
+    LO numNodes = vertex2AggId_->getLocalLength();
+    Teuchos::ArrayRCP<const LO> vertex2AggId = vertex2AggId_->getData(0);
+    Teuchos::ArrayRCP<LO> aggSizes = ComputeAggregateSizes(true);
+    LO INVALID = Teuchos::OrdinalTraits<LO>::invalid();
+
+    aggPtr.resize(numAggs+1);
+    Array<LO> aggCurr(numAggs+1);
+    aggNodes.resize(numNodes);
+    unaggregated.resize(numNodes);
+
+    LO currNumUnaggregated=0;
+
+    // Construct the "rowptr" and the counter
+    aggPtr[0] = 0; 
+    for(LO i=0; i<numAggs; i++) {
+      aggPtr[i+1] = aggSizes[i] + aggPtr[i];
+      aggCurr[i] = aggPtr[i];
+    }
+					           
+    // Stick the nodes in each aggregate's spot
+    for(LO i=0; i<numNodes; i++) {
+      LO aggregate = vertex2AggId[i];
+      if(aggregate !=INVALID) {
+        aggNodes[aggCurr[aggregate]] = i;
+        aggCurr[aggregate]++;
+      }
+      else {
+        unaggregated[currNumUnaggregated] = i;
+        currNumUnaggregated++;
+      }
+    }
+    unaggregated.resize(currNumUnaggregated);
+
+  }
+
 
 } //namespace MueLu
 

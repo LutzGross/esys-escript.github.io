@@ -1,11 +1,12 @@
-// Copyright(C) 1999-2020 National Technology & Engineering Solutions
+// Copyright(C) 1999-2022 National Technology & Engineering Solutions
 // of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 // NTESS, the U.S. Government retains certain rights in this software.
-// 
+//
 // See packages/seacas/LICENSE for details
 
-#ifndef IOSS_Iocgns_DatabaseIO_h
-#define IOSS_Iocgns_DatabaseIO_h
+#pragma once
+
+#include "iocgns_export.h"
 
 #include <Ioss_CodeTypes.h>
 #include <Ioss_DBUsage.h>    // for DatabaseUsage
@@ -49,13 +50,13 @@ namespace Ioss {
  */
 namespace Iocgns {
 
-  class DatabaseIO : public Ioss::DatabaseIO
+  class IOCGNS_EXPORT DatabaseIO : public Ioss::DatabaseIO
   {
   public:
     enum class entity_type { NODE, ELEM };
 
     DatabaseIO(Ioss::Region *region, const std::string &filename, Ioss::DatabaseUsage db_usage,
-               MPI_Comm communicator, const Ioss::PropertyManager &props);
+               Ioss_MPI_Comm communicator, const Ioss::PropertyManager &props);
 
     // Check capabilities of input/output database...  Returns an
     // unsigned int with the supported Ioss::EntityTypes or'ed
@@ -99,7 +100,7 @@ namespace Iocgns {
 
     bool   check_valid_file_open(int status) const;
     void   create_structured_block(int base, int zone, size_t &num_node);
-    void   create_structured_block_fpp(int base, int zone, size_t &num_node);
+    void   create_structured_block_fpp(int base, int num_zones, size_t &num_node);
     size_t finalize_structured_blocks();
     void   finalize_database() const override;
     void   get_step_times__() override;
@@ -200,13 +201,13 @@ namespace Iocgns {
         -1}; // If using links to file-per-state, the file pointer for "base" file.
 
     int          m_flushInterval{0}; // Default is no flushing after each timestep
-    int          m_currentVertexSolutionIndex     = 0;
-    int          m_currentCellCenterSolutionIndex = 0;
-    mutable bool m_dbFinalized                    = false;
+    int          m_currentVertexSolutionIndex{0};
+    int          m_currentCellCenterSolutionIndex{0};
+    mutable bool m_dbFinalized{false};
 
     mutable std::vector<size_t> m_zoneOffset; // Offset for local zone/block element ids to global.
     mutable std::vector<size_t>
-                                                          m_bcOffset; // The BC Section element offsets in unstructured output.
+        m_bcOffset; // The BC Section element offsets in unstructured output.
     mutable std::vector<double>                           m_timesteps;
     std::vector<CGNSIntVector>                            m_blockLocalNodeMap;
     std::map<std::string, int>                            m_zoneNameMap;
@@ -214,4 +215,3 @@ namespace Iocgns {
     mutable std::map<std::string, Ioss::FaceUnorderedSet> m_boundaryFaces;
   };
 } // namespace Iocgns
-#endif

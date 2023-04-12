@@ -1,7 +1,7 @@
-// Copyright(C) 1999-2020 National Technology & Engineering Solutions
+// Copyright(C) 1999-2021 National Technology & Engineering Solutions
 // of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 // NTESS, the U.S. Government retains certain rights in this software.
-// 
+//
 // See packages/seacas/LICENSE for details
 
 #include "Ioss_Transform.h"    // for Factory, Transform
@@ -66,7 +66,7 @@ namespace Iotr {
     return nullptr;
   }
 
-  int MinMax::output_count(int /* in */) const
+  size_t MinMax::output_count(size_t /* in */) const
   {
     // Returns a single value...
     return 1;
@@ -78,7 +78,7 @@ namespace Iotr {
     size_t components = field.transformed_storage()->component_count();
     size_t n          = count * components;
     if (field.get_type() == Ioss::Field::REAL) {
-      auto * rdata = static_cast<double *>(data);
+      auto  *rdata = static_cast<double *>(data);
       double value;
       if (doMin) {
         if (doAbs) {

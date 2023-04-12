@@ -103,7 +103,7 @@ enum MatrixEntityType {
 */
 
 template <typename User, typename UserCoord=User>
-  class MatrixAdapter : public BaseAdapter<User> {
+  class MatrixAdapter : public AdapterWithCoordsWrapper<User, UserCoord> {
 private:
   enum MatrixEntityType primaryEntityType_;
   VectorAdapter<UserCoord> *coordinateInput_;
@@ -123,7 +123,7 @@ public:
   typedef MatrixAdapter<User,UserCoord> base_adapter_t;
 #endif
 
-  enum BaseAdapterType adapterType() const {return MatrixAdapterType;}
+  enum BaseAdapterType adapterType() const override {return MatrixAdapterType;}
 
   // Constructor; sets default primaryEntityType to MATRIX_ROW.
   MatrixAdapter() : primaryEntityType_(MATRIX_ROW),
@@ -175,11 +175,11 @@ public:
       \param colIds on return will point to the global column Ids for
          the non-zeros for each row.
    */
-  virtual void getCRSView(const offset_t *&offsets, const gno_t *&colIds) const
+  virtual void getCRSView(ArrayRCP<const offset_t> &offsets, ArrayRCP<const gno_t> &colIds) const
   {
     // Default implementation; no CRS view provided.
-    offsets = NULL;
-    colIds = NULL;
+    offsets = ArrayRCP<const offset_t>();
+    colIds = ArrayRCP<const gno_t>();
     Z2_THROW_NOT_IMPLEMENTED
   }
 
@@ -197,14 +197,14 @@ public:
       \param values on return will point to the values stored in the
          non-zeros for each row.
    */
-  virtual void getCRSView(const offset_t *&offsets,
-                          const gno_t *& colIds,
-                          const scalar_t *&values) const
+  virtual void getCRSView(ArrayRCP<const offset_t> &offsets,
+                          ArrayRCP<const gno_t> &colIds,
+                          ArrayRCP<const scalar_t> &values) const
   {
     // Default implementation; no CRS view provided.
-    offsets = NULL;
-    colIds = NULL;
-    values = NULL;
+    offsets = ArrayRCP<const offset_t>();
+    colIds = ArrayRCP<const gno_t>();
+    values = ArrayRCP<const scalar_t>();
     Z2_THROW_NOT_IMPLEMENTED
   }
 
@@ -263,12 +263,12 @@ public:
       \param rowIds on return will point to the global row Ids for
          the non-zeros for each column.
    */
-  virtual void getCCSView(const offset_t *&offsets,
-                          const gno_t *&rowIds) const
+  virtual void getCCSView(ArrayRCP<const offset_t> &offsets,
+                          ArrayRCP<const gno_t> &rowIds) const
   {
     // Default implementation; no CCS view provided.
-    offsets = NULL;
-    rowIds = NULL;
+    offsets = ArrayRCP<const offset_t>();
+    rowIds = ArrayRCP<const gno_t>();
     Z2_THROW_NOT_IMPLEMENTED
   }
 
@@ -286,14 +286,14 @@ public:
       \param values on return will point to the values stored in the
          non-zeros for each column.
    */
-  virtual void getCCSView(const offset_t *&offsets,
-                          const gno_t *&rowIds,
-                          const scalar_t *&values) const
+  virtual void getCCSView(ArrayRCP<const offset_t> &offsets,
+                          ArrayRCP<const gno_t> &rowIds,
+                          ArrayRCP<const scalar_t> &values) const
   {
     // Default implementation; no CCS view provided.
-    offsets = NULL;
-    rowIds = NULL;
-    values = NULL;
+    offsets = ArrayRCP<const offset_t>();
+    rowIds = ArrayRCP<const gno_t>();
+    values = ArrayRCP<const scalar_t>();
     Z2_THROW_NOT_IMPLEMENTED
   }
 
@@ -338,7 +338,7 @@ public:
    *  \param coordData is a pointer to a VectorAdapter with the user's
    *         coordinate data.
    */
-  void setCoordinateInput(VectorAdapter<UserCoord> *coordData)
+  void setCoordinateInput(VectorAdapter<UserCoord> *coordData) override
   {
     coordinateInput_ = coordData;
     haveCoordinateInput_ = true;
@@ -352,7 +352,7 @@ public:
   /*! \brief Obtain the coordinate data registered by the user.
    *  \return pointer a VectorAdapter with the user's coordinate data.
    */
-  VectorAdapter<UserCoord> *getCoordinateInput() const
+  VectorAdapter<UserCoord> *getCoordinateInput() const override
   {
     return coordinateInput_;
   }
@@ -394,7 +394,7 @@ public:
   }
 
   // Functions from the BaseAdapter interface
-  size_t getLocalNumIDs() const
+  size_t getLocalNumIDs() const override
   {
     switch (getPrimaryEntityType()) {
     case MATRIX_ROW:
@@ -408,7 +408,7 @@ public:
     }
   }
 
-  void getIDsView(const gno_t *&Ids) const
+  void getIDsView(const gno_t *&Ids) const override
   {
     switch (getPrimaryEntityType()) {
     case MATRIX_ROW:
@@ -431,7 +431,7 @@ public:
     }
   }
 
-  int getNumWeightsPerID() const
+  int getNumWeightsPerID() const override
   {
     switch (getPrimaryEntityType()) {
     case MATRIX_ROW:
@@ -445,7 +445,7 @@ public:
     }
   }
 
-  void getWeightsView(const scalar_t *&wgt, int &stride, int idx = 0) const
+  void getWeightsView(const scalar_t *&wgt, int &stride, int idx = 0) const override
   {
     switch (getPrimaryEntityType()) {
     case MATRIX_ROW:

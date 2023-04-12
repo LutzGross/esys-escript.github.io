@@ -46,8 +46,6 @@
 #ifndef MUELU_UNCOUPLEDAGGREGATIONFACTORY_KOKKOS_DEF_HPP_
 #define MUELU_UNCOUPLEDAGGREGATIONFACTORY_KOKKOS_DEF_HPP_
 
-#ifdef HAVE_MUELU_KOKKOS_REFACTOR
-
 #include <climits>
 
 #include <Xpetra_Map.hpp>
@@ -76,6 +74,7 @@
 
 #include "KokkosGraph_Distance2ColorHandle.hpp"
 #include "KokkosGraph_Distance2Color.hpp"
+#include "KokkosGraph_MIS2.hpp"
 
 namespace MueLu {
 
@@ -105,11 +104,12 @@ namespace MueLu {
     SET_VALID_ENTRY("aggregation: enable phase 2a");
     SET_VALID_ENTRY("aggregation: enable phase 2b");
     SET_VALID_ENTRY("aggregation: enable phase 3");
-    SET_VALID_ENTRY("aggregation: phase2a include root");
+    SET_VALID_ENTRY("aggregation: match ML phase2a");
     SET_VALID_ENTRY("aggregation: phase3 avoid singletons");
     SET_VALID_ENTRY("aggregation: error on nodes with no on-rank neighbors");
     SET_VALID_ENTRY("aggregation: preserve Dirichlet points");
     SET_VALID_ENTRY("aggregation: allow user-specified singletons");
+    SET_VALID_ENTRY("aggregation: phase 1 algorithm");
 #undef  SET_VALID_ENTRY
 
     // general variables needed in AggregationFactory
@@ -191,7 +191,7 @@ namespace MueLu {
     const LO numRows = graph->GetNodeNumVertices();
 
     // construct aggStat information
-    Kokkos::View<unsigned*, typename LWGraph_kokkos::memory_space> aggStat(Kokkos::ViewAllocateWithoutInitializing("aggregation status"),
+    Kokkos::View<unsigned*, typename LWGraph_kokkos::device_type> aggStat(Kokkos::ViewAllocateWithoutInitializing("aggregation status"),
                                                                            numRows);
     Kokkos::deep_copy(aggStat, READY);
 
@@ -204,7 +204,7 @@ namespace MueLu {
     // getLocalMap to have a Kokkos::View on the appropriate memory_space
     // instead of an ArrayRCP.
     {
-      typename LWGraph_kokkos::boundary_nodes_type dirichletBoundaryMap = graph->GetBoundaryNodeMap();
+      typename LWGraph_kokkos::boundary_nodes_type dirichletBoundaryMap = graph->getLocalLWGraph().GetBoundaryNodeMap();
       Kokkos::parallel_for("MueLu - UncoupledAggregation: tagging boundary nodes in aggStat",
                            Kokkos::RangePolicy<local_ordinal_type, execution_space>(0, numRows),
                            KOKKOS_LAMBDA(const local_ordinal_type nodeIdx) {
@@ -217,7 +217,7 @@ namespace MueLu {
     LO nDofsPerNode = Get<LO>(currentLevel, "DofsPerNode");
     GO indexBase = graph->GetDomainMap()->getIndexBase();
     if (OnePtMap != Teuchos::null) {
-      typename Kokkos::View<unsigned*,typename LWGraph_kokkos::memory_space>::HostMirror aggStatHost
+      typename Kokkos::View<unsigned*,typename LWGraph_kokkos::device_type>::HostMirror aggStatHost
         = Kokkos::create_mirror_view(aggStat);
       Kokkos::deep_copy(aggStatHost, aggStat);
 
@@ -233,12 +233,54 @@ namespace MueLu {
       Kokkos::deep_copy(aggStat, aggStatHost);
     }
 
-
     const RCP<const Teuchos::Comm<int> > comm = graph->GetComm();
     GO numGlobalRows = 0;
     if (IsPrint(Statistics1))
       MueLu_sumAll(comm, as<GO>(numRows), numGlobalRows);
 
+    LO numNonAggregatedNodes = numRows;
+    std::string aggAlgo = pL.get<std::string>("aggregation: coloring algorithm");
+    if(aggAlgo == "mis2 coarsening" || aggAlgo == "mis2 aggregation")
+    {
+      SubFactoryMonitor sfm(*this, "Algo \"MIS2\"", currentLevel);
+      using graph_t = typename LWGraph_kokkos::local_graph_type;
+      using device_t = typename graph_t::device_type;
+      using exec_space = typename device_t::execution_space;
+      using rowmap_t = typename graph_t::row_map_type;
+      using colinds_t = typename graph_t::entries_type;
+      using lno_t = typename colinds_t::non_const_value_type;
+      rowmap_t aRowptrs = graph->getLocalLWGraph().getRowPtrs();
+      colinds_t aColinds = graph->getLocalLWGraph().getEntries();
+      lno_t numAggs = 0;
+      typename colinds_t::non_const_type labels;
+
+      if(aggAlgo == "mis2 coarsening")
+      {
+        if(IsPrint(Statistics1)) GetOStream(Statistics1) << "  algorithm: MIS-2 coarsening" << std::endl;
+        labels = KokkosGraph::graph_mis2_coarsen<device_t, rowmap_t, colinds_t>(aRowptrs, aColinds, numAggs);
+      }
+      else if(aggAlgo == "mis2 aggregation")
+      {
+        if(IsPrint(Statistics1)) GetOStream(Statistics1) << "  algorithm: MIS-2 aggregation" << std::endl;
+        labels = KokkosGraph::graph_mis2_aggregate<device_t, rowmap_t, colinds_t>(aRowptrs, aColinds, numAggs);
+      }
+      auto vertex2AggId  = aggregates->GetVertex2AggId()->getDeviceLocalView(Xpetra::Access::ReadWrite);
+      auto procWinner    = aggregates->GetProcWinner()  ->getDeviceLocalView(Xpetra::Access::OverwriteAll);
+      int rank = comm->getRank();
+      Kokkos::parallel_for(Kokkos::RangePolicy<exec_space>(0, numRows),
+        KOKKOS_LAMBDA(lno_t i)
+        {
+          procWinner(i, 0) = rank;
+          if(aggStat(i) == READY)
+          {
+            aggStat(i) = AGGREGATED;
+            vertex2AggId(i, 0) = labels(i);
+          }
+        });
+      numNonAggregatedNodes = 0;
+      aggregates->SetNumAggregates(numAggs);
+    }
+    else
     {
       SubFactoryMonitor sfm(*this, "Algo \"Graph Coloring\"", currentLevel);
 
@@ -273,22 +315,22 @@ namespace MueLu {
       if(pL.get<bool>("aggregation: deterministic") == true) {
         coloringHandle->set_algorithm( KokkosGraph::COLORING_D2_SERIAL );
         if(IsPrint(Statistics1)) GetOStream(Statistics1) << "  algorithm: serial" << std::endl;
-      } else if(pL.get<std::string>("aggregation: coloring algorithm") == "serial") {
+      } else if(aggAlgo == "serial") {
         coloringHandle->set_algorithm( KokkosGraph::COLORING_D2_SERIAL );
         if(IsPrint(Statistics1)) GetOStream(Statistics1) << "  algorithm: serial" << std::endl;
-      } else if(pL.get<std::string>("aggregation: coloring algorithm") == "default") {
+      } else if(aggAlgo == "default") {
         coloringHandle->set_algorithm( KokkosGraph::COLORING_D2_DEFAULT );
         if(IsPrint(Statistics1)) GetOStream(Statistics1) << "  algorithm: default" << std::endl;
-      } else if(pL.get<std::string>("aggregation: coloring algorithm") == "vertex based") {
+      } else if(aggAlgo == "vertex based") {
         coloringHandle->set_algorithm( KokkosGraph::COLORING_D2_VB );
         if(IsPrint(Statistics1)) GetOStream(Statistics1) << "  algorithm: vertex based" << std::endl;
-      } else if(pL.get<std::string>("aggregation: coloring algorithm") == "vertex based bit set") {
+      } else if(aggAlgo == "vertex based bit set") {
         coloringHandle->set_algorithm( KokkosGraph::COLORING_D2_VB_BIT );
         if(IsPrint(Statistics1)) GetOStream(Statistics1) << "  algorithm: vertex based bit set" << std::endl;
-      } else if(pL.get<std::string>("aggregation: coloring algorithm") == "edge filtering") {
+      } else if(aggAlgo == "edge filtering") {
         coloringHandle->set_algorithm( KokkosGraph::COLORING_D2_VB_BIT_EF );
         if(IsPrint(Statistics1)) GetOStream(Statistics1) << "  algorithm: edge filtering" << std::endl;
-      } else if(pL.get<std::string>("aggregation: coloring algorithm") == "net based bit set") {
+      } else if(aggAlgo == "net based bit set") {
         coloringHandle->set_algorithm( KokkosGraph::COLORING_D2_NB_BIT );
         if(IsPrint(Statistics1)) GetOStream(Statistics1) << "  algorithm: net based bit set" << std::endl;
       } else {
@@ -296,8 +338,8 @@ namespace MueLu {
       }
 
       //Create device views for graph rowptrs/colinds
-      typename graph_t::row_map_type aRowptrs = graph->getRowPtrs();
-      typename graph_t::entries_type aColinds = graph->getEntries();
+      typename graph_t::row_map_type aRowptrs = graph->getLocalLWGraph().getRowPtrs();
+      typename graph_t::entries_type aColinds = graph->getLocalLWGraph().getEntries();
 
       //run d2 graph coloring
       //graph is symmetric so row map/entries and col map/entries are the same
@@ -313,38 +355,36 @@ namespace MueLu {
       if (IsPrint(Statistics1)) {
         GetOStream(Statistics1) << "  num colors: " << aggregates->GetGraphNumColors() << std::endl;
       }
-    }
+      GO numGlobalAggregatedPrev = 0, numGlobalAggsPrev = 0;
+      for (size_t a = 0; a < algos_.size(); a++) {
+        std::string phase = algos_[a]->description();
+        SubFactoryMonitor sfm2(*this, "Algo \"" + phase + "\"", currentLevel);
 
-    LO numNonAggregatedNodes = numRows;
-    GO numGlobalAggregatedPrev = 0, numGlobalAggsPrev = 0;
-    for (size_t a = 0; a < algos_.size(); a++) {
-      std::string phase = algos_[a]->description();
-      SubFactoryMonitor sfm(*this, "Algo \"" + phase + "\"", currentLevel);
+        int oldRank = algos_[a]->SetProcRankVerbose(this->GetProcRankVerbose());
+        algos_[a]->BuildAggregates(pL, *graph, *aggregates, aggStat, numNonAggregatedNodes);
+        algos_[a]->SetProcRankVerbose(oldRank);
 
-      int oldRank = algos_[a]->SetProcRankVerbose(this->GetProcRankVerbose());
-      algos_[a]->BuildAggregates(pL, *graph, *aggregates, aggStat, numNonAggregatedNodes);
-      algos_[a]->SetProcRankVerbose(oldRank);
+        if (IsPrint(Statistics1)) {
+          GO numLocalAggregated = numRows - numNonAggregatedNodes, numGlobalAggregated = 0;
+          GO numLocalAggs       = aggregates->GetNumAggregates(),  numGlobalAggs = 0;
+          MueLu_sumAll(comm, numLocalAggregated, numGlobalAggregated);
+          MueLu_sumAll(comm, numLocalAggs,       numGlobalAggs);
 
-      if (IsPrint(Statistics1)) {
-        GO numLocalAggregated = numRows - numNonAggregatedNodes, numGlobalAggregated = 0;
-        GO numLocalAggs       = aggregates->GetNumAggregates(),  numGlobalAggs = 0;
-        MueLu_sumAll(comm, numLocalAggregated, numGlobalAggregated);
-        MueLu_sumAll(comm, numLocalAggs,       numGlobalAggs);
-
-        double aggPercent = 100*as<double>(numGlobalAggregated)/as<double>(numGlobalRows);
-        if (aggPercent > 99.99 && aggPercent < 100.00) {
-          // Due to round off (for instance, for 140465733/140466897), we could
-          // get 100.00% display even if there are some remaining nodes. This
-          // is bad from the users point of view. It is much better to change
-          // it to display 99.99%.
-          aggPercent = 99.99;
+          double aggPercent = 100*as<double>(numGlobalAggregated)/as<double>(numGlobalRows);
+          if (aggPercent > 99.99 && aggPercent < 100.00) {
+            // Due to round off (for instance, for 140465733/140466897), we could
+            // get 100.00% display even if there are some remaining nodes. This
+            // is bad from the users point of view. It is much better to change
+            // it to display 99.99%.
+            aggPercent = 99.99;
+          }
+          GetOStream(Statistics1) << "  aggregated : " << (numGlobalAggregated - numGlobalAggregatedPrev) << " (phase), " << std::fixed
+                                  << std::setprecision(2) << numGlobalAggregated << "/" << numGlobalRows << " [" << aggPercent << "%] (total)\n"
+                                  << "  remaining  : " << numGlobalRows - numGlobalAggregated << "\n"
+                                  << "  aggregates : " << numGlobalAggs-numGlobalAggsPrev << " (phase), " << numGlobalAggs << " (total)" << std::endl;
+          numGlobalAggregatedPrev = numGlobalAggregated;
+          numGlobalAggsPrev       = numGlobalAggs;
         }
-        GetOStream(Statistics1) << "  aggregated : " << (numGlobalAggregated - numGlobalAggregatedPrev) << " (phase), " << std::fixed
-                                << std::setprecision(2) << numGlobalAggregated << "/" << numGlobalRows << " [" << aggPercent << "%] (total)\n"
-                                << "  remaining  : " << numGlobalRows - numGlobalAggregated << "\n"
-                                << "  aggregates : " << numGlobalAggs-numGlobalAggsPrev << " (phase), " << numGlobalAggs << " (total)" << std::endl;
-        numGlobalAggregatedPrev = numGlobalAggregated;
-        numGlobalAggsPrev       = numGlobalAggs;
       }
     }
 
@@ -355,10 +395,8 @@ namespace MueLu {
 
     Set(currentLevel, "Aggregates", aggregates);
 
-    GetOStream(Statistics1) << aggregates->description() << std::endl;
   }
 
 } //namespace MueLu
 
-#endif // HAVE_MUELU_KOKKOS_REFACTOR
 #endif /* MUELU_UNCOUPLEDAGGREGATIONFACTORY_DEF_HPP_ */

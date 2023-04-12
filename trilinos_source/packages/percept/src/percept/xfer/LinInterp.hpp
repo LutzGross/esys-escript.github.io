@@ -84,8 +84,8 @@ LinInterp<FROM,TO>::filter_to_nearest (
   const stk::mesh::BulkData &fromBulkData = FromElem.fromBulkData_;
   stk::mesh::BulkData &toBulkData = ToPoints.toBulkData_;
 
-  const stk::mesh::Field<double, stk::mesh::Cartesian> *fromcoordinates = FromElem.fromcoordinates_;
-  const stk::mesh::Field<double, stk::mesh::Cartesian> *tocoordinates   = ToPoints.tocoordinates_;
+  const stk::mesh::FieldBase *fromcoordinates = FromElem.fromcoordinates_;
+  const stk::mesh::FieldBase *tocoordinates   = ToPoints.tocoordinates_;
 
   stk::mesh::EntityRank toRank = ToPoints.toFields_[0]->entity_rank();
 
@@ -146,7 +146,7 @@ LinInterp<FROM,TO>::filter_to_nearest (
       for ( int ni = 0; ni < num_nodes; ++ni ) {
         stk::mesh::Entity node = elem_node_rels[ni];
 
-        const double * fromcoords = stk::mesh::field_data(*fromcoordinates, node );
+        const double * fromcoords = static_cast<double*>(stk::mesh::field_data(*fromcoordinates, node ));
         for ( unsigned j = 0; j < nDim; ++j ) {
 	  cellWorkset(0,ni,j) = fromcoords[j];
         }
@@ -163,7 +163,7 @@ LinInterp<FROM,TO>::filter_to_nearest (
       if (topo.getKey()==shards::Particle::key) {
         dist = 0.0;
         for ( unsigned j = 0; j < nDim; ++j ) {
-          dist += std::pow(cellWorkset(0,0,j) - inputPhysicalPoints(j), 2);
+          dist += std::pow(cellWorkset(0,0,j) - inputPhysicalPoints(0,j), 2);
         }
         dist = std::sqrt(dist);
       }
@@ -177,7 +177,7 @@ LinInterp<FROM,TO>::filter_to_nearest (
                                                          topo,
                                                          cellOrd);
         
-        dist = parametricDistanceToEntity(&outputParametricPoints(0), topo);
+        dist = parametricDistanceToEntity(&outputParametricPoints(0,0), topo);
       }
 
       if ( dist < (1.0 + parametric_tolerance) && dist < best_dist ) {
@@ -185,7 +185,7 @@ LinInterp<FROM,TO>::filter_to_nearest (
         best_dist = dist;
 
 	for ( unsigned j = 0; j < nDim; ++j ) {
-	  isoParCoords[j] = outputParametricPoints(j);
+	  isoParCoords[j] = outputParametricPoints(0,j);
 	}
 
         ToPoints.TransferInfo_[thePt] = isoParCoords;
@@ -343,7 +343,6 @@ LinInterp<FROM,TO>::apply_from_nodal_field (
     }
   }
 
-  Intrepid::FieldContainer<double> outVals(1, 1);
   Intrepid::FieldContainer<double> inputParametricPoints(1, nDim);
 
   inputParametricPoints.setValues(&isoParCoords[0], nDim);

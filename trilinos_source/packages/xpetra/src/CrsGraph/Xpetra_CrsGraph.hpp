@@ -49,17 +49,15 @@
 #include <Teuchos_ParameterList.hpp>
 
 #include <Teuchos_Describable.hpp>
-#include <Kokkos_DefaultNode.hpp>
+#include <KokkosCompat_DefaultNode.hpp>
 #include "Xpetra_ConfigDefs.hpp"
 #include "Xpetra_DistObject.hpp"
 #include "Xpetra_Exceptions.hpp"
 
 #include "Xpetra_Map.hpp"
 
-#ifdef HAVE_XPETRA_KOKKOS_REFACTOR
 #ifdef HAVE_XPETRA_TPETRA
 #include <Kokkos_StaticCrsGraph.hpp>
-#endif
 #endif
 
 namespace Xpetra {
@@ -90,7 +88,7 @@ namespace Xpetra {
     typedef Node node_type;
 
     //! @name Constructor/Destructor Methods
-    //@{
+    //@
 
     //! Destructor.
     virtual ~CrsGraph() { }
@@ -109,6 +107,15 @@ namespace Xpetra {
     //! Remove all graph indices from the specified local row.
     virtual void removeLocalIndices(LocalOrdinal localRow)= 0;
 
+    //! Allocates the 1D pointer arrays of the graph
+    virtual void allocateAllIndices(size_t numNonZeros,ArrayRCP<size_t> & rowptr, ArrayRCP<LocalOrdinal> & colind)=0;
+
+    //! Sets the 1D pointer arrays of the graph.
+    virtual void setAllIndices(const ArrayRCP<size_t> & rowptr, const ArrayRCP<LocalOrdinal> & colind)=0;
+
+    //! Gets the 1D pointer arrays of the graph.
+    virtual void getAllIndices(ArrayRCP<const size_t>& rowptr, ArrayRCP<const LocalOrdinal>& colind) const = 0;
+
     //@}
 
     //! @name Transformational Methods
@@ -119,6 +126,15 @@ namespace Xpetra {
 
     //! Signal that data entry is complete.
     virtual void fillComplete(const RCP< ParameterList > &params=null)= 0;
+
+    //! Expert version of fillComplete
+    virtual void
+    expertStaticFillComplete (const RCP<const Map < LocalOrdinal, GlobalOrdinal, Node > >& domainMap,
+                              const RCP<const Map < LocalOrdinal, GlobalOrdinal, Node > >& rangeMap,
+                              const RCP<const Import< LocalOrdinal, GlobalOrdinal, Node > >& importer =null,
+                              const RCP<const Export< LocalOrdinal, GlobalOrdinal, Node > >& exporter =null,
+                              const RCP<Teuchos::ParameterList>& params = null)=0;
+
 
     //@}
 
@@ -153,10 +169,10 @@ namespace Xpetra {
     virtual global_size_t getGlobalNumCols() const = 0;
 
     //! Returns the number of graph rows owned on the calling node.
-    virtual size_t getNodeNumRows() const = 0;
+    virtual size_t getLocalNumRows() const = 0;
 
     //! Returns the number of columns connected to the locally owned rows of this graph.
-    virtual size_t getNodeNumCols() const = 0;
+    virtual size_t getLocalNumCols() const = 0;
 
     //! Returns the index base for global indices for this graph.
     virtual GlobalOrdinal getIndexBase() const = 0;
@@ -165,7 +181,7 @@ namespace Xpetra {
     virtual global_size_t getGlobalNumEntries() const = 0;
 
     //! Returns the local number of entries in the graph.
-    virtual size_t getNodeNumEntries() const = 0;
+    virtual size_t getLocalNumEntries() const = 0;
 
     //! Returns the current number of entries on this node in the specified global row.
     virtual size_t getNumEntriesInGlobalRow(GlobalOrdinal globalRow) const = 0;
@@ -183,7 +199,7 @@ namespace Xpetra {
     virtual size_t getGlobalMaxNumRowEntries() const = 0;
 
     //! Maximum number of entries in all rows owned by the calling process.
-    virtual size_t getNodeMaxNumRowEntries() const = 0;
+    virtual size_t getLocalMaxNumRowEntries() const = 0;
 
     //! Whether the graph has a column Map.
     virtual bool hasColMap() const = 0;
@@ -213,11 +229,10 @@ namespace Xpetra {
 
     //! @name Tpetra-specific routines
     //@{
-#ifdef HAVE_XPETRA_KOKKOS_REFACTOR
 #ifdef HAVE_XPETRA_TPETRA
     typedef typename node_type::execution_space execution_space;
     typedef typename node_type::device_type device_type;
-    typedef Kokkos::StaticCrsGraph<LocalOrdinal, Kokkos::LayoutLeft, device_type> local_graph_type;
+    typedef Kokkos::StaticCrsGraph<LocalOrdinal, Kokkos::LayoutLeft, device_type, void, size_t> local_graph_type;
 
     /// \brief Get the local graph.
     ///
@@ -226,11 +241,12 @@ namespace Xpetra {
     ///
     /// This is only a valid representation of the local graph if the
     /// (global) graph is fill complete.
-    virtual local_graph_type getLocalGraph () const = 0;
+    virtual typename local_graph_type::HostMirror getLocalGraphHost () const = 0;
+    virtual local_graph_type getLocalGraphDevice () const = 0;
+
 #else
 #ifdef __GNUC__
 #warning "Xpetra Kokkos interface for CrsMatrix is enabled (HAVE_XPETRA_KOKKOS_REFACTOR) but Tpetra is disabled. The Kokkos interface needs Tpetra to be enabled, too."
-#endif
 #endif
 #endif
 

@@ -1,7 +1,7 @@
-// Copyright(C) 1999-2020 National Technology & Engineering Solutions
+// Copyright(C) 1999-2021 National Technology & Engineering Solutions
 // of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 // NTESS, the U.S. Government retains certain rights in this software.
-// 
+//
 // See packages/seacas/LICENSE for details
 
 #include "Ioss_CodeTypes.h"       // for IntVector
@@ -54,8 +54,6 @@ Ioss::Beam3::Beam3() : Ioss::ElementTopology(Ioss::Beam3::name, "Beam_3")
   Ioss::ElementTopology::alias(Ioss::Beam3::name, "rod2d3");
 }
 
-Ioss::Beam3::~Beam3() = default;
-
 int Ioss::Beam3::parametric_dimension() const { return 1; }
 int Ioss::Beam3::spatial_dimension() const { return 3; }
 int Ioss::Beam3::order() const { return 2; }
@@ -71,6 +69,7 @@ int Ioss::Beam3::number_nodes_face(int face) const
 {
   // face is 1-based.  0 passed in for all faces.
   assert(face >= 0 && face <= number_faces());
+  IOSS_ASSERT_USED(face);
   return Constants::nfacenode;
 }
 
@@ -78,6 +77,7 @@ int Ioss::Beam3::number_edges_face(int face) const
 {
   // face is 1-based.  0 passed in for all faces.
   assert(face >= 0 && face <= number_faces());
+  IOSS_ASSERT_USED(face);
   return Constants::nfaceedge;
 }
 

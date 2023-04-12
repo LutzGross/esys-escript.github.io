@@ -72,7 +72,7 @@ namespace Intrepid2 {
     }
 
 
-    template<typename ValueType, typename DeviceSpaceType>
+    template<typename ValueType, typename DeviceType>
     int HGRAD_HEX_C2_FEM_Test01(const bool verbose) {
 
       Teuchos::RCP<std::ostream> outStream;
@@ -86,11 +86,12 @@ namespace Intrepid2 {
       Teuchos::oblackholestream oldFormatState;
       oldFormatState.copyfmt(std::cout);
 
+      using DeviceSpaceType = typename DeviceType::execution_space;
       typedef typename
-        Kokkos::Impl::is_space<DeviceSpaceType>::host_mirror_space::execution_space HostSpaceType ;
+        Kokkos::DefaultHostExecutionSpace HostSpaceType ;
 
-      *outStream << "DeviceSpace::  "; DeviceSpaceType::print_configuration(*outStream, false);
-      *outStream << "HostSpace::    ";   HostSpaceType::print_configuration(*outStream, false);
+      *outStream << "DeviceSpace::  "; DeviceSpaceType().print_configuration(*outStream, false);
+      *outStream << "HostSpace::    ";   HostSpaceType().print_configuration(*outStream, false);
 
       *outStream
         << "\n"
@@ -111,7 +112,7 @@ namespace Intrepid2 {
         << "===============================================================================\n";
 
 
-      typedef Kokkos::DynRankView<ValueType,DeviceSpaceType> DynRankView;
+      typedef Kokkos::DynRankView<ValueType,DeviceType> DynRankView;
       typedef Kokkos::DynRankView<ValueType,HostSpaceType>   DynRankViewHost;
 #define ConstructWithLabel(obj, ...) obj(#obj, __VA_ARGS__)
 
@@ -121,7 +122,7 @@ namespace Intrepid2 {
       // for virtual function, value and point types are declared in the class
       typedef ValueType outputValueType;
       typedef ValueType pointValueType;
-      Basis_HGRAD_HEX_C2_FEM<DeviceSpaceType,outputValueType,pointValueType> hexBasis;
+      Basis_HGRAD_HEX_C2_FEM<DeviceType,outputValueType,pointValueType> hexBasis;
       //typedef typename decltype(hexBasis)::OutputViewType OutputViewType;
       //typedef typename decltype(hexBasis)::PointViewType  PointViewType;
 
@@ -352,7 +353,7 @@ namespace Intrepid2 {
         // GRAD and D1 values are stored in (F,P,D) format in a data file. Read file and do the test
         std::vector<double> basisGrads;           // Flat array for the gradient values.
 
-        fileName = "../testdata/HEX_C2_GradVals.dat";
+        fileName = "./testdata/HEX_C2_GradVals.dat";
         dataFile.open(fileName.c_str());
         INTREPID2_TEST_FOR_EXCEPTION( !dataFile.good(), std::logic_error,
                                       ">>> ERROR (HGRAD_HEX_C2/test01): could not open GRAD values data file, test aborted.");
@@ -374,7 +375,7 @@ namespace Intrepid2 {
 
         //D2: flat array with the values of D2 applied to basis functions. Multi-index is (F,P,D2cardinality)
         std::vector<double> basisD2;
-        fileName = "../testdata/HEX_C2_D2Vals.dat";
+        fileName = "./testdata/HEX_C2_D2Vals.dat";
         dataFile.open(fileName.c_str());
         INTREPID2_TEST_FOR_EXCEPTION( !dataFile.good(), std::logic_error,
                                       ">>> ERROR (HGRAD_HEX_C2/test01): could not open D2 values data file, test aborted.");
@@ -394,7 +395,7 @@ namespace Intrepid2 {
         //D3: flat array with the values of D3 applied to basis functions. Multi-index is (F,P,D3cardinality)
         std::vector<double> basisD3;
 
-        fileName = "../testdata/HEX_C2_D3Vals.dat";
+        fileName = "./testdata/HEX_C2_D3Vals.dat";
         dataFile.open(fileName.c_str());
         INTREPID2_TEST_FOR_EXCEPTION( !dataFile.good(), std::logic_error,
                                       ">>> ERROR (HGRAD_HEX_C2/test01): could not open D3 values data file, test aborted.");
@@ -415,7 +416,7 @@ namespace Intrepid2 {
         //D4: flat array with the values of D3 applied to basis functions. Multi-index is (F,P,D4cardinality)
         std::vector<double> basisD4;
 
-        fileName = "../testdata/HEX_C2_D4Vals.dat";
+        fileName = "./testdata/HEX_C2_D4Vals.dat";
         dataFile.open(fileName.c_str());
         INTREPID2_TEST_FOR_EXCEPTION( !dataFile.good(), std::logic_error,
                                       ">>> ERROR (HGRAD_HEX_C2/test01): could not open D4 values data file, test aborted.");
@@ -470,7 +471,7 @@ namespace Intrepid2 {
         hexNodesHost(25,0) =  0.0;   hexNodesHost(25,1) = -1.0;  hexNodesHost(25,2) =  0.0;
         hexNodesHost(26,0) =  0.0;   hexNodesHost(26,1) =  1.0;  hexNodesHost(26,2) =  0.0;
 
-        auto hexNodes = Kokkos::create_mirror_view(typename DeviceSpaceType::memory_space(), hexNodesHost);
+        auto hexNodes = Kokkos::create_mirror_view(typename DeviceType::memory_space(), hexNodesHost);
         Kokkos::deep_copy(hexNodes, hexNodesHost);
 
         // Dimensions for the output arrays:

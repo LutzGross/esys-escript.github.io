@@ -97,7 +97,7 @@ DirichletResidual_EdgeBasis(
   pointValues.setupArrays(pointRule);
 
   // the field manager will allocate all of these field
-  this->addDependentField(pointValues.jac);
+  this->addNonConstDependentField(pointValues.jac);
   
   this->addEvaluatedField(residual);
   this->addDependentField(dof);
@@ -117,6 +117,15 @@ postRegistrationSetup(
 {
   orientations = sd.orientations_;
   this->utils.setFieldData(pointValues.jac,fm);
+
+  const auto cellTopo = *basis->getCellTopology();
+  const int edgeDim = 1;
+  const int faceDim = 2;
+  if(cellTopo.getDimension() > edgeDim)
+    edgeParam = Intrepid2::RefSubcellParametrization<Kokkos::HostSpace>::get(edgeDim, cellTopo.getKey());
+
+  if(cellTopo.getDimension() > faceDim)
+    faceParam = Intrepid2::RefSubcellParametrization<Kokkos::HostSpace>::get(faceDim, cellTopo.getKey());
 }
 
 //**********************************************************************
@@ -141,39 +150,48 @@ evaluateFields(
     const auto worksetJacobians = pointValues.jac.get_view();
 
     const int cellDim = cellTopo.getDimension();
+    const int edgeDim = 1;
+    const int faceDim = 2;
 
     auto intrepid_basis = basis->getIntrepid2Basis();
     const WorksetDetails & details = workset;
 
-    const bool is_normalize = true;
-    auto work = Kokkos::createDynRankView(residual.get_static_view(),"work", 4, cellDim);
+    //const bool is_normalize = true;
+    auto work = Kokkos::create_mirror_view(Kokkos::createDynRankView(residual.get_static_view(),"work", 4, cellDim));
 
     // compute residual
+    auto residual_h = Kokkos::create_mirror_view(residual.get_static_view());
+    auto dof_h = Kokkos::create_mirror_view(dof.get_static_view());
+    auto value_h = Kokkos::create_mirror_view(value.get_static_view());
+    Kokkos::deep_copy(dof_h, dof.get_static_view());
+    Kokkos::deep_copy(value_h, value.get_static_view());
+    auto worksetJacobians_h = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(),worksetJacobians);
     switch (subcellDim) {
     case 1: {  // 2D element Tri and Quad
       if (intrepid_basis->getDofCount(1, subcellOrd)) {
-        auto phyEdgeTan = Kokkos::subview(work, 0, Kokkos::ALL());
-        auto ortEdgeTan = Kokkos::subview(work, 1, Kokkos::ALL());
+        auto ortEdgeTan = Kokkos::subview(work, 0, Kokkos::ALL());
+        auto phyEdgeTan = Kokkos::subview(work, 1, Kokkos::ALL());
         
         const int ndofsEdge = intrepid_basis->getDofCount(1, subcellOrd);
         const int numEdges = cellTopo.getEdgeCount();
         /* */ int edgeOrts[4] = {};
+	
         for(index_t c=0;c<workset.num_cells;c++) {
           orientations->at(details.cell_local_ids[c]).getEdgeOrientation(edgeOrts, numEdges);
           
-          Intrepid2::Orientation::getReferenceEdgeTangent(ortEdgeTan,
-                                                          subcellOrd,
-                                                          cellTopo,
-                                                          edgeOrts[subcellOrd],
-                                                          is_normalize);
+          Intrepid2::Impl::OrientationTools::getRefSubcellTangents(work,
+              edgeParam,
+              cellTopo.getKey(edgeDim,subcellOrd),
+              subcellOrd,
+              edgeOrts[subcellOrd]);
 
           for (int i=0;i<ndofsEdge;++i) {
             const int b = intrepid_basis->getDofOrdinal(1, subcellOrd, i);
-            auto J = Kokkos::subview(worksetJacobians, c, b, Kokkos::ALL(), Kokkos::ALL());
+            auto J = Kokkos::subview(worksetJacobians_h, c, b, Kokkos::ALL(), Kokkos::ALL());
             Intrepid2::Kernels::Serial::matvec_product(phyEdgeTan, J, ortEdgeTan);            
             
             for(int d=0;d<cellDim;d++) {
-              residual(c,b) += (dof(c,b,d)-value(c,b,d))*phyEdgeTan(d);
+              residual_h(c,b) += (dof_h(c,b,d)-value_h(c,b,d))*phyEdgeTan(d);
             }
           }
         }
@@ -185,8 +203,9 @@ evaluateFields(
       const int numFaces = cellTopo.getFaceCount();
       
       {
-        auto phyEdgeTan = Kokkos::subview(work, 0, Kokkos::ALL());
-        auto ortEdgeTan = Kokkos::subview(work, 1, Kokkos::ALL());
+
+        auto ortEdgeTan = Kokkos::subview(work, 0, Kokkos::ALL());
+        auto phyEdgeTan = Kokkos::subview(work, 1, Kokkos::ALL());
 
         const int numEdgesOfFace= cellTopo.getEdgeCount(2, subcellOrd);
 
@@ -198,19 +217,18 @@ evaluateFields(
             const int b = edgeOrd;
             orientations->at(details.cell_local_ids[c]).getEdgeOrientation(edgeOrts, numEdges);
             
-            Intrepid2::Orientation::getReferenceEdgeTangent(ortEdgeTan,
-                                                            edgeOrd,
-                                                            cellTopo,
-                                                            edgeOrts[edgeOrd],
-                                                            is_normalize);
-            
-            // for(int b=0;b<dof.extent_int(1);b++) 
+            Intrepid2::Impl::OrientationTools::getRefSubcellTangents(work,
+                edgeParam,
+                cellTopo.getKey(edgeDim,edgeOrd),
+                edgeOrd,
+                edgeOrts[edgeOrd]);
+
             {
-              auto J = Kokkos::subview(worksetJacobians, c, b, Kokkos::ALL(), Kokkos::ALL());
+              auto J = Kokkos::subview(worksetJacobians_h, c, b, Kokkos::ALL(), Kokkos::ALL());
               Intrepid2::Kernels::Serial::matvec_product(phyEdgeTan, J, ortEdgeTan);
               
               for(int d=0;d<dof.extent_int(2);d++) {
-                residual(c,b) += (dof(c,b,d)-value(c,b,d))*phyEdgeTan(d);
+                residual_h(c,b) += (dof_h(c,b,d)-value_h(c,b,d))*phyEdgeTan(d);
               }
             }
           }
@@ -218,29 +236,29 @@ evaluateFields(
       }
 
       if (intrepid_basis->getDofCount(2, subcellOrd)) {
-        auto phyFaceTanU = Kokkos::subview(work, 0, Kokkos::ALL());
-        auto ortFaceTanU = Kokkos::subview(work, 1, Kokkos::ALL());
-        auto phyFaceTanV = Kokkos::subview(work, 2, Kokkos::ALL());
-        auto ortFaceTanV = Kokkos::subview(work, 3, Kokkos::ALL());
+        auto ortFaceTanU = Kokkos::subview(work, 0, Kokkos::ALL());
+        auto ortFaceTanV = Kokkos::subview(work, 1, Kokkos::ALL());
+        auto phyFaceTanU = Kokkos::subview(work, 2, Kokkos::ALL());
+        auto phyFaceTanV = Kokkos::subview(work, 3, Kokkos::ALL());
         
         int faceOrts[6] = {};
         for(index_t c=0;c<workset.num_cells;c++) {
           orientations->at(details.cell_local_ids[c]).getFaceOrientation(faceOrts, numFaces);
-          Intrepid2::Orientation::getReferenceFaceTangents(ortFaceTanU,
-                                                           ortFaceTanV,
-                                                           subcellOrd,
-                                                           cellTopo,
-                                                           faceOrts[subcellOrd],
-                                                           is_normalize);
-          
+
+          Intrepid2::Impl::OrientationTools::getRefSubcellTangents(work,
+              faceParam,
+              cellTopo.getKey(faceDim,subcellOrd),
+              subcellOrd,
+              faceOrts[subcellOrd]);
+
           for(int b=0;b<dof.extent_int(1);b++) {
             auto J = Kokkos::subview(worksetJacobians, c, b, Kokkos::ALL(), Kokkos::ALL());
             Intrepid2::Kernels::Serial::matvec_product(phyFaceTanU, J, ortFaceTanU);
             Intrepid2::Kernels::Serial::matvec_product(phyFaceTanV, J, ortFaceTanV);
             
             for(int d=0;d<dof.extent_int(2);d++) {
-              residual(c,b) += (dof(c,b,d)-value(c,b,d))*phyFaceTanU(d);
-              residual(c,b) += (dof(c,b,d)-value(c,b,d))*phyFaceTanV(d);
+              residual_h(c,b) += (dof_h(c,b,d)-value_h(c,b,d))*phyFaceTanU(d);
+              residual_h(c,b) += (dof_h(c,b,d)-value_h(c,b,d))*phyFaceTanV(d);
             }
           }
         }
@@ -249,6 +267,7 @@ evaluateFields(
       break;
     }
     }
+    Kokkos::deep_copy(residual.get_static_view(), residual_h);
   }
   
 }

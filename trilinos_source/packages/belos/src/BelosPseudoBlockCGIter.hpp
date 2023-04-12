@@ -57,7 +57,6 @@
 #include "BelosOperatorTraits.hpp"
 #include "BelosMultiVecTraits.hpp"
 
-#include "Teuchos_BLAS.hpp"
 #include "Teuchos_SerialDenseMatrix.hpp"
 #include "Teuchos_SerialDenseVector.hpp"
 #include "Teuchos_ScalarTraits.hpp"
@@ -436,7 +435,7 @@ namespace Belos {
     if ( assertPositiveDefiniteness_ )
         for (i=0; i<numRHS_; ++i)
             TEUCHOS_TEST_FOR_EXCEPTION( SCT::real(rHz[i]) < zero,
-                                CGIterateFailure,
+                                CGPositiveDefiniteFailure,
                                 "Belos::PseudoBlockCGIter::iterate(): negative value for r^H*M*r encountered!" );
 
     ////////////////////////////////////////////////////////////////
@@ -457,7 +456,7 @@ namespace Belos {
         if ( assertPositiveDefiniteness_ )
             // Check that pAp[i] is a positive number!
             TEUCHOS_TEST_FOR_EXCEPTION( SCT::real(pAp[i]) <= zero,
-                                CGIterateFailure,
+                                CGPositiveDefiniteFailure,
                                 "Belos::PseudoBlockCGIter::iterate(): non-positive value for p^H*A*p encountered!" );
 
         alpha(i,i) = rHz[i] / pAp[i];
@@ -501,7 +500,7 @@ namespace Belos {
       if ( assertPositiveDefiniteness_ )
           for (i=0; i<numRHS_; ++i)
               TEUCHOS_TEST_FOR_EXCEPTION( SCT::real(rHz[i]) < zero,
-                                  CGIterateFailure,
+                                  CGPositiveDefiniteFailure,
                                   "Belos::PseudoBlockCGIter::iterate(): negative value for r^H*M*r encountered!" );
       //
       // Update the search directions.
@@ -514,7 +513,7 @@ namespace Belos {
       }
 
       // Condition estimate (if needed)
-      if (doCondEst_) {
+      if (doCondEst_ && (iter_ - 1) < diag_.size()) {
         if (iter_ > 1) {
           diag_[iter_-1]    = Teuchos::ScalarTraits<ScalarType>::real((beta_old_ * beta_old_ * pAp_old_ + pAp[0]) / rHz_old[0]);
           offdiag_[iter_-2] = -Teuchos::ScalarTraits<ScalarType>::real(beta_old_ * pAp_old_ / (sqrt( rHz_old[0] * rHz_old2_)));

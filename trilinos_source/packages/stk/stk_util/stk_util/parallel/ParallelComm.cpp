@@ -31,19 +31,19 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
-#include <stk_util/parallel/ParallelComm.hpp>
+#include "stk_util/parallel/ParallelComm.hpp"
+#include "stk_util/parallel/ParallelReduce.hpp"  // for Reduce, ReduceEnd, ReduceMax, ReduceBitOr
+#include "stk_util/util/SimpleArrayOps.hpp"      // for Max, BitOr, Min
+#include "stk_util/util/ReportHandler.hpp"
+#include <cstdlib>                               // for free, malloc
+#include <iostream>                              // for operator<<, basic_ostream::operator<<
+#include <new>                                   // for operator new
+#include <stdexcept>                             // for runtime_error
+#include <vector>                                // for vector
 
-#include <iostream>
-#include <sstream>
-#include <stdexcept>
-#include <stdlib.h>
-#include <vector>
 
-#include <stk_util/parallel/ParallelReduce.hpp>
 
 namespace stk {
-
-//-----------------------------------------------------------------------
 
 #if defined( STK_HAS_MPI )
 
@@ -51,101 +51,6 @@ enum { STK_MPI_TAG_SIZING = 0 , STK_MPI_TAG_DATA = 1 };
 
 #endif
 
-//----------------------------------------------------------------------
-
-namespace {
-
-inline
-size_t align_quad( size_t n )
-{
-  enum { Size = 4 * sizeof(int) };
-  return n + CommBufferAlign<Size>::align(n);
-}
-
-}
-
-//----------------------------------------------------------------------
-
-void CommBuffer::pack_overflow() const
-{
-#ifndef NDEBUG
-  std::ostringstream os ;
-  os << "stk::CommBuffer::pack<T>(...){ overflow by " ;
-  os << remaining() ;
-  os << " bytes. }" ;
-  throw std::overflow_error( os.str() );
-#endif
-}
-
-void CommBuffer::unpack_overflow() const
-{
-#ifndef NDEBUG
-  std::ostringstream os ;
-  os << "stk::CommBuffer::unpack<T>(...){ overflow by " ;
-  os << remaining();
-  os << " bytes. }" ;
-  throw std::overflow_error( os.str() );
-#endif
-}
-
-//----------------------------------------------------------------------
-
-void CommBuffer::deallocate( const unsigned number , CommBuffer * buffers )
-{
-  if ( nullptr != buffers ) {
-    for ( unsigned i = 0 ; i < number ; ++i ) {
-      ( buffers + i )->~CommBuffer();
-    }
-    free( buffers );
-  }
-}
-
-CommBuffer * CommBuffer::allocate(
-  const unsigned number , const unsigned * const size )
-{
-  const size_t n_base = align_quad( number * sizeof(CommBuffer) );
-  size_t n_size = n_base ;
-
-  if ( nullptr != size ) {
-    for ( unsigned i = 0 ; i < number ; ++i ) {
-      n_size += align_quad( size[i] );
-    }
-  }
-
-  // Allocate space for buffers
-
-  void * const p_malloc = malloc( n_size );
-
-  CommBuffer * const b_base =
-    p_malloc != nullptr ? reinterpret_cast<CommBuffer*>(p_malloc)
-                        : reinterpret_cast<CommBuffer*>( NULL );
-
-  if ( p_malloc != nullptr ) {
-
-    for ( unsigned i = 0 ; i < number ; ++i ) {
-      new( b_base + i ) CommBuffer();
-    }
-
-    if ( nullptr != size ) {
-
-      ucharp ptr = reinterpret_cast<ucharp>( p_malloc );
-
-      ptr += n_base ;
-
-      for ( unsigned i = 0 ; i < number ; ++i ) {
-        CommBuffer & b = b_base[i] ;
-        b.m_beg = ptr ;
-        b.m_ptr = ptr ;
-        b.m_end = ptr + size[i] ;
-        ptr += align_quad( size[i] );
-      }
-    }
-  }
-
-  return b_base ;
-}
-
-//----------------------------------------------------------------------
 //----------------------------------------------------------------------
 
 CommBroadcast::CommBroadcast( ParallelMachine comm , int root_rank )
@@ -170,16 +75,10 @@ bool CommBroadcast::allocate_buffer( const bool local_flag )
                        ReduceMax<1>( & root_send_size ) &
                        ReduceBitOr<1>( & flag ) );
 
-  if ( root_rank_min != root_rank_max ) {
-    std::string msg ;
-    msg.append( method );
-    msg.append( " FAILED: inconsistent root processor" );
-    throw std::runtime_error( msg );
-  }
+  ThrowRequireMsg(root_rank_min == root_rank_max, method << " FAILED: inconsistent root processor");
 
-  m_buffer.m_beg = static_cast<CommBuffer::ucharp>( malloc( root_send_size ) );
-  m_buffer.m_ptr = m_buffer.m_beg ;
-  m_buffer.m_end = m_buffer.m_beg + root_send_size ;
+  unsigned char* ptr = static_cast<CommBuffer::ucharp>( malloc( root_send_size ) );
+  m_buffer.set_buffer_ptrs(ptr, ptr, ptr + root_send_size);
 
   return flag ;
 }
@@ -189,9 +88,7 @@ CommBroadcast::~CommBroadcast()
   try {
     if ( m_buffer.m_beg ) { free( static_cast<void*>( m_buffer.m_beg ) ); }
   } catch(...) {}
-  m_buffer.m_beg = nullptr ;
-  m_buffer.m_ptr = nullptr ;
-  m_buffer.m_end = nullptr ;
+  m_buffer.set_buffer_ptrs(nullptr, nullptr, nullptr);
 }
 
 CommBuffer & CommBroadcast::recv_buffer()
@@ -203,12 +100,7 @@ CommBuffer & CommBroadcast::send_buffer()
 {
   static const char method[] = "stk::CommBroadcast::send_buffer" ;
 
-  if ( m_root_rank != m_rank ) {
-    std::string msg ;
-    msg.append( method );
-    msg.append( " FAILED: is not root processor" );
-    throw std::runtime_error( msg );
-  }
+  ThrowRequireMsg(m_root_rank == m_rank, method << " FAILED: is not root processor");
 
   return m_buffer ;
 }
@@ -222,17 +114,13 @@ void CommBroadcast::communicate()
 
     const int result = MPI_Bcast( buf, count, MPI_BYTE, m_root_rank, m_comm);
 
-    if ( MPI_SUCCESS != result ) {
-      std::ostringstream msg ;
-      msg << "stk::CommBroadcast::communicate ERROR : "
-          << result << " == MPI_Bcast" ;
-      throw std::runtime_error( msg.str() );
-    }
+    ThrowRequireMsg(MPI_SUCCESS == result, "stk::CommBroadcast::communicate ERROR: " << result << " from MPI_Bcast");
   }
 #endif
 
   m_buffer.reset();
 }
+
 
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
@@ -245,7 +133,10 @@ void CommBroadcast::communicate()
 //  Determine the number of items each other process will send to the current processor
 //
 std::vector<int> ComputeReceiveList(std::vector<int>& sendSizeArray, MPI_Comm &mpi_communicator) {
-  const int msg_tag = 10240;
+
+  stk::util::print_unsupported_version_warning(3, __LINE__, __FILE__);
+
+  auto msg_tag = get_mpi_tag_manager().get_tag(mpi_communicator, 10240);
   int num_procs = sendSizeArray.size();
   int my_proc;
   MPI_Comm_rank(mpi_communicator, &my_proc);

@@ -1,7 +1,7 @@
-// Copyright(C) 1999-2020 National Technology & Engineering Solutions
+// Copyright(C) 1999-2023 National Technology & Engineering Solutions
 // of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 // NTESS, the U.S. Government retains certain rights in this software.
-// 
+//
 // See packages/seacas/LICENSE for details
 %{
 #include "aprepro.h"
@@ -19,12 +19,19 @@
 namespace {
   void reset_error()
   {
+#if !defined(WIN32) && !defined(__WIN32__) && !defined(_WIN32) && !defined(_MSC_VER) &&            \
+    !defined(__MINGW32__) && !defined(_WIN64) && !defined(__MINGW64__)
+#ifndef math_errhandling
+#define math_errhandling MATH_ERRNO
+#endif
+
     if (math_errhandling & MATH_ERREXCEPT) {
       std::feclearexcept(FE_ALL_EXCEPT);
     }
     if (math_errhandling & MATH_ERRNO) {
       errno = 0;
     }
+#endif
   }
 }
 
@@ -123,7 +130,7 @@ line:     '\n'                  { if (echo) aprepro.lexer->LexerOutput("\n", 1);
         | LBRACE exp RBRACE     { if (echo) {
                                      static char tmpstr[512];
                                      SEAMS::symrec *format = aprepro.getsym("_FORMAT");
-                                     int len = sprintf(tmpstr, format->value.svar.c_str(), $2);
+                                     int len = snprintf(tmpstr, 512, format->value.svar.c_str(), $2);
                                      aprepro.lexer->LexerOutput(tmpstr, len);
                                    }
                                 }
@@ -147,6 +154,10 @@ bool:     exp LT exp            { $$ = $1 < $3;                         }
         | exp LAND exp          { $$ = $1 && $3;                        }
         | bool LOR bool         { $$ = $1 || $3;                        }
         | bool LAND bool        { $$ = $1 && $3;                        }
+        | bool LOR exp          { $$ = $1 || $3;                        }
+        | bool LAND exp         { $$ = $1 && $3;                        }
+        | exp LOR bool          { $$ = $1 || $3;                        }
+        | exp LAND bool         { $$ = $1 && $3;                        }
         | LPAR bool RPAR        { $$ = $2;                              }
 ;
 
@@ -157,7 +168,7 @@ bool:     sexp LT sexp          { $$ = (strcmp($1,$3) <  0 ? 1 : 0);    }
         | sexp EQ  sexp         { $$ = (strcmp($1,$3) == 0 ? 1 : 0);    }
         | sexp NE  sexp         { $$ = (strcmp($1,$3) != 0 ? 1 : 0);    }
 
-aexp:   AVAR                    { $$ = new array(*($1->value.avar));}
+aexp:   AVAR                    { $$ = aprepro.make_array(*($1->value.avar)); }
         | AFNCT LPAR sexp RPAR  {
           if (arg_check($1, $1->value.arrfnct_c == NULL))
             $$ = (*($1->value.arrfnct_c))($3);
@@ -208,7 +219,7 @@ aexp:   AVAR                    { $$ = new array(*($1->value.avar));}
                                   $1->value.avar= $3;
                                   redefined_warning(aprepro, $1);
                                   set_type(aprepro, $1, token::AVAR);           }
-        | AVAR EQUAL aexp       { $$ = $3; delete $1->value.avar; $1->value.avar = $3;
+        | AVAR EQUAL aexp       { $$ = $3; aprepro.redefine_array($1->value.avar); $1->value.avar = $3;
                                   redefined_warning(aprepro, $1);
                                   set_type(aprepro, $1, token::AVAR); }
         | UNDVAR EQUAL aexp     { $$ = $3; $1->value.avar = $3;
@@ -256,7 +267,7 @@ sexp:     QSTRING               { $$ = $1;                              }
                                   redefined_warning(aprepro, $1);
                                   set_type(aprepro, $1, token::SVAR);           }
         | AVAR EQUAL sexp       { $$ = $3;
-	                          delete $1->value.avar;
+                                  aprepro.redefine_array($1->value.avar);
                                   $1->value.svar= $3;
                                   redefined_warning(aprepro, $1);
                                   set_type(aprepro, $1, token::SVAR);           }
@@ -334,7 +345,7 @@ exp:      NUM                   { $$ = $1;                              }
                                   redefined_warning(aprepro, $1);
                                   set_type(aprepro, $1, token::VAR);                    }
         | AVAR EQUAL exp        { $$ = $3;
-	                          delete $1->value.avar;
+	                          aprepro.redefine_array($1->value.avar);
                                   $1->value.var= $3;
                                   redefined_warning(aprepro, $1);
                                   set_type(aprepro, $1, token::VAR);           }
@@ -573,4 +584,3 @@ void SEAMS::Parser::error(const std::string& m)
 {
     aprepro.error(m);
 }
-

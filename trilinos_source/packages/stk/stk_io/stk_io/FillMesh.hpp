@@ -34,11 +34,14 @@
 #ifndef PACKAGES_STK_STK_IO_STK_IO_FILLMESH_HPP_
 #define PACKAGES_STK_STK_IO_STK_IO_FILLMESH_HPP_
 
-#include <string>
-#include "stk_io/DatabasePurpose.hpp"  // for DatabasePurpose::READ_MESH
-
-namespace stk { namespace mesh { class BulkData; }}
+// #######################  Start Clang Header Tool Managed Headers ########################
+// clang-format off
+#include <string>                      // for string
+#include "stk_io/DatabasePurpose.hpp"  // for READ_MESH, DatabasePurpose
 namespace stk { namespace io { class StkMeshIoBroker; } }
+namespace stk { namespace mesh { class BulkData; } }
+// clang-format on
+// #######################   End Clang Header Tool Managed Headers  ########################
 
 namespace stk
 {
@@ -52,6 +55,9 @@ void fill_mesh_with_auto_decomp(const std::string &meshSpec, stk::mesh::BulkData
 void fill_mesh_preexisting(stk::io::StkMeshIoBroker & stkIo, const std::string& meshSpec,
                            stk::mesh::BulkData& bulkData, stk::io::DatabasePurpose purpose = stk::io::READ_MESH);
 void fill_mesh_save_step_info(const std::string& inFile, stk::mesh::BulkData& inBulk, int &numSteps, double &maxTime);
+void fill_mesh_with_fields(const std::string& inFile, stk::mesh::BulkData& bulk, stk::io::DatabasePurpose purpose = stk::io::READ_MESH);
+void fill_mesh_with_fields(const std::string& inFile, stk::io::StkMeshIoBroker& ioBroker,
+                           stk::mesh::BulkData& bulk, stk::io::DatabasePurpose purpose = stk::io::READ_MESH);
 
 } // namespace unit_test_util
 } // namespace stk

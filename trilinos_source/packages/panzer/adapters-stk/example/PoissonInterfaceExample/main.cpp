@@ -62,6 +62,7 @@
 #include "Panzer_BlockedEpetraLinearObjFactory.hpp"
 #include "Panzer_DOFManagerFactory.hpp"
 #include "Panzer_DOFManager.hpp"
+#include "Panzer_OrientationsInterface.hpp"
 #include "Panzer_FieldManagerBuilder.hpp"
 #include "Panzer_PureBasis.hpp"
 #include "Panzer_GlobalData.hpp"
@@ -384,12 +385,11 @@ int main (int argc, char* argv[])
   using panzer::StrPureBasisPair;
   using panzer::StrPureBasisComp;
 
-  Kokkos::initialize(argc,argv);
-
   int status = 0;
   try {
 
     Teuchos::GlobalMPISession mpiSession(&argc, &argv);
+    Kokkos::initialize(argc,argv);
     RCP<const Teuchos::MpiComm<int> > tComm = Teuchos::rcp(new Teuchos::MpiComm<int>(MPI_COMM_WORLD));
     Teuchos::FancyOStream out(Teuchos::rcpFromRef(std::cout));
     out.setOutputToRootOnly(0);
@@ -433,7 +433,7 @@ int main (int argc, char* argv[])
       try {
         clp.parse(argc, argv);
       } catch (...) {
-        Kokkos::finalize_all();
+        Kokkos::finalize();
         return -1;
       }
 
@@ -494,7 +494,7 @@ int main (int argc, char* argv[])
       mesh_factory->completeMeshConstruction(*mesh, MPI_COMM_WORLD);
       mesh->writeToExodus("output.exo");
       out << "Stopping after writing mesh because --generate-mesh-only was requested.\n";
-      Kokkos::finalize_all();
+      Kokkos::finalize();
       return 0;
     }
 
@@ -569,23 +569,6 @@ int main (int argc, char* argv[])
       mesh_factory->completeMeshConstruction(*mesh,MPI_COMM_WORLD);
     }
 
-    // build worksets
-    ////////////////////////////////////////////////////////
-
-    Teuchos::RCP<panzer_stk::WorksetFactory> wkstFactory
-      = Teuchos::rcp(new panzer_stk::WorksetFactory(mesh)); // build STK workset factory
-    Teuchos::RCP<panzer::WorksetContainer> wkstContainer     // attach it to a workset container (uses lazy evaluation)
-       = Teuchos::rcp(new panzer::WorksetContainer);
-    wkstContainer->setFactory(wkstFactory);
-    for(size_t i=0;i<physicsBlocks.size();i++)
-      wkstContainer->setNeeds(physicsBlocks[i]->elementBlockID(),physicsBlocks[i]->getWorksetNeeds());
-    wkstContainer->setWorksetSize(workset_size);
-
-    std::vector<std::string> elementBlockNames;
-    mesh->getElementBlockNames(elementBlockNames);
-    std::map<std::string,Teuchos::RCP<std::vector<panzer::Workset> > > volume_worksets;
-    panzer::getVolumeWorksetsFromContainer(*wkstContainer,elementBlockNames,volume_worksets);
-
     // build DOF Manager and linear object factory
     /////////////////////////////////////////////////////////////
 
@@ -603,6 +586,25 @@ int main (int argc, char* argv[])
       if (has_interface_condition)
         checkInterfaceConnections(conn_manager, dofManager->getComm());
     }
+
+    // build worksets
+    ////////////////////////////////////////////////////////
+
+    Teuchos::RCP<panzer_stk::WorksetFactory> wkstFactory
+      = Teuchos::rcp(new panzer_stk::WorksetFactory(mesh)); // build STK workset factory
+    wkstFactory->setOrientationsInterface(Teuchos::rcp(new panzer::OrientationsInterface(dofManager)));
+    Teuchos::RCP<panzer::WorksetContainer> wkstContainer     // attach it to a workset container (uses lazy evaluation)
+       = Teuchos::rcp(new panzer::WorksetContainer);
+    wkstContainer->setFactory(wkstFactory);
+    for(size_t i=0;i<physicsBlocks.size();i++)
+      wkstContainer->setNeeds(physicsBlocks[i]->elementBlockID(),physicsBlocks[i]->getWorksetNeeds());
+    wkstContainer->setWorksetSize(workset_size);
+
+    std::vector<std::string> elementBlockNames;
+    mesh->getElementBlockNames(elementBlockNames);
+    std::map<std::string,Teuchos::RCP<std::vector<panzer::Workset> > > volume_worksets;
+    panzer::getVolumeWorksetsFromContainer(*wkstContainer,elementBlockNames,volume_worksets);
+
 
     // construct some linear algebra object, build object to pass to evaluators
     Teuchos::RCP<panzer::LinearObjFactory<panzer::Traits> > linObjFactory

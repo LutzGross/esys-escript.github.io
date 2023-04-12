@@ -59,8 +59,6 @@
 #include "BelosStatusTestCombo.hpp"
 #include "BelosStatusTestOutputFactory.hpp"
 #include "BelosOutputManager.hpp"
-#include "Teuchos_BLAS.hpp"
-#include "Teuchos_LAPACK.hpp"
 #ifdef BELOS_TEUCHOS_TIME_MONITOR
 #  include "Teuchos_TimeMonitor.hpp"
 #endif
@@ -287,7 +285,6 @@ namespace Belos {
     static constexpr int outputStyle_default_ = Belos::General;
     static constexpr int outputFreq_default_ = -1;
     static constexpr const char * label_default_ = "Belos";
-    static constexpr std::ostream * outputStream_default_ = &std::cout;
 
     //
     // Current solver parameters and other values.
@@ -326,7 +323,7 @@ namespace Belos {
 // Empty Constructor
 template<class ScalarType, class MV, class OP>
 FixedPointSolMgr<ScalarType,MV,OP>::FixedPointSolMgr() :
-  outputStream_(Teuchos::rcp(outputStream_default_,false)),
+  outputStream_(Teuchos::rcpFromRef(std::cout)),
   convtol_(DefaultSolverParameters::convTol),
   achievedTol_(Teuchos::ScalarTraits<MagnitudeType>::zero()),
   maxIters_(maxIters_default_),
@@ -347,7 +344,7 @@ FixedPointSolMgr<ScalarType,MV,OP>::
 FixedPointSolMgr(const Teuchos::RCP<LinearProblem<ScalarType,MV,OP> > &problem,
               const Teuchos::RCP<Teuchos::ParameterList> &pl) :
   problem_(problem),
-  outputStream_(Teuchos::rcp(outputStream_default_,false)),
+  outputStream_(Teuchos::rcpFromRef(std::cout)),
   convtol_(DefaultSolverParameters::convTol),
   achievedTol_(Teuchos::ScalarTraits<MagnitudeType>::zero()),
   maxIters_(maxIters_default_),
@@ -570,7 +567,7 @@ FixedPointSolMgr<ScalarType,MV,OP>::getValidParameters() const
     pl->set("Output Frequency", static_cast<int>(outputFreq_default_),
       "How often convergence information should be outputted\n"
       "to the output stream.");
-    pl->set("Output Stream", Teuchos::rcp(outputStream_default_,false),
+    pl->set("Output Stream", Teuchos::rcpFromRef(std::cout),
       "A reference-counted pointer to the output stream where all\n"
       "solver output is sent.");
     pl->set("Show Maximum Residual Norm Only", static_cast<bool>(showMaxResNormOnly_default_),
@@ -599,9 +596,6 @@ ReturnType FixedPointSolMgr<ScalarType,MV,OP>::solve() {
   if (!isSet_) {
     setParameters(Teuchos::parameterList(*getValidParameters()));
   }
-
-  Teuchos::BLAS<int,ScalarType> blas;
-  Teuchos::LAPACK<int,ScalarType> lapack;
 
   TEUCHOS_TEST_FOR_EXCEPTION( !problem_->isProblemSet(),
     FixedPointSolMgrLinearProblemFailure,

@@ -84,25 +84,21 @@ namespace Intrepid2 {
         const ordinal_type iend = _leftFields.extent(3);
         const ordinal_type jend = _leftFields.extent(4);
 
-        value_type tmp(0);        
+        _outputFields( cl, lbf, rbf ) *= (_sumInto ? 1 : 0); 
         for (size_type qp = 0; qp < npts; ++qp) 
           for (ordinal_type i = 0; i < iend; ++i) 
             for (ordinal_type j = 0; j < jend; ++j) 
-              tmp += _leftFields(cl, lbf, qp, i, j)*_rightFields(cl, rbf, qp, i, j);
-        if (_sumInto)
-          _outputFields( cl, lbf, rbf ) = _outputFields( cl, lbf, rbf ) + tmp;
-        else
-          _outputFields( cl, lbf, rbf ) = tmp;
+              _outputFields( cl, lbf, rbf ) += _leftFields(cl, lbf, qp, i, j)*_rightFields(cl, rbf, qp, i, j);
       }
     };
     } //end namespace
 
-  template<typename SpT>
+  template<typename DeviceType>
   template<typename outputFieldValueType, class ...outputFieldProperties,
            typename leftFieldValueType,   class ...leftFieldProperties,
            typename rightFieldValueType,  class ...rightFieldProperties>
   void
-  ArrayTools<SpT>::Internal::
+  ArrayTools<DeviceType>::Internal::
   contractFieldField(       Kokkos::DynRankView<outputFieldValueType,outputFieldProperties...> outputFields,
                       const Kokkos::DynRankView<leftFieldValueType,  leftFieldProperties...>   leftFields,
                       const Kokkos::DynRankView<rightFieldValueType, rightFieldProperties...>  rightFields,
@@ -112,8 +108,6 @@ namespace Intrepid2 {
     typedef Kokkos::DynRankView<leftFieldValueType,leftFieldProperties...> leftFieldViewType;
     typedef Kokkos::DynRankView<rightFieldValueType,rightFieldProperties...> rightFieldViewType;
     typedef FunctorArrayTools::F_contractFieldField<outFieldViewType, leftFieldViewType, rightFieldViewType> FunctorType;
-    typedef typename ExecSpace< typename outFieldViewType::execution_space, SpT >::ExecSpaceType ExecSpaceType;
-
 
     const size_type loopSize = leftFields.extent(0)*leftFields.extent(1)*rightFields.extent(1);
     Kokkos::RangePolicy<ExecSpaceType,Kokkos::Schedule<Kokkos::Static> > policy(0, loopSize);
@@ -160,33 +154,28 @@ namespace Intrepid2 {
         const ordinal_type iend = field.extent(1);
         const ordinal_type jend = field.extent(2);
 
-        value_type tmp(0);        
+        result() *= (_sumInto ? 1 : 0); 
 
         if(_inputData.extent(1) != 1)
           for (size_type qp = 0; qp < npts; ++qp)
             for (ordinal_type i = 0; i < iend; ++i)
               for (ordinal_type j = 0; j < jend; ++j)
-                tmp += field(qp, i, j) * data(qp, i, j);
+                result() += field(qp, i, j) * data(qp, i, j);
         else
           for (size_type qp = 0; qp < npts; ++qp)
             for (ordinal_type i = 0; i < iend; ++i)
               for (ordinal_type j = 0; j < jend; ++j)
-                tmp += field(qp, i, j) * data(0, i, j);
-
-        if (_sumInto)
-          result() = result() + tmp;
-        else
-          result() = tmp;
+                result() += field(qp, i, j) * data(0, i, j);
       }
     };
     } //namespace
 
-  template<typename SpT>
+  template<typename DeviceType>
   template<typename outputFieldValueType, class ...outputFieldProperties,
            typename inputDataValueType,   class ...inputDataProperties,
            typename inputFieldValueType,  class ...inputFieldProperties>
   void
-  ArrayTools<SpT>::Internal::
+  ArrayTools<DeviceType>::Internal::
   contractDataField(       Kokkos::DynRankView<outputFieldValueType,outputFieldProperties...>  outputFields,
                      const Kokkos::DynRankView<inputDataValueType,  inputDataProperties...>    inputData,
                      const Kokkos::DynRankView<inputFieldValueType, inputFieldProperties...>   inputFields,
@@ -196,7 +185,6 @@ namespace Intrepid2 {
     typedef Kokkos::DynRankView<inputDataValueType,  inputDataProperties...>                   inputDataViewType;
     typedef Kokkos::DynRankView<inputFieldValueType, inputFieldProperties...>                  inputFieldsViewType;
     typedef FunctorArrayTools::F_contractDataField<outputFieldsViewType, inputDataViewType, inputFieldsViewType>  FunctorType;
-    typedef typename ExecSpace< typename inputFieldsViewType::execution_space , SpT >::ExecSpaceType               ExecSpaceType;
 
     const size_type loopSize = inputFields.extent(0)*inputFields.extent(1);
     Kokkos::RangePolicy<ExecSpaceType,Kokkos::Schedule<Kokkos::Static> > policy(0, loopSize);
@@ -238,26 +226,21 @@ namespace Intrepid2 {
         ordinal_type iend = left.extent(1);
         ordinal_type jend = left.extent(2);
 
-        value_type tmp(0);        
+        result() *= (_sumInto ? 1 : 0); 
         for (size_type qp = 0; qp < npts; ++qp) 
           for (ordinal_type i = 0; i < iend; ++i) 
             for (ordinal_type j = 0; j < jend; ++j) 
-              tmp += left(qp, i, j)*right(qp, i, j);
-
-        if (_sumInto)
-          result() = result() + tmp;
-        else
-          result() = tmp;
+              result() += left(qp, i, j)*right(qp, i, j);
       }
     };
     } //namespace
 
-  template<typename SpT>
+  template<typename DeviceType>
   template<typename outputDataValueType,     class ...outputDataProperties,
            typename inputDataLeftValueType,  class ...inputDataLeftProperties,
            typename inputDataRightValueType, class ...inputDataRightProperties>
   void
-  ArrayTools<SpT>::Internal::
+  ArrayTools<DeviceType>::Internal::
   contractDataData(       Kokkos::DynRankView<outputDataValueType,    outputDataProperties...>          outputData,
                     const Kokkos::DynRankView<inputDataLeftValueType, inputDataLeftProperties...>  inputDataLeft,
                     const Kokkos::DynRankView<inputDataRightValueType,inputDataRightProperties...> inputDataRight,
@@ -266,7 +249,6 @@ namespace Intrepid2 {
     typedef Kokkos::DynRankView<inputDataLeftValueType, inputDataLeftProperties...>    inputDataLeftViewType;
     typedef Kokkos::DynRankView<inputDataRightValueType,inputDataRightProperties...>   inputDataRightViewType;
     typedef FunctorArrayTools::F_contractDataData<outputDataViewType, inputDataLeftViewType, inputDataRightViewType> FunctorType;
-    typedef typename ExecSpace< typename inputDataLeftViewType::execution_space , SpT>::ExecSpaceType  ExecSpaceType;
 
     const size_type loopSize = inputDataLeft.extent(0);
     Kokkos::RangePolicy<ExecSpaceType,Kokkos::Schedule<Kokkos::Static> > policy(0, loopSize);
@@ -275,12 +257,12 @@ namespace Intrepid2 {
 
 
 
-  template<typename ExecSpaceType>
+  template<typename DeviceType>
   template<typename outputFieldValueType, class ...outputFieldProperties,
            typename leftFieldValueType,   class ...leftFieldProperties,
            typename rightFieldValueType,  class ...rightFieldProperties>
   void
-  ArrayTools<ExecSpaceType>::
+  ArrayTools<DeviceType>::
   contractFieldFieldScalar(       Kokkos::DynRankView<outputFieldValueType,outputFieldProperties...> outputFields,
                             const Kokkos::DynRankView<leftFieldValueType,  leftFieldProperties...>   leftFields,
                             const Kokkos::DynRankView<rightFieldValueType, rightFieldProperties...>  rightFields,
@@ -308,19 +290,19 @@ namespace Intrepid2 {
     }
 #endif
 
-    ArrayTools<ExecSpaceType>::Internal::contractFieldField( outputFields,
+    ArrayTools<DeviceType>::Internal::contractFieldField( outputFields,
                                                              leftFields,
                                                              rightFields,
                                                              sumInto );
   } 
 
 
-  template<typename ExecSpaceType>
+  template<typename DeviceType>
   template<typename outputFieldValueType, class ...outputFieldProperties,
            typename leftFieldValueType,   class ...leftFieldProperties,
            typename rightFieldValueType,  class ...rightFieldProperties>
   void
-  ArrayTools<ExecSpaceType>::
+  ArrayTools<DeviceType>::
   contractFieldFieldVector(       Kokkos::DynRankView<outputFieldValueType,outputFieldProperties...> outputFields,
                             const Kokkos::DynRankView<leftFieldValueType,  leftFieldProperties...>   leftFields,
                             const Kokkos::DynRankView<rightFieldValueType, rightFieldProperties...>  rightFields,
@@ -349,19 +331,19 @@ namespace Intrepid2 {
     }
 #endif
 
-    ArrayTools<ExecSpaceType>::Internal::contractFieldField( outputFields,
+    ArrayTools<DeviceType>::Internal::contractFieldField( outputFields,
                                                              leftFields,
                                                              rightFields,
                                                              sumInto );
   } 
 
 
-  template<typename ExecSpaceType>
+  template<typename DeviceType>
   template<typename outputFieldValueType, class ...outputFieldProperties,
            typename leftFieldValueType,   class ...leftFieldProperties,
            typename rightFieldValueType,  class ...rightFieldProperties>
   void
-  ArrayTools<ExecSpaceType>::
+  ArrayTools<DeviceType>::
   contractFieldFieldTensor(       Kokkos::DynRankView<outputFieldValueType,outputFieldProperties...> outputFields,
                             const Kokkos::DynRankView<leftFieldValueType,  leftFieldProperties...>   leftFields,
                             const Kokkos::DynRankView<rightFieldValueType, rightFieldProperties...>  rightFields,
@@ -392,19 +374,19 @@ namespace Intrepid2 {
     }
 #endif
 
-    ArrayTools<ExecSpaceType>::Internal::contractFieldField( outputFields,
+    ArrayTools<DeviceType>::Internal::contractFieldField( outputFields,
                                                              leftFields,
                                                              rightFields,
                                                              sumInto );
   }
 
 
-  template<typename ExecSpaceType>
+  template<typename DeviceType>
   template<typename outputFieldValueType, class ...outputFieldProperties,
            typename inputDataValueType,   class ...inputDataProperties,
            typename inputFieldValueType,  class ...inputFieldProperties>
   void
-  ArrayTools<ExecSpaceType>::
+  ArrayTools<DeviceType>::
   contractDataFieldScalar(       Kokkos::DynRankView<outputFieldValueType,outputFieldProperties...>  outputFields,
                            const Kokkos::DynRankView<inputDataValueType,  inputDataProperties...>    inputData,
                            const Kokkos::DynRankView<inputFieldValueType, inputFieldProperties...>   inputFields,
@@ -431,19 +413,19 @@ namespace Intrepid2 {
     }
 #endif
     
-    ArrayTools<ExecSpaceType>::Internal::contractDataField( outputFields,
+    ArrayTools<DeviceType>::Internal::contractDataField( outputFields,
                                                             inputData,
                                                             inputFields,
                                                             sumInto );
   } 
 
   
-  template<typename ExecSpaceType>
+  template<typename DeviceType>
   template<typename outputFieldValueType, class ...outputFieldProperties,
            typename inputDataValueType,   class ...inputDataProperties,
            typename inputFieldValueType,  class ...inputFieldProperties>
   void
-  ArrayTools<ExecSpaceType>::
+  ArrayTools<DeviceType>::
   contractDataFieldVector(       Kokkos::DynRankView<outputFieldValueType,outputFieldProperties...> outputFields,
                            const Kokkos::DynRankView<inputDataValueType,  inputDataProperties...>   inputData,
                            const Kokkos::DynRankView<inputFieldValueType, inputFieldProperties...>  inputFields,
@@ -471,7 +453,7 @@ namespace Intrepid2 {
     }
 #endif
     
-    ArrayTools<ExecSpaceType>::Internal::contractDataField( outputFields,
+    ArrayTools<DeviceType>::Internal::contractDataField( outputFields,
                                                             inputData,
                                                             inputFields,
                                                             sumInto );
@@ -479,12 +461,12 @@ namespace Intrepid2 {
   
 
 
-  template<typename ExecSpaceType>
+  template<typename DeviceType>
   template<typename outputFieldValueType, class ...outputFieldProperties,
            typename inputDataValueType,   class ...inputDataProperties,
            typename inputFieldValueType,  class ...inputFieldProperties>
   void
-  ArrayTools<ExecSpaceType>::
+  ArrayTools<DeviceType>::
   contractDataFieldTensor(       Kokkos::DynRankView<outputFieldValueType,outputFieldProperties...> outputFields,
                            const Kokkos::DynRankView<inputDataValueType,  inputDataProperties...>   inputData,
                            const Kokkos::DynRankView<inputFieldValueType, inputFieldProperties...>  inputFields,
@@ -513,7 +495,7 @@ namespace Intrepid2 {
     }
 #endif
     
-    ArrayTools<ExecSpaceType>::Internal::contractDataField( outputFields,
+    ArrayTools<DeviceType>::Internal::contractDataField( outputFields,
                                                             inputData,
                                                             inputFields,
                                                             sumInto );
@@ -521,12 +503,12 @@ namespace Intrepid2 {
 
 
   
-  template<typename ExecSpaceType>
+  template<typename DeviceType>
   template<typename outputDataValueType,     class ...outputDataProperties,
            typename inputDataLeftValueType,  class ...inputDataLeftProperties,
            typename inputDataRightValueType, class ...inputDataRightProperties>
   void
-  ArrayTools<ExecSpaceType>::
+  ArrayTools<DeviceType>::
   contractDataDataScalar(       Kokkos::DynRankView<outputDataValueType,    outputDataProperties...>     outputData,
                           const Kokkos::DynRankView<inputDataLeftValueType, inputDataLeftProperties...>  inputDataLeft,
                           const Kokkos::DynRankView<inputDataRightValueType,inputDataRightProperties...> inputDataRight,
@@ -549,19 +531,19 @@ namespace Intrepid2 {
     }
 #endif
     
-    ArrayTools<ExecSpaceType>::Internal::contractDataData( outputData,
+    ArrayTools<DeviceType>::Internal::contractDataData( outputData,
                                                            inputDataLeft,
                                                            inputDataRight,
                                                            sumInto );
   } 
 
   
-  template<typename ExecSpaceType>
+  template<typename DeviceType>
   template<typename outputDataValueType,     class ...outputDataProperties,
            typename inputDataLeftValueType,  class ...inputDataLeftProperties,
            typename inputDataRightValueType, class ...inputDataRightProperties>
   void
-  ArrayTools<ExecSpaceType>::
+  ArrayTools<DeviceType>::
   contractDataDataVector( /**/  Kokkos::DynRankView<outputDataValueType,    outputDataProperties...>     outputData,
                           const Kokkos::DynRankView<inputDataLeftValueType, inputDataLeftProperties...>  inputDataLeft,
                           const Kokkos::DynRankView<inputDataRightValueType,inputDataRightProperties...> inputDataRight,
@@ -586,19 +568,19 @@ namespace Intrepid2 {
     }
 #endif
     
-    ArrayTools<ExecSpaceType>::Internal::contractDataData( outputData,
+    ArrayTools<DeviceType>::Internal::contractDataData( outputData,
                                                            inputDataLeft,
                                                            inputDataRight,
                                                            sumInto );
   }
 
   
-  template<typename ExecSpaceType>
+  template<typename DeviceType>
   template<typename outputDataValueType,     class ...outputDataProperties,
            typename inputDataLeftValueType,  class ...inputDataLeftProperties,
            typename inputDataRightValueType, class ...inputDataRightProperties>
   void
-  ArrayTools<ExecSpaceType>::
+  ArrayTools<DeviceType>::
   contractDataDataTensor(       Kokkos::DynRankView<outputDataValueType,    outputDataProperties...>     outputData,
                           const Kokkos::DynRankView<inputDataLeftValueType, inputDataLeftProperties...>  inputDataLeft,
                           const Kokkos::DynRankView<inputDataRightValueType,inputDataRightProperties...> inputDataRight,
@@ -625,7 +607,7 @@ namespace Intrepid2 {
     }
 #endif
     
-    ArrayTools<ExecSpaceType>::Internal::contractDataData( outputData,
+    ArrayTools<DeviceType>::Internal::contractDataData( outputData,
                                                            inputDataLeft,
                                                            inputDataRight,
                                                            sumInto );

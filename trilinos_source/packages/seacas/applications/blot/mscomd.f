@@ -1,7 +1,7 @@
-C Copyright(C) 1999-2020 National Technology & Engineering Solutions
+C Copyright(C) 1999-2020, 2022 National Technology & Engineering Solutions
 C of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 C NTESS, the U.S. Government retains certain rights in this software.
-C 
+C
 C See packages/seacas/LICENSE for details
 
 C=======================================================================
@@ -482,8 +482,9 @@ C         --Set wireframe mode on 1 view
             CALL INIINT (3, 1, LTYP)
             CALL SETMSH (2, 'UNDEFORM', 'NONE', MSHSEL, LTYP,
      &         0, IDUM, 0, IDUM, 'WIREFRAM', ' ', ISSNPS, ISSESS)
-            CALL SCOLOR (.TRUE., CDUM, IDUM, IDUM, RDUM, IDUM,
-     *        CDUM, SHDCOL, ISHDCL, IDELB)
+C ... NOTE: Since the `init` argument is `.true.`, all other fields are ignored except ishdcl
+            CALL SCOLOR (.TRUE., INLINE, IFLD, INTYP,
+     &         RFIELD, IFIELD, CFIELD, SHDCOL, ISHDCL, IDELB)
 
 C         --Set display options
 
@@ -952,7 +953,6 @@ C      --PLOT and HARDCOPY are to be passed as lower-case commands
             VERB = ' '
          ENDIF
          INVERB = ' '
-
 
 C *** Information ***
 

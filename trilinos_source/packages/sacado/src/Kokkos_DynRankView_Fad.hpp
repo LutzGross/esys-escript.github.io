@@ -37,11 +37,21 @@
 
 #if defined(HAVE_SACADO_KOKKOSCONTAINERS)
 
+// We are hooking into Kokkos Core internals here
+// Need to define this macro since we include non-public headers
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_CORE
+#endif
 // Only include forward declarations so any overloads appear before they
 // might be used inside Kokkos
 #include "Kokkos_Core_fwd.hpp"
 #include "Kokkos_Layout.hpp"
 //#include "Kokkos_DynRankView.hpp"
+#ifdef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_CORE
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_CORE
+#endif
 
 namespace Kokkos {
 
@@ -112,6 +122,20 @@ create_mirror(
       Kokkos::Impl::ViewSpecializeSacadoFad >::value ||
     std::is_same< typename ViewTraits<T,P...>::specialize ,
       Kokkos::Impl::ViewSpecializeSacadoFadContiguous >::value >::type * = 0);
+
+namespace Impl {
+
+template <unsigned N, typename T, typename... Args>
+KOKKOS_FUNCTION auto as_view_of_rank_n(
+  DynRankView<T, Args...> v,
+  typename std::enable_if<
+    ( std::is_same< typename ViewTraits<T,Args...>::specialize,
+        Kokkos::Impl::ViewSpecializeSacadoFad >::value ||
+      std::is_same< typename ViewTraits<T,Args...>::specialize ,
+        Kokkos::Impl::ViewSpecializeSacadoFadContiguous >::value )
+    >::type * = 0 );
+
+}
 
 } // namespace Kokkos
 
@@ -350,12 +374,12 @@ namespace Impl {
 template <unsigned> struct AssignDim7 {
   template <typename Dst>
   KOKKOS_INLINE_FUNCTION
-  static void eval(Dst& dst, const size_t& src_dim) {}
+  static void eval(Dst& dst, const size_t src_dim) {}
 };
 template <> struct AssignDim7<0u> {
   template <typename Dst>
   KOKKOS_INLINE_FUNCTION
-  static void eval(Dst& dst, const size_t& src_dim) {
+  static void eval(Dst& dst, const size_t src_dim) {
     dst.N7 = src_dim;
   }
 };
@@ -606,7 +630,7 @@ public:
   template< class MemoryTraits >
   struct apply {
 
-    static_assert( Kokkos::Impl::is_memory_traits< MemoryTraits >::value , "" );
+    static_assert( Kokkos::is_memory_traits< MemoryTraits >::value , "" );
 
     typedef Kokkos::ViewTraits
       < data_type
@@ -984,7 +1008,9 @@ void deep_copy(
                   typename ViewTraits<DT,DP...>::non_const_value_type >::value
     , "Can only deep copy into non-const type" );
 
+  Kokkos::fence();
   Kokkos::Impl::DynRankViewFill< DynRankView<DT,DP...> >( view , value );
+  Kokkos::fence();
 }
 
 // Overload of deep_copy for Fad views intializing to a constant Fad
@@ -1004,7 +1030,9 @@ void deep_copy(
                   typename ViewTraits<DT,DP...>::non_const_value_type >::value
     , "Can only deep copy into non-const type" );
 
+  Kokkos::fence();
   Kokkos::Impl::DynRankViewFill< DynRankView<DT,DP...> >( view , value );
+  Kokkos::fence();
 }
 
 template< class DstType , class SrcType >
@@ -1041,10 +1069,10 @@ void deep_copy
   typedef typename src_type::memory_space     src_memory_space ;
 
   enum { DstExecCanAccessSrc =
-   Kokkos::Impl::VerifyExecutionCanAccessMemorySpace< typename dst_execution_space::memory_space , src_memory_space >::value };
+   Kokkos::SpaceAccessibility< typename dst_execution_space::memory_space, src_memory_space >::accessible };
 
   enum { SrcExecCanAccessDst =
-   Kokkos::Impl::VerifyExecutionCanAccessMemorySpace< typename src_execution_space::memory_space , dst_memory_space >::value };
+   Kokkos::SpaceAccessibility< typename src_execution_space::memory_space, dst_memory_space >::accessible };
 
   if ( (void *) dst.data() != (void*) src.data() ) {
 
@@ -1056,7 +1084,9 @@ void deep_copy
     {
       typedef typename dst_type::value_type::value_type value_type ;
       const size_t nbytes = sizeof(value_type) * dst.span() ;
+      Kokkos::fence();
       Kokkos::Impl::DeepCopy< dst_memory_space , src_memory_space >( dst.data() , src.data() , nbytes );
+      Kokkos::fence();
     }
     else if ( std::is_same< typename DstType::traits::value_type ,
                        typename SrcType::traits::non_const_value_type >::value &&
@@ -1094,8 +1124,9 @@ void deep_copy
       //const size_t nbytes = sizeof(typename dst_type::scalar_array_type) * dst.span() ;
       const size_t nbytes = sizeof(typename dst_type::value_type::value_type) * dst.span() ; 
       //dst_type::value_type is outer FAD type, dst_type::value_type::value_type is inner FAD type
-
+      Kokkos::fence();
       Kokkos::Impl::DeepCopy< dst_memory_space , src_memory_space >( dst.data() , src.data() , nbytes );
+      Kokkos::fence();
     }
     else if ( std::is_same< typename DstType::traits::value_type ,
                             typename SrcType::traits::non_const_value_type >::value &&
@@ -1135,20 +1166,28 @@ void deep_copy
          ) {
 
       const size_t nbytes = sizeof(typename dst_type::value_type::value_type) * dst.span() ; 
-
+      Kokkos::fence();
       Kokkos::Impl::DeepCopy< dst_memory_space , src_memory_space >( dst.data() , src.data() , nbytes );
+      Kokkos::fence();
     }
     else if ( DstExecCanAccessSrc ) {
       // Copying data between views in accessible memory spaces and either non-contiguous or incompatible shape.
+      Kokkos::fence();
       Kokkos::Impl::DynRankViewRemap< dst_type , src_type >( dst , src );
+      Kokkos::fence();
     }
     else if ( SrcExecCanAccessDst ) {
       // Copying data between views in accessible memory spaces and either non-contiguous or incompatible shape.
+      Kokkos::fence();
       Kokkos::Impl::DynRankViewRemap< dst_type , src_type , src_execution_space >( dst , src );
+      Kokkos::fence();
     }
     else {
       Kokkos::Impl::throw_runtime_exception("deep_copy given views that would require a temporary allocation");
     }
+  }
+  else {
+    Kokkos::fence();
   }
 }
 
@@ -1240,6 +1279,36 @@ create_mirror(const Space& , const Kokkos::DynRankView<T,P...> & src
   layout.dimension[src.rank()] = Kokkos::dimension_scalar(src);
   return typename Impl::MirrorDRVType<Space,T,P ...>::view_type(
     src.label(),Impl::reconstructLayout(layout, src.rank()+1));
+}
+
+namespace Impl {
+
+template <unsigned N, typename T, typename... Args>
+KOKKOS_FUNCTION auto as_view_of_rank_n(
+  DynRankView<T, Args...> v,
+  typename std::enable_if<
+    ( std::is_same< typename ViewTraits<T,Args...>::specialize,
+        Kokkos::Impl::ViewSpecializeSacadoFad >::value ||
+      std::is_same< typename ViewTraits<T,Args...>::specialize ,
+        Kokkos::Impl::ViewSpecializeSacadoFadContiguous >::value )
+    >::type*)
+{
+  if (v.rank() != N) {
+    KOKKOS_IF_ON_HOST(
+        const std::string message =
+            "Converting DynRankView of rank " + std::to_string(v.rank()) +
+            " to a View of mis-matched rank " + std::to_string(N) + "!";
+        Kokkos::abort(message.c_str());)
+    KOKKOS_IF_ON_DEVICE(
+        Kokkos::abort("Converting DynRankView to a View of mis-matched rank!");)
+  }
+
+  auto layout = v.impl_map().layout();
+  layout.dimension[v.rank()] = Kokkos::dimension_scalar(v);
+  return View<typename RankDataType<T, N>::type, Args...>(
+      v.data(), Impl::reconstructLayout(layout, v.rank()+1));
+}
+
 }
 
 } // end Kokkos

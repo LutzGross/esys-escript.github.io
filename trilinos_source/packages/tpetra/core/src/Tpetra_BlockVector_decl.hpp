@@ -120,21 +120,19 @@ public:
   /// little_vec_type or const_little_vec_type.  This gives us a
   /// porting strategy to move from "classic" Tpetra to the Kokkos
   /// refactor version.
-  typedef Kokkos::View<impl_scalar_type*,
-                       Kokkos::LayoutRight,
-                       device_type,
-                       Kokkos::MemoryTraits<Kokkos::Unmanaged> >
-          little_vec_type;
+  typedef typename base_type::little_vec_type 
+                              little_vec_type;
+  typedef typename base_type::little_host_vec_type 
+                              little_host_vec_type;
 
   /// \brief "Const block view" of all degrees of freedom at a mesh point.
   ///
   /// This is just like little_vec_type, except that you can't modify
   /// its entries.
-  typedef Kokkos::View<const impl_scalar_type*,
-                       Kokkos::LayoutRight,
-                       device_type,
-                       Kokkos::MemoryTraits<Kokkos::Unmanaged> >
-          const_little_vec_type;
+  typedef typename base_type::const_little_vec_type 
+                              const_little_vec_type;
+  typedef typename base_type::const_little_host_vec_type 
+                              const_little_host_vec_type;
 
   //@}
   //! \name Constructors
@@ -282,7 +280,7 @@ public:
   ///   do not change pointers.  They do, of course, change the values
   ///   in the BlockVector, but that does not require marking the
   ///   methods as nonconst.
-  bool replaceLocalValues (const LO localRowIndex, const Scalar vals[]) const;
+  bool replaceLocalValues (const LO localRowIndex, const Scalar vals[]);
 
   /// \brief Replace all values at the given mesh point, using a global index.
   ///
@@ -293,7 +291,7 @@ public:
   /// \return true if successful, else false.  This method will
   ///   <i>not</i> succeed if the given global index of the mesh point
   ///   is invalid on the calling process.
-  bool replaceGlobalValues (const GO globalRowIndex, const Scalar vals[]) const;
+  bool replaceGlobalValues (const GO globalRowIndex, const Scalar vals[]);
 
   /// \brief Sum into all values at the given mesh point, using a local index.
   ///
@@ -304,7 +302,7 @@ public:
   /// \return true if successful, else false.  This method will
   ///   <i>not</i> succeed if the given local index of the mesh point
   ///   is invalid on the calling process.
-  bool sumIntoLocalValues (const LO localRowIndex, const Scalar vals[]) const;
+  bool sumIntoLocalValues (const LO localRowIndex, const Scalar vals[]);
 
   /// \brief Sum into all values at the given mesh point, using a global index.
   ///
@@ -315,37 +313,10 @@ public:
   /// \return true if successful, else false.  This method will
   ///   <i>not</i> succeed if the given global index of the mesh point
   ///   is invalid on the calling process.
-  bool sumIntoGlobalValues (const GO globalRowIndex, const Scalar vals[]) const;
-
-  /// \brief Get a writeable view of the entries at the given mesh
-  ///   point, using a local index.
-  ///
-  /// \param localRowIndex [in] Local index of the mesh point.
-  /// \param vals [in] Input values with which to replace whatever
-  ///   existing values are at the mesh point.
-  ///
-  /// \return true if successful, else false.  This method will
-  ///   <i>not</i> succeed if the given local index of the mesh point
-  ///   is invalid on the calling process.
-  bool getLocalRowView (const LO localRowIndex, Scalar*& vals) const;
-
-  /// \brief Get a writeable view of the entries at the given mesh
-  ///   point, using a global index.
-  ///
-  /// \param globalRowIndex [in] Global index of the mesh point.
-  /// \param vals [in] Input values with which to replace whatever
-  ///   existing values are at the mesh point.
-  ///
-  /// \return true if successful, else false.  This method will
-  ///   <i>not</i> succeed if the given global index of the mesh point
-  ///   is invalid on the calling process.
-  bool getGlobalRowView (const GO globalRowIndex, Scalar*& vals) const;
+  bool sumIntoGlobalValues (const GO globalRowIndex, const Scalar vals[]);
 
   /// \brief Get a view of the degrees of freedom at the given mesh point,
   ///   using a local index.
-  ///
-  /// \warning This method's interface may change or disappear at any
-  ///   time.  Please do not rely on it in your code yet.
   ///
   /// The preferred way to refer to little_vec_type is to get it from
   /// BlockVector's typedef.  This is because different
@@ -353,7 +324,12 @@ public:
   /// different types to implement little_vec_type.  This gives us a
   /// porting strategy to move from "classic" Tpetra to the Kokkos
   /// refactor version.
-  little_vec_type getLocalBlock (const LO localRowIndex) const;
+  const_little_host_vec_type getLocalBlockHost (const LO localRowIndex,
+                                                Access::ReadOnlyStruct) const;
+  little_host_vec_type getLocalBlockHost (const LO localRowIndex,
+                                          Access::OverwriteAllStruct);
+  little_host_vec_type getLocalBlockHost (const LO localRowIndex,
+                                          Access::ReadWriteStruct);
   //@}
 };
 

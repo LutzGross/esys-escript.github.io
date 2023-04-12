@@ -1,8 +1,8 @@
 /*
- * Copyright(C) 1999-2020 National Technology & Engineering Solutions
+ * Copyright(C) 1999-2022 National Technology & Engineering Solutions
  * of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
  * NTESS, the U.S. Government retains certain rights in this software.
- * 
+ *
  * See packages/seacas/LICENSE for details
  */
 #include "copy_string_cpp.h"
@@ -26,11 +26,13 @@
 template <typename INT> struct ELEM_COMM_MAP;
 template <typename INT> struct NODE_COMM_MAP;
 
-#if defined(__GNUC__) && __GNUC__ >= 7 && !__INTEL_COMPILER
+#if (__cplusplus >= 201703L)
+#define FALL_THROUGH [[fallthrough]]
+#elif defined(__GNUC__) && __GNUC__ >= 7 && !__INTEL_COMPILER
 #define FALL_THROUGH [[gnu::fallthrough]]
 #else
 #define FALL_THROUGH ((void)0)
-#endif /* __GNUC__ >= 7 */
+#endif
 
 namespace {
   template <typename INT>
@@ -266,7 +268,7 @@ void NemSpread<T, INT>::write_parExo_data(int mesh_exoid, int max_name_length, i
 
   if (Debug_Flag >= 4) {
     fmt::print("Putting init Nemesis info in file id: {}\n", mesh_exoid);
-    fmt::print("\tNumber of Proccesor for: {}\n", num_proc_for);
+    fmt::print("\tNumber of Processor for: {}\n", num_proc_for);
   }
 
   if (ex_put_init_info(mesh_exoid, num_proc_for, 1, (char *)"p") < 0) {
@@ -433,7 +435,7 @@ void NemSpread<T, INT>::write_parExo_data(int mesh_exoid, int max_name_length, i
 
   /* Generate a QA record for the utility */
   time_t date_time = time(nullptr);
-  auto * lt        = std::localtime(&date_time);
+  auto  *lt        = std::localtime(&date_time);
 
   char qa_time[MAX_STR_LENGTH + 1];
   char qa_name[MAX_STR_LENGTH + 1];
@@ -496,6 +498,17 @@ void NemSpread<T, INT>::write_parExo_data(int mesh_exoid, int max_name_length, i
 
   PIO_Time_Array[8] = (second() - tt1);
   total_out_time += PIO_Time_Array[8];
+
+  /* Output the assembly information (if any). This puts the
+     file in/out of define mode, so should be early in the write stage
+  */
+  if (Debug_Flag >= 4) {
+    fmt::print("Number of Assemblies: {}\n", globals.Num_Assemblies);
+  }
+
+  if (globals.Num_Assemblies > 0) {
+    ex_put_assemblies(mesh_exoid, globals.Assemblies.size(), globals.Assemblies.data());
+  }
 
   /* Output the coordinate frame information (if any). This puts the
      file in/out of define mode, so should be early in the write stage
@@ -1298,7 +1311,7 @@ void NemSpread<T, INT>::write_var_timestep(int exoid, int proc, int time_step, I
       int eb_num_g = 0;
 
       size_t var_offset = var_num * num_elem;
-      T *    var_ptr    = &(Restart_Info.Elem_Vals[proc][var_offset]);
+      T     *var_ptr    = &(Restart_Info.Elem_Vals[proc][var_offset]);
 
       for (int eb_num = 0; eb_num < globals.Proc_Num_Elem_Blk[proc]; eb_num++) {
 
@@ -1337,7 +1350,7 @@ void NemSpread<T, INT>::write_var_timestep(int exoid, int proc, int time_step, I
     for (int var_num = 0; var_num < Restart_Info.NVar_Sset; var_num++) {
 
       size_t var_offset = var_num * num_elem;
-      T *    var_ptr    = &(Restart_Info.Sset_Vals[proc][var_offset]);
+      T     *var_ptr    = &(Restart_Info.Sset_Vals[proc][var_offset]);
 
       for (int ss_num = 0; ss_num < globals.Proc_Num_Side_Sets[proc]; ss_num++) {
 
@@ -1376,7 +1389,7 @@ void NemSpread<T, INT>::write_var_timestep(int exoid, int proc, int time_step, I
     for (int var_num = 0; var_num < Restart_Info.NVar_Nset; var_num++) {
 
       size_t var_offset = var_num * num_elem;
-      T *    var_ptr    = &(Restart_Info.Nset_Vals[proc][var_offset]);
+      T     *var_ptr    = &(Restart_Info.Nset_Vals[proc][var_offset]);
 
       for (int ns_num = 0; ns_num < globals.Proc_Num_Node_Sets[proc]; ns_num++) {
 

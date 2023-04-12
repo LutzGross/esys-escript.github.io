@@ -1,22 +1,26 @@
-// Copyright(C) 1999-2020 National Technology & Engineering Solutions
+// Copyright(C) 1999-2022 National Technology & Engineering Solutions
 // of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 // NTESS, the U.S. Government retains certain rights in this software.
-// 
+//
 // See packages/seacas/LICENSE for details
 
-#ifndef IOSS_Iotr_Tensor_h
-#define IOSS_Iotr_Tensor_h
+#pragma once
 
-#include "Ioss_VariableType.h" // for VariableType
+#include "iotr_export.h"
+
 #include <Ioss_Transform.h>    // for Transform, Factory
-#include <string>              // for string
+#include <Ioss_VariableType.h> // for VariableType
+#include <transform/Iotr_Factory.h>
+
+#include <string> // for string
+
 namespace Ioss {
   class Field;
 } // namespace Ioss
 
 namespace Iotr {
 
-  class Tensor_Factory : public Factory
+  class IOTR_EXPORT Tensor_Factory : public Factory
   {
   public:
     static const Tensor_Factory *factory();
@@ -26,7 +30,7 @@ namespace Iotr {
     Ioss::Transform *make(const std::string &type) const override;
   };
 
-  class Tensor : public Ioss::Transform
+  class IOTR_EXPORT Tensor : public Ioss::Transform
   {
     friend class Tensor_Factory;
     enum TranType {
@@ -43,7 +47,7 @@ namespace Iotr {
 
   public:
     const Ioss::VariableType *output_storage(const Ioss::VariableType *in) const override;
-    int                       output_count(int in) const override;
+    size_t                    output_count(size_t in) const override;
 
   protected:
     explicit Tensor(const std::string &type);
@@ -54,5 +58,3 @@ namespace Iotr {
     TranType type_;
   };
 } // namespace Iotr
-
-#endif // IOSS_Iotr_Tensor_h

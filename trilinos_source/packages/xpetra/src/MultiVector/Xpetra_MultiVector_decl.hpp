@@ -56,11 +56,11 @@
 #include "Xpetra_DistObject.hpp"
 #include "Xpetra_Map_decl.hpp"
 
-#ifdef HAVE_XPETRA_KOKKOS_REFACTOR
+#include "Xpetra_Access.hpp"
+
     #include <Kokkos_Core.hpp>
     #include <Kokkos_DualView.hpp>
     #include <Kokkos_ArithTraits.hpp>
-#endif
 
 namespace Xpetra {
 
@@ -301,65 +301,78 @@ class MultiVector
     //! Set multi-vector values to random numbers.
     virtual void randomize(bool bUseXpetraImplementation = false) = 0;
 
+    //! Set multi-vector values to random numbers.
+    virtual void randomize(const Scalar& minVal, const Scalar& maxVal, bool bUseXpetraImplementation = false) = 0;
 
     //! Set multi-vector values to random numbers. XPetra implementation
     virtual void Xpetra_randomize();
 
-
-#ifdef HAVE_XPETRA_KOKKOS_REFACTOR
-    typedef typename Kokkos::Details::ArithTraits<Scalar>::val_type                                                                  impl_scalar_type;
-    typedef Kokkos::DualView<impl_scalar_type**, Kokkos::LayoutStride, typename node_type::execution_space, Kokkos::MemoryUnmanaged> dual_view_type;
-    typedef typename dual_view_type::host_mirror_space      host_execution_space;
-    typedef typename dual_view_type::t_dev::execution_space dev_execution_space;
-
-    /*typedef Kokkos::View<impl_scalar_type**,
-              Kokkos::LayoutStride,
-              typename node_type::execution_space,
-              Kokkos::MemoryUnmanaged> unmanaged_host_view_type;
-
-    typedef Kokkos::View<impl_scalar_type**,
-              Kokkos::LayoutStride,
-              typename node_type::execution_space,
-              Kokkos::MemoryUnmanaged> unmanaged_device_view_type;*/
+    //! Set multi-vector values to random numbers. XPetra implementation
+    virtual void Xpetra_randomize(const Scalar& minVal, const Scalar& maxVal);
 
 
-    /// \brief Return an unmanaged non-const view of the local data on a specific device.
-    /// \tparam TargetDeviceType The Kokkos Device type whose data to return.
-    ///
-    /// \warning Be aware that the view on the multivector data is non-persisting, i.e.
-    ///          only valid as long as the multivector does not run of scope!
-    template<class TargetDeviceType>
-    typename Kokkos::Impl::if_c<std::is_same<typename dev_execution_space::memory_space, typename TargetDeviceType::memory_space>::value,
-                                typename dual_view_type::t_dev_um,
-                                typename dual_view_type::t_host_um>::type
-    getLocalView() const
+    using impl_scalar_type     = typename Kokkos::Details::ArithTraits<Scalar>::val_type;
+    using dual_view_type       = Kokkos::DualView<impl_scalar_type**, Kokkos::LayoutStride, typename node_type::device_type, Kokkos::MemoryUnmanaged>;
+    using dual_view_type_const = Kokkos::DualView<const impl_scalar_type**, Kokkos::LayoutStride, typename node_type::device_type, Kokkos::MemoryUnmanaged>;
+    using host_execution_space = typename dual_view_type::host_mirror_space;
+    using dev_execution_space  = typename dual_view_type::t_dev::execution_space;
+
+    virtual typename dual_view_type::t_host_const_um getHostLocalView (Access::ReadOnlyStruct)  const
     {
-        if(std::is_same<
-                      typename host_execution_space::memory_space,
-                      typename TargetDeviceType::memory_space
-           >::value) 
-        {
-            return getHostLocalView();
-        } else {
-            return getDeviceLocalView();
-        }
-    }    
-
-
-    virtual typename dual_view_type::t_host_um getHostLocalView ()  const 
-    {
+      throw std::runtime_error("Dummy function getHostLocalView, should be overwritten at"+std::string(__FILE__)+":"+std::to_string(__LINE__));
+#ifndef __NVCC__
       typename dual_view_type::t_host_um test;
-      return test;
+#endif
+      TEUCHOS_UNREACHABLE_RETURN(test);
     }
 
 
-    virtual typename dual_view_type::t_dev_um  getDeviceLocalView() const 
+    virtual typename dual_view_type::t_dev_const_um  getDeviceLocalView(Access::ReadOnlyStruct) const
     {
-        typename dual_view_type::t_dev_um test;
-        return test;
+      throw std::runtime_error("Dummy function getHostLocalView, should be overwritten at"+std::string(__FILE__)+":"+std::to_string(__LINE__));
+#ifndef __NVCC__
+      typename dual_view_type::t_dev_um test;
+#endif
+      TEUCHOS_UNREACHABLE_RETURN(test);
     }
 
-#endif      // HAVE_XPETRA_KOKKOS_REFACTOR
+    virtual typename dual_view_type::t_host_um getHostLocalView (Access::OverwriteAllStruct)  const
+    {
+      throw std::runtime_error("Dummy function getHostLocalView, should be overwritten at"+std::string(__FILE__)+":"+std::to_string(__LINE__));
+#ifndef __NVCC__
+      typename dual_view_type::t_host_um test;
+#endif
+      TEUCHOS_UNREACHABLE_RETURN(test);
+    }
+
+
+    virtual typename dual_view_type::t_dev_um  getDeviceLocalView(Access::OverwriteAllStruct) const
+    {
+      throw std::runtime_error("Dummy function getHostLocalView, should be overwritten at"+std::string(__FILE__)+":"+std::to_string(__LINE__));
+#ifndef __NVCC__
+      typename dual_view_type::t_dev_um test;
+#endif
+      TEUCHOS_UNREACHABLE_RETURN(test);
+    }
+
+    virtual typename dual_view_type::t_host_um getHostLocalView (Access::ReadWriteStruct)  const
+    {
+      throw std::runtime_error("Dummy function getHostLocalView, should be overwritten at"+std::string(__FILE__)+":"+std::to_string(__LINE__));
+#ifndef __NVCC__
+      typename dual_view_type::t_host_um test;
+#endif
+      TEUCHOS_UNREACHABLE_RETURN(test);
+    }
+
+
+    virtual typename dual_view_type::t_dev_um  getDeviceLocalView(Access::ReadWriteStruct) const
+    {
+      throw std::runtime_error("Dummy function getHostLocalView, should be overwritten at"+std::string(__FILE__)+":"+std::to_string(__LINE__));
+#ifndef __NVCC__
+      typename dual_view_type::t_dev_um test;
+#endif
+      TEUCHOS_UNREACHABLE_RETURN(test);
+    }
 
 
     //@}

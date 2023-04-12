@@ -21,7 +21,6 @@
 #include <stk_mesh/base/Field.hpp>
 
 #include <stk_mesh/base/CoordinateSystems.hpp>
-#include <stk_mesh/base/Stencils.hpp>
 #include <stk_mesh/base/TopologyDimensions.hpp>
 #include <stk_mesh/base/MetaData.hpp>
 #include <stk_mesh/base/FEMHelpers.hpp>
@@ -34,6 +33,7 @@
 
 #include <percept/fixtures/BeamFixture.hpp>
 #include <percept/FieldTypes.hpp>
+#include <memory>
 
 /** stk_mesh Use Case 3 - copied and modified here */
 
@@ -60,15 +60,16 @@
       void populate();
 
       const int m_spatial_dimension;
-      stk::mesh::MetaData m_metaData;
-      stk::mesh::BulkData m_bulkData;
+      std::shared_ptr<stk::mesh::BulkData> m_bulkDataPtr;
+      stk::mesh::BulkData& m_bulkData;
+      stk::mesh::MetaData& m_metaData;
 
       stk::mesh::Part & m_block_beam;
 
-      CoordinatesFieldType & m_coordinates_field;
-      CoordinatesFieldType & m_centroid_field;
-      ScalarFieldType & m_temperature_field;
-      ScalarFieldType & m_volume_field;
+      CoordinatesFieldType * m_coordinates_field;
+      CoordinatesFieldType * m_centroid_field;
+      ScalarFieldType * m_temperature_field;
+      ScalarFieldType * m_volume_field;
     };
 
     bool verifyMesh( const BeamFixture & mesh );

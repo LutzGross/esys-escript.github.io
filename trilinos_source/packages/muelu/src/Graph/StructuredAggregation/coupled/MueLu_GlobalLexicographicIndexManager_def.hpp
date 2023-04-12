@@ -58,7 +58,7 @@ namespace MueLu {
                                   const Array<GO> GFineNodesPerDir,
                                   const Array<LO> LFineNodesPerDir, const Array<LO> CoarseRate,
                                   const GO MinGlobalIndex) :
-    IndexManager(comm, coupled, NumDimensions, interpolationOrder, GFineNodesPerDir, LFineNodesPerDir) {
+    IndexManager(comm, coupled, false, NumDimensions, interpolationOrder, GFineNodesPerDir, LFineNodesPerDir) {
 
     // Load coarse rate, being careful about formating.
     for(int dim = 0; dim < 3; ++dim) {
@@ -204,7 +204,7 @@ namespace MueLu {
     coarseNodeFineGIDs.resize(this->getNumLocalCoarseNodes());
 
     // Load all the GIDs on the fine mesh
-    ArrayView<const GO> fineNodeGIDs = fineCoordinatesMap->getNodeElementList();
+    ArrayView<const GO> fineNodeGIDs = fineCoordinatesMap->getLocalElementList();
 
     Array<GO> coarseStartIndices(3);
     GO tmp;

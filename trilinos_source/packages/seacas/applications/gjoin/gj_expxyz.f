@@ -1,13 +1,11 @@
-C Copyright(C) 1999-2020 National Technology & Engineering Solutions
+C Copyright(C) 1999-2021 National Technology & Engineering Solutions
 C of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
 C NTESS, the U.S. Government retains certain rights in this software.
-C 
+C
 C See packages/seacas/LICENSE for details
 
 C     -*- Mode: fortran -*-
 C=======================================================================
-C     $Id: expxyz.f,v 1.3 2002/06/24 16:09:28 gdsjaar Exp $
-c
       SUBROUTINE EXPXYZ (NDIM,
      $     MATNS1, MATNS2, NNNPS, IXNNPS, LTNNPS,
      $     NUMNP1, XN1, YN1, ZN1,
@@ -77,10 +75,6 @@ C     --   MATMAT - IN/OUT - true if match by material
       BYSET = (MATNS1 .GT. 0) .AND. (MATNS2 .GT. 0)
 
 C     --Index nodes to match in the nodal point sets
-      call prterr('WARNING',
-     &     'EXPXYZ (By-material matching) is an experimental routine')
-      call prterr('WARNING',
-     &     'Use with caution and check validity of output and mesh')
       ioff1 = 0
       do 200 iblk = 1, nelbl1
          INIT = (NMATCH .LE. 0)
@@ -176,7 +170,6 @@ C     --Find the limits of the overlapping area of the two databases
             CALL PRTERR ('ERROR', 'Nodes do not overlap')
             GOTO 180
          END IF
-
 
          IF (TOLER .GE. 0.0) THEN
             EPS = TOLER

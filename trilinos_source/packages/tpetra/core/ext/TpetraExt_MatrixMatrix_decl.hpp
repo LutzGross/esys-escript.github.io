@@ -47,8 +47,10 @@
 #include <Teuchos_Array.hpp>
 #include "Tpetra_ConfigDefs.hpp"
 #include "Tpetra_CrsMatrix.hpp"
+#include "Tpetra_BlockCrsMatrix.hpp"
 #include "Tpetra_Vector.hpp"
 #include "TpetraExt_MMHelpers.hpp"
+#include "KokkosKernels_Handle.hpp"
 
 
 /*! \file TpetraExt_MatrixMatrix_decl.hpp
@@ -103,6 +105,33 @@ void Multiply(
   bool call_FillComplete_on_result = true,
   const std::string& label = std::string(),
   const Teuchos::RCP<Teuchos::ParameterList>& params = Teuchos::null);
+
+/// \brief Sparse matrix-matrix multiply for BlockCrsMatrix type
+///
+/// Given BlockCrsMatrix instances A and B, compute the product C = A*B.
+///
+/// \pre Both A and B must have uniquely owned row Maps.
+/// \pre On input, C must be null. 
+/// \pre A and B must be fill complete.
+///
+/// \param A [in] fill-complete BlockCrsMatrix.
+/// \param transposeA [in] Whether to use transpose of matrix A. This is
+///   currently not implemented.
+/// \param B [in] fill-complete BlockCrsMatrix.
+/// \param transposeB [in] Whether to use transpose of matrix B. This is
+///   currently not implemented.
+/// \param C [in/out] output matrix. Must be null.
+template <class Scalar,
+          class LocalOrdinal,
+          class GlobalOrdinal,
+          class Node>
+void Multiply(
+  const Teuchos::RCP<const BlockCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> >& A,
+  bool transposeA,
+  const Teuchos::RCP<const BlockCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> >& B,
+  bool transposeB,
+  Teuchos::RCP<BlockCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> >& C,
+  const std::string& label = std::string());
 
     /** Given CrsMatrix objects A and B, form the sum B = a*A + b*B
      * Currently not functional.
@@ -341,8 +370,14 @@ void mult_A_B_newmatrix(
   const std::string& label = std::string(),
   const Teuchos::RCP<Teuchos::ParameterList>& params = Teuchos::null);
 
-
-
+template<class Scalar,
+         class LocalOrdinal,
+         class GlobalOrdinal,
+         class Node>
+void mult_A_B_newmatrix(
+  BlockCrsMatrixStruct<Scalar, LocalOrdinal, GlobalOrdinal, Node>& Aview,
+  BlockCrsMatrixStruct<Scalar, LocalOrdinal, GlobalOrdinal, Node>& Bview,
+  Teuchos::RCP<BlockCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node> >& C);
 
 template<class Scalar,
          class LocalOrdinal,
@@ -399,6 +434,17 @@ void import_and_extract_views(
   bool userAssertsThereAreNoRemotes = false,
   const std::string& label = std::string(),
   const Teuchos::RCP<Teuchos::ParameterList>& params = Teuchos::null);
+
+template<class Scalar,
+         class LocalOrdinal,
+         class GlobalOrdinal,
+         class Node>
+void import_and_extract_views(
+  const BlockCrsMatrix<Scalar, LocalOrdinal, GlobalOrdinal, Node>& M,
+  Teuchos::RCP<const Map<LocalOrdinal, GlobalOrdinal, Node> > targetMap,
+  BlockCrsMatrixStruct<Scalar, LocalOrdinal, GlobalOrdinal, Node>& Mview,
+  Teuchos::RCP<const Import<LocalOrdinal,GlobalOrdinal, Node> > prototypeImporter = Teuchos::null,
+  bool userAssertsThereAreNoRemotes = false);
 
 template<class Scalar,
          class LocalOrdinal,
@@ -534,9 +580,20 @@ void setMaxNumEntriesPerRow(
 
   // This only merges matrices that look like B & Bimport, aka, they have no overlapping rows
   template<class Scalar,class LocalOrdinal,class GlobalOrdinal,class Node, class LocalOrdinalViewType>
-  inline const typename Tpetra::CrsMatrix<Scalar,LocalOrdinal,GlobalOrdinal,Node>::local_matrix_type 
+  inline const typename Tpetra::CrsMatrix<Scalar,LocalOrdinal,GlobalOrdinal,Node>::local_matrix_device_type 
   merge_matrices(CrsMatrixStruct<Scalar, LocalOrdinal, GlobalOrdinal, Node>& Aview,
                  CrsMatrixStruct<Scalar, LocalOrdinal, GlobalOrdinal, Node>& Bview,
+                 const LocalOrdinalViewType & Acol2Brow,
+                 const LocalOrdinalViewType & Acol2Irow,
+                 const LocalOrdinalViewType & Bcol2Ccol,
+                 const LocalOrdinalViewType & Icol2Ccol,  
+                 const size_t mergedNodeNumCols);
+
+  // This only merges matrices that look like B & Bimport, aka, they have no overlapping rows
+  template<class Scalar,class LocalOrdinal,class GlobalOrdinal,class Node, class LocalOrdinalViewType>
+  inline const typename Tpetra::BlockCrsMatrix<Scalar,LocalOrdinal,GlobalOrdinal,Node>::local_matrix_device_type 
+  merge_matrices(BlockCrsMatrixStruct<Scalar, LocalOrdinal, GlobalOrdinal, Node>& Aview,
+                 BlockCrsMatrixStruct<Scalar, LocalOrdinal, GlobalOrdinal, Node>& Bview,
                  const LocalOrdinalViewType & Acol2Brow,
                  const LocalOrdinalViewType & Acol2Irow,
                  const LocalOrdinalViewType & Bcol2Ccol,
@@ -556,9 +613,9 @@ struct AddKernels
   typedef Tpetra::Map<LocalOrdinal, GlobalOrdinal, Node> map_type;
   typedef typename Node::device_type device_type;
   typedef typename device_type::execution_space execution_space;
-  typedef typename execution_space::memory_space memory_space;
+  typedef typename device_type::memory_space memory_space;
   typedef typename crs_matrix_type::impl_scalar_type impl_scalar_type;
-  typedef typename crs_matrix_type::local_matrix_type KCRS;
+  typedef typename crs_matrix_type::local_matrix_device_type KCRS;
   typedef typename KCRS::values_type::non_const_type values_array;
   typedef typename KCRS::row_map_type::non_const_type row_ptrs_array;
   typedef typename KCRS::row_map_type row_ptrs_array_const;
@@ -566,6 +623,8 @@ struct AddKernels
   typedef typename map_type::local_map_type local_map_type;
   typedef typename Kokkos::View<GlobalOrdinal*, device_type> global_col_inds_array;
   typedef Kokkos::RangePolicy<execution_space> range_type;
+  typedef KokkosKernels::Experimental::KokkosKernelsHandle<size_t, LocalOrdinal, impl_scalar_type,
+              execution_space, memory_space, memory_space> KKH;
 
   /// \brief Given two matrices in CRS format, return their sum
   /// \pre A and B must both have column indices sorted within each row

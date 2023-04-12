@@ -36,42 +36,47 @@
 #define STK_IO_STKMESHIOBROKER_HPP
 // #######################  Start Clang Header Tool Managed Headers ########################
 // clang-format off
-#include <Ioss_Field.h>                            // for Field, etc
-#include <Ioss_PropertyManager.h>                  // for PropertyManager
-#include <stddef.h>                                // for size_t
-#include <Teuchos_RCP.hpp>                         // for RCP::RCP<T>, etc
-#include <algorithm>                               // for swap
-#include <stk_util/stk_config.h>
-#include <stk_io/DatabasePurpose.hpp>              // for DatabasePurpose
-#include <stk_io/IossBridge.hpp>
-#include <stk_io/InputFile.hpp>
-#include <stk_io/OutputFile.hpp>
-#include <stk_io/Heartbeat.hpp>
-#include <stk_io/MeshField.hpp>                    // for MeshField, etc
-#include <stk_mesh/base/BulkData.hpp>              // for BulkData
-#include <stk_mesh/base/Selector.hpp>              // for Selector
-#include <stk_util/parallel/Parallel.hpp>          // for ParallelMachine
-#include <stk_util/util/ParameterList.hpp>         // for Type
-#include <string>                                  // for string
-#include <vector>                                  // for vector
-#include "Teuchos_RCPDecl.hpp"                     // for RCP
-#include "mpi.h"                                   // for MPI_Comm, etc
-#include "stk_mesh/base/Types.hpp"                 // for FieldVector
-#include "stk_util/util/ReportHandler.hpp"  // for ThrowAssert, etc
+#include <Ioss_Field.h>                     // for Field, Field::REDUCTION
+#include <Ioss_PropertyManager.h>           // for PropertyManager
+      // file exists and is readable and will throw an exception if not.
+#include <cstddef>                          // for size_t
+#include "Teuchos_RCPDecl.hpp"              // for RCP
+#include <Teuchos_RCP.hpp>                  // for RCP::operator->, RCP::RCP<T>
+#include <Teuchos_RCPStdSharedPtrConversions.hpp>
+#include <stk_io/DatabasePurpose.hpp>       // for DatabasePurpose
+#include <stk_io/Heartbeat.hpp>             // for Heartbeat, HeartbeatType
+#include <stk_io/IossBridge.hpp>            // for STKIORequire, FieldNameTo...
+#include <stk_io/MeshField.hpp>             // for MeshField, MeshField::CLO...
+#include <stk_io/OutputFile.hpp>            // for OutputFile
+#include <stk_mesh/base/BulkData.hpp>       // for BulkData
+#include <stk_mesh/base/Selector.hpp>       // for Selector
+#include <stk_util/parallel/Parallel.hpp>   // for ParallelMachine
+#include <stk_util/util/ParameterList.hpp>  // for Parameter, Type
+#include <memory>
+#include <string>                           // for string
+#include <utility>                          // for move, swap
+#include <vector>                           // for vector
+#include "mpi.h"                            // for ompi_communicator_t
+#include "stk_io/FieldAndName.hpp"          // for DataLocation
+#include "stk_io/OutputVariableParams.hpp"  // for OutputVariableParams
+#include "stk_mesh/base/FieldState.hpp"     // for FieldState
+#include "stk_mesh/base/Types.hpp"          // for EntityRank, FieldVector
+#include "stk_topology/topology.hpp"        // for topology, topology::rank_t
+#include "stk_util/util/ReportHandler.hpp"  // for ThrowAssert, ThrowRequire...
+namespace Ioss { class DatabaseIO; }
 namespace Ioss { class Property; }
 namespace Ioss { class Region; }
-namespace boost { class any; }
 namespace stk { namespace io { class InputFile; } }
-namespace stk { namespace io { class SidesetUpdater; } }
 namespace stk { namespace mesh { class FieldBase; } }
 namespace stk { namespace mesh { class MetaData; } }
 namespace stk { namespace mesh { class Part; } }
+namespace stk { namespace mesh { struct Entity; } }
+namespace stk { namespace mesh { class SidesetUpdater; } }
 
 // clang-format on
 // #######################   End Clang Header Tool Managed Headers  ########################
 namespace stk { namespace mesh { class BulkData; } }
 
-namespace Ioss { class DatabaseIO; }
 
 namespace stk {
   namespace io {
@@ -145,7 +150,7 @@ namespace stk {
       // (typically locally owned part) used to associate entities
       // when generating the output database.
       void set_subset_selector(size_t output_file_index, Teuchos::RCP<stk::mesh::Selector> my_selector);
-      void set_subset_selector(size_t output_file_index, stk::mesh::Selector &my_selector);
+      void set_subset_selector(size_t output_file_index, const stk::mesh::Selector &my_selector);
 
       void set_skin_mesh_selector(size_t output_file_index, Teuchos::RCP<stk::mesh::Selector> my_selector);
       void set_skin_mesh_selector(size_t output_file_index, stk::mesh::Selector &my_selector);
@@ -160,6 +165,9 @@ namespace stk {
       void set_adaptivity_filter(size_t output_file_index, bool hasAdaptivity);
       void set_skin_mesh_flag(size_t output_file_index, bool skinMesh);
 
+      void set_filter_empty_output_entity_blocks(size_t output_file_index, const bool filterEmptyEntityBlocks);
+      void set_filter_empty_output_assembly_entity_blocks(size_t output_file_index, const bool filterEmptyAssemblyEntityBlocks);
+
       stk::mesh::Selector get_active_selector() const;
       void set_active_selector(stk::mesh::Selector my_selector);
 
@@ -171,7 +179,7 @@ namespace stk {
       // created automatically using the communicator of the m_input_region.
       // If meta data is not already set, then set the meta data from the
       // bulk data's metadata
-      void set_bulk_data(Teuchos::RCP<stk::mesh::BulkData> arg_bulk_data);
+      void set_bulk_data(std::shared_ptr<stk::mesh::BulkData> arg_bulk_data);
       void set_bulk_data(stk::mesh::BulkData &arg_bulk_data);
 
       // Replace the current bulk data directly with your own bulk data.
@@ -182,7 +190,7 @@ namespace stk {
       // this, only if needed, after you are completely done accessing
       // the input mesh and before any access to the output mesh and only
       // if the output mesh needs a different bulk data than the input mesh.
-      void replace_bulk_data(Teuchos::RCP<stk::mesh::BulkData> arg_bulk_data);
+      void replace_bulk_data(std::shared_ptr<stk::mesh::BulkData> arg_bulk_data);
       void replace_bulk_data(stk::mesh::BulkData &arg_bulk_data);
 
       enum SideSetFaceCreationBehavior {
@@ -206,6 +214,14 @@ namespace stk {
       {
           m_autoLoadDistributionFactorPerNodeSet = shouldAutoLoad;
       }
+
+      void cache_entity_list_for_transient_steps(bool cacheEntityList)
+      {
+          m_cacheEntityListForTransientSteps = cacheEntityList;
+      }
+
+      bool get_filter_empty_input_entity_blocks() const;
+      bool get_filter_empty_input_entity_blocks(size_t input_file_index) const;
 
       // Create the Ioss::DatabaseIO associated with the specified filename
       // and type (exodus by default). The routine checks that the
@@ -326,7 +342,7 @@ namespace stk {
       // calls both of these methods.
       virtual void populate_mesh(bool delay_field_data_allocation = true);
       bool populate_mesh_elements_and_nodes(bool delay_field_data_allocation);
-      void populate_mesh_sidesets(bool i_started_modification_cycle);
+      void populate_mesh_entitysets(bool i_started_modification_cycle);
 
       // Read/generate the field-data for the mesh, including
       // coordinates, attributes and distribution factors.
@@ -388,21 +404,20 @@ namespace stk {
       size_t get_global_variable_length(const std::string& name) const;
 
       bool get_global(const std::string &variableName,
-		      boost::any &value,
-		      stk::util::ParameterType::Type type,
-          bool abort_if_not_found=true) const;
+              stk::util::Parameter &param,
+              bool abort_if_not_found=true) const;
       bool get_global(const std::string &variableName,
-		      int &globalVar,
-          bool abort_if_not_found=true) const;
+              int &globalVar,
+              bool abort_if_not_found=true) const;
       bool get_global(const std::string &variableName,
-		      double &globalVar,
-          bool abort_if_not_found=true) const;
+              double &globalVar,
+              bool abort_if_not_found=true) const;
       bool get_global(const std::string &variableName,
-		      std::vector<double> &globalVar,
-          bool abort_if_not_found=true) const;
+              std::vector<double> &globalVar,
+              bool abort_if_not_found=true) const;
       bool get_global(const std::string &variableName,
-		      std::vector<int> &globalVar,
-          bool abort_if_not_found=true) const;
+              std::vector<int> &globalVar,
+              bool abort_if_not_found=true) const;
       bool has_input_global(const std::string &globalVarName) const;
 
       void add_input_field(const stk::io::MeshField &mesh_field);
@@ -454,6 +469,9 @@ namespace stk {
 				Ioss::PropertyManager &properties,
                                 double time,
                                 char const* type = "exodus", bool openFileImmediately = true);
+ 
+      // Free up memory by removing resouces associated with output files that will no longer be used by the run
+      void close_output_mesh(size_t output_file_index);
 
       void write_output_mesh(size_t output_file_index);
 
@@ -472,12 +490,20 @@ namespace stk {
                       const std::string &globalVarName) const;
       void add_global_ref(size_t output_file_index,
 			  const std::string &variableName,
-			  const boost::any *value,
-			  stk::util::ParameterType::Type type);
+			  const stk::util::Parameter &param);
       void add_global(size_t output_file_index,
 		      const std::string &variableName,
-		      const boost::any &value,
-		      stk::util::ParameterType::Type type);
+		      const stk::util::Parameter &param);
+      template<typename T>
+      void add_global(size_t output_file_index,
+              const std::string& variableName,
+              const T& value,
+              stk::util::ParameterType::Type type)
+      {
+        validate_output_file_index(output_file_index);
+        m_outputFiles[output_file_index]->add_global(variableName, value, type);
+      }
+
       void add_global(size_t output_file_index,
 		      const std::string &variableName,
 		      Ioss::Field::BasicType dataType);
@@ -521,10 +547,21 @@ namespace stk {
       // you have global variables to output.
       int process_output_request(size_t output_file_index, double time);
 
+      template<typename T>
+      void write_global(size_t output_file_index, const std::string &globalVarName,
+                        const T &value, stk::util::ParameterType::Type type) const
+      {
+          validate_output_file_index(output_file_index);
+          stk::util::Parameter p;
+          p.value = value;
+          p.type = type;
+          m_outputFiles[output_file_index]->write_global(globalVarName, p);
+      }
+
       void write_global(size_t output_file_index,
-			const std::string &variableName,
-			const boost::any &value,
-      stk::util::ParameterType::Type type) const;
+                        const std::string& variableName,
+                        const stk::util::Parameter& param) const;
+
       void write_global(size_t output_file_index,
 			const std::string &variableName,
       double data) const;
@@ -546,33 +583,31 @@ namespace stk {
   
       void define_heartbeat_global(size_t index,
                                    const std::string &name,
-                                   const boost::any *value,
-                                   stk::util::ParameterType::Type type,
+                                   const stk::util::Parameter &param,
                                    int copies = 1,
-                                   Ioss::Field::RoleType role = Ioss::Field::TRANSIENT);
+                                   Ioss::Field::RoleType role = Ioss::Field::REDUCTION);
 
       void define_heartbeat_global(size_t index,
                                    const std::string &globalVarName,
-                                   const boost::any *value,
+                                   const stk::util::Parameter &param,
                                    const std::string &storage,
                                    Ioss::Field::BasicType dataType,
                                    int copies = 1,
-                                   Ioss::Field::RoleType role = Ioss::Field::TRANSIENT);
+                                   Ioss::Field::RoleType role = Ioss::Field::REDUCTION);
 
       void add_heartbeat_global(size_t index,
                                 const std::string &name,
-                                const boost::any *value,
-                                stk::util::ParameterType::Type type,
+                                const stk::util::Parameter &param,
                                 int copies = 1,
-                                Ioss::Field::RoleType role = Ioss::Field::TRANSIENT);
+                                Ioss::Field::RoleType role = Ioss::Field::REDUCTION);
   
       void add_heartbeat_global(size_t index,
                                 const std::string &globalVarName,
-                                const boost::any *value,
+                                const stk::util::Parameter &param,
                                 const std::string &storage,
                                 Ioss::Field::BasicType dataType,
                                 int copies = 1,
-                                Ioss::Field::RoleType role = Ioss::Field::TRANSIENT);
+                                Ioss::Field::RoleType role = Ioss::Field::REDUCTION);
 
       bool has_heartbeat_global(size_t output_file_index,
                                 const std::string &globalVarName) const;
@@ -584,6 +619,8 @@ namespace stk {
       void process_heartbeat_output_write(size_t index, int step, double time);
       void process_heartbeat_output_post_write(size_t index, int step, double time);
 
+      void use_simple_fields() { m_useSimpleFields = true; }
+
       bool is_meta_data_null() const;
       bool is_bulk_data_null() const;
       stk::mesh::MetaData &meta_data();
@@ -591,13 +628,11 @@ namespace stk {
       const stk::mesh::MetaData &meta_data() const;
       const stk::mesh::BulkData &bulk_data() const;
 
-      // Special RCP getters for meta_data and bulk_data. Use these to handoff
-      // meta/bulk data to classes that also track meta/bulk data via RCP.
-      Teuchos::RCP<stk::mesh::MetaData> meta_data_rcp() { return m_metaData; }
-      Teuchos::RCP<stk::mesh::BulkData> bulk_data_rcp() { return m_bulkData; }
+      std::shared_ptr<stk::mesh::MetaData> meta_data_ptr() { return m_metaData; }
+      std::shared_ptr<stk::mesh::BulkData> bulk_data_ptr() { return m_bulkData; }
 
-      Teuchos::RCP<const stk::mesh::MetaData> meta_data_rcp() const { return m_metaData; }
-      Teuchos::RCP<const stk::mesh::BulkData> bulk_data_rcp() const { return m_bulkData; }
+      std::shared_ptr<const stk::mesh::MetaData> meta_data_ptr() const { return m_metaData; }
+      std::shared_ptr<const stk::mesh::BulkData> bulk_data_ptr() const { return m_bulkData; }
 
       // Return the coordinate field for this mesh.
       stk::mesh::FieldBase const& get_coordinate_field() const;
@@ -713,11 +748,12 @@ namespace stk {
       stk::ParallelMachine m_communicator;
       std::vector<std::string>       m_rankNames; // Optional rank name vector.
 
-      Teuchos::RCP<stk::mesh::MetaData>  m_metaData;
-      Teuchos::RCP<stk::mesh::BulkData>  m_bulkData;
+      std::shared_ptr<stk::mesh::MetaData>  m_metaData;
+      std::shared_ptr<stk::mesh::BulkData>  m_bulkData;
 
 
       stk::mesh::Selector m_activeSelector;
+      stk::mesh::Selector m_subsetSelector;
       Teuchos::RCP<stk::mesh::Selector> m_deprecatedSelector;
 
     protected:
@@ -738,6 +774,9 @@ namespace stk {
       SideSetFaceCreationBehavior m_sidesetFaceCreationBehavior;
       bool m_autoLoadAttributes;
       bool m_autoLoadDistributionFactorPerNodeSet;
+      bool m_enableEdgeIO;
+      bool m_cacheEntityListForTransientSteps;
+      bool m_useSimpleFields;
     };
 
     inline Teuchos::RCP<Ioss::Region> StkMeshIoBroker::get_output_io_region(size_t output_file_index) const {
@@ -767,9 +806,10 @@ namespace stk {
     }
 
     inline void StkMeshIoBroker::set_subset_selector(size_t output_file_index,
-						     stk::mesh::Selector &my_selector) {
+						     const stk::mesh::Selector &my_selector) {
+      m_subsetSelector = my_selector;
       validate_output_file_index(output_file_index);
-      m_outputFiles[output_file_index]->set_subset_selector(Teuchos::rcpFromRef(my_selector));
+      m_outputFiles[output_file_index]->set_subset_selector(Teuchos::rcpFromRef(m_subsetSelector));
     }
 
     inline void StkMeshIoBroker::set_skin_mesh_selector(size_t output_file_index,
@@ -825,6 +865,16 @@ namespace stk {
       m_outputFiles[output_file_index]->is_skin_mesh(skinMesh);
     }
 
+    inline void StkMeshIoBroker::set_filter_empty_output_entity_blocks(size_t output_file_index, const bool filterEmptyEntityBlocks) {
+      validate_output_file_index(output_file_index);
+      m_outputFiles[output_file_index]->set_filter_empty_entity_blocks(filterEmptyEntityBlocks);
+    }
+
+    inline void StkMeshIoBroker::set_filter_empty_output_assembly_entity_blocks(size_t output_file_index, const bool filterEmptyAssemblyEntityBlocks) {
+      validate_output_file_index(output_file_index);
+      m_outputFiles[output_file_index]->set_filter_empty_assembly_entity_blocks(filterEmptyAssemblyEntityBlocks);
+    }
+
     inline stk::mesh::Selector StkMeshIoBroker::get_active_selector() const {
       return m_activeSelector;
     }
@@ -842,55 +892,57 @@ namespace stk {
     }
 
     inline void StkMeshIoBroker::set_bulk_data(stk::mesh::BulkData &arg_bulk_data)
-    { set_bulk_data(Teuchos::rcpFromRef(arg_bulk_data));}
+    {
+      set_bulk_data(std::shared_ptr<stk::mesh::BulkData>(&arg_bulk_data, [](auto pointerWeWontDelete){}));
+    }
 
     inline void StkMeshIoBroker::replace_bulk_data(stk::mesh::BulkData &arg_bulk_data)
-    { replace_bulk_data(Teuchos::rcpFromRef(arg_bulk_data));}
+    {
+      replace_bulk_data(std::shared_ptr<stk::mesh::BulkData>(&arg_bulk_data, [](auto pointerWeWontDelete){}));
+    }
 
     inline void StkMeshIoBroker::define_heartbeat_global(size_t index,
                                                          const std::string &name,
-                                                         const boost::any *value,
-                                                         stk::util::ParameterType::Type type,
+                                                         const stk::util::Parameter &param,
                                                          int copies,
                                                          Ioss::Field::RoleType role)
     {
       STKIORequire(index < m_heartbeat.size());
-      m_heartbeat[index]->define_global_ref(name, value, type, copies, role);
+      m_heartbeat[index]->define_global_ref(name, param, copies, role);
     }
 
     inline void StkMeshIoBroker::define_heartbeat_global(size_t index,
                                                          const std::string &globalVarName,
-                                                         const boost::any *value,
+                                                         const stk::util::Parameter &param,
                                                          const std::string &storage,
                                                          Ioss::Field::BasicType dataType,
                                                          int copies,
                                                          Ioss::Field::RoleType role)
     {
       STKIORequire(index < m_heartbeat.size());
-      m_heartbeat[index]->define_global_ref(globalVarName, value, storage, dataType, copies, role);
+      m_heartbeat[index]->define_global_ref(globalVarName, param, storage, dataType, copies, role);
     }
 
     inline void StkMeshIoBroker::add_heartbeat_global(size_t index,
 						      const std::string &name,
-						      const boost::any *value,
-						      stk::util::ParameterType::Type type,
+						      const stk::util::Parameter &param,
 						      int copies,
 						      Ioss::Field::RoleType role)
     {
       STKIORequire(index < m_heartbeat.size());
-      m_heartbeat[index]->add_global_ref(name, value, type, copies, role);
+      m_heartbeat[index]->add_global_ref(name, param, copies, role);
     }
   
     inline void StkMeshIoBroker::add_heartbeat_global(size_t index,
                                                       const std::string &globalVarName,
-                                                      const boost::any *value,
+                                                      const stk::util::Parameter &param,
                                                       const std::string &storage,
                                                       Ioss::Field::BasicType dataType,
                                                       int copies,
                                                       Ioss::Field::RoleType role)
     {
       STKIORequire(index < m_heartbeat.size());
-      m_heartbeat[index]->add_global_ref(globalVarName, value, storage, dataType, copies, role);
+      m_heartbeat[index]->add_global_ref(globalVarName, param, storage, dataType, copies, role);
     }
 
     inline void StkMeshIoBroker::process_heartbeat_output(size_t index, int step, double time)
@@ -919,35 +971,35 @@ namespace stk {
 
     inline bool StkMeshIoBroker::is_meta_data_null() const
     {
-      return Teuchos::is_null(m_metaData);
+      return m_metaData == nullptr;
     }
 
     inline bool StkMeshIoBroker::is_bulk_data_null() const
     {
-      return Teuchos::is_null(m_bulkData);
+      return m_bulkData == nullptr;
     }
 
     inline stk::mesh::MetaData &StkMeshIoBroker::meta_data()
     {
-      ThrowAssert( !Teuchos::is_null(m_metaData)) ;
+      ThrowAssert(!is_meta_data_null());
       return *m_metaData;
     }
 
     inline stk::mesh::BulkData &StkMeshIoBroker::bulk_data()
     {
-      ThrowAssert( !Teuchos::is_null(m_bulkData)) ;
+      ThrowAssert(!is_bulk_data_null());
       return *m_bulkData;
     }
 
     inline const stk::mesh::MetaData &StkMeshIoBroker::meta_data() const
     {
-      ThrowAssert( !Teuchos::is_null(m_metaData)) ;
+      ThrowAssert(!is_meta_data_null());
       return *m_metaData;
     }
 
     inline const stk::mesh::BulkData &StkMeshIoBroker::bulk_data() const
     {
-      ThrowAssert( !Teuchos::is_null(m_bulkData)) ;
+      ThrowAssert(!is_bulk_data_null());
       return *m_bulkData;
     }
   }

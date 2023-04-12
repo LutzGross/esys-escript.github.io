@@ -2,7 +2,7 @@
  * Copyright(C) 1999-2020 National Technology & Engineering Solutions
  * of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
  * NTESS, the U.S. Government retains certain rights in this software.
- * 
+ *
  * See packages/seacas/LICENSE for details
  */
 /*****************************************************************************
@@ -39,8 +39,8 @@ int main(int argc, char **argv)
 
   float *glob_var_vals, *nodal_var_vals, *elem_var_vals;
   float  time_value;
-  char * var_names[3];
-  char * title = "This is a test";
+  char  *var_names[3];
+  char  *title = "This is a test";
 
   struct ex_block blocks[10];
 

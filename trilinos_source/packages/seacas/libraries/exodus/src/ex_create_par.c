@@ -1,8 +1,8 @@
 /*
- * Copyright(C) 1999-2020 National Technology & Engineering Solutions
+ * Copyright(C) 1999-2021 National Technology & Engineering Solutions
  * of Sandia, LLC (NTESS).  Under the terms of Contract DE-NA0003525 with
  * NTESS, the U.S. Government retains certain rights in this software.
- * 
+ *
  * See packages/seacas/LICENSE for details
  */
 
@@ -33,7 +33,6 @@ causes of errors include:
   -  Attempting to create a file in a directory without permission
  to create files there.
   -  Passing an invalid file clobber mode.
-
 
 \param path The file name of the new exodus file. This can be given as either an
             absolute path name (from the root of the file system) or a relative
@@ -168,6 +167,20 @@ int ex_create_par_int(const char *path, int cmode, int *comp_ws, int *io_ws, MPI
   }
 
   nc_mode = ex__handle_mode(my_mode, is_parallel, run_version);
+
+#if defined NC_NOATTCREORD
+  /* Disable attribute creation order tracking if available... */
+  if (my_mode & EX_NETCDF4) {
+    nc_mode |= NC_NOATTCREORD;
+  }
+#endif
+
+#if defined NC_NODIMSCALE_ATTACH
+  /* Disable attaching dimscales to variables (netcdf-c issue #2128) if available */
+  if (my_mode & EX_NETCDF4) {
+    nc_mode |= NC_NODIMSCALE_ATTACH;
+  }
+#endif
 
   if ((status = nc_create_par(path, nc_mode, comm, info, &exoid)) != NC_NOERR) {
     if (my_mode & EX_NETCDF4) {

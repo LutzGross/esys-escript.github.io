@@ -102,11 +102,18 @@
 /* Define if building with the Lemon library */
 #cmakedefine HAVE_IFPACK2_LEMON
 
+/* Define if building with METIS */
+#cmakedefine HAVE_IFPACK2_METIS
+
 /* Define if building with MPI (the Message-Passing Interface) */
 #cmakedefine HAVE_IFPACK2_MPI
 
 /* Define if we have the QD extended-precision TPL */
 #cmakedefine HAVE_IFPACK2_QD
+
+/* Define if want to build with hypre enabled */
+#cmakedefine HAVE_IFPACK2_HYPRE
+
 
 /* Define if we have ShyLU FastILU (an inner preconditioner for Additive Schwarz) */
 #cmakedefine HAVE_IFPACK2_SHYLU_NODEFASTILU

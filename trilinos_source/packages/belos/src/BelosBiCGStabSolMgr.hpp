@@ -58,16 +58,14 @@
 #include "BelosStatusTestCombo.hpp"
 #include "BelosStatusTestOutputFactory.hpp"
 #include "BelosOutputManager.hpp"
-#include "Teuchos_BLAS.hpp"
-#include "Teuchos_LAPACK.hpp"
 #ifdef BELOS_TEUCHOS_TIME_MONITOR
 #include "Teuchos_TimeMonitor.hpp"
 #endif
 
-/** \example BiCGStab/BiCGStabEpetraExFile.cpp
+/** \example BiCGStab/BiCGStabExFile.cpp
     This is an example of how to use the Belos::BiCGStabSolMgr solver manager.
 */
-/** \example BiCGStab/PseudoBlockPrecCGEpetraExFile.cpp
+/** \example BiCGStab/PrecBiCGStabExFile.cpp
     This is an example of how to use the Belos::BiCGStabSolMgr solver manager with an Ifpack preconditioner.
 */
 
@@ -93,16 +91,6 @@ namespace Belos {
    */
   class BiCGStabSolMgrLinearProblemFailure : public BelosError {public:
     BiCGStabSolMgrLinearProblemFailure(const std::string& what_arg) : BelosError(what_arg)
-    {}};
-
-  /** \brief BiCGStabSolMgrOrthoFailure is thrown when the orthogonalization manager is
-   * unable to generate orthonormal columns from the initial basis vectors.
-   *
-   * This std::exception is thrown from the BiCGStabSolMgr::solve() method.
-   *
-   */
-  class BiCGStabSolMgrOrthoFailure : public BelosError {public:
-    BiCGStabSolMgrOrthoFailure(const std::string& what_arg) : BelosError(what_arg)
     {}};
 
   template<class ScalarType, class MV, class OP>
@@ -284,7 +272,6 @@ namespace Belos {
     static constexpr int defQuorum_default_ = 1;
     static constexpr const char * resScale_default_ = "Norm of Initial Residual";
     static constexpr const char * label_default_ = "Belos";
-    static constexpr std::ostream * outputStream_default_ = &std::cout;
 
     // Current solver values.
     MagnitudeType convtol_,achievedTol_;
@@ -304,7 +291,7 @@ namespace Belos {
 // Empty Constructor
 template<class ScalarType, class MV, class OP>
 BiCGStabSolMgr<ScalarType,MV,OP>::BiCGStabSolMgr() :
-  outputStream_(Teuchos::rcp(outputStream_default_,false)),
+  outputStream_(Teuchos::rcpFromRef(std::cout)),
   convtol_(DefaultSolverParameters::convTol),
   maxIters_(maxIters_default_),
   numIters_(0),
@@ -324,7 +311,7 @@ BiCGStabSolMgr<ScalarType,MV,OP>::
 BiCGStabSolMgr (const Teuchos::RCP<LinearProblem<ScalarType,MV,OP> > &problem,
                      const Teuchos::RCP<Teuchos::ParameterList> &pl ) :
   problem_(problem),
-  outputStream_(Teuchos::rcp(outputStream_default_,false)),
+  outputStream_(Teuchos::rcpFromRef(std::cout)),
   convtol_(DefaultSolverParameters::convTol),
   maxIters_(maxIters_default_),
   numIters_(0),
@@ -596,7 +583,7 @@ BiCGStabSolMgr<ScalarType,MV,OP>::getValidParameters() const
     pl->set("Deflation Quorum", static_cast<int>(defQuorum_default_),
       "The number of linear systems that need to converge before\n"
       "they are deflated.  This number should be <= block size.");
-    pl->set("Output Stream", Teuchos::rcp(outputStream_default_,false),
+    pl->set("Output Stream", Teuchos::rcpFromRef(std::cout),
       "A reference-counted pointer to the output stream where all\n"
       "solver output is sent.");
     pl->set("Show Maximum Residual Norm Only", static_cast<bool>(showMaxResNormOnly_default_),
@@ -629,8 +616,6 @@ ReturnType BiCGStabSolMgr<ScalarType,MV,OP>::solve ()
   if (! isSet_) {
     setParameters (params_);
   }
-
-  Teuchos::BLAS<int,ScalarType> blas;
 
   TEUCHOS_TEST_FOR_EXCEPTION
     (! problem_->isProblemSet (), BiCGStabSolMgrLinearProblemFailure,
@@ -671,7 +656,7 @@ ReturnType BiCGStabSolMgr<ScalarType,MV,OP>::solve ()
   //////////////////////////////////////////////////////////////////////////////////////
   // Pseudo-Block BiCGStab solver
 
-  Teuchos::RCP<BiCGStabIter<ScalarType,MV,OP> > block_cg_iter
+  Teuchos::RCP<BiCGStabIter<ScalarType,MV,OP> > bicgstab_iter
     = Teuchos::rcp( new BiCGStabIter<ScalarType,MV,OP>(problem_,printer_,outputTest_,plist) );
 
   // Enter solve() iterations
@@ -688,7 +673,7 @@ ReturnType BiCGStabSolMgr<ScalarType,MV,OP>::solve ()
       currRHSIdx.resize(numCurrRHS);
 
       // Reset the number of iterations.
-      block_cg_iter->resetNumIters();
+      bicgstab_iter->resetNumIters();
 
       // Reset the number of calls that the status test output knows about.
       outputTest_->resetNumCalls();
@@ -699,14 +684,14 @@ ReturnType BiCGStabSolMgr<ScalarType,MV,OP>::solve ()
       // Get a new state struct and initialize the solver.
       BiCGStabIterationState<ScalarType,MV> newState;
       newState.R = R_0;
-      block_cg_iter->initializeBiCGStab(newState);
+      bicgstab_iter->initializeBiCGStab(newState);
 
       while(1) {
 
         // tell block_gmres_iter to iterate
         try {
 
-          block_cg_iter->iterate();
+          bicgstab_iter->iterate();
 
           ////////////////////////////////////////////////////////////////////////////////////
           //
@@ -721,7 +706,7 @@ ReturnType BiCGStabSolMgr<ScalarType,MV,OP>::solve ()
             // If the number of converged linear systems is equal to the
             // number of current linear systems, then we are done with this block.
             if (convIdx.size() == currRHSIdx.size())
-              break;  // break from while(1){block_cg_iter->iterate()}
+              break;  // break from while(1){bicgstab_iter->iterate()}
 
             // Inform the linear problem that we are finished with this current linear system.
             problem_->setCurrLS();
@@ -750,13 +735,13 @@ ReturnType BiCGStabSolMgr<ScalarType,MV,OP>::solve ()
 
             // Get the current residual vector.
             std::vector<MagnitudeType> norms;
-            R_0 = MVT::CloneCopy( *(block_cg_iter->getNativeResiduals(&norms)),currIdx2 );
+            R_0 = MVT::CloneCopy( *(bicgstab_iter->getNativeResiduals(&norms)),currIdx2 );
             for (int i=0; i<have; ++i) { currIdx2[i] = i; }
 
             // Set the new state and initialize the solver.
             BiCGStabIterationState<ScalarType,MV> defstate;
             defstate.R = R_0;
-            block_cg_iter->initializeBiCGStab(defstate);
+            bicgstab_iter->initializeBiCGStab(defstate);
           }
 
           ////////////////////////////////////////////////////////////////////////////////////
@@ -767,8 +752,23 @@ ReturnType BiCGStabSolMgr<ScalarType,MV,OP>::solve ()
           else if ( maxIterTest_->getStatus() == Passed ) {
             // we don't have convergence
             isConverged = false;
-            break;  // break from while(1){block_cg_iter->iterate()}
+            break;  // break from while(1){bicgstab_iter->iterate()}
           }
+
+          ////////////////////////////////////////////////////////////////////////////////////
+          //
+          // we returned from iterate(), but none of our status tests Passed.
+          // breakdown was detected within the solver iteration.
+          //
+          ////////////////////////////////////////////////////////////////////////////////////
+
+          else if ( bicgstab_iter->breakdownDetected() ) {
+            // we don't have convergence
+            isConverged = false;
+            printer_->stream(Warnings) <<
+              "Belos::BiCGStabSolMgr::solve(): Warning! Solver has experienced a breakdown!" << std::endl;
+            break;  // break from while(1){bicgstab_iter->iterate()}
+          } 
 
           ////////////////////////////////////////////////////////////////////////////////////
           //
@@ -784,7 +784,7 @@ ReturnType BiCGStabSolMgr<ScalarType,MV,OP>::solve ()
         }
         catch (const std::exception &e) {
           printer_->stream(Errors) << "Error! Caught std::exception in BiCGStabIter::iterate() at iteration "
-                                   << block_cg_iter->getNumIters() << std::endl
+                                   << bicgstab_iter->getNumIters() << std::endl
                                    << e.what() << std::endl;
           throw;
         }

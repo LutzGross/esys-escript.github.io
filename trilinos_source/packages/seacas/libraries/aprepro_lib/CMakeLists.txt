@@ -15,7 +15,7 @@ IF (${CMAKE_PROJECT_NAME}_ENABLE_SEACASExodus)
   ADD_DEFINITIONS(-DEXODUS_SUPPORT)
 ENDIF()
 
-INCLUDE_DIRECTORIES(
+TRIBITS_INCLUDE_DIRECTORIES(
   ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
@@ -30,18 +30,18 @@ endif()
 
 SET(HEADERS
   aprepro.h
+  apr_tokenize.h
 )
 
 SET(SOURCES
  apr_aprepro.cc
  apr_util.cc
- apr_stats.cc
  apr_init.cc
  apr_builtin.cc
  apr_units.cc
  apr_tokenize.cc
  apr_scanner.cc
- apr_getline_int.c
+ apr_getline.cc
  ${BISON_LIB_SOURCE}
  apr_exodus.cc
  apr_array.cc
@@ -91,9 +91,9 @@ if(USE_TRIBITS)
     SOURCES ${SOURCES}
   )
 
-if (${CMAKE_PROJECT_NAME} STREQUAL "SEACASProj")
+if (${CMAKE_PROJECT_NAME} STREQUAL "Seacas")
    # add a target to generate API documentation with Doxygen
-   if(SEACASProj_ENABLE_DOXYGEN)
+   if(Seacas_ENABLE_DOXYGEN)
      find_package(Doxygen)
      if(DOXYGEN_FOUND)
        add_custom_command(TARGET aprepro_lib POST_BUILD
@@ -105,28 +105,18 @@ if (${CMAKE_PROJECT_NAME} STREQUAL "SEACASProj")
    endif()
 endif()
 
-# Currently doesn't run on windows due to use of sed...
-if (${CMAKE_PROJECT_NAME}_ENABLE_TESTS)
-  add_executable(aprepro_test_app apr_test.cc)
-  target_link_libraries(aprepro_test_app aprepro_lib)
+if (${PACKAGE_NAME}_ENABLE_TESTS)
+  TRIBITS_ADD_EXECUTABLE(aprepro_lib_test NOEXEPREFIX NOEXESUFFIX INSTALLABLE SOURCES apr_test.cc LINKER_LANGUAGE CXX)
 
 TRIBITS_ADD_ADVANCED_TEST(
  aprepro_lib_unit_test
- TEST_0 EXEC aprepro_test_app
+ TEST_0 EXEC aprepro_lib_test
         ARGS -o test.output ${CMAKE_CURRENT_SOURCE_DIR}/test.inp_app
-  OUTPUT_FILE test.stderr
   NOEXEPREFIX NOEXESUFFIX
   PASS_ANY
- TEST_1 CMND sed ARGS s+${CMAKE_CURRENT_SOURCE_DIR}++
-		       ${CMAKE_CURRENT_BINARY_DIR}/test.stderr
-  OUTPUT_FILE filtered.output
-  PASS_ANY
- TEST_2 CMND diff ARGS -w
+ TEST_1 CMND diff ARGS -w
 		       ${CMAKE_CURRENT_SOURCE_DIR}/test_standard.out
 		       ${CMAKE_CURRENT_BINARY_DIR}/test.output
- TEST_3 CMND diff ARGS -w
-		       ${CMAKE_CURRENT_SOURCE_DIR}/test.stderr.gold
-		       ${CMAKE_CURRENT_BINARY_DIR}/filtered.output
  COMM mpi serial
  OVERALL_NUM_MPI_PROCS 1
  FINAL_PASS_REGULAR_EXPRESSION
@@ -135,10 +125,9 @@ TRIBITS_ADD_ADVANCED_TEST(
 
 TRIBITS_ADD_ADVANCED_TEST(
  aprepro_lib_array_test
- TEST_0 EXEC aprepro_test_app
-	ARGS --include=${CMAKE_CURRENT_SOURCE_DIR} -o test-array.out
+ TEST_0 EXEC aprepro_lib_test
+	ARGS --info=test-array.dump --include=${CMAKE_CURRENT_SOURCE_DIR} -o test-array.out
 	     ${CMAKE_CURRENT_SOURCE_DIR}/test-array.i
-  OUTPUT_FILE test-array.stderr
   NOEXEPREFIX NOEXESUFFIX
   PASS_ANY
  TEST_1 CMND diff ARGS -w
@@ -146,7 +135,7 @@ TRIBITS_ADD_ADVANCED_TEST(
 		       ${CMAKE_CURRENT_BINARY_DIR}/test-array.out
  TEST_2 CMND diff ARGS -w
 		       ${CMAKE_CURRENT_SOURCE_DIR}/test-array.stderr.gold
-		       ${CMAKE_CURRENT_BINARY_DIR}/test-array.stderr
+		       ${CMAKE_CURRENT_BINARY_DIR}/test-array.dump
  COMM mpi serial
  OVERALL_NUM_MPI_PROCS 1
  FINAL_PASS_REGULAR_EXPRESSION
@@ -159,4 +148,3 @@ endif()
 else()
   add_library(aprepro_lib ${HEADERS} ${SOURCES})
 endif()
-

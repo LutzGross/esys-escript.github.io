@@ -78,22 +78,14 @@ private:
 
   typedef typename EvalT::ScalarT ScalarT;
 
-  std::string dof_name;
-  Teuchos::RCP<const PureBasis> basis;
-  int num_pts;
-  int num_dim;
-  int quad_degree;
+  std::string dof_name_;
+  Teuchos::RCP<const PureBasis> basis_;
+  int num_edges_;
+  int num_dim_;
 
-  PHX::MDField<const ScalarT,Cell,BASIS,Dim> tangents;
-  std::vector<PHX::MDField<const ScalarT,Cell,BASIS,Dim> > vector_values;
-  PHX::MDField<ScalarT,Cell,BASIS> result;
-
-  ProjectToEdges();
-
-  PHX::MDField<const ScalarT,Cell,NODE> dof_orientation;
-  PHX::MDField<ScalarT,Cell,NODE,Dim> gatherFieldTangents;
-
-  Teuchos::RCP<const std::vector<Intrepid2::Orientation> > orientations;
+  PHX::MDField<const ScalarT,Cell,BASIS,Dim> tangents_;
+  PHX::MDField<const ScalarT,Cell,BASIS,Dim> vector_values_;
+  PHX::MDField<ScalarT,Cell,BASIS> result_;
 };
 
 }

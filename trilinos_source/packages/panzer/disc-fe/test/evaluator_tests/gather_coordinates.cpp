@@ -53,6 +53,7 @@ using Teuchos::rcp;
 #include "Teuchos_DefaultMpiComm.hpp"
 #include "Teuchos_OpaqueWrapper.hpp"
 
+#include "Kokkos_View_Fad.hpp"
 #include "PanzerDiscFE_config.hpp"
 #include "Panzer_IntegrationRule.hpp"
 #include "Panzer_IntegrationValues2.hpp"
@@ -67,12 +68,9 @@ using Teuchos::rcp;
 
 #include "Phalanx_FieldManager.hpp"
 
-#include "Epetra_MpiComm.h"
-#include "Epetra_Comm.h"
-
 #include "UnitValueEvaluator.hpp"
 
-// for making explicit instantiated tests easier 
+// for making explicit instantiated tests easier
 #define UNIT_TEST_GROUP(TYPE) \
   TEUCHOS_UNIT_TEST_TEMPLATE_1_INSTANT(gather_coordinates,basis,TYPE) \
   TEUCHOS_UNIT_TEST_TEMPLATE_1_INSTANT(gather_coordinates,integration,TYPE)
@@ -84,11 +82,11 @@ TEUCHOS_UNIT_TEST_TEMPLATE_1_DECL(gather_coordinates,basis,EvalType)
 
   // build global (or serial communicator)
   #ifdef HAVE_MPI
-     Teuchos::RCP<Epetra_Comm> eComm = Teuchos::rcp(new Epetra_MpiComm(MPI_COMM_WORLD));
+     Teuchos::RCP<const Teuchos::MpiComm<int> > eComm = Teuchos::rcp(new Teuchos::MpiComm<int>(MPI_COMM_WORLD));
   #else
-     Teuchos::RCP<Epetra_Comm> eComm = Teuchos::rcp(new Epetra_SerialComm());
+      auto eComm = Teuchos::rcp(Teuchos::DefaultComm<int>::getComm());
   #endif
- 
+
   using Teuchos::RCP;
   using Teuchos::rcp;
   using Teuchos::rcp_dynamic_cast;
@@ -106,15 +104,18 @@ TEUCHOS_UNIT_TEST_TEMPLATE_1_DECL(gather_coordinates,basis,EvalType)
   MDFieldArrayFactory af("",true);
   workset->cell_vertex_coordinates = af.buildStaticArray<double,Cell,NODE,Dim>("coords",numCells,numVerts,dim);
   Workset::CellCoordArray coords = workset->cell_vertex_coordinates;
-  coords(0,0,0) = 1.0; coords(0,0,1) = 0.0;
-  coords(0,1,0) = 1.0; coords(0,1,1) = 1.0;
-  coords(0,2,0) = 0.0; coords(0,2,1) = 1.0;
-  coords(0,3,0) = 0.0; coords(0,3,1) = 0.0;
+  Kokkos::parallel_for(1, KOKKOS_LAMBDA (int ) {
+      coords(0,0,0) = 1.0; coords(0,0,1) = 0.0;
+      coords(0,1,0) = 1.0; coords(0,1,1) = 1.0;
+      coords(0,2,0) = 0.0; coords(0,2,1) = 1.0;
+      coords(0,3,0) = 0.0; coords(0,3,1) = 0.0;
 
-  coords(1,0,0) = 1.0; coords(1,0,1) = 1.0;
-  coords(1,1,0) = 2.0; coords(1,1,1) = 2.0;
-  coords(1,2,0) = 1.0; coords(1,2,1) = 3.0;
-  coords(1,3,0) = 0.0; coords(1,3,1) = 2.0;
+      coords(1,0,0) = 1.0; coords(1,0,1) = 1.0;
+      coords(1,1,0) = 2.0; coords(1,1,1) = 2.0;
+      coords(1,2,0) = 1.0; coords(1,2,1) = 3.0;
+      coords(1,3,0) = 0.0; coords(1,3,1) = 2.0;
+    });
+  Kokkos::fence();
 
   // build topology, basis, integration rule, and basis layout
   int quadOrder = 5;
@@ -155,17 +156,16 @@ TEUCHOS_UNIT_TEST_TEMPLATE_1_DECL(gather_coordinates,basis,EvalType)
   workset->bases.push_back(basisValues);
 
   Teuchos::RCP<PHX::FieldManager<panzer::Traits> > fm
-     = Teuchos::rcp(new PHX::FieldManager<panzer::Traits>); 
+     = Teuchos::rcp(new PHX::FieldManager<panzer::Traits>);
 
   // typedef panzer::Traits::Residual EvalType;
-  typedef Sacado::ScalarValue<typename EvalType::ScalarT> ScalarValue;
   Teuchos::RCP<PHX::MDField<typename EvalType::ScalarT,panzer::Cell,panzer::BASIS,panzer::Dim> > fmCoordsPtr;
   Teuchos::RCP<PHX::DataLayout> dl_coords = basis->coordinates;
 
   // add in some evaluators
   ///////////////////////////////////////////////////
   {
-     RCP<panzer::GatherBasisCoordinates<EvalType,panzer::Traits> > eval 
+     RCP<panzer::GatherBasisCoordinates<EvalType,panzer::Traits> > eval
         = rcp(new panzer::GatherBasisCoordinates<EvalType,panzer::Traits>(*basis));
 
      const std::vector<RCP<PHX::FieldTag> > & evalFields = eval->evaluatedFields();
@@ -210,11 +210,13 @@ TEUCHOS_UNIT_TEST_TEMPLATE_1_DECL(gather_coordinates,basis,EvalType)
   fm->getFieldData<EvalType>(fmCoords);
 
   fmCoords.print(out,true);
-
-  for(int cell=0;cell<fmCoords.extent_int(0);++cell)
+  int error = false;
+  Kokkos::parallel_reduce(fmCoords.extent_int(0), KOKKOS_LAMBDA (int cell, int &err) {
     for(int pt=0;pt<fmCoords.extent_int(1);++pt)
       for(int d=0;d<fmCoords.extent_int(2);++d)
-	TEST_EQUALITY(ScalarValue::eval(fmCoords(cell,pt,d)),coords(cell,pt,d));
+	err |= Sacado::scalarValue(fmCoords(cell,pt,d))!=coords(cell,pt,d);
+    },error);
+  TEST_EQUALITY(error, false);
 }
 
 TEUCHOS_UNIT_TEST_TEMPLATE_1_DECL(gather_coordinates,integration,EvalType)
@@ -222,11 +224,11 @@ TEUCHOS_UNIT_TEST_TEMPLATE_1_DECL(gather_coordinates,integration,EvalType)
 
   // build global (or serial communicator)
   #ifdef HAVE_MPI
-     Teuchos::RCP<Epetra_Comm> eComm = Teuchos::rcp(new Epetra_MpiComm(MPI_COMM_WORLD));
+     Teuchos::RCP<const Teuchos::MpiComm<int> > eComm = Teuchos::rcp(new Teuchos::MpiComm<int>(MPI_COMM_WORLD));
   #else
-     Teuchos::RCP<Epetra_Comm> eComm = Teuchos::rcp(new Epetra_SerialComm());
+      auto eComm = Teuchos::rcp(Teuchos::DefaultComm<int>::getComm());
   #endif
- 
+
   using Teuchos::RCP;
   using Teuchos::rcp;
   using Teuchos::rcp_dynamic_cast;
@@ -245,16 +247,17 @@ TEUCHOS_UNIT_TEST_TEMPLATE_1_DECL(gather_coordinates,integration,EvalType)
   MDFieldArrayFactory af("",true);
   workset->cell_vertex_coordinates = af.buildStaticArray<double,Cell,NODE,Dim>("coords",numCells,numVerts,dim);
   Workset::CellCoordArray coords = workset->cell_vertex_coordinates;
-  coords(0,0,0) = 1.0; coords(0,0,1) = 0.0;
-  coords(0,1,0) = 1.0; coords(0,1,1) = 1.0;
-  coords(0,2,0) = 0.0; coords(0,2,1) = 1.0;
-  coords(0,3,0) = 0.0; coords(0,3,1) = 0.0;
+  Kokkos::parallel_for(1, KOKKOS_LAMBDA (int ) {
+      coords(0,0,0) = 1.0; coords(0,0,1) = 0.0;
+      coords(0,1,0) = 1.0; coords(0,1,1) = 1.0;
+      coords(0,2,0) = 0.0; coords(0,2,1) = 1.0;
+      coords(0,3,0) = 0.0; coords(0,3,1) = 0.0;
 
-  coords(1,0,0) = 1.0; coords(1,0,1) = 1.0;
-  coords(1,1,0) = 2.0; coords(1,1,1) = 2.0;
-  coords(1,2,0) = 1.0; coords(1,2,1) = 3.0;
-  coords(1,3,0) = 0.0; coords(1,3,1) = 2.0;
-
+      coords(1,0,0) = 1.0; coords(1,0,1) = 1.0;
+      coords(1,1,0) = 2.0; coords(1,1,1) = 2.0;
+      coords(1,2,0) = 1.0; coords(1,2,1) = 3.0;
+      coords(1,3,0) = 0.0; coords(1,3,1) = 2.0;
+    });
   // build topology, basis, integration rule, and basis layout
   int quadOrder = 5;
   Teuchos::RCP<shards::CellTopology> topo
@@ -294,17 +297,16 @@ TEUCHOS_UNIT_TEST_TEMPLATE_1_DECL(gather_coordinates,integration,EvalType)
   workset->bases.push_back(basisValues);
 
   Teuchos::RCP<PHX::FieldManager<panzer::Traits> > fm
-     = Teuchos::rcp(new PHX::FieldManager<panzer::Traits>); 
+     = Teuchos::rcp(new PHX::FieldManager<panzer::Traits>);
 
   // typedef panzer::Traits::Residual EvalType;
-  typedef Sacado::ScalarValue<typename EvalType::ScalarT> ScalarValue;
   Teuchos::RCP<PHX::MDField<typename EvalType::ScalarT,panzer::Cell,panzer::Point,panzer::Dim> > fmCoordsPtr;
   Teuchos::RCP<PHX::DataLayout> dl_coords = quadRule->dl_vector;
 
   // add in some evaluators
   ///////////////////////////////////////////////////
   {
-     RCP<panzer::GatherIntegrationCoordinates<EvalType,panzer::Traits> > eval 
+     RCP<panzer::GatherIntegrationCoordinates<EvalType,panzer::Traits> > eval
         = rcp(new panzer::GatherIntegrationCoordinates<EvalType,panzer::Traits>(*quadRule));
 
      const std::vector<RCP<PHX::FieldTag> > & evalFields = eval->evaluatedFields();
@@ -350,10 +352,15 @@ TEUCHOS_UNIT_TEST_TEMPLATE_1_DECL(gather_coordinates,integration,EvalType)
 
   fmCoords.print(out,true);
 
-  for(int cell=0;cell<fmCoords.extent_int(0);++cell)
+  int error = false;
+  auto q_coords = quadValues->ip_coordinates;
+  Kokkos::parallel_reduce(fmCoords.extent_int(0), KOKKOS_LAMBDA (int cell, int &err) {
     for(int pt=0;pt<fmCoords.extent_int(1);++pt)
       for(int d=0;d<fmCoords.extent_int(2);++d)
-	TEST_EQUALITY(ScalarValue::eval(fmCoords(cell,pt,d)),quadValues->ip_coordinates(cell,pt,d));
+	err |= Sacado::scalarValue(fmCoords(cell,pt,d)) != q_coords(cell,pt,d);
+    },error);
+  TEST_EQUALITY(error, false);
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////

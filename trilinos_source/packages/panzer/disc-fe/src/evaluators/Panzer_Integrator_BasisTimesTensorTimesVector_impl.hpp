@@ -75,7 +75,7 @@ namespace panzer
     useDescriptors_(false),
     basisName_(basis.name())
   {
-    using Kokkos::View;
+    using PHX::View;
     using panzer::BASIS;
     using panzer::Cell;
     using panzer::EvaluatorStyle;
@@ -148,7 +148,7 @@ namespace panzer
     bd_(bd),
     id_(id)
   {
-    using Kokkos::View;
+    using PHX::View;
     using panzer::BASIS;
     using panzer::Cell;
     using panzer::EvaluatorStyle;
@@ -234,7 +234,7 @@ namespace panzer
     using panzer::getBasisIndex;
     using std::size_t;
 
-    // Get the Kokkos::View of the tensor.
+    // Get the PHX::View of the tensor.
     kokkosTensor_ = tensor_.get_static_view();
 
     // Determine the number of quadrature points and the dimensionality of the
@@ -245,6 +245,14 @@ namespace panzer
     // Determine the index in the Workset bases for our particular basis name.
     if (not useDescriptors_)
       basisIndex_ = getBasisIndex(basisName_, (*sd.worksets_)[0], this->wda);
+
+    if (Sacado::IsADType<ScalarT>::value) {
+      const auto fadSize = Kokkos::dimension_scalar(field_.get_view());
+      tmp_ = PHX::View<ScalarT*>("GradBasisDotVector::tmp_",field_.extent(0),fadSize);
+    } else {
+      tmp_ = PHX::View<ScalarT*>("GradBasisDotVector::tmp_",field_.extent(0));
+    }
+
   } // end of postRegistrationSetup()
 
   /////////////////////////////////////////////////////////////////////////////
@@ -267,7 +275,6 @@ namespace panzer
       for (int basis(0); basis < numBases; ++basis)
         field_(cell, basis) = 0.0;
 
-    ScalarT tmp;
     // Loop over the quadrature points and dimensions of our vector fields,
     // scale the integrand by the tensor,
     // and then perform the actual integration, looping over the bases.
@@ -275,11 +282,11 @@ namespace panzer
       {
         for (int dim(0); dim < numDim_; ++dim)
           {
-            tmp = 0.;
+            tmp_(cell) = 0.0;
             for (int dim2(0); dim2 < numDim_; ++dim2)
-              tmp += kokkosTensor_(cell, qp, dim, dim2) * vector_(cell, qp, dim2);
+              tmp_(cell) += kokkosTensor_(cell, qp, dim, dim2) * vector_(cell, qp, dim2);
             for (int basis(0); basis < numBases; ++basis)
-              field_(cell, basis) += basis_(cell, basis, qp, dim) * tmp;
+              field_(cell, basis) += basis_(cell, basis, qp, dim) * tmp_(cell);
           } // end loop over the dimensions of the vector field
       } // end loop over the quadrature points
   } // end of operator()()
@@ -302,7 +309,8 @@ namespace panzer
     const panzer::BasisValues2<double>& bv = useDescriptors_ ?
       this->wda(workset).getBasisValues(bd_,id_) :
       *this->wda(workset).bases[basisIndex_];
-    basis_ = bv.weighted_basis_vector;
+    using Array=typename BasisValues2<double>::ConstArray_CellBasisIPDim;
+    basis_ = useDescriptors_ ? bv.getVectorBasisValues(true) : Array(bv.weighted_basis_vector);
 
     parallel_for(RangePolicy<>(0, workset.num_cells), *this);
   } // end of evaluateFields()
