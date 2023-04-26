@@ -484,16 +484,18 @@ def checkForTrilinos(env):
     trilinos_lib_path=''
     dependencies = ['Amesos2.hpp', 'Amesos2_Solver_decl.hpp', 'BelosSolverFactory.hpp', 'BelosSolverManager.hpp', \
                     'BelosTFQMRIter.hpp', 'BelosTFQMRSolMgr.hpp', 'BelosTpetraAdapter.hpp', 'BelosTypes.hpp', \
-                    'Ifpack2_Factory.hpp', 'Kokkos_DefaultNode.hpp', \
+                    'Ifpack2_Factory.hpp',  \
                     'MatrixMarket_Tpetra.hpp', 'MueLu_CreateTpetraPreconditioner.hpp', \
                     'Teuchos_DefaultComm.hpp', 'Teuchos_ParameterList.hpp', \
                     'Teuchos_Comm.hpp', 'Teuchos_TimeMonitor.hpp', 'Tpetra_CrsMatrix_decl.hpp', \
                     'Tpetra_BlockCrsMatrix_decl.hpp', \
                     'Tpetra_CrsGraph.hpp', 'Tpetra_CrsMatrix.hpp', 'Tpetra_RowMatrix.hpp', \
-                    'Tpetra_createDeepCopy_CrsMatrix.hpp', \
                     'TpetraExt_TripleMatrixMultiply_def.hpp', \
                     'Tpetra_Vector.hpp', 'Trilinos_version.h']
     packages = ['Tpetra', 'Kokkos', 'Belos', 'Amesos2', 'Ifpack2', 'MueLu']
+
+    # 'Kokkos_DefaultNode.hpp',
+    # 'Tpetra_createDeepCopy_CrsMatrix.hpp', \
 
     if env['trilinos']:
         havelibs = (len(env['trilinos_libs']) > 0)
@@ -561,26 +563,36 @@ def checkForTrilinos(env):
     else:
         raise RuntimeError('Could not locate the Trilinos BlockVector header')
 
+    # Trilinos version 14 and higher
+    if major >= 14:
+        if not havelibs:
+            libs = []
+            for file in os.listdir(trilinos_lib_path):
+                if file[-3:] == ".so":
+                    libs.append(file[3:-3])
+                if file[-3:] == ".dylib": # macOS
+                    libs.append(file[3:-6])
+            env['trilinos_libs'] = libs
+    else:
+        if not havelibs:
+            libs = []
+            for pk in packages:
+                # find out what libraries to link with...
+                makefile = os.path.join(trilinos_inc_path, 'Makefile.export.%s'%pk)
+                try:
+                    for l in open(makefile, 'r').readlines():
+                        if l.startswith("%s_LIBRARIES"%pk): # or l.startswith("Trilinos_TPL_LIBRARIES"):
+                            lst = l.split('=')[1].strip().split()
+                            lst = [e.replace('-l','',1) for e in lst]
+                            libs += lst
+                        elif l.startswith("%s_TPL_INCLUDE_DIRS"%pk):
+                            lst = l.split('=')[1].strip().split()
+                            lst = [e.replace('-I','',1) for e in lst]
+                            env.AppendUnique(CPPPATH = lst)
 
-    if not havelibs:
-        libs = []
-        for pk in packages:
-            # find out what libraries to link with...
-            makefile = os.path.join(trilinos_inc_path, 'Makefile.export.%s'%pk)
-            try:
-                for l in open(makefile, 'r').readlines():
-                    if l.startswith("%s_LIBRARIES"%pk): # or l.startswith("Trilinos_TPL_LIBRARIES"):
-                        lst = l.split('=')[1].strip().split()
-                        lst = [e.replace('-l','',1) for e in lst]
-                        libs += lst
-                    elif l.startswith("%s_TPL_INCLUDE_DIRS"%pk):
-                        lst = l.split('=')[1].strip().split()
-                        lst = [e.replace('-I','',1) for e in lst]
-                        env.AppendUnique(CPPPATH = lst)
-
-            except Exception as e:
-                raise RuntimeError('Error reading Trilinos export Makefile\n%s'%(e))
-        env['trilinos_libs'] = libs
+                except Exception as e:
+                    raise RuntimeError('Error reading Trilinos export Makefile\n%s'%(e))
+            env['trilinos_libs'] = libs
 
     pytri_path=trilinos_lib_path+'/python'+str(sys.version_info[0])+'.'+str(sys.version_info[1])+'/site-packages/PyTrilinos'
     pytri_test_file=os.path.join(pytri_path,'Tpetra.pyc')
