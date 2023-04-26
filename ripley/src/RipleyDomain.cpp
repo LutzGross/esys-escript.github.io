@@ -1525,11 +1525,7 @@ void RipleyDomain::addToSystemMatrix<cplx_t>(escript::AbstractSystemMatrix* mat,
                                          const vector<cplx_t>& array) const
 {
 #ifdef ESYS_HAVE_MUMPS
-<<<<<<< HEAD
     paso::SystemMatrix<cplx_t>* psm = dynamic_cast<paso::SystemMatrix<cplx_t>*>(mat);
-=======
-    paso::SystemMatrix* psm = dynamic_cast<paso::SystemMatrix*>(mat);
->>>>>>> origin/oxley
     if (psm) {
         addToPasoMatrix(psm, nodes, numEq, array);
         return;

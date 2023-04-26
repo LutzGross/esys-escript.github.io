@@ -319,7 +319,7 @@ env.Append(LIBPATH = [env['libinstall']])
 
 
 # default compiler/linker options
-cxx_flags = '-std=c++11 '+ env['cxx_extra']  # extra CXX flags
+cxx_flags = '-std=c++17 '+ env['cxx_extra']  # extra CXX flags
 cc_flags = ''
 cc_optim = ''
 cc_debug = ''
@@ -485,7 +485,7 @@ if not ( env['build_trilinos'] == "False" or env['build_trilinos'] == 'never' ):
     print(env['CC'])
     print(env['CXX'])
     if env['trilinos_make'] == 'default':
-        if env['mpi'] != 'none':
+        if env['mpi'] not in [ 'none', 'no', True]:
             print("Building (MPI) trilinos..............................")
             configure="sh mpi.sh " + env['prefix'] + " " + env['CC'] + " " + env['CXX'] + " " + OPENMPFLAG
         else:

@@ -480,6 +480,8 @@ def checkOptionalModules(env):
     return env
 
 def checkForTrilinos(env):
+
+
     trilinos_inc_path=''
     trilinos_lib_path=''
     dependencies = ['Amesos2.hpp', 'Amesos2_Solver_decl.hpp', 'BelosSolverFactory.hpp', 'BelosSolverManager.hpp', \
@@ -609,6 +611,9 @@ def checkForTrilinos(env):
     return env
 
 def checkOptionalLibraries(env):
+    if env['mpi']=='no':
+        env['mpi']='none'
+    env['usempi'] = env['mpi']!='none'
     ######## netCDF
     netcdf_inc_path=''
     netcdf_lib_path=''
@@ -656,7 +661,10 @@ def checkOptionalLibraries(env):
     mumps_inc_path=''
     mumps_lib_path=''
     if env['mumps']:
-        mumps_inc_path,mumps_lib_path=findLibWithHeader(env, env['mumps_libs'], 'mumps_mpi.h', env['mumps_prefix'], lang='c++')
+        if env['usempi']:
+            mumps_inc_path,mumps_lib_path=findLibWithHeader(env, env['mumps_libs'], 'mumps_mpi.h', env['mumps_prefix'], lang='c++')
+        else:
+            mumps_inc_path, mumps_lib_path = findLibWithHeader(env, env['mumps_libs'], 'mumps_seq/mpi.h', env['mumps_prefix'], lang='c++')
         env.AppendUnique(CPPPATH = [mumps_inc_path])
         env.AppendUnique(LIBPATH = [mumps_lib_path])
         env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], mumps_lib_path)
@@ -741,10 +749,7 @@ def checkOptionalLibraries(env):
     env['buildvars']['visit']=int(env['visit'])
 
     ######## MPI
-    if env['mpi']=='no':
-        env['mpi']='none'
 
-    env['usempi'] = env['mpi']!='none'
     mpi_inc_path=''
     mpi_lib_path=''
     if env['usempi']:
