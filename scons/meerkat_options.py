@@ -14,52 +14,46 @@
 #
 ##############################################################################
 
-clang=False
-# clang=True
+# This is a template configuration file for escript on Debian/GNU Linux.
+# Refer to README_FIRST for usage instructions.
 
 escript_opts_version = 203
 
 #cxx='/usr/bin/clang++'
 
-debug=0
-debug=1
+debug=False
+# debug=True
 
-openmp=False
+# openmp=False
 openmp=True
 
-paso=1
-build_trilinos=0
-trilinos=0
-trilinos_prefix='~/Documents/escript6.0/escript-trilinos'
+boost_libs='boost_python39'
+build_dir='build_normal'
+cxx_extra=" -fdiagnostics-color"
 
-if debug == True:
-	boost_libs='boost_python39'
-	build_dir='build_debug'
-	cxx_extra="-O0 -g -pg -fdiagnostics-color -Wno-implicit-int-float-conversion"
-	debug=True
-	ld_extra='-L/usr/lib/openmpi/'
-	pythoncmd="/usr/bin/python3"
-	pythonlibname="python3.9"
-	pythonlibpath="/usr/lib/x86_64-linux-gnu/"
-	pythonincpath="/usr/include/python3.9"
-	umfpack=True
-	umfpack_prefix=['/usr/include/suitesparse','/usr/lib/x86_64-linux-gnu']
-	verbose=True
-	werror=False
-else:
-	boost_libs='boost_python39'
-	build_dir='build_normal'
-	cxx_extra="-O3 -funroll-loops -fdiagnostics-color"
-	ld_extra='-L/usr/lib/openmpi/'
-	pythoncmd="/usr/bin/python3"
-	pythonlibname="python3.9"
-	pythonlibpath="/usr/lib/x86_64-linux-gnu/"
-	pythonincpath="/usr/include/python3.9"
-	umfpack=True
-	umfpack_prefix=['/usr/include/suitesparse','/usr/lib/x86_64-linux-gnu']
-	verbose=True
-	werror=False
+# cxx_extra+=" -p -g -pg -ggdb -O0"
+
+domains=["finley"]
+
+ld_extra='-L/usr/lib/openmpi/'
+paso=False
+pythoncmd="/usr/bin/python3"
+pythonlibname="python3.9"
+pythonlibpath="/usr/lib/x86_64-linux-gnu/"
+pythonincpath="/usr/include/python3.9"
 
 cxx_extra+=" -Wno-maybe-unitialized"
 
-# use_sympy=False
+# paso=1
+# build_trilinos=0
+build_trilinos='never'
+trilinos=1
+trilinos_prefix="/usr/local/trilinos.mpi.13"
+mpi='OPENMPI'
+mpi_prefix='/usr/lib/x86_64-linux-gnu/openmpi/'
+
+verbose=1
+werror=0
+
+
+
