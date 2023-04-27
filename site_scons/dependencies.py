@@ -347,6 +347,7 @@ def checkBoost(env):
                 spath = [x[13:-3] for x in out.split() if 'SEARCH_DIR' in x]
                 spath.append(boost_lib_path)
                 spath.append('/usr/lib/x86_64-linux-gnu/')
+                spath.append('/usr/lib64/')
                 p2name = ''
                 p3name = ''
                 for name in spath:
