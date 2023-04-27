@@ -1131,6 +1131,12 @@ Domain_ptr brick_driver(const bp::list& args)
         }
     }
     bp::object pworld = args[16];
+#ifdef ESYS_MPI 
+    int mpi_init = 0;
+    MPI_Initialized(&mpi_init);
+    if(!mpi_init)
+        MPI_Init(NULL,NULL);
+#endif
     JMPI info = makeInfo(MPI_COMM_WORLD);
     return brick(info, static_cast<dim_t>(bp::extract<float>(args[0])),
                  static_cast<dim_t>(bp::extract<float>(args[1])),

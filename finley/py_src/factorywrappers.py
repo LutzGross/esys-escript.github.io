@@ -25,7 +25,7 @@ http://www.apache.org/licenses/LICENSE-2.0"""
 __url__="https://launchpad.net/escript-finley"
 
 
-from .finleycpp import __Brick_driver, __Rectangle_driver, __Rectangle_driver_MPI, __ReadMesh_driver, __ReadGmsh_driver
+from .finleycpp import __Brick_driver, __Brick_driver_MPI, __Rectangle_driver, __Rectangle_driver_MPI, __ReadMesh_driver, __ReadGmsh_driver
 
 
 def ReadMesh(filename, integrationOrder=-1, reducedIntegrationOrder=-1, optimize=True, **kwargs):
