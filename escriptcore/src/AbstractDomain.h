@@ -297,7 +297,7 @@ public:
 
 #if defined(ESYS_MPI) && defined(ESYS_HAVE_MPI4PY)
     // Changes the communicator
-   void setMPIComm(boost::python::object py_comm);
+   // void setMPIComm(boost::python::object py_comm);
 #endif
 
     /**
