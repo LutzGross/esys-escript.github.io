@@ -20,7 +20,7 @@
 #include <weipa/ElementData.h>
 #include <weipa/NodeData.h>
 #include <weipa/WeipaException.h>
-#if defined USE_FINLEY || defined USE_DUDLEY
+#if defined USE_FINLEY
 #include <weipa/FinleyDomain.h>
 #endif
 #ifdef USE_RIPLEY
@@ -29,28 +29,26 @@
 #ifdef USE_SPECKLEY
 #include <weipa/SpeckleyDomain.h>
 #endif
-// #ifdef USE_OXLEY
-// #include <weipa/OxleyDomain.h>
-// #endif
+#ifdef USE_OXLEY
+#include <weipa/OxleyDomain.h>
+#endif
 
 #ifndef VISIT_PLUGIN
 #include <escript/Data.h>
 #include <escript/FileWriter.h>
-#ifdef USE_DUDLEY
-#include <dudley/DudleyDomain.h>
-#endif
 #ifdef USE_FINLEY
 #include <finley/FinleyDomain.h>
 #endif
-// #ifdef USE_OXLEY
-// #include <oxley/OxleyDomain.h>
-// #endif
-#ifdef USE_RIPLEY
-#include <ripley/RipleyDomain.h>
+#ifdef USE_OXLEY
+#include <oxley/OxleyDomain.h>
 #endif
 #ifdef USE_SPECKLEY
 #include <speckley/SpeckleyDomain.h>
 #endif
+#ifdef USE_RIPLEY
+#include <ripley/RipleyDomain.h>
+#endif
+
 
 using escript::FileWriter;
 #endif
@@ -151,32 +149,19 @@ bool EscriptDataset::setDomain(const escript::AbstractDomain* domain)
             }
         }
 #endif
-#if USE_DUDLEY
-        else if (dynamic_cast<const dudley::DudleyDomain*>(domain)) {
-            DomainChunk_ptr dom(new FinleyDomain());
-            if (dom->initFromEscript(domain)) {
-                if (mpiSize > 1)
-                    dom->reorderGhostZones(mpiRank);
-                domainChunks.push_back(dom);
-            } else {
-                cerr << "Error initializing domain!" << endl;
-                myError = 2;
-            }
-        }
+#if USE_OXLEY
+         else if (dynamic_cast<const oxley::OxleyDomain*>(domain)) {
+             DomainChunk_ptr dom(new OxleyDomain());
+             if (dom->initFromEscript(domain)) {
+                 if (mpiSize > 1)
+                     dom->reorderGhostZones(mpiRank);
+                 domainChunks.push_back(dom);
+             } else {
+                 cerr << "Error initializing domain!" << endl;
+                 myError = 2;
+             }
+         }
 #endif
-// #if USE_OXLEY
-//         else if (dynamic_cast<const oxley::OxleyDomain*>(domain)) {
-//             DomainChunk_ptr dom(new OxleyDomain());
-//             if (dom->initFromEscript(domain)) {
-//                 if (mpiSize > 1)
-//                     dom->reorderGhostZones(mpiRank);
-//                 domainChunks.push_back(dom);
-//             } else {
-//                 cerr << "Error initializing domain!" << endl;
-//                 myError = 2;
-//             }
-//         }
-// #endif
 #if USE_RIPLEY
         else if (dynamic_cast<const ripley::RipleyDomain*>(domain)) {
             DomainChunk_ptr dom(new RipleyDomain());

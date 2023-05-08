@@ -48,20 +48,20 @@ OxleyDomain::OxleyDomain(const OxleyDomain& m) :
 bool OxleyDomain::initFromEscript(const escript::AbstractDomain* escriptDomain)
 {
     initialized = false;
-// #ifndef VISIT_PLUGIN
-//     const oxley::OxleyDomain* dom = dynamic_cast<const oxley::OxleyDomain*>(escriptDomain);
-//     if (dom) {
-//         nodes = OxleyNodes_ptr(new OxleyNodes("Elements"));
-//         cells = OxleyElements_ptr(new OxleyElements("Elements", nodes));
-//         faces = OxleyElements_ptr(new OxleyElements("FaceElements", nodes));
+#ifndef VISIT_PLUGIN
+     const oxley::OxleyDomain* dom = dynamic_cast<const oxley::OxleyDomain*>(escriptDomain);
+     if (dom) {
+         nodes = OxleyNodes_ptr(new OxleyNodes("Elements"));
+         cells = OxleyElements_ptr(new OxleyElements("Elements", nodes));
+         faces = OxleyElements_ptr(new OxleyElements("FaceElements", nodes));
 
-//         if (nodes->initFromOxley(dom) &&
-//                 cells->initFromOxley(dom, oxley::Elements) &&
-//                 faces->initFromOxley(dom, oxley::FaceElements)) {
-//             initialized = true;
-//         }
-//     }
-// #endif // VISIT_PLUGIN
+         if (nodes->initFromOxley(dom) &&
+                 cells->initFromOxley(dom, oxley::Elements) &&
+                 faces->initFromOxley(dom, oxley::FaceElements)) {
+             initialized = true;
+         }
+     }
+#endif // VISIT_PLUGIN
 
     return initialized;
 }

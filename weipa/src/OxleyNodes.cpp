@@ -115,28 +115,28 @@ OxleyNodes::~OxleyNodes()
 //
 bool OxleyNodes::initFromOxley(const oxley::OxleyDomain* dom)
 {
-// #ifndef VISIT_PLUGIN
+//#ifndef VISIT_PLUGIN
 //     CoordArray::iterator it;
 //     for (it = coords.begin(); it != coords.end(); it++)
 //         delete[] *it;
 //     coords.clear();
 //     nodeID.clear();
 //     nodeTag.clear();
-
+//
 //     numDims = dom->getDim();
 //     globalNumNodes = dom->getNumDataPointsGlobal();
 //     pair<int,dim_t> shape = dom->getDataShape(oxley::Nodes);
 //     numNodes = shape.second;
 //     oxley::IndexVector dist = dom->getNodeDistribution();
 //     nodeDist.assign(dist.begin(), dist.end());
-
+//
 //     if (numNodes > 0) {
 //         for (int d=0; d<numDims; d++) {
 //             float* c = new float[numNodes];
 //             coords.push_back(c);
 //         }
 //         const dim_t* NN = dom->getNumNodesPerDim();
-
+//
 //         if (numDims==2) {
 // #pragma omp parallel for
 //             for (dim_t i1=0; i1<NN[1]; i1++) {
@@ -160,16 +160,13 @@ bool OxleyNodes::initFromOxley(const oxley::OxleyDomain* dom)
 //         }
 //         const dim_t* iPtr = dom->borrowSampleReferenceIDs(oxley::Nodes);
 //         nodeID.assign(iPtr, iPtr+numNodes);
-
-//         //iPtr = dom->borrowListOfTags(oxley::Nodes);
-//         nodeTag.assign(iPtr, iPtr+numNodes);
+//    iPtr = dom->borrowListOfTags(oxley::Nodes);
+//       nodeTag.assign(iPtr, iPtr+numNodes);
 //     }
-
 //     return true;
-// #else // VISIT_PLUGIN
+//#else // VISIT_PLUGIN
 //     return false;
-// #endif
-    return false;
+//#endif
 }
 
 //
