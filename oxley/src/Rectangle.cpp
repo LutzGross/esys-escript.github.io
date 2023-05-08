@@ -1112,6 +1112,11 @@ void Rectangle::refineRegion(double x0, double x1, double y0, double y1)
     forestData.refinement_boundaries[2] = y0 == -1 ? forestData.m_lxy[0] : y0;
     forestData.refinement_boundaries[3] = y1 == -1 ? forestData.m_lxy[1] : y1;
 
+#ifdef OXLEY_ENABLE_DEBUG_REFINE_REGION
+    std::cout << "Rectangle::refineRegion" << std::endl;
+    std::cout << "Region boundaries = " << x0 << ", " << y0 << " and " << x1 << ", " << y1 << std::endl;
+#endif
+
     p4est_refine_ext(p4est, true, -1, refine_region, init_rectangle_data, refine_copy_parent_quadrant);
     p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);
 

@@ -340,64 +340,27 @@ int refine_region(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadr
     quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
     double * xy0 = quadData->xy;
     
+    // The corners of the refinement region
+    double x[2]={forestData->refinement_boundaries[0],forestData->refinement_boundaries[1]};
+    double y[2]={forestData->refinement_boundaries[2],forestData->refinement_boundaries[3]};
 
-    double corners_of_quadrant[6][3]={{0.0}};
+    // The point being examined
     double l[3] = {forestData->m_dx[0][P4EST_MAXLEVEL-quadrant->level],
-                   forestData->m_dx[1][P4EST_MAXLEVEL-quadrant->level],
-                   forestData->m_dx[2][P4EST_MAXLEVEL-quadrant->level]};
-    double inc[8][3]={{0,0,0},{l[0],0,0},{0,l[1],0},{l[0],l[1],0},
-                      {0,0,l[2]},{l[0],0,l[2]},{0,l[1],l[2]},{l[0],l[1],l[2]}};
+                   forestData->m_dx[1][P4EST_MAXLEVEL-quadrant->level]};
+    double xy[2]={*(xy0  ),*(xy0+1)};
 
-    point_info region[4];
-    region[0].x=forestData->refinement_boundaries[0];
-    region[0].y=forestData->refinement_boundaries[1];
-    region[1].x=forestData->refinement_boundaries[2];
-    region[1].y=forestData->refinement_boundaries[1];
-    region[2].x=forestData->refinement_boundaries[0];
-    region[2].y=forestData->refinement_boundaries[3];
-    region[3].x=forestData->refinement_boundaries[2];
-    region[3].y=forestData->refinement_boundaries[3];
+    bool x_in_region = (xy[0] >= x[0]) && (xy[0] <= x[1]);
+    bool y_in_region = (xy[1] >= y[0]) && (xy[1] <= y[1]);
 
-    //check corners
-    bool check[4]={false};
-    double xy[4][3]={{-1}};
-    for(int i=0; i<6;i++)
+    bool refinement = x_in_region && y_in_region;
+
+#ifdef OXLEY_ENABLE_DEBUG_REFINE_REGION
+    if(refinement)
     {
-        xy[i][0]=*(xy0  )+inc[i][0];
-        xy[i][1]=*(xy0+1)+inc[i][1];
-        xy[i][2]=*(xy0+2)+inc[i][2];
-        check[i]=point_in_box(xy[i][0], xy[i][1], xy[i][2],
-                                forestData->refinement_boundaries[0],
-                                forestData->refinement_boundaries[1],
-                                forestData->refinement_boundaries[2],
-                                forestData->refinement_boundaries[3],
-                                forestData->refinement_boundaries[4],
-                                forestData->refinement_boundaries[5]);
+        std::cout << "Point (x,y)=(" << xy0[0] << "," << xy0[1] << ") ";
+        std::cout << " is in the region." << std::endl;
     }
-
-    //check sides
-    bool checkB[8]={false};
-    double corners[6][3]={{forestData->refinement_boundaries[0],forestData->refinement_boundaries[1]},
-                          {forestData->refinement_boundaries[2],forestData->refinement_boundaries[1]},
-                          {forestData->refinement_boundaries[0],forestData->refinement_boundaries[3]},
-                          {forestData->refinement_boundaries[2],forestData->refinement_boundaries[3]}};
-
-    // vertical
-    // checkB[0]=intersection3D(corners[0][0],corners[0][1],corners[2][0],corners[2][1],xy[0][0],xy[0][1],xy[1][0],xy[1][1]);
-    // checkB[1]=intersection3D(corners[0][0],corners[0][1],corners[2][0],corners[2][1],xy[2][0],xy[2][1],xy[3][0],xy[3][1]);
-    // checkB[2]=intersection3D(corners[1][0],corners[1][1],corners[3][0],corners[3][1],xy[0][0],xy[0][1],xy[1][0],xy[1][1]);
-    // checkB[3]=intersection3D(corners[1][0],corners[1][1],corners[3][0],corners[3][1],xy[2][0],xy[2][1],xy[3][0],xy[3][1]);
-    // //horizontal
-    // checkB[4]=intersection3D(corners[0][0],corners[0][1],corners[1][0],corners[1][1],xy[0][0],xy[0][1],xy[2][0],xy[2][1]);
-    // checkB[5]=intersection3D(corners[0][0],corners[0][1],corners[1][0],corners[1][1],xy[1][0],xy[1][1],xy[3][0],xy[3][1]);
-    // checkB[6]=intersection3D(corners[2][0],corners[2][1],corners[3][0],corners[3][1],xy[0][0],xy[0][1],xy[2][0],xy[2][1]);
-    // checkB[7]=intersection3D(corners[2][0],corners[2][1],corners[3][0],corners[3][1],xy[1][0],xy[1][1],xy[3][0],xy[3][1]);
-    
-    bool refinement = check[0] || check[1] || check[2] || check[3] ;
-
-    // bool refinement = check[0] || check[1] || check[2] || check[3] ||
-    //                   checkB[0] || checkB[1] || checkB[2] || checkB[3] ||
-    //                   checkB[4] || checkB[5] || checkB[6] || checkB[7];
+#endif
 
     return refinement && (quadrant->level < forestData->max_levels_refinement);
 }
@@ -448,8 +411,36 @@ int refine_circle(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadr
 
 int refine_region(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadrant)
 {
-    //TODO
-    return 0;
+    p8estData * forestData = (p8estData *) p8est->user_pointer;
+    octantData * quadData = (octantData *) quadrant->p.user_data;
+    double * xy0 = quadData->xyz;
+    
+    // The corners of the refinement region
+    double x[2]={forestData->refinement_boundaries[0],forestData->refinement_boundaries[1]};
+    double y[2]={forestData->refinement_boundaries[2],forestData->refinement_boundaries[3]};
+    double z[2]={forestData->refinement_boundaries[4],forestData->refinement_boundaries[5]};
+
+    // The point being examined
+    double l[3] = {forestData->m_dx[0][P4EST_MAXLEVEL-quadrant->level],
+                   forestData->m_dx[1][P4EST_MAXLEVEL-quadrant->level],
+                   forestData->m_dx[2][P4EST_MAXLEVEL-quadrant->level]};
+    double xy[3]={*(xy0  ),*(xy0+1),*(xy0+2)};
+
+    bool x_in_region = (xy[0] >= x[0]) && (xy[0] <= x[1]);
+    bool y_in_region = (xy[1] >= y[0]) && (xy[1] <= y[1]);
+    bool z_in_region = (xy[2] >= z[0]) && (xy[2] <= z[1]);
+
+    bool refinement = x_in_region && y_in_region && z_in_region;
+
+#ifdef OXLEY_ENABLE_DEBUG_REFINE_REGION
+    if(refinement)
+    {
+        std::cout << "Point (x,y)=(" << xy0[0] << "," << xy0[1] << ", " << xy0[2] << ") ";
+        std::cout << " is in the region." << std::endl;
+    }
+#endif
+
+    return refinement && (quadrant->level < forestData->max_levels_refinement);
 }
 
 int refine_point(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadrant)
