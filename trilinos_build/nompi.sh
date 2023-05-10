@@ -21,7 +21,6 @@ cmake \
       -D TPL_ENABLE_MUMPS=OFF \
       -D TPL_ENABLE_SuperLU=OFF \
       -D TPL_ENABLE_UMFPACK=OFF \
-      -D TPL_Cholmod_LIBRARIES='libcholmod.so;libamd.so;libcolamd.so' \
       -D Trilinos_ENABLE_Amesos=ON \
       -D Trilinos_ENABLE_Amesos2=ON \
       -D Trilinos_ENABLE_AztecOO=ON \
@@ -34,7 +33,9 @@ cmake \
       -D Trilinos_ENABLE_MueLu=ON \
       -D Trilinos_ENABLE_Teuchos=ON \
       -D Trilinos_ENABLE_Tpetra=ON \
-      -D Trilinos_ENABLE_ALL_OPTIONAL_PACKAGES=ON \
+      -D Trilinos_ENABLE_Epetra=ON \
+      -D Trilinos_ENABLE_EpetraExt=ON \
+      -D Trilinos_ENABLE_ALL_OPTIONAL_PACKAGES=OFF \
       -D Kokkos_ENABLE_AGGRESSIVE_VECTORIZATION=ON \
       -D Tpetra_INST_COMPLEX_DOUBLE=ON \
       -D Trilinos_ENABLE_COMPLEX_DOUBLE=ON \
@@ -49,3 +50,4 @@ cmake \
       -D Tpetra_INST_SERIAL:BOOL=ON \
       -D Trilinos_ENABLE_TESTS=OFF \
       ../trilinos_source
+#-D TPL_Cholmod_LIBRARIES='libcholmod.so;libamd.so;libcolamd.so' \
