@@ -32,8 +32,8 @@
 #ifndef P8EST_CONNECTIVITY_H
 #define P8EST_CONNECTIVITY_H
 
-#include <sc_io.h>
-#include <p4est_base.h>
+#include <p4est/sc_io.h>
+#include <p4est/p4est_base.h>
 
 SC_EXTERN_C_BEGIN;
 
