@@ -32,7 +32,7 @@
 #ifndef P4EST_GHOST_H
 #define P4EST_GHOST_H
 
-#include <p4est.h>
+#include "p4est.h"
 
 SC_EXTERN_C_BEGIN;
 

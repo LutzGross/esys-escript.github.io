@@ -22,8 +22,17 @@
 #endif
 
 #ifndef VISIT_PLUGIN
+#include <oxley/OxleyDomain.h>
+#include <oxley/Brick.h>
+#include <oxley/Rectangle.h>
+#endif
+
+#ifndef VISIT_PLUGIN
 using escript::DataTypes::dim_t;
 #endif
+
+#include "p4est/p4est.h"
+#include "p4est/p8est.h"
 
 using namespace std;
 
@@ -115,58 +124,72 @@ OxleyNodes::~OxleyNodes()
 //
 bool OxleyNodes::initFromOxley(const oxley::OxleyDomain* dom)
 {
-//#ifndef VISIT_PLUGIN
-//     CoordArray::iterator it;
-//     for (it = coords.begin(); it != coords.end(); it++)
-//         delete[] *it;
-//     coords.clear();
-//     nodeID.clear();
-//     nodeTag.clear();
-//
-//     numDims = dom->getDim();
-//     globalNumNodes = dom->getNumDataPointsGlobal();
-//     pair<int,dim_t> shape = dom->getDataShape(oxley::Nodes);
-//     numNodes = shape.second;
-//     oxley::IndexVector dist = dom->getNodeDistribution();
-//     nodeDist.assign(dist.begin(), dist.end());
-//
-//     if (numNodes > 0) {
-//         for (int d=0; d<numDims; d++) {
-//             float* c = new float[numNodes];
-//             coords.push_back(c);
-//         }
-//         const dim_t* NN = dom->getNumNodesPerDim();
-//
-//         if (numDims==2) {
-// #pragma omp parallel for
-//             for (dim_t i1=0; i1<NN[1]; i1++) {
-//                 for (dim_t i0=0; i0<NN[0]; i0++) {
-//                     coords[0][i0+NN[0]*i1] = dom->getLocalCoordinate(i0, 0);
-//                     coords[1][i0+NN[0]*i1] = dom->getLocalCoordinate(i1, 1);
-//                 }
-//             }
-//         } else {
-// #pragma omp parallel for
-//             for (dim_t i2=0; i2<NN[2]; i2++) {
-//                 for (dim_t i1=0; i1<NN[1]; i1++) {
-//                     for (dim_t i0=0; i0<NN[0]; i0++) {
-//                         const dim_t index = i0+NN[0]*i1+NN[0]*NN[1]*i2;
-//                         coords[0][index] = dom->getLocalCoordinate(i0, 0);
-//                         coords[1][index] = dom->getLocalCoordinate(i1, 1);
-//                         coords[2][index] = dom->getLocalCoordinate(i2, 2);
-//                     }
-//                 }
-//             }
-//         }
-//         const dim_t* iPtr = dom->borrowSampleReferenceIDs(oxley::Nodes);
-//         nodeID.assign(iPtr, iPtr+numNodes);
-//    iPtr = dom->borrowListOfTags(oxley::Nodes);
-//       nodeTag.assign(iPtr, iPtr+numNodes);
-//     }
-//     return true;
-//#else // VISIT_PLUGIN
-//     return false;
-//#endif
+#ifndef VISIT_PLUGIN
+    CoordArray::iterator it;
+    for (it = coords.begin(); it != coords.end(); it++)
+        delete[] *it;
+    coords.clear();
+    nodeID.clear();
+    nodeTag.clear();
+
+    numDims = dom->getDim();
+    globalNumNodes = dom->getNumDataPointsGlobal();
+    pair<int,dim_t> shape = dom->getDataShape(oxley::Nodes);
+    numNodes = dom->getNumNodes();
+    // oxley::IndexVector dist = dom->getNodeDistribution();
+    // nodeDist.assign(dist.begin(), dist.end());
+
+    if (numNodes > 0) {
+        for (int d=0; d<numDims; d++) {
+            float* c = new float[numNodes];
+            coords.push_back(c);
+        }
+
+        if (numDims==2) {
+            const oxley::Rectangle * rect = static_cast<const oxley::Rectangle *>(dom);
+            for(p4est_topidx_t treeid = rect->p4est->first_local_tree; treeid <= rect->p4est->last_local_tree; ++treeid) {
+                p4est_tree_t * tree = p4est_tree_array_index(rect->p4est->trees, treeid);
+                sc_array_t * tquadrants = &tree->quadrants;
+                p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+        #pragma omp parallel for
+                for(int q = 0; q < Q; ++q) { // Loop over the elements attached to the tree
+                    p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+                    // p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
+                    double xy[3];
+                    p4est_qcoord_to_vertex(rect->p4est->connectivity, treeid, quad->x, quad->y, xy);
+                    long nodeid=rect->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+                    coords[0][nodeid]=xy[0];
+                    coords[1][nodeid]=xy[1];
+                }
+            }
+        } else {
+            const oxley::Brick * brick = static_cast<const oxley::Brick *>(dom);
+            for(p4est_topidx_t treeid = brick->p8est->first_local_tree; treeid <= brick->p8est->last_local_tree; ++treeid) {
+                p8est_tree_t * tree = p8est_tree_array_index(brick->p8est->trees, treeid);
+                sc_array_t * tquadrants = &tree->quadrants;
+                oxley::p8est_locidx_t Q = (oxley::p8est_locidx_t) tquadrants->elem_count;
+        #pragma omp parallel for
+                for(int q = 0; q < Q; ++q) { // Loop over the elements attached to the tree
+                    p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
+                    // p8est_qcoord_t length = P8EST_QUADRANT_LEN(quad->level);
+                    double xy[3];
+                    p8est_qcoord_to_vertex(brick->p8est->connectivity, treeid, quad->x, quad->y, quad->z, xy);
+                    long nodeid=brick->NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
+                    coords[0][nodeid]=xy[0];
+                    coords[1][nodeid]=xy[1];
+                    coords[2][nodeid]=xy[2];
+                }
+            }
+        }
+        const dim_t* iPtr = dom->borrowSampleReferenceIDs(oxley::Nodes);
+        nodeID.assign(iPtr, iPtr+numNodes);
+        // iPtr = dom->borrowListOfTags(oxley::Nodes); //todo
+        nodeTag.assign(iPtr, iPtr+numNodes);
+    }
+    return true;
+#else // VISIT_PLUGIN
+    return false;
+#endif
 }
 
 //

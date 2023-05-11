@@ -25,7 +25,7 @@
 #ifndef P8EST_IO_H
 #define P8EST_IO_H
 
-#include <p8est.h>
+#include "p8est.h"
 
 SC_EXTERN_C_BEGIN;
 

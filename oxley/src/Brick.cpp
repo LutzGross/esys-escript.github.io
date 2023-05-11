@@ -4803,4 +4803,9 @@ void Brick::assembleIntegrateImpl(std::vector<Scalar>& integrals, const escript:
 //     } // function space selector
 }
 
+const long Brick::getNodeId(double x, double y, double z)
+{
+    return NodeIDs.find(std::make_tuple(x,y,z))->second;
+}
+
 } // end of namespace oxley

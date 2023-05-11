@@ -188,6 +188,19 @@ bool EscriptDataset::setDomain(const escript::AbstractDomain* domain)
             }
         }
 #endif
+#if USE_OXLEY
+        else if (dynamic_cast<const oxley::OxleyDomain*>(domain)) {
+            DomainChunk_ptr dom(new OxleyDomain());
+            if (dom->initFromEscript(domain)) {
+                if (mpiSize > 1)
+                    dom->reorderGhostZones(mpiRank);
+                domainChunks.push_back(dom);
+            } else {
+                cerr << "Error initializing domain!" << endl;
+                myError = 2;
+            }
+        }
+#endif
         else {
             cerr << "Unsupported domain type!" << endl;
             myError = 2;

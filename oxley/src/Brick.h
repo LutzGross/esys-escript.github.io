@@ -31,10 +31,10 @@
 
 #include <oxley/tictoc.h>
 
-#include <p8est_io.h>
-#include <p8est.h>
-#include <p8est_connectivity.h>
-#include <p8est_lnodes.h>
+#include "p4est/p8est_io.h"
+#include "p4est/p8est.h"
+#include "p4est/p8est_connectivity.h"
+#include "p4est/p8est_lnodes.h"
 
 #include <boost/python.hpp>
 #ifdef ESYS_HAVE_BOOST_NUMPY
@@ -300,12 +300,16 @@ public:
     
     // virtual dim_t getDofOfNode(dim_t node) const;
 
+    // Used by weipa
+    const long getNodeId(double x, double y, double z);
+
+    // This is not private as it is used by weipa
+    // A p8est
+    p8est_t * p8est;
+    std::unordered_map<DoubleTuple,long,boost::hash<DoubleTuple>> NodeIDs; //global ids of the nodes
 
 ////////////////////////////////
 private:
-
-    // A p8est
-    p8est_t * p8est;
 
     // A ghost
     p8est_ghost_t * ghost;
@@ -331,8 +335,6 @@ private:
     std::unordered_map<long,double> current_solution; //solution at each node
     std::vector<long> octantIDs; // IDs of the octants
     std::vector<oct_info> octantInfo;
-
-    std::unordered_map<DoubleTuple,long,boost::hash<DoubleTuple>> NodeIDs; //global ids of the nodes
 
     std::vector<borderNodeInfo> NodeIDsTop;
     std::vector<borderNodeInfo> NodeIDsBottom;

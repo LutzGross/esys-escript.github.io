@@ -4311,6 +4311,11 @@ dim_t Rectangle::findNode(const double *coords) const
 
 }
 
+const long Rectangle::getNodeId(double x, double y)
+{
+    return NodeIDs.find(std::make_pair(x,y))->second;
+}
+
 // instantiate our two supported versions
 template
 void Rectangle::assembleGradientImpl<real_t>(escript::Data& out,

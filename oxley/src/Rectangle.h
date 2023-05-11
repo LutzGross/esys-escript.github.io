@@ -31,9 +31,9 @@
 
 #include <oxley/tictoc.h>
 
-#include <p4est.h>
-#include <p4est_connectivity.h>
-#include <p4est_lnodes.h>
+#include "p4est/p4est.h"
+#include "p4est/p4est_connectivity.h"
+#include "p4est/p4est_lnodes.h"
 
 #include <boost/python.hpp>
 #ifdef ESYS_HAVE_BOOST_NUMPY
@@ -279,11 +279,17 @@ public:
 
     // virtual void finaliseRhs(escript::Data& rhs);
 
-private:
+    // Used by weipa
+    const long getNodeId(double x, double y);
 
+    // not private as it is needed by weipa
     // A p4est
     p4est_t * p4est;
 
+    // Rectangle needs to keep track of this information
+    std::unordered_map<DoublePair,long,boost::hash<DoublePair>> NodeIDs; //global ids of the nodes
+
+private:
     // The data structure in p4est
     p4estData forestData;
 
@@ -297,8 +303,6 @@ private:
     // Pointer that records the location of a temporary data structure
     void * temp_data;
 
-    // Rectangle needs to keep track of this information
-    std::unordered_map<DoublePair,long,boost::hash<DoublePair>> NodeIDs; //global ids of the nodes
     // std::unordered_map<long,bool> hangingNodeIDs; //global ids of the hanging nodes
     std::vector<bool> is_hanging; // element x is true if node id x is a hanging node
     // std::vector<std::vector<long>> is_hanging_face; // if face x-y is hanging then element x is y

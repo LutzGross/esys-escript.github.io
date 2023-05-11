@@ -23,8 +23,8 @@
 #include <boost/functional/hash.hpp>
 #include <boost/python/numpy.hpp>
 
-#include <p4est_iterate.h>
-#include <p8est_iterate.h>
+#include "p4est/p4est_iterate.h"
+#include "p4est/p8est_iterate.h"
 
 #ifndef __OXLEY_DATA_H__
 #define __OXLEY_DATA_H__

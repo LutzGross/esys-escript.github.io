@@ -38,7 +38,7 @@
 #define P8EST_H
 
 /* p8est_connectivity.h includes p4est_base.h sc_containers.h */
-#include <p8est_connectivity.h>
+#include "p8est_connectivity.h"
 
 SC_EXTERN_C_BEGIN;
 

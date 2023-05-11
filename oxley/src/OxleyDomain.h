@@ -893,6 +893,8 @@ public:
     std::vector<std::pair<long,long>> hanging_face_node_connections;
     std::vector<std::pair<long,long>> false_node_connections;
 
+    virtual dim_t getNumNodes() const;
+
 protected:
 
     // element order
@@ -917,7 +919,6 @@ protected:
     IndexVector m_diracPointNodeIDs; //for borrowSampleID
 
     /// returns the number of nodes per MPI rank
-    virtual dim_t getNumNodes() const;
     virtual dim_t getNumHangingNodes() const;
 
     // /// returns the number of hanging nodes per MPI rank

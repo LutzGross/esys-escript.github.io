@@ -32,7 +32,7 @@
 #ifndef P8EST_GHOST_H
 #define P8EST_GHOST_H
 
-#include <p8est.h>
+#include "p8est.h"
 
 SC_EXTERN_C_BEGIN;
 

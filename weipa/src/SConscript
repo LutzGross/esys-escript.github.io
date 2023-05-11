@@ -63,6 +63,7 @@ if 'oxley' in env['domains']:
     headers += ['OxleyDomain.h','OxleyElements.h','OxleyNodes.h']
     local_env.Append(CPPDEFINES = ['USE_OXLEY'])
     weipalibs += env['oxley_libs']
+    weipalibs += env['p4est_libs']
 
 if 'ripley' in env['domains']:
     sources += ['RipleyDomain.cpp','RipleyElements.cpp','RipleyNodes.cpp']
