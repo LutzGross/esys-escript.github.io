@@ -4803,6 +4803,49 @@ void Brick::assembleIntegrateImpl(std::vector<Scalar>& integrals, const escript:
 //     } // function space selector
 }
 
+RankVector Brick::getOwnerVector(int fsType) const
+{
+    RankVector owner;
+
+    throw OxleyException("getOwnerVector TODO");
+
+    // const int rank = m_mpiInfo->rank;
+
+    // if (fsType == Elements || fsType == ReducedElements) {
+    //     owner.assign(getNumElements(), rank);
+    //     if (m_faceCount[0] == 0) {
+    //         owner[0]=(m_faceCount[2]==0 ? rank-m_NX[0]-1 : rank-1);
+    //         for (dim_t i=1; i<m_NE[1]; i++)
+    //             owner[i*m_NE[0]] = rank-1;
+    //     }
+    //     if (m_faceCount[2]==0) {
+    //         const int first=(m_faceCount[0]==0 ? 1 : 0);
+    //         for (dim_t i=first; i<m_NE[0]; i++)
+    //             owner[i] = rank-m_NX[0];
+    //     }
+
+    // } else if (fsType == FaceElements || fsType == ReducedFaceElements) {
+    //     owner.assign(getNumFaceElements(), rank);
+    //     if (m_faceCount[0] == 0) {
+    //         if (m_faceCount[2] > 0)
+    //             owner[m_faceCount[1]] = rank-1;
+    //         if (m_faceCount[3] > 0)
+    //             owner[m_faceCount[1]+m_faceCount[2]] = rank-1;
+    //     }
+    //     if (m_faceCount[2] == 0) {
+    //         if (m_faceCount[0] > 0)
+    //             owner[0] = rank-m_NX[0];
+    //         if (m_faceCount[1] > 0)
+    //             owner[m_faceCount[0]] = rank-m_NX[0];
+    //     }
+
+    // } else {
+    //     throw ValueError("getOwnerVector: only valid for element types");
+    // }
+
+    return owner;
+}
+
 const long Brick::getNodeId(double x, double y, double z)
 {
     return NodeIDs.find(std::make_tuple(x,y,z))->second;

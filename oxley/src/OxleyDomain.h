@@ -895,6 +895,20 @@ public:
 
     virtual dim_t getNumNodes() const;
 
+    /**
+       \brief
+       returns a vector of rank numbers where vec[i]=n means that rank n
+       'owns' element/face element i.
+    */
+    virtual RankVector getOwnerVector(int fsType) const = 0;
+
+    /**
+       \brief
+       returns the number of face elements in the order
+       (left,right,bottom,top) on current MPI rank
+    */
+    virtual const dim_t* getNumFacesPerBoundary() const = 0;
+
 protected:
 
     // element order

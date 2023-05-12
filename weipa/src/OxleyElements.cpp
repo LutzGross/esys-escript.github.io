@@ -20,6 +20,12 @@
 
 #include <iostream>
 
+#ifndef VISIT_PLUGIN
+#include <oxley/OxleyDomain.h>
+#include <oxley/Brick.h>
+#include <oxley/Rectangle.h>
+#endif
+
 #ifdef ESYS_HAVE_SILO
 #include <silo.h>
 #endif
@@ -70,171 +76,187 @@ OxleyElements::OxleyElements(const OxleyElements& e)
 //
 bool OxleyElements::initFromOxley(const oxley::OxleyDomain* dom, int fsType)
 {
-// #ifndef VISIT_PLUGIN
-//     const pair<int,dim_t> shape = dom->getDataShape(fsType);
-//     const dim_t* faces = dom->getNumFacesPerBoundary();
+#ifndef VISIT_PLUGIN
+    const std::pair<int,dim_t> shape = dom->getDataShape(fsType);
+    const dim_t* faces = dom->getNumFacesPerBoundary();
 
-//     numElements = shape.second;
+    numElements = shape.second;
 
-//     if (numElements > 0) {
-//         nodesPerElement = shape.first;
-//         switch (nodesPerElement) {
-//             case 2:
-//                 type = ZONETYPE_BEAM;
-//                 break;
-//             case 4:
-//                 type = ZONETYPE_QUAD;
-//                 break;
-//             case 8:
-//                 type = ZONETYPE_HEX;
-//                 break;
-//         }
-//         owner = dom->getOwnerVector(fsType);
+    if (numElements > 0) {
+        // nodesPerElement = shape.first;
+        nodesPerElement = 4;
+        ESYS_ASSERT(shape.first==4,"Unknown data shape");
+        owner = dom->getOwnerVector(fsType);
 
-//         const dim_t* iPtr = dom->borrowSampleReferenceIDs(fsType);
-//         ID.assign(iPtr, iPtr+numElements);
+        const dim_t* iPtr = dom->borrowSampleReferenceIDs(fsType);
+        ID.assign(iPtr, iPtr+numElements);
 
-//         //iPtr = dom->borrowListOfTags(fsType);
-//         //tag.assign(iPtr, iPtr+numElements);
+        // const dim_t* NE = dom->getNumElementsPerDim();
+        // const dim_t* NN = dom->getNumNodesPerDim();
+        nodes.clear();
+        if (dom->getDim() == 2) {
+            const oxley::Rectangle * rect = static_cast<const oxley::Rectangle *>(dom);
 
-//         const dim_t* NE = dom->getNumElementsPerDim();
-//         const dim_t* NN = dom->getNumNodesPerDim();
-//         nodes.clear();
-//         if (dom->getDim() == 2) {
-//             if (fsType==oxley::Elements) {
-//                 int id=0;
-//                 for (dim_t i=0; i<numElements; i++) {
-//                     nodes.push_back(id);
-//                     nodes.push_back(id+1);
-//                     nodes.push_back(id+1+NN[0]);
-//                     nodes.push_back(id+NN[0]);
-//                     id++;
-//                     if ((i+1)%NE[0]==0)
-//                         id++;
-//                 }
-//             } else if (fsType==oxley::FaceElements) {
-//                 int id=0;
-//                 for (dim_t i=0; i<faces[0]; i++) {
-//                     nodes.push_back(id);
-//                     nodes.push_back(id+NN[0]);
-//                     id+=NN[0];
-//                 }
-//                 id=NN[0]-1;
-//                 for (dim_t i=0; i<faces[1]; i++) {
-//                     nodes.push_back(id);
-//                     nodes.push_back(id+NN[0]);
-//                     id+=NN[0];
-//                 }
-//                 id=0;
-//                 for (dim_t i=0; i<faces[2]; i++) {
-//                     nodes.push_back(id);
-//                     nodes.push_back(id+1);
-//                     id++;
-//                 }
-//                 id=NN[0]*(NN[1]-1);
-//                 for (dim_t i=0; i<faces[3]; i++) {
-//                     nodes.push_back(id);
-//                     nodes.push_back(id+1);
-//                     id++;
-//                 }
-//             }
-//         } else {
-//             if (fsType==oxley::Elements) {
-//                 int id=0;
-//                 for (dim_t i=0; i<numElements; i++) {
-//                     nodes.push_back(id);
-//                     nodes.push_back(id+NN[0]*NN[1]);
-//                     nodes.push_back(id+NN[0]*NN[1]+1);
-//                     nodes.push_back(id+1);
+            if (fsType==oxley::Elements) {
+                for(p4est_topidx_t treeid = rect->p4est->first_local_tree; treeid <= rect->p4est->last_local_tree; ++treeid) {
+                    p4est_tree_t * tree = p4est_tree_array_index(rect->p4est->trees, treeid);
+                    sc_array_t * tquadrants = &tree->quadrants;
+                    p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+            #pragma omp parallel for
+                    for(int q = 0; q < Q; ++q) {
+                        p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+                        p4est_qcoord_t l = P4EST_QUADRANT_LEN(quad->level);
+                        p4est_qcoord_t lxy[4][2] = {{0,0},{l,0},{0,l},{l,l}};
+                        double xy[3];
+                        for(int n = 0; n < 4; n++)
+                        {
+                            p4est_qcoord_to_vertex(rect->p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy);
+                            nodes.push_back(rect->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
+                        }
+                    }
+                }
+            } else if (fsType==oxley::FaceElements) {
+    //             int id=0;
+    //             for (dim_t i=0; i<faces[0]; i++) {
+    //                 nodes.push_back(id);
+    //                 nodes.push_back(id+NN[0]);
+    //                 id+=NN[0];
+    //             }
+    //             id=NN[0]-1;
+    //             for (dim_t i=0; i<faces[1]; i++) {
+    //                 nodes.push_back(id);
+    //                 nodes.push_back(id+NN[0]);
+    //                 id+=NN[0];
+    //             }
+    //             id=0;
+    //             for (dim_t i=0; i<faces[2]; i++) {
+    //                 nodes.push_back(id);
+    //                 nodes.push_back(id+1);
+    //                 id++;
+    //             }
+    //             id=NN[0]*(NN[1]-1);
+    //             for (dim_t i=0; i<faces[3]; i++) {
+    //                 nodes.push_back(id);
+    //                 nodes.push_back(id+1);
+    //                 id++;
+    //             }
+            }
+        } else { //3d
+            const oxley::Brick * brick = static_cast<const oxley::Brick *>(dom);
+            if (fsType==oxley::Elements) {
+                for(oxley::p8est_topidx_t treeid = brick->p8est->first_local_tree; treeid <= brick->p8est->last_local_tree; ++treeid) {
+                    p8est_tree_t * tree = p8est_tree_array_index(brick->p8est->trees, treeid);
+                    sc_array_t * tquadrants = &tree->quadrants;
+                    oxley::p8est_locidx_t Q = (oxley::p8est_locidx_t) tquadrants->elem_count;
+            #pragma omp parallel for
+                    for(int q = 0; q < Q; ++q) {
+                        p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
+                        oxley::p8est_qcoord_t l = P8EST_QUADRANT_LEN(quad->level);
+                        oxley::p8est_qcoord_t lxy[8][3] = {{0,0,0},{l,0,0},{0,l,0},{l,l,0},
+                                                           {0,0,l},{l,0,l},{0,l,l},{l,l,l}};
+                        double xy[3];
+                        for(int n = 0; n < 8; n++)
+                        {
+                            p8est_qcoord_to_vertex(brick->p8est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], quad->z+lxy[n][2], xy);
+                            nodes.push_back(brick->NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second);
+                        }
+                    }
+                }
+    //             int id=0;
+    //             for (dim_t i=0; i<numElements; i++) {
+    //                 nodes.push_back(id);
+    //                 nodes.push_back(id+NN[0]*NN[1]);
+    //                 nodes.push_back(id+NN[0]*NN[1]+1);
+    //                 nodes.push_back(id+1);
 
-//                     nodes.push_back(id+NN[0]);
-//                     nodes.push_back(id+NN[0]*(NN[1]+1));
-//                     nodes.push_back(id+NN[0]*(NN[1]+1)+1);
-//                     nodes.push_back(id+1+NN[0]);
-//                     id++;
-//                     if ((i+1)%NE[0]==0)
-//                         id++;
-//                     if ((i+1)%(NE[0]*NE[1])==0)
-//                         id+=NN[0];
-//                 }
-//             } else if (fsType==oxley::FaceElements) {
-//                 const dim_t* NE = dom->getNumElementsPerDim();
-//                 if (faces[0]>0) {
-//                     for (dim_t k2=0; k2<NE[2]; k2++) {
-//                         for (dim_t k1=0; k1<NE[1]; k1++) {
-//                             const dim_t first=k2*NN[0]*NN[1]+k1*NN[0];
-//                             nodes.push_back(first+NN[0]*NN[1]);
-//                             nodes.push_back(first);
-//                             nodes.push_back(first+NN[0]);
-//                             nodes.push_back(first+NN[0]*(NN[1]+1));
-//                         }
-//                     }
-//                 }
-//                 if (faces[1]>0) {
-//                     for (dim_t k2=0; k2<NE[2]; k2++) {
-//                         for (dim_t k1=0; k1<NE[1]; k1++) {
-//                             const dim_t first=k2*NN[0]*NN[1]+(k1+1)*NN[0]-1;
-//                             nodes.push_back(first+NN[0]*NN[1]);
-//                             nodes.push_back(first);
-//                             nodes.push_back(first+NN[0]);
-//                             nodes.push_back(first+NN[0]*(NN[1]+1));
-//                         }
-//                     }
-//                 }
-//                 if (faces[2]>0) {
-//                     for (dim_t k2=0; k2<NE[2]; k2++) {
-//                         for (dim_t k0=0; k0<NE[0]; k0++) {
-//                             const dim_t first=k2*NN[0]*NN[1]+k0;
-//                             nodes.push_back(first+NN[0]*NN[1]);
-//                             nodes.push_back(first);
-//                             nodes.push_back(first+1);
-//                             nodes.push_back(first+1+NN[0]*NN[1]);
-//                         }
-//                     }
-//                 }
-//                 if (faces[3]>0) {
-//                     for (dim_t k2=0; k2<NE[2]; k2++) {
-//                         for (dim_t k0=0; k0<NE[0]; k0++) {
-//                             const dim_t first=(k2+1)*NN[0]*NN[1]-NN[0]+k0;
-//                             nodes.push_back(first+NN[0]*NN[1]);
-//                             nodes.push_back(first);
-//                             nodes.push_back(first+1);
-//                             nodes.push_back(first+1+NN[0]*NN[1]);
-//                         }
-//                     }
-//                 }
-//                 if (faces[4]>0) {
-//                     for (dim_t k1=0; k1<NE[1]; k1++) {
-//                         for (dim_t k0=0; k0<NE[0]; k0++) {
-//                             const dim_t first=k1*NN[0]+k0;
-//                             nodes.push_back(first);
-//                             nodes.push_back(first+1);
-//                             nodes.push_back(first+NN[0]+1);
-//                             nodes.push_back(first+NN[0]);
-//                         }
-//                     }
-//                 }
-//                 if (faces[5]>0) {
-//                     for (dim_t k1=0; k1<NE[1]; k1++) {
-//                         for (dim_t k0=0; k0<NE[0]; k0++) {
-//                             const dim_t first=NN[0]*NN[1]*(NN[2]-1)+k1*NN[0]+k0;
-//                             nodes.push_back(first);
-//                             nodes.push_back(first+1);
-//                             nodes.push_back(first+NN[0]+1);
-//                             nodes.push_back(first+NN[0]);
-//                         }
-//                     }
-//                 }
-//             }
-//         }
+    //                 nodes.push_back(id+NN[0]);
+    //                 nodes.push_back(id+NN[0]*(NN[1]+1));
+    //                 nodes.push_back(id+NN[0]*(NN[1]+1)+1);
+    //                 nodes.push_back(id+1+NN[0]);
+    //                 id++;
+    //                 if ((i+1)%NE[0]==0)
+    //                     id++;
+    //                 if ((i+1)%(NE[0]*NE[1])==0)
+    //                     id+=NN[0];
+    //             }
+            } else if (fsType==oxley::FaceElements) {
+    //             const dim_t* NE = dom->getNumElementsPerDim();
+    //             if (faces[0]>0) {
+    //                 for (dim_t k2=0; k2<NE[2]; k2++) {
+    //                     for (dim_t k1=0; k1<NE[1]; k1++) {
+    //                         const dim_t first=k2*NN[0]*NN[1]+k1*NN[0];
+    //                         nodes.push_back(first+NN[0]*NN[1]);
+    //                         nodes.push_back(first);
+    //                         nodes.push_back(first+NN[0]);
+    //                         nodes.push_back(first+NN[0]*(NN[1]+1));
+    //                     }
+    //                 }
+    //             }
+    //             if (faces[1]>0) {
+    //                 for (dim_t k2=0; k2<NE[2]; k2++) {
+    //                     for (dim_t k1=0; k1<NE[1]; k1++) {
+    //                         const dim_t first=k2*NN[0]*NN[1]+(k1+1)*NN[0]-1;
+    //                         nodes.push_back(first+NN[0]*NN[1]);
+    //                         nodes.push_back(first);
+    //                         nodes.push_back(first+NN[0]);
+    //                         nodes.push_back(first+NN[0]*(NN[1]+1));
+    //                     }
+    //                 }
+    //             }
+    //             if (faces[2]>0) {
+    //                 for (dim_t k2=0; k2<NE[2]; k2++) {
+    //                     for (dim_t k0=0; k0<NE[0]; k0++) {
+    //                         const dim_t first=k2*NN[0]*NN[1]+k0;
+    //                         nodes.push_back(first+NN[0]*NN[1]);
+    //                         nodes.push_back(first);
+    //                         nodes.push_back(first+1);
+    //                         nodes.push_back(first+1+NN[0]*NN[1]);
+    //                     }
+    //                 }
+    //             }
+    //             if (faces[3]>0) {
+    //                 for (dim_t k2=0; k2<NE[2]; k2++) {
+    //                     for (dim_t k0=0; k0<NE[0]; k0++) {
+    //                         const dim_t first=(k2+1)*NN[0]*NN[1]-NN[0]+k0;
+    //                         nodes.push_back(first+NN[0]*NN[1]);
+    //                         nodes.push_back(first);
+    //                         nodes.push_back(first+1);
+    //                         nodes.push_back(first+1+NN[0]*NN[1]);
+    //                     }
+    //                 }
+    //             }
+    //             if (faces[4]>0) {
+    //                 for (dim_t k1=0; k1<NE[1]; k1++) {
+    //                     for (dim_t k0=0; k0<NE[0]; k0++) {
+    //                         const dim_t first=k1*NN[0]+k0;
+    //                         nodes.push_back(first);
+    //                         nodes.push_back(first+1);
+    //                         nodes.push_back(first+NN[0]+1);
+    //                         nodes.push_back(first+NN[0]);
+    //                     }
+    //                 }
+    //             }
+    //             if (faces[5]>0) {
+    //                 for (dim_t k1=0; k1<NE[1]; k1++) {
+    //                     for (dim_t k0=0; k0<NE[0]; k0++) {
+    //                         const dim_t first=NN[0]*NN[1]*(NN[2]-1)+k1*NN[0]+k0;
+    //                         nodes.push_back(first);
+    //                         nodes.push_back(first+1);
+    //                         nodes.push_back(first+NN[0]+1);
+    //                         nodes.push_back(first+NN[0]);
+    //                     }
+    //                 }
+    //             }
+            }
+        }
 
-//         buildMeshes();
-//     }
-//     return true;
+        buildMeshes();
+    }
+    return true;
 
-// #else // VISIT_PLUGIN
-//     return false;
-// #endif
+#else // VISIT_PLUGIN
+    return false;
+#endif
     return false;
 }
 

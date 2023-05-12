@@ -303,6 +303,20 @@ public:
     // Used by weipa
     const long getNodeId(double x, double y, double z);
 
+    /**
+       \brief
+       returns a vector of rank numbers where vec[i]=n means that rank n
+       'owns' element/face element i.
+    */
+    virtual RankVector getOwnerVector(int fsType) const;
+
+    /**
+       \brief
+       returns the number of face elements in the order
+       (left,right,bottom,top) on current MPI rank
+    */
+    virtual const dim_t* getNumFacesPerBoundary() const { return m_faceCount; }
+
     // This is not private as it is used by weipa
     // A p8est
     p8est_t * p8est;
