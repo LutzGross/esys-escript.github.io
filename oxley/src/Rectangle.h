@@ -303,6 +303,30 @@ public:
     // Rectangle needs to keep track of this information
     std::unordered_map<DoublePair,long,boost::hash<DoublePair>> NodeIDs; //global ids of the nodes
 
+        /**
+       \brief
+       Returns true if the node is on the left boundary
+    */
+    bool isLeftBoundaryNode(p4est_quadrant_t * quad, int n, p4est_topidx_t treeid, p4est_qcoord_t length) const;
+
+    /**
+       \brief
+       Returns true if the node is on the right boundary
+    */
+    bool isRightBoundaryNode(p4est_quadrant_t * quad, int n, p4est_topidx_t treeid, p4est_qcoord_t length) const;
+
+    /**
+       \brief
+       Returns true if the node is on the bottom boundary
+    */
+    bool isBottomBoundaryNode(p4est_quadrant_t * quad, int n, p4est_topidx_t treeid, p4est_qcoord_t length) const;
+
+    /**
+       \brief
+       Returns true if the node is on the top boundary
+    */
+    bool isTopBoundaryNode(p4est_quadrant_t * quad, int n, p4est_topidx_t treeid, p4est_qcoord_t length) const;
+
 private:
     // The data structure in p4est
     p4estData forestData;
@@ -419,30 +443,6 @@ protected:
        Returns true if the node is on the bottom or left boundaries
     */
     bool isLowerBoundaryNode(p4est_quadrant_t * quad, int n, p4est_topidx_t treeid, p4est_qcoord_t length) const;
-
-    /**
-       \brief
-       Returns true if the node is on the left boundary
-    */
-    bool isLeftBoundaryNode(p4est_quadrant_t * quad, int n, p4est_topidx_t treeid, p4est_qcoord_t length) const;
-
-    /**
-       \brief
-       Returns true if the node is on the right boundary
-    */
-    bool isRightBoundaryNode(p4est_quadrant_t * quad, int n, p4est_topidx_t treeid, p4est_qcoord_t length) const;
-
-    /**
-       \brief
-       Returns true if the node is on the bottom boundary
-    */
-    bool isBottomBoundaryNode(p4est_quadrant_t * quad, int n, p4est_topidx_t treeid, p4est_qcoord_t length) const;
-
-    /**
-       \brief
-       Returns true if the node is on the top boundary
-    */
-    bool isTopBoundaryNode(p4est_quadrant_t * quad, int n, p4est_topidx_t treeid, p4est_qcoord_t length) const;
 
     /**
        \brief

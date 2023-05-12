@@ -116,30 +116,48 @@ bool OxleyElements::initFromOxley(const oxley::OxleyDomain* dom, int fsType)
                     }
                 }
             } else if (fsType==oxley::FaceElements) {
-    //             int id=0;
-    //             for (dim_t i=0; i<faces[0]; i++) {
-    //                 nodes.push_back(id);
-    //                 nodes.push_back(id+NN[0]);
-    //                 id+=NN[0];
-    //             }
-    //             id=NN[0]-1;
-    //             for (dim_t i=0; i<faces[1]; i++) {
-    //                 nodes.push_back(id);
-    //                 nodes.push_back(id+NN[0]);
-    //                 id+=NN[0];
-    //             }
-    //             id=0;
-    //             for (dim_t i=0; i<faces[2]; i++) {
-    //                 nodes.push_back(id);
-    //                 nodes.push_back(id+1);
-    //                 id++;
-    //             }
-    //             id=NN[0]*(NN[1]-1);
-    //             for (dim_t i=0; i<faces[3]; i++) {
-    //                 nodes.push_back(id);
-    //                 nodes.push_back(id+1);
-    //                 id++;
-    //             }
+                for(p4est_topidx_t treeid = rect->p4est->first_local_tree; treeid <= rect->p4est->last_local_tree; ++treeid) 
+                {
+                    p4est_tree_t * tree = p4est_tree_array_index(rect->p4est->trees, treeid);
+                    sc_array_t * tquadrants = &tree->quadrants;
+                    p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+                    for(int q = 0; q < Q; ++q) 
+                    {
+                        p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+                        p4est_qcoord_t l = P4EST_QUADRANT_LEN(quad->level);
+                        // int k = q - Q + nodeIncrements[treeid - p4est->first_local_tree];
+                        p4est_qcoord_t lxy[4][2] = {{0,0},{l,0},{0,l},{l,l}};
+                        double xy[3] = {0};
+                        int nodeids[4]={-1};
+                        bool do_check_yes_no[4]={false};
+                        for(int n = 0; n < 4; n++)
+                        {
+                            if(rect->isLeftBoundaryNode(quad, n, treeid, l))
+                            {
+                                p4est_qcoord_to_vertex(rect->p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy);
+                                nodes.push_back(rect->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
+                            }
+
+                            if(rect->isRightBoundaryNode(quad, n, treeid, l))
+                            {
+                                p4est_qcoord_to_vertex(rect->p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy);
+                                nodes.push_back(rect->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
+                            }
+                                
+                            if(rect->isBottomBoundaryNode(quad, n, treeid, l))
+                            {
+                                p4est_qcoord_to_vertex(rect->p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy);
+                                nodes.push_back(rect->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
+                            }
+                                
+                            if(rect->isTopBoundaryNode(quad, n, treeid, l))
+                            {
+                                p4est_qcoord_to_vertex(rect->p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy);
+                                nodes.push_back(rect->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
+                            }
+                        }
+                    }
+                }
             }
         } else { //3d
             const oxley::Brick * brick = static_cast<const oxley::Brick *>(dom);
