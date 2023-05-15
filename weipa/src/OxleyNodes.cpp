@@ -154,15 +154,19 @@ bool OxleyNodes::initFromOxley(const oxley::OxleyDomain* dom)
                 p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
                 for(int q = 0; q < Q; ++q) { // Loop over the elements attached to the tree
                     p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-                    // p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
+                    int l = (int) P4EST_QUADRANT_LEN(quad->level);
                     double xy[3];
-                    p4est_qcoord_to_vertex(rect->p4est->connectivity, treeid, quad->x, quad->y, xy);
-                    long nodeid=rect->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-                    coords[0][nodeid]=xy[0];
-                    coords[1][nodeid]=xy[1];
-                #ifdef OXLEY_ENABLE_DEBUG_WEIPA
-                    std::cout << "coords (" << coords[0][nodeid] << ", " << coords[1][nodeid] << ") " << std::endl;
-                #endif
+                    int lxy[4][2]={{0,0},{0,l},{l,0},{l,l}};
+                    for(int n = 0; n < 4; n++)
+                    {
+                        p4est_qcoord_to_vertex(rect->p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy);
+                        long nodeid=rect->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+                        coords[0][nodeid]=xy[0];
+                        coords[1][nodeid]=xy[1];
+                    #ifdef OXLEY_ENABLE_DEBUG_WEIPA
+                        std::cout << "coords (" << coords[0][nodeid] << ", " << coords[1][nodeid] << ") " << std::endl;
+                    #endif
+                    }
                 }
             }
         } else {
