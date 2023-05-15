@@ -17,6 +17,7 @@
 
 #include <weipa/OxleyElements.h>
 #include <weipa/NodeData.h>
+#include <weipa/WeipaException.h>
 
 #include <iostream>
 
@@ -83,16 +84,23 @@ bool OxleyElements::initFromOxley(const oxley::OxleyDomain* dom, int fsType)
     numElements = shape.second;
 
     if (numElements > 0) {
-        // nodesPerElement = shape.first;
-        nodesPerElement = 4;
-        ESYS_ASSERT(shape.first==4,"Unknown data shape");
+        nodesPerElement = shape.first;
+        switch (nodesPerElement) {
+            case 2:
+                type = ZONETYPE_BEAM;
+                break;
+            case 4:
+                type = ZONETYPE_QUAD;
+                break;
+            case 8:
+                throw WeipaException("Unknown shape type");
+                break;
+        }
         owner = dom->getOwnerVector(fsType);
 
         const dim_t* iPtr = dom->borrowSampleReferenceIDs(fsType);
         ID.assign(iPtr, iPtr+numElements);
 
-        // const dim_t* NE = dom->getNumElementsPerDim();
-        // const dim_t* NN = dom->getNumNodesPerDim();
         nodes.clear();
         if (dom->getDim() == 2) {
             const oxley::Rectangle * rect = static_cast<const oxley::Rectangle *>(dom);
@@ -112,6 +120,9 @@ bool OxleyElements::initFromOxley(const oxley::OxleyDomain* dom, int fsType)
                         {
                             p4est_qcoord_to_vertex(rect->p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy);
                             nodes.push_back(rect->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
+                            #ifdef OXLEY_ENABLE_DEBUG_WEIPA
+                            std::cout << "nodes " << rect->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second << std::endl;
+                            #endif
                         }
                     }
                 }
@@ -136,24 +147,36 @@ bool OxleyElements::initFromOxley(const oxley::OxleyDomain* dom, int fsType)
                             {
                                 p4est_qcoord_to_vertex(rect->p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy);
                                 nodes.push_back(rect->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
+                                #ifdef OXLEY_ENABLE_DEBUG_WEIPA
+                                std::cout << "nodes " << rect->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second << std::endl;
+                                #endif
                             }
 
                             if(rect->isRightBoundaryNode(quad, n, treeid, l))
                             {
                                 p4est_qcoord_to_vertex(rect->p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy);
                                 nodes.push_back(rect->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
+                                #ifdef OXLEY_ENABLE_DEBUG_WEIPA
+                                std::cout << "nodes " << rect->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second << std::endl;
+                                #endif
                             }
                                 
                             if(rect->isBottomBoundaryNode(quad, n, treeid, l))
                             {
                                 p4est_qcoord_to_vertex(rect->p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy);
                                 nodes.push_back(rect->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
+                                #ifdef OXLEY_ENABLE_DEBUG_WEIPA
+                                std::cout << "nodes " << rect->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second << std::endl;
+                                #endif
                             }
                                 
                             if(rect->isTopBoundaryNode(quad, n, treeid, l))
                             {
                                 p4est_qcoord_to_vertex(rect->p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy);
                                 nodes.push_back(rect->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
+                                #ifdef OXLEY_ENABLE_DEBUG_WEIPA
+                                std::cout << "nodes " << rect->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second << std::endl;
+                                #endif
                             }
                         }
                     }
@@ -431,7 +454,6 @@ bool OxleyElements::writeToSilo(DBfile* dbfile, const string& siloPath,
         return true;
 
     int ret;
-
     if (siloPath != "") {
         ret = DBSetDir(dbfile, siloPath.c_str());
         if (ret != 0)

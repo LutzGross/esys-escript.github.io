@@ -147,11 +147,11 @@ bool OxleyNodes::initFromOxley(const oxley::OxleyDomain* dom)
 
         if (numDims==2) {
             const oxley::Rectangle * rect = static_cast<const oxley::Rectangle *>(dom);
+        #pragma omp parallel for
             for(p4est_topidx_t treeid = rect->p4est->first_local_tree; treeid <= rect->p4est->last_local_tree; ++treeid) {
                 p4est_tree_t * tree = p4est_tree_array_index(rect->p4est->trees, treeid);
                 sc_array_t * tquadrants = &tree->quadrants;
                 p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-        #pragma omp parallel for
                 for(int q = 0; q < Q; ++q) { // Loop over the elements attached to the tree
                     p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
                     // p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
@@ -160,15 +160,18 @@ bool OxleyNodes::initFromOxley(const oxley::OxleyDomain* dom)
                     long nodeid=rect->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
                     coords[0][nodeid]=xy[0];
                     coords[1][nodeid]=xy[1];
+                #ifdef OXLEY_ENABLE_DEBUG_WEIPA
+                    std::cout << "coords (" << coords[0][nodeid] << ", " << coords[1][nodeid] << ") " << std::endl;
+                #endif
                 }
             }
         } else {
             const oxley::Brick * brick = static_cast<const oxley::Brick *>(dom);
+        #pragma omp parallel for
             for(p4est_topidx_t treeid = brick->p8est->first_local_tree; treeid <= brick->p8est->last_local_tree; ++treeid) {
                 p8est_tree_t * tree = p8est_tree_array_index(brick->p8est->trees, treeid);
                 sc_array_t * tquadrants = &tree->quadrants;
                 oxley::p8est_locidx_t Q = (oxley::p8est_locidx_t) tquadrants->elem_count;
-        #pragma omp parallel for
                 for(int q = 0; q < Q; ++q) { // Loop over the elements attached to the tree
                     p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
                     // p8est_qcoord_t length = P8EST_QUADRANT_LEN(quad->level);
