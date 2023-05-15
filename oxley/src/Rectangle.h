@@ -327,6 +327,12 @@ public:
     */
     bool isTopBoundaryNode(p4est_quadrant_t * quad, int n, p4est_topidx_t treeid, p4est_qcoord_t length) const;
 
+    /**
+       \brief
+       Returns the ID numbers of the neighbouring four nodes
+    */
+    void getNeighouringNodeIDs(int8_t level, p4est_qcoord_t x, p4est_qcoord_t y, p4est_topidx_t treeid, long (&ids) [4]) const;
+
 private:
     // The data structure in p4est
     p4estData forestData;
@@ -389,6 +395,7 @@ new_rectangle_connectivity(int mi, int ni, int periodic_a, int periodic_b,
 
     template<typename Scalar>
     void assembleIntegrateImpl(std::vector<Scalar>& integrals, const escript::Data& arg) const;
+
 
 protected:
 
@@ -513,12 +520,7 @@ protected:
 
     virtual void assembleGradient(escript::Data& out, const escript::Data& in) const;
 
-    /**
-       \brief
-       Returns the ID numbers of the neighbouring four nodes
-    */
-    void getNeighouringNodeIDs(int8_t level, p4est_qcoord_t x, p4est_qcoord_t y, p4est_topidx_t treeid, long (&ids) [4]) const;
-
+    
     virtual void assembleIntegrate(std::vector<real_t>& integrals, const escript::Data& arg) const;
     virtual void assembleIntegrate(std::vector<cplx_t>& integrals, const escript::Data& arg) const;
     virtual std::vector<IndexVector> getConnections(bool includeShared=false) const;

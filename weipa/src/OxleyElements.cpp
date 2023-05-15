@@ -117,11 +117,7 @@ bool OxleyElements::initFromOxley(const oxley::OxleyDomain* dom, int fsType)
                         p4est_qcoord_t lxy[4][2] = {{0,0},{l,0},{0,l},{l,l}};
                         double xy[3];
                         long ids[4]={0};
-                        for(int n = 0; n < 4; n++)
-                        {
-                            p4est_qcoord_to_vertex(rect->p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy);
-                            ids[n] = rect->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-                        }
+                        rect->getNeighouringNodeIDs(quad->level, quad->x, quad->y, treeid, ids);
                         // Convert the node ordering
                         nodes.push_back(ids[0]);
                         nodes.push_back(ids[2]);
