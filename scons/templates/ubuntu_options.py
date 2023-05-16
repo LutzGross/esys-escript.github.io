@@ -18,10 +18,18 @@
 # This is a template configuration file for escript on Debian/GNU Linux.
 # Refer to README_FIRST for usage instructions.
 
+build_trilinos='make'
 escript_opts_version=203
+mpi='OPENMPI'
+mpi_prefix='/usr/lib/x86_64-linux-gnu/openmpi/'
+openmp=1
+paso=0
+cxx_extra=' -fdiagnostics-color=always'
+cxx_extra+=' -Wno-format-truncation'
 pythoncmd = 'python3'
 pythonincpath='/usr/include/python3.10'
 pythonlibpath='/usr/lib/x86_64-linux-gnu'
 pythonlibname='libpython3.10'
 boost_libs='boost_python310'
 boost_prefix=['/usr/include','/usr/lib/x86_64-linux-gnu/']
+werror=0
