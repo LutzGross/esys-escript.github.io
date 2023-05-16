@@ -1507,8 +1507,8 @@ void Rectangle::renumberNodes()
                              {-1,1,3,-1}};
 
     // Write in NodeIDs
-// #pragma omp for
     int k = 0;
+// #pragma omp for
     for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) {
         p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
         sc_array_t * tquadrants = &tree->quadrants;
@@ -2103,7 +2103,7 @@ void Rectangle::interpolateNodesOnElementsWorker(escript::Data& out,
     }
 }
 
-//protected
+//
 void Rectangle::getNeighouringNodeIDs(int8_t level, p4est_qcoord_t x, p4est_qcoord_t y, p4est_topidx_t treeid, long (&ids) [4]) const
 {
     p4est_qcoord_t l = P4EST_QUADRANT_LEN(level);

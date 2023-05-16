@@ -113,9 +113,6 @@ bool OxleyElements::initFromOxley(const oxley::OxleyDomain* dom, int fsType)
             #pragma omp parallel for
                     for(int q = 0; q < Q; ++q) {
                         p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-                        p4est_qcoord_t l = P4EST_QUADRANT_LEN(quad->level);
-                        p4est_qcoord_t lxy[4][2] = {{0,0},{l,0},{0,l},{l,l}};
-                        double xy[3];
                         long ids[4]={0};
                         rect->getNeighouringNodeIDs(quad->level, quad->x, quad->y, treeid, ids);
                         // Convert the node ordering
@@ -194,34 +191,19 @@ bool OxleyElements::initFromOxley(const oxley::OxleyDomain* dom, int fsType)
             #pragma omp parallel for
                     for(int q = 0; q < Q; ++q) {
                         p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
-                        oxley::p8est_qcoord_t l = P8EST_QUADRANT_LEN(quad->level);
-                        oxley::p8est_qcoord_t lxy[8][3] = {{0,0,0},{l,0,0},{0,l,0},{l,l,0},
-                                                           {0,0,l},{l,0,l},{0,l,l},{l,l,l}};
-                        double xy[3];
-                        for(int n = 0; n < 8; n++)
-                        {
-                            p8est_qcoord_to_vertex(brick->p8est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], quad->z+lxy[n][2], xy);
-                            nodes.push_back(brick->NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second);
-                        }
+                        long ids[8]={-1};
+                        brick->getNeighouringNodeIDs(quad->level, quad->x, quad->y, quad->z, treeid, ids);
+
+                        nodes.push_back(ids[1]);
+                        nodes.push_back(ids[2]);
+                        nodes.push_back(ids[0]);
+                        nodes.push_back(ids[3]);
+                        nodes.push_back(ids[5]);
+                        nodes.push_back(ids[6]);
+                        nodes.push_back(ids[4]);
+                        nodes.push_back(ids[7]);
                     }
                 }
-    //             int id=0;
-    //             for (dim_t i=0; i<numElements; i++) {
-    //                 nodes.push_back(id);
-    //                 nodes.push_back(id+NN[0]*NN[1]);
-    //                 nodes.push_back(id+NN[0]*NN[1]+1);
-    //                 nodes.push_back(id+1);
-
-    //                 nodes.push_back(id+NN[0]);
-    //                 nodes.push_back(id+NN[0]*(NN[1]+1));
-    //                 nodes.push_back(id+NN[0]*(NN[1]+1)+1);
-    //                 nodes.push_back(id+1+NN[0]);
-    //                 id++;
-    //                 if ((i+1)%NE[0]==0)
-    //                     id++;
-    //                 if ((i+1)%(NE[0]*NE[1])==0)
-    //                     id+=NN[0];
-    //             }
             } else if (fsType==oxley::FaceElements) {
     //             const dim_t* NE = dom->getNumElementsPerDim();
     //             if (faces[0]>0) {

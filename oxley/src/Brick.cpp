@@ -4851,4 +4851,19 @@ const long Brick::getNodeId(double x, double y, double z)
     return NodeIDs.find(std::make_tuple(x,y,z))->second;
 }
 
+// void Brick::getNeighouringNodeIDs(int8_t level, p8est_qcoord_t x, p8est_qcoord_t y, p8est_qcoord_t z, 
+//                                                 p8est_topidx_t treeid, long (&ids) [8]) const
+// {
+//     p8est_qcoord_t l = P8EST_QUADRANT_LEN(level);
+//     int adj[8][3] = {{0,0,0},{l,0,0},{0,l,0},{l,l,0},
+//                      {0,0,l},{l,0,l},{0,l,l},{l,l,l}};
+// #pragma omp parallel for
+//     for(int i=0; i<8;i++)
+//     {
+//         double xy[3];
+//         p8est_qcoord_to_vertex(p8est->connectivity, treeid, x+adj[i][0], y+adj[i][1], z+adj[i][1], xy);
+//         ids[i]=(long) NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
+//     }
+// }
+
 } // end of namespace oxley

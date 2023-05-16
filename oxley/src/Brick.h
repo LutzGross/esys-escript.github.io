@@ -322,6 +322,13 @@ public:
     p8est_t * p8est;
     std::unordered_map<DoubleTuple,long,boost::hash<DoubleTuple>> NodeIDs; //global ids of the nodes
 
+    /**
+       \brief
+       Returns the ID numbers of the neighbouring four nodes
+    */
+    void getNeighouringNodeIDs(int8_t level, p8est_qcoord_t x, p8est_qcoord_t y, p8est_qcoord_t z, 
+                                             p8est_topidx_t treeid, long (&ids) [8]) const;
+
 ////////////////////////////////
 private:
 
@@ -553,11 +560,6 @@ protected:
     virtual void assembleCoordinates(escript::Data& arg) const;
     virtual void assembleGradient(escript::Data& out, const escript::Data& in) const;
 
-    /**
-       \brief
-       Returns the ID numbers of the neighbouring four nodes
-    */
-    void getNeighouringNodeIDs(int8_t level, p8est_qcoord_t x, p8est_qcoord_t y, p8est_qcoord_t z, p8est_topidx_t treeid, long (&ids) [8]) const;
 
     virtual void assembleIntegrate(std::vector<real_t>& integrals,
                                    const escript::Data& arg) const;
