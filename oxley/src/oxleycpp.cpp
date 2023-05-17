@@ -480,8 +480,6 @@ BOOST_PYTHON_MODULE(oxleycpp)
                 "Internal use. Updates the mesh with the latest solution\n")
         .def("updateMeshInformation", &oxley::OxleyDomain::updateMeshInformation, 
                 "Internal use. Refines the mesh based on the solution information\n")
-        .def("getUpdatedSolution", &oxley::OxleyDomain::getUpdatedSolution, 
-                "Internal use. Returns the current solution information from Oxley\n")
         .def("writeToVTK", &oxley::OxleyDomain::writeToVTK, (arg("filename"), arg("writeMesh")=false),
                 "Writes the mesh to a VTK file.\n"
                 ":param filename: The name of the output file\n"

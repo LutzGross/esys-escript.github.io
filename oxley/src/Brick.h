@@ -353,7 +353,6 @@ private:
 
     // Brick needs to keep track of this information
     std::unordered_map<DoubleTuple,long,boost::hash<DoubleTuple>> treeIDs; //global ids of the hanging nodes
-    std::unordered_map<long,double> current_solution; //solution at each node
     std::vector<long> octantIDs; // IDs of the octants
     std::vector<oct_info> octantInfo;
 
@@ -393,9 +392,7 @@ private:
     virtual Assembler_ptr createAssembler(std::string type,
                                           const DataMap& options) const;
 
-    virtual void updateSolutionInformation(escript::Data solution);
     virtual void updateMeshInformation();
-    virtual escript::Data getUpdatedSolution();
 
     /**
       \brief

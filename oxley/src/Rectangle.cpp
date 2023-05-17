@@ -724,7 +724,6 @@ void Rectangle::dump(const std::string& fileName) const
     pNodex = new float[MAXP4ESTNODES];
     pNodey = new float[MAXP4ESTNODES];
     pNode_ids = new long int [MAXP4ESTNODES];
-    pValues = new double[MAXP4ESTNODES];
 
     for(std::pair<DoublePair,long> element : NodeIDs)
     {
@@ -732,17 +731,6 @@ void Rectangle::dump(const std::string& fileName) const
         pNodey[element.second]=element.first.second;
         pNode_ids[element.second]=element.second;
     }
-
-    if(current_solution.size() != 0)
-        for(std::pair<DoublePair,long> element : NodeIDs)
-        {
-            pValues[element.second]=current_solution.at(element.second);
-        }
-    else
-        for(std::pair<DoublePair,long> element : NodeIDs)
-        {
-            pValues[element.second]=0;
-        }
 
     // Array of the coordinate arrays
     float * pCoordinates[2];
@@ -797,16 +785,11 @@ void Rectangle::dump(const std::string& fileName) const
     // Node IDs
     DBPutPointvar1(dbfile, "id", "nodes", pNode_ids, getNumNodes(), DB_LONG, NULL);
 
-    // Node values
-    if(current_solution.size() != 0)
-        DBPutPointvar1(dbfile, "u", "nodes", pValues, getNumNodes(), DB_DOUBLE, NULL);    
-
     DBClose(dbfile);
 
     delete [] pNodex;
     delete [] pNodey;
     delete [] pNode_ids;
-    delete [] pValues;
 
 #else // ESYS_HAVE_SILO
     throw OxleyException("dump: escript was not compiled with Silo enabled");
@@ -976,7 +959,7 @@ void Rectangle::refineMesh(std::string algorithmname)
     z_needs_update=true;
     iz_needs_update=true;
 
-    forestData.current_solution = &current_solution;    
+    // forestData.current_solution = &current_solution;    
     forestData.NodeIDs = &NodeIDs;
 
     if(!algorithmname.compare("uniform"))
@@ -3673,44 +3656,9 @@ void Rectangle::updateFaceOffset()
     p4est_iterate(p4est, NULL, NULL, update_node_faceoffset, NULL, NULL);
 }
 
-// Copies the solution information to the mesh
-void Rectangle::updateSolutionInformation(escript::Data solution)
-{
-    long limit=0;
-    // switch (solution.getFunctionSpace().getTypeCode()) {
-    //     case Nodes:
-    //         limit=getNumNodes();
-    //         break;
-    //     case Elements:
-    //         limit=getNumElements();
-    //         break;
-    //     default:
-    //         std::string msg = "updateSolutionInformation: fs " + solution.getFunctionSpace().getTypeCode();
-    //         throw OxleyException(msg);
-    // }
-
-    limit=getNumNodes();
-
-#pragma omp for
-    for(long i = 0; i < limit; i++)
-    {
-        current_solution[i]=*solution.getSampleDataRO(i);
-#ifdef OXLEY_ENABLE_DEBUG_PRINT_SOLUTION
-        std::cout << i << ": " << current_solution[i] << std::endl;
-#endif
-    }
-}
-
 void Rectangle::updateMeshInformation()
 {
     refineMesh("MARE2DEM");
-}
-
-// Returns the solution information currently stored in Oxley
-
-escript::Data Rectangle::getUpdatedSolution()
-{
-    return escript::Data(0); //TODO
 }
 
 static inline void

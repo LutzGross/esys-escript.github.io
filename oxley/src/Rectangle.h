@@ -351,7 +351,6 @@ private:
     std::vector<bool> is_hanging; // element x is true if node id x is a hanging node
     // std::vector<std::vector<long>> is_hanging_face; // if face x-y is hanging then element x is y
     std::unordered_map<DoublePair,long,boost::hash<DoublePair>> treeIDs; //global ids of the hanging nodes
-    std::unordered_map<long,double> current_solution; //solution at each node
     std::vector<long> quadrantIDs; // IDs of the quadrants
     std::vector<quad_info> quadrantInfo;
 
@@ -383,9 +382,7 @@ new_rectangle_connectivity(int mi, int ni, int periodic_a, int periodic_b,
     */
     virtual Assembler_ptr createAssembler(std::string type, const DataMap& options) const;
 
-    virtual void updateSolutionInformation(escript::Data solution);
     virtual void updateMeshInformation();
-    virtual escript::Data getUpdatedSolution();
 
     /**
       \brief

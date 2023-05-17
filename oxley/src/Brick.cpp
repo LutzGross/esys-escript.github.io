@@ -763,7 +763,6 @@ void Brick::dump(const std::string& fileName) const //TODO Not working
     pNodey = new float[MAXP4ESTNODES];
     pNodez = new float[MAXP4ESTNODES];
     pNode_ids = new long int [MAXP4ESTNODES];
-    pValues = new double[MAXP4ESTNODES];
 
     int counter=0;
     for(std::pair<DoubleTuple,long> element : NodeIDs)
@@ -778,17 +777,6 @@ void Brick::dump(const std::string& fileName) const //TODO Not working
                                                           << std::get<2>(element.first) << ") " << counter++ << std::endl;
 #endif
     }
-
-    if(current_solution.size() != 0)
-        for(std::pair<DoubleTuple,long> element : NodeIDs)
-        {
-            pValues[element.second]=current_solution.at(element.second);
-        }
-    else
-        for(std::pair<DoubleTuple,long> element : NodeIDs)
-        {
-            pValues[element.second]=0;
-        }
 
     // Array of the coordinate arrays
     float * pCoordinates[3];
@@ -847,17 +835,12 @@ void Brick::dump(const std::string& fileName) const //TODO Not working
     // Node IDs
     DBPutPointvar1(dbfile, "id", "nodes", pNode_ids, getNumNodes(), DB_LONG, NULL);
 
-    // Node values
-    if(current_solution.size() != 0)
-        DBPutPointvar1(dbfile, "u", "nodes", pValues, getNumNodes(), DB_DOUBLE, NULL);    
-
     DBClose(dbfile);
 
     delete [] pNodex;
     delete [] pNodey;
     delete [] pNodez;
     delete [] pNode_ids;
-    delete [] pValues;
 
 #else // ESYS_HAVE_SILO
     throw OxleyException("dump: escript was not compiled with Silo enabled");
@@ -1030,7 +1013,6 @@ void Brick::refineMesh(std::string algorithmname)
     z_needs_update=true;
     iz_needs_update=true;
 
-    forestData.current_solution = &current_solution;    
     forestData.NodeIDs = &NodeIDs;
 
     if(!algorithmname.compare("uniform"))
@@ -3998,42 +3980,9 @@ void Brick::updateFaceOffset()
     p8est_iterate(p8est, NULL, NULL, update_node_faceoffset, NULL, NULL, NULL);
 }
 
-// Copies the solution information to the mesh
-void Brick::updateSolutionInformation(escript::Data solution)
-{
-//     long limit=0;
-//     switch (solution.getFunctionSpace().getTypeCode()) {
-//         case Nodes:
-//             limit=getNumNodes();
-//             break;
-//         case Elements:
-//             limit=getNumElements();
-//             break;
-//         default:
-//             std::string msg = "updateSolutionInformation: fs " + solution.getFunctionSpace().getTypeCode();
-//             throw OxleyException(msg);
-//     }
-
-// #pragma omp for
-//     for(long i = 0; i < limit; i++)
-//     {
-//         current_solution[i]=*solution.getSampleDataRO(i);
-// #ifdef OXLEY_ENABLE_DEBUG_PRINT_SOLUTION
-//         std::cout << i << ": " << current_solution[i] << std::endl;
-// #endif
-//     }
-}
-
 void Brick::updateMeshInformation()
 {
     refineMesh("MARE2DEM");
-}
-
-// Returns the solution information currently stored in Oxley
-
-escript::Data Brick::getUpdatedSolution()
-{
-    return escript::Data(0); //TODO
 }
 
 ////////////////////////////// inline methods ////////////////////////////////

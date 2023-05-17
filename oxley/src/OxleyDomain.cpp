@@ -2929,11 +2929,6 @@ void OxleyDomain::updateMeshInformation()
     throw OxleyException("programming error4");
 }
 
-escript::Data OxleyDomain::getUpdatedSolution()
-{
-    throw OxleyException("programming error5");
-}
-
 #ifdef ESYS_HAVE_BOOST_NUMPY
 boost::python::numpy::ndarray OxleyDomain::getNumpyX() const
 {

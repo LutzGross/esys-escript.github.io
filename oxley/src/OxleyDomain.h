@@ -805,11 +805,6 @@ public:
     virtual void updateMeshInformation();
 
     /**
-       Returns the current solution information stored in Oxley
-    */
-    virtual escript::Data getUpdatedSolution();
-
-    /**
        Sets adaptive refinement on or off
     */
     virtual void setAdaptiveRefinement(bool) = 0;
