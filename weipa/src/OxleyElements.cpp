@@ -120,12 +120,22 @@ bool OxleyElements::initFromOxley(const oxley::OxleyDomain* dom, int fsType)
                         nodes.push_back(ids[2]);
                         nodes.push_back(ids[3]);
                         nodes.push_back(ids[1]);
+
+                        #ifdef OXLEY_ENABLE_DEBUG_WEIPA
+                            std::cout << "Element " << 
+                                        ids[0] << "-" <<
+                                        ids[2] << "-" <<
+                                        ids[3] << "-" <<
+                                        ids[1] <<  std::endl;
+                        #endif
                     }
                 }
             } else if (fsType==oxley::FaceElements) {
                 #ifdef OXLEY_ENABLE_DEBUG_WEIPA
                     long counter = 0;
                 #endif
+                std::vector<int> lnodes,rnodes,bnodes,tnodes;
+
                 for(p4est_topidx_t treeid = rect->p4est->first_local_tree; treeid <= rect->p4est->last_local_tree; ++treeid) 
                 {
                     p4est_tree_t * tree = p4est_tree_array_index(rect->p4est->trees, treeid);
@@ -145,41 +155,51 @@ bool OxleyElements::initFromOxley(const oxley::OxleyDomain* dom, int fsType)
                             if(rect->isLeftBoundaryNode(quad, n, treeid, l))
                             {
                                 p4est_qcoord_to_vertex(rect->p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy);
-                                nodes.push_back(rect->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
+                                lnodes.push_back(rect->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
                                 #ifdef OXLEY_ENABLE_DEBUG_WEIPA
-                                std::cout << "nodes " << counter++ << ": " << rect->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second << std::endl;
+                                std::cout << "nodes L " << counter++ << ": " << rect->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second << std::endl;
                                 #endif
                             }
 
                             if(rect->isRightBoundaryNode(quad, n, treeid, l))
                             {
                                 p4est_qcoord_to_vertex(rect->p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy);
-                                nodes.push_back(rect->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
+                                rnodes.push_back(rect->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
                                 #ifdef OXLEY_ENABLE_DEBUG_WEIPA
-                                std::cout << "nodes " << counter++ << ": " << rect->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second << std::endl;
+                                std::cout << "nodes R " << counter++ << ": " << rect->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second << std::endl;
                                 #endif
                             }
                                 
                             if(rect->isBottomBoundaryNode(quad, n, treeid, l))
                             {
                                 p4est_qcoord_to_vertex(rect->p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy);
-                                nodes.push_back(rect->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
+                                bnodes.push_back(rect->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
                                 #ifdef OXLEY_ENABLE_DEBUG_WEIPA
-                                std::cout << "nodes " << counter++ << ": " << rect->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second << std::endl;
+                                std::cout << "nodes B " << counter++ << ": " << rect->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second << std::endl;
                                 #endif
                             }
                                 
                             if(rect->isTopBoundaryNode(quad, n, treeid, l))
                             {
                                 p4est_qcoord_to_vertex(rect->p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy);
-                                nodes.push_back(rect->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
+                                tnodes.push_back(rect->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second);
                                 #ifdef OXLEY_ENABLE_DEBUG_WEIPA
-                                std::cout << "nodes " << counter++ << ": " << rect->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second << std::endl;
+                                std::cout << "nodes T " << counter++ << ": " << rect->NodeIDs.find(std::make_pair(xy[0],xy[1]))->second << std::endl;
                                 #endif
                             }
                         }
                     }
                 }
+
+                for(int i = 0; i < lnodes.size(); i++)
+                    nodes.push_back(lnodes[i]);
+                for(int i = 0; i < rnodes.size(); i++)
+                    nodes.push_back(rnodes[i]);
+                for(int i = 0; i < bnodes.size(); i++)
+                    nodes.push_back(bnodes[i]);
+                for(int i = 0; i < tnodes.size(); i++)
+                    nodes.push_back(tnodes[i]);
+
             }
         } else { //3d
             const oxley::Brick * brick = static_cast<const oxley::Brick *>(dom);
