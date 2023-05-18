@@ -214,84 +214,120 @@ bool OxleyElements::initFromOxley(const oxley::OxleyDomain* dom, int fsType)
                         long ids[8]={-1};
                         brick->getNeighouringNodeIDs(quad->level, quad->x, quad->y, quad->z, treeid, ids);
 
-                        nodes.push_back(ids[1]);
                         nodes.push_back(ids[2]);
                         nodes.push_back(ids[0]);
+                        nodes.push_back(ids[1]);
                         nodes.push_back(ids[3]);
-                        nodes.push_back(ids[5]);
                         nodes.push_back(ids[6]);
                         nodes.push_back(ids[4]);
+                        nodes.push_back(ids[5]);
                         nodes.push_back(ids[7]);
                     }
                 }
             } else if (fsType==oxley::FaceElements) {
-    //             const dim_t* NE = dom->getNumElementsPerDim();
-    //             if (faces[0]>0) {
-    //                 for (dim_t k2=0; k2<NE[2]; k2++) {
-    //                     for (dim_t k1=0; k1<NE[1]; k1++) {
-    //                         const dim_t first=k2*NN[0]*NN[1]+k1*NN[0];
-    //                         nodes.push_back(first+NN[0]*NN[1]);
-    //                         nodes.push_back(first);
-    //                         nodes.push_back(first+NN[0]);
-    //                         nodes.push_back(first+NN[0]*(NN[1]+1));
-    //                     }
-    //                 }
-    //             }
-    //             if (faces[1]>0) {
-    //                 for (dim_t k2=0; k2<NE[2]; k2++) {
-    //                     for (dim_t k1=0; k1<NE[1]; k1++) {
-    //                         const dim_t first=k2*NN[0]*NN[1]+(k1+1)*NN[0]-1;
-    //                         nodes.push_back(first+NN[0]*NN[1]);
-    //                         nodes.push_back(first);
-    //                         nodes.push_back(first+NN[0]);
-    //                         nodes.push_back(first+NN[0]*(NN[1]+1));
-    //                     }
-    //                 }
-    //             }
-    //             if (faces[2]>0) {
-    //                 for (dim_t k2=0; k2<NE[2]; k2++) {
-    //                     for (dim_t k0=0; k0<NE[0]; k0++) {
-    //                         const dim_t first=k2*NN[0]*NN[1]+k0;
-    //                         nodes.push_back(first+NN[0]*NN[1]);
-    //                         nodes.push_back(first);
-    //                         nodes.push_back(first+1);
-    //                         nodes.push_back(first+1+NN[0]*NN[1]);
-    //                     }
-    //                 }
-    //             }
-    //             if (faces[3]>0) {
-    //                 for (dim_t k2=0; k2<NE[2]; k2++) {
-    //                     for (dim_t k0=0; k0<NE[0]; k0++) {
-    //                         const dim_t first=(k2+1)*NN[0]*NN[1]-NN[0]+k0;
-    //                         nodes.push_back(first+NN[0]*NN[1]);
-    //                         nodes.push_back(first);
-    //                         nodes.push_back(first+1);
-    //                         nodes.push_back(first+1+NN[0]*NN[1]);
-    //                     }
-    //                 }
-    //             }
-    //             if (faces[4]>0) {
-    //                 for (dim_t k1=0; k1<NE[1]; k1++) {
-    //                     for (dim_t k0=0; k0<NE[0]; k0++) {
-    //                         const dim_t first=k1*NN[0]+k0;
-    //                         nodes.push_back(first);
-    //                         nodes.push_back(first+1);
-    //                         nodes.push_back(first+NN[0]+1);
-    //                         nodes.push_back(first+NN[0]);
-    //                     }
-    //                 }
-    //             }
-    //             if (faces[5]>0) {
-    //                 for (dim_t k1=0; k1<NE[1]; k1++) {
-    //                     for (dim_t k0=0; k0<NE[0]; k0++) {
-    //                         const dim_t first=NN[0]*NN[1]*(NN[2]-1)+k1*NN[0]+k0;
-    //                         nodes.push_back(first);
-    //                         nodes.push_back(first+1);
-    //                         nodes.push_back(first+NN[0]+1);
-    //                         nodes.push_back(first+NN[0]);
-    //                     }
-    //                 }
-    //             }
+                // const dim_t* NE = dom->getNumElements();
+                #ifdef OXLEY_ENABLE_DEBUG_WEIPA
+                    long counter = 0;
+                #endif
+                std::vector<int> anodes,bnodes,cnodes,dnodes,enodes,fnodes;
+
+                for(oxley::p8est_topidx_t treeid = brick->p8est->first_local_tree; treeid <= brick->p8est->last_local_tree; ++treeid) 
+                {
+                    p8est_tree_t * tree = p8est_tree_array_index(brick->p8est->trees, treeid);
+                    sc_array_t * tquadrants = &tree->quadrants;
+                    oxley::p8est_locidx_t Q = (oxley::p8est_locidx_t) tquadrants->elem_count;
+                    for(int q = 0; q < Q; ++q) 
+                    {
+                        p8est_quadrant_t * quad = p8est_quadrant_array_index(tquadrants, q);
+                        oxley::p8est_qcoord_t l = P8EST_QUADRANT_LEN(quad->level);
+                        oxley::p8est_qcoord_t lxy[8][3] = {{0,0,0},{l,0,0},{0,l,0},{l,l,0},
+                                                    {0,0,l},{l,0,l},{0,l,l},{l,l,l}};
+                        double xy[3] = {0};
+                        int nodeids[8]={-1};
+                        bool do_check_yes_no[8]={false};
+                        for(int n = 0; n < 8; n++)
+                        {
+                            if(brick->isLeftBoundaryNode(quad, n, treeid, l))
+                            {
+                                p8est_qcoord_to_vertex(brick->p8est->connectivity, treeid, 
+                                            quad->x+lxy[n][0], quad->y+lxy[n][1], quad->z+lxy[n][2], xy);
+                                anodes.push_back(brick->NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second);
+                                #ifdef OXLEY_ENABLE_DEBUG_WEIPA
+                                std::cout << "nodes L " << counter++ << ": " 
+                                    << brick->NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second << std::endl;
+                                #endif
+                            }
+
+                            if(brick->isRightBoundaryNode(quad, n, treeid, l))
+                            {
+                                p8est_qcoord_to_vertex(brick->p8est->connectivity, treeid, 
+                                            quad->x+lxy[n][0], quad->y+lxy[n][1], quad->z+lxy[n][2], xy);
+                                bnodes.push_back(brick->NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second);
+                                #ifdef OXLEY_ENABLE_DEBUG_WEIPA
+                                std::cout << "nodes R " << counter++ << ": " 
+                                    << brick->NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second << std::endl;
+                                #endif
+                            }
+
+                            if(brick->isBottomBoundaryNode(quad, n, treeid, l))
+                            {
+                                p8est_qcoord_to_vertex(brick->p8est->connectivity, treeid, 
+                                            quad->x+lxy[n][0], quad->y+lxy[n][1], quad->z+lxy[n][2], xy);
+                                cnodes.push_back(brick->NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second);
+                                #ifdef OXLEY_ENABLE_DEBUG_WEIPA
+                                std::cout << "nodes Bo " << counter++ << ": " 
+                                    << brick->NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second << std::endl;
+                                #endif
+                            }
+
+                            if(brick->isTopBoundaryNode(quad, n, treeid, l))
+                            {
+                                p8est_qcoord_to_vertex(brick->p8est->connectivity, treeid, 
+                                            quad->x+lxy[n][0], quad->y+lxy[n][1], quad->z+lxy[n][2], xy);
+                                dnodes.push_back(brick->NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second);
+                                #ifdef OXLEY_ENABLE_DEBUG_WEIPA
+                                std::cout << "nodes T " << counter++ << ": " 
+                                    << brick->NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second << std::endl;
+                                #endif
+                            }
+
+                            if(brick->isAboveBoundaryNode(quad, n, treeid, l))
+                            {
+                                p8est_qcoord_to_vertex(brick->p8est->connectivity, treeid, 
+                                            quad->x+lxy[n][0], quad->y+lxy[n][1], quad->z+lxy[n][2], xy);
+                                enodes.push_back(brick->NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second);
+                                #ifdef OXLEY_ENABLE_DEBUG_WEIPA
+                                std::cout << "nodes A " << counter++ << ": " 
+                                    << brick->NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second << std::endl;
+                                #endif
+                            }
+
+                            if(brick->isBelowBoundaryNode(quad, n, treeid, l))
+                            {
+                                p8est_qcoord_to_vertex(brick->p8est->connectivity, treeid, 
+                                            quad->x+lxy[n][0], quad->y+lxy[n][1], quad->z+lxy[n][2], xy);
+                                fnodes.push_back(brick->NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second);
+                                #ifdef OXLEY_ENABLE_DEBUG_WEIPA
+                                std::cout << "nodes Be " << counter++ << ": " 
+                                    << brick->NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second << std::endl;
+                                #endif
+                            }                            
+                        }
+                    }
+                }
+
+                for(int i = 0; i < anodes.size(); i++)
+                    nodes.push_back(anodes[i]);
+                for(int i = 0; i < bnodes.size(); i++)
+                    nodes.push_back(bnodes[i]);
+                for(int i = 0; i < cnodes.size(); i++)
+                    nodes.push_back(cnodes[i]);
+                for(int i = 0; i < dnodes.size(); i++)
+                    nodes.push_back(dnodes[i]);
+                for(int i = 0; i < enodes.size(); i++)
+                    nodes.push_back(enodes[i]);
+                for(int i = 0; i < fnodes.size(); i++)
+                    nodes.push_back(fnodes[i]);
             }
         }
 

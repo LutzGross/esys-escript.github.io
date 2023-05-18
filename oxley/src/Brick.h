@@ -329,6 +329,61 @@ public:
     void getNeighouringNodeIDs(int8_t level, p8est_qcoord_t x, p8est_qcoord_t y, p8est_qcoord_t z, 
                                              p8est_topidx_t treeid, long (&ids) [8]) const;
 
+    /**
+       \brief
+       Returns true if the node is on the boundary
+    */
+    bool isBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t treeid, p8est_qcoord_t length) const;
+
+    /**
+       \brief
+       Returns true if the node is on the top or right boundaries
+    */
+    bool isUpperBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t treeid, p8est_qcoord_t length) const;
+
+    /**
+       \brief
+       Returns true if the node is on the bottom or left boundaries
+    */
+    bool isLowerBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t treeid, p8est_qcoord_t length) const;
+
+    /**
+       \brief
+       Returns true if the node is on the left boundary
+    */
+    bool isLeftBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t treeid, p8est_qcoord_t length) const;
+
+    /**
+       \brief
+       Returns true if the node is on the right boundary
+    */
+    bool isRightBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t treeid, p8est_qcoord_t length) const;
+
+    /**
+       \brief
+       Returns true if the node is on the bottom boundary
+    */
+    bool isBottomBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t treeid, p8est_qcoord_t length) const;
+
+    /**
+       \brief
+       Returns true if the node is on the top boundary
+    */
+    bool isTopBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t treeid, p8est_qcoord_t length) const;
+
+    /**
+       \brief
+       Returns true if the node is on the bottom boundary
+    */
+    bool isAboveBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t treeid, p8est_qcoord_t length) const;
+
+    /**
+       \brief
+       Returns true if the node is on the top boundary
+    */
+    bool isBelowBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t treeid, p8est_qcoord_t length) const;
+
+
 ////////////////////////////////
 private:
 
@@ -435,60 +490,6 @@ protected:
        Returns the number of degrees of freedom
     */
     inline dim_t getNumDOF() const;
-
-    /**
-       \brief
-       Returns true if the node is on the boundary
-    */
-    bool isBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t treeid, p8est_qcoord_t length) const;
-
-    /**
-       \brief
-       Returns true if the node is on the top or right boundaries
-    */
-    bool isUpperBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t treeid, p8est_qcoord_t length) const;
-
-    /**
-       \brief
-       Returns true if the node is on the bottom or left boundaries
-    */
-    bool isLowerBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t treeid, p8est_qcoord_t length) const;
-
-    /**
-       \brief
-       Returns true if the node is on the left boundary
-    */
-    bool isLeftBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t treeid, p8est_qcoord_t length) const;
-
-    /**
-       \brief
-       Returns true if the node is on the right boundary
-    */
-    bool isRightBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t treeid, p8est_qcoord_t length) const;
-
-    /**
-       \brief
-       Returns true if the node is on the bottom boundary
-    */
-    bool isBottomBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t treeid, p8est_qcoord_t length) const;
-
-    /**
-       \brief
-       Returns true if the node is on the top boundary
-    */
-    bool isTopBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t treeid, p8est_qcoord_t length) const;
-
-    /**
-       \brief
-       Returns true if the node is on the bottom boundary
-    */
-    bool isAboveBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t treeid, p8est_qcoord_t length) const;
-
-    /**
-       \brief
-       Returns true if the node is on the top boundary
-    */
-    bool isBelowBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t treeid, p8est_qcoord_t length) const;
 
     /**
        \brief
