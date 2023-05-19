@@ -74,21 +74,21 @@ bool OxleyDomain::initFromFile(const string& filename)
 
 Centering OxleyDomain::getCenteringForFunctionSpace(int fsCode) const
 {
-    // return (fsCode==oxley::ReducedNodes || fsCode==oxley::Nodes ?
-    //     NODE_CENTERED : ZONE_CENTERED);
-    return NODE_CENTERED;
+    return (fsCode==oxley::ReducedNodes || fsCode==oxley::Nodes ?
+        NODE_CENTERED : ZONE_CENTERED);
+    // return NODE_CENTERED;
 }
 
 NodeData_ptr OxleyDomain::getMeshForFunctionSpace(int fsCode) const
 {
     NodeData_ptr result;
 
-    // if (!initialized)
-    //     return result;
+    if (!initialized)
+        return result;
 
-    // ElementData_ptr elements = getElementsForFunctionSpace(fsCode);
-    // if (elements)
-    //     result = elements->getNodes();
+    ElementData_ptr elements = getElementsForFunctionSpace(fsCode);
+    if (elements)
+        result = elements->getNodes();
  
     return result;
 }
@@ -97,28 +97,28 @@ ElementData_ptr OxleyDomain::getElementsForFunctionSpace(int fsCode) const
 {
     ElementData_ptr result;
 
-    // if (!initialized)
-    //     return result;
+    if (!initialized)
+        return result;
 
-    // switch (fsCode) {
-    //     case oxley::Nodes:
-    //     case oxley::ReducedNodes: // FIXME: reduced
-    //     case oxley::ReducedElements:
-    //     case oxley::Elements:
-    //         result = cells;
-    //         break;
+    switch (fsCode) {
+        case oxley::Nodes:
+        case oxley::ReducedNodes: // FIXME: reduced
+        case oxley::ReducedElements:
+        case oxley::Elements:
+            result = cells;
+            break;
 
-    //     case oxley::ReducedFaceElements:
-    //     case oxley::FaceElements:
-    //         result = faces;
-    //         break;
+        case oxley::ReducedFaceElements:
+        case oxley::FaceElements:
+            result = faces;
+            break;
 
-    //     default: {
-    //         cerr << "Unsupported function space type " << fsCode
-    //             << "!" << endl;
-    //         return result;
-    //     }
-    // }
+        default: {
+            cerr << "Unsupported function space type " << fsCode
+                << "!" << endl;
+            return result;
+        }
+    }
 
     return result;
 }
@@ -129,13 +129,13 @@ ElementData_ptr OxleyDomain::getElementsForFunctionSpace(int fsCode) const
 StringVec OxleyDomain::getMeshNames() const
 {
     StringVec res;
-    // if (initialized) {
-    //     StringVec tmpVec;
-    //     tmpVec = cells->getMeshNames();
-    //     res.insert(res.end(), tmpVec.begin(), tmpVec.end());
-    //     tmpVec = faces->getMeshNames();
-    //     res.insert(res.end(), tmpVec.begin(), tmpVec.end());
-    // }
+    if (initialized) {
+        StringVec tmpVec;
+        tmpVec = cells->getMeshNames();
+        res.insert(res.end(), tmpVec.begin(), tmpVec.end());
+        tmpVec = faces->getMeshNames();
+        res.insert(res.end(), tmpVec.begin(), tmpVec.end());
+    }
     return res;
 }
 
@@ -146,64 +146,56 @@ StringVec OxleyDomain::getVarNames() const
 {
     StringVec res;
  
-    // if (initialized) {
-    //     res = nodes->getVarNames();
-    //     StringVec tmpVec = cells->getVarNames();
-    //     res.insert(res.end(), tmpVec.begin(), tmpVec.end());
-    //     tmpVec = faces->getVarNames();
-    //     res.insert(res.end(), tmpVec.begin(), tmpVec.end());
-    // }
+    if (initialized) {
+        res = nodes->getVarNames();
+        StringVec tmpVec = cells->getVarNames();
+        res.insert(res.end(), tmpVec.begin(), tmpVec.end());
+        tmpVec = faces->getVarNames();
+        res.insert(res.end(), tmpVec.begin(), tmpVec.end());
+    }
 
     return res;
 }
 
 DataVar_ptr OxleyDomain::getDataVarByName(const string& name) const
 {
-    // if (!initialized) {
-    //     throw "Domain not initialized";
-    // }
+    if (!initialized) {
+        throw "Domain not initialized";
+    }
 
     DataVar_ptr var(new DataVar(name));
-    // if (name.find("FaceElements_") != name.npos) {
-    //     const IntVec& data =  faces->getVarDataByName(name);
-    //     string elementName = name.substr(0, name.find('_'));
-    //     ElementData_ptr elements = getElementsByName(elementName);
-    //     var->initFromMeshData(shared_from_this(), data,
-    //             oxley::FaceElements, ZONE_CENTERED, elements->getNodes(),
-    //             elements->getIDs());
-    // } else if (name.find("Elements_") != name.npos) {
-    //     const IntVec& data =  cells->getVarDataByName(name);
-    //     string elementName = name.substr(0, name.find('_'));
-    //     ElementData_ptr elements = getElementsByName(elementName);
-    //     var->initFromMeshData(shared_from_this(), data, oxley::Elements,
-    //             ZONE_CENTERED, elements->getNodes(), elements->getIDs());
-    // } else if (name.find("Nodes_") != name.npos) {
-    //     const IntVec& data =  nodes->getVarDataByName(name);
-    //     var->initFromMeshData(shared_from_this(), data, oxley::Nodes,
-    //             NODE_CENTERED, getNodes(), getNodes()->getNodeIDs());
-    // } else {
-    //     cerr << "WARNING: Unrecognized domain variable '" << name << "'\n";
-    //     return DataVar_ptr();
-    // }
+    if (name.find("FaceElements_") != name.npos) {
+        const IntVec& data =  faces->getVarDataByName(name);
+        string elementName = name.substr(0, name.find('_'));
+        ElementData_ptr elements = getElementsByName(elementName);
+        var->initFromMeshData(shared_from_this(), data,
+                oxley::FaceElements, ZONE_CENTERED, elements->getNodes(),
+                elements->getIDs());
+    } else if (name.find("Elements_") != name.npos) {
+        const IntVec& data =  cells->getVarDataByName(name);
+        string elementName = name.substr(0, name.find('_'));
+        ElementData_ptr elements = getElementsByName(elementName);
+        var->initFromMeshData(shared_from_this(), data, oxley::Elements,
+                ZONE_CENTERED, elements->getNodes(), elements->getIDs());
+    } else if (name.find("Nodes_") != name.npos) {
+        const IntVec& data =  nodes->getVarDataByName(name);
+        var->initFromMeshData(shared_from_this(), data, oxley::Nodes,
+                NODE_CENTERED, getNodes(), getNodes()->getNodeIDs());
+    } else {
+        cerr << "WARNING: Unrecognized domain variable '" << name << "'\n";
+        return DataVar_ptr();
+    }
 
-    // return var;
-
-    // const IntVec& data =  cells->getVarDataByName(name);
-    // string elementName = name.substr(0, name.find('_'));
-    // ElementData_ptr elements = getElementsByName(elementName);
-    // DataVar_ptr var(new DataVar(name));
-    // var->initFromMeshData(shared_from_this(), data, oxley::Elements,
-    //         ZONE_CENTERED, elements->getNodes(), elements->getIDs());
     return var;
 }
 
 ElementData_ptr OxleyDomain::getElementsByName(const string& name) const
 {
     ElementData_ptr ret;
-    // if (name == "Elements")
-    //     ret = cells;
-    // else if (name == "FaceElements")
-    //     ret = faces;
+    if (name == "Elements")
+        ret = cells;
+    else if (name == "FaceElements")
+        ret = faces;
 
     return ret;
 }
@@ -211,40 +203,40 @@ ElementData_ptr OxleyDomain::getElementsByName(const string& name) const
 NodeData_ptr OxleyDomain::getMeshByName(const string& name) const
 {
     NodeData_ptr ret;
-    // if (initialized) {
-    //     ElementData_ptr els = getElementsByName(name);
-    //     if (els)
-    //         ret = els->getNodes();
-    // }
+    if (initialized) {
+        ElementData_ptr els = getElementsByName(name);
+        if (els)
+            ret = els->getNodes();
+    }
 
     return ret;
 }
 
 void OxleyDomain::reorderGhostZones(int ownIndex)
 {
-//     if (initialized) {
-//         cells->reorderGhostZones(ownIndex);
-//         faces->reorderGhostZones(ownIndex);
-// #ifdef _DEBUG
-//         cout << "block " << ownIndex << " has " << cells->getGhostCount()
-//              << " ghost zones," << endl;
-//         cout << "\t" << faces->getGhostCount() << " ghost faces." << endl;
-// #endif
-//     }
+    if (initialized) {
+        cells->reorderGhostZones(ownIndex);
+        faces->reorderGhostZones(ownIndex);
+#ifdef _DEBUG
+        cout << "block " << ownIndex << " has " << cells->getGhostCount()
+             << " ghost zones," << endl;
+        cout << "\t" << faces->getGhostCount() << " ghost faces." << endl;
+#endif
+    }
 }
 
 void OxleyDomain::removeGhostZones(int ownIndex)
 {
-//     if (initialized) {
-//         cells->removeGhostZones(ownIndex);
-//         faces->removeGhostZones(ownIndex);
-// #ifdef _DEBUG
-//         cout << "After removing ghost zones there are" << endl;
-//         cout << "    " << nodes->getNumNodes() << " Nodes, ";
-//         cout << cells->getCount() << " Elements, ";
-//         cout << faces->getCount() << " Face elements left." << endl;
-// #endif
-//     }
+    if (initialized) {
+        cells->removeGhostZones(ownIndex);
+        faces->removeGhostZones(ownIndex);
+#ifdef _DEBUG
+        cout << "After removing ghost zones there are" << endl;
+        cout << "    " << nodes->getNumNodes() << " Nodes, ";
+        cout << cells->getCount() << " Elements, ";
+        cout << faces->getCount() << " Face elements left." << endl;
+#endif
+    }
 }
 
 bool OxleyDomain::writeToSilo(DBfile* dbfile, const string& pathInSilo,
