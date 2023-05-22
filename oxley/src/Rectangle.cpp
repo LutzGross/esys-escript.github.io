@@ -4304,6 +4304,64 @@ RankVector Rectangle::getOwnerVector(int fsType) const
     return owner;
 }
 
+/**
+    \brief
+    Applies a refinementzone
+*/
+void apply_refinementzone(RefinementZone R)
+{
+    int numberOfRefinements = R.getNumberOfOperations();
+
+    for(int n = 0; n < numberOfRefinements; n++)
+    {
+        RefinementType Refinement = R.getRefinement(n);
+        switch(Refinement.flavour)
+        {
+            // case POINT2D:
+            //     Point2DRefinement * P = new Point2DRefinement();
+            //     P = static_cast<RefinementType*>(R);
+            //     double x=P.x0;
+            //     double y=P.y0;
+            //     refinePoint(x,y)
+            //     break;
+            // case REGION2D:
+            //     double x0=R.x0;
+            //     double y0=R.y0;
+            //     double x1=R.x1;
+            //     double y1=R.y1;
+            //     refineRegion(x0,y0,x1,y1);
+            //     break;
+            // case CIRCLE:
+            //     double x0=R.x0;
+            //     double y0=R.y0;
+            //     double r0=R.r0;
+            //     refineCircle(x0,y0,r0);
+            //     break;
+            // case BOUNDARY:
+            //     switch(R.Boundary)
+            //     {
+            //         double dx=R.depth;
+            //         case NORTH:
+            //             refineBoundary("TOP",dx);
+            //             break;
+            //         case SOUTH:
+            //             refineBoundary("BOTTOM",dx);
+            //             break;
+            //         case WEST:
+            //             refineBoundary("LEFT",dx);
+            //             break;
+            //         case EAST:
+            //             refineBoundary("RIGHT",dx);
+            //             break;
+            //     }
+            //     break;
+            default:
+                throw OxleyException("Unknown refinement algorithm.");
+        }
+    }
+}
+
+
 // instantiate our two supported versions
 template
 void Rectangle::assembleGradientImpl<real_t>(escript::Data& out,

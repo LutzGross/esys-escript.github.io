@@ -28,6 +28,7 @@
 #include <oxley/Oxley.h>
 #include <oxley/OxleyData.h>
 #include <oxley/OxleyDomain.h>
+#include <oxley/RefinementZone.h>
 
 #include <oxley/tictoc.h>
 
@@ -617,6 +618,13 @@ protected:
 
     // The number of hanging nodes in the mesh
     int num_hanging;
+
+
+    /**
+      \brief
+      Applies a refinementzone
+   */
+    void apply_refinementzone(RefinementZone R);
 
 
     TicTocClock oxleytimer;

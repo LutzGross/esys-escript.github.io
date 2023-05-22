@@ -1,7 +1,10 @@
 
+#ifndef _OXLEY_REFINEMENTTYPE
+#define _OXLEY_REFINEMENTTYPE
+
 namespace oxley {
 
-enum RefinementAlgorithm { POINT2D, POINT3D, REGION2D, REGION3D, MASK, CIRCLE, SPHERE };
+enum RefinementAlgorithm { POINT2D, POINT3D, REGION2D, REGION3D, MASK, CIRCLE, SPHERE, BOUNDARY };
 enum Border { NORTH, SOUTH, EAST, WEST, TOP, BOTTOM };
 
 /**
@@ -26,6 +29,7 @@ public:
        \brief
        Constructor
     */
+    Point2DRefinement();
 	Point2DRefinement(double x, double y);
 
 	/**
@@ -45,6 +49,7 @@ public:
        \brief
        Constructor
     */
+    Region2DRefinement();
 	Region2DRefinement(double x0, double y0, double x1, double y1);
 
 	/**
@@ -63,6 +68,7 @@ public:
        \brief
        Constructor
     */
+    Point3DRefinement();
 	Point3DRefinement(double x, double y, double z);
 
 	/**
@@ -82,6 +88,7 @@ public:
        \brief
        Constructor
     */
+    Region3DRefinement();
 	Region3DRefinement(double x0, double y0, double z0, double x1, double y1, double z1);
 
 	/**
@@ -101,6 +108,7 @@ public:
        \brief
        Constructor
     */
+    CircleRefinement();
 	CircleRefinement(double x0, double y0, double r);
 
 	/**
@@ -120,6 +128,7 @@ public:
        \brief
        Constructor
     */
+    SphereRefinement();
 	SphereRefinement(double x0, double y0, double z0, double r);
 
 	/**
@@ -139,6 +148,7 @@ public:
        \brief
        Constructor
     */
+    Border2DRefinement();
 	Border2DRefinement(Border b, double depth);
 
 	/**
@@ -158,6 +168,7 @@ public:
        \brief
        Constructor
     */
+    Border3DRefinement();
 	Border3DRefinement(Border b, double depth);
 
 	/**
@@ -168,3 +179,5 @@ public:
 };
 
 } //namespace oxley
+
+#endif //_OXLEY_REFINEMENTTYPE

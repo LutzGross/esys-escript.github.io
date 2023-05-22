@@ -1,4 +1,7 @@
 
+#ifndef _OXLEY_REFINEMENTZONE
+#define _OXLEY_REFINEMENTZONE
+
 #include <vector>
 
 #include <escript/Pointers.h>
@@ -33,6 +36,21 @@ public:
        Add to queue
     */
 	virtual void AddToQueue(RefinementType R);
+
+    /**
+       \brief
+       Returns the length of the queue
+    */
+    virtual int getNumberOfOperations()
+    {
+        return queue.size();
+    };
+
+    /**
+       \brief
+       Returns the n^th refinement
+    */
+    virtual RefinementType getRefinement(int n);
 
 	/**
        \brief
@@ -75,3 +93,6 @@ public:
 typedef POINTER_WRAPPER_CLASS(RefinementZone) RefinementZone_Ptr;
 
 } //namespace oxley
+
+
+#endif //_OXLEY_REFINEMENTZONE

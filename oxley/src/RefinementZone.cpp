@@ -1,5 +1,6 @@
 
 #include <oxley/RefinementZone.h>
+#include <oxley/OxleyException.h>
 
 namespace oxley {
 
@@ -16,6 +17,14 @@ RefinementZone::RefinementZone()
 RefinementZone::~RefinementZone()
 {
 
+};
+
+RefinementType RefinementZone::getRefinement(int n)
+{
+    if(n <= getNumberOfOperations())
+        return queue[n];
+    else
+        throw OxleyException("Number is greater than queue length");
 };
 
 void RefinementZone2D::refinePoint(double x0, double y0)
