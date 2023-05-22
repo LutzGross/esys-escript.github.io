@@ -32,15 +32,15 @@ public:
        \brief
        Add to queue
     */
-	void AddToQueue(RefinementType R);
-
-private:
+	virtual void AddToQueue(RefinementType R);
 
 	/**
        \brief
        A queue of refinements 
     */
 	std::vector<RefinementType> queue;
+
+private:
 
 protected:
 };

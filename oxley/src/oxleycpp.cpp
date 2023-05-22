@@ -559,11 +559,60 @@ BOOST_PYTHON_MODULE(oxleycpp)
                 ":param r: \n:type double: radius of the circle.\n")
         ;
 
-    // class_<oxley::RefinementZone2D, bases<oxley::RefinementZone_Ptr> >("RefinementZone2D", "", no_init)
-    //     .def("refinePoint", &oxley::RefinementZone2D::refinePoint, (args("x0","y0")),
-    //             "Refines the mesh around the point (x0,y0) to the level of refinement.\n\n"
-    //             ":param x0:\n:type double: x coordinate of the point to be refined.\n"
-    //             ":param y0:\n:type double: y coordinate of the point to be refined.\n")
+    class_<oxley::RefinementZone2D, bases<oxley::RefinementZone_Ptr> >("RefinementZone2D", "", no_init)
+        .def("refinePoint", &oxley::RefinementZone2D::refinePoint, (args("x0","y0")),
+                "Refines the mesh around the point (x0,y0) to the level of refinement"
+                "set by setRefinementLevel \n\n"
+                ":param x0:\n:type double: x coordinate of the point to be refined.\n"
+                ":param y0:\n:type double: y coordinate of the point to be refined.\n")
+        .def("refineRegion", &oxley::RefinementZone2D::refineRegion, (args("x0","y0","x1","y1")),
+                "Refines the mesh around a rectangular region bound by the points (x0,y0)"
+                "and (x1,y1) to the level of refinement set by setRefinementLevel\n\n"
+                ":param x0:\n:type double: x coordinate of the upper left coordinate.\n"
+                ":param y0:\n:type double: y coordinate of the upper left coordinate.\n"
+                ":param x1:\n:type double: x coordinate of the lower right coordinate.\n"
+                ":param y1:\n:type double: y coordinate of the lower right coordinate.\n")
+        .def("refineCircle", &oxley::RefinementZone2D::refineCircle, (args("x0","y0","r")),
+                "Refines the mesh around a circular region with radius r and center"
+                "and (x0,y0) to the level of refinement set by setRefinementLevel\n\n"
+                ":param x0:\n:type double: x coordinate of the center of the circle.\n"
+                ":param y0:\n:type double: y coordinate of the center of the circle.\n"
+                ":param r :\n:type double: the radius of the circle.\n")
+        .def("refineBorder", &oxley::RefinementZone2D::refineBorder, (args("Border","dx")),
+                "Refines the border of the mesh to depth dx to the level of refinement"
+                "set by setRefinementLevel\n\n"
+                ":param Border:\n:type string: The border to refine (top,bottom,right,left).\n"
+                ":param dx:\n:type double: the depth of the refinement.\n")
+        ;
+
+    class_<oxley::RefinementZone3D, bases<oxley::RefinementZone_Ptr> >("RefinementZone3D", "", no_init)
+        .def("refinePoint", &oxley::RefinementZone3D::refinePoint, (args("x0","y0","z0")),
+                "Refines the mesh around the point (x0,y0,z0) to the level of refinement"
+                "set by setRefinementLevel \n\n"
+                ":param x0:\n:type double: x coordinate of the point to be refined.\n"
+                ":param y0:\n:type double: y coordinate of the point to be refined.\n"
+                ":param z0:\n:type double: z coordinate of the point to be refined.\n")
+        .def("refineRegion", &oxley::RefinementZone3D::refineRegion, (args("x0","y0","z0","x1","y1","z1")),
+                "Refines the mesh around a rectangular region bound by the points (x0,y0,z0)"
+                "and (x1,y1,z1) to the level of refinement set by setRefinementLevel\n\n"
+                ":param x0:\n:type double: x coordinate of the upper left coordinate.\n"
+                ":param y0:\n:type double: y coordinate of the upper left coordinate.\n"
+                ":param z0:\n:type double: z coordinate of the upper left coordinate.\n"
+                ":param x1:\n:type double: x coordinate of the lower right coordinate.\n"
+                ":param y1:\n:type double: y coordinate of the lower right coordinate.\n"
+                ":param z1:\n:type double: z coordinate of the lower right coordinate.\n")
+        .def("refineSphere", &oxley::RefinementZone3D::refineSphere, (args("x0","y0","z0","r")),
+                "Refines the mesh around a spherical region with radius r and center"
+                "and (x0,y0,z0) to the level of refinement set by setRefinementLevel\n\n"
+                ":param x0:\n:type double: x coordinate of the center of the circle.\n"
+                ":param y0:\n:type double: y coordinate of the center of the circle.\n"
+                ":param z0:\n:type double: z coordinate of the center of the circle.\n"
+                ":param r :\n:type double: the radius of the circle.\n")
+        .def("refineBorder", &oxley::RefinementZone3D::refineBorder, (args("Border","dx")),
+                "Refines the border of the mesh to depth dx to the level of refinement"
+                "set by setRefinementLevel\n\n"
+                ":param Border:\n:type string: The border to refine (top,bottom,right,left).\n"
+                ":param dx:\n:type double: the depth of the refinement.\n")
         ;
 
     class_<oxley::AbstractAssembler, oxley::Assembler_ptr, boost::noncopyable >  ("AbstractAssembler", "", no_init);
