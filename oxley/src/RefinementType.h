@@ -1,6 +1,6 @@
 
 
-enum RefinementAlgorithm { POINT, REGION2D, REGION3D, MASK, CIRCLE, SPHERE };
+enum RefinementAlgorithm { POINT2D, POINT3D, REGION2D, REGION3D, MASK, CIRCLE, SPHERE };
 enum Border { NORTH, SOUTH, EAST, WEST, TOP, BOTTOM };
 
 /**
@@ -16,7 +16,7 @@ public:
 
 };
 
-class PointRefinement : public RefinementType
+class Point2DRefinement : public RefinementType
 {
 public:
 	double x0, y0;
@@ -25,13 +25,13 @@ public:
        \brief
        Constructor
     */
-	PointRefinement(double x, double y);
+	Point2DRefinement(double x, double y);
 
 	/**
        \brief
        Destructor
     */
-	~PointRefinement();
+	~Point2DRefinement();
 };
 
 class Region2DRefinement : public RefinementType
@@ -51,6 +51,24 @@ public:
        Destructor
     */
 	~Region2DRefinement();
+};
+
+class Point3DRefinement : public RefinementType
+{
+public:
+	double x0, y0, z0;
+	
+	/**
+       \brief
+       Constructor
+    */
+	Point3DRefinement(double x, double y, double z);
+
+	/**
+       \brief
+       Destructor
+    */
+	~Point3DRefinement();
 };
 
 class Region3DRefinement : public RefinementType

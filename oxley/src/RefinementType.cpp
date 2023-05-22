@@ -3,14 +3,14 @@
 #include <oxley/RefinementType.h>
 
 
-PointRefinement::PointRefinement(double x, double y)
+Point2DRefinement::Point2DRefinement(double x, double y)
 {
-	flavour=POINT;
+	flavour=POINT2D;
 	x0=x;
 	y0=y;
 };
 
-PointRefinement::~PointRefinement()
+Point2DRefinement::~Point2DRefinement()
 {
 
 };
@@ -25,6 +25,19 @@ Region2DRefinement::Region2DRefinement(double x00, double y00, double x11, doubl
 };
 
 Region2DRefinement::~Region2DRefinement()
+{
+
+};
+
+Point3DRefinement::Point3DRefinement(double x, double y, double z)
+{
+	flavour=POINT3D;
+	x0=x;
+	y0=y;
+	z0=z;
+};
+
+Point3DRefinement::~Point3DRefinement()
 {
 
 };
