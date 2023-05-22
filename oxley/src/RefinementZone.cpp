@@ -1,9 +1,21 @@
 
 #include <oxley/RefinementZone.h>
 
+namespace oxley {
+
 void RefinementZone::AddToQueue(RefinementType R)
 {	
 	queue.push_back(R);
+};
+
+RefinementZone::RefinementZone()
+{
+
+};
+
+RefinementZone::~RefinementZone()
+{
+
 };
 
 void RefinementZone2D::refinePoint(double x0, double y0)
@@ -78,3 +90,6 @@ void RefinementZone3D::refineBorder(Border b, double dx)
 	AddToQueue(*alg);
 };
 
+
+
+} //namespace oxley

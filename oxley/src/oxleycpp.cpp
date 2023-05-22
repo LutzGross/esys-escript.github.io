@@ -17,6 +17,7 @@
 #include <oxley/Rectangle.h>
 #include <oxley/OtherAlgorithms.h>
 #include <oxley/OxleyDomain.h>
+#include <oxley/RefinementZone.h>
 
 #include <boost/python.hpp>
 #ifdef ESYS_HAVE_BOOST_NUMPY
@@ -222,6 +223,22 @@ escript::Domain_ptr _brick(double _n0, double _n1, double _n2,
     return escript::Domain_ptr(new Brick(order, n0,n1,n2, x0,y0,z0, x1,y1,z1, d0,d1,d2,  points, tags, tagstonames, periodic0,periodic1,periodic2));
 }
 
+oxley::RefinementZone_Ptr _refinementZone(int dim)
+{
+    if(dim == 2)
+    {
+        return oxley::RefinementZone_Ptr(new RefinementZone2D());
+    }
+    else if (dim == 3)
+    {
+        return oxley::RefinementZone_Ptr(new RefinementZone3D());
+    }
+    else
+    {
+        throw OxleyException("Invalid dimension.");
+    }
+}
+
 // #ifdef ESYS_HAVE_BOOST_NUMPY
 // void _addCurve(OxleyDomainRect_ptr domain,
 //     boost::python::numpy::ndarray &x,
@@ -382,6 +399,11 @@ BOOST_PYTHON_MODULE(oxleycpp)
     ":param d1: number of subdivisions in direction 1\n:type d1: ``int``\n"
     ":param d2: number of subdivisions in direction 2\n:type d2: ``int``");
 
+    def("RefinementZone", oxley::_refinementZone, (arg("dim")),
+        "Creates a refinement zone.\n\n"
+        ":param dim: number of dimensions (2 or 3)\n"
+        );
+
 // #ifdef ESYS_HAVE_BOOST_NUMPY
 //     // def("addSurface", oxley::_addSurface, (arg("domain"),arg("x"),arg("y"),arg("z")));
 //     def("addSurface", oxley::_addCurve, (arg("domain"),arg("x"),arg("y")));
@@ -535,6 +557,13 @@ BOOST_PYTHON_MODULE(oxleycpp)
                 ":param x0:\n:type double: x coordinate of the point to be refined.\n"
                 ":param y0:\n:type double: y coordinate of the point to be refined.\n"
                 ":param r: \n:type double: radius of the circle.\n")
+        ;
+
+    // class_<oxley::RefinementZone2D, bases<oxley::RefinementZone_Ptr> >("RefinementZone2D", "", no_init)
+    //     .def("refinePoint", &oxley::RefinementZone2D::refinePoint, (args("x0","y0")),
+    //             "Refines the mesh around the point (x0,y0) to the level of refinement.\n\n"
+    //             ":param x0:\n:type double: x coordinate of the point to be refined.\n"
+    //             ":param y0:\n:type double: y coordinate of the point to be refined.\n")
         ;
 
     class_<oxley::AbstractAssembler, oxley::Assembler_ptr, boost::noncopyable >  ("AbstractAssembler", "", no_init);

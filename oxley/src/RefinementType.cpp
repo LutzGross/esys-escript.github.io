@@ -1,6 +1,10 @@
 
+
+
 #include <oxley/OxleyException.h>
 #include <oxley/RefinementType.h>
+
+namespace oxley {
 
 
 Point2DRefinement::Point2DRefinement(double x, double y)
@@ -112,3 +116,6 @@ Border3DRefinement::~Border3DRefinement()
 {
 
 };
+
+
+} //namespace oxley

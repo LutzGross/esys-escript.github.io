@@ -1,8 +1,12 @@
 
 #include <vector>
 
+#include <escript/Pointers.h>
+
 #include <oxley/RefinementType.h>
 
+
+namespace oxley {
 
 /**
     \brief
@@ -11,6 +15,18 @@
 class RefinementZone
 {
 public:
+
+	/**
+       \brief
+       Constructor
+    */
+	RefinementZone();
+
+	/**
+       \brief
+       Destructor
+    */
+	~RefinementZone();
 
 	/**
        \brief
@@ -32,6 +48,7 @@ protected:
 
 class RefinementZone2D : public RefinementZone
 {
+public:
 	/**
        \brief
        RefinementAlgorithms
@@ -44,6 +61,7 @@ class RefinementZone2D : public RefinementZone
 
 class RefinementZone3D : public RefinementZone
 {
+public:
 	/**
        \brief
        RefinementAlgorithms
@@ -53,3 +71,7 @@ class RefinementZone3D : public RefinementZone
     void refineSphere(double x0, double y0, double z0, double r);
     void refineBorder(Border b, double dx);
 };
+
+typedef POINTER_WRAPPER_CLASS(RefinementZone) RefinementZone_Ptr;
+
+} //namespace oxley

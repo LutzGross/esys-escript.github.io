@@ -1,4 +1,5 @@
 
+namespace oxley {
 
 enum RefinementAlgorithm { POINT2D, POINT3D, REGION2D, REGION3D, MASK, CIRCLE, SPHERE };
 enum Border { NORTH, SOUTH, EAST, WEST, TOP, BOTTOM };
@@ -165,3 +166,5 @@ public:
     */
 	~Border3DRefinement();
 };
+
+} //namespace oxley
