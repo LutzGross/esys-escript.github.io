@@ -43,7 +43,7 @@ public:
        \brief
        Add to queue
     */
-	virtual void AddToQueue(RefinementType R);
+	virtual void addToQueue(RefinementType R);
 
     /**
        \brief
@@ -75,6 +75,8 @@ protected:
 class RefinementZone2D : public RefinementZone
 {
 public:
+   RefinementZone2D();
+   ~RefinementZone2D();
 	/**
        \brief
        RefinementAlgorithms
@@ -88,6 +90,8 @@ public:
 class RefinementZone3D : public RefinementZone
 {
 public:
+   RefinementZone3D();
+   ~RefinementZone3D();
 	/**
        \brief
        RefinementAlgorithms

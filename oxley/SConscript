@@ -15,10 +15,9 @@
 
 Import('env')
 if 'oxley' in env['domains']:
-    # TODO
-    # if not env['trilinos']:
-    #     print("Oxley requires Trilinos!")
-    #     env.Exit(1)
+    if not env['trilinos']:
+        print("Oxley requires Trilinos!")
+        env.Exit(1)
 
     # configure C++ library
     env.SConscript('src/SConscript', duplicate=0)

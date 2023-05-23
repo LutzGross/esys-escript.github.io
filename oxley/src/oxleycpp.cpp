@@ -25,8 +25,6 @@
 #include <boost/python/numpy/dtype.hpp>
 #endif
 
-// #include <p4est_algorithms.h> 
-
 // using namespace boost::python::numpy;
 
 namespace oxley {
@@ -223,145 +221,15 @@ escript::Domain_ptr _brick(double _n0, double _n1, double _n2,
     return escript::Domain_ptr(new Brick(order, n0,n1,n2, x0,y0,z0, x1,y1,z1, d0,d1,d2,  points, tags, tagstonames, periodic0,periodic1,periodic2));
 }
 
-oxley::RefinementZone_Ptr _refinementZone(int dim)
+oxley::RefinementZone2D_Ptr _refinementZone2D()
 {
-    if(dim == 2)
-    {
-        return oxley::RefinementZone_Ptr(new RefinementZone2D());
-    }
-    else if (dim == 3)
-    {
-        return oxley::RefinementZone_Ptr(new RefinementZone3D());
-    }
-    else
-    {
-        throw OxleyException("Invalid dimension.");
-    }
+    return oxley::RefinementZone2D_Ptr(new RefinementZone2D());
 }
 
-// #ifdef ESYS_HAVE_BOOST_NUMPY
-// void _addCurve(OxleyDomainRect_ptr domain,
-//     boost::python::numpy::ndarray &x,
-//     boost::python::numpy::ndarray &y)
-// {
-//     // Check that the x and z ndarrays are of reasonable dimensions
-//     int ndx = x.get_nd();
-//     int ndy = y.get_nd();
-//     const long int* lx = x.get_shape();
-//     const long int* ly = y.get_shape();
-
-//     if(x.get_dtype() != boost::python::numpy::dtype::get_builtin<double>())
-//         throw OxleyException("x must be an array of doubles.");
-//     if(y.get_dtype() != boost::python::numpy::dtype::get_builtin<double>())
-//         throw OxleyException("y must be an array of doubles.");
-//     if(ndx != 1)
-//         throw OxleyException("x has invalid dimensions.");
-//     if(ndy != 1)
-//         throw OxleyException("y has invalid dimensions");
-//     if(lx[0] != ly[0])
-//         throw OxleyException("x and y are different lengths.");
-
-//     // This structure is used to store the information used during the algorithm
-//     // a pointer is attached to p4est and then passed around between functions
-//     addSurfaceData * surfacedata = new addSurfaceData;
-//     p4estData *forestData = (p4estData *) domain->borrow_forestData();
-//     forestData->assign_info(surfacedata);
-//     domain->set_temp_data(surfacedata);
-//     surfacedata->x.clear();
-//     surfacedata->y.clear();
-//     surfacedata->x.resize(lx[0],-1.0);
-//     surfacedata->y.resize(ly[0],-1.0);
-//     double* px = reinterpret_cast<double*>(x.get_data());
-//     double* py = reinterpret_cast<double*>(y.get_data());
-//     // Note: boost::python::numpy::ndarray is not threadsafe
-//     for(long i = 0; i < *lx; i++)
-//         surfacedata->x[i] = *(px + i);
-//     for(long i = 0; i < *ly; i++)
-//         surfacedata->y[i] = *(py + i);
-
-//     if(!domain->getDescription().compare("oxley::rectangle"))
-//     {
-//         addSurface(domain);
-//         delete surfacedata;
-
-//     }
-//     else
-//     {
-//         delete surfacedata;
-//         std::string message = "Invalid domain. Was expecting an oxley::rectangle, not a " + domain->getDescription();
-//         throw OxleyException(message);
-//     }
-// }
-// #endif
-
-// #ifdef ESYS_HAVE_BOOST_NUMPY
-// void _addSurface(OxleyDomainBrick_ptr domain,
-//     boost::python::numpy::ndarray &x,
-//     boost::python::numpy::ndarray &y,
-//     boost::python::numpy::ndarray &z)
-// {
-//     // Check that the x and z ndarrays are of reasonable dimensions
-//     int ndx = x.get_nd();
-//     int ndy = y.get_nd();
-//     int ndz = z.get_nd();
-//     const long int* lx = x.get_shape();
-//     const long int* ly = y.get_shape();
-//     const long int* lz = z.get_shape();
-//     if(x.get_dtype() != boost::python::numpy::dtype::get_builtin<double>())
-//         throw OxleyException("x must be an array of doubles.");
-//     if(y.get_dtype() != boost::python::numpy::dtype::get_builtin<double>())
-//         throw OxleyException("y must be an array of doubles.");
-//     if(z.get_dtype() != boost::python::numpy::dtype::get_builtin<double>())
-//         throw OxleyException("z must be an array of doubles.");
-//     if(ndx != 1)
-//         throw OxleyException("x has invalid dimensions.");
-//     if(ndy != 1)
-//         throw OxleyException("y has invalid dimensions");
-//     if(ndz != 1)
-//         throw OxleyException("z has invalid dimensions");
-//     if(lz[0] != lx[0]*ly[0])
-//         throw OxleyException("z is not of length x*y.");
-
-//     // This structure is used to store the information used during the algorithm
-//     // a pointer is attached to p4est and then passed around between functions
-//     addSurfaceData * surfacedata = new addSurfaceData;
-//     p4estData *forestData = (p4estData *) domain->borrow_forestData();
-//     // forestData->info = surfacedata;
-//     forestData->assign_info(surfacedata);
-//     domain->set_temp_data(surfacedata);
-//     surfacedata->x.clear();
-//     surfacedata->y.clear();
-//     surfacedata->z.clear();
-//     surfacedata->x.resize(lx[0],-1.0);
-//     surfacedata->y.resize(ly[0],-1.0);
-//     surfacedata->z.resize(lz[0],-1.0);
-//     double* px = reinterpret_cast<double*>(x.get_data());
-//     double* py = reinterpret_cast<double*>(y.get_data());
-//     double* pz = reinterpret_cast<double*>(z.get_data());
-//     std::vector<double> vx(*lx);
-//     std::vector<double> vy(*ly);
-//     std::vector<double> vz(*lz);
-//     // Note: boost::python::numpy::ndarray is not threadsafe
-//     for(long i = 0; i < *lx; i++)
-//         surfacedata->x[i] = *(px + i);
-//     for(long i = 0; i < *ly; i++)
-//         surfacedata->y[i] = *(py + i);
-//     for(long i = 0; i < *lz; i++)
-//         surfacedata->z[i] = *(pz + i);
-
-//     if(!domain->getDescription().compare("oxley::brick"))
-//     {
-//         addSurface(domain);
-//         delete surfacedata;
-//     }
-//     else
-//     {
-//         delete surfacedata;
-//         std::string message = "Invalid domain. Was expecting an oxley::brick, not a " + domain->getDescription();
-//         throw OxleyException(message);
-//     }
-// }
-// #endif
+oxley::RefinementZone3D_Ptr _refinementZone3D()
+{
+    return oxley::RefinementZone3D_Ptr(new RefinementZone3D());
+}
 
 BOOST_PYTHON_MODULE(oxleycpp)
 {
@@ -399,9 +267,12 @@ BOOST_PYTHON_MODULE(oxleycpp)
     ":param d1: number of subdivisions in direction 1\n:type d1: ``int``\n"
     ":param d2: number of subdivisions in direction 2\n:type d2: ``int``");
 
-    def("RefinementZone", oxley::_refinementZone, (arg("dim")),
-        "Creates a refinement zone.\n\n"
-        ":param dim: number of dimensions (2 or 3)\n"
+    def("RefinementZone2D", oxley::_refinementZone2D, 
+        "Creates a refinement zone of dimension 2.\n\n"
+        );
+
+    def("RefinementZone3D", oxley::_refinementZone3D, 
+        "Creates a refinement zone of dimension 3.\n\n"
         );
 
 // #ifdef ESYS_HAVE_BOOST_NUMPY
@@ -565,7 +436,7 @@ BOOST_PYTHON_MODULE(oxleycpp)
                 ":param r: \n:type double: radius of the circle.\n")
         ;
 
-    class_<oxley::RefinementZone2D, bases<oxley::RefinementZone_Ptr> >("RefinementZone2D", "", no_init)
+    class_<oxley::RefinementZone2D, oxley::RefinementZone2D_Ptr, boost::noncopyable >  ("RefinementZone2D", "", no_init)
         .def("refinePoint", &oxley::RefinementZone2D::refinePoint, (args("x0","y0")),
                 "Refines the mesh around the point (x0,y0) to the level of refinement"
                 "set by setRefinementLevel \n\n"
@@ -591,7 +462,7 @@ BOOST_PYTHON_MODULE(oxleycpp)
                 ":param dx:\n:type double: the depth of the refinement.\n")
         ;
 
-    class_<oxley::RefinementZone3D, bases<oxley::RefinementZone_Ptr> >("RefinementZone3D", "", no_init)
+    class_<oxley::RefinementZone3D, oxley::RefinementZone3D_Ptr, boost::noncopyable >  ("RefinementZone3D", "", no_init)
         .def("refinePoint", &oxley::RefinementZone3D::refinePoint, (args("x0","y0","z0")),
                 "Refines the mesh around the point (x0,y0,z0) to the level of refinement"
                 "set by setRefinementLevel \n\n"

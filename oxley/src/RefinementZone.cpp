@@ -4,7 +4,7 @@
 
 namespace oxley {
 
-void RefinementZone::AddToQueue(RefinementType R)
+void RefinementZone::addToQueue(RefinementType R)
 {	
 	queue.push_back(R);
 };
@@ -27,13 +27,23 @@ RefinementType RefinementZone::getRefinement(int n)
         throw OxleyException("Number is greater than queue length");
 };
 
+RefinementZone2D::RefinementZone2D()
+{
+
+};
+
+RefinementZone2D::~RefinementZone2D()
+{
+
+};
+
 void RefinementZone2D::refinePoint(double x0, double y0)
 {
 	Point2DRefinement refine(x0,y0);
 	Point2DRefinement * pRefine = &refine;
 	RefinementType * alg = new RefinementType;
 	alg = static_cast<RefinementType*>(pRefine);
-	AddToQueue(*alg);
+	addToQueue(*alg);
 };
 
 void RefinementZone2D::refineRegion(double x0, double y0, double x1, double y1)
@@ -42,7 +52,7 @@ void RefinementZone2D::refineRegion(double x0, double y0, double x1, double y1)
 	Region2DRefinement * pRefine = &refine;
 	RefinementType * alg = new RefinementType;
 	alg = static_cast<RefinementType*>(pRefine);
-	AddToQueue(*alg);
+	addToQueue(*alg);
 };
 
 void RefinementZone2D::refineCircle(double x0, double y0, double r)
@@ -51,7 +61,7 @@ void RefinementZone2D::refineCircle(double x0, double y0, double r)
 	CircleRefinement * pRefine = &refine;
 	RefinementType * alg = new RefinementType;
 	alg = static_cast<RefinementType*>(pRefine);
-	AddToQueue(*alg);
+	addToQueue(*alg);
 };
 
 void RefinementZone2D::refineBorder(Border b, double dx)
@@ -60,7 +70,17 @@ void RefinementZone2D::refineBorder(Border b, double dx)
 	Border2DRefinement * pRefine = &refine;
 	RefinementType * alg = new RefinementType;
 	alg = static_cast<RefinementType*>(pRefine);
-	AddToQueue(*alg);
+	addToQueue(*alg);
+};
+
+RefinementZone3D::RefinementZone3D()
+{
+
+};
+
+RefinementZone3D::~RefinementZone3D()
+{
+
 };
 
 void RefinementZone3D::refinePoint(double x0, double y0, double z0)
@@ -69,7 +89,7 @@ void RefinementZone3D::refinePoint(double x0, double y0, double z0)
 	Point3DRefinement * pRefine = &refine;
 	RefinementType * alg = new RefinementType;
 	alg = static_cast<RefinementType*>(pRefine);
-	AddToQueue(*alg);
+	addToQueue(*alg);
 };
 
 void RefinementZone3D::refineRegion(double x0, double y0, double z0, double x1, double y1, double z1)
@@ -78,7 +98,7 @@ void RefinementZone3D::refineRegion(double x0, double y0, double z0, double x1, 
 	Region3DRefinement * pRefine = &refine;
 	RefinementType * alg = new RefinementType;
 	alg = static_cast<RefinementType*>(pRefine);
-	AddToQueue(*alg);
+	addToQueue(*alg);
 };
 
 void RefinementZone3D::refineSphere(double x0, double y0, double z0, double r)
@@ -87,7 +107,7 @@ void RefinementZone3D::refineSphere(double x0, double y0, double z0, double r)
 	SphereRefinement * pRefine = &refine;
 	RefinementType * alg = new RefinementType;
 	alg = static_cast<RefinementType*>(pRefine);
-	AddToQueue(*alg);
+	addToQueue(*alg);
 };
 
 void RefinementZone3D::refineBorder(Border b, double dx)
@@ -96,7 +116,7 @@ void RefinementZone3D::refineBorder(Border b, double dx)
 	Border3DRefinement * pRefine = &refine;
 	RefinementType * alg = new RefinementType;
 	alg = static_cast<RefinementType*>(pRefine);
-	AddToQueue(*alg);
+	addToQueue(*alg);
 };
 
 
