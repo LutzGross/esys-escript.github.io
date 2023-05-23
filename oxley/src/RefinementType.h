@@ -17,6 +17,7 @@ class RefinementType
 public:
 
 	RefinementAlgorithm flavour;
+	int levels;
 
 };
 

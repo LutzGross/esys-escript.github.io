@@ -4312,12 +4312,15 @@ RankVector Rectangle::getOwnerVector(int fsType) const
 */
 void Rectangle::apply_refinementzone(RefinementZone R)
 {
+    int original_refinement_level=m_refinement_levels;
     int numberOfRefinements = R.getNumberOfOperations();
 
     for(int n = 0; n < numberOfRefinements; n++)
     {
         RefinementType Refinement = R.getRefinement(n);
         RefinementType * pRefinement = &Refinement;
+        //set the refinement level for this refinement
+        setRefinementLevels(Refinement.levels);
         switch(Refinement.flavour)
         {
             case POINT2D:
@@ -4394,6 +4397,8 @@ void Rectangle::apply_refinementzone(RefinementZone R)
                 throw OxleyException("Unknown refinement algorithm.");
         }
     }
+    // Set refinement_levels back to its original value
+    setRefinementLevels(original_refinement_level);
 }
 
 

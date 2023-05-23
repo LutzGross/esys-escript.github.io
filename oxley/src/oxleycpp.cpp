@@ -440,6 +440,9 @@ BOOST_PYTHON_MODULE(oxleycpp)
     class_<oxley::RefinementZone>("RefinementZone", "", no_init);
 
     class_<oxley::RefinementZone2D, bases<oxley::RefinementZone>>("RefinementZone2D", "", no_init)
+        .def("setRefinementLevel", &oxley::RefinementZone3D::setRefinementLevel, (args("level")),
+                "Sets the level of refinement\n"
+                ":param level:\n:type int: the level of the refinement.\n")
         .def("refinePoint", &oxley::RefinementZone2D::refinePoint, (args("x0","y0")),
                 "Refines the mesh around the point (x0,y0) to the level of refinement"
                 "set by setRefinementLevel \n"
@@ -466,6 +469,9 @@ BOOST_PYTHON_MODULE(oxleycpp)
         ;
 
     class_<oxley::RefinementZone3D, bases<oxley::RefinementZone>>("RefinementZone3D", "", no_init)
+        .def("setRefinementLevel", &oxley::RefinementZone3D::setRefinementLevel, (args("level")),
+                "Sets the level of refinement\n"
+                ":param level:\n:type int: the level of the refinement.\n")
         .def("refinePoint", &oxley::RefinementZone3D::refinePoint, (args("x0","y0","z0")),
                 "Refines the mesh around the point (x0,y0,z0) to the level of refinement"
                 "set by setRefinementLevel \n"

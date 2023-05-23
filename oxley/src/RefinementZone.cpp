@@ -7,11 +7,12 @@ namespace oxley {
 void RefinementZone::addToQueue(RefinementType R)
 {	
 	queue.push_back(R);
+	R.levels=refinement_levels;
 };
 
 RefinementZone::RefinementZone()
 {
-
+	refinement_levels=1;
 };
 
 RefinementZone::~RefinementZone()
@@ -25,6 +26,14 @@ RefinementType RefinementZone::getRefinement(int n)
         return queue[n];
     else
         throw OxleyException("Number is greater than queue length");
+};
+
+void RefinementZone::setRefinementLevel(int n)
+{
+	if(n >= 0)
+    	refinement_levels=n;
+    else
+    	throw OxleyException("The levels of refinement must be equal to or greater than zero.");
 };
 
 RefinementZone2D::RefinementZone2D()

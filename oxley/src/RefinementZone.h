@@ -66,6 +66,14 @@ public:
     */
 	std::vector<RefinementType> queue;
 
+   /**
+       \brief
+       Returns the length of the queue
+    */
+    virtual void setRefinementLevel(int n);
+
+    int refinement_levels;
+
 private:
 
 protected:
