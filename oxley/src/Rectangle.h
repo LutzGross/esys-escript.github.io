@@ -334,6 +334,12 @@ public:
     */
     void getNeighouringNodeIDs(int8_t level, p4est_qcoord_t x, p4est_qcoord_t y, p4est_topidx_t treeid, long (&ids) [4]) const;
 
+    /**
+      \brief
+      Applies a refinementzone
+   */
+    void apply_refinementzone(RefinementZone R);
+
 private:
     // The data structure in p4est
     p4estData forestData;
@@ -618,14 +624,6 @@ protected:
 
     // The number of hanging nodes in the mesh
     int num_hanging;
-
-
-    /**
-      \brief
-      Applies a refinementzone
-   */
-    void apply_refinementzone(RefinementZone R);
-
 
     TicTocClock oxleytimer;
 };

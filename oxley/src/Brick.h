@@ -28,6 +28,8 @@
 #include <oxley/Oxley.h>
 #include <oxley/OxleyDomain.h>
 #include <oxley/OxleyData.h>
+#include <oxley/RefinementType.h>
+#include <oxley/RefinementZone.h>
 
 #include <oxley/tictoc.h>
 
@@ -383,6 +385,11 @@ public:
     */
     bool isBelowBoundaryNode(p8est_quadrant_t * quad, int n, p8est_topidx_t treeid, p8est_qcoord_t length) const;
 
+    /**
+      \brief
+      Applies a refinementzone
+   */
+    void apply_refinementzone(RefinementZone R);
 
 ////////////////////////////////
 private:

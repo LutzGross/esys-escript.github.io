@@ -512,6 +512,9 @@ BOOST_PYTHON_MODULE(oxleycpp)
     // These two class exports are necessary to ensure that the extra methods
     // added by oxley make it to python. 
     class_<oxley::Brick, bases<oxley::OxleyDomain> >("OxleyBrick", "", no_init)
+        .def("ApplyRefinementZone",&oxley::Brick::apply_refinementzone, (args("RefinementZone")),
+                "Applies a RefinementZone to the Brick.\n"
+                ":param RefinementZone:\n:type RefinementZone: A RefinementZone. \n")
         .def("refineBoundary", &oxley::Brick::refineBoundary, (args("boundary","dx")),
                 "Refines the mesh near a boundary.\n"
                 ":param boundary:\n:type string: `The boundary (top,bottom,right,left) \n"
@@ -536,6 +539,9 @@ BOOST_PYTHON_MODULE(oxleycpp)
         ;
 
     class_<oxley::Rectangle, bases<oxley::OxleyDomain> >("OxleyRectangle", "", no_init)
+        .def("ApplyRefinementZone",&oxley::Rectangle::apply_refinementzone, (args("RefinementZone")),
+                "Applies a RefinementZone to the Rectangle.\n"
+                ":param RefinementZone:\n:type RefinementZone: A RefinementZone. \n")
         .def("refineBoundary", &oxley::Rectangle::refineBoundary, (args("boundary","dx")),
                 "Refines the mesh near a boundary.\n"
                 ":param boundary:\n:type string: `The boundary (top,bottom,right,left) \n"

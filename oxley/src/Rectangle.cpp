@@ -35,6 +35,8 @@
 #include <oxley/OxleyData.h>
 #include <oxley/Rectangle.h>
 #include <oxley/RefinementAlgorithms.h>
+#include <oxley/RefinementType.h>
+#include <oxley/RefinementZone.h>
 
 #include <p4est.h>
 #include <p4est_algorithms.h>
@@ -4308,53 +4310,86 @@ RankVector Rectangle::getOwnerVector(int fsType) const
     \brief
     Applies a refinementzone
 */
-void apply_refinementzone(RefinementZone R)
+void Rectangle::apply_refinementzone(RefinementZone R)
 {
     int numberOfRefinements = R.getNumberOfOperations();
 
     for(int n = 0; n < numberOfRefinements; n++)
     {
         RefinementType Refinement = R.getRefinement(n);
+        RefinementType * pRefinement = &Refinement;
         switch(Refinement.flavour)
         {
-            // case POINT2D:
-            //     Point2DRefinement * P = new Point2DRefinement();
-            //     P = static_cast<RefinementType*>(R);
-            //     double x=P.x0;
-            //     double y=P.y0;
-            //     refinePoint(x,y)
-            //     break;
-            // case REGION2D:
-            //     double x0=R.x0;
-            //     double y0=R.y0;
-            //     double x1=R.x1;
-            //     double y1=R.y1;
-            //     refineRegion(x0,y0,x1,y1);
-            //     break;
-            // case CIRCLE:
-            //     double x0=R.x0;
-            //     double y0=R.y0;
-            //     double r0=R.r0;
-            //     refineCircle(x0,y0,r0);
-            //     break;
-            // case BOUNDARY:
-            //     switch(R.Boundary)
-            //     {
-            //         double dx=R.depth;
-            //         case NORTH:
-            //             refineBoundary("TOP",dx);
-            //             break;
-            //         case SOUTH:
-            //             refineBoundary("BOTTOM",dx);
-            //             break;
-            //         case WEST:
-            //             refineBoundary("LEFT",dx);
-            //             break;
-            //         case EAST:
-            //             refineBoundary("RIGHT",dx);
-            //             break;
-            //     }
-            //     break;
+            case POINT2D:
+            {
+                RefinementType * Ptmp = new RefinementType();
+                Point2DRefinement * P = static_cast<Point2DRefinement *>(Ptmp);
+                double x=P->x0;
+                double y=P->y0;
+                refinePoint(x,y);
+                break;
+            }
+            case REGION2D:
+            {
+                RefinementType * Ptmp = new RefinementType();
+                Region2DRefinement * P = static_cast<Region2DRefinement *>(Ptmp);
+                double x0=P->x0;
+                double y0=P->y0;
+                double x1=P->x1;
+                double y1=P->y1;
+                refineRegion(x0,y0,x1,y1);
+                break;
+            }
+            case CIRCLE:
+            {
+                RefinementType * Ptmp = new RefinementType();
+                CircleRefinement * P = static_cast<CircleRefinement *>(Ptmp);
+                double x0=P->x0;
+                double y0=P->y0;
+                double r0=P->r;
+                refineCircle(x0,y0,r0);
+                break;
+            }
+            case BOUNDARY:
+            {
+                RefinementType * Ptmp = new RefinementType();
+                Border2DRefinement * P = static_cast<Border2DRefinement *>(Ptmp);
+                double dx=P->depth;
+                switch(P->b)
+                {
+                    case NORTH:
+                    {
+                        refineBoundary("TOP",dx);
+                        break;
+                    }
+                    case SOUTH:
+                    {
+                        refineBoundary("BOTTOM",dx);
+                        break;
+                    }
+                    case WEST:
+                    {
+                        refineBoundary("LEFT",dx);
+                        break;
+                    }
+                    case EAST:
+                    {
+                        refineBoundary("RIGHT",dx);
+                        break;
+                    }
+                    case TOP:
+                    case BOTTOM:
+                    default:
+                    {
+                        throw OxleyException("Invalid border direction.");
+                    }
+                }
+                break;
+            }
+            case MASK:
+            case SPHERE:
+            case POINT3D:
+            case REGION3D:
             default:
                 throw OxleyException("Unknown refinement algorithm.");
         }

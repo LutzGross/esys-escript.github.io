@@ -11,6 +11,14 @@
 
 namespace oxley {
 
+class RefinementZone;
+class RefinementZone2D;
+class RefinementZone3D;
+
+typedef boost::shared_ptr<RefinementZone>   RefinementZone_Ptr;
+typedef boost::shared_ptr<RefinementZone2D> RefinementZone2D_Ptr;
+typedef boost::shared_ptr<RefinementZone3D> RefinementZone3D_Ptr;
+
 /**
     \brief
     Abstract class RefinementZone 
@@ -89,8 +97,6 @@ public:
     void refineSphere(double x0, double y0, double z0, double r);
     void refineBorder(Border b, double dx);
 };
-
-typedef POINTER_WRAPPER_CLASS(RefinementZone) RefinementZone_Ptr;
 
 } //namespace oxley
 

@@ -35,6 +35,7 @@
 #include <oxley/Brick.h>
 #include <oxley/RefinementAlgorithms.h>
 
+
 #include <p8est.h>
 #include <p8est_algorithms.h>
 #include <p8est_bits.h>
@@ -4814,5 +4815,107 @@ const long Brick::getNodeId(double x, double y, double z)
 //         ids[i]=(long) NodeIDs.find(std::make_tuple(xy[0],xy[1],xy[2]))->second;
 //     }
 // }
+
+/**
+    \brief
+    Applies a refinementzone
+*/
+void Brick::apply_refinementzone(RefinementZone R)
+{
+    int numberOfRefinements = R.getNumberOfOperations();
+
+    for(int n = 0; n < numberOfRefinements; n++)
+    {
+        RefinementType Refinement = R.getRefinement(n);
+        RefinementType * pRefinement = &Refinement;
+        switch(Refinement.flavour)
+        {
+            case POINT3D:
+            {
+                RefinementType * Ptmp = new RefinementType();
+                Point3DRefinement * P = static_cast<Point3DRefinement *>(Ptmp);
+                double x=P->x0;
+                double y=P->y0;
+                double z=P->z0;
+                refinePoint(x,y,z);
+                break;
+            }
+            case REGION3D:
+            {
+                RefinementType * Ptmp = new RefinementType();
+                Region3DRefinement * P = static_cast<Region3DRefinement *>(Ptmp);
+                double x0=P->x0;
+                double y0=P->y0;
+                double z0=P->z0;
+                double x1=P->x1;
+                double y1=P->y1;
+                double z1=P->z1;
+                refineRegion(x0,y0,z0,x1,y1,z1);
+                break;
+            }
+            case SPHERE:
+            {
+                RefinementType * Ptmp = new RefinementType();
+                SphereRefinement * P = static_cast<SphereRefinement *>(Ptmp);
+                double x0=P->x0;
+                double y0=P->y0;
+                double z0=P->z0;
+                double r0=P->r;
+                refineSphere(x0,y0,z0,r0);
+                break;
+            }
+            case BOUNDARY:
+            {
+                RefinementType * Ptmp = new RefinementType();
+                Border3DRefinement * P = static_cast<Border3DRefinement *>(Ptmp);
+                double dx=P->depth;
+                switch(P->b)
+                {
+                    case NORTH:
+                    {
+                        refineBoundary("TOP",dx);
+                        break;
+                    }
+                    case SOUTH:
+                    {
+                        refineBoundary("BOTTOM",dx);
+                        break;
+                    }
+                    case WEST:
+                    {
+                        refineBoundary("LEFT",dx);
+                        break;
+                    }
+                    case EAST:
+                    {
+                        refineBoundary("RIGHT",dx);
+                        break;
+                    }
+                    case TOP:
+                    {
+                        refineBoundary("TOP",dx);
+                        break;
+                    }
+                    case BOTTOM:
+                    {
+                        refineBoundary("BOTTOM",dx);
+                        break;
+                    }
+                    default:
+                    {
+                        throw OxleyException("Invalid border direction.");
+                    }
+                }
+                break;
+            }
+            case MASK:
+            case CIRCLE:
+            case POINT2D:
+            case REGION2D:
+            default:
+                throw OxleyException("Unknown refinement algorithm.");
+        }
+    }
+}
 
 } // end of namespace oxley
