@@ -81,10 +81,10 @@ public:
        \brief
        RefinementAlgorithms
     */
-    void refinePoint(double x0, double y0);
-    void refineRegion(double x0, double y0, double x1, double y1);
-    void refineCircle(double x0, double y0, double r);
-    void refineBorder(Border b, double dx);
+    void refinePoint(float x0, float y0);
+    void refineRegion(float x0, float y0, float x1, float y1);
+    void refineCircle(float x0, float y0, float r);
+    void refineBorder(Border b, float dx);
 };
 
 class RefinementZone3D : public RefinementZone
@@ -96,10 +96,10 @@ public:
        \brief
        RefinementAlgorithms
     */
-    void refinePoint(double x0, double y0, double z0);
-    void refineRegion(double x0, double y0, double z0, double x1, double y1, double z1);
-    void refineSphere(double x0, double y0, double z0, double r);
-    void refineBorder(Border b, double dx);
+    void refinePoint(float x0, float y0, float z0);
+    void refineRegion(float x0, float y0, float z0, float x1, float y1, float z1);
+    void refineSphere(float x0, float y0, float z0, float r);
+    void refineBorder(Border b, float dx);
 };
 
 } //namespace oxley
