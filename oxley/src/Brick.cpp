@@ -4828,51 +4828,42 @@ void Brick::apply_refinementzone(RefinementZone R)
     for(int n = 0; n < numberOfRefinements; n++)
     {
         RefinementType Refinement = R.getRefinement(n);
-        RefinementType * pRefinement = &Refinement;
         //set the refinement level for this refinement
         setRefinementLevels(Refinement.levels);
         switch(Refinement.flavour)
         {
             case POINT3D:
             {
-                RefinementType * Ptmp = new RefinementType();
-                Point3DRefinement * P = static_cast<Point3DRefinement *>(Ptmp);
-                double x=P->x0;
-                double y=P->y0;
-                double z=P->z0;
+                double x=Refinement.x0;
+                double y=Refinement.y0;
+                double z=Refinement.z0;
                 refinePoint(x,y,z);
                 break;
             }
             case REGION3D:
             {
-                RefinementType * Ptmp = new RefinementType();
-                Region3DRefinement * P = static_cast<Region3DRefinement *>(Ptmp);
-                double x0=P->x0;
-                double y0=P->y0;
-                double z0=P->z0;
-                double x1=P->x1;
-                double y1=P->y1;
-                double z1=P->z1;
+                double x0=Refinement.x0;
+                double y0=Refinement.y0;
+                double z0=Refinement.z0;
+                double x1=Refinement.x1;
+                double y1=Refinement.y1;
+                double z1=Refinement.z1;
                 refineRegion(x0,y0,z0,x1,y1,z1);
                 break;
             }
             case SPHERE:
             {
-                RefinementType * Ptmp = new RefinementType();
-                SphereRefinement * P = static_cast<SphereRefinement *>(Ptmp);
-                double x0=P->x0;
-                double y0=P->y0;
-                double z0=P->z0;
-                double r0=P->r;
+                double x0=Refinement.x0;
+                double y0=Refinement.y0;
+                double z0=Refinement.z0;
+                double r0=Refinement.r;
                 refineSphere(x0,y0,z0,r0);
                 break;
             }
             case BOUNDARY:
             {
-                RefinementType * Ptmp = new RefinementType();
-                Border3DRefinement * P = static_cast<Border3DRefinement *>(Ptmp);
-                double dx=P->depth;
-                switch(P->b)
+                double dx=Refinement.depth;
+                switch(Refinement.b)
                 {
                     case NORTH:
                     {

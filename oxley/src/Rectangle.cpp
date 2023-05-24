@@ -4318,47 +4318,38 @@ void Rectangle::apply_refinementzone(RefinementZone R)
     for(int n = 0; n < numberOfRefinements; n++)
     {
         RefinementType Refinement = R.getRefinement(n);
-        RefinementType * pRefinement = &Refinement;
         //set the refinement level for this refinement
         setRefinementLevels(Refinement.levels);
         switch(Refinement.flavour)
         {
             case POINT2D:
             {
-                RefinementType * Ptmp = new RefinementType();
-                Point2DRefinement * P = static_cast<Point2DRefinement *>(Ptmp);
-                double x=P->x0;
-                double y=P->y0;
+                double x=Refinement.x0;
+                double y=Refinement.y0;
                 refinePoint(x,y);
                 break;
             }
             case REGION2D:
             {
-                RefinementType * Ptmp = new RefinementType();
-                Region2DRefinement * P = static_cast<Region2DRefinement *>(Ptmp);
-                double x0=P->x0;
-                double y0=P->y0;
-                double x1=P->x1;
-                double y1=P->y1;
+                double x0=Refinement.x0;
+                double y0=Refinement.y0;
+                double x1=Refinement.x1;
+                double y1=Refinement.y1;
                 refineRegion(x0,y0,x1,y1);
                 break;
             }
             case CIRCLE:
             {
-                RefinementType * Ptmp = new RefinementType();
-                CircleRefinement * P = static_cast<CircleRefinement *>(Ptmp);
-                double x0=P->x0;
-                double y0=P->y0;
-                double r0=P->r;
+                double x0=Refinement.x0;
+                double y0=Refinement.y0;
+                double r0=Refinement.r;
                 refineCircle(x0,y0,r0);
                 break;
             }
             case BOUNDARY:
             {
-                RefinementType * Ptmp = new RefinementType();
-                Border2DRefinement * P = static_cast<Border2DRefinement *>(Ptmp);
-                double dx=P->depth;
-                switch(P->b)
+                double dx=Refinement.depth;
+                switch(Refinement.b)
                 {
                     case NORTH:
                     {

@@ -6,28 +6,35 @@
 
 namespace oxley {
 
-
-Point2DRefinement::Point2DRefinement(double x, double y)
+RefinementType::RefinementType()
 {
+
+};
+
+RefinementType::~RefinementType()
+{
+
+};
+
+void RefinementType::Point2DRefinement(double x, double y, int refinement_levels)
+{
+	levels=refinement_levels;
 	flavour=POINT2D;
 	x0=x;
 	y0=y;
 };
 
-Point2DRefinement::Point2DRefinement()
+void RefinementType::Point2DRefinement()
 {
+	levels=-1;
 	flavour=POINT2D;
 	x0=-1;
 	y0=-1;
 };
 
-Point2DRefinement::~Point2DRefinement()
+void RefinementType::Region2DRefinement(double x00, double y00, double x11, double y11, int refinement_levels)
 {
-
-};
-
-Region2DRefinement::Region2DRefinement(double x00, double y00, double x11, double y11)
-{
+	levels=refinement_levels;
 	flavour=REGION2D;
 	x0=x00;
 	y0=y00;
@@ -35,8 +42,9 @@ Region2DRefinement::Region2DRefinement(double x00, double y00, double x11, doubl
 	y1=y11;
 };
 
-Region2DRefinement::Region2DRefinement()
+void RefinementType::Region2DRefinement()
 {
+	levels=-1;
 	flavour=REGION2D;
 	x0=-1;
 	y0=-1;
@@ -44,35 +52,28 @@ Region2DRefinement::Region2DRefinement()
 	y1=-1;
 };
 
-Region2DRefinement::~Region2DRefinement()
+void RefinementType::Point3DRefinement(double x, double y, double z, int refinement_levels)
 {
-
-};
-
-Point3DRefinement::Point3DRefinement(double x, double y, double z)
-{
+	levels=refinement_levels;
 	flavour=POINT3D;
 	x0=x;
 	y0=y;
 	z0=z;
 };
 
-Point3DRefinement::Point3DRefinement()
+void RefinementType::Point3DRefinement()
 {
+	levels=-1;
 	flavour=POINT3D;
 	x0=-1;
 	y0=-1;
 	z0=-1;
 };
 
-Point3DRefinement::~Point3DRefinement()
+void RefinementType::Region3DRefinement(double x00, double y00, double z00, 
+										double x11, double y11, double z11, int refinement_levels)
 {
-
-};
-
-Region3DRefinement::Region3DRefinement(double x00, double y00, double z00, 
-										double x11, double y11, double z11)
-{
+	levels=refinement_levels;
 	flavour=REGION3D;
 	x0=x00;
 	y0=y00;
@@ -82,8 +83,9 @@ Region3DRefinement::Region3DRefinement(double x00, double y00, double z00,
 	z1=z11;
 };
 
-Region3DRefinement::Region3DRefinement()
+void RefinementType::Region3DRefinement()
 {
+	levels=-1;
 	flavour=REGION3D;
 	x0=-1;
 	y0=-1;
@@ -93,34 +95,27 @@ Region3DRefinement::Region3DRefinement()
 	z1=-1;
 };
 
-Region3DRefinement::~Region3DRefinement()
+void RefinementType::CircleRefinement(double x, double y, double r0, int refinement_levels)
 {
-
-};
-
-CircleRefinement::CircleRefinement(double x, double y, double r0)
-{
+	levels=refinement_levels;
 	flavour=CIRCLE;
 	x0=x;
 	y0=y;
 	r=r0;
 };
 
-CircleRefinement::CircleRefinement()
+void RefinementType::CircleRefinement()
 {
+	levels=-1;
 	flavour=CIRCLE;
 	x0=-1;
 	y0=-1;
 	r=-1;
 };
 
-CircleRefinement::~CircleRefinement()
+void RefinementType::SphereRefinement(double x, double y, double z, double r0, int refinement_levels)
 {
-
-};
-
-SphereRefinement::SphereRefinement(double x, double y, double z, double r0)
-{
+	levels=refinement_levels;
 	flavour=SPHERE;
 	x0=x;
 	y0=y;
@@ -128,8 +123,9 @@ SphereRefinement::SphereRefinement(double x, double y, double z, double r0)
 	r=r0;
 };
 
-SphereRefinement::SphereRefinement()
+void RefinementType::SphereRefinement()
 {
+	levels=-1;
 	flavour=SPHERE;
 	x0=-1;
 	y0=-1;
@@ -137,14 +133,9 @@ SphereRefinement::SphereRefinement()
 	r=-1;
 };
 
-SphereRefinement::~SphereRefinement()
+void RefinementType::Border2DRefinement(Border border, double dx, int refinement_levels)
 {
-
-};
-
-
-Border2DRefinement::Border2DRefinement(Border border, double dx)
-{
+	levels=refinement_levels;
 	flavour=BOUNDARY;
 
 	if(border == TOP || border == BOTTOM)
@@ -154,38 +145,30 @@ Border2DRefinement::Border2DRefinement(Border border, double dx)
 	depth = dx;
 };
 
-Border2DRefinement::Border2DRefinement()
+void RefinementType::Border2DRefinement()
 {
+	levels=-1;
 	flavour=BOUNDARY;
 	b = TOP;
 	depth = -1;
 };
-Border2DRefinement::~Border2DRefinement()
+
+void RefinementType::Border3DRefinement(Border border, double dx, int refinement_levels)
 {
-
-};
-
-
-Border3DRefinement::Border3DRefinement(Border border, double dx)
-{
+	levels=refinement_levels;
 	flavour=BOUNDARY;
 
 	b = border;
 	depth = dx;
 };
 
-Border3DRefinement::Border3DRefinement()
+void RefinementType::Border3DRefinement()
 {
+	levels=-1;
 	flavour=BOUNDARY;
 
 	b = TOP;
 	depth = -1;
 };
-
-Border3DRefinement::~Border3DRefinement()
-{
-
-};
-
 
 } //namespace oxley

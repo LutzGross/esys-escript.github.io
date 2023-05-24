@@ -2,6 +2,7 @@
 #ifndef _OXLEY_REFINEMENTZONE
 #define _OXLEY_REFINEMENTZONE
 
+#include <iostream>
 #include <vector>
 
 #include <escript/Pointers.h>
@@ -15,9 +16,12 @@ class RefinementZone;
 class RefinementZone2D;
 class RefinementZone3D;
 
-typedef boost::shared_ptr<RefinementZone>   RefinementZone_Ptr;
-typedef boost::shared_ptr<RefinementZone2D> RefinementZone2D_Ptr;
-typedef boost::shared_ptr<RefinementZone3D> RefinementZone3D_Ptr;
+typedef POINTER_WRAPPER_CLASS(RefinementZone)   RefinementZone_Ptr;
+typedef POINTER_WRAPPER_CLASS(RefinementZone2D) RefinementZone2D_Ptr;
+typedef POINTER_WRAPPER_CLASS(RefinementZone3D) RefinementZone3D_Ptr;
+typedef POINTER_WRAPPER_CLASS(const RefinementZone)   const_RefinementZone_Ptr;
+typedef POINTER_WRAPPER_CLASS(const RefinementZone2D) const_RefinementZone2D_Ptr;
+typedef POINTER_WRAPPER_CLASS(const RefinementZone3D) const_RefinementZone3D_Ptr;
 
 /**
     \brief

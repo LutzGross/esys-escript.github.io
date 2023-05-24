@@ -16,167 +16,38 @@ class RefinementType
 
 public:
 
+	double x0, y0, z0;
+	double x1, y1, z1;
+	double r;
+	int dims;
+	Border b;
+	double depth;
 	RefinementAlgorithm flavour;
 	int levels;
 
-};
+	RefinementType();
+	~RefinementType();
 
-class Point2DRefinement : public RefinementType
-{
-public:
-	double x0, y0;
-	
-	/**
-       \brief
-       Constructor
-    */
-    Point2DRefinement();
-	Point2DRefinement(double x, double y);
+	void Point2DRefinement(double x, double y, int levels);
+	void Point2DRefinement();
 
-	/**
-       \brief
-       Destructor
-    */
-	~Point2DRefinement();
-};
+	void Region2DRefinement(double x00, double y00, double x11, double y11, int levels);
+	void Region2DRefinement();
+	void Point3DRefinement(double x, double y, double z, int levels);
+	void Point3DRefinement();
+	void Region3DRefinement(double x00, double y00, double z00, 
+							double x11, double y11, double z11, int levels);
+	void Region3DRefinement();
+	void CircleRefinement(double x, double y, double r0, int levels);
+	void CircleRefinement();
+	void SphereRefinement(double x, double y, double z, double r0, int levels);
+	void SphereRefinement();
 
-class Region2DRefinement : public RefinementType
-{
-public:
-	double x0, y0;
-	double x1, y1;
+	void Border2DRefinement(Border border, double dx, int levels);
+	void Border2DRefinement();
+	void Border3DRefinement(Border border, double dx, int levels);
+	void Border3DRefinement();
 
-	/**
-       \brief
-       Constructor
-    */
-    Region2DRefinement();
-	Region2DRefinement(double x0, double y0, double x1, double y1);
-
-	/**
-       \brief
-       Destructor
-    */
-	~Region2DRefinement();
-};
-
-class Point3DRefinement : public RefinementType
-{
-public:
-	double x0, y0, z0;
-	
-	/**
-       \brief
-       Constructor
-    */
-    Point3DRefinement();
-	Point3DRefinement(double x, double y, double z);
-
-	/**
-       \brief
-       Destructor
-    */
-	~Point3DRefinement();
-};
-
-class Region3DRefinement : public RefinementType
-{
-public:
-	int x0, y0, z0;
-	int x1, y1, z1;
-
-	/**
-       \brief
-       Constructor
-    */
-    Region3DRefinement();
-	Region3DRefinement(double x0, double y0, double z0, double x1, double y1, double z1);
-
-	/**
-       \brief
-       Destructor
-    */
-	~Region3DRefinement();
-};
-
-class CircleRefinement : public RefinementType
-{
-public:
-	int x0, y0;
-	int r;
-
-	/**
-       \brief
-       Constructor
-    */
-    CircleRefinement();
-	CircleRefinement(double x0, double y0, double r);
-
-	/**
-       \brief
-       Destructor
-    */
-	~CircleRefinement();
-};
-
-class SphereRefinement : public RefinementType
-{
-public:
-	int x0, y0, z0;
-	int r;
-
-	/**
-       \brief
-       Constructor
-    */
-    SphereRefinement();
-	SphereRefinement(double x0, double y0, double z0, double r);
-
-	/**
-       \brief
-       Destructor
-    */
-	~SphereRefinement();
-};
-
-class Border2DRefinement : public RefinementType
-{
-public:
-	Border b;
-	double depth;
-
-	/**
-       \brief
-       Constructor
-    */
-    Border2DRefinement();
-	Border2DRefinement(Border b, double depth);
-
-	/**
-       \brief
-       Destructor
-    */
-	~Border2DRefinement();
-};
-
-class Border3DRefinement : public RefinementType
-{
-public:
-	Border b;
-	double depth;
-
-	/**
-       \brief
-       Constructor
-    */
-    Border3DRefinement();
-	Border3DRefinement(Border b, double depth);
-
-	/**
-       \brief
-       Destructor
-    */
-	~Border3DRefinement();
 };
 
 } //namespace oxley

@@ -221,6 +221,14 @@ escript::Domain_ptr _brick(double _n0, double _n1, double _n2,
     return escript::Domain_ptr(new Brick(order, n0,n1,n2, x0,y0,z0, x1,y1,z1, d0,d1,d2,  points, tags, tagstonames, periodic0,periodic1,periodic2));
 }
 
+// //tmp
+// oxley::RefinementZone_Ptr _refinementZone()
+// {
+//     return oxley::RefinementZone_Ptr(new RefinementZone());
+//     // return oxley::RefinementZone2D_Ptr(new RefinementZone2D());
+// }
+
+
 oxley::RefinementZone2D_Ptr _refinementZone2D()
 {
     return oxley::RefinementZone2D_Ptr(new RefinementZone2D());
@@ -266,6 +274,10 @@ BOOST_PYTHON_MODULE(oxleycpp)
     ":param d0: number of subdivisions in direction 0\n:type d0: ``int``\n"
     ":param d1: number of subdivisions in direction 1\n:type d1: ``int``\n"
     ":param d2: number of subdivisions in direction 2\n:type d2: ``int``");
+
+    // def("RefinementZone", oxley::_refinementZone, 
+    //     "Creates a refinement zone parent class.\n\n"
+    //     );
 
     def("RefinementZone2D", oxley::_refinementZone2D, 
         "Creates a refinement zone of dimension 2.\n\n"
@@ -334,12 +346,12 @@ BOOST_PYTHON_MODULE(oxleycpp)
             ":param symmetry:\n:type symmetry: ``int``")
         .def("getX",&oxley::OxleyDomain::getX, ":return: locations in the FEM nodes\n\n"
             ":rtype: `Data`")
-#ifdef ESYS_HAVE_TRILINOS
+        #ifdef ESYS_HAVE_TRILINOS
         .def("makeZ",&oxley::OxleyDomain::makeZ, arg("complex"), "creates the matrix Z")
         .def("makeIZ",&oxley::OxleyDomain::makeIZ, arg("complex"), "creates the matrix IZ")
         .def("finaliseA",&oxley::OxleyDomain::finaliseA, args("mat","isComplex"), "finalisesLHS")
         .def("finaliseRhs",&oxley::OxleyDomain::finaliseRhs, arg("rhs"), "finalisesRHS")
-#endif
+        #endif
         .def("saveFsType",&oxley::OxleyDomain::saveFsType, arg("rhs"), "saves the fs type")
         .def("getOrigFsType",&oxley::OxleyDomain::getOrigFsType, "returns the fs type")
         .def("loadMesh", &oxley::OxleyDomain::loadMesh, (arg("filename")),
@@ -383,7 +395,7 @@ BOOST_PYTHON_MODULE(oxleycpp)
     // These two class exports are necessary to ensure that the extra methods
     // added by oxley make it to python. 
     class_<oxley::Brick, bases<oxley::OxleyDomain> >("OxleyBrick", "", no_init)
-        .def("ApplyRefinementZone",&oxley::Brick::apply_refinementzone, (args("RefinementZone")),
+        .def("applyRefinementZone",&oxley::Brick::apply_refinementzone, (args("RefinementZone")),
                 "Applies a RefinementZone to the Brick.\n"
                 ":param RefinementZone:\n:type RefinementZone: A RefinementZone. \n")
         .def("refineBoundary", &oxley::Brick::refineBoundary, (args("boundary","dx")),
@@ -410,7 +422,7 @@ BOOST_PYTHON_MODULE(oxleycpp)
         ;
 
     class_<oxley::Rectangle, bases<oxley::OxleyDomain> >("OxleyRectangle", "", no_init)
-        .def("ApplyRefinementZone",&oxley::Rectangle::apply_refinementzone, (args("RefinementZone")),
+        .def("applyRefinementZone",&oxley::Rectangle::apply_refinementzone, (args("RefinementZone")),
                 "Applies a RefinementZone to the Rectangle.\n"
                 ":param RefinementZone:\n:type RefinementZone: A RefinementZone. \n")
         .def("refineBoundary", &oxley::Rectangle::refineBoundary, (args("boundary","dx")),
@@ -436,11 +448,13 @@ BOOST_PYTHON_MODULE(oxleycpp)
                 ":param r: \n:type double: radius of the circle.\n")
         ;
 
+    class_<oxley::RefinementZone>("RefinementZone", "")
+        // .def("HelloWorld", &oxley::RefinementZone::HelloWorld)
+    ;
 
-    class_<oxley::RefinementZone>("RefinementZone", "", no_init);
-
-    class_<oxley::RefinementZone2D, bases<oxley::RefinementZone>>("RefinementZone2D", "", no_init)
-        .def("setRefinementLevel", &oxley::RefinementZone3D::setRefinementLevel, (args("level")),
+    class_<oxley::RefinementZone2D, bases<oxley::RefinementZone>>("RefinementZone2D")
+        // .def("HelloWorld", &oxley::RefinementZone2D::HelloWorld)
+        .def("setRefinementLevel", &oxley::RefinementZone2D::setRefinementLevel, (arg("level")),
                 "Sets the level of refinement\n"
                 ":param level:\n:type int: the level of the refinement.\n")
         .def("refinePoint", &oxley::RefinementZone2D::refinePoint, (args("x0","y0")),
@@ -468,7 +482,7 @@ BOOST_PYTHON_MODULE(oxleycpp)
                 ":param dx:\n:type float: the depth of the refinement.\n")
         ;
 
-    class_<oxley::RefinementZone3D, bases<oxley::RefinementZone>>("RefinementZone3D", "", no_init)
+    class_<oxley::RefinementZone3D, bases<oxley::RefinementZone>>("RefinementZone3D")
         .def("setRefinementLevel", &oxley::RefinementZone3D::setRefinementLevel, (args("level")),
                 "Sets the level of refinement\n"
                 ":param level:\n:type int: the level of the refinement.\n")
@@ -502,6 +516,11 @@ BOOST_PYTHON_MODULE(oxleycpp)
         ;
 
     class_<oxley::AbstractAssembler, oxley::Assembler_ptr, boost::noncopyable >  ("AbstractAssembler", "", no_init);
+
+    // register_ptr_to_python<boost::shared_ptr<RefinementZone>>();
+    // register_ptr_to_python<boost::shared_ptr<RefinementZone2D>>();
+    // register_ptr_to_python<boost::shared_ptr<RefinementZone3D>>();
+
 }
 
 } //namespace oxley
