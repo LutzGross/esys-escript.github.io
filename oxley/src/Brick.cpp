@@ -4939,8 +4939,16 @@ void Brick::apply_refinementzone(RefinementZone R)
             }
             case MASK3D:
             {
-                escript::Data * d = Refinement.data;
-                refineMask(d);
+                if(n == 0)
+                {
+                    escript::Data * d = Refinement.data;
+                    refineMask(d);
+                    break;
+                }
+                else
+                {
+                    throw OxleyException("Can only apply a mask refinement if it is first in the queue.");
+                }
             }
             case MASK2D:
             case CIRCLE:

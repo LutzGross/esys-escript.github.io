@@ -4445,8 +4445,16 @@ void Rectangle::apply_refinementzone(RefinementZone R)
             }
             case MASK2D:
             {
-                escript::Data * d = Refinement.data;
-                refineMask(d);
+                if(n == 0)
+                {
+                    escript::Data * d = Refinement.data;
+                    refineMask(d);
+                    break;
+                }
+                else
+                {
+                    throw OxleyException("Can only apply a mask refinement if it is first in the queue.");
+                }
             }
             case MASK3D:
             case SPHERE:
