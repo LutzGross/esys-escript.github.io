@@ -78,6 +78,18 @@ public:
 
     int refinement_levels;
 
+    /**
+       \brief
+       Prints the current queue to console
+    */
+    virtual void print();
+
+    /**
+       \brief
+       Removes the nt^th item from the queue
+    */
+    virtual void deleteFromQueue(int n);
+
 private:
 
 protected:
@@ -97,6 +109,18 @@ public:
     void refineRegion(float x0, float y0, float x1, float y1);
     void refineCircle(float x0, float y0, float r);
     void refineBorder(Border b, float dx);
+    /**
+       \brief
+       Prints the current queue to console
+    */
+    void print();
+
+    /**
+       \brief
+       Removes the nt^th item from the queue
+    */
+    void deleteFromQueue(int n);
+
 };
 
 class RefinementZone3D : public RefinementZone
@@ -112,6 +136,17 @@ public:
     void refineRegion(float x0, float y0, float z0, float x1, float y1, float z1);
     void refineSphere(float x0, float y0, float z0, float r);
     void refineBorder(Border b, float dx);
+    /**
+       \brief
+       Prints the current queue to console
+    */
+    void print();
+
+    /**
+       \brief
+       Removes the nt^th item from the queue
+    */
+    void deleteFromQueue(int n);
 };
 
 } //namespace oxley

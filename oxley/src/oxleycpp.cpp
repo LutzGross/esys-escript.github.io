@@ -449,14 +449,18 @@ BOOST_PYTHON_MODULE(oxleycpp)
         ;
 
     class_<oxley::RefinementZone>("RefinementZone", "")
-        // .def("HelloWorld", &oxley::RefinementZone::HelloWorld)
+
     ;
 
     class_<oxley::RefinementZone2D, bases<oxley::RefinementZone>>("RefinementZone2D")
-        // .def("HelloWorld", &oxley::RefinementZone2D::HelloWorld)
         .def("setRefinementLevel", &oxley::RefinementZone2D::setRefinementLevel, (arg("level")),
                 "Sets the level of refinement\n"
                 ":param level:\n:type int: the level of the refinement.\n")
+        .def("print", &oxley::RefinementZone2D::print, (arg("level")),
+                "Prints the current queue to console\n")
+        .def("remove", &oxley::RefinementZone2D::deleteFromQueue, (arg("n")),
+                "Removes the n^th item from the queue\n"
+                ":param n:\n:type int: the refinement to remove.\n")
         .def("refinePoint", &oxley::RefinementZone2D::refinePoint, (args("x0","y0")),
                 "Refines the mesh around the point (x0,y0) to the level of refinement"
                 "set by setRefinementLevel \n"
@@ -486,6 +490,11 @@ BOOST_PYTHON_MODULE(oxleycpp)
         .def("setRefinementLevel", &oxley::RefinementZone3D::setRefinementLevel, (args("level")),
                 "Sets the level of refinement\n"
                 ":param level:\n:type int: the level of the refinement.\n")
+        .def("print", &oxley::RefinementZone3D::print, (arg("level")),
+                "Prints the current queue to console\n")
+        .def("remove", &oxley::RefinementZone3D::deleteFromQueue, (arg("n")),
+                "Removes the n^th item from the queue\n"
+                ":param n:\n:type int: the refinement to remove.\n")
         .def("refinePoint", &oxley::RefinementZone3D::refinePoint, (args("x0","y0","z0")),
                 "Refines the mesh around the point (x0,y0,z0) to the level of refinement"
                 "set by setRefinementLevel \n"
