@@ -161,6 +161,19 @@ void RefinementZone2D::print()
                 std::cout << " to depth " << dx << std::endl;
                 break;
             }
+        	case MASK2D:
+    		{
+    			std::cout << "A mask refinement " << std::endl;
+    			break;
+    		}
+        	case POINT3D:
+        	case REGION3D:
+        	case MASK3D:
+        	case SPHERE:
+        	default:
+    		{
+    			throw OxleyException("Unknown RefinementType")	;
+    		}
         }
 	}
 };
@@ -301,6 +314,17 @@ void RefinementZone3D::print()
                 std::cout << " to depth " << dx << std::endl;
                 break;
             }
+        	case MASK3D:
+    		{
+    			std::cout << "A mask refinement " << std::endl;
+    			break;
+    		}
+        	case POINT2D:
+        	case REGION2D:
+        	case MASK2D:
+        	case CIRCLE:
+        	default:
+        		throw OxleyException("Unknown RefinementType");
         }
 	}
 };

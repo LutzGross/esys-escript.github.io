@@ -530,6 +530,12 @@ protected:
 
     virtual void assembleGradient(escript::Data& out, const escript::Data& in) const;
 
+    /**
+       \brief
+       Updates NodeIncrements
+    */
+    void updateQuadrantIDinformation();
+
     
     virtual void assembleIntegrate(std::vector<real_t>& integrals, const escript::Data& arg) const;
     virtual void assembleIntegrate(std::vector<cplx_t>& integrals, const escript::Data& arg) const;

@@ -484,6 +484,9 @@ BOOST_PYTHON_MODULE(oxleycpp)
                 "set by setRefinementLevel\n"
                 ":param Border:\n:type string: The border to refine (top,bottom,right,left).\n"
                 ":param dx:\n:type float: the depth of the refinement.\n")
+        .def("refineMask", &oxley::RefinementZone2D::refineMask, (args("mask")),
+                "Refines the mesh in regions defined by a mask\n"
+                ":param mask:\n:type Data: a mask.\n")
         ;
 
     class_<oxley::RefinementZone3D, bases<oxley::RefinementZone>>("RefinementZone3D")
@@ -522,6 +525,9 @@ BOOST_PYTHON_MODULE(oxleycpp)
                 "set by setRefinementLevel\n"
                 ":param Border:\n:type string: The border to refine (top,bottom,right,left).\n"
                 ":param dx:\n:type float: the depth of the refinement.\n")
+        .def("refineMask", &oxley::RefinementZone3D::refineMask, (args("mask")),
+                "Refines the mesh in regions defined by a mask\n"
+                ":param mask:\n:type Data: a mask.\n")
         ;
 
     class_<oxley::AbstractAssembler, oxley::Assembler_ptr, boost::noncopyable >  ("AbstractAssembler", "", no_init);

@@ -69,6 +69,9 @@ struct quadrantData
     // the index of that face (where i: 0=left, 1=right, 2=bottom, 3=top)
     // escript::DataTypes::IndexVector m_faceOffset;
     bool m_faceOffset[4] = {false};
+
+    // bottom left node id
+    long nodeid = -1;
 };
 
 struct borderNodeInfo
@@ -154,6 +157,8 @@ struct octantData
     // the index of that face (where i: 0=left, 1=right, 2=bottom, 3=top)
     // escript::DataTypes::IndexVector m_faceOffset;
     bool m_faceOffset[6] = {false};
+
+    long nodeid = -1;
 };
 
 //This structure describes the information that is stored with the p4est

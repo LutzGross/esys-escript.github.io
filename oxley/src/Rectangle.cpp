@@ -1238,9 +1238,14 @@ void Rectangle::refineMask(escript::Data * mask)
     z_needs_update=true;
     iz_needs_update=true;
 
+    // update the quadrant id information
+    updateQuadrantIDinformation();
+
     // If the boundaries were not specified by the user, default to the border of the domain
     forestData.mask = mask;
-    p4est_refine_ext(p4est, true, -1, refine_mask, init_rectangle_data, refine_copy_parent_quadrant);
+    bool refine_recursively = false;
+    p4est_refine_ext(p4est, refine_recursively, -1, 
+                refine_mask, init_rectangle_data, refine_copy_parent_quadrant);
     p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);
 
     // Make sure that nothing went wrong
@@ -1269,6 +1274,24 @@ void Rectangle::refineMask(escript::Data * mask)
     updateFaceElementCount();
 
     oxleytimer.toc("refineCircle...Done");
+}
+
+void Rectangle::updateQuadrantIDinformation()
+{
+    // quadrant IDs
+    for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) {
+        p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
+        sc_array_t * tquadrants = &tree->quadrants;
+        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+        for(int q = 0; q < Q; ++q) { 
+            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+            quadrantData * quadData = (quadrantData *) quad->p.user_data;
+            double xy[2];
+            p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x, quad->y, xy);
+            long nodeid = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+            quadData->nodeid=nodeid;
+        }
+    }
 }
 
 escript::Data Rectangle::getX() const

@@ -345,8 +345,8 @@ int refine_region(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadr
     double y[2]={forestData->refinement_boundaries[2],forestData->refinement_boundaries[3]};
 
     // The point being examined
-    double l[3] = {forestData->m_dx[0][P4EST_MAXLEVEL-quadrant->level],
-                   forestData->m_dx[1][P4EST_MAXLEVEL-quadrant->level]};
+    // double l[3] = {forestData->m_dx[0][P4EST_MAXLEVEL-quadrant->level],
+    //                forestData->m_dx[1][P4EST_MAXLEVEL-quadrant->level]};
     double xy[2]={*(xy0  ),*(xy0+1)};
 
     bool x_in_region = (xy[0] >= x[0]) && (xy[0] <= x[1]);
@@ -415,17 +415,14 @@ int refine_mask(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadran
     quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
     escript::Data * mask = forestData->mask;
 
-    // TODO
     // get the mask value at this point
-    // real_t dummy;
-    // int nodeid = 
-    // double maskvalue = mask->getSampleDataRO(nodeid, dummy);
+    real_t * dummy;
+    long nodeid = quadData->nodeid;
+    const escript::DataTypes::real_t * maskvalue = mask->getSampleDataRO(nodeid, *dummy);
 
-    // bool do_refinement = (maskvalue != 0);
+    bool do_refinement = (*maskvalue != 0);
 
-    // return  do_refinement &&
-    //         (quadrant->level < forestData->max_levels_refinement);   
-    return false;
+    return do_refinement;
 }
 
 int refine_region(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadrant)
@@ -525,17 +522,14 @@ int refine_mask(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadran
     quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
     escript::Data * mask = forestData->mask;
 
-    // TODO
     // get the mask value at this point
-    // real_t dummy;
-    // int nodeid = 
-    // double maskvalue = mask->getSampleDataRO(nodeid, dummy);
+    real_t dummy;
+    int nodeid = quadData->nodeid;
+    const escript::DataTypes::real_t * maskvalue = mask->getSampleDataRO(nodeid, dummy);
 
-    // bool do_refinement = (maskvalue != 0);
+    bool do_refinement = (maskvalue != 0);
 
-    // return  do_refinement &&
-    //         (quadrant->level < forestData->max_levels_refinement);   
-    return false;
+    return do_refinement;
 }
 
 
