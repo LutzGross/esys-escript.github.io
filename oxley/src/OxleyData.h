@@ -13,6 +13,7 @@
 *
 *****************************************************************************/
 
+#include <escript/Data.h>
 #include <escript/DataTypes.h>
 
 #include <oxley/Oxley.h>
@@ -187,6 +188,7 @@ public:
 	int max_levels_refinement = 0;
 	double refinement_depth=0.0;
 	double refinement_boundaries[4]={0.0};
+	escript::Data * mask; // a pointer to a mask
 
 	// Pointer to the current solution and Node ID info
 	std::unordered_map<long,double> * current_solution;
@@ -232,6 +234,7 @@ public:
 	int max_levels_refinement = 0;
 	double refinement_depth=0.0;
 	double refinement_boundaries[6]={0.0};
+	escript::Data * mask; // a pointer to a mask
 
 	// Pointer to the current solution and Node ID info
 	std::unordered_map<long,double> * current_solution;

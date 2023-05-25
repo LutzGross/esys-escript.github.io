@@ -409,6 +409,25 @@ int refine_circle(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadr
             (quadrant->level < forestData->max_levels_refinement);
 }
 
+int refine_mask(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
+{
+    p4estData * forestData = (p4estData *) p4est->user_pointer;
+    quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
+    escript::Data * mask = forestData->mask;
+
+    // TODO
+    // get the mask value at this point
+    // real_t dummy;
+    // int nodeid = 
+    // double maskvalue = mask->getSampleDataRO(nodeid, dummy);
+
+    // bool do_refinement = (maskvalue != 0);
+
+    // return  do_refinement &&
+    //         (quadrant->level < forestData->max_levels_refinement);   
+    return false;
+}
+
 int refine_region(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadrant)
 {
     p8estData * forestData = (p8estData *) p8est->user_pointer;
@@ -473,8 +492,50 @@ int refine_point(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadra
 
 int refine_sphere(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadrant)
 {
-    //TODO
-    return 0;
+    p8estData * forestData = (p8estData *) p8est->user_pointer;
+    quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
+    double center[3] = {forestData->refinement_boundaries[0], 
+                        forestData->refinement_boundaries[1],
+                        forestData->refinement_boundaries[2]};
+    double r = forestData->refinement_boundaries[3];
+    double * xy1 = quadData->xy;
+
+    // Upper right point
+    double p[3] = {0};
+    p8est_qcoord_t l = P4EST_QUADRANT_LEN(quadrant->level);
+    p8est_qcoord_to_vertex(p8est->connectivity, tree, quadrant->x+l, quadrant->y+l, quadrant->z+l, p);
+
+    // Center of the quadrant
+    p[0] = 0.5*(xy1[0]+p[0]);
+    p[1] = 0.5*(xy1[1]+p[1]);
+    p[2] = 0.5*(xy1[2]+p[2]);
+
+    // Check if the point is inside the sphere
+    bool do_refinement = (center[0]-p[0])*(center[0]-p[0]) + 
+                         (center[1]-p[1])*(center[1]-p[1]) +
+                         (center[2]-p[2])*(center[2]-p[2]) - r*r < 0;
+
+    return  do_refinement &&
+            (quadrant->level < forestData->max_levels_refinement);
+}
+
+int refine_mask(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadrant)
+{
+    p8estData * forestData = (p8estData *) p8est->user_pointer;
+    quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
+    escript::Data * mask = forestData->mask;
+
+    // TODO
+    // get the mask value at this point
+    // real_t dummy;
+    // int nodeid = 
+    // double maskvalue = mask->getSampleDataRO(nodeid, dummy);
+
+    // bool do_refinement = (maskvalue != 0);
+
+    // return  do_refinement &&
+    //         (quadrant->level < forestData->max_levels_refinement);   
+    return false;
 }
 
 
@@ -1223,5 +1284,7 @@ void update_connections(p4est_iter_volume_info_t *info, void *user_data)
 
 
 }
+
+
 
 } // namespace oxley

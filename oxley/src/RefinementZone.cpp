@@ -84,6 +84,13 @@ void RefinementZone2D::refineBorder(Border b, float dx)
 	addToQueue(refine);
 };
 
+void RefinementZone2D::refineMask(escript::Data d)
+{
+	RefinementType refine;
+	refine.Mask2DRefinement(&d,refinement_levels);
+	addToQueue(refine);	
+};
+
 void RefinementZone2D::print()
 {
 	for(int i = 0; i < queue.size(); i++)
@@ -202,6 +209,13 @@ void RefinementZone3D::refineBorder(Border b, float dx)
 	RefinementType refine;
 	refine.Border3DRefinement(b,dx,refinement_levels);
 	addToQueue(refine);
+};
+
+void RefinementZone3D::refineMask(escript::Data d)
+{
+	RefinementType refine;
+	refine.Mask3DRefinement(&d, refinement_levels);
+	addToQueue(refine);	
 };
 
 void RefinementZone3D::print()

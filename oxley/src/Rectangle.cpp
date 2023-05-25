@@ -1231,6 +1231,46 @@ void Rectangle::refineCircle(double x0, double y0, double r)
 }
 #endif //ESYS_HAVE_TRILINOS
 
+void Rectangle::refineMask(escript::Data * mask)
+{
+    oxleytimer.toc("refineCircle...");
+
+    z_needs_update=true;
+    iz_needs_update=true;
+
+    // If the boundaries were not specified by the user, default to the border of the domain
+    forestData.mask = mask;
+    p4est_refine_ext(p4est, true, -1, refine_mask, init_rectangle_data, refine_copy_parent_quadrant);
+    p4est_balance_ext(p4est, P4EST_CONNECT_FULL, init_rectangle_data, refine_copy_parent_quadrant);
+
+    // Make sure that nothing went wrong
+#ifdef OXLEY_ENABLE_DEBUG
+    if(!p4est_is_valid(p4est))
+        throw OxleyException("p4est broke during refinement");
+    if(!p4est_connectivity_is_valid(connectivity))
+        throw OxleyException("connectivity broke during refinement");
+#endif
+
+    bool partition_for_coarsening = true;
+    p4est_partition_ext(p4est, partition_for_coarsening, NULL);
+
+    // Update the nodes
+    p4est_lnodes_destroy(nodes);
+    p4est_ghost_t * ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
+    nodes = p4est_lnodes_new(p4est, ghost, 1);
+    p4est_ghost_destroy(ghost);
+
+    // Update
+    updateNodeIncrements();
+    renumberNodes();
+    updateRowsColumns();
+    updateElementIds();
+    updateFaceOffset();
+    updateFaceElementCount();
+
+    oxleytimer.toc("refineCircle...Done");
+}
+
 escript::Data Rectangle::getX() const
 {
     escript::Data out=escript::Vector(0,escript::continuousFunction(*this),true);
@@ -4380,7 +4420,12 @@ void Rectangle::apply_refinementzone(RefinementZone R)
                 }
                 break;
             }
-            case MASK:
+            case MASK2D:
+            {
+                escript::Data * d = Refinement.data;
+                refineMask(d);
+            }
+            case MASK3D:
             case SPHERE:
             case POINT3D:
             case REGION3D:
@@ -4391,6 +4436,8 @@ void Rectangle::apply_refinementzone(RefinementZone R)
     // Set refinement_levels back to its original value
     setRefinementLevels(original_refinement_level);
 }
+
+
 
 
 // instantiate our two supported versions

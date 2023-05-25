@@ -171,4 +171,20 @@ void RefinementType::Border3DRefinement()
 	depth = -1;
 };
 
+void RefinementType::Mask2DRefinement(escript::Data * d, int refinement_levels)
+{
+	levels=refinement_levels;
+	flavour=MASK2D;
+
+	data = d;
+};
+
+void RefinementType::Mask3DRefinement(escript::Data * d, int refinement_levels)
+{
+	levels=refinement_levels;
+	flavour=MASK3D;
+
+	data = d;
+};
+
 } //namespace oxley

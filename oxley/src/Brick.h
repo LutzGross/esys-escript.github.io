@@ -227,6 +227,12 @@ public:
 
     /**
        \brief
+         refines a region defined by a mask
+    */
+    virtual void refineMask(escript::Data * mask);
+
+    /**
+       \brief
        sets the number of levels of refinement
     */
     virtual void setRefinementLevels(int refinementlevels)

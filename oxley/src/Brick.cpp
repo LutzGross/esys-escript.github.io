@@ -1284,6 +1284,41 @@ void Brick::refineSphere(double x0, double y0, double z0, double r)
 }
 #endif //ESYS_HAVE_TRILINOS
 
+void Brick::refineMask(escript::Data * mask)
+{
+    z_needs_update=true;
+    iz_needs_update=true;
+
+    // If the boundaries were not specified by the user, default to the border of the domain
+    forestData.mask = mask;
+    p8est_refine_ext(p8est, true, -1, refine_mask, init_brick_data, refine_copy_parent_octant);
+    p8est_balance_ext(p8est, P8EST_CONNECT_FULL, init_brick_data, refine_copy_parent_octant);
+
+    // Make sure that nothing went wrong
+#ifdef OXLEY_ENABLE_DEBUG
+    if(!p8est_is_valid(p8est))
+        throw OxleyException("p8est broke during refinement");
+    if(!p8est_connectivity_is_valid(connectivity))
+        throw OxleyException("connectivity broke during refinement");
+#endif
+
+    bool partition_for_coarsening = true;
+    p8est_partition_ext(p8est, partition_for_coarsening, NULL);
+
+    // Update the nodes
+    p8est_lnodes_destroy(nodes);
+    nodes = p8est_lnodes_new(p8est, ghost, 1);
+    
+    // Update
+    reset_ghost();
+    updateNodeIncrements();
+    renumberNodes();
+    updateRowsColumns();
+    updateElementIds();
+    updateFaceOffset();
+    updateFaceElementCount();
+}
+
 escript::Data Brick::getX() const
 {
     escript::Data out=escript::Vector(0,escript::continuousFunction(*this),true);
@@ -4902,7 +4937,12 @@ void Brick::apply_refinementzone(RefinementZone R)
                 }
                 break;
             }
-            case MASK:
+            case MASK3D:
+            {
+                escript::Data * d = Refinement.data;
+                refineMask(d);
+            }
+            case MASK2D:
             case CIRCLE:
             case POINT2D:
             case REGION2D:

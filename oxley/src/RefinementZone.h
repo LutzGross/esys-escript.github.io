@@ -109,6 +109,7 @@ public:
     void refineRegion(float x0, float y0, float x1, float y1);
     void refineCircle(float x0, float y0, float r);
     void refineBorder(Border b, float dx);
+    void refineMask(escript::Data d);
     /**
        \brief
        Prints the current queue to console
@@ -136,6 +137,7 @@ public:
     void refineRegion(float x0, float y0, float z0, float x1, float y1, float z1);
     void refineSphere(float x0, float y0, float z0, float r);
     void refineBorder(Border b, float dx);
+    void refineMask(escript::Data d);
     /**
        \brief
        Prints the current queue to console
