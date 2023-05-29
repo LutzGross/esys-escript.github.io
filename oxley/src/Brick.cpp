@@ -1284,7 +1284,7 @@ void Brick::refineSphere(double x0, double y0, double z0, double r)
 }
 #endif //ESYS_HAVE_TRILINOS
 
-void Brick::refineMask(escript::Data * mask)
+void Brick::refineMask(escript::Data mask)
 {
     z_needs_update=true;
     iz_needs_update=true;
@@ -4941,7 +4941,7 @@ void Brick::apply_refinementzone(RefinementZone R)
             {
                 if(n == 0)
                 {
-                    escript::Data * d = Refinement.data;
+                    escript::Data d = *Refinement.data;
                     refineMask(d);
                     break;
                 }

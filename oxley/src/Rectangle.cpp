@@ -1231,7 +1231,7 @@ void Rectangle::refineCircle(double x0, double y0, double r)
 }
 #endif //ESYS_HAVE_TRILINOS
 
-void Rectangle::refineMask(escript::Data * mask)
+void Rectangle::refineMask(escript::Data mask)
 {
     oxleytimer.toc("refineCircle...");
 
@@ -4447,7 +4447,7 @@ void Rectangle::apply_refinementzone(RefinementZone R)
             {
                 if(n == 0)
                 {
-                    escript::Data * d = Refinement.data;
+                    escript::Data d = *Refinement.data;
                     refineMask(d);
                     break;
                 }

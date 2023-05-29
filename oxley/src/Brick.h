@@ -229,7 +229,7 @@ public:
        \brief
          refines a region defined by a mask
     */
-    virtual void refineMask(escript::Data * mask);
+    virtual void refineMask(escript::Data mask);
 
     /**
        \brief

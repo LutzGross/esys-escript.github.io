@@ -8,12 +8,24 @@ namespace oxley {
 
 RefinementType::RefinementType()
 {
-
+	x0	 = 0.0;
+	y0	 = 0.0;
+	z0	 = 0.0;
+	x1	 = 0.0;
+	y1	 = 0.0;
+	z1	 = 0.0;
+	r 	 = 0.0;
+	dims 	 = 1;
+	b 	 = NORTH;
+	depth = 0.0;
+	flavour = POINT2D;
+	levels = 1;
+	data = new escript::Data();
 };
 
 RefinementType::~RefinementType()
 {
-
+	// delete [] data;
 };
 
 void RefinementType::Point2DRefinement(double x, double y, int refinement_levels)
@@ -175,16 +187,16 @@ void RefinementType::Mask2DRefinement(escript::Data * d, int refinement_levels)
 {
 	levels=refinement_levels;
 	flavour=MASK2D;
-
-	data = d;
+	data->copy(*d);
+	// data = new escript::Data(d->copySelf());
 };
 
 void RefinementType::Mask3DRefinement(escript::Data * d, int refinement_levels)
 {
 	levels=refinement_levels;
 	flavour=MASK3D;
-
-	data = d;
+	data->copy(*d);
+	// data = new escript::Data(d->copySelf());
 };
 
 } //namespace oxley

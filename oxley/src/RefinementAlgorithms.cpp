@@ -413,15 +413,16 @@ int refine_mask(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadran
 {
     p4estData * forestData = (p4estData *) p4est->user_pointer;
     quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
-    escript::Data * mask = forestData->mask;
+    escript::Data mask = forestData->mask;
+    
 
     // get the mask value at this point
-    real_t * dummy;
     long nodeid = quadData->nodeid;
-    const escript::DataTypes::real_t * maskvalue = mask->getSampleDataRO(nodeid, *dummy);
+    escript::DataTypes::real_t *dummy(0);
+    const escript::DataTypes::real_t * maskvalue = forestData->mask->getSampleDataRO(nodeid, *dummy);
 
+    // check the value
     bool do_refinement = (*maskvalue != 0);
-
     return do_refinement;
 }
 
@@ -520,15 +521,15 @@ int refine_mask(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadran
 {
     p8estData * forestData = (p8estData *) p8est->user_pointer;
     quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
-    escript::Data * mask = forestData->mask;
+    escript::Data mask = forestData->mask;
 
     // get the mask value at this point
-    real_t dummy;
-    int nodeid = quadData->nodeid;
-    const escript::DataTypes::real_t * maskvalue = mask->getSampleDataRO(nodeid, dummy);
+    long nodeid = quadData->nodeid;
+    escript::DataTypes::real_t *dummy(0);
+    const escript::DataTypes::real_t * maskvalue = mask.getSampleDataRO(nodeid, *dummy);
 
-    bool do_refinement = (maskvalue != 0);
-
+    // check the value
+    bool do_refinement = (*maskvalue != 0);
     return do_refinement;
 }
 

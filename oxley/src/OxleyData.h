@@ -193,7 +193,7 @@ public:
 	int max_levels_refinement = 0;
 	double refinement_depth=0.0;
 	double refinement_boundaries[4]={0.0};
-	escript::Data * mask; // a pointer to a mask
+	escript::Data mask; // a mask
 
 	// Pointer to the current solution and Node ID info
 	std::unordered_map<long,double> * current_solution;
@@ -239,7 +239,7 @@ public:
 	int max_levels_refinement = 0;
 	double refinement_depth=0.0;
 	double refinement_boundaries[6]={0.0};
-	escript::Data * mask; // a pointer to a mask
+	escript::Data mask; // a pointer to a mask
 
 	// Pointer to the current solution and Node ID info
 	std::unordered_map<long,double> * current_solution;

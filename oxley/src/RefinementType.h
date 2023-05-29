@@ -3,6 +3,7 @@
 #define _OXLEY_REFINEMENTTYPE
 
 #include "escript/Data.h"
+#include "escript/DataExpanded.h"
 
 namespace oxley {
 
