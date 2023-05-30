@@ -28,9 +28,9 @@ RefinementType::~RefinementType()
 	// delete [] data;
 };
 
-void RefinementType::Point2DRefinement(double x, double y, int refinement_levels)
+void RefinementType::Point2DRefinement(double x, double y, int r_levels)
 {
-	levels=refinement_levels;
+	levels=r_levels;
 	flavour=POINT2D;
 	x0=x;
 	y0=y;
@@ -44,9 +44,9 @@ void RefinementType::Point2DRefinement()
 	y0=-1;
 };
 
-void RefinementType::Region2DRefinement(double x00, double y00, double x11, double y11, int refinement_levels)
+void RefinementType::Region2DRefinement(double x00, double y00, double x11, double y11, int r_levels)
 {
-	levels=refinement_levels;
+	levels=r_levels;
 	flavour=REGION2D;
 	x0=x00;
 	y0=y00;
@@ -64,9 +64,9 @@ void RefinementType::Region2DRefinement()
 	y1=-1;
 };
 
-void RefinementType::Point3DRefinement(double x, double y, double z, int refinement_levels)
+void RefinementType::Point3DRefinement(double x, double y, double z, int r_levels)
 {
-	levels=refinement_levels;
+	levels=r_levels;
 	flavour=POINT3D;
 	x0=x;
 	y0=y;
@@ -83,9 +83,9 @@ void RefinementType::Point3DRefinement()
 };
 
 void RefinementType::Region3DRefinement(double x00, double y00, double z00, 
-										double x11, double y11, double z11, int refinement_levels)
+										double x11, double y11, double z11, int r_levels)
 {
-	levels=refinement_levels;
+	levels=r_levels;
 	flavour=REGION3D;
 	x0=x00;
 	y0=y00;
@@ -107,9 +107,9 @@ void RefinementType::Region3DRefinement()
 	z1=-1;
 };
 
-void RefinementType::CircleRefinement(double x, double y, double r0, int refinement_levels)
+void RefinementType::CircleRefinement(double x, double y, double r0, int r_levels)
 {
-	levels=refinement_levels;
+	levels=r_levels;
 	flavour=CIRCLE;
 	x0=x;
 	y0=y;
@@ -125,9 +125,9 @@ void RefinementType::CircleRefinement()
 	r=-1;
 };
 
-void RefinementType::SphereRefinement(double x, double y, double z, double r0, int refinement_levels)
+void RefinementType::SphereRefinement(double x, double y, double z, double r0, int r_levels)
 {
-	levels=refinement_levels;
+	levels=r_levels;
 	flavour=SPHERE;
 	x0=x;
 	y0=y;
@@ -145,9 +145,9 @@ void RefinementType::SphereRefinement()
 	r=-1;
 };
 
-void RefinementType::Border2DRefinement(Border border, double dx, int refinement_levels)
+void RefinementType::Border2DRefinement(Border border, double dx, int r_levels)
 {
-	levels=refinement_levels;
+	levels=r_levels;
 	flavour=BOUNDARY;
 
 	if(border == TOP || border == BOTTOM)
@@ -165,9 +165,9 @@ void RefinementType::Border2DRefinement()
 	depth = -1;
 };
 
-void RefinementType::Border3DRefinement(Border border, double dx, int refinement_levels)
+void RefinementType::Border3DRefinement(Border border, double dx, int r_levels)
 {
-	levels=refinement_levels;
+	levels=r_levels;
 	flavour=BOUNDARY;
 
 	b = border;
@@ -183,17 +183,17 @@ void RefinementType::Border3DRefinement()
 	depth = -1;
 };
 
-void RefinementType::Mask2DRefinement(escript::Data * d, int refinement_levels)
+void RefinementType::Mask2DRefinement(escript::Data * d, int r_levels)
 {
-	levels=refinement_levels;
+	levels=r_levels;
 	flavour=MASK2D;
 	data->copy(*d);
 	// data = new escript::Data(d->copySelf());
 };
 
-void RefinementType::Mask3DRefinement(escript::Data * d, int refinement_levels)
+void RefinementType::Mask3DRefinement(escript::Data * d, int r_levels)
 {
-	levels=refinement_levels;
+	levels=r_levels;
 	flavour=MASK3D;
 	data->copy(*d);
 	// data = new escript::Data(d->copySelf());

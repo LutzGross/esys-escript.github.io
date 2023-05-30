@@ -105,10 +105,10 @@ public:
        \brief
        RefinementAlgorithms
     */
-    void refinePoint(float x0, float y0);
-    void refineRegion(float x0, float y0, float x1, float y1);
-    void refineCircle(float x0, float y0, float r);
-    void refineBorder(Border b, float dx);
+    void refinePoint(float x0, float y0, int level);
+    void refineRegion(float x0, float y0, float x1, float y1, int level);
+    void refineCircle(float x0, float y0, float r, int level);
+    void refineBorder(Border b, float dx, int level);
     void refineMask(escript::Data d);
     /**
        \brief
@@ -133,10 +133,10 @@ public:
        \brief
        RefinementAlgorithms
     */
-    void refinePoint(float x0, float y0, float z0);
-    void refineRegion(float x0, float y0, float z0, float x1, float y1, float z1);
-    void refineSphere(float x0, float y0, float z0, float r);
-    void refineBorder(Border b, float dx);
+    void refinePoint(float x0, float y0, float z0, int level);
+    void refineRegion(float x0, float y0, float z0, float x1, float y1, float z1, int level);
+    void refineSphere(float x0, float y0, float z0, float r, int level);
+    void refineBorder(Border b, float dx, int level);
     void refineMask(escript::Data d);
     /**
        \brief

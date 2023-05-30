@@ -461,29 +461,33 @@ BOOST_PYTHON_MODULE(oxleycpp)
         .def("remove", &oxley::RefinementZone2D::deleteFromQueue, (arg("n")),
                 "Removes the n^th item from the queue\n"
                 ":param n:\n:type int: the refinement to remove.\n")
-        .def("refinePoint", &oxley::RefinementZone2D::refinePoint, (args("x0","y0")),
+        .def("refinePoint", &oxley::RefinementZone2D::refinePoint, (arg("x0"),arg("y0"),arg("level")=-1),
                 "Refines the mesh around the point (x0,y0) to the level of refinement"
                 "set by setRefinementLevel \n"
                 ":param x0:\n:type float: x coordinate of the point to be refined.\n"
-                ":param y0:\n:type float: y coordinate of the point to be refined.\n")
-        .def("refineRegion", &oxley::RefinementZone2D::refineRegion, (args("x0","y0","x1","y1")),
+                ":param y0:\n:type float: y coordinate of the point to be refined.\n"
+                ":param level:\n:type float: the level of refinement.\n")
+        .def("refineRegion", &oxley::RefinementZone2D::refineRegion, (arg("x0"),arg("y0"),arg("x1"),arg("y1"),arg("level")=-1),
                 "Refines the mesh around a rectangular region bound by the points (x0,y0)"
                 "and (x1,y1) to the level of refinement set by setRefinementLevel\n"
                 ":param x0:\n:type float: x coordinate of the upper left coordinate.\n"
                 ":param y0:\n:type float: y coordinate of the upper left coordinate.\n"
                 ":param x1:\n:type float: x coordinate of the lower right coordinate.\n"
-                ":param y1:\n:type float: y coordinate of the lower right coordinate.\n")
-        .def("refineCircle", &oxley::RefinementZone2D::refineCircle, (args("x0","y0","r")),
+                ":param y1:\n:type float: y coordinate of the lower right coordinate.\n"
+                ":param level:\n:type float: the level of refinement.\n")
+        .def("refineCircle", &oxley::RefinementZone2D::refineCircle, (arg("x0"),arg("y0"),arg("r"),arg("level")=-1),
                 "Refines the mesh around a circular region with radius r and center"
                 "and (x0,y0) to the level of refinement set by setRefinementLevel\n"
                 ":param x0:\n:type float: x coordinate of the center of the circle.\n"
                 ":param y0:\n:type float: y coordinate of the center of the circle.\n"
-                ":param r :\n:type float: the radius of the circle.\n")
-        .def("refineBorder", &oxley::RefinementZone2D::refineBorder, (args("Border","dx")),
+                ":param r :\n:type float: the radius of the circle.\n"
+                ":param level:\n:type float: the level of refinement.\n")
+        .def("refineBorder", &oxley::RefinementZone2D::refineBorder, (arg("Border"),arg("dx"),arg("level")=-1),
                 "Refines the border of the mesh to depth dx to the level of refinement"
                 "set by setRefinementLevel\n"
                 ":param Border:\n:type string: The border to refine (top,bottom,right,left).\n"
-                ":param dx:\n:type float: the depth of the refinement.\n")
+                ":param dx:\n:type float: the depth of the refinement.\n"
+                ":param level:\n:type float: the level of refinement.\n")
         .def("refineMask", &oxley::RefinementZone2D::refineMask, (args("mask")),
                 "Refines the mesh in regions defined by a mask\n"
                 ":param mask:\n:type Data: a mask.\n")
@@ -498,13 +502,14 @@ BOOST_PYTHON_MODULE(oxleycpp)
         .def("remove", &oxley::RefinementZone3D::deleteFromQueue, (arg("n")),
                 "Removes the n^th item from the queue\n"
                 ":param n:\n:type int: the refinement to remove.\n")
-        .def("refinePoint", &oxley::RefinementZone3D::refinePoint, (args("x0","y0","z0")),
+        .def("refinePoint", &oxley::RefinementZone3D::refinePoint, (arg("x0"),arg("y0"),arg("z0"),arg("level")=-1),
                 "Refines the mesh around the point (x0,y0,z0) to the level of refinement"
                 "set by setRefinementLevel \n"
                 ":param x0:\n:type float: x coordinate of the point to be refined.\n"
                 ":param y0:\n:type float: y coordinate of the point to be refined.\n"
-                ":param z0:\n:type float: z coordinate of the point to be refined.\n")
-        .def("refineRegion", &oxley::RefinementZone3D::refineRegion, (args("x0","y0","z0","x1","y1","z1")),
+                ":param z0:\n:type float: z coordinate of the point to be refined.\n"
+                ":param level:\n:type float: the level of refinement.\n")
+        .def("refineRegion", &oxley::RefinementZone3D::refineRegion, (arg("x0"),arg("y0"),arg("z0"),arg("x1"),arg("y1"),arg("z1"),arg("level")=-1),
                 "Refines the mesh around a rectangular region bound by the points (x0,y0,z0)"
                 "and (x1,y1,z1) to the level of refinement set by setRefinementLevel\n"
                 ":param x0:\n:type float: x coordinate of the upper left coordinate.\n"
@@ -512,19 +517,22 @@ BOOST_PYTHON_MODULE(oxleycpp)
                 ":param z0:\n:type float: z coordinate of the upper left coordinate.\n"
                 ":param x1:\n:type float: x coordinate of the lower right coordinate.\n"
                 ":param y1:\n:type float: y coordinate of the lower right coordinate.\n"
-                ":param z1:\n:type float: z coordinate of the lower right coordinate.\n")
-        .def("refineSphere", &oxley::RefinementZone3D::refineSphere, (args("x0","y0","z0","r")),
+                ":param z1:\n:type float: z coordinate of the lower right coordinate.\n"
+                ":param level:\n:type float: the level of refinement.\n")
+        .def("refineSphere", &oxley::RefinementZone3D::refineSphere, (arg("x0"),arg("y0"),arg("z0"),arg("r"),arg("level")=-1),
                 "Refines the mesh around a spherical region with radius r and center"
                 "and (x0,y0,z0) to the level of refinement set by setRefinementLevel\n"
                 ":param x0:\n:type float: x coordinate of the center of the circle.\n"
                 ":param y0:\n:type float: y coordinate of the center of the circle.\n"
                 ":param z0:\n:type float: z coordinate of the center of the circle.\n"
-                ":param r :\n:type float: the radius of the circle.\n")
-        .def("refineBorder", &oxley::RefinementZone3D::refineBorder, (args("Border","dx")),
+                ":param r :\n:type float: the radius of the circle.\n"
+                ":param level:\n:type float: the level of refinement.\n")
+        .def("refineBorder", &oxley::RefinementZone3D::refineBorder, (arg("Border"),arg("dx"),arg("level")=-1),
                 "Refines the border of the mesh to depth dx to the level of refinement"
                 "set by setRefinementLevel\n"
                 ":param Border:\n:type string: The border to refine (top,bottom,right,left).\n"
-                ":param dx:\n:type float: the depth of the refinement.\n")
+                ":param dx:\n:type float: the depth of the refinement.\n"
+                ":param level:\n:type float: the level of refinement.\n")
         .def("refineMask", &oxley::RefinementZone3D::refineMask, (args("mask")),
                 "Refines the mesh in regions defined by a mask\n"
                 ":param mask:\n:type Data: a mask.\n")
