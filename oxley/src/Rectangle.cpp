@@ -292,6 +292,84 @@ Rectangle::Rectangle(int order,
     oxleytimer.toc("Class initialised");
 }
 
+Rectangle::Rectangle(const oxley::Rectangle& R, int order):
+    OxleyDomain(2, order){
+
+#ifdef ESYS_HAVE_TRILINOS
+    initZ(true);
+    initIZ(true);
+#endif //ESYS_HAVE_TRILINOS
+
+    // set parameters
+    // d0=R.d0;
+    // d1=R.d1;
+    connectivity=R.connectivity;
+    p4est=R.p4est;
+
+#ifdef OXLEY_ENABLE_DEBUG_CHECKS //These checks are turned off by default as they can be very timeconsuming
+    std::cout << "In Rectangle() constructor..." << std::endl;
+    std::cout << "Checking connectivity ... ";
+    if(!p4est_connectivity_is_valid(connectivity))
+        std::cout << "broken" << std::endl;
+    else
+        std::cout << "OK" << std::endl;
+    std::cout << "Checking p4est ... ";
+    if(!p4est_is_valid(p4est))
+        std::cout << "broken" << std::endl;
+    else
+        std::cout << "OK" << std::endl;
+#endif
+
+    nodes=R.nodes;
+
+    // This information is needed by the assembler
+    m_NE[0] = R.m_NE[0];
+    m_NE[1] = R.m_NE[1];
+    m_NX[0] = R.m_NX[0];
+    m_NX[1] = R.m_NX[1];
+    m_NN[0] = R.m_NN[0];
+    m_NN[1] = R.m_NN[1];
+
+    forestData=R.forestData;
+
+    // element order
+    m_order = R.m_order;
+
+    // Number of dimensions
+    m_numDim=2;
+
+    // Distribute the p4est across the processors
+    int allow_coarsening = 0;
+    p4est_partition(p4est, allow_coarsening, NULL);
+
+    // Number the nodes
+    updateNodeIncrements();
+    renumberNodes();
+    updateRowsColumns();
+    updateNodeDistribution();
+    updateElementIds();
+    updateFaceOffset();
+    updateFaceElementCount();
+    // populateDofMap()
+
+    // Tags
+    populateSampleIds();
+    m_tagMap=R.m_tagMap;
+    
+    // Dirac points and tags
+    m_diracPoints=R.m_diracPoints;
+
+    // srand(time(NULL));
+
+    // To prevent segmentation faults when using numpy ndarray
+#ifdef ESYS_HAVE_BOOST_NUMPY
+    Py_Initialize();
+    boost::python::numpy::initialize();
+#endif
+
+    oxleytimer.toc("Class initialised");
+}
+
 /**
    \brief
    Destructor.
@@ -4373,23 +4451,23 @@ RankVector Rectangle::getOwnerVector(int fsType) const
     \brief
     Applies a refinementzone
 */
-void Rectangle::apply_refinementzone(RefinementZone R)
+escript::Domain_ptr Rectangle::apply_refinementzone(RefinementZone R)
 {
-    int original_refinement_level=m_refinement_levels;
+    oxley::Rectangle * newDomain = new Rectangle(*this, m_order);
     int numberOfRefinements = R.getNumberOfOperations();
 
     for(int n = 0; n < numberOfRefinements; n++)
     {
         RefinementType Refinement = R.getRefinement(n);
         //set the refinement level for this refinement
-        setRefinementLevels(Refinement.levels);
+        newDomain->setRefinementLevels(Refinement.levels);
         switch(Refinement.flavour)
         {
             case POINT2D:
             {
                 double x=Refinement.x0;
                 double y=Refinement.y0;
-                refinePoint(x,y);
+                newDomain->refinePoint(x,y);
                 break;
             }
             case REGION2D:
@@ -4398,7 +4476,7 @@ void Rectangle::apply_refinementzone(RefinementZone R)
                 double y0=Refinement.y0;
                 double x1=Refinement.x1;
                 double y1=Refinement.y1;
-                refineRegion(x0,y0,x1,y1);
+                newDomain->refineRegion(x0,y0,x1,y1);
                 break;
             }
             case CIRCLE:
@@ -4406,7 +4484,7 @@ void Rectangle::apply_refinementzone(RefinementZone R)
                 double x0=Refinement.x0;
                 double y0=Refinement.y0;
                 double r0=Refinement.r;
-                refineCircle(x0,y0,r0);
+                newDomain->refineCircle(x0,y0,r0);
                 break;
             }
             case BOUNDARY:
@@ -4416,22 +4494,22 @@ void Rectangle::apply_refinementzone(RefinementZone R)
                 {
                     case NORTH:
                     {
-                        refineBoundary("TOP",dx);
+                        newDomain->refineBoundary("TOP",dx);
                         break;
                     }
                     case SOUTH:
                     {
-                        refineBoundary("BOTTOM",dx);
+                        newDomain->refineBoundary("BOTTOM",dx);
                         break;
                     }
                     case WEST:
                     {
-                        refineBoundary("LEFT",dx);
+                        newDomain->refineBoundary("LEFT",dx);
                         break;
                     }
                     case EAST:
                     {
-                        refineBoundary("RIGHT",dx);
+                        newDomain->refineBoundary("RIGHT",dx);
                         break;
                     }
                     case TOP:
@@ -4448,7 +4526,7 @@ void Rectangle::apply_refinementzone(RefinementZone R)
                 if(n == 0)
                 {
                     escript::Data d = *Refinement.data;
-                    refineMask(d);
+                    newDomain->refineMask(d);
                     break;
                 }
                 else
@@ -4464,8 +4542,7 @@ void Rectangle::apply_refinementzone(RefinementZone R)
                 throw OxleyException("Unknown refinement algorithm.");
         }
     }
-    // Set refinement_levels back to its original value
-    setRefinementLevels(original_refinement_level);
+    return escript::Domain_ptr(newDomain);
 }
 
 

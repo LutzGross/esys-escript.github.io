@@ -419,11 +419,12 @@ int refine_mask(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadran
     // get the mask value at this point
     long nodeid = quadData->nodeid;
     escript::DataTypes::real_t *dummy(0);
-    const escript::DataTypes::real_t * maskvalue = forestData->mask->getSampleDataRO(nodeid, *dummy);
+    // const escript::DataTypes::real_t * maskvalue = forestData->mask->getSampleDataRO(nodeid, *dummy);
 
     // check the value
-    bool do_refinement = (*maskvalue != 0);
-    return do_refinement;
+    // bool do_refinement = (*maskvalue != 0);
+    // return do_refinement;
+    return false; //TODO
 }
 
 int refine_region(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadrant)

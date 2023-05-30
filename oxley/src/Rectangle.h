@@ -78,6 +78,12 @@ public:
 #endif
 
     /**
+       \brief creates a rectangular mesh from an existing Rectangle.
+       \param
+    */
+    Rectangle(const oxley::Rectangle& rect, int order);
+
+    /**
        \brief
        Destructor.
     */
@@ -344,7 +350,7 @@ public:
       \brief
       Applies a refinementzone
    */
-    void apply_refinementzone(RefinementZone R);
+    escript::Domain_ptr apply_refinementzone(RefinementZone R);
 
 private:
     // The data structure in p4est
@@ -638,6 +644,7 @@ protected:
     int num_hanging;
 
     TicTocClock oxleytimer;
+
 };
 
 
