@@ -240,6 +240,87 @@ Brick::Brick(int order,
     oxleytimer.toc("Class initialised");
 }
 
+Brick::Brick(oxley::Brick& B, int order): 
+    OxleyDomain(3, order)
+{
+    connectivity = B.connectivity;
+    p8est = B.p8est;
+
+#ifdef OXLEY_ENABLE_DEBUG_CHECKS //These checks are turned off by default as they can be very timeconsuming
+    std::cout << "In Brick() constructor..." << std::endl;
+    std::cout << "Checking connectivity ... ";
+    if(!p8est_connectivity_is_valid(connectivity))
+        std::cout << "broken" << std::endl;
+    else
+        std::cout << "OK" << std::endl;
+    std::cout << "Checking p8est ... ";
+    if(!p8est_is_valid(p8est))
+        std::cout << "broken" << std::endl;
+    else
+        std::cout << "OK" << std::endl;
+#endif
+
+    // Nodes numbering
+    ghost = B.ghost;
+    nodes = B.nodes;
+    
+    // This information is needed by the assembler
+    m_NE[0] = B.m_NE[0];
+    m_NE[1] = B.m_NE[1];
+    m_NE[2] = B.m_NE[2];
+    m_NX[0] = B.m_NX[0];
+    m_NX[1] = B.m_NX[1];
+    m_NX[2] = B.m_NX[2];
+    forestData = B.forestData;
+
+    // Find the grid spacing for each level of refinement in the mesh
+#pragma omp parallel for
+    for(int i = 0; i <= P8EST_MAXLEVEL; i++){
+        double numberOfSubDivisions = (p8est_qcoord_t) (1 << (P8EST_MAXLEVEL - i));
+        forestData.m_dx[0][i] = forestData.m_length[0] / numberOfSubDivisions;
+        forestData.m_dx[1][i] = forestData.m_length[1] / numberOfSubDivisions;
+        forestData.m_dx[2][i] = forestData.m_length[2] / numberOfSubDivisions;
+    }
+
+    // element order
+    m_order = order;
+
+    // Number of dimensions
+    m_numDim=3;
+
+    //  // Distribute the p8est across the processors
+    int allow_coarsening = 0;
+    p8est_partition(p8est, allow_coarsening, NULL);
+
+    // Indices
+    indices = new std::vector<IndexVector>;
+
+    // Number the nodes
+    updateNodeIncrements();
+    renumberNodes();
+    updateRowsColumns();
+    updateNodeDistribution();
+    updateElementIds();
+    updateFaceOffset();
+    updateFaceElementCount();
+
+    // Tags
+    populateSampleIds();
+    
+    m_tagMap = B.m_tagMap;
+
+    // Dirac points and tags
+    m_diracPoints=B.m_diracPoints;
+
+    // To prevent segmentation faults when using numpy ndarray
+#ifdef ESYS_HAVE_BOOST_NUMPY
+    Py_Initialize();
+    boost::python::numpy::initialize();
+#endif
+
+    oxleytimer.toc("Class initialised");
+}
+
 /**
    \brief
    Destructor.
@@ -4855,9 +4936,10 @@ const long Brick::getNodeId(double x, double y, double z)
     \brief
     Applies a refinementzone
 */
-void Brick::apply_refinementzone(RefinementZone R)
+escript::Domain_ptr Brick::apply_refinementzone(RefinementZone R)
 {
-    int original_refinement_level=m_refinement_levels;
+    oxley::Brick * newDomain = new Brick(*this, m_order);
+
     int numberOfRefinements = R.getNumberOfOperations();
 
     for(int n = 0; n < numberOfRefinements; n++)
@@ -4872,7 +4954,7 @@ void Brick::apply_refinementzone(RefinementZone R)
                 double x=Refinement.x0;
                 double y=Refinement.y0;
                 double z=Refinement.z0;
-                refinePoint(x,y,z);
+                newDomain->refinePoint(x,y,z);
                 break;
             }
             case REGION3D:
@@ -4883,7 +4965,7 @@ void Brick::apply_refinementzone(RefinementZone R)
                 double x1=Refinement.x1;
                 double y1=Refinement.y1;
                 double z1=Refinement.z1;
-                refineRegion(x0,y0,z0,x1,y1,z1);
+                newDomain->refineRegion(x0,y0,z0,x1,y1,z1);
                 break;
             }
             case SPHERE:
@@ -4892,7 +4974,7 @@ void Brick::apply_refinementzone(RefinementZone R)
                 double y0=Refinement.y0;
                 double z0=Refinement.z0;
                 double r0=Refinement.r;
-                refineSphere(x0,y0,z0,r0);
+                newDomain->refineSphere(x0,y0,z0,r0);
                 break;
             }
             case BOUNDARY:
@@ -4902,32 +4984,32 @@ void Brick::apply_refinementzone(RefinementZone R)
                 {
                     case NORTH:
                     {
-                        refineBoundary("TOP",dx);
+                        newDomain->refineBoundary("TOP",dx);
                         break;
                     }
                     case SOUTH:
                     {
-                        refineBoundary("BOTTOM",dx);
+                        newDomain->refineBoundary("BOTTOM",dx);
                         break;
                     }
                     case WEST:
                     {
-                        refineBoundary("LEFT",dx);
+                        newDomain->refineBoundary("LEFT",dx);
                         break;
                     }
                     case EAST:
                     {
-                        refineBoundary("RIGHT",dx);
+                        newDomain->refineBoundary("RIGHT",dx);
                         break;
                     }
                     case TOP:
                     {
-                        refineBoundary("TOP",dx);
+                        newDomain->refineBoundary("TOP",dx);
                         break;
                     }
                     case BOTTOM:
                     {
-                        refineBoundary("BOTTOM",dx);
+                        newDomain->refineBoundary("BOTTOM",dx);
                         break;
                     }
                     default:
@@ -4942,7 +5024,7 @@ void Brick::apply_refinementzone(RefinementZone R)
                 if(n == 0)
                 {
                     escript::Data d = *Refinement.data;
-                    refineMask(d);
+                    newDomain->refineMask(d);
                     break;
                 }
                 else
@@ -4958,8 +5040,7 @@ void Brick::apply_refinementzone(RefinementZone R)
                 throw OxleyException("Unknown refinement algorithm.");
         }
     }
-    // Set refinement_levels back to its original value
-    setRefinementLevels(original_refinement_level);
+    return escript::Domain_ptr(newDomain);
 }
 
 } // end of namespace oxley

@@ -70,6 +70,7 @@ public:
       const std::vector<double>& points, const std::vector<int>& tags,
       const TagMap& tagnamestonums,
       int periodic0, int periodic1, int periodic2);
+    Brick(oxley::Brick& B, int order);
 
     /**
        \brief creates a rectangular mesh from numpy arrays [x,y].
@@ -395,7 +396,7 @@ public:
       \brief
       Applies a refinementzone
    */
-    void apply_refinementzone(RefinementZone R);
+    escript::Domain_ptr apply_refinementzone(RefinementZone R);
 
 ////////////////////////////////
 private:
