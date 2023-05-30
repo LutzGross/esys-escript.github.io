@@ -381,6 +381,16 @@ int refine_point(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadra
     bool do_refinement = (p[0] >= xy1[0]) && (p[0] <= xy2[0])
                       && (p[1] >= xy1[1]) && (p[1] <= xy2[1]);
 
+#ifdef OXLEY_ENABLE_DEBUG_REFINE_POINT
+    if(do_refinement)
+        std::cout << " YES ";
+    else
+        std::cout << " NO  ";
+    std::cout << "Point (" << p[0] << ", " << p[1] << ") \t";
+    std::cout << "Boundaries (" << xy1[0] << ", " << xy1[1] << ") &"
+              << "(" << xy2[0] << ", " << xy2[1] << ") " << std::endl;
+#endif
+
     return  do_refinement &&
             (quadrant->level < forestData->max_levels_refinement);
 }

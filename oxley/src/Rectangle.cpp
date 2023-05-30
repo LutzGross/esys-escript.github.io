@@ -327,7 +327,29 @@ Rectangle::Rectangle(const oxley::Rectangle& R, int order):
     m_NN[0] = R.m_NN[0];
     m_NN[1] = R.m_NN[1];
 
-    forestData=R.forestData;
+    forestData.m_origin[0] = R.forestData.m_origin[0];
+    forestData.m_origin[1] = R.forestData.m_origin[1];
+    forestData.m_lxy[0] = R.forestData.m_lxy[0];
+    forestData.m_lxy[1] = R.forestData.m_lxy[1];
+    forestData.m_length[0] = R.forestData.m_length[0];
+    forestData.m_length[1] = R.forestData.m_length[1];
+    forestData.m_NX[0] = R.forestData.m_NX[0];
+    forestData.m_NX[1] = R.forestData.m_NX[1];
+
+    // Whether or not we have periodic boundaries
+    forestData.periodic[0] = R.forestData.periodic[0];
+    forestData.periodic[1] = R.forestData.periodic[1];
+
+    // Find the grid spacing for each level of refinement in the mesh
+#pragma omp parallel for
+    for(int i = 0; i<=P4EST_MAXLEVEL; i++){
+        double numberOfSubDivisions = (p4est_qcoord_t) (1 << (P4EST_MAXLEVEL - i));
+        forestData.m_dx[0][i] = forestData.m_NX[0] / (numberOfSubDivisions);
+        forestData.m_dx[1][i] = forestData.m_NX[1] / (numberOfSubDivisions);
+    }
+
+    // max levels of refinement
+    forestData.max_levels_refinement = MAXREFINEMENTLEVELS;
 
     // NodeIDs is stored as a pointer
     if(!R.forestData.NodeIDs) // if Nullpointer
@@ -340,6 +362,9 @@ Rectangle::Rectangle(const oxley::Rectangle& R, int order):
         NodeIDs=tmp_NodeIDs;
         forestData.NodeIDs=&NodeIDs;    
     }    
+
+    // Update the user_data pointer in p4est 
+    p4est->user_pointer=&forestData;
 
     // element order
     m_order = R.m_order;
