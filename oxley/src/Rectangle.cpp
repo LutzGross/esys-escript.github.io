@@ -300,9 +300,6 @@ Rectangle::Rectangle(const oxley::Rectangle& R, int order):
     initIZ(true);
 #endif //ESYS_HAVE_TRILINOS
 
-    // set parameters
-    // d0=R.d0;
-    // d1=R.d1;
     connectivity=R.connectivity;
     p4est=R.p4est;
 
@@ -332,11 +329,28 @@ Rectangle::Rectangle(const oxley::Rectangle& R, int order):
 
     forestData=R.forestData;
 
+    // NodeIDs is stored as a pointer
+    if(!R.forestData.NodeIDs) // if Nullpointer
+    {
+        forestData.NodeIDs=nullptr;
+    }
+    else
+    {
+        std::unordered_map<DoublePair,long,boost::hash<DoublePair>> tmp_NodeIDs(*(R.forestData.NodeIDs));
+        NodeIDs=tmp_NodeIDs;
+        forestData.NodeIDs=&NodeIDs;    
+    }    
+
     // element order
     m_order = R.m_order;
 
     // Number of dimensions
     m_numDim=2;
+
+    // lnodes
+    p4est_ghost_t * ghost = p4est_ghost_new(p4est, P4EST_CONNECT_FULL);
+    nodes = p4est_lnodes_new(p4est, ghost, 1);
+    p4est_ghost_destroy(ghost);
 
     // Distribute the p4est across the processors
     int allow_coarsening = 0;
@@ -350,7 +364,6 @@ Rectangle::Rectangle(const oxley::Rectangle& R, int order):
     updateElementIds();
     updateFaceOffset();
     updateFaceElementCount();
-    // populateDofMap()
 
     // Tags
     populateSampleIds();
@@ -358,8 +371,6 @@ Rectangle::Rectangle(const oxley::Rectangle& R, int order):
     
     // Dirac points and tags
     m_diracPoints=R.m_diracPoints;
-
-    // srand(time(NULL));
 
     // To prevent segmentation faults when using numpy ndarray
 #ifdef ESYS_HAVE_BOOST_NUMPY
@@ -1791,6 +1802,8 @@ void Rectangle::renumberNodes()
             std::cout << i << ", "; 
         std::cout << std::endl;
 #endif
+
+    forestData.NodeIDs=&NodeIDs;
 
     oxleytimer.toc("renumberNodes...Done");
 }

@@ -196,7 +196,7 @@ public:
 	escript::Data mask; // a mask
 
 	// Pointer to the current solution and Node ID info
-	std::unordered_map<long,double> * current_solution;
+	// std::unordered_map<long,double> * current_solution;
 	std::unordered_map<DoublePair,long,boost::hash<DoublePair>> * NodeIDs;
 
 	void assign_info(addSurfaceData * tmp) {info=tmp;};
