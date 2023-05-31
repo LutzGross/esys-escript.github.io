@@ -4514,7 +4514,7 @@ escript::Domain_ptr Rectangle::apply_refinementzone(RefinementZone R)
                 double y0=Refinement.y0;
                 double x1=Refinement.x1;
                 double y1=Refinement.y1;
-                newDomain->refineRegion(x0,y0,x1,y1);
+                newDomain->refineRegion(x0,x1,y0,y1);
                 break;
             }
             case CIRCLE:

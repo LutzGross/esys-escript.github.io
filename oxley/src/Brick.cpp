@@ -4965,7 +4965,7 @@ escript::Domain_ptr Brick::apply_refinementzone(RefinementZone R)
                 double x1=Refinement.x1;
                 double y1=Refinement.y1;
                 double z1=Refinement.z1;
-                newDomain->refineRegion(x0,y0,z0,x1,y1,z1);
+                newDomain->refineRegion(x0, x1, y0, y1, z0, z1);
                 break;
             }
             case SPHERE:

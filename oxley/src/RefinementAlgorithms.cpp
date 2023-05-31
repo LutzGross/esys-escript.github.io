@@ -357,10 +357,14 @@ int refine_region(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadr
 
 #ifdef OXLEY_ENABLE_DEBUG_REFINE_REGION
     if(refinement)
-    {
-        std::cout << "Point (x,y)=(" << xy0[0] << "," << xy0[1] << ") ";
-        std::cout << " is in the region." << std::endl;
-    }
+        std::cout << "YES ";
+    else
+        std::cout << "NO  ";
+    std::cout << "(x,y)=(" << xy0[0] << "," << xy0[1] << ") \t\t";
+    std::cout << "region= ";
+    std::cout << "(" << x[0] << "," << y[0] << ") ";
+    std::cout << "(" << x[1] << "," << y[1] << ") ";
+    std::cout << std::endl;
 #endif
 
     return refinement && (quadrant->level < forestData->max_levels_refinement);
