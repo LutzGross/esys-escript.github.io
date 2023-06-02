@@ -301,7 +301,7 @@ Rectangle::Rectangle(const oxley::Rectangle& R, int order):
 #endif //ESYS_HAVE_TRILINOS
 
     connectivity=R.connectivity;
-    p4est=p4est_copy(R.p4est);
+    p4est=p4est_copy(R.p4est,1);
 
 #ifdef OXLEY_ENABLE_DEBUG_CHECKS //These checks are turned off by default as they can be very timeconsuming
     std::cout << "In Rectangle() constructor..." << std::endl;

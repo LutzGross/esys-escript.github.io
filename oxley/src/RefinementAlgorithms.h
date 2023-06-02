@@ -143,8 +143,5 @@ void refine_copy_parent_quadrant_data(p4est_t * p4est, p4est_topidx_t tree,
                                  int num_incoming,
                                  p4est_quadrant_t * incoming[]);
 
-// returns a quadrant's morton index
-int getMortonIndex(const void *v1)
-
 
 } //namespace oxley
