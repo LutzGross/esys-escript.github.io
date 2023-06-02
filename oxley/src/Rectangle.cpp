@@ -541,125 +541,154 @@ void Rectangle::validateInterpolationAcross(int fsType_source, const escript::Ab
 // downward interpolation
 void Rectangle::interpolateNodesToNodesCoarser(const escript::Data& source, escript::Data& target, const Rectangle& other) const
 {
-    // make a copy of p4est
-    p4est_t * tmp_p4est = p4est_copy(p4est,true);
+    ESYS_ASSERT(p4est->first_local_tree==other.p4est->first_local_tree, "Incompatible Rectangles.");
+    ESYS_ASSERT(p4est->last_local_tree==other.p4est->last_local_tree, "Incompatible Rectangles.");
 
-    // copy source onto the mesh (one node point at a time)
-    for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
+    bool notdone=true;
+    int fs_code=other.getFunctionCode();
+
+    // keep track of which trees are done
+    bool finished[p4est->last_local_tree-p4est->first_local_tree]={false};
+
+    // loop along the finer mesh comparing the size of quads along the way
+    // if two quads are different then interpolate
+    while(notdone) // each loop does one level of refinement
     {
-        p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
-        sc_array_t * tquadrants = &currenttree->quadrants;
-        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-        for (int q = 0; q < Q; ++q)  
+        for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
         {
-            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-            quadrantData * quadData = (quadrantData *) quad->p.user_data;
-            double xy[2];
-            p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x, quad->y, xy);
-            long nodeid = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+            // if this tree is done then skip ahead
+            if(finished[t-p4est->first_local_tree]==true)
+                continue;
+            bool tree_finished=true;
 
-            cplx_t dummy;
-            const cplx_t * samples = source.getSampleDataRO(nodeid, dummy);
-                
-            // attach the pointer to quaddata
-            quadData->pData = samples;
+            // find the corresponding quadrands
+            p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t); // this mesh is finer
+            sc_array_t * tquadrants = &currenttree->quadrants;
+            p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
 
+            p4est_tree_t * currenttree_other = p4est_tree_array_index(other.p4est->trees, t); 
+            sc_array_t * tquadrants_other = &currenttree->quadrants;
+            p4est_locidx_t Q_tmp = (p4est_locidx_t) tquadrants->elem_count;
+
+            int q_counter=0;
+            for (int q = 0; q < Q_tmp; ++q)
+            {
+                // Get the quadrant side lengths
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+                p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
+                p4est_quadrant_t * quad_other = p4est_quadrant_array_index(tquadrants, q_counter);
+                p4est_qcoord_t length_other = P4EST_QUADRANT_LEN(quad_other->level);
+
+                // if the quadrants are different in size, interpolate the data
+                if(length_other>length)
+                {   
+                    long ids[4]={0};
+                    getNeighouringNodeIDs(quad->level, quad->x, quad->y, t, ids);
+                    
+                    cplx_t new_value(0);
+                    cplx_t dummy;
+
+                    const cplx_t * samples_source = source.getSampleDataRO(q_counter, dummy);
+                    new_value = *samples_source;
+
+                    for(int n = 0; n < 4; n++)                
+                    {
+                        if(!ownSample(fs_code,ids[n]))
+                            continue;
+
+                        //copy data
+                        const cplx_t * samples_target = target.getSampleDataRO(ids[n], dummy);
+                        samples_target=&new_value;                 
+                    }
+
+                    tree_finished=false;
+                    notdone=true;
+                    continue;
+                }
+                q_counter++;
+            }
+
+            if(tree_finished=true)
+                finished[t-p4est->first_local_tree]=true;
         }
     }
-
-    // recusively refine rect-other into *this
-    // using p4est_coarsen_ext and p4est_refine_ext
-    // adjusting the Data at each point using refine_copy_parent_quadrant
-    int maxlevel=MAXREFINEMENTLEVELS;
-    p4est_refine_ext(tmp_p4est,true,maxlevel,refine_nodesToNodesFiner,
-                                             init_rectangle_data,
-                                             refine_copy_parent_quadrant_data);
-
-    // copy the Data to data-target (one node point at a time)
-    for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
-    {
-        p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
-        sc_array_t * tquadrants = &currenttree->quadrants;
-        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-        for (int q = 0; q < Q; ++q)  
-        {
-            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-            quadrantData * quadData = (quadrantData *) quad->p.user_data;
-            double xy[2];
-            p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x, quad->y, xy);
-            long nodeid = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-
-            cplx_t dummy;
-            const cplx_t * samples = source.getSampleDataRO(nodeid, dummy);
-                
-            samples = quadData->pData;     
-        }
-    }
-
-    // cleanup
-    p4est_destroy(tmp_p4est);
 }
 
 // upward interpolation
 void Rectangle::interpolateNodesToNodesFiner(const escript::Data& source, escript::Data& target, const Rectangle& other) const
 {
-    // make a copy of p4est
-    p4est_t * tmp_p4est = p4est_copy(p4est,true);
+    ESYS_ASSERT(p4est->first_local_tree==other.p4est->first_local_tree, "Incompatible Rectangles.");
+    ESYS_ASSERT(p4est->last_local_tree==other.p4est->last_local_tree, "Incompatible Rectangles.");
 
-    // copy source onto the mesh (one node point at a time)
-    for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
+    bool notdone=true;
+    int fs_code=other.getFunctionCode();
+
+    // keep track of which trees are done
+    bool finished[p4est->last_local_tree-p4est->first_local_tree]={false};
+
+    // loop along the finer mesh comparing the size of quads along the way
+    // if two quads are different then interpolate
+    while(notdone) // each loop does one level of refinement
     {
-        p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
-        sc_array_t * tquadrants = &currenttree->quadrants;
-        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-        for (int q = 0; q < Q; ++q)  
+        for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
         {
-            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-            quadrantData * quadData = (quadrantData *) quad->p.user_data;
-            double xy[2];
-            p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x, quad->y, xy);
-            long nodeid = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+            // if this tree is done then skip ahead
+            if(finished[t-p4est->first_local_tree]==true)
+                continue;
+            bool tree_finished=true;
 
-            cplx_t dummy;
-            const cplx_t * samples = source.getSampleDataRO(nodeid, dummy);
-                
-            // attach the pointer to quaddata
-            quadData->pData = samples;
+            // find the corresponding quadrands
+            p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
+            sc_array_t * tquadrants = &currenttree->quadrants;
+            p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
 
+            p4est_tree_t * currenttree_other = p4est_tree_array_index(other.p4est->trees, t); // this mesh is finer
+            sc_array_t * tquadrants_other = &currenttree->quadrants;
+            p4est_locidx_t Q_tmp = (p4est_locidx_t) tquadrants->elem_count;
+
+            int q_counter=0;
+            for (int q = 0; q < Q_tmp; ++q)
+            {
+                // Get the quadrant side lengths
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+                p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
+                p4est_quadrant_t * quad_other = p4est_quadrant_array_index(tquadrants, q_counter);
+                p4est_qcoord_t length_other = P4EST_QUADRANT_LEN(quad_other->level);
+
+                // if the quadrants are different in size, interpolate the data
+                if(length>length_other)
+                {    
+                    long ids[4]={0};
+                    getNeighouringNodeIDs(quad_other->level, quad_other->x, quad_other->y, t, ids);
+                    
+                    cplx_t new_value(0);
+                    cplx_t dummy;
+
+                    for(int n = 0; n < 4; n++)                
+                    {
+                        if(!ownSample(fs_code,ids[n]))
+                            continue;
+
+                        //copy data
+                        const cplx_t * samples_source = source.getSampleDataRO(ids[n], dummy);
+                        new_value+=*samples_source;                    
+                    }
+
+                    const cplx_t * samples_target = target.getSampleDataRO(q_counter, dummy);
+                    new_value*=0.25; //averaging
+                    samples_target=&new_value; 
+
+                    tree_finished=false;
+                    notdone=true;
+                    continue;
+                }
+                q_counter++;
+            }
+
+            if(tree_finished=true)
+                finished[t-p4est->first_local_tree]=true;
         }
     }
-
-    // recusively refine rect-other into *this
-    // using p4est_coarsen_ext and p4est_refine_ext
-    // adjusting the Data at each point using refine_copy_parent_quadrant
-    int maxlevel=MAXREFINEMENTLEVELS;
-    p4est_refine_ext(tmp_p4est,true,maxlevel,refine_nodesToNodesFiner,
-                                             init_rectangle_data,
-                                             refine_copy_parent_quadrant_data);
-
-    // copy the Data to data-target (one node point at a time)
-    for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
-    {
-        p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
-        sc_array_t * tquadrants = &currenttree->quadrants;
-        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-        for (int q = 0; q < Q; ++q)  
-        {
-            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-            quadrantData * quadData = (quadrantData *) quad->p.user_data;
-            double xy[2];
-            p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x, quad->y, xy);
-            long nodeid = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-
-            cplx_t dummy;
-            const cplx_t * samples = source.getSampleDataRO(nodeid, dummy);
-                
-            samples = quadData->pData;     
-        }
-    }
-
-    // cleanup
-    p4est_destroy(tmp_p4est);
 }
 
 void Rectangle::interpolateNodesToElementsFiner(const escript::Data& source, escript::Data& target, const Rectangle& other)  const
