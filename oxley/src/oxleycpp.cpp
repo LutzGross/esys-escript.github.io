@@ -446,6 +446,10 @@ BOOST_PYTHON_MODULE(oxleycpp)
                 ":param x0:\n:type double: x coordinate of the point to be refined.\n"
                 ":param y0:\n:type double: y coordinate of the point to be refined.\n"
                 ":param r: \n:type double: radius of the circle.\n")
+        ,def("interpolate", &oxley::Rectangle::interpolateAcross, (arg("target"),arg("source")),
+                "Interpolates source to target\n"
+                ":param source:\n:type Data: The source Data object. \n"
+                ":param target:\n:type Data: The target Data object. \n")
         ;
 
     class_<oxley::RefinementZone>("RefinementZone", "")
