@@ -300,7 +300,6 @@ Rectangle::Rectangle(const oxley::Rectangle& R, int order):
     initIZ(true);
 #endif //ESYS_HAVE_TRILINOS
 
-    connectivity=R.connectivity;
     p4est=p4est_copy(R.p4est,1);
 
 #ifdef OXLEY_ENABLE_DEBUG_CHECKS //These checks are turned off by default as they can be very timeconsuming
@@ -335,6 +334,10 @@ Rectangle::Rectangle(const oxley::Rectangle& R, int order):
     forestData.m_length[1] = R.forestData.m_length[1];
     forestData.m_NX[0] = R.forestData.m_NX[0];
     forestData.m_NX[1] = R.forestData.m_NX[1];
+
+    connectivity=new_rectangle_connectivity(m_NE[0], m_NE[1], false, false, 
+                                            forestData.m_origin[0], forestData.m_origin[1], 
+                                            forestData.m_lxy[0], forestData.m_lxy[1]);
 
     // Whether or not we have periodic boundaries
     forestData.periodic[0] = R.forestData.periodic[0];
