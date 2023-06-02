@@ -949,6 +949,7 @@ Requires('py_tests', 'install')
 
 ##################### Targets to build the documentation #####################
 
+env.Alias('pdfdocs',['user_pdf', 'install_pdf', 'cookbook_pdf']) #inversion_pdf
 env.Alias('basedocs', ['pdfdocs','examples_tarfile', 'examples_zipfile', 'api_doxygen'])
 env.Alias('docs', ['basedocs', 'sphinxdoc'])
 env.Alias('release_prep', ['docs', 'install'])
