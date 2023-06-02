@@ -31,7 +31,6 @@ void init_rectangle_data(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t 
     // the data associated with each quadrant
     quadrantData *data = (quadrantData *) q->p.user_data;
 
-    data->u=0.0;
     data->quadTag=0;
 
     data->owner=p4est->mpirank;
@@ -42,6 +41,11 @@ void init_rectangle_data(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t 
 #ifdef OXLEY_ENABLE_DEBUG_MPI
     std::cout << "Ownership of quad (" << data->xy[0] << ", " << data->xy[1] << ") is " << data->owner << std::endl;
 #endif
+
+    data->solution_data[0]=nullptr;
+    data->solution_data[1]=nullptr;
+    data->solution_data[2]=nullptr;
+    data->solution_data[3]=nullptr;
 
 }
 
@@ -200,11 +204,16 @@ void gce_init_new_rectangle(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant
     // the data associated with each quadrant
     quadrantData *data = (quadrantData *) q->p.user_data;
 
-    data->u=0.0;
     data->quadTag=-1;
 
     // Save the spatial coordinates
     p4est_qcoord_to_vertex(p4est->connectivity, tree, q->x, q->y, &data->xy[0]);
+
+    data->solution_data[0]=nullptr;
+    data->solution_data[1]=nullptr;
+    data->solution_data[2]=nullptr;
+    data->solution_data[3]=nullptr;
+    data->pData=nullptr;
 }
 
 void gce_init_new_brick(p8est_t * p8est, p4est_topidx_t tree, p8est_quadrant_t * q)

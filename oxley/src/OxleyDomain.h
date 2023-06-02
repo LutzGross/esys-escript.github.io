@@ -1082,6 +1082,10 @@ private:
 
 #define POINTER_WRAPPER_CLASS(x) boost::shared_ptr<x>
 typedef POINTER_WRAPPER_CLASS(OxleyDomain) OxleyDomain_ptr;
+class Rectangle;
+typedef POINTER_WRAPPER_CLASS(Rectangle) OxleyDomainRect_ptr;
+class Brick;
+typedef POINTER_WRAPPER_CLASS(Brick) OxleyDomainBrick_ptr;
 
 } // end of namespace oxley
 

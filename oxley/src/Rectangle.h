@@ -45,6 +45,9 @@ using namespace boost::python;
 
 namespace oxley {
 
+//forward declaration
+class interpolateWorker_Data;
+
 /**
    \brief
    Rectangle is the 2-dimensional implementation of a Oxleydomain.
@@ -352,6 +355,9 @@ public:
    */
     escript::Domain_ptr apply_refinementzone(RefinementZone R);
 
+    // Data used by the interpolation functions
+    // const interpolationData interp_data;
+
 private:
     // The data structure in p4est
     p4estData forestData;
@@ -570,13 +576,13 @@ protected:
     */
     void validateInterpolationAcross(int fsType_source, const escript::AbstractDomain& domain, int fsType_target) const;
     void interpolateNodesToNodesFiner(const escript::Data& source, escript::Data& target, const Rectangle& other) const;
+    void interpolateNodesToNodesCoarser(const escript::Data& source, escript::Data& target, const Rectangle& other)  const;
     void interpolateNodesToElementsFiner(const escript::Data& source, escript::Data& target, const Rectangle& other) const;
     void interpolateElementsToElementsCoarser(const escript::Data& source, escript::Data& target, const Rectangle& other) const;
     void interpolateElementsToElementsFiner(const escript::Data& source, escript::Data& target, const Rectangle& other) const;
     void interpolateReducedToElementsFiner(const escript::Data& source, escript::Data& target, const Rectangle& other) const;
     void interpolateReducedToReducedFiner(const escript::Data& source, escript::Data& target, const Rectangle& other) const;
-
-
+   
     template <typename S>
     void interpolateNodesOnElementsWorker(escript::Data& out,
                                   const escript::Data& in, bool reduced, S sentinel) const;   
@@ -645,10 +651,25 @@ protected:
 
     TicTocClock oxleytimer;
 
+
 };
 
+// typedef POINTER_WRAPPER_CLASS(Rectangle) OxleyDomainRect_ptr;
 
-typedef POINTER_WRAPPER_CLASS(Rectangle) OxleyDomainRect_ptr;
+// class interpolateWorker_Data {
+// public:
+//    const escript::Data * source;
+//    const escript::Data * target;
+//    const oxley::Rectangle * other;
+
+//    interpolateWorker_Data(const escript::Data * source, 
+//                           const escript::Data * target, 
+//                           const oxley::Rectangle * other);
+//    ~interpolateWorker_Data();
+
+// };
+
+
 
 } //end namespace
 

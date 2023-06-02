@@ -100,6 +100,11 @@ int refine_gce(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant
 
 int refine_gce(p8est_t * p8est, p4est_topidx_t tree, p8est_quadrant_t * quadrant);
 
+/*
+ *  \brief
+ *  nodes interpolation
+ */
+int refine_nodesToNodesFiner(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant);
 
 // Copys parent info directly to the children without modification
 void refine_copy_parent_quadrant(p4est_t * p4est, p4est_topidx_t tree,
@@ -130,5 +135,16 @@ void update_RC(p8est_iter_edge_info_t *info, void *user_data);
 
 // Used by getConnections
 void update_connections(p4est_iter_volume_info_t *info, void *user_data);
+
+// interpolation 
+void refine_copy_parent_quadrant_data(p4est_t * p4est, p4est_topidx_t tree,
+                                 int num_outgoing,
+                                 p4est_quadrant_t * outgoing[],
+                                 int num_incoming,
+                                 p4est_quadrant_t * incoming[]);
+
+// returns a quadrant's morton index
+int getMortonIndex(const void *v1)
+
 
 } //namespace oxley

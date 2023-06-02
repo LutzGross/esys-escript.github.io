@@ -217,5 +217,4 @@ void getNodeTagVector(p8est_iter_volume_info_t * info, void *tagVector)
     tmp[0] = data->nodeTag;
 }
 
-
 } //namespace oxley

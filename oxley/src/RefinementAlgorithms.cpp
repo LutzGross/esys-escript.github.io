@@ -87,7 +87,7 @@ int refine_mare2dem(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * qua
 
 //     // Make a decision
 //     return (abs(average - quad_solution) > MARE2DEM_TOL) && (quadrant->level < forestData->max_levels_refinement);
-//     // return 0;
+    return 0;
 }
 
 int refine_mare2dem(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadrant)
@@ -1292,9 +1292,94 @@ void update_connections(p4est_iter_volume_info_t *info, void *user_data)
     }
 
     // std::cout << "xy = " << xy[0] << ", " << xy[1] << std::endl; // coordinates
-
-
 }
+
+int refine_nodesToNodesFiner(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
+{
+    //TODO
+
+    //get and cast the interpolation data from forestdata
+    p4estData * forestData = (p4estData *) p4est->user_pointer;
+    // interpolateWorker_Data * data = forestData->interpolateData;
+    // escript::Data * source = data->source;
+    // escript::Data * target = data->target;
+    // oxley::Rectangle * other = data->other;
+
+    // compare the quadrant sizes of this and other
+    long thisquad = quadrant->level;
+
+    // asdf
+    // getquad from p4est and tree?
+    // long otherquad = 
+
+    // p4est_mesh_get_quadrant
+
+    //return 1 if different
+    return 0;
+}
+
+void refine_copy_parent_quadrant_data(p4est_t * p4est, p4est_topidx_t tree,
+                                 int num_outgoing,
+                                 p4est_quadrant_t * outgoing[],
+                                 int num_incoming,
+                                 p4est_quadrant_t * incoming[])
+{
+    if(num_incoming == 4 && num_outgoing == 1)
+    {
+        //TODO
+        
+        // // parent user data
+        // // quadrantData *childData = (quadrantData *) incoming[0]->p.user_data;
+        // quadrantData *parentData = (quadrantData *) outgoing[0]->p.user_data;
+
+        // // Averaging
+        // double * newvalue = {new double[4]};
+        // #pragma omp for
+        // for(int i = 0; i < 4; i++)
+        // {
+        //     double tmp = 0;
+        //     for(int j = 0; j < 4; j++)
+        //     {
+        //         quadrantData *childData = (quadrantData *) incoming[i]->p.user_data;
+        //         tmp+=*childData->solution_data[j];
+        //     }
+        //     newvalue[i]=0.25*tmp;
+        //     parentData->solution_data[i]=&newvalue[i];
+        // }
+
+        // // Tags
+        // quadrantData *childData = (quadrantData *) incoming[0]->p.user_data;
+        // parentData->quadTag=childData->quadTag;
+
+        // // Update the spatial coordinates
+        // p4est_qcoord_to_vertex(p4est->connectivity, tree, outgoing[0]->x, outgoing[0]->y, &parentData->xy[0]);
+    }
+    else if(num_incoming == 1 && num_outgoing == 4)
+    {
+        // quadrantData *parentData = (quadrantData *) incoming[0]->p.user_data;
+
+        // // Loop over the four children
+        // #pragma omp for
+        // for(int i = 0; i < 4; i++){
+        //     double * newvalue = {new double};
+        //     quadrantData *childData = (quadrantData *) outgoing[i]->p.user_data;
+        //     double tmp=*(parentData->solution_data[i]);
+        //     newvalue=&tmp;
+        //     for(int j = 0; j < 4; j++)
+        //     {
+        //         childData->solution_data[i]=newvalue;
+        //     }
+        //     childData->quadTag=parentData->quadTag;
+        //     // Update the spatial coordinates
+        //     p4est_qcoord_to_vertex(p4est->connectivity, tree, outgoing[i]->x, outgoing[i]->y, &childData->xy[0]);
+        // }
+    }
+    else
+    {
+        throw OxleyException("refine_copy_parent_quadrant: Unknown error.");
+    }
+}
+
 
 
 

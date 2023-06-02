@@ -16,7 +16,10 @@
 #include <escript/Data.h>
 #include <escript/DataTypes.h>
 
+#include <oxley/Brick.h>
 #include <oxley/Oxley.h>
+#include <oxley/OxleyDomain.h>
+#include <oxley/Rectangle.h>
 
 #include <unordered_map>
 #include <utility>
@@ -72,6 +75,12 @@ struct quadrantData
 
     // bottom left node id
     long nodeid = -1;
+
+    // node values
+    double * solution_data[4];
+    const escript::DataTypes::cplx_t * pData;
+
+
 };
 
 struct borderNodeInfo
@@ -203,10 +212,37 @@ public:
 
 	addSurfaceData * borrow_info(){return info;};
 
+	// used by the interpolation algorithms
+	// const escript::Data source;
+    // escript::Data target;
+    // const oxley::OxleyDomainRect_ptr other;
+
 	// This is here to temporarily store information
 private:
 	addSurfaceData * info;
 };
+
+// class interpolationData
+// {
+// public:
+// 	const escript::Data source;
+//     escript::Data target;
+//     const oxley::OxleyDomainRect_ptr other;
+
+//     // interpolationData(const escript::Data source, 
+//     // 						escript::Data target, 
+//     // 				  const oxley::OxleyDomainRect_ptr other);
+// };
+
+// interpolationData::interpolationData(const escript::Data s, 
+//                                      escript::Data t, 
+//                                      const oxley::OxleyDomainRect_ptr o)
+// {
+//     source = s;
+//     target = t;
+//     other = o;
+// }
+
 
 class p8estData
 {
@@ -248,6 +284,11 @@ public:
 	void assign_info(addSurfaceData * tmp) {info=tmp;};
 
 	addSurfaceData * borrow_info(){return info;};
+
+	// used by the interpolation algorithms
+	const escript::Data* source;
+    escript::Data * target;
+    const oxley::OxleyDomainBrick_ptr * other;
 
 	// This is here to temporarily store information
 private:
