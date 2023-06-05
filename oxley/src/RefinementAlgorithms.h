@@ -107,11 +107,11 @@ int refine_gce(p8est_t * p8est, p4est_topidx_t tree, p8est_quadrant_t * quadrant
 int refine_nodesToNodesFiner(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant);
 
 // Copys parent info directly to the children without modification
-void refine_copy_parent_quadrant(p4est_t * p4est, p4est_topidx_t tree,
-                                 int num_outgoing,
-                                 p4est_quadrant_t * outgoing[],
-                                 int num_incoming,
-                                 p4est_quadrant_t * incoming[]);
+// void refine_copy_parent_quadrant(p4est_t * p4est, p4est_topidx_t tree,
+//                                  int num_outgoing,
+//                                  p4est_quadrant_t * outgoing[],
+//                                  int num_incoming,
+//                                  p4est_quadrant_t * incoming[]);
 
 void refine_copy_parent_octant(p8est_t * p8est, p4est_topidx_t tree,
                                  int num_outgoing,

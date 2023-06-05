@@ -51,8 +51,6 @@ struct addSurfaceData;
 //quadrant / octant in the p4est / p8est
 struct quadrantData
 {
-	double u = 0.0;
-
 	// The quadrant's tag
 	long quadTag = 0;
 
@@ -76,10 +74,10 @@ struct quadrantData
     // bottom left node id
     long nodeid = -1;
 
-    // node values
-    double * solution_data[4];
-    const escript::DataTypes::cplx_t * pData;
-
+    // variables used during interpolation
+    bool needs_refinement=false;
+    long ids[4];
+    const escript::DataTypes::cplx_t * u;
 
 };
 
