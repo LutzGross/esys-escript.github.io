@@ -1308,26 +1308,55 @@ void refine_copy_parent_quadrant_data(p4est_t * p4est, p4est_topidx_t tree,
 {
     if(num_incoming == 4 && num_outgoing == 1)
     {
-        cplx_t new_value;
-        for(int n = 0; n < 4; n++)
+        quadrantData *childData = (quadrantData *) incoming[0]->p.user_data;
+        if(childData->u_real==nullptr)
         {
-            quadrantData *childData = (quadrantData *) incoming[n]->p.user_data;
-            new_value+=*(childData->u);
-        }
+            cplx_t new_value;
+            for(int n = 0; n < 4; n++)
+            {
+                quadrantData *childData = (quadrantData *) incoming[n]->p.user_data;
+                new_value+=*(childData->u_cplx);
+            }
 
-        quadrantData *parentData = (quadrantData *) outgoing[0]->p.user_data;
-        new_value*=0.25;
-        parentData->u=&new_value;        
+            quadrantData *parentData = (quadrantData *) outgoing[0]->p.user_data;
+            new_value*=0.25;
+            parentData->u_cplx=&new_value;    
+        }
+        else
+        {
+            real_t new_value;
+            for(int n = 0; n < 4; n++)
+            {
+                quadrantData *childData = (quadrantData *) incoming[n]->p.user_data;
+                new_value+=*(childData->u_real);
+            }
+
+            quadrantData *parentData = (quadrantData *) outgoing[0]->p.user_data;
+            new_value*=0.25;
+            parentData->u_real=&new_value;  
+        }    
     }
     else if(num_incoming == 1 && num_outgoing == 4)
     {
         quadrantData *parentData = (quadrantData *) outgoing[0]->p.user_data;
-        for(int n = 0; n < 4; n++)
+        if(parentData->u_real==nullptr)
         {
-            quadrantData *childData = (quadrantData *) incoming[n]->p.user_data;
-            cplx_t new_value = *(parentData->u);
-            childData->u=&new_value;
+            for(int n = 0; n < 4; n++)
+            {
+                quadrantData *childData = (quadrantData *) incoming[n]->p.user_data;
+                cplx_t new_value = *(parentData->u_cplx);
+                childData->u_cplx=&new_value;
+            }
         }
+        else
+        {
+            for(int n = 0; n < 4; n++)
+            {
+                quadrantData *childData = (quadrantData *) incoming[n]->p.user_data;
+                real_t new_value = *(parentData->u_real);
+                childData->u_real=&new_value;
+            }
+        }        
     }
     else
     {

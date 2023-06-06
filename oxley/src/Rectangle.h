@@ -576,10 +576,14 @@ protected:
     */
     void validateInterpolationAcross(int fsType_source, const escript::AbstractDomain& domain, int fsType_target) const;
     void interpolateNodesToNodesFiner(const escript::Data& source, escript::Data& target, const Rectangle& other) const;
+    template <typename S> 
+    void interpolateNodesToNodesWorker(const escript::Data& source, escript::Data& target, const Rectangle& other) const;
     void interpolateNodesToNodesCoarser(const escript::Data& source, escript::Data& target, const Rectangle& other)  const;
     void interpolateNodesToElementsFiner(const escript::Data& source, escript::Data& target, const Rectangle& other) const;
     void interpolateElementsToElementsCoarser(const escript::Data& source, escript::Data& target, const Rectangle& other) const;
     void interpolateElementsToElementsFiner(const escript::Data& source, escript::Data& target, const Rectangle& other) const;
+    template <typename S> 
+    void interpolateElementsToElementsWorker(const escript::Data& source, escript::Data& target, const Rectangle& other) const;
     void interpolateReducedToElementsFiner(const escript::Data& source, escript::Data& target, const Rectangle& other) const;
     void interpolateReducedToReducedFiner(const escript::Data& source, escript::Data& target, const Rectangle& other) const;
    

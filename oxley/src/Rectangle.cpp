@@ -510,6 +510,21 @@ void Rectangle::interpolateAcross(escript::Data& target, const escript::Data& so
                     throw OxleyException(msg.str());
             }
             break;
+        case DegreesOfFreedom:
+            switch (fsTarget) {
+                case Nodes:
+                case ReducedNodes:
+                case DegreesOfFreedom:
+                case ReducedDegreesOfFreedom:
+                    interpolateNodesToNodesFiner(source, target, *other);
+                    return;
+                case Elements:
+                    interpolateNodesToElementsFiner(source, target, *other);
+                    return;
+                default:
+                    throw OxleyException(msg.str());
+            }
+            break;
         default:
             throw OxleyException(msg.str());
     }
@@ -534,105 +549,20 @@ void Rectangle::validateInterpolationAcross(int fsType_source, const escript::Ab
 // downward interpolation
 void Rectangle::interpolateNodesToNodesCoarser(const escript::Data& source, escript::Data& target, const Rectangle& other) const
 {
-    ESYS_ASSERT(p4est->first_local_tree==other.p4est->first_local_tree, "Incompatible Rectangles.");
-    ESYS_ASSERT(p4est->last_local_tree==other.p4est->last_local_tree, "Incompatible Rectangles.");
 
-    bool notdone=true;
-    int fs_code=other.getFunctionCode();
+}
 
-    // loop along the finer mesh comparing the size of quads along the way
-    // and copy the data
-    for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
-    {
-        // find the corresponding quadrands
-        p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
-        sc_array_t * tquadrants = &currenttree->quadrants;
-        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-
-        #pragma omp for
-        for (int q = 0; q < Q; ++q)
-        {
-            cplx_t new_value(0);
-            cplx_t dummy;
-            double xy[2];
-            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-            quadrantData * quadData = (quadrantData *) quad->p.user_data;
-            p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x, quad->y, xy);
-            long nodeid = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-            const cplx_t * samples_source = source.getSampleDataRO(nodeid, dummy);
-            quadData->u=samples_source;
-        }
-    }
-
-    // Do the interpolation
-    while(notdone)
-    {
-        for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
-        {
-            // find the corresponding quadrands
-            p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
-            sc_array_t * tquadrants = &currenttree->quadrants;
-            p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-
-            p4est_tree_t * currenttree_other = p4est_tree_array_index(other.p4est->trees, t); // this mesh is finer
-            sc_array_t * tquadrants_other = &currenttree->quadrants;
-            p4est_locidx_t Q_tmp = (p4est_locidx_t) tquadrants->elem_count;
-
-            int q_counter=0;
-            for (int q = 0; q < Q_tmp; ++q)
-            {
-                // Get the quadrant side lengths
-                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-                p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
-                p4est_quadrant_t * quad_other = p4est_quadrant_array_index(tquadrants, q_counter);
-                p4est_qcoord_t length_other = P4EST_QUADRANT_LEN(quad_other->level);
-
-                if(length>length_other)
-                {
-                    quadrantData * quadData = (quadrantData *) quad->p.user_data;
-                    quadData->needs_refinement=true;
-                    getNeighouringNodeIDs(quad_other->level, quad_other->x, quad_other->y, t, quadData->ids);
-                }
-
-                q_counter++;
-            }
-        }
-
-        // move one level
-        bool recursive = false;
-        p4est_refine_ext(other.p4est, recursive, P4EST_MAXLEVEL,
-                            refine_nodesToNodesFiner,
-                            init_rectangle_data,
-                            refine_copy_parent_quadrant_data);
-    }
-
-    // loop along the finer mesh comparing the size of quads along the way
-    // and copy the data
-    long counter = 0;
-    for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
-    {
-        p4est_tree_t * currenttree_other = p4est_tree_array_index(other.p4est->trees, t); // this mesh is finer
-        sc_array_t * tquadrants_other = &currenttree_other->quadrants;
-        p4est_locidx_t Q = (p4est_locidx_t) tquadrants_other->elem_count;
-
-        #pragma omp for
-        for (int q = 0; q < Q; ++q)
-        {
-            cplx_t new_value(0);
-            cplx_t dummy;
-            double xy[2];
-            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants_other, q);
-            quadrantData * quadData = (quadrantData *) quad->p.user_data;
-            p4est_qcoord_to_vertex(other.p4est->connectivity, t, quad->x, quad->y, xy);
-            long nodeid = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-            const cplx_t * samples_target = target.getSampleDataRO(nodeid, dummy);
-            quadData->u=samples_target;
-        }
-    }
+void Rectangle::interpolateNodesToNodesFiner(const escript::Data& source, escript::Data& target, const Rectangle& other) const
+{
+    if(source.isComplex())
+        interpolateNodesToNodesWorker<cplx_t>(source, target, other);
+    else
+        interpolateNodesToNodesWorker<real_t>(source, target, other);
 }
 
 // upward interpolation
-void Rectangle::interpolateNodesToNodesFiner(const escript::Data& source, escript::Data& target, const Rectangle& other) const
+template <typename S>
+void Rectangle::interpolateNodesToNodesWorker(const escript::Data& source, escript::Data& target, const Rectangle& other) const
 {
     ESYS_ASSERT(p4est->first_local_tree==other.p4est->first_local_tree, "Incompatible Rectangles.");
     ESYS_ASSERT(p4est->last_local_tree==other.p4est->last_local_tree, "Incompatible Rectangles.");
@@ -640,6 +570,10 @@ void Rectangle::interpolateNodesToNodesFiner(const escript::Data& source, escrip
     bool notdone=true;
     int fs_code=other.getFunctionCode();
 
+    TicTocClock oxleytimer_tmp;
+    oxleytimer_tmp.toc("interpolateNodesToNodesWorker...");
+    oxleytimer_tmp.toc("1. copying values..");
+
     // loop along the finer mesh comparing the size of quads along the way
     // and copy the data
     for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
@@ -649,24 +583,38 @@ void Rectangle::interpolateNodesToNodesFiner(const escript::Data& source, escrip
         sc_array_t * tquadrants = &currenttree->quadrants;
         p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
 
-        #pragma omp for
+        // #pragma omp for
         for (int q = 0; q < Q; ++q)
         {
-            cplx_t new_value(0);
-            cplx_t dummy;
             double xy[2];
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
             quadrantData * quadData = (quadrantData *) quad->p.user_data;
             p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x, quad->y, xy);
             long nodeid = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-            const cplx_t * samples_source = source.getSampleDataRO(nodeid, dummy);
-            quadData->u=samples_source;
+            if(source.isComplex())
+            {   
+                cplx_t dummy;
+                cplx_t new_value(0);
+                const cplx_t * samples_source = source.getSampleDataRO(nodeid, dummy);
+                new_value=*samples_source;
+                quadData->u_cplx=&new_value;
+            }
+            else
+            {
+                real_t dummy;
+                real_t new_value(0);
+                const real_t * samples_source = source.getSampleDataRO(nodeid, dummy);
+                new_value=*samples_source;
+                quadData->u_real=&new_value;
+            }
         }
     }
 
+    oxleytimer_tmp.toc("2. interpolating...");
     // Do the interpolation
     while(notdone)
     {
+        notdone=false;
         for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
         {
             // find the corresponding quadrands
@@ -691,6 +639,7 @@ void Rectangle::interpolateNodesToNodesFiner(const escript::Data& source, escrip
                 {
                     quadrantData * quadData = (quadrantData *) quad->p.user_data;
                     quadData->needs_refinement=true;
+                    notdone=true;
                     getNeighouringNodeIDs(quad_other->level, quad_other->x, quad_other->y, t, quadData->ids);
                 }
 
@@ -700,11 +649,24 @@ void Rectangle::interpolateNodesToNodesFiner(const escript::Data& source, escrip
 
         // move one level
         bool recursive = false;
-        p4est_refine_ext(other.p4est, recursive, P4EST_MAXLEVEL,
+        int maxlevel=-1; //use compile time P4EST_MAXLEVEL
+        p4est_refine_ext(other.p4est, recursive, maxlevel,
                             refine_nodesToNodesFiner,
                             init_rectangle_data,
                             refine_copy_parent_quadrant_data);
     }
+
+    oxleytimer_tmp.toc("3. updating mesh info...");
+
+    //TODO
+    // other.updateNodeIncrements();
+    // other.renumberNodes();
+    // other.updateRowsColumns();
+    // other.updateElementIds();
+    // other.updateFaceOffset();
+    // other.updateFaceElementCount();
+
+    oxleytimer_tmp.toc("4. copying data...");
 
     // loop along the finer mesh comparing the size of quads along the way
     // and copy the data
@@ -718,17 +680,31 @@ void Rectangle::interpolateNodesToNodesFiner(const escript::Data& source, escrip
         #pragma omp for
         for (int q = 0; q < Q; ++q)
         {
-            cplx_t new_value(0);
-            cplx_t dummy;
             double xy[2];
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants_other, q);
             quadrantData * quadData = (quadrantData *) quad->p.user_data;
             p4est_qcoord_to_vertex(other.p4est->connectivity, t, quad->x, quad->y, xy);
             long nodeid = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-            const cplx_t * samples_target = target.getSampleDataRO(nodeid, dummy);
-            quadData->u=samples_target;
+            ESYS_ASSERT(nodeid>=0, "Invalid nodeid (unknown error)");
+            ESYS_ASSERT(nodeid<target.getNumDataPoints(), "Invalid nodeid (too large)");
+            if(source.isComplex())
+            {   
+                cplx_t dummy;
+                cplx_t new_value(0);
+                const cplx_t * samples_target = target.getSampleDataRO(nodeid, dummy);
+                samples_target=quadData->u_cplx;
+            }
+            else
+            {
+                real_t dummy;
+                real_t new_value(0);
+                const real_t * samples_target = target.getSampleDataRO(nodeid, dummy);
+                samples_target=quadData->u_real;
+            }
         }
     }
+
+    oxleytimer_tmp.toc("\t\tdone...");
 }
 
 void Rectangle::interpolateNodesToElementsFiner(const escript::Data& source, escript::Data& target, const Rectangle& other)  const
@@ -738,104 +714,19 @@ void Rectangle::interpolateNodesToElementsFiner(const escript::Data& source, esc
 
 void Rectangle::interpolateElementsToElementsCoarser(const escript::Data& source, escript::Data& target, const Rectangle& other)  const
 {
-    ESYS_ASSERT(p4est->first_local_tree==other.p4est->first_local_tree, "Incompatible Rectangles.");
-    ESYS_ASSERT(p4est->last_local_tree==other.p4est->last_local_tree, "Incompatible Rectangles.");
-
-    bool notdone=true;
-    int fs_code=other.getFunctionCode();
-
-    // loop along the finer mesh comparing the size of quads along the way
-    // and copy the data
-    for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
-    {
-        // find the corresponding quadrands
-        p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
-        sc_array_t * tquadrants = &currenttree->quadrants;
-        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-
-        #pragma omp for
-        for (int q = 0; q < Q; ++q)
-        {
-            cplx_t new_value(0);
-            cplx_t dummy;
-            double xy[2];
-            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-            quadrantData * quadData = (quadrantData *) quad->p.user_data;
-            p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x, quad->y, xy);
-            long nodeid = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-            const cplx_t * samples_source = source.getSampleDataRO(nodeid, dummy);
-            quadData->u=samples_source;
-        }
-    }
-
-    // Do the interpolation
-    while(notdone)
-    {
-        for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
-        {
-            // find the corresponding quadrands
-            p4est_tree_t * currenttree = p4est_tree_array_index(p4est->trees, t);
-            sc_array_t * tquadrants = &currenttree->quadrants;
-            p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-
-            p4est_tree_t * currenttree_other = p4est_tree_array_index(other.p4est->trees, t); // this mesh is finer
-            sc_array_t * tquadrants_other = &currenttree->quadrants;
-            p4est_locidx_t Q_tmp = (p4est_locidx_t) tquadrants->elem_count;
-
-            int q_counter=0;
-            for (int q = 0; q < Q_tmp; ++q)
-            {
-                // Get the quadrant side lengths
-                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-                p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
-                p4est_quadrant_t * quad_other = p4est_quadrant_array_index(tquadrants, q_counter);
-                p4est_qcoord_t length_other = P4EST_QUADRANT_LEN(quad_other->level);
-
-                if(length>length_other)
-                {
-                    quadrantData * quadData = (quadrantData *) quad->p.user_data;
-                    quadData->needs_refinement=true;
-                    getNeighouringNodeIDs(quad_other->level, quad_other->x, quad_other->y, t, quadData->ids);
-                }
-
-                q_counter++;
-            }
-        }
-
-        // move one level
-        bool recursive = false;
-        p4est_refine_ext(other.p4est, recursive, P4EST_MAXLEVEL,
-                            refine_nodesToNodesFiner,
-                            init_rectangle_data,
-                            refine_copy_parent_element_data);
-    }
-
-    // loop along the finer mesh comparing the size of quads along the way
-    // and copy the data
-    long counter = 0;
-    for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
-    {
-        p4est_tree_t * currenttree_other = p4est_tree_array_index(other.p4est->trees, t); // this mesh is finer
-        sc_array_t * tquadrants_other = &currenttree_other->quadrants;
-        p4est_locidx_t Q = (p4est_locidx_t) tquadrants_other->elem_count;
-
-        #pragma omp for
-        for (int q = 0; q < Q; ++q)
-        {
-            cplx_t new_value(0);
-            cplx_t dummy;
-            double xy[2];
-            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants_other, q);
-            quadrantData * quadData = (quadrantData *) quad->p.user_data;
-            p4est_qcoord_to_vertex(other.p4est->connectivity, t, quad->x, quad->y, xy);
-            long nodeid = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-            const cplx_t * samples_target = target.getSampleDataRO(nodeid, dummy);
-            quadData->u=samples_target;
-        }
-    }
+    
 }
 
 void Rectangle::interpolateElementsToElementsFiner(const escript::Data& source, escript::Data& target, const Rectangle& other)  const
+{
+    if(source.isComplex())
+        interpolateElementsToElementsWorker<cplx_t>(source, target, other);
+    else
+        interpolateElementsToElementsWorker<real_t>(source, target, other);
+}
+
+template <typename S>
+void Rectangle::interpolateElementsToElementsWorker(const escript::Data& source, escript::Data& target, const Rectangle& other)  const
 {
     ESYS_ASSERT(p4est->first_local_tree==other.p4est->first_local_tree, "Incompatible Rectangles.");
     ESYS_ASSERT(p4est->last_local_tree==other.p4est->last_local_tree, "Incompatible Rectangles.");
@@ -852,18 +743,30 @@ void Rectangle::interpolateElementsToElementsFiner(const escript::Data& source, 
         sc_array_t * tquadrants = &currenttree->quadrants;
         p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
 
-        #pragma omp for
+        // #pragma omp for
         for (int q = 0; q < Q; ++q)
         {
-            cplx_t new_value(0);
-            cplx_t dummy;
             double xy[2];
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
             quadrantData * quadData = (quadrantData *) quad->p.user_data;
             p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x, quad->y, xy);
             long nodeid = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-            const cplx_t * samples_source = source.getSampleDataRO(nodeid, dummy);
-            quadData->u=samples_source;
+            if(source.isComplex())
+            {   
+                cplx_t dummy;
+                cplx_t new_value(0);
+                const cplx_t * samples_source = source.getSampleDataRO(nodeid, dummy);
+                new_value=*samples_source;
+                quadData->u_cplx=&new_value;
+            }
+            else
+            {
+                real_t dummy;
+                real_t new_value(0);
+                const real_t * samples_source = source.getSampleDataRO(nodeid, dummy);
+                new_value=*samples_source;
+                quadData->u_real=&new_value;
+            }
         }
     }
 
@@ -921,15 +824,27 @@ void Rectangle::interpolateElementsToElementsFiner(const escript::Data& source, 
         #pragma omp for
         for (int q = 0; q < Q; ++q)
         {
-            cplx_t new_value(0);
-            cplx_t dummy;
             double xy[2];
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants_other, q);
             quadrantData * quadData = (quadrantData *) quad->p.user_data;
             p4est_qcoord_to_vertex(other.p4est->connectivity, t, quad->x, quad->y, xy);
             long nodeid = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-            const cplx_t * samples_target = target.getSampleDataRO(nodeid, dummy);
-            quadData->u=samples_target;
+            if(source.isComplex())
+            {   
+                cplx_t dummy;
+                cplx_t new_value(0);
+                const cplx_t * samples_target = target.getSampleDataRO(nodeid, dummy);
+                new_value=*samples_target;
+                quadData->u_cplx=&new_value;
+            }
+            else
+            {
+                real_t dummy;
+                real_t new_value(0);
+                const real_t * samples_target = target.getSampleDataRO(nodeid, dummy);
+                new_value=*samples_target;
+                quadData->u_real=&new_value;
+            }
         }
     }
 }

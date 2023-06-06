@@ -77,8 +77,8 @@ struct quadrantData
     // variables used during interpolation
     bool needs_refinement=false;
     long ids[4];
-    const escript::DataTypes::cplx_t * u;
-
+    const escript::DataTypes::real_t * u_real;
+    const escript::DataTypes::cplx_t * u_cplx;
 };
 
 struct borderNodeInfo
