@@ -110,7 +110,7 @@ bool OxleyElements::initFromOxley(const oxley::OxleyDomain* dom, int fsType)
                     p4est_tree_t * tree = p4est_tree_array_index(rect->p4est->trees, treeid);
                     sc_array_t * tquadrants = &tree->quadrants;
                     p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-            #pragma omp parallel for
+            // #pragma omp parallel for
                     for(int q = 0; q < Q; ++q) {
                         p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
                         long ids[4]={0};
