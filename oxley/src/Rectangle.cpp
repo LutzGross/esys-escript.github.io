@@ -671,27 +671,28 @@ void Rectangle::interpolateNodesToNodesWorker(const escript::Data& source, escri
     // loop along the finer mesh comparing the size of quads along the way
     // and copy the data
     long counter = 0;
+    long nodeid=0;
     for (p4est_topidx_t t = p4est->first_local_tree; t <= p4est->last_local_tree; t++) 
     {
         p4est_tree_t * currenttree_other = p4est_tree_array_index(other.p4est->trees, t); // this mesh is finer
         sc_array_t * tquadrants_other = &currenttree_other->quadrants;
         p4est_locidx_t Q = (p4est_locidx_t) tquadrants_other->elem_count;
 
-        #pragma omp for
+        // #pragma omp for
         for (int q = 0; q < Q; ++q)
         {
             double xy[2];
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants_other, q);
             quadrantData * quadData = (quadrantData *) quad->p.user_data;
-            p4est_qcoord_to_vertex(other.p4est->connectivity, t, quad->x, quad->y, xy);
-            long nodeid = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-            ESYS_ASSERT(nodeid>=0, "Invalid nodeid (unknown error)");
-            ESYS_ASSERT(nodeid<target.getNumDataPoints(), "Invalid nodeid (too large)");
+            // p4est_qcoord_to_vertex(other.p4est->connectivity, t, quad->x, quad->y, xy);
+            // long nodeid = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+            // ESYS_ASSERT(nodeid>=0, "Invalid nodeid (unknown error)");
+            // ESYS_ASSERT(nodeid<target.getNumDataPoints(), "Invalid nodeid (too large)");
             if(source.isComplex())
             {   
                 cplx_t dummy;
                 cplx_t new_value(0);
-                const cplx_t * samples_target = target.getSampleDataRO(nodeid, dummy);
+                const cplx_t * samples_target = target.getSampleDataRO(nodeid++, dummy);
                 samples_target=quadData->u_cplx;
             }
             else
@@ -704,7 +705,7 @@ void Rectangle::interpolateNodesToNodesWorker(const escript::Data& source, escri
         }
     }
 
-    oxleytimer_tmp.toc("\t\tdone...");
+    oxleytimer_tmp.toc("done...");
 }
 
 void Rectangle::interpolateNodesToElementsFiner(const escript::Data& source, escript::Data& target, const Rectangle& other)  const
