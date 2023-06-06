@@ -142,6 +142,10 @@ void refine_copy_parent_quadrant_data(p4est_t * p4est, p4est_topidx_t tree,
                                  p4est_quadrant_t * outgoing[],
                                  int num_incoming,
                                  p4est_quadrant_t * incoming[]);
-
+void refine_copy_parent_element_data(p4est_t * p4est, p4est_topidx_t tree,
+                                 int num_outgoing,
+                                 p4est_quadrant_t * outgoing[],
+                                 int num_incoming,
+                                 p4est_quadrant_t * incoming[]);
 
 } //namespace oxley

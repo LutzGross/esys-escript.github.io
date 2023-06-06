@@ -1308,57 +1308,67 @@ void refine_copy_parent_quadrant_data(p4est_t * p4est, p4est_topidx_t tree,
 {
     if(num_incoming == 4 && num_outgoing == 1)
     {
-        // parent user data
-        quadrantData *childData = (quadrantData *) incoming[0]->p.user_data;
+        cplx_t new_value;
+        for(int n = 0; n < 4; n++)
+        {
+            quadrantData *childData = (quadrantData *) incoming[n]->p.user_data;
+            new_value+=*(childData->u);
+        }
+
         quadrantData *parentData = (quadrantData *) outgoing[0]->p.user_data;
-
-        // long ids[4]={0};
-        // getNeighouringNodeIDs(quad_other->level, quad_other->x, quad_other->y, t, ids);
-        
-        //AE
-        //TODO
-        // cplx_t new_value(0);
-        // cplx_t dummy;
-
-        // for(int n = 0; n < 4; n++)                
-        // {
-        //     //copy data
-        //     const cplx_t * samples_source = source.getSampleDataRO(ids[n], dummy);
-        //     new_value+=*samples_source;                    
-        // }
-
-        // const cplx_t * samples_target = target.getSampleDataRO(q_counter, dummy);
-        // new_value*=0.25; //averaging
-        // samples_target=&new_value; 
-        
+        new_value*=0.25;
+        parentData->u=&new_value;        
     }
     else if(num_incoming == 1 && num_outgoing == 4)
     {
-        // quadrantData *parentData = (quadrantData *) incoming[0]->p.user_data;
+        quadrantData *parentData = (quadrantData *) outgoing[0]->p.user_data;
+        for(int n = 0; n < 4; n++)
+        {
+            quadrantData *childData = (quadrantData *) incoming[n]->p.user_data;
+            cplx_t new_value = *(parentData->u);
+            childData->u=&new_value;
+        }
+    }
+    else
+    {
+        throw OxleyException("refine_copy_parent_quadrant_data: Unknown error.");
+    }
+}
 
-        // // Loop over the four children
-        // #pragma omp for
-        // for(int i = 0; i < 4; i++){
-        //     double * newvalue = {new double};
-        //     quadrantData *childData = (quadrantData *) outgoing[i]->p.user_data;
-        //     double tmp=*(parentData->solution_data[i]);
-        //     newvalue=&tmp;
-        //     for(int j = 0; j < 4; j++)
-        //     {
-        //         childData->solution_data[i]=newvalue;
-        //     }
-        //     childData->quadTag=parentData->quadTag;
-        //     // Update the spatial coordinates
-        //     p4est_qcoord_to_vertex(p4est->connectivity, tree, outgoing[i]->x, outgoing[i]->y, &childData->xy[0]);
+void refine_copy_parent_element_data(p4est_t * p4est, p4est_topidx_t tree,
+                                 int num_outgoing,
+                                 p4est_quadrant_t * outgoing[],
+                                 int num_incoming,
+                                 p4est_quadrant_t * incoming[])
+{
+    if(num_incoming == 4 && num_outgoing == 1)
+    {
+        // cplx_t new_value;
+        // for(int n = 0; n < 4; n++)
+        // {
+        //     quadrantData *childData = (quadrantData *) incoming[n]->p.user_data;
+        //     new_value+=*(childData->u);
+        // }
+
+        // quadrantData *parentData = (quadrantData *) outgoing[0]->p.user_data;
+        // new_value*=0.25;
+        // parentData->u=&new_value;        
+    }
+    else if(num_incoming == 1 && num_outgoing == 4)
+    {
+        // quadrantData *parentData = (quadrantData *) outgoing[0]->p.user_data;
+        // for(int n = 0; n < 4; n++)
+        // {
+        //     quadrantData *childData = (quadrantData *) incoming[n]->p.user_data;
+        //     cplx_t new_value = *(parentData->u);
+        //     childData->u=&new_value;
         // }
     }
     else
     {
-        throw OxleyException("refine_copy_parent_quadrant: Unknown error.");
+        throw OxleyException("refine_copy_parent_element_data: Unknown error.");
     }
 }
-
-
 
 
 } // namespace oxley
