@@ -586,27 +586,35 @@ void Rectangle::interpolateNodesToNodesWorker(const escript::Data& source, escri
         // #pragma omp for
         for (int q = 0; q < Q; ++q)
         {
-            double xy[2];
-            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-            quadrantData * quadData = (quadrantData *) quad->p.user_data;
-            p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x, quad->y, xy);
-            long nodeid = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-            if(source.isComplex())
-            {   
-                cplx_t dummy;
-                cplx_t new_value(0);
-                const cplx_t * samples_source = source.getSampleDataRO(nodeid, dummy);
-                new_value=*samples_source;
-                quadData->u_cplx=&new_value;
-            }
-            else
+            for(int n = 0; n < 4; n++)
             {
-                real_t dummy;
-                real_t new_value(0);
-                const real_t * samples_source = source.getSampleDataRO(nodeid, dummy);
-                new_value=*samples_source;
-                quadData->u_real=&new_value;
-            }
+                double xy[2];
+                p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+                quadrantData * quadData = (quadrantData *) quad->p.user_data;
+                p4est_qcoord_to_vertex(p4est->connectivity, t, quad->x, quad->y, xy);
+                long nodeid = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+
+                // skip hanging as the data object does not track them
+                if(nodeid >= source.getNumDataPoints())
+                    continue;
+
+                if(source.isComplex())
+                {   
+                    cplx_t dummy;
+                    cplx_t new_value(0);
+                    const cplx_t * samples_source = source.getSampleDataRO(nodeid, dummy);
+                    new_value=*samples_source;
+                    quadData->u_cplx=&new_value;
+                }
+                else
+                {
+                    real_t dummy;
+                    real_t new_value(0);
+                    const real_t * samples_source = source.getSampleDataRO(nodeid, dummy);
+                    new_value=*samples_source;
+                    quadData->u_real=&new_value;
+                }
+            }            
         }
     }
 
