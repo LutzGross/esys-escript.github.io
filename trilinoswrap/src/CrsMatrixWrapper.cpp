@@ -265,16 +265,12 @@ void CrsMatrixWrapper<ST>::nullifyRowsAndCols(
 //#pragma omp parallel for
 #ifdef ESYS_TRILINOS_14
     for (LO lclrow = 0; lclrow < mat.getLocalNumRows(); lclrow++) {
-        // Teuchos::ArrayView<const LO> indices;
-        // Teuchos::ArrayView<const ST> values;
         std::vector<GO> cols;
         std::vector<ST> vals;
-
         using local_inds_host_view_type = typename Tpetra::CrsMatrix<ST,LO,GO,NT>::local_inds_host_view_type;
         using values_host_view_type = typename Tpetra::CrsMatrix<ST,LO,GO,NT>::values_host_view_type;
         local_inds_host_view_type indices;
         values_host_view_type values;
-
         mat.getLocalRowView(lclrow, indices, values);
         GO row = rowMap->getGlobalElement(lclrow);
         for (size_t c = 0; c < indices.size(); c++) {
