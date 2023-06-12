@@ -350,7 +350,6 @@ def checkBoost(env):
                 spath.append('/usr/lib64/')
                 p3name = ''
                 for name in spath:
-                    print(name)
                     try:
                         l=os.listdir(name)
                         for x in l:
