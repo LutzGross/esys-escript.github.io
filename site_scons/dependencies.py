@@ -348,39 +348,17 @@ def checkBoost(env):
                 spath.append(boost_lib_path)
                 spath.append('/usr/lib/x86_64-linux-gnu/')
                 spath.append('/usr/lib64/')
-                p2name = ''
                 p3name = ''
                 for name in spath:
+                    print(name)
                     try:
                         l=os.listdir(name)
-
-                        import sys
-                        if sys.version_info[0] == 3:
-                            string_type = str
-                        else:
-                            string_type = basestring
-
-                        p2res = ''
-                        p3res = ''
                         for x in l:
-                            if isinstance(x,string_type):
-                                if x.startswith('libboost_numpy') and x.endswith('.so'):
-                                    p2res = x
-                                if x.startswith('libboost_numpy3') and x.endswith('.so'):
-                                    p3res = x
-                            else:
-                                if x.startswith(b'libboost_numpy') and x.endswith(b'.so'):
-                                    p2res = x
-                                if x.startswith(b'libboost_numpy3') and x.endswith(b'.so'):
-                                    p3res = x
-                    except OSError:
-                        pass
-
-                # Pick the right one
-                if int(env['python_version'][0]) == 2:
-                    libname = p2res[3:-3]
-                else:
-                    libname = p3res[3:-3]
+                            if x.startswith('libboost_numpy3') and x.endswith('.so'):
+                                p3name = x
+                    except:
+                        continue
+                libname = p3name[3:-3]
 
                 # If found, add the necessary information to env
                 if len(libname) > 0:
@@ -392,7 +370,8 @@ def checkBoost(env):
                     env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], boost_numpy_lib_path)
                     env.Append(CPPDEFINES=['ESYS_HAVE_BOOST_NUMPY'])
                     env['have_boost_numpy']=True
-
+                else:
+                    print("Warning: Could not find boost/python/numpy.hpp (wrong folder?). Building without numpy support.")
             print("Found boost/python/numpy.hpp. Building with boost numpy support.")
         except:
             print("Warning: Could not find boost/python/numpy.hpp. Building without numpy support.")
