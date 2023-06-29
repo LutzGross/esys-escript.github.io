@@ -1750,7 +1750,7 @@ void OxleyDomain::makeZ(bool complex)
     if(z_needs_update)
     {
         // Size information
-        const Tpetra::global_size_t t = getNumNodes(); //Total number of nodes
+        const Tpetra::global_size_t t = getNumNodes()-getNumHangingNodes(); //Total number of nodes
         const Tpetra::global_size_t h = getDim()==2 ? 0.5*getNumHangingNodes() : getNumHangingNodes(); // Number of hanging nodes
         const Tpetra::global_size_t n = t - h;
 
@@ -1870,7 +1870,6 @@ void OxleyDomain::makeZ(bool complex)
             const real_t half = static_cast<real_t> (tmp_num);
 
             //worker
-            // #pragma omp for
             for(int i = 0; i < h; i++)
             {
                 int a, b;
@@ -1919,8 +1918,6 @@ void OxleyDomain::makeZ(bool complex)
                                     Teuchos::tuple<esys_trilinos::GO>(gblColBz),
                                     Teuchos::tuple<real_t> (half));
             }
-
-            // #pragma omp critical
 
             #ifdef OXLEY_PRINT_DEBUG_Z_EXTRA_EXTRA
                 rZ->description();
@@ -2305,7 +2302,7 @@ void OxleyDomain::finaliseAworker(escript::AbstractSystemMatrix& mat,
     {
         escript::AbstractSystemMatrix * pMat = &mat;
         esys_trilinos::TrilinosMatrixAdapter * m = dynamic_cast<esys_trilinos::TrilinosMatrixAdapter*>(pMat);
-        m->IztAIz(IZ, getNumNodes());
+        m->IztAIz(IZ, getNumNodes()-getNumHangingNodes());
     }
 }
 #endif
@@ -2372,20 +2369,23 @@ escript::Data OxleyDomain::finaliseRhs(escript::Data& rhs)
             // const scalar_type one = static_cast<scalar_type> (1.0);
 
             #ifdef OXLEY_PRINT_DEBUG_IZ
-                rhs.print();
-                std::cout << "f: " << std::endl;
-                auto tmpa_result_view = fc.getLocalViewHost();
-                auto tmpa_result_view_1d = Kokkos::subview(tmpa_result_view, Kokkos::ALL(), 0);
-                for(int i = 0; i < n; i++)
-                    std::cout << "[" << i << ":" << tmpa_result_view_1d(i) << "]";
-                std::cout << std::endl;
-                std::cout << "g: " << std::endl;
-                auto tmpb_result_view = gc.getLocalViewHost();
-                auto tmpb_result_view_1d = Kokkos::subview(tmpb_result_view, Kokkos::ALL(), 0);
-                for(int i = 0; i < h; i++)
-                    std::cout << "[" << i << ":" << tmpb_result_view_1d(i) << "]";
-                std::cout << std::endl;
-                std::cout << "Performing the multiplication" << std::endl;
+                #ifdef ESYS_TRILINOS_14
+                #else
+                    rhs.print();
+                    std::cout << "f: " << std::endl;
+                    auto tmpa_result_view = fc.getLocalViewHost();
+                    auto tmpa_result_view_1d = Kokkos::subview(tmpa_result_view, Kokkos::ALL(), 0);
+                    for(int i = 0; i < n; i++)
+                        std::cout << "[" << i << ":" << tmpa_result_view_1d(i) << "]";
+                    std::cout << std::endl;
+                    std::cout << "g: " << std::endl;
+                    auto tmpb_result_view = gc.getLocalViewHost();
+                    auto tmpb_result_view_1d = Kokkos::subview(tmpb_result_view, Kokkos::ALL(), 0);
+                    for(int i = 0; i < h; i++)
+                        std::cout << "[" << i << ":" << tmpb_result_view_1d(i) << "]";
+                    std::cout << std::endl;
+                    std::cout << "Performing the multiplication" << std::endl;
+                #endif
             #endif
 
             // auto one = Teuchos::ScalarTraits<cplx_t>::one();

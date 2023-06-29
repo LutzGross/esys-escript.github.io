@@ -2745,7 +2745,7 @@ inline dim_t Rectangle::getDofOfNode(dim_t node) const
 //protected
 inline dim_t Rectangle::getNumNodes() const
 {
-    return NodeIDs.size();
+    return NodeIDs.size() + num_hanging;
 }
 
 inline dim_t Rectangle::getNumHangingNodes() const
@@ -2847,7 +2847,7 @@ void Rectangle::updateRowsColumns()
     std::vector<std::vector<long>> * indices;
     indices = new std::vector<std::vector<long>>;
     long initial[] = {0, -1, -1, -1, -1};
-    indices->resize(getNumNodes(), std::vector<long>(initial, initial+5));
+    indices->resize(getNumNodes()-getNumHangingNodes(), std::vector<long>(initial, initial+5));
 
     #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
         std::cout << "updateRowsColumns" << std::endl;
@@ -2882,7 +2882,6 @@ void Rectangle::updateRowsColumns()
         p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
         sc_array_t * tquadrants = &tree->quadrants;
         p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-// #pragma omp parallel for
         for(int q = 0; q < Q; ++q) { // Loop over the elements attached to the tree
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
             p4est_qcoord_t length = P4EST_QUADRANT_LEN(quad->level);
@@ -3038,8 +3037,7 @@ void Rectangle::updateRowsColumns()
     num_hanging=hanging_faces.size();
 
     // Sorting
-// #pragma omp for
-    for(int i = 0; i < getNumNodes(); i++)
+    for(int i = 0; i < getNumNodes()-getNumHangingNodes(); i++)
     {
         std::vector<long> * idx0 = &indices[0][i];
         std::sort(indices[0][i].begin()+1, indices[0][i].begin()+idx0[0][0]+1);
@@ -3064,7 +3062,7 @@ void Rectangle::updateRowsColumns()
     myColumns.clear();
     m_dofMap.assign(getNumNodes(), 0);
     long counter = 0;
-    for(int i = 0; i < getNumNodes(); i++)
+    for(int i = 0; i < getNumNodes()-getNumHangingNodes(); i++)
     {
         std::vector<long> * idx0 = &indices[0][i];
         std::vector<long> temp; 
