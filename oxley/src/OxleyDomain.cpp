@@ -1792,7 +1792,7 @@ void OxleyDomain::makeZ(bool complex)
             const cplx_t half = static_cast<cplx_t> (tmp_num);
 
             //worker
-            #pragma omp for
+            // #pragma omp for
             for(int i = 0; i < h; i++)
             {
                 int a, b;
@@ -1846,9 +1846,8 @@ void OxleyDomain::makeZ(bool complex)
                                     Teuchos::tuple<cplx_t> (half));
             }
 
-            #ifdef OXLEY_PRINT_DEBUG_Z_EXTRA_EXTRA
-            cZ->description();
-            // cZ->print();
+            #ifdef DOXLEY_ENABLE_DEBUG_Z
+                cZ->description();
             #endif
 
             cZ->fillComplete(zdomainMap,zrangeMap,params);
@@ -1856,8 +1855,8 @@ void OxleyDomain::makeZ(bool complex)
         }
         else // real
         {
-            zrrowMap   = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) h, indexBase, comm));
-            zrcolMap   = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) n, indexBase, comm));
+            zrrowMap   = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) t, indexBase, comm));
+            zrcolMap   = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) t, indexBase, comm));
             zdomainMap = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) n, indexBase, comm));
             zrangeMap  = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) h, indexBase, comm));
 
@@ -1919,11 +1918,12 @@ void OxleyDomain::makeZ(bool complex)
                                     Teuchos::tuple<real_t> (half));
             }
 
-            #ifdef OXLEY_PRINT_DEBUG_Z_EXTRA_EXTRA
+            rZ->fillComplete(zdomainMap,zrangeMap,params);
+
+            #ifdef OXLEY_ENABLE_DEBUG_Z
                 rZ->description();
             #endif
-            
-            rZ->fillComplete(zdomainMap,zrangeMap,params);
+
             z_needs_update=false;
         }
     }
@@ -2112,7 +2112,7 @@ void OxleyDomain::makeIZ(bool complex)
         else
         {
             izrrowMap   = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) t, indexBase, comm));
-            izrcolMap   = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) n, indexBase, comm));
+            izrcolMap   = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) t, indexBase, comm));
             izdomainMap = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) n, indexBase, comm));
             izrangeMap  = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) t, indexBase, comm));
 
@@ -2192,6 +2192,11 @@ void OxleyDomain::makeIZ(bool complex)
 
             rIZ->fillComplete(izdomainMap,izrangeMap,params);
             iz_needs_update=false;
+
+            #ifdef OXLEY_ENABLE_DEBUG_IZ
+                std::string descript = rIZ->description();
+                std::cout << descript << std::endl;
+            #endif
         }
     }
 
@@ -2485,21 +2490,24 @@ escript::Data OxleyDomain::finaliseRhs(escript::Data& rhs)
             }
 
             #ifdef OXLEY_ENABLE_DEBUG_IZ_EXTRA
-                rhs.print();
-                std::cout << "f: " << std::endl;
-                auto tmpa_result_view = fr.getLocalViewHost();
-                auto tmpa_result_view_1d = Kokkos::subview(tmpa_result_view, Kokkos::ALL(), 0);
-                for(int i = 0; i < n; i++)
-                    std::cout << "[" << i << ":" << tmpa_result_view_1d(i) << "]";
-                std::cout << std::endl;
-                std::cout << "g: " << std::endl;
-                auto tmpb_result_view = gr.getLocalViewHost();
-                auto tmpb_result_view_1d = Kokkos::subview(tmpb_result_view, Kokkos::ALL(), 0);
-                for(int i = 0; i < h; i++)
-                    std::cout << "[" << i << ":" << tmpb_result_view_1d(i) << "]";
-                std::cout << std::endl;
-                std::cout << "rZ has dimensions " << rZ->getGlobalNumRows() << "x" << rZ->getGlobalNumCols() << std::endl;
-                std::cout << "Performing the multiplication" << std::endl;
+                #ifdef ESYS_TRILINOS_14
+                #else
+                    rhs.print();
+                    std::cout << "f: " << std::endl;
+                    auto tmpa_result_view = fr.getLocalViewHost();
+                    auto tmpa_result_view_1d = Kokkos::subview(tmpa_result_view, Kokkos::ALL(), 0);
+                    for(int i = 0; i < n; i++)
+                        std::cout << "[" << i << ":" << tmpa_result_view_1d(i) << "]";
+                    std::cout << std::endl;
+                    std::cout << "g: " << std::endl;
+                    auto tmpb_result_view = gr.getLocalViewHost();
+                    auto tmpb_result_view_1d = Kokkos::subview(tmpb_result_view, Kokkos::ALL(), 0);
+                    for(int i = 0; i < h; i++)
+                        std::cout << "[" << i << ":" << tmpb_result_view_1d(i) << "]";
+                    std::cout << std::endl;
+                    std::cout << "rZ has dimensions " << rZ->getGlobalNumRows() << "x" << rZ->getGlobalNumCols() << std::endl;
+                    std::cout << "Performing the multiplication" << std::endl;
+                #endif
             #endif
 
             const real_t alpha = Teuchos::ScalarTraits<real_t>::one();
