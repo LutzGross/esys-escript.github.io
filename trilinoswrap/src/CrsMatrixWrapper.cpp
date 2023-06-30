@@ -26,7 +26,7 @@
 #include <escript/SolverOptions.h>
 #include <escript/EsysMPI.h>
 
-#include <oxley/tictoc.h>
+// #include <oxley/tictoc.h>
 
 #ifdef ESYS_TRILINOS_14
 #include "KokkosCompat_DefaultNode.hpp"
@@ -332,8 +332,8 @@ template<typename ST>
 void CrsMatrixWrapper<ST>::IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT>> iz, long n) 
 {
 #ifdef ESYS_TRILINOS_14
-    TicTocClock oxleytimer;
-    oxleytimer.toc("IztAIz...");
+    // TicTocClock oxleytimer;
+    // oxleytimer.toc("IztAIz...");
 
     // Initialise some variables
     Tpetra::global_size_t numGblIndices = n;
@@ -363,7 +363,7 @@ void CrsMatrixWrapper<ST>::IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,
     ESYS_ASSERT(mat.getGlobalNumRows()==iz->getGlobalNumCols(),"incorrect dimensions (iz rows or mat cols)");
 
     // Do the multiplication
-    oxleytimer.toc("Doing multiplication...");
+    // oxleytimer.toc("Doing multiplication...");
     Tpetra::TripleMatrixMultiply::MultiplyRAP<ST,LO,GO,NT>(
                     iz_tmp,true,mat,false,*iz,false,*result,true,label,params);
 
@@ -372,44 +372,44 @@ void CrsMatrixWrapper<ST>::IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,
     // auto threshold=1E-12;
     // Tpetra::CrsMatrix<ST,LO,GO,NT>::removeCrsMatrixZeros(*result, threshold);
     
-    oxleytimer.toc("Copying result...");
+    // oxleytimer.toc("Copying result...");
     mat=Tpetra::CrsMatrix<ST,LO,GO,NT>(*result);
 
     delete result;
-    oxleytimer.toc("Done...");
+    // oxleytimer.toc("Done...");
 #else
-    // Initialise some variables
-    Tpetra::global_size_t numGblIndices = n;
-    const esys_trilinos::GO indexBase = 0;
-    escript::JMPI m_mpiInfo;
-    auto comm = Teuchos::DefaultComm<int>::getComm();
+    // // Initialise some variables
+    // Tpetra::global_size_t numGblIndices = n;
+    // const esys_trilinos::GO indexBase = 0;
+    // escript::JMPI m_mpiInfo;
+    // auto comm = Teuchos::DefaultComm<int>::getComm();
 
-    // Create a new map and rcp matrix
-    typedef Tpetra::Map<LO,GO,NT> map_type;
-    Teuchos::RCP<const map_type> map = Teuchos::rcp ( new map_type (numGblIndices, indexBase, comm));
-    Matrix *result = new Matrix(map, n);
+    // // Create a new map and rcp matrix
+    // typedef Tpetra::Map<LO,GO,NT> map_type;
+    // Teuchos::RCP<const map_type> map = Teuchos::rcp ( new map_type (numGblIndices, indexBase, comm));
+    // Matrix *result = new Matrix(map, n);
 
-    // Initialise some more variables
-    RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
-    params->set("No Nonlocal Changes", true);
-    const std::string& label = "ans";
-    // const auto tmp_mat1 = new Tpetra::createDeepCopy(mat);
-    const auto iz_tmp = new Tpetra::createDeepCopy(*iz);
-    // const auto iz_tmp2 = Tpetra::createDeepCopy(*iz);
+    // // Initialise some more variables
+    // RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
+    // params->set("No Nonlocal Changes", true);
+    // const std::string& label = "ans";
+    // // const auto tmp_mat1 = new Tpetra::createDeepCopy(mat);
+    // const auto iz_tmp = new Tpetra::createDeepCopy(*iz);
+    // // const auto iz_tmp2 = Tpetra::createDeepCopy(*iz);
 
-    // Do the matrix-matrix multiplication
-    Tpetra::TripleMatrixMultiply::MultiplyRAP<ST,LO,GO,NT>(
-                    iz_tmp,true,mat,false,*iz,false,*result,false,label,params);
+    // // Do the matrix-matrix multiplication
+    // Tpetra::TripleMatrixMultiply::MultiplyRAP<ST,LO,GO,NT>(
+    //                 iz_tmp,true,mat,false,*iz,false,*result,false,label,params);
 
-    Teuchos::ScalarTraits<ST>::magnitudeType threshold=1E-24;
-    Teuchos::removeCrsMatrixZeros(result, threshold);
+    // Teuchos::ScalarTraits<ST>::magnitudeType threshold=1E-24;
+    // Teuchos::removeCrsMatrixZeros(result, threshold);
 
-    mat.resumeFill();
-    mat=Tpetra::createDeepCopy(*result);
-    mat.fillComplete(params);
+    // mat.resumeFill();
+    // mat=Tpetra::createDeepCopy(*result);
+    // mat.fillComplete(params);
 
-    delete iz_tmp;
-    delete result;
+    // delete iz_tmp;
+    // delete result;
 #endif
 }
 
