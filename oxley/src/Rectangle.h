@@ -350,6 +350,30 @@ public:
     void getNeighouringNodeIDs(int8_t level, p4est_qcoord_t x, p4est_qcoord_t y, p4est_topidx_t treeid, long (&ids) [4]) const;
 
     /**
+       \brief
+       Returns true if the node is on the border and should be treated as hanging
+    */
+    bool checkHangingBorderNode(int8_t level, p4est_qcoord_t x, p4est_qcoord_t y, p4est_topidx_t treeid,
+                                 std::vector<DoublePair> NormalNodes, std::vector<DoublePair> HangingNodes) const;
+
+    /**
+       \brief
+       Returns the fact code of the hanging border node
+       (cf. p6est_lnodes.h lines 57-116)
+    */
+    int getHangingBorderNodeFacecode(p4est_quadrant_t * quad, int8_t level, p4est_qcoord_t x, p4est_qcoord_t y, p4est_topidx_t treeid) const;
+
+    /**
+       \brief
+       A version of p4est_qcoord_to_vertex that does not test for exceptions
+       *** USE WITH CAUTION ***
+    */
+    void p4est_qcoord_to_vertex_mod (p4est_connectivity_t * connectivity,
+                        p4est_topidx_t treeid,
+                        p4est_qcoord_t x, p4est_qcoord_t y,
+                        double vxyz[3]) const;
+
+    /**
       \brief
       Applies a refinementzone
    */
