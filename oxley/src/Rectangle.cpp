@@ -3436,7 +3436,7 @@ void Rectangle::updateRowsColumns()
     myRows.clear();
     myRows.push_back(0);
     myColumns.clear();
-    m_dofMap.assign(getNumNodes(), 0);
+    m_dofMap.assign(getNumNodes()-getNumHangingNodes(), 0);
     long counter = 0;
     for(int i = 0; i < getNumNodes()-getNumHangingNodes(); i++)
     {
@@ -3453,7 +3453,7 @@ void Rectangle::updateRowsColumns()
             myColumns.push_back(temp[i]);
         }
         m_dofMap[i] = counter-myRows[i];
-        if(i < getNumNodes()-1)
+        if(i < getNumNodes()-getNumHangingNodes()-1)
             myRows.push_back(counter);
     }
     myRows.push_back(myColumns.size());
@@ -3474,6 +3474,18 @@ void Rectangle::updateRowsColumns()
     std::cout << "]" << std::endl;
 #endif
 
+// triple check that the entries are correct
+#ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA_EXTRA
+    std::cout << "---------------------------------" << std::endl;
+    for(int i = 1; i < myRows.size(); i++)
+    {
+        std::cout << i-1 << ": ";
+        for(int j = myRows[i-1]; j < myRows[i]; j++)
+            std::cout << myColumns[j] << ", ";
+        std::cout << std::endl;
+    }
+#endif
+
     delete indices;
     delete data;
 
@@ -3488,7 +3500,8 @@ esys_trilinos::TrilinosGraph_ptr Rectangle::getTrilinosGraph() const
     //     m_graph = createTrilinosGraph(myRows, myColumns);
     // }
     // return m_graph;
-    return createTrilinosGraph(myRows, myColumns);
+    m_graph = createTrilinosGraph(myRows, myColumns);
+    return m_graph;
 }
 #endif
 
