@@ -2042,67 +2042,109 @@ void Rectangle::renumberNodes()
     }
 
     // Check for hanging border nodes
-    // TODO
-    // k = 0;
-    // for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) {
-    //     p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
-    //     sc_array_t * tquadrants = &tree->quadrants;
-    //     p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
-    //     for(int q = 0; q < Q; ++q) { 
-    //         p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
-    //         p4est_qcoord_t l = P4EST_QUADRANT_LEN(quad->level);
-    //         p4est_qcoord_t lxy[4][2] = {{0,0},{l,0},{0,l},{l,l}};
-    //         for(int n = 0; n < 4; n++)
-    //         {
-    //             double xy[3];
-    //             p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy);
-    //             auto tmp = std::make_pair(xy[0],xy[1]);
-    //             bool hangingBorder = checkHangingBorderNode(quad->level, quad->x+lxy[n][0], quad->y+lxy[n][1], treeid,
-    //                                                             NormalNodes, HangingNodes);
-    //             if(hangingBorder)
-    //             {
-    //                 if(!std::count(HangingNodes.begin(), HangingNodes.end(), tmp))
-    //                 {
-    //                     hangingNodeInfo tmp2;
-    //                     tmp2.x=quad->x+lxy[n][0];
-    //                     tmp2.y=quad->y+lxy[n][1];
-    //                     tmp2.level=quad->level;
-    //                     tmp2.treeid=treeid;
-    //                     tmp2.face_type=getHangingBorderNodeFacecode(quad, quad->level, quad->x+lxy[n][0], quad->y+lxy[n][1], treeid);
-    //                     ESYS_ASSERT(tmp2.face_type!=-1, "renumberNodes: Unknown programming error");
-    //                     p4est_quadrant_t * parent;
-    //                     p4est_quadrant_t parent_quad;
-    //                     parent = &parent_quad;
-    //                     p4est_quadrant_parent(quad, parent);
-    //                     ESYS_ASSERT(p4est_quadrant_is_parent(parent, quad), "renumberNodes: Quadrant is not parent");
-    //                     ESYS_ASSERT(p4est_quadrant_is_valid(parent),"renumberNodes: Invalid parent quadrant");
-    //                     p4est_quadrant_t * neighbour;
-    //                     p4est_quadrant_t neighbour_quad;
-    //                     neighbour = &neighbour_quad;
-    //                     int * nface = NULL;
-    //                     int newtree = p4est_quadrant_face_neighbor_extra(parent, treeid, tmp2.face_type, neighbour, nface, connectivity);
-    //                     ESYS_ASSERT(newtree!=-1, "renumberNodes: Invalid neighbour tree");
-    //                     ESYS_ASSERT(p4est_quadrant_is_valid(neighbour),"renumberNodes: Invalid neighbour quadrant");
-    //                     tmp2.neighbour_x=neighbour->x;
-    //                     tmp2.neighbour_y=neighbour->y;
-    //                     tmp2.neighbour_l=neighbour->level;
-    //                     tmp2.neighbour_tree=newtree;
-    //                     hanging_face_orientation.push_back(tmp2);
-    //                     HangingNodes.push_back(tmp);
-    //                     #ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES
-    //                         double xy[3];
-    //                         p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x, quad->y, xy);
-    //                         std::cout << "H: " << xy[0] << ", " << xy[1] << "  <---" << std::endl; 
-    //                     #endif
-    //                 }
-    //             }
-    //             else
-    //             {
-    //                 continue;
-    //             }
-    //         }
-    //     }
-    // }
+    k = 0;
+    // [position 0 1 2 3] [n s e w]
+    int transform_direction[4][4]={{ 3,-1, 1,-1},   
+                                   { 3,-1,-1, 0},  
+                                   {-1, 2, 1,-1},  
+                                   {-1, 2,-1, 0}};
+    // [position 0 1 2 3] [n s e w]
+    int invert[4][4]   ={{-1, 1,-1, 3},   // 0
+                         {-1, 0, 3,-1},   // 1
+                         { 2,-1,-1, 1},   // 2
+                         { 2,-1, 0,-1}};  // 3
+    bool boundary[4] = {false};
+    for(p4est_topidx_t treeid = p4est->first_local_tree; treeid <= p4est->last_local_tree; ++treeid) {
+        p4est_tree_t * tree = p4est_tree_array_index(p4est->trees, treeid);
+        sc_array_t * tquadrants = &tree->quadrants;
+        p4est_locidx_t Q = (p4est_locidx_t) tquadrants->elem_count;
+        for(int q = 0; q < Q; ++q) { 
+            p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
+            p4est_qcoord_t l = P4EST_QUADRANT_LEN(quad->level);
+            p4est_qcoord_t lxy[4][2] = {{0,0},{l,0},{0,l},{l,l}};
+            for(int n = 0; n < 4; n++)
+            {
+                double xy[3];
+                p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy);
+                auto tmp = std::make_pair(xy[0],xy[1]);
+                bool hangingBorder = checkHangingBorderNode(quad, quad->x+lxy[n][0], quad->y+lxy[n][1], treeid, n);
+
+                #ifdef OXLEY_ENABLE_DEBUG_CHECK_HANGING_BORDER_NODE
+                    std::cout << "(" << xy[0] << ", " << xy[1] << ")";
+                    if(hangingBorder)
+                        std::cout << " <---- hanging border node" << std::endl;
+                    else
+                        std::cout << std::endl;
+                #endif
+
+                if(hangingBorder)
+                {
+                    if(!std::count(HangingNodes.begin(), HangingNodes.end(), tmp))
+                    {
+                        // remove coordinate from normalnodes
+                        for(int i = 0 ; i < NormalNodes.size(); i++)
+                            if(NormalNodes[i]==std::make_pair(xy[0],xy[1]))
+                            {
+                                NormalNodes.erase(NormalNodes.begin() + i);
+                                break;
+                            }
+
+                        hangingNodeInfo tmp2;
+                        tmp2.x=quad->x+lxy[n][0];
+                        tmp2.y=quad->y+lxy[n][1];
+                        tmp2.level=quad->level;
+                        tmp2.treeid=treeid;
+                        tmp2.face_type=getHangingBorderNodeFacecode(quad, quad->level, quad->x, quad->y, treeid, n);
+                        ESYS_ASSERT(tmp2.face_type!=-1, "renumberNodes: invalid face type");
+                        // get sibling quadrant
+                        int position=p4est_quadrant_child_id(quad);
+                        boundary[0]  = xy[1] == forestData.m_lxy[1];
+                        boundary[1]  = xy[1] == forestData.m_origin[1];
+                        boundary[2]  = xy[0] == forestData.m_lxy[0];
+                        boundary[3]  = xy[0] == forestData.m_origin[0];
+                        ESYS_ASSERT((int)boundary[0]+(int)boundary[1]+(int)boundary[2]+(int)boundary[3] < 2, "renumberNodes: Unknown error");
+                        int dir = -1;
+                        for(int i = 0; i < 4; i++)
+                            if(boundary[i] == true)
+                            {
+                                dir=invert[position][i];
+                                break;
+                            }
+                        p4est_quadrant_t * neighbour;
+                        p4est_quadrant_t neighbour_quad;
+                        neighbour = &neighbour_quad;
+
+                        //ae tmp
+                        std::cout << "position = " << position << ", dir = " << dir <<  std::endl;
+
+                        ESYS_ASSERT(dir!=-1, "renumberNodes: Invalid transform direction");
+                        p4est_quadrant_face_neighbor(quad,dir,neighbour);
+                        int * nface = nullptr;
+                        // int newtree = p4est_quadrant_face_neighbor_extra(quad, treeid, tmp2.face_type, neighbour, nface, connectivity);
+                        int newtree = p4est_quadrant_face_neighbor_extra(quad, treeid, dir, neighbour, nface, connectivity);
+                        ESYS_ASSERT(newtree!=-1, "renumberNodes: Invalid neighbour tree");
+                        ESYS_ASSERT(p4est_quadrant_is_valid(neighbour),"renumberNodes: Invalid neighbour quadrant");
+                        // add the sibling information to hanging_face_orientation
+                        tmp2.neighbour_x=neighbour->x;
+                        tmp2.neighbour_y=neighbour->y;
+                        tmp2.neighbour_l=neighbour->level;
+                        tmp2.neighbour_tree=newtree;
+                        hanging_face_orientation.push_back(tmp2);
+                        HangingNodes.push_back(tmp);
+                        #ifdef OXLEY_ENABLE_DEBUG_RENUMBER_NODES
+                            double xy[3];
+                            p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x, quad->y, xy);
+                            std::cout << "H: " << xy[0] << ", " << xy[1] << "  <---" << std::endl; 
+                        #endif
+                    }
+                }
+                else
+                {
+                    continue;
+                }
+            }
+        }
+    }
 
     // Populate NodeIDs
     is_hanging.clear();
@@ -2122,9 +2164,6 @@ void Rectangle::renumberNodes()
     }
 
     ESYS_ASSERT(NodeIDs.size()!=0, "renumberNodes: Did not find any nodes");
-
-    // This variable currently records the number of hanging faces, not the number of hanging nodes
-    num_hanging/=2;
 
     // Populate m_nodeIDs
     m_nodeId.clear();
@@ -2183,24 +2222,17 @@ void Rectangle::renumberNodes()
     }
 #endif
 
-// #ifdef OXLEY_PRINT_NODEIDS
-//     std::cout << "Printing NodeIDs " << std::endl;
-//     double xyf[NodeIDs.size()][2]={{0}};
-//     for(std::pair<DoublePair,long> e : NodeIDs)
-//     {
-//         xyf[e.second][0]=e.first.first;
-//         xyf[e.second][1]=e.first.second;
-//     }
-//     for(int i=0; i<NodeIDs.size(); i++)
-//         std::cout << i << ": " << xyf[i][0] << ", " << xyf[i][1] << std::endl;
-//     std::cout << "-------------------------------" << std::endl;
-// #endif
-
-#ifdef OXLEY_PRINT_NODEIDS_HANGING
-    for(int i = 0; i < is_hanging.size(); i++)
-        if(is_hanging[i])
-            std::cout << i << ", "; 
-        std::cout << std::endl;
+#ifdef OXLEY_PRINT_NODEIDS
+    std::cout << "Printing NodeIDs " << std::endl;
+    double xyf[NodeIDs.size()][2]={{0}};
+    for(std::pair<DoublePair,long> e : NodeIDs)
+    {
+        xyf[e.second][0]=e.first.first;
+        xyf[e.second][1]=e.first.second;
+    }
+    for(int i=0; i<NodeIDs.size(); i++)
+        std::cout << i << ": " << xyf[i][0] << ", " << xyf[i][1] << std::endl;
+    std::cout << "-------------------------------" << std::endl;
 #endif
 
     forestData.NodeIDs=&NodeIDs;
@@ -2685,10 +2717,10 @@ void Rectangle::p4est_qcoord_to_vertex_mod (p4est_connectivity_t * connectivity,
     }
 }
 
-bool Rectangle::checkHangingBorderNode(int8_t level, p4est_qcoord_t x, p4est_qcoord_t y, p4est_topidx_t treeid,
-                                std::vector<DoublePair> NormalNodes, std::vector<DoublePair> HangingNodes) const
+bool Rectangle::checkHangingBorderNode(p4est_quadrant_t * quad, p4est_qcoord_t x, p4est_qcoord_t y, 
+                                p4est_topidx_t treeid, int n) const
 {
-    p4est_qcoord_t l = P4EST_QUADRANT_LEN(level);
+    p4est_qcoord_t l = P4EST_QUADRANT_LEN(quad->level);
     double xy[3], xyA[3], xyB[3];
     p4est_qcoord_to_vertex(p4est->connectivity, treeid, x, y, xy);
 
@@ -2696,120 +2728,35 @@ bool Rectangle::checkHangingBorderNode(int8_t level, p4est_qcoord_t x, p4est_qco
     bool south = xy[1] == forestData.m_origin[1];
     bool east  = xy[0] == forestData.m_lxy[0];
     bool north = xy[1] == forestData.m_lxy[1];
-    int count = -1;
+    int position = p4est_quadrant_child_id(quad);
 
-    // Check if the node has already been accounted for
-    if(std::count(NormalNodes.begin(),NormalNodes.end(),std::make_pair(xy[0],xy[1])) == 1)
-        return false;
-    if(std::count(HangingNodes.begin(),HangingNodes.end(),std::make_pair(xy[0],xy[1])) == 1)
-        return false;
-
-    if(west) // W border
+    if(west) // W boundary
     {
-        // check that the points we are testing for are not outside the domain
-        if( xy[0] > forestData.m_lxy[0] ||
-            xy[1] < forestData.m_origin[1] ||
-            xy[1] > forestData.m_lxy[1])
+        if(position == 2 && n == 0)
+            return true;
+        else
             return false;
-
-        try // p4est_qcoord_to_vertex will return an error if the node doesn't exist. In this case it the node is not a hangingbordernode
-        {
-            p4est_qcoord_to_vertex_mod(p4est->connectivity, treeid, x+l, y+l, xyA);
-            p4est_qcoord_to_vertex_mod(p4est->connectivity, treeid, x+l, y-l, xyB);
-
-            // TODO speed up
-            count = std::count(NormalNodes.begin(),NormalNodes.end(),std::make_pair(xyA[0],xyA[1]))
-                  + std::count(NormalNodes.begin(),NormalNodes.end(),std::make_pair(xyB[0],xyB[1]))
-                  + std::count(HangingNodes.begin(),HangingNodes.end(),std::make_pair(xyA[0],xyA[1]))
-                  + std::count(HangingNodes.begin(),HangingNodes.end(),std::make_pair(xyB[0],xyB[1]));
-
-            if(count == 0)
-                return false;
-            else
-                return true;
-        }
-        catch(...)
-        {
-            return false;
-        }
     }
-    else if(east) // E border
+    else if(east) // E boundary
     {
-        // check that point is not outside the domain
-        if( xy[0] < forestData.m_origin[0] ||
-            xy[1] < forestData.m_origin[1] ||
-            xy[1] > forestData.m_lxy[1])
+        if(position == 3 && n == 1)
+            return true;
+        else
             return false;
-
-        try
-        {
-            p4est_qcoord_to_vertex_mod(p4est->connectivity, treeid, x-l, y+l, xyA);
-            p4est_qcoord_to_vertex_mod(p4est->connectivity, treeid, x-l, y-l, xyB);
-            count = std::count(NormalNodes.begin(),NormalNodes.end(),std::make_pair(xyA[0],xyA[1]))
-                  + std::count(NormalNodes.begin(),NormalNodes.end(),std::make_pair(xyB[0],xyB[1]))
-                  + std::count(HangingNodes.begin(),HangingNodes.end(),std::make_pair(xyA[0],xyA[1]))
-                  + std::count(HangingNodes.begin(),HangingNodes.end(),std::make_pair(xyB[0],xyB[1]));
-            if(count == 0)
-                return false;
-            else
-                return true;
-        }
-        catch(...)
-        {
-            return false;
-        }
     }
-    else if(south) // S border
+    else if(south) // S boundary
     {
-        // check that point is not outside the domain
-        if( xy[0] < forestData.m_origin[0] ||
-            xy[0] > forestData.m_lxy[0] ||
-            xy[1] > forestData.m_lxy[1])
+        if(position == 1 && n == 0)
+            return true;
+        else
             return false;
-
-        try
-        {
-            p4est_qcoord_to_vertex_mod(p4est->connectivity, treeid, x+l, y+l, xyA);
-            p4est_qcoord_to_vertex_mod(p4est->connectivity, treeid, x-l, y+l, xyB);
-            count = std::count(NormalNodes.begin(),NormalNodes.end(),std::make_pair(xyA[0],xyA[1]))
-                  + std::count(NormalNodes.begin(),NormalNodes.end(),std::make_pair(xyB[0],xyB[1]))
-                  + std::count(HangingNodes.begin(),HangingNodes.end(),std::make_pair(xyA[0],xyA[1]))
-                  + std::count(HangingNodes.begin(),HangingNodes.end(),std::make_pair(xyB[0],xyB[1]));
-            if(count == 0)
-                return false;
-            else
-                return true;
-        }
-        catch(...)
-        {
-            return false;
-        }
     }
-    else if(north) // N border
+    else if(north) // N boundary
     {
-        // check that point is not outside the domain
-        if( xy[0] < forestData.m_origin[0] ||
-            xy[0] > forestData.m_lxy[0] ||
-            xy[1] < forestData.m_origin[1])
+        if(position == 2 && n == 3)
+            return true;
+        else
             return false;
-
-        try
-        {
-            p4est_qcoord_to_vertex_mod(p4est->connectivity, treeid, x+l, y-l, xyA);
-            p4est_qcoord_to_vertex_mod(p4est->connectivity, treeid, x-l, y-l, xyB);
-            count = std::count(NormalNodes.begin(),NormalNodes.end(),std::make_pair(xyA[0],xyA[1]))
-                  + std::count(NormalNodes.begin(),NormalNodes.end(),std::make_pair(xyB[0],xyB[1]))
-                  + std::count(HangingNodes.begin(),HangingNodes.end(),std::make_pair(xyA[0],xyA[1]))
-                  + std::count(HangingNodes.begin(),HangingNodes.end(),std::make_pair(xyB[0],xyB[1]));
-            if(count == 0)
-                return false;
-            else
-                return true;
-        }
-        catch(...)
-        {
-            return false;
-        }
     }
     else // interior 
     {
@@ -2817,19 +2764,20 @@ bool Rectangle::checkHangingBorderNode(int8_t level, p4est_qcoord_t x, p4est_qco
     }
 }
 
-// Note: This function assumes that the node is hanging and on the border
-int Rectangle::getHangingBorderNodeFacecode(p4est_quadrant_t * quad, int8_t level, p4est_qcoord_t x, p4est_qcoord_t y, p4est_topidx_t treeid) const
+// Note: This function assumes that the node is hanging and is on the border
+int Rectangle::getHangingBorderNodeFacecode(p4est_quadrant_t * quad, int8_t level, p4est_qcoord_t x, p4est_qcoord_t y,
+                                                p4est_topidx_t treeid, int n) const
 {
     p4est_qcoord_t l = P4EST_QUADRANT_LEN(level);
     int adj[4][2]={{0,0},{l,0},{0,l},{l,l}};
-    double child_xy[4][3];
+    double child_xy[4][3] = {{-1}};
     for(int i = 0; i < 4; i++)
         p4est_qcoord_to_vertex(p4est->connectivity, treeid, x+adj[i][0], y+adj[i][1], child_xy[i]);
 
     bool west  = child_xy[0][0] == forestData.m_origin[0];
     bool south = child_xy[0][1] == forestData.m_origin[1];
-    bool east  = child_xy[0][0] == forestData.m_lxy[0];
-    bool north = child_xy[0][1] == forestData.m_lxy[1];
+    bool east  = child_xy[3][0] == forestData.m_lxy[0];
+    bool north = child_xy[3][1] == forestData.m_lxy[1];
     int count = -1;
 
     // get the parent quadrant
@@ -2837,13 +2785,14 @@ int Rectangle::getHangingBorderNodeFacecode(p4est_quadrant_t * quad, int8_t leve
     p4est_quadrant_t parent_quad;
     parent = &parent_quad;
     p4est_quadrant_parent(quad, parent);
+    ESYS_ASSERT(p4est_quadrant_is_valid(parent),"getHangingBorderNodeFacecode: Invalid parent quadrant");
 
     // get the parent quadrants coordinates
     p4est_qcoord_t l2 = P4EST_QUADRANT_LEN(parent->level);
     int adj2[4][2]={{0,0},{l2,0},{0,l2},{l2,l2}};
-    double parent_xy[4][3];
+    double parent_xy[4][3] = {{-1}};
     for(int i = 0; i < 4; i++)
-        p4est_qcoord_to_vertex(p4est->connectivity, treeid, x+adj2[i][0], y+adj2[i][1], parent_xy[i]);
+        p4est_qcoord_to_vertex(p4est->connectivity, treeid, parent->x+adj2[i][0], parent->y+adj2[i][1], parent_xy[i]);
 
     if(west) // W border
     {
@@ -3256,6 +3205,17 @@ void Rectangle::updateRowsColumns()
     hanging_faces.clear();
     for(int i = 0; i < hanging_face_orientation.size(); i++)
     {
+        double xy[3]={0};
+
+        // Skip if this is a hanging border node
+        // (These nodes are accounted for in a loop below)
+        p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, hanging_face_orientation[i].x, hanging_face_orientation[i].y, xy);
+        if( (xy[0] == forestData.m_origin[0]) ||
+            (xy[1] == forestData.m_origin[1]) ||
+            (xy[0] == forestData.m_lxy[0]) ||
+            (xy[1] == forestData.m_lxy[1]) )
+            continue;
+
         // Distances to neighbouring nodes
         p4est_qcoord_t l = P4EST_QUADRANT_LEN(hanging_face_orientation[i].level);
         p4est_qcoord_t xlookup[4][2] = {{0,0}, {0,0}, {-l,l}, {-l,l}};
@@ -3263,7 +3223,6 @@ void Rectangle::updateRowsColumns()
         p4est_qcoord_t zlookup[4][2] = {{l,0}, {-l,0}, {0,l}, {0,-l}};
 
         // Calculate the node ids
-        double xy[3]={0};
         p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, hanging_face_orientation[i].x, hanging_face_orientation[i].y, xy);
         long nodeid = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
         p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, hanging_face_orientation[i].x+xlookup[hanging_face_orientation[i].face_type][0], hanging_face_orientation[i].y+ylookup[hanging_face_orientation[i].face_type][0], xy);
@@ -3337,6 +3296,122 @@ void Rectangle::updateRowsColumns()
         hanging_faces.push_back(std::make_pair(nodeid,lni1));
     }
 
+    // Hanging Border nodes
+    for(int i = 0; i < hanging_face_orientation.size(); i++)
+    {
+        double xy[3]={0};
+
+        // Skip if this is a hanging border node
+        // (These nodes are accounted for in a loop below)
+        p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, hanging_face_orientation[i].x, hanging_face_orientation[i].y, xy);
+
+        bool west  = xy[0] == forestData.m_origin[0];
+        bool south = xy[1] == forestData.m_origin[1];
+        bool east  = xy[0] == forestData.m_lxy[0];
+        bool north = xy[1] == forestData.m_lxy[1];
+
+        bool hangingBorderNode = west || south || east || north;
+        if( !hangingBorderNode  )
+            continue;
+
+        // ae TODO
+        long nodeid, lni0, lni1, lni2;
+
+        if(south)
+        {
+            // Distances to neighbouring nodes
+            p4est_qcoord_t l = P4EST_QUADRANT_LEN(hanging_face_orientation[i].level);
+            p4est_qcoord_t xlookup[4][2] = {{0,0}, {0,0}, {-l,l}, {-l,l}};
+            p4est_qcoord_t ylookup[4][2] = {{-l,l}, {-l,l}, {0,0}, {0,0}};
+            p4est_qcoord_t zlookup[4][2] = {{l,0}, {-l,0}, {0,l}, {0,-l}};
+
+            // Calculate the node ids
+            p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, hanging_face_orientation[i].x, hanging_face_orientation[i].y, xy);
+            nodeid = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+            p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, hanging_face_orientation[i].x+xlookup[hanging_face_orientation[i].face_type][0], hanging_face_orientation[i].y+ylookup[hanging_face_orientation[i].face_type][0], xy);
+            lni0   = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+            p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, hanging_face_orientation[i].x+xlookup[hanging_face_orientation[i].face_type][1], hanging_face_orientation[i].y+ylookup[hanging_face_orientation[i].face_type][1], xy);
+            lni1   = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+            p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, hanging_face_orientation[i].x+zlookup[hanging_face_orientation[i].face_type][0], hanging_face_orientation[i].y+zlookup[hanging_face_orientation[i].face_type][1], xy);
+            lni2   = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+        }
+        else if(east)
+        {
+
+        }
+        else if(west)
+        {
+
+        }
+        else if(north)
+        {
+
+        }
+
+        // Initialise vectors
+        std::vector<long> * idx0  = &indices[0][nodeid];
+        std::vector<long> * idx1a = &indices[0][lni0];
+        std::vector<long> * idx1b = &indices[0][lni1];
+        std::vector<long> * idx1c = &indices[0][lni2];
+        
+        #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
+            std::cout << "nodeid = " << nodeid << ": " << idx0[0][0] << ", " << idx0[0][1] << ", " << idx0[0][2] << ", " << idx0[0][3] << ", " << idx0[0][4] << std::endl;
+            std::cout << lni0 << ": " << idx1a[0][0] << ", " << idx1a[0][1] << ", " << idx1a[0][2] << ", " << idx1a[0][3] << ", " << idx1a[0][4] << std::endl;
+            std::cout << lni1 << ": " << idx1b[0][0] << ", " << idx1b[0][1] << ", " << idx1b[0][2] << ", " << idx1b[0][3] << ", " << idx1b[0][4] << std::endl;
+            std::cout << lni2 << ": " << idx1c[0][0] << ", " << idx1c[0][1] << ", " << idx1c[0][2] << ", " << idx1c[0][3] << ", " << idx1c[0][4] << std::endl;
+        #endif
+
+        // Remove spurious connections, if they exist
+        for(int i = 1; i < 5; i++)
+        {
+            if(idx1a[0][i]==lni1)
+                idx1a[0][i]=nodeid;
+            if(idx1b[0][i]==lni0)
+                idx1b[0][i]=nodeid;
+        }
+
+        // Check to see if these are new connections
+        bool new_connections[3]={true,true,true};
+        for(int i=1;i<5;i++)
+        {
+            if(idx1a[0][i]==nodeid)
+                new_connections[0]=false;
+            if(idx1b[0][i]==nodeid)
+                new_connections[1]=false;
+            if(idx1c[0][i]==nodeid)
+                new_connections[2]=false;
+        }
+
+        // If they are new then add them to the vectors
+        if(new_connections[0]==true)
+        {
+            idx1a[0][0]++;
+            ESYS_ASSERT(idx1a[0][0]<=4, "updateRowsColumns index out of bound ");
+            idx1a[0][idx1a[0][0]]=nodeid;
+        }
+        if(new_connections[1]==true)
+        {
+            idx1b[0][0]++;
+            ESYS_ASSERT(idx1b[0][0]<=4, "updateRowsColumns index out of bound ");
+            idx1b[0][idx1b[0][0]]=nodeid;
+        }
+        if(new_connections[2]==true)
+        {
+            idx1c[0][0]++;
+            ESYS_ASSERT(idx1c[0][0]<=4, "updateRowsColumns index out of bound ");
+            idx1c[0][idx1c[0][0]]=nodeid;
+        }
+        
+        // Add the hanging node
+        idx0[0][0]=3;
+        idx0[0][1]=lni0;
+        idx0[0][2]=lni1;
+        idx0[0][3]=lni2;
+        idx0[0][4]=-1;
+        hanging_faces.push_back(std::make_pair(nodeid,lni0));
+        hanging_faces.push_back(std::make_pair(nodeid,lni1));
+    }
+
     // update num_hanging
     num_hanging=hanging_faces.size();
 
@@ -3351,7 +3426,7 @@ void Rectangle::updateRowsColumns()
     std::cout << "Node connections: " << std::endl;
     // Output for debugging
     // for(int i = getNumNodes()-0.5*num_hanging; i < getNumNodes(); i++){
-    for(int i = 0; i < getNumNodes(); i++){
+    for(int i = 0; i < getNumNodes()-getNumHangingNodes(); i++){
         std::vector<long> * idx0 = &indices[0][i];
         std::cout << i << ": ";
         for(int j = 1; j < idx0[0][0]+1; j++)
@@ -3778,7 +3853,14 @@ std::vector<IndexVector> Rectangle::getConnections(bool includeShared) const
         double xy[3]={0};
         p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, 
                                                     hanging_face_orientation[i].x, 
-                                                    hanging_face_orientation[i].y, xy);
+                                                    hanging_face_orientation[i].y, xy); 
+        // These nodes are handled in the next loop
+        if( (xy[0] == forestData.m_origin[0]) ||
+            (xy[1] == forestData.m_origin[1]) ||
+            (xy[0] == forestData.m_lxy[0]) ||
+            (xy[1] == forestData.m_lxy[1]) )
+            continue;
+
         long nodeid = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
  
         p4est_qcoord_t l = P4EST_QUADRANT_LEN(hanging_face_orientation[i].neighbour_l);
@@ -3801,6 +3883,49 @@ std::vector<IndexVector> Rectangle::getConnections(bool includeShared) const
 
         indices[lni0].push_back(nodeid);
         indices[lni1].push_back(nodeid);
+    }    
+
+    // Hanging border Nodes
+    for(int i = 0; i < hanging_face_orientation.size(); i++)
+    {       
+        // Calculate the node ids
+        double xy[3]={0};
+        p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, 
+                                                    hanging_face_orientation[i].x, 
+                                                    hanging_face_orientation[i].y, xy); 
+        
+        bool west  = xy[0] == forestData.m_origin[0];
+        bool south = xy[1] == forestData.m_origin[1];
+        bool east  = xy[0] == forestData.m_lxy[0];
+        bool north = xy[1] == forestData.m_lxy[1];
+        bool hangingBorderNode = west || south || east || north;
+        if( !hangingBorderNode ) 
+            continue;
+
+        // ae TODO
+
+        // long nodeid = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+ 
+        // p4est_qcoord_t l = P4EST_QUADRANT_LEN(hanging_face_orientation[i].neighbour_l);
+        // p4est_qcoord_t x_inc[4][2]={{0,0},{l,l},{0,l},{0,l}};
+        // p4est_qcoord_t y_inc[4][2]={{0,l},{0,l},{0,0},{l,l}};
+
+        // p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].neighbour_tree, 
+        //         hanging_face_orientation[i].neighbour_x+x_inc[hanging_face_orientation[i].face_type][0], 
+        //         hanging_face_orientation[i].neighbour_y+y_inc[hanging_face_orientation[i].face_type][0], xy);
+        // long lni0 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+        // p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].neighbour_tree, 
+        //         hanging_face_orientation[i].neighbour_x+x_inc[hanging_face_orientation[i].face_type][1], 
+        //         hanging_face_orientation[i].neighbour_y+y_inc[hanging_face_orientation[i].face_type][1], xy);
+        // long lni1 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+
+        // // add info 
+        // // std::cout << nodeid << ": " << lni0 << ", " << lni1 << std::endl;
+        // indices[nodeid].push_back(lni0);
+        // indices[nodeid].push_back(lni1);
+
+        // indices[lni0].push_back(nodeid);
+        // indices[lni1].push_back(nodeid);
     }    
 
 // Sorting

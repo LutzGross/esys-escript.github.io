@@ -353,15 +353,16 @@ public:
        \brief
        Returns true if the node is on the border and should be treated as hanging
     */
-    bool checkHangingBorderNode(int8_t level, p4est_qcoord_t x, p4est_qcoord_t y, p4est_topidx_t treeid,
-                                 std::vector<DoublePair> NormalNodes, std::vector<DoublePair> HangingNodes) const;
+    bool checkHangingBorderNode(p4est_quadrant_t * quad, p4est_qcoord_t x, p4est_qcoord_t y, 
+                                 p4est_topidx_t treeid, int n) const;
 
     /**
        \brief
-       Returns the fact code of the hanging border node
+       Returns the face code of the hanging border node
        (cf. p6est_lnodes.h lines 57-116)
     */
-    int getHangingBorderNodeFacecode(p4est_quadrant_t * quad, int8_t level, p4est_qcoord_t x, p4est_qcoord_t y, p4est_topidx_t treeid) const;
+    int getHangingBorderNodeFacecode(p4est_quadrant_t * quad, int8_t level, p4est_qcoord_t x, p4est_qcoord_t y, 
+                                 p4est_topidx_t treeid, int n) const;
 
     /**
        \brief
