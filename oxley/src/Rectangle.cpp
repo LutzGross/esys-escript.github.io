@@ -2113,10 +2113,6 @@ void Rectangle::renumberNodes()
                         p4est_quadrant_t * neighbour;
                         p4est_quadrant_t neighbour_quad;
                         neighbour = &neighbour_quad;
-
-                        //ae tmp
-                        std::cout << "position = " << position << ", dir = " << dir <<  std::endl;
-
                         ESYS_ASSERT(dir!=-1, "renumberNodes: Invalid transform direction");
                         p4est_quadrant_face_neighbor(quad,dir,neighbour);
                         int * nface = nullptr;
@@ -3902,9 +3898,10 @@ std::vector<IndexVector> Rectangle::getConnections(bool includeShared) const
         if( !hangingBorderNode ) 
             continue;
 
-        // ae TODO
+        // ae TODO 
+        
 
-        // long nodeid = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+        long nodeid = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
  
         // p4est_qcoord_t l = P4EST_QUADRANT_LEN(hanging_face_orientation[i].neighbour_l);
         // p4est_qcoord_t x_inc[4][2]={{0,0},{l,l},{0,l},{0,l}};
