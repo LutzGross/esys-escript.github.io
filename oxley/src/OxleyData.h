@@ -105,6 +105,9 @@ struct hangingNodeInfo // used by Rectangle
 	p4est_qcoord_t neighbour_y;
 	p4est_qcoord_t neighbour_l;
 	p4est_topidx_t neighbour_tree;
+
+	signed int position=-1; // position within the parent quadrant
+	p4est_quadrant_t parent; // parent quadrant
 };
 
 struct hangingFaceInfo // used for hanging faces in Brick

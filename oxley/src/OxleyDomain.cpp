@@ -1264,7 +1264,7 @@ esys_trilinos::TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
     using namespace esys_trilinos;
 
     // const dim_t numMatrixRows = getNumDOF();
-    const dim_t numMatrixRows = getNumNodes();
+    const dim_t numMatrixRows = getNumNodes() - getNumHangingNodes();
 
     IndexVector rowTemp(getNumDataPointsGlobal());
     // if(getMPISize() == 1)
