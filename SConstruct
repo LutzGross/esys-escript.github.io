@@ -370,8 +370,6 @@ elif cxx_name[:3] == 'g++':
     cc_flags += " -Wno-unused-function  -Wno-narrowing"
     cc_flags += " -Wno-stringop-truncation -Wno-deprecated-declarations --param=max-vartrack-size=100000000"
     cc_optim     = "-O2" # -march=native"
-    if(env['debug']):
-        cc_flags += " -DP4EST_ENABLE_DEBUG"
     #max-vartrack-size: avoid vartrack limit being exceeded with escriptcpp.cpp
     cc_debug     = "-g3 -O0  -DDOASSERT -DDOPROF -DBOUNDS_CHECK -DSLOWSHARECHECK --param=max-vartrack-size=100000000"
     #Removed because new netcdf doesn't seem to like it
@@ -574,8 +572,8 @@ if ld_extra: env.Append(LINKFLAGS = ld_extra)
 if env['debug']:
     env.Append(CCFLAGS = env['cc_debug'])
     #env.Append(CXXFLAGS = env['cc_debug'])
-    env.Append(CPPDEFINES=['P4EST_ENABLE_DEBUG'])
-    env.Append(CPPDEFINES=['SC_ENABLE_DEBUG'])
+    # env.Append(CPPDEFINES=['P4EST_ENABLE_DEBUG'])
+    # env.Append(CPPDEFINES=['SC_ENABLE_DEBUG'])
 else:
     env.Append(CCFLAGS = env['cc_optim'])
     #env.Append(CXXFLAGS = env['cc_optim'])
