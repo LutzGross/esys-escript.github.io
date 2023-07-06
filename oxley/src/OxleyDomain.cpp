@@ -1266,11 +1266,11 @@ esys_trilinos::TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
     // const dim_t numMatrixRows = getNumDOF();
     const dim_t numMatrixRows = getNumNodes() - getNumHangingNodes();
 
-    IndexVector rowTemp(getNumDataPointsGlobal());
+    IndexVector rowTemp(numMatrixRows);
     // if(getMPISize() == 1)
     // {
     #pragma omp for
-        for(long i = 0; i < getNumDataPointsGlobal(); i++)
+        for(long i = 0; i < numMatrixRows; i++)
             rowTemp[i] = i;
     // }
     // else
@@ -1280,11 +1280,11 @@ esys_trilinos::TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
 
     // rowMap
     // This is using the constructor on line 868 of file  Tpetra_Map_def.hpp.
-    TrilinosMap_ptr rowMap(new MapType(getNumDataPointsGlobal(), 
+    TrilinosMap_ptr rowMap(new MapType(numMatrixRows, 
                                                 rowTemp, 0, TeuchosCommFromEsysComm(m_mpiInfo->comm)));
 
     // colMap
-    TrilinosMap_ptr colMap(new MapType(getNumDataPointsGlobal(), 
+    TrilinosMap_ptr colMap(new MapType(numMatrixRows, 
                                                 rowTemp, 0, TeuchosCommFromEsysComm(m_mpiInfo->comm)));
     
     // rowPtr
@@ -1301,10 +1301,10 @@ esys_trilinos::TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
         copy(conns[i].begin(), conns[i].end(), &colInd[rowPtr[i]]);
     }
 
-    #ifdef OXLEY_ENABLE_DEBUG_CREATE_TRI_GRAPH
-        for(int i = 0; i < getNumDataPointsGlobal(); i++)
+    #ifdef OXLEY_ENABLE_DEBUG_CREATE_TRILINOS_GRAPH
+        for(int i = 0; i < numMatrixRows; i++)
             std::cout << "myRows["<<i<<"]: " << rowTemp[i]<<std::endl;
-        for(int i = 0; i < getNumDataPointsGlobal(); i++)
+        for(int i = 0; i < numMatrixRows; i++)
             std::cout << "colMap["<<i<<"]: " << rowTemp[i]<<std::endl;
         for(int i = 0; i < numMatrixRows+1; i++)
             std::cout << "rowPtr["<<i<<"]: " << rowPtr[i]<<std::endl;
@@ -1313,7 +1313,7 @@ esys_trilinos::TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
     #endif
 
     // params
-    TrilinosGraph_ptr graph(new GraphType(rowMap, colMap, rowPtr, colInd));
+    TrilinosGraph_ptr graph(new GraphType(rowMap, colMap, rowPtr, colInd)); //here
     Teuchos::RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
     // params->set("Optimize Storage", true);
     params->set("Static profile clone", false);
@@ -1570,7 +1570,7 @@ esys_trilinos::TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
     // params
     TrilinosGraph_ptr graph(new GraphType(rowMap, colMap, rowPtr, colInd));
     Teuchos::RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
-    // params->set("Optimize Storage", true);
+    params->set("Optimize Storage", true);
     params->set("Static profile clone", false);
     graph->fillComplete(rowMap, colMap, params);
 
@@ -1750,8 +1750,8 @@ void OxleyDomain::makeZ(bool complex)
     if(z_needs_update)
     {
         // Size information
-        const Tpetra::global_size_t t = getNumNodes()-getNumHangingNodes(); //Total number of nodes
-        const Tpetra::global_size_t h = getDim()==2 ? 0.5*getNumHangingNodes() : getNumHangingNodes(); // Number of hanging nodes
+        const Tpetra::global_size_t t = getNumNodes(); //Total number of nodes
+        const Tpetra::global_size_t h = getNumHangingNodes(); // Number of hanging nodes
         const Tpetra::global_size_t n = t - h;
 
         #ifdef OXLEY_PRINT_DEBUG_Z_EXTRA
@@ -1855,13 +1855,15 @@ void OxleyDomain::makeZ(bool complex)
         }
         else // real
         {
-            zrrowMap   = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) t, indexBase, comm));
-            zrcolMap   = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) t, indexBase, comm));
-            zdomainMap = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) n, indexBase, comm));
-            zrangeMap  = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) h, indexBase, comm));
+            int numEntries = h;
+            zrrowMap   = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) numEntries, indexBase, comm));
+            zrcolMap   = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) numEntries, indexBase, comm));
+            zdomainMap = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) n, indexBase, comm)); //correct
+            zrangeMap  = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) h, indexBase, comm)); //correct
 
             // Teuchos::RCP<real_matrix_type> trZ (new real_matrix_type(zrrowMap, getDim()==2?5:7, Tpetra::StaticProfile));
-            Teuchos::RCP<real_matrix_type> trZ (new real_matrix_type(zrrowMap, getDim()==2?9:21));
+            // Teuchos::RCP<real_matrix_type> trZ (new real_matrix_type(zrrowMap, getDim()==2?9:21));
+            Teuchos::RCP<real_matrix_type> trZ (new real_matrix_type(zrrowMap, zrcolMap, 2));
             rZ=trZ;
             rZ->resumeFill();
 
@@ -1893,23 +1895,23 @@ void OxleyDomain::makeZ(bool complex)
                 int x,y;
                 if(a>=n)
                 {
-                    x=a-n;
+                    x=a;
                     y=b;
                 }
                 else
                 {
-                    x=a;
-                    y=b-n;
+                    x=b;
+                    y=a;
                 }
 
-                #ifdef OXLEY_PRINT_DEBUG_Z_EXTRA
+                #ifdef OXLEY_DEBUG_Z_EXTRA
                     std::cout << "Z element: ["<< a << "," << b << "] (" << x << ", " << y << ") = " << 0.5;
                 #endif
 
                 const esys_trilinos::GO gblRowAz = zrrowMap->getGlobalElement(x);
                 const esys_trilinos::GO gblColBz = zrcolMap->getGlobalElement(y);
 
-                #ifdef OXLEY_PRINT_DEBUG_Z_EXTRA
+                #ifdef OXLEY_DEBUG_Z_EXTRA
                     std::cout << "   i.e (" << gblRowAz << ", " << gblColBz << ") = " << 0.5 << std::endl;
                 #endif
 
@@ -1938,7 +1940,7 @@ void OxleyDomain::makeZworker(S half,Teuchos::RCP<Tpetra::CrsMatrix<S,esys_trili
                         Teuchos::RCP<const Tpetra::Map<>> row,Teuchos::RCP<const Tpetra::Map<>> col)
 {   
     const Tpetra::global_size_t t = getNumNodes(); //Total number of nodes
-    const Tpetra::global_size_t h = 0.5*getNumHangingNodes(); // Number of hanging nodes
+    const Tpetra::global_size_t h = getNumHangingNodes(); // Number of hanging nodes
     const Tpetra::global_size_t n = t - h;
 
     for(int i = 0; i < getNumHangingNodes(); i++)
@@ -2004,7 +2006,7 @@ void OxleyDomain::makeIZ(bool complex)
     {
         // Size information
         const Tpetra::global_size_t t = getNumNodes(); //Total number of nodes
-        const Tpetra::global_size_t h = getDim()==2 ? 0.5*getNumHangingNodes() : getNumHangingNodes(); // Number of hanging nodes
+        const Tpetra::global_size_t h = getNumHangingNodes(); // Number of hanging nodes
         const Tpetra::global_size_t n = t - h;
 
         // initialise other variables
@@ -2328,7 +2330,7 @@ escript::Data OxleyDomain::finaliseRhs(escript::Data& rhs)
             cplx_t dummy;
             
             const Tpetra::global_size_t t = getNumNodes(); //Total number of nodes
-            const Tpetra::global_size_t h = 0.5*getNumHangingNodes(); // Number of hanging nodes
+            const Tpetra::global_size_t h = getNumHangingNodes(); // Number of hanging nodes
             const Tpetra::global_size_t n = t - h;
 
             const esys_trilinos::GO indexBase = 0;
@@ -2448,9 +2450,8 @@ escript::Data OxleyDomain::finaliseRhs(escript::Data& rhs)
             real_t dummy;
             
             const Tpetra::global_size_t t = getNumNodes(); //Total number of nodes
-            const Tpetra::global_size_t h = 0.5*getNumHangingNodes(); // Number of hanging nodes
+            const Tpetra::global_size_t h = getNumHangingNodes(); // Number of hanging nodes
             const Tpetra::global_size_t n = t - h;
-
             const esys_trilinos::GO indexBase = 0;
             Teuchos::RCP<const Teuchos::Comm<int>> comm = esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm);
             
@@ -2606,7 +2607,7 @@ void OxleyDomain::finaliseRhsworker(escript::Data& rhs,
         typedef Tpetra::Vector<>::global_ordinal_type global_ordinal_type;
         
         const Tpetra::global_size_t t = getNumNodes(); //Total number of nodes
-        const Tpetra::global_size_t h = 0.5*getNumHangingNodes(); // Number of hanging nodes
+        const Tpetra::global_size_t h = getNumHangingNodes(); // Number of hanging nodes
         const Tpetra::global_size_t n = t - h;
         const global_ordinal_type indexBase = 0;
         auto comm = esys_trilinos::TeuchosCommFromEsysComm(m_mpiInfo->comm);
