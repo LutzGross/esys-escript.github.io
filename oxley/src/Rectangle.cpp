@@ -1362,6 +1362,7 @@ void Rectangle::loadMesh(std::string filename)
     updateNodeIncrements();
     renumberNodes();
     updateRowsColumns();
+    updateNodeDistribution();
     updateElementIds();
     updateFaceOffset();
     updateFaceElementCount();
@@ -1425,6 +1426,7 @@ void Rectangle::refineMesh(std::string algorithmname)
     updateNodeIncrements();
     renumberNodes();
     updateRowsColumns();
+    updateNodeDistribution();
     updateElementIds();
     updateFaceOffset();
     updateFaceElementCount();
@@ -1494,6 +1496,7 @@ void Rectangle::refineBoundary(std::string boundaryname, double dx)
     updateNodeIncrements();
     renumberNodes();
     updateRowsColumns();
+    updateNodeDistribution();
     updateElementIds();
     updateFaceOffset();
     updateFaceElementCount();
@@ -1543,6 +1546,7 @@ void Rectangle::refineRegion(double x0, double x1, double y0, double y1)
     updateNodeIncrements();
     renumberNodes();
     updateRowsColumns();
+    updateNodeDistribution();
     updateElementIds();
     updateFaceOffset();
     updateFaceElementCount();
@@ -1591,6 +1595,7 @@ void Rectangle::refinePoint(double x0, double y0)
     updateNodeIncrements();
     renumberNodes();
     updateRowsColumns();
+    updateNodeDistribution(); //
     updateElementIds();
     updateFaceOffset();
     updateFaceElementCount();
@@ -1640,6 +1645,7 @@ void Rectangle::refineCircle(double x0, double y0, double r)
     updateNodeIncrements();
     renumberNodes();
     updateRowsColumns();
+    updateNodeDistribution();
     updateElementIds();
     updateFaceOffset();
     updateFaceElementCount();
@@ -1686,6 +1692,7 @@ void Rectangle::refineMask(escript::Data mask)
     updateNodeIncrements();
     renumberNodes();
     updateRowsColumns();
+    updateNodeDistribution();
     updateElementIds();
     updateFaceOffset();
     updateFaceElementCount();
@@ -2300,7 +2307,7 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
     }
 #ifdef OXLEY_ENABLE_DEBUG_ASSEMBLE_COORDINATES_POINTS
     std::cout << "assembleCoordinates new points are..." << std::endl;
-    for(int i = 0; i < getNumNodes()-getNumHangingNodes() ; i++)
+    for(int i = 0; i < getNumNodes() ; i++)
     {
         double * point = arg.getSampleDataRW(i);
         std::cout << i << ": " << point[0] << ", " << point[1] << std::endl;
@@ -2995,7 +3002,7 @@ inline dim_t Rectangle::getDofOfNode(dim_t node) const
 //protected
 inline dim_t Rectangle::getNumNodes() const
 {
-    return NodeIDs.size() + num_hanging;
+    return NodeIDs.size();
 }
 
 inline dim_t Rectangle::getNumHangingNodes() const
@@ -3097,7 +3104,7 @@ void Rectangle::updateRowsColumns()
     std::vector<std::vector<long>> * indices;
     indices = new std::vector<std::vector<long>>;
     long initial[] = {0, -1, -1, -1, -1};
-    indices->resize(getNumNodes()-getNumHangingNodes(), std::vector<long>(initial, initial+5));
+    indices->resize(getNumNodes(), std::vector<long>(initial, initial+5));
 
     #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
         std::cout << "updateRowsColumns" << std::endl;
@@ -3421,14 +3428,13 @@ void Rectangle::updateRowsColumns()
         idx0[0][4]=-1;
         hanging_faces.push_back(std::make_pair(nodeid,lni0));
         hanging_faces.push_back(std::make_pair(nodeid,lni1));
-        //asdf ae tmp
     }
 
     // update num_hanging
     num_hanging=hanging_faces.size() / 2; // each hanging node is counted twice in hanging_faces
 
     // Sorting
-    for(int i = 0; i < getNumNodes()-getNumHangingNodes(); i++)
+    for(int i = 0; i < getNumNodes(); i++)
     {
         std::vector<long> * idx0 = &indices[0][i];
         std::sort(indices[0][i].begin()+1, indices[0][i].begin()+idx0[0][0]+1);
@@ -3437,7 +3443,7 @@ void Rectangle::updateRowsColumns()
 #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS
     std::cout << "Node connections: " << std::endl;
     // Output for debugging
-    for(int i = 0; i < getNumNodes()-getNumHangingNodes(); i++){
+    for(int i = 0; i < getNumNodes(); i++){
         std::vector<long> * idx0 = &indices[0][i];
         std::cout << i << ": ";
         for(int j = 1; j < idx0[0][0]+1; j++)
@@ -3450,9 +3456,9 @@ void Rectangle::updateRowsColumns()
     myRows.clear();
     myRows.push_back(0);
     myColumns.clear();
-    m_dofMap.assign(getNumNodes()-getNumHangingNodes(), 0);
+    m_dofMap.assign(getNumNodes(), 0);
     long counter = 0;
-    for(int i = 0; i < getNumNodes()-getNumHangingNodes(); i++)
+    for(int i = 0; i < getNumNodes(); i++)
     {
         std::vector<long> * idx0 = &indices[0][i];
         std::vector<long> temp; 
@@ -3467,7 +3473,7 @@ void Rectangle::updateRowsColumns()
             myColumns.push_back(temp[i]);
         }
         m_dofMap[i] = counter-myRows[i];
-        if(i < getNumNodes()-getNumHangingNodes()-1)
+        if(i < getNumNodes()-1)
             myRows.push_back(counter);
     }
     myRows.push_back(myColumns.size());
@@ -3819,7 +3825,7 @@ std::vector<IndexVector> Rectangle::getConnections(bool includeShared) const
     // If includeShared==true then connections to non-owned DOFs are also
     // returned (i.e. indices of the column couplings)
 
-    long numNodes = getNumNodes()-getNumHangingNodes();
+    long numNodes = getNumNodes();
     std::vector< std::vector<escript::DataTypes::index_t> > indices(numNodes);
 
     // Loop over interior quadrants
@@ -3880,11 +3886,11 @@ std::vector<IndexVector> Rectangle::getConnections(bool includeShared) const
                                                     hanging_face_orientation[i].x, 
                                                     hanging_face_orientation[i].y, xy); 
         // These nodes are handled in the next loop
-        if( (xy[0] == forestData.m_origin[0]) ||
-            (xy[1] == forestData.m_origin[1]) ||
-            (xy[0] == forestData.m_lxy[0]) ||
-            (xy[1] == forestData.m_lxy[1]) )
-            continue;
+        // if( (xy[0] == forestData.m_origin[0]) ||
+        //     (xy[1] == forestData.m_origin[1]) ||
+        //     (xy[0] == forestData.m_lxy[0]) ||
+        //     (xy[1] == forestData.m_lxy[1]) )
+        //     continue;
 
         long nodeid = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
  
@@ -3910,79 +3916,79 @@ std::vector<IndexVector> Rectangle::getConnections(bool includeShared) const
         indices[lni1].push_back(nodeid);
     }    
 
-    for(int i = 0; i < hanging_face_orientation.size(); i++)
-    {       
-        // Calculate the node ids
-        double xy[3]={0};
-        p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, 
-                                                    hanging_face_orientation[i].x, 
-                                                    hanging_face_orientation[i].y, xy); 
+    // for(int i = 0; i < hanging_face_orientation.size(); i++)
+    // {       
+    //     // Calculate the node ids
+    //     double xy[3]={0};
+    //     p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, 
+    //                                                 hanging_face_orientation[i].x, 
+    //                                                 hanging_face_orientation[i].y, xy); 
         
-        bool boundary[4];
-        boundary[0]  = xy[1] == forestData.m_lxy[1];
-        boundary[1]  = xy[1] == forestData.m_origin[1];
-        boundary[2]  = xy[0] == forestData.m_lxy[0];
-        boundary[3]  = xy[0] == forestData.m_origin[0];
+    //     bool boundary[4];
+    //     boundary[0]  = xy[1] == forestData.m_lxy[1];
+    //     boundary[1]  = xy[1] == forestData.m_origin[1];
+    //     boundary[2]  = xy[0] == forestData.m_lxy[0];
+    //     boundary[3]  = xy[0] == forestData.m_origin[0];
         
-        bool hangingBorderNode = boundary[0] || boundary[1] || boundary[2] || boundary[3];
-        if( !hangingBorderNode ) 
-            continue;
+    //     bool hangingBorderNode = boundary[0] || boundary[1] || boundary[2] || boundary[3];
+    //     if( !hangingBorderNode ) 
+    //         continue;
 
-        // parameters needed below
-        int dir;
-        for(int j = 0; j<4; j++)
-            if(boundary[j] == true)
-            {
-                dir=j;
-                break;
-            }
+    //     // parameters needed below
+    //     int dir;
+    //     for(int j = 0; j<4; j++)
+    //         if(boundary[j] == true)
+    //         {
+    //             dir=j;
+    //             break;
+    //         }
 
-        int position=hanging_face_orientation[i].position;
+    //     int position=hanging_face_orientation[i].position;
 
-        // This node's id
-        long nodeid = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+    //     // This node's id
+    //     long nodeid = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
 
-        // then lni0 lni1
-        p4est_qcoord_t l = P4EST_QUADRANT_LEN(hanging_face_orientation[i].neighbour_l);
-        // int dx[4][2]=  {{0,0},{0,0},{l,0},{0,l}};
-        // int dy[4][2]=  {{l,0},{0,l},{l,l},{l,l}};
+    //     // then lni0 lni1
+    //     p4est_qcoord_t l = P4EST_QUADRANT_LEN(hanging_face_orientation[i].neighbour_l);
+    //     // int dx[4][2]=  {{0,0},{0,0},{l,0},{0,l}};
+    //     // int dy[4][2]=  {{l,0},{0,l},{l,l},{l,l}};
 
-        // p4est_qcoord_to_vertex(p4est->connectivity, parent.tree, 
-        //                         parent->x+dxy[0][dir], 
-        //                         parent->y+dxy[1][dir], xy);
-        // long lni0 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-        // p4est_qcoord_to_vertex(p4est->connectivity, parent.tree, 
-        //                         parent->x+dxy[0][dir], 
-        //                         parent->y+dxy[1][dir], xy);
-        // long lni1 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+    //     // p4est_qcoord_to_vertex(p4est->connectivity, parent.tree, 
+    //     //                         parent->x+dxy[0][dir], 
+    //     //                         parent->y+dxy[1][dir], xy);
+    //     // long lni0 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+    //     // p4est_qcoord_to_vertex(p4est->connectivity, parent.tree, 
+    //     //                         parent->x+dxy[0][dir], 
+    //     //                         parent->y+dxy[1][dir], xy);
+    //     // long lni1 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
 
-        // get the center
-        // int dxy2[2][4] 
+    //     // get the center
+    //     // int dxy2[2][4] 
 
-        // 0
-        // 1,1
-        // 1
-        // -1,1
-        // 2
-        // 1,-1
-        // 3
-        // 0,0
+    //     // 0
+    //     // 1,1
+    //     // 1
+    //     // -1,1
+    //     // 2
+    //     // 1,-1
+    //     // 3
+    //     // 0,0
         
 
-        // p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].neighbour_tree, 
-        //                         parent.x+dxy[0][position], 
-        //                         parent.y+dxy[1][position], xy);
-        // long lni2 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+    //     // p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].neighbour_tree, 
+    //     //                         parent.x+dxy[0][position], 
+    //     //                         parent.y+dxy[1][position], xy);
+    //     // long lni2 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
 
-        // // add info 
-        // indices[nodeid].push_back(lni0);
-        // indices[nodeid].push_back(lni1);
-        // // indices[nodeid].push_back(lni2);
+    //     // // add info 
+    //     // indices[nodeid].push_back(lni0);
+    //     // indices[nodeid].push_back(lni1);
+    //     // // indices[nodeid].push_back(lni2);
 
-        // indices[lni0].push_back(nodeid);
-        // indices[lni1].push_back(nodeid);
-        // // indices[lni2].push_back(nodeid);
-    }    
+    //     // indices[lni0].push_back(nodeid);
+    //     // indices[lni1].push_back(nodeid);
+    //     // // indices[lni2].push_back(nodeid);
+    // }    
 
 // Sorting
     for(int i = 0; i < numNodes; i++){

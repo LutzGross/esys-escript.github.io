@@ -1264,7 +1264,7 @@ esys_trilinos::TrilinosGraph_ptr OxleyDomain::createTrilinosGraph(
     using namespace esys_trilinos;
 
     // const dim_t numMatrixRows = getNumDOF();
-    const dim_t numMatrixRows = getNumNodes() - getNumHangingNodes();
+    const dim_t numMatrixRows = getNumNodes();
 
     IndexVector rowTemp(numMatrixRows);
     // if(getMPISize() == 1)
@@ -1855,7 +1855,7 @@ void OxleyDomain::makeZ(bool complex)
         }
         else // real
         {
-            int numEntries = h;
+            int numEntries = t;
             zrrowMap   = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) numEntries, indexBase, comm));
             zrcolMap   = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) numEntries, indexBase, comm));
             zdomainMap = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) n, indexBase, comm)); //correct
@@ -2113,8 +2113,9 @@ void OxleyDomain::makeIZ(bool complex)
         }
         else
         {
-            izrrowMap   = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) t, indexBase, comm));
-            izrcolMap   = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) t, indexBase, comm));
+            int numEntries=t;
+            izrrowMap   = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) numEntries, indexBase, comm));
+            izrcolMap   = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) numEntries, indexBase, comm));
             izdomainMap = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) n, indexBase, comm));
             izrangeMap  = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) t, indexBase, comm));
 
@@ -2309,7 +2310,7 @@ void OxleyDomain::finaliseAworker(escript::AbstractSystemMatrix& mat,
     {
         escript::AbstractSystemMatrix * pMat = &mat;
         esys_trilinos::TrilinosMatrixAdapter * m = dynamic_cast<esys_trilinos::TrilinosMatrixAdapter*>(pMat);
-        m->IztAIz(IZ, getNumNodes()-getNumHangingNodes());
+        m->IztAIz(IZ, getNumNodes());
     }
 }
 #endif
