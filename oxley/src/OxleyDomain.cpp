@@ -19,6 +19,7 @@
 #include <oxley/OxleyDomain.h>
 #include <oxley/OxleyData.h>
 
+
 #include <escript/Data.h>
 #include <escript/DataExpanded.h>
 #include <escript/DataFactory.h>
@@ -1090,7 +1091,7 @@ namespace oxley {
                                              const IndexVector& nodes, dim_t numEq,
                                              const vector<cplx_t>& array) const
     {
-    #ifdef ESYS_HAVE_MUMPS
+    #if defined(ESYS_HAVE_MUMPS) && defined(ESYS_HAVE_PASO)
         paso::SystemMatrix<cplx_t>* psm = dynamic_cast<paso::SystemMatrix<cplx_t>*>(mat);
         if (psm) {
             addToPasoMatrix(psm, nodes, numEq, array);
