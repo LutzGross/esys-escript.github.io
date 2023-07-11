@@ -133,6 +133,7 @@ vars.AddVariables(
   ('trilinos_make', 'path to shell script to run trilinos make.', 'default'),
   ('trilinos_prefix', 'Prefix/Paths to Trilinos installation', default_prefix),
   ('trilinos_libs', 'Trilinos libraries to link with', []),
+  PathVariable('trilinos_build', 'Top-level build directory for trilinos', Dir('#/trilinos_build').abspath, PathVariable.PathIsDirCreate),
   BoolVariable('visit', 'Enable the VisIt simulation interface', False),
   ('visit_prefix', 'Prefix/Paths to VisIt installation', default_prefix),
   ('visit_libs', 'VisIt libraries to link with', ['simV2']),
@@ -463,15 +464,15 @@ elif cxx_name == 'mpiicpc':
     sysheaderopt = "-isystem"
 
 if not ( env['build_trilinos'] == "False" or env['build_trilinos'] == 'never' ):
-    TRILINOS_BUILD='trilinos_build'
     env['trilinos_prefix']=os.path.join(env['prefix'],'escript_trilinos')
-    env['trilinos_build'] = os.path.join(env['prefix'],TRILINOS_BUILD)
     print("")
     if not env['cc'] == 'default ':
         os.environ['CC'] = env['cc']
     if not env['cxx'] == 'default ':
         os.environ['CXX'] = env['cxx']
     startdir=os.getcwd()
+    if os.path.isdir(env['trilinos_build']) is False: # create a build folder if the user deleted it
+        os.mkdir(env['trilinos_build'])
     os.chdir(env['trilinos_build'])
     if env['openmp']:
         OPENMPFLAG='ON'
@@ -484,11 +485,17 @@ if not ( env['build_trilinos'] == "False" or env['build_trilinos'] == 'never' ):
     print(env['CXX'])
     if env['trilinos_make'] == 'default':
         if env['mpi'] not in [ 'none', 'no', True]:
+            source=startdir+"/scripts/trilinos_mpi.sh"
+            dest=env['trilinos_build'] + "/trilinos_mpi.sh"
+            shutil.copy(source,dest)
             print("Building (MPI) trilinos..............................")
-            configure="sh mpi.sh " + env['prefix'] + " " + env['CC'] + " " + env['CXX'] + " " + OPENMPFLAG
+            configure="sh trilinos_mpi.sh " + env['prefix'] + " " + env['CC'] + " " + env['CXX'] + " " + OPENMPFLAG
         else:
+            source=startdir+"/scripts/trilinos_nompi.sh"
+            dest=env['trilinos_build'] + "/trilinos_nompi.sh"
+            shutil.copy(source,dest)
             print("Building (no MPI) trilinos..............................")
-            configure="sh nompi.sh " + env['prefix'] + " " + env['CC'] + " " + env['CXX'] + " " + OPENMPFLAG
+            configure="sh trilinos_nompi.sh " + env['prefix'] + " " + env['CC'] + " " + env['CXX'] + " " + OPENMPFLAG
     else:
         shutil.copy(env['trilinos_make'], "hostmake.sh")
         configure="sh hostmake.sh " + env['prefix'] + " " + env['CC'] + " " + env['CXX'] + " " + OPENMPFLAG
