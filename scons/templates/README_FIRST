@@ -246,6 +246,9 @@ trilinos = True
   Whether to enable support for the Trilinos solver stack. [new in 203]
   DEFAULT: False
 
+trilinos_build = '/usr/trilinos_build'
+  The build directory for Trilinos
+
 trilinos_prefix = '/usr/local'
   Prefix or paths to Trilinos headers and libraries. See note above.
 
