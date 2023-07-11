@@ -3,7 +3,7 @@
 rm -f CMakeCache.txt
 
 TRI_INSTALL_PREFIX=$1"/escript_trilinos"
-
+env
 cmake \
       -D CMAKE_INSTALL_PREFIX=$TRI_INSTALL_PREFIX \
       -D Trilinos_ENABLE_CXX11=ON \
@@ -11,14 +11,14 @@ cmake \
       -D CMAKE_CXX_FLAGS=" " \
       -D CMAKE_C_COMPILER=$2 \
       -D CMAKE_CXX_COMPILER=$3 \
+      -D Trilinos_ENABLE_OpenMP:BOOL=$4 \
       -D BUILD_SHARED_LIBS=ON \
       -D TPL_ENABLE_BLAS=ON \
       -D TPL_ENABLE_Boost=ON \
       -D TPL_ENABLE_Cholmod=ON \
-      -D TPL_ENABLE_SCALAPACK=OFF \
-      -D SCALAPACK_LIBRARY_NAMES='libscalapack-openmpi.so' \
+      -D TPL_ENABLE_SCALAPACK=ON \
       -D TPL_ENABLE_ParMETIS=OFF \
-      -D TPL_ENABLE_MUMPS=OFF \
+      -D TPL_ENABLE_MUMPS=ON \
       -D TPL_ENABLE_SuperLU=OFF \
       -D TPL_ENABLE_UMFPACK=OFF \
       -D TPL_BLAS_INCLUDE_DIRS=/usr/include/suitesparse \
@@ -48,9 +48,12 @@ cmake \
       -D Tpetra_ENABLE_DEPRECATED_CODE=ON \
       -D Trilinos_ENABLE_OpenMP=ON \
       -D TPL_ENABLE_MPI=ON \
+      -D TPL_ENABLE_OpenMP=$4 \
       -D Trilinos_ENABLE_EXPLICIT_INSTANTIATION=ON \
       -D Kokkos_ENABLE_COMPILER_WARNINGS=ON \
       -D Amesos2_ENABLE_Basker=ON \
       -D Tpetra_INST_SERIAL:BOOL=ON \
       -D Trilinos_ENABLE_TESTS=OFF \
       ../trilinos_source
+#      -D SCALAPACK_LIBRARY_NAMES='libscalapack-openmpi.so' \
+#      -D SCALAPACK_LIBRARY_NAMES='libscalapack' \
