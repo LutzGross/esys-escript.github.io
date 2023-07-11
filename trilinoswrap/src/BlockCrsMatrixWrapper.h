@@ -75,6 +75,8 @@ public:
     void saveMM(const std::string& filename) const;
 
     void IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT>> IZ, long n) ;
+    int getNumRows();
+    int getNumCols();
 
 
 private:

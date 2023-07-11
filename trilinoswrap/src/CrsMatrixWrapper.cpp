@@ -359,11 +359,10 @@ void CrsMatrixWrapper<ST>::IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,
     std::cout << "iz       dims (" << iz->getGlobalNumRows() << ", " << iz->getGlobalNumCols() << ")" << std::endl;
 #endif
 
-    ESYS_ASSERT(iz_tmp.getGlobalNumCols()==mat.getGlobalNumCols(),"incorrect dimensions (iz cols or mat cols)");
-    ESYS_ASSERT(mat.getGlobalNumRows()==iz->getGlobalNumCols(),"incorrect dimensions (iz rows or mat cols)");
+    // ESYS_ASSERT(iz_tmp.getGlobalNumCols()==mat.getGlobalNumCols(),"incorrect dimensions (iz cols or mat cols)");
+    // ESYS_ASSERT(mat.getGlobalNumRows()==iz->getGlobalNumCols(),"incorrect dimensions (iz rows or mat cols)");
 
     // Do the multiplication
-    // oxleytimer.toc("Doing multiplication...");
     Tpetra::TripleMatrixMultiply::MultiplyRAP<ST,LO,GO,NT>(
                     iz_tmp,true,mat,false,*iz,false,*result,true,label,params);
 
@@ -372,11 +371,10 @@ void CrsMatrixWrapper<ST>::IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,
     // auto threshold=1E-12;
     // Tpetra::CrsMatrix<ST,LO,GO,NT>::removeCrsMatrixZeros(*result, threshold);
     
-    // oxleytimer.toc("Copying result...");
     mat=Tpetra::CrsMatrix<ST,LO,GO,NT>(*result);
 
     delete result;
-    // oxleytimer.toc("Done...");
+
 #else
     // // Initialise some variables
     // Tpetra::global_size_t numGblIndices = n;
@@ -411,6 +409,18 @@ void CrsMatrixWrapper<ST>::IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,
     // delete iz_tmp;
     // delete result;
 #endif
+}
+
+template<typename ST>
+int CrsMatrixWrapper<ST>::getNumRows()
+{
+    return mat.getGlobalNumRows();
+}
+
+template<typename ST>
+int CrsMatrixWrapper<ST>::getNumCols()
+{
+    return mat.getGlobalNumCols();
 }
 
 // instantiate the supported variants

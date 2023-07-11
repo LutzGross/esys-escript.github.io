@@ -19,6 +19,7 @@
 #include <oxley/OxleyDomain.h>
 #include <oxley/OxleyData.h>
 
+
 #include <escript/Data.h>
 #include <escript/DataExpanded.h>
 #include <escript/DataFactory.h>
@@ -1090,7 +1091,7 @@ namespace oxley {
                                              const IndexVector& nodes, dim_t numEq,
                                              const vector<cplx_t>& array) const
     {
-    #ifdef ESYS_HAVE_MUMPS
+    #if defined(ESYS_HAVE_MUMPS) && defined(ESYS_HAVE_PASO)
         paso::SystemMatrix<cplx_t>* psm = dynamic_cast<paso::SystemMatrix<cplx_t>*>(mat);
         if (psm) {
             addToPasoMatrix(psm, nodes, numEq, array);
@@ -2310,7 +2311,9 @@ void OxleyDomain::finaliseAworker(escript::AbstractSystemMatrix& mat,
     {
         escript::AbstractSystemMatrix * pMat = &mat;
         esys_trilinos::TrilinosMatrixAdapter * m = dynamic_cast<esys_trilinos::TrilinosMatrixAdapter*>(pMat);
-        m->IztAIz(IZ, getNumNodes());
+        bool needs_update = m->getNumRows() != (getNumNodes() - getNumHangingNodes());
+        if(needs_update)
+            m->IztAIz(IZ, getNumNodes());
     }
 }
 #endif
@@ -2549,12 +2552,13 @@ escript::Data OxleyDomain::finaliseRhs(escript::Data& rhs)
             }
             // rhs=rhs_new;
             oxleytime.toc("finaliseRhs... done.");
-            return rhs_new;
-
+            
             #ifdef OXLEY_PRINT_DEBUG_IZ_RESULT
                 std::cout << "Final rhs" << std::endl;
                 rhs.print();
             #endif
+
+            return rhs_new;
         }
     }
     else

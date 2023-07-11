@@ -212,6 +212,52 @@ void TrilinosMatrixAdapter::saveHB(const std::string& filename) const
     throw escript::NotImplementedError("Harwell-Boeing interface not available.");
 }
 
+int TrilinosMatrixAdapter::getNumRows()
+{
+    if (m_isComplex)
+        return getNumRowsWorkerCplx();
+    else
+        return getNumRowsWorkerRealx();
+}
+
+int TrilinosMatrixAdapter::getNumRowsWorkerCplx()
+{
+    AbstractMatrixWrapper<cplx_t> * ptr = nullptr;
+    ptr=cmat.get();
+    return ptr->getNumRows();
+}
+
+int TrilinosMatrixAdapter::getNumRowsWorkerRealx()
+{
+    AbstractMatrixWrapper<real_t> * ptr = nullptr;
+    ptr=mat.get();
+    return ptr->getNumRows();
+}
+
+int TrilinosMatrixAdapter::getNumCols()
+{
+    if (m_isComplex)
+        return getNumColsWorkerCplx();
+    else
+        return getNumColsWorkerRealx();
+}
+
+int TrilinosMatrixAdapter::getNumColsWorkerCplx()
+{
+    AbstractMatrixWrapper<cplx_t> * ptr = nullptr;
+    ptr=cmat.get();
+    return ptr->getNumCols();
+}
+
+int TrilinosMatrixAdapter::getNumColsWorkerRealx()
+{
+    AbstractMatrixWrapper<real_t> * ptr = nullptr;
+    ptr=mat.get();
+    return ptr->getNumCols();
+}
+
+
+
 }  // end of namespace
 
 
