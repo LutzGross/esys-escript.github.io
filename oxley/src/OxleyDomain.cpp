@@ -2310,7 +2310,9 @@ void OxleyDomain::finaliseAworker(escript::AbstractSystemMatrix& mat,
     {
         escript::AbstractSystemMatrix * pMat = &mat;
         esys_trilinos::TrilinosMatrixAdapter * m = dynamic_cast<esys_trilinos::TrilinosMatrixAdapter*>(pMat);
-        m->IztAIz(IZ, getNumNodes());
+        bool needs_update = m->getNumRows() != (getNumNodes() - getNumHangingNodes());
+        if(needs_update)
+            m->IztAIz(IZ, getNumNodes());
     }
 }
 #endif
@@ -2549,12 +2551,13 @@ escript::Data OxleyDomain::finaliseRhs(escript::Data& rhs)
             }
             // rhs=rhs_new;
             oxleytime.toc("finaliseRhs... done.");
-            return rhs_new;
-
+            
             #ifdef OXLEY_PRINT_DEBUG_IZ_RESULT
                 std::cout << "Final rhs" << std::endl;
                 rhs.print();
             #endif
+
+            return rhs_new;
         }
     }
     else

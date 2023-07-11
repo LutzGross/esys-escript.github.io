@@ -387,6 +387,19 @@ void BlockCrsMatrixWrapper<ST>::IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,L
 // #endif
 }
 
+template<typename ST>
+int BlockCrsMatrixWrapper<ST>::getNumRows()
+{
+    return mat.getGlobalNumRows();
+}
+
+template<typename ST>
+int BlockCrsMatrixWrapper<ST>::getNumCols()
+{
+    return mat.getGlobalNumCols();
+}
+
+
 // instantiate
 template class BlockCrsMatrixWrapper<real_t>;
 template class BlockCrsMatrixWrapper<cplx_t>;

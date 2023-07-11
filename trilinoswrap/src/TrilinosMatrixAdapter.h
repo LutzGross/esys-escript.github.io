@@ -91,6 +91,13 @@ public:
     template<typename ST>
     void IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT>> IZ, long n);
 
+    int getNumRows();
+    int getNumRowsWorkerCplx();
+    int getNumRowsWorkerRealx();
+    int getNumCols();
+    int getNumColsWorkerCplx();
+    int getNumColsWorkerRealx();
+
     inline int getBlockSize() const { return getRowBlockSize(); }
 
 private:

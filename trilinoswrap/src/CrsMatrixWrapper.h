@@ -72,6 +72,8 @@ public:
 
     // Used by Oxley
     void IztAIz(const Teuchos::RCP<Tpetra::CrsMatrix<ST,LO,GO,NT>> IZ, long n);
+    int getNumRows();
+    int getNumCols();
     void add_single(const LO row, const LO col, const ST value);
 
 protected:
