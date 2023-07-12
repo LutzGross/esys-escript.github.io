@@ -2496,6 +2496,22 @@ escript::Data OxleyDomain::finaliseRhs(escript::Data& rhs)
 
             #ifdef OXLEY_ENABLE_DEBUG_IZ_EXTRA
                 #ifdef ESYS_TRILINOS_14
+                    rhs.print();
+                    std::cout << "f: " << std::endl; 
+                    typedef typename Tpetra::MultiVector<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>::dual_view_type::host_mirror_space host_execution_space;
+                    auto tmpa_result_view = fr.getLocalView<host_execution_space>(Tpetra::Access::ReadOnly);
+                    auto tmpa_result_view_1d = Kokkos::subview(tmpa_result_view, Kokkos::ALL(), 0);
+                    for(int i = 0; i < n; i++)
+                        std::cout << "[" << i << ":" << tmpa_result_view_1d(i) << "]";
+                    std::cout << std::endl;
+                    std::cout << "g: " << std::endl;
+                    auto tmpb_result_view = gr.getLocalView<host_execution_space>(Tpetra::Access::ReadOnly);
+                    auto tmpb_result_view_1d = Kokkos::subview(tmpb_result_view, Kokkos::ALL(), 0);
+                    for(int i = 0; i < h; i++)
+                        std::cout << "[" << i << ":" << tmpb_result_view_1d(i) << "]";
+                    std::cout << std::endl;
+                    std::cout << "rZ has dimensions " << rZ->getGlobalNumRows() << "x" << rZ->getGlobalNumCols() << std::endl;
+                    std::cout << "Performing the multiplication" << std::endl;
                 #else
                     rhs.print();
                     std::cout << "f: " << std::endl;
@@ -2598,7 +2614,7 @@ template<typename S>
 void OxleyDomain::finaliseRhsworker(escript::Data& rhs, 
         Teuchos::RCP<Tpetra::CrsMatrix<S,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>>& Z)
 {
-    #ifdef OXLEY_PRINT_DEBUG_ADDTOSYSTEM
+    #ifdef OXLEY_ENABLE_DEBUG_FINALISE_RHS_WORKER
         std::cout << "Before" << std::endl;
         rhs.print();
     #endif
@@ -2623,9 +2639,6 @@ void OxleyDomain::finaliseRhsworker(escript::Data& rhs,
         Tpetra::MultiVector<S,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> f(f_map,true);
         Tpetra::MultiVector<S,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT> g(g_map,true);
 
-        // std::cout << f.description() << std::endl;
-        // std::cout << g.description() << std::endl;
-
         // f.modify();
         #pragma omp parallel for
         for(int i = 0; i < n; i++)
@@ -2644,9 +2657,11 @@ void OxleyDomain::finaliseRhsworker(escript::Data& rhs,
             g.replaceGlobalValue(gblrow,1,value[0]);
         }
 
-        // std::cout << f.description() << std::endl;
-        // std::cout << g.description() << std::endl;
-        
+        #ifdef OXLEY_ENABLE_DEBUG_FINALISE_RHS_WORKER_EXTRA
+        std::cout << f.description() << std::endl;
+        std::cout << g.description() << std::endl;
+        #endif
+
         // get Z
         // Teuchos::RCP<Teuchos::ParameterList> params = Teuchos::parameterList();
         // params->set("No Nonlocal Changes", false);
@@ -2654,9 +2669,6 @@ void OxleyDomain::finaliseRhsworker(escript::Data& rhs,
         // do the multiplication
         const scalar_type one = static_cast<scalar_type> (1.0);
         Z->apply(g,f,Teuchos::TRANS,one,one);
-
-        // std::cout << f.description() << std::endl;
-        // std::cout << g.description() << std::endl;
         
         // f.sync();
         auto result_view = f.getLocalViewHost();
@@ -2676,7 +2688,7 @@ void OxleyDomain::finaliseRhsworker(escript::Data& rhs,
         rhs.expand();
     }
 
-    #ifdef OXLEY_PRINT_DEBUG_ADDTOSYSTEM
+    #ifdef OXLEY_ENABLE_DEBUG_FINALISE_RHS_WORKER
         std::cout << "After" << std::endl;
         rhs.print();
     #endif
