@@ -2379,22 +2379,55 @@ escript::Data OxleyDomain::finaliseRhs(escript::Data& rhs)
 
             // const scalar_type one = static_cast<scalar_type> (1.0);
 
-            #ifdef OXLEY_PRINT_DEBUG_IZ
+            #ifdef OXLEY_ENABLE_DEBUG_IZ_EXTRA
                 #ifdef ESYS_TRILINOS_14
+                    rhs.print();
+                    std::cout << "f: " << std::endl; 
+                    typedef typename Tpetra::MultiVector<real_t,esys_trilinos::LO,esys_trilinos::GO,esys_trilinos::NT>::dual_view_type::host_mirror_space host_execution_space;
+                    auto tmpa_result_view = fc.getLocalView<host_execution_space>(Tpetra::Access::ReadOnly);
+                    auto tmpa_result_view_1d = Kokkos::subview(tmpa_result_view, Kokkos::ALL(), 0);
+                    for(int i = 0; i < n; i++)
+                    {
+                        std::cout << "[" << i << ":" << tmpa_result_view_1d(i) << "]";
+                        if(i < n-1)
+                            std::cout << std::endl;
+                    }
+                    std::cout << std::endl;
+                    std::cout << "g: " << std::endl;
+                    auto tmpb_result_view = gc.getLocalView<host_execution_space>(Tpetra::Access::ReadOnly);
+                    auto tmpb_result_view_1d = Kokkos::subview(tmpb_result_view, Kokkos::ALL(), 0);
+                    for(int i = 0; i < h; i++)
+                    {
+                        std::cout << "[" << i << ":" << tmpb_result_view_1d(i) << "]";
+                        if(i < n-1)
+                            std::cout << std::endl;
+                    }
+                    std::cout << std::endl;
+                    std::cout << "cZ has dimensions " << cZ->getGlobalNumRows() << "x" << cZ->getGlobalNumCols() << std::endl;
+                    std::cout << "Performing the multiplication" << std::endl;
                 #else
                     rhs.print();
                     std::cout << "f: " << std::endl;
                     auto tmpa_result_view = fc.getLocalViewHost();
                     auto tmpa_result_view_1d = Kokkos::subview(tmpa_result_view, Kokkos::ALL(), 0);
                     for(int i = 0; i < n; i++)
+                    {
                         std::cout << "[" << i << ":" << tmpa_result_view_1d(i) << "]";
+                        if(i < n-1)
+                            std::cout << std::endl;
+                    }
                     std::cout << std::endl;
                     std::cout << "g: " << std::endl;
                     auto tmpb_result_view = gc.getLocalViewHost();
                     auto tmpb_result_view_1d = Kokkos::subview(tmpb_result_view, Kokkos::ALL(), 0);
                     for(int i = 0; i < h; i++)
+                    {
                         std::cout << "[" << i << ":" << tmpb_result_view_1d(i) << "]";
+                        if(i < n-1)
+                            std::cout << std::endl;
+                    }
                     std::cout << std::endl;
+                    std::cout << "cZ has dimensions " << cZ->getGlobalNumRows() << "x" << cZ->getGlobalNumCols() << std::endl;
                     std::cout << "Performing the multiplication" << std::endl;
                 #endif
             #endif
@@ -2502,13 +2535,21 @@ escript::Data OxleyDomain::finaliseRhs(escript::Data& rhs)
                     auto tmpa_result_view = fr.getLocalView<host_execution_space>(Tpetra::Access::ReadOnly);
                     auto tmpa_result_view_1d = Kokkos::subview(tmpa_result_view, Kokkos::ALL(), 0);
                     for(int i = 0; i < n; i++)
+                    {
                         std::cout << "[" << i << ":" << tmpa_result_view_1d(i) << "]";
+                        if(i < n-1)
+                            std::cout << std::endl;
+                    }
                     std::cout << std::endl;
                     std::cout << "g: " << std::endl;
                     auto tmpb_result_view = gr.getLocalView<host_execution_space>(Tpetra::Access::ReadOnly);
                     auto tmpb_result_view_1d = Kokkos::subview(tmpb_result_view, Kokkos::ALL(), 0);
                     for(int i = 0; i < h; i++)
+                    {
                         std::cout << "[" << i << ":" << tmpb_result_view_1d(i) << "]";
+                        if(i < n-1)
+                            std::cout << std::endl;
+                    }
                     std::cout << std::endl;
                     std::cout << "rZ has dimensions " << rZ->getGlobalNumRows() << "x" << rZ->getGlobalNumCols() << std::endl;
                     std::cout << "Performing the multiplication" << std::endl;
@@ -2518,13 +2559,21 @@ escript::Data OxleyDomain::finaliseRhs(escript::Data& rhs)
                     auto tmpa_result_view = fr.getLocalViewHost();
                     auto tmpa_result_view_1d = Kokkos::subview(tmpa_result_view, Kokkos::ALL(), 0);
                     for(int i = 0; i < n; i++)
+                    {
                         std::cout << "[" << i << ":" << tmpa_result_view_1d(i) << "]";
+                        if(i < n-1)
+                            std::cout << std::endl;
+                    }
                     std::cout << std::endl;
                     std::cout << "g: " << std::endl;
                     auto tmpb_result_view = gr.getLocalViewHost();
                     auto tmpb_result_view_1d = Kokkos::subview(tmpb_result_view, Kokkos::ALL(), 0);
                     for(int i = 0; i < h; i++)
+                    {
                         std::cout << "[" << i << ":" << tmpb_result_view_1d(i) << "]";
+                        if(i < n-1)
+                            std::cout << std::endl;
+                    }
                     std::cout << std::endl;
                     std::cout << "rZ has dimensions " << rZ->getGlobalNumRows() << "x" << rZ->getGlobalNumCols() << std::endl;
                     std::cout << "Performing the multiplication" << std::endl;
