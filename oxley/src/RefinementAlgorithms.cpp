@@ -17,6 +17,8 @@
 #include <random>
 #include <vector>
 
+#include <escript/Assert.h>
+
 #include <oxley/RefinementAlgorithms.h>
 #include <oxley/OtherAlgorithms.h>
 #include <oxley/OxleyData.h>
@@ -166,56 +168,110 @@ int refine_random(p8est_t * p4est, p4est_topidx_t tree, p8est_quadrant_t * quadr
 // Boundaries
 int refine_north(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
 {
+    // pointers
     p4estData * forestData = (p4estData *) p4est->user_pointer;
-    double dx = forestData->refinement_depth;
-    double domain_length = forestData->m_length[1];
-
     quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
     double * xy = quadData->xy;
 
-    return     (xy[1] <= domain_length) 
-            && (xy[1] >= domain_length - dx - 1)
-            && (quadrant->level < forestData->max_levels_refinement);
+    // refine everything to the right 
+    double dx = forestData->refinement_depth;
+    double domain_length = forestData->m_length[0];
+    double y = domain_length - dx;
+
+    // ne spatial coordinate
+    p4est_qcoord_t l = P4EST_QUADRANT_LEN(quadrant->level);
+    double xyE[3] = {-1};
+    ESYS_ASSERT(quadData->treeid!=-1, "refine_north: invalid treeid");
+    p4est_qcoord_to_vertex(p4est->connectivity, quadData->treeid, 
+                                    quadrant->x+l, quadrant->y+l, xyE);
+
+
+    bool do_refinement = ((xy[1] > y) // to the north of the line
+                        || (xyE[1] == domain_length)) // or on boundary
+                        && (quadrant->level < forestData->max_levels_refinement); // above the limit
+
+    return do_refinement;
 }
 
 int refine_south(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
 {
+    // pointers
     p4estData * forestData = (p4estData *) p4est->user_pointer;
-    double dx = forestData->refinement_depth;
-
     quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
     double * xy = quadData->xy;
 
-    return     (xy[1] >= 0) 
-            && (xy[1] <= dx) 
-            && (quadrant->level < forestData->max_levels_refinement);
+    // refine everything to the right 
+    double dx = forestData->refinement_depth;
+    double domain_length = forestData->m_length[0];
+    double y = dx;
+
+    // ne spatial coordinate
+    p4est_qcoord_t l = P4EST_QUADRANT_LEN(quadrant->level);
+    double xyE[3] = {-1};
+    ESYS_ASSERT(quadData->treeid!=-1, "refine_south: invalid treeid");
+    p4est_qcoord_to_vertex(p4est->connectivity, quadData->treeid, 
+                                    quadrant->x+l, quadrant->y+l, xyE);
+
+
+    bool do_refinement = ((xy[1] < y) // to the south of the line
+                        || (xy[1] == 0)) // or on boundary
+                        && (quadrant->level < forestData->max_levels_refinement); // above the limit
+
+    return do_refinement;
 }
 
 int refine_east(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
 {
+    // pointers
     p4estData * forestData = (p4estData *) p4est->user_pointer;
-    double dx = forestData->refinement_depth;
-    double domain_length = forestData->m_length[0];
-
     quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
     double * xy = quadData->xy;
 
-    return     (xy[0] <= domain_length) 
-            && (xy[0] >= domain_length - dx - 1)
-            && (quadrant->level < forestData->max_levels_refinement);
+    // refine everything to the right 
+    double dx = forestData->refinement_depth;
+    double domain_length = forestData->m_length[0];
+    double y = domain_length - dx;
+
+    // ne spatial coordinate
+    p4est_qcoord_t l = P4EST_QUADRANT_LEN(quadrant->level);
+    double xyE[3] = {-1};
+    ESYS_ASSERT(quadData->treeid!=-1, "refine_east: invalid treeid");
+    p4est_qcoord_to_vertex(p4est->connectivity, quadData->treeid, 
+                                    quadrant->x+l, quadrant->y+l, xyE);
+
+
+    bool do_refinement = ((xy[0] > y) // to the right of the line
+                        || (xyE[0] == domain_length)) // or on boundary
+                        && (quadrant->level < forestData->max_levels_refinement); // above the limit
+
+    return do_refinement;
 }
 
 int refine_west(p4est_t * p4est, p4est_topidx_t tree, p4est_quadrant_t * quadrant)
 {
+    // pointers
     p4estData * forestData = (p4estData *) p4est->user_pointer;
-    double dx = forestData->refinement_depth;
-
     quadrantData * quadData = (quadrantData *) quadrant->p.user_data;
     double * xy = quadData->xy;
 
-    return     (xy[0] >= 0) 
-            && (xy[0] <= dx) 
-            && (quadrant->level < forestData->max_levels_refinement);
+    // refine everything to the right 
+    double dx = forestData->refinement_depth;
+    double domain_length = forestData->m_length[0];
+    double y = dx;
+
+    // ne spatial coordinate
+    p4est_qcoord_t l = P4EST_QUADRANT_LEN(quadrant->level);
+    double xyE[3] = {-1};
+    ESYS_ASSERT(quadData->treeid!=-1, "refine_west: invalid treeid");
+    p4est_qcoord_to_vertex(p4est->connectivity, quadData->treeid, 
+                                    quadrant->x+l, quadrant->y+l, xyE);
+
+
+    bool do_refinement = ((xy[0] < y) // to the west of the line
+                        || (xy[0] == 0)) // or on boundary
+                        && (quadrant->level < forestData->max_levels_refinement); // above the limit
+
+    return do_refinement;
 }
 
 int refine_north(p8est_t * p8est, p8est_topidx_t tree, p8est_quadrant_t * quadrant)

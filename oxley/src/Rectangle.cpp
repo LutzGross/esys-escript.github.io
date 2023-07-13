@@ -241,6 +241,7 @@ Rectangle::Rectangle(int order,
     updateElementIds();
     updateFaceOffset();
     updateFaceElementCount();
+    updateQuadrantIDinformation();
     // populateDofMap()
 
     // Tags
@@ -392,6 +393,7 @@ Rectangle::Rectangle(const oxley::Rectangle& R, int order):
     updateElementIds();
     updateFaceOffset();
     updateFaceElementCount();
+updateQuadrantIDinformation();
 
     // Tags
     populateSampleIds();
@@ -1366,6 +1368,7 @@ void Rectangle::loadMesh(std::string filename)
     updateElementIds();
     updateFaceOffset();
     updateFaceElementCount();
+updateQuadrantIDinformation();
 
     // Need to update these now that the mesh has changed
     z_needs_update=true;
@@ -1430,6 +1433,7 @@ void Rectangle::refineMesh(std::string algorithmname)
     updateElementIds();
     updateFaceOffset();
     updateFaceElementCount();
+updateQuadrantIDinformation();
 
     oxleytimer.toc("refineMesh...done");
 }
@@ -1500,6 +1504,7 @@ void Rectangle::refineBoundary(std::string boundaryname, double dx)
     updateElementIds();
     updateFaceOffset();
     updateFaceElementCount();
+updateQuadrantIDinformation();
 
     oxleytimer.toc("refineBoundary...Done");
 }
@@ -1550,6 +1555,7 @@ void Rectangle::refineRegion(double x0, double x1, double y0, double y1)
     updateElementIds();
     updateFaceOffset();
     updateFaceElementCount();
+updateQuadrantIDinformation();
 
     oxleytimer.toc("refineRegion...Done");
 }
@@ -1599,6 +1605,7 @@ void Rectangle::refinePoint(double x0, double y0)
     updateElementIds();
     updateFaceOffset();
     updateFaceElementCount();
+updateQuadrantIDinformation();
 
     oxleytimer.toc("refinePoint...Done");
 }
@@ -1649,6 +1656,7 @@ void Rectangle::refineCircle(double x0, double y0, double r)
     updateElementIds();
     updateFaceOffset();
     updateFaceElementCount();
+updateQuadrantIDinformation();
 
     oxleytimer.toc("refineCircle...Done");
 }
@@ -1696,6 +1704,7 @@ void Rectangle::refineMask(escript::Data mask)
     updateElementIds();
     updateFaceOffset();
     updateFaceElementCount();
+updateQuadrantIDinformation();
 
     oxleytimer.toc("refineCircle...Done");
 }
@@ -1714,6 +1723,9 @@ void Rectangle::updateQuadrantIDinformation()
             p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x, quad->y, xy);
             long nodeid = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
             quadData->nodeid=nodeid;
+            quadData->treeid=treeid;
+            quadData->xy[0]=xy[0];
+            quadData->xy[1]=xy[1];
         }
     }
 }
@@ -3301,134 +3313,134 @@ void Rectangle::updateRowsColumns()
     }
 
     // Hanging Border nodes
-    for(int i = 0; i < hanging_face_orientation.size(); i++)
-    {
-        double xy[3]={0};
+    // for(int i = 0; i < hanging_face_orientation.size(); i++)
+    // {
+    //     double xy[3]={0};
 
-        // Skip if this is not a hanging border node
-        p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, hanging_face_orientation[i].x, hanging_face_orientation[i].y, xy);
-        bool west  = xy[0] == forestData.m_origin[0];
-        bool south = xy[1] == forestData.m_origin[1];
-        bool east  = xy[0] == forestData.m_lxy[0];
-        bool north = xy[1] == forestData.m_lxy[1];
+    //     // Skip if this is not a hanging border node
+    //     p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, hanging_face_orientation[i].x, hanging_face_orientation[i].y, xy);
+    //     bool west  = xy[0] == forestData.m_origin[0];
+    //     bool south = xy[1] == forestData.m_origin[1];
+    //     bool east  = xy[0] == forestData.m_lxy[0];
+    //     bool north = xy[1] == forestData.m_lxy[1];
 
-        bool hangingBorderNode = west || south || east || north;
-        if( !hangingBorderNode )
-            continue;
+    //     bool hangingBorderNode = west || south || east || north;
+    //     if( !hangingBorderNode )
+    //         continue;
 
-        // get nodeid
-        long nodeid = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+    //     // get nodeid
+    //     long nodeid = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
 
-        // get parent quadrant
-        p4est_quadrant_t parent = hanging_face_orientation[i].parent;
+    //     // get parent quadrant
+    //     p4est_quadrant_t parent = hanging_face_orientation[i].parent;
 
-        // get lni0 and lni1 from parent
-        p4est_qcoord_t l = P4EST_QUADRANT_LEN(parent.level);
-        p4est_topidx_t treeid = hanging_face_orientation[i].treeid; //assumption TODO confirm
-        long lni0, lni1, lni2;
-        if(south)
-        {
-            p4est_qcoord_to_vertex(p4est->connectivity, treeid, parent.x, parent.y, xy);
-            lni0 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-            p4est_qcoord_to_vertex(p4est->connectivity, treeid, parent.x+l, parent.y, xy);
-            lni1 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-        }
-        else if(east)
-        {
-            p4est_qcoord_to_vertex(p4est->connectivity, treeid, parent.x+l, parent.y, xy);
-            lni0 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-            p4est_qcoord_to_vertex(p4est->connectivity, treeid, parent.x+l, parent.y+l, xy);
-            lni1 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-        }
-        else if(west)
-        {
-            p4est_qcoord_to_vertex(p4est->connectivity, treeid, parent.x, parent.y, xy);
-            lni0 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-            p4est_qcoord_to_vertex(p4est->connectivity, treeid, parent.x, parent.y+l, xy);
-            lni1 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-        }
-        else if(north)
-        {
-            p4est_qcoord_to_vertex(p4est->connectivity, treeid, parent.x, parent.y+l, xy);
-            lni0 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-            p4est_qcoord_to_vertex(p4est->connectivity, treeid, parent.x+l, parent.y+l, xy);
-            lni1 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-        }
+    //     // get lni0 and lni1 from parent
+    //     p4est_qcoord_t l = P4EST_QUADRANT_LEN(parent.level);
+    //     p4est_topidx_t treeid = hanging_face_orientation[i].treeid; //assumption TODO confirm
+    //     long lni0, lni1, lni2;
+    //     if(south)
+    //     {
+    //         p4est_qcoord_to_vertex(p4est->connectivity, treeid, parent.x, parent.y, xy);
+    //         lni0 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;                       //here
+    //         p4est_qcoord_to_vertex(p4est->connectivity, treeid, parent.x+l, parent.y, xy);
+    //         lni1 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+    //     }
+    //     else if(east)
+    //     {
+    //         p4est_qcoord_to_vertex(p4est->connectivity, treeid, parent.x+l, parent.y, xy);
+    //         lni0 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+    //         p4est_qcoord_to_vertex(p4est->connectivity, treeid, parent.x+l, parent.y+l, xy);
+    //         lni1 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+    //     }
+    //     else if(west)
+    //     {
+    //         p4est_qcoord_to_vertex(p4est->connectivity, treeid, parent.x, parent.y, xy);
+    //         lni0 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+    //         p4est_qcoord_to_vertex(p4est->connectivity, treeid, parent.x, parent.y+l, xy);
+    //         lni1 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+    //     }
+    //     else if(north)
+    //     {
+    //         p4est_qcoord_to_vertex(p4est->connectivity, treeid, parent.x, parent.y+l, xy);
+    //         lni0 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+    //         p4est_qcoord_to_vertex(p4est->connectivity, treeid, parent.x+l, parent.y+l, xy);
+    //         lni1 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+    //     }
 
-        // calculate lni from child quadrant
-        p4est_quadrant_t * child;
-        p4est_quadrant_t child_quad;
-        child = &child_quad;
-        p4est_quadrant_t * pParent;
-        pParent = &parent;
-        p4est_quadrant_child(pParent, child, 0);
-        l = P4EST_QUADRANT_LEN(child->level);
-        p4est_qcoord_to_vertex(p4est->connectivity, treeid, child->x+l, child->y+l, xy);
-        lni2 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
+    //     // calculate lni from child quadrant
+    //     p4est_quadrant_t * child;
+    //     p4est_quadrant_t child_quad;
+    //     child = &child_quad;
+    //     p4est_quadrant_t * pParent;
+    //     pParent = &parent;
+    //     p4est_quadrant_child(pParent, child, 0);
+    //     l = P4EST_QUADRANT_LEN(child->level);
+    //     p4est_qcoord_to_vertex(p4est->connectivity, treeid, child->x+l, child->y+l, xy);
+    //     lni2 = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
 
-        // Initialise vectors
-        std::vector<long> * idx0  = &indices[0][nodeid];
-        std::vector<long> * idx1a = &indices[0][lni0];
-        std::vector<long> * idx1b = &indices[0][lni1];
-        std::vector<long> * idx1c = &indices[0][lni2];
+    //     // Initialise vectors
+    //     std::vector<long> * idx0  = &indices[0][nodeid];
+    //     std::vector<long> * idx1a = &indices[0][lni0];
+    //     std::vector<long> * idx1b = &indices[0][lni1];
+    //     std::vector<long> * idx1c = &indices[0][lni2];
         
-        #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
-            std::cout << "nodeid = " << nodeid << ": " << idx0[0][0] << ", " << idx0[0][1] << ", " << idx0[0][2] << ", " << idx0[0][3] << ", " << idx0[0][4] << std::endl;
-            std::cout << lni0 << ": " << idx1a[0][0] << ", " << idx1a[0][1] << ", " << idx1a[0][2] << ", " << idx1a[0][3] << ", " << idx1a[0][4] << std::endl;
-            std::cout << lni1 << ": " << idx1b[0][0] << ", " << idx1b[0][1] << ", " << idx1b[0][2] << ", " << idx1b[0][3] << ", " << idx1b[0][4] << std::endl;
-            std::cout << lni2 << ": " << idx1c[0][0] << ", " << idx1c[0][1] << ", " << idx1c[0][2] << ", " << idx1c[0][3] << ", " << idx1c[0][4] << std::endl;
-        #endif
+    //     #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
+    //         std::cout << "nodeid = " << nodeid << ": " << idx0[0][0] << ", " << idx0[0][1] << ", " << idx0[0][2] << ", " << idx0[0][3] << ", " << idx0[0][4] << std::endl;
+    //         std::cout << lni0 << ": " << idx1a[0][0] << ", " << idx1a[0][1] << ", " << idx1a[0][2] << ", " << idx1a[0][3] << ", " << idx1a[0][4] << std::endl;
+    //         std::cout << lni1 << ": " << idx1b[0][0] << ", " << idx1b[0][1] << ", " << idx1b[0][2] << ", " << idx1b[0][3] << ", " << idx1b[0][4] << std::endl;
+    //         std::cout << lni2 << ": " << idx1c[0][0] << ", " << idx1c[0][1] << ", " << idx1c[0][2] << ", " << idx1c[0][3] << ", " << idx1c[0][4] << std::endl;
+    //     #endif
 
-        // Remove spurious connections, if they exist
-        for(int i = 1; i < 5; i++)
-        {
-            if(idx1a[0][i]==lni1)
-                idx1a[0][i]=nodeid;
-            if(idx1b[0][i]==lni0)
-                idx1b[0][i]=nodeid;
-        }
+    //     // Remove spurious connections, if they exist
+    //     for(int i = 1; i < 5; i++)
+    //     {
+    //         if(idx1a[0][i]==lni1)
+    //             idx1a[0][i]=nodeid;
+    //         if(idx1b[0][i]==lni0)
+    //             idx1b[0][i]=nodeid;
+    //     }
 
-        // Check to see if these are new connections
-        bool new_connections[3]={true,true,true};
-        for(int i=1;i<5;i++)
-        {
-            if(idx1a[0][i]==nodeid)
-                new_connections[0]=false;
-            if(idx1b[0][i]==nodeid)
-                new_connections[1]=false;
-            if(idx1c[0][i]==nodeid)
-                new_connections[2]=false;
-        }
+    //     // Check to see if these are new connections
+    //     bool new_connections[3]={true,true,true};
+    //     for(int i=1;i<5;i++)
+    //     {
+    //         if(idx1a[0][i]==nodeid)
+    //             new_connections[0]=false;
+    //         if(idx1b[0][i]==nodeid)
+    //             new_connections[1]=false;
+    //         if(idx1c[0][i]==nodeid)
+    //             new_connections[2]=false;
+    //     }
 
-        // If they are new then add them to the vectors
-        if(new_connections[0]==true)
-        {
-            idx1a[0][0]++;
-            ESYS_ASSERT(idx1a[0][0]<=4, "updateRowsColumns index out of bound ");
-            idx1a[0][idx1a[0][0]]=nodeid;
-        }
-        if(new_connections[1]==true)
-        {
-            idx1b[0][0]++;
-            ESYS_ASSERT(idx1b[0][0]<=4, "updateRowsColumns index out of bound ");
-            idx1b[0][idx1b[0][0]]=nodeid;
-        }
-        if(new_connections[2]==true)
-        {
-            idx1c[0][0]++;
-            ESYS_ASSERT(idx1c[0][0]<=4, "updateRowsColumns index out of bound ");
-            idx1c[0][idx1c[0][0]]=nodeid;
-        }
+    //     // If they are new then add them to the vectors
+    //     if(new_connections[0]==true)
+    //     {
+    //         idx1a[0][0]++;
+    //         ESYS_ASSERT(idx1a[0][0]<=4, "updateRowsColumns index out of bound ");
+    //         idx1a[0][idx1a[0][0]]=nodeid;
+    //     }
+    //     if(new_connections[1]==true)
+    //     {
+    //         idx1b[0][0]++;
+    //         ESYS_ASSERT(idx1b[0][0]<=4, "updateRowsColumns index out of bound ");
+    //         idx1b[0][idx1b[0][0]]=nodeid;
+    //     }
+    //     if(new_connections[2]==true)
+    //     {
+    //         idx1c[0][0]++;
+    //         ESYS_ASSERT(idx1c[0][0]<=4, "updateRowsColumns index out of bound ");
+    //         idx1c[0][idx1c[0][0]]=nodeid;
+    //     }
         
-        // Add the hanging node
-        idx0[0][0]=3;
-        idx0[0][1]=lni0;
-        idx0[0][2]=lni1;
-        idx0[0][3]=lni2;
-        idx0[0][4]=-1;
-        hanging_faces.push_back(std::make_pair(nodeid,lni0));
-        hanging_faces.push_back(std::make_pair(nodeid,lni1));
-    }
+    //     // Add the hanging node
+    //     idx0[0][0]=3;
+    //     idx0[0][1]=lni0;
+    //     idx0[0][2]=lni1;
+    //     idx0[0][3]=lni2;
+    //     idx0[0][4]=-1;
+    //     hanging_faces.push_back(std::make_pair(nodeid,lni0));
+    //     hanging_faces.push_back(std::make_pair(nodeid,lni1));
+    // }
 
     // update num_hanging
     num_hanging=hanging_faces.size() / 2; // each hanging node is counted twice in hanging_faces
