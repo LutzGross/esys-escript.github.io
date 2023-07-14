@@ -97,9 +97,9 @@ struct hangingNodeInfo // used by Rectangle
 {
 	p4est_qcoord_t x;
 	p4est_qcoord_t y;
-	int8_t level;
-	p4est_topidx_t treeid;
-	int8_t face_type={-1}; 
+	int8_t level=-1;
+	p4est_topidx_t treeid=-1;
+	int8_t face_type=-1; 
 	
 	p4est_qcoord_t neighbour_x;
 	p4est_qcoord_t neighbour_y;

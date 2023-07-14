@@ -362,7 +362,7 @@ public:
        (cf. p6est_lnodes.h lines 57-116)
     */
     int getHangingBorderNodeFacecode(p4est_quadrant_t * quad, int8_t level, p4est_qcoord_t x, p4est_qcoord_t y, 
-                                 p4est_topidx_t treeid, int n) const;
+                                 p4est_topidx_t treeid, int n, int boundary_code) const;
 
     /**
        \brief
