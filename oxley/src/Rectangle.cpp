@@ -3472,8 +3472,14 @@ void Rectangle::updateRowsColumns()
         idx0[0][2]=lni1;
         idx0[0][3]=lni2;
         idx0[0][4]=-1;
-        hanging_faces.push_back(std::make_pair(nodeid,lni0));
-        hanging_faces.push_back(std::make_pair(nodeid,lni1));
+        std::pair<double,double> pair1=std::make_pair(nodeid,lni0);
+        std::pair<double,double> pair2=std::make_pair(nodeid,lni1);
+        int duplicate_test1=std::count(hanging_faces.begin(),hanging_faces.end(),pair1);
+        int duplicate_test2=std::count(hanging_faces.begin(),hanging_faces.end(),pair2);
+        if(duplicate_test1==0)
+            hanging_faces.push_back(pair1);
+        if(duplicate_test2==0)
+            hanging_faces.push_back(pair2);
     }
 
     // update num_hanging

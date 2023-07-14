@@ -2030,37 +2030,41 @@ void OxleyDomain::makeIZ(bool complex)
         // updateIZ();
         if(complex==true)
         {
-            izcrowMap   = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) t, indexBase, comm));
-            izccolMap   = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) n, indexBase, comm));
+            int numEntries=(n+2*h)*getMPISize();
+            izcrowMap   = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) numEntries, indexBase, comm));
+            izccolMap   = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) numEntries, indexBase, comm));
             izdomainMap = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) n, indexBase, comm));
-            izrangeMap  = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) t, indexBase, comm));;
+            izrangeMap  = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) t, indexBase, comm));
 
-            // Teuchos::RCP<cplx_matrix_type> tcZ (new cplx_matrix_type(izcrowMap, getDim()==2 ? 5 : 7, Tpetra::StaticProfile));
-            Teuchos::RCP<cplx_matrix_type> tcZ (new cplx_matrix_type(izcrowMap, getDim()==2 ? 9 : 21));
+            // Teuchos::RCP<real_matrix_type> trZ (new real_matrix_type(izrrowMap, getDim()==2?5:7, Tpetra::StaticProfile));
+            Teuchos::RCP<real_matrix_type> tcZ (new real_matrix_type(izrrowMap, izrcolMap, getDim()==2 ? 9:21));
             cIZ=tcZ;
-
             cIZ->resumeFill();
 
-            const cplx_t one  = static_cast<cplx_t> (1.0);
-            const cplx_t half = static_cast<cplx_t> (0.5);
+            const real_t one  = static_cast<cplx_t> (1.0);
+            const real_t half = static_cast<cplx_t> (0.5);
+
+            #ifdef OXLEY_ENABLE_DEBUG_IZ_EXTRA
+            int counter=0;
+            #endif
 
             // This is I
-            #pragma omp for
-            for (esys_trilinos::LO lclRow = 0; lclRow < static_cast<esys_trilinos::LO>(n); ++lclRow) 
+            // #pragma omp for
+            for (esys_trilinos::LO lclRow = 0; lclRow < static_cast<esys_trilinos::LO>(n); lclRow++) 
             {
                 const esys_trilinos::GO gblRow = izcrowMap->getGlobalElement(lclRow);
                 const esys_trilinos::GO gblCol = izccolMap->getGlobalElement(lclRow);
                 cIZ->insertGlobalValues(gblRow,
                                     Teuchos::tuple<esys_trilinos::GO>(gblCol),
-                                    Teuchos::tuple<cplx_t> (one));
-                #ifdef OXLEY_PRINT_DEBUG_IZ
-                    std::cout << "IZ I element: (" << gblRow << ", " << gblRow << ") = " << 1.0 << std::endl;
+                                    Teuchos::tuple<real_t> (one));
+                #ifdef OXLEY_ENABLE_DEBUG_IZ_EXTRA
+                    std::cout << counter++ <<  ": IZ element: (" << gblRow << ", " << gblRow << ") = " << 1.0 << std::endl;
                 #endif
             }
 
             // This is Z
-            #pragma omp for
-            for(int i = 0; i < getNumHangingNodes(); i++)
+            // #pragma omp for
+            for(int i = 0; i < (getDim()==2?hanging_faces.size():hanging_edge_node_connections.size()); i++)
             {
                 int a, b;
                 if(getDim()==2)
@@ -2081,28 +2085,34 @@ void OxleyDomain::makeIZ(bool complex)
                         b = hanging_face_node_connections[i-hanging_edge_node_connections.size()].second;   
                     }
                 }
-                int x,y;
-                if(a>=n)
-                {
-                    x=a;
-                    y=b;
-                }
-                else
-                {
-                    x=a;
-                    y=b;
-                }
 
-                #ifdef OXLEY_PRINT_DEBUG_IZ
-                    std::cout << "IZ element: ["<< a << "," << b << "] (" << x << ", " << y << ") = " << 0.5;
+                #ifdef OXLEY_ENABLE_DEBUG_IZ_EXTRA
+                    // std::cout << "connection: " << a << " -- " << b << std::endl;
+                    std::cout << counter++ <<  ": IZ element: (" << a << ", " << b << ") = " << 0.5;
                 #endif
 
-                const esys_trilinos::GO gblRowAz = izcrowMap->getGlobalElement(x);
-                const esys_trilinos::GO gblColBz = izccolMap->getGlobalElement(y);
+                if(b > a)
+                {
+                    #ifdef OXLEY_ENABLE_DEBUG_IZ_EXTRA
+                    // std::cout << "connection: " << a << " -- " << b << std::endl;
+                        std::cout << "switching ... " ;
+                    #endif
+                    int temp = a;
+                    a=b;
+                    b=temp;
+                }
 
-                #ifdef OXLEY_PRINT_DEBUG_IZ
-                    std::cout << "   i.e (" << gblRowAz << ", " << gblColBz << ") = " << 0.5 << std::endl;
+                const esys_trilinos::GO gblRowAz = izcrowMap->getGlobalElement(a);
+                const esys_trilinos::GO gblColBz = izccolMap->getGlobalElement(b);
+
+                #ifdef OXLEY_ENABLE_DEBUG_IZ_EXTRA
+                    std::cout << "  \ti.e (" << gblRowAz << ", " << gblColBz << ") = " << 0.5 << std::endl;
                 #endif
+
+                ESYS_ASSERT(a <= t, "Invalid row index.");
+                ESYS_ASSERT(b <= n, "Invalid column index.");
+
+                //t=18, h=6, n=12
 
                 cIZ->insertGlobalValues(gblRowAz,
                                     Teuchos::tuple<esys_trilinos::GO>(gblColBz),
@@ -2111,27 +2121,46 @@ void OxleyDomain::makeIZ(bool complex)
 
             cIZ->fillComplete(izdomainMap,izrangeMap,params);
             iz_needs_update=false;
+
+            #ifdef OXLEY_ENABLE_DEBUG_IZ
+                std::string descript = rIZ->description();    
+                std::cout << "Final matrix:" << std::endl;
+                std::cout << descript << std::endl;
+
+                std::ostream output ( std::cout.rdbuf() );
+                Teuchos::RCP<Teuchos::FancyOStream> fancy = Teuchos::getFancyOStream(Teuchos::rcp(&output,false));
+                // Teuchos::EVerbosityLevel verbosity = Teuchos::VERB_DEFAULT;
+                // // Teuchos::EVerbosityLevel verbosity = Teuchos::VERB_NONE;
+                // Teuchos::EVerbosityLevel verbosity = Teuchos::VERB_LOW;
+                Teuchos::EVerbosityLevel verbosity = Teuchos::VERB_MEDIUM;
+                // // Teuchos::EVerbosityLevel verbosity = Teuchos::VERB_HIGH;
+                // // Teuchos::EVerbosityLevel verbosity = Teuchos::VERB_EXTREME;
+                cIZ->describe(*fancy, verbosity);
+            #endif
         }
         else
         {
-            int numEntries=t;
+            int numEntries=(n+2*h)*getMPISize();
             izrrowMap   = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) numEntries, indexBase, comm));
             izrcolMap   = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) numEntries, indexBase, comm));
             izdomainMap = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) n, indexBase, comm));
             izrangeMap  = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) t, indexBase, comm));
 
             // Teuchos::RCP<real_matrix_type> trZ (new real_matrix_type(izrrowMap, getDim()==2?5:7, Tpetra::StaticProfile));
-            Teuchos::RCP<real_matrix_type> trZ (new real_matrix_type(izrrowMap, getDim()==2 ? 9:21));
+            Teuchos::RCP<real_matrix_type> trZ (new real_matrix_type(izrrowMap, izrcolMap, getDim()==2 ? 9:21));
             rIZ=trZ;
-
             rIZ->resumeFill();
 
             const real_t one  = static_cast<real_t> (1.0);
             const real_t half = static_cast<real_t> (0.5);
 
+            #ifdef OXLEY_ENABLE_DEBUG_IZ_EXTRA
+            int counter=0;
+            #endif
+
             // This is I
             // #pragma omp for
-            for (esys_trilinos::LO lclRow = 0; lclRow < static_cast<esys_trilinos::LO>(n); ++lclRow) 
+            for (esys_trilinos::LO lclRow = 0; lclRow < static_cast<esys_trilinos::LO>(n); lclRow++) 
             {
                 const esys_trilinos::GO gblRow = izrrowMap->getGlobalElement(lclRow);
                 const esys_trilinos::GO gblCol = izrcolMap->getGlobalElement(lclRow);
@@ -2139,13 +2168,13 @@ void OxleyDomain::makeIZ(bool complex)
                                     Teuchos::tuple<esys_trilinos::GO>(gblCol),
                                     Teuchos::tuple<real_t> (one));
                 #ifdef OXLEY_ENABLE_DEBUG_IZ_EXTRA
-                    std::cout << "iz element: (" << gblRow << ", " << gblRow << ") = " << 1.0 << std::endl;
+                    std::cout << counter++ <<  ": IZ element: (" << gblRow << ", " << gblRow << ") = " << 1.0 << std::endl;
                 #endif
             }
 
             // This is Z
             // #pragma omp for
-            for(int i = 0; i < getNumHangingNodes(); i++)
+            for(int i = 0; i < (getDim()==2?hanging_faces.size():hanging_edge_node_connections.size()); i++)
             {
                 int a, b;
                 if(getDim()==2)
@@ -2166,40 +2195,56 @@ void OxleyDomain::makeIZ(bool complex)
                         b = hanging_face_node_connections[i-hanging_edge_node_connections.size()].second;   
                     }
                 }
-                int x,y;
-                if(a>=n)
-                {
-                    x=a;
-                    y=b;
-                }
-                else
-                {
-                    x=a;
-                    y=b;
-                }
 
                 #ifdef OXLEY_ENABLE_DEBUG_IZ_EXTRA
-                    std::cout << "IZ element: (" << x << ", " << y << ") = " << 0.5;
+                    // std::cout << "connection: " << a << " -- " << b << std::endl;
+                    std::cout << counter++ <<  ": IZ element: (" << a << ", " << b << ") = " << 0.5;
                 #endif
 
-                const esys_trilinos::GO gblRowAz = izrrowMap->getGlobalElement(x);
-                const esys_trilinos::GO gblColBz = izrcolMap->getGlobalElement(y);
+                if(b > a)
+                {
+                    #ifdef OXLEY_ENABLE_DEBUG_IZ_EXTRA
+                    // std::cout << "connection: " << a << " -- " << b << std::endl;
+                        std::cout << "switching ... " ;
+                    #endif
+                    int temp = a;
+                    a=b;
+                    b=temp;
+                }
+
+                const esys_trilinos::GO gblRowAz = izrrowMap->getGlobalElement(a);
+                const esys_trilinos::GO gblColBz = izrcolMap->getGlobalElement(b);
 
                 #ifdef OXLEY_ENABLE_DEBUG_IZ_EXTRA
-                    std::cout << "   i.e (" << gblRowAz << ", " << gblColBz << ") = " << 0.5 << std::endl;
+                    std::cout << "  \ti.e (" << gblRowAz << ", " << gblColBz << ") = " << 0.5 << std::endl;
                 #endif
 
+                ESYS_ASSERT(a <= t, "Invalid row index.");
+                ESYS_ASSERT(b <= n, "Invalid column index.");
                 rIZ->insertGlobalValues(gblRowAz,
                                     Teuchos::tuple<esys_trilinos::GO>(gblColBz),
                                     Teuchos::tuple<real_t> (half));
             }
 
+            // 18x12
+
             rIZ->fillComplete(izdomainMap,izrangeMap,params);
             iz_needs_update=false;
 
             #ifdef OXLEY_ENABLE_DEBUG_IZ
-                std::string descript = rIZ->description();
+                std::string descript = rIZ->description();    
+                std::cout << "Final matrix:" << std::endl;
                 std::cout << descript << std::endl;
+
+                std::ostream output ( std::cout.rdbuf() );
+                Teuchos::RCP<Teuchos::FancyOStream> fancy = Teuchos::getFancyOStream(Teuchos::rcp(&output,false));
+                // Teuchos::EVerbosityLevel verbosity = Teuchos::VERB_DEFAULT;
+                // // Teuchos::EVerbosityLevel verbosity = Teuchos::VERB_NONE;
+                // Teuchos::EVerbosityLevel verbosity = Teuchos::VERB_LOW;
+                Teuchos::EVerbosityLevel verbosity = Teuchos::VERB_MEDIUM;
+                // // Teuchos::EVerbosityLevel verbosity = Teuchos::VERB_HIGH;
+                // // Teuchos::EVerbosityLevel verbosity = Teuchos::VERB_EXTREME;
+                rIZ->describe(*fancy, verbosity);
             #endif
         }
     }
