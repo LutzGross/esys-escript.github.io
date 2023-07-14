@@ -2037,12 +2037,12 @@ void OxleyDomain::makeIZ(bool complex)
             izrangeMap  = Teuchos::rcp ( new Tpetra::Map<>((Tpetra::global_size_t) t, indexBase, comm));
 
             // Teuchos::RCP<real_matrix_type> trZ (new real_matrix_type(izrrowMap, getDim()==2?5:7, Tpetra::StaticProfile));
-            Teuchos::RCP<real_matrix_type> tcZ (new real_matrix_type(izrrowMap, izrcolMap, getDim()==2 ? 9:21));
+            Teuchos::RCP<cplx_matrix_type> tcZ (new cplx_matrix_type(izrrowMap, izrcolMap, getDim()==2 ? 9:21));
             cIZ=tcZ;
             cIZ->resumeFill();
 
-            const real_t one  = static_cast<cplx_t> (1.0);
-            const real_t half = static_cast<cplx_t> (0.5);
+            const cplx_t one  = static_cast<cplx_t> (1.0);
+            const cplx_t half = static_cast<cplx_t> (0.5);
 
             #ifdef OXLEY_ENABLE_DEBUG_IZ_EXTRA
             int counter=0;
@@ -2056,7 +2056,7 @@ void OxleyDomain::makeIZ(bool complex)
                 const esys_trilinos::GO gblCol = izccolMap->getGlobalElement(lclRow);
                 cIZ->insertGlobalValues(gblRow,
                                     Teuchos::tuple<esys_trilinos::GO>(gblCol),
-                                    Teuchos::tuple<real_t> (one));
+                                    Teuchos::tuple<cplx_t> (one));
                 #ifdef OXLEY_ENABLE_DEBUG_IZ_EXTRA
                     std::cout << counter++ <<  ": IZ element: (" << gblRow << ", " << gblRow << ") = " << 1.0 << std::endl;
                 #endif
