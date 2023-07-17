@@ -2081,12 +2081,23 @@ void Rectangle::renumberNodes()
             p4est_quadrant_t * quad = p4est_quadrant_array_index(tquadrants, q);
             p4est_qcoord_t l = P4EST_QUADRANT_LEN(quad->level);
             p4est_qcoord_t lxy[4][2] = {{0,0},{l,0},{0,l},{l,l}};
+
+            int hanging[4] = {0};
+            getHangingNodes(nodes->face_code[k++], hanging); 
             for(int n = 0; n < 4; n++)
             {
                 double xy[3];
                 p4est_qcoord_to_vertex(p4est->connectivity, treeid, quad->x+lxy[n][0], quad->y+lxy[n][1], xy);
+
+                // #ifdef OXLEY_ENABLE_DEBUG_CHECK_HANGING_BORDER_NODE
+                //     std::cout << "(" << xy[0] << ", " << xy[1] << ")" << " <----  skipping" << std::endl;
+                // #endif
+
+                if(hanging[n]==-1)
+                    continue;  
+
                 auto tmp = std::make_pair(xy[0],xy[1]);
-                bool hangingBorder = checkHangingBorderNode(quad, quad->x+lxy[n][0], quad->y+lxy[n][1], treeid, n);
+                bool hangingBorder = checkHangingBorderNode(quad, quad->x+lxy[n][0], quad->y+lxy[n][1], treeid, n); //here
 
                 #ifdef OXLEY_ENABLE_DEBUG_CHECK_HANGING_BORDER_NODE
                     std::cout << "(" << xy[0] << ", " << xy[1] << ")";
@@ -3340,11 +3351,28 @@ void Rectangle::updateRowsColumns()
     // Hanging Border nodes
     for(int i = 0; i < hanging_face_orientation.size(); i++)
     {
-        double xy[3]={0};
+        double xy00[3]={0},xy11[3]={0}, xy[3]={0};
 
         // Skip if this is not a hanging border node
-        p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, hanging_face_orientation[i].x, hanging_face_orientation[i].y, xy);
+        p4est_qcoord_to_vertex(p4est->connectivity, hanging_face_orientation[i].treeid, 
+                                hanging_face_orientation[i].x, hanging_face_orientation[i].y, xy00);
 
+        #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
+            std::cout << "nodeid = " << NodeIDs.find(std::make_pair(xy[0],xy[1]))->second << std::endl;
+        #endif
+
+        // Check if we are on the boundary
+        bool west  = xy00[0] == forestData.m_origin[0];
+        bool south = xy00[1] == forestData.m_origin[1];
+        bool east  = xy00[0] == forestData.m_lxy[0];
+        bool north = xy00[1] == forestData.m_lxy[1];
+
+        bool hangingBorderNode = west || south || east || north;
+        if( !hangingBorderNode )
+            continue;
+
+        long nodeid = NodeIDs.find(std::make_pair(xy00[0],xy00[1]))->second;
+        
         // get parent quadrant
         p4est_quadrant_t parent = hanging_face_orientation[i].parent;
         double xy_parent00[3]={0};
@@ -3353,22 +3381,6 @@ void Rectangle::updateRowsColumns()
         p4est_topidx_t treeid = hanging_face_orientation[i].treeid;
         p4est_qcoord_to_vertex(p4est->connectivity, treeid, parent.x, parent.y, xy_parent00);
         p4est_qcoord_to_vertex(p4est->connectivity, treeid, parent.x+l, parent.y+l, xy_parent11);
-
-        // Check if we are on the boundary
-        bool west  = xy[0] == xy_parent00[0];
-        bool south = xy[1] == xy_parent00[1];
-        bool east  = xy[0] == xy_parent11[0];
-        bool north = xy[1] == xy_parent11[1];
-
-        bool hangingBorderNode = west || south || east || north;
-        if( !hangingBorderNode )
-            continue;
-
-        // get nodeid
-        long nodeid = NodeIDs.find(std::make_pair(xy[0],xy[1]))->second;
-        #ifdef OXLEY_ENABLE_DEBUG_ROWSCOLUMNS_EXTRA
-            std::cout << "nodeid = " << nodeid << std::endl;
-        #endif
 
         // get lni0 and lni1 from parent
         long lni0, lni1, lni2;
