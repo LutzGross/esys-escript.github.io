@@ -1368,7 +1368,7 @@ void Rectangle::loadMesh(std::string filename)
     updateElementIds();
     updateFaceOffset();
     updateFaceElementCount();
-updateQuadrantIDinformation();
+    updateQuadrantIDinformation();
 
     // Need to update these now that the mesh has changed
     z_needs_update=true;
@@ -1382,7 +1382,9 @@ void Rectangle::refineMesh(std::string algorithmname)
     z_needs_update=true;
     iz_needs_update=true;
 
-    // forestData.current_solution = &current_solution;    
+    p4estData * pForestData;
+    pForestData = &forestData;
+    p4est->user_pointer = pForestData;    
     forestData.NodeIDs = &NodeIDs;
 
     if(!algorithmname.compare("uniform"))
