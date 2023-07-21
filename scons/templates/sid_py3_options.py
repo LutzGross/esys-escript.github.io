@@ -20,7 +20,3 @@
 
 from scons.templates.sid_options import *
 
-pythoncmd = 'python3'
-
-boost_libs = boost_py3_libs
-
