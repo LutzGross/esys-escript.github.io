@@ -1005,8 +1005,8 @@ boost::python::numpy::ndarray convertToNumpy(escript::Data data)
     bp::numpy::ndarray dataArray = bp::numpy::zeros(arrayshape, datatype);
 
     // Initialise variables
-    const DataTypes::cplx_t* samplesC;
-    const DataTypes::real_t* samplesR;
+    const DataTypes::cplx_t* samplesC=nullptr;
+    const DataTypes::real_t* samplesR=nullptr;
 
     // This is needed below in getSampleDataRO
     const DataTypes::cplx_t onlycomplex=(0);
