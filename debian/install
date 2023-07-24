@@ -1,0 +1,11 @@
+bin/run-escript /usr/bin
+lib/buildvars /usr/lib
+lib/libdudley.so /usr/lib
+lib/libescriptreader.so /usr/lib
+lib/libescript.so /usr/lib
+lib/libfinley.so /usr/lib
+lib/libpaso.so /usr/lib
+lib/libripley.so /usr/lib
+lib/libspeckley.so /usr/lib
+lib/libweipa.so /usr/lib
+esys/* /usr/lib/python3/dist-packages/esys

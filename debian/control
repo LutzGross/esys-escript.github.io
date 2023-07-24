@@ -1,0 +1,25 @@
+Source: python3-esys-escript
+Section: science
+Priority: optional
+Maintainer: Adam Ellery <a.ellery@uq.edu.au>
+Build-Depends: scons, python3-dev, python3-numpy, python3-scipy, python3-matplotlib, python3-pyproj, python3-sympy, python3-gdal, libboost-all-dev, libnetcdf-dev, libnetcdf-cxx-legacy-dev, libnetcdf-c++4-dev, zip, libsuitesparse-dev, libmumps-dev, libsilo-dev, debhelper
+
+Homepage: https://esys-escript.github.io/
+Package: python3-esys-escript
+Architecture: all
+Depends: scons, python3-dev, python3-numpy, python3-scipy, python3-matplotlib, python3-pyproj, python3-sympy, python3-gdal, libboost-all-dev, libnetcdf-dev, libnetcdf-cxx-legacy-dev, libnetcdf-c++4-dev, zip, libsuitesparse-dev, libmumps-dev, libsilo-dev
+Description: Escript/Finley finite elements Python2 system (with OpenMP)
+ Escript is a programming tool for implementing mathematical models in Python
+ using the finite element method (FEM). Because users do not access the data
+ structures it is very easy to use and scripts can run on desktop computers
+ as well as highly parallel supercomputer without changes. Application areas
+ for escript include earth mantle convection, geophysical inversion,
+ earthquakes, porous media flow, reactive transport, plate subduction, erosion,
+ and tsunamis.
+ .
+ Scripts can be executed in parallel (on varying numbers of threads or nodes)
+ without any special modifications.
+ .
+ Escript now includes the esys.downunder module for 3D inversion of geophysical
+ data sets. The current version supports gravity, magnetic and joint inversion.
+ .

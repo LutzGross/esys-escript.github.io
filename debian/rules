@@ -1,0 +1,39 @@
+#!/usr/bin/make -f
+# See debhelper(7) (uncomment to enable)
+# output every command that modifies files on the build system.
+#export DH_VERBOSE = 1
+
+export PYBUILD_NAME=python3-esys-escript
+
+%:
+	dh $@
+
+
+# If you need to rebuild the Sphinx documentation
+# Add sphinxdoc to the dh --with line
+#
+# And uncomment the following lines
+#override_dh_auto_build: export http_proxy=127.0.0.1:9
+#override_dh_auto_build: export https_proxy=127.0.0.1:9
+#override_dh_auto_build:
+#	dh_auto_build
+#	PYTHONPATH=. python3 -m sphinx -N -bhtml \
+#	docs/ build/html # HTML generator
+#	PYTHONPATH=. python3 -m sphinx -N -bman \
+#	docs/ build/man # Manpage generator
+
+override_dh_auto_build:
+	make
+# 	scons -j`nproc` options_file=scons/templates/sid_options.py
+
+override_dh_clean:
+	rm -rf bin
+	rm -rf build
+	rm -rf lib
+	rm -rf include
+	rm -rf esys
+	rm -rf .sconf_temp/
+	rm -f .sconsign.dblite
+	rm -f config.log
+	rm -f itest.sh
+	rm -f utest.sh
