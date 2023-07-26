@@ -63,6 +63,7 @@ netcdf_flavours = ('no', 'off', 'none', 'False', # Must be last of the false alt
                    'yes', 'on', 'True', '3', # Must be last of the version 3 alternatives
                    '4')
 all_domains = ['dudley','finley','ripley','speckley']
+version_info=['0.0','5','6']
 
 #Note that scons construction vars the the following purposes:
 #  CPPFLAGS -> to the preprocessor
@@ -161,6 +162,7 @@ vars.AddVariables(
   BoolVariable('stdlocationisprefix', 'Set the prefix as escript root in the launcher', False),
   BoolVariable('mpi_no_host', 'Do not specify --host in run-escript launcher (only OPENMPI)', False),
   BoolVariable('insane', 'Instructs scons to not run a sanity check after compilation.', False),
+  EnumVariable('version_information', 'Instructs scons to create symlinks to the library files','0.0',allowed_values=version_info),
   ('trilinos_LO', 'Manually specify the LO used by Trilinos.', ''),
   ('trilinos_GO', 'Manually specify the GO used by Trilinos.', '')
 )
@@ -370,6 +372,8 @@ if env['omp_ldflags'] == 'default': env['omp_ldflags'] = omp_ldflags
 if env['cxx_extra'] != '': env.Append(CXXFLAGS = env['cxx_extra'])
 if env['ld_extra']  != '': env.Append(LINKFLAGS = env['ld_extra'])
 
+if env['version_information'] != '0.0':
+    env['SHLIBVERSION']=env['version_information']
 sonameflags=" -Wl,-soname=$_SHLIBSONAME "
 env.Append(LINKFLAGS = sonameflags)
 
