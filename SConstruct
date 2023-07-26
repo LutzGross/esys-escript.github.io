@@ -370,6 +370,9 @@ if env['omp_ldflags'] == 'default': env['omp_ldflags'] = omp_ldflags
 if env['cxx_extra'] != '': env.Append(CXXFLAGS = env['cxx_extra'])
 if env['ld_extra']  != '': env.Append(LINKFLAGS = env['ld_extra'])
 
+sonameflags=" -Wl,-soname=$_SHLIBSONAME "
+env.Append(LINKFLAGS = sonameflags)
+
 if env['longindices']:
   if env['paso']:
     env.Append(CPPDEFINES = ['ESYS_INDEXTYPE_LONG'])
